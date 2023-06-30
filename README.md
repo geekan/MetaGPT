@@ -129,3 +129,12 @@ If you have any questions or feedback about this project, feel free to reach out
 
 We aim to respond to all inquiries within 2-3 business days.
 
+
+## Demo
+
+| blackjack | adventure-game | 2048 | pomodoro-timer |
+|-----------|-----------|-----------|-----------|
+| ![demo-cli-blackjack](https://github.com/geekan/MetaGPT/assets/2707039/a4769a6a-5f10-49b3-9b30-9a7aee23c331) | ![demo-adventure-game](https://github.com/geekan/MetaGPT/assets/2707039/28636e78-f30f-4aa2-998c-5dc1af94ce9c) | ![demo-py2048](https://github.com/geekan/MetaGPT/assets/2707039/7ca4b6be-87a3-45fe-a182-e15673282617) | ![pomodoro-timer-webpage](https://github.com/geekan/MetaGPT/assets/2707039/37f749ec-f0fa-45b0-a181-5651b3f172f2) |
+
+
+https://github.com/geekan/MetaGPT/assets/2707039/5e8c1062-8c35-440f-bb20-2b0320f8d27d
