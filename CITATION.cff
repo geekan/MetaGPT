@@ -1,0 +1,8 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Chenglin"
+  given-names: "Wu"
+title: "MetaGPT"
+date-released: 2023-06-30
+url: "https://github.com/geekan/MetaGPT"
