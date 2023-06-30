@@ -61,9 +61,8 @@ python startup.py "Write a cli snake game"
 After running the script, you can find your new project in the `workspace/` directory.
 
 ### What's behind? It's a startup fully driven by GPT. You're the investor
-| A software company consists of LLM-based roles (For example only)                       | A software company's SOP visualization (For example only)         |
-|-----------------------------------------------------------------------------------------|-------------------------------------------------------------------|
-| ![A software company consists of LLM-based roles](./resources/software_company_cd.jpeg) | ![A software company's SOP](./resources/software_company_sd.jpeg) |
+
+![A software company consists of LLM-based roles](./resources/software_company_cd.jpeg)
 
 ### Code walkthrough
 

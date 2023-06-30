@@ -61,10 +61,7 @@ python startup.py "写一个命令行贪吃蛇"
 
 ### 背后的运作原理？这是一个完全由 GPT 驱动的创业公司，而您是投资者
 
-| 一个完全由大语言模型角色构成的软件公司（仅示例）                                     | 一个软件公司的SOP可视化（仅示例）                                                |
-|--------------------------------------------------------------|-------------------------------------------------------------------|
-| ![一个完全由大语言模型角色构成的软件公司](./resources/software_company_cd.jpeg) | ![A software company's SOP](./resources/software_company_sd.jpeg) |
-
+![一个完全由大语言模型角色构成的软件公司](./resources/software_company_cd.jpeg)
 
 ### 代码实现
 
@@ -93,10 +90,5 @@ async def startup(idea: str, investment: str = '$3.0', n_round: int = 5):
 我们会在2-3个工作日内回复所有的查询。
 
 ## 演示
-
-| blackjack | adventure-game | 2048 | pomodoro-timer |
-|-----------|-----------|-----------|-----------|
-| ![demo-cli-blackjack](https://github.com/geekan/MetaGPT/assets/2707039/a4769a6a-5f10-49b3-9b30-9a7aee23c331) | ![demo-adventure-game](https://github.com/geekan/MetaGPT/assets/2707039/28636e78-f30f-4aa2-998c-5dc1af94ce9c) | ![demo-py2048](https://github.com/geekan/MetaGPT/assets/2707039/7ca4b6be-87a3-45fe-a182-e15673282617) | ![pomodoro-timer-webpage](https://github.com/geekan/MetaGPT/assets/2707039/37f749ec-f0fa-45b0-a181-5651b3f172f2) |
-
 
 https://github.com/geekan/MetaGPT/assets/2707039/5e8c1062-8c35-440f-bb20-2b0320f8d27d
