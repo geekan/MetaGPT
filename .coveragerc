@@ -1,0 +1,16 @@
+[run]
+omit =
+    */site-packages/* \
+    *\__init__.py 
+[report]
+# Regexes for lines to exclude from consideration
+exclude_lines =
+    """
+    '''
+    pragma: no cover
+    def __repr__
+    if self.debug:
+    raise AssertionError
+    raise NotImplementedError
+    except Exception as e:
+    if __name__ == .__main__.:
