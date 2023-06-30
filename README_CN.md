@@ -2,11 +2,10 @@
 
 [English](./README.md) / [中文](./README_CN.md)
 
-## 目标
+目前，我们已经使 GPT 能够以软件公司的形式工作，协作处理更复杂的任务
 
-1. 目前，我们已经使 GPT 能够以团队的形式工作，协作处理更复杂的任务
-   1. 该团队可以消化**一句话的老板需求**合作并生成**用户故事 / 竞品分析 / 需求 / 数据结构 / APIs / 文件等**
-   2. 该团队包括**产品经理 / 架构师 / 项目经理 / 工程师**，它提供了一个**软件公司**的全过程
+1. 该团队可以消化**一句话的老板需求**合作并生成**用户故事 / 竞品分析 / 需求 / 数据结构 / APIs / 文件等**
+2. 该团队包括**产品经理 / 架构师 / 项目经理 / 工程师**，它提供了一个**软件公司**的全过程
 
 ## 示例（均由 GPT-4 生成）
 
@@ -15,7 +14,7 @@
    1. 生成一个带有分析和设计的示例大约需要**$0.2** (GPT-4 api 的费用)
    2. 生成一个完整项目的示例大约需要**$2.0** (GPT-4 api 的费用)
 
-|             | 设计一个支持 GPT-4 和其他 LLMs 的 MLOps/LLMOps 框架                                                   | 设计一个像今日头条的 RecSys                                                                             | 设计一个搜索算法框架                                                                                         |
+|             | 设计一个支持大语言模型的 MLOps/LLMOps 框架                                                              | 设计一个像今日头条的推荐系统                                                                                | 设计一个搜索算法框架                                                                                         |
 |-------------|-------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------|
 | 竞品分析        | ![LLMOps 竞品分析](resources/workspace/llmops_framework/resources/competitive_analysis.png)   | ![今日头条 Recsys 竞品分析](resources/workspace/content_rec_sys/resources/competitive_analysis.png)   | ![搜索算法框架竞品分析](resources/workspace/search_algorithm_framework/resources/competitive_analysis.png)   |
 | 数据 & API 设计 | ![LLMOps 数据 & API 设计](resources/workspace/llmops_framework/resources/data_api_design.png) | ![今日头条 Recsys 数据 & API 设计](resources/workspace/content_rec_sys/resources/data_api_design.png) | ![搜索算法框架数据 & API 设计](resources/workspace/search_algorithm_framework/resources/data_api_design.png) |
