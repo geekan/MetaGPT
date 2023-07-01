@@ -11,16 +11,11 @@
 
 ## 示例（均由 GPT-4 生成）
 
-1. 这里的每一列都是使用命令 `python startup.py <requirement>` 的要求
-2. 默认情况下，每个示例的投资为三美元，一旦这个金额耗尽，程序就会停止
-   1. 生成一个带有分析和设计的示例大约需要**$0.2** (GPT-4 api 的费用)
-   2. 生成一个完整项目的示例大约需要**$2.0** (GPT-4 api 的费用)
+例如，键入`python startup.py "写个类似今日头条的推荐系统"`并回车，你会获得一系列输出，其一是数据结构与API设计
 
-|             | 设计一个支持大语言模型的 LLMOps 框架                                                              | 设计一个像今日头条的推荐系统                                                                                |
-|-------------|-------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|
-| 竞品分析        | ![LLMOps 竞品分析](resources/workspace/llmops_framework/resources/competitive_analysis.png)   | ![今日头条 Recsys 竞品分析](resources/workspace/content_rec_sys/resources/competitive_analysis.png)   |
-| 数据 & API 设计 | ![LLMOps 数据 & API 设计](resources/workspace/llmops_framework/resources/data_api_design.png) | ![今日头条 Recsys 数据 & API 设计](resources/workspace/content_rec_sys/resources/data_api_design.png) |
-| 序列流程图       | ![LLMOps 序列流程图](resources/workspace/llmops_framework/resources/seq_flow.png)              | ![今日头条 Recsys 序列流程图](resources/workspace/content_rec_sys/resources/seq_flow.png)              |
+![今日头条 Recsys 数据 & API 设计](resources/workspace/content_rec_sys/resources/data_api_design.png)
+
+这需要大约**0.2美元**（GPT-4 API的费用）来生成一个带有分析和设计的示例，大约2.0美元用于一个完整的项目
 
 ## 安装
 
