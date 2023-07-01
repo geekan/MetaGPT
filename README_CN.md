@@ -16,7 +16,7 @@
    1. 生成一个带有分析和设计的示例大约需要**$0.2** (GPT-4 api 的费用)
    2. 生成一个完整项目的示例大约需要**$2.0** (GPT-4 api 的费用)
 
-|             | 设计一个支持大语言模型的 MLOps/LLMOps 框架                                                              | 设计一个像今日头条的推荐系统                                                                                |
+|             | 设计一个支持大语言模型的 LLMOps 框架                                                              | 设计一个像今日头条的推荐系统                                                                                |
 |-------------|-------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|
 | 竞品分析        | ![LLMOps 竞品分析](resources/workspace/llmops_framework/resources/competitive_analysis.png)   | ![今日头条 Recsys 竞品分析](resources/workspace/content_rec_sys/resources/competitive_analysis.png)   |
 | 数据 & API 设计 | ![LLMOps 数据 & API 设计](resources/workspace/llmops_framework/resources/data_api_design.png) | ![今日头条 Recsys 数据 & API 设计](resources/workspace/content_rec_sys/resources/data_api_design.png) |
