@@ -34,9 +34,8 @@ class SoftwareCompany:
         """Hire roles to cooperate"""
         self.environment.add_roles(roles)
 
-    def invest(self, money: str):
+    def invest(self, investment: float):
         """Invest company. raise NoMoneyException when exceed max_budget."""
-        investment = float(money.strip("$"))
         self.investment = investment
         self.config.max_budget = investment
 
