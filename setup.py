@@ -14,7 +14,10 @@ class InstallMermaidCLI(Command):
     user_options = []
 
     def run(self):
-        subprocess.check_call(['npm', 'install', '-g', '@mermaid-js/mermaid-cli'])
+        try:
+            subprocess.check_call(['sudo', 'npm', 'install', '-g', '@mermaid-js/mermaid-cli'])
+        except subprocess.CalledProcessError as e:
+            print(f"Error occurred: {e.output}")
 
 
 here = path.abspath(path.dirname(__file__))
