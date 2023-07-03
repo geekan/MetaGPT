@@ -95,7 +95,7 @@ async def startup(idea: str, investment: str = '$3.0', n_round: int = 5):
 - **邮箱：** alexanderwu@fuzhi.ai
 - **GitHub 问题：** 对于更技术性的问题，您也可以在我们的 [GitHub 仓库](https://github.com/geekan/metagpt/issues) 中创建一个新的问题。
 
-我们会在2-3个工作日内回复所有的查询。
+我们会在2-3个工作日内回复所有问题。
 
 ## 演示
 
