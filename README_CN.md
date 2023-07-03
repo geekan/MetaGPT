@@ -5,7 +5,7 @@
 [![Discord Follow](https://dcbadge.vercel.app/api/server/wCp6Q3fsAk?compact=true&style=flat)](https://discord.gg/wCp6Q3fsAk)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-目前，我们已经使 GPT 能够以软件公司的形式工作，协作处理更复杂的任务
+使 GPT 以软件公司的形式工作，协作处理更复杂的任务
 
 1. 该团队可以消化**一句话的老板需求**合作并生成**用户故事 / 竞品分析 / 需求 / 数据结构 / APIs / 文件等**
 2. 该团队包括**产品经理 / 架构师 / 项目经理 / 工程师**，它提供了一个**软件公司**的全过程
