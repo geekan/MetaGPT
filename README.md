@@ -16,8 +16,9 @@
 <a href="https://twitter.com/DeepWisdom2019"><img src="https://img.shields.io/twitter/follow/MetaGPT?style=social" alt="Twitter Follow"></a>
 </p>
 
-1. 该团队可以消化**一句话的老板需求**合作并生成**用户故事 / 竞品分析 / 需求 / 数据结构 / APIs / 文件等**
-2. 该团队包括**产品经理 / 架构师 / 项目经理 / 工程师**，它提供了一个**软件公司**的全过程
+1. MetaGPT输入**一句话的老板需求**，输出**用户故事 / 竞品分析 / 需求 / 数据结构 / APIs / 文件等**
+2. MetaGPT内部包括**产品经理 / 架构师 / 项目经理 / 工程师**，它提供了一个**软件公司**的全过程与精心调配的SOP
+   1. `Code = SOP(Team)` 是核心哲学。我们将SOP具象化，并且用于LLM构成的团队
 
 ![一个完全由大语言模型角色构成的软件公司](./resources/software_company_cd.jpeg)
 

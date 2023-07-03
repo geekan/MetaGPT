@@ -16,8 +16,9 @@
 <a href="https://twitter.com/DeepWisdom2019"><img src="https://img.shields.io/twitter/follow/MetaGPT?style=social" alt="Twitter Follow"></a>
 </p>
 
-1. The team can handle **Boss's one line Requirement** cooperate and generate **user stories / competetive analysis / requirements / data structures / apis / files etc.**
-2. The team consists of **product manager / architect / project manager / engineer**, it provides the full process of a **software company.**
+1. MetaGPT takes a **single sentence of a boss's requirement** as input and outputs **user stories / competitive analysis / requirements / data structures / APIs / documents, etc.**
+2. Internally, MetaGPT includes **product managers / architects / project managers / engineers.** It provides the entire process of a **software company along with carefully orchestrated SOPs.**
+   1. `Code = SOP(Team)` is the core philosophy. We materialize SOP and apply it to teams composed of LLMs.
 
 ![A software company consists of LLM-based roles](./resources/software_company_cd.jpeg)
 
