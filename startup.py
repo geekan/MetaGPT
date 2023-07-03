@@ -1,10 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/6/24 19:05
-@Author  : alexanderwu
-@File    : startup.py
-"""
 import asyncio
 import fire
 from metagpt.software_company import SoftwareCompany
