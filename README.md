@@ -1,4 +1,4 @@
-# MetaGPT：多角色元编程框架
+# MetaGPT：多智能体元编程框架
 
 <p align="center">
 <a href=""><img src="resources/MetaGPT-logo.jpeg" alt="MetaGPT logo: 使 GPT 以软件公司的形式工作，协作处理更复杂的任务" width="150px"></a>

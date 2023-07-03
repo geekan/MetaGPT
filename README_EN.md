@@ -1,4 +1,4 @@
-# MetaGPT: The Multi-Role Meta Programming Framework
+# MetaGPT: The Multi-Agent Meta Programming Framework
 
 <p align="center">
 <a href=""><img src="resources/MetaGPT-logo.jpeg" alt="MetaGPT logo: Enable GPT to work in software company, collaborating to tackle more complex tasks." width="150px"></a>
