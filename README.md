@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-<b>使 GPT 以软件公司的形式工作，协作处理更复杂的任务</b>
+<b>使 GPTs 组成软件公司，协作处理更复杂的任务</b>
 </p>
 
 <p align="center">

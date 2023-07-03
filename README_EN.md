@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-<b>Enable GPT to work in software company, collaborating to tackle more complex tasks.</b>
+<b>Make GPTs form a software company to collaboratively handle more complex tasks.</b>
 </p>
 
 <p align="center">
