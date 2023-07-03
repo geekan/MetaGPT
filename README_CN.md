@@ -20,11 +20,12 @@
 ## 安装
 
 ```bash
-# 第 1 步：确保您的系统上安装了 Python 3.9+。您可以使用以下命令进行检查：
-python --version
-
-# 第 2 步：确保您的系统上安装了 NPM。您可以使用以下命令进行检查：
+# 第 1 步：确保您的系统上安装了 NPM。并使用npm安装mermaid-js
 npm --version
+sudo npm install -g @mermaid-js/mermaid-cli
+
+# 第 2 步：确保您的系统上安装了 Python 3.9+。您可以使用以下命令进行检查：
+python --version
 
 # 第 3 步：克隆仓库到您的本地机器，并进行安装。
 git clone https://github.com/geekan/metagpt

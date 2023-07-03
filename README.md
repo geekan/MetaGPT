@@ -20,11 +20,12 @@ It requires around **$0.2** (GPT-4 api's costs) to generate one example with ana
 ## Installation
 
 ```bash
-# Step 1: Ensure that Python 3.9+ is installed on your system. You can check this by using:
-python --version
-
-# Step 2: Ensure that NPM is installed on your system. You can check this by using:
+# Step 1: Ensure that NPM is installed on your system. Then install mermaid-js.
 npm --version
+sudo npm install -g @mermaid-js/mermaid-cli
+
+# Step 2: Ensure that Python 3.9+ is installed on your system. You can check this by using:
+python --version
 
 # Step 3: Clone the repository to your local machine, and install it.
 git clone https://github.com/geekan/metagpt
