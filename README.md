@@ -2,6 +2,9 @@
 
 [English](./README.md) / [中文](./README_CN.md)
 
+[![Discord Follow](https://dcbadge.vercel.app/api/server/wCp6Q3fsAk?compact=true&style=flat)](https://discord.gg/wCp6Q3fsAk)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 Currently, we have managed to enable GPT to work in software company, collaborating to tackle more complex tasks.
 
 1. The team can handle **Boss's one line Requirement** cooperate and generate **user stories / competetive analysis / requirements / data structures / apis / files etc.**

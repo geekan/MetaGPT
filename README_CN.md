@@ -2,6 +2,9 @@
 
 [English](./README.md) / [中文](./README_CN.md)
 
+[![Discord Follow](https://dcbadge.vercel.app/api/server/wCp6Q3fsAk?compact=true&style=flat)](https://discord.gg/wCp6Q3fsAk)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 目前，我们已经使 GPT 能够以软件公司的形式工作，协作处理更复杂的任务
 
 1. 该团队可以消化**一句话的老板需求**合作并生成**用户故事 / 竞品分析 / 需求 / 数据结构 / APIs / 文件等**
@@ -85,3 +88,9 @@ async def startup(idea: str, investment: str = '$3.0', n_round: int = 5):
 ## 演示
 
 https://github.com/geekan/MetaGPT/assets/2707039/5e8c1062-8c35-440f-bb20-2b0320f8d27d
+
+## 加入微信讨论群
+
+[//]: # (![MetaGPT WeChat Discuss Group]&#40;./resources/MetaGPT-WeChat-Group.jpeg&#41;{:height="50%" width="50%"})
+<img src="./resources/MetaGPT-WeChat-Group-Simple.png" width = "30%" height = "30%" alt="MetaGPT WeChat Discuss Group" align=center />
+
