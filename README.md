@@ -103,6 +103,9 @@ https://github.com/geekan/MetaGPT/assets/2707039/5e8c1062-8c35-440f-bb20-2b0320f
 
 ## 加入微信讨论群
 
+- 群已满，加人进群
+
 [//]: # (![MetaGPT WeChat Discuss Group]&#40;./resources/MetaGPT-WeChat-Group.jpeg&#41;{:height="50%" width="50%"})
-<img src="./resources/MetaGPT-WeChat-Group-Simple.png" width = "30%" height = "30%" alt="MetaGPT WeChat Discuss Group" align=center />
+<img src="./resources/MetaGPT-WeChat-Personal.jpeg" width = "30%" height = "30%" alt="MetaGPT WeChat Discuss Group" align=center />
+
 
