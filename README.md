@@ -1,11 +1,20 @@
 # MetaGPT: The Multi-Role Meta Programming Framework
 
-[English](./README.md) / [中文](./README_CN.md)
+<p align="center">
+<a href=""><img src="resources/MetaGPT-logo.jpeg" alt="MetaGPT logo: Enable GPT to work in software company, collaborating to tackle more complex tasks." width="150px"></a>
+</p>
 
-[![Discord Follow](https://dcbadge.vercel.app/api/server/wCp6Q3fsAk?compact=true&style=flat)](https://discord.gg/wCp6Q3fsAk)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+<p align="center">
+<b>Enable GPT to work in software company, collaborating to tackle more complex tasks.</b>
+</p>
 
-Enable GPT to work in software company, collaborating to tackle more complex tasks.
+<p align="center">
+<a href="README_CN.md"><img src="https://img.shields.io/badge/文档-中文版-blue.svg" alt="CN doc"></a>
+<a href="README.md"><img src="https://img.shields.io/badge/document-English-blue.svg" alt="EN doc"></a>
+<a href="https://discord.gg/wCp6Q3fsAk"><img src="https://dcbadge.vercel.app/api/server/wCp6Q3fsAk?compact=true&style=flat" alt="Discord Follow"></a>
+<a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
+<a href="https://twitter.com/DeepWisdom2019"><img src="https://img.shields.io/twitter/follow/MetaGPT?style=social" alt="Twitter Follow"></a>
+</p>
 
 1. The team can handle **Boss's one line Requirement** cooperate and generate **user stories / competetive analysis / requirements / data structures / apis / files etc.**
 2. The team consists of **product manager / architect / project manager / engineer**, it provides the full process of a **software company.**

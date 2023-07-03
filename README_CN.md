@@ -1,11 +1,20 @@
 # MetaGPT：多角色元编程框架
 
-[English](./README.md) / [中文](./README_CN.md)
+<p align="center">
+<a href=""><img src="resources/MetaGPT-logo.jpeg" alt="MetaGPT logo: 使 GPT 以软件公司的形式工作，协作处理更复杂的任务" width="150px"></a>
+</p>
 
-[![Discord Follow](https://dcbadge.vercel.app/api/server/wCp6Q3fsAk?compact=true&style=flat)](https://discord.gg/wCp6Q3fsAk)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+<p align="center">
+<b>使 GPT 以软件公司的形式工作，协作处理更复杂的任务</b>
+</p>
 
-使 GPT 以软件公司的形式工作，协作处理更复杂的任务
+<p align="center">
+<a href="README_CN.md"><img src="https://img.shields.io/badge/文档-中文版-blue.svg" alt="CN doc"></a>
+<a href="README.md"><img src="https://img.shields.io/badge/document-English-blue.svg" alt="EN doc"></a>
+<a href="https://discord.gg/wCp6Q3fsAk"><img src="https://dcbadge.vercel.app/api/server/wCp6Q3fsAk?compact=true&style=flat" alt="Discord Follow"></a>
+<a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
+<a href="https://twitter.com/DeepWisdom2019"><img src="https://img.shields.io/twitter/follow/MetaGPT?style=social" alt="Twitter Follow"></a>
+</p>
 
 1. 该团队可以消化**一句话的老板需求**合作并生成**用户故事 / 竞品分析 / 需求 / 数据结构 / APIs / 文件等**
 2. 该团队包括**产品经理 / 架构师 / 项目经理 / 工程师**，它提供了一个**软件公司**的全过程
