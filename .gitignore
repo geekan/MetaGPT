@@ -161,3 +161,4 @@ examples/nb/
 workspace/*
 *.mmd
 tmp
+output.wav

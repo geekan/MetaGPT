@@ -17,8 +17,8 @@ class AzureTTS(Action):
 
     # 参数参考：https://learn.microsoft.com/zh-cn/azure/cognitive-services/speech-service/language-support?tabs=tts#voice-styles-and-roles
     def synthesize_speech(self, lang, voice, role, text, output_file):
-        subscription_key = self.config.get('SUBSCRIPTION_KEY')
-        region = self.config.get('REGION')
+        subscription_key = self.config.get('AZURE_TTS_SUBSCRIPTION_KEY')
+        region = self.config.get('AZURE_TTS_REGION')
         speech_config = SpeechConfig(
             subscription=subscription_key, region=region)
 
