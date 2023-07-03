@@ -21,6 +21,8 @@
 
 ![一个完全由大语言模型角色构成的软件公司](./resources/software_company_cd.jpeg)
 
+<p align="center">软件公司多角色示意图（正在逐步实现）</p>
+
 ## 示例（均由 GPT-4 生成）
 
 例如，键入`python startup.py "写个类似今日头条的推荐系统"`并回车，你会获得一系列输出，其一是数据结构与API设计
