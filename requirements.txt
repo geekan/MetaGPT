@@ -15,7 +15,6 @@ numexpr
 google-search-results
 langchain
 faiss-cpu
-pylcs
 tiktoken
 pytest-xdist
 socksipy-branch
