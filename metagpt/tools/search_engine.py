@@ -15,7 +15,7 @@ from duckduckgo_search import ddg
 from metagpt.config import Config
 from metagpt.tools.search_engine_serpapi import SerpAPIWrapper
 
-config = Config()
+config: Config = Config()
 from metagpt.tools import SearchEngineType
 
 
