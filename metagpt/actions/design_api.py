@@ -12,7 +12,7 @@ from metagpt.actions import Action
 from metagpt.const import WORKSPACE_ROOT
 from metagpt.utils.common import CodeParser
 from metagpt.schema import Message
-from metagpt.utils.common import mermaid_to_file
+from metagpt.utils.mermaid import mermaid_to_file
 
 PROMPT_TEMPLATE = """
 # Context
