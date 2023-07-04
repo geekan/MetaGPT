@@ -77,7 +77,7 @@ python startup.py "写一个命令行贪吃蛇"
 from metagpt.software_company import SoftwareCompany
 from metagpt.roles import ProjectManager, ProductManager, Architect, Engineer
 
-async def startup(idea: str, investment: str = '$3.0', n_round: int = 5):
+async def startup(idea: str, investment: float = 3.0, n_round: int = 5):
     """运行一个创业公司。做一个老板"""
     company = SoftwareCompany()
     company.hire([ProductManager(), Architect(), ProjectManager(), Engineer()])

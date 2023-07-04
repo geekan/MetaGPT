@@ -77,7 +77,7 @@ After running the script, you can find your new project in the `workspace/` dire
 from metagpt.software_company import SoftwareCompany
 from metagpt.roles import ProjectManager, ProductManager, Architect, Engineer
 
-async def startup(idea: str, investment: str = '$3.0', n_round: int = 5):
+async def startup(idea: str, investment: float = 3.0, n_round: int = 5):
     """Run a startup. Be a boss."""
     company = SoftwareCompany()
     company.hire([ProductManager(), Architect(), ProjectManager(), Engineer()])
