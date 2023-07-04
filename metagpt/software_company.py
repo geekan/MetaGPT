@@ -5,16 +5,12 @@
 @Author  : alexanderwu
 @File    : software_company.py
 """
-import asyncio
-
-import fire
 
 from metagpt.config import Config
 from metagpt.actions import BossRequirement
 from metagpt.logs import logger
 from metagpt.environment import Environment
 from metagpt.roles import ProductManager, Architect, Engineer, QaEngineer, ProjectManager, Role
-from metagpt.manager import Manager
 from metagpt.schema import Message
 from metagpt.utils.common import NoMoneyException
 

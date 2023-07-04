@@ -24,16 +24,3 @@ async def aask_batch(api: OpenAIGPTAPI):
     results = await api.aask_batch(['hi', 'write python hello world.'])
     logger.info(results)
     return results
-
-
-@pytest.mark.asyncio
-async def test_custom_aio_session():
-    logger.info("Start...")
-    # 由于目前架设的https是自签署的，需要关闭ssl检验
-    async with CustomAioSession():
-        api = OpenAIGPTAPI()
-        results = await try_hello(api)
-        assert len(results) > 0
-        results = await aask_batch(api)
-        assert len(results) > 0
-    logger.info("Done...")

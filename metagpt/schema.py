@@ -7,12 +7,11 @@
 """
 from __future__ import annotations
 from dataclasses import dataclass, field
-from typing import Optional, Type, TypedDict
+from typing import Type, TypedDict
 
 from metagpt.logs import logger
 # from pydantic import BaseModel
 
-# from metagpt.actions import Action
 
 
 class RawMessage(TypedDict):
