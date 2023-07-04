@@ -5,6 +5,7 @@
 @Author  : alexanderwu
 @File    : common.py
 """
+import os
 import re
 import ast
 import subprocess
@@ -13,6 +14,16 @@ from pathlib import Path
 
 from metagpt.const import PROJECT_ROOT, TMP
 from metagpt.logs import logger
+
+
+def check_cmd_exists(command) -> int:
+    """ 检查命令是否存在
+    :param command: 待检查的命令
+    :return: 如果命令存在，返回0，如果不存在，返回非0
+    """
+    check_command = 'command -v ' + command + ' >/dev/null 2>&1 || { echo >&2 "no mermaid"; exit 1; }'
+    result = os.system(check_command)
+    return result
 
 
 class CodeParser:
@@ -113,74 +124,3 @@ def print_members(module, indent=0):
             print(f'{prefix}Function: {name}')
         elif inspect.ismethod(obj):
             print(f'{prefix}Method: {name}')
-
-
-def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, height=2048):
-    """suffix: png/svg/pdf"""
-    # Write the Mermaid code to a temporary file
-    tmp = Path(f'{output_file_without_suffix}.mmd')
-    logger.info(tmp)
-    logger.info(str(tmp))
-    tmp.write_text(mermaid_code)
-
-    for suffix in ['pdf', 'svg', 'png']:
-        output_file = f'{output_file_without_suffix}.{suffix}'
-        # Call the `mmdc` command to convert the Mermaid code to a PNG
-        subprocess.run(['mmdc', '-i', str(tmp), '-o', output_file, '-w', str(width), '-H', str(height)])
-
-
-MMC1 = """classDiagram
-    class Main {
-        -SearchEngine search_engine
-        +main() str
-    }
-    class SearchEngine {
-        -Index index
-        -Ranking ranking
-        -Summary summary
-        +search(query: str) str
-    }
-    class Index {
-        -KnowledgeBase knowledge_base
-        +create_index(data: dict)
-        +query_index(query: str) list
-    }
-    class Ranking {
-        +rank_results(results: list) list
-    }
-    class Summary {
-        +summarize_results(results: list) str
-    }
-    class KnowledgeBase {
-        +update(data: dict)
-        +fetch_data(query: str) dict
-    }
-    Main --> SearchEngine
-    SearchEngine --> Index
-    SearchEngine --> Ranking
-    SearchEngine --> Summary
-    Index --> KnowledgeBase"""
-
-MMC2 = """sequenceDiagram
-    participant M as Main
-    participant SE as SearchEngine
-    participant I as Index
-    participant R as Ranking
-    participant S as Summary
-    participant KB as KnowledgeBase
-    M->>SE: search(query)
-    SE->>I: query_index(query)
-    I->>KB: fetch_data(query)
-    KB-->>I: return data
-    I-->>SE: return results
-    SE->>R: rank_results(results)
-    R-->>SE: return ranked_results
-    SE->>S: summarize_results(ranked_results)
-    S-->>SE: return summary
-    SE-->>M: return summary"""
-
-
-if __name__ == '__main__':
-    # logger.info(print_members(print_members))
-    mermaid_to_file(MMC1, PROJECT_ROOT / 'tmp/1.png')
-    mermaid_to_file(MMC2, PROJECT_ROOT / 'tmp/2.png')

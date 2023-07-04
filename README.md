@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-<b>Make GPTs form a software company to collaboratively handle more complex tasks.</b>
+<b>Assign different roles to GPTs to form a collaborative software entity for complex tasks.</b>
 </p>
 
 <p align="center">
