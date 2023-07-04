@@ -30,7 +30,7 @@ class SerpAPIWrapper(BaseModel):
             "hl": "en",
         }
     )
-    config = Config()
+    config: Config = Config()
     serpapi_api_key: Optional[str] = config.serpapi_api_key
     aiosession: Optional[aiohttp.ClientSession] = None
 
