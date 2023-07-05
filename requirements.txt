@@ -1,10 +1,8 @@
 python-docx==0.8.11
-loguru==0.5.3
+loguru
 openai
 pyperclip==1.8.2
 pytest==7.2.2
-python_docx==0.8.11
-selenium==4.8.2
 quart
 aiohttp
 gunicorn
@@ -27,3 +25,6 @@ chromadb
 openpyxl
 unstructured[local-inference]
 fire
+regex
+pydantic
+pybind11
