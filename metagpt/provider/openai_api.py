@@ -145,6 +145,31 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             openai.api_version = config.openai_api_version
         self.rpm = int(config.get("RPM", 10))
 
+    async def _achat_completion_stream(self, messages: list[dict]) -> str:
+        response = await openai.ChatCompletion.acreate(
+            model=self.model,
+            messages=messages,
+            max_tokens=self.config.max_tokens_rsp,
+            n=1,
+            stop=None,
+            temperature=0,
+            stream=True
+        )
+
+        # create variables to collect the stream of chunks
+        collected_chunks = []
+        collected_messages = []
+        # iterate through the stream of events
+        async for chunk in response:
+            collected_chunks.append(chunk)  # save the event response
+            chunk_message = chunk['choices'][0]['delta']  # extract the message
+            collected_messages.append(chunk_message)  # save the message
+            if "content" in chunk_message:
+                print(chunk_message["content"], end="")
+
+        full_reply_content = ''.join([m.get('content', '') for m in collected_messages])
+        return full_reply_content
+
     async def _achat_completion(self, messages: list[dict]) -> dict:
         rsp = await self.llm.ChatCompletion.acreate(
             model=self.model,
@@ -180,7 +205,9 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         #     messages = self.messages_to_dict(messages)
         return await self._achat_completion(messages)
 
-    async def acompletion_text(self, messages: list[dict]) -> str:
+    async def acompletion_text(self, messages: list[dict], stream=False) -> str:
+        if stream:
+            return await self._achat_completion_stream(messages)
         rsp = await self._achat_completion(messages)
         return self.get_choice_text(rsp)
 
