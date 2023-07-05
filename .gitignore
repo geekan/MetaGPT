@@ -150,7 +150,7 @@ allure-results
 
 
 *.txt
-scripts/set_env.sh
+docs/scripts/set_env.sh
 key.yaml
 output.json
 data/output_add.json
