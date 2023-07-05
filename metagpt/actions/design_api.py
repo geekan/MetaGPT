@@ -19,7 +19,7 @@ PROMPT_TEMPLATE = """
 {context}
 -----
 Role: You are an architect; the goal is to design a SOTA PEP8-compliant python system; make the best use of good open source tools
-Requirement: Fill in the following missing information based on the context, note that all sections are response with code form seperatedly
+Requirement: Fill in the following missing information based on the context, note that all sections are response with code form separately
 Max Output: 8192 chars or 2048 tokens. Try to use them up.
 Attention: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD WRITE BEFORE the code and triple quote.
 
