@@ -13,7 +13,7 @@ from metagpt.logs import logger
 
 
 class BaseGPTAPI(BaseChatbot):
-    """GPT API抽象类，要求所有继承者提供一系列标准能力"""
+    """GPT API abstract class, requiring all inheritors to provide a series of standard capabilities"""
     system_prompt = 'You are a helpful assistant.'
 
     def _user_msg(self, msg: str) -> dict[str, str]:
