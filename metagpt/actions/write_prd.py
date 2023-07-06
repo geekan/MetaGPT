@@ -68,8 +68,9 @@ class WritePRD(Action):
         sas = SearchAndSummarize()
         rsp = await sas.run(context=requirements, system_text=SEARCH_AND_SUMMARIZE_SYSTEM_EN_US)
         info = f"### Search Results\n{sas.result}\n\n### Search Summary\n{rsp}"
-        logger.info(sas.result)
-        logger.info(rsp)
+        if sas.result:
+            logger.info(sas.result)
+            logger.info(rsp)
 
         prompt = PROMPT_TEMPLATE.format(requirements=requirements, search_information=info)
         prd = await self._aask(prompt)

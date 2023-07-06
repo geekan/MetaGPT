@@ -150,8 +150,9 @@ class Role:
         # prompt += ROLE_TEMPLATE.format(name=self.profile, state=self.states[self.state], result=response,
         #                                history=self.history)
 
+        logger.info(f"{self._setting}: ready to {self._rc.todo}")
         response = await self._rc.todo.run(self._rc.important_memory)
-        logger.info(response)
+        # logger.info(response)
         msg = Message(content=response, role=self.profile, cause_by=type(self._rc.todo))
         self._rc.memory.add(msg)
         # logger.debug(f"{response}")

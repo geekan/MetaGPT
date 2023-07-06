@@ -41,8 +41,8 @@ class WriteCode(Action):
         return any(i in filename for i in ["mp3", "wav"])
 
     def _save(self, context, filename, code_rsp):
-        logger.info(filename)
-        logger.info(code_rsp)
+        # logger.info(filename)
+        # logger.info(code_rsp)
         if self._is_invalid(filename):
             return
 
@@ -55,9 +55,13 @@ class WriteCode(Action):
         code_path.parent.mkdir(parents=True, exist_ok=True)
         code = CodeParser.parse_code(block="", text=code_rsp)
         code_path.write_text(code)
+        logger.info(f"Saving Code to {code_path}")
 
     async def run(self, **kwargs):
         prompt = PROMPT_TEMPLATE.format(**kwargs)
+        filename = kwargs['filename']
+        context = kwargs['context']
+        logger.info(f'Writing {filename}..')
         code_rsp = await self._aask(prompt)
-        self._save(kwargs['context'], kwargs['filename'], code_rsp)
+        self._save(context, filename, code_rsp)
         return code_rsp

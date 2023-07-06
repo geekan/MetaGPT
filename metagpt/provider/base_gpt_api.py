@@ -41,10 +41,10 @@ class BaseGPTAPI(BaseChatbot):
             message = self._system_msgs(system_msgs) + [self._user_msg(msg)]
         else:
             message = [self._default_system_msg(), self._user_msg(msg)]
-        rsp = await self.acompletion(message)
+        rsp = await self.acompletion_text(message, stream=True)
         logger.debug(message)
         # logger.debug(rsp)
-        return self.get_choice_text(rsp)
+        return rsp
 
     def _extract_assistant_rsp(self, context):
         return "\n".join([i["content"] for i in context if i["role"] == "assistant"])
@@ -58,14 +58,14 @@ class BaseGPTAPI(BaseChatbot):
             rsp_text = self.get_choice_text(rsp)
             context.append(self._assistant_msg(rsp_text))
         return self._extract_assistant_rsp(context)
+
     async def aask_batch(self, msgs: list) -> str:
         """Sequential questioning"""
         context = []
         for msg in msgs:
             umsg = self._user_msg(msg)
             context.append(umsg)
-            rsp = await self.acompletion(context)
-            rsp_text = self.get_choice_text(rsp)
+            rsp_text = await self.acompletion_text(context)
             context.append(self._assistant_msg(rsp_text))
         return self._extract_assistant_rsp(context)
 
@@ -99,6 +99,10 @@ class BaseGPTAPI(BaseChatbot):
             # {"role": "assistant", "content": ...}, # If there is an answer in the history, also include it
         ]
         """
+
+    @abstractmethod
+    async def acompletion_text(self, messages: list[dict], stream=False) -> str:
+        """Asynchronous version of completion. Return str. Support stream-print"""
 
     def get_choice_text(self, rsp: dict) -> str:
         """Required to provide the first text of choice"""

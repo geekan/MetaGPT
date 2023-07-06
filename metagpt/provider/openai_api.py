@@ -166,6 +166,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             collected_messages.append(chunk_message)  # save the message
             if "content" in chunk_message:
                 print(chunk_message["content"], end="")
+        print()
 
         full_reply_content = ''.join([m.get('content', '') for m in collected_messages])
         return full_reply_content
@@ -206,6 +207,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         return await self._achat_completion(messages)
 
     async def acompletion_text(self, messages: list[dict], stream=False) -> str:
+        """when streaming, print each token in place."""
         if stream:
             return await self._achat_completion_stream(messages)
         rsp = await self._achat_completion(messages)

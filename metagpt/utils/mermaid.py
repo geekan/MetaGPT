@@ -24,8 +24,6 @@ def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, height
     """
     # Write the Mermaid code to a temporary file
     tmp = Path(f'{output_file_without_suffix}.mmd')
-    logger.info(tmp)
-    logger.info(str(tmp))
     tmp.write_text(mermaid_code, encoding='utf-8')
 
     if check_cmd_exists('mmdc') != 0:
@@ -35,6 +33,7 @@ def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, height
     for suffix in ['pdf', 'svg', 'png']:
         output_file = f'{output_file_without_suffix}.{suffix}'
         # Call the `mmdc` command to convert the Mermaid code to a PNG
+        logger.info(f"Generating {output_file}..")
         subprocess.run(['mmdc', '-i', str(tmp), '-o', output_file, '-w', str(width), '-H', str(height)])
     return 0
 

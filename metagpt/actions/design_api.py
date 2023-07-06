@@ -12,6 +12,7 @@ from metagpt.actions import Action
 from metagpt.const import WORKSPACE_ROOT
 from metagpt.utils.common import CodeParser
 from metagpt.schema import Message
+from metagpt.logs import logger
 from metagpt.utils.mermaid import mermaid_to_file
 
 PROMPT_TEMPLATE = """
@@ -56,6 +57,7 @@ class WriteDesign(Action):
         prd_file = docs_path / 'prd.md'
         quadrant_chart = CodeParser.parse_code(block="Competitive Quadrant Chart", text=prd)
         mermaid_to_file(quadrant_chart, resources_path / 'competitive_analysis')
+        logger.info(f"Saving PRD to {prd_file}")
         prd_file.write_text(prd)
 
     def _save_system_design(self, docs_path, resources_path, system_design):
@@ -64,6 +66,7 @@ class WriteDesign(Action):
         mermaid_to_file(data_api_design, resources_path / 'data_api_design')
         mermaid_to_file(seq_flow, resources_path / 'seq_flow')
         system_design_file = docs_path / 'system_design.md'
+        logger.info(f"Saving System Designs to {system_design_file}")
         system_design_file.write_text(system_design)
 
     def _save(self, context, system_design):
