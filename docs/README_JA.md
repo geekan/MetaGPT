@@ -1,7 +1,7 @@
 # MetaGPT: マルチエージェントメタプログラミングフレームワーク
 
 <p align="center">
-<a href=""><img src="docs/resources/MetaGPT-logo.jpeg" alt="MetaGPT ロゴ: GPT がソフトウェア会社で働けるようにし、協力してより複雑な仕事に取り組む。" width="150px"></a>
+<a href=""><img src="resources/MetaGPT-logo.jpeg" alt="MetaGPT ロゴ: GPT がソフトウェア会社で働けるようにし、協力してより複雑な仕事に取り組む。" width="150px"></a>
 </p>
 
 <p align="center">
@@ -15,7 +15,7 @@
 <a href="https://discord.gg/wCp6Q3fsAk"><img src="https://dcbadge.vercel.app/api/server/wCp6Q3fsAk?compact=true&style=flat" alt="Discord Follow"></a>
 <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
 <a href="docs/ROADMAP.md"><img src="https://img.shields.io/badge/ROADMAP-路线图-blue" alt="roadmap"></a>
-<a href="docs/resources/MetaGPT-WeChat-Personal.jpeg"><img src="https://img.shields.io/badge/WeChat-微信-blue" alt="roadmap"></a>
+<a href="resources/MetaGPT-WeChat-Personal.jpeg"><img src="https://img.shields.io/badge/WeChat-微信-blue" alt="roadmap"></a>
 <a href="https://twitter.com/DeepWisdom2019"><img src="https://img.shields.io/twitter/follow/MetaGPT?style=social" alt="Twitter Follow"></a>
 </p>
 
@@ -23,15 +23,15 @@
 2. MetaGPT には、**プロダクト マネージャー、アーキテクト、プロジェクト マネージャー、エンジニア** が含まれています。MetaGPT は、**ソフトウェア会社のプロセス全体を、慎重に調整された SOP とともに提供します。**
    1. `Code = SOP(Team)` が基本理念です。私たちは SOP を具体化し、LLM で構成されるチームに適用します。
 
-![A software company consists of LLM-based roles](docs/resources/software_company_cd.jpeg)
+![ソフトウェア会社は LLM ベースの役割で構成されている](resources/software_company_cd.jpeg)
 
 <p align="center">ソフトウェア会社のマルチロール図式（順次導入）</p>
 
 ## 例（GPT-4 で完全生成）
 
-例えば、`python startup.py "Design a RecSys like Toutiao"` と入力すると、多くの出力が得られます
+例えば、`python startup.py "Toutiao のような RecSys をデザインする"`と入力すると、多くの出力が得られます
 
-![Jinri Toutiao Recsys Data & API Design](docs/resources/workspace/content_rec_sys/resources/data_api_design.png)
+![Jinri Toutiao Recsys データと API デザイン](resources/workspace/content_rec_sys/resources/data_api_design.png)
 
 解析と設計を含む 1 つの例を生成するのに、**$0.2** （GPT-4 の api のコスト）程度、完全なプロジェクトには **$2.0** 程度が必要です。
 
