@@ -200,12 +200,12 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         #     messages = self.messages_to_dict(messages)
         return self._chat_completion(messages)
 
-    @retry(max_retries=6)
     async def acompletion(self, messages: list[dict]) -> dict:
         # if isinstance(messages[0], Message):
         #     messages = self.messages_to_dict(messages)
         return await self._achat_completion(messages)
 
+    @retry(max_retries=6)
     async def acompletion_text(self, messages: list[dict], stream=False) -> str:
         """when streaming, print each token in place."""
         if stream:
