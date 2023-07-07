@@ -1,7 +1,8 @@
 
-#### if OpenAI
-# Do not modify here, create a new key.yaml, define OPENAI_API_KEY.
+# DO NOT MODIFY THIS FILE, create a new key.yaml, define OPENAI_API_KEY.
 # The configuration of key.yaml has a higher priority and will not enter git
+
+#### if OpenAI
 
 OPENAI_API_KEY: "YOUR_API_KEY"
 #OPENAI_API_BASE: "YOUR_API_BASE"
@@ -21,7 +22,6 @@ RPM: 10
 
 ## Visit https://serpapi.com/ to get key.
 #SERPAPI_API_KEY: "YOUR_API_KEY"
-#
 ## Visit https://console.cloud.google.com/apis/credentials to get key.
 #GOOGLE_API_KEY: "YOUR_API_KEY"
 ## Visit https://programmablesearchengine.google.com/controlpanel/create to get id.
