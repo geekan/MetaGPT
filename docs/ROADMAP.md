@@ -55,23 +55,28 @@ To reach version v0.5, approximately 70% of the following tasks need to be compl
    15. Implementation: Run code
    16. Implementation: Web access
 5. Plugins: Compatibility with plugin system
-6. Roles
+6. Tools
+   1. Support SERPER api
+   2. Support Selenium apis
+   3. Support Playwright apis
+7. Roles
    1. Perfect the action pool/skill pool for each role
    2. Red Book blogger
    3. E-commerce seller
    4. Data analyst
    5. News observer
    6. Institutional researcher
-7. Evaluation
+8. Evaluation
    1. Support an evaluation on a game dataset
    2. Reproduce papers, implement full skill acquisition for a single game role, achieving SOTA results
    3. Support an evaluation on a math dataset
    4. Reproduce papers, achieving SOTA results for current mathematical problem solving process
-8. LLM
+9. LLM
    1. Support Claude underlying API
    2. Support Azure asynchronous API
    3. Support streaming version of all APIs
-9. Other
-   1. Clean up existing unused code
-   2. Unify all code styles and establish contribution standards
-   3. Multi-language support
+   4. Make gpt-3.5-turbo available (HARD)
+10. Other
+    1. Clean up existing unused code
+    2. Unify all code styles and establish contribution standards
+    3. Multi-language support
