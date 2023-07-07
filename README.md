@@ -33,7 +33,7 @@ For example, if you type `python startup.py "Design a RecSys like Toutiao"`, you
 
 ![Jinri Toutiao Recsys Data & API Design](docs/resources/workspace/content_rec_sys/resources/data_api_design.png)
 
-It requires around **$0.2** (GPT-4 api's costs) to generate one example with analysis and design, around **$2.0** to a full project.
+It costs approximately **$0.2** (in GPT-4 API fees) to generate one example with analysis and design, and around **$2.0** for a full project.
 
 ## Installation
 
