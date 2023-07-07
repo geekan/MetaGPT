@@ -13,7 +13,8 @@ def get_project_root():
     current_path = Path.cwd()
     while True:
         if (current_path / '.git').exists() or \
-           (current_path / '.project_root').exists():
+           (current_path / '.project_root').exists() or \
+           (current_path.name.lower() == 'metagpt'):
             return current_path
         parent_path = current_path.parent
         if parent_path == current_path:
