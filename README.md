@@ -65,6 +65,22 @@ cp config/config.yaml config/key.yaml
 | OPENAI_API_KEY # Replace with your own key | OPENAI_API_KEY: "sk-..."                  | export OPENAI_API_KEY="sk-..." |
 | OPENAI_API_BASE # Optional                            | OPENAI_API_BASE: "https://<YOUR_SITE>/v1" | export OPENAI_API_BASE="https://<YOUR_SITE>/v1"   |
 
+## Docker Setup
+
+You can also use docker to setup MetaGPT.
+```bash
+cd metagpt
+docker build --network host -t metagpt:<version> .
+```
+There are some changes of mirrors in the dockerfile, for users outside mainland China, feel free to modify or delete them :)
+
+To run the docker image, you can use the following command.
+```bash
+docker run docker run -it -v <MetaGPT-config-dir>:/app/metagpt/config -v <Workspace-dir>:/app/metagpt/workspace metagpt:<version> <command>
+```
+This command mounts the config folder and workspace folder in the host machine, and you should use absolute directory of these folders. The `command` is what you want to run, you can set it as `/bin/bash -c "cd metagpt &&  python startup.py "Write helloworld in python""` or just `/bin/bash` for interactive terminal. 
+
+
 ## Tutorial: Initiating a startup
 
 ```shell
