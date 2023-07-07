@@ -37,14 +37,13 @@ class SoftwareCompany(BaseModel):
         self.investment = investment
         CONFIG.max_budget = investment
         logger.info(f'Investment: ${investment}.')
-        # logger.info(self.config)
 
     def _check_balance(self):
         if CONFIG.total_cost > CONFIG.max_budget:
             raise NoMoneyException(CONFIG.total_cost, f'Insufficient funds: {CONFIG.max_budget}')
 
     def start_project(self, idea):
-        """Start a project from publish boss requirement."""
+        """Start a project from publishing boss requirement."""
         self.idea = idea
         self.environment.publish_message(Message(role="BOSS", content=idea, cause_by=BossRequirement))
 
@@ -52,7 +51,7 @@ class SoftwareCompany(BaseModel):
         logger.info(self.json())
 
     async def run(self, n_round=3):
-        """Run company until target round"""
+        """Run company until target round or no money"""
         while n_round > 0:
             # self._save()
             n_round -= 1
