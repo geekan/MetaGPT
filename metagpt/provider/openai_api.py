@@ -13,7 +13,7 @@ import openai
 from metagpt.logs import logger
 
 from metagpt.provider.base_gpt_api import BaseGPTAPI
-from metagpt.config import Config
+from metagpt.config import CONFIG
 from metagpt.utils.singleton import Singleton
 from metagpt.utils.token_counter import count_message_tokens, TOKEN_COSTS, count_string_tokens
 
@@ -69,7 +69,6 @@ class CostManager(metaclass=Singleton):
         self.total_completion_tokens = 0
         self.total_cost = 0
         self.total_budget = 0
-        self.config = Config()
 
     def update_cost(self, prompt_tokens, completion_tokens, model):
         """
@@ -87,9 +86,9 @@ class CostManager(metaclass=Singleton):
             + completion_tokens * TOKEN_COSTS[model]["completion"]
         ) / 1000
         self.total_cost += cost
-        logger.info(f"Total running cost: ${self.total_cost:.3f} | Max budget: ${self.config.max_budget:.3f} | "
+        logger.info(f"Total running cost: ${self.total_cost:.3f} | Max budget: ${CONFIG.max_budget:.3f} | "
                     f"Current cost: ${cost:.3f}, {prompt_tokens=}, {completion_tokens=}")
-        self.config.total_cost = self.total_cost
+        CONFIG.total_cost = self.total_cost
 
     def get_total_prompt_tokens(self):
         """
@@ -128,10 +127,9 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
     Check https://platform.openai.com/examples for examples
     """
     def __init__(self):
-        self.config = Config()
-        self.__init_openai(self.config)
+        self.__init_openai(CONFIG)
         self.llm = openai
-        self.model = self.config.openai_api_model
+        self.model = CONFIG.openai_api_model
         self._cost_manager = CostManager()
         RateLimiter.__init__(self, rpm=self.rpm)
 
@@ -146,12 +144,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
 
     async def _achat_completion_stream(self, messages: list[dict]) -> str:
         response = await openai.ChatCompletion.acreate(
-            model=self.model,
-            messages=messages,
-            max_tokens=self.config.max_tokens_rsp,
-            n=1,
-            stop=None,
-            temperature=0,
+            **self._cons_kwargs(messages),
             stream=True
         )
 
@@ -172,27 +165,34 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         self._update_costs(usage)
         return full_reply_content
 
+    def _cons_kwargs(self, messages: list[dict]) -> dict:
+        if CONFIG.openai_api_type == 'azure':
+            kwargs = {
+                "deployment_id": CONFIG.deployment_id,
+                "messages": messages,
+                "max_tokens": CONFIG.max_tokens_rsp,
+                "n": 1,
+                "stop": None,
+                "temperature": 0.5
+            }
+        else:
+            kwargs = {
+                "model": self.model,
+                "messages": messages,
+                "max_tokens": CONFIG.max_tokens_rsp,
+                "n": 1,
+                "stop": None,
+                "temperature": 0.5
+            }
+        return kwargs
+
     async def _achat_completion(self, messages: list[dict]) -> dict:
-        rsp = await self.llm.ChatCompletion.acreate(
-            model=self.model,
-            messages=messages,
-            max_tokens=self.config.max_tokens_rsp,
-            n=1,
-            stop=None,
-            temperature=0.5,
-        )
+        rsp = await self.llm.ChatCompletion.acreate(**self._cons_kwargs(messages))
         self._update_costs(rsp.get('usage'))
         return rsp
 
     def _chat_completion(self, messages: list[dict]) -> dict:
-        rsp = self.llm.ChatCompletion.create(
-            model=self.model,
-            messages=messages,
-            max_tokens=self.config.max_tokens_rsp,
-            n=1,
-            stop=None,
-            temperature=0.5,
-        )
+        rsp = self.llm.ChatCompletion.create(**self._cons_kwargs(messages))
         self._update_costs(rsp)
         return rsp
 
