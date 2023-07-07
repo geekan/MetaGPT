@@ -36,7 +36,7 @@ class SoftwareCompany(BaseModel):
         """Invest company. raise NoMoneyException when exceed max_budget."""
         self.investment = investment
         CONFIG.max_budget = investment
-        logger.info(f'Investment: {investment}')
+        logger.info(f'Investment: ${investment}.')
         # logger.info(self.config)
 
     def _check_balance(self):
