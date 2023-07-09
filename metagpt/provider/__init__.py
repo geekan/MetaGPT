@@ -7,4 +7,3 @@
 """
 
 from metagpt.provider.openai_api import OpenAIGPTAPI
-from metagpt.provider.azure_api import AzureGPTAPI

@@ -14,7 +14,7 @@ def get_project_root():
     while True:
         if (current_path / '.git').exists() or \
            (current_path / '.project_root').exists() or \
-           (current_path.name.lower() == 'metagpt'):
+           (current_path / '.gitignore').exists():
             return current_path
         parent_path = current_path.parent
         if parent_path == current_path:
