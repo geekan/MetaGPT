@@ -66,6 +66,24 @@ cp config/config.yaml config/key.yaml
 | OPENAI_API_KEY # Replace with your own key | OPENAI_API_KEY: "sk-..."                  | export OPENAI_API_KEY="sk-..." |
 | OPENAI_API_BASE # Optional                            | OPENAI_API_BASE: "https://<YOUR_SITE>/v1" | export OPENAI_API_BASE="https://<YOUR_SITE>/v1"   |
 
+## Docker Setup
+
+You can also use docker to setup MetaGPT.
+```bash
+cd metagpt
+docker build --network host -t metagpt:<version> .
+```
+There are some changes of mirrors in the dockerfile, for users outside mainland China, feel free to modify or delete them :)
+
+You can also pull the image from dockerhub via `docker pull sablin39/metagpt:<TAG>`.
+
+To run the docker image, you can use the following command.
+```bash
+docker run -it -v <MetaGPT-config-dir>:/app/metagpt/config -v <Workspace-dir>:/app/metagpt/workspace metagpt:<version> <command>
+```
+This command mounts the `config` and `workspace` folder in the host machine. You should use absolute directory of these folders.
+
+
 ## Tutorial: Initiating a startup
 
 ```shell
