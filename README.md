@@ -74,11 +74,13 @@ docker build --network host -t metagpt:<version> .
 ```
 There are some changes of mirrors in the dockerfile, for users outside mainland China, feel free to modify or delete them :)
 
+You can also pull the image from dockerhub via `docker pull sablin39/metagpt:<TAG>`.
+
 To run the docker image, you can use the following command.
 ```bash
 docker run -it -v <MetaGPT-config-dir>:/app/metagpt/config -v <Workspace-dir>:/app/metagpt/workspace metagpt:<version> <command>
 ```
-This command mounts the config folder and workspace folder in the host machine, so the container can use the same comfiguration and store the works in the host machine. You should use absolute directory of these folders. The `command` is what you want to run, you can set it as `/bin/bash -c "cd metagpt &&  python startup.py "Write helloworld in python""` or just `/bin/bash` for interactive terminal. 
+This command mounts the `config` and `workspace` folder in the host machine. You should use absolute directory of these folders.
 
 
 ## Tutorial: Initiating a startup
