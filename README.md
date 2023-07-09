@@ -48,6 +48,7 @@ python --version
 # Step 3: Clone the repository to your local machine, and install it.
 git clone https://github.com/geekan/metagpt
 cd metagpt
+pip install -r requirements.txt
 python setup.py install
 ```
 
