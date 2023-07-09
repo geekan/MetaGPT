@@ -19,7 +19,7 @@ class Environment:
     """环境，承载一批角色，角色可以向环境发布消息，可以被其他角色观察到"""
     def __init__(self):
         self.roles: dict[str, Role] = {}
-        self.message_queue = Queue()
+        # self.message_queue = Queue()
         self.memory = Memory()
         self.history = ''
 
@@ -39,7 +39,7 @@ class Environment:
 
     def publish_message(self, message: Message):
         """向当前环境发布信息"""
-        self.message_queue.put(message)
+        # self.message_queue.put(message)
         self.memory.add(message)
         self.history += f"\n{message}"
 

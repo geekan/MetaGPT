@@ -57,7 +57,7 @@ class Config(metaclass=Singleton):
         self.google_api_key = self._get('GOOGLE_API_KEY')
         self.google_cse_id = self._get('GOOGLE_CSE_ID')
         self.search_engine = self._get('SEARCH_ENGINE', SearchEngineType.SERPAPI_GOOGLE)
-        self.max_budget = self._get('MAX_BUDGET', 10)
+        self.max_budget = self._get('MAX_BUDGET', 10.0)
         self.total_cost = 0.0
 
     def _init_with_config_files_and_env(self, configs: dict, yaml_file):
@@ -85,3 +85,6 @@ class Config(metaclass=Singleton):
         if value is None:
             raise ValueError(f"Key '{key}' not found in environment variables or in the YAML file")
         return value
+
+
+CONFIG = Config()

@@ -5,8 +5,9 @@
 @Author  : alexanderwu
 @File    : software_company.py
 """
+from pydantic import BaseModel
 
-from metagpt.config import Config
+from metagpt.config import CONFIG
 from metagpt.actions import BossRequirement
 from metagpt.logs import logger
 from metagpt.environment import Environment
@@ -15,16 +16,17 @@ from metagpt.schema import Message
 from metagpt.utils.common import NoMoneyException
 
 
-class SoftwareCompany:
+class SoftwareCompany(BaseModel):
     """
     Software Company: Possesses a team, SOP (Standard Operating Procedures), and a platform for instant messaging,
     dedicated to writing executable code.
     """
-    def __init__(self):
-        self.environment = Environment()
-        self.config = Config()
-        self.investment = 0
-        self.idea = ""
+    environment: Environment = Environment()
+    investment: float = 0
+    idea: str = ""
+
+    class Config:
+        arbitrary_types_allowed = True
 
     def hire(self, roles: list[Role]):
         """Hire roles to cooperate"""
@@ -33,24 +35,27 @@ class SoftwareCompany:
     def invest(self, investment: float):
         """Invest company. raise NoMoneyException when exceed max_budget."""
         self.investment = investment
-        self.config.max_budget = investment
+        CONFIG.max_budget = investment
+        logger.info(f'Investment: ${investment}.')
 
     def _check_balance(self):
-        if self.config.total_cost > self.config.max_budget:
-            raise NoMoneyException(self.config.total_cost, f'Insufficient funds: {self.config.max_budget}')
+        if CONFIG.total_cost > CONFIG.max_budget:
+            raise NoMoneyException(CONFIG.total_cost, f'Insufficient funds: {CONFIG.max_budget}')
 
     def start_project(self, idea):
-        """Start a project from publish boss requirement."""
+        """Start a project from publishing boss requirement."""
         self.idea = idea
         self.environment.publish_message(Message(role="BOSS", content=idea, cause_by=BossRequirement))
 
+    def _save(self):
+        logger.info(self.json())
+
     async def run(self, n_round=3):
-        """Run company until target round"""
-        while not self.environment.message_queue.empty():
-            self._check_balance()
+        """Run company until target round or no money"""
+        while n_round > 0:
+            # self._save()
             n_round -= 1
             logger.debug(f"{n_round=}")
-            if n_round == 0:
-                return
+            self._check_balance()
             await self.environment.run()
         return self.environment.history
