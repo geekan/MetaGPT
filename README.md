@@ -36,7 +36,7 @@ For example, if you type `python startup.py "Design a RecSys like Toutiao"`, you
 It requires around **$0.2** (GPT-4 api's costs) to generate one example with analysis and design, around **$2.0** to a full project.
 
 ## Installation
-
+### Traditional Installation
 ```bash
 # Step 1: Ensure that NPM is installed on your system. Then install mermaid-js.
 npm --version
@@ -49,6 +49,38 @@ python --version
 git clone https://github.com/geekan/metagpt
 cd metagpt
 python setup.py install
+```
+
+### Installation by Docker 
+```bash
+# Step 1: Download metagpt official image and prepare config.yaml
+docker pull metagpt/metagpt:v0.1
+mkdir -p /opt/metagpt/config && docker run --rm metagpt/metagpt:v0.1 cat /app/metagpt/config/config.yaml > /opt/metagpt/config/config.yaml
+vim /opt/metagpt/config/config.yaml # Change the config
+
+# Step 2: Run metagpt image
+docker run --name metagpt -d \
+    -v /opt/metagpt/config:/app/metagpt/config \
+    -v /opt/metagpt/workspace:/app/metagpt/workspace \
+    metagpt/metagpt:v0.1
+
+# Step 3: Access the metagpt container
+docker exec -it metagpt /bin/bash
+
+# Step 4: Play in the container
+cd /app/metagpt
+python startup.py "Write a cli snake game"
+```
+
+The command `docker run ...` do the following things: 
+- Start metagpt container with default command `tail -f /dev/null`
+- Map host directory `/opt/metagtp/config` to container directory `/app/metagpt/config`
+- Map host directory `/opt/metagpt/workspace` to container directory `/app/metagpt/workspace` 
+
+### Build image by yourself
+```bash
+# You can also build metagpt image by yourself.
+cd metagpt && docker build --network host -t metagpt:v0.1 .
 ```
 
 ## Configuration
@@ -65,24 +97,6 @@ cp config/config.yaml config/key.yaml
 |--------------------------------------------|-------------------------------------------|--------------------------------|
 | OPENAI_API_KEY # Replace with your own key | OPENAI_API_KEY: "sk-..."                  | export OPENAI_API_KEY="sk-..." |
 | OPENAI_API_BASE # Optional                            | OPENAI_API_BASE: "https://<YOUR_SITE>/v1" | export OPENAI_API_BASE="https://<YOUR_SITE>/v1"   |
-
-## Docker Setup
-
-You can also use docker to setup MetaGPT.
-```bash
-cd metagpt
-docker build --network host -t metagpt:<version> .
-```
-There are some changes of mirrors in the dockerfile, for users outside mainland China, feel free to modify or delete them :)
-
-You can also pull the image from dockerhub via `docker pull sablin39/metagpt:<TAG>`.
-
-To run the docker image, you can use the following command.
-```bash
-docker run -it -v <MetaGPT-config-dir>:/app/metagpt/config -v <Workspace-dir>:/app/metagpt/workspace metagpt:<version> <command>
-```
-This command mounts the `config` and `workspace` folder in the host machine. You should use absolute directory of these folders.
-
 
 ## Tutorial: Initiating a startup
 
