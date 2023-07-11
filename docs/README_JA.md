@@ -103,3 +103,7 @@ async def startup(idea: str, investment: float = 3.0, n_round: int = 5):
 ## デモ
 
 https://github.com/geekan/MetaGPT/assets/2707039/5e8c1062-8c35-440f-bb20-2b0320f8d27d
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=geekan/MetaGPT&type=Date)](https://star-history.com/#geekan/MetaGPT&Date)
