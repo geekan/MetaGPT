@@ -5,7 +5,7 @@
 @Author  : alexanderwu
 @File    : software_company.py
 """
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from metagpt.config import CONFIG
 from metagpt.actions import BossRequirement
@@ -21,9 +21,9 @@ class SoftwareCompany(BaseModel):
     Software Company: Possesses a team, SOP (Standard Operating Procedures), and a platform for instant messaging,
     dedicated to writing executable code.
     """
-    environment: Environment = Environment()
-    investment: float = 0
-    idea: str = ""
+    environment: Environment = Field(default_factory=Environment)
+    investment: float = Field(default=10.0)
+    idea: str = Field(default="")
 
     class Config:
         arbitrary_types_allowed = True

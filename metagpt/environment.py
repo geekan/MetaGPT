@@ -6,22 +6,32 @@
 @File    : environment.py
 """
 import asyncio
-from queue import Queue
+
 from typing import Iterable
 
-from metagpt.manager import Manager
+from pydantic import (
+    BaseModel,
+    BaseSettings,
+    PyObject,
+    RedisDsn,
+    PostgresDsn,
+    Field,
+)
+
 from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.memory import Memory
 
 
-class Environment:
+class Environment(BaseModel):
     """环境，承载一批角色，角色可以向环境发布消息，可以被其他角色观察到"""
-    def __init__(self):
-        self.roles: dict[str, Role] = {}
-        # self.message_queue = Queue()
-        self.memory = Memory()
-        self.history = ''
+
+    roles: dict[str, Role] = Field(default_factory=dict)
+    memory: Memory = Field(default_factory=Memory)
+    history: str = Field(default='')
+
+    class Config:
+        arbitrary_types_allowed = True
 
     def add_role(self, role: Role):
         """增加一个在当前环境的Role"""
@@ -32,10 +42,6 @@ class Environment:
         """增加一批在当前环境的Role"""
         for role in roles:
             self.add_role(role)
-
-    def set_manager(self, manager):
-        """设置一个当前环境的管理员"""
-        self.manager = manager
 
     def publish_message(self, message: Message):
         """向当前环境发布信息"""

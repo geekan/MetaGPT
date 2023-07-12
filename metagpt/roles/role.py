@@ -6,8 +6,9 @@
 @File    : role.py
 """
 from __future__ import annotations
-from dataclasses import dataclass, asdict, field
 from typing import Type, Iterable
+
+from pydantic import BaseModel, Field
 
 from metagpt.logs import logger
 
@@ -45,8 +46,7 @@ ROLE_TEMPLATE = """Your response should be based on the previous conversation hi
 """
 
 
-@dataclass
-class RoleSetting:
+class RoleSetting(BaseModel):
     """角色设定"""
     name: str
     profile: str
@@ -61,14 +61,16 @@ class RoleSetting:
         return self.__str__()
 
 
-@dataclass
-class RoleContext:
+class RoleContext(BaseModel):
     """角色运行时上下文"""
-    env: 'Environment' = field(default=None)
-    memory: Memory = field(default_factory=Memory)
-    state: int = field(default=0)
-    todo: Action = field(default=None)
-    watch: set[Type[Action]] = field(default_factory=set)
+    env: 'Environment' = Field(default=None)
+    memory: Memory = Field(default_factory=Memory)
+    state: int = Field(default=0)
+    todo: Action = Field(default=None)
+    watch: set[Type[Action]] = Field(default_factory=set)
+
+    class Config:
+        arbitrary_types_allowed = True
 
     @property
     def important_memory(self) -> list[Message]:
@@ -85,7 +87,7 @@ class Role:
 
     def __init__(self, name="", profile="", goal="", constraints="", desc=""):
         self._llm = LLM()
-        self._setting = RoleSetting(name, profile, goal, constraints, desc)
+        self._setting = RoleSetting(name=name, profile=profile, goal=goal, constraints=constraints, desc=desc)
         self._states = []
         self._actions = []
         self._rc = RoleContext()
@@ -127,7 +129,7 @@ class Role:
         """获取角色前缀"""
         if self._setting.desc:
             return self._setting.desc
-        return PREFIX_TEMPLATE.format(**asdict(self._setting))
+        return PREFIX_TEMPLATE.format(**self._setting.dict())
 
     async def _think(self) -> None:
         """思考要做什么，决定下一步的action"""
