@@ -22,9 +22,10 @@ To reach version v0.5, approximately 70% of the following tasks need to be compl
    4. Support process caching: Consider carefully whether to add server caching mechanism
    5. Resolve occasional failure to follow instruction under current prompts, causing code parsing errors, through stricter system prompts
    6. Write documentation, describing the current features and usage at all levels
+   7. ~~Support Docker~~
 2. Features
    1. Support a more standard and stable parser (need to analyze the format that the current LLM is better at)
-   2. Establish a separate output queue, differentiated from the message queue
+   2. ~~Establish a separate output queue, differentiated from the message queue~~
    3. Attempt to atomize all role work, but this may significantly increase token overhead
    4. Complete the design and implementation of module breakdown
    5. Support various modes of memory: clearly distinguish between long-term and short-term memory
@@ -73,10 +74,11 @@ To reach version v0.5, approximately 70% of the following tasks need to be compl
    4. Reproduce papers, achieving SOTA results for current mathematical problem solving process
 9. LLM
    1. Support Claude underlying API
-   2. Support Azure asynchronous API
+   2. ~~Support Azure asynchronous API~~
    3. Support streaming version of all APIs
-   4. Make gpt-3.5-turbo available (HARD)
+   4. ~~Make gpt-3.5-turbo available (HARD)~~
 10. Other
     1. Clean up existing unused code
     2. Unify all code styles and establish contribution standards
     3. Multi-language support
+    4. Multi-programming-language support
