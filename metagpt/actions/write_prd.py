@@ -5,10 +5,11 @@
 @Author  : alexanderwu
 @File    : write_prd.py
 """
-from metagpt.actions import Action
+from metagpt.actions import Action, ActionOutput
 from metagpt.actions.search_and_summarize import SEARCH_AND_SUMMARIZE_SYSTEM, SearchAndSummarize, \
     SEARCH_AND_SUMMARIZE_PROMPT, SEARCH_AND_SUMMARIZE_SYSTEM_EN_US
 from metagpt.logs import logger
+from typing import List, Tuple
 
 PROMPT_TEMPLATE = """
 # Context
@@ -36,10 +37,13 @@ quadrantChart
     "Campaign F": [0.35, 0.78]
     "Our Target Product": [0.5, 0.6]
 ```
+
+## Format example
+{format_example}
 -----
 Role: You are a professional product manager; the goal is to design a concise, usable, efficient product
 Requirements: According to the context, fill in the following missing information, note that each sections are returned in Python code triple quote form seperatedly. If the requirements are unclear, ensure minimum viability and avoid excessive design
-ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. AND '## <SECTION_NAME>' SHOULD WRITE BEFORE the code and triple quote.
+ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. AND '## <SECTION_NAME>' SHOULD WRITE BEFORE the code and triple quote. Output carefully referenced "Format example" in format.
 
 ## Original Requirements: Provide as Plain text, place the polished complete original requirements here
 
@@ -56,15 +60,72 @@ ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. AND '## <SECTION_NAME>' SHOULD W
 ## Requirement Pool: Provided as Python list[str, str], the parameters are requirement description, priority(P0/P1/P2), respectively, comply with PEP standards; no more than 5 requirements and consider to make its difficulty lower
 
 ## Anything UNCLEAR: Provide as Plain text. Make clear here.
-
 """
+FORMAT_EXAMPLE = """
+---
+## Original Requirements
+The boss ... 
+
+## Product Goals
+```python
+[
+    "Create a ...",
+]
+```
+
+## User Stories
+```python
+[
+    "As a user, ...",
+]
+```
+
+## Competitive Analysis
+```python
+[
+    "Python Snake Game: ...",
+]
+```
+
+## Competitive Quadrant Chart
+```mermaid
+quadrantChart
+    title Reach and engagement of campaigns
+    ...
+    "Our Target Product": [0.6, 0.7]
+```
+
+## Requirement Analysis
+The product should be a ...
+
+## Requirement Pool
+```python
+[
+    ("End game ...", "P0")
+]
+```
+
+## Anything UNCLEAR
+There are no unclear points.
+---
+"""
+OUTPUT_MAPPING = {
+    "Original Requirements": (str, ...),
+    "Product Goals": (List[str], ...),
+    "User Stories": (List[str], ...),
+    "Competitive Analysis": (List[str], ...),
+    "Competitive Quadrant Chart": (str, ...),
+    "Requirement Analysis": (str, ...),
+    "Requirement Pool": (List[Tuple[str, str]], ...),
+    "Anything UNCLEAR": (str, ...),
+}
 
 
 class WritePRD(Action):
     def __init__(self, name="", context=None, llm=None):
         super().__init__(name, context, llm)
 
-    async def run(self, requirements, *args, **kwargs) -> str:
+    async def run(self, requirements, *args, **kwargs) -> ActionOutput:
         sas = SearchAndSummarize()
         rsp = await sas.run(context=requirements, system_text=SEARCH_AND_SUMMARIZE_SYSTEM_EN_US)
         info = f"### Search Results\n{sas.result}\n\n### Search Summary\n{rsp}"
@@ -72,6 +133,7 @@ class WritePRD(Action):
             logger.info(sas.result)
             logger.info(rsp)
 
-        prompt = PROMPT_TEMPLATE.format(requirements=requirements, search_information=info)
-        prd = await self._aask(prompt)
+        prompt = PROMPT_TEMPLATE.format(requirements=requirements, search_information=info,
+                                        format_example=FORMAT_EXAMPLE)
+        prd = await self._aask_v1(prompt, "prd", OUTPUT_MAPPING)
         return prd

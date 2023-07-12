@@ -173,7 +173,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
                 "max_tokens": CONFIG.max_tokens_rsp,
                 "n": 1,
                 "stop": None,
-                "temperature": 0.5
+                "temperature": 0.3
             }
         else:
             kwargs = {
@@ -182,7 +182,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
                 "max_tokens": CONFIG.max_tokens_rsp,
                 "n": 1,
                 "stop": None,
-                "temperature": 0.5
+                "temperature": 0.3
             }
         return kwargs
 

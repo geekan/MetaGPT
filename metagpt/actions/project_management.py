@@ -5,15 +5,21 @@
 @Author  : alexanderwu
 @File    : project_management.py
 """
+from typing import List, Tuple
 
 from metagpt.actions.action import Action
+from metagpt.actions.action_output import ActionOutput
 from metagpt.const import WORKSPACE_ROOT
 from metagpt.logs import logger
-from metagpt.utils.common import CodeParser
+from metagpt.utils.common import OutputParser, CodeParser
+from tenacity import retry, stop_after_attempt, wait_fixed
 
-PROMPT_TEMPLATE = """
+PROMPT_TEMPLATE = '''
 # Context
 {context}
+
+## Format example
+{format_example}
 -----
 Role: You are a project manager; the goal is to break down tasks according to PRD/technical design, give a task list, and analyze task dependencies to start with the prerequisite modules
 Requirements: Based on the context, fill in the following missing information, note that all sections are returned in Python code triple quote form seperatedly. Here the granularity of the task is a file, if there are any missing files, you can supplement them
@@ -33,10 +39,72 @@ Attention: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD W
 
 ## Anything UNCLEAR: Provide as Plain text. Make clear here. For example, don't forget a main entry. don't forget to init 3rd party libs.
 
+'''
+
+FORMAT_EXAMPLE = '''
+---
+## Required Python third-party packages
+```python
 """
+flask==1.1.2
+"""
+```
+
+## Required Other language third-party packages
+```python
+"""
+No third-party ...
+"""
+```
+
+## Full API spec
+```python
+"""
+openapi: 3.0.0
+...
+description: A JSON object ...
+"""
+```
+
+## Logic Analysis
+```python
+[
+    ("game.py", "Contains ..."),
+]
+```
+
+## Task list
+```python
+[
+    "game.py",
+]
+```
+
+## Shared Knowledge
+```python
+"""
+'game.py' contains ...
+"""
+```
+
+## Anything UNCLEAR
+We need ... how to start.
+---
+'''
+
+OUTPUT_MAPPING = {
+    "Required Python third-party packages": (str, ...),
+    "Required Other language third-party packages": (str, ...),
+    "Full API spec": (str, ...),
+    "Logic Analysis": (List[Tuple[str, str]], ...),
+    "Task list": (List[str], ...),
+    "Shared Knowledge": (str, ...),
+    "Anything UNCLEAR": (str, ...),
+}
 
 
 class WriteTasks(Action):
+
     def __init__(self, name="CreateTasks", context=None, llm=None):
         super().__init__(name, context, llm)
 
@@ -46,9 +114,8 @@ class WriteTasks(Action):
         file_path.write_text(rsp)
 
     async def run(self, context):
-        prompt = PROMPT_TEMPLATE.format(context=context)
-        rsp = await self._aask(prompt)
-        self._save(context, rsp)
+        prompt = PROMPT_TEMPLATE.format(context=context, format_example=FORMAT_EXAMPLE)
+        rsp = await self._aask_v1(prompt, "task", OUTPUT_MAPPING)
         return rsp
 
 
