@@ -36,7 +36,7 @@
 解析と設計を含む 1 つの例を生成するのに、**$0.2** （GPT-4 の api のコスト）程度、完全なプロジェクトには **$2.0** 程度が必要です。
 
 ## インストール
-
+### 伝統的なインストール
 ```bash
 # ステップ 1: NPM がシステムにインストールされていることを確認してください。次に mermaid-js をインストールします。
 npm --version
@@ -49,6 +49,38 @@ python --version
 git clone https://github.com/geekan/metagpt
 cd metagpt
 python setup.py install
+```
+
+### Docker によるインストール
+```bash
+# ステップ 1: metagpt 公式イメージをダウンロードし、config.yaml を準備する
+docker pull metagpt/metagpt:v0.1
+mkdir -p /opt/metagpt/config && docker run --rm metagpt/metagpt:v0.1 cat /app/metagpt/config/config.yaml > /opt/metagpt/config/config.yaml
+vim /opt/metagpt/config/config.yaml # 設定を変更する
+
+# ステップ 2: metagpt イメージを実行
+docker run --name metagpt -d \
+    -v /opt/metagpt/config:/app/metagpt/config \
+    -v /opt/metagpt/workspace:/app/metagpt/workspace \
+    metagpt/metagpt:v0.1
+
+# ステップ 3: metagpt コンテナにアクセスする
+docker exec -it metagpt /bin/bash
+
+# ステップ 4: コンテナ内で遊ぶ
+cd /app/metagpt
+python startup.py "Write a cli snake game"
+```
+
+コマンド `docker run ...` は以下のことを行います:
+- デフォルトのコマンド `tail -f /dev/null` で metagpt コンテナを起動する
+- ホストディレクトリ `/opt/metagtp/config` をコンテナディレクトリ `/app/metagpt/config` にマップする
+- ホストディレクトリ `/opt/metagpt/workspace` をコンテナディレクトリ `/app/metagpt/workspace` にマップする
+
+### 自分でイメージをビルドする
+```bash
+# また、自分で metagpt イメージを構築することもできます。
+cd metagpt && docker build --network host -t metagpt:v0.1 .
 ```
 
 ## 設定
