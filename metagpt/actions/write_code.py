@@ -31,6 +31,9 @@ Attention: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD W
 """
 
 ## {filename}: Please encapsulate your code within triple quotes. Focus your efforts on implementing ONLY WITHIN THIS FILE. Any class or function labeled as MISSING-DESIGN should be implemented IN THIS FILE ALONE. Do NOT make changes to any other files.
+OUTPUT_MAPPING = {
+    "{filename}": (str, ...),
+}
 
 
 class WriteCode(Action):
@@ -47,6 +50,7 @@ class WriteCode(Action):
             return
 
         design = [i for i in context if i.cause_by == WriteDesign][0]
+
         ws_name = CodeParser.parse_str(block="Python package name", text=design.content)
         ws_path = WORKSPACE_ROOT / ws_name
         if f"{ws_name}/" not in filename and all(i not in filename for i in ["requirements.txt", ".md"]):
@@ -63,5 +67,6 @@ class WriteCode(Action):
         context = kwargs['context']
         logger.info(f'Writing {filename}..')
         code_rsp = await self._aask(prompt)
+        # code_rsp = await self._aask_v1(prompt, "code_rsp", OUTPUT_MAPPING)
         self._save(context, filename, code_rsp)
         return code_rsp

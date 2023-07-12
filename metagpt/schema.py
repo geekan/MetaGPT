@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 from typing import Type, TypedDict
 
 from metagpt.logs import logger
-# from pydantic import BaseModel
+from pydantic import BaseModel
 
 
 
@@ -23,6 +23,7 @@ class RawMessage(TypedDict):
 class Message:
     """list[<role>: <content>]"""
     content: str
+    instruct_content: BaseModel = field(default=None)
     role: str = field(default='user') # system / user / assistant
     cause_by: Type["Action"] = field(default="")
 

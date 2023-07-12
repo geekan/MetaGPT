@@ -8,6 +8,7 @@
 from enum import Enum
 
 from metagpt.actions.action import Action
+from metagpt.actions.action_output import ActionOutput
 
 from metagpt.actions.write_prd import WritePRD
 from metagpt.actions.write_prd_review import WritePRDReview

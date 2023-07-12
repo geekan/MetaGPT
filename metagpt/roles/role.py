@@ -12,7 +12,7 @@ from typing import Type, Iterable
 from metagpt.logs import logger
 
 # from metagpt.environment import Environment
-from metagpt.actions import Action
+from metagpt.actions import Action, ActionOutput
 from metagpt.llm import LLM
 from metagpt.schema import Message
 from metagpt.memory import Memory
@@ -43,7 +43,6 @@ ROLE_TEMPLATE = """Your response should be based on the previous conversation hi
 {history}
 {name}: {result}
 """
-
 
 
 @dataclass
@@ -83,6 +82,7 @@ class RoleContext:
 
 class Role:
     """角色/代理"""
+
     def __init__(self, name="", profile="", goal="", constraints="", desc=""):
         self._llm = LLM()
         self._setting = RoleSetting(name, profile, goal, constraints, desc)
@@ -153,7 +153,11 @@ class Role:
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
         response = await self._rc.todo.run(self._rc.important_memory)
         # logger.info(response)
-        msg = Message(content=response, role=self.profile, cause_by=type(self._rc.todo))
+        if isinstance(response, ActionOutput):
+            msg = Message(content=response.content, instruct_content=response.instruct_content,
+                          role=self.profile, cause_by=type(self._rc.todo))
+        else:
+            msg = Message(content=response, role=self.profile, cause_by=type(self._rc.todo))
         self._rc.memory.add(msg)
         # logger.debug(f"{response}")
 
