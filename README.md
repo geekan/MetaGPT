@@ -55,27 +55,34 @@ python setup.py install
 ```bash
 # Step 1: Download metagpt official image and prepare config.yaml
 docker pull metagpt/metagpt:v0.1
-mkdir -p /opt/metagpt/config && docker run --rm metagpt/metagpt:v0.1 cat /app/metagpt/config/config.yaml > /opt/metagpt/config/config.yaml
+mkdir -p /opt/metagpt/{config,workspace} && chmod 777 -R /opt/metagpt
+docker run --rm metagpt/metagpt:v0.1 cat /app/metagpt/config/config.yaml > /opt/metagpt/config/config.yaml
 vim /opt/metagpt/config/config.yaml # Change the config
 
-# Step 2: Run metagpt image
-docker run --name metagpt -d \
+# Step 2: Run metagpt demo with container
+docker run --rm \
+    --privileged \
     -v /opt/metagpt/config:/app/metagpt/config \
     -v /opt/metagpt/workspace:/app/metagpt/workspace \
-    metagpt/metagpt:v0.1
+    metagpt/metagpt:v0.2 \
+    python startup.py "Write a cli snake game"
 
-# Step 3: Access the metagpt container
+# You can also start a container and execute commands in it
+docker run --name metagpt -d \
+    --privileged \
+    -v /opt/metagpt/config:/app/metagpt/config \
+    -v /opt/metagpt/workspace:/app/metagpt/workspace \
+    metagpt/metagpt:v0.2
+
 docker exec -it metagpt /bin/bash
-
-# Step 4: Play in the container
-cd /app/metagpt
-python startup.py "Write a cli snake game"
+$ python startup.py "Write a cli snake game"
 ```
 
 The command `docker run ...` do the following things: 
-- Start metagpt container with default command `tail -f /dev/null`
+- Run in privileged mode to have permission to run the browser
 - Map host directory `/opt/metagtp/config` to container directory `/app/metagpt/config`
 - Map host directory `/opt/metagpt/workspace` to container directory `/app/metagpt/workspace` 
+- Execute the demo command `python startup.py "Write a cli snake game"`
 
 ### Build image by yourself
 ```bash
