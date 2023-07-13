@@ -76,7 +76,7 @@ class OutputParser:
             # Convert string representation of list to a Python list using ast.literal_eval.
             tasks = ast.literal_eval(tasks_list_str)
         else:
-            raise Exception
+            tasks = text.split("\n")
         return tasks
 
     @classmethod
