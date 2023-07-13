@@ -40,8 +40,10 @@ RUN useradd -m metagpt -s /bin/bash &&\
     cp -r /root/.cache /home/metagpt/ &&\
     chown metagpt -R /home/metagpt/.cache &&\
     chrome_sandbox=$(find /root/.cache/puppeteer/chrome/ -name "chrome_sandbox") &&\
-    chmod 4755 $chrome_sandbox &&\
-    cp $chrome_sandbox /usr/local/sbin/chrome-devel-sandbox
+    cp $chrome_sandbox /usr/local/sbin/chrome-devel-sandbox &&\
+    chmod 4755 /usr/local/sbin/chrome-devel-sandbox
+
+ENV CHROME_DEVEL_SANDBOX=/usr/local/sbin/chrome-devel-sandbox
 
 WORKDIR /app/metagpt
 USER metagpt
