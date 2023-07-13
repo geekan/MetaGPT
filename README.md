@@ -54,9 +54,9 @@ python setup.py install
 ### Installation by Docker 
 ```bash
 # Step 1: Download metagpt official image and prepare config.yaml
-docker pull metagpt/metagpt:v0.1
+docker pull metagpt/metagpt:v0.2
 mkdir -p /opt/metagpt/{config,workspace} && chmod 777 -R /opt/metagpt
-docker run --rm metagpt/metagpt:v0.1 cat /app/metagpt/config/config.yaml > /opt/metagpt/config/config.yaml
+docker run --rm metagpt/metagpt:v0.2 cat /app/metagpt/config/config.yaml > /opt/metagpt/config/config.yaml
 vim /opt/metagpt/config/config.yaml # Change the config
 
 # Step 2: Run metagpt demo with container
