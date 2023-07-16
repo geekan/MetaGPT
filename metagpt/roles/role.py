@@ -219,6 +219,7 @@ class Role:
         if message:
             if isinstance(message, str):
                 message = Message(message)
+                self.recv(message)
             if isinstance(message, Message):
                 self.recv(message)
         elif not await self._observe():
