@@ -110,10 +110,14 @@ class SearchAndSummarize(Action):
         super().__init__(name, context, llm)
 
     async def run(self, context: list[Message], system_text=SEARCH_AND_SUMMARIZE_SYSTEM) -> str:
-        if not self.config.serpapi_api_key or 'YOUR_API_KEY' == self.config.serpapi_api_key:
-            logger.warning('Configure SERPAPI_API_KEY to unlock full feature')
+        no_serpapi = not self.config.serpapi_api_key or 'YOUR_API_KEY' == self.config.serpapi_api_key
+        no_serper = not self.config.serper_api_key or 'YOUR_API_KEY' == self.config.serper_api_key
+        no_google= not self.config.google_api_key or 'YOUR_API_KEY' == self.config.google_api_key
+        
+        if no_serpapi and no_google and no_serper:
+            logger.warning('Configure one of SERPAPI_API_KEY, SERPER_API_KEY, GOOGLE_API_KEY to unlock full feature')
             return ""
-
+        
         query = context[-1].content
         # logger.debug(query)
         rsp = await self.search_engine.run(query)

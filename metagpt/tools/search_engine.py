@@ -14,6 +14,7 @@ from duckduckgo_search import ddg
 
 from metagpt.config import Config
 from metagpt.tools.search_engine_serpapi import SerpAPIWrapper
+from metagpt.tools.search_engine_serper import SerperWrapper
 
 config = Config()
 from metagpt.tools import SearchEngineType
@@ -44,6 +45,12 @@ class SearchEngine:
             rsp = await api.run(query)
         elif self.engine == SearchEngineType.DIRECT_GOOGLE:
             rsp = SearchEngine.run_google(query, max_results)
+        elif self.engine == SearchEngineType.SERPER_GOOGLE:
+            api = SerperWrapper()
+            if isinstance(query, list):
+                rsp = await api.run(query)
+            elif isinstance(query, str):
+                rsp = await api.run([query])
         elif self.engine == SearchEngineType.CUSTOM_ENGINE:
             rsp = self.run_func(query)
         else:
