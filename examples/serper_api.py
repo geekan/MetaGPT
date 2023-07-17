@@ -4,7 +4,12 @@ from metagpt.roles import Searcher
 from metagpt.tools import SearchEngineType
 
 async def main():
-    await Searcher(engine = SearchEngineType.SERPER_GOOGLE).run("What are the best ski brands for advanced skiers?")
+    # Serper API
+    await Searcher(engine = SearchEngineType.SERPER_GOOGLE).run("What are some good sun protection products?")
+    # Serper API
+    # await Searcher(engine = SearchEngineType.SERPAPI_GOOGLE).run("What are the best ski brands for skiers?")
+    # Google API
+    # await Searcher(engine = SearchEngineType.DIRECT_GOOGLE).run("What are the most interesting human facts?")
 
-
-asyncio.run(main())
+if __name__ == '__main__':
+    asyncio.run(main())
