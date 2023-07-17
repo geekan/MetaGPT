@@ -4,7 +4,7 @@
 
 #### if OpenAI
 
-#OPENAI_API_KEY: "YOUR_API_KEY"
+OPENAI_API_KEY: "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"
 #OPENAI_API_BASE: "YOUR_API_BASE"
 OPENAI_API_MODEL: "gpt-4"
 MAX_TOKENS: 1500
@@ -26,6 +26,8 @@ RPM: 10
 #GOOGLE_API_KEY: "YOUR_API_KEY"
 ## Visit https://programmablesearchengine.google.com/controlpanel/create to get id.
 #GOOGLE_CSE_ID: "YOUR_CSE_ID"
+## Visit https://serper.dev/ to get key.
+# SERPER_API_KEY: "YOUR_API_KEY"
 
 #### for TTS
 

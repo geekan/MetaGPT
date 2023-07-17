@@ -14,9 +14,9 @@ from metagpt.schema import Message
 
 class Searcher(Role):
     def __init__(self, name='Alice', profile='Smart Assistant', goal='Provide search services for users',
-                 constraints='Answer is rich and complete', **kwargs):
+                 constraints='Answer is rich and complete', engine=SearchEngineType.SERPAPI_GOOGLE, **kwargs):
         super().__init__(name, profile, goal, constraints, **kwargs)
-        self._init_actions([SearchAndSummarize])
+        self._init_actions([SearchAndSummarize(engine = engine)])
 
     def set_search_func(self, search_func):
         action = SearchAndSummarize("", engine=SearchEngineType.CUSTOM_ENGINE, search_func=search_func)
@@ -24,7 +24,6 @@ class Searcher(Role):
 
     async def _act_sp(self) -> Message:
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
-        logger.info(self._rc.memory.get(k=0))
         response = await self._rc.todo.run(self._rc.memory.get(k=0))
         # logger.info(response)
         if isinstance(response, ActionOutput):
