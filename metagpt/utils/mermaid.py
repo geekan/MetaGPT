@@ -6,11 +6,14 @@
 @File    : mermaid.py
 """
 import subprocess
+import os
 from pathlib import Path
 
 from metagpt.const import PROJECT_ROOT
 from metagpt.logs import logger
 from metagpt.utils.common import check_cmd_exists
+
+IS_DOCKER = os.environ.get('AM_I_IN_A_DOCKER_CONTAINER', False)
 
 
 def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, height=2048) -> int:
@@ -34,7 +37,10 @@ def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, height
         output_file = f'{output_file_without_suffix}.{suffix}'
         # Call the `mmdc` command to convert the Mermaid code to a PNG
         logger.info(f"Generating {output_file}..")
-        subprocess.run(['mmdc', '-i', str(tmp), '-o', output_file, '-w', str(width), '-H', str(height)])
+        if IS_DOCKER:
+            subprocess.run(['mmdc', '-p', '/puppeteer-config.json', '-i', str(tmp), '-o', output_file, '-w', str(width), '-H', str(height)])
+        else:
+            subprocess.run(['mmdc', '-i', str(tmp), '-o', output_file, '-w', str(width), '-H', str(height)])
     return 0
 
 
