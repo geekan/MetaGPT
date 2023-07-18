@@ -162,4 +162,3 @@ workspace/*
 *.mmd
 tmp
 output.wav
-opt
