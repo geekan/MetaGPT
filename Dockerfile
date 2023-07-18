@@ -12,7 +12,7 @@ RUN apt update &&\
 # Set the working directory to /app
 WORKDIR /app
 
-# Install Mermaid CLI globally 
+# Install Mermaid CLI globally
 ENV CHROME_BIN="/usr/bin/chromium"
 ENV AM_I_IN_A_DOCKER_CONTAINER Yes
 ADD puppeteer-config.json  /puppeteer-config.json
@@ -29,12 +29,7 @@ RUN cd metagpt &&\
     pip cache purge &&\
     python setup.py install
 
-# Add metagpt user so we don't need --no-sandbox when use puppeteer
-RUN useradd -m metagpt -s /bin/bash &&\
-    chown metagpt -R /app/metagpt 
-
 WORKDIR /app/metagpt
-USER metagpt
 
 # Running with an infinite loop using the tail command
 CMD ["sh", "-c", "tail -f /dev/null"]
