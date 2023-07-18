@@ -57,7 +57,7 @@ To reach version v0.5, approximately 70% of the following tasks need to be compl
    16. Implementation: Web access
 5. Plugins: Compatibility with plugin system
 6. Tools
-   1. Support SERPER api
+   1. ~~Support SERPER api~~
    2. Support Selenium apis
    3. Support Playwright apis
 7. Roles

@@ -127,7 +127,8 @@ class WritePRD(Action):
 
     async def run(self, requirements, *args, **kwargs) -> ActionOutput:
         sas = SearchAndSummarize()
-        rsp = await sas.run(context=requirements, system_text=SEARCH_AND_SUMMARIZE_SYSTEM_EN_US)
+        # rsp = await sas.run(context=requirements, system_text=SEARCH_AND_SUMMARIZE_SYSTEM_EN_US)
+        rsp = ""
         info = f"### Search Results\n{sas.result}\n\n### Search Summary\n{rsp}"
         if sas.result:
             logger.info(sas.result)
