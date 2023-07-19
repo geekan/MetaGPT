@@ -36,7 +36,9 @@ For example, if you type `python startup.py "Design a RecSys like Toutiao"`, you
 It requires around **$0.2** (GPT-4 api's costs) to generate one example with analysis and design, around **$2.0** to a full project.
 
 ## Installation
+
 ### Traditional Installation
+
 ```bash
 # Step 1: Ensure that NPM is installed on your system. Then install mermaid-js.
 npm --version
@@ -51,12 +53,13 @@ cd metagpt
 python setup.py install
 ```
 
-### Installation by Docker 
+### Installation by Docker
+
 ```bash
 # Step 1: Download metagpt official image and prepare config.yaml
-docker pull metagpt/metagpt:v0.2
-mkdir -p /opt/metagpt/{config,workspace} && chmod 777 -R /opt/metagpt
-docker run --rm metagpt/metagpt:v0.2 cat /app/metagpt/config/config.yaml > /opt/metagpt/config/config.yaml
+docker pull metagpt/metagpt:v0.3
+mkdir -p /opt/metagpt/{config,workspace}
+docker run --rm metagpt/metagpt:v0.3 cat /app/metagpt/config/config.yaml > /opt/metagpt/config/config.yaml
 vim /opt/metagpt/config/config.yaml # Change the config
 
 # Step 2: Run metagpt demo with container
@@ -64,7 +67,7 @@ docker run --rm \
     --privileged \
     -v /opt/metagpt/config:/app/metagpt/config \
     -v /opt/metagpt/workspace:/app/metagpt/workspace \
-    metagpt/metagpt:v0.2 \
+    metagpt/metagpt:v0.3 \
     python startup.py "Write a cli snake game"
 
 # You can also start a container and execute commands in it
@@ -72,22 +75,24 @@ docker run --name metagpt -d \
     --privileged \
     -v /opt/metagpt/config:/app/metagpt/config \
     -v /opt/metagpt/workspace:/app/metagpt/workspace \
-    metagpt/metagpt:v0.2
+    metagpt/metagpt:v0.3
 
 docker exec -it metagpt /bin/bash
 $ python startup.py "Write a cli snake game"
 ```
 
-The command `docker run ...` do the following things: 
+The command `docker run ...` do the following things:
+
 - Run in privileged mode to have permission to run the browser
-- Map host directory `/opt/metagtp/config` to container directory `/app/metagpt/config`
-- Map host directory `/opt/metagpt/workspace` to container directory `/app/metagpt/workspace` 
+- Map host directory `/opt/metagpt/config` to container directory `/app/metagpt/config`
+- Map host directory `/opt/metagpt/workspace` to container directory `/app/metagpt/workspace`
 - Execute the demo command `python startup.py "Write a cli snake game"`
 
 ### Build image by yourself
+
 ```bash
 # You can also build metagpt image by yourself.
-cd metagpt && docker build --network host -t metagpt:v0.1 .
+cd metagpt && docker build --network host -t metagpt:v0.3 .
 ```
 
 ## Configuration
@@ -100,10 +105,10 @@ cd metagpt && docker build --network host -t metagpt:v0.1 .
 cp config/config.yaml config/key.yaml
 ```
 
-| Variable Name                              | config/key.yaml                           | env                            |
-|--------------------------------------------|-------------------------------------------|--------------------------------|
-| OPENAI_API_KEY # Replace with your own key | OPENAI_API_KEY: "sk-..."                  | export OPENAI_API_KEY="sk-..." |
-| OPENAI_API_BASE # Optional                            | OPENAI_API_BASE: "https://<YOUR_SITE>/v1" | export OPENAI_API_BASE="https://<YOUR_SITE>/v1"   |
+| Variable Name                              | config/key.yaml                           | env                                             |
+| ------------------------------------------ | ----------------------------------------- | ----------------------------------------------- |
+| OPENAI_API_KEY # Replace with your own key | OPENAI_API_KEY: "sk-..."                  | export OPENAI_API_KEY="sk-..."                  |
+| OPENAI_API_BASE # Optional                 | OPENAI_API_BASE: "https://<YOUR_SITE>/v1" | export OPENAI_API_BASE="https://<YOUR_SITE>/v1" |
 
 ## Tutorial: Initiating a startup
 
