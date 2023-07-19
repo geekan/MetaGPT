@@ -45,9 +45,7 @@ FORMAT_EXAMPLE = '''
 ---
 ## Required Python third-party packages
 ```python
-"""
 flask==1.1.2
-"""
 ```
 
 ## Required Other language third-party packages
@@ -111,11 +109,16 @@ class WriteTasks(Action):
     def _save(self, context, rsp):
         ws_name = CodeParser.parse_str(block="Python package name", text=context[-1].content)
         file_path = WORKSPACE_ROOT / ws_name / 'docs/api_spec_and_tasks.md'
-        file_path.write_text(rsp)
+        file_path.write_text(rsp.content)
+
+        # Write requirements.txt
+        requirements_path = WORKSPACE_ROOT / ws_name / 'requirements.txt'
+        requirements_path.write_text(rsp.instruct_content.dict().get("Required Python third-party packages"))
 
     async def run(self, context):
         prompt = PROMPT_TEMPLATE.format(context=context, format_example=FORMAT_EXAMPLE)
         rsp = await self._aask_v1(prompt, "task", OUTPUT_MAPPING)
+        self._save(context, rsp)
         return rsp
 
 
