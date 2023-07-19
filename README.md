@@ -92,7 +92,8 @@ The command `docker run ...` do the following things:
 
 ```bash
 # You can also build metagpt image by yourself.
-cd metagpt && docker build --network host -t metagpt:v0.3 .
+git clone https://github.com/geekan/MetaGPT.git
+cd MetaGPT && docker build -t metagpt:v0.3 .
 ```
 
 ## Configuration
