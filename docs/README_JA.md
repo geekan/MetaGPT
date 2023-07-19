@@ -54,28 +54,35 @@ python setup.py install
 ### Docker によるインストール
 ```bash
 # ステップ 1: metagpt 公式イメージをダウンロードし、config.yaml を準備する
-docker pull metagpt/metagpt:v0.1
-mkdir -p /opt/metagpt/config && docker run --rm metagpt/metagpt:v0.1 cat /app/metagpt/config/config.yaml > /opt/metagpt/config/config.yaml
+docker pull metagpt/metagpt:v0.2
+mkdir -p /opt/metagpt/{config,workspace} && chmod 777 -R /opt/metagpt
+docker run --rm metagpt/metagpt:v0.2 cat /app/metagpt/config/config.yaml > /opt/metagpt/config/config.yaml
 vim /opt/metagpt/config/config.yaml # 設定を変更する
 
-# ステップ 2: metagpt イメージを実行
-docker run --name metagpt -d \
+# ステップ 2: コンテナで metagpt デモを実行する
+docker run --rm \
+    --privileged \
     -v /opt/metagpt/config:/app/metagpt/config \
     -v /opt/metagpt/workspace:/app/metagpt/workspace \
-    metagpt/metagpt:v0.1
+    metagpt/metagpt:v0.2 \
+    python startup.py "Write a cli snake game"
 
-# ステップ 3: metagpt コンテナにアクセスする
+# コンテナを起動し、その中でコマンドを実行することもできます
+docker run --name metagpt -d \
+    --privileged \
+    -v /opt/metagpt/config:/app/metagpt/config \
+    -v /opt/metagpt/workspace:/app/metagpt/workspace \
+    metagpt/metagpt:v0.2
+
 docker exec -it metagpt /bin/bash
-
-# ステップ 4: コンテナ内で遊ぶ
-cd /app/metagpt
-python startup.py "Write a cli snake game"
+$ python startup.py "Write a cli snake game"
 ```
 
 コマンド `docker run ...` は以下のことを行います:
-- デフォルトのコマンド `tail -f /dev/null` で metagpt コンテナを起動する
+- 特権モードで実行し、ブラウザの実行権限を得る
 - ホストディレクトリ `/opt/metagtp/config` をコンテナディレクトリ `/app/metagpt/config` にマップする
 - ホストディレクトリ `/opt/metagpt/workspace` をコンテナディレクトリ `/app/metagpt/workspace` にマップする
+- デモコマンド `python startup.py "Write a cli snake game"` を実行する
 
 ### 自分でイメージをビルドする
 ```bash
@@ -105,6 +112,36 @@ python startup.py "Write a cli snake game"
 ```
 
 スクリプトを実行すると、`workspace/` ディレクトリに新しいプロジェクトが見つかります。
+
+### 使用方法
+
+```
+NAME
+    startup.py - We are a software startup comprised of AI. By investing in us, you are empowering a future filled with limitless possibilities.
+
+SYNOPSIS
+    startup.py IDEA <flags>
+
+DESCRIPTION
+    We are a software startup comprised of AI. By investing in us, you are empowering a future filled with limitless possibilities.
+
+POSITIONAL ARGUMENTS
+    IDEA
+        Type: str
+        Your innovative idea, such as "Creating a snake game."
+
+FLAGS
+    --investment=INVESTMENT
+        Type: float
+        Default: 3.0
+        As an investor, you have the opportunity to contribute a certain dollar amount to this AI company.
+    --n_round=N_ROUND
+        Type: int
+        Default: 5
+
+NOTES
+    You can also use flags syntax for POSITIONAL ARGUMENTS
+```
 
 ### コードウォークスルー
 
