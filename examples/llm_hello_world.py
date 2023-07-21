@@ -9,11 +9,12 @@ import asyncio
 
 from metagpt.logs import logger
 from metagpt.llm import LLM
-
+from metagpt.llm import Claude
 
 async def main():
     llm = LLM()
-
+    claude = Claude()
+    logger.info(await claude.aask('你好，请进行自我介绍'))
     logger.info(await llm.aask('hello world'))
     logger.info(await llm.aask_batch(['hi', 'write python hello world.']))
 

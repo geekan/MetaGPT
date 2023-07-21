@@ -10,6 +10,9 @@ OPENAI_API_MODEL: "gpt-4"
 MAX_TOKENS: 1500
 RPM: 10
 
+#### if Anthropic
+#Anthropic_API_KEY: "YOUR_API_KEY"
+
 #### if AZURE, check https://github.com/openai/openai-cookbook/blob/main/examples/azure/chat.ipynb
 
 #OPENAI_API_TYPE: "azure"
