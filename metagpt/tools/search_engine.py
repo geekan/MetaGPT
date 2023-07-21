@@ -39,7 +39,7 @@ class SearchEngine:
         logger.info(results)
         return results
 
-    async def run(self, query, max_results=8):
+    async def run(self, query: str, max_results=8):
         if self.engine == SearchEngineType.SERPAPI_GOOGLE:
             api = SerpAPIWrapper()
             rsp = await api.run(query)
@@ -47,10 +47,7 @@ class SearchEngine:
             rsp = SearchEngine.run_google(query, max_results)
         elif self.engine == SearchEngineType.SERPER_GOOGLE:
             api = SerperWrapper()
-            if isinstance(query, list):
-                rsp = await api.run(query)
-            elif isinstance(query, str):
-                rsp = await api.run([query])
+            rsp = await api.run(query)
         elif self.engine == SearchEngineType.CUSTOM_ENGINE:
             rsp = self.run_func(query)
         else:
