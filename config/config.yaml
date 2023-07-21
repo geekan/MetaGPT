@@ -26,8 +26,6 @@ RPM: 10
 #GOOGLE_API_KEY: "YOUR_API_KEY"
 ## Visit https://programmablesearchengine.google.com/controlpanel/create to get id.
 #GOOGLE_CSE_ID: "YOUR_CSE_ID"
-## Visit https://serper.dev/ to get key.
-#SERPER_API_KEY: "YOUR_API_KEY"
 
 #### for TTS
 
