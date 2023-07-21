@@ -23,7 +23,7 @@ class Claude2:
         return res.completion
     
     async def aask(self, prompt):
-            client = Anthropic(api_key="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")
+            client = Anthropic(api_key=claude_api_key)
 
             res = client.completions.create(
                 model="claude-2",
