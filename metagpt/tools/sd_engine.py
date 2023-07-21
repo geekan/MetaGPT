@@ -110,18 +110,6 @@ class SDEngine:
         # todo：添加SAM接口调用
         raise NotImplementedError
 
-
-# async def run(url, payload, session):
-#     # Perform the HTTP POST request to the SD API
-#     async with session.post(url, json=payload, timeout=600) as rsp:
-#         data = await rsp.read()
-#
-#     rsp_json = json.loads(data)
-#     imgs = rsp_json['images']
-#     logger.info(f"callback rsp json is {rsp_json}")
-#     return imgs
-
-
 def decode_base64_to_image(img, save_name):
     image = Image.open(io.BytesIO(base64.b64decode(img.split(",", 1)[0])))
     pnginfo = PngImagePlugin.PngInfo()
