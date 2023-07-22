@@ -221,10 +221,7 @@ task_list = [
 ```
 '''
 
-
-
 TASK = """smart_search_engine/knowledge_base.py"""
-
 
 STRS_FOR_PARSING = [
 """

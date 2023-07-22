@@ -10,8 +10,6 @@ ref3: https://github.com/hwchase17/langchain/blob/master/langchain/chat_models/o
 """
 import tiktoken
 
-from metagpt.schema import RawMessage
-
 TOKEN_COSTS = {
     "gpt-3.5-turbo": {"prompt": 0.0015, "completion": 0.002},
     "gpt-3.5-turbo-0301": {"prompt": 0.0015, "completion": 0.002},

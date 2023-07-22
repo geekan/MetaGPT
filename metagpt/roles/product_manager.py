@@ -7,7 +7,6 @@
 """
 from metagpt.actions import BossRequirement, WritePRD
 from metagpt.roles import Role
-from metagpt.schema import Message
 
 
 class ProductManager(Role):

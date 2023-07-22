@@ -10,10 +10,8 @@ from pathlib import Path
 from typing import Optional
 
 import faiss
-import pandas as pd
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
-from tqdm import tqdm
 
 from metagpt.const import DATA_PATH
 from metagpt.document_store.base_store import LocalStore
@@ -39,7 +37,7 @@ class FaissStore(LocalStore):
         return store
 
     def _write(self, docs, metadatas):
-        store = FAISS.from_texts(docs, OpenAIEmbeddings(openai_api_version = "2020-11-07"), metadatas=metadatas)
+        store = FAISS.from_texts(docs, OpenAIEmbeddings(openai_api_version="2020-11-07"), metadatas=metadatas)
         return store
 
     def persist(self):

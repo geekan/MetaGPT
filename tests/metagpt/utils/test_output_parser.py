@@ -5,9 +5,6 @@
 @Author  : chengmaoyu
 @File    : test_output_parser.py
 """
-
-import ast
-import re
 from typing import List, Tuple
 
 import pytest

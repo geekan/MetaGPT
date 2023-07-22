@@ -12,7 +12,6 @@ import aiohttp
 from pydantic import BaseModel, Field
 
 from metagpt.config import Config
-from metagpt.logs import logger
 
 
 class SerperWrapper(BaseModel):
@@ -55,7 +54,6 @@ class SerperWrapper(BaseModel):
             async with aiohttp.ClientSession() as session:
                 async with session.post(url, data=payloads, headers=headers) as response:
                     res = await response.json()
-                    
         else:
             async with self.aiosession.get.post(url, data=payloads, headers=headers) as response:
                 res = await response.json()

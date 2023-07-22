@@ -5,19 +5,13 @@
 @Author  : alexanderwu
 @File    : test_engineer.py
 """
-import ast
-import re
-
 import pytest
 
 from metagpt.logs import logger
 from metagpt.roles.engineer import Engineer
-from metagpt.schema import Message
 from metagpt.utils.common import CodeParser
 from tests.metagpt.roles.mock import (
-    PRD,
     STRS_FOR_PARSING,
-    SYSTEM_DESIGN,
     TASKS,
     TASKS_TOMATO_CLOCK,
     MockMessages,
@@ -71,6 +65,9 @@ def test_parse_file_list():
     assert isinstance(tasks, list)
     assert target_list == tasks
 
+    file_list = CodeParser.parse_file_list("Task list", TASKS_TOMATO_CLOCK, lang="python")
+    logger.info(file_list)
+
 
 target_code = """task_list = [
     "smart_search_engine/knowledge_base.py",
@@ -93,8 +90,3 @@ def test_parse_code():
     logger.info(code)
     assert isinstance(code, str)
     assert target_code == code
-
-
-def test_parse_file_list():
-    file_list = CodeParser.parse_file_list("Task list", TASKS_TOMATO_CLOCK, lang="python")
-    logger.info(file_list)

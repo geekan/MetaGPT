@@ -6,8 +6,6 @@
 @File    : test_read_docx.py
 """
 
-import pytest
-
 from metagpt.const import PROJECT_ROOT
 from metagpt.utils.read_document import read_docx
 

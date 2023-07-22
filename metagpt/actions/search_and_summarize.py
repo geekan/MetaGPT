@@ -5,10 +5,8 @@
 @Author  : alexanderwu
 @File    : search_google.py
 """
-import asyncio
-
 from metagpt.actions import Action
-from metagpt.config import Config, SearchEngineType
+from metagpt.config import Config
 from metagpt.logs import logger
 from metagpt.schema import Message
 from metagpt.tools.search_engine import SearchEngine
@@ -111,7 +109,7 @@ class SearchAndSummarize(Action):
     async def run(self, context: list[Message], system_text=SEARCH_AND_SUMMARIZE_SYSTEM) -> str:
         no_serpapi = not self.config.serpapi_api_key or 'YOUR_API_KEY' == self.config.serpapi_api_key
         no_serper = not self.config.serper_api_key or 'YOUR_API_KEY' == self.config.serper_api_key
-        no_google= not self.config.google_api_key or 'YOUR_API_KEY' == self.config.google_api_key
+        no_google = not self.config.google_api_key or 'YOUR_API_KEY' == self.config.google_api_key
         
         if no_serpapi and no_google and no_serper:
             logger.warning('Configure one of SERPAPI_API_KEY, SERPER_API_KEY, GOOGLE_API_KEY to unlock full feature')
@@ -130,10 +128,10 @@ class SearchAndSummarize(Action):
 
         prompt = SEARCH_AND_SUMMARIZE_PROMPT.format(
             # PREFIX = self.prefix,
-            ROLE = self.profile,
-            CONTEXT = rsp,
-            QUERY_HISTORY = '\n'.join([str(i) for i in context[:-1]]),
-            QUERY = str(context[-1])
+            ROLE=self.profile,
+            CONTEXT=rsp,
+            QUERY_HISTORY='\n'.join([str(i) for i in context[:-1]]),
+            QUERY=str(context[-1])
         )
         result = await self._aask(prompt, system_prompt)
         logger.debug(prompt)

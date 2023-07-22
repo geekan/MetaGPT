@@ -8,7 +8,6 @@
 
 import asyncio
 
-from metagpt.config import Config
 from metagpt.roles import Searcher
 
 

@@ -6,7 +6,7 @@
 @File    : architect.py
 """
 
-from metagpt.actions import DesignFilenames, WriteDesign, WritePRD
+from metagpt.actions import WriteDesign, WritePRD
 from metagpt.roles import Role
 
 

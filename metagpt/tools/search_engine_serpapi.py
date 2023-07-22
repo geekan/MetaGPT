@@ -11,7 +11,6 @@ import aiohttp
 from pydantic import BaseModel, Field
 
 from metagpt.config import Config
-from metagpt.logs import logger
 
 
 class SerpAPIWrapper(BaseModel):

@@ -9,8 +9,6 @@ from __future__ import annotations
 
 import json
 
-from duckduckgo_search import ddg
-
 from metagpt.config import Config
 from metagpt.logs import logger
 from metagpt.tools.search_engine_serpapi import SerpAPIWrapper

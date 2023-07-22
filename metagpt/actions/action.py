@@ -8,7 +8,6 @@
 from abc import ABC
 from typing import Optional
 
-from pydantic import BaseModel
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 from metagpt.actions.action_output import ActionOutput

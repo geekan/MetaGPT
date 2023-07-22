@@ -6,7 +6,6 @@
 @File    : test_document.py
 """
 import pytest
-from loguru import logger
 
 from metagpt.const import DATA_PATH
 from metagpt.document_store.document import Document

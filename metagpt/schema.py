@@ -25,7 +25,7 @@ class Message:
     """list[<role>: <content>]"""
     content: str
     instruct_content: BaseModel = field(default=None)
-    role: str = field(default='user') # system / user / assistant
+    role: str = field(default='user')  # system / user / assistant
     cause_by: Type["Action"] = field(default="")
 
     def __str__(self):

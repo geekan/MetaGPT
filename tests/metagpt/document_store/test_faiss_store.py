@@ -11,7 +11,6 @@ import pytest
 
 from metagpt.const import DATA_PATH
 from metagpt.document_store import FaissStore
-from metagpt.logs import logger
 from metagpt.roles import CustomerService, Sales
 
 DESC = """## 原则（所有事情都不可绕过原则）

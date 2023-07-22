@@ -11,14 +11,7 @@ from metagpt.actions import BossRequirement
 from metagpt.config import CONFIG
 from metagpt.environment import Environment
 from metagpt.logs import logger
-from metagpt.roles import (
-    Architect,
-    Engineer,
-    ProductManager,
-    ProjectManager,
-    QaEngineer,
-    Role,
-)
+from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.utils.common import NoMoneyException
 

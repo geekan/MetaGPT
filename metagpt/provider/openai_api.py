@@ -30,7 +30,7 @@ def retry(max_retries):
             for i in range(max_retries):
                 try:
                     return await f(*args, **kwargs)
-                except Exception as e:
+                except Exception:
                     if i == max_retries - 1:
                         raise
                     await asyncio.sleep(2 ** i)

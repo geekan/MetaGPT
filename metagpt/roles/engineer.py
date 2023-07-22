@@ -5,14 +5,12 @@
 @Author  : alexanderwu
 @File    : engineer.py
 """
-import ast
 import asyncio
-import re
 import shutil
 from collections import OrderedDict
 from pathlib import Path
 
-from metagpt.actions import DebugError, RunCode, WriteCode, WriteDesign, WriteTasks
+from metagpt.actions import WriteCode, WriteDesign, WriteTasks
 from metagpt.const import WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.roles import Role
@@ -111,7 +109,7 @@ class Engineer(Role):
 
         rsps = await gather_ordered_k(todo_coros, self.n_borg)
         for todo, code_rsp in zip(self.todos, rsps):
-            code = self.parse_code(code_rsp)
+            _ = self.parse_code(code_rsp)
             logger.info(todo)
             logger.info(code_rsp)
             # self.write_file(todo, code)

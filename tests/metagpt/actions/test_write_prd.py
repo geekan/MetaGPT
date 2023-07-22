@@ -7,7 +7,7 @@
 """
 import pytest
 
-from metagpt.actions import BossRequirement, WritePRD
+from metagpt.actions import BossRequirement
 from metagpt.logs import logger
 from metagpt.roles.product_manager import ProductManager
 from metagpt.schema import Message

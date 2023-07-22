@@ -29,7 +29,7 @@ def columns_to_milvus_schema(columns: dict, primary_col_name: str = "", desc: st
         elif ctype == np.ndarray:
             mcol = FieldSchema(name=col, dtype=type_mapping[ctype], dim=2)
         else:
-            mcol = FieldSchema(name=col, dtype=type_mapping[ctype], is_primary=(col==primary_col_name))
+            mcol = FieldSchema(name=col, dtype=type_mapping[ctype], is_primary=(col == primary_col_name))
         fields.append(mcol)
     schema = CollectionSchema(fields, description=desc)
     return schema

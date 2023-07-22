@@ -8,7 +8,6 @@
 import pytest
 
 from metagpt.actions.write_code_review import WriteCodeReview
-from metagpt.llm import LLM
 from metagpt.logs import logger
 from tests.metagpt.actions.mock import SEARCH_CODE_SAMPLE
 

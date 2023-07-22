@@ -6,7 +6,6 @@
 @File    : qa_engineer.py
 """
 from metagpt.actions import WriteTest
-from metagpt.actions.run_code import RunCode
 from metagpt.roles import Role
 
 

@@ -8,7 +8,7 @@
 import asyncio
 from typing import Iterable
 
-from pydantic import BaseModel, BaseSettings, Field, PostgresDsn, PyObject, RedisDsn
+from pydantic import BaseModel, Field
 
 from metagpt.memory import Memory
 from metagpt.roles import Role

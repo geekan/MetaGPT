@@ -7,11 +7,9 @@
 """
 import pytest
 
-from metagpt.actions import BossRequirement
 from metagpt.logs import logger
 from metagpt.roles import ProductManager
-from metagpt.schema import Message
-from tests.metagpt.roles.mock import BOSS_REQUIREMENT, DETAIL_REQUIREMENT, MockMessages
+from tests.metagpt.roles.mock import MockMessages
 
 
 @pytest.mark.asyncio

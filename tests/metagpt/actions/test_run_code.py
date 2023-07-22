@@ -36,4 +36,3 @@ result = add(1, '2')
     result = await run_code.run(code)
 
     assert "TypeError: unsupported operand type(s) for +" in result
-

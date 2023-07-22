@@ -11,8 +11,6 @@ from typing import List
 import meilisearch
 from meilisearch.index import Index
 
-from metagpt.logs import logger
-
 
 class DataSource:
     def __init__(self, name: str, url: str):

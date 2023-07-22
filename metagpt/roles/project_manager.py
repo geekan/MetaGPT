@@ -5,7 +5,7 @@
 @Author  : alexanderwu
 @File    : project_manager.py
 """
-from metagpt.actions import AssignTasks, WriteDesign, WriteTasks
+from metagpt.actions import WriteDesign, WriteTasks
 from metagpt.roles import Role
 
 

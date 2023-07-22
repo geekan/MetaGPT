@@ -6,8 +6,6 @@
 @File    : test_project_management.py
 """
 
-from metagpt.actions.project_management import AssignTasks, WriteTasks
-
 
 class TestCreateProjectPlan:
     pass

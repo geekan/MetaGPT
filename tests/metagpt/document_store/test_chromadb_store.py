@@ -5,9 +5,6 @@
 @Author  : alexanderwu
 @File    : test_chromadb_store.py
 """
-import pytest
-from sentence_transformers import SentenceTransformer
-
 from metagpt.document_store.chromadb_store import ChromaStore
 
 
