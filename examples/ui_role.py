@@ -273,22 +273,4 @@ class UI(Role):
             if skill == "SD":
                 self.sd_engine = self.load_sd_engine()
                 logger.info(f"load skill engine {self.sd_engine}")
-
-
-async def startup(idea: str, investment: float = 3.0, n_round: int = 5):
-    """Run a startup. Be a boss."""
-    company = SoftwareCompany()
-    company.hire([ProductManager(), UI()])
-    company.invest(investment)
-    company.start_project(idea)
-    await company.run(n_round=n_round)
-
-
-if __name__ == "__main__":
-    import asyncio
-    from metagpt.utils.common import OutputParser, CodeParser
-    
-    # ws_name = CodeParser.parse_str(block="Python package name", text=context[-1].content)
-    event_loop = asyncio.get_event_loop()
-    result = event_loop.run_until_complete(startup(idea="贪食蛇小游戏", investment=3.0, n_round=3))
     
