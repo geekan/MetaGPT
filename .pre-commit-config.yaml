@@ -10,7 +10,7 @@ repos:
             "--show-source",
             "--count",
             "--statistics",
-            "--extend-ignore=E203,E402,C901,E501,E101,E266,E731,W291,F821,W191",
+            "--extend-ignore=E203,E402,C901,E501,E101,E266,E731,W291,F821,W191,E122,E125,E127,E128,W293",
             "--per-file-ignores=__init__.py:F401",
         ] # when necessary, ignore errors, https://flake8.pycqa.org/en/latest/user/error-codes.html
         exclude: ^venv/ # exclude dir, e.g. (^foo/|^bar/)
@@ -20,3 +20,7 @@ repos:
     hooks:
       - id: isort
         args: ['--profile', 'black']
+        exclude: >-
+            (?x)^(
+            .*__init__\.py$
+            )
