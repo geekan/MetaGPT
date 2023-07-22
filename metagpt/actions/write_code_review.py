@@ -7,38 +7,52 @@
 """
 
 from metagpt.actions.action import Action
+from metagpt.logs import logger
+from metagpt.schema import Message
+from metagpt.utils.common import CodeParser
+from tenacity import retry, stop_after_attempt, wait_fixed
 
 PROMPT_TEMPLATE = """
-Please review the following code:
+# Context
+{context}
+
+# Code{filename}
+```
 {code}
+```
+-----
+NOTICE
+1. Role: You are a professional software engineer, and your main task is to review the code. You need to ensure that the code conforms to the PEP8 standards, is elegantly designed and modularized, easy to read and maintain, and is written in Python 3.9 (or in another programming language).
+2. Task 1: Based on the following context and code, conduct a code review and provide improvement suggestions.
+2. Task 2: Rewrite the code based on the improvement suggestions, ensure the code is complete and do not omit anything.
+3. Check 0: Is the code implemented as per the requirements?
+4. Check 1: Are there any issues with the code logic?
+5. Check 2: Does the existing code follow the "data structure and interface definition"?
+6. Check 3: Is the existing code complete and functional?
+7. Check 4: Does the code have unnecessary dependencies?
 
-The main aspects you need to focus on include but are not limited to the code structure, coding standards, possible errors, and improvement suggestions.
+## Code Review: Provide key, clear, concise, and specific code modification suggestions, up to 5.
 
-Please write your code review:
+## {filename}: Write code with triple quotes. Do your utmost to optimize THIS SINGLE FILE. ONLY USE EXISTING API. IF NO API, IMPLEMENT IT.
+Ensure that the functionality of the rewritten code is consistent with the source code. 
+
 """
 
 
 class WriteCodeReview(Action):
-    def __init__(self, name, context=None, llm=None):
+    def __init__(self, name="WriteCodeReview", context: list[Message] = None, llm=None):
         super().__init__(name, context, llm)
 
-    async def run(self, code):
-        """
-        Generate a code review for the given code.
+    @retry(stop=stop_after_attempt(2), wait=wait_fixed(1))
+    async def write_code(self, prompt):
+        code_rsp = await self._aask(prompt)
+        code = CodeParser.parse_code(block="", text=code_rsp)
+        return code
 
-        :param code: The code to be reviewed.
-        :type code: str
-        :return: The code review.
-        :rtype: str
-        """
-        # Set the context for the llm model
-        self.context = {"code": code}
-
-        # Generate the prompt
-        prompt = PROMPT_TEMPLATE.format(**self.context)
-
-        # Generate the code review
-        self.input_data = prompt
-        self.output_data = await self._aask(prompt)
-
-        return self.output_data
+    async def run(self, context, code, filename):
+        prompt = PROMPT_TEMPLATE.format(context=context, code=code, filename=filename)
+        logger.info(f'Code review {filename}..')
+        code = await self.write_code(prompt)
+        # code_rsp = await self._aask_v1(prompt, "code_rsp", OUTPUT_MAPPING)
+        # self._save(context, filename, code)
+        return code
