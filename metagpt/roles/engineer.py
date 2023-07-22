@@ -5,19 +5,19 @@
 @Author  : alexanderwu
 @File    : engineer.py
 """
+import ast
 import asyncio
 import re
-import ast
 import shutil
+from collections import OrderedDict
 from pathlib import Path
 
+from metagpt.actions import DebugError, RunCode, WriteCode, WriteDesign, WriteTasks
 from metagpt.const import WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.roles import Role
-from metagpt.actions import WriteCode, RunCode, DebugError, WriteTasks, WriteDesign
 from metagpt.schema import Message
 from metagpt.utils.common import CodeParser
-from collections import OrderedDict
 
 
 async def gather_ordered_k(coros, k) -> list:

@@ -6,21 +6,13 @@
 @File    : environment.py
 """
 import asyncio
-
 from typing import Iterable
 
-from pydantic import (
-    BaseModel,
-    BaseSettings,
-    PyObject,
-    RedisDsn,
-    PostgresDsn,
-    Field,
-)
+from pydantic import BaseModel, BaseSettings, Field, PostgresDsn, PyObject, RedisDsn
 
+from metagpt.memory import Memory
 from metagpt.roles import Role
 from metagpt.schema import Message
-from metagpt.memory import Memory
 
 
 class Environment(BaseModel):

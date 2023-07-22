@@ -6,8 +6,8 @@
 @File    : architect.py
 """
 
+from metagpt.actions import DesignFilenames, WriteDesign, WritePRD
 from metagpt.roles import Role
-from metagpt.actions import WriteDesign, WritePRD, DesignFilenames
 
 
 class Architect(Role):

@@ -5,20 +5,20 @@
 @Author  : alexanderwu
 @File    : faiss_store.py
 """
-from typing import Optional
-from pathlib import Path
 import pickle
+from pathlib import Path
+from typing import Optional
 
 import faiss
-from langchain.vectorstores import FAISS
-from langchain.embeddings import OpenAIEmbeddings
 import pandas as pd
+from langchain.embeddings import OpenAIEmbeddings
+from langchain.vectorstores import FAISS
 from tqdm import tqdm
 
-from metagpt.logs import logger
 from metagpt.const import DATA_PATH
-from metagpt.document_store.document import Document
 from metagpt.document_store.base_store import LocalStore
+from metagpt.document_store.document import Document
+from metagpt.logs import logger
 
 
 class FaissStore(LocalStore):

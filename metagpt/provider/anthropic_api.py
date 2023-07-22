@@ -7,9 +7,12 @@
 """
 
 import asyncio
+
 import anthropic
 from anthropic import Anthropic
+
 from metagpt.config import CONFIG
+
 
 class Claude2:
     def ask(self, prompt):

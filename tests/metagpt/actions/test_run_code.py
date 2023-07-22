@@ -6,6 +6,7 @@
 @File    : test_run_code.py
 """
 import pytest
+
 from metagpt.actions.run_code import RunCode
 
 

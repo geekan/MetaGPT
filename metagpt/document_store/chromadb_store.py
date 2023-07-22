@@ -5,8 +5,8 @@
 @Author  : alexanderwu
 @File    : chromadb_store.py
 """
-from sentence_transformers import SentenceTransformer
 import chromadb
+from sentence_transformers import SentenceTransformer
 
 
 class ChromaStore:

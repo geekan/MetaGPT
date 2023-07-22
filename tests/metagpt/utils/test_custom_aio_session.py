@@ -9,6 +9,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import pytest
+
 from metagpt.logs import logger
 from metagpt.provider.openai_api import OpenAIGPTAPI
 from metagpt.utils.custom_aio_session import CustomAioSession

@@ -6,17 +6,17 @@
 @File    : role.py
 """
 from __future__ import annotations
-from typing import Type, Iterable
+
+from typing import Iterable, Type
 
 from pydantic import BaseModel, Field
-
-from metagpt.logs import logger
 
 # from metagpt.environment import Environment
 from metagpt.actions import Action, ActionOutput
 from metagpt.llm import LLM
-from metagpt.schema import Message
+from metagpt.logs import logger
 from metagpt.memory import Memory
+from metagpt.schema import Message
 
 PREFIX_TEMPLATE = """You are a {profile}, named {name}, your goal is {goal}, and the constraint is {constraints}. """
 

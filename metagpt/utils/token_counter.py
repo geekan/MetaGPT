@@ -9,8 +9,8 @@ ref2: https://github.com/Significant-Gravitas/Auto-GPT/blob/master/autogpt/llm/t
 ref3: https://github.com/hwchase17/langchain/blob/master/langchain/chat_models/openai.py
 """
 import tiktoken
-from metagpt.schema import RawMessage
 
+from metagpt.schema import RawMessage
 
 TOKEN_COSTS = {
     "gpt-3.5-turbo": {"prompt": 0.0015, "completion": 0.002},

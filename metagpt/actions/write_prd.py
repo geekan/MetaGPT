@@ -5,11 +5,16 @@
 @Author  : alexanderwu
 @File    : write_prd.py
 """
-from metagpt.actions import Action, ActionOutput
-from metagpt.actions.search_and_summarize import SEARCH_AND_SUMMARIZE_SYSTEM, SearchAndSummarize, \
-    SEARCH_AND_SUMMARIZE_PROMPT, SEARCH_AND_SUMMARIZE_SYSTEM_EN_US
-from metagpt.logs import logger
 from typing import List, Tuple
+
+from metagpt.actions import Action, ActionOutput
+from metagpt.actions.search_and_summarize import (
+    SEARCH_AND_SUMMARIZE_PROMPT,
+    SEARCH_AND_SUMMARIZE_SYSTEM,
+    SEARCH_AND_SUMMARIZE_SYSTEM_EN_US,
+    SearchAndSummarize,
+)
+from metagpt.logs import logger
 
 PROMPT_TEMPLATE = """
 # Context

@@ -6,10 +6,11 @@
 @File    : milvus_store.py
 """
 from typing import TypedDict
-import numpy as np
-from pymilvus import connections, Collection, CollectionSchema, FieldSchema, DataType
-from metagpt.document_store.base_store import BaseStore
 
+import numpy as np
+from pymilvus import Collection, CollectionSchema, DataType, FieldSchema, connections
+
+from metagpt.document_store.base_store import BaseStore
 
 type_mapping = {
     int: DataType.INT64,

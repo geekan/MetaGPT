@@ -1,7 +1,9 @@
 import asyncio
+
 from metagpt.config import Config
 from metagpt.roles import Searcher
 from metagpt.tools import SearchEngineType
+
 
 async def main():
     # Serper API

@@ -7,12 +7,13 @@
 """
 from typing import List, Tuple
 
+from tenacity import retry, stop_after_attempt, wait_fixed
+
 from metagpt.actions.action import Action
 from metagpt.actions.action_output import ActionOutput
 from metagpt.const import WORKSPACE_ROOT
 from metagpt.logs import logger
-from metagpt.utils.common import OutputParser, CodeParser
-from tenacity import retry, stop_after_attempt, wait_fixed
+from metagpt.utils.common import CodeParser, OutputParser
 
 PROMPT_TEMPLATE = '''
 # Context

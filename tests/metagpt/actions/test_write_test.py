@@ -6,8 +6,9 @@
 @File    : test_write_test.py
 """
 import pytest
-from metagpt.logs import logger
+
 from metagpt.actions.write_test import WriteTest
+from metagpt.logs import logger
 
 
 @pytest.mark.asyncio

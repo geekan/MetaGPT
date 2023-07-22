@@ -6,10 +6,12 @@
 @File    : search_engine_meilisearch.py
 """
 
-from metagpt.logs import logger
+from typing import List
+
 import meilisearch
 from meilisearch.index import Index
-from typing import List
+
+from metagpt.logs import logger
 
 
 class DataSource:

@@ -6,10 +6,12 @@
 @File    : test_output_parser.py
 """
 
-import pytest
-from typing import List, Tuple
-import re
 import ast
+import re
+from typing import List, Tuple
+
+import pytest
+
 from metagpt.utils.common import OutputParser
 
 

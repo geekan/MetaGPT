@@ -6,8 +6,8 @@
 @File    : llm.py
 """
 
-from metagpt.provider.openai_api import OpenAIGPTAPI as LLM
 from metagpt.provider.anthropic_api import Claude2 as Claude
+from metagpt.provider.openai_api import OpenAIGPTAPI as LLM
 
 DEFAULT_LLM = LLM()
 CLAUDE_LLM = Claude()

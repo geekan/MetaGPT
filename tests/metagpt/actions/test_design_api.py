@@ -7,10 +7,9 @@
 """
 import pytest
 
-from metagpt.logs import logger
-
 from metagpt.actions.design_api import WriteDesign
 from metagpt.llm import LLM
+from metagpt.logs import logger
 from metagpt.roles.architect import Architect
 from tests.metagpt.actions.mock import PRD_SAMPLE
 

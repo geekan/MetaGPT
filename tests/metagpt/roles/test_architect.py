@@ -11,7 +11,12 @@ from metagpt.actions import BossRequirement
 from metagpt.logs import logger
 from metagpt.roles import Architect
 from metagpt.schema import Message
-from tests.metagpt.roles.mock import PRD, DETAIL_REQUIREMENT, BOSS_REQUIREMENT, MockMessages
+from tests.metagpt.roles.mock import (
+    BOSS_REQUIREMENT,
+    DETAIL_REQUIREMENT,
+    PRD,
+    MockMessages,
+)
 
 
 @pytest.mark.asyncio

@@ -9,11 +9,13 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from tqdm import tqdm
-
-from langchain.document_loaders import UnstructuredWordDocumentLoader, UnstructuredPDFLoader
-from langchain.document_loaders import TextLoader
+from langchain.document_loaders import (
+    TextLoader,
+    UnstructuredPDFLoader,
+    UnstructuredWordDocumentLoader,
+)
 from langchain.text_splitter import CharacterTextSplitter
+from tqdm import tqdm
 
 
 def validate_cols(content_col: str, df: pd.DataFrame):

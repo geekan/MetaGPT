@@ -7,8 +7,9 @@
 """
 
 import pytest
-from metagpt.logs import logger
+
 from metagpt.actions import Action, WritePRD, WriteTest
+from metagpt.logs import logger
 
 
 def test_action_repr():

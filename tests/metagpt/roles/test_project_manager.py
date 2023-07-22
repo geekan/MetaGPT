@@ -6,6 +6,7 @@
 @File    : test_project_manager.py
 """
 import pytest
+
 from metagpt.logs import logger
 from metagpt.roles import ProjectManager
 from metagpt.schema import Message

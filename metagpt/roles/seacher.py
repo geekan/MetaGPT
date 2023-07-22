@@ -5,12 +5,12 @@
 @Author  : alexanderwu
 @File    : seacher.py
 """
+from metagpt.actions import ActionOutput, SearchAndSummarize
 from metagpt.logs import logger
-
 from metagpt.roles import Role
-from metagpt.actions import SearchAndSummarize, ActionOutput
-from metagpt.tools import SearchEngineType
 from metagpt.schema import Message
+from metagpt.tools import SearchEngineType
+
 
 class Searcher(Role):
     def __init__(self, name='Alice', profile='Smart Assistant', goal='Provide search services for users',

@@ -6,12 +6,13 @@
 @File    : schema.py
 """
 from __future__ import annotations
+
 from dataclasses import dataclass, field
 from typing import Type, TypedDict
 
-from metagpt.logs import logger
 from pydantic import BaseModel
 
+from metagpt.logs import logger
 
 
 class RawMessage(TypedDict):

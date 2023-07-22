@@ -7,7 +7,9 @@
 """
 
 import sys
+
 from loguru import logger as _logger
+
 from metagpt.const import PROJECT_ROOT
 
 

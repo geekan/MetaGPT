@@ -6,10 +6,11 @@
 @File    : test_write_code.py
 """
 import pytest
-from metagpt.logs import logger
+
 from metagpt.actions.write_code import WriteCode
-from tests.metagpt.actions.mock import WRITE_CODE_PROMPT_SAMPLE, TASKS_2
 from metagpt.llm import LLM
+from metagpt.logs import logger
+from tests.metagpt.actions.mock import TASKS_2, WRITE_CODE_PROMPT_SAMPLE
 
 
 @pytest.mark.asyncio

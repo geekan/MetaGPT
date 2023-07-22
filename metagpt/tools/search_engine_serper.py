@@ -5,13 +5,14 @@
 @Author  : alexanderwu
 @File    : search_engine_serpapi.py
 """
-from typing import Any, Dict, Optional, Tuple
-from metagpt.logs import logger
-import aiohttp
 import json
+from typing import Any, Dict, Optional, Tuple
+
+import aiohttp
 from pydantic import BaseModel, Field
 
 from metagpt.config import Config
+from metagpt.logs import logger
 
 
 class SerperWrapper(BaseModel):

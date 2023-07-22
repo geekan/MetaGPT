@@ -6,6 +6,7 @@
 @File    : test_debug_error.py
 """
 import pytest
+
 from metagpt.actions.debug_error import DebugError
 
 

@@ -7,12 +7,11 @@
 """
 import asyncio
 
-from metagpt.logs import logger
-from metagpt.config import SearchEngineType, Config
 from metagpt.actions import Action
+from metagpt.config import Config, SearchEngineType
+from metagpt.logs import logger
 from metagpt.schema import Message
 from metagpt.tools.search_engine import SearchEngine
-
 
 SEARCH_AND_SUMMARIZE_SYSTEM = """### Requirements
 1. Please summarize the latest dialogue based on the reference information (secondary) and dialogue history (primary). Do not include text that is irrelevant to the conversation.
