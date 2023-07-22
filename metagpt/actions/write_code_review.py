@@ -13,30 +13,53 @@ from metagpt.utils.common import CodeParser
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 PROMPT_TEMPLATE = """
+NOTICE
+Role: You are a professional software engineer, and your main task is to review the code. You need to ensure that the code conforms to the PEP8 standards, is elegantly designed and modularized, easy to read and maintain, and is written in Python 3.9 (or in another programming language).
+ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. AND '## <SECTION_NAME>' SHOULD WRITE BEFORE the code and triple quote. Output format carefully referenced "Format example".
+
+## Code Review: Based on the following context and code, and flowing the check list, Provide key, clear, concise, and specific code modification suggestions, up to 5.
+```
+1. Check 0: Is the code implemented as per the requirements?
+2. Check 1: Are there any issues with the code logic?
+3. Check 2: Does the existing code follow the "Data structures and interface definitions"?
+4. Check 3: Is there a function in the code that is omitted or not fully implemented that needs to be implemented?
+5. Check 4: Does the code have unnecessary or lack dependencies?
+6. Check 5: Does the code have ?
+```
+
+## Rewrite Code: {filename} Base on Code Review and the source code, rewrite code with triple quotes. Do your utmost to optimize THIS SINGLE FILE.Ensure that the functionality of the rewritten code is consistent with the "Data structures and interface definitions" and ensure the code is complete and do not omit anything. 
+-----
 # Context
 {context}
 
-# Code{filename}
+## Code: {filename}
 ```
 {code}
 ```
 -----
-NOTICE
-1. Role: You are a professional software engineer, and your main task is to review the code. You need to ensure that the code conforms to the PEP8 standards, is elegantly designed and modularized, easy to read and maintain, and is written in Python 3.9 (or in another programming language).
-2. Task 1: Based on the following context and code, conduct a code review and provide improvement suggestions.
-2. Task 2: Rewrite the code based on the improvement suggestions, ensure the code is complete and do not omit anything.
-3. Check 0: Is the code implemented as per the requirements?
-4. Check 1: Are there any issues with the code logic?
-5. Check 2: Does the existing code follow the "data structure and interface definition"?
-6. Check 3: Is the existing code complete and functional?
-7. Check 4: Does the code have unnecessary dependencies?
 
-## Code Review: Provide key, clear, concise, and specific code modification suggestions, up to 5.
-
-## {filename}: Write code with triple quotes. Do your utmost to optimize THIS SINGLE FILE. ONLY USE EXISTING API. IF NO API, IMPLEMENT IT.
-Ensure that the functionality of the rewritten code is consistent with the source code. 
+## Format example
+-----
+{format_example}
+-----
 
 """
+
+FORMAT_EXAMPLE = """
+
+## Code Review
+1. The code ...
+2. ...
+3. ...
+4. ...
+5. ...
+
+## Rewrite Code: {filename}
+```python
+...
+```
+"""
+
 
 
 class WriteCodeReview(Action):
@@ -50,7 +73,8 @@ class WriteCodeReview(Action):
         return code
 
     async def run(self, context, code, filename):
-        prompt = PROMPT_TEMPLATE.format(context=context, code=code, filename=filename)
+        format_example = FORMAT_EXAMPLE.format(filename=filename)
+        prompt = PROMPT_TEMPLATE.format(context=context, code=code, filename=filename, format_example=format_example)
         logger.info(f'Code review {filename}..')
         code = await self.write_code(prompt)
         # code_rsp = await self._aask_v1(prompt, "code_rsp", OUTPUT_MAPPING)

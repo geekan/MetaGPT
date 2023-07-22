@@ -156,19 +156,8 @@ class Engineer(Role):
         :return:
         """
         context = []
-        for msg in self._rc.history:
-            # todo: 需要再抽象一下
-            if msg.role in ["Architect", "Project Manager"]:
-                context.append(msg.content)
-            if msg.role in ["Product Manager"]:
-                tmp_msg = ""
-                if msg.instruct_content:
-                    temp_str = str(msg.instruct_content.dict().get(
-                        "Requirement Analysis"))
-                    tmp_msg += "## Requirement Analysis\n" + temp_str + "\n"
-                    temp_str = str(msg.instruct_content.dict().get("Requirement Pool"))
-                    tmp_msg += "## Requirement Pool\n" + temp_str + "\n"
-                context.append(tmp_msg)
+        for msg in self._rc.memory.get_by_actions([WriteTasks, WriteDesign]):
+            context.append(msg.content)
         context_str = "\n".join(context)
         logger.debug(f'context: {context_str}')
         for todo in self.todos:
