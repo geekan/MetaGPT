@@ -54,6 +54,8 @@ class Config(metaclass=Singleton):
         self.max_tokens_rsp = self._get('MAX_TOKENS', 2048)
         self.deployment_id = self._get('DEPLOYMENT_ID')
 
+        self.claude_api_key = self._get('Anthropic_API_KEY')
+
         self.serpapi_api_key = self._get('SERPAPI_API_KEY')
         self.serper_api_key = self._get('SERPER_API_KEY')
         self.google_api_key = self._get('GOOGLE_API_KEY')
