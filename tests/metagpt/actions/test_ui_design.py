@@ -2,7 +2,7 @@
 # @Date    : 2023/7/22 02:40
 # @Author  : stellahong (stellahong@fuzhi.ai)
 #
-from examples.ui_role import UIDesign
+from tests.metagpt.roles.ui_role import UIDesign
 
 llm_resp= '''
     # UI Design Description

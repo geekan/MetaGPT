@@ -2,11 +2,10 @@
 # @Date    : 2023/7/22 02:40
 # @Author  : stellahong (stellahong@fuzhi.ai)
 #
-import os
 from metagpt.software_company import SoftwareCompany
 from metagpt.roles import ProductManager
 
-from examples.ui_role import UI
+from tests.metagpt.roles.ui_role import UI
 
 
 def test_add_ui():
