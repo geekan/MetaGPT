@@ -132,7 +132,8 @@ class WritePRD(Action):
 
     async def run(self, requirements, *args, **kwargs) -> ActionOutput:
         sas = SearchAndSummarize()
-        rsp = await sas.run(context=requirements, system_text=SEARCH_AND_SUMMARIZE_SYSTEM_EN_US)
+        # rsp = await sas.run(context=requirements, system_text=SEARCH_AND_SUMMARIZE_SYSTEM_EN_US)
+        rsp = ""
         info = f"### Search Results\n{sas.result}\n\n### Search Summary\n{rsp}"
         if sas.result:
             logger.info(sas.result)
@@ -140,6 +141,6 @@ class WritePRD(Action):
 
         prompt = PROMPT_TEMPLATE.format(requirements=requirements, search_information=info,
                                         format_example=FORMAT_EXAMPLE)
-        logger.info(prompt)
+        logger.debug(prompt)
         prd = await self._aask_v1(prompt, "prd", OUTPUT_MAPPING)
         return prd

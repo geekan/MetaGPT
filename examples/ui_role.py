@@ -217,7 +217,7 @@ class UIDesign(Action):
         logger.info("Finish icon design using StableDiffusion API")
     
     async def _save(self, css_content, html_content):
-        save_dir = WORKSPACE_ROOT / "UI" / 'docs/'
+        save_dir = WORKSPACE_ROOT / "resources" / 'codes'
         if not os.path.exists(save_dir):
             os.makedirs(save_dir, exist_ok=True)
         # Save CSS and HTML content to files

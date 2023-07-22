@@ -55,10 +55,10 @@ class Action(ABC):
             system_msgs = []
         system_msgs.append(self.prefix)
         content = await self.llm.aask(prompt, system_msgs)
-        logger.info(content)
+        logger.debug(content)
         output_class = ActionOutput.create_model_class(output_class_name, output_data_mapping)
         parsed_data = OutputParser.parse_data_with_mapping(content, output_data_mapping)
-        logger.info(parsed_data)
+        logger.debug(parsed_data)
         instruct_content = output_class(**parsed_data)
         return ActionOutput(content, instruct_content)
 

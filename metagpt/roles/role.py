@@ -114,7 +114,7 @@ class Role:
     def _set_state(self, state):
         """Update the current state."""
         self._rc.state = state
-        logger.info(self._actions)
+        logger.debug(self._actions)
         self._rc.todo = self._actions[self._rc.state]
 
     def set_env(self, env: 'Environment'):

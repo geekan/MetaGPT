@@ -79,7 +79,7 @@ class SDEngine:
     
     def _save(self, imgs, save_name=""):
         # fixme：寻址
-        save_dir = WORKSPACE_ROOT / "SD_Output"
+        save_dir = WORKSPACE_ROOT / "resources"/"SD_Output"
         if not os.path.exists(save_dir):
             os.makedirs(save_dir, exist_ok=True)
         batch_decode_base64_to_image(imgs, save_dir, save_name=save_name)
