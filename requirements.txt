@@ -29,3 +29,4 @@ tenacity==8.2.2
 tiktoken==0.3.3
 tqdm==4.64.0
 #unstructured[local-inference]
+anthropic==0.3.6
