@@ -1,4 +1,3 @@
-
 # DO NOT MODIFY THIS FILE, create a new key.yaml, define OPENAI_API_KEY.
 # The configuration of key.yaml has a higher priority and will not enter git
 
@@ -36,3 +35,8 @@ RPM: 10
 
 #AZURE_TTS_SUBSCRIPTION_KEY: "YOUR_API_KEY"
 #AZURE_TTS_REGION: "eastus"
+
+#### for Stable Diffusion
+## Use SD service, based on https://github.com/AUTOMATIC1111/stable-diffusion-webui
+SD_URL: "YOUR_SD_URL"
+SD_T2I_API: "/sdapi/v1/txt2img"

@@ -59,6 +59,7 @@ ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. AND '## <SECTION_NAME>' SHOULD W
 
 ## Requirement Pool: Provided as Python list[str, str], the parameters are requirement description, priority(P0/P1/P2), respectively, comply with PEP standards; no more than 5 requirements and consider to make its difficulty lower
 
+## UI Design draft: Provide as Plain text. Be simple. Describe the elements and functions, also provide a simple style description and layout description.
 ## Anything UNCLEAR: Provide as Plain text. Make clear here.
 """
 FORMAT_EXAMPLE = """
@@ -105,6 +106,9 @@ The product should be a ...
 ]
 ```
 
+## UI Design draft
+Give a basic function description, and a draft
+
 ## Anything UNCLEAR
 There are no unclear points.
 ---
@@ -117,6 +121,7 @@ OUTPUT_MAPPING = {
     "Competitive Quadrant Chart": (str, ...),
     "Requirement Analysis": (str, ...),
     "Requirement Pool": (List[Tuple[str, str]], ...),
+    "UI Design draft":(str, ...),
     "Anything UNCLEAR": (str, ...),
 }
 
@@ -136,5 +141,6 @@ class WritePRD(Action):
 
         prompt = PROMPT_TEMPLATE.format(requirements=requirements, search_information=info,
                                         format_example=FORMAT_EXAMPLE)
+        logger.debug(prompt)
         prd = await self._aask_v1(prompt, "prd", OUTPUT_MAPPING)
         return prd
