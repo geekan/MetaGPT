@@ -32,3 +32,7 @@ RPM: 10
 
 #AZURE_TTS_SUBSCRIPTION_KEY: "YOUR_API_KEY"
 #AZURE_TTS_REGION: "eastus"
+
+#### for SD
+SD_URL: "YOUR_SD_URL"
+SD_T2I_API: "/sdapi/v1/txt2img"
