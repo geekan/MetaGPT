@@ -147,20 +147,20 @@ class Engineer(Role):
     async def _act_sp_precision(self) -> Message:
         """
         # 从历史信息中挑选必须的信息，以减少prompt长度（人工经验总结）
-        1. ProductManager 分析和需求
-        2. Architect全部
-        3. ProjectManager全部
-        4. 是否需要其他代码？（目标是不需要。在任务拆分清楚后，根据设计思路，
-                            不需要其他代码也能够写清楚单个文件，
-                            如果不能则表示还需要在定义的更清晰，这个是代码能够写长的关键）
+        1. Architect全部
+        2. ProjectManager全部
+        3. 是否需要其他代码（暂时需要）？
+        （目标是不需要。在任务拆分清楚后，根据设计思路，不需要其他代码也能够写清楚单个文件，
+        如果不能则表示还需要在定义的更清晰，这个是代码能够写长的关键）
         :return:
         """
-        context = []
-        for msg in self._rc.memory.get_by_actions([WriteTasks, WriteDesign]):
-            context.append(msg.content)
-        context_str = "\n".join(context)
-        logger.debug(f'context: {context_str}')
         for todo in self.todos:
+            context = []
+            msg = self._rc.memory.get_by_actions([WriteDesign, WriteTasks, WriteCodeReview])
+            for m in msg:
+                context.append(m.content)
+            context_str = "\n".join(context)
+            logger.debug(f'context: {context_str}')
             code_rsp = await WriteCode().run(
                 context=context_str,
                 filename=todo
@@ -176,11 +176,11 @@ class Engineer(Role):
                 logger.error("code review failed!", e)
                 pass
             self.write_file(todo, code_rsp)
-            msg = Message(content=code_rsp, role=self.profile, cause_by=type(self._rc.todo))
+            msg = Message(content=code_rsp, role=self.profile, cause_by=WriteCodeReview)
             self._rc.memory.add(msg)
 
         logger.info(f'Done {self.get_workspace()} generating.')
-        msg = Message(content="all done.", role=self.profile, cause_by=type(self._rc.todo))
+        msg = Message(content="all done.", role=self.profile, cause_by=type(WriteCode))
         return msg
 
     async def _act(self) -> Message:
