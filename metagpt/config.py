@@ -4,6 +4,7 @@
 提供配置，单例
 """
 import os
+import openai
 
 import yaml
 
@@ -11,7 +12,7 @@ from metagpt.logs import logger
 
 from metagpt.const import PROJECT_ROOT
 from metagpt.utils.singleton import Singleton
-from metagpt.tools import SearchEngineType
+from metagpt.tools import SearchEngineType, WebBrowserEngineType
 
 
 class NotConfiguredException(Exception):
@@ -33,35 +34,42 @@ class Config(metaclass=Singleton):
     secret_key = config.get_key("MY_SECRET_KEY")
     print("Secret key:", secret_key)
     """
+
     _instance = None
-    key_yaml_file = PROJECT_ROOT / 'config/key.yaml'
-    default_yaml_file = PROJECT_ROOT / 'config/config.yaml'
+    key_yaml_file = PROJECT_ROOT / "config/key.yaml"
+    default_yaml_file = PROJECT_ROOT / "config/config.yaml"
 
     def __init__(self, yaml_file=default_yaml_file):
         self._configs = {}
         self._init_with_config_files_and_env(self._configs, yaml_file)
-        logger.info('Config loading done.')
-        self.openai_api_key = self._get('OPENAI_API_KEY')
-        if not self.openai_api_key or 'YOUR_API_KEY' == self.openai_api_key:
+        logger.info("Config loading done.")
+        self.global_proxy = self._get("GLOBAL_PROXY")
+        self.openai_api_key = self._get("OPENAI_API_KEY")
+        if not self.openai_api_key or "YOUR_API_KEY" == self.openai_api_key:
             raise NotConfiguredException("Set OPENAI_API_KEY first")
-        self.openai_api_base = self._get('OPENAI_API_BASE')
-        if not self.openai_api_base or 'YOUR_API_BASE' == self.openai_api_base:
-            logger.info("Set OPENAI_API_BASE in case of network issues")
-        self.openai_api_type = self._get('OPENAI_API_TYPE')
-        self.openai_api_version = self._get('OPENAI_API_VERSION')
-        self.openai_api_rpm = self._get('RPM', 3)
-        self.openai_api_model = self._get('OPENAI_API_MODEL', "gpt-4")
-        self.max_tokens_rsp = self._get('MAX_TOKENS', 2048)
-        self.deployment_id = self._get('DEPLOYMENT_ID')
+        self.openai_api_base = self._get("OPENAI_API_BASE")
+        if not self.openai_api_base or "YOUR_API_BASE" == self.openai_api_base:
+            openai_proxy = self._get("OPENAI_PROXY") or self.global_proxy
+            if openai_proxy:
+                openai.proxy = openai_proxy
+            else:
+                logger.info("Set OPENAI_API_BASE in case of network issues")
+        self.openai_api_type = self._get("OPENAI_API_TYPE")
+        self.openai_api_version = self._get("OPENAI_API_VERSION")
+        self.openai_api_rpm = self._get("RPM", 3)
+        self.openai_api_model = self._get("OPENAI_API_MODEL", "gpt-4")
+        self.max_tokens_rsp = self._get("MAX_TOKENS", 2048)
+        self.deployment_id = self._get("DEPLOYMENT_ID")
 
-        self.claude_api_key = self._get('Anthropic_API_KEY')
-
-        self.serpapi_api_key = self._get('SERPAPI_API_KEY')
-        self.serper_api_key = self._get('SERPER_API_KEY')
-        self.google_api_key = self._get('GOOGLE_API_KEY')
-        self.google_cse_id = self._get('GOOGLE_CSE_ID')
-        self.search_engine = self._get('SEARCH_ENGINE', SearchEngineType.SERPAPI_GOOGLE)
-        self.max_budget = self._get('MAX_BUDGET', 10.0)
+        self.serpapi_api_key = self._get("SERPAPI_API_KEY")
+        self.serper_api_key = self._get("SERPER_API_KEY")
+        self.google_api_key = self._get("GOOGLE_API_KEY")
+        self.google_cse_id = self._get("GOOGLE_CSE_ID")
+        self.search_engine = self._get("SEARCH_ENGINE", SearchEngineType.SERPAPI_GOOGLE)
+        self.web_browser_engine = self._get("WEB_BROWSER_ENGINE", WebBrowserEngineType.PLAYWRIGHT)
+        self.playwright_browser_type = self._get("PLAYWRIGHT_BROWSER_TYPE", "chromium")
+        self.selenium_browser_type = self._get("selenium_browser_type", "chrome")
+        self.max_budget = self._get("MAX_BUDGET", 10.0)
         self.total_cost = 0.0
 
     def _init_with_config_files_and_env(self, configs: dict, yaml_file):
@@ -73,7 +81,7 @@ class Config(metaclass=Singleton):
                 continue
 
             # 加载本地 YAML 文件
-            with open(_yaml_file, 'r', encoding="utf-8") as file:
+            with open(_yaml_file, "r", encoding="utf-8") as file:
                 yaml_data = yaml.safe_load(file)
                 if not yaml_data:
                     continue
