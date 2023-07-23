@@ -8,9 +8,8 @@ import openai
 
 import yaml
 
-from metagpt.logs import logger
-
 from metagpt.const import PROJECT_ROOT
+from metagpt.logs import logger
 from metagpt.utils.singleton import Singleton
 from metagpt.tools import SearchEngineType, WebBrowserEngineType
 

@@ -5,14 +5,11 @@
 @Author  : alexanderwu
 @File    : skill_manager.py
 """
-from sentence_transformers import SentenceTransformer
-from metagpt.logs import logger
-
-from metagpt.const import PROMPT_PATH
-from metagpt.llm import LLM
 from metagpt.actions import Action
+from metagpt.const import PROMPT_PATH
 from metagpt.document_store.chromadb_store import ChromaStore
-
+from metagpt.llm import LLM
+from metagpt.logs import logger
 
 Skill = Action
 
@@ -76,7 +73,6 @@ class SkillManager:
         path = PROMPT_PATH / "generate_skill.md"
         text = path.read_text()
         logger.info(text)
-
 
 
 if __name__ == '__main__':

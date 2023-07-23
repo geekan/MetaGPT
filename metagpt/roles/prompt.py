@@ -44,4 +44,3 @@ class PromptString(Enum):
     HAS_HAPPENED = "给出以下角色的观察和他们正在等待的事情的描述，说明角色是否已经见证了这个事件。\n{format_instructions}\n\n示例：\n\n观察：\nJoe在2023-05-04 08:00:00+00:00走进办公室\nJoe在2023-05-04 08:05:00+00:00对Sally说hi\nSally在2023-05-04 08:05:30+00:00对Joe说hello\nRebecca在2023-05-04 08:10:00+00:00开始工作\nJoe在2023-05-04 08:15:00+00:00做了一些早餐\n\n等待：Sally回应了Joe\n\n 你的回应：'{{\"has_happened\": true, \"date_occured\": 2023-05-04 08:05:30+00:00}}'\n\n让我们开始吧！\n\n观察：\n{memory_descriptions}\n\n等待：{event_description}\n"
 
     OUTPUT_FORMAT = "\n\n（记住！确保你的输出总是符合以下两种格式之一：\n\nA. 如果你已经完成了任务：\n思考：'我已经完成了任务'\n最终回应：<str>\n\nB. 如果你还没有完成任务：\n思考：<str>\n行动：<str>\n行动输入：<str>\n观察：<str>）\n"
-

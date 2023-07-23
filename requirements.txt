@@ -32,3 +32,4 @@ tqdm==4.64.0
 # playwright
 # selenium>4
 # webdriver_manager<3.9
+anthropic==0.3.6

@@ -5,20 +5,18 @@
 @Author  : alexanderwu
 @File    : faiss_store.py
 """
-from typing import Optional
-from pathlib import Path
 import pickle
+from pathlib import Path
+from typing import Optional
 
 import faiss
-from langchain.vectorstores import FAISS
 from langchain.embeddings import OpenAIEmbeddings
-import pandas as pd
-from tqdm import tqdm
+from langchain.vectorstores import FAISS
 
-from metagpt.logs import logger
 from metagpt.const import DATA_PATH
-from metagpt.document_store.document import Document
 from metagpt.document_store.base_store import LocalStore
+from metagpt.document_store.document import Document
+from metagpt.logs import logger
 
 
 class FaissStore(LocalStore):
@@ -39,7 +37,7 @@ class FaissStore(LocalStore):
         return store
 
     def _write(self, docs, metadatas):
-        store = FAISS.from_texts(docs, OpenAIEmbeddings(openai_api_version = "2020-11-07"), metadatas=metadatas)
+        store = FAISS.from_texts(docs, OpenAIEmbeddings(openai_api_version="2020-11-07"), metadatas=metadatas)
         return store
 
     def persist(self):

@@ -7,6 +7,7 @@
 """
 
 import pytest
+
 from metagpt.llm import LLM
 
 
@@ -26,8 +27,7 @@ async def test_llm_aask_batch(llm):
 
 
 @pytest.mark.asyncio
-async def test_llm_aask(llm):
-
+async def test_llm_acompletion(llm):
     hello_msg = [{'role': 'user', 'content': 'hello'}]
     assert len(await llm.acompletion(hello_msg)) > 0
     assert len(await llm.acompletion_batch([hello_msg])) > 0

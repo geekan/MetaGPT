@@ -7,9 +7,10 @@
 """
 
 from unittest.mock import Mock
-import pytest
-from metagpt.logs import logger
 
+import pytest
+
+from metagpt.logs import logger
 from metagpt.provider.openai_api import OpenAIGPTAPI as GPTAPI
 import asyncio
 import re

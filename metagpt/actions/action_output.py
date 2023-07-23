@@ -6,8 +6,9 @@
 @File    : action_output
 """
 
-from pydantic import create_model, validator, root_validator, BaseModel
 from typing import Dict, Type
+
+from pydantic import BaseModel, create_model, root_validator, validator
 
 
 class ActionOutput:

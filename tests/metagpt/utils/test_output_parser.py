@@ -5,11 +5,10 @@
 @Author  : chengmaoyu
 @File    : test_output_parser.py
 """
+from typing import List, Tuple
 
 import pytest
-from typing import List, Tuple
-import re
-import ast
+
 from metagpt.utils.common import OutputParser
 
 
