@@ -53,11 +53,11 @@ class SearchEngine:
         return rsp
 
 
-def google_official_search(queries: list[str], num_results: int = 8, focus=['snippet', 'link', 'title']) -> dict | list[dict]:
-    """Return the results of a batch of Google search using the official Google API
+def google_official_search(query: str, num_results: int = 8, focus=['snippet', 'link', 'title']) -> dict | list[dict]:
+    """Return the results of a Google search using the official Google API
 
     Args:
-        queries (list[str]): A batch of search queries.
+        query (str): The search query.
         num_results (int): The number of results to return.
 
     Returns:
@@ -71,19 +71,15 @@ def google_official_search(queries: list[str], num_results: int = 8, focus=['sni
         api_key = config.google_api_key
         custom_search_engine_id = config.google_cse_id
 
-        service = build("customsearch", "v2", developerKey=api_key)
-        batch = service.new_batch_http_request()
-        for query in queries:
-            batch.add(service.cse()
-                .list(q=query, cx=custom_search_engine_id, num=num_results))
-        batch.execute()
-        result = (
-            service.cse()
-            .list(q=query, cx=custom_search_engine_id, num=num_results)
-            .execute()
-        )
+        with build("customsearch", "v1", developerKey=api_key) as service:
 
-        # Extract the search result items from the response
+            result = (
+                service.cse()
+                .list(q=query, cx=custom_search_engine_id, num=num_results)
+                .execute()
+            )
+            logger.info(result)
+            # Extract the search result items from the response
         search_results = result.get("items", [])
 
         # Create a list of only the URLs from the search results

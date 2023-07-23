@@ -226,7 +226,7 @@ class Role:
             if isinstance(message, Message):
                 self.recv(message)
             if isinstance(message, list):
-                self.recv(Message("|".join(message)))
+                self.recv(Message("\n".join(message)))
         elif not await self._observe():
             # 如果没有任何新信息，挂起等待
             logger.debug(f"{self._setting}: no news. waiting.")
