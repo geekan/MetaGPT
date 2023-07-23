@@ -7,11 +7,10 @@ import os
 
 import yaml
 
-from metagpt.logs import logger
-
 from metagpt.const import PROJECT_ROOT
-from metagpt.utils.singleton import Singleton
+from metagpt.logs import logger
 from metagpt.tools import SearchEngineType
+from metagpt.utils.singleton import Singleton
 
 
 class NotConfiguredException(Exception):

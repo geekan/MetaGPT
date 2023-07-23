@@ -5,9 +5,6 @@
 @Author  : alexanderwu
 @File    : test_action.py
 """
-
-import pytest
-from metagpt.logs import logger
 from metagpt.actions import Action, WritePRD, WriteTest
 
 

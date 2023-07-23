@@ -5,13 +5,13 @@
 @Author  : alexanderwu
 @File    : action.py
 """
-from typing import Optional
 from abc import ABC
+from typing import Optional
 
-from metagpt.llm import LLM
-from metagpt.actions.action_output import ActionOutput
 from tenacity import retry, stop_after_attempt, wait_fixed
-from pydantic import BaseModel
+
+from metagpt.actions.action_output import ActionOutput
+from metagpt.llm import LLM
 from metagpt.utils.common import OutputParser
 from metagpt.logs import logger
 

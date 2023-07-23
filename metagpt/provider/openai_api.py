@@ -5,17 +5,22 @@
 @Author  : alexanderwu
 @File    : openai.py
 """
-from typing import NamedTuple
-from functools import wraps
 import asyncio
 import time
-import openai
-from metagpt.logs import logger
+from functools import wraps
+from typing import NamedTuple
 
-from metagpt.provider.base_gpt_api import BaseGPTAPI
+import openai
+
 from metagpt.config import CONFIG
+from metagpt.logs import logger
+from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.utils.singleton import Singleton
-from metagpt.utils.token_counter import count_message_tokens, TOKEN_COSTS, count_string_tokens
+from metagpt.utils.token_counter import (
+    TOKEN_COSTS,
+    count_message_tokens,
+    count_string_tokens,
+)
 
 
 def retry(max_retries):
@@ -25,7 +30,7 @@ def retry(max_retries):
             for i in range(max_retries):
                 try:
                     return await f(*args, **kwargs)
-                except Exception as e:
+                except Exception:
                     if i == max_retries - 1:
                         raise
                     await asyncio.sleep(2 ** i)

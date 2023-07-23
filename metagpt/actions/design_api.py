@@ -7,14 +7,12 @@
 """
 import shutil
 from pathlib import Path
-from typing import List, Tuple
+from typing import List
 
-from metagpt.actions import ActionOutput
-from metagpt.actions import Action
+from metagpt.actions import Action, ActionOutput
 from metagpt.const import WORKSPACE_ROOT
-from metagpt.utils.common import CodeParser
-from metagpt.schema import Message
 from metagpt.logs import logger
+from metagpt.utils.common import CodeParser
 from metagpt.utils.mermaid import mermaid_to_file
 
 PROMPT_TEMPLATE = """

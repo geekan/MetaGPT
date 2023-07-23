@@ -7,6 +7,7 @@
 """
 
 import pytest
+
 from metagpt.utils.common import CodeParser
 
 t_text = '''

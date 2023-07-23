@@ -7,6 +7,7 @@
 """
 
 import pytest
+
 from metagpt.logs import logger
 from metagpt.tools.search_engine import SearchEngine
 

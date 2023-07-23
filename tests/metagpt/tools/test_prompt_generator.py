@@ -7,8 +7,14 @@
 """
 
 import pytest
-from metagpt.tools.prompt_writer import GPTPromptGenerator, EnronTemplate, BEAGECTemplate, WikiHowTemplate
+
 from metagpt.logs import logger
+from metagpt.tools.prompt_writer import (
+    BEAGECTemplate,
+    EnronTemplate,
+    GPTPromptGenerator,
+    WikiHowTemplate,
+)
 
 
 @pytest.mark.usefixtures("llm_api")

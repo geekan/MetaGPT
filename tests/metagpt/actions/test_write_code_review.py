@@ -6,9 +6,9 @@
 @File    : test_write_code_review.py
 """
 import pytest
-from metagpt.logs import logger
-from metagpt.llm import LLM
+
 from metagpt.actions.write_code_review import WriteCodeReview
+from metagpt.logs import logger
 from tests.metagpt.actions.mock import SEARCH_CODE_SAMPLE
 
 
