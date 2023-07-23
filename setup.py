@@ -10,12 +10,12 @@ import subprocess
 class InstallMermaidCLI(Command):
     """A custom command to run `npm install -g @mermaid-js/mermaid-cli` via a subprocess."""
 
-    description = 'install mermaid-cli'
+    description = "install mermaid-cli"
     user_options = []
 
     def run(self):
         try:
-            subprocess.check_call(['npm', 'install', '-g', '@mermaid-js/mermaid-cli'])
+            subprocess.check_call(["npm", "install", "-g", "@mermaid-js/mermaid-cli"])
         except subprocess.CalledProcessError as e:
             print(f"Error occurred: {e.output}")
 
@@ -42,7 +42,15 @@ setup(
     packages=find_packages(exclude=["contrib", "docs", "examples"]),
     python_requires=">=3.9",
     install_requires=requirements,
+    extras_require={
+        "web_browser": [
+            "playwright>=1.26",
+            "beautifulsoup4",
+        ],
+        "playwright": ["playwright"],
+        "selenium": ["selenium>4", "webdriver_manager<3.9"],
+    },
     cmdclass={
-        'install_mermaid': InstallMermaidCLI,
+        "install_mermaid": InstallMermaidCLI,
     },
 )
