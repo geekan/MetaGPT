@@ -6,6 +6,7 @@
 @File    : test_software_company.py
 """
 import pytest
+
 from metagpt.logs import logger
 from metagpt.software_company import SoftwareCompany
 

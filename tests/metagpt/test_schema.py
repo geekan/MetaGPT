@@ -5,7 +5,7 @@
 @Author  : alexanderwu
 @File    : test_schema.py
 """
-from metagpt.schema import UserMessage, SystemMessage, AIMessage, Message
+from metagpt.schema import AIMessage, Message, SystemMessage, UserMessage
 
 
 def test_messages():

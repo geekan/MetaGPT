@@ -9,10 +9,8 @@ from __future__ import annotations
 
 import json
 
-from metagpt.logs import logger
-from duckduckgo_search import ddg
-
 from metagpt.config import Config
+from metagpt.logs import logger
 from metagpt.tools.search_engine_serpapi import SerpAPIWrapper
 from metagpt.tools.search_engine_serper import SerperWrapper
 
@@ -55,11 +53,11 @@ class SearchEngine:
         return rsp
 
 
-def google_official_search(query: str, num_results: int = 8, focus=['snippet', 'link', 'title']) -> dict | list[dict]:
-    """Return the results of a Google search using the official Google API
+def google_official_search(queries: list[str], num_results: int = 8, focus=['snippet', 'link', 'title']) -> dict | list[dict]:
+    """Return the results of a batch of Google search using the official Google API
 
     Args:
-        query (str): The search query.
+        queries (list[str]): A batch of search queries.
         num_results (int): The number of results to return.
 
     Returns:
@@ -73,8 +71,12 @@ def google_official_search(query: str, num_results: int = 8, focus=['snippet', '
         api_key = config.google_api_key
         custom_search_engine_id = config.google_cse_id
 
-        service = build("customsearch", "v1", developerKey=api_key)
-
+        service = build("customsearch", "v2", developerKey=api_key)
+        batch = service.new_batch_http_request()
+        for query in queries:
+            batch.add(service.cse()
+                .list(q=query, cx=custom_search_engine_id, num=num_results))
+        batch.execute()
         result = (
             service.cse()
             .list(q=query, cx=custom_search_engine_id, num=num_results)

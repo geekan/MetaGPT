@@ -20,6 +20,6 @@ class RunCode(Action):
             namespace = {}
             exec(code, namespace)
             return namespace.get('result', None)
-        except Exception as e:
+        except Exception:
             # If there is an error in the code, return the error message
             return traceback.format_exc()

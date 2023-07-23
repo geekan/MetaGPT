@@ -5,7 +5,7 @@
 @Author  : alexanderwu
 @File    : mock.py
 """
-from metagpt.actions import WritePRD, BossRequirement, WriteDesign, WriteTasks
+from metagpt.actions import BossRequirement, WriteDesign, WritePRD, WriteTasks
 from metagpt.schema import Message
 
 BOSS_REQUIREMENT = """开发一个基于大语言模型与私有知识库的搜索引擎，希望可以基于大语言模型进行搜索总结"""
@@ -221,10 +221,7 @@ task_list = [
 ```
 '''
 
-
-
 TASK = """smart_search_engine/knowledge_base.py"""
-
 
 STRS_FOR_PARSING = [
 """

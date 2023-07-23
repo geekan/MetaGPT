@@ -1,10 +1,10 @@
 """wutils: handy tools
 """
+import subprocess
 from codecs import open
 from os import path
-from setuptools import find_packages, setup, Command
 
-import subprocess
+from setuptools import Command, find_packages, setup
 
 
 class InstallMermaidCLI(Command):

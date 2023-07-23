@@ -6,8 +6,10 @@
 @File    : test_common.py
 """
 
-import pytest
 import os
+
+import pytest
+
 from metagpt.const import get_project_root
 
 

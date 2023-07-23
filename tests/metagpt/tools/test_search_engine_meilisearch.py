@@ -5,11 +5,13 @@
 @Author  : alexanderwu
 @File    : test_search_engine_meilisearch.py
 """
-import time
-import pytest
 import subprocess
+import time
+
+import pytest
+
 from metagpt.logs import logger
-from metagpt.tools.search_engine_meilisearch import MeilisearchEngine, DataSource
+from metagpt.tools.search_engine_meilisearch import DataSource, MeilisearchEngine
 
 MASTER_KEY = '116Qavl2qpCYNEJNv5-e0RC9kncev1nr1gt7ybEGVLk'
 

@@ -6,6 +6,7 @@
 @File    : sales.py
 """
 from metagpt.roles import Sales
+
 # from metagpt.actions import SearchAndSummarize
 # from metagpt.tools import SearchEngineType
 
@@ -21,6 +22,7 @@ DESC = """
 
 """
 
+
 class CustomerService(Sales):
     def __init__(
             self,
@@ -30,4 +32,3 @@ class CustomerService(Sales):
             store=None
     ):
         super().__init__(name, profile, desc=desc, store=store)
-

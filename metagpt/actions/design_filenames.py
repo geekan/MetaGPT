@@ -5,9 +5,8 @@
 @Author  : alexanderwu
 @File    : design_filenames.py
 """
-from metagpt.logs import logger
 from metagpt.actions import Action
-
+from metagpt.logs import logger
 
 PROMPT = """You are an AI developer, trying to write a program that generates code for users based on their intentions.
 When given their intentions, provide a complete and exhaustive list of file paths needed to write the program for the user.

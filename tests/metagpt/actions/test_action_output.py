@@ -5,8 +5,9 @@
 @Author  : chengmaoyu
 @File    : test_action_output
 """
-from metagpt.actions import ActionOutput
 from typing import List, Tuple
+
+from metagpt.actions import ActionOutput
 
 t_dict = {"Required Python third-party packages": "\"\"\"\nflask==1.1.2\npygame==2.0.1\n\"\"\"\n",
           "Required Other language third-party packages": "\"\"\"\nNo third-party packages required for other languages.\n\"\"\"\n",

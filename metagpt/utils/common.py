@@ -5,12 +5,12 @@
 @Author  : alexanderwu
 @File    : common.py
 """
-import os
 import ast
 import inspect
+import os
 import re
+from typing import List, Tuple
 
-from typing import Union, List, Tuple
 from metagpt.logs import logger
 
 

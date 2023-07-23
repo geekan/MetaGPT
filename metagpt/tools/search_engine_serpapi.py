@@ -6,7 +6,7 @@
 @File    : search_engine_serpapi.py
 """
 from typing import Any, Dict, Optional, Tuple
-from metagpt.logs import logger
+
 import aiohttp
 from pydantic import BaseModel, Field
 
