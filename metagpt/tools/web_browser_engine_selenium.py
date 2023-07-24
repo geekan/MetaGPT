@@ -5,7 +5,7 @@ import asyncio
 from copy import deepcopy
 import importlib
 from typing import Literal
-from metagpt.config import Config
+from metagpt.config import CONFIG
 import asyncio
 
 from selenium.webdriver.common.by import By
@@ -29,14 +29,12 @@ class SeleniumWrapper:
         loop: asyncio.AbstractEventLoop | None = None,
         executor: futures.Executor | None = None,
     ) -> None:
-        config = Config()
-        self.config = config
         if browser_type is None:
-            browser_type = config.selenium_browser_type
+            browser_type = CONFIG.selenium_browser_type
         self.browser_type = browser_type
         launch_kwargs = launch_kwargs or {}
-        if config.global_proxy and "proxy-server" not in launch_kwargs:
-            launch_kwargs["proxy-server"] = config.global_proxy
+        if CONFIG.global_proxy and "proxy-server" not in launch_kwargs:
+            launch_kwargs["proxy-server"] = CONFIG.global_proxy
 
         self.executable_path = launch_kwargs.pop("executable_path", None)
         self.launch_args = [f"--{k}={v}" for k, v in launch_kwargs.items()]

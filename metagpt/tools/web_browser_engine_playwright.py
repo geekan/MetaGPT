@@ -6,7 +6,7 @@ from pathlib import Path
 import sys
 from typing import Literal
 from playwright.async_api import async_playwright
-from metagpt.config import Config
+from metagpt.config import CONFIG
 from metagpt.logs import logger
 
 
@@ -24,16 +24,14 @@ class PlaywrightWrapper:
         launch_kwargs: dict | None = None,
         **kwargs,
     ) -> None:
-        config = Config()
-        self.config = config
         if browser_type is None:
-            browser_type = config.playwright_browser_type
+            browser_type = CONFIG.playwright_browser_type
         self.browser_type = browser_type
         launch_kwargs = launch_kwargs or {}
-        if config.global_proxy and "proxy" not in launch_kwargs:
+        if CONFIG.global_proxy and "proxy" not in launch_kwargs:
             args = launch_kwargs.get("args", [])
             if not any(str.startswith(i, "--proxy-server=") for i in args):
-                launch_kwargs["proxy"] = {"server": config.global_proxy}
+                launch_kwargs["proxy"] = {"server": CONFIG.global_proxy}
         self.launch_kwargs = launch_kwargs
         context_kwargs = {}
         if "ignore_https_errors" in kwargs:
@@ -70,8 +68,8 @@ class PlaywrightWrapper:
         executable_path = Path(browser_type.executable_path)
         if not executable_path.exists() and "executable_path" not in self.launch_kwargs:
             kwargs = {}
-            if self.config.global_proxy:
-                kwargs["env"] = {"ALL_PROXY": self.config.global_proxy}
+            if CONFIG.global_proxy:
+                kwargs["env"] = {"ALL_PROXY": CONFIG.global_proxy}
             await _install_browsers(self.browser_type, **kwargs)
             if not executable_path.exists():
                 parts = executable_path.parts

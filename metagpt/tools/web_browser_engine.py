@@ -6,7 +6,7 @@ import importlib
 
 from typing import Any, Callable, Coroutine, overload
 
-from metagpt.config import Config
+from metagpt.config import CONFIG
 from metagpt.tools import WebBrowserEngineType
 from bs4 import BeautifulSoup
 
@@ -17,8 +17,7 @@ class WebBrowserEngine:
         engine: WebBrowserEngineType | None = None,
         run_func: Callable[..., Coroutine[Any, Any, str | list[str]]] | None = None,
     ):
-        self.config = Config()
-        engine = engine or self.config.web_browser_engine
+        engine = engine or CONFIG.web_browser_engine
 
         if engine == WebBrowserEngineType.PLAYWRIGHT:
             web_browser_engine = importlib.import_module("metagpt.tools.web_browser_engine_playwright")
@@ -26,7 +25,7 @@ class WebBrowserEngine:
         elif engine == WebBrowserEngineType.SELENIUM:
             web_browser_engine = importlib.import_module("metagpt.tools.web_browser_engine_selenium")
             run_func = web_browser_engine.SeleniumWrapper().run
-        elif engine == WebBrowserEngineType.CUSTOM_ENGINE:
+        elif engine == WebBrowserEngineType.CUSTOM:
             run_func = run_func
         else:
             raise NotImplementedError

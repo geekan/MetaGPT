@@ -18,6 +18,6 @@ class SearchEngineType(Enum):
 
 
 class WebBrowserEngineType(Enum):
-    PLAYWRIGHT = auto()
-    SELENIUM = auto()
-    CUSTOM_ENGINE = auto()
+    PLAYWRIGHT = "playwright"
+    SELENIUM = "selenium"
+    CUSTOM = "custom"

@@ -1,5 +1,5 @@
 import pytest
-from metagpt.config import Config
+from metagpt.config import CONFIG
 from metagpt.tools import web_browser_engine_playwright
 
 
@@ -15,10 +15,9 @@ from metagpt.tools import web_browser_engine_playwright
 )
 async def test_scrape_web_page(browser_type, use_proxy, kwagrs, url, urls, proxy, capfd):
     try:
-        config = Config()
-        global_proxy = config.global_proxy
+        global_proxy = CONFIG.global_proxy
         if use_proxy:
-            config.global_proxy = proxy
+            CONFIG.global_proxy = proxy
         browser = web_browser_engine_playwright.PlaywrightWrapper(browser_type, **kwagrs)
         result = await browser.run(url)
         assert isinstance(result, str)
@@ -32,4 +31,4 @@ async def test_scrape_web_page(browser_type, use_proxy, kwagrs, url, urls, proxy
         if use_proxy:
             assert "Proxy:" in capfd.readouterr().out
     finally:
-        config.global_proxy = global_proxy
+        CONFIG.global_proxy = global_proxy
