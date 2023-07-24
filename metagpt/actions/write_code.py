@@ -14,11 +14,12 @@ from metagpt.utils.common import CodeParser
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 PROMPT_TEMPLATE = """
-# Context
-{context}
------
 NOTICE
-1. Role: You are an engineer; the main goal is to write PEP8 compliant, elegant, modular, easy to read and maintain Python 3.9 code (but you can also use other programming language)
+Role: You are a professional engineer; the main goal is to write PEP8 compliant, elegant, modular, easy to read and maintain Python 3.9 code (but you can also use other programming language)
+ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenced "Format example".
+
+## Code: {filename} Write code with triple quoto, based on the following list and context.
+1. Do your best to implement THIS ONLY ONE FILE. ONLY USE EXISTING API. IF NO API, IMPLEMENT IT.
 2. Requirement: Based on the context, implement one following code file, note to return only in code form, your code will be part of the entire project, so please implement complete, reliable, reusable code snippets
 3. Attention1: If there is any setting, ALWAYS SET A DEFAULT VALUE, ALWAYS USE STRONG TYPE AND EXPLICIT VARIABLE.
 4. Attention2: YOU MUST FOLLOW "Data structures and interface definitions". DONT CHANGE ANY DESIGN.
@@ -26,14 +27,19 @@ NOTICE
 6. CAREFULLY CHECK THAT YOU DONT MISS ANY NECESSARY CLASS/FUNCTION IN THIS FILE.
 7. Do not use public member functions that do not exist in your design.
 
-## {filename}: Write code with triple quoto. Do your best to implement THIS ONLY ONE FILE. ONLY USE EXISTING API. IF NO API, IMPLEMENT IT.
-
+-----
+# Context
+{context}
+-----
+## Format example
+-----
+## Code: {filename}
+```python
+## {filename}
+...
+```
+-----
 """
-
-## {filename}: Please encapsulate your code within triple quotes. Focus your efforts on implementing ONLY WITHIN THIS FILE. Any class or function labeled as MISSING-DESIGN should be implemented IN THIS FILE ALONE. Do NOT make changes to any other files.
-OUTPUT_MAPPING = {
-    "{filename}": (str, ...),
-}
 
 
 class WriteCode(Action):

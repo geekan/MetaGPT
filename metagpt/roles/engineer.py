@@ -150,37 +150,38 @@ class Engineer(Role):
         1. Architect全部
         2. ProjectManager全部
         3. 是否需要其他代码（暂时需要）？
-        （目标是不需要。在任务拆分清楚后，根据设计思路，不需要其他代码也能够写清楚单个文件，
-        如果不能则表示还需要在定义的更清晰，这个是代码能够写长的关键）
+        TODO:目标是不需要。在任务拆分清楚后，根据设计思路，不需要其他代码也能够写清楚单个文件，如果不能则表示还需要在定义的更清晰，这个是代码能够写长的关键
         :return:
         """
         for todo in self.todos:
             context = []
-            msg = self._rc.memory.get_by_actions([WriteDesign, WriteTasks, WriteCodeReview])
+            msg = self._rc.memory.get_by_actions([WriteDesign, WriteTasks, WriteCode])
             for m in msg:
                 context.append(m.content)
             context_str = "\n".join(context)
-            logger.debug(f'context: {context_str}')
+            # 编写code
             code_rsp = await WriteCode().run(
                 context=context_str,
                 filename=todo
             )
-            try:
-                code = await WriteCodeReview().run(
-                    context=context_str,
-                    code=code_rsp,
-                    filename=todo
-                )
-                code_rsp = code
-            except Exception as e:
-                logger.error("code review failed!", e)
-                pass
+            # code review
+            if self.use_code_review:
+                try:
+                    code = await WriteCodeReview().run(
+                        context=context_str,
+                        code=code_rsp,
+                        filename=todo
+                    )
+                    code_rsp = code
+                except Exception as e:
+                    logger.error("code review failed!", e)
+                    pass
             self.write_file(todo, code_rsp)
-            msg = Message(content=code_rsp, role=self.profile, cause_by=WriteCodeReview)
+            msg = Message(content=code_rsp, role=self.profile, cause_by=WriteCode)
             self._rc.memory.add(msg)
 
         logger.info(f'Done {self.get_workspace()} generating.')
-        msg = Message(content="all done.", role=self.profile, cause_by=type(WriteCode))
+        msg = Message(content="all done.", role=self.profile, cause_by=WriteCode)
         return msg
 
     async def _act(self) -> Message:

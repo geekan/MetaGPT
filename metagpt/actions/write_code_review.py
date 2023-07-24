@@ -15,9 +15,9 @@ from tenacity import retry, stop_after_attempt, wait_fixed
 PROMPT_TEMPLATE = """
 NOTICE
 Role: You are a professional software engineer, and your main task is to review the code. You need to ensure that the code conforms to the PEP8 standards, is elegantly designed and modularized, easy to read and maintain, and is written in Python 3.9 (or in another programming language).
-ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. AND '## <SECTION_NAME>' SHOULD WRITE BEFORE the code and triple quote. Output format carefully referenced "Format example".
+ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenced "Format example".
 
-## Code Review: Based on the following context and code, and flowing the check list, Provide key, clear, concise, and specific code modification suggestions, up to 5.
+## Code Review: Based on the following context and code, and following the check list, Provide key, clear, concise, and specific code modification suggestions, up to 5.
 ```
 1. Check 0: Is the code implemented as per the requirements?
 2. Check 1: Are there any issues with the code logic?
@@ -27,7 +27,7 @@ ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. AND '## <SECTION_NAME>' SHOULD W
 6. Check 5: Does the code have ?
 ```
 
-## Rewrite Code: {filename} Base on Code Review and the source code, rewrite code with triple quotes. Do your utmost to optimize THIS SINGLE FILE.Ensure that the functionality of the rewritten code is consistent with the "Data structures and interface definitions" and ensure the code is complete and do not omit anything. 
+## Rewrite Code: {filename} Base on "Code Review" and the source code, rewrite code with triple quotes. Do your utmost to optimize THIS SINGLE FILE. 
 -----
 # Context
 {context}
@@ -56,10 +56,10 @@ FORMAT_EXAMPLE = """
 
 ## Rewrite Code: {filename}
 ```python
+## {filename}
 ...
 ```
 """
-
 
 
 class WriteCodeReview(Action):
