@@ -16,6 +16,7 @@ class WebBrowserEngine:
         self,
         engine: WebBrowserEngineType | None = None,
         run_func: Callable[..., Coroutine[Any, Any, str | list[str]]] | None = None,
+        parse_func: Callable[[str], str] | None = None,
     ):
         engine = engine or CONFIG.web_browser_engine
 
@@ -29,6 +30,7 @@ class WebBrowserEngine:
             run_func = run_func
         else:
             raise NotImplementedError
+        self.parse_func = parse_func or get_page_content
         self.run_func = run_func
         self.engine = engine
 
@@ -43,8 +45,8 @@ class WebBrowserEngine:
     async def run(self, url: str, *urls: str) -> str | list[str]:
         page = await self.run_func(url, *urls)
         if isinstance(page, str):
-            return get_page_content(page)
-        return [get_page_content(i) for i in page]
+            return self.parse_func(page)
+        return [self.parse_func(i) for i in page]
 
 
 def get_page_content(page: str):
