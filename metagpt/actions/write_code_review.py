@@ -24,7 +24,6 @@ ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenc
 3. Check 2: Does the existing code follow the "Data structures and interface definitions"?
 4. Check 3: Is there a function in the code that is omitted or not fully implemented that needs to be implemented?
 5. Check 4: Does the code have unnecessary or lack dependencies?
-6. Check 5: Does the code have ?
 ```
 
 ## Rewrite Code: {filename} Base on "Code Review" and the source code, rewrite code with triple quotes. Do your utmost to optimize THIS SINGLE FILE. 
