@@ -17,8 +17,13 @@ from concurrent import futures
 class SeleniumWrapper:
     """Wrapper around Selenium.
 
-    To use this module, you should have the ``selenium`` Python package installed and ensure
-    that the required browsers are also installed.
+    To use this module, you should check the following:
+
+    1. Run the following command: pip install metagpt[selenium].
+    2. Make sure you have a compatible web browser installed and the appropriate WebDriver set up
+       for that browser before running. For example, if you have Mozilla Firefox installed on your
+       computer, you can set the configuration SELENIUM_BROWSER_TYPE to firefox. After that, you
+       can scrape web pages using the Selenium WebBrowserEngine.
     """
 
     def __init__(

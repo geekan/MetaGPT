@@ -13,9 +13,10 @@ from metagpt.logs import logger
 class PlaywrightWrapper:
     """Wrapper around Playwright.
 
-    To use this module, you should have the ``playwright`` Python package installed and ensure
-    that the required browsers are also installed. You can download the necessary browser binaries
-    by running the command `playwright install` for the first time.
+    To use this module, you should have the `playwright` Python package installed and ensure that
+    the required browsers are also installed. You can install playwright by running the command
+    `pip install metagpt[playwright]` and download the necessary browser binaries by running the
+    command `playwright install` for the first time."
     """
 
     def __init__(
