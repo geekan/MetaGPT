@@ -115,6 +115,8 @@ cp config/config.yaml config/key.yaml
 
 ```shell
 python startup.py "Write a cli snake game"
+# Use code review will cost more money, but will opt for better code quality.
+python startup.py "Write a cli snake game" --code_review True 
 ```
 
 After running the script, you can find your new project in the `workspace/` directory.
