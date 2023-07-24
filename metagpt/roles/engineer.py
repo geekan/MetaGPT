@@ -6,9 +6,8 @@
 @File    : engineer.py
 """
 import asyncio
-import re
-import ast
 import shutil
+from collections import OrderedDict
 from pathlib import Path
 
 from metagpt.const import WORKSPACE_ROOT
@@ -17,7 +16,6 @@ from metagpt.roles import Role
 from metagpt.actions import WriteCode, WriteCodeReview, WriteTasks, WriteDesign
 from metagpt.schema import Message
 from metagpt.utils.common import CodeParser
-from collections import OrderedDict
 
 
 async def gather_ordered_k(coros, k) -> list:
@@ -115,7 +113,7 @@ class Engineer(Role):
 
         rsps = await gather_ordered_k(todo_coros, self.n_borg)
         for todo, code_rsp in zip(self.todos, rsps):
-            code = self.parse_code(code_rsp)
+            _ = self.parse_code(code_rsp)
             logger.info(todo)
             logger.info(code_rsp)
             # self.write_file(todo, code)

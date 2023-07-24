@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import asyncio
+
 import fire
+
+from metagpt.roles import Architect, Engineer, ProductManager, ProjectManager
 from metagpt.software_company import SoftwareCompany
-from metagpt.roles import ProjectManager, ProductManager, Architect, Engineer
 
 
 async def startup(idea: str, investment: float = 3.0, n_round: int = 5, code_review: bool = False):

@@ -24,12 +24,12 @@ API列表:
 3. next(): 跳到播放列表的下一首歌曲。
 4. previous(): 跳到播放列表的上一首歌曲。
 """
-    api_review = "API设计看起来非常合理，满足了PRD中的所有需求。"
+    _ = "API设计看起来非常合理，满足了PRD中的所有需求。"
 
     design_api_review = DesignReview("design_api_review")
 
     result = await design_api_review.run(prd, api_design)
 
-    prompt = f"以下是产品需求文档(PRD):\n\n{prd}\n\n以下是基于这个PRD设计的API列表:\n\n{api_design}\n\n请审查这个API设计是否满足PRD的需求，以及是否符合良好的设计实践。"
+    _ = f"以下是产品需求文档(PRD):\n\n{prd}\n\n以下是基于这个PRD设计的API列表:\n\n{api_design}\n\n请审查这个API设计是否满足PRD的需求，以及是否符合良好的设计实践。"
     # mock_llm.ask.assert_called_once_with(prompt)
     assert len(result) > 0

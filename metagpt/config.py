@@ -7,11 +7,10 @@ import os
 
 import yaml
 
-from metagpt.logs import logger
-
 from metagpt.const import PROJECT_ROOT
-from metagpt.utils.singleton import Singleton
+from metagpt.logs import logger
 from metagpt.tools import SearchEngineType
+from metagpt.utils.singleton import Singleton
 
 
 class NotConfiguredException(Exception):
@@ -53,6 +52,8 @@ class Config(metaclass=Singleton):
         self.openai_api_model = self._get('OPENAI_API_MODEL', "gpt-4")
         self.max_tokens_rsp = self._get('MAX_TOKENS', 2048)
         self.deployment_id = self._get('DEPLOYMENT_ID')
+
+        self.claude_api_key = self._get('Anthropic_API_KEY')
 
         self.serpapi_api_key = self._get('SERPAPI_API_KEY')
         self.serper_api_key = self._get('SERPER_API_KEY')

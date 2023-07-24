@@ -5,18 +5,18 @@
 @Author  : alexanderwu
 @File    : seacher.py
 """
+from metagpt.actions import ActionOutput, SearchAndSummarize
 from metagpt.logs import logger
-
 from metagpt.roles import Role
-from metagpt.actions import SearchAndSummarize, ActionOutput
-from metagpt.tools import SearchEngineType
 from metagpt.schema import Message
+from metagpt.tools import SearchEngineType
+
 
 class Searcher(Role):
     def __init__(self, name='Alice', profile='Smart Assistant', goal='Provide search services for users',
                  constraints='Answer is rich and complete', engine=SearchEngineType.SERPAPI_GOOGLE, **kwargs):
         super().__init__(name, profile, goal, constraints, **kwargs)
-        self._init_actions([SearchAndSummarize(engine = engine)])
+        self._init_actions([SearchAndSummarize(engine=engine)])
 
     def set_search_func(self, search_func):
         action = SearchAndSummarize("", engine=SearchEngineType.CUSTOM_ENGINE, search_func=search_func)

@@ -6,9 +6,8 @@
 @File    : test_ut_generator.py
 """
 
-from metagpt.tools.ut_writer import UTGenerator
-from metagpt.const import SWAGGER_PATH, UT_PY_PATH, API_QUESTIONS_PATH
-from metagpt.tools.ut_writer import YFT_PROMPT_PREFIX
+from metagpt.const import API_QUESTIONS_PATH, SWAGGER_PATH, UT_PY_PATH
+from metagpt.tools.ut_writer import YFT_PROMPT_PREFIX, UTGenerator
 
 
 class TestUTWriter:

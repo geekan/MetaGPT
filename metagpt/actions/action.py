@@ -5,15 +5,15 @@
 @Author  : alexanderwu
 @File    : action.py
 """
-from typing import Optional
 from abc import ABC
+from typing import Optional
 
-from metagpt.llm import LLM
-from metagpt.actions.action_output import ActionOutput
 from tenacity import retry, stop_after_attempt, wait_fixed
-from pydantic import BaseModel
-from metagpt.utils.common import OutputParser
 
+from metagpt.actions.action_output import ActionOutput
+from metagpt.llm import LLM
+from metagpt.utils.common import OutputParser
+from metagpt.logs import logger
 
 class Action(ABC):
     def __init__(self, name: str = '', context=None, llm: LLM = None):
@@ -55,8 +55,10 @@ class Action(ABC):
             system_msgs = []
         system_msgs.append(self.prefix)
         content = await self.llm.aask(prompt, system_msgs)
+        logger.debug(content)
         output_class = ActionOutput.create_model_class(output_class_name, output_data_mapping)
         parsed_data = OutputParser.parse_data_with_mapping(content, output_data_mapping)
+        logger.debug(parsed_data)
         instruct_content = output_class(**parsed_data)
         return ActionOutput(content, instruct_content)
 

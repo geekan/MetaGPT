@@ -5,8 +5,9 @@
 @Author  : Leo Xiao
 @File    : azure_tts.py
 """
+from azure.cognitiveservices.speech import AudioConfig, SpeechConfig, SpeechSynthesizer
+
 from metagpt.actions.action import Action
-from azure.cognitiveservices.speech import SpeechConfig, SpeechSynthesizer, AudioConfig
 from metagpt.config import Config
 
 

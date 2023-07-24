@@ -5,11 +5,11 @@
 @Author  : alexanderwu
 @File    : base_gpt_api.py
 """
+from abc import abstractmethod
 from typing import Optional
 
-from abc import abstractmethod
-from metagpt.provider.base_chatbot import BaseChatbot
 from metagpt.logs import logger
+from metagpt.provider.base_chatbot import BaseChatbot
 
 
 class BaseGPTAPI(BaseChatbot):

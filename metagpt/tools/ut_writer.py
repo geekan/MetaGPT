@@ -6,7 +6,6 @@ from pathlib import Path
 
 from metagpt.provider.openai_api import OpenAIGPTAPI as GPTAPI
 
-
 ICL_SAMPLE = '''接口定义：
 ```text
 接口名称：元素打标签

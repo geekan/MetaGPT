@@ -6,8 +6,9 @@
 @File    : test_write_prd.py
 """
 import pytest
+
+from metagpt.actions import BossRequirement
 from metagpt.logs import logger
-from metagpt.actions import WritePRD, BossRequirement
 from metagpt.roles.product_manager import ProductManager
 from metagpt.schema import Message
 

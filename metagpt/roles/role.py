@@ -6,17 +6,17 @@
 @File    : role.py
 """
 from __future__ import annotations
-from typing import Type, Iterable
+
+from typing import Iterable, Type
 
 from pydantic import BaseModel, Field
-
-from metagpt.logs import logger
 
 # from metagpt.environment import Environment
 from metagpt.actions import Action, ActionOutput
 from metagpt.llm import LLM
-from metagpt.schema import Message
+from metagpt.logs import logger
 from metagpt.memory import Memory
+from metagpt.schema import Message
 
 PREFIX_TEMPLATE = """You are a {profile}, named {name}, your goal is {goal}, and the constraint is {constraints}. """
 
@@ -114,6 +114,7 @@ class Role:
     def _set_state(self, state):
         """Update the current state."""
         self._rc.state = state
+        logger.debug(self._actions)
         self._rc.todo = self._actions[self._rc.state]
 
     def set_env(self, env: 'Environment'):
@@ -170,8 +171,11 @@ class Role:
         if not self._rc.env:
             return 0
         env_msgs = self._rc.env.memory.get()
+        
         observed = self._rc.env.memory.get_by_actions(self._rc.watch)
+        
         already_observed = self._rc.memory.get()
+        
         news: list[Message] = []
         for i in observed:
             if i in already_observed:

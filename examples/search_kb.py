@@ -4,10 +4,11 @@
 @File    : search_kb.py
 """
 import asyncio
+
 from metagpt.const import DATA_PATH
 from metagpt.document_store import FaissStore
-from metagpt.roles import Sales
 from metagpt.logs import logger
+from metagpt.roles import Sales
 
 
 async def search():
