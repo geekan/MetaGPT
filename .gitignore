@@ -153,6 +153,7 @@ allure-results
 docs/scripts/set_env.sh
 key.yaml
 output.json
+data
 data/output_add.json
 data.ms
 examples/nb/

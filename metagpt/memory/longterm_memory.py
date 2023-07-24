@@ -1,0 +1,64 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# @Desc   : the implement of Long-term memory
+
+from typing import Iterable, Type
+
+from metagpt.logs import logger
+from metagpt.schema import Message
+from metagpt.memory import Memory
+from metagpt.memory.memory_storage import MemoryStorage
+
+
+class LongTermMemory(Memory):
+    """
+    The Long-term memory for Roles
+    - recover memory when it staruped
+    - update memory when it changed
+    """
+
+    def __init__(self):
+        self.memory_storage: MemoryStorage = MemoryStorage()
+        super(LongTermMemory, self).__init__()
+        self.rc = None  # RoleContext
+        self.msg_from_recover = False
+
+    def recover_memory(self, role_id: str, rc: "RoleContext"):
+        messages = self.memory_storage.recover_memory(role_id)
+        self.rc = rc
+        if not self.memory_storage.is_initialized:
+            logger.warning(f'It may the first time to run Agent {role_id}, the long-term memory is empty')
+        else:
+            logger.warning(f'Agent {role_id} has existed memory storage with {len(messages)} messages '
+                           f'and has recovered them.')
+        self.msg_from_recover = True
+        self.add_batch(messages)
+        self.msg_from_recover = False
+
+    def add(self, message: Message):
+        super(LongTermMemory, self).add(message)
+        for action in self.rc.watch:
+            if message.cause_by == action and not self.msg_from_recover:
+                # currently, only add role's watching messages to its memory_storage
+                # and ignore adding messages from recover repeatedly
+                self.memory_storage.add(message)
+
+    def remember(self, observed: list[Message], k=0) -> list[Message]:
+        """remember the most similar k memories from observed Messages, return all when k=0"""
+        if not self.memory_storage.is_initialized:
+            # memory_storage hasn't initialized, use default `remember`
+            return super(LongTermMemory, self).remember(observed)
+
+        news: list[Message] = []
+        for mem in observed:
+            mem_searched = self.memory_storage.search(mem)
+            news.extend(mem_searched)
+        return news[-k:]
+
+    def delete(self, message: Message):
+        super(LongTermMemory, self).delete(message)
+        # TODO delete message in memory_storage
+
+    def clear(self):
+        super(LongTermMemory, self).clear()
+        self.memory_storage.clean()

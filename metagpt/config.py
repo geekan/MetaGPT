@@ -60,6 +60,11 @@ class Config(metaclass=Singleton):
         self.google_api_key = self._get('GOOGLE_API_KEY')
         self.google_cse_id = self._get('GOOGLE_CSE_ID')
         self.search_engine = self._get('SEARCH_ENGINE', SearchEngineType.SERPAPI_GOOGLE)
+
+        self.long_term_memory = self._get('LONG_TERM_MEMORY', False)
+        if self.long_term_memory:
+            logger.warning("LONG_TERM_MEMORY is True")
+
         self.max_budget = self._get('MAX_BUDGET', 10.0)
         self.total_cost = 0.0
 
