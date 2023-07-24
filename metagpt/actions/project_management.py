@@ -42,7 +42,10 @@ FORMAT_EXAMPLE = '''
 ---
 ## Required Python third-party packages
 ```python
+"""
 flask==1.1.2
+bcrypt==3.2.0
+"""
 ```
 
 ## Required Other language third-party packages
@@ -110,7 +113,7 @@ class WriteTasks(Action):
 
         # Write requirements.txt
         requirements_path = WORKSPACE_ROOT / ws_name / 'requirements.txt'
-        requirements_path.write_text(rsp.instruct_content.dict().get("Required Python third-party packages"))
+        requirements_path.write_text(rsp.instruct_content.dict().get("Required Python third-party packages").strip('"\n'))
 
     async def run(self, context):
         prompt = PROMPT_TEMPLATE.format(context=context, format_example=FORMAT_EXAMPLE)
