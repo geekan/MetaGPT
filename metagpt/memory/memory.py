@@ -63,6 +63,16 @@ class Memory:
         """Return the most recent k memories, return all when k=0"""
         return self.storage[-k:]
 
+    def remember(self, observed: list[Message], k=10) -> list[Message]:
+        """remember the most recent k memories from observed Messages, return all when k=0"""
+        already_observed = self.get(k)
+        news: list[Message] = []
+        for i in observed:
+            if i in already_observed:
+                continue
+            news.append(i)
+        return news
+
     def get_by_action(self, action: Type[Action]) -> list[Message]:
         """Return all messages triggered by a specified Action"""
         return self.index[action]

@@ -30,3 +30,5 @@ tiktoken==0.3.3
 tqdm==4.64.0
 #unstructured[local-inference]
 anthropic==0.3.6
+typing-inspect==0.8.0
+typing_extensions==4.5.0

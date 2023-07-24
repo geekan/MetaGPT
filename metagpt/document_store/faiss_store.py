@@ -28,7 +28,7 @@ class FaissStore(LocalStore):
     def _load(self) -> Optional["FaissStore"]:
         index_file, store_file = self._get_index_and_store_fname()
         if not (index_file.exists() and store_file.exists()):
-            logger.warning("Download data from http://pan.deepwisdomai.com/library/13ff7974-fbc7-40ab-bc10-041fdc97adbd/LLM/00_QCS-%E5%90%91%E9%87%8F%E6%95%B0%E6%8D%AE/qcs")
+            logger.info("Missing at least one of index_file/store_file, load failed and return None")
             return None
         index = faiss.read_index(str(index_file))
         with open(str(store_file), "rb") as f:
