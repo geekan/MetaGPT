@@ -21,11 +21,11 @@ class WebBrowserEngine:
         engine = engine or CONFIG.web_browser_engine
 
         if engine == WebBrowserEngineType.PLAYWRIGHT:
-            web_browser_engine = importlib.import_module("metagpt.tools.web_browser_engine_playwright")
-            run_func = web_browser_engine.PlaywrightWrapper().run
+            module = "metagpt.tools.web_browser_engine_playwright"
+            run_func = importlib.import_module(module).PlaywrightWrapper().run
         elif engine == WebBrowserEngineType.SELENIUM:
-            web_browser_engine = importlib.import_module("metagpt.tools.web_browser_engine_selenium")
-            run_func = web_browser_engine.SeleniumWrapper().run
+            module = "metagpt.tools.web_browser_engine_selenium"
+            run_func = importlib.import_module(module).SeleniumWrapper().run
         elif engine == WebBrowserEngineType.CUSTOM:
             run_func = run_func
         else:
