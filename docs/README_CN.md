@@ -69,7 +69,7 @@ cp config/config.yaml config/key.yaml
 ## 示例：启动一个创业公司
 
 ```shell
-python startup.py "写一个命令行贪吃蛇"
+python startup.py "运行一个创业公司。做一个老板"
 ```
 
 运行脚本后，您可以在 `workspace/` 目录中找到您的新项目。
