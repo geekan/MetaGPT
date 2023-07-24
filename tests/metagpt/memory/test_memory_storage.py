@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 # @Desc   : the unittests of metagpt/memory/memory_storage.py
 
-from typing import List, Tuple
-import pytest
+from typing import List
 
 from metagpt.memory.memory_storage import MemoryStorage
 from metagpt.schema import Message
