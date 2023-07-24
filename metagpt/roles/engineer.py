@@ -157,24 +157,24 @@ class Engineer(Role):
                 context.append(m.content)
             context_str = "\n".join(context)
             # 编写code
-            code_rsp = await WriteCode().run(
+            code = await WriteCode().run(
                 context=context_str,
                 filename=todo
             )
             # code review
             if self.use_code_review:
                 try:
-                    code = await WriteCodeReview().run(
+                    rewrite_code = await WriteCodeReview().run(
                         context=context_str,
-                        code=code_rsp,
+                        code=code,
                         filename=todo
                     )
-                    code_rsp = code
+                    code = rewrite_code
                 except Exception as e:
                     logger.error("code review failed!", e)
                     pass
-            self.write_file(todo, code_rsp)
-            msg = Message(content=code_rsp, role=self.profile, cause_by=WriteCode)
+            self.write_file(todo, code)
+            msg = Message(content=code, role=self.profile, cause_by=WriteCode)
             self._rc.memory.add(msg)
 
         logger.info(f'Done {self.get_workspace()} generating.')
