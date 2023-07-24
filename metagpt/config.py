@@ -65,9 +65,9 @@ class Config(metaclass=Singleton):
         self.google_api_key = self._get("GOOGLE_API_KEY")
         self.google_cse_id = self._get("GOOGLE_CSE_ID")
         self.search_engine = self._get("SEARCH_ENGINE", SearchEngineType.SERPAPI_GOOGLE)
-        self.web_browser_engine = self._get("WEB_BROWSER_ENGINE", WebBrowserEngineType.PLAYWRIGHT)
+        self.web_browser_engine = WebBrowserEngineType(self._get("WEB_BROWSER_ENGINE", "playwright"))
         self.playwright_browser_type = self._get("PLAYWRIGHT_BROWSER_TYPE", "chromium")
-        self.selenium_browser_type = self._get("selenium_browser_type", "chrome")
+        self.selenium_browser_type = self._get("SELENIUM_BROWSER_TYPE", "chrome")
         self.max_budget = self._get("MAX_BUDGET", 10.0)
         self.total_cost = 0.0
 
