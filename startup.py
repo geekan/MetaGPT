@@ -4,17 +4,14 @@ import asyncio
 
 import fire
 
-from metagpt.roles import Architect, Engineer, ProductManager, ProjectManager
+from metagpt.roles import Architect, Engineer, ProductManager, ProjectManager, QaEngineer
 from metagpt.software_company import SoftwareCompany
 
 
 async def startup(idea: str, investment: float = 3.0, n_round: int = 5, code_review: bool = False):
     """Run a startup. Be a boss."""
     company = SoftwareCompany()
-    company.hire([ProductManager(),
-                  Architect(),
-                  ProjectManager(),
-                  Engineer(n_borg=5, use_code_review=code_review)])
+    company.hire([ProductManager(), Architect(), ProjectManager(), Engineer(n_borg=5), QaEngineer()])
     company.invest(investment)
     company.start_project(idea)
     await company.run(n_round=n_round)
