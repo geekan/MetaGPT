@@ -5,9 +5,8 @@
 @Author  : alexanderwu
 @File    : product_manager.py
 """
+from metagpt.actions import BossRequirement, WritePRD
 from metagpt.roles import Role
-from metagpt.actions import WritePRD, BossRequirement
-from metagpt.schema import Message
 
 
 class ProductManager(Role):

@@ -7,11 +7,11 @@
 """
 from pydantic import BaseModel, Field
 
-from metagpt.config import CONFIG
 from metagpt.actions import BossRequirement
-from metagpt.logs import logger
+from metagpt.config import CONFIG
 from metagpt.environment import Environment
-from metagpt.roles import ProductManager, Architect, Engineer, QaEngineer, ProjectManager, Role
+from metagpt.logs import logger
+from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.utils.common import NoMoneyException
 

@@ -5,8 +5,8 @@
 @Author  : alexanderwu
 @File    : manager.py
 """
-from metagpt.logs import logger
 from metagpt.llm import LLM
+from metagpt.logs import logger
 from metagpt.schema import Message
 
 

@@ -7,6 +7,7 @@
 """
 
 import pytest
+
 from metagpt.logs import logger
 
 
@@ -36,7 +37,7 @@ class TestGPT:
 
     @pytest.mark.asyncio
     async def test_llm_api_costs(self, llm_api):
-        answer = await llm_api.aask('hello chatgpt')
+        await llm_api.aask('hello chatgpt')
         costs = llm_api.get_costs()
         logger.info(costs)
         assert costs.total_cost > 0

@@ -1,4 +1,4 @@
-# MetaGPT: Multi-Agent Meta Programming Framework
+# MetaGPT: The Multi-Agent Framework
 
 <p align="center">
 <a href=""><img src="docs/resources/MetaGPT-logo.jpeg" alt="MetaGPT logo: Enable GPT to work in software company, collaborating to tackle more complex tasks." width="150px"></a>
@@ -115,6 +115,8 @@ cp config/config.yaml config/key.yaml
 
 ```shell
 python startup.py "Write a cli snake game"
+# Use code review will cost more money, but will opt for better code quality.
+python startup.py "Write a cli snake game" --code_review True 
 ```
 
 After running the script, you can find your new project in the `workspace/` directory.

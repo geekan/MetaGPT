@@ -5,8 +5,8 @@
 @Author  : alexanderwu
 @File    : mermaid.py
 """
-import subprocess
 import os
+import subprocess
 from pathlib import Path
 
 from metagpt.const import PROJECT_ROOT

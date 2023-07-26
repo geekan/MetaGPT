@@ -7,9 +7,9 @@
 """
 import asyncio
 
+from metagpt.llm import LLM, Claude
 from metagpt.logs import logger
-from metagpt.llm import LLM
-from metagpt.llm import Claude
+
 
 async def main():
     llm = LLM()

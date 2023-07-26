@@ -6,10 +6,11 @@
 @File    : test_milvus_store.py
 """
 import random
-import numpy as np
-from metagpt.logs import logger
-from metagpt.document_store.milvus_store import MilvusStore, MilvusConnection
 
+import numpy as np
+
+from metagpt.document_store.milvus_store import MilvusConnection, MilvusStore
+from metagpt.logs import logger
 
 book_columns = {'idx': int, 'name': str, 'desc': str, 'emb': np.ndarray, 'price': float}
 book_data = [

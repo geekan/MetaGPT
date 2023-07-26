@@ -510,4 +510,3 @@ Process finished with exit code 1'''
 
 MEILI_CODE_REFINED = """
 """
-

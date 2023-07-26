@@ -6,17 +6,18 @@
 @File    : role.py
 """
 from __future__ import annotations
-from typing import Type, Iterable
+
+from typing import Iterable, Type
 
 from pydantic import BaseModel, Field
 
-from metagpt.logs import logger
-
 # from metagpt.environment import Environment
+from metagpt.config import CONFIG
 from metagpt.actions import Action, ActionOutput
 from metagpt.llm import LLM
+from metagpt.logs import logger
+from metagpt.memory import Memory, LongTermMemory
 from metagpt.schema import Message
-from metagpt.memory import Memory
 
 PREFIX_TEMPLATE = """You are a {profile}, named {name}, your goal is {goal}, and the constraint is {constraints}. """
 
@@ -65,12 +66,18 @@ class RoleContext(BaseModel):
     """角色运行时上下文"""
     env: 'Environment' = Field(default=None)
     memory: Memory = Field(default_factory=Memory)
+    long_term_memory: LongTermMemory = Field(default_factory=LongTermMemory)
     state: int = Field(default=0)
     todo: Action = Field(default=None)
     watch: set[Type[Action]] = Field(default_factory=set)
 
     class Config:
         arbitrary_types_allowed = True
+
+    def check(self, role_id: str):
+        if hasattr(CONFIG, "long_term_memory") and CONFIG.long_term_memory:
+            self.long_term_memory.recover_memory(role_id, self)
+            self.memory = self.long_term_memory  # use memory to act as long_term_memory for unify operation
 
     @property
     def important_memory(self) -> list[Message]:
@@ -90,6 +97,7 @@ class Role:
         self._setting = RoleSetting(name=name, profile=profile, goal=goal, constraints=constraints, desc=desc)
         self._states = []
         self._actions = []
+        self._role_id = str(self._setting)
         self._rc = RoleContext()
 
     def _reset(self):
@@ -110,6 +118,8 @@ class Role:
     def _watch(self, actions: Iterable[Type[Action]]):
         """监听对应的行为"""
         self._rc.watch.update(actions)
+        # check RoleContext after adding watch actions
+        self._rc.check(self._role_id)
 
     def _set_state(self, state):
         """Update the current state."""
@@ -174,13 +184,7 @@ class Role:
         
         observed = self._rc.env.memory.get_by_actions(self._rc.watch)
         
-        already_observed = self._rc.memory.get()
-        
-        news: list[Message] = []
-        for i in observed:
-            if i in already_observed:
-                continue
-            news.append(i)
+        news = self._rc.memory.remember(observed)  # remember recent exact or similar memories
 
         for i in env_msgs:
             self.recv(i)

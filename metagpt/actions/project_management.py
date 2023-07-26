@@ -8,11 +8,8 @@
 from typing import List, Tuple
 
 from metagpt.actions.action import Action
-from metagpt.actions.action_output import ActionOutput
 from metagpt.const import WORKSPACE_ROOT
-from metagpt.logs import logger
-from metagpt.utils.common import OutputParser, CodeParser
-from tenacity import retry, stop_after_attempt, wait_fixed
+from metagpt.utils.common import CodeParser
 
 PROMPT_TEMPLATE = '''
 # Context
@@ -45,7 +42,10 @@ FORMAT_EXAMPLE = '''
 ---
 ## Required Python third-party packages
 ```python
+"""
 flask==1.1.2
+bcrypt==3.2.0
+"""
 ```
 
 ## Required Other language third-party packages
@@ -113,7 +113,7 @@ class WriteTasks(Action):
 
         # Write requirements.txt
         requirements_path = WORKSPACE_ROOT / ws_name / 'requirements.txt'
-        requirements_path.write_text(rsp.instruct_content.dict().get("Required Python third-party packages"))
+        requirements_path.write_text(rsp.instruct_content.dict().get("Required Python third-party packages").strip('"\n'))
 
     async def run(self, context):
         prompt = PROMPT_TEMPLATE.format(context=context, format_example=FORMAT_EXAMPLE)

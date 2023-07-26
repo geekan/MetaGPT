@@ -6,10 +6,10 @@
 @File    : test_project_manager.py
 """
 import pytest
+
 from metagpt.logs import logger
 from metagpt.roles import ProjectManager
-from metagpt.schema import Message
-from tests.metagpt.roles.mock import SYSTEM_DESIGN, MockMessages
+from tests.metagpt.roles.mock import MockMessages
 
 
 @pytest.mark.asyncio

@@ -5,15 +5,17 @@
 @Author  : alexanderwu
 @File    : test_engineer.py
 """
-import re
-import ast
 import pytest
+
 from metagpt.logs import logger
-from metagpt.utils.common import CodeParser
 from metagpt.roles.engineer import Engineer
-from metagpt.schema import Message
-from tests.metagpt.roles.mock import SYSTEM_DESIGN, TASKS, PRD, MockMessages, STRS_FOR_PARSING, \
-    TASKS_TOMATO_CLOCK
+from metagpt.utils.common import CodeParser
+from tests.metagpt.roles.mock import (
+    STRS_FOR_PARSING,
+    TASKS,
+    TASKS_TOMATO_CLOCK,
+    MockMessages,
+)
 
 
 @pytest.mark.asyncio
@@ -63,6 +65,9 @@ def test_parse_file_list():
     assert isinstance(tasks, list)
     assert target_list == tasks
 
+    file_list = CodeParser.parse_file_list("Task list", TASKS_TOMATO_CLOCK, lang="python")
+    logger.info(file_list)
+
 
 target_code = """task_list = [
     "smart_search_engine/knowledge_base.py",
@@ -85,8 +90,3 @@ def test_parse_code():
     logger.info(code)
     assert isinstance(code, str)
     assert target_code == code
-
-
-def test_parse_file_list():
-    file_list = CodeParser.parse_file_list("Task list", TASKS_TOMATO_CLOCK, lang="python")
-    logger.info(file_list)

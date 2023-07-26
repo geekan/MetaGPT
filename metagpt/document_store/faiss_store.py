@@ -5,20 +5,18 @@
 @Author  : alexanderwu
 @File    : faiss_store.py
 """
-from typing import Optional
-from pathlib import Path
 import pickle
+from pathlib import Path
+from typing import Optional
 
 import faiss
-from langchain.vectorstores import FAISS
 from langchain.embeddings import OpenAIEmbeddings
-import pandas as pd
-from tqdm import tqdm
+from langchain.vectorstores import FAISS
 
-from metagpt.logs import logger
 from metagpt.const import DATA_PATH
-from metagpt.document_store.document import Document
 from metagpt.document_store.base_store import LocalStore
+from metagpt.document_store.document import Document
+from metagpt.logs import logger
 
 
 class FaissStore(LocalStore):
@@ -30,7 +28,7 @@ class FaissStore(LocalStore):
     def _load(self) -> Optional["FaissStore"]:
         index_file, store_file = self._get_index_and_store_fname()
         if not (index_file.exists() and store_file.exists()):
-            logger.warning("Download data from http://pan.deepwisdomai.com/library/13ff7974-fbc7-40ab-bc10-041fdc97adbd/LLM/00_QCS-%E5%90%91%E9%87%8F%E6%95%B0%E6%8D%AE/qcs")
+            logger.info("Missing at least one of index_file/store_file, load failed and return None")
             return None
         index = faiss.read_index(str(index_file))
         with open(str(store_file), "rb") as f:
@@ -39,7 +37,7 @@ class FaissStore(LocalStore):
         return store
 
     def _write(self, docs, metadatas):
-        store = FAISS.from_texts(docs, OpenAIEmbeddings(openai_api_version = "2020-11-07"), metadatas=metadatas)
+        store = FAISS.from_texts(docs, OpenAIEmbeddings(openai_api_version="2020-11-07"), metadatas=metadatas)
         return store
 
     def persist(self):

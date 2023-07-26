@@ -5,7 +5,6 @@
 @Author  : alexanderwu
 @File    : prompt_writer.py
 """
-from abc import ABC
 from typing import Union
 
 
