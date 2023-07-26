@@ -1,4 +1,4 @@
-# MetaGPT: マルチエージェントメタプログラミングフレームワーク
+# MetaGPT: マルチエージェントフレームワーク
 
 <p align="center">
 <a href=""><img src="resources/MetaGPT-logo.jpeg" alt="MetaGPT ロゴ: GPT がソフトウェア会社で働けるようにし、協力してより複雑な仕事に取り組む。" width="150px"></a>
@@ -36,7 +36,9 @@
 解析と設計を含む 1 つの例を生成するのに、**$0.2** （GPT-4 の api のコスト）程度、完全なプロジェクトには **$2.0** 程度が必要です。
 
 ## インストール
+
 ### 伝統的なインストール
+
 ```bash
 # ステップ 1: NPM がシステムにインストールされていることを確認してください。次に mermaid-js をインストールします。
 npm --version
@@ -52,11 +54,12 @@ python setup.py install
 ```
 
 ### Docker によるインストール
+
 ```bash
 # ステップ 1: metagpt 公式イメージをダウンロードし、config.yaml を準備する
-docker pull metagpt/metagpt:v0.2
-mkdir -p /opt/metagpt/{config,workspace} && chmod 777 -R /opt/metagpt
-docker run --rm metagpt/metagpt:v0.2 cat /app/metagpt/config/config.yaml > /opt/metagpt/config/config.yaml
+docker pull metagpt/metagpt:v0.3
+mkdir -p /opt/metagpt/{config,workspace}
+docker run --rm metagpt/metagpt:v0.3 cat /app/metagpt/config/config.yaml > /opt/metagpt/config/config.yaml
 vim /opt/metagpt/config/config.yaml # 設定を変更する
 
 # ステップ 2: コンテナで metagpt デモを実行する
@@ -64,7 +67,7 @@ docker run --rm \
     --privileged \
     -v /opt/metagpt/config:/app/metagpt/config \
     -v /opt/metagpt/workspace:/app/metagpt/workspace \
-    metagpt/metagpt:v0.2 \
+    metagpt/metagpt:v0.3 \
     python startup.py "Write a cli snake game"
 
 # コンテナを起動し、その中でコマンドを実行することもできます
@@ -72,22 +75,25 @@ docker run --name metagpt -d \
     --privileged \
     -v /opt/metagpt/config:/app/metagpt/config \
     -v /opt/metagpt/workspace:/app/metagpt/workspace \
-    metagpt/metagpt:v0.2
+    metagpt/metagpt:v0.3
 
 docker exec -it metagpt /bin/bash
 $ python startup.py "Write a cli snake game"
 ```
 
 コマンド `docker run ...` は以下のことを行います:
+
 - 特権モードで実行し、ブラウザの実行権限を得る
-- ホストディレクトリ `/opt/metagtp/config` をコンテナディレクトリ `/app/metagpt/config` にマップする
+- ホストディレクトリ `/opt/metagpt/config` をコンテナディレクトリ `/app/metagpt/config` にマップする
 - ホストディレクトリ `/opt/metagpt/workspace` をコンテナディレクトリ `/app/metagpt/workspace` にマップする
 - デモコマンド `python startup.py "Write a cli snake game"` を実行する
 
 ### 自分でイメージをビルドする
+
 ```bash
 # また、自分で metagpt イメージを構築することもできます。
-cd metagpt && docker build --network host -t metagpt:v0.1 .
+git clone https://github.com/geekan/MetaGPT.git
+cd MetaGPT && docker build -t metagpt:v0.3 .
 ```
 
 ## 設定
@@ -100,15 +106,17 @@ cd metagpt && docker build --network host -t metagpt:v0.1 .
 cp config/config.yaml config/key.yaml
 ```
 
-| 変数名                                      | config/key.yaml                           | env                            |
-|--------------------------------------------|-------------------------------------------|--------------------------------|
-| OPENAI_API_KEY # 自分のキーに置き換える        | OPENAI_API_KEY: "sk-..."                  | export OPENAI_API_KEY="sk-..." |
-| OPENAI_API_BASE # オプション                 | OPENAI_API_BASE: "https://<YOUR_SITE>/v1" | export OPENAI_API_BASE="https://<YOUR_SITE>/v1"   |
+| 変数名                                      | config/key.yaml                           | env                                             |
+| ------------------------------------------ | ----------------------------------------- | ----------------------------------------------- |
+| OPENAI_API_KEY # 自分のキーに置き換える    | OPENAI_API_KEY: "sk-..."                  | export OPENAI_API_KEY="sk-..."                  |
+| OPENAI_API_BASE # オプション                 | OPENAI_API_BASE: "https://<YOUR_SITE>/v1" | export OPENAI_API_BASE="https://<YOUR_SITE>/v1" |
 
 ## チュートリアル: スタートアップの開始
 
 ```shell
 python startup.py "Write a cli snake game"
+# コードレビューを利用すれば、コストはかかるが、より良いコード品質を選ぶことができます。
+python startup.py "Write a cli snake game" --code_review True
 ```
 
 スクリプトを実行すると、`workspace/` ディレクトリに新しいプロジェクトが見つかります。
