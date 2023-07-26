@@ -32,7 +32,7 @@ class Manager:
 
     async def handle(self, message: Message, environment):
         """
-        Manager processes the message, now simply passing the message to the next person.
+        Manager processes the message, not simply passing the message to the next person.
         :param message:
         :param environment:
         :return:

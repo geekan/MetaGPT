@@ -28,7 +28,7 @@ class FaissStore(LocalStore):
     def _load(self) -> Optional["FaissStore"]:
         index_file, store_file = self._get_index_and_store_fname()
         if not (index_file.exists() and store_file.exists()):
-            logger.info("At least one of the index_file/store_file is missing. Loading failed and returns None.")
+            logger.info("Missing at least one of index_file/store_file, load failed and return None")
             return None
         index = faiss.read_index(str(index_file))
         with open(str(store_file), "rb") as f:

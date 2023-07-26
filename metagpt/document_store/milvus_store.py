@@ -79,8 +79,8 @@ class MilvusStore(BaseStore):
         """
         FIXME: ADD TESTS
         https://milvus.io/docs/v2.0.x/search.md
-        All search and query operations within Milvus are executed in memory. Load the collection into memory before conducting a vector similarity search.
-        Noting the above description, is this logic serious? This should take a long time, right?
+        All search and query operations within Milvus are executed in memory. Load the collection to memory before conducting a vector similarity search.
+        Noting the above description, is this logic serious? The time taken for this should be long, right?
         """
         search_params = {"metric_type": "L2", "params": {"nprobe": 10}}
         results = self.collection.search(
@@ -91,7 +91,7 @@ class MilvusStore(BaseStore):
             expr=None,
             consistency_level="Strong"
         )
-        # FIXME: results contain ids, but to get the actual value from the id, you have to call the query interface
+        # FIXME: results contains ids, but to get the actual values from the ids, the query interface still needs to be called.
         return results
 
     def write(self, name, schema, *args, **kwargs):

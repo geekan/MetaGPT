@@ -9,27 +9,30 @@
 # From the plugin: ChatGPT - Summarize Websites and YouTube Videos
 # https://chrome.google.com/webstore/detail/chatgpt-%C2%BB-summarize-every/cbgecfllfhmmnknmamkejadjmnmpfjmp?hl=zh-CN&utm_source=chrome-ntp-launcher
 SUMMARIZE_PROMPT = """
-Your output should follow the template below:
+Your output should use the following template:
 ### Summary
 ### Facts
 - [Emoji] Bulletpoint
 
-Your task is to summarize the text I provide you with in up to seven concise bullet points, and start with a brief, high-quality summary. Choose a suitable emoji for every bullet point. Your response should be in {{SELECTED_LANGUAGE}}. If a provided URL is functional and not a YouTube video, use the text from the {{URL}}. If the URL is non-functional or is a YouTube video, use the following text: {{CONTENT}}.
+Your task is to summarize the text I give you in up to seven concise bullet points and start with a short, high-quality 
+summary. Pick a suitable emoji for every bullet point. Your response should be in {{SELECTED_LANGUAGE}}. If the provided
+ URL is functional and not a YouTube video, use the text from the {{URL}}. However, if the URL is not functional or is 
+a YouTube video, use the following text: {{CONTENT}}.
 """
 
-# From GCP-VertexAI-Text Summary (SUMMARIZE_PROMPT_2-5 are all from this source)
+# From GCP-VertexAI-Text Summarization
 # https://github.com/GoogleCloudPlatform/generative-ai/blob/main/language/examples/prompt-design/text_summarization.ipynb
-# For long documents, a map-reduce process is required. See the notebook below:
+# For longer documents, a map-reduce process is needed, see the following notebook
 # https://github.com/GoogleCloudPlatform/generative-ai/blob/main/language/examples/document-summarization/summarization_large_documents.ipynb
 SUMMARIZE_PROMPT_2 = """
 Provide a very short summary, no more than three sentences, for the following article:
 
-Quantum computers operate by manipulating qubits through orchestrated patterns called quantum algorithms.
-The challenge is that qubits are so delicate that even stray light can introduce computational errors, and this issue escalates as quantum computers expand.
-This is consequential since the best quantum algorithms known for practical applications demand much lower qubit error rates than current levels.
-To overcome this, quantum error correction is essential.
-Quantum error correction shields data by encoding it across various physical qubits, forming a “logical qubit”. This is believed to be the sole method to build a large-scale quantum computer with sufficiently low error rates for beneficial computations.
-Rather than computing on individual qubits, we'll compute on these logical qubits. We aim to decrease error rates by encoding a larger set of physical qubits on our quantum processor into one logical qubit.
+Our quantum computers work by manipulating qubits in a manner we call quantum algorithms.
+The challenge is that qubits are extremely sensitive, to the extent that even stray light can introduce calculation errors — a problem that intensifies as quantum computers scale.
+This has notable ramifications since the most effective quantum algorithms we know for executing valuable applications necessitate that our qubits' error rates be significantly lower than current levels.
+To address this discrepancy, quantum error correction is essential.
+Quantum error correction safeguards information by distributing it over several physical qubits, forming a “logical qubit.” This is believed to be the sole method to create a large-scale quantum computer with sufficiently low error rates for practical calculations.
+Rather than computing on individual qubits, we will utilize logical qubits. By transforming a greater number of physical qubits on our quantum processor into a single logical qubit, we aim to reduce error rates, enabling viable quantum algorithms.
 
 Summary:
 
@@ -38,12 +41,12 @@ Summary:
 SUMMARIZE_PROMPT_3 = """
 Provide a TL;DR for the following article:
 
-Quantum computers operate by manipulating qubits through orchestrated patterns known as quantum algorithms. 
-Qubits are so delicate that even stray light can cause computational errors, a problem that escalates with the growth of quantum computers. 
-This presents a significant issue because the best quantum algorithms we have for practical applications necessitate much lower qubit error rates than what we currently achieve. 
-To address this, quantum error correction is needed. 
-Quantum error correction safeguards data by encoding it across multiple physical qubits, creating a “logical qubit”. It's believed to be the only method to develop a large-scale quantum computer with sufficiently low error rates for beneficial computations. 
-Instead of performing computations on individual qubits, calculations will be done on these logical qubits. Our goal is to lower error rates by encoding a greater number of physical qubits on our quantum processor into a single logical qubit.
+Our quantum computers operate by controlling qubits in a method termed quantum algorithms. 
+The problem is that qubits are incredibly delicate, so much so that even minimal light interference can introduce computational errors — and this issue becomes more pronounced as quantum computers expand. 
+This is consequential because the most potent quantum algorithms we are aware of, for practical applications, demand that our qubits' error rates be substantially below current standards. 
+To mitigate this, quantum error correction is pivotal. 
+Quantum error correction secures data by distributing it across numerous physical qubits, generating a “logical qubit.” It's believed to be the exclusive approach to develop a large-scale quantum computer with error rates low enough for practical operations. 
+Instead of operations on individual qubits, we'll focus on logical qubits. By encoding a greater number of physical qubits on our quantum device into a single logical qubit, we aspire to diminish error rates and enable efficient quantum algorithms.
 
 TL;DR:
 """
@@ -51,33 +54,33 @@ TL;DR:
 SUMMARIZE_PROMPT_4 = """
 Provide a very short summary in four bullet points for the following article:
 
-Quantum computers operate by controlling qubits in orchestrated patterns termed quantum algorithms.
-The issue is that qubits are extremely delicate, so much so that even stray light can lead to computational errors. This problem becomes more severe as quantum computers become larger.
-This is a significant hurdle because the most effective quantum algorithms known for real-world applications necessitate qubit error rates much lower than what's currently achieved.
-To bridge this gap, we need quantum error correction.
-Quantum error correction defends data by encoding it across various physical qubits, resulting in a “logical qubit”. It's considered the only way to craft a large-scale quantum computer with sufficiently low error rates for practical computations.
-Instead of computing using individual qubits, we'll use these logical qubits. Our aim is to diminish error rates by encoding many physical qubits on our quantum processor into one logical qubit.
+Our quantum computers function by manipulating qubits through a method known as quantum algorithms.
+The dilemma is that qubits are exceedingly fragile, so much so that even minimal light can lead to computational inaccuracies — and this problem amplifies as quantum computers become larger.
+This is significant because the most proficient quantum algorithms known to us, suitable for real-world applications, necessitate that our qubits' error rates be significantly below what we currently observe.
+To bridge this disparity, quantum error correction becomes indispensable.
+Quantum error correction secures data by spreading it across multiple physical qubits, resulting in a “logical qubit.” It's perceived as the only technique to manufacture a large-scale quantum computer with error rates sufficiently low for practical tasks.
+Instead of operating on individual qubits directly, we'll be utilizing logical qubits. By converting more physical qubits on our quantum machine into a single logical qubit, we intend to lower error rates, facilitating effective quantum algorithms.
 
 Bulletpoints:
 
 """
 
 SUMMARIZE_PROMPT_5 = """
-Please summarize the following conversation, and at the end, list the to-do's for the support Agent:
+Please generate a summary of the following conversation and at the end summarize the to-do's for the support Agent:
 
 Customer: Hi, I'm Larry, and I received the wrong item.
 
-Support Agent: Hi, Larry. How would you like this to be resolved?
+Support Agent: Hi, Larry. How would you like this issue to be resolved?
 
-Customer: That's alright. I'd like to return the item and get a refund, please.
+Customer: That's alright. I'd like to return the item and receive a refund, please.
 
-Support Agent: Of course. I can process the refund for you now. Can I have your order number, please?
+Support Agent: Certainly. I can process the refund for you right now. Could I have your order number, please?
 
 Customer: It's [ORDER NUMBER].
 
-Support Agent: Thanks. I've processed the refund, and you'll receive your money back within 14 days.
+Support Agent: Thanks. I've processed the refund, and you should receive your funds within 14 days.
 
-Customer: Thank you very much.
+Customer: I appreciate it.
 
 Support Agent: You're welcome, Larry. Have a great day!
 

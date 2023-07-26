@@ -97,7 +97,7 @@ data        object     Yes
 
 
 class UTGenerator:
-    """UT Generator: Constructs UTs (Unit Tests) using API documentation."""
+    """UT Generator: Construct UT through API documentation."""
 
     def __init__(self, swagger_file: str, ut_py_path: str, questions_path: str,
                  chatgpt_method: str = "API", template_prefix=YFT_PROMPT_PREFIX) -> None:
@@ -105,10 +105,10 @@ class UTGenerator:
 
         Args:
             swagger_file: Path to the swagger file.
-            ut_py_path: Path where the test cases are stored.
-            questions_path: Path to store the templates, useful for future investigations.
-            chatgpt_method: The method used, default is "API".
-            template_prefix: The template to use, default is YFT_UT_PROMPT.
+            ut_py_path: Path to store test cases.
+            questions_path: Path to store templates for future investigation.
+            chatgpt_method: API
+            template_prefix: Use template, default is YFT_UT_PROMPT.
         """
         self.swagger_file = swagger_file
         self.ut_py_path = ut_py_path
@@ -116,7 +116,7 @@ class UTGenerator:
         assert chatgpt_method in ["API"], "Invalid chatgpt_method"
         self.chatgpt_method = chatgpt_method
 
-        # ICL: In-Context Learning; here we provide an example, expecting GPT to mimic it.
+        # ICL: In-Context Learning. Provide an example here for GPT to mimic.
         self.icl_sample = ICL_SAMPLE
         self.template_prefix = template_prefix
 
@@ -126,40 +126,57 @@ class UTGenerator:
             swagger_json = json.load(file)
         return swagger_json
 
-    def dive_into_object(self, node):
-        """If it's an object type, recursively output its sub-properties."""
-        if node.get("type") == "object":
-            sub_properties = node.get("properties", {})
-            return self.build_object_properties(sub_properties, prop_object_required, level=level + 1)
-        return ""
+    def __parameter_to_string(self, prop, required, name=""):
+        name = name or prop["name"]
+        ptype = prop["type"]
+        title = prop.get("title", "")
+        desc = prop.get("description", "")
+        return f'{name}\t{ptype}\t{"Yes" if required else "No"}\t{title}\t{desc}'
+
+    def _parameter_to_string(self, prop):
+        required = prop.get("required", False)
+        return self.__parameter_to_string(prop, required)
+
+    def parameter_to_string(self, name, prop, prop_object_required):
+        required = name in prop_object_required
+        return self.__parameter_to_string(prop, required, name)
 
     def build_object_properties(self, node, prop_object_required, level: int = 0) -> str:
-        """Recursively output properties of type object and array[object].
+        """Recursively output properties of object and array[object] types.
 
         Args:
-            node: Value of the child item.
-            prop_object_required: Indicates if it's a required field.
+            node (_type_): Value of the sub-item.
+            prop_object_required (_type_): Indicates if it's a required item.
             level: Current recursion depth.
         """
+
         doc = ""
+
+        def dive_into_object(node):
+            """If it's an object type, recursively output its properties."""
+            if node.get("type") == "object":
+                sub_properties = node.get("properties", {})
+                return self.build_object_properties(sub_properties, prop_object_required, level=level + 1)
+            return ""
+
         if node.get("in", "") in ["query", "header", "formData"]:
-            doc += f'{"	" * level}{self._para_to_str(node)}\n'
-            doc += self.dive_into_object(node)
+            doc += f'{"\t" * level}{self._parameter_to_string(node)}\n'
+            doc += dive_into_object(node)
             return doc
 
         for name, prop in node.items():
-            doc += f'{"	" * level}{self.para_to_str(name, prop, prop_object_required)}\n'
-            doc += self.dive_into_object(prop)
+            doc += f'{"\t" * level}{self.parameter_to_string(name, prop, prop_object_required)}\n'
+            doc += dive_into_object(prop)
             if prop["type"] == "array":
                 items = prop.get("items", {})
-                doc += self.dive_into_object(items)
+                doc += dive_into_object(items)
         return doc
 
     def get_tags_mapping(self) -> dict:
-        """Process tags and paths.
+        """Process tag and path.
 
         Returns:
-            A dictionary mapping tags to paths.
+            Dictionary: Correspondence of tag to path.
         """
         swagger_data = self.get_swagger_json()
         paths = swagger_data["paths"]
@@ -177,7 +194,7 @@ class UTGenerator:
         return tags
 
     def generate_ut(self, include_tags) -> bool:
-        """Generate the test case files."""
+        """Generate test case files."""
         tags = self.get_tags_mapping()
         for tag, paths in tags.items():
             if include_tags is None or tag in include_tags:
@@ -192,12 +209,14 @@ class UTGenerator:
         if "parameters" in node:
             parameters = node["parameters"]
             doc += "Path Parameters:\n"
+
+            # param["in"]: path / formData / body / query / header
             for param in parameters:
                 if param["in"] == "path":
-                    doc += f'{param["name"]} \n'
+                    doc += f'{param["name"]}\n'
 
             doc += "\nBody Parameters:\n"
-            doc += "Name\tType\tMandatory?\tDefault Value\tNotes\n"
+            doc += "Name\tType\tRequired\tDefault Value\tRemarks\n"
             for param in parameters:
                 if param["in"] == "body":
                     schema = param.get("schema", {})
@@ -207,9 +226,9 @@ class UTGenerator:
                 else:
                     doc += self.build_object_properties(param, [])
 
-        # Output response data information
-        doc += "\nResponse Data:\n"
-        doc += "Name\tType\tMandatory?\tDefault Value\tNotes\n"
+        # Output return data information
+        doc += "\nReturn Data:\n"
+        doc += "Name\tType\tRequired\tDefault Value\tRemarks\n"
         responses = node["responses"]
         response = responses.get("200", {})
         schema = response.get("schema", {})
@@ -228,7 +247,7 @@ class UTGenerator:
             file.write(data)
 
     def ask_gpt_and_save(self, question: str, tag: str, fname: str):
-        """Generate questions and store both the questions and answers."""
+        """Generate a question and store both question and answer."""
         messages = [self.icl_sample, question]
         result = self.gpt_msgs_to_code(messages=messages)
 
@@ -236,11 +255,11 @@ class UTGenerator:
         self._store(result, self.ut_py_path, tag, f"{fname}.py")
 
     def _generate_ut(self, tag, paths):
-        """Process the structure under the data path.
+        """Handle structure under the data path.
 
         Args:
-            tag: Module name.
-            paths: Path object.
+            tag (_type_): Module name.
+            paths (_type_): Path Object.
         """
         for path, path_obj in paths.items():
             for method, node in path_obj.items():
@@ -250,7 +269,7 @@ class UTGenerator:
                 self.ask_gpt_and_save(question, tag, summary)
 
     def gpt_msgs_to_code(self, messages: list) -> str:
-        """Choose the appropriate call method."""
+        """Choose based on different invocation methods."""
         result = ''
         if self.chatgpt_method == "API":
             result = GPTAPI().ask_code(msgs=messages)
@@ -262,7 +281,7 @@ class UTGenerator:
 
         Args:
             base (str): Path.
-            fname (str): Filename.
+            fname (str): File name.
         """
         path = Path(base)
         path.mkdir(parents=True, exist_ok=True)

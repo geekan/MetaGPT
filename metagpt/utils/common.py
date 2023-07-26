@@ -14,11 +14,10 @@ from typing import List, Tuple
 from metagpt.logs import logger
 
 
-def check_cmd_exists(command) -> int:
-    """Check if a command exists.
-    
-    :param command: The command to check.
-    :return: Returns 0 if the command exists, otherwise non-zero.
+def check_command_exists(command) -> int:
+    """ Check if a command exists.
+    :param command: Command to check.
+    :return: Returns 0 if the command exists, else returns non-zero.
     """
     check_command = 'command -v ' + command + ' >/dev/null 2>&1 || { echo >&2 "no mermaid"; exit 1; }'
     result = os.system(check_command)
@@ -29,19 +28,19 @@ class OutputParser:
 
     @classmethod
     def parse_blocks(cls, text: str):
-        # First, split the text into different blocks using "##".
+        # Firstly, split the text into different blocks based on "##".
         blocks = text.split("##")
 
         # Create a dictionary to store the title and content of each block.
         block_dict = {}
 
-        # Iterate over all blocks.
+        # Loop through all blocks.
         for block in blocks:
-            # If the block is not empty, continue processing.
+            # If block is not empty, continue processing.
             if block.strip() != "":
-                # Separate the block's title and content, and trim whitespace from each.
+                # Split block's title and content and trim them.
                 block_title, block_content = block.split("\n", 1)
-                # LLM may have an error, make a correction here.
+                # There may be errors in LLM, correct it here.
                 if block_title[-1] == ":":
                     block_title = block_title[:-1]
                 block_dict[block_title.strip()] = block_content.strip()
@@ -91,7 +90,7 @@ class OutputParser:
             except Exception:
                 pass
 
-            # Try to parse lists.
+            # Try to parse the list.
             try:
                 content = cls.parse_file_list(text=content)
             except Exception:
@@ -115,18 +114,11 @@ class OutputParser:
             else:
                 typing = typing_define
             if typing == List[str] or typing == List[Tuple[str, str]]:
-                # Try to parse lists.
+                # Try to parse the list.
                 try:
                     content = cls.parse_file_list(text=content)
                 except Exception:
                     pass
-            # TODO: Removing extra quotes is risky, will address later.
-            # elif typing == str:
-            #     # Try to remove unnecessary quotes.
-            #     try:
-            #         content = cls.parse_str(text=content)
-            #     except Exception:
-            #         pass
             parsed_data[block] = content
         return parsed_data
 
@@ -143,17 +135,17 @@ class CodeParser:
 
     @classmethod
     def parse_blocks(cls, text: str):
-        # First, split the text into different blocks using "##".
+        # Firstly, split the text into different blocks based on "##".
         blocks = text.split("##")
 
         # Create a dictionary to store the title and content of each block.
         block_dict = {}
 
-        # Iterate over all blocks.
+        # Loop through all blocks.
         for block in blocks:
-            # If the block is not empty, continue processing.
+            # If block is not empty, continue processing.
             if block.strip() != "":
-                # Separate the block's title and content, and trim whitespace from each.
+                # Split block's title and content and trim them.
                 block_title, block_content = block.split("\n", 1)
                 block_dict[block_title.strip()] = block_content.strip()
 
@@ -200,7 +192,7 @@ class CodeParser:
 
 
 class NoMoneyException(Exception):
-    """Raised when the operation cannot be completed due to insufficient funds."""
+    """Raised when the operation cannot be completed due to insufficient funds"""
 
     def __init__(self, amount, message="Insufficient funds"):
         self.amount = amount
@@ -213,17 +205,17 @@ class NoMoneyException(Exception):
 
 def print_members(module, indent=0):
     """
-    This function is sourced from: https://stackoverflow.com/questions/1796180/how-can-i-get-a-list-of-all-classes-within-current-module-in-python
-    :param module: The module to inspect.
-    :param indent: The indentation level.
-    :return: None.
+    https://stackoverflow.com/questions/1796180/how-can-i-get-a-list-of-all-classes-within-current-module-in-python
+    :param module:
+    :param indent:
+    :return:
     """
     prefix = ' ' * indent
     for name, obj in inspect.getmembers(module):
         print(name, obj)
         if inspect.isclass(obj):
             print(f'{prefix}Class: {name}')
-            # Print the methods within the class.
+            # print the methods within the class
             if name in ['__class__', '__base__']:
                 continue
             print_members(obj, indent + 2)
@@ -231,3 +223,4 @@ def print_members(module, indent=0):
             print(f'{prefix}Function: {name}')
         elif inspect.ismethod(obj):
             print(f'{prefix}Method: {name}')
+

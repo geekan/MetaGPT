@@ -39,10 +39,10 @@ def retry(max_retries):
 
 
 class RateLimiter:
-    """Rate control class. Each call goes through wait_if_needed and sleeps if rate limiting is required."""
+    """Rate control class, each call goes through wait_if_needed, sleep if rate control is needed."""
     def __init__(self, rpm):
         self.last_call_time = 0
-        self.interval = 1.1 * 60 / rpm  # Here 1.1 is used because even if calls are made strictly according to time, they might still be rate-limited; consider switching to simple error retry later
+        self.interval = 1.1 * 60 / rpm  # Using 1.1 since strict adherence to time can still lead to QoS issues; consider simple error retry later.
         self.rpm = rpm
 
     def split_batches(self, batch):
@@ -68,7 +68,7 @@ class Costs(NamedTuple):
 
 
 class CostManager(metaclass=Singleton):
-    """Calculates the costs of using the API."""
+    """Calculate the cost of using the API."""
     def __init__(self):
         self.total_prompt_tokens = 0
         self.total_completion_tokens = 0
@@ -95,14 +95,26 @@ class CostManager(metaclass=Singleton):
                     f"Current cost: ${cost:.3f}, {prompt_tokens=}, {completion_tokens=}")
         CONFIG.total_cost = self.total_cost
 
+    def get_total_prompt_tokens(self):
+        """Get the total number of prompt tokens."""
+        return self.total_prompt_tokens
+
+    def get_total_completion_tokens(self):
+        """Get the total number of completion tokens."""
+        return self.total_completion_tokens
+
+    def get_total_cost(self):
+        """Get the total cost of API calls."""
+        return self.total_cost
+
     def get_costs(self) -> Costs:
-        """Retrieve all costs."""
+        """Get all costs."""
         return Costs(self.total_prompt_tokens, self.total_completion_tokens, self.total_cost, self.total_budget)
 
 
 class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
     """
-    Check https://platform.openai.com/examples for examples
+    Check https://platform.openai.com/examples for examples.
     """
     def __init__(self):
         self.__init_openai(CONFIG)
@@ -174,6 +186,9 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         self._update_costs(rsp)
         return rsp
 
+    def completion(self, messages: list[dict]) -> dict:
+        return self._chat_completion(messages)
+
     async def acompletion(self, messages: list[dict]) -> dict:
         return await self._achat_completion(messages)
 
@@ -194,7 +209,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         return usage
 
     async def acompletion_batch(self, batch: list[list[dict]]) -> list[dict]:
-        """Return the full JSON."""
+        """Returns the full JSON."""
         split_batches = self.split_batches(batch)
         all_results = []
 
@@ -210,7 +225,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         return all_results
 
     async def acompletion_batch_text(self, batch: list[list[dict]]) -> list[str]:
-        """Only return plain text."""
+        """Returns only plain text."""
         raw_results = await self.acompletion_batch(batch)
         results = []
         for idx, raw_result in enumerate(raw_results, start=1):
@@ -226,4 +241,3 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
 
     def get_costs(self) -> Costs:
         return self._cost_manager.get_costs()
-    

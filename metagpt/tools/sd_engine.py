@@ -65,7 +65,8 @@ class SDEngine:
         self.payload = payload
         logger.info(self.sd_t2i_url)
     
-    def construct_payload(self, prompt, negative_prompt=default_negative_prompt, width=512, height=512, sd_model="galaxytimemachinesGTM_photoV20"):
+    def construct_payload(self, prompt, negtive_prompt=default_negative_prompt, width=512, height=512,
+                          sd_model="galaxytimemachinesGTM_photoV20"):
         # Configure the payload with provided inputs
         self.payload["prompt"] = prompt
         self.payload["negative_prompt"] = negative_prompt
