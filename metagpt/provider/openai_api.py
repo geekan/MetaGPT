@@ -39,10 +39,10 @@ def retry(max_retries):
 
 
 class RateLimiter:
-    """Rate control class, each call goes through wait_if_needed, sleep if rate control is needed"""
+    """Rate control class. Each call goes through wait_if_needed and sleeps if rate limiting is required."""
     def __init__(self, rpm):
         self.last_call_time = 0
-        self.interval = 1.1 * 60 / rpm  # Here 1.1 is used because even if the calls are made strictly according to time, they will still be QOS'd; consider switching to simple error retry later
+        self.interval = 1.1 * 60 / rpm  # Here 1.1 is used because even if calls are made strictly according to time, they might still be rate-limited; consider switching to simple error retry later
         self.rpm = rpm
 
     def split_batches(self, batch):
@@ -68,7 +68,7 @@ class Costs(NamedTuple):
 
 
 class CostManager(metaclass=Singleton):
-    """计算使用接口的开销"""
+    """Calculates the costs of using the API."""
     def __init__(self):
         self.total_prompt_tokens = 0
         self.total_completion_tokens = 0
@@ -95,35 +95,8 @@ class CostManager(metaclass=Singleton):
                     f"Current cost: ${cost:.3f}, {prompt_tokens=}, {completion_tokens=}")
         CONFIG.total_cost = self.total_cost
 
-    def get_total_prompt_tokens(self):
-        """
-        Get the total number of prompt tokens.
-
-        Returns:
-        int: The total number of prompt tokens.
-        """
-        return self.total_prompt_tokens
-
-    def get_total_completion_tokens(self):
-        """
-        Get the total number of completion tokens.
-
-        Returns:
-        int: The total number of completion tokens.
-        """
-        return self.total_completion_tokens
-
-    def get_total_cost(self):
-        """
-        Get the total cost of API calls.
-
-        Returns:
-        float: The total cost of API calls.
-        """
-        return self.total_cost
-
     def get_costs(self) -> Costs:
-        """获得所有开销"""
+        """Retrieve all costs."""
         return Costs(self.total_prompt_tokens, self.total_completion_tokens, self.total_cost, self.total_budget)
 
 
@@ -201,19 +174,12 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         self._update_costs(rsp)
         return rsp
 
-    def completion(self, messages: list[dict]) -> dict:
-        # if isinstance(messages[0], Message):
-        #     messages = self.messages_to_dict(messages)
-        return self._chat_completion(messages)
-
     async def acompletion(self, messages: list[dict]) -> dict:
-        # if isinstance(messages[0], Message):
-        #     messages = self.messages_to_dict(messages)
         return await self._achat_completion(messages)
 
     @retry(max_retries=6)
     async def acompletion_text(self, messages: list[dict], stream=False) -> str:
-        """when streaming, print each token in place."""
+        """When streaming, print each token in place."""
         if stream:
             return await self._achat_completion_stream(messages)
         rsp = await self._achat_completion(messages)
@@ -228,7 +194,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         return usage
 
     async def acompletion_batch(self, batch: list[list[dict]]) -> list[dict]:
-        """返回完整JSON"""
+        """Return the full JSON."""
         split_batches = self.split_batches(batch)
         all_results = []
 
@@ -244,7 +210,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         return all_results
 
     async def acompletion_batch_text(self, batch: list[list[dict]]) -> list[str]:
-        """仅返回纯文本"""
+        """Only return plain text."""
         raw_results = await self.acompletion_batch(batch)
         results = []
         for idx, raw_result in enumerate(raw_results, start=1):
@@ -260,3 +226,4 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
 
     def get_costs(self) -> Costs:
         return self._cost_manager.get_costs()
+    

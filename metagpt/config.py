@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-提供配置，单例
+Provides configuration, singleton pattern.
 """
 import os
 import openai
@@ -28,7 +28,7 @@ class NotConfiguredException(Exception):
 
 class Config(metaclass=Singleton):
     """
-    常规使用方法：
+    Regular usage:
     config = Config("config.yaml")
     secret_key = config.get_key("MY_SECRET_KEY")
     print("Secret key:", secret_key)
@@ -79,14 +79,14 @@ class Config(metaclass=Singleton):
         self.total_cost = 0.0
 
     def _init_with_config_files_and_env(self, configs: dict, yaml_file):
-        """从config/key.yaml / config/config.yaml / env三处按优先级递减加载"""
+        """Load from config/key.yaml / config/config.yaml / env in decreasing order of priority."""
         configs.update(os.environ)
 
         for _yaml_file in [yaml_file, self.key_yaml_file]:
             if not _yaml_file.exists():
                 continue
 
-            # 加载本地 YAML 文件
+            # Load the local YAML file
             with open(_yaml_file, "r", encoding="utf-8") as file:
                 yaml_data = yaml.safe_load(file)
                 if not yaml_data:
@@ -98,7 +98,7 @@ class Config(metaclass=Singleton):
         return self._configs.get(*args, **kwargs)
 
     def get(self, key, *args, **kwargs):
-        """从config/key.yaml / config/config.yaml / env三处找值，找不到报错"""
+        """Fetch value from config/key.yaml / config/config.yaml / env, raise an error if not found."""
         value = self._get(key, *args, **kwargs)
         if value is None:
             raise ValueError(f"Key '{key}' not found in environment variables or in the YAML file")

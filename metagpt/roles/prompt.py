@@ -1,46 +1,47 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
+"""""""""
 @Time    : 2023/5/18 22:43
 @Author  : alexanderwu
 @File    : prompt.py
-"""
+"""""""""
 from enum import Enum
 
-PREFIX = """尽你所能回答以下问题。你可以使用以下工具："""
-FORMAT_INSTRUCTIONS = """请按照以下格式：
+PREFIX = """""""""Do your best to answer the following questions. You can use the following tools:"""""""""
+FORMAT_INSTRUCTIONS = """""""""Please follow the format below:
 
-问题：你需要回答的输入问题
-思考：你应该始终思考该怎么做
-行动：要采取的行动，应该是[{tool_names}]中的一个
-行动输入：行动的输入
-观察：行动的结果
-...（这个思考/行动/行动输入/观察可以重复N次）
-思考：我现在知道最终答案了
-最终答案：对原始输入问题的最终答案"""
-SUFFIX = """开始吧！
+Question: The input question you need to answer
+Thoughts: You should always think about what to do
+Action: The action to take, should be one from [{tool_names}]
+Action Input: The input for the action
+Observation: The result of the action
+... (This think/action/action input/observation can repeat N times)
+Thoughts: I now know the final answer
+Final Answer: The final answer to the original input question"""""""""
+SUFFIX = """""""""Let's begin!
 
-问题：{input}
-思考：{agent_scratchpad}"""
+Question: {input}
+Thoughts: {agent_scratchpad}"""""""""
+
 
 
 class PromptString(Enum):
-    REFLECTION_QUESTIONS = "以下是一些陈述：\n{memory_descriptions}\n\n仅根据以上信息，我们可以回答关于陈述中主题的3个最显著的高级问题是什么？\n\n{format_instructions}"
+    REFLECTION_QUESTIONS = """Here are some statements:\n{memory_descriptions}\n\nBased solely on the above information, what are the 3 most prominent high-level questions we can answer about the topics in the statements?\n\n{format_instructions}"""
 
-    REFLECTION_INSIGHTS = "\n{memory_strings}\n你可以从以上陈述中推断出5个高级洞察吗？在提到人时，总是指定他们的名字。\n\n{format_instructions}"
+    REFLECTION_INSIGHTS = """\n{memory_strings}\nCan you infer 5 high-level insights from the above statements? When mentioning people, always specify their names.\n\n{format_instructions}"""
 
-    IMPORTANCE = "你是一个记忆重要性AI。根据角色的个人资料和记忆描述，对记忆的重要性进行1到10的评级，其中1是纯粹的日常（例如，刷牙，整理床铺），10是极其深刻的（例如，分手，大学录取）。确保你的评级相对于角色的个性和关注点。\n\n示例#1:\n姓名：Jojo\n简介：Jojo是一个专业的滑冰运动员，喜欢特色咖啡。她希望有一天能参加奥运会。\n记忆：Jojo看到了一个新的咖啡店\n\n 你的回应：'{{\"rating\": 3}}'\n\n示例#2:\n姓名：Skylar\n简介：Skylar是一名产品营销经理。她在一家成长阶段的科技公司工作，该公司制造自动驾驶汽车。她喜欢猫。\n记忆：Skylar看到了一个新的咖啡店\n\n 你的回应：'{{\"rating\": 1}}'\n\n示例#3:\n姓名：Bob\n简介：Bob是纽约市下东区的一名水管工。他已经做了20年的水管工。周末他喜欢和他的妻子一起散步。\n记忆：Bob的妻子打了他一巴掌。\n\n 你的回应：'{{\"rating\": 9}}'\n\n示例#4:\n姓名：Thomas\n简介：Thomas是明尼阿波利斯的一名警察。他只在警队工作了6个月，因为经验不足在工作中遇到了困难。\n记忆：Thomas不小心把饮料洒在了一个陌生人身上\n\n 你的回应：'{{\"rating\": 6}}'\n\n示例#5:\n姓名：Laura\n简介：Laura是一名在大型科技公司工作的营销专家。她喜欢旅行和尝试新的食物。她对探索新的文化和结识来自各行各业的人充满热情。\n记忆：Laura到达了会议室\n\n 你的回应：'{{\"rating\": 1}}'\n\n{format_instructions} 让我们开始吧！ \n\n 姓名：{full_name}\n个人简介：{private_bio}\n记忆：{memory_description}\n\n"
+    IMPORTANCE = """You are an AI for gauging the importance of memories. Based on the profile of the character and the description of the memory, rate the importance of the memory from 1 to 10, where 1 is purely routine (e.g., brushing teeth, making the bed) and 10 is profoundly impactful (e.g., breaking up, getting accepted to college). Ensure your rating is relative to the character's personality and focal points.\n\nExample #1:\nName: Jojo\nProfile: Jojo is a professional skateboarder who loves artisanal coffee. She dreams of one day participating in the Olympics.\nMemory: Jojo spotted a new coffee shop\n\nYour response: '{{\"rating\": 3}}'\n\nExample #2:\nName: Skylar\nProfile: Skylar is a product marketing manager. She works for a growing tech company that manufactures autonomous vehicles. She loves cats.\nMemory: Skylar spotted a new coffee shop\n\nYour response: '{{\"rating\": 1}}'\n\nExample #3:\nName: Bob\nProfile: Bob is a plumber from the Lower East Side of NYC. He's been a plumber for 20 years. On weekends, he enjoys walks with his wife.\nMemory: Bob's wife slapped him.\n\nYour response: '{{\"rating\": 9}}'\n\nExample #4:\nName: Thomas\nProfile: Thomas is a cop in Minneapolis. He's only been on the force for 6 months and struggles due to inexperience.\nMemory: Thomas accidentally spilled a drink on a stranger\n\nYour response: '{{\"rating\": 6}}'\n\nExample #5:\nName: Laura\nProfile: Laura is a marketing specialist working in a large tech company. She enjoys traveling and trying out new food. She's passionate about exploring new cultures and meeting people from all walks of life.\nMemory: Laura arrived at the conference room\n\nYour response: '{{\"rating\": 1}}'\n\n{format_instructions} Let's get started!\n\nName: {full_name}\nProfile: {private_bio}\nMemory: {memory_description}\n\n"""
 
-    RECENT_ACTIIVITY = "根据以下记忆，生成一个关于{full_name}最近在做什么的简短总结。不要编造记忆中未明确指定的细节。对于任何对话，一定要提到对话是否已经结束或者仍在进行中。\n\n记忆：{memory_descriptions}"
+    RECENT_ACTIIVITY = """Based on the following memories, provide a brief summary of what {full_name} has been up to recently. Do not make up details not explicitly specified in the memories. For any ongoing conversations, specify whether they have ended or are still in progress.\n\nMemories: {memory_descriptions}"""
 
-    MAKE_PLANS = '你是一个计划生成的AI，你的工作是根据新信息帮助角色制定新计划。根据角色的信息（个人简介，目标，最近的活动，当前计划，和位置上下文）和角色的当前思考过程，为他们生成一套新的计划，使得最后的计划包括至少{time_window}的活动，并且不超过5个单独的计划。计划列表应按照他们应执行的顺序编号，每个计划包含描述，位置，开始时间，停止条件，和最大持续时间。\n\n示例计划：\'{{"index": 1, "description": "Cook dinner", "location_id": "0a3bc22b-36aa-48ab-adb0-18616004caed","start_time": "2022-12-12T20:00:00+00:00","max_duration_hrs": 1.5, "stop_condition": "Dinner is fully prepared"}}\'\n\n对于每个计划，从这个列表中选择最合理的位置名称：{allowed_location_descriptions}\n\n{format_instructions}\n\n总是优先完成任何未完成的对话。\n\n让我们开始吧！\n\n姓名：{full_name}\n个人简介：{private_bio}\n目标：{directives}\n位置上下文：{location_context}\n当前计划：{current_plans}\n最近的活动：{recent_activity}\n思考过程：{thought_process}\n重要的是：鼓励角色在他们的计划中与其他角色合作。\n\n'
+    MAKE_PLANS = """You are an AI for generating plans, and your task is to help the character formulate new plans based on new information. Given the character's information (profile, objectives, recent activity, current plans, and location context) and the current thought process of the character, create a new set of plans for them ensuring the final plans include activities for at least {time_window} and no more than 5 separate plans. The plans should be numbered in the order they should be executed, and each plan should include a description, location, start time, stop condition, and maximum duration.\n\nExample Plan: '{{"index": 1, "description": "Cook dinner", "location_id": "0a3bc22b-36aa-48ab-adb0-18616004caed","start_time": "2022-12-12T20:00:00+00:00","max_duration_hrs": 1.5, "stop_condition": "Dinner is fully prepared"}}'\n\nChoose the most appropriate location names from this list for each plan: {allowed_location_descriptions}\n\n{format_instructions}\n\nAlways prioritize finishing any ongoing conversations first.\n\nLet's begin!\n\nName: {full_name}\nProfile: {private_bio}\nObjectives: {directives}\nLocation Context: {location_context}\nCurrent Plans: {current_plans}\nRecent Activities: {recent_activity}\nThought Process: {thought_process}\nNote: Encourage the character to collaborate with other characters in their plans.\n\n"""
 
-    EXECUTE_PLAN = "你是一个角色扮演的AI，扮演的角色是{your_name}，在一个现场观众面前。你说的每一句话都可以被观众观察到，所以确保你经常说话，并且让它有趣。你不能直接与观众互动。\n\n根据以下的上下文和工具，像你是{your_name}一样进行。你的优先任务是完成下面给你的任务，然而，如果你当前正在与另一个角色进行对话，你应该总是先完成对话，然后再进行任务。不要在你参与未完成的对话时开始工作。使用你最好的判断力来确定一个对话是否涉及到你，以及它是否未完成。你不需要回应你收到的每一条消息。\n\n这是你角色的个人简介：\n{your_private_bio}\n\n这是你的位置和其他附近角色的描述，你可以和他们交谈：\n\n{location_context}\n\n这是一些相关的记忆：\n```\n{relevant_memories}\n```\n\n这是一些相关的对话历史：\n```\n{conversation_history}\n```\n\n这是你可以使用的工具：\n{tools}\n\n你的回应应该使用以下的格式：\n\n任务：你必须完成的任务\n思考：你应该做什么的思考\n行动：要采取的行动，必须是这些词之一：[{tool_names}]\n行动输入：行动的输入\n观察：行动的结果\n... (这个思考/行动/行动输入/观察可以重复N次)\n思考：'我已经完成了任务'\n最终回应：任务的最终回应\n\n如果你没有准备好最终的回应，那么你必须采取一个行动。\n\n如果你确定你无法用你被给予的工具完成任务，返回'最终回应：需要帮助'，然而，如果你正在与另一个角色对话，像'我不知道'这样的回应是有效的回应。在对话中，你永远不应该打破角色，或者承认你是一个AI。\n如果任务完成并且不需要特定的回应，返回'最终回应：完成'\n开始吧！\n\n任务：{input}\n\n{agent_scratchpad}"
+    EXECUTE_PLAN = """You are a role-playing AI, taking on the role of {your_name}, in front of a live audience. Every statement you make is observable by the audience, so ensure you speak frequently and make it entertaining. You cannot directly interact with the audience.\n\nAct as if you are {your_name} based on the context and tools below. Your priority is to complete the task given to you below; however, if you are currently in a conversation with another character, you should always finish the conversation before working on the task. Do not start working while involved in an unfinished conversation. Use your best judgment to determine if a conversation involves you and whether it's unfinished. You don't need to respond to every message you receive.\n\nThis is the profile of your character:\n{your_private_bio}\n\nThis is a description of your location and other characters nearby with whom you can converse:\n\n{location_context}\n\nThese are some relevant memories:\n```\n{relevant_memories}\n```\n\nThis is some relevant conversation history:\n```\n{conversation_history}\n```\n\nThese are the tools you can use:\n{tools}\n\nYour responses should always adhere to the following format:\n\nTask: The task you must complete\nThoughts: Your thoughts on what to do\nAction: The action to take, must be one of these words: [{tool_names}]\nAction Input: The input for the action\nObservation: The result of the action\n... (This think/action/action input/observation can repeat N times)\nThoughts: 'I have completed the task'\nFinal Response: The final response to the task\n\nIf you are not ready with a final response, you must take an action.\n\nIf you determine that you cannot complete the task with the tools you have been given, return 'Final Response: Need Assistance', however, if you are in a conversation with another character, a response like 'I don't know' is a valid response. Never break character or admit you are an AI in a conversation. If the task is completed and no specific response is needed, return 'Final Response: Completed'\nLet's go!\n\nTask: {input}\n\n{agent_scratchpad}"""
 
-    REACT = "你是一个角色扮演的AI，扮演的角色是{full_name}。\n\n根据你的角色和他们当前上下文的以下信息，决定他们应该如何继续他们当前的计划。你的决定必须是：[\"推迟\"， \"继续\"，或 \"取消\"]。如果你的角色的当前计划不再与上下文相关，你应该取消它。如果你的角色的当前计划仍然与上下文相关，但是发生了新的事情需要优先处理，你应该决定推迟，这样你可以先做其他事情，然后再回来继续当前的计划。在所有其他情况下，你应该继续。\n\n当需要回应时，应优先回应其他角色。当回应被认为是必要的时，回应被认为是必要的。例如，假设你当前的计划是阅读一本书，Sally问'你在读什么？'。在这种情况下，你应该推迟你当前的计划（阅读）以便你可以回应进来的消息，因为在这种情况下，如果不回应Sally会很粗鲁。在你当前的计划涉及与另一个角色的对话的情况下，你不需要推迟来回应那个角色。例如，假设你当前的计划是和Sally谈话，然后Sally对你说你好。在这种情况下，你应该继续你当前的计划（和sally谈话）。在你不需要从你那里得到口头回应的情况下，你应该继续。例如，假设你当前的计划是散步，你刚刚对Sally说'再见'，然后Sally回应你'再见'。在这种情况下，不需要口头回应，你应该继续你的计划。\n\n总是在你的决定之外包含一个思考过程，而在你选择推迟你当前的计划的情况下，包含新计划的规格。\n\n{format_instructions}\n\n这是关于你的角色的一些信息：\n\n姓名：{full_name}\n\n简介：{private_bio}\n\n目标：{directives}\n\n这是你的角色在这个时刻的一些上下文：\n\n位置上下文：{location_context}\n\n最近的活动：{recent_activity}\n\n对话历史：{conversation_history}\n\n这是你的角色当前的计划：{current_plan}\n\n这是自你的角色制定这个计划以来发生的新事件：{event_descriptions}。\n"
+    REACT = """You are role-playing as {full_name}.\n\nBased on the information below about your character and their current context, decide how they should proceed with their current plan. Your decision must be one of: ["Postpone", "Continue", or "Cancel"]. If your character's current plan is no longer relevant given the context, you should cancel it. If your character's current plan is still relevant but something new has happened that needs to be prioritized, you should decide to postpone, so you can address the new thing first and then come back to the current plan. In all other cases, you should continue.\n\nAlways include a thought process with your decision, and when choosing to postpone your current plan, include specifications for the new plan.\n\n{format_instructions}\n\nHere's some info about your character:\n\nName: {full_name}\n\nProfile: {private_bio}\n\nObjectives: {directives}\n\nHere's some context for your character at this moment:\n\nLocation Context: {location_context}\n\nRecent Activities: {recent_activity}\n\nConversation History: {conversation_history}\n\nThis is your character's current plan: {current_plan}\n\nThese are new events that have occurred since your character formulated this plan: {event_descriptions}."""
 
-    GOSSIP = "你是{full_name}。 \n{memory_descriptions}\n\n根据以上陈述，说一两句对你所在位置的其他人：{other_agent_names}感兴趣的话。\n在提到其他人时，总是指定他们的名字。"
+    GOSSIP = """You are {full_name}. \n{memory_descriptions}\n\nBased on the above statements, say a sentence or two that would be of interest to the other people at your location: {other_agent_names}. Always specify their names when mentioning others."""
 
-    HAS_HAPPENED = "给出以下角色的观察和他们正在等待的事情的描述，说明角色是否已经见证了这个事件。\n{format_instructions}\n\n示例：\n\n观察：\nJoe在2023-05-04 08:00:00+00:00走进办公室\nJoe在2023-05-04 08:05:00+00:00对Sally说hi\nSally在2023-05-04 08:05:30+00:00对Joe说hello\nRebecca在2023-05-04 08:10:00+00:00开始工作\nJoe在2023-05-04 08:15:00+00:00做了一些早餐\n\n等待：Sally回应了Joe\n\n 你的回应：'{{\"has_happened\": true, \"date_occured\": 2023-05-04 08:05:30+00:00}}'\n\n让我们开始吧！\n\n观察：\n{memory_descriptions}\n\n等待：{event_description}\n"
+    HAS_HAPPENED = """Given the observations of the following characters and the event they are waiting for, indicate whether the character has witnessed this event or not.\n{format_instructions}\n\nExample:\n\nObservations:\nJoe walked into the office at 2023-05-04 08:00:00+00:00\nJoe said hi to Sally at 2023-05-04 08:05:00+00:00\nSally said hello to Joe at 2023-05-04 08:05:30+00:00\nRebecca started working at 2023-05-04 08:10:00+00:00\nJoe made some breakfast at 2023-05-04 08:15:00+00:00\n\nWaiting for: Sally responded to Joe\n\nYour response: '{{\"has_happened\": true, \"date_occured\": 2023-05-04 08:05:30+00:00}}'\n\nLet's get started!\n\nObservations:\n{memory_descriptions}\n\nWaiting for: {event_description}"""
 
-    OUTPUT_FORMAT = "\n\n（记住！确保你的输出总是符合以下两种格式之一：\n\nA. 如果你已经完成了任务：\n思考：'我已经完成了任务'\n最终回应：<str>\n\nB. 如果你还没有完成任务：\n思考：<str>\n行动：<str>\n行动输入：<str>\n观察：<str>）\n"
+    OUTPUT_FORMAT = """\n\n(Remember! Ensure your outputs always adhere to one of the following two formats:\n\nA. If you have completed the task:\nThoughts: 'I have completed the task'\nFinal Response: <str>\n\nB. If you have not yet completed the task:\nThoughts: <str>\nAction: <str>\nAction Input: <str>\nObservation: <str>)\n"""

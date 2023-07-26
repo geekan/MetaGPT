@@ -55,7 +55,6 @@ payload = {
 
 default_negative_prompt = "(easynegative:0.8),black, dark,Low resolution"
 
-
 class SDEngine:
     def __init__(self):
         # Initialize the SDEngine with configuration
@@ -66,11 +65,10 @@ class SDEngine:
         self.payload = payload
         logger.info(self.sd_t2i_url)
     
-    def construct_payload(self, prompt, negtive_prompt=default_negative_prompt, width=512, height=512,
-                          sd_model="galaxytimemachinesGTM_photoV20"):
+    def construct_payload(self, prompt, negative_prompt=default_negative_prompt, width=512, height=512, sd_model="galaxytimemachinesGTM_photoV20"):
         # Configure the payload with provided inputs
         self.payload["prompt"] = prompt
-        self.payload["negtive_prompt"] = negtive_prompt
+        self.payload["negative_prompt"] = negative_prompt
         self.payload["width"] = width
         self.payload["height"] = height
         self.payload["override_settings"]["sd_model_checkpoint"] = sd_model
@@ -102,11 +100,11 @@ class SDEngine:
         return imgs
     
     async def run_i2i(self):
-        # todo: 添加图生图接口调用
+        # TODO: Add image-to-image API call
         raise NotImplementedError
     
     async def run_sam(self):
-        # todo：添加SAM接口调用
+        # TODO: Add SAM API call
         raise NotImplementedError
 
 def decode_base64_to_image(img, save_name):
@@ -116,12 +114,10 @@ def decode_base64_to_image(img, save_name):
     image.save(f"{save_name}.png", pnginfo=pnginfo)
     return pnginfo, image
 
-
 def batch_decode_base64_to_image(imgs, save_dir="", save_name=""):
     for idx, _img in enumerate(imgs):
         save_name = join(save_dir, save_name)
         decode_base64_to_image(_img, save_name=save_name)
-
 
 if __name__ == "__main__":
     import asyncio

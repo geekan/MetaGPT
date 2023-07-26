@@ -16,7 +16,7 @@ from metagpt.schema import Message
 
 
 class Environment(BaseModel):
-    """环境，承载一批角色，角色可以向环境发布消息，可以被其他角色观察到"""
+    """Environment that hosts a set of roles. Roles can publish messages to the environment, which can be observed by other roles."""
 
     roles: dict[str, Role] = Field(default_factory=dict)
     memory: Memory = Field(default_factory=Memory)
@@ -26,23 +26,23 @@ class Environment(BaseModel):
         arbitrary_types_allowed = True
 
     def add_role(self, role: Role):
-        """增加一个在当前环境的Role"""
+        """Add a role to the current environment."""
         role.set_env(self)
         self.roles[role.profile] = role
 
     def add_roles(self, roles: Iterable[Role]):
-        """增加一批在当前环境的Role"""
+        """Add multiple roles to the current environment."""
         for role in roles:
             self.add_role(role)
 
     def publish_message(self, message: Message):
-        """向当前环境发布信息"""
+        """Publish a message to the current environment."""
         # self.message_queue.put(message)
         self.memory.add(message)
         self.history += f"\n{message}"
 
     async def run(self, k=1):
-        """处理一次所有Role的运行"""
+        """Execute a single run for all roles in the environment."""
         # while not self.message_queue.empty():
         # message = self.message_queue.get()
         # rsp = await self.manager.handle(message, self)
@@ -56,9 +56,9 @@ class Environment(BaseModel):
             await asyncio.gather(*futures)
 
     def get_roles(self) -> dict[str, Role]:
-        """获得环境内的所有Role"""
+        """Retrieve all roles within the environment."""
         return self.roles
 
     def get_role(self, name: str) -> Role:
-        """获得环境内的指定Role"""
+        """Retrieve a specific role within the environment."""
         return self.roles.get(name, None)

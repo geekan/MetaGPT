@@ -28,7 +28,7 @@ class FaissStore(LocalStore):
     def _load(self) -> Optional["FaissStore"]:
         index_file, store_file = self._get_index_and_store_fname()
         if not (index_file.exists() and store_file.exists()):
-            logger.info("Missing at least one of index_file/store_file, load failed and return None")
+            logger.info("At least one of the index_file/store_file is missing. Loading failed and returns None.")
             return None
         index = faiss.read_index(str(index_file))
         with open(str(store_file), "rb") as f:
@@ -59,7 +59,7 @@ class FaissStore(LocalStore):
             return str(sep.join([f"{x.page_content}" for x in rsp]))
 
     def write(self):
-        """根据用户给定的Document（JSON / XLSX等）文件，进行index与库的初始化"""
+        """Initialize the index and library based on the provided Document (JSON / XLSX, etc.) file."""
         if not self.raw_data.exists():
             raise FileNotFoundError
         doc = Document(self.raw_data, self.content_col, self.meta_col)
@@ -69,16 +69,16 @@ class FaissStore(LocalStore):
         self.persist()
 
     def add(self, texts: list[str], *args, **kwargs) -> list[str]:
-        """FIXME: 目前add之后没有更新store"""
+        """FIXME: The store isn't currently updated after adding."""
         return self.store.add_texts(texts)
 
     def delete(self, *args, **kwargs):
-        """目前langchain没有提供del接口"""
+        """Currently, langchain doesn't provide a delete interface."""
         raise NotImplementedError
 
 
 if __name__ == '__main__':
     faiss_store = FaissStore(DATA_PATH / 'qcs/qcs_4w.json')
-    logger.info(faiss_store.search('油皮洗面奶'))
-    faiss_store.add([f'油皮洗面奶-{i}' for i in range(3)])
-    logger.info(faiss_store.search('油皮洗面奶'))
+    logger.info(faiss_store.search('Oily skin facial cleanser'))
+    faiss_store.add([f'Oily skin facial cleanser-{i}' for i in range(3)])
+    logger.info(faiss_store.search('Oily skin facial cleanser'))

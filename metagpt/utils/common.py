@@ -15,9 +15,10 @@ from metagpt.logs import logger
 
 
 def check_cmd_exists(command) -> int:
-    """ 检查命令是否存在
-    :param command: 待检查的命令
-    :return: 如果命令存在，返回0，如果不存在，返回非0
+    """Check if a command exists.
+    
+    :param command: The command to check.
+    :return: Returns 0 if the command exists, otherwise non-zero.
     """
     check_command = 'command -v ' + command + ' >/dev/null 2>&1 || { echo >&2 "no mermaid"; exit 1; }'
     result = os.system(check_command)
@@ -28,19 +29,19 @@ class OutputParser:
 
     @classmethod
     def parse_blocks(cls, text: str):
-        # 首先根据"##"将文本分割成不同的block
+        # First, split the text into different blocks using "##".
         blocks = text.split("##")
 
-        # 创建一个字典，用于存储每个block的标题和内容
+        # Create a dictionary to store the title and content of each block.
         block_dict = {}
 
-        # 遍历所有的block
+        # Iterate over all blocks.
         for block in blocks:
-            # 如果block不为空，则继续处理
+            # If the block is not empty, continue processing.
             if block.strip() != "":
-                # 将block的标题和内容分开，并分别去掉前后的空白字符
+                # Separate the block's title and content, and trim whitespace from each.
                 block_title, block_content = block.split("\n", 1)
-                # LLM可能出错，在这里做一下修正
+                # LLM may have an error, make a correction here.
                 if block_title[-1] == ":":
                     block_title = block_title[:-1]
                 block_dict[block_title.strip()] = block_content.strip()
@@ -84,13 +85,13 @@ class OutputParser:
         block_dict = cls.parse_blocks(data)
         parsed_data = {}
         for block, content in block_dict.items():
-            # 尝试去除code标记
+            # Try to remove code markers.
             try:
                 content = cls.parse_code(text=content)
             except Exception:
                 pass
 
-            # 尝试解析list
+            # Try to parse lists.
             try:
                 content = cls.parse_file_list(text=content)
             except Exception:
@@ -103,7 +104,7 @@ class OutputParser:
         block_dict = cls.parse_blocks(data)
         parsed_data = {}
         for block, content in block_dict.items():
-            # 尝试去除code标记
+            # Try to remove code markers.
             try:
                 content = cls.parse_code(text=content)
             except Exception:
@@ -114,14 +115,14 @@ class OutputParser:
             else:
                 typing = typing_define
             if typing == List[str] or typing == List[Tuple[str, str]]:
-                # 尝试解析list
+                # Try to parse lists.
                 try:
                     content = cls.parse_file_list(text=content)
                 except Exception:
                     pass
-            # TODO: 多余的引号去除有风险，后期再解决
+            # TODO: Removing extra quotes is risky, will address later.
             # elif typing == str:
-            #     # 尝试去除多余的引号
+            #     # Try to remove unnecessary quotes.
             #     try:
             #         content = cls.parse_str(text=content)
             #     except Exception:
@@ -142,17 +143,17 @@ class CodeParser:
 
     @classmethod
     def parse_blocks(cls, text: str):
-        # 首先根据"##"将文本分割成不同的block
+        # First, split the text into different blocks using "##".
         blocks = text.split("##")
 
-        # 创建一个字典，用于存储每个block的标题和内容
+        # Create a dictionary to store the title and content of each block.
         block_dict = {}
 
-        # 遍历所有的block
+        # Iterate over all blocks.
         for block in blocks:
-            # 如果block不为空，则继续处理
+            # If the block is not empty, continue processing.
             if block.strip() != "":
-                # 将block的标题和内容分开，并分别去掉前后的空白字符
+                # Separate the block's title and content, and trim whitespace from each.
                 block_title, block_content = block.split("\n", 1)
                 block_dict[block_title.strip()] = block_content.strip()
 
@@ -167,7 +168,7 @@ class CodeParser:
         if match:
             code = match.group(1)
         else:
-            logger.error(f"{pattern} not match following text:")
+            logger.error(f"{pattern} did not match the following text:")
             logger.error(text)
             raise Exception
         return code
@@ -199,7 +200,7 @@ class CodeParser:
 
 
 class NoMoneyException(Exception):
-    """Raised when the operation cannot be completed due to insufficient funds"""
+    """Raised when the operation cannot be completed due to insufficient funds."""
 
     def __init__(self, amount, message="Insufficient funds"):
         self.amount = amount
@@ -212,17 +213,17 @@ class NoMoneyException(Exception):
 
 def print_members(module, indent=0):
     """
-    https://stackoverflow.com/questions/1796180/how-can-i-get-a-list-of-all-classes-within-current-module-in-python
-    :param module:
-    :param indent:
-    :return:
+    This function is sourced from: https://stackoverflow.com/questions/1796180/how-can-i-get-a-list-of-all-classes-within-current-module-in-python
+    :param module: The module to inspect.
+    :param indent: The indentation level.
+    :return: None.
     """
     prefix = ' ' * indent
     for name, obj in inspect.getmembers(module):
         print(name, obj)
         if inspect.isclass(obj):
             print(f'{prefix}Class: {name}')
-            # print the methods within the class
+            # Print the methods within the class.
             if name in ['__class__', '__base__']:
                 continue
             print_members(obj, indent + 2)

@@ -20,8 +20,8 @@ from metagpt.tools import SearchEngineType
 
 class SearchEngine:
     """
-    TODO: 合入Google Search 并进行反代
-    注：这里Google需要挂Proxifier或者类似全局代理
+    TODO: Integrate Google Search and perform reverse proxy
+    Note: Here, Google requires Proxifier or a similar global proxy
     - DDG: https://pypi.org/project/duckduckgo-search/
     - GOOGLE: https://programmablesearchengine.google.com/controlpanel/overview?cx=63f9de531d0e24de9
     """
@@ -119,7 +119,7 @@ def safe_google_results(results: str | list) -> str:
     """
     if isinstance(results, list):
         safe_message = json.dumps(
-            # FIXME: # .encode("utf-8", "ignore") 这里去掉了，但是AutoGPT里有，很奇怪
+            # FIXME: # .encode("utf-8", "ignore") This was removed here, but it's present in AutoGPT, which is strange.
             [result for result in results]
         )
     else:

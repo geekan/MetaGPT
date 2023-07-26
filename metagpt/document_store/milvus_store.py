@@ -21,7 +21,7 @@ type_mapping = {
 
 
 def columns_to_milvus_schema(columns: dict, primary_col_name: str = "", desc: str = ""):
-    """这里假设columns结构是str: 常规类型"""
+    """Assuming the structure of columns is str: regular type."""
     fields = []
     for col, ctype in columns.items():
         if ctype == str:
@@ -79,8 +79,8 @@ class MilvusStore(BaseStore):
         """
         FIXME: ADD TESTS
         https://milvus.io/docs/v2.0.x/search.md
-        All search and query operations within Milvus are executed in memory. Load the collection to memory before conducting a vector similarity search.
-        注意到上述描述，这个逻辑是认真的吗？这个耗时应该很长？
+        All search and query operations within Milvus are executed in memory. Load the collection into memory before conducting a vector similarity search.
+        Noting the above description, is this logic serious? This should take a long time, right?
         """
         search_params = {"metric_type": "L2", "params": {"nprobe": 10}}
         results = self.collection.search(
@@ -91,7 +91,7 @@ class MilvusStore(BaseStore):
             expr=None,
             consistency_level="Strong"
         )
-        # FIXME: results里有id，但是id到实际值还得调用query接口来获取
+        # FIXME: results contain ids, but to get the actual value from the id, you have to call the query interface
         return results
 
     def write(self, name, schema, *args, **kwargs):

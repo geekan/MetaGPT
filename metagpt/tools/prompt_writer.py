@@ -9,39 +9,39 @@ from typing import Union
 
 
 class GPTPromptGenerator:
-    """通过LLM，给定输出，要求LLM给出输入（支持指令、对话、搜索三种风格）"""
+    """Generates input for LLM given an output (supports instruction, chatbot, and query styles)"""
     def __init__(self):
         self._generators = {i: getattr(self, f"gen_{i}_style") for i in ['instruction', 'chatbot', 'query']}
 
     def gen_instruction_style(self, example):
-        """指令风格：给定输出，要求LLM给出输入"""
-        return f"""指令：X
-输出：{example}
-这个输出可能来源于什么样的指令？
-X："""
+        """Instruction style: given an output, request LLM for input"""
+        return f"""Instruction: X
+Output: {example}
+What kind of instruction might have produced this output?
+X:"""
 
     def gen_chatbot_style(self, example):
-        """对话风格：给定输出，要求LLM给出输入"""
-        return f"""你是一个对话机器人。一个用户给你发送了一条非正式的信息，你的回复如下。
-信息：X
-回复：{example}
-非正式信息X是什么？
-X："""
+        """Chatbot style: given an output, request LLM for input"""
+        return f"""You are a chatbot. A user sent you an informal message, and you responded as follows.
+Message: X
+Response: {example}
+What could the informal message X be?
+X:"""
 
     def gen_query_style(self, example):
-        """搜索风格：给定输出，要求LLM给出输入"""
-        return f"""你是一个搜索引擎。一个人详细地查询了某个问题，关于这个查询最相关的文档如下。
-查询：X
-文档：{example} 详细的查询X是什么？
-X："""
+        """Search style: given an output, request LLM for input"""
+        return f"""You are a search engine. Someone made a detailed query, and the following document is most relevant to that query.
+Query: X
+Document: {example} What might the detailed query X be?
+X:"""
 
     def gen(self, example: str, style: str = 'all') -> Union[list[str], str]:
         """
-        通过example生成一个或多个输出，用于让LLM回复对应输入
+        Generate one or multiple outputs using the example for LLM to respond with the corresponding input.
 
-        :param example: LLM的预期输出样本
+        :param example: Expected output sample from LLM
         :param style: (all|instruction|chatbot|query)
-        :return: LLM的预期输入样本（一个或多个）
+        :return: Expected input sample(s) for LLM
         """
         if style != 'all':
             return self._generators[style](example)
