@@ -9,7 +9,7 @@ from pathlib import Path
 
 
 def get_project_root():
-    """Search upwards level by level for the project root directory."""
+    """Search upwards to find the project root directory."""
     current_path = Path.cwd()
     while True:
         if (current_path / '.git').exists() or \

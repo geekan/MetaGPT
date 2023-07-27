@@ -14,10 +14,11 @@ from typing import List, Tuple
 from metagpt.logs import logger
 
 
-def check_command_exists(command) -> int:
-    """ Check if a command exists.
+def check_cmd_exists(command) -> int:
+    """Check if a command exists.
+    
     :param command: Command to check.
-    :return: Returns 0 if the command exists, else returns non-zero.
+    :return: Returns 0 if the command exists, otherwise returns a non-zero value.
     """
     check_command = 'command -v ' + command + ' >/dev/null 2>&1 || { echo >&2 "no mermaid"; exit 1; }'
     result = os.system(check_command)
@@ -28,19 +29,19 @@ class OutputParser:
 
     @classmethod
     def parse_blocks(cls, text: str):
-        # Firstly, split the text into different blocks based on "##".
+        # First, split the text into different blocks based on "##".
         blocks = text.split("##")
 
         # Create a dictionary to store the title and content of each block.
         block_dict = {}
 
-        # Loop through all blocks.
+        # Iterate through all blocks.
         for block in blocks:
-            # If block is not empty, continue processing.
+            # If the block is not empty, continue processing.
             if block.strip() != "":
-                # Split block's title and content and trim them.
+                # Split the block's title and content and trim whitespace.
                 block_title, block_content = block.split("\n", 1)
-                # There may be errors in LLM, correct it here.
+                # LLM might make mistakes; correct it here.
                 if block_title[-1] == ":":
                     block_title = block_title[:-1]
                 block_dict[block_title.strip()] = block_content.strip()
@@ -84,7 +85,7 @@ class OutputParser:
         block_dict = cls.parse_blocks(data)
         parsed_data = {}
         for block, content in block_dict.items():
-            # Try to remove code markers.
+            # Try to remove the code marker.
             try:
                 content = cls.parse_code(text=content)
             except Exception:
@@ -103,7 +104,7 @@ class OutputParser:
         block_dict = cls.parse_blocks(data)
         parsed_data = {}
         for block, content in block_dict.items():
-            # Try to remove code markers.
+            # Try to remove the code marker.
             try:
                 content = cls.parse_code(text=content)
             except Exception:
@@ -135,17 +136,17 @@ class CodeParser:
 
     @classmethod
     def parse_blocks(cls, text: str):
-        # Firstly, split the text into different blocks based on "##".
+        # First, split the text into different blocks based on "##".
         blocks = text.split("##")
 
         # Create a dictionary to store the title and content of each block.
         block_dict = {}
 
-        # Loop through all blocks.
+        # Iterate through all blocks.
         for block in blocks:
-            # If block is not empty, continue processing.
+            # If the block is not empty, continue processing.
             if block.strip() != "":
-                # Split block's title and content and trim them.
+                # Split the block's title and content and trim whitespace.
                 block_title, block_content = block.split("\n", 1)
                 block_dict[block_title.strip()] = block_content.strip()
 
@@ -160,7 +161,7 @@ class CodeParser:
         if match:
             code = match.group(1)
         else:
-            logger.error(f"{pattern} did not match the following text:")
+            logger.error(f"{pattern} not match following text:")
             logger.error(text)
             raise Exception
         return code
@@ -213,14 +214,4 @@ def print_members(module, indent=0):
     prefix = ' ' * indent
     for name, obj in inspect.getmembers(module):
         print(name, obj)
-        if inspect.isclass(obj):
-            print(f'{prefix}Class: {name}')
-            # print the methods within the class
-            if name in ['__class__', '__base__']:
-                continue
-            print_members(obj, indent + 2)
-        elif inspect.isfunction(obj):
-            print(f'{prefix}Function: {name}')
-        elif inspect.ismethod(obj):
-            print(f'{prefix}Method: {name}')
-
+        if inspect

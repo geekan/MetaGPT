@@ -19,9 +19,8 @@ type_mapping = {
     np.ndarray: DataType.FLOAT_VECTOR
 }
 
-
 def columns_to_milvus_schema(columns: dict, primary_col_name: str = "", desc: str = ""):
-    """Assuming the structure of columns is str: regular type."""
+    """Assuming the structure of columns is str: standard type"""
     fields = []
     for col, ctype in columns.items():
         if ctype == str:
@@ -34,12 +33,10 @@ def columns_to_milvus_schema(columns: dict, primary_col_name: str = "", desc: st
     schema = CollectionSchema(fields, description=desc)
     return schema
 
-
 class MilvusConnection(TypedDict):
     alias: str
     host: str
     port: str
-
 
 class MilvusStore(BaseStore):
     """
@@ -79,8 +76,8 @@ class MilvusStore(BaseStore):
         """
         FIXME: ADD TESTS
         https://milvus.io/docs/v2.0.x/search.md
-        All search and query operations within Milvus are executed in memory. Load the collection to memory before conducting a vector similarity search.
-        Noting the above description, is this logic serious? The time taken for this should be long, right?
+        All search and query operations within Milvus are executed in memory. Load the collection into memory before conducting a vector similarity search.
+        Noting the above description, is this logic serious? This should be time-consuming, right?
         """
         search_params = {"metric_type": "L2", "params": {"nprobe": 10}}
         results = self.collection.search(
@@ -91,7 +88,7 @@ class MilvusStore(BaseStore):
             expr=None,
             consistency_level="Strong"
         )
-        # FIXME: results contains ids, but to get the actual values from the ids, the query interface still needs to be called.
+        # FIXME: results contain an id, but to get the actual value for the id, you still need to call the query interface
         return results
 
     def write(self, name, schema, *args, **kwargs):

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Provide configuration as a singleton.
+Provide configuration, singleton
 """
 import os
 import openai
@@ -28,7 +28,7 @@ class NotConfiguredException(Exception):
 
 class Config(metaclass=Singleton):
     """
-    Typical usage:
+    Common usage:
     config = Config("config.yaml")
     secret_key = config.get_key("MY_SECRET_KEY")
     print("Secret key:", secret_key)
@@ -40,7 +40,7 @@ class Config(metaclass=Singleton):
 
     def __init__(self, yaml_file=default_yaml_file):
         self._configs = {}
-        self._initialize_with_config_files_and_environment(self._configs, yaml_file)
+        self._init_with_config_files_and_env(self._configs, yaml_file)
         logger.info("Config loading done.")
         self.global_proxy = self._get("GLOBAL_PROXY")
         self.openai_api_key = self._get("OPENAI_API_KEY")
@@ -67,26 +67,26 @@ class Config(metaclass=Singleton):
         self.google_api_key = self._get("GOOGLE_API_KEY")
         self.google_cse_id = self._get("GOOGLE_CSE_ID")
         self.search_engine = self._get("SEARCH_ENGINE", SearchEngineType.SERPAPI_GOOGLE)
-
+ 
         self.web_browser_engine = WebBrowserEngineType(self._get("WEB_BROWSER_ENGINE", "playwright"))
         self.playwright_browser_type = self._get("PLAYWRIGHT_BROWSER_TYPE", "chromium")
         self.selenium_browser_type = self._get("SELENIUM_BROWSER_TYPE", "chrome")
-
+      
         self.long_term_memory = self._get('LONG_TERM_MEMORY', False)
         if self.long_term_memory:
             logger.warning("LONG_TERM_MEMORY is True")
         self.max_budget = self._get("MAX_BUDGET", 10.0)
         self.total_cost = 0.0
 
-    def _initialize_with_config_files_and_environment(self, configs: dict, yaml_file):
-        """Load configurations from config/key.yaml, config/config.yaml, and the environment, in decreasing order of priority."""
+    def _init_with_config_files_and_env(self, configs: dict, yaml_file):
+        """Load from config/key.yaml / config/config.yaml / env in decreasing priority"""
         configs.update(os.environ)
 
         for _yaml_file in [yaml_file, self.key_yaml_file]:
             if not _yaml_file.exists():
                 continue
 
-            # Load local YAML files.
+            # Load local YAML file
             with open(_yaml_file, "r", encoding="utf-8") as file:
                 yaml_data = yaml.safe_load(file)
                 if not yaml_data:
@@ -98,7 +98,7 @@ class Config(metaclass=Singleton):
         return self._configs.get(*args, **kwargs)
 
     def get(self, key, *args, **kwargs):
-        """Fetch a value from config/key.yaml, config/config.yaml, or the environment. Raises an error if not found."""
+        """Find values from config/key.yaml / config/config.yaml / env, report an error if not found"""
         value = self._get(key, *args, **kwargs)
         if value is None:
             raise ValueError(f"Key '{key}' not found in environment variables or in the YAML file")

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Date    : 2023/7/19 16:28
 # @Author  : stellahong (stellahong@fuzhi.ai)
-# @Desc    :
+# @Description :
+
 import os
 import asyncio
 from os.path import join
@@ -55,6 +56,7 @@ payload = {
 
 default_negative_prompt = "(easynegative:0.8),black, dark,Low resolution"
 
+
 class SDEngine:
     def __init__(self):
         # Initialize the SDEngine with configuration
@@ -65,7 +67,7 @@ class SDEngine:
         self.payload = payload
         logger.info(self.sd_t2i_url)
     
-    def construct_payload(self, prompt, negtive_prompt=default_negative_prompt, width=512, height=512,
+    def construct_payload(self, prompt, negative_prompt=default_negative_prompt, width=512, height=512,
                           sd_model="galaxytimemachinesGTM_photoV20"):
         # Configure the payload with provided inputs
         self.payload["prompt"] = prompt
@@ -101,11 +103,11 @@ class SDEngine:
         return imgs
     
     async def run_i2i(self):
-        # TODO: Add image-to-image API call
+        # TODO: Add a method to call the image-to-image interface
         raise NotImplementedError
     
     async def run_sam(self):
-        # TODO: Add SAM API call
+        # TODO: Add a method to call the SAM interface
         raise NotImplementedError
 
 def decode_base64_to_image(img, save_name):
