@@ -67,6 +67,7 @@ class FaissStore(LocalStore):
 
         self.store = self._write(docs, metadatas)
         self.persist()
+        return self.store
 
     def add(self, texts: list[str], *args, **kwargs) -> list[str]:
         """FIXME: 目前add之后没有更新store"""
