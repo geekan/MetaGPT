@@ -93,3 +93,4 @@ def test_new_file_name():
 
 if __name__ == '__main__':
     test_init()
+    test_new_file_name()
