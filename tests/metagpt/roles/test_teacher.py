@@ -19,7 +19,7 @@ def test_init():
         goal: str
         constraints: str
         desc: str
-        options: Optional[Dict] = None
+        kwargs: Optional[Dict] = None
         expect_name: str
         expect_profile: str
         expect_goal: str
@@ -36,7 +36,7 @@ def test_init():
             "expect_goal": "Do sleep, CN",
             "constraints": "Do in {key1}, {language}",
             "expect_constraints": "Do in HaHa, CN",
-            "options": {"language": "CN", "key1": "HaHa", "something_big": "sleep", "teaching_language": "EN"},
+            "kwargs": {"language": "CN", "key1": "HaHa", "something_big": "sleep", "teaching_language": "EN"},
             "desc": "aaa{language}",
             "expect_desc": "aaaCN"
         },
@@ -49,6 +49,7 @@ def test_init():
             "expect_goal": "Do {something_big}, Chinese",
             "constraints": "Do in {key1}, {language}",
             "expect_constraints": "Do in {key1}, Chinese",
+            "kwargs": {},
             "desc": "aaa{language}",
             "expect_desc": "aaaChinese"
         },
@@ -57,7 +58,7 @@ def test_init():
     for i in inputs:
         seed = Inputs(**i)
         teacher = Teacher(name=seed.name, profile=seed.profile, goal=seed.goal, constraints=seed.constraints,
-                          desc=seed.desc, options=seed.options)
+                          desc=seed.desc, **seed.kwargs)
         assert teacher.name == seed.expect_name
         assert teacher.desc == seed.expect_desc
         assert teacher.profile == seed.expect_profile
