@@ -72,9 +72,9 @@ class Teacher(Role):
     @staticmethod
     def new_file_name(lesson_title, ext=".md"):
         """Create a related file name based on `lesson_title` and `ext`."""
-        # 定义需要替换的特殊字符
+        # Define the special characters that need to be replaced.
         illegal_chars = r'[#@$%!*&\\/:*?"<>|\n\t \']'
-        # 将特殊字符替换为下划线
+        # Replace the special characters with underscores.
         filename = re.sub(illegal_chars, '_', lesson_title) + ext
         return re.sub(r'_+', '_', filename)
 
