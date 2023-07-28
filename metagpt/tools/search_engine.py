@@ -37,7 +37,7 @@ class SearchEngine:
         logger.info(results)
         return results
 
-    async def run(self, query, max_results=8):
+    async def run(self, query: str, max_results=8):
         if self.engine == SearchEngineType.SERPAPI_GOOGLE:
             api = SerpAPIWrapper()
             rsp = await api.run(query)
@@ -45,10 +45,7 @@ class SearchEngine:
             rsp = SearchEngine.run_google(query, max_results)
         elif self.engine == SearchEngineType.SERPER_GOOGLE:
             api = SerperWrapper()
-            if isinstance(query, list):
-                rsp = await api.run(query)
-            elif isinstance(query, str):
-                rsp = await api.run([query])
+            rsp = await api.run(query)
         elif self.engine == SearchEngineType.CUSTOM_ENGINE:
             rsp = self.run_func(query)
         else:
@@ -74,15 +71,15 @@ def google_official_search(query: str, num_results: int = 8, focus=['snippet', '
         api_key = config.google_api_key
         custom_search_engine_id = config.google_cse_id
 
-        service = build("customsearch", "v1", developerKey=api_key)
+        with build("customsearch", "v1", developerKey=api_key) as service:
 
-        result = (
-            service.cse()
-            .list(q=query, cx=custom_search_engine_id, num=num_results)
-            .execute()
-        )
-
-        # Extract the search result items from the response
+            result = (
+                service.cse()
+                .list(q=query, cx=custom_search_engine_id, num=num_results)
+                .execute()
+            )
+            logger.info(result)
+            # Extract the search result items from the response
         search_results = result.get("items", [])
 
         # Create a list of only the URLs from the search results
