@@ -4,9 +4,11 @@
 @Time    : 2023/5/11 14:42
 @Author  : alexanderwu
 @File    : role.py
+@Modified By: mashenquan, 2023-07-27, :class:`Role` + properties.
 """
 from __future__ import annotations
 
+import traceback
 from typing import Iterable, Type
 
 from pydantic import BaseModel, Field
@@ -92,13 +94,22 @@ class RoleContext(BaseModel):
 class Role:
     """角色/代理"""
 
-    def __init__(self, name="", profile="", goal="", constraints="", desc=""):
+    def __init__(self, name="", profile="", goal="", constraints="", desc="", *args, **kwargs):
+        # Enable parameter configurability
+        name = Role.format_value(name, kwargs)
+        profile = Role.format_value(profile, kwargs)
+        goal = Role.format_value(goal, kwargs)
+        constraints = Role.format_value(constraints, kwargs)
+        desc = Role.format_value(desc, kwargs)
+
+        # Initialize
         self._llm = LLM()
         self._setting = RoleSetting(name=name, profile=profile, goal=goal, constraints=constraints, desc=desc)
         self._states = []
         self._actions = []
         self._role_id = str(self._setting)
         self._rc = RoleContext()
+        self._options = Role.supply_options(kwargs)
 
     def _reset(self):
         self._states = []
@@ -136,6 +147,26 @@ class Role:
         """获取角色描述（职位）"""
         return self._setting.profile
 
+    @property
+    def name(self):
+        """Return role `name`, read only"""
+        return self._setting.name
+
+    @property
+    def desc(self):
+        """Return role `desc`, read only"""
+        return self._setting.desc
+
+    @property
+    def goal(self):
+        """Return role `goal`, read only"""
+        return self._setting.goal
+
+    @property
+    def constraints(self):
+        """Return role `constraints`, read only"""
+        return self._setting.constraints
+
     def _get_prefix(self):
         """获取角色前缀"""
         if self._setting.desc:
@@ -164,7 +195,8 @@ class Role:
         #                                history=self.history)
 
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
-        response = await self._rc.todo.run(self._rc.important_memory)
+        requirement = self._rc.important_memory
+        response = await self._rc.todo.run(requirement)
         # logger.info(response)
         if isinstance(response, ActionOutput):
             msg = Message(content=response.content, instruct_content=response.instruct_content,
@@ -238,3 +270,33 @@ class Role:
         # 将回复发布到环境，等待下一个订阅者处理
         self._publish_message(rsp)
         return rsp
+
+    @staticmethod
+    def supply_options(options):
+        """Supply missing options"""
+        ret = Role.__DEFAULT_OPTIONS__.copy()
+        if not options:
+            return ret
+        ret.update(options)
+        return ret
+
+    @staticmethod
+    def format_value(value, options):
+        """Fill parameters inside `value` with `options`.
+        """
+        if "{" not in value:
+            return value
+
+        options = Role.supply_options(options)
+        try:
+            return value.format(**options)
+        except KeyError as e:
+            logger.warning(f"Parameter is missing:{e}")
+            for k, v in options.items():
+                value = value.replace("{" + f"{k}" + "}", v)
+            return value
+
+    __DEFAULT_OPTIONS__ = {
+        "teaching_language": "English",
+        "language": "Chinese"
+    }

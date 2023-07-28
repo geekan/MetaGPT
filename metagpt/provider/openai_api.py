@@ -4,12 +4,13 @@
 @Time    : 2023/5/5 23:08
 @Author  : alexanderwu
 @File    : openai.py
+@Modified By: mashenquan, 2023-07-27, + try except.
 """
 import asyncio
 import time
 from functools import wraps
 from typing import NamedTuple
-
+import traceback
 import openai
 
 from metagpt.config import CONFIG
@@ -30,7 +31,9 @@ def retry(max_retries):
             for i in range(max_retries):
                 try:
                     return await f(*args, **kwargs)
-                except Exception:
+                except Exception as e:
+                    error_str = traceback.format_exc()
+                    logger.warning(f"Exception occurred: {str(e)}, stack:{error_str}. Retrying...")
                     if i == max_retries - 1:
                         raise
                     await asyncio.sleep(2 ** i)
@@ -148,10 +151,15 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         self.rpm = int(config.get("RPM", 10))
 
     async def _achat_completion_stream(self, messages: list[dict]) -> str:
-        response = await openai.ChatCompletion.acreate(
-            **self._cons_kwargs(messages),
-            stream=True
-        )
+        try:
+            response = await openai.ChatCompletion.acreate(
+                **self._cons_kwargs(messages),
+                stream=True
+            )
+        except Exception as e:
+            error_str = traceback.format_exc()
+            logger.error(f"Exception:{e}, stack:{error_str}")
+            raise e
 
         # create variables to collect the stream of chunks
         collected_chunks = []
