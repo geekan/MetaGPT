@@ -34,7 +34,7 @@ async def mock_write_teaching_plan_part():
         {
             "input": "AABBCC",
             "name": "A",
-            "topic": "B",
+            "topic": WriteTeachingPlanPart.COURSE_TITLE,
             "language": "C"
         },
         {
@@ -52,7 +52,7 @@ async def mock_write_teaching_plan_part():
         assert act.topic == seed.topic
         assert str(act) == seed.topic
         assert act.name == seed.name
-        assert act.rsp == "prompt"
+        assert act.rsp == "# prompt" if seed.topic == WriteTeachingPlanPart.COURSE_TITLE else "prompt"
 
 
 def test_suite():

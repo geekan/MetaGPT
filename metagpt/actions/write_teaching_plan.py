@@ -75,13 +75,12 @@ class WriteTeachingPlanPart(Action):
         """Show `topic` value when debug"""
         return self.topic
 
-    FORMATION = """
-    \t\"Capacity and role\" defines the role you are currently playing;
-    \t\"[LESSON_BEGIN]\" and \"[LESSON_END]\" tags enclose the content of textbook;
-    \t\"Statement\" defines the work detail you need to complete at this stage;
-    \t\"Answer options\" defines the format requirements for your responses;
-    \t\"Constraint\" defines the conditions that your responses must comply with.
-    """
+    FORMATION = "\"Capacity and role\" defines the role you are currently playing;\n" \
+                "\t\"[LESSON_BEGIN]\" and \"[LESSON_END]\" tags enclose the content of textbook;\n" \
+                "\t\"Statement\" defines the work detail you need to complete at this stage;\n" \
+                "\t\"Answer options\" defines the format requirements for your responses;\n" \
+                "\t\"Constraint\" defines the conditions that your responses must comply with."
+
     COURSE_TITLE = "Title"
     TOPICS = [COURSE_TITLE, "Teaching Hours", "Teaching Objectives", "Teaching Content",
               "Teaching Methods and Strategies", "Learning Activities",
@@ -104,31 +103,32 @@ class WriteTeachingPlanPart(Action):
     }
 
     # Teaching plan title
-    PROMPT_TITLE_TEMPLATE = """
-        Do not refer to the context of the previous conversation records, start the conversation anew.\n\n
-        Formation: {formation}\n\n
-        {statements}\n
-        Constraint: Writing in {language}.\n
-        Answer options: Encloses the lesson title with "[TEACHING_PLAN_BEGIN]" and "[TEACHING_PLAN_END]" tags.\n
-        [LESSON_BEGIN]\n
-        {lesson}\n
-        [LESSON_END]
-        """
+    PROMPT_TITLE_TEMPLATE = "Do not refer to the context of the previous conversation records, " \
+                            "start the conversation anew.\n\n" \
+                            "Formation: {formation}\n\n" \
+                            "{statements}\n" \
+                            "Constraint: Writing in {language}.\n" \
+                            "Answer options: Encloses the lesson title with \"[TEACHING_PLAN_BEGIN]\" " \
+                            "and \"[TEACHING_PLAN_END]\" tags.\n" \
+                            "[LESSON_BEGIN]\n" \
+                            "{lesson}\n" \
+                            "[LESSON_END]"
 
     # Teaching plan parts:
-    PROMPT_TEMPLATE = """
-    Do not refer to the context of the previous conversation records, start the conversation anew.\n\n
-    Formation: {formation}\n\n
-    Capacity and role: {role}\n
-    Statement: Write the "{topic}" part of teaching plan, WITHOUT ANY content unrelated to "{topic}"!!\n
-    {statements}\n
-    Answer options: Enclose the teaching plan content with "[TEACHING_PLAN_BEGIN]" and "[TEACHING_PLAN_END]" tags.\n
-    Answer options: Using proper markdown format from second-level header format.\n
-    Constraint: Writing in {language}.\n
-    [LESSON_BEGIN]\n
-    {lesson}\n
-    [LESSON_END]
-    """
+    PROMPT_TEMPLATE = "Do not refer to the context of the previous conversation records, " \
+                      "start the conversation anew.\n\n" \
+                      "Formation: {formation}\n\n" \
+                      "Capacity and role: {role}\n" \
+                      "Statement: Write the \"{topic}\" part of teaching plan, " \
+                      "WITHOUT ANY content unrelated to \"{topic}\"!!\n" \
+                      "{statements}\n" \
+                      "Answer options: Enclose the teaching plan content with \"[TEACHING_PLAN_BEGIN]\" " \
+                      "and \"[TEACHING_PLAN_END]\" tags.\n" \
+                      "Answer options: Using proper markdown format from second-level header format.\n" \
+                      "Constraint: Writing in {language}.\n" \
+                      "[LESSON_BEGIN]\n" \
+                      "{lesson}\n" \
+                      "[LESSON_END]"
 
     DATA_BEGIN_TAG = "[TEACHING_PLAN_BEGIN]"
     DATA_END_TAG = "[TEACHING_PLAN_END]"
