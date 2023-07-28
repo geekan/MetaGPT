@@ -98,7 +98,7 @@ def main(idea: str, investment: float = 3.0, n_round: int = 5, *args, **kwargs):
     :param investment: As an investor, you have the opportunity to contribute a certain dollar amount to this AI company.
     :param n_round:
     :param args: Parameters passed in format: `python your_script.py arg1 arg2 arg3`
-    :param kwargs: Parameters passed in format: `python your_script.py a--param1=value1 --param2=value2`
+    :param kwargs: Parameters passed in format: `python your_script.py --param1=value1 --param2=value2`
     :return:
     """
     industry = kwargs.get("industry", "software")
