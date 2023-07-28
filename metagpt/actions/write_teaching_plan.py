@@ -76,11 +76,11 @@ class WriteTeachingPlanPart(Action):
         return self.topic
 
     FORMATION = """
-    "\tCapacity and role" defines the role you are currently playing;
-    "\t[LESSON_BEGIN]" and "[LESSON_END]" tags enclose the content of textbook;
-    "\tStatement" defines the work detail you need to complete at this stage;
-    "\tAnswer options" defines the format requirements for your responses;
-    "\tConstraint" defines the conditions that your responses must comply with.
+    \t\"Capacity and role\" defines the role you are currently playing;
+    \t\"[LESSON_BEGIN]\" and \"[LESSON_END]\" tags enclose the content of textbook;
+    \t\"Statement\" defines the work detail you need to complete at this stage;
+    \t\"Answer options\" defines the format requirements for your responses;
+    \t\"Constraint\" defines the conditions that your responses must comply with.
     """
     COURSE_TITLE = "Title"
     TOPICS = [COURSE_TITLE, "Teaching Hours", "Teaching Objectives", "Teaching Content",
