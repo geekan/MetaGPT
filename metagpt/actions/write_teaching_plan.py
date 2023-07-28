@@ -68,11 +68,11 @@ class WriteTeachingPlanPart(Action):
             self.rsp = "# " + self.rsp
 
     def __str__(self):
-        """str()时返回`topic`"""
+        """Return `topic` value when str()"""
         return self.topic
 
     def __repr__(self):
-        """调试时返回`topic`"""
+        """Show `topic` value when debug"""
         return self.topic
 
     FORMATION = """
