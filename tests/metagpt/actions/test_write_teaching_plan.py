@@ -1,3 +1,11 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+@Time    : 2023/7/28 17:25
+@Author  : mashenquan
+@File    : test_write_teaching_plan.py
+"""
+
 import asyncio
 from typing import Optional
 from pydantic import BaseModel
