@@ -138,7 +138,13 @@ python startup.py "Write a cli snake game" --code_review True
 ```
 
 After running the script, you can find your new project in the `workspace/` directory.
+### Preference of Platform or Tool 
 
+As the project becomes more complete, the cost of generating the outputs will also gradually increase. Therefore, it is recommended to explicitly specify the platform or tools you want to use when describing the requirements.
+
+```shell
+python startup.py "Write a cli snake game that runs on Windows"
+```
 ### Usage
 
 ```
