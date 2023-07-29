@@ -77,6 +77,8 @@ class Config(metaclass=Singleton):
             logger.warning("LONG_TERM_MEMORY is True")
         self.max_budget = self._get("MAX_BUDGET", 10.0)
         self.total_cost = 0.0
+        self.puppeteer_config = self._get("PUPPETEER_CONFIG","")
+        self.mmdc = self._get("MMDC","mmdc")
 
     def _init_with_config_files_and_env(self, configs: dict, yaml_file):
         """从config/key.yaml / config/config.yaml / env三处按优先级递减加载"""

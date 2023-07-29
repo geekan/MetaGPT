@@ -8,12 +8,14 @@
 import os
 import subprocess
 from pathlib import Path
-
+from metagpt.config import CONFIG
 from metagpt.const import PROJECT_ROOT
 from metagpt.logs import logger
 from metagpt.utils.common import check_cmd_exists
 
 IS_DOCKER = os.environ.get('AM_I_IN_A_DOCKER_CONTAINER', 'false').lower()
+
+
 
 
 def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, height=2048) -> int:
@@ -42,7 +44,11 @@ def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, height
             subprocess.run(['mmdc', '-p', '/app/metagpt/puppeteer-config.json', '-i',
                            str(tmp), '-o', output_file, '-w', str(width), '-H', str(height)])
         else:
-            subprocess.run(['mmdc', '-i', str(tmp), '-o',
+            if CONFIG.puppeteer_config:
+                subprocess.run([CONFIG.mmdc,'-p',CONFIG.puppeteer_config, '-i', str(tmp), '-o',
+                           output_file, '-w', str(width), '-H', str(height)])
+            else:
+                subprocess.run( [CONFIG.mmdc, '-i', str(tmp), '-o',
                            output_file, '-w', str(width), '-H', str(height)])
     return 0
 
