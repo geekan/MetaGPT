@@ -2,10 +2,10 @@
 # The configuration of key.yaml has a higher priority and will not enter git
 
 #### if OpenAI
-
-#OPENAI_API_KEY: "YOUR_API_KEY"
-#OPENAI_API_BASE: "YOUR_API_BASE"
+## You can get OPENAI_API_BASE url from https://github.com/beidongjiedeguang/openai-forward
+OPENAI_API_BASE: "https://api.openai-forward.com/v1"
 #OPENAI_PROXY: "http://127.0.0.1:8118"
+#OPENAI_API_KEY: "YOUR_API_KEY"
 OPENAI_API_MODEL: "gpt-4"
 MAX_TOKENS: 1500
 RPM: 10
