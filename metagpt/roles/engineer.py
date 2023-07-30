@@ -16,7 +16,7 @@ from metagpt.roles import Role
 from metagpt.actions import WriteCode, WriteCodeReview, WriteTasks, WriteDesign
 from metagpt.schema import Message
 from metagpt.utils.common import CodeParser
-from metagpt.utils.special_tokens import WRITECODE_MSG_SEP, FILENAME_CODE_SEP
+from metagpt.utils.special_tokens import MSG_SEP, FILENAME_CODE_SEP
 
 
 async def gather_ordered_k(coros, k) -> list:
@@ -144,7 +144,12 @@ class Engineer(Role):
             code_msg_all.append(FILENAME_CODE_SEP.join([todo, str(file_path), code]))
 
         logger.info(f'Done {self.get_workspace()} generating.')
-        msg = Message(content=WRITECODE_MSG_SEP.join(code_msg_all), role=self.profile, cause_by=type(self._rc.todo))
+        msg = Message(
+            content=MSG_SEP.join(code_msg_all),
+            role=self.profile,
+            cause_by=type(self._rc.todo),
+            send_to="QaEngineer"
+        )
         return msg
 
     async def _act_sp_precision(self) -> Message:
@@ -186,7 +191,12 @@ class Engineer(Role):
             code_msg_all.append(FILENAME_CODE_SEP.join([todo, str(file_path), code]))
 
         logger.info(f'Done {self.get_workspace()} generating.')
-        msg = Message(content=WRITECODE_MSG_SEP.join(code_msg_all), role=self.profile, cause_by=type(self._rc.todo))
+        msg = Message(
+            content=MSG_SEP.join(code_msg_all),
+            role=self.profile,
+            cause_by=type(self._rc.todo),
+            send_to="QaEngineer"
+        )
         return msg
 
     async def _act(self) -> Message:

@@ -12,6 +12,42 @@ import subprocess
 from metagpt.logs import logger
 from metagpt.actions.action import Action
 
+PROMPT_TEMPLATE = """
+Role: You are a senior development and qa engineer, your role is summarize the code running result.
+If the running result does not include an error, you should explicitly approve the result.
+On the other hand, if the running result indicates some error, you should point out which part, the development code or the test code, produces the error,
+and give specific instructions on fixing the errors.
+---
+## Development Code File Name
+{code_file_name}
+## Development Code
+```python
+{code}
+```
+## Test File Name
+{test_file_name}
+## Test Code
+```python
+{test_code}
+```
+## Running Command
+{command}
+## Running Output
+standard output: {outs};
+standard errors: {errs};
+## instruction:
+Please summarize the cause of the errors and give correction instruction
+## File To Rewrite
+Determine the ONE file to rewrite in order to fix the error, for example, xyz.py, or test_xyz.py
+## Status:
+Determine if all of the code works fine, if so write PASS, else FAIL,
+WRITE ONLY ONE WORD, PASS OR FAIL, IN THI SECTION
+## Send To:
+Please write Engineer if the errors are due to problematic development codes, and QaEngineer to problematic test codes, and NoOne if there are no errors,
+WRITE ONLY ONE WORD, Engineer OR QaEngineer OR NoOne, IN THIS SECTION.
+---
+You should fill in necessary summary, status, send to, and finally return all content between the --- segment line.
+"""
 
 class RunCode(Action):
     def __init__(self, name="RunCode", context=None, llm=None):
@@ -52,11 +88,24 @@ class RunCode(Action):
             process.kill()  # Kill the process if it times out
             stdout, stderr = process.communicate()
         return stdout.decode('utf-8'), stderr.decode('utf-8')
-
-    async def run(self, context="", mode="script", **kwargs):
+    
+    async def run(
+        self, code, mode="script", code_file_name="", test_code="", test_file_name="", command=[], **kwargs
+    ):
         if mode == "script":
-            outs, errs = await self.run_script(**kwargs)
+            outs, errs = await self.run_script(command=command, **kwargs)
         elif mode == "text":
-            outs, errs = await self.run_text(**kwargs)
+            outs, errs = await self.run_text(code=code)
         
-        return outs, errs
+        logger.info(outs)
+        logger.info(errs)
+        
+        prompt = PROMPT_TEMPLATE.format(
+            code=code, code_file_name=code_file_name,
+            test_code=test_code, test_file_name=test_file_name,
+            command=" ".join(command),
+            outs=outs, errs=errs
+        )
+        rsp = await self._aask(prompt)
+
+        return rsp

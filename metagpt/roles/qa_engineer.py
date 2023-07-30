@@ -7,15 +7,16 @@
 """
 import re
 from pathlib import Path
+from typing import Type
 
-from metagpt.actions import WriteTest, WriteCode, WriteDesign, RunCode
+from metagpt.actions import WriteTest, WriteCode, WriteDesign, RunCode, DebugError
 from metagpt.const import WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.roles.engineer import Engineer
 from metagpt.utils.common import CodeParser
-from metagpt.utils.special_tokens import WRITECODE_MSG_SEP, FILENAME_CODE_SEP
+from metagpt.utils.special_tokens import MSG_SEP, FILENAME_CODE_SEP
 
 class QaEngineer(Role):
     def __init__(self, name="Edward", profile="QA Engineer",
@@ -51,39 +52,40 @@ class QaEngineer(Role):
 
     def recv(self, message: Message) -> None:
         self._rc.memory.add(message)
-    
-    async def _act(self) -> Message:
-        code_action_watched = self._rc.important_memory[-1]
-        code_msgs = code_action_watched.content.split(WRITECODE_MSG_SEP)
+
+    async def _write_test(self, message: Message) -> None:
+
+        code_msgs = message.content.split(MSG_SEP)
+        result_msg_all = []
         for code_msg in code_msgs:
-            
+
             # write tests
             file_name, file_path, code_to_test = code_msg.split(FILENAME_CODE_SEP)
             test_file_name = "test_" + file_name
             logger.info(f'Writing {test_file_name}..')
-            code = await WriteTest().run(
+            test_code = await WriteTest().run(
                 code_to_test=code_to_test,
                 test_file_name=test_file_name,
                 # source_file_name=file_name,
                 source_file_path=file_path,
                 workspace=self.get_workspace()
             )
-            self.write_file(test_file_name, code)
-
-            # add to memory
-            msg = Message(content=code, role=self.profile, cause_by=WriteTest)
-            self._rc.memory.add(msg)
+            self.write_file(test_file_name, test_code)
 
             # run tests
-            stdout, stderr = await RunCode().run(
+            result_msg = await RunCode().run(
                 mode="script",
+                code=code_to_test,
+                code_file_name=file_name,
+                test_code=test_code,
+                test_file_name=test_file_name,
+                command=['python', f'tests/{test_file_name}'],
                 working_directory=self.get_workspace(), # workspace/package_name, will run tests/test_xxx.py here
                 additional_python_paths=[self.get_workspace(return_proj_dir=False)], # workspace/package_name/package_name,
                                                                                      # import statement inside package code needs this
-                command=['python', f'tests/{test_file_name}']
             )
-            logger.info(stdout)
-            logger.info(stderr)
+
+            result_msg_all.append(result_msg)
 
         # RunCode().run(
         #     mode="script",
@@ -91,7 +93,27 @@ class QaEngineer(Role):
         #     additional_python_paths=[self.get_workspace(return_proj_dir=False)],
         #     command=['python', '-m', 'unittest', 'discover', '-s', 'tests']
         # )
-
-        logger.info(f'Done {self.get_workspace()} generating.')
-        msg = Message(content="all done.", role=self.profile, cause_by=WriteTest)
+        logger.info(f'Done {self.get_workspace()}/tests generating.')
+        msg_content = MSG_SEP.join(result_msg_all)
+        msg = Message(content=msg_content, role=self.profile, cause_by=RunCode, send_to=QaEngineer)
         return msg
+    
+    async def _debug_error(self, msg):
+        # process the msg, if the code works fine, no need to debug
+
+        # else: debug and rewrite the code
+
+        pass
+
+    async def _act(self) -> Message:
+        for msg in self._rc.news:
+            if msg.send_to != "QaEngineer":
+                continue
+            if msg.cause_by == WriteCode:
+                # engineer wrote a code, write a test for it
+                result_msg = await self._write_test(msg)
+            elif msg.cause_by == RunCode:
+                # I wrote and ran my test code, fix bugs, if any
+                result_msg = await self._debug_error(msg)
+            
+        return result_msg
