@@ -57,7 +57,6 @@ SD_T2I_API: "/sdapi/v1/txt2img"
 #LONG_TERM_MEMORY: false
 
 #### for Mermaid CLI
-# adds support for installing mmdc (Mermaid CLI) locally on the user's machine.
-# PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true npm install @mermaid-js/mermaid-cli
-#PUPPETEER_CONFIG: "./puppeteer-config.json"
+## If you installed mmdc (Mermaid CLI) only for metagpt then enable the following configuration.
+#PUPPETEER_CONFIG: "./config/puppeteer-config.json"
 #MMDC: "./node_modules/.bin/mmdc"
