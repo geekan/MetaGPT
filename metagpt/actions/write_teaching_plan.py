@@ -87,7 +87,8 @@ class WriteTeachingPlanPart(Action):
                 "\t\"Constraint\" defines the conditions that your responses must comply with."
 
     COURSE_TITLE = "Title"
-    TOPICS = [COURSE_TITLE, "Teaching Hours", "Teaching Objectives", "Teaching Content",
+    TOPICS = [
+        COURSE_TITLE, "Teaching Hours", "Teaching Objectives", "Teaching Content",
               "Teaching Methods and Strategies", "Learning Activities",
               "Teaching Time Allocation", "Assessment and Feedback", "Teaching Summary and Improvement",
               "Vocabulary Practice", "Grammar Practice", "Reading Comprehension", "Listening Practice",
@@ -117,41 +118,41 @@ class WriteTeachingPlanPart(Action):
             "Statement: Based on the content of the textbook enclosed by \"[LESSON_BEGIN]\" and \"[LESSON_END]\", "
             "create grammar practice exercises. "],
         "Reading Comprehension": [
-            "Statement: Based on the vocabulary of the textbook enclosed by \"[LESSON_BEGIN]\" and \"[LESSON_END]\", "
-            "create {teaching_language} reading comprehension exercises. ",
-            "Statement: Prohibit the use of words that are not within the scope of the \"[LESSON_BEGIN]\" "
-            "and \"[LESSON_END]\" tags.",
-            "Statement: Prohibit copy the content of the \"[LESSON_BEGIN]\" and \"[LESSON_END]\" tags.",
-            "Answer options: Write the story content in {teaching_language}."
+            "Statement: Using the vocabulary of the textbook enclosed by \"[LESSON_BEGIN]\" and \"[LESSON_END]\", "
+            "create {teaching_language} reading comprehension exercises. "
+            # "Statement: Prohibit the use of words that are not within the scope of the \"[LESSON_BEGIN]\" "
+            # "and \"[LESSON_END]\" tags.",
+            # "Statement: Prohibit copy the content of the \"[LESSON_BEGIN]\" and \"[LESSON_END]\" tags.",
+            # "Answer options: Write the story content in {teaching_language}."
         ],
         "Listening Practice": [
-            "Statement: Based on the content of the textbook enclosed by \"[LESSON_BEGIN]\" and \"[LESSON_END]\", "
+            "Statement: Using the vocabulary of the textbook enclosed by \"[LESSON_BEGIN]\" and \"[LESSON_END]\", "
             "create listening practice exercises. Each exercise should include the audio content and the "
             "question-and-answer part."
         ],
         "Writing Practice": [
-            "Statement: Based on the content of the textbook enclosed by \"[LESSON_BEGIN]\" and \"[LESSON_END]\", "
+            "Statement: Using the vocabulary of the textbook enclosed by \"[LESSON_BEGIN]\" and \"[LESSON_END]\", "
             "create writing practice exercises.",
             #"Statement: Prohibit using content not related to \"[LESSON_BEGIN]\" and \"[LESSON_END]\" tags.",
-            "Statement: Prohibit copying the content enclosed by \"[LESSON_BEGIN]\" and \"[LESSON_END]\" tags."
+            #"Statement: Prohibit copying the content enclosed by \"[LESSON_BEGIN]\" and \"[LESSON_END]\" tags."
         ],
         "Speaking Practice": [
-            "Statement: Based on the content of the textbook enclosed by \"[LESSON_BEGIN]\" and \"[LESSON_END]\", "
+            "Statement: Using the vocabulary of the textbook enclosed by \"[LESSON_BEGIN]\" and \"[LESSON_END]\", "
             "create speaking practice exercises.",
             #"Statement: Prohibit using content not related to \"[LESSON_BEGIN]\" and \"[LESSON_END]\" tags.",
-            "Statement: Prohibit copying the content enclosed by \"[LESSON_BEGIN]\" and \"[LESSON_END]\" tags."
+            #"Statement: Prohibit copying the content enclosed by \"[LESSON_BEGIN]\" and \"[LESSON_END]\" tags."
         ],
         "Translation Practice": [
-            "Statement: Based on the content of the textbook enclosed by \"[LESSON_BEGIN]\" and \"[LESSON_END]\", "
+            "Statement: Using the vocabulary of the textbook enclosed by \"[LESSON_BEGIN]\" and \"[LESSON_END]\", "
             "create Translation practice exercises.",
             #"Statement: Prohibit using content not related to \"[LESSON_BEGIN]\" and \"[LESSON_END]\" tags.",
-            "Statement: Prohibit copying the content enclosed by \"[LESSON_BEGIN]\" and \"[LESSON_END]\" tags."
+            #"Statement: Prohibit copying the content enclosed by \"[LESSON_BEGIN]\" and \"[LESSON_END]\" tags."
         ],
         "Listening and Speaking Activities": [
-            "Statement: Based on the content of the textbook enclosed by \"[LESSON_BEGIN]\" and \"[LESSON_END]\", "
+            "Statement: Using the vocabulary of the textbook enclosed by \"[LESSON_BEGIN]\" and \"[LESSON_END]\", "
             "create listening and speaking activities exercises.",
             #"Statement: Prohibit using content not related to \"[LESSON_BEGIN]\" and \"[LESSON_END]\" tags.",
-            "Statement: Prohibit copying the content enclosed by \"[LESSON_BEGIN]\" and \"[LESSON_END]\" tags."
+            #"Statement: Prohibit copying the content enclosed by \"[LESSON_BEGIN]\" and \"[LESSON_END]\" tags."
         ]
     }
 
