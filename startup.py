@@ -69,7 +69,7 @@ async def education_startup(lesson_file: str, investment: float = 3.0, n_round: 
     3a Listen, say and trace
     Aa Bb Cc Dd Ee Ff Gg
 
-    3b Listen and number the following letters. Then circle the letters withthe same sound as Bb.
+    3b Listen and number the following letters. Then circle the letters with the same sound as Bb.
     Aa Bb Cc Dd Ee Ff Gg
 
     3c Match the big letters with the small ones. Then write them on the lines.
