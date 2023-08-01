@@ -5,7 +5,6 @@
 @Author  : mashenquan
 @File    : write_teaching_plan.py
 """
-from langchain.llms.base import LLM
 from metagpt.logs import logger
 from metagpt.actions import Action
 from metagpt.schema import Message
@@ -21,7 +20,7 @@ class TeachingPlanRequirement(Action):
 class WriteTeachingPlanPart(Action):
     """Write Teaching Plan Part"""
 
-    def __init__(self, name: str = "", context=None, llm: LLM = None, topic: str = "", language: str = "Chinese"):
+    def __init__(self, name: str = "", context=None, llm=None, topic: str = "", language: str = "Chinese"):
         """
 
         Args:
@@ -35,8 +34,8 @@ class WriteTeachingPlanPart(Action):
         self.language = language
         self.rsp = None
 
-    async def run(self, *args, **kwargs):
-        if len(args) < 1 or len(args[0]) < 1 or not isinstance(args[0][0], Message):
+    async def run(self, messages, *args, **kwargs):
+        if len(messages) < 1 or not isinstance(messages[0], Message):
             raise ValueError("Invalid args, a tuple of List[Message] is expected")
 
         statement_patterns = self.TOPIC_STATEMENTS.get(self.topic, [])
@@ -49,7 +48,7 @@ class WriteTeachingPlanPart(Action):
         prompt = formatter.format(formation=self.FORMATION,
                                   role=self.prefix,
                                   statements="\n".join(statements),
-                                  lesson=args[0][0].content,
+                                  lesson=messages[0].content,
                                   topic=self.topic,
                                   language=self.language)
 

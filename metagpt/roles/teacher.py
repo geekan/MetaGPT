@@ -10,6 +10,7 @@ from pathlib import Path
 import aiofiles
 
 from metagpt.actions.write_teaching_plan import WriteTeachingPlanPart, TeachingPlanRequirement
+from metagpt.const import WORKSPACE_ROOT
 from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.logs import logger
@@ -59,7 +60,7 @@ class Teacher(Role):
     async def save(self, content):
         """Save teaching plan"""
         filename = Teacher.new_file_name(self.course_title)
-        pathname = Path(__file__).resolve().parent.parent.parent / "output"
+        pathname = WORKSPACE_ROOT / "output"
         pathname.mkdir(exist_ok=True)
         pathname = pathname / filename
         try:

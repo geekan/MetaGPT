@@ -4,6 +4,7 @@
 @Time    : 2023/5/11 17:45
 @Author  : alexanderwu
 @File    : test_write_code.py
+@Modified By: mashenquan, 2023-8-1, fix-bug: `filename` of `write_code.run()` is missing.
 """
 import pytest
 
@@ -18,7 +19,7 @@ async def test_write_code():
     api_design = "设计一个名为'add'的函数，该函数接受两个整数作为输入，并返回它们的和。"
     write_code = WriteCode("write_code")
 
-    code = await write_code.run(api_design)
+    code = await write_code.run(context=api_design, filename="test")
     logger.info(code)
 
     # 我们不能精确地预测生成的代码，但我们可以检查某些关键字

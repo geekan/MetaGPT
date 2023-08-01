@@ -15,6 +15,7 @@ from metagpt.llm import LLM
 from metagpt.utils.common import OutputParser
 from metagpt.logs import logger
 
+
 class Action(ABC):
     def __init__(self, name: str = '', context=None, llm: LLM = None):
         self.name: str = name
