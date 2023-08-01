@@ -67,7 +67,7 @@ python setup.py install
 - don't forget to the configuration for mmdc in config.yml
 
     ```yml
-    PUPPETEER_CONFIG: "./puppeteer-config.json"
+    PUPPETEER_CONFIG: "./config/puppeteer-config.json"
     MMDC: "./node_modules/.bin/mmdc"
     ```
 

@@ -2,10 +2,12 @@
 # The configuration of key.yaml has a higher priority and will not enter git
 
 #### if OpenAI
-
-#OPENAI_API_KEY: "YOUR_API_KEY"
-#OPENAI_API_BASE: "YOUR_API_BASE"
+## The official OPENAI_API_BASE is https://api.openai.com/v1
+## If the official OPENAI_API_BASE is not available, we recommend using the [openai-forward](https://github.com/beidongjiedeguang/openai-forward).
+## Or, you can configure OPENAI_PROXY to access official OPENAI_API_BASE.
+OPENAI_API_BASE: "https://api.openai.com/v1"
 #OPENAI_PROXY: "http://127.0.0.1:8118"
+#OPENAI_API_KEY: "YOUR_API_KEY"
 OPENAI_API_MODEL: "gpt-4"
 MAX_TOKENS: 1500
 RPM: 10
@@ -57,7 +59,6 @@ SD_T2I_API: "/sdapi/v1/txt2img"
 #LONG_TERM_MEMORY: false
 
 #### for Mermaid CLI
-# adds support for installing mmdc (Mermaid CLI) locally on the user's machine.
-# PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true npm install @mermaid-js/mermaid-cli
-#PUPPETEER_CONFIG: "./puppeteer-config.json"
+## If you installed mmdc (Mermaid CLI) only for metagpt then enable the following configuration.
+#PUPPETEER_CONFIG: "./config/puppeteer-config.json"
 #MMDC: "./node_modules/.bin/mmdc"
