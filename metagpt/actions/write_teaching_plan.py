@@ -23,11 +23,11 @@ class WriteTeachingPlanPart(Action):
     def __init__(self, name: str = "", context=None, llm=None, topic: str = "", language: str = "Chinese"):
         """
 
-        Args:
-            name: action name
-            context: context
-            llm: object of :class:`LLM`
-            topic: topic part of teaching plan
+        :param name: action name
+        :param context: context
+        :param llm: object of :class:`LLM`
+        :param topic: topic part of teaching plan
+        :param language: A human language, such as Chinese, English, French, etc.
         """
         super().__init__(name, context, llm)
         self.topic = topic
