@@ -21,7 +21,7 @@ class TeachingPlanRequirement(Action):
 class WriteTeachingPlanPart(Action):
     """Write Teaching Plan Part"""
 
-    def __init__(self, name: str = '', context=None, llm: LLM = None, topic="", language="Chinese"):
+    def __init__(self, name: str = "", context=None, llm: LLM = None, topic: str = "", language: str = "Chinese"):
         """
 
         Args:
