@@ -221,10 +221,11 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
 
     def _calc_usage(self, messages: list[dict], rsp: str) -> dict:
         usage = {}
-        prompt_tokens = count_message_tokens(messages, self.model)
-        completion_tokens = count_string_tokens(rsp, self.model)
-        usage['prompt_tokens'] = prompt_tokens
-        usage['completion_tokens'] = completion_tokens
+        if CONFIG.calc_usage:
+            prompt_tokens = count_message_tokens(messages, self.model)
+            completion_tokens = count_string_tokens(rsp, self.model)
+            usage['prompt_tokens'] = prompt_tokens
+            usage['completion_tokens'] = completion_tokens
         return usage
 
     async def acompletion_batch(self, batch: list[list[dict]]) -> list[dict]:
@@ -254,9 +255,10 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         return results
 
     def _update_costs(self, usage: dict):
-        prompt_tokens = int(usage['prompt_tokens'])
-        completion_tokens = int(usage['completion_tokens'])
-        self._cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
+        if CONFIG.update_costs:
+            prompt_tokens = int(usage['prompt_tokens'])
+            completion_tokens = int(usage['completion_tokens'])
+            self._cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
 
     def get_costs(self) -> Costs:
         return self._cost_manager.get_costs()
