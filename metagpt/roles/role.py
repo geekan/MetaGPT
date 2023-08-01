@@ -282,8 +282,7 @@ class Role:
 
     @staticmethod
     def format_value(value, options):
-        """Fill parameters inside `value` with `options`.
-        """
+        """Fill parameters inside `value` with `options`."""
         if "{" not in value:
             return value
 
