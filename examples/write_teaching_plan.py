@@ -80,9 +80,9 @@ async def startup(lesson_file: str, investment: float = 3.0, n_round: int = 1, *
 def main(idea: str, investment: float = 3.0, n_round: int = 5, *args, **kwargs):
     """
     We are a software startup comprised of AI. By investing in us, you are empowering a future filled with limitless possibilities.
-    :param idea: Your innovative idea for `software` industry, such as "Creating a snake game."; lesson filename for `education` industry.
+    :param idea: lesson filename.
     :param investment: As an investor, you have the opportunity to contribute a certain dollar amount to this AI company.
-    :param n_round:
+    :param n_round: Reserved.
     :param args: Parameters passed in format: `python your_script.py arg1 arg2 arg3`
     :param kwargs: Parameters passed in format: `python your_script.py --param1=value1 --param2=value2`
     :return:
@@ -91,4 +91,11 @@ def main(idea: str, investment: float = 3.0, n_round: int = 5, *args, **kwargs):
 
 
 if __name__ == '__main__':
+    """
+    Formats:
+    ```
+    python write_teaching_plan.py lesson_filename --teaching_language=<the language you are teaching> --language=<your native language>
+    ```
+    If `lesson_filename` is not available, a demo lesson content will be used.
+    """
     fire.Fire(main)
