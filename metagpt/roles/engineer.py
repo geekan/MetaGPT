@@ -141,7 +141,8 @@ class Engineer(Role):
             msg = Message(content=code, role=self.profile, cause_by=type(self._rc.todo))
             self._rc.memory.add(msg)
 
-            code_msg_all.append(FILENAME_CODE_SEP.join([todo, str(file_path), code]))
+            code_msg = todo + FILENAME_CODE_SEP + str(file_path)
+            code_msg_all.append(code_msg)
 
         logger.info(f'Done {self.get_workspace()} generating.')
         msg = Message(
@@ -188,7 +189,8 @@ class Engineer(Role):
             msg = Message(content=code, role=self.profile, cause_by=WriteCode)
             self._rc.memory.add(msg)
 
-            code_msg_all.append(FILENAME_CODE_SEP.join([todo, str(file_path), code]))
+            code_msg = todo + FILENAME_CODE_SEP + str(file_path)
+            code_msg_all.append(code_msg)
 
         logger.info(f'Done {self.get_workspace()} generating.')
         msg = Message(

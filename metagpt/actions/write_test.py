@@ -30,7 +30,7 @@ you should correctly import the necessary classes based on these file locations!
 """
 
 class WriteTest(Action):
-    def __init__(self, name="", context=None, llm=None):
+    def __init__(self, name="WriteTest", context=None, llm=None):
         super().__init__(name, context, llm)
 
     async def write_code(self, prompt):

@@ -5,7 +5,9 @@
 @Author  : alexanderwu
 @File    : debug_error.py
 """
+import re
 from metagpt.actions.action import Action
+from metagpt.utils.common import CodeParser
 
 PROMPT_TEMPLATE = """
 NOTICE
@@ -21,7 +23,7 @@ Now you should start rewriting the code:
 ## file name of the code to rewrite: Write code with triple quoto. Do your best to implement THIS ONLY ONE FILE.
 """
 class DebugError(Action):
-    def __init__(self, name, context=None, llm=None):
+    def __init__(self, name="DebugError", context=None, llm=None):
         super().__init__(name, context, llm)
 
     # async def run(self, code, error):
@@ -31,8 +33,15 @@ class DebugError(Action):
     #     return fixed_code
     
     async def run(self, context):
+        if "PASS" in context:
+            return "", "the original code works fine, no need to debug"
+        
+        file_name = re.search("## File To Rewrite:\s*(.+\\.py)", context).group(1)
+
         prompt = PROMPT_TEMPLATE.format(context=context)
         
         rsp = await self._aask(prompt)
 
-        return rsp
+        code = CodeParser.parse_code(block="", text=rsp)
+
+        return file_name, code

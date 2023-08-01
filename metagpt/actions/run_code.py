@@ -16,8 +16,25 @@ PROMPT_TEMPLATE = """
 Role: You are a senior development and qa engineer, your role is summarize the code running result.
 If the running result does not include an error, you should explicitly approve the result.
 On the other hand, if the running result indicates some error, you should point out which part, the development code or the test code, produces the error,
-and give specific instructions on fixing the errors.
+and give specific instructions on fixing the errors. Here is the code info:
+{context}
+Now you should begin your analysis
 ---
+## instruction:
+Please summarize the cause of the errors and give correction instruction
+## File To Rewrite:
+Determine the ONE file to rewrite in order to fix the error, for example, xyz.py, or test_xyz.py
+## Status:
+Determine if all of the code works fine, if so write PASS, else FAIL,
+WRITE ONLY ONE WORD, PASS OR FAIL, IN THI SECTION
+## Send To:
+Please write Engineer if the errors are due to problematic development codes, and QaEngineer to problematic test codes, and NoOne if there are no errors,
+WRITE ONLY ONE WORD, Engineer OR QaEngineer OR NoOne, IN THIS SECTION.
+---
+You should fill in necessary instruction, status, send to, and finally return all content between the --- segment line.
+"""
+
+CONTEXT = """
 ## Development Code File Name
 {code_file_name}
 ## Development Code
@@ -35,18 +52,6 @@ and give specific instructions on fixing the errors.
 ## Running Output
 standard output: {outs};
 standard errors: {errs};
-## instruction:
-Please summarize the cause of the errors and give correction instruction
-## File To Rewrite
-Determine the ONE file to rewrite in order to fix the error, for example, xyz.py, or test_xyz.py
-## Status:
-Determine if all of the code works fine, if so write PASS, else FAIL,
-WRITE ONLY ONE WORD, PASS OR FAIL, IN THI SECTION
-## Send To:
-Please write Engineer if the errors are due to problematic development codes, and QaEngineer to problematic test codes, and NoOne if there are no errors,
-WRITE ONLY ONE WORD, Engineer OR QaEngineer OR NoOne, IN THIS SECTION.
----
-You should fill in necessary summary, status, send to, and finally return all content between the --- segment line.
 """
 
 class RunCode(Action):
@@ -97,15 +102,20 @@ class RunCode(Action):
         elif mode == "text":
             outs, errs = await self.run_text(code=code)
         
-        logger.info(outs)
-        logger.info(errs)
-        
-        prompt = PROMPT_TEMPLATE.format(
+        logger.info(f"{outs=}")
+        logger.info(f"{errs=}")
+
+        context = CONTEXT.format(
             code=code, code_file_name=code_file_name,
             test_code=test_code, test_file_name=test_file_name,
             command=" ".join(command),
-            outs=outs, errs=errs
+            outs=outs[:500], # outs might be long but they are not important, truncate them to avoid token overflow
+            errs=errs
         )
+        
+        prompt = PROMPT_TEMPLATE.format(context=context)
         rsp = await self._aask(prompt)
 
-        return rsp
+        result = context + rsp
+
+        return result

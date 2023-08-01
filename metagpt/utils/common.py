@@ -183,7 +183,7 @@ class CodeParser:
     def parse_file_list(cls, block: str, text: str, lang: str = "") -> list[str]:
         # Regular expression pattern to find the tasks list.
         code = cls.parse_code(block, text, lang)
-        print(code)
+        # print(code)
         pattern = r'\s*(.*=.*)?(\[.*\])'
 
         # Extract tasks list string using regex.
@@ -230,3 +230,8 @@ def print_members(module, indent=0):
             print(f'{prefix}Function: {name}')
         elif inspect.ismethod(obj):
             print(f'{prefix}Method: {name}')
+
+def parse_recipient(text):
+    pattern = "## Send To:\s*([A-Za-z]+)\s*?" # hard code for now
+    recipient = re.search(pattern, text)
+    return recipient.group(1) if recipient else ""

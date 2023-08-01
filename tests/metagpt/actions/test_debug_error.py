@@ -135,7 +135,7 @@ FAILED (failures=1)
 ;
 ## instruction:
 The error is in the development code, specifically in the calculate_score method of the Player class. The method is not correctly handling the case where there are multiple Aces in the player's hand. The current implementation only subtracts 10 from the score once if the score is over 21 and there's an Ace in the hand. However, in the case of multiple Aces, it should subtract 10 for each Ace until the score is 21 or less.
-## File To Rewrite
+## File To Rewrite:
 player.py
 ## Status:
 FAIL
@@ -151,6 +151,6 @@ async def test_debug_error():
 
     debug_error = DebugError("debug_error")
 
-    result = await debug_error.run(context=EXAMPLE_MSG)
+    file_name, rewritten_code = await debug_error.run(context=EXAMPLE_MSG_CONTENT)
 
-    assert "```python" in result
+    assert "class TestPlayer" in rewritten_code
