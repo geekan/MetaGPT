@@ -121,7 +121,9 @@ class WriteTeachingPlanPart(Action):
             "create choice questions. 10 questions."],
         "Translation Questions": [
             "Statement: Based on the content of the textbook enclosed by \"[LESSON_BEGIN]\" and \"[LESSON_END]\", "
-            "create translation questions. 10 questions."
+            "create translation questions. The translation should include 10 {language} questions with "
+            "{teaching_language} answers, and it should also include 10 {teaching_language} questions with "
+            "{language} answers."
         ]
     }
 
