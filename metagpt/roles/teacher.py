@@ -60,7 +60,7 @@ class Teacher(Role):
     async def save(self, content):
         """Save teaching plan"""
         filename = Teacher.new_file_name(self.course_title)
-        pathname = WORKSPACE_ROOT / "output"
+        pathname = WORKSPACE_ROOT / "teaching_plan"
         pathname.mkdir(exist_ok=True)
         pathname = pathname / filename
         try:
