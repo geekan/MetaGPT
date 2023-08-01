@@ -97,6 +97,7 @@ class RunCode(Action):
     async def run(
         self, code, mode="script", code_file_name="", test_code="", test_file_name="", command=[], **kwargs
     ):
+        logger.info(f"Running {' '.join(command)}")
         if mode == "script":
             outs, errs = await self.run_script(command=command, **kwargs)
         elif mode == "text":
