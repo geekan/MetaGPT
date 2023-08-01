@@ -14,6 +14,7 @@ from metagpt.const import WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.utils.common import CodeParser
 from metagpt.utils.mermaid import mermaid_to_file
+from metagpt.tools.source_control import GitControl
 
 PROMPT_TEMPLATE = """
 # Context
@@ -106,18 +107,23 @@ class WriteDesign(Action):
     def _save_prd(self, docs_path, resources_path, prd):
         prd_file = docs_path / 'prd.md'
         quadrant_chart = CodeParser.parse_code(block="Competitive Quadrant Chart", text=prd)
-        mermaid_to_file(quadrant_chart, resources_path / 'competitive_analysis')
+        quadrant_chart_file = resources_path / 'competitive_analysis'
+        mermaid_to_file(quadrant_chart, quadrant_chart_file)
         logger.info(f"Saving PRD to {prd_file}")
         prd_file.write_text(prd)
+        return [quadrant_chart_file, prd_file]
 
     def _save_system_design(self, docs_path, resources_path, content):
         data_api_design = CodeParser.parse_code(block="Data structures and interface definitions", text=content)
         seq_flow = CodeParser.parse_code(block="Program call flow", text=content)
-        mermaid_to_file(data_api_design, resources_path / 'data_api_design')
-        mermaid_to_file(seq_flow, resources_path / 'seq_flow')
+        data_api_design_file = resources_path / 'data_api_design'
+        mermaid_to_file(data_api_design, data_api_design_file)
+        seq_flow_file = resources_path / 'seq_flow'
+        mermaid_to_file(seq_flow, seq_flow_file)
         system_design_file = docs_path / 'system_design.md'
         logger.info(f"Saving System Designs to {system_design_file}")
         system_design_file.write_text(content)
+        return [data_api_design_file, seq_flow_file, system_design_file]
 
     def _save(self, context, system_design):
         if isinstance(system_design, ActionOutput):
@@ -132,8 +138,14 @@ class WriteDesign(Action):
         resources_path = workspace / 'resources'
         docs_path.mkdir(parents=True, exist_ok=True)
         resources_path.mkdir(parents=True, exist_ok=True)
-        self._save_prd(docs_path, resources_path, context[-1].content)
-        self._save_system_design(docs_path, resources_path, content)
+        prd_files = self._save_prd(docs_path, resources_path, context[-1].content)
+        system_design_files = self._save_system_design(docs_path, resources_path, content)
+
+        git = GitControl(workspace)
+        logger.info(f"---> git user in WriteDesign: {self.actor}")
+        git.commit("initial project", author=self.actor)
+        git.add_and_commit(workspace, prd_files, author=self.actor)
+        git.add_and_commit(workspace, system_design_files, author=self.actor)
 
     async def run(self, context):
         prompt = PROMPT_TEMPLATE.format(context=context, format_example=FORMAT_EXAMPLE)
