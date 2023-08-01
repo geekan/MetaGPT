@@ -90,7 +90,7 @@ class WriteTeachingPlanPart(Action):
         COURSE_TITLE, "Teaching Hours", "Teaching Objectives", "Teaching Content",
         "Teaching Methods and Strategies", "Learning Activities",
         "Teaching Time Allocation", "Assessment and Feedback", "Teaching Summary and Improvement",
-        "Vocabulary Cloze", "Grammar Questions"
+        "Vocabulary Cloze", "Choice Questions", "Grammar Questions", "Translation Questions"
     ]
 
     TOPIC_STATEMENTS = {
@@ -109,13 +109,20 @@ class WriteTeachingPlanPart(Action):
         ],
         "Vocabulary Cloze": [
             "Statement: Based on the content of the textbook enclosed by \"[LESSON_BEGIN]\" and \"[LESSON_END]\", "
-            "create vocabulary cloze. The cloze should be in either {language} with "
-            "{teaching_language} answers or {teaching_language} with {language} answers. The key-related vocabulary "
-            "and phrases in the textbook content must all be included in the exercises."
+            "create vocabulary cloze. The cloze should include 10 {language} questions with {teaching_language} "
+            "answers, and it should also include 10 {teaching_language} questions with {language} answers. "
+            "The key-related vocabulary and phrases in the textbook content must all be included in the exercises.",
         ],
         "Grammar Questions": [
             "Statement: Based on the content of the textbook enclosed by \"[LESSON_BEGIN]\" and \"[LESSON_END]\", "
-            "create grammar questions. "]
+            "create grammar questions. 10 questions."],
+        "Choice Questions": [
+            "Statement: Based on the content of the textbook enclosed by \"[LESSON_BEGIN]\" and \"[LESSON_END]\", "
+            "create choice questions. 10 questions."],
+        "Translation Questions": [
+            "Statement: Based on the content of the textbook enclosed by \"[LESSON_BEGIN]\" and \"[LESSON_END]\", "
+            "create translation questions. 10 questions."
+        ]
     }
 
     # Teaching plan title
