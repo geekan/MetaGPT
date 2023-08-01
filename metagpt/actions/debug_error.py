@@ -6,6 +6,8 @@
 @File    : debug_error.py
 """
 import re
+
+from metagpt.logs import logger
 from metagpt.actions.action import Action
 from metagpt.utils.common import CodeParser
 
@@ -37,6 +39,8 @@ class DebugError(Action):
             return "", "the original code works fine, no need to debug"
         
         file_name = re.search("## File To Rewrite:\s*(.+\\.py)", context).group(1)
+
+        logger.info(f"Debug and rewrite {file_name}")
 
         prompt = PROMPT_TEMPLATE.format(context=context)
         
