@@ -17,3 +17,4 @@ class DebugError(Action):
                  f"\n\n{error}\n\nPlease try to fix the error in this code."
         fixed_code = await self._aask(prompt)
         return fixed_code
+    

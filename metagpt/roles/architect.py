@@ -17,3 +17,4 @@ class Architect(Role):
         super().__init__(name, profile, goal, constraints)
         self._init_actions([WriteDesign])
         self._watch({WritePRD})
+        

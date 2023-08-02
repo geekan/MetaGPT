@@ -9,7 +9,7 @@ import chromadb
 
 
 class ChromaStore:
-    """如果从BaseStore继承，或者引入metagpt的其他模块，就会Python异常，很奇怪"""
+    """If inherited from BaseStore, or importing other modules from metagpt, a Python exception occurs, which is strange."""
     def __init__(self, name):
         client = chromadb.Client()
         collection = client.create_collection(name)
@@ -27,7 +27,7 @@ class ChromaStore:
         return results
 
     def persist(self):
-        """chroma建议使用server模式，不本地persist"""
+        """Chroma recommends using server mode and not persisting locally."""
         raise NotImplementedError
 
     def write(self, documents, metadatas, ids):

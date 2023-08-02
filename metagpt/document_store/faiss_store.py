@@ -28,7 +28,7 @@ class FaissStore(LocalStore):
     def _load(self) -> Optional["FaissStore"]:
         index_file, store_file = self._get_index_and_store_fname()
         if not (index_file.exists() and store_file.exists()):
-            logger.info("At least one of the index_file/store_file is missing. Loading failed and returns None.")
+            logger.info("Missing at least one of index_file/store_file, load failed and return None")
             return None
         index = faiss.read_index(str(index_file))
         with open(str(store_file), "rb") as f:
@@ -59,7 +59,7 @@ class FaissStore(LocalStore):
             return str(sep.join([f"{x.page_content}" for x in rsp]))
 
     def write(self):
-        """Initialize the index and library based on the provided Document (JSON / XLSX, etc.) file."""
+        """Initialize the index and library based on the Document (JSON / XLSX, etc.) file provided by the user."""
         if not self.raw_data.exists():
             raise FileNotFoundError
         doc = Document(self.raw_data, self.content_col, self.meta_col)
@@ -67,18 +67,19 @@ class FaissStore(LocalStore):
 
         self.store = self._write(docs, metadatas)
         self.persist()
+        return self.store
 
     def add(self, texts: list[str], *args, **kwargs) -> list[str]:
-        """FIXME: The store isn't currently updated after adding."""
+        """FIXME: Currently, the store is not updated after adding."""
         return self.store.add_texts(texts)
 
     def delete(self, *args, **kwargs):
-        """Currently, langchain doesn't provide a delete interface."""
+        """Currently, langchain does not provide a delete interface."""
         raise NotImplementedError
 
 
 if __name__ == '__main__':
     faiss_store = FaissStore(DATA_PATH / 'qcs/qcs_4w.json')
-    logger.info(faiss_store.search('Oily skin facial cleanser'))
-    faiss_store.add([f'Oily skin facial cleanser-{i}' for i in range(3)])
-    logger.info(faiss_store.search('Oily skin facial cleanser'))
+    logger.info(faiss_store.search('Oily Skin Facial Cleanser'))
+    faiss_store.add([f'Oily Skin Facial Cleanser-{i}' for i in range(3)])
+    logger.info(faiss_store.search('Oily Skin Facial Cleanser'))

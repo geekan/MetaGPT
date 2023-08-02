@@ -39,6 +39,6 @@ class MeilisearchEngine:
             search_results = self._index.search(query)
             return search_results['hits']
         except Exception as e:
-            # Handle MeiliSearch API error
+            # Handle MeiliSearch API errors
             print(f"MeiliSearch API error: {e}")
             return []

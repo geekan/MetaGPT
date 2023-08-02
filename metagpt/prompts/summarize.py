@@ -6,8 +6,8 @@
 @File    : summarize.py
 """
 
-# From the plugin: ChatGPT - Summarize Websites and YouTube Videos
-# https://chrome.google.com/webstore/detail/chatgpt-%C2%BB-summarize-every/cbgecfllfhmmnknmamkejadjmnmpfjmp?hl=zh-CN&utm_source=chrome-ntp-launcher
+# From the plugin: ChatGPT - Website and YouTube Video Summaries
+# https://chrome.google.com/webstore/detail/chatgpt-%C2%BB-summarize-every/cbgecfllfhmmnknmamkejadjmnmpfjmp?hl=en&utm_source=chrome-ntp-launcher
 SUMMARIZE_PROMPT = """
 Your output should use the following template:
 ### Summary
@@ -20,9 +20,10 @@ summary. Pick a suitable emoji for every bullet point. Your response should be i
 a YouTube video, use the following text: {{CONTENT}}.
 """
 
-# From GCP-VertexAI-Text Summarization (SUMMARIZE_PROMPT_2-5 are all from this)
+
+# GCP-VertexAI-Text Summarization (SUMMARIZE_PROMPT_2-5 are from this source)
 # https://github.com/GoogleCloudPlatform/generative-ai/blob/main/language/examples/prompt-design/text_summarization.ipynb
-# Long documents need a map-reduce process, see the following notebook
+# Long documents require a map-reduce process, see the following notebook
 # https://github.com/GoogleCloudPlatform/generative-ai/blob/main/language/examples/document-summarization/summarization_large_documents.ipynb
 SUMMARIZE_PROMPT_2 = """
 Provide a very short summary, no more than three sentences, for the following article:
@@ -42,7 +43,7 @@ Summary:
 SUMMARIZE_PROMPT_3 = """
 Provide a TL;DR for the following article:
 
-Our quantum computers work by manipulating qubits in an orchestrated fashion that we call quantum algorithms.
+Our quantum computers work by manipulating qubits in an orchestrated fashion that we call quantum algorithms. 
 The challenge is that qubits are so sensitive that even stray light can cause calculation errors — and the problem worsens as quantum computers grow. 
 This has significant consequences, since the best quantum algorithms that we know for running useful applications require the error rates of our qubits to be far lower than we have today. 
 To bridge this gap, we will need quantum error correction. 

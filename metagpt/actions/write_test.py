@@ -24,3 +24,4 @@ class WriteTest(Action):
         prompt = self.test_prompt_template.format(code=self.code)
         test_cases = await self._aask(prompt)
         return test_cases
+    

@@ -113,3 +113,4 @@ class SerpAPIWrapper(BaseModel):
             toret_l += [get_focused(i) for i in res.get("organic_results")]
 
         return str(toret) + '\n' + str(toret_l)
+    

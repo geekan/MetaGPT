@@ -32,7 +32,7 @@ class Manager:
 
     async def handle(self, message: Message, environment):
         """
-        Manager processes the message, not simply passing the message to the next person.
+        Manager handles the message, currently simply passes the message to the next person.
         :param message:
         :param environment:
         :return:
@@ -49,7 +49,7 @@ class Manager:
         # Ask the LLM to decide which role should handle the message
         # chosen_role_name = self.llm.ask(self.prompt_template.format(context))
 
-        # FIXME: For now, the decision is made through a simple dictionary, but in the future, there should be a thought process
+        # FIXME: Currently deciding the direction using a simple dictionary, but in the future, a thought process should be involved.
         next_role_profile = self.role_directions[message.role]
         # logger.debug(f"{next_role_profile}")
         for _, role in roles.items():

@@ -8,16 +8,16 @@ from metagpt.provider.openai_api import OpenAIGPTAPI as GPTAPI
 
 ICL_SAMPLE = '''Interface definition:
 ```text
-Interface Name: Tag Elements
+Interface Name: Element Tagging
 Interface Path: /projects/{project_key}/node-tags
 Method: POST
 
-Request Parameters:
-Path Parameters:
+Request parameters:
+Path parameters:
 project_key
 
-Body Parameters:
-Name	Type	Required	Default	Value	Description
+Body parameters:
+Name	Type	Required	Default Value	Remarks
 nodes	array	Yes		Nodes
 	node_key	string	No		Node key
 	tags	array	No		Original node tag list
@@ -26,92 +26,90 @@ operations	array	Yes
 	tags	array	No		Operation tag list
 	mode	string	No		Operation type ADD / DELETE
 
-Return Data:
-Name	Type	Required	Default	Value	Description
+Return data:
+Name	Type	Required	Default Value	Remarks
 code	integer	Yes		Status code
-msg	string	Yes		Message
-data    object	Yes		Return data
+msg	string	Yes		Prompt message
+data	object	Yes		Returned data
 list	array	No		Node list true / false
-node_type	string	No		Node type	DATASET / RECIPE
+node_type	string	No		Node type DATASET / RECIPE
 node_key	string	No		Node key
 ```
 
-Unit Test:
+Unit test：
 ```python
 @pytest.mark.parametrize(
 "project_key, nodes, operations, expected_msg",
 [
 ("project_key", [{"node_key": "dataset_001", "tags": ["tag1", "tag2"], "node_type": "DATASET"}], [{"tags": ["new_tag1"], "mode": "ADD"}], "success"),
 ("project_key", [{"node_key": "dataset_002", "tags": ["tag1", "tag2"], "node_type": "DATASET"}], [{"tags": ["tag1"], "mode": "DELETE"}], "success"),
-("", [{"node_key": "dataset_001", "tags": ["tag1", "tag2"], "node_type": "DATASET"}], [{"tags": ["new_tag1"], "mode": "ADD"}], "Missing necessary parameter project_key"),
+("", [{"node_key": "dataset_001", "tags": ["tag1", "tag2"], "node_type": "DATASET"}], [{"tags": ["new_tag1"], "mode": "ADD"}], "Missing the required parameter project_key"),
 (123, [{"node_key": "dataset_001", "tags": ["tag1", "tag2"], "node_type": "DATASET"}], [{"tags": ["new_tag1"], "mode": "ADD"}], "Incorrect parameter type"),
 ("project_key", [{"node_key": "a"*201, "tags": ["tag1", "tag2"], "node_type": "DATASET"}], [{"tags": ["new_tag1"], "mode": "ADD"}], "Request parameter exceeds field boundary")
 ]
 )
 def test_node_tags(project_key, nodes, operations, expected_msg):
     pass
-```
-The above is an example of interface definition and unit test.
-Next, please act as an expert test manager with 20 years of experience at Google. 
-After I provide the interface definition, please reply with the unit test. 
-There are a few requirements:
-1. Only output one `@pytest.mark.parametrize` and the corresponding test_<interface name> function 
-   (with a pass inside, not implemented).
-   -- The function parameters should include expected_msg for result validation.
-2. The generated test cases should use shorter text or numbers and be as concise as possible.
-3. If comments are needed, use Chinese.
 
-If you understand, please wait for me to provide the interface definition 
-and only reply with "Understood" to save tokens.
-'''
+# The above is an interface definition and a unit test example.
+# Next, please play the role of an expert test manager with 20 years of experience at Google. When I give the interface definition, 
+# reply to me with a unit test. There are several requirements:
+# 1. Only output one `@pytest.mark.parametrize` and the corresponding test_<interface name> function (inside pass, do not implement).
+# -- The function parameter contains expected_msg for result verification.
+# 2. The generated test cases use shorter text or numbers and are as compact as possible.
+# 3. If comments are needed, use Chinese.
 
-ACT_PROMPT_PREFIX = '''Reference test types: such as missing request parameters, field boundary checks, incorrect field types.
-Please output 10 test cases within a `@pytest.mark.parametrize` scope.
+# If you understand, please wait for me to give the interface definition and just answer "Understood" to save tokens.
+
+ACT_PROMPT_PREFIX = '''Refer to the test types: such as missing request parameters, field boundary verification, incorrect field type.
+Please output 10 test cases within one `@pytest.mark.parametrize` scope.
 ```text
 '''
 
-YFT_PROMPT_PREFIX = '''Reference test types: such as SQL injection, cross-site scripting (XSS), illegal access and unauthorized access, authentication and authorization, parameter verification, exception handling, file upload and download.
-Please output 10 test cases within a `@pytest.mark.parametrize` scope.
+YFT_PROMPT_PREFIX = '''Refer to the test types: such as SQL injection, cross-site scripting (XSS), unauthorized access and privilege escalation, 
+authentication and authorization, parameter verification, exception handling, file upload and download.
+Please output 10 test cases within one `@pytest.mark.parametrize` scope.
 ```text
 '''
+
 OCR_API_DOC = '''```text
-API Name: OCR Recognition 
-API Path: /api/v1/contract/treaty/task/ocr 
-Method: POST 
+Interface Name: OCR recognition
+Interface Path: /api/v1/contract/treaty/task/ocr
+Method: POST
 
 Request Parameters:
 Path Parameters:
 
 Body Parameters:
-Name	Type	Mandatory	Default Value	Remarks
+Name	Type	Required	Default Value	Remarks
 file_id	string	Yes		
 box	array	Yes		
-contract_id	number	Yes		Contract ID
+contract_id	number	Yes		Contract id
 start_time	string	No		yyyy-mm-dd
 end_time	string	No		yyyy-mm-dd
-extract_type	number	No		Recognition Type 1- During Import 2- After Import, Default is 1
+extract_type	number	No		Recognition type 1- During import 2- After import Default 1
 
-Return Data:
-Name	Type	Mandatory	Default Value	Remarks
+Response Data:
+Name	Type	Required	Default Value	Remarks
 code	integer	Yes		
 message	string	Yes		
 data	object	Yes		
-      
-'''
+
+
 
 class UTGenerator:
-    """UT Generator: Constructs UT from API documentation."""
+    """UT Generator: Construct UT through API documentation"""
 
     def __init__(self, swagger_file: str, ut_py_path: str, questions_path: str,
                  chatgpt_method: str = "API", template_prefix=YFT_PROMPT_PREFIX) -> None:
-        """Initializes the UT generator.
+        """Initialize UT Generator
 
         Args:
-            swagger_file: Path to the swagger.
-            ut_py_path: Path to store test cases.
-            questions_path: Path to store templates for further investigation.
-            chatgpt_method: API.
-            template_prefix: Use template, defaults to YFT_UT_PROMPT.
+            swagger_file: path to the swagger file
+            ut_py_path: path to store test cases
+            questions_path: path to store the template, facilitating subsequent checks
+            chatgpt_method: API method
+            template_prefix: use the template, default is YFT_UT_PROMPT
         """
         self.swagger_file = swagger_file
         self.ut_py_path = ut_py_path
@@ -119,12 +117,12 @@ class UTGenerator:
         assert chatgpt_method in ["API"], "Invalid chatgpt_method"
         self.chatgpt_method = chatgpt_method
 
-        # ICL: In-Context Learning. Here, an example is provided for GPT to follow.
+        # ICL: In-Context Learning, provide an example here for GPT to mimic
         self.icl_sample = ICL_SAMPLE
         self.template_prefix = template_prefix
 
     def get_swagger_json(self) -> dict:
-        """Loads Swagger JSON from a local file."""
+        """Load Swagger JSON from a local file"""
         with open(self.swagger_file, "r", encoding="utf-8") as file:
             swagger_json = json.load(file)
         return swagger_json
@@ -145,30 +143,30 @@ class UTGenerator:
         return self.__para_to_str(prop, required, name)
 
     def build_object_properties(self, node, prop_object_required, level: int = 0) -> str:
-        """Recursively outputs properties of object and array[object] types.
+        """Recursively output properties of object and array[object] types
 
         Args:
-            node: Value of the sub-item.
-            prop_object_required: Whether it's a required item.
-            level: Current recursion depth.
+            node (_type_): value of the child item
+            prop_object_required (_type_): whether it's a required field
+            level: current recursion depth
         """
 
         doc = ""
 
         def dive_into_object(node):
-            """If it's an object type, recursively outputs its properties."""
+            """If it's an object type, recursively output its properties"""
             if node.get("type") == "object":
                 sub_properties = node.get("properties", {})
                 return self.build_object_properties(sub_properties, prop_object_required, level=level + 1)
             return ""
 
         if node.get("in", "") in ["query", "header", "formData"]:
-            doc += f'{"\t" * level}{self._para_to_str(node)}\n'
+            doc += f'{"	" * level}{self._para_to_str(node)}\n'
             doc += dive_into_object(node)
             return doc
 
         for name, prop in node.items():
-            doc += f'{"\t" * level}{self.para_to_str(name, prop, prop_object_required)}\n'
+            doc += f'{"	" * level}{self.para_to_str(name, prop, prop_object_required)}\n'
             doc += dive_into_object(prop)
             if prop["type"] == "array":
                 items = prop.get("items", {})
@@ -176,10 +174,10 @@ class UTGenerator:
         return doc
 
     def get_tags_mapping(self) -> dict:
-        """Handles tag and path mapping.
+        """Process tag and path mappings
 
         Returns:
-            Dict: Mapping of tag to path.
+            Dict: mapping of tag to path
         """
         swagger_data = self.get_swagger_json()
         paths = swagger_data["paths"]
@@ -197,7 +195,7 @@ class UTGenerator:
         return tags
 
     def generate_ut(self, include_tags) -> bool:
-        """Generates test case files."""
+        """Generate test case files"""
         tags = self.get_tags_mapping()
         for tag, paths in tags.items():
             if include_tags is None or tag in include_tags:
@@ -207,19 +205,19 @@ class UTGenerator:
     def build_api_doc(self, node: dict, path: str, method: str) -> str:
         summary = node["summary"]
 
-        doc = f"Interface name: {summary}\nInterface path: {path}\nMethod: {method.upper()}\n"
-        doc += "\nRequest parameters:\n"
+        doc = f"API Name: {summary}\nAPI Path: {path}\nMethod: {method.upper()}\n"
+        doc += "\nRequest Parameters:\n"
         if "parameters" in node:
             parameters = node["parameters"]
-            doc += "Path parameters:\n"
+            doc += "Path Parameters:\n"
 
             # param["in"]: path / formData / body / query / header
             for param in parameters:
                 if param["in"] == "path":
                     doc += f'{param["name"]} \n'
 
-            doc += "\nBody parameters:\n"
-            doc += "Name\tType\tRequired\tDefault\tNotes\n"
+            doc += "\nBody Parameters:\n"
+            doc += "Name\tType\tRequired\tDefault Value\tRemarks\n"
             for param in parameters:
                 if param["in"] == "body":
                     schema = param.get("schema", {})
@@ -229,9 +227,9 @@ class UTGenerator:
                 else:
                     doc += self.build_object_properties(param, [])
 
-        # Output return data information
-        doc += "\nReturn data:\n"
-        doc += "Name\tType\tRequired\tDefault\tNotes\n"
+        # Display response data information
+        doc += "\nResponse Data:\n"
+        doc += "Name\tType\tRequired\tDefault Value\tRemarks\n"
         responses = node["responses"]
         response = responses.get("200", {})
         schema = response.get("schema", {})
@@ -251,7 +249,7 @@ class UTGenerator:
             file.write(data)
 
     def ask_gpt_and_save(self, question: str, tag: str, fname: str):
-        """Generate a question and save both the question and answer."""
+        """Generate questions and store both questions and answers"""
         messages = [self.icl_sample, question]
         result = self.gpt_msgs_to_code(messages=messages)
 
@@ -259,11 +257,11 @@ class UTGenerator:
         self._store(result, self.ut_py_path, tag, f"{fname}.py")
 
     def _generate_ut(self, tag, paths):
-        """Process the structure under the data path.
+        """Process the structure under a data path
 
         Args:
-            tag: Module name.
-            paths: Path Object.
+            tag (_type_): module name
+            paths (_type_): Path Object
         """
         for path, path_obj in paths.items():
             for method, node in path_obj.items():
@@ -273,7 +271,7 @@ class UTGenerator:
                 self.ask_gpt_and_save(question, tag, summary)
 
     def gpt_msgs_to_code(self, messages: list) -> str:
-        """Choose based on different call methods."""
+        """Choose based on different calling methods"""
         result = ''
         if self.chatgpt_method == "API":
             result = GPTAPI().ask_code(msgs=messages)
@@ -281,11 +279,11 @@ class UTGenerator:
         return result
 
     def get_file_path(self, base: Path, fname: str):
-        """Save to different file paths.
+        """Save different file paths
 
         Args:
-            base (str): Path.
-            fname (str): File name.
+            base (str): Path
+            fname (str): File name
         """
         path = Path(base)
         path.mkdir(parents=True, exist_ok=True)

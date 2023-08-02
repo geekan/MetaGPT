@@ -20,8 +20,8 @@ from metagpt.tools import SearchEngineType
 
 class SearchEngine:
     """
-    TODO: Integrate Google Search and perform reverse proxy
-    Note: Here, Google requires Proxifier or a similar global proxy
+    TODO: Integrate Google Search and reverse proxy.
+    Note: Google here requires a Proxifier or similar global proxy.
     - DDG: https://pypi.org/project/duckduckgo-search/
     - GOOGLE: https://programmablesearchengine.google.com/controlpanel/overview?cx=63f9de531d0e24de9
     """
@@ -37,7 +37,7 @@ class SearchEngine:
         logger.info(results)
         return results
 
-    async def run(self, query, max_results=8):
+    async def run(self, query: str, max_results=8):
         if self.engine == SearchEngineType.SERPAPI_GOOGLE:
             api = SerpAPIWrapper()
             rsp = await api.run(query)
@@ -45,16 +45,12 @@ class SearchEngine:
             rsp = SearchEngine.run_google(query, max_results)
         elif self.engine == SearchEngineType.SERPER_GOOGLE:
             api = SerperWrapper()
-            if isinstance(query, list):
-                rsp = await api.run(query)
-            elif isinstance(query, str):
-                rsp = await api.run([query])
+            rsp = await api.run(query)
         elif self.engine == SearchEngineType.CUSTOM_ENGINE:
             rsp = self.run_func(query)
         else:
             raise NotImplementedError
         return rsp
-
 
 def google_official_search(query: str, num_results: int = 8, focus=['snippet', 'link', 'title']) -> dict | list[dict]:
     """Return the results of a Google search using the official Google API
@@ -74,15 +70,15 @@ def google_official_search(query: str, num_results: int = 8, focus=['snippet', '
         api_key = config.google_api_key
         custom_search_engine_id = config.google_cse_id
 
-        service = build("customsearch", "v1", developerKey=api_key)
+        with build("customsearch", "v1", developerKey=api_key) as service:
 
-        result = (
-            service.cse()
-            .list(q=query, cx=custom_search_engine_id, num=num_results)
-            .execute()
-        )
-
-        # Extract the search result items from the response
+            result = (
+                service.cse()
+                .list(q=query, cx=custom_search_engine_id, num=num_results)
+                .execute()
+            )
+            logger.info(result)
+            # Extract the search result items from the response
         search_results = result.get("items", [])
 
         # Create a list of only the URLs from the search results
@@ -101,15 +97,13 @@ def google_official_search(query: str, num_results: int = 8, focus=['snippet', '
             return "Error: The provided Google API key is invalid or missing."
         else:
             return f"Error: {e}"
-    # google_result can be a list or a string depending on the search results
 
     # Return the list of search result URLs
     return search_results_details
 
-
 def safe_google_results(results: str | list) -> str:
     """
-        Return the results of a google search in a safe format.
+    Return the results of a google search in a safe format.
 
     Args:
         results (str | list): The search results.
@@ -119,13 +113,12 @@ def safe_google_results(results: str | list) -> str:
     """
     if isinstance(results, list):
         safe_message = json.dumps(
-            # FIXME: # .encode("utf-8", "ignore") This was removed here, but it's present in AutoGPT, which is strange.
             [result for result in results]
         )
     else:
         safe_message = results.encode("utf-8", "ignore").decode("utf-8")
     return safe_message
 
-
 if __name__ == '__main__':
     SearchEngine.run(query='wtf')
+    

@@ -28,9 +28,9 @@ class NotConfiguredException(Exception):
 
 class Config(metaclass=Singleton):
     """
-    Common usage:
+    Regular usage method:
     config = Config("config.yaml")
-    secret_key = config.get_key("MY_SECRET_KEY")
+    secret_key = config.get("MY_SECRET_KEY")
     print("Secret key:", secret_key)
     """
 
@@ -77,9 +77,11 @@ class Config(metaclass=Singleton):
             logger.warning("LONG_TERM_MEMORY is True")
         self.max_budget = self._get("MAX_BUDGET", 10.0)
         self.total_cost = 0.0
+        self.puppeteer_config = self._get("PUPPETEER_CONFIG","")
+        self.mmdc = self._get("MMDC","mmdc")
 
     def _init_with_config_files_and_env(self, configs: dict, yaml_file):
-        """Load from config/key.yaml / config/config.yaml / env in decreasing priority"""
+        """Load from config/key.yaml, config/config.yaml, and env in decreasing order of priority"""
         configs.update(os.environ)
 
         for _yaml_file in [yaml_file, self.key_yaml_file]:
@@ -98,7 +100,7 @@ class Config(metaclass=Singleton):
         return self._configs.get(*args, **kwargs)
 
     def get(self, key, *args, **kwargs):
-        """Find values from config/key.yaml / config/config.yaml / env, report an error if not found"""
+        """Search for a value in config/key.yaml, config/config.yaml, and env; raise an error if not found"""
         value = self._get(key, *args, **kwargs)
         if value is None:
             raise ValueError(f"Key '{key}' not found in environment variables or in the YAML file")

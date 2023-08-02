@@ -47,7 +47,7 @@ async def gather_ordered_k(coros, k) -> list:
 
 class Engineer(Role):
     def __init__(self, name="Alex", profile="Engineer", goal="Write elegant, readable, extensible, efficient code",
-                 constraints="The code you write should conform to code standards like PEP8, be modular, easy to read, and maintainable",
+                 constraints="The code you write should conform to code standard like PEP8, be modular, easy to read and maintain",
                  n_borg=1, use_code_review=False):
         super().__init__(name, profile, goal, constraints)
         self._init_actions([WriteCode])
@@ -87,7 +87,7 @@ class Engineer(Role):
         try:
             shutil.rmtree(workspace)
         except FileNotFoundError:
-            pass  # Folder does not exist, but we don't mind
+            pass  # The folder does not exist, but we don't care
         workspace.mkdir(parents=True, exist_ok=True)
 
     def write_file(self, filename: str, code: str):
@@ -142,46 +142,47 @@ class Engineer(Role):
         msg = Message(content="all done.", role=self.profile, cause_by=type(self._rc.todo))
         return msg
 
-    async def _act_sp_precision(self) -> Message:
-        for todo in self.todos:
-            """
-            # Select necessary information from historical data to reduce prompt length (summarized from experience)
-            1. All from Architect
-            2. All from ProjectManager
-            3. Do we need other codes (temporarily yes)?
-            TODO: The goal is to not need them. After tasks are clearly divided, based on the design idea, we should be able to clearly write each file without needing other code. If we can't, it means the definitions need to be clearer. This is the key to writing longer code.
-            """
-            context = []
-            msg = self._rc.memory.get_by_actions([WriteDesign, WriteTasks, WriteCode])
-            for m in msg:
-                context.append(m.content)
-            context_str = "\n".join(context)
-            # Write code
-            code = await WriteCode().run(
-                context=context_str,
-                filename=todo
-            )
-            # Code review
-            if self.use_code_review:
-                try:
-                    rewrite_code = await WriteCodeReview().run(
-                        context=context_str,
-                        code=code,
-                        filename=todo
-                    )
-                    code = rewrite_code
-                except Exception as e:
-                    logger.error("code review failed!", e)
-                    pass
-            self.write_file(todo, code)
-            msg = Message(content=code, role=self.profile, cause_by=WriteCode)
-            self._rc.memory.add(msg)
-
-        logger.info(f'Done {self.get_workspace()} generating.')
-        msg = Message(content="all done.", role=self.profile, cause_by=WriteCode)
-        return msg
-
-    async def _act(self) -> Message:
+async def _act_sp_precision(self) -> Message:
+    for todo in self.todos:
+        """
+        # Select essential information from the historical data to reduce the length of the prompt (summarized from human experience):
+        1. All from Architect
+        2. All from ProjectManager
+        3. Do we need other codes (currently needed)?
+        TODO: The goal is not to need it. After clear task decomposition, based on the design idea, you should be able to write a single file without needing other codes. If you can't, it means you need a clearer definition. This is the key to writing longer code.
+        """
+        context = []
+        msg = self._rc.memory.get_by_actions([WriteDesign, WriteTasks, WriteCode])
+        for m in msg:
+            context.append(m.content)
+        context_str = "\n".join(context)
+        # Write code
+        code = await WriteCode().run(
+            context=context_str,
+            filename=todo
+        )
+        # Code review
         if self.use_code_review:
-            return await self._act_sp_precision()
-        return await self._act_sp()
+            try:
+                rewrite_code = await WriteCodeReview().run(
+                    context=context_str,
+                    code=code,
+                    filename=todo
+                )
+                code = rewrite_code
+            except Exception as e:
+                logger.error("code review failed!", e)
+                pass
+        self.write_file(todo, code)
+        msg = Message(content=code, role=self.profile, cause_by=WriteCode)
+        self._rc.memory.add(msg)
+
+    logger.info(f'Done {self.get_workspace()} generating.')
+    msg = Message(content="all done.", role=self.profile, cause_by=WriteCode)
+    return msg
+
+async def _act(self) -> Message:
+    if self.use_code_review:
+        return await self._act_sp_precision()
+    return await self._act_sp()
+    

@@ -57,3 +57,4 @@ def get_page_content(page: str):
 if __name__ == "__main__":
     text = asyncio.run(WebBrowserEngine().run("https://fuzhi.ai/"))
     print(text)
+    

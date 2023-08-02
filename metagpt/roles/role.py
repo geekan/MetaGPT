@@ -48,7 +48,7 @@ ROLE_TEMPLATE = """Your response should be based on the previous conversation hi
 
 
 class RoleSetting(BaseModel):
-    """角色设定"""
+    """Role Settings"""
     name: str
     profile: str
     goal: str
@@ -63,7 +63,7 @@ class RoleSetting(BaseModel):
 
 
 class RoleContext(BaseModel):
-    """角色运行时上下文"""
+    """Role Runtime Context"""
     env: 'Environment' = Field(default=None)
     memory: Memory = Field(default_factory=Memory)
     long_term_memory: LongTermMemory = Field(default_factory=LongTermMemory)
@@ -77,11 +77,11 @@ class RoleContext(BaseModel):
     def check(self, role_id: str):
         if hasattr(CONFIG, "long_term_memory") and CONFIG.long_term_memory:
             self.long_term_memory.recover_memory(role_id, self)
-            self.memory = self.long_term_memory  # use memory to act as long_term_memory for unify operation
+            self.memory = self.long_term_memory  # use memory to act as long_term_memory for unified operation
 
     @property
     def important_memory(self) -> list[Message]:
-        """获得关注动作对应的信息"""
+        """Get the information corresponding to the watched actions"""
         return self.memory.get_by_actions(self.watch)
 
     @property
@@ -90,7 +90,7 @@ class RoleContext(BaseModel):
 
 
 class Role:
-    """角色/代理"""
+    """Role/Agent"""
 
     def __init__(self, name="", profile="", goal="", constraints="", desc=""):
         self._llm = LLM()
@@ -116,7 +116,7 @@ class Role:
             self._states.append(f"{idx}. {action}")
 
     def _watch(self, actions: Iterable[Type[Action]]):
-        """监听对应的行为"""
+        """Listen to the corresponding behaviors"""
         self._rc.watch.update(actions)
         # check RoleContext after adding watch actions
         self._rc.check(self._role_id)
@@ -128,24 +128,24 @@ class Role:
         self._rc.todo = self._actions[self._rc.state]
 
     def set_env(self, env: 'Environment'):
-        """设置角色工作所处的环境，角色可以向环境说话，也可以通过观察接受环境消息"""
+        """Set the environment in which the role works. The role can talk to the environment and can also receive messages by observing."""
         self._rc.env = env
 
     @property
     def profile(self):
-        """获取角色描述（职位）"""
+        """Get the role description (position)"""
         return self._setting.profile
 
     def _get_prefix(self):
-        """获取角色前缀"""
+        """Get the role prefix"""
         if self._setting.desc:
             return self._setting.desc
         return PREFIX_TEMPLATE.format(**self._setting.dict())
 
     async def _think(self) -> None:
-        """思考要做什么，决定下一步的action"""
+        """Think about what to do and decide on the next action"""
         if len(self._actions) == 1:
-            # 如果只有一个动作，那就只能做这个
+            # If there is only one action, then only this one can be performed
             self._set_state(0)
             return
         prompt = self._get_prefix()
@@ -158,83 +158,85 @@ class Role:
             next_state = "0"
         self._set_state(int(next_state))
 
-    async def _act(self) -> Message:
-        # prompt = self.get_prefix()
-        # prompt += ROLE_TEMPLATE.format(name=self.profile, state=self.states[self.state], result=response,
-        #                                history=self.history)
+async def _act(self) -> Message:
+    # prompt = self.get_prefix()
+    # prompt += ROLE_TEMPLATE.format(name=self.profile, state=self.states[self.state], result=response,
+    #                                history=self.history)
 
-        logger.info(f"{self._setting}: ready to {self._rc.todo}")
-        response = await self._rc.todo.run(self._rc.important_memory)
-        # logger.info(response)
-        if isinstance(response, ActionOutput):
-            msg = Message(content=response.content, instruct_content=response.instruct_content,
-                          role=self.profile, cause_by=type(self._rc.todo))
-        else:
-            msg = Message(content=response, role=self.profile, cause_by=type(self._rc.todo))
-        self._rc.memory.add(msg)
-        # logger.debug(f"{response}")
+    logger.info(f"{self._setting}: ready to {self._rc.todo}")
+    response = await self._rc.todo.run(self._rc.important_memory)
+    # logger.info(response)
+    if isinstance(response, ActionOutput):
+        msg = Message(content=response.content, instruct_content=response.instruct_content,
+                      role=self.profile, cause_by=type(self._rc.todo))
+    else:
+        msg = Message(content=response, role=self.profile, cause_by=type(self._rc.todo))
+    self._rc.memory.add(msg)
+    # logger.debug(f"{response}")
 
-        return msg
+    return msg
 
-    async def _observe(self) -> int:
-        """从环境中观察，获得重要信息，并加入记忆"""
-        if not self._rc.env:
-            return 0
-        env_msgs = self._rc.env.memory.get()
-        
-        observed = self._rc.env.memory.get_by_actions(self._rc.watch)
-        
-        news = self._rc.memory.remember(observed)  # remember recent exact or similar memories
+async def _observe(self) -> int:
+    """Observe from the environment, obtain important information, and add it to memory"""
+    if not self._rc.env:
+        return 0
+    env_msgs = self._rc.env.memory.get()
 
-        for i in env_msgs:
-            self.recv(i)
+    observed = self._rc.env.memory.get_by_actions(self._rc.watch)
 
-        news_text = [f"{i.role}: {i.content[:20]}..." for i in news]
-        if news_text:
-            logger.debug(f'{self._setting} observed: {news_text}')
-        return len(news)
+    news = self._rc.memory.remember(observed)  # remember recent exact or similar memories
 
-    def _publish_message(self, msg):
-        """如果role归属于env，那么role的消息会向env广播"""
-        if not self._rc.env:
-            # 如果env不存在，不发布消息
-            return
-        self._rc.env.publish_message(msg)
+    for i in env_msgs:
+        self.recv(i)
 
-    async def _react(self) -> Message:
-        """先想，然后再做"""
-        await self._think()
-        logger.debug(f"{self._setting}: {self._rc.state=}, will do {self._rc.todo}")
-        return await self._act()
+    news_text = [f"{i.role}: {i.content[:20]}..." for i in news]
+    if news_text:
+        logger.debug(f'{self._setting} observed: {news_text}')
+    return len(news)
 
-    def recv(self, message: Message) -> None:
-        """add message to history."""
-        # self._history += f"\n{message}"
-        # self._context = self._history
-        if message in self._rc.memory.get():
-            return
-        self._rc.memory.add(message)
+def _publish_message(self, msg):
+    """If the role belongs to env, then the role's messages will be broadcast to env"""
+    if not self._rc.env:
+        # If env does not exist, do not publish the message
+        return
+    self._rc.env.publish_message(msg)
 
-    async def handle(self, message: Message) -> Message:
-        """接收信息，并用行动回复"""
-        # logger.debug(f"{self.name=}, {self.profile=}, {message.role=}")
-        self.recv(message)
+async def _react(self) -> Message:
+    """Think first, then act"""
+    await self._think()
+    logger.debug(f"{self._setting}: {self._rc.state=}, will do {self._rc.todo}")
+    return await self._act()
 
-        return await self._react()
+def recv(self, message: Message) -> None:
+    """add message to history."""
+    # self._history += f"\n{message}"
+    # self._context = self._history
+    if message in self._rc.memory.get():
+        return
+    self._rc.memory.add(message)
 
-    async def run(self, message=None):
-        """观察，并基于观察的结果思考、行动"""
-        if message:
-            if isinstance(message, str):
-                message = Message(message)
-            if isinstance(message, Message):
-                self.recv(message)
-        elif not await self._observe():
-            # 如果没有任何新信息，挂起等待
-            logger.debug(f"{self._setting}: no news. waiting.")
-            return
+async def handle(self, message: Message) -> Message:
+    """Receive information and reply with actions"""
+    # logger.debug(f"{self.name=}, {self.profile=}, {message.role=}")
+    self.recv(message)
 
-        rsp = await self._react()
-        # 将回复发布到环境，等待下一个订阅者处理
-        self._publish_message(rsp)
-        return rsp
+    return await self._react()
+
+async def run(self, message=None):
+    """Observe, and think and act based on the results of the observation"""
+    if message:
+        if isinstance(message, str):
+            message = Message(message)
+        if isinstance(message, Message):
+            self.recv(message)
+        if isinstance(message, list):
+            self.recv(Message("\n".join(message)))
+    elif not await self._observe():
+        # If there is no new information, suspend and wait
+        logger.debug(f"{self._setting}: no news. waiting.")
+        return
+
+    rsp = await self._react()
+    # Publish the reply to the environment, waiting for the next subscriber to process
+    self._publish_message(rsp)
+    return rsp

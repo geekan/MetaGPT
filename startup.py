@@ -34,3 +34,4 @@ def main(idea: str, investment: float = 3.0, n_round: int = 5, code_review: bool
 
 if __name__ == '__main__':
     fire.Fire(main)
+    

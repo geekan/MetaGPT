@@ -9,39 +9,39 @@ from typing import Union
 
 
 class GPTPromptGenerator:
-    """Generates input for LLM given an output (supports instruction, chatbot, and query styles)"""
+    """Using LLM, given an output, request LLM to provide input (supporting instruction, chatbot, and query styles)"""
     def __init__(self):
         self._generators = {i: getattr(self, f"gen_{i}_style") for i in ['instruction', 'chatbot', 'query']}
 
     def gen_instruction_style(self, example):
-        """Instruction style: given an output, request LLM for input"""
+        """Instruction style: Given an output, request LLM to provide input"""
         return f"""Instruction: X
 Output: {example}
-What kind of instruction might have produced this output?
+What kind of instruction might this output come from?
 X:"""
 
     def gen_chatbot_style(self, example):
-        """Chatbot style: given an output, request LLM for input"""
-        return f"""You are a chatbot. A user sent you an informal message, and you responded as follows.
+        """Chatbot style: Given an output, request LLM to provide input"""
+        return f"""You are a chatbot. A user sent you an informal message, and you replied as follows.
 Message: X
-Response: {example}
+Reply: {example}
 What could the informal message X be?
 X:"""
 
     def gen_query_style(self, example):
-        """Search style: given an output, request LLM for input"""
-        return f"""You are a search engine. Someone made a detailed query, and the following document is most relevant to that query.
+        """Query style: Given an output, request LLM to provide input"""
+        return f"""You are a search engine. Someone made a detailed query, and the most relevant document to this query is as follows.
 Query: X
-Document: {example} What might the detailed query X be?
+Document: {example} What is the detailed query X?
 X:"""
 
     def gen(self, example: str, style: str = 'all') -> Union[list[str], str]:
         """
-        Generate one or multiple outputs using the example for LLM to respond with the corresponding input.
+        Generate one or multiple outputs using the example, allowing LLM to reply with the corresponding input
 
-        :param example: Expected output sample from LLM
+        :param example: Expected LLM output sample
         :param style: (all|instruction|chatbot|query)
-        :return: Expected input sample(s) for LLM
+        :return: Expected LLM input sample (one or multiple)
         """
         if style != 'all':
             return self._generators[style](example)

@@ -7,34 +7,34 @@
 """
 
 METAGPT_SAMPLE = """
-### Setting
+### Settings
 
-You are a coding assistant for a user, capable of programming using public libraries and Python system libraries. Your response should contain only one function.
-1. The function itself should be as complete as possible and should not lack any details of the requirement.
-2. You may need to write some prompt words to help the LLM (yourself) understand search requests with context.
-3. For complex logic that's hard to be addressed with a simple function, try to delegate it to the LLM.
+You are a programming assistant for a user, capable of coding using public libraries and Python system libraries. Your response should have only one function.
+1. The function should be as complete as possible, not missing any details of the requirements.
+2. You might need to write some prompt words to let LLM (yourself) understand context-bearing search requests.
+3. For complex logic that can't be easily resolved with a simple function, try to let the llm handle it.
 
 ### Public Libraries
 
-You can use the functions provided by the public library, metagpt, and you cannot use functions from other third-party libraries. The public library is already imported as variable `x`.
+You can use the functions provided by the public library metagpt, but can't use functions from other third-party libraries. The public library is imported as variable x by default.
 - `import metagpt as x`
-- You can call the public library using the format `x.func(paras)`.
+- You can call the public library using the `x.func(paras)` format.
 
-The available functions in the public library are:
+Functions already available in the public library are:
 - def llm(question: str) -> str # Input a question and get an answer based on the large model.
-- def intent_detection(query: str) -> str # Input a query, analyze the intent, and return the name of the function from the public library.
-- def add_doc(doc_path: str) -> None # Input the path of a file or directory to add to the knowledge base.
-- def search(query: str) -> list[str] # Input a query to get multiple results from a vector knowledge base search.
+- def intent_detection(query: str) -> str # Input query, analyze the intent, and return the function name from the public library.
+- def add_doc(doc_path: str) -> None # Input the path to a file or folder and add it to the knowledge base.
+- def search(query: str) -> list[str] # Input a query and return multiple results from a vector-based knowledge base search.
 - def google(query: str) -> list[str] # Use Google to search for public results.
-- def math(query: str) -> str # Input a query formula and get the result of its execution.
-- def tts(text: str, wav_path: str) # Input text and the desired output audio path to convert the text into an audio file.
+- def math(query: str) -> str # Input a query formula and get the result of the formula execution.
+- def tts(text: str, wav_path: str) # Input text and the path to the desired output audio, converting the text to an audio file.
 
-### User Requirement
+### User Requirements
 
-I have a personal knowledge base file. I want to implement a personal assistant with search functionality based on it. The detailed requirements are as follows:
-1. The personal assistant will consider whether it needs to use the personal knowledge base search. If it's not necessary, it won't use it.
-2. The personal assistant will judge user intent and use the appropriate function to address the issue under different intents.
-3. Answer with voice.
+I have a personal knowledge base file. I hope to implement a personal assistant with a search function based on it. The detailed requirements are as follows:
+1. The personal assistant will consider whether to use the personal knowledge base for searching. If it's unnecessary, it won't use it.
+2. The personal assistant will judge the user's intent and use the appropriate function to address the issue based on different intents.
+3. Answer in voice.
 
 """
-# - def summarize(doc: str) -> str # Input a doc to get a summary.
+# - def summarize(doc: str) -> str # Input doc and return a summary.

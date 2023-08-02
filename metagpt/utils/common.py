@@ -15,10 +15,9 @@ from metagpt.logs import logger
 
 
 def check_cmd_exists(command) -> int:
-    """Check if a command exists.
-    
-    :param command: Command to check.
-    :return: Returns 0 if the command exists, otherwise returns a non-zero value.
+    """ Check if the command exists
+    :param command: Command to be checked
+    :return: Returns 0 if the command exists, non-zero otherwise
     """
     check_command = 'command -v ' + command + ' >/dev/null 2>&1 || { echo >&2 "no mermaid"; exit 1; }'
     result = os.system(check_command)
@@ -29,19 +28,19 @@ class OutputParser:
 
     @classmethod
     def parse_blocks(cls, text: str):
-        # First, split the text into different blocks based on "##".
+        # First, split the text into different blocks based on "##"
         blocks = text.split("##")
 
-        # Create a dictionary to store the title and content of each block.
+        # Create a dictionary to store the title and content of each block
         block_dict = {}
 
-        # Iterate through all blocks.
+        # Iterate through all blocks
         for block in blocks:
-            # If the block is not empty, continue processing.
+            # If the block is not empty, continue processing
             if block.strip() != "":
-                # Split the block's title and content and trim whitespace.
+                # Separate the title and content of the block and trim whitespace
                 block_title, block_content = block.split("\n", 1)
-                # LLM might make mistakes; correct it here.
+                # LLM might have an error, correct it here
                 if block_title[-1] == ":":
                     block_title = block_title[:-1]
                 block_dict[block_title.strip()] = block_content.strip()
@@ -85,13 +84,13 @@ class OutputParser:
         block_dict = cls.parse_blocks(data)
         parsed_data = {}
         for block, content in block_dict.items():
-            # Try to remove the code marker.
+            # Try to remove the code marker
             try:
                 content = cls.parse_code(text=content)
             except Exception:
                 pass
 
-            # Try to parse the list.
+            # Try to parse the list
             try:
                 content = cls.parse_file_list(text=content)
             except Exception:
@@ -104,7 +103,7 @@ class OutputParser:
         block_dict = cls.parse_blocks(data)
         parsed_data = {}
         for block, content in block_dict.items():
-            # Try to remove the code marker.
+            # Try to remove the code marker
             try:
                 content = cls.parse_code(text=content)
             except Exception:
@@ -115,11 +114,18 @@ class OutputParser:
             else:
                 typing = typing_define
             if typing == List[str] or typing == List[Tuple[str, str]]:
-                # Try to parse the list.
+                # Try to parse the list
                 try:
                     content = cls.parse_file_list(text=content)
                 except Exception:
                     pass
+            # TODO: Removing extra quotes is risky, will address later
+            # elif typing == str:
+            #     # Try to remove extra quotes
+            #     try:
+            #         content = cls.parse_str(text=content)
+            #     except Exception:
+            #         pass
             parsed_data[block] = content
         return parsed_data
 
@@ -136,17 +142,17 @@ class CodeParser:
 
     @classmethod
     def parse_blocks(cls, text: str):
-        # First, split the text into different blocks based on "##".
+        # First, split the text into different blocks based on "##"
         blocks = text.split("##")
 
-        # Create a dictionary to store the title and content of each block.
+        # Create a dictionary to store the title and content of each block
         block_dict = {}
 
-        # Iterate through all blocks.
+        # Iterate through all blocks
         for block in blocks:
-            # If the block is not empty, continue processing.
+            # If the block is not empty, continue processing
             if block.strip() != "":
-                # Split the block's title and content and trim whitespace.
+                # Separate the title and content of the block and trim whitespace
                 block_title, block_content = block.split("\n", 1)
                 block_dict[block_title.strip()] = block_content.strip()
 

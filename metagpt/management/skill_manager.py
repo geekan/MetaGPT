@@ -15,7 +15,7 @@ Skill = Action
 
 
 class SkillManager:
-    """Manages all skills."""
+    """Used to manage all skills"""
 
     def __init__(self):
         self._llm = LLM()
@@ -24,7 +24,7 @@ class SkillManager:
 
     def add_skill(self, skill: Skill):
         """
-        Adds a skill, inserting the skill into the skill pool and searchable storage.
+        Add a skill, add the skill to the skill pool and searchable storage
         :param skill: Skill
         :return:
         """
@@ -33,7 +33,7 @@ class SkillManager:
 
     def del_skill(self, skill_name: str):
         """
-        Deletes a skill, removing the skill from the skill pool and searchable storage.
+        Delete a skill, remove the skill from the skill pool and searchable storage
         :param skill_name: Skill name
         :return:
         """
@@ -42,7 +42,7 @@ class SkillManager:
 
     def get_skill(self, skill_name: str) -> Skill:
         """
-        Retrieves a specific skill by its name.
+        Obtain a specific skill by skill name
         :param skill_name: Skill name
         :return: Skill
         """
@@ -50,23 +50,23 @@ class SkillManager:
 
     def retrieve_skill(self, desc: str, n_results: int = 2) -> list[Skill]:
         """
-        Retrieves skills through the search engine.
+        Obtain skills through the search engine
         :param desc: Skill description
-        :return: List of skills
+        :return: Multiple skills
         """
         return self._store.search(desc, n_results=n_results)['ids'][0]
 
     def retrieve_skill_scored(self, desc: str, n_results: int = 2) -> dict:
         """
-        Retrieves skills through the search engine.
+        Obtain skills through the search engine
         :param desc: Skill description
-        :return: Dictionary composed of skills and scores
+        :return: Dictionary consisting of skills and scores
         """
         return self._store.search(desc, n_results=n_results)
 
     def generate_skill_desc(self, skill: Skill) -> str:
         """
-        Generates a descriptive text for each skill.
+        Generate descriptive text for each skill
         :param skill:
         :return:
         """

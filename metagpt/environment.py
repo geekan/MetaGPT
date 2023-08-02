@@ -16,7 +16,7 @@ from metagpt.schema import Message
 
 
 class Environment(BaseModel):
-    """Environment that hosts a set of roles. Roles can publish messages to the environment, which can be observed by other roles."""
+    """Environment that carries a set of roles. Roles can publish messages to the environment, which can be observed by other roles."""
 
     roles: dict[str, Role] = Field(default_factory=dict)
     memory: Memory = Field(default_factory=Memory)
@@ -26,23 +26,23 @@ class Environment(BaseModel):
         arbitrary_types_allowed = True
 
     def add_role(self, role: Role):
-        """Add a role to the current environment."""
+        """Add a Role to the current environment."""
         role.set_env(self)
         self.roles[role.profile] = role
 
     def add_roles(self, roles: Iterable[Role]):
-        """Add multiple roles to the current environment."""
+        """Add a batch of Roles to the current environment."""
         for role in roles:
             self.add_role(role)
 
     def publish_message(self, message: Message):
         """Publish a message to the current environment."""
-        # self.message_queue.put(message)
+         # self.message_queue.put(message)
         self.memory.add(message)
         self.history += f"\n{message}"
 
     async def run(self, k=1):
-        """Execute a single run for all roles in the environment."""
+        """Process the run of all Roles once."""
         # while not self.message_queue.empty():
         # message = self.message_queue.get()
         # rsp = await self.manager.handle(message, self)
@@ -56,9 +56,9 @@ class Environment(BaseModel):
             await asyncio.gather(*futures)
 
     def get_roles(self) -> dict[str, Role]:
-        """Retrieve all roles within the environment."""
+        """Get all Roles within the environment."""
         return self.roles
 
     def get_role(self, name: str) -> Role:
-        """Retrieve a specific role within the environment."""
+        """Get a specified Role within the environment."""
         return self.roles.get(name, None)

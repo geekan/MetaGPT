@@ -28,10 +28,10 @@ Focus only on the names of shared dependencies, do not add any other explanation
 class AnalyzeDepLibs(Action):
     def __init__(self, name, context=None, llm=None):
         super().__init__(name, context, llm)
-        self.desc = "根据上下文，分析程序运行依赖库"
+        self.desc = "Analyze the runtime dependencies of the program based on the context"
 
     async def run(self, requirement, filepaths_string):
-        # prompt = f"以下是产品需求文档(PRD):\n\n{prd}\n\n{PROMPT}"
+        # prompt = f"Below is the product requirement document (PRD):\n\n{prd}\n\n{PROMPT}"
         prompt = PROMPT.format(prompt=requirement, filepaths_string=filepaths_string)
         design_filenames = await self._aask(prompt)
         return design_filenames

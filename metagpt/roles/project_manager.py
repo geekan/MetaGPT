@@ -15,3 +15,4 @@ class ProjectManager(Role):
         super().__init__(name, profile, goal, constraints)
         self._init_actions([WriteTasks])
         self._watch([WriteDesign])
+        

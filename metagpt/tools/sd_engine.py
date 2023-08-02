@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Date    : 2023/7/19 16:28
 # @Author  : stellahong (stellahong@fuzhi.ai)
-# @Description :
-
+# @Desc    :
 import os
 import asyncio
 from os.path import join
@@ -67,11 +66,11 @@ class SDEngine:
         self.payload = payload
         logger.info(self.sd_t2i_url)
     
-    def construct_payload(self, prompt, negative_prompt=default_negative_prompt, width=512, height=512,
+    def construct_payload(self, prompt, negtive_prompt=default_negative_prompt, width=512, height=512,
                           sd_model="galaxytimemachinesGTM_photoV20"):
         # Configure the payload with provided inputs
         self.payload["prompt"] = prompt
-        self.payload["negative_prompt"] = negative_prompt
+        self.payload["negtive_prompt"] = negtive_prompt
         self.payload["width"] = width
         self.payload["height"] = height
         self.payload["override_settings"]["sd_model_checkpoint"] = sd_model
@@ -92,23 +91,23 @@ class SDEngine:
             self._save(results, save_name=f"output_{payload_idx}")
         await session.close()
     
-    async def run(self, url, payload, session):
-        # Perform the HTTP POST request to the SD API
-        async with session.post(url, json=payload, timeout=600) as rsp:
-            data = await rsp.read()
-        
-        rsp_json = json.loads(data)
-        imgs = rsp_json['images']
-        logger.info(f"callback rsp json is {rsp_json.keys()}")
-        return imgs
+async def run(self, url, payload, session):
+    # Perform the HTTP POST request to the SD API
+    async with session.post(url, json=payload, timeout=600) as rsp:
+        data = await rsp.read()
     
-    async def run_i2i(self):
-        # TODO: Add a method to call the image-to-image interface
-        raise NotImplementedError
-    
-    async def run_sam(self):
-        # TODO: Add a method to call the SAM interface
-        raise NotImplementedError
+    rsp_json = json.loads(data)
+    imgs = rsp_json['images']
+    logger.info(f"callback rsp json is {rsp_json.keys()}")
+    return imgs
+
+async def run_i2i(self):
+    # todo: Add image-to-image interface call
+    raise NotImplementedError
+
+async def run_sam(self):
+    # todo: Add SAM interface call
+    raise NotImplementedError
 
 def decode_base64_to_image(img, save_name):
     image = Image.open(io.BytesIO(base64.b64decode(img.split(",", 1)[0])))

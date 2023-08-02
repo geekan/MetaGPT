@@ -40,3 +40,4 @@ class ActionType(Enum):
     WRITE_TASKS = WriteTasks
     ASSIGN_TASKS = AssignTasks
     SEARCH_AND_SUMMARIZE = SearchAndSummarize
+    

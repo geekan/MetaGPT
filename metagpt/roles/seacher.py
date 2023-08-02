@@ -35,3 +35,4 @@ class Searcher(Role):
 
     async def _act(self) -> Message:
         return await self._act_sp()
+    

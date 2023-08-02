@@ -44,21 +44,21 @@ class Message:
 
 @dataclass
 class UserMessage(Message):
-    """Convenient for supporting OpenAI messages"""
+    """Facilitates support for OpenAI messages"""
     def __init__(self, content: str):
         super().__init__(content, 'user')
 
 
 @dataclass
 class SystemMessage(Message):
-    """Convenient for supporting OpenAI messages"""
+    """Facilitates support for OpenAI messages"""
     def __init__(self, content: str):
         super().__init__(content, 'system')
 
 
 @dataclass
 class AIMessage(Message):
-    """Convenient for supporting OpenAI messages"""
+    """Facilitates support for OpenAI messages"""
     def __init__(self, content: str):
         super().__init__(content, 'assistant')
 

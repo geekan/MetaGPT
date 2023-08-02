@@ -109,3 +109,4 @@ def _gen_get_driver_func(browser_type, *args, executable_path=None):
 if __name__ == "__main__":
     text = asyncio.run(SeleniumWrapper("chrome").run("https://fuzhi.ai/"))
     print(text)
+    
