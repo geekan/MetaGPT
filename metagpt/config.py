@@ -30,7 +30,7 @@ class Config(metaclass=Singleton):
     """
     Regular usage method:
     config = Config("config.yaml")
-    secret_key = config.get("MY_SECRET_KEY")
+    secret_key = config.get_key("MY_SECRET_KEY")
     print("Secret key:", secret_key)
     """
 
@@ -79,6 +79,9 @@ class Config(metaclass=Singleton):
         self.total_cost = 0.0
         self.puppeteer_config = self._get("PUPPETEER_CONFIG","")
         self.mmdc = self._get("MMDC","mmdc")
+        self.update_costs = self._get("UPDATE_COSTS",True)
+        self.calc_usage = self._get("CALC_USAGE",True)
+
 
     def _init_with_config_files_and_env(self, configs: dict, yaml_file):
         """Load from config/key.yaml, config/config.yaml, and env in decreasing order of priority"""
