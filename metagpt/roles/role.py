@@ -77,7 +77,7 @@ class RoleContext(BaseModel):
     def check(self, role_id: str):
         if hasattr(CONFIG, "long_term_memory") and CONFIG.long_term_memory:
             self.long_term_memory.recover_memory(role_id, self)
-            self.memory = self.long_term_memory  # use memory to act as long_term_memory for unified operation
+            self.memory = self.long_term_memory  # use memory to act as long_term_memory for unify operation
 
     @property
     def important_memory(self) -> list[Message]:
@@ -158,85 +158,85 @@ class Role:
             next_state = "0"
         self._set_state(int(next_state))
 
-async def _act(self) -> Message:
-    # prompt = self.get_prefix()
-    # prompt += ROLE_TEMPLATE.format(name=self.profile, state=self.states[self.state], result=response,
-    #                                history=self.history)
+    async def _act(self) -> Message:
+        # prompt = self.get_prefix()
+        # prompt += ROLE_TEMPLATE.format(name=self.profile, state=self.states[self.state], result=response,
+        #                                history=self.history)
 
-    logger.info(f"{self._setting}: ready to {self._rc.todo}")
-    response = await self._rc.todo.run(self._rc.important_memory)
-    # logger.info(response)
-    if isinstance(response, ActionOutput):
-        msg = Message(content=response.content, instruct_content=response.instruct_content,
-                      role=self.profile, cause_by=type(self._rc.todo))
-    else:
-        msg = Message(content=response, role=self.profile, cause_by=type(self._rc.todo))
-    self._rc.memory.add(msg)
-    # logger.debug(f"{response}")
+        logger.info(f"{self._setting}: ready to {self._rc.todo}")
+        response = await self._rc.todo.run(self._rc.important_memory)
+        # logger.info(response)
+        if isinstance(response, ActionOutput):
+            msg = Message(content=response.content, instruct_content=response.instruct_content,
+                        role=self.profile, cause_by=type(self._rc.todo))
+        else:
+            msg = Message(content=response, role=self.profile, cause_by=type(self._rc.todo))
+        self._rc.memory.add(msg)
+        # logger.debug(f"{response}")
 
-    return msg
+        return msg
 
-async def _observe(self) -> int:
-    """Observe from the environment, obtain important information, and add it to memory"""
-    if not self._rc.env:
-        return 0
-    env_msgs = self._rc.env.memory.get()
+    async def _observe(self) -> int:
+        """Observe from the environment, obtain important information, and add it to memory"""
+        if not self._rc.env:
+            return 0
+        env_msgs = self._rc.env.memory.get()
 
-    observed = self._rc.env.memory.get_by_actions(self._rc.watch)
+        observed = self._rc.env.memory.get_by_actions(self._rc.watch)
 
-    news = self._rc.memory.remember(observed)  # remember recent exact or similar memories
+        news = self._rc.memory.remember(observed)  # remember recent exact or similar memories
 
-    for i in env_msgs:
-        self.recv(i)
+        for i in env_msgs:
+            self.recv(i)
 
-    news_text = [f"{i.role}: {i.content[:20]}..." for i in news]
-    if news_text:
-        logger.debug(f'{self._setting} observed: {news_text}')
-    return len(news)
+        news_text = [f"{i.role}: {i.content[:20]}..." for i in news]
+        if news_text:
+            logger.debug(f'{self._setting} observed: {news_text}')
+        return len(news)
 
-def _publish_message(self, msg):
-    """If the role belongs to env, then the role's messages will be broadcast to env"""
-    if not self._rc.env:
-        # If env does not exist, do not publish the message
-        return
-    self._rc.env.publish_message(msg)
+    def _publish_message(self, msg):
+        """If the role belongs to env, then the role's messages will be broadcast to env"""
+        if not self._rc.env:
+            # If env does not exist, do not publish the message
+            return
+        self._rc.env.publish_message(msg)
 
-async def _react(self) -> Message:
-    """Think first, then act"""
-    await self._think()
-    logger.debug(f"{self._setting}: {self._rc.state=}, will do {self._rc.todo}")
-    return await self._act()
+    async def _react(self) -> Message:
+        """Think first, then act"""
+        await self._think()
+        logger.debug(f"{self._setting}: {self._rc.state=}, will do {self._rc.todo}")
+        return await self._act()
 
-def recv(self, message: Message) -> None:
-    """add message to history."""
-    # self._history += f"\n{message}"
-    # self._context = self._history
-    if message in self._rc.memory.get():
-        return
-    self._rc.memory.add(message)
+    def recv(self, message: Message) -> None:
+        """add message to history."""
+        # self._history += f"\n{message}"
+        # self._context = self._history
+        if message in self._rc.memory.get():
+            return
+        self._rc.memory.add(message)
 
-async def handle(self, message: Message) -> Message:
-    """Receive information and reply with actions"""
-    # logger.debug(f"{self.name=}, {self.profile=}, {message.role=}")
-    self.recv(message)
+    async def handle(self, message: Message) -> Message:
+        """Receive information and reply with actions"""
+        # logger.debug(f"{self.name=}, {self.profile=}, {message.role=}")
+        self.recv(message)
 
-    return await self._react()
+        return await self._react()
 
-async def run(self, message=None):
-    """Observe, and think and act based on the results of the observation"""
-    if message:
-        if isinstance(message, str):
-            message = Message(message)
-        if isinstance(message, Message):
-            self.recv(message)
-        if isinstance(message, list):
-            self.recv(Message("\n".join(message)))
-    elif not await self._observe():
-        # If there is no new information, suspend and wait
-        logger.debug(f"{self._setting}: no news. waiting.")
-        return
+    async def run(self, message=None):
+        """Observe, and think and act based on the results of the observation"""
+        if message:
+            if isinstance(message, str):
+                message = Message(message)
+            if isinstance(message, Message):
+                self.recv(message)
+            if isinstance(message, list):
+                self.recv(Message("\n".join(message)))
+        elif not await self._observe():
+            # If there is no new information, suspend and wait
+            logger.debug(f"{self._setting}: no news. waiting.")
+            return
 
-    rsp = await self._react()
-    # Publish the reply to the environment, waiting for the next subscriber to process
-    self._publish_message(rsp)
-    return rsp
+        rsp = await self._react()
+        # Publish the reply to the environment, waiting for the next subscriber to process
+        self._publish_message(rsp)
+        return rsp

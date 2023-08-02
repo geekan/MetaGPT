@@ -53,6 +53,24 @@ cd metagpt
 python setup.py install
 ```
 
+**Note:**
+
+- If already have Chrome, Chromium, or MS Edge installed, you can skip downloading Chromium by setting the environment variable
+`PUPPETEER_SKIP_CHROMIUM_DOWNLOAD` to `true`.
+
+- Some people are [having issues](https://github.com/mermaidjs/mermaid.cli/issues/15) installing this tool globally. Installing it locally is an alternative solution,
+
+    ```bash
+    npm install @mermaid-js/mermaid-cli
+    ```
+
+- don't forget to the configuration for mmdc in config.yml
+
+    ```yml
+    PUPPETEER_CONFIG: "./config/puppeteer-config.json"
+    MMDC: "./node_modules/.bin/mmdc"
+    ```
+
 ### Installation by Docker
 
 ```bash
@@ -120,7 +138,12 @@ python startup.py "Write a cli snake game" --code_review True
 ```
 
 After running the script, you can find your new project in the `workspace/` directory.
+### Preference of Platform or Tool 
 
+You can tell which platform or tool you want to use when stating your requirements.
+```shell
+python startup.py "Write a cli snake game based on pygame"
+```
 ### Usage
 
 ```
