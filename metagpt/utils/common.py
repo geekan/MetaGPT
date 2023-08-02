@@ -214,4 +214,13 @@ def print_members(module, indent=0):
     prefix = ' ' * indent
     for name, obj in inspect.getmembers(module):
         print(name, obj)
-        if inspect
+        if inspect.isclass(obj):
+            print(f'{prefix}Class: {name}')
+            # print the methods within the class
+            if name in ['__class__', '__base__']:
+                continue
+            print_members(obj, indent + 2)
+        elif inspect.isfunction(obj):
+            print(f'{prefix}Function: {name}')
+        elif inspect.ismethod(obj):
+            print(f'{prefix}Method: {name}')
