@@ -138,6 +138,12 @@ python startup.py "Write a cli snake game" --code_review True
 ```
 
 スクリプトを実行すると、`workspace/` ディレクトリに新しいプロジェクトが見つかります。
+### プラットフォームまたはツールの設定
+
+要件を述べるときに、どのプラットフォームまたはツールを使用するかを指定できます。
+```shell
+python startup.py "Write a cli snake game based on pygame"
+```
 
 ### 使用方法
 
