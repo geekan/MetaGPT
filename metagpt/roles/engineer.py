@@ -58,7 +58,6 @@ class Engineer(Role):
         self._watch([WriteTasks])
         self.todos = []
         self.n_borg = n_borg
-        logger.info(f"---> init Egineer: {self._role_id}, {self._setting.name}")
 
     @classmethod
     def parse_tasks(self, task_msg: Message) -> list[str]:
@@ -100,7 +99,6 @@ class Engineer(Role):
 
         git = GitControl(workspace.parent)
         git_user = {'name': f"{self._role_id})", 'email': f'{self._setting.name}@MetaGPT.local'}
-        logger.info(f"---> git user of Engineer: {git_user}")
         git.add_and_commit(workspace.parent, [file], author=git_user)
 
     def recv(self, message: Message) -> None:

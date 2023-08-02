@@ -107,23 +107,30 @@ class WriteDesign(Action):
     def _save_prd(self, docs_path, resources_path, prd):
         prd_file = docs_path / 'prd.md'
         quadrant_chart = CodeParser.parse_code(block="Competitive Quadrant Chart", text=prd)
-        quadrant_chart_file = resources_path / 'competitive_analysis'
-        mermaid_to_file(quadrant_chart, quadrant_chart_file)
+        quadrant_chart_filename = resources_path / 'competitive_analysis'
+        mermaid_to_file(quadrant_chart, quadrant_chart_filename)
         logger.info(f"Saving PRD to {prd_file}")
         prd_file.write_text(prd)
-        return [quadrant_chart_file, prd_file]
+        files_saved = [prd_file]
+        for suffix in ['mmd', 'pdf', 'svg', 'png']:
+            files_saved += [f'{quadrant_chart_filename}.{suffix}']
+        return files_saved
 
     def _save_system_design(self, docs_path, resources_path, content):
         data_api_design = CodeParser.parse_code(block="Data structures and interface definitions", text=content)
         seq_flow = CodeParser.parse_code(block="Program call flow", text=content)
-        data_api_design_file = resources_path / 'data_api_design'
-        mermaid_to_file(data_api_design, data_api_design_file)
-        seq_flow_file = resources_path / 'seq_flow'
-        mermaid_to_file(seq_flow, seq_flow_file)
+        data_api_design_filename = resources_path / 'data_api_design'
+        mermaid_to_file(data_api_design, data_api_design_filename)
+        seq_flow_filename = resources_path / 'seq_flow'
+        mermaid_to_file(seq_flow, seq_flow_filename)
         system_design_file = docs_path / 'system_design.md'
         logger.info(f"Saving System Designs to {system_design_file}")
         system_design_file.write_text(content)
-        return [data_api_design_file, seq_flow_file, system_design_file]
+        files_saved = [system_design_file]
+        for suffix in ['mmd', 'pdf', 'svg', 'png']:
+            files_saved += [f'{data_api_design_filename}.{suffix}']
+            files_saved += [f'{seq_flow_filename}.{suffix}']
+        return files_saved
 
     def _save(self, context, system_design):
         if isinstance(system_design, ActionOutput):
