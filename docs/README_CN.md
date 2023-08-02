@@ -77,11 +77,11 @@ python startup.py "写一个命令行贪吃蛇" --code_review True
 运行脚本后，您可以在 `workspace/` 目录中找到您的新项目。
 ### 平台或工具的倾向性
 
-随着项目越来越完善，每一次生成项目的成本也会逐步上升，所以建议在阐述需求时显式地告知想要使用的平台或工具。
+可以在阐述需求时告知想要使用的平台或工具。
 例如：
 
 ```shell
-python startup.py "写一个能够在Windows上运行的命令行贪吃蛇"
+python startup.py "写一个基于pygame的命令行贪吃蛇"
 ```
 ### 代码实现
 
