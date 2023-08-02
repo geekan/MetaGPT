@@ -79,6 +79,10 @@ class Config(metaclass=Singleton):
         self.total_cost = 0.0
         self.puppeteer_config = self._get("PUPPETEER_CONFIG","")
         self.mmdc = self._get("MMDC","mmdc")
+        self.update_costs = self._get("UPDATE_COSTS",True)
+        self.calc_usage = self._get("CALC_USAGE",True)
+
+        
 
     def _init_with_config_files_and_env(self, configs: dict, yaml_file):
         """从config/key.yaml / config/config.yaml / env三处按优先级递减加载"""

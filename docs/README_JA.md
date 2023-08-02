@@ -53,6 +53,24 @@ cd metagpt
 python setup.py install
 ```
 
+**注:**
+
+- すでに Chrome、Chromium、MS Edge がインストールされている場合は、環境変数 `PUPPETEER_SKIP_CHROMIUM_DOWNLOAD` を `true` に設定することで、
+Chromium のダウンロードをスキップすることができます。
+
+- このツールをグローバルにインストールする[問題を抱えている](https://github.com/mermaidjs/mermaid.cli/issues/15)人もいます。ローカルにインストールするのが代替の解決策です、
+
+    ```bash
+    npm install @mermaid-js/mermaid-cli
+    ```
+
+- config.yml に mmdc のコンフィギュレーションを記述するのを忘れないこと
+
+    ```yml
+    PUPPETEER_CONFIG: "./config/puppeteer-config.json"
+    MMDC: "./node_modules/.bin/mmdc"
+    ```
+
 ### Docker によるインストール
 
 ```bash
