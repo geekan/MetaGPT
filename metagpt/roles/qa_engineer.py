@@ -5,6 +5,7 @@
 @Author  : alexanderwu
 @File    : qa_engineer.py
 """
+import os
 import re
 from pathlib import Path
 from typing import Type
@@ -19,7 +20,7 @@ from metagpt.utils.common import CodeParser, parse_recipient
 from metagpt.utils.special_tokens import MSG_SEP, FILENAME_CODE_SEP
 
 class QaEngineer(Role):
-    def __init__(self, name="Edward", profile="QA Engineer",
+    def __init__(self, name="Edward", profile="QaEngineer",
                  goal="Write comprehensive and robust tests to ensure codes will work as expected without bugs",
                  constraints="The test code you write should conform to code standard like PEP8, be modular, easy to read and maintain"):
         super().__init__(name, profile, goal, constraints)
@@ -86,7 +87,7 @@ class QaEngineer(Role):
             }
             msg = Message(
                 content=str(file_info), role=self.profile, cause_by=WriteTest,
-                sent_from="QaEngineer", send_to="QaEngineer"
+                sent_from=self.profile, send_to=self.profile
             )
             self._publish_message(msg)
         
@@ -94,14 +95,19 @@ class QaEngineer(Role):
     
     async def _run_code(self, msg):
         file_info = eval(msg.content)
-        code_to_test = open(file_info["file_path"], "r").read()
-        test_code = open(file_info["test_file_path"], "r").read()
+        development_file_path = file_info["file_path"]
+        test_file_path = file_info["test_file_path"]
+        if not os.path.exists(development_file_path) or not os.path.exists(test_file_path):
+            return
+
+        development_code = open(development_file_path, "r").read()
+        test_code = open(test_file_path, "r").read()
         proj_dir = self.get_workspace()
         development_code_dir = self.get_workspace(return_proj_dir=False)
 
         result_msg = await RunCode().run(
             mode="script",
-            code=code_to_test,
+            code=development_code,
             code_file_name=file_info["file_name"],
             test_code=test_code,
             test_file_name=file_info["test_file_name"],
@@ -115,7 +121,7 @@ class QaEngineer(Role):
         content = str(file_info) + FILENAME_CODE_SEP + result_msg
         msg = Message(
             content=content, role=self.profile, cause_by=RunCode,
-            sent_from="QaEngineer", send_to=recipient
+            sent_from=self.profile, send_to=recipient
         )
         self._publish_message(msg)
 
@@ -125,20 +131,20 @@ class QaEngineer(Role):
         if file_name:
             self.write_file(file_name, code)
             recipient = msg.sent_from # send back to the one who ran the code for another run, might be one's self
-            msg = Message(content=file_info, role=self.profile, cause_by=DebugError, sent_from="QaEngineer", send_to=recipient)
+            msg = Message(content=file_info, role=self.profile, cause_by=DebugError, sent_from=self.profile, send_to=recipient)
             self._publish_message(msg)
     
     async def _observe(self) -> int:
         await super()._observe()
         self._rc.news = [msg for msg in self._rc.news \
-            if msg.send_to == "QaEngineer"] # only relevant msgs count as observed news
+            if msg.send_to == self.profile] # only relevant msgs count as observed news
         return len(self._rc.news)
 
     async def _act(self) -> Message:
         if self.test_round > self.test_round_allowed:
             result_msg = Message(
                 content=f"Exceeding {self.test_round_allowed} rounds of tests, skip (writing code counts as a round, too)",
-                role=self.profile, cause_by=WriteTest, sent_from="QaEngineer", send_to=""
+                role=self.profile, cause_by=WriteTest, sent_from=self.profile, send_to=""
             )
             return result_msg
 
@@ -147,16 +153,16 @@ class QaEngineer(Role):
             # might potentially be moved to _think, that is, let the agent decides for itself
             if msg.cause_by == WriteCode:
                 # engineer wrote a code, time to write a test for it
-                result_msg = await self._write_test(msg)
+                await self._write_test(msg)
             elif msg.cause_by in [WriteTest, DebugError]:
                 # I wrote or debugged my test code, time to run it
-                result_msg = await self._run_code(msg)
+                await self._run_code(msg)
             elif msg.cause_by == RunCode:
                 # I ran my test code, time to fix bugs, if any
-                result_msg = await self._debug_error(msg)
+                await self._debug_error(msg)
         self.test_round += 1
         result_msg = Message(
             content=f"Round {self.test_round} of tests done",
-            role=self.profile, cause_by=WriteTest, sent_from="QaEngineer", send_to=""
+            role=self.profile, cause_by=WriteTest, sent_from=self.profile, send_to=""
         )
         return result_msg

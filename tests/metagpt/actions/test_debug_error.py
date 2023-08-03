@@ -146,11 +146,10 @@ Engineer
 
 @pytest.mark.asyncio
 async def test_debug_error():
-    code = "def add(a, b):\n    return a - b"
-    error = "AssertionError: Expected add(1, 1) to equal 2 but got 0"
 
     debug_error = DebugError("debug_error")
 
     file_name, rewritten_code = await debug_error.run(context=EXAMPLE_MSG_CONTENT)
 
-    assert "class TestPlayer" in rewritten_code
+    assert "class Player" in rewritten_code # rewrite the same class
+    assert "while self.score > 21" in rewritten_code # a key logic to rewrite to (original one is "if self.score > 12")

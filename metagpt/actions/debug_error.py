@@ -14,15 +14,15 @@ from metagpt.utils.common import CodeParser
 PROMPT_TEMPLATE = """
 NOTICE
 1. Role: You are a Development Engineer or QA engineer;
-2. Task: You received this message from another Development Engineer or QA engineer who run or test your code. 
+2. Task: You received this message from another Development Engineer or QA engineer who ran or tested your code. 
 Based on the message, first, figure out your own role, i.e. Engineer or QaEngineer,
 then rewrite the development code or the test code based on your role, the error, and the summary, such that all bugs are fixed and the code performs well.
-Attention: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD WRITE BEFORE the test case or script and triple quote.
+Attention: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD WRITE BEFORE the test case or script and triple quotes.
 The message is as follows:
 {context}
 ---
 Now you should start rewriting the code:
-## file name of the code to rewrite: Write code with triple quoto. Do your best to implement THIS ONLY ONE FILE.
+## file name of the code to rewrite: Write code with triple quoto. Do your best to implement THIS IN ONLY ONE FILE.
 """
 class DebugError(Action):
     def __init__(self, name="DebugError", context=None, llm=None):
