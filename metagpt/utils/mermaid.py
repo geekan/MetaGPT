@@ -13,7 +13,7 @@ from metagpt.const import PROJECT_ROOT
 from metagpt.logs import logger
 from metagpt.utils.common import check_cmd_exists
 
-IS_DOCKER = os.environ.get('PUPPETEER_SKIP_CHROMIUM_DOWNLOAD', 'false').lower()
+IS_DOCKER = os.environ.get('NO_GUI', 'false').lower()
 
 
 def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, height=2048) -> int:
