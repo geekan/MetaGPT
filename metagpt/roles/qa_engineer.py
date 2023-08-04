@@ -22,12 +22,13 @@ from metagpt.utils.special_tokens import MSG_SEP, FILENAME_CODE_SEP
 class QaEngineer(Role):
     def __init__(self, name="Edward", profile="QaEngineer",
                  goal="Write comprehensive and robust tests to ensure codes will work as expected without bugs",
-                 constraints="The test code you write should conform to code standard like PEP8, be modular, easy to read and maintain"):
+                 constraints="The test code you write should conform to code standard like PEP8, be modular, easy to read and maintain",
+                 test_round_allowed=5):
         super().__init__(name, profile, goal, constraints)
-        self._init_actions([WriteTest])
+        self._init_actions([WriteTest]) # FIXME: a bit hack here, only init one action to circumvent _think() logic, will overwrite _think() in future updates
         self._watch([WriteCode, WriteTest, RunCode, DebugError])
         self.test_round = 0
-        self.test_round_allowed = 5 # hard code for 1 WriteTest round + 2 x (RunCode -> DebugError loop)
+        self.test_round_allowed = test_round_allowed
     
     @classmethod
     def parse_workspace(cls, system_design_msg: Message) -> str:
@@ -51,9 +52,6 @@ class QaEngineer(Role):
         file = workspace / filename
         file.parent.mkdir(parents=True, exist_ok=True)
         file.write_text(code)
-
-    def recv(self, message: Message) -> None:
-        self._rc.memory.add(message)
 
     async def _write_test(self, message: Message) -> None:
 
