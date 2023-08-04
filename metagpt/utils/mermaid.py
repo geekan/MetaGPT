@@ -13,8 +13,6 @@ from metagpt.const import PROJECT_ROOT
 from metagpt.logs import logger
 from metagpt.utils.common import check_cmd_exists
 
-IS_DOCKER = os.environ.get('NO_GUI', 'false').lower()
-
 
 def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, height=2048) -> int:
     """suffix: png/svg/pdf
@@ -38,16 +36,13 @@ def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, height
         output_file = f'{output_file_without_suffix}.{suffix}'
         # Call the `mmdc` command to convert the Mermaid code to a PNG
         logger.info(f"Generating {output_file}..")
-        if IS_DOCKER == 'true':
-            subprocess.run(['mmdc', '-p', '/app/metagpt/config/puppeteer-config.json', '-i',
-                           str(tmp), '-o', output_file, '-w', str(width), '-H', str(height)])
+
+        if CONFIG.puppeteer_config:
+            subprocess.run([CONFIG.mmdc, '-p', CONFIG.puppeteer_config, '-i', str(tmp), '-o',
+                            output_file, '-w', str(width), '-H', str(height)])
         else:
-            if CONFIG.puppeteer_config:
-                subprocess.run([CONFIG.mmdc, '-p', CONFIG.puppeteer_config, '-i', str(tmp), '-o',
-                                output_file, '-w', str(width), '-H', str(height)])
-            else:
-                subprocess.run([CONFIG.mmdc, '-i', str(tmp), '-o',
-                                output_file, '-w', str(width), '-H', str(height)])
+            subprocess.run([CONFIG.mmdc, '-i', str(tmp), '-o',
+                            output_file, '-w', str(width), '-H', str(height)])
     return 0
 
 
