@@ -60,7 +60,7 @@ class Engineer(Role):
 
     @classmethod
     def parse_tasks(self, task_msg: Message) -> list[str]:
-        if not task_msg.instruct_content:
+        if task_msg.instruct_content:
             return task_msg.instruct_content.dict().get("Task list")
         return CodeParser.parse_file_list(block="Task list", text=task_msg.content)
 
@@ -70,7 +70,7 @@ class Engineer(Role):
 
     @classmethod
     def parse_workspace(cls, system_design_msg: Message) -> str:
-        if not system_design_msg.instruct_content:
+        if system_design_msg.instruct_content:
             return system_design_msg.instruct_content.dict().get("Python package name")
         return CodeParser.parse_str(block="Python package name", text=system_design_msg.content)
 
