@@ -1,0 +1,8 @@
+# team_config.yaml
+team:
+  - ProductManager
+  - Architect
+  - ProjectManager
+  - Engineer:
+      n_borg: 5
+      use_code_review:  "{code_review}"
