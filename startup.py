@@ -3,8 +3,9 @@
 import asyncio
 import fire
 import yaml
+import metagpt.roles
 
-from metagpt.roles import Architect, Engineer, ProductManager, ProjectManager
+#from metagpt.roles import Architect, Engineer, ProductManager, ProjectManager
 from metagpt.software_company import SoftwareCompany
 
 
@@ -17,7 +18,7 @@ def read_config(filename):
 def instantiate_class(item, **options):
     if isinstance(item, str):
         # If item is a string, instantiate the class directly
-        class_obj = globals().get(item)
+        class_obj = getattr(metagpt.roles, item)
         if class_obj is None:
             raise ValueError(f"Class '{item}' not found in the global namespace.")
         return class_obj()
@@ -30,7 +31,7 @@ def instantiate_class(item, **options):
                 if isinstance(value, str) and value.startswith("{") and value.endswith("}"):
                     param_key = value.strip("{}")
                     params[key] = options.get(param_key, value)  # Use the option value or keep the original string
-        class_obj = globals().get(class_name)
+        class_obj = getattr(metagpt.roles, class_name)
         if class_obj is None:
             raise ValueError(f"Class '{class_name}' not found in the global namespace.")
         return class_obj(**params)
