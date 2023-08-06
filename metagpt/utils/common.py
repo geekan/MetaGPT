@@ -49,7 +49,7 @@ class OutputParser:
 
     @classmethod
     def parse_code(cls, text: str, lang: str = "") -> str:
-        pattern = rf'```{lang}.*?\s+(.*?)```'
+        pattern = rf'```{lang}.*?\s+(.*)```'
         match = re.search(pattern, text, re.DOTALL)
         if match:
             code = match.group(1)
@@ -231,7 +231,8 @@ def print_members(module, indent=0):
         elif inspect.ismethod(obj):
             print(f'{prefix}Method: {name}')
 
+
 def parse_recipient(text):
-    pattern = "## Send To:\s*([A-Za-z]+)\s*?" # hard code for now
+    pattern = r"## Send To:\s*([A-Za-z]+)\s*?"  # hard code for now
     recipient = re.search(pattern, text)
     return recipient.group(1) if recipient else ""

@@ -8,10 +8,9 @@ from metagpt.utils.pycst import merge_docstring
 
 PYTHON_DOCSTRING_SYSTEM = '''### Requirements
 1. Add docstrings to the given code following the {style} style.
-2. Remove all private members whose names start with an underscore, such as `_test` and `__init__`.
-3. Replace the function body with an Ellipsis object(...) to reduce output.
-4. If the types are already annotated, there is no need to include them in the docstring.
-5. Only output Python code and avoid including any other text.
+2. Replace the function body with an Ellipsis object(...) to reduce output.
+3. If the types are already annotated, there is no need to include them in the docstring.
+4. Extract only class, function or the docstrings for the module parts from the given Python code, avoiding any other text.
 
 ### Input Example
 ```python
@@ -128,6 +127,11 @@ _python_docstring_style = {
 
 
 class WriteDocstring(Action):
+    """This class is used to write docstrings for code.
+
+    Attributes:
+        desc: A string describing the action.
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -138,15 +142,33 @@ class WriteDocstring(Action):
         system_text: str = PYTHON_DOCSTRING_SYSTEM,
         style: Literal["google", "numpy", "sphinx"] = "google",
     ) -> str:
+        """Writes docstrings for the given code and system text in the specified style.
+
+        Args:
+            code: A string of Python code.
+            system_text: A string of system text.
+            style: A string specifying the style of the docstring. Can be 'google', 'numpy', or 'sphinx'.
+
+        Returns:
+            The Python code with docstrings added.
+        """
         system_text = system_text.format(style=style, example=_python_docstring_style[style])
         simplified_code = _simplify_python_code(code)
-        documented_code = await self._aask(simplified_code, [system_text])
+        documented_code = await self._aask(f"```python\n{simplified_code}\n```", [system_text])
         with contextlib.suppress(Exception):
             documented_code = OutputParser.parse_code(documented_code)
         return merge_docstring(code, documented_code)
 
 
 def _simplify_python_code(code: str) -> None:
+    """Simplifies the given Python code by removing expressions and the last if statement.
+
+    Args:
+        code: A string of Python code.
+
+    Returns:
+        The simplified Python code.
+    """
     code_tree = ast.parse(code)
     code_tree.body = [i for i in code_tree.body if not isinstance(i, ast.Expr)]
     if isinstance(code_tree.body[-1], ast.If):

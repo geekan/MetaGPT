@@ -137,16 +137,13 @@ class DocstringTransformer(cst.CSTTransformer):
         if isinstance(updated_node, cst.Module):
             body = updated_node.body
             if original_statement:
-                return updated_node.with_changes(body=(body[0], statement, *body[1:]))
+                return updated_node.with_changes(body=(statement, *body[1:]))
             else:
                 updated_node = updated_node.with_changes(body=(statement, cst.EmptyLine(), *body))
                 return updated_node
 
-        body = updated_node.body.body
-        if original_statement:
-            return updated_node.with_changes(body=updated_node.body.with_changes(body=(body[0], statement, *body[1:])))
-        else:
-            return updated_node.with_changes(body=updated_node.body.with_changes(body=(statement, *body)))
+        body = updated_node.body.body[1:] if original_statement else updated_node.body.body
+        return updated_node.with_changes(body=updated_node.body.with_changes(body=(statement, *body)))
 
 
 def merge_docstring(code: str, documented_code: str) -> str:
