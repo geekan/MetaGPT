@@ -6,33 +6,65 @@
 @File    : test_run_code.py
 """
 import pytest
-
+import asyncio
 from metagpt.actions.run_code import RunCode
 
+@pytest.mark.asyncio
+async def test_run_text():
+    action = RunCode()
+    result, errs = await RunCode.run_text('result = 1 + 1')
+    assert result == 2
+    assert errs == ""
+
+    result, errs = await RunCode.run_text('result = 1 / 0')
+    assert result == ""
+    assert "ZeroDivisionError" in errs
 
 @pytest.mark.asyncio
-async def test_run_code():
-    code = """
-def add(a, b):
-    return a + b
-result = add(1, 2)
-"""
-    run_code = RunCode("run_code")
+async def test_run_script():
+    action = RunCode()
+    
+    # Successful command
+    out, err = await RunCode.run_script(".", command=["echo", "Hello World"])
+    assert out.strip() == "Hello World"
+    assert err == ""
 
-    result = await run_code.run(code)
-
-    assert result == 3
-
+    # Unsuccessful command
+    out, err = await RunCode.run_script(".", command=["python", "-c", "print(1/0)"])
+    assert "ZeroDivisionError" in err
 
 @pytest.mark.asyncio
-async def test_run_code_with_error():
-    code = """
-def add(a, b):
-    return a + b
-result = add(1, '2')
-"""
-    run_code = RunCode("run_code")
+async def test_run():
+    action = RunCode()
+    result = await action.run(mode="text", code="print('Hello, World')")
+    assert "PASS" in result
 
-    result = await run_code.run(code)
+    result = await action.run(
+        mode="script",
+        code="echo 'Hello World'",
+        code_file_name="",
+        test_code="",
+        test_file_name="",
+        command=["echo", "Hello World"],
+        working_directory=".",
+        additional_python_paths=[]
+    )
+    assert "PASS" in result
 
-    assert "TypeError: unsupported operand type(s) for +" in result
+@pytest.mark.asyncio
+async def test_run_failure():
+    action = RunCode()
+    result = await action.run(mode="text", code="result = 1 / 0")
+    assert "FAIL" in result
+
+    result = await action.run(
+        mode="script",
+        code='python -c "print(1/0)"',
+        code_file_name="",
+        test_code="",
+        test_file_name="",
+        command=["python", "-c", "print(1/0)"],
+        working_directory=".",
+        additional_python_paths=[]
+    )
+    assert "FAIL" in result

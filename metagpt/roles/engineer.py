@@ -16,6 +16,7 @@ from metagpt.roles import Role
 from metagpt.actions import WriteCode, WriteCodeReview, WriteTasks, WriteDesign
 from metagpt.schema import Message
 from metagpt.utils.common import CodeParser
+from metagpt.utils.special_tokens import MSG_SEP, FILENAME_CODE_SEP
 
 
 async def gather_ordered_k(coros, k) -> list:
@@ -60,7 +61,7 @@ class Engineer(Role):
 
     @classmethod
     def parse_tasks(self, task_msg: Message) -> list[str]:
-        if not task_msg.instruct_content:
+        if task_msg.instruct_content:
             return task_msg.instruct_content.dict().get("Task list")
         return CodeParser.parse_file_list(block="Task list", text=task_msg.content)
 
@@ -70,7 +71,7 @@ class Engineer(Role):
 
     @classmethod
     def parse_workspace(cls, system_design_msg: Message) -> str:
-        if not system_design_msg.instruct_content:
+        if system_design_msg.instruct_content:
             return system_design_msg.instruct_content.dict().get("Python package name")
         return CodeParser.parse_str(block="Python package name", text=system_design_msg.content)
 
@@ -95,6 +96,7 @@ class Engineer(Role):
         file = workspace / filename
         file.parent.mkdir(parents=True, exist_ok=True)
         file.write_text(code)
+        return file
 
     def recv(self, message: Message) -> None:
         self._rc.memory.add(message)
@@ -126,23 +128,33 @@ class Engineer(Role):
         return msg
 
     async def _act_sp(self) -> Message:
+        code_msg_all = [] # gather all code info, will pass to qa_engineer for tests later
         for todo in self.todos:
-            code_rsp = await WriteCode().run(
+            code = await WriteCode().run(
                 context=self._rc.history,
                 filename=todo
             )
             # logger.info(todo)
             # logger.info(code_rsp)
             # code = self.parse_code(code_rsp)
-            self.write_file(todo, code_rsp)
-            msg = Message(content=code_rsp, role=self.profile, cause_by=type(self._rc.todo))
+            file_path = self.write_file(todo, code)
+            msg = Message(content=code, role=self.profile, cause_by=type(self._rc.todo))
             self._rc.memory.add(msg)
 
+            code_msg = todo + FILENAME_CODE_SEP + str(file_path)
+            code_msg_all.append(code_msg)
+
         logger.info(f'Done {self.get_workspace()} generating.')
-        msg = Message(content="all done.", role=self.profile, cause_by=type(self._rc.todo))
+        msg = Message(
+            content=MSG_SEP.join(code_msg_all),
+            role=self.profile,
+            cause_by=type(self._rc.todo),
+            send_to="QaEngineer"
+        )
         return msg
 
     async def _act_sp_precision(self) -> Message:
+        code_msg_all = [] # gather all code info, will pass to qa_engineer for tests later
         for todo in self.todos:
             """
             # 从历史信息中挑选必须的信息，以减少prompt长度（人工经验总结）
@@ -173,12 +185,20 @@ class Engineer(Role):
                 except Exception as e:
                     logger.error("code review failed!", e)
                     pass
-            self.write_file(todo, code)
+            file_path = self.write_file(todo, code)
             msg = Message(content=code, role=self.profile, cause_by=WriteCode)
             self._rc.memory.add(msg)
 
+            code_msg = todo + FILENAME_CODE_SEP + str(file_path)
+            code_msg_all.append(code_msg)
+
         logger.info(f'Done {self.get_workspace()} generating.')
-        msg = Message(content="all done.", role=self.profile, cause_by=WriteCode)
+        msg = Message(
+            content=MSG_SEP.join(code_msg_all),
+            role=self.profile,
+            cause_by=type(self._rc.todo),
+            send_to="QaEngineer"
+        )
         return msg
 
     async def _act(self) -> Message:
