@@ -52,12 +52,7 @@ class Config(metaclass=Singleton):
             if openai_proxy:
                 openai.proxy = openai_proxy
             else:
-                logger.warning(
-                    """
-Set OPENAI_API_BASE in case of network issues. 
-If you meet network issues, go to https://deepwisdom.feishu.cn/wiki/MsGnwQBjiif9c3koSJNcYaoSnu4#part-XdatdVlhEojeAfxaaEZcMV3ZniQ, see FAQ 5.8 "PRD卡住/无法访问/连接中断"
-                    """
-                )
+                logger.info("Set OPENAI_API_BASE in case of network issues")
         self.openai_api_type = self._get("OPENAI_API_TYPE")
         self.openai_api_version = self._get("OPENAI_API_VERSION")
         self.openai_api_rpm = self._get("RPM", 3)

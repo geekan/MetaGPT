@@ -6,11 +6,13 @@
 @File    : openai.py
 """
 import asyncio
+import logging
 import time
-from functools import wraps
 from typing import NamedTuple
 
 import openai
+from openai.error import APIConnectionError
+from tenacity import retry, stop_after_attempt, after_log, wait_fixed, retry_if_exception_type
 
 from metagpt.config import CONFIG
 from metagpt.logs import logger
@@ -23,23 +25,9 @@ from metagpt.utils.token_counter import (
 )
 
 
-def retry(max_retries):
-    def decorator(f):
-        @wraps(f)
-        async def wrapper(*args, **kwargs):
-            for i in range(max_retries):
-                try:
-                    return await f(*args, **kwargs)
-                except Exception:
-                    if i == max_retries - 1:
-                        raise
-                    await asyncio.sleep(2 ** i)
-        return wrapper
-    return decorator
-
-
 class RateLimiter:
     """Rate control class, each call goes through wait_if_needed, sleep if rate control is needed"""
+
     def __init__(self, rpm):
         self.last_call_time = 0
         self.interval = 1.1 * 60 / rpm  # Here 1.1 is used because even if the calls are made strictly according to time, they will still be QOS'd; consider switching to simple error retry later
@@ -69,6 +57,7 @@ class Costs(NamedTuple):
 
 class CostManager(metaclass=Singleton):
     """计算使用接口的开销"""
+
     def __init__(self):
         self.total_prompt_tokens = 0
         self.total_completion_tokens = 0
@@ -127,10 +116,20 @@ class CostManager(metaclass=Singleton):
         return Costs(self.total_prompt_tokens, self.total_completion_tokens, self.total_cost, self.total_budget)
 
 
+def log_and_reraise(retry_state):
+    logger.error("Retry attempts exhausted. Last exception: %s", retry_state.outcome.exception())
+    logger.warning("""
+Recommend going to https://deepwisdom.feishu.cn/wiki/MsGnwQBjiif9c3koSJNcYaoSnu4#part-XdatdVlhEojeAfxaaEZcMV3ZniQ
+See FAQ 5.8 PRD卡住/无法访问/连接中断
+""")
+    raise retry_state.outcome.exception()
+
+
 class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
     """
     Check https://platform.openai.com/examples for examples
     """
+
     def __init__(self):
         self.__init_openai(CONFIG)
         self.llm = openai
@@ -150,6 +149,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
     async def _achat_completion_stream(self, messages: list[dict]) -> str:
         response = await openai.ChatCompletion.acreate(
             **self._cons_kwargs(messages),
+            timeout=3,
             stream=True
         )
 
@@ -211,7 +211,14 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         #     messages = self.messages_to_dict(messages)
         return await self._achat_completion(messages)
 
-    @retry(max_retries=6)
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_fixed(1),
+        after=after_log(logger, logging.WARNING),
+        retry=retry_if_exception_type(APIConnectionError),
+        reraise=True,
+        retry_error_callback=log_and_reraise,
+    )
     async def acompletion_text(self, messages: list[dict], stream=False) -> str:
         """when streaming, print each token in place."""
         if stream:
