@@ -15,7 +15,7 @@ PYTHON_DOCSTRING_SYSTEM = '''### Requirements
 ### Input Example
 ```python
 def function_with_pep484_type_annotations(param1: int) -> bool:
-    return isinstanc(param1, int)
+    return isinstance(param1, int)
 
 class ExampleError(Exception):
     def __init__(self, msg: str):
