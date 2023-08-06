@@ -40,7 +40,7 @@ It requires around **$0.2** (GPT-4 api's costs) to generate one example with ana
 ### Traditional Installation
 
 ```bash
-# Step 1: Ensure that NPM is installed on your system.(If you don't have npm in your computer, please go to the offical website to install Node.js https://nodejs.org/ and then you will have npm tool in your computer.) Then install mermaid-js.
+# Step 1: Ensure that NPM is installed on your system.(If you don't have npm in your computer, please go to the Node.js offical website to install Node.js https://nodejs.org/ and then you will have npm tool in your computer.) Then install mermaid-js.
 npm --version
 sudo npm install -g @mermaid-js/mermaid-cli
 
