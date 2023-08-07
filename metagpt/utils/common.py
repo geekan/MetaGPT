@@ -6,6 +6,7 @@
 @File    : common.py
 """
 import ast
+import contextlib
 import inspect
 import os
 import re
@@ -49,7 +50,7 @@ class OutputParser:
 
     @classmethod
     def parse_code(cls, text: str, lang: str = "") -> str:
-        pattern = rf'```{lang}.*?\s+(.*)```'
+        pattern = rf'```{lang}.*?\s+(.*?)```'
         match = re.search(pattern, text, re.DOTALL)
         if match:
             code = match.group(1)
@@ -78,6 +79,23 @@ class OutputParser:
         else:
             tasks = text.split("\n")
         return tasks
+    
+    @staticmethod
+    def parse_python_code(text: str) -> str:
+        for pattern in (
+            r'(.*?```python.*?\s+)?(?P<code>.*)(```.*?)', 
+            r'(.*?```python.*?\s+)?(?P<code>.*)', 
+        ):
+            match = re.search(pattern, text, re.DOTALL)
+            if not match:
+                continue
+            code = match.group("code")
+            if not code:
+                continue
+            with contextlib.suppress(Exception):
+                ast.parse(code)
+                return code
+        raise ValueError("Invalid python code")
 
     @classmethod
     def parse_data(cls, data):

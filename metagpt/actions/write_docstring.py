@@ -1,5 +1,27 @@
+"""Code Docstring Generator.
+
+This script provides a tool to automatically generate docstrings for Python code. It uses the specified style to create
+docstrings for the given code and system text.
+
+Usage:
+    python3 -m metagpt.actions.write_docstring <filename> [--overwrite] [--style=<docstring_style>]
+
+Arguments:
+    filename           The path to the Python file for which you want to generate docstrings.
+
+Options:
+    --overwrite        If specified, overwrite the original file with the code containing docstrings.
+    --style=<docstring_style>   Specify the style of the generated docstrings.
+                                Valid values: 'google', 'numpy', or 'sphinx'.
+                                Default: 'google'
+
+Example:
+    python3 -m metagpt.actions.write_docstring startup.py --overwrite False --style=numpy
+
+This script uses the 'fire' library to create a command-line interface. It generates docstrings for the given Python code using
+the specified docstring style and adds them to the code.
+"""
 import ast
-import contextlib
 from typing import Literal
 
 from metagpt.actions.action import Action
@@ -157,8 +179,7 @@ class WriteDocstring(Action):
         system_text = system_text.format(style=style, example=_python_docstring_style[style])
         simplified_code = _simplify_python_code(code)
         documented_code = await self._aask(f"```python\n{simplified_code}\n```", [system_text])
-        with contextlib.suppress(Exception):
-            documented_code = OutputParser.parse_code(documented_code)
+        documented_code = OutputParser.parse_python_code(documented_code)
         return merge_docstring(code, documented_code)
 
 
