@@ -4,6 +4,8 @@
 @Time    : 2023/5/20 12:15
 @Author  : alexanderwu
 @File    : memory.py
+@Modified By: mashenquan, 2023-8-7. Modified get_by_actions() to support for dynamically generated Action classes
+            at runtime.
 """
 from collections import defaultdict
 from typing import Iterable, Type
@@ -80,8 +82,12 @@ class Memory:
     def get_by_actions(self, actions: Iterable[Type[Action]]) -> list[Message]:
         """Return all messages triggered by specified Actions"""
         rsp = []
+        # Using the `type(obj).__name__` approach to support the runtime creation of requirement classes.
+        # See `MetaAction.get_action_type()` for more.
+        class_names = {type(k).__name__: k for k in self.index.keys()}
         for action in actions:
-            if action not in self.index:
+            if type(action).__name__ not in class_names:
                 continue
-            rsp += self.index[action]
+            key = class_names[type(action).__name__]
+            rsp += self.index[key]
         return rsp

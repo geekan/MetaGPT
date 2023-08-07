@@ -5,7 +5,7 @@
 @Author  : mashenquan
 @File    : teacher.py
 """
-from pathlib import Path
+
 
 import aiofiles
 

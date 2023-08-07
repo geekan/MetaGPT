@@ -4,95 +4,124 @@
 @Time    : 2023/8/7
 @Author  : mashenquan
 @File    : fork_meta_role.py
-@Desc   : 我试图将UML的一些符号概念引入到MetaGPT，使其具备通过符号拼接自由搭建flow的能力。同时我也尝试将这些符号做得配置化和标准化，让flow搭建流程更便捷。这是一个`fork` meta-role demo，实现的是write_teaching_plan功能。
+@Desc   : I am attempting to incorporate certain symbol concepts from UML into MetaGPT, enabling it to have the
+            ability to freely construct flows through symbol concatenation. Simultaneously, I am also striving to
+            make these symbols configurable and standardized, making the process of building flows more convenient.
+            For more about `fork` node in activity diagrams, see: `https://www.uml-diagrams.org/activity-diagrams.html`
+          This file defines a `fork` style meta role capable of generating arbitrary roles at runtime based on a
+            configuration file.
 """
 
+import re
+
+import aiofiles
+
+from metagpt.actions.meta_action import MetaAction
+from metagpt.const import WORKSPACE_ROOT
+from metagpt.logs import logger
+from metagpt.roles import Role
+from metagpt.roles.uml_meta_role_options import MetaActionOptions, UMLMetaRoleOptions
+from metagpt.schema import Message
 
 
-async def startup(lesson_file: str, investment: float = 3.0, n_round: int = 1, *args, **kwargs):
-    """Run a startup. Be a teacher in education industry."""
+class ForkMetaRole(Role):
+    """A `fork` style meta role capable of generating arbitrary roles at runtime based on a configuration file"""
+    def __init__(self, options, **kwargs):
+        """Initialize a `fork` style meta role
 
-    demo_lesson = """
-    UNIT 1 Making New Friends
-    TOPIC 1 Welcome to China!
-    Section A
+        :param options: pattern yaml file data
+        :param args: Parameters passed in format: `python your_script.py arg1 arg2 arg3`
+        :param kwargs: Parameters passed in format: `python your_script.py --param1=value1 --param2=value2`
+        """
+        opts = UMLMetaRoleOptions(**options)
+        global_variables = {
+            "name": Role.format_value(opts.name, kwargs),
+            "profile": Role.format_value(opts.profile, kwargs),
+            "goal": Role.format_value(opts.goal, kwargs),
+            "constraints": Role.format_value(opts.constraints, kwargs),
+            "desc": Role.format_value(opts.desc, kwargs),
+            "role": Role.format_value(opts.role, kwargs)
+        }
+        for k, v in kwargs.items():
+            if k not in global_variables:
+                global_variables[k] = v
 
-    1a Listen and number the following names.
-    Jane Mari Kangkang Michael
-    Look, listen and understand. Then practice the conversation.
-    Work in groups. Introduce yourself using
-    I ’m ... Then practice 1a
-    with your own hometown or the following places.
+        super(ForkMetaRole, self).__init__(
+            name=global_variables["name"],
+            profile=global_variables["profile"],
+            goal=global_variables["goal"],
+            constraints=global_variables["constraints"],
+            desc=global_variables["desc"],
+            **kwargs
+        )
+        self.options = options
+        actions = []
+        for m in opts.actions:
+            for k, v in m.items():
+                v = Role.format_value(v, kwargs)
+                m[k] = v
+            for k, v in global_variables.items():
+                if k not in m:
+                    m[k] = v
 
-    1b Listen and number the following names
-    Jane Michael Maria Kangkang
-    1c Work in groups. Introduce yourself using I ’m ... Then practice 1a with your own hometown or the following places.
-    China the USA the UK Hong Kong Beijing
+            o = MetaActionOptions(**m)
+            o.set_default_template(opts.templates[o.template_ix])
 
-    2a Look, listen and understand. Then practice the conversation
-    Hello! 
-    Hello! 
-    Hello! 
-    Hello! Are you Maria? 
-    No, I’m not. I’m Jane.
-    Oh, nice to meet you, Jane
-    Nice to meet you, too.
-    Hi, Maria!
-    Hi, Kangkang!
-    Welcome to China!
-    Thanks.
+            act = MetaAction(options=o, llm=self._llm, **m)
+            actions.append(act)
+        self._init_actions(actions)
+        requirement_types = set()
+        for v in opts.requirement:
+            requirement_types.add(MetaAction.get_action_type(v))
+        self._watch(requirement_types)
 
-    2b Work in groups. Make up a conversation with your own name and the
-    following structures.
-    A: Hello! / Good morning! / Hi! I’m ... Are you ... ?
-    B: ...
+    async def _think(self) -> None:
+        """Everything will be done part by part."""
+        if self._rc.todo is None:
+            self._set_state(0)
+            return
 
-    3a Listen, say and trace
-    Aa Bb Cc Dd Ee Ff Gg
+        if self._rc.state + 1 < len(self._states):
+            self._set_state(self._rc.state + 1)
+        else:
+            self._rc.todo = None
 
-    3b Listen and number the following letters. Then circle the letters with the same sound as Bb.
-    Aa Bb Cc Dd Ee Ff Gg
+    async def _react(self) -> Message:
+        ret = Message(content="")
+        while True:
+            await self._think()
+            if self._rc.todo is None:
+                break
+            logger.debug(f"{self._setting}: {self._rc.state=}, will do {self._rc.todo}")
+            msg = await self._act()
+            if ret.content != '':
+                ret.content += "\n\n\n"
+            ret.content += msg.content
+        logger.info(ret.content)
+        await self.save(ret.content)
+        return ret
 
-    3c Match the big letters with the small ones. Then write them on the lines.
-    """
+    async def save(self, content):
+        """Save teaching plan"""
+        output_filename = self.options.get("output_filename")
+        if not output_filename:
+            return
+        filename = ForkMetaRole.new_file_name(output_filename)
+        pathname = WORKSPACE_ROOT / "teaching_plan"
+        pathname.mkdir(exist_ok=True)
+        pathname = pathname / filename
+        try:
+            async with aiofiles.open(str(pathname), mode='w', encoding='utf-8') as writer:
+                await writer.write(content)
+        except Exception as e:
+            logger.error(f'Save failed：{e}')
+        logger.info(f"Save to:{pathname}")
 
-    lesson = ""
-    if lesson_file is not None and Path(lesson_file).exists():
-        async with aiofiles.open(lesson_file, mode="r", encoding="utf-8") as reader:
-            lesson = await reader.read()
-            logger.info(f"Course content: {lesson}")
-    if not lesson:
-        logger.info("No course content provided, using the demo course.")
-        lesson = demo_lesson
-
-
-
-    company = SoftwareCompany()
-    company.hire([(*args, **kwargs)])
-    company.invest(investment)
-    company.start_project(lesson, role="Teacher", cause_by=TeachingPlanRequirement)
-    await company.run(n_round=1)
-
-
-def main(idea: str, investment: float = 3.0, n_round: int = 5, *args, **kwargs):
-    """
-    We are a software startup comprised of AI. By investing in us, you are empowering a future filled with limitless possibilities.
-    :param idea: lesson filename.
-    :param investment: As an investor, you have the opportunity to contribute a certain dollar amount to this AI company.
-    :param n_round: Reserved.
-    :param args: Parameters passed in format: `python your_script.py arg1 arg2 arg3`
-    :param kwargs: Parameters passed in format: `python your_script.py --param1=value1 --param2=value2`
-    :return:
-    """
-    asyncio.run(startup(idea, investment, n_round, *args, **kwargs))
-
-
-if __name__ == '__main__':
-    """
-    Formats:
-    ```
-    python write_teaching_plan.py lesson_filename --teaching_language=<the language you are teaching> --language=<your native language>
-    ```
-    If `lesson_filename` is not available, a demo lesson content will be used.
-    """
-    fire.Fire(main)
+    @staticmethod
+    def new_file_name(lesson_title, ext=".md"):
+        """Create a related file name based on `lesson_title` and `ext`."""
+        # Define the special characters that need to be replaced.
+        illegal_chars = r'[#@$%!*&\\/:*?"<>|\n\t \']'
+        # Replace the special characters with underscores.
+        filename = re.sub(illegal_chars, '_', lesson_title) + ext
+        return re.sub(r'_+', '_', filename)

@@ -4,7 +4,7 @@
 @Time    : 2023/5/11 14:42
 @Author  : alexanderwu
 @File    : role.py
-@Modified By: mashenquan, 2023-07-27, :class:`Role` + properties.
+@Modified By: mashenquan, 2023-8-7, :class:`Role` + properties.
 """
 from __future__ import annotations
 
@@ -286,6 +286,8 @@ class Role:
     @staticmethod
     def format_value(value, options):
         """Fill parameters inside `value` with `options`."""
+        if not isinstance(value, str):
+            return value
         if "{" not in value:
             return value
 
@@ -295,7 +297,7 @@ class Role:
         except KeyError as e:
             logger.warning(f"Parameter is missing:{e}")
             for k, v in options.items():
-                value = value.replace("{" + f"{k}" + "}", v)
+                value = value.replace("{" + f"{k}" + "}", str(v))
             return value
 
     __DEFAULT_OPTIONS__ = {
