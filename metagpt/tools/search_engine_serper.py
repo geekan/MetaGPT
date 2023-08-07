@@ -38,7 +38,8 @@ class SerperWrapper(BaseModel):
 
     async def run(self, query: str, **kwargs: Any) -> str:
         """Run query through Serper and parse result async."""
-        return ";".join([self._process_response(res) for res in await self.results(query)])
+        queries = query.split("\n")
+        return "\n".join([self._process_response(res) for res in await self.results(queries)])
 
     async def results(self, queries: list[str]) -> dict:
         """Use aiohttp to run query through Serper and return the results async."""

@@ -1,4 +1,4 @@
-# MetaGPT：多智能体元编程框架
+# MetaGPT: 多智能体框架
 
 <p align="center">
 <a href=""><img src="resources/MetaGPT-logo.jpeg" alt="MetaGPT logo: 使 GPT 以软件公司的形式工作，协作处理更复杂的任务" width="150px"></a>
@@ -37,6 +37,8 @@
 
 ## 安装
 
+### 传统安装
+
 ```bash
 # 第 1 步：确保您的系统上安装了 NPM。并使用npm安装mermaid-js
 npm --version
@@ -51,13 +53,56 @@ cd metagpt
 python setup.py install
 ```
 
+### Docker安装
+
+```bash
+# 步骤1: 下载metagpt官方镜像并准备好config.yaml
+docker pull metagpt/metagpt:v0.3
+mkdir -p /opt/metagpt/{config,workspace}
+docker run --rm metagpt/metagpt:v0.3 cat /app/metagpt/config/config.yaml > /opt/metagpt/config/config.yaml
+vim /opt/metagpt/config/config.yaml # 修改config
+
+# 步骤2: 使用容器运行metagpt演示
+docker run --rm \
+    --privileged \
+    -v /opt/metagpt/config:/app/metagpt/config \
+    -v /opt/metagpt/workspace:/app/metagpt/workspace \
+    metagpt/metagpt:v0.3 \
+    python startup.py "Write a cli snake game"
+
+# 您也可以启动一个容器并在其中执行命令
+docker run --name metagpt -d \
+    --privileged \
+    -v /opt/metagpt/config:/app/metagpt/config \
+    -v /opt/metagpt/workspace:/app/metagpt/workspace \
+    metagpt/metagpt:v0.3
+
+docker exec -it metagpt /bin/bash
+$ python startup.py "Write a cli snake game"
+```
+
+`docker run ...`做了以下事情:
+
+- 以特权模式运行，有权限运行浏览器
+- 将主机目录 `/opt/metagpt/config` 映射到容器目录`/app/metagpt/config`
+- 将主机目录 `/opt/metagpt/workspace` 映射到容器目录 `/app/metagpt/workspace`
+- 执行演示命令 `python startup.py "Write a cli snake game"`
+
+### 自己构建镜像
+
+```bash
+# 您也可以自己构建metagpt镜像
+git clone https://github.com/geekan/MetaGPT.git
+cd MetaGPT && docker build -t metagpt:v0.3 .
+```
+
 ## 配置
 
 - 在 `config/key.yaml / config/config.yaml / env` 中配置您的 `OPENAI_API_KEY`
 - 优先级顺序：`config/key.yaml > config/config.yaml > env`
 
 ```bash
-# 复制配置文件并进行必要的修改。
+# 复制配置文件并进行必要的修改
 cp config/config.yaml config/key.yaml
 ```
 
@@ -71,10 +116,47 @@ cp config/config.yaml config/key.yaml
 ```shell
 python startup.py "写一个命令行贪吃蛇"
 # 开启code review模式会会花费更多的money, 但是会提升代码质量和成功率
-python startup.py "写一个命令行贪吃蛇" --code_review True 
+python startup.py "写一个命令行贪吃蛇" --code_review True
 ```
 
 运行脚本后，您可以在 `workspace/` 目录中找到您的新项目。
+### 平台或工具的倾向性
+可以在阐述需求时说明想要使用的平台或工具。
+例如：
+
+```shell
+python startup.py "写一个基于pygame的命令行贪吃蛇"
+```
+
+### 使用
+
+```
+名称
+    startup.py - 我们是一家AI软件创业公司。通过投资我们，您将赋能一个充满无限可能的未来。
+
+概要
+    startup.py IDEA <flags>
+
+描述
+    我们是一家AI软件创业公司。通过投资我们，您将赋能一个充满无限可能的未来。
+
+位置参数
+    IDEA
+        类型: str
+        您的创新想法，例如"写一个命令行贪吃蛇。"
+
+标志
+    --investment=INVESTMENT
+        类型: float
+        默认值: 3.0
+        作为投资者，您有机会向这家AI公司投入一定的美元金额。
+    --n_round=N_ROUND
+        类型: int
+        默认值: 5
+
+备注
+    您也可以用`标志`的语法，来处理`位置参数`
+```
 
 ### 代码实现
 
@@ -108,6 +190,8 @@ https://github.com/geekan/MetaGPT/assets/2707039/5e8c1062-8c35-440f-bb20-2b0320f
 
 ## 加入微信讨论群
 
-- 群已满，加人进群
+<img src="resources/MetaGPT-WeChat-Group4.jpeg" width = "30%" height = "30%" alt="MetaGPT WeChat Discuss Group" align=center />
+
+如果群已满，请添加负责人微信，会邀请进群
 
 <img src="resources/MetaGPT-WeChat-Personal.jpeg" width = "30%" height = "30%" alt="MetaGPT WeChat Discuss Group" align=center />
