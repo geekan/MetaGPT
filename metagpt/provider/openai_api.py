@@ -117,10 +117,10 @@ class CostManager(metaclass=Singleton):
 
 
 def log_and_reraise(retry_state):
-    logger.error("Retry attempts exhausted. Last exception: %s", retry_state.outcome.exception())
+    logger.error(f"Retry attempts exhausted. Last exception: {retry_state.outcome.exception()}")
     logger.warning("""
 Recommend going to https://deepwisdom.feishu.cn/wiki/MsGnwQBjiif9c3koSJNcYaoSnu4#part-XdatdVlhEojeAfxaaEZcMV3ZniQ
-See FAQ 5.8 PRD卡住/无法访问/连接中断
+See FAQ 5.8
 """)
     raise retry_state.outcome.exception()
 
@@ -216,7 +216,6 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         wait=wait_fixed(1),
         after=after_log(logger, logging.WARNING),
         retry=retry_if_exception_type(APIConnectionError),
-        reraise=True,
         retry_error_callback=log_and_reraise,
     )
     async def acompletion_text(self, messages: list[dict], stream=False) -> str:
