@@ -163,6 +163,7 @@ workspace/*
 *.mmd
 tmp
 output.wav
+*.bak
 
 # output folder
 output

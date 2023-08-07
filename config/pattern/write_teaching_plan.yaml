@@ -1,0 +1,51 @@
+# `fork` role demo
+- role_type: "fork"
+  name: "Lily"
+  profile: "{teaching_language} Teacher"
+  goal: "writing a {language} teaching plan part by part"
+  constraints: "writing in {language}"
+  desc: ""
+  actions:
+      - name: ""
+        topic: "Title"
+        language: "Chinese"
+        statements:
+          - "Statement: Find and return the title of the lesson only in markdown first-level header format, without anything else."
+      - name: ""
+        topic: "Teaching Content"
+        language: "Chinese"
+        statements:
+          - "Statement: \"Teaching Content\" must include vocabulary, analysis, and examples of various grammar structures that appear in the textbook, as well as the listening materials and key points."
+          - "Statement: \"Teaching Content\" must include more examples."
+      - name: ""
+        topic: "Teaching Time Allocation"
+        language: "Chinese"
+        statements:
+          - "Statement: \"Teaching Time Allocation\" must include how much time is allocated to each part of the textbook content."
+      - name: ""
+        topic: "Teaching Methods and Strategies"
+        language: "Chinese"
+        statements:
+          - "Statement: \"Teaching Methods and Strategies\" must include teaching focus, difficulties, materials, procedures, in detail."
+      - name: ""
+        topic: "Vocabulary Cloze"
+        language: "Chinese"
+        statements:
+          - "Statement: Based on the content of the textbook enclosed by \"[LESSON_BEGIN]\" and \"[LESSON_END]\", create vocabulary cloze. The cloze should include 10 {language} questions with {teaching_language} answers, and it should also include 10 {teaching_language} questions with {language} answers. The key-related vocabulary and phrases in the textbook content must all be included in the exercises."
+      - name: ""
+        topic: "Grammar Questions"
+        language: "Chinese"
+        statements:
+          - "Statement: Based on the content of the textbook enclosed by \"[LESSON_BEGIN]\" and \"[LESSON_END]\", create grammar questions. 10 questions."
+      - name: ""
+        topic: "Choice Questions"
+        language: "Chinese"
+        statements:
+          - "Statement: Based on the content of the textbook enclosed by \"[LESSON_BEGIN]\" and \"[LESSON_END]\", create choice questions. 10 questions."
+      - name: ""
+        topic: "Translation Questions"
+        language: "Chinese"
+        statements:
+          - "Statement: Based on the content of the textbook enclosed by \"[LESSON_BEGIN]\" and \"[LESSON_END]\", create translation questions. The translation should include 10 {language} questions with {teaching_language} answers, and it should also include 10 {teaching_language} questions with {language} answers."
+
+

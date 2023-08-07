@@ -1,20 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-@Time    : 2023-07-27
+@Time    : 2023/8/7
 @Author  : mashenquan
-@File    : write_teaching_plan.py
-@Desc: Write teaching plan demo
+@File    : fork_meta_role.py
+@Desc   : 我试图将UML的一些符号概念引入到MetaGPT，使其具备通过符号拼接自由搭建flow的能力。同时我也尝试将这些符号做得配置化和标准化，让flow搭建流程更便捷。这是一个`fork` meta-role demo，实现的是write_teaching_plan功能。
 """
 
-import asyncio
-from pathlib import Path
-import aiofiles
-import fire
-from metagpt.logs import logger
-from metagpt.actions.write_teaching_plan import TeachingPlanRequirement
-from metagpt.roles.teacher import Teacher
-from metagpt.software_company import SoftwareCompany
 
 
 async def startup(lesson_file: str, investment: float = 3.0, n_round: int = 1, *args, **kwargs):
@@ -73,8 +65,10 @@ async def startup(lesson_file: str, investment: float = 3.0, n_round: int = 1, *
         logger.info("No course content provided, using the demo course.")
         lesson = demo_lesson
 
+
+
     company = SoftwareCompany()
-    company.hire([Teacher(*args, **kwargs)])
+    company.hire([(*args, **kwargs)])
     company.invest(investment)
     company.start_project(lesson, role="Teacher", cause_by=TeachingPlanRequirement)
     await company.run(n_round=1)
