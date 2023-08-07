@@ -79,7 +79,6 @@ class Config(metaclass=Singleton):
         self.total_cost = 0.0
         self.puppeteer_config = self._get("PUPPETEER_CONFIG","")
         self.mmdc = self._get("MMDC","mmdc")
-        self.update_costs = self._get("UPDATE_COSTS",True)
         self.calc_usage = self._get("CALC_USAGE",True)
 
         
