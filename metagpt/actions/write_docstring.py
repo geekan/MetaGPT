@@ -23,7 +23,9 @@ class ExampleError(Exception):
 ```
 
 ### Output Example
-```python{example}```
+```python
+{example}
+```
 '''
 
 # https://www.sphinx-doc.org/en/master/usage/extensions/napoleon.html
@@ -120,9 +122,9 @@ class ExampleError(Exception):
 '''
 
 _python_docstring_style = {
-    "google": PYTHON_DOCSTRING_EXAMPLE_GOOGLE,
-    "numpy": PYTHON_DOCSTRING_EXAMPLE_NUMPY,
-    "sphinx": PYTHON_DOCSTRING_EXAMPLE_SPHINX,
+    "google": PYTHON_DOCSTRING_EXAMPLE_GOOGLE.strip(),
+    "numpy": PYTHON_DOCSTRING_EXAMPLE_NUMPY.strip(),
+    "sphinx": PYTHON_DOCSTRING_EXAMPLE_SPHINX.strip(),
 }
 
 
