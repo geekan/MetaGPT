@@ -93,6 +93,7 @@ class Engineer(Role):
 
     def write_file(self, filename: str, code: str):
         workspace = self.get_workspace()
+        filename = filename.replace('"', '').replace('\n', '')
         file = workspace / filename
         file.parent.mkdir(parents=True, exist_ok=True)
         file.write_text(code)
