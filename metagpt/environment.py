@@ -26,12 +26,12 @@ class Environment(BaseModel):
         arbitrary_types_allowed = True
 
     def add_role(self, role: Role):
-        """增加一个在当前环境的Role"""
+        """增加一个在当前环境的角色"""
         role.set_env(self)
         self.roles[role.profile] = role
 
     def add_roles(self, roles: Iterable[Role]):
-        """增加一批在当前环境的Role"""
+        """增加一批在当前环境的角色"""
         for role in roles:
             self.add_role(role)
 
@@ -56,9 +56,13 @@ class Environment(BaseModel):
             await asyncio.gather(*futures)
 
     def get_roles(self) -> dict[str, Role]:
-        """获得环境内的所有Role"""
+        """获得环境内的所有角色
+           Process all Role runs at once
+        """
         return self.roles
 
     def get_role(self, name: str) -> Role:
-        """获得环境内的指定Role"""
+        """获得环境内的指定角色
+           get all the environment roles
+        """
         return self.roles.get(name, None)
