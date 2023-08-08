@@ -6,7 +6,6 @@
 @File    : openai.py
 """
 import asyncio
-import logging
 import time
 from typing import NamedTuple
 
@@ -214,7 +213,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
     @retry(
         stop=stop_after_attempt(3),
         wait=wait_fixed(1),
-        after=after_log(logger, logging.WARNING),
+        after=after_log(logger, logger.level('WARNING').name),
         retry=retry_if_exception_type(APIConnectionError),
         retry_error_callback=log_and_reraise,
     )
