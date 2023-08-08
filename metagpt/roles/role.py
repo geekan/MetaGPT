@@ -168,6 +168,11 @@ class Role:
         """Return role `constraints`, read only"""
         return self._setting.constraints
 
+    @property
+    def action_count(self):
+        """Return number of action"""
+        return len(self._actions)
+
     def _get_prefix(self):
         """获取角色前缀"""
         if self._setting.desc:
