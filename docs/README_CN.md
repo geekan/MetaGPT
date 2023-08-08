@@ -178,7 +178,7 @@ async def startup(idea: str, investment: float = 3.0, n_round: int = 5):
 ## 快速体验
 对一些用户来说，安装配置本地环境是有困难的，下面这些教程能够让你快速体验到MetaGPT的魅力。  
 
-- [MetaGPT快速体验](https://deepwisdom.feishu.cn/wiki/CyY9wdJc4iNqArku3Lncl4v8n2b)
+- [MetaGPT快速体验](https://deepwisdom.feishu.cn/wiki/Q8ycw6J9tiNXdHk66MRcIN8Pnlg)
 
 ## 联系信息
 
