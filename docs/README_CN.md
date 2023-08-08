@@ -194,6 +194,8 @@ async def startup(idea: str, investment: float = 3.0, n_round: int = 5):
 https://github.com/geekan/MetaGPT/assets/2707039/5e8c1062-8c35-440f-bb20-2b0320f8d27d
 
 ## 加入微信讨论群
+<img src="resources/MetaGPT-WorkWeChatGroup-6.jpg" width = "30%" height = "30%" alt="MetaGPT WeChat Discuss Group" align=center />
 
+如果6群已满，请添加负责人微信，邀请入群
 
 <img src="resources/MetaGPT-WeChat-Personal.jpeg" width = "30%" height = "30%" alt="MetaGPT WeChat Discuss Group" align=center />
