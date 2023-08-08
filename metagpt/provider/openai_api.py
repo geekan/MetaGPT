@@ -149,7 +149,6 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
     async def _achat_completion_stream(self, messages: list[dict]) -> str:
         response = await openai.ChatCompletion.acreate(
             **self._cons_kwargs(messages),
-            timeout=3,
             stream=True
         )
 
@@ -189,6 +188,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
                 "stop": None,
                 "temperature": 0.3
             }
+        kwargs["timeout"] = 3
         return kwargs
 
     async def _achat_completion(self, messages: list[dict]) -> dict:
