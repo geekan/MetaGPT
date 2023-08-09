@@ -194,7 +194,21 @@ You can check `examples` for more details on single role (with knowledge base) a
 ## QuickStart
 It is difficult to install and configure the local environment for some users. The following tutorials will allow you to quickly experience the charm of MetaGPT.  
 
-- [MetaGPT quickstart](https://deepwisdom.feishu.cn/wiki/Q8ycw6J9tiNXdHk66MRcIN8Pnlg)
+- [MetaGPT quickstart](https://deepwisdom.feishu.cn/wiki/CyY9wdJc4iNqArku3Lncl4v8n2b)
+
+## Citation
+
+For now, cite the [Arxiv paper](https://arxiv.org/abs/2308.00352):
+```bibtex
+@misc{hong2023metagpt,
+      title={MetaGPT: Meta Programming for Multi-Agent Collaborative Framework}, 
+      author={Sirui Hong and Xiawu Zheng and Jonathan Chen and Yuheng Cheng and Jinlin Wang and Ceyao Zhang and Zili Wang and Steven Ka Shing Yau and Zijuan Lin and Liyang Zhou and Chenyu Ran and Lingfeng Xiao and Chenglin Wu},
+      year={2023},
+      eprint={2308.00352},
+      archivePrefix={arXiv},
+      primaryClass={cs.AI}
+}
+```
 
 ## Contact Information
 
