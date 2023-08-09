@@ -26,8 +26,10 @@ roles:                                        # A project can involve multiple r
         topic: "Title"
         language: "Chinese"
         statements:                           # When replacing template variables, multiple statements will be joined into a single string using line breaks.
-          - "Statement: Find and return the title of the lesson only with \"# \" prefixed, without anything else."
+          - "Statement: Find and return the title of the lesson only with \"# \" string prefixed, without anything else."
         template_ix: 0
+        rsp_begin_tag: "[TEACHING_PLAN_BEGIN]"
+        rsp_end_tag: "[TEACHING_PLAN_END]"
       - name: ""
         topic: "Teaching Hours"
         language: "Chinese"
