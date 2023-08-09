@@ -62,7 +62,7 @@ async def startup(lesson_file: str, investment: float = 3.0, n_round: int = 1, *
     """
 
     lesson = ""
-    if lesson_file is not None and Path(lesson_file).exists():
+    if lesson_file and Path(lesson_file).exists():
         async with aiofiles.open(lesson_file, mode="r", encoding="utf-8") as reader:
             lesson = await reader.read()
             logger.info(f"Course content: {lesson}")
