@@ -2,9 +2,12 @@
 # -*- coding: utf-8 -*-
 """
 @File    : search_kb.py
+@Modified By: mashenquan, 2023-8-9, fix-bug: cannot find metagpt module.
 """
 import asyncio
-
+from pathlib import Path
+import sys
+sys.path.append(str(Path(__file__).resolve().parent.parent))
 from metagpt.const import DATA_PATH
 from metagpt.document_store import FaissStore
 from metagpt.logs import logger

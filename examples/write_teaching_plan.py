@@ -1,11 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-@Modified By: mashenquan, 2023-07-27, + `industry` concept
+@Modified By: mashenquan, 2023-07-27, + write teaching plan flow demo
+
 """
 
 import asyncio
 from pathlib import Path
+import sys
+
+sys.path.append(str(Path(__file__).resolve().parent.parent))
 import aiofiles
 import fire
 from metagpt.logs import logger
