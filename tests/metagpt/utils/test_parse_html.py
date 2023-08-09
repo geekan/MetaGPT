@@ -44,6 +44,9 @@ PAGE = """
     <div class="box">
         <p>This is a div with a class "box".</p>
         <p><a href="https://metagpt.com">a link</a></p>
+        <p><a href="#section2"></a></p>
+        <p><a href="ftp://192.168.1.1:8080"></a></p>
+        <p><a href="javascript:alert('Hello');"></a></p>
     </div>
 </body>
 </html>

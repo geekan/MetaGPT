@@ -4,19 +4,19 @@ from metagpt.utils.token_counter import TOKEN_MAX, count_string_tokens
 
 
 def reduce_message_length(msgs: Generator[str, None, None], model_name: str, system_text: str, reserved: int = 0,) -> str:
-    """Reduce the length of messages to fit within the maximum token size.
+    """Reduce the length of concatenated message segments to fit within the maximum token size.
 
     Args:
-        msgs: A generator of strings representing the messages.
+        msgs: A generator of strings representing progressively shorter valid prompts.
         model_name: The name of the encoding to use. (e.g., "gpt-3.5-turbo")
         system_text: The system prompts.
         reserved: The number of reserved tokens.
 
     Returns:
-        The reduced message.
+        The concatenated message segments reduced to fit within the maximum token size.
 
     Raises:
-        RuntimeError: If it fails to reduce the message length.
+        RuntimeError: If it fails to reduce the concatenated message length.
     """
     max_token = TOKEN_MAX.get(model_name, 2048) - count_string_tokens(system_text, model_name) - reserved
     for msg in msgs:

@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from typing import Generator, Optional
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 
 from bs4 import BeautifulSoup
 from pydantic import BaseModel
@@ -35,11 +35,11 @@ class WebPage(BaseModel):
     def get_links(self) -> Generator[str, None, None]:
         for i in self.soup.find_all("a", href=True):
             url = i["href"]
-            if url.startswith("data:"):
-                continue
-            if not url.startswith(("http://", "https://")):
-                url = urljoin(self.url, url)
-            yield url
+            result = urlparse(url)
+            if not result.scheme and result.path:
+                yield urljoin(self.url, url)
+            elif url.startswith(("http://", "https://")):
+                yield urljoin(self.url, url)
 
 
 def get_html_content(page: str, base: str):

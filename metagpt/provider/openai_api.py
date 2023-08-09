@@ -270,4 +270,4 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
     def get_max_tokens(self, messages: list[dict]):
         if not self.auto_max_tokens:
             return CONFIG.max_tokens_rsp
-        return get_max_completion_tokens(messages, self.model)
+        return get_max_completion_tokens(messages, self.model, CONFIG.max_tokens_rsp)

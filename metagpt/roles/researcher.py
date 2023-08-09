@@ -22,7 +22,7 @@ class Report(BaseModel):
 class Researcher(Role):
     def __init__(
         self,
-        name: str = "Bob",
+        name: str = "David",
         profile: str = "Researcher",
         goal: str = "Gather information and conduct research",
         constraints: str = "Ensure accuracy and relevance of information",
@@ -88,4 +88,4 @@ class Researcher(Role):
 
 if __name__ == "__main__":
     role = Researcher(language="en-us")
-    asyncio.run(role.run("dataiku .vs datarobot"))
+    asyncio.run(role.run("dataiku vs. datarobot"))

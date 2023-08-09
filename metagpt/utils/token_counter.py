@@ -96,7 +96,7 @@ def count_string_tokens(string: str, model_name: str) -> int:
     return len(encoding.encode(string))
 
 
-def get_max_completion_tokens(messages: list[dict], model: str): 
+def get_max_completion_tokens(messages: list[dict], model: str, default: int) -> int: 
     """Calculate the maximum number of completion tokens for a given model and list of messages.
 
     Args:
@@ -106,4 +106,6 @@ def get_max_completion_tokens(messages: list[dict], model: str):
     Returns:
         The maximum number of completion tokens.
     """
-    return TOKEN_MAX.get(model, 4096) - count_message_tokens(messages)
+    if model not in TOKEN_MAX:
+        return default
+    return TOKEN_MAX[model] - count_message_tokens(messages)
