@@ -32,6 +32,8 @@ class Researcher(Role):
         super().__init__(name, profile, goal, constraints, **kwargs)
         self._init_actions([CollectLinks(name), WebBrowseAndSummarize(name), ConductResearch(name)])
         self.language = language
+        if language not in ("en-us", "zh-cn"):
+            logger.warning(f"The language `{language}` has not been tested, it may not work.")
 
     async def _think(self) -> None:
         if self._rc.todo is None:
