@@ -51,6 +51,7 @@ class Config(metaclass=Singleton):
         openai_proxy = self._get("OPENAI_PROXY") or self.global_proxy
         if openai_proxy:
             openai.proxy = openai_proxy
+            openai.api_base = self.openai_api_base
         self.openai_api_type = self._get("OPENAI_API_TYPE")
         self.openai_api_version = self._get("OPENAI_API_VERSION")
         self.openai_api_rpm = self._get("RPM", 3)
