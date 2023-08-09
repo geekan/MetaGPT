@@ -135,7 +135,7 @@ class WriteDesign(Action):
         self._save_prd(docs_path, resources_path, context[-1].content)
         self._save_system_design(docs_path, resources_path, content)
 
-    async def run(self, context):
+    async def run(self, context, **kwargs):
         prompt = PROMPT_TEMPLATE.format(context=context, format_example=FORMAT_EXAMPLE)
         # system_design = await self._aask(prompt)
         system_design = await self._aask_v1(prompt, "system_design", OUTPUT_MAPPING)

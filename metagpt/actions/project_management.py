@@ -115,7 +115,7 @@ class WriteTasks(Action):
         requirements_path = WORKSPACE_ROOT / ws_name / 'requirements.txt'
         requirements_path.write_text(rsp.instruct_content.dict().get("Required Python third-party packages").strip('"\n'))
 
-    async def run(self, context):
+    async def run(self, context, **kwargs):
         prompt = PROMPT_TEMPLATE.format(context=context, format_example=FORMAT_EXAMPLE)
         rsp = await self._aask_v1(prompt, "task", OUTPUT_MAPPING)
         self._save(context, rsp)
