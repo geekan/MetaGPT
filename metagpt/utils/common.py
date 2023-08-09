@@ -6,6 +6,7 @@
 @File    : common.py
 """
 import ast
+import contextlib
 import inspect
 import os
 import re
@@ -78,6 +79,23 @@ class OutputParser:
         else:
             tasks = text.split("\n")
         return tasks
+    
+    @staticmethod
+    def parse_python_code(text: str) -> str:
+        for pattern in (
+            r'(.*?```python.*?\s+)?(?P<code>.*)(```.*?)', 
+            r'(.*?```python.*?\s+)?(?P<code>.*)', 
+        ):
+            match = re.search(pattern, text, re.DOTALL)
+            if not match:
+                continue
+            code = match.group("code")
+            if not code:
+                continue
+            with contextlib.suppress(Exception):
+                ast.parse(code)
+                return code
+        raise ValueError("Invalid python code")
 
     @classmethod
     def parse_data(cls, data):
@@ -183,7 +201,7 @@ class CodeParser:
     def parse_file_list(cls, block: str, text: str, lang: str = "") -> list[str]:
         # Regular expression pattern to find the tasks list.
         code = cls.parse_code(block, text, lang)
-        print(code)
+        # print(code)
         pattern = r'\s*(.*=.*)?(\[.*\])'
 
         # Extract tasks list string using regex.

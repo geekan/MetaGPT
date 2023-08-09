@@ -27,6 +27,8 @@ class Message:
     instruct_content: BaseModel = field(default=None)
     role: str = field(default='user')  # system / user / assistant
     cause_by: Type["Action"] = field(default="")
+    sent_from: str = field(default="")
+    send_to: str = field(default="")
 
     def __str__(self):
         # prefix = '-'.join([self.role, str(self.cause_by)])

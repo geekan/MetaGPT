@@ -70,6 +70,7 @@ class RoleContext(BaseModel):
     state: int = Field(default=0)
     todo: Action = Field(default=None)
     watch: set[Type[Action]] = Field(default_factory=set)
+    news: list[Type[Message]] = Field(default=[])
 
     class Config:
         arbitrary_types_allowed = True
@@ -183,16 +184,16 @@ class Role:
         env_msgs = self._rc.env.memory.get()
 
         observed = self._rc.env.memory.get_by_actions(self._rc.watch)
-
-        news = self._rc.memory.remember(observed)  # remember recent exact or similar memories
+        
+        self._rc.news = self._rc.memory.remember(observed)  # remember recent exact or similar memories
 
         for i in env_msgs:
             self.recv(i)
 
-        news_text = [f"{i.role}: {i.content[:20]}..." for i in news]
+        news_text = [f"{i.role}: {i.content[:20]}..." for i in self._rc.news]
         if news_text:
             logger.debug(f'{self._setting} observed: {news_text}')
-        return len(news)
+        return len(self._rc.news)
 
     def _publish_message(self, msg):
         """If the role belongs to env, then the role's messages will be broadcast to env"""

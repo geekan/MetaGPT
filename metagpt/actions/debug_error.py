@@ -27,21 +27,7 @@ Now you should start rewriting the code:
 class DebugError(Action):
     def __init__(self, name="DebugError", context=None, llm=None):
         super().__init__(name, context, llm)
-
-<<<<<<< main
-    async def run(self, code, error):
-        prompt = f"Here is a piece of Python code:\n\n{code}\n\nThe following error occurred during execution:" \
-                 f"\n\n{error}\n\nPlease try to fix the error in this code."
-        fixed_code = await self._aask(prompt)
-        return fixed_code
-    
-=======
-    # async def run(self, code, error):
-    #     prompt = f"Here is a piece of Python code:\n\n{code}\n\nThe following error occurred during execution:" \
-    #              f"\n\n{error}\n\nPlease try to fix the error in this code."
-    #     fixed_code = await self._aask(prompt)
-    #     return fixed_code
-    
+ 
     async def run(self, context):
         if "PASS" in context:
             return "", "the original code works fine, no need to debug"
@@ -57,4 +43,4 @@ class DebugError(Action):
         code = CodeParser.parse_code(block="", text=rsp)
 
         return file_name, code
->>>>>>> main
+    

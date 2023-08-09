@@ -20,34 +20,6 @@ from metagpt.utils.common import CodeParser, parse_recipient
 from metagpt.utils.special_tokens import MSG_SEP, FILENAME_CODE_SEP
 
 class QaEngineer(Role):
-<<<<<<< main
-    """
-    Represents a Quality Assurance (QA) Engineer role responsible for writing tests to ensure software quality.
-    
-    Attributes:
-        name (str): Name of the QA engineer.
-        profile (str): Role profile.
-        goal (str): Goal of the QA engineer.
-        constraints (str): Constraints or limitations for the QA engineer.
-    """
-    
-    def __init__(self, 
-                 name: str, 
-                 profile: str, 
-                 goal: str, 
-                 constraints: str) -> None:
-        """
-        Initializes the QaEngineer role with given attributes.
-        
-        Args:
-            name (str): Name of the QA engineer.
-            profile (str): Role profile.
-            goal (str): Goal of the QA engineer.
-            constraints (str): Constraints or limitations for the QA engineer.
-        """
-        super().__init__(name, profile, goal, constraints)
-        self._init_actions([WriteTest])
-=======
     def __init__(self, name="Edward", profile="QaEngineer",
                  goal="Write comprehensive and robust tests to ensure codes will work as expected without bugs",
                  constraints="The test code you write should conform to code standard like PEP8, be modular, easy to read and maintain",
@@ -192,4 +164,3 @@ class QaEngineer(Role):
             role=self.profile, cause_by=WriteTest, sent_from=self.profile, send_to=""
         )
         return result_msg
->>>>>>> main
