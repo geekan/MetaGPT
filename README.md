@@ -196,6 +196,20 @@ It is difficult to install and configure the local environment for some users. T
 
 - [MetaGPT quickstart](https://deepwisdom.feishu.cn/wiki/CyY9wdJc4iNqArku3Lncl4v8n2b)
 
+## Citation
+
+For now, cite the [Arxiv paper](https://arxiv.org/abs/2308.00352):
+```
+@misc{hong2023metagpt,
+      title={MetaGPT: Meta Programming for Multi-Agent Collaborative Framework}, 
+      author={Sirui Hong and Xiawu Zheng and Jonathan Chen and Yuheng Cheng and Jinlin Wang and Ceyao Zhang and Zili Wang and Steven Ka Shing Yau and Zijuan Lin and Liyang Zhou and Chenyu Ran and Lingfeng Xiao and Chenglin Wu},
+      year={2023},
+      eprint={2308.00352},
+      archivePrefix={arXiv},
+      primaryClass={cs.AI}
+}
+```
+
 ## Contact Information
 
 If you have any questions or feedback about this project, please feel free to contact us. We highly appreciate your suggestions!
