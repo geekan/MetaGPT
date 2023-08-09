@@ -37,7 +37,7 @@ def generate_prompt_chunk(
 
     Args:
         text: The text to split.
-        prompt_template: The template for the prompt.
+        prompt_template: The template for the prompt, containing a single `{}` placeholder. For example, "### Reference\n{}".
         model_name: The name of the encoding to use. (e.g., "gpt-3.5-turbo")
         system_text: The system prompts.
         reserved: The number of reserved tokens.
