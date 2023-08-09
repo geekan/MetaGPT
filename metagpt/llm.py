@@ -1,17 +1,22 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-@Time    : 2023/5/11 14:45
+@Time    : 2023/6/1 12:41
 @Author  : alexanderwu
-@File    : llm.py
+@File    : logs.py
 """
 
-from metagpt.provider.anthropic_api import Claude2 as Claude
-from metagpt.provider.openai_api import OpenAIGPTAPI as LLM
+import sys
 
-DEFAULT_LLM = LLM()
-CLAUDE_LLM = Claude()
+from loguru import logger as _logger
 
-async def ai_func(prompt):
-    """Use LLM for Q&A."""
-    return await DEFAULT_LLM.aask(prompt)
+from metagpt.const import PROJECT_ROOT
+
+def define_log_level(print_level="INFO", logfile_level="DEBUG"):
+    """Adjust log level to above the specified level."""
+    _logger.remove()
+    _logger.add(sys.stderr, level=print_level)
+    _logger.add(PROJECT_ROOT / 'logs/log.txt', level=logfile_level)
+    return _logger
+
+logger = define_log_level()
