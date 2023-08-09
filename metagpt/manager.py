@@ -32,7 +32,8 @@ class Manager:
 
     async def handle(self, message: Message, environment):
         """
-        Manager handles the message, currently simply passes the message to the next person.
+        管理员处理信息，现在简单的将信息递交给下一个人
+        The administrator processes the information, now simply passes the information on to the next person
         :param message:
         :param environment:
         :return:
@@ -49,7 +50,8 @@ class Manager:
         # Ask the LLM to decide which role should handle the message
         # chosen_role_name = self.llm.ask(self.prompt_template.format(context))
 
-        # FIXME: Currently deciding the direction using a simple dictionary, but in the future, a thought process should be involved.
+        # FIXME: 现在通过简单的字典决定流向，但之后还是应该有思考过程
+        #The direction of flow is now determined by a simple dictionary, but there should still be a thought process afterwards
         next_role_profile = self.role_directions[message.role]
         # logger.debug(f"{next_role_profile}")
         for _, role in roles.items():

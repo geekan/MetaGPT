@@ -13,7 +13,9 @@ from loguru import logger as _logger
 from metagpt.const import PROJECT_ROOT
 
 def define_log_level(print_level="INFO", logfile_level="DEBUG"):
-    """Adjust log level to above the specified level."""
+    """调整日志级别到level之上
+       Adjust the log level to above level
+    """
     _logger.remove()
     _logger.add(sys.stderr, level=print_level)
     _logger.add(PROJECT_ROOT / 'logs/log.txt', level=logfile_level)

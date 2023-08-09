@@ -42,5 +42,24 @@ class DebugError(Action):
 
         code = CodeParser.parse_code(block="", text=rsp)
 
-        return file_name, code
+    # async def run(self, code, error):
+    #     prompt = f"Here is a piece of Python code:\n\n{code}\n\nThe following error occurred during execution:" \
+    #              f"\n\n{error}\n\nPlease try to fix the error in this code."
+    #     fixed_code = await self._aask(prompt)
+    #     return fixed_code
     
+    async def run(self, context):
+        if "PASS" in context:
+            return "", "the original code works fine, no need to debug"
+        
+        file_name = re.search("## File To Rewrite:\s*(.+\\.py)", context).group(1)
+
+        logger.info(f"Debug and rewrite {file_name}")
+
+        prompt = PROMPT_TEMPLATE.format(context=context)
+        
+        rsp = await self._aask(prompt)
+
+        code = CodeParser.parse_code(block="", text=rsp)
+
+        return file_name, code

@@ -13,5 +13,7 @@ DEFAULT_LLM = LLM()
 CLAUDE_LLM = Claude()
 
 async def ai_func(prompt):
-    """Use LLM for Q&A."""
+    """使用LLM进行QA
+       QA with LLMs
+     """
     return await DEFAULT_LLM.aask(prompt)
