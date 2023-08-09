@@ -18,6 +18,104 @@ from metagpt.schema import Message
 class Environment(BaseModel):
     """Environment that carries a set of roles. Roles can publish messages to the environment, which can be observed by other roles."""
 
+    roles: dict[str, Role] = Field(default_factory=dict)
+    memory: Memory = Field(default_factory=Memory)
+    history: str = Field(default='')
+
+    class Config:
+        arbitrary_types_allowed = True
+
+    def add_role(self, role: Role):
+        """Add a Role to the current environment."""
+        role.set_env(self)
+        self.roles[role.profile] = role
+
+    def add_roles(self, roles: Iterable[Role]):
+        """Add a batch of Roles to the current environment."""
+        for role in roles:
+            self.add_role(role)
+
+    def publish_message(self, message: Message):
+        """Publish a message to the current environment."""
+         # self.message_queue.put(message)
+        self.memory.add(message)
+        self.history += f"\n{message}"
+
+    async def run(self, k=1):
+        """Process the run of all Roles once."""
+        # while not self.message_queue.empty():
+        # message = self.message_queue.get()
+        # rsp = await self.manager.handle(message, self)
+        # self.message_queue.put(rsp)
+        for _ in range(k):
+            futures = []
+            for role in self.roles.values():
+                future = role.run()
+                futures.append(future)
+
+            await asyncio.gather(*futures)
+
+    def get_roles(self) -> dict[str, Role]:
+        """Get all Roles within the environment."""
+        return self.roles
+
+    def get_role(self, name: str) -> Role:
+        """Get a specified Role within the environment."""
+        return self.roles.get(name, None)
+import traceback
+import os
+import subprocess
+from typing import List, Tuple
+
+from metagpt.logs import logger
+from metagpt.actions.action import Action
+
+PROMPT_TEMPLATE = """
+Role: You are a senior development and qa engineer, your role is summarize the code running result.
+If the running result does not include an error, you should explicitly approve the result.
+On the other hand, if the running result indicates some error, you should point out which part, the development code or the test code, produces the error,
+and give specific instructions on fixing the errors. Here is the code info:
+{context}
+Now you should begin your analysis
+---
+## instruction:
+Please summarize the cause of the errors and give correction instruction
+## File To Rewrite:
+Determine the ONE file to rewrite in order to fix the error, for example, xyz.py, or test_xyz.py
+## Status:
+Determine if all of the code works fine, if so write PASS, else FAIL,
+WRITE ONLY ONE WORD, PASS OR FAIL, IN THI SECTION
+## Send To:
+Please write Engineer if the errors are due to problematic development codes, and QaEngineer to problematic test codes, and NoOne if there are no errors,
+WRITE ONLY ONE WORD, Engineer OR QaEngineer OR NoOne, IN THIS SECTION.
+---
+You should fill in necessary instruction, status, send to, and finally return all content between the --- segment line.
+"""
+
+CONTEXT = """
+## Development Code File Name
+{code_file_name}
+## Development Code
+```python
+{code}
+```
+## Test File Name
+{test_file_name}
+## Test Code
+```python
+{test_code}
+```
+## Running Command
+{command}
+## Running Output
+standard output: {outs};
+standard errors: {errs};
+"""
+
+class RunCode(Action):
+    def __init__(self, name="RunCode", context=None, llm=None):
+        super().__init__(name, context, llm)
+
     @classmethod
     async def run_text(cls, code) -> Tuple[str, str]:
         try:
@@ -33,7 +131,8 @@ class Environment(BaseModel):
     async def run_script(cls, working_directory, additional_python_paths=[], command=[]) -> Tuple[str, str]:
         working_directory = str(working_directory)
         additional_python_paths = [str(path) for path in additional_python_paths]
-                # Copy the current environment variables
+
+        # Copy the current environment variables
         env = os.environ.copy()
 
         # Modify the PYTHONPATH environment variable
