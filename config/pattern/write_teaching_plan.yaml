@@ -16,7 +16,7 @@ roles:                                        # A project can involve multiple r
   constraints: "writing in {language}"
   role: "You are a {teaching_language} Teacher, named Lily, your goal is writing a {teaching_language} teaching plan part by part, and the constraint is writing in {language}."
   desc: ""
-  output_filename: "teaching_plan_demo.md"
+  output_filename: "teaching_plan_demo"
   requirement: ["TeachingPlanRequirement"]
   templates:                                  # The template provides a convenient way to generate prompts. After each action selects its respective template, you only need to provide the corresponding variable values. Variable replacement is automatically handled by the framework.
     - "Do not refer to the context of the previous conversation records, start the conversation anew.\n\nFormation: \"Capacity and role\" defines the role you are currently playing;\n\t\"[LESSON_BEGIN]\" and \"[LESSON_END]\" tags enclose the content of textbook;\n\t\"Statement\" defines the work detail you need to complete at this stage;\n\t\"Answer options\" defines the format requirements for your responses;\n\t\"Constraint\" defines the conditions that your responses must comply with.\n\n{statements}\nConstraint: Writing in {language}.\nAnswer options: Encloses the lesson title with \"[TEACHING_PLAN_BEGIN]\" and \"[TEACHING_PLAN_END]\" tags.\n[LESSON_BEGIN]\n{lesson}\n[LESSON_END]"
