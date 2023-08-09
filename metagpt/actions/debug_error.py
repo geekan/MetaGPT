@@ -43,4 +43,8 @@ class DebugError(Action):
         code = CodeParser.parse_code(block="", text=rsp)
 
         return file_name, code
+<<<<<<< HEAD
     
+=======
+    
+>>>>>>> 57ffca3b5c4559ac28b257ad5cb45f584769440d
