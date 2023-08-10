@@ -16,9 +16,9 @@ from metagpt.logs import logger
 
 
 def check_cmd_exists(command) -> int:
-    """ Check if the command exists
-    :param command: Command to be checked
-    :return: Returns 0 if the command exists, non-zero otherwise
+    """ 检查命令是否存在
+    :param command: 待检查的命令
+    :return: 如果命令存在，返回0，如果不存在，返回非0
     """
     check_command = 'command -v ' + command + ' >/dev/null 2>&1 || { echo >&2 "no mermaid"; exit 1; }'
     result = os.system(check_command)
@@ -29,19 +29,19 @@ class OutputParser:
 
     @classmethod
     def parse_blocks(cls, text: str):
-        # First, split the text into different blocks based on "##"
+        # 首先根据"##"将文本分割成不同的block
         blocks = text.split("##")
 
-        # Create a dictionary to store the title and content of each block
+        # 创建一个字典，用于存储每个block的标题和内容
         block_dict = {}
 
-        # Iterate through all blocks
+        # 遍历所有的block
         for block in blocks:
-            # If the block is not empty, continue processing
+            # 如果block不为空，则继续处理
             if block.strip() != "":
-                # Separate the title and content of the block and trim whitespace
+                # 将block的标题和内容分开，并分别去掉前后的空白字符
                 block_title, block_content = block.split("\n", 1)
-                # LLM might have an error, correct it here
+                # LLM可能出错，在这里做一下修正
                 if block_title[-1] == ":":
                     block_title = block_title[:-1]
                 block_dict[block_title.strip()] = block_content.strip()
@@ -102,13 +102,13 @@ class OutputParser:
         block_dict = cls.parse_blocks(data)
         parsed_data = {}
         for block, content in block_dict.items():
-            # Try to remove the code marker
+            # 尝试去除code标记
             try:
                 content = cls.parse_code(text=content)
             except Exception:
                 pass
 
-            # Try to parse the list
+            # 尝试解析list
             try:
                 content = cls.parse_file_list(text=content)
             except Exception:
@@ -121,7 +121,7 @@ class OutputParser:
         block_dict = cls.parse_blocks(data)
         parsed_data = {}
         for block, content in block_dict.items():
-            # Try to remove the code marker
+            # 尝试去除code标记
             try:
                 content = cls.parse_code(text=content)
             except Exception:
@@ -132,14 +132,14 @@ class OutputParser:
             else:
                 typing = typing_define
             if typing == List[str] or typing == List[Tuple[str, str]]:
-                # Try to parse the list
+                # 尝试解析list
                 try:
                     content = cls.parse_file_list(text=content)
                 except Exception:
                     pass
-            # TODO: Removing extra quotes is risky, will address later
+            # TODO: 多余的引号去除有风险，后期再解决
             # elif typing == str:
-            #     # Try to remove extra quotes
+            #     # 尝试去除多余的引号
             #     try:
             #         content = cls.parse_str(text=content)
             #     except Exception:
@@ -160,17 +160,17 @@ class CodeParser:
 
     @classmethod
     def parse_blocks(cls, text: str):
-        # First, split the text into different blocks based on "##"
+        # 首先根据"##"将文本分割成不同的block
         blocks = text.split("##")
 
-        # Create a dictionary to store the title and content of each block
+        # 创建一个字典，用于存储每个block的标题和内容
         block_dict = {}
 
-        # Iterate through all blocks
+        # 遍历所有的block
         for block in blocks:
-            # If the block is not empty, continue processing
+            # 如果block不为空，则继续处理
             if block.strip() != "":
-                # Separate the title and content of the block and trim whitespace
+                # 将block的标题和内容分开，并分别去掉前后的空白字符
                 block_title, block_content = block.split("\n", 1)
                 block_dict[block_title.strip()] = block_content.strip()
 
@@ -248,3 +248,9 @@ def print_members(module, indent=0):
             print(f'{prefix}Function: {name}')
         elif inspect.ismethod(obj):
             print(f'{prefix}Method: {name}')
+
+
+def parse_recipient(text):
+    pattern = r"## Send To:\s*([A-Za-z]+)\s*?"  # hard code for now
+    recipient = re.search(pattern, text)
+    return recipient.group(1) if recipient else ""
