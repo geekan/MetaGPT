@@ -27,7 +27,7 @@ Please summarize the cause of the errors and give correction instruction
 Determine the ONE file to rewrite in order to fix the error, for example, xyz.py, or test_xyz.py
 ## Status:
 Determine if all of the code works fine, if so write PASS, else FAIL,
-WRITE ONLY ONE WORD, PASS OR FAIL, IN THI SECTION
+WRITE ONLY ONE WORD, PASS OR FAIL, IN THIS SECTION
 ## Send To:
 Please write Engineer if the errors are due to problematic development codes, and QaEngineer to problematic test codes, and NoOne if there are no errors,
 WRITE ONLY ONE WORD, Engineer OR QaEngineer OR NoOne, IN THIS SECTION.
