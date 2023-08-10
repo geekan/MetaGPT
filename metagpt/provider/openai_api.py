@@ -6,10 +6,11 @@
 """
 import asyncio
 import time
-from functools import wraps
 from typing import NamedTuple
 
 import openai
+from openai.error import APIConnectionError
+from tenacity import retry, stop_after_attempt, after_log, wait_fixed, retry_if_exception_type
 
 from metagpt.config import CONFIG
 from metagpt.logs import logger
@@ -21,23 +22,6 @@ from metagpt.utils.token_counter import (
     count_string_tokens,
     get_max_completion_tokens,
 )
-
-
-def retry(max_retries):
-    def decorator(f):
-        @wraps(f)
-        async def wrapper(*args, **kwargs):
-            for i in range(max_retries):
-                try:
-                    return await f(*args, **kwargs)
-                except Exception:
-                    if i == max_retries - 1:
-                        raise
-                    await asyncio.sleep(2**i)
-
-        return wrapper
-
-    return decorator
 
 
 class RateLimiter:
@@ -132,6 +116,15 @@ class CostManager(metaclass=Singleton):
         return Costs(self.total_prompt_tokens, self.total_completion_tokens, self.total_cost, self.total_budget)
 
 
+def log_and_reraise(retry_state):
+    logger.error(f"Retry attempts exhausted. Last exception: {retry_state.outcome.exception()}")
+    logger.warning("""
+Recommend going to https://deepwisdom.feishu.cn/wiki/MsGnwQBjiif9c3koSJNcYaoSnu4#part-XdatdVlhEojeAfxaaEZcMV3ZniQ
+See FAQ 5.8
+""")
+    raise retry_state.outcome.exception()
+
+
 class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
     """
     Check https://platform.openai.com/examples for examples
@@ -193,6 +186,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
                 "stop": None,
                 "temperature": 0.3,
             }
+        kwargs["timeout"] = 3
         return kwargs
 
     async def _achat_completion(self, messages: list[dict]) -> dict:
@@ -215,7 +209,13 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         #     messages = self.messages_to_dict(messages)
         return await self._achat_completion(messages)
 
-    @retry(max_retries=6)
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_fixed(1),
+        after=after_log(logger, logger.level('WARNING').name),
+        retry=retry_if_exception_type(APIConnectionError),
+        retry_error_callback=log_and_reraise,
+    )
     async def acompletion_text(self, messages: list[dict], stream=False) -> str:
         """when streaming, print each token in place."""
         if stream:
