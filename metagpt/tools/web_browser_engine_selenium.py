@@ -2,16 +2,17 @@
 from __future__ import annotations
 
 import asyncio
-from copy import deepcopy
 import importlib
+from concurrent import futures
+from copy import deepcopy
 from typing import Literal
-from metagpt.config import CONFIG
-import asyncio
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
-from concurrent import futures
+
+from metagpt.config import CONFIG
+from metagpt.utils.parse_html import WebPage
 
 
 class SeleniumWrapper:
@@ -48,7 +49,7 @@ class SeleniumWrapper:
         self.loop = loop
         self.executor = executor
 
-    async def run(self, url: str, *urls: str) -> str | list[str]:
+    async def run(self, url: str, *urls: str) -> WebPage | list[WebPage]:
         await self._run_precheck()
 
         _scrape = lambda url: self.loop.run_in_executor(self.executor, self._scrape_website, url)
@@ -69,9 +70,15 @@ class SeleniumWrapper:
 
     def _scrape_website(self, url):
         with self._get_driver() as driver:
-            driver.get(url)
-            WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
-            return driver.page_source
+            try:
+                driver.get(url)
+                WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
+                inner_text = driver.execute_script("return document.body.innerText;")
+                html = driver.page_source
+            except Exception as e:
+                inner_text = f"Fail to load page content for {e}"
+                html = ""
+            return WebPage(inner_text=inner_text, html=html, url=url)
 
 
 _webdriver_manager_types = {
@@ -97,6 +104,7 @@ def _gen_get_driver_func(browser_type, *args, executable_path=None):
     def _get_driver():
         options = Options()
         options.add_argument("--headless")
+        options.add_argument("--enable-javascript")
         if browser_type == "chrome":
             options.add_argument("--no-sandbox")
         for i in args:
@@ -107,5 +115,9 @@ def _gen_get_driver_func(browser_type, *args, executable_path=None):
 
 
 if __name__ == "__main__":
-    text = asyncio.run(SeleniumWrapper("chrome").run("https://fuzhi.ai/"))
-    print(text)
+    import fire
+
+    async def main(url: str, *urls: str, browser_type: str = "chrome", **kwargs):
+        return await SeleniumWrapper(browser_type, **kwargs).run(url, *urls)
+
+    fire.Fire(main)

@@ -4,14 +4,14 @@
 提供配置，单例
 """
 import os
-import openai
 
+import openai
 import yaml
 
 from metagpt.const import PROJECT_ROOT
 from metagpt.logs import logger
-from metagpt.utils.singleton import Singleton
 from metagpt.tools import SearchEngineType, WebBrowserEngineType
+from metagpt.utils.singleton import Singleton
 
 
 class NotConfiguredException(Exception):
@@ -77,11 +77,12 @@ class Config(metaclass=Singleton):
             logger.warning("LONG_TERM_MEMORY is True")
         self.max_budget = self._get("MAX_BUDGET", 10.0)
         self.total_cost = 0.0
+
         self.puppeteer_config = self._get("PUPPETEER_CONFIG","")
         self.mmdc = self._get("MMDC","mmdc")
         self.calc_usage = self._get("CALC_USAGE",True)
-
-        
+        self.model_for_researcher_summary = self._get("MODEL_FOR_RESEARCHER_SUMMARY")
+        self.model_for_researcher_report = self._get("MODEL_FOR_RESEARCHER_REPORT")
 
     def _init_with_config_files_and_env(self, configs: dict, yaml_file):
         """从config/key.yaml / config/config.yaml / env三处按优先级递减加载"""

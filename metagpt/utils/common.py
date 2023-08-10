@@ -6,6 +6,7 @@
 @File    : common.py
 """
 import ast
+import contextlib
 import inspect
 import os
 import re
@@ -78,6 +79,23 @@ class OutputParser:
         else:
             tasks = text.split("\n")
         return tasks
+    
+    @staticmethod
+    def parse_python_code(text: str) -> str:
+        for pattern in (
+            r'(.*?```python.*?\s+)?(?P<code>.*)(```.*?)', 
+            r'(.*?```python.*?\s+)?(?P<code>.*)', 
+        ):
+            match = re.search(pattern, text, re.DOTALL)
+            if not match:
+                continue
+            code = match.group("code")
+            if not code:
+                continue
+            with contextlib.suppress(Exception):
+                ast.parse(code)
+                return code
+        raise ValueError("Invalid python code")
 
     @classmethod
     def parse_data(cls, data):
@@ -231,7 +249,8 @@ def print_members(module, indent=0):
         elif inspect.ismethod(obj):
             print(f'{prefix}Method: {name}')
 
+
 def parse_recipient(text):
-    pattern = "## Send To:\s*([A-Za-z]+)\s*?" # hard code for now
+    pattern = r"## Send To:\s*([A-Za-z]+)\s*?"  # hard code for now
     recipient = re.search(pattern, text)
     return recipient.group(1) if recipient else ""

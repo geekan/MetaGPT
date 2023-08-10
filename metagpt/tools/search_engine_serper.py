@@ -36,16 +36,19 @@ class SerperWrapper(BaseModel):
     class Config:
         arbitrary_types_allowed = True
 
-    async def run(self, query: str, **kwargs: Any) -> str:
+    async def run(self, query: str, max_results: int = 8, as_string: bool = True, **kwargs: Any) -> str:
         """Run query through Serper and parse result async."""
-        queries = query.split("\n")
-        return "\n".join([self._process_response(res) for res in await self.results(queries)])
+        if isinstance(query, str):
+            return self._process_response((await self.results([query], max_results))[0], as_string=as_string)
+        else:
+            results = [self._process_response(res, as_string) for res in await self.results(query, max_results)]
+        return "\n".join(results) if as_string else results
 
-    async def results(self, queries: list[str]) -> dict:
+    async def results(self, queries: list[str], max_results: int = 8) -> dict:
         """Use aiohttp to run query through Serper and return the results async."""
 
         def construct_url_and_payload_and_headers() -> Tuple[str, Dict[str, str]]:
-            payloads = self.get_payloads(queries)
+            payloads = self.get_payloads(queries, max_results)
             url = "https://google.serper.dev/search"
             headers = self.get_headers()
             return url, payloads, headers
@@ -61,12 +64,13 @@ class SerperWrapper(BaseModel):
 
         return res
 
-    def get_payloads(self, queries: list[str]) -> Dict[str, str]:
+    def get_payloads(self, queries: list[str], max_results: int) -> Dict[str, str]:
         """Get payloads for Serper."""
         payloads = []
         for query in queries:
             _payload = {
                 "q": query,
+                "num": max_results,
             }
             payloads.append({**self.payload, **_payload})
         return json.dumps(payloads, sort_keys=True)
@@ -79,7 +83,7 @@ class SerperWrapper(BaseModel):
         return headers
 
     @staticmethod
-    def _process_response(res: dict) -> str:
+    def _process_response(res: dict, as_string: bool = False) -> str:
         """Process response from SerpAPI."""
         # logger.debug(res)
         focus = ['title', 'snippet', 'link']
@@ -117,4 +121,10 @@ class SerperWrapper(BaseModel):
         if res.get("organic"):
             toret_l += [get_focused(i) for i in res.get("organic")]
 
-        return str(toret) + '\n' + str(toret_l)
+        return str(toret) + '\n' + str(toret_l) if as_string else toret_l
+
+
+if __name__ == "__main__":
+    import fire
+
+    fire.Fire(SerperWrapper().run)

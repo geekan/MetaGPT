@@ -75,25 +75,25 @@ Chromium のダウンロードをスキップすることができます。
 
 ```bash
 # ステップ 1: metagpt 公式イメージをダウンロードし、config.yaml を準備する
-docker pull metagpt/metagpt:v0.3
+docker pull metagpt/metagpt:v0.3.1
 mkdir -p /opt/metagpt/{config,workspace}
-docker run --rm metagpt/metagpt:v0.3 cat /app/metagpt/config/config.yaml > /opt/metagpt/config/config.yaml
-vim /opt/metagpt/config/config.yaml # 設定を変更する
+docker run --rm metagpt/metagpt:v0.3.1 cat /app/metagpt/config/config.yaml > /opt/metagpt/config/key.yaml
+vim /opt/metagpt/config/key.yaml # 設定を変更する
 
 # ステップ 2: コンテナで metagpt デモを実行する
 docker run --rm \
     --privileged \
-    -v /opt/metagpt/config:/app/metagpt/config \
+    -v /opt/metagpt/config/key.yaml:/app/metagpt/config/key.yaml \
     -v /opt/metagpt/workspace:/app/metagpt/workspace \
-    metagpt/metagpt:v0.3 \
+    metagpt/metagpt:v0.3.1 \
     python startup.py "Write a cli snake game"
 
 # コンテナを起動し、その中でコマンドを実行することもできます
 docker run --name metagpt -d \
     --privileged \
-    -v /opt/metagpt/config:/app/metagpt/config \
+    -v /opt/metagpt/config/key.yaml:/app/metagpt/config/key.yaml \
     -v /opt/metagpt/workspace:/app/metagpt/workspace \
-    metagpt/metagpt:v0.3
+    metagpt/metagpt:v0.3.1
 
 docker exec -it metagpt /bin/bash
 $ python startup.py "Write a cli snake game"
@@ -111,7 +111,7 @@ $ python startup.py "Write a cli snake game"
 ```bash
 # また、自分で metagpt イメージを構築することもできます。
 git clone https://github.com/geekan/MetaGPT.git
-cd MetaGPT && docker build -t metagpt:v0.3 .
+cd MetaGPT && docker build -t metagpt:custom .
 ```
 
 ## 設定
@@ -142,37 +142,36 @@ python startup.py "Write a cli snake game" --code_review True
 
 要件を述べるときに、どのプラットフォームまたはツールを使用するかを指定できます。
 ```shell
-python startup.py "Write a cli snake game based on pygame"
+python startup.py "pygame をベースとした cli ヘビゲームを書く"
 ```
-
 ### 使用方法
 
 ```
-NAME
-    startup.py - We are a software startup comprised of AI. By investing in us, you are empowering a future filled with limitless possibilities.
+会社名
+    startup.py - 私たちは AI で構成されたソフトウェア・スタートアップです。私たちに投資することは、無限の可能性に満ちた未来に力を与えることです。
 
-SYNOPSIS
+シノプシス
     startup.py IDEA <flags>
 
-DESCRIPTION
-    We are a software startup comprised of AI. By investing in us, you are empowering a future filled with limitless possibilities.
+説明
+    私たちは AI で構成されたソフトウェア・スタートアップです。私たちに投資することは、無限の可能性に満ちた未来に力を与えることです。
 
-POSITIONAL ARGUMENTS
+位置引数
     IDEA
-        Type: str
-        Your innovative idea, such as "Creating a snake game."
+        型: str
+        あなたの革新的なアイデア、例えば"スネークゲームを作る。"など
 
-FLAGS
+フラグ
     --investment=INVESTMENT
-        Type: float
-        Default: 3.0
-        As an investor, you have the opportunity to contribute a certain dollar amount to this AI company.
+        型: float
+        デフォルト: 3.0
+        投資家として、あなたはこの AI 企業に一定の金額を拠出する機会がある。
     --n_round=N_ROUND
-        Type: int
-        Default: 5
+        型: int
+        デフォルト: 5
 
-NOTES
-    You can also use flags syntax for POSITIONAL ARGUMENTS
+注意事項
+    位置引数にフラグ構文を使うこともできます
 ```
 
 ### コードウォークスルー
@@ -191,6 +190,11 @@ async def startup(idea: str, investment: float = 3.0, n_round: int = 5):
 ```
 
 `examples` でシングル・ロール（ナレッジ・ベース付き）と LLM のみの例を詳しく見ることができます。
+
+## クイックスタート
+ローカル環境のインストールや設定は、ユーザーによっては難しいものです。以下のチュートリアルで MetaGPT の魅力をすぐに体験できます。
+
+- [MetaGPT クイックスタート](https://deepwisdom.feishu.cn/wiki/Q8ycw6J9tiNXdHk66MRcIN8Pnlg)
 
 ## お問い合わせ先
 

@@ -14,6 +14,7 @@ class SearchEngineType(Enum):
     SERPAPI_GOOGLE = auto()
     DIRECT_GOOGLE = auto()
     SERPER_GOOGLE = auto()
+    DUCK_DUCK_GO = auto()
     CUSTOM_ENGINE = auto()
 
 
