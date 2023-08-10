@@ -14,5 +14,7 @@ CLAUDE_LLM = Claude()
 
 
 async def ai_func(prompt):
-    """使用LLM进行QA"""
+    """使用LLM进行QA
+       QA with LLMs
+     """
     return await DEFAULT_LLM.aask(prompt)

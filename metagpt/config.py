@@ -4,14 +4,14 @@
 提供配置，单例
 """
 import os
-import openai
 
+import openai
 import yaml
 
 from metagpt.const import PROJECT_ROOT
 from metagpt.logs import logger
-from metagpt.utils.singleton import Singleton
 from metagpt.tools import SearchEngineType, WebBrowserEngineType
+from metagpt.utils.singleton import Singleton
 
 
 class NotConfiguredException(Exception):
@@ -80,6 +80,8 @@ class Config(metaclass=Singleton):
         self.mmdc = self._get("MMDC", "mmdc")
         self.update_costs = self._get("UPDATE_COSTS", True)
         self.calc_usage = self._get("CALC_USAGE", True)
+        self.model_for_researcher_summary = self._get("MODEL_FOR_RESEARCHER_SUMMARY")
+        self.model_for_researcher_report = self._get("MODEL_FOR_RESEARCHER_REPORT")
 
     def _init_with_config_files_and_env(self, configs: dict, yaml_file):
         """从config/key.yaml / config/config.yaml / env三处按优先级递减加载"""
