@@ -8,6 +8,7 @@
 import lancedb
 import pyarrow as pa
 import pandas as pd
+import shutil, os
 
 
 class LanceStore:
@@ -24,7 +25,7 @@ class LanceStore:
         schema = schema.remove_metadata()
         schema = schema.remove(len(schema) - 1)
 
-        self.table = self.db.create_table(self.name, schema)
+        self.table = self.db.create_table(self.name, schema=schema)
 
     def search(self, query, n_results=2, metric="L2", nprobes=20, **kwargs):
         # This assumes query is a vector embedding
@@ -85,3 +86,10 @@ class LanceStore:
             return self.table.delete(f"id = '{_id}'")
         else:
             return self.table.delete(f"id = {_id}")
+
+    def drop(self, name):
+        # This function drops a table, if it exists.
+
+        path = os.path.join(self.db.uri, name + '.lance')
+        if os.path.exists(path):
+            shutil.rmtree(path)
