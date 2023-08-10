@@ -75,25 +75,25 @@ python setup.py install
 
 ```bash
 # Step 1: Download metagpt official image and prepare config.yaml
-docker pull metagpt/metagpt:v0.3
+docker pull metagpt/metagpt:v0.3.1
 mkdir -p /opt/metagpt/{config,workspace}
-docker run --rm metagpt/metagpt:v0.3 cat /app/metagpt/config/config.yaml > /opt/metagpt/config/config.yaml
-vim /opt/metagpt/config/config.yaml # Change the config
+docker run --rm metagpt/metagpt:v0.3.1 cat /app/metagpt/config/config.yaml > /opt/metagpt/config/key.yaml
+vim /opt/metagpt/config/key.yaml # Change the config
 
 # Step 2: Run metagpt demo with container
 docker run --rm \
     --privileged \
-    -v /opt/metagpt/config:/app/metagpt/config \
+    -v /opt/metagpt/config/key.yaml:/app/metagpt/config/key.yaml \
     -v /opt/metagpt/workspace:/app/metagpt/workspace \
-    metagpt/metagpt:v0.3 \
+    metagpt/metagpt:v0.3.1 \
     python startup.py "Write a cli snake game"
 
 # You can also start a container and execute commands in it
 docker run --name metagpt -d \
     --privileged \
-    -v /opt/metagpt/config:/app/metagpt/config \
+    -v /opt/metagpt/config/key.yaml:/app/metagpt/config/key.yaml \
     -v /opt/metagpt/workspace:/app/metagpt/workspace \
-    metagpt/metagpt:v0.3
+    metagpt/metagpt:v0.3.1
 
 docker exec -it metagpt /bin/bash
 $ python startup.py "Write a cli snake game"
@@ -111,7 +111,7 @@ The command `docker run ...` do the following things:
 ```bash
 # You can also build metagpt image by yourself.
 git clone https://github.com/geekan/MetaGPT.git
-cd MetaGPT && docker build -t metagpt:v0.3 .
+cd MetaGPT && docker build -t metagpt:custom .
 ```
 
 ## Configuration
@@ -190,6 +190,25 @@ async def startup(idea: str, investment: float = 3.0, n_round: int = 5):
 ```
 
 You can check `examples` for more details on single role (with knowledge base) and LLM only examples.
+
+## QuickStart
+It is difficult to install and configure the local environment for some users. The following tutorials will allow you to quickly experience the charm of MetaGPT.  
+
+- [MetaGPT quickstart](https://deepwisdom.feishu.cn/wiki/CyY9wdJc4iNqArku3Lncl4v8n2b)
+
+## Citation
+
+For now, cite the [Arxiv paper](https://arxiv.org/abs/2308.00352):
+```bibtex
+@misc{hong2023metagpt,
+      title={MetaGPT: Meta Programming for Multi-Agent Collaborative Framework}, 
+      author={Sirui Hong and Xiawu Zheng and Jonathan Chen and Yuheng Cheng and Jinlin Wang and Ceyao Zhang and Zili Wang and Steven Ka Shing Yau and Zijuan Lin and Liyang Zhou and Chenyu Ran and Lingfeng Xiao and Chenglin Wu},
+      year={2023},
+      eprint={2308.00352},
+      archivePrefix={arXiv},
+      primaryClass={cs.AI}
+}
+```
 
 ## Contact Information
 

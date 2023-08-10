@@ -43,13 +43,13 @@ class LongTermMemory(Memory):
                 # and ignore adding messages from recover repeatedly
                 self.memory_storage.add(message)
 
-    def remember(self, observed: list[Message], k=10) -> list[Message]:
+    def remember(self, observed: list[Message], k=0) -> list[Message]:
         """
         remember the most similar k memories from observed Messages, return all when k=0
             1. remember the short-term memory(stm) news
             2. integrate the stm news with ltm(long-term memory) news
         """
-        stm_news = super(LongTermMemory, self).remember(observed)  # shot-term memory news
+        stm_news = super(LongTermMemory, self).remember(observed, k=k)  # shot-term memory news
         if not self.memory_storage.is_initialized:
             # memory_storage hasn't initialized, use default `remember` to get stm_news
             return stm_news
