@@ -6,8 +6,10 @@
 @File    : test_lancedb_store.py
 """
 from metagpt.document_store.lancedb_store import LanceStore
+import pytest
 import random
 
+@pytest
 def test_lance_store():
 
     # This simply establishes the connection to the database, so we can drop the table if it exists
@@ -15,14 +17,15 @@ def test_lance_store():
 
     store.drop('test')
 
-    store.create_table(['vector', 'id', 'meta', 'meta2'])
-
     store.write(data=[[random.random() for _ in range(100)] for _ in range(2)],
             metadatas=[{"source": "google-docs"}, {"source": "notion"}],
             ids=["doc1", "doc2"])
 
-    store.add(data=[random.random() for _ in range(100)], metadatas={"source": "notion"}, ids="doc3")
+    store.add(data=[random.random() for _ in range(100)], metadata={"source": "notion"}, _id="doc3")
 
     result = store.search([random.random() for _ in range(100)], n_results=3)
-    print(result)
-    assert(len(result) > 0)
+    assert(len(result) == 3)
+
+    store.delete("doc2")
+    result = store.search([random.random() for _ in range(100)], n_results=3, where="source = 'notion'", metric='cosine')
+    assert(len(result) == 1)
