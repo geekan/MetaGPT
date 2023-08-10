@@ -231,7 +231,6 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             except Exception as e:
                 logger.error("usage calculation failed!", e)
                 CONFIG.calc_usage = False
-                pass
 
     async def acompletion_batch(self, batch: list[list[dict]]) -> list[dict]:
         """返回完整JSON"""
@@ -268,7 +267,6 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             except Exception as e:
                 logger.error("updating costs failed!", e)
                 CONFIG.calc_usage = False
-                pass
 
     def get_costs(self) -> Costs:
         return self._cost_manager.get_costs()
