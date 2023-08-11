@@ -44,8 +44,10 @@ class Config(metaclass=Singleton):
         logger.info("Config loading done.")
         self.global_proxy = self._get("GLOBAL_PROXY")
         self.openai_api_key = self._get("OPENAI_API_KEY")
-        if not self.openai_api_key or "YOUR_API_KEY" == self.openai_api_key:
-            raise NotConfiguredException("Set OPENAI_API_KEY first")
+        self.anthropic_api_key = self._get("Anthropic_API_KEY")
+        if (not self.openai_api_key or "YOUR_API_KEY" == self.openai_api_key) \
+            and (not self.anthropic_api_key or "YOUR_API_KEY" == self.anthropic_api_key):
+            raise NotConfiguredException("Set OPENAI_API_KEY or Anthropic_API_KEY first")
         self.openai_api_base = self._get("OPENAI_API_BASE")
         if not self.openai_api_base or "YOUR_API_BASE" == self.openai_api_base:
             openai_proxy = self._get("OPENAI_PROXY") or self.global_proxy
