@@ -1,6 +1,6 @@
 import pytest
-from metagpt.config import Config
-from metagpt.tools import web_browser_engine, WebBrowserEngineType
+
+from metagpt.tools import WebBrowserEngineType, web_browser_engine
 
 
 @pytest.mark.asyncio

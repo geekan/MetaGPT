@@ -2,22 +2,19 @@
 # @Date    : 2023/7/15 16:40
 # @Author  : stellahong (stellahong@fuzhi.ai)
 # @Desc    :
-import re
 import os
-from importlib import import_module
+import re
 from functools import wraps
+from importlib import import_module
 
-from metagpt.logs import logger
-from metagpt.actions import Action, ActionOutput
-from metagpt.roles import ProductManager, Role
-from metagpt.schema import Message
+from metagpt.actions import Action, ActionOutput, WritePRD
 from metagpt.const import WORKSPACE_ROOT
-
-from metagpt.actions import WritePRD
-from metagpt.software_company import SoftwareCompany
+from metagpt.logs import logger
+from metagpt.roles import Role
+from metagpt.schema import Message
 from metagpt.tools.sd_engine import SDEngine
 
-PROMPT_TEMPLATE = '''
+PROMPT_TEMPLATE = """
 # Context
 {context}
 
@@ -34,9 +31,9 @@ Attention: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD W
 ## CSS Styles (styles.css):Provide as Plain text,use standard css code
 ## Anything UNCLEAR:Provide as Plain text. Make clear here.
 
-'''
+"""
 
-FORMAT_EXAMPLE = '''
+FORMAT_EXAMPLE = """
 
 ## UI Design Description
 ```Snake games are classic and addictive games with simple yet engaging elements. Here are the main elements commonly found in snake games ```
@@ -126,7 +123,7 @@ body {
 ## Anything UNCLEAR
 There are no unclear points.
 
-'''
+"""
 
 OUTPUT_MAPPING = {
     "UI Design Description": (str, ...),
@@ -139,25 +136,25 @@ OUTPUT_MAPPING = {
 
 def load_engine(func):
     """Decorator to load an engine by file name and engine name."""
-    
+
     @wraps(func)
     def wrapper(*args, **kwargs):
         file_name, engine_name = func(*args, **kwargs)
-        engine_file = import_module(file_name, package='metagpt')
+        engine_file = import_module(file_name, package="metagpt")
         ip_module_cls = getattr(engine_file, engine_name)
         try:
             engine = ip_module_cls()
         except:
             engine = None
-        
+
         return engine
-    
+
     return wrapper
 
 
 def parse(func):
     """Decorator to parse information using regex pattern."""
-    
+
     @wraps(func)
     def wrapper(*args, **kwargs):
         context, pattern = func(*args, **kwargs)
@@ -168,30 +165,30 @@ def parse(func):
         else:
             text_info = context
             logger.info("未找到匹配的内容")
-        
+
         return text_info
-    
+
     return wrapper
 
 
 class UIDesign(Action):
     """Class representing the UI Design action."""
-    
+
     def __init__(self, name, context=None, llm=None):
         super().__init__(name, context, llm)  # 需要调用LLM进一步丰富UI设计的prompt
-    
+
     @parse
     def parse_requirement(self, context: str):
         """Parse UI Design draft from the context using regex."""
         pattern = r"## UI Design draft.*?\n(.*?)## Anything UNCLEAR"
         return context, pattern
-    
+
     @parse
     def parse_ui_elements(self, context: str):
         """Parse Selected Elements from the context using regex."""
         pattern = r"## Selected Elements.*?\n(.*?)## HTML Layout"
         return context, pattern
-    
+
     @parse
     def parse_css_code(self, context: str):
         pattern = r"```css.*?\n(.*?)## Anything UNCLEAR"
@@ -201,7 +198,7 @@ class UIDesign(Action):
     def parse_html_code(self, context: str):
         pattern = r"```html.*?\n(.*?)```"
         return context, pattern
-    
+
     async def draw_icons(self, context, *args, **kwargs):
         """Draw icons using SDEngine."""
         engine = SDEngine()
@@ -215,20 +212,20 @@ class UIDesign(Action):
             prompts_batch.append(prompt)
         await engine.run_t2i(prompts_batch)
         logger.info("Finish icon design using StableDiffusion API")
-    
+
     async def _save(self, css_content, html_content):
-        save_dir = WORKSPACE_ROOT / "resources" / 'codes'
+        save_dir = WORKSPACE_ROOT / "resources" / "codes"
         if not os.path.exists(save_dir):
             os.makedirs(save_dir, exist_ok=True)
         # Save CSS and HTML content to files
-        css_file_path = save_dir / f"ui_design.css"
-        html_file_path = save_dir / f"ui_design.html"
-        
-        with open(css_file_path, 'w') as css_file:
+        css_file_path = save_dir / "ui_design.css"
+        html_file_path = save_dir / "ui_design.html"
+
+        with open(css_file_path, "w") as css_file:
             css_file.write(css_content)
-        with open(html_file_path, 'w') as html_file:
+        with open(html_file_path, "w") as html_file:
             html_file.write(html_content)
-    
+
     async def run(self, requirements: list[Message], *args, **kwargs) -> ActionOutput:
         """Run the UI Design action."""
         # fixme: update prompt (根据需求细化prompt）
@@ -249,23 +246,27 @@ class UIDesign(Action):
 
 class UI(Role):
     """Class representing the UI Role."""
-    
-    def __init__(self, name="Catherine", profile="UI Design",
-                 goal="Finish a workable and good User Interface design based on a product design",
-                 constraints="Give clear layout description and use standard icons to finish the design",
-                 skills=["SD"]):
+
+    def __init__(
+        self,
+        name="Catherine",
+        profile="UI Design",
+        goal="Finish a workable and good User Interface design based on a product design",
+        constraints="Give clear layout description and use standard icons to finish the design",
+        skills=["SD"],
+    ):
         super().__init__(name, profile, goal, constraints)
         self.load_skills(skills)
         self._init_actions([UIDesign])
         self._watch([WritePRD])
-    
+
     @load_engine
     def load_sd_engine(self):
         """Load the SDEngine."""
         file_name = ".tools.sd_engine"
         engine_name = "SDEngine"
         return file_name, engine_name
-    
+
     def load_skills(self, skills):
         """Load skills for the UI Role."""
         # todo: 添加其他出图engine
@@ -273,4 +274,3 @@ class UI(Role):
             if skill == "SD":
                 self.sd_engine = self.load_sd_engine()
                 logger.info(f"load skill engine {self.sd_engine}")
-    

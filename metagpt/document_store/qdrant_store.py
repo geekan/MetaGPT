@@ -1,10 +1,9 @@
 from dataclasses import dataclass
-from typing import List, Sequence, Union
+from typing import List
 
 from qdrant_client import QdrantClient
 from qdrant_client.http.models import VectorParams
-from qdrant_client.models import Filter
-from qdrant_client.models import PointStruct
+from qdrant_client.models import Filter, PointStruct
 
 from metagpt.document_store.base_store import BaseStore
 
@@ -44,11 +43,15 @@ class QdrantStore(BaseStore):
 
     def add(self, collection_name, points: List[PointStruct]):
         # self.client.upload_records()
-        self.client.upsert(collection_name, points, )
+        self.client.upsert(
+            collection_name,
+            points,
+        )
 
-    def search(self, collection_name: str, query: List[float],  query_filter: Filter = None, k=10):
-        hits = self.client.search(collection_name=collection_name, query_vector=query, query_filter=query_filter,
-                                  limit=k)
+    def search(self, collection_name: str, query: List[float], query_filter: Filter = None, k=10):
+        hits = self.client.search(
+            collection_name=collection_name, query_vector=query, query_filter=query_filter, limit=k
+        )
         return [hit.__dict__ for hit in hits]
 
     def write(self, *args, **kwargs):

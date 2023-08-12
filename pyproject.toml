@@ -1,7 +1,30 @@
+[project]
+name = "chatgit"
+version = "0.1.0"
+description = "chatgit is an LLM model-based open source project competition analysis research project, it can help you find the most suitable open source project for your needs"
+authors = [
+    {name = "hezz", email = "hezhaozhaog@gmail.com"},
+]
+dependencies = [
+    "requests>=2.31.0",
+]
+requires-python = ">=3.11"
+readme = "README.md"
+license = {text = "Apache"}
+
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.black]
+line-length = 119
+target-version = ['py39']
+
+
 [tool.ruff]
 # Enable pycodestyle (`E`) and Pyflakes (`F`) codes by default.
 select = ["E", "F"]
-ignore = []
+ignore = ["E501", "E712", "E722", "F821"]
 
 # Allow autofix for all enabled rules (when `--fix`) is provided.
 fixable = ["A", "B", "C", "D", "E", "F", "G", "I", "N", "Q", "S", "T", "W", "ANN", "ARG", "BLE", "COM", "DJ", "DTZ", "EM", "ERA", "EXE", "FBT", "ICN", "INP", "ISC", "NPY", "PD", "PGH", "PIE", "PL", "PT", "PTH", "PYI", "RET", "RSE", "RUF", "SIM", "SLF", "TCH", "TID", "TRY", "UP", "YTT"]
@@ -33,12 +56,12 @@ exclude = [
 ]
 
 # Same as Black.
-line-length = 88
+line-length = 119
 
 # Allow unused variables when underscore-prefixed.
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
-# Assume Python 3.8
+# Assume Python 3.9
 target-version = "py39"
 
 [tool.ruff.mccabe]

@@ -9,3 +9,4 @@
 from metagpt.memory.memory import Memory
 from metagpt.memory.longterm_memory import LongTermMemory
 
+__all__ = ["Memory", "LongTermMemory"]

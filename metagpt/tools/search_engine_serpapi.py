@@ -79,7 +79,9 @@ class SerpAPIWrapper(BaseModel):
         """Process response from SerpAPI."""
         # logger.debug(res)
         focus = ["title", "snippet", "link"]
-        get_focused = lambda x: {i: j for i, j in x.items() if i in focus}
+
+        def get_focused(x):
+            return {i: j for i, j in x.items() if i in focus}
 
         if "error" in res.keys():
             raise ValueError(f"Got error from SerpAPI: {res['error']}")
@@ -104,7 +106,7 @@ class SerpAPIWrapper(BaseModel):
         if res.get("organic_results"):
             toret_l += [get_focused(i) for i in res.get("organic_results")]
 
-        return str(toret) + '\n' + str(toret_l) if as_string else toret_l
+        return str(toret) + "\n" + str(toret_l) if as_string else toret_l
 
 
 if __name__ == "__main__":
