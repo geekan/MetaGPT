@@ -24,3 +24,9 @@ repos:
             (?x)^(
             .*__init__\.py$
             )
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    # Ruff version.
+    rev: v0.0.284
+    hooks:
+      - id: ruff
