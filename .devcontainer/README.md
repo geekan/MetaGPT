@@ -2,7 +2,8 @@
 
 This project includes a [dev container](https://containers.dev/), which lets you use a container as a full-featured dev environment.
 
-You can use the dev container configuration in this folder to build and run the app without needing to install any of its tools locally! You can use it in [GitHub Codespaces](https://github.com/features/codespaces) or the [VS Code Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers).
+You can use the dev container configuration in this folder to build and start running MetaGPT locally! For more, refer to the main README under the home directory. 
+You can use it in [GitHub Codespaces](https://github.com/features/codespaces) or the [VS Code Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers).
 
 ## GitHub Codespaces
 <a href="https://codespaces.new/geekan/MetaGPT"><img src="https://github.com/codespaces/badge.svg" alt="Open in GitHub Codespaces"></a>
