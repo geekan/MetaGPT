@@ -4,14 +4,14 @@
 提供配置，单例
 """
 import os
-import openai
 
+import openai
 import yaml
 
 from metagpt.const import PROJECT_ROOT
 from metagpt.logs import logger
-from metagpt.utils.singleton import Singleton
 from metagpt.tools import SearchEngineType, WebBrowserEngineType
+from metagpt.utils.singleton import Singleton
 
 
 class NotConfiguredException(Exception):
@@ -46,7 +46,6 @@ class Config(metaclass=Singleton):
         self.openai_api_key = self._get("OPENAI_API_KEY")
         if not self.openai_api_key or "YOUR_API_KEY" == self.openai_api_key:
             raise NotConfiguredException("Set OPENAI_API_KEY first")
-
         self.openai_api_base = self._get("OPENAI_API_BASE")
         if not self.openai_api_base or "YOUR_API_BASE" == self.openai_api_base:
             openai_proxy = self._get("OPENAI_PROXY") or self.global_proxy
@@ -67,22 +66,22 @@ class Config(metaclass=Singleton):
         self.google_api_key = self._get("GOOGLE_API_KEY")
         self.google_cse_id = self._get("GOOGLE_CSE_ID")
         self.search_engine = self._get("SEARCH_ENGINE", SearchEngineType.SERPAPI_GOOGLE)
- 
+
         self.web_browser_engine = WebBrowserEngineType(self._get("WEB_BROWSER_ENGINE", "playwright"))
         self.playwright_browser_type = self._get("PLAYWRIGHT_BROWSER_TYPE", "chromium")
         self.selenium_browser_type = self._get("SELENIUM_BROWSER_TYPE", "chrome")
-      
+
         self.long_term_memory = self._get('LONG_TERM_MEMORY', False)
         if self.long_term_memory:
             logger.warning("LONG_TERM_MEMORY is True")
         self.max_budget = self._get("MAX_BUDGET", 10.0)
         self.total_cost = 0.0
-        self.puppeteer_config = self._get("PUPPETEER_CONFIG","")
-        self.mmdc = self._get("MMDC","mmdc")
-        self.update_costs = self._get("UPDATE_COSTS",True)
-        self.calc_usage = self._get("CALC_USAGE",True)
-
-        
+        self.puppeteer_config = self._get("PUPPETEER_CONFIG", "")
+        self.mmdc = self._get("MMDC", "mmdc")
+        self.update_costs = self._get("UPDATE_COSTS", True)
+        self.calc_usage = self._get("CALC_USAGE", True)
+        self.model_for_researcher_summary = self._get("MODEL_FOR_RESEARCHER_SUMMARY")
+        self.model_for_researcher_report = self._get("MODEL_FOR_RESEARCHER_REPORT")
 
     def _init_with_config_files_and_env(self, configs: dict, yaml_file):
         """从config/key.yaml / config/config.yaml / env三处按优先级递减加载"""

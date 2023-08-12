@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 @Time    : 2023/5/5 23:08
@@ -7,10 +6,11 @@
 """
 import asyncio
 import time
-from functools import wraps
 from typing import NamedTuple
 
 import openai
+from openai.error import APIConnectionError
+from tenacity import retry, stop_after_attempt, after_log, wait_fixed, retry_if_exception_type
 
 from metagpt.config import CONFIG
 from metagpt.logs import logger
@@ -20,33 +20,22 @@ from metagpt.utils.token_counter import (
     TOKEN_COSTS,
     count_message_tokens,
     count_string_tokens,
+    get_max_completion_tokens,
 )
-
-
-def retry(max_retries):
-    def decorator(f):
-        @wraps(f)
-        async def wrapper(*args, **kwargs):
-            for i in range(max_retries):
-                try:
-                    return await f(*args, **kwargs)
-                except Exception:
-                    if i == max_retries - 1:
-                        raise
-                    await asyncio.sleep(2 ** i)
-        return wrapper
-    return decorator
 
 
 class RateLimiter:
     """Rate control class, each call goes through wait_if_needed, sleep if rate control is needed"""
+
     def __init__(self, rpm):
         self.last_call_time = 0
-        self.interval = 1.1 * 60 / rpm  # Here 1.1 is used because even if the calls are made strictly according to time, they will still be QOS'd; consider switching to simple error retry later
+        # Here 1.1 is used because even if the calls are made strictly according to time,
+        # they will still be QOS'd; consider switching to simple error retry later
+        self.interval = 1.1 * 60 / rpm
         self.rpm = rpm
 
     def split_batches(self, batch):
-        return [batch[i:i + self.rpm] for i in range(0, len(batch), self.rpm)]
+        return [batch[i : i + self.rpm] for i in range(0, len(batch), self.rpm)]
 
     async def wait_if_needed(self, num_requests):
         current_time = time.time()
@@ -69,6 +58,7 @@ class Costs(NamedTuple):
 
 class CostManager(metaclass=Singleton):
     """计算使用接口的开销"""
+
     def __init__(self):
         self.total_prompt_tokens = 0
         self.total_completion_tokens = 0
@@ -86,13 +76,12 @@ class CostManager(metaclass=Singleton):
         """
         self.total_prompt_tokens += prompt_tokens
         self.total_completion_tokens += completion_tokens
-        cost = (
-            prompt_tokens * TOKEN_COSTS[model]["prompt"]
-            + completion_tokens * TOKEN_COSTS[model]["completion"]
-        ) / 1000
+        cost = (prompt_tokens * TOKEN_COSTS[model]["prompt"] + completion_tokens * TOKEN_COSTS[model]["completion"]) / 1000
         self.total_cost += cost
-        logger.info(f"Total running cost: ${self.total_cost:.3f} | Max budget: ${CONFIG.max_budget:.3f} | "
-                    f"Current cost: ${cost:.3f}, {prompt_tokens=}, {completion_tokens=}")
+        logger.info(
+            f"Total running cost: ${self.total_cost:.3f} | Max budget: ${CONFIG.max_budget:.3f} | "
+            f"Current cost: ${cost:.3f}, prompt_tokens: {prompt_tokens}, completion_tokens: {completion_tokens}"
+        )
         CONFIG.total_cost = self.total_cost
 
     def get_total_prompt_tokens(self):
@@ -127,14 +116,25 @@ class CostManager(metaclass=Singleton):
         return Costs(self.total_prompt_tokens, self.total_completion_tokens, self.total_cost, self.total_budget)
 
 
+def log_and_reraise(retry_state):
+    logger.error(f"Retry attempts exhausted. Last exception: {retry_state.outcome.exception()}")
+    logger.warning("""
+Recommend going to https://deepwisdom.feishu.cn/wiki/MsGnwQBjiif9c3koSJNcYaoSnu4#part-XdatdVlhEojeAfxaaEZcMV3ZniQ
+See FAQ 5.8
+""")
+    raise retry_state.outcome.exception()
+
+
 class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
     """
     Check https://platform.openai.com/examples for examples
     """
+
     def __init__(self):
         self.__init_openai(CONFIG)
         self.llm = openai
         self.model = CONFIG.openai_api_model
+        self.auto_max_tokens = False
         self._cost_manager = CostManager()
         RateLimiter.__init__(self, rpm=self.rpm)
 
@@ -148,10 +148,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         self.rpm = int(config.get("RPM", 10))
 
     async def _achat_completion_stream(self, messages: list[dict]) -> str:
-        response = await openai.ChatCompletion.acreate(
-            **self._cons_kwargs(messages),
-            stream=True
-        )
+        response = await openai.ChatCompletion.acreate(**self._cons_kwargs(messages), stream=True)
 
         # create variables to collect the stream of chunks
         collected_chunks = []
@@ -159,41 +156,42 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         # iterate through the stream of events
         async for chunk in response:
             collected_chunks.append(chunk)  # save the event response
-            chunk_message = chunk['choices'][0]['delta']  # extract the message
+            chunk_message = chunk["choices"][0]["delta"]  # extract the message
             collected_messages.append(chunk_message)  # save the message
             if "content" in chunk_message:
                 print(chunk_message["content"], end="")
         print()
 
-        full_reply_content = ''.join([m.get('content', '') for m in collected_messages])
+        full_reply_content = "".join([m.get("content", "") for m in collected_messages])
         usage = self._calc_usage(messages, full_reply_content)
         self._update_costs(usage)
         return full_reply_content
 
     def _cons_kwargs(self, messages: list[dict]) -> dict:
-        if CONFIG.openai_api_type == 'azure':
+        if CONFIG.openai_api_type == "azure":
             kwargs = {
                 "deployment_id": CONFIG.deployment_id,
                 "messages": messages,
-                "max_tokens": CONFIG.max_tokens_rsp,
+                "max_tokens": self.get_max_tokens(messages),
                 "n": 1,
                 "stop": None,
-                "temperature": 0.3
+                "temperature": 0.3,
             }
         else:
             kwargs = {
                 "model": self.model,
                 "messages": messages,
-                "max_tokens": CONFIG.max_tokens_rsp,
+                "max_tokens": self.get_max_tokens(messages),
                 "n": 1,
                 "stop": None,
-                "temperature": 0.3
+                "temperature": 0.3,
             }
+        kwargs["timeout"] = 3
         return kwargs
 
     async def _achat_completion(self, messages: list[dict]) -> dict:
         rsp = await self.llm.ChatCompletion.acreate(**self._cons_kwargs(messages))
-        self._update_costs(rsp.get('usage'))
+        self._update_costs(rsp.get("usage"))
         return rsp
 
     def _chat_completion(self, messages: list[dict]) -> dict:
@@ -211,7 +209,13 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         #     messages = self.messages_to_dict(messages)
         return await self._achat_completion(messages)
 
-    @retry(max_retries=6)
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_fixed(1),
+        after=after_log(logger, logger.level('WARNING').name),
+        retry=retry_if_exception_type(APIConnectionError),
+        retry_error_callback=log_and_reraise,
+    )
     async def acompletion_text(self, messages: list[dict], stream=False) -> str:
         """when streaming, print each token in place."""
         if stream:
@@ -262,3 +266,8 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
 
     def get_costs(self) -> Costs:
         return self._cost_manager.get_costs()
+
+    def get_max_tokens(self, messages: list[dict]):
+        if not self.auto_max_tokens:
+            return CONFIG.max_tokens_rsp
+        return get_max_completion_tokens(messages, self.model, CONFIG.max_tokens_rsp)
