@@ -16,7 +16,7 @@ RUN npm install -g @mermaid-js/mermaid-cli &&\
 # Install Python dependencies and install MetaGPT
 COPY . /app/metagpt
 RUN cd /app/metagpt &&\
-    mkdir workspace &&\
+    mkdir -p workspace &&\
     pip install -r requirements.txt &&\
     pip cache purge &&\
     python setup.py install
