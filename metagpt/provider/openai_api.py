@@ -148,7 +148,13 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         self.rpm = int(config.get("RPM", 10))
 
     async def _achat_completion_stream(self, messages: list[dict]) -> str:
-        response = await openai.ChatCompletion.acreate(**self._cons_kwargs(messages), stream=True)
+        try:
+            response = await openai.ChatCompletion.acreate(**self._cons_kwargs(messages), stream=True)
+        except openai.error.RateLimitError as e:
+            # Wait for 100ms before one more re-try, to avoid hitting the OpenAI rate limit again
+            # Anthropic only limits concurrent requests, which is not expected to be hit
+            await asyncio.sleep(0.1)
+            response = await openai.ChatCompletion.acreate(**self._cons_kwargs(messages), stream=True)
 
         # create variables to collect the stream of chunks
         collected_chunks = []
