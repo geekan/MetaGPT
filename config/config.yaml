@@ -7,10 +7,10 @@
 ## Or, you can configure OPENAI_PROXY to access official OPENAI_API_BASE.
 OPENAI_API_BASE: "https://api.openai.com/v1"
 #OPENAI_PROXY: "http://127.0.0.1:8118"
-#OPENAI_API_KEY: "YOUR_API_KEY"
+OPENAI_API_KEY: "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"
 OPENAI_API_MODEL: "gpt-4"
-MAX_TOKENS: 1500
-RPM: 10
+MAX_TOKENS: 5000
+RPM: 2
 
 #### if Anthropic
 #Anthropic_API_KEY: "YOUR_API_KEY"
