@@ -36,3 +36,4 @@ anthropic==0.3.6
 typing-inspect==0.8.0
 typing_extensions==4.5.0
 libcst==1.0.1
+bs4>=0.0.1

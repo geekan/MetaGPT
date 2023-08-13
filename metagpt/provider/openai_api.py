@@ -6,6 +6,7 @@
 """
 import asyncio
 import time
+import math
 from typing import NamedTuple
 
 import openai
@@ -147,14 +148,17 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             openai.api_version = config.openai_api_version
         self.rpm = int(config.get("RPM", 10))
 
-    async def _achat_completion_stream(self, messages: list[dict]) -> str:
-        try:
-            response = await openai.ChatCompletion.acreate(**self._cons_kwargs(messages), stream=True)
-        except openai.error.RateLimitError as e:
-            # Wait for 100ms before one more re-try, to avoid hitting the OpenAI rate limit again
-            # Anthropic only limits concurrent requests, which is not expected to be hit
-            await asyncio.sleep(0.1)
-            response = await openai.ChatCompletion.acreate(**self._cons_kwargs(messages), stream=True)
+    async def _achat_completion_stream(self, messages: list[dict], max_retries: int = 5) -> str:
+        for i in range(max_retries): 
+            try:
+                response = await openai.ChatCompletion.acreate(**self._cons_kwargs(messages), stream=True)
+                break
+            except openai.error.RateLimitError as e:
+                wait_seconds = 0.006 # min wait time given by OpenAI
+                # retry with exponential backoff
+                time.sleep(wait_seconds * math.pow(2, i)) 
+        else:
+            raise e
 
         # create variables to collect the stream of chunks
         collected_chunks = []
