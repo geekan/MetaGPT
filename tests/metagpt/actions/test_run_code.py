@@ -6,24 +6,23 @@
 @File    : test_run_code.py
 """
 import pytest
-import asyncio
+
 from metagpt.actions.run_code import RunCode
+
 
 @pytest.mark.asyncio
 async def test_run_text():
-    action = RunCode()
-    result, errs = await RunCode.run_text('result = 1 + 1')
+    result, errs = await RunCode.run_text("result = 1 + 1")
     assert result == 2
     assert errs == ""
 
-    result, errs = await RunCode.run_text('result = 1 / 0')
+    result, errs = await RunCode.run_text("result = 1 / 0")
     assert result == ""
     assert "ZeroDivisionError" in errs
 
+
 @pytest.mark.asyncio
 async def test_run_script():
-    action = RunCode()
-    
     # Successful command
     out, err = await RunCode.run_script(".", command=["echo", "Hello World"])
     assert out.strip() == "Hello World"
@@ -32,6 +31,7 @@ async def test_run_script():
     # Unsuccessful command
     out, err = await RunCode.run_script(".", command=["python", "-c", "print(1/0)"])
     assert "ZeroDivisionError" in err
+
 
 @pytest.mark.asyncio
 async def test_run():
@@ -47,9 +47,10 @@ async def test_run():
         test_file_name="",
         command=["echo", "Hello World"],
         working_directory=".",
-        additional_python_paths=[]
+        additional_python_paths=[],
     )
     assert "PASS" in result
+
 
 @pytest.mark.asyncio
 async def test_run_failure():
@@ -65,6 +66,6 @@ async def test_run_failure():
         test_file_name="",
         command=["python", "-c", "print(1/0)"],
         working_directory=".",
-        additional_python_paths=[]
+        additional_python_paths=[],
     )
     assert "FAIL" in result

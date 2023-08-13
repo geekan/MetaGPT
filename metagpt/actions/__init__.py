@@ -15,6 +15,7 @@ from metagpt.actions.design_api import WriteDesign
 from metagpt.actions.design_api_review import DesignReview
 from metagpt.actions.design_filenames import DesignFilenames
 from metagpt.actions.project_management import AssignTasks, WriteTasks
+from metagpt.actions.research import CollectLinks, WebBrowseAndSummarize, ConductResearch
 from metagpt.actions.run_code import RunCode
 from metagpt.actions.search_and_summarize import SearchAndSummarize
 from metagpt.actions.write_code import WriteCode
@@ -22,11 +23,11 @@ from metagpt.actions.write_code_review import WriteCodeReview
 from metagpt.actions.write_prd import WritePRD
 from metagpt.actions.write_prd_review import WritePRDReview
 from metagpt.actions.write_test import WriteTest
-from metagpt.actions.research import CollectLinks, WebBrowseAndSummarize, ConductResearch
 
 
 class ActionType(Enum):
     """All types of Actions, used for indexing."""
+
     ADD_REQUIREMENT = BossRequirement
     WRITE_PRD = WritePRD
     WRITE_PRD_REVIEW = WritePRDReview
@@ -44,3 +45,10 @@ class ActionType(Enum):
     COLLECT_LINKS = CollectLinks
     WEB_BROWSE_AND_SUMMARIZE = WebBrowseAndSummarize
     CONDUCT_RESEARCH = ConductResearch
+
+
+__all__ = [
+    "ActionType",
+    "Action",
+    "ActionOutput",
+]
