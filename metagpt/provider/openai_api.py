@@ -224,8 +224,8 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         return self.get_choice_text(rsp)
 
     def _calc_usage(self, messages: list[dict], rsp: str) -> dict:
+        usage = {}
         if CONFIG.calc_usage:
-            usage = {}
             try:
                 prompt_tokens = count_message_tokens(messages, self.model)
                 completion_tokens = count_string_tokens(rsp, self.model)
@@ -234,7 +234,8 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
                 return usage
             except Exception as e:
                 logger.error("usage calculation failed!", e)
-                CONFIG.calc_usage = False
+        else:
+            return usage
 
     async def acompletion_batch(self, batch: list[list[dict]]) -> list[dict]:
         """返回完整JSON"""
@@ -270,7 +271,6 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
                 self._cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
             except Exception as e:
                 logger.error("updating costs failed!", e)
-                CONFIG.calc_usage = False
 
     def get_costs(self) -> Costs:
         return self._cost_manager.get_costs()
