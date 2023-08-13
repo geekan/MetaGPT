@@ -106,6 +106,24 @@ The command `docker run ...` do the following things:
 - Map host directory `/opt/metagpt/workspace` to container directory `/app/metagpt/workspace`
 - Execute the demo command `python startup.py "Write a cli snake game"`
 
+### Experience with Github Codespaces
+```bash
+# Step 1: Create a codespace if you don't have one
+# Step 2: Open a terminal
+# Step 3: Set OPENAI_API_KEY
+export OPENAI_API_KEY="sk-..."
+# Step 4: Run the demo
+mkdir -p /opt/metagpt/{config,workspace} && docker run --rm \
+    -e OPENAI_API_KEY=$OPENAI_API_KEY \
+    --privileged \
+    -v /opt/metagpt/workspace:/app/metagpt/workspace \
+    metagpt/metagpt:v0.3.1 \
+    python startup.py "Write a cli snake game"
+# Step 5: Check the output in /opt/metagpt/workspace
+cd /opt/metagpt/workspace && ls -l
+```
+Command explanation as above, see installation by docker for more details.
+
 ### Build image by yourself
 
 ```bash
