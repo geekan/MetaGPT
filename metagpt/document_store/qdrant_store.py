@@ -2,8 +2,7 @@ from dataclasses import dataclass
 from typing import List
 
 from qdrant_client import QdrantClient
-from qdrant_client.http.models import VectorParams
-from qdrant_client.models import Filter, PointStruct
+from qdrant_client.models import Filter, PointStruct, VectorParams
 
 from metagpt.document_store.base_store import BaseStore
 
