@@ -88,7 +88,7 @@ class QdrantStore(BaseStore):
             collection_name: collection name
             points: list of PointStruct object, about PointStruct detail in https://github.com/qdrant/qdrant-client
 
-        Returns: None
+        Returns: NoneX
 
         """
         # self.client.upload_records()
