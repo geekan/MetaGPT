@@ -2,12 +2,10 @@
 # -*- coding: utf-8 -*-
 # @Desc   : the implement of Long-term memory
 
-from typing import Iterable, Type
-
 from metagpt.logs import logger
-from metagpt.schema import Message
 from metagpt.memory import Memory
 from metagpt.memory.memory_storage import MemoryStorage
+from metagpt.schema import Message
 
 
 class LongTermMemory(Memory):
@@ -27,10 +25,11 @@ class LongTermMemory(Memory):
         messages = self.memory_storage.recover_memory(role_id)
         self.rc = rc
         if not self.memory_storage.is_initialized:
-            logger.warning(f'It may the first time to run Agent {role_id}, the long-term memory is empty')
+            logger.warning(f"It may the first time to run Agent {role_id}, the long-term memory is empty")
         else:
-            logger.warning(f'Agent {role_id} has existed memory storage with {len(messages)} messages '
-                           f'and has recovered them.')
+            logger.warning(
+                f"Agent {role_id} has existed memory storage with {len(messages)} messages " f"and has recovered them."
+            )
         self.msg_from_recover = True
         self.add_batch(messages)
         self.msg_from_recover = False
@@ -43,13 +42,13 @@ class LongTermMemory(Memory):
                 # and ignore adding messages from recover repeatedly
                 self.memory_storage.add(message)
 
-    def remember(self, observed: list[Message], k=10) -> list[Message]:
+    def remember(self, observed: list[Message], k=0) -> list[Message]:
         """
         remember the most similar k memories from observed Messages, return all when k=0
             1. remember the short-term memory(stm) news
             2. integrate the stm news with ltm(long-term memory) news
         """
-        stm_news = super(LongTermMemory, self).remember(observed)  # shot-term memory news
+        stm_news = super(LongTermMemory, self).remember(observed, k=k)  # shot-term memory news
         if not self.memory_storage.is_initialized:
             # memory_storage hasn't initialized, use default `remember` to get stm_news
             return stm_news

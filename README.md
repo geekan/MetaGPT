@@ -33,7 +33,7 @@ For example, if you type `python startup.py "Design a RecSys like Toutiao"`, you
 
 ![Jinri Toutiao Recsys Data & API Design](docs/resources/workspace/content_rec_sys/resources/data_api_design.png)
 
-It requires around **$0.2** (GPT-4 api's costs) to generate one example with analysis and design, around **$2.0** to a full project.
+It costs approximately **$0.2** (in GPT-4 API fees) to generate one example with analysis and design, and around **$2.0** for a full project.
 
 ## Installation
 
@@ -190,6 +190,25 @@ async def startup(idea: str, investment: float = 3.0, n_round: int = 5):
 ```
 
 You can check `examples` for more details on single role (with knowledge base) and LLM only examples.
+
+## QuickStart
+It is difficult to install and configure the local environment for some users. The following tutorials will allow you to quickly experience the charm of MetaGPT.  
+
+- [MetaGPT quickstart](https://deepwisdom.feishu.cn/wiki/CyY9wdJc4iNqArku3Lncl4v8n2b)
+
+## Citation
+
+For now, cite the [Arxiv paper](https://arxiv.org/abs/2308.00352):
+```bibtex
+@misc{hong2023metagpt,
+      title={MetaGPT: Meta Programming for Multi-Agent Collaborative Framework}, 
+      author={Sirui Hong and Xiawu Zheng and Jonathan Chen and Yuheng Cheng and Jinlin Wang and Ceyao Zhang and Zili Wang and Steven Ka Shing Yau and Zijuan Lin and Liyang Zhou and Chenyu Ran and Lingfeng Xiao and Chenglin Wu},
+      year={2023},
+      eprint={2308.00352},
+      archivePrefix={arXiv},
+      primaryClass={cs.AI}
+}
+```
 
 ## Contact Information
 
