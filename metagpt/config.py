@@ -76,10 +76,10 @@ class Config(metaclass=Singleton):
             logger.warning("LONG_TERM_MEMORY is True")
         self.max_budget = self._get("MAX_BUDGET", 10.0)
         self.total_cost = 0.0
-        self.puppeteer_config = self._get("PUPPETEER_CONFIG", "")
-        self.mmdc = self._get("MMDC", "mmdc")
-        self.update_costs = self._get("UPDATE_COSTS", True)
-        self.calc_usage = self._get("CALC_USAGE", True)
+
+        self.puppeteer_config = self._get("PUPPETEER_CONFIG","")
+        self.mmdc = self._get("MMDC","mmdc")
+        self.calc_usage = self._get("CALC_USAGE",True)
         self.model_for_researcher_summary = self._get("MODEL_FOR_RESEARCHER_SUMMARY")
         self.model_for_researcher_report = self._get("MODEL_FOR_RESEARCHER_REPORT")
 

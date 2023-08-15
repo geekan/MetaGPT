@@ -23,27 +23,6 @@ from metagpt.utils.token_counter import (
     get_max_completion_tokens,
 )
 
-<<<<<<< main
-def retry(max_retries):
-    def decorator(f):
-        @wraps(f)
-        async def wrapper(*args, **kwargs):
-            for i in range(max_retries):
-                try:
-                    return await f(*args, **kwargs)
-                except Exception:
-                    if i == max_retries - 1:
-                        raise
-                    await asyncio.sleep(2 ** i)
-        return wrapper
-    return decorator
-
-class RateLimiter:
-    """Rate limiter class, each call goes through wait_if_needed, sleep if rate limiting is required"""
-    def __init__(self, rpm):
-        self.last_call_time = 0
-        self.interval = 1.1 * 60 / rpm  # Here 1.1 is used because even if the calls are made strictly on time, they will still be QOS'd; consider switching to simple error retry later
-=======
 
 class RateLimiter:
     """Rate control class, each call goes through wait_if_needed, sleep if rate control is needed"""
@@ -53,7 +32,6 @@ class RateLimiter:
         # Here 1.1 is used because even if the calls are made strictly according to time,
         # they will still be QOS'd; consider switching to simple error retry later
         self.interval = 1.1 * 60 / rpm
->>>>>>> main
         self.rpm = rpm
 
     def split_batches(self, batch):
