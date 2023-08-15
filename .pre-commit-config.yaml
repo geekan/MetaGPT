@@ -24,3 +24,4 @@ repos:
     rev: 23.3.0
     hooks:
       - id: black
+        args: ['--line-length', '120']
