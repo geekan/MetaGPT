@@ -1,4 +1,5 @@
 import pytest
+
 from metagpt.config import CONFIG
 from metagpt.tools import web_browser_engine_playwright
 
@@ -20,6 +21,7 @@ async def test_scrape_web_page(browser_type, use_proxy, kwagrs, url, urls, proxy
             CONFIG.global_proxy = proxy
         browser = web_browser_engine_playwright.PlaywrightWrapper(browser_type, **kwagrs)
         result = await browser.run(url)
+        result = result.inner_text
         assert isinstance(result, str)
         assert "Deepwisdom" in result
 

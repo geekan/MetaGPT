@@ -7,122 +7,76 @@
 """
 from __future__ import annotations
 
-import json
+import importlib
+from typing import Callable, Coroutine, Literal, overload
 
-from metagpt.config import Config
-from metagpt.logs import logger
-from metagpt.tools.search_engine_serpapi import SerpAPIWrapper
-from metagpt.tools.search_engine_serper import SerperWrapper
-
-config = Config()
+from metagpt.config import CONFIG
 from metagpt.tools import SearchEngineType
 
 
 class SearchEngine:
-    """
-    TODO: 合入Google Search 并进行反代
-    注：这里Google需要挂Proxifier或者类似全局代理
-    - DDG: https://pypi.org/project/duckduckgo-search/
-    - GOOGLE: https://programmablesearchengine.google.com/controlpanel/overview?cx=63f9de531d0e24de9
-    """
-    def __init__(self, engine=None, run_func=None):
-        self.config = Config()
-        self.run_func = run_func
-        self.engine = engine or self.config.search_engine
+    """Class representing a search engine.
 
-    @classmethod
-    def run_google(cls, query, max_results=8):
-        # results = ddg(query, max_results=max_results)
-        results = google_official_search(query, num_results=max_results)
-        logger.info(results)
-        return results
+    Args:
+        engine: The search engine type. Defaults to the search engine specified in the config.
+        run_func: The function to run the search. Defaults to None.
 
-    async def run(self, query: str, max_results=8):
-        if self.engine == SearchEngineType.SERPAPI_GOOGLE:
-            api = SerpAPIWrapper()
-            rsp = await api.run(query)
-        elif self.engine == SearchEngineType.DIRECT_GOOGLE:
-            rsp = SearchEngine.run_google(query, max_results)
-        elif self.engine == SearchEngineType.SERPER_GOOGLE:
-            api = SerperWrapper()
-            rsp = await api.run(query)
-        elif self.engine == SearchEngineType.CUSTOM_ENGINE:
-            rsp = self.run_func(query)
+    Attributes:
+        run_func: The function to run the search.
+        engine: The search engine type.
+    """
+    def __init__(
+        self,
+        engine: SearchEngineType | None = None,
+        run_func: Callable[[str, int, bool], Coroutine[None, None, str | list[str]]] = None,
+    ):
+        engine = engine or CONFIG.search_engine
+        if engine == SearchEngineType.SERPAPI_GOOGLE:
+            module = "metagpt.tools.search_engine_serpapi"
+            run_func = importlib.import_module(module).SerpAPIWrapper().run            
+        elif engine == SearchEngineType.SERPER_GOOGLE:
+            module = "metagpt.tools.search_engine_serper"
+            run_func = importlib.import_module(module).SerperWrapper().run
+        elif engine == SearchEngineType.DIRECT_GOOGLE:
+            module = "metagpt.tools.search_engine_googleapi"
+            run_func = importlib.import_module(module).GoogleAPIWrapper().run
+        elif engine == SearchEngineType.DUCK_DUCK_GO:
+            module = "metagpt.tools.search_engine_ddg"
+            run_func = importlib.import_module(module).DDGAPIWrapper().run
+        elif engine == SearchEngineType.CUSTOM_ENGINE:
+            pass  # run_func = run_func
         else:
             raise NotImplementedError
-        return rsp
+        self.engine = engine
+        self.run_func = run_func
 
+    @overload
+    def run(
+        self,
+        query: str,
+        max_results: int = 8,
+        as_string: Literal[True] = True,
+    ) -> str:
+        ...
 
-def google_official_search(query: str, num_results: int = 8, focus=['snippet', 'link', 'title']) -> dict | list[dict]:
-    """Return the results of a Google search using the official Google API
+    @overload
+    def run(
+        self,
+        query: str,
+        max_results: int = 8,
+        as_string: Literal[False] = False,
+    ) -> list[dict[str, str]]:
+        ...
 
-    Args:
-        query (str): The search query.
-        num_results (int): The number of results to return.
+    async def run(self, query: str, max_results: int = 8, as_string: bool = True) -> str | list[dict[str, str]]:
+        """Run a search query.
 
-    Returns:
-        str: The results of the search.
-    """
+        Args:
+            query: The search query.
+            max_results: The maximum number of results to return. Defaults to 8.
+            as_string: Whether to return the results as a string or a list of dictionaries. Defaults to True.
 
-    from googleapiclient.discovery import build
-    from googleapiclient.errors import HttpError
-
-    try:
-        api_key = config.google_api_key
-        custom_search_engine_id = config.google_cse_id
-
-        with build("customsearch", "v1", developerKey=api_key) as service:
-
-            result = (
-                service.cse()
-                .list(q=query, cx=custom_search_engine_id, num=num_results)
-                .execute()
-            )
-            logger.info(result)
-            # Extract the search result items from the response
-        search_results = result.get("items", [])
-
-        # Create a list of only the URLs from the search results
-        search_results_details = [{i: j for i, j in item_dict.items() if i in focus} for item_dict in search_results]
-
-    except HttpError as e:
-        # Handle errors in the API call
-        error_details = json.loads(e.content.decode())
-
-        # Check if the error is related to an invalid or missing API key
-        if error_details.get("error", {}).get(
-            "code"
-        ) == 403 and "invalid API key" in error_details.get("error", {}).get(
-            "message", ""
-        ):
-            return "Error: The provided Google API key is invalid or missing."
-        else:
-            return f"Error: {e}"
-    # google_result can be a list or a string depending on the search results
-
-    # Return the list of search result URLs
-    return search_results_details
-
-
-def safe_google_results(results: str | list) -> str:
-    """
-        Return the results of a google search in a safe format.
-
-    Args:
-        results (str | list): The search results.
-
-    Returns:
-        str: The results of the search.
-    """
-    if isinstance(results, list):
-        safe_message = json.dumps(
-            # FIXME: # .encode("utf-8", "ignore") 这里去掉了，但是AutoGPT里有，很奇怪
-            [result for result in results]
-        )
-    else:
-        safe_message = results.encode("utf-8", "ignore").decode("utf-8")
-    return safe_message
-
-
-if __name__ == '__main__':
-    SearchEngine.run(query='wtf')
+        Returns:
+            The search results as a string or a list of dictionaries.
+        """
+        return await self.run_func(query, max_results=max_results, as_string=as_string)
