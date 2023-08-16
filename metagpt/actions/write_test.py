@@ -5,7 +5,6 @@
 @Author  : alexanderwu
 @File    : write_test.py
 """
-from metagpt.logs import logger
 from metagpt.actions.action import Action
 from metagpt.utils.common import CodeParser
 
@@ -29,6 +28,7 @@ you should correctly import the necessary classes based on these file locations!
 ## {test_file_name}: Write test code with triple quoto. Do your best to implement THIS ONLY ONE FILE.
 """
 
+
 class WriteTest(Action):
     def __init__(self, name="WriteTest", context=None, llm=None):
         super().__init__(name, context, llm)
@@ -43,7 +43,7 @@ class WriteTest(Action):
             code_to_test=code_to_test,
             test_file_name=test_file_name,
             source_file_path=source_file_path,
-            workspace=workspace
+            workspace=workspace,
         )
         code = await self.write_code(prompt)
         return code

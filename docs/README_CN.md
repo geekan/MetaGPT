@@ -197,4 +197,4 @@ https://github.com/geekan/MetaGPT/assets/2707039/5e8c1062-8c35-440f-bb20-2b0320f
 
 添加运营小姐姐，拉你入群
 
-<img src="resources/20230808-220924.jpg" width = "30%" height = "30%" alt="MetaGPT WeChat Discuss Group" align=center />
+<img src="resources/20230811-214014.jpg" width = "30%" height = "30%" alt="MetaGPT WeChat Discuss Group" align=center />
