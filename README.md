@@ -71,6 +71,8 @@ python setup.py install
     MMDC: "./node_modules/.bin/mmdc"
     ```
 
+- if `python setup.py install` fails with error `[Errno 13] Permission denied: '/usr/local/lib/python3.11/dist-packages/test-easy-install-13129.write-test'`, try instead running `python setup.py install --user`
+
 ### Installation by Docker
 
 ```bash
