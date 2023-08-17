@@ -61,8 +61,8 @@ class AzureTTS:
 
 
 # Export
-def openapi_azsure_tts(text, lang="", voice="", style="", role="", subscription_key="", region=""):
-    """openapi/tts/azsure
+def oas3_azsure_tts(text, lang="", voice="", style="", role="", subscription_key="", region=""):
+    """oas3/tts/azsure
     For more details, check out:`https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts`
 
     :param lang: The value can contain a language code such as en (English), or a locale such as en-US (English - United States). For more details, checkout: `https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts`

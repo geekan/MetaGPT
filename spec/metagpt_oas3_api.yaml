@@ -4,14 +4,14 @@ info:
   title: "MetaGPT Export OpenAPIs"
   version: "1.0"
 servers:
-  - url: "/openapi"
+  - url: "/oas3"
 
 paths:
   /tts/azsure:
     post:
       summary: "Convert Text to Base64-encoded .wav File Stream"
       description: "For more details, check out: [Azure Text-to_Speech](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts)"
-      operationId: azure_tts.openapi_azsure_tts
+      operationId: azure_tts.oas3_azsure_tts
       requestBody:
         required: true
         content:

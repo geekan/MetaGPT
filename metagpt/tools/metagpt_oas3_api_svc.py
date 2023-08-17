@@ -3,8 +3,8 @@
 """
 @Time    : 2023/8/17
 @Author  : mashenquan
-@File    : metagpt_openapi_svc.py
-@Desc    : MetaGPT OpenAPI REST API service
+@File    : metagpt_oas3_api_svc.py
+@Desc    : MetaGPT OpenAPI Specification 3.0 REST API service
 """
 from pathlib import Path
 import sys
@@ -16,5 +16,5 @@ if __name__ == "__main__":
     initalize_enviroment()
 
     app = connexion.AioHttpApp(__name__, specification_dir='../../spec/')
-    app.add_api("metagpt_openapi.yaml")
+    app.add_api("metagpt_oas3_api.yaml")
     app.run(port=8080)
