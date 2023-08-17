@@ -122,6 +122,15 @@ See FAQ 5.8
     raise retry_state.outcome.exception()
 
 
+def log_and_reraise(retry_state):
+    logger.error(f"Retry attempts exhausted. Last exception: {retry_state.outcome.exception()}")
+    logger.warning("""
+Recommend going to https://deepwisdom.feishu.cn/wiki/MsGnwQBjiif9c3koSJNcYaoSnu4#part-XdatdVlhEojeAfxaaEZcMV3ZniQ
+See FAQ 5.8
+""")
+    raise retry_state.outcome.exception()
+
+
 class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
     """
     Check https://platform.openai.com/examples for examples
@@ -223,11 +232,16 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
     def _calc_usage(self, messages: list[dict], rsp: str) -> dict:
         usage = {}
         if CONFIG.calc_usage:
-            prompt_tokens = count_message_tokens(messages, self.model)
-            completion_tokens = count_string_tokens(rsp, self.model)
-            usage['prompt_tokens'] = prompt_tokens
-            usage['completion_tokens'] = completion_tokens
-        return usage
+            try:
+                prompt_tokens = count_message_tokens(messages, self.model)
+                completion_tokens = count_string_tokens(rsp, self.model)
+                usage['prompt_tokens'] = prompt_tokens
+                usage['completion_tokens'] = completion_tokens
+                return usage
+            except Exception as e:
+                logger.error("usage calculation failed!", e)
+        else:
+            return usage
 
     async def acompletion_batch(self, batch: list[list[dict]]) -> list[dict]:
         """Return full JSON"""
@@ -256,10 +270,13 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         return results
 
     def _update_costs(self, usage: dict):
-        if CONFIG.update_costs:
-            prompt_tokens = int(usage['prompt_tokens'])
-            completion_tokens = int(usage['completion_tokens'])
-            self._cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
+        if CONFIG.calc_usage:
+            try:
+                prompt_tokens = int(usage['prompt_tokens'])
+                completion_tokens = int(usage['completion_tokens'])
+                self._cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
+            except Exception as e:
+                logger.error("updating costs failed!", e)
 
     def get_costs(self) -> Costs:
         return self._cost_manager.get_costs()

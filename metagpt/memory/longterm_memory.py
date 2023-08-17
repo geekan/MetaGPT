@@ -2,12 +2,10 @@
 # -*- coding: utf-8 -*-
 # @Desc   : the implement of Long-term memory
 
-from typing import Iterable, Type
-
 from metagpt.logs import logger
-from metagpt.schema import Message
 from metagpt.memory import Memory
 from metagpt.memory.memory_storage import MemoryStorage
+from metagpt.schema import Message
 
 
 class LongTermMemory(Memory):
@@ -27,10 +25,11 @@ class LongTermMemory(Memory):
         messages = self.memory_storage.recover_memory(role_id)
         self.rc = rc
         if not self.memory_storage.is_initialized:
-            logger.warning(f'It may the first time to run Agent {role_id}, the long-term memory is empty')
+            logger.warning(f"It may the first time to run Agent {role_id}, the long-term memory is empty")
         else:
-            logger.warning(f'Agent {role_id} has existed memory storage with {len(messages)} messages '
-                           f'and has recovered them.')
+            logger.warning(
+                f"Agent {role_id} has existed memory storage with {len(messages)} messages " f"and has recovered them."
+            )
         self.msg_from_recover = True
         self.add_batch(messages)
         self.msg_from_recover = False
