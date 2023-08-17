@@ -84,10 +84,17 @@ class Researcher(Role):
         return msg
 
     def write_report(self, topic: str, content: str):
+        if not RESEARCH_PATH.exists():
+            RESEARCH_PATH.mkdir(parents=True)
         filepath = RESEARCH_PATH / f"{topic}.md"
         filepath.write_text(content)
 
 
 if __name__ == "__main__":
-    role = Researcher(language="en-us")
-    asyncio.run(role.run("dataiku vs. datarobot"))
+    import fire
+
+    async def main(topic: str, language="en-us"):
+        role = Researcher(topic, language=language)
+        await role.run(topic)
+
+    fire.Fire(main)
