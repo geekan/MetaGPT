@@ -1,0 +1,64 @@
+openapi: "3.0.0"
+
+info:
+  title: "MetaGPT Export OpenAPIs"
+  version: "1.0"
+servers:
+  - url: "/openapi"
+
+paths:
+  /tts/azsure:
+    post:
+      summary: "Convert Text to Base64-encoded .wav File Stream"
+      description: "For more details, check out: [Azure Text-to_Speech](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts)"
+      operationId: azure_tts.openapi_azsure_tts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - text
+              properties:
+                text:
+                  type: string
+                  description: Text to convert
+                lang:
+                  type: string
+                  description: The language code or locale, e.g., en-US (English - United States)
+                  default: "zh-CN"
+                voice:
+                  type: string
+                  description: "Voice style, see: [Azure Text-to_Speech](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts), [Voice Gallery](https://speech.microsoft.com/portal/voicegallery)"
+                  default: "zh-CN-XiaomoNeural"
+                style:
+                  type: string
+                  description: "Speaking style to express different emotions. For more details, checkout: [Azure Text-to_Speech](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts)"
+                  default: "affectionate"
+                role:
+                  type: string
+                  description: "Role to specify age and gender. For more details, checkout: [Azure Text-to_Speech](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts)"
+                  default: "Girl"
+                subscription_key:
+                  type: string
+                  description: "Key used to access Azure AI service API, see: [Azure Portal](https://portal.azure.com/) > `Resource Management` > `Keys and Endpoint`"
+                  default: ""
+                region:
+                  type: string
+                  description: "Location (or region) of your resource, see: [Azure Portal](https://portal.azure.com/) > `Resource Management` > `Keys and Endpoint`"
+                  default: ""
+      responses:
+        '200':
+          description: "Base64-encoded .wav file data if successful, otherwise an empty string."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: string
+        '400':
+          description: Bad Request
+        '500':
+          description: Bad Request
