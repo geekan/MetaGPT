@@ -4,7 +4,7 @@
 @Time    : 2023/8/17
 @Author  : mashenquan
 @File    : azure_tts.py
-@Desc    : azure TTS openapi, which provides text-to-speech functionality
+@Desc    : azure TTS OAS3 api, which provides text-to-speech functionality
 """
 from pathlib import Path
 from uuid import uuid4
@@ -69,7 +69,7 @@ def oas3_azsure_tts(text, lang="", voice="", style="", role="", subscription_key
     :param voice: For more details, checkout: `https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts`, `https://speech.microsoft.com/portal/voicegallery`
     :param style: Speaking style to express different emotions like cheerfulness, empathy, and calm. For more details, checkout: `https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts`
     :param role: With roles, the same voice can act as a different age and gender. For more details, checkout: `https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts`
-    :param text: Text to convert
+    :param text: The text used for voice conversion.
     :param subscription_key: key is used to access your Azure AI service API, see: `https://portal.azure.com/` > `Resource Management` > `Keys and Endpoint`
     :param region: This is the location (or region) of your resource. You may need to use this field when making calls to this API.
     :return: Returns the Base64-encoded .wav file data if successful, otherwise an empty string.
@@ -110,5 +110,5 @@ def oas3_azsure_tts(text, lang="", voice="", style="", role="", subscription_key
 if __name__ == "__main__":
     initalize_enviroment()
 
-    v = openapi_azsure_tts("测试，test")
+    v = oas3_azsure_tts("测试，test")
     print(v)

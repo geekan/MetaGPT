@@ -59,6 +59,44 @@ paths:
                   result:
                     type: string
         '400':
-          description: Bad Request
+          description: "Bad Request"
         '500':
-          description: Bad Request
+          description: "Internal Server Error"
+
+  /txt2img/openai:
+    post:
+      summary: "Convert Text to Base64-encoded Image Data Stream"
+      operationId: openai_text_2_image.oas3_openai_text_2_image
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                text:
+                  type: string
+                  description: "The text used for image conversion."
+                size_type:
+                  type: string
+                  enum: ["256x256", "512x512", "1024x1024"]
+                  default: "1024x1024"
+                  description: "Size of the generated image."
+                openai_api_key:
+                  type: string
+                  default: ""
+                  description: "OpenAI API key, For more details, checkout: `https://platform.openai.com/account/api-keys`"
+      responses:
+        '200':
+          description: "Base64-encoded image data."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  image_data:
+                    type: string
+        '400':
+          description: "Bad Request"
+        '500':
+          description: "Internal Server Error"
