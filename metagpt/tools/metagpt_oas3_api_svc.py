@@ -10,11 +10,11 @@ from pathlib import Path
 import sys
 import connexion
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent))  # fix-bug: No module named 'metagpt'
-from metagpt.utils.common import initalize_enviroment
+from metagpt.utils.common import initialize_environment
 
 if __name__ == "__main__":
-    initalize_enviroment()
+    initialize_environment()
 
-    app = connexion.AioHttpApp(__name__, specification_dir='../../spec/')
+    app = connexion.AioHttpApp(__name__, specification_dir='../../.well-known/')
     app.add_api("metagpt_oas3_api.yaml")
     app.run(port=8080)

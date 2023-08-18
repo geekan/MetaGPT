@@ -22,6 +22,6 @@ def post_greeting(name: str) -> str:
 
 
 if __name__ == "__main__":
-    app = connexion.AioHttpApp(__name__, specification_dir='../../spec/')
+    app = connexion.AioHttpApp(__name__, specification_dir='../../.well-known/')
     app.add_api("openapi.yaml", arguments={"title": "Hello World Example"})
     app.run(port=8080)

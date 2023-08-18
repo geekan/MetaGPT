@@ -12,7 +12,7 @@ import base64
 import sys
 
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent))  # fix-bug: No module named 'metagpt'
-from metagpt.utils.common import initalize_enviroment
+from metagpt.utils.common import initialize_environment
 from metagpt.logs import logger
 
 from azure.cognitiveservices.speech import AudioConfig, SpeechConfig, SpeechSynthesizer

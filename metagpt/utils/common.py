@@ -260,7 +260,7 @@ def parse_recipient(text):
     return recipient.group(1) if recipient else ""
 
 
-def initalize_enviroment():
+def initialize_environment():
     """Load `config/config.yaml` to `os.environ`"""
     yaml_file_path = Path(__file__).resolve().parent.parent.parent / "config/config.yaml"
     with open(str(yaml_file_path), "r") as yaml_file:

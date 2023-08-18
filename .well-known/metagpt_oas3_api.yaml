@@ -56,8 +56,9 @@ paths:
               schema:
                 type: object
                 properties:
-                  result:
+                  wav_data:
                     type: string
+                    format: base64
         '400':
           description: "Bad Request"
         '500':
@@ -96,6 +97,7 @@ paths:
                 properties:
                   image_data:
                     type: string
+                    format: base64
         '400':
           description: "Bad Request"
         '500':

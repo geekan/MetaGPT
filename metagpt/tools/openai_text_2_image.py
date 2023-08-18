@@ -16,7 +16,7 @@ import requests
 from pydantic import BaseModel
 
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent))  # fix-bug: No module named 'metagpt'
-from metagpt.utils.common import initalize_enviroment
+from metagpt.utils.common import initialize_environment
 from metagpt.logs import logger
 
 
@@ -94,7 +94,7 @@ def oas3_openai_text_2_image(text, size_type: str = "1024x1024", openai_api_key=
 
 
 if __name__ == "__main__":
-    initalize_enviroment()
+    initialize_environment()
 
     v = oas3_openai_text_2_image("Panda emoji")
     print(v)
