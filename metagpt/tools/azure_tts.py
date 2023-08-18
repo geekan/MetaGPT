@@ -108,7 +108,7 @@ def oas3_azsure_tts(text, lang="", voice="", style="", role="", subscription_key
 
 
 if __name__ == "__main__":
-    initalize_enviroment()
+    initialize_environment()
 
     v = oas3_azsure_tts("测试，test")
     print(v)

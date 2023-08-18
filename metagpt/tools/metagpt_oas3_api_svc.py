@@ -17,4 +17,5 @@ if __name__ == "__main__":
 
     app = connexion.AioHttpApp(__name__, specification_dir='../../.well-known/')
     app.add_api("metagpt_oas3_api.yaml")
+    app.add_api("openapi.yaml")
     app.run(port=8080)
