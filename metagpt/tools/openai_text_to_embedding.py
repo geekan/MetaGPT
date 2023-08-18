@@ -3,7 +3,7 @@
 """
 @Time    : 2023/8/18
 @Author  : mashenquan
-@File    : openai_text_2_embedding.py
+@File    : openai_text_to_embedding.py
 @Desc    : OpenAI Text-to-Embedding OAS3 api, which provides text-to-embedding functionality.
             For more details, checkout: `https://platform.openai.com/docs/api-reference/embeddings/object`
 """
@@ -70,7 +70,7 @@ class OpenAIText2Embedding:
 
 
 # Export
-def oas3_openai_text_2_embedding(text, model="text-embedding-ada-002", openai_api_key=""):
+def oas3_openai_text_to_embedding(text, model="text-embedding-ada-002", openai_api_key=""):
     """Text to embedding
 
     :param text: The text used for embedding.
@@ -88,5 +88,5 @@ def oas3_openai_text_2_embedding(text, model="text-embedding-ada-002", openai_ap
 if __name__ == "__main__":
     initialize_environment()
 
-    v = oas3_openai_text_2_embedding("Panda emoji")
+    v = oas3_openai_text_to_embedding("Panda emoji")
     print(v)
