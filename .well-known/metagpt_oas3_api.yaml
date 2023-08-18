@@ -5,6 +5,11 @@ info:
   version: "1.0"
 servers:
   - url: "/oas3"
+    variables:
+      port:
+        enum:
+          - '8080'
+        default: '8080'
 
 paths:
   /tts/azsure:
