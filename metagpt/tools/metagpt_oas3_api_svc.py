@@ -9,10 +9,8 @@
 import asyncio
 from pathlib import Path
 import sys
-from time import sleep
 
 import connexion
-import threading
 
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent))  # fix-bug: No module named 'metagpt'
 from metagpt.utils.common import initialize_environment
