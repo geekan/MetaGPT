@@ -25,26 +25,6 @@ from metagpt.utils.token_counter import (
 )
 
 
-<<<<<<< HEAD
-def retry(max_retries):
-    def decorator(f):
-        @wraps(f)
-        async def wrapper(*args, **kwargs):
-            for i in range(max_retries):
-                try:
-                    return await f(*args, **kwargs)
-                except Exception as e:
-                    error_str = traceback.format_exc()
-                    logger.warning(f"Exception occurred: {str(e)}, stack:{error_str}. Retrying...")
-                    if i == max_retries - 1:
-                        raise
-                    await asyncio.sleep(2 ** i)
-        return wrapper
-    return decorator
-
-
-=======
->>>>>>> main
 class RateLimiter:
     """Rate control class, each call goes through wait_if_needed, sleep if rate control is needed"""
 
