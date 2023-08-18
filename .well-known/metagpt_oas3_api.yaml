@@ -7,9 +7,8 @@ servers:
   - url: "/oas3"
     variables:
       port:
-        enum:
-          - '8080'
         default: '8080'
+        description: HTTP service port
 
 paths:
   /tts/azsure:
