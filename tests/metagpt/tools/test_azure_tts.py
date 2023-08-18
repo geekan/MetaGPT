@@ -5,13 +5,21 @@
 @Author  : alexanderwu
 @File    : test_azure_tts.py
 @Modified By: mashenquan, 2023-8-9, add more text formatting options
+@Modified By: mashenquan, 2023-8-17, move to `tools` folder.
 """
-from metagpt.actions.azure_tts import AzureTTS
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parent.parent.parent.parent))  # fix-bug: No module named 'metagpt'
 from metagpt.const import WORKSPACE_ROOT
+from metagpt.tools.azure_tts import AzureTTS
+from metagpt.utils.common import initialize_environment
 
 
 def test_azure_tts():
-    azure_tts = AzureTTS("azure_tts")
+    initialize_environment()
+
+    azure_tts = AzureTTS()
     text = """
         女儿看见父亲走了进来，问道：
             <mstts:express-as role="YoungAdultFemale" style="calm">
@@ -26,8 +34,8 @@ def test_azure_tts():
     path.mkdir(exist_ok=True, parents=True)
     filename = path / "girl.wav"
     result = azure_tts.synthesize_speech(
-        "zh-CN",
-        "zh-CN-XiaomoNeural",
+        lang="zh-CN",
+        voice="zh-CN-XiaomoNeural",
         text=text,
         output_file=str(filename))
 
