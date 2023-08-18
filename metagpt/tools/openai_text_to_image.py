@@ -3,7 +3,7 @@
 """
 @Time    : 2023/8/17
 @Author  : mashenquan
-@File    : openai_text_2_image.py
+@File    : openai_text_to_image.py
 @Desc    : OpenAI Text-to-Image OAS3 api, which provides text-to-image functionality.
 """
 import base64
@@ -78,7 +78,7 @@ class OpenAIText2Image:
 
 
 # Export
-def oas3_openai_text_2_image(text, size_type: str = "1024x1024", openai_api_key=""):
+def oas3_openai_text_to_image(text, size_type: str = "1024x1024", openai_api_key=""):
     """Text to image
 
     :param text: The text used for image conversion.
@@ -96,5 +96,5 @@ def oas3_openai_text_2_image(text, size_type: str = "1024x1024", openai_api_key=
 if __name__ == "__main__":
     initialize_environment()
 
-    v = oas3_openai_text_2_image("Panda emoji")
+    v = oas3_openai_text_to_image("Panda emoji")
     print(v)

@@ -163,3 +163,4 @@ workspace/*
 *.mmd
 tmp
 output.wav
+tmp.png
