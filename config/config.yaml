@@ -70,3 +70,6 @@ SD_T2I_API: "/sdapi/v1/txt2img"
 ### for Research
 MODEL_FOR_RESEARCHER_SUMMARY: gpt-3.5-turbo
 MODEL_FOR_RESEARCHER_REPORT: gpt-3.5-turbo-16k
+
+### Meta Models
+#METAGPT_TEXT_TO_IMAGE_MODEL: MODEL_URL
