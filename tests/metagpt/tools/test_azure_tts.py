@@ -4,8 +4,13 @@
 @Time    : 2023/7/1 22:50
 @Author  : alexanderwu
 @File    : test_azure_tts.py
+@Modified By: mashenquan, 2023-8-17, move to `tools` folder.
 """
-from metagpt.actions.azure_tts import AzureTTS
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parent.parent.parent.parent))  # fix-bug: No module named 'metagpt'
+from metagpt.tools.azure_tts import AzureTTS
 
 
 def test_azure_tts():
