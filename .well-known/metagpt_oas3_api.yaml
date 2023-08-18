@@ -71,7 +71,7 @@ paths:
   /txt2img/openai:
     post:
       summary: "Convert Text to Base64-encoded Image Data Stream"
-      operationId: openai_text_2_image.oas3_openai_text_2_image
+      operationId: openai_text_to_image.oas3_openai_text_to_image
       requestBody:
         required: true
         content:
@@ -109,7 +109,7 @@ paths:
   /txt2embedding/openai:
     post:
       summary: Text to embedding
-      operationId: openai_text_2_embedding.oas3_openai_text_2_embedding
+      operationId: openai_text_to_embedding.oas3_openai_text_to_embedding
       description: Retrieve an embedding for the provided text using the OpenAI API.
       requestBody:
         content:
@@ -144,6 +144,49 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+
+  /txt2image/metagpt:
+    post:
+      summary: "Text to Image"
+      description: "Generate an image from the provided text using the MetaGPT Text-to-Image API."
+      operationId: metagpt_text_to_image.oas3_metagpt_text_to_image
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - text
+              properties:
+                text:
+                  type: string
+                  description: "The text used for image conversion."
+                size_type:
+                  type: string
+                  enum: ["512x512", "512x768"]
+                  default: "512x512"
+                  description: "Size of the generated image."
+                model_url:
+                  type: string
+                  description: "Model reset API URL for text-to-image."
+                  default: ""
+      responses:
+        '200':
+          description: "Base64-encoded image data."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  image_data:
+                    type: string
+                    format: base64
+        '400':
+          description: "Bad Request"
+        '500':
+          description: "Internal Server Error"
+
 components:
   schemas:
     Embedding:
