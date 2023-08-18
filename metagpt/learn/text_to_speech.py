@@ -6,6 +6,7 @@
 @File    : text_to_speech.py
 @Desc    : Text-to-Speech skill, which provides text-to-speech functionality
 """
+import os
 
 from metagpt.tools.azure_tts import oas3_azsure_tts
 from metagpt.utils.common import initialize_environment
@@ -26,4 +27,8 @@ def text_to_speech(text, lang="zh-CN", voice="zh-CN-XiaomoNeural", style="affect
 
     """
     initialize_environment()
-    return oas3_azsure_tts(text, lang, voice, style, role, subscription_key, region)
+    if (os.environ.get("AZURE_TTS_SUBSCRIPTION_KEY") and os.environ.get("AZURE_TTS_REGION")) or \
+        (subscription_key and region):
+        return oas3_azsure_tts(text, lang, voice, style, role, subscription_key, region)
+
+    raise EnvironmentError

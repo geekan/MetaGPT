@@ -6,8 +6,9 @@
 @File    : text_to_embedding.py
 @Desc    : Text-to-Embedding skill, which provides text-to-embedding functionality.
 """
+import os
 
-from metagpt.tools.openai_text_2_embedding import oas3_openai_text_2_embedding
+from metagpt.tools.openai_text_to_embedding import oas3_openai_text_to_embedding
 from metagpt.utils.common import initialize_environment
 
 
@@ -20,4 +21,6 @@ def text_to_embedding(text, model="text-embedding-ada-002", openai_api_key=""):
     :return: A json object of :class:`ResultEmbedding` class if successful, otherwise `{}`.
     """
     initialize_environment()
-    return oas3_openai_text_2_embedding(text, model=model, openai_api_key=openai_api_key)
+    if os.environ.get("OPENAI_API_KEY") or openai_api_key:
+        return oas3_openai_text_to_embedding(text, model=model, openai_api_key=openai_api_key)
+    raise EnvironmentError

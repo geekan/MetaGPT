@@ -20,7 +20,7 @@ async def mock_text_to_image():
         size_type: str
 
     inputs = [
-        {"input": "Panda emoji", "size_type": "256x256"}
+        {"input": "Panda emoji", "size_type": "512x512"}
     ]
 
     for i in inputs:
