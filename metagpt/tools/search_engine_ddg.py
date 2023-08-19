@@ -7,11 +7,15 @@ import json
 from concurrent import futures
 from typing import Literal, overload
 
-from duckduckgo_search import DDGS
-from googleapiclient.errors import HttpError
+try:
+    from duckduckgo_search import DDGS
+except ImportError:
+    raise ImportError(
+        "To use this module, you should have the `duckduckgo_search` Python package installed. "
+        "You can install it by running the command: `pip install -e.[search-ddg]`"
+    )
 
 from metagpt.config import CONFIG
-from metagpt.logs import logger
 
 
 class DDGAPIWrapper:
@@ -19,6 +23,7 @@ class DDGAPIWrapper:
 
     To use this module, you should have the `duckduckgo_search` Python package installed.
     """
+
     def __init__(
         self,
         *,
@@ -77,15 +82,8 @@ class DDGAPIWrapper:
             query,
             max_results,
         )
-        try:
-            search_results = await future
-            # Extract the search result items from the response
+        search_results = await future
 
-        except HttpError as e:
-            # Handle errors in the API call
-            logger.exception(f"fail to search {query} for {e}")
-            search_results = []
-        
         # Return the list of search result URLs
         if as_string:
             return json.dumps(search_results, ensure_ascii=False)
@@ -93,11 +91,8 @@ class DDGAPIWrapper:
 
     def _search_from_ddgs(self, query: str, max_results: int):
         return [
-            {
-                "link": i["href"],
-                "snippet": i["body"],
-                "title": i["title"]
-            } for (_, i) in zip(range(max_results), self.ddgs.text(query))
+            {"link": i["href"], "snippet": i["body"], "title": i["title"]}
+            for (_, i) in zip(range(max_results), self.ddgs.text(query))
         ]
 
 

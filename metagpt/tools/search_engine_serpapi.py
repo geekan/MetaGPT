@@ -8,19 +8,12 @@
 from typing import Any, Dict, Optional, Tuple
 
 import aiohttp
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
 
-from metagpt.config import Config
+from metagpt.config import CONFIG
 
 
 class SerpAPIWrapper(BaseModel):
-    """Wrapper around SerpAPI.
-
-    To use, you should have the ``google-search-results`` python package installed,
-    and the environment variable ``SERPAPI_API_KEY`` set with your API key, or pass
-    `serpapi_api_key` as a named parameter to the constructor.
-    """
-
     search_engine: Any  #: :meta private:
     params: dict = Field(
         default={
@@ -30,14 +23,25 @@ class SerpAPIWrapper(BaseModel):
             "hl": "en",
         }
     )
-    config = Config()
-    serpapi_api_key: Optional[str] = config.serpapi_api_key
+    serpapi_api_key: Optional[str] = None
     aiosession: Optional[aiohttp.ClientSession] = None
 
     class Config:
         arbitrary_types_allowed = True
 
-    async def run(self, query: str, max_results: int = 8, as_string: bool = True, **kwargs: Any) -> str:
+    @validator("serpapi_api_key", always=True)
+    @classmethod
+    def check_serpapi_api_key(cls, val: str):
+        val = val or CONFIG.serpapi_api_key
+        if not val:
+            raise ValueError(
+                "To use, make sure you provide the serpapi_api_key when constructing an object. Alternatively, "
+                "ensure that the environment variable SERPAPI_API_KEY is set with your API key. You can obtain "
+                "an API key from https://serpapi.com/."
+            )
+        return val
+
+    async def run(self, query, max_results: int = 8, as_string: bool = True, **kwargs: Any) -> str:
         """Run query through SerpAPI and parse result async."""
         return self._process_response(await self.results(query, max_results), as_string=as_string)
 
@@ -48,8 +52,6 @@ class SerpAPIWrapper(BaseModel):
             params = self.get_params(query)
             params["source"] = "python"
             params["num"] = max_results
-            if self.serpapi_api_key:
-                params["serp_api_key"] = self.serpapi_api_key
             params["output"] = "json"
             url = "https://serpapi.com/search"
             return url, params
@@ -104,7 +106,7 @@ class SerpAPIWrapper(BaseModel):
         if res.get("organic_results"):
             toret_l += [get_focused(i) for i in res.get("organic_results")]
 
-        return str(toret) + '\n' + str(toret_l) if as_string else toret_l
+        return str(toret) + "\n" + str(toret_l) if as_string else toret_l
 
 
 if __name__ == "__main__":
