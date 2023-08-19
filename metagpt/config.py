@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-提供配置，单例
+@Desc: Provide configuration, singleton.
+@Modified By: mashenquan, replace `CONFIG` with `os.environ` to support personal config
 """
 import os
 
@@ -28,10 +29,13 @@ class NotConfiguredException(Exception):
 
 class Config(metaclass=Singleton):
     """
-    常规使用方法：
+    For example:
+
+    ```python
     config = Config("config.yaml")
     secret_key = config.get_key("MY_SECRET_KEY")
     print("Secret key:", secret_key)
+    ```
     """
 
     _instance = None
@@ -41,12 +45,13 @@ class Config(metaclass=Singleton):
     def __init__(self, yaml_file=default_yaml_file):
         self._configs = {}
         self._init_with_config_files_and_env(self._configs, yaml_file)
+
         logger.info("Config loading done.")
         self.global_proxy = self._get("GLOBAL_PROXY")
         self.openai_api_key = self._get("OPENAI_API_KEY")
         self.anthropic_api_key = self._get("Anthropic_API_KEY")
         if (not self.openai_api_key or "YOUR_API_KEY" == self.openai_api_key) and (
-            not self.anthropic_api_key or "YOUR_API_KEY" == self.anthropic_api_key
+                not self.anthropic_api_key or "YOUR_API_KEY" == self.anthropic_api_key
         ):
             raise NotConfiguredException("Set OPENAI_API_KEY or Anthropic_API_KEY first")
         self.openai_api_base = self._get("OPENAI_API_BASE")
@@ -85,20 +90,27 @@ class Config(metaclass=Singleton):
         self.model_for_researcher_summary = self._get("MODEL_FOR_RESEARCHER_SUMMARY")
         self.model_for_researcher_report = self._get("MODEL_FOR_RESEARCHER_REPORT")
 
+        # Update environment variables
+        for k, v in self._configs.items():
+            os.environ[k] = str(v)
+        for attribute, value in vars(self).items():
+            if attribute == "_configs":
+                continue
+            os.environ[attribute] = str(value)
+
     def _init_with_config_files_and_env(self, configs: dict, yaml_file):
-        """从config/key.yaml / config/config.yaml / env三处按优先级递减加载"""
+        """Load in decreasing priority from `config/key.yaml`, `config/config.yaml`, and environment variables."""
         configs.update(os.environ)
 
         for _yaml_file in [yaml_file, self.key_yaml_file]:
             if not _yaml_file.exists():
                 continue
 
-            # 加载本地 YAML 文件
+            # Load local YAML file.
             with open(_yaml_file, "r", encoding="utf-8") as file:
                 yaml_data = yaml.safe_load(file)
                 if not yaml_data:
                     continue
-                os.environ.update({k: v for k, v in yaml_data.items() if isinstance(v, str)})
                 configs.update(yaml_data)
 
     def _get(self, *args, **kwargs):
@@ -111,5 +123,3 @@ class Config(metaclass=Singleton):
             raise ValueError(f"Key '{key}' not found in environment variables or in the YAML file")
         return value
 
-
-CONFIG = Config()
