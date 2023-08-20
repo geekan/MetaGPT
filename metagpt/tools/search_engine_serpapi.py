@@ -4,13 +4,14 @@
 @Time    : 2023/5/23 18:27
 @Author  : alexanderwu
 @File    : search_engine_serpapi.py
+@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
 """
 from typing import Any, Dict, Optional, Tuple
 
 import aiohttp
 from pydantic import BaseModel, Field, validator
 
-from metagpt.config import CONFIG
+from metagpt.config import Config
 
 
 class SerpAPIWrapper(BaseModel):
@@ -32,7 +33,6 @@ class SerpAPIWrapper(BaseModel):
     @validator("serpapi_api_key", always=True)
     @classmethod
     def check_serpapi_api_key(cls, val: str):
-        val = val or CONFIG.serpapi_api_key
         if not val:
             raise ValueError(
                 "To use, make sure you provide the serpapi_api_key when constructing an object. Alternatively, "
@@ -112,4 +112,4 @@ class SerpAPIWrapper(BaseModel):
 if __name__ == "__main__":
     import fire
 
-    fire.Fire(SerpAPIWrapper().run)
+    fire.Fire(SerpAPIWrapper(Config().runtime_options).run)

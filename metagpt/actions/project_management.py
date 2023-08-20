@@ -4,6 +4,7 @@
 @Time    : 2023/5/11 19:12
 @Author  : alexanderwu
 @File    : project_management.py
+@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
 """
 from typing import List, Tuple
 
@@ -103,8 +104,8 @@ OUTPUT_MAPPING = {
 
 class WriteTasks(Action):
 
-    def __init__(self, name="CreateTasks", context=None, llm=None):
-        super().__init__(name, context, llm)
+    def __init__(self, options, name="CreateTasks", context=None, llm=None):
+        super().__init__(options=options, name=name, context=context, llm=llm)
 
     def _save(self, context, rsp):
         ws_name = CodeParser.parse_str(block="Python package name", text=context[-1].content)

@@ -4,6 +4,7 @@
 @Time    : 2023/5/11 17:46
 @Author  : alexanderwu
 @File    : run_code.py
+@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
 """
 import os
 import subprocess
@@ -57,8 +58,8 @@ standard errors: {errs};
 
 
 class RunCode(Action):
-    def __init__(self, name="RunCode", context=None, llm=None):
-        super().__init__(name, context, llm)
+    def __init__(self, options, name="RunCode", context=None, llm=None):
+        super().__init__(options=options, name=name, context=context, llm=llm)
 
     @classmethod
     async def run_text(cls, code) -> Tuple[str, str]:

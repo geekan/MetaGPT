@@ -118,8 +118,8 @@ class Config:
         return value
 
     @property
-    def options(self):
-        """Return key-value configuration parameters."""
+    def runtime_options(self):
+        """Runtime key-value configuration parameters."""
         opts = {}
         for k, v in self._configs.items():
             opts[k] = v

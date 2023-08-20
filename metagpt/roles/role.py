@@ -4,17 +4,16 @@
 @Time    : 2023/5/11 14:42
 @Author  : alexanderwu
 @File    : role.py
+@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation;
+            Change cost control from global to company level.
 """
 from __future__ import annotations
 
-from typing import Iterable, Type
+from typing import Iterable, Type, Dict
 
 from pydantic import BaseModel, Field
-
-# from metagpt.environment import Environment
-from metagpt.config import CONFIG
+from metagpt.provider.openai_api import OpenAIGPTAPI as LLM
 from metagpt.actions import Action, ActionOutput
-from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.memory import Memory, LongTermMemory
 from metagpt.schema import Message
@@ -71,12 +70,13 @@ class RoleContext(BaseModel):
     todo: Action = Field(default=None)
     watch: set[Type[Action]] = Field(default_factory=set)
     news: list[Type[Message]] = Field(default=[])
+    options: Dict
 
     class Config:
         arbitrary_types_allowed = True
 
     def check(self, role_id: str):
-        if hasattr(CONFIG, "long_term_memory") and CONFIG.long_term_memory:
+        if self.options.get("long_term_memory"):
             self.long_term_memory.recover_memory(role_id, self)
             self.memory = self.long_term_memory  # use memory to act as long_term_memory for unify operation
 
@@ -93,13 +93,15 @@ class RoleContext(BaseModel):
 class Role:
     """角色/代理"""
 
-    def __init__(self, name="", profile="", goal="", constraints="", desc=""):
-        self._llm = LLM()
+    def __init__(self, options, cost_manager, name="", profile="", goal="", constraints="", desc=""):
+        self._options = options if options else {}
+        self._cost_manager = cost_manager
+        self._llm = LLM(options=self._options, cost_manager=cost_manager)
         self._setting = RoleSetting(name=name, profile=profile, goal=goal, constraints=constraints, desc=desc)
         self._states = []
         self._actions = []
         self._role_id = str(self._setting)
-        self._rc = RoleContext()
+        self._rc = RoleContext(options=options)
 
     def _reset(self):
         self._states = []
@@ -109,7 +111,7 @@ class Role:
         self._reset()
         for idx, action in enumerate(actions):
             if not isinstance(action, Action):
-                i = action("")
+                i = action(options=self._options, name="", llm=self._llm)
             else:
                 i = action
             i.set_prefix(self._get_prefix(), self.profile)
@@ -136,6 +138,14 @@ class Role:
     def profile(self):
         """获取角色描述（职位）"""
         return self._setting.profile
+
+    @property
+    def options(self):
+        return self._options
+
+    @options.setter
+    def options(self, opts):
+        self._options.update(opts)
 
     def _get_prefix(self):
         """获取角色前缀"""

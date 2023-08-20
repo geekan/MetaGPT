@@ -20,13 +20,15 @@ from metagpt.utils.special_tokens import FILENAME_CODE_SEP, MSG_SEP
 class QaEngineer(Role):
     def __init__(
         self,
+        options,
+        cost_manager,
         name="Edward",
         profile="QaEngineer",
         goal="Write comprehensive and robust tests to ensure codes will work as expected without bugs",
         constraints="The test code you write should conform to code standard like PEP8, be modular, easy to read and maintain",
         test_round_allowed=5,
     ):
-        super().__init__(name, profile, goal, constraints)
+        super().__init__(name=name, profile=profile, goal=goal, constraints=constraints, options=options, cost_manager=cost_manager)
         self._init_actions(
             [WriteTest]
         )  # FIXME: a bit hack here, only init one action to circumvent _think() logic, will overwrite _think() in future updates

@@ -4,11 +4,11 @@
 @Time    : 2023/5/23 17:26
 @Author  : alexanderwu
 @File    : search_google.py
+@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
 """
 import pydantic
 
 from metagpt.actions import Action
-from metagpt.config import Config
 from metagpt.logs import logger
 from metagpt.schema import Message
 from metagpt.tools.search_engine import SearchEngine
@@ -101,17 +101,16 @@ You are a member of a professional butler team and will provide helpful suggesti
 
 
 class SearchAndSummarize(Action):
-    def __init__(self, name="", context=None, llm=None, engine=None, search_func=None):
-        self.config = Config()
-        self.engine = engine or self.config.search_engine
+    def __init__(self, options, name="", context=None, llm=None, engine=None, search_func=None):
+        self.engine = engine or options.get("search_engine")
 
         try:
-            self.search_engine = SearchEngine(self.engine, run_func=search_func)
+            self.search_engine = SearchEngine(options=options, engine=self.engine, run_func=search_func)
         except pydantic.ValidationError:
             self.search_engine = None
 
         self.result = ""
-        super().__init__(name, context, llm)
+        super().__init__(options=options, name=name, context=context, llm=llm)
 
     async def run(self, context: list[Message], system_text=SEARCH_AND_SUMMARIZE_SYSTEM) -> str:
         if self.search_engine is None:
