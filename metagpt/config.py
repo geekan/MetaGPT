@@ -3,6 +3,8 @@
 """
 @Desc: Provide configuration, singleton.
 @Modified By: mashenquan, replace `CONFIG` with `os.environ` to support personal config
+@Desc: `os.environ` doesn't support personalization, while `Config` does.
+        Hence, the parameter reading priority is `Config` first, and if not found, then `os.environ`.
 """
 import os
 
@@ -90,14 +92,6 @@ class Config(metaclass=Singleton):
         self.model_for_researcher_summary = self._get("MODEL_FOR_RESEARCHER_SUMMARY")
         self.model_for_researcher_report = self._get("MODEL_FOR_RESEARCHER_REPORT")
 
-        # Update environment variables
-        for k, v in self._configs.items():
-            os.environ[k] = str(v)
-        for attribute, value in vars(self).items():
-            if attribute == "_configs":
-                continue
-            os.environ[attribute] = str(value)
-
     def _init_with_config_files_and_env(self, configs: dict, yaml_file):
         """Load in decreasing priority from `config/key.yaml`, `config/config.yaml`, and environment variables."""
         configs.update(os.environ)
@@ -117,9 +111,22 @@ class Config(metaclass=Singleton):
         return self._configs.get(*args, **kwargs)
 
     def get(self, key, *args, **kwargs):
-        """从config/key.yaml / config/config.yaml / env三处找值，找不到报错"""
+        """Retrieve value from `config/key.yaml`, `config/config.yaml`, and environment variables.
+        Raise an error if not found."""
         value = self._get(key, *args, **kwargs)
         if value is None:
             raise ValueError(f"Key '{key}' not found in environment variables or in the YAML file")
         return value
+
+    @property
+    def options(self):
+        """Return key-value configuration parameters."""
+        opts = {}
+        for k, v in self._configs.items():
+            opts[k] = v
+        for attribute, value in vars(self).items():
+            if attribute == "_configs":
+                continue
+            opts[attribute] = value
+        return opts
 
