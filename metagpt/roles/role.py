@@ -173,6 +173,7 @@ class Role:
         """Return number of action"""
         return len(self._actions)
 
+    @property
     def options(self):
         return self._options
 

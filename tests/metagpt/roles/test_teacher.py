@@ -9,6 +9,8 @@
 from typing import Dict, Optional
 from pydantic import BaseModel
 
+from metagpt.config import Config
+from metagpt.provider.openai_api import CostManager
 from metagpt.roles.teacher import Teacher
 
 
@@ -42,22 +44,25 @@ def test_init():
         },
         {
             "name": "Lily{language}",
-            "expect_name": "LilyChinese",
+            "expect_name": "Lily{language}",
             "profile": "X {teaching_language}",
-            "expect_profile": "X English",
+            "expect_profile": "X {teaching_language}",
             "goal": "Do {something_big}, {language}",
-            "expect_goal": "Do {something_big}, Chinese",
+            "expect_goal": "Do {something_big}, {language}",
             "constraints": "Do in {key1}, {language}",
-            "expect_constraints": "Do in {key1}, Chinese",
+            "expect_constraints": "Do in {key1}, {language}",
             "kwargs": {},
             "desc": "aaa{language}",
-            "expect_desc": "aaaChinese"
+            "expect_desc": "aaa{language}"
         },
     ]
 
     for i in inputs:
         seed = Inputs(**i)
-        teacher = Teacher(name=seed.name, profile=seed.profile, goal=seed.goal, constraints=seed.constraints,
+        options = Config().runtime_options
+        cost_manager = CostManager(options=options)
+        teacher = Teacher(options=options, cost_manager=cost_manager, name=seed.name, profile=seed.profile,
+                          goal=seed.goal, constraints=seed.constraints,
                           desc=seed.desc, **seed.kwargs)
         assert teacher.name == seed.expect_name
         assert teacher.desc == seed.expect_desc

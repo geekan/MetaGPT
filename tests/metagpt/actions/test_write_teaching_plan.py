@@ -12,12 +12,13 @@ from pydantic import BaseModel
 from langchain.llms.base import LLM
 
 from metagpt.actions.write_teaching_plan import WriteTeachingPlanPart
+from metagpt.config import Config
 from metagpt.schema import Message
 
 
 class MockWriteTeachingPlanPart(WriteTeachingPlanPart):
-    def __init__(self, name: str = '', context=None, llm: LLM = None, topic="", language="Chinese"):
-        super().__init__(name, context, llm, topic, language)
+    def __init__(self, options, name: str = '', context=None, llm: LLM = None, topic="", language="Chinese"):
+        super().__init__(options, name, context, llm, topic, language)
 
     async def _aask(self, prompt: str, system_msgs: Optional[list[str]] = None) -> str:
         return f"{WriteTeachingPlanPart.DATA_BEGIN_TAG}\nprompt\n{WriteTeachingPlanPart.DATA_END_TAG}"
@@ -47,7 +48,8 @@ async def mock_write_teaching_plan_part():
 
     for i in inputs:
         seed = Inputs(**i)
-        act = MockWriteTeachingPlanPart(name=seed.name, topic=seed.topic, language=seed.language)
+        options = Config().runtime_options
+        act = MockWriteTeachingPlanPart(options=options, name=seed.name, topic=seed.topic, language=seed.language)
         await act.run([Message(content="")])
         assert act.topic == seed.topic
         assert str(act) == seed.topic

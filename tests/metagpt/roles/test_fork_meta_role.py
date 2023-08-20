@@ -9,6 +9,8 @@ from typing import Dict
 
 from pydantic import BaseModel
 
+from metagpt.config import Config
+from metagpt.provider.openai_api import CostManager
 from metagpt.roles.fork_meta_role import ForkMetaRole
 
 
@@ -79,7 +81,9 @@ def test_creat_role():
             "teaching_language": "AA",
             "language": "BB"
         }
-        role = ForkMetaRole(seed.role, **kwargs)
+        runtime_options = Config().runtime_options
+        cost_manager = CostManager(options=runtime_options)
+        role = ForkMetaRole(runtime_options=runtime_options, cost_manager=cost_manager, role_options=seed.role, **kwargs)
         assert role.action_count == 2
         assert "{" not in role.profile
         assert "{" not in role.goal

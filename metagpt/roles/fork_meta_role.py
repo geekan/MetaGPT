@@ -26,14 +26,16 @@ from metagpt.schema import Message
 
 class ForkMetaRole(Role):
     """A `fork` style meta role capable of generating arbitrary roles at runtime based on a configuration file"""
-    def __init__(self, options, **kwargs):
+    def __init__(self, runtime_options, cost_manager, role_options, **kwargs):
         """Initialize a `fork` style meta role
 
-        :param options: pattern yaml file data
+        :param runtime_options: System configuration
+        :param cost_manager: Cost manager
+        :param role_options: pattern yaml file data
         :param args: Parameters passed in format: `python your_script.py arg1 arg2 arg3`
         :param kwargs: Parameters passed in format: `python your_script.py --param1=value1 --param2=value2`
         """
-        opts = UMLMetaRoleOptions(**options)
+        opts = UMLMetaRoleOptions(**role_options)
         global_variables = {
             "name": Role.format_value(opts.name, kwargs),
             "profile": Role.format_value(opts.profile, kwargs),
@@ -47,6 +49,8 @@ class ForkMetaRole(Role):
                 global_variables[k] = v
 
         super(ForkMetaRole, self).__init__(
+            options=runtime_options,
+            cost_manager=cost_manager,
             name=global_variables["name"],
             profile=global_variables["profile"],
             goal=global_variables["goal"],
@@ -54,7 +58,6 @@ class ForkMetaRole(Role):
             desc=global_variables["desc"],
             **kwargs
         )
-        self.options = options
         actions = []
         for m in opts.actions:
             for k, v in m.items():

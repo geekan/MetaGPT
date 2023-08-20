@@ -20,13 +20,13 @@ import re
 class Teacher(Role):
     """Support configurable teacher roles,
     with native and teaching languages being replaceable through configurations."""
-    def __init__(self, name='Lily', profile='{teaching_language} Teacher',
+    def __init__(self, options, name='Lily', profile='{teaching_language} Teacher',
                  goal='writing a {language} teaching plan part by part',
                  constraints='writing in {language}', desc="", *args, **kwargs):
-        super().__init__(name=name, profile=profile, goal=goal, constraints=constraints, desc=desc, *args, **kwargs)
+        super().__init__(options=options, name=name, profile=profile, goal=goal, constraints=constraints, desc=desc, *args, **kwargs)
         actions = []
         for topic in WriteTeachingPlanPart.TOPICS:
-            act = WriteTeachingPlanPart(topic=topic, llm=self._llm)
+            act = WriteTeachingPlanPart(options=options, topic=topic, llm=self._llm)
             actions.append(act)
         self._init_actions(actions)
         self._watch({TeachingPlanRequirement})
