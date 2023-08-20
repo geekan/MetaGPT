@@ -8,11 +8,15 @@
 """
 import os
 
+from metagpt.learn.skill_metadata import skill_metadata
 from metagpt.tools.metagpt_text_to_image import oas3_metagpt_text_to_image
 from metagpt.tools.openai_text_to_image import oas3_openai_text_to_image
 from metagpt.utils.common import initialize_environment
 
 
+@skill_metadata(name="Text to image",
+                description="Create a drawing based on the text.",
+                requisite="`OPENAI_API_KEY` or `METAGPT_TEXT_TO_IMAGE_MODEL`")
 def text_to_image(text, size_type: str = "512x512", openai_api_key="", model_url=""):
     """Text to image
 

@@ -8,10 +8,14 @@
 """
 import os
 
+from metagpt.learn.skill_metadata import skill_metadata
 from metagpt.tools.azure_tts import oas3_azsure_tts
 from metagpt.utils.common import initialize_environment
 
 
+@skill_metadata(name="Text to speech",
+                description="Text-to-speech",
+                requisite="`AZURE_TTS_SUBSCRIPTION_KEY` and `AZURE_TTS_REGION`")
 def text_to_speech(text, lang="zh-CN", voice="zh-CN-XiaomoNeural", style="affectionate", role="Girl",
                    subscription_key="", region=""):
     """Text to speech
