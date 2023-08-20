@@ -4,13 +4,14 @@
 @Time    : 2023/5/11 19:31
 @Author  : alexanderwu
 @File    : design_api_review.py
+@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
 """
 from metagpt.actions.action import Action
 
 
 class DesignReview(Action):
-    def __init__(self, name, context=None, llm=None):
-        super().__init__(name, context, llm)
+    def __init__(self, options, name, context=None, llm=None):
+        super().__init__(options=options, name=name, context=context, llm=llm)
 
     async def run(self, prd, api_design):
         prompt = f"Here is the Product Requirement Document (PRD):\n\n{prd}\n\nHere is the list of APIs designed " \

@@ -4,6 +4,7 @@
 @Time    : 2023/5/19 11:50
 @Author  : alexanderwu
 @File    : design_filenames.py
+@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
 """
 from metagpt.actions import Action
 from metagpt.logs import logger
@@ -15,8 +16,8 @@ Do not add any other explanations, just return a Python string list."""
 
 
 class DesignFilenames(Action):
-    def __init__(self, name, context=None, llm=None):
-        super().__init__(name, context, llm)
+    def __init__(self, options, name, context=None, llm=None):
+        super().__init__(options=options, name=name, context=context, llm=llm)
         self.desc = "Based on the PRD, consider system design, and carry out the basic design of the corresponding " \
                     "APIs, data structures, and database tables. Please give your design, feedback clearly and in detail."
 

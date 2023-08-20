@@ -1,17 +1,21 @@
 #!/usr/bin/env python
+"""
+@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
+"""
+
 from __future__ import annotations
 
 import asyncio
 import importlib
 from concurrent import futures
 from copy import deepcopy
-from typing import Literal
+from typing import Literal, Dict
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
-from metagpt.config import CONFIG
+from metagpt.config import Config
 from metagpt.utils.parse_html import WebPage
 
 
@@ -29,6 +33,7 @@ class SeleniumWrapper:
 
     def __init__(
         self,
+        options: Dict,
         browser_type: Literal["chrome", "firefox", "edge", "ie"] | None = None,
         launch_kwargs: dict | None = None,
         *,
@@ -36,11 +41,11 @@ class SeleniumWrapper:
         executor: futures.Executor | None = None,
     ) -> None:
         if browser_type is None:
-            browser_type = CONFIG.selenium_browser_type
+            browser_type = options.get("selenium_browser_type")
         self.browser_type = browser_type
         launch_kwargs = launch_kwargs or {}
-        if CONFIG.global_proxy and "proxy-server" not in launch_kwargs:
-            launch_kwargs["proxy-server"] = CONFIG.global_proxy
+        if options.get("global_proxy") and "proxy-server" not in launch_kwargs:
+            launch_kwargs["proxy-server"] = options.get("global_proxy")
 
         self.executable_path = launch_kwargs.pop("executable_path", None)
         self.launch_args = [f"--{k}={v}" for k, v in launch_kwargs.items()]
@@ -118,6 +123,8 @@ if __name__ == "__main__":
     import fire
 
     async def main(url: str, *urls: str, browser_type: str = "chrome", **kwargs):
-        return await SeleniumWrapper(browser_type, **kwargs).run(url, *urls)
+        return await SeleniumWrapper(options=Config().runtime_options,
+                                     browser_type=browser_type,
+                                     **kwargs).run(url, *urls)
 
     fire.Fire(main)

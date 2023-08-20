@@ -4,6 +4,7 @@
 @Time    : 2023/5/11 14:43
 @Author  : alexanderwu
 @File    : action.py
+@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
 """
 from abc import ABC
 from typing import Optional
@@ -11,16 +12,14 @@ from typing import Optional
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 from metagpt.actions.action_output import ActionOutput
-from metagpt.llm import LLM
 from metagpt.utils.common import OutputParser
 from metagpt.logs import logger
 
 
 class Action(ABC):
-    def __init__(self, name: str = '', context=None, llm: LLM = None):
+    def __init__(self, options, name: str = '', context=None, llm=None):
+        self.options = options
         self.name: str = name
-        if llm is None:
-            llm = LLM()
         self.llm = llm
         self.context = context
         self.prefix = ""

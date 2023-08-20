@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+"""
+@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
+"""
+
 from __future__ import annotations
 
 import asyncio
@@ -9,7 +13,6 @@ from typing import Callable
 from pydantic import parse_obj_as
 
 from metagpt.actions import Action
-from metagpt.config import CONFIG
 from metagpt.logs import logger
 from metagpt.tools.search_engine import SearchEngine
 from metagpt.tools.web_browser_engine import WebBrowserEngine, WebBrowserEngineType
@@ -79,14 +82,15 @@ class CollectLinks(Action):
     """Action class to collect links from a search engine."""
     def __init__(
         self,
+        options,
         name: str = "",
         *args,
         rank_func: Callable[[list[str]], None] | None = None,
         **kwargs,
     ):
-        super().__init__(name, *args, **kwargs)
+        super().__init__(options=options, name=name, *args, **kwargs)
         self.desc = "Collect links from a search engine."
-        self.search_engine = SearchEngine()
+        self.search_engine = SearchEngine(options=options)
         self.rank_func = rank_func
 
     async def run(
@@ -126,7 +130,7 @@ class CollectLinks(Action):
                 remove.pop()
                 if len(remove) == 0:
                     break
-        prompt = reduce_message_length(gen_msg(), self.llm.model, system_text, CONFIG.max_tokens_rsp)
+        prompt = reduce_message_length(gen_msg(), self.llm.model, system_text, self.options.get("max_tokens_rsp"))
         logger.debug(prompt)
         queries = await self._aask(prompt, [system_text])
         try:
@@ -178,9 +182,10 @@ class WebBrowseAndSummarize(Action):
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
-        if CONFIG.model_for_researcher_summary:
-            self.llm.model = CONFIG.model_for_researcher_summary
+        if self.options.get("model_for_researcher_summary"):
+            self.llm.model = self.options.get("model_for_researcher_summary")
         self.web_browser_engine = WebBrowserEngine(
+            options=self.options,
             engine=WebBrowserEngineType.CUSTOM if browse_func else None,
             run_func=browse_func,
         )
@@ -213,7 +218,8 @@ class WebBrowseAndSummarize(Action):
         for u, content in zip([url, *urls], contents):
             content = content.inner_text
             chunk_summaries = []
-            for prompt in generate_prompt_chunk(content, prompt_template, self.llm.model, system_text, CONFIG.max_tokens_rsp):
+            for prompt in generate_prompt_chunk(content, prompt_template, self.llm.model, system_text,
+                                                self.options.get("max_tokens_rsp")):
                 logger.debug(prompt)
                 summary = await self._aask(prompt, [system_text])
                 if summary == "Not relevant.":
@@ -239,8 +245,8 @@ class ConductResearch(Action):
     """Action class to conduct research and generate a research report."""
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if CONFIG.model_for_researcher_report:
-            self.llm.model = CONFIG.model_for_researcher_report
+        if self.options.get("model_for_researcher_report"):
+            self.llm.model = self.options.get("model_for_researcher_report")
 
     async def run(
         self,

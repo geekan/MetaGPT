@@ -5,18 +5,16 @@
 @Author  : alexanderwu
 @File    : role.py
 @Modified By: mashenquan, 2023-8-7, :class:`Role` + properties.
+@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation;
+            Change cost control from global to company level.
 """
 from __future__ import annotations
 
-import traceback
-from typing import Iterable, Type
+from typing import Iterable, Type, Dict
 
 from pydantic import BaseModel, Field
-
-# from metagpt.environment import Environment
-from metagpt.config import CONFIG
+from metagpt.provider.openai_api import OpenAIGPTAPI as LLM
 from metagpt.actions import Action, ActionOutput
-from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.memory import Memory, LongTermMemory
 from metagpt.schema import Message
@@ -50,7 +48,7 @@ ROLE_TEMPLATE = """Your response should be based on the previous conversation hi
 
 
 class RoleSetting(BaseModel):
-    """角色设定"""
+    """Role properties"""
     name: str
     profile: str
     goal: str
@@ -65,7 +63,7 @@ class RoleSetting(BaseModel):
 
 
 class RoleContext(BaseModel):
-    """角色运行时上下文"""
+    """Runtime role context"""
     env: 'Environment' = Field(default=None)
     memory: Memory = Field(default_factory=Memory)
     long_term_memory: LongTermMemory = Field(default_factory=LongTermMemory)
@@ -73,18 +71,19 @@ class RoleContext(BaseModel):
     todo: Action = Field(default=None)
     watch: set[Type[Action]] = Field(default_factory=set)
     news: list[Type[Message]] = Field(default=[])
+    options: Dict
 
     class Config:
         arbitrary_types_allowed = True
 
     def check(self, role_id: str):
-        if hasattr(CONFIG, "long_term_memory") and CONFIG.long_term_memory:
+        if self.options.get("long_term_memory"):
             self.long_term_memory.recover_memory(role_id, self)
             self.memory = self.long_term_memory  # use memory to act as long_term_memory for unify operation
 
     @property
     def important_memory(self) -> list[Message]:
-        """获得关注动作对应的信息"""
+        """Retrieve information corresponding to the attention action."""
         return self.memory.get_by_actions(self.watch)
 
     @property
@@ -93,24 +92,25 @@ class RoleContext(BaseModel):
 
 
 class Role:
-    """角色/代理"""
+    """Role/Proxy"""
 
-    def __init__(self, name="", profile="", goal="", constraints="", desc="", *args, **kwargs):
-        # Enable parameter configurability
-        name = Role.format_value(name, kwargs)
-        profile = Role.format_value(profile, kwargs)
-        goal = Role.format_value(goal, kwargs)
-        constraints = Role.format_value(constraints, kwargs)
-        desc = Role.format_value(desc, kwargs)
+    def __init__(self, options, cost_manager, name="", profile="", goal="", constraints="", desc="", *args, **kwargs):
+        self._options = Role.supply_options(options=kwargs, default_options=options)
 
-        # Initialize
-        self._llm = LLM()
+        name = Role.format_value(name, self._options)
+        profile = Role.format_value(profile, self._options)
+        goal = Role.format_value(goal, self._options)
+        constraints = Role.format_value(constraints, self._options)
+        desc = Role.format_value(desc, self._options)
+
+        self._cost_manager = cost_manager
+        self._llm = LLM(options=self._options, cost_manager=cost_manager)
+
         self._setting = RoleSetting(name=name, profile=profile, goal=goal, constraints=constraints, desc=desc)
         self._states = []
         self._actions = []
         self._role_id = str(self._setting)
-        self._rc = RoleContext()
-        self._options = Role.supply_options(kwargs)
+        self._rc = RoleContext(options=self._options)
 
     def _reset(self):
         self._states = []
@@ -120,7 +120,7 @@ class Role:
         self._reset()
         for idx, action in enumerate(actions):
             if not isinstance(action, Action):
-                i = action("")
+                i = action(options=self._options, name="", llm=self._llm)
             else:
                 i = action
             i.set_prefix(self._get_prefix(), self.profile)
@@ -173,6 +173,13 @@ class Role:
         """Return number of action"""
         return len(self._actions)
 
+    def options(self):
+        return self._options
+
+    @options.setter
+    def options(self, opts):
+        self._options.update(opts)
+
     def _get_prefix(self):
         """获取角色前缀"""
         if self._setting.desc:
@@ -219,9 +226,9 @@ class Role:
         if not self._rc.env:
             return 0
         env_msgs = self._rc.env.memory.get()
-        
+
         observed = self._rc.env.memory.get_by_actions(self._rc.watch)
-        
+
         self._rc.news = self._rc.memory.remember(observed)  # remember recent exact or similar memories
 
         for i in env_msgs:
@@ -280,32 +287,28 @@ class Role:
         return rsp
 
     @staticmethod
-    def supply_options(options):
+    def supply_options(options, default_options=None):
         """Supply missing options"""
-        ret = Role.__DEFAULT_OPTIONS__.copy()
+        ret = default_options.copy() if default_options else {}
         if not options:
             return ret
         ret.update(options)
         return ret
 
     @staticmethod
-    def format_value(value, options):
+    def format_value(value, opts, default_opts=None):
         """Fill parameters inside `value` with `options`."""
         if not isinstance(value, str):
             return value
         if "{" not in value:
             return value
 
-        options = Role.supply_options(options)
+        merged_opts = Role.supply_options(opts, default_opts)
         try:
-            return value.format(**options)
+            return value.format(**merged_opts)
         except KeyError as e:
             logger.warning(f"Parameter is missing:{e}")
-            for k, v in options.items():
-                value = value.replace("{" + f"{k}" + "}", str(v))
-            return value
 
-    __DEFAULT_OPTIONS__ = {
-        "teaching_language": "English",
-        "language": "Chinese"
-    }
+        for k, v in merged_opts.items():
+            value = value.replace("{" + f"{k}" + "}", str(v))
+        return value

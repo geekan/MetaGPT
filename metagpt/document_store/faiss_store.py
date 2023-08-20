@@ -4,6 +4,7 @@
 @Time    : 2023/5/25 10:20
 @Author  : alexanderwu
 @File    : faiss_store.py
+@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
 """
 import pickle
 from pathlib import Path
@@ -36,8 +37,11 @@ class FaissStore(LocalStore):
         store.index = index
         return store
 
-    def _write(self, docs, metadatas):
-        store = FAISS.from_texts(docs, OpenAIEmbeddings(openai_api_version="2020-11-07"), metadatas=metadatas)
+    def _write(self, docs, metadatas, **kwargs):
+        store = FAISS.from_texts(docs,
+                                 OpenAIEmbeddings(openai_api_version="2020-11-07",
+                                                  openai_api_key=kwargs.get("OPENAI_API_KEY")),
+                                 metadatas=metadatas)
         return store
 
     def persist(self):

@@ -4,19 +4,21 @@
 @Time    : 2023/7/4 10:53
 @Author  : alexanderwu
 @File    : mermaid.py
+@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
 """
 import subprocess
 from pathlib import Path
 
-from metagpt.config import CONFIG
+from metagpt.config import Config
 from metagpt.const import PROJECT_ROOT
 from metagpt.logs import logger
 from metagpt.utils.common import check_cmd_exists
 
 
-def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, height=2048) -> int:
+def mermaid_to_file(options, mermaid_code, output_file_without_suffix, width=2048, height=2048) -> int:
     """suffix: png/svg/pdf
 
+    :param options: runtime context options, created by `Config` class object and changed in flow pipeline
     :param mermaid_code: mermaid code
     :param output_file_without_suffix: output filename
     :param width:
@@ -36,12 +38,12 @@ def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, height
         # Call the `mmdc` command to convert the Mermaid code to a PNG
         logger.info(f"Generating {output_file}..")
 
-        if CONFIG.puppeteer_config:
+        if options.get("puppeteer_config"):
             subprocess.run(
                 [
-                    CONFIG.mmdc,
+                    options.get("mmdc"),
                     "-p",
-                    CONFIG.puppeteer_config,
+                    options.get("puppeteer_config"),
                     "-i",
                     str(tmp),
                     "-o",
@@ -53,7 +55,7 @@ def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, height
                 ]
             )
         else:
-            subprocess.run([CONFIG.mmdc, "-i", str(tmp), "-o", output_file, "-w", str(width), "-H", str(height)])
+            subprocess.run([options.get("mmdc"), "-i", str(tmp), "-o", output_file, "-w", str(width), "-H", str(height)])
     return 0
 
 
@@ -109,6 +111,8 @@ MMC2 = """sequenceDiagram
 
 
 if __name__ == "__main__":
-    # logger.info(print_members(print_members))
-    mermaid_to_file(MMC1, PROJECT_ROOT / "tmp/1.png")
-    mermaid_to_file(MMC2, PROJECT_ROOT / "tmp/2.png")
+    conf = Config()
+    mermaid_to_file(options=conf.runtime_options, mermaid_code=MMC1,
+                    output_file_without_suffix=PROJECT_ROOT / "tmp/1.png")
+    mermaid_to_file(options=conf.runtime_options, mermaid_code=MMC2,
+                    output_file_without_suffix=PROJECT_ROOT / "tmp/2.png")

@@ -5,6 +5,7 @@
 @Author  : alexanderwu
 @File    : design_api.py
 @Modified By: mashenquan, 2023-8-9, align `run` parameters with the parent :class:`Action` class.
+@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
 """
 import shutil
 from pathlib import Path
@@ -91,8 +92,8 @@ OUTPUT_MAPPING = {
 
 
 class WriteDesign(Action):
-    def __init__(self, name, context=None, llm=None):
-        super().__init__(name, context, llm)
+    def __init__(self, options, name, context=None, llm=None):
+        super().__init__(options=options, name=name, context=context, llm=llm)
         self.desc = "Based on the PRD, think about the system design, and design the corresponding APIs, " \
                     "data structures, library tables, processes, and paths. Please provide your design, feedback " \
                     "clearly and in detail."
@@ -107,15 +108,15 @@ class WriteDesign(Action):
     def _save_prd(self, docs_path, resources_path, prd):
         prd_file = docs_path / 'prd.md'
         quadrant_chart = CodeParser.parse_code(block="Competitive Quadrant Chart", text=prd)
-        mermaid_to_file(quadrant_chart, resources_path / 'competitive_analysis')
+        mermaid_to_file(options=self.options, mermaid_code=quadrant_chart, output_file_without_suffix=resources_path / 'competitive_analysis')
         logger.info(f"Saving PRD to {prd_file}")
         prd_file.write_text(prd)
 
     def _save_system_design(self, docs_path, resources_path, content):
         data_api_design = CodeParser.parse_code(block="Data structures and interface definitions", text=content)
         seq_flow = CodeParser.parse_code(block="Program call flow", text=content)
-        mermaid_to_file(data_api_design, resources_path / 'data_api_design')
-        mermaid_to_file(seq_flow, resources_path / 'seq_flow')
+        mermaid_to_file(options=self.options, mermaid_code=data_api_design, output_file_without_suffix=resources_path / 'data_api_design')
+        mermaid_to_file(options=self.options, mermaid_code=seq_flow, output_file_without_suffix=resources_path / 'seq_flow')
         system_design_file = docs_path / 'system_design.md'
         logger.info(f"Saving System Designs to {system_design_file}")
         system_design_file.write_text(content)

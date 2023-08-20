@@ -4,6 +4,7 @@
 @Time    : 2023/5/11 17:45
 @Author  : alexanderwu
 @File    : write_code.py
+@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
 """
 from metagpt.actions import WriteDesign
 from metagpt.actions.action import Action
@@ -43,8 +44,8 @@ ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenc
 
 
 class WriteCode(Action):
-    def __init__(self, name="WriteCode", context: list[Message] = None, llm=None):
-        super().__init__(name, context, llm)
+    def __init__(self, options, name="WriteCode", context: list[Message] = None, llm=None):
+        super().__init__(options=options, name=name, context=context, llm=llm)
 
     def _is_invalid(self, filename):
         return any(i in filename for i in ["mp3", "wav"])
