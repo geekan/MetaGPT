@@ -29,7 +29,7 @@ class NotConfiguredException(Exception):
         super().__init__(self.message)
 
 
-class Config(metaclass=Singleton):
+class Config:
     """
     For example:
 
@@ -40,7 +40,6 @@ class Config(metaclass=Singleton):
     ```
     """
 
-    _instance = None
     key_yaml_file = PROJECT_ROOT / "config/key.yaml"
     default_yaml_file = PROJECT_ROOT / "config/config.yaml"
 
