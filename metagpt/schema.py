@@ -8,7 +8,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Type, TypedDict
+from typing import Type, TypedDict, Set
 
 from pydantic import BaseModel
 
@@ -29,6 +29,7 @@ class Message:
     cause_by: Type["Action"] = field(default="")
     sent_from: str = field(default="")
     send_to: str = field(default="")
+    tags: Set = field(default_factory=Set)
 
     def __str__(self):
         # prefix = '-'.join([self.role, str(self.cause_by)])
