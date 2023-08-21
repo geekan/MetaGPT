@@ -90,8 +90,11 @@ async def startup(lesson_file: str, investment: float = 3.0, n_round: int = 1, *
         configs = yaml.safe_load(reader)
 
     startup_config = ProjectConfig(**configs)
-    roles = UMLMetaRoleFactory.create_roles(startup_config.roles, **kwargs)
     company = SoftwareCompany()
+    roles = UMLMetaRoleFactory.create_roles(role_configs=startup_config.roles,
+                                            options=company.options,
+                                            cost_manager=company.cost_manager,
+                                            **kwargs)
     company.hire(roles)
     company.invest(startup_config.startup.investment)
     company.start_project(lesson, role=startup_config.startup.role,

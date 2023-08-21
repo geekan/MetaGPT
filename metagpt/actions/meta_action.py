@@ -21,19 +21,22 @@ from metagpt.schema import Message
 
 
 class MetaAction(Action):
-    def __init__(self, options: MetaActionOptions, llm=None, **kwargs):
-        super(MetaAction, self).__init__(options.name, kwargs.get("context"), llm=llm)
-        self.prompt = options.format_prompt(**kwargs)
-        self.options = options
+    def __init__(self, options, action_options: MetaActionOptions, llm=None, **kwargs):
+        super(MetaAction, self).__init__(options=options,
+                                         name=action_options.name,
+                                         context=kwargs.get("context"),
+                                         llm=llm)
+        self.prompt = action_options.format_prompt(**kwargs)
+        self.action_options = action_options
         self.kwargs = kwargs
 
     def __str__(self):
         """Return `topic` value when str()"""
-        return self.options.topic
+        return self.action_options.topic
 
     def __repr__(self):
         """Show `topic` value when debug"""
-        return self.options.topic
+        return self.action_options.topic
 
     async def run(self, messages, *args, **kwargs):
         if len(messages) < 1 or not isinstance(messages[0], Message):
@@ -46,11 +49,11 @@ class MetaAction(Action):
         return self.rsp
 
     def _set_result(self, rsp):
-        if self.options.rsp_begin_tag and self.options.rsp_begin_tag in rsp:
-            ix = rsp.index(self.options.rsp_begin_tag)
-            rsp = rsp[ix + len(self.options.rsp_begin_tag):]
-        if self.options.rsp_end_tag and self.options.rsp_end_tag in rsp:
-            ix = rsp.index(self.options.rsp_end_tag)
+        if self.action_options.rsp_begin_tag and self.action_options.rsp_begin_tag in rsp:
+            ix = rsp.index(self.action_options.rsp_begin_tag)
+            rsp = rsp[ix + len(self.action_options.rsp_begin_tag):]
+        if self.action_options.rsp_end_tag and self.action_options.rsp_end_tag in rsp:
+            ix = rsp.index(self.action_options.rsp_end_tag)
             rsp = rsp[0:ix]
         self.rsp = rsp.strip()
 

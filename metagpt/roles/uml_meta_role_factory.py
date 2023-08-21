@@ -33,7 +33,7 @@ class UMLMetaRoleFactory:
                 raise NotImplementedError(
                     f"{opt.role_type} is not implemented"
                 )
-            r = constructor(m, **kwargs)
+            r = constructor(role_options=m, **kwargs)
             roles.append(r)
         return roles
 
