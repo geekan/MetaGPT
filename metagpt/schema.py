@@ -9,11 +9,16 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from enum import StrEnum
 from typing import Type, TypedDict, Set, Optional
 
 from pydantic import BaseModel
 
 from metagpt.logs import logger
+
+
+class MessageTag(StrEnum):
+    Prerequisite = "prerequisite"
 
 
 class RawMessage(TypedDict):
@@ -61,6 +66,7 @@ class UserMessage(Message):
     """便于支持OpenAI的消息
        Facilitate support for OpenAI messages
     """
+
     def __init__(self, content: str):
         super().__init__(content, 'user')
 
@@ -70,6 +76,7 @@ class SystemMessage(Message):
     """便于支持OpenAI的消息
        Facilitate support for OpenAI messages
     """
+
     def __init__(self, content: str):
         super().__init__(content, 'system')
 
@@ -79,6 +86,7 @@ class AIMessage(Message):
     """便于支持OpenAI的消息
        Facilitate support for OpenAI messages
     """
+
     def __init__(self, content: str):
         super().__init__(content, 'assistant')
 
