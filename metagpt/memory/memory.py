@@ -5,6 +5,7 @@
 @Author  : alexanderwu
 @File    : memory.py
 """
+import contextlib
 from collections import defaultdict
 from typing import Iterable, Type
 
@@ -42,7 +43,9 @@ class Memory:
 
     def delete(self, message: Message):
         """Delete the specified message from storage, while updating the index"""
-        self.storage.remove(message)
+        with contextlib.suppress(Exception):
+            self.storage.remove(message)
+
         if message.cause_by and message in self.index[message.cause_by]:
             self.index[message.cause_by].remove(message)
 
