@@ -3,3 +3,9 @@
 # @Time    : 2023/4/24 22:26
 # @Author  : alexanderwu
 # @File    : __init__.py
+
+from metagpt.schema import Message
+
+__all__ = [
+    "Message",
+]
