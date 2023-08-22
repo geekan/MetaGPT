@@ -51,7 +51,7 @@ class Message:
         self.tags.add(tag)
 
     def remove_tag(self, tag):
-        if self.tags is None:
+        if self.tags is None or tag not in self.tags:
             return
         self.tags.remove(tag)
 
