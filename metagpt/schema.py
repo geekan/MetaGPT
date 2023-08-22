@@ -4,6 +4,7 @@
 @Time    : 2023/5/8 22:12
 @Author  : alexanderwu
 @File    : schema.py
+@Desc    : mashenquan, 2023/8/22. Add tags to enable custom message classification.
 """
 from __future__ import annotations
 
@@ -29,7 +30,7 @@ class Message:
     cause_by: Type["Action"] = field(default="")
     sent_from: str = field(default="")
     send_to: str = field(default="")
-    tags: Set = field(default_factory=Set)
+    tags: Set = field(default_factory=set())
 
     def __str__(self):
         # prefix = '-'.join([self.role, str(self.cause_by)])
