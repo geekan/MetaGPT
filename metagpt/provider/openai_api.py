@@ -62,9 +62,9 @@ class CostManager(BaseModel):
 
     total_prompt_tokens: int = 0
     total_completion_tokens: int = 0
-    total_budget: int = 0
-    max_budget: int
-    total_cost: int = 0
+    total_budget: float = 0
+    max_budget: float
+    total_cost: float = 0
 
     def update_cost(self, prompt_tokens, completion_tokens, model):
         """
