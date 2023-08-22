@@ -22,6 +22,8 @@ class Report(BaseModel):
 class Researcher(Role):
     def __init__(
         self,
+        options,
+        cost_manager,
         name: str = "David",
         profile: str = "Researcher",
         goal: str = "Gather information and conduct research",
@@ -29,7 +31,7 @@ class Researcher(Role):
         language: str = "en-us",
         **kwargs,
     ):
-        super().__init__(name, profile, goal, constraints, **kwargs)
+        super().__init__(options=options, cost_manager=cost_manager, name=name, profile=profile, goal=goal, constraints=constraints, **kwargs)
         self._init_actions([CollectLinks(name), WebBrowseAndSummarize(name), ConductResearch(name)])
         self.language = language
         if language not in ("en-us", "zh-cn"):

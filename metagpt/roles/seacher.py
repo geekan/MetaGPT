@@ -13,9 +13,9 @@ from metagpt.tools import SearchEngineType
 
 
 class Searcher(Role):
-    def __init__(self, name='Alice', profile='Smart Assistant', goal='Provide search services for users',
+    def __init__(self, options, cost_manager, name='Alice', profile='Smart Assistant', goal='Provide search services for users',
                  constraints='Answer is rich and complete', engine=SearchEngineType.SERPAPI_GOOGLE, **kwargs):
-        super().__init__(name, profile, goal, constraints, **kwargs)
+        super().__init__(options=options, cost_manager=cost_manager, name=name, profile=profile, goal=goal, constraints=constraints, **kwargs)
         self._init_actions([SearchAndSummarize(engine=engine)])
 
     def set_search_func(self, search_func):
