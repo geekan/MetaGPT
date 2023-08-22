@@ -45,6 +45,16 @@ class Message:
             "content": self.content
         }
 
+    def add_tag(self, tag):
+        if self.tags is None:
+            self.tags = set()
+        self.tags.add(tag)
+
+    def remove_tag(self, tag):
+        if self.tags is None:
+            return
+        self.tags.remove(tag)
+
 
 @dataclass
 class UserMessage(Message):
