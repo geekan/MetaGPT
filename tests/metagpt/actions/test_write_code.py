@@ -19,7 +19,7 @@ from tests.metagpt.actions.mock import TASKS_2, WRITE_CODE_PROMPT_SAMPLE
 async def test_write_code():
     api_design = "设计一个名为'add'的函数，该函数接受两个整数作为输入，并返回它们的和。"
     conf = Config()
-    cost_manager = CostManager(conf.runtime_options)
+    cost_manager = CostManager(**conf.runtime_options)
     llm = LLM(options=conf.runtime_options, cost_manager=cost_manager)
     write_code = WriteCode(options=conf.runtime_options, name="write_code", llm=llm)
 
@@ -35,6 +35,6 @@ async def test_write_code():
 async def test_write_code_directly():
     prompt = WRITE_CODE_PROMPT_SAMPLE + '\n' + TASKS_2[0]
     options = Config().runtime_options
-    llm = LLM(options=options, cost_manager=CostManager(options=options))
+    llm = LLM(options=options, cost_manager=CostManager(**options))
     rsp = await llm.aask(prompt)
     logger.info(rsp)

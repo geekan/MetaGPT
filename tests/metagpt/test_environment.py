@@ -26,7 +26,7 @@ def env():
 
 def test_add_role(env: Environment):
     conf = Config()
-    cost_manager = CostManager(options=conf.runtime_options)
+    cost_manager = CostManager(**conf.runtime_options)
     role = ProductManager(options=conf.runtime_options,
                           cost_manager=cost_manager,
                           name="Alice",
@@ -39,7 +39,7 @@ def test_add_role(env: Environment):
 
 def test_get_roles(env: Environment):
     conf = Config()
-    cost_manager = CostManager(options=conf.runtime_options)
+    cost_manager = CostManager(**conf.runtime_options)
     role1 = Role(options=conf.runtime_options, cost_manager=cost_manager, name="Alice", profile="product manager",
                  goal="create a new product", constraints="limited resources")
     role2 = Role(options=conf.runtime_options, cost_manager=cost_manager, name="Bob", profile="engineer",
@@ -53,7 +53,7 @@ def test_get_roles(env: Environment):
 @pytest.mark.asyncio
 async def test_publish_and_process_message(env: Environment):
     conf = Config()
-    cost_manager = CostManager(options=conf.runtime_options)
+    cost_manager = CostManager(**conf.runtime_options)
     product_manager = ProductManager(options=conf.runtime_options,
                                      cost_manager=cost_manager,
                                      name="Alice", profile="Product Manager",

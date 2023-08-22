@@ -16,7 +16,7 @@ from metagpt.provider.openai_api import OpenAIGPTAPI as LLM, CostManager
 @pytest.fixture()
 def llm():
     options = Config().runtime_options
-    return LLM(options=options, cost_manager=CostManager(options))
+    return LLM(options=options, cost_manager=CostManager(**options))
 
 
 @pytest.mark.asyncio

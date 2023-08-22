@@ -30,7 +30,7 @@ class SoftwareCompany(BaseModel):
     investment: float = Field(default=10.0)
     idea: str = Field(default="")
     options: Dict = Field(default=Config().runtime_options)
-    cost_manager: CostManager = Field(default=CostManager(Config().runtime_options))
+    cost_manager: CostManager = Field(default=CostManager(**Config().runtime_options))
 
     class Config:
         arbitrary_types_allowed = True

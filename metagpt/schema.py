@@ -9,7 +9,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from enum import StrEnum
+from enum import Enum
 from typing import Type, TypedDict, Set, Optional
 
 from pydantic import BaseModel
@@ -17,7 +17,7 @@ from pydantic import BaseModel
 from metagpt.logs import logger
 
 
-class MessageTag(StrEnum):
+class MessageTag(Enum):
     Prerequisite = "prerequisite"
 
 

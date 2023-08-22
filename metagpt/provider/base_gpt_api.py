@@ -4,6 +4,7 @@
 @Time    : 2023/5/5 23:04
 @Author  : alexanderwu
 @File    : base_gpt_api.py
+@Desc    : mashenquan, 2023/8/22. + try catch
 """
 from abc import abstractmethod
 from typing import Optional
@@ -41,7 +42,11 @@ class BaseGPTAPI(BaseChatbot):
             message = self._system_msgs(system_msgs) + [self._user_msg(msg)]
         else:
             message = [self._default_system_msg(), self._user_msg(msg)]
-        rsp = await self.acompletion_text(message, stream=True)
+        try:
+            rsp = await self.acompletion_text(message, stream=True)
+        except Exception as e:
+            logger.exception(f"{e}")
+            raise e
         logger.debug(message)
         # logger.debug(rsp)
         return rsp

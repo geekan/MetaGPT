@@ -8,10 +8,11 @@
 """
 import asyncio
 import time
-from typing import NamedTuple
+from typing import NamedTuple, Dict
 
 import openai
 from openai.error import APIConnectionError
+from pydantic import BaseModel
 from tenacity import retry, stop_after_attempt, after_log, wait_fixed, retry_if_exception_type
 
 from metagpt.logs import logger
@@ -35,7 +36,7 @@ class RateLimiter:
         self.rpm = rpm
 
     def split_batches(self, batch):
-        return [batch[i : i + self.rpm] for i in range(0, len(batch), self.rpm)]
+        return [batch[i: i + self.rpm] for i in range(0, len(batch), self.rpm)]
 
     async def wait_if_needed(self, num_requests):
         current_time = time.time()
@@ -56,14 +57,14 @@ class Costs(NamedTuple):
     total_budget: float
 
 
-class CostManager:
+class CostManager(BaseModel):
     """计算使用接口的开销"""
 
-    def __init__(self, options):
-        self.total_prompt_tokens = 0
-        self.total_completion_tokens = 0
-        self.options = options
-        self.total_budget = 0
+    total_prompt_tokens: int = 0
+    total_completion_tokens: int = 0
+    total_budget: int = 0
+    max_budget: int
+    total_cost: int = 0
 
     def update_cost(self, prompt_tokens, completion_tokens, model):
         """
@@ -76,7 +77,8 @@ class CostManager:
         """
         self.total_prompt_tokens += prompt_tokens
         self.total_completion_tokens += completion_tokens
-        cost = (prompt_tokens * TOKEN_COSTS[model]["prompt"] + completion_tokens * TOKEN_COSTS[model]["completion"]) / 1000
+        cost = (prompt_tokens * TOKEN_COSTS[model]["prompt"] + completion_tokens * TOKEN_COSTS[model][
+            "completion"]) / 1000
         self.total_cost += cost
         logger.info(
             f"Total running cost: ${self.total_cost:.3f} | Max budget: ${self.max_budget:.3f} | "
@@ -113,18 +115,6 @@ class CostManager:
     def get_costs(self) -> Costs:
         """获得所有开销"""
         return Costs(self.total_prompt_tokens, self.total_completion_tokens, self.total_cost, self.total_budget)
-
-    @property
-    def total_cost(self):
-        return self.options.get("total_cost", 0)
-
-    @total_cost.setter
-    def total_cost(self, v):
-        self.options["total_cost"] = v
-
-    @property
-    def max_budget(self):
-        return self.options.get("max_budget", 0)
 
 
 def log_and_reraise(retry_state):
