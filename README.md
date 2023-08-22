@@ -132,6 +132,8 @@ cp config/config.yaml config/key.yaml
 | OPENAI_API_BASE # Optional                 | OPENAI_API_BASE: "https://<YOUR_SITE>/v1" | export OPENAI_API_BASE="https://<YOUR_SITE>/v1" |
 
 ## Tutorial: Initiating a startup
+### video startup guide
+##  [click to watch](https://youtu.be/uT75J_KG_aY)
 
 ```shell
 python startup.py "Write a cli snake game"
