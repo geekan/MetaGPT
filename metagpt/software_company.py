@@ -4,6 +4,7 @@
 @Time    : 2023/5/12 00:30
 @Author  : alexanderwu
 @File    : software_company.py
+@Modified By: mashenquan, 2023-07-27, Add `role` & `cause_by` parameters to `start_project()`.
 @Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation;
             Change cost control from global to company level.
 """
@@ -49,10 +50,10 @@ class SoftwareCompany(BaseModel):
         if self.total_cost > self.max_budget:
             raise NoMoneyException(self.total_cost, f'Insufficient funds: {self.max_budget}')
 
-    def start_project(self, idea):
+    def start_project(self, idea, role="BOSS", cause_by=BossRequirement):
         """Start a project from publishing boss requirement."""
         self.idea = idea
-        self.environment.publish_message(Message(role="BOSS", content=idea, cause_by=BossRequirement))
+        self.environment.publish_message(Message(role=role, content=idea, cause_by=cause_by))
 
     def _save(self):
         logger.info(self.json())

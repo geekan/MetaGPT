@@ -1,0 +1,126 @@
+# The `fork` role demo implements the flow of the code in `examples/write_teaching_plan.py`.
+
+# project settings
+startup:
+  requirement: "TeachingPlanRequirement" # Defines project initial requirement action
+  role: "Teacher"
+  investment: 3.0
+  n_round: 1
+
+# roles settings
+roles:                                        # A project can involve multiple roles.
+- role_type: "fork"                           # `fork` type role corresponds to the functional positioning of the `fork` node in UML 2.0 activity diagrams.
+  name: "Lily"
+  profile: "{teaching_language} Teacher"
+  goal: "writing a {language} teaching plan part by part"
+  constraints: "writing in {language}"
+  role: "You are a {teaching_language} Teacher, named Lily, your goal is writing a {teaching_language} teaching plan part by part, and the constraint is writing in {language}."
+  desc: ""
+  output_filename: "teaching_plan_demo"
+  requirement: ["TeachingPlanRequirement"]
+  templates:                                  # The template provides a convenient way to generate prompts. After each action selects its respective template, you only need to provide the corresponding variable values. Variable replacement is automatically handled by the framework.
+    - "Do not refer to the context of the previous conversation records, start the conversation anew.\n\nFormation: \"Capacity and role\" defines the role you are currently playing;\n\t\"[LESSON_BEGIN]\" and \"[LESSON_END]\" tags enclose the content of textbook;\n\t\"Statement\" defines the work detail you need to complete at this stage;\n\t\"Answer options\" defines the format requirements for your responses;\n\t\"Constraint\" defines the conditions that your responses must comply with.\n\n{statements}\nConstraint: Writing in {language}.\nAnswer options: Encloses the lesson title with \"[TEACHING_PLAN_BEGIN]\" and \"[TEACHING_PLAN_END]\" tags.\n[LESSON_BEGIN]\n{lesson}\n[LESSON_END]"
+    - "Do not refer to the context of the previous conversation records, start the conversation anew.\n\nFormation: \"Capacity and role\" defines the role you are currently playing;\n\t\"[LESSON_BEGIN]\" and \"[LESSON_END]\" tags enclose the content of textbook;\n\t\"Statement\" defines the work detail you need to complete at this stage;\n\t\"Answer options\" defines the format requirements for your responses;\n\t\"Constraint\" defines the conditions that your responses must comply with.\n\nCapacity and role: {role}\nStatement: Write the \"{topic}\" part of teaching plan, WITHOUT ANY content unrelated to \"{topic}\"!!\n{statements}\nAnswer options: Enclose the teaching plan content with \"[TEACHING_PLAN_BEGIN]\" and \"[TEACHING_PLAN_END]\" tags.\nAnswer options: Using proper markdown format from second-level header format.\nConstraint: Writing in {language}.\n[LESSON_BEGIN]\n{lesson}\n[LESSON_END]"
+  actions: # 一个role可以有多个action
+      - name: ""
+        topic: "Title"
+        language: "Chinese"
+        statements:                           # When replacing template variables, multiple statements will be joined into a single string using line breaks.
+          - "Statement: Find and return the title of the lesson only with \"# \" string prefixed, without anything else."
+        template_ix: 0
+        rsp_begin_tag: "[TEACHING_PLAN_BEGIN]"
+        rsp_end_tag: "[TEACHING_PLAN_END]"
+      - name: ""
+        topic: "Teaching Hours"
+        language: "Chinese"
+        statements: []
+        template_ix: 1
+        rsp_begin_tag: "[TEACHING_PLAN_BEGIN]" # When asking, request the LLM to include the tag in the response. It's optional.
+        rsp_end_tag: "[TEACHING_PLAN_END]"     # When asking, request the LLM to include the tag in the response. It's optional.
+      - name: ""
+        topic: "Teaching Objectives"
+        language: "Chinese"
+        statements: []
+        template_ix: 1
+        rsp_begin_tag: "[TEACHING_PLAN_BEGIN]"
+        rsp_end_tag: "[TEACHING_PLAN_END]"
+      - name: ""
+        topic: "Teaching Content"
+        language: "Chinese"
+        statements:
+          - "Statement: \"Teaching Content\" must include vocabulary, analysis, and examples of various grammar structures that appear in the textbook, as well as the listening materials and key points."
+          - "Statement: \"Teaching Content\" must include more examples."
+        template_ix: 1
+        rsp_begin_tag: "[TEACHING_PLAN_BEGIN]"
+        rsp_end_tag: "[TEACHING_PLAN_END]"
+      - name: ""
+        topic: "Teaching Methods and Strategies"
+        language: "Chinese"
+        statements:
+          - "Statement: \"Teaching Methods and Strategies\" must include teaching focus, difficulties, materials, procedures, in detail."
+        template_ix: 1
+        rsp_begin_tag: "[TEACHING_PLAN_BEGIN]"
+        rsp_end_tag: "[TEACHING_PLAN_END]"
+      - name: ""
+        topic: "Learning Activities"
+        language: "Chinese"
+        statements: []
+        template_ix: 1
+        rsp_begin_tag: "[TEACHING_PLAN_BEGIN]"
+        rsp_end_tag: "[TEACHING_PLAN_END]"
+      - name: ""
+        topic: "Teaching Time Allocation"
+        language: "Chinese"
+        statements:
+          - "Statement: \"Teaching Time Allocation\" must include how much time is allocated to each part of the textbook content."
+        template_ix: 1
+        rsp_begin_tag: "[TEACHING_PLAN_BEGIN]"
+        rsp_end_tag: "[TEACHING_PLAN_END]"
+      - name: ""
+        topic: "Assessment and Feedback"
+        language: "Chinese"
+        statements: []
+        template_ix: 1
+        rsp_begin_tag: "[TEACHING_PLAN_BEGIN]"
+        rsp_end_tag: "[TEACHING_PLAN_END]"
+      - name: ""
+        topic: "Teaching Summary and Improvement"
+        language: "Chinese"
+        statements: []
+        template_ix: 1
+        rsp_begin_tag: "[TEACHING_PLAN_BEGIN]"
+        rsp_end_tag: "[TEACHING_PLAN_END]"
+      - name: ""
+        topic: "Vocabulary Cloze"
+        language: "Chinese"
+        statements:
+          - "Statement: Based on the content of the textbook enclosed by \"[LESSON_BEGIN]\" and \"[LESSON_END]\", create vocabulary cloze. The cloze should include 10 {language} questions with {teaching_language} answers, and it should also include 10 {teaching_language} questions with {language} answers. The key-related vocabulary and phrases in the textbook content must all be included in the exercises."
+        template_ix: 1
+        rsp_begin_tag: "[TEACHING_PLAN_BEGIN]"
+        rsp_end_tag: "[TEACHING_PLAN_END]"
+      - name: ""
+        topic: "Choice Questions"
+        language: "Chinese"
+        statements:
+          - "Statement: Based on the content of the textbook enclosed by \"[LESSON_BEGIN]\" and \"[LESSON_END]\", create choice questions. 10 questions."
+        template_ix: 1
+        rsp_begin_tag: "[TEACHING_PLAN_BEGIN]"
+        rsp_end_tag: "[TEACHING_PLAN_END]"
+      - name: ""
+        topic: "Grammar Questions"
+        language: "Chinese"
+        statements:
+          - "Statement: Based on the content of the textbook enclosed by \"[LESSON_BEGIN]\" and \"[LESSON_END]\", create grammar questions. 10 questions."
+        template_ix: 1
+        rsp_begin_tag: "[TEACHING_PLAN_BEGIN]"
+        rsp_end_tag: "[TEACHING_PLAN_END]"
+      - name: ""
+        topic: "Translation Questions"
+        language: "Chinese"
+        statements:
+          - "Statement: Based on the content of the textbook enclosed by \"[LESSON_BEGIN]\" and \"[LESSON_END]\", create translation questions. The translation should include 10 {language} questions with {teaching_language} answers, and it should also include 10 {teaching_language} questions with {language} answers."
+        template_ix: 1
+        rsp_begin_tag: "[TEACHING_PLAN_BEGIN]"
+        rsp_end_tag: "[TEACHING_PLAN_END]"
+
+

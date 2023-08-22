@@ -8,8 +8,9 @@
 """
 import asyncio
 import time
-from typing import NamedTuple, Dict
 
+from typing import NamedTuple
+import traceback
 import openai
 from openai.error import APIConnectionError
 from pydantic import BaseModel
@@ -150,7 +151,15 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         self.rpm = int(self._options.get("RPM", 10))
 
     async def _achat_completion_stream(self, messages: list[dict]) -> str:
-        response = await openai.ChatCompletion.acreate(**self._cons_kwargs(messages), stream=True)
+        try:
+            response = await openai.ChatCompletion.acreate(
+                **self._cons_kwargs(messages),
+                stream=True
+            )
+        except Exception as e:
+            error_str = traceback.format_exc()
+            logger.error(f"Exception:{e}, stack:{error_str}")
+            raise e
 
         # create variables to collect the stream of chunks
         collected_chunks = []

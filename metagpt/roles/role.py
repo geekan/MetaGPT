@@ -4,6 +4,7 @@
 @Time    : 2023/5/11 14:42
 @Author  : alexanderwu
 @File    : role.py
+@Modified By: mashenquan, 2023-8-7, :class:`Role` + properties.
 @Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation;
             Change cost control from global to company level.
 """
@@ -47,7 +48,7 @@ ROLE_TEMPLATE = """Your response should be based on the previous conversation hi
 
 
 class RoleSetting(BaseModel):
-    """角色设定"""
+    """Role properties"""
     name: str
     profile: str
     goal: str
@@ -62,7 +63,7 @@ class RoleSetting(BaseModel):
 
 
 class RoleContext(BaseModel):
-    """角色运行时上下文"""
+    """Runtime role context"""
     env: 'Environment' = Field(default=None)
     memory: Memory = Field(default_factory=Memory)
     long_term_memory: LongTermMemory = Field(default_factory=LongTermMemory)
@@ -82,7 +83,7 @@ class RoleContext(BaseModel):
 
     @property
     def important_memory(self) -> list[Message]:
-        """获得关注动作对应的信息"""
+        """Retrieve information corresponding to the attention action."""
         return self.memory.get_by_actions(self.watch)
 
     @property
@@ -91,17 +92,25 @@ class RoleContext(BaseModel):
 
 
 class Role:
-    """角色/代理"""
+    """Role/Proxy"""
 
-    def __init__(self, options, cost_manager, name="", profile="", goal="", constraints="", desc=""):
-        self._options = options if options else {}
+    def __init__(self, options, cost_manager, name="", profile="", goal="", constraints="", desc="", *args, **kwargs):
+        self._options = Role.supply_options(options=kwargs, default_options=options)
+
+        name = Role.format_value(name, self._options)
+        profile = Role.format_value(profile, self._options)
+        goal = Role.format_value(goal, self._options)
+        constraints = Role.format_value(constraints, self._options)
+        desc = Role.format_value(desc, self._options)
+
         self._cost_manager = cost_manager
         self._llm = LLM(options=self._options, cost_manager=cost_manager)
+
         self._setting = RoleSetting(name=name, profile=profile, goal=goal, constraints=constraints, desc=desc)
         self._states = []
         self._actions = []
         self._role_id = str(self._setting)
-        self._rc = RoleContext(options=options)
+        self._rc = RoleContext(options=self._options)
 
     def _reset(self):
         self._states = []
@@ -140,6 +149,31 @@ class Role:
         return self._setting.profile
 
     @property
+    def name(self):
+        """Return role `name`, read only"""
+        return self._setting.name
+
+    @property
+    def desc(self):
+        """Return role `desc`, read only"""
+        return self._setting.desc
+
+    @property
+    def goal(self):
+        """Return role `goal`, read only"""
+        return self._setting.goal
+
+    @property
+    def constraints(self):
+        """Return role `constraints`, read only"""
+        return self._setting.constraints
+
+    @property
+    def action_count(self):
+        """Return number of action"""
+        return len(self._actions)
+
+    @property
     def options(self):
         return self._options
 
@@ -175,7 +209,8 @@ class Role:
         #                                history=self.history)
 
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
-        response = await self._rc.todo.run(self._rc.important_memory)
+        requirement = self._rc.important_memory
+        response = await self._rc.todo.run(requirement, **self._options)
         # logger.info(response)
         if isinstance(response, ActionOutput):
             msg = Message(content=response.content, instruct_content=response.instruct_content,
@@ -192,9 +227,9 @@ class Role:
         if not self._rc.env:
             return 0
         env_msgs = self._rc.env.memory.get()
-        
+
         observed = self._rc.env.memory.get_by_actions(self._rc.watch)
-        
+
         self._rc.news = self._rc.memory.remember(observed)  # remember recent exact or similar memories
 
         for i in env_msgs:
@@ -251,3 +286,30 @@ class Role:
         # 将回复发布到环境，等待下一个订阅者处理
         self._publish_message(rsp)
         return rsp
+
+    @staticmethod
+    def supply_options(options, default_options=None):
+        """Supply missing options"""
+        ret = default_options.copy() if default_options else {}
+        if not options:
+            return ret
+        ret.update(options)
+        return ret
+
+    @staticmethod
+    def format_value(value, opts, default_opts=None):
+        """Fill parameters inside `value` with `options`."""
+        if not isinstance(value, str):
+            return value
+        if "{" not in value:
+            return value
+
+        merged_opts = Role.supply_options(opts, default_opts)
+        try:
+            return value.format(**merged_opts)
+        except KeyError as e:
+            logger.warning(f"Parameter is missing:{e}")
+
+        for k, v in merged_opts.items():
+            value = value.replace("{" + f"{k}" + "}", str(v))
+        return value

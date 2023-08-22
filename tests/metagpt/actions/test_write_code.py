@@ -4,6 +4,7 @@
 @Time    : 2023/5/11 17:45
 @Author  : alexanderwu
 @File    : test_write_code.py
+@Modified By: mashenquan, 2023-8-1, fix-bug: `filename` of `write_code.run()` is missing.
 @Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
 """
 import pytest
@@ -22,8 +23,7 @@ async def test_write_code():
     cost_manager = CostManager(**conf.runtime_options)
     llm = LLM(options=conf.runtime_options, cost_manager=cost_manager)
     write_code = WriteCode(options=conf.runtime_options, name="write_code", llm=llm)
-
-    code = await write_code.run(api_design, "filename")
+    code = await write_code.run(context=api_design, filename="test")
     logger.info(code)
 
     # 我们不能精确地预测生成的代码，但我们可以检查某些关键字
