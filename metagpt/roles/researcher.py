@@ -32,7 +32,10 @@ class Researcher(Role):
         **kwargs,
     ):
         super().__init__(options=options, cost_manager=cost_manager, name=name, profile=profile, goal=goal, constraints=constraints, **kwargs)
-        self._init_actions([CollectLinks(name), WebBrowseAndSummarize(name), ConductResearch(name)])
+        self._init_actions([
+            CollectLinks(options=options, name=name),
+            WebBrowseAndSummarize(options=options, name=name),
+            ConductResearch(options=options, name=name)])
         self.language = language
         if language not in ("en-us", "zh-cn"):
             logger.warning(f"The language `{language}` has not been tested, it may not work.")
