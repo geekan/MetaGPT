@@ -7,6 +7,7 @@
 @Modified By: mashenquan, 2023-8-7, :class:`Role` + properties.
 @Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation;
             Change cost control from global to company level.
+@Modified By: mashenquan, 2023/8/22. A definition has been provided for the return value of _think: returning false indicates that further reasoning cannot continue.
 """
 from __future__ import annotations
 
@@ -192,12 +193,12 @@ class Role:
             return self._setting.desc
         return PREFIX_TEMPLATE.format(**self._setting.dict())
 
-    async def _think(self) -> None:
-        """思考要做什么，决定下一步的action"""
+    async def _think(self) -> bool:
+        """Consider what to do and decide on the next course of action. Return false if nothing can be done."""
         if len(self._actions) == 1:
             # 如果只有一个动作，那就只能做这个
             self._set_state(0)
-            return
+            return True
         prompt = self._get_prefix()
         prompt += STATE_TEMPLATE.format(history=self._rc.history, states="\n".join(self._states),
                                         n_states=len(self._states) - 1)
@@ -207,6 +208,7 @@ class Role:
             logger.warning(f'Invalid answer of state, {next_state=}')
             next_state = "0"
         self._set_state(int(next_state))
+        return True
 
     async def _act(self) -> Message:
         # prompt = self.get_prefix()

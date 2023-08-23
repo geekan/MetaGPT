@@ -10,6 +10,8 @@
             For more about `fork` node in activity diagrams, see: `https://www.uml-diagrams.org/activity-diagrams.html`
           This file defines a `fork` style meta role capable of generating arbitrary roles at runtime based on a
             configuration file.
+@Modified By: mashenquan, 2023/8/22. A definition has been provided for the return value of _think: returning false indicates that further reasoning cannot continue.
+
 """
 
 import re
@@ -82,12 +84,13 @@ class ForkMetaRole(Role):
         """Everything will be done part by part."""
         if self._rc.todo is None:
             self._set_state(0)
-            return
+            return True
 
         if self._rc.state + 1 < len(self._states):
             self._set_state(self._rc.state + 1)
         else:
             self._rc.todo = None
+            return False
 
     async def _react(self) -> Message:
         ret = Message(content="")
