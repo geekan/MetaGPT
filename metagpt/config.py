@@ -3,8 +3,9 @@
 """
 @Desc: Provide configuration, singleton.
 @Modified By: mashenquan, replace `CONFIG` with `os.environ` to support personal config
-@Desc: `os.environ` doesn't support personalization, while `Config` does.
+        `os.environ` doesn't support personalization, while `Config` does.
         Hence, the parameter reading priority is `Config` first, and if not found, then `os.environ`.
+@Modified By: mashenquan, 2023/8/23. Add `options` to `Config.__init__` to support externally specified options.
 """
 import os
 
@@ -43,10 +44,14 @@ class Config:
     key_yaml_file = PROJECT_ROOT / "config/key.yaml"
     default_yaml_file = PROJECT_ROOT / "config/config.yaml"
 
-    def __init__(self, yaml_file=default_yaml_file):
+    def __init__(self, yaml_file=default_yaml_file, options=None):
         self._configs = {}
         self._init_with_config_files_and_env(self._configs, yaml_file)
+        if options:
+            self._configs.update(options)
+        self._parse()
 
+    def _parse(self):
         logger.info("Config loading done.")
         self.global_proxy = self._get("GLOBAL_PROXY")
         self.openai_api_key = self._get("OPENAI_API_KEY")
