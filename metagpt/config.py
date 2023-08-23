@@ -50,12 +50,10 @@ class Config(metaclass=Singleton):
         ):
             raise NotConfiguredException("Set OPENAI_API_KEY or Anthropic_API_KEY first")
         self.openai_api_base = self._get("OPENAI_API_BASE")
-        if not self.openai_api_base or "YOUR_API_BASE" == self.openai_api_base:
-            openai_proxy = self._get("OPENAI_PROXY") or self.global_proxy
-            if openai_proxy:
-                openai.proxy = openai_proxy
-            else:
-                logger.info("Set OPENAI_API_BASE in case of network issues")
+        openai_proxy = self._get("OPENAI_PROXY") or self.global_proxy
+        if openai_proxy:
+            openai.proxy = openai_proxy
+            openai.api_base = self.openai_api_base
         self.openai_api_type = self._get("OPENAI_API_TYPE")
         self.openai_api_version = self._get("OPENAI_API_VERSION")
         self.openai_api_rpm = self._get("RPM", 3)
