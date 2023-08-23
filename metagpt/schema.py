@@ -60,6 +60,13 @@ class Message:
             return
         self.tags.remove(tag)
 
+    def is_contain_tags(self, tags: list) -> bool:
+        """Determine whether the message contains tags."""
+        if not tags or not self.tags:
+            return False
+        intersection = set(tags) & self.tags
+        return len(intersection) > 0
+
 
 @dataclass
 class UserMessage(Message):

@@ -91,3 +91,11 @@ class Memory:
             key = class_names[type(action).__name__]
             rsp += self.index[key]
         return rsp
+
+    def get_by_tags(self, tags: list) -> list[Message]:
+        """Return messages with specified tags"""
+        result = []
+        for m in self.storage:
+            if m.is_contain_tags(tags):
+                result.append(m)
+        return result

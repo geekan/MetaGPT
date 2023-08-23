@@ -17,7 +17,7 @@ from metagpt.provider.openai_api import OpenAIGPTAPI as LLM
 from metagpt.actions import Action, ActionOutput
 from metagpt.logs import logger
 from metagpt.memory import Memory, LongTermMemory
-from metagpt.schema import Message
+from metagpt.schema import Message, MessageTag
 
 PREFIX_TEMPLATE = """You are a {profile}, named {name}, your goal is {goal}, and the constraint is {constraints}. """
 
@@ -89,6 +89,11 @@ class RoleContext(BaseModel):
     @property
     def history(self) -> list[Message]:
         return self.memory.get()
+
+    @property
+    def prerequisite(self):
+        """Retrieve information with `prerequisite` tag"""
+        return self.memory.get_by_tags([MessageTag.Prerequisite.value])
 
 
 class Role:
@@ -209,7 +214,7 @@ class Role:
         #                                history=self.history)
 
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
-        requirement = self._rc.important_memory
+        requirement = self._rc.important_memory or self._rc.prerequisite
         response = await self._rc.todo.run(requirement, **self._options)
         # logger.info(response)
         if isinstance(response, ActionOutput):

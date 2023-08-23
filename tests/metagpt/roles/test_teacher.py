@@ -60,7 +60,7 @@ def test_init():
     for i in inputs:
         seed = Inputs(**i)
         options = Config().runtime_options
-        cost_manager = CostManager(options=options)
+        cost_manager = CostManager(**options)
         teacher = Teacher(options=options, cost_manager=cost_manager, name=seed.name, profile=seed.profile,
                           goal=seed.goal, constraints=seed.constraints,
                           desc=seed.desc, **seed.kwargs)
