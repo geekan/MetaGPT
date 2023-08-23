@@ -41,9 +41,10 @@ class Teacher(Role):
 
         if self._rc.state + 1 < len(self._states):
             self._set_state(self._rc.state + 1)
-        else:
-            self._rc.todo = None
-            return False
+            return True
+
+        self._rc.todo = None
+        return False
 
     async def _react(self) -> Message:
         ret = Message(content="")
