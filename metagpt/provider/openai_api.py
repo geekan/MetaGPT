@@ -9,7 +9,7 @@
 import asyncio
 import time
 
-from typing import NamedTuple
+from typing import NamedTuple, List
 import traceback
 import openai
 from openai.error import APIConnectionError
@@ -310,3 +310,56 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
     @property
     def openai_api_version(self):
         return self._options.get("openai_api_version")
+
+    async def get_summary(self, text: str, max_words=20):
+        """Generate text summary"""
+        language = self._options.get("language", "English")
+        command = f"Translate the above content into a {language} summary of less than {max_words} words."
+        msg = text + "\n\n" + command
+        logger.info(f"summary ask:{msg}")
+        response = await self.aask(msg=msg, system_msgs=[])
+        logger.info(f"summary rsp: {response}")
+        return response
+
+    async def get_context_title(self, text: str, max_token_count_per_ask=None, max_words=5) -> str:
+        """Generate text title"""
+        max_response_token_count = 50
+        max_token_count = max_token_count_per_ask or self._options.get("MAX_TOKENS", 1500)
+        text_windows = self.split_texts(text, window_size=max_token_count - max_response_token_count)
+
+        summaries = []
+        for ws in text_windows:
+            response = await self.get_summary(ws)
+            summaries.append(response)
+
+        language = self._options.get("language", "English")
+        command = f"Translate the above summary into a {language} title of less than {max_words} words."
+        summaries.append(command)
+        msg = "\n".join(summaries)
+        logger.info(f"title ask:{msg}")
+        response = await self.aask(msg=msg, system_msgs=[])
+        logger.info(f"title rsp: {response}")
+        return response
+
+    @staticmethod
+    def split_texts(text: str, window_size) -> List[str]:
+        """Splitting long text into sliding windows text"""
+        total_len = len(text)
+        if total_len <= window_size:
+            return [text]
+
+        padding_size = 20 if window_size > 20 else 0
+        windows = []
+        idx = 0
+        while idx < total_len:
+            data_len = window_size - padding_size
+            if data_len + idx > total_len:
+                windows.append(text[idx:])
+                break
+            w = text[idx:data_len]
+            windows.append(w)
+        for i in range(len(windows)):
+            if i + 1 == len(windows):
+                break
+            windows[i] += windows[i + 1][0:padding_size]
+        return windows
