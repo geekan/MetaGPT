@@ -6,13 +6,6 @@ RUN apt update &&\
     apt install -y git chromium fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst fonts-freefont-ttf libxss1 --no-install-recommends &&\
     apt clean && rm -rf /var/lib/apt/lists/*
 
-# Install Mermaid CLI globally
-ENV CHROME_BIN="/usr/bin/chromium" \
-    PUPPETEER_CONFIG="/app/metagpt/config/puppeteer-config.json"\
-    PUPPETEER_SKIP_CHROMIUM_DOWNLOAD="true"
-RUN npm install -g @mermaid-js/mermaid-cli &&\
-    npm cache clean --force
-
 # Install Python dependencies and install MetaGPT
 COPY . /app/metagpt
 WORKDIR /app/metagpt

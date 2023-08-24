@@ -45,36 +45,16 @@ It costs approximately **$0.2** (in GPT-4 API fees) to generate one example with
 ### Traditional Installation
 
 ```bash
-# Step 1: Ensure that NPM is installed on your system. Then install mermaid-js.
-npm --version
-sudo npm install -g @mermaid-js/mermaid-cli
-
-# Step 2: Ensure that Python 3.9+ is installed on your system. You can check this by using:
+# Step 1: Ensure that Python 3.9+ is installed on your system. You can check this by using:
 python --version
 
-# Step 3: Clone the repository to your local machine, and install it.
+# Step 2: Clone the repository to your local machine, and install it.
 git clone https://github.com/geekan/metagpt
 cd metagpt
 python setup.py install
 ```
 
 **Note:**
-
-- If already have Chrome, Chromium, or MS Edge installed, you can skip downloading Chromium by setting the environment variable
-`PUPPETEER_SKIP_CHROMIUM_DOWNLOAD` to `true`.
-
-- Some people are [having issues](https://github.com/mermaidjs/mermaid.cli/issues/15) installing this tool globally. Installing it locally is an alternative solution,
-
-    ```bash
-    npm install @mermaid-js/mermaid-cli
-    ```
-
-- don't forget to the configuration for mmdc in config.yml
-
-    ```yml
-    PUPPETEER_CONFIG: "./config/puppeteer-config.json"
-    MMDC: "./node_modules/.bin/mmdc"
-    ```
 
 - if `python setup.py install` fails with error `[Errno 13] Permission denied: '/usr/local/lib/python3.11/dist-packages/test-easy-install-13129.write-test'`, try instead running `python setup.py install --user`
 

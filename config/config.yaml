@@ -63,12 +63,6 @@ SD_T2I_API: "/sdapi/v1/txt2img"
 #### for Execution
 #LONG_TERM_MEMORY: false
 
-#### for Mermaid CLI
-## If you installed mmdc (Mermaid CLI) only for metagpt then enable the following configuration.
-#PUPPETEER_CONFIG: "./config/puppeteer-config.json"
-#MMDC: "./node_modules/.bin/mmdc"
-
-
 ### for calc_usage
 # CALC_USAGE: false
 

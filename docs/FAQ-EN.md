@@ -173,9 +173,3 @@ MetaGPT Community - The position of Chief Evangelist rotates on a monthly basis.
 
     1.  On the day Llama2 was released, some of the community members began experiments and found that output can be generated based on MetaGPT's structure. However, Llama2's context is too short to generate a complete project. Before regularly using Llama2, it's necessary to expand the context window to at least 8k. If anyone has good recommendations for expansion models or methods, please leave a comment.
 
-1.  `mermaid-cli getElementsByTagName SyntaxError: Unexpected token '.'`
-
-    1.  Upgrade node to version 14.x or above:
-
-        1.  `npm install -g n`
-        1.  `n stable` to install the stable version of node（v18.x）
