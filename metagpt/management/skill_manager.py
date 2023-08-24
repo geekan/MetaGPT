@@ -15,7 +15,10 @@ Skill = Action
 
 
 class SkillManager:
-    """用来管理所有技能"""
+    """
+    用来管理所有技能
+    Used to manage all skills
+    """
 
     def __init__(self):
         self._llm = LLM()
@@ -25,7 +28,8 @@ class SkillManager:
     def add_skill(self, skill: Skill):
         """
         增加技能，将技能加入到技能池与可检索的存储中
-        :param skill: 技能
+        Add skill, add the skill to the skill pool and searchable storage
+        :param skill: 技能 skill
         :return:
         """
         self._skills[skill.name] = skill
@@ -34,7 +38,8 @@ class SkillManager:
     def del_skill(self, skill_name: str):
         """
         删除技能，将技能从技能池与可检索的存储中移除
-        :param skill_name: 技能名
+        Delete skill, remove the skill from the skill pool and searchable storage
+        :param skill_name: 技能名 skill name
         :return:
         """
         self._skills.pop(skill_name)
@@ -43,30 +48,34 @@ class SkillManager:
     def get_skill(self, skill_name: str) -> Skill:
         """
         通过技能名获得精确的技能
-        :param skill_name: 技能名
-        :return: 技能
+        Obtain the precise skill through the skill name
+        :param skill_name: 技能名 skill name
+        :return: 技能 skill
         """
         return self._skills.get(skill_name)
 
     def retrieve_skill(self, desc: str, n_results: int = 2) -> list[Skill]:
         """
         通过检索引擎获得技能
-        :param desc: 技能描述
-        :return: 技能（多个）
+        Obtain the skill through the search engine
+        :param desc: 技能描述 skill description
+        :return: 技能（多个）skills (multiple)
         """
         return self._store.search(desc, n_results=n_results)['ids'][0]
 
     def retrieve_skill_scored(self, desc: str, n_results: int = 2) -> dict:
         """
         通过检索引擎获得技能
-        :param desc: 技能描述
-        :return: 技能与分数组成的字典
+        Obtain the skill through the search engine
+        :param desc: 技能描述 skill description
+        :return: 技能与分数组成的字典 dictionary composed of skills and scores
         """
         return self._store.search(desc, n_results=n_results)
 
     def generate_skill_desc(self, skill: Skill) -> str:
         """
         为每个技能生成对应的描述性文本
+        Generate corresponding descriptive text for each skill
         :param skill:
         :return:
         """
