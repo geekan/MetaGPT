@@ -15,7 +15,7 @@ class BaseStore(ABC):
     """FIXME: consider add_index, set_index and think 颗粒度"""
 
     @abstractmethod
-    def search(self, query, *args, **kwargs):
+    def search(self, *args, **kwargs):
         raise NotImplementedError
 
     @abstractmethod

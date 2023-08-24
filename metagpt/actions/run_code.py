@@ -5,13 +5,13 @@
 @Author  : alexanderwu
 @File    : run_code.py
 """
-import traceback
 import os
 import subprocess
-from typing import List, Tuple
+import traceback
+from typing import Tuple
 
-from metagpt.logs import logger
 from metagpt.actions.action import Action
+from metagpt.logs import logger
 
 PROMPT_TEMPLATE = """
 Role: You are a senior development and qa engineer, your role is summarize the code running result.
@@ -55,6 +55,7 @@ standard output: {outs};
 standard errors: {errs};
 """
 
+
 class RunCode(Action):
     def __init__(self, name="RunCode", context=None, llm=None):
         super().__init__(name, context, llm)
@@ -65,7 +66,7 @@ class RunCode(Action):
             # We will document_store the result in this dictionary
             namespace = {}
             exec(code, namespace)
-            return namespace.get('result', ""), ""
+            return namespace.get("result", ""), ""
         except Exception:
             # If there is an error in the code, return the error message
             return "", traceback.format_exc()
@@ -81,10 +82,12 @@ class RunCode(Action):
         # Modify the PYTHONPATH environment variable
         additional_python_paths = [working_directory] + additional_python_paths
         additional_python_paths = ":".join(additional_python_paths)
-        env['PYTHONPATH'] = additional_python_paths + ':' + env.get('PYTHONPATH', '')
+        env["PYTHONPATH"] = additional_python_paths + ":" + env.get("PYTHONPATH", "")
 
         # Start the subprocess
-        process = subprocess.Popen(command, cwd=working_directory, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
+        process = subprocess.Popen(
+            command, cwd=working_directory, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env
+        )
 
         try:
             # Wait for the process to complete, with a timeout
@@ -93,7 +96,7 @@ class RunCode(Action):
             logger.info("The command did not complete within the given timeout.")
             process.kill()  # Kill the process if it times out
             stdout, stderr = process.communicate()
-        return stdout.decode('utf-8'), stderr.decode('utf-8')
+        return stdout.decode("utf-8"), stderr.decode("utf-8")
 
     async def run(
         self, code, mode="script", code_file_name="", test_code="", test_file_name="", command=[], **kwargs
@@ -108,11 +111,13 @@ class RunCode(Action):
         logger.info(f"{errs=}")
 
         context = CONTEXT.format(
-            code=code, code_file_name=code_file_name,
-            test_code=test_code, test_file_name=test_file_name,
+            code=code,
+            code_file_name=code_file_name,
+            test_code=test_code,
+            test_file_name=test_file_name,
             command=" ".join(command),
-            outs=outs[:500], # outs might be long but they are not important, truncate them to avoid token overflow
-            errs=errs[:10000] # truncate errors to avoid token overflow
+            outs=outs[:500],  # outs might be long but they are not important, truncate them to avoid token overflow
+            errs=errs[:10000],  # truncate errors to avoid token overflow
         )
 
         prompt = PROMPT_TEMPLATE.format(context=context)
