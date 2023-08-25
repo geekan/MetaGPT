@@ -193,8 +193,11 @@ async def startup(idea: str, investment: float = 3.0, n_round: int = 5):
 
 https://github.com/geekan/MetaGPT/assets/2707039/5e8c1062-8c35-440f-bb20-2b0320f8d27d
 
-## 加入微信讨论群
+## 加入我们
 
-添加运营小姐姐，拉你入群
+📢 **关于微信群的通知** 
+经过一段时间的观察和运营，由于微信群运营效率有限，信息淹没、讨论分散，为了提供更好的交流环境和更高效的社区管理，我们诚挚地邀请大家加入我们的Discord社区，与我们一同构建一个更加活跃和有序的交流平台。
 
-<img src="resources/20230811-214014.jpg" width = "30%" height = "30%" alt="MetaGPT WeChat Discuss Group" align=center />
+
+🔗 **Discord邀请链接** ：https://discord.gg/4WdszVjv
+感谢大家的支持与理解，期待在Discord上与大家相见！🎉
