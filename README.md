@@ -229,3 +229,9 @@ We will respond to all questions within 2-3 business days.
 ## Demo
 
 https://github.com/geekan/MetaGPT/assets/2707039/5e8c1062-8c35-440f-bb20-2b0320f8d27d
+
+## Join us
+📢 Join Our Discord Channel!
+https://discord.gg/4WdszVjv
+
+Looking forward to seeing you there! 🎉
