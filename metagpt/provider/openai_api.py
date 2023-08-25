@@ -7,6 +7,7 @@
             Change cost control from global to company level.
 """
 import asyncio
+import re
 import time
 
 from typing import NamedTuple, List
@@ -333,6 +334,8 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         for ws in text_windows:
             response = await self.get_summary(ws)
             summaries.append(response)
+        if len(summaries) == 1:
+            return summaries[0]
 
         language = self._options.get("language", "English")
         command = f"Translate the above summary into a {language} title of less than {max_words} words."
@@ -342,6 +345,17 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         response = await self.aask(msg=msg, system_msgs=[])
         logger.info(f"title rsp: {response}")
         return response
+
+    async def is_related(self, text1, text2):
+        command = f"{text1}\n{text2}\n\nIf the two sentences above are related, return [TRUE] brief and clear. Otherwise, return [FALSE]."
+        rsp = await self.aask(msg=command, system_msgs=[])
+        result, _ = self.extract_info(rsp)
+        return result == "TRUE"
+
+    async def rewrite(self, sentence: str, context: str):
+        command = f"{context}\n\nConsidering the content above, rewrite and return this sentence brief and clear:\n{sentence}"
+        rsp = await self.aask(msg=command, system_msgs=[])
+        return rsp
 
     @staticmethod
     def split_texts(text: str, window_size) -> List[str]:
@@ -365,3 +379,12 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
                 break
             windows[i] += windows[i + 1][0:padding_size]
         return windows
+
+    @staticmethod
+    def extract_info(input_string):
+        pattern = r'\[([A-Z]+)\]:\s*(.+)'
+        match = re.match(pattern, input_string)
+        if match:
+            return match.group(1), match.group(2)
+        else:
+            return None, input_string

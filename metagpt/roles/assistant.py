@@ -14,7 +14,7 @@
 
 """
 import asyncio
-import re
+
 
 from metagpt.actions import ActionOutput
 from metagpt.actions.talk_action import TalkAction
@@ -42,32 +42,18 @@ class Assistant(Role):
 
     async def think(self) -> bool:
         """Everything will be done part by part."""
-        if self.memory.history_text != "":
-            self._refine_memory()
-
-
-        prompt = ""
-        history_text = self.memory.history_text
-        history_summary = ""
-        if history_text != "":
-            max_tokens = self.options.get("MAX_TOKENS", DEFAULT_MAX_TOKENS)
-            history_summary = await self._llm.get_summary(history_text, max_tokens - COMMAND_TOKENS)
-            prompt += history_summary + "\n\n"
-            prompt += "Analyze the conversation history above, in conjunction with the current sentence: \n{self.memory.last_talk}\n\n"
-        else:
-            prompt += f"Refer to this sentence:\n {self.memory.last_talk}\n"
+        last_talk = await self.refine_memory()
+        prompt = f"Refer to this sentence:\n {last_talk}\n"
         skills = self.skills.get_skill_list()
         for desc, name in skills.items():
             prompt += f"If want you to do {desc}, return `[SKILL]: {name}` brief and clear. For instance: [SKILL]: text_to_image\n"
-        if history_text != "":
-            prompt += "If the last sentence is not related to the conversation history above, return `[SOLUTION]: {title of the history conversation}` brief and clear. For instance: [SOLUTION]: Solution for distributing watermelon\n"
         prompt += "If the preceding text presents a complete question and solution, rewrite and return `[SOLUTION]: {problem}` brief and clear. For instance: [SOLUTION]: Solution for distributing watermelon\n"
         prompt += "If the preceding text presents an unresolved issue and its corresponding discussion, rewrite and return `[PROBLEM]: {problem}` brief and clear. For instance: [PROBLEM]: How to distribute watermelon?\n"
         prompt += "Otherwise, rewrite and return `[TALK]: {talk}` brief and clear. For instance: [TALK]: distribute watermelon"
         logger.info(prompt)
         rsp = await self._llm.aask(prompt, [])
         logger.info(rsp)
-        return await self._plan(rsp, history_summary=history_summary)
+        return await self._plan(rsp)
 
     async def act(self) -> ActionOutput:
         result = await self._rc.todo.run(**self._options)
@@ -86,40 +72,42 @@ class Assistant(Role):
     async def talk(self, text):
         self.memory.add_talk(Message(content=text, tags=set([MessageType.Talk.value])))
 
-    async def _plan(self, rsp, **kwargs) -> bool:
-        skill, text = Assistant.extract_info(rsp)
+    async def _plan(self, rsp: str, **kwargs) -> bool:
+        skill, text = Assistant.extract_info(input_string=rsp)
         handlers = {
             MessageType.Talk.value: self.talk_handler,
-            MessageType.Problem.value: self.problem_handler,
-            MessageType.Solution.value: self.solution_handler,
+            MessageType.Problem.value: self.talk_handler,
             MessageType.Skill.value: self.skill_handler,
         }
         handler = handlers.get(skill, self.talk_handler)
         return await handler(text, **kwargs)
 
-    @staticmethod
-    def extract_info(input_string):
-        pattern = r'\[([A-Z]+)\]:\s*(.+)'
-        match = re.match(pattern, input_string)
-        if match:
-            return match.group(1), match.group(2)
-        else:
-            return None, input_string
-
-    async def problem_handler(self, text, **kwargs) -> bool:
+    async def talk_handler(self, text, **kwargs) -> bool:
         action = TalkAction(options=self.options, talk=text, llm=self._llm, **kwargs)
         self.add_to_do(action)
         return True
 
-    async def solution_handler(self, text, **kwargs) -> bool:
-        self.memory.move_to_solution()  # 问题解决后及时清空内存
-        action = TalkAction(options=self.options, talk=text, history_summary="", **kwargs)
-        self.add_to_do(action)
-
     async def skill_handler(self, text, **kwargs) -> bool:
+        skill =
         pass
 
-    async def _refine_memory(self):
+    async def refine_memory(self) -> str:
+        history_text = self.memory.history_text
+        last_talk = self.memory.last_talk
+        if history_text == "":
+            return last_talk
+        history_summary = await self._llm.get_context_title(history_text, max_words=20)
+        if await self._llm.is_related(last_talk, history_summary):  # 合并相关内容
+            last_talk = await self._llm.rewrite(sentence=last_talk, context=history_text)
+            return last_talk
+
+        self.memory.move_to_solution()  # 问题解决后及时清空内存
+        return last_talk
+
+    @staticmethod
+    def extract_info(input_string):
+        from metagpt.provider.openai_api import OpenAIGPTAPI
+        return OpenAIGPTAPI.extract_info(input_string)
 
 
 async def main():
