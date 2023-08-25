@@ -320,3 +320,9 @@ class Role:
         for k, v in merged_opts.items():
             value = value.replace("{" + f"{k}" + "}", str(v))
         return value
+
+    def add_action(self, act):
+        self._actions.append(act)
+
+    def add_to_do(self, act):
+        self._rc.todo = act

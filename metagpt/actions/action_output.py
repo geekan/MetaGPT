@@ -6,16 +6,16 @@
 @File    : action_output
 """
 
-from typing import Dict, Type
+from typing import Dict, Type, Optional
 
 from pydantic import BaseModel, create_model, root_validator, validator
 
 
 class ActionOutput:
     content: str
-    instruct_content: BaseModel
+    instruct_content: Optional[BaseModel] = None
 
-    def __init__(self, content: str, instruct_content: BaseModel):
+    def __init__(self, content: str, instruct_content: BaseModel=None):
         self.content = content
         self.instruct_content = instruct_content
 

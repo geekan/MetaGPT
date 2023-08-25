@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Type, TypedDict, Set, Optional
+from typing import Type, TypedDict, Set, Optional, List
 
 from pydantic import BaseModel
 
@@ -96,6 +96,7 @@ class AIMessage(Message):
 
     def __init__(self, content: str):
         super().__init__(content, 'assistant')
+
 
 
 if __name__ == '__main__':

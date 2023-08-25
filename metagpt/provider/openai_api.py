@@ -313,6 +313,8 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
 
     async def get_summary(self, text: str, max_words=20):
         """Generate text summary"""
+        if len(text) < max_words:
+            return text
         language = self._options.get("language", "English")
         command = f"Translate the above content into a {language} summary of less than {max_words} words."
         msg = text + "\n\n" + command

@@ -62,6 +62,6 @@ class Action(ABC):
         instruct_content = output_class(**parsed_data)
         return ActionOutput(content, instruct_content)
 
-    async def run(self, *args, **kwargs):
+    async def run(self, *args, **kwargs) -> str | ActionOutput | None:
         """Run action"""
         raise NotImplementedError("The run method should be implemented in a subclass.")

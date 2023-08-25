@@ -1,0 +1,17 @@
+entities:
+  Assistant:
+     skills:
+     - name: text_to_speech
+       description: Text-to-speech
+       requisite:
+       - AZURE_TTS_SUBSCRIPTION_KEY
+       - AZURE_TTS_REGION
+     - name: text_to_image
+       description: Create a drawing based on the text.
+       requisite:
+       - OPENAI_API_KEY
+       - METAGPT_TEXT_TO_IMAGE_MODEL
+     - name: text_to_embedding
+       description: Convert the text into embeddings.
+       requisite:
+       - OPENAI_API_KEY
