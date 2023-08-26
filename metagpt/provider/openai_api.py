@@ -403,6 +403,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
                 error_str = traceback.format_exc()
                 logger.error(f"Exception:{e}, stack:{error_str}")
                 raise e
+        raise openai.error.OpenAIError("Exceeds the maximum retries")
 
     @staticmethod
     def retry_call(func, *args, **kwargs):
@@ -420,5 +421,6 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
                 error_str = traceback.format_exc()
                 logger.error(f"Exception:{e}, stack:{error_str}")
                 raise e
+        raise openai.error.OpenAIError("Exceeds the maximum retries")
 
     MAX_TRY = 5
