@@ -17,7 +17,7 @@ class TalkAction(Action):
 
     @property
     def prompt(self):
-        prompt = f"{self._knowledge}\n\n"
+        prompt = f"Knowledge:\n{self._knowledge}\n\n" if self._knowledge else ""
         prompt += f"{self._history_summary}\n\n"
         if self._history_summary != "":
             prompt += "According to the historical conversation above, "
