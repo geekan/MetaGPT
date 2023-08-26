@@ -28,6 +28,7 @@ from metagpt.schema import Message
 
 DEFAULT_MAX_TOKENS = 1500
 COMMAND_TOKENS = 500
+BRAIN_MEMORY = "BRAIN_MEMORY"
 
 
 class Assistant(Role):
@@ -37,7 +38,8 @@ class Assistant(Role):
                  constraints="Talk in {language}", desc="", *args, **kwargs):
         super(Assistant, self).__init__(options=options, cost_manager=cost_manager, name=name, profile=profile,
                                         goal=goal, constraints=constraints, desc=desc, *args, **kwargs)
-        self.memory = BrainMemory()
+        brain_memory = options.get(BRAIN_MEMORY)
+        self.memory = BrainMemory(**brain_memory) if brain_memory else BrainMemory()
         self.skills = SkillLoader()
 
     async def think(self) -> bool:
