@@ -7,6 +7,7 @@ import json
 from concurrent import futures
 from typing import Optional
 from urllib.parse import urlparse
+import os
 
 import httplib2
 from pydantic import BaseModel, validator
@@ -25,37 +26,10 @@ except ImportError:
 
 
 class GoogleAPIWrapper(BaseModel):
-    google_api_key: Optional[str] = None
-    google_cse_id: Optional[str] = None
+    google_api_key: str = os.environ.get("GOOGLE_API_KEY")
+    google_cse_id: str = os.environ.get("GOOGLE_CSE_ID")
     loop: Optional[asyncio.AbstractEventLoop] = None
     executor: Optional[futures.Executor] = None
-
-    class Config:
-        arbitrary_types_allowed = True
-
-    @validator("google_api_key", always=True)
-    @classmethod
-    def check_google_api_key(cls, val: str):
-        val = val or CONFIG.google_api_key
-        if not val:
-            raise ValueError(
-                "To use, make sure you provide the google_api_key when constructing an object. Alternatively, "
-                "ensure that the environment variable GOOGLE_API_KEY is set with your API key. You can obtain "
-                "an API key from https://console.cloud.google.com/apis/credentials."
-            )
-        return val
-
-    @validator("google_cse_id", always=True)
-    @classmethod
-    def check_google_cse_id(cls, val: str):
-        val = val or CONFIG.google_cse_id
-        if not val:
-            raise ValueError(
-                "To use, make sure you provide the google_cse_id when constructing an object. Alternatively, "
-                "ensure that the environment variable GOOGLE_CSE_ID is set with your API key. You can obtain "
-                "an API key from https://programmablesearchengine.google.com/controlpanel/create."
-            )
-        return val
 
     @property
     def google_api_client(self):
@@ -80,7 +54,7 @@ class GoogleAPIWrapper(BaseModel):
         query: str,
         max_results: int = 8,
         as_string: bool = True,
-        focus: list[str] | None = None,
+        focus: list[str] = ["snippet", "link", "title"],
     ) -> str | list[dict]:
         """Return the results of a Google search using the official Google API.
 
@@ -109,15 +83,12 @@ class GoogleAPIWrapper(BaseModel):
             logger.exception(f"fail to search {query} for {e}")
             search_results = []
 
-        focus = focus or ["snippet", "link", "title"]
         details = [{i: j for i, j in item_dict.items() if i in focus} for item_dict in search_results]
         # Return the list of search result URLs
         if as_string:
             return safe_google_results(details)
 
         return details
-
-
 def safe_google_results(results: str | list) -> str:
     """Return the results of a google search in a safe format.
 
@@ -130,11 +101,10 @@ def safe_google_results(results: str | list) -> str:
     if isinstance(results, list):
         safe_message = json.dumps([result for result in results])
     else:
-        safe_message = results.encode("utf-8", "ignore").decode("utf-8")
+        safe_message = results
     return safe_message
-
-
 if __name__ == "__main__":
     import fire
 
-    fire.Fire(GoogleAPIWrapper().run)
+    google_api = GoogleAPIWrapper()
+    fire.Fire(google_api.run)
