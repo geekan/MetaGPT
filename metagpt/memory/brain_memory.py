@@ -17,6 +17,7 @@ class BrainMemory(pydantic.BaseModel):
     history: List[Message] = []
     stack: List[Message] = []
     solution: List[Message] = []
+    knowledge: List[Message] = []
 
 
     def add_talk(self, msg: Message):
@@ -26,6 +27,10 @@ class BrainMemory(pydantic.BaseModel):
     def add_answer(self, msg: Message):
         msg.add_tag(MessageType.Answer.value)
         self.history.append(msg)
+
+    def get_knowledge(self) -> str:
+        texts = [k.content for k in self.knowledge]
+        return "\n".join(texts)
 
     @property
     def history_text(self):

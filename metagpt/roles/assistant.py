@@ -87,7 +87,8 @@ class Assistant(Role):
         return await handler(text, **kwargs)
 
     async def talk_handler(self, text, **kwargs) -> bool:
-        action = TalkAction(options=self.options, talk=text, llm=self._llm, **kwargs)
+        action = TalkAction(options=self.options, talk=text, knowledge=self.memory.get_knowledge(), llm=self._llm,
+                            **kwargs)
         self.add_to_do(action)
         return True
 
@@ -136,7 +137,7 @@ class Assistant(Role):
 async def main():
     options = Config().runtime_options
     cost_manager = CostManager(**options)
-    topic = "draw an apple"
+    topic = "what's apple"
     role = Assistant(options=options, cost_manager=cost_manager, language="Chinese")
     await role.talk(topic)
     while True:
