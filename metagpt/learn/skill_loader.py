@@ -32,9 +32,10 @@ class SkillsDeclaration(BaseModel):
 
 
 class SkillLoader:
-    def __init__(self):
-        skill_file_name = Path(__file__).parent.parent.parent / ".well-known/skills.yaml"
-        with open(str(skill_file_name), 'r') as file:
+    def __init__(self, skill_yaml_file_name: Path = None):
+        if not skill_yaml_file_name:
+            skill_yaml_file_name = Path(__file__).parent.parent.parent / ".well-known/skills.yaml"
+        with open(str(skill_yaml_file_name), 'r') as file:
             skills = yaml.safe_load(file)
         self._skills = SkillsDeclaration(**skills)
 
