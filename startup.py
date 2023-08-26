@@ -6,7 +6,7 @@
 """
 
 import asyncio
-
+import platform
 import fire
 
 from metagpt.roles import Architect, Engineer, ProductManager, ProjectManager, QaEngineer
@@ -39,6 +39,8 @@ def main(idea: str, investment: float = 3.0, n_round: int = 5, code_review: bool
     :param code_review: Whether to use code review.
     :return:
     """
+    if platform.system() == "Windows":
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     asyncio.run(startup(idea, investment, n_round, code_review, run_tests))
 
 
