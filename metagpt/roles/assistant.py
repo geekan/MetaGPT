@@ -14,6 +14,7 @@
 
 """
 import asyncio
+from pathlib import Path
 
 from metagpt.actions import ActionOutput
 from metagpt.actions.skill_action import SkillAction, ArgumentsParingAction
@@ -29,6 +30,7 @@ from metagpt.schema import Message
 DEFAULT_MAX_TOKENS = 1500
 COMMAND_TOKENS = 500
 BRAIN_MEMORY = "BRAIN_MEMORY"
+SKILL_PATH = "SKILL_PATH"
 
 
 class Assistant(Role):
@@ -40,7 +42,8 @@ class Assistant(Role):
                                         goal=goal, constraints=constraints, desc=desc, *args, **kwargs)
         brain_memory = options.get(BRAIN_MEMORY)
         self.memory = BrainMemory(**brain_memory) if brain_memory else BrainMemory()
-        self.skills = SkillLoader()
+        skill_path = Path(options.get(SKILL_PATH)) if options.get(SKILL_PATH) else None
+        self.skills = SkillLoader(skill_yaml_file_name=skill_path)
 
     async def think(self) -> bool:
         """Everything will be done part by part."""
