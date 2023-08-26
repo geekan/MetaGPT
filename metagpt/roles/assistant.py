@@ -43,6 +43,8 @@ class Assistant(Role):
     async def think(self) -> bool:
         """Everything will be done part by part."""
         last_talk = await self.refine_memory()
+        if not last_talk:
+            return False
         prompt = f"Refer to this sentence:\n {last_talk}\n"
         skills = self.skills.get_skill_list()
         for desc, name in skills.items():
