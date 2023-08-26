@@ -396,9 +396,6 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
                 logger.warning(f"Exception:{e}, sleeping for {rounded_time} seconds")
                 await asyncio.sleep(rounded_time)
                 continue
-            except openai.error.APIConnectionError as e:
-                logger.warning(f"Exception:{e}")
-                continue
             except Exception as e:
                 error_str = traceback.format_exc()
                 logger.error(f"Exception:{e}, stack:{error_str}")
@@ -412,9 +409,6 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
                 rsp = func(*args, **kwargs)
                 return rsp
             except openai.error.RateLimitError as e:
-                logger.warning(f"Exception:{e}")
-                continue
-            except openai.error.APIConnectionError as e:
                 logger.warning(f"Exception:{e}")
                 continue
             except Exception as e:
