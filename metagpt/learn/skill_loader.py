@@ -1,14 +1,26 @@
 from pathlib import Path
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 import yaml
 from pydantic import BaseModel
 
 
+class Example(BaseModel):
+    ask: str
+    answer: str
+
+class Returns(BaseModel):
+    type: str
+    format: Optional[str] = None
+
 class Skill(BaseModel):
     name: str
     description: str
+    id: str
     requisite: List[str]
+    arguments: Dict
+    examples: List[Example]
+    returns: Returns
 
 
 class EntitySkills(BaseModel):
@@ -26,13 +38,26 @@ class SkillLoader:
             skills = yaml.safe_load(file)
         self._skills = SkillsDeclaration(**skills)
 
-    def get_skill_list(self, entity_name: str = "Assistant"):
-        if not self._skills or entity_name not in self._skills.entities:
+    def get_skill_list(self, entity_name: str = "Assistant") -> Dict:
+        entity_skills = self.get_entity(entity_name)
+        if not entity_skills:
             return {}
-        entity_skills = self._skills.entities.get(entity_name)
 
         description_to_name_mappings = {}
         for s in entity_skills.skills:
             description_to_name_mappings[s.description] = s.name
 
         return description_to_name_mappings
+
+    def get_skill(self, name, entity_name: str = "Assistant") -> Skill:
+        entity = self.get_entity(entity_name)
+        if not entity:
+            return None
+        for sk in entity.skills:
+            if sk.name == name:
+                return sk
+
+    def get_entity(self, name) -> EntitySkills:
+        if not self._skills:
+            return None
+        return self._skills.entities.get(name)

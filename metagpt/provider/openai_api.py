@@ -153,26 +153,10 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         self.rpm = int(self._options.get("RPM", 10))
 
     async def _achat_completion_stream(self, messages: list[dict]) -> str:
-        max_try = 5
-        response = None
-        for i in range(max_try):
-            try:
-                response = await openai.ChatCompletion.acreate(
+        response = await self.async_retry_call(openai.ChatCompletion.acreate,
                     **self._cons_kwargs(messages),
                     stream=True
                 )
-                break
-            except openai.error.RateLimitError as e:
-                random_time = random.uniform(0, 3)  # 生成0到5秒之间的随机时间
-                rounded_time = round(random_time, 1)  # 保留一位小数，以实现0.1秒的精度
-                logger.warning(f"Exception:{e}, sleeping for {rounded_time} seconds")
-                await asyncio.sleep(rounded_time)
-                continue
-            except Exception as e:
-                error_str = traceback.format_exc()
-                logger.error(f"Exception:{e}, stack:{error_str}")
-                raise e
-
         # create variables to collect the stream of chunks
         collected_chunks = []
         collected_messages = []
@@ -213,12 +197,12 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         return kwargs
 
     async def _achat_completion(self, messages: list[dict]) -> dict:
-        rsp = await self.llm.ChatCompletion.acreate(**self._cons_kwargs(messages))
+        rsp = await self.async_retry_call(self.llm.ChatCompletion.acreate, **self._cons_kwargs(messages))
         self._update_costs(rsp.get("usage"))
         return rsp
 
     def _chat_completion(self, messages: list[dict]) -> dict:
-        rsp = self.llm.ChatCompletion.create(**self._cons_kwargs(messages))
+        rsp = self.retry_call(self.llm.ChatCompletion.create, **self._cons_kwargs(messages))
         self._update_costs(rsp)
         return rsp
 
@@ -399,3 +383,42 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             return match.group(1), match.group(2)
         else:
             return None, input_string
+
+    @staticmethod
+    async def async_retry_call(func,  *args, **kwargs):
+        for i in range(OpenAIGPTAPI.MAX_TRY):
+            try:
+                rsp = await func(*args, **kwargs)
+                return rsp
+            except openai.error.RateLimitError as e:
+                random_time = random.uniform(0, 3)  # 生成0到5秒之间的随机时间
+                rounded_time = round(random_time, 1)  # 保留一位小数，以实现0.1秒的精度
+                logger.warning(f"Exception:{e}, sleeping for {rounded_time} seconds")
+                await asyncio.sleep(rounded_time)
+                continue
+            except openai.error.APIConnectionError as e:
+                logger.warning(f"Exception:{e}")
+                continue
+            except Exception as e:
+                error_str = traceback.format_exc()
+                logger.error(f"Exception:{e}, stack:{error_str}")
+                raise e
+
+    @staticmethod
+    def retry_call(func, *args, **kwargs):
+        for i in range(OpenAIGPTAPI.MAX_TRY):
+            try:
+                rsp = func(*args, **kwargs)
+                return rsp
+            except openai.error.RateLimitError as e:
+                logger.warning(f"Exception:{e}")
+                continue
+            except openai.error.APIConnectionError as e:
+                logger.warning(f"Exception:{e}")
+                continue
+            except Exception as e:
+                error_str = traceback.format_exc()
+                logger.error(f"Exception:{e}, stack:{error_str}")
+                raise e
+
+    MAX_TRY = 5

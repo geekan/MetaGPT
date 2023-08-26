@@ -3,15 +3,41 @@ entities:
      skills:
      - name: text_to_speech
        description: Text-to-speech
+       id: text_to_speech.text_to_speech
        requisite:
        - AZURE_TTS_SUBSCRIPTION_KEY
        - AZURE_TTS_REGION
+       arguments:
+         text: 'The text used for voice conversion. Required.'
+         lang: 'The value can contain a language code such as en (English), or a locale such as en-US (English - United States). The optional parameter are "English", "Chinese". Default value: "Chinese".'
+         voice: 'Default value: "zh-CN-XiaomoNeural".'
+         style: 'Speaking style to express different emotions like cheerfulness, empathy, and calm. The optional parameter values are "affectionate", "angry", "calm", "cheerful", "depressed", "disgruntled", "embarrassed", "envious", "fearful", "gentle", "sad", "serious". Default value: "affectionate".'
+         role: 'With roles, the same voice can act as a different age and gender. The optional parameter values are "Girl", "Boy", "OlderAdultFemale", "OlderAdultMale", "SeniorFemale", "SeniorMale", "YoungAdultFemale", "YoungAdultMale". Default value: "Girl".'
+       examples:
+         - ask: 'A girl says "hello world"'
+           answer: 'text_to_speech(text="hello world", role="Girl")'
+         - ask: 'A boy affectionate says "hello world"'
+           answer: 'text_to_speech(text="hello world", role="Boy", style="affectionate")'
+         - ask: 'A boy says "你好"'
+           answer: 'text_to_speech(text="hello world", role="Boy", lang="Chinese")'
+       returns:
+         type: string
+         format: base64
+
      - name: text_to_image
        description: Create a drawing based on the text.
+       id: text_to_image.text_to_image
        requisite:
        - OPENAI_API_KEY
        - METAGPT_TEXT_TO_IMAGE_MODEL
-     - name: text_to_embedding
-       description: Convert the text into embeddings.
-       requisite:
-       - OPENAI_API_KEY
+       arguments:
+         text: 'The text used for image conversion. Required.'
+         size_type: 'Default value: "512x512".'
+       examples:
+         - ask: 'Draw a girl'
+           answer: 'text_to_image(text="Draw a girl", size_type="512x512")'
+         - ask: 'Draw an apple'
+           answer: 'text_to_image(text="Draw an apple", size_type="512x512")'
+       returns:
+         type: string
+         format: base64

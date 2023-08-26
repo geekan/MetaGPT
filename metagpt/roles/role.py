@@ -326,3 +326,11 @@ class Role:
 
     def add_to_do(self, act):
         self._rc.todo = act
+
+    async def think(self) -> bool:
+        return await self._think()
+
+    async def act(self) -> ActionOutput:
+        msg = await self._act()
+        return ActionOutput(content=msg.content,
+                            instruct_content=msg.instruct_content)

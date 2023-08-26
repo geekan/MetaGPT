@@ -4,7 +4,7 @@ from metagpt.logs import logger
 
 
 class TalkAction(Action):
-    def __init__(self, options, name: str = '', talk='', history_summary='', context=None, llm=None):
+    def __init__(self, options, name: str = '', talk='', history_summary='', context=None, llm=None, **kwargs):
         context = context or {}
         context["talk"] = talk
         context["history_summery"] = history_summary

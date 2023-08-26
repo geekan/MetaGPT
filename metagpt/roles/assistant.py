@@ -15,8 +15,8 @@
 """
 import asyncio
 
-
 from metagpt.actions import ActionOutput
+from metagpt.actions.skill_action import SkillAction, ArgumentsParingAction
 from metagpt.actions.talk_action import TalkAction
 from metagpt.config import Config
 from metagpt.learn.skill_loader import SkillLoader
@@ -53,7 +53,7 @@ class Assistant(Role):
         logger.info(prompt)
         rsp = await self._llm.aask(prompt, [])
         logger.info(rsp)
-        return await self._plan(rsp)
+        return await self._plan(rsp, last_talk=last_talk)
 
     async def act(self) -> ActionOutput:
         result = await self._rc.todo.run(**self._options)
@@ -88,8 +88,18 @@ class Assistant(Role):
         return True
 
     async def skill_handler(self, text, **kwargs) -> bool:
-        skill =
-        pass
+        last_talk = kwargs.get("last_talk")
+        skill = self.skills.get_skill(text)
+        logger.info(f"skill not found: {text}")
+        if not skill:
+            return await self.talk_handler(text=last_talk, **kwargs)
+        action = ArgumentsParingAction(options=self.options, skill=skill, llm=self._llm, **kwargs)
+        await action.run(**kwargs)
+        if action.args is None:
+            return await self.talk_handler(text=last_talk, **kwargs)
+        action = SkillAction(options=self.options, skill=skill, args=action.args, llm=self._llm)
+        self.add_to_do(action)
+        return True
 
     async def refine_memory(self) -> str:
         history_text = self.memory.history_text
@@ -97,7 +107,7 @@ class Assistant(Role):
         if history_text == "":
             return last_talk
         history_summary = await self._llm.get_context_title(history_text, max_words=20)
-        if await self._llm.is_related(last_talk, history_summary):  # 合并相关内容
+        if last_talk and await self._llm.is_related(last_talk, history_summary):  # 合并相关内容
             last_talk = await self._llm.rewrite(sentence=last_talk, context=history_text)
             return last_talk
 
@@ -109,11 +119,20 @@ class Assistant(Role):
         from metagpt.provider.openai_api import OpenAIGPTAPI
         return OpenAIGPTAPI.extract_info(input_string)
 
+    def get_memory(self) -> str:
+        return self.memory.json()
+
+    def load_memory(self, jsn):
+        try:
+            self.memory = BrainMemory(**jsn)
+        except Exception as e:
+            logger.exception(f"load error:{e}, data:{jsn}")
+
 
 async def main():
     options = Config().runtime_options
     cost_manager = CostManager(**options)
-    topic = "dataiku vs. datarobot"
+    topic = "draw an apple"
     role = Assistant(options=options, cost_manager=cost_manager, language="Chinese")
     await role.talk(topic)
     while True:
@@ -121,8 +140,9 @@ async def main():
         if not has_action:
             break
         msg = await role.act()
-        print(msg)
+        logger.info(msg)
         # 获取用户终端输入
+        logger.info("Enter prompt")
         talk = input("You: ")
         await role.talk(talk)
 

@@ -35,9 +35,15 @@ class BrainMemory(pydantic.BaseModel):
         return "\n".join(texts)
 
     def move_to_solution(self):
-        while len(self.history) > 1:
-            msg = self.history.pop()
-            self.solution.append(msg)
+        if len(self.history) < 2:
+            return
+        msgs = self.history[:-1]
+        self.solution.extend(msgs)
+        if not self.history[-1].is_contain(MessageType.Talk.value):
+            self.solution.append(self.history[-1])
+            self.history = []
+        else:
+            self.history = self.history[-1:]
 
     @property
     def last_talk(self):

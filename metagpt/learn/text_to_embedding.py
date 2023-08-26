@@ -16,7 +16,7 @@ from metagpt.utils.common import initialize_environment
 @skill_metadata(name="Text to Embedding",
                 description="Convert the text into embeddings.",
                 requisite="`OPENAI_API_KEY`")
-def text_to_embedding(text, model="text-embedding-ada-002", openai_api_key=""):
+def text_to_embedding(text, model="text-embedding-ada-002", openai_api_key="", **kwargs):
     """Text to embedding
 
     :param text: The text used for embedding.

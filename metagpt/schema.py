@@ -67,6 +67,9 @@ class Message:
         intersection = set(tags) & self.tags
         return len(intersection) > 0
 
+    def is_contain(self, tag):
+        return self.is_contain_tags([tag])
+
 
 @dataclass
 class UserMessage(Message):
