@@ -341,3 +341,11 @@ class Role:
         msg = await self._act()
         return ActionOutput(content=msg.content,
                             instruct_content=msg.instruct_content)
+
+    @property
+    def todo_description(self):
+        if not self._rc or not self._rc.todo:
+            return ""
+        if self._rc.todo.desc:
+            return self._rc.todo.desc
+        return f"{self._rc.todo.__class__}"
