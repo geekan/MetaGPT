@@ -328,9 +328,16 @@ class Role:
         self._rc.todo = act
 
     async def think(self) -> bool:
-        return await self._think()
+        """The exported `think` function"""
+        has_action = await self._think()
+        if not has_action:
+            return False
+        if not self._rc.todo:
+            return False
+        return True
 
     async def act(self) -> ActionOutput:
+        """The exported `act` function"""
         msg = await self._act()
         return ActionOutput(content=msg.content,
                             instruct_content=msg.instruct_content)
