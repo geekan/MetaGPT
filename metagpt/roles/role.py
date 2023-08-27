@@ -348,4 +348,4 @@ class Role:
             return ""
         if self._rc.todo.desc:
             return self._rc.todo.desc
-        return f"{self._rc.todo.__class__}"
+        return f"{type(self._rc.todo).__name__}"
