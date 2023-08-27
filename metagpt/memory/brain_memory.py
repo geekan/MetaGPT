@@ -53,6 +53,6 @@ class BrainMemory(pydantic.BaseModel):
     @property
     def last_talk(self):
         if len(self.history) == 0 or not self.history[-1].is_contain_tags([MessageType.Talk.value]):
-            return ""
+            return None
         return self.history[-1].content
 

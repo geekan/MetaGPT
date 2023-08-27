@@ -113,6 +113,8 @@ class Assistant(Role):
     async def refine_memory(self) -> str:
         history_text = self.memory.history_text
         last_talk = self.memory.last_talk
+        if last_talk is None:  # No user feedback, unsure if past conversation is finished.
+            return None
         if history_text == "":
             return last_talk
         history_summary = await self._llm.get_context_title(history_text, max_words=20)
