@@ -130,8 +130,8 @@ class Assistant(Role):
         from metagpt.provider.openai_api import OpenAIGPTAPI
         return OpenAIGPTAPI.extract_info(input_string)
 
-    def get_memory(self) -> str:
-        return self.memory.json()
+    def get_memory(self, exclude=None) -> str:
+        return self.memory.json(exclude=exclude)
 
     def load_memory(self, jsn):
         try:
