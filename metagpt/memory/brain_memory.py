@@ -1,9 +1,10 @@
 from enum import Enum
-from typing import List
+from typing import List, Dict
 
 import pydantic
 
 from metagpt import Message
+
 
 class MessageType(Enum):
     Talk = "TALK"
@@ -14,29 +15,28 @@ class MessageType(Enum):
 
 
 class BrainMemory(pydantic.BaseModel):
-    history: List[Message] = []
-    stack: List[Message] = []
-    solution: List[Message] = []
-    knowledge: List[Message] = []
-
+    history: List[Dict] = []
+    stack: List[Dict] = []
+    solution: List[Dict] = []
+    knowledge: List[Dict] = []
 
     def add_talk(self, msg: Message):
         msg.add_tag(MessageType.Talk.value)
-        self.history.append(msg)
+        self.history.append(msg.dict())
 
     def add_answer(self, msg: Message):
         msg.add_tag(MessageType.Answer.value)
-        self.history.append(msg)
+        self.history.append(msg.dict())
 
     def get_knowledge(self) -> str:
-        texts = [k.content for k in self.knowledge]
+        texts = [Message(**m).content for m in self.knowledge]
         return "\n".join(texts)
 
     @property
     def history_text(self):
         if len(self.history) == 0:
             return ""
-        texts = [m.content for m in self.history[:-1]]
+        texts = [Message(**m).content for m in self.history[:-1]]
         return "\n".join(texts)
 
     def move_to_solution(self):
@@ -44,7 +44,7 @@ class BrainMemory(pydantic.BaseModel):
             return
         msgs = self.history[:-1]
         self.solution.extend(msgs)
-        if not self.history[-1].is_contain(MessageType.Talk.value):
+        if not Message(**self.history[-1]).is_contain(MessageType.Talk.value):
             self.solution.append(self.history[-1])
             self.history = []
         else:
@@ -52,7 +52,9 @@ class BrainMemory(pydantic.BaseModel):
 
     @property
     def last_talk(self):
-        if len(self.history) == 0 or not self.history[-1].is_contain_tags([MessageType.Talk.value]):
+        if len(self.history) == 0:
             return None
-        return self.history[-1].content
-
+        last_msg = Message(**self.history[-1])
+        if not last_msg.is_contain(MessageType.Talk.value):
+            return None
+        return last_msg.content

@@ -70,6 +70,22 @@ class Message:
     def is_contain(self, tag):
         return self.is_contain_tags([tag])
 
+    def dict(self):
+        """pydantic-like `dict` function"""
+        full = {
+            "instruct_content": self.instruct_content,
+            "cause_by": self.cause_by,
+            "sent_from": self.sent_from,
+            "send_to": self.send_to,
+            "tags": self.tags
+        }
+
+        m = {"content": self.content}
+        for k, v in full.items():
+            if v:
+                m[k] = v
+        return m
+
 
 @dataclass
 class UserMessage(Message):
@@ -99,7 +115,6 @@ class AIMessage(Message):
 
     def __init__(self, content: str):
         super().__init__(content, 'assistant')
-
 
 
 if __name__ == '__main__':

@@ -77,7 +77,7 @@ class Assistant(Role):
         return output
 
     async def talk(self, text):
-        self.memory.add_talk(Message(content=text, tags=set([MessageType.Talk.value])))
+        self.memory.add_talk(Message(content=text))
 
     async def _plan(self, rsp: str, **kwargs) -> bool:
         skill, text = Assistant.extract_info(input_string=rsp)
