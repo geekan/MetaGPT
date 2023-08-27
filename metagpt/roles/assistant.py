@@ -98,14 +98,15 @@ class Assistant(Role):
     async def skill_handler(self, text, **kwargs) -> bool:
         last_talk = kwargs.get("last_talk")
         skill = self.skills.get_skill(text)
-        logger.info(f"skill not found: {text}")
         if not skill:
+            logger.info(f"skill not found: {text}")
             return await self.talk_handler(text=last_talk, **kwargs)
         action = ArgumentsParingAction(options=self.options, skill=skill, llm=self._llm, **kwargs)
         await action.run(**kwargs)
         if action.args is None:
             return await self.talk_handler(text=last_talk, **kwargs)
-        action = SkillAction(options=self.options, skill=skill, args=action.args, llm=self._llm)
+        action = SkillAction(options=self.options, skill=skill, args=action.args, llm=self._llm, name=skill.name,
+                             desc=skill.description)
         self.add_to_do(action)
         return True
 
