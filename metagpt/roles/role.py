@@ -103,10 +103,9 @@ class Role:
     """Role/Proxy"""
 
     def __init__(self, options=None, cost_manager=None, name="", profile="", goal="", constraints="", desc="", *args, **kwargs):
-        if not options:
-            options = Config().runtime_options
-        if not cost_manager:
-            cost_manager = CostManager(*options)
+        options = options or Config().runtime_options
+        cost_manager = cost_manager or CostManager(*options)
+
         self._options = Role.supply_options(options=kwargs, default_options=options)
 
         name = Role.format_value(name, self._options)

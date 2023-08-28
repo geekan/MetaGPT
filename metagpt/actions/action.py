@@ -12,13 +12,14 @@ from typing import Optional
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 from metagpt.actions.action_output import ActionOutput
+from metagpt.config import Config
 from metagpt.utils.common import OutputParser
 from metagpt.logs import logger
 
 
 class Action(ABC):
-    def __init__(self, options, name: str = '', context=None, llm=None):
-        self.options = options
+    def __init__(self, options=None, name: str = '', context=None, llm=None):
+        self.options = options or Config().runtime_options
         self.name: str = name
         self.llm = llm
         self.context = context
