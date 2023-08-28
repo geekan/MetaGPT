@@ -74,7 +74,6 @@ class Message:
         """pydantic-like `dict` function"""
         full = {
             "instruct_content": self.instruct_content,
-            "cause_by": self.cause_by,
             "sent_from": self.sent_from,
             "send_to": self.send_to,
             "tags": self.tags
