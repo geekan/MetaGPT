@@ -76,16 +76,16 @@ class SkillAction(Action):
 
     async def run(self, *args, **kwargs) -> str | ActionOutput | None:
         """Run action"""
-        self.rsp = self.find_and_call_function(self._skill.name, args=self._args, **kwargs)
+        self.rsp = await self.find_and_call_function(self._skill.name, args=self._args, **kwargs)
         return ActionOutput(content=self.rsp, instruct_content=self._skill.json())
 
     @staticmethod
-    def find_and_call_function(function_name, args, **kwargs):
+    async def find_and_call_function(function_name, args, **kwargs):
         try:
             module = importlib.import_module("metagpt.learn")
             function = getattr(module, function_name)
             # 调用函数并返回结果
-            result = function(**args, **kwargs)
+            result = await function(**args, **kwargs)
             return result
         except (ModuleNotFoundError, AttributeError):
             logger.error(f"{function_name} not found")
