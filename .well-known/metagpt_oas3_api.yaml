@@ -12,6 +12,11 @@ servers:
 
 paths:
   /tts/azsure:
+    x-prerequisite:
+      - name: AZURE_TTS_SUBSCRIPTION_KEY
+        description: "For more details, check out: [Azure Text-to_Speech](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts)"
+      - name: AZURE_TTS_REGION
+        description: "For more details, check out: [Azure Text-to_Speech](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts)"
     post:
       summary: "Convert Text to Base64-encoded .wav File Stream"
       description: "For more details, check out: [Azure Text-to_Speech](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts)"
@@ -69,6 +74,9 @@ paths:
           description: "Internal Server Error"
 
   /txt2img/openai:
+    x-prerequisite:
+      - name: OPENAI_API_KEY
+        description: "OpenAI API key, For more details, checkout: `https://platform.openai.com/account/api-keys`"
     post:
       summary: "Convert Text to Base64-encoded Image Data Stream"
       operationId: openai_text_to_image.oas3_openai_text_to_image
@@ -107,6 +115,9 @@ paths:
         '500':
           description: "Internal Server Error"
   /txt2embedding/openai:
+    x-prerequisite:
+      - name: OPENAI_API_KEY
+        description: "OpenAI API key, For more details, checkout: `https://platform.openai.com/account/api-keys`"
     post:
       summary: Text to embedding
       operationId: openai_text_to_embedding.oas3_openai_text_to_embedding
@@ -146,6 +157,9 @@ paths:
                 $ref: "#/components/schemas/Error"
 
   /txt2image/metagpt:
+    x-prerequisite:
+      - name: METAGPT_TEXT_TO_IMAGE_MODEL_URL
+        description: "Model url."
     post:
       summary: "Text to Image"
       description: "Generate an image from the provided text using the MetaGPT Text-to-Image API."

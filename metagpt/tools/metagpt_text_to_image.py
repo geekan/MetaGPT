@@ -98,7 +98,7 @@ def oas3_metagpt_text_to_image(text, size_type: str = "512x512", model_url=""):
     if not text:
         return ""
     if not model_url:
-        model_url = os.environ.get('METAGPT_TEXT_TO_IMAGE_MODEL')
+        model_url = os.environ.get('METAGPT_TEXT_TO_IMAGE_MODEL_URL')
     return MetaGPTText2Image(model_url).text_2_image(text, size_type=size_type)
 
 
