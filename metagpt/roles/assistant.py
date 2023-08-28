@@ -20,12 +20,10 @@ from pathlib import Path
 from metagpt.actions import ActionOutput
 from metagpt.actions.skill_action import SkillAction, ArgumentsParingAction
 from metagpt.actions.talk_action import TalkAction
-from metagpt.config import Config, CONFIG
-from metagpt.const import BRAIN_MEMORY, SKILL_PATH
+from metagpt.config import CONFIG
 from metagpt.learn.skill_loader import SkillLoader
 from metagpt.logs import logger
 from metagpt.memory.brain_memory import BrainMemory, MessageType
-from metagpt.provider.openai_api import CostManager
 from metagpt.roles import Role
 from metagpt.schema import Message
 
@@ -137,9 +135,8 @@ class Assistant(Role):
 
 
 async def main():
-    cost_manager = CostManager()
     topic = "what's apple"
-    role = Assistant(cost_manager=cost_manager, language="Chinese")
+    role = Assistant(language="Chinese")
     await role.talk(topic)
     while True:
         has_action = await role.think()
