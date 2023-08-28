@@ -1,3 +1,12 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+@Time    : 2023/8/18
+@Author  : mashenquan
+@File    : brain_memory.py
+@Desc    : Support memory for multiple tasks and multiple mainlines.
+"""
+
 from enum import Enum
 from typing import List, Dict
 
