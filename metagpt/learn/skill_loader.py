@@ -1,3 +1,12 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+@Time    : 2023/8/18
+@Author  : mashenquan
+@File    : skill_loader.py
+@Desc    : Skill YAML Configuration Loader.
+"""
+
 from pathlib import Path
 from typing import List, Dict, Optional
 
@@ -9,9 +18,11 @@ class Example(BaseModel):
     ask: str
     answer: str
 
+
 class Returns(BaseModel):
     type: str
     format: Optional[str] = None
+
 
 class Skill(BaseModel):
     name: str
@@ -40,6 +51,7 @@ class SkillLoader:
         self._skills = SkillsDeclaration(**skills)
 
     def get_skill_list(self, entity_name: str = "Assistant") -> Dict:
+        """Return the skill name based on the skill description."""
         entity_skills = self.get_entity(entity_name)
         if not entity_skills:
             return {}
@@ -51,6 +63,7 @@ class SkillLoader:
         return description_to_name_mappings
 
     def get_skill(self, name, entity_name: str = "Assistant") -> Skill:
+        """Return a skill by name."""
         entity = self.get_entity(entity_name)
         if not entity:
             return None
@@ -59,6 +72,7 @@ class SkillLoader:
                 return sk
 
     def get_entity(self, name) -> EntitySkills:
+        """Return a list of skills for the entity."""
         if not self._skills:
             return None
         return self._skills.entities.get(name)
