@@ -11,6 +11,8 @@ import asyncio
 from pathlib import Path
 import sys
 
+from metagpt.config import CONFIG
+
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 import aiofiles
 import fire
@@ -66,6 +68,7 @@ async def startup(lesson_file: str, investment: float = 3.0, n_round: int = 1, *
 
     3c Match the big letters with the small ones. Then write them on the lines.
     """
+    CONFIG.set_context(kwargs)
 
     lesson = ""
     if lesson_file and Path(lesson_file).exists():
