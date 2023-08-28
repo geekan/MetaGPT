@@ -11,19 +11,18 @@ import re
 import time
 import random
 
-from typing import NamedTuple, List
+from typing import List
 import traceback
 import openai
 from openai.error import APIConnectionError
-from pydantic import BaseModel
 from tenacity import retry, stop_after_attempt, after_log, wait_fixed, retry_if_exception_type
 
 from metagpt.config import CONFIG
 from metagpt.const import DEFAULT_LANGUAGE, DEFAULT_MAX_TOKENS
 from metagpt.logs import logger
 from metagpt.provider.base_gpt_api import BaseGPTAPI
+from metagpt.utils.cost_manager import Costs
 from metagpt.utils.token_counter import (
-    TOKEN_COSTS,
     count_message_tokens,
     count_string_tokens,
     get_max_completion_tokens,
@@ -55,73 +54,6 @@ class RateLimiter:
         self.last_call_time = time.time()
 
 
-class Costs(NamedTuple):
-    total_prompt_tokens: int
-    total_completion_tokens: int
-    total_cost: float
-    total_budget: float
-
-
-class CostManager(BaseModel):
-    """计算使用接口的开销"""
-
-    total_prompt_tokens: int = 0
-    total_completion_tokens: int = 0
-    total_budget: float = 0
-    max_budget: float = CONFIG.max_budget
-    total_cost: float = 0
-
-    def update_cost(self, prompt_tokens, completion_tokens, model):
-        """
-        Update the total cost, prompt tokens, and completion tokens.
-
-        Args:
-        prompt_tokens (int): The number of tokens used in the prompt.
-        completion_tokens (int): The number of tokens used in the completion.
-        model (str): The model used for the API call.
-        """
-        self.total_prompt_tokens += prompt_tokens
-        self.total_completion_tokens += completion_tokens
-        cost = (prompt_tokens * TOKEN_COSTS[model]["prompt"] + completion_tokens * TOKEN_COSTS[model][
-            "completion"]) / 1000
-        self.total_cost += cost
-        logger.info(
-            f"Total running cost: ${self.total_cost:.3f} | Max budget: ${self.max_budget:.3f} | "
-            f"Current cost: ${cost:.3f}, prompt_tokens: {prompt_tokens}, completion_tokens: {completion_tokens}"
-        )
-
-    def get_total_prompt_tokens(self):
-        """
-        Get the total number of prompt tokens.
-
-        Returns:
-        int: The total number of prompt tokens.
-        """
-        return self.total_prompt_tokens
-
-    def get_total_completion_tokens(self):
-        """
-        Get the total number of completion tokens.
-
-        Returns:
-        int: The total number of completion tokens.
-        """
-        return self.total_completion_tokens
-
-    def get_total_cost(self):
-        """
-        Get the total cost of API calls.
-
-        Returns:
-        float: The total cost of API calls.
-        """
-        return self.total_cost
-
-    def get_costs(self) -> Costs:
-        """获得所有开销"""
-        return Costs(self.total_prompt_tokens, self.total_completion_tokens, self.total_cost, self.total_budget)
-
-
 def log_and_reraise(retry_state):
     logger.error(f"Retry attempts exhausted. Last exception: {retry_state.outcome.exception()}")
     logger.warning("""
@@ -136,12 +68,11 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
     Check https://platform.openai.com/examples for examples
     """
 
-    def __init__(self, cost_manager=None):
+    def __init__(self):
         self.__init_openai(CONFIG)
         self.llm = openai
         self.model = CONFIG.openai_api_model
         self.auto_max_tokens = False
-        self._cost_manager = cost_manager or CostManager()
         RateLimiter.__init__(self, rpm=self.rpm)
 
     def __init_openai(self, config):
@@ -155,9 +86,9 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
 
     async def _achat_completion_stream(self, messages: list[dict]) -> str:
         response = await self.async_retry_call(openai.ChatCompletion.acreate,
-                    **self._cons_kwargs(messages),
-                    stream=True
-                )
+                                               **self._cons_kwargs(messages),
+                                               stream=True
+                                               )
         # create variables to collect the stream of chunks
         collected_chunks = []
         collected_messages = []
@@ -276,12 +207,12 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             try:
                 prompt_tokens = int(usage['prompt_tokens'])
                 completion_tokens = int(usage['completion_tokens'])
-                self._cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
+                CONFIG.cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
             except Exception as e:
                 logger.error("updating costs failed!", e)
 
     def get_costs(self) -> Costs:
-        return self._cost_manager.get_costs()
+        return CONFIG.cost_manager.get_costs()
 
     def get_max_tokens(self, messages: list[dict]):
         if not self.auto_max_tokens:
@@ -366,7 +297,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             return None, input_string
 
     @staticmethod
-    async def async_retry_call(func,  *args, **kwargs):
+    async def async_retry_call(func, *args, **kwargs):
         for i in range(OpenAIGPTAPI.MAX_TRY):
             try:
                 rsp = await func(*args, **kwargs)
@@ -399,4 +330,3 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         raise openai.error.OpenAIError("Exceeds the maximum retries")
 
     MAX_TRY = 5
-

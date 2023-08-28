@@ -4,6 +4,7 @@
 Provide configuration, singleton.
 @Modified BY: mashenquan, 2023/8/28. Replace the global variable `CONFIG` with `ContextVar`.
 """
+import json
 import os
 from copy import deepcopy
 from typing import Any
@@ -14,6 +15,7 @@ import yaml
 from metagpt.const import PROJECT_ROOT, OPTIONS
 from metagpt.logs import logger
 from metagpt.tools import SearchEngineType, WebBrowserEngineType
+from metagpt.utils.cost_manager import CostManager
 from metagpt.utils.singleton import Singleton
 
 
@@ -43,12 +45,17 @@ class Config(metaclass=Singleton):
 
     def __init__(self, yaml_file=default_yaml_file):
         self._init_with_config_files_and_env(yaml_file)
+        self.cost_manager = CostManager(**json.loads(self.COST_MANAGER)) if self.COST_MANAGER else CostManager()
+
         logger.info("Config loading done.")
+        self._update()
+
+    def _update(self):
         self.global_proxy = self._get("GLOBAL_PROXY")
         self.openai_api_key = self._get("OPENAI_API_KEY")
         self.anthropic_api_key = self._get("Anthropic_API_KEY")
         if (not self.openai_api_key or "YOUR_API_KEY" == self.openai_api_key) and (
-            not self.anthropic_api_key or "YOUR_API_KEY" == self.anthropic_api_key
+                not self.anthropic_api_key or "YOUR_API_KEY" == self.anthropic_api_key
         ):
             logger.warning("Set OPENAI_API_KEY or Anthropic_API_KEY first")
         self.openai_api_base = self._get("OPENAI_API_BASE")
@@ -78,8 +85,7 @@ class Config(metaclass=Singleton):
         self.long_term_memory = self._get("LONG_TERM_MEMORY", False)
         if self.long_term_memory:
             logger.warning("LONG_TERM_MEMORY is True")
-        self.max_budget = self._get("MAX_BUDGET", 10.0)
-        self.total_cost = 0.0
+        self.cost_manager.max_budget = self._get("MAX_BUDGET", 10.0)
 
         self.puppeteer_config = self._get("PUPPETEER_CONFIG", "")
         self.mmdc = self._get("MMDC", "mmdc")
@@ -109,7 +115,8 @@ class Config(metaclass=Singleton):
         return m.get(*args, **kwargs)
 
     def get(self, key, *args, **kwargs):
-        """Retrieve values from config/key.yaml, config/config.yaml, and environment variables. Throw an error if not found."""
+        """Retrieve values from config/key.yaml, config/config.yaml, and environment variables.
+        Throw an error if not found."""
         value = self._get(key, *args, **kwargs)
         if value is None:
             raise ValueError(f"Key '{key}' not found in environment variables or in the YAML file")
@@ -127,10 +134,12 @@ class Config(metaclass=Singleton):
         opts = deepcopy(OPTIONS.get())
         opts.update(options)
         OPTIONS.set(opts)
+        self._update()
 
     @property
     def options(self):
         """Return all key-values"""
         return OPTIONS.get()
+
 
 CONFIG = Config()

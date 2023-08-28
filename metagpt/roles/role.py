@@ -9,13 +9,14 @@
 """
 from __future__ import annotations
 
-from typing import Iterable, Type, Dict
+from typing import Iterable, Type
+
 
 from pydantic import BaseModel, Field
 
-from metagpt.config import Config, CONFIG
+from metagpt.config import CONFIG
 from metagpt.const import OPTIONS
-from metagpt.provider.openai_api import OpenAIGPTAPI as LLM, CostManager
+from metagpt.llm import LLM
 from metagpt.actions import Action, ActionOutput
 from metagpt.logs import logger
 from metagpt.memory import Memory, LongTermMemory
