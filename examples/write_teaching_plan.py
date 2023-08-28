@@ -77,9 +77,9 @@ async def startup(lesson_file: str, investment: float = 3.0, n_round: int = 1, *
         lesson = demo_lesson
 
     company = SoftwareCompany()
-    company.hire([Teacher(options=company.options, cost_manager=company.cost_manager, *args, **kwargs)])
+    company.hire([Teacher(*args, **kwargs)])
     company.invest(investment)
-    company.start_project(lesson, role="Teacher", cause_by=TeachingPlanRequirement)
+    company.start_project(lesson, cause_by=TeachingPlanRequirement, role="Teacher", **kwargs)
     await company.run(n_round=1)
 
 

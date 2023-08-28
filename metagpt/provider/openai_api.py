@@ -67,7 +67,7 @@ class CostManager(BaseModel):
     total_prompt_tokens: int = 0
     total_completion_tokens: int = 0
     total_budget: float = 0
-    max_budget: float
+    max_budget: float = CONFIG.max_budget
     total_cost: float = 0
 
     def update_cost(self, prompt_tokens, completion_tokens, model):
@@ -135,7 +135,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
     Check https://platform.openai.com/examples for examples
     """
 
-    def __init__(self, cost_manager):
+    def __init__(self, cost_manager=None):
         self.__init_openai(CONFIG)
         self.llm = openai
         self.model = CONFIG.openai_api_model

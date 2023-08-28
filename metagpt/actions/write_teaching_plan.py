@@ -20,7 +20,7 @@ class TeachingPlanRequirement(Action):
 class WriteTeachingPlanPart(Action):
     """Write Teaching Plan Part"""
 
-    def __init__(self, options, name: str = "", context=None, llm=None, topic: str = "", language: str = "Chinese"):
+    def __init__(self, name: str = "", context=None, llm=None, topic: str = "", language: str = "Chinese"):
         """
 
         :param name: action name
@@ -29,7 +29,7 @@ class WriteTeachingPlanPart(Action):
         :param topic: topic part of teaching plan
         :param language: A human language, such as Chinese, English, French, etc.
         """
-        super().__init__(options, name, context, llm)
+        super().__init__(name, context, llm)
         self.topic = topic
         self.language = language
         self.rsp = None

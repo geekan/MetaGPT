@@ -11,6 +11,7 @@ from __future__ import annotations
 import importlib
 from typing import Callable, Coroutine, Literal, overload, Dict
 
+from metagpt.config import CONFIG
 from metagpt.tools import SearchEngineType
 
 
@@ -28,23 +29,22 @@ class SearchEngine:
 
     def __init__(
             self,
-            options: Dict,
             engine: SearchEngineType | None = None,
             run_func: Callable[[str, int, bool], Coroutine[None, None, str | list[str]]] = None
     ):
-        engine = engine or options.get("search_engine")
+        engine = engine or CONFIG.search_engine
         if engine == SearchEngineType.SERPAPI_GOOGLE:
             module = "metagpt.tools.search_engine_serpapi"
-            run_func = importlib.import_module(module).SerpAPIWrapper(**options).run
+            run_func = importlib.import_module(module).SerpAPIWrapper(**CONFIG.options).run
         elif engine == SearchEngineType.SERPER_GOOGLE:
             module = "metagpt.tools.search_engine_serper"
-            run_func = importlib.import_module(module).SerperWrapper(**options).run
+            run_func = importlib.import_module(module).SerperWrapper(**CONFIG.options).run
         elif engine == SearchEngineType.DIRECT_GOOGLE:
             module = "metagpt.tools.search_engine_googleapi"
-            run_func = importlib.import_module(module).GoogleAPIWrapper(**options).run
+            run_func = importlib.import_module(module).GoogleAPIWrapper(**CONFIG.options).run
         elif engine == SearchEngineType.DUCK_DUCK_GO:
             module = "metagpt.tools.search_engine_ddg"
-            run_func = importlib.import_module(module).DDGAPIWrapper(**options).run
+            run_func = importlib.import_module(module).DDGAPIWrapper(**CONFIG.options).run
         elif engine == SearchEngineType.CUSTOM_ENGINE:
             pass  # run_func = run_func
         else:

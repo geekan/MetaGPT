@@ -126,4 +126,9 @@ class Config(metaclass=Singleton):
         opts.update(options)
         OPTIONS.set(opts)
 
+    @property
+    def options(self):
+        """Return all key-values"""
+        return OPTIONS.get()
+
 CONFIG = Config()

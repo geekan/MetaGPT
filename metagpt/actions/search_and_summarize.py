@@ -9,6 +9,7 @@
 import pydantic
 
 from metagpt.actions import Action
+from metagpt.config import CONFIG
 from metagpt.logs import logger
 from metagpt.schema import Message
 from metagpt.tools.search_engine import SearchEngine

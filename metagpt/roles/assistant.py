@@ -10,7 +10,8 @@
             For more about `fork` node in activity diagrams, see: `https://www.uml-diagrams.org/activity-diagrams.html`
           This file defines a `fork` style meta role capable of generating arbitrary roles at runtime based on a
             configuration file.
-@Modified By: mashenquan, 2023/8/22. A definition has been provided for the return value of _think: returning false indicates that further reasoning cannot continue.
+@Modified By: mashenquan, 2023/8/22. A definition has been provided for the return value of _think: returning false
+            indicates that further reasoning cannot continue.
 
 """
 import asyncio
@@ -34,7 +35,7 @@ SKILL_PATH = "SKILL_PATH"
 
 
 class Assistant(Role):
-    """解决通用问题的助手"""
+    """Assistant for solving common issues."""
 
     def __init__(self, options, cost_manager, name="Lily", profile="An assistant", goal="Help to solve problem",
                  constraints="Talk in {language}", desc="", *args, **kwargs):
@@ -152,7 +153,7 @@ async def main():
             break
         msg = await role.act()
         logger.info(msg)
-        # 获取用户终端输入
+        # Retrieve user terminal input.
         logger.info("Enter prompt")
         talk = input("You: ")
         await role.talk(talk)
