@@ -9,6 +9,7 @@
 
 import ast
 import importlib
+import traceback
 
 from metagpt.actions import Action, ActionOutput
 from metagpt.learn.skill_loader import Skill
@@ -76,7 +77,11 @@ class SkillAction(Action):
 
     async def run(self, *args, **kwargs) -> str | ActionOutput | None:
         """Run action"""
-        self.rsp = await self.find_and_call_function(self._skill.name, args=self._args, **kwargs)
+        try:
+            self.rsp = await self.find_and_call_function(self._skill.name, args=self._args, **kwargs)
+        except Exception as e:
+            logger.exception(f"{e}, traceback:{traceback.format_exc()}")
+            self.rsp = f"Error: {e}"
         return ActionOutput(content=self.rsp, instruct_content=self._skill.json())
 
     @staticmethod
