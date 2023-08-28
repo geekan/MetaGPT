@@ -9,10 +9,10 @@
   },
   "api": {
     "type": "openapi",
-    "url": "https://github.com/iorisa/MetaGPT/blob/feature/oas3/.well-known/metagpt_oas3_api.yaml",
+    "url": "https://github.com/iorisa/MetaGPT/blob/feature/assistant_role/.well-known/metagpt_oas3_api.yaml",
     "has_user_authentication": false
   },
-  "logo_url": "https://github.com/iorisa/MetaGPT/blob/feature/oas3/docs/resources/MetaGPT-logo.png",
+  "logo_url": "https://github.com/geekan/MetaGPT/blob/main/docs/resources/MetaGPT-logo.png",
   "contact_email": "mashenquan@fuzhi.cn",
-  "legal_info_url": "https://github.com/iorisa/MetaGPT/blob/feature/oas3/docs/README_CN.md"
+  "legal_info_url": "https://github.com/geekan/MetaGPT/blob/main/docs/README_CN.md"
 }
