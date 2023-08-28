@@ -19,7 +19,7 @@ from pydantic import BaseModel
 from tenacity import retry, stop_after_attempt, after_log, wait_fixed, retry_if_exception_type
 
 from metagpt.config import CONFIG
-from metagpt.const import DEFAULT_LANGUAGE
+from metagpt.const import DEFAULT_LANGUAGE, DEFAULT_MAX_TOKENS
 from metagpt.logs import logger
 from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.utils.token_counter import (
@@ -303,7 +303,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
     async def get_context_title(self, text: str, max_token_count_per_ask=None, max_words=5) -> str:
         """Generate text title"""
         max_response_token_count = 50
-        max_token_count = max_token_count_per_ask or CONFIG.MAX_TOKENS or 1500
+        max_token_count = max_token_count_per_ask or CONFIG.MAX_TOKENS or DEFAULT_MAX_TOKENS
         text_windows = self.split_texts(text, window_size=max_token_count - max_response_token_count)
 
         summaries = []
