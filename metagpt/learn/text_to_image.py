@@ -6,7 +6,6 @@
 @File    : text_to_image.py
 @Desc    : Text-to-Image skill, which provides text-to-image functionality.
 """
-import os
 
 from metagpt.config import CONFIG
 from metagpt.tools.metagpt_text_to_image import oas3_metagpt_text_to_image

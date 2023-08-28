@@ -7,15 +7,13 @@
 @Desc    : Text-to-Speech skill, which provides text-to-speech functionality
 """
 
-
 from metagpt.config import CONFIG
 
 from metagpt.tools.azure_tts import oas3_azsure_tts
 
 
-
 async def text_to_speech(text, lang="zh-CN", voice="zh-CN-XiaomoNeural", style="affectionate", role="Girl",
-                   subscription_key="", region="", **kwargs):
+                         subscription_key="", region="", **kwargs):
     """Text to speech
     For more details, check out:`https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts`
 
