@@ -20,7 +20,7 @@ from pathlib import Path
 from metagpt.actions import ActionOutput
 from metagpt.actions.skill_action import SkillAction, ArgumentsParingAction
 from metagpt.actions.talk_action import TalkAction
-from metagpt.config import Config
+from metagpt.config import Config, CONFIG
 from metagpt.const import BRAIN_MEMORY, SKILL_PATH
 from metagpt.learn.skill_loader import SkillLoader
 from metagpt.logs import logger
@@ -33,13 +33,13 @@ from metagpt.schema import Message
 class Assistant(Role):
     """Assistant for solving common issues."""
 
-    def __init__(self, options, cost_manager, name="Lily", profile="An assistant", goal="Help to solve problem",
+    def __init__(self, name="Lily", profile="An assistant", goal="Help to solve problem",
                  constraints="Talk in {language}", desc="", *args, **kwargs):
-        super(Assistant, self).__init__(options=options, cost_manager=cost_manager, name=name, profile=profile,
+        super(Assistant, self).__init__(name=name, profile=profile,
                                         goal=goal, constraints=constraints, desc=desc, *args, **kwargs)
-        brain_memory = options.get(BRAIN_MEMORY)
+        brain_memory = CONFIG.BRAIN_MEMORY
         self.memory = BrainMemory(**brain_memory) if brain_memory else BrainMemory()
-        skill_path = Path(options.get(SKILL_PATH)) if options.get(SKILL_PATH) else None
+        skill_path = Path(CONFIG.SKILL_PATH) if CONFIG.SKILL_PATH else None
         self.skills = SkillLoader(skill_yaml_file_name=skill_path)
 
     async def think(self) -> bool:
@@ -60,7 +60,7 @@ class Assistant(Role):
         return await self._plan(rsp, last_talk=last_talk)
 
     async def act(self) -> ActionOutput:
-        result = await self._rc.todo.run(**self._options)
+        result = await self._rc.todo.run(**CONFIG.options)
         if not result:
             return None
         if isinstance(result, str):
@@ -87,7 +87,7 @@ class Assistant(Role):
         return await handler(text, **kwargs)
 
     async def talk_handler(self, text, **kwargs) -> bool:
-        action = TalkAction(options=self.options, talk=text, knowledge=self.memory.get_knowledge(), llm=self._llm,
+        action = TalkAction(talk=text, knowledge=self.memory.get_knowledge(), llm=self._llm,
                             **kwargs)
         self.add_to_do(action)
         return True
@@ -98,12 +98,11 @@ class Assistant(Role):
         if not skill:
             logger.info(f"skill not found: {text}")
             return await self.talk_handler(text=last_talk, **kwargs)
-        action = ArgumentsParingAction(options=self.options, skill=skill, llm=self._llm, **kwargs)
+        action = ArgumentsParingAction(skill=skill, llm=self._llm, **kwargs)
         await action.run(**kwargs)
         if action.args is None:
             return await self.talk_handler(text=last_talk, **kwargs)
-        action = SkillAction(options=self.options, skill=skill, args=action.args, llm=self._llm, name=skill.name,
-                             desc=skill.description)
+        action = SkillAction(skill=skill, args=action.args, llm=self._llm, name=skill.name, desc=skill.description)
         self.add_to_do(action)
         return True
 
@@ -115,11 +114,11 @@ class Assistant(Role):
         if history_text == "":
             return last_talk
         history_summary = await self._llm.get_context_title(history_text, max_words=20)
-        if last_talk and await self._llm.is_related(last_talk, history_summary):  # 合并相关内容
+        if last_talk and await self._llm.is_related(last_talk, history_summary):  # Merge relevant content.
             last_talk = await self._llm.rewrite(sentence=last_talk, context=history_text)
             return last_talk
 
-        self.memory.move_to_solution()  # 问题解决后及时清空内存
+        self.memory.move_to_solution()  # Promptly clear memory after the issue is resolved.
         return last_talk
 
     @staticmethod
@@ -138,10 +137,9 @@ class Assistant(Role):
 
 
 async def main():
-    options = Config().runtime_options
-    cost_manager = CostManager(**options)
+    cost_manager = CostManager()
     topic = "what's apple"
-    role = Assistant(options=options, cost_manager=cost_manager, language="Chinese")
+    role = Assistant(cost_manager=cost_manager, language="Chinese")
     await role.talk(topic)
     while True:
         has_action = await role.think()
@@ -156,4 +154,5 @@ async def main():
 
 
 if __name__ == '__main__':
+    CONFIG.language = "Chinese"
     asyncio.run(main())

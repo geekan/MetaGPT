@@ -13,13 +13,10 @@ import sys
 import connexion
 
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent))  # fix-bug: No module named 'metagpt'
-from metagpt.utils.common import initialize_environment
 
 
 def oas_http_svc():
     """Start the OAS 3.0 OpenAPI HTTP service"""
-    initialize_environment()
-
     app = connexion.AioHttpApp(__name__, specification_dir='../../.well-known/')
     app.add_api("metagpt_oas3_api.yaml")
     app.add_api("openapi.yaml")

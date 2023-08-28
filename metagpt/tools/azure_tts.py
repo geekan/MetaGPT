@@ -13,7 +13,6 @@ import base64
 import sys
 
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent))  # fix-bug: No module named 'metagpt'
-from metagpt.utils.common import initialize_environment
 from metagpt.logs import logger
 from aiofile import async_open
 from azure.cognitiveservices.speech import AudioConfig, SpeechConfig, SpeechSynthesizer
@@ -109,8 +108,6 @@ async def oas3_azsure_tts(text, lang="", voice="", style="", role="", subscripti
 
 
 if __name__ == "__main__":
-    initialize_environment()
-
     loop = asyncio.new_event_loop()
     v = loop.create_task(oas3_azsure_tts("测试，test"))
     loop.run_until_complete(v)

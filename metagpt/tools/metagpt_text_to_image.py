@@ -17,7 +17,6 @@ import requests
 from pydantic import BaseModel
 
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent))  # fix-bug: No module named 'metagpt'
-from metagpt.utils.common import initialize_environment
 from metagpt.logs import logger
 
 
@@ -104,8 +103,6 @@ async def oas3_metagpt_text_to_image(text, size_type: str = "512x512", model_url
 
 
 if __name__ == "__main__":
-    initialize_environment()
-
     v = oas3_metagpt_text_to_image("Panda emoji")
     data = base64.b64decode(v)
     with open("tmp.png", mode="wb") as writer:

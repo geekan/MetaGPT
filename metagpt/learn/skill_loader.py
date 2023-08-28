@@ -6,12 +6,11 @@
 @File    : skill_loader.py
 @Desc    : Skill YAML Configuration Loader.
 """
-
 from pathlib import Path
 from typing import List, Dict, Optional
 
 import yaml
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class Example(BaseModel):
@@ -24,11 +23,18 @@ class Returns(BaseModel):
     format: Optional[str] = None
 
 
+class Prerequisite(BaseModel):
+    name: str
+    type: Optional[str] = None
+    description: Optional[str] = None
+    default: Optional[str] = None
+
+
 class Skill(BaseModel):
     name: str
     description: str
     id: str
-    requisite: List[str]
+    x_prerequisite: Optional[List[Prerequisite]] = Field(default=None, alias="x-prerequisite")
     arguments: Dict
     examples: List[Example]
     returns: Returns
