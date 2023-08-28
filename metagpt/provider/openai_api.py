@@ -19,6 +19,7 @@ from pydantic import BaseModel
 from tenacity import retry, stop_after_attempt, after_log, wait_fixed, retry_if_exception_type
 
 from metagpt.config import CONFIG
+from metagpt.const import DEFAULT_LANGUAGE
 from metagpt.logs import logger
 from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.utils.token_counter import (
@@ -291,7 +292,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         """Generate text summary"""
         if len(text) < max_words:
             return text
-        language = CONFIG.language or self.DEFAULT_LANGUAGE
+        language = CONFIG.language or DEFAULT_LANGUAGE
         command = f"Translate the above content into a {language} summary of less than {max_words} words."
         msg = text + "\n\n" + command
         logger.info(f"summary ask:{msg}")
@@ -312,7 +313,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         if len(summaries) == 1:
             return summaries[0]
 
-        language = CONFIG.language or self.DEFAULT_LANGUAGE
+        language = CONFIG.language or DEFAULT_LANGUAGE
         command = f"Translate the above summary into a {language} title of less than {max_words} words."
         summaries.append(command)
         msg = "\n".join(summaries)
@@ -398,4 +399,4 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         raise openai.error.OpenAIError("Exceeds the maximum retries")
 
     MAX_TRY = 5
-    DEFAULT_LANGUAGE = "Engilish"
+

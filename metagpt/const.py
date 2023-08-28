@@ -38,3 +38,4 @@ RESEARCH_PATH = DATA_PATH / "research"
 MEM_TTL = 24 * 30 * 3600
 
 OPTIONS = contextvars.ContextVar("OPTIONS")
+DEFAULT_LANGUAGE = "Engilish"

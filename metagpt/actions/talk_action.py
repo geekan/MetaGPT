@@ -1,15 +1,25 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+@Time    : 2023/8/28
+@Author  : mashenquan
+@File    : talk_action.py
+@Desc    : Act as it’s a talk
+"""
+
 from metagpt.actions import Action, ActionOutput
+from metagpt.config import CONFIG
+from metagpt.const import DEFAULT_LANGUAGE
 from metagpt.logs import logger
 
 
-
 class TalkAction(Action):
-    def __init__(self, options, name: str = '', talk='', history_summary='', knowledge='', context=None, llm=None, **kwargs):
+    def __init__(self, name: str = '', talk='', history_summary='', knowledge='', context=None, llm=None, **kwargs):
         context = context or {}
         context["talk"] = talk
         context["history_summery"] = history_summary
         context["knowledge"] = knowledge
-        super(TalkAction, self).__init__(options=options, name=name, context=context, llm=llm)
+        super(TalkAction, self).__init__(name=name, context=context, llm=llm)
         self._talk = talk
         self._history_summary = history_summary
         self._knowledge = knowledge
@@ -21,7 +31,7 @@ class TalkAction(Action):
         prompt += f"{self._history_summary}\n\n"
         if self._history_summary != "":
             prompt += "According to the historical conversation above, "
-        language = self.options.get("language", "Chinese")
+        language = CONFIG.language or DEFAULT_LANGUAGE
         prompt += f"Answer in {language}:\n {self._talk}"
         return prompt
 
@@ -32,4 +42,3 @@ class TalkAction(Action):
         logger.info(rsp)
         self._rsp = ActionOutput(content=rsp)
         return self._rsp
-
