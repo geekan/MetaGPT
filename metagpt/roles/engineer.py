@@ -47,10 +47,10 @@ async def gather_ordered_k(coros, k) -> list:
 
 
 class Engineer(Role):
-    def __init__(self, options, cost_manager, name="Alex", profile="Engineer", goal="Write elegant, readable, extensible, efficient code",
+    def __init__(self, name="Alex", profile="Engineer", goal="Write elegant, readable, extensible, efficient code",
                  constraints="The code you write should conform to code standard like PEP8, be modular, easy to read and maintain",
                  n_borg=1, use_code_review=False):
-        super().__init__(name=name, profile=profile, goal=goal, constraints=constraints, options=options, cost_manager=cost_manager)
+        super().__init__(name, profile, goal, constraints)
         self._init_actions([WriteCode])
         self.use_code_review = use_code_review
         if self.use_code_review:
@@ -131,7 +131,7 @@ class Engineer(Role):
     async def _act_sp(self) -> Message:
         code_msg_all = [] # gather all code info, will pass to qa_engineer for tests later
         for todo in self.todos:
-            code = await WriteCode(options=self.options, llm=self._llm).run(
+            code = await WriteCode().run(
                 context=self._rc.history,
                 filename=todo
             )

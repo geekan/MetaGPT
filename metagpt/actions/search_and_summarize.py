@@ -101,16 +101,16 @@ You are a member of a professional butler team and will provide helpful suggesti
 
 
 class SearchAndSummarize(Action):
-    def __init__(self, options, name="", context=None, llm=None, engine=None, search_func=None):
-        self.engine = engine or options.get("search_engine")
+    def __init__(self, name="", context=None, llm=None, engine=None, search_func=None):
+        self.engine = engine or CONFIG.search_engine
 
         try:
-            self.search_engine = SearchEngine(options=options, engine=self.engine, run_func=search_func)
+            self.search_engine = SearchEngine(self.engine, run_func=search_func)
         except pydantic.ValidationError:
             self.search_engine = None
 
         self.result = ""
-        super().__init__(options=options, name=name, context=context, llm=llm)
+        super().__init__(name, context, llm)
 
     async def run(self, context: list[Message], system_text=SEARCH_AND_SUMMARIZE_SYSTEM) -> str:
         if self.search_engine is None:

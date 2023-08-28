@@ -4,6 +4,7 @@
 @Time    : 2023/7/11 10:03
 @Author  : chengmaoyu
 @File    : action_output
+@Modified By: mashenquan, 2023/8/20. Allow 'instruct_content' to be blank.
 """
 
 from typing import Dict, Type, Optional

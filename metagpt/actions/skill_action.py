@@ -1,3 +1,12 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+@Time    : 2023/8/28
+@Author  : mashenquan
+@File    : skill_action.py
+@Desc    : Call learned skill
+"""
+
 import ast
 import importlib
 
@@ -7,8 +16,8 @@ from metagpt.logs import logger
 
 
 class ArgumentsParingAction(Action):
-    def __init__(self, options, last_talk: str, skill: Skill, context=None, llm=None, **kwargs):
-        super(ArgumentsParingAction, self).__init__(options=options, name='', context=context, llm=llm)
+    def __init__(self, last_talk: str, skill: Skill, context=None, llm=None, **kwargs):
+        super(ArgumentsParingAction, self).__init__(name='', context=context, llm=llm)
         self.skill = skill
         self.ask = last_talk
         self.rsp = None
@@ -59,15 +68,15 @@ class ArgumentsParingAction(Action):
 
 
 class SkillAction(Action):
-    def __init__(self, options, skill: Skill, args: dict, context=None, llm=None, **kwargs):
-        super(SkillAction, self).__init__(options=options, name='', context=context, llm=llm)
+    def __init__(self, skill: Skill, args: dict, context=None, llm=None, **kwargs):
+        super(SkillAction, self).__init__(name='', context=context, llm=llm)
         self._skill = skill
         self._args = args
         self.rsp = None
 
     async def run(self, *args, **kwargs) -> str | ActionOutput | None:
         """Run action"""
-        self.rsp = self.find_and_call_function(self._skill.name, args=self._args, **self.options)
+        self.rsp = self.find_and_call_function(self._skill.name, args=self._args, **kwargs)
         return ActionOutput(content=self.rsp, instruct_content=self._skill.json())
 
     @staticmethod

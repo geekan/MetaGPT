@@ -4,7 +4,6 @@
 @Time    : 2023/5/11 17:46
 @Author  : alexanderwu
 @File    : debug_error.py
-@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
 """
 import re
 
@@ -26,8 +25,8 @@ Now you should start rewriting the code:
 ## file name of the code to rewrite: Write code with triple quoto. Do your best to implement THIS IN ONLY ONE FILE.
 """
 class DebugError(Action):
-    def __init__(self, options, name="DebugError", context=None, llm=None):
-        super().__init__(options=options, name=name, context=context, llm=llm)
+    def __init__(self, name="DebugError", context=None, llm=None):
+        super().__init__(name, context, llm)
 
     # async def run(self, code, error):
     #     prompt = f"Here is a piece of Python code:\n\n{code}\n\nThe following error occurred during execution:" \

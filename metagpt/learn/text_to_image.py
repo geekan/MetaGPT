@@ -8,15 +8,11 @@
 """
 import os
 
-from metagpt.learn.skill_metadata import skill_metadata
+from metagpt.config import CONFIG
 from metagpt.tools.metagpt_text_to_image import oas3_metagpt_text_to_image
 from metagpt.tools.openai_text_to_image import oas3_openai_text_to_image
-from metagpt.utils.common import initialize_environment
 
 
-@skill_metadata(name="Text to image",
-                description="Create a drawing based on the text.",
-                requisite="`OPENAI_API_KEY` or `METAGPT_TEXT_TO_IMAGE_MODEL`")
 async def text_to_image(text, size_type: str = "512x512", openai_api_key="", model_url="", **kwargs):
     """Text to image
 
@@ -26,13 +22,12 @@ async def text_to_image(text, size_type: str = "512x512", openai_api_key="", mod
     :param model_url: MetaGPT model url
     :return: The image data is returned in Base64 encoding.
     """
-    initialize_environment()
     image_declaration = "data:image/png;base64,"
-    if os.environ.get("METAGPT_TEXT_TO_IMAGE_MODEL_URL") or model_url:
+    if CONFIG.METAGPT_TEXT_TO_IMAGE_MODEL_URL or model_url:
         data = await oas3_metagpt_text_to_image(text, size_type, model_url)
         return image_declaration + data if data else ""
 
-    if os.environ.get("OPENAI_API_KEY") or openai_api_key:
+    if CONFIG.OPENAI_API_KEY or openai_api_key:
         data = await oas3_openai_text_to_image(text, size_type, openai_api_key)
         return image_declaration + data if data else ""
 

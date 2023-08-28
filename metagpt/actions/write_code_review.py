@@ -4,7 +4,6 @@
 @Time    : 2023/5/11 17:45
 @Author  : alexanderwu
 @File    : write_code_review.py
-@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
 """
 
 from metagpt.actions.action import Action
@@ -63,8 +62,8 @@ FORMAT_EXAMPLE = """
 
 
 class WriteCodeReview(Action):
-    def __init__(self, options, name="WriteCodeReview", context: list[Message] = None, llm=None):
-        super().__init__(options=options, name=name, context=context, llm=llm)
+    def __init__(self, name="WriteCodeReview", context: list[Message] = None, llm=None):
+        super().__init__(name, context, llm)
 
     @retry(stop=stop_after_attempt(2), wait=wait_fixed(1))
     async def write_code(self, prompt):

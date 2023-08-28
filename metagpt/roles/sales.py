@@ -13,8 +13,6 @@ from metagpt.tools import SearchEngineType
 class Sales(Role):
     def __init__(
             self,
-            options,
-            cost_manager,
             name="Xiaomei",
             profile="Retail sales guide",
             desc="I am a sales guide in retail. My name is Xiaomei. I will answer some customer questions next, and I "
@@ -25,7 +23,7 @@ class Sales(Role):
                  "professional guide",
             store=None
     ):
-        super().__init__(options=options, cost_manager=cost_manager, name=name, profile=profile, desc=desc)
+        super().__init__(name, profile, desc=desc)
         self._set_store(store)
 
     def _set_store(self, store):

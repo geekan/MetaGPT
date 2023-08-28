@@ -4,15 +4,14 @@
 @Time    : 2023/5/11 14:42
 @Author  : alexanderwu
 @File    : manager.py
-@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
 """
-
+from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.schema import Message
 
 
 class Manager:
-    def __init__(self, llm):
+    def __init__(self, llm: LLM = LLM()):
         self.llm = llm  # Large Language Model
         self.role_directions = {
             "BOSS": "Product Manager",

@@ -4,7 +4,6 @@
 @Time    : 2023/5/19 12:01
 @Author  : alexanderwu
 @File    : analyze_dep_libs.py
-@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
 """
 
 from metagpt.actions import Action
@@ -27,8 +26,8 @@ Focus only on the names of shared dependencies, do not add any other explanation
 
 
 class AnalyzeDepLibs(Action):
-    def __init__(self, options, name, context=None, llm=None):
-        super().__init__(options=options, name=name, context=context, llm=llm)
+    def __init__(self, name, context=None, llm=None):
+        super().__init__(name, context, llm)
         self.desc = "根据上下文，分析程序运行依赖库"
 
     async def run(self, requirement, filepaths_string):

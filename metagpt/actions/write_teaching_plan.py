@@ -42,7 +42,7 @@ class WriteTeachingPlanPart(Action):
         statements = []
         from metagpt.roles import Role
         for p in statement_patterns:
-            s = Role.format_value(p, kwargs)
+            s = Role.format_value(p)
             statements.append(s)
         formatter = self.PROMPT_TITLE_TEMPLATE if self.topic == self.COURSE_TITLE else self.PROMPT_TEMPLATE
         prompt = formatter.format(formation=self.FORMATION,

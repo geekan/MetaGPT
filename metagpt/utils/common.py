@@ -259,18 +259,3 @@ def parse_recipient(text):
     recipient = re.search(pattern, text)
     return recipient.group(1) if recipient else ""
 
-
-def initialize_environment(options=None):
-    """Load `config/config.yaml` to `os.environ`"""
-    if options:
-        for k, v in options.items():
-            os.environ[k] = str(v)
-        return
-
-    yaml_file_path = Path(__file__).resolve().parent.parent.parent / "config/config.yaml"
-    if not yaml_file_path.exists():
-        return
-    with open(str(yaml_file_path), "r") as yaml_file:
-        data = yaml.safe_load(yaml_file)
-        for k, v in data.items():
-            os.environ[k] = str(v)

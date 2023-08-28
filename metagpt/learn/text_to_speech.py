@@ -6,16 +6,14 @@
 @File    : text_to_speech.py
 @Desc    : Text-to-Speech skill, which provides text-to-speech functionality
 """
-import os
 
-from metagpt.learn.skill_metadata import skill_metadata
+
+from metagpt.config import CONFIG
+
 from metagpt.tools.azure_tts import oas3_azsure_tts
-from metagpt.utils.common import initialize_environment
 
 
-@skill_metadata(name="Text to speech",
-                description="Text-to-speech",
-                requisite="`AZURE_TTS_SUBSCRIPTION_KEY` and `AZURE_TTS_REGION`")
+
 async def text_to_speech(text, lang="zh-CN", voice="zh-CN-XiaomoNeural", style="affectionate", role="Girl",
                    subscription_key="", region="", **kwargs):
     """Text to speech
@@ -31,9 +29,8 @@ async def text_to_speech(text, lang="zh-CN", voice="zh-CN-XiaomoNeural", style="
     :return: Returns the Base64-encoded .wav file data if successful, otherwise an empty string.
 
     """
-    initialize_environment()
     audio_declaration = "data:audio/wav;base64,"
-    if (os.environ.get("AZURE_TTS_SUBSCRIPTION_KEY") and os.environ.get("AZURE_TTS_REGION")) or \
+    if (CONFIG.AZURE_TTS_SUBSCRIPTION_KEY and CONFIG.AZURE_TTS_REGION) or \
             (subscription_key and region):
         data = await oas3_azsure_tts(text, lang, voice, style, role, subscription_key, region)
         return audio_declaration + data if data else data

@@ -4,7 +4,6 @@
 @Time    : 2023/5/11 17:45
 @Author  : alexanderwu
 @File    : write_test.py
-@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
 """
 from metagpt.actions.action import Action
 from metagpt.utils.common import CodeParser
@@ -31,8 +30,8 @@ you should correctly import the necessary classes based on these file locations!
 
 
 class WriteTest(Action):
-    def __init__(self, options, name="WriteTest", context=None, llm=None):
-        super().__init__(options=options, name=name, context=context, llm=llm)
+    def __init__(self, name="WriteTest", context=None, llm=None):
+        super().__init__(name, context, llm)
 
     async def write_code(self, prompt):
         code_rsp = await self._aask(prompt)

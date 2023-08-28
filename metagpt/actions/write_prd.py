@@ -4,7 +4,6 @@
 @Time    : 2023/5/11 17:45
 @Author  : alexanderwu
 @File    : write_prd.py
-@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
 """
 from typing import List, Tuple
 
@@ -128,11 +127,11 @@ OUTPUT_MAPPING = {
 
 
 class WritePRD(Action):
-    def __init__(self, options, name="", context=None, llm=None):
-        super().__init__(options=options, name=name, context=context, llm=llm)
+    def __init__(self, name="", context=None, llm=None):
+        super().__init__(name, context, llm)
 
     async def run(self, requirements, *args, **kwargs) -> ActionOutput:
-        sas = SearchAndSummarize(options=self.options, llm=self.llm)
+        sas = SearchAndSummarize()
         # rsp = await sas.run(context=requirements, system_text=SEARCH_AND_SUMMARIZE_SYSTEM_EN_US)
         rsp = ""
         info = f"### Search Results\n{sas.result}\n\n### Search Summary\n{rsp}"

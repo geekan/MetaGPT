@@ -4,9 +4,7 @@
 @Time    : 2023/5/11 14:42
 @Author  : alexanderwu
 @File    : role.py
-@Modified By: mashenquan, 2023-8-7, :class:`Role` + properties.
-@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation;
-            Change cost control from global to company level.
+@Modified By: mashenquan, 2023-8-7, Support template-style variables, such as '{teaching_language} Teacher'.
 @Modified By: mashenquan, 2023/8/22. A definition has been provided for the return value of _think: returning false indicates that further reasoning cannot continue.
 """
 from __future__ import annotations
@@ -15,7 +13,8 @@ from typing import Iterable, Type, Dict
 
 from pydantic import BaseModel, Field
 
-from metagpt.config import Config
+from metagpt.config import Config, CONFIG
+from metagpt.const import OPTIONS
 from metagpt.provider.openai_api import OpenAIGPTAPI as LLM, CostManager
 from metagpt.actions import Action, ActionOutput
 from metagpt.logs import logger
@@ -74,13 +73,12 @@ class RoleContext(BaseModel):
     todo: Action = Field(default=None)
     watch: set[Type[Action]] = Field(default_factory=set)
     news: list[Type[Message]] = Field(default=[])
-    options: Dict
 
     class Config:
         arbitrary_types_allowed = True
 
     def check(self, role_id: str):
-        if self.options.get("long_term_memory"):
+        if CONFIG.long_term_memory:
             self.long_term_memory.recover_memory(role_id, self)
             self.memory = self.long_term_memory  # use memory to act as long_term_memory for unify operation
 
@@ -102,26 +100,20 @@ class RoleContext(BaseModel):
 class Role:
     """Role/Proxy"""
 
-    def __init__(self, options=None, cost_manager=None, name="", profile="", goal="", constraints="", desc="", *args, **kwargs):
-        options = options or Config().runtime_options
-        cost_manager = cost_manager or CostManager(*options)
+    def __init__(self, name="", profile="", goal="", constraints="", desc="", *args, **kwargs):
+        # Replace template-style variables, such as '{teaching_language} Teacher'.
+        name = Role.format_value(name)
+        profile = Role.format_value(profile)
+        goal = Role.format_value(goal)
+        constraints = Role.format_value(constraints)
+        desc = Role.format_value(desc)
 
-        self._options = Role.supply_options(options=kwargs, default_options=options)
-
-        name = Role.format_value(name, self._options)
-        profile = Role.format_value(profile, self._options)
-        goal = Role.format_value(goal, self._options)
-        constraints = Role.format_value(constraints, self._options)
-        desc = Role.format_value(desc, self._options)
-
-        self._cost_manager = cost_manager
-        self._llm = LLM(options=self._options, cost_manager=cost_manager)
-
+        self._llm = LLM()
         self._setting = RoleSetting(name=name, profile=profile, goal=goal, constraints=constraints, desc=desc)
         self._states = []
         self._actions = []
         self._role_id = str(self._setting)
-        self._rc = RoleContext(options=self._options)
+        self._rc = RoleContext()
 
     def _reset(self):
         self._states = []
@@ -131,7 +123,7 @@ class Role:
         self._reset()
         for idx, action in enumerate(actions):
             if not isinstance(action, Action):
-                i = action(options=self._options, name="", llm=self._llm)
+                i = action("", llm=self._llm)
             else:
                 i = action
             i.set_prefix(self._get_prefix(), self.profile)
@@ -184,14 +176,6 @@ class Role:
         """Return number of action"""
         return len(self._actions)
 
-    @property
-    def options(self):
-        return self._options
-
-    @options.setter
-    def options(self, opts):
-        self._options.update(opts)
-
     def _get_prefix(self):
         """获取角色前缀"""
         if self._setting.desc:
@@ -222,7 +206,7 @@ class Role:
 
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
         requirement = self._rc.important_memory or self._rc.prerequisite
-        response = await self._rc.todo.run(requirement, **self._options)
+        response = await self._rc.todo.run(requirement)
         # logger.info(response)
         if isinstance(response, ActionOutput):
             msg = Message(content=response.content, instruct_content=response.instruct_content,
@@ -300,23 +284,14 @@ class Role:
         return rsp
 
     @staticmethod
-    def supply_options(options, default_options=None):
-        """Supply missing options"""
-        ret = default_options.copy() if default_options else {}
-        if not options:
-            return ret
-        ret.update(options)
-        return ret
-
-    @staticmethod
-    def format_value(value, opts, default_opts=None):
+    def format_value(value):
         """Fill parameters inside `value` with `options`."""
         if not isinstance(value, str):
             return value
         if "{" not in value:
             return value
 
-        merged_opts = Role.supply_options(opts, default_opts)
+        merged_opts = OPTIONS.get() or {}
         try:
             return value.format(**merged_opts)
         except KeyError as e:
