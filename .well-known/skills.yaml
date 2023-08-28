@@ -4,9 +4,11 @@ entities:
      - name: text_to_speech
        description: Text-to-speech
        id: text_to_speech.text_to_speech
-       requisite:
-       - AZURE_TTS_SUBSCRIPTION_KEY
-       - AZURE_TTS_REGION
+       x-prerequisite:
+         - name: AZURE_TTS_SUBSCRIPTION_KEY
+           description: "For more details, check out: [Azure Text-to_Speech](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts)"
+         - name: AZURE_TTS_REGION
+           description: "For more details, check out: [Azure Text-to_Speech](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts)"
        arguments:
          text: 'The text used for voice conversion. Required.'
          lang: 'The value can contain a language code such as en (English), or a locale such as en-US (English - United States). The optional parameter are "English", "Chinese". Default value: "Chinese".'
@@ -27,9 +29,11 @@ entities:
      - name: text_to_image
        description: Create a drawing based on the text.
        id: text_to_image.text_to_image
-       requisite:
-       - OPENAI_API_KEY
-       - METAGPT_TEXT_TO_IMAGE_MODEL
+       x-prerequisite:
+       - name: OPENAI_API_KEY
+         description: "OpenAI API key, For more details, checkout: `https://platform.openai.com/account/api-keys`"
+       - name: METAGPT_TEXT_TO_IMAGE_MODEL_URL
+         description: "Model url."
        arguments:
          text: 'The text used for image conversion. Required.'
          size_type: 'Default value: "512x512".'

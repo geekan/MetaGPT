@@ -28,7 +28,7 @@ def text_to_image(text, size_type: str = "512x512", openai_api_key="", model_url
     """
     initialize_environment()
     image_declaration = "data:image/png;base64,"
-    if os.environ.get("METAGPT_TEXT_TO_IMAGE_MODEL") or model_url:
+    if os.environ.get("METAGPT_TEXT_TO_IMAGE_MODEL_URL") or model_url:
         data = oas3_metagpt_text_to_image(text, size_type, model_url)
         return image_declaration + data if data else ""
     if os.environ.get("OPENAI_API_KEY") or openai_api_key:
