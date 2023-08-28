@@ -7,10 +7,12 @@
 @Desc    : OpenAI Text-to-Embedding OAS3 api, which provides text-to-embedding functionality.
             For more details, checkout: `https://platform.openai.com/docs/api-reference/embeddings/object`
 """
+import asyncio
 import os
 from pathlib import Path
 from typing import List
 
+import aiohttp
 import requests
 from pydantic import BaseModel
 import sys
@@ -47,7 +49,7 @@ class OpenAIText2Embedding:
         """
         self.openai_api_key = openai_api_key if openai_api_key else os.environ.get('OPENAI_API_KEY')
 
-    def text_2_embedding(self, text, model="text-embedding-ada-002"):
+    async def text_2_embedding(self, text, model="text-embedding-ada-002"):
         """Text to embedding
 
         :param text: The text used for embedding.
@@ -61,16 +63,16 @@ class OpenAIText2Embedding:
         }
         data = {"input": text, "model": model}
         try:
-            response = requests.post("https://api.openai.com/v1/embeddings", headers=headers, json=data)
-            response.raise_for_status()  # Raise an exception for 4xx or 5xx responses
-            return response.json()
+            async with aiohttp.ClientSession() as session:
+                async with session.post("https://api.openai.com/v1/embeddings", headers=headers, json=data) as response:
+                    return await response.json()
         except requests.exceptions.RequestException as e:
             logger.error(f"An error occurred:{e}")
         return {}
 
 
 # Export
-def oas3_openai_text_to_embedding(text, model="text-embedding-ada-002", openai_api_key=""):
+async def oas3_openai_text_to_embedding(text, model="text-embedding-ada-002", openai_api_key=""):
     """Text to embedding
 
     :param text: The text used for embedding.
@@ -82,11 +84,12 @@ def oas3_openai_text_to_embedding(text, model="text-embedding-ada-002", openai_a
         return ""
     if not openai_api_key:
         openai_api_key = os.environ.get("OPENAI_API_KEY")
-    return OpenAIText2Embedding(openai_api_key).text_2_embedding(text, model=model)
+    return await OpenAIText2Embedding(openai_api_key).text_2_embedding(text, model=model)
 
 
 if __name__ == "__main__":
     initialize_environment()
-
-    v = oas3_openai_text_to_embedding("Panda emoji")
+    loop = asyncio.new_event_loop()
+    v = loop.create_task(oas3_openai_text_to_embedding("Panda emoji"))
+    loop.run_until_complete(v)
     print(v)

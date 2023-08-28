@@ -16,7 +16,7 @@ from metagpt.utils.common import initialize_environment
 @skill_metadata(name="Text to Embedding",
                 description="Convert the text into embeddings.",
                 requisite="`OPENAI_API_KEY`")
-def text_to_embedding(text, model="text-embedding-ada-002", openai_api_key="", **kwargs):
+async def text_to_embedding(text, model="text-embedding-ada-002", openai_api_key="", **kwargs):
     """Text to embedding
 
     :param text: The text used for embedding.
@@ -26,5 +26,5 @@ def text_to_embedding(text, model="text-embedding-ada-002", openai_api_key="", *
     """
     initialize_environment()
     if os.environ.get("OPENAI_API_KEY") or openai_api_key:
-        return oas3_openai_text_to_embedding(text, model=model, openai_api_key=openai_api_key)
+        return await oas3_openai_text_to_embedding(text, model=model, openai_api_key=openai_api_key)
     raise EnvironmentError

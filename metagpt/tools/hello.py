@@ -17,7 +17,7 @@ import connexion
 
 
 # openapi implement
-def post_greeting(name: str) -> str:
+async def post_greeting(name: str) -> str:
     return f"Hello {name}\n"
 
 

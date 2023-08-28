@@ -7,6 +7,7 @@
 @Modified By: mashenquan, 2023-8-9, add more text formatting options
 @Modified By: mashenquan, 2023-8-17, move to `tools` folder.
 """
+import asyncio
 import sys
 from pathlib import Path
 
@@ -19,7 +20,7 @@ from metagpt.utils.common import initialize_environment
 def test_azure_tts():
     initialize_environment()
 
-    azure_tts = AzureTTS()
+    azure_tts = AzureTTS(subscription_key="", region="")
     text = """
         女儿看见父亲走了进来，问道：
             <mstts:express-as role="YoungAdultFemale" style="calm">
@@ -33,11 +34,13 @@ def test_azure_tts():
     path = WORKSPACE_ROOT / "tts"
     path.mkdir(exist_ok=True, parents=True)
     filename = path / "girl.wav"
-    result = azure_tts.synthesize_speech(
+    loop = asyncio.new_event_loop()
+    v = loop.create_task(azure_tts.synthesize_speech(
         lang="zh-CN",
         voice="zh-CN-XiaomoNeural",
         text=text,
-        output_file=str(filename))
+        output_file=str(filename)))
+    result = loop.run_until_complete(v)
 
     print(result)
 

@@ -12,6 +12,7 @@ import sys
 from pathlib import Path
 from typing import List, Dict
 
+import aiohttp
 import requests
 from pydantic import BaseModel
 
@@ -27,7 +28,7 @@ class MetaGPTText2Image:
         """
         self.model_url = model_url if model_url else os.environ.get('METAGPT_TEXT_TO_IMAGE_MODEL')
 
-    def text_2_image(self, text, size_type="512x512"):
+    async def text_2_image(self, text, size_type="512x512"):
         """Text to image
 
         :param text: The text used for image conversion.
@@ -75,9 +76,9 @@ class MetaGPTText2Image:
             parameters: Dict
 
         try:
-            response = requests.post(self.model_url, headers=headers, json=data)
-            response.raise_for_status()  # Raise an exception for 4xx or 5xx responses
-            result = ImageResult(**response.json())
+            async with aiohttp.ClientSession() as session:
+                async with session.post(self.model_url, headers=headers, json=data) as response:
+                    result = ImageResult(**await response.json())
             if len(result.images) == 0:
                 return ""
             return result.images[0]
@@ -87,7 +88,7 @@ class MetaGPTText2Image:
 
 
 # Export
-def oas3_metagpt_text_to_image(text, size_type: str = "512x512", model_url=""):
+async def oas3_metagpt_text_to_image(text, size_type: str = "512x512", model_url=""):
     """Text to image
 
     :param text: The text used for image conversion.
@@ -99,7 +100,7 @@ def oas3_metagpt_text_to_image(text, size_type: str = "512x512", model_url=""):
         return ""
     if not model_url:
         model_url = os.environ.get('METAGPT_TEXT_TO_IMAGE_MODEL_URL')
-    return MetaGPTText2Image(model_url).text_2_image(text, size_type=size_type)
+    return await MetaGPTText2Image(model_url).text_2_image(text, size_type=size_type)
 
 
 if __name__ == "__main__":

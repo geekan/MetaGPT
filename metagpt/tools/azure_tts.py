@@ -6,6 +6,7 @@
 @File    : azure_tts.py
 @Desc    : azure TTS OAS3 api, which provides text-to-speech functionality
 """
+import asyncio
 from pathlib import Path
 from uuid import uuid4
 import base64
@@ -14,7 +15,7 @@ import sys
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent))  # fix-bug: No module named 'metagpt'
 from metagpt.utils.common import initialize_environment
 from metagpt.logs import logger
-
+from aiofile import async_open
 from azure.cognitiveservices.speech import AudioConfig, SpeechConfig, SpeechSynthesizer
 import os
 
@@ -31,7 +32,7 @@ class AzureTTS:
         self.region = region if region else os.environ.get('AZURE_TTS_REGION')
 
     # 参数参考：https://learn.microsoft.com/zh-cn/azure/cognitive-services/speech-service/language-support?tabs=tts#voice-styles-and-roles
-    def synthesize_speech(self, lang, voice, text, output_file):
+    async def synthesize_speech(self, lang, voice, text, output_file):
         speech_config = SpeechConfig(
             subscription=self.subscription_key, region=self.region)
         speech_config.speech_synthesis_voice_name = voice
@@ -61,7 +62,7 @@ class AzureTTS:
 
 
 # Export
-def oas3_azsure_tts(text, lang="", voice="", style="", role="", subscription_key="", region=""):
+async def oas3_azsure_tts(text, lang="", voice="", style="", role="", subscription_key="", region=""):
     """Text to speech
     For more details, check out:`https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts`
 
@@ -95,9 +96,9 @@ def oas3_azsure_tts(text, lang="", voice="", style="", role="", subscription_key
     tts = AzureTTS(subscription_key=subscription_key, region=region)
     filename = Path(__file__).resolve().parent / (str(uuid4()).replace("-", "") + ".wav")
     try:
-        tts.synthesize_speech(lang=lang, voice=voice, text=xml_value, output_file=str(filename))
-        with open(str(filename), mode="rb") as reader:
-            data = reader.read()
+        await tts.synthesize_speech(lang=lang, voice=voice, text=xml_value, output_file=str(filename))
+        async with async_open(filename, mode="rb") as reader:
+            data = await reader.read()
             base64_string = base64.b64encode(data).decode('utf-8')
         filename.unlink()
     except Exception as e:
@@ -110,5 +111,7 @@ def oas3_azsure_tts(text, lang="", voice="", style="", role="", subscription_key
 if __name__ == "__main__":
     initialize_environment()
 
-    v = oas3_azsure_tts("测试，test")
+    loop = asyncio.new_event_loop()
+    v = loop.create_task(oas3_azsure_tts("测试，test"))
+    loop.run_until_complete(v)
     print(v)

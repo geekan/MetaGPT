@@ -16,7 +16,7 @@ from metagpt.utils.common import initialize_environment
 @skill_metadata(name="Text to speech",
                 description="Text-to-speech",
                 requisite="`AZURE_TTS_SUBSCRIPTION_KEY` and `AZURE_TTS_REGION`")
-def text_to_speech(text, lang="zh-CN", voice="zh-CN-XiaomoNeural", style="affectionate", role="Girl",
+async def text_to_speech(text, lang="zh-CN", voice="zh-CN-XiaomoNeural", style="affectionate", role="Girl",
                    subscription_key="", region="", **kwargs):
     """Text to speech
     For more details, check out:`https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts`
@@ -35,7 +35,7 @@ def text_to_speech(text, lang="zh-CN", voice="zh-CN-XiaomoNeural", style="affect
     audio_declaration = "data:audio/wav;base64,"
     if (os.environ.get("AZURE_TTS_SUBSCRIPTION_KEY") and os.environ.get("AZURE_TTS_REGION")) or \
             (subscription_key and region):
-        data = oas3_azsure_tts(text, lang, voice, style, role, subscription_key, region)
+        data = await oas3_azsure_tts(text, lang, voice, style, role, subscription_key, region)
         return audio_declaration + data if data else data
 
     raise EnvironmentError

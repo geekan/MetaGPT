@@ -17,7 +17,7 @@ from metagpt.utils.common import initialize_environment
 @skill_metadata(name="Text to image",
                 description="Create a drawing based on the text.",
                 requisite="`OPENAI_API_KEY` or `METAGPT_TEXT_TO_IMAGE_MODEL`")
-def text_to_image(text, size_type: str = "512x512", openai_api_key="", model_url="", **kwargs):
+async def text_to_image(text, size_type: str = "512x512", openai_api_key="", model_url="", **kwargs):
     """Text to image
 
     :param text: The text used for image conversion.
@@ -29,10 +29,11 @@ def text_to_image(text, size_type: str = "512x512", openai_api_key="", model_url
     initialize_environment()
     image_declaration = "data:image/png;base64,"
     if os.environ.get("METAGPT_TEXT_TO_IMAGE_MODEL_URL") or model_url:
-        data = oas3_metagpt_text_to_image(text, size_type, model_url)
+        data = await oas3_metagpt_text_to_image(text, size_type, model_url)
         return image_declaration + data if data else ""
+
     if os.environ.get("OPENAI_API_KEY") or openai_api_key:
-        data = oas3_openai_text_to_image(text, size_type, openai_api_key)
+        data = await oas3_openai_text_to_image(text, size_type, openai_api_key)
         return image_declaration + data if data else ""
 
     raise EnvironmentError

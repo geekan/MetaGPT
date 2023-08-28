@@ -24,10 +24,17 @@ async def mock_text_to_speech():
 
     for i in inputs:
         seed = Input(**i)
-        base64_data = text_to_speech(seed.input)
+        base64_data = await text_to_speech(seed.input)
         assert base64_data != ""
         print(f"{seed.input} -> {base64_data}")
-        assert base64.b64decode(base64_data, validate=True)
+        flags = ";base64,"
+        assert flags in base64_data
+        ix = base64_data.find(flags) + len(flags)
+        declaration = base64_data[0: ix]
+        assert declaration
+        data = base64_data[ix:]
+        assert data
+        assert base64.b64decode(data, validate=True)
 
 
 def test_suite():

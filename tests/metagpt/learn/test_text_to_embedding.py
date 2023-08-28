@@ -8,11 +8,11 @@
 """
 
 import asyncio
-import base64
 
 from pydantic import BaseModel
 
 from metagpt.learn.text_to_embedding import text_to_embedding
+from metagpt.tools.openai_text_to_embedding import ResultEmbedding
 
 
 async def mock_text_to_embedding():
@@ -25,7 +25,7 @@ async def mock_text_to_embedding():
 
     for i in inputs:
         seed = Input(**i)
-        data = text_to_embedding(seed.input)
+        data = await text_to_embedding(seed.input)
         v = ResultEmbedding(**data)
         assert len(v.data) > 0
 
