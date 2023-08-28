@@ -3,7 +3,7 @@
 """
 @Time    : 2023/8/7
 @Author  : mashenquan
-@File    : fork_meta_role.py
+@File    : assistant.py
 @Desc   : I am attempting to incorporate certain symbol concepts from UML into MetaGPT, enabling it to have the
             ability to freely construct flows through symbol concatenation. Simultaneously, I am also striving to
             make these symbols configurable and standardized, making the process of building flows more convenient.
