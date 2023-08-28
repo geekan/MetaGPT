@@ -21,17 +21,13 @@ from metagpt.actions import ActionOutput
 from metagpt.actions.skill_action import SkillAction, ArgumentsParingAction
 from metagpt.actions.talk_action import TalkAction
 from metagpt.config import Config
+from metagpt.const import BRAIN_MEMORY, SKILL_PATH
 from metagpt.learn.skill_loader import SkillLoader
 from metagpt.logs import logger
 from metagpt.memory.brain_memory import BrainMemory, MessageType
 from metagpt.provider.openai_api import CostManager
 from metagpt.roles import Role
 from metagpt.schema import Message
-
-DEFAULT_MAX_TOKENS = 1500
-COMMAND_TOKENS = 500
-BRAIN_MEMORY = "BRAIN_MEMORY"
-SKILL_PATH = "SKILL_PATH"
 
 
 class Assistant(Role):
