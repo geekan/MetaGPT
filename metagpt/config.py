@@ -131,6 +131,8 @@ class Config(metaclass=Singleton):
 
     def set_context(self, options: dict):
         """Update current config"""
+        if not options:
+            return
         opts = deepcopy(OPTIONS.get())
         opts.update(options)
         OPTIONS.set(opts)
