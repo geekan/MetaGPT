@@ -323,6 +323,12 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             except openai.error.RateLimitError as e:
                 logger.warning(f"Exception:{e}")
                 continue
+            except (openai.error.AuthenticationError,
+                    openai.error.PermissionError,
+                    openai.error.InvalidAPIType,
+                    openai.error.SignatureVerificationError) as e:
+                logger.warning(f"Exception:{e}")
+                raise e
             except Exception as e:
                 error_str = traceback.format_exc()
                 logger.error(f"Exception:{e}, stack:{error_str}")
