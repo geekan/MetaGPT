@@ -1,11 +1,14 @@
 #!/usr/bin/env python
+"""
+@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
+"""
 
 from __future__ import annotations
 
 import asyncio
 import json
 from concurrent import futures
-from typing import Literal, overload
+from typing import Literal, overload, Optional
 
 try:
     from duckduckgo_search import DDGS
@@ -15,8 +18,6 @@ except ImportError:
         "You can install it by running the command: `pip install -e.[search-ddg]`"
     )
 
-from metagpt.config import CONFIG
-
 
 class DDGAPIWrapper:
     """Wrapper around duckduckgo_search API.
@@ -25,43 +26,44 @@ class DDGAPIWrapper:
     """
 
     def __init__(
-        self,
-        *,
-        loop: asyncio.AbstractEventLoop | None = None,
-        executor: futures.Executor | None = None,
+            self,
+            *,
+            global_proxy: Optional[str] = None,
+            loop: asyncio.AbstractEventLoop | None = None,
+            executor: futures.Executor | None = None,
     ):
         kwargs = {}
-        if CONFIG.global_proxy:
-            kwargs["proxies"] = CONFIG.global_proxy
+        if global_proxy:
+            kwargs["proxies"] = global_proxy
         self.loop = loop
         self.executor = executor
         self.ddgs = DDGS(**kwargs)
 
     @overload
     def run(
-        self,
-        query: str,
-        max_results: int = 8,
-        as_string: Literal[True] = True,
-        focus: list[str] | None = None,
+            self,
+            query: str,
+            max_results: int = 8,
+            as_string: Literal[True] = True,
+            focus: list[str] | None = None,
     ) -> str:
         ...
 
     @overload
     def run(
-        self,
-        query: str,
-        max_results: int = 8,
-        as_string: Literal[False] = False,
-        focus: list[str] | None = None,
+            self,
+            query: str,
+            max_results: int = 8,
+            as_string: Literal[False] = False,
+            focus: list[str] | None = None,
     ) -> list[dict[str, str]]:
         ...
 
     async def run(
-        self,
-        query: str,
-        max_results: int = 8,
-        as_string: bool = True,
+            self,
+            query: str,
+            max_results: int = 8,
+            as_string: bool = True,
     ) -> str | list[dict]:
         """Return the results of a Google search using the official Google API
 

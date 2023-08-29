@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# @Desc   : the implement of Long-term memory
+"""
+@Desc   : the implement of Long-term memory
+@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
+"""
 
 from metagpt.logs import logger
 from metagpt.memory import Memory
@@ -34,13 +37,13 @@ class LongTermMemory(Memory):
         self.add_batch(messages)
         self.msg_from_recover = False
 
-    def add(self, message: Message):
+    def add(self, message: Message, **kwargs):
         super(LongTermMemory, self).add(message)
         for action in self.rc.watch:
             if message.cause_by == action and not self.msg_from_recover:
                 # currently, only add role's watching messages to its memory_storage
                 # and ignore adding messages from recover repeatedly
-                self.memory_storage.add(message)
+                self.memory_storage.add(message, **kwargs)
 
     def remember(self, observed: list[Message], k=0) -> list[Message]:
         """

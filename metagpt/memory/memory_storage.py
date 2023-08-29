@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# @Desc   : the implement of memory storage
+"""
+@Desc   : the implement of memory storage
+@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
+"""
 
 from typing import List
 from pathlib import Path
@@ -61,13 +64,13 @@ class MemoryStorage(FaissStore):
         super(MemoryStorage, self).persist()
         logger.debug(f'Agent {self.role_id} persist memory into local')
 
-    def add(self, message: Message) -> bool:
+    def add(self, message: Message, **kwargs) -> bool:
         """ add message into memory storage"""
         docs = [message.content]
         metadatas = [{"message_ser": serialize_message(message)}]
         if not self.store:
             # init Faiss
-            self.store = self._write(docs, metadatas)
+            self.store = self._write(docs, metadatas, **kwargs)
             self._initialized = True
         else:
             self.store.add_texts(texts=docs, metadatas=metadatas)

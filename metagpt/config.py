@@ -1,16 +1,21 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-提供配置，单例
+Provide configuration, singleton.
+@Modified BY: mashenquan, 2023/8/28. Replace the global variable `CONFIG` with `ContextVar`.
 """
+import json
 import os
+from copy import deepcopy
+from typing import Any
 
 import openai
 import yaml
 
-from metagpt.const import PROJECT_ROOT
+from metagpt.const import PROJECT_ROOT, OPTIONS
 from metagpt.logs import logger
 from metagpt.tools import SearchEngineType, WebBrowserEngineType
+from metagpt.utils.cost_manager import CostManager
 from metagpt.utils.singleton import Singleton
 
 
@@ -28,7 +33,7 @@ class NotConfiguredException(Exception):
 
 class Config(metaclass=Singleton):
     """
-    常规使用方法：
+    Usual Usage:
     config = Config("config.yaml")
     secret_key = config.get_key("MY_SECRET_KEY")
     print("Secret key:", secret_key)
@@ -39,16 +44,20 @@ class Config(metaclass=Singleton):
     default_yaml_file = PROJECT_ROOT / "config/config.yaml"
 
     def __init__(self, yaml_file=default_yaml_file):
-        self._configs = {}
-        self._init_with_config_files_and_env(self._configs, yaml_file)
+        self._init_with_config_files_and_env(yaml_file)
+        self.cost_manager = CostManager(**json.loads(self.COST_MANAGER)) if self.COST_MANAGER else CostManager()
+
         logger.info("Config loading done.")
+        self._update()
+
+    def _update(self):
         self.global_proxy = self._get("GLOBAL_PROXY")
         self.openai_api_key = self._get("OPENAI_API_KEY")
         self.anthropic_api_key = self._get("Anthropic_API_KEY")
         if (not self.openai_api_key or "YOUR_API_KEY" == self.openai_api_key) and (
-            not self.anthropic_api_key or "YOUR_API_KEY" == self.anthropic_api_key
+                not self.anthropic_api_key or "YOUR_API_KEY" == self.anthropic_api_key
         ):
-            raise NotConfiguredException("Set OPENAI_API_KEY or Anthropic_API_KEY first")
+            logger.warning("Set OPENAI_API_KEY or Anthropic_API_KEY first")
         self.openai_api_base = self._get("OPENAI_API_BASE")
         if not self.openai_api_base or "YOUR_API_BASE" == self.openai_api_base:
             openai_proxy = self._get("OPENAI_PROXY") or self.global_proxy
@@ -76,8 +85,7 @@ class Config(metaclass=Singleton):
         self.long_term_memory = self._get("LONG_TERM_MEMORY", False)
         if self.long_term_memory:
             logger.warning("LONG_TERM_MEMORY is True")
-        self.max_budget = self._get("MAX_BUDGET", 10.0)
-        self.total_cost = 0.0
+        self.cost_manager.max_budget = self._get("MAX_BUDGET", 10.0)
 
         self.puppeteer_config = self._get("PUPPETEER_CONFIG", "")
         self.mmdc = self._get("MMDC", "mmdc")
@@ -85,9 +93,9 @@ class Config(metaclass=Singleton):
         self.model_for_researcher_summary = self._get("MODEL_FOR_RESEARCHER_SUMMARY")
         self.model_for_researcher_report = self._get("MODEL_FOR_RESEARCHER_REPORT")
 
-    def _init_with_config_files_and_env(self, configs: dict, yaml_file):
+    def _init_with_config_files_and_env(self, yaml_file):
         """从config/key.yaml / config/config.yaml / env三处按优先级递减加载"""
-        configs.update(os.environ)
+        configs = dict(os.environ)
 
         for _yaml_file in [yaml_file, self.key_yaml_file]:
             if not _yaml_file.exists():
@@ -98,18 +106,40 @@ class Config(metaclass=Singleton):
                 yaml_data = yaml.safe_load(file)
                 if not yaml_data:
                     continue
-                os.environ.update({k: v for k, v in yaml_data.items() if isinstance(v, str)})
                 configs.update(yaml_data)
+        OPTIONS.set(configs)
 
-    def _get(self, *args, **kwargs):
-        return self._configs.get(*args, **kwargs)
+    @staticmethod
+    def _get(*args, **kwargs):
+        m = OPTIONS.get()
+        return m.get(*args, **kwargs)
 
     def get(self, key, *args, **kwargs):
-        """从config/key.yaml / config/config.yaml / env三处找值，找不到报错"""
+        """Retrieve values from config/key.yaml, config/config.yaml, and environment variables.
+        Throw an error if not found."""
         value = self._get(key, *args, **kwargs)
         if value is None:
             raise ValueError(f"Key '{key}' not found in environment variables or in the YAML file")
         return value
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        OPTIONS.get()[name] = value
+
+    def __getattr__(self, name: str) -> Any:
+        m = OPTIONS.get()
+        return m.get(name)
+
+    def set_context(self, options: dict):
+        """Update current config"""
+        opts = deepcopy(OPTIONS.get())
+        opts.update(options)
+        OPTIONS.set(opts)
+        self._update()
+
+    @property
+    def options(self):
+        """Return all key-values"""
+        return OPTIONS.get()
 
 
 CONFIG = Config()

@@ -3,8 +3,10 @@
 """
 @Time    : 2023/5/1 11:59
 @Author  : alexanderwu
-@File    : const.py
+@File    : const.py'
+@Modified By: mashenquan, 2023/8/28. Add 'OPTIONS', 'DEFAULT_LANGUAGE', 'DEFAULT_MAX_TOKENS'...
 """
+import contextvars
 from pathlib import Path
 
 
@@ -35,3 +37,10 @@ TMP = PROJECT_ROOT / 'tmp'
 RESEARCH_PATH = DATA_PATH / "research"
 
 MEM_TTL = 24 * 30 * 3600
+
+OPTIONS = contextvars.ContextVar("OPTIONS")
+DEFAULT_LANGUAGE = "English"
+DEFAULT_MAX_TOKENS = 1500
+COMMAND_TOKENS = 500
+BRAIN_MEMORY = "BRAIN_MEMORY"
+SKILL_PATH = "SKILL_PATH"

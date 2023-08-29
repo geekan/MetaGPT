@@ -1,0 +1,47 @@
+entities:
+  Assistant:
+     skills:
+     - name: text_to_speech
+       description: Text-to-speech
+       id: text_to_speech.text_to_speech
+       x-prerequisite:
+         - name: AZURE_TTS_SUBSCRIPTION_KEY
+           description: "For more details, check out: [Azure Text-to_Speech](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts)"
+         - name: AZURE_TTS_REGION
+           description: "For more details, check out: [Azure Text-to_Speech](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts)"
+       arguments:
+         text: 'The text used for voice conversion. Required.'
+         lang: 'The value can contain a language code such as en (English), or a locale such as en-US (English - United States). The optional parameter are "English", "Chinese". Default value: "Chinese".'
+         voice: 'Default value: "zh-CN-XiaomoNeural".'
+         style: 'Speaking style to express different emotions like cheerfulness, empathy, and calm. The optional parameter values are "affectionate", "angry", "calm", "cheerful", "depressed", "disgruntled", "embarrassed", "envious", "fearful", "gentle", "sad", "serious". Default value: "affectionate".'
+         role: 'With roles, the same voice can act as a different age and gender. The optional parameter values are "Girl", "Boy", "OlderAdultFemale", "OlderAdultMale", "SeniorFemale", "SeniorMale", "YoungAdultFemale", "YoungAdultMale". Default value: "Girl".'
+       examples:
+         - ask: 'A girl says "hello world"'
+           answer: 'text_to_speech(text="hello world", role="Girl")'
+         - ask: 'A boy affectionate says "hello world"'
+           answer: 'text_to_speech(text="hello world", role="Boy", style="affectionate")'
+         - ask: 'A boy says "你好"'
+           answer: 'text_to_speech(text="hello world", role="Boy", lang="Chinese")'
+       returns:
+         type: string
+         format: base64
+
+     - name: text_to_image
+       description: Create a drawing based on the text.
+       id: text_to_image.text_to_image
+       x-prerequisite:
+       - name: OPENAI_API_KEY
+         description: "OpenAI API key, For more details, checkout: `https://platform.openai.com/account/api-keys`"
+       - name: METAGPT_TEXT_TO_IMAGE_MODEL_URL
+         description: "Model url."
+       arguments:
+         text: 'The text used for image conversion. Required.'
+         size_type: 'Default value: "512x512".'
+       examples:
+         - ask: 'Draw a girl'
+           answer: 'text_to_image(text="Draw a girl", size_type="512x512")'
+         - ask: 'Draw an apple'
+           answer: 'text_to_image(text="Draw an apple", size_type="512x512")'
+       returns:
+         type: string
+         format: base64

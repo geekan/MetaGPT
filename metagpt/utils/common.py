@@ -4,13 +4,17 @@
 @Time    : 2023/4/29 16:07
 @Author  : alexanderwu
 @File    : common.py
+@Modified By: mashenquan, 2023-8-17, add `initalize_enviroment()` to load `config/config.yaml` to `os.environ`
 """
 import ast
 import contextlib
 import inspect
 import os
 import re
+from pathlib import Path
 from typing import List, Tuple
+
+import yaml
 
 from metagpt.logs import logger
 
@@ -254,3 +258,4 @@ def parse_recipient(text):
     pattern = r"## Send To:\s*([A-Za-z]+)\s*?"  # hard code for now
     recipient = re.search(pattern, text)
     return recipient.group(1) if recipient else ""
+

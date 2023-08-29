@@ -4,18 +4,19 @@
 @Time    : 2023/7/11 10:03
 @Author  : chengmaoyu
 @File    : action_output
+@Modified By: mashenquan, 2023/8/20. Allow 'instruct_content' to be blank.
 """
 
-from typing import Dict, Type
+from typing import Dict, Type, Optional
 
 from pydantic import BaseModel, create_model, root_validator, validator
 
 
 class ActionOutput:
     content: str
-    instruct_content: BaseModel
+    instruct_content: Optional[BaseModel] = None
 
-    def __init__(self, content: str, instruct_content: BaseModel):
+    def __init__(self, content: str, instruct_content: BaseModel=None):
         self.content = content
         self.instruct_content = instruct_content
 

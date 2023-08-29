@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+"""
+@Modified By: mashenquan, 2023/8/22. A definition has been provided for the return value of _think: returning false indicates that further reasoning cannot continue.
+
+"""
 
 import asyncio
 
@@ -35,15 +39,16 @@ class Researcher(Role):
         if language not in ("en-us", "zh-cn"):
             logger.warning(f"The language `{language}` has not been tested, it may not work.")
 
-    async def _think(self) -> None:
+    async def _think(self) -> bool:
         if self._rc.todo is None:
             self._set_state(0)
-            return
+            return True
 
         if self._rc.state + 1 < len(self._states):
             self._set_state(self._rc.state + 1)
         else:
             self._rc.todo = None
+            return False
 
     async def _act(self) -> Message:
         logger.info(f"{self._setting}: ready to {self._rc.todo}")

@@ -4,16 +4,19 @@
 @Time    : 2023/5/11 14:45
 @Author  : alexanderwu
 @File    : test_llm.py
+@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
 """
 
 import pytest
 
-from metagpt.llm import LLM
+from metagpt.config import Config
+from metagpt.provider.openai_api import OpenAIGPTAPI as LLM, CostManager
 
 
 @pytest.fixture()
 def llm():
-    return LLM()
+    options = Config().runtime_options
+    return LLM(options=options, cost_manager=CostManager(**options))
 
 
 @pytest.mark.asyncio

@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# @Desc   : unittest of `metagpt/memory/longterm_memory.py`
-
-from metagpt.config import CONFIG
+"""
+@Desc   : unittest of `metagpt/memory/longterm_memory.py`
+@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
+"""
+from metagpt.config import Config
 from metagpt.schema import Message
 from metagpt.actions import BossRequirement
 from metagpt.roles.role import RoleContext
@@ -10,12 +12,13 @@ from metagpt.memory import LongTermMemory
 
 
 def test_ltm_search():
-    assert hasattr(CONFIG, "long_term_memory") is True
-    openai_api_key = CONFIG.openai_api_key
+    conf = Config()
+    assert hasattr(conf, "long_term_memory") is True
+    openai_api_key = conf.openai_api_key
     assert len(openai_api_key) > 20
 
     role_id = 'UTUserLtm(Product Manager)'
-    rc = RoleContext(watch=[BossRequirement])
+    rc = RoleContext(options=conf.runtime_options, watch=[BossRequirement])
     ltm = LongTermMemory()
     ltm.recover_memory(role_id, rc)
 
@@ -23,19 +26,19 @@ def test_ltm_search():
     message = Message(role='BOSS', content=idea, cause_by=BossRequirement)
     news = ltm.remember([message])
     assert len(news) == 1
-    ltm.add(message)
+    ltm.add(message, **conf.runtime_options)
 
     sim_idea = 'Write a game of cli snake'
     sim_message = Message(role='BOSS', content=sim_idea, cause_by=BossRequirement)
     news = ltm.remember([sim_message])
     assert len(news) == 0
-    ltm.add(sim_message)
+    ltm.add(sim_message, **conf.runtime_options)
 
     new_idea = 'Write a 2048 web game'
     new_message = Message(role='BOSS', content=new_idea, cause_by=BossRequirement)
     news = ltm.remember([new_message])
     assert len(news) == 1
-    ltm.add(new_message)
+    ltm.add(new_message, **conf.runtime_options)
 
     # restore from local index
     ltm_new = LongTermMemory()

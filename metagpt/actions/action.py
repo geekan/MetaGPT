@@ -4,6 +4,7 @@
 @Time    : 2023/5/11 14:43
 @Author  : alexanderwu
 @File    : action.py
+@Modified By: mashenquan, 2023/8/20. Add function return annotations.
 """
 from abc import ABC
 from typing import Optional
@@ -14,6 +15,7 @@ from metagpt.actions.action_output import ActionOutput
 from metagpt.llm import LLM
 from metagpt.utils.common import OutputParser
 from metagpt.logs import logger
+
 
 class Action(ABC):
     def __init__(self, name: str = '', context=None, llm: LLM = None):
@@ -62,6 +64,6 @@ class Action(ABC):
         instruct_content = output_class(**parsed_data)
         return ActionOutput(content, instruct_content)
 
-    async def run(self, *args, **kwargs):
+    async def run(self, *args, **kwargs) -> str | ActionOutput | None:
         """Run action"""
         raise NotImplementedError("The run method should be implemented in a subclass.")

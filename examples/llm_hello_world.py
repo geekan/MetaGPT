@@ -4,9 +4,12 @@
 @Time    : 2023/5/6 14:13
 @Author  : alexanderwu
 @File    : llm_hello_world.py
+@Modified By: mashenquan, 2023-8-9, fix-bug: cannot find metagpt module.
 """
 import asyncio
-
+from pathlib import Path
+import sys
+sys.path.append(str(Path(__file__).resolve().parent.parent))
 from metagpt.llm import LLM, Claude
 from metagpt.logs import logger
 

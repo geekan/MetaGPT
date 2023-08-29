@@ -4,11 +4,12 @@
 @Time    : 2023/5/6 20:15
 @Author  : alexanderwu
 @File    : search_engine.py
+@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
 """
 from __future__ import annotations
 
 import importlib
-from typing import Callable, Coroutine, Literal, overload
+from typing import Callable, Coroutine, Literal, overload, Dict
 
 from metagpt.config import CONFIG
 from metagpt.tools import SearchEngineType
@@ -25,24 +26,25 @@ class SearchEngine:
         run_func: The function to run the search.
         engine: The search engine type.
     """
+
     def __init__(
-        self,
-        engine: SearchEngineType | None = None,
-        run_func: Callable[[str, int, bool], Coroutine[None, None, str | list[str]]] = None,
+            self,
+            engine: SearchEngineType | None = None,
+            run_func: Callable[[str, int, bool], Coroutine[None, None, str | list[str]]] = None
     ):
         engine = engine or CONFIG.search_engine
         if engine == SearchEngineType.SERPAPI_GOOGLE:
             module = "metagpt.tools.search_engine_serpapi"
-            run_func = importlib.import_module(module).SerpAPIWrapper().run            
+            run_func = importlib.import_module(module).SerpAPIWrapper(**CONFIG.options).run
         elif engine == SearchEngineType.SERPER_GOOGLE:
             module = "metagpt.tools.search_engine_serper"
-            run_func = importlib.import_module(module).SerperWrapper().run
+            run_func = importlib.import_module(module).SerperWrapper(**CONFIG.options).run
         elif engine == SearchEngineType.DIRECT_GOOGLE:
             module = "metagpt.tools.search_engine_googleapi"
-            run_func = importlib.import_module(module).GoogleAPIWrapper().run
+            run_func = importlib.import_module(module).GoogleAPIWrapper(**CONFIG.options).run
         elif engine == SearchEngineType.DUCK_DUCK_GO:
             module = "metagpt.tools.search_engine_ddg"
-            run_func = importlib.import_module(module).DDGAPIWrapper().run
+            run_func = importlib.import_module(module).DDGAPIWrapper(**CONFIG.options).run
         elif engine == SearchEngineType.CUSTOM_ENGINE:
             pass  # run_func = run_func
         else:
@@ -52,19 +54,19 @@ class SearchEngine:
 
     @overload
     def run(
-        self,
-        query: str,
-        max_results: int = 8,
-        as_string: Literal[True] = True,
+            self,
+            query: str,
+            max_results: int = 8,
+            as_string: Literal[True] = True,
     ) -> str:
         ...
 
     @overload
     def run(
-        self,
-        query: str,
-        max_results: int = 8,
-        as_string: Literal[False] = False,
+            self,
+            query: str,
+            max_results: int = 8,
+            as_string: Literal[False] = False,
     ) -> list[dict[str, str]]:
         ...
 

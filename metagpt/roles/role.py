@@ -4,20 +4,23 @@
 @Time    : 2023/5/11 14:42
 @Author  : alexanderwu
 @File    : role.py
+@Modified By: mashenquan, 2023-8-7, Support template-style variables, such as '{teaching_language} Teacher'.
+@Modified By: mashenquan, 2023/8/22. A definition has been provided for the return value of _think: returning false indicates that further reasoning cannot continue.
 """
 from __future__ import annotations
 
 from typing import Iterable, Type
 
+
 from pydantic import BaseModel, Field
 
-# from metagpt.environment import Environment
 from metagpt.config import CONFIG
-from metagpt.actions import Action, ActionOutput
+from metagpt.const import OPTIONS
 from metagpt.llm import LLM
+from metagpt.actions import Action, ActionOutput
 from metagpt.logs import logger
 from metagpt.memory import Memory, LongTermMemory
-from metagpt.schema import Message
+from metagpt.schema import Message, MessageTag
 
 PREFIX_TEMPLATE = """You are a {profile}, named {name}, your goal is {goal}, and the constraint is {constraints}. """
 
@@ -48,7 +51,7 @@ ROLE_TEMPLATE = """Your response should be based on the previous conversation hi
 
 
 class RoleSetting(BaseModel):
-    """角色设定"""
+    """Role properties"""
     name: str
     profile: str
     goal: str
@@ -63,7 +66,7 @@ class RoleSetting(BaseModel):
 
 
 class RoleContext(BaseModel):
-    """角色运行时上下文"""
+    """Runtime role context"""
     env: 'Environment' = Field(default=None)
     memory: Memory = Field(default_factory=Memory)
     long_term_memory: LongTermMemory = Field(default_factory=LongTermMemory)
@@ -76,24 +79,36 @@ class RoleContext(BaseModel):
         arbitrary_types_allowed = True
 
     def check(self, role_id: str):
-        if hasattr(CONFIG, "long_term_memory") and CONFIG.long_term_memory:
+        if CONFIG.long_term_memory:
             self.long_term_memory.recover_memory(role_id, self)
             self.memory = self.long_term_memory  # use memory to act as long_term_memory for unify operation
 
     @property
     def important_memory(self) -> list[Message]:
-        """获得关注动作对应的信息"""
+        """Retrieve information corresponding to the attention action."""
         return self.memory.get_by_actions(self.watch)
 
     @property
     def history(self) -> list[Message]:
         return self.memory.get()
 
+    @property
+    def prerequisite(self):
+        """Retrieve information with `prerequisite` tag"""
+        return self.memory.get_by_tags([MessageTag.Prerequisite.value])
+
 
 class Role:
-    """角色/代理"""
+    """Role/Proxy"""
 
-    def __init__(self, name="", profile="", goal="", constraints="", desc=""):
+    def __init__(self, name="", profile="", goal="", constraints="", desc="", *args, **kwargs):
+        # Replace template-style variables, such as '{teaching_language} Teacher'.
+        name = Role.format_value(name)
+        profile = Role.format_value(profile)
+        goal = Role.format_value(goal)
+        constraints = Role.format_value(constraints)
+        desc = Role.format_value(desc)
+
         self._llm = LLM()
         self._setting = RoleSetting(name=name, profile=profile, goal=goal, constraints=constraints, desc=desc)
         self._states = []
@@ -109,7 +124,7 @@ class Role:
         self._reset()
         for idx, action in enumerate(actions):
             if not isinstance(action, Action):
-                i = action("")
+                i = action("", llm=self._llm)
             else:
                 i = action
             i.set_prefix(self._get_prefix(), self.profile)
@@ -137,18 +152,43 @@ class Role:
         """获取角色描述（职位）"""
         return self._setting.profile
 
+    @property
+    def name(self):
+        """Return role `name`, read only"""
+        return self._setting.name
+
+    @property
+    def desc(self):
+        """Return role `desc`, read only"""
+        return self._setting.desc
+
+    @property
+    def goal(self):
+        """Return role `goal`, read only"""
+        return self._setting.goal
+
+    @property
+    def constraints(self):
+        """Return role `constraints`, read only"""
+        return self._setting.constraints
+
+    @property
+    def action_count(self):
+        """Return number of action"""
+        return len(self._actions)
+
     def _get_prefix(self):
         """获取角色前缀"""
         if self._setting.desc:
             return self._setting.desc
         return PREFIX_TEMPLATE.format(**self._setting.dict())
 
-    async def _think(self) -> None:
-        """思考要做什么，决定下一步的action"""
+    async def _think(self) -> bool:
+        """Consider what to do and decide on the next course of action. Return false if nothing can be done."""
         if len(self._actions) == 1:
             # 如果只有一个动作，那就只能做这个
             self._set_state(0)
-            return
+            return True
         prompt = self._get_prefix()
         prompt += STATE_TEMPLATE.format(history=self._rc.history, states="\n".join(self._states),
                                         n_states=len(self._states) - 1)
@@ -158,6 +198,7 @@ class Role:
             logger.warning(f'Invalid answer of state, {next_state=}')
             next_state = "0"
         self._set_state(int(next_state))
+        return True
 
     async def _act(self) -> Message:
         # prompt = self.get_prefix()
@@ -165,7 +206,8 @@ class Role:
         #                                history=self.history)
 
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
-        response = await self._rc.todo.run(self._rc.important_memory)
+        requirement = self._rc.important_memory or self._rc.prerequisite
+        response = await self._rc.todo.run(requirement)
         # logger.info(response)
         if isinstance(response, ActionOutput):
             msg = Message(content=response.content, instruct_content=response.instruct_content,
@@ -182,9 +224,9 @@ class Role:
         if not self._rc.env:
             return 0
         env_msgs = self._rc.env.memory.get()
-        
+
         observed = self._rc.env.memory.get_by_actions(self._rc.watch)
-        
+
         self._rc.news = self._rc.memory.remember(observed)  # remember recent exact or similar memories
 
         for i in env_msgs:
@@ -241,3 +283,50 @@ class Role:
         # 将回复发布到环境，等待下一个订阅者处理
         self._publish_message(rsp)
         return rsp
+
+    @staticmethod
+    def format_value(value):
+        """Fill parameters inside `value` with `options`."""
+        if not isinstance(value, str):
+            return value
+        if "{" not in value:
+            return value
+
+        merged_opts = OPTIONS.get() or {}
+        try:
+            return value.format(**merged_opts)
+        except KeyError as e:
+            logger.warning(f"Parameter is missing:{e}")
+
+        for k, v in merged_opts.items():
+            value = value.replace("{" + f"{k}" + "}", str(v))
+        return value
+
+    def add_action(self, act):
+        self._actions.append(act)
+
+    def add_to_do(self, act):
+        self._rc.todo = act
+
+    async def think(self) -> bool:
+        """The exported `think` function"""
+        has_action = await self._think()
+        if not has_action:
+            return False
+        if not self._rc.todo:
+            return False
+        return True
+
+    async def act(self) -> ActionOutput:
+        """The exported `act` function"""
+        msg = await self._act()
+        return ActionOutput(content=msg.content,
+                            instruct_content=msg.instruct_content)
+
+    @property
+    def todo_description(self):
+        if not self._rc or not self._rc.todo:
+            return ""
+        if self._rc.todo.desc:
+            return self._rc.todo.desc
+        return f"{type(self._rc.todo).__name__}"

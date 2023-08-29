@@ -1,6 +1,10 @@
+"""
+@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
+"""
+
 import pytest
 
-from metagpt.config import CONFIG
+from metagpt.config import Config
 from metagpt.tools import web_browser_engine_selenium
 
 
@@ -15,11 +19,12 @@ from metagpt.tools import web_browser_engine_selenium
     ids=["chrome-normal", "firefox-normal", "edge-normal"],
 )
 async def test_scrape_web_page(browser_type, use_proxy, url, urls, proxy, capfd):
+    conf = Config()
+    global_proxy = conf.global_proxy
     try:
-        global_proxy = CONFIG.global_proxy
         if use_proxy:
-            CONFIG.global_proxy = proxy
-        browser = web_browser_engine_selenium.SeleniumWrapper(browser_type)
+            conf.global_proxy = proxy
+        browser = web_browser_engine_selenium.SeleniumWrapper(options=conf.runtime_options, browser_type=browser_type)
         result = await browser.run(url)
         result = result.inner_text
         assert isinstance(result, str)
@@ -33,4 +38,4 @@ async def test_scrape_web_page(browser_type, use_proxy, url, urls, proxy, capfd)
         if use_proxy:
             assert "Proxy:" in capfd.readouterr().out
     finally:
-        CONFIG.global_proxy = global_proxy
+        conf.global_proxy = global_proxy
