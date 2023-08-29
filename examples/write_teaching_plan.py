@@ -5,15 +5,18 @@
 @Author  : mashenquan
 @File    : write_teaching_plan.py
 @Desc: Write teaching plan demo
+    ```
+        export PYTHONPATH=$PYTHONPATH:$PWD
+        python examples/write_teaching_plan.py <lesson filename> --language=Chinese --teaching_language=English
+
+    ```
 """
 
 import asyncio
 from pathlib import Path
-import sys
 
 from metagpt.config import CONFIG
 
-sys.path.append(str(Path(__file__).resolve().parent.parent))
 import aiofiles
 import fire
 from metagpt.logs import logger
