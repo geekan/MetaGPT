@@ -4,7 +4,6 @@ channels==4.0.0
 # chromadb==0.3.22
 # Django==4.1.5
 # docx==0.2.4
-duckduckgo_search==2.9.4
 #faiss==1.5.3
 faiss_cpu==1.7.4
 fire==0.4.0
