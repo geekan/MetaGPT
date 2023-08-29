@@ -95,7 +95,9 @@ class RoleContext(BaseModel):
     @property
     def prerequisite(self):
         """Retrieve information with `prerequisite` tag"""
-        return self.memory.get_by_tags([MessageTag.Prerequisite.value])
+        if self.memory and hasattr(self.memory, 'get_by_tags'):
+            return self.memory.get_by_tags([MessageTag.Prerequisite.value])
+        return ""
 
 
 class Role:
