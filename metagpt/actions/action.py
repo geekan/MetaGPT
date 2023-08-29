@@ -6,6 +6,7 @@
 @File    : action.py
 @Modified By: mashenquan, 2023/8/20. Add function return annotations.
 """
+from __future__ import annotations
 from abc import ABC
 from typing import Optional
 
