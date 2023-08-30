@@ -25,9 +25,9 @@ class MetaGPTLLMAPI(OpenAIGPTAPI):
 
     def __init_openai(self, config):
         openai.api_key = CONFIG.METAGPT_API_KEY
-        if config.openai_api_base:
+        if CONFIG.METAGPT_API_BASE:
             openai.api_base = CONFIG.METAGPT_API_BASE
-        if config.openai_api_type:
+        if CONFIG.METAGPT_API_TYPE:
             openai.api_type = CONFIG.METAGPT_API_TYPE
             openai.api_version = CONFIG.METAGPT_API_VERSION
         self.rpm = int(config.get("RPM", 10))
