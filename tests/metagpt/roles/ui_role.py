@@ -8,7 +8,7 @@ from functools import wraps
 from importlib import import_module
 
 from metagpt.actions import Action, ActionOutput, WritePRD
-from metagpt.const import WORKSPACE_ROOT
+from metagpt.config import CONFIG
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
@@ -214,7 +214,7 @@ class UIDesign(Action):
         logger.info("Finish icon design using StableDiffusion API")
 
     async def _save(self, css_content, html_content):
-        save_dir = WORKSPACE_ROOT / "resources" / "codes"
+        save_dir = CONFIG.workspace / "resources" / "codes"
         if not os.path.exists(save_dir):
             os.makedirs(save_dir, exist_ok=True)
         # Save CSS and HTML content to files

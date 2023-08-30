@@ -11,15 +11,14 @@ from __future__ import annotations
 
 from typing import Iterable, Type
 
-
 from pydantic import BaseModel, Field
 
+from metagpt.actions import Action, ActionOutput
 from metagpt.config import CONFIG
 from metagpt.const import OPTIONS
 from metagpt.llm import LLM
-from metagpt.actions import Action, ActionOutput
 from metagpt.logs import logger
-from metagpt.memory import Memory, LongTermMemory
+from metagpt.memory import LongTermMemory, Memory
 from metagpt.schema import Message, MessageTag
 
 PREFIX_TEMPLATE = """You are a {profile}, named {name}, your goal is {goal}, and the constraint is {constraints}. """
@@ -52,6 +51,7 @@ ROLE_TEMPLATE = """Your response should be based on the previous conversation hi
 
 class RoleSetting(BaseModel):
     """Role properties"""
+
     name: str
     profile: str
     goal: str
@@ -67,7 +67,8 @@ class RoleSetting(BaseModel):
 
 class RoleContext(BaseModel):
     """Runtime role context"""
-    env: 'Environment' = Field(default=None)
+
+    env: "Environment" = Field(default=None)
     memory: Memory = Field(default_factory=Memory)
     long_term_memory: LongTermMemory = Field(default_factory=LongTermMemory)
     state: int = Field(default=0)
@@ -95,7 +96,7 @@ class RoleContext(BaseModel):
     @property
     def prerequisite(self):
         """Retrieve information with `prerequisite` tag"""
-        if self.memory and hasattr(self.memory, 'get_by_tags'):
+        if self.memory and hasattr(self.memory, "get_by_tags"):
             return self.memory.get_by_tags([MessageTag.Prerequisite.value])
         return ""
 
@@ -145,7 +146,7 @@ class Role:
         logger.debug(self._actions)
         self._rc.todo = self._actions[self._rc.state]
 
-    def set_env(self, env: 'Environment'):
+    def set_env(self, env: "Environment"):
         """设置角色工作所处的环境，角色可以向环境说话，也可以通过观察接受环境消息"""
         self._rc.env = env
 
@@ -192,12 +193,13 @@ class Role:
             self._set_state(0)
             return True
         prompt = self._get_prefix()
-        prompt += STATE_TEMPLATE.format(history=self._rc.history, states="\n".join(self._states),
-                                        n_states=len(self._states) - 1)
+        prompt += STATE_TEMPLATE.format(
+            history=self._rc.history, states="\n".join(self._states), n_states=len(self._states) - 1
+        )
         next_state = await self._llm.aask(prompt)
         logger.debug(f"{prompt=}")
         if not next_state.isdigit() or int(next_state) not in range(len(self._states)):
-            logger.warning(f'Invalid answer of state, {next_state=}')
+            logger.warning(f"Invalid answer of state, {next_state=}")
             next_state = "0"
         self._set_state(int(next_state))
         return True
@@ -212,8 +214,12 @@ class Role:
         response = await self._rc.todo.run(requirement)
         # logger.info(response)
         if isinstance(response, ActionOutput):
-            msg = Message(content=response.content, instruct_content=response.instruct_content,
-                          role=self.profile, cause_by=type(self._rc.todo))
+            msg = Message(
+                content=response.content,
+                instruct_content=response.instruct_content,
+                role=self.profile,
+                cause_by=type(self._rc.todo),
+            )
         else:
             msg = Message(content=response, role=self.profile, cause_by=type(self._rc.todo))
         self._rc.memory.add(msg)
@@ -236,7 +242,7 @@ class Role:
 
         news_text = [f"{i.role}: {i.content[:20]}..." for i in self._rc.news]
         if news_text:
-            logger.debug(f'{self._setting} observed: {news_text}')
+            logger.debug(f"{self._setting} observed: {news_text}")
         return len(self._rc.news)
 
     def _publish_message(self, msg):
@@ -310,20 +316,15 @@ class Role:
     def add_to_do(self, act):
         self._rc.todo = act
 
-    async def think(self) -> bool:
+    async def think(self) -> Action:
         """The exported `think` function"""
-        has_action = await self._think()
-        if not has_action:
-            return False
-        if not self._rc.todo:
-            return False
-        return True
+        await self._think()
+        return self._rc.todo
 
     async def act(self) -> ActionOutput:
         """The exported `act` function"""
         msg = await self._act()
-        return ActionOutput(content=msg.content,
-                            instruct_content=msg.instruct_content)
+        return ActionOutput(content=msg.content, instruct_content=msg.instruct_content)
 
     @property
     def todo_description(self):
