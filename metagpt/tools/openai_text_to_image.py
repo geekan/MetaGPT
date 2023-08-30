@@ -6,6 +6,7 @@
 @File    : openai_text_to_image.py
 @Desc    : OpenAI Text-to-Image OAS3 api, which provides text-to-image functionality.
 """
+import asyncio
 import base64
 import os
 import sys
@@ -16,6 +17,8 @@ import aiohttp
 import requests
 from pydantic import BaseModel
 
+from metagpt.config import CONFIG, Config
+
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent))  # fix-bug: No module named 'metagpt'
 from metagpt.logs import logger
 
@@ -25,7 +28,7 @@ class OpenAIText2Image:
         """
         :param openai_api_key: OpenAI API key, For more details, checkout: `https://platform.openai.com/account/api-keys`
         """
-        self.openai_api_key = openai_api_key if openai_api_key else os.environ.get('OPENAI_API_KEY')
+        self.openai_api_key = openai_api_key if openai_api_key else CONFIG.OPENAI_API_KEY
 
     async def text_2_image(self, text, size_type="1024x1024"):
         """Text to image
@@ -90,10 +93,13 @@ async def oas3_openai_text_to_image(text, size_type: str = "1024x1024", openai_a
     if not text:
         return ""
     if not openai_api_key:
-        openai_api_key = os.environ.get("OPENAI_API_KEY")
+        openai_api_key = CONFIG.OPENAI_API_KEY
     return await OpenAIText2Image(openai_api_key).text_2_image(text, size_type=size_type)
 
 
 if __name__ == "__main__":
-    v = oas3_openai_text_to_image("Panda emoji")
+    Config()
+    loop = asyncio.new_event_loop()
+    task = loop.create_task(oas3_openai_text_to_image("Panda emoji"))
+    v = loop.run_until_complete(task)
     print(v)

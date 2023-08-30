@@ -40,5 +40,5 @@ libcst==1.0.1
 qdrant-client==1.4.0
 connexion[swagger-ui]
 aiohttp_jinja2
-azure-cognitiveservices-speech==1.30.0
+azure-cognitiveservices-speech==1.31.0
 aiofile

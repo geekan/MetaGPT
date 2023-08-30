@@ -17,7 +17,7 @@ import requests
 from pydantic import BaseModel
 import sys
 
-from metagpt.config import CONFIG
+from metagpt.config import CONFIG, Config
 
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent))  # fix-bug: No module named 'metagpt'
 from metagpt.logs import logger
@@ -48,7 +48,7 @@ class OpenAIText2Embedding:
         """
         :param openai_api_key: OpenAI API key, For more details, checkout: `https://platform.openai.com/account/api-keys`
         """
-        self.openai_api_key = openai_api_key if openai_api_key else os.environ.get('OPENAI_API_KEY')
+        self.openai_api_key = openai_api_key if openai_api_key else CONFIG.OPENAI_API_KEY
 
     async def text_2_embedding(self, text, model="text-embedding-ada-002"):
         """Text to embedding
@@ -89,7 +89,8 @@ async def oas3_openai_text_to_embedding(text, model="text-embedding-ada-002", op
 
 
 if __name__ == "__main__":
+    Config()
     loop = asyncio.new_event_loop()
-    v = loop.create_task(oas3_openai_text_to_embedding("Panda emoji"))
-    loop.run_until_complete(v)
+    task = loop.create_task(oas3_openai_text_to_embedding("Panda emoji"))
+    v = loop.run_until_complete(task)
     print(v)
