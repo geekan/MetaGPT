@@ -8,11 +8,11 @@ from __future__ import annotations
 import asyncio
 import sys
 from pathlib import Path
-from typing import Literal, Dict
+from typing import Literal
 
 from playwright.async_api import async_playwright
 
-from metagpt.config import Config
+from metagpt.config import CONFIG
 from metagpt.logs import logger
 from metagpt.utils.parse_html import WebPage
 
@@ -28,20 +28,18 @@ class PlaywrightWrapper:
 
     def __init__(
         self,
-        options: Dict,
         browser_type: Literal["chromium", "firefox", "webkit"] | None = None,
         launch_kwargs: dict | None = None,
         **kwargs,
     ) -> None:
-        self.options = options
         if browser_type is None:
-            browser_type = options.get("playwright_browser_type")
+            browser_type = CONFIG.playwright_browser_type
         self.browser_type = browser_type
         launch_kwargs = launch_kwargs or {}
-        if options.get("global_proxy") and "proxy" not in launch_kwargs:
+        if CONFIG.global_proxy and "proxy" not in launch_kwargs:
             args = launch_kwargs.get("args", [])
             if not any(str.startswith(i, "--proxy-server=") for i in args):
-                launch_kwargs["proxy"] = {"server": options.get("global_proxy")}
+                launch_kwargs["proxy"] = {"server": CONFIG.global_proxy}
         self.launch_kwargs = launch_kwargs
         context_kwargs = {}
         if "ignore_https_errors" in kwargs:
@@ -81,8 +79,8 @@ class PlaywrightWrapper:
         executable_path = Path(browser_type.executable_path)
         if not executable_path.exists() and "executable_path" not in self.launch_kwargs:
             kwargs = {}
-            if self.options.get("global_proxy"):
-                kwargs["env"] = {"ALL_PROXY": self.options.get("global_proxy")}
+            if CONFIG.global_proxy:
+                kwargs["env"] = {"ALL_PROXY": CONFIG.global_proxy}
             await _install_browsers(self.browser_type, **kwargs)
 
             if self._has_run_precheck:
@@ -150,8 +148,6 @@ if __name__ == "__main__":
     import fire
 
     async def main(url: str, *urls: str, browser_type: str = "chromium", **kwargs):
-        return await PlaywrightWrapper(options=Config().runtime_options,
-                                       browser_type=browser_type,
-                                       **kwargs).run(url, *urls)
+        return await PlaywrightWrapper(browser_type=browser_type, **kwargs).run(url, *urls)
 
     fire.Fire(main)

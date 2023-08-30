@@ -109,7 +109,8 @@ class WriteTasks(Action):
 
     async def _save(self, rsp):
         file_path = CONFIG.workspace / "docs/api_spec_and_tasks.md"
-        file_path.write_text(rsp.content)
+        async with aiofiles.open(file_path, "w") as f:
+            await f.write(rsp.content)
 
         # Write requirements.txt
         requirements_path = CONFIG.workspace / "requirements.txt"
