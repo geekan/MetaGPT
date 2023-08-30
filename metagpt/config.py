@@ -4,15 +4,17 @@
 Provide configuration, singleton.
 @Modified BY: mashenquan, 2023/8/28. Replace the global variable `CONFIG` with `ContextVar`.
 """
+import datetime
 import json
 import os
 from copy import deepcopy
 from typing import Any
+from uuid import uuid4
 
 import openai
 import yaml
 
-from metagpt.const import PROJECT_ROOT, OPTIONS
+from metagpt.const import OPTIONS, PROJECT_ROOT, WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.tools import SearchEngineType, WebBrowserEngineType
 from metagpt.utils.cost_manager import CostManager
@@ -55,7 +57,7 @@ class Config(metaclass=Singleton):
         self.openai_api_key = self._get("OPENAI_API_KEY")
         self.anthropic_api_key = self._get("Anthropic_API_KEY")
         if (not self.openai_api_key or "YOUR_API_KEY" == self.openai_api_key) and (
-                not self.anthropic_api_key or "YOUR_API_KEY" == self.anthropic_api_key
+            not self.anthropic_api_key or "YOUR_API_KEY" == self.anthropic_api_key
         ):
             logger.warning("Set OPENAI_API_KEY or Anthropic_API_KEY first")
         self.openai_api_base = self._get("OPENAI_API_BASE")
@@ -92,6 +94,11 @@ class Config(metaclass=Singleton):
         self.calc_usage = self._get("CALC_USAGE", True)
         self.model_for_researcher_summary = self._get("MODEL_FOR_RESEARCHER_SUMMARY")
         self.model_for_researcher_report = self._get("MODEL_FOR_RESEARCHER_REPORT")
+
+        workspace_uid = (
+            self._get("WORKSPACE_UID") or f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}-{uuid4().hex[-8:]}"
+        )
+        self.workspace = WORKSPACE_ROOT / workspace_uid
 
     def _init_with_config_files_and_env(self, yaml_file):
         """从config/key.yaml / config/config.yaml / env三处按优先级递减加载"""

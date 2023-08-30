@@ -9,22 +9,34 @@
 """
 
 
+import re
+
 import aiofiles
 
-from metagpt.actions.write_teaching_plan import WriteTeachingPlanPart, TeachingPlanRequirement
-from metagpt.const import WORKSPACE_ROOT
+from metagpt.actions.write_teaching_plan import (
+    TeachingPlanRequirement,
+    WriteTeachingPlanPart,
+)
+from metagpt.config import CONFIG
+from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
-from metagpt.logs import logger
-import re
 
 
 class Teacher(Role):
     """Support configurable teacher roles,
     with native and teaching languages being replaceable through configurations."""
-    def __init__(self, name='Lily', profile='{teaching_language} Teacher',
-                 goal='writing a {language} teaching plan part by part',
-                 constraints='writing in {language}', desc="", *args, **kwargs):
+
+    def __init__(
+        self,
+        name="Lily",
+        profile="{teaching_language} Teacher",
+        goal="writing a {language} teaching plan part by part",
+        constraints="writing in {language}",
+        desc="",
+        *args,
+        **kwargs,
+    ):
         super().__init__(name=name, profile=profile, goal=goal, constraints=constraints, desc=desc, *args, **kwargs)
         actions = []
         for topic in WriteTeachingPlanPart.TOPICS:
@@ -54,7 +66,7 @@ class Teacher(Role):
                 break
             logger.debug(f"{self._setting}: {self._rc.state=}, will do {self._rc.todo}")
             msg = await self._act()
-            if ret.content != '':
+            if ret.content != "":
                 ret.content += "\n\n\n"
             ret.content += msg.content
         logger.info(ret.content)
@@ -64,14 +76,14 @@ class Teacher(Role):
     async def save(self, content):
         """Save teaching plan"""
         filename = Teacher.new_file_name(self.course_title)
-        pathname = WORKSPACE_ROOT / "teaching_plan"
+        pathname = CONFIG.workspace / "teaching_plan"
         pathname.mkdir(exist_ok=True)
         pathname = pathname / filename
         try:
-            async with aiofiles.open(str(pathname), mode='w', encoding='utf-8') as writer:
+            async with aiofiles.open(str(pathname), mode="w", encoding="utf-8") as writer:
                 await writer.write(content)
         except Exception as e:
-            logger.error(f'Save failed：{e}')
+            logger.error(f"Save failed：{e}")
         logger.info(f"Save to:{pathname}")
 
     @staticmethod
@@ -80,8 +92,8 @@ class Teacher(Role):
         # Define the special characters that need to be replaced.
         illegal_chars = r'[#@$%!*&\\/:*?"<>|\n\t \']'
         # Replace the special characters with underscores.
-        filename = re.sub(illegal_chars, '_', lesson_title) + ext
-        return re.sub(r'_+', '_', filename)
+        filename = re.sub(illegal_chars, "_", lesson_title) + ext
+        return re.sub(r"_+", "_", filename)
 
     @property
     def course_title(self):
@@ -93,9 +105,9 @@ class Teacher(Role):
             if act.rsp is None:
                 return default_title
             title = act.rsp.lstrip("# \n")
-            if '\n' in title:
-                ix = title.index('\n')
-                title = title[0: ix]
+            if "\n" in title:
+                ix = title.index("\n")
+                title = title[0:ix]
             return title
 
         return default_title
