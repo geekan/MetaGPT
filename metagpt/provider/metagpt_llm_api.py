@@ -17,17 +17,17 @@ class MetaGPTLLMAPI(OpenAIGPTAPI):
     """MetaGPT LLM api"""
 
     def __init__(self):
-        self.__init_openai(CONFIG)
+        self.__init_openai()
         self.llm = openai
         self.model = CONFIG.METAGPT_API_MODEL
         self.auto_max_tokens = False
         RateLimiter.__init__(self, rpm=self.rpm)
 
-    def __init_openai(self, config):
+    def __init_openai(self):
         openai.api_key = CONFIG.METAGPT_API_KEY
         if CONFIG.METAGPT_API_BASE:
             openai.api_base = CONFIG.METAGPT_API_BASE
         if CONFIG.METAGPT_API_TYPE:
             openai.api_type = CONFIG.METAGPT_API_TYPE
             openai.api_version = CONFIG.METAGPT_API_VERSION
-        self.rpm = int(config.get("RPM", 10))
+        self.rpm = int(CONFIG.RPM) if CONFIG.RPM else 10
