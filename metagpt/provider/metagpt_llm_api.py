@@ -23,7 +23,7 @@ class MetaGPTLLMAPI(OpenAIGPTAPI):
         self.auto_max_tokens = False
         RateLimiter.__init__(self, rpm=self.rpm)
 
-    def __init_openai(self):
+    def __init_openai(self, *args, **kwargs):
         openai.api_key = CONFIG.METAGPT_API_KEY
         if CONFIG.METAGPT_API_BASE:
             openai.api_base = CONFIG.METAGPT_API_BASE
