@@ -92,6 +92,13 @@ class RoleContext(BaseModel):
     def history(self) -> list[Message]:
         return self.memory.get()
 
+    @property
+    def prerequisite(self):
+        """Retrieve information with `prerequisite` tag"""
+        if self.memory and hasattr(self.memory, 'get_by_tags'):
+            return self.memory.get_by_tags([MessageTag.Prerequisite.value])
+        return ""
+
 
 class Role:
     """Role/Proxy"""
@@ -201,7 +208,7 @@ class Role:
         #                                history=self.history)
 
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
-        requirement = self._rc.important_memory
+        requirement = self._rc.important_memory or self._rc.prerequisite
         response = await self._rc.todo.run(requirement)
         # logger.info(response)
         if isinstance(response, ActionOutput):
