@@ -12,11 +12,12 @@ from uuid import uuid4
 import base64
 import sys
 
+from metagpt.config import CONFIG, Config
+
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent))  # fix-bug: No module named 'metagpt'
 from metagpt.logs import logger
 from aiofile import async_open
 from azure.cognitiveservices.speech import AudioConfig, SpeechConfig, SpeechSynthesizer
-import os
 
 
 class AzureTTS:
@@ -27,8 +28,8 @@ class AzureTTS:
         :param subscription_key: key is used to access your Azure AI service API, see: `https://portal.azure.com/` > `Resource Management` > `Keys and Endpoint`
         :param region: This is the location (or region) of your resource. You may need to use this field when making calls to this API.
         """
-        self.subscription_key = subscription_key if subscription_key else os.environ.get('AZURE_TTS_SUBSCRIPTION_KEY')
-        self.region = region if region else os.environ.get('AZURE_TTS_REGION')
+        self.subscription_key = subscription_key if subscription_key else CONFIG.AZURE_TTS_SUBSCRIPTION_KEY
+        self.region = region if region else CONFIG.AZURE_TTS_REGION
 
     # 参数参考：https://learn.microsoft.com/zh-cn/azure/cognitive-services/speech-service/language-support?tabs=tts#voice-styles-and-roles
     async def synthesize_speech(self, lang, voice, text, output_file):
@@ -87,9 +88,9 @@ async def oas3_azsure_tts(text, lang="", voice="", style="", role="", subscripti
     if not style:
         style = "affectionate"
     if not subscription_key:
-        subscription_key = os.environ.get("AZURE_TTS_SUBSCRIPTION_KEY")
+        subscription_key = CONFIG.AZURE_TTS_SUBSCRIPTION_KEY
     if not region:
-        region = os.environ.get("AZURE_TTS_REGION")
+        region = CONFIG.AZURE_TTS_REGION
 
     xml_value = AzureTTS.role_style_text(role=role, style=style, text=text)
     tts = AzureTTS(subscription_key=subscription_key, region=region)
@@ -108,6 +109,7 @@ async def oas3_azsure_tts(text, lang="", voice="", style="", role="", subscripti
 
 
 if __name__ == "__main__":
+    Config()
     loop = asyncio.new_event_loop()
     v = loop.create_task(oas3_azsure_tts("测试，test"))
     loop.run_until_complete(v)
