@@ -11,6 +11,7 @@ from pathlib import Path
 from uuid import uuid4
 import base64
 import sys
+import aiofiles
 
 from metagpt.config import CONFIG, Config
 
@@ -97,7 +98,7 @@ async def oas3_azsure_tts(text, lang="", voice="", style="", role="", subscripti
     filename = Path(__file__).resolve().parent / (str(uuid4()).replace("-", "") + ".wav")
     try:
         await tts.synthesize_speech(lang=lang, voice=voice, text=xml_value, output_file=str(filename))
-        async with async_open(filename, mode="rb") as reader:
+        async with aiofiles.open(filename, mode="rb") as reader:
             data = await reader.read()
             base64_string = base64.b64encode(data).decode('utf-8')
         filename.unlink()
