@@ -290,7 +290,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             if data_len + idx > total_len:
                 windows.append(text[idx:])
                 break
-            w = text[idx:data_len]
+            w = text[idx : idx + data_len]
             windows.append(w)
             idx += data_len
         for i in range(len(windows)):
