@@ -7,15 +7,21 @@
             Change cost control from global to company level.
 """
 import asyncio
+import random
 import re
 import time
-import random
-
-from typing import List
 import traceback
+from typing import List
+
 import openai
 from openai.error import APIConnectionError
-from tenacity import retry, stop_after_attempt, after_log, wait_fixed, retry_if_exception_type
+from tenacity import (
+    after_log,
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_fixed,
+)
 
 from metagpt.config import CONFIG
 from metagpt.const import DEFAULT_LANGUAGE, DEFAULT_MAX_TOKENS
@@ -40,7 +46,7 @@ class RateLimiter:
         self.rpm = rpm
 
     def split_batches(self, batch):
-        return [batch[i: i + self.rpm] for i in range(0, len(batch), self.rpm)]
+        return [batch[i : i + self.rpm] for i in range(0, len(batch), self.rpm)]
 
     async def wait_if_needed(self, num_requests):
         current_time = time.time()
@@ -56,10 +62,12 @@ class RateLimiter:
 
 def log_and_reraise(retry_state):
     logger.error(f"Retry attempts exhausted. Last exception: {retry_state.outcome.exception()}")
-    logger.warning("""
+    logger.warning(
+        """
 Recommend going to https://deepwisdom.feishu.cn/wiki/MsGnwQBjiif9c3koSJNcYaoSnu4#part-XdatdVlhEojeAfxaaEZcMV3ZniQ
 See FAQ 5.8
-""")
+"""
+    )
     raise retry_state.outcome.exception()
 
 
@@ -85,10 +93,9 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         self.rpm = int(config.get("RPM", 10))
 
     async def _achat_completion_stream(self, messages: list[dict]) -> str:
-        response = await self.async_retry_call(openai.ChatCompletion.acreate,
-                                               **self._cons_kwargs(messages),
-                                               stream=True
-                                               )
+        response = await self.async_retry_call(
+            openai.ChatCompletion.acreate, **self._cons_kwargs(messages), stream=True
+        )
         # create variables to collect the stream of chunks
         collected_chunks = []
         collected_messages = []
@@ -151,7 +158,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
     @retry(
         stop=stop_after_attempt(3),
         wait=wait_fixed(1),
-        after=after_log(logger, logger.level('WARNING').name),
+        after=after_log(logger, logger.level("WARNING").name),
         retry=retry_if_exception_type(APIConnectionError),
         retry_error_callback=log_and_reraise,
     )
@@ -168,8 +175,8 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             try:
                 prompt_tokens = count_message_tokens(messages, self.model)
                 completion_tokens = count_string_tokens(rsp, self.model)
-                usage['prompt_tokens'] = prompt_tokens
-                usage['completion_tokens'] = completion_tokens
+                usage["prompt_tokens"] = prompt_tokens
+                usage["completion_tokens"] = completion_tokens
                 return usage
             except Exception as e:
                 logger.error("usage calculation failed!", e)
@@ -205,8 +212,8 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
     def _update_costs(self, usage: dict):
         if CONFIG.calc_usage:
             try:
-                prompt_tokens = int(usage['prompt_tokens'])
-                completion_tokens = int(usage['completion_tokens'])
+                prompt_tokens = int(usage["prompt_tokens"])
+                completion_tokens = int(usage["completion_tokens"])
                 CONFIG.cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
             except Exception as e:
                 logger.error("updating costs failed!", e)
@@ -260,7 +267,9 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         return result == "TRUE"
 
     async def rewrite(self, sentence: str, context: str):
-        command = f"{context}\n\nConsidering the content above, rewrite and return this sentence brief and clear:\n{sentence}"
+        command = (
+            f"{context}\n\nConsidering the content above, rewrite and return this sentence brief and clear:\n{sentence}"
+        )
         rsp = await self.aask(msg=command, system_msgs=[])
         return rsp
 
@@ -281,6 +290,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
                 break
             w = text[idx:data_len]
             windows.append(w)
+            idx += data_len
         for i in range(len(windows)):
             if i + 1 == len(windows):
                 break
@@ -289,7 +299,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
 
     @staticmethod
     def extract_info(input_string):
-        pattern = r'\[([A-Z]+)\]:\s*(.+)'
+        pattern = r"\[([A-Z]+)\]:\s*(.+)"
         match = re.match(pattern, input_string)
         if match:
             return match.group(1), match.group(2)
@@ -323,10 +333,12 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             except openai.error.RateLimitError as e:
                 logger.warning(f"Exception:{e}")
                 continue
-            except (openai.error.AuthenticationError,
-                    openai.error.PermissionError,
-                    openai.error.InvalidAPIType,
-                    openai.error.SignatureVerificationError) as e:
+            except (
+                openai.error.AuthenticationError,
+                openai.error.PermissionError,
+                openai.error.InvalidAPIType,
+                openai.error.SignatureVerificationError,
+            ) as e:
                 logger.warning(f"Exception:{e}")
                 raise e
             except Exception as e:
@@ -336,3 +348,11 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         raise openai.error.OpenAIError("Exceeds the maximum retries")
 
     MAX_TRY = 5
+
+
+if __name__ == "__main__":
+    txt = """
+as dfas  sad lkf sdkl sakdfsdk sjd jsk  sdl sk dd sd asd fa sdf sad dd
+- .gitlab-ci.yml & base_test.py
+    """
+    OpenAIGPTAPI.split_texts(txt, 30)

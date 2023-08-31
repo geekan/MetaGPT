@@ -22,3 +22,8 @@ class WebBrowserEngineType(Enum):
     PLAYWRIGHT = "playwright"
     SELENIUM = "selenium"
     CUSTOM = "custom"
+
+    @classmethod
+    def _missing_(cls, key):
+        """缺省类型转换"""
+        return cls.CUSTOM
