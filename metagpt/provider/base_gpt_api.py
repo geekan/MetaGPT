@@ -15,7 +15,8 @@ from metagpt.provider.base_chatbot import BaseChatbot
 
 class BaseGPTAPI(BaseChatbot):
     """GPT API abstract class, requiring all inheritors to provide a series of standard capabilities"""
-    system_prompt = 'You are a helpful assistant.'
+
+    system_prompt = "You are a helpful assistant."
 
     def _user_msg(self, msg: str) -> dict[str, str]:
         return {"role": "user", "content": msg}
@@ -46,9 +47,9 @@ class BaseGPTAPI(BaseChatbot):
             rsp = await self.acompletion_text(message, stream=True)
         except Exception as e:
             logger.exception(f"{e}")
+            logger.info(f"ask:{msg}, error:{e}")
             raise e
-        logger.debug(message)
-        # logger.debug(rsp)
+        logger.info(f"ask:{msg}, anwser:{rsp}")
         return rsp
 
     def _extract_assistant_rsp(self, context):
@@ -115,7 +116,7 @@ class BaseGPTAPI(BaseChatbot):
 
     def messages_to_prompt(self, messages: list[dict]):
         """[{"role": "user", "content": msg}] to user: <msg> etc."""
-        return '\n'.join([f"{i['role']}: {i['content']}" for i in messages])
+        return "\n".join([f"{i['role']}: {i['content']}" for i in messages])
 
     def messages_to_dict(self, messages):
         """objects to [{"role": "user", "content": msg}] etc."""
