@@ -156,10 +156,12 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         # iterate through the stream of events
         async for chunk in response:
             collected_chunks.append(chunk)  # save the event response
-            chunk_message = chunk["choices"][0]["delta"]  # extract the message
-            collected_messages.append(chunk_message)  # save the message
-            if "content" in chunk_message:
-                print(chunk_message["content"], end="")
+            choices = chunk["choices"]
+            if len(choices) > 0:
+                chunk_message = chunk["choices"][0].get("delta", {})  # extract the message
+                collected_messages.append(chunk_message)  # save the message
+                if "content" in chunk_message:
+                    print(chunk_message["content"], end="")
         print()
 
         full_reply_content = "".join([m.get("content", "") for m in collected_messages])
@@ -170,6 +172,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
     def _cons_kwargs(self, messages: list[dict]) -> dict:
         if CONFIG.openai_api_type == "azure":
             kwargs = {
+                "engine": CONFIG.openai_api_engine,
                 "deployment_id": CONFIG.deployment_id,
                 "messages": messages,
                 "max_tokens": self.get_max_tokens(messages),
