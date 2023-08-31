@@ -276,6 +276,8 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
     @staticmethod
     def split_texts(text: str, window_size) -> List[str]:
         """Splitting long text into sliding windows text"""
+        if window_size <= 0:
+            window_size = OpenAIGPTAPI.DEFAULT_TOKEN_SIZE
         total_len = len(text)
         if total_len <= window_size:
             return [text]
@@ -348,6 +350,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         raise openai.error.OpenAIError("Exceeds the maximum retries")
 
     MAX_TRY = 5
+    DEFAULT_TOKEN_SIZE = 50
 
 
 if __name__ == "__main__":
