@@ -285,6 +285,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         padding_size = 20 if window_size > 20 else 0
         windows = []
         idx = 0
+        data_len = window_size - padding_size
         while idx < total_len:
             if window_size + idx > total_len:  # 不足一个滑窗
                 windows.append(text[idx:])
@@ -295,7 +296,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             #   idx=2,  |  idx=5   |  idx=8  | ...
             w = text[idx : idx + window_size]
             windows.append(w)
-            idx += window_size - padding_size if idx == 0 else window_size
+            idx += data_len
 
         for i in range(len(windows)):
             if i + 1 == len(windows):
