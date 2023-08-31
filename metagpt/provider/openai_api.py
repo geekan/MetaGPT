@@ -351,7 +351,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         raise openai.error.OpenAIError("Exceeds the maximum retries")
 
     MAX_TRY = 5
-    DEFAULT_TOKEN_SIZE = 50
+    DEFAULT_TOKEN_SIZE = 500
 
 
 if __name__ == "__main__":
