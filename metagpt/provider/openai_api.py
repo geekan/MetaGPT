@@ -290,7 +290,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             if window_size + idx > total_len:  # 不足一个滑窗
                 windows.append(text[idx:])
                 break
-            # 第一个窗口少算自然就可实现滑窗功能, 比如: [1, 2, 3, 4, 5, 6, 7, ....]
+            # 每个窗口少算padding_size自然就可实现滑窗功能, 比如: [1, 2, 3, 4, 5, 6, 7, ....]
             # window_size=3, padding_size=1：
             # [1, 2, 3], [3, 4, 5], [5, 6, 7], ....
             #   idx=2,  |  idx=5   |  idx=8  | ...
@@ -298,10 +298,6 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             windows.append(w)
             idx += data_len
 
-        for i in range(len(windows)):
-            if i + 1 == len(windows):
-                break
-            windows[i] += windows[i + 1][0:padding_size]
         return windows
 
     @staticmethod
