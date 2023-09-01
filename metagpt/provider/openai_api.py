@@ -247,7 +247,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
 
             summaries = []
             for ws in text_windows:
-                response = await self.get_summary(ws)
+                response = await self.get_summary(ws, max_words=max_response_token_count)
                 summaries.append(response)
             if len(summaries) == 1:
                 return summaries[0]
