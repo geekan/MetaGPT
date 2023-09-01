@@ -23,6 +23,7 @@ pydantic==1.10.8
 pytest==7.2.2
 python_docx==0.8.11
 PyYAML==6.0
+requests==2.31.0
 # sentence_transformers==2.2.2
 setuptools==65.6.3
 tenacity==8.2.2

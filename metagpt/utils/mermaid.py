@@ -2,58 +2,43 @@
 # -*- coding: utf-8 -*-
 """
 @Time    : 2023/7/4 10:53
-@Author  : alexanderwu
+@Author  : alexanderwu, imjohndoe
 @File    : mermaid.py
 """
-import subprocess
-from pathlib import Path
 
-from metagpt.config import CONFIG
 from metagpt.const import PROJECT_ROOT
 from metagpt.logs import logger
-from metagpt.utils.common import check_cmd_exists
 
+import requests
+import base64
+import os
 
-def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, height=2048) -> int:
-    """suffix: png/svg/pdf
-
+def mermaid_to_file(mermaid_code, output_file_without_suffix):
+    """suffix: jpeg/svg
     :param mermaid_code: mermaid code
     :param output_file_without_suffix: output filename
-    :param width:
-    :param height:
-    :return: 0 if succed, -1 if failed
+    :return: 0 if succeed, -1 if failed
     """
-    # Write the Mermaid code to a temporary file
-    tmp = Path(f"{output_file_without_suffix}.mmd")
-    tmp.write_text(mermaid_code, encoding="utf-8")
+    encoded_string = base64.b64encode(mermaid_code.encode()).decode()
 
-    if check_cmd_exists("mmdc") != 0:
-        logger.warning("RUN `npm install -g @mermaid-js/mermaid-cli` to install mmdc")
-        return -1
+    dir_name = os.path.dirname(output_file_without_suffix)
+    if dir_name and not os.path.exists(dir_name):
+        os.makedirs(dir_name)
 
-    for suffix in ["pdf", "svg", "png"]:
+    for suffix in ["svg", "png"]:
         output_file = f"{output_file_without_suffix}.{suffix}"
-        # Call the `mmdc` command to convert the Mermaid code to a PNG
-        logger.info(f"Generating {output_file}..")
+        path_type = "svg" if suffix == "svg" else "img"
+        url = f"https://mermaid.ink/{path_type}/{encoded_string}"
+        response = requests.get(url)
 
-        if CONFIG.puppeteer_config:
-            subprocess.run(
-                [
-                    CONFIG.mmdc,
-                    "-p",
-                    CONFIG.puppeteer_config,
-                    "-i",
-                    str(tmp),
-                    "-o",
-                    output_file,
-                    "-w",
-                    str(width),
-                    "-H",
-                    str(height),
-                ]
-            )
+        if response.status_code == 200:
+            with open(output_file, 'wb') as f:
+                f.write(response.content)
+            logger.info(f"File saved to {output_file}")
         else:
-            subprocess.run([CONFIG.mmdc, "-i", str(tmp), "-o", output_file, "-w", str(width), "-H", str(height)])
+            logger.warning(f"Failed to retrieve {suffix}")
+            return -1
+
     return 0
 
 
@@ -110,5 +95,5 @@ MMC2 = """sequenceDiagram
 
 if __name__ == "__main__":
     # logger.info(print_members(print_members))
-    mermaid_to_file(MMC1, PROJECT_ROOT / "tmp/1.png")
-    mermaid_to_file(MMC2, PROJECT_ROOT / "tmp/2.png")
+    mermaid_to_file(MMC1, PROJECT_ROOT / "tmp/1")
+    mermaid_to_file(MMC2, PROJECT_ROOT / "tmp/2")
