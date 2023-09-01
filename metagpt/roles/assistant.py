@@ -95,7 +95,10 @@ class Assistant(Role):
         return await handler(text, **kwargs)
 
     async def talk_handler(self, text, **kwargs) -> bool:
-        action = TalkAction(talk=text, knowledge=self.memory.get_knowledge(), llm=self._llm, **kwargs)
+        history = self.memory.history_text
+        action = TalkAction(
+            talk=text, knowledge=self.memory.get_knowledge(), history_summary=history, llm=self._llm, **kwargs
+        )
         self.add_to_do(action)
         return True
 
