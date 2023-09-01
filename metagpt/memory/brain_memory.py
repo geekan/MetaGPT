@@ -59,7 +59,7 @@ class BrainMemory(pydantic.BaseModel):
             self.history = []
         else:
             self.history = self.history[-1:]
-        self.history.insert(0, Message(content=history_summary))
+        self.history.insert(0, Message(content="RESOLVED: " + history_summary))
 
     @property
     def last_talk(self):
