@@ -242,14 +242,18 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         """Generate text title"""
         max_response_token_count = 50
         max_token_count = max_token_count_per_ask or CONFIG.MAX_TOKENS or DEFAULT_MAX_TOKENS
-        text_windows = self.split_texts(text, window_size=max_token_count - max_response_token_count)
+        while True:
+            text_windows = self.split_texts(text, window_size=max_token_count - max_response_token_count)
 
-        summaries = []
-        for ws in text_windows:
-            response = await self.get_summary(ws)
-            summaries.append(response)
-        if len(summaries) == 1:
-            return summaries[0]
+            summaries = []
+            for ws in text_windows:
+                response = await self.get_summary(ws)
+                summaries.append(response)
+            if len(summaries) == 1:
+                return summaries[0]
+            text = "\n".join(summaries)
+            if len(text) <= max_words * 2 and len(text) <= max_token_count:
+                break
 
         language = CONFIG.language or DEFAULT_LANGUAGE
         command = f"Translate the above summary into a {language} title of less than {max_words} words."
