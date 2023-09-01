@@ -125,7 +125,7 @@ class Assistant(Role):
             last_talk = await self._llm.rewrite(sentence=last_talk, context=history_text)
             return last_talk
 
-        self.memory.move_to_solution()  # Promptly clear memory after the issue is resolved.
+        self.memory.move_to_solution(history_summary)  # Promptly clear memory after the issue is resolved.
         return last_talk
 
     @staticmethod

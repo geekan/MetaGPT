@@ -8,7 +8,7 @@
 """
 
 from enum import Enum
-from typing import List, Dict
+from typing import Dict, List
 
 import pydantic
 
@@ -48,7 +48,7 @@ class BrainMemory(pydantic.BaseModel):
         texts = [Message(**m).content for m in self.history[:-1]]
         return "\n".join(texts)
 
-    def move_to_solution(self):
+    def move_to_solution(self, history_summary):
         if len(self.history) < 2:
             return
         msgs = self.history[:-1]
@@ -58,6 +58,7 @@ class BrainMemory(pydantic.BaseModel):
             self.history = []
         else:
             self.history = self.history[-1:]
+        self.history.insert(0, Message(content=history_summary))
 
     @property
     def last_talk(self):
