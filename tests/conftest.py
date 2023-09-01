@@ -9,13 +9,14 @@
 from unittest.mock import Mock
 
 import pytest
-import pytest_asyncio
 
 from metagpt.config import Config
 from metagpt.logs import logger
 from metagpt.provider.openai_api import OpenAIGPTAPI as GPTAPI
 import asyncio
 import re
+
+from metagpt.utils.s3 import S3
 
 
 class Context:
@@ -74,3 +75,7 @@ def proxy():
 @pytest.fixture(scope="session", autouse=True)
 def init_config():
     Config()
+
+@pytest.fixture(scope="session", autouse=True)
+def s3():
+    return S3()
