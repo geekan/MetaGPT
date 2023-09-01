@@ -49,7 +49,7 @@ class BrainMemory(pydantic.BaseModel):
         return "\n".join(texts)
 
     def move_to_solution(self, history_summary):
-        """放入solution队列，以备后续长程检索。目前还未加此功能"""
+        """放入solution队列，以备后续长程检索。目前还未加此功能，先用history_summary顶替"""
         if len(self.history) < 2:
             return
         msgs = self.history[:-1]
