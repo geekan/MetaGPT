@@ -27,7 +27,14 @@ class TalkAction(Action):
 
     @property
     def prompt(self):
-        prompt = f"Background knowledge:\n{self._knowledge}\n\n" if self._knowledge else ""
+        prompt = ""
+        if CONFIG.agent_description:
+            prompt = (
+                f"You are {CONFIG.agent_description}. Your responses should align with the role-play agreement, "
+                f"maintaining the character's persona and habits. When faced with unrelated questions, playfully "
+                f"decline to answer without revealing your AI nature to preserve the character's image.\n\n"
+            )
+        prompt += f"Background knowledge:\n{self._knowledge}\n\n" if self._knowledge else ""
         prompt += f"{self._history_summary}\n\n"
         if self._history_summary != "":
             prompt += "According to the historical conversation above, "
