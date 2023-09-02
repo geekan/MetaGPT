@@ -32,7 +32,10 @@ class TalkAction(Action):
         if self._history_summary != "":
             prompt += "According to the historical conversation above, "
         language = CONFIG.language or DEFAULT_LANGUAGE
-        prompt += f"Answer in {language}, and the answers must follow the Markdown format.\n {self._talk}"
+        prompt += (
+            f"Answer the following questions in {language}, and the answers must follow the Markdown format.\n "
+            f"{self._talk}"
+        )
         return prompt
 
     async def run(self, *args, **kwargs) -> ActionOutput:
