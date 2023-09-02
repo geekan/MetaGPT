@@ -78,3 +78,9 @@ MODEL_FOR_RESEARCHER_REPORT: gpt-3.5-turbo-16k
 
 ### Meta Models
 #METAGPT_TEXT_TO_IMAGE_MODEL: MODEL_URL
+
+### S3 config
+S3:
+  access_key: "YOUR_S3_ACCESS_KEY"
+  secret_key: "YOUR_S3_SECRET_KEY"
+  endpoint_url: "YOUR_S3_ENDPOINT_URL"
