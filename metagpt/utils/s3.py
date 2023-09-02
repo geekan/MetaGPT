@@ -131,9 +131,11 @@ class S3:
     async def cache(self, data: str, format: str = "") -> str:
         """Save data to remote S3 and return url"""
         object_name = str(uuid.uuid4()).replace("-", "")
-        pathname = WORKSPACE_ROOT / "s3_tmp" / object_name
+        path = WORKSPACE_ROOT / "s3_tmp"
+        path.mkdir(exist_ok=True)
+        pathname = path / object_name
         try:
-            async with aiofiles.open(pathname, mode="w") as file:
+            async with aiofiles.open(str(pathname), mode="w") as file:
                 if format == BASE64_FORMAT:
                     data = base64.b64decode(data)
                 await file.write(data)
@@ -142,7 +144,7 @@ class S3:
             object_pathname = CONFIG.S3.get("path") or "system"
             object_pathname += f"/{object_name}"
             object_pathname = os.path.normpath(object_pathname)
-            await self.upload_file(bucket=bucket, local_path=pathname, object_name=object_pathname)
+            await self.upload_file(bucket=bucket, local_path=str(pathname), object_name=object_pathname)
             return await self.get_object_url(bucket=bucket, object_name=object_pathname)
         except Exception as e:
             logger.exception(f"{e}, stack:{traceback.format_exc()}")
