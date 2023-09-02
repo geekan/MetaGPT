@@ -6,17 +6,18 @@
 @File    : engineer.py
 """
 import asyncio
-import shutil
 from collections import OrderedDict
 from pathlib import Path
 
-from metagpt.const import WORKSPACE_ROOT
+import aiofiles
+
+from metagpt.actions import WriteCode, WriteCodeReview, WriteDesign, WriteTasks
+from metagpt.config import CONFIG
 from metagpt.logs import logger
 from metagpt.roles import Role
-from metagpt.actions import WriteCode, WriteCodeReview, WriteTasks, WriteDesign
 from metagpt.schema import Message
 from metagpt.utils.common import CodeParser
-from metagpt.utils.special_tokens import MSG_SEP, FILENAME_CODE_SEP
+from metagpt.utils.special_tokens import FILENAME_CODE_SEP, MSG_SEP
 
 
 async def gather_ordered_k(coros, k) -> list:
@@ -47,9 +48,15 @@ async def gather_ordered_k(coros, k) -> list:
 
 
 class Engineer(Role):
-    def __init__(self, name="Alex", profile="Engineer", goal="Write elegant, readable, extensible, efficient code",
-                 constraints="The code you write should conform to code standard like PEP8, be modular, easy to read and maintain",
-                 n_borg=1, use_code_review=False):
+    def __init__(
+        self,
+        name="Alex",
+        profile="Engineer",
+        goal="Write elegant, readable, extensible, efficient code",
+        constraints="The code you write should conform to code standard like PEP8, be modular, easy to read and maintain",
+        n_borg=1,
+        use_code_review=False,
+    ):
         super().__init__(name, profile, goal, constraints)
         self._init_actions([WriteCode])
         self.use_code_review = use_code_review
@@ -72,31 +79,24 @@ class Engineer(Role):
     @classmethod
     def parse_workspace(cls, system_design_msg: Message) -> str:
         if system_design_msg.instruct_content:
-            return system_design_msg.instruct_content.dict().get("Python package name").strip().strip("'").strip("\"")
+            return system_design_msg.instruct_content.dict().get("Python package name").strip().strip("'").strip('"')
         return CodeParser.parse_str(block="Python package name", text=system_design_msg.content)
 
     def get_workspace(self) -> Path:
         msg = self._rc.memory.get_by_action(WriteDesign)[-1]
         if not msg:
-            return WORKSPACE_ROOT / 'src'
+            return CONFIG.workspace / "src"
         workspace = self.parse_workspace(msg)
         # Codes are written in workspace/{package_name}/{package_name}
-        return WORKSPACE_ROOT / workspace / workspace
+        return CONFIG.workspace / workspace
 
-    def recreate_workspace(self):
+    async def write_file(self, filename: str, code: str):
         workspace = self.get_workspace()
-        try:
-            shutil.rmtree(workspace)
-        except FileNotFoundError:
-            pass  # 文件夹不存在，但我们不在意
-        workspace.mkdir(parents=True, exist_ok=True)
-
-    def write_file(self, filename: str, code: str):
-        workspace = self.get_workspace()
-        filename = filename.replace('"', '').replace('\n', '')
+        filename = filename.replace('"', "").replace("\n", "")
         file = workspace / filename
         file.parent.mkdir(parents=True, exist_ok=True)
-        file.write_text(code)
+        async with aiofiles.open(file, "w") as f:
+            await f.write(code)
         return file
 
     def recv(self, message: Message) -> None:
@@ -109,8 +109,7 @@ class Engineer(Role):
         todo_coros = []
         for todo in self.todos:
             todo_coro = WriteCode().run(
-                context=self._rc.memory.get_by_actions([WriteTasks, WriteDesign]),
-                filename=todo
+                context=self._rc.memory.get_by_actions([WriteTasks, WriteDesign]), filename=todo
             )
             todo_coros.append(todo_coro)
 
@@ -124,38 +123,40 @@ class Engineer(Role):
             self._rc.memory.add(msg)
             del self.todos[0]
 
-        logger.info(f'Done {self.get_workspace()} generating.')
+        logger.info(f"Done {self.get_workspace()} generating.")
         msg = Message(content="all done.", role=self.profile, cause_by=type(self._rc.todo))
         return msg
 
     async def _act_sp(self) -> Message:
-        code_msg_all = [] # gather all code info, will pass to qa_engineer for tests later
+        code_msg_all = []  # gather all code info, will pass to qa_engineer for tests later
+        instruct_content = {}
         for todo in self.todos:
-            code = await WriteCode().run(
-                context=self._rc.history,
-                filename=todo
-            )
+            code = await WriteCode().run(context=self._rc.history, filename=todo)
             # logger.info(todo)
             # logger.info(code_rsp)
             # code = self.parse_code(code_rsp)
-            file_path = self.write_file(todo, code)
+            file_path = await self.write_file(todo, code)
             msg = Message(content=code, role=self.profile, cause_by=type(self._rc.todo))
             self._rc.memory.add(msg)
+            instruct_content[todo] = code
 
-            code_msg = todo + FILENAME_CODE_SEP + str(file_path)
+            # code_msg = todo + FILENAME_CODE_SEP + str(file_path)
+            code_msg = (todo, file_path)
             code_msg_all.append(code_msg)
 
-        logger.info(f'Done {self.get_workspace()} generating.')
+        logger.info(f"Done {self.get_workspace()} generating.")
         msg = Message(
-            content=MSG_SEP.join(code_msg_all),
+            content=MSG_SEP.join(todo + FILENAME_CODE_SEP + str(file_path) for todo, file_path in code_msg_all),
+            instruct_content=instruct_content,
             role=self.profile,
             cause_by=type(self._rc.todo),
-            send_to="QaEngineer"
+            send_to="QaEngineer",
         )
         return msg
 
     async def _act_sp_precision(self) -> Message:
-        code_msg_all = [] # gather all code info, will pass to qa_engineer for tests later
+        code_msg_all = []  # gather all code info, will pass to qa_engineer for tests later
+        instruct_content = {}
         for todo in self.todos:
             """
             # 从历史信息中挑选必须的信息，以减少prompt长度（人工经验总结）
@@ -170,35 +171,30 @@ class Engineer(Role):
                 context.append(m.content)
             context_str = "\n".join(context)
             # 编写code
-            code = await WriteCode().run(
-                context=context_str,
-                filename=todo
-            )
+            code = await WriteCode().run(context=context_str, filename=todo)
             # code review
             if self.use_code_review:
                 try:
-                    rewrite_code = await WriteCodeReview().run(
-                        context=context_str,
-                        code=code,
-                        filename=todo
-                    )
+                    rewrite_code = await WriteCodeReview().run(context=context_str, code=code, filename=todo)
                     code = rewrite_code
                 except Exception as e:
                     logger.error("code review failed!", e)
                     pass
-            file_path = self.write_file(todo, code)
+            file_path = await self.write_file(todo, code)
             msg = Message(content=code, role=self.profile, cause_by=WriteCode)
             self._rc.memory.add(msg)
+            instruct_content[todo] = code
 
-            code_msg = todo + FILENAME_CODE_SEP + str(file_path)
+            code_msg = (todo, file_path)
             code_msg_all.append(code_msg)
 
-        logger.info(f'Done {self.get_workspace()} generating.')
+        logger.info(f"Done {self.get_workspace()} generating.")
         msg = Message(
-            content=MSG_SEP.join(code_msg_all),
+            content=MSG_SEP.join(todo + FILENAME_CODE_SEP + str(file_path) for todo, file_path in code_msg_all),
+            instruct_content=instruct_content,
             role=self.profile,
             cause_by=type(self._rc.todo),
-            send_to="QaEngineer"
+            send_to="QaEngineer",
         )
         return msg
 

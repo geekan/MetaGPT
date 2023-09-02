@@ -8,11 +8,12 @@
 """
 from typing import List, Tuple
 
-from metagpt.actions.action import Action
-from metagpt.const import WORKSPACE_ROOT
-from metagpt.utils.common import CodeParser
+import aiofiles
 
-PROMPT_TEMPLATE = '''
+from metagpt.actions.action import Action
+from metagpt.config import CONFIG
+
+PROMPT_TEMPLATE = """
 # Context
 {context}
 
@@ -37,7 +38,7 @@ Attention: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD W
 
 ## Anything UNCLEAR: Provide as Plain text. Make clear here. For example, don't forget a main entry. don't forget to init 3rd party libs.
 
-'''
+"""
 
 FORMAT_EXAMPLE = '''
 ---
@@ -103,23 +104,24 @@ OUTPUT_MAPPING = {
 
 
 class WriteTasks(Action):
-
     def __init__(self, name="CreateTasks", context=None, llm=None):
         super().__init__(name, context, llm)
 
-    def _save(self, context, rsp):
-        ws_name = CodeParser.parse_str(block="Python package name", text=context[-1].content)
-        file_path = WORKSPACE_ROOT / ws_name / 'docs/api_spec_and_tasks.md'
-        file_path.write_text(rsp.content)
+    async def _save(self, rsp):
+        file_path = CONFIG.workspace / "docs/api_spec_and_tasks.md"
+        async with aiofiles.open(file_path, "w") as f:
+            await f.write(rsp.content)
 
         # Write requirements.txt
-        requirements_path = WORKSPACE_ROOT / ws_name / 'requirements.txt'
-        requirements_path.write_text(rsp.instruct_content.dict().get("Required Python third-party packages").strip('"\n'))
+        requirements_path = CONFIG.workspace / "requirements.txt"
+
+        async with aiofiles.open(requirements_path, "w") as f:
+            await f.write(rsp.instruct_content.dict().get("Required Python third-party packages").strip('"\n'))
 
     async def run(self, context, **kwargs):
         prompt = PROMPT_TEMPLATE.format(context=context, format_example=FORMAT_EXAMPLE)
         rsp = await self._aask_v1(prompt, "task", OUTPUT_MAPPING)
-        self._save(context, rsp)
+        await self._save(rsp)
         return rsp
 
 

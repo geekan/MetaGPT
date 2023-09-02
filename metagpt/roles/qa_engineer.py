@@ -9,7 +9,7 @@ import os
 from pathlib import Path
 
 from metagpt.actions import DebugError, RunCode, WriteCode, WriteDesign, WriteTest
-from metagpt.const import WORKSPACE_ROOT
+from metagpt.config import CONFIG
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
@@ -43,13 +43,13 @@ class QaEngineer(Role):
     def get_workspace(self, return_proj_dir=True) -> Path:
         msg = self._rc.memory.get_by_action(WriteDesign)[-1]
         if not msg:
-            return WORKSPACE_ROOT / "src"
+            return CONFIG.workspace / "src"
         workspace = self.parse_workspace(msg)
         # project directory: workspace/{package_name}, which contains package source code folder, tests folder, resources folder, etc.
         if return_proj_dir:
-            return WORKSPACE_ROOT / workspace
+            return CONFIG.workspace / workspace
         # development codes directory: workspace/{package_name}/{package_name}
-        return WORKSPACE_ROOT / workspace / workspace
+        return CONFIG.workspace / workspace / workspace
 
     def write_file(self, filename: str, code: str):
         workspace = self.get_workspace() / "tests"

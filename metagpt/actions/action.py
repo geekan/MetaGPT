@@ -7,6 +7,7 @@
 @Modified By: mashenquan, 2023/8/20. Add function return annotations.
 """
 from __future__ import annotations
+
 from abc import ABC
 from typing import Optional
 
@@ -14,12 +15,12 @@ from tenacity import retry, stop_after_attempt, wait_fixed
 
 from metagpt.actions.action_output import ActionOutput
 from metagpt.llm import LLM
-from metagpt.utils.common import OutputParser
 from metagpt.logs import logger
+from metagpt.utils.common import OutputParser
 
 
 class Action(ABC):
-    def __init__(self, name: str = '', context=None, llm: LLM = None):
+    def __init__(self, name: str = "", context=None, llm: LLM = None):
         self.name: str = name
         if llm is None:
             llm = LLM()
@@ -50,9 +51,9 @@ class Action(ABC):
         return await self.llm.aask(prompt, system_msgs)
 
     @retry(stop=stop_after_attempt(2), wait=wait_fixed(1))
-    async def _aask_v1(self, prompt: str, output_class_name: str,
-                       output_data_mapping: dict,
-                       system_msgs: Optional[list[str]] = None) -> ActionOutput:
+    async def _aask_v1(
+        self, prompt: str, output_class_name: str, output_data_mapping: dict, system_msgs: Optional[list[str]] = None
+    ) -> ActionOutput:
         """Append default prefix"""
         if not system_msgs:
             system_msgs = []

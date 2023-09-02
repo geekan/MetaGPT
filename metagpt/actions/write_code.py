@@ -5,13 +5,12 @@
 @Author  : alexanderwu
 @File    : write_code.py
 """
-from metagpt.actions import WriteDesign
+from tenacity import retry, stop_after_attempt, wait_fixed
+
 from metagpt.actions.action import Action
-from metagpt.const import WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.schema import Message
 from metagpt.utils.common import CodeParser
-from tenacity import retry, stop_after_attempt, wait_fixed
 
 PROMPT_TEMPLATE = """
 NOTICE
@@ -49,23 +48,6 @@ class WriteCode(Action):
     def _is_invalid(self, filename):
         return any(i in filename for i in ["mp3", "wav"])
 
-    def _save(self, context, filename, code):
-        # logger.info(filename)
-        # logger.info(code_rsp)
-        if self._is_invalid(filename):
-            return
-
-        design = [i for i in context if i.cause_by == WriteDesign][0]
-
-        ws_name = CodeParser.parse_str(block="Python package name", text=design.content)
-        ws_path = WORKSPACE_ROOT / ws_name
-        if f"{ws_name}/" not in filename and all(i not in filename for i in ["requirements.txt", ".md"]):
-            ws_path = ws_path / ws_name
-        code_path = ws_path / filename
-        code_path.parent.mkdir(parents=True, exist_ok=True)
-        code_path.write_text(code)
-        logger.info(f"Saving Code to {code_path}")
-
     @retry(stop=stop_after_attempt(2), wait=wait_fixed(1))
     async def write_code(self, prompt):
         code_rsp = await self._aask(prompt)
@@ -74,7 +56,7 @@ class WriteCode(Action):
 
     async def run(self, context, filename):
         prompt = PROMPT_TEMPLATE.format(context=context, filename=filename)
-        logger.info(f'Writing {filename}..')
+        logger.info(f"Writing {filename}..")
         code = await self.write_code(prompt)
         # code_rsp = await self._aask_v1(prompt, "code_rsp", OUTPUT_MAPPING)
         # self._save(context, filename, code)

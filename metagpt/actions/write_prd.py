@@ -7,9 +7,14 @@
 """
 from typing import List, Tuple
 
+import aiofiles
+
 from metagpt.actions import Action, ActionOutput
 from metagpt.actions.search_and_summarize import SearchAndSummarize
+from metagpt.config import CONFIG
 from metagpt.logs import logger
+from metagpt.utils.common import CodeParser
+from metagpt.utils.mermaid import mermaid_to_file
 
 PROMPT_TEMPLATE = """
 # Context
@@ -121,7 +126,7 @@ OUTPUT_MAPPING = {
     "Competitive Quadrant Chart": (str, ...),
     "Requirement Analysis": (str, ...),
     "Requirement Pool": (List[Tuple[str, str]], ...),
-    "UI Design draft":(str, ...),
+    "UI Design draft": (str, ...),
     "Anything UNCLEAR": (str, ...),
 }
 
@@ -139,8 +144,31 @@ class WritePRD(Action):
             logger.info(sas.result)
             logger.info(rsp)
 
-        prompt = PROMPT_TEMPLATE.format(requirements=requirements, search_information=info,
-                                        format_example=FORMAT_EXAMPLE)
+        prompt = PROMPT_TEMPLATE.format(
+            requirements=requirements, search_information=info, format_example=FORMAT_EXAMPLE
+        )
         logger.debug(prompt)
         prd = await self._aask_v1(prompt, "prd", OUTPUT_MAPPING)
+
+        await self._save(prd.content)
         return prd
+
+    async def _save_prd(self, docs_path, resources_path, prd):
+        prd_file = docs_path / "prd.md"
+        quadrant_chart = CodeParser.parse_code(block="Competitive Quadrant Chart", text=prd)
+        await mermaid_to_file(
+            mermaid_code=quadrant_chart, output_file_without_suffix=resources_path / "competitive_analysis"
+        )
+        async with aiofiles.open(prd_file, "w") as f:
+            await f.write(prd)
+        logger.info(f"Saving PRD to {prd_file}")
+
+    async def _save(self, prd):
+        workspace = CONFIG.workspace
+        workspace.mkdir(parents=True, exist_ok=True)
+
+        docs_path = workspace / "docs"
+        resources_path = workspace / "resources"
+        docs_path.mkdir(parents=True, exist_ok=True)
+        resources_path.mkdir(parents=True, exist_ok=True)
+        await self._save_prd(docs_path, resources_path, prd)
