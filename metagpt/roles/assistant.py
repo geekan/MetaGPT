@@ -123,7 +123,7 @@ class Assistant(Role):
             return None
         if history_text == "":
             return last_talk
-        history_summary = await self._llm.get_context_title(history_text, max_token_count_per_ask=1000, max_words=500)
+        history_summary = await self._llm.get_summary(history_text, max_words=500)
         if last_talk and await self._llm.is_related(last_talk, history_summary):  # Merge relevant content.
             last_talk = await self._llm.rewrite(sentence=last_talk, context=history_text)
             return last_talk
