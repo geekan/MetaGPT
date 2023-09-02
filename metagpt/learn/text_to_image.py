@@ -6,10 +6,13 @@
 @File    : text_to_image.py
 @Desc    : Text-to-Image skill, which provides text-to-image functionality.
 """
+import openai.error
 
 from metagpt.config import CONFIG
+from metagpt.const import BASE64_FORMAT
 from metagpt.tools.metagpt_text_to_image import oas3_metagpt_text_to_image
 from metagpt.tools.openai_text_to_image import oas3_openai_text_to_image
+from metagpt.utils.s3 import S3
 
 
 async def text_to_image(text, size_type: str = "512x512", openai_api_key="", model_url="", **kwargs):
@@ -23,13 +26,14 @@ async def text_to_image(text, size_type: str = "512x512", openai_api_key="", mod
     """
     image_declaration = "data:image/png;base64,"
     if CONFIG.METAGPT_TEXT_TO_IMAGE_MODEL_URL or model_url:
-        data = await oas3_metagpt_text_to_image(text, size_type, model_url)
-        return image_declaration + data if data else ""
+        base64_data = await oas3_metagpt_text_to_image(text, size_type, model_url)
+    elif CONFIG.OPENAI_API_KEY or openai_api_key:
+        base64_data = await oas3_openai_text_to_image(text, size_type, openai_api_key)
+    else:
+        raise openai.error.InvalidRequestError("缺少必要的参数")
 
-    if CONFIG.OPENAI_API_KEY or openai_api_key:
-        data = await oas3_openai_text_to_image(text, size_type, openai_api_key)
-        return image_declaration + data if data else ""
-
-    raise EnvironmentError
-
-
+    s3 = S3()
+    url = await s3.cache(base64_data, BASE64_FORMAT)
+    if url:
+        return url
+    return image_declaration + base64_data if base64_data else ""
