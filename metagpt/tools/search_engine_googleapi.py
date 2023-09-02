@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
-"""
 from __future__ import annotations
 
 import asyncio
@@ -14,6 +11,7 @@ from urllib.parse import urlparse
 import httplib2
 from pydantic import BaseModel, validator
 
+from metagpt.config import CONFIG
 from metagpt.logs import logger
 
 try:
@@ -29,7 +27,6 @@ except ImportError:
 class GoogleAPIWrapper(BaseModel):
     google_api_key: Optional[str] = None
     google_cse_id: Optional[str] = None
-    global_proxy: Optional[str] = None
     loop: Optional[asyncio.AbstractEventLoop] = None
     executor: Optional[futures.Executor] = None
 
@@ -39,6 +36,7 @@ class GoogleAPIWrapper(BaseModel):
     @validator("google_api_key", always=True)
     @classmethod
     def check_google_api_key(cls, val: str):
+        val = val or CONFIG.google_api_key
         if not val:
             raise ValueError(
                 "To use, make sure you provide the google_api_key when constructing an object. Alternatively, "
@@ -49,7 +47,8 @@ class GoogleAPIWrapper(BaseModel):
 
     @validator("google_cse_id", always=True)
     @classmethod
-    def check_google_cse_id(cls, val):
+    def check_google_cse_id(cls, val: str):
+        val = val or CONFIG.google_cse_id
         if not val:
             raise ValueError(
                 "To use, make sure you provide the google_cse_id when constructing an object. Alternatively, "
@@ -61,8 +60,8 @@ class GoogleAPIWrapper(BaseModel):
     @property
     def google_api_client(self):
         build_kwargs = {"developerKey": self.google_api_key}
-        if self.global_proxy:
-            parse_result = urlparse(self.global_proxy)
+        if CONFIG.global_proxy:
+            parse_result = urlparse(CONFIG.global_proxy)
             proxy_type = parse_result.scheme
             if proxy_type == "https":
                 proxy_type = "http"

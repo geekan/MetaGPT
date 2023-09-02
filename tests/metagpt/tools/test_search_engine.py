@@ -4,13 +4,11 @@
 @Time    : 2023/5/2 17:46
 @Author  : alexanderwu
 @File    : test_search_engine.py
-@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
 """
 from __future__ import annotations
 
 import pytest
 
-from metagpt.config import Config
 from metagpt.logs import logger
 from metagpt.tools import SearchEngineType
 from metagpt.tools.search_engine import SearchEngine
@@ -18,7 +16,9 @@ from metagpt.tools.search_engine import SearchEngine
 
 class MockSearchEnine:
     async def run(self, query: str, max_results: int = 8, as_string: bool = True) -> str | list[dict[str, str]]:
-        rets = [{"url": "https://metagpt.com/mock/{i}", "title": query, "snippet": query * i} for i in range(max_results)]
+        rets = [
+            {"url": "https://metagpt.com/mock/{i}", "title": query, "snippet": query * i} for i in range(max_results)
+        ]
         return "\n".join(rets) if as_string else rets
 
 
@@ -36,13 +36,16 @@ class MockSearchEnine:
         (SearchEngineType.DUCK_DUCK_GO, None, 6, False),
         (SearchEngineType.CUSTOM_ENGINE, MockSearchEnine().run, 8, False),
         (SearchEngineType.CUSTOM_ENGINE, MockSearchEnine().run, 6, False),
-        
     ],
 )
-async def test_search_engine(search_engine_typpe, run_func, max_results, as_string):
-    conf = Config()
-    search_engine = SearchEngine(options=conf.runtime_options, engine=search_engine_typpe, run_func=run_func)
-    rsp = await search_engine.run(query="metagpt", max_results=max_results, as_string=as_string)
+async def test_search_engine(
+    search_engine_typpe,
+    run_func,
+    max_results,
+    as_string,
+):
+    search_engine = SearchEngine(search_engine_typpe, run_func)
+    rsp = await search_engine.run("metagpt", max_results=max_results, as_string=as_string)
     logger.info(rsp)
     if as_string:
         assert isinstance(rsp, str)
