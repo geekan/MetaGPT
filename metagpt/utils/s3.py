@@ -2,13 +2,14 @@ import base64
 import os.path
 import traceback
 import uuid
+from pathlib import Path
 from typing import Optional
 
 import aioboto3
 import aiofiles
 
 from metagpt.config import CONFIG
-from metagpt.const import BASE64_FORMAT, WORKSPACE_ROOT
+from metagpt.const import BASE64_FORMAT
 from metagpt.logs import logger
 
 
@@ -131,8 +132,7 @@ class S3:
     async def cache(self, data: str, format: str = "") -> str:
         """Save data to remote S3 and return url"""
         object_name = str(uuid.uuid4()).replace("-", "")
-        path = WORKSPACE_ROOT / "s3_tmp"
-        path.mkdir(exist_ok=True)
+        path = Path(__file__).parent
         pathname = path / object_name
         try:
             async with aiofiles.open(str(pathname), mode="w") as file:
@@ -145,7 +145,10 @@ class S3:
             object_pathname += f"/{object_name}"
             object_pathname = os.path.normpath(object_pathname)
             await self.upload_file(bucket=bucket, local_path=str(pathname), object_name=object_pathname)
+            pathname.unlink(missing_ok=True)
+
             return await self.get_object_url(bucket=bucket, object_name=object_pathname)
         except Exception as e:
             logger.exception(f"{e}, stack:{traceback.format_exc()}")
+            pathname.unlink(missing_ok=True)
             return None
