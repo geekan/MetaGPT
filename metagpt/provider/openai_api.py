@@ -260,7 +260,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
 
     async def get_context_title(self, text: str, max_words=5) -> str:
         """Generate text title"""
-        summary = await self.get_summary(text, max_words)
+        summary = await self.get_summary(text, max_words=500)
 
         language = CONFIG.language or DEFAULT_LANGUAGE
         command = f"Translate the above summary into a {language} title of less than {max_words} words."
