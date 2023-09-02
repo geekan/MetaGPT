@@ -8,18 +8,12 @@
 """
 import asyncio
 import base64
-import os
-import sys
-from pathlib import Path
-from typing import List
 
 import aiohttp
+import openai
 import requests
-from pydantic import BaseModel
 
 from metagpt.config import CONFIG, Config
-
-sys.path.append(str(Path(__file__).resolve().parent.parent.parent))  # fix-bug: No module named 'metagpt'
 from metagpt.logs import logger
 
 
@@ -37,27 +31,21 @@ class OpenAIText2Image:
         :param size_type: One of ['256x256', '512x512', '1024x1024']
         :return: The image data is returned in Base64 encoding.
         """
-
-        class ImageUrl(BaseModel):
-            url: str
-
-        class ImageResult(BaseModel):
-            data: List[ImageUrl]
-            created: int
-
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.openai_api_key}"
-        }
-        data = {"prompt": text, "n": 1, "size": size_type}
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.post("https://api.openai.com/v1/images/generations", headers=headers, json=data) as response:
-                    result = ImageResult(** await response.json())
-        except requests.exceptions.RequestException as e:
+            result = await openai.Image.acreate(
+                api_key=CONFIG.OPENAI_API_KEY,
+                api_base=CONFIG.OPENAI_API_BASE,
+                api_type=None,
+                api_version=None,
+                organization=None,
+                prompt=text,
+                n=1,
+                size=size_type,
+            )
+        except Exception as e:
             logger.error(f"An error occurred:{e}")
             return ""
-        if len(result.data) > 0:
+        if result and len(result.data) > 0:
             return await OpenAIText2Image.get_image_data(result.data[0].url)
         return ""
 

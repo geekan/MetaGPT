@@ -232,6 +232,6 @@ https://github.com/geekan/MetaGPT/assets/2707039/5e8c1062-8c35-440f-bb20-2b0320f
 
 ## Join us
 📢 Join Our Discord Channel!
-https://discord.gg/4WdszVjv
+https://discord.gg/ZRHeExS6xv
 
 Looking forward to seeing you there! 🎉

@@ -6,14 +6,24 @@
 @File    : text_to_speech.py
 @Desc    : Text-to-Speech skill, which provides text-to-speech functionality
 """
+import openai
 
 from metagpt.config import CONFIG
-
+from metagpt.const import BASE64_FORMAT
 from metagpt.tools.azure_tts import oas3_azsure_tts
+from metagpt.utils.s3 import S3
 
 
-async def text_to_speech(text, lang="zh-CN", voice="zh-CN-XiaomoNeural", style="affectionate", role="Girl",
-                         subscription_key="", region="", **kwargs):
+async def text_to_speech(
+    text,
+    lang="zh-CN",
+    voice="zh-CN-XiaomoNeural",
+    style="affectionate",
+    role="Girl",
+    subscription_key="",
+    region="",
+    **kwargs
+):
     """Text to speech
     For more details, check out:`https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts`
 
@@ -28,9 +38,12 @@ async def text_to_speech(text, lang="zh-CN", voice="zh-CN-XiaomoNeural", style="
 
     """
     audio_declaration = "data:audio/wav;base64,"
-    if (CONFIG.AZURE_TTS_SUBSCRIPTION_KEY and CONFIG.AZURE_TTS_REGION) or \
-            (subscription_key and region):
-        data = await oas3_azsure_tts(text, lang, voice, style, role, subscription_key, region)
-        return audio_declaration + data if data else data
+    if (CONFIG.AZURE_TTS_SUBSCRIPTION_KEY and CONFIG.AZURE_TTS_REGION) or (subscription_key and region):
+        base64_data = await oas3_azsure_tts(text, lang, voice, style, role, subscription_key, region)
+        s3 = S3()
+        url = await s3.cache(base64_data, BASE64_FORMAT)
+        if url:
+            return url
+        return audio_declaration + base64_data if base64_data else base64_data
 
-    raise EnvironmentError
+    raise openai.error.InvalidRequestError("缺少必要的参数")
