@@ -45,3 +45,22 @@ entities:
        returns:
          type: string
          format: base64
+
+     - name: web_search
+       description: Perform Google searches to provide real-time information.
+       id: web_search.web_search
+       x-prerequisite:
+       - name: SEARCH_ENGINE
+         description: "Supported values: serpapi/google/serper/ddg"
+       - name: SERPER_API_KEY
+         description: "SERPER API KEY, For more details, checkout: `https://serper.dev/api-key`"
+       arguments:
+         query: 'The search query. Required.'
+         max_results: 'The number of search results to retrieve. Default value: 6.'
+       examples:
+         - ask: 'Search for information about artificial intelligence'
+           answer: 'web_search(query="Search for information about artificial intelligence", max_results=6)'
+         - ask: 'Find news articles about climate change'
+           answer: 'web_search(query="Find news articles about climate change", max_results=6)'
+       returns:
+         type: string
