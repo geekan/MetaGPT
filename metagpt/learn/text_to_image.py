@@ -33,7 +33,7 @@ async def text_to_image(text, size_type: str = "512x512", openai_api_key="", mod
         raise openai.error.InvalidRequestError("缺少必要的参数")
 
     s3 = S3()
-    url = await s3.cache(base64_data, BASE64_FORMAT)
+    url = await s3.cache(data=base64_data, file_ext=".png", format=BASE64_FORMAT)
     if url:
-        return url
+        return f"[{text}]({url})"
     return image_declaration + base64_data if base64_data else ""

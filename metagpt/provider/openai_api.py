@@ -226,38 +226,46 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             return CONFIG.max_tokens_rsp
         return get_max_completion_tokens(messages, self.model, CONFIG.max_tokens_rsp)
 
-    async def get_summary(self, text: str, max_words=20):
+    async def get_summary(self, text: str, max_words=200):
+        max_token_count = DEFAULT_MAX_TOKENS
+        max_count = 100
+        while max_count > 0:
+            if len(text) < max_token_count:
+                return await self._get_summary(text, max_words=max_words)
+
+            padding_size = 20 if max_token_count > 20 else 0
+            text_windows = self.split_texts(text, window_size=max_token_count - padding_size)
+            summaries = []
+            for ws in text_windows:
+                response = await self._get_summary(ws, max_words=max_words)
+                summaries.append(response)
+            if len(summaries) == 1:
+                return summaries[0]
+
+            # Merged and retry
+            text = "\n".join(summaries)
+
+            max_count -= 1  # safeguard
+        raise openai.error.InvalidRequestError("text too long")
+
+    async def _get_summary(self, text: str, max_words=20):
         """Generate text summary"""
         if len(text) < max_words:
             return text
-        language = CONFIG.language or DEFAULT_LANGUAGE
-        command = f"Translate the above content into a {language} summary of less than {max_words} words."
+        command = f"Translate the above content into a summary of less than {max_words} words."
         msg = text + "\n\n" + command
         logger.info(f"summary ask:{msg}")
         response = await self.aask(msg=msg, system_msgs=[])
         logger.info(f"summary rsp: {response}")
         return response
 
-    async def get_context_title(self, text: str, max_token_count_per_ask=None, max_words=5) -> str:
+    async def get_context_title(self, text: str, max_words=5) -> str:
         """Generate text title"""
-        max_response_token_count = 50
-        max_token_count = max_token_count_per_ask or CONFIG.MAX_TOKENS or DEFAULT_MAX_TOKENS
-        while True:
-            text_windows = self.split_texts(text, window_size=max_token_count - max_response_token_count)
-
-            summaries = []
-            for ws in text_windows:
-                response = await self.get_summary(ws, max_words=max_response_token_count)
-                summaries.append(response)
-            if len(summaries) == 1:
-                return summaries[0]
-            text = "\n".join(summaries)
-            if len(text) <= max_words * 2 and len(text) <= max_token_count:
-                break
+        summary = await self.get_summary(text, max_words=500)
 
         language = CONFIG.language or DEFAULT_LANGUAGE
         command = f"Translate the above summary into a {language} title of less than {max_words} words."
-        summaries.append(command)
+        summaries = [summary, command]
         msg = "\n".join(summaries)
         logger.info(f"title ask:{msg}")
         response = await self.aask(msg=msg, system_msgs=[])
