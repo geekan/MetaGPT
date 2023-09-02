@@ -16,8 +16,6 @@ from metagpt.provider.openai_api import OpenAIGPTAPI as GPTAPI
 import asyncio
 import re
 
-from metagpt.utils.s3 import S3
-
 
 class Context:
     def __init__(self):
@@ -76,6 +74,3 @@ def proxy():
 def init_config():
     Config()
 
-@pytest.fixture(scope="session", autouse=True)
-def s3():
-    return S3()
