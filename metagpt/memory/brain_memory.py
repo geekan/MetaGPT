@@ -8,7 +8,7 @@
 """
 
 from enum import Enum
-from typing import List, Dict
+from typing import Dict, List
 
 import pydantic
 
@@ -45,10 +45,20 @@ class BrainMemory(pydantic.BaseModel):
     def history_text(self):
         if len(self.history) == 0:
             return ""
-        texts = [Message(**m).content for m in self.history[:-1]]
+        texts = []
+        for m in self.history[:-1]:
+            if isinstance(m, Dict):
+                t = Message(**m).content
+            elif isinstance(m, Message):
+                t = m.content
+            else:
+                continue
+            texts.append(t)
+
         return "\n".join(texts)
 
-    def move_to_solution(self):
+    def move_to_solution(self, history_summary):
+        """放入solution队列，以备后续长程检索。目前还未加此功能，先用history_summary顶替"""
         if len(self.history) < 2:
             return
         msgs = self.history[:-1]
@@ -58,6 +68,7 @@ class BrainMemory(pydantic.BaseModel):
             self.history = []
         else:
             self.history = self.history[-1:]
+        self.history.insert(0, Message(content="RESOLVED: " + history_summary))
 
     @property
     def last_talk(self):

@@ -18,7 +18,7 @@ import asyncio
 from pathlib import Path
 
 from metagpt.actions import ActionOutput
-from metagpt.actions.skill_action import SkillAction, ArgumentsParingAction
+from metagpt.actions.skill_action import ArgumentsParingAction, SkillAction
 from metagpt.actions.talk_action import TalkAction
 from metagpt.config import CONFIG
 from metagpt.learn.skill_loader import SkillLoader
@@ -31,10 +31,19 @@ from metagpt.schema import Message
 class Assistant(Role):
     """Assistant for solving common issues."""
 
-    def __init__(self, name="Lily", profile="An assistant", goal="Help to solve problem",
-                 constraints="Talk in {language}", desc="", *args, **kwargs):
-        super(Assistant, self).__init__(name=name, profile=profile,
-                                        goal=goal, constraints=constraints, desc=desc, *args, **kwargs)
+    def __init__(
+        self,
+        name="Lily",
+        profile="An assistant",
+        goal="Help to solve problem",
+        constraints="Talk in {language}",
+        desc="",
+        *args,
+        **kwargs,
+    ):
+        super(Assistant, self).__init__(
+            name=name, profile=profile, goal=goal, constraints=constraints, desc=desc, *args, **kwargs
+        )
         brain_memory = CONFIG.BRAIN_MEMORY
         self.memory = BrainMemory(**brain_memory) if brain_memory else BrainMemory()
         skill_path = Path(CONFIG.SKILL_PATH) if CONFIG.SKILL_PATH else None
@@ -65,8 +74,9 @@ class Assistant(Role):
             msg = Message(content=result)
             output = ActionOutput(content=result)
         else:
-            msg = Message(content=result.content, instruct_content=result.instruct_content,
-                          cause_by=type(self._rc.todo))
+            msg = Message(
+                content=result.content, instruct_content=result.instruct_content, cause_by=type(self._rc.todo)
+            )
             output = result
         self.memory.add_answer(msg)
         return output
@@ -85,8 +95,10 @@ class Assistant(Role):
         return await handler(text, **kwargs)
 
     async def talk_handler(self, text, **kwargs) -> bool:
-        action = TalkAction(talk=text, knowledge=self.memory.get_knowledge(), llm=self._llm,
-                            **kwargs)
+        history = self.memory.history_text
+        action = TalkAction(
+            talk=text, knowledge=self.memory.get_knowledge(), history_summary=history, llm=self._llm, **kwargs
+        )
         self.add_to_do(action)
         return True
 
@@ -111,17 +123,18 @@ class Assistant(Role):
             return None
         if history_text == "":
             return last_talk
-        history_summary = await self._llm.get_context_title(history_text, max_words=20)
+        history_summary = await self._llm.get_context_title(history_text, max_token_count_per_ask=1000, max_words=500)
         if last_talk and await self._llm.is_related(last_talk, history_summary):  # Merge relevant content.
             last_talk = await self._llm.rewrite(sentence=last_talk, context=history_text)
             return last_talk
 
-        self.memory.move_to_solution()  # Promptly clear memory after the issue is resolved.
+        self.memory.move_to_solution(history_summary)  # Promptly clear memory after the issue is resolved.
         return last_talk
 
     @staticmethod
     def extract_info(input_string):
         from metagpt.provider.openai_api import OpenAIGPTAPI
+
         return OpenAIGPTAPI.extract_info(input_string)
 
     def get_memory(self) -> str:
@@ -150,6 +163,6 @@ async def main():
         await role.talk(talk)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     CONFIG.language = "Chinese"
     asyncio.run(main())
