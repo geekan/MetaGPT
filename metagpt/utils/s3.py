@@ -1,4 +1,5 @@
 import base64
+import os.path
 import traceback
 import uuid
 from typing import Optional
@@ -138,8 +139,11 @@ class S3:
                 await file.write(data)
 
             bucket = CONFIG.S3.get("bucket")
-            await self.upload_file(bucket=bucket, local_path=pathname, object_name=object_name)
-            return await self.get_object_url(bucket=bucket, object_name=object_name)
+            object_pathname = CONFIG.S3.get("path") or "system"
+            object_pathname += f"/{object_name}"
+            object_pathname = os.path.normpath(object_pathname)
+            await self.upload_file(bucket=bucket, local_path=pathname, object_name=object_pathname)
+            return await self.get_object_url(bucket=bucket, object_name=object_pathname)
         except Exception as e:
             logger.exception(f"{e}, stack:{traceback.format_exc()}")
             return None
