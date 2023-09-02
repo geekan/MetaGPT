@@ -129,13 +129,13 @@ class S3:
             logger.error(f"Failed to download the file from S3: {e}")
             raise e
 
-    async def cache(self, data: str, format: str = "") -> str:
+    async def cache(self, data: str, file_ext: str, format: str = "") -> str:
         """Save data to remote S3 and return url"""
-        object_name = str(uuid.uuid4()).replace("-", "")
+        object_name = str(uuid.uuid4()).replace("-", "") + file_ext
         path = Path(__file__).parent
         pathname = path / object_name
         try:
-            async with aiofiles.open(str(pathname), mode="w") as file:
+            async with aiofiles.open(str(pathname), mode="wb") as file:
                 if format == BASE64_FORMAT:
                     data = base64.b64decode(data)
                 await file.write(data)
