@@ -22,7 +22,7 @@ async def text_to_speech(
     role="Girl",
     subscription_key="",
     region="",
-    **kwargs
+    **kwargs,
 ):
     """Text to speech
     For more details, check out:`https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts`
@@ -41,9 +41,9 @@ async def text_to_speech(
     if (CONFIG.AZURE_TTS_SUBSCRIPTION_KEY and CONFIG.AZURE_TTS_REGION) or (subscription_key and region):
         base64_data = await oas3_azsure_tts(text, lang, voice, style, role, subscription_key, region)
         s3 = S3()
-        url = await s3.cache(base64_data, BASE64_FORMAT)
+        url = await s3.cache(data=base64_data, file_ext=".wav", format=BASE64_FORMAT)
         if url:
-            return url
+            return f"[{text}]({url})"
         return audio_declaration + base64_data if base64_data else base64_data
 
     raise openai.error.InvalidRequestError("缺少必要的参数")
