@@ -54,7 +54,14 @@ class Assistant(Role):
         last_talk = await self.refine_memory()
         if not last_talk:
             return False
-        prompt = f"Refer to this sentence:\n {last_talk}\n"
+        prompt = ""
+        if CONFIG.agent_description:
+            prompt = (
+                f"You are {CONFIG.agent_description}. Your responses should align with the role-play agreement, "
+                f"maintaining the character's persona and habits. When faced with unrelated questions, playfully "
+                f"decline to answer without revealing your AI nature to preserve the character's image.\n\n"
+            )
+        prompt += f"Refer to this sentence:\n {last_talk}\n"
         skills = self.skills.get_skill_list()
         for desc, name in skills.items():
             prompt += f"If want you to do {desc}, return `[SKILL]: {name}` brief and clear. For instance: [SKILL]: text_to_image\n"
