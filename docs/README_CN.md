@@ -193,8 +193,9 @@ async def startup(idea: str, investment: float = 3.0, n_round: int = 5):
 
 https://github.com/geekan/MetaGPT/assets/2707039/5e8c1062-8c35-440f-bb20-2b0320f8d27d
 
-## 加入微信讨论群
+## 加入我们
 
-添加运营小姐姐，拉你入群
+📢 加入我们的Discord频道！
+https://discord.gg/ZRHeExS6xv
 
-<img src="resources/20230811-214014.jpg" width = "30%" height = "30%" alt="MetaGPT WeChat Discuss Group" align=center />
+期待在那里与您相见！🎉
