@@ -7,9 +7,11 @@
 @Desc    : Call learned skill
 """
 from __future__ import annotations
+
 import ast
 import importlib
 import traceback
+from copy import deepcopy
 
 from metagpt.actions import Action, ActionOutput
 from metagpt.learn.skill_loader import Skill
@@ -18,7 +20,7 @@ from metagpt.logs import logger
 
 class ArgumentsParingAction(Action):
     def __init__(self, last_talk: str, skill: Skill, context=None, llm=None, **kwargs):
-        super(ArgumentsParingAction, self).__init__(name='', context=context, llm=llm)
+        super(ArgumentsParingAction, self).__init__(name="", context=context, llm=llm)
         self.skill = skill
         self.ask = last_talk
         self.rsp = None
@@ -56,10 +58,10 @@ class ArgumentsParingAction(Action):
             return None
         begin_ix = txt.find(prefix)
         end_ix = txt.rfind(")")
-        args_txt = txt[begin_ix + len(prefix): end_ix]
+        args_txt = txt[begin_ix + len(prefix) : end_ix]
         logger.info(args_txt)
         fake_expression = f"dict({args_txt})"
-        parsed_expression = ast.parse(fake_expression, mode='eval')
+        parsed_expression = ast.parse(fake_expression, mode="eval")
         args = {}
         for keyword in parsed_expression.body.keywords:
             key = keyword.arg
@@ -70,15 +72,20 @@ class ArgumentsParingAction(Action):
 
 class SkillAction(Action):
     def __init__(self, skill: Skill, args: dict, context=None, llm=None, **kwargs):
-        super(SkillAction, self).__init__(name='', context=context, llm=llm)
+        super(SkillAction, self).__init__(name="", context=context, llm=llm)
         self._skill = skill
         self._args = args
         self.rsp = None
 
     async def run(self, *args, **kwargs) -> str | ActionOutput | None:
         """Run action"""
+        options = deepcopy(kwargs)
+        if self._args:
+            for k in self._args.keys():
+                if k in options:
+                    options.pop(k)
         try:
-            self.rsp = await self.find_and_call_function(self._skill.name, args=self._args, **kwargs)
+            self.rsp = await self.find_and_call_function(self._skill.name, args=self._args, **options)
         except Exception as e:
             logger.exception(f"{e}, traceback:{traceback.format_exc()}")
             self.rsp = f"Error: {e}"
@@ -97,6 +104,7 @@ class SkillAction(Action):
             return None
 
 
-if __name__ == '__main__':
-    ArgumentsParingAction.parse_arguments(skill_name="text_to_image",
-                                          txt='`text_to_image(text="Draw an apple", size_type="512x512")`')
+if __name__ == "__main__":
+    ArgumentsParingAction.parse_arguments(
+        skill_name="text_to_image", txt='`text_to_image(text="Draw an apple", size_type="512x512")`'
+    )
