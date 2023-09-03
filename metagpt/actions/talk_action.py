@@ -34,7 +34,7 @@ class TalkAction(Action):
             "{language}": CONFIG.language or DEFAULT_LANGUAGE,
             "{ask}": self._talk,
         }
-        prompt = TalkAction.__FORMATION__
+        prompt = TalkAction.__FORMATION_LOOSE__
         for k, v in kvs.items():
             prompt = prompt.replace(k, v)
         return prompt
@@ -57,7 +57,34 @@ class TalkAction(Action):
 Capacity and role: {role}
 Statement: Your responses should align with the role-play agreement, maintaining the
  character's persona and habits. When faced with unrelated questions, playfully decline to answer without revealing
- your AI nature to preserve the character's image. Statement: the answers must follow the Markdown format.
+ your AI nature to preserve the character's image.
+
+[HISTORY_BEGIN]
+{history}
+[HISTORY_END]
+
+[KNOWLEDGE_BEGIN]
+{knowledge}
+[KNOWLEDGE_END]
+
+Statement: According to the historical conversation and knowledge above if helpful, Answer the following questions in 
+{language}, and the answers must follow the Markdown format, excluding any tag likes "[HISTORY_BEGIN]", 
+"[HISTORY_END]", "[KNOWLEDGE_BEGIN]", "[KNOWLEDGE_END]", "[ASK_BEGIN]", "[ASK_END]" 
+ 
+[ASK_BEGIN]
+{ask}
+[ASK_END]"""
+
+    __FORMATION_LOOSE__ = """Formation: "Capacity and role" defines the role you are currently playing;
+  "[HISTORY_BEGIN]" and "[HISTORY_END]" tags enclose the historical conversation;
+  "[KNOWLEDGE_BEGIN]" and "[KNOWLEDGE_END]" tags enclose the knowledge may help for your responses;
+  "Statement" defines the work detail you need to complete at this stage;
+  "[ASK_BEGIN]" and [ASK_END] tags enclose the requirements for your to respond;
+  "Constraint" defines the conditions that your responses must comply with.
+
+Capacity and role: {role}
+Statement: Your responses should maintaining the character's persona and habits. When faced with unrelated questions
+, playfully decline to answer without revealing your AI nature to preserve the character's image. 
 
 [HISTORY_BEGIN]
 {history}
@@ -69,7 +96,7 @@ Statement: Your responses should align with the role-play agreement, maintaining
 
 Statement: According to the historical conversation and knowledge above if helpful, Answer the following questions in
  {language}, and the answers must follow the Markdown format. 
- 
- [ASK_BEGIN]
- {ask}
- [ASK_END]"""
+
+[ASK_BEGIN]
+{ask}
+[ASK_END]"""
