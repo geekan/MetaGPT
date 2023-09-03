@@ -67,9 +67,10 @@ Statement: Your responses should align with the role-play agreement, maintaining
 {knowledge}
 [KNOWLEDGE_END]
 
-Statement: According to the historical conversation and knowledge above if helpful, Answer the following questions in 
-{language}, and the answers must follow the Markdown format, excluding any tag likes "[HISTORY_BEGIN]", 
-"[HISTORY_END]", "[KNOWLEDGE_BEGIN]", "[KNOWLEDGE_END]", "[ASK_BEGIN]", "[ASK_END]" 
+Statement: If the information is insufficient, you can search in the historical conversation or knowledge.
+Statement: Answer the following questions in {language}, and the answers must follow the Markdown format
+ , excluding any tag likes "[HISTORY_BEGIN]", "[HISTORY_END]", "[KNOWLEDGE_BEGIN]", "[KNOWLEDGE_END]", "[ASK_BEGIN]"
+ , "[ASK_END]" 
  
 [ASK_BEGIN]
 {ask}
@@ -94,8 +95,10 @@ Statement: Your responses should maintaining the character's persona and habits.
 {knowledge}
 [KNOWLEDGE_END]
 
-Statement: According to the historical conversation and knowledge above if helpful, Answer the following questions in
- {language}, and the answers must follow the Markdown format. 
+Statement: If the information is insufficient, you can search in the historical conversation or knowledge.
+Statement: Answer the following questions in {language}, and the answers must follow the Markdown format
+ , excluding any tag likes "[HISTORY_BEGIN]", "[HISTORY_END]", "[KNOWLEDGE_BEGIN]", "[KNOWLEDGE_END]", "[ASK_BEGIN]"
+ , "[ASK_END]" 
 
 [ASK_BEGIN]
 {ask}
