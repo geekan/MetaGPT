@@ -9,14 +9,12 @@
 from __future__ import annotations
 
 import ast
-import asyncio
 import importlib
 import traceback
 from copy import deepcopy
 
 from metagpt.actions import Action, ActionOutput
-from metagpt.config import CONFIG
-from metagpt.learn.skill_loader import Returns, Skill
+from metagpt.learn.skill_loader import Skill
 from metagpt.logs import logger
 
 
@@ -110,15 +108,3 @@ if __name__ == "__main__":
     ArgumentsParingAction.parse_arguments(
         skill_name="text_to_image", txt='`text_to_image(text="Draw an apple", size_type="512x512")`'
     )
-    CONFIG.set_context({})
-    args = {"text": "hello world", "role": "Girl"}
-    action = SkillAction(
-        skill=Skill(
-            name="text_to_speech", description="", id="", arguments={}, examples=[], returns=Returns(type="string")
-        ),
-        args=args,
-    )
-    loop = asyncio.new_event_loop()
-    t = loop.create_task(action.run())
-    r = loop.run_until_complete(t)
-    print(r)
