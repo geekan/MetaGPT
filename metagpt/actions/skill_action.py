@@ -9,10 +9,14 @@
 from __future__ import annotations
 
 import ast
+import asyncio
+import importlib
 import traceback
+from copy import deepcopy
 
 from metagpt.actions import Action, ActionOutput
-from metagpt.learn.skill_loader import Skill
+from metagpt.config import CONFIG
+from metagpt.learn.skill_loader import Returns, Skill
 from metagpt.logs import logger
 
 
@@ -77,8 +81,13 @@ class SkillAction(Action):
 
     async def run(self, *args, **kwargs) -> str | ActionOutput | None:
         """Run action"""
+        options = deepcopy(kwargs)
+        if self._args:
+            for k in self._args.keys():
+                if k in options:
+                    options.pop(k)
         try:
-            self.rsp = await self.find_and_call_function(self._skill.name, args=self._args, **kwargs)
+            self.rsp = await self.find_and_call_function(self._skill.name, args=self._args, **options)
         except Exception as e:
             logger.exception(f"{e}, traceback:{traceback.format_exc()}")
             self.rsp = f"Error: {e}"
@@ -86,14 +95,11 @@ class SkillAction(Action):
 
     @staticmethod
     async def find_and_call_function(function_name, args, **kwargs):
-        from metagpt.learn import text_to_speech
-
         try:
-            result = await text_to_speech(**args, **kwargs)
-            # module = importlib.import_module("metagpt.learn")
-            # function = getattr(module, function_name)
-            # # 调用函数并返回结果
-            # result = await function(**args, **kwargs)
+            module = importlib.import_module("metagpt.learn")
+            function = getattr(module, function_name)
+            # 调用函数并返回结果
+            result = await function(**args, **kwargs)
             return result
         except (ModuleNotFoundError, AttributeError):
             logger.error(f"{function_name} not found")
@@ -104,3 +110,15 @@ if __name__ == "__main__":
     ArgumentsParingAction.parse_arguments(
         skill_name="text_to_image", txt='`text_to_image(text="Draw an apple", size_type="512x512")`'
     )
+    CONFIG.set_context({})
+    args = {"text": "hello world", "role": "Girl"}
+    action = SkillAction(
+        skill=Skill(
+            name="text_to_speech", description="", id="", arguments={}, examples=[], returns=Returns(type="string")
+        ),
+        args=args,
+    )
+    loop = asyncio.new_event_loop()
+    t = loop.create_task(action.run())
+    r = loop.run_until_complete(t)
+    print(r)
