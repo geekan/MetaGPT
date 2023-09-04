@@ -109,3 +109,7 @@ class BrainMemory(pydantic.BaseModel):
             return False
         v = self.json()
         await redis.set(key=redis_key, data=v, timeout_sec=timeout_sec)
+
+    @staticmethod
+    def to_redis_key(prefix: str, user_id: str, chat_id: str):
+        return f"{prefix}:{chat_id}:{user_id}"
