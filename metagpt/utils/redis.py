@@ -196,3 +196,19 @@ class Redis:
             RedisManager.init_redis_conn(host=host, port=port, password=pwd, db=db)
         except Exception as e:
             logger.warning(f"Redis initialization has failed:{e}")
+
+    def is_valid(self):
+        return RedisManager.is_valid()
+
+    async def get(self, key: str) -> str:
+        if not self.is_valid() or not key:
+            return None
+        v = await RedisManager.get_with_cache_info(redis_cache_info=RedisCacheInfo(key=key))
+        return v
+
+    async def set(self, key: str, data: str, timeout_sec: int):
+        if not self.is_valid() or not key:
+            return
+        await RedisManager.set_with_cache_info(
+            redis_cache_info=RedisCacheInfo(key=key, timeout=timeout_sec), value=data
+        )

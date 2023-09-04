@@ -7,12 +7,14 @@
 @Desc    : Support memory for multiple tasks and multiple mainlines.
 """
 import hashlib
+import json
 from enum import Enum
 from typing import Dict, List
 
 import pydantic
 
 from metagpt import Message
+from metagpt.utils.redis import Redis
 
 
 class MessageType(Enum):
@@ -32,6 +34,7 @@ class BrainMemory(pydantic.BaseModel):
     # it indicates that the text has already been incorporated into the `history summary`.
     historical_summary_fingerprint: List[str] = []
     historical_summary: str = ""
+    last_history_id: str = ""
 
     def add_talk(self, msg: Message):
         msg.add_tag(MessageType.Talk.value)
@@ -88,3 +91,21 @@ class BrainMemory(pydantic.BaseModel):
     @staticmethod
     def get_md5(text: str) -> str:
         return hashlib.md5(text.encode()).hexdigest()
+
+    @staticmethod
+    async def loads(redis_key: str) -> "BrainMemory":
+        redis = Redis()
+        if not redis.is_valid() or not redis_key:
+            return False
+        v = await redis.get(key=redis_key)
+        if not v:
+            data = json.loads(v)
+            return BrainMemory(**data)
+        return None
+
+    async def dumps(self, redis_key: str, timeout_sec: int = 30 * 60):
+        redis = Redis()
+        if not redis.is_valid() or not redis_key:
+            return False
+        v = self.json()
+        await redis.set(key=redis_key, data=v, timeout_sec=timeout_sec)
