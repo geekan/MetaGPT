@@ -5,8 +5,8 @@
 @Author  : mashenquan
 @File    : brain_memory.py
 @Desc    : Support memory for multiple tasks and multiple mainlines.
+@Modified By: mashenquan, 2023/9/4. + redis memory cache.
 """
-import hashlib
 import json
 from enum import Enum
 from typing import Dict, List
@@ -73,10 +73,6 @@ class BrainMemory(pydantic.BaseModel):
         if not last_msg.is_contain(MessageType.Talk.value):
             return None
         return last_msg.content
-
-    @staticmethod
-    def get_md5(text: str) -> str:
-        return hashlib.md5(text.encode()).hexdigest()
 
     @staticmethod
     async def loads(redis_key: str, redis_conf: Dict = None) -> "BrainMemory":
