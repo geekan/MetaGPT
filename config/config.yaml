@@ -84,3 +84,10 @@ S3:
   access_key: "YOUR_S3_ACCESS_KEY"
   secret_key: "YOUR_S3_SECRET_KEY"
   endpoint_url: "YOUR_S3_ENDPOINT_URL"
+
+### Redis config
+REDIS:
+  host: "YOUR_REDIS_HOST"
+  port: YOUR_REDIS_PORT, int
+  password: "YOUR_REDIS_PASSWORD"
+  db: YOUR_REDIS_DB_INDEX, int
