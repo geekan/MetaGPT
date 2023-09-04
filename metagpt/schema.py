@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Type, TypedDict, Set, Optional, List
+from typing import Optional, Set, Type, TypedDict
 
 from pydantic import BaseModel
 
@@ -29,9 +29,10 @@ class RawMessage(TypedDict):
 @dataclass
 class Message:
     """list[<role>: <content>]"""
+
     content: str
     instruct_content: BaseModel = field(default=None)
-    role: str = field(default='user')  # system / user / assistant
+    role: str = field(default="user")  # system / user / assistant
     cause_by: Type["Action"] = field(default="")
     sent_from: str = field(default="")
     send_to: str = field(default="")
@@ -45,10 +46,7 @@ class Message:
         return self.__str__()
 
     def to_dict(self) -> dict:
-        return {
-            "role": self.role,
-            "content": self.content
-        }
+        return {"role": self.role, "content": self.content}
 
     def add_tag(self, tag):
         if self.tags is None:
@@ -64,7 +62,7 @@ class Message:
         """Determine whether the message contains tags."""
         if not tags or not self.tags:
             return False
-        intersection = set(tags) & self.tags
+        intersection = set(tags) & set(self.tags)
         return len(intersection) > 0
 
     def is_contain(self, tag):
@@ -76,7 +74,7 @@ class Message:
             "instruct_content": self.instruct_content,
             "sent_from": self.sent_from,
             "send_to": self.send_to,
-            "tags": self.tags
+            "tags": self.tags,
         }
 
         m = {"content": self.content}
@@ -89,39 +87,39 @@ class Message:
 @dataclass
 class UserMessage(Message):
     """便于支持OpenAI的消息
-       Facilitate support for OpenAI messages
+    Facilitate support for OpenAI messages
     """
 
     def __init__(self, content: str):
-        super().__init__(content, 'user')
+        super().__init__(content, "user")
 
 
 @dataclass
 class SystemMessage(Message):
     """便于支持OpenAI的消息
-       Facilitate support for OpenAI messages
+    Facilitate support for OpenAI messages
     """
 
     def __init__(self, content: str):
-        super().__init__(content, 'system')
+        super().__init__(content, "system")
 
 
 @dataclass
 class AIMessage(Message):
     """便于支持OpenAI的消息
-       Facilitate support for OpenAI messages
+    Facilitate support for OpenAI messages
     """
 
     def __init__(self, content: str):
-        super().__init__(content, 'assistant')
+        super().__init__(content, "assistant")
 
 
-if __name__ == '__main__':
-    test_content = 'test_message'
+if __name__ == "__main__":
+    test_content = "test_message"
     msgs = [
         UserMessage(test_content),
         SystemMessage(test_content),
         AIMessage(test_content),
-        Message(test_content, role='QA')
+        Message(test_content, role="QA"),
     ]
     logger.info(msgs)
