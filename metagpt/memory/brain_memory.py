@@ -55,7 +55,7 @@ class BrainMemory(pydantic.BaseModel):
     def history_text(self):
         if len(self.history) == 0:
             return ""
-        texts = []
+        texts = [self.historical_summary] if self.historical_summary else []
         for m in self.history[:-1]:
             if isinstance(m, Dict):
                 t = Message(**m).content
