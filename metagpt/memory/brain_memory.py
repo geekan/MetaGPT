@@ -101,7 +101,7 @@ class BrainMemory(pydantic.BaseModel):
         if not redis.is_valid() or not redis_key:
             return BrainMemory()
         v = await redis.get(key=redis_key)
-        if not v:
+        if v:
             data = json.loads(v)
             return BrainMemory(**data)
         return BrainMemory()
