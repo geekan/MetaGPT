@@ -42,6 +42,10 @@ It costs approximately **$0.2** (in GPT-4 API fees) to generate one example with
 
 ## Installation
 
+### Installation Video Guide
+
+- [Matthew Berman: How To Install MetaGPT - Build A Startup With One Prompt!!](https://youtu.be/uT75J_KG_aY)
+
 ### Traditional Installation
 
 ```bash
@@ -137,8 +141,6 @@ cp config/config.yaml config/key.yaml
 | OPENAI_API_BASE # Optional                 | OPENAI_API_BASE: "https://<YOUR_SITE>/v1" | export OPENAI_API_BASE="https://<YOUR_SITE>/v1" |
 
 ## Tutorial: Initiating a startup
-### video startup guide
-##  [click to watch](https://youtu.be/uT75J_KG_aY)
 
 ```shell
 # Run the script
