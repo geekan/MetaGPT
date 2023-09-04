@@ -65,3 +65,4 @@ class Action(ABC):
     async def run(self, *args, **kwargs):
         """Run action"""
         raise NotImplementedError("The run method should be implemented in a subclass.")
+    

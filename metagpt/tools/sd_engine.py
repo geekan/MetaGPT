@@ -120,12 +120,10 @@ def decode_base64_to_image(img, save_name):
     image.save(f"{save_name}.png", pnginfo=pnginfo)
     return pnginfo, image
 
-
 def batch_decode_base64_to_image(imgs, save_dir="", save_name=""):
     for idx, _img in enumerate(imgs):
         save_name = join(save_dir, save_name)
         decode_base64_to_image(_img, save_name=save_name)
-
 
 if __name__ == "__main__":
     engine = SDEngine()
