@@ -35,14 +35,17 @@ class BrainMemory(pydantic.BaseModel):
     historical_summary_fingerprint: List[str] = []
     historical_summary: str = ""
     last_history_id: str = ""
+    is_dirty: bool = False
 
     def add_talk(self, msg: Message):
         msg.add_tag(MessageType.Talk.value)
         self.history.append(msg.dict())
+        self.is_dirty = True
 
     def add_answer(self, msg: Message):
         msg.add_tag(MessageType.Answer.value)
         self.history.append(msg.dict())
+        self.is_dirty = True
 
     def get_knowledge(self) -> str:
         texts = [Message(**m).content for m in self.knowledge]
