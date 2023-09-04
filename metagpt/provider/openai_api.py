@@ -221,18 +221,18 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             return CONFIG.max_tokens_rsp
         return get_max_completion_tokens(messages, self.model, CONFIG.max_tokens_rsp)
 
-    async def get_summary(self, text: str, max_words=200):
+    async def get_summary(self, text: str, max_words=200, keep_language: bool = False):
         max_token_count = DEFAULT_MAX_TOKENS
         max_count = 100
         while max_count > 0:
             if len(text) < max_token_count:
-                return await self._get_summary(text, max_words=max_words)
+                return await self._get_summary(text=text, max_words=max_words,keep_language=keep_language)
 
             padding_size = 20 if max_token_count > 20 else 0
             text_windows = self.split_texts(text, window_size=max_token_count - padding_size)
             summaries = []
             for ws in text_windows:
-                response = await self._get_summary(ws, max_words=max_words)
+                response = await self._get_summary(text=ws, max_words=max_words,keep_language=keep_language)
                 summaries.append(response)
             if len(summaries) == 1:
                 return summaries[0]
@@ -243,11 +243,14 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             max_count -= 1  # safeguard
         raise openai.error.InvalidRequestError("text too long")
 
-    async def _get_summary(self, text: str, max_words=20):
+    async def _get_summary(self, text: str, max_words=20, keep_language: bool = False):
         """Generate text summary"""
         if len(text) < max_words:
             return text
-        command = f"Translate the above content into a summary of less than {max_words} words."
+        if keep_language:
+            command = f".Translate the above content into a summary of less than {max_words} words in language of the content."
+        else:
+            command = f"Translate the above content into a summary of less than {max_words} words."
         msg = text + "\n\n" + command
         logger.info(f"summary ask:{msg}")
         response = await self.aask(msg=msg, system_msgs=[])
