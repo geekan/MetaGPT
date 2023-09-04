@@ -192,7 +192,7 @@ class Redis:
             host = self._config["host"]
             port = int(self._config["port"])
             pwd = self._config["password"]
-            db = int(self._config["db"])
+            db = self._config["db"]
             RedisManager.init_redis_conn(host=host, port=port, password=pwd, db=db)
         except Exception as e:
             logger.warning(f"Redis initialization has failed:{e}")
