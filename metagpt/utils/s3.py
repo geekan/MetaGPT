@@ -44,8 +44,9 @@ class S3:
         """
         try:
             async with self.session.client(**self.auth_config) as client:
-                with open(local_path, "rb") as file:
-                    await client.put_object(Body=file, Bucket=bucket, Key=object_name)
+                async with aiofiles.open(local_path, mode="rb") as reader:
+                    body = await reader.read()
+                    await client.put_object(Body=body, Bucket=bucket, Key=object_name)
                     logger.info(f"Successfully uploaded the file to path {object_name} in bucket {bucket} of s3.")
         except Exception as e:
             logger.error(f"Failed to upload the file to path {object_name} in bucket {bucket} of s3: {e}")
@@ -119,12 +120,12 @@ class S3:
             async with self.session.client(**self.auth_config) as client:
                 s3_object = await client.get_object(Bucket=bucket, Key=object_name)
                 stream = s3_object["Body"]
-                with open(local_path, "wb") as local_file:
+                async with aiofiles.open(local_path, mode="wb") as writer:
                     while True:
                         file_data = await stream.read(chunk_size)
                         if not file_data:
                             break
-                        local_file.write(file_data)
+                        await writer.write(file_data)
         except Exception as e:
             logger.error(f"Failed to download the file from S3: {e}")
             raise e
