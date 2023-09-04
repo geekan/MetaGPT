@@ -26,7 +26,7 @@ class TalkAction(Action):
         self._rsp = None
 
     @property
-    def prompt(self):
+    def prompt_old(self):
         prompt = ""
         if CONFIG.agent_description:
             prompt = (
@@ -46,7 +46,7 @@ class TalkAction(Action):
         return prompt
 
     @property
-    def formation_prompt(self):
+    def prompt(self):
         kvs = {
             "{role}": CONFIG.agent_description or "",
             "{history}": self._history_summary or "",
@@ -57,6 +57,7 @@ class TalkAction(Action):
         prompt = TalkAction.__FORMATION_LOOSE__
         for k, v in kvs.items():
             prompt = prompt.replace(k, v)
+        logger.info(f"PROMPT: {prompt}")
         return prompt
 
     async def run(self, *args, **kwargs) -> ActionOutput:

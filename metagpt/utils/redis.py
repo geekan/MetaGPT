@@ -4,6 +4,7 @@
 # @Desc: { redis client }
 # @Date: 2022/11/28 10:12
 import json
+import traceback
 from datetime import timedelta
 from enum import Enum
 from typing import Awaitable, Callable, Dict, Optional, Union
@@ -203,12 +204,19 @@ class Redis:
     async def get(self, key: str) -> str:
         if not self.is_valid() or not key:
             return None
-        v = await RedisManager.get_with_cache_info(redis_cache_info=RedisCacheInfo(key=key))
-        return v
+        try:
+            v = await RedisManager.get_with_cache_info(redis_cache_info=RedisCacheInfo(key=key))
+            return v
+        except Exception as e:
+            logger.exception(f"{e}, stack:{traceback.format_exc()}")
+            return None
 
     async def set(self, key: str, data: str, timeout_sec: int):
         if not self.is_valid() or not key:
             return
-        await RedisManager.set_with_cache_info(
-            redis_cache_info=RedisCacheInfo(key=key, timeout=timeout_sec), value=data
-        )
+        try:
+            await RedisManager.set_with_cache_info(
+                redis_cache_info=RedisCacheInfo(key=key, timeout=timeout_sec), value=data
+            )
+        except Exception as e:
+            logger.exception(f"{e}, stack:{traceback.format_exc()}")
