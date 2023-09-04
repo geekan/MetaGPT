@@ -66,15 +66,6 @@ class BrainMemory(pydantic.BaseModel):
 
         return "\n".join(texts)
 
-    @property
-    def last_talk(self):
-        if len(self.history) == 0:
-            return None
-        last_msg = Message(**self.history[-1])
-        if not last_msg.is_contain(MessageType.Talk.value):
-            return None
-        return last_msg.content
-
     @staticmethod
     async def loads(redis_key: str, redis_conf: Dict = None) -> "BrainMemory":
         redis = Redis(conf=redis_conf)
