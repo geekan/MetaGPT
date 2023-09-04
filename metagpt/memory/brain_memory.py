@@ -110,6 +110,9 @@ class BrainMemory(pydantic.BaseModel):
 
     async def set_history_summary(self, history_summary, redis_key, redis_conf):
         if self.historical_summary == history_summary:
+            if self.is_dirty:
+                await self.dumps(redis_key=redis_key, redis_conf=redis_conf)
+                self.is_dirty = False
             return
 
         self.historical_summary = history_summary
