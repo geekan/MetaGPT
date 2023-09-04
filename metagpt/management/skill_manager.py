@@ -49,7 +49,7 @@ class SkillManager:
         return self._skills.get(skill_name)
 
     def retrieve_skill(self, desc: str, n_results: int = 2) -> list[Skill]:
-       """
+        """
         Obtain skills through the search engine
         :param desc: Skill description
         :return: Multiple skills
