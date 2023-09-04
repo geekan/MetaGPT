@@ -38,13 +38,13 @@ class BaseGPTAPI(BaseChatbot):
         rsp = self.completion(message)
         return self.get_choice_text(rsp)
 
-    async def aask(self, msg: str, system_msgs: Optional[list[str]] = None) -> str:
+    async def aask(self, msg: str, system_msgs: Optional[list[str]] = None, generator: bool = False) -> str:
         if system_msgs:
             message = self._system_msgs(system_msgs) + [self._user_msg(msg)]
         else:
             message = [self._default_system_msg(), self._user_msg(msg)]
         try:
-            rsp = await self.acompletion_text(message, stream=True)
+            rsp = await self.acompletion_text(message, stream=True, generator=generator)
         except Exception as e:
             logger.exception(f"{e}")
             logger.info(f"ask:{msg}, error:{e}")
