@@ -233,10 +233,9 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
 
             padding_size = 20 if max_token_count > 20 else 0
             text_windows = self.split_texts(text, window_size=max_token_count - padding_size)
-            part_max_words = int(max_words / len(text_windows)) + 1
             summaries = []
             for ws in text_windows:
-                response = await self._get_summary(text=ws, max_words=part_max_words, keep_language=keep_language)
+                response = await self._get_summary(text=ws, max_words=200, keep_language=keep_language)
                 summaries.append(response)
             if len(summaries) == 1:
                 return summaries[0]
