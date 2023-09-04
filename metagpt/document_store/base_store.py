@@ -12,7 +12,7 @@ from metagpt.config import Config
 
 
 class BaseStore(ABC):
-    """FIXME: consider add_index, set_index and think 颗粒度"""
+    """FIXME: consider add_index, set_index and think about granularity."""
 
     @abstractmethod
     def search(self, *args, **kwargs):
@@ -53,3 +53,4 @@ class LocalStore(BaseStore, ABC):
     @abstractmethod
     def _write(self, docs, metadatas):
         raise NotImplementedError
+    

@@ -104,3 +104,4 @@ class MemoryStorage(FaissStore):
 
         self.store = None
         self._initialized = False
+        

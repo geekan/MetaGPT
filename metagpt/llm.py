@@ -12,7 +12,6 @@ from metagpt.provider.openai_api import OpenAIGPTAPI as LLM
 DEFAULT_LLM = LLM()
 CLAUDE_LLM = Claude()
 
-
 async def ai_func(prompt):
     """使用LLM进行QA
        QA with LLMs
