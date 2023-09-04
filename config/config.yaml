@@ -90,4 +90,4 @@ REDIS:
   host: "YOUR_REDIS_HOST"
   port: YOUR_REDIS_PORT, int
   password: "YOUR_REDIS_PASSWORD"
-  db: YOUR_REDIS_DB_INDEX, int
+  db: "YOUR_REDIS_DB_INDEX, str, 0-based"
