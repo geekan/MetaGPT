@@ -124,3 +124,8 @@ class BrainMemory(pydantic.BaseModel):
             return int(v)
         except:
             return default_value
+
+    def pop_last_talk(self):
+        v = self.last_talk
+        self.last_talk = ""
+        return v
