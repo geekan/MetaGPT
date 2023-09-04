@@ -248,7 +248,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         if len(text) < max_words:
             return text
         if keep_language:
-            command = f".Translate the above content into a summary of less than {max_words} words in language of the content."
+            command = f".Translate the above content into a summary of less than {max_words} words in language of the content strictly."
         else:
             command = f"Translate the above content into a summary of less than {max_words} words."
         msg = text + "\n\n" + command
