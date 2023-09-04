@@ -126,11 +126,13 @@ class Assistant(Role):
         if history_text == "":
             return last_talk
         history_summary = await self._llm.get_summary(history_text, max_words=500)
+        await self.memory.set_history_summary(
+            history_summary=history_summary, redis_key=CONFIG.REDIS_KEY, redis_conf=CONFIG.REDIS
+        )
         if last_talk and await self._llm.is_related(last_talk, history_summary):  # Merge relevant content.
             last_talk = await self._llm.rewrite(sentence=last_talk, context=history_text)
             return last_talk
 
-        self.memory.move_to_solution(history_summary)  # Promptly clear memory after the issue is resolved.
         return last_talk
 
     @staticmethod
