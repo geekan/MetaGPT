@@ -77,41 +77,21 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
     """
 
     def __init__(self):
-        self.__init_openai(CONFIG)
         self.llm = openai
         self.model = CONFIG.openai_api_model
         self.auto_max_tokens = False
+        self.rpm = int(CONFIG.get("RPM", 10))
         RateLimiter.__init__(self, rpm=self.rpm)
-
-    def __init_openai(self, config):
-        openai.api_key = config.openai_api_key
-        if config.openai_api_base:
-            openai.api_base = config.openai_api_base
-        if config.openai_api_type:
-            openai.api_type = config.openai_api_type
-            openai.api_version = config.openai_api_version
-        self.rpm = int(config.get("RPM", 10))
 
     async def _achat_completion_stream(self, messages: list[dict]) -> str:
         response = await self.async_retry_call(
             openai.ChatCompletion.acreate, **self._cons_kwargs(messages), stream=True
         )
-        # create variables to collect the stream of chunks
-        collected_chunks = []
-        collected_messages = []
         # iterate through the stream of events
         async for chunk in response:
-            collected_chunks.append(chunk)  # save the event response
             chunk_message = chunk["choices"][0]["delta"]  # extract the message
-            collected_messages.append(chunk_message)  # save the message
             if "content" in chunk_message:
-                print(chunk_message["content"], end="")
-        print()
-
-        full_reply_content = "".join([m.get("content", "") for m in collected_messages])
-        usage = self._calc_usage(messages, full_reply_content)
-        self._update_costs(usage)
-        return full_reply_content
+                yield chunk_message["content"]
 
     def _cons_kwargs(self, messages: list[dict]) -> dict:
         if CONFIG.openai_api_type == "azure":
@@ -133,6 +113,10 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
                 "temperature": 0.3,
             }
         kwargs["timeout"] = 3
+        kwargs["api_base"] = CONFIG.openai_api_base
+        kwargs["api_key"] = CONFIG.openai_api_key
+        kwargs["api_type"] = CONFIG.openai_api_type
+        kwargs["api_version"] = CONFIG.openai_api_version
         return kwargs
 
     async def _achat_completion(self, messages: list[dict]) -> dict:
@@ -162,10 +146,23 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         retry=retry_if_exception_type(APIConnectionError),
         retry_error_callback=log_and_reraise,
     )
-    async def acompletion_text(self, messages: list[dict], stream=False) -> str:
+    async def acompletion_text(self, messages: list[dict], stream=False, generator: bool = False) -> str:
         """when streaming, print each token in place."""
         if stream:
-            return await self._achat_completion_stream(messages)
+            resp = self._achat_completion_stream(messages)
+            if generator:
+                return resp
+
+            collected_messages = []
+            async for i in resp:
+                print(i, end="")
+                collected_messages.append(i)
+
+            full_reply_content = "".join(collected_messages)
+            usage = self._calc_usage(messages, full_reply_content)
+            self._update_costs(usage)
+            return full_reply_content
+
         rsp = await self._achat_completion(messages)
         return self.get_choice_text(rsp)
 
@@ -226,18 +223,18 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             return CONFIG.max_tokens_rsp
         return get_max_completion_tokens(messages, self.model, CONFIG.max_tokens_rsp)
 
-    async def get_summary(self, text: str, max_words=200):
+    async def get_summary(self, text: str, max_words=200, keep_language: bool = False):
         max_token_count = DEFAULT_MAX_TOKENS
         max_count = 100
         while max_count > 0:
             if len(text) < max_token_count:
-                return await self._get_summary(text, max_words=max_words)
+                return await self._get_summary(text=text, max_words=max_words, keep_language=keep_language)
 
             padding_size = 20 if max_token_count > 20 else 0
             text_windows = self.split_texts(text, window_size=max_token_count - padding_size)
             summaries = []
             for ws in text_windows:
-                response = await self._get_summary(ws, max_words=max_words)
+                response = await self._get_summary(text=ws, max_words=max_words, keep_language=keep_language)
                 summaries.append(response)
             if len(summaries) == 1:
                 return summaries[0]
@@ -248,11 +245,14 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             max_count -= 1  # safeguard
         raise openai.error.InvalidRequestError("text too long")
 
-    async def _get_summary(self, text: str, max_words=20):
+    async def _get_summary(self, text: str, max_words=20, keep_language: bool = False):
         """Generate text summary"""
         if len(text) < max_words:
             return text
-        command = f"Translate the above content into a summary of less than {max_words} words."
+        if keep_language:
+            command = f".Translate the above content into a summary of less than {max_words} words in language of the content strictly."
+        else:
+            command = f"Translate the above content into a summary of less than {max_words} words."
         msg = text + "\n\n" + command
         logger.info(f"summary ask:{msg}")
         response = await self.aask(msg=msg, system_msgs=[])
