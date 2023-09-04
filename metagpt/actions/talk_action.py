@@ -57,6 +57,7 @@ class TalkAction(Action):
         prompt = TalkAction.__FORMATION_LOOSE__
         for k, v in kvs.items():
             prompt = prompt.replace(k, v)
+        logger.info(f"PROMPT: {prompt}")
         return prompt
 
     async def run(self, *args, **kwargs) -> ActionOutput:
