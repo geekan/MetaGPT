@@ -120,7 +120,7 @@ class Assistant(Role):
 
     async def refine_memory(self) -> str:
         history_text = self.memory.history_text
-        last_talk = self.memory.last_talk
+        last_talk = self.memory.pop_last_talk()
         if last_talk is None:  # No user feedback, unsure if past conversation is finished.
             return None
         if history_text == "":
