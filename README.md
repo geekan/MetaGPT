@@ -82,6 +82,30 @@ python setup.py install
 
 - if `python setup.py install` fails with error `[Errno 13] Permission denied: '/usr/local/lib/python3.11/dist-packages/test-easy-install-13129.write-test'`, try instead running `python setup.py install --user`
 
+- To convert Mermaid charts to SVG, PNG, and PDF formats. In addition to the Node.js version of Mermaid-CLI, you now have the option to use Python version Playwright for this task.
+
+- **Install Playwright**
+
+```bash
+pip install playwright
+```
+
+- **Install the Required Browsers**
+
+to support PDF conversion, had better install Chrominum.
+
+```bash
+playwright install --with-deps chromium
+```
+
+- **modify `config.yaml`**
+
+uncomment MERMAID_ENGINE from config.yaml and change it to `playwright`
+
+```yaml
+MERMAID_ENGINE: playwright
+```
+
 ### Installation by Docker
 
 ```bash

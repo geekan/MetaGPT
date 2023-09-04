@@ -14,6 +14,7 @@ from metagpt.logs import logger
 from metagpt.utils.common import check_cmd_exists
 
 
+
 def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, height=2048) -> int:
     """suffix: png/svg/pdf
 
@@ -56,6 +57,8 @@ def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, height
             subprocess.run([CONFIG.mmdc, "-i", str(tmp), "-o", output_file, "-w", str(width), "-H", str(height)])
     return 0
 
+if CONFIG.mermaid_engine.lower() == "playwright":
+    from metagpt.utils.mermaid_playwright import mermaid_to_file
 
 MMC1 = """classDiagram
     class Main {
