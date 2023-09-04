@@ -67,21 +67,6 @@ class BrainMemory(pydantic.BaseModel):
 
         return "\n".join(texts)
 
-    def move_to_solution(self, history_summary):
-        """Put it in the solution queue for future long-term retrieval.
-        This functionality hasn't been added yet, so use the history summary as a temporary substitute for now."""
-        pass
-        # if len(self.history) < 2:
-        #     return
-        # msgs = self.history[:-1]
-        # self.solution.extend(msgs)
-        # if not Message(**self.history[-1]).is_contain(MessageType.Talk.value):
-        #     self.solution.append(self.history[-1])
-        #     self.history = []
-        # else:
-        #     self.history = self.history[-1:]
-        # self.history.insert(0, Message(content="RESOLVED: " + history_summary))
-
     @property
     def last_talk(self):
         if len(self.history) == 0:
@@ -119,3 +104,12 @@ class BrainMemory(pydantic.BaseModel):
     @staticmethod
     def to_redis_key(prefix: str, user_id: str, chat_id: str):
         return f"{prefix}:{chat_id}:{user_id}"
+
+    async def set_history_summary(self, history_summary, redis_key, redis_conf):
+        if self.historical_summary == history_summary:
+            return
+
+        self.historical_summary = history_summary
+        self.history = []
+        await self.dumps(redis_key=redis_key, redis_conf=redis_conf)
+        self.is_dirty = False
