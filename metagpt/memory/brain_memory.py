@@ -31,9 +31,6 @@ class BrainMemory(pydantic.BaseModel):
     stack: List[Dict] = []
     solution: List[Dict] = []
     knowledge: List[Dict] = []
-    # If the fingerprint of the history text is found in the `historical_summary_fingerprint`,
-    # it indicates that the text has already been incorporated into the `history summary`.
-    historical_summary_fingerprint: List[str] = []
     historical_summary: str = ""
     last_history_id: str = ""
     is_dirty: bool = False
