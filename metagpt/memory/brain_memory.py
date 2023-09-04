@@ -113,3 +113,10 @@ class BrainMemory(pydantic.BaseModel):
         self.history = []
         await self.dumps(redis_key=redis_key, redis_conf=redis_conf)
         self.is_dirty = False
+
+    def add_history(self, msg: Message):
+        if msg.id:
+            if int(msg.id) < int(self.last_history_id):
+                return
+        self.history.append(msg.dict())
+        self.is_dirty = True
