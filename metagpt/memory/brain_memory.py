@@ -117,7 +117,6 @@ class BrainMemory(pydantic.BaseModel):
         if msg.id:
             if self.to_int(msg.id, 0) < self.to_int(self.last_history_id, -1):
                 return
-            self.last_history_id = str(self.to_int(msg.id, 0))
         self.history.append(msg.dict())
         self.is_dirty = True
 
