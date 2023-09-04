@@ -46,7 +46,7 @@ class TalkAction(Action):
         return prompt
 
     @property
-    def prompt_new(self):
+    def formation_prompt(self):
         kvs = {
             "{role}": CONFIG.agent_description or "",
             "{history}": self._history_summary or "",
