@@ -93,8 +93,8 @@ class BrainMemory(pydantic.BaseModel):
         return hashlib.md5(text.encode()).hexdigest()
 
     @staticmethod
-    async def loads(redis_key: str) -> "BrainMemory":
-        redis = Redis()
+    async def loads(redis_key: str, redis_conf: Dict = None) -> "BrainMemory":
+        redis = Redis(conf=redis_conf)
         if not redis.is_valid() or not redis_key:
             return BrainMemory()
         v = await redis.get(key=redis_key)
@@ -103,8 +103,8 @@ class BrainMemory(pydantic.BaseModel):
             return BrainMemory(**data)
         return BrainMemory()
 
-    async def dumps(self, redis_key: str, timeout_sec: int = 30 * 60):
-        redis = Redis()
+    async def dumps(self, redis_key: str, timeout_sec: int = 30 * 60, redis_conf: Dict = None):
+        redis = Redis(conf=redis_conf)
         if not redis.is_valid() or not redis_key:
             return False
         v = self.json()

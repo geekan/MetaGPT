@@ -6,7 +6,7 @@
 import json
 from datetime import timedelta
 from enum import Enum
-from typing import Awaitable, Callable, Optional, Union
+from typing import Awaitable, Callable, Dict, Optional, Union
 
 from redis import asyncio as aioredis
 
@@ -184,8 +184,8 @@ class RedisManager:
 
 
 class Redis:
-    def __init__(self):
-        self._config = CONFIG.REDIS
+    def __init__(self, conf: Dict = None):
+        self._config = conf or CONFIG.REDIS
         if not self._config:
             return
         try:
