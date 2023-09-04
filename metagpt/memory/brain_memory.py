@@ -120,3 +120,9 @@ class BrainMemory(pydantic.BaseModel):
                 return
         self.history.append(msg.dict())
         self.is_dirty = True
+
+    def exists(self, text) -> bool:
+        for m in reversed(self.history):
+            if m.get("content") == text:
+                return True
+        return False
