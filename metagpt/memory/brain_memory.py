@@ -103,7 +103,9 @@ class BrainMemory(pydantic.BaseModel):
         v = await redis.get(key=redis_key)
         if v:
             data = json.loads(v)
-            return BrainMemory(**data)
+            bm = BrainMemory(**data)
+            bm.is_dirty = False
+            return bm
         return BrainMemory()
 
     async def dumps(self, redis_key: str, timeout_sec: int = 30 * 60, redis_conf: Dict = None):
@@ -112,6 +114,7 @@ class BrainMemory(pydantic.BaseModel):
             return False
         v = self.json()
         await redis.set(key=redis_key, data=v, timeout_sec=timeout_sec)
+        self.is_dirty = False
 
     @staticmethod
     def to_redis_key(prefix: str, user_id: str, chat_id: str):
