@@ -96,12 +96,12 @@ class BrainMemory(pydantic.BaseModel):
     async def loads(redis_key: str) -> "BrainMemory":
         redis = Redis()
         if not redis.is_valid() or not redis_key:
-            return False
+            return BrainMemory()
         v = await redis.get(key=redis_key)
         if not v:
             data = json.loads(v)
             return BrainMemory(**data)
-        return None
+        return BrainMemory()
 
     async def dumps(self, redis_key: str, timeout_sec: int = 30 * 60):
         redis = Redis()
