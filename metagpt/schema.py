@@ -37,6 +37,7 @@ class Message:
     sent_from: str = field(default="")
     send_to: str = field(default="")
     tags: Optional[Set] = field(default=None)
+    id: str = None
 
     def __str__(self):
         # prefix = '-'.join([self.role, str(self.cause_by)])
