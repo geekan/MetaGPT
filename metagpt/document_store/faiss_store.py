@@ -51,7 +51,7 @@ class FaissStore(LocalStore):
         store.index = index
 
     def search(self, query, expand_cols=False, sep='\n', *args, k=5, **kwargs):
-        rsp = self.store.similarity_search(query, k=k)
+        rsp = self.store.similarity_search(query, k=k, **kwargs)
         logger.debug(rsp)
         if expand_cols:
             return str(sep.join([f"{x.page_content}: {x.metadata}" for x in rsp]))
