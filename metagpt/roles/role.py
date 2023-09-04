@@ -97,8 +97,9 @@ class RoleContext(BaseModel):
     def prerequisite(self):
         """Retrieve information with `prerequisite` tag"""
         if self.memory and hasattr(self.memory, "get_by_tags"):
-            return self.memory.get_by_tags([MessageTag.Prerequisite.value])
-        return ""
+            vv = self.memory.get_by_tags([MessageTag.Prerequisite.value])
+            return vv[-1:] if len(vv) > 1 else vv
+        return []
 
 
 class Role:
