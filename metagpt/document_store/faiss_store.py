@@ -14,7 +14,6 @@ import faiss
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
 
-from metagpt.config import CONFIG
 from metagpt.const import DATA_PATH
 from metagpt.document_store.base_store import LocalStore
 from metagpt.document_store.document import Document
@@ -41,7 +40,7 @@ class FaissStore(LocalStore):
     def _write(self, docs, metadatas):
         store = FAISS.from_texts(
             docs,
-            OpenAIEmbeddings(openai_api_version="2020-11-07", openai_api_key=CONFIG.OPENAI_API_KEY),
+            OpenAIEmbeddings(openai_api_version="2020-11-07"),
             metadatas=metadatas,
         )
         return store
