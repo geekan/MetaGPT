@@ -26,7 +26,7 @@ class TalkAction(Action):
         self._rsp = None
 
     @property
-    def prompt_old(self):
+    def prompt(self):
         prompt = ""
         if CONFIG.agent_description:
             prompt = (
@@ -34,10 +34,11 @@ class TalkAction(Action):
                 f"maintaining the character's persona and habits. When faced with unrelated questions, playfully "
                 f"decline to answer without revealing your AI nature to preserve the character's image.\n\n"
             )
-        prompt += f"Background knowledge:\n{self._knowledge}\n\n" if self._knowledge else ""
+        prompt += f"Knowledge:\n{self._knowledge}\n\n" if self._knowledge else ""
         prompt += f"{self._history_summary}\n\n"
-        if self._history_summary != "":
-            prompt += "According to the historical conversation above, "
+        prompt += (
+            "If the information is insufficient, you can search in the historical conversation or knowledge above."
+        )
         language = CONFIG.language or DEFAULT_LANGUAGE
         prompt += (
             f"Answer the following questions strictly in {language}, and the answers must follow the Markdown format.\n "
@@ -46,7 +47,7 @@ class TalkAction(Action):
         return prompt
 
     @property
-    def prompt(self):
+    def prompt_bad(self):
         kvs = {
             "{role}": CONFIG.agent_description or "",
             "{history}": self._history_summary or "",
