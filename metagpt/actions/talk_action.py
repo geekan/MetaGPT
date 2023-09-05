@@ -75,7 +75,6 @@ class TalkAction(Action):
   "[ASK_BEGIN]" and [ASK_END] tags enclose the requirements for your to respond;
   "Constraint" defines the conditions that your responses must comply with.
   “Personality” defines your language style。
-  "Command" defines the action to do when command keyword is entered.
   "Insight" provides a deeper understanding of the characters' inner traits.
   "Initial" defines the initial setup of a character.
 
@@ -116,7 +115,6 @@ Statement: Unless you are a language professional, answer the following question
   "[ASK_BEGIN]" and [ASK_END] tags enclose the requirements for your to respond;
   "Constraint" defines the conditions that your responses must comply with.
   “Personality” defines your language style。
-  "Command" defines the action to do when command keyword is entered.
   "Insight" provides a deeper understanding of the characters' inner traits.
   "Initial" defines the initial setup of a character.
 
