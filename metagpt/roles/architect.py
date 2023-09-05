@@ -11,9 +11,28 @@ from metagpt.roles import Role
 
 
 class Architect(Role):
-    """Architect: Listen to PRD, responsible for designing API, designing code files"""
-    def __init__(self, name="Bob", profile="Architect", goal="Design a concise, usable, complete python system",
-                 constraints="Try to specify good open source tools as much as possible"):
+    """
+    Represents an Architect role in a software development process.
+    
+    Attributes:
+        name (str): Name of the architect.
+        profile (str): Role profile, default is 'Architect'.
+        goal (str): Primary goal or responsibility of the architect.
+        constraints (str): Constraints or guidelines for the architect.
+    """
+    
+    def __init__(self, 
+                 name: str = "Bob", 
+                 profile: str = "Architect", 
+                 goal: str = "Design a concise, usable, complete python system",
+                 constraints: str = "Try to specify good open source tools as much as possible") -> None:
+        """Initializes the Architect with given attributes."""
         super().__init__(name, profile, goal, constraints)
+        
+        # Initialize actions specific to the Architect role
         self._init_actions([WriteDesign])
+        
+        # Set events or actions the Architect should watch or be aware of
         self._watch({WritePRD})
+
+        

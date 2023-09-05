@@ -33,7 +33,7 @@
 
 ![Jinri Toutiao Recsys データと API デザイン](resources/workspace/content_rec_sys/resources/data_api_design.png)
 
-解析と設計を含む 1 つの例を生成するのに、**$0.2** （GPT-4 の api のコスト）程度、完全なプロジェクトには **$2.0** 程度が必要です。
+解析と設計を含む 1 つの例を生成するのに約 **$0.2**（GPT-4 の API 使用料）、完全なプロジェクトでは約 **$2.0** かかります。
 
 ## インストール
 
@@ -70,6 +70,8 @@ Chromium のダウンロードをスキップすることができます。
     PUPPETEER_CONFIG: "./config/puppeteer-config.json"
     MMDC: "./node_modules/.bin/mmdc"
     ```
+
+- もし `python setup.py install` がエラー `[Errno 13] Permission denied: '/usr/local/lib/python3.11/dist-packages/test-easy-install-13129.write-test'` で失敗したら、代わりに `python setup.py install --user` を実行してみてください
 
 ### Docker によるインストール
 
@@ -194,7 +196,21 @@ async def startup(idea: str, investment: float = 3.0, n_round: int = 5):
 ## クイックスタート
 ローカル環境のインストールや設定は、ユーザーによっては難しいものです。以下のチュートリアルで MetaGPT の魅力をすぐに体験できます。
 
-- [MetaGPT クイックスタート](https://deepwisdom.feishu.cn/wiki/Q8ycw6J9tiNXdHk66MRcIN8Pnlg)
+- [MetaGPT クイックスタート](https://deepwisdom.feishu.cn/wiki/CyY9wdJc4iNqArku3Lncl4v8n2b)
+
+## 引用
+
+現時点では、[Arxiv 論文](https://arxiv.org/abs/2308.00352)を引用してください:
+```bibtex
+@misc{hong2023metagpt,
+      title={MetaGPT: Meta Programming for Multi-Agent Collaborative Framework},
+      author={Sirui Hong and Xiawu Zheng and Jonathan Chen and Yuheng Cheng and Jinlin Wang and Ceyao Zhang and Zili Wang and Steven Ka Shing Yau and Zijuan Lin and Liyang Zhou and Chenyu Ran and Lingfeng Xiao and Chenglin Wu},
+      year={2023},
+      eprint={2308.00352},
+      archivePrefix={arXiv},
+      primaryClass={cs.AI}
+}
+```
 
 ## お問い合わせ先
 

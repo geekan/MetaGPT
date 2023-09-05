@@ -48,13 +48,11 @@ class RateLimiter:
 
         self.last_call_time = time.time()
 
-
 class Costs(NamedTuple):
     total_prompt_tokens: int
     total_completion_tokens: int
     total_cost: float
     total_budget: float
-
 
 class CostManager(metaclass=Singleton):
     """计算使用接口的开销"""
@@ -102,18 +100,26 @@ class CostManager(metaclass=Singleton):
         """
         return self.total_completion_tokens
 
-    def get_total_cost(self):
-        """
-        Get the total cost of API calls.
+def get_total_cost(self):
+    """
+    Get the total cost of API calls.
 
-        Returns:
-        float: The total cost of API calls.
-        """
-        return self.total_cost
+    Returns:
+    float: The total cost of API calls.
+    """
+    return self.total_cost
 
-    def get_costs(self) -> Costs:
-        """获得所有开销"""
-        return Costs(self.total_prompt_tokens, self.total_completion_tokens, self.total_cost, self.total_budget)
+def get_costs(self) -> Costs:
+    """Get all costs"""
+    return Costs(self.total_prompt_tokens, self.total_completion_tokens, self.total_cost, self.total_budget)
+
+def log_and_reraise(retry_state):
+    logger.error(f"Retry attempts exhausted. Last exception: {retry_state.outcome.exception()}")
+    logger.warning("""
+Recommend going to https://deepwisdom.feishu.cn/wiki/MsGnwQBjiif9c3koSJNcYaoSnu4#part-XdatdVlhEojeAfxaaEZcMV3ZniQ
+See FAQ 5.8
+""")
+    raise retry_state.outcome.exception()
 
 
 def log_and_reraise(retry_state):
@@ -238,7 +244,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             return usage
 
     async def acompletion_batch(self, batch: list[list[dict]]) -> list[dict]:
-        """返回完整JSON"""
+        """Return full JSON"""
         split_batches = self.split_batches(batch)
         all_results = []
 
@@ -254,7 +260,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         return all_results
 
     async def acompletion_batch_text(self, batch: list[list[dict]]) -> list[str]:
-        """仅返回纯文本"""
+        """Only return plain text"""
         raw_results = await self.acompletion_batch(batch)
         results = []
         for idx, raw_result in enumerate(raw_results, start=1):

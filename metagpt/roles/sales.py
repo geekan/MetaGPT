@@ -32,3 +32,4 @@ class Sales(Role):
         else:
             action = SearchAndSummarize()
         self._init_actions([action])
+        
