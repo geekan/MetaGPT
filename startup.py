@@ -24,7 +24,7 @@ async def startup(idea: str, investment: float = 3.0, n_round: int = 5,
     await company.run(n_round=n_round)
 
 
-def main(idea: str, investment: float = 3.0, n_round: int = 5, code_review: bool = False, run_tests: bool = False):
+def main(idea: str ='写一个贪吃蛇命令行游戏', investment: float = 3.0, n_round: int = 5, code_review: bool = False, run_tests: bool = False):
     """
     We are a software startup comprised of AI. By investing in us, you are empowering a future filled with limitless possibilities.
     :param idea: Your innovative idea, such as "Creating a snake game."

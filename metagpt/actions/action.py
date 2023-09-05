@@ -11,15 +11,16 @@ from typing import Optional
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 from metagpt.actions.action_output import ActionOutput
-from metagpt.llm import LLM
+import metagpt.llm as LLM
 from metagpt.utils.common import OutputParser
 from metagpt.logs import logger
+from metagpt.config import CONFIG
 
 class Action(ABC):
     def __init__(self, name: str = '', context=None, llm: LLM = None):
         self.name: str = name
         if llm is None:
-            llm = LLM()
+            llm=LLM.DEFAULT_LLM
         self.llm = llm
         self.context = context
         self.prefix = ""
@@ -54,13 +55,42 @@ class Action(ABC):
         if not system_msgs:
             system_msgs = []
         system_msgs.append(self.prefix)
-        content = await self.llm.aask(prompt, system_msgs)
-        logger.debug(content)
-        output_class = ActionOutput.create_model_class(output_class_name, output_data_mapping)
-        parsed_data = OutputParser.parse_data_with_mapping(content, output_data_mapping)
-        logger.debug(parsed_data)
-        instruct_content = output_class(**parsed_data)
-        return ActionOutput(content, instruct_content)
+        if not CONFIG.no_api_mode:
+            content = await self.llm.aask(prompt, system_msgs)
+            logger.debug(content)
+            output_class = ActionOutput.create_model_class(output_class_name, output_data_mapping)
+            parsed_data = OutputParser.parse_data_with_mapping(content, output_data_mapping)
+            logger.debug(parsed_data)
+        try:
+            instruct_content = output_class(**parsed_data)
+            return ActionOutput(content, instruct_content)
+        except Exception as e:
+            print('Error:',e)
+        print('自动运行出错，切换为手动运行')
+        print('prompt为')
+        print('\n'.join( system_msgs)+prompt)
+        print('输入格式:')
+        print(output_data_mapping)
+        print('请准备输入,输入完成按ctrl+Z')
+        while True:
+            try:
+                lines=[]
+                while True:
+                    try:
+                        lines.append(input())
+                    except:
+                        break
+
+                content ='\n'.join(lines)
+                output_class = ActionOutput.create_model_class(output_class_name, output_data_mapping)
+                parsed_data = OutputParser.parse_data_with_mapping(content, output_data_mapping)
+                logger.debug(parsed_data)
+                instruct_content = output_class(**parsed_data)
+                return ActionOutput(content, instruct_content)
+            except Exception as e:
+                print('Error:',e)
+                print('输入错误，请重试')
+
 
     async def run(self, *args, **kwargs):
         """Run action"""

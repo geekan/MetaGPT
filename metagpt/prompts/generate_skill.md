@@ -10,10 +10,10 @@
 ```python
 from typing import Optional
 from abc import ABC
-from metagpt.llm import LLM # 大语言模型，类似GPT
+import metagpt.llm as LLM # 大语言模型，类似GPT
 
 class Action(ABC):
-    def __init__(self, name='', context=None, llm: LLM = LLM()):
+    def __init__(self, name='', context=None, llm: llm=LLM.DEFAULT_LLM):
         self.name = name
         self.llm = llm
         self.context = context

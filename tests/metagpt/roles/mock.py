@@ -16,7 +16,7 @@ DETAIL_REQUIREMENT = """需求：开发一个基于LLM（大语言模型）与�
 3. 私有知识库支持pdf、word、txt等各种文件格式上传，上传后可以在服务端解析为文本，存储ES
 
 资源：
-1. 大语言模型已经有前置的抽象、部署，可以通过 `from metagpt.llm import LLM`，再使用`LLM().ask(prompt)`直接调用
+1. 大语言模型已经有前置的抽象、部署，可以通过 `import metagpt.llm as LLM`，再使用`LLM().ask(prompt)`直接调用
 2. Elastic已有[部署](http://192.168.50.82:9200/)，代码可以直接使用这个部署"""
 
 

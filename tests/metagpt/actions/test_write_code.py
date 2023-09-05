@@ -8,7 +8,7 @@
 import pytest
 
 from metagpt.actions.write_code import WriteCode
-from metagpt.llm import LLM
+import metagpt.llm as LLM
 from metagpt.logs import logger
 from tests.metagpt.actions.mock import TASKS_2, WRITE_CODE_PROMPT_SAMPLE
 
@@ -29,6 +29,6 @@ async def test_write_code():
 @pytest.mark.asyncio
 async def test_write_code_directly():
     prompt = WRITE_CODE_PROMPT_SAMPLE + '\n' + TASKS_2[0]
-    llm = LLM()
+    llm=LLM.DEFAULT_LLM
     rsp = await llm.aask(prompt)
     logger.info(rsp)

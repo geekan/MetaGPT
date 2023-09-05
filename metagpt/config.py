@@ -45,8 +45,18 @@ class Config(metaclass=Singleton):
         self.global_proxy = self._get("GLOBAL_PROXY")
         self.openai_api_key = self._get("OPENAI_API_KEY")
         self.anthropic_api_key = self._get("Anthropic_API_KEY")
+
+        #星火大模型相关
+        self.xinghuo_appid = self._get("xinghuo_appid")
+        self.xinghuo_api_secret = self._get("xinghuo_api_secret")
+        self.xinghuo_api_key = self._get("xinghuo_api_key")
+        self.domain=self._get("domain")
+        self.Spark_url=self._get("Spark_url")
+        self.no_api_mode=self._get("no_api_mode")
         if (not self.openai_api_key or "YOUR_API_KEY" == self.openai_api_key) and (
             not self.anthropic_api_key or "YOUR_API_KEY" == self.anthropic_api_key
+        )and (
+            not self.xinghuo_api_key or "APIKey" == self.xinghuo_api_key
         ):
             raise NotConfiguredException("Set OPENAI_API_KEY or Anthropic_API_KEY first")
         self.openai_api_base = self._get("OPENAI_API_BASE")
