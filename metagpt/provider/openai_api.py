@@ -176,29 +176,23 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         return full_reply_content
 
     def _cons_kwargs(self, messages: list[dict]) -> dict:
+        kwargs = {
+            "messages": messages,
+            "max_tokens": self.get_max_tokens(messages),
+            "n": 1,
+            "stop": None,
+            "temperature": 0.3,
+        }
         if CONFIG.openai_api_type == "azure":
             if CONFIG.openai_api_engine and CONFIG.deployment_id:
-                raise ValueError("You can only use one of `deployment_id` or `engine` model in azure")
+                raise ValueError("You can only use one of the `deployment_id` or `engine` model")
             elif not CONFIG.openai_api_engine and not CONFIG.deployment_id:
                 raise ValueError("You must specify `OPENAI_API_ENGINE` or `DEPLOYMENT_ID` parameter")
-            kwargs_mode = {"engine": CONFIG.openai_api_engine} if CONFIG.openai_api_engine else {"deployment_id": CONFIG.deployment_id}
-            kwargs = {
-                "messages": messages,
-                "max_tokens": self.get_max_tokens(messages),
-                "n": 1,
-                "stop": None,
-                "temperature": 0.3,
-            }
-            kwargs.update(kwargs_mode)
+            kwargs_mode = {"engine": CONFIG.openai_api_engine} if CONFIG.openai_api_engine \
+                else {"deployment_id": CONFIG.deployment_id}
         else:
-            kwargs = {
-                "model": self.model,
-                "messages": messages,
-                "max_tokens": self.get_max_tokens(messages),
-                "n": 1,
-                "stop": None,
-                "temperature": 0.3,
-            }
+            kwargs_mode = {"model": self.model}
+        kwargs.update(kwargs_mode)
         kwargs["timeout"] = 3
         return kwargs
 
