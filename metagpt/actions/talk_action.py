@@ -85,11 +85,15 @@ Statement: Your responses should align with the role-play agreement, maintaining
  your AI nature to preserve the character's image.
 
 [HISTORY_BEGIN]
+
 {history}
+
 [HISTORY_END]
 
 [KNOWLEDGE_BEGIN]
+
 {knowledge}
+
 [KNOWLEDGE_END]
 
 Statement: If the information is insufficient, you can search in the historical conversation or knowledge.
@@ -121,11 +125,15 @@ Statement: Your responses should maintaining the character's persona and habits.
 , playfully decline to answer without revealing your AI nature to preserve the character's image. 
 
 [HISTORY_BEGIN]
+
 {history}
+
 [HISTORY_END]
 
 [KNOWLEDGE_BEGIN]
+
 {knowledge}
+
 [KNOWLEDGE_END]
 
 Statement: If the information is insufficient, you can search in the historical conversation or knowledge.
