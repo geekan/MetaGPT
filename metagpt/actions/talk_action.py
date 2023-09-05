@@ -74,7 +74,7 @@ class TalkAction(Action):
   "Statement" defines the work detail you need to complete at this stage;
   "[ASK_BEGIN]" and [ASK_END] tags enclose the questions;
   "Constraint" defines the conditions that your responses must comply with.
-  “Personality” defines your language style。
+  "Personality" defines your language style。
   "Insight" provides a deeper understanding of the characters' inner traits.
   "Initial" defines the initial setup of a character.
 
@@ -114,7 +114,7 @@ Statement: Unless you are a language professional, answer the following question
   "Statement" defines the work detail you need to complete at this stage;
   "[ASK_BEGIN]" and [ASK_END] tags enclose the questions;
   "Constraint" defines the conditions that your responses must comply with.
-  “Personality” defines your language style。
+  "Personality" defines your language style。
   "Insight" provides a deeper understanding of the characters' inner traits.
   "Initial" defines the initial setup of a character.
 
