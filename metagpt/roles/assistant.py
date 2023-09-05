@@ -57,10 +57,7 @@ class Assistant(Role):
         prompt = f"Refer to this sentence:\n {last_talk}\n"
         skills = self.skills.get_skill_list()
         for desc, name in skills.items():
-            prompt += (
-                f"If want you to do {desc}, return `[SKILL]: {name}` brief and clear. For instance: [SKILL]: {name}\n"
-            )
-        prompt += "If the user's intent is unclear, return `[TALK]: {talk}` brief and clear. For instance: [TALK]: distribute watermelon\n"
+            prompt += f"If explicitly want you to do {desc}, return `[SKILL]: {name}` brief and clear. For instance: [SKILL]: {name}\n"
         prompt += "Otherwise, return `[TALK]: {talk}` brief and clear. For instance: [TALK]: distribute watermelon"
         logger.info(prompt)
         rsp = await self._llm.aask(prompt, [])
