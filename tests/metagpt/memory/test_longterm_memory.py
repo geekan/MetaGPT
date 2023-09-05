@@ -4,11 +4,11 @@
 @Desc   : unittest of `metagpt/memory/longterm_memory.py`
 @Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
 """
-from metagpt.config import Config
-from metagpt.schema import Message
 from metagpt.actions import BossRequirement
-from metagpt.roles.role import RoleContext
+from metagpt.config import Config
 from metagpt.memory import LongTermMemory
+from metagpt.roles.role import RoleContext
+from metagpt.schema import Message
 
 
 def test_ltm_search():
@@ -17,28 +17,28 @@ def test_ltm_search():
     openai_api_key = conf.openai_api_key
     assert len(openai_api_key) > 20
 
-    role_id = 'UTUserLtm(Product Manager)'
-    rc = RoleContext(options=conf.runtime_options, watch=[BossRequirement])
+    role_id = "UTUserLtm(Product Manager)"
+    rc = RoleContext(watch=[BossRequirement])
     ltm = LongTermMemory()
     ltm.recover_memory(role_id, rc)
 
-    idea = 'Write a cli snake game'
-    message = Message(role='BOSS', content=idea, cause_by=BossRequirement)
+    idea = "Write a cli snake game"
+    message = Message(role="BOSS", content=idea, cause_by=BossRequirement)
     news = ltm.remember([message])
     assert len(news) == 1
-    ltm.add(message, **conf.runtime_options)
+    ltm.add(message)
 
-    sim_idea = 'Write a game of cli snake'
-    sim_message = Message(role='BOSS', content=sim_idea, cause_by=BossRequirement)
+    sim_idea = "Write a game of cli snake"
+    sim_message = Message(role="BOSS", content=sim_idea, cause_by=BossRequirement)
     news = ltm.remember([sim_message])
     assert len(news) == 0
-    ltm.add(sim_message, **conf.runtime_options)
+    ltm.add(sim_message)
 
-    new_idea = 'Write a 2048 web game'
-    new_message = Message(role='BOSS', content=new_idea, cause_by=BossRequirement)
+    new_idea = "Write a 2048 web game"
+    new_message = Message(role="BOSS", content=new_idea, cause_by=BossRequirement)
     news = ltm.remember([new_message])
     assert len(news) == 1
-    ltm.add(new_message, **conf.runtime_options)
+    ltm.add(new_message)
 
     # restore from local index
     ltm_new = LongTermMemory()
@@ -50,8 +50,8 @@ def test_ltm_search():
     news = ltm_new.remember([sim_message])
     assert len(news) == 0
 
-    new_idea = 'Write a Battle City'
-    new_message = Message(role='BOSS', content=new_idea, cause_by=BossRequirement)
+    new_idea = "Write a Battle City"
+    new_message = Message(role="BOSS", content=new_idea, cause_by=BossRequirement)
     news = ltm_new.remember([new_message])
     assert len(news) == 1
 

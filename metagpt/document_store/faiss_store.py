@@ -4,7 +4,6 @@
 @Time    : 2023/5/25 10:20
 @Author  : alexanderwu
 @File    : faiss_store.py
-@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
 """
 import pickle
 from pathlib import Path
@@ -21,7 +20,7 @@ from metagpt.logs import logger
 
 
 class FaissStore(LocalStore):
-    def __init__(self, raw_data: Path, cache_dir=None, meta_col='source', content_col='output'):
+    def __init__(self, raw_data: Path, cache_dir=None, meta_col="source", content_col="output"):
         self.meta_col = meta_col
         self.content_col = content_col
         super().__init__(raw_data, cache_dir)
@@ -37,11 +36,8 @@ class FaissStore(LocalStore):
         store.index = index
         return store
 
-    def _write(self, docs, metadatas, **kwargs):
-        store = FAISS.from_texts(docs,
-                                 OpenAIEmbeddings(openai_api_version="2020-11-07",
-                                                  openai_api_key=kwargs.get("OPENAI_API_KEY")),
-                                 metadatas=metadatas)
+    def _write(self, docs, metadatas):
+        store = FAISS.from_texts(docs, OpenAIEmbeddings(openai_api_version="2020-11-07"), metadatas=metadatas)
         return store
 
     def persist(self):
@@ -54,7 +50,7 @@ class FaissStore(LocalStore):
             pickle.dump(store, f)
         store.index = index
 
-    def search(self, query, expand_cols=False, sep='\n', *args, k=5, **kwargs):
+    def search(self, query, expand_cols=False, sep="\n", *args, k=5, **kwargs):
         rsp = self.store.similarity_search(query, k=k, **kwargs)
         logger.debug(rsp)
         if expand_cols:
@@ -82,8 +78,8 @@ class FaissStore(LocalStore):
         raise NotImplementedError
 
 
-if __name__ == '__main__':
-    faiss_store = FaissStore(DATA_PATH / 'qcs/qcs_4w.json')
-    logger.info(faiss_store.search('油皮洗面奶'))
-    faiss_store.add([f'油皮洗面奶-{i}' for i in range(3)])
-    logger.info(faiss_store.search('油皮洗面奶'))
+if __name__ == "__main__":
+    faiss_store = FaissStore(DATA_PATH / "qcs/qcs_4w.json")
+    logger.info(faiss_store.search("油皮洗面奶"))
+    faiss_store.add([f"油皮洗面奶-{i}" for i in range(3)])
+    logger.info(faiss_store.search("油皮洗面奶"))
