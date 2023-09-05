@@ -37,7 +37,7 @@ class TalkAction(Action):
         prompt += f"Knowledge:\n{self._knowledge}\n\n" if self._knowledge else ""
         prompt += f"{self._history_summary}\n\n"
         prompt += (
-            "If the information is insufficient, you can search in the historical conversation or knowledge above."
+            "If the information is insufficient, you can search in the historical conversation or knowledge above.\n"
         )
         language = CONFIG.language or DEFAULT_LANGUAGE
         prompt += (
