@@ -9,7 +9,7 @@ from pathlib import Path
 
 
 def get_project_root():
-    """逐级向上寻找项目根目录"""
+    """Search upwards to find the project root directory."""
     current_path = Path.cwd()
     while True:
         if (current_path / '.git').exists() or \

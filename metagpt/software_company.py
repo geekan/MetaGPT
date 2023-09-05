@@ -59,3 +59,4 @@ class SoftwareCompany(BaseModel):
             self._check_balance()
             await self.environment.run()
         return self.environment.history
+    

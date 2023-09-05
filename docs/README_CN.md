@@ -195,6 +195,7 @@ https://github.com/geekan/MetaGPT/assets/2707039/5e8c1062-8c35-440f-bb20-2b0320f
 
 ## 加入我们
 
-📢 加入我们的Discord频道！https://discord.gg/4WdszVjv
+📢 加入我们的Discord频道！
+https://discord.gg/ZRHeExS6xv
 
 期待在那里与您相见！🎉
