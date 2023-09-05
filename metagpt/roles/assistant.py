@@ -62,7 +62,7 @@ class Assistant(Role):
             )
         prompt += "If the preceding text presents a complete question and solution, rewrite and return `[SOLUTION]: {problem}` brief and clear. For instance: [SOLUTION]: Solution for distributing watermelon\n"
         prompt += "If the preceding text presents an unresolved issue and its corresponding discussion, rewrite and return `[PROBLEM]: {problem}` brief and clear. For instance: [PROBLEM]: How to distribute watermelon?\n"
-        prompt += "Otherwise, rewrite and return `[TALK]: {talk}` brief and clear. For instance: [TALK]: distribute watermelon"
+        prompt += "Otherwise, return `[TALK]: {talk}` brief and clear. For instance: [TALK]: distribute watermelon"
         logger.info(prompt)
         rsp = await self._llm.aask(prompt, [])
         logger.info(rsp)
