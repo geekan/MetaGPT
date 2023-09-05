@@ -60,8 +60,7 @@ class Assistant(Role):
             prompt += (
                 f"If want you to do {desc}, return `[SKILL]: {name}` brief and clear. For instance: [SKILL]: {name}\n"
             )
-        prompt += "If the preceding text presents a complete question and solution, rewrite and return `[SOLUTION]: {problem}` brief and clear. For instance: [SOLUTION]: Solution for distributing watermelon\n"
-        prompt += "If the preceding text presents an unresolved issue and its corresponding discussion, rewrite and return `[PROBLEM]: {problem}` brief and clear. For instance: [PROBLEM]: How to distribute watermelon?\n"
+        prompt += "If the user's intent is unclear, return `[TALK]: {talk}` brief and clear. For instance: [TALK]: distribute watermelon\n"
         prompt += "Otherwise, return `[TALK]: {talk}` brief and clear. For instance: [TALK]: distribute watermelon"
         logger.info(prompt)
         rsp = await self._llm.aask(prompt, [])
@@ -90,7 +89,6 @@ class Assistant(Role):
         skill, text = Assistant.extract_info(input_string=rsp)
         handlers = {
             MessageType.Talk.value: self.talk_handler,
-            MessageType.Problem.value: self.talk_handler,
             MessageType.Skill.value: self.skill_handler,
         }
         handler = handlers.get(skill, self.talk_handler)
