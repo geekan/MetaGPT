@@ -177,15 +177,19 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
 
     def _cons_kwargs(self, messages: list[dict]) -> dict:
         if CONFIG.openai_api_type == "azure":
+            if CONFIG.openai_api_engine and CONFIG.deployment_id:
+                raise ValueError("You can only use one of `deployment_id` or `engine` model in azure")
+            elif not CONFIG.openai_api_engine and not CONFIG.deployment_id:
+                raise ValueError("You must specify `OPENAI_API_ENGINE` or `DEPLOYMENT_ID` parameter")
+            kwargs_mode = {"engine": CONFIG.openai_api_engine} if CONFIG.openai_api_engine else {"deployment_id": CONFIG.deployment_id}
             kwargs = {
-                "engine": CONFIG.openai_api_engine,
-                "deployment_id": CONFIG.deployment_id,
                 "messages": messages,
                 "max_tokens": self.get_max_tokens(messages),
                 "n": 1,
                 "stop": None,
                 "temperature": 0.3,
             }
+            kwargs.update(kwargs_mode)
         else:
             kwargs = {
                 "model": self.model,
