@@ -278,16 +278,14 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
     async def is_related(self, text1, text2):
         p1 = text1.replace("\n", " ")
         p2 = text2.replace("\n", " ")
-        command = f"Paragraph 1: {p1}\n\nParagraph 2: {p2}\n\nIf the two Paragraphs above are related, return [TRUE] brief and clear. Otherwise, return [FALSE]."
+        command = f"Paragraph 1: {p2}\n\nParagraph 2: {p1}\n\nIf the two Paragraphs above are related, return [TRUE] brief and clear. Otherwise, return [FALSE]."
         rsp = await self.aask(msg=command, system_msgs=[])
-        logger.info(f"RELATED:{rsp}\n\n{p1}\n{p2}")
         result, _ = self.extract_info(rsp)
         return result == "TRUE"
 
     async def rewrite(self, sentence: str, context: str):
         command = f"{context}\n\nTaking into account the information above, please rephrase and provide the revised sentence:\n{sentence}"
         rsp = await self.aask(msg=command, system_msgs=[])
-        logger.info(f"REWRITE:{rsp}\nFROM\n\n{sentence}")
         return rsp
 
     @staticmethod
