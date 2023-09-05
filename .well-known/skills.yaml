@@ -21,7 +21,9 @@ entities:
          - ask: 'A boy affectionate says "hello world"'
            answer: 'text_to_speech(text="hello world", role="Boy", style="affectionate")'
          - ask: 'A boy says "你好"'
-           answer: 'text_to_speech(text="hello world", role="Boy", lang="Chinese")'
+           answer: 'text_to_speech(text="你好", role="Boy", lang="Chinese")'
+         - ask: 'How to speak "你好"?'
+           answer: 'text_to_speech(text="你好", lang="Chinese")'
        returns:
          type: string
          format: base64
@@ -41,6 +43,10 @@ entities:
          - ask: 'Draw a girl'
            answer: 'text_to_image(text="Draw a girl", size_type="512x512")'
          - ask: 'Draw an apple'
+           answer: 'text_to_image(text="Draw an apple", size_type="512x512")'
+         - ask: 'Draw an apple picture'
+           answer: 'text_to_image(text="Draw an apple", size_type="512x512")'
+         - ask: 'Draw an apple image'
            answer: 'text_to_image(text="Draw an apple", size_type="512x512")'
        returns:
          type: string
