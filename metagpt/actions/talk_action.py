@@ -98,7 +98,11 @@ Statement: Unless you are a language professional, answer the following question
 , "[HISTORY_END]", "[KNOWLEDGE_BEGIN]", "[KNOWLEDGE_END]", "[ASK_BEGIN]", "[ASK_END]" in responses.
  
 [ASK_BEGIN]
+
+
 {ask}
+
+
 [ASK_END]"""
 
     __FORMATION_LOOSE__ = """Formation: "Capacity and role" defines the role you are currently playing;
@@ -130,5 +134,9 @@ Statement: Unless you are a language professional, answer the following question
 , "[HISTORY_END]", "[KNOWLEDGE_BEGIN]", "[KNOWLEDGE_END]", "[ASK_BEGIN]", "[ASK_END]" in responses.
 
 [ASK_BEGIN]
+
+
 {ask}
+
+
 [ASK_END]"""
