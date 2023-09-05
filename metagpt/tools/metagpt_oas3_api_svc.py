@@ -7,8 +7,8 @@
 @Desc    : MetaGPT OpenAPI Specification 3.0 REST API service
 """
 import asyncio
-from pathlib import Path
 import sys
+from pathlib import Path
 
 import connexion
 
@@ -17,7 +17,7 @@ sys.path.append(str(Path(__file__).resolve().parent.parent.parent))  # fix-bug: 
 
 def oas_http_svc():
     """Start the OAS 3.0 OpenAPI HTTP service"""
-    app = connexion.AioHttpApp(__name__, specification_dir='../../.well-known/')
+    app = connexion.AioHttpApp(__name__, specification_dir="../../.well-known/")
     app.add_api("metagpt_oas3_api.yaml")
     app.add_api("openapi.yaml")
     app.run(port=8080)
@@ -35,6 +35,7 @@ async def async_main():
 
 
 def main():
+    print("http://localhost:8080/oas3/ui/")
     oas_http_svc()
 
 
