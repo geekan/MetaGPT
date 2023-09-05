@@ -97,22 +97,17 @@ Statement: Your responses should align with the role-play agreement, maintaining
 
 Statement: If the information is insufficient, you can search in the historical conversation or knowledge.
 Statement: Unless you are a language professional, answer the following questions strictly in {language}
-, and the answers must follow the Markdown format, strictly excluding any tag likes "[HISTORY_BEGIN]"
-, "[HISTORY_END]", "[KNOWLEDGE_BEGIN]", "[KNOWLEDGE_END]", "[ASK_BEGIN]", "[ASK_END]" in responses.
+, and the answers must follow the Markdown format. Strictly excluding any tag likes "[HISTORY_BEGIN]"
+, "[HISTORY_END]", "[KNOWLEDGE_BEGIN]", "[KNOWLEDGE_END]" in responses.
  
-[ASK_BEGIN]
-
 
 {ask}
-
-
-[ASK_END]"""
+"""
 
     __FORMATION_LOOSE__ = """Formation: "Capacity and role" defines the role you are currently playing;
   "[HISTORY_BEGIN]" and "[HISTORY_END]" tags enclose the historical conversation;
   "[KNOWLEDGE_BEGIN]" and "[KNOWLEDGE_END]" tags enclose the knowledge may help for your responses;
   "Statement" defines the work detail you need to complete at this stage;
-  "[ASK_BEGIN]" and [ASK_END] tags enclose the questions;
   "Constraint" defines the conditions that your responses must comply with.
   "Personality" defines your language style。
   "Insight" provides a deeper understanding of the characters' inner traits.
@@ -136,13 +131,9 @@ Statement: Your responses should maintaining the character's persona and habits.
 
 Statement: If the information is insufficient, you can search in the historical conversation or knowledge.
 Statement: Unless you are a language professional, answer the following questions strictly in {language}
-, and the answers must follow the Markdown format, strictly excluding any tag likes "[HISTORY_BEGIN]"
-, "[HISTORY_END]", "[KNOWLEDGE_BEGIN]", "[KNOWLEDGE_END]", "[ASK_BEGIN]", "[ASK_END]" in responses.
-
-[ASK_BEGIN]
+, and the answers must follow the Markdown format. Strictly excluding any tag likes "[HISTORY_BEGIN]"
+, "[HISTORY_END]", "[KNOWLEDGE_BEGIN]", "[KNOWLEDGE_END]" in responses.
 
 
 {ask}
-
-
-[ASK_END]"""
+"""
