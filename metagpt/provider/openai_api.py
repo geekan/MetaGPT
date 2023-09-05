@@ -318,8 +318,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         return windows
 
     @staticmethod
-    def extract_info(input_string):
-        pattern = r"\[([A-Z]+)\]:\s*(.+)"
+    def extract_info(input_string, pattern=r"\[([A-Z]+)\]:\s*(.+)"):
         match = re.match(pattern, input_string)
         if match:
             return match.group(1), match.group(2)
