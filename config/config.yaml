@@ -10,7 +10,7 @@
 #OPENAI_API_KEY: "YOUR_API_KEY"
 OPENAI_API_MODEL: "gpt-4"
 MAX_TOKENS: 1500
-RPM: 10
+RPM: 2
 
 #### if Anthropic
 #Anthropic_API_KEY: "YOUR_API_KEY"
@@ -30,7 +30,7 @@ OPENAI_API_ENGINE: "gpt-4-chatbot-ui"
 #SEARCH_ENGINE: serpapi
 
 ## Visit https://serpapi.com/ to get key.
-#SERPAPI_API_KEY: "YOUR_API_KEY"
+SERPAPI_API_KEY: "e724b0f5fe7acd39cd56ea3260f6fdc90d93bf8e91c87603fe14d586bdbc9d2b"
 
 ## Visit https://console.cloud.google.com/apis/credentials to get key.
 #GOOGLE_API_KEY: "YOUR_API_KEY"
