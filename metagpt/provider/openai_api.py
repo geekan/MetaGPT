@@ -278,7 +278,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
     async def is_related(self, text1, text2):
         p1 = text1.replace("\n", " ")
         p2 = text2.replace("\n", " ")
-        command = f"Paragraph 1:{p1}\n\nParagraph 2:{p2}\n\nIf the two Paragraphs above are related, return [TRUE] brief and clear. Otherwise, return [FALSE]."
+        command = f"Paragraph 1: {p1}\n\nParagraph 2: {p2}\n\nIf the two Paragraphs above are related, return [TRUE] brief and clear. Otherwise, return [FALSE]."
         rsp = await self.aask(msg=command, system_msgs=[])
         result, _ = self.extract_info(rsp)
         return result == "TRUE"
