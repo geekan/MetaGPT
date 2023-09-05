@@ -117,9 +117,9 @@ Statement: Your responses should maintaining the character's persona and habits.
 [KNOWLEDGE_END]
 
 Statement: If the information is insufficient, you can search in the historical conversation or knowledge.
-Statement: Answer the following questions strictly in {language}, and the answers must follow the Markdown format
- , strictly excluding any tag likes "[HISTORY_BEGIN]", "[HISTORY_END]", "[KNOWLEDGE_BEGIN]", "[KNOWLEDGE_END]"
- , "[ASK_BEGIN]", "[ASK_END]" in responses.
+Statement: Unless you are a language professional, answer the following questions strictly in {language}
+, and the answers must follow the Markdown format, strictly excluding any tag likes "[HISTORY_BEGIN]"
+, "[HISTORY_END]", "[KNOWLEDGE_BEGIN]", "[KNOWLEDGE_END]", "[ASK_BEGIN]", "[ASK_END]" in responses.
 
 [ASK_BEGIN]
 {ask}
