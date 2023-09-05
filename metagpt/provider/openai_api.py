@@ -182,18 +182,18 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             "n": 1,
             "stop": None,
             "temperature": 0.3,
+            "timeout": 3
         }
         if CONFIG.openai_api_type == "azure":
-            if CONFIG.openai_api_engine and CONFIG.deployment_id:
-                raise ValueError("You can only use one of the `deployment_id` or `engine` model")
-            elif not CONFIG.openai_api_engine and not CONFIG.deployment_id:
-                raise ValueError("You must specify `OPENAI_API_ENGINE` or `DEPLOYMENT_ID` parameter")
-            kwargs_mode = {"engine": CONFIG.openai_api_engine} if CONFIG.openai_api_engine \
+            if CONFIG.deployment_name and CONFIG.deployment_id:
+                raise ValueError("You can only use one of the `deployment_id` or `deployment_name` model")
+            elif not CONFIG.deployment_name and not CONFIG.deployment_id:
+                raise ValueError("You must specify `DEPLOYMENT_NAME` or `DEPLOYMENT_ID` parameter")
+            kwargs_mode = {"engine": CONFIG.deployment_name} if CONFIG.deployment_name \
                 else {"deployment_id": CONFIG.deployment_id}
         else:
             kwargs_mode = {"model": self.model}
         kwargs.update(kwargs_mode)
-        kwargs["timeout"] = 3
         return kwargs
 
     async def _achat_completion(self, messages: list[dict]) -> dict:
