@@ -286,7 +286,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         # command = (
         #     f"{context}\n\nConsidering the content above, rewrite and return this sentence brief and clear:\n{sentence}"
         # )
-        command = f"{context}\n\nExtract relevant information from every preceding sentence and use it to succinctly supplement or rewrite the following text:\n{sentence}"
+        command = f"{context}\n\nExtract relevant information from every preceding sentence and use it to succinctly supplement or rewrite the following text in brief and clear:\n{sentence}"
         rsp = await self.aask(msg=command, system_msgs=[])
         return rsp
 
