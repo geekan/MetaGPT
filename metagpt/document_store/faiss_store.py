@@ -4,7 +4,6 @@
 @Time    : 2023/5/25 10:20
 @Author  : alexanderwu
 @File    : faiss_store.py
-@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
 """
 import pickle
 from pathlib import Path
