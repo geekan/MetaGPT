@@ -73,6 +73,63 @@ paths:
         '500':
           description: "Internal Server Error"
 
+  /tts/iflytek:
+    x-prerequisite:
+      - name: IFLYTEK_APP_ID
+        description: "Application ID is used to access your iFlyTek service API, see: `https://console.xfyun.cn/services/tts`"
+      - name: IFLYTEK_API_KEY
+        description: "WebAPI argument, see: `https://console.xfyun.cn/services/tts`"
+      - name: IFLYTEK_API_SECRET
+        description: "WebAPI argument, see: `https://console.xfyun.cn/services/tts`"
+    post:
+      summary: "Convert Text to Base64-encoded .mp3 File Stream"
+      description: "For more details, check out: [iFlyTek](https://console.xfyun.cn/services/tts)"
+      operationId: iflytek_tts.oas3_iflytek_tts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - text
+              properties:
+                text:
+                  type: string
+                  description: Text to convert
+                voice:
+                  type: string
+                  description: "Voice style, see: [iFlyTek Text-to_Speech](https://www.xfyun.cn/doc/tts/online_tts/API.html#%E6%8E%A5%E5%8F%A3%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B)"
+                  default: "xiaoyan"
+                app_id:
+                  type: string
+                  description: "Application ID is used to access your iFlyTek service API, see: `https://console.xfyun.cn/services/tts`"
+                  default: ""
+                api_key:
+                  type: string
+                  description: "WebAPI argument, see: `https://console.xfyun.cn/services/tts`"
+                  default: ""
+                api_secret:
+                  type: string
+                  description: "WebAPI argument, see: `https://console.xfyun.cn/services/tts`"
+                  default: ""
+      responses:
+        '200':
+          description: "Base64-encoded .mp3 file data if successful, otherwise an empty string."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  wav_data:
+                    type: string
+                    format: base64
+        '400':
+          description: "Bad Request"
+        '500':
+          description: "Internal Server Error"
+
+
   /txt2img/openai:
     x-prerequisite:
       - name: OPENAI_API_KEY
