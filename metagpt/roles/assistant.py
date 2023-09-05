@@ -129,10 +129,9 @@ class Assistant(Role):
         await self.memory.set_history_summary(
             history_summary=history_summary, redis_key=CONFIG.REDIS_KEY, redis_conf=CONFIG.REDIS
         )
-        # if last_talk and await self._llm.is_related(last_talk, history_summary):  # Merge relevant content.
-        #     last_talk = await self._llm.rewrite(sentence=last_talk, context=history_text)
-        #     return last_talk
-        last_talk = await self._llm.rewrite(sentence=last_talk, context=history_text)
+        if last_talk and await self._llm.is_related(last_talk, history_summary):  # Merge relevant content.
+            last_talk = await self._llm.rewrite(sentence=last_talk, context=history_text)
+            return last_talk
 
         return last_talk
 
