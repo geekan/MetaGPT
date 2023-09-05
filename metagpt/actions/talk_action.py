@@ -74,6 +74,10 @@ class TalkAction(Action):
   "Statement" defines the work detail you need to complete at this stage;
   "[ASK_BEGIN]" and [ASK_END] tags enclose the requirements for your to respond;
   "Constraint" defines the conditions that your responses must comply with.
+  “Personality” defines your language style。
+  "Command" defines the action to do when command keyword is entered.
+  "Insight" provides a deeper understanding of the characters' inner traits.
+  "Initial" defines the initial setup of a character.
 
 Capacity and role: {role}
 Statement: Your responses should align with the role-play agreement, maintaining the
@@ -89,9 +93,9 @@ Statement: Your responses should align with the role-play agreement, maintaining
 [KNOWLEDGE_END]
 
 Statement: If the information is insufficient, you can search in the historical conversation or knowledge.
-Statement: Answer the following questions strictly in {language}, and the answers must follow the Markdown format
- , strictly excluding any tag likes "[HISTORY_BEGIN]", "[HISTORY_END]", "[KNOWLEDGE_BEGIN]", "[KNOWLEDGE_END]"
- , "[ASK_BEGIN]", "[ASK_END]" in responses.
+Statement: Unless you are a language professional, answer the following questions strictly in {language}
+, and the answers must follow the Markdown format, strictly excluding any tag likes "[HISTORY_BEGIN]"
+, "[HISTORY_END]", "[KNOWLEDGE_BEGIN]", "[KNOWLEDGE_END]", "[ASK_BEGIN]", "[ASK_END]" in responses.
  
 [ASK_BEGIN]
 {ask}
@@ -103,6 +107,10 @@ Statement: Answer the following questions strictly in {language}, and the answer
   "Statement" defines the work detail you need to complete at this stage;
   "[ASK_BEGIN]" and [ASK_END] tags enclose the requirements for your to respond;
   "Constraint" defines the conditions that your responses must comply with.
+  “Personality” defines your language style。
+  "Command" defines the action to do when command keyword is entered.
+  "Insight" provides a deeper understanding of the characters' inner traits.
+  "Initial" defines the initial setup of a character.
 
 Capacity and role: {role}
 Statement: Your responses should maintaining the character's persona and habits. When faced with unrelated questions
