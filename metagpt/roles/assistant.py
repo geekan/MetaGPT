@@ -54,18 +54,14 @@ class Assistant(Role):
         last_talk = await self.refine_memory()
         if not last_talk:
             return False
-        prompt = f"Refer to this sentence:\n {last_talk}\n"
+        prompt = ""
         skills = self.skills.get_skill_list()
         for desc, name in skills.items():
-            prompt += (
-                f"If want you to do {desc}, return `[SKILL]: {name}` brief and clear. For instance: [SKILL]: {name}\n"
-            )
-        prompt += "If the preceding text presents a complete question and solution, rewrite and return `[SOLUTION]: {problem}` brief and clear. For instance: [SOLUTION]: Solution for distributing watermelon\n"
-        prompt += "If the preceding text presents an unresolved issue and its corresponding discussion, rewrite and return `[PROBLEM]: {problem}` brief and clear. For instance: [PROBLEM]: How to distribute watermelon?\n"
-        prompt += "Otherwise, rewrite and return `[TALK]: {talk}` brief and clear. For instance: [TALK]: distribute watermelon"
-        logger.info(prompt)
+            prompt += f"If the text explicitly want you to {desc}, return `[SKILL]: {name}` brief and clear. For instance: [SKILL]: {name}\n"
+        prompt += 'Otherwise, return `[TALK]: {talk}` brief and clear. For instance: if {talk} is "xxxx" return [TALK]: xxxx\n\n'
+        prompt += f"Now what specific action is explicitly mentioned in the text: {last_talk}\n"
         rsp = await self._llm.aask(prompt, [])
-        logger.info(rsp)
+        logger.info(f"THINK: {prompt}\n, THINK RESULT: {rsp}\n")
         return await self._plan(rsp, last_talk=last_talk)
 
     async def act(self) -> ActionOutput:
@@ -90,7 +86,6 @@ class Assistant(Role):
         skill, text = Assistant.extract_info(input_string=rsp)
         handlers = {
             MessageType.Talk.value: self.talk_handler,
-            MessageType.Problem.value: self.talk_handler,
             MessageType.Skill.value: self.skill_handler,
         }
         handler = handlers.get(skill, self.talk_handler)
@@ -98,6 +93,7 @@ class Assistant(Role):
 
     async def talk_handler(self, text, **kwargs) -> bool:
         history = self.memory.history_text
+        text = kwargs.get("last_talk") or text
         action = TalkAction(
             talk=text, knowledge=self.memory.get_knowledge(), history_summary=history, llm=self._llm, **kwargs
         )

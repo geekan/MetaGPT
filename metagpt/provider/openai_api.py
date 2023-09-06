@@ -276,16 +276,22 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         return response
 
     async def is_related(self, text1, text2):
-        command = f"{text1}\n{text2}\n\nIf the two sentences above are related, return [TRUE] brief and clear. Otherwise, return [FALSE]."
+        # command = f"{text1}\n{text2}\n\nIf the two sentences above are related, return [TRUE] brief and clear. Otherwise, return [FALSE]."
+        command = f"{text2}\n\nIs there any sentence above related to the following sentence: {text1}.\nIf is there any relevance, return [TRUE] brief and clear. Otherwise, return [FALSE] brief and clear."
         rsp = await self.aask(msg=command, system_msgs=[])
-        result, _ = self.extract_info(rsp)
-        return result == "TRUE"
+        result = True if "TRUE" in rsp else False
+        p2 = text2.replace("\n", "")
+        p1 = text1.replace("\n", "")
+        logger.info(f"IS_RELATED:\nParagraph 1: {p2}\nParagraph 2: {p1}\nRESULT: {result}")
+        return result
 
     async def rewrite(self, sentence: str, context: str):
-        command = (
-            f"{context}\n\nConsidering the content above, rewrite and return this sentence brief and clear:\n{sentence}"
-        )
+        # command = (
+        #     f"{context}\n\nConsidering the content above, rewrite and return this sentence brief and clear:\n{sentence}"
+        # )
+        command = f"{context}\n\nExtract relevant information from every preceding sentence and use it to succinctly supplement or rewrite the following text in brief and clear:\n{sentence}"
         rsp = await self.aask(msg=command, system_msgs=[])
+        logger.info(f"REWRITE:\nCommand: {command}\nRESULT: {rsp}")
         return rsp
 
     @staticmethod
@@ -316,8 +322,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         return windows
 
     @staticmethod
-    def extract_info(input_string):
-        pattern = r"\[([A-Z]+)\]:\s*(.+)"
+    def extract_info(input_string, pattern=r"\[([A-Z]+)\]:\s*(.+)"):
         match = re.match(pattern, input_string)
         if match:
             return match.group(1), match.group(2)
