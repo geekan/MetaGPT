@@ -7,10 +7,12 @@
 @Describe : Tutorial Assistant's prompt templates.
 """
 
-
-DIRECTORY_PROMPT = """
+COMMON_PROMPT = """
 You are now a seasoned technical professional in the field of the internet. 
-We need you to write a technical tutorial with the topic "{topic}". 
+We need you to write a technical tutorial with the topic "{topic}".
+"""
+
+DIRECTORY_PROMPT = COMMON_PROMPT + """
 Please provide the specific table of contents for this tutorial, strictly following the following requirements:
 1. The output must be strictly in the specified language, {language}.
 2. Answer in the dictionary format like {{"title": "xxx", "directory": [{{"dir 1": ["sub dir 1", "sub dir 2"]}}]}}.
@@ -19,9 +21,7 @@ Please provide the specific table of contents for this tutorial, strictly follow
 5. Each directory title has practical significance.
 """
 
-CONTENT_PROMPT = """
-You are now a seasoned technical professional in the field of the internet. 
-We need you to write a technical tutorial with the topic "{topic}". 
+CONTENT_PROMPT = COMMON_PROMPT + """
 Now I will give you the module directory titles for the topic. 
 Please output the detailed principle content of this title in detail. 
 If there are code examples, please provide them according to standard code specifications. 
