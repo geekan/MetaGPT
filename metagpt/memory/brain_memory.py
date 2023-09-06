@@ -34,7 +34,7 @@ class BrainMemory(pydantic.BaseModel):
     historical_summary: str = ""
     last_history_id: str = ""
     is_dirty: bool = False
-    last_talk: str = ""
+    last_talk: str = None
 
     def add_talk(self, msg: Message):
         msg.add_tag(MessageType.Talk.value)
@@ -109,7 +109,6 @@ class BrainMemory(pydantic.BaseModel):
         if msg.id:
             if self.to_int(msg.id, 0) < self.to_int(self.last_history_id, -1):
                 return
-            self.last_history_id = str(self.to_int(msg.id, 0))
         self.history.append(msg.dict())
         self.is_dirty = True
 
@@ -125,3 +124,8 @@ class BrainMemory(pydantic.BaseModel):
             return int(v)
         except:
             return default_value
+
+    def pop_last_talk(self):
+        v = self.last_talk
+        self.last_talk = None
+        return v

@@ -34,19 +34,20 @@ class TalkAction(Action):
                 f"maintaining the character's persona and habits. When faced with unrelated questions, playfully "
                 f"decline to answer without revealing your AI nature to preserve the character's image.\n\n"
             )
-        prompt += f"Background knowledge:\n{self._knowledge}\n\n" if self._knowledge else ""
+        prompt += f"Knowledge:\n{self._knowledge}\n\n" if self._knowledge else ""
         prompt += f"{self._history_summary}\n\n"
-        if self._history_summary != "":
-            prompt += "According to the historical conversation above, "
+        prompt += (
+            "If the information is insufficient, you can search in the historical conversation or knowledge above.\n"
+        )
         language = CONFIG.language or DEFAULT_LANGUAGE
         prompt += (
-            f"Answer the following questions in {language}, and the answers must follow the Markdown format.\n "
+            f"Answer the following questions strictly in {language}, and the answers must follow the Markdown format.\n "
             f"{self._talk}"
         )
         return prompt
 
     @property
-    def formation_prompt(self):
+    def prompt_bad(self):
         kvs = {
             "{role}": CONFIG.agent_description or "",
             "{history}": self._history_summary or "",
@@ -57,6 +58,7 @@ class TalkAction(Action):
         prompt = TalkAction.__FORMATION_LOOSE__
         for k, v in kvs.items():
             prompt = prompt.replace(k, v)
+        logger.info(f"PROMPT: {prompt}")
         return prompt
 
     async def run(self, *args, **kwargs) -> ActionOutput:
@@ -71,8 +73,11 @@ class TalkAction(Action):
   "[HISTORY_BEGIN]" and "[HISTORY_END]" tags enclose the historical conversation;
   "[KNOWLEDGE_BEGIN]" and "[KNOWLEDGE_END]" tags enclose the knowledge may help for your responses;
   "Statement" defines the work detail you need to complete at this stage;
-  "[ASK_BEGIN]" and [ASK_END] tags enclose the requirements for your to respond;
+  "[ASK_BEGIN]" and [ASK_END] tags enclose the questions;
   "Constraint" defines the conditions that your responses must comply with.
+  "Personality" defines your language style。
+  "Insight" provides a deeper understanding of the characters' inner traits.
+  "Initial" defines the initial setup of a character.
 
 Capacity and role: {role}
 Statement: Your responses should align with the role-play agreement, maintaining the
@@ -80,46 +85,56 @@ Statement: Your responses should align with the role-play agreement, maintaining
  your AI nature to preserve the character's image.
 
 [HISTORY_BEGIN]
+
 {history}
+
 [HISTORY_END]
 
 [KNOWLEDGE_BEGIN]
+
 {knowledge}
+
 [KNOWLEDGE_END]
 
 Statement: If the information is insufficient, you can search in the historical conversation or knowledge.
-Statement: Answer the following questions in {language}, and the answers must follow the Markdown format
- , excluding any tag likes "[HISTORY_BEGIN]", "[HISTORY_END]", "[KNOWLEDGE_BEGIN]", "[KNOWLEDGE_END]", "[ASK_BEGIN]"
- , "[ASK_END]" 
+Statement: Unless you are a language professional, answer the following questions strictly in {language}
+, and the answers must follow the Markdown format. Strictly excluding any tag likes "[HISTORY_BEGIN]"
+, "[HISTORY_END]", "[KNOWLEDGE_BEGIN]", "[KNOWLEDGE_END]" in responses.
  
-[ASK_BEGIN]
+
 {ask}
-[ASK_END]"""
+"""
 
     __FORMATION_LOOSE__ = """Formation: "Capacity and role" defines the role you are currently playing;
   "[HISTORY_BEGIN]" and "[HISTORY_END]" tags enclose the historical conversation;
   "[KNOWLEDGE_BEGIN]" and "[KNOWLEDGE_END]" tags enclose the knowledge may help for your responses;
   "Statement" defines the work detail you need to complete at this stage;
-  "[ASK_BEGIN]" and [ASK_END] tags enclose the requirements for your to respond;
   "Constraint" defines the conditions that your responses must comply with.
+  "Personality" defines your language style。
+  "Insight" provides a deeper understanding of the characters' inner traits.
+  "Initial" defines the initial setup of a character.
 
 Capacity and role: {role}
 Statement: Your responses should maintaining the character's persona and habits. When faced with unrelated questions
 , playfully decline to answer without revealing your AI nature to preserve the character's image. 
 
 [HISTORY_BEGIN]
+
 {history}
+
 [HISTORY_END]
 
 [KNOWLEDGE_BEGIN]
+
 {knowledge}
+
 [KNOWLEDGE_END]
 
 Statement: If the information is insufficient, you can search in the historical conversation or knowledge.
-Statement: Answer the following questions in {language}, and the answers must follow the Markdown format
- , excluding any tag likes "[HISTORY_BEGIN]", "[HISTORY_END]", "[KNOWLEDGE_BEGIN]", "[KNOWLEDGE_END]", "[ASK_BEGIN]"
- , "[ASK_END]" 
+Statement: Unless you are a language professional, answer the following questions strictly in {language}
+, and the answers must follow the Markdown format. Strictly excluding any tag likes "[HISTORY_BEGIN]"
+, "[HISTORY_END]", "[KNOWLEDGE_BEGIN]", "[KNOWLEDGE_END]" in responses.
 
-[ASK_BEGIN]
+
 {ask}
-[ASK_END]"""
+"""
