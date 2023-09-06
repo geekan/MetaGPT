@@ -59,7 +59,7 @@ class Assistant(Role):
         for desc, name in skills.items():
             prompt += f"If the text explicitly want you to {desc}, return `[SKILL]: {name}` brief and clear. For instance: [SKILL]: {name}\n"
         prompt += 'Otherwise, return `[TALK]: {talk}` brief and clear. For instance: if {talk} is "xxxx" return [TALK]: xxxx\n\n'
-        prompt += f"Now the text is: {last_talk}"
+        prompt += f"Now determine the appropriate pattern for the text: {last_talk}"
         logger.info(prompt)
         rsp = await self._llm.aask(prompt, [])
         logger.info(f"THINK: {prompt}\n, THINK RESULT: {rsp}\n")
