@@ -72,7 +72,7 @@ class BrainMemory(pydantic.BaseModel):
         if not redis.is_valid() or not redis_key:
             return BrainMemory()
         v = await redis.get(key=redis_key)
-        logger.info(f"REDIS GET {redis_key} {v}")
+        logger.debug(f"REDIS GET {redis_key} {v}")
         if v:
             data = json.loads(v)
             bm = BrainMemory(**data)
@@ -86,7 +86,7 @@ class BrainMemory(pydantic.BaseModel):
             return False
         v = self.json()
         await redis.set(key=redis_key, data=v, timeout_sec=timeout_sec)
-        logger.info(f"REDIS SET {redis_key} {v}")
+        logger.debug(f"REDIS SET {redis_key} {v}")
         self.is_dirty = False
 
     @staticmethod

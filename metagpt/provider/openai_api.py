@@ -257,9 +257,9 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         else:
             command = f"Translate the above content into a summary of less than {max_words} words."
         msg = text + "\n\n" + command
-        logger.info(f"summary ask:{msg}")
+        logger.debug(f"summary ask:{msg}")
         response = await self.aask(msg=msg, system_msgs=[])
-        logger.info(f"summary rsp: {response}")
+        logger.debug(f"summary rsp: {response}")
         return response
 
     async def get_context_title(self, text: str, max_words=5) -> str:
@@ -270,9 +270,9 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         command = f"Translate the above summary into a {language} title of less than {max_words} words."
         summaries = [summary, command]
         msg = "\n".join(summaries)
-        logger.info(f"title ask:{msg}")
+        logger.debug(f"title ask:{msg}")
         response = await self.aask(msg=msg, system_msgs=[])
-        logger.info(f"title rsp: {response}")
+        logger.debug(f"title rsp: {response}")
         return response
 
     async def is_related(self, text1, text2):
@@ -282,7 +282,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         result = True if "TRUE" in rsp else False
         p2 = text2.replace("\n", "")
         p1 = text1.replace("\n", "")
-        logger.info(f"IS_RELATED:\nParagraph 1: {p2}\nParagraph 2: {p1}\nRESULT: {result}")
+        logger.info(f"IS_RELATED:\nParagraph 1: {p2}\nParagraph 2: {p1}\nRESULT: {result}\n")
         return result
 
     async def rewrite(self, sentence: str, context: str):
@@ -291,7 +291,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         # )
         command = f"{context}\n\nExtract relevant information from every preceding sentence and use it to succinctly supplement or rewrite the following text in brief and clear:\n{sentence}"
         rsp = await self.aask(msg=command, system_msgs=[])
-        logger.info(f"REWRITE:\nCommand: {command}\nRESULT: {rsp}")
+        logger.info(f"REWRITE:\nCommand: {command}\nRESULT: {rsp}\n")
         return rsp
 
     @staticmethod
