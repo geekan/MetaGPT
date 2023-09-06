@@ -44,6 +44,7 @@ class TalkAction(Action):
             f"Answer the following questions strictly in {language}, and the answers must follow the Markdown format.\n "
             f"{self._talk}"
         )
+        logger.info(f"PROMPT: {prompt}")
         return prompt
 
     @property
