@@ -142,7 +142,6 @@ python startup.py "写一个命令行贪吃蛇" --code_review True
 ### 平台或工具的倾向性
 可以在阐述需求时说明想要使用的平台或工具。
 例如：
-
 ```shell
 python startup.py "写一个基于pygame的命令行贪吃蛇"
 ```
