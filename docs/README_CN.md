@@ -115,7 +115,7 @@ cp config/config.yaml config/key.yaml
 
 ```shell
 python startup.py "写一个命令行贪吃蛇"
-# 开启code review模式会会花费更多的money, 但是会提升代码质量和成功率
+# 开启code review模式会花费更多的money, 但是会提升代码质量和成功率
 python startup.py "写一个命令行贪吃蛇" --code_review True
 ```
 
