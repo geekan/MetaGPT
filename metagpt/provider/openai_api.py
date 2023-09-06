@@ -280,6 +280,9 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         command = f"{text2}\n\nIs there any sentence above related to the following sentence: {text1}.\nIf is there any relevance, return [TRUE] brief and clear. Otherwise, return [FALSE] brief and clear."
         rsp = await self.aask(msg=command, system_msgs=[])
         result, _ = self.extract_info(rsp, pattern=r"\[([A-Z]+)\]\s*(.+)")
+        p2 = text2.replace("\n", "")
+        p1 = text1.replace("\n", "")
+        logger.info(f"IS_RELATED:\nParagraph 1: {p2}\nParagraph 2: {p1}\nRESULT: {result}")
         return result == "TRUE"
 
     async def rewrite(self, sentence: str, context: str):
@@ -288,6 +291,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         # )
         command = f"{context}\n\nExtract relevant information from every preceding sentence and use it to succinctly supplement or rewrite the following text in brief and clear:\n{sentence}"
         rsp = await self.aask(msg=command, system_msgs=[])
+        logger.info(f"REWRITE:\nCommand: {command}\nRESULT: {rsp}")
         return rsp
 
     @staticmethod
