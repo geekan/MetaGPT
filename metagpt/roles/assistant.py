@@ -93,6 +93,7 @@ class Assistant(Role):
 
     async def talk_handler(self, text, **kwargs) -> bool:
         history = self.memory.history_text
+        text = kwargs.get("last_talk") or text
         action = TalkAction(
             talk=text, knowledge=self.memory.get_knowledge(), history_summary=history, llm=self._llm, **kwargs
         )

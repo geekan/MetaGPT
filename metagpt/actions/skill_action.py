@@ -40,9 +40,8 @@ class ArgumentsParingAction(Action):
 
     async def run(self, *args, **kwargs) -> ActionOutput:
         prompt = self.prompt
-        logger.info(prompt)
         rsp = await self.llm.aask(msg=prompt, system_msgs=[])
-        logger.info(rsp)
+        logger.debug(f"SKILL:{prompt}\n, RESULT:{rsp}")
         self.args = ArgumentsParingAction.parse_arguments(skill_name=self.skill.name, txt=rsp)
         self.rsp = ActionOutput(content=rsp)
         return self.rsp
