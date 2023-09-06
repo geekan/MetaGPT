@@ -12,10 +12,9 @@
 <a href="docs/README_CN.md"><img src="https://img.shields.io/badge/文档-中文版-blue.svg" alt="CN doc"></a>
 <a href="README.md"><img src="https://img.shields.io/badge/document-English-blue.svg" alt="EN doc"></a>
 <a href="docs/README_JA.md"><img src="https://img.shields.io/badge/ドキュメント-日本語-blue.svg" alt="JA doc"></a>
-<a href="https://discord.gg/wCp6Q3fsAk"><img src="https://dcbadge.vercel.app/api/server/wCp6Q3fsAk?compact=true&style=flat" alt="Discord Follow"></a>
+<a href="https://discord.gg/wCp6Q3fsAk"><img src="https://img.shields.io/badge/Discord-MetaGPT-7289da?logo=discord&logoColor=white&color=7289da" alt="Discord Follow"></a>
 <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
 <a href="docs/ROADMAP.md"><img src="https://img.shields.io/badge/ROADMAP-路线图-blue" alt="roadmap"></a>
-<a href="docs/resources/MetaGPT-WeChat-Personal.jpeg"><img src="https://img.shields.io/badge/WeChat-微信-blue" alt="roadmap"></a>
 <a href="https://twitter.com/DeepWisdom2019"><img src="https://img.shields.io/twitter/follow/MetaGPT?style=social" alt="Twitter Follow"></a>
 </p>
 
@@ -42,6 +41,10 @@ It costs approximately **$0.2** (in GPT-4 API fees) to generate one example with
 
 ## Installation
 
+### Installation Video Guide
+
+- [Matthew Berman: How To Install MetaGPT - Build A Startup With One Prompt!!](https://youtu.be/uT75J_KG_aY)
+
 ### Traditional Installation
 
 ```bash
@@ -61,20 +64,20 @@ python setup.py install
 **Note:**
 
 - If already have Chrome, Chromium, or MS Edge installed, you can skip downloading Chromium by setting the environment variable
-`PUPPETEER_SKIP_CHROMIUM_DOWNLOAD` to `true`.
+  `PUPPETEER_SKIP_CHROMIUM_DOWNLOAD` to `true`.
 
 - Some people are [having issues](https://github.com/mermaidjs/mermaid.cli/issues/15) installing this tool globally. Installing it locally is an alternative solution,
 
-    ```bash
-    npm install @mermaid-js/mermaid-cli
-    ```
+  ```bash
+  npm install @mermaid-js/mermaid-cli
+  ```
 
 - don't forget to the configuration for mmdc in config.yml
 
-    ```yml
-    PUPPETEER_CONFIG: "./config/puppeteer-config.json"
-    MMDC: "./node_modules/.bin/mmdc"
-    ```
+  ```yml
+  PUPPETEER_CONFIG: "./config/puppeteer-config.json"
+  MMDC: "./node_modules/.bin/mmdc"
+  ```
 
 - if `python setup.py install` fails with error `[Errno 13] Permission denied: '/usr/local/lib/python3.11/dist-packages/test-easy-install-13129.write-test'`, try instead running `python setup.py install --user`
 
@@ -139,18 +142,24 @@ cp config/config.yaml config/key.yaml
 ## Tutorial: Initiating a startup
 
 ```shell
+# Run the script
 python startup.py "Write a cli snake game"
-# Use code review will cost more money, but will opt for better code quality.
-python startup.py "Write a cli snake game" --code_review True 
+# Do not hire an engineer to implement the project
+python startup.py "Write a cli snake game" --implement False
+# Hire an engineer and perform code reviews
+python startup.py "Write a cli snake game" --code_review True
 ```
 
 After running the script, you can find your new project in the `workspace/` directory.
-### Preference of Platform or Tool 
+
+### Preference of Platform or Tool
 
 You can tell which platform or tool you want to use when stating your requirements.
+
 ```shell
 python startup.py "Write a cli snake game based on pygame"
 ```
+
 ### Usage
 
 ```
@@ -199,16 +208,18 @@ async def startup(idea: str, investment: float = 3.0, n_round: int = 5):
 You can check `examples` for more details on single role (with knowledge base) and LLM only examples.
 
 ## QuickStart
-It is difficult to install and configure the local environment for some users. The following tutorials will allow you to quickly experience the charm of MetaGPT.  
+
+It is difficult to install and configure the local environment for some users. The following tutorials will allow you to quickly experience the charm of MetaGPT.
 
 - [MetaGPT quickstart](https://deepwisdom.feishu.cn/wiki/CyY9wdJc4iNqArku3Lncl4v8n2b)
 
 ## Citation
 
 For now, cite the [Arxiv paper](https://arxiv.org/abs/2308.00352):
+
 ```bibtex
 @misc{hong2023metagpt,
-      title={MetaGPT: Meta Programming for Multi-Agent Collaborative Framework}, 
+      title={MetaGPT: Meta Programming for Multi-Agent Collaborative Framework},
       author={Sirui Hong and Xiawu Zheng and Jonathan Chen and Yuheng Cheng and Jinlin Wang and Ceyao Zhang and Zili Wang and Steven Ka Shing Yau and Zijuan Lin and Liyang Zhou and Chenyu Ran and Lingfeng Xiao and Chenglin Wu},
       year={2023},
       eprint={2308.00352},
@@ -231,6 +242,7 @@ We will respond to all questions within 2-3 business days.
 https://github.com/geekan/MetaGPT/assets/2707039/5e8c1062-8c35-440f-bb20-2b0320f8d27d
 
 ## Join us
+
 📢 Join Our Discord Channel!
 https://discord.gg/ZRHeExS6xv
 

@@ -48,13 +48,11 @@ class RateLimiter:
 
         self.last_call_time = time.time()
 
-
 class Costs(NamedTuple):
     total_prompt_tokens: int
     total_completion_tokens: int
     total_cost: float
     total_budget: float
-
 
 class CostManager(metaclass=Singleton):
     """计算使用接口的开销"""
@@ -102,18 +100,26 @@ class CostManager(metaclass=Singleton):
         """
         return self.total_completion_tokens
 
-    def get_total_cost(self):
-        """
-        Get the total cost of API calls.
+def get_total_cost(self):
+    """
+    Get the total cost of API calls.
 
-        Returns:
-        float: The total cost of API calls.
-        """
-        return self.total_cost
+    Returns:
+    float: The total cost of API calls.
+    """
+    return self.total_cost
 
-    def get_costs(self) -> Costs:
-        """获得所有开销"""
-        return Costs(self.total_prompt_tokens, self.total_completion_tokens, self.total_cost, self.total_budget)
+def get_costs(self) -> Costs:
+    """Get all costs"""
+    return Costs(self.total_prompt_tokens, self.total_completion_tokens, self.total_cost, self.total_budget)
+
+def log_and_reraise(retry_state):
+    logger.error(f"Retry attempts exhausted. Last exception: {retry_state.outcome.exception()}")
+    logger.warning("""
+Recommend going to https://deepwisdom.feishu.cn/wiki/MsGnwQBjiif9c3koSJNcYaoSnu4#part-XdatdVlhEojeAfxaaEZcMV3ZniQ
+See FAQ 5.8
+""")
+    raise retry_state.outcome.exception()
 
 
 def log_and_reraise(retry_state):
@@ -156,10 +162,12 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         # iterate through the stream of events
         async for chunk in response:
             collected_chunks.append(chunk)  # save the event response
-            chunk_message = chunk["choices"][0]["delta"]  # extract the message
-            collected_messages.append(chunk_message)  # save the message
-            if "content" in chunk_message:
-                print(chunk_message["content"], end="")
+            choices = chunk["choices"]
+            if len(choices) > 0:
+                chunk_message = chunk["choices"][0].get("delta", {})  # extract the message
+                collected_messages.append(chunk_message)  # save the message
+                if "content" in chunk_message:
+                    print(chunk_message["content"], end="")
         print()
 
         full_reply_content = "".join([m.get("content", "") for m in collected_messages])
@@ -168,25 +176,24 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         return full_reply_content
 
     def _cons_kwargs(self, messages: list[dict]) -> dict:
+        kwargs = {
+            "messages": messages,
+            "max_tokens": self.get_max_tokens(messages),
+            "n": 1,
+            "stop": None,
+            "temperature": 0.3,
+            "timeout": 3
+        }
         if CONFIG.openai_api_type == "azure":
-            kwargs = {
-                "deployment_id": CONFIG.deployment_id,
-                "messages": messages,
-                "max_tokens": self.get_max_tokens(messages),
-                "n": 1,
-                "stop": None,
-                "temperature": 0.3,
-            }
+            if CONFIG.deployment_name and CONFIG.deployment_id:
+                raise ValueError("You can only use one of the `deployment_id` or `deployment_name` model")
+            elif not CONFIG.deployment_name and not CONFIG.deployment_id:
+                raise ValueError("You must specify `DEPLOYMENT_NAME` or `DEPLOYMENT_ID` parameter")
+            kwargs_mode = {"engine": CONFIG.deployment_name} if CONFIG.deployment_name \
+                else {"deployment_id": CONFIG.deployment_id}
         else:
-            kwargs = {
-                "model": self.model,
-                "messages": messages,
-                "max_tokens": self.get_max_tokens(messages),
-                "n": 1,
-                "stop": None,
-                "temperature": 0.3,
-            }
-        kwargs["timeout"] = 3
+            kwargs_mode = {"model": self.model}
+        kwargs.update(kwargs_mode)
         return kwargs
 
     async def _achat_completion(self, messages: list[dict]) -> dict:
@@ -238,7 +245,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             return usage
 
     async def acompletion_batch(self, batch: list[list[dict]]) -> list[dict]:
-        """返回完整JSON"""
+        """Return full JSON"""
         split_batches = self.split_batches(batch)
         all_results = []
 
@@ -254,7 +261,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         return all_results
 
     async def acompletion_batch_text(self, batch: list[list[dict]]) -> list[str]:
-        """仅返回纯文本"""
+        """Only return plain text"""
         raw_results = await self.acompletion_batch(batch)
         results = []
         for idx, raw_result in enumerate(raw_results, start=1):
