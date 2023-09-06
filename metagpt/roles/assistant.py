@@ -57,7 +57,7 @@ class Assistant(Role):
         prompt = f"Refer to this text:\n {last_talk}\n"
         skills = self.skills.get_skill_list()
         for desc, name in skills.items():
-            prompt += f"If the text explicitly want you to do {desc}, return `[SKILL]: {name}` brief and clear. For instance: [SKILL]: {name}\n"
+            prompt += f"If the text explicitly want you to {desc}, return `[SKILL]: {name}` brief and clear. For instance: [SKILL]: {name}\n"
         prompt += (
             'Otherwise, return `[TALK]: {talk}` brief and clear. For instance: if {talk} is "xxxx" return [TALK]: xxxx'
         )
