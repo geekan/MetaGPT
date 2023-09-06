@@ -63,7 +63,7 @@ class Assistant(Role):
         )
         logger.info(prompt)
         rsp = await self._llm.aask(prompt, [])
-        logger.info(rsp)
+        logger.info(f"THINK: {prompt}\n, THINK RESULT: {rsp}\n")
         return await self._plan(rsp, last_talk=last_talk)
 
     async def act(self) -> ActionOutput:
