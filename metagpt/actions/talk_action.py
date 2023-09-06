@@ -44,11 +44,11 @@ class TalkAction(Action):
             f"Answer the following questions strictly in {language}, and the answers must follow the Markdown format.\n "
             f"{self._talk}"
         )
-        logger.info(f"PROMPT: {prompt}")
+        logger.debug(f"PROMPT: {prompt}")
         return prompt
 
     @property
-    def prompt_bad(self):
+    def prompt_gpt4(self):
         kvs = {
             "{role}": CONFIG.agent_description or "",
             "{history}": self._history_summary or "",
@@ -64,9 +64,8 @@ class TalkAction(Action):
 
     async def run(self, *args, **kwargs) -> ActionOutput:
         prompt = self.prompt
-        logger.info(prompt)
         rsp = await self.llm.aask(msg=prompt, system_msgs=[])
-        logger.info(rsp)
+        logger.debug(f"PROMPT:{prompt}\nRESULT:{rsp}\n")
         self._rsp = ActionOutput(content=rsp)
         return self._rsp
 
