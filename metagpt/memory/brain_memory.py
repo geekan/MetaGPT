@@ -183,7 +183,7 @@ class BrainMemory(pydantic.BaseModel):
                 break
             msgs.append(i)
             total_length += delta
-        self.history = msgs
+        self.history = msgs.reverse()
         self.is_dirty = True
         await self.dumps(redis_key=CONFIG.REDIS_KEY, redis_conf=CONFIG.REDIS_CONF)
         self.is_dirty = False
