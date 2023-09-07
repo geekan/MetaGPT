@@ -56,25 +56,25 @@ class BrainMemory(pydantic.BaseModel):
         texts = [Message(**m).content for m in self.knowledge]
         return "\n".join(texts)
 
-    @property
-    def history_text(self):
-        if len(self.history) == 0 and not self.historical_summary:
-            return ""
-        try:
-            self.loads_raw_messages()
-            return self.dumps_raw_messages()
-        except:
-            texts = [self.historical_summary] if self.historical_summary else []
-            for m in self.history[:-1]:
-                if isinstance(m, Dict):
-                    t = Message(**m).content
-                elif isinstance(m, Message):
-                    t = m.content
-                else:
-                    continue
-                texts.append(t)
-
-            return "\n".join(texts)
+    # @property
+    # def history_text(self):
+    #     if len(self.history) == 0 and not self.historical_summary:
+    #         return ""
+    #     try:
+    #         self.loads_raw_messages()
+    #         return self.dumps_raw_messages()
+    #     except:
+    #         texts = [self.historical_summary] if self.historical_summary else []
+    #         for m in self.history[:-1]:
+    #             if isinstance(m, Dict):
+    #                 t = Message(**m).content
+    #             elif isinstance(m, Message):
+    #                 t = m.content
+    #             else:
+    #                 continue
+    #             texts.append(t)
+    #
+    #         return "\n".join(texts)
 
     @staticmethod
     async def loads(redis_key: str, redis_conf: Dict = None) -> "BrainMemory":
