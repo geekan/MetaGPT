@@ -120,7 +120,7 @@ class Assistant(Role):
             return None
         if not self.memory.is_history_available:
             return last_talk
-        history_summary = await self.memory.summerize(max_words=800, keep_language=True, llm=self._llm)
+        history_summary = await self.memory.summarize(max_words=800, keep_language=True, llm=self._llm)
         if last_talk and await BrainMemory.is_related(text1=last_talk, text2=history_summary, llm=self._llm):
             # Merge relevant content.
             last_talk = await self.memory.rewrite(sentence=last_talk, llm=self._llm)
