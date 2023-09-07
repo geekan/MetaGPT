@@ -7,13 +7,9 @@
 @Describe : Actions of the tutorial assistant, including writing directories and document content.
 """
 import json
-from datetime import datetime
 from typing import Dict
 
-import aiofiles
-
 from metagpt.actions import Action
-from metagpt.const import TUTORIAL_PATH
 from metagpt.logs import logger
 from metagpt.prompts.tutorial_assistant import DIRECTORY_PROMPT, CONTENT_PROMPT
 
@@ -30,6 +26,33 @@ class WriteDirectory(Action):
         super().__init__(name, *args, **kwargs)
         self.language = language
 
+    @staticmethod
+    async def _handle_resp(resp: str) -> Dict:
+        """Process string results and convert them to JSON format.
+
+        Args:
+            resp: The directory results returned by gpt.
+
+        Returns:
+            The parsed dictionary, such as {"title": "xxx", "directory": [{"dir 1": ["sub dir 1", "sub dir 2"]}]}.
+
+        Raises:
+            Exception: If no matching dictionary section is found.
+            json.JSONDecodeError: If the dictionary part cannot be parsed as JSON.
+        """
+        start = resp.find('{')
+        end = resp.rfind('}')
+        if start != -1 and end != -1 and end > start:
+            directory_str = resp[start:end + 1]
+            logger.info(f"Successfully parsed json: {str(directory_str)}")
+            try:
+                return json.loads(directory_str)
+            except json.JSONDecodeError as e:
+                logger.error(f"Json parsing error: {e}")
+                raise e
+        else:
+            raise Exception("No matching dictionary section found.")
+
     async def run(self, topic: str, *args, **kwargs) -> Dict:
         """Execute the action to generate a tutorial directory according to the topic.
 
@@ -37,11 +60,11 @@ class WriteDirectory(Action):
             topic: The tutorial topic.
 
         Returns:
-            the tutorial directory information, such as {"title": "xxx", "directory": [{"dir 1": ["sub dir 1", "sub dir 2"]}]}
+            the tutorial directory information, including {"title": "xxx", "directory": [{"dir 1": ["sub dir 1", "sub dir 2"]}]}.
         """
         prompt = DIRECTORY_PROMPT.format(topic=topic, language=self.language)
-        directory = await self._aask(prompt=prompt)
-        return json.loads(directory)
+        resp = await self._aask(prompt=prompt)
+        return await self._handle_resp(resp)
 
 
 class WriteContent(Action):
@@ -70,33 +93,3 @@ class WriteContent(Action):
         prompt = CONTENT_PROMPT.format(topic=topic, language=self.language, directory=self.directory)
         return await self._aask(prompt=prompt)
 
-
-class SaveDocx(Action):
-    """Action class for saving tutorial docx.
-
-    Args:
-        name: The name of the action.
-    """
-
-    def __init__(self, name: str = "", *args, **kwargs):
-        super().__init__(name, *args, **kwargs)
-
-    async def run(self, title: str, content: str, *args, **kwargs) -> str:
-        """Execute the action to save the generated tutorial document to a Markdown file.
-
-        Args:
-            title: The title of tutorial.
-            content: The total content of tutorial.
-
-        Returns:
-            The full filename of tutorial content.
-
-        """
-        current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        pathname = TUTORIAL_PATH / current_time
-        pathname.mkdir(parents=True, exist_ok=True)
-        filename = f"{pathname}/{title}.md"
-        async with aiofiles.open(filename, mode="w", encoding="utf-8") as writer:
-            await writer.write(content)
-            logger.info(f"Successfully write docx: {filename}")
-            return filename

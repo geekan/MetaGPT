@@ -6,12 +6,15 @@
 @File    : tutorial_assistant.py
 """
 
+from datetime import datetime
 from typing import Dict
 
-from metagpt.actions.write_tutorial import WriteDirectory, WriteContent, SaveDocx
+from metagpt.actions.write_tutorial import WriteDirectory, WriteContent
+from metagpt.const import TUTORIAL_PATH
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
+from metagpt.utils.file import File
 
 
 class TutorialAssistant(Role):
@@ -71,7 +74,6 @@ class TutorialAssistant(Role):
             directory += f"- {key}\n"
             for second_dir in first_dir[key]:
                 directory += f"  - {second_dir}\n"
-        actions.append(SaveDocx())
         self._init_actions(actions)
         self._rc.todo = None
         return Message(content=directory)
@@ -89,9 +91,6 @@ class TutorialAssistant(Role):
             resp = await todo.run(topic=self.topic)
             logger.info(resp)
             return await self._handle_directory(resp)
-        elif type(todo) is SaveDocx:
-            filename = await todo.run(title=self.main_title, content=self.total_content)
-            return Message(content=filename, role=self.profile)
         resp = await todo.run(topic=self.topic)
         logger.info(resp)
         if self.total_content != "":
@@ -110,4 +109,6 @@ class TutorialAssistant(Role):
             if self._rc.todo is None:
                 break
             msg = await self._act()
+        root_path = TUTORIAL_PATH / datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        await File.write(root_path, f"{self.main_title}.md", self.total_content.encode('utf-8'))
         return msg
