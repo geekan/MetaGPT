@@ -88,7 +88,7 @@ class TalkAction(Action):
             if CONFIG.LLM_TYPE == LLMType.METAGPT.value:
                 format_msgs.append(json.loads(self._history_summary))
             else:
-                format_msgs.append({"context": self._history_summary})
+                format_msgs.append({"knowledge": self._history_summary})
         rsp = await self.llm.aask(msg=self._talk, format_msgs=format_msgs, system_msgs=system_msgs)
         self._rsp = ActionOutput(content=rsp)
         return self._rsp
