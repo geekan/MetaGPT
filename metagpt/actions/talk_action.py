@@ -6,10 +6,12 @@
 @File    : talk_action.py
 @Desc    : Act as it’s a talk
 """
+import json
 
 from metagpt.actions import Action, ActionOutput
 from metagpt.config import CONFIG
 from metagpt.const import DEFAULT_LANGUAGE
+from metagpt.llm import LLMType
 from metagpt.logs import logger
 
 
@@ -63,6 +65,15 @@ class TalkAction(Action):
         return prompt
 
     async def run(self, *args, **kwargs) -> ActionOutput:
+        if CONFIG.LLM_TYPE == LLMType.METAGPT.value:
+            rsp = await self.llm.aask(
+                msg=self._talk,
+                knowledge_msgs=[{"knowledge": self._knowledge}] if self._knowledge else None,
+                history_msgs=json.loads(self._history_summary) if self._history_summary else None,
+            )
+            self._rsp = ActionOutput(content=rsp)
+            return self._rsp
+
         prompt = self.prompt
         rsp = await self.llm.aask(msg=prompt, system_msgs=[])
         logger.debug(f"PROMPT:{prompt}\nRESULT:{rsp}\n")

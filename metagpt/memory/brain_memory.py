@@ -309,4 +309,28 @@ class BrainMemory(pydantic.BaseModel):
     def is_history_available(self):
         return bool(self.history or self.historical_summary)
 
+    @property
+    def history_text(self):
+        if self.llm_type == LLMType.METAGPT.value:
+            return self._get_metagpt_history_text()
+        return self._get_openai_history_text()
+
+    def _get_metagpt_history_text(self):
+        return BrainMemory.to_metagpt_history_format(self.history)
+
+    def _get_openai_history_text(self):
+        if len(self.history) == 0 and not self.historical_summary:
+            return ""
+        texts = [self.historical_summary] if self.historical_summary else []
+        for m in self.history[:-1]:
+            if isinstance(m, Dict):
+                t = Message(**m).content
+            elif isinstance(m, Message):
+                t = m.content
+            else:
+                continue
+            texts.append(t)
+
+        return "\n".join(texts)
+
     DEFAULT_TOKEN_SIZE = 500
