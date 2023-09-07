@@ -228,8 +228,17 @@ class BrainMemory(pydantic.BaseModel):
         logger.debug(f"title rsp: {response}")
         return response
 
+    async def is_related(self, text1, text2, llm):
+        if self.llm_type == LLMType.METAGPT.value:
+            return await self._metagpt_is_related(text1=text1, text2=text2, llm=llm)
+        return await self._openai_is_related(text1=text1, text2=text2, llm=llm)
+
     @staticmethod
-    async def is_related(text1, text2, llm):
+    async def _metagpt_is_related(**kwargs):
+        return False
+
+    @staticmethod
+    async def _openai_is_related(text1, text2, llm, **kwargs):
         # command = f"{text1}\n{text2}\n\nIf the two sentences above are related, return [TRUE] brief and clear. Otherwise, return [FALSE]."
         command = f"{text2}\n\nIs there any sentence above related to the following sentence: {text1}.\nIf is there any relevance, return [TRUE] brief and clear. Otherwise, return [FALSE] brief and clear."
         rsp = await llm.aask(msg=command, system_msgs=[])
@@ -240,6 +249,14 @@ class BrainMemory(pydantic.BaseModel):
         return result
 
     async def rewrite(self, sentence: str, context: str, llm):
+        if self.llm_type == LLMType.METAGPT.value:
+            return await self._metagpt_rewrite(sentence=sentence, context=context, llm=llm)
+        return await self._openai_rewrite(sentence=sentence, context=context, llm=llm)
+
+    async def _metagpt_rewrite(self, sentence: str, **kwargs):
+        return sentence
+
+    async def _openai_rewrite(self, sentence: str, context: str, llm, **kwargs):
         # command = (
         #     f"{context}\n\nConsidering the content above, rewrite and return this sentence brief and clear:\n{sentence}"
         # )
