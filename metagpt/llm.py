@@ -9,7 +9,8 @@
 from enum import Enum
 
 from metagpt.provider.anthropic_api import Claude2 as Claude
-from metagpt.provider.openai_api import OpenAIGPTAPI as LLM
+from metagpt.provider.metagpt_llm_api import MetaGPTLLMAPI as MetaGPT_LLM
+from metagpt.provider.openai_api import OpenAIGPTAPI as OpenAI_LLM
 
 
 class LLMType(Enum):
@@ -29,7 +30,8 @@ class LLMType(Enum):
         return LLMType.UNKNOWN
 
 
-DEFAULT_LLM = LLM()
+DEFAULT_LLM = OpenAI_LLM()
+DEFAULT_METAGPT_LLM = MetaGPT_LLM()
 CLAUDE_LLM = Claude()
 
 
