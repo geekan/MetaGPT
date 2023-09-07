@@ -181,7 +181,7 @@ class BrainMemory(pydantic.BaseModel):
                 m.content = m.content[0:left]
                 msgs.append(m.dict())
                 break
-            msgs.append(m.dict())
+            msgs.append(i)
             total_length += delta
         self.history = msgs
         self.is_dirty = True
