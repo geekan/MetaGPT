@@ -10,6 +10,7 @@ import shutil
 from collections import OrderedDict
 from pathlib import Path
 
+from metagpt.actions.design_api_json import WriteDesignJson
 from metagpt.const import WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.roles import Role
@@ -94,7 +95,7 @@ class Engineer(Role):
         return CodeParser.parse_str(block="Python package name", text=system_design_msg.content)
 
     def get_workspace(self) -> Path:
-        msg = self._rc.memory.get_by_action(WriteDesign)[-1]
+        msg = self._rc.memory.get_by_action(WriteDesignJson)[-1]
         if not msg:
             return WORKSPACE_ROOT / 'src'
         workspace = self.parse_workspace(msg)

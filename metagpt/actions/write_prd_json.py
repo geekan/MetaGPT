@@ -61,7 +61,7 @@ Requirements: According to the context, fill in the following missing informatio
 ## UI Design draft: Provide as Plain text. Be simple. Describe the elements and functions, also provide a simple style description and layout description.
 ## Anything UNCLEAR: Provide as Plain text. Make clear here.
 
-Your job is to create a properly formatted JSON, wrapped inside [CONTENT][/CONTENT] like format example
+Your job is to create a properly formatted JSON, wrapped inside [CONTENT][/CONTENT] like format example,output CONTENT json directly
 """
 FORMAT_EXAMPLE = """
 [CONTENT]
@@ -69,20 +69,20 @@ FORMAT_EXAMPLE = """
         "Original Requirements": "",
         "Search Information": "",
         "mermaid quadrantChart code": '
-            "title": "Reach and engagement of campaigns",
-            "x-axis": "Low Reach --> High Reach",
-            "y-axis": "Low Engagement --> High Engagement",
-            "quadrant-1": "We should expand",
-            "quadrant-2": "Need to promote",
-            "quadrant-3": "Re-evaluate",
-            "quadrant-4": "May be improved",
-            "Campaign: A": [0.3, 0.6],
-            "Campaign B": [0.45, 0.23],
-            "Campaign C": [0.57, 0.69],
-            "Campaign D": [0.78, 0.34],
-            "Campaign E": [0.40, 0.34],
-            "Campaign F": [0.35, 0.78],
-            "Our Target Product": [0.5, 0.6]
+            quadrantChart
+                title Reach and engagement of campaigns
+                x-axis Low Reach --> High Reach
+                y-axis Low Engagement --> High Engagement
+                quadrant-1 We should expand
+                quadrant-2 Need to promote
+                quadrant-3 Re-evaluate
+                quadrant-4 May be improved
+                Campaign A: [0.3, 0.6]
+                Campaign B: [0.45, 0.23]
+                Campaign C: [0.57, 0.69]
+                Campaign D: [0.78, 0.34]
+                Campaign E: [0.40, 0.34]
+                Campaign F: [0.35, 0.78]
             '
         ,
         
