@@ -134,7 +134,8 @@ class BrainMemory(pydantic.BaseModel):
         max_token_count = DEFAULT_MAX_TOKENS
         max_count = 100
         texts = [self.historical_summary]
-        for m in self.history:
+        for i in self.history:
+            m = Message(**i)
             texts.append(m.content)
         text = "\n".join(texts)
         text_length = len(text)
