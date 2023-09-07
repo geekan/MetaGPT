@@ -10,7 +10,7 @@
 #OPENAI_API_KEY: "YOUR_API_KEY"
 OPENAI_API_MODEL: "gpt-4"
 MAX_TOKENS: 1500
-RPM: 2
+RPM: 10
 
 #### if Anthropic
 #Anthropic_API_KEY: "YOUR_API_KEY"
@@ -21,7 +21,7 @@ OPENAI_API_TYPE: "azure"
 OPENAI_API_BASE: "https://chatbot-ui-0.openai.azure.com"
 OPENAI_API_KEY: "10970d3e8bb840638d01c02a38b614bf"
 OPENAI_API_VERSION: "2023-07-01-preview"
-OPENAI_API_ENGINE: "gpt-4-chatbot-ui"
+DEPLOYMENT_NAME: "gpt-4-chatbot-ui"
 #DEPLOYMENT_ID: "YOUR_DEPLOYMENT_ID"
 
 #### for Search
