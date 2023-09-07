@@ -10,7 +10,21 @@ from typing import Dict, List
 
 from pydantic import BaseModel
 
+from metagpt.memory.brain_memory import MessageType
 from metagpt.provider import OpenAIGPTAPI
+
+
+class HisMsg(BaseModel):
+    content: str
+    tags: set
+    id: str
+
+
+class Conversion(BaseModel):
+    """See: https://github.com/openai/openai-cookbook/blob/main/examples/How_to_format_inputs_to_ChatGPT_models.ipynb"""
+
+    role: str
+    content: str
 
 
 class MetaGPTLLMAPI(OpenAIGPTAPI):
@@ -19,25 +33,32 @@ class MetaGPTLLMAPI(OpenAIGPTAPI):
     def __init__(self):
         super().__init__()
 
-    async def get_summary(self, history: List[Dict], max_words=200, keep_language: bool = False, **kwargs):
+    async def get_summary(self, history: List[Dict], max_words=200, keep_language: bool = False, **kwargs) -> str:
+        """
+        Return string in the following format：
+        [
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": "Knock knock."},
+            {"role": "assistant", "content": "Who's there?"},
+            {"role": "user", "content": "Orange."},
+        ]
+        """
         summary = []
 
-        class HisMsg(BaseModel):
-            content: str
-            tags: set
-            id: str
+        total_length = 0
+        for m in reversed(history):
+            msg = HisMsg(**m)
+            c = Conversion(role="user" if MessageType.Talk.value in msg.tags else "assistant", content=msg.content)
+            length_delta = len(msg.content)
+            if total_length + length_delta > max_words:
+                left = max_words - total_length
+                if left > 0:
+                    c.content = msg.content[0:left]
+                    summary.insert(0, c.dict())
+                break
 
-        class QuweryAnswerPair(BaseModel):
-            ask: str
-            answer: str
-
-        rh = reversed(history)
-        ix = 0
-        while ix < len(rh):
-            t = HisMsg(**rh[ix])
-            print(t)
-            # 如果 t是ask, continue
-            pass
+            total_length += length_delta
+            summary.insert(0, c.dict())
 
         data = json.dumps(summary)
         return data
