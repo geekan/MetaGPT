@@ -21,6 +21,7 @@ from metagpt.actions.search_and_summarize import SearchAndSummarize
 from metagpt.actions.write_code import WriteCode
 from metagpt.actions.write_code_review import WriteCodeReview
 from metagpt.actions.write_prd import WritePRD
+from metagpt.actions.write_prd_json import WritePRDJson
 from metagpt.actions.write_prd_review import WritePRDReview
 from metagpt.actions.write_test import WriteTest
 
@@ -30,6 +31,7 @@ class ActionType(Enum):
 
     ADD_REQUIREMENT = BossRequirement
     WRITE_PRD = WritePRD
+    WRITE_PRD_JSON = WritePRDJson
     WRITE_PRD_REVIEW = WritePRDReview
     WRITE_DESIGN = WriteDesign
     DESIGN_REVIEW = DesignReview
