@@ -44,12 +44,12 @@ class BrainMemory(pydantic.BaseModel):
 
     def add_talk(self, msg: Message):
         msg.add_tag(MessageType.Talk.value)
-        self.history.append(msg.dict())
+        self.add_history(msg)
         self.is_dirty = True
 
     def add_answer(self, msg: Message):
         msg.add_tag(MessageType.Answer.value)
-        self.history.append(msg.dict())
+        self.add_history(msg)
         self.is_dirty = True
 
     def get_knowledge(self) -> str:
