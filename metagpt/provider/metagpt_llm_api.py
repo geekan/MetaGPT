@@ -6,10 +6,10 @@
 @Desc    : MetaGPT LLM related APIs
 """
 import json
+from typing import Dict, List
 
 from pydantic import BaseModel
 
-from metagpt.memory.brain_memory import BrainMemory
 from metagpt.provider import OpenAIGPTAPI
 
 
@@ -19,17 +19,22 @@ class MetaGPTLLMAPI(OpenAIGPTAPI):
     def __init__(self):
         super().__init__()
 
-    async def get_summary(self, memory: BrainMemory, max_words=200, keep_language: bool = False, **kwargs):
+    async def get_summary(self, history: List[Dict], max_words=200, keep_language: bool = False, **kwargs):
         summary = []
+
+        class HisMsg(BaseModel):
+            content: str
+            tags: set
+            id: str
 
         class QuweryAnswerPair(BaseModel):
             ask: str
             answer: str
 
-        rh = reversed(memory.history)
+        rh = reversed(history)
         ix = 0
         while ix < len(rh):
-            t = rh[ix]
+            t = HisMsg(**rh[ix])
             print(t)
             # 如果 t是ask, continue
             pass
