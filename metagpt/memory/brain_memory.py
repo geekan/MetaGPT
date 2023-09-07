@@ -103,7 +103,7 @@ class BrainMemory(pydantic.BaseModel):
 
     @staticmethod
     def to_redis_key(prefix: str, user_id: str, chat_id: str):
-        return f"{prefix}:{chat_id}:{user_id}"
+        return f"{prefix}:{user_id}:{chat_id}"
 
     async def set_history_summary(self, history_summary, redis_key, redis_conf):
         if self.historical_summary == history_summary:
@@ -293,5 +293,10 @@ class BrainMemory(pydantic.BaseModel):
             return match.group(1), match.group(2)
         else:
             return None, input_string
+
+    def set_llm_type(self, v):
+        if v:
+            self.llm_type = v
+            self.is_dirty = True
 
     DEFAULT_TOKEN_SIZE = 500
