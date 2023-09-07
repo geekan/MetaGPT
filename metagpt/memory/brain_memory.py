@@ -178,13 +178,16 @@ class BrainMemory(pydantic.BaseModel):
         self.is_dirty = True
         return self.historical_summary
 
-    async def get_summary(self, text: str, llm, max_words=200, keep_language: bool = False, **kwargs):
+    async def summerize(self, llm, max_words=200, keep_language: bool = False, **kwargs):
         max_token_count = DEFAULT_MAX_TOKENS
         max_count = 100
+        text = self.history_text
         text_length = len(text)
+        summary = ""
         while max_count > 0:
             if text_length < max_token_count:
-                return await self._get_summary(text=text, llm=llm, max_words=max_words, keep_language=keep_language)
+                summary = await self._get_summary(text=text, llm=llm, max_words=max_words, keep_language=keep_language)
+                break
 
             padding_size = 20 if max_token_count > 20 else 0
             text_windows = self.split_texts(text, window_size=max_token_count - padding_size)
@@ -194,13 +197,18 @@ class BrainMemory(pydantic.BaseModel):
                 response = await self._get_summary(text=ws, max_words=part_max_words, keep_language=keep_language)
                 summaries.append(response)
             if len(summaries) == 1:
-                return summaries[0]
+                summary = summaries[0]
+                break
 
             # Merged and retry
             text = "\n".join(summaries)
             text_length = len(text)
 
             max_count -= 1  # safeguard
+        if not summary:
+            await self.set_history_summary(history_summary=summary, redis_key=CONFIG.REDIS_KEY, redis_conf=CONFIG.REDIS)
+            return summary
+
         raise openai.error.InvalidRequestError("text too long")
 
     async def _get_summary(self, text: str, llm, max_words=20, keep_language: bool = False):

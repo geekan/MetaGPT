@@ -45,7 +45,7 @@ class Assistant(Role):
             name=name, profile=profile, goal=goal, constraints=constraints, desc=desc, *args, **kwargs
         )
         brain_memory = CONFIG.BRAIN_MEMORY
-        self.memory = BrainMemory(**brain_memory) if brain_memory else BrainMemory()
+        self.memory = BrainMemory(**brain_memory) if brain_memory else BrainMemory(llm_type=CONFIG.LLM_TYPE)
         skill_path = Path(CONFIG.SKILL_PATH) if CONFIG.SKILL_PATH else None
         self.skills = SkillLoader(skill_yaml_file_name=skill_path)
 
@@ -83,7 +83,7 @@ class Assistant(Role):
         self.memory.add_talk(Message(content=text))
 
     async def _plan(self, rsp: str, **kwargs) -> bool:
-        skill, text = Assistant.extract_info(input_string=rsp)
+        skill, text = BrainMemory.extract_info(input_string=rsp)
         handlers = {
             MessageType.Talk.value: self.talk_handler,
             MessageType.Skill.value: self.skill_handler,
@@ -121,23 +121,13 @@ class Assistant(Role):
             return None
         if history_text == "":
             return last_talk
-        history_summary = await self.memory.get_summary(
-            text=history_text, max_words=800, keep_language=True, llm=self._llm
-        )
-        # await self.memory.set_history_summary(
-        #     history_summary=history_summary, redis_key=CONFIG.REDIS_KEY, redis_conf=CONFIG.REDIS
-        # )
-        if last_talk and await self.memory.is_related(
-            text1=last_talk, text2=history_summary, llm=self._llm
-        ):  # Merge relevant content.
+        history_summary = await self.memory.summerize(max_words=800, keep_language=True, llm=self._llm)
+        if last_talk and await self.memory.is_related(text1=last_talk, text2=history_summary, llm=self._llm):
+            # Merge relevant content.
             last_talk = await self.memory.rewrite(sentence=last_talk, context=history_text, llm=self._llm)
             return last_talk
 
         return last_talk
-
-    @staticmethod
-    def extract_info(input_string):
-        return BrainMemory.extract_info(input_string)
 
     def get_memory(self) -> str:
         return self.memory.json()
