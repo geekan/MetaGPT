@@ -121,23 +121,23 @@ class Assistant(Role):
             return None
         if history_text == "":
             return last_talk
-        history_summary = await self._llm.get_summary(
-            text=history_text, max_words=800, keep_language=True, memory=self.memory
+        history_summary = await self.memory.get_summary(
+            text=history_text, max_words=800, keep_language=True, llm=self._llm
         )
-        await self.memory.set_history_summary(
-            history_summary=history_summary, redis_key=CONFIG.REDIS_KEY, redis_conf=CONFIG.REDIS
-        )
-        if last_talk and await self._llm.is_related(last_talk, history_summary):  # Merge relevant content.
-            last_talk = await self._llm.rewrite(sentence=last_talk, context=history_text)
+        # await self.memory.set_history_summary(
+        #     history_summary=history_summary, redis_key=CONFIG.REDIS_KEY, redis_conf=CONFIG.REDIS
+        # )
+        if last_talk and await self.memory.is_related(
+            text1=last_talk, text2=history_summary, llm=self._llm
+        ):  # Merge relevant content.
+            last_talk = await self.memory.rewrite(sentence=last_talk, context=history_text, llm=self._llm)
             return last_talk
 
         return last_talk
 
     @staticmethod
     def extract_info(input_string):
-        from metagpt.provider.openai_api import OpenAIGPTAPI
-
-        return OpenAIGPTAPI.extract_info(input_string)
+        return BrainMemory.extract_info(input_string)
 
     def get_memory(self) -> str:
         return self.memory.json()
