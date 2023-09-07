@@ -240,7 +240,8 @@ class BrainMemory(pydantic.BaseModel):
         logger.debug(f"title rsp: {response}")
         return response
 
-    async def is_related(self, text1, text2, llm):
+    @staticmethod
+    async def is_related(text1, text2, llm):
         # command = f"{text1}\n{text2}\n\nIf the two sentences above are related, return [TRUE] brief and clear. Otherwise, return [FALSE]."
         command = f"{text2}\n\nIs there any sentence above related to the following sentence: {text1}.\nIf is there any relevance, return [TRUE] brief and clear. Otherwise, return [FALSE] brief and clear."
         rsp = await llm.aask(msg=command, system_msgs=[])
@@ -295,8 +296,12 @@ class BrainMemory(pydantic.BaseModel):
             return None, input_string
 
     def set_llm_type(self, v):
-        if v:
+        if v and v != self.llm_type:
             self.llm_type = v
             self.is_dirty = True
+
+    @property
+    def is_history_available(self):
+        return self.history or self.historical_summary
 
     DEFAULT_TOKEN_SIZE = 500
