@@ -107,7 +107,7 @@ class WriteTasks(Action):
         super().__init__(name, context, llm)
 
     def _save(self, context, rsp):
-        ws_name = CodeParser.parse_str(block="Python package name", text=context[-1].content)
+        ws_name = context[-1].instruct_content.dict()["Python package name"]#CodeParser.parse_str(block="Python package name", text=context[-1].content)
         file_path = WORKSPACE_ROOT / ws_name / 'docs/api_spec_and_tasks.md'
         file_path.write_text(rsp.content)
 

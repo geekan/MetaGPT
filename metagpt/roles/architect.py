@@ -6,7 +6,8 @@
 @File    : architect.py
 """
 
-from metagpt.actions import WriteDesign, WritePRD
+from metagpt.actions import WriteDesign, WritePRD, WritePRDJson
+from metagpt.actions.design_api_json import WriteDesignJson
 from metagpt.roles import Role
 
 
@@ -30,9 +31,9 @@ class Architect(Role):
         super().__init__(name, profile, goal, constraints)
         
         # Initialize actions specific to the Architect role
-        self._init_actions([WriteDesign])
+        self._init_actions([WriteDesignJson])
         
         # Set events or actions the Architect should watch or be aware of
-        self._watch({WritePRD})
+        self._watch({WritePRDJson})
 
         

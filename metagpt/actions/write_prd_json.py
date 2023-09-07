@@ -61,13 +61,14 @@ Requirements: According to the context, fill in the following missing informatio
 ## UI Design draft: Provide as Plain text. Be simple. Describe the elements and functions, also provide a simple style description and layout description.
 ## Anything UNCLEAR: Provide as Plain text. Make clear here.
 
-Your job is to create a properly formatted JSON
+Your job is to create a properly formatted JSON, wrapped inside [CONTENT][/CONTENT] like format example
 """
 FORMAT_EXAMPLE = """
+[CONTENT]
 {
         "Original Requirements": "",
         "Search Information": "",
-        "mermaid quadrantChart code": '''
+        "mermaid quadrantChart code": '
             "title": "Reach and engagement of campaigns",
             "x-axis": "Low Reach --> High Reach",
             "y-axis": "Low Engagement --> High Engagement",
@@ -82,7 +83,7 @@ FORMAT_EXAMPLE = """
             "Campaign E": [0.40, 0.34],
             "Campaign F": [0.35, 0.78],
             "Our Target Product": [0.5, 0.6]
-            '''
+            '
         ,
         
     },
@@ -93,10 +94,11 @@ FORMAT_EXAMPLE = """
     "Competitive Analysis": [],
     "Competitive Quadrant Chart": "",
     "Requirement Analysis": "",
-    "Requirement Pool": [],
+    "Requirement Pool": [["P0","P0 requirement"],["P1","P1 requirement"]],
     "UI Design draft": "",
     "Anything UNCLEAR": "",
 }
+[/CONTENT]
 """
 OUTPUT_MAPPING = {
     "Original Requirements": (str, ...),
@@ -105,7 +107,7 @@ OUTPUT_MAPPING = {
     "Competitive Analysis": (List[str], ...),
     "Competitive Quadrant Chart": (str, ...),
     "Requirement Analysis": (str, ...),
-    "Requirement Pool": (List[Tuple[str, str]], ...),
+    "Requirement Pool": (List[List[str]], ...),
     "UI Design draft":(str, ...),
     "Anything UNCLEAR": (str, ...),
 }

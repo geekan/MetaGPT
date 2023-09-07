@@ -5,16 +5,19 @@
 @Author  : alexanderwu
 @File    : action.py
 """
+import ast
 import json
 from abc import ABC
 from typing import Optional
+import re
 
 from tenacity import retry, stop_after_attempt, wait_fixed
-import regex
+
 
 from metagpt.actions.action_output import ActionOutput
 from metagpt.llm import LLM
 from metagpt.utils.common import OutputParser
+from metagpt.utils.custom_decoder import CustomDecoder
 from metagpt.logs import logger
 
 
@@ -77,12 +80,13 @@ class Action(ABC):
         content = await self.llm.aask(prompt, system_msgs)
         logger.debug(content)
         output_class = ActionOutput.create_model_class(output_class_name, output_data_mapping)
-        json_regex = r"\{(?:[^{}]|(?R))*\}"
-        json = regex.search(
-            json_regex, content
-        ).group()
-        generated_plan = json.loads(json)
-        parsed_data = OutputParser.parse_data_with_mapping(content, output_data_mapping)
+
+        pattern = r'\[CONTENT\](.*?)\[/CONTENT\]'
+
+        # Use re.findall to extract content between the tags
+        extracted_content = re.search(pattern, content, re.DOTALL).group(1)
+
+        parsed_data = CustomDecoder(strict=False).decode(extracted_content)
         logger.debug(parsed_data)
         instruct_content = output_class(**parsed_data)
         return ActionOutput(content, instruct_content)
