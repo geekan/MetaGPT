@@ -161,7 +161,7 @@ class BrainMemory(pydantic.BaseModel):
             text_length = len(text)
 
             max_count -= 1  # safeguard
-        if not summary:
+        if summary:
             await self.set_history_summary(history_summary=summary, redis_key=CONFIG.REDIS_KEY, redis_conf=CONFIG.REDIS)
             return summary
         raise openai.error.InvalidRequestError("text too long")
