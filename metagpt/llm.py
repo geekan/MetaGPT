@@ -26,10 +26,6 @@ class LLMType(Enum):
                 return member
         return cls.UNKNOWN
 
-    @property
-    def UNKNOWN(self):
-        return LLMType.UNKNOWN
-
 
 DEFAULT_LLM = OpenAI_LLM()
 DEFAULT_METAGPT_LLM = MetaGPT_LLM()
