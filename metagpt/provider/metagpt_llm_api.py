@@ -6,7 +6,6 @@
 @Desc    : MetaGPT LLM related APIs
 """
 
-from metagpt.memory.brain_memory import BrainMemory
 from metagpt.provider import OpenAIGPTAPI
 
 
@@ -16,7 +15,7 @@ class MetaGPTLLMAPI(OpenAIGPTAPI):
     def __init__(self):
         super().__init__()
 
-    async def get_summary(self, memory: BrainMemory, max_words=200, keep_language: bool = False, **kwargs) -> str:
+    async def get_summary(self, memory, max_words=200, keep_language: bool = False, **kwargs) -> str:
         """
         Return string in the following format：
         [
