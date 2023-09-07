@@ -42,17 +42,14 @@ class BaseGPTAPI(BaseChatbot):
         self,
         msg: str,
         system_msgs: Optional[list[str]] = None,
-        history_msgs: Optional[list[dict[str, str]]] = None,
-        knowledge_msgs: Optional[list[dict[str, str]]] = None,
+        format_msgs: Optional[list[dict[str, str]]] = None,
         generator: bool = False,
     ) -> str:
         message = []
         if system_msgs:
             message = self._system_msgs(system_msgs)
-        if knowledge_msgs:
-            message.extend(knowledge_msgs)
-        if history_msgs:
-            message.extend(history_msgs)
+        if format_msgs:
+            message.extend(format_msgs)
         message.append(self._user_msg(msg))
         try:
             rsp = await self.acompletion_text(message, stream=True, generator=generator)

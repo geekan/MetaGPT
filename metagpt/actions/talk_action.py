@@ -64,19 +64,32 @@ class TalkAction(Action):
         logger.info(f"PROMPT: {prompt}")
         return prompt
 
-    async def run(self, *args, **kwargs) -> ActionOutput:
-        if CONFIG.LLM_TYPE == LLMType.METAGPT.value:
-            rsp = await self.llm.aask(
-                msg=self._talk,
-                knowledge_msgs=[{"knowledge": self._knowledge}] if self._knowledge else None,
-                history_msgs=json.loads(self._history_summary) if self._history_summary else None,
-            )
-            self._rsp = ActionOutput(content=rsp)
-            return self._rsp
-
+    async def run_old(self, *args, **kwargs) -> ActionOutput:
         prompt = self.prompt
         rsp = await self.llm.aask(msg=prompt, system_msgs=[])
         logger.debug(f"PROMPT:{prompt}\nRESULT:{rsp}\n")
+        self._rsp = ActionOutput(content=rsp)
+        return self._rsp
+
+    async def run(self, *args, **kwargs) -> ActionOutput:
+        language = CONFIG.language or DEFAULT_LANGUAGE
+        system_msgs = [
+            f"You are {CONFIG.agent_description}.",
+            "Your responses should align with the role-play agreement, "
+            "maintaining the character's persona and habits. When faced with unrelated questions, playfully "
+            "decline to answer without revealing your AI nature to preserve the character's image.",
+            "If the information is insufficient, you can search in the context or knowledge.",
+            f"Answer the following questions strictly in {language}, and the answers must follow the Markdown format.",
+        ]
+        format_msgs = []
+        if self._knowledge:
+            format_msgs.append({"knowledge": self._knowledge})
+        if self._history_summary:
+            if CONFIG.LLM_TYPE == LLMType.METAGPT.value:
+                format_msgs.append(json.loads(self._history_summary))
+            else:
+                format_msgs.append({"context": self._history_summary})
+        rsp = await self.llm.aask(msg=self._talk, format_msgs=format_msgs, system_msgs=system_msgs)
         self._rsp = ActionOutput(content=rsp)
         return self._rsp
 
