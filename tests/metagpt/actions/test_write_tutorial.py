@@ -7,10 +7,9 @@
 """
 from typing import Dict
 
-import aiofiles
 import pytest
 
-from metagpt.actions.write_tutorial import WriteDirectory, WriteContent, SaveDocx
+from metagpt.actions.write_tutorial import WriteDirectory, WriteContent
 
 
 @pytest.mark.asyncio
@@ -27,6 +26,7 @@ async def test_write_directory(language: str, topic: str):
     assert len(ret["directory"])
     assert isinstance(ret["directory"][0], dict)
 
+
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     ("language", "topic", "directory"),
@@ -38,16 +38,3 @@ async def test_write_content(language: str, topic: str, directory: Dict):
     assert list(directory.keys())[0] in ret
     for value in list(directory.values())[0]:
         assert value in ret
-
-@pytest.mark.asyncio
-@pytest.mark.parametrize(
-    ("title", "content"),
-    [("Python", "Write a tutorial about Python")]
-)
-async def test_save_docx(title: str, content: str):
-    ret = await SaveDocx().run(title=title, content=content)
-    assert isinstance(ret, str)
-    assert title in ret
-    async with aiofiles.open(ret, mode="r") as reader:
-        body = await reader.read()
-        assert body == content
