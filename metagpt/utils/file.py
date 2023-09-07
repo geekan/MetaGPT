@@ -26,6 +26,9 @@ class File:
 
         Returns:
             The full filename of file, such as "/data/test.txt".
+
+        Raises:
+            Exception: If an unexpected error occurs during the file writing process.
         """
         try:
             root_path.mkdir(parents=True, exist_ok=True)
