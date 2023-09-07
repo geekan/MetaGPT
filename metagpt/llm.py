@@ -8,6 +8,7 @@
 """
 from enum import Enum
 
+from metagpt.config import CONFIG
 from metagpt.provider.anthropic_api import Claude2 as Claude
 from metagpt.provider.metagpt_llm_api import MetaGPTLLMAPI as MetaGPT_LLM
 from metagpt.provider.openai_api import OpenAIGPTAPI as OpenAI_LLM
@@ -40,3 +41,10 @@ async def ai_func(prompt):
     QA with LLMs
     """
     return await DEFAULT_LLM.aask(prompt)
+
+
+class LLMFactory:
+    @staticmethod
+    async def new_llm() -> object:
+        llm = OpenAI_LLM() if CONFIG.LLM_TYPE == LLMType.OPENAI.value else MetaGPT_LLM()
+        return llm
