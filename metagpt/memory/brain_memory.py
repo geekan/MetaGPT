@@ -15,6 +15,7 @@ import pydantic
 
 from metagpt import Message
 from metagpt.logs import logger
+from metagpt.schema import RawMessage
 from metagpt.utils.redis import Redis
 
 
@@ -54,17 +55,21 @@ class BrainMemory(pydantic.BaseModel):
     def history_text(self):
         if len(self.history) == 0 and not self.historical_summary:
             return ""
-        texts = [self.historical_summary] if self.historical_summary else []
-        for m in self.history[:-1]:
-            if isinstance(m, Dict):
-                t = Message(**m).content
-            elif isinstance(m, Message):
-                t = m.content
-            else:
-                continue
-            texts.append(t)
+        try:
+            self.loads_raw_messages()
+            return self.dumps_raw_messages()
+        except:
+            texts = [self.historical_summary] if self.historical_summary else []
+            for m in self.history[:-1]:
+                if isinstance(m, Dict):
+                    t = Message(**m).content
+                elif isinstance(m, Message):
+                    t = m.content
+                else:
+                    continue
+                texts.append(t)
 
-        return "\n".join(texts)
+            return "\n".join(texts)
 
     @staticmethod
     async def loads(redis_key: str, redis_conf: Dict = None) -> "BrainMemory":
@@ -130,3 +135,40 @@ class BrainMemory(pydantic.BaseModel):
         v = self.last_talk
         self.last_talk = None
         return v
+
+    def loads_raw_messages(self):
+        if not self.historical_summary:
+            return
+        vv = json.loads(self.historical_summary)
+        msgs = []
+        for v in vv:
+            tag = set([MessageType.Talk.value]) if v.get("role") == "user" else set([MessageType.Answer.value])
+            m = Message(content=v.get("content"), tags=tag)
+            msgs.append(m)
+        msgs.extend(self.history)
+        self.history = msgs
+        self.is_dirty = True
+
+    def dumps_raw_messages(self, max_length: int = 0) -> str:
+        summary = []
+
+        total_length = 0
+        for m in reversed(self.history):
+            msg = Message(**m)
+            c = RawMessage(role="user" if MessageType.Talk.value in msg.tags else "assistant", content=msg.content)
+            length_delta = len(msg.content)
+            if max_length > 0:
+                if total_length + length_delta > max_length:
+                    left = max_length - total_length
+                    if left > 0:
+                        c.content = msg.content[0:left]
+                        summary.insert(0, c)
+                    break
+
+            total_length += length_delta
+            summary.insert(0, c)
+
+        self.historical_summary = json.dumps(summary)
+        self.history = []
+        self.is_dirty = True
+        return self.historical_summary

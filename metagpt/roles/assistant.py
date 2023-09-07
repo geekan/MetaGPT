@@ -122,7 +122,7 @@ class Assistant(Role):
         if history_text == "":
             return last_talk
         history_summary = await self._llm.get_summary(
-            text=history_text, max_words=800, keep_language=True, history=self.memory.history
+            text=history_text, max_words=800, keep_language=True, memory=self.memory
         )
         await self.memory.set_history_summary(
             history_summary=history_summary, redis_key=CONFIG.REDIS_KEY, redis_conf=CONFIG.REDIS
