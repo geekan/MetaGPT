@@ -80,7 +80,7 @@ class BrainMemory(pydantic.BaseModel):
     async def loads(redis_key: str, redis_conf: Dict = None) -> "BrainMemory":
         redis = Redis(conf=redis_conf)
         if not redis.is_valid() or not redis_key:
-            return BrainMemory()
+            return BrainMemory(llm_type=CONFIG.LLM_TYPE)
         v = await redis.get(key=redis_key)
         logger.debug(f"REDIS GET {redis_key} {v}")
         if v:
@@ -88,9 +88,11 @@ class BrainMemory(pydantic.BaseModel):
             bm = BrainMemory(**data)
             bm.is_dirty = False
             return bm
-        return BrainMemory()
+        return BrainMemory(llm_type=CONFIG.LLM_TYPE)
 
     async def dumps(self, redis_key: str, timeout_sec: int = 30 * 60, redis_conf: Dict = None):
+        if not self.is_dirty:
+            return
         redis = Redis(conf=redis_conf)
         if not redis.is_valid() or not redis_key:
             return False
