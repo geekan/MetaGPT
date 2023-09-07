@@ -223,7 +223,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             return CONFIG.max_tokens_rsp
         return get_max_completion_tokens(messages, self.model, CONFIG.max_tokens_rsp)
 
-    async def get_summary(self, text: str, max_words=200, keep_language: bool = False):
+    async def get_summary(self, text: str, max_words=200, keep_language: bool = False, **kwargs):
         max_token_count = DEFAULT_MAX_TOKENS
         max_count = 100
         text_length = len(text)
@@ -262,7 +262,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         logger.debug(f"summary rsp: {response}")
         return response
 
-    async def get_context_title(self, text: str, max_words=5) -> str:
+    async def get_context_title(self, text: str, max_words=5, **kwargs) -> str:
         """Generate text title"""
         summary = await self.get_summary(text, max_words=500)
 
