@@ -8,7 +8,6 @@
 from collections import defaultdict
 from typing import Iterable, Type
 
-from metagpt.actions import Action
 from metagpt.schema import Message
 
 
@@ -17,6 +16,8 @@ class Memory:
 
     def __init__(self):
         """Initialize an empty storage list and an empty index dictionary"""
+        from metagpt.actions import Action
+
         self.storage: list[Message] = []
         self.index: dict[Type[Action], list[Message]] = defaultdict(list)
 
