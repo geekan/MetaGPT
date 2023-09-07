@@ -41,6 +41,6 @@ async def ai_func(prompt):
 
 class LLMFactory:
     @staticmethod
-    async def new_llm() -> object:
+    def new_llm() -> object:
         llm = OpenAI_LLM() if CONFIG.LLM_TYPE == LLMType.OPENAI.value else MetaGPT_LLM()
         return llm
