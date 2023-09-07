@@ -26,10 +26,17 @@ class File:
 
         Returns:
             The full filename of file, such as "/data/test.txt".
+
+        Raises:
+            Exception: If an unexpected error occurs during the file writing process.
         """
-        root_path.mkdir(parents=True, exist_ok=True)
-        full_path = root_path / filename
-        async with aiofiles.open(full_path, mode="wb") as writer:
-            await writer.write(content)
-            logger.info(f"Successfully write docx: {full_path}")
-            return full_path
+        try:
+            root_path.mkdir(parents=True, exist_ok=True)
+            full_path = root_path / filename
+            async with aiofiles.open(full_path, mode="wb") as writer:
+                await writer.write(content)
+                logger.info(f"Successfully write docx: {full_path}")
+                return full_path
+        except Exception as e:
+            logger.error(f"Error writing file: {e}")
+            raise e
