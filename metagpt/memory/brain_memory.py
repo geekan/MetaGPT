@@ -171,16 +171,17 @@ class BrainMemory(pydantic.BaseModel):
 
         total_length = 0
         msgs = []
-        for m in reversed(self.history):
+        for i in reversed(self.history):
+            m = Message(**i)
             delta = len(m.content)
             if total_length + delta > max_words:
                 left = max_words - total_length
                 if left == 0:
                     break
                 m.content = m.content[0:left]
-                msgs.append(m)
+                msgs.append(m.dict())
                 break
-            msgs.append(m)
+            msgs.append(m.dict())
             total_length += delta
         self.history = msgs
         self.is_dirty = True
@@ -198,7 +199,8 @@ class BrainMemory(pydantic.BaseModel):
             mmsg.append(r)
         return json.dumps(mmsg)
 
-    async def _get_summary(self, text: str, llm, max_words=20, keep_language: bool = False):
+    @staticmethod
+    async def _get_summary(text: str, llm, max_words=20, keep_language: bool = False):
         """Generate text summary"""
         if len(text) < max_words:
             return text
@@ -214,7 +216,7 @@ class BrainMemory(pydantic.BaseModel):
 
     async def get_title(self, text: str, llm, max_words=5, **kwargs) -> str:
         """Generate text title"""
-        summary = await self.get_summary(text, max_words=500)
+        summary = await self.summarize(text, max_words=500)
 
         language = CONFIG.language or DEFAULT_LANGUAGE
         command = f"Translate the above summary into a {language} title of less than {max_words} words."
