@@ -10,7 +10,7 @@
 import json
 import re
 from enum import Enum
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import openai
 import pydantic
@@ -40,7 +40,7 @@ class BrainMemory(pydantic.BaseModel):
     last_history_id: str = ""
     is_dirty: bool = False
     last_talk: str = None
-    llm_type: str
+    llm_type: Optional[str] = None
 
     def add_talk(self, msg: Message):
         msg.add_tag(MessageType.Talk.value)
