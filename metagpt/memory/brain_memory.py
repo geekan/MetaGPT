@@ -107,7 +107,7 @@ class BrainMemory(pydantic.BaseModel):
 
     def add_history(self, msg: Message):
         if msg.id:
-            if self.to_int(msg.id, 0) < self.to_int(self.last_history_id, -1):
+            if self.to_int(msg.id, 0) <= self.to_int(self.last_history_id, -1):
                 return
         self.history.append(msg.dict())
         self.is_dirty = True
