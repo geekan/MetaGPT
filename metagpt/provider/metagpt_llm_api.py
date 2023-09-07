@@ -27,12 +27,12 @@ class MetaGPTLLMAPI(OpenAIGPTAPI):
         RateLimiter.__init__(self, rpm=self.rpm)
 
     def __init_openai(self, *args, **kwargs):
-        openai.api_key = CONFIG.METAGPT_API_KEY
-        if CONFIG.METAGPT_API_BASE:
-            openai.api_base = CONFIG.METAGPT_API_BASE
-        if CONFIG.METAGPT_API_TYPE:
-            openai.api_type = CONFIG.METAGPT_API_TYPE
-            openai.api_version = CONFIG.METAGPT_API_VERSION
+        # openai.api_key = CONFIG.METAGPT_API_KEY
+        # if CONFIG.METAGPT_API_BASE:
+        #     openai.api_base = CONFIG.METAGPT_API_BASE
+        # if CONFIG.METAGPT_API_TYPE:
+        #     openai.api_type = CONFIG.METAGPT_API_TYPE
+        #     openai.api_version = CONFIG.METAGPT_API_VERSION
         self.rpm = int(CONFIG.RPM) if CONFIG.RPM else 10
 
     async def get_summary(self, memory: BrainMemory, max_words=200, keep_language: bool = False, **kwargs):
