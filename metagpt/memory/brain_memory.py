@@ -18,6 +18,7 @@ import pydantic
 from metagpt import Message
 from metagpt.config import CONFIG
 from metagpt.const import DEFAULT_LANGUAGE, DEFAULT_MAX_TOKENS
+from metagpt.llm import LLMType
 from metagpt.logs import logger
 from metagpt.schema import RawMessage
 from metagpt.utils.redis import Redis
@@ -55,26 +56,6 @@ class BrainMemory(pydantic.BaseModel):
     def get_knowledge(self) -> str:
         texts = [Message(**m).content for m in self.knowledge]
         return "\n".join(texts)
-
-    # @property
-    # def history_text(self):
-    #     if len(self.history) == 0 and not self.historical_summary:
-    #         return ""
-    #     try:
-    #         self.loads_raw_messages()
-    #         return self.dumps_raw_messages()
-    #     except:
-    #         texts = [self.historical_summary] if self.historical_summary else []
-    #         for m in self.history[:-1]:
-    #             if isinstance(m, Dict):
-    #                 t = Message(**m).content
-    #             elif isinstance(m, Message):
-    #                 t = m.content
-    #             else:
-    #                 continue
-    #             texts.append(t)
-    #
-    #         return "\n".join(texts)
 
     @staticmethod
     async def loads(redis_key: str, redis_conf: Dict = None) -> "BrainMemory":
@@ -143,47 +124,19 @@ class BrainMemory(pydantic.BaseModel):
         self.last_talk = None
         return v
 
-    def loads_raw_messages(self):
-        if not self.historical_summary:
-            return
-        vv = json.loads(self.historical_summary)
-        msgs = []
-        for v in vv:
-            tag = set([MessageType.Talk.value]) if v.get("role") == "user" else set([MessageType.Answer.value])
-            m = Message(content=v.get("content"), tags=tag)
-            msgs.append(m)
-        msgs.extend(self.history)
-        self.history = msgs
-        self.is_dirty = True
+    async def summarize(self, llm, max_words=200, keep_language: bool = False, **kwargs):
+        if self.llm_type == LLMType.METAGPT.value:
+            return await self._metagpt_summarize(llm=llm, max_words=max_words, keep_language=keep_language, **kwargs)
 
-    def dumps_raw_messages(self, max_length: int = 0) -> str:
-        summary = []
+        return await self._openai_summarize(llm=llm, max_words=max_words, keep_language=keep_language, **kwargs)
 
-        total_length = 0
-        for m in reversed(self.history):
-            msg = Message(**m)
-            c = RawMessage(role="user" if MessageType.Talk.value in msg.tags else "assistant", content=msg.content)
-            length_delta = len(msg.content)
-            if max_length > 0:
-                if total_length + length_delta > max_length:
-                    left = max_length - total_length
-                    if left > 0:
-                        c.content = msg.content[0:left]
-                        summary.insert(0, c)
-                    break
-
-            total_length += length_delta
-            summary.insert(0, c)
-
-        self.historical_summary = json.dumps(summary)
-        self.history = []
-        self.is_dirty = True
-        return self.historical_summary
-
-    async def summerize(self, llm, max_words=200, keep_language: bool = False, **kwargs):
+    async def _openai_summarize(self, llm, max_words=200, keep_language: bool = False, **kwargs):
         max_token_count = DEFAULT_MAX_TOKENS
         max_count = 100
-        text = self.history_text
+        texts = [self.historical_summary]
+        for m in self.history:
+            texts.append(m.content)
+        text = "\n".join(texts)
         text_length = len(text)
         summary = ""
         while max_count > 0:
@@ -210,8 +163,40 @@ class BrainMemory(pydantic.BaseModel):
         if not summary:
             await self.set_history_summary(history_summary=summary, redis_key=CONFIG.REDIS_KEY, redis_conf=CONFIG.REDIS)
             return summary
-
         raise openai.error.InvalidRequestError("text too long")
+
+    async def _metagpt_summarize(self, max_words=200, **kwargs):
+        if not self.history:
+            return ""
+
+        total_length = 0
+        msgs = []
+        for m in reversed(self.history):
+            delta = len(m.content)
+            if total_length + delta > max_words:
+                left = max_words - total_length
+                if left == 0:
+                    break
+                m.content = m.content[0:left]
+                msgs.append(m)
+                break
+            msgs.append(m)
+            total_length += delta
+        self.history = msgs
+        self.is_dirty = True
+        await self.dumps(redis_key=CONFIG.REDIS_KEY, redis_conf=CONFIG.REDIS_CONF)
+        self.is_dirty = False
+
+        return BrainMemory.to_metagpt_history_format(self.history)
+
+    @staticmethod
+    def to_metagpt_history_format(history) -> str:
+        mmsg = []
+        for m in reversed(history):
+            msg = Message(**m)
+            r = RawMessage(role="user" if MessageType.Talk.value in msg.tags else "assistant", content=msg.content)
+            mmsg.append(r)
+        return json.dumps(mmsg)
 
     async def _get_summary(self, text: str, llm, max_words=20, keep_language: bool = False):
         """Generate text summary"""
@@ -302,6 +287,6 @@ class BrainMemory(pydantic.BaseModel):
 
     @property
     def is_history_available(self):
-        return self.history or self.historical_summary
+        return bool(self.history or self.historical_summary)
 
     DEFAULT_TOKEN_SIZE = 500
