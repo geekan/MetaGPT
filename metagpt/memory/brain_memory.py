@@ -216,9 +216,9 @@ class BrainMemory(pydantic.BaseModel):
         logger.debug(f"summary rsp: {response}")
         return response
 
-    async def get_title(self, text: str, llm, max_words=5, **kwargs) -> str:
+    async def get_title(self, llm, max_words=5, **kwargs) -> str:
         """Generate text title"""
-        summary = await self.summarize(text, max_words=500)
+        summary = await self.summarize(max_words=500)
 
         language = CONFIG.language or DEFAULT_LANGUAGE
         command = f"Translate the above summary into a {language} title of less than {max_words} words."
