@@ -194,7 +194,7 @@ class BrainMemory(pydantic.BaseModel):
     @staticmethod
     def to_metagpt_history_format(history) -> str:
         mmsg = []
-        for m in reversed(history):
+        for m in history:
             msg = Message(**m)
             r = RawMessage(role="user" if MessageType.Talk.value in msg.tags else "assistant", content=msg.content)
             mmsg.append(r)
