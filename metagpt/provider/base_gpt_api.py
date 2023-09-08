@@ -48,6 +48,8 @@ class BaseGPTAPI(BaseChatbot):
         message = []
         if system_msgs:
             message = self._system_msgs(system_msgs)
+        else:
+            message = [self._default_system_msg()]
         if format_msgs:
             message.extend(format_msgs)
         message.append(self._user_msg(msg))
