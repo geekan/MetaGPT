@@ -5,7 +5,7 @@
 @Author  : alexanderwu
 @File    : project_management.py
 """
-from typing import List, Tuple
+from typing import List
 
 from metagpt.actions.action import Action
 from metagpt.const import WORKSPACE_ROOT
@@ -35,65 +35,42 @@ Attention: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD W
 
 ## Anything UNCLEAR: Provide as Plain text. Make clear here. For example, don't forget a main entry. don't forget to init 3rd party libs.
 
+output a properly formatted JSON, wrapped inside [CONTENT][/CONTENT] like format example,
+and only output the json inside this tag, nothing else
 """
 
 FORMAT_EXAMPLE = '''
----
-## Required Python third-party packages
-```python
-"""
-flask==1.1.2
-bcrypt==3.2.0
-"""
-```
-
-## Required Other language third-party packages
-```python
-"""
-No third-party ...
-"""
-```
-
-## Full API spec
-```python
-"""
-openapi: 3.0.0
-...
-description: A JSON object ...
-"""
-```
-
-## Logic Analysis
-```python
-[
-    ("game.py", "Contains ..."),
-]
-```
-
-## Task list
-```python
-[
-    "game.py",
-]
-```
-
-## Shared Knowledge
-```python
-"""
-'game.py' contains ...
-"""
-```
-
-## Anything UNCLEAR
-We need ... how to start.
----
+{
+    "Required Python third-party packages": [
+        "flask==1.1.2",
+        "bcrypt==3.2.0"
+    ],
+    "Required Other language third-party packages": [
+        "No third-party ..."
+    ],
+    "Full API spec": """
+        openapi: 3.0.0
+        ...
+        description: A JSON object ...
+     """,
+    "Logic Analysis": [
+        ["game.py","Contains..."]
+    ],
+    "Task list": [
+        "game.py"
+    ],
+    "Shared Knowledge": """
+        'game.py' contains ...
+    """,
+    "Anything UNCLEAR": "We need ... how to start."
+}
 '''
 
 OUTPUT_MAPPING = {
-    "Required Python third-party packages": (str, ...),
-    "Required Other language third-party packages": (str, ...),
+    "Required Python third-party packages": (List[str], ...),
+    "Required Other language third-party packages": (List[str], ...),
     "Full API spec": (str, ...),
-    "Logic Analysis": (List[Tuple[str, str]], ...),
+    "Logic Analysis": (List[List[str]], ...),
     "Task list": (List[str], ...),
     "Shared Knowledge": (str, ...),
     "Anything UNCLEAR": (str, ...),
@@ -113,13 +90,11 @@ class WriteTasks(Action):
 
         # Write requirements.txt
         requirements_path = WORKSPACE_ROOT / ws_name / "requirements.txt"
-        requirements_path.write_text(
-            rsp.instruct_content.dict().get("Required Python third-party packages").strip('"\n')
-        )
+        requirements_path.write_text("\n".join(rsp.instruct_content.dict().get("Required Python third-party packages")))
 
     async def run(self, context):
         prompt = PROMPT_TEMPLATE.format(context=context, format_example=FORMAT_EXAMPLE)
-        rsp = await self._aask_v1(prompt, "task", OUTPUT_MAPPING)
+        rsp = await self._aask_json_v1(prompt, "task", OUTPUT_MAPPING)
         self._save(context, rsp)
         return rsp
 

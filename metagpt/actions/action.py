@@ -80,6 +80,7 @@ class Action(ABC):
         pattern = r"\[CONTENT\](\s*\{.*?\}\s*)\[/CONTENT\]"
         matches = re.findall(pattern, content, re.DOTALL)
 
+        extracted_content = None
         for match in matches:
             if match:
                 extracted_content = match
