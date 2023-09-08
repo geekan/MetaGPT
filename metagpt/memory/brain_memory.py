@@ -42,6 +42,7 @@ class BrainMemory(pydantic.BaseModel):
     is_dirty: bool = False
     last_talk: str = None
     llm_type: Optional[str] = None
+    cacheable: bool = True
 
     def add_talk(self, msg: Message):
         msg.add_tag(MessageType.Talk.value)
@@ -78,8 +79,9 @@ class BrainMemory(pydantic.BaseModel):
         if not redis.is_valid() or not redis_key:
             return False
         v = self.json()
-        await redis.set(key=redis_key, data=v, timeout_sec=timeout_sec)
-        logger.debug(f"REDIS SET {redis_key} {v}")
+        if self.cacheable:
+            await redis.set(key=redis_key, data=v, timeout_sec=timeout_sec)
+            logger.debug(f"REDIS SET {redis_key} {v}")
         self.is_dirty = False
 
     @staticmethod
