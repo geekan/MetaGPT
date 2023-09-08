@@ -263,15 +263,6 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         raise openai.error.OpenAIError("Exceeds the maximum retries")
 
     async def get_summary(self, text: str, max_words=200, keep_language: bool = False, **kwargs) -> str:
-        """
-        Return string in the following format：
-        [
-            {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": "Knock knock."},
-            {"role": "assistant", "content": "Who's there?"},
-            {"role": "user", "content": "Orange."},
-        ]
-        """
         from metagpt.memory.brain_memory import BrainMemory
 
         memory = BrainMemory(llm_type=LLMType.OPENAI.value, historical_summary=text, cacheable=False)
