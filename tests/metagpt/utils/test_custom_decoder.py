@@ -36,3 +36,37 @@ def test_parse_single_quote():
 
     parsed_data = decoder.decode(input_data)
     assert 'a"\n    b' in parsed_data
+
+
+def test_parse_triple_double_quote():
+    # Create a custom JSON decoder
+    decoder = CustomDecoder(strict=False)
+    # Your provided input with single-quoted strings and line breaks
+    input_data = '{"""a""":"b"}'
+    # Parse the JSON using the custom decoder
+
+    parsed_data = decoder.decode(input_data)
+    assert "a" in parsed_data
+
+    input_data = '{"""a""":"""b"""}'
+    # Parse the JSON using the custom decoder
+
+    parsed_data = decoder.decode(input_data)
+    assert parsed_data["a"] == "b"
+
+
+def test_parse_triple_single_quote():
+    # Create a custom JSON decoder
+    decoder = CustomDecoder(strict=False)
+    # Your provided input with single-quoted strings and line breaks
+    input_data = "{'''a''':'b'}"
+    # Parse the JSON using the custom decoder
+
+    parsed_data = decoder.decode(input_data)
+    assert "a" in parsed_data
+
+    input_data = "{'''a''':'''b'''}"
+    # Parse the JSON using the custom decoder
+
+    parsed_data = decoder.decode(input_data)
+    assert parsed_data["a"] == "b"

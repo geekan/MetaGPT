@@ -77,7 +77,7 @@ class Action(ABC):
         logger.debug(content)
         output_class = ActionOutput.create_model_class(output_class_name, output_data_mapping)
 
-        pattern = r"\[CONTENT\](.*?)\[/CONTENT\]"
+        pattern = r"\[CONTENT\](.+?)\[/CONTENT\]"
 
         # Use re.findall to extract content between the tags
         extracted_content = re.search(pattern, content, re.DOTALL).group(1)

@@ -68,8 +68,13 @@ FORMAT_EXAMPLE = """
 {
         "Original Requirements": "",
         "Search Information": "",
-        "mermaid quadrantChart code": '
-            quadrantChart
+        
+    "Role": "You are a professional product manager; the goal is to design a concise, usable, efficient product",
+    "Requirements": "",
+    "Product Goals": [],
+    "User Stories": [],
+    "Competitive Analysis": [],
+    "Competitive Quadrant Chart": "quadrantChart
                 title Reach and engagement of campaigns
                 x-axis Low Reach --> High Reach
                 y-axis Low Engagement --> High Engagement
@@ -82,17 +87,7 @@ FORMAT_EXAMPLE = """
                 Campaign C: [0.57, 0.69]
                 Campaign D: [0.78, 0.34]
                 Campaign E: [0.40, 0.34]
-                Campaign F: [0.35, 0.78]
-            '
-        ,
-
-    },
-    "Role": "You are a professional product manager; the goal is to design a concise, usable, efficient product",
-    "Requirements": "",
-    "Product Goals": [],
-    "User Stories": [],
-    "Competitive Analysis": [],
-    "Competitive Quadrant Chart": "",
+                Campaign F: [0.35, 0.78]",
     "Requirement Analysis": "",
     "Requirement Pool": [["P0","P0 requirement"],["P1","P1 requirement"]],
     "UI Design draft": "",

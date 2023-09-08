@@ -26,7 +26,12 @@ def py_make_scanner(context):
             raise StopIteration(idx) from None
 
         if nextchar == '"' or nextchar == "'":
-            return parse_string(string, idx + 1, strict, delimiter=nextchar)
+            if idx + 2 < len(string) and string[idx + 1] == nextchar and string[idx + 2] == nextchar:
+                # Handle the case where the next two characters are the same as nextchar
+                return parse_string(string, idx + 3, strict, delimiter=nextchar * 3)  # triple quote
+            else:
+                # Handle the case where the next two characters are not the same as nextchar
+                return parse_string(string, idx + 1, strict, delimiter=nextchar)
         elif nextchar == "{":
             return parse_object((string, idx + 1), strict, _scan_once, object_hook, object_pairs_hook, memo)
         elif nextchar == "[":
@@ -67,6 +72,8 @@ def py_make_scanner(context):
 FLAGS = re.VERBOSE | re.MULTILINE | re.DOTALL
 STRINGCHUNK = re.compile(r'(.*?)(["\\\x00-\x1f])', FLAGS)
 STRINGCHUNK_SINGLEQUOTE = re.compile(r"(.*?)([\'\\\x00-\x1f])", FLAGS)
+STRINGCHUNK_TRIPLE_DOUBLE_QUOTE = re.compile(r"(.*?)(\"\"\"|[\\\x00-\x1f])", FLAGS)
+STRINGCHUNK_TRIPLE_SINGLEQUOTE = re.compile(r"(.*?)('''|[\\\x00-\x1f])", FLAGS)
 BACKSLASH = {
     '"': '"',
     "\\": "\\",
@@ -112,7 +119,12 @@ def JSONObject(
             raise JSONDecodeError("Expecting property name enclosed in double quotes", s, end)
     end += 1
     while True:
-        key, end = scanstring(s, end, strict, delimiter=nextchar)
+        if end + 1 < len(s) and s[end] == nextchar and s[end + 1] == nextchar:
+            # Handle the case where the next two characters are the same as nextchar
+            key, end = scanstring(s, end + 2, strict, delimiter=nextchar * 3)
+        else:
+            # Handle the case where the next two characters are not the same as nextchar
+            key, end = scanstring(s, end, strict, delimiter=nextchar)
         key = memo_get(key, key)
         # To skip some function call overhead we optimize the fast paths where
         # the JSON key separator is ": " or just ":".
@@ -176,8 +188,12 @@ def py_scanstring(s, end, strict=True, _b=BACKSLASH, _m=STRINGCHUNK.match, delim
     begin = end - 1
     if delimiter == '"':
         _m = STRINGCHUNK.match
-    else:
+    elif delimiter == "'":
         _m = STRINGCHUNK_SINGLEQUOTE.match
+    elif delimiter == '"""':
+        _m = STRINGCHUNK_TRIPLE_DOUBLE_QUOTE.match
+    else:
+        _m = STRINGCHUNK_TRIPLE_SINGLEQUOTE.match
     while 1:
         chunk = _m(s, end)
         if chunk is None:
