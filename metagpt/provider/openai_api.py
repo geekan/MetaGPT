@@ -22,7 +22,9 @@ from tenacity import (
 )
 
 from metagpt.config import CONFIG
+from metagpt.llm import LLMType
 from metagpt.logs import logger
+from metagpt.memory.brain_memory import BrainMemory
 from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.utils.cost_manager import Costs
 from metagpt.utils.token_counter import (
@@ -261,6 +263,19 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
                 raise e
         raise openai.error.OpenAIError("Exceeds the maximum retries")
 
+    async def get_summary(self, text: str, max_words=200, keep_language: bool = False, **kwargs) -> str:
+        """
+        Return string in the following format：
+        [
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": "Knock knock."},
+            {"role": "assistant", "content": "Who's there?"},
+            {"role": "user", "content": "Orange."},
+        ]
+        """
+        memory = BrainMemory(llm_type=LLMType.OPENAI.value, historical_summary=text)
+        return await memory.summarize(llm=self._llm, max_length=max_words, keep_language=keep_language)
+
     MAX_TRY = 5
 
 
@@ -269,4 +284,3 @@ if __name__ == "__main__":
 as dfas  sad lkf sdkl sakdfsdk sjd jsk  sdl sk dd sd asd fa sdf sad dd
 - .gitlab-ci.yml & base_test.py
     """
-    OpenAIGPTAPI.split_texts(txt, 30)

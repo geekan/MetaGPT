@@ -124,13 +124,15 @@ class BrainMemory(pydantic.BaseModel):
         self.last_talk = None
         return v
 
-    async def summarize(self, llm, max_words=200, keep_language: bool = False, **kwargs):
+    async def summarize(self, llm, max_words=200, keep_language: bool = False, limit: int = -1, **kwargs):
         if self.llm_type == LLMType.METAGPT.value:
             return await self._metagpt_summarize(llm=llm, max_words=max_words, keep_language=keep_language, **kwargs)
 
-        return await self._openai_summarize(llm=llm, max_words=max_words, keep_language=keep_language, **kwargs)
+        return await self._openai_summarize(
+            llm=llm, max_words=max_words, keep_language=keep_language, limit=limit, **kwargs
+        )
 
-    async def _openai_summarize(self, llm, max_words=200, keep_language: bool = False, **kwargs):
+    async def _openai_summarize(self, llm, max_words=200, keep_language: bool = False, limit: int = -1, **kwargs):
         max_token_count = DEFAULT_MAX_TOKENS
         max_count = 100
         texts = [self.historical_summary]
@@ -139,6 +141,8 @@ class BrainMemory(pydantic.BaseModel):
             texts.append(m.content)
         text = "\n".join(texts)
         text_length = len(text)
+        if limit > 0 and text_length < limit:
+            return text
         summary = ""
         while max_count > 0:
             if text_length < max_token_count:
