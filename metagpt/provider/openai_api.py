@@ -24,7 +24,6 @@ from tenacity import (
 from metagpt.config import CONFIG
 from metagpt.llm import LLMType
 from metagpt.logs import logger
-from metagpt.memory.brain_memory import BrainMemory
 from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.utils.cost_manager import Costs
 from metagpt.utils.token_counter import (
@@ -273,6 +272,8 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             {"role": "user", "content": "Orange."},
         ]
         """
+        from metagpt.memory.brain_memory import BrainMemory
+
         memory = BrainMemory(llm_type=LLMType.OPENAI.value, historical_summary=text)
         return await memory.summarize(llm=self, max_length=max_words, keep_language=keep_language)
 
