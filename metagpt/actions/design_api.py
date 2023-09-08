@@ -25,7 +25,6 @@ PROMPT_TEMPLATE = """
 Role: You are an architect; the goal is to design a SOTA PEP8-compliant python system; make the best use of good open source tools
 Requirement: Fill in the following missing information based on the context, note that all sections are response with code form separately
 Max Output: 8192 chars or 2048 tokens. Try to use them up.
-Attention: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD WRITE BEFORE the code and triple quote.
 
 ## Implementation approach: Provide as Plain text. Analyze the difficult points of the requirements, select the appropriate open-source framework.
 
@@ -39,45 +38,31 @@ Attention: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD W
 
 ## Anything UNCLEAR: Provide as Plain text. Make clear here.
 
+Your job is to create a properly formatted JSON, wrapped inside [CONTENT][/CONTENT] like format example
 """
 FORMAT_EXAMPLE = """
----
-## Implementation approach
-We will ...
-
-## Python package name
-```python
-"snake_game"
-```
-
-## File list
-```python
-[
-    "main.py",
-]
-```
-
-## Data structures and interface definitions
-```mermaid
-classDiagram
-    class Game{
-        +int score
-    }
-    ...
-    Game "1" -- "1" Food: has
-```
-
-## Program call flow
-```mermaid
-sequenceDiagram
-    participant M as Main
-    ...
-    G->>M: end game
-```
-
-## Anything UNCLEAR
-The requirement is clear to me.
----
+[CONTENT]
+{
+    "Implementation approach": "We will ...",
+    "Python package name": "snake_game",
+    "File list": ["main.py"],
+    "Data structures and interface definitions": '
+    classDiagram
+        class Game{
+            +int score
+        }
+        ...
+        Game "1" -- "1" Food: has
+    ',
+    "Program call flow": '
+    sequenceDiagram
+        participant M as Main
+        ...
+        G->>M: end game
+    ',
+    "Anything UNCLEAR": "The requirement is clear to me."
+}
+[/CONTENT]
 """
 OUTPUT_MAPPING = {
     "Implementation approach": (str, ...),
@@ -92,9 +77,11 @@ OUTPUT_MAPPING = {
 class WriteDesign(Action):
     def __init__(self, name, context=None, llm=None):
         super().__init__(name, context, llm)
-        self.desc = "Based on the PRD, think about the system design, and design the corresponding APIs, " \
-                    "data structures, library tables, processes, and paths. Please provide your design, feedback " \
-                    "clearly and in detail."
+        self.desc = (
+            "Based on the PRD, think about the system design, and design the corresponding APIs, "
+            "data structures, library tables, processes, and paths. Please provide your design, feedback "
+            "clearly and in detail."
+        )
 
     def recreate_workspace(self, workspace: Path):
         try:
@@ -103,42 +90,43 @@ class WriteDesign(Action):
             pass  # Folder does not exist, but we don't care
         workspace.mkdir(parents=True, exist_ok=True)
 
-    def _save_prd(self, docs_path, resources_path, prd):
-        prd_file = docs_path / 'prd.md'
-        quadrant_chart = CodeParser.parse_code(block="Competitive Quadrant Chart", text=prd)
-        mermaid_to_file(quadrant_chart, resources_path / 'competitive_analysis')
+    def _save_prd(self, docs_path, resources_path, context):
+        prd_file = docs_path / "prd.md"
+        quadrant_chart = context[-1].instruct_content.dict()["Competitive Quadrant Chart"]
+        mermaid_to_file(quadrant_chart, resources_path / "competitive_analysis")
         logger.info(f"Saving PRD to {prd_file}")
-        prd_file.write_text(prd)
+        prd_file.write_text(context[-1].content)
 
-    def _save_system_design(self, docs_path, resources_path, content):
-        data_api_design = CodeParser.parse_code(block="Data structures and interface definitions", text=content)
-        seq_flow = CodeParser.parse_code(block="Program call flow", text=content)
-        mermaid_to_file(data_api_design, resources_path / 'data_api_design')
-        mermaid_to_file(seq_flow, resources_path / 'seq_flow')
-        system_design_file = docs_path / 'system_design.md'
+    def _save_system_design(self, docs_path, resources_path, system_design):
+        data_api_design = system_design.instruct_content.dict()[
+            "Data structures and interface definitions"
+        ]  # CodeParser.parse_code(block="Data structures and interface definitions", text=content)
+        seq_flow = system_design.instruct_content.dict()[
+            "Program call flow"
+        ]  # CodeParser.parse_code(block="Program call flow", text=content)
+        mermaid_to_file(data_api_design, resources_path / "data_api_design")
+        mermaid_to_file(seq_flow, resources_path / "seq_flow")
+        system_design_file = docs_path / "system_design.md"
         logger.info(f"Saving System Designs to {system_design_file}")
-        system_design_file.write_text(content)
+        system_design_file.write_text(system_design.content)
 
     def _save(self, context, system_design):
         if isinstance(system_design, ActionOutput):
-            content = system_design.content
-            ws_name = CodeParser.parse_str(block="Python package name", text=content)
+            ws_name = system_design.instruct_content.dict()["Python package name"]
         else:
-            content = system_design
             ws_name = CodeParser.parse_str(block="Python package name", text=system_design)
         workspace = WORKSPACE_ROOT / ws_name
         self.recreate_workspace(workspace)
-        docs_path = workspace / 'docs'
-        resources_path = workspace / 'resources'
+        docs_path = workspace / "docs"
+        resources_path = workspace / "resources"
         docs_path.mkdir(parents=True, exist_ok=True)
         resources_path.mkdir(parents=True, exist_ok=True)
-        self._save_prd(docs_path, resources_path, context[-1].content)
-        self._save_system_design(docs_path, resources_path, content)
+        self._save_prd(docs_path, resources_path, context)
+        self._save_system_design(docs_path, resources_path, system_design)
 
     async def run(self, context):
         prompt = PROMPT_TEMPLATE.format(context=context, format_example=FORMAT_EXAMPLE)
         # system_design = await self._aask(prompt)
-        system_design = await self._aask_v1(prompt, "system_design", OUTPUT_MAPPING)
+        system_design = await self._aask_json_v1(prompt, "system_design", OUTPUT_MAPPING)
         self._save(context, system_design)
         return system_design
-    

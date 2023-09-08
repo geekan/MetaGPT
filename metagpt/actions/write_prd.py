@@ -5,7 +5,7 @@
 @Author  : alexanderwu
 @File    : write_prd.py
 """
-from typing import List, Tuple
+from typing import List
 
 from metagpt.actions import Action, ActionOutput
 from metagpt.actions.search_and_summarize import SearchAndSummarize
@@ -43,7 +43,6 @@ quadrantChart
 -----
 Role: You are a professional product manager; the goal is to design a concise, usable, efficient product
 Requirements: According to the context, fill in the following missing information, note that each sections are returned in Python code triple quote form seperatedly. If the requirements are unclear, ensure minimum viability and avoid excessive design
-ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. AND '## <SECTION_NAME>' SHOULD WRITE BEFORE the code and triple quote. Output carefully referenced "Format example" in format.
 
 ## Original Requirements: Provide as Plain text, place the polished complete original requirements here
 
@@ -61,57 +60,45 @@ ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. AND '## <SECTION_NAME>' SHOULD W
 
 ## UI Design draft: Provide as Plain text. Be simple. Describe the elements and functions, also provide a simple style description and layout description.
 ## Anything UNCLEAR: Provide as Plain text. Make clear here.
+
+Your job is to create a properly formatted JSON, wrapped inside [CONTENT][/CONTENT] like format example,output CONTENT json directly
 """
 FORMAT_EXAMPLE = """
----
-## Original Requirements
-The boss ... 
+[CONTENT]
+{
+        "Original Requirements": "",
+        "Search Information": "",
+        "mermaid quadrantChart code": '
+            quadrantChart
+                title Reach and engagement of campaigns
+                x-axis Low Reach --> High Reach
+                y-axis Low Engagement --> High Engagement
+                quadrant-1 We should expand
+                quadrant-2 Need to promote
+                quadrant-3 Re-evaluate
+                quadrant-4 May be improved
+                Campaign A: [0.3, 0.6]
+                Campaign B: [0.45, 0.23]
+                Campaign C: [0.57, 0.69]
+                Campaign D: [0.78, 0.34]
+                Campaign E: [0.40, 0.34]
+                Campaign F: [0.35, 0.78]
+            '
+        ,
 
-## Product Goals
-```python
-[
-    "Create a ...",
-]
-```
-
-## User Stories
-```python
-[
-    "As a user, ...",
-]
-```
-
-## Competitive Analysis
-```python
-[
-    "Python Snake Game: ...",
-]
-```
-
-## Competitive Quadrant Chart
-```mermaid
-quadrantChart
-    title Reach and engagement of campaigns
-    ...
-    "Our Target Product": [0.6, 0.7]
-```
-
-## Requirement Analysis
-The product should be a ...
-
-## Requirement Pool
-```python
-[
-    ("End game ...", "P0")
-]
-```
-
-## UI Design draft
-Give a basic function description, and a draft
-
-## Anything UNCLEAR
-There are no unclear points.
----
+    },
+    "Role": "You are a professional product manager; the goal is to design a concise, usable, efficient product",
+    "Requirements": "",
+    "Product Goals": [],
+    "User Stories": [],
+    "Competitive Analysis": [],
+    "Competitive Quadrant Chart": "",
+    "Requirement Analysis": "",
+    "Requirement Pool": [["P0","P0 requirement"],["P1","P1 requirement"]],
+    "UI Design draft": "",
+    "Anything UNCLEAR": "",
+}
+[/CONTENT]
 """
 OUTPUT_MAPPING = {
     "Original Requirements": (str, ...),
@@ -120,8 +107,8 @@ OUTPUT_MAPPING = {
     "Competitive Analysis": (List[str], ...),
     "Competitive Quadrant Chart": (str, ...),
     "Requirement Analysis": (str, ...),
-    "Requirement Pool": (List[Tuple[str, str]], ...),
-    "UI Design draft":(str, ...),
+    "Requirement Pool": (List[List[str]], ...),
+    "UI Design draft": (str, ...),
     "Anything UNCLEAR": (str, ...),
 }
 
@@ -139,9 +126,10 @@ class WritePRD(Action):
             logger.info(sas.result)
             logger.info(rsp)
 
-        prompt = PROMPT_TEMPLATE.format(requirements=requirements, search_information=info,
-                                        format_example=FORMAT_EXAMPLE)
+        prompt = PROMPT_TEMPLATE.format(
+            requirements=requirements, search_information=info, format_example=FORMAT_EXAMPLE
+        )
         logger.debug(prompt)
-        prd = await self._aask_v1(prompt, "prd", OUTPUT_MAPPING)
+        # prd = await self._aask_v1(prompt, "prd", OUTPUT_MAPPING)
+        prd = await self._aask_json_v1(prompt, "prd", OUTPUT_MAPPING)
         return prd
-    

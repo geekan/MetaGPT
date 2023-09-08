@@ -5,17 +5,16 @@
 @Author  : femto Zheng
 @File    : test_custom_decoder.py
 """
-import pytest
 
-import json
 
 from metagpt.utils.custom_decoder import CustomDecoder
+
 
 def test_parse_single_quote():
     # Create a custom JSON decoder
     decoder = CustomDecoder(strict=False)
     # Your provided input with single-quoted strings and line breaks
-    input_data = '''{'a"
+    input_data = """{'a"
     b':'"title": "Reach and engagement of campaigns",
             "x-axis": "Low Reach --> High Reach",
             "y-axis": "Low Engagement --> High Engagement",
@@ -32,9 +31,8 @@ def test_parse_single_quote():
             "Our Target Product": [0.5, 0.6]
             '
         }
-    '''
+    """
     # Parse the JSON using the custom decoder
 
     parsed_data = decoder.decode(input_data)
     assert 'a"\n    b' in parsed_data
-
