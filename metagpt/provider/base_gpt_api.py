@@ -45,7 +45,6 @@ class BaseGPTAPI(BaseChatbot):
         format_msgs: Optional[list[dict[str, str]]] = None,
         generator: bool = False,
     ) -> str:
-        message = []
         if system_msgs:
             message = self._system_msgs(system_msgs)
         else:
