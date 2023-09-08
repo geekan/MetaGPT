@@ -274,7 +274,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         ]
         """
         memory = BrainMemory(llm_type=LLMType.OPENAI.value, historical_summary=text)
-        return await memory.summarize(llm=self._llm, max_length=max_words, keep_language=keep_language)
+        return await memory.summarize(llm=self, max_length=max_words, keep_language=keep_language)
 
     MAX_TRY = 5
 
