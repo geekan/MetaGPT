@@ -87,7 +87,7 @@ class TalkAction(Action):
             format_msgs.append({"role": "assistant", "content": self._knowledge})
         if self._history_summary:
             if CONFIG.LLM_TYPE == LLMType.METAGPT.value:
-                format_msgs.append(json.loads(self._history_summary))
+                format_msgs.extend(json.loads(self._history_summary))
             else:
                 format_msgs.append({"role": "assistant", "content": self._history_summary})
         return self._talk, format_msgs, system_msgs
