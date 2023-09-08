@@ -274,7 +274,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         """
         from metagpt.memory.brain_memory import BrainMemory
 
-        memory = BrainMemory(llm_type=LLMType.OPENAI.value, historical_summary=text)
+        memory = BrainMemory(llm_type=LLMType.OPENAI.value, historical_summary=text, cacheable=False)
         return await memory.summarize(llm=self, max_length=max_words, keep_language=keep_language)
 
     MAX_TRY = 5
