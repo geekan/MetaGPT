@@ -16,7 +16,7 @@ from pydantic import BaseModel, Field
 from metagpt.actions import Action, ActionOutput
 from metagpt.config import CONFIG
 from metagpt.const import OPTIONS
-from metagpt.llm import LLM
+from metagpt.llm import LLMFactory
 from metagpt.logs import logger
 from metagpt.memory import LongTermMemory, Memory
 from metagpt.schema import Message, MessageTag
@@ -113,7 +113,7 @@ class Role:
         constraints = Role.format_value(constraints)
         desc = Role.format_value(desc)
 
-        self._llm = LLM()
+        self._llm = LLMFactory.new_llm()
         self._setting = RoleSetting(name=name, profile=profile, goal=goal, constraints=constraints, desc=desc)
         self._states = []
         self._actions = []

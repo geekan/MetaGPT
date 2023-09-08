@@ -6,10 +6,12 @@
 @File    : talk_action.py
 @Desc    : Act as it’s a talk
 """
+import json
 
 from metagpt.actions import Action, ActionOutput
 from metagpt.config import CONFIG
 from metagpt.const import DEFAULT_LANGUAGE
+from metagpt.llm import LLMType
 from metagpt.logs import logger
 
 
@@ -62,10 +64,37 @@ class TalkAction(Action):
         logger.info(f"PROMPT: {prompt}")
         return prompt
 
-    async def run(self, *args, **kwargs) -> ActionOutput:
+    async def run_old(self, *args, **kwargs) -> ActionOutput:
         prompt = self.prompt
         rsp = await self.llm.aask(msg=prompt, system_msgs=[])
         logger.debug(f"PROMPT:{prompt}\nRESULT:{rsp}\n")
+        self._rsp = ActionOutput(content=rsp)
+        return self._rsp
+
+    @property
+    def aask_args(self):
+        language = CONFIG.language or DEFAULT_LANGUAGE
+        system_msgs = [
+            f"You are {CONFIG.agent_description}.",
+            "Your responses should align with the role-play agreement, "
+            "maintaining the character's persona and habits. When faced with unrelated questions, playfully "
+            "decline to answer without revealing your AI nature to preserve the character's image.",
+            "If the information is insufficient, you can search in the context or knowledge.",
+            f"Answer the following questions strictly in {language}, and the answers must follow the Markdown format.",
+        ]
+        format_msgs = []
+        if self._knowledge:
+            format_msgs.append({"role": "assistant", "content": self._knowledge})
+        if self._history_summary:
+            if CONFIG.LLM_TYPE == LLMType.METAGPT.value:
+                format_msgs.extend(json.loads(self._history_summary))
+            else:
+                format_msgs.append({"role": "assistant", "content": self._history_summary})
+        return self._talk, format_msgs, system_msgs
+
+    async def run(self, *args, **kwargs) -> ActionOutput:
+        msg, format_msgs, system_msgs = self.aask_args
+        rsp = await self.llm.aask(msg=msg, format_msgs=format_msgs, system_msgs=system_msgs)
         self._rsp = ActionOutput(content=rsp)
         return self._rsp
 
