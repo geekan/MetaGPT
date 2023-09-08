@@ -61,7 +61,8 @@ Requirements: According to the context, fill in the following missing informatio
 ## UI Design draft: Provide as Plain text. Be simple. Describe the elements and functions, also provide a simple style description and layout description.
 ## Anything UNCLEAR: Provide as Plain text. Make clear here.
 
-Your job is to create a properly formatted JSON, wrapped inside [CONTENT][/CONTENT] like format example,output CONTENT json directly
+output a properly formatted JSON, wrapped inside [CONTENT][/CONTENT] like format example,
+and only output the json inside this tag, nothing else
 """
 FORMAT_EXAMPLE = """
 [CONTENT]

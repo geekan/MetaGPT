@@ -77,10 +77,13 @@ class Action(ABC):
         logger.debug(content)
         output_class = ActionOutput.create_model_class(output_class_name, output_data_mapping)
 
-        pattern = r"\[CONTENT\](.+?)\[/CONTENT\]"
+        pattern = r"\[CONTENT\](\s*\{.*?\}\s*)\[/CONTENT\]"
+        matches = re.findall(pattern, content, re.DOTALL)
 
-        # Use re.findall to extract content between the tags
-        extracted_content = re.search(pattern, content, re.DOTALL).group(1)
+        for match in matches:
+            if match:
+                extracted_content = match
+                break
 
         parsed_data = CustomDecoder(strict=False).decode(extracted_content)
         logger.debug(parsed_data)

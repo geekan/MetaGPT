@@ -38,7 +38,8 @@ Max Output: 8192 chars or 2048 tokens. Try to use them up.
 
 ## Anything UNCLEAR: Provide as Plain text. Make clear here.
 
-Your job is to create a properly formatted JSON, wrapped inside [CONTENT][/CONTENT] like format example
+output a properly formatted JSON, wrapped inside [CONTENT][/CONTENT] like format example,
+and only output the json inside this tag, nothing else
 """
 FORMAT_EXAMPLE = """
 [CONTENT]
@@ -92,8 +93,10 @@ class WriteDesign(Action):
 
     def _save_prd(self, docs_path, resources_path, context):
         prd_file = docs_path / "prd.md"
-        quadrant_chart = context[-1].instruct_content.dict()["Competitive Quadrant Chart"]
-        mermaid_to_file(quadrant_chart, resources_path / "competitive_analysis")
+        if context[-1].instruct_content and context[-1].instruct_content.dict()["Competitive Quadrant Chart"]:
+            quadrant_chart = context[-1].instruct_content.dict()["Competitive Quadrant Chart"]
+            mermaid_to_file(quadrant_chart, resources_path / "competitive_analysis")
+
         logger.info(f"Saving PRD to {prd_file}")
         prd_file.write_text(context[-1].content)
 
@@ -125,7 +128,10 @@ class WriteDesign(Action):
         self._save_system_design(docs_path, resources_path, system_design)
 
     async def run(self, context):
-        prompt = PROMPT_TEMPLATE.format(context=context, format_example=FORMAT_EXAMPLE)
+        if isinstance(context, ActionOutput):
+            prompt = PROMPT_TEMPLATE.format(context=context.content, format_example=FORMAT_EXAMPLE)
+        else:  # context is a string
+            prompt = PROMPT_TEMPLATE.format(context=context, format_example=FORMAT_EXAMPLE)
         # system_design = await self._aask(prompt)
         system_design = await self._aask_json_v1(prompt, "system_design", OUTPUT_MAPPING)
         self._save(context, system_design)
