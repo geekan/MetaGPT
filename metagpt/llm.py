@@ -8,15 +8,15 @@
 """
 from enum import Enum
 
+import openai
+
 from metagpt.config import CONFIG
-from metagpt.provider.anthropic_api import Claude2 as Claude
-from metagpt.provider.metagpt_llm_api import MetaGPTLLMAPI as MetaGPT_LLM
-from metagpt.provider.openai_api import OpenAIGPTAPI as OpenAI_LLM
 
 
 class LLMType(Enum):
     OPENAI = "OpenAI"
     METAGPT = "MetaGPT"
+    CLAUDE = "Claude"
     UNKNOWN = "UNKNOWN"
 
     @classmethod
@@ -27,20 +27,18 @@ class LLMType(Enum):
         return cls.UNKNOWN
 
 
-DEFAULT_LLM = OpenAI_LLM()
-DEFAULT_METAGPT_LLM = MetaGPT_LLM()
-CLAUDE_LLM = Claude()
-
-
-async def ai_func(prompt):
-    """使用LLM进行QA
-    QA with LLMs
-    """
-    return await DEFAULT_LLM.aask(prompt)
-
-
 class LLMFactory:
     @staticmethod
     def new_llm() -> object:
-        llm = OpenAI_LLM() if CONFIG.LLM_TYPE == LLMType.OPENAI.value else MetaGPT_LLM()
-        return llm
+        from metagpt.provider.anthropic_api import Claude2 as Claude
+        from metagpt.provider.metagpt_llm_api import MetaGPTLLMAPI as MetaGPT_LLM
+        from metagpt.provider.openai_api import OpenAIGPTAPI as OpenAI_LLM
+
+        if CONFIG.LLM_TYPE == LLMType.OPENAI.value:
+            return OpenAI_LLM()
+        if CONFIG.LLM_TYPE == LLMType.METAGPT.value:
+            return MetaGPT_LLM()
+        if CONFIG.LLM_TYPE == LLMType.CLAUDE.value:
+            return Claude()
+
+        raise openai.InvalidRequestError(message=f"Unsupported LLM TYPE: {CONFIG.LLM_TYPE}")
