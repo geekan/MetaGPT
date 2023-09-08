@@ -156,7 +156,9 @@ class BrainMemory(pydantic.BaseModel):
             part_max_words = min(int(max_words / len(text_windows)) + 1, 100)
             summaries = []
             for ws in text_windows:
-                response = await self._get_summary(text=ws, max_words=part_max_words, keep_language=keep_language)
+                response = await self._get_summary(
+                    text=ws, llm=llm, max_words=part_max_words, keep_language=keep_language
+                )
                 summaries.append(response)
             if len(summaries) == 1:
                 summary = summaries[0]
