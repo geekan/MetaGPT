@@ -38,11 +38,20 @@ class BaseGPTAPI(BaseChatbot):
         rsp = self.completion(message)
         return self.get_choice_text(rsp)
 
-    async def aask(self, msg: str, system_msgs: Optional[list[str]] = None, generator: bool = False) -> str:
+    async def aask(
+        self,
+        msg: str,
+        system_msgs: Optional[list[str]] = None,
+        format_msgs: Optional[list[dict[str, str]]] = None,
+        generator: bool = False,
+    ) -> str:
         if system_msgs:
-            message = self._system_msgs(system_msgs) + [self._user_msg(msg)]
+            message = self._system_msgs(system_msgs)
         else:
-            message = [self._default_system_msg(), self._user_msg(msg)]
+            message = [self._default_system_msg()]
+        if format_msgs:
+            message.extend(format_msgs)
+        message.append(self._user_msg(msg))
         try:
             rsp = await self.acompletion_text(message, stream=True, generator=generator)
         except Exception as e:

@@ -76,6 +76,7 @@ class Message:
             "sent_from": self.sent_from,
             "send_to": self.send_to,
             "tags": self.tags,
+            "id": self.id,
         }
 
         m = {"content": self.content}
