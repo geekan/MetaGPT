@@ -71,7 +71,8 @@ class TalkAction(Action):
         self._rsp = ActionOutput(content=rsp)
         return self._rsp
 
-    async def run(self, *args, **kwargs) -> ActionOutput:
+    @property
+    def aask_args(self):
         language = CONFIG.language or DEFAULT_LANGUAGE
         system_msgs = [
             f"You are {CONFIG.agent_description}.",
@@ -89,7 +90,11 @@ class TalkAction(Action):
                 format_msgs.append(json.loads(self._history_summary))
             else:
                 format_msgs.append({"role": "assistant", "content": self._history_summary})
-        rsp = await self.llm.aask(msg=self._talk, format_msgs=format_msgs, system_msgs=system_msgs)
+        return self._talk, format_msgs, system_msgs
+
+    async def run(self, *args, **kwargs) -> ActionOutput:
+        msg, format_msgs, system_msgs = self.aask_args
+        rsp = await self.llm.aask(msg=msg, format_msgs=format_msgs, system_msgs=system_msgs)
         self._rsp = ActionOutput(content=rsp)
         return self._rsp
 
