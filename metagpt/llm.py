@@ -41,4 +41,4 @@ class LLMFactory:
         if CONFIG.LLM_TYPE == LLMType.CLAUDE.value:
             return Claude()
 
-        raise openai.InvalidRequestError(message=f"Unsupported LLM TYPE: {CONFIG.LLM_TYPE}")
+        raise openai.InvalidRequestError(message=f"Unsupported LLM TYPE: {CONFIG.LLM_TYPE}", param=None)
