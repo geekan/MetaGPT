@@ -146,6 +146,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
 
     def __init_openai(self, config):
         openai.api_key = config.openai_api_key
+        self.set_stream(config.stream)
         if config.openai_api_base:
             openai.api_base = config.openai_api_base
         if config.openai_api_type:
