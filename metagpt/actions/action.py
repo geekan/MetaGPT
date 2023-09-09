@@ -89,7 +89,7 @@ class Action(ABC):
         parsed_data = CustomDecoder(strict=False).decode(extracted_content)
         logger.debug(parsed_data)
         instruct_content = output_class(**parsed_data)
-        return ActionOutput(content, instruct_content)
+        return ActionOutput(extracted_content, instruct_content)
 
     async def run(self, *args, **kwargs):
         """Run action"""
