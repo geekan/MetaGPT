@@ -226,6 +226,9 @@ class BrainMemory(pydantic.BaseModel):
 
     async def get_title(self, llm, max_words=5, **kwargs) -> str:
         """Generate text title"""
+        if self.llm_type == LLMType.METAGPT.value:
+            return Message(**self.history[0]).content if self.history else "New"
+
         summary = await self.summarize(llm=llm, max_words=500)
 
         language = CONFIG.language or DEFAULT_LANGUAGE
