@@ -9,7 +9,6 @@
 from abc import abstractmethod
 from typing import Optional
 
-from metagpt.logs import logger
 from metagpt.provider.base_chatbot import BaseChatbot
 
 
@@ -52,13 +51,7 @@ class BaseGPTAPI(BaseChatbot):
         if format_msgs:
             message.extend(format_msgs)
         message.append(self._user_msg(msg))
-        try:
-            rsp = await self.acompletion_text(message, stream=True, generator=generator)
-        except Exception as e:
-            logger.exception(f"{e}")
-            logger.info(f"ask:{msg}, error:{e}")
-            raise e
-        logger.info(f"ask:{msg}, anwser:{rsp}")
+        rsp = await self.acompletion_text(message, stream=True, generator=generator)
         return rsp
 
     def _extract_assistant_rsp(self, context):
