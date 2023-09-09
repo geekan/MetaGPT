@@ -10,7 +10,7 @@ fire==0.4.0
 # godot==0.1.1
 # google_api_python_client==2.93.0
 lancedb==0.1.16
-langchain==0.0.231
+langchain==0.0.285
 loguru==0.6.0
 meilisearch==0.21.0
 numpy==1.24.3
@@ -18,7 +18,7 @@ openai==0.27.8
 openpyxl
 beautifulsoup4==4.12.2
 pandas==2.0.3
-pydantic==1.10.8
+pydantic==2.3.0
 #pygame==2.1.3
 #pymilvus==2.2.8
 pytest==7.2.2
@@ -33,8 +33,8 @@ tqdm==4.64.0
 # playwright
 # selenium>4
 # webdriver_manager<3.9
-anthropic==0.3.6
+anthropic==0.3.11
 typing-inspect==0.8.0
-typing_extensions==4.5.0
+typing_extensions==4.6.1
 libcst==1.0.1
 qdrant-client==1.4.0

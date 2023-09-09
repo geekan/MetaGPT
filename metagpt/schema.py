@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Type, TypedDict
 
-from pydantic import BaseModel
+from pydantic.v1 import BaseModel
 
 from metagpt.logs import logger
 

@@ -5,7 +5,7 @@
 @Author  : alexanderwu
 @File    : software_company.py
 """
-from pydantic import BaseModel, Field
+from pydantic.v1 import BaseModel, Field
 
 from metagpt.actions import BossRequirement
 from metagpt.config import CONFIG

@@ -5,7 +5,7 @@ from typing import Generator, Optional
 from urllib.parse import urljoin, urlparse
 
 from bs4 import BeautifulSoup
-from pydantic import BaseModel
+from pydantic.v1 import BaseModel
 
 
 class WebPage(BaseModel):

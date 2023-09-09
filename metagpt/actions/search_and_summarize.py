@@ -107,7 +107,7 @@ class SearchAndSummarize(Action):
 
         try:
             self.search_engine = SearchEngine(self.engine, run_func=search_func)
-        except pydantic.ValidationError:
+        except pydantic.v1.ValidationError:
             self.search_engine = None
 
         self.result = ""

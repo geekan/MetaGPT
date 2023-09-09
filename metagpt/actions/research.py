@@ -6,7 +6,7 @@ import asyncio
 import json
 from typing import Callable
 
-from pydantic import parse_obj_as
+from pydantic.v1 import parse_obj_as
 
 from metagpt.actions import Action
 from metagpt.config import CONFIG

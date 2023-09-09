@@ -8,7 +8,7 @@
 
 from typing import Dict, Type
 
-from pydantic import BaseModel, create_model, root_validator, validator
+from pydantic.v1 import BaseModel, create_model, root_validator, validator
 
 
 class ActionOutput:

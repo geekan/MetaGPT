@@ -2,7 +2,7 @@
 
 import asyncio
 
-from pydantic import BaseModel
+from pydantic.v1 import BaseModel
 
 from metagpt.actions import CollectLinks, ConductResearch, WebBrowseAndSummarize
 from metagpt.actions.research import get_research_system_text

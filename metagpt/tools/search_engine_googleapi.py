@@ -9,7 +9,7 @@ from typing import Optional
 from urllib.parse import urlparse
 
 import httplib2
-from pydantic import BaseModel, validator
+from pydantic.v1 import BaseModel, validator
 
 from metagpt.config import CONFIG
 from metagpt.logs import logger
