@@ -14,11 +14,13 @@ RUN npm install -g @mermaid-js/mermaid-cli &&\
     npm cache clean --force
 
 # Install Python dependencies and install MetaGPT
-COPY . /app/metagpt
+
 WORKDIR /app/metagpt
+COPY requirements.txt /app/metagpt/requirements.txt
 RUN mkdir workspace &&\
-    pip install --no-cache-dir -r requirements.txt &&\
-    python setup.py install
+    pip install --no-cache-dir -r requirements.txt
+COPY . /app/metagpt
+RUN python setup.py install
 
 # Running with an infinite loop using the tail command
 CMD ["sh", "-c", "tail -f /dev/null"]
