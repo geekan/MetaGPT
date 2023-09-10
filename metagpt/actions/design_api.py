@@ -130,7 +130,7 @@ class WriteDesign(Action):
     async def run(self, context):
         if isinstance(context, ActionOutput):
             prompt = PROMPT_TEMPLATE.format(context=context.content, format_example=FORMAT_EXAMPLE)
-        else:  # context is a string
+        else:
             prompt = PROMPT_TEMPLATE.format(context=context, format_example=FORMAT_EXAMPLE)
         # system_design = await self._aask(prompt)
         system_design = await self._aask_json_v1(prompt, "system_design", OUTPUT_MAPPING)
