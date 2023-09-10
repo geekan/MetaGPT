@@ -17,6 +17,7 @@ from metagpt.actions import WriteCode, WriteCodeReview, WriteTasks, WriteDesign
 from metagpt.schema import Message
 from metagpt.utils.common import CodeParser
 from metagpt.utils.special_tokens import MSG_SEP, FILENAME_CODE_SEP
+from metagpt.callbacks import BaseCallbackHandler
 
 
 async def gather_ordered_k(coros, k) -> list:
@@ -61,14 +62,15 @@ class Engineer(Role):
     """
     
     def __init__(self, 
-                 name: str = "Alex", 
-                 profile: str = "Engineer", 
+                 name: str = "Alex",
+                 profile: str = "Engineer",
                  goal: str = "Write elegant, readable, extensible, efficient code",
                  constraints: str = "The code should conform to standards like PEP8 and be modular and maintainable",
-                 n_borg: int = 1, 
-                 use_code_review: bool = False) -> None:
+                 n_borg: int = 1,
+                 use_code_review: bool = False,
+                 callback_handler:BaseCallbackHandler=None) -> None:
         """Initializes the Engineer role with given attributes."""
-        super().__init__(name, profile, goal, constraints)
+        super().__init__(name, profile, goal, constraints, callback_handler=callback_handler)
         self._init_actions([WriteCode])
         self.use_code_review = use_code_review
         if self.use_code_review:

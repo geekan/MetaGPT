@@ -7,6 +7,7 @@
 """
 from metagpt.actions import WriteDesign, WriteTasks
 from metagpt.roles import Role
+from metagpt.callbacks import BaseCallbackHandler
 
 
 class ProjectManager(Role):
@@ -24,7 +25,8 @@ class ProjectManager(Role):
                  name: str = "Eve", 
                  profile: str = "Project Manager", 
                  goal: str = "Improve team efficiency and deliver with quality and quantity",
-                 constraints: str = "") -> None:
+                 constraints: str = "",
+                 callback_hanlder:BaseCallbackHandler=None) -> None:
         """
         Initializes the ProjectManager role with given attributes.
         
@@ -34,6 +36,6 @@ class ProjectManager(Role):
             goal (str): Goal of the project manager.
             constraints (str): Constraints or limitations for the project manager.
         """
-        super().__init__(name, profile, goal, constraints)
+        super().__init__(name, profile, goal, constraints, callback_handler=callback_hanlder)
         self._init_actions([WriteTasks])
         self._watch([WriteDesign])

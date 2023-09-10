@@ -10,7 +10,7 @@ from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.tools import SearchEngineType
-
+from metagpt.callbacks import BaseCallbackHandler
 
 class Searcher(Role):
     """
@@ -29,7 +29,8 @@ class Searcher(Role):
                  profile: str = 'Smart Assistant', 
                  goal: str = 'Provide search services for users',
                  constraints: str = 'Answer is rich and complete',
-                 engine=SearchEngineType.SERPAPI_GOOGLE, 
+                 engine=SearchEngineType.SERPAPI_GOOGLE,
+                 callback_handler:BaseCallbackHandler=None,
                  **kwargs) -> None:
         """
         Initializes the Searcher role with given attributes.
@@ -41,7 +42,7 @@ class Searcher(Role):
             constraints (str): Constraints or limitations for the searcher.
             engine (SearchEngineType): The type of search engine to use.
         """
-        super().__init__(name, profile, goal, constraints, **kwargs)
+        super().__init__(name, profile, goal, constraints, callback_handler=callback_handler, **kwargs)
         self._init_actions([SearchAndSummarize(engine=engine)])
 
     def set_search_func(self, search_func):

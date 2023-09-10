@@ -93,7 +93,7 @@ class RoleContext(BaseModel):
 class Role:
     """Role/Agent"""
 
-    def __init__(self, name="", profile="", goal="", constraints="", desc=""):
+    def __init__(self, name="", profile="", goal="", constraints="", desc="", callback_handler:BaseCallbackHandler=None):
         self._llm = LLM()
         self._setting = RoleSetting(name=name, profile=profile, goal=goal, constraints=constraints, desc=desc)
         self._states = []
@@ -101,10 +101,8 @@ class Role:
         self._role_id = str(self._setting)
         self.sender_info = SenderInfo(name=name, role=profile)
         self._rc = RoleContext()
-        self.callback_handler:BaseCallbackHandler = None
+        self.callback_handler:BaseCallbackHandler = callback_handler
 
-    def set_callback(self, callback_handler:BaseCallbackHandler):
-        self.callback_handler = callback_handler
 
 
     def _reset(self):

@@ -7,6 +7,7 @@
 """
 from metagpt.actions import BossRequirement, WritePRD
 from metagpt.roles import Role
+from metagpt.callbacks import BaseCallbackHandler
 
 
 class ProductManager(Role):
@@ -24,7 +25,8 @@ class ProductManager(Role):
                  name: str = "Alice", 
                  profile: str = "Product Manager", 
                  goal: str = "Efficiently create a successful product",
-                 constraints: str = "") -> None:
+                 constraints: str = "",
+                 callback_handler:BaseCallbackHandler=None) -> None:
         """
         Initializes the ProductManager role with given attributes.
         
@@ -34,6 +36,6 @@ class ProductManager(Role):
             goal (str): Goal of the product manager.
             constraints (str): Constraints or limitations for the product manager.
         """
-        super().__init__(name, profile, goal, constraints)
+        super().__init__(name, profile, goal, constraints, callback_handler=callback_handler)
         self._init_actions([WritePRD])
         self._watch([BossRequirement])

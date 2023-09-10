@@ -6,7 +6,7 @@
 @File    : sales.py
 """
 from metagpt.roles import Sales
-
+from metagpt.callbacks import BaseCallbackHandler
 # from metagpt.actions import SearchAndSummarize
 # from metagpt.tools import SearchEngineType
 
@@ -29,7 +29,8 @@ class CustomerService(Sales):
             name="Xiaomei",
             profile="Human customer service",
             desc=DESC,
-            store=None
+            store=None,
+            callback_handler:BaseCallbackHandler=None
     ):
-        super().__init__(name, profile, desc=desc, store=store)
+        super().__init__(name, profile, desc=desc, store=store, callback_handler=callback_handler)
         

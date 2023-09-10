@@ -15,6 +15,7 @@ from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.utils.common import CodeParser, parse_recipient
 from metagpt.utils.special_tokens import FILENAME_CODE_SEP, MSG_SEP
+from metagpt.callbacks import BaseCallbackHandler
 
 
 class QaEngineer(Role):
@@ -25,8 +26,9 @@ class QaEngineer(Role):
         goal="Write comprehensive and robust tests to ensure codes will work as expected without bugs",
         constraints="The test code you write should conform to code standard like PEP8, be modular, easy to read and maintain",
         test_round_allowed=5,
+        callback_handler: BaseCallbackHandler = None
     ):
-        super().__init__(name, profile, goal, constraints)
+        super().__init__(name, profile, goal, constraints, callback_handler=callback_handler)
         self._init_actions(
             [WriteTest]
         )  # FIXME: a bit hack here, only init one action to circumvent _think() logic, will overwrite _think() in future updates

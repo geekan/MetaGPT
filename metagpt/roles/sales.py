@@ -8,7 +8,7 @@
 from metagpt.actions import SearchAndSummarize
 from metagpt.roles import Role
 from metagpt.tools import SearchEngineType
-
+from metagpt.callbacks import BaseCallbackHandler
 
 class Sales(Role):
     def __init__(
@@ -21,9 +21,10 @@ class Sales(Role):
                  " I don't know, and I won't tell you that this is from the knowledge base,"
                  "but pretend to be what I know. Note that each of my replies will be replied in the tone of a "
                  "professional guide",
-            store=None
+            store=None,
+            callback_handler:BaseCallbackHandler=None
     ):
-        super().__init__(name, profile, desc=desc)
+        super().__init__(name, profile, desc=desc, callback_handler=callback_handler)
         self._set_store(store)
 
     def _set_store(self, store):

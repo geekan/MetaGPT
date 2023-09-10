@@ -7,6 +7,7 @@
 """
 
 from metagpt.actions import WriteDesign, WritePRD
+from metagpt.callbacks import BaseCallbackHandler
 from metagpt.roles import Role
 
 
@@ -25,9 +26,11 @@ class Architect(Role):
                  name: str = "Bob", 
                  profile: str = "Architect", 
                  goal: str = "Design a concise, usable, complete python system",
-                 constraints: str = "Try to specify good open source tools as much as possible") -> None:
+                 constraints: str = "Try to specify good open source tools as much as possible",
+                 callback_handler:BaseCallbackHandler=None) -> None:
         """Initializes the Architect with given attributes."""
-        super().__init__(name, profile, goal, constraints)
+        super().__init__(name, profile, goal, constraints, 
+                         callback_handler=callback_handler)
         
         # Initialize actions specific to the Architect role
         self._init_actions([WriteDesign])
