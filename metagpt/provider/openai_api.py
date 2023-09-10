@@ -6,7 +6,7 @@
 """
 import asyncio
 import time
-from typing import NamedTuple
+from typing import NamedTuple, Optional
 
 import openai
 from openai.error import APIConnectionError
@@ -16,6 +16,7 @@ from metagpt.config import CONFIG
 from metagpt.logs import logger
 from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.utils.singleton import Singleton
+from metagpt.callbacks import BaseCallbackHandler, StdoutCallbackHander
 from metagpt.utils.token_counter import (
     TOKEN_COSTS,
     count_message_tokens,
@@ -153,7 +154,9 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             openai.api_version = config.openai_api_version
         self.rpm = int(config.get("RPM", 10))
 
-    async def _achat_completion_stream(self, messages: list[dict]) -> str:
+    async def _achat_completion_stream(self, messages: list[dict], callback_handler:Optional[BaseCallbackHandler]=None) -> str:
+        if callback_handler is None:
+            callback_handler = StdoutCallbackHander()
         response = await openai.ChatCompletion.acreate(**self._cons_kwargs(messages), stream=True)
 
         # create variables to collect the stream of chunks
@@ -167,9 +170,8 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
                 chunk_message = chunk["choices"][0].get("delta", {})  # extract the message
                 collected_messages.append(chunk_message)  # save the message
                 if "content" in chunk_message:
-                    print(chunk_message["content"], end="")
-        print()
-
+                    callback_handler.on_new_token_generated(chunk_message["content"])
+        callback_handler.on_message_end()
         full_reply_content = "".join([m.get("content", "") for m in collected_messages])
         usage = self._calc_usage(messages, full_reply_content)
         self._update_costs(usage)
@@ -223,10 +225,10 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         retry=retry_if_exception_type(APIConnectionError),
         retry_error_callback=log_and_reraise,
     )
-    async def acompletion_text(self, messages: list[dict], stream=False) -> str:
+    async def acompletion_text(self, messages: list[dict], stream:Optional[BaseCallbackHandler]=None) -> str:
         """when streaming, print each token in place."""
         if stream:
-            return await self._achat_completion_stream(messages)
+            return await self._achat_completion_stream(messages, stream)
         rsp = await self._achat_completion(messages)
         return self.get_choice_text(rsp)
 

@@ -5,15 +5,16 @@
 @Author  : Leo Xiao
 @File    : azure_tts.py
 """
+from typing import Optional
 from azure.cognitiveservices.speech import AudioConfig, SpeechConfig, SpeechSynthesizer
-
+from metagpt.callbacks import SenderInfo
 from metagpt.actions.action import Action
 from metagpt.config import Config
 
 
 class AzureTTS(Action):
-    def __init__(self, name, context=None, llm=None):
-        super().__init__(name, context, llm)
+    def __init__(self, name, context=None, llm=None, sender_info: Optional[SenderInfo] = None):
+        super().__init__(name, context, llm, sender_info)
         self.config = Config()
 
     # Parameters reference: https://learn.microsoft.com/zh-cn/azure/cognitive-services/speech-service/language-support?tabs=tts#voice-styles-and-roles

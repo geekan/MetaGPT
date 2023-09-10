@@ -6,9 +6,10 @@
 @File    : debug_error.py
 """
 import re
-
+from typing import Optional
 from metagpt.logs import logger
 from metagpt.actions.action import Action
+from metagpt.callbacks import SenderInfo
 from metagpt.utils.common import CodeParser
 
 PROMPT_TEMPLATE = """
@@ -25,8 +26,8 @@ Now you should start rewriting the code:
 ## file name of the code to rewrite: Write code with triple quoto. Do your best to implement THIS IN ONLY ONE FILE.
 """
 class DebugError(Action):
-    def __init__(self, name="DebugError", context=None, llm=None):
-        super().__init__(name, context, llm)
+    def __init__(self, name="DebugError", context=None, llm=None, sender_info: Optional[SenderInfo] = None):
+        super().__init__(name, context, llm, sender_info)
 
     # async def run(self, code, error):
     #     prompt = f"Here is a piece of Python code:\n\n{code}\n\nThe following error occurred during execution:" \

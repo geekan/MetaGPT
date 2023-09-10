@@ -7,8 +7,8 @@
 """
 import shutil
 from pathlib import Path
-from typing import List
-
+from typing import List, Optional
+from metagpt.callbacks import SenderInfo
 from metagpt.actions import Action, ActionOutput
 from metagpt.const import WORKSPACE_ROOT
 from metagpt.logs import logger
@@ -90,8 +90,8 @@ OUTPUT_MAPPING = {
 
 
 class WriteDesign(Action):
-    def __init__(self, name, context=None, llm=None):
-        super().__init__(name, context, llm)
+    def __init__(self, name, context=None, llm=None, sender_info: Optional[SenderInfo] = None):
+        super().__init__(name, context, llm, sender_info)
         self.desc = "Based on the PRD, think about the system design, and design the corresponding APIs, " \
                     "data structures, library tables, processes, and paths. Please provide your design, feedback " \
                     "clearly and in detail."

@@ -10,7 +10,6 @@ from __future__ import annotations
 from typing import Iterable, Type
 
 from pydantic.v1 import BaseModel, Field
-
 # from metagpt.environment import Environment
 from metagpt.config import CONFIG
 from metagpt.actions import Action, ActionOutput
@@ -18,6 +17,7 @@ from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.memory import Memory, LongTermMemory
 from metagpt.schema import Message
+from metagpt.callbacks import SenderInfo, BaseCallbackHandler
 
 PREFIX_TEMPLATE = """You are a {profile}, named {name}, your goal is {goal}, and the constraint is {constraints}. """
 
@@ -99,7 +99,13 @@ class Role:
         self._states = []
         self._actions = []
         self._role_id = str(self._setting)
+        self.sender_info = SenderInfo(name=name, role=profile)
         self._rc = RoleContext()
+        self.callback_handler:BaseCallbackHandler = None
+
+    def set_callback(self, callback_handler:BaseCallbackHandler):
+        self.callback_handler = callback_handler
+
 
     def _reset(self):
         self._states = []
@@ -109,10 +115,11 @@ class Role:
         self._reset()
         for idx, action in enumerate(actions):
             if not isinstance(action, Action):
-                i = action("")
+                i = action("", sender_info=self.sender_info)
             else:
                 i = action
             i.set_prefix(self._get_prefix(), self.profile)
+            i.set_callback_handler(self.callback_handler)
             self._actions.append(i)
             self._states.append(f"{idx}. {action}")
 
@@ -152,7 +159,8 @@ class Role:
         prompt = self._get_prefix()
         prompt += STATE_TEMPLATE.format(history=self._rc.history, states="\n".join(self._states),
                                         n_states=len(self._states) - 1)
-        next_state = await self._llm.aask(prompt)
+        next_state = await self._llm.aask(prompt,
+                                          callback_hander=self.callback_handler)
         logger.debug(f"{prompt=}")
         if not next_state.isdigit() or int(next_state) not in range(len(self._states)):
             logger.warning(f'Invalid answer of state, {next_state=}')

@@ -8,8 +8,8 @@
 import os
 import subprocess
 import traceback
-from typing import Tuple
-
+from typing import Tuple, Optional
+from metagpt.callbacks import SenderInfo
 from metagpt.actions.action import Action
 from metagpt.logs import logger
 
@@ -57,8 +57,9 @@ standard errors: {errs};
 
 
 class RunCode(Action):
-    def __init__(self, name="RunCode", context=None, llm=None):
-        super().__init__(name, context, llm)
+    def __init__(self, name="RunCode", context=None, llm=None, sender_info: Optional[SenderInfo] = None):
+        super().__init__(name, context, llm, sender_info)
+        self.config = Config()
 
     @classmethod
     async def run_text(cls, code) -> Tuple[str, str]:

@@ -10,7 +10,7 @@ from typing import Optional
 
 from metagpt.logs import logger
 from metagpt.provider.base_chatbot import BaseChatbot
-
+from metagpt.callbacks import BaseCallbackHandler
 
 class BaseGPTAPI(BaseChatbot):
     """GPT API abstract class, requiring all inheritors to provide a series of standard capabilities"""
@@ -36,12 +36,13 @@ class BaseGPTAPI(BaseChatbot):
         rsp = self.completion(message)
         return self.get_choice_text(rsp)
 
-    async def aask(self, msg: str, system_msgs: Optional[list[str]] = None) -> str:
+    async def aask(self, msg: str, system_msgs: Optional[list[str]] = None,
+                   callback_hander:Optional[BaseCallbackHandler]=None) -> str:
         if system_msgs:
             message = self._system_msgs(system_msgs) + [self._user_msg(msg)]
         else:
             message = [self._default_system_msg(), self._user_msg(msg)]
-        rsp = await self.acompletion_text(message, stream=True)
+        rsp = await self.acompletion_text(message, stream=callback_hander)
         logger.debug(message)
         # logger.debug(rsp)
         return rsp
@@ -101,7 +102,7 @@ class BaseGPTAPI(BaseChatbot):
         """
 
     @abstractmethod
-    async def acompletion_text(self, messages: list[dict], stream=False) -> str:
+    async def acompletion_text(self, messages: list[dict], stream:Optional[BaseCallbackHandler]=False) -> str:
         """Asynchronous version of completion. Return str. Support stream-print"""
 
     def get_choice_text(self, rsp: dict) -> str:

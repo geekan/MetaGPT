@@ -7,16 +7,15 @@
 """
 from abc import ABC
 from typing import Optional
-
 from tenacity import retry, stop_after_attempt, wait_fixed
-
+from metagpt.callbacks import SenderInfo, BaseCallbackHandler, StdoutCallbackHander
 from metagpt.actions.action_output import ActionOutput
 from metagpt.llm import LLM
 from metagpt.utils.common import OutputParser
 from metagpt.logs import logger
 
 class Action(ABC):
-    def __init__(self, name: str = '', context=None, llm: LLM = None):
+    def __init__(self, name: str = '', context=None, llm: LLM = None, sender_info: Optional[SenderInfo] = None):
         self.name: str = name
         if llm is None:
             llm = LLM()
@@ -27,6 +26,12 @@ class Action(ABC):
         self.desc = ""
         self.content = ""
         self.instruct_content = None
+        self.sender_info = sender_info
+        self.callback_handler: Optional[BaseCallbackHandler] = None
+
+    def set_callback_handler(self, callback_handler: BaseCallbackHandler):
+        self.callback_handler = callback_handler
+
 
     def set_prefix(self, prefix, profile):
         """Set prefix for later usage"""
@@ -39,22 +44,36 @@ class Action(ABC):
     def __repr__(self):
         return self.__str__()
 
-    async def _aask(self, prompt: str, system_msgs: Optional[list[str]] = None) -> str:
+    async def _aask(self, prompt: str, system_msgs: Optional[list[str]] = None,
+                    callback_handler:Optional[BaseCallbackHandler]=None) -> str:
         """Append default prefix"""
+        if callback_handler is None:
+            if self.callback_handler is None:
+                callback_handler = StdoutCallbackHander()
+            else:
+                callback_handler = self.callback_handler
+        callback_handler.on_new_message(self.sender_info)
         if not system_msgs:
             system_msgs = []
         system_msgs.append(self.prefix)
-        return await self.llm.aask(prompt, system_msgs)
+        return await self.llm.aask(prompt, system_msgs, callback_handler)
 
     @retry(stop=stop_after_attempt(2), wait=wait_fixed(1))
     async def _aask_v1(self, prompt: str, output_class_name: str,
                        output_data_mapping: dict,
-                       system_msgs: Optional[list[str]] = None) -> ActionOutput:
+                       system_msgs: Optional[list[str]] = None,
+                        callback_handler:Optional[BaseCallbackHandler]=None) -> ActionOutput:
         """Append default prefix"""
         if not system_msgs:
             system_msgs = []
+        if callback_handler is None:
+            if self.callback_handler is None:
+                callback_handler = StdoutCallbackHander()
+            else:
+                callback_handler = self.callback_handler
+        callback_handler.on_new_message(self.sender_info)
         system_msgs.append(self.prefix)
-        content = await self.llm.aask(prompt, system_msgs)
+        content = await self.llm.aask(prompt, system_msgs, callback_handler)
         logger.debug(content)
         output_class = ActionOutput.create_model_class(output_class_name, output_data_mapping)
         parsed_data = OutputParser.parse_data_with_mapping(content, output_data_mapping)

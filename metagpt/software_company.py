@@ -28,7 +28,7 @@ class SoftwareCompany(BaseModel):
     class Config:
         arbitrary_types_allowed = True
 
-    def hire(self, roles: list[Role]):
+    def hire(self, roles: list[Role], ):
         """Hire roles to cooperate"""
         self.environment.add_roles(roles)
 

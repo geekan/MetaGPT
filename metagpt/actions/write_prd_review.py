@@ -5,12 +5,13 @@
 @Author  : alexanderwu
 @File    : write_prd_review.py
 """
+from typing import Optional
 from metagpt.actions.action import Action
-
+from metagpt.callbacks import SenderInfo
 
 class WritePRDReview(Action):
-    def __init__(self, name, context=None, llm=None):
-        super().__init__(name, context, llm)
+    def __init__(self, name, context=None, llm=None, sender_info: Optional[SenderInfo] = None):
+        super().__init__(name, context, llm, sender_info)
         self.prd = None
         self.desc = "Based on the PRD, conduct a PRD Review, providing clear and detailed feedback"
         self.prd_review_prompt_template = """

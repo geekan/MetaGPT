@@ -6,7 +6,9 @@
 @File    : write_code_review.py
 """
 
+from typing import Optional
 from metagpt.actions.action import Action
+from metagpt.callbacks import SenderInfo
 from metagpt.logs import logger
 from metagpt.schema import Message
 from metagpt.utils.common import CodeParser
@@ -62,8 +64,10 @@ FORMAT_EXAMPLE = """
 
 
 class WriteCodeReview(Action):
-    def __init__(self, name="WriteCodeReview", context: list[Message] = None, llm=None):
-        super().__init__(name, context, llm)
+
+    def __init__(self, name="WriteCodeReview", context: list[Message] = None, llm=None,
+                 sender_info: Optional[SenderInfo] = None):
+        super().__init__(name, context, llm, sender_info)
 
     @retry(stop=stop_after_attempt(2), wait=wait_fixed(1))
     async def write_code(self, prompt):

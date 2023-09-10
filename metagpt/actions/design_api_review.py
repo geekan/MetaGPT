@@ -5,12 +5,14 @@
 @Author  : alexanderwu
 @File    : design_api_review.py
 """
+from typing import Optional
 from metagpt.actions.action import Action
+from metagpt.callbacks import SenderInfo
 
 
 class DesignReview(Action):
-    def __init__(self, name, context=None, llm=None):
-        super().__init__(name, context, llm)
+    def __init__(self, name, context=None, llm=None, sender_info: Optional[SenderInfo] = None):
+        super().__init__(name, context, llm, sender_info)
 
     async def run(self, prd, api_design):
         prompt = f"Here is the Product Requirement Document (PRD):\n\n{prd}\n\nHere is the list of APIs designed " \

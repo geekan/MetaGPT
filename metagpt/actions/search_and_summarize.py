@@ -5,8 +5,9 @@
 @Author  : alexanderwu
 @File    : search_google.py
 """
+from typing import Optional
 import pydantic
-
+from metagpt.callbacks import SenderInfo
 from metagpt.actions import Action
 from metagpt.config import Config
 from metagpt.logs import logger
@@ -101,7 +102,8 @@ You are a member of a professional butler team and will provide helpful suggesti
 
 
 class SearchAndSummarize(Action):
-    def __init__(self, name="", context=None, llm=None, engine=None, search_func=None):
+    def __init__(self, name="", context=None, llm=None, engine=None, search_func=None,
+                 sender_info: Optional[SenderInfo] = None):
         self.config = Config()
         self.engine = engine or self.config.search_engine
 

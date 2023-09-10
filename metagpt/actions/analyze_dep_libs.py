@@ -6,7 +6,9 @@
 @File    : analyze_dep_libs.py
 """
 
+from typing import Optional
 from metagpt.actions import Action
+from metagpt.callbacks import SenderInfo
 
 PROMPT = """You are an AI developer, trying to write a program that generates code for users based on their intentions.
 
@@ -26,8 +28,8 @@ Focus only on the names of shared dependencies, do not add any other explanation
 
 
 class AnalyzeDepLibs(Action):
-    def __init__(self, name, context=None, llm=None):
-        super().__init__(name, context, llm)
+    def __init__(self, name, context=None, llm=None, sender_info: Optional[SenderInfo] = None):
+        super().__init__(name, context, llm, sender_info)
         self.desc = "Analyze the runtime dependencies of the program based on the context"
 
     async def run(self, requirement, filepaths_string):

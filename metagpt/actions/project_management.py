@@ -5,8 +5,8 @@
 @Author  : alexanderwu
 @File    : project_management.py
 """
-from typing import List, Tuple
-
+from typing import List, Tuple, Optional
+from metagpt.callbacks import SenderInfo
 from metagpt.actions.action import Action
 from metagpt.const import WORKSPACE_ROOT
 from metagpt.utils.common import CodeParser
@@ -103,8 +103,8 @@ OUTPUT_MAPPING = {
 
 class WriteTasks(Action):
 
-    def __init__(self, name="CreateTasks", context=None, llm=None):
-        super().__init__(name, context, llm)
+    def __init__(self, name="CreateTasks", context=None, llm=None, sender_info: Optional[SenderInfo] = None):
+        super().__init__(name, context, llm, sender_info)
 
     def _save(self, context, rsp):
         ws_name = CodeParser.parse_str(block="Python package name", text=context[-1].content)

@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import asyncio
 import json
-from typing import Callable
+from typing import Callable, Optional
 
 from pydantic.v1 import parse_obj_as
-
+from metagpt.callbacks import SenderInfo
 from metagpt.actions import Action
 from metagpt.config import CONFIG
 from metagpt.logs import logger

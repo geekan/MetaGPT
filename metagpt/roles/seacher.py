@@ -28,7 +28,7 @@ class Searcher(Role):
                  name: str = 'Alice', 
                  profile: str = 'Smart Assistant', 
                  goal: str = 'Provide search services for users',
-                 constraints: str = 'Answer is rich and complete', 
+                 constraints: str = 'Answer is rich and complete',
                  engine=SearchEngineType.SERPAPI_GOOGLE, 
                  **kwargs) -> None:
         """

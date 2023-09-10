@@ -5,7 +5,9 @@
 @Author  : alexanderwu
 @File    : environment.py
 """
+from typing import Optional
 from metagpt.actions.action import Action
+from metagpt.callbacks import SenderInfo
 from metagpt.utils.common import CodeParser
 
 PROMPT_TEMPLATE = """
@@ -30,8 +32,8 @@ you should correctly import the necessary classes based on these file locations!
 
 
 class WriteTest(Action):
-    def __init__(self, name="WriteTest", context=None, llm=None):
-        super().__init__(name, context, llm)
+    def __init__(self, name="WriteTest", context=None, llm=None, sender_info: Optional[SenderInfo] = None):
+        super().__init__(name, context, llm, sender_info)
 
     async def write_code(self, prompt):
         code_rsp = await self._aask(prompt)

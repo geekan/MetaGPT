@@ -69,7 +69,9 @@ class QaEngineer(Role):
             test_file_name = "test_" + file_name
             test_file_path = self.get_workspace() / "tests" / test_file_name
             logger.info(f"Writing {test_file_name}..")
-            test_code = await WriteTest().run(
+            action = WriteTest(sender_info=self.sender_info)
+            action.set_callback_handler(self.callback_handler)
+            test_code = await action.run(
                 code_to_test=code_to_test,
                 test_file_name=test_file_name,
                 # source_file_name=file_name,
@@ -109,8 +111,9 @@ class QaEngineer(Role):
         test_code = open(test_file_path, "r").read()
         proj_dir = self.get_workspace()
         development_code_dir = self.get_workspace(return_proj_dir=False)
-
-        result_msg = await RunCode().run(
+        action = RunCode(sender_info=self.sender_info)
+        action.set_callback_handler(self.callback_handler)
+        result_msg = await action.run(
             mode="script",
             code=development_code,
             code_file_name=file_info["file_name"],
@@ -129,7 +132,9 @@ class QaEngineer(Role):
 
     async def _debug_error(self, msg):
         file_info, context = msg.content.split(FILENAME_CODE_SEP)
-        file_name, code = await DebugError().run(context)
+        action = DebugError(sender_info=self.sender_info)
+        action.set_callback_handler(self.callback_handler)
+        file_name, code = await action.run(context)
         if file_name:
             self.write_file(file_name, code)
             recipient = msg.sent_from  # send back to the one who ran the code for another run, might be one's self

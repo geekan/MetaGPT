@@ -126,7 +126,9 @@ class Engineer(Role):
         # self.recreate_workspace()
         todo_coros = []
         for todo in self.todos:
-            todo_coro = WriteCode().run(
+            action = WriteCode(sender_info=self.sender_info)
+            action.set_callback_handler(self.callback_handler)
+            todo_coro = action.run(
                 context=self._rc.memory.get_by_actions([WriteTasks, WriteDesign]),
                 filename=todo
             )
@@ -149,7 +151,9 @@ class Engineer(Role):
     async def _act_sp(self) -> Message:
         code_msg_all = [] # gather all code info, will pass to qa_engineer for tests later
         for todo in self.todos:
-            code = await WriteCode().run(
+            action = WriteCode(sender_info=self.sender_info)
+            action.set_callback_handler(self.callback_handler)
+            code = await action.run(
                 context=self._rc.history,
                 filename=todo
             )
@@ -188,14 +192,18 @@ class Engineer(Role):
                 context.append(m.content)
             context_str = "\n".join(context)
             # Write code
-            code = await WriteCode().run(
+            action = WriteCode(sender_info=self.sender_info)
+            action.set_callback_handler(self.callback_handler)
+            code = await action.run(
                 context=context_str,
                 filename=todo
             )
             # Code review
             if self.use_code_review:
                 try:
-                    rewrite_code = await WriteCodeReview().run(
+                    action = WriteCodeReview(sender_info=self.sender_info)
+                    action.set_callback_handler(self.callback_handler)
+                    rewrite_code = await action.run(
                         context=context_str,
                         code=code,
                         filename=todo

@@ -5,6 +5,8 @@
 @Author  : alexanderwu
 @File    : design_filenames.py
 """
+from typing import Optional
+from metagpt.callbacks import SenderInfo
 from metagpt.actions import Action
 from metagpt.logs import logger
 
@@ -15,8 +17,8 @@ Do not add any other explanations, just return a Python string list."""
 
 
 class DesignFilenames(Action):
-    def __init__(self, name, context=None, llm=None):
-        super().__init__(name, context, llm)
+    def __init__(self, name, context=None, llm=None, sender_info: Optional[SenderInfo] = None):
+        super().__init__(name, context, llm, sender_info)
         self.desc = "Based on the PRD, consider system design, and carry out the basic design of the corresponding " \
                     "APIs, data structures, and database tables. Please give your design, feedback clearly and in detail."
 

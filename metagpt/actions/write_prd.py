@@ -5,9 +5,10 @@
 @Author  : alexanderwu
 @File    : write_prd.py
 """
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 from metagpt.actions import Action, ActionOutput
+from metagpt.callbacks import SenderInfo
 from metagpt.actions.search_and_summarize import SearchAndSummarize
 from metagpt.logs import logger
 
@@ -127,8 +128,8 @@ OUTPUT_MAPPING = {
 
 
 class WritePRD(Action):
-    def __init__(self, name="", context=None, llm=None):
-        super().__init__(name, context, llm)
+    def __init__(self, name="", context=None, llm=None, sender_info: Optional[SenderInfo] = None):
+        super().__init__(name, context, llm, sender_info)
 
     async def run(self, requirements, *args, **kwargs) -> ActionOutput:
         sas = SearchAndSummarize()
