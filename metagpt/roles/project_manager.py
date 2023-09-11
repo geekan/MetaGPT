@@ -26,7 +26,7 @@ class ProjectManager(Role):
                  profile: str = "Project Manager", 
                  goal: str = "Improve team efficiency and deliver with quality and quantity",
                  constraints: str = "",
-                 callback_hanlder:BaseCallbackHandler=None) -> None:
+                 callback_handler:BaseCallbackHandler=None) -> None:
         """
         Initializes the ProjectManager role with given attributes.
         
@@ -36,6 +36,6 @@ class ProjectManager(Role):
             goal (str): Goal of the project manager.
             constraints (str): Constraints or limitations for the project manager.
         """
-        super().__init__(name, profile, goal, constraints, callback_handler=callback_hanlder)
+        super().__init__(name, profile, goal, constraints, callback_handler=callback_handler)
         self._init_actions([WriteTasks])
         self._watch([WriteDesign])
