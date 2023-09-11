@@ -53,6 +53,25 @@ cd metagpt
 python setup.py install
 ```
 
+**注意：**
+
+- 如果已经安装了Chrome、Chromium或MS Edge，可以通过将环境变量`PUPPETEER_SKIP_CHROMIUM_DOWNLOAD`设置为`true`来跳过下载Chromium。
+
+- 一些人在全局安装此工具时遇到问题。在本地安装是替代解决方案，
+
+    ```bash
+    npm install @mermaid-js/mermaid-cli
+    ```
+
+- 不要忘记在config.yml中为mmdc配置配置，
+
+    ```yml
+    PUPPETEER_CONFIG: "./config/puppeteer-config.json"
+    MMDC: "./node_modules/.bin/mmdc"
+    ```
+
+- 如果`python setup.py install`失败并显示错误`[Errno 13] Permission denied: '/usr/local/lib/python3.11/dist-packages/test-easy-install-13129.write-test'`，请尝试使用`python setup.py install --user`运行。
+
 ### Docker安装
 
 ```bash
@@ -115,7 +134,7 @@ cp config/config.yaml config/key.yaml
 
 ```shell
 python startup.py "写一个命令行贪吃蛇"
-# 开启code review模式会会花费更多的money, 但是会提升代码质量和成功率
+# 开启code review模式会花费更多的金钱, 但是会提升代码质量和成功率
 python startup.py "写一个命令行贪吃蛇" --code_review True
 ```
 
@@ -123,7 +142,6 @@ python startup.py "写一个命令行贪吃蛇" --code_review True
 ### 平台或工具的倾向性
 可以在阐述需求时说明想要使用的平台或工具。
 例如：
-
 ```shell
 python startup.py "写一个基于pygame的命令行贪吃蛇"
 ```

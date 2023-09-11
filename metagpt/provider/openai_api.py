@@ -162,10 +162,12 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         # iterate through the stream of events
         async for chunk in response:
             collected_chunks.append(chunk)  # save the event response
-            chunk_message = chunk["choices"][0]["delta"]  # extract the message
-            collected_messages.append(chunk_message)  # save the message
-            if "content" in chunk_message:
-                print(chunk_message["content"], end="")
+            choices = chunk["choices"]
+            if len(choices) > 0:
+                chunk_message = chunk["choices"][0].get("delta", {})  # extract the message
+                collected_messages.append(chunk_message)  # save the message
+                if "content" in chunk_message:
+                    print(chunk_message["content"], end="")
         print()
 
         full_reply_content = "".join([m.get("content", "") for m in collected_messages])
@@ -174,25 +176,24 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         return full_reply_content
 
     def _cons_kwargs(self, messages: list[dict]) -> dict:
+        kwargs = {
+            "messages": messages,
+            "max_tokens": self.get_max_tokens(messages),
+            "n": 1,
+            "stop": None,
+            "temperature": 0.3,
+            "timeout": 3
+        }
         if CONFIG.openai_api_type == "azure":
-            kwargs = {
-                "deployment_id": CONFIG.deployment_id,
-                "messages": messages,
-                "max_tokens": self.get_max_tokens(messages),
-                "n": 1,
-                "stop": None,
-                "temperature": 0.3,
-            }
+            if CONFIG.deployment_name and CONFIG.deployment_id:
+                raise ValueError("You can only use one of the `deployment_id` or `deployment_name` model")
+            elif not CONFIG.deployment_name and not CONFIG.deployment_id:
+                raise ValueError("You must specify `DEPLOYMENT_NAME` or `DEPLOYMENT_ID` parameter")
+            kwargs_mode = {"engine": CONFIG.deployment_name} if CONFIG.deployment_name \
+                else {"deployment_id": CONFIG.deployment_id}
         else:
-            kwargs = {
-                "model": self.model,
-                "messages": messages,
-                "max_tokens": self.get_max_tokens(messages),
-                "n": 1,
-                "stop": None,
-                "temperature": 0.3,
-            }
-        kwargs["timeout"] = 3
+            kwargs_mode = {"model": self.model}
+        kwargs.update(kwargs_mode)
         return kwargs
 
     async def _achat_completion(self, messages: list[dict]) -> dict:
