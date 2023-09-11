@@ -13,6 +13,7 @@ from metagpt.actions import Action, ActionOutput
 from metagpt.const import WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.utils.common import CodeParser
+from metagpt.utils.json_to_markdown import json_to_markdown
 from metagpt.utils.mermaid import mermaid_to_file
 
 PROMPT_TEMPLATE = """
@@ -97,8 +98,9 @@ class WriteDesign(Action):
             quadrant_chart = context[-1].instruct_content.dict()["Competitive Quadrant Chart"]
             mermaid_to_file(quadrant_chart, resources_path / "competitive_analysis")
 
-        logger.info(f"Saving PRD to {prd_file}")
-        prd_file.write_text(context[-1].content)
+        if context[-1].instruct_content:
+            logger.info(f"Saving PRD to {prd_file}")
+            prd_file.write_text(json_to_markdown(context[-1].instruct_content.dict()))
 
     def _save_system_design(self, docs_path, resources_path, system_design):
         data_api_design = system_design.instruct_content.dict()[
@@ -111,7 +113,7 @@ class WriteDesign(Action):
         mermaid_to_file(seq_flow, resources_path / "seq_flow")
         system_design_file = docs_path / "system_design.md"
         logger.info(f"Saving System Designs to {system_design_file}")
-        system_design_file.write_text(system_design.content)
+        system_design_file.write_text((json_to_markdown(system_design.instruct_content.dict())))
 
     def _save(self, context, system_design):
         if isinstance(system_design, ActionOutput):
@@ -128,10 +130,7 @@ class WriteDesign(Action):
         self._save_system_design(docs_path, resources_path, system_design)
 
     async def run(self, context):
-        if isinstance(context, ActionOutput):
-            prompt = PROMPT_TEMPLATE.format(context=context.content, format_example=FORMAT_EXAMPLE)
-        else:
-            prompt = PROMPT_TEMPLATE.format(context=context, format_example=FORMAT_EXAMPLE)
+        prompt = PROMPT_TEMPLATE.format(context=context, format_example=FORMAT_EXAMPLE)
         # system_design = await self._aask(prompt)
         system_design = await self._aask_json_v1(prompt, "system_design", OUTPUT_MAPPING)
         self._save(context, system_design)
