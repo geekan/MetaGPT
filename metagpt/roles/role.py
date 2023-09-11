@@ -157,6 +157,7 @@ class Role:
         prompt = self._get_prefix()
         prompt += STATE_TEMPLATE.format(history=self._rc.history, states="\n".join(self._states),
                                         n_states=len(self._states) - 1)
+        self.callback_handler.on_new_message(self.sender_info)
         next_state = await self._llm.aask(prompt,
                                           callback_hander=self.callback_handler)
         logger.debug(f"{prompt=}")
