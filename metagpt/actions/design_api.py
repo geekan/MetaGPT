@@ -24,7 +24,7 @@ PROMPT_TEMPLATE = """
 {format_example}
 -----
 Role: You are an architect; the goal is to design a SOTA PEP8-compliant python system; make the best use of good open source tools
-Requirement: Fill in the following missing information based on the context, note that all sections are response with code form separately
+Requirement: Fill in the following missing information based on the context, each section name is a key in json
 Max Output: 8192 chars or 2048 tokens. Try to use them up.
 
 ## Implementation approach: Provide as Plain text. Analyze the difficult points of the requirements, select the appropriate open-source framework.

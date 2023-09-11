@@ -42,7 +42,7 @@ quadrantChart
 {format_example}
 -----
 Role: You are a professional product manager; the goal is to design a concise, usable, efficient product
-Requirements: According to the context, fill in the following missing information, note that each sections are returned in Python code triple quote form seperatedly. If the requirements are unclear, ensure minimum viability and avoid excessive design
+Requirements: According to the context, fill in the following missing information, each section name is a key in json ,If the requirements are unclear, ensure minimum viability and avoid excessive design
 
 ## Original Requirements: Provide as Plain text, place the polished complete original requirements here
 
