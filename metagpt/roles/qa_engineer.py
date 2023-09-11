@@ -36,7 +36,7 @@ class QaEngineer(Role):
 
     @classmethod
     def parse_workspace(cls, system_design_msg: Message) -> str:
-        if not system_design_msg.instruct_content:
+        if system_design_msg.instruct_content:
             return system_design_msg.instruct_content.dict().get("Python package name")
         return CodeParser.parse_str(block="Python package name", text=system_design_msg.content)
 

@@ -9,6 +9,7 @@ from typing import List
 
 from metagpt.actions.action import Action
 from metagpt.const import WORKSPACE_ROOT
+from metagpt.utils.common import CodeParser
 from metagpt.utils.json_to_markdown import json_to_markdown
 
 PROMPT_TEMPLATE = """
@@ -83,9 +84,10 @@ class WriteTasks(Action):
         super().__init__(name, context, llm)
 
     def _save(self, context, rsp):
-        ws_name = context[-1].instruct_content.dict()[
-            "Python package name"
-        ]  # CodeParser.parse_str(block="Python package name", text=context[-1].content)
+        if context[-1].instruct_content:
+            ws_name = context[-1].instruct_content.dict()["Python package name"]
+        else:
+            ws_name = CodeParser.parse_str(block="Python package name", text=context[-1].content)
         file_path = WORKSPACE_ROOT / ws_name / "docs/api_spec_and_tasks.md"
         file_path.write_text(json_to_markdown(rsp.instruct_content.dict()))
 
