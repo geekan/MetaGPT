@@ -14,13 +14,12 @@ from metagpt.memory import Memory
 from metagpt.roles import Role
 from metagpt.schema import Message
 
-
 class Environment(BaseModel):
     """环境，承载一批角色，角色可以向环境发布消息，可以被其他角色观察到
        Environment, hosting a batch of roles, roles can publish messages to the environment, and can be observed by other roles
     
     """
-
+    short_term_history: str = Field(default_factory=Memory)
     roles: dict[str, Role] = Field(default_factory=dict)
     memory: Memory = Field(default_factory=Memory)
     history: str = Field(default='')
@@ -43,12 +42,12 @@ class Environment(BaseModel):
             self.add_role(role)
 
     def publish_message(self, message: Message):
+        """需要修改这里"""
         """向当前环境发布信息
           Post information to the current environment
         """
         # self.message_queue.put(message)
-        self.memory.add(message)
-        self.history += f"\n{message}"
+        self.short_term_history = message
 
     async def run(self, k=1):
         """处理一次所有信息的运行

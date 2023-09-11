@@ -3,7 +3,7 @@
 """
 @Time    : 2023/5/12 00:30
 @Author  : alexanderwu
-@File    : software_company.py
+@File    : software_company_with_human.py
 """
 from pydantic import BaseModel, Field
 
@@ -50,6 +50,10 @@ class SoftwareCompany(BaseModel):
     def _save(self):
         logger.info(self.json())
 
+    async def continue_run(self):
+        await self.environment.run()
+        return self.environment.history
+    
     async def run(self, n_round=3):
         """Run company until target round or no money"""
         while n_round > 0:
