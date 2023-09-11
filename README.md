@@ -81,29 +81,68 @@ python setup.py install
 
 - if `python setup.py install` fails with error `[Errno 13] Permission denied: '/usr/local/lib/python3.11/dist-packages/test-easy-install-13129.write-test'`, try instead running `python setup.py install --user`
 
-- To convert Mermaid charts to SVG, PNG, and PDF formats. In addition to the Node.js version of Mermaid-CLI, you now have the option to use Python version Playwright for this task.
+- To convert Mermaid charts to SVG, PNG, and PDF formats. In addition to the Node.js version of Mermaid-CLI, you now have the option to use Python version Playwright, pyppeteer or mermaid.ink for this task.
 
-- **Install Playwright**
+  - Playwright
+    - **Install Playwright**
 
-```bash
-pip install playwright
-```
+    ```bash
+    pip install playwright
+    ```
 
-- **Install the Required Browsers**
+    - **Install the Required Browsers**
 
-to support PDF conversion, had better install Chrominum.
+    to support PDF conversion, had better install Chrominum.
 
-```bash
-playwright install --with-deps chromium
-```
+    ```bash
+    playwright install --with-deps chromium
+    ```
 
-- **modify `config.yaml`**
+    - **modify `config.yaml`**
 
-uncomment MERMAID_ENGINE from config.yaml and change it to `playwright`
+    uncomment MERMAID_ENGINE from config.yaml and change it to `playwright`
 
-```yaml
-MERMAID_ENGINE: playwright
-```
+    ```yaml
+    MERMAID_ENGINE: playwright
+    ```
+
+  - pyppeteer
+    - **Install pyppeteer**
+
+    ```bash
+    pip install pyppeteer
+    ```
+
+    - **Install the Required Browsers**
+
+    ```bash
+    pyppeteer-install
+    ```
+
+    pyppeteer alow you use already installed browsers, if you do not want to run the above command, please set the following envirment
+    
+    ```bash
+    export PUPPETEER_EXECUTABLE_PATH = /path/to/your/chromium or edge or chrome
+    ```
+
+    - **modify `config.yaml`**
+
+    uncomment MERMAID_ENGINE from config.yaml and change it to `pyppeteer`
+
+    ```yaml
+    MERMAID_ENGINE: pyppeteer
+    ```
+
+  - mermaid.ink
+    - **modify `config.yaml`**
+
+    uncomment MERMAID_ENGINE from config.yaml and change it to `ink`
+
+    ```yaml
+    MERMAID_ENGINE: ink
+    ```  
+
+    Note: this method does not support pdf export.
 
 ### Installation by Docker
 

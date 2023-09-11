@@ -12,6 +12,7 @@ from metagpt.config import CONFIG
 from metagpt.const import PROJECT_ROOT
 from metagpt.logs import logger
 from metagpt.utils.common import check_cmd_exists
+import os
 
 
 
@@ -31,34 +32,58 @@ def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, height
     if check_cmd_exists("mmdc") != 0:
         logger.warning("RUN `npm install -g @mermaid-js/mermaid-cli` to install mmdc")
         return -1
+    engine = CONFIG.mermaid_engine.lower()
 
-    for suffix in ["pdf", "svg", "png"]:
-        output_file = f"{output_file_without_suffix}.{suffix}"
-        # Call the `mmdc` command to convert the Mermaid code to a PNG
-        logger.info(f"Generating {output_file}..")
+    if engine == "nodejs":
+        for suffix in ["pdf", "svg", "png"]:
+            output_file = f"{output_file_without_suffix}.{suffix}"
+            # Call the `mmdc` command to convert the Mermaid code to a PNG
+            logger.info(f"Generating {output_file}..")
 
-        if CONFIG.puppeteer_config:
-            subprocess.run(
-                [
-                    CONFIG.mmdc,
-                    "-p",
-                    CONFIG.puppeteer_config,
-                    "-i",
-                    str(tmp),
-                    "-o",
-                    output_file,
-                    "-w",
-                    str(width),
-                    "-H",
-                    str(height),
-                ]
-            )
-        else:
-            subprocess.run([CONFIG.mmdc, "-i", str(tmp), "-o", output_file, "-w", str(width), "-H", str(height)])
+            if CONFIG.puppeteer_config:
+                subprocess.run(
+                    [
+                        CONFIG.mmdc,
+                        "-p",
+                        CONFIG.puppeteer_config,
+                        "-i",
+                        str(tmp),
+                        "-o",
+                        output_file,
+                        "-w",
+                        str(width),
+                        "-H",
+                        str(height),
+                    ]
+                )
+            else:
+                subprocess.run([CONFIG.mmdc, "-i", str(tmp), "-o", output_file, "-w", str(width), "-H", str(height)])
+    else:
+        if engine not in ['playwright', 'puppeteer', 'ink']:
+            logger.warning(f"Unsupported mermaid engine: {engine}")
+            return -1
+        __dirname = os.path.dirname(os.path.abspath(__file__))
+        module_path = os.path.join(__dirname, f'mmdc_{engine}.py')
+        import sys
+        # 构建命令行参数
+        command = [
+            sys.executable,
+            module_path,
+            "-i",mermaid_code,
+            "-o",output_file_without_suffix
+        ]
+
+        # 执行命令
+        try:
+            result = subprocess.run(command, text=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)          
+            logger.info(result.stdout)
+            if result.stderr:
+                logger.error(result.stderr)
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Command execution failed with return code {e.returncode}")
+            logger.error(e.output)
     return 0
 
-if CONFIG.mermaid_engine.lower() == "playwright":
-    from metagpt.utils.mermaid_playwright import mermaid_to_file
 
 MMC1 = """classDiagram
     class Main {
