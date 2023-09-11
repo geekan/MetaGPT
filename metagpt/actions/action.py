@@ -49,7 +49,7 @@ class Action(ABC):
         system_msgs.append(self.prefix)
         return await self.llm.aask(prompt, system_msgs)
 
-    @retry(stop=stop_after_attempt(2), wait=wait_fixed(1))
+    @retry(stop=stop_after_attempt(3), wait=wait_fixed(1))
     async def _aask_v1(
         self, prompt: str, output_class_name: str, output_data_mapping: dict, system_msgs: Optional[list[str]] = None
     ) -> ActionOutput:
@@ -65,7 +65,7 @@ class Action(ABC):
         instruct_content = output_class(**parsed_data)
         return ActionOutput(content, instruct_content)
 
-    @retry(stop=stop_after_attempt(2), wait=wait_fixed(1))
+    @retry(stop=stop_after_attempt(3), wait=wait_fixed(1))
     async def _aask_json_v1(
         self, prompt: str, output_class_name: str, output_data_mapping: dict, system_msgs: Optional[list[str]] = None
     ) -> ActionOutput:
