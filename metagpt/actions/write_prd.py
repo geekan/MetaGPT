@@ -67,10 +67,8 @@ and only output the json inside this tag, nothing else
 FORMAT_EXAMPLE = """
 [CONTENT]
 {
-        "Original Requirements": "",
-        "Search Information": "",
-        
-    "Role": "You are a professional product manager; the goal is to design a concise, usable, efficient product",
+    "Original Requirements": "",
+    "Search Information": "",
     "Requirements": "",
     "Product Goals": [],
     "User Stories": [],
