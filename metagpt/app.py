@@ -3,7 +3,7 @@
 
 import aiofiles
 import gradio as gr 
-from metagpt.software_company import SoftwareCompany
+from metagpt.software_company import SoftwareCompany, SoftwareCompanyWithHuman
 from metagpt.roles import ProjectManager, ProductManager, Architect, Engineer, QaEngineer, Searcher, Sales, customer_service
 from metagpt.roles.researcher import RESEARCH_PATH, Researcher
 import io
@@ -20,7 +20,7 @@ def clear_logs():
     with open(PROJECT_ROOT / 'logs/log.txt', 'w') as f:
         f.write("")
 
-async def startup(company : str,
+async def startup(company_name : str,
                       idea : str,
                       investment : float = 6.0,
                       n_round : int = 5,
@@ -32,8 +32,10 @@ async def startup(company : str,
                                       "Architect",]
                       )->SoftwareCompany:
 
-    if company == "SoftwareCompany":
+    if company_name == "SoftwareCompany":
         company = SoftwareCompany()
+    elif company_name == "SoftwareCompany_With_Human":
+        company = SoftwareCompanyWithHuman()
     else:
         raise Exception("Company type not supported")
     if idea == "":
@@ -63,7 +65,10 @@ async def startup(company : str,
     # report all output to webui
     global SoftwareCompany_Company
     SoftwareCompany_Company = company
-    await company.continue_run()
+    if company_name == "SoftwareCompany":
+        await company.run(n_round)
+    elif company_name == "SoftwareCompany_With_Human":
+        await company.continue_run()
     return company.environment.short_term_history.content
 
 async def __continue(message_content : str):
@@ -87,6 +92,7 @@ async def research_startup(language : str,
     await role.run(topic)
     return f"save report to {RESEARCH_PATH / f'{topic}.md'}."
 
+    
 app = gr.Blocks()
 SoftwareCompany_Company = SoftwareCompany()
 import sys
@@ -97,10 +103,10 @@ with app:
                 """)
     with gr.Tabs():
         with gr.TabItem("MetaGPT") as generate_tab:
-            company_choise = gr.Dropdown(label = "Choose the company type", choices = ["SoftwareCompany"], value = "SoftwareCompany")
+            company_choise = gr.Dropdown(label = "Choose the company type", choices = ["SoftwareCompany", "SoftwareCompany_With_Human"], value = "SoftwareCompany_With_Human")
             with gr.Row():
-                investment = gr.Slider(minimum=0.0, maximum=20.0, step=0.1, label="The maxmium money($) you would like to spend on generate",value = 6.0)
-                n_round = gr.Number( label="Round", value = 5)
+                investment = gr.Slider(minimum=0.0, maximum=20.0, step=0.1, label="Investment",value = 6.0, info="The maxmium investment you want to invest")
+                n_round = gr.Number( label="Round", value = 5, info="The maxmium round you want to run")
             with gr.Row():
                 run_tests = gr.Checkbox(label = "Whether to hire a QaEngineer to run tests", value = False)
                 with gr.Row():
@@ -113,16 +119,23 @@ with app:
             with gr.Row():
                 clear_log = gr.Button(label="Clear Log", value = "Clear Log") # temporary, should be removed in the future
             output_metagpt = gr.Textbox(label="The phased output of MetaGPT, modify it as your will",max_lines=999,show_copy_button = True)
-            continue_run = gr.Button(label="Continue Run", value = "Continue Run")
+            continue_run = gr.Button(label="Continue Run", value = "Continue Run", visible = True)
         Start_MetaGPT.click(startup, [company_choise, idea, investment, n_round, code_review, run_tests, implement, staffs], [output_metagpt])
         clear_log.click(clear_logs, [],[])
         continue_run.click(__continue, [output_metagpt], [output_metagpt])
+        company_choise.change(lambda company_choise : gr.update(visible = True if company_choise == "SoftwareCompany_With_Human" else False), [company_choise], [continue_run])
         with gr.TabItem("Research") as research_tab:
             language = gr.Dropdown(label = "Choose the language", choices = ["en-us","zh-ch"], value = "en-us")
             topic = gr.Textbox(label="Your research topic, such as 'dataiku vs. datarobot'", value = "dataiku vs. datarobot")
             submit_Research = gr.Button(label="Submit", value = "Submit")
             output_path_md = gr.Textbox(label="Output")
         submit_Research.click(research_startup, [language,topic], outputs=[output_path_md])
+        with gr.TabItem("Markdown Shower") as MarkdownShower_tab:
+            with gr.Row():
+                with gr.Row():
+                    input_str = gr.Textbox(label="Input",max_lines=999,show_copy_button=True)
+                    output_md = gr.Markdown(label="Output")
+        input_str.change(lambda x: x,[input_str],[output_md])
 
 
 if __name__ == "__main__":
