@@ -33,5 +33,6 @@ API_QUESTIONS_PATH = UT_PATH / "files/question/"
 YAPI_URL = "http://yapi.deepwisdomai.com/"
 TMP = PROJECT_ROOT / 'tmp'
 RESEARCH_PATH = DATA_PATH / "research"
+TUTORIAL_PATH = DATA_PATH / "tutorial_docx"
 
 MEM_TTL = 24 * 30 * 3600
