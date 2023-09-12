@@ -101,18 +101,18 @@ class CostManager(metaclass=Singleton):
         """
         return self.total_completion_tokens
 
-def get_total_cost(self):
-    """
-    Get the total cost of API calls.
+    def get_total_cost(self):
+        """
+        Get the total cost of API calls.
 
-    Returns:
-    float: The total cost of API calls.
-    """
-    return self.total_cost
+        Returns:
+        float: The total cost of API calls.
+        """
+        return self.total_cost
 
-def get_costs(self) -> Costs:
-    """Get all costs"""
-    return Costs(self.total_prompt_tokens, self.total_completion_tokens, self.total_cost, self.total_budget)
+    def get_costs(self) -> Costs:
+        """Get all costs"""
+        return Costs(self.total_prompt_tokens, self.total_completion_tokens, self.total_cost, self.total_budget)
 
 def log_and_reraise(retry_state):
     logger.error(f"Retry attempts exhausted. Last exception: {retry_state.outcome.exception()}")
@@ -175,6 +175,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         full_reply_content = "".join([m.get("content", "") for m in collected_messages])
         usage = self._calc_usage(messages, full_reply_content)
         self._update_costs(usage)
+        callback_handler.on_cost_updated(self._cost_manager.get_total_cost())
         return full_reply_content
 
     def _cons_kwargs(self, messages: list[dict]) -> dict:

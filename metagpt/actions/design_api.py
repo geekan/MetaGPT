@@ -107,14 +107,19 @@ class WriteDesign(Action):
         prd_file = docs_path / 'prd.md'
         quadrant_chart = CodeParser.parse_code(block="Competitive Quadrant Chart", text=prd)
         mermaid_to_file(quadrant_chart, resources_path / 'competitive_analysis')
-        logger.info(f"Saving PRD to {prd_file}")
+        self.callback_handler.on_new_file_generated(self.sender_info, "Competitive Analysis",
+                                                    str(resources_path / 'competitive_analysis.png'))
         prd_file.write_text(prd)
 
     def _save_system_design(self, docs_path, resources_path, content):
         data_api_design = CodeParser.parse_code(block="Data structures and interface definitions", text=content)
         seq_flow = CodeParser.parse_code(block="Program call flow", text=content)
         mermaid_to_file(data_api_design, resources_path / 'data_api_design')
+        self.callback_handler.on_new_file_generated(self.sender_info, "Data API Design",
+                                                    str(resources_path / 'data_api_design.png'))
         mermaid_to_file(seq_flow, resources_path / 'seq_flow')
+        self.callback_handler.on_new_file_generated(self.sender_info, "Sequence Flow",
+                                                    str(resources_path / 'seq_flow.png'))
         system_design_file = docs_path / 'system_design.md'
         logger.info(f"Saving System Designs to {system_design_file}")
         system_design_file.write_text(content)
@@ -127,6 +132,7 @@ class WriteDesign(Action):
             content = system_design
             ws_name = CodeParser.parse_str(block="Python package name", text=system_design)
         workspace = WORKSPACE_ROOT / ws_name
+        self.callback_handler.on_new_workspace_generated(str(workspace))
         self.recreate_workspace(workspace)
         docs_path = workspace / 'docs'
         resources_path = workspace / 'resources'
