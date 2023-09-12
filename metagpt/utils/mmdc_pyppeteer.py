@@ -34,10 +34,15 @@ def mermaid_to_file(mermaid_code, output_file_without_suffix, width, height):
 
     async def mermaid_to_file0(mermaid_code, output_file_without_suffix, width=2048, height=2048, suffixes=['png', 'svg', 'pdf'])-> int:
         __dirname = os.path.dirname(os.path.abspath(__file__))
-        browser = await launch(headless=True,
-                            executablePath=os.getenv('PUPPETEER_EXECUTABLE_PATH',"/opt/homebrew/bin/chromium"),
-                            args=['--disable-extensions',"--no-sandbox"] 
-                            )
+        executablePath = os.getenv('PUPPETEER_EXECUTABLE_PATH',"") 
+        if executablePath:
+            browser = await launch(headless=True,
+                                executablePath=executablePath,
+                                args=['--disable-extensions',"--no-sandbox"] 
+                                )
+        else:
+            print("Please set the environment variable:PUPPETEER_EXECUTABLE_PATH.")
+            return -1
         page = await browser.newPage()
         device_scale_factor = 1.0
 

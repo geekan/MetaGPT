@@ -93,7 +93,7 @@ python setup.py install
 
     - **Install the Required Browsers**
 
-    to support PDF conversion, had better install Chrominum.
+    to support PDF conversion, please install Chrominum.
 
     ```bash
     playwright install --with-deps chromium
@@ -114,16 +114,18 @@ python setup.py install
     pip install pyppeteer
     ```
 
-    - **Install the Required Browsers**
+    - **Use your own Browsers**
 
-    ```bash
-    pyppeteer-install
-    ```
-
-    pyppeteer alow you use already installed browsers, if you do not want to run the above command, please set the following envirment
+    pyppeteer alow you use installed browsers,  please set the following envirment
     
     ```bash
     export PUPPETEER_EXECUTABLE_PATH = /path/to/your/chromium or edge or chrome
+    ```
+
+    please do not use this command to install browser, it is too old
+
+    ```bash
+    pyppeteer-install
     ```
 
     - **modify `config.yaml`**

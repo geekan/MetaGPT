@@ -192,6 +192,7 @@ class CodeParser:
             logger.error(f"{pattern} not match following text:")
             logger.error(text)
             # raise Exception
+            return ""
         return code
 
     @classmethod
