@@ -43,7 +43,6 @@ class Environment(BaseModel):
             self.add_role(role)
 
     def publish_message(self, message: Message):
-        """需要修改这里"""
         """向当前环境发布信息
           Post information to the current environment
         """
