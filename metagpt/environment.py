@@ -19,6 +19,7 @@ class Environment(BaseModel):
        Environment, hosting a batch of roles, roles can publish messages to the environment, and can be observed by other roles
     
     """
+    environment_type: str = Field(default='')
     short_term_history: str = Field(default_factory=Memory)
     roles: dict[str, Role] = Field(default_factory=dict)
     memory: Memory = Field(default_factory=Memory)
@@ -46,8 +47,10 @@ class Environment(BaseModel):
         """向当前环境发布信息
           Post information to the current environment
         """
-        # self.message_queue.put(message)
         self.short_term_history = message
+        if self.environment_type == "SoftwareCompany":
+            self.memory.add(message)
+            self.history += f"\n{message}"
 
     async def run(self, k=1):
         """处理一次所有信息的运行

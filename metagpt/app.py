@@ -45,9 +45,9 @@ async def startup(company_name : str,
         elif staff == "Architect":
             staff_list.append(Architect())
         elif staff == "Engineer":
-            staff_list.append(Engineer())
+            staff_list.append(Engineer(n_borg=5,use_code_review=code_review))
         elif staff == "QaEngineer":
-            staff_list.append(QaEngineer(n_borg=5,use_code_review=code_review))
+            staff_list.append(QaEngineer())
     company.hire(staff_list)
     company.invest(investment)
     company.start_project(idea)

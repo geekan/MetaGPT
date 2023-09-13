@@ -44,6 +44,7 @@ class SoftwareCompany(BaseModel):
 
     def start_project(self, idea):
         """Start a project from publishing boss requirement."""
+        self.environment.environment_type = "SoftwareCompany"
         self.idea = idea
         self.environment.publish_message(Message(role="BOSS", content=idea, cause_by=BossRequirement))
 
@@ -88,6 +89,7 @@ class SoftwareCompanyWithHuman(BaseModel):
 
     def start_project(self, idea):
         """Start a project from publishing boss requirement."""
+        self.environment.environment_type = "SoftwareCompany_With_Human"
         self.idea = idea
         self.environment.publish_message(Message(role="BOSS", content=idea, cause_by=BossRequirement))
 
@@ -96,14 +98,4 @@ class SoftwareCompanyWithHuman(BaseModel):
 
     async def continue_run(self):
         await self.environment.run()
-        return self.environment.history
-    
-    async def run(self, n_round=3):
-        """Run company until target round or no money"""
-        while n_round > 0:
-            # self._save()
-            n_round -= 1
-            logger.debug(f"{n_round=}")
-            self._check_balance()
-            await self.environment.run()
         return self.environment.history
