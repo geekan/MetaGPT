@@ -42,13 +42,12 @@ class CloneFunction(WriteCode):
         prompt = CLONE_PROMPT.format(source_code=source_code, template_func=template_func)
         logger.info(f"query for CloneFunction: \n {prompt}")
         code = await self.write_code(prompt)
-        assert 'def' in code
         logger.info(f'CloneFunction code is \n {highlight(code)}')
         return code
 
 
-def run_fucntion_code(func_code: str, func_name: str, *args, **kwargs):
-    """执行函数类生成代码"""
+def run_function_code(func_code: str, func_name: str, *args, **kwargs):
+    """Run function code from string code."""
     try:
         locals_ = {}
         exec(func_code, locals_)
@@ -58,9 +57,9 @@ def run_fucntion_code(func_code: str, func_name: str, *args, **kwargs):
         return "", traceback.format_exc()
 
 
-def run_fucntion_script(code_script_path: str, func_name: str, *args, **kwargs):
-    """从脚本中载入函数进行执行"""
+def run_function_script(code_script_path: str, func_name: str, *args, **kwargs):
+    """Run function code from script."""
     if isinstance(code_script_path, str):
         code_path = Path(code_script_path)
     code = code_path.read_text(encoding='utf-8')
-    return run_fucntion_code(code, func_name, *args, **kwargs)
+    return run_function_code(code, func_name, *args, **kwargs)
