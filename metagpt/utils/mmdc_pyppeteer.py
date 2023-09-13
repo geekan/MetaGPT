@@ -9,6 +9,7 @@ import os
 from urllib.parse import urljoin
 from pyppeteer import launch
 from metagpt.logs import logger
+from metagpt.config import CONFIG
 
 async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, height=2048)-> int:
     """
@@ -26,14 +27,14 @@ async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, 
     suffixes = ['png', 'svg', 'pdf']   
     __dirname = os.path.dirname(os.path.abspath(__file__))
 
-    executablePath = os.getenv('PUPPETEER_EXECUTABLE_PATH',"") 
-    if executablePath:
+    
+    if CONFIG.pyppeteer_executable_path:
         browser = await launch(headless=True,
-                            executablePath=executablePath,
+                            executablePath=CONFIG.pyppeteer_executable_path,
                             args=['--disable-extensions',"--no-sandbox"] 
                             )
     else:
-        logger.error("Please set the environment variable:PUPPETEER_EXECUTABLE_PATH.")
+        logger.error("Please set the environment variable:PYPPETEER_EXECUTABLE_PATH.")
         return -1
     page = await browser.newPage()
     device_scale_factor = 1.0
