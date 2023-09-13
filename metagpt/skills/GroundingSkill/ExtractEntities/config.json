@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "type": "completion",
+  "description": "Extract entities related to a specified topic from the supplied input text. Returns the entities and the source text",
+  "completion": {
+    "max_tokens": 256,
+    "temperature": 0.0,
+    "top_p": 0.1,
+    "presence_penalty": 0.0,
+    "frequency_penalty": 0.0
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "input",
+        "description": "The text from which the entities are to be extracted",
+        "defaultValue": ""
+      },
+      {
+        "name": "topic",
+        "description": "The topic of interest; the extracted entities should be related to this topic",
+        "defaultValue": ""
+      },
+      {
+        "name": "example_entities",
+        "description": "A list of example entities from the topic. This can help guide the entity extraction",
+        "defaultValue": ""
+      }
+    ]
+  }
+}

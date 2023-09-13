@@ -1,0 +1,35 @@
+These are available intents that one might query:
+
+    AutoSummarize,
+    DeleteAlerts,
+    DeleteInsights,
+    DeleteLastAlert,
+    HideEmails,
+    HideTeamsMessages,
+    RefreshInsights,
+    ShowAlerts,
+    ShowAlertRules,
+    ShowContacts,
+    ShowEmails,
+    ShowOnlyEmails,
+    ShowTeamsMessages,
+    ShowOnlyTeamsMessages,
+    ShowCalendarEvents,
+    TellAJoke,
+    AlertForPerson,
+    AlertForTopic,
+    FindContentAboutX,
+    FindSimilarConversations,
+    WhatTimeIsIt,
+    Help,
+    EnableAlerting,
+    DisableAlerting,
+    OnDemandSummary,
+    OnDemandNotes,
+    TellMeMore
+
+Which intent is this query asking for? If none match, respond with Unknown.
+
+{{$input}}
+
+Intent:

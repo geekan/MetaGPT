@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "type": "completion",
+  "description": "Remove a list of ungrounded entities from a given text in a coherent manner. Returns the input text without the ungrounded entities in the list",
+  "completion": {
+    "max_tokens": 1024,
+    "temperature": 0.1,
+    "top_p": 0.1,
+    "presence_penalty": 0.0,
+    "frequency_penalty": 0.0
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "input",
+        "description": "The text from which the entities are to be removed",
+        "defaultValue": ""
+      },
+      {
+        "name": "ungrounded_entities",
+        "description": "The entities to remove. This is a list of strings.",
+        "defaultValue": ""
+      }
+    ]
+  }
+}

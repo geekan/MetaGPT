@@ -1,0 +1,6 @@
+{{textmemoryskill.recall $input}}
+---
+Considering only the information above, which has been loaded from a GitHub repository, answer the following.
+Question: {{$input}}
+
+Answer:

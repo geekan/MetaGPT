@@ -1,0 +1,68 @@
+# Task Description
+
+1. Go over each item in the list between the <entities> tags and for each item, read through the data between the <grounding_context> tags and determine if each item is grounded in any of the data between the <grounding_context> tags. Be sure to consider all of the reference items.
+2. When looking for references to the items in (1) look for re-phrasings, alternate names or equivalent meanings in the context in addition to exact matches
+3. Create a bulleted list of the items in (1) together with an explanation of whether or not they were referred to in the context, making sure to consider step (2) where you note down references in the form of re-phrasings, alternate names or equivalent meanings in the context, as well as exact matches.
+4. Split the list into two sub-lists, those items which are referenced in the <grounding_context> (these are 'grounded') and those which are not (these are 'ungrounded').
+5. Make one last pass over the two lists from (4) and make sure that they are in the list of items between the <entities> tags, drop them otherwise.
+6. Write out the list of ungrounded items between <ungrounded_entities> and </ungrounded_entities> tags
+
+
+# Examples
+
+The following examples are to help you with this task.
+
+## Example 1
+
+<entities>
+- kitten
+- mouse
+- dog
+- dragon
+- whale
+</entities>
+
+<grounding_context>
+Belinda lived in house. She owned a wagon, was friends with a cat,
+and also had a pet dragon.
+</grounding_context>
+
+Response:
+<ungrounded_entities>
+- mouse
+- dog
+- whale
+</ungrounded_entities>
+
+
+## Example 2
+
+<entities>
+- New York
+- Train
+- Chicago
+- Lake Michigan
+</entities>
+
+<grounding_context>
+I drove my car from Denver to Chicago, concluding my ride on the
+shore of Lake Michigan.
+</grounding_context>
+
+Response:
+<ungrounded_entities>
+- New York
+- Train
+</ungrounded_entities>
+
+# Task
+
+Below are the <entities>, and the <grounding_context>. Respond with the <ungrounded_entities>:
+
+{{$input}}
+
+<grounding_context>
+{{$reference_context}}
+</grounding_context>
+
+Response:

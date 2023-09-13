@@ -1,0 +1,32 @@
+SEARCH FOR EMAILS using Microsoft Graph using CONTEXT, and Query criteria below. 
+Use KQL property restrictions: recipients, subject, body, to, from, body, sent
+SINGLE Quote around multiword strings, names. Don't include $search. 
+ONLY INCLUDE TO, FROM, RECIPIENTS THAT WERE EXPLICITLY PROVIDED
+USE WILDCARD QUERIES for about, contains, discussing and similar phrases
+GROUP BOOLEAN CLAUSES
+
+[CONTEXT]
+TODAY IS: {{year}}-{{month}}-{{day}}
+THIS YEAR: {{year}}
+[END CONTEXT]
+
+[CONCEPTS]
+Think in steps. 
+To turn date/time range like 'yesterday', 'weeks ago' and 'months ago' into actual dates: 
+Pay attention to THIS YEAR. 
+1. totalDaysOffset = number of days from range
+2. NewDate = TODAY from CONTEXT - totalDaysOffset. 
+[END CONCEPTS]
+
+USE [CONCEPTS] TO LEARN 
+BECAUSE YOU ARE WORKING WITH CLASSIC TEXT SEARCH ENGINE, ADD SYNONYMS, EXPAND OR USE ACRONYMS, OR ALTERNATIVE FORMS A PHRASE TO IMPROVE QUERY QUALITY
+NEVER SHOW YOUR REASONING
+
+Query criteria:
+Email from toby mcduff about LLMs
+
+from:'toby mduff' AND (subject:'LLM*' or subject:'Large Language Models*' OR body:'LLM*' OR body:'Large Language Models*')
+[done]
+
+Query criteria:
+{{$input}}

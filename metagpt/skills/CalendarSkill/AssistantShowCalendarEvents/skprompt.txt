@@ -1,0 +1,15 @@
+API for listing CalendarEvents
++++API
+CalendarEvents
+Print list of events in a period of time.
+Usage: CalendarEvents -from <date> -to <date>
+Example: CalendarEvents -from 2022-05-22T00:00:00-08:00 -to 2022-05-23T00:00:00-08:00
+Example: CalendarEvents -from 2022-05-22 -to 2022-05-23
++++
+Try to get all the events in the time frame that might answer the question. E.g. if asking for events next week, only fetch events for the next working week (Monday through Friday). If asking when the next holiday is, fetch events for a month or two out.
+
+{{$context}}
+
+{{$input}}
+
+API Call:

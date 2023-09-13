@@ -1,0 +1,62 @@
+# Task Description
+
+1. Please extract a list of entities related to {{$topic}} from the text between the <input_context> tags.
+2. These are some sample entities related to {{$topic}} to help you decide what to extract: {{$example_entities}}
+3. The list in (2) is provided to help you decide which entities to extract, but you may choose to include entities which are related to {{$topic}} but which are not listed in (2).
+4. As the first part of your response, generate a bulleted list of each of the items in (1) together with an explanation of what they are.
+5. Go over each item in your bulleted list and read the explanation of what it is. Keep items which are related to {{$topic}}
+6. Go over each item in your bulleted list and verify that it appears between the <input_context> tags.
+7. Go over each item in your bulleted list and check for duplicates. Keep only one example of each. Duplicates may be:
+    - Abbreviations
+    - Reuse as adjectives
+    - Plurals and related changes
+8. Return the bulleted list of entities between <entities> and </entities>.
+
+# Examples
+
+## Example 1
+
+In the following example, the task is to extract entities related to food, with 'apple' and 'lime' as examples:
+
+<input_context>
+Oranges and lemons,
+Say the bells of St. Clement's.
+
+You owe me five farthings,
+Say the bells of St. Martin's.
+</input_context>
+
+Response:
+<entities>
+- Orange
+- Lemon
+</entities>
+
+## Example 2
+
+In the following example, the task was to extract entities related to animals, with 'fish' and 'goat' as examples:
+
+<input_context>
+Belinda lived in a little white house,
+With a little black kitten and a little gray mouse,
+And a little yellow dog and a little red wagon,
+And a realio, trulio, little pet dragon
+</input_context>
+
+Response:
+<entities>
+- kitten
+- mouse
+- dog
+- dragon
+</entities>
+
+# Task
+
+Extract entities related to {{$topic}} from the following context. Produce a bulleted list of entities between <entities> and </entities>.
+
+<input_context>
+{{$input}}
+</input_context>
+
+Response:

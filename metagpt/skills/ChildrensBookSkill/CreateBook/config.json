@@ -1,0 +1,12 @@
+{
+    "schema": 1,
+    "description": "Creates a children's book from the given input with a suggested number of words per page and a specific total number of pages",
+    "type": "completion",
+    "completion": {
+        "max_tokens": 2000,
+        "temperature": 0.5,
+        "top_p": 1.0,
+        "presence_penalty": 0.0,
+        "frequency_penalty": 0.0
+    }
+}

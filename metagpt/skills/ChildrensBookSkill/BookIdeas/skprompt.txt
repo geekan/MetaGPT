@@ -1,0 +1,4 @@
+based on a topic about {{$INPUT}}, 
+create a list of {{$numIdeas}} ideas for a children's book 
+the book title and a short description,
+represented as a valid json string, as an array of [{ "title": "the title", "description":"the short description" }]

@@ -1,0 +1,22 @@
+Please decide a sentence type based on whether it is a interrogative sentence.
+
+Interrogative sentences are typically marked by inversion of the subject and predicate; that is, the first verb in a verb phrase appears before the subject. 
+
+Use one of the following sentence types. Only emit types, nothing else:
+Sentence Types: question, statement 
+
+Examples
+Message: Did Nina sleep well
+Type: Question
+
+Message: Nina slept well 
+Type: Statement 
+
+Message: James was sitting in the dark
+Type: Statement 
+
+Message: Was James sitting in the dark 
+Type: Question
+
+Message: "{{$input}}"
+Type:

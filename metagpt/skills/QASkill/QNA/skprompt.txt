@@ -1,0 +1,27 @@
+ONLY USE JSON PROPERTIES IN THIS LIST:
+[JSON PROPERTY LIST]
+question
+answer
+[END LIST]
+
+[CONTENT]
+{{$input}}
+[END CONTENT]
+
+EMIT WELL FORMED JSON ALWAYS.
+BE BRIEF AND TO THE POINT.
+
+Generate a Question and Answer list (results) based on the meeting chat and transcript in CONTENT.
+Return well-formed json list. Example: { "results": [{"question": "What time is it?", "answer": "2:15pm"}]}
+If you cannot find any, return an empty list.
+Do not include questions with empty answers.
+Questions should be focused on the context of the content, not metadata or statistics about the content.
+Questions should be timeless.
+Questions should use proper nouns when possible.
+Questions should be about the content of the conversation and should be focused on key ideas or concepts discussed.
+Questions should be concise and to the point.
+Ignore small talk.
+List at most 4 questions.
+
+{
+  "results":

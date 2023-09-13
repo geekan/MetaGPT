@@ -1,0 +1,70 @@
+# Task Description
+
+1. The input is split between two tags, <context> and <ungrounded_entities>
+2. Please rewrite the text given between the <context> and </context> tags to remove references to the list of entities between the <ungrounded_entities> and </ungrounded_entities> tags
+3. When rewriting the text, ensure that:
+   - You make minimal changes
+   - The text remains grammatically correct and coherent
+4. Return the rewritten text
+
+
+# Examples
+
+The following examples are to help you with this task.
+
+## Example 1
+
+<context>
+There were a king with a large jaw and a queen with a plain face, on the throne of England; there were a king with a large jaw and a queen with a fair face,
+on the throne of France. In both countries it was clearer than crystal to the lords of the State preserves of loaves and fishes, that things in general were
+settled for ever.
+</context>
+
+<ungrounded_entities>
+- jaw
+- face
+</ungrounded_entities>
+
+Response:
+
+There were a king and a queen on the throne of England; there were a king and a queen on the throne of France. In both countries it was clearer than crystal
+to the lords of the State preserves of loaves and fishes, that things in general were settled for ever.
+
+
+## Example 2
+
+<context>
+Mr. Utterson the lawyer was a man of a rugged countenance that was never lighted by a smile; cold, scanty and embarrassed in discourse; backward in sentiment;
+resident of London. At friendly meetings, and when the wine was to his taste, something eminently human beaconed from his eye; something indeed which never
+found its way into his talk, but which spoke not only in these silent symbols of the after-dinner face, but more often and loudly in the acts of his life.
+He was austere with himself; drank gin when he was alone, to mortify a taste for vintages; and though he enjoyed the theatre, had not crossed the doors of
+one for twenty years.
+</context>
+
+<ungrounded_entities>
+- lawyer
+- wine
+- theatre
+- London
+- smile
+- sentiment
+</ungrounded_entities>
+
+Response:
+
+Mr. Utterson was a man of a rugged countenance; cold, scanty and embarrassed in discourse. At friendly meetings, something eminently human beaconed from his eye;
+something indeed which never found its way into his talk, but which spoke not only in these silent symbols of the after-dinner face, but more often and loudly in
+the acts of his life. He was austere with himself, drinking gin when he was alone.
+
+# Task
+
+Read the text between the <context> and </context>, then the list of entities between <ungrounded_entities> and </ungrounded_entities>. Carefully rewrite
+the text to remove the listed entities.
+
+<context>
+{{$input}}
+</context>
+
+{{$ungrounded_entities}}
+
+Response:

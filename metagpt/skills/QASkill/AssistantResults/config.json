@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "description": "",
+  "type": "completion",
+  "completion": {
+    "max_tokens": 1000,
+    "temperature": 0.1,
+    "top_p": 0.0,
+    "presence_penalty": 0.0,
+    "frequency_penalty": 0.0
+  }
+}

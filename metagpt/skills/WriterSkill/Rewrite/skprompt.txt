@@ -1,0 +1,6 @@
+Rewrite the given text like it was written in this style or by: {{$style}}. 
+MUST RETAIN THE MEANING AND FACTUAL CONTENT AS THE ORIGINAL.
+
+
+{{$input}}
+

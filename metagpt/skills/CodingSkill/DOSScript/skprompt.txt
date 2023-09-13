@@ -1,0 +1,19 @@
+[BANNED COMMANDS]
+FORMAT
+DISKPART
+PARTITION
+CREATE PARTITION
+FSUTIL
+[END]
+
+WRITE A DOS SCRIPT. End each script with an exit /b %ERRORLEVEL%
+ 
+NEVER USE BANNED COMMANDS. BANNED COMMANDS DO DAMAGE. YOU NEVER WANT TO DO DAMAGE. 
+INSTEAD ECHO "SORRY {{$firstName}}, I CAN'T DO THAT. "
+
+List all pdf files in current folder
+dir *.pdf
+exit /b %ERRORLEVEL%
+
+{{$input}}
+

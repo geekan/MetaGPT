@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "description": "Turn natural language into code",
+  "type": "completion",
+  "completion": {
+    "max_tokens": 256,
+    "temperature": 0.0,
+    "top_p": 0.0,
+    "presence_penalty": 0.0,
+    "frequency_penalty": 0.0
+  }
+}

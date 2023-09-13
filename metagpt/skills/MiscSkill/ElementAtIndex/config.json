@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "description": "Get an element from an array at a specified index",
+  "type": "completion",
+  "completion": {
+    "max_tokens": 1024,
+    "temperature": 0.0,
+    "top_p": 0.0,
+    "presence_penalty": 0.0,
+    "frequency_penalty": 0.0
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "input",
+        "description": "The input array",
+        "defaultValue": ""
+      },
+      {
+        "name": "index",
+        "description": "The index of the element to retrieve",
+        "defaultValue": ""
+      },
+      {
+        "name": "count",
+        "description": "The number of items in the input",
+        "defaultValue": ""
+      }
+    ]
+  }
+}

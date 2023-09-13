@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "type": "completion",
+  "description": "Check to see if a given list of entities is grounded in a reference context. Any of the items which are not supported by the reference context will be returned as a bulleted list.",
+  "completion": {
+    "max_tokens": 2048,
+    "temperature": 0.0,
+    "top_p": 0.1,
+    "presence_penalty": 0.0,
+    "frequency_penalty": 0.0
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "input",
+        "description": "The list of entities which are to be checked against the reference context.",
+        "defaultValue": ""
+      },
+      {
+        "name": "reference_context",
+        "description": "The reference context to be used to ground the entities. Only those missing from the reference_context will be returned",
+        "defaultValue": ""
+      }
+    ]
+  }
+}

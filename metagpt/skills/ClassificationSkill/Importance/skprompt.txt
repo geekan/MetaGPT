@@ -1,0 +1,28 @@
+Please decide a message's typical importance level from its tone, context, content and time sensitivity. 
+
+Time sensitivity is important. Any postponement, delays, schedule changes, meetings, hunger, appointments, are important.
+
+Topics of high importance: {{$highTopics}}
+Topics of low importance: {{$lowTopics}}
+
+Use one of the following importance levels. Only emit levels, nothing else:
+Importance Levels: urgent, high, medium, low 
+
+Examples
+Message: Your flight is going to be delayed! Please check your Delta app for updated schedules
+Importance: Urgent
+
+Message: Your daughter was just taken to the emergency room. Please call us back immediately. 
+Importance: Urgent 
+
+Message: Hey how are you? We should get lunch sometime. 
+Importance: Low 
+
+Message: What is the project status? Please send it to me today. 
+Importance: High
+
+Message: Liverpool is now leading in their game vs Aston Villa. 
+Importance: Medium
+
+Message: "{{$input}}"
+Importance:

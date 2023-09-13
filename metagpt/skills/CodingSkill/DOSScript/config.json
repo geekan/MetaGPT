@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "description": "Turns your intent into a SAFE DOS batch script",
+  "type": "completion",
+  "completion": {
+    "max_tokens": 1000,
+    "temperature": 0.0,
+    "top_p": 0.0,
+    "presence_penalty": 0.0,
+    "frequency_penalty": 0.0,
+    "stop_sequences": [
+      "exit /b %ERRORLEVEL%",
+      "exit /b 1",
+      "exit /b 0"
+    ]
+  }
+}

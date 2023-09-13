@@ -1,0 +1,7 @@
+The following is a conversation with {{$person}} with {{$attitude}}.
+
+{{$user}}Hello.
+{{$bot}} {{$question}}
+{{$history}}
+{{$user}}{{$input}}
+{{$bot}}

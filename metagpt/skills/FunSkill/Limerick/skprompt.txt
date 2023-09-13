@@ -1,0 +1,27 @@
+There was a young woman named Bright,
+Whose speed was much faster than light.
+She set out one day,
+In a relative way,
+And returned on the previous night.
+
+There was an odd fellow named Gus,
+When traveling he made such a fuss.
+He was banned from the train,
+Not allowed on a plane,
+And now travels only by bus.
+
+There once was a man from Tibet,
+Who couldn't find a cigarette
+So he smoked all his socks,
+and got chicken-pox,
+and had to go to the vet.
+
+There once was a boy named Dan,
+who wanted to fry in a pan.
+He tried and he tried,
+and eventually died,
+that weird little boy named Dan.
+
+Now write a very funny limerick about {{$name}}.
+{{$input}}
+Invent new facts their life. Must be funny.

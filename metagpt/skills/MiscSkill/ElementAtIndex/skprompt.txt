@@ -1,0 +1,9 @@
+===ELEMENTS
+{{$input}}
+===END ELEMENTS
+
+Elements.Count: {{$count}}
+
+Given the above list of elements, find the element at the requested index.
+
+Elements[{{$index}}]:

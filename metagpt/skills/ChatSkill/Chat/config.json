@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "description": "Chat with the AI",
+  "type": "completion",
+  "completion": {
+    "max_tokens": 150,
+    "temperature": 0.9,
+    "top_p": 0.0,
+    "presence_penalty": 0.6,
+    "frequency_penalty": 0.0,
+    "stop_sequences": [
+      "Human:",
+      "AI:"
+    ]
+  }
+}

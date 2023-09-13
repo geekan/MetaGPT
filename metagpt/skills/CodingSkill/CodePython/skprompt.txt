@@ -1,0 +1,10 @@
+WRITE PYTHON CODE TO SOLVE GIVEN PROBLEM. WRITE A SINGLE FUNCTION. ANY EXPLANATIONS MUST BE A COMMENT. USE CLASSES AND TYPINGS WHERE APPROPRIATE. Emit [done] when done.
+
+# Start
+# Function to print all strings in a list 
+def appendprefix(values):
+    foreach(val in values):
+        print(val)
+# Done
+
+#{{$input}}

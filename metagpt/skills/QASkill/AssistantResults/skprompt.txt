@@ -1,0 +1,11 @@
+These are the results from the API call "{{$api}}"
+===RESULTS
+{{$results}}
+===END RESULTS
+
+{{$resultsContext}}
+
+Use the Results to answer the following query:
+
+Query: {{$input}}
+Answer:

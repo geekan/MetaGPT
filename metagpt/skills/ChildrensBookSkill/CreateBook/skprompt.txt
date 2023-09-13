@@ -1,0 +1,4 @@
+based on {{$INPUT}}, 
+write me a children's book with at most {{$numWordsPerPage}} words on
+each page and a maximum of {{$numPages}} pages.
+Return it in JSON using the following format: [{ "page": 1, "content":"the content of the page" }]

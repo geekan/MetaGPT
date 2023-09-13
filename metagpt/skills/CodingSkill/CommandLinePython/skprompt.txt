@@ -1,0 +1,22 @@
+WRITE PYTHON 3.x command line scripts. WRITE  A SINGLE FUNCTION. 
+USE sys.argv, sys.stdin. 
+HANDLE ERRORS. EXPLANATIONS MUST BE A COMMENT. 
+
+# Start
+# command line script. Read filename from args, open file, copy stdin to file
+import sys
+
+if (len(sys.argv) != 2:
+  print("not_handled")
+  sys.exit()
+
+filename = sys.argv[1]
+file = open(filename, 'w')
+file.write(sys.stdin.read())
+file.close()
+
+# Done
+
+# Start
+#{{$input}}
+# Read input sfrom stdin. print all output
