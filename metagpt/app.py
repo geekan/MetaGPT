@@ -14,8 +14,6 @@ from time import sleep
 from metagpt.schema import Message
 import sys
 
-
-
 def clear_logs():
     with open(PROJECT_ROOT / 'logs/log.txt', 'w') as f:
         f.write("")
@@ -25,11 +23,9 @@ async def startup(company_name : str,
                       investment : float = 6.0,
                       n_round : int = 5,
                       code_review : bool = True,
-                      run_tests : bool = False,
-                      implement : bool = True,
                       staffs : list = ["ProjectManager",
                                       "ProductManager",
-                                      "Architect",]
+                                      "Architect"]
                       )->SoftwareCompany:
 
     if company_name == "SoftwareCompany":
@@ -37,9 +33,9 @@ async def startup(company_name : str,
     elif company_name == "SoftwareCompany_With_Human":
         company = SoftwareCompanyWithHuman()
     else:
-        raise Exception("Company type not supported")
+        return "Company type not supported"
     if idea == "":
-        raise Exception("Please input your idea")
+        return "Please input your idea"
     staff_list = []
     for staff in staffs:
         if staff == "ProjectManager":
@@ -48,18 +44,11 @@ async def startup(company_name : str,
             staff_list.append(ProductManager())
         elif staff == "Architect":
             staff_list.append(Architect())
-        else:
-            raise Exception("Staff type not supported")
+        elif staff == "Engineer":
+            staff_list.append(Engineer())
+        elif staff == "QaEngineer":
+            staff_list.append(QaEngineer(n_borg=5,use_code_review=code_review))
     company.hire(staff_list)
-        # if implement or code_review
-    if implement or code_review:
-        # developing features: implement the idea
-        company.hire([Engineer(n_borg=5, use_code_review=code_review)])
-
-    if run_tests:
-        # developing features: run tests on the spot and identify bugs
-        # (bug fixing capability comes soon!)
-        company.hire([QaEngineer()])
     company.invest(investment)
     company.start_project(idea)
     # report all output to webui
@@ -69,7 +58,7 @@ async def startup(company_name : str,
         await company.run(n_round)
     elif company_name == "SoftwareCompany_With_Human":
         await company.continue_run()
-    return company.environment.short_term_history.content
+    return "Role: "+company.environment.short_term_history.role, "Action: "+str(company.environment.short_term_history.cause_by),company.environment.short_term_history.sent_from,company.environment.short_term_history.send_to, company.environment.short_term_history.content, company.environment.short_term_history.content
 
 async def __continue(message_content : str):
     company = SoftwareCompany_Company
@@ -78,7 +67,7 @@ async def __continue(message_content : str):
     company.environment.memory.add(company.environment.short_term_history)
     company.environment.history += f"\n{company.environment.short_term_history}"
     await company.continue_run()
-    return company.environment.short_term_history.content
+    return "Role: "+company.environment.short_term_history.role, "Action: "+str(company.environment.short_term_history.cause_by),company.environment.short_term_history.sent_from,company.environment.short_term_history.send_to, company.environment.short_term_history.content, company.environment.short_term_history.content
 
 async def research_startup(language : str,
                            topic : str):
@@ -105,38 +94,42 @@ with app:
         with gr.TabItem("MetaGPT") as generate_tab:
             company_choise = gr.Dropdown(label = "Choose the company type", choices = ["SoftwareCompany", "SoftwareCompany_With_Human"], value = "SoftwareCompany_With_Human")
             with gr.Row():
-                investment = gr.Slider(minimum=0.0, maximum=20.0, step=0.1, label="Investment",value = 6.0, info="The maxmium investment you want to invest")
-                n_round = gr.Number( label="Round", value = 5, info="The maxmium round you want to run")
+                investment = gr.Slider(minimum=0.0, maximum=20.0, step=0.1, label="Investment",value = 6.0, info="The maxmium money you want to spend on the GPT generation")
+                n_round = gr.Number( label="Round", value = 5, info="The maxmium round you want to run",visible = False)
             with gr.Row():
-                run_tests = gr.Checkbox(label = "Whether to hire a QaEngineer to run tests", value = False)
-                with gr.Row():
-                    implement = gr.Checkbox(label = "Whether to hire a Engineer to implement the idea(write code)", value = True)
-                    code_review = gr.Checkbox(label = "Whether to use code review", value = False)
-            staffs = gr.CheckboxGroup(["ProjectManager", "ProductManager", "Architect"], label="Choose the staff you would like to hire", value = ["ProjectManager", "ProductManager", "Architect"])
+                code_review = gr.Checkbox(label = "Whether to use code review", value = False)
+            staffs = gr.CheckboxGroup(["ProjectManager", "ProductManager", "Architect", "Engineer", "QaEngineer"], label="Choose the staff you would like to hire", value = ["ProjectManager", "ProductManager", "Architect", "Engineer"])
             idea = gr.Textbox(label="Your innovative idea, such as 'Creating a snake game.'", value = "Creating a snake game.")
             with gr.Row():
-                Start_MetaGPT = gr.Button(label="Start", value = "Start")
+                Start_MetaGPT = gr.Button(label="Start / ReStart", value = "Start / ReStart")
+                continue_run = gr.Button(label="Continue Run", value = "Continue Run", visible = True)
             with gr.Row():
-                clear_log = gr.Button(label="Clear Log", value = "Clear Log") # temporary, should be removed in the future
-            output_metagpt = gr.Textbox(label="The phased output of MetaGPT, modify it as your will",max_lines=999,show_copy_button = True)
-            continue_run = gr.Button(label="Continue Run", value = "Continue Run", visible = True)
-        Start_MetaGPT.click(startup, [company_choise, idea, investment, n_round, code_review, run_tests, implement, staffs], [output_metagpt])
-        clear_log.click(clear_logs, [],[])
-        continue_run.click(__continue, [output_metagpt], [output_metagpt])
+                show_markdown = gr.Checkbox(label="Show Markdown")
+            # with gr.Row():
+            #     clear_log = gr.Button(label="Clear Log", value = "Clear Log") # temporary, should be removed in the future
+            with gr.Row():
+                output_role_metagpt = gr.Markdown(label="The role of the output of MetaGPT")
+                output_cause_metagpt = gr.Markdown(label="The cause of the output of MetaGPT")
+            with gr.Row():
+                output_sent_from_metagpt = gr.Markdown(label="The sent_from of the output of MetaGPT")
+                output_send_to_metagpt = gr.Markdown(label="The send_to of the output of MetaGPT")
+            with gr.Row():
+                output_content_metagpt = gr.Textbox(label="The phased output of MetaGPT, modify it as your will",max_lines=999,show_copy_button = True)
+                output_content_markdown_metagpt = gr.Markdown(label="The markdown output of MetaGPT", visible = False)
+            
+            
+        Start_MetaGPT.click(startup, [company_choise, idea, investment, n_round, code_review, staffs], [output_role_metagpt,output_cause_metagpt,output_sent_from_metagpt,output_send_to_metagpt,output_content_metagpt,output_content_markdown_metagpt])
+        # clear_log.click(clear_logs, [],[])
+        continue_run.click(__continue, [output_content_metagpt], [output_role_metagpt,output_cause_metagpt,output_sent_from_metagpt,output_send_to_metagpt,output_content_metagpt,output_content_markdown_metagpt])
         company_choise.change(lambda company_choise : gr.update(visible = True if company_choise == "SoftwareCompany_With_Human" else False), [company_choise], [continue_run])
+        company_choise.change(lambda company_choise : gr.update(visible = False if company_choise == "SoftwareCompany_With_Human" else True), [company_choise], [n_round])
+        show_markdown.change(lambda x: gr.update(visible = True if x == True else False), [show_markdown], [output_content_markdown_metagpt])
         with gr.TabItem("Research") as research_tab:
             language = gr.Dropdown(label = "Choose the language", choices = ["en-us","zh-ch"], value = "en-us")
             topic = gr.Textbox(label="Your research topic, such as 'dataiku vs. datarobot'", value = "dataiku vs. datarobot")
             submit_Research = gr.Button(label="Submit", value = "Submit")
             output_path_md = gr.Textbox(label="Output")
         submit_Research.click(research_startup, [language,topic], outputs=[output_path_md])
-        with gr.TabItem("Markdown Shower") as MarkdownShower_tab:
-            with gr.Row():
-                with gr.Row():
-                    input_str = gr.Textbox(label="Input",max_lines=999,show_copy_button=True)
-                    output_md = gr.Markdown(label="Output")
-        input_str.change(lambda x: x,[input_str],[output_md])
-
 
 if __name__ == "__main__":
     app.queue(concurrency_count=1022, max_size=2044).launch(inbrowser=True)
