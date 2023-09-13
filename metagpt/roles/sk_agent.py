@@ -5,9 +5,10 @@
 @Author  : femto Zheng
 @File    : sk_agent.py
 """
-import os
+from functools import partial
 
-from semantic_kernel.core_skills.text_skill import TextSkill
+from semantic_kernel.planning import SequentialPlanner
+from semantic_kernel.planning.action_planner.action_planner import ActionPlanner
 from semantic_kernel.planning.basic_planner import BasicPlanner
 
 from metagpt.actions import BossRequirement
@@ -35,36 +36,41 @@ class SkAgent(Role):
         profile: str = "sk_agent",
         goal: str = "Execute task based on passed in task description",
         constraints: str = "",
-        planner=BasicPlanner(),
+        planner_cls=BasicPlanner,
     ) -> None:
         """Initializes the Engineer role with given attributes."""
         super().__init__(name, profile, goal, constraints)
         self._init_actions([ExecuteTask(role=self)])
         self._watch([BossRequirement])
         self.kernel = make_sk_kernel()
-        self.planner = planner
 
-        # Get the directory of the current file
-        current_file_directory = os.path.dirname(os.path.abspath(__file__))
+        # how funny the interface is inconsistent
+        if planner_cls == BasicPlanner:
+            self.planner = planner_cls()
+        elif planner_cls in [SequentialPlanner, ActionPlanner]:
+            self.planner = planner_cls(self.kernel)
 
-        # Construct the skills_directory by joining the parent directory and "skillss"
-        skills_directory = os.path.join(current_file_directory, "..", "skills")
-
-        # Normalize the path to ensure it's in the correct format
-        skills_directory = os.path.normpath(skills_directory)
-
-        self.kernel.import_semantic_skill_from_directory(skills_directory, "SummarizeSkill")
-        self.kernel.import_semantic_skill_from_directory(skills_directory, "WriterSkill")
-        self.kernel.import_skill(TextSkill(), "TextSkill")
+        self.import_semantic_skill_from_directory = partial(self.kernel.import_semantic_skill_from_directory)
+        self.import_skill = partial(self.kernel.import_skill)
 
     async def _think(self) -> None:
-        self.plan = await self.planner.create_plan_async(self._rc.important_memory[-1].content, self.kernel)
-        logger.info(self.plan.generated_plan)
-        # for step in self.plan._steps:
-        #     print(step.description, ":", step._state.__dict__)
+        self._set_state(0)
+        # how funny the interface is inconsistent
+        if isinstance(self.planner, BasicPlanner):
+            self.plan = await self.planner.create_plan_async(self._rc.important_memory[-1].content, self.kernel)
+            logger.info(self.plan.generated_plan)
+        elif any(isinstance(self.planner, cls) for cls in [SequentialPlanner, ActionPlanner]):
+            self.plan = await self.planner.create_plan_async(self._rc.important_memory[-1].content)
 
     async def _act(self) -> Message:
-        # result = await self.planner.execute_plan_async(self.plan, self.kernel)
-        result = await self.plan.invoke_async()
+        # how funny the interface is inconsistent
+        if isinstance(self.planner, BasicPlanner):
+            result = await self.planner.execute_plan_async(self.plan, self.kernel)
+        elif any(isinstance(self.planner, cls) for cls in [SequentialPlanner, ActionPlanner]):
+            result = await self.plan.invoke_async()
         logger.info(result)
-        return Message(content=result)
+
+        msg = Message(content=result, role=self.profile, cause_by=type(self._rc.todo))
+        self._rc.memory.add(msg)
+        # logger.debug(f"{response}")
+        return msg
