@@ -5,8 +5,6 @@
 @Author  : femto Zheng
 @File    : sk_agent.py
 """
-from functools import partial
-
 from semantic_kernel.planning import SequentialPlanner
 from semantic_kernel.planning.action_planner.action_planner import ActionPlanner
 from semantic_kernel.planning.basic_planner import BasicPlanner
@@ -40,7 +38,7 @@ class SkAgent(Role):
     ) -> None:
         """Initializes the Engineer role with given attributes."""
         super().__init__(name, profile, goal, constraints)
-        self._init_actions([ExecuteTask(role=self)])
+        self._init_actions([ExecuteTask()])
         self._watch([BossRequirement])
         self.kernel = make_sk_kernel()
 
@@ -50,8 +48,8 @@ class SkAgent(Role):
         elif planner_cls in [SequentialPlanner, ActionPlanner]:
             self.planner = planner_cls(self.kernel)
 
-        self.import_semantic_skill_from_directory = partial(self.kernel.import_semantic_skill_from_directory)
-        self.import_skill = partial(self.kernel.import_skill)
+        self.import_semantic_skill_from_directory = self.kernel.import_semantic_skill_from_directory
+        self.import_skill = self.kernel.import_skill
 
     async def _think(self) -> None:
         self._set_state(0)

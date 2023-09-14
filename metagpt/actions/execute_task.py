@@ -10,9 +10,8 @@ from metagpt.schema import Message
 
 
 class ExecuteTask(Action):
-    def __init__(self, name="ExecuteTask", context: list[Message] = None, llm=None, role=None):
+    def __init__(self, name="ExecuteTask", context: list[Message] = None, llm=None):
         super().__init__(name, context, llm)
-        self.role = role
 
     def run(self, *args, **kwargs):
         pass
