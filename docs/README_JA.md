@@ -35,7 +35,7 @@
 
 ## MetaGPTの能力
 
-https://github.com/geekan/MetaGPT/assets/34952977/3cb42bb8-6609-4f74-8d22-601dafda95bb
+https://github.com/geekan/MetaGPT/assets/34952977/34345016-5d13-489d-b9f9-b82ace413419
 
 
 ## 例（GPT-4 で完全生成）
