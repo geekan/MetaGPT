@@ -48,6 +48,10 @@ https://github.com/geekan/MetaGPT/assets/34952977/34345016-5d13-489d-b9f9-b82ace
 
 ## インストール
 
+### インストールビデオガイド
+
+- [Matthew Berman: How To Install MetaGPT - Build A Startup With One Prompt!!](https://youtu.be/uT75J_KG_aY)
+
 ### 伝統的なインストール
 
 ```bash
@@ -71,16 +75,16 @@ Chromium のダウンロードをスキップすることができます。
 
 - このツールをグローバルにインストールする[問題を抱えている](https://github.com/mermaidjs/mermaid.cli/issues/15)人もいます。ローカルにインストールするのが代替の解決策です、
 
-    ```bash
-    npm install @mermaid-js/mermaid-cli
-    ```
+  ```bash
+  npm install @mermaid-js/mermaid-cli
+  ```
 
 - config.yml に mmdc のコンフィギュレーションを記述するのを忘れないこと
 
-    ```yml
-    PUPPETEER_CONFIG: "./config/puppeteer-config.json"
-    MMDC: "./node_modules/.bin/mmdc"
-    ```
+  ```yml
+  PUPPETEER_CONFIG: "./config/puppeteer-config.json"
+  MMDC: "./node_modules/.bin/mmdc"
+  ```
 
 - もし `python setup.py install` がエラー `[Errno 13] Permission denied: '/usr/local/lib/python3.11/dist-packages/test-easy-install-13129.write-test'` で失敗したら、代わりに `python setup.py install --user` を実行してみてください
 
@@ -145,18 +149,24 @@ cp config/config.yaml config/key.yaml
 ## チュートリアル: スタートアップの開始
 
 ```shell
+# スクリプトの実行
 python startup.py "Write a cli snake game"
-# コードレビューを利用すれば、コストはかかるが、より良いコード品質を選ぶことができます。
+# プロジェクトの実施にエンジニアを雇わないこと
+python startup.py "Write a cli snake game" --implement False
+# エンジニアを雇い、コードレビューを行う
 python startup.py "Write a cli snake game" --code_review True
 ```
 
 スクリプトを実行すると、`workspace/` ディレクトリに新しいプロジェクトが見つかります。
+
 ### プラットフォームまたはツールの設定
 
 要件を述べるときに、どのプラットフォームまたはツールを使用するかを指定できます。
+
 ```shell
 python startup.py "pygame をベースとした cli ヘビゲームを書く"
 ```
+
 ### 使用方法
 
 ```
@@ -205,16 +215,18 @@ async def startup(idea: str, investment: float = 3.0, n_round: int = 5):
 `examples` でシングル・ロール（ナレッジ・ベース付き）と LLM のみの例を詳しく見ることができます。
 
 ## クイックスタート
+
 ローカル環境のインストールや設定は、ユーザーによっては難しいものです。以下のチュートリアルで MetaGPT の魅力をすぐに体験できます。
 
 - [MetaGPT クイックスタート](https://deepwisdom.feishu.cn/wiki/CyY9wdJc4iNqArku3Lncl4v8n2b)
 
-試着する Huggingface Space
+Hugging Face Space で試す
 - https://huggingface.co/spaces/deepwisdom/MetaGPT
 
 ## 引用
 
 現時点では、[Arxiv 論文](https://arxiv.org/abs/2308.00352)を引用してください:
+
 ```bibtex
 @misc{hong2023metagpt,
       title={MetaGPT: Meta Programming for Multi-Agent Collaborative Framework},
@@ -238,3 +250,10 @@ async def startup(idea: str, investment: float = 3.0, n_round: int = 5):
 ## デモ
 
 https://github.com/geekan/MetaGPT/assets/2707039/5e8c1062-8c35-440f-bb20-2b0320f8d27d
+
+## 参加する
+
+📢 Discord チャンネルに参加してください！
+https://discord.gg/ZRHeExS6xv
+
+お会いできることを楽しみにしています！ 🎉
