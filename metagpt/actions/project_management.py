@@ -7,8 +7,10 @@
 """
 from typing import List, Tuple
 
+from metagpt.logs import logger
 from metagpt.actions.action import Action
 from metagpt.const import WORKSPACE_ROOT
+from metagpt.tools.source_control import GitControl
 from metagpt.utils.common import CodeParser
 
 PROMPT_TEMPLATE = '''
@@ -108,12 +110,17 @@ class WriteTasks(Action):
 
     def _save(self, context, rsp):
         ws_name = CodeParser.parse_str(block="Python package name", text=context[-1].content)
-        file_path = WORKSPACE_ROOT / ws_name / 'docs/api_spec_and_tasks.md'
-        file_path.write_text(rsp.content)
+        workspace = WORKSPACE_ROOT / ws_name
+        api_spec_and_tasks_file = workspace / 'docs/api_spec_and_tasks.md'
+        api_spec_and_tasks_file.write_text(rsp.content)
 
         # Write requirements.txt
-        requirements_path = WORKSPACE_ROOT / ws_name / 'requirements.txt'
-        requirements_path.write_text(rsp.instruct_content.dict().get("Required Python third-party packages").strip('"\n'))
+        requirements_file = workspace / 'requirements.txt'
+        requirements_file.write_text(rsp.instruct_content.dict().get("Required Python third-party packages").strip('"\n'))
+
+        git = GitControl(workspace)
+        logger.info(f"---> git user in WriteDesign: {self.actor}")
+        git.add_and_commit(workspace, [api_spec_and_tasks_file, requirements_file], author=self.actor)
 
     async def run(self, context):
         prompt = PROMPT_TEMPLATE.format(context=context, format_example=FORMAT_EXAMPLE)

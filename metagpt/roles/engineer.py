@@ -15,6 +15,7 @@ from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.actions import WriteCode, WriteCodeReview, WriteTasks, WriteDesign
 from metagpt.schema import Message
+from metagpt.tools.source_control import GitControl
 from metagpt.utils.common import CodeParser
 from metagpt.utils.special_tokens import MSG_SEP, FILENAME_CODE_SEP
 
@@ -116,6 +117,10 @@ class Engineer(Role):
         file.parent.mkdir(parents=True, exist_ok=True)
         file.write_text(code)
         return file
+
+        git = GitControl(workspace.parent)
+        git_user = {'name': f"{self._role_id})", 'email': f'{self._setting.name}@MetaGPT.local'}
+        git.add_and_commit(workspace.parent, [file], author=git_user)
 
     def recv(self, message: Message) -> None:
         self._rc.memory.add(message)

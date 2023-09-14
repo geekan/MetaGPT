@@ -5,6 +5,7 @@
 @Author  : alexanderwu
 @File    : action.py
 """
+import re
 from abc import ABC
 from typing import Optional
 
@@ -38,6 +39,14 @@ class Action(ABC):
 
     def __repr__(self):
         return self.__str__()
+
+    @property
+    def actor(self):
+        """User info for git operations"""
+        name_re = re.search(r'named (.*?),', self.prefix)
+        name = name_re[1] if(name_re) else self.profile
+        git_user = {'name': f"{name}({self.profile})", 'email': f'{name}@MetaGPT.local'}
+        return git_user
 
     async def _aask(self, prompt: str, system_msgs: Optional[list[str]] = None) -> str:
         """Append default prefix"""

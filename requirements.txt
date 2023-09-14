@@ -7,6 +7,7 @@ channels==4.0.0
 #faiss==1.5.3
 faiss_cpu==1.7.4
 fire==0.4.0
+gitpython==3.1.32
 # godot==0.1.1
 # google_api_python_client==2.93.0
 lancedb==0.1.16
