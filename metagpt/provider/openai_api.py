@@ -304,7 +304,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
                 rsp = self._moderation(content=content)
                 return rsp
         except Exception as e:
-            logger.error("moderating failed!", e)
+            logger.error(f"moderating failed:{e}")
 
     def _moderation(self, content: Union[str]):
         rsp = self.llm.Moderation.create(input=content)
