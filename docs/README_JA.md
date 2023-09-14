@@ -33,6 +33,11 @@
 
 <p align="center">ソフトウェア会社のマルチロール図式（順次導入）</p>
 
+## MetaGPTの能力
+
+https://github.com/geekan/MetaGPT/assets/34952977/3cb42bb8-6609-4f74-8d22-601dafda95bb
+
+
 ## 例（GPT-4 で完全生成）
 
 例えば、`python startup.py "Toutiao のような RecSys をデザインする"`と入力すると、多くの出力が得られます

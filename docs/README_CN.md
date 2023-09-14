@@ -33,6 +33,11 @@
 
 <p align="center">软件公司多角色示意图（正在逐步实现）</p>
 
+## MetaGPT 的能力
+
+https://github.com/geekan/MetaGPT/assets/34952977/3cb42bb8-6609-4f74-8d22-601dafda95bb
+
+
 ## 示例（均由 GPT-4 生成）
 
 例如，键入`python startup.py "写个类似今日头条的推荐系统"`并回车，你会获得一系列输出，其一是数据结构与API设计
