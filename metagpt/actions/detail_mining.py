@@ -22,6 +22,7 @@ PROMPT_TEMPLATE = """
 Task: Refer to the "##TOPIC" (discussion objectives) and "##RECORD" (discussion records) to further inquire about the details that interest you, within a word limit of 150 words.
 Special Note 1: Your intention is solely to ask questions without endorsing or negating any individual's viewpoints.
 Special Note 2: This output should only include the topic "##OUTPUT". Do not add, remove, or modify the topic. Begin the output with '##OUTPUT', followed by an immediate line break, and then proceed to provide the content in the specified format as outlined in the "##Format example" section.
+Special Note 3: The output should be in the same language as the input.
 """
 FORMAT_EXAMPLE = """
 
@@ -46,6 +47,6 @@ class DetailMining(Action):
         super().__init__(name, context, llm)
 
     async def run(self, topic, record) -> ActionOutput:
-        prompt = PROMPT_TEMPLATE.format(topic, record, format_example=FORMAT_EXAMPLE)
+        prompt = PROMPT_TEMPLATE.format(topic=topic, record=record, format_example=FORMAT_EXAMPLE)
         rsp = await self._aask_v1(prompt, "detail_mining", OUTPUT_MAPPING)
         return rsp
