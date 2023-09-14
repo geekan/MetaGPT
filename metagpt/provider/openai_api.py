@@ -6,7 +6,7 @@
 """
 import asyncio
 import time
-from typing import NamedTuple
+from typing import NamedTuple, Union, List, Optional
 
 import openai
 from openai.error import APIConnectionError
@@ -286,3 +286,17 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         if not self.auto_max_tokens:
             return CONFIG.max_tokens_rsp
         return get_max_completion_tokens(messages, self.model, CONFIG.max_tokens_rsp)
+
+    def moderation(self,content: Union[str, List[str]],model: Optional[str] = None,api_key: Optional[str] = None,):
+        try:
+            if content is None or content == "" or len(content) == 0:
+                logger.error("content cannot be empty!")
+            else:
+                rsp = self._moderation(content=content,model=model,api_key=api_key)
+                return rsp
+        except Exception as e:
+            logger.error("moderating failed!", e)
+
+    def _moderation(self,content: Union[str, List[str]],model: Optional[str] = None,api_key: Optional[str] = None):
+        rsp = self.llm.Moderation.create(input=content,model=model,api_key=api_key)
+        return rsp
