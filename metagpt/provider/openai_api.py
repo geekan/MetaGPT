@@ -6,7 +6,7 @@
 """
 import asyncio
 import time
-from typing import List, NamedTuple, Union
+from typing import NamedTuple, Union
 
 import openai
 from openai.error import APIConnectionError
@@ -296,7 +296,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             return CONFIG.max_tokens_rsp
         return get_max_completion_tokens(messages, self.model, CONFIG.max_tokens_rsp)
 
-    def moderation(self, content: Union[str, List[str]]):
+    def moderation(self, content: Union[str, list[str]]):
         try:
             if not content:
                 logger.error("content cannot be empty!")
@@ -306,6 +306,20 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         except Exception as e:
             logger.error(f"moderating failed:{e}")
 
-    def _moderation(self, content: Union[str]):
+    def _moderation(self, content: Union[str, list[str]]):
         rsp = self.llm.Moderation.create(input=content)
+        return rsp
+
+    async def amoderation(self, content: Union[str, list[str]]):
+        try:
+            if not content:
+                logger.error("content cannot be empty!")
+            else:
+                rsp = await self._amoderation(content=content)
+                return rsp
+        except Exception as e:
+            logger.error(f"moderating failed:{e}")
+
+    async def _amoderation(self, content: Union[str, list[str]]):
+        rsp = await self.llm.Moderation.acreate(input=content)
         return rsp
