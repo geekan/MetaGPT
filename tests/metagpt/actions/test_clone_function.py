@@ -1,13 +1,13 @@
 import pytest
 
-from metagpt.actions.clone_function import CloneFunction, run_fucntion_code
+from metagpt.actions.clone_function import CloneFunction, run_function_code
 
 
 source_code = """
-def user_indicator():
-    import pandas as pd
-    import ta
+import pandas as pd
+import ta
 
+def user_indicator():
     # 读取股票数据
     stock_data = pd.read_csv('./tests/data/baba_stock.csv')
     stock_data.head()
@@ -48,7 +48,7 @@ async def test_clone_function():
     code = await clone.run(template_code, source_code)
     assert 'def ' in code
     stock_path = './tests/data/baba_stock.csv'
-    df, msg = run_fucntion_code(code, 'stock_indicator', stock_path)
+    df, msg = run_function_code(code, 'stock_indicator', stock_path)
     assert not msg
     expected_df = get_expected_res()
     assert df.equals(expected_df)
