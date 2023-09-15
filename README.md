@@ -93,6 +93,71 @@ python setup.py install
 
 - if `python setup.py install` fails with error `[Errno 13] Permission denied: '/usr/local/lib/python3.11/dist-packages/test-easy-install-13129.write-test'`, try instead running `python setup.py install --user`
 
+- To convert Mermaid charts to SVG, PNG, and PDF formats. In addition to the Node.js version of Mermaid-CLI, you now have the option to use Python version Playwright, pyppeteer or mermaid.ink for this task.
+
+  - Playwright
+    - **Install Playwright**
+
+    ```bash
+    pip install playwright
+    ```
+
+    - **Install the Required Browsers**
+
+    to support PDF conversion, please install Chrominum.
+
+    ```bash
+    playwright install --with-deps chromium
+    ```
+
+    - **modify `config.yaml`**
+
+    uncomment MERMAID_ENGINE from config.yaml and change it to `playwright`
+
+    ```yaml
+    MERMAID_ENGINE: playwright
+    ```
+
+  - pyppeteer
+    - **Install pyppeteer**
+
+    ```bash
+    pip install pyppeteer
+    ```
+
+    - **Use your own Browsers**
+
+    pyppeteer alow you use installed browsers,  please set the following envirment
+    
+    ```bash
+    export PUPPETEER_EXECUTABLE_PATH = /path/to/your/chromium or edge or chrome
+    ```
+
+    please do not use this command to install browser, it is too old
+
+    ```bash
+    pyppeteer-install
+    ```
+
+    - **modify `config.yaml`**
+
+    uncomment MERMAID_ENGINE from config.yaml and change it to `pyppeteer`
+
+    ```yaml
+    MERMAID_ENGINE: pyppeteer
+    ```
+
+  - mermaid.ink
+    - **modify `config.yaml`**
+
+    uncomment MERMAID_ENGINE from config.yaml and change it to `ink`
+
+    ```yaml
+    MERMAID_ENGINE: ink
+    ```  
+
+    Note: this method does not support pdf export.
+
 ### Installation by Docker
 
 ```bash
