@@ -136,7 +136,7 @@ async def oas3_iflytek_tts(text: str, voice: str = "", app_id: str = "", api_key
     if not voice:
         voice = CONFIG.IFLYTEK_VOICE or DEFAULT_IFLYTEK_VOICE
 
-    filename = Path(__file__).parent / (str(uuid.uuid4()).replace("-", "") + ".mp3")
+    filename = Path(__file__).parent / (uuid.uuid4().hex + ".mp3")
     try:
         tts = IFlyTekTTS(app_id=app_id, api_key=api_key, api_secret=api_secret)
         await tts.synthesize_speech(text=text, output_file=str(filename), voice=voice)
