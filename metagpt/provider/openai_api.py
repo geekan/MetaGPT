@@ -7,24 +7,21 @@
             Change cost control from global to company level.
 """
 import asyncio
-import random
-import re
 import time
-import traceback
-from typing import List
 
 import openai
-from openai.error import APIConnectionError
+from openai.error import APIConnectionError, RateLimitError
 from tenacity import (
     after_log,
     retry,
     retry_if_exception_type,
     stop_after_attempt,
+    wait_exponential,
     wait_fixed,
 )
 
 from metagpt.config import CONFIG
-from metagpt.const import DEFAULT_LANGUAGE, DEFAULT_MAX_TOKENS
+from metagpt.llm import LLMType
 from metagpt.logs import logger
 from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.utils.cost_manager import Costs
@@ -77,16 +74,13 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
     """
 
     def __init__(self):
-        self.llm = openai
         self.model = CONFIG.openai_api_model
         self.auto_max_tokens = False
         self.rpm = int(CONFIG.get("RPM", 10))
         RateLimiter.__init__(self, rpm=self.rpm)
 
     async def _achat_completion_stream(self, messages: list[dict]) -> str:
-        response = await self.async_retry_call(
-            openai.ChatCompletion.acreate, **self._cons_kwargs(messages), stream=True
-        )
+        response = await openai.ChatCompletion.acreate(**self._cons_kwargs(messages), stream=True)
         # iterate through the stream of events
         async for chunk in response:
             chunk_message = chunk["choices"][0]["delta"]  # extract the message
@@ -120,12 +114,12 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         return kwargs
 
     async def _achat_completion(self, messages: list[dict]) -> dict:
-        rsp = await self.async_retry_call(self.llm.ChatCompletion.acreate, **self._cons_kwargs(messages))
+        rsp = await openai.ChatCompletion.acreate(**self._cons_kwargs(messages))
         self._update_costs(rsp.get("usage"))
         return rsp
 
     def _chat_completion(self, messages: list[dict]) -> dict:
-        rsp = self.retry_call(self.llm.ChatCompletion.create, **self._cons_kwargs(messages))
+        rsp = openai.ChatCompletion.create(**self._cons_kwargs(messages))
         self._update_costs(rsp)
         return rsp
 
@@ -145,6 +139,13 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         after=after_log(logger, logger.level("WARNING").name),
         retry=retry_if_exception_type(APIConnectionError),
         retry_error_callback=log_and_reraise,
+    )
+    @retry(
+        stop=stop_after_attempt(6),
+        wait=wait_exponential(1),
+        after=after_log(logger, logger.level("WARNING").name),
+        retry=retry_if_exception_type(RateLimitError),
+        reraise=True,
     )
     async def acompletion_text(self, messages: list[dict], stream=False, generator: bool = False) -> str:
         """when streaming, print each token in place."""
@@ -223,160 +224,8 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             return CONFIG.max_tokens_rsp
         return get_max_completion_tokens(messages, self.model, CONFIG.max_tokens_rsp)
 
-    async def get_summary(self, text: str, max_words=200, keep_language: bool = False):
-        max_token_count = DEFAULT_MAX_TOKENS
-        max_count = 100
-        text_length = len(text)
-        while max_count > 0:
-            if text_length < max_token_count:
-                return await self._get_summary(text=text, max_words=max_words, keep_language=keep_language)
+    async def get_summary(self, text: str, max_words=200, keep_language: bool = False, **kwargs) -> str:
+        from metagpt.memory.brain_memory import BrainMemory
 
-            padding_size = 20 if max_token_count > 20 else 0
-            text_windows = self.split_texts(text, window_size=max_token_count - padding_size)
-            part_max_words = min(int(max_words / len(text_windows)) + 1, 100)
-            summaries = []
-            for ws in text_windows:
-                response = await self._get_summary(text=ws, max_words=part_max_words, keep_language=keep_language)
-                summaries.append(response)
-            if len(summaries) == 1:
-                return summaries[0]
-
-            # Merged and retry
-            text = "\n".join(summaries)
-            text_length = len(text)
-
-            max_count -= 1  # safeguard
-        raise openai.error.InvalidRequestError("text too long")
-
-    async def _get_summary(self, text: str, max_words=20, keep_language: bool = False):
-        """Generate text summary"""
-        if len(text) < max_words:
-            return text
-        if keep_language:
-            command = f".Translate the above content into a summary of less than {max_words} words in language of the content strictly."
-        else:
-            command = f"Translate the above content into a summary of less than {max_words} words."
-        msg = text + "\n\n" + command
-        logger.debug(f"summary ask:{msg}")
-        response = await self.aask(msg=msg, system_msgs=[])
-        logger.debug(f"summary rsp: {response}")
-        return response
-
-    async def get_context_title(self, text: str, max_words=5) -> str:
-        """Generate text title"""
-        summary = await self.get_summary(text, max_words=500)
-
-        language = CONFIG.language or DEFAULT_LANGUAGE
-        command = f"Translate the above summary into a {language} title of less than {max_words} words."
-        summaries = [summary, command]
-        msg = "\n".join(summaries)
-        logger.debug(f"title ask:{msg}")
-        response = await self.aask(msg=msg, system_msgs=[])
-        logger.debug(f"title rsp: {response}")
-        return response
-
-    async def is_related(self, text1, text2):
-        # command = f"{text1}\n{text2}\n\nIf the two sentences above are related, return [TRUE] brief and clear. Otherwise, return [FALSE]."
-        command = f"{text2}\n\nIs there any sentence above related to the following sentence: {text1}.\nIf is there any relevance, return [TRUE] brief and clear. Otherwise, return [FALSE] brief and clear."
-        rsp = await self.aask(msg=command, system_msgs=[])
-        result = True if "TRUE" in rsp else False
-        p2 = text2.replace("\n", "")
-        p1 = text1.replace("\n", "")
-        logger.info(f"IS_RELATED:\nParagraph 1: {p2}\nParagraph 2: {p1}\nRESULT: {result}\n")
-        return result
-
-    async def rewrite(self, sentence: str, context: str):
-        # command = (
-        #     f"{context}\n\nConsidering the content above, rewrite and return this sentence brief and clear:\n{sentence}"
-        # )
-        command = f"{context}\n\nExtract relevant information from every preceding sentence and use it to succinctly supplement or rewrite the following text in brief and clear:\n{sentence}"
-        rsp = await self.aask(msg=command, system_msgs=[])
-        logger.info(f"REWRITE:\nCommand: {command}\nRESULT: {rsp}\n")
-        return rsp
-
-    @staticmethod
-    def split_texts(text: str, window_size) -> List[str]:
-        """Splitting long text into sliding windows text"""
-        if window_size <= 0:
-            window_size = OpenAIGPTAPI.DEFAULT_TOKEN_SIZE
-        total_len = len(text)
-        if total_len <= window_size:
-            return [text]
-
-        padding_size = 20 if window_size > 20 else 0
-        windows = []
-        idx = 0
-        data_len = window_size - padding_size
-        while idx < total_len:
-            if window_size + idx > total_len:  # 不足一个滑窗
-                windows.append(text[idx:])
-                break
-            # 每个窗口少算padding_size自然就可实现滑窗功能, 比如: [1, 2, 3, 4, 5, 6, 7, ....]
-            # window_size=3, padding_size=1：
-            # [1, 2, 3], [3, 4, 5], [5, 6, 7], ....
-            #   idx=2,  |  idx=5   |  idx=8  | ...
-            w = text[idx : idx + window_size]
-            windows.append(w)
-            idx += data_len
-
-        return windows
-
-    @staticmethod
-    def extract_info(input_string, pattern=r"\[([A-Z]+)\]:\s*(.+)"):
-        match = re.match(pattern, input_string)
-        if match:
-            return match.group(1), match.group(2)
-        else:
-            return None, input_string
-
-    @staticmethod
-    async def async_retry_call(func, *args, **kwargs):
-        for i in range(OpenAIGPTAPI.MAX_TRY):
-            try:
-                rsp = await func(*args, **kwargs)
-                return rsp
-            except openai.error.RateLimitError as e:
-                random_time = random.uniform(0, 3)  # 生成0到5秒之间的随机时间
-                rounded_time = round(random_time, 1)  # 保留一位小数，以实现0.1秒的精度
-                logger.warning(f"Exception:{e}, sleeping for {rounded_time} seconds")
-                await asyncio.sleep(rounded_time)
-                continue
-            except Exception as e:
-                error_str = traceback.format_exc()
-                logger.error(f"Exception:{e}, stack:{error_str}")
-                raise e
-        raise openai.error.OpenAIError("Exceeds the maximum retries")
-
-    @staticmethod
-    def retry_call(func, *args, **kwargs):
-        for i in range(OpenAIGPTAPI.MAX_TRY):
-            try:
-                rsp = func(*args, **kwargs)
-                return rsp
-            except openai.error.RateLimitError as e:
-                logger.warning(f"Exception:{e}")
-                continue
-            except (
-                openai.error.AuthenticationError,
-                openai.error.PermissionError,
-                openai.error.InvalidAPIType,
-                openai.error.SignatureVerificationError,
-            ) as e:
-                logger.warning(f"Exception:{e}")
-                raise e
-            except Exception as e:
-                error_str = traceback.format_exc()
-                logger.error(f"Exception:{e}, stack:{error_str}")
-                raise e
-        raise openai.error.OpenAIError("Exceeds the maximum retries")
-
-    MAX_TRY = 5
-    DEFAULT_TOKEN_SIZE = 500
-
-
-if __name__ == "__main__":
-    txt = """
-as dfas  sad lkf sdkl sakdfsdk sjd jsk  sdl sk dd sd asd fa sdf sad dd
-- .gitlab-ci.yml & base_test.py
-    """
-    OpenAIGPTAPI.split_texts(txt, 30)
+        memory = BrainMemory(llm_type=LLMType.OPENAI.value, historical_summary=text, cacheable=False)
+        return await memory.summarize(llm=self, max_length=max_words, keep_language=keep_language)

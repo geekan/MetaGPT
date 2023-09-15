@@ -5,6 +5,7 @@
 @Author  : alexanderwu
 @File    : action.py
 @Modified By: mashenquan, 2023/8/20. Add function return annotations.
+@Modified By: mashenquan, 2023/9/8. Replace LLM with LLMFactory
 """
 from __future__ import annotations
 
@@ -14,16 +15,18 @@ from typing import Optional
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 from metagpt.actions.action_output import ActionOutput
-from metagpt.llm import LLM
 from metagpt.logs import logger
+from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.utils.common import OutputParser
 
 
 class Action(ABC):
-    def __init__(self, name: str = "", context=None, llm: LLM = None):
+    def __init__(self, name: str = "", context=None, llm: BaseGPTAPI = None):
         self.name: str = name
         if llm is None:
-            llm = LLM()
+            from metagpt.llm import LLMFactory
+
+            llm = LLMFactory.new_llm()
         self.llm = llm
         self.context = context
         self.prefix = ""
