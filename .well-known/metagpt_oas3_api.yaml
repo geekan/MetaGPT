@@ -14,8 +14,10 @@ paths:
   /tts/azsure:
     x-prerequisite:
       - name: AZURE_TTS_SUBSCRIPTION_KEY
+        type: string
         description: "For more details, check out: [Azure Text-to_Speech](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts)"
       - name: AZURE_TTS_REGION
+        type: string
         description: "For more details, check out: [Azure Text-to_Speech](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts)"
     post:
       summary: "Convert Text to Base64-encoded .wav File Stream"
@@ -76,10 +78,13 @@ paths:
   /tts/iflytek:
     x-prerequisite:
       - name: IFLYTEK_APP_ID
+        type: string
         description: "Application ID is used to access your iFlyTek service API, see: `https://console.xfyun.cn/services/tts`"
       - name: IFLYTEK_API_KEY
+        type: string
         description: "WebAPI argument, see: `https://console.xfyun.cn/services/tts`"
       - name: IFLYTEK_API_SECRET
+        type: string
         description: "WebAPI argument, see: `https://console.xfyun.cn/services/tts`"
     post:
       summary: "Convert Text to Base64-encoded .mp3 File Stream"
@@ -133,6 +138,7 @@ paths:
   /txt2img/openai:
     x-prerequisite:
       - name: OPENAI_API_KEY
+        type: string
         description: "OpenAI API key, For more details, checkout: `https://platform.openai.com/account/api-keys`"
     post:
       summary: "Convert Text to Base64-encoded Image Data Stream"
@@ -174,6 +180,7 @@ paths:
   /txt2embedding/openai:
     x-prerequisite:
       - name: OPENAI_API_KEY
+        type: string
         description: "OpenAI API key, For more details, checkout: `https://platform.openai.com/account/api-keys`"
     post:
       summary: Text to embedding
@@ -216,6 +223,7 @@ paths:
   /txt2image/metagpt:
     x-prerequisite:
       - name: METAGPT_TEXT_TO_IMAGE_MODEL_URL
+        type: string
         description: "Model url."
     post:
       summary: "Text to Image"
