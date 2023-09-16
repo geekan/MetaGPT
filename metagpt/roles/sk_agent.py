@@ -65,7 +65,7 @@ class SkAgent(Role):
         if isinstance(self.planner, BasicPlanner):
             result = await self.planner.execute_plan_async(self.plan, self.kernel)
         elif any(isinstance(self.planner, cls) for cls in [SequentialPlanner, ActionPlanner]):
-            result = await self.plan.invoke_async()
+            result = (await self.plan.invoke_async()).result
         logger.info(result)
 
         msg = Message(content=result, role=self.profile, cause_by=type(self._rc.todo))

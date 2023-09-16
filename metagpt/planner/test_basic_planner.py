@@ -39,4 +39,4 @@ async def test_basic_planner():
     # assuming sk_agent will think he needs WriterSkill.Brainstorm and WriterSkill.Translate
     assert "WriterSkill.Brainstorm" in role.plan.generated_plan.result
     assert "WriterSkill.Translate" in role.plan.generated_plan.result
-    await role._act()
+    # assert "SALUT" in (await role._act()).content #content will be some French

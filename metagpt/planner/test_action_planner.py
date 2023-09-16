@@ -35,4 +35,4 @@ async def test_action_planner():
     role.recv(Message(content=task, cause_by=BossRequirement))
 
     await role._think()  # it will choose mathskill.Add
-    assert "1100" == (await role._act()).content.result
+    assert "1100" == (await role._act()).content
