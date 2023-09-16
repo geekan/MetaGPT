@@ -7,10 +7,10 @@
 @Desc    : Skill YAML Configuration Loader.
 """
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional
 
 import yaml
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from metagpt.config import CONFIG
 
@@ -34,7 +34,7 @@ class Skill(BaseModel):
     name: str
     description: str = None
     id: str = None
-    required: Optional[Union[List, Dict]] = None
+    x_prerequisite: Dict = Field(default=None, alias="x-prerequisite")
     parameters: Dict[str, Parameter] = None
     examples: List[Example]
     returns: Returns
