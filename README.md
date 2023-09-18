@@ -70,7 +70,7 @@ python --version
 # Step 3: Clone the repository to your local machine, and install it.
 git clone https://github.com/geekan/metagpt
 cd metagpt
-python setup.py install
+pip install -e.
 ```
 
 **Note:**
@@ -91,7 +91,7 @@ python setup.py install
   MMDC: "./node_modules/.bin/mmdc"
   ```
 
-- if `python setup.py install` fails with error `[Errno 13] Permission denied: '/usr/local/lib/python3.11/dist-packages/test-easy-install-13129.write-test'`, try instead running `python setup.py install --user`
+- if `pip install -e.` fails with error `[Errno 13] Permission denied: '/usr/local/lib/python3.11/dist-packages/test-easy-install-13129.write-test'`, try instead running `pip install -e. --user`
 
 - To convert Mermaid charts to SVG, PNG, and PDF formats. In addition to the Node.js version of Mermaid-CLI, you now have the option to use Python version Playwright, pyppeteer or mermaid.ink for this task.
 

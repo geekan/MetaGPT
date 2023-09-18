@@ -65,7 +65,7 @@ python --version
 # ステップ 3: リポジトリをローカルマシンにクローンし、インストールする。
 git clone https://github.com/geekan/metagpt
 cd metagpt
-python setup.py install
+pip install -e.
 ```
 
 **注:**
@@ -86,7 +86,7 @@ Chromium のダウンロードをスキップすることができます。
   MMDC: "./node_modules/.bin/mmdc"
   ```
 
-- もし `python setup.py install` がエラー `[Errno 13] Permission denied: '/usr/local/lib/python3.11/dist-packages/test-easy-install-13129.write-test'` で失敗したら、代わりに `python setup.py install --user` を実行してみてください
+- もし `pip install -e.` がエラー `[Errno 13] Permission denied: '/usr/local/lib/python3.11/dist-packages/test-easy-install-13129.write-test'` で失敗したら、代わりに `pip install -e. --user` を実行してみてください
 
 ### Docker によるインストール
 
@@ -141,10 +141,10 @@ cd MetaGPT && docker build -t metagpt:custom .
 cp config/config.yaml config/key.yaml
 ```
 
-| 変数名                                      | config/key.yaml                           | env                                             |
-| ------------------------------------------ | ----------------------------------------- | ----------------------------------------------- |
-| OPENAI_API_KEY # 自分のキーに置き換える    | OPENAI_API_KEY: "sk-..."                  | export OPENAI_API_KEY="sk-..."                  |
-| OPENAI_API_BASE # オプション                 | OPENAI_API_BASE: "https://<YOUR_SITE>/v1" | export OPENAI_API_BASE="https://<YOUR_SITE>/v1" |
+| 変数名                                  | config/key.yaml                           | env                                             |
+| --------------------------------------- | ----------------------------------------- | ----------------------------------------------- |
+| OPENAI_API_KEY # 自分のキーに置き換える | OPENAI_API_KEY: "sk-..."                  | export OPENAI_API_KEY="sk-..."                  |
+| OPENAI_API_BASE # オプション            | OPENAI_API_BASE: "https://<YOUR_SITE>/v1" | export OPENAI_API_BASE="https://<YOUR_SITE>/v1" |
 
 ## チュートリアル: スタートアップの開始
 

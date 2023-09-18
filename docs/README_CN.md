@@ -61,7 +61,7 @@ python --version
 # 第 3 步：克隆仓库到您的本地机器，并进行安装。
 git clone https://github.com/geekan/metagpt
 cd metagpt
-python setup.py install
+pip install -e.
 ```
 
 **注意：**
@@ -81,7 +81,7 @@ python setup.py install
     MMDC: "./node_modules/.bin/mmdc"
     ```
 
-- 如果`python setup.py install`失败并显示错误`[Errno 13] Permission denied: '/usr/local/lib/python3.11/dist-packages/test-easy-install-13129.write-test'`，请尝试使用`python setup.py install --user`运行。
+- 如果`pip install -e.`失败并显示错误`[Errno 13] Permission denied: '/usr/local/lib/python3.11/dist-packages/test-easy-install-13129.write-test'`，请尝试使用`pip install -e. --user`运行。
 
 ### Docker安装
 
@@ -136,10 +136,10 @@ cd MetaGPT && docker build -t metagpt:v0.3 .
 cp config/config.yaml config/key.yaml
 ```
 
-| 变量名                              | config/key.yaml                           | env                            |
-|--------------------------------------------|-------------------------------------------|--------------------------------|
-| OPENAI_API_KEY # 用您自己的密钥替换 | OPENAI_API_KEY: "sk-..."                  | export OPENAI_API_KEY="sk-..." |
-| OPENAI_API_BASE # 可选  | OPENAI_API_BASE: "https://<YOUR_SITE>/v1" | export OPENAI_API_BASE="https://<YOUR_SITE>/v1"   |
+| 变量名                              | config/key.yaml                           | env                                             |
+| ----------------------------------- | ----------------------------------------- | ----------------------------------------------- |
+| OPENAI_API_KEY # 用您自己的密钥替换 | OPENAI_API_KEY: "sk-..."                  | export OPENAI_API_KEY="sk-..."                  |
+| OPENAI_API_BASE # 可选              | OPENAI_API_BASE: "https://<YOUR_SITE>/v1" | export OPENAI_API_BASE="https://<YOUR_SITE>/v1" |
 
 ## 示例：启动一个创业公司
 
