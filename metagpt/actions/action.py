@@ -11,7 +11,9 @@ from typing import Optional
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 from metagpt.actions.action_output import ActionOutput
+from metagpt.actions.task import Task
 from metagpt.llm import LLM
+from metagpt.roles.prompt import PromptStrategyType
 from metagpt.utils.common import OutputParser
 from metagpt.logs import logger
 
@@ -39,11 +41,20 @@ class Action(ABC):
     def __repr__(self):
         return self.__str__()
 
-    async def _aask(self, prompt: str, system_msgs: Optional[list[str]] = None) -> str:
+    async def _aask(self, prompt: str, strategy: PromptStrategyType = None, task: Task = None, system_msgs: Optional[list[str]] = None) -> str:
         """Append default prefix"""
         if not system_msgs:
             system_msgs = []
         system_msgs.append(self.prefix)
+
+        if strategy == PromptStrategyType.CHAIN_OF_THOUGHT:
+            for PROMPT, output_key in zip(task.prompts, task.task_output_keys):
+                PROMPT = PROMPT.format(**task.task_args_pool)
+                task.task_args_pool[output_key] = await self._aask(PROMPT)
+                prompt = PROMPT
+        elif strategy == PromptStrategyType.TREE_OF_THOUGHT:
+            pass
+
         return await self.llm.aask(prompt, system_msgs)
 
     @retry(stop=stop_after_attempt(2), wait=wait_fixed(1))
