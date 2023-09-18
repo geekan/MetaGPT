@@ -1,11 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import asyncio
-import platform
+
 import fire
 
-from metagpt.roles import Architect, Engineer, ProductManager
-from metagpt.roles import ProjectManager, QaEngineer
+from metagpt.roles import (
+    Architect,
+    Engineer,
+    ProductManager,
+    ProjectManager,
+    QaEngineer,
+)
 from metagpt.software_company import SoftwareCompany
 
 
@@ -15,15 +20,17 @@ async def startup(
     n_round: int = 5,
     code_review: bool = False,
     run_tests: bool = False,
-    implement: bool = True
+    implement: bool = True,
 ):
     """Run a startup. Be a boss."""
     company = SoftwareCompany()
-    company.hire([
-        ProductManager(),
-        Architect(),
-        ProjectManager(),
-    ])
+    company.hire(
+        [
+            ProductManager(),
+            Architect(),
+            ProjectManager(),
+        ]
+    )
 
     # if implement or code_review
     if implement or code_review:
@@ -46,7 +53,7 @@ def main(
     n_round: int = 5,
     code_review: bool = True,
     run_tests: bool = False,
-    implement: bool = True
+    implement: bool = True,
 ):
     """
     We are a software startup comprised of AI. By investing in us,
@@ -58,12 +65,8 @@ def main(
     :param code_review: Whether to use code review.
     :return:
     """
-    if platform.system() == "Windows":
-        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-    asyncio.run(startup(idea, investment, n_round,
-                code_review, run_tests, implement))
+    asyncio.run(startup(idea, investment, n_round, code_review, run_tests, implement))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     fire.Fire(main)
-    
