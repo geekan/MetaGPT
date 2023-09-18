@@ -6,7 +6,6 @@
 @File    : sk_agent.py
 """
 import asyncio
-import os
 
 from semantic_kernel.core_skills import FileIOSkill, MathSkill, TextSkill, TimeSkill
 from semantic_kernel.planning import SequentialPlanner
@@ -15,16 +14,10 @@ from semantic_kernel.planning import SequentialPlanner
 from semantic_kernel.planning.action_planner.action_planner import ActionPlanner
 
 from metagpt.actions import BossRequirement
+from metagpt.const import SKILL_DIRECTORY
 from metagpt.roles.sk_agent import SkAgent
 from metagpt.schema import Message
 from metagpt.tools.search_engine import SkSearchEngine
-
-# Get the directory of the current file
-current_file_directory = os.path.dirname(os.path.abspath(__file__))
-# Construct the skills_directory by joining the parent directory and "skillss"
-skills_directory = os.path.join(current_file_directory, "..", "metagpt", "skills")
-# Normalize the path to ensure it's in the correct format
-skills_directory = os.path.normpath(skills_directory)
 
 
 async def main():
@@ -42,8 +35,8 @@ async def basic_planner_example():
     role = SkAgent()
 
     # let's give the agent some skills
-    role.import_semantic_skill_from_directory(skills_directory, "SummarizeSkill")
-    role.import_semantic_skill_from_directory(skills_directory, "WriterSkill")
+    role.import_semantic_skill_from_directory(SKILL_DIRECTORY, "SummarizeSkill")
+    role.import_semantic_skill_from_directory(SKILL_DIRECTORY, "WriterSkill")
     role.import_skill(TextSkill(), "TextSkill")
     # using BasicPlanner
     await role.run(Message(content=task, cause_by=BossRequirement))
@@ -56,8 +49,8 @@ async def sequential_planner_example():
     role = SkAgent(planner_cls=SequentialPlanner)
 
     # let's give the agent some skills
-    role.import_semantic_skill_from_directory(skills_directory, "SummarizeSkill")
-    role.import_semantic_skill_from_directory(skills_directory, "WriterSkill")
+    role.import_semantic_skill_from_directory(SKILL_DIRECTORY, "SummarizeSkill")
+    role.import_semantic_skill_from_directory(SKILL_DIRECTORY, "WriterSkill")
     role.import_skill(TextSkill(), "TextSkill")
     # using BasicPlanner
     await role.run(Message(content=task, cause_by=BossRequirement))

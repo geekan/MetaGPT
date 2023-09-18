@@ -5,21 +5,13 @@
 @Author  : femto Zheng
 @File    : test_basic_planner.py
 """
-import os
-
 import pytest
 from semantic_kernel.core_skills import TextSkill
 
 from metagpt.actions import BossRequirement
+from metagpt.const import SKILL_DIRECTORY
 from metagpt.roles.sk_agent import SkAgent
 from metagpt.schema import Message
-
-# Get the directory of the current file
-current_file_directory = os.path.dirname(os.path.abspath(__file__))
-# Construct the skills_directory by joining the parent directory and "skillss"
-skills_directory = os.path.join(current_file_directory, "..", "skills")
-# Normalize the path to ensure it's in the correct format
-skills_directory = os.path.normpath(skills_directory)
 
 
 @pytest.mark.asyncio
@@ -30,8 +22,8 @@ async def test_basic_planner():
     role = SkAgent()
 
     # let's give the agent some skills
-    role.import_semantic_skill_from_directory(skills_directory, "SummarizeSkill")
-    role.import_semantic_skill_from_directory(skills_directory, "WriterSkill")
+    role.import_semantic_skill_from_directory(SKILL_DIRECTORY, "SummarizeSkill")
+    role.import_semantic_skill_from_directory(SKILL_DIRECTORY, "WriterSkill")
     role.import_skill(TextSkill(), "TextSkill")
     # using BasicPlanner
     role.recv(Message(content=task, cause_by=BossRequirement))

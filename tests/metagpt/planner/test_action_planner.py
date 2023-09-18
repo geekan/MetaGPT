@@ -5,8 +5,6 @@
 @Author  : femto Zheng
 @File    : test_basic_planner.py
 """
-import os
-
 import pytest
 from semantic_kernel.core_skills import FileIOSkill, MathSkill, TextSkill, TimeSkill
 from semantic_kernel.planning.action_planner.action_planner import ActionPlanner
@@ -14,13 +12,6 @@ from semantic_kernel.planning.action_planner.action_planner import ActionPlanner
 from metagpt.actions import BossRequirement
 from metagpt.roles.sk_agent import SkAgent
 from metagpt.schema import Message
-
-# Get the directory of the current file
-current_file_directory = os.path.dirname(os.path.abspath(__file__))
-# Construct the skills_directory by joining the parent directory and "skillss"
-skills_directory = os.path.join(current_file_directory, "..", "skills")
-# Normalize the path to ensure it's in the correct format
-skills_directory = os.path.normpath(skills_directory)
 
 
 @pytest.mark.asyncio
