@@ -47,6 +47,8 @@ class SkAgent(Role):
             self.planner = planner_cls()
         elif planner_cls in [SequentialPlanner, ActionPlanner]:
             self.planner = planner_cls(self.kernel)
+        else:
+            raise f"Unsupported planner of type {planner_cls}"
 
         self.import_semantic_skill_from_directory = self.kernel.import_semantic_skill_from_directory
         self.import_skill = self.kernel.import_skill
