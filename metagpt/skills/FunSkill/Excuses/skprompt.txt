@@ -1,6 +1,0 @@
-Generate a creative reason or excuse for the given event. Be creative and be funny. Let your imagination run wild.
-
-Event:I am running late.
-Excuse:I was being held ransom by giraffe gangsters. 
-
-Event:{{$input}}
