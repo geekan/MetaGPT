@@ -92,30 +92,30 @@ class WriteDesign(Action):
             pass  # Folder does not exist, but we don't care
         workspace.mkdir(parents=True, exist_ok=True)
 
-    def _save_prd(self, docs_path, resources_path, context):
+    async def _save_prd(self, docs_path, resources_path, context):
         prd_file = docs_path / "prd.md"
         if context[-1].instruct_content and context[-1].instruct_content.dict()["Competitive Quadrant Chart"]:
             quadrant_chart = context[-1].instruct_content.dict()["Competitive Quadrant Chart"]
-            mermaid_to_file(quadrant_chart, resources_path / "competitive_analysis")
+            await mermaid_to_file(quadrant_chart, resources_path / "competitive_analysis")
 
         if context[-1].instruct_content:
             logger.info(f"Saving PRD to {prd_file}")
             prd_file.write_text(json_to_markdown(context[-1].instruct_content.dict()))
 
-    def _save_system_design(self, docs_path, resources_path, system_design):
+    async def _save_system_design(self, docs_path, resources_path, system_design):
         data_api_design = system_design.instruct_content.dict()[
             "Data structures and interface definitions"
         ]  # CodeParser.parse_code(block="Data structures and interface definitions", text=content)
         seq_flow = system_design.instruct_content.dict()[
             "Program call flow"
         ]  # CodeParser.parse_code(block="Program call flow", text=content)
-        mermaid_to_file(data_api_design, resources_path / "data_api_design")
-        mermaid_to_file(seq_flow, resources_path / "seq_flow")
+        await mermaid_to_file(data_api_design, resources_path / "data_api_design")
+        await mermaid_to_file(seq_flow, resources_path / "seq_flow")
         system_design_file = docs_path / "system_design.md"
         logger.info(f"Saving System Designs to {system_design_file}")
         system_design_file.write_text((json_to_markdown(system_design.instruct_content.dict())))
 
-    def _save(self, context, system_design):
+    async def _save(self, context, system_design):
         if isinstance(system_design, ActionOutput):
             ws_name = system_design.instruct_content.dict()["Python package name"]
         else:
@@ -126,12 +126,12 @@ class WriteDesign(Action):
         resources_path = workspace / "resources"
         docs_path.mkdir(parents=True, exist_ok=True)
         resources_path.mkdir(parents=True, exist_ok=True)
-        self._save_prd(docs_path, resources_path, context)
-        self._save_system_design(docs_path, resources_path, system_design)
+        await self._save_prd(docs_path, resources_path, context)
+        await self._save_system_design(docs_path, resources_path, system_design)
 
     async def run(self, context):
         prompt = PROMPT_TEMPLATE.format(context=context, format_example=FORMAT_EXAMPLE)
         # system_design = await self._aask(prompt)
         system_design = await self._aask_json_v1(prompt, "system_design", OUTPUT_MAPPING)
-        self._save(context, system_design)
+        await self._save(context, system_design)
         return system_design

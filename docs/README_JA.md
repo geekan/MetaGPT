@@ -9,14 +9,20 @@
 </p>
 
 <p align="center">
-<a href="README_CN.md"><img src="https://img.shields.io/badge/文档-中文版-blue.svg" alt="CN doc"></a>
-<a href="../README.md"><img src="https://img.shields.io/badge/document-English-blue.svg" alt="EN doc"></a>
-<a href="README_JA.md"><img src="https://img.shields.io/badge/ドキュメント-日本語-blue.svg" alt="JA doc"></a>
-<a href="https://discord.gg/wCp6Q3fsAk"><img src="https://dcbadge.vercel.app/api/server/wCp6Q3fsAk?compact=true&style=flat" alt="Discord Follow"></a>
-<a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
+<a href="docs/README_CN.md"><img src="https://img.shields.io/badge/文档-中文版-blue.svg" alt="CN doc"></a>
+<a href="README.md"><img src="https://img.shields.io/badge/document-English-blue.svg" alt="EN doc"></a>
+<a href="docs/README_JA.md"><img src="https://img.shields.io/badge/ドキュメント-日本語-blue.svg" alt="JA doc"></a>
+<a href="https://discord.gg/wCp6Q3fsAk"><img src="https://img.shields.io/badge/Discord-Join-blue?logo=discord&logoColor=white&color=blue" alt="Discord Follow"></a>
+<a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
 <a href="docs/ROADMAP.md"><img src="https://img.shields.io/badge/ROADMAP-路线图-blue" alt="roadmap"></a>
-<a href="resources/MetaGPT-WeChat-Personal.jpeg"><img src="https://img.shields.io/badge/WeChat-微信-blue" alt="roadmap"></a>
 <a href="https://twitter.com/DeepWisdom2019"><img src="https://img.shields.io/twitter/follow/MetaGPT?style=social" alt="Twitter Follow"></a>
+</p>
+
+<p align="center">
+   <a href="https://airtable.com/appInfdG0eJ9J4NNL/shrEd9DrwVE3jX6oz"><img src="https://img.shields.io/badge/AgentStore-Waitlist-ffc107?logoColor=white" alt="AgentStore Waitlist"></a>
+   <a href="https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/geekan/MetaGPT"><img src="https://img.shields.io/static/v1?label=Dev%20Containers&message=Open&color=blue&logo=visualstudiocode" alt="Open in Dev Containers"></a>
+   <a href="https://codespaces.new/geekan/MetaGPT"><img src="https://img.shields.io/badge/Github_Codespace-Open-blue?logo=github" alt="Open in GitHub Codespaces"></a>
+   <a href="https://huggingface.co/spaces/deepwisdom/MetaGPT" target="_blank"><img alt="Hugging Face" src="https://img.shields.io/badge/%F0%9F%A4%97%20-Hugging%20Face-blue?color=blue&logoColor=white" /></a>
 </p>
 
 1. MetaGPT は、**1 行の要件** を入力とし、**ユーザーストーリー / 競合分析 / 要件 / データ構造 / API / 文書など** を出力します。
@@ -27,6 +33,11 @@
 
 <p align="center">ソフトウェア会社のマルチロール図式（順次導入）</p>
 
+## MetaGPTの能力
+
+https://github.com/geekan/MetaGPT/assets/34952977/34345016-5d13-489d-b9f9-b82ace413419
+
+
 ## 例（GPT-4 で完全生成）
 
 例えば、`python startup.py "Toutiao のような RecSys をデザインする"`と入力すると、多くの出力が得られます
@@ -36,6 +47,10 @@
 解析と設計を含む 1 つの例を生成するのに約 **$0.2**（GPT-4 の API 使用料）、完全なプロジェクトでは約 **$2.0** かかります。
 
 ## インストール
+
+### インストールビデオガイド
+
+- [Matthew Berman: How To Install MetaGPT - Build A Startup With One Prompt!!](https://youtu.be/uT75J_KG_aY)
 
 ### 伝統的なインストール
 
@@ -50,7 +65,7 @@ python --version
 # ステップ 3: リポジトリをローカルマシンにクローンし、インストールする。
 git clone https://github.com/geekan/metagpt
 cd metagpt
-python setup.py install
+pip install -e.
 ```
 
 **注:**
@@ -60,18 +75,18 @@ Chromium のダウンロードをスキップすることができます。
 
 - このツールをグローバルにインストールする[問題を抱えている](https://github.com/mermaidjs/mermaid.cli/issues/15)人もいます。ローカルにインストールするのが代替の解決策です、
 
-    ```bash
-    npm install @mermaid-js/mermaid-cli
-    ```
+  ```bash
+  npm install @mermaid-js/mermaid-cli
+  ```
 
 - config.yml に mmdc のコンフィギュレーションを記述するのを忘れないこと
 
-    ```yml
-    PUPPETEER_CONFIG: "./config/puppeteer-config.json"
-    MMDC: "./node_modules/.bin/mmdc"
-    ```
+  ```yml
+  PUPPETEER_CONFIG: "./config/puppeteer-config.json"
+  MMDC: "./node_modules/.bin/mmdc"
+  ```
 
-- もし `python setup.py install` がエラー `[Errno 13] Permission denied: '/usr/local/lib/python3.11/dist-packages/test-easy-install-13129.write-test'` で失敗したら、代わりに `python setup.py install --user` を実行してみてください
+- もし `pip install -e.` がエラー `[Errno 13] Permission denied: '/usr/local/lib/python3.11/dist-packages/test-easy-install-13129.write-test'` で失敗したら、代わりに `pip install -e. --user` を実行してみてください
 
 ### Docker によるインストール
 
@@ -126,26 +141,32 @@ cd MetaGPT && docker build -t metagpt:custom .
 cp config/config.yaml config/key.yaml
 ```
 
-| 変数名                                      | config/key.yaml                           | env                                             |
-| ------------------------------------------ | ----------------------------------------- | ----------------------------------------------- |
-| OPENAI_API_KEY # 自分のキーに置き換える    | OPENAI_API_KEY: "sk-..."                  | export OPENAI_API_KEY="sk-..."                  |
-| OPENAI_API_BASE # オプション                 | OPENAI_API_BASE: "https://<YOUR_SITE>/v1" | export OPENAI_API_BASE="https://<YOUR_SITE>/v1" |
+| 変数名                                  | config/key.yaml                           | env                                             |
+| --------------------------------------- | ----------------------------------------- | ----------------------------------------------- |
+| OPENAI_API_KEY # 自分のキーに置き換える | OPENAI_API_KEY: "sk-..."                  | export OPENAI_API_KEY="sk-..."                  |
+| OPENAI_API_BASE # オプション            | OPENAI_API_BASE: "https://<YOUR_SITE>/v1" | export OPENAI_API_BASE="https://<YOUR_SITE>/v1" |
 
 ## チュートリアル: スタートアップの開始
 
 ```shell
+# スクリプトの実行
 python startup.py "Write a cli snake game"
-# コードレビューを利用すれば、コストはかかるが、より良いコード品質を選ぶことができます。
+# プロジェクトの実施にエンジニアを雇わないこと
+python startup.py "Write a cli snake game" --implement False
+# エンジニアを雇い、コードレビューを行う
 python startup.py "Write a cli snake game" --code_review True
 ```
 
 スクリプトを実行すると、`workspace/` ディレクトリに新しいプロジェクトが見つかります。
+
 ### プラットフォームまたはツールの設定
 
 要件を述べるときに、どのプラットフォームまたはツールを使用するかを指定できます。
+
 ```shell
 python startup.py "pygame をベースとした cli ヘビゲームを書く"
 ```
+
 ### 使用方法
 
 ```
@@ -194,13 +215,18 @@ async def startup(idea: str, investment: float = 3.0, n_round: int = 5):
 `examples` でシングル・ロール（ナレッジ・ベース付き）と LLM のみの例を詳しく見ることができます。
 
 ## クイックスタート
+
 ローカル環境のインストールや設定は、ユーザーによっては難しいものです。以下のチュートリアルで MetaGPT の魅力をすぐに体験できます。
 
 - [MetaGPT クイックスタート](https://deepwisdom.feishu.cn/wiki/CyY9wdJc4iNqArku3Lncl4v8n2b)
 
+Hugging Face Space で試す
+- https://huggingface.co/spaces/deepwisdom/MetaGPT
+
 ## 引用
 
 現時点では、[Arxiv 論文](https://arxiv.org/abs/2308.00352)を引用してください:
+
 ```bibtex
 @misc{hong2023metagpt,
       title={MetaGPT: Meta Programming for Multi-Agent Collaborative Framework},
@@ -224,3 +250,10 @@ async def startup(idea: str, investment: float = 3.0, n_round: int = 5):
 ## デモ
 
 https://github.com/geekan/MetaGPT/assets/2707039/5e8c1062-8c35-440f-bb20-2b0320f8d27d
+
+## 参加する
+
+📢 Discord チャンネルに参加してください！
+https://discord.gg/ZRHeExS6xv
+
+お会いできることを楽しみにしています！ 🎉

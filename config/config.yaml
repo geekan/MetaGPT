@@ -16,11 +16,12 @@ RPM: 10
 #Anthropic_API_KEY: "YOUR_API_KEY"
 
 #### if AZURE, check https://github.com/openai/openai-cookbook/blob/main/examples/azure/chat.ipynb
-
+#### You can use ENGINE or DEPLOYMENT mode
 #OPENAI_API_TYPE: "azure"
 #OPENAI_API_BASE: "YOUR_AZURE_ENDPOINT"
 #OPENAI_API_KEY: "YOUR_AZURE_API_KEY"
 #OPENAI_API_VERSION: "YOUR_AZURE_API_VERSION"
+#DEPLOYMENT_NAME: "YOUR_DEPLOYMENT_NAME"
 #DEPLOYMENT_ID: "YOUR_DEPLOYMENT_ID"
 
 #### for Search
@@ -75,3 +76,10 @@ SD_T2I_API: "/sdapi/v1/txt2img"
 ### for Research
 MODEL_FOR_RESEARCHER_SUMMARY: gpt-3.5-turbo
 MODEL_FOR_RESEARCHER_REPORT: gpt-3.5-turbo-16k
+
+### choose the engine for mermaid conversion, 
+# default is nodejs, you can change it to playwright,pyppeteer or ink
+# MERMAID_ENGINE: nodejs
+
+### browser path for pyppeteer engine, support Chrome, Chromium,MS Edge
+#PYPPETEER_EXECUTABLE_PATH: "/usr/bin/google-chrome-stable"
