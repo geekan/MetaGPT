@@ -1,3 +1,8 @@
+'''
+Filename: MetaGPT/examples/debate.py
+Created Date: Tuesday, September 19th 2023, 6:52:25 pm
+Author: garylin2099
+'''
 import asyncio
 import platform
 import fire
@@ -8,7 +13,8 @@ from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.logs import logger
 
-class Shout(Action):
+class ShoutOut(Action):
+    """Action: Shout out loudly in a debate (quarrel)"""
 
     PROMPT_TEMPLATE = """
     ## BACKGROUND
@@ -21,7 +27,7 @@ class Shout(Action):
     craft a strong and emotional response in 80 words, in {name}'s rhetoric and viewpoints, your will argue:
     """
 
-    def __init__(self, name="Shout", context=None, llm=None):
+    def __init__(self, name="ShoutOut", context=None, llm=None):
         super().__init__(name, context, llm)
     
     async def run(self, context: str, name: str, opponent_name: str):
@@ -37,12 +43,12 @@ class Trump(Role):
     def __init__(
         self,
         name: str = "Trump",
-        profile: str = "Trump",
+        profile: str = "Republican",
         **kwargs,
     ):
         super().__init__(name, profile, **kwargs)
-        self._init_actions([Shout])
-        self._watch([Shout])
+        self._init_actions([ShoutOut])
+        self._watch([ShoutOut])
         self.name = "Trump"
         self.opponent_name = "Biden"
     
@@ -56,18 +62,18 @@ class Trump(Role):
     async def _act(self) -> Message:
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
         
-        msg_history = self._rc.memory.get_by_actions([Shout])
+        msg_history = self._rc.memory.get_by_actions([ShoutOut])
         context = []
         for m in msg_history:
             context.append(str(m))
         context = "\n".join(context)
 
-        rsp = await Shout().run(context=context, name=self.name, opponent_name=self.opponent_name)
+        rsp = await ShoutOut().run(context=context, name=self.name, opponent_name=self.opponent_name)
 
         msg = Message(
             content=rsp,
             role=self.profile,
-            cause_by=Shout,
+            cause_by=ShoutOut,
             sent_from=self.name,
             send_to=self.opponent_name,
         )
@@ -79,12 +85,12 @@ class Biden(Role):
     def __init__(
         self,
         name: str = "Biden",
-        profile: str = "Biden",
+        profile: str = "Democrat",
         **kwargs,
     ):
         super().__init__(name, profile, **kwargs)
-        self._init_actions([Shout])
-        self._watch([BossRequirement, Shout])
+        self._init_actions([ShoutOut])
+        self._watch([BossRequirement, ShoutOut])
         self.name = "Biden"
         self.opponent_name = "Trump"
     
@@ -98,18 +104,18 @@ class Biden(Role):
     async def _act(self) -> Message:
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
         
-        msg_history = self._rc.memory.get_by_actions([BossRequirement, Shout])
+        msg_history = self._rc.memory.get_by_actions([BossRequirement, ShoutOut])
         context = []
         for m in msg_history:
             context.append(str(m))
         context = "\n".join(context)
 
-        rsp = await Shout().run(context=context, name=self.name, opponent_name=self.opponent_name)
+        rsp = await ShoutOut().run(context=context, name=self.name, opponent_name=self.opponent_name)
 
         msg = Message(
             content=rsp,
             role=self.profile,
-            cause_by=Shout,
+            cause_by=ShoutOut,
             sent_from=self.name,
             send_to=self.opponent_name,
         )
@@ -119,7 +125,8 @@ class Biden(Role):
 
 async def startup(idea: str, investment: float = 3.0, n_round: int = 5,
                   code_review: bool = False, run_tests: bool = False):
-    """Run a startup of presidents. Watch they quarrel. :) """
+    """We reuse the startup paradigm for roles to interact with each other.
+    Now we run a startup of presidents and watch they quarrel. :) """
     company = SoftwareCompany()
     company.hire([Biden(), Trump()])
     company.invest(investment)
@@ -127,18 +134,16 @@ async def startup(idea: str, investment: float = 3.0, n_round: int = 5,
     await company.run(n_round=n_round)
 
 
-def main(idea: str, investment: float = 3.0, n_round: int = 10, code_review: bool = False, run_tests: bool = False):
+def main(idea: str, investment: float = 3.0, n_round: int = 10):
     """
-    We are a software startup comprised of AI. By investing in us, you are empowering a future filled with limitless possibilities.
-    :param idea: Your innovative idea, such as "Creating a snake game."
-    :param investment: As an investor, you have the opportunity to contribute a certain dollar amount to this AI company.
-    :param n_round:
-    :param code_review: Whether to use code review.
+    :param idea: Debate topic, such as "Topic: The U.S. should commit more in climate change fighting" or "Trump: Climate change is a hoax"
+    :param investment: contribute a certain dollar amount to watch the debate
+    :param n_round: maximum rounds of the debate
     :return:
     """
     if platform.system() == "Windows":
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-    asyncio.run(startup(idea, investment, n_round, code_review, run_tests))
+    asyncio.run(startup(idea, investment, n_round))
 
 
 if __name__ == '__main__':
