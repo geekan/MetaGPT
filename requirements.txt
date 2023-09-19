@@ -1,4 +1,4 @@
-aiohttp==3.8.4
+aiohttp==3.8.5
 #azure_storage==0.37.0
 channels==4.0.0
 # chromadb==0.3.22
