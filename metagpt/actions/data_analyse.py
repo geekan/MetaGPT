@@ -2,19 +2,10 @@
 
 from __future__ import annotations
 
-import asyncio
-import json
-from typing import Callable
-from pydantic import parse_obj_as
 import pandas as pd
+import matplotlib.pyplot as plt
 import traceback
 
-from metagpt.actions import Action
-from metagpt.config import CONFIG
-from metagpt.logs import logger
-
-from metagpt.const import WORKSPACE_ROOT
-from metagpt.actions import WriteDesign
 from metagpt.actions.action import Action
 from metagpt.const import WORKSPACE_ROOT
 from metagpt.logs import logger
@@ -61,8 +52,11 @@ class DataAnalyse(Action):
         df = self._read_file(file_path)
         prompt = PROMPT_TEMPLATE.format(metadata=str(df.head()), context=context, workspace=WORKSPACE_ROOT)
         code = await self.write_code(prompt)
+        logger.info(code)
         try:
-            exec(code)
+            namespace = {}
+            exec(code, namespace)
+            return namespace.get("result", ""), ""
         except Exception:
             return "", traceback.format_exc()
         return code
