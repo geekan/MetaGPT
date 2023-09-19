@@ -64,6 +64,59 @@ def test_parse_data():
     assert OutputParser.parse_data(test_data) == expected_result
 
 
+@pytest.mark.parametrize(
+    ("text", "data_type", "parsed_data", "expected_exception"),
+    [
+        (
+            """xxx [1, 2, ["a", "b", [3, 4]], {"x": 5, "y": [6, 7]}] xxx""",
+            "list",
+            [1, 2, ["a", "b", [3, 4]], {"x": 5, "y": [6, 7]}],
+            None,
+        ),
+        (
+            """xxx ["1", "2", "3"] xxx \n xxx \t xx""",
+            "list",
+            ["1", "2", "3"],
+            None,
+        ),
+        (
+            """{"title": "a", "directory": {"sub_dir1": ["title1, title2"]}, "sub_dir2": [1, 2]}""",
+            "dict",
+            {"title": "a", "directory": {"sub_dir1": ["title1, title2"]}, "sub_dir2": [1, 2]},
+            None,
+        ),
+        (
+            """xxx {"title": "x", \n  \t "directory": ["x", \n "y"]} xxx \n xxx \t xx""",
+            "dict",
+            {"title": "x", "directory": ["x", "y"]},
+            None,
+        ),
+        (
+            """xxx xx""",
+            "list",
+            None,
+            Exception,
+        ),
+        (
+            """xxx [1, 2, []xx""",
+            "list",
+            None,
+            Exception,
+        ),
+    ]
+)
+def test_extract_list_or_dict(text: str, data_type: str, parsed_data: list, expected_exception):
+    def case():
+        resp = OutputParser.extract_struct(text, data_type)
+        assert resp == parsed_data
+
+    if expected_exception:
+        with pytest.raises(expected_exception):
+            case()
+    else:
+        case()
+
+
 if __name__ == '__main__':
     t_text = '''
 ## Required Python third-party packages

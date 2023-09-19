@@ -15,14 +15,17 @@ from metagpt.logs import logger
 class File:
     """A general util for file operations."""
 
+    CHUNK_SIZE = 64 * 1024
+
     @classmethod
-    async def write(cls, root_path: Path, filename: str, content: bytes) -> Path:
-        """Write the file content to the local specified path.
+    async def write(cls, root_path: Path, filename: str, content: bytes, chunk_size: int = None) -> Path:
+        """Partitioning write the file content to the local specified path.
 
         Args:
             root_path: The root path of file, such as "/data".
             filename: The name of file, such as "test.txt".
             content: The binary content of file.
+            chunk_size: The size of each chunk in bytes (default is 64kb).
 
         Returns:
             The full filename of file, such as "/data/test.txt".
@@ -31,12 +34,49 @@ class File:
             Exception: If an unexpected error occurs during the file writing process.
         """
         try:
+            chunk_size = chunk_size or cls.CHUNK_SIZE
             root_path.mkdir(parents=True, exist_ok=True)
             full_path = root_path / filename
             async with aiofiles.open(full_path, mode="wb") as writer:
-                await writer.write(content)
+                for i in range(0, len(content), chunk_size):
+                    chunk = content[i:i + chunk_size]
+                    await writer.write(chunk)
+                    # Flush the buffer to ensure data is written immediately
+                    await writer.flush()
                 logger.info(f"Successfully write file: {full_path}")
                 return full_path
         except Exception as e:
             logger.error(f"Error writing file: {e}")
             raise e
+
+    @classmethod
+    async def read(cls, file_path: Path, chunk_size: int = None) -> bytes:
+        """Partitioning read the file content from the local specified path.
+
+        Args:
+            file_path: The full file name of file, such as "/data/test.txt".
+            chunk_size: The size of each chunk in bytes (default is 64kb).
+
+        Returns:
+            The binary content of file.
+
+        Raises:
+            Exception: If an unexpected error occurs during the file reading process.
+        """
+        try:
+            if not file_path.exists():
+                raise FileNotFoundError(f"File not found, path is '{file_path}'")
+            chunk_size = chunk_size or cls.CHUNK_SIZE
+            async with aiofiles.open(file_path, mode="rb") as reader:
+                content = bytes()
+                while True:
+                    chunk = await reader.read(chunk_size)
+                    if not chunk:
+                        break
+                    content += chunk
+                logger.info(f"Successfully read file, the size of file: {len(content)}")
+                return content
+        except Exception as e:
+            logger.error(f"Error reading file: {e}")
+            raise e
+
