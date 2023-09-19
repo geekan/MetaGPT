@@ -13,10 +13,13 @@ from metagpt.actions import Action, ActionOutput
 from metagpt.const import WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.utils.common import CodeParser
+from metagpt.utils.get_template import get_template
 from metagpt.utils.json_to_markdown import json_to_markdown
 from metagpt.utils.mermaid import mermaid_to_file
 
-PROMPT_TEMPLATE = """
+templates = {
+    "json": {
+        "PROMPT_TEMPLATE": """
 # Context
 {context}
 
@@ -41,8 +44,8 @@ Max Output: 8192 chars or 2048 tokens. Try to use them up.
 
 output a properly formatted JSON, wrapped inside [CONTENT][/CONTENT] like format example,
 and only output the json inside this tag, nothing else
-"""
-FORMAT_EXAMPLE = """
+""",
+        "FORMAT_EXAMPLE": """
 [CONTENT]
 {
     "Implementation approach": "We will ...",
@@ -65,7 +68,76 @@ FORMAT_EXAMPLE = """
     "Anything UNCLEAR": "The requirement is clear to me."
 }
 [/CONTENT]
-"""
+""",
+    },
+    "markdown": {
+        "PROMPT_TEMPLATE": """
+# Context
+{context}
+
+## Format example
+{format_example}
+-----
+Role: You are an architect; the goal is to design a SOTA PEP8-compliant python system; make the best use of good open source tools
+Requirement: Fill in the following missing information based on the context, note that all sections are response with code form separately
+Max Output: 8192 chars or 2048 tokens. Try to use them up.
+Attention: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD WRITE BEFORE the code and triple quote.
+
+## Implementation approach: Provide as Plain text. Analyze the difficult points of the requirements, select the appropriate open-source framework.
+
+## Python package name: Provide as Python str with python triple quoto, concise and clear, characters only use a combination of all lowercase and underscores
+
+## File list: Provided as Python list[str], the list of ONLY REQUIRED files needed to write the program(LESS IS MORE!). Only need relative paths, comply with PEP8 standards. ALWAYS write a main.py or app.py here
+
+## Data structures and interface definitions: Use mermaid classDiagram code syntax, including classes (INCLUDING __init__ method) and functions (with type annotations), CLEARLY MARK the RELATIONSHIPS between classes, and comply with PEP8 standards. The data structures SHOULD BE VERY DETAILED and the API should be comprehensive with a complete design. 
+
+## Program call flow: Use sequenceDiagram code syntax, COMPLETE and VERY DETAILED, using CLASSES AND API DEFINED ABOVE accurately, covering the CRUD AND INIT of each object, SYNTAX MUST BE CORRECT.
+
+## Anything UNCLEAR: Provide as Plain text. Make clear here.
+
+""",
+        "FORMAT_EXAMPLE": """
+---
+## Implementation approach
+We will ...
+
+## Python package name
+```python
+"snake_game"
+```
+
+## File list
+```python
+[
+    "main.py",
+]
+```
+
+## Data structures and interface definitions
+```mermaid
+classDiagram
+    class Game{
+        +int score
+    }
+    ...
+    Game "1" -- "1" Food: has
+```
+
+## Program call flow
+```mermaid
+sequenceDiagram
+    participant M as Main
+    ...
+    G->>M: end game
+```
+
+## Anything UNCLEAR
+The requirement is clear to me.
+---
+""",
+    },
+}
+
 OUTPUT_MAPPING = {
     "Implementation approach": (str, ...),
     "Python package name": (str, ...),
@@ -130,8 +202,9 @@ class WriteDesign(Action):
         await self._save_system_design(docs_path, resources_path, system_design)
 
     async def run(self, context):
-        prompt = PROMPT_TEMPLATE.format(context=context, format_example=FORMAT_EXAMPLE)
+        prompt_template, format_example = get_template(templates)
+        prompt = prompt_template.format(context=context, format_example=format_example)
         # system_design = await self._aask(prompt)
-        system_design = await self._aask_json_v1(prompt, "system_design", OUTPUT_MAPPING)
+        system_design = await self._aask_v1(prompt, "system_design", OUTPUT_MAPPING)
         await self._save(context, system_design)
         return system_design

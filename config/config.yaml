@@ -83,3 +83,5 @@ MODEL_FOR_RESEARCHER_REPORT: gpt-3.5-turbo-16k
 
 ### browser path for pyppeteer engine, support Chrome, Chromium,MS Edge
 #PYPPETEER_EXECUTABLE_PATH: "/usr/bin/google-chrome-stable"
+
+PROMPT_FORMAT: json #json or markdown

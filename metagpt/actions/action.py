@@ -12,6 +12,7 @@ from typing import Optional
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 from metagpt.actions.action_output import ActionOutput
+from metagpt.config import CONFIG
 from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.utils.common import OutputParser
@@ -51,7 +52,12 @@ class Action(ABC):
 
     @retry(stop=stop_after_attempt(3), wait=wait_fixed(1))
     async def _aask_v1(
-        self, prompt: str, output_class_name: str, output_data_mapping: dict, system_msgs: Optional[list[str]] = None
+        self,
+        prompt: str,
+        output_class_name: str,
+        output_data_mapping: dict,
+        system_msgs: Optional[list[str]] = None,
+        format=CONFIG.prompt_format,
     ) -> ActionOutput:
         """Append default prefix"""
         if not system_msgs:
@@ -60,36 +66,24 @@ class Action(ABC):
         content = await self.llm.aask(prompt, system_msgs)
         logger.debug(content)
         output_class = ActionOutput.create_model_class(output_class_name, output_data_mapping)
-        parsed_data = OutputParser.parse_data_with_mapping(content, output_data_mapping)
+
+        if format == "json":
+            pattern = r"\[CONTENT\](\s*\{.*?\}\s*)\[/CONTENT\]"
+            matches = re.findall(pattern, content, re.DOTALL)
+
+            for match in matches:
+                if match:
+                    content = match
+                    break
+
+            parsed_data = CustomDecoder(strict=False).decode(content)
+
+        else:  # using markdown parser
+            parsed_data = OutputParser.parse_data_with_mapping(content, output_data_mapping)
+
         logger.debug(parsed_data)
         instruct_content = output_class(**parsed_data)
         return ActionOutput(content, instruct_content)
-
-    @retry(stop=stop_after_attempt(3), wait=wait_fixed(1))
-    async def _aask_json_v1(
-        self, prompt: str, output_class_name: str, output_data_mapping: dict, system_msgs: Optional[list[str]] = None
-    ) -> ActionOutput:
-        """Append default prefix"""
-        if not system_msgs:
-            system_msgs = []
-        system_msgs.append(self.prefix)
-        content = await self.llm.aask(prompt, system_msgs)
-        logger.debug(content)
-        output_class = ActionOutput.create_model_class(output_class_name, output_data_mapping)
-
-        pattern = r"\[CONTENT\](\s*\{.*?\}\s*)\[/CONTENT\]"
-        matches = re.findall(pattern, content, re.DOTALL)
-
-        extracted_content = None
-        for match in matches:
-            if match:
-                extracted_content = match
-                break
-
-        parsed_data = CustomDecoder(strict=False).decode(extracted_content)
-        logger.debug(parsed_data)
-        instruct_content = output_class(**parsed_data)
-        return ActionOutput(extracted_content, instruct_content)
 
     async def run(self, *args, **kwargs):
         """Run action"""
