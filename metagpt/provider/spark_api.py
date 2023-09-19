@@ -41,6 +41,7 @@ class Spark:
 
     def _default_system_msg(self):
         return self._system_msg(self.system_prompt)
+    
     def ask(self, msg: str):
         message = [self._user_msg(msg)]
         SparkApi.main(CONFIG.xinghuo_appid,CONFIG.xinghuo_api_key,CONFIG.xinghuo_api_secret,"ws://spark-api.xf-yun.com/v2.1/chat","generalv2",message)
