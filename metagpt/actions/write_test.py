@@ -6,6 +6,7 @@
 @File    : environment.py
 """
 from metagpt.actions.action import Action
+from metagpt.logs import logger
 from metagpt.utils.common import CodeParser
 
 PROMPT_TEMPLATE = """
@@ -38,9 +39,9 @@ class WriteTest(Action):
 
         try:
             code = CodeParser.parse_code(block="", text=code_rsp)
-        except Exception as e:
+        except Exception:
             # Handle the exception if needed
-            print(f"An exception occurred: {str(e)}")
+            logger.error(f"Can't parse the code: {code_rsp}")
 
             # Return code_rsp in case of an exception, assuming llm just returns code as it is and doesn't wrap it inside ```
             code = code_rsp

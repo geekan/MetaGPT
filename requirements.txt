@@ -38,3 +38,4 @@ typing-inspect==0.8.0
 typing_extensions==4.5.0
 libcst==1.0.1
 qdrant-client==1.4.0
+pytest-mock==3.11.1

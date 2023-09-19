@@ -91,6 +91,24 @@ WHITESPACE_STR = " \t\n\r"
 def JSONObject(
     s_and_end, strict, scan_once, object_hook, object_pairs_hook, memo=None, _w=WHITESPACE.match, _ws=WHITESPACE_STR
 ):
+    """Parse a JSON object from a string and return the parsed object.
+
+    Args:
+        s_and_end (tuple): A tuple containing the input string to parse and the current index within the string.
+        strict (bool): If `True`, enforces strict JSON string decoding rules.
+            If `False`, allows literal control characters in the string. Defaults to `True`.
+        scan_once (callable): A function to scan and parse JSON values from the input string.
+        object_hook (callable): A function that, if specified, will be called with the parsed object as a dictionary.
+        object_pairs_hook (callable): A function that, if specified, will be called with the parsed object as a list of pairs.
+        memo (dict, optional): A dictionary used to memoize string keys for optimization. Defaults to None.
+        _w (function): A regular expression matching function for whitespace. Defaults to WHITESPACE.match.
+        _ws (str): A string containing whitespace characters. Defaults to WHITESPACE_STR.
+
+    Returns:
+        tuple or dict: A tuple containing the parsed object and the index of the character in the input string
+        after the end of the object.
+    """
+
     s, end = s_and_end
     pairs = []
     pairs_append = pairs.append
@@ -175,14 +193,23 @@ def JSONObject(
 
 
 def py_scanstring(s, end, strict=True, _b=BACKSLASH, _m=STRINGCHUNK.match, delimiter='"'):
-    """Scan the string s for a JSON string. End is the index of the
-    character in s after the quote that started the JSON string.
-    Unescapes all valid JSON string escape sequences and raises ValueError
-    on attempt to decode an invalid string. If strict is False then literal
-    control characters are allowed in the string.
+    """Scan the string s for a JSON string.
 
-    Returns a tuple of the decoded string and the index of the character in s
-    after the end quote."""
+    Args:
+        s (str): The input string to be scanned for a JSON string.
+        end (int): The index of the character in `s` after the quote that started the JSON string.
+        strict (bool): If `True`, enforces strict JSON string decoding rules.
+            If `False`, allows literal control characters in the string. Defaults to `True`.
+        _b (dict): A dictionary containing escape sequence mappings.
+        _m (function): A regular expression matching function for string chunks.
+        delimiter (str): The string delimiter used to define the start and end of the JSON string.
+            Can be one of: '"', "'", '\"""', or "'''". Defaults to '"'.
+
+    Returns:
+        tuple: A tuple containing the decoded string and the index of the character in `s`
+        after the end quote.
+    """
+
     chunks = []
     _append = chunks.append
     begin = end - 1
