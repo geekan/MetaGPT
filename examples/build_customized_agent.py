@@ -6,6 +6,8 @@ Author: garylin2099
 import re
 import subprocess
 
+import fire
+
 from metagpt.actions import Action
 from metagpt.roles import Role
 from metagpt.schema import Message
@@ -127,15 +129,12 @@ class RunnableCoder(Role):
             await self._act()
         return Message(content="All job done", role=self.profile)
 
-if __name__ == "__main__":
-    import asyncio
+async def main(msg="write a function that calculates the sum of a list"):
+    # role = SimpleCoder()
+    role = RunnableCoder()
+    logger.info(msg)
+    result = await role.run(msg)
+    logger.info(result)
 
-    async def main():
-        msg = "write a function that calculates the sum of a list"
-        # role = SimpleCoder()
-        role = RunnableCoder()
-        logger.info(msg)
-        result = await role.run(msg)
-        logger.info(result)
-
-    asyncio.run(main())
+if __name__ == '__main__':
+    fire.Fire(main)

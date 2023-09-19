@@ -56,7 +56,7 @@ class Trump(Role):
         await super()._observe()
         self._rc.news = [
             msg for msg in self._rc.news if msg.send_to == self.name
-        ]  # only relevant msgs count as observed news
+        ]  # accept messages sent (from opponent) to self, disregard own messages from the last round
         return len(self._rc.news)
 
     async def _act(self) -> Message:
@@ -77,7 +77,6 @@ class Trump(Role):
             sent_from=self.name,
             send_to=self.opponent_name,
         )
-        self._publish_message(msg)
 
         return msg
 
@@ -97,8 +96,8 @@ class Biden(Role):
     async def _observe(self) -> int:
         await super()._observe()
         self._rc.news = [
-            msg for msg in self._rc.news if msg.send_to == self.name or msg.cause_by == BossRequirement
-        ]  # only relevant msgs count as observed news
+            msg for msg in self._rc.news if msg.cause_by == BossRequirement or msg.send_to == self.name
+        ]  # accept the very first human instruction (the debate topic) or messages sent (from opponent) to self, disregard own messages from the last round
         return len(self._rc.news)
 
     async def _act(self) -> Message:
@@ -119,7 +118,6 @@ class Biden(Role):
             sent_from=self.name,
             send_to=self.opponent_name,
         )
-        self._publish_message(msg)
 
         return msg
 
