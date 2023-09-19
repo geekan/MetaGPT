@@ -6,7 +6,7 @@ from metagpt.actions.data_analyse import DataAnalyse
 
 
 async def main():
-    file_path = "/Users/rain/Desktop/code/aigc/MetaGPT/tests/data/data_for_test.csv"
+    file_path = "../tests/data/data_for_test.csv"
     context = "Which are the 5 happiest countries?"
     role = DataAnalyse()
     await role.run(context, file_path)
