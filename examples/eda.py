@@ -8,8 +8,7 @@ async def main():
     file_path = "../tests/data/data_for_test.csv"
     context = "Analyze loans of different ages and educational backgrounds"
     action = DataAnalyse()
-    await action.run(context, file_path)
-    # print(f"save report to {RESEARCH_PATH / f'{topic}.md'}.")
+    outs, errs = await action.run(context, file_path)
 
 
 if __name__ == '__main__':

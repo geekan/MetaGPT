@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import traceback
 
 from metagpt.actions.action import Action
+from metagpt.actions.run_code import RunCode
 from metagpt.const import WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.schema import Message
@@ -20,7 +21,7 @@ NOTICE
 3. Attention1: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenced "Format example".
 4. Attention2: Use 'pandas' package to process dataframe.
 5. Attention3: Use 'matplotlib' package to visualize data.
-6. Attention4: Save the processed dataframe and the chart in {workspace}/output/.
+6. Attention4: Save the processed dataframe and the chart in {workspace}.
 -----
 
 You are provided with the following pandas DataFrame with the following metadata:
@@ -52,14 +53,12 @@ class DataAnalyse(Action):
         df = self._read_file(file_path)
         prompt = PROMPT_TEMPLATE.format(metadata=str(df.head()), context=context, workspace=WORKSPACE_ROOT)
         code = await self.write_code(prompt)
-        logger.info(code)
         try:
             namespace = {}
             exec(code, namespace)
             return namespace.get("result", ""), ""
         except Exception:
             return "", traceback.format_exc()
-        return code
 
     def _read_file(self, file_path):
         if file_path.endswith(".csv"):
