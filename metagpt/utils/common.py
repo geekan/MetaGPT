@@ -9,6 +9,7 @@ import ast
 import contextlib
 import inspect
 import os
+import platform
 import re
 from typing import List, Tuple
 
@@ -20,7 +21,10 @@ def check_cmd_exists(command) -> int:
     :param command: 待检查的命令
     :return: 如果命令存在，返回0，如果不存在，返回非0
     """
-    check_command = 'command -v ' + command + ' >/dev/null 2>&1 || { echo >&2 "no mermaid"; exit 1; }'
+    if platform.system().lower() == 'windows':
+        check_command = 'where ' + command
+    else:
+        check_command = 'command -v ' + command + ' >/dev/null 2>&1 || { echo >&2 "no mermaid"; exit 1; }'
     result = os.system(check_command)
     return result
 
@@ -187,7 +191,8 @@ class CodeParser:
         else:
             logger.error(f"{pattern} not match following text:")
             logger.error(text)
-            raise Exception
+            # raise Exception
+            return ""
         return code
 
     @classmethod
