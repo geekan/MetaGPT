@@ -60,10 +60,6 @@ class DataAnalyse(Action):
         df = self._read_file(file_path)
         prompt = PROMPT_TEMPLATE.format(metadata=str(df.head()), context=context, workspace=WORKSPACE_ROOT)
         code = await self.write_code(prompt)
-        # logger.info(f'Writing {filename}..')
-        # code = await self.write_code(prompt)
-        # code_rsp = await self._aask_v1(prompt, "code_rsp", OUTPUT_MAPPING)
-        # self._save(context, filename, code)
         return code
 
     def _read_file(self, file_path):
@@ -79,27 +75,4 @@ class DataAnalyse(Action):
         code_rsp = await self._aask(prompt)
         code = CodeParser.parse_code(block="", text=code_rsp)
         return code
-
-
-    # def _save_csv(self):
-    #     pass
-    #
-    # def _save_fig(self):
-    #     pass
-    #
-    # def _save(self):
-    #
-    # def _run_code(self):
-    #     pass
-    #
-    # @retry(stop=stop_after_attempt(2), wait=wait_fixed(1))
-    # async def write_code(self, prompt):
-    #     code_rsp = await self._aask(prompt)
-    #     code = CodeParser.parse_code(block="", text=code_rsp)
-    #     return code
-    #
-    # async def run_code(self, context, filename):
-
-
-
 
