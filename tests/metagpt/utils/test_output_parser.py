@@ -105,7 +105,7 @@ def test_parse_data():
         ),
     ]
 )
-def test_extract_list_or_dict(text: str, data_type: str, parsed_data: list, expected_exception):
+def test_extract_struct(text: str, data_type: str, parsed_data: list, expected_exception):
     def case():
         resp = OutputParser.extract_struct(text, data_type)
         assert resp == parsed_data
