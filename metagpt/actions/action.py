@@ -65,13 +65,13 @@ class Action(ABC):
             instruct_content = output_class(**parsed_data)
             return ActionOutput(content, instruct_content)
         except Exception as e:
-            print('Error:',e)
-        print('自动运行出错，切换为手动运行')
-        print('prompt为')
-        print('\n'.join( system_msgs)+prompt)
-        print('输入格式:')
-        print(output_data_mapping)
-        print('请准备输入,输入完成按ctrl+Z')
+            logger.debug('Error:'+str(e))
+        logger.log('自动运行出错，切换为手动运行，通常这是由于大模型不能按照格式要求返回')
+        logger.log('prompt为')
+        logger.log('\n'.join( system_msgs)+prompt)
+        logger.log('输入格式:')
+        logger.log(output_data_mapping)
+        logger.log('请准备输入,输入完成按ctrl+Z')
         while True:
             try:
                 lines=[]
@@ -88,8 +88,8 @@ class Action(ABC):
                 instruct_content = output_class(**parsed_data)
                 return ActionOutput(content, instruct_content)
             except Exception as e:
-                print('Error:',e)
-                print('输入错误，请重试')
+                logger.log('Error:',e)
+                logger.log('输入错误，请重试')
 
 
     async def run(self, *args, **kwargs):
