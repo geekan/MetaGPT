@@ -17,7 +17,7 @@ from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.utils.common import NoMoneyException
-from metagpt.llm import LLM
+from metagpt.llm import DEFAULT_LLM
 正方一辩提示词='''
 ##角色
 现在你是一名高水平，有辩论技巧，有强大表达能力的辩手。
@@ -105,7 +105,7 @@ def main(
     asyncio.run(startup(zf,ff))
 
 async def startup(正方辩题:str,反方辩题:str):
-    llm=LLM()
+    llm=DEFAULT_LLM
     #一辩环节
     #正方
     
