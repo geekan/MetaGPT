@@ -77,7 +77,6 @@ async def startup(company_name : str,
 async def __continue(message_content : str):
     company = SoftwareCompany_Company
     company.environment.short_term_history.content = message_content
-    print(company.environment.short_term_history.content)
     company.environment.memory.add(company.environment.short_term_history)
     company.environment.history += f"\n{company.environment.short_term_history}"
     await company.continue_run()
@@ -100,11 +99,12 @@ async def research_startup(language : str,
     await role.run(topic)
     return f"save report to {RESEARCH_PATH / f'{topic}.md'}."
 
-    
+#initialize the app
 app = gr.Blocks()
+#initialize the company
 SoftwareCompany_Company = SoftwareCompany()
-import sys
-sys.path.append('/workspaces/CSworks/zknow/proj_meta_gpt_linux/metagpt/metagpt')
+
+
 with app:
     gr.Markdown("""
                 # MetaGPT

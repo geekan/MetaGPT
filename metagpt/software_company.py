@@ -65,6 +65,7 @@ class SoftwareCompanyWithHuman(BaseModel):
     """
     Software Company: Possesses a team, SOP (Standard Operating Procedures), and a platform for instant messaging,
     dedicated to writing executable code.
+    The SoftwareCompanyWithHuman can be intervened by human throuth webui.
     """
     environment: Environment = Field(default_factory=Environment)
     investment: float = Field(default=10.0)
@@ -97,5 +98,6 @@ class SoftwareCompanyWithHuman(BaseModel):
         logger.info(self.json())
 
     async def continue_run(self):
+        """Run one round and report to webui"""
         await self.environment.run()
         return self.environment.history

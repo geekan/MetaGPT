@@ -18,7 +18,6 @@ from metagpt.schema import Message
 class Environment(BaseModel):
     """环境，承载一批角色，角色可以向环境发布消息，可以被其他角色观察到
        Environment, hosting a batch of roles, roles can publish messages to the environment, and can be observed by other roles
-    
     """
     environment_type: str = Field(default='')
     short_term_history: str = Field(default_factory=Memory)
