@@ -8,7 +8,7 @@
 import os
 from pathlib import Path
 
-from metagpt.actions import DebugError, RunCode, WriteCode, WriteDesign, WriteTest, Feedback
+from metagpt.actions import DebugError, RunCode, WriteCode, WriteDesign, WriteTest
 from metagpt.const import WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.roles import Role
@@ -25,15 +25,11 @@ class QaEngineer(Role):
         goal="Write comprehensive and robust tests to ensure codes will work as expected without bugs",
         constraints="The test code you write should conform to code standard like PEP8, be modular, easy to read and maintain",
         test_round_allowed=5,
-        feedback: bool = True,
     ):
-        super().__init__(name, profile, goal, constraints, feedback)
+        super().__init__(name, profile, goal, constraints)
         self._init_actions(
             [WriteTest]
         )  # FIXME: a bit hack here, only init one action to circumvent _think() logic, will overwrite _think() in future updates
-        self.feedback = feedback
-        if self.feedback:
-            self._add_action_at_head(Feedback)
         self._watch([WriteCode, WriteTest, RunCode, DebugError])
         self.test_round = 0
         self.test_round_allowed = test_round_allowed
@@ -150,13 +146,6 @@ class QaEngineer(Role):
         return len(self._rc.news)
 
     async def _act(self) -> Message:
-
-        if self.feedback:
-            msg = self._rc.memory.get_by_action(WriteCode)[0]
-            feedback =  await Feedback.run(msg)
-            ret = Message(feedback.content, role=self.profile, cause_by=Feedback)
-            self._rc.memory.add(ret)
-
         if self.test_round > self.test_round_allowed:
             result_msg = Message(
                 content=f"Exceeding {self.test_round_allowed} rounds of tests, skip (writing code counts as a round, too)",
@@ -170,7 +159,6 @@ class QaEngineer(Role):
         for msg in self._rc.news:
             # Decide what to do based on observed msg type, currently defined by human,
             # might potentially be moved to _think, that is, let the agent decides for itself
-
             if msg.cause_by == WriteCode:
                 # engineer wrote a code, time to write a test for it
                 await self._write_test(msg)
