@@ -14,6 +14,7 @@ from metagpt.actions.debug_error import DebugError
 from metagpt.actions.design_api import WriteDesign
 from metagpt.actions.design_api_review import DesignReview
 from metagpt.actions.design_filenames import DesignFilenames
+from metagpt.actions.internal_feedback import Feedback
 from metagpt.actions.project_management import AssignTasks, WriteTasks
 from metagpt.actions.research import CollectLinks, WebBrowseAndSummarize, ConductResearch
 from metagpt.actions.run_code import RunCode
@@ -45,6 +46,7 @@ class ActionType(Enum):
     COLLECT_LINKS = CollectLinks
     WEB_BROWSE_AND_SUMMARIZE = WebBrowseAndSummarize
     CONDUCT_RESEARCH = ConductResearch
+    INTERNAL_FEEDBACK = Feedback
 
 
 __all__ = [

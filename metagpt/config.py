@@ -8,7 +8,7 @@ import os
 import openai
 import yaml
 
-from metagpt.const import PROJECT_ROOT
+from metagpt.const import PROJECT_ROOT, HANDOVER_FILE
 from metagpt.logs import logger
 from metagpt.tools import SearchEngineType, WebBrowserEngineType
 from metagpt.utils.singleton import Singleton
@@ -37,6 +37,7 @@ class Config(metaclass=Singleton):
     _instance = None
     key_yaml_file = PROJECT_ROOT / "config/key.yaml"
     default_yaml_file = PROJECT_ROOT / "config/config.yaml"
+    handover_file = HANDOVER_FILE
 
     def __init__(self, yaml_file=default_yaml_file):
         self._configs = {}
