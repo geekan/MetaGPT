@@ -69,8 +69,7 @@ class Feedback(Action):
         logger.debug(prompt)
         feedback = await self._aask(prompt)
 
-        handover_record = CONFIG.handover_file 
-        print_with_color(handover_record)
+        handover_record = CONFIG.handover_file
         # if os.path.exists(handover_record):
         #     with open(handover_record, "r+") as file:
         #         data = json.load(file)

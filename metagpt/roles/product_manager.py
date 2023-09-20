@@ -36,7 +36,7 @@ class ProductManager(Role):
             goal (str): Goal of the product manager.
             constraints (str): Constraints or limitations for the product manager.
         """
-        super().__init__(name, profile, goal, constraints)
+        super().__init__(name, profile, goal, constraints, feedback)
         self._init_actions([WritePRD])
         if feedback:
             self._init_actions([Feedback, WritePRD])
@@ -58,10 +58,11 @@ class ProductManager(Role):
         todo = self._rc.todo
         
         if isinstance(todo, Feedback):
-            msg = self._rc.memory.get()[0]
+            msg = self._rc.memory.get_by_action(BossRequirement)
             feedback =  await todo.run(msg)
             ret = Message(feedback, role=self.profile, cause_by=type(todo))
         elif isinstance(todo, WritePRD):
+            msg = self._rc.memory.get_by_action(BossRequirement)
             prd =  await todo.run(msg)
             ret = Message(prd.content, role=self.profile, cause_by=WritePRD)
         else:
