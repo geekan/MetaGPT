@@ -5,7 +5,7 @@
 @Author  : chengmaoyu
 @File    : test_output_parser.py
 """
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 import pytest
 
@@ -69,43 +69,43 @@ def test_parse_data():
     [
         (
             """xxx [1, 2, ["a", "b", [3, 4]], {"x": 5, "y": [6, 7]}] xxx""",
-            "list",
+            list,
             [1, 2, ["a", "b", [3, 4]], {"x": 5, "y": [6, 7]}],
             None,
         ),
         (
             """xxx ["1", "2", "3"] xxx \n xxx \t xx""",
-            "list",
+            list,
             ["1", "2", "3"],
             None,
         ),
         (
             """{"title": "a", "directory": {"sub_dir1": ["title1, title2"]}, "sub_dir2": [1, 2]}""",
-            "dict",
+            dict,
             {"title": "a", "directory": {"sub_dir1": ["title1, title2"]}, "sub_dir2": [1, 2]},
             None,
         ),
         (
             """xxx {"title": "x", \n  \t "directory": ["x", \n "y"]} xxx \n xxx \t xx""",
-            "dict",
+            dict,
             {"title": "x", "directory": ["x", "y"]},
             None,
         ),
         (
             """xxx xx""",
-            "list",
+            list,
             None,
             Exception,
         ),
         (
             """xxx [1, 2, []xx""",
-            "list",
+            list,
             None,
             Exception,
         ),
     ]
 )
-def test_extract_struct(text: str, data_type: str, parsed_data: list, expected_exception):
+def test_extract_struct(text: str, data_type: Union[type(list), type(dict)], parsed_data: Union[list, dict], expected_exception):
     def case():
         resp = OutputParser.extract_struct(text, data_type)
         assert resp == parsed_data

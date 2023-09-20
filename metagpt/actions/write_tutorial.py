@@ -37,7 +37,7 @@ class WriteDirectory(Action):
         """
         prompt = DIRECTORY_PROMPT.format(topic=topic, language=self.language)
         resp = await self._aask(prompt=prompt)
-        return OutputParser.extract_struct(resp, "dict")
+        return OutputParser.extract_struct(resp, dict)
 
 
 class WriteContent(Action):

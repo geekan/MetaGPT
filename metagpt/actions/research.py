@@ -111,7 +111,7 @@ class CollectLinks(Action):
         system_text = system_text if system_text else RESEARCH_TOPIC_SYSTEM.format(topic=topic)
         keywords = await self._aask(SEARCH_TOPIC_PROMPT, [system_text])
         try:
-            keywords = OutputParser.extract_struct(keywords, "list")
+            keywords = OutputParser.extract_struct(keywords, list)
             keywords = parse_obj_as(list[str], keywords)
         except Exception as e:
             logger.exception(f"fail to get keywords related to the research topic \"{topic}\" for {e}")
@@ -131,7 +131,7 @@ class CollectLinks(Action):
         logger.debug(prompt)
         queries = await self._aask(prompt, [system_text])
         try:
-            queries = OutputParser.extract_struct(queries, "list")
+            queries = OutputParser.extract_struct(queries, list)
             queries = parse_obj_as(list[str], queries)
         except Exception as e:
             logger.exception(f"fail to break down the research question due to {e}")
@@ -159,7 +159,7 @@ class CollectLinks(Action):
         logger.debug(prompt)
         indices = await self._aask(prompt)
         try:
-            indices = OutputParser.extract_struct(indices, "list")
+            indices = OutputParser.extract_struct(indices, list)
             assert all(isinstance(i, int) for i in indices)
         except Exception as e:
             logger.exception(f"fail to rank results for {e}")
