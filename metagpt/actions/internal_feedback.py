@@ -45,7 +45,7 @@ class Feedback(Action):
             They shared their work details with you: {prev_msg}. 
             Your current task involves incorporating their input into your {your_role} duties. 
             Evaluate this handover process critically and suggest potential ways for improvement, as if you were analyzing a real work situation. 
-            Please provide your assessment concisely in 30 words or less:
+            Please provide your assessment concisely in 20 words or less:
             """
 
 

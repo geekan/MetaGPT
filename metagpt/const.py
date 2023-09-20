@@ -38,6 +38,7 @@ RESEARCH_PATH = DATA_PATH / "research"
 TUTORIAL_PATH = DATA_PATH / "tutorial_docx"
 
 SKILL_DIRECTORY = PROJECT_ROOT / "metagpt/skills"
-HANDOVER_FILE = WORKSPACE_ROOT / "handover.json"
+LONG_TERM_MEMORY_PATH = WORKSPACE_ROOT / "long_term_memory"
+HANDOVER_FILE =  LONG_TERM_MEMORY_PATH / "handover.json"
 
 MEM_TTL = 24 * 30 * 3600

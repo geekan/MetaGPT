@@ -116,6 +116,24 @@ class Role:
             self._actions.append(i)
             self._states.append(f"{idx}. {action}")
 
+    def _add_action_at_head(self, action):
+        if not isinstance(action, Action):
+            i = action("")
+        else:
+            i = action
+        i.set_prefix(self._get_prefix(), self.profile)
+        self._actions.insert(0, i)
+        self._states.insert(0, f"{0}. {action}")
+
+    def _add_action_at_tail(self, action):
+        if not isinstance(action, Action):
+            i = action("")
+        else:
+            i = action
+        i.set_prefix(self._get_prefix(), self.profile)
+        self._actions.append(i)
+        self._states.append(f"{len(self._actions) - 1}. {action}")
+
     def _watch(self, actions: Iterable[Type[Action]]):
         """Listen to the corresponding behaviors"""
         self._rc.watch.update(actions)

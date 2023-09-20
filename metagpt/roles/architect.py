@@ -11,17 +11,6 @@ from metagpt.roles import Role
 from metagpt.logs import logger
 from metagpt.schema import Message
 
-def print_with_color(text, color="red"):
-
-    color_codes = {
-        'reset': '\033[0m',
-        'red': '\033[91m',
-        'green': '\033[92m',
-        'yellow': '\033[93m',
-        'blue': '\033[94m',
-    }
-    print(f"{color_codes[color]}  {text} {color_codes['reset']}")
-
 
 class Architect(Role):
     """
@@ -46,7 +35,7 @@ class Architect(Role):
         # Initialize actions specific to the Architect role
         self._init_actions([WriteDesign])
         if feedback:
-            self._init_actions([Feedback, WriteDesign])
+            self._add_action_at_head(Feedback)
         # Set events or actions the Architect should watch or be aware of
         self._watch([WritePRD])
 

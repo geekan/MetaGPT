@@ -40,7 +40,7 @@ class ProjectManager(Role):
         # Initialize actions specific to the ProjectManager role
         self._init_actions([WriteTasks])
         if feedback:
-            self._init_actions([Feedback, WriteTasks])
+            self._add_action_at_head(Feedback)
         # Set events or actions the ProjectManager should watch or be aware of
         self._watch([WriteDesign])
 

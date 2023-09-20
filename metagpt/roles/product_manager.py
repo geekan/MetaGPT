@@ -39,7 +39,7 @@ class ProductManager(Role):
         super().__init__(name, profile, goal, constraints, feedback)
         self._init_actions([WritePRD])
         if feedback:
-            self._init_actions([Feedback, WritePRD])
+            self._add_action_at_head(Feedback)
         self._watch([BossRequirement])
 
     async def _think(self) -> None:

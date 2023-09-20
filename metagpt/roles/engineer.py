@@ -13,11 +13,22 @@ from pathlib import Path
 from metagpt.const import WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.roles import Role
-from metagpt.actions import WriteCode, WriteCodeReview, WriteTasks, WriteDesign
+from metagpt.actions import WriteCode, WriteCodeReview, WriteTasks, WriteDesign, Feedback
 from metagpt.schema import Message
 from metagpt.utils.common import CodeParser
 from metagpt.utils.special_tokens import MSG_SEP, FILENAME_CODE_SEP
 
+
+def print_with_color(text, color="red"):
+
+    color_codes = {
+        'reset': '\033[0m',
+        'red': '\033[91m',
+        'green': '\033[92m',
+        'yellow': '\033[93m',
+        'blue': '\033[94m',
+    }
+    print(f"{color_codes[color]}  {text} {color_codes['reset']}")
 
 async def gather_ordered_k(coros, k) -> list:
     tasks = OrderedDict()
@@ -66,13 +77,18 @@ class Engineer(Role):
                  goal: str = "Write elegant, readable, extensible, efficient code",
                  constraints: str = "The code should conform to standards like PEP8 and be modular and maintainable",
                  n_borg: int = 1, 
-                 use_code_review: bool = False) -> None:
+                 use_code_review: bool = False,
+                 feedback: bool = True) -> None:
         """Initializes the Engineer role with given attributes."""
-        super().__init__(name, profile, goal, constraints)
+        super().__init__(name, profile, goal, constraints, feedback)
         self._init_actions([WriteCode])
         self.use_code_review = use_code_review
+        self.feedback = feedback
+        if self.feedback:
+            self._add_action_at_head(Feedback)
         if self.use_code_review:
-            self._init_actions([WriteCode, WriteCodeReview])
+            self._add_action_at_tail(WriteCodeReview)
+
         self._watch([WriteTasks])
         self.todos = []
         self.n_borg = n_borg
@@ -121,6 +137,8 @@ class Engineer(Role):
         self._rc.memory.add(message)
         if message in self._rc.important_memory:
             self.todos = self.parse_tasks(message)
+        if self.feedback:
+            self.todos.insert(0, Feedback())
 
     async def _act_mp(self) -> Message:
         # self.recreate_workspace()
@@ -149,19 +167,25 @@ class Engineer(Role):
     async def _act_sp(self) -> Message:
         code_msg_all = [] # gather all code info, will pass to qa_engineer for tests later
         for todo in self.todos:
-            code = await WriteCode().run(
-                context=self._rc.history,
-                filename=todo
-            )
-            # logger.info(todo)
-            # logger.info(code_rsp)
-            # code = self.parse_code(code_rsp)
-            file_path = self.write_file(todo, code)
-            msg = Message(content=code, role=self.profile, cause_by=type(self._rc.todo))
-            self._rc.memory.add(msg)
+            if isinstance(todo, Feedback):
+                msg = self._rc.memory.get_by_action(WriteTasks)
+                feedback =  await todo.run(msg)
+                ret = Message(feedback.content, role=self.profile, cause_by=type(todo))
+                self._rc.memory.add(ret)
+            else:
+                code = await WriteCode().run(
+                    context=self._rc.history,
+                    filename=todo
+                )
+                # logger.info(todo)
+                # logger.info(code_rsp)
+                # code = self.parse_code(code_rsp)
+                file_path = self.write_file(todo, code)
+                msg = Message(content=code, role=self.profile, cause_by=type(self._rc.todo))
+                self._rc.memory.add(msg)
 
-            code_msg = todo + FILENAME_CODE_SEP + str(file_path)
-            code_msg_all.append(code_msg)
+                code_msg = todo + FILENAME_CODE_SEP + str(file_path)
+                code_msg_all.append(code_msg)
 
         logger.info(f'Done {self.get_workspace()} generating.')
         msg = Message(
@@ -175,41 +199,50 @@ class Engineer(Role):
     async def _act_sp_precision(self) -> Message:
         code_msg_all = [] # gather all code info, will pass to qa_engineer for tests later
         for todo in self.todos:
-            """
-            # Select essential information from the historical data to reduce the length of the prompt (summarized from human experience):
-            1. All from Architect
-            2. All from ProjectManager
-            3. Do we need other codes (currently needed)?
-            TODO: The goal is not to need it. After clear task decomposition, based on the design idea, you should be able to write a single file without needing other codes. If you can't, it means you need a clearer definition. This is the key to writing longer code.
-            """
-            context = []
-            msg = self._rc.memory.get_by_actions([WriteDesign, WriteTasks, WriteCode])
-            for m in msg:
-                context.append(m.content)
-            context_str = "\n".join(context)
-            # Write code
-            code = await WriteCode().run(
-                context=context_str,
-                filename=todo
-            )
-            # Code review
-            if self.use_code_review:
-                try:
-                    rewrite_code = await WriteCodeReview().run(
-                        context=context_str,
-                        code=code,
-                        filename=todo
-                    )
-                    code = rewrite_code
-                except Exception as e:
-                    logger.error("code review failed!", e)
-                    pass
-            file_path = self.write_file(todo, code)
-            msg = Message(content=code, role=self.profile, cause_by=WriteCode)
-            self._rc.memory.add(msg)
+            print_with_color(f"todo: {todo}")
+            print_with_color(f"type(todo): {type(todo)}")
+            if isinstance(todo, Feedback):
+                
+                msg = self._rc.memory.get_by_action(WriteTasks)
+                feedback =  await todo.run(msg)
+                ret = Message(feedback, role=self.profile, cause_by=type(todo))
+                self._rc.memory.add(ret)
+            else:
+                """
+                # Select essential information from the historical data to reduce the length of the prompt (summarized from human experience):
+                1. All from Architect
+                2. All from ProjectManager
+                3. Do we need other codes (currently needed)?
+                TODO: The goal is not to need it. After clear task decomposition, based on the design idea, you should be able to write a single file without needing other codes. If you can't, it means you need a clearer definition. This is the key to writing longer code.
+                """
+                context = []
+                msg = self._rc.memory.get_by_actions([WriteDesign, WriteTasks, WriteCode])
+                for m in msg:
+                    context.append(m.content)
+                context_str = "\n".join(context)
+                # Write code
+                code = await WriteCode().run(
+                    context=context_str,
+                    filename=todo
+                )
+                # Code review
+                if self.use_code_review:
+                    try:
+                        rewrite_code = await WriteCodeReview().run(
+                            context=context_str,
+                            code=code,
+                            filename=todo
+                        )
+                        code = rewrite_code
+                    except Exception as e:
+                        logger.error("code review failed!", e)
+                        pass
+                file_path = self.write_file(todo, code)
+                msg = Message(content=code, role=self.profile, cause_by=WriteCode)
+                self._rc.memory.add(msg)
 
-            code_msg = todo + FILENAME_CODE_SEP + str(file_path)
-            code_msg_all.append(code_msg)
+                code_msg = todo + FILENAME_CODE_SEP + str(file_path)
+                code_msg_all.append(code_msg)
 
         logger.info(f'Done {self.get_workspace()} generating.')
         msg = Message(
