@@ -98,7 +98,7 @@ with app:
                 # MetaGPT
                 """)
     with gr.Tabs():
-        with gr.TabItem("MetaGPT") as generate_tab:
+        with gr.TabItem("MetaGPT") as generate_tab: 
             company_choise = gr.Dropdown(label = "Choose the company type",\
                                         choices = ["SoftwareCompany", "SoftwareCompany_With_Human"],\
                                         value = "SoftwareCompany_With_Human")
