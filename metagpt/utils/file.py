@@ -64,17 +64,16 @@ class File:
             Exception: If an unexpected error occurs during the file reading process.
         """
         try:
-            if not file_path.exists():
-                raise FileNotFoundError(f"File not found, path is '{file_path}'")
             chunk_size = chunk_size or cls.CHUNK_SIZE
             async with aiofiles.open(file_path, mode="rb") as reader:
-                content = bytes()
+                chunks = list()
                 while True:
                     chunk = await reader.read(chunk_size)
                     if not chunk:
                         break
-                    content += chunk
-                logger.info(f"Successfully read file, the size of file: {len(content)}")
+                    chunks.append(chunk)
+                content = b''.join(chunks)
+                logger.info(f"Successfully read file, the path of file: {file_path}")
                 return content
         except Exception as e:
             logger.error(f"Error reading file: {e}")
