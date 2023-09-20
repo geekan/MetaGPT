@@ -21,12 +21,13 @@ async def startup(
     code_review: bool = False,
     run_tests: bool = False,
     implement: bool = True,
+    self_improvement: bool = True,
 ):
     """Run a startup. Be a boss."""
     company = SoftwareCompany()
     company.hire(
         [
-            ProductManager(),
+            ProductManager(feedback = self_improvement),
             Architect(),
             ProjectManager(),
         ]
@@ -43,6 +44,8 @@ async def startup(
         company.hire([QaEngineer()])
 
     company.invest(investment)
+    if self_improvement:
+        company.improvement()
     company.start_project(idea)
     await company.run(n_round=n_round)
 

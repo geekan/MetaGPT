@@ -38,6 +38,18 @@ class SoftwareCompany(BaseModel):
         CONFIG.max_budget = investment
         logger.info(f'Investment: ${investment}.')
 
+    def improvement(self):
+        import os
+        import json
+        if os.path.exists(CONFIG.handover_record):
+            with open(CONFIG.handover_record, "r+") as file:
+                data = json.load(file)
+        else: data = {}
+
+        data["new_key"] = "new_value"
+        with open(CONFIG.handover_record, "w") as file:
+            json.dump(data, file)
+
     def _check_balance(self):
         if CONFIG.total_cost > CONFIG.max_budget:
             raise NoMoneyException(CONFIG.total_cost, f'Insufficient funds: {CONFIG.max_budget}')
