@@ -18,14 +18,13 @@ class File:
     CHUNK_SIZE = 64 * 1024
 
     @classmethod
-    async def write(cls, root_path: Path, filename: str, content: bytes, chunk_size: int = None) -> Path:
-        """Partitioning write the file content to the local specified path.
+    async def write(cls, root_path: Path, filename: str, content: bytes) -> Path:
+        """Write the file content to the local specified path.
 
         Args:
             root_path: The root path of file, such as "/data".
             filename: The name of file, such as "test.txt".
             content: The binary content of file.
-            chunk_size: The size of each chunk in bytes (default is 64kb).
 
         Returns:
             The full filename of file, such as "/data/test.txt".
@@ -34,16 +33,11 @@ class File:
             Exception: If an unexpected error occurs during the file writing process.
         """
         try:
-            chunk_size = chunk_size or cls.CHUNK_SIZE
             root_path.mkdir(parents=True, exist_ok=True)
             full_path = root_path / filename
             async with aiofiles.open(full_path, mode="wb") as writer:
-                for i in range(0, len(content), chunk_size):
-                    chunk = content[i:i + chunk_size]
-                    await writer.write(chunk)
-                    # Flush the buffer to ensure data is written immediately
-                    await writer.flush()
-                logger.info(f"Successfully write file: {full_path}")
+                await writer.write(content)
+                logger.debug(f"Successfully write file: {full_path}")
                 return full_path
         except Exception as e:
             logger.error(f"Error writing file: {e}")
@@ -73,7 +67,7 @@ class File:
                         break
                     chunks.append(chunk)
                 content = b''.join(chunks)
-                logger.info(f"Successfully read file, the path of file: {file_path}")
+                logger.debug(f"Successfully read file, the path of file: {file_path}")
                 return content
         except Exception as e:
             logger.error(f"Error reading file: {e}")
