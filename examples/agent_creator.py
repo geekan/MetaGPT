@@ -43,7 +43,7 @@ class CreateAgent(Action):
         code_text = CreateAgent.parse_code(rsp)
 
         return code_text
-    
+
     @staticmethod
     def parse_code(rsp):
         pattern = r'```python(.*)```'
@@ -85,7 +85,8 @@ if __name__ == "__main__":
 
         creator = AgentCreator(agent_template=agent_template)
 
-        # msg = """Write an agent called SimpleTester that will take any code snippet (str) and return a testing code (str) for testing
+        # msg = """Write an agent called SimpleTester that will take any code snippet (str)
+        #     and return a testing code (str) for testing
         #     the given code snippet. Use pytest as the testing framework."""
 
         msg = """
@@ -94,6 +95,6 @@ if __name__ == "__main__":
         2. run the testing code.
         You can use pytest as the testing framework.
         """
-        result = await creator.run(msg)
+        await creator.run(msg)
 
     asyncio.run(main())

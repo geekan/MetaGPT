@@ -32,7 +32,7 @@ class SimpleWriteCode(Action):
 
     def __init__(self, name="SimpleWriteCode", context=None, llm=None):
         super().__init__(name, context, llm)
-    
+
     async def run(self, instruction: str):
 
         prompt = self.PROMPT_TEMPLATE.format(instruction=instruction)
@@ -43,7 +43,7 @@ class SimpleWriteCode(Action):
         code_text = SimpleWriteCode.parse_code(rsp)
 
         return code_text
-    
+
     @staticmethod
     def parse_code(rsp):
         pattern = r'```python(.*)```'
@@ -54,7 +54,7 @@ class SimpleWriteCode(Action):
 class SimpleRunCode(Action):
     def __init__(self, name="SimpleRunCode", context=None, llm=None):
         super().__init__(name, context, llm)
-    
+
     async def run(self, code_text: str):
         result = subprocess.run(["python3", "-c", code_text], capture_output=True, text=True)
         code_result = result.stdout
@@ -112,7 +112,7 @@ class RunnableCoder(Role):
             instruction = msg.content
             code_text = await SimpleWriteCode().run(instruction)
             msg = Message(content=code_text, role=self.profile, cause_by=todo)
-        
+
         elif isinstance(todo, SimpleRunCode):
             code_text = msg.content
             rsp = await SimpleRunCode().run(code_text)

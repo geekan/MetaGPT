@@ -29,7 +29,7 @@ class ShoutOut(Action):
 
     def __init__(self, name="ShoutOut", context=None, llm=None):
         super().__init__(name, context, llm)
-    
+
     async def run(self, context: str, name: str, opponent_name: str):
 
         prompt = self.PROMPT_TEMPLATE.format(context=context, name=name, opponent_name=opponent_name)
@@ -51,17 +51,16 @@ class Trump(Role):
         self._watch([ShoutOut])
         self.name = "Trump"
         self.opponent_name = "Biden"
-    
+
     async def _observe(self) -> int:
         await super()._observe()
-        self._rc.news = [
-            msg for msg in self._rc.news if msg.send_to == self.name
-        ]  # accept messages sent (from opponent) to self, disregard own messages from the last round
+        # accept messages sent (from opponent) to self, disregard own messages from the last round
+        self._rc.news = [msg for msg in self._rc.news if msg.send_to == self.name]  
         return len(self._rc.news)
 
     async def _act(self) -> Message:
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
-        
+
         msg_history = self._rc.memory.get_by_actions([ShoutOut])
         context = []
         for m in msg_history:
@@ -92,17 +91,17 @@ class Biden(Role):
         self._watch([BossRequirement, ShoutOut])
         self.name = "Biden"
         self.opponent_name = "Trump"
-    
+
     async def _observe(self) -> int:
         await super()._observe()
-        self._rc.news = [
-            msg for msg in self._rc.news if msg.cause_by == BossRequirement or msg.send_to == self.name
-        ]  # accept the very first human instruction (the debate topic) or messages sent (from opponent) to self, disregard own messages from the last round
+        # accept the very first human instruction (the debate topic) or messages sent (from opponent) to self,
+        # disregard own messages from the last round
+        self._rc.news = [msg for msg in self._rc.news if msg.cause_by == BossRequirement or msg.send_to == self.name]
         return len(self._rc.news)
 
     async def _act(self) -> Message:
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
-        
+
         msg_history = self._rc.memory.get_by_actions([BossRequirement, ShoutOut])
         context = []
         for m in msg_history:
@@ -134,7 +133,8 @@ async def startup(idea: str, investment: float = 3.0, n_round: int = 5,
 
 def main(idea: str, investment: float = 3.0, n_round: int = 10):
     """
-    :param idea: Debate topic, such as "Topic: The U.S. should commit more in climate change fighting" or "Trump: Climate change is a hoax"
+    :param idea: Debate topic, such as "Topic: The U.S. should commit more in climate change fighting" 
+                 or "Trump: Climate change is a hoax"
     :param investment: contribute a certain dollar amount to watch the debate
     :param n_round: maximum rounds of the debate
     :return:
