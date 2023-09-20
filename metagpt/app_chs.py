@@ -1,17 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-import aiofiles
+"""
+@Time    : 2023/9/19 17:12
+@Author  : ORI_Replication
+@File    : app_chs.py
+"""
 import gradio as gr 
 from metagpt.software_company import SoftwareCompany, SoftwareCompanyWithHuman
-from metagpt.roles import ProjectManager, ProductManager, Architect, Engineer, QaEngineer, Searcher, Sales, customer_service
+from metagpt.roles import ProjectManager,\
+                ProductManager, Architect,\
+                Engineer, QaEngineer
 from metagpt.roles.researcher import RESEARCH_PATH, Researcher
-import io
-import asyncio
-import threading
 from metagpt.const import PROJECT_ROOT
-from time import sleep
-from metagpt.schema import Message
 import sys
 
 def clear_logs():
@@ -67,7 +67,12 @@ async def startup(company_name : str,
         await company.run(n_round)
     elif company_name == "可以人为干预的软件公司":
         await company.continue_run()
-    return "角色: "+company.environment.short_term_history.role, "行为: "+str(company.environment.short_term_history.cause_by),company.environment.short_term_history.sent_from,company.environment.short_term_history.send_to, company.environment.short_term_history.content, company.environment.short_term_history.content
+    return  "角色: "+company.environment.short_term_history.role, \
+            "行为: "+str(company.environment.short_term_history.cause_by),\
+            company.environment.short_term_history.sent_from,\
+            company.environment.short_term_history.send_to,\
+            company.environment.short_term_history.content,\
+            company.environment.short_term_history.content
 
 async def __continue(message_content : str):
     company = SoftwareCompany_Company
@@ -76,7 +81,12 @@ async def __continue(message_content : str):
     company.environment.memory.add(company.environment.short_term_history)
     company.environment.history += f"\n{company.environment.short_term_history}"
     await company.continue_run()
-    return "角色: "+company.environment.short_term_history.role, "行为: "+str(company.environment.short_term_history.cause_by),company.environment.short_term_history.sent_from,company.environment.short_term_history.send_to, company.environment.short_term_history.content, company.environment.short_term_history.content
+    return "角色: "+company.environment.short_term_history.role,\
+            "行为: "+str(company.environment.short_term_history.cause_by),\
+            company.environment.short_term_history.sent_from,\
+            company.environment.short_term_history.send_to,\
+            company.environment.short_term_history.content,\
+            company.environment.short_term_history.content
 
 async def research_startup(language : str,
                            topic : str):
@@ -101,16 +111,19 @@ with app:
                 """)
     with gr.Tabs():
         with gr.TabItem("MetaGPT") as generate_tab:
-            company_choise = gr.Dropdown(label = "选择公司类型", choices = ["软件公司", "可以人为干预的软件公司"], value = "可以人为干预的软件公司")
+            company_choise = gr.Dropdown(label = "选择公司类型",\
+                choices = ["软件公司", "可以人为干预的软件公司"], value = "可以人为干预的软件公司")
             with gr.Row():
-                investment = gr.Slider(minimum=0.0, maximum=20.0, step=0.1, label="投资",value = 6.0, info="The maxmium money you want to spend on the GPT generation")
+                investment = gr.Slider(minimum=0.0, maximum=20.0, step=0.1, label="投资",\
+                    value = 6.0, info="The maxmium money you want to spend on the GPT generation")
                 n_round = gr.Number( label="轮数", value = 5, info="你想要运行的最大轮数",visible = False)
             with gr.Row():
                 run_tests = gr.Checkbox(label = "是否要雇佣质量保证工程师来进行测试", value = False)
                 with gr.Row():
                     implement = gr.Checkbox(label = "是否要雇佣工程师来实施项目(仅支持python)", value = True)
                     code_review = gr.Checkbox(label = "是否进行代码检查", value = False)
-            staffs = gr.CheckboxGroup(["项目经理", "产品经理", "架构师"], label="Choose the staff you would like to hire", value = ["项目经理", "产品经理", "架构师"])
+            staffs = gr.CheckboxGroup(["项目经理", "产品经理", "架构师"],\
+                label="Choose the staff you would like to hire", value = ["项目经理", "产品经理", "架构师"])
             idea = gr.Textbox(label="你的创新想法，比如：“做一个贪吃蛇游戏”", value = "做一个贪吃蛇游戏")
             with gr.Row():
                 Start_MetaGPT = gr.Button(label="开始 / 重新开始", value = "开始 / 重新开始")
@@ -128,16 +141,22 @@ with app:
                 output_send_to_metagpt = gr.Markdown(label="接收者")
 
             with gr.Row():
-                output_content_metagpt = gr.Textbox(label="MetaGPT的阶段性输出,按照你的意愿进行修改",max_lines=999,show_copy_button = True)
+                output_content_metagpt = gr.Textbox(label="MetaGPT的阶段性输出,按照你的意愿进行修改",\
+                                                    max_lines=999,show_copy_button = True)
                 output_content_markdown_metagpt = gr.Markdown(label="Markdown输出", visible = False)
             
             
-        Start_MetaGPT.click(startup, [company_choise, idea, investment, n_round, code_review, run_tests, implement, staffs], [output_role_metagpt,output_cause_metagpt,output_sent_from_metagpt,output_send_to_metagpt,output_content_metagpt,output_content_markdown_metagpt])
-        # clear_log.click(clear_logs, [],[])
-        continue_run.click(__continue, [output_content_metagpt], [output_role_metagpt,output_cause_metagpt,output_sent_from_metagpt,output_send_to_metagpt,output_content_metagpt,output_content_markdown_metagpt])
-        company_choise.change(lambda company_choise : gr.update(visible = True if company_choise == "可以人为干预的软件公司" else False), [company_choise], [continue_run])
-        company_choise.change(lambda company_choise : gr.update(visible = False if company_choise == "可以人为干预的软件公司" else True), [company_choise], [n_round])
-        show_markdown.change(lambda x: gr.update(visible = True if x == True else False), [show_markdown], [output_content_markdown_metagpt])
+        Start_MetaGPT.click(startup, [company_choise, idea, investment, n_round, code_review, run_tests, implement, staffs],\
+                                    [output_role_metagpt,output_cause_metagpt,output_sent_from_metagpt,\
+                                    output_send_to_metagpt,output_content_metagpt,output_content_markdown_metagpt])
+        continue_run.click(__continue, [output_content_metagpt], [output_role_metagpt,output_cause_metagpt,\
+                                        output_sent_from_metagpt,output_send_to_metagpt,output_content_metagpt,output_content_markdown_metagpt])
+        company_choise.change(lambda company_choise : gr.update(visible = True \
+            if company_choise == "可以人为干预的软件公司" else False), [company_choise], [continue_run])
+        company_choise.change(lambda company_choise : gr.update(visible = False \
+            if company_choise == "可以人为干预的软件公司" else True), [company_choise], [n_round])
+        show_markdown.change(lambda x: gr.update(visible = True \
+            if x == True else False), [show_markdown], [output_content_markdown_metagpt])
         with gr.TabItem("Research") as research_tab:
             language = gr.Dropdown(label = "Choose the language", choices = ["en-us","zh-ch"], value = "en-us")
             topic = gr.Textbox(label="Your research topic, such as 'dataiku vs. datarobot'", value = "dataiku vs. datarobot")
