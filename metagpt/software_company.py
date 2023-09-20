@@ -41,14 +41,9 @@ class SoftwareCompany(BaseModel):
     def improvement(self):
         import os
         import json
-        if os.path.exists(CONFIG.handover_file):
-            with open(CONFIG.handover_file, "r+") as file:
-                data = json.load(file)
-        else: data = {}
-
-        data["new_key"] = "new_value"
-        with open(CONFIG.handover_file, "w") as file:
-            json.dump(data, file)
+        if not os.path.exists(CONFIG.handover_file):
+            with open(CONFIG.handover_file, "w") as file:
+                json.dump({}, file)
 
     def _check_balance(self):
         if CONFIG.total_cost > CONFIG.max_budget:
