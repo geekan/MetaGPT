@@ -56,13 +56,11 @@ class ProductManager(Role):
     async def _act(self) -> Message:
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
         todo = self._rc.todo
-        
+        msg = self._rc.memory.get_by_action(BossRequirement)
         if isinstance(todo, Feedback):
-            msg = self._rc.memory.get_by_action(BossRequirement)
             feedback =  await todo.run(msg)
             ret = Message(feedback, role=self.profile, cause_by=type(todo))
         elif isinstance(todo, WritePRD):
-            msg = self._rc.memory.get_by_action(BossRequirement)
             prd =  await todo.run(msg)
             ret = Message(prd.content, role=self.profile, cause_by=WritePRD)
         else:

@@ -67,9 +67,6 @@ class Architect(Role):
         
         if isinstance(todo, Feedback):
             msg = self._rc.memory.get_by_action(WritePRD)[0]
-
-            print_with_color(msg)
-            print_with_color(type(msg))
             feedback =  await todo.run(msg)
             ret = Message(feedback, role=self.profile, cause_by=type(todo))
         elif isinstance(todo, WriteDesign):
