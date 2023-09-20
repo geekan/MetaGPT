@@ -1,0 +1,8 @@
+Must: brainstorm ideas and create a list.
+Must: use a numbered list.
+Must: only one list.
+Must: end list with ##END##
+Should: no more than 10 items.
+Should: at least 3 items.
+Topic: {{$INPUT}}
+Start.

@@ -1,0 +1,23 @@
+[SUMMARIZATION RULES]
+DONT WASTE WORDS
+USE SHORT, CLEAR, COMPLETE SENTENCES.
+DO NOT USE BULLET POINTS OR DASHES.
+USE ACTIVE VOICE.
+MAXIMIZE DETAIL, MEANING
+FOCUS ON THE CONTENT
+
+[BANNED PHRASES]
+This article
+This document
+This page
+This material
+[END LIST]
+
+Summarize:
+Hello how are you?
++++++
+Hello
+
+Summarize this
+{{$input}}
++++++
