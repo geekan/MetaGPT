@@ -31,8 +31,7 @@ def print_with_color(text, color="red"):
         'yellow': '\033[93m',
         'blue': '\033[94m',
     }
-
-    print(color_codes[color] + text + color_codes['reset'])
+    print(f"{color_codes[color]}  {text} {color_codes['reset']}")
 
 
 

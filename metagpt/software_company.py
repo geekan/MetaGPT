@@ -41,8 +41,10 @@ class SoftwareCompany(BaseModel):
     def improvement(self):
         import os
         import json
-        if not os.path.exists(CONFIG.handover_file):
-            with open(CONFIG.handover_file, "w") as file:
+        handover_file = CONFIG.handover_file
+        os.makedirs(os.path.dirname(handover_file), exist_ok=True)
+        if not os.path.exists(handover_file):
+            with open(handover_file, "w") as file:
                 json.dump({}, file)
 
     def _check_balance(self):
