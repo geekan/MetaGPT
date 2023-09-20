@@ -89,6 +89,6 @@ class Architect(Role):
                 break
             msg = await self._act()
             todo = self._rc.todo
-            ret = Message(msg, role=self.profile, cause_by=type(todo))
+            ret = Message(msg.content, role=self.profile, cause_by=type(todo))
 
         return ret

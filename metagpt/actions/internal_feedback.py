@@ -40,13 +40,14 @@ class Feedback(Action):
         super().__init__(name, context, llm)
 
         # Noted: Using 'They' or 'Their' is not a grammatical issue; https://www.quora.com/What-pronoun-to-use-when-you-dont-know-the-gender
-        self.PROMPT_TEMPLATE = """You're {your_name}, with the role of {your_role}. 
-        You recently worked on a project with your colleague, {prev_name}, in their role as {prev_role}. 
-        They shared their work details with you: {prev_msg}. 
-        You'll incorporate their input into your {your_role} tasks. 
-        Now, assess this handover process anonymously. 
-        Use critical thinking and openly share your thoughts and feelings, as if you were reflecting on a real work situation. 
-        Please provide your assessment in 30 words or less: """
+        self.PROMPT_TEMPLATE = """You are {your_name}, in the role of {your_role}. 
+            You recently worked together with {prev_name} on a project, where they held the position of {prev_role}. 
+            They shared their work details with you: {prev_msg}. 
+            Your current task involves incorporating their input into your {your_role} duties. 
+            Evaluate this handover process critically and suggest potential ways for improvement, as if you were analyzing a real work situation. 
+            Please provide your assessment concisely in 30 words or less:
+            """
+
 
     async def run(self, handover_msg, *args, **kwargs) -> ActionOutput:
 
