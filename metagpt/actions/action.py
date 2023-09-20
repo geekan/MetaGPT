@@ -12,7 +12,6 @@ from typing import Optional
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 from metagpt.actions.action_output import ActionOutput
-from metagpt.config import CONFIG
 from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.utils.common import OutputParser
@@ -57,7 +56,7 @@ class Action(ABC):
         output_class_name: str,
         output_data_mapping: dict,
         system_msgs: Optional[list[str]] = None,
-        format=CONFIG.prompt_format,
+        format="markdown",  # compatible to original format
     ) -> ActionOutput:
         """Append default prefix"""
         if not system_msgs:
