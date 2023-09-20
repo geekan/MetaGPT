@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import List
 
 from metagpt.actions import Action, ActionOutput
+from metagpt.config import CONFIG
 from metagpt.const import WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.utils.common import CodeParser
@@ -201,10 +202,10 @@ class WriteDesign(Action):
         await self._save_prd(docs_path, resources_path, context)
         await self._save_system_design(docs_path, resources_path, system_design)
 
-    async def run(self, context):
-        prompt_template, format_example = get_template(templates)
+    async def run(self, context, format=CONFIG.prompt_format):
+        prompt_template, format_example = get_template(templates, format)
         prompt = prompt_template.format(context=context, format_example=format_example)
         # system_design = await self._aask(prompt)
-        system_design = await self._aask_v1(prompt, "system_design", OUTPUT_MAPPING)
+        system_design = await self._aask_v1(prompt, "system_design", OUTPUT_MAPPING, format=format)
         await self._save(context, system_design)
         return system_design

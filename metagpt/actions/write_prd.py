@@ -9,6 +9,7 @@ from typing import List
 
 from metagpt.actions import Action, ActionOutput
 from metagpt.actions.search_and_summarize import SearchAndSummarize
+from metagpt.config import CONFIG
 from metagpt.logs import logger
 from metagpt.utils.get_template import get_template
 
@@ -221,7 +222,7 @@ class WritePRD(Action):
     def __init__(self, name="", context=None, llm=None):
         super().__init__(name, context, llm)
 
-    async def run(self, requirements, *args, **kwargs) -> ActionOutput:
+    async def run(self, requirements, format=CONFIG.prompt_format, *args, **kwargs) -> ActionOutput:
         sas = SearchAndSummarize()
         # rsp = await sas.run(context=requirements, system_text=SEARCH_AND_SUMMARIZE_SYSTEM_EN_US)
         rsp = ""
@@ -230,11 +231,11 @@ class WritePRD(Action):
             logger.info(sas.result)
             logger.info(rsp)
 
-        prompt_template, format_example = get_template(templates)
+        prompt_template, format_example = get_template(templates, format)
         prompt = prompt_template.format(
             requirements=requirements, search_information=info, format_example=format_example
         )
         logger.debug(prompt)
         # prd = await self._aask_v1(prompt, "prd", OUTPUT_MAPPING)
-        prd = await self._aask_v1(prompt, "prd", OUTPUT_MAPPING)
+        prd = await self._aask_v1(prompt, "prd", OUTPUT_MAPPING, format=format)
         return prd

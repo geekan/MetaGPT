@@ -8,6 +8,7 @@
 from typing import List
 
 from metagpt.actions.action import Action
+from metagpt.config import CONFIG
 from metagpt.const import WORKSPACE_ROOT
 from metagpt.utils.common import CodeParser
 from metagpt.utils.get_template import get_template
@@ -177,10 +178,10 @@ class WriteTasks(Action):
         requirements_path = WORKSPACE_ROOT / ws_name / "requirements.txt"
         requirements_path.write_text("\n".join(rsp.instruct_content.dict().get("Required Python third-party packages")))
 
-    async def run(self, context):
-        prompt_template, format_example = get_template(templates)
+    async def run(self, context, format=CONFIG.prompt_format):
+        prompt_template, format_example = get_template(templates, format)
         prompt = prompt_template.format(context=context, format_example=format_example)
-        rsp = await self._aask_v1(prompt, "task", OUTPUT_MAPPING)
+        rsp = await self._aask_v1(prompt, "task", OUTPUT_MAPPING, format=format)
         self._save(context, rsp)
         return rsp
 

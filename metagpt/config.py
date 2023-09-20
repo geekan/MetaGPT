@@ -86,7 +86,7 @@ class Config(metaclass=Singleton):
         self.mermaid_engine = self._get("MERMAID_ENGINE", "nodejs")
         self.pyppeteer_executable_path = self._get("PYPPETEER_EXECUTABLE_PATH", "")
 
-        self.prompt_format = self._get("PROMPT_FORMAT", "json")
+        self.prompt_format = self._get("PROMPT_FORMAT", "markdown")
 
     def _init_with_config_files_and_env(self, configs: dict, yaml_file):
         """Load from config/key.yaml, config/config.yaml, and env in decreasing order of priority"""
