@@ -5,6 +5,7 @@ Author: garylin2099
 '''
 import re
 import subprocess
+import asyncio
 
 import fire
 
@@ -36,7 +37,6 @@ class SimpleWriteCode(Action):
     async def run(self, instruction: str):
 
         prompt = self.PROMPT_TEMPLATE.format(instruction=instruction)
-        # logger.info(prompt)
 
         rsp = await self._aask(prompt)
 
@@ -58,7 +58,6 @@ class SimpleRunCode(Action):
     async def run(self, code_text: str):
         result = subprocess.run(["python3", "-c", code_text], capture_output=True, text=True)
         code_result = result.stdout
-        # exec(code_text)
         logger.info(f"{code_result=}")
         return code_result
 
@@ -75,9 +74,10 @@ class SimpleCoder(Role):
     async def _act(self) -> Message:
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
         todo = self._rc.todo
-        msg = self._rc.memory.get()[-1]
 
+        msg = self._rc.memory.get()[-1] # retrieve the latest memory
         instruction = msg.content
+
         code_text = await SimpleWriteCode().run(instruction)
         msg = Message(content=code_text, role=self.profile, cause_by=todo)
 
@@ -110,14 +110,13 @@ class RunnableCoder(Role):
 
         if isinstance(todo, SimpleWriteCode):
             instruction = msg.content
-            code_text = await SimpleWriteCode().run(instruction)
-            msg = Message(content=code_text, role=self.profile, cause_by=todo)
+            result = await SimpleWriteCode().run(instruction)
 
         elif isinstance(todo, SimpleRunCode):
             code_text = msg.content
-            rsp = await SimpleRunCode().run(code_text)
-            msg = Message(content=rsp, role=self.profile, cause_by=todo)
+            result = await SimpleRunCode().run(code_text)
 
+        msg = Message(content=result, role=self.profile, cause_by=todo)
         self._rc.memory.add(msg)
         return msg
 
@@ -129,11 +128,11 @@ class RunnableCoder(Role):
             await self._act()
         return Message(content="All job done", role=self.profile)
 
-async def main(msg="write a function that calculates the sum of a list"):
+def main(msg="write a function that calculates the sum of a list"):
     # role = SimpleCoder()
     role = RunnableCoder()
     logger.info(msg)
-    result = await role.run(msg)
+    result = asyncio.run(role.run(msg))
     logger.info(result)
 
 if __name__ == '__main__':
