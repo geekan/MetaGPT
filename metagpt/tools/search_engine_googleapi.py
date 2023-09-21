@@ -80,7 +80,7 @@ class GoogleAPIWrapper(BaseModel):
         query: str,
         max_results: int = 8,
         as_string: bool = True,
-        focus: list[str] | None = None,
+        focus: Optional[list[str]] = None,
     ) -> str | list[dict]:
         """Return the results of a Google search using the official Google API.
 

@@ -16,20 +16,22 @@ from metagpt.utils.common import OutputParser
 from metagpt.logs import logger
 
 class Action(ABC):
+    """An class representing an action, which can be run."""
     def __init__(self, name: str = '', context=None, llm: LLM = None):
+        """Initialize the action. If no llm provided, create a new one."""
         self.name: str = name
         if llm is None:
             llm = LLM()
         self.llm = llm
-        self.context = context
+        self.context = context if context is not None else {}
         self.prefix = ""
         self.profile = ""
         self.desc = ""
         self.content = ""
         self.instruct_content = None
 
-    def set_prefix(self, prefix, profile):
-        """Set prefix for later usage"""
+    def set_prefix(self, prefix: str, profile: str) -> None:
+        """Set prefix and profile for later usage"""
         self.prefix = prefix
         self.profile = profile
 
@@ -40,9 +42,8 @@ class Action(ABC):
         return self.__str__()
 
     async def _aask(self, prompt: str, system_msgs: Optional[list[str]] = None) -> str:
-        """Append default prefix"""
-        if not system_msgs:
-            system_msgs = []
+        """Ask a question with the default prefix."""
+        system_msgs = system_msgs if system_msgs is not None else []
         system_msgs.append(self.prefix)
         return await self.llm.aask(prompt, system_msgs)
 
@@ -50,9 +51,8 @@ class Action(ABC):
     async def _aask_v1(self, prompt: str, output_class_name: str,
                        output_data_mapping: dict,
                        system_msgs: Optional[list[str]] = None) -> ActionOutput:
-        """Append default prefix"""
-        if not system_msgs:
-            system_msgs = []
+        """Ask a question with the default prefix and parse the output."""
+        system_msgs = system_msgs if system_msgs is not None else []
         system_msgs.append(self.prefix)
         content = await self.llm.aask(prompt, system_msgs)
         logger.debug(content)
@@ -63,6 +63,6 @@ class Action(ABC):
         return ActionOutput(content, instruct_content)
 
     async def run(self, *args, **kwargs):
-        """Run action"""
+        """Run the action. Should be implemented in a subclass."""
         raise NotImplementedError("The run method should be implemented in a subclass.")
     
