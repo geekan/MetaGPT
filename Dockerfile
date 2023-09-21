@@ -18,7 +18,7 @@ COPY . /app/metagpt
 WORKDIR /app/metagpt
 RUN mkdir workspace &&\
     pip install --no-cache-dir -r requirements.txt &&\
-    python setup.py install
+    pip install -e.
 
 # Running with an infinite loop using the tail command
 CMD ["sh", "-c", "tail -f /dev/null"]

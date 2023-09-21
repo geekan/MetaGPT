@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "type": "completion",
+  "description": "Given a request to generate an acronym from a string, generate an acronym and provide the acronym explanation.",
+  "completion": {
+    "max_tokens": 256,
+    "temperature": 0.7,
+    "top_p": 1.0,
+    "presence_penalty": 0.0,
+    "frequency_penalty": 0.0,
+    "stop_sequences": [
+      "#"
+    ]
+  }
+}

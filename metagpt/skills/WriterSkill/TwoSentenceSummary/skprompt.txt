@@ -1,0 +1,4 @@
+Summarize the following text in two sentences or less. 
+[BEGIN TEXT]
+{{$input}}
+[END TEXT]
