@@ -1,23 +1,7 @@
 import unittest
 import json5
 
-def flatten_json_object(obj, parent_key='', sep=', '):
-    if isinstance(obj, str):
-        return dict([("value", obj)])
-    
-    if isinstance(obj, list):
-        return dict([("value", sep.join(str(v) for v in obj))])
-    
-    items = []
-    for key, value in obj.items():
-        new_key = f"{parent_key}{sep}{key}" if parent_key else key
-        if isinstance(value, dict):
-            items.extend(flatten_json_object(value, new_key, sep=sep).items())
-        elif isinstance(value, list):
-            items.append((new_key, sep.join(str(v) for v in value)))
-        else:
-            items.append((new_key, value))
-    return dict(items)
+from metagpt.utils.resp_parse import flatten_json_object
 
 class TestFlattenJsonObject(unittest.TestCase):
     def test_flatten_json_object(self):

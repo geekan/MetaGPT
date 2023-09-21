@@ -1,35 +1,6 @@
 import unittest
-import json5
-import re
 
-def try_parse_json(input_text):
-    input_text.index
-    start_index_brackets = input_text.find('[')
-    end_index_brackets = input_text.rfind(']')
-    start_index_curly = input_text.find('{')
-    end_index_curly = input_text.rfind('}')
-    
-    start_index = start_index_brackets
-    end_index = end_index_brackets
-    
-    if (start_index_curly != -1 and (start_index_curly < start_index_brackets or start_index_brackets < 0)):
-        start_index = start_index_curly
-        end_index = end_index_curly
-    
-    if start_index >= 0 and end_index > 0:
-        json_string = input_text[start_index:end_index + 1]
-        json_string = re.sub(r'\}[\s]*\{', '}, {', json_string)
-        json_string = re.sub(r'\][\s]*\[', '], [', json_string)
-        json_string = re.sub(r'"[\s]*"', '", "', json_string)
-        
-        try:
-            json_object = json5.loads(json_string)
-        except ValueError:
-            json_object = json5.loads(f"[{json_string}]")
-        
-        return json_object
-    
-    raise Exception("No JSON object found in input text.")
+from metagpt.utils.resp_parse import try_parse_json
 
 
 class TestTryParseJson(unittest.TestCase):
@@ -56,3 +27,4 @@ class TestTryParseJson(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+    try_parse_json('{"a": [ jjj}')
