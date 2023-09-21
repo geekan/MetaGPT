@@ -2,11 +2,24 @@
 # -*- coding: utf-8 -*-
 # @Desc   : the implement of Long-term memory
 
+import json
 from metagpt.logs import logger
 from metagpt.memory import Memory
 from metagpt.memory.memory_storage import MemoryStorage
 from metagpt.schema import Message
+from metagpt.config import CONFIG
 
+
+def print_with_color(text, color="red"):
+
+    color_codes = {
+        'reset': '\033[0m',
+        'red': '\033[91m',
+        'green': '\033[92m',
+        'yellow': '\033[93m',
+        'blue': '\033[94m',
+    }
+    print(f"{color_codes[color]}  {text} {color_codes['reset']}")
 
 class LongTermMemory(Memory):
     """
@@ -68,4 +81,27 @@ class LongTermMemory(Memory):
     def clear(self):
         super(LongTermMemory, self).clear()
         self.memory_storage.clean()
-        
+
+    def save_feedback(self, message: Message, init=False, project_name=None):
+
+        with open(CONFIG.handover_file, "r") as file:
+            data = json.load(file)
+
+        if not data:
+            current_key = str(1)
+        elif init:
+            current_key = str(max(map(int, data.keys())) + 1)
+        else:
+            current_key = str(max(map(int, data.keys())))
+            
+        if current_key not in data.keys():
+            data[current_key] = {}
+
+        data[current_key][message.send_to] = message.content
+        if project_name != None:
+            item = data[current_key]
+            item = {"Project Name": project_name, **item}
+            data[current_key] = item
+
+        with open(CONFIG.handover_file, "w") as file:
+            json.dump(data, file, indent=4)

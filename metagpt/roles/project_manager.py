@@ -61,8 +61,9 @@ class ProjectManager(Role):
         
         if isinstance(todo, Feedback):
             msg = self._rc.memory.get_by_action(WriteDesign)[0]
-            feedback =  await todo.run(msg)
-            ret = Message(feedback, role=self.profile, cause_by=type(todo))
+            feedback, prev_role, proj_name =  await todo.run(msg)
+            ret = Message(feedback, role=self.profile, cause_by=type(todo), send_to=prev_role)
+            self._rc.long_term_memory.save_feedback(ret, init=False, project_name=proj_name)
         elif isinstance(todo, WriteTasks):
             msg = self._rc.memory.get_by_action(WriteDesign)
             tasks =  await todo.run(msg)

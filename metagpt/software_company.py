@@ -7,7 +7,7 @@
 """
 from pydantic import BaseModel, Field
 
-from metagpt.actions import BossRequirement
+from metagpt.actions import BossRequirement, Feedback
 from metagpt.config import CONFIG
 from metagpt.environment import Environment
 from metagpt.logs import logger
@@ -15,6 +15,16 @@ from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.utils.common import NoMoneyException
 
+def print_with_color(text, color="red"):
+
+    color_codes = {
+        'reset': '\033[0m',
+        'red': '\033[91m',
+        'green': '\033[92m',
+        'yellow': '\033[93m',
+        'blue': '\033[94m',
+    }
+    print(f"{color_codes[color]}  {text} {color_codes['reset']}")
 
 class SoftwareCompany(BaseModel):
     """
@@ -38,14 +48,27 @@ class SoftwareCompany(BaseModel):
         CONFIG.max_budget = investment
         logger.info(f'Investment: ${investment}.')
 
-    def improvement(self):
-        import os
-        import json
+    def improvement(self, initial=False, roles=None):
         handover_file = CONFIG.handover_file
-        os.makedirs(os.path.dirname(handover_file), exist_ok=True)
-        if not os.path.exists(handover_file):
-            with open(handover_file, "w") as file:
-                json.dump({}, file)
+        if initial:
+            import os
+            import json
+            os.makedirs(os.path.dirname(handover_file), exist_ok=True)
+            if not os.path.exists(handover_file):
+                with open(handover_file, "w") as file:
+                    json.dump({}, file)
+        else:
+            msgs = self.environment.memory.get_by_action(Feedback)
+            print_with_color("===============\n\n\n\n\n")
+            print_with_color(msgs)
+            if isinstance(msgs, list):
+                for msg in msgs:
+                    print_with_color(msg.content)
+            print_with_color(roles)
+            print_with_color("===============\n\n\n\n\n")
+
+            
+
 
     def _check_balance(self):
         if CONFIG.total_cost > CONFIG.max_budget:

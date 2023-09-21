@@ -56,8 +56,9 @@ class Architect(Role):
         
         if isinstance(todo, Feedback):
             msg = self._rc.memory.get_by_action(WritePRD)[0]
-            feedback =  await todo.run(msg)
-            ret = Message(feedback, role=self.profile, cause_by=type(todo))
+            feedback, prev_role, _ =  await todo.run(msg)
+            ret = Message(feedback, role=self.profile, cause_by=type(todo), send_to=prev_role)
+            self._rc.long_term_memory.save_feedback(ret, init=False)
         elif isinstance(todo, WriteDesign):
             msg = self._rc.memory.get_by_action(WritePRD)
             design =  await todo.run(msg)

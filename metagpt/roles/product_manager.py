@@ -9,6 +9,8 @@ from metagpt.actions import BossRequirement, WritePRD, Feedback
 from metagpt.roles import Role
 from metagpt.logs import logger
 from metagpt.schema import Message
+from metagpt.learn import Reflect
+
 
 class ProductManager(Role):
     """
@@ -37,9 +39,20 @@ class ProductManager(Role):
             constraints (str): Constraints or limitations for the product manager.
         """
         super().__init__(name, profile, goal, constraints, feedback)
+
+        self.constraints = constraints
+
         self._init_actions([WritePRD])
+
+        print("-0-", constraints)
+
         if feedback:
+            # Adopt suggestion from later role
+            self.constraints = Reflect.from_feedback(role=profile, constraints=self.constraints)
+            # Give feedback to previous role
             self._add_action_at_head(Feedback)
+
+        print("-1-", self.constraints)
         self._watch([BossRequirement])
 
     async def _think(self) -> None:
@@ -58,8 +71,9 @@ class ProductManager(Role):
         todo = self._rc.todo
         msg = self._rc.memory.get_by_action(BossRequirement)
         if isinstance(todo, Feedback):
-            feedback =  await todo.run(msg)
-            ret = Message(feedback, role=self.profile, cause_by=type(todo))
+            feedback, prev_role, _ =  await todo.run(msg)
+            ret = Message(feedback, role=self.profile, cause_by=type(todo), send_to=prev_role)
+            self._rc.long_term_memory.save_feedback(ret, init=True)
         elif isinstance(todo, WritePRD):
             prd =  await todo.run(msg)
             ret = Message(prd.content, role=self.profile, cause_by=WritePRD)

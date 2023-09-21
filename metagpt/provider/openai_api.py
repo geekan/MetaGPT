@@ -280,11 +280,17 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         return results
 
     def _update_costs(self, usage: dict):
+
         if CONFIG.calc_usage:
             try:
-                prompt_tokens = int(usage["prompt_tokens"])
-                completion_tokens = int(usage["completion_tokens"])
-                self._cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
+                if "usage" in usage.keys():
+                    prompt_tokens = int(usage["usage"]["prompt_tokens"])
+                    completion_tokens = int(usage["usage"]["completion_tokens"])
+                    self._cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
+                else:
+                    prompt_tokens = int(usage["prompt_tokens"])
+                    completion_tokens = int(usage["completion_tokens"])
+                    self._cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
             except Exception as e:
                 logger.error("updating costs failed!", e)
 

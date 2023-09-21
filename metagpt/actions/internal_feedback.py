@@ -14,12 +14,12 @@ from metagpt.logs import logger
 from metagpt.config import CONFIG
 
 ROSTER = {
-    "BOSS": {"name": "BOSS", "next": "ProductManager"},
-    "ProductManager": {"name": "Alice", "next": "Architect"},
-    "Architect": {"name": "Bob", "next": "ProjectManager"},
-    "ProjectManager": {"name": "Eve", "next": "Engineer"},
-    "Engineer": {"name": "Alex", "next": "QaEngineer"},
-    "QaEngineer": {"name": "Edward", "next": None},
+    "BOSS": {"name": "BOSS", "next": "ProductManager", "prev": None},
+    "ProductManager": {"name": "Alice", "next": "Architect", "prev": "BOSS"},
+    "Architect": {"name": "Bob", "next": "ProjectManager", "prev": "ProductManager"},
+    "ProjectManager": {"name": "Eve", "next": "Engineer", "prev": "Architect"},
+    "Engineer": {"name": "Alex", "next": "QaEngineer", "prev": "ProjectManager"},
+    "QaEngineer": {"name": "Edward", "next": None, "prev": "Engineer"},
 }
 
 def print_with_color(text, color="red"):
@@ -44,13 +44,12 @@ class Feedback(Action):
             You recently worked together with {prev_name} on a project, where they held the position of {prev_role}. 
             They shared their work details with you: {prev_msg}. 
             Your current task involves incorporating their input into your {your_role} duties. 
-            Evaluate this handover process critically and suggest potential ways for improvement, as if you were analyzing a real work situation. 
+            Critically evaluate this handover process and, drawing on {prev_role}, suggest potential ways for improvement (avoid mentioning the details of the current project). 
             Please provide your assessment concisely in 20 words or less:
             """
 
-
     async def run(self, handover_msg, *args, **kwargs) -> ActionOutput:
-
+        import re
         #prev_role = handover_msg[0].to_dict()["role"]
         #prev_msg = handover_msg[0].to_dict()["content"]
         if  isinstance(handover_msg, list):
@@ -70,14 +69,12 @@ class Feedback(Action):
         logger.debug(prompt)
         feedback = await self._aask(prompt)
 
-        handover_record = CONFIG.handover_file
-        # if os.path.exists(handover_record):
-        #     with open(handover_record, "r+") as file:
-        #         data = json.load(file)
-        # else: data = {}
+        pattern = r"## Python package name\n```python(.*?)```"
+        match = re.search(pattern, prev_msg, re.DOTALL)
 
-        # data["new_key"] = "new_value"
-        # with open(handover_record, "w") as file:
-        #     json.dump(data, file)
+        if match:
+            package_name = match.group(1).replace("\n", "").replace("\"","")
+        else:
+            package_name = None
 
-        return feedback
+        return feedback, prev_role, package_name

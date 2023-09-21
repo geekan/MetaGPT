@@ -19,17 +19,6 @@ from metagpt.utils.common import CodeParser
 from metagpt.utils.special_tokens import MSG_SEP, FILENAME_CODE_SEP
 
 
-def print_with_color(text, color="red"):
-
-    color_codes = {
-        'reset': '\033[0m',
-        'red': '\033[91m',
-        'green': '\033[92m',
-        'yellow': '\033[93m',
-        'blue': '\033[94m',
-    }
-    print(f"{color_codes[color]}  {text} {color_codes['reset']}")
-
 async def gather_ordered_k(coros, k) -> list:
     tasks = OrderedDict()
     results = [None] * len(coros)
@@ -169,9 +158,12 @@ class Engineer(Role):
         for todo in self.todos:
             if isinstance(todo, Feedback):
                 msg = self._rc.memory.get_by_action(WriteTasks)
-                feedback =  await todo.run(msg)
-                ret = Message(feedback.content, role=self.profile, cause_by=type(todo))
-                self._rc.memory.add(ret)
+                # feedback =  await todo.run(msg)
+                # ret = Message(feedback.content, role=self.profile, cause_by=type(todo))
+                # self._rc.memory.add(ret)
+                feedback, prev_role =  await todo.run(msg)
+                ret = Message(feedback, role=self.profile, cause_by=type(todo), send_to=prev_role)
+                self._rc.long_term_memory.save_feedback(ret, init=False)
             else:
                 code = await WriteCode().run(
                     context=self._rc.history,
@@ -199,14 +191,12 @@ class Engineer(Role):
     async def _act_sp_precision(self) -> Message:
         code_msg_all = [] # gather all code info, will pass to qa_engineer for tests later
         for todo in self.todos:
-            print_with_color(f"todo: {todo}")
-            print_with_color(f"type(todo): {type(todo)}")
+
             if isinstance(todo, Feedback):
-                
                 msg = self._rc.memory.get_by_action(WriteTasks)
-                feedback =  await todo.run(msg)
-                ret = Message(feedback, role=self.profile, cause_by=type(todo))
-                self._rc.memory.add(ret)
+                feedback, prev_role, _ =  await todo.run(msg)
+                ret = Message(feedback, role=self.profile, cause_by=type(todo), send_to=prev_role)
+                self._rc.long_term_memory.save_feedback(ret, init=False)
             else:
                 """
                 # Select essential information from the historical data to reduce the length of the prompt (summarized from human experience):
