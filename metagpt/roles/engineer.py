@@ -158,9 +158,6 @@ class Engineer(Role):
         for todo in self.todos:
             if isinstance(todo, Feedback):
                 msg = self._rc.memory.get_by_action(WriteTasks)
-                # feedback =  await todo.run(msg)
-                # ret = Message(feedback.content, role=self.profile, cause_by=type(todo))
-                # self._rc.memory.add(ret)
                 feedback, prev_role =  await todo.run(msg)
                 ret = Message(feedback, role=self.profile, cause_by=type(todo), send_to=prev_role)
                 self._rc.long_term_memory.save_feedback(ret, init=False)

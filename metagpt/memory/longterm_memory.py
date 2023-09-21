@@ -10,17 +10,6 @@ from metagpt.schema import Message
 from metagpt.config import CONFIG
 
 
-def print_with_color(text, color="red"):
-
-    color_codes = {
-        'reset': '\033[0m',
-        'red': '\033[91m',
-        'green': '\033[92m',
-        'yellow': '\033[93m',
-        'blue': '\033[94m',
-    }
-    print(f"{color_codes[color]}  {text} {color_codes['reset']}")
-
 class LongTermMemory(Memory):
     """
     The Long-term memory for Roles

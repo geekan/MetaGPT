@@ -15,16 +15,6 @@ from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.utils.common import NoMoneyException
 
-def print_with_color(text, color="red"):
-
-    color_codes = {
-        'reset': '\033[0m',
-        'red': '\033[91m',
-        'green': '\033[92m',
-        'yellow': '\033[93m',
-        'blue': '\033[94m',
-    }
-    print(f"{color_codes[color]}  {text} {color_codes['reset']}")
 
 class SoftwareCompany(BaseModel):
     """
@@ -59,15 +49,9 @@ class SoftwareCompany(BaseModel):
                     json.dump({}, file)
         else:
             msgs = self.environment.memory.get_by_action(Feedback)
-            print_with_color("===============\n\n\n\n\n")
-            print_with_color(msgs)
             if isinstance(msgs, list):
                 for msg in msgs:
-                    print_with_color(msg.content)
-            print_with_color(roles)
-            print_with_color("===============\n\n\n\n\n")
-
-            
+                    logger.info(f"{msg.role}'s feedback: {msg.content}")
 
 
     def _check_balance(self):
