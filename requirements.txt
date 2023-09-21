@@ -39,3 +39,5 @@ typing_extensions==4.5.0
 libcst==1.0.1
 qdrant-client==1.4.0
 gradio==2.3.6
+open-interpreter==0.1.3
+ta==0.10.2
