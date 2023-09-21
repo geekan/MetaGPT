@@ -21,33 +21,38 @@ async def startup(
     code_review: bool = False,
     run_tests: bool = False,
     implement: bool = True,
-    self_improvement: bool = True,
+    self_improvement: bool = False,
 ):
     """Run a startup. Be a boss."""
     company = SoftwareCompany()
+    company.invest(investment)
+
     company.hire(
         [
             ProductManager(feedback = self_improvement),
-            Architect(),
-            ProjectManager(),
+            Architect(feedback = self_improvement),
+            ProjectManager(feedback = self_improvement),
         ]
     )
 
     # if implement or code_review
     if implement or code_review:
         # developing features: implement the idea
-        company.hire([Engineer(n_borg=5, use_code_review=code_review)])
+        company.hire([Engineer(n_borg=5, use_code_review=code_review, feedback = self_improvement)])
 
     if run_tests:
         # developing features: run tests on the spot and identify bugs
         # (bug fixing capability comes soon!)
         company.hire([QaEngineer()])
-
-    company.invest(investment)
+    
     if self_improvement:
-        company.improvement()
+        company.improvement(initial=True)
+
     company.start_project(idea)
     await company.run(n_round=n_round)
+
+    if self_improvement:
+        company.improvement(roles = company.environment.get_roles())
 
 
 def main(
