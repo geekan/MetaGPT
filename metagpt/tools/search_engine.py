@@ -5,7 +5,7 @@
 @Author  : alexanderwu
 @File    : search_engine.py
 """
-# from __future__ import annotations
+from __future__ import annotations  
 
 import importlib
 from typing import Callable, Coroutine, Literal, overload
@@ -13,7 +13,7 @@ from typing import Callable, Coroutine, Literal, overload
 from semantic_kernel.skill_definition import sk_function
 
 from metagpt.config import CONFIG
-from metagpt.tools import SearchEngineType
+from metagpt.tools import SearchEngineType 
 
 
 class SkSearchEngine:
