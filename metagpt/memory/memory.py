@@ -63,8 +63,8 @@ class Memory:
         """Return the most recent k memories, return all when k=0"""
         return self.storage[-k:]
 
-    def remember(self, observed: list[Message], k=0) -> list[Message]:
-        """remember the most recent k memories from observed Messages, return all when k=0"""
+    def find_news(self, observed: list[Message], k=0) -> list[Message]:
+        """find news (previously unseen messages) from the the most recent k memories, from all memories when k=0"""
         already_observed = self.get(k)
         news: list[Message] = []
         for i in observed:

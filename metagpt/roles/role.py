@@ -185,7 +185,7 @@ class Role:
 
         observed = self._rc.env.memory.get_by_actions(self._rc.watch)
         
-        self._rc.news = self._rc.memory.remember(observed)  # remember recent exact or similar memories
+        self._rc.news = self._rc.memory.find_news(observed)  # find news (previously unseen messages) from observed messages
 
         for i in env_msgs:
             self.recv(i)

@@ -74,7 +74,7 @@ class MemoryStorage(FaissStore):
         self.persist()
         logger.info(f"Agent {self.role_id}'s memory_storage add a message")
 
-    def search(self, message: Message, k=4) -> List[Message]:
+    def search_dissimilar(self, message: Message, k=4) -> List[Message]:
         """search for dissimilar messages"""
         if not self.store:
             return []
