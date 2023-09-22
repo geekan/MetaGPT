@@ -9,6 +9,7 @@ import pytest
 
 from metagpt.actions.design_api import WriteDesign
 from metagpt.logs import logger
+from metagpt.schema import Message
 from tests.metagpt.actions.mock import PRD_SAMPLE
 
 
@@ -18,9 +19,10 @@ async def test_design_api():
 
     design_api = WriteDesign("design_api")
 
-    result = await design_api.run(prd)
+    result = await design_api.run([Message(content=prd, instruct_content=None)])
     logger.info(result)
-    assert len(result) > 0
+
+    assert result
 
 
 @pytest.mark.asyncio
@@ -28,7 +30,7 @@ async def test_design_api_calculator():
     prd = PRD_SAMPLE
 
     design_api = WriteDesign("design_api")
-    result = await design_api.run(prd)
+    result = await design_api.run([Message(content=prd, instruct_content=None)])
     logger.info(result)
 
-    assert len(result) > 10
+    assert result

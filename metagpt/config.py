@@ -59,7 +59,7 @@ class Config(metaclass=Singleton):
         self.openai_api_rpm = self._get("RPM", 3)
         self.openai_api_model = self._get("OPENAI_API_MODEL", "gpt-4")
         self.max_tokens_rsp = self._get("MAX_TOKENS", 2048)
-        self.deployment_name = self._get('DEPLOYMENT_NAME')
+        self.deployment_name = self._get("DEPLOYMENT_NAME")
         self.deployment_id = self._get("DEPLOYMENT_ID")
 
         self.claude_api_key = self._get("Anthropic_API_KEY")
@@ -83,8 +83,10 @@ class Config(metaclass=Singleton):
         self.calc_usage = self._get("CALC_USAGE", True)
         self.model_for_researcher_summary = self._get("MODEL_FOR_RESEARCHER_SUMMARY")
         self.model_for_researcher_report = self._get("MODEL_FOR_RESEARCHER_REPORT")
-        self.mermaid_engine = self._get("MERMAID_ENGINE", 'nodejs')
-        self.pyppeteer_executable_path = self._get("PYPPETEER_EXECUTABLE_PATH", '')
+        self.mermaid_engine = self._get("MERMAID_ENGINE", "nodejs")
+        self.pyppeteer_executable_path = self._get("PYPPETEER_EXECUTABLE_PATH", "")
+
+        self.prompt_format = self._get("PROMPT_FORMAT", "markdown")
 
     def _init_with_config_files_and_env(self, configs: dict, yaml_file):
         """Load from config/key.yaml, config/config.yaml, and env in decreasing order of priority"""
