@@ -1,0 +1,50 @@
+#pre-commit-config.yaml for ai-data-poc
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.4.0
+  hooks:
+  - id: check-merge-conflict
+  - id: check-ast
+  - id: check-json
+  - id: check-yaml
+    args: [--unsafe]
+    exclude: .infra/
+  - id: check-docstring-first
+    exclude: src/wrangle/dsl.py
+  - id: end-of-file-fixer
+    exclude: docs/
+  - id: requirements-txt-fixer
+  - id: end-of-file-fixer
+    exclude: docs
+
+- repo: https://github.com/psf/black
+  rev: 23.3.0
+  hooks:
+  - id: black-jupyter
+    language_version: python3.11
+
+- repo: https://github.com/PyCQA/autoflake
+  rev: v2.1.1
+  hooks:
+  - id: autoflake
+    args: ['--in-place', '--remove-all-unused-imports', '--remove-unused-variable']
+
+- repo: https://github.com/pycqa/isort
+  rev: 5.12.0
+  hooks:
+    - id: isort
+      args: ["--profile", "black", "--filter-files"]
+
+- repo: https://github.com/python-poetry/poetry
+  rev: 1.4.0
+  hooks:
+  - id: poetry-check
+  - id: poetry-lock
+    args: ['--check']
+
+- repo: https://github.com/kynan/nbstripout
+  rev: 0.6.1
+  hooks:
+    - id: nbstripout
+      args: ['--extra-keys=metadata.kernelspec metadata.language_info metadata.vscode cell.metadata.vscode cell.metadata.pycharm']
+      

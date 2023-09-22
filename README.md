@@ -64,13 +64,16 @@ It costs approximately **$0.2** (in GPT-4 API fees) to generate one example with
 npm --version
 sudo npm install -g @mermaid-js/mermaid-cli
 
-# Step 2: Ensure that Python 3.9+ is installed on your system. You can check this by using:
+# Step 2: Ensure poetry is installed. You can install it via detailed instructions here: https://python-poetry.org/docs/#installing-with-the-official-installer - for example if you are on a linux/mac machine, all you need to do is:
+curl -sSL https://install.python-poetry.org | python3 -
+
+# Step 3: Ensure that Python 3.10+ is installed on your system. You can check this by using:
 python --version
 
-# Step 3: Clone the repository to your local machine, and install it.
+# Step 4: Clone the repository to your local machine, and install it.
 git clone https://github.com/geekan/metagpt
 cd metagpt
-pip install -e.
+poetry install --all-extras
 ```
 
 **Note:**
@@ -90,8 +93,6 @@ pip install -e.
   PUPPETEER_CONFIG: "./config/puppeteer-config.json"
   MMDC: "./node_modules/.bin/mmdc"
   ```
-
-- if `pip install -e.` fails with error `[Errno 13] Permission denied: '/usr/local/lib/python3.11/dist-packages/test-easy-install-13129.write-test'`, try instead running `pip install -e. --user`
 
 - To convert Mermaid charts to SVG, PNG, and PDF formats. In addition to the Node.js version of Mermaid-CLI, you now have the option to use Python version Playwright, pyppeteer or mermaid.ink for this task.
 
