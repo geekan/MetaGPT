@@ -6,15 +6,14 @@
 @File    : mermaid.py
 """
 import asyncio
-import subprocess
+import os
 from pathlib import Path
 
 from metagpt.config import CONFIG
 from metagpt.const import PROJECT_ROOT
 from metagpt.logs import logger
 from metagpt.utils.common import check_cmd_exists
-import os
-import sys
+
 
 async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, height=2048) -> int:
     """suffix: png/svg/pdf
@@ -28,41 +27,39 @@ async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, 
     # Write the Mermaid code to a temporary file
     dir_name = os.path.dirname(output_file_without_suffix)
     if dir_name and not os.path.exists(dir_name):
-        os.makedirs(dir_name)    
+        os.makedirs(dir_name)
     tmp = Path(f"{output_file_without_suffix}.mmd")
     tmp.write_text(mermaid_code, encoding="utf-8")
-    
+
     engine = CONFIG.mermaid_engine.lower()
     if engine == "nodejs":
-        if check_cmd_exists("mmdc") != 0:
+        if check_cmd_exists(CONFIG.mmdc) != 0:
             logger.warning("RUN `npm install -g @mermaid-js/mermaid-cli` to install mmdc")
             return -1
-        
+
         for suffix in ["pdf", "svg", "png"]:
             output_file = f"{output_file_without_suffix}.{suffix}"
             # Call the `mmdc` command to convert the Mermaid code to a PNG
             logger.info(f"Generating {output_file}..")
 
             if CONFIG.puppeteer_config:
-                commands =[
-                        CONFIG.mmdc,
-                        "-p",
-                        CONFIG.puppeteer_config,
-                        "-i",
-                        str(tmp),
-                        "-o",
-                        output_file,
-                        "-w",
-                        str(width),
-                        "-H",
-                        str(height),
-                    ]
+                commands = [
+                    CONFIG.mmdc,
+                    "-p",
+                    CONFIG.puppeteer_config,
+                    "-i",
+                    str(tmp),
+                    "-o",
+                    output_file,
+                    "-w",
+                    str(width),
+                    "-H",
+                    str(height),
+                ]
             else:
-                commands =[CONFIG.mmdc, "-i", str(tmp), "-o", output_file, "-w", str(width), "-H", str(height)]
-            process = await asyncio.create_subprocess_exec(
-                *commands,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                commands = [CONFIG.mmdc, "-i", str(tmp), "-o", output_file, "-w", str(width), "-H", str(height)]
+            process = await asyncio.create_subprocess_shell(
+                " ".join(commands), stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
             )
 
             stdout, stderr = await process.communicate()
@@ -71,15 +68,17 @@ async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, 
             if stderr:
                 logger.error(stderr.decode())
     else:
-
-        if engine =='playwright':
+        if engine == "playwright":
             from metagpt.utils.mmdc_playwright import mermaid_to_file
+
             return await mermaid_to_file(mermaid_code, output_file_without_suffix, width, height)
-        elif engine =='pyppeteer':
+        elif engine == "pyppeteer":
             from metagpt.utils.mmdc_pyppeteer import mermaid_to_file
+
             return await mermaid_to_file(mermaid_code, output_file_without_suffix, width, height)
-        elif engine =='ink':
+        elif engine == "ink":
             from metagpt.utils.mmdc_ink import mermaid_to_file
+
             return await mermaid_to_file(mermaid_code, output_file_without_suffix)
         else:
             logger.warning(f"Unsupported mermaid engine: {engine}")
@@ -137,9 +136,8 @@ MMC2 = """sequenceDiagram
     SE-->>M: return summary"""
 
 
-
 if __name__ == "__main__":
     loop = asyncio.new_event_loop()
-    result  = loop.run_until_complete(mermaid_to_file(MMC1, PROJECT_ROOT / f"{CONFIG.mermaid_engine}/1"))
-    result  = loop.run_until_complete(mermaid_to_file(MMC2, PROJECT_ROOT / f"{CONFIG.mermaid_engine}/1"))
+    result = loop.run_until_complete(mermaid_to_file(MMC1, PROJECT_ROOT / f"{CONFIG.mermaid_engine}/1"))
+    result = loop.run_until_complete(mermaid_to_file(MMC2, PROJECT_ROOT / f"{CONFIG.mermaid_engine}/1"))
     loop.close()
