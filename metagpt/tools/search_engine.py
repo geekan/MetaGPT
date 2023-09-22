@@ -5,7 +5,7 @@
 @Author  : alexanderwu
 @File    : search_engine.py
 """
-# from __future__ import annotations
+from __future__ import annotations
 
 import importlib
 from typing import Callable, Coroutine, Literal, overload

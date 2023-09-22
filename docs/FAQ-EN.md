@@ -17,14 +17,15 @@ Our vision is to [extend human life](https://github.com/geekan/HowToLiveLonger) 
 1.  EN
 
     1.  Demo Video: [MetaGPT: Multi-Agent AI Programming Framework](https://www.youtube.com/watch?v=8RNzxZBTW8M)
-    1.  Tutorial: [MetaGPT: Deploy POWERFUL Autonomous Ai Agents BETTER Than SUPERAGI!](https://www.youtube.com/watch?v=q16Gi9pTG_M&t=659s)
+    2. Tutorial: [MetaGPT: Deploy POWERFUL Autonomous Ai Agents BETTER Than SUPERAGI!](https://www.youtube.com/watch?v=q16Gi9pTG_M&t=659s)
+    3. Author's thoughts video(EN): [MetaGPT Matthew Berman](https://youtu.be/uT75J_KG_aY?si=EgbfQNAwD8F5Y1Ak)
 
 1.  CN
 
     1.  Demo Video: [MetaGPT：一行代码搭建你的虚拟公司_哔哩哔哩_bilibili](https://www.bilibili.com/video/BV1NP411C7GW/?spm_id_from=333.999.0.0&vd_source=735773c218b47da1b4bd1b98a33c5c77)
     1.  Tutorial: [一个提示词写游戏 Flappy bird, 比AutoGPT强10倍的MetaGPT，最接近AGI的AI项目](https://youtu.be/Bp95b8yIH5c)
-    1.  Author's thoughts video(CN): [MetaGPT作者深度解析直播回放_哔哩哔哩_bilibili](https://www.bilibili.com/video/BV1Ru411V7XL/?spm_id_from=333.337.search-card.all.click)
-
+    2.   Author's thoughts video(CN): [MetaGPT作者深度解析直播回放_哔哩哔哩_bilibili](https://www.bilibili.com/video/BV1Ru411V7XL/?spm_id_from=333.337.search-card.all.click)
+  
 <!---->
 
 3.  ### How to become a contributor?
@@ -153,6 +154,7 @@ MetaGPT Community - The position of Chief Evangelist rotates on a monthly basis.
 
     1.  Youtube（CN）：[一个提示词写游戏 Flappy bird, 比AutoGPT强10倍的MetaGPT，最接近AGI的AI项目=一个软件公司产品经理+程序员](https://youtu.be/Bp95b8yIH5c)
     1.  Youtube（EN）https://www.youtube.com/watch?v=q16Gi9pTG_M&t=659s
+    2.  video(EN): [MetaGPT Matthew Berman](https://youtu.be/uT75J_KG_aY?si=EgbfQNAwD8F5Y1Ak)
 
 1.  openai.error.RateLimitError: You exceeded your current quota, please check your plan and billing details
 
@@ -161,7 +163,7 @@ MetaGPT Community - The position of Chief Evangelist rotates on a monthly basis.
 
 1.  What does "borg" mean in n_borg?
 
-    1.  https://en.wikipedia.org/wiki/Borg
+    1.  [Wikipedia borg meaning ](https://en.wikipedia.org/wiki/Borg)
     1.  The Borg civilization operates based on a hive or collective mentality, known as "the Collective." Every Borg individual is connected to the collective via a sophisticated subspace network, ensuring continuous oversight and guidance for every member. This collective consciousness allows them to not only "share the same thoughts" but also to adapt swiftly to new strategies. While individual members of the collective rarely communicate, the collective "voice" sometimes transmits aboard ships.
 
 1.  How to use the Claude API？
