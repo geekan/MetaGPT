@@ -105,6 +105,7 @@ class WriteDesign(Action):
 
     async  def _save_prd(self, docs_path, resources_path, prd):
         prd_file = docs_path / 'prd.md'
+        prd = prd.content if not isinstance(prd, str) else prd
         quadrant_chart = CodeParser.parse_code(block="Competitive Quadrant Chart", text=prd)
         await mermaid_to_file(quadrant_chart, resources_path / 'competitive_analysis')
         logger.info(f"Saving PRD to {prd_file}")

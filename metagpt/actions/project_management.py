@@ -10,6 +10,7 @@ from typing import List, Tuple
 from metagpt.actions.action import Action
 from metagpt.const import WORKSPACE_ROOT
 from metagpt.utils.common import CodeParser
+from metagpt.schema import Message
 
 PROMPT_TEMPLATE = '''
 # Context
@@ -107,6 +108,7 @@ class WriteTasks(Action):
         super().__init__(name, context, llm)
 
     def _save(self, context, rsp):
+        #ws_input = context[-1].content.content if isinstance(context[-1].content, Message) else ws_input
         ws_name = CodeParser.parse_str(block="Python package name", text=context[-1].content)
         file_path = WORKSPACE_ROOT / ws_name / 'docs/api_spec_and_tasks.md'
         file_path.write_text(rsp.content)

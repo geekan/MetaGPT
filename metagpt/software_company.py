@@ -7,7 +7,7 @@
 """
 from pydantic import BaseModel, Field
 
-from metagpt.actions import BossRequirement
+from metagpt.actions import BossRequirement, Feedback
 from metagpt.config import CONFIG
 from metagpt.environment import Environment
 from metagpt.logs import logger
@@ -37,6 +37,22 @@ class SoftwareCompany(BaseModel):
         self.investment = investment
         CONFIG.max_budget = investment
         logger.info(f'Investment: ${investment}.')
+
+    def improvement(self, initial=False, roles=None):
+        handover_file = CONFIG.handover_file
+        if initial:
+            import os
+            import json
+            os.makedirs(os.path.dirname(handover_file), exist_ok=True)
+            if not os.path.exists(handover_file):
+                with open(handover_file, "w") as file:
+                    json.dump({}, file)
+        else:
+            msgs = self.environment.memory.get_by_action(Feedback)
+            if isinstance(msgs, list):
+                for msg in msgs:
+                    logger.info(f"{msg.role}'s feedback: {msg.content}")
+
 
     def _check_balance(self):
         if CONFIG.total_cost > CONFIG.max_budget:
