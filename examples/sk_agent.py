@@ -21,11 +21,11 @@ from metagpt.tools.search_engine import SkSearchEngine
 
 
 async def main():
-    await basic_planner_example()
-    await action_planner_example()
+    # await basic_planner_example()
+    # await action_planner_example()
 
     # await sequential_planner_example()
-    # await basic_planner_web_search_example()
+    await basic_planner_web_search_example()
 
 
 async def basic_planner_example():
