@@ -137,6 +137,11 @@ class Role:
         """Get the role description (position)"""
         return self._setting.profile
 
+    @property
+    def name(self):
+        """Get the role name"""
+        return self._setting.name
+
     def _get_prefix(self):
         """Get the role prefix"""
         if self._setting.desc:
@@ -185,9 +190,13 @@ class Role:
 
         observed = self._rc.env.memory.get_by_actions(self._rc.watch)
         
-        self._rc.news = self._rc.memory.remember(observed)  # remember recent exact or similar memories
+        self._rc.news = self._rc.memory.find_news(observed)  # find news (previously unseen messages) from observed messages
 
         for i in env_msgs:
+            if i.restricted_to != "" and self.profile not in i.restricted_to and self.name not in i.restricted_to:
+                # if the msg is not send to the whole audience ("") nor this role (self.profile or self.name),
+                # then this role should not be able to receive it and record it into its memory
+                continue
             self.recv(i)
 
         news_text = [f"{i.role}: {i.content[:20]}..." for i in self._rc.news]

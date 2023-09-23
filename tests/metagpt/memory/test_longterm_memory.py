@@ -21,35 +21,35 @@ def test_ltm_search():
 
     idea = 'Write a cli snake game'
     message = Message(role='BOSS', content=idea, cause_by=BossRequirement)
-    news = ltm.remember([message])
+    news = ltm.find_news([message])
     assert len(news) == 1
     ltm.add(message)
 
     sim_idea = 'Write a game of cli snake'
     sim_message = Message(role='BOSS', content=sim_idea, cause_by=BossRequirement)
-    news = ltm.remember([sim_message])
+    news = ltm.find_news([sim_message])
     assert len(news) == 0
     ltm.add(sim_message)
 
     new_idea = 'Write a 2048 web game'
     new_message = Message(role='BOSS', content=new_idea, cause_by=BossRequirement)
-    news = ltm.remember([new_message])
+    news = ltm.find_news([new_message])
     assert len(news) == 1
     ltm.add(new_message)
 
     # restore from local index
     ltm_new = LongTermMemory()
     ltm_new.recover_memory(role_id, rc)
-    news = ltm_new.remember([message])
+    news = ltm_new.find_news([message])
     assert len(news) == 0
 
     ltm_new.recover_memory(role_id, rc)
-    news = ltm_new.remember([sim_message])
+    news = ltm_new.find_news([sim_message])
     assert len(news) == 0
 
     new_idea = 'Write a Battle City'
     new_message = Message(role='BOSS', content=new_idea, cause_by=BossRequirement)
-    news = ltm_new.remember([new_message])
+    news = ltm_new.find_news([new_message])
     assert len(news) == 1
 
     ltm_new.clear()

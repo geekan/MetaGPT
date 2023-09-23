@@ -1,0 +1,4 @@
+from examples.werewolf_game.roles.base_player import BasePlayer
+from examples.werewolf_game.roles.moderator import Moderator
+from examples.werewolf_game.roles.villager import Villager
+from examples.werewolf_game.roles.werewolf import Werewolf

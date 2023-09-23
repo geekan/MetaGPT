@@ -49,7 +49,6 @@ class Trump(Role):
         super().__init__(name, profile, **kwargs)
         self._init_actions([ShoutOut])
         self._watch([ShoutOut])
-        self.name = "Trump"
         self.opponent_name = "Biden"
 
     async def _observe(self) -> int:
@@ -89,7 +88,6 @@ class Biden(Role):
         super().__init__(name, profile, **kwargs)
         self._init_actions([ShoutOut])
         self._watch([BossRequirement, ShoutOut])
-        self.name = "Biden"
         self.opponent_name = "Trump"
 
     async def _observe(self) -> int:

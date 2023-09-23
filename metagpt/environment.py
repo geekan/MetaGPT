@@ -33,7 +33,7 @@ class Environment(BaseModel):
            Add a role in the current environment
         """
         role.set_env(self)
-        self.roles[role.profile] = role
+        self.roles[str(role._setting)] = role
 
     def add_roles(self, roles: Iterable[Role]):
         """增加一批在当前环境的角色
@@ -72,8 +72,8 @@ class Environment(BaseModel):
         """
         return self.roles
 
-    def get_role(self, name: str) -> Role:
+    def get_role(self, role_setting: str) -> Role:
         """获得环境内的指定角色
            get all the environment roles
         """
-        return self.roles.get(name, None)
+        return self.roles.get(role_setting, None)
