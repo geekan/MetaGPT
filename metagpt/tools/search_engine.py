@@ -5,10 +5,8 @@
 @Author  : alexanderwu
 @File    : search_engine.py
 """
-from __future__ import annotations
-
 import importlib
-from typing import Callable, Coroutine, Literal, overload
+from typing import Callable, Coroutine, Literal, overload, Optional, Union
 
 from semantic_kernel.skill_definition import sk_function
 
@@ -45,8 +43,8 @@ class SearchEngine:
 
     def __init__(
         self,
-        engine: SearchEngineType | None = None,
-        run_func: Callable[[str, int, bool], Coroutine[None, None, str | list[str]]] = None,
+            engine: Optional[SearchEngineType] = None,
+            run_func: Callable[[str, int, bool], Coroutine[None, None, Union[str, list[str]]]] = None,
     ):
         engine = engine or CONFIG.search_engine
         if engine == SearchEngineType.SERPAPI_GOOGLE:
@@ -86,7 +84,7 @@ class SearchEngine:
     ) -> list[dict[str, str]]:
         ...
 
-    async def run(self, query: str, max_results: int = 8, as_string: bool = True) -> str | list[dict[str, str]]:
+    async def run(self, query: str, max_results: int = 8, as_string: bool = True) -> Union[str, list[dict[str, str]]]:
         """Run a search query.
 
         Args:
