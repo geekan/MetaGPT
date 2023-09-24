@@ -182,17 +182,17 @@ class Role:
         if not self._rc.env:
             return 0
         env_msgs = self._rc.env.memory.get()
-
+    
         observed = self._rc.env.memory.get_by_actions(self._rc.watch)
-        
+        logger.info(observed)
         self._rc.news = self._rc.memory.remember(observed)  # remember recent exact or similar memories
-
+        logger.info(self._rc.news)
         for i in env_msgs:
             self.recv(i)
 
         news_text = [f"{i.role}: {i.content[:20]}..." for i in self._rc.news]
         if news_text:
-            logger.debug(f'{self._setting} observed: {news_text}')
+            logger.info(f'{self._setting} observed: {news_text}')
         return len(self._rc.news)
 
     def _publish_message(self, msg):
@@ -234,7 +234,7 @@ class Role:
                 self.recv(Message("\n".join(message)))
         elif not await self._observe():
             # If there is no new information, suspend and wait
-            logger.debug(f"{self._setting}: no news. waiting.")
+            logger.info(f"{self._setting}: no news. waiting.")
             return
 
         rsp = await self._react()
