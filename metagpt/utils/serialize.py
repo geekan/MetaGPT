@@ -4,7 +4,7 @@
 
 import copy
 import pickle
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 from metagpt.actions.action_output import ActionOutput
 from metagpt.schema import Message
@@ -38,7 +38,7 @@ def actionoutout_schema_to_mapping(schema: Dict) -> Dict:
             mapping[field] = (List[str], ...)
         elif property["type"] == "array" and property["items"]["type"] == "array":
             # here only consider the `Tuple[str, str]` situation
-            mapping[field] = (List[Tuple[str, str]], ...)
+            mapping[field] = (List[List[str]], ...)
     return mapping
 
 
