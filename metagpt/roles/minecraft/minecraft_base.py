@@ -49,8 +49,6 @@ class Minecraft(Role):
         self.game_memory = None
         self.event = {}
 
-    
-    #
     async def _think(self) -> None:
         if len(self._actions) == 1:
             # If there is only one action, then only this one can be performed
@@ -75,7 +73,7 @@ class Minecraft(Role):
     async def _obtain_events(self):
         return await self.game_memory.on_event()
     
-    def set_memory(self, shared_memory: 'GameMemory'):
+    def set_memory(self, shared_memory: 'GameEnviroment'):
         self.game_memory = shared_memory
     
     def render_human_message(self, msg, *args, **kwargs):
@@ -102,4 +100,3 @@ if __name__ == "__main__":
     result = "Async operation result"
     # 调用回调函数，并传递结果
     # mc.perform_memory_callback(mc.my_callback)
-    print(mc.game_memory.current_task)

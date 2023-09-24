@@ -15,7 +15,7 @@ from metagpt.roles.minecraft.minecraft_base import Minecraft
 from metagpt.environment import Environment
 
 
-class GameMemory(BaseModel):
+class GameEnvironment(BaseModel):
     """
     游戏环境的记忆，用于多个agent进行信息的共享和缓存，而不需要重复在自己的角色内维护缓存
     """
@@ -78,7 +78,7 @@ class MinecraftPlayer(SoftwareCompany):
     dedicated to writing executable code.
     """
     environment: Environment = Field(default_factory=Environment)
-    game_memory: GameMemory = Field(default_factory=GameMemory)
+    game_memory: GameEnvironment = Field(default_factory=GameEnvironment)
     investment: float = Field(default=50.0)
     task: str = Field(default="")
     game_info: dict = Field(default={})
