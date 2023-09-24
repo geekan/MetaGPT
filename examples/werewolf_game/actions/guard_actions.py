@@ -5,9 +5,10 @@ class Protect(Action):
 
     PROMPT_TEMPLATE = """
     It's a werewolf game and you are a guard,
+    you can choose to protect a player, including yourself, then the protected player will not be killed by the Werewolves this night.
     this is game history:
     {context}.
-    Attention: you can not protect the same player in a row.
+    Attention: you can not protect the same player two nights in a row.  
     Now, choose one to portect, you will:
     """
 
