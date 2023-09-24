@@ -70,7 +70,16 @@ class AIMessage(Message):
     def __init__(self, content: str):
         super().__init__(content, 'assistant')
 
+class HumanMessage(Message):
+    """
+    便于支持OpenAI的消息
+    Facilitate support for OpenAI messages
+    """
 
+    def __init__(self, content: str):
+        super().__init__(content, 'human')
+        
+        
 if __name__ == '__main__':
     test_content = 'test_message'
     msgs = [
