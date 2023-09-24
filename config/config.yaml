@@ -7,7 +7,6 @@
 ## Or, you can configure OPENAI_PROXY to access official OPENAI_API_BASE.
 OPENAI_API_BASE: "https://openai-forward.metadl.com/v1"
 #OPENAI_PROXY: "http://127.0.0.1:8118"
-
 OPENAI_API_KEY: "YOUR_API_KEY"
 OPENAI_API_MODEL: "gpt-4"
 MAX_TOKENS: 1500
