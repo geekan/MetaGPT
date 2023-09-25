@@ -37,7 +37,7 @@ def actionoutout_schema_to_mapping(schema: Dict) -> Dict:
         elif property["type"] == "array" and property["items"]["type"] == "string":
             mapping[field] = (List[str], ...)
         elif property["type"] == "array" and property["items"]["type"] == "array":
-            # here only consider the `Tuple[str, str]` situation
+            # here only consider the `List[List[str]]` situation
             mapping[field] = (List[List[str]], ...)
     return mapping
 
