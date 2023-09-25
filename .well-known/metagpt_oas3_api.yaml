@@ -13,10 +13,17 @@ servers:
 paths:
   /tts/azsure:
     x-prerequisite:
-      - name: AZURE_TTS_SUBSCRIPTION_KEY
-        description: "For more details, check out: [Azure Text-to_Speech](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts)"
-      - name: AZURE_TTS_REGION
-        description: "For more details, check out: [Azure Text-to_Speech](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts)"
+      configurations:
+        AZURE_TTS_SUBSCRIPTION_KEY:
+          type: string
+          description: "For more details, check out: [Azure Text-to_Speech](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts)"
+        AZURE_TTS_REGION:
+          type: string
+          description: "For more details, check out: [Azure Text-to_Speech](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts)"
+      required:
+        allOf:
+          - AZURE_TTS_SUBSCRIPTION_KEY
+          - AZURE_TTS_REGION
     post:
       summary: "Convert Text to Base64-encoded .wav File Stream"
       description: "For more details, check out: [Azure Text-to_Speech](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts)"
@@ -73,10 +80,81 @@ paths:
         '500':
           description: "Internal Server Error"
 
+  /tts/iflytek:
+    x-prerequisite:
+      configurations:
+        IFLYTEK_APP_ID:
+          type: string
+          description: "Application ID is used to access your iFlyTek service API, see: `https://console.xfyun.cn/services/tts`"
+        IFLYTEK_API_KEY:
+          type: string
+          description: "WebAPI argument, see: `https://console.xfyun.cn/services/tts`"
+        IFLYTEK_API_SECRET:
+          type: string
+          description: "WebAPI argument, see: `https://console.xfyun.cn/services/tts`"
+      required:
+        allOf:
+          - IFLYTEK_APP_ID
+          - IFLYTEK_API_KEY
+          - IFLYTEK_API_SECRET
+    post:
+      summary: "Convert Text to Base64-encoded .mp3 File Stream"
+      description: "For more details, check out: [iFlyTek](https://console.xfyun.cn/services/tts)"
+      operationId: iflytek_tts.oas3_iflytek_tts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - text
+              properties:
+                text:
+                  type: string
+                  description: Text to convert
+                voice:
+                  type: string
+                  description: "Voice style, see: [iFlyTek Text-to_Speech](https://www.xfyun.cn/doc/tts/online_tts/API.html#%E6%8E%A5%E5%8F%A3%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B)"
+                  default: "xiaoyan"
+                app_id:
+                  type: string
+                  description: "Application ID is used to access your iFlyTek service API, see: `https://console.xfyun.cn/services/tts`"
+                  default: ""
+                api_key:
+                  type: string
+                  description: "WebAPI argument, see: `https://console.xfyun.cn/services/tts`"
+                  default: ""
+                api_secret:
+                  type: string
+                  description: "WebAPI argument, see: `https://console.xfyun.cn/services/tts`"
+                  default: ""
+      responses:
+        '200':
+          description: "Base64-encoded .mp3 file data if successful, otherwise an empty string."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  wav_data:
+                    type: string
+                    format: base64
+        '400':
+          description: "Bad Request"
+        '500':
+          description: "Internal Server Error"
+
+
   /txt2img/openai:
     x-prerequisite:
-      - name: OPENAI_API_KEY
-        description: "OpenAI API key, For more details, checkout: `https://platform.openai.com/account/api-keys`"
+      configurations:
+        OPENAI_API_KEY:
+          type: string
+          description: "OpenAI API key, For more details, checkout: `https://platform.openai.com/account/api-keys`"
+      required:
+        allOf:
+          - OPENAI_API_KEY
     post:
       summary: "Convert Text to Base64-encoded Image Data Stream"
       operationId: openai_text_to_image.oas3_openai_text_to_image
@@ -116,8 +194,13 @@ paths:
           description: "Internal Server Error"
   /txt2embedding/openai:
     x-prerequisite:
-      - name: OPENAI_API_KEY
-        description: "OpenAI API key, For more details, checkout: `https://platform.openai.com/account/api-keys`"
+      configurations:
+        OPENAI_API_KEY:
+          type: string
+          description: "OpenAI API key, For more details, checkout: `https://platform.openai.com/account/api-keys`"
+      required:
+        allOf:
+          - OPENAI_API_KEY
     post:
       summary: Text to embedding
       operationId: openai_text_to_embedding.oas3_openai_text_to_embedding
@@ -158,8 +241,13 @@ paths:
 
   /txt2image/metagpt:
     x-prerequisite:
-      - name: METAGPT_TEXT_TO_IMAGE_MODEL_URL
-        description: "Model url."
+      configurations:
+        METAGPT_TEXT_TO_IMAGE_MODEL_URL:
+          type: string
+          description: "Model url."
+      required:
+        allOf:
+          - METAGPT_TEXT_TO_IMAGE_MODEL_URL
     post:
       summary: "Text to Image"
       description: "Generate an image from the provided text using the MetaGPT Text-to-Image API."
