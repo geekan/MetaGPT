@@ -24,15 +24,12 @@ class Moderator(Role):
         self._watch([UserRequirement, InstructSpeak, ParseSpeak])
         self._init_actions([InstructSpeak, ParseSpeak, AnnounceGameResult])
         self.stage_idx = 0
+        self.living_players = "[Player 1, Player 2, Player 3, Player 4]"
     
-    async def _instruct_speak(self):
+    async def _instruct_speak(self,context):
         stage_idx = self.stage_idx % len(STAGE_INSTRUCTIONS)
-
-        stage_info = await InstructSpeak().run(context="", stage_idx=stage_idx)
-
         self.stage_idx += 1
-
-        return stage_info["content"], stage_info["send_to"], stage_info["restricted_to"]
+        return await InstructSpeak().run(context=context, stage_idx=stage_idx, living_players=self.living_players)
 
     async def _parse_speak(self):
         # 解析玩家消息并返回结果
@@ -69,7 +66,7 @@ class Moderator(Role):
 
         # 根据_think的结果，执行InstructSpeak还是ParseSpeak, 并将结果返回
         if isinstance(todo, InstructSpeak):
-            msg_content, msg_to_send_to, msg_restriced_to = await self._instruct_speak()
+            msg_content, msg_to_send_to, msg_restriced_to = await self._instruct_speak(memories)
             msg = Message(content=msg_content, role=self.profile, sent_from=self.name,
                 cause_by=InstructSpeak, send_to=msg_to_send_to, restricted_to=msg_restriced_to)
         
