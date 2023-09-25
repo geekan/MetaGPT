@@ -13,6 +13,7 @@ from metagpt.minecraft_team import MinecraftPlayer
 
 async def learn(task="Start", investment: float = 50.0, n_round: int = 3):
     mc_player = MinecraftPlayer()
+    mc_player.set_port(2253) # Modify this to your LAN port
     mc_player.hire(
         [
             CurriculumDesigner(),
