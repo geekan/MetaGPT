@@ -83,10 +83,6 @@ class SubprocessMonitor:
             self.process.terminate()
             self.process.wait()
 
-    # def __del__(self):
-    #     if self.process.is_running():
-    #         self.stop()
-
     @property
     def is_running(self):
         if self.process is None:
