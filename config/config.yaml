@@ -15,6 +15,19 @@ RPM: 10
 #### if Anthropic
 #Anthropic_API_KEY: "YOUR_API_KEY"
 
+#### if xinghuo
+#xinghuo_appid : "APPID"
+#xinghuo_api_secret : "APISecret"
+#xinghuo_api_key : "APIKey"
+
+#domain : "generalv2" 
+
+#Spark_url : "ws://spark-api.xf-yun.com/v2.1/chat"
+
+#### 如果不能使用api
+
+#no_api_mode :"true"
+
 #### if AZURE, check https://github.com/openai/openai-cookbook/blob/main/examples/azure/chat.ipynb
 #### You can use ENGINE or DEPLOYMENT mode
 #OPENAI_API_TYPE: "azure"

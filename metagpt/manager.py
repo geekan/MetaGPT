@@ -5,13 +5,13 @@
 @Author  : alexanderwu
 @File    : manager.py
 """
-from metagpt.llm import LLM
+import metagpt.llm as LLM
 from metagpt.logs import logger
 from metagpt.schema import Message
 
 
 class Manager:
-    def __init__(self, llm: LLM = LLM()):
+    def __init__(self, llm: llm=LLM.DEFAULT_LLM):
         self.llm = llm  # Large Language Model
         self.role_directions = {
             "BOSS": "Product Manager",

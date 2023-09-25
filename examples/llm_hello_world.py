@@ -7,12 +7,11 @@
 """
 import asyncio
 
-from metagpt.llm import LLM, Claude
-from metagpt.logs import logger
+import metagpt.llm as LLM
 
 
 async def main():
-    llm = LLM()
+    llm=LLM.DEFAULT_LLM
     claude = Claude()
     logger.info(await claude.aask('你好，请进行自我介绍'))
     logger.info(await llm.aask('hello world'))
