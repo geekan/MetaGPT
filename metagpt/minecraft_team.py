@@ -4,6 +4,8 @@
 # @Desc    :
 from typing import Iterable, Dict, Any
 from pydantic import BaseModel, Field
+import requests
+import json
 
 from metagpt.logs import logger
 from metagpt.roles import Role
@@ -13,9 +15,9 @@ from metagpt.software_company import SoftwareCompany
 from metagpt.actions.minecraft.player_action import PlayerActions
 from metagpt.roles.minecraft.minecraft_base import Minecraft
 from metagpt.environment import Environment
+from .mineflayer_environment import MineflayerEnv
 
-
-class GameEnvironment(BaseModel):
+class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
     """
     游戏环境的记忆，用于多个agent进行信息的共享和缓存，而不需要重复在自己的角色内维护缓存
     """
@@ -23,6 +25,14 @@ class GameEnvironment(BaseModel):
     current_task: str = Field(default="Craft 4 wooden planks")
     task_execution_time: float = Field(default=float)
     context: str = Field(default="")
+
+    code: str = Field(default="")
+    programs: str = Field(default="")
+
+    mf_instance : MineflayerEnv = Field(default_factory=MineflayerEnv)
+
+    def set_mc_port(self, mc_port):
+        self.mf_instance.set_mc_port(mc_port)
     
     def register_roles(self, roles: Iterable[Minecraft]):
         for role in roles:
@@ -36,7 +46,13 @@ class GameEnvironment(BaseModel):
     
     def update_context(self, context: str):
         self.context = context
-    
+
+    def update_code(self, code: str):
+        self.code = code
+
+    def update_programs(self, programs: str):
+        self.programs = programs
+
     async def on_event(self, *args):
         """
         Retrieve Minecraft events.
@@ -51,26 +67,34 @@ class GameEnvironment(BaseModel):
                 Exception: If there is an issue retrieving events.
         """
         try:
-            # Implement the logic to retrieve Minecraft events here.
-            events = {
-                "Biome": "river",
-                "Time": "night",
-                "Nearby blocks": "water, dirt, stone, coal_ore, sandstone, grass_block, sand, grass, oak_leaves, fern, seagrass, tall_seagrass",
-                "Nearby entities(nearest to  farthest)": "turtle, salmon",
-                "Health": "20.0 / 20",
-                "Hunger": "20.0 / 20",
-                "Position": "x = -47.5, y = 63.0, z = -283.5",
-                "Equipment": [],
-                "Inventory(0 / 36)": "Empty",
-                "Chests": ""
+            if not self.mf_instance.has_reset:
+                # TODO Modify
+                logger.info("Environment has not been reset yet, is resetting")
+                self.mf_instance.reset(options={
+                    "mode": "soft",
+                    "wait_ticks": 20,
+                })
+                # raise {}
+            self.mf_instance.check_process()
+            self.mf_instance.unpause()
+            data = {
+                "code": self.code,
+                "programs": self.programs,
             }
-            # Example: events = minecraft_api.get_events()
-            
+            res = requests.post(
+                f"{self.mf_instance.server}/step", json=data, timeout=self.mf_instance.request_timeout
+            )
+            if res.status_code != 200:
+                logger.error("Failed to step Minecraft server")
+                raise {}
+            returned_data = res.json()
+            self.mf_instance.pause()
+            events = json.loads(returned_data)
+            logger.info(f"Get Current Event: {events}")
             return events
         except Exception as e:
             logger.error(f"Failed to retrieve Minecraft events: {str(e)}")
             raise {}
-
 
 class MinecraftPlayer(SoftwareCompany):
     """
@@ -83,6 +107,9 @@ class MinecraftPlayer(SoftwareCompany):
     task: str = Field(default="")
     game_info: dict = Field(default={})
     
+    def set_port(self, mc_port):
+        self.game_memory.set_mc_port(mc_port)
+
     def hire(self, roles: list[Role]):
         self.environment.add_roles(roles)
         self.game_memory.register_roles(roles)
@@ -107,4 +134,10 @@ class MinecraftPlayer(SoftwareCompany):
         
         return self.environment.history
 
-
+if "__name__" == "__main__":
+    test_code = "bot.chat(`/time set ${getNextTime()}`);"
+    mc_port = 1960
+    ge = GameEnvironment()
+    ge.set_mc_port(mc_port)
+    ge.update_code(test_code)
+    logger.info(ge.on_event())
