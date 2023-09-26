@@ -13,7 +13,7 @@ import json
 # Meomry_basic 类
 
 
-class Meomry_basic:
+class Memory_basic:
     def __init__(
             self, created_time, accessed_time,
             description,
@@ -48,7 +48,7 @@ class Agent_memory(object):
 
     def __init__(self, name: str, iss: str,
                  memory_forget: float = 0.99,
-                 memories_list: list[Meomry_basic] = [], memory_path: str = None) -> None:
+                 memories_list: list[Memory_basic] = [], memory_path: str = None) -> None:
         '''
         定义Agent,替换原有Agent使用，需要其他人根据需求补全功能。
         Attributes:
@@ -81,7 +81,7 @@ class Agent_memory(object):
             memory_data = [mem.__dict__ for mem in self.memories_list]
             json.dump(memory_data, file)
 
-    def memory_load(self, PATH: str) -> list[Meomry_basic]:
+    def memory_load(self, PATH: str) -> list[Memory_basic]:
         """
         将Memory从指定路径的JSON文件中Load出来,返回一个记忆列表;如果load失败，返回一个空列表。
         Args:
@@ -92,7 +92,7 @@ class Agent_memory(object):
         try:
             with open(PATH, 'r') as file:
                 memory_data = json.load(file)
-                self.memories_list = [Meomry_basic(
+                self.memories_list = [Memory_basic(
                     **mem) for mem in memory_data]
             return self.memories_list
         except OSError:
@@ -121,7 +121,7 @@ if __name__ == "__main__":
         memory = run_gpt_random_concept()
         curr_time = time.time()
         poignancy = run_gpt_prompt_chat_poignancy(John, memory)
-        M = Meomry_basic(curr_time, curr_time, memory, poignancy)
+        M = Memory_basic(curr_time, curr_time, memory, poignancy)
         John.memories_list.append(M)
 
     John.memory_save(John.memory_path)

@@ -4,11 +4,8 @@ from logging import Logger
 import time
 from gpt_structure import final_response
 import run_gpt
-from GA_memory_storage import Agent_memory, Meomry_basic
+from GA_memory_storage import Agent_memory, Memory_basic
 from retrive import agent_retrive
-'''
-首先
-'''
 
 
 def agent_reflect(agent):
@@ -35,7 +32,9 @@ def generate_focus_point(memories_list, n=3):
     try:
         poi_dict = json.loads(out)
         return (poi_dict['output'])
-    except:
+    except ValueError:
+        print(out)
+        Logger.error('无法返回正常结果')
         return out
 
 
@@ -57,7 +56,7 @@ def generate_insights_and_evidence(agent, memories_list, question, n=5):
     try:
         insight_list = json.loads(ret)
         for insight, index in insight_list:
-            agent.memory_list.append(Meomry_basic(
+            agent.memory_list.append(Memory_basic(
                 time.time(), None, insight, None, None))
         return (insight_list)
     except:

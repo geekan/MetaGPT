@@ -75,7 +75,7 @@ def prompt_generate(curr_input, prompt_lib_file):
     RETURNS: 
     a str prompt that will be sent to OpenAI's GPT server.  
     """
-    if type(curr_input) == type("string"):
+    if type(curr_input) is type("string"):
         curr_input = [curr_input]
         curr_input = [str(i) for i in curr_input]
 
