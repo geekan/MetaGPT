@@ -26,8 +26,8 @@ class Moderator(Role):
         self.step_idx = 0
         self.living_players = ["Player1", "Player2", "Player3", "Player4", "Player5"]
         self.werewolf_players = ["Player1", "Player2"]
-        self.killed_player = "Player4"  # 夜晚阶段，死掉的玩家
-        self.voted_out_player = "Player3"  # 白天阶段，被投票出局的玩家
+        self.good_guys = ["Player3", "Player4", "Player5"]
+        self.dead_players = []  # 夜晚阶段，死掉的玩家
         # 假设votes代表白天投票的结果，key是被投票的玩家，value是得票数
         self.votes = {"Player1": 1, "Player2": 2, "Player3": 1, "Player4": 0, "Player5": 0}
 
@@ -37,16 +37,26 @@ class Moderator(Role):
         return await InstructSpeak().run(step_idx,
                                          living_players=self.living_players,
                                          werewolf_players=self.werewolf_players,
-                                         killed_player=self.killed_player,
-                                         voted_out_player=self.voted_out_player)
+                                         killed_player=self.dead_players,
+                                         voted_out_player="Player3")
 
-    async def _parse_speak(self):
-        # 解析玩家消息并返回结果
-        parse_result = await ParseSpeak().run()
+    async def _parse_speak(self, memories, env):
 
-        # 理解结果，更新各角色状态、游戏状态
+        self.dead_players, vote_player, parse_info = await ParseSpeak().run(dead_history=self.dead_players,
+                                                                            context=memories, env=env)
 
-        return "Player message processed"
+        # decide to move the game into the next phase
+        if not vote_player:
+            msg_content, send_to = parse_info[0], self.profile
+        # game's termination condition
+        elif all(item in self.dead_players for item in self.werewolf_players) or all(
+                item in self.dead_players for item in self.good_guys):
+            self.is_game_over = True
+            msg_content, send_to = parse_info[1], "all"
+        else:
+            # game's termination condition
+            msg_content, send_to = parse_info[2], ""
+        return msg_content, send_to
 
     async def _think(self):
 
@@ -80,8 +90,9 @@ class Moderator(Role):
                           cause_by=InstructSpeak, send_to=msg_to_send_to, restricted_to=msg_restriced_to)
 
         elif isinstance(todo, ParseSpeak):
-            msg_content = await self._parse_speak()
-            msg = Message(content=msg_content, role=self.profile, sent_from=self.name, cause_by=ParseSpeak)
+            msg_content, send_to = await self._parse_speak(memories, self._rc)
+            msg = Message(content=msg_content, role=self.profile, sent_from=self.name, cause_by=ParseSpeak,
+                          send_to=send_to)
 
         elif isinstance(todo, AnnounceGameResult):
             msg_content = await AnnounceGameResult().run(winner=self.winner)
