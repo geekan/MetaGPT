@@ -129,7 +129,10 @@ if __name__ == "__main__":
     for i in range(len(John.memories_list)):
         print(f"John记忆为:{John.memories_list[i].description}")
         print(f"心酸程度为:{John.memories_list[i].poignancy}")
-    query = "How has John's personal connection with his neighbors, such as the Moores and Yuriko, influenced his role as a pharmacy shopkeeper?"
+    query = """
+    How has John's personal connection with his neighbors, 
+    such as the Moores and Yuriko, influenced his role as a pharmacy shopkeeper?
+    """
 
     Top_v = agent_retrive(John, query, 10, 3)
     print(f"John的相关信息：{Top_v}")
