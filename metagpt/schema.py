@@ -18,6 +18,8 @@ from metagpt.logs import logger
 class RawMessage(TypedDict):
     content: str
     role: str
+    target: str
+    restricted: str
 
 
 @dataclass
@@ -33,7 +35,7 @@ class Message:
 
     def __str__(self):
         # prefix = '-'.join([self.role, str(self.cause_by)])
-        return f"{self.role}: {self.content}"
+        return f"{self.role}, {self.content}, {self.send_to}, {self.restricted_to}"
 
     def __repr__(self):
         return self.__str__()
@@ -41,7 +43,9 @@ class Message:
     def to_dict(self) -> dict:
         return {
             "role": self.role,
-            "content": self.content
+            "content": self.content,
+            "target": self.send_to,
+            "restricted": self.restricted_to
         }
 
 

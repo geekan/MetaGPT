@@ -18,9 +18,12 @@ class Moderator(Role):
         self,
         name: str = "Moderator",
         profile: str = "Moderator",
+        wolves: set = (),
+        good_guys: set = (),
+        dead_players: set = (),
         **kwargs,
     ):
-        super().__init__(name, profile, **kwargs)
+        super().__init__(name, profile, dead_players, wolves, good_guys, **kwargs)
         self._watch([UserRequirement, InstructSpeak, ParseSpeak])
         self._init_actions([InstructSpeak, ParseSpeak, AnnounceGameResult])
         self.stage_idx = 0
@@ -34,13 +37,22 @@ class Moderator(Role):
 
         return stage_info["content"], stage_info["send_to"], stage_info["restricted_to"]
 
-    async def _parse_speak(self):
-        # 解析玩家消息并返回结果
-        parse_result = await ParseSpeak().run()
-        
-        # 理解结果，更新各角色状态、游戏状态
+    async def _parse_speak(self, memories, env):
 
-        return "Player message processed"
+        self.dead_players, vote_player, parse_info = await ParseSpeak().run(context=memories, env=env)
+
+        # decide to move the game into the next phase
+        if not vote_player:
+            msg_content, send_to = parse_info[0], self.profile
+        # game's termination condition
+        elif self.dead_players == self.wolves or self.dead_players == self.good_guys:
+            self.is_game_over = True
+            msg_content, send_to = parse_info[1], "all"
+        else:
+            # game's termination condition
+            msg_content, send_to = parse_info[2], ""
+
+        return msg_content, send_to
 
     async def _think(self):
 
@@ -55,7 +67,7 @@ class Moderator(Role):
             # 2. 上一轮消息是Moderator自己的指令，继续发出指令，一个事情可以分几条消息来说
             # 3. 上一轮消息是Moderator自己的解析消息，一个阶段结束，发出新一个阶段的指令
             self._rc.todo = InstructSpeak()
-        
+
         else:
             # 上一轮消息是游戏角色的发言，解析角色的发言
             self._rc.todo = ParseSpeak()
@@ -74,8 +86,9 @@ class Moderator(Role):
                 cause_by=InstructSpeak, send_to=msg_to_send_to, restricted_to=msg_restriced_to)
         
         elif isinstance(todo, ParseSpeak):
-            msg_content = await self._parse_speak()
-            msg = Message(content=msg_content, role=self.profile, sent_from=self.name, cause_by=ParseSpeak)
+            msg_content, send_to = await self._parse_speak(memories, self._rc)
+            msg = Message(content=msg_content, role=self.profile, sent_from=self.name, cause_by=ParseSpeak,
+                          send_to=send_to)
         
         elif isinstance(todo, AnnounceGameResult):
             msg_content = await AnnounceGameResult().run(winner=self.winner)

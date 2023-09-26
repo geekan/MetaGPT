@@ -10,6 +10,7 @@ ROLE_STATES = {
     2: "Protected", # 被保护
     3: "Poisoned", # 被毒
     4: "Saved", # 被救
+    5: "Killed" # 被刀
 }
 
 class BasePlayer(Role):
@@ -24,7 +25,7 @@ class BasePlayer(Role):
         super().__init__(name, profile, **kwargs)
         self._init_actions([Speak])
         self._watch([InstructSpeak])
-        self.team = team 
+        self.team = team
         # 调用 get_status() 来检查存活状态,并通过 set_status() 更新状态。
         self.status = 0 # 初始状态为活着
         
