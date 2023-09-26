@@ -44,8 +44,8 @@ class Message:
         return {
             "role": self.role,
             "content": self.content,
-            "target": self.send_to,
-            "restricted": self.restricted_to
+            "send_to": self.send_to,
+            "restricted_to": self.restricted_to
         }
 
 

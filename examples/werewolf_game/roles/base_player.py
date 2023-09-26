@@ -3,15 +3,6 @@ from metagpt.schema import Message
 from metagpt.logs import logger
 from examples.werewolf_game.actions import ACTIONS, Speak, InstructSpeak
 
-ROLE_STATES = {
-    # 存活状态
-    0: "Alive", # 开场
-    1: "Dead", # 结束
-    2: "Protected", # 被保护
-    3: "Poisoned", # 被毒
-    4: "Saved", # 被救
-    5: "Killed" # 被刀
-}
 
 class BasePlayer(Role):
     def __init__(

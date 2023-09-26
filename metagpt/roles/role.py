@@ -51,6 +51,9 @@ class RoleSetting(BaseModel):
     """Role Settings"""
     name: str
     profile: str
+    wolves: list
+    good_guys: list
+    dead_players: list
     goal: str
     constraints: str
     desc: str
@@ -93,9 +96,9 @@ class RoleContext(BaseModel):
 class Role:
     """Role/Agent"""
 
-    def __init__(self, name="", profile="", goal="", constraints="", desc=""):
+    def __init__(self, name="", profile="", wolves=[], good_guys=[], dead_players=[], goal="", constraints="", desc=""):
         self._llm = LLM()
-        self._setting = RoleSetting(name=name, profile=profile, goal=goal, constraints=constraints, desc=desc)
+        self._setting = RoleSetting(name=name, profile=profile, wolves=wolves, good_guys=good_guys, dead_players=dead_players, goal=goal, constraints=constraints, desc=desc)
         self._states = []
         self._actions = []
         self._role_id = str(self._setting)
@@ -198,10 +201,12 @@ class Role:
                 # then this role should not be able to receive it and record it into its memory
                 continue
             self.recv(i)
-
-        news_text = [f"{i.role}: {i.content[:20]}..." for i in self._rc.news]
-        if news_text:
-            logger.debug(f'{self._setting} observed: {news_text}')
+        try:
+            news_text = [f"{i.role}: {i.content[:20]}..." for i in self._rc.news]
+            if news_text:
+                logger.debug(f'{self._setting} observed: {news_text}')
+        except:
+            pass
         return len(self._rc.news)
 
     def _publish_message(self, msg):

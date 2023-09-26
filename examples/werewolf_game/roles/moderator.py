@@ -18,15 +18,15 @@ class Moderator(Role):
         self,
         name: str = "Moderator",
         profile: str = "Moderator",
-        wolves: set = (),
-        good_guys: set = (),
-        dead_players: set = (),
         **kwargs,
     ):
-        super().__init__(name, profile, dead_players, wolves, good_guys, **kwargs)
+        super().__init__(name, profile, **kwargs)
         self._watch([UserRequirement, InstructSpeak, ParseSpeak])
         self._init_actions([InstructSpeak, ParseSpeak, AnnounceGameResult])
         self.stage_idx = 0
+        self.wolves = []
+        self.good_guys = []
+        self.dead_players = []
     
     async def _instruct_speak(self):
         stage_idx = self.stage_idx % len(STAGE_INSTRUCTIONS)
@@ -39,13 +39,13 @@ class Moderator(Role):
 
     async def _parse_speak(self, memories, env):
 
-        self.dead_players, vote_player, parse_info = await ParseSpeak().run(context=memories, env=env)
+        self.dead_players, vote_player, parse_info = await ParseSpeak().run(dead_history=self.dead_players, context=memories, env=env)
 
         # decide to move the game into the next phase
         if not vote_player:
             msg_content, send_to = parse_info[0], self.profile
         # game's termination condition
-        elif self.dead_players == self.wolves or self.dead_players == self.good_guys:
+        elif all(item in self.dead_player for item in self.wolves) or all(item in self.dead_player for item in self.good_guys):
             self.is_game_over = True
             msg_content, send_to = parse_info[1], "all"
         else:

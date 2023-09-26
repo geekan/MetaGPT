@@ -1,7 +1,16 @@
 import collections
 
-from examples.werewolf_game.roles.base_player import ROLE_STATES
 from metagpt.actions import Action
+
+ROLE_STATES = {
+    # 存活状态
+    0: "Alive", # 开场
+    1: "Dead", # 结束
+    2: "Protected", # 被保护
+    3: "Poisoned", # 被毒
+    4: "Saved", # 被救
+    5: "Killed" # 被刀
+}
 
 STAGE_INSTRUCTIONS = {
     # 上帝需要介入的全部步骤和对应指令
@@ -64,17 +73,19 @@ class InstructSpeak(Action):
         return STAGE_INSTRUCTIONS[stage_idx]
 
 class ParseSpeak(Action):
-    def __init__(self, name="ParseSpeak", context=None, llm=None, env=None):
-        super().__init__(name, context, llm, env)
+    def __init__(self, name="ParseSpeak", context=None, llm=None):
+        super().__init__(name, context, llm)
         self.daytime_info = collections.defaultdict(list)
         self.night_info = collections.defaultdict(list)
         self.vote_message = []
-        self.dead_players = set()
 
-    async def run(self, context, llm, env):
+    async def run(self, dead_history, context, env):
 
-        for m in context:
-            role, content, target, restricted = m.sent_from, m.content, m.sent_to, m.restricted_to
+        for m in env.memory.get():
+            role = m.sent_from if hasattr(m, 'sent_from') else ""
+            content = m.content if hasattr(m, 'content') else ""
+            target = m.sent_to if hasattr(m, 'sent_to') else ""
+            restricted = m.restricted_to if hasattr(m, 'restricted_to') else ""
             if target == 'all':
                 self.daytime_info[role] = [content, target, restricted]
             else:
@@ -82,25 +93,26 @@ class ParseSpeak(Action):
 
         # collect info from the night and identify the dead player
         for role in self.night_info:
-            if "kill" in self.night_info[role][0]:
+            if "kill" in self.night_info[role][0] and self.night_info[role][1]:
                 target = self.night_info[role][1]
-                env.get_role(target).set_status(ROLE_STATES[5])
+                print("env.get_roles[target]", env, env.env.roles)
+                env.env.roles[target].set_status(ROLE_STATES[5])
         for role in self.night_info:
             if ("save" or "guard") in self.night_info[role][0]:
                 save_target = self.night_info[role][1]
                 if save_target == target:
-                    env.get_role(target).set_status(ROLE_STATES[0])
+                    env.env.roles[target].set_status(ROLE_STATES[0])
                 else:
-                    self.dead_players.add(target)
+                    dead_history.append(target)
 
         # collect message from the daytime and identify the vote player
         for role in self.daytime_info:
             self.vote_message += f"\n{self.daytime_info[role][0]}"
 
-        vote_player = self.llm.aask(VOTE_PROMPT.format(vote_message=self.vote_message))
-        self.dead_players.add(vote_player)
+        vote_player = await self.llm.aask(VOTE_PROMPT.format(vote_message=self.vote_message))
+        dead_history.append(vote_player)
 
-        return self.dead_players, vote_player, PARSE_INSTRUCTIONS
+        return dead_history, vote_player, PARSE_INSTRUCTIONS
 
 class SummarizeNight(Action):
     """consider all events at night, conclude which player dies (can be a peaceful night)"""
