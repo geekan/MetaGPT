@@ -3,7 +3,7 @@
 # @Desc   : base class of reflection
 
 import json
-from logging import Logger
+from metagpt.logs import logger
 import time
 from metagpt.actions.ga_action_base import final_response
 '''
@@ -39,7 +39,7 @@ def generate_focus_point(memories_list, n=3):
         return (poi_dict['output'])
     except ValueError:
         print(out)
-        Logger.error('无法返回正常结果')
+        logger.error('无法返回正常结果')
         return out
 
 
@@ -72,7 +72,7 @@ def generate_insights_and_evidence(agent, memories_list, question, n=5):
 if __name__ == "__main__":
     # 例子，构建John Agent，实现retrive
     John_iss = "John Lin is a pharmacy shopkeeper at the Willow Market and Pharmacy who loves to help people. He is always looking for ways to make the process of getting medication easier for his customers; John Lin is living with his wife, Mei Lin, who is a college professor, and son, Eddy Lin, who is a student studying music theory; John Lin loves his family very much; John Lin has known the old couple next-door, Sam Moore and Jennifer Moore, for a few years; John Lin thinks Sam Moore is a kind and nice man; John Lin knows his neighbor, Yuriko Yamamoto, well; John Lin knows of his neighbors, Tamara Taylor and Carmen Ortiz, but has not met them before; John Lin and Tom Moreno are colleagues at The Willows Market and Pharmacy; John Lin and Tom Moreno are friends and like to discuss local politics together; John Lin knows the Moreno family somewhat well — the husband Tom Moreno and the wife Jane Moreno."
-    John = Agent_memory(
+    John = AgentMemory(
         "John", John_iss, memory_path="agent_memories/John_memory.json")
 
     # John的相关信息：{'Had a friendly chat with Yuriko about her garden.': 2.4992317730827667, 'Helped Mrs. Moore carry groceries into her house.': 1.957656720441911, 'Discussed local politics with Tom Moreno.': 1.9458268038234035}
