@@ -6,31 +6,61 @@
 
 import openai
 openai.api_key = "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"
-openai.proxy='http://127.0.0.1:7000'
+openai.proxy = 'http://127.0.0.1:7000'
 # 直接调用Prompt生成
+
+
 def response_generate(prompt):
+    """
+    通过将特殊指令加入Prompt生成最终的响应。
+
+    参数：
+    - prompt：要生成响应的提示文本。
+    - special_instruction：要加入Prompt的特殊指令。
+    - example_output（可选）：示例输出的JSON字符串。
+
+    返回：
+    生成的最终响应。
+
+    """
     completion = openai.Completion.create(
         model="gpt-3.5-turbo-instruct",
-        prompt= prompt,
+        prompt=prompt,
         temperature=0,
-        max_tokens = 500,
-        top_p = 1,
-        stream = False,
-        frequency_penalty = 0,
-        presence_penalty = 0
+        max_tokens=500,
+        top_p=1,
+        stream=False,
+        frequency_penalty=0,
+        presence_penalty=0
     )
     return (completion.choices[0].text)
 
 # 特殊指令加入Prompt生成
-def final_response(prompt,special_instruction,example_output = None):
+
+
+def final_response(prompt, special_instruction, example_output=None):
+    """
+    通过将特殊指令加入Prompt生成最终的响应。
+
+    参数：
+    - prompt：要生成响应的提示文本。
+    - special_instruction：要加入Prompt的特殊指令。
+    - example_output（可选）：示例输出的JSON字符串。
+
+    返回：
+    生成的最终响应。
+
+    """
     prompt = '"""\n' + prompt + '\n"""\n'
     prompt += f"Output the response to the prompt above in json. {special_instruction}\n"
-    if example_output:    
+    if example_output:
         prompt += "Example output json:\n"
         prompt += '{"output": "' + str(example_output) + '"}'
     return response_generate(prompt)
 
 # prompt填充模板
+
+
 def prompt_generate(curr_input, prompt_lib_file):
     """
     Takes in the current input (e.g. comment that you want to classifiy) and 
@@ -45,21 +75,33 @@ def prompt_generate(curr_input, prompt_lib_file):
     RETURNS: 
     a str prompt that will be sent to OpenAI's GPT server.  
     """
-    if type(curr_input) == type("string"): 
+    if type(curr_input) == type("string"):
         curr_input = [curr_input]
         curr_input = [str(i) for i in curr_input]
 
     f = open(prompt_lib_file, "r")
     prompt = f.read()
     f.close()
-    for count, i in enumerate(curr_input):   
+    for count, i in enumerate(curr_input):
         prompt = prompt.replace(f"!<INPUT {count}>!", i)
-    if "<commentblockmarker>###</commentblockmarker>" in prompt: 
-        prompt = prompt.split("<commentblockmarker>###</commentblockmarker>")[1]
+    if "<commentblockmarker>###</commentblockmarker>" in prompt:
+        prompt = prompt.split(
+            "<commentblockmarker>###</commentblockmarker>")[1]
     return prompt.strip()
 
 # 使用OpenAI embedding库进行存储
+
+
 def embedding(query):
+    """
+    Generates an embedding for the given query.
+
+    Args:
+        query (str): The text query to be embedded.
+
+    Returns:
+        str: The embedding key generated for the query.
+    """
     embedding_result = openai.Embedding.create(
         model="text-embedding-ada-002",
         input=query
