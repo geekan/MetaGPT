@@ -5,35 +5,10 @@
 # Date:9.25
 
 import openai
-openai.api_key = "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"
-openai.proxy = 'http://127.0.0.1:7000'
+from metagpt.llm import DEFAULT_LLM
 # 直接调用Prompt生成
+# ga的prompt构建格式和metagpt完全不同。没有办法融合。
 
-
-def response_generate(prompt):
-    """
-    通过将特殊指令加入Prompt生成最终的响应。
-
-    参数：
-    - prompt：要生成响应的提示文本。
-    - special_instruction：要加入Prompt的特殊指令。
-    - example_output（可选）：示例输出的JSON字符串。
-
-    返回：
-    生成的最终响应。
-
-    """
-    completion = openai.Completion.create(
-        model="gpt-3.5-turbo-instruct",
-        prompt=prompt,
-        temperature=0,
-        max_tokens=500,
-        top_p=1,
-        stream=False,
-        frequency_penalty=0,
-        presence_penalty=0
-    )
-    return (completion.choices[0].text)
 
 # 特殊指令加入Prompt生成
 
@@ -56,7 +31,7 @@ def final_response(prompt, special_instruction, example_output=None):
     if example_output:
         prompt += "Example output json:\n"
         prompt += '{"output": "' + str(example_output) + '"}'
-    return response_generate(prompt)
+    return DEFAULT_LLM.ask(prompt)
 
 # prompt填充模板
 
