@@ -26,8 +26,8 @@ class Moderator(Role):
         self.step_idx = 0
         self.living_players = ["Player1", "Player2", "Player3", "Player4", "Player5"]
         self.werewolf_players = ["Player1", "Player2"]
-        self.killed_player = "Player 4"  # 夜晚阶段，死掉的玩家
-        self.voted_out_player = "Player 3"  # 白天阶段，被投票出局的玩家
+        self.killed_player = "Player4"  # 夜晚阶段，死掉的玩家
+        self.voted_out_player = "Player3"  # 白天阶段，被投票出局的玩家
         # 假设votes代表白天投票的结果，key是被投票的玩家，value是得票数
         self.votes = {"Player1": 1, "Player2": 2, "Player3": 1, "Player4": 0, "Player5": 0}
 

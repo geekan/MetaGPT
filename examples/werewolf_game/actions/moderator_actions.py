@@ -13,7 +13,7 @@ STEP_INSTRUCTIONS = {
         "send_to": "Moderator",  # for moderator to continuen speaking
         "restricted_to": ""},
     2: {"content": """Guard, now tell me who you protect tonight? 
-                You only choose one from the following living options please: {living_players}.""",
+                You only choose one from the following living options please: {living_players}. Or you can pass. For example: I protect ...""",
         "send_to": "Guard",
         "restricted_to": "Guard"},
     3: {"content": "Guard, close your eyes",
@@ -25,35 +25,35 @@ STEP_INSTRUCTIONS = {
     5: {"content": """Werewolves, I secretly tell you that {werewolf_players} are
                    all of the 2 werewolves! Keep in mind you are teammates. The rest players are not werewolves.
                    choose one from the following living options please:
-                   {living_players}. """,  # send to werewolf restrictedly for a response
+                   {living_players}. For example: I kill ...""",
         "send_to": "Werewolf",
         "restricted_to": "Werewolf"},
     6: {"content": "Werewolves, close your eyes",
         "send_to": "Moderator",
         "restricted_to": ""},
-    7: {"content": "Seer, please open your eyes!",
+    7: {"content": "Witch, please open your eyes!",
         "send_to": "Moderator",
         "restricted_to": ""},
-    8: {"content": """Seer, you can check one player's identity. Who are you going to verify its identity tonight? 
-                      Choose only one from the following living options:{living_players}.""",
-        "send_to": "Seer",
-        "restricted_to": "Seer"},
-    9: {"content": "Seer, close your eyes",
-        "send_to": "Moderator",
-        "restricted_to": ""},
-    10: {"content": "Witch, please open your eyes!",
-         "send_to": "Moderator",
-         "restricted_to": ""},
-    11: {"content": """Witch, you have a bottle of poison, who are you going to kill tonight?
+    8: {"content": """Witch, you have a bottle of poison, who are you going to kill tonight?
                         Choose one from the following living options: {living_players}.""",
-         "send_to": "Witch",
-         "restricted_to": "Witch"},
-    12: {"content": """Witch, you have a bottle of antidote and a bottle of poison. 
+        "send_to": "Witch",
+        "restricted_to": "Witch"},
+    9: {"content": """Witch, you have a bottle of antidote and a bottle of poison. 
                         Who are you going to save tonight or kill tonight? Choose one from the following living options: 
                         {living_players}.""",
-         "send_to": "Witch",
-         "restricted_to": "Witch"},
-    13: {"content": "Witch, close your eyes",
+        "send_to": "Witch",
+        "restricted_to": "Witch"},
+    10: {"content": "Witch, close your eyes",
+         "send_to": "Moderator",
+         "restricted_to": ""},
+    11: {"content": "Seer, please open your eyes!",
+         "send_to": "Moderator",
+         "restricted_to": ""},
+    12: {"content": """Seer, you can check one player's identity. Who are you going to verify its identity tonight? 
+                  Choose only one from the following living options:{living_players}.""",
+         "send_to": "Seer",
+         "restricted_to": "Seer"},
+    13: {"content": "Seer, close your eyes",
          "send_to": "Moderator",
          "restricted_to": ""},
     # The 1-st daytime
@@ -182,6 +182,7 @@ async def main():
     print(rst1)
     print(rst2)
     print(rst3)
+
 
 if __name__ == '__main__':
     asyncio.run(main())
