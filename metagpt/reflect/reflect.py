@@ -9,7 +9,7 @@ from metagpt.actions.ga_action_base import final_response
 '''
 等待Agent和memory更新，保留相关引用但可以忽略。
 '''
-from metagpt.memory.GA_memory_storage import Agent_memory, Memory_basic
+from metagpt.memory.ga_memory_storage import AgentMemory, MemoryBasic
 
 
 def agent_reflect(agent):

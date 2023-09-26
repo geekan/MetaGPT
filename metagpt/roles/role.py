@@ -18,6 +18,7 @@ from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.memory import Memory, LongTermMemory
 from metagpt.schema import Message
+from metagpt.reflect import agent_reflect
 
 PREFIX_TEMPLATE = """You are a {profile}, named {name}, your goal is {goal}, and the constraint is {constraints}. """
 
@@ -78,7 +79,8 @@ class RoleContext(BaseModel):
     def check(self, role_id: str):
         if hasattr(CONFIG, "long_term_memory") and CONFIG.long_term_memory:
             self.long_term_memory.recover_memory(role_id, self)
-            self.memory = self.long_term_memory  # use memory to act as long_term_memory for unify operation
+            # use memory to act as long_term_memory for unify operation
+            self.memory = self.long_term_memory
 
     @property
     def important_memory(self) -> list[Message]:
@@ -95,7 +97,8 @@ class Role:
 
     def __init__(self, name="", profile="", goal="", constraints="", desc=""):
         self._llm = LLM()
-        self._setting = RoleSetting(name=name, profile=profile, goal=goal, constraints=constraints, desc=desc)
+        self._setting = RoleSetting(
+            name=name, profile=profile, goal=goal, constraints=constraints, desc=desc)
         self._states = []
         self._actions = []
         self._role_id = str(self._setting)
@@ -169,9 +172,10 @@ class Role:
         # logger.info(response)
         if isinstance(response, ActionOutput):
             msg = Message(content=response.content, instruct_content=response.instruct_content,
-                        role=self.profile, cause_by=type(self._rc.todo))
+                          role=self.profile, cause_by=type(self._rc.todo))
         else:
-            msg = Message(content=response, role=self.profile, cause_by=type(self._rc.todo))
+            msg = Message(content=response, role=self.profile,
+                          cause_by=type(self._rc.todo))
         self._rc.memory.add(msg)
         # logger.debug(f"{response}")
 
@@ -184,8 +188,9 @@ class Role:
         env_msgs = self._rc.env.memory.get()
 
         observed = self._rc.env.memory.get_by_actions(self._rc.watch)
-        
-        self._rc.news = self._rc.memory.remember(observed)  # remember recent exact or similar memories
+
+        # remember recent exact or similar memories
+        self._rc.news = self._rc.memory.remember(observed)
 
         for i in env_msgs:
             self.recv(i)
@@ -205,7 +210,8 @@ class Role:
     async def _react(self) -> Message:
         """Think first, then act"""
         await self._think()
-        logger.debug(f"{self._setting}: {self._rc.state=}, will do {self._rc.todo}")
+        logger.debug(
+            f"{self._setting}: {self._rc.state=}, will do {self._rc.todo}")
         return await self._act()
 
     def recv(self, message: Message) -> None:
