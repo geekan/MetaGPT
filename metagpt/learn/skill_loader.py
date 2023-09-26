@@ -25,29 +25,43 @@ class Returns(BaseModel):
     format: Optional[str] = None
 
 
-class Prerequisite(BaseModel):
-    name: str
-    type: Optional[str] = None
-    description: Optional[str] = None
-    default: Optional[str] = None
+class Parameter(BaseModel):
+    type: str
+    description: str = None
 
 
 class Skill(BaseModel):
     name: str
-    description: str
-    id: str
-    x_prerequisite: Optional[List[Prerequisite]] = Field(default=None, alias="x-prerequisite")
-    arguments: Dict
+    description: str = None
+    id: str = None
+    x_prerequisite: Dict = Field(default=None, alias="x-prerequisite")
+    parameters: Dict[str, Parameter] = None
     examples: List[Example]
     returns: Returns
 
+    @property
+    def arguments(self) -> Dict:
+        if not self.parameters:
+            return {}
+        ret = {}
+        for k, v in self.parameters.items():
+            ret[k] = v.description if v.description else ""
+        return ret
 
-class EntitySkills(BaseModel):
+
+class Entity(BaseModel):
+    name: str = None
     skills: List[Skill]
 
 
+class Components(BaseModel):
+    pass
+
+
 class SkillsDeclaration(BaseModel):
-    entities: Dict[str, EntitySkills]
+    skillapi: str
+    entities: Dict[str, Entity]
+    components: Components = None
 
 
 class SkillLoader:
@@ -60,8 +74,8 @@ class SkillLoader:
 
     def get_skill_list(self, entity_name: str = "Assistant") -> Dict:
         """Return the skill name based on the skill description."""
-        entity_skills = self.get_entity(entity_name)
-        if not entity_skills:
+        entity = self.get_entity(entity_name)
+        if not entity:
             return {}
 
         agent_skills = CONFIG.agent_skills
@@ -73,7 +87,7 @@ class SkillLoader:
 
         names = [AgentSkill(**i).name for i in agent_skills]
         description_to_name_mappings = {}
-        for s in entity_skills.skills:
+        for s in entity.skills:
             if s.name not in names:
                 continue
             description_to_name_mappings[s.description] = s.name
@@ -89,8 +103,21 @@ class SkillLoader:
             if sk.name == name:
                 return sk
 
-    def get_entity(self, name) -> EntitySkills:
+    def get_entity(self, name) -> Entity:
         """Return a list of skills for the entity."""
         if not self._skills:
             return None
         return self._skills.entities.get(name)
+
+
+if __name__ == "__main__":
+    CONFIG.agent_skills = [
+        {"id": 1, "name": "text_to_speech", "type": "builtin", "config": {}, "enabled": True},
+        {"id": 2, "name": "text_to_image", "type": "builtin", "config": {}, "enabled": True},
+        {"id": 3, "name": "ai_call", "type": "builtin", "config": {}, "enabled": True},
+        {"id": 3, "name": "data_analysis", "type": "builtin", "config": {}, "enabled": True},
+        {"id": 5, "name": "crawler", "type": "builtin", "config": {"engine": "ddg"}, "enabled": True},
+        {"id": 6, "name": "knowledge", "type": "builtin", "config": {}, "enabled": True},
+    ]
+    loader = SkillLoader()
+    print(loader.get_skill_list())

@@ -132,7 +132,7 @@ class S3:
 
     async def cache(self, data: str, file_ext: str, format: str = "") -> str:
         """Save data to remote S3 and return url"""
-        object_name = str(uuid.uuid4()).replace("-", "") + file_ext
+        object_name = uuid.uuid4().hex + file_ext
         path = Path(__file__).parent
         pathname = path / object_name
         try:

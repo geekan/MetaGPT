@@ -43,3 +43,4 @@ aiohttp_jinja2
 azure-cognitiveservices-speech==1.31.0
 aioboto3~=11.3.0
 redis==4.3.5
+websocket-client==1.6.2
