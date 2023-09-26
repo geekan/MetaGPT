@@ -7,7 +7,6 @@
 from run_gpt import run_gpt_prompt_chat_poignancy,run_gpt_random_concept
 from gpt_structure import embedding
 from retrive import agent_retrive
-from reflect import *
 import time
 import json
 
@@ -67,14 +66,14 @@ if __name__ == "__main__":
     John_iss = "John Lin is a pharmacy shopkeeper at the Willow Market and Pharmacy who loves to help people. He is always looking for ways to make the process of getting medication easier for his customers; John Lin is living with his wife, Mei Lin, who is a college professor, and son, Eddy Lin, who is a student studying music theory; John Lin loves his family very much; John Lin has known the old couple next-door, Sam Moore and Jennifer Moore, for a few years; John Lin thinks Sam Moore is a kind and nice man; John Lin knows his neighbor, Yuriko Yamamoto, well; John Lin knows of his neighbors, Tamara Taylor and Carmen Ortiz, but has not met them before; John Lin and Tom Moreno are colleagues at The Willows Market and Pharmacy; John Lin and Tom Moreno are friends and like to discuss local politics together; John Lin knows the Moreno family somewhat well — the husband Tom Moreno and the wife Jane Moreno."
     John = Agent_memeory("John",John_iss,memory_path="agent_memories/John_memory.json")
 
-    # for i in range(3):
-    #     memory = run_gpt_random_concept()
-    #     curr_time = time.time()
-    #     poignancy = run_gpt_prompt_chat_poignancy(John,memory)
-    #     M = Meomry_basic(curr_time,curr_time,memory,poignancy)
-    #     John.memories_list.append(M)
+    for i in range(3):
+        memory = run_gpt_random_concept()
+        curr_time = time.time()
+        poignancy = run_gpt_prompt_chat_poignancy(John,memory)
+        M = Meomry_basic(curr_time,curr_time,memory,poignancy)
+        John.memories_list.append(M)
 
-    # John.memory_save(John.memory_path)
+    John.memory_save(John.memory_path)
 
     for i in range(len(John.memories_list)):
         print(f"John记忆为:{John.memories_list[i].description}")
@@ -85,7 +84,5 @@ if __name__ == "__main__":
     print(f"John的相关信息：{Top_v}")
 
     # John的相关信息：{'Had a friendly chat with Yuriko about her garden.': 2.4992317730827667, 'Helped Mrs. Moore carry groceries into her house.': 1.957656720441911, 'Discussed local politics with Tom Moreno.': 1.9458268038234035}
-    A=generate_focus_point(John.memories_list)
-    B=generate_insights_and_evidence(John,John.memories_list,question=A[0])
         
         

@@ -5,14 +5,15 @@
 # Date:9.25
 
 import openai
-openai.api_key = "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"
+openai.api_key = "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"
+openai.proxy='http://127.0.0.1:7000'
 # 直接调用Prompt生成
 def response_generate(prompt):
     completion = openai.Completion.create(
         model="gpt-3.5-turbo-instruct",
         prompt= prompt,
         temperature=0,
-        max_tokens = 20,
+        max_tokens = 500,
         top_p = 1,
         stream = False,
         frequency_penalty = 0,
