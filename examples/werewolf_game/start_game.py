@@ -1,8 +1,6 @@
 import asyncio
 import platform
 import fire
-import sys
-sys.path.append("../../")
 
 from examples.werewolf_game.werewolf_game import WerewolfGame
 from examples.werewolf_game.roles import Moderator, Villager, Werewolf, Seer
