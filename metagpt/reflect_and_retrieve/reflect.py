@@ -1,8 +1,10 @@
 
 import json
+from logging import Logger
+import time
 from gpt_structure import final_response
 import run_gpt
-from GA_memory_storage import Agent_memeory
+from GA_memory_storage import Agent_memeory,Meomry_basic
 from retrive import agent_retrive
 '''
 首先
@@ -48,8 +50,11 @@ def generate_insights_and_evidence(agent,memories_list,question, n=5):
     ret = final_response(prompt.format(question=question,statements=statements,n=n), "['insightA',[1,2,3]]")
     try:
         insight_list = json.loads(ret)
+        for insight,index in insight_list:
+            agent.memory_list.append(Meomry_basic(time.time(),None,insight,None,None))
         return (insight_list)
     except:
+        Logger.error('我们无法获得想要的返回。')
         return ret
 
 if __name__ == "__main__":
@@ -59,9 +64,11 @@ if __name__ == "__main__":
 
     # John的相关信息：{'Had a friendly chat with Yuriko about her garden.': 2.4992317730827667, 'Helped Mrs. Moore carry groceries into her house.': 1.957656720441911, 'Discussed local politics with Tom Moreno.': 1.9458268038234035}
     A=generate_focus_point(John.memories_list)
-    B=generate_insights_and_evidence(John,John.memories_list,question=A[0])
-    print(type(B))
-    print(B)
+    
+    for i in A:
+        B=generate_insights_and_evidence(John,John.memories_list,question=A[0])
+        print(type(B))
+        print(B)
     '''
     这里是输出,list形式，返回给记忆。
     [['The pharmacy is a friendly and helpful community.', [0, 2, 9, 12]], ['The pharmacy is a place where people come for more than just medication.', [3, 5, 13, 14]], ['The pharmacy is a place where people come for advice and conversation.', [0, 2, 6, 9, 12]], ['The pharmacy is a place where people come for assistance with daily tasks.', [3, 5, 13, 14]], ['The pharmacy is a place where people come for political discussions.', [1]]]
