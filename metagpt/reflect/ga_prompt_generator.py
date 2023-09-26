@@ -12,7 +12,7 @@ from metagpt.llm import DEFAULT_LLM
 # 特殊指令加入Prompt生成
 
 
-def final_response(prompt, special_instruction, example_output=None):
+async def final_response(prompt, special_instruction, example_output=None):
     """
     通过将特殊指令加入Prompt生成最终的响应。
 
@@ -30,7 +30,7 @@ def final_response(prompt, special_instruction, example_output=None):
     if example_output:
         prompt += "Example output json:\n"
         prompt += '{"output": "' + str(example_output) + '"}'
-    return DEFAULT_LLM.ask(prompt)
+    return await DEFAULT_LLM.aask(prompt)
 
 # prompt填充模板
 
