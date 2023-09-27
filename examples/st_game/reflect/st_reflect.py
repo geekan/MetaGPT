@@ -10,21 +10,21 @@ from ga_prompt_generator import final_response
 '''
 等待Agent和memory更新，保留相关引用但可以忽略。
 '''
-from examples.st_game.associative_memory import MemoryBasic
+from ..memory.associative_memory import MemoryBasic
 
 import json
 import time
 
 
-async def agent_reflect(agent):
+async def agent_reflect(memories_list):
     """
     代理反思函数：生成关注点并生成洞察和证据
 
     """
-    A = await generate_focus_point(agent.memories_list)
+    A = await generate_focus_point(memories_list)
 
     for i in A:
-        B = await generate_insights_and_evidence(agent, agent.memories_list, question=i)
+        B = await generate_insights_and_evidence(memories_list, question=i)
 
 
 async def generate_focus_point(memories_list: list[MemoryBasic], n=3):
@@ -53,7 +53,7 @@ async def generate_focus_point(memories_list: list[MemoryBasic], n=3):
         return out
 
 
-async def generate_insights_and_evidence(agent, memories_list: list[MemoryBasic], question: str, n=5):
+async def generate_insights_and_evidence(memories_list: list[MemoryBasic], question: str, n=5):
     """
     生成洞察和证据函数：根据问题生成洞察和证据
     """
