@@ -17,7 +17,7 @@ from pathlib import Path
 from metagpt.roles.role import Role, RoleContext
 from metagpt.schema import Message
 
-from ..memory.associative_memory import AssociativeMemory
+from ..memory.associative_memory import AgentMemory
 from ..actions.dummy_action import DummyAction
 from ..actions.user_requirement import UserRequirement
 from ..maze_environment import MazeEnvironment
@@ -25,7 +25,7 @@ from ..maze_environment import MazeEnvironment
 
 class STRoleContext(RoleContext):
     env: 'MazeEnvironment' = Field(default=None)
-    memory: AssociativeMemory = Field(default=AssociativeMemory)
+    memory: AgentMemory = Field(default=AgentMemory)
 
 
 class STRole(Role):
