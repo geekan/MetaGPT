@@ -151,17 +151,3 @@ class MinecraftPlayer(SoftwareCompany):
             await self.environment.run()
 
         return self.environment.history
-
-
-async def main():
-    test_code = "bot.chat(`/time set ${getNextTime()}`);"
-    mc_port = 6286
-    ge = GameEnvironment()
-    ge.set_mc_port(mc_port)
-    ge.update_code(test_code)
-    result = await ge.on_event()
-    logger.info("On event test done")
-
-
-if __name__ == "__main__":
-    asyncio.run(main())

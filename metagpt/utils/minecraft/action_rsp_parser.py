@@ -2,28 +2,47 @@ import re
 import time
 from javascript import require
 
+def parse_js_code(msg: str):
+    '''
+    Extract and Parse JavaScript code blocks
+    '''
+    babel = require("@babel/core")
+    code_pattern = re.compile(r"```(?:javascript|js)(.*?)```", re.DOTALL)
+    code = "\n".join(code_pattern.findall(msg))
+    parsed = babel.parse(code)
+    return parsed
 
 def parse_action_response(msg: str):
     """
+    Input:
+    '''
+    Explain: ...
+    Plan: ...
+    Code:
+    ```javascript
+    ...
+    ```
+    '''
+
     Return:
     {
         "program_code": program_code,
         "program_name": main_function["name"],
         "exec_code": exec_code,
-    }
+    } or 
+    
+    "{error}"
+
     Refer to @ https://github.com/MineDojo/Voyager/blob/main/voyager/agents/action.py
     """
 
     retry = 3
-    error = None
+    error = None # 3 times failed return error
+    babel_generator = require("@babel/generator").default
     while retry > 0:
         try:
-            babel = require("@babel/core")
-            babel_generator = require("@babel/generator").default
-
-            code_pattern = re.compile(r"```(?:javascript|js)(.*?)```", re.DOTALL)
-            code = "\n".join(code_pattern.findall(msg))
-            parsed = babel.parse(code)
+            parsed = parse_js_code(msg)
+            # Collect func list: check if func & async
             functions = []
             assert len(list(parsed.program.body)) > 0, "No functions found"
             for i, node in enumerate(parsed.program.body):
@@ -42,7 +61,8 @@ def parse_action_response(msg: str):
                         "params": list(node["params"]),
                     }
                 )
-            # find the last async function
+
+            # Ensure main_function is the last async function
             main_function = None
             for function in reversed(functions):
                 if function["type"] == "AsyncFunctionDeclaration":
@@ -55,6 +75,8 @@ def parse_action_response(msg: str):
                 len(main_function["params"]) == 1
                 and main_function["params"][0].name == "bot"
             ), f"Main function {main_function['name']} must take a single argument named 'bot'"
+
+            # Split to program_code & exec_code for output
             program_code = "\n\n".join(function["body"] for function in functions)
             exec_code = f"await {main_function['name']}(bot);"
             return {
