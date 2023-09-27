@@ -15,12 +15,16 @@ from pydantic import Field
 from pathlib import Path
 
 from metagpt.roles.role import Role, RoleContext
+from metagpt.schema import Message
 
 from ..memory.associative_memory import AssociativeMemory
+from ..actions.dummy_action import DummyAction
+from ..actions.user_requirement import UserRequirement
+from ..maze_environment import MazeEnvironment
 
 
 class STRoleContext(RoleContext):
-
+    env: 'MazeEnvironment' = Field(default=None)
     memory: AssociativeMemory = Field(default=AssociativeMemory)
 
 
@@ -28,8 +32,22 @@ class STRole(Role):
 
     # add a role's property structure to store role's age and so on like GA's Scratch.
 
-    def __init__(self, name="", profile=""):
+    def __init__(self,
+                 name: str = "Klaus Mueller",
+                 profile: str = "STMember",
+                 has_inner_voice: bool = False):
+
         self._rc = STRoleContext()
+        super(STRole, self).__init__(name=name,
+                                     profile=profile)
+
+        self._init_actions([])
+
+        if has_inner_voice:
+            # TODO add communication action
+            self._watch([UserRequirement, DummyAction])
+        else:
+            self._watch([DummyAction])
 
     def load_from(self, folder: Path):
         """
@@ -42,3 +60,36 @@ class STRole(Role):
         save role data from `storage/{simulation_name}/personas/{role_name}
         """
         pass
+
+    async def observe(self):
+        # TODO observe info from maze_env
+        pass
+
+    async def plan(self):
+        # TODO make a plan
+
+        # TODO judge if start a conversation
+
+        # TODO update plan
+
+        # TODO re-add result into memory
+        pass
+
+    async def reflect(self):
+        # TODO reflection if meet reflect condition
+
+        # TODO re-add result to memory
+        pass
+
+    async def _react(self) -> Message:
+        maze_env = self._rc.env
+        # TODO observe
+        # get maze_env from self._rc.env, and observe env info
+
+        # TODO retrieve, use self._rc.memory 's retrieve functions
+
+        # TODO plan
+
+        # TODO reflect
+
+        # TODO execute(feed-back into maze_env)
