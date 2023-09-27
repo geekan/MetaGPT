@@ -8,7 +8,6 @@ import json
 from metagpt.logs import logger
 from metagpt.roles.role import Role
 from metagpt.schema import HumanMessage, SystemMessage
-
 from typing import Dict
 
 from pydantic import BaseModel

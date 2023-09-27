@@ -8,6 +8,7 @@ import re
 from typing import Any, Dict, Union
 from .file_utils import f_join
 
+
 def json_load(*file_path, **kwargs):
     file_path = f_join(file_path)
     with open(file_path, "r") as fp:
@@ -143,6 +144,7 @@ def correct_json(json_str: str) -> str:
         if balanced_str := balance_braces(json_str):
             return balanced_str
     return json_str
+
 
 def fix_and_parse_json(
     json_str: str, try_to_fix_with_gpt: bool = True

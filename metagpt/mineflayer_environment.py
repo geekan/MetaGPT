@@ -11,6 +11,7 @@ from metagpt.logs import logger
 import metagpt.utils.minecraft as U
 from metagpt.utils.minecraft.process_monitor import SubprocessMonitor
 
+
 class MineflayerEnv:
     def __init__(
         self,
@@ -66,18 +67,21 @@ class MineflayerEnv:
             )
             if res.status_code != 200:
                 self.mineflayer.stop()
-                logger.error(
-                    f"Minecraft server reply with code {res.status_code}"
-                )
+                logger.error(f"Minecraft server reply with code {res.status_code}")
                 raise {}
             return res.json()
 
-    def reset(self, *, seed=None, options=None, ):
+    def reset(
+        self,
+        *,
+        seed=None,
+        options=None,
+    ):
         if options is None:
             options = {}
         if options.get("inventory", {}) and options.get("mode", "hard") != "hard":
             logger.error("inventory can only be set when options is hard")
-            raise{}
+            raise {}
 
         self.reset_options = {
             "port": self.mc_port,
@@ -100,7 +104,7 @@ class MineflayerEnv:
         self.reset_options["reset"] = "soft"
         self.pause()
         return json.loads(returned_data)
-    
+
     def close(self):
         self.unpause()
         if self.connected:
