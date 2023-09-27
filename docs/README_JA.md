@@ -92,9 +92,9 @@ Chromium のダウンロードをスキップすることができます。
 
 ```bash
 # ステップ 1: metagpt 公式イメージをダウンロードし、config.yaml を準備する
-docker pull metagpt/metagpt:v0.3.1
+docker pull metagpt/metagpt:latest
 mkdir -p /opt/metagpt/{config,workspace}
-docker run --rm metagpt/metagpt:v0.3.1 cat /app/metagpt/config/config.yaml > /opt/metagpt/config/key.yaml
+docker run --rm metagpt/metagpt:latest cat /app/metagpt/config/config.yaml > /opt/metagpt/config/key.yaml
 vim /opt/metagpt/config/key.yaml # 設定を変更する
 
 # ステップ 2: コンテナで metagpt デモを実行する
@@ -102,7 +102,7 @@ docker run --rm \
     --privileged \
     -v /opt/metagpt/config/key.yaml:/app/metagpt/config/key.yaml \
     -v /opt/metagpt/workspace:/app/metagpt/workspace \
-    metagpt/metagpt:v0.3.1 \
+    metagpt/metagpt:latest \
     python startup.py "Write a cli snake game"
 
 # コンテナを起動し、その中でコマンドを実行することもできます
@@ -110,7 +110,7 @@ docker run --name metagpt -d \
     --privileged \
     -v /opt/metagpt/config/key.yaml:/app/metagpt/config/key.yaml \
     -v /opt/metagpt/workspace:/app/metagpt/workspace \
-    metagpt/metagpt:v0.3.1
+    metagpt/metagpt:latest
 
 docker exec -it metagpt /bin/bash
 $ python startup.py "Write a cli snake game"

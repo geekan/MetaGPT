@@ -87,9 +87,9 @@ pip install -e.
 
 ```bash
 # 步骤1: 下载metagpt官方镜像并准备好config.yaml
-docker pull metagpt/metagpt:v0.3
+docker pull metagpt/metagpt:latest
 mkdir -p /opt/metagpt/{config,workspace}
-docker run --rm metagpt/metagpt:v0.3 cat /app/metagpt/config/config.yaml > /opt/metagpt/config/config.yaml
+docker run --rm metagpt/metagpt:latest cat /app/metagpt/config/config.yaml > /opt/metagpt/config/config.yaml
 vim /opt/metagpt/config/config.yaml # 修改config
 
 # 步骤2: 使用容器运行metagpt演示
@@ -97,7 +97,7 @@ docker run --rm \
     --privileged \
     -v /opt/metagpt/config:/app/metagpt/config \
     -v /opt/metagpt/workspace:/app/metagpt/workspace \
-    metagpt/metagpt:v0.3 \
+    metagpt/metagpt:latest \
     python startup.py "Write a cli snake game"
 
 # 您也可以启动一个容器并在其中执行命令
@@ -105,7 +105,7 @@ docker run --name metagpt -d \
     --privileged \
     -v /opt/metagpt/config:/app/metagpt/config \
     -v /opt/metagpt/workspace:/app/metagpt/workspace \
-    metagpt/metagpt:v0.3
+    metagpt/metagpt:latest
 
 docker exec -it metagpt /bin/bash
 $ python startup.py "Write a cli snake game"
@@ -123,7 +123,7 @@ $ python startup.py "Write a cli snake game"
 ```bash
 # 您也可以自己构建metagpt镜像
 git clone https://github.com/geekan/MetaGPT.git
-cd MetaGPT && docker build -t metagpt:v0.3 .
+cd MetaGPT && docker build -t metagpt:custom .
 ```
 
 ## 配置

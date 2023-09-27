@@ -162,9 +162,9 @@ pip install -e.
 
 ```bash
 # Step 1: Download metagpt official image and prepare config.yaml
-docker pull metagpt/metagpt:v0.3.1
+docker pull metagpt/metagpt:latest
 mkdir -p /opt/metagpt/{config,workspace}
-docker run --rm metagpt/metagpt:v0.3.1 cat /app/metagpt/config/config.yaml > /opt/metagpt/config/key.yaml
+docker run --rm metagpt/metagpt:latest cat /app/metagpt/config/config.yaml > /opt/metagpt/config/key.yaml
 vim /opt/metagpt/config/key.yaml # Change the config
 
 # Step 2: Run metagpt demo with container
@@ -172,7 +172,7 @@ docker run --rm \
     --privileged \
     -v /opt/metagpt/config/key.yaml:/app/metagpt/config/key.yaml \
     -v /opt/metagpt/workspace:/app/metagpt/workspace \
-    metagpt/metagpt:v0.3.1 \
+    metagpt/metagpt:latest \
     python startup.py "Write a cli snake game"
 
 # You can also start a container and execute commands in it
@@ -180,7 +180,7 @@ docker run --name metagpt -d \
     --privileged \
     -v /opt/metagpt/config/key.yaml:/app/metagpt/config/key.yaml \
     -v /opt/metagpt/workspace:/app/metagpt/workspace \
-    metagpt/metagpt:v0.3.1
+    metagpt/metagpt:latest
 
 docker exec -it metagpt /bin/bash
 $ python startup.py "Write a cli snake game"
