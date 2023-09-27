@@ -57,7 +57,7 @@ async def generate_insights_and_evidence(agent: Agent, memories_list: list[Memor
     """
     生成洞察和证据函数：根据问题生成洞察和证据
     """
-    await agent_retrieve(agent, question, 20, 10)
+    memories_list = await agent_retrieve(agent, question, 50, 10)
     statements = ""
     for count, mem in enumerate(memories_list):
         statements += f'{str(count)}. {mem.description}\n'
