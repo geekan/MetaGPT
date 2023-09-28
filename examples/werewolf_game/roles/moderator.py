@@ -31,7 +31,7 @@ class Moderator(Role):
         # 假设votes代表白天投票的结果，key是被投票的玩家，value是得票数
         self.votes = {"Player1": 1, "Player2": 2, "Player3": 1, "Player4": 0, "Player5": 0}
 
-    async def _instruct_speak(self, context):
+    async def _instruct_speak(self):
         step_idx = self.step_idx % len(STEP_INSTRUCTIONS)
         self.step_idx += 1
         return await InstructSpeak().run(step_idx,
@@ -85,7 +85,7 @@ class Moderator(Role):
 
         # 根据_think的结果，执行InstructSpeak还是ParseSpeak, 并将结果返回
         if isinstance(todo, InstructSpeak):
-            msg_content, msg_to_send_to, msg_restriced_to = await self._instruct_speak(memories)
+            msg_content, msg_to_send_to, msg_restriced_to = await self._instruct_speak()
             msg = Message(content=msg_content, role=self.profile, sent_from=self.name,
                           cause_by=InstructSpeak, send_to=msg_to_send_to, restricted_to=msg_restriced_to)
 

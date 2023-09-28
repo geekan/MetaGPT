@@ -35,15 +35,14 @@ STEP_INSTRUCTIONS = {
     7: {"content": "Witch, please open your eyes!",
         "send_to": "Moderator",
         "restricted_to": ""},
-    8: {"content": """Witch, you have a bottle of poison, who are you going to kill tonight?
-                        Choose one from the following living options: {living_players}.""",
+    8: {"content": """Witch, tonight {killed_player} has been killed by the werewolves. 
+                    You have a bottle of antidote, would you like to save him/her? If not, simply Pass.""",
         "send_to": "Witch",
-        "restricted_to": "Witch"},
-    9: {"content": """Witch, you have a bottle of antidote and a bottle of poison. 
-                        Who are you going to save tonight or kill tonight? Choose one from the following living options: 
-                        {living_players}.""",
+        "restricted_to": "Witch"},  # 要先判断女巫是否有解药，再去询问女巫是否使用解药救人
+    9: {"content": """Witch, you also have a bottle of poison, would you like to use it to kill one of the living players? 
+                    Choose one from the following living options: {living_players}. If not, simply Pass.""",
         "send_to": "Witch",
-        "restricted_to": "Witch"},
+        "restricted_to": "Witch"},  #
     10: {"content": "Witch, close your eyes",
          "send_to": "Moderator",
          "restricted_to": ""},
@@ -71,7 +70,7 @@ STEP_INSTRUCTIONS = {
     17: {"content": """Now vote and tell me who you think is the werewolf. Don’t mention your role.
                     You only choose one from the following living options please:
                     {living_players}. Or you can pass. For example: I vote to kill ...""",
-         "send_to": "Moderator",
+         "send_to": "",
          "restricted_to": ""},
     18: {"content": """{voted_out_player} was eliminated.""",
          "send_to": "Moderator",
@@ -108,7 +107,7 @@ VOTE_PROMPT = """
 
 PARSE_INSTRUCTIONS = {
     0: "Now it's time to vote",
-    1: "The {winner} have won! They successfully eliminated all the {loser}}."
+    1: "The {winner} have won! They successfully eliminated all the {loser}."
        "The game has ended. Thank you for playing Werewolf!",
     2: "The night has ended, and it's time to reveal the casualties."
        "During the night, the Werewolves made their move. Unfortunately, they targeted {PlayerName}, who is now dead."
@@ -193,6 +192,11 @@ class SummarizeNight(Action):
     async def run(self, events):
         # 假设events是一个字典，代表夜晚发生的多个事件，key是事件类型，value是该事件对应的玩家
         # 例如被狼人杀的玩家：{"killed_by_werewolves": "Player1"}
+        # 被守卫守护的玩家：{"protected_by_guard": "Player2"}
+        # 被女巫救的玩家：{"saved_by_witch": "Player3"}
+        # 被女巫毒的玩家：{"poisoned_by_witch": "Player4"}
+        # 被预言家查验的玩家：{"verified_by_seer": "Player5"}
+        # 若没有事件发生，则events为空字典
         killed_by_werewolves = events.get("killed_by_werewolves", "")
         protected_by_guard = events.get("protected_by_guard", "")
         saved_by_witch = events.get("saved_by_witch", "")
@@ -226,7 +230,7 @@ class SummarizeDay(Action):
         # 假设votes是一个字典，代表白天投票的结果，key是被投票的玩家，value是得票数
         # 例如：{"Player1": 2, "Player2": 1, "Player3": 1, "Player4": 0}
         # 表示Player1得到2票，Player2和Player3各得到1票，Player4得到0票
-        # 若平票，则无人死亡
+        # 若平票，则随机选一个人出局
         if not votes:
             return "No votes were cast. No one was killed."
 
