@@ -51,9 +51,6 @@ class RoleSetting(BaseModel):
     """Role Settings"""
     name: str
     profile: str
-    wolves: list
-    good_guys: list
-    dead_players: list
     goal: str
     constraints: str
     desc: str
@@ -96,9 +93,9 @@ class RoleContext(BaseModel):
 class Role:
     """Role/Agent"""
 
-    def __init__(self, name="", profile="", wolves=[], good_guys=[], dead_players=[], goal="", constraints="", desc=""):
+    def __init__(self, name="", profile="", goal="", constraints="", desc=""):
         self._llm = LLM()
-        self._setting = RoleSetting(name=name, profile=profile, wolves=wolves, good_guys=good_guys, dead_players=dead_players, goal=goal, constraints=constraints, desc=desc)
+        self._setting = RoleSetting(name=name, profile=profile, goal=goal, constraints=constraints, desc=desc)
         self._states = []
         self._actions = []
         self._role_id = str(self._setting)

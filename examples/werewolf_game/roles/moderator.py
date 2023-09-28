@@ -45,7 +45,7 @@ class Moderator(Role):
         if not vote_player:
             msg_content, send_to = parse_info[0], self.profile
         # game's termination condition
-        elif all(item in self.dead_player for item in self.wolves) or all(item in self.dead_player for item in self.good_guys):
+        elif all(item in self.dead_players for item in self.wolves) or all(item in self.dead_players for item in self.good_guys):
             self.is_game_over = True
             msg_content, send_to = parse_info[1], "all"
         else:
