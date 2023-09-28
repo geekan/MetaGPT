@@ -3,8 +3,10 @@
 # @Desc   : maze environment
 
 from metagpt.environment import Environment
+from .maze import Maze
 
 
 class MazeEnvironment(Environment):
-
-    pass
+    def __init__(self, name: str, maze: Maze) -> None:
+        self.name = name
+        self.maze = maze

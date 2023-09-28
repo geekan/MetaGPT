@@ -18,6 +18,7 @@ from metagpt.roles.role import Role, RoleContext
 from metagpt.schema import Message
 
 from ..memory.agent_memory import AgentMemory
+from ..memory.spatial_memory import MemoryTree
 from ..actions.dummy_action import DummyAction
 from ..actions.user_requirement import UserRequirement
 from ..maze_environment import MazeEnvironment
@@ -29,6 +30,7 @@ class STRoleContext(RoleContext):
     env: 'MazeEnvironment' = Field(default=None)
     memory: AgentMemory = Field(default=AgentMemory)
     scratch: Scratch = Field(default=Scratch)
+    spatial_memory: MemoryTree = Field(default=MemoryTree)
 
 
 class STRole(Role):
