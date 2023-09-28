@@ -19,11 +19,11 @@ class Environment(BaseModel):
     """环境，承载一批角色，角色可以向环境发布消息，可以被其他角色观察到
        Environment, hosting a batch of roles, roles can publish messages to the environment, and can be observed by other roles
     """
-    environment_type: str = Field(default='SoftwareCompany')
-    short_term_history: str = Field(default_factory=Memory)
     roles: dict[str, Role] = Field(default_factory=dict)
     memory: Memory = Field(default_factory=Memory)
     history: str = Field(default='')
+    short_term_history : Message = Field(default=Message(content=""))
+    human_interaction : bool = Field(default=False)
 
     class Config:
         arbitrary_types_allowed = True
@@ -47,7 +47,7 @@ class Environment(BaseModel):
           Post information to the current environment
         """
         self.short_term_history = message
-        if self.environment_type == "SoftwareCompany":
+        if self.human_interaction == False:
             self.memory.add(message)
             self.history += f"\n{message}"
 

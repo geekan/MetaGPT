@@ -38,6 +38,8 @@ typing-inspect==0.8.0
 typing_extensions==4.5.0
 libcst==1.0.1
 qdrant-client==1.4.0
-open-interpreter==0.1.3
+pytest-mock==3.11.1
+open-interpreter==0.1.4; python_version>"3.9"
 ta==0.10.2
+semantic-kernel==0.3.10.dev0
 gradio==2.3.6

@@ -44,7 +44,6 @@ class SoftwareCompany(BaseModel):
 
     def start_project(self, idea):
         """Start a project from publishing boss requirement."""
-        self.environment.environment_type = "SoftwareCompany"
         self.idea = idea
         self.environment.publish_message(Message(role="BOSS", content=idea, cause_by=BossRequirement))
 
@@ -61,43 +60,7 @@ class SoftwareCompany(BaseModel):
             await self.environment.run()
         return self.environment.history
     
-class SoftwareCompanyWithHuman(BaseModel):
-    """
-    Software Company: Possesses a team, SOP (Standard Operating Procedures), and a platform for instant messaging,
-    dedicated to writing executable code.
-    The SoftwareCompanyWithHuman can be intervened by human throuth webui.
-    """
-    environment: Environment = Field(default_factory=Environment)
-    investment: float = Field(default=10.0)
-    idea: str = Field(default="")
-
-    class Config:
-        arbitrary_types_allowed = True
-
-    def hire(self, roles: list[Role]):
-        """Hire roles to cooperate"""
-        self.environment.add_roles(roles)
-
-    def invest(self, investment: float):
-        """Invest company. raise NoMoneyException when exceed max_budget."""
-        self.investment = investment
-        CONFIG.max_budget = investment
-        logger.info(f'Investment: ${investment}.')
-
-    def _check_balance(self):
-        if CONFIG.total_cost > CONFIG.max_budget:
-            raise NoMoneyException(CONFIG.total_cost, f'Insufficient funds: {CONFIG.max_budget}')
-
-    def start_project(self, idea):
-        """Start a project from publishing boss requirement."""
-        self.environment.environment_type = "SoftwareCompany_With_Human"
-        self.idea = idea
-        self.environment.publish_message(Message(role="BOSS", content=idea, cause_by=BossRequirement))
-
-    def _save(self):
-        logger.info(self.json())
-
-    async def continue_run(self):
+    async def run_one_round(self):
         """Run one round and report to webui"""
         await self.environment.run()
         return self.environment.history
