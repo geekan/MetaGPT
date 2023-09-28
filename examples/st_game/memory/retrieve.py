@@ -5,19 +5,19 @@
 import datetime
 from numpy import dot
 from numpy.linalg import norm
-from associative_memory import AgentMemory, MemoryBasic
+from examples.st_game.memory.agent_memory import AgentMemory, BasicMemory
 from utils.utils import embedding_tools
 
 
-def agent_retrieve(agent_memory: AgentMemory, curr_time: datetime.datetime, memory_forget: float, query: str, n: int = 30, topk: int = 4) -> list[MemoryBasic]:
+def agent_retrieve(agent_memory: AgentMemory, curr_time: datetime.datetime, memory_forget: float, query: str, n: int = 30, topk: int = 4) -> list[BasicMemory]:
     """
     Retrieve需要集合Role使用,原因在于Role才具有AgentMemory,scratch
     逻辑:Role调用该函数,self._rc.AgentMemory,self._rc.scratch.curr_time,self._rc.scratch.memory_forget
-    输入希望查询的内容与希望回顾的条数,返回TopK条高分记忆，即List[MemoryBasic]
+    输入希望查询的内容与希望回顾的条数,返回TopK条高分记忆，即List[BasicMemory]
 
     Score_lists示例
     {
-        "memory": memories[i],             MemoryBasic类
+        "memory": memories[i],             BasicMemory类
         "importance": memories[i].poignancy
         "recency": 衰减因子计算结果
         "relevance": 搜索结果
@@ -34,7 +34,7 @@ def agent_retrieve(agent_memory: AgentMemory, curr_time: datetime.datetime, memo
     score_list = normalize_score_floats(score_list, 0, 1)
 
     total_dict = {}
-    gw = [1, 1, 1]  # 三个因素的权重,重要性，近因性，相关性
+    gw = [1, 1, 1]  # 三个因素的权重,重要性,近因性,相关性
     for i in range(len(score_list)):
         total_score = (score_list[i]['importance'] * gw[0] +
                        score_list[i]['recency'] * gw[1] +
@@ -50,7 +50,7 @@ def agent_retrieve(agent_memory: AgentMemory, curr_time: datetime.datetime, memo
 def top_highest_x_values(d, x):
     """
     输入字典，Topx
-    返回以字典值排序，字典键组成的List[MemoryBasic]
+    返回以字典值排序，字典键组成的List[BasicMemory]
     """
     top_v = [item[0] for item in sorted(d.items(), key=lambda item: item[1], reverse=True)[:x]]
     return top_v

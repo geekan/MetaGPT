@@ -17,7 +17,7 @@ from pathlib import Path
 from metagpt.roles.role import Role, RoleContext
 from metagpt.schema import Message
 
-from ..memory.associative_memory import AgentMemory
+from ..memory.agent_memory import AgentMemory
 from ..actions.dummy_action import DummyAction
 from ..actions.user_requirement import UserRequirement
 from ..maze_environment import MazeEnvironment

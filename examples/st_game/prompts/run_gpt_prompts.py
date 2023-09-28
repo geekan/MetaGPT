@@ -4,11 +4,11 @@
 
 from wrapper_prompt import special_response_generate, prompt_generate
 from memory.scratch import Scratch
-from memory.associative_memory import MemoryBasic
+from examples.st_game.memory.agent_memory import BasicMemory
 import json
 
 
-def get_poignancy_action(scratch: Scratch, content: MemoryBasic.content) -> str:
+def get_poignancy_action(scratch: Scratch, content: BasicMemory.content) -> str:
     """
     衡量事件心酸度
     """
