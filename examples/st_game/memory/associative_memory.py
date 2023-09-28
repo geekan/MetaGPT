@@ -7,12 +7,13 @@ from metagpt.schema import Message
 import json
 from datetime import datetime
 
+
 class MemoryBasic(Message):
 
-    def __init__(self, memory_id:str, memory_count:int, type_count:int, memory_type:str, depth:int, content:int,
-                 creaetd:datetime, expiration:datetime,
-                 subject:str, predicate:str, object:str,
-                 embedding_key:str, poignancy:int, keywords:list, filling:list):
+    def __init__(self, memory_id: str, memory_count: int, type_count: int, memory_type: str, depth: int, content: int,
+                 creaetd: datetime, expiration: datetime,
+                 subject: str, predicate: str, object: str,
+                 embedding_key: str, poignancy: int, keywords: list, filling: list):
         """
         MemoryBasic继承于MG的Message类，其中content属性替代description属性
         Message类中对于Chat类型支持的非常好，对于Agent个体的Perceive,Reflection,Plan支持的并不多
@@ -29,29 +30,30 @@ class MemoryBasic(Message):
         self.memory_count: int = memory_count         # 第几个记忆，实际数值与Memory相等，但是类型为整数
         self.type_count: int = type_count             # 第几种记忆，类型为整数（具体不太理解如何生成的）
         self.memory_type: str = memory_type                         # 记忆类型，使用Field，包含 event,thought,chat三种类型
-        self.depth:str  = depth                       # 记忆深度，类型为整数
+        self.depth: str  = depth                      # 记忆深度，类型为整数
 
         self.created: datetime = creaetd              # 创建时间
         self.expiration: datetime = expiration        # 记忆失效时间，默认为空（）
         self.last_accessed: datetime = creaetd        # 上一次调用的时间，初始化时候与self.created一致
 
         self.subject: str = subject                   # 主语，str类型                       
-        self.predicate:str = predicate                # 谓语，str类型
-        self.object:str = object                      # 宾语，str类型
+        self.predicate: str = predicate                # 谓语，str类型
+        self.object: str = object                      # 宾语，str类型
 
         self.embedding_key: str = embedding_key       # 内容与self.content一致
-        self.poignancy:int = poignancy                # importance值，整数类型
-        self.keywords:list = keywords                 # keywords，列表
-        self.filling:list = filling                   # None或者列表
+        self.poignancy: int = poignancy                # importance值，整数类型
+        self.keywords: list = keywords                 # keywords，列表
+        self.filling: list = filling                   # None或者列表
+
 
 class AgentMemory(Memory):
     """
     GA中主要存储三种JSON
     1. embedding.json (Dict embedding_key:embedding)
-    2. Node.json (Dict Node_id:Node) 
-    3. kw_strength.json 
+    2. Node.json (Dict Node_id:Node)
+    3. kw_strength.json
     """
-    def __init__(self, memory_saved:str):
+    def __init__(self, memory_saved: str):
         """
         AgentMemory类继承自Memory类，重写storage替代GA中id_to_node，一方面存储所有信息，一方面作为JSON转化
         index存储与不同Agent的chat信息
@@ -61,7 +63,7 @@ class AgentMemory(Memory):
         self.storage: list[MemoryBasic] = []               # 重写Stroage，存储MemoryBasic所有节点
         self.event_list = []                               # 存储event记忆
         self.thought_list = []                             # 存储thought记忆
-        
+
         self.event_keywords = dict()                       # 存储keywords
         self.thought_keywords = dict()                     
         self.chat_keywords = dict()
