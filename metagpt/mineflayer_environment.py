@@ -29,6 +29,9 @@ class MineflayerEnv:
         self.reset_options = None
         self.connected = False
         self.server_paused = False
+        self.ckpt_dir = "metagpt/ckpt"
+
+        os.makedirs(f"{self.ckpt_dir}/action", exist_ok=True)
 
     def set_mc_port(self, mc_port):
         self.mc_port = mc_port

@@ -37,11 +37,12 @@ async def main():
                     "elapsedTime": 41,
                 },
                 "inventory": {},
-                "nearbyChests": {},
+                "nearbyChests": {"(1344, 64, 1381)": "Unknown"},
                 "blockRecords": ["grass_block", "dirt", "grass"],
             },
         ]
     ]
+
     code = """
     async function collectBamboo(bot) {
     // Equip the iron sword
@@ -78,11 +79,12 @@ async def main():
     """
     ad = ActionDeveloper()
     ge = GameEnvironment()
+    ge.update_event(events)
     ad.set_memory(shared_memory=ge)
-    msg = ad.encapsule_message(events=events, code=code)
+    msg = ad.encapsule_message(events=ge.event, code=code)
     logger.info(f"Encapsuled_message: {msg}")
 
-    parsed_result = await ad.generate_action_code(msg)
+    parsed_result = await ad.generate_action_code(**msg)
 
     logger.info(f"Parsed_code_updating: {parsed_result}")
 

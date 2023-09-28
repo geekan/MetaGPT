@@ -7,7 +7,6 @@ from metagpt.roles.minecraft.minecraft_base import Minecraft as Base
 from metagpt.schema import Message, HumanMessage, SystemMessage
 from metagpt.roles.minecraft.minecraft_base import agent_registry
 from metagpt.actions.minecraft.generate_actions import GenerateActionCode
-from metagpt.actions.minecraft.design_curriculumn import DesignCurriculum
 from metagpt.actions.minecraft.manage_skills import (
     GenerateSkillDescription,
     RetrieveSkills,
@@ -41,6 +40,30 @@ class ActionDeveloper(Base):
         # Set events or actions the ActionAgent should watch or be aware of
         # 需要根据events进行自己chest_observation的更新
         self._watch([RetrieveSkills])
+
+    def render_chest_observation(self):
+        """
+        Render game_memory.chest_memory to prompt text.
+        Refer to @ https://github.com/MineDojo/Voyager/blob/main/voyager/agents/action.py
+        """
+
+        chests = []
+        for chest_position, chest in self.game_memory.chest_memory.items():
+            if isinstance(chest, dict) and len(chest) > 0:
+                chests.append(f"{chest_position}: {chest}")
+        for chest_position, chest in self.game_memory.chest_memory.items():
+            if isinstance(chest, dict) and len(chest) == 0:
+                chests.append(f"{chest_position}: Empty")
+        for chest_position, chest in self.game_memory.chest_memory.items():
+            if isinstance(chest, str):
+                assert chest == "Unknown"
+                chests.append(f"{chest_position}: Unknown items inside")
+        assert len(chests) == len(self.game_memory.chest_memory)
+        if chests:
+            chests = "\n".join(chests)
+            return f"Chests:\n{chests}\n\n"
+        else:
+            return f"Chests: None\n\n"
 
     def render_system_message(self, skills=[], *args, **kwargs):
         """
@@ -140,12 +163,12 @@ class ActionDeveloper(Base):
         observation += f"Equipment: {equipment}\n\n"
         observation += f"Inventory ({inventory_used}/36): {'Empty' if not inventory else ', '.join(inventory)}\n\n"
 
-        if not (
-            task == "Place and deposit useless items into a chest"
-            or task.startswith("Deposit useless items into the chest at")
-        ):
-            # TODO: observation += self.render_chest_observation()
-            logger.warning("chest_observation will add later")
+        # TODO: if task update, uncomment this
+        # if not (
+        #     task == "Place and deposit useless items into a chest"
+        #     or task.startswith("Deposit useless items into the chest at")
+        # ):
+        observation += self.render_chest_observation()
 
         observation += f"Task: {task}\n\n"
         observation += f"Context: {context or 'None'}\n\n"
@@ -183,8 +206,8 @@ class ActionDeveloper(Base):
         logger.info(len(self._rc.news))
         return len(self._rc.news)
 
-    async def generate_action_code(self, msg, *args, **kwargs):
-        code = await GenerateActionCode().run(msg, *args, **kwargs)
+    async def generate_action_code(self, human_msg, system_msg, *args, **kwargs):
+        code = await GenerateActionCode().run(human_msg, system_msg, *args, **kwargs)
         # logger.warning(type(code))
         # logger.info(f"Code is Here:{code}")
         self.perform_game_info_callback(code, self.game_memory.update_code)
@@ -202,6 +225,7 @@ class ActionDeveloper(Base):
 
         # 获取最新的游戏周边信息
         events = await self._obtain_events()
+        self.perform_game_info_callback(events, self.game_memory.update_event)
         context = self.game_memory.context
         task = self.game_memory.current_task
         code = self.game_memory.code

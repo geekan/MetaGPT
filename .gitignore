@@ -114,6 +114,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+*/ckpt
 
 # Spyder project settings
 .spyderproject

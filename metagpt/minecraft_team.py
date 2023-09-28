@@ -6,7 +6,6 @@ from typing import Iterable, Dict, Any
 from pydantic import BaseModel, Field
 import requests
 import json
-import asyncio
 
 from metagpt.logs import logger
 from metagpt.roles import Role
@@ -33,10 +32,23 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
     critique: str = Field(default="")
     skills: list[str] = Field(default_factory=list)
 
+    chest_memory: dict[str, Any] = Field(default_factory=dict)
+
     mf_instance: MineflayerEnv = Field(default_factory=MineflayerEnv)
 
     def set_mc_port(self, mc_port):
         self.mf_instance.set_mc_port(mc_port)
+
+    def set_mc_resume(self, resume: bool = False):
+        if resume:
+            logger.info(
+                f"Loading Action Developer from {self.mf_instance.ckpt_dir}/action"
+            )
+            with open(
+                f"{self.mf_instance.ckpt_dir}/action/chest_memory.json", "r"
+            ) as f:
+                self.chest_memory = json.load(f)
+            # TODO: add skills resume
 
     def register_roles(self, roles: Iterable[Minecraft]):
         for role in roles:
@@ -44,6 +56,7 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
 
     def update_event(self, event: Dict):
         self.event = event
+        self.update_chest_memory(event)
 
     def update_task(self, task: str):
         self.current_task = task
@@ -52,7 +65,7 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
         self.context = context
 
     def update_code(self, code: str):
-        self.code = code  # action_developer.gen to HERE
+        self.code = code  # action_developer.gen_action_code to HERE
 
     def update_programs(self, programs: str):
         self.programs = programs
@@ -62,6 +75,26 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
 
     def update_skills(self, skills: list):
         self.skills = skills  # skill_manager.retrieve_skills to HERE
+
+    def update_chest_memory(self, events: Dict):
+        """
+        Input: events: Dict
+        Result: self.chest_memory update & save to json
+        """
+        nearbyChests = events[-1][1]["nearbyChests"]
+        for position, chest in nearbyChests.items():
+            if position in self.chest_memory:
+                if isinstance(chest, dict):
+                    self.chest_memory[position] = chest
+                if chest == "Invalid":
+                    logger.info(f"Action Developer removing chest {position}: {chest}")
+                    self.chest_memory.pop(position)
+            else:
+                if chest != "Invalid":
+                    logger.info(f"Action Developer saving chest {position}: {chest}")
+                    self.chest_memory[position] = chest
+        with open(f"{self.mf_instance.ckpt_dir}/action/chest_memory.json", "w") as f:
+            json.dump(self.chest_memory, f)
 
     async def on_event(self, *args):
         """
@@ -125,6 +158,9 @@ class MinecraftPlayer(SoftwareCompany):
 
     def set_port(self, mc_port):
         self.game_memory.set_mc_port(mc_port)
+
+    def set_resume(self, resume: bool = False):
+        self.game_memory.set_mc_resume(resume=resume)
 
     def hire(self, roles: list[Role]):
         self.environment.add_roles(roles)

@@ -32,11 +32,11 @@ class GenerateActionCode(Action):
             logger.error(f"Failed to parse response: {parsed_result}")
             return None
 
-    async def run(self, msg, *args, **kwargs):
+    async def run(self, human_msg, system_msg, *args, **kwargs):
         logger.info(f"run {self.__repr__()}")
         # Generate action code.
         generated_code = await self.generate_code(
-            human_msg=msg['human_msg'], system_msg=msg['system_msg']
+            human_msg=human_msg, system_msg=system_msg
         )
 
         # Return the generated code.
