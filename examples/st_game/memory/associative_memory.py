@@ -9,10 +9,10 @@ from datetime import datetime
 
 class MemoryBasic(Message):
 
-    def __init__(self,memory_id:str,memory_count:int,type_count:int,memory_type:str,depth:int,content:int,
-                 creaetd:datetime,expiration:datetime,
-                 subject:str,predicate:str,object:str,
-                 embedding_key:str,poignancy:int,keywords:list,filling:list):
+    def __init__(self, memory_id:str, memory_count:int, type_count:int, memory_type:str, depth:int, content:int,
+                 creaetd:datetime, expiration:datetime,
+                 subject:str, predicate:str, object:str,
+                 embedding_key:str, poignancy:int, keywords:list, filling:list):
         """
         MemoryBasic继承于MG的Message类，其中content属性替代description属性
         Message类中对于Chat类型支持的非常好，对于Agent个体的Perceive,Reflection,Plan支持的并不多
@@ -51,7 +51,7 @@ class AgentMemory(Memory):
     2. Node.json (Dict Node_id:Node) 
     3. kw_strength.json 
     """
-    def __init__(self,memory_saved:str):
+    def __init__(self, memory_saved:str):
         """
         AgentMemory类继承自Memory类，重写storage替代GA中id_to_node，一方面存储所有信息，一方面作为JSON转化
         index存储与不同Agent的chat信息
