@@ -11,7 +11,7 @@ from datetime import datetime
 class BasicMemory(Message):
 
     def __init__(self, memory_id: str, memory_count: int, type_count: int, memory_type: str, depth: int, content: int,
-                 creaetd: datetime, expiration: datetime,
+                 created: datetime, expiration: datetime,
                  subject: str, predicate: str, object: str,
                  embedding_key: str, poignancy: int, keywords: list, filling: list):
         """
@@ -32,9 +32,9 @@ class BasicMemory(Message):
         self.memory_type: str = memory_type           # 记忆类型，包含 event,thought,chat三种类型
         self.depth: str  = depth                      # 记忆深度，类型为整数
 
-        self.created: datetime = creaetd              # 创建时间
+        self.created: datetime = created             # 创建时间
         self.expiration: datetime = expiration        # 记忆失效时间，默认为空（）
-        self.last_accessed: datetime = creaetd        # 上一次调用的时间，初始化时候与self.created一致
+        self.last_accessed: datetime = created      # 上一次调用的时间，初始化时候与self.created一致
 
         self.subject: str = subject                   # 主语                  
         self.predicate: str = predicate               # 谓语
