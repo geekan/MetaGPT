@@ -8,7 +8,7 @@ from datetime import datetime
 from associative_memory import AgentMemory,MemoryBasic
 from utils.utils import embedding_tools
 
-def agent_retrive(agent:AgentMemory,currtime:datetime,memory_forget:float,query:str,n:int= 30,topk:int=4) -> list[MemoryBasic]:
+def agent_retrive(agentmemory:AgentMemory, currtime:datetime, memory_forget:float, query:str, n:int= 30, topk:int=4) -> list[MemoryBasic]:
     """
     retrive需要集合Role使用,原因在于Role才具有AgentMemory,scratch
     逻辑:Role调用该函数,self._rc.AgentMemory,self._rc.scratch.currtime,self._rc.scratch.memory_forget
@@ -22,7 +22,7 @@ def agent_retrive(agent:AgentMemory,currtime:datetime,memory_forget:float,query:
         "relevance":搜索结果
     }
     """
-    memories = AgentMemory.storage
+    memories = agentmemory.storage
     sorted_memories = sorted(memories, key=lambda memory_node: memory_node.last_accessed_time,reverse=True)
     memories = sorted_memories[:n] if len(sorted_memories) >= n else sorted_memories
 
@@ -54,7 +54,7 @@ def top_highest_x_values(d, x):
     return top_v
 
 
-def extract_importance(memories,Score_list):
+def extract_importance(memories, Score_list):
     """
     抽取重要性
     """
@@ -66,7 +66,7 @@ def extract_importance(memories,Score_list):
     return Score_list
 
 # 抽取相关性
-def extract_relevance(query,Score_list):
+def extract_relevance(query, Score_list):
     """
     抽取相关性
     """
@@ -79,7 +79,7 @@ def extract_relevance(query,Score_list):
     return Score_list
 
 # 抽取近因性
-def extract_recency(currtime,memory_forget,Score_list):
+def extract_recency(currtime, memory_forget, Score_list):
     """
     抽取近因性，目前使用的现实世界过一天走一个衰减因子
     """
@@ -94,7 +94,7 @@ def cos_sim(a, b):
   """
   return dot(a, b)/(norm(a)*norm(b))
 
-def normalize_List_floats(Single_list,target_min, target_max):
+def normalize_List_floats(Single_list, target_min, target_max):
     """
     单个列表归一化
     """
@@ -112,7 +112,7 @@ def normalize_List_floats(Single_list,target_min, target_max):
     return Single_list
 
 
-def normalize_Socre_floats(Score_list, target_min, target_max):
+def normalize_socre_floats(Score_list, target_min, target_max):
     """
     整体归一化
     """
