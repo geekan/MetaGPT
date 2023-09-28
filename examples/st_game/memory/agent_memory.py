@@ -10,7 +10,7 @@ from datetime import datetime
 
 class BasicMemory(Message):
 
-    def __init__(self, memory_id: str, memory_count: int, type_count: int, memory_type: str, depth: int, content: int,
+    def __init__(self, memory_id: str, memory_count: int, type_count: int, memory_type: str, depth: int, content: str,
                  created: datetime, expiration: datetime,
                  subject: str, predicate: str, object: str,
                  embedding_key: str, poignancy: int, keywords: list, filling: list):
@@ -19,7 +19,7 @@ class BasicMemory(Message):
         Message类中对于Chat类型支持的非常好，对于Agent个体的Perceive,Reflection,Plan支持的并不多
         在Type设计上，我们延续GA的三个种类，但是对于Chat种类的对话进行特别设计（具体怎么设计还没想好）
         """
-        super.__init__(content)
+        super().__init__(content)
         """
         从父类中继承的属性
         content: str                                  # 记忆描述
@@ -128,3 +128,6 @@ class AgentMemory(Memory):
         调用
         """
         pass
+
+if __name__ == "__main__":
+    
