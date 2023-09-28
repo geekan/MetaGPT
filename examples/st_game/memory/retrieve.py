@@ -27,10 +27,10 @@ def agent_retrive(agentmemory:AgentMemory, currtime:datetime, memory_forget:floa
     memories = sorted_memories[:n] if len(sorted_memories) >= n else sorted_memories
 
     Score_list = []
-    Score_list = extract_importance(memories,Score_list)
-    Score_list = extract_recency(currtime,memory_forget,Score_list) 
-    Score_list = extract_relevance(query,Score_list)
-    Score_list = normalize_Socre_floats(Score_list,0,1)
+    Score_list = extract_importance(memories, Score_list)
+    Score_list = extract_recency(currtime, memory_forget, Score_list) 
+    Score_list = extract_relevance(query, Score_list)
+    Score_list = normalize_Socre_floats(Score_list, 0, 1)
 
     total_dict = {} 
     gw = [1,1,1] # 三个因素的权重,重要性，近因性，相关性
@@ -41,7 +41,7 @@ def agent_retrive(agentmemory:AgentMemory, currtime:datetime, memory_forget:floa
         )
         total_dict[Score_list[i]['memory']] = total_score      
     
-    result = top_highest_x_values(total_dict,topk)
+    result = top_highest_x_values(total_dict, topk)
 
     return result
 
@@ -73,7 +73,7 @@ def extract_relevance(query, Score_list):
     query_embedding = embedding_tools(query)
     # 进行
     for i in range(len(Score_list)):
-       result = cos_sim(Score_list[i]["memory"].embedding_key,query_embedding)
+       result = cos_sim(Score_list[i]["memory"].embedding_key, query_embedding)
        Score_list[i]['relevance'] = result
 
     return Score_list
