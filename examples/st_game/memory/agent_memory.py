@@ -10,16 +10,17 @@ from datetime import datetime
 
 class BasicMemory(Message):
 
-    def __init__(self, memory_id: str, memory_count: int, type_count: int, memory_type: str, depth: int, content: str,
+    def __init__(self, memory_id: str, memory_count: int, type_count: int, memory_type: str, depth: int,
                  created: datetime, expiration: datetime,
                  subject: str, predicate: str, object: str,
-                 embedding_key: str, poignancy: int, keywords: list, filling: list):
+                 content: str, embedding_key: str, poignancy: int, keywords: list, filling: list,
+                 cause_by = ""):
         """
         BasicMemory继承于MG的Message类，其中content属性替代description属性
         Message类中对于Chat类型支持的非常好，对于Agent个体的Perceive,Reflection,Plan支持的并不多
         在Type设计上，我们延续GA的三个种类，但是对于Chat种类的对话进行特别设计（具体怎么设计还没想好）
         """
-        super().__init__(content)
+        super().__init__(content,cause_by=cause_by)
         """
         从父类中继承的属性
         content: str                                  # 记忆描述
@@ -43,8 +44,41 @@ class BasicMemory(Message):
         self.embedding_key: str = embedding_key       # 内容与self.content一致
         self.poignancy: int = poignancy               # importance值
         self.keywords: list = keywords                # keywords
-        self.filling: list = filling                  # None或者列表
+        self.filling: list = filling                  # 装的与之相关联的memory_id的列表
 
+    def save_to_dict(self) -> dict:
+        """
+        将MemoryBasic类转化为字典，用于存储json文件
+        这里需要注意，cause_by跟GA不兼容，所以需要做一个格式转换
+        """
+        memory_dict = dict()
+        node_id = self.memory_id
+
+        memory_dict[node_id] = dict()
+        memory_dict[node_id]["node_count"] = self.memory_count
+        memory_dict[node_id]["type_count"] = self.type_count
+        memory_dict[node_id]["type"] = self.type
+        memory_dict[node_id]["depth"] = self.depth
+
+        memory_dict[node_id]["cmemory_dicteated"] = self.created.strftime('%Y-%m-%d %H:%M:%S')
+        memory_dict[node_id]["expiration"] = None
+        if self.expiration: 
+            memory_dict[node_id]["expiration"] = (self.expiration
+                                            .strftime('%Y-%m-%d %H:%M:%S'))
+
+        memory_dict[node_id]["subject"] = self.subject
+        memory_dict[node_id]["predicate"] = self.predicate
+        memory_dict[node_id]["object"] = self.object
+
+        memory_dict[node_id]["description"] = self.description
+        memory_dict[node_id]["embedding_key"] = self.embedding_key
+        memory_dict[node_id]["poignancy"] = self.poignancy
+        memory_dict[node_id]["keywords"] = list(self.keywords)
+        memory_dict[node_id]["filling"] = self.filling
+        if self.cause_by:
+            memory_dict[node_id]["cause_by"] = self.cause_by
+
+        return memory_dict
 
 class AgentMemory(Memory):
     """
@@ -68,25 +102,82 @@ class AgentMemory(Memory):
         self.thought_keywords = dict()                     
         self.chat_keywords = dict()
 
-        self.strength_event_keywords = dict()              # 不知道具体作用，所以没有删除
-        self.strength_thought_keywords = dict()           
+        self.kw_strength_event = dict()                    # 关键词影响存储
+        self.kw_strength_thought = dict()           
 
-        self.embeddings = json.load(open(memory_saved + "/embeddings.json")) 
-        self.load()
+        self.load(memory_saved)
 
 
-    def save(self):
+    def save(self,memory_saved:str):
         """
         将MemormyBasic类存储为Nodes.json形式。复现GA中的Kw Strength.json形式
-        @张凯补充一个可调用的函数
+        这里添加一个路径即可
         """
-        pass
 
-    def load(self):
+        memory_json = dict()
+        for i in range(len(self.storage)):
+            memory_node = self.storage[i]
+            memory_json.update(memory_node)
+        with open(memory_saved+"/nodes.json", "w") as outfile:
+            json.dump(memory_json, outfile)
+
+        with open(memory_saved+"/embeddings.json", "w") as outfile:
+            json.dump(self.embeddings, outfile)
+
+        strength_json = dict()
+        strength_json["kw_strength_event"] = self.kw_strength_event
+        strength_json["kw_strength_thought"] = self.kw_strength_thought
+        with open(memory_saved+"/kw_strength.json", "w") as outfile:
+            json.dump(strength_json, outfile)
+        
+
+    def load(self,memory_saved:str):
         """
         将GA的JSON解析，填充到AgentMemory类之中
         """
-        pass
+        self.embeddings = json.load(open(memory_saved + "/embeddings.json"))
+        memory_load = json.load(open(memory_saved + "/nodes.json"))
+        for count in range(len(memory_load.keys())):
+            node_id = f"node_{str(count+1)}"
+            node_details = memory_load[node_id]
+            node_type = node_details["type"]
+            created = datetime.datetime.strptime(node_details["created"], 
+                                           '%Y-%m-%d %H:%M:%S')
+            expiration = None
+            if node_details["expiration"]: 
+                expiration = datetime.datetime.strptime(node_details["expiration"],
+                                                        '%Y-%m-%d %H:%M:%S')
+                
+            if node_details["cause_by"]:
+                cause_by = node_details["cause_by"]
+
+            s = node_details["subject"]
+            p = node_details["predicate"]
+            o = node_details["object"]
+
+            description = node_details["description"]
+            embedding_pair = (node_details["embedding_key"], 
+                                self.embeddings[node_details["embedding_key"]])
+            poignancy =node_details["poignancy"]
+            keywords = set(node_details["keywords"])
+            filling = node_details["filling"]
+        
+            if node_type == "event": 
+                self.add_event(created, expiration, s, p, o, 
+                        description, keywords, poignancy, embedding_pair, filling)
+            elif node_type == "chat": 
+                self.add_chat(created, expiration, s, p, o, 
+                        description, keywords, poignancy, embedding_pair, filling,cause_by)
+            elif node_type == "thought": 
+                self.add_thought(created, expiration, s, p, o, 
+                        description, keywords, poignancy, embedding_pair, filling)
+
+        strength_keywords_load = json.load(open(memory_saved + "/kw_strength.json"))
+        if strength_keywords_load["kw_strength_event"]: 
+            self.kw_strength_event = strength_keywords_load["kw_strength_event"]
+        if strength_keywords_load["kw_strength_thought"]: 
+            self.kw_strength_thought = strength_keywords_load["kw_strength_thought"]
+
 
     def add(self, memory_basic: BasicMemory):
         """
@@ -97,37 +188,131 @@ class AgentMemory(Memory):
             return
         self.storage.append(memory_basic)
         if memory_basic.cause_by:
-            self.index[memory_basic.cause_by].append(memory_basic)
+            self.index[memory_basic.cause_by][0:0] = [memory_basic]
             return 
         if memory_basic.type == "thought":
-            self.thought_list.append(memory_basic)
+            self.thought_list[0:0] = [memory_basic]
             return
         if memory_basic.type == "event":
-            self.event_list.append(memory_basic)  
+            self.event_list[0:0] = [memory_basic]
 
-    def add_chat(self):
+
+    def add_chat(self, created, expiration, s, p, o, 
+                      content, keywords, poignancy, 
+                      embedding_pair, filling,
+                      cause_by):
         """
         调用add方法，初始化chat，在创建的时候就需要调用embeeding函数
         """
-        pass
+        memory_count = len(self.storage) + 1
+        type_count = len(self.thought_list) + 1
+        memory_type = "chat"
+        memory_id = f"memory_{str(memory_count)}"
+        depth = 1 
 
-    def add_thought(self):
+        memory_node = BasicMemory(memory_id, memory_count, type_count, memory_type, depth,
+                                  created, expiration,
+                                  s, p ,o,
+                                  content, embedding_pair[0],
+                                  poignancy, keywords, filling, 
+                                  cause_by)
+
+        keywords = [i.lower() for i in keywords]
+        for kw in keywords: 
+            if kw in self.chat_keywords: 
+                self.chat_keywords[kw][0:0] = [memory_node]
+            else: 
+                self.chat_keywords[kw] = [memory_node]
+        
+        self.add(memory_node)
+
+        self.embeddings[embedding_pair[0]] = embedding_pair[1]
+        return memory_node 
+
+
+    def add_thought(self, created, expiration, s, p, o, 
+                      content, keywords, poignancy, 
+                      embedding_pair, filling):
         """
         调用add方法，初始化thought
         """
-        pass
+        memory_count = len(self.storage) + 1
+        type_count = len(self.thought_list) + 1
+        memory_type = "event"
+        memory_id = f"memory_{str(memory_count)}"
+        depth = 1 
+        
+        try:
+            if filling: 
+                depth_list = [memory_node.depth for memory_node in self.storage if memory_node.memory_id in filling ]
+                depth += max(depth_list)
+        except:
+           pass
 
-    def add_event(self):
+        memory_node = BasicMemory(memory_id, memory_count, type_count, memory_type, depth,
+                                  created, expiration,
+                                  s, p ,o,
+                                  content, embedding_pair[0],
+                                  poignancy, keywords, filling)
+
+        keywords = [i.lower() for i in keywords]
+        for kw in keywords: 
+            if kw in self.thought_keywords: 
+                self.thought_keywords[kw][0:0] = [memory_node]
+            else: 
+                self.thought_keywords[kw] = [memory_node]
+        
+        self.add(memory_node)
+
+        if f"{p} {o}" != "is idle":  
+            for kw in keywords: 
+                if kw in self.kw_strength_thought:
+                    self.kw_strength_thought[kw] += 1
+                else: 
+                    self.kw_strength_thought[kw] = 1
+
+        self.embeddings[embedding_pair[0]] = embedding_pair[1]
+        return memory_node
+
+           
+    def add_event(self, created, expiration, s, p, o, 
+                      content, keywords, poignancy, 
+                      embedding_pair, filling):
         """
         调用add方法，初始化event
         """
-        pass
+        memory_count = len(self.storage) + 1
+        type_count = len(self.event_list) + 1
+        memory_type = "event"
+        memory_id = f"memory_{str(memory_count)}"
+        depth = 0
+        
+        if "(" in content:
+            content = (" ".join(content.split()[:3]) 
+                        + " " 
+                        +  content.split("(")[-1][:-1])
+        
+        memory_node = BasicMemory(memory_id, memory_count, type_count, memory_type, depth,
+                                  created, expiration,
+                                  s, p ,o,
+                                  content, embedding_pair[0],
+                                  poignancy, keywords, filling)
 
-    def retrive(self,):
-        """
-        调用
-        """
-        pass
+        keywords = [i.lower() for i in keywords]
+        for kw in keywords: 
+            if kw in self.event_keywords: 
+                self.event_keywords[kw][0:0] = [memory_node]
+            else: 
+                self.event_keywords[kw] = [memory_node]
+        
+        self.add(memory_node)
 
-if __name__ == "__main__":
-    
+        if f"{p} {o}" != "is idle":  
+            for kw in keywords: 
+                if kw in self.kw_strength_event:
+                    self.kw_strength_event[kw] += 1
+                else: 
+                    self.kw_strength_event[kw] = 1
+
+        self.embeddings[embedding_pair[0]] = embedding_pair[1]
+        return memory_node
