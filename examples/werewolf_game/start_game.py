@@ -3,16 +3,16 @@ import platform
 import fire
 
 from examples.werewolf_game.werewolf_game import WerewolfGame
-from examples.werewolf_game.roles import Moderator, Villager, Werewolf, Guard
+from examples.werewolf_game.roles import Moderator, Villager, Werewolf, Guard, Seer
 
 DEFAULT_PLAYER_SETUP = """
 Game setup:
 Player1: Villager,
 Player2: Villager,
 Player3: Werewolf,
-Player4: Werewolf.
-Player5: Guard.
-
+Player4: Werewolf,
+Player5: Guard,
+Player6: Seer.
 """
 
 async def start_game(idea: str = DEFAULT_PLAYER_SETUP, investment: float = 3.0, n_round: int = 5):
@@ -24,6 +24,7 @@ async def start_game(idea: str = DEFAULT_PLAYER_SETUP, investment: float = 3.0, 
         Werewolf(name="Player3"),
         Werewolf(name="Player4"),
         Guard(name="Player5"),
+        Seer(name="Player6"),
     ])
     game.invest(investment)
     game.start_project(idea)
