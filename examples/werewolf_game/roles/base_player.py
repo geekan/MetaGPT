@@ -3,14 +3,6 @@ from metagpt.schema import Message
 from metagpt.logs import logger
 from examples.werewolf_game.actions import ACTIONS, Speak, InstructSpeak
 
-ROLE_STATES = {
-    # 存活状态
-    0: "Alive", # 开场
-    1: "Dead", # 结束
-    2: "Protected", # 被保护
-    3: "Poisoned", # 被毒
-    4: "Saved", # 被救
-}
 
 class BasePlayer(Role):
     def __init__(
@@ -24,7 +16,7 @@ class BasePlayer(Role):
         super().__init__(name, profile, **kwargs)
         self._init_actions([Speak])
         self._watch([InstructSpeak])
-        self.team = team 
+        self.team = team
         # 调用 get_status() 来检查存活状态,并通过 set_status() 更新状态。
         self.status = 0 # 初始状态为活着
         
