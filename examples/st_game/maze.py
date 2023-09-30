@@ -13,6 +13,7 @@ world in a 2-dimensional matrix.
 import json
 import math
 from pathlib import Path
+import networkx as nx
 from .utils.const import MAZE_ASSET_PATH
 from .utils.utils import read_csv_to_list
 
@@ -206,6 +207,14 @@ class Maze:
           else: 
             self.address_tiles[add] = set([(j, i)])
 
+    # Build an nx.Graph.
+    grid_graph = nx.grid_2d_graph(m=self.maze_width, n=self.maze_height)
+    for i in range(self.maze_height):
+      for j in range(self.maze_width):
+        if self.collision_maze[i][j]!=0:
+          grid_graph.remove_node((i,j))
+    self.nx_graph = grid_graph
+
 
   def turn_coordinate_to_tile(self, px_coordinate): 
     """
@@ -382,3 +391,26 @@ class Maze:
     for event in curr_tile_ev_cp: 
       if event[0] == subject:  
         self.tiles[tile[1]][tile[0]]["events"].remove(event)
+
+
+  def _find_closest_node(self, coords):
+    target_coords = self.nx_graph.nodes
+    min_dist = None
+    closest_coordinate = None
+    for target in target_coords: 
+      dist = math.dist(coords, target)
+      if not closest_coordinate: 
+        min_dist = dist
+        closest_coordinate = target
+      else: 
+        if min_dist > dist: 
+          min_dist = dist
+          closest_coordinate = target
+    return closest_coordinate
+
+  def find_path(self, start, end):
+    if start not in self.nx_graph.nodes:
+      start = self._find_closest_node(start)
+    if end not in self.nx_graph.nodes:
+      end = self._find_closest_node(end)
+    return self.nx_graph.shortest_path(start, end)
