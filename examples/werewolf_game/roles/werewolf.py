@@ -1,5 +1,5 @@
 from examples.werewolf_game.roles.base_player import BasePlayer
-from examples.werewolf_game.actions import Speak, Hunt
+from examples.werewolf_game.actions import Speak, Hunt, Impersonate
 from metagpt.schema import Message
 from metagpt.logs import logger
 
@@ -24,7 +24,8 @@ class Werewolf(BasePlayer):
 
         # 根据自己定义的角色Action，对应地去run，run的入参可能不同
         if isinstance(todo, Speak):
-            rsp = await todo.run(profile=self.profile, context=memories)
+            # rsp = await todo.run(profile=self.profile, context=memories)
+            rsp = await Impersonate().run(profile=self.profile, context=memories)
             msg = Message(
                 content=rsp, role=self.profile, sent_from=self.name,
                 cause_by=Speak, send_to="", restricted_to="",
