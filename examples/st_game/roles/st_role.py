@@ -17,19 +17,22 @@ from pathlib import Path
 from metagpt.roles.role import Role, RoleContext
 from metagpt.schema import Message
 
-from ..memory.associative_memory import AssociativeMemory
+from ..memory.agent_memory import AgentMemory
 from ..actions.dummy_action import DummyAction
 from ..actions.user_requirement import UserRequirement
 from ..maze_environment import MazeEnvironment
+from ..memory.retrieve import agent_retrieve
+from ..memory.scratch import Scratch
 
 
 class STRoleContext(RoleContext):
     env: 'MazeEnvironment' = Field(default=None)
-    memory: AssociativeMemory = Field(default=AssociativeMemory)
+    memory: AgentMemory = Field(default=AgentMemory)
+    scratch: Scratch = Field(default=Scratch)
 
 
 class STRole(Role):
-
+    # 继承Role类，Role类继承RoleContext，这里的逻辑需要认真考虑
     # add a role's property structure to store role's age and so on like GA's Scratch.
 
     def __init__(self,
@@ -64,6 +67,12 @@ class STRole(Role):
     async def observe(self):
         # TODO observe info from maze_env
         pass
+
+    async def retrieve(self, query, n = 30 ,topk = 4):
+        # TODO retrieve memories from agent_memory
+        retrieve_memories = agent_retrieve(self._rc.memory, self._rc.scratch.curr_time, self._rc.scratch.recency_decay, query, n, topk)
+        return retrieve_memories
+
 
     async def plan(self):
         # TODO make a plan
