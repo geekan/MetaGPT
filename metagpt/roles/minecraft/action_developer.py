@@ -41,30 +41,6 @@ class ActionDeveloper(Base):
         # 需要根据events进行自己chest_observation的更新
         self._watch([RetrieveSkills])
 
-    def render_chest_observation(self):
-        """
-        Render game_memory.chest_memory to prompt text.
-        Refer to @ https://github.com/MineDojo/Voyager/blob/main/voyager/agents/action.py
-        """
-
-        chests = []
-        for chest_position, chest in self.game_memory.chest_memory.items():
-            if isinstance(chest, dict) and len(chest) > 0:
-                chests.append(f"{chest_position}: {chest}")
-        for chest_position, chest in self.game_memory.chest_memory.items():
-            if isinstance(chest, dict) and len(chest) == 0:
-                chests.append(f"{chest_position}: Empty")
-        for chest_position, chest in self.game_memory.chest_memory.items():
-            if isinstance(chest, str):
-                assert chest == "Unknown"
-                chests.append(f"{chest_position}: Unknown items inside")
-        assert len(chests) == len(self.game_memory.chest_memory)
-        if chests:
-            chests = "\n".join(chests)
-            return f"Chests:\n{chests}\n\n"
-        else:
-            return f"Chests: None\n\n"
-
     def render_system_message(self, skills=[], *args, **kwargs):
         """
         According to basic skills context files to genenarate js skill codes.
@@ -163,12 +139,11 @@ class ActionDeveloper(Base):
         observation += f"Equipment: {equipment}\n\n"
         observation += f"Inventory ({inventory_used}/36): {'Empty' if not inventory else ', '.join(inventory)}\n\n"
 
-        # TODO: if task update, uncomment this
-        # if not (
-        #     task == "Place and deposit useless items into a chest"
-        #     or task.startswith("Deposit useless items into the chest at")
-        # ):
-        observation += self.render_chest_observation()
+        if not (
+            task == "Place and deposit useless items into a chest"
+            or task.startswith("Deposit useless items into the chest at")
+        ):
+            observation += self.game_memory.chest_observation
 
         observation += f"Task: {task}\n\n"
         observation += f"Context: {context or 'None'}\n\n"

@@ -16,6 +16,7 @@ from metagpt.actions.minecraft.player_action import PlayerActions
 from metagpt.roles.minecraft.minecraft_base import Minecraft
 from metagpt.environment import Environment
 from metagpt.mineflayer_environment import MineflayerEnv
+from metagpt.const import CKPT_DIR
 
 
 class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
@@ -24,30 +25,57 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
     """
 
     event: dict[str, Any] = Field(default_factory=dict)
-    current_task: str = Field(default="Craft 4 wooden planks")
+    current_task: str = Field(default="Mine 1 wood log")
     task_execution_time: float = Field(default=float)
-    context: str = Field(default="")
+    context: str = Field(
+        default="You can mine one of oak, birch, spruce, jungle, acacia, dark oak, or mangrove logs."
+    )
     code: str = Field(default=None)
     programs: str = Field(default="")
-    critique: str = Field(default="")
+    critique: str = Field(default=None)
     skills: list[str] = Field(default_factory=list)
+    question: str = Field(default=None)
 
-    chest_memory: dict[str, Any] = Field(default_factory=dict)
+    qa_cache: dict[str, str] = Field(default_factory=dict)
+    completed_tasks: list[str] = Field(default_factory=list)  # Critique things
+    failed_tasks: list[str] = Field(default_factory=list)
+
+    chest_memory: dict[str, Any] = Field(
+        default_factory=dict
+    )  # eg: {'(1344, 64, 1381)': 'Unknown'}
+    chest_observation: str = Field(default="")  # eg: "Chests: None\n\n"
 
     mf_instance: MineflayerEnv = Field(default_factory=MineflayerEnv)
+
+    @property
+    def progress(self):
+        # return len(self.completed_tasks) + 10 # Test only
+        return len(self.completed_tasks)
+
+    @property
+    def warm_up(self):
+        return self.mf_instance.warm_up
+
+    @property
+    def core_inv_items_regex(self):
+        return self.mf_instance.core_inv_items_regex
 
     def set_mc_port(self, mc_port):
         self.mf_instance.set_mc_port(mc_port)
 
-    def set_mc_resume(self, resume: bool = False):
+    def set_mc_resume(self, resume: bool = False):  # TODO: mv to config
         if resume:
-            logger.info(
-                f"Loading Action Developer from {self.mf_instance.ckpt_dir}/action"
-            )
-            with open(
-                f"{self.mf_instance.ckpt_dir}/action/chest_memory.json", "r"
-            ) as f:
+            logger.info(f"Loading Action Developer from {CKPT_DIR}/action")
+            with open(f"{CKPT_DIR}/action/chest_memory.json", "r") as f:
                 self.chest_memory = json.load(f)
+
+            logger.info(f"Loading Curriculum Agent from {CKPT_DIR}/curriculum")
+            with open(f"{CKPT_DIR}/curriculum/completed_tasks.json", "r") as f:
+                self.completed_tasks = json.load(f)
+            with open(f"{CKPT_DIR}/curriculum/failed_tasks.json", "r") as f:
+                self.failed_tasks = json.load(f)
+            with open(f"{CKPT_DIR}/curriculum/qa_cache.json", "r") as f:
+                self.qa_cache = json.load(f)
             # TODO: add skills resume
 
     def register_roles(self, roles: Iterable[Minecraft]):
@@ -57,6 +85,7 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
     def update_event(self, event: Dict):
         self.event = event
         self.update_chest_memory(event)
+        self.update_chest_observation()
 
     def update_task(self, task: str):
         self.current_task = task
@@ -93,8 +122,32 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
                 if chest != "Invalid":
                     logger.info(f"Action Developer saving chest {position}: {chest}")
                     self.chest_memory[position] = chest
-        with open(f"{self.mf_instance.ckpt_dir}/action/chest_memory.json", "w") as f:
+        with open(f"{CKPT_DIR}/action/chest_memory.json", "w") as f:
             json.dump(self.chest_memory, f)
+
+    def update_chest_observation(self):
+        """
+        update chest_memory to chest_observation.
+        Refer to @ https://github.com/MineDojo/Voyager/blob/main/voyager/agents/action.py
+        """
+
+        chests = []
+        for chest_position, chest in self.chest_memory.items():
+            if isinstance(chest, dict) and len(chest) > 0:
+                chests.append(f"{chest_position}: {chest}")
+        for chest_position, chest in self.chest_memory.items():
+            if isinstance(chest, dict) and len(chest) == 0:
+                chests.append(f"{chest_position}: Empty")
+        for chest_position, chest in self.chest_memory.items():
+            if isinstance(chest, str):
+                assert chest == "Unknown"
+                chests.append(f"{chest_position}: Unknown items inside")
+        assert len(chests) == len(self.chest_memory)
+        if chests:
+            chests = "\n".join(chests)
+            self.chest_observation = f"Chests:\n{chests}\n\n"
+        else:
+            self.chest_observation = f"Chests: None\n\n"
 
     async def on_event(self, *args):
         """

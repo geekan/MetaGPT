@@ -6,11 +6,12 @@ import os
 import time
 import json
 import requests
+import re
 
 from metagpt.logs import logger
 import metagpt.utils.minecraft as U
 from metagpt.utils.minecraft.process_monitor import SubprocessMonitor
-
+from metagpt.const import CKPT_DIR, DEFAULT_WARMUP, CURRICULUM_OB, CORE_INVENTORY_ITEMS
 
 class MineflayerEnv:
     def __init__(
@@ -29,9 +30,33 @@ class MineflayerEnv:
         self.reset_options = None
         self.connected = False
         self.server_paused = False
-        self.ckpt_dir = "metagpt/ckpt"
 
-        os.makedirs(f"{self.ckpt_dir}/action", exist_ok=True)
+        self.warm_up = {} # turns that when to add part of curriculum_ob to HumanMessage TODO: MV
+        self.core_inv_items_regex = None
+
+        self._set_warmup()
+
+        os.makedirs(f"{CKPT_DIR}/curriculum/vectordb", exist_ok=True)
+        os.makedirs(f"{CKPT_DIR}/action", exist_ok=True)
+
+    def _set_warmup(self):
+        warm_up = DEFAULT_WARMUP
+        if "optional_inventory_items" in warm_up:
+            assert CORE_INVENTORY_ITEMS is not None
+            self.core_inv_items_regex = re.compile(
+                CORE_INVENTORY_ITEMS
+            )
+            self.warm_up["optional_inventory_items"] = warm_up[
+                "optional_inventory_items"
+            ]
+        else:
+            self.warm_up["optional_inventory_items"] = 0
+        for key in CURRICULUM_OB:
+            self.warm_up[key] = warm_up.get(key, DEFAULT_WARMUP[key])
+        self.warm_up["nearby_blocks"] = 0
+        self.warm_up["inventory"] = 0
+        self.warm_up["completed_tasks"] = 0
+        self.warm_up["failed_tasks"] = 0
 
     def set_mc_port(self, mc_port):
         self.mc_port = mc_port
