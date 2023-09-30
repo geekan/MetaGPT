@@ -7,11 +7,12 @@ class Hunt(Action):
     It's a werewolf game and you are a werewolf,
     this is game history:
     {context}.
-    Attention: if your previous werewolf have chosen, follow its choice.
+    Attention: if your previous werewolf has chosen, follow its choice.
+    Format: "Kill PlayerX", where X is the player index.
     Now, choose one to kill, you will:
     """
 
-    def __init__(self, name="Speak", context=None, llm=None):
+    def __init__(self, name="Hunt", context=None, llm=None):
         super().__init__(name, context, llm)
 
     async def run(self, context: str):

@@ -18,7 +18,7 @@ class BasePlayer(Role):
         self._watch([InstructSpeak])
         self.team = team
         # 调用 get_status() 来检查存活状态,并通过 set_status() 更新状态。
-        self.status = 0 # 初始状态为活着
+        self.status = 0 # 0代表活着，1代表死亡
         
         # 技能和监听配置
         self._watch([InstructSpeak]) # 监听Moderator的指令以做行动
@@ -28,6 +28,10 @@ class BasePlayer(Role):
         self.special_actions = special_actions
     
     async def _observe(self) -> int:
+        if self.status == 1:
+            # 死者不再参与游戏
+            return 0
+        
         await super()._observe()
         # 只有发给全体的（""）或发给自己的（self.profile）消息需要走下面的_react流程，
         # 其他的收听到即可，不用做动作
@@ -50,6 +54,7 @@ class BasePlayer(Role):
     
     def get_all_memories(self) -> str:
         memories = self._rc.memory.get()
+        # NOTE: 除Moderator外，其他角色使用memory，只能用m.sent_from（玩家名）不能用m.role（玩家角色），因为他们不知道说话者的身份
         memories = [f"{m.sent_from}: {m.content}" for m in memories]
         memories = "\n".join(memories)
         return memories

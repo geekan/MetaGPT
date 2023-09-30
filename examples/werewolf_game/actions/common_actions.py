@@ -10,7 +10,10 @@ class Speak(Action):
     You have knowledge to the following conversation:
     {context}
     ## YOUR TURN
-    It's daytime and it is your turn to speak, you will say (in 100 words):
+    Please follow the moderator's latest instruction, FIGURE OUT if you need to speak your opinion or directly to vote,
+    1. If the instruction is to speak, speak in 100 words;
+    2. If the instruction is to vote, you MUST vote and ONLY say "I vote to eliminate PlayerX", where X is the player index, DO NOT include any other words.
+    Your will say:
     """
 
     def __init__(self, name="Speak", context=None, llm=None):

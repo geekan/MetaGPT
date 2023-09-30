@@ -1,4 +1,6 @@
 import asyncio
+import re
+from collections import Counter
 
 from metagpt.roles import Role
 from metagpt.schema import Message
@@ -6,6 +8,7 @@ from metagpt.logs import logger
 from examples.werewolf_game.actions.moderator_actions import (
     InstructSpeak, ParseSpeak, AnnounceGameResult, STEP_INSTRUCTIONS
 )
+from examples.werewolf_game.actions import Hunt, Protect, Verify, Save, Poison
 from metagpt.actions import BossRequirement as UserRequirement
 
 
@@ -24,52 +27,146 @@ class Moderator(Role):
         self._watch([UserRequirement, InstructSpeak, ParseSpeak])
         self._init_actions([InstructSpeak, ParseSpeak, AnnounceGameResult])
         self.step_idx = 0
-        self.living_players = ["Player1", "Player2", "Player3", "Player4", "Player5"]
-        self.werewolf_players = ["Player1", "Player2"]
-        self.good_guys = ["Player3", "Player4", "Player5"]
-        self.dead_players = []  # 夜晚阶段，死掉的玩家
-        # 假设votes代表白天投票的结果，key是被投票的玩家，value是得票数
-        self.votes = {"Player1": 1, "Player2": 2, "Player3": 1, "Player4": 0, "Player5": 0}
+
+        # game states
+        self.living_players = []
+        self.werewolf_players = []
+        self.good_guys = []
+        self.winner = None
+        self.witch_poison_left = 1
+        self.witch_antidote_left = 1
+        
+        # player states of current night
+        self.player_hunted = None
+        self.player_protected = None
+        self.is_hunted_player_saved = False
+        self.player_poisoned = None
+        self.player_current_dead = []
+
+    def _parse_game_setup(self, game_setup: str):
+        self.living_players = re.findall(r"Player[0-9]+", game_setup)
+        self.werewolf_players = re.findall(r"Player[0-9]+: Werewolf", game_setup)
+        self.werewolf_players = [p.replace(": Werewolf", "") for p in self.werewolf_players]
+        self.good_guys = [p for p in self.living_players if p not in self.werewolf_players]
+    
+    def update_player_status(self, player_names: list[str]):
+        if not player_names:
+            return
+        roles_in_env = self._rc.env.get_roles()
+        for role_setting, role in roles_in_env.items():
+            for player_name in player_names:
+                if player_name in role_setting:
+                    role.set_status(new_status=1) # 更新为死亡
 
     async def _instruct_speak(self):
+        print("*" * 10, "STEP: ", self.step_idx, "*" * 10)
         step_idx = self.step_idx % len(STEP_INSTRUCTIONS)
         self.step_idx += 1
         return await InstructSpeak().run(step_idx,
                                          living_players=self.living_players,
                                          werewolf_players=self.werewolf_players,
-                                         killed_player=self.dead_players,
-                                         voted_out_player="Player3")
+                                         player_hunted=self.player_hunted,
+                                         player_current_dead=self.player_current_dead)
 
-    async def _parse_speak(self, memories, env):
+    async def _parse_speak(self, memories):
+        logger.info(self.step_idx)
 
-        self.dead_players, vote_player, parse_info = await ParseSpeak().run(dead_history=self.dead_players,
-                                                                            context=memories, env=env)
+        latest_msg = memories[-1]
 
-        # decide to move the game into the next phase
-        if not vote_player:
-            msg_content, send_to = parse_info[0], self.profile
+        match = re.search(r"Player[0-9]+", latest_msg.content[-10:])
+        target = match.group(0) if match else ""
+
+        # default return
+        msg_content = "Understood"
+        restricted_to = ""
+
+        source_role = latest_msg.role
+        msg_cause_by = latest_msg.cause_by
+        if msg_cause_by == Hunt:
+            self.player_hunted = target
+            # breakpoint()
+        elif msg_cause_by == Protect:
+            self.player_protected = target
+        elif msg_cause_by == Verify:
+            if target in self.werewolf_players:
+                msg_content = f"{target} is a werewolf"
+            else:
+                msg_content = f"{target} is a good guy"
+            restricted_to = "Moderator,Seer"
+        elif msg_cause_by == Save:
+            if not self.witch_antidote_left and latest_msg.content != "Pass":
+                msg_content = "You have no antidote left and thus can not save the player"
+                restricted_to = "Moderator,Witch"
+            else:
+                self.witch_antidote_left -= 1
+                self.is_hunted_player_saved = latest_msg.content == "Save"
+        elif msg_cause_by == Poison:
+            if not self.witch_poison_left and latest_msg.content != "Pass":
+                msg_content = "You have no poison left and thus can not poison the player"
+                restricted_to = "Moderator,Witch"
+            else:
+                self.witch_poison_left -= 1
+                self.player_poisoned = target # "" if not poisoned and "PlayerX" if poisoned
+
+        step_idx = self.step_idx % len(STEP_INSTRUCTIONS)
+        if step_idx == 13: # FIXME: hard code
+            # night ends: after all special roles acted, process the whole night
+            self.player_current_dead = [] # reset
+
+            if self.player_hunted != self.player_protected and not self.is_hunted_player_saved:
+                self.player_current_dead.append(self.player_hunted)
+            if self.player_poisoned:
+                self.player_current_dead.append(self.player_poisoned)
+
+            self.living_players = [p for p in self.living_players if p not in self.player_current_dead]
+            self.update_player_status(self.player_current_dead)
+            # reset
+            self.player_hunted = None
+            self.player_protected = None
+            self.is_hunted_player_saved = False
+            self.player_poisoned = None
+
+        elif step_idx == 18: # FIXME: hard code
+            # day ends: after all roles voted, process all votings
+            voting_msgs = memories[-len(self.living_players):]
+            voted_all = []
+            for msg in voting_msgs:
+                voted = re.search(r"Player[0-9]+", msg.content[-10:])
+                if not voted:
+                    continue
+                voted_all.append(voted.group(0))
+            # breakpoint()
+            self.player_current_dead = [Counter(voted_all).most_common()[0][0]] # 平票时，杀序号小的
+            self.living_players = [p for p in self.living_players if p not in self.player_current_dead]
+            self.update_player_status(self.player_current_dead)
+            msg_content = "Voting done"
+        
         # game's termination condition
-        elif all(item in self.dead_players for item in self.werewolf_players) or all(
-                item in self.dead_players for item in self.good_guys):
-            self.is_game_over = True
-            msg_content, send_to = parse_info[1], "all"
-        else:
-            # game's termination condition
-            msg_content, send_to = parse_info[2], ""
-        return msg_content, send_to
+        living_werewolf = [p for p in self.werewolf_players if p in self.living_players]
+        living_good_guys = [p for p in self.good_guys if p in self.living_players]
+        if not living_werewolf:
+            self.winner = "good guys"
+        elif not living_good_guys:
+            self.winner = "werewolf"
+
+        return msg_content, restricted_to
 
     async def _think(self):
 
-        if self.is_game_over:
+        if self.winner is not None:
             self._rc.todo = AnnounceGameResult()
             return
+        
+        latest_msg = self._rc.memory.get()[-1]
+        if latest_msg.role in ["User"]:
+            # 上一轮消息是用户指令，解析用户指令，开始游戏
+            game_setup = latest_msg.content
+            self._parse_game_setup(game_setup)
+            self._rc.todo = InstructSpeak()
 
-        # 确定当前是需要InstructSpeak还是ParseSpeak. 通过判断当前流程状态变量，以及消息的cause_by属性
-        # 0: InstructSpeak, 1: ParseSpeak,且需要判断消息的cause_by属性
-        if self._rc.memory.get()[-1].role in ["User", self.profile]:
-            # 1. 上一轮消息是用户指令，解析用户指令，开始游戏
-            # 2. 上一轮消息是Moderator自己的指令，继续发出指令，一个事情可以分几条消息来说
-            # 3. 上一轮消息是Moderator自己的解析消息，一个阶段结束，发出新一个阶段的指令
+        elif latest_msg.role in [self.profile]:
+            # 1. 上一轮消息是Moderator自己的指令，继续发出指令，一个事情可以分几条消息来说
+            # 2. 上一轮消息是Moderator自己的解析消息，一个阶段结束，发出新一个阶段的指令
             self._rc.todo = InstructSpeak()
 
         else:
@@ -80,19 +177,24 @@ class Moderator(Role):
         todo = self._rc.todo
         logger.info(f"{self._setting} ready to {todo}")
 
-        memories = self.get_all_memories()
-        print("*" * 10, f"{self._setting}'s current memories: {memories}", "*" * 10)
+        memories = self.get_all_memories(mode="msg")
+        # print("*" * 10, f"{self._setting}'s current memories: {memories}", "*" * 10)
+        if self.step_idx % len(STEP_INSTRUCTIONS) == 0 or self.winner is not None:
+            # 进行完一夜一日的循环，打印一次完整发言历史
+            print(self.get_all_memories())
 
         # 根据_think的结果，执行InstructSpeak还是ParseSpeak, 并将结果返回
         if isinstance(todo, InstructSpeak):
             msg_content, msg_to_send_to, msg_restriced_to = await self._instruct_speak()
+            msg_content = f"Step {self.step_idx}: {msg_content}" # HACK: 加一个unique的step_idx避免记忆的自动去重
             msg = Message(content=msg_content, role=self.profile, sent_from=self.name,
                           cause_by=InstructSpeak, send_to=msg_to_send_to, restricted_to=msg_restriced_to)
 
         elif isinstance(todo, ParseSpeak):
-            msg_content, send_to = await self._parse_speak(memories, self._rc)
-            msg = Message(content=msg_content, role=self.profile, sent_from=self.name, cause_by=ParseSpeak,
-                          send_to=send_to)
+            msg_content, msg_restriced_to = await self._parse_speak(memories)
+            msg_content = f"Step {self.step_idx}: {msg_content}" # HACK: 加一个unique的step_idx避免记忆的自动去重
+            msg = Message(content=msg_content, role=self.profile, sent_from=self.name,
+                          cause_by=ParseSpeak, send_to="", restricted_to=msg_restriced_to)
 
         elif isinstance(todo, AnnounceGameResult):
             msg_content = await AnnounceGameResult().run(winner=self.winner)
@@ -102,8 +204,9 @@ class Moderator(Role):
 
         return msg
 
-    def get_all_memories(self) -> str:
+    def get_all_memories(self, mode="str") -> str:
         memories = self._rc.memory.get()
-        memories = [str(m) for m in memories]
-        memories = "\n".join(memories)
+        if mode == "str":
+            memories = [f"{m.sent_from}({m.role}): {m.content}" for m in memories]
+            memories = "\n".join(memories)
         return memories

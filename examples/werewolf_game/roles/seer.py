@@ -21,7 +21,7 @@ class Seer(BasePlayer):
         logger.info(f"{self._setting}: ready to {str(todo)}")
 
         memories = self.get_all_memories()
-        print("*" * 10, f"{self._setting}'s current memories: {memories}", "*" * 10)
+        # print("*" * 10, f"{self._setting}'s current memories: {memories}", "*" * 10)
 
         # 基于todo的类型，调用不同的action
         if isinstance(todo, Speak):

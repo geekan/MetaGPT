@@ -9,7 +9,9 @@ class Verify(Action):
     You can choose to verify the identity of a player.
     Here's the game history:
     {context}.
-    Now, choose one player to verify:
+    Now, choose one player to verify
+    Format: "Verify PlayerX", where X is the player index.
+    You will:
     """
 
     def __init__(self, name="Verify", context=None, llm=None):

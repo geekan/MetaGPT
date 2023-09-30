@@ -22,7 +22,7 @@ class Villager(BasePlayer):
 
         # 可以用这个函数获取该角色的全部记忆
         memories = self.get_all_memories()
-        print("*" * 10, f"{self._setting}'s current memories: {memories}", "*" * 10)
+        # print("*" * 10, f"{self._setting}'s current memories: {memories}", "*" * 10)
 
         # 根据自己定义的角色Action，对应地去run
         rsp = await todo.run(profile=self.profile, context=memories)

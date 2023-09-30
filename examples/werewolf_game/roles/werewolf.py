@@ -21,7 +21,7 @@ class Werewolf(BasePlayer):
 
         # 可以用这个函数获取该角色的全部记忆
         memories = self.get_all_memories()
-        print("*" * 10, f"{self._setting}'s current memories: {memories}", "*" * 10)
+        # print("*" * 10, f"{self._setting}'s current memories: {memories}", "*" * 10)
 
         # 根据自己定义的角色Action，对应地去run，run的入参可能不同
         if isinstance(todo, Speak):
