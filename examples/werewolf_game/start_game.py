@@ -3,7 +3,7 @@ import platform
 import fire
 
 from examples.werewolf_game.werewolf_game import WerewolfGame
-from examples.werewolf_game.roles import Moderator, Villager, Werewolf, Guard, Seer, witch
+from examples.werewolf_game.roles import Moderator, Villager, Werewolf, Guard, Seer, Witch
 
 DEFAULT_PLAYER_SETUP = """
 Game setup:
