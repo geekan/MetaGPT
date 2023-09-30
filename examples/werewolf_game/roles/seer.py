@@ -10,11 +10,10 @@ class Seer(BasePlayer):
             self,
             name: str = "",
             profile: str = "Seer",
-            team: str = "good guys",
             special_action_names: list[str] = ["Verify"],
             **kwargs,
     ):
-        super().__init__(name, profile, team, special_action_names, **kwargs)
+        super().__init__(name, profile, special_action_names, **kwargs)
 
     async def _act(self):
         todo = self._rc.todo

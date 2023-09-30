@@ -1,4 +1,3 @@
-import asyncio
 import re
 from collections import Counter
 
@@ -13,9 +12,6 @@ from metagpt.actions import BossRequirement as UserRequirement
 
 
 class Moderator(Role):
-    # 游戏状态属性
-    is_game_over = False
-    winner = None
 
     def __init__(
             self,
@@ -35,7 +31,7 @@ class Moderator(Role):
         self.winner = None
         self.witch_poison_left = 1
         self.witch_antidote_left = 1
-        
+
         # player states of current night
         self.player_hunted = None
         self.player_protected = None
@@ -48,7 +44,7 @@ class Moderator(Role):
         self.werewolf_players = re.findall(r"Player[0-9]+: Werewolf", game_setup)
         self.werewolf_players = [p.replace(": Werewolf", "") for p in self.werewolf_players]
         self.good_guys = [p for p in self.living_players if p not in self.werewolf_players]
-    
+
     def update_player_status(self, player_names: list[str]):
         if not player_names:
             return
@@ -72,15 +68,15 @@ class Moderator(Role):
         logger.info(self.step_idx)
 
         latest_msg = memories[-1]
+        latest_msg_content = latest_msg.content
 
-        match = re.search(r"Player[0-9]+", latest_msg.content[-10:])
+        match = re.search(r"Player[0-9]+", latest_msg_content[-10:]) # FIXME: hard code truncation
         target = match.group(0) if match else ""
 
         # default return
         msg_content = "Understood"
         restricted_to = ""
 
-        source_role = latest_msg.role
         msg_cause_by = latest_msg.cause_by
         if msg_cause_by == Hunt:
             self.player_hunted = target
@@ -94,14 +90,18 @@ class Moderator(Role):
                 msg_content = f"{target} is a good guy"
             restricted_to = "Moderator,Seer"
         elif msg_cause_by == Save:
-            if not self.witch_antidote_left and latest_msg.content != "Pass":
+            if "pass" in latest_msg_content.lower():
+                pass
+            elif not self.witch_antidote_left:
                 msg_content = "You have no antidote left and thus can not save the player"
                 restricted_to = "Moderator,Witch"
             else:
                 self.witch_antidote_left -= 1
-                self.is_hunted_player_saved = latest_msg.content == "Save"
+                self.is_hunted_player_saved = True
         elif msg_cause_by == Poison:
-            if not self.witch_poison_left and latest_msg.content != "Pass":
+            if "pass" in latest_msg_content.lower():
+                pass
+            elif not self.witch_poison_left:
                 msg_content = "You have no poison left and thus can not poison the player"
                 restricted_to = "Moderator,Witch"
             else:
@@ -140,7 +140,7 @@ class Moderator(Role):
             self.living_players = [p for p in self.living_players if p not in self.player_current_dead]
             self.update_player_status(self.player_current_dead)
             msg_content = "Voting done"
-        
+
         # game's termination condition
         living_werewolf = [p for p in self.werewolf_players if p in self.living_players]
         living_good_guys = [p for p in self.good_guys if p in self.living_players]
@@ -156,7 +156,7 @@ class Moderator(Role):
         if self.winner is not None:
             self._rc.todo = AnnounceGameResult()
             return
-        
+
         latest_msg = self._rc.memory.get()[-1]
         if latest_msg.role in ["User"]:
             # 上一轮消息是用户指令，解析用户指令，开始游戏
@@ -181,18 +181,19 @@ class Moderator(Role):
         # print("*" * 10, f"{self._setting}'s current memories: {memories}", "*" * 10)
         if self.step_idx % len(STEP_INSTRUCTIONS) == 0 or self.winner is not None:
             # 进行完一夜一日的循环，打印一次完整发言历史
+            logger.info("a night and day cycle completed, examine all history")
             print(self.get_all_memories())
 
         # 根据_think的结果，执行InstructSpeak还是ParseSpeak, 并将结果返回
         if isinstance(todo, InstructSpeak):
             msg_content, msg_to_send_to, msg_restriced_to = await self._instruct_speak()
-            msg_content = f"Step {self.step_idx}: {msg_content}" # HACK: 加一个unique的step_idx避免记忆的自动去重
+            # msg_content = f"Step {self.step_idx}: {msg_content}" # HACK: 加一个unique的step_idx避免记忆的自动去重
             msg = Message(content=msg_content, role=self.profile, sent_from=self.name,
                           cause_by=InstructSpeak, send_to=msg_to_send_to, restricted_to=msg_restriced_to)
 
         elif isinstance(todo, ParseSpeak):
             msg_content, msg_restriced_to = await self._parse_speak(memories)
-            msg_content = f"Step {self.step_idx}: {msg_content}" # HACK: 加一个unique的step_idx避免记忆的自动去重
+            # msg_content = f"Step {self.step_idx}: {msg_content}" # HACK: 加一个unique的step_idx避免记忆的自动去重
             msg = Message(content=msg_content, role=self.profile, sent_from=self.name,
                           cause_by=ParseSpeak, send_to="", restricted_to=msg_restriced_to)
 

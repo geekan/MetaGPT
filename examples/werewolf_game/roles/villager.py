@@ -8,11 +8,10 @@ class Villager(BasePlayer):
         self,
         name: str = "",
         profile: str = "Villager",
-        team: str = "good guys",
         special_action_names: list[str] = [],
         **kwargs,
     ):
-        super().__init__(name, profile, team, special_action_names, **kwargs)
+        super().__init__(name, profile, special_action_names, **kwargs)
 
     async def _act(self):
 
@@ -34,5 +33,5 @@ class Villager(BasePlayer):
         )
 
         logger.info(f"{self._setting}: {rsp}")
-        
+
         return msg
