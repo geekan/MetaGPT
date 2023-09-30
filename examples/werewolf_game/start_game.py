@@ -12,8 +12,8 @@ Player2: Villager,
 Player3: Werewolf,
 Player4: Werewolf,
 Player5: Guard,
-Player6: Seer.
-Player7: Witch
+Player6: Seer,
+Player7: Witch.
 """
 
 async def start_game(idea: str = DEFAULT_PLAYER_SETUP, investment: float = 3.0, n_round: int = 5):
@@ -33,7 +33,7 @@ async def start_game(idea: str = DEFAULT_PLAYER_SETUP, investment: float = 3.0, 
     await game.run(n_round=n_round)
 
 
-def main(idea: str = DEFAULT_PLAYER_SETUP, investment: float = 3.0, n_round: int = 10):
+def main(idea: str = DEFAULT_PLAYER_SETUP, investment: float = 3.0, n_round: int = 100):
     """
     :param idea: game config instructions
     :param investment: contribute a certain dollar amount to watch the debate
