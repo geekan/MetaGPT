@@ -1,6 +1,7 @@
 import re
 from collections import Counter
 
+from metagpt.const import WORKSPACE_ROOT
 from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.logs import logger
@@ -183,6 +184,8 @@ class Moderator(Role):
             # 进行完一夜一日的循环，打印一次完整发言历史
             logger.info("a night and day cycle completed, examine all history")
             print(self.get_all_memories())
+            with open(WORKSPACE_ROOT / 'werewolf_transcript.txt', "w") as f:
+                f.write(self.get_all_memories())
 
         # 根据_think的结果，执行InstructSpeak还是ParseSpeak, 并将结果返回
         if isinstance(todo, InstructSpeak):
