@@ -11,5 +11,5 @@ ACTIONS = {
     "Protect": Protect,
     "Verify": Verify,
     "Save": Save,
-    "Poison": Poison
+    "Poison": Poison,
 }

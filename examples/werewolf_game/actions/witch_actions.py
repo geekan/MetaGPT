@@ -7,8 +7,7 @@ class Save(Action):
     It's a werewolf game and you are a witch,
     this is game history:
     {context}.
-    Attention: You have received information that someone is going to be killed. 
-    Now, decide whether you want to save that person or not:
+    Follow the Moderator's instruction, decide whether you want to save that person or not:
     """
 
     def __init__(self, name="Save", context=None, llm=None):
@@ -30,8 +29,7 @@ class Poison(Action):
     It's a werewolf game and you are a witch,
     this is game history:
     {context}.
-    Attention: You have received information that someone is going to be killed. 
-    Now, decide whether you want to poison another person or not:
+    Follow the Moderator's instruction, decide whether you want to poison another person or not:
     """
 
     def __init__(self, name="Poison", context=None, llm=None):
