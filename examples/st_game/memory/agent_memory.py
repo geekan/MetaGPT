@@ -46,6 +46,9 @@ class BasicMemory(Message):
         self.keywords: list = keywords                # keywords
         self.filling: list = filling                  # 装的与之相关联的memory_id的列表
 
+    def summary(self): 
+        return (self.subject, self.predicate, self.object)
+
     def save_to_dict(self) -> dict:
         """
         将MemoryBasic类转化为字典，用于存储json文件
@@ -316,3 +319,10 @@ class AgentMemory(Memory):
 
         self.embeddings[embedding_pair[0]] = embedding_pair[1]
         return memory_node
+
+
+    def get_summarized_latest_events(self, retention): 
+        ret_set = set()
+        for e_node in self.event_list[:retention]: 
+            ret_set.add(e_node.summary())
+        return ret_set

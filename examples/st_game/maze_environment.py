@@ -10,3 +10,5 @@ class MazeEnvironment(Environment):
     def __init__(self, name: str, maze: Maze) -> None:
         self.name = name
         self.maze = maze
+
+    
