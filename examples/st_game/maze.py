@@ -18,7 +18,7 @@ from .utils.const import MAZE_ASSET_PATH
 from .utils.utils import read_csv_to_list
 
 class Maze: 
-  def __init__(self, maze_asset_path: Path = MAZE_ASSET_PATH): 
+  def __init__(self, maze_asset_path: Path = MAZE_ASSET_PATH) -> None: 
     # READING IN THE BASIC META INFORMATION ABOUT THE MAP
     self.maze_asset_path = maze_asset_path
     maze_matrix_path = maze_asset_path.joinpath("matrix")
@@ -216,7 +216,7 @@ class Maze:
     self.nx_graph = grid_graph
 
 
-  def turn_coordinate_to_tile(self, px_coordinate): 
+  def turn_coordinate_to_tile(self, px_coordinate: tuple[int, int]) -> tuple[int, int]: 
     """
     Turns a pixel coordinate to a tile coordinate. 
 
@@ -234,7 +234,7 @@ class Maze:
     return (x, y)
 
 
-  def access_tile(self, tile): 
+  def access_tile(self, tile: tuple[int, int]) -> dict: 
     """
     Returns the tiles details dictionary that is stored in self.tiles of the 
     designated x, y location. 
@@ -257,7 +257,7 @@ class Maze:
     return self.tiles[y][x]
 
 
-  def get_tile_path(self, tile, level): 
+  def get_tile_path(self, tile: tuple[int, int], level: str) -> str: 
     """
     Get the tile string address given its coordinate. You designate the level
     by giving it a string level description. 
@@ -294,7 +294,7 @@ class Maze:
     return path
 
 
-  def get_nearby_tiles(self, tile, vision_r): 
+  def get_nearby_tiles(self, tile: tuple[int, int], vision_r: int) -> list[tuple[int, int]]: 
     """
     Given the current tile and vision_r, return a list of tiles that are 
     within the radius. Note that this implementation looks at a square 
@@ -335,7 +335,7 @@ class Maze:
     return nearby_tiles
 
 
-  def add_event_from_tile(self, curr_event, tile): 
+  def add_event_from_tile(self, curr_event: tuple[str], tile: tuple[int, int]) -> None: 
     """
     Add an event triple to a tile.  
 
@@ -350,8 +350,8 @@ class Maze:
     self.tiles[tile[1]][tile[0]]["events"].add(curr_event)
 
 
-  def remove_event_from_tile(self, curr_event, tile):
-    """
+  def remove_event_from_tile(self, curr_event: tuple[str], tile: tuple[int, int]) -> None:
+    """dswaq
     Remove an event triple from a tile.  
 
     INPUT: 
@@ -368,7 +368,7 @@ class Maze:
         self.tiles[tile[1]][tile[0]]["events"].remove(event)
 
 
-  def turn_event_from_tile_idle(self, curr_event, tile):
+  def turn_event_from_tile_idle(self, curr_event: tuple[str], tile: tuple[int, int]) -> None:
     curr_tile_ev_cp = self.tiles[tile[1]][tile[0]]["events"].copy()
     for event in curr_tile_ev_cp: 
       if event == curr_event:  
@@ -377,7 +377,7 @@ class Maze:
         self.tiles[tile[1]][tile[0]]["events"].add(new_event)
 
 
-  def remove_subject_events_from_tile(self, subject, tile):
+  def remove_subject_events_from_tile(self, subject: str, tile: tuple[int, int]) -> None:
     """
     Remove an event triple that has the input subject from a tile. 
 
@@ -393,7 +393,7 @@ class Maze:
         self.tiles[tile[1]][tile[0]]["events"].remove(event)
 
 
-  def _find_closest_node(self, coords):
+  def _find_closest_node(self, coords: tuple[int, int]) -> tuple[int, int]:
     target_coords = self.nx_graph.nodes
     min_dist = None
     closest_coordinate = None
@@ -408,9 +408,9 @@ class Maze:
           closest_coordinate = target
     return closest_coordinate
 
-  def find_path(self, start, end):
+  def find_path(self, start: tuple[int, int], end: tuple[int, int]) -> list[tuple[int, int]]:
     if start not in self.nx_graph.nodes:
       start = self._find_closest_node(start)
     if end not in self.nx_graph.nodes:
       end = self._find_closest_node(end)
-    return self.nx_graph.shortest_path(start, end)
+    return nx.shortest_path(self.nx_graph, start, end)

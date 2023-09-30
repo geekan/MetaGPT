@@ -9,14 +9,14 @@ import json
 import os
 
 class MemoryTree: 
-  def __init__(self, f_saved): 
+  def __init__(self, f_saved: str) -> None:
     self.tree = {}
     if os.path.isfile(f_saved) and os.path.exists(f_saved): 
       with open(f_saved) as f:
         self.tree = json.load(f)
 
 
-  def print_tree(self): 
+  def print_tree(self) -> None:
     def _print_tree(tree, depth):
       dash = " >" * depth
       if type(tree) == type(list()): 
@@ -32,12 +32,12 @@ class MemoryTree:
     _print_tree(self.tree, 0)
     
 
-  def save(self, out_json):
+  def save(self, out_json: str) -> None:
     with open(out_json, "w") as outfile:
       json.dump(self.tree, outfile) 
 
 
-  def get_str_accessible_sectors(self, curr_world): 
+  def get_str_accessible_sectors(self, curr_world: str) -> str:
     """
     Returns a summary string of all the arenas that the persona can access 
     within the current sector. 
@@ -56,7 +56,7 @@ class MemoryTree:
     return x
 
 
-  def get_str_accessible_sector_arenas(self, sector): 
+  def get_str_accessible_sector_arenas(self, sector: str) -> str:
     """
     Returns a summary string of all the arenas that the persona can access 
     within the current sector. 
@@ -78,7 +78,7 @@ class MemoryTree:
     return x
 
 
-  def get_str_accessible_arena_game_objects(self, arena):
+  def get_str_accessible_arena_game_objects(self, arena: str) -> str:
     """
     Get a str list of all accessible game objects that are in the arena. If 
     temp_address is specified, we return the objects that are available in
@@ -104,7 +104,7 @@ class MemoryTree:
     return x
 
 
-  def add_tile_info(self, tile_info: dict):
+  def add_tile_info(self, tile_info: dict) -> None:
       if tile_info["world"]: 
         if (tile_info["world"] not in self.tree): 
           self.tree[tile_info["world"]] = {}

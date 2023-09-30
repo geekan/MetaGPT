@@ -18,7 +18,7 @@ from operator import itemgetter
 from metagpt.roles.role import Role, RoleContext
 from metagpt.schema import Message
 
-from ..memory.agent_memory import AgentMemory
+from ..memory.agent_memory import AgentMemory, BasicMemory
 from ..memory.spatial_memory import MemoryTree
 from ..actions.dummy_action import DummyAction
 from ..actions.user_requirement import UserRequirement
@@ -68,7 +68,7 @@ class STRole(Role):
         """
         pass
 
-    async def observe(self):
+    async def observe(self) -> list[BasicMemory]:
         # TODO observe info from maze_env
         """
         Perceive events around the role and saves it to the memory, both events 
