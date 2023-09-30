@@ -6,37 +6,6 @@
 import json
 import re
 from typing import Any, Dict, Union
-from .file_utils import f_join
-
-def json_load(*file_path, **kwargs):
-    file_path = f_join(file_path)
-    with open(file_path, "r") as fp:
-        return json.load(fp, **kwargs)
-
-
-def json_loads(string, **kwargs):
-    return json.loads(string, **kwargs)
-
-
-def json_dump(data, *file_path, **kwargs):
-    file_path = f_join(file_path)
-    with open(file_path, "w") as fp:
-        json.dump(data, fp, **kwargs)
-
-
-def json_dumps(data, **kwargs):
-    """
-    Returns: string
-    """
-    return json.dumps(data, **kwargs)
-
-
-# ---------------- Aliases -----------------
-# add aliases where verb goes first, json_load -> load_json
-load_json = json_load
-loads_json = json_loads
-dump_json = json_dump
-dumps_json = json_dumps
 
 
 def extract_char_position(error_message: str) -> int:
@@ -143,6 +112,7 @@ def correct_json(json_str: str) -> str:
         if balanced_str := balance_braces(json_str):
             return balanced_str
     return json_str
+
 
 def fix_and_parse_json(
     json_str: str, try_to_fix_with_gpt: bool = True

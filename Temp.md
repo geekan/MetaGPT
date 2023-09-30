@@ -31,3 +31,13 @@ python minecraft_run.py
 
 <img src="docs/resources/workspace/minecraft_tests/on_event.jpeg" style="zoom:67%;" />
 
+
+
+### 0927：Action_developer 更新
+
+对应需实现 GenerateActionCode ，完成对应的和 GameEnvironment 的交
+互和 Environment 的信息传递
+
+测试结果  
+
+![action_developer](docs/resources/workspace/minecraft_tests/action_developer.png)

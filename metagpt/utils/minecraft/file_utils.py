@@ -15,6 +15,7 @@ is_dir = os.path.isdir
 
 get_dir = os.path.dirname
 
+
 def is_sequence(obj):
     """
     Returns:
@@ -77,6 +78,7 @@ def load_text(*fpaths, by_lines=False):
 
 def load_text_lines(*fpaths):
     return load_text(*fpaths, by_lines=True)
+
 
 # aliases to be consistent with other load_* and dump_*
 text_load = load_text
