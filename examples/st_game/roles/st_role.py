@@ -59,6 +59,10 @@ class STRole(Role):
         else:
             self._watch([DummyAction])
 
+    @property
+    def name(self):
+        return self._setting.name
+
     def load_from(self, folder: Path):
         """
         load role data from `storage/{simulation_name}/personas/{role_name}

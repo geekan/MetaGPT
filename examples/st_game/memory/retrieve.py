@@ -3,8 +3,11 @@
 # @Desc   : Retrieve函数实现
 
 import datetime
+from typing import Union
+
 from numpy import dot
 from numpy.linalg import norm
+
 from ..memory.agent_memory import AgentMemory, BasicMemory
 from ..utils.utils import get_embedding
 
@@ -141,3 +144,116 @@ def normalize_score_floats(score_list, target_min, target_max):
         score_list[i]['recency'] = recency_list[i]
 
     return score_list
+
+
+def normalize_dict_floats(d: dict, target_min: Union[int, float], target_max: Union[int, float]) -> dict:
+    """
+    This function normalizes the float values of a given dictionary 'd' between
+    a target minimum and maximum value. The normalization is done by scaling the
+    values to the target range while maintaining the same relative proportions
+    between the original values.
+
+    INPUT:
+      d: Dictionary. The input dictionary whose float values need to be
+         normalized.
+      target_min: Integer or float. The minimum value to which the original
+                  values should be scaled.
+      target_max: Integer or float. The maximum value to which the original
+                  values should be scaled.
+    OUTPUT:
+      d: A new dictionary with the same keys as the input but with the float
+         values normalized between the target_min and target_max.
+
+    Example input:
+      d = {'a':1.2,'b':3.4,'c':5.6,'d':7.8}
+      target_min = -5
+      target_max = 5
+    """
+    min_val = min(val for val in d.values())
+    max_val = max(val for val in d.values())
+    range_val = max_val - min_val
+
+    if range_val == 0:
+        for key, val in d.items():
+            d[key] = (target_max - target_min) / 2
+    else:
+        for key, val in d.items():
+            d[key] = ((val - min_val) * (target_max - target_min)
+                      / range_val + target_min)
+    return d
+
+
+def new_retrieve(role, focal_points, n_count=30):
+    """
+    Given the current role and focal points (focal points are events or
+    thoughts for which we are retrieving), we retrieve a set of nodes for each
+    of the focal points and return a dictionary.
+
+    INPUT:
+      role: The current role object whose memory we are retrieving.
+      focal_points: A list of focal points (string description of the events or
+                    thoughts that is the focus of current retrieval).
+    OUTPUT:
+      retrieved: A dictionary whose keys are a string focal point, and whose
+                 values are a list of Node object in the agent's associative
+                 memory.
+
+    Example input:
+      role = <role> object
+      focal_points = ["How are you?", "Jane is swimming in the pond"]
+    """
+    # <retrieved> is the main dictionary that we are returning
+    retrieved = dict()
+    for focal_pt in focal_points:
+        scratch = role._rc.scratch
+        # Getting all nodes from the agent's memory (both thoughts and events) and
+        # sorting them by the datetime of creation.
+        # You could also imagine getting the raw conversation, but for now.
+        nodes = [[i.last_accessed, i]
+                 for i in role._rc.memory.event_list + role._rc.memory.thought_list
+                 if "idle" not in i.embedding_key]
+        nodes = sorted(nodes, key=lambda x: x[0])
+        nodes = [i for created, i in nodes]
+
+        # Calculating the component dictionaries and normalizing them.
+        recency_out = extract_recency(role, nodes)  # TODO
+        recency_out = normalize_dict_floats(recency_out, 0, 1)
+        importance_out = extract_importance(role, nodes)
+        importance_out = normalize_dict_floats(importance_out, 0, 1)
+        relevance_out = extract_relevance(role, nodes, focal_pt)
+        relevance_out = normalize_dict_floats(relevance_out, 0, 1)
+
+        # Computing the final scores that combines the component values.
+        # Note to self: test out different weights. [1, 1, 1] tends to work
+        # decently, but in the future, these weights should likely be learned,
+        # perhaps through an RL-like process.
+        # gw = [1, 1, 1]
+        # gw = [1, 2, 1]
+        gw = [0.5, 3, 2]
+        master_out = dict()
+        for key in recency_out.keys():
+            master_out[key] = (scratch.recency_w * recency_out[key] * gw[0]
+                               + scratch.relevance_w * relevance_out[key] * gw[1]
+                               + scratch.importance_w * importance_out[key] * gw[2])
+
+        master_out = top_highest_x_values(master_out, len(master_out.keys()))
+        for key, val in master_out.items():
+            print(role._rc.memory.id_to_node[key].embedding_key, val)
+            print(scratch.recency_w * recency_out[key] * 1,
+                  scratch.relevance_w * relevance_out[key] * 1,
+                  scratch.importance_w * importance_out[key] * 1)
+
+        # Extracting the highest x values.
+        # <master_out> has the key of node.id and value of float. Once we get the
+        # highest x values, we want to translate the node.id into nodes and return
+        # the list of nodes.
+        master_out = top_highest_x_values(master_out, n_count)
+        master_nodes = [role._rc.memory.id_to_node[key]
+                        for key in list(master_out.keys())]
+
+        for n in master_nodes:
+            n.last_accessed = scratch.curr_time
+
+        retrieved[focal_pt] = master_nodes
+
+    return retrieved

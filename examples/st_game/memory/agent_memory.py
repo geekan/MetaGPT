@@ -100,9 +100,11 @@ class AgentMemory(Memory):
         @李嵩@张凯 这里的storage是List，你们需要写一个JSON转化器，将List修改为node.json一致的格式
         """
         super.__init__()
+        self.id_to_node = dict()  # TODO jiayi add
         self.storage: list[BasicMemory] = []  # 重写Stroage，存储BasicMemory所有节点
         self.event_list = []  # 存储event记忆
         self.thought_list = []  # 存储thought记忆
+        self.chat_list = []  # chat-related memory
 
         self.event_keywords = dict()  # 存储keywords
         self.thought_keywords = dict()
@@ -322,3 +324,9 @@ class AgentMemory(Memory):
         for e_node in self.event_list[:retention]:
             ret_set.add(e_node.summary())
         return ret_set
+
+    def get_last_chat(self, target_role_name: str) -> str:
+        if target_role_name.lower() in self.chat_keywords:
+            return self.chat_keywords[target_role_name.lower()][0]
+        else:
+            return False

@@ -93,6 +93,7 @@ class DecideToTalk(STAction):
         prompt_input = create_prompt_input(init_role, target_role, retrieved)
         prompt = self.generate_prompt_with_tmpl_filename(prompt_input=prompt_input,
                                                          tmpl_filename="decide_to_talk_v2.txt")
+        self.fail_default_resp = self._func_fail_default_resp()
         output = await self._run_v1(prompt)  # yes or no
         result = True if output == "yes" else False
         logger.info(f"Run action: {self.__class__.__name__} with result: {result}")

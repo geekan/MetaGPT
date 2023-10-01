@@ -17,6 +17,7 @@ class STAction(Action):
     def __init__(self, name="STAction", context: list[Message] = None, llm=None):
         super().__init__(name, context, llm)
         self.prompt_dir = PROMPTS_DIR
+        self.fail_default_resp = None
 
     @abstractmethod
     def _func_validate(self, llm_resp: str, prompt: str):
@@ -54,14 +55,14 @@ class STAction(Action):
 
     async def _run_v1(self, prompt: str, retry: int = 3) -> str:
         """
-            same with `gpt_structure.generate_prompt`
+            same with `gpt_structure.safe_generate_response`
             default post-preprocess operations of LLM response
         """
         for idx in range(retry):
             llm_resp = await self._aask(prompt)
             if self._func_validate(llm_resp, prompt):
                 return self._func_cleanup(llm_resp, prompt)
-        return self._func_fail_default_resp()
+        return self.fail_default_resp  # TODO fix
 
     async def _run_v2(self,
                       prompt: str,

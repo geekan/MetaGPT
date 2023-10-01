@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # @Desc   : utils
 
-from typing import Any
+from typing import Any, Union
 import json
 import openai
 from pathlib import Path
@@ -71,3 +71,24 @@ def generate_poig_score(scratch, event_type, description):
         return get_poignancy_action(scratch, description)[0]
     elif event_type == "chat":
         return get_poignancy_chat(scratch, description)[0]
+
+
+def extract_first_json_dict(data_str: str) -> Union[None, dict]:
+    # Find the first occurrence of a JSON object within the string
+    start_idx = data_str.find("{")
+    end_idx = data_str.find("}", start_idx) + 1
+
+    # Check if both start and end indices were found
+    if start_idx == -1 or end_idx == 0:
+        return None
+
+    # Extract the first JSON dictionary
+    json_str = data_str[start_idx:end_idx]
+
+    try:
+        # Attempt to parse the JSON data
+        json_dict = json.loads(json_str)
+        return json_dict
+    except json.JSONDecodeError:
+        # If parsing fails, return None
+        return None
