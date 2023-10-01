@@ -10,31 +10,32 @@ from enum import Enum
 from metagpt.actions.action import Action
 from metagpt.actions.action_output import ActionOutput
 from metagpt.actions.add_requirement import BossRequirement
+'''
 from metagpt.actions.debug_error import DebugError
 from metagpt.actions.design_api import WriteDesign
 from metagpt.actions.project_management import AssignTasks, WriteTasks
 from metagpt.actions.run_code import RunCode
-from metagpt.actions.search_and_summarize import SearchAndSummarize
+#from metagpt.actions.search_and_summarize import SearchAndSummarize
 from metagpt.actions.write_code import WriteCode
 from metagpt.actions.write_code_review import WriteCodeReview
 from metagpt.actions.write_prd import WritePRD
 from metagpt.actions.write_test import WriteTest
-
+'''
 
 class ActionType(Enum):
     """All types of Actions, used for indexing."""
 
     ADD_REQUIREMENT = BossRequirement
-    WRITE_PRD = WritePRD
-    WRITE_DESIGN = WriteDesign
-    WRTIE_CODE = WriteCode
-    WRITE_CODE_REVIEW = WriteCodeReview
-    WRITE_TEST = WriteTest
-    RUN_CODE = RunCode
-    DEBUG_ERROR = DebugError
-    WRITE_TASKS = WriteTasks
-    ASSIGN_TASKS = AssignTasks
-    SEARCH_AND_SUMMARIZE = SearchAndSummarize
+    #WRITE_PRD = WritePRD
+    #WRITE_DESIGN = WriteDesign
+    #WRTIE_CODE = WriteCode
+    #WRITE_CODE_REVIEW = WriteCodeReview
+    #WRITE_TEST = WriteTest
+    #RUN_CODE = RunCode
+    #DEBUG_ERROR = DebugError
+    #WRITE_TASKS = WriteTasks
+    #ASSIGN_TASKS = AssignTasks
+ #   SEARCH_AND_SUMMARIZE = SearchAndSummarize
 
 
 __all__ = [

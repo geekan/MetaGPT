@@ -11,7 +11,7 @@ from metagpt.schema import HumanMessage, SystemMessage
 from typing import Dict
 
 from pydantic import BaseModel
-
+from metagpt.roles.role import RoleContext
 
 class Registry(BaseModel):
     """Registry for storing and building classes."""
@@ -47,18 +47,47 @@ class Minecraft(Role):
         super().__init__(name, profile, goal, constraints)
         self.game_memory = None
         self.event = {}
+        self.round_id = 0
+        self.finish_state = len(self._actions)
+        self.finish_step = False
 
+    def maintain_actions(self, todo):
+        if todo in self._actions:
+            self.finish_state-=1
+        if self.finish_state<=0:
+            self.finish_step = True
+
+
+    async def _observe(self) -> int:
+        await super()._observe()
+        for msg in self._rc.news:
+            logger.info(f"check msg round :{msg.round_id}")
+            logger.info(msg.round_id == self.round_id)
+        self._rc.news = [
+            msg for msg in self._rc.news if msg.round_id == self.round_id
+        ]  # only relevant msgs count as observed news
+        logger.info(len(self._rc.news))
+        return len(self._rc.news)
+    
     async def _think(self) -> None:
+        logger.info(self._actions)
+        logger.info(self._rc.state)
         if len(self._actions) == 1:
             # If there is only one action, then only this one can be performed
             self._set_state(0)
             return True
-        
+         
         if self._rc.todo is None:
             logger.info("0")
             self._set_state(0)
             return True
-        
+        ''' 
+        if self._rc.state+1==len(self._states):
+            logger.info("new run")
+            self._set_state(0)
+            return True
+        '''
+
         if self._rc.state + 1 < len(self._states):
             self._set_state(self._rc.state + 1)
             logger.info("1")
@@ -66,9 +95,13 @@ class Minecraft(Role):
         else:
             self._rc.todo = None
             logger.info("2")
-            
+            self._set_state(self._rc.state)
+            logger.info(f"self.finish_step: {self.finish_step}")
             return False
-    
+   
+    def reset_state(self):
+        self._rc.todo = None
+
     async def _obtain_events(self):
         return await self.game_memory.on_event()
     
@@ -83,7 +116,7 @@ class Minecraft(Role):
     
     @staticmethod
     def perform_game_info_callback(info: object, callback: object) -> object:
-        logger.debug(info)
+        logger.info(info)
         callback(info)
     
     def encapsule_message(self, msg, *args, **kwargs):

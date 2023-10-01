@@ -357,7 +357,7 @@ class CurriculumDesigner(Base):
     async def _act(self) -> Message:
         todo = self._rc.todo
         logger.debug(f"Todo is {todo}")
-
+        self.maintain_actions(todo) 
         # 获取最新的游戏周边环境信息
         events = await self._obtain_events()
         self.perform_game_info_callback(events, self.game_memory.update_event)
@@ -386,6 +386,7 @@ class CurriculumDesigner(Base):
             else:
                 msg = await handler(**design_curriculum_message)
             msg.cause_by = type(todo)
+            msg.round_id = self.round_id
             self._publish_message(msg)
             return msg
 

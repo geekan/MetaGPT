@@ -219,24 +219,37 @@ class MinecraftPlayer(SoftwareCompany):
         self.environment.add_roles(roles)
         self.game_memory.register_roles(roles)
 
-    def start(self, task):
+    def start(self, task, round=0):
         """Start a project from publishing boss requirement."""
         self.task = task
         self.environment.publish_message(
-            Message(role="Player", content=task, cause_by=PlayerActions)
+            Message(role="Player", content=task, cause_by=PlayerActions, round_id=round)
         )
         logger.info(self.game_info)
 
     def _save(self):
         logger.info(self.json())
+    
+    def _reset(self):
+        for role_profile, role in self.environment.roles.items():
+            role.reset_state()
 
     async def run(self, n_round=3):
         """Run company until target round or no money"""
+        round_id=0
         while n_round > 0:
             # self._save()
-            n_round -= 1
-            logger.debug(f"{n_round=}")
+            if self.check_complete_round():
+                n_round -= 1
+                self.update_round()
+                round_id+=1
+                # add new task into env and continue
+                #fixme: update self.task
+                self.start(task=self.task, round=round_id)
+                
+            logger.info(f"{n_round=}")
             self._check_balance()
             await self.environment.run()
-
+            #self.environment.memory.clear()
+            #self._reset()
         return self.environment.history

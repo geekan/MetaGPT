@@ -127,6 +127,7 @@ class Role:
         self._rc.state = state
         logger.debug(self._actions)
         self._rc.todo = self._actions[self._rc.state]
+        logger.info(self._rc.todo)
 
     def set_env(self, env: 'Environment'):
         """Set the environment in which the role works. The role can talk to the environment and can also receive messages by observing."""
@@ -184,9 +185,11 @@ class Role:
         env_msgs = self._rc.env.memory.get()
     
         observed = self._rc.env.memory.get_by_actions(self._rc.watch)
-        logger.info(observed)
+        #logger.info(observed)
+        #self._rc.news = observed
         self._rc.news = self._rc.memory.remember(observed)  # remember recent exact or similar memories
-        logger.info(self._rc.news)
+        if len(self._rc.news)>0:
+            logger.info(self._rc.news)
         for i in env_msgs:
             self.recv(i)
 
@@ -205,7 +208,7 @@ class Role:
     async def _react(self) -> Message:
         """Think first, then act"""
         await self._think()
-        logger.debug(f"{self._setting}: {self._rc.state=}, will do {self._rc.todo}")
+        logger.info(f"{self._setting}: {self._rc.state=}, will do {self._rc.todo}")
         return await self._act()
 
     def recv(self, message: Message) -> None:
