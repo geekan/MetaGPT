@@ -5,8 +5,8 @@
 import datetime
 from numpy import dot
 from numpy.linalg import norm
-from examples.st_game.memory.agent_memory import AgentMemory, BasicMemory
-from utils.utils import embedding_tools
+from ..memory.agent_memory import AgentMemory, BasicMemory
+from ..utils.utils import get_embedding
 
 
 def agent_retrieve(agent_memory: AgentMemory, curr_time: datetime.datetime, memory_forget: float, query: str,
@@ -73,7 +73,7 @@ def extract_relevance(query, score_list):
     """
     抽取相关性
     """
-    query_embedding = embedding_tools(query)
+    query_embedding = get_embedding(query)
     # 进行
     for i in range(len(score_list)):
         result = cos_sim(score_list[i]["memory"].embedding_key, query_embedding)
