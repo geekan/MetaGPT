@@ -27,6 +27,8 @@ from ..memory.retrieve import agent_retrieve
 from ..memory.scratch import Scratch
 from ..utils.utils import get_embedding, generate_poig_score
 
+from ..reflect.st_reflect import agent_reflect
+
 
 class STRoleContext(RoleContext):
     env: 'MazeEnvironment' = Field(default=None)
