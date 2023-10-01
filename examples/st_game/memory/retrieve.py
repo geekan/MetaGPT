@@ -9,7 +9,8 @@ from examples.st_game.memory.agent_memory import AgentMemory, BasicMemory
 from utils.utils import embedding_tools
 
 
-def agent_retrieve(agent_memory: AgentMemory, curr_time: datetime.datetime, memory_forget: float, query: str, n: int = 30, topk: int = 4) -> list[BasicMemory]:
+def agent_retrieve(agent_memory: AgentMemory, curr_time: datetime.datetime, memory_forget: float, query: str,
+                   n: int = 30, topk: int = 4) -> list[BasicMemory]:
     """
     Retrieve需要集合Role使用,原因在于Role才具有AgentMemory,scratch
     逻辑:Role调用该函数,self._rc.AgentMemory,self._rc.scratch.curr_time,self._rc.scratch.memory_forget
@@ -87,7 +88,7 @@ def extract_recency(curr_time, memory_forget, score_list):
     """
     for i in range(len(score_list)):
         day_count = (curr_time - score_list[i]['memory'].created).days
-        score_list[i]['recency'] = memory_forget**day_count
+        score_list[i]['recency'] = memory_forget ** day_count
     return score_list
 
 

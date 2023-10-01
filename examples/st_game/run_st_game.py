@@ -20,11 +20,14 @@ async def startup(idea: str,
     # get role names from `storage/{simulation_name}/reverie/meta.json` and then init roles
     reverie_meta = get_reverie_meta(fork_sim_code)
     roles = []
-    # TODO
+    sim_path = STORAGE_PATH.joinpath(sim_code)
     for idx, role_name in enumerate(reverie_meta["persona_names"]):
         role_stg_path = STORAGE_PATH.joinpath(fork_sim_code).joinpath(f"personas/{role_name}")
         has_inner_voice = True if idx == 0 else False
-        role = STRole(name=role_name, has_inner_voice=has_inner_voice)
+        role = STRole(name=role_name,
+                      sim_path=sim_path,
+                      profile=f"STMember_{idx}",
+                      has_inner_voice=has_inner_voice)
         role.load_from(role_stg_path)
         roles.append(role)
 
