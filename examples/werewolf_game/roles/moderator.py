@@ -109,8 +109,15 @@ class Moderator(Role):
                 self.witch_poison_left -= 1
                 self.player_poisoned = target # "" if not poisoned and "PlayerX" if poisoned
 
+        return msg_content, restricted_to
+
+    def _update_game_states(self, memories):
+
         step_idx = self.step_idx % len(STEP_INSTRUCTIONS)
-        if step_idx == 13: # FIXME: hard code
+        if step_idx not in [15, 18]: # FIXME: hard code
+            return
+
+        if step_idx == 15: # FIXME: hard code
             # night ends: after all special roles acted, process the whole night
             self.player_current_dead = [] # reset
 
@@ -136,11 +143,9 @@ class Moderator(Role):
                 if not voted:
                     continue
                 voted_all.append(voted.group(0))
-            # breakpoint()
             self.player_current_dead = [Counter(voted_all).most_common()[0][0]] # 平票时，杀序号小的
             self.living_players = [p for p in self.living_players if p not in self.player_current_dead]
             self.update_player_status(self.player_current_dead)
-            msg_content = "Voting done"
 
         # game's termination condition
         living_werewolf = [p for p in self.werewolf_players if p in self.living_players]
@@ -150,7 +155,12 @@ class Moderator(Role):
         elif not living_good_guys:
             self.winner = "werewolf"
 
-        return msg_content, restricted_to
+    def _record_game_history(self):
+        if self.step_idx % len(STEP_INSTRUCTIONS) == 0 or self.winner is not None:
+            logger.info("a night and day cycle completed, examine all history")
+            print(self.get_all_memories())
+            with open(WORKSPACE_ROOT / 'werewolf_transcript.txt', "w") as f:
+                f.write(self.get_all_memories())
 
     async def _think(self):
 
@@ -179,13 +189,12 @@ class Moderator(Role):
         logger.info(f"{self._setting} ready to {todo}")
 
         memories = self.get_all_memories(mode="msg")
-        # print("*" * 10, f"{self._setting}'s current memories: {memories}", "*" * 10)
-        if self.step_idx % len(STEP_INSTRUCTIONS) == 0 or self.winner is not None:
-            # 进行完一夜一日的循环，打印一次完整发言历史
-            logger.info("a night and day cycle completed, examine all history")
-            print(self.get_all_memories())
-            with open(WORKSPACE_ROOT / 'werewolf_transcript.txt', "w") as f:
-                f.write(self.get_all_memories())
+
+        # 若进行完一夜一日的循环，打印和记录一次完整发言历史
+        self._record_game_history()
+
+        # 若一晚或一日周期结束，对当晚或当日的死者进行总结，并更新游戏状态
+        self._update_game_states(memories)
 
         # 根据_think的结果，执行InstructSpeak还是ParseSpeak, 并将结果返回
         if isinstance(todo, InstructSpeak):
