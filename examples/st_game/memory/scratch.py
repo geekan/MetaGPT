@@ -5,7 +5,7 @@
 import datetime
 import json
 
-from ..utils.check import check_if_file_exists
+from ..utils.tools import check_if_file_exists
 
 
 class Scratch:
@@ -510,3 +510,4 @@ class Scratch:
             minute = curr_min_sum % 60
             ret += f"{hour:02}:{minute:02} || {row[0]}\n"
         return ret
+    

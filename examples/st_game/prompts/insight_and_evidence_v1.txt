@@ -1,0 +1,12 @@
+insight_and_evidence_v1.txt
+
+Variables: 
+!<INPUT 0>! -- Numbered list of event/thought statements
+!<INPUT 1>! -- target persona name or "the conversation"
+
+<commentblockmarker>###</commentblockmarker>
+Input:
+!<INPUT 0>!
+
+What !<INPUT 1>! high-level insights can you infer from the above statements? (example format: insight (because of 1, 5, 3))
+1.

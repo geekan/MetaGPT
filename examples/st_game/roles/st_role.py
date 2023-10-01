@@ -23,7 +23,7 @@ from ..memory.spatial_memory import MemoryTree
 from ..actions.dummy_action import DummyAction
 from ..actions.user_requirement import UserRequirement
 from ..maze_environment import MazeEnvironment
-from ..memory.retrieve import agent_retrieve
+from ..memory.retrieve import new_agent_retrieve
 from ..memory.scratch import Scratch
 from ..utils.utils import get_embedding, generate_poig_score
 
@@ -216,10 +216,9 @@ class STRole(Role):
 
         return ret_events
 
-    async def retrieve(self, query, n=30, topk=4):
+    async def retrieve(self, focus_points, n=30):
         # TODO retrieve memories from agent_memory
-        retrieve_memories = agent_retrieve(self._rc.memory, self._rc.scratch.curr_time, self._rc.scratch.recency_decay,
-                                           query, n, topk)
+        retrieve_memories = new_agent_retrieve(self,focus_points,n)
         return retrieve_memories
 
     async def plan(self):
