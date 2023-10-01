@@ -214,6 +214,25 @@ class MinecraftPlayer(SoftwareCompany):
 
     def set_resume(self, resume: bool = False):
         self.game_memory.set_mc_resume(resume=resume)
+    
+    def check_complete_round(self):
+        complete_round = []
+        for role in self.environment.roles.values():
+            status = role.finish_step
+            complete_round.append(status)
+            #if not status:
+            #    return complete_round
+        #complete_round = True
+        complete_round_tag = all(complete_round)
+        logger.info(f"complete_round {complete_round}")
+        return complete_round_tag
+    
+    def update_round(self):
+        for role in self.environment.roles.values():
+            role.finish_step = False
+            role.round_id+=1
+            role._rc.todo = None
+            logger.info(f"round_id:{role.round_id}")
 
     def hire(self, roles: list[Role]):
         self.environment.add_roles(roles)
