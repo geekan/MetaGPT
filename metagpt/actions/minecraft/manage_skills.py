@@ -23,25 +23,21 @@ class RetrieveSkills(Action):
         super().__init__(name, context, llm)
         # TODO: mv to PlayerAction
         self.retrieval_top_k = 5
-        self.skills = {}
         self.vectordb = Chroma(
             collection_name="skill_vectordb",
             embedding_function=OpenAIEmbeddings(),
             persist_directory=f"{CKPT_DIR}/skill/vectordb",
         )
-
-    @classmethod
-    def set_skills(cls, skills):
-        cls.skills = skills
         # Check if skills right using
-        assert cls.vectordb._collection.count() == len(cls.skills), (
-            f"Skill Manager's vectordb is not synced with skills.json.\n"
-            f"There are {cls.vectordb._collection.count()} skills in vectordb but {len(cls.skills)} skills in skills.json.\n"
-            f"Did you set resume=False when initializing the manager?\n"
-            f"You may need to manually delete the vectordb directory for running from scratch."
-        )
+        # TODO: 
+        # assert self.vectordb._collection.count() == len(self.skills), (
+        #     f"Skill Manager's vectordb is not synced with skills.json.\n"
+        #     f"There are {self.vectordb._collection.count()} skills in vectordb but {len(self.skills)} skills in skills.json.\n"
+        #     f"Did you set resume=False when initializing the manager?\n"
+        #     f"You may need to manually delete the vectordb directory for running from scratch."
+        # )
 
-    async def run(self, query, *args, **kwargs):
+    async def run(self, query, skills, *args, **kwargs):
         # Implement the logic for retrieving skills here.
         k = min(self.vectordb._collection.count(), self.retrieval_top_k)
         if k == 0:
@@ -52,10 +48,10 @@ class RetrieveSkills(Action):
             f"Skill Manager retrieved skills: "
             f"{', '.join([doc.metadata['name'] for doc, _ in docs_and_scores])}"
         )
-        skills = []
+        retrieve_skills = []
         for doc, _ in docs_and_scores:
-            skills.append(self.skills[doc.metadata["name"]]["code"])
-        return skills
+            retrieve_skills.append(skills[doc.metadata["name"]]["code"])
+        return retrieve_skills
 
 
 class AddNewSkills(Action):
@@ -74,26 +70,23 @@ class AddNewSkills(Action):
         )
         # TODO: change to FaissStore
         # self.qa_cache_questions_vectordb = FaissStore( {CKPT_DIR}/ 'skill/vectordb')
-
-    @classmethod
-    def set_skills(cls, skills):
-        cls.skills = skills
+        # TODO: 
         # Check if skills right using
-        assert cls.vectordb._collection.count() == len(cls.skills), (
-            f"Skill Manager's vectordb is not synced with skills.json.\n"
-            f"There are {cls.vectordb._collection.count()} skills in vectordb but {len(cls.skills)} skills in skills.json.\n"
-            f"Did you set resume=False when initializing the manager?\n"
-            f"You may need to manually delete the vectordb directory for running from scratch."
-        )
+        # assert self.vectordb._collection.count() == len(self.skills), (
+        #     f"Skill Manager's vectordb is not synced with skills.json.\n"
+        #     f"There are {self.vectordb._collection.count()} skills in vectordb but {len(self.skills)} skills in skills.json.\n"
+        #     f"Did you set resume=False when initializing the manager?\n"
+        #     f"You may need to manually delete the vectordb directory for running from scratch."
+        # )
 
     async def run(
         self, task, program_name, program_code, skills, skill_desp, *args, **kwargs
     ):
         # Implement the logic for adding new skills here.
+        # TODO: Fix this
         if task.startswith("Deposit useless items into the chest at"):
             # No need to reuse the deposit skill
             return {}
-        # TODO: Fix this
         logger.info(
             f"Skill Manager generated description for {program_name}:\n{skill_desp}\033[0m"
         )

@@ -18,7 +18,7 @@ from metagpt.roles.minecraft.minecraft_base import Minecraft
 from metagpt.environment import Environment
 from metagpt.mineflayer_environment import MineflayerEnv
 from metagpt.const import CKPT_DIR
-from metagpt.actions.minecraft.control_primitives_context import load_skills_code_context
+from metagpt.actions.minecraft.control_primitives import load_skills_code
 
 
 class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
@@ -32,10 +32,11 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
     context: str = Field(
         default="You can mine one of oak, birch, spruce, jungle, acacia, dark oak, or mangrove logs."
     )
-    code: str = Field(default=None)
+    code: str = Field(default="")
     program_name: str = Field(default="")
-    critique: str = Field(default=None)
-    skills: dict = Field(default_factory=dict)
+    critique: str = Field(default="")
+    skills: dict = Field(default_factory=dict) # for skills.json
+    retrieve_skills: list[str]  = Field(default_factory=list) 
     event_summary: str = Field(default="")
 
     qa_cache: dict[str, str] = Field(default_factory=dict)
@@ -59,11 +60,13 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
     @property
     def programs(self):
         programs = ""
+        if self.code == "":
+            return programs # TODO: maybe fix 10054 now, a better way is isolating env.step() like voyager
         for skill_name, entry in self.skills.items():
             programs += f"{entry['code']}\n\n"
-        for primitives in load_skills_code_context():
+        for primitives in load_skills_code():
             programs += f"{primitives}\n\n"
-        return programs
+        return programs 
 
     @property
     def warm_up(self):
@@ -122,6 +125,9 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
 
     def append_skill(self, skill: dict):
         self.skills[self.program_name] = skill  # skill_manager.retrieve_skills to HERE
+
+    def update_retrieve_skills(self, retrieve_skills: list):
+        self.retrieve_skills = retrieve_skills
 
     def update_skill_desp(self, skill_desp: str):
         self.skill_desp = skill_desp
@@ -208,19 +214,36 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
             return
         if success:
             logger.info(f"Completed task {task}.")
-            self.game_memory.completed_tasks.append(task)
+            self.completed_tasks.append(task)
         else:
             logger.info(f"Failed to complete task {task}. Skipping to next task.")
-            self.game_memory.failed_tasks.append(task)
+            self.failed_tasks.append(task)
+            # TODO: when not success, transform code below to update event!(isolate step soon!)
+            # if self.reset_placed_if_failed and not success:
+            #     # revert all the placing event in the last step
+            #     blocks = []
+            #     positions = []
+            #     for event_type, event in events:
+            #         if event_type == "onSave" and event["onSave"].endswith("_placed"):
+            #             block = event["onSave"].split("_placed")[0]
+            #             position = event["status"]["position"]
+            #             blocks.append(block)
+            #             positions.append(position)
+            #     new_events = self.env.step(
+            #         f"await givePlacedItemBack(bot, {U.json_dumps(blocks)}, {U.json_dumps(positions)})",
+            #         programs=self.skill_manager.programs,
+            #     )
+            #     events[-1][1]["inventory"] = new_events[-1][1]["inventory"]
+            #     events[-1][1]["voxels"] = new_events[-1][1]["voxels"]
 
         self.save_sorted_tasks()
 
     def save_sorted_tasks(self):
         updated_completed_tasks = []
         # record repeated failed tasks
-        updated_failed_tasks = self.game_memory.failed_tasks
+        updated_failed_tasks = self.failed_tasks
         # dedup but keep order
-        for task in self.game_memory.completed_tasks:
+        for task in self.completed_tasks:
             if task not in updated_completed_tasks:
                 updated_completed_tasks.append(task)
 
@@ -229,14 +252,14 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
             while task in updated_failed_tasks:
                 updated_failed_tasks.remove(task)
 
-        self.game_memory.completed_tasks = updated_completed_tasks
-        self.game_memory.failed_tasks = updated_failed_tasks
+        self.completed_tasks = updated_completed_tasks
+        self.failed_tasks = updated_failed_tasks
 
         # dump to json
         with open(f"{CKPT_DIR}/curriculum/completed_tasks.json", "w") as f:
-            json.dump(self.game_memory.completed_tasks, f)
+            json.dump(self.completed_tasks, f)
         with open(f"{CKPT_DIR}/curriculum/failed_tasks.json", "w") as f:
-            json.dump(self.game_memory.failed_tasks, f)
+            json.dump(self.failed_tasks, f)
 
     async def on_event(self, *args):
         """

@@ -42,10 +42,11 @@ class SkillManager(Base):
         )
         return {"system_msg": [system_msg.content], "human_msg": human_msg.content}
 
-    async def retrieve_skills(self, query, *args, **kwargs):
-        skills = await RetrieveSkills().run(query)
-        logger.info(f"Render Action Agent system message with {len(skills)} skills")
-        return Message(content=f"{skills}", instruct_content="retrieve_skills", 
+    async def retrieve_skills(self, query, skills, *args, **kwargs):
+        retrieve_skills = await RetrieveSkills().run(query, skills)
+        logger.info(f"Render Action Agent system message with {len(retrieve_skills)} skills")
+        self.perform_game_info_callback(retrieve_skills, self.game_memory.update_retrieve_skills)
+        return Message(content=f"{retrieve_skills}", instruct_content="retrieve_skills", 
                        role=self.profile, send_to=agent_registry.entries["action_developer"]()._setting.name)
         # return Message(
         #     content=f"{skills}", instruct_content="retrieve_skills", role=self.profile
@@ -84,19 +85,19 @@ class SkillManager(Base):
         task = self.game_memory.current_task
         event_summary = self.game_memory.event_summary
         code = self.game_memory.code
-        program_code = code["program_code"]
+        try:
+            program_code = code["program_code"] # TODO: Handle code is None, cuz first round DesignCurriculum(code is None) trigger this 
+        except (KeyError, TypeError):
+            program_code = ""
+
         program_name = self.game_memory.program_name
         skills = self.game_memory.skills
 
-        # TODO: mv to PlayerAction
-        RetrieveSkills.set_skills(skills)
-        AddNewSkills.set_skills(skills)
-
         # msg = self._rc.memory.get(k=1)[0]
 
-        retrieve_skills_message_step1 = {"query": context}
+        retrieve_skills_message_step1 = {"query": context, "skills": skills}
 
-        retrieve_skills_message_step2 = {"query": context + "\n\n" + event_summary}
+        retrieve_skills_message_step2 = {"query": context + "\n\n" + event_summary, "skills": skills}
 
         generate_skill_message = self.encapsule_message(program_code, program_name)
 
@@ -115,11 +116,11 @@ class SkillManager(Base):
         }
         handler = handler_map.get(type(todo))
         if handler:
-            if type(todo) == "DesignCurriculum":
+            if type(todo) == DesignCurriculum:
                 msg = await handler(**retrieve_skills_message_step1)
-            elif type(todo) == "RetrieveSkills":
+            elif type(todo) == RetrieveSkills:
                 msg = await handler(**retrieve_skills_message_step2)
-            elif type(todo) == "GenerateSkillDescription":
+            elif type(todo) == GenerateSkillDescription:
                 msg = await handler(**generate_skill_message)
             else:
                 msg = await handler(**add_new_skills_message)

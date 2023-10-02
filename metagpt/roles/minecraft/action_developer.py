@@ -210,7 +210,7 @@ class ActionDeveloper(Base):
         task = self.game_memory.current_task
         code = self.game_memory.code
         critique = self.game_memory.critique
-        skills = self.game_memory.skills
+        retrieve_skills = self.game_memory.retrieve_skills
 
         message = self.encapsule_message(
             events=events,
@@ -218,7 +218,7 @@ class ActionDeveloper(Base):
             task=task,
             context=context,
             critique=critique,
-            skills=skills,
+            skills=retrieve_skills,
         )
         logger.info(todo)
         handler_map = {
