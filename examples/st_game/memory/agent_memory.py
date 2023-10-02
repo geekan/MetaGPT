@@ -36,7 +36,7 @@ class BasicMemory(Message):
 
         self.created: datetime = created  # 创建时间
         self.expiration: datetime = expiration  # 记忆失效时间，默认为空（）
-        self.last_accessed: datetime = created  # 上一次调用的时间，初始化时候与self.created一致
+        self.last_accessed: datetime = self.created  # 上一次调用的时间，初始化时候与self.created一致
 
         self.subject: str = subject  # 主语
         self.predicate: str = predicate  # 谓语

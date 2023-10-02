@@ -4,16 +4,10 @@
 
 import asyncio
 import json
+import time
 from metagpt.logs import logger
-import time
-from ga_prompt_generator import final_response
-'''
-等待Agent和memory更新，保留相关引用但可以忽略。
-'''
-from ..memory.associative_memory import MemoryBasic
-
-import json
-import time
+from ..prompts.wrapper_prompt import special_response_generate
+from ..memory.agent_memory import BasicMemory
 
 
 async def agent_reflect(memories_list):
