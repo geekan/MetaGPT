@@ -27,20 +27,23 @@ class GenerateActionCode(Action):
         # logger.info(f"parsed_result is HERE: {parsed_result}")
 
         try:
-            return parsed_result["program_code"] + "\n" + parsed_result["exec_code"]
+            return (
+                parsed_result["program_code"] + "\n" + parsed_result["exec_code"],
+                parsed_result["program_name"],
+            )
         except:
             logger.error(f"Failed to parse response: {parsed_result}")
-            return None
+            return None, None
 
     async def run(self, human_msg, system_msg, *args, **kwargs):
         logger.info(f"run {self.__repr__()}")
         # Generate action code.
-        generated_code = await self.generate_code(
+        generated_code, program_name = await self.generate_code(
             human_msg=human_msg, system_msg=system_msg
         )
 
         # Return the generated code.
-        return generated_code
+        return generated_code, program_name
 
 
 class SummarizeLog(Action):

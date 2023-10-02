@@ -101,20 +101,19 @@ class DesignCurriculum(Action):
         # TODO: change to FaissStore
         # self.qa_cache_questions_vectordb = FaissStore( {CKPT_DIR}/ 'curriculum/vectordb')
 
-        # Check if qa_cache right using
-        assert self.qa_cache_questions_vectordb._collection.count() == len(
-            self.qa_cache
-        ), (
-            f"Curriculum Agent's qa cache question vectordb is not synced with qa_cache.json.\n"
-            f"There are {self.qa_cache_questions_vectordb._collection.count()} questions in vectordb "
-            f"but {len(self.qa_cache)} questions in qa_cache.json.\n"
-            f"Did you set resume=False when initializing the agent?\n"
-            f"You may need to manually delete the qa cache question vectordb directory for running from scratch.\n"
-        )
-
     @classmethod
     def set_qa_cache(cls, qa_cache):
         cls.qa_cache = qa_cache
+        # Check if qa_cache right using
+        assert cls.qa_cache_questions_vectordb._collection.count() == len(
+            cls.qa_cache
+        ), (
+            f"Curriculum Agent's qa cache question vectordb is not synced with qa_cache.json.\n"
+            f"There are {cls.qa_cache_questions_vectordb._collection.count()} questions in vectordb "
+            f"but {len(cls.qa_cache)} questions in qa_cache.json.\n"
+            f"Did you set resume=False when initializing the agent?\n"
+            f"You may need to manually delete the qa cache question vectordb directory for running from scratch.\n"
+        )
 
     @classmethod
     def generate_qa(cls, events, chest_observation):

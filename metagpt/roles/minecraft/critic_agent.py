@@ -50,8 +50,9 @@ class CriticReviewer(Base):
 
         for i, (event_type, event) in enumerate(events):
             if event_type == "onError":
-                print(f"\033[31mCritic Agent: Error occurs {event['onError']}\033[0m")
-                return None
+                logger.info(f"\033[31mCritic Agent: Error occurs {event['onError']}\033[0m")
+                # return None
+                return HumanMessage(content="")
 
         observation = ""
 
@@ -119,6 +120,7 @@ class CriticReviewer(Base):
         self.maintain_actions(todo)
         # 获取最新的游戏周边信息
         events = await self._obtain_events()
+        self.perform_game_info_callback(events, self.game_memory.update_event) # update chest_memory / chest observation
         context = self.game_memory.context
         task = self.game_memory.current_task
         chest_observation = self.game_memory.chest_observation

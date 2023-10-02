@@ -346,7 +346,7 @@ class CurriculumDesigner(Base):
                 updated_failed_tasks.remove(task)
 
         self.game_memory.completed_tasks = updated_completed_tasks
-        self.failed_tasks = updated_failed_tasks
+        self.game_memory.failed_tasks = updated_failed_tasks
 
         # dump to json
         with open(f"{CKPT_DIR}/curriculum/completed_tasks.json", "w") as f:

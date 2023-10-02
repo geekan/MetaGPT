@@ -6,6 +6,7 @@ from typing import Iterable, Dict, Any
 from pydantic import BaseModel, Field
 import requests
 import json
+import re
 
 from metagpt.logs import logger
 from metagpt.roles import Role
@@ -17,6 +18,7 @@ from metagpt.roles.minecraft.minecraft_base import Minecraft
 from metagpt.environment import Environment
 from metagpt.mineflayer_environment import MineflayerEnv
 from metagpt.const import CKPT_DIR
+from metagpt.actions.minecraft.control_primitives_context import load_skills_code_context
 
 
 class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
@@ -31,14 +33,16 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
         default="You can mine one of oak, birch, spruce, jungle, acacia, dark oak, or mangrove logs."
     )
     code: str = Field(default=None)
-    programs: str = Field(default="")
+    program_name: str = Field(default="")
     critique: str = Field(default=None)
-    skills: list[str] = Field(default_factory=list)
-    question: str = Field(default=None)
+    skills: dict = Field(default_factory=dict)
+    event_summary: str = Field(default="")
 
     qa_cache: dict[str, str] = Field(default_factory=dict)
     completed_tasks: list[str] = Field(default_factory=list)  # Critique things
     failed_tasks: list[str] = Field(default_factory=list)
+
+    skill_desp: str = Field(default="")
 
     chest_memory: dict[str, Any] = Field(
         default_factory=dict
@@ -51,6 +55,15 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
     def progress(self):
         # return len(self.completed_tasks) + 10 # Test only
         return len(self.completed_tasks)
+    
+    @property
+    def programs(self):
+        programs = ""
+        for skill_name, entry in self.skills.items():
+            programs += f"{entry['code']}\n\n"
+        for primitives in load_skills_code_context():
+            programs += f"{primitives}\n\n"
+        return programs
 
     @property
     def warm_up(self):
@@ -76,16 +89,21 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
                 self.failed_tasks = json.load(f)
             with open(f"{CKPT_DIR}/curriculum/qa_cache.json", "r") as f:
                 self.qa_cache = json.load(f)
-            # TODO: add skills resume
+
+            logger.info(f"Loading Skill Manager from {CKPT_DIR}/skill\033[0m")
+            with open(f"{CKPT_DIR}/skill/skills.json", "r") as f:
+                self.skills = json.load(f)
 
     def register_roles(self, roles: Iterable[Minecraft]):
         for role in roles:
             role.set_memory(self)
 
     def update_event(self, event: Dict):
+        if self.event == event:
+            return
         self.event = event
         self.update_chest_memory(event)
-        self.update_chest_observation()
+        self.event_summary = self.summarize_chatlog(event)
 
     def update_task(self, task: str):
         self.current_task = task
@@ -96,14 +114,17 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
     def update_code(self, code: str):
         self.code = code  # action_developer.gen_action_code to HERE
 
-    def update_programs(self, programs: str):
-        self.programs = programs
+    def update_program_name(self, program_name: str):
+        self.program_name = program_name
 
     def update_critique(self, critique: str):
         self.critique = critique  # critic_agent.check_task_success to HERE
 
-    def update_skills(self, skills: list):
-        self.skills = skills  # skill_manager.retrieve_skills to HERE
+    def append_skill(self, skill: dict):
+        self.skills[self.program_name] = skill  # skill_manager.retrieve_skills to HERE
+
+    def update_skill_desp(self, skill_desp: str):
+        self.skill_desp = skill_desp
 
     def update_chest_memory(self, events: Dict):
         """
@@ -148,6 +169,30 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
             self.chest_observation = f"Chests:\n{chests}\n\n"
         else:
             self.chest_observation = f"Chests: None\n\n"
+
+    def summarize_chatlog(self, events):
+        def filter_item(message: str):
+            craft_pattern = r"I cannot make \w+ because I need: (.*)"
+            craft_pattern2 = (
+                r"I cannot make \w+ because there is no crafting table nearby"
+            )
+            mine_pattern = r"I need at least a (.*) to mine \w+!"
+            if re.match(craft_pattern, message):
+                return re.match(craft_pattern, message).groups()[0]
+            elif re.match(craft_pattern2, message):
+                return "a nearby crafting table"
+            elif re.match(mine_pattern, message):
+                return re.match(mine_pattern, message).groups()[0]
+            else:
+                return ""
+
+        chatlog = set()
+        for event_type, event in events:
+            if event_type == "onChat":
+                item = filter_item(event["onChat"])
+                if item:
+                    chatlog.add(item)
+        return "I also need " + ", ".join(chatlog) + "." if chatlog else ""
 
     async def on_event(self, *args):
         """
