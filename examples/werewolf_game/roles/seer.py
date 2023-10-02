@@ -35,7 +35,7 @@ class Seer(BasePlayer):
             msg = Message(
                 content=rsp, role=self.profile, sent_from=self.name,
                 cause_by=Verify, send_to="",
-                restricted_to="Moderator",
+                restricted_to=f"Moderator,{self.profile}",
             )
 
         logger.info(f"{self._setting}: {rsp}")
