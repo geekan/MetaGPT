@@ -29,7 +29,7 @@ class AgentChatSumRel(STAction):
     def _func_fail_default_resp(self) -> str:
         pass
 
-    async def run(self, init_role: STRole, target_role: STRole, statements: str) -> str:
+    def run(self, init_role: STRole, target_role: STRole, statements: str) -> str:
         def create_prompt_input(init_role: STRole, target_role: STRole, statements: str) -> str:
             prompt_input = [statements, init_role.name, target_role.name]
             return prompt_input
@@ -40,7 +40,7 @@ class AgentChatSumRel(STAction):
 
         example_output = "Jane Doe is working on a project"
         special_instruction = "The output should be a string that responds to the question."
-        output = await self._run_v2(prompt,
-                                    example_output,
-                                    special_instruction)
+        output = self._run_v2(prompt,
+                              example_output,
+                              special_instruction)
         return output[0]

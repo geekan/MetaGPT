@@ -45,8 +45,8 @@ class GenIterChatUTT(STAction):
         cleaned_dict["end"] = False
         return cleaned_dict
 
-    async def run(self, maze: Maze, init_role: STRole, target_role: STRole, retrieved: dict, curr_context: str,
-                  curr_chat: list[str], *args, **kwargs) -> dict:
+    def run(self, maze: Maze, init_role: STRole, target_role: STRole, retrieved: dict, curr_context: str,
+            curr_chat: list[str], *args, **kwargs) -> dict:
         def create_prompt_input(maze: Maze, init_role: STRole, target_role: STRole,
                                 retrieved: dict, curr_context: str, curr_chat: list[str]):
             role = init_role
@@ -97,5 +97,5 @@ class GenIterChatUTT(STAction):
                                                          "iterative_convo_v1.txt")
         # original using `ChatGPT_safe_generate_response_OLD`
         self.fail_default_resp = self._func_fail_default_resp()
-        output = await self._run_v1(prompt)
+        output = self._run_v1(prompt)
         return output

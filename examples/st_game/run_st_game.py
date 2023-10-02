@@ -21,12 +21,17 @@ async def startup(idea: str,
     reverie_meta = get_reverie_meta(fork_sim_code)
     roles = []
     sim_path = STORAGE_PATH.joinpath(sim_code)
+    sim_path.mkdir(exist_ok=True)
     for idx, role_name in enumerate(reverie_meta["persona_names"]):
         role_stg_path = STORAGE_PATH.joinpath(fork_sim_code).joinpath(f"personas/{role_name}")
         has_inner_voice = True if idx == 0 else False
         role = STRole(name=role_name,
-                      sim_path=sim_path,
+                      sim_code=sim_code,
                       profile=f"STMember_{idx}",
+                      step=reverie_meta.get("step", 0),
+                      start_date=reverie_meta.get("start_date"),
+                      curr_time=reverie_meta.get("curr_time"),
+                      sec_per_step=reverie_meta.get("sec_per_step"),
                       has_inner_voice=has_inner_voice)
         role.load_from(role_stg_path)
         roles.append(role)
@@ -35,7 +40,7 @@ async def startup(idea: str,
     town.wakeup_roles(roles)
 
     town.invest(investment)
-    town.start_project()
+    town.start_project(idea)
 
     await town.run(n_round)
 

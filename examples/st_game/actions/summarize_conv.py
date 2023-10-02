@@ -28,7 +28,7 @@ class SummarizeConv(STAction):
     def _func_fail_default_resp(self) -> str:
         return "conversing with a housemate about morning greetings"
 
-    async def run(self, conv: list):
+    def run(self, conv: list):
         def create_prompt_input(conversation: list):
             convo_str = ""
             for row in conversation:
@@ -44,5 +44,5 @@ class SummarizeConv(STAction):
         special_instruction = "The output must continue the sentence above by filling in the <fill in> tag. " \
                               "Don't start with 'this is a conversation about...' Just finish the sentence " \
                               "but do not miss any important details (including who are chatting)."
-        output = await self._run_v2(prompt, example_output, special_instruction)
+        output = self._run_v2(prompt, example_output, special_instruction)
         return output

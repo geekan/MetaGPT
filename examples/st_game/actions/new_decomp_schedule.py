@@ -85,15 +85,15 @@ class NewDecompSchedule(STAction):
 
         return ret
 
-    async def run(self,
-                  role: STRole,
-                  main_act_dur: int,
-                  truncated_act_dur: int,
-                  start_time_hour: datetime,
-                  end_time_hour: datetime,
-                  inserted_act: str,
-                  inserted_act_dur: int,
-                  *args, **kwargs):
+    def run(self,
+            role: STRole,
+            main_act_dur: int,
+            truncated_act_dur: int,
+            start_time_hour: datetime,
+            end_time_hour: datetime,
+            inserted_act: str,
+            inserted_act_dur: int,
+            *args, **kwargs):
 
         def create_prompt_input(role: STRole,
                                 main_act_dur: int,
@@ -149,5 +149,5 @@ class NewDecompSchedule(STAction):
         prompt = self.generate_prompt_with_tmpl_filename(prompt_input,
                                                          "new_decomp_schedule_v1.txt")
         self.fail_default_resp = self._func_fail_default_resp(main_act_dur, truncated_act_dur)
-        output = await self._run_v1(prompt)
+        output = self._run_v1(prompt)
         return output
