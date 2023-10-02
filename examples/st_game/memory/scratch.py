@@ -5,7 +5,7 @@
 import datetime
 import json
 
-from ..utils.tools import check_if_file_exists
+from ..utils.utils import check_if_file_exists
 
 
 class Scratch:

@@ -7,12 +7,14 @@ Description: Compresses a simulation for replay demos.
 
 import shutil
 import json
-from utils.tools import find_filenames, create_folder_if_not_there
+from utils.utils import find_filenames, create_folder_if_not_there
+from utils.const import STORAGE_PATH
+
 
 def compress(sim_code):
     # 构建文件路径
-    sim_storage = f"../environment/frontend_server/storage/{sim_code}"
-    compressed_storage = f"../environment/frontend_server/compressed_storage/{sim_code}"
+    sim_storage = str(STORAGE_PATH.joinpath(f"{sim_code}"))
+    compressed_storage = str(STORAGE_PATH.joinpath(f"compressed_storage/{sim_code}"))
     persona_folder = sim_storage + "/personas"
     move_folder = sim_storage + "/movement"
     meta_file = sim_storage + "/reverie/meta.json"
