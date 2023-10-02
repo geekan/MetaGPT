@@ -29,7 +29,7 @@ class DecideToTalk(STAction):
     def _func_fail_default_resp(self) -> str:
         return "yes"
 
-    async def run(self, init_role: STRole, target_role: STRole, retrieved: dict, *args, **kwargs) -> bool:
+    def run(self, init_role: STRole, target_role: STRole, retrieved: dict, *args, **kwargs) -> bool:
         """Run action"""
         def create_prompt_input(init_role: STRole, target_role: STRole, retrieved: dict) -> str:
             scratch = init_role._rc.scratch
@@ -94,7 +94,7 @@ class DecideToTalk(STAction):
         prompt = self.generate_prompt_with_tmpl_filename(prompt_input=prompt_input,
                                                          tmpl_filename="decide_to_talk_v2.txt")
         self.fail_default_resp = self._func_fail_default_resp()
-        output = await self._run_v1(prompt)  # yes or no
+        output = self._run_v1(prompt)  # yes or no
         result = True if output == "yes" else False
         logger.info(f"Run action: {self.__class__.__name__} with result: {result}")
         return result

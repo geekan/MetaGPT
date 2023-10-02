@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # @Desc   : StanfordTown Action
 
-from typing import Union
+from typing import Union, Optional
 from abc import abstractmethod
 import json
 
@@ -53,22 +53,25 @@ class STAction(Action):
             prompt = prompt.split("<commentblockmarker>###</commentblockmarker>")[1]
         return prompt.strip()
 
-    async def _run_v1(self, prompt: str, retry: int = 3) -> str:
+    def _ask(self, prompt: str, system_msgs: Optional[list[str]] = None) -> str:
+        return self.llm.ask(prompt)
+
+    def _run_v1(self, prompt: str, retry: int = 3) -> str:
         """
             same with `gpt_structure.safe_generate_response`
             default post-preprocess operations of LLM response
         """
         for idx in range(retry):
-            llm_resp = await self._aask(prompt)
+            llm_resp = self._ask(prompt)
             if self._func_validate(llm_resp, prompt):
                 return self._func_cleanup(llm_resp, prompt)
-        return self.fail_default_resp  # TODO fix
+        return self.fail_default_resp
 
-    async def _run_v2(self,
-                      prompt: str,
-                      example_output: str,
-                      special_instruction: str,
-                      retry: int = 3):
+    def _run_v2(self,
+                prompt: str,
+                example_output: str,
+                special_instruction: str,
+                retry: int = 3):
         """ same with `gpt_structure.ChatGPT_safe_generate_response` """
         prompt = '"""\n' + prompt + '\n"""\n'
         prompt += f"Output the response to the prompt above in json. {special_instruction}\n"
@@ -77,7 +80,8 @@ class STAction(Action):
 
         for idx in range(retry):
             try:
-                llm_resp = await self._aask(prompt)
+                llm_resp = self._ask(prompt)
+                print("llm_resp ", llm_resp)
                 end_idx = llm_resp.strip().rfind("}") + 1
                 llm_resp = llm_resp[:end_idx]
                 llm_resp = json.loads(llm_resp)["output"]
@@ -88,6 +92,6 @@ class STAction(Action):
                 pass
         return False
 
-    async def run(self, *args, **kwargs):
+    def run(self, *args, **kwargs):
         """Run action"""
         raise NotImplementedError("The run method should be implemented in a subclass.")
