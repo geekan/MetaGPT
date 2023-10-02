@@ -44,28 +44,3 @@ class GenerateActionCode(Action):
 
         # Return the generated code.
         return generated_code, program_name
-
-
-class SummarizeLog(Action):
-    """
-    Action class for parsing and summarizing logs.
-    Refer to the code in the voyager/agents/action.py for implementation details.
-    """
-
-    def __init__(self, name="", context=None, llm=None):
-        super().__init__(name, context, llm)
-
-    async def summarize_logs(self):
-        """
-        Summarize chatlogs.
-
-        Implement the logic for summarizing chatlogs here.
-        """
-        return ""
-
-    async def run(self, *args, **kwargs):
-        # Summarize chatlogs.
-        summary = await self.summarize_logs()
-
-        # Return the summary.
-        return summary

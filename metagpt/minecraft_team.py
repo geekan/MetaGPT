@@ -194,6 +194,50 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
                     chatlog.add(item)
         return "I also need " + ", ".join(chatlog) + "." if chatlog else ""
 
+    def update_exploration_progress(self, success: bool):
+        """
+        Split task into completed_tasks or failed_tasks
+        Args: info = {
+            "task": self.task,
+            "success": success,
+            "conversations": self.conversations,
+        }
+        """
+        task = self.current_task
+        if task.startswith("Deposit useless items into the chest at"):
+            return
+        if success:
+            logger.info(f"Completed task {task}.")
+            self.game_memory.completed_tasks.append(task)
+        else:
+            logger.info(f"Failed to complete task {task}. Skipping to next task.")
+            self.game_memory.failed_tasks.append(task)
+
+        self.save_sorted_tasks()
+
+    def save_sorted_tasks(self):
+        updated_completed_tasks = []
+        # record repeated failed tasks
+        updated_failed_tasks = self.game_memory.failed_tasks
+        # dedup but keep order
+        for task in self.game_memory.completed_tasks:
+            if task not in updated_completed_tasks:
+                updated_completed_tasks.append(task)
+
+        # remove completed tasks from failed tasks
+        for task in updated_completed_tasks:
+            while task in updated_failed_tasks:
+                updated_failed_tasks.remove(task)
+
+        self.game_memory.completed_tasks = updated_completed_tasks
+        self.game_memory.failed_tasks = updated_failed_tasks
+
+        # dump to json
+        with open(f"{CKPT_DIR}/curriculum/completed_tasks.json", "w") as f:
+            json.dump(self.game_memory.completed_tasks, f)
+        with open(f"{CKPT_DIR}/curriculum/failed_tasks.json", "w") as f:
+            json.dump(self.game_memory.failed_tasks, f)
+
     async def on_event(self, *args):
         """
         Retrieve Minecraft events.
