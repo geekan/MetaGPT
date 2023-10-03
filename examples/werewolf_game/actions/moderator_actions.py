@@ -1,109 +1,92 @@
 import asyncio
-import collections
 from random import random
+import re
 
 from metagpt.actions import Action
 
-STEP_INSTRUCTIONS = {
-    # 上帝需要介入的全部步骤和对应指令
-    # The 1-st night
-    0: {"content": "It’s dark, everyone close your eyes. I will talk with you/your team secretly at night.",
-        "send_to": "Moderator",  # for moderator to continuen speaking
-        "restricted_to": ""},
-    1: {"content": "Guard, please open your eyes!",
-        "send_to": "Moderator",  # for moderator to continuen speaking
-        "restricted_to": ""},
-    2: {"content": """Guard, now tell me who you protect tonight?
-                   You only choose one from the following living options please: {living_players}.
-                   Or you can pass. For example: Protect ...""",
-        "send_to": "Guard",
-        "restricted_to": "Moderator,Guard"},
-    3: {"content": "Guard, close your eyes",
-        "send_to": "Moderator",
-        "restricted_to": ""},
-    4: {"content": "Werewolves, please open your eyes!",
-        "send_to": "Moderator",
-        "restricted_to": ""},
-    5: {"content": """Werewolves, I secretly tell you that {werewolf_players} are
-                   all of the 2 werewolves! Keep in mind you are teammates. The rest players are not werewolves.
-                   choose one from the following living options please:
-                   {living_players}. For example: Kill ...""",
-        "send_to": "Werewolf",
-        "restricted_to": "Moderator,Werewolf"},
-    6: {"content": "Werewolves, close your eyes",
-        "send_to": "Moderator",
-        "restricted_to": ""},
-    7: {"content": "Witch, please open your eyes!",
-        "send_to": "Moderator",
-        "restricted_to": ""},
-    8: {"content": """Witch, tonight {player_hunted} has been killed by the werewolves.
-                   You have a bottle of antidote, would you like to save him/her? If so, say "Save", else, say "Pass".""",
-        "send_to": "Witch",
-        "restricted_to": "Moderator,Witch"},  # 要先判断女巫是否有解药，再去询问女巫是否使用解药救人
-    9: {"content": """Witch, you also have a bottle of poison, would you like to use it to kill one of the living players?
-                   Choose one from the following living options: {living_players}.
-                   If so, say "Poison PlayerX", where X is the player index, else, say "Pass".""",
-        "send_to": "Witch",
-        "restricted_to": "Moderator,Witch"},  #
-    10: {"content": "Witch, close your eyes",
-         "send_to": "Moderator",
-         "restricted_to": ""},
-    11: {"content": "Seer, please open your eyes!",
-         "send_to": "Moderator",
-         "restricted_to": ""},
-    12: {"content": """Seer, you can check one player's identity. Who are you going to verify its identity tonight?
-                    Choose only one from the following living options:{living_players}.""",
-         "send_to": "Seer",
-         "restricted_to": "Moderator,Seer"},
-    13: {"content": "Seer, close your eyes",
-         "send_to": "Moderator",
-         "restricted_to": ""},
-    # The 1-st daytime
-    14: {"content": """It's daytime. Everyone woke up except those who had been killed.""",
-         "send_to": "Moderator",
-         "restricted_to": ""},
-    15: {"content": "{player_current_dead} was killed last night!",
-         "send_to": "Moderator",
-         "restricted_to": ""},
-    16: {"content": """Now freely talk about roles of other players with each other based on your observation and 
-                    reflection with few sentences. Decide whether to reveal your identity based on your reflection.""",
-         "send_to": "",  # send to all to speak in daytime
-         "restricted_to": ""},
-    17: {"content": """Now vote and tell me who you think is the werewolf. Don’t mention your role.
-                    You only choose one from the following living options please:
-                    {living_players}. Or you can pass. For example: I vote to kill ...""",
-         "send_to": "",
-         "restricted_to": ""},
-    18: {"content": """{player_current_dead} was eliminated.""",
-         "send_to": "Moderator",
-         "restricted_to": ""},
-}
+GAME_RULE = '''
+## Game Overview
+You're the moderator of a text-based game called Werewolf. Your role is to guide the players, who can be a werewolf, villager, seer, guard, or witch. The game has two phases: night and day.
+
+## Night Phase
+During the night, conversations are private. Players use their abilities:
+- Werewolves vote to kill a player.
+- The witch can save a player targeted by werewolves or poison a player (each ability can be used once).
+- The seer can verify if a player is a werewolf.
+- The guard can protect a player from being killed by werewolves (but not from the witch's poison).
+
+## Day Phase
+During the day, all players discuss and vote to eliminate a suspected werewolf. You'll announce who is killed.
+
+## Roles and Objectives
+Werewolves aim to kill all non-werewolves. All other roles aim to eliminate all werewolves. Killed players are out of the game.
+
+## Tips
+Players should use their abilities wisely and reason about others' roles. They should only reveal their role strategically.
+
+## Your Role
+As Player {name}, the {profile}, you'll provide step-by-step instructions to players in this order: All(Night) -> Guard -> Werewolf -> Witch -> Seer -> All(Daytime) -> All(Discuss) -> All(Vote). Ensure each player understands their instructions before moving on.
+'''
+# 游戏流程：All(Night) -> Guard -> Werewolf -> Witch -> Seer -> All(Daytime) -> All(Discuss) -> All(Vote).
+
+GENERATE_POSSIBLE_ANSWER = '''
+Given the game rules and conversations above, assuming you are {name}, the {profile},
+Generate the correct answer based on the context. No need to give options. 
+The answer should use no more than 2 sentences and without any analysis and item numbers.
+The current player status is as follows:
+all players:{all_players}, for all players to know who is in the game.
+living players:{living_players}, for Werewolf to choose to kill, and for Seer to verify, and for Guard to protect, and for Witch to poison
+werewolf players:{werewolf_players}, for Werewolf to know who is the other werewolf
+player hunted:{player_hunted}, for Witch to know who is hunted, then decide to save
+player current dead:{player_current_dead}, for all players to know who is dead
+
+Response should have the following format(split by ## ):
+## Instruction
+The 'Instruction' is the instruction from the moderator. It contains the valuable information that the player needs to know. Such as living players, werewolf players, player hunted, player current dead etc.
+
+## Send To
+'Send To' specifies the role who will receive and need to process the message. So don't reveal the player's name!
+If you want to send the message to all roles, use All. Otherwise, specify the role profile and Moderator. For example, 'Moderator' or 'Werewolf' or 'Seer' etc.
+
+## Restricted To
+restricted_to is all roles who can not see the content, but only this role can see and reply the content. Private information is being shared with that role and they must not reveal it to others.
+In day, 'Restricted To' = 'All'. In night, 'Restricted To' generally are more a Moderator than 'Send To'. For example, 'Moderator,Werewolf' or 'Moderator,Seer' etc. 
+
+## Day Or Night
+'Day Or Night' specifies the time when the message is sent. It should be 'Day' or 'Night'.
+
+Remember, if a role is 'Sent To', they must process and respond. Other roles will be aware of the message but are not required to respond. If a role is 'restricted_to', private information is being shared with that role and they must not reveal it to others.
+Attention: Don't reveal the player's identity!
+'''
+
 
 class InstructSpeak(Action):
     def __init__(self, name="InstructSpeak", context=None, llm=None):
         super().__init__(name, context, llm)
 
-    async def run(self, step_idx, living_players, werewolf_players, player_hunted, player_current_dead):
-        instruction_info = STEP_INSTRUCTIONS.get(step_idx, {
-            "content": "Unknown instruction.",
-            "send_to": "",
-            "restricted_to": ""
-        })
-        content = instruction_info["content"]
-        if "{living_players}" in content and "{werewolf_players}" in content:
-            content = content.format(living_players=",".join(living_players),
-                                     werewolf_players=",".join(werewolf_players))
-        if "{living_players}" in content:
-            content = content.format(living_players=",".join(living_players))
-        if "{werewolf_players}" in content:
-            content = content.format(werewolf_players=",".join(werewolf_players))
-        if "{player_hunted}" in content:
-            content = content.format(player_hunted=player_hunted)
-        if "{player_current_dead}" in content:
-            player_current_dead = "No one" if not player_current_dead else player_current_dead
-            content = content.format(player_current_dead=player_current_dead)
+    async def run(self, player, conversations, living_players, werewolf_players, player_hunted, player_current_dead):
+        game_rule = GAME_RULE.format(name=player.name, profile=player.profile)
 
-        return content, instruction_info["send_to"], instruction_info["restricted_to"]
+        prompt = game_rule + str(conversations)[:4000] + GENERATE_POSSIBLE_ANSWER.format(name=player.name,
+                                                                                  profile=player.profile,
+                                                                                  living_players=living_players,
+                                                                                  werewolf_players=werewolf_players,
+                                                                                  player_hunted=player_hunted,
+                                                                                  player_current_dead=player_current_dead)
+
+        response = await self._aask(prompt)
+        # 提取content, send_to, restricted_to
+        content = re.search(r"## Instruction\n(.*?)##", response, re.DOTALL).group(1).strip()
+        send_to = re.search(r"## Send To\n(.*?)##", response, re.DOTALL).group(1).strip()
+        restricted_to = re.search(r"## Restricted To\n(.*?)##", response, re.DOTALL).group(1).strip()
+        day_or_night = re.search(r"## Day Or Night\n(.*)", response, re.DOTALL).group(1).strip()
+        # FIXME: 将""改为"All"，利于模型生成？
+        if send_to == "All":
+            send_to = ""
+        if restricted_to == "All":
+            restricted_to = ""
+        return content, send_to, restricted_to, day_or_night
+
 
 class ParseSpeak(Action):
     def __init__(self, name="ParseSpeak", context=None, llm=None):
@@ -111,6 +94,7 @@ class ParseSpeak(Action):
 
     async def run(self):
         pass
+
 
 class SummarizeDay(Action):
     """consider all votes at day, conclude which player dies"""
@@ -143,9 +127,15 @@ class AnnounceGameResult(Action):
     async def run(self, winner: str):
         return f"Game over! The winner is the {winner}"
 
-async def main():
-    rst1 = await SummarizeDay().run({"Player1": 0, "Player2": 0, "Player3": 0, "Player4": 0})
-    print(rst1)
+
+class MockRole:
+    def __init__(self):
+        self.name = "Moderator"
+        self.profile = "Moderator"
+
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    role = MockRole()
+    instance = InstructSpeak()
+    a, b, c = asyncio.run(instance.run(role, "", "", "", "", ""))
+    print(a, b, c)

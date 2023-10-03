@@ -44,7 +44,7 @@ class BasePlayer(Role):
         if not news.restricted_to:
             # 消息接收范围为全体角色的，做公开发言（发表投票观点也算发言）
             self._rc.todo = Speak()
-        elif self.profile in news.restricted_to.split(","):
+        elif any(self.profile in s for s in news.restricted_to.split(",")):
             # FIXME: hard code to split, restricted为"Moderator"或"Moderator,角色profile"
             # Moderator加密发给自己的，意味着要执行角色的特殊动作
             self._rc.todo = self.special_actions[0]()
