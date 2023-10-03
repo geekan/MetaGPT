@@ -34,6 +34,9 @@ from examples.st_game.utils.utils import get_embedding, path_finder
 from examples.st_game.utils.const import collision_block_id, STORAGE_PATH
 from examples.st_game.reflect.reflect import generate_poig_score
 from examples.st_game.utils.mg_ga_transform import save_movement, get_role_environment
+from examples.st_game.actions.inner_voice_action import AgentWhisperThoughtAction
+from examples.st_game.actions.run_reflect_action import AgentEventTriple
+from examples.st_game.reflect.reflect import role_reflect
 
 
 class STRoleContext(RoleContext):
@@ -122,13 +125,32 @@ class STRole(Role):
         if len(self._rc.news) == 1 and isinstance(self._rc.news[0], UserRequirement):
             # add inner voice
             # TODO
+            self.add_inner_voice(self._rc.news[0].content)
             logger.warning(f"Role: {self.name} add inner voice: {self._rc.news[0].content}")
 
         return 1  # always return 1 to execute role's `_react`
 
-    def add_inner_voice(self):
+    def add_inner_voice(self, whisper):
         # TODO
-        pass
+        def generate_inner_thought(strole: STRole, whisper):
+            run_whisper_thought = AgentWhisperThoughtAction()
+            inner_thought = run_whisper_thought.run(self, whisper)
+            return inner_thought
+        
+        whisper = input("Enter Input: ")
+        thought = generate_inner_thought(whisper)
+
+        created = self._rc.scratch.curr_time
+        expiration = self._rc.scratch.curr_time + datetime.timedelta(days=30)
+        run_event_triple = AgentEventTriple()
+        s, p, o = run_event_triple(thought, self)
+        keywords = set([s, p, o])
+        thought_poignancy = generate_poig_score(self, "event", whisper)
+        thought_embedding_pair = (thought, get_embedding(thought))
+        self._rc.memory.add_thought(created, expiration, s, p, o, 
+                                thought, keywords, thought_poignancy, 
+                                thought_embedding_pair, None)
+
 
     async def observe(self) -> list[BasicMemory]:
         # TODO observe info from maze_env
@@ -288,9 +310,9 @@ class STRole(Role):
 
     async def reflect(self):
         # TODO reflection if meet reflect condition
-
+        role_reflect(self)
         # TODO re-add result to memory
-        pass
+        # 已封装到Reflect函数之中
 
     def execute(self, plan: str):
         """

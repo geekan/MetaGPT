@@ -22,7 +22,7 @@ class AgentFocusPt(STAction):
         except:
             return False
 
-    def _func_cleanup(self, llm_resp: str, prompt: str = "") -> str:
+    def _func_cleanup(self, llm_resp: str, prompt: str = "") -> list:
         llm_resp = "1) " + llm_resp.strip()
         ret = []
         for i in llm_resp.split("\n"):
@@ -145,7 +145,7 @@ class AgentEventPoignancy(STAction):
         except:
             return False
 
-    def _func_cleanup(self, llm_resp: str, prompt: str = "") -> str:
+    def _func_cleanup(self, llm_resp: str, prompt: str = "") -> int:
         llm_resp = int(llm_resp.strip())
         return llm_resp
 
@@ -186,7 +186,7 @@ class AgentChatPoignancy(STAction):
         except:
             return False
 
-    def _func_cleanup(self, llm_resp: str, prompt: str = "") -> str:
+    def _func_cleanup(self, llm_resp: str, prompt: str = "") -> int:
         llm_resp = int(llm_resp.strip())
         return llm_resp
 

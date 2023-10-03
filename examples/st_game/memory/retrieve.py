@@ -3,7 +3,6 @@
 # @Desc   : Retrieve函数实现
 
 import datetime
-from typing import Union
 
 from numpy import dot
 from numpy.linalg import norm

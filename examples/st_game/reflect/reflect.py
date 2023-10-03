@@ -5,7 +5,7 @@
 import datetime
 
 from metagpt.logs import logger
-
+from examples.st_game.roles.st_role import STRole
 from examples.st_game.utils.utils import get_embedding
 from examples.st_game.actions.run_reflect_action import (
     AgentFocusPt, AgentInsightAndGuidance, AgentEventTriple,
@@ -62,7 +62,7 @@ def generate_action_event_triple(act_desp, role):
     return AgentEventTriple(act_desp, role)
 
 
-def generate_poig_score(role: "STRole", event_type, description):
+def generate_poig_score(role: STRole, event_type, description):
     if "is idle" in description:
         return 1
 
@@ -167,7 +167,7 @@ def reset_reflection_counter(role: "STRole"):
 
 
 # Question 1 chat函数
-def reflect(role: "STRole"):
+def role_reflect(role: "STRole"):
     """
     The main reflection module for the role. We first check if the trigger
     conditions are met, and if so, run the reflection and reset any of the
