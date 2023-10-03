@@ -3,6 +3,7 @@
 # @Desc   : Integration Reflect Action
 
 import re
+
 from metagpt.logs import logger
 
 from examples.st_game.actions.st_action import STAction
@@ -115,7 +116,7 @@ class AgentEventTriple(STAction):
     def _func_fail_default_resp(self) -> str:
         pass
 
-    def run(self, statements: str, role: STRole, verbose=False) -> str:
+    def run(self, statements: str, role: STRole, verbose=False) -> tuple:
         def create_prompt_input(statements, role):
             if "(" in statements:
                 statements = statements.split("(")[-1].split(")")[0]
@@ -129,7 +130,7 @@ class AgentEventTriple(STAction):
                                                          "generate_event_triple_v1.txt")
 
         output = self._run_v1(prompt)
-        output = (role.scratch.name,output[0],output[1])
+        output = (role.scratch.name, output[0], output[1])
         logger.info(f"Run action: {self.__class__.__name__} with result: {output}")
 
         return output

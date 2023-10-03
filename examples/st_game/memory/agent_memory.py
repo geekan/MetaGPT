@@ -128,6 +128,7 @@ class AgentMemory(Memory):
         """
         将MemoryBasic类存储为Nodes.json形式。复现GA中的Kw Strength.json形式
         这里添加一个路径即可
+        TODO 这里需要添加Const常量
         """
 
         memory_json = dict()
