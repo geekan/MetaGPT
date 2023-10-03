@@ -10,8 +10,10 @@ import os
 
 
 class MemoryTree:
-    def __init__(self, f_saved: str) -> None:
+    def __init__(self) -> None:
         self.tree = {}
+
+    def set_mem_path(self, f_saved: str):
         if os.path.isfile(f_saved) and os.path.exists(f_saved):
             with open(f_saved) as f:
                 self.tree = json.load(f)

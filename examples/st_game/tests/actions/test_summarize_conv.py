@@ -2,6 +2,10 @@
 # -*- coding: utf-8 -*-
 # @Desc   : unittest of actions/summarize_conv
 
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.dirname(__file__) + "./../../../"))
+
 from metagpt.logs import logger
 
 from st_game.actions.summarize_conv import SummarizeConv

@@ -6,8 +6,8 @@ import json
 
 from metagpt.logs import logger
 
-from .const import STORAGE_PATH
-from .utils import read_json_file, write_json_file
+from examples.st_game.utils.const import STORAGE_PATH
+from examples.st_game.utils.utils import read_json_file, write_json_file
 
 
 def get_reverie_meta(sim_code: str) -> dict:

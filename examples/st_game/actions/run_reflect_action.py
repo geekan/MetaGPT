@@ -3,10 +3,11 @@
 # @Desc   : Integration Reflect Action
 
 import re
-from ..roles.st_role import STRole
-from ..actions.st_action import STAction
-from ..memory.agent_memory import BasicMemory
 from metagpt.logs import logger
+
+from examples.st_game.actions.st_action import STAction
+from examples.st_game.memory.agent_memory import BasicMemory
+
 
 # Run GPT Prompt Focal Point method
 class AgentFocusPt(STAction):
@@ -31,8 +32,8 @@ class AgentFocusPt(STAction):
     def _func_fail_default_resp(self) -> str:
         pass
 
-    async def run(self, role: STRole, statements: str, n: int, test_input=None) -> str:
-        def create_prompt_input(role: STRole, statements, n, test_input=None):
+    async def run(self, role: "STRole", statements: str, n: int, test_input=None) -> str:
+        def create_prompt_input(role: "STRole", statements, n, test_input=None):
             prompt_input = [statements, str(n)]
             return prompt_input
 
@@ -77,8 +78,8 @@ class AgentInsightAndGuidance(STAction):
     def _func_fail_default_resp(self) -> str:
         pass
 
-    async def run(self, role: STRole, statements: str, n: int, test_input=None) -> str:
-        def create_prompt_input(role: STRole, statements, n, test_input=None):
+    async def run(self, role: "STRole", statements: str, n: int, test_input=None) -> str:
+        def create_prompt_input(role: "STRole", statements, n, test_input=None):
             prompt_input = [statements, str(n)]
             return prompt_input
 
@@ -113,7 +114,7 @@ class AgentEventTriple(STAction):
     def _func_fail_default_resp(self) -> str:
         pass
 
-    async def run(self, statements: str, role: STRole, verbose=False) -> str:
+    async def run(self, statements: str, role: "STRole", verbose=False) -> str:
         def create_prompt_input(statements, role):
             if "(" in statements:
                 statements = statements.split("(")[-1].split(")")[0]
@@ -151,8 +152,8 @@ class AgentEventPoignancy(STAction):
     def _func_fail_default_resp(self) -> str:
         pass
 
-    async def run(self, role: STRole, statements: str, test_input=None, verbose=False) -> str:
-        def create_prompt_input(role: STRole, statements: str, test_input=None):
+    async def run(self, role: "STRole", statements: str, test_input=None, verbose=False) -> str:
+        def create_prompt_input(role: "STRole", statements: str, test_input=None):
             prompt_input = [role._rc.scratch.name,
                             role._rc.scratch.get_str_iss(),
                             role._rc.scratch.name,
@@ -192,8 +193,8 @@ class AgentChatPoignancy(STAction):
     def _func_fail_default_resp(self) -> str:
         pass
 
-    async def run(self, role: STRole, statements: str, test_input=None, verbose=False) -> str:
-        def create_prompt_input(role: STRole, statements, test_input=None):
+    async def run(self, role: "STRole", statements: str, test_input=None, verbose=False) -> str:
+        def create_prompt_input(role: "STRole", statements, test_input=None):
             prompt_input = [role._rc.scratch.name,
                             role._rc.scratch.get_str_iss(),
                             role._rc.scratch.name,
@@ -232,7 +233,7 @@ class AgentPlanThoughtOnConvo(STAction):
     def _func_fail_default_resp(self) -> str:
         pass
 
-    async def run(self, role: STRole, statements: str, test_input=None, verbose=False) -> str:
+    async def run(self, role: "STRole", statements: str, test_input=None, verbose=False) -> str:
         def create_prompt_input(role, statements, test_input=None):
             prompt_input = [statements,
                             role._rc.scratch.name,
@@ -268,7 +269,7 @@ class AgentMemoryOnConvo(STAction):
     def _func_fail_default_resp(self) -> str:
         pass
 
-    async def run(self, role: STRole, statements: str, test_input=None, verbose=False) -> str:
+    async def run(self, role: "STRole", statements: str, test_input=None, verbose=False) -> str:
         def create_prompt_input(role, statements, test_input=None):
             prompt_input = [statements,
                             role._rc.scratch.name,

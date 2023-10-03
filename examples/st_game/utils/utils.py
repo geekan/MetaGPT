@@ -2,13 +2,17 @@
 # -*- coding: utf-8 -*-
 # @Desc   : utils
 
-from typing import Any, Union
-import os
-import json
-import openai
-from pathlib import Path
 import csv
-from ..prompts.run_gpt_prompts import get_poignancy_action, get_poignancy_chat
+import errno
+import json
+import os
+import shutil
+from pathlib import Path
+from typing import Any, Union
+
+import openai
+
+from metagpt.logs import logger
 
 
 def read_json_file(json_file: str, encoding=None) -> list[Any]:
@@ -37,23 +41,24 @@ def read_csv_to_list(curr_file: str, header=False, strip_trail=True):
     RETURNS:
       List of list where the component lists are the rows of the file.
     """
+    logger.info(f"start read csv: {curr_file}")
     if not header:
         analysis_list = []
         with open(curr_file) as f_analysis_file:
             data_reader = csv.reader(f_analysis_file, delimiter=",")
-        for count, row in enumerate(data_reader):
-            if strip_trail:
-                row = [i.strip() for i in row]
-            analysis_list += [row]
+            for count, row in enumerate(data_reader):
+                if strip_trail:
+                    row = [i.strip() for i in row]
+                analysis_list += [row]
         return analysis_list
     else:
         analysis_list = []
         with open(curr_file) as f_analysis_file:
             data_reader = csv.reader(f_analysis_file, delimiter=",")
-        for count, row in enumerate(data_reader):
-            if strip_trail:
-                row = [i.strip() for i in row]
-            analysis_list += [row]
+            for count, row in enumerate(data_reader):
+                if strip_trail:
+                    row = [i.strip() for i in row]
+                analysis_list += [row]
         return analysis_list[0], analysis_list[1:]
 
 
@@ -63,15 +68,6 @@ def get_embedding(text, model: str = "text-embedding-ada-002"):
         text = "this is blank"
     return openai.Embedding.create(
         input=[text], model=model)['data'][0]['embedding']
-
-
-def generate_poig_score(scratch, event_type, description):
-    if "is idle" in description:
-        return 1
-    if event_type == "action":
-        return get_poignancy_action(scratch, description)[0]
-    elif event_type == "chat":
-        return get_poignancy_chat(scratch, description)[0]
 
 
 def extract_first_json_dict(data_str: str) -> Union[None, dict]:
@@ -178,6 +174,7 @@ def path_finder(maze: "Maze", start: list[int], end: list[int], collision_block_
 
     return path
 
+
 def create_folder_if_not_there(curr_path):
     """
     Checks if a folder in the curr_path exists. If it does not exist, creates
@@ -207,6 +204,7 @@ def create_folder_if_not_there(curr_path):
 
     return False
 
+
 def find_filenames(path_to_dir, suffix=".csv"):
     """
     Given a directory, find all files that end with the provided suffix and
@@ -220,3 +218,20 @@ def find_filenames(path_to_dir, suffix=".csv"):
     filenames = os.listdir(path_to_dir)
     return [path_to_dir + "/" + filename
             for filename in filenames if filename.endswith(suffix)]
+
+
+def check_if_file_exists(curr_file: str):
+    return Path(curr_file).exists()
+
+
+def copy_folder(src_folder: str, dest_folder: str):
+    try:
+        if Path(dest_folder).exists():
+            logger.warning(f"{dest_folder} exist, start to remove.")
+            shutil.rmtree(dest_folder)
+        shutil.copytree(src_folder, dest_folder)
+    except OSError as exc:  # python >2.5
+        if exc.errno in (errno.ENOTDIR, errno.EINVAL):
+            shutil.copy(src_folder, dest_folder)
+        else:
+            raise

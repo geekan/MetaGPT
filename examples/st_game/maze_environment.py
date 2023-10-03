@@ -7,12 +7,12 @@ from pydantic import Field
 from metagpt.environment import Environment
 from metagpt.roles.role import Role
 
-from .maze import Maze
+from maze import Maze
 
 
 class MazeEnvironment(Environment):
 
-    maze: Maze = Field(default=Maze)
+    maze: Maze = Field(default_factory=Maze)
 
     def add_role(self, role: Role):
         role.set_env(self)

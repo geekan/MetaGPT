@@ -8,11 +8,12 @@ from typing import Union
 from numpy import dot
 from numpy.linalg import norm
 
-from ..memory.agent_memory import AgentMemory, BasicMemory
-from ..utils.utils import get_embedding
-from ..roles.st_role import STRole
+from examples.st_game.memory.agent_memory import AgentMemory, BasicMemory
+from examples.st_game.utils.utils import get_embedding
 
-def agent_retrieve(agent_memory: AgentMemory, curr_time: datetime.datetime, memory_forget: float, query: str, topk: int = 4) -> list[BasicMemory]:
+
+def agent_retrieve(agent_memory: AgentMemory, curr_time: datetime.datetime, memory_forget: float, query: str,
+                   topk: int = 4) -> list[BasicMemory]:
     """
     Retrieve需要集合Role使用,原因在于Role才具有AgentMemory,scratch
     逻辑:Role调用该函数,self._rc.AgentMemory,self._rc.scratch.curr_time,self._rc.scratch.memory_forget
@@ -46,25 +47,27 @@ def agent_retrieve(agent_memory: AgentMemory, curr_time: datetime.datetime, memo
 
     result = top_highest_x_values(total_dict, topk)
 
-    return result # 返回的是一个BasicMemory列表
+    return result  # 返回的是一个BasicMemory列表
 
-def new_agent_retrieve(strole: STRole, focus_points: list, n_count = 30):
+
+def new_agent_retrieve(strole: "STRole", focus_points: list, n_count=30):
     """
     输入为Strole，关注点列表,返回记忆数量
     输出为字典，键为focus_point，值为对应的记忆列表
     """
-    retrieved = dict() 
-    for focal_pt in focus_points: 
+    retrieved = dict()
+    for focal_pt in focus_points:
         nodes = [[i.last_accessed, i]
-                    for i in strole._rc.memory.event_list + strole._rc.memory.thought_list
-                    if "idle" not in i.embedding_key]
+                 for i in strole._rc.memory.event_list + strole._rc.memory.thought_list
+                 if "idle" not in i.embedding_key]
         nodes = sorted(nodes, key=lambda x: x[0])
         nodes = [i for created, i in nodes]
-        results =  agent_retrieve(strole._rc.memory, strole._rc.scratch.curr_time, strole._rc.scratch.recency_decay, focal_pt, n_count)
-        for n in results: 
+        results = agent_retrieve(strole._rc.memory, strole._rc.scratch.curr_time, strole._rc.scratch.recency_decay,
+                                 focal_pt, n_count)
+        for n in results:
             n.last_accessed = strole._rc.scratch.curr_time
 
-        retrieved[focal_pt] = results 
+        retrieved[focal_pt] = results
 
 
 def top_highest_x_values(d, x):

@@ -9,6 +9,7 @@ from stanford_town import StanfordTown
 from roles.st_role import STRole
 from utils.mg_ga_transform import get_reverie_meta
 from utils.const import STORAGE_PATH
+from utils.utils import copy_folder
 
 
 async def startup(idea: str,
@@ -16,6 +17,8 @@ async def startup(idea: str,
                   sim_code: str,
                   investment: float = 30.0,
                   n_round: int = 500):
+    # copy `storage/{fork_sim_code}` to `storage/{sim_code}`
+    copy_folder(str(STORAGE_PATH.joinpath(fork_sim_code)), str(STORAGE_PATH.joinpath(sim_code)))
 
     # get role names from `storage/{simulation_name}/reverie/meta.json` and then init roles
     reverie_meta = get_reverie_meta(fork_sim_code)

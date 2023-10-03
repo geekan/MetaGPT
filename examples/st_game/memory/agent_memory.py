@@ -2,10 +2,11 @@
 # -*- coding: utf-8 -*-
 # @Desc   : BasicMemory,AgentMemory实现
 
-from metagpt.memory.memory import Memory
-from metagpt.schema import Message
 import json
 from datetime import datetime
+
+from metagpt.memory.memory import Memory
+from metagpt.schema import Message
 
 
 class BasicMemory(Message):
@@ -93,13 +94,13 @@ class AgentMemory(Memory):
     3. kw_strength.json
     """
 
-    def __init__(self, memory_saved: str):
+    def __init__(self):
         """
         AgentMemory类继承自Memory类，重写storage替代GA中id_to_node，一方面存储所有信息，一方面作为JSON转化
         index存储与不同Agent的chat信息
         @李嵩@张凯 这里的storage是List，你们需要写一个JSON转化器，将List修改为node.json一致的格式
         """
-        super.__init__()
+        super(AgentMemory, self).__init__()
         self.id_to_node = dict()  # TODO jiayi add
         self.storage: list[BasicMemory] = []  # 重写Stroage，存储BasicMemory所有节点
         self.event_list = []  # 存储event记忆
@@ -113,6 +114,10 @@ class AgentMemory(Memory):
         self.kw_strength_event = dict()  # 关键词影响存储
         self.kw_strength_thought = dict()
 
+        # self.load(memory_saved)
+
+    def set_mem_path(self, memory_saved: str):
+        self.memory_saved = memory_saved
         self.load(memory_saved)
 
     def save(self, memory_saved: str):

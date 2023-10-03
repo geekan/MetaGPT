@@ -4,7 +4,7 @@
 
 from metagpt.schema import Message
 
-from ..actions.st_action import STAction
+from examples.st_game.actions.st_action import STAction
 
 
 class SummarizeConv(STAction):

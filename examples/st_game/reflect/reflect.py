@@ -1,23 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # @Desc   : Reflect function
-import datetime
-import random
-import sys
 
-from numpy import dot
-from numpy.linalg import norm
-from ..roles.st_role import STRole
-from ..utils.utils import get_embedding
+import datetime
+
 from metagpt.logs import logger
-from ..actions.run_reflect_action import (
+
+from examples.st_game.utils.utils import get_embedding
+from examples.st_game.actions.run_reflect_action import (
     AgentFocusPt, AgentInsightAndGuidance, AgentEventTriple,
     AgentEventPoignancy, AgentChatPoignancy, AgentPlanThoughtOnConvo,
     AgentMemoryOnConvo
 )
 
 
-def generate_focal_points(role: STRole, n=3):
+def generate_focal_points(role: "STRole", n=3):
     nodes = [
         [i.last_accessed, i] for i in
         role._rc.memory.event_list + role._rc.memory.thought_list
@@ -65,7 +62,7 @@ def generate_action_event_triple(act_desp, role):
     return AgentEventTriple(act_desp, role)
 
 
-def generate_poig_score(role: STRole, event_type, description):
+def generate_poig_score(role: "STRole", event_type, description):
     if "is idle" in description:
         return 1
 
@@ -89,7 +86,7 @@ def generate_memo_on_convo(role, all_utt):
 
 
 # Done
-def run_reflect(role: STRole):
+def run_reflect(role: "STRole"):
     """
     Run the actual reflection. We generate the focal points, retrieve any
     relevant nodes, and generate thoughts and insights.
@@ -128,7 +125,7 @@ def run_reflect(role: STRole):
 
 
 # Done
-def reflection_trigger(role: STRole):
+def reflection_trigger(role: "STRole"):
     """
     Given the current role, determine whether the role should run a
     reflection.
@@ -155,7 +152,7 @@ def reflection_trigger(role: STRole):
 
 
 # Done
-def reset_reflection_counter(role: STRole):
+def reset_reflection_counter(role: "STRole"):
     """
     We reset the counters used for the reflection trigger.
 
@@ -170,7 +167,7 @@ def reset_reflection_counter(role: STRole):
 
 
 # Question 1 chat函数
-def reflect(role: STRole):
+def reflect(role: "STRole"):
     """
     The main reflection module for the role. We first check if the trigger
     conditions are met, and if so, run the reflection and reset any of the

@@ -23,24 +23,24 @@ from metagpt.roles.role import Role, RoleContext
 from metagpt.schema import Message
 from metagpt.logs import logger
 
-from ..memory.agent_memory import AgentMemory, BasicMemory
-from ..memory.spatial_memory import MemoryTree
-from ..actions.dummy_action import DummyAction
-from ..actions.user_requirement import UserRequirement
-from ..maze_environment import MazeEnvironment
-from ..memory.retrieve import new_agent_retrieve
-from ..memory.scratch import Scratch
-from ..utils.utils import get_embedding, generate_poig_score, path_finder
-from ..utils.const import collision_block_id
-from ..reflect.st_reflect import agent_reflect
-from ..utils.mg_ga_transform import save_movement, get_role_environment
+from examples.st_game.memory.agent_memory import AgentMemory, BasicMemory
+from examples.st_game.memory.spatial_memory import MemoryTree
+from examples.st_game.actions.dummy_action import DummyAction, DummyMessage
+from examples.st_game.actions.user_requirement import UserRequirement
+from examples.st_game.maze_environment import MazeEnvironment
+from examples.st_game.memory.retrieve import new_agent_retrieve
+from examples.st_game.memory.scratch import Scratch
+from examples.st_game.utils.utils import get_embedding, path_finder
+from examples.st_game.utils.const import collision_block_id, STORAGE_PATH
+from examples.st_game.reflect.reflect import generate_poig_score
+from examples.st_game.utils.mg_ga_transform import save_movement, get_role_environment
 
 
 class STRoleContext(RoleContext):
-    env: 'MazeEnvironment' = Field(default=MazeEnvironment)
-    memory: AgentMemory = Field(default=AgentMemory)
-    scratch: Scratch = Field(default=Scratch)
-    spatial_memory: MemoryTree = Field(default=MemoryTree)
+    env: 'MazeEnvironment' = Field(default_factory=MazeEnvironment)
+    memory: AgentMemory = Field(default_factory=AgentMemory)
+    scratch: Scratch = Field(default_factory=Scratch)
+    spatial_memory: MemoryTree = Field(default_factory=MemoryTree)
 
 
 class STRole(Role):
@@ -65,9 +65,18 @@ class STRole(Role):
         self.role_tile = (0, 0)
         self.game_obj_cleanup = dict()
 
-        self._rc = STRoleContext()
         super(STRole, self).__init__(name=name,
                                      profile=profile)
+        self._rc = STRoleContext()
+        memory_saved = str(STORAGE_PATH.joinpath(f"{sim_code}/personas/{self.name}/"
+                                                 f"bootstrap_memory/associative_memory"))
+        self._rc.memory.set_mem_path(memory_saved)
+        sp_mem_saved = str(STORAGE_PATH.joinpath(f"{sim_code}/personas/{self.name}/"
+                                                 f"bootstrap_memory/spatial_memory.json"))
+        self._rc.spatial_memory.set_mem_path(f_saved=sp_mem_saved)
+        scratch_f_saved = str(STORAGE_PATH.joinpath(f"{sim_code}/personas/{self.name}/"
+                                                    f"bootstrap_memory/scratch.json"))
+        self._rc.scratch.set_scratch_path(f_saved=scratch_f_saved)
 
         self._init_actions([])
 
@@ -103,6 +112,19 @@ class STRole(Role):
         save role data from `storage/{simulation_name}/personas/{role_name}
         """
         pass
+
+    async def _observe(self) -> int:
+        if not self._rc.env:
+            return 0
+
+        observed = self._rc.env.memory.get_by_actions(self._rc.watch)
+        self._rc.news = self._rc.memory.remember(observed)
+        if len(self._rc.news) == 1 and isinstance(self._rc.news[0], UserRequirement):
+            # add inner voice
+            # TODO
+            logger.warning(f"Role: {self.name} add inner voice: {self._rc.news[0].content}")
+
+        return 1  # always return 1 to execute role's `_react`
 
     async def observe(self) -> list[BasicMemory]:
         # TODO observe info from maze_env
@@ -247,7 +269,7 @@ class STRole(Role):
 
     async def retrieve(self, focus_points, n=30):
         # TODO retrieve memories from agent_memory
-        retrieve_memories = new_agent_retrieve(self,focus_points,n)
+        retrieve_memories = new_agent_retrieve(self, focus_points, n)
         return retrieve_memories
 
     async def plan(self):
@@ -435,7 +457,7 @@ class STRole(Role):
         ret = self.update_role_env()
         if not ret:
             # TODO add message
-            return
+            return DummyMessage()
 
         # TODO observe
         # get maze_env from self._rc.env, and observe env info
@@ -443,20 +465,23 @@ class STRole(Role):
         # TODO retrieve, use self._rc.memory 's retrieve functions
 
         # TODO plan
-        plan = self.plan()
-
-        # TODO reflect
-
-        # TODO execute(feed-back into maze_env)
-        next_tile, pronunciatio, description = self.execute(plan)
-        role_move = {
-            "movement": next_tile,
-            "pronunciatio": pronunciatio,
-            "description": description,
-            "chat": self.scratch.chat
-        }
-        save_movement(self.name, role_move, step=self.step, sim_code=self.sim_code, curr_time=self.curr_time)
+        # plan = self.plan()
+        #
+        # # TODO reflect
+        #
+        # # TODO execute(feed-back into maze_env)
+        # next_tile, pronunciatio, description = self.execute(plan)
+        # role_move = {
+        #     "movement": next_tile,
+        #     "pronunciatio": pronunciatio,
+        #     "description": description,
+        #     "chat": self.scratch.chat
+        # }
+        # save_movement(self.name, role_move, step=self.step, sim_code=self.sim_code, curr_time=self.curr_time)
 
         # step update
+        logger.info(f"Role: {self.name} run at {self.step} step on {self.curr_time}")
         self.step += 1
         self.curr_time += datetime.timedelta(seconds=self.sec_per_step)
+
+        return DummyMessage()

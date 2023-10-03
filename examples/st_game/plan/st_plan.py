@@ -7,12 +7,12 @@ from typing import Union, Tuple
 from datetime import datetime
 import math
 
-from ..maze import Maze
-from ..plan.converse import agent_conversation
-from ..roles.st_role import STRole
-from ..actions.decide_to_talk import DecideToTalk
-from ..actions.summarize_conv import SummarizeConv
-from ..actions.new_decomp_schedule import NewDecompSchedule
+from examples.st_game.maze import Maze
+from examples.st_game.plan.converse import agent_conversation
+from examples.st_game.roles.st_role import STRole
+from examples.st_game.actions.decide_to_talk import DecideToTalk
+from examples.st_game.actions.summarize_conv import SummarizeConv
+from examples.st_game.actions.new_decomp_schedule import NewDecompSchedule
 
 
 def plan(role: STRole, maze: Maze, roles: list[STRole], new_day: bool, retrieved: dict):

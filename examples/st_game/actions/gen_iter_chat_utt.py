@@ -5,10 +5,10 @@
 from metagpt.logs import logger
 from metagpt.schema import Message
 
-from ..roles.st_role import STRole
-from ..actions.st_action import STAction
-from ..utils.utils import extract_first_json_dict
-from ..maze import Maze
+from examples.st_game.roles.st_role import STRole
+from examples.st_game.actions.st_action import STAction
+from examples.st_game.utils.utils import extract_first_json_dict
+from examples.st_game.maze import Maze
 
 
 class GenIterChatUTT(STAction):

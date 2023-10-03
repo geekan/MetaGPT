@@ -18,7 +18,6 @@ from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.memory import Memory, LongTermMemory
 from metagpt.schema import Message
-from metagpt.reflect import agent_reflect
 
 PREFIX_TEMPLATE = """You are a {profile}, named {name}, your goal is {goal}, and the constraint is {constraints}. """
 

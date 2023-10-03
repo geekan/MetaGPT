@@ -37,19 +37,19 @@ async def final_response(prompt, special_instruction, example_output=None):
 
 def prompt_generate(curr_input, prompt_lib_file):
     """
-    Takes in the current input (e.g. comment that you want to classifiy) and 
+    Takes in the current input (e.g. comment that you want to classifiy) and
     the path to a prompt file. The prompt file contains the raw str prompt that
-    will be used, which contains the following substr: !<INPUT>! -- this 
-    function replaces this substr with the actual curr_input to produce the 
-    final promopt that will be sent to the GPT3 server. 
+    will be used, which contains the following substr: !<INPUT>! -- this
+    function replaces this substr with the actual curr_input to produce the
+    final promopt that will be sent to the GPT3 server.
     ARGS:
     curr_input: the input we want to feed in (IF THERE ARE MORE THAN ONE
                 INPUT, THIS CAN BE A LIST.)
-    prompt_lib_file: the path to the promopt file. 
-    RETURNS: 
-    a str prompt that will be sent to OpenAI's GPT server.  
+    prompt_lib_file: the path to the promopt file.
+    RETURNS:
+    a str prompt that will be sent to OpenAI's GPT server.
     """
-    if type(curr_input) is type("string"):
+    if isinstance(curr_input, str):
         curr_input = [curr_input]
         curr_input = [str(i) for i in curr_input]
 
@@ -62,23 +62,3 @@ def prompt_generate(curr_input, prompt_lib_file):
         prompt = prompt.split(
             "<commentblockmarker>###</commentblockmarker>")[1]
     return prompt.strip()
-
-# 使用OpenAI embedding库进行存储
-
-
-def embedding(query):
-    """
-    Generates an embedding for the given query.
-
-    Args:
-        query (str): The text query to be embedded.
-
-    Returns:
-        str: The embedding key generated for the query.
-    """
-    embedding_result = openai.Embedding.create(
-        model="text-embedding-ada-002",
-        input=query
-    )
-    embedding_key = embedding_result['data'][0]["embedding"]
-    return embedding_key

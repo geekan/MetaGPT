@@ -5,11 +5,11 @@
 import datetime
 import json
 
-from ..utils.utils import check_if_file_exists
+from examples.st_game.utils.utils import check_if_file_exists
 
 
 class Scratch:
-    def __init__(self, f_saved):
+    def __init__(self):
         # 类别1:人物超参
         self.vision_r = 4
         self.att_bandwidth = 3
@@ -77,6 +77,7 @@ class Scratch:
         self.act_path_set = False
         self.planned_path = []
 
+    def set_scratch_path(self, f_saved: str):
         if check_if_file_exists(f_saved):
             # If we have a bootstrap file, load that here.
             scratch_load = json.load(open(f_saved))
@@ -510,4 +511,3 @@ class Scratch:
             minute = curr_min_sum % 60
             ret += f"{hour:02}:{minute:02} || {row[0]}\n"
         return ret
-    

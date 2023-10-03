@@ -9,7 +9,7 @@ import json
 from metagpt.actions.action import Action
 from metagpt.schema import Message
 
-from ..utils.const import PROMPTS_DIR
+from examples.st_game.utils.const import PROMPTS_DIR
 
 
 class STAction(Action):

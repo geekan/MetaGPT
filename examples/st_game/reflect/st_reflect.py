@@ -6,8 +6,9 @@ import asyncio
 import json
 import time
 from metagpt.logs import logger
-from ..prompts.wrapper_prompt import special_response_generate
-from ..memory.agent_memory import BasicMemory
+
+from examples.st_game.prompts.wrapper_prompt import special_response_generate
+from examples.st_game.memory.agent_memory import BasicMemory
 
 
 async def agent_reflect(memories_list):
@@ -21,7 +22,7 @@ async def agent_reflect(memories_list):
         B = await generate_insights_and_evidence(memories_list, question=i)
 
 
-async def generate_focus_point(memories_list: list[MemoryBasic], n=3):
+async def generate_focus_point(memories_list: list[BasicMemory], n=3):
     """
     生成关注点函数：根据记忆列表生成关注点
     """
@@ -47,7 +48,7 @@ async def generate_focus_point(memories_list: list[MemoryBasic], n=3):
         return out
 
 
-async def generate_insights_and_evidence(memories_list: list[MemoryBasic], question: str, n=5):
+async def generate_insights_and_evidence(memories_list: list[BasicMemory], question: str, n=5):
     """
     生成洞察和证据函数：根据问题生成洞察和证据
     """
@@ -68,7 +69,7 @@ async def generate_insights_and_evidence(memories_list: list[MemoryBasic], quest
     try:
         insight_list = json.loads(ret)
         for insight, index in insight_list:
-            agent.memory_list.append(MemoryBasic(
+            agent.memory_list.append(BasicMemory(
                 time.time(), None, insight, None, None))
         return insight_list
     except:

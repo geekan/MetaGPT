@@ -2,10 +2,11 @@
 # -*- coding: utf-8 -*-
 # @Desc   : 调用Prompts中模板，实现相关Action
 
-from wrapper_prompt import special_response_generate, prompt_generate
-from memory.scratch import Scratch
-from examples.st_game.memory.agent_memory import BasicMemory
 import json
+
+from examples.st_game.prompts.wrapper_prompt import special_response_generate, prompt_generate
+from examples.st_game.memory.scratch import Scratch
+from examples.st_game.memory.agent_memory import BasicMemory
 
 
 def get_poignancy_action(scratch: Scratch, content: BasicMemory.content) -> str:
@@ -31,7 +32,8 @@ def get_poignancy_action(scratch: Scratch, content: BasicMemory.content) -> str:
         return str(poi_dict['poignancy'])  # 将返回值强制转换为字符串
     except json.JSONDecodeError as e:
         return poignancy
-    
+
+
 def get_poignancy_chat(scratch: Scratch, content: BasicMemory.content) -> str:
     """
     衡量会话心酸度
