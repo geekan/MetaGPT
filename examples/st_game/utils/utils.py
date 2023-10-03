@@ -41,7 +41,7 @@ def read_csv_to_list(curr_file: str, header=False, strip_trail=True):
     RETURNS:
       List of list where the component lists are the rows of the file.
     """
-    logger.info(f"start read csv: {curr_file}")
+    logger.debug(f"start read csv: {curr_file}")
     if not header:
         analysis_list = []
         with open(curr_file) as f_analysis_file:

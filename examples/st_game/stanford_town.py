@@ -9,8 +9,8 @@ from metagpt.roles.role import Role
 from metagpt.schema import Message
 from metagpt.logs import logger
 
-from maze_environment import MazeEnvironment
-from actions.user_requirement import UserRequirement
+from examples.st_game.maze_environment import MazeEnvironment
+from examples.st_game.actions.user_requirement import UserRequirement
 
 
 class StanfordTown(SoftwareCompany):

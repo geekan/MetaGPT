@@ -5,11 +5,11 @@
 import asyncio
 import fire
 
-from stanford_town import StanfordTown
-from roles.st_role import STRole
-from utils.mg_ga_transform import get_reverie_meta
-from utils.const import STORAGE_PATH
-from utils.utils import copy_folder
+from examples.st_game.stanford_town import StanfordTown
+from examples.st_game.roles.st_role import STRole
+from examples.st_game.utils.mg_ga_transform import get_reverie_meta
+from examples.st_game.utils.const import STORAGE_PATH
+from examples.st_game.utils.utils import copy_folder
 
 
 async def startup(idea: str,

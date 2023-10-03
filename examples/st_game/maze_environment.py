@@ -7,7 +7,7 @@ from pydantic import Field
 from metagpt.environment import Environment
 from metagpt.roles.role import Role
 
-from maze import Maze
+from examples.st_game.maze import Maze
 
 
 class MazeEnvironment(Environment):
