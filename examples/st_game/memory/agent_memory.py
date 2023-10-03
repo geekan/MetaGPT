@@ -7,6 +7,7 @@ from datetime import datetime
 
 from metagpt.memory.memory import Memory
 from metagpt.schema import Message
+from metagpt.logs import logger
 
 
 class BasicMemory(Message):
@@ -114,6 +115,9 @@ class AgentMemory(Memory):
         self.kw_strength_event = dict()  # 关键词影响存储
         self.kw_strength_thought = dict()
 
+        self.memory_saved = None
+        self.embeddings = None
+
         # self.load(memory_saved)
 
     def set_mem_path(self, memory_saved: str):
@@ -129,6 +133,7 @@ class AgentMemory(Memory):
         memory_json = dict()
         for i in range(len(self.storage)):
             memory_node = self.storage[i]
+            memory_node = memory_node.save_to_dict()
             memory_json.update(memory_node)
         with open(memory_saved + "/nodes.json", "w") as outfile:
             json.dump(memory_json, outfile)
@@ -253,6 +258,7 @@ class AgentMemory(Memory):
                 depth_list = [memory_node.depth for memory_node in self.storage if memory_node.memory_id in filling]
                 depth += max(depth_list)
         except Exception as exp:
+            logger.warning(f"filling init occur {exp}")
             pass
 
         memory_node = BasicMemory(memory_id, memory_count, type_count, memory_type, depth,

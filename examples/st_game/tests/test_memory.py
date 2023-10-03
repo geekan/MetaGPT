@@ -1,6 +1,6 @@
 from datetime import datetime
 from metagpt.logs import logger
-from ..memory.agent_memory import AgentMemory, BasicMemory
+from examples.st_game.memory.agent_memory import AgentMemory, BasicMemory
 
 # Create some sample BasicMemory instances
 memory1 = BasicMemory(

@@ -104,6 +104,10 @@ class STRole(Role):
     def scratch(self):
         return self._rc.scratch
 
+    @property
+    def memory(self):
+        return self._rc.memory
+
     def load_from(self, folder: Path):
         """
         load role data from `storage/{simulation_name}/personas/{role_name}
@@ -123,8 +127,6 @@ class STRole(Role):
         observed = self._rc.env.memory.get_by_actions(self._rc.watch)
         self._rc.news = self._rc.memory.remember(observed)
         if len(self._rc.news) == 1 and self._rc.news[0].cause_by == UserRequirement:
-            # add inner voice
-            # TODO
             self.add_inner_voice(self._rc.news[0].content)
             logger.warning(f"Role: {self.name} add inner voice: {self._rc.news[0].content}")
 
@@ -132,25 +134,24 @@ class STRole(Role):
 
     def add_inner_voice(self, whisper):
         # TODO
-        def generate_inner_thought(strole: STRole, whisper):
+        def generate_inner_thought(role: STRole, whisper):
             run_whisper_thought = AgentWhisperThoughtAction()
             inner_thought = run_whisper_thought.run(self, whisper)
             return inner_thought
-        
+
         whisper = input("Enter Input: ")
         thought = generate_inner_thought(whisper)
 
         created = self._rc.scratch.curr_time
         expiration = self._rc.scratch.curr_time + datetime.timedelta(days=30)
         run_event_triple = AgentEventTriple()
-        s, p, o = run_event_triple(thought, self)
+        s, p, o = run_event_triple.run(thought, self)
         keywords = set([s, p, o])
         thought_poignancy = generate_poig_score(self, "event", whisper)
         thought_embedding_pair = (thought, get_embedding(thought))
-        self._rc.memory.add_thought(created, expiration, s, p, o, 
-                                thought, keywords, thought_poignancy, 
-                                thought_embedding_pair, None)
-
+        self._rc.memory.add_thought(created, expiration, s, p, o,
+                                    thought, keywords, thought_poignancy,
+                                    thought_embedding_pair, None)
 
     async def observe(self) -> list[BasicMemory]:
         # TODO observe info from maze_env
@@ -293,7 +294,7 @@ class STRole(Role):
 
         return ret_events
 
-    async def retrieve(self, focus_points, n=30):
+    def retrieve(self, focus_points, n=30) -> dict:
         # TODO retrieve memories from agent_memory
         retrieve_memories = new_agent_retrieve(self, focus_points, n)
         return retrieve_memories

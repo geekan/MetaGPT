@@ -7,6 +7,7 @@ from metagpt.logs import logger
 
 from examples.st_game.actions.st_action import STAction
 from examples.st_game.memory.agent_memory import BasicMemory
+from examples.st_game.roles.st_role import STRole
 
 
 # Run GPT Prompt Focal Point method
@@ -32,8 +33,8 @@ class AgentFocusPt(STAction):
     def _func_fail_default_resp(self) -> str:
         pass
 
-    async def run(self, role: "STRole", statements: str, n: int, test_input=None) -> str:
-        def create_prompt_input(role: "STRole", statements, n, test_input=None):
+    def run(self, role: STRole, statements: str, n: int, test_input=None) -> str:
+        def create_prompt_input(role: STRole, statements, n, test_input=None):
             prompt_input = [statements, str(n)]
             return prompt_input
 
@@ -43,9 +44,9 @@ class AgentFocusPt(STAction):
 
         example_output = '["What should Jane do for lunch", "Does Jane like strawberry", "Who is Jane"]'
         special_instruction = "Output must be a list of str."
-        output = await self._run_v2(prompt,
-                                    example_output,
-                                    special_instruction)
+        output = self._run_v2(prompt,
+                              example_output,
+                              special_instruction)
         logger.info(f"Run action: {self.__class__.__name__} with result: {output}")
         return output
 
@@ -63,7 +64,7 @@ class AgentInsightAndGuidance(STAction):
         except:
             return False
 
-    def _func_cleanup(self, llm_resp: str, prompt: str = "") -> str:
+    def _func_cleanup(self, llm_resp: str, prompt: str = "") -> dict:
         llm_resp = "1. " + llm_resp.strip()
         ret = dict()
         for i in llm_resp.split("\n"):
@@ -78,8 +79,8 @@ class AgentInsightAndGuidance(STAction):
     def _func_fail_default_resp(self) -> str:
         pass
 
-    async def run(self, role: "STRole", statements: str, n: int, test_input=None) -> str:
-        def create_prompt_input(role: "STRole", statements, n, test_input=None):
+    def run(self, role: STRole, statements: str, n: int, test_input=None) -> dict:
+        def create_prompt_input(role, statements, n, test_input=None):
             prompt_input = [statements, str(n)]
             return prompt_input
 
@@ -87,7 +88,7 @@ class AgentInsightAndGuidance(STAction):
         prompt = self.generate_prompt_with_tmpl_filename(prompt_input,
                                                          "insight_and_evidence_v1.txt")
 
-        output = await self._run_v1(prompt)
+        output = self._run_v1(prompt)
         logger.info(f"Run action: {self.__class__.__name__} with result: {output}")
         return output
 
@@ -106,7 +107,7 @@ class AgentEventTriple(STAction):
             return False
         return True
 
-    def _func_cleanup(self, llm_resp: str, prompt: str = "") -> str:
+    def _func_cleanup(self, llm_resp: str, prompt: str = "") -> list:
         cr = llm_resp.strip()
         cr = [i.strip() for i in cr.split(")")[0].split(",")]
         return cr
@@ -114,23 +115,24 @@ class AgentEventTriple(STAction):
     def _func_fail_default_resp(self) -> str:
         pass
 
-    async def run(self, statements: str, role: "STRole", verbose=False) -> str:
+    def run(self, statements: str, role: STRole, verbose=False) -> str:
         def create_prompt_input(statements, role):
             if "(" in statements:
                 statements = statements.split("(")[-1].split(")")[0]
-                prompt_input = [role._rc.scratch.name,
+                prompt_input = [role.scratch.name,
                                 statements,
-                                role._rc.scratch.name]
+                                role.scratch.name]
                 return prompt_input
 
         prompt_input = create_prompt_input(statements, role)
         prompt = self.generate_prompt_with_tmpl_filename(prompt_input,
                                                          "generate_event_triple_v1.txt")
 
-        output = await self._run_v1(prompt)
+        output = self._run_v1(prompt)
+        output = (role.scratch.name,output[0],output[1])
         logger.info(f"Run action: {self.__class__.__name__} with result: {output}")
 
-        return output[0]
+        return output
 
 
 # Run GPT Prompt Event Poignancy
@@ -152,11 +154,11 @@ class AgentEventPoignancy(STAction):
     def _func_fail_default_resp(self) -> str:
         pass
 
-    async def run(self, role: "STRole", statements: str, test_input=None, verbose=False) -> str:
-        def create_prompt_input(role: "STRole", statements: str, test_input=None):
-            prompt_input = [role._rc.scratch.name,
-                            role._rc.scratch.get_str_iss(),
-                            role._rc.scratch.name,
+    def run(self, role: STRole, statements: str, test_input=None, verbose=False) -> str:
+        def create_prompt_input(role: STRole, statements: str, test_input=None):
+            prompt_input = [role.scratch.name,
+                            role.scratch.get_str_iss(),
+                            role.scratch.name,
                             statements]
             return prompt_input
 
@@ -166,9 +168,9 @@ class AgentEventPoignancy(STAction):
 
         example_output = "5"  # ########
         special_instruction = "The output should ONLY contain ONE integer value on the scale of 1 to 10."
-        output = await self._run_v2(prompt,
-                                    example_output,
-                                    special_instruction)
+        output = self._run_v2(prompt,
+                              example_output,
+                              special_instruction)
         logger.info(f"Run action: {self.__class__.__name__} with result: {output}")
 
         return output
@@ -193,11 +195,11 @@ class AgentChatPoignancy(STAction):
     def _func_fail_default_resp(self) -> str:
         pass
 
-    async def run(self, role: "STRole", statements: str, test_input=None, verbose=False) -> str:
-        def create_prompt_input(role: "STRole", statements, test_input=None):
-            prompt_input = [role._rc.scratch.name,
-                            role._rc.scratch.get_str_iss(),
-                            role._rc.scratch.name,
+    def run(self, role: STRole, statements: str, test_input=None, verbose=False) -> str:
+        def create_prompt_input(role: STRole, statements, test_input=None):
+            prompt_input = [role.scratch.name,
+                            role.scratch.get_str_iss(),
+                            role.scratch.name,
                             statements]
             return prompt_input
 
@@ -207,9 +209,9 @@ class AgentChatPoignancy(STAction):
 
         example_output = "5"  # ########
         special_instruction = "The output should ONLY contain ONE integer value on the scale of 1 to 10."
-        output = await self._run_v2(prompt,
-                                    example_output,
-                                    special_instruction)
+        output = self._run_v2(prompt,
+                              example_output,
+                              special_instruction)
         logger.info(f"Run action: {self.__class__.__name__} with result: {output}")
 
         return output
@@ -233,19 +235,19 @@ class AgentPlanThoughtOnConvo(STAction):
     def _func_fail_default_resp(self) -> str:
         pass
 
-    async def run(self, role: "STRole", statements: str, test_input=None, verbose=False) -> str:
+    def run(self, role: STRole, statements: str, test_input=None, verbose=False) -> str:
         def create_prompt_input(role, statements, test_input=None):
             prompt_input = [statements,
-                            role._rc.scratch.name,
-                            role._rc.scratch.name,
-                            role._rc.scratch.name]
+                            role.scratch.name,
+                            role.scratch.name,
+                            role.scratch.name]
             return prompt_input
 
         prompt_input = create_prompt_input(role, statements)
         prompt = self.generate_prompt_with_tmpl_filename(prompt_input,
                                                          "planning_thought_on_convo_v1.txt")
 
-        output = await self._run_v1(prompt)
+        output = self._run_v1(prompt)
         logger.info(f"Run action: {self.__class__.__name__} with result: {output}")
 
         return output
@@ -269,12 +271,12 @@ class AgentMemoryOnConvo(STAction):
     def _func_fail_default_resp(self) -> str:
         pass
 
-    async def run(self, role: "STRole", statements: str, test_input=None, verbose=False) -> str:
+    def run(self, role: STRole, statements: str, test_input=None, verbose=False) -> str:
         def create_prompt_input(role, statements, test_input=None):
             prompt_input = [statements,
-                            role._rc.scratch.name,
-                            role._rc.scratch.name,
-                            role._rc.scratch.name]
+                            role.scratch.name,
+                            role.scratch.name,
+                            role.scratch.name]
             return prompt_input
 
         prompt_input = create_prompt_input(role, statements)
@@ -282,9 +284,9 @@ class AgentMemoryOnConvo(STAction):
                                                          "memo_on_convo_v1.txt")
         example_output = 'Jane Doe was interesting to talk to.'
         special_instruction = 'The output should ONLY contain a string that summarizes anything interesting that the agent may have noticed'
-        output = await self._run_v2(prompt,
-                                    example_output,
-                                    special_instruction)
+        output = self._run_v2(prompt,
+                              example_output,
+                              special_instruction)
         logger.info(f"Run action: {self.__class__.__name__} with result: {output}")
 
         return output

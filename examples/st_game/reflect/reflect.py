@@ -17,14 +17,14 @@ from examples.st_game.actions.run_reflect_action import (
 def generate_focal_points(role: "STRole", n=3):
     nodes = [
         [i.last_accessed, i] for i in
-        role._rc.memory.event_list + role._rc.memory.thought_list
+        role.memory.event_list + role.memory.thought_list
         if "idle" not in i.embedding_key
     ]
     nodes = sorted(nodes, key=lambda x: x[0])
     nodes = [i for _, i in nodes]
 
     statements = ""
-    for node in nodes[-1 * role._rc.scratch.importance_ele_n:]:
+    for node in nodes[-1 * role.scratch.importance_ele_n:]:
         statements += node.embedding_key + "\n"
     run_focal_pt = AgentFocusPt()
     return run_focal_pt.run(role, statements, n)
@@ -59,7 +59,8 @@ def generate_action_event_triple(act_desp, role):
         "🧈🍞"
     """
     run_event_triple = AgentEventTriple()
-    return AgentEventTriple(act_desp, role)
+    result = run_event_triple.run(act_desp, role)
+    return result
 
 
 def generate_poig_score(role: STRole, event_type, description):
@@ -72,7 +73,7 @@ def generate_poig_score(role: STRole, event_type, description):
     elif event_type == "chat":
         run_chat_poignancy = AgentChatPoignancy()
         return run_chat_poignancy.run(role,
-                                      role._rc.scratch.act_description)[0]
+                                      role.scratch.act_description)[0]
 
 
 def generate_planning_thought_on_convo(role, all_utt):
@@ -114,17 +115,16 @@ def run_reflect(role: "STRole"):
             created = role.scratch.curr_time
             expiration = created + datetime.timedelta(days=30)
             s, p, o = generate_action_event_triple(thought, role)
-            keywords = set([s, p, o])
+            keywords = {[s, p, o]}
             thought_poignancy = generate_poig_score(role, "thought", thought)
             thought_embedding_pair = (thought, get_embedding(thought))
 
-            role._rc.memory.add_thought(
+            role.memory.add_thought(
                 created, expiration, s, p, o, thought, keywords,
                 thought_poignancy, thought_embedding_pair, evidence
             )
 
 
-# Done
 def reflection_trigger(role: "STRole"):
     """
     Given the current role, determine whether the role should run a
@@ -140,13 +140,13 @@ def reflection_trigger(role: "STRole"):
         False otherwise.
     """
     logger.info(
-        role._rc.scratch.name, "role.scratch.importance_trigger_curr::",
-        role._rc.scratch.importance_trigger_curr
+        role.scratch.name, "role.scratch.importance_trigger_curr::",
+        role.scratch.importance_trigger_curr
     )
-    logger.info(role._rc.scratch.importance_trigger_max)
+    logger.info(role.scratch.importance_trigger_max)
 
-    if (role._rc.scratch.importance_trigger_curr <= 0 and
-            [] != role._rc.memory.seq_event + role._rc.memory.seq_thought):
+    if (role.scratch.importance_trigger_curr <= 0 and
+            [] != role.memory.seq_event + role.memory.seq_thought):
         return True
     return False
 
@@ -161,12 +161,11 @@ def reset_reflection_counter(role: "STRole"):
     Output:
         None
     """
-    role_imt_max = role._rc.scratch.importance_trigger_max
-    role._rc.scratch.importance_trigger_curr = role_imt_max
-    role._rc.scratch.importance_ele_n = 0
+    role_imt_max = role.scratch.importance_trigger_max
+    role.scratch.importance_trigger_curr = role_imt_max
+    role.scratch.importance_ele_n = 0
 
 
-# Question 1 chat函数
 def role_reflect(role: "STRole"):
     """
     The main reflection module for the role. We first check if the trigger
@@ -182,42 +181,41 @@ def role_reflect(role: "STRole"):
         run_reflect(role)
         reset_reflection_counter(role)
 
-    if role._rc.scratch.chatting_end_time:
-        if role._rc.scratch.curr_time + datetime.timedelta(0, 10) == role._rc.scratch.chatting_end_time:
+    if role.scratch.chatting_end_time:
+        if role.scratch.curr_time + datetime.timedelta(0, 10) == role.scratch.chatting_end_time:
             all_utt = ""
-            if role._rc.scratch.chat:
-                for row in role._rc.scratch.chat:
+            if role.scratch.chat:
+                for row in role.scratch.chat:
                     all_utt += f"{row[0]}: {row[1]}\n"
 
-            # Question memory添加对话函数
-            evidence = [role._rc.memory.get_last_chat(role._rc.scratch.chatting_with).memory_id]
+            evidence = [role.memory.get_last_chat(role.scratch.chatting_with).memory_id]
 
             planning_thought = generate_planning_thought_on_convo(role, all_utt)
-            planning_thought = f"For {role._rc.scratch.name}'s planning: {planning_thought}"
+            planning_thought = f"For {role.scratch.name}'s planning: {planning_thought}"
 
-            created = role._rc.scratch.curr_time
+            created = role.scratch.curr_time
             expiration = created + datetime.timedelta(days=30)
             s, p, o = generate_action_event_triple(planning_thought, role)
-            keywords = set([s, p, o])
+            keywords = {[s, p, o]}
             thought_poignancy = generate_poig_score(role, "thought", planning_thought)
             thought_embedding_pair = (planning_thought, get_embedding(planning_thought))
 
-            role._rc.memory.add_thought(
+            role.memory.add_thought(
                 created, expiration, s, p, o, planning_thought, keywords,
                 thought_poignancy, thought_embedding_pair, evidence
             )
 
             memo_thought = generate_memo_on_convo(role, all_utt)
-            memo_thought = f"{role._rc.scratch.name} {memo_thought}"
+            memo_thought = f"{role.scratch.name} {memo_thought}"
 
-            created = role._rc.scratch.curr_time
+            created = role.scratch.curr_time
             expiration = created + datetime.timedelta(days=30)
             s, p, o = generate_action_event_triple(memo_thought, role)
-            keywords = set([s, p, o])
+            keywords = {[s, p, o]}
             thought_poignancy = generate_poig_score(role, "thought", memo_thought)
             thought_embedding_pair = (memo_thought, get_embedding(memo_thought))
 
-            role._rc.memory.add_thought(
+            role.memory.add_thought(
                 created, expiration, s, p, o, memo_thought, keywords,
                 thought_poignancy, thought_embedding_pair, evidence
             )
