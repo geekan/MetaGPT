@@ -465,19 +465,19 @@ class STRole(Role):
         # TODO retrieve, use self._rc.memory 's retrieve functions
 
         # TODO plan
-        # plan = self.plan()
-        #
-        # # TODO reflect
-        #
-        # # TODO execute(feed-back into maze_env)
-        # next_tile, pronunciatio, description = self.execute(plan)
-        # role_move = {
-        #     "movement": next_tile,
-        #     "pronunciatio": pronunciatio,
-        #     "description": description,
-        #     "chat": self.scratch.chat
-        # }
-        # save_movement(self.name, role_move, step=self.step, sim_code=self.sim_code, curr_time=self.curr_time)
+        plan = self.plan()
+
+        # TODO reflect
+
+        # TODO execute(feed-back into maze_env)
+        next_tile, pronunciatio, description = self.execute(plan)
+        role_move = {
+            "movement": next_tile,
+            "pronunciatio": pronunciatio,
+            "description": description,
+            "chat": self.scratch.chat
+        }
+        save_movement(self.name, role_move, step=self.step, sim_code=self.sim_code, curr_time=self.curr_time)
 
         # step update
         logger.info(f"Role: {self.name} run at {self.step} step on {self.curr_time}")
