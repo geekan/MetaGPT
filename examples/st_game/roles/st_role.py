@@ -126,6 +126,10 @@ class STRole(Role):
 
         return 1  # always return 1 to execute role's `_react`
 
+    def add_inner_voice(self):
+        # TODO
+        pass
+
     async def observe(self) -> list[BasicMemory]:
         # TODO observe info from maze_env
         """
