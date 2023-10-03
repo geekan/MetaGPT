@@ -14,8 +14,9 @@ import json
 import math
 from pathlib import Path
 import networkx as nx
-from utils.const import MAZE_ASSET_PATH
-from utils.utils import read_csv_to_list
+
+from examples.st_game.utils.const import MAZE_ASSET_PATH
+from examples.st_game.utils.utils import read_csv_to_list
 
 
 class Maze:

@@ -7,8 +7,9 @@ Description: Compresses a simulation for replay demos.
 
 import shutil
 import json
-from utils.utils import find_filenames, create_folder_if_not_there
-from utils.const import STORAGE_PATH
+
+from examples.st_game.utils.utils import find_filenames, create_folder_if_not_there
+from examples.st_game.utils.const import STORAGE_PATH
 
 
 def compress(sim_code):
@@ -63,6 +64,7 @@ def compress(sim_code):
 
     shutil.copyfile(meta_file, f"{compressed_storage}/meta.json")
     shutil.copytree(persona_folder, f"{compressed_storage}/personas/")
+
 
 if __name__ == '__main__':
     compress("July1_the_ville_isabella_maria_klaus-step-3-9")

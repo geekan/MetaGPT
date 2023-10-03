@@ -119,7 +119,7 @@ class STRole(Role):
 
         observed = self._rc.env.memory.get_by_actions(self._rc.watch)
         self._rc.news = self._rc.memory.remember(observed)
-        if len(self._rc.news) == 1 and isinstance(self._rc.news[0], UserRequirement):
+        if len(self._rc.news) == 1 and self._rc.news[0].cause_by == UserRequirement:
             # add inner voice
             # TODO
             logger.warning(f"Role: {self.name} add inner voice: {self._rc.news[0].content}")
@@ -469,19 +469,19 @@ class STRole(Role):
         # TODO retrieve, use self._rc.memory 's retrieve functions
 
         # TODO plan
-        plan = self.plan()
-
-        # TODO reflect
-
-        # TODO execute(feed-back into maze_env)
-        next_tile, pronunciatio, description = self.execute(plan)
-        role_move = {
-            "movement": next_tile,
-            "pronunciatio": pronunciatio,
-            "description": description,
-            "chat": self.scratch.chat
-        }
-        save_movement(self.name, role_move, step=self.step, sim_code=self.sim_code, curr_time=self.curr_time)
+        # plan = self.plan()
+        #
+        # # TODO reflect
+        #
+        # # TODO execute(feed-back into maze_env)
+        # next_tile, pronunciatio, description = self.execute(plan)
+        # role_move = {
+        #     "movement": next_tile,
+        #     "pronunciatio": pronunciatio,
+        #     "description": description,
+        #     "chat": self.scratch.chat
+        # }
+        # save_movement(self.name, role_move, step=self.step, sim_code=self.sim_code, curr_time=self.curr_time)
 
         # step update
         logger.info(f"Role: {self.name} run at {self.step} step on {self.curr_time}")
