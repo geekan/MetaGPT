@@ -6,7 +6,7 @@ from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.logs import logger
 from examples.werewolf_game.actions.moderator_actions import (
-    InstructSpeak, ParseSpeak, AnnounceGameResult, STEP_INSTRUCTIONS
+    InstructSpeak, ParseSpeak, AnnounceGameResult
 )
 from examples.werewolf_game.actions import Hunt, Protect, Verify, Save, Poison
 from metagpt.actions import BossRequirement as UserRequirement
@@ -24,6 +24,7 @@ class Moderator(Role):
         self._watch([UserRequirement, InstructSpeak, ParseSpeak])
         self._init_actions([InstructSpeak, ParseSpeak, AnnounceGameResult])
         self.step_idx = 0
+        self.day_or_night = "night"
 
         # game states
         self.living_players = []
@@ -53,13 +54,12 @@ class Moderator(Role):
         for role_setting, role in roles_in_env.items():
             for player_name in player_names:
                 if player_name in role_setting:
-                    role.set_status(new_status=1) # 更新为死亡
+                    role.set_status(new_status=1)  # 更新为死亡
 
-    async def _instruct_speak(self):
-        print("*" * 10, "STEP: ", self.step_idx, "*" * 10)
-        step_idx = self.step_idx % len(STEP_INSTRUCTIONS)
-        self.step_idx += 1
-        return await InstructSpeak().run(step_idx,
+    async def _instruct_speak(self, memories):
+        # print("*" * 10, "STEP: ", self.step_idx, "*" * 10)
+        # step_idx = self.step_idx % len(STEP_INSTRUCTIONS)
+        return await InstructSpeak().run(self, conversations=memories,
                                          living_players=self.living_players,
                                          werewolf_players=self.werewolf_players,
                                          player_hunted=self.player_hunted,
@@ -71,7 +71,7 @@ class Moderator(Role):
         latest_msg = memories[-1]
         latest_msg_content = latest_msg.content
 
-        match = re.search(r"Player[0-9]+", latest_msg_content[-10:]) # FIXME: hard code truncation
+        match = re.search(r"Player[0-9]+", latest_msg_content[-10:])  # FIXME: hard code truncation
         target = match.group(0) if match else ""
 
         # default return
@@ -107,19 +107,15 @@ class Moderator(Role):
                 restricted_to = "Moderator,Witch"
             else:
                 self.witch_poison_left -= 1
-                self.player_poisoned = target # "" if not poisoned and "PlayerX" if poisoned
+                self.player_poisoned = target  # "" if not poisoned and "PlayerX" if poisoned
 
         return msg_content, restricted_to
 
-    def _update_game_states(self, memories):
-
-        step_idx = self.step_idx % len(STEP_INSTRUCTIONS)
-        if step_idx not in [15, 18]: # FIXME: hard code
-            return
-
-        if step_idx == 15: # FIXME: hard code
+    def _update_game_states(self, day_or_night, memories):
+        # FIXME: 不能更新状态，需修改！
+        if day_or_night == "night":
             # night ends: after all special roles acted, process the whole night
-            self.player_current_dead = [] # reset
+            self.player_current_dead = []  # reset
 
             if self.player_hunted != self.player_protected and not self.is_hunted_player_saved:
                 self.player_current_dead.append(self.player_hunted)
@@ -134,7 +130,7 @@ class Moderator(Role):
             self.is_hunted_player_saved = False
             self.player_poisoned = None
 
-        elif step_idx == 18: # FIXME: hard code
+        elif day_or_night == "day":
             # day ends: after all roles voted, process all votings
             voting_msgs = memories[-len(self.living_players):]
             voted_all = []
@@ -143,7 +139,7 @@ class Moderator(Role):
                 if not voted:
                     continue
                 voted_all.append(voted.group(0))
-            self.player_current_dead = [Counter(voted_all).most_common()[0][0]] # 平票时，杀序号小的
+            self.player_current_dead = [Counter(voted_all).most_common()[0][0]]  # 平票时，杀序号小的
             self.living_players = [p for p in self.living_players if p not in self.player_current_dead]
             self.update_player_status(self.player_current_dead)
 
@@ -156,11 +152,13 @@ class Moderator(Role):
             self.winner = "werewolf"
 
     def _record_game_history(self):
-        if self.step_idx % len(STEP_INSTRUCTIONS) == 0 or self.winner is not None:
-            logger.info("a night and day cycle completed, examine all history")
-            print(self.get_all_memories())
-            with open(WORKSPACE_ROOT / 'werewolf_transcript.txt', "w") as f:
-                f.write(self.get_all_memories())
+        # if self.step_idx == 0 or self.winner is not None:
+        #     logger.info("a night and day cycle completed, examine all history")
+        print("↓" * 10)
+        print(self.get_all_memories())
+        print("↑" * 10)
+        with open(WORKSPACE_ROOT / 'werewolf_transcript.txt', "w") as f:
+            f.write(self.get_all_memories())
 
     async def _think(self):
 
@@ -194,11 +192,11 @@ class Moderator(Role):
         self._record_game_history()
 
         # 若一晚或一日周期结束，对当晚或当日的死者进行总结，并更新游戏状态
-        self._update_game_states(memories)
+        self._update_game_states(self.day_or_night, memories)
 
         # 根据_think的结果，执行InstructSpeak还是ParseSpeak, 并将结果返回
         if isinstance(todo, InstructSpeak):
-            msg_content, msg_to_send_to, msg_restriced_to = await self._instruct_speak()
+            msg_content, msg_to_send_to, msg_restriced_to, self.day_or_night = await self._instruct_speak(memories)
             # msg_content = f"Step {self.step_idx}: {msg_content}" # HACK: 加一个unique的step_idx避免记忆的自动去重
             msg = Message(content=msg_content, role=self.profile, sent_from=self.name,
                           cause_by=InstructSpeak, send_to=msg_to_send_to, restricted_to=msg_restriced_to)
