@@ -5,7 +5,6 @@
 import datetime
 
 from metagpt.logs import logger
-from examples.st_game.roles.st_role import STRole
 from examples.st_game.utils.utils import get_embedding
 from examples.st_game.actions.run_reflect_action import (
     AgentFocusPt, AgentInsightAndGuidance, AgentEventTriple,
@@ -63,7 +62,7 @@ def generate_action_event_triple(act_desp, role):
     return result
 
 
-def generate_poig_score(role: STRole, event_type, description):
+def generate_poig_score(role: "STRole", event_type, description):
     if "is idle" in description:
         return 1
 

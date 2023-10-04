@@ -1,5 +1,4 @@
 import re
-from examples.st_game.roles.st_role import STRole
 from examples.st_game.actions.st_action import STAction
 from examples.st_game.memory.agent_memory import BasicMemory
 from metagpt.logs import logger
@@ -22,8 +21,8 @@ class AgentWhisperThoughtAction(STAction):
     def _func_fail_default_resp(self) -> str:
         pass
 
-    async def run(self, role: STRole, statements: str, test_input=None, verbose=False) -> str:
-        def create_prompt_input(role: STRole, statements, test_input=None):
+    async def run(self, role: "STRole", statements: str, test_input=None, verbose=False) -> str:
+        def create_prompt_input(role: "STRole", statements, test_input=None):
             prompt_input = [role.scratch.name, statements]
             return prompt_input
 
