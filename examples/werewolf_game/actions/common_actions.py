@@ -6,19 +6,6 @@ from metagpt.const import WORKSPACE_ROOT
 class Speak(Action):
     """Action: Any speak action in a game"""
 
-    # PROMPT_TEMPLATE = """
-    # ## BACKGROUND
-    # It's a Werewolf game, you are {profile}, say whatever possible to increase your chance of win,
-    # ## HISTORY
-    # You have knowledge to the following conversation:
-    # {context}
-    # ## YOUR TURN
-    # Please follow the moderator's latest instruction, FIGURE OUT if you need to speak your opinion or directly to vote,
-    # 1. If the instruction is to speak, speak in 100 words;
-    # 2. If the instruction is to vote, you MUST vote and ONLY say "I vote to eliminate PlayerX", where X is the player index, DO NOT include any other words.
-    # Your will say:
-    # """
-
     PROMPT_TEMPLATE = """
     {
     "BACKGROUND": "It's a Werewolf game, you are __profile__, say whatever possible to increase your chance of win"
