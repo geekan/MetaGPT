@@ -64,7 +64,6 @@ class Speak(Action):
 
         return rsp_json['SPEECH_OR_VOTE']
 
-
 class NighttimeWhispers(Action):
     """
 
