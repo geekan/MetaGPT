@@ -174,18 +174,16 @@ class AgentMemory(Memory):
             poignancy = node_details["poignancy"]
             keywords = set(node_details["keywords"])
             filling = node_details["filling"]
-            # print(node_type)
-            if node_type == "event":
-                self.add_event(created, expiration, s, p, o,
-                               description, keywords, poignancy, embedding_pair, filling)
-            elif node_type == "chat":
-                # cause_by = node_details["cause_by"]
-                logger.info(f"{node_id}")
-                self.add_chat(created, expiration, s, p, o,
-                              description, keywords, poignancy, embedding_pair, filling)
-            elif node_type == "thought":
+            if node_details["type"] == "thought":
                 self.add_thought(created, expiration, s, p, o,
                                  description, keywords, poignancy, embedding_pair, filling)
+            if node_details["type"] == "event":
+                self.add_event(created, expiration, s, p, o,
+                               description, keywords, poignancy, embedding_pair, filling)
+            if node_details["type"] == "chat":
+                self.add_chat(created, expiration, s, p, o,
+                              description, keywords, poignancy, embedding_pair, filling)
+
 
         strength_keywords_load = json.load(open(memory_saved + "/kw_strength.json"))
         if strength_keywords_load["kw_strength_event"]:
@@ -209,6 +207,7 @@ class AgentMemory(Memory):
             return
         if memory_basic.memory_type == "event":
             self.event_list[0:0] = [memory_basic]
+            return
 
     def add_chat(self, created, expiration, s, p, o,
                  content, keywords, poignancy,
@@ -250,7 +249,7 @@ class AgentMemory(Memory):
         """
         memory_count = len(self.storage) + 1
         type_count = len(self.thought_list) + 1
-        memory_type = "event"
+        memory_type = "thought"
         memory_id = f"node_{str(memory_count)}"
         depth = 1
 

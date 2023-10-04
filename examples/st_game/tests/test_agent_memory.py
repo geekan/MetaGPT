@@ -44,6 +44,7 @@ class TestAgentMemory:
     def test_summary_function(self, agent_memory):
         logger.info(f"event长度为{len(agent_memory.event_list)}")
         logger.info(f"thought长度为{len(agent_memory.thought_list)}")
+        logger.info(f"chat长度为{len(agent_memory.chat_list)}")
         result1 = agent_memory.get_summarized_latest_events(4)
         logger.info(f"总结最近事件结果为:{result1}")
     def test_get_last_chat_function(self,agent_memory):
