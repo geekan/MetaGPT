@@ -128,12 +128,11 @@ class AgentMemory(Memory):
         """
         将MemoryBasic类存储为Nodes.json形式。复现GA中的Kw Strength.json形式
         这里添加一个路径即可
-        TODO 这里需要添加Const常量
+        TODO 这里在存储时候进行倒序存储，之后需要验证（test_memory通过）
         """
-
         memory_json = dict()
         for i in range(len(self.storage)):
-            memory_node = self.storage[i]
+            memory_node = self.storage[len(self.storage)-i-1]
             memory_node = memory_node.save_to_dict()
             memory_json.update(memory_node)
         with open(memory_saved + "/nodes.json", "w") as outfile:
@@ -175,14 +174,15 @@ class AgentMemory(Memory):
             poignancy = node_details["poignancy"]
             keywords = set(node_details["keywords"])
             filling = node_details["filling"]
-
+            # print(node_type)
             if node_type == "event":
                 self.add_event(created, expiration, s, p, o,
                                description, keywords, poignancy, embedding_pair, filling)
             elif node_type == "chat":
-                cause_by = node_details["cause_by"]
+                # cause_by = node_details["cause_by"]
+                logger.info(f"{node_id}")
                 self.add_chat(created, expiration, s, p, o,
-                              description, keywords, poignancy, embedding_pair, filling, cause_by)
+                              description, keywords, poignancy, embedding_pair, filling)
             elif node_type == "thought":
                 self.add_thought(created, expiration, s, p, o,
                                  description, keywords, poignancy, embedding_pair, filling)
@@ -198,11 +198,11 @@ class AgentMemory(Memory):
         Add a new message to storage, while updating the index
         重写add方法，修改原有的Message类为BasicMemory类，并添加不同的记忆类型添加方式
         """
-        if memory_basic in self.storage:
+        if memory_basic.memory_id in self.storage:
             return
         self.storage.append(memory_basic)
-        if memory_basic.cause_by:
-            self.index[memory_basic.cause_by][0:0] = [memory_basic]
+        if memory_basic.memory_type == "chat":
+            self.chat_list[0:0] = [memory_basic]
             return
         if memory_basic.memory_type == "thought":
             self.thought_list[0:0] = [memory_basic]
@@ -213,14 +213,14 @@ class AgentMemory(Memory):
     def add_chat(self, created, expiration, s, p, o,
                  content, keywords, poignancy,
                  embedding_pair, filling,
-                 cause_by):
+                 cause_by = ''):
         """
         调用add方法，初始化chat，在创建的时候就需要调用embedding函数
         """
         memory_count = len(self.storage) + 1
         type_count = len(self.thought_list) + 1
         memory_type = "chat"
-        memory_id = f"memory_{str(memory_count)}"
+        memory_id = f"node_{str(memory_count)}"
         depth = 1
 
         memory_node = BasicMemory(memory_id, memory_count, type_count, memory_type, depth,
@@ -251,7 +251,7 @@ class AgentMemory(Memory):
         memory_count = len(self.storage) + 1
         type_count = len(self.thought_list) + 1
         memory_type = "event"
-        memory_id = f"memory_{str(memory_count)}"
+        memory_id = f"node_{str(memory_count)}"
         depth = 1
 
         try:
@@ -296,7 +296,7 @@ class AgentMemory(Memory):
         memory_count = len(self.storage) + 1
         type_count = len(self.event_list) + 1
         memory_type = "event"
-        memory_id = f"memory_{str(memory_count)}"
+        memory_id = f"node_{str(memory_count)}"
         depth = 0
 
         if "(" in content:

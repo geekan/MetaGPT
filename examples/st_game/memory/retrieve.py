@@ -9,10 +9,10 @@ from numpy.linalg import norm
 
 from examples.st_game.memory.agent_memory import BasicMemory
 from examples.st_game.utils.utils import get_embedding
-from examples.st_game.roles.st_role import STRole
+from metagpt.logs import logger
 
 
-def agent_retrieve(curr_time: datetime.datetime, memory_forget: float, query: str, nodes: list[BasicMemory],
+def agent_retrieve(agent_memory, curr_time: datetime.datetime, memory_forget: float, query: str, nodes: list[BasicMemory],
                    topk: int = 4, ) -> list[BasicMemory]:
     """
     Retrieve需要集合Role使用,原因在于Role才具有AgentMemory,scratch
@@ -28,12 +28,13 @@ def agent_retrieve(curr_time: datetime.datetime, memory_forget: float, query: st
     }
     """
     memories = nodes
+    agent_memory_embedding = agent_memory.embeddings
     memories = sorted(memories, key=lambda memory_node: memory_node.last_accessed, reverse=True)
 
     score_list = []
     score_list = extract_importance(memories, score_list)
     score_list = extract_recency(curr_time, memory_forget, score_list)
-    score_list = extract_relevance(query, score_list)
+    score_list = extract_relevance(agent_memory_embedding,query, score_list)
     score_list = normalize_score_floats(score_list, 0, 1)
 
     total_dict = {}
@@ -43,14 +44,14 @@ def agent_retrieve(curr_time: datetime.datetime, memory_forget: float, query: st
                        score_list[i]['recency'] * gw[1] +
                        score_list[i]['relevance'] * gw[2]
                        )
-        total_dict[score_list[i]['memory']] = total_score
+        total_dict[score_list[i]['memory'].memory_id] = total_score
 
     result = top_highest_x_values(total_dict, topk)
 
     return result  # 返回的是一个BasicMemory列表
 
 
-def new_agent_retrieve(role: STRole, focus_points: list, n_count=30) -> dict:
+def new_agent_retrieve(role, focus_points: list, n_count=30) -> dict:
     """
     输入为role，关注点列表,返回记忆数量
     输出为字典，键为focus_point，值为对应的记忆列表
@@ -62,12 +63,16 @@ def new_agent_retrieve(role: STRole, focus_points: list, n_count=30) -> dict:
                  if "idle" not in i.embedding_key]
         nodes = sorted(nodes, key=lambda x: x[0])
         nodes = [i for created, i in nodes]
-        results = agent_retrieve(role.scratch.curr_time, role.scratch.recency_decay,
+        results = agent_retrieve(role.memory, role.scratch.curr_time, role.scratch.recency_decay,
                                  focal_pt, nodes, n_count)
+        final_result = []
         for n in results:
-            n.last_accessed = role.scratch.curr_time
+            for i in role.memory.storage:
+                if i.memory_id == n:
+                    i.last_accessed = role.scratch.curr_time
+                    final_result.append(i.content)
 
-        retrieved[focal_pt] = results
+        retrieved[focal_pt] = final_result
 
     return retrieved
 
@@ -93,14 +98,15 @@ def extract_importance(memories, score_list):
     return score_list
 
 
-def extract_relevance(query, score_list):
+def extract_relevance(agent_memory_embedding,query, score_list):
     """
     抽取相关性
     """
     query_embedding = get_embedding(query)
     # 进行
     for i in range(len(score_list)):
-        result = cos_sim(score_list[i]["memory"].embedding_key, query_embedding)
+        node_embedding = agent_memory_embedding[score_list[i]["memory"].embedding_key]
+        result = cos_sim(node_embedding, query_embedding)
         score_list[i]['relevance'] = result
 
     return score_list
