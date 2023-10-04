@@ -42,20 +42,20 @@ class GenDailySchedule(STAction):
         return fs
     
     def run(self, role: STRole, wake_up_hour: str):
-            def create_prompt_input(role, wake_up_hour):
-                prompt_input = []
-                prompt_input += [role.scratch.get_str_iss()]
-                prompt_input += [role.scratch.get_str_lifestyle()]
-                prompt_input += [role.scratch.get_str_curr_date_str()]
-                prompt_input += [role.scratch.get_str_firstname()]
-                prompt_input += [f"{str(wake_up_hour)}:00 am"]
-                return prompt_input
-            wake_up_hour = int(wake_up_hour)
-            prompt_template = "daily_planning_v6.txt"
-            prompt_input = create_prompt_input(role, wake_up_hour)
-            prompt = self.generate_prompt_with_tmpl_filename(prompt_input, prompt_template)
-            self.fail_default_resp = self._func_fail_default_resp()
-            output = self._run_v1(prompt)
-            output = ([f"wake up and complete the morning routine at {wake_up_hour}:00 am"]
-                        + output)
-            return output
+        def create_prompt_input(role, wake_up_hour):
+            prompt_input = []
+            prompt_input += [role.scratch.get_str_iss()]
+            prompt_input += [role.scratch.get_str_lifestyle()]
+            prompt_input += [role.scratch.get_str_curr_date_str()]
+            prompt_input += [role.scratch.get_str_firstname()]
+            prompt_input += [f"{str(wake_up_hour)}:00 am"]
+            return prompt_input
+        wake_up_hour = int(wake_up_hour)
+        prompt_template = "daily_planning_v6.txt"
+        prompt_input = create_prompt_input(role, wake_up_hour)
+        prompt = self.generate_prompt_with_tmpl_filename(prompt_input, prompt_template)
+        self.fail_default_resp = self._func_fail_default_resp()
+        output = self._run_v1(prompt)
+        output = ([f"wake up and complete the morning routine at {wake_up_hour}:00 am"]
+                    + output)
+        return output
