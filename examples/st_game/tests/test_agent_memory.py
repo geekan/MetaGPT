@@ -67,7 +67,7 @@ class TestAgentMemory:
                 for i in agent_memory.storage:
                     if i.memory_id == n:
                         i.last_accessed = datetime.now()-timedelta(days=120)
-                        final_result.append(i.content)
+                        final_result.append(i)
 
             retrieved[focal_pt] = final_result
         logger.info(f"检索结果为{retrieved}")

@@ -105,6 +105,7 @@ def run_reflect(role: "STRole"):
     # For each of the focal points, generate thoughts and save it in the
     # agent's memory.
     for focal_pt, nodes in retrieved.items():
+
         xx = [i.embedding_key for i in nodes]
         for xxx in xx: logger.info(xxx)
 
