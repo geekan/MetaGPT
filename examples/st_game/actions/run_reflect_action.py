@@ -24,11 +24,15 @@ class AgentFocusPt(STAction):
             return False
 
     def _func_cleanup(self, llm_resp: str, prompt: str = "") -> list:
-        llm_resp = "1) " + llm_resp.strip()
-        ret = []
-        for i in llm_resp.split("\n"):
-            ret += [i.split(") ")[-1]]
-        return ret
+        try:
+            return llm_resp
+            # llm_resp = "1) " + llm_resp.strip()
+            # ret = []
+            # for i in llm_resp.split("\n"):
+            #     ret += [i.split(") ")[-1]]
+            # return ret
+        except Exception as exp:
+            print(f"cleanup 错误 {exp}")
 
     def _func_fail_default_resp(self) -> str:
         pass

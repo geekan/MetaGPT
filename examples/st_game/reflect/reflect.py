@@ -122,6 +122,7 @@ def run_reflect(role: "STRole"):
                 created, expiration, s, p, o, thought, keywords,
                 thought_poignancy, thought_embedding_pair, evidence
             )
+            logger.info(f"主谓宾为：{s}{p}{o},描述为{thought}")
 
 
 def reflection_trigger(role: "STRole"):
@@ -138,14 +139,10 @@ def reflection_trigger(role: "STRole"):
         True if we are running a new reflection.
         False otherwise.
     """
-    logger.info(
-        role.scratch.name, "role.scratch.importance_trigger_curr::",
-        role.scratch.importance_trigger_curr
-    )
-    logger.info(role.scratch.importance_trigger_max)
+    logger.info(f"{role.scratch.name} role.scratch.importance_trigger_curr:: {role.scratch.importance_trigger_curr}"),
 
     if (role.scratch.importance_trigger_curr <= 0 and
-            [] != role.memory.seq_event + role.memory.seq_thought):
+            [] != role.memory.event_list + role.memory.thought_list):
         return True
     return False
 

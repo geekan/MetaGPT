@@ -309,9 +309,9 @@ class STRole(Role):
         # TODO re-add result into memory
         pass
 
-    async def reflect(self):
+    def reflect(self):
         # TODO reflection if meet reflect condition
-        role_reflect(self)
+        result = role_reflect(self)
         # TODO re-add result to memory
         # 已封装到Reflect函数之中
 

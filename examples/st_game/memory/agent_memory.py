@@ -174,13 +174,13 @@ class AgentMemory(Memory):
             poignancy = node_details["poignancy"]
             keywords = set(node_details["keywords"])
             filling = node_details["filling"]
-            if node_details["type"] == "thought":
+            if node_type == "thought":
                 self.add_thought(created, expiration, s, p, o,
                                  description, keywords, poignancy, embedding_pair, filling)
-            if node_details["type"] == "event":
+            if node_type == "event":
                 self.add_event(created, expiration, s, p, o,
                                description, keywords, poignancy, embedding_pair, filling)
-            if node_details["type"] == "chat":
+            if node_type == "chat":
                 self.add_chat(created, expiration, s, p, o,
                               description, keywords, poignancy, embedding_pair, filling)
 
