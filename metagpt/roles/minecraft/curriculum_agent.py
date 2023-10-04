@@ -308,52 +308,6 @@ class CurriculumDesigner(Base):
             role=self.profile,
         )
 
-    # TODO: move to Critic agent
-    def update_exploration_progress(self, info):
-        """
-        Split task into completed_tasks or failed_tasks
-        Args: info = {
-            "task": self.task,
-            "success": success,
-            "conversations": self.conversations,
-        }
-        """
-        task = info["task"]
-        if task.startswith("Deposit useless items into the chest at"):
-            return
-        if info["success"]:
-            logger.info(f"Completed task {task}.")
-            self.game_memory.completed_tasks.append(task)
-        else:
-            logger.info(f"Failed to complete task {task}. Skipping to next task.")
-            self.game_memory.failed_tasks.append(task)
-
-        self.save_sorted_tasks()
-
-    # TODO: move to Critic agent
-    def save_sorted_tasks(self):
-        updated_completed_tasks = []
-        # record repeated failed tasks
-        updated_failed_tasks = self.game_memory.failed_tasks
-        # dedup but keep order
-        for task in self.game_memory.completed_tasks:
-            if task not in updated_completed_tasks:
-                updated_completed_tasks.append(task)
-
-        # remove completed tasks from failed tasks
-        for task in updated_completed_tasks:
-            while task in updated_failed_tasks:
-                updated_failed_tasks.remove(task)
-
-        self.game_memory.completed_tasks = updated_completed_tasks
-        self.failed_tasks = updated_failed_tasks
-
-        # dump to json
-        with open(f"{CKPT_DIR}/curriculum/completed_tasks.json", "w") as f:
-            json.dump(self.game_memory.completed_tasks, f)
-        with open(f"{CKPT_DIR}/curriculum/failed_tasks.json", "w") as f:
-            json.dump(self.game_memory.failed_tasks, f)
-
     async def _act(self) -> Message:
         todo = self._rc.todo
         logger.debug(f"Todo is {todo}")

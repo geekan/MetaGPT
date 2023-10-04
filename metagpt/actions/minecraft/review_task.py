@@ -41,6 +41,6 @@ class VerifyTask(Action):
             return response["success"], response["critique"]
         except Exception as e:
             logger.error(f"Error verifying the task: {str(e)}")
-            return self.run(human_msg, system_msg, max_retries=max_retries-1)
+            return await self.run(human_msg, system_msg, max_retries=max_retries-1)
 
 

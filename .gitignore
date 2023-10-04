@@ -16,7 +16,8 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+lib/* 
+!/metagpt/mineflayer_env/mineflayer/lib/* # Mineflayer 
 lib64/
 parts/
 sdist/

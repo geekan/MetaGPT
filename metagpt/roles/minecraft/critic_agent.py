@@ -12,17 +12,19 @@ from metagpt.utils.minecraft import load_prompt
 from metagpt.schema import Message, HumanMessage, SystemMessage
 from metagpt.logs import logger
 
+
 @agent_registry.register("critic_agent")
 class CriticReviewer(Base):
     """
     self-verification
     """
+
     def __init__(
-            self,
-            name: str = "Simon",
-            profile: str = "Task Reviewer",
-            goal: str = "To provide insightful and constructive feedback on a wide range of content types, helping creators improve their work and maintaining high-quality standards.",
-            constraints: str = "Adherence to ethical reviewing practices, respectful communication, and confidentiality of sensitive information.",
+        self,
+        name: str = "Simon",
+        profile: str = "Task Reviewer",
+        goal: str = "To provide insightful and constructive feedback on a wide range of content types, helping creators improve their work and maintaining high-quality standards.",
+        constraints: str = "Adherence to ethical reviewing practices, respectful communication, and confidentiality of sensitive information.",
     ) -> None:
         super().__init__(name, profile, goal, constraints)
         # Initialize actions specific to the CriticReviewer role
@@ -30,7 +32,7 @@ class CriticReviewer(Base):
 
         # Set events or actions the CriticReviewer should watch or be aware of
         # 需要获取最新的events来进行评估
-        self._watch([GenerateActionCode,AddNewSkills])
+        self._watch([GenerateActionCode, AddNewSkills])
 
     def render_system_message(self):
         system_message = SystemMessage(content=load_prompt("critic"))
@@ -50,8 +52,11 @@ class CriticReviewer(Base):
 
         for i, (event_type, event) in enumerate(events):
             if event_type == "onError":
-                print(f"\033[31mCritic Agent: Error occurs {event['onError']}\033[0m")
-                return None
+                logger.info(
+                    f"\033[31mCritic Agent: Error occurs {event['onError']}\033[0m"
+                )
+                # return None
+                return HumanMessage(content="")
 
         observation = ""
 
@@ -87,14 +92,15 @@ class CriticReviewer(Base):
         logger.info(f"****Critic Agent human message****\n: {observation}")
         return HumanMessage(content=observation)
 
-    def encapsule_message(self,
-                          events,
-                          task,
-                          context,
-                          chest_observation,
-                          *args,
-                          **kwargs,
-                          ):
+    def encapsule_message(
+        self,
+        events,
+        task,
+        context,
+        chest_observation,
+        *args,
+        **kwargs,
+    ):
         system_message = self.render_system_message()
         human_message = self.render_human_message(
             events=events,
@@ -108,25 +114,38 @@ class CriticReviewer(Base):
             "human_msg": human_message.content,
         }
 
-    async def verify_task(self,human_msg, system_msg, *args, **kwargs):
+    async def verify_task(self, human_msg, system_msg, *args, **kwargs):
         success, critique = await VerifyTask().run(human_msg, system_msg, max_retries=5)
-        return Message(content=f"{critique}", instruct_content="verify_task", role=self.profile,
-                           send_to=agent_registry.entries["skill_manager"]()._setting.name)#addnewskill
-        #TODO:if not success
+        self.perform_game_info_callback(
+            success, self.game_memory.update_exploration_progress
+        )
+        return Message(
+            content=f"{critique}",
+            instruct_content="verify_task",
+            role=self.profile,
+            send_to=agent_registry.entries["skill_manager"]()._setting.name,
+        )  # addnewskill
+        # TODO:if not success
+
     async def _act(self) -> Message:
         todo = self._rc.todo
         logger.debug(f"Todo is {todo}")
         self.maintain_actions(todo)
         # 获取最新的游戏周边信息
         events = await self._obtain_events()
+        self.perform_game_info_callback(
+            events, self.game_memory.update_event
+        )  # update chest_memory / chest observation
         context = self.game_memory.context
         task = self.game_memory.current_task
         chest_observation = self.game_memory.chest_observation
 
-        message = self.encapsule_message(events=events,
-                                          task=task,
-                                          context=context,
-                                          chest_observation=chest_observation, )
+        message = self.encapsule_message(
+            events=events,
+            task=task,
+            context=context,
+            chest_observation=chest_observation,
+        )
         logger.info(todo)
         handler_map = {
             VerifyTask: self.verify_task,

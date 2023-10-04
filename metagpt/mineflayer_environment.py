@@ -38,6 +38,9 @@ class MineflayerEnv:
 
         os.makedirs(f"{CKPT_DIR}/curriculum/vectordb", exist_ok=True)
         os.makedirs(f"{CKPT_DIR}/action", exist_ok=True)
+        os.makedirs(f"{CKPT_DIR}/skill/code", exist_ok=True)
+        os.makedirs(f"{CKPT_DIR}/skill/description", exist_ok=True)
+        os.makedirs(f"{CKPT_DIR}/skill/vectordb", exist_ok=True)
 
     def _set_warmup(self):
         warm_up = DEFAULT_WARMUP

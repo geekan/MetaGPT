@@ -182,10 +182,15 @@ class ActionDeveloper(Base):
         return len(self._rc.news)
 
     async def generate_action_code(self, human_msg, system_msg, *args, **kwargs):
-        code = await GenerateActionCode().run(human_msg, system_msg, *args, **kwargs)
+        code, program_name = await GenerateActionCode().run(
+            human_msg, system_msg, *args, **kwargs
+        )
         # logger.warning(type(code))
         # logger.info(f"Code is Here:{code}")
         self.perform_game_info_callback(code, self.game_memory.update_code)
+        self.perform_game_info_callback(
+            program_name, self.game_memory.update_program_name
+        )
         msg = Message(
             content=f"{code}",
             instruct_content="generate_action_code",
@@ -205,7 +210,7 @@ class ActionDeveloper(Base):
         task = self.game_memory.current_task
         code = self.game_memory.code
         critique = self.game_memory.critique
-        skills = self.game_memory.skills
+        retrieve_skills = self.game_memory.retrieve_skills
 
         message = self.encapsule_message(
             events=events,
@@ -213,7 +218,7 @@ class ActionDeveloper(Base):
             task=task,
             context=context,
             critique=critique,
-            skills=skills,
+            skills=retrieve_skills,
         )
         logger.info(todo)
         handler_map = {
