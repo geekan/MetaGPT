@@ -34,7 +34,6 @@ class Speak(Action):
 
     async def run(self, context: str, profile: str):
 
-        # prompt = self.PROMPT_TEMPLATE.format(context=context, profile=profile)
         prompt = self.PROMPT_TEMPLATE.replace("__context__", context).replace("__profile__", profile)
 
         rsp = await self._aask(prompt)
