@@ -32,7 +32,7 @@ class BasicMemory(Message):
         self.memory_id: str = memory_id  # 记忆ID
         self.memory_count: int = memory_count  # 第几个记忆，实际数值与Memory相等
         self.type_count: int = type_count  # 第几种记忆，类型为整数（具体不太理解如何生成的）
-        self.memory_type: str = memory_type  # 记忆类型，包含 event,thought,chat三种类型
+        self.type: str = memory_type  # 记忆类型，包含 event,thought,chat三种类型
         self.depth: str = depth  # 记忆深度，类型为整数
 
         self.created: datetime = created  # 创建时间

@@ -62,7 +62,6 @@ class STRole(Role):
         self.curr_time = datetime.datetime.strptime(curr_time, "%B %d, %Y, %H:%M:%S")
         self.sec_per_step = sec_per_step
 
-        self.role_tile = (0, 0)
         self.game_obj_cleanup = dict()
 
         super(STRole, self).__init__(name=name,
@@ -90,7 +89,7 @@ class STRole(Role):
         role_env = get_role_environment(self.sim_code, self.name, self.step)
         pt_x = role_env["x"]
         pt_y = role_env["y"]
-        self.role_tile = (pt_x, pt_y)
+        self._rc.scratch.curr_tile = (pt_x, pt_y)
         self._rc.env.maze.tiles[pt_y][pt_x]["events"].add(self.scratch.get_curr_event_and_desc())
 
     @property
@@ -100,6 +99,18 @@ class STRole(Role):
     @property
     def scratch(self):
         return self._rc.scratch
+    
+    @property
+    def role_tile(self):
+        return self.scratch.curr_tile
+    
+    @property
+    def a_mem(self):
+        return self._rc.memory
+
+    @property
+    def s_mem(self):
+        return self._rc.spatial_memory
 
     def load_from(self, folder: Path):
         """
@@ -130,7 +141,7 @@ class STRole(Role):
         # TODO
         pass
 
-    async def observe(self) -> list[BasicMemory]:
+    def observe(self) -> list[BasicMemory]:
         # TODO observe info from maze_env
         """
         Perceive events around the role and saves it to the memory, both events
