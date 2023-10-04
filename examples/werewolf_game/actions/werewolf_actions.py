@@ -1,6 +1,7 @@
 from metagpt.actions import Action
 from examples.werewolf_game.actions.common_actions import Speak, NighttimeWhispers
 
+
 class Hunt(NighttimeWhispers):
     ROLE = "Werewolf"
     ACTION = "KILL"
