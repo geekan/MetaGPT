@@ -12,11 +12,7 @@ def init_game_setup(shuffle=True, add_human=False):
     roles = [
         Villager,
         Villager,
-        Werewolf,
-        Werewolf,
-        Guard,
-        Seer,
-        Witch
+        Werewolf
     ]
     if shuffle:
         # random.seed(2023)
