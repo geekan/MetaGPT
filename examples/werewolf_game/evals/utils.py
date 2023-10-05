@@ -1,17 +1,13 @@
-#!/usr/bin/env python
-# -*- coding:utf-8 -*-
-
-
-"""
-__info："utils for eval"
-__author:"[Aria](https://github.com/ariafyy)"
-__update："convert txt to json"
-"""
+'''
+Filename: MetaGPT/examples/werewolf_game/evals/utils.py
+Created Date: Oct 2, 2023
+Author: [Aria](https://github.com/ariafyy)
+'''
 from metagpt.const import WORKSPACE_ROOT, PROJECT_ROOT
 import re, json
 
 
-class Utils(object):
+class Utils:
     def __init__(self):
         pass
 
@@ -92,10 +88,6 @@ class Utils(object):
 
     def data2json(self, in_file):
         """
-        input:.txt 
-        output:.json
-
-
         output examples:
         {
           "day_0": [
@@ -111,9 +103,14 @@ class Utils(object):
             ...
             }
         """
+
         result = self.txt2data(in_file)
+        self._save_json(result)
+        return result
+
+    def _save_json(self, data):
         with open(WORKSPACE_ROOT / 'werewolf_transcript.json', "w", encoding='utf-8') as f:
-            json.dump(result, f, ensure_ascii=False, indent=2)
+            json.dump(data, f, ensure_ascii=False, indent=2)
             f.write('\n')
 
 
