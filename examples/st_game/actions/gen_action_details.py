@@ -12,34 +12,6 @@ from ..roles.st_role import STRole
 from ..maze import Maze
 from .st_action import STAction
 
-    # act_world = maze.access_tile(role.scratch.curr_tile)["world"]
-    # act_sector = maze.access_tile(role.scratch.curr_tile)["sector"]
-    # act_sector = generate_action_sector(act_desp, role, maze)
-    # act_arena = generate_action_arena(act_desp, role, maze, act_world, act_sector)
-    # act_address = f"{act_world}:{act_sector}:{act_arena}"
-    # act_game_object = generate_action_game_object(act_desp, act_address,
-    #                                                 role, maze)
-    # new_address = f"{act_world}:{act_sector}:{act_arena}:{act_game_object}"
-    # act_pron = generate_action_pronunciatio(act_desp, role)
-    # act_event = generate_action_event_triple(act_desp, role)
-    # # Persona's actions also influence the object states. We set those up here. 
-    # act_obj_desp = generate_act_obj_desc(act_game_object, act_desp, role)
-    # act_obj_pron = generate_action_pronunciatio(act_obj_desp, role)
-    # act_obj_event = generate_act_obj_event_triple(act_game_object, 
-    #                                                 act_obj_desp, role)
-    # Adding the action to role's queue. 
-    # role.scratch.add_new_action(new_address, 
-    #                                 int(act_dura), 
-    #                                 act_desp, 
-    #                                 act_pron, 
-    #                                 act_event,
-    #                                 None,
-    #                                 None,
-    #                                 None,
-    #                                 None,
-    #                                 act_obj_desp, 
-    #                                 act_obj_pron, 
-    #                                 act_obj_event)
     
 class GenActionSector(STAction):
 
@@ -259,7 +231,7 @@ class GenPronunciatio(STAction):
         fs = "😋"
         return fs
 
-    def run(self, role: STRole, act_desp: str)
+    def run(self, role: STRole, act_desp: str):
         def create_prompt_input(act_desp): 
             if "(" in act_desp: 
                 act_desp = act_desp.split("(")[-1].split(")")[0]
@@ -377,15 +349,15 @@ class GenObjEventTriple(STAction):
         fs = (act_game_object, "is", "idle")
         return fs
 
-    def run(self, role: STRole, act_game_object, act_obj_desc):
-        def create_prompt_input(act_game_object, act_obj_desc): 
+    def run(self, role: STRole, act_game_object, act_obj_desp):
+        def create_prompt_input(act_game_object, act_obj_desp): 
             prompt_input = [act_game_object, 
-                            act_obj_desc,
+                            act_obj_desp,
                             act_game_object]
             return prompt_input
   
         prompt_template = "generate_event_triple_v1.txt"
-        prompt_input = create_prompt_input(act_game_object, act_obj_desc)
+        prompt_input = create_prompt_input(act_game_object, act_obj_desp)
         prompt = self.generate_prompt_with_tmpl_filename(prompt_input, prompt_template)
         self.fail_default_resp = self._func_fail_default_resp(role)
         output = self._run_v1(prompt)
@@ -407,6 +379,10 @@ class GenActionDetails(STAction):
         except: 
             return False
         return True
+    
+    def _func_fail_default_resp(self): 
+        fs = {}
+        return fs
 
     def run(self,
             role: STRole,
