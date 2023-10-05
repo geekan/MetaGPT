@@ -69,16 +69,20 @@ class AgentInsightAndGuidance(STAction):
             return False
 
     def _func_cleanup(self, llm_resp: str, prompt: str = "") -> dict:
-        llm_resp = "1. " + llm_resp.strip()
-        ret = dict()
-        for i in llm_resp.split("\n"):
-            row = i.split(". ")[-1]
-            thought = row.split("(because of ")[0].strip()
-            evi_raw = row.split("(because of ")[1].split(")")[0].strip()
-            evi_raw = re.findall(r'\d+', evi_raw)
-            evi_raw = [int(i.strip()) for i in evi_raw]
-            ret[thought] = evi_raw
-        return ret
+        try:
+            logger.info(f"Run prompt Insight get {llm_resp}")
+            llm_resp = "1. " + llm_resp.strip()
+            ret = dict()
+            for i in llm_resp.split("\n"):
+                row = i.split(". ")[-1]
+                thought = row.split("(because of ")[0].strip()
+                evi_raw = row.split("(because of ")[1].split(")")[0].strip()
+                evi_raw = re.findall(r'\d+', evi_raw)
+                evi_raw = [int(i.strip()) for i in evi_raw]
+                ret[thought] = evi_raw
+            return ret
+        except Exception as exp:
+            logger.error(f"AGent Insight 报错{exp}")
 
     def _func_fail_default_resp(self) -> str:
         pass
@@ -112,9 +116,15 @@ class AgentEventTriple(STAction):
         return True
 
     def _func_cleanup(self, llm_resp: str, prompt: str = "") -> list:
-        cr = llm_resp.strip()
-        cr = [i.strip() for i in cr.split(")")[0].split(",")]
-        return cr
+        try:
+            cr = llm_resp.strip()
+            cr = [i.strip() for i in cr.split(")")[0].split(",")]
+            if len(cr) != 2:
+                return cr[-2:]
+            logger.info(f"cr结果为{cr}")
+            return cr
+        except Exception as exp:
+            logger.error(f"AGent Triple 报错{exp}")
 
     def _func_fail_default_resp(self) -> str:
         pass
@@ -152,9 +162,11 @@ class AgentEventPoignancy(STAction):
             return False
 
     def _func_cleanup(self, llm_resp: str, prompt: str = "") -> int:
-        llm_resp = int(llm_resp.strip())
-        return llm_resp
-
+        try:
+            llm_resp = int(llm_resp.strip())
+            return llm_resp
+        except Exception as exp:
+            logger.error(f"AGent Event poignancy 报错{exp}")
     def _func_fail_default_resp(self) -> str:
         pass
 
@@ -193,9 +205,11 @@ class AgentChatPoignancy(STAction):
             return False
 
     def _func_cleanup(self, llm_resp: str, prompt: str = "") -> int:
-        llm_resp = int(llm_resp.strip())
-        return llm_resp
-
+        try:
+            llm_resp = int(llm_resp.strip())
+            return llm_resp
+        except Exception as exp:
+            logger.error(f"AGent Chat poignancy 报错{exp}")
     def _func_fail_default_resp(self) -> str:
         pass
 
@@ -234,7 +248,10 @@ class AgentPlanThoughtOnConvo(STAction):
             return False
 
     def _func_cleanup(self, llm_resp: str, prompt: str = "") -> str:
-        return llm_resp.split('"')[0].strip()
+        try:
+            return llm_resp.split('"')[0].strip()
+        except Exception as exp:
+            logger.error(f"AGent PlanThought 报错{exp}")
 
     def _func_fail_default_resp(self) -> str:
         pass
@@ -270,8 +287,10 @@ class AgentMemoryOnConvo(STAction):
             return False
 
     def _func_cleanup(self, llm_resp: str, prompt: str = "") -> str:
-        return llm_resp.split('"')[0].strip()
-
+        try:
+            return llm_resp.split('"')[0].strip()
+        except Exception as exp:
+            logger.error(f"AGent MemoryOnconvo 报错{exp}")
     def _func_fail_default_resp(self) -> str:
         pass
 

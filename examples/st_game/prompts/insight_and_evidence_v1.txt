@@ -8,5 +8,5 @@ Variables:
 Input:
 !<INPUT 0>!
 
-What !<INPUT 1>! high-level insights can you infer from the above statements? (example format: insight (because of 1, 5, 3))
+What !<INPUT 1>! high-level insights can you infer from the above statements? Please ensure it includes 'because of' and generates according to the example format.(example format: insight (because of 1, 5, 3)) .
 1.
