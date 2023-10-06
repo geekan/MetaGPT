@@ -46,7 +46,7 @@ class ActionDeveloper(Base):
         self._watch([RetrieveSkills])
         self.rollout_num_iter = 0
         self.task_max_retries = 4
-        self.critic_reviewer = agent_registry["critic_agent"]
+        self.critic_reviewer = agent_registry.entries["critic_agent"]
     
     def render_system_message(self, skills=[], *args, **kwargs):
         """
