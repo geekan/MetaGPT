@@ -24,8 +24,7 @@ async def learn(task="Start", investment: float = 50.0, n_round: int = 3):
         
         ]
     )
-    print(mc_player.environment.roles)
-    print(mc_player.environment.roles["Generate code for specified tasks"]._rc) 
+    
     mc_player.invest(investment)
     mc_player.start(task)
     await mc_player.run(n_round=n_round)

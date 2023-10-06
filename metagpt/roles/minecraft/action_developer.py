@@ -47,7 +47,7 @@ class ActionDeveloper(Base):
         self._watch([RetrieveSkills])
         self.rollout_num_iter = 0
         self.task_max_retries = 4
-        self.critic_reviewer = None #self._rc.env.roles["Task Reviewer"]
+        self.critic_reviewer = None  # self._rc.env.roles["Task Reviewer"]
         logger.info(self.critic_reviewer)
     
     def render_system_message(self, skills=[], *args, **kwargs):
@@ -193,10 +193,11 @@ class ActionDeveloper(Base):
     async def run_step(self, human_msg, system_msg, *args, **kwargs):
         while True:
             logger.info(f"self.rollout_num_iter {self.rollout_num_iter}")
-            system_msg, human_msg, reward, done, info = await self.runcode_and_evaluate(human_msg, system_msg, *args, **kwargs)
+            system_msg, human_msg, reward, done, info = await self.runcode_and_evaluate(human_msg, system_msg, *args,
+                                                                                        **kwargs)
             if done:
                 break
-        #return [system_msg, human_msg], reward, done, info
+        # return [system_msg, human_msg], reward, done, info
         return Message(
             content=f"{info}",
             instruct_content="generate_action_code",
@@ -237,13 +238,15 @@ class ActionDeveloper(Base):
         
         if code is not None:
             # fixme：若有独立的mc code执行入口函数，使用独立的函数
-            events = await self._obtain_events()
+            events = await self._execute_events()
             # 注意：这里的events对应是执行了新的action函数之后的events信息
             # 更新了评估结果, 回调了最新的环境信息到ga
             self.critic_reviewer = self._rc.env.roles["Task Reviewer"]
             await self.critic_reviewer._act()  # todo: critic act内的update event放在这里似乎更合理？
             
             critique = self.game_memory.critique
+            self.perform_game_info_callback(self.game_memory.event, self.game_memory.summarize_chatlog)
+            
             event_summary = self.game_memory.event_summary
             skills = self.game_memory.skills
             
@@ -275,7 +278,7 @@ class ActionDeveloper(Base):
                 critique=critique,
                 skills=retrieve_skills,
             )
-        
+            
             system_msg = message["system_msg"]
             human_msg = message["human_msg"]
         else:
@@ -289,7 +292,7 @@ class ActionDeveloper(Base):
             "task": self.game_memory.current_task,
             "success": self.game_memory.runtime_status,
         }
-        
+        logger.info(f"info is {info}")
         self.perform_game_info_callback(code, self.game_memory.update_code)
         self.perform_game_info_callback(
             program_name, self.game_memory.update_program_name
@@ -312,7 +315,7 @@ class ActionDeveloper(Base):
             instruct_content="generate_action_code",
             role=self.profile,
         )
-   
+        
         return msg
     
     async def _act(self) -> Message:
@@ -321,8 +324,11 @@ class ActionDeveloper(Base):
         self.maintain_actions(todo)
         
         # 获取最新的游戏周边信息
-        events = await self._obtain_events()
-        self.perform_game_info_callback(events, self.game_memory.update_event)
+        # events = await self._obtain_events()
+        events = self.game_memory.event
+        logger.info(events)
+        # self.perform_game_info_callback(events, self.game_memory.update_event)
+        logger.info(self.game_memory.event_summary)
         context = self.game_memory.context
         task = self.game_memory.current_task
         code = self.game_memory.code
@@ -340,7 +346,7 @@ class ActionDeveloper(Base):
         )
         logger.info(todo)
         handler_map = {
-            GenerateActionCode: self.run_step#self.generate_action_code,
+            GenerateActionCode: self.run_step  # self.generate_action_code,
         }
         handler = handler_map.get(type(todo))
         logger.info(handler)
@@ -355,4 +361,3 @@ class ActionDeveloper(Base):
             return msg
         
         raise ValueError(f"Unknown todo type: {type(todo)}")
-        

@@ -208,7 +208,7 @@ class DesignCurriculum(Action):
             return context
         except Exception as e:
             logger.info(f"Error parsing curriculum response: {e}. Trying again!")
-            return self.generate_context(
+            return await self.generate_context(
                 task=task,
                 max_retries=max_retries - 1,
             )
