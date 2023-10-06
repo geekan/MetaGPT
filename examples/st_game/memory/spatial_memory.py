@@ -10,15 +10,13 @@ import os
 
 from ..utils.utils import check_if_file_exists
 
+
 class MemoryTree:
-    def __init__(self, f_saved: str): 
+    def __init__(self):
         self.tree = {}
-        if check_if_file_exists(f_saved): 
-            with open(f_saved) as f:
-                self.tree = json.load(f)
 
     def set_mem_path(self, f_saved: str):
-        if os.path.isfile(f_saved) and os.path.exists(f_saved):
+        if check_if_file_exists(f_saved):
             with open(f_saved) as f:
                 self.tree = json.load(f)
 

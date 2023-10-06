@@ -3,6 +3,7 @@ from examples.st_game.actions.st_action import STAction
 from examples.st_game.memory.agent_memory import BasicMemory
 from metagpt.logs import logger
 
+
 class AgentWhisperThoughtAction(STAction):
 
     def __init__(self, name="AgentWhisperThoughtAction", context: list[BasicMemory] = None, llm=None):
@@ -12,7 +13,7 @@ class AgentWhisperThoughtAction(STAction):
         try:
             self._func_cleanup(llm_resp, prompt)
             return True
-        except:
+        except Exception as exp:
             return False
 
     def _func_cleanup(self, llm_resp: str, prompt: str = "") -> list:
@@ -21,7 +22,7 @@ class AgentWhisperThoughtAction(STAction):
     def _func_fail_default_resp(self) -> str:
         pass
 
-    async def run(self, role: "STRole", statements: str, test_input=None, verbose=False) -> str:
+    def run(self, role: "STRole", statements: str, test_input=None, verbose=False) -> str:
         def create_prompt_input(role: "STRole", statements, test_input=None):
             prompt_input = [role.scratch.name, statements]
             return prompt_input
@@ -30,7 +31,6 @@ class AgentWhisperThoughtAction(STAction):
         prompt = self.generate_prompt_with_tmpl_filename(prompt_input,
                                                          "whisper_inner_thought_v1.txt")
 
-        output = await self._run_v1(prompt)
+        output = self._run_v1(prompt)
         logger.info(f"Run action: {self.__class__.__name__} with result: {output}")
         return output
-

@@ -102,11 +102,11 @@ class STRole(Role):
     @property
     def scratch(self):
         return self._rc.scratch
-    
+
     @property
     def role_tile(self):
         return self.scratch.curr_tile
-    
+
     @property
     def a_mem(self):
         return self._rc.memory
@@ -143,18 +143,16 @@ class STRole(Role):
 
         return 1  # always return 1 to execute role's `_react`
 
-    def add_inner_voice(self, whisper):
-        # TODO
-        def generate_inner_thought(role: STRole, whisper):
+    def add_inner_voice(self, whisper: str):
+        def generate_inner_thought(whisper: str):
             run_whisper_thought = AgentWhisperThoughtAction()
             inner_thought = run_whisper_thought.run(self, whisper)
             return inner_thought
 
-        whisper = input("Enter Input: ")
         thought = generate_inner_thought(whisper)
 
-        created = self._rc.scratch.curr_time
-        expiration = self._rc.scratch.curr_time + datetime.timedelta(days=30)
+        created = self._rc.scratch.curr_time if self._rc.scratch.curr_time else datetime.datetime.now()
+        expiration = created + datetime.timedelta(days=30)
         run_event_triple = AgentEventTriple()
         s, p, o = run_event_triple.run(thought, self)
         keywords = set([s, p, o])
