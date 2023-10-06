@@ -135,7 +135,9 @@ class CriticReviewer(Base):
         self.perform_game_info_callback(
             success, self.game_memory.update_exploration_progress
         )
-        self.perform_game_info_callback(critique, self.game_memory.update_critique)
+        self.perform_game_info_callback(
+            critique, self.game_memory.update_critique
+        )
         return Message(
             content=f"{critique}",
             instruct_content="verify_task",
@@ -153,10 +155,9 @@ class CriticReviewer(Base):
         
         self.maintain_actions(todo)
         # 获取最新的游戏周边信息
-        events = await self._obtain_events()
-        self.perform_game_info_callback(
-            events, self.game_memory.update_event
-        )  # update chest_memory / chest observation
+        events = await self._execute_events()
+        self.perform_game_info_callback(events, self.game_memory.update_chest_memory)
+        logger.info(f"Execute return event is {self.game_memory.event}")
         context = self.game_memory.context
         task = self.game_memory.current_task
         chest_observation = self.game_memory.chest_observation

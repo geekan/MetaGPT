@@ -185,13 +185,13 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
             )
             mine_pattern = r"I need at least a (.*) to mine \w+!"
             if re.match(craft_pattern, message):
-                return re.match(craft_pattern, message).groups()[0]
+                self.event_summary = re.match(craft_pattern, message).groups()[0]
             elif re.match(craft_pattern2, message):
-                return "a nearby crafting table"
+                self.event_summary = "a nearby crafting table"
             elif re.match(mine_pattern, message):
-                return re.match(mine_pattern, message).groups()[0]
+                self.event_summary = re.match(mine_pattern, message).groups()[0]
             else:
-                return ""
+                self.event_summary = ""
 
         chatlog = set()
         for event_type, event in events:
@@ -199,8 +199,7 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
                 item = filter_item(event["onChat"])
                 if item:
                     chatlog.add(item)
-        return "I also need " + ", ".join(chatlog) + "." if chatlog else ""
-
+        self.event_summary = "I also need " + ", ".join(chatlog) + "." if chatlog else ""
     def reset_block_info(self):
         # revert all the placing event in the last step
         pass
@@ -214,9 +213,6 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
             "conversations": self.conversations,
         }
         """
-        # update runtime status in game memory
-        self.runtime_status = success
-
         task = self.current_task
         if task.startswith("Deposit useless items into the chest at"):
             return
@@ -226,23 +222,22 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
         else:
             logger.info(f"Failed to complete task {task}. Skipping to next task.")
             self.failed_tasks.append(task)
-            # TODO: when not success, transform code below to update event!(isolate step soon!)
-            # if self.reset_placed_if_failed and not success:
-            #     # revert all the placing event in the last step
-            #     blocks = []
-            #     positions = []
-            #     for event_type, event in events:
-            #         if event_type == "onSave" and event["onSave"].endswith("_placed"):
-            #             block = event["onSave"].split("_placed")[0]
-            #             position = event["status"]["position"]
-            #             blocks.append(block)
-            #             positions.append(position)
-            #     new_events = self.env.step(
-            #         f"await givePlacedItemBack(bot, {U.json_dumps(blocks)}, {U.json_dumps(positions)})",
-            #         programs=self.skill_manager.programs,
-            #     )
-            #     events[-1][1]["inventory"] = new_events[-1][1]["inventory"]
-            #     events[-1][1]["voxels"] = new_events[-1][1]["voxels"]
+            # when not success, below to update event!
+            # revert all the placing event in the last step
+            blocks = []
+            positions = []
+            for event_type, event in self.event:
+                if event_type == "onSave" and event["onSave"].endswith("_placed"):
+                    block = event["onSave"].split("_placed")[0]
+                    position = event["status"]["position"]
+                    blocks.append(block)
+                    positions.append(position)
+            new_events = self.mf_instance.step(
+                f"await givePlacedItemBack(bot, {json.dumps(blocks)}, {json.dumps(positions)})",
+                programs=self.programs,
+            )
+            self.event[-1][1]["inventory"] = new_events[-1][1]["inventory"]
+            self.event[-1][1]["voxels"] = new_events[-1][1]["voxels"]
 
         self.save_sorted_tasks()
 
@@ -269,9 +264,39 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
         with open(f"{CKPT_DIR}/curriculum/failed_tasks.json", "w") as f:
             json.dump(self.failed_tasks, f)
 
-    async def on_event(self, *args):
+    async def on_event_retrieve(self, *args):
         """
         Retrieve Minecraft events.
+
+        Returns:
+            list: A list of Minecraft events.
+
+            Raises:
+                Exception: If there is an issue retrieving events.
+        """
+        try:
+                self.mf_instance.reset(
+                    options={
+                        "mode": "soft",
+                        "wait_ticks": 20,
+                    }
+                )
+            difficulty = (
+            "easy" if len(self.completed_tasks) > 15 else "peaceful"
+            )
+            events = self.mf_instance.step(
+            "bot.chat(`/time set ${getNextTime()}`);\n"
+            + f"bot.chat('/difficulty {difficulty}');"
+            )
+            self.update_event(events)
+            return events
+        except Exception as e:
+            logger.error(f"Failed to retrieve Minecraft events: {str(e)}")
+            raise {}
+
+    async def on_event_execute(self, *args):
+        """
+        Execute Minecraft events.
 
         This function is used to obtain events from the Minecraft environment. Check the implementation in
         the 'voyager/env/bridge.py step()' function to capture events generated within the game.
@@ -283,39 +308,15 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
                 Exception: If there is an issue retrieving events.
         """
         try:
-            if not self.mf_instance.has_reset:
-                # TODO Modify
-                logger.info("Environment has not been reset yet, is resetting")
-                self.mf_instance.reset(
-                    options={
-                        "mode": "soft",
-                        "wait_ticks": 20,
-                    }
-                )
-                # raise {}
-            self.mf_instance.check_process()
-            self.mf_instance.unpause()
-            data = {
-                "code": self.code,
-                "programs": self.programs,
-            }
-            res = requests.post(
-                f"{self.mf_instance.server}/step",
-                json=data,
-                timeout=self.mf_instance.request_timeout,
+            events = self.mf_instance.step(
+                code = self.code,
+                programs=self.programs,
             )
-            if res.status_code != 200:
-                logger.error("Failed to step Minecraft server")
-                raise {}
-            returned_data = res.json()
-            self.mf_instance.pause()
-            events = json.loads(returned_data)
-            logger.info(f"Get Current Event: {events}")
+            self.update_event(events)
             return events
         except Exception as e:
-            logger.error(f"Failed to retrieve Minecraft events: {str(e)}")
+            logger.error(f"Failed to execute Minecraft events: {str(e)}")
             raise {}
-
 
 class MinecraftPlayer(SoftwareCompany):
     """

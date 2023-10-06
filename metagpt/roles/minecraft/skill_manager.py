@@ -85,6 +85,7 @@ class SkillManager(Base):
         task = self.game_memory.current_task
         event_summary = self.game_memory.event_summary
         code = self.game_memory.code
+        self.perform_game_info_callback(self.game_memory.event, self.game_memory.summarize_chatlog)
         try:
             program_code = code["program_code"] # TODO: Handle code is None, cuz first round DesignCurriculum(code is None) trigger this 
         except (KeyError, TypeError):

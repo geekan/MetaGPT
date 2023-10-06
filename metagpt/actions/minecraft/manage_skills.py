@@ -5,11 +5,8 @@
 import os
 import json
 
-from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.vectorstores import Chroma
-from metagpt.document_store import FaissStore
 from metagpt.logs import logger
-from metagpt.actions import Action
+from metagpt.actions.minecraft.player_action import PlayerActions as Action
 from metagpt.const import CKPT_DIR
 
 
@@ -21,21 +18,6 @@ class RetrieveSkills(Action):
 
     def __init__(self, name="", context=None, llm=None):
         super().__init__(name, context, llm)
-        # TODO: mv to PlayerAction
-        self.retrieval_top_k = 5
-        self.vectordb = Chroma(
-            collection_name="skill_vectordb",
-            embedding_function=OpenAIEmbeddings(),
-            persist_directory=f"{CKPT_DIR}/skill/vectordb",
-        )
-        # Check if skills right using
-        # TODO: 
-        # assert self.vectordb._collection.count() == len(self.skills), (
-        #     f"Skill Manager's vectordb is not synced with skills.json.\n"
-        #     f"There are {self.vectordb._collection.count()} skills in vectordb but {len(self.skills)} skills in skills.json.\n"
-        #     f"Did you set resume=False when initializing the manager?\n"
-        #     f"You may need to manually delete the vectordb directory for running from scratch."
-        # )
 
     async def run(self, query, skills, *args, **kwargs):
         # Implement the logic for retrieving skills here.
@@ -62,22 +44,6 @@ class AddNewSkills(Action):
 
     def __init__(self, name="", context=None, llm=None):
         super().__init__(name, context, llm)
-        # TODO: mv to PlayerAction
-        self.vectordb = Chroma(
-            collection_name="skill_vectordb",
-            embedding_function=OpenAIEmbeddings(),
-            persist_directory=f"{CKPT_DIR}/skill/vectordb",
-        )
-        # TODO: change to FaissStore
-        # self.qa_cache_questions_vectordb = FaissStore( {CKPT_DIR}/ 'skill/vectordb')
-        # TODO: 
-        # Check if skills right using
-        # assert self.vectordb._collection.count() == len(self.skills), (
-        #     f"Skill Manager's vectordb is not synced with skills.json.\n"
-        #     f"There are {self.vectordb._collection.count()} skills in vectordb but {len(self.skills)} skills in skills.json.\n"
-        #     f"Did you set resume=False when initializing the manager?\n"
-        #     f"You may need to manually delete the vectordb directory for running from scratch."
-        # )
 
     async def run(
         self, task, program_name, program_code, skills, skill_desp, *args, **kwargs
