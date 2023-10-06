@@ -7,7 +7,6 @@
 """
 import asyncio
 from typing import Iterable
-
 from pydantic import BaseModel, Field
 
 from metagpt.memory import Memory

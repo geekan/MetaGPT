@@ -5,9 +5,9 @@
 ## The official OPENAI_API_BASE is https://api.openai.com/v1
 ## If the official OPENAI_API_BASE is not available, we recommend using the [openai-forward](https://github.com/beidongjiedeguang/openai-forward).
 ## Or, you can configure OPENAI_PROXY to access official OPENAI_API_BASE.
-OPENAI_API_BASE: "https://api.openai.com/v1"
+OPENAI_API_BASE: "https://openai-forward.metadl.com/v1"
 #OPENAI_PROXY: "http://127.0.0.1:8118"
-#OPENAI_API_KEY: "YOUR_API_KEY"
+OPENAI_API_KEY: "YOUR_API_KEY"
 OPENAI_API_MODEL: "gpt-4"
 MAX_TOKENS: 1500
 RPM: 10
@@ -76,3 +76,12 @@ SD_T2I_API: "/sdapi/v1/txt2img"
 ### for Research
 MODEL_FOR_RESEARCHER_SUMMARY: gpt-3.5-turbo
 MODEL_FOR_RESEARCHER_REPORT: gpt-3.5-turbo-16k
+
+### choose the engine for mermaid conversion, 
+# default is nodejs, you can change it to playwright,pyppeteer or ink
+# MERMAID_ENGINE: nodejs
+
+### browser path for pyppeteer engine, support Chrome, Chromium,MS Edge
+#PYPPETEER_EXECUTABLE_PATH: "/usr/bin/google-chrome-stable"
+
+PROMPT_FORMAT: json #json or markdown

@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "type": "completion",
+  "description": "Turn a scenario into a short and entertaining poem.",
+  "completion": {
+    "max_tokens": 60,
+    "temperature": 0.5,
+    "top_p": 0.0,
+    "presence_penalty": 0.0,
+    "frequency_penalty": 0.0
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "input",
+        "description": "The scenario to turn into a poem.",
+        "defaultValue": ""
+      }
+    ]
+  }
+}

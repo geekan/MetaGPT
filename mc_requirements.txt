@@ -1,0 +1,4 @@
+javascript
+requests
+psutil
+chromadb==0.3.29

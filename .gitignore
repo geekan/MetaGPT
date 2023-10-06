@@ -16,7 +16,8 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+lib/* 
+!/metagpt/mineflayer_env/mineflayer/lib/* # Mineflayer 
 lib64/
 parts/
 sdist/
@@ -114,6 +115,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+*/ckpt
 
 # Spyder project settings
 .spyderproject
@@ -148,8 +150,7 @@ allure-results
 .DS_Store
 .vscode
 
-
-*.txt
+log.txt
 docs/scripts/set_env.sh
 key.yaml
 output.json
@@ -164,3 +165,5 @@ workspace/*
 tmp
 output.wav
 metagpt/roles/idea_agent.py
+.aider*
+

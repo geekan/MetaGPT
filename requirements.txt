@@ -27,7 +27,7 @@ PyYAML==6.0
 # sentence_transformers==2.2.2
 setuptools==65.6.3
 tenacity==8.2.2
-tiktoken==0.3.3
+tiktoken==0.4.0
 tqdm==4.64.0
 #unstructured[local-inference]
 # playwright
@@ -38,3 +38,8 @@ typing-inspect==0.8.0
 typing_extensions==4.5.0
 libcst==1.0.1
 qdrant-client==1.4.0
+pytest-mock==3.11.1
+open-interpreter==0.1.4; python_version>"3.9"
+ta==0.10.2
+semantic-kernel==0.3.10.dev0
+
