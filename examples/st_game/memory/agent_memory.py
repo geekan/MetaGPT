@@ -7,6 +7,7 @@ from datetime import datetime
 
 from metagpt.memory.memory import Memory
 from metagpt.schema import Message
+from metagpt.logs import logger
 
 
 class BasicMemory(Message):
@@ -33,7 +34,7 @@ class BasicMemory(Message):
         self.memory_count: int = memory_count  # 第几个记忆，实际数值与Memory相等
         self.type_count: int = type_count  # 第几种记忆，类型为整数（具体不太理解如何生成的）
         self.memory_type: str = memory_type  # 记忆类型，包含 event,thought,chat三种类型
-        self.depth: str = depth  # 记忆深度，类型为整数
+        self.depth: int = depth  # 记忆深度，类型为整数
 
         self.created: datetime = created  # 创建时间
         self.expiration: datetime = expiration  # 记忆失效时间，默认为空（）
@@ -62,10 +63,10 @@ class BasicMemory(Message):
         memory_dict[node_id] = dict()
         memory_dict[node_id]["node_count"] = self.memory_count
         memory_dict[node_id]["type_count"] = self.type_count
-        memory_dict[node_id]["type"] = self.type
+        memory_dict[node_id]["type"] = self.memory_type
         memory_dict[node_id]["depth"] = self.depth
 
-        memory_dict[node_id]["cmemory_dicteated"] = self.created.strftime('%Y-%m-%d %H:%M:%S')
+        memory_dict[node_id]["created"] = self.created.strftime('%Y-%m-%d %H:%M:%S')
         memory_dict[node_id]["expiration"] = None
         if self.expiration:
             memory_dict[node_id]["expiration"] = (self.expiration
@@ -75,7 +76,7 @@ class BasicMemory(Message):
         memory_dict[node_id]["predicate"] = self.predicate
         memory_dict[node_id]["object"] = self.object
 
-        memory_dict[node_id]["description"] = self.description
+        memory_dict[node_id]["description"] = self.content
         memory_dict[node_id]["embedding_key"] = self.embedding_key
         memory_dict[node_id]["poignancy"] = self.poignancy
         memory_dict[node_id]["keywords"] = list(self.keywords)
@@ -102,7 +103,7 @@ class AgentMemory(Memory):
         """
         super(AgentMemory, self).__init__()
         self.id_to_node = dict()  # TODO jiayi add
-        self.storage: list[BasicMemory] = []  # 重写Stroage，存储BasicMemory所有节点
+        self.storage: list[BasicMemory] = []  # 重写Storage，存储BasicMemory所有节点
         self.event_list = []  # 存储event记忆
         self.thought_list = []  # 存储thought记忆
         self.chat_list = []  # chat-related memory
@@ -114,6 +115,9 @@ class AgentMemory(Memory):
         self.kw_strength_event = dict()  # 关键词影响存储
         self.kw_strength_thought = dict()
 
+        self.memory_saved = None
+        self.embeddings = None
+
         # self.load(memory_saved)
 
     def set_mem_path(self, memory_saved: str):
@@ -122,13 +126,14 @@ class AgentMemory(Memory):
 
     def save(self, memory_saved: str):
         """
-        将MemormyBasic类存储为Nodes.json形式。复现GA中的Kw Strength.json形式
+        将MemoryBasic类存储为Nodes.json形式。复现GA中的Kw Strength.json形式
         这里添加一个路径即可
+        TODO 这里在存储时候进行倒序存储，之后需要验证（test_memory通过）
         """
-
         memory_json = dict()
         for i in range(len(self.storage)):
-            memory_node = self.storage[i]
+            memory_node = self.storage[len(self.storage)-i-1]
+            memory_node = memory_node.save_to_dict()
             memory_json.update(memory_node)
         with open(memory_saved + "/nodes.json", "w") as outfile:
             json.dump(memory_json, outfile)
@@ -152,15 +157,12 @@ class AgentMemory(Memory):
             node_id = f"node_{str(count + 1)}"
             node_details = memory_load[node_id]
             node_type = node_details["type"]
-            created = datetime.datetime.strptime(node_details["created"],
+            created = datetime.strptime(node_details["created"],
                                                  '%Y-%m-%d %H:%M:%S')
             expiration = None
             if node_details["expiration"]:
-                expiration = datetime.datetime.strptime(node_details["expiration"],
+                expiration = datetime.strptime(node_details["expiration"],
                                                         '%Y-%m-%d %H:%M:%S')
-
-            if node_details["cause_by"]:
-                cause_by = node_details["cause_by"]
 
             s = node_details["subject"]
             p = node_details["predicate"]
@@ -172,16 +174,16 @@ class AgentMemory(Memory):
             poignancy = node_details["poignancy"]
             keywords = set(node_details["keywords"])
             filling = node_details["filling"]
-
+            if node_type == "thought":
+                self.add_thought(created, expiration, s, p, o,
+                                 description, keywords, poignancy, embedding_pair, filling)
             if node_type == "event":
                 self.add_event(created, expiration, s, p, o,
                                description, keywords, poignancy, embedding_pair, filling)
-            elif node_type == "chat":
+            if node_type == "chat":
                 self.add_chat(created, expiration, s, p, o,
-                              description, keywords, poignancy, embedding_pair, filling, cause_by)
-            elif node_type == "thought":
-                self.add_thought(created, expiration, s, p, o,
-                                 description, keywords, poignancy, embedding_pair, filling)
+                              description, keywords, poignancy, embedding_pair, filling)
+
 
         strength_keywords_load = json.load(open(memory_saved + "/kw_strength.json"))
         if strength_keywords_load["kw_strength_event"]:
@@ -194,29 +196,30 @@ class AgentMemory(Memory):
         Add a new message to storage, while updating the index
         重写add方法，修改原有的Message类为BasicMemory类，并添加不同的记忆类型添加方式
         """
-        if memory_basic in self.storage:
+        if memory_basic.memory_id in self.storage:
             return
         self.storage.append(memory_basic)
-        if memory_basic.cause_by:
-            self.index[memory_basic.cause_by][0:0] = [memory_basic]
+        if memory_basic.memory_type == "chat":
+            self.chat_list[0:0] = [memory_basic]
             return
-        if memory_basic.type == "thought":
+        if memory_basic.memory_type == "thought":
             self.thought_list[0:0] = [memory_basic]
             return
-        if memory_basic.type == "event":
+        if memory_basic.memory_type == "event":
             self.event_list[0:0] = [memory_basic]
+            return
 
     def add_chat(self, created, expiration, s, p, o,
                  content, keywords, poignancy,
                  embedding_pair, filling,
-                 cause_by):
+                 cause_by = ''):
         """
-        调用add方法，初始化chat，在创建的时候就需要调用embeeding函数
+        调用add方法，初始化chat，在创建的时候就需要调用embedding函数
         """
         memory_count = len(self.storage) + 1
         type_count = len(self.thought_list) + 1
         memory_type = "chat"
-        memory_id = f"memory_{str(memory_count)}"
+        memory_id = f"node_{str(memory_count)}"
         depth = 1
 
         memory_node = BasicMemory(memory_id, memory_count, type_count, memory_type, depth,
@@ -246,8 +249,8 @@ class AgentMemory(Memory):
         """
         memory_count = len(self.storage) + 1
         type_count = len(self.thought_list) + 1
-        memory_type = "event"
-        memory_id = f"memory_{str(memory_count)}"
+        memory_type = "thought"
+        memory_id = f"node_{str(memory_count)}"
         depth = 1
 
         try:
@@ -255,6 +258,7 @@ class AgentMemory(Memory):
                 depth_list = [memory_node.depth for memory_node in self.storage if memory_node.memory_id in filling]
                 depth += max(depth_list)
         except Exception as exp:
+            logger.warning(f"filling init occur {exp}")
             pass
 
         memory_node = BasicMemory(memory_id, memory_count, type_count, memory_type, depth,
@@ -291,7 +295,7 @@ class AgentMemory(Memory):
         memory_count = len(self.storage) + 1
         type_count = len(self.event_list) + 1
         memory_type = "event"
-        memory_id = f"memory_{str(memory_count)}"
+        memory_id = f"node_{str(memory_count)}"
         depth = 0
 
         if "(" in content:
@@ -330,7 +334,7 @@ class AgentMemory(Memory):
             ret_set.add(e_node.summary())
         return ret_set
 
-    def get_last_chat(self, target_role_name: str) -> str:
+    def get_last_chat(self, target_role_name: str):
         if target_role_name.lower() in self.chat_keywords:
             return self.chat_keywords[target_role_name.lower()][0]
         else:

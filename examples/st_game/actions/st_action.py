@@ -56,7 +56,7 @@ class STAction(Action):
     def _ask(self, prompt: str, system_msgs: Optional[list[str]] = None) -> str:
         return self.llm.ask(prompt)
 
-    def _run_v1(self, prompt: str, retry: int = 3) -> str:
+    def _run_v1(self, prompt: str, retry: int = 3) :
         """
             same with `gpt_structure.safe_generate_response`
             default post-preprocess operations of LLM response
