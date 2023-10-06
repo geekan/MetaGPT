@@ -143,10 +143,14 @@ class CriticReviewer(Base):
             send_to=agent_registry.entries["skill_manager"]()._setting.name,
         )  # addnewskill
         # TODO:if not success
+    
 
     async def _act(self) -> Message:
+        self._rc.todo = VerifyTask()
         todo = self._rc.todo
+        
         logger.debug(f"Todo is {todo}")
+        
         self.maintain_actions(todo)
         # 获取最新的游戏周边信息
         events = await self._obtain_events()

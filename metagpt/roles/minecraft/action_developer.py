@@ -14,6 +14,7 @@ from metagpt.actions.minecraft.manage_skills import (
     RetrieveSkills,
     AddNewSkills,
 )
+from metagpt.actions.minecraft.review_task import VerifyTask
 import metagpt.utils.minecraft as utils
 from metagpt.config import CONFIG
 from metagpt.actions.minecraft.control_primitives_context import (
@@ -46,7 +47,8 @@ class ActionDeveloper(Base):
         self._watch([RetrieveSkills])
         self.rollout_num_iter = 0
         self.task_max_retries = 4
-        self.critic_reviewer = agent_registry.entries["critic_agent"]
+        self.critic_reviewer = None #self._rc.env.roles["Task Reviewer"]
+        logger.info(self.critic_reviewer)
     
     def render_system_message(self, skills=[], *args, **kwargs):
         """
@@ -190,10 +192,16 @@ class ActionDeveloper(Base):
     
     async def run_step(self, human_msg, system_msg, *args, **kwargs):
         while True:
-            messages, reward, done, info = await self.runcode_and_evaluate(human_msg, system_msg, *args, **kwargs)
+            logger.info(f"self.rollout_num_iter {self.rollout_num_iter}")
+            system_msg, human_msg, reward, done, info = await self.runcode_and_evaluate(human_msg, system_msg, *args, **kwargs)
             if done:
                 break
-        return messages, reward, done, info
+        #return [system_msg, human_msg], reward, done, info
+        return Message(
+            content=f"{info}",
+            instruct_content="generate_action_code",
+            role=self.profile,
+        )
     
     async def handle_add_new_skills(
             self, task, program_name, program_code, skills, *args, **kwargs
@@ -232,6 +240,7 @@ class ActionDeveloper(Base):
             events = await self._obtain_events()
             # 注意：这里的events对应是执行了新的action函数之后的events信息
             # 更新了评估结果, 回调了最新的环境信息到ga
+            self.critic_reviewer = self._rc.env.roles["Task Reviewer"]
             await self.critic_reviewer._act()  # todo: critic act内的update event放在这里似乎更合理？
             
             critique = self.game_memory.critique
@@ -242,7 +251,7 @@ class ActionDeveloper(Base):
                 # todo: callback game memory reset block info
                 logger.info("Not success, reset block info !")
                 logger.info(
-                    f"\033[32m****Action Agent human message****\n{self.messages[-1].content}\033[0m"
+                    f"\033[32m****Action Agent human message****\n{human_msg}\033[0m"
                 )
             
             # add new skills no matter success or not
@@ -267,20 +276,23 @@ class ActionDeveloper(Base):
                 skills=retrieve_skills,
             )
         
-        
+            system_msg = message["system_msg"]
+            human_msg = message["human_msg"]
         else:
-            message = {
-                "system_msg": [system_msg.content],
-                "human_msg": human_msg.content,
-            }
+            #message = {
+            #    "system_msg": [system_msg.content],
+            #    "human_msg": human_msg.content,
+            #}
+            self.critic_reviewer.maintain_actions(VerifyTask())
+            logger.info(f"system msg is {system_msg}, \n human_msg is {human_msg}")
             logger.info(f"\033[34m Trying again!\033[0m")
         
         self.rollout_num_iter += 1
         done = (self.rollout_num_iter >= self.task_max_retries or self.game_memory.runtime_status)
         info = {
-            "task": self.task,
+            "task": self.game_memory.current_task,
             "success": self.game_memory.runtime_status,
-            "conversations": self.conversations,
+            #"conversations": self.conversations,
         }
         
         self.perform_game_info_callback(code, self.game_memory.update_code)
@@ -288,7 +300,7 @@ class ActionDeveloper(Base):
             program_name, self.game_memory.update_program_name
         )
         
-        return message, 0, done, info
+        return system_msg, human_msg, 0, done, info
     
     async def generate_action_code(self, human_msg, system_msg, *args, **kwargs):
         code, program_name = await GenerateActionCode().run(
@@ -340,9 +352,10 @@ class ActionDeveloper(Base):
         
         if handler:
             msg = await handler(**message)
-            msg.cause_by = type(todo)
+            msg.cause_by = GenerateActionCode
             msg.round_id = self.round_id
             logger.info(msg.send_to)
+            self.rollout_num_iter = 0
             self._publish_message(msg)
             return msg
         
