@@ -33,7 +33,7 @@ class CriticReviewer(Base):
 
         # Set events or actions the CriticReviewer should watch or be aware of
         # 需要获取最新的events来进行评估
-        self._watch([GenerateActionCode, AddNewSkills])
+        self._watch([])
 
     async def run(self, message=None):
         """Observe, only get the observation"""

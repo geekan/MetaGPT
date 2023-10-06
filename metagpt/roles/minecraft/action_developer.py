@@ -46,7 +46,7 @@ class ActionDeveloper(Base):
         self._watch([RetrieveSkills])
         self.rollout_num_iter = 0
         self.task_max_retries = 4
-        self.critic_reviewer = CriticReviewer()
+        self.critic_reviewer = agent_registry["critic_agent"]
     
     def render_system_message(self, skills=[], *args, **kwargs):
         """
@@ -190,7 +190,7 @@ class ActionDeveloper(Base):
     
     async def run_step(self, human_msg, system_msg, *args, **kwargs):
         while True:
-            messages, reward, done, info = self.runcode_and_evaluate(human_msg, system_msg, *args, **kwargs)
+            messages, reward, done, info = await self.runcode_and_evaluate(human_msg, system_msg, *args, **kwargs)
             if done:
                 break
         return messages, reward, done, info
