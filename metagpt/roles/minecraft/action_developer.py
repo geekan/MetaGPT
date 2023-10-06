@@ -279,10 +279,6 @@ class ActionDeveloper(Base):
             system_msg = message["system_msg"]
             human_msg = message["human_msg"]
         else:
-            #message = {
-            #    "system_msg": [system_msg.content],
-            #    "human_msg": human_msg.content,
-            #}
             self.critic_reviewer.maintain_actions(VerifyTask())
             logger.info(f"system msg is {system_msg}, \n human_msg is {human_msg}")
             logger.info(f"\033[34m Trying again!\033[0m")
@@ -292,7 +288,6 @@ class ActionDeveloper(Base):
         info = {
             "task": self.game_memory.current_task,
             "success": self.game_memory.runtime_status,
-            #"conversations": self.conversations,
         }
         
         self.perform_game_info_callback(code, self.game_memory.update_code)
@@ -317,7 +312,7 @@ class ActionDeveloper(Base):
             instruct_content="generate_action_code",
             role=self.profile,
         )
-        # logger.info(msg)
+   
         return msg
     
     async def _act(self) -> Message:
@@ -361,4 +356,3 @@ class ActionDeveloper(Base):
         
         raise ValueError(f"Unknown todo type: {type(todo)}")
         
-        # await self.run_step()
