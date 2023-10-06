@@ -23,16 +23,14 @@ class AgentFocusPt(STAction):
         except:
             return False
 
-    def _func_cleanup(self, llm_resp: str, prompt: str = "") -> list:
+    def _func_cleanup(self, llm_resp: str, prompt: str = "") -> str:
         try:
+            """
+            Cleanup handling has been completed for run_v2
+            """
             return llm_resp
-            # llm_resp = "1) " + llm_resp.strip()
-            # ret = []
-            # for i in llm_resp.split("\n"):
-            #     ret += [i.split(") ")[-1]]
-            # return ret
         except Exception as exp:
-            print(f"cleanup 错误 {exp}")
+            logger.error(f"{self.__class__.__name__} with error {exp}")
 
     def _func_fail_default_resp(self) -> str:
         pass
@@ -70,7 +68,6 @@ class AgentInsightAndGuidance(STAction):
 
     def _func_cleanup(self, llm_resp: str, prompt: str = "") -> dict:
         try:
-            logger.info(f"Run prompt Insight get {llm_resp}")
             llm_resp = "1. " + llm_resp.strip()
             ret = dict()
             for i in llm_resp.split("\n"):
@@ -82,7 +79,7 @@ class AgentInsightAndGuidance(STAction):
                 ret[thought] = evi_raw
             return ret
         except Exception as exp:
-            logger.error(f"AGent Insight 报错{exp}")
+            logger.error(f"{self.__class__.__name__} with error {exp}")
 
     def _func_fail_default_resp(self) -> str:
         pass
@@ -121,10 +118,9 @@ class AgentEventTriple(STAction):
             cr = [i.strip() for i in cr.split(")")[0].split(",")]
             if len(cr) != 2:
                 return cr[-2:]
-            logger.info(f"cr结果为{cr}")
             return cr
         except Exception as exp:
-            logger.error(f"AGent Triple 报错{exp}")
+            logger.error(f"{self.__class__.__name__} with error {exp}")
 
     def _func_fail_default_resp(self) -> str:
         pass
@@ -166,7 +162,8 @@ class AgentEventPoignancy(STAction):
             llm_resp = int(llm_resp.strip())
             return llm_resp
         except Exception as exp:
-            logger.error(f"AGent Event poignancy 报错{exp}")
+            logger.error(f"{self.__class__.__name__} with error {exp}")
+
     def _func_fail_default_resp(self) -> str:
         pass
 
@@ -209,7 +206,8 @@ class AgentChatPoignancy(STAction):
             llm_resp = int(llm_resp.strip())
             return llm_resp
         except Exception as exp:
-            logger.error(f"AGent Chat poignancy 报错{exp}")
+            logger.error(f"{self.__class__.__name__} with error {exp}")
+
     def _func_fail_default_resp(self) -> str:
         pass
 
@@ -251,7 +249,7 @@ class AgentPlanThoughtOnConvo(STAction):
         try:
             return llm_resp.split('"')[0].strip()
         except Exception as exp:
-            logger.error(f"AGent PlanThought 报错{exp}")
+            logger.error(f"{self.__class__.__name__} with error {exp}")
 
     def _func_fail_default_resp(self) -> str:
         pass
@@ -290,7 +288,8 @@ class AgentMemoryOnConvo(STAction):
         try:
             return llm_resp.split('"')[0].strip()
         except Exception as exp:
-            logger.error(f"AGent MemoryOnconvo 报错{exp}")
+            logger.error(f"{self.__class__.__name__} with error {exp}")
+
     def _func_fail_default_resp(self) -> str:
         pass
 

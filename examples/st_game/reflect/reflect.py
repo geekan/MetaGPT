@@ -44,7 +44,7 @@ def generate_insights_and_evidence(role, nodes, n=5):
             ret[thought] = evidence_node_id
         return ret
     except Exception as exp:
-        logger.info(f"insight处理错误为{exp}")
+        logger.error(f"generate_insights_and_evidence error:{exp}")
         return {"this is blank": "node_1"}
 
 
@@ -59,7 +59,6 @@ def generate_action_event_triple(act_desp, role):
     EXAMPLE OUTPUT:
         "🧈🍞"
     """
-    logger.info(f"event Triple 输入为：{act_desp}")
     run_event_triple = AgentEventTriple()
     result = run_event_triple.run(act_desp, role)
     return result
@@ -108,16 +107,15 @@ def run_reflect(role: "STRole"):
     # For each of the focal points, generate thoughts and save it in the
     # agent's memory.
     for focal_pt, nodes in retrieved.items():
-        logger.info(f"检索结果为{nodes}")
-        # xx = [i.embedding_key for i in nodes]
-        # for xxx in xx: logger.info(xxx)
+        xx = [i.embedding_key for i in nodes]
+        for xxx in xx: logger.info(f"Nodes retrieved for {focal_pt} are {xxx}.")
 
         thoughts = generate_insights_and_evidence(role, nodes, 5)
         # 生成的是字典类型
         for thought, evidence in thoughts.items():
             created = role.scratch.curr_time
             expiration = created + datetime.timedelta(days=30)
-            s, p, o = generate_action_event_triple("("+thought+")", role)
+            s, p, o = generate_action_event_triple("(" + thought + ")", role)
             keywords = set([s, p, o])
             thought_poignancy = generate_poig_score(role, "thought", thought)
             thought_embedding_pair = (thought, get_embedding(thought))
@@ -126,7 +124,7 @@ def run_reflect(role: "STRole"):
                 created, expiration, s, p, o, thought, keywords,
                 thought_poignancy, thought_embedding_pair, evidence
             )
-            logger.info(f"主谓宾为：{s}{p}{o},描述为{thought}")
+            logger.info(f"add thought memory: {thought}")
 
 
 def reflection_trigger(role: "STRole"):
