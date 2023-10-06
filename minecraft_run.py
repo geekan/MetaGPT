@@ -19,7 +19,7 @@ async def learn(task="Start", investment: float = 50.0, n_round: int = 3):
         [
             CurriculumDesigner(),
             ActionDeveloper(),
-            CriticReviewer(),
+            # CriticReviewer(),
             SkillManager(),
         
         ]

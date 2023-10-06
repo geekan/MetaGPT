@@ -28,11 +28,27 @@ class CriticReviewer(Base):
     ) -> None:
         super().__init__(name, profile, goal, constraints)
         # Initialize actions specific to the CriticReviewer role
+        # self._init_actions([VerifyTask])
         self._init_actions([VerifyTask])
 
         # Set events or actions the CriticReviewer should watch or be aware of
         # 需要获取最新的events来进行评估
         self._watch([GenerateActionCode, AddNewSkills])
+
+    async def run(self, message=None):
+        """Observe, only get the observation"""
+        if message:
+            if isinstance(message, str):
+                message = Message(message)
+            if isinstance(message, Message):
+                self.recv(message)
+            if isinstance(message, list):
+                self.recv(Message("\n".join(message)))
+        elif not await self._observe():
+            # If there is no new information, suspend and wait
+            logger.info(f"{self._setting}: no news. waiting.")
+            return
+        self._rc.todo = VerifyTask
 
     def render_system_message(self):
         system_message = SystemMessage(content=load_prompt("critic"))
@@ -119,6 +135,7 @@ class CriticReviewer(Base):
         self.perform_game_info_callback(
             success, self.game_memory.update_exploration_progress
         )
+        self.perform_game_info_callback(critique, self.game_memory.update_critique)
         return Message(
             content=f"{critique}",
             instruct_content="verify_task",

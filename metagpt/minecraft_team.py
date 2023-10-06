@@ -51,6 +51,7 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
     chest_observation: str = Field(default="")  # eg: "Chests: None\n\n"
 
     mf_instance: MineflayerEnv = Field(default_factory=MineflayerEnv)
+    runtime_status: bool = False  # equal to action execution status: success or failed
 
     @property
     def progress(self):
@@ -200,6 +201,10 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
                     chatlog.add(item)
         return "I also need " + ", ".join(chatlog) + "." if chatlog else ""
 
+    def reset_block_info(self):
+        # revert all the placing event in the last step
+        pass
+
     def update_exploration_progress(self, success: bool):
         """
         Split task into completed_tasks or failed_tasks
@@ -209,6 +214,9 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
             "conversations": self.conversations,
         }
         """
+        # update runtime status in game memory
+        self.runtime_status = success
+
         task = self.current_task
         if task.startswith("Deposit useless items into the chest at"):
             return
