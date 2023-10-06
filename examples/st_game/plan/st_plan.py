@@ -7,24 +7,48 @@ from typing import Union, Tuple
 from datetime import datetime
 import math
 
-from examples.st_game.maze import Maze
-from examples.st_game.plan.converse import agent_conversation
-from examples.st_game.roles.st_role import STRole
-from examples.st_game.actions.decide_to_talk import DecideToTalk
-from examples.st_game.actions.summarize_conv import SummarizeConv
-from examples.st_game.actions.new_decomp_schedule import NewDecompSchedule
+from metagpt.llm import LLM
+from ..maze import Maze
+from ..plan.converse import agent_conversation
+from ..roles.st_role import STRole
+from ..actions.decide_to_talk import DecideToTalk
+from ..actions.summarize_conv import SummarizeConv
+from ..actions.new_decomp_schedule import NewDecompSchedule
+from ..actions.task_decomp import TaskDecomp
+from ..actions.wake_up import WakeUp
+from ..actions.gen_daily_schedule import GenDailySchedule
+from ..actions.gen_hourly_schedule import GenHourlySchedule
+from ..actions.gen_action_details import GenActionDetails
+from ..utils.utils import get_embedding
+from ..memory.retrieve import new_retrieve
 
 
 def plan(role: STRole, maze: Maze, roles: list[STRole], new_day: bool, retrieved: dict):
+    # PART 1: Generate the hourly schedule. 
+    if new_day: 
+        _long_term_planning(role, new_day)
 
+    # PART 2: If the current action has expired, we want to create a new plan.
+    if role.scratch.act_check_finished(): 
+        _determine_action(role, maze)
+
+    # PART 3: If you perceived an event that needs to be responded to (saw 
+    # another role), and retrieved relevant information. 
+    # Step 1: Retrieved may have multiple events represented in it. The first 
+    #         job here is to determine which of the events we want to focus 
+    #         on for the role. 
+    #         <focused_event> takes the form of a dictionary like this: 
+    #         dictionary {["curr_event"] = <ConceptNode>, 
+    #                     ["events"] = [<ConceptNode>, ...], 
+    #                     ["thoughts"] = [<ConceptNode>, ...]}    
     focused_event = False
     if retrieved.keys():
         focused_event = _choose_retrieved(role, retrieved)
 
     # Step 2: Once we choose an event, we need to determine whether the
-    #         persona will take any actions for the perceived event. There are
+    #         role will take any actions for the perceived event. There are
     #         three possible modes of reaction returned by _should_react.
-    #         a) "chat with {target_persona.name}"
+    #         a) "chat with {target_role.name}"
     #         b) "react"
     #         c) False
     if focused_event:
@@ -82,7 +106,7 @@ def _choose_retrieved(role_name: str, retrieved: dict) -> Union[None, dict]:
 
 def _should_react(role: "STRole", retrieved: dict, roles: dict):
     """
-    Determines what form of reaction the persona should exihibit given the
+    Determines what form of reaction the role should exihibit given the
     retrieved values.
     INPUT
       role: Current <STRole> instance whose action we are determining.
@@ -170,7 +194,7 @@ def _should_react(role: "STRole", retrieved: dict, roles: dict):
         else:
             return False  # "keep"
 
-    # If the persona is chatting right now, default to no reaction
+    # If the role is chatting right now, default to no reaction
     scratch = role._rc.scratch
     if scratch.chatting_with:
         return False
@@ -182,7 +206,7 @@ def _should_react(role: "STRole", retrieved: dict, roles: dict):
     curr_event = retrieved["curr_event"]
 
     if ":" not in curr_event.subject:
-        # this is a persona event.
+        # this is a role event.
         if lets_talk(role, roles[curr_event.subject], retrieved):
             return f"chat with {curr_event.subject}"
         react_mode = lets_react(role, roles[curr_event.subject],
@@ -192,11 +216,11 @@ def _should_react(role: "STRole", retrieved: dict, roles: dict):
 
 
 def _chat_react(maze: Maze, role: STRole, reaction_mode: str, roles: list[STRole]):
-    # There are two personas -- the persona who is initiating the conversation
-    # and the persona who is the target. We get the persona instances here.
+    # There are two roles -- the role who is initiating the conversation
+    # and the role who is the target. We get the role instances here.
     init_role = role
     target_role = roles[reaction_mode[9:].strip()]
-    curr_personas = [init_role, target_role]
+    curr_roles = [init_role, target_role]
 
     # Actually creating the conversation here.
     convo, duration_min = generate_convo(maze, init_role, target_role)  # 2222
@@ -215,13 +239,13 @@ def _chat_react(maze: Maze, role: STRole, reaction_mode: str, roles: list[STRole
 
     for role, p in [("init", init_role), ("target", target_role)]:
         if role == "init":
-            act_address = f"<persona> {target_role.name}"
+            act_address = f"<role> {target_role.name}"
             act_event = (p.name, "chat with", target_role.name)
             chatting_with = target_role.name
             chatting_with_buffer = {}
             chatting_with_buffer[target_role.name] = 800
         elif role == "target":
-            act_address = f"<persona> {init_role.name}"
+            act_address = f"<role> {init_role.name}"
             act_event = (p.name, "chat with", init_role.name)
             chatting_with = init_role.name
             chatting_with_buffer = {}
@@ -344,7 +368,7 @@ def generate_convo_summary(role: STRole, conv: list) -> str:
 def generate_new_decomp_schedule(role: STRole, inserted_act: str, inserted_act_dur: int,
                                  start_hour: int, end_hour: int):
     # Step 1: Setting up the core variables for the function.
-    # <p> is the persona whose schedule we are editing right now.
+    # <p> is the role whose schedule we are editing right now.
     p = role
     scratch = role._rc.scratch
     # <today_min_pass> indicates the number of minutes that have passed today.
@@ -381,7 +405,7 @@ def generate_new_decomp_schedule(role: STRole, inserted_act: str, inserted_act_d
         dur_sum += dur
         count += 1
 
-    persona_name = role.name
+    role_name = role.name
     main_act_dur = main_act_dur
 
     x = truncated_act_dur[-1][0].split("(")[0].strip() + " (on the way to " + truncated_act_dur[-1][0].split("(")[-1][
@@ -407,3 +431,218 @@ def generate_new_decomp_schedule(role: STRole, inserted_act: str, inserted_act_d
                                    end_time_hour,
                                    inserted_act,
                                    inserted_act_dur)
+
+
+def _long_term_planning(role: STRole, new_day: bool): 
+    """
+    Formulates the role's daily long-term plan if it is the start of a new 
+    day. This basically has two components: first, we create the wake-up hour, 
+    and second, we create the hourly schedule based on it. 
+    INPUT
+        new_day: Indicates whether the current time signals a "First day",
+                "New day", or False (for neither). This is important because we
+                create the roles' long term planning on the new day. 
+    """
+    # We start by creating the wake up hour for the role. 
+    wake_up_hour = WakeUp().run(role)
+
+    # When it is a new day, we start by creating the daily_req of the role.
+    # Note that the daily_req is a list of strings that describe the role's
+    # day in broad strokes.
+    if new_day == "First day": 
+        # Bootstrapping the daily plan for the start of then generation:
+        # if this is the start of generation (so there is no previous day's 
+        # daily requirement, or if we are on a new day, we want to create a new
+        # set of daily requirements.
+        role.scratch.daily_req = GenDailySchedule().run(role, 
+                                                            wake_up_hour)
+    elif new_day == "New day":
+        revise_identity(role)
+
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - TODO
+        # We need to create a new daily_req here...
+        role.scratch.daily_req = role.scratch.daily_req
+
+    # Based on the daily_req, we create an hourly schedule for the role, 
+    # which is a list of todo items with a time duration (in minutes) that 
+    # add up to 24 hours.
+    role.scratch.f_daily_schedule = GenHourlySchedule().run(role, 
+                                                                wake_up_hour)
+    role.scratch.f_daily_schedule_hourly_org = (role.scratch
+                                                    .f_daily_schedule[:])
+
+
+    # Added March 4 -- adding plan to the memory.
+    thought = f"This is {role.scratch.name}'s plan for {role.scratch.curr_time.strftime('%A %B %d')}:"
+    for i in role.scratch.daily_req: 
+        thought += f" {i},"
+    thought = thought[:-1] + "."
+    created = role.scratch.curr_time
+    expiration = role.scratch.curr_time + datetime.timedelta(days=30)
+    s, p, o = (role.scratch.name, "plan", role.scratch.curr_time.strftime('%A %B %d'))
+    keywords = set(["plan"])
+    thought_poignancy = 5
+    thought_embedding_pair = (thought, get_embedding(thought))
+    role.a_mem.add_thought(created, expiration, s, p, o, 
+                                thought, keywords, thought_poignancy, 
+                                thought_embedding_pair, None)
+
+    # print("Sleeping for 20 seconds...")
+    # time.sleep(10)
+    # print("Done sleeping!")
+
+
+def _determine_action(role: STRole, maze: Maze): 
+    """
+    Creates the next action sequence for the role. 
+    The main goal of this function is to run "add_new_action" on the role's 
+    scratch space, which sets up all the action related variables for the next 
+    action. 
+    As a part of this, the role may need to decompose its hourly schedule as 
+    needed.   
+    INPUT
+        role: Current <Persona> instance whose action we are determining. 
+        maze: Current <Maze> instance. 
+    """
+    def determine_decomp(act_desp, act_dura):
+        """
+        Given an action description and its duration, we determine whether we need
+        to decompose it. If the action is about the agent sleeping, we generally
+        do not want to decompose it, so that's what we catch here. 
+
+        INPUT: 
+        act_desp: the description of the action (e.g., "sleeping")
+        act_dura: the duration of the action in minutes. 
+        OUTPUT: 
+        a boolean. True if we need to decompose, False otherwise. 
+        """
+        if "sleep" not in act_desp and "bed" not in act_desp: 
+            return True
+        elif "sleeping" in act_desp or "asleep" in act_desp or "in bed" in act_desp:
+            return False
+        elif "sleep" in act_desp or "bed" in act_desp: 
+            if act_dura > 60: 
+                return False
+        return True
+
+    # The goal of this function is to get us the action associated with 
+    # <curr_index>. As a part of this, we may need to decompose some large 
+    # chunk actions. 
+    # Importantly, we try to decompose at least two hours worth of schedule at
+    # any given point. 
+    curr_index = role.scratch.get_f_daily_schedule_index()
+    curr_index_60 = role.scratch.get_f_daily_schedule_index(advance=60)
+
+    # * Decompose * 
+    # During the first hour of the day, we need to decompose two hours 
+    # sequence. We do that here. 
+    if curr_index == 0:
+        # This portion is invoked if it is the first hour of the day. 
+        act_desp, act_dura = role.scratch.f_daily_schedule[curr_index]
+        if act_dura >= 60: 
+        # We decompose if the next action is longer than an hour, and fits the
+        # criteria described in determine_decomp.
+            if determine_decomp(act_desp, act_dura): 
+                role.scratch.f_daily_schedule[curr_index:curr_index+1] = (
+                                TaskDecomp().run(role, act_desp, act_dura))
+        if curr_index_60 + 1 < len(role.scratch.f_daily_schedule):
+            act_desp, act_dura = role.scratch.f_daily_schedule[curr_index_60+1]
+            if act_dura >= 60: 
+                if determine_decomp(act_desp, act_dura): 
+                    role.scratch.f_daily_schedule[curr_index_60+1:curr_index_60+2] = (
+                                    TaskDecomp().run(role, act_desp, act_dura))
+
+    if curr_index_60 < len(role.scratch.f_daily_schedule):
+        # If it is not the first hour of the day, this is always invoked (it is
+        # also invoked during the first hour of the day -- to double up so we can
+        # decompose two hours in one go). Of course, we need to have something to
+        # decompose as well, so we check for that too. 
+        if role.scratch.curr_time.hour < 23:
+        # And we don't want to decompose after 11 pm. 
+            act_desp, act_dura = role.scratch.f_daily_schedule[curr_index_60]
+            if act_dura >= 60: 
+                if determine_decomp(act_desp, act_dura): 
+                   role.scratch.f_daily_schedule[curr_index_60:curr_index_60+1] = (
+                                    TaskDecomp().run(role, act_desp, act_dura))
+    # * End of Decompose * 
+
+    # Generate an <Action> instance from the action description and duration. By
+    # this point, we assume that all the relevant actions are decomposed and 
+    # ready in f_daily_schedule. 
+    print ("DEBUG LJSDLFSKJF")
+    for i in role.scratch.f_daily_schedule: print (i)
+    print (curr_index)
+    print (len(role.scratch.f_daily_schedule))
+    print (role.scratch.name)
+    print ("------")
+
+    # 1440
+    x_emergency = 0
+    for i in role.scratch.f_daily_schedule: 
+        x_emergency += i[1]
+    # print ("x_emergency", x_emergency)
+
+    if 1440 - x_emergency > 0: 
+        print ("x_emergency__AAA", x_emergency)
+    role.scratch.f_daily_schedule += [["sleeping", 1440 - x_emergency]]
+    
+    act_desp, act_dura = role.scratch.f_daily_schedule[curr_index] 
+
+    new_action_details = GenActionDetails().run(role, act_desp, act_dura)
+    # Adding the action to role's queue. 
+    role.scratch.add_new_action(**new_action_details)
+    
+
+def revise_identity(role: STRole): 
+    p_name = role.scratch.name
+
+    focal_points = [f"{p_name}'s plan for {role.scratch.get_str_curr_date_str()}.",
+                    f"Important recent events for {p_name}'s life."]
+    retrieved = new_retrieve(role, focal_points)
+
+    statements = "[Statements]\n"
+    for key, val in retrieved.items():
+        for i in val: 
+            statements += f"{i.created.strftime('%A %B %d -- %H:%M %p')}: {i.embedding_key}\n"
+
+    # print (";adjhfno;asdjao;idfjo;af", p_name)
+    plan_prompt = statements + "\n"
+    plan_prompt += f"Given the statements above, is there anything that {p_name} should remember as they plan for"
+    plan_prompt += f" *{role.scratch.curr_time.strftime('%A %B %d')}*? "
+    plan_prompt += f"If there is any scheduling information, be as specific as possible (include date, time, and location if stated in the statement)\n\n"
+    plan_prompt += f"Write the response from {p_name}'s perspective."
+    plan_note = LLM().ask(plan_prompt)
+    # print (plan_note)
+
+    thought_prompt = statements + "\n"
+    thought_prompt += f"Given the statements above, how might we summarize {p_name}'s feelings about their days up to now?\n\n"
+    thought_prompt += f"Write the response from {p_name}'s perspective."
+    thought_note = LLM().ask(thought_prompt)
+    # print (thought_note)
+
+    currently_prompt = f"{p_name}'s status from {(role.scratch.curr_time - datetime.timedelta(days=1)).strftime('%A %B %d')}:\n"
+    currently_prompt += f"{role.scratch.currently}\n\n"
+    currently_prompt += f"{p_name}'s thoughts at the end of {(role.scratch.curr_time - datetime.timedelta(days=1)).strftime('%A %B %d')}:\n" 
+    currently_prompt += (plan_note + thought_note).replace('\n', '') + "\n\n"
+    currently_prompt += f"It is now {role.scratch.curr_time.strftime('%A %B %d')}. Given the above, write {p_name}'s status for {role.scratch.curr_time.strftime('%A %B %d')} that reflects {p_name}'s thoughts at the end of {(role.scratch.curr_time - datetime.timedelta(days=1)).strftime('%A %B %d')}. Write this in third-person talking about {p_name}."
+    currently_prompt += f"If there is any scheduling information, be as specific as possible (include date, time, and location if stated in the statement).\n\n"
+    currently_prompt += "Follow this format below:\nStatus: <new status>"
+    # print ("DEBUG ;adjhfno;asdjao;asdfsidfjo;af", p_name)
+    # print (currently_prompt)
+    new_currently = LLM().ask(currently_prompt)
+    # print (new_currently)
+    # print (new_currently[10:])
+
+    role.scratch.currently = new_currently
+
+    daily_req_prompt = role.scratch.get_str_iss() + "\n"
+    daily_req_prompt += f"Today is {role.scratch.curr_time.strftime('%A %B %d')}. Here is {role.scratch.name}'s plan today in broad-strokes (with the time of the day. e.g., have a lunch at 12:00 pm, watch TV from 7 to 8 pm).\n\n"
+    daily_req_prompt += f"Follow this format (the list should have 4~6 items but no more):\n"
+    daily_req_prompt += f"1. wake up and complete the morning routine at <time>, 2. ..."
+
+    new_daily_req = LLM().ask(daily_req_prompt)
+    new_daily_req = new_daily_req.replace('\n', ' ')
+    print ("WE ARE HERE!!!", new_daily_req)
+    role.scratch.daily_plan_req = new_daily_req
+
+
