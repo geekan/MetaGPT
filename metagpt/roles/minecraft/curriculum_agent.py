@@ -313,7 +313,8 @@ class CurriculumDesigner(Base):
         logger.debug(f"Todo is {todo}")
         self.maintain_actions(todo) 
         # 获取最新的游戏周边环境信息
-        events = await self._obtain_events()
+        # events = await self._obtain_events()
+        events = self.game_memory.event
         chest_observation = self.game_memory.chest_observation
 
         # DesignCurriculum.set_qa_cache(self.game_memory.qa_cache)

@@ -36,8 +36,8 @@ class SkillManager(Base):
         )
 
     def encapsule_message(self, program_code, program_name, *args, **kwargs):
-        human_msg = self.render_system_message(load_prompt("skill"))
-        system_msg = self.render_human_message(
+        system_msg = self.render_system_message(load_prompt("skill"))
+        human_msg = self.render_human_message(
             program_code + "\n\n" + f"The main function is `{program_name}`."
         )
         return {"system_msg": [system_msg.content], "human_msg": human_msg.content}

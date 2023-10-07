@@ -22,7 +22,7 @@ class GenerateActionCode(Action):
 
         Implement the logic for generating action code here.
         """
-        logger.info(f"human_msg {human_msg}, system_msg {system_msg}")
+        # logger.info(f"human_msg {human_msg}, system_msg {system_msg}")
         rsp = await self._aask(prompt=human_msg, system_msgs=system_msg)
         parsed_result = parse_action_response(rsp)
         # logger.info(f"parsed_result is HERE: {parsed_result}")
