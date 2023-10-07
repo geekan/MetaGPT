@@ -7,7 +7,7 @@ import fire
 
 from examples.st_game.stanford_town import StanfordTown
 from examples.st_game.roles.st_role import STRole
-from examples.st_game.utils.mg_ga_transform import get_reverie_meta
+from examples.st_game.utils.mg_ga_transform import get_reverie_meta, write_curr_sim_code, write_curr_step
 from examples.st_game.utils.const import STORAGE_PATH
 from examples.st_game.utils.utils import copy_folder
 
@@ -38,6 +38,10 @@ async def startup(idea: str,
                       has_inner_voice=has_inner_voice)
         role.load_from(role_stg_path)
         roles.append(role)
+
+    # init temp_storage
+    write_curr_sim_code({"sim_code": sim_code})
+    write_curr_step({"step": reverie_meta.get("step", 0)})
 
     town = StanfordTown()
     town.wakeup_roles(roles)

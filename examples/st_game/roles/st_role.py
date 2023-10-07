@@ -138,8 +138,8 @@ class STRole(Role):
         observed = self._rc.env.memory.get_by_actions(self._rc.watch)
         self._rc.news = self._rc.memory.remember(observed)
         if len(self._rc.news) == 1 and self._rc.news[0].cause_by == UserRequirement:
-            self.add_inner_voice(self._rc.news[0].content)
             logger.warning(f"Role: {self.name} add inner voice: {self._rc.news[0].content}")
+            self.add_inner_voice(self._rc.news[0].content)
 
         return 1  # always return 1 to execute role's `_react`
 
@@ -150,6 +150,9 @@ class STRole(Role):
             return inner_thought
 
         thought = generate_inner_thought(whisper)
+
+        # init scratch curr_time with self.curr_time
+        self._rc.scratch.curr_time = self.curr_time
 
         created = self._rc.scratch.curr_time if self._rc.scratch.curr_time else datetime.datetime.now()
         expiration = created + datetime.timedelta(days=30)
@@ -484,7 +487,7 @@ class STRole(Role):
         else:
             ret = False
             time.sleep(1)
-            logger.warning(f"{self.sim_code}/environment/{self.step}.json not exist or parses failed,"
+            logger.warning(f"{self.sim_code}/environment/{self.step}.json not exist or parses failed, "
                            f"sleep 1s and re-check")
         return ret
 

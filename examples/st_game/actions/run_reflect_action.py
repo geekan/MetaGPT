@@ -129,10 +129,10 @@ class AgentEventTriple(STAction):
         def create_prompt_input(statements, role):
             if "(" in statements:
                 statements = statements.split("(")[-1].split(")")[0]
-                prompt_input = [role.scratch.name,
-                                statements,
-                                role.scratch.name]
-                return prompt_input
+            prompt_input = [role.scratch.name,
+                            statements,
+                            role.scratch.name]
+            return prompt_input
 
         prompt_input = create_prompt_input(statements, role)
         prompt = self.generate_prompt_with_tmpl_filename(prompt_input,

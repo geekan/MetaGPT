@@ -6,7 +6,7 @@ import json
 
 from metagpt.logs import logger
 
-from examples.st_game.utils.const import STORAGE_PATH
+from examples.st_game.utils.const import STORAGE_PATH, TEMP_STORAGE_PATH
 from examples.st_game.utils.utils import read_json_file, write_json_file
 
 
@@ -43,3 +43,11 @@ def get_role_environment(sim_code: str, role_name: str, step: int = 0) -> dict:
         role_env = environment.get(role_name, None)
 
     return role_env
+
+
+def write_curr_sim_code(curr_sim_code: dict):
+    write_json_file(TEMP_STORAGE_PATH.joinpath("curr_sim_code.json"), curr_sim_code)
+
+
+def write_curr_step(curr_step: dict):
+    write_json_file(TEMP_STORAGE_PATH.joinpath("curr_step.json"), curr_step)
