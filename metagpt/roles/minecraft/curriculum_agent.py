@@ -32,6 +32,8 @@ class CurriculumDesigner(Base):
 
         # Set events or actions the ActionAgent should watch or be aware of
         self._watch([PlayerActions, DesignTask])
+        logger.info(self._actions)
+        self.finish_state = len(self._actions)
 
     def render_curriculum_observation(self, *, events, chest_observation):
         """

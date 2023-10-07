@@ -50,12 +50,15 @@ class AddNewSkills(Action):
     ):
         # Implement the logic for adding new skills here.
         # TODO: Fix this
+        logger.info(f"check task {task}")
         if task.startswith("Deposit useless items into the chest at"):
             # No need to reuse the deposit skill
             return {}
         logger.info(
             f"Skill Manager generated description for {program_name}:\n{skill_desp}\033[0m"
         )
+        logger.info(f"check skills {skills}")
+        
         if program_name in skills:
             logger.info(f"Skill {program_name} already exists. Rewriting!")
             self.vectordb._collection.delete(ids=[program_name])

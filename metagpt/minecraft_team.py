@@ -355,6 +355,7 @@ class MinecraftPlayer(SoftwareCompany):
             role.finish_step = False
             role.round_id += 1
             role._rc.todo = None
+            role.finish_state = len(role._actions)
             logger.info(f"round_id:{role.round_id}")
     
     def hire(self, roles: list[Role]):
@@ -394,6 +395,7 @@ class MinecraftPlayer(SoftwareCompany):
         while n_round > 0:
             # self._save()
             if self.check_complete_round():
+                
                 n_round -= 1
                 self.update_round()
                 round_id += 1

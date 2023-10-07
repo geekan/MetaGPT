@@ -20,8 +20,6 @@ from metagpt.config import CONFIG
 from metagpt.actions.minecraft.control_primitives_context import (
     load_skills_code_context,
 )
-from metagpt.utils.minecraft import fix_and_parse_json
-from metagpt.roles.minecraft.critic_agent import CriticReviewer
 
 
 @agent_registry.register("action_developer")
@@ -42,13 +40,14 @@ class ActionDeveloper(Base):
         # Initialize actions specific to the Action role
         self._init_actions([GenerateActionCode])
         
+        
         # Set events or actions the ActionAgent should watch or be aware of
         # 需要根据events进行自己chest_observation的更新
         self._watch([RetrieveSkills])
         self.rollout_num_iter = 0
         self.task_max_retries = 4
+        self.finish_state = len(self._actions)
         self.critic_reviewer = None  # self._rc.env.roles["Task Reviewer"]
-        logger.info(self.critic_reviewer)
     
     def render_system_message(self, skills=[], *args, **kwargs):
         """
@@ -198,6 +197,8 @@ class ActionDeveloper(Base):
             if done:
                 break
         # return [system_msg, human_msg], reward, done, info
+        # 结束前，将critic_reviewer 轮次状态更新，以便进入下一轮
+        self.critic_reviewer.finish_step = True
         return Message(
             content=f"{info}",
             instruct_content="generate_action_code",
@@ -282,8 +283,12 @@ class ActionDeveloper(Base):
             system_msg = message["system_msg"]
             human_msg = message["human_msg"]
         else:
+            self.perform_game_info_callback(
+                False, self.game_memory.update_exploration_progress
+            )
+            logger.info(f"Code is None. Update runtime_status failed!")
             self.critic_reviewer.maintain_actions(VerifyTask())
-            logger.info(f"system msg is {system_msg}, \n human_msg is {human_msg}")
+            # logger.info(f"system msg is {system_msg}, \n human_msg is {human_msg}")
             logger.info(f"\033[34m Trying again!\033[0m")
         
         self.rollout_num_iter += 1
@@ -326,7 +331,7 @@ class ActionDeveloper(Base):
         # 获取最新的游戏周边信息
         # events = await self._obtain_events()
         events = self.game_memory.event
-        logger.info(events)
+        # logger.info(events)
         # self.perform_game_info_callback(events, self.game_memory.update_event)
         logger.info(self.game_memory.event_summary)
         context = self.game_memory.context

@@ -52,26 +52,28 @@ class Minecraft(Role):
         self.finish_step = False
 
     def maintain_actions(self, todo):
+        logger.info(f"{self._setting.name}:{self.finish_state}")
         if todo in self._actions:
             self.finish_state-=1
         if self.finish_state<=0:
             self.finish_step = True
+        logger.info(f"{self._setting.name}:{self.finish_state}")
 
 
     async def _observe(self) -> int:
         await super()._observe()
         for msg in self._rc.news:
             logger.info(f"check msg round :{msg.round_id}")
-            logger.info(msg.round_id == self.round_id)
+            # logger.info(msg.round_id == self.round_id)
         self._rc.news = [
             msg for msg in self._rc.news if msg.round_id == self.round_id
         ]  # only relevant msgs count as observed news
-        logger.info(len(self._rc.news))
+        # logger.info(len(self._rc.news))
         return len(self._rc.news)
     
     async def _think(self) -> None:
         logger.info(self._actions)
-        logger.info(self._rc.state)
+        # logger.info(self._rc.state)
         if len(self._actions) == 1:
             # If there is only one action, then only this one can be performed
             self._set_state(0)
@@ -133,5 +135,5 @@ agent_registry = Registry(name="Minecraft")
 if __name__ == "__main__":
     mc = Minecraft()
     result = "Async operation result"
-    # 调用回调函数，并传递结果
+    
     # mc.perform_memory_callback(mc.my_callback)

@@ -11,7 +11,7 @@ from metagpt.actions.minecraft.manage_skills import (
     RetrieveSkills,
     AddNewSkills,
 )
-from metagpt.actions.minecraft.review_task import VerifyTask
+from metagpt.actions.minecraft import GenerateActionCode
 from metagpt.actions.minecraft.design_curriculumn import DesignCurriculum
 from metagpt.utils.minecraft import load_prompt
 
@@ -32,8 +32,10 @@ class SkillManager(Base):
         
         # Set events or actions the SkillManager should watch or be aware of
         self._watch(
-            [DesignCurriculum, VerifyTask, RetrieveSkills, GenerateSkillDescription]
+            [DesignCurriculum, GenerateActionCode, RetrieveSkills, GenerateSkillDescription]
         )
+        
+        self.finish_state = len(self._actions)
 
     def encapsule_message(self, program_code, program_name, *args, **kwargs):
         system_msg = self.render_system_message(load_prompt("skill"))
@@ -128,8 +130,10 @@ class SkillManager(Base):
         handler = handler_map.get(type(todo))
         if handler:
             if type(todo) == DesignCurriculum:
+                logger.info(retrieve_skills_message_step1)
                 msg = await handler(**retrieve_skills_message_step1)
             elif type(todo) == RetrieveSkills:
+                logger.info(retrieve_skills_message_step2)
                 msg = await handler(**retrieve_skills_message_step2)
             elif type(todo) == GenerateSkillDescription:
                 msg = await handler(**generate_skill_message)

@@ -108,10 +108,12 @@ class Role:
     def _init_actions(self, actions):
         self._reset()
         for idx, action in enumerate(actions):
+           
             if not isinstance(action, Action):
                 i = action("")
             else:
                 i = action
+            
             i.set_prefix(self._get_prefix(), self.profile)
             self._actions.append(i)
             self._states.append(f"{idx}. {action}")

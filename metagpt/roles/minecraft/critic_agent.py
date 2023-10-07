@@ -34,6 +34,7 @@ class CriticReviewer(Base):
         # Set events or actions the CriticReviewer should watch or be aware of
         # 需要获取最新的events来进行评估
         self._watch([])
+        self.finish_state = len(self._actions)
 
     async def run(self, message=None):
         """Observe, only get the observation"""
@@ -157,7 +158,7 @@ class CriticReviewer(Base):
         # 获取最新的游戏周边信息
         events = await self._execute_events()
         self.perform_game_info_callback(events, self.game_memory.update_chest_memory)
-        logger.info(f"Execute return event is {self.game_memory.event}")
+        # logger.info(f"Execute return event is {self.game_memory.event}")
         context = self.game_memory.context
         task = self.game_memory.current_task
         chest_observation = self.game_memory.chest_observation
@@ -173,7 +174,7 @@ class CriticReviewer(Base):
             VerifyTask: self.verify_task,
         }
         handler = handler_map.get(type(todo))
-        logger.info(handler)
+        # logger.info(handler)
         if handler:
             msg = await handler(**message)
             msg.cause_by = type(todo)
