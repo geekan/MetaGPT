@@ -9,8 +9,8 @@ import string
 from metagpt.logs import logger
 from metagpt.schema import Message
 
-from ..roles.st_role import STRole
 from .st_action import STAction
+
 
 def get_random_alphanumeric(i=6, j=6): 
     """
@@ -26,6 +26,7 @@ def get_random_alphanumeric(i=6, j=6):
     k = random.randint(i, j)
     x = ''.join(random.choices(string.ascii_letters + string.digits, k=k))
     return x
+
 
 class GenHourlySchedule(STAction):
     def __init__(self, name="GenHourlySchedule", context: list[Message] = None, llm=None):
@@ -48,11 +49,11 @@ class GenHourlySchedule(STAction):
         fs = "asleep"
         return fs
     
-    def _generate_schedule_for_given_hour(self, role: STRole, 
-                                            curr_hour_str, 
-                                            p_f_ds_hourly_org,
-                                            hour_str,
-                                            intermission2):
+    def _generate_schedule_for_given_hour(self, role: "STRole", 
+                                          curr_hour_str,
+                                          p_f_ds_hourly_org,
+                                          hour_str,
+                                          intermission2=None):
         def create_prompt_input(persona, 
                                 curr_hour_str, 
                                 p_f_ds_hourly_org,
@@ -102,19 +103,19 @@ class GenHourlySchedule(STAction):
 
             return prompt_input
 
-        wake_up_hour = int(wake_up_hour)
         prompt_template = "generate_hourly_schedule_v2.txt"
         prompt_input = create_prompt_input(role, 
                                            curr_hour_str, 
-                                            p_f_ds_hourly_org,
-                                            hour_str,
-                                            intermission2)
+                                           p_f_ds_hourly_org,
+                                           hour_str,
+                                           intermission2)
+        logger.info(f"Role: {role.name} _generate_schedule_for_given_hour prompt_input: {prompt_input}")
         prompt = self.generate_prompt_with_tmpl_filename(prompt_input, prompt_template)
         self.fail_default_resp = self._func_fail_default_resp()
         output = self._run_v1(prompt)
         return output
     
-    def run(self, role: STRole, wake_up_hour: str):          
+    def run(self, role: "STRole", wake_up_hour: str):          
         hour_str = ["00:00 AM", "01:00 AM", "02:00 AM", "03:00 AM", "04:00 AM", 
                     "05:00 AM", "06:00 AM", "07:00 AM", "08:00 AM", "09:00 AM", 
                     "10:00 AM", "11:00 AM", "12:00 PM", "01:00 PM", "02:00 PM", 
@@ -131,8 +132,8 @@ class GenHourlySchedule(STAction):
                         n_m1_activity += ["sleeping"]
                         wake_up_hour -= 1
                     else: 
-                       n_m1_activity += [self._generate_schedule_for_given_hour(
-                                    role, curr_hour_str, n_m1_activity, hour_str)[0]]
+                        n_m1_activity += [self._generate_schedule_for_given_hour(
+                                    role, curr_hour_str, n_m1_activity, hour_str)]
             
         # Step 1. Compressing the hourly schedule to the following format: 
         # The integer indicates the number of hours. They should add up to 24. 

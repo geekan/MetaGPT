@@ -140,7 +140,7 @@ class AgentEventTriple(STAction):
 
         output = self._run_v1(prompt)
         output = (role.scratch.name, output[0], output[1])
-        logger.info(f"Run action: {self.__class__.__name__} with result: {output}")
+        logger.info(f"Role: {role.name} Run action: {self.__class__.__name__} with result: {output}")
 
         return output
 

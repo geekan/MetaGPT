@@ -5,7 +5,6 @@
 from metagpt.logs import logger
 from metagpt.schema import Message
 
-from examples.st_game.roles.st_role import STRole
 from examples.st_game.actions.st_action import STAction
 
 
@@ -29,8 +28,8 @@ class AgentChatSumRel(STAction):
     def _func_fail_default_resp(self) -> str:
         pass
 
-    def run(self, init_role: STRole, target_role: STRole, statements: str) -> str:
-        def create_prompt_input(init_role: STRole, target_role: STRole, statements: str) -> str:
+    def run(self, init_role: "STRole", target_role: "STRole", statements: str) -> str:
+        def create_prompt_input(init_role: "STRole", target_role: "STRole", statements: str) -> str:
             prompt_input = [statements, init_role.name, target_role.name]
             return prompt_input
 

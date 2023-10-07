@@ -7,7 +7,6 @@ import datetime
 from metagpt.logs import logger
 from metagpt.schema import Message
 
-from ..roles.st_role import STRole
 from ..actions.st_action import STAction
 
 
@@ -31,7 +30,7 @@ class WakeUp(STAction):
         fs = 8
         return fs
     
-    def run(self, role: STRole):
+    def run(self, role: "STRole"):
         def create_prompt_input(role): 
             prompt_input = [role.scratch.get_str_iss(),
                             role.scratch.get_str_lifestyle(),

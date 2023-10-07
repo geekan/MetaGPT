@@ -5,7 +5,6 @@
 from metagpt.logs import logger
 from metagpt.schema import Message
 
-from examples.st_game.roles.st_role import STRole
 from examples.st_game.actions.st_action import STAction
 
 
@@ -29,9 +28,9 @@ class DecideToTalk(STAction):
     def _func_fail_default_resp(self) -> str:
         return "yes"
 
-    def run(self, init_role: STRole, target_role: STRole, retrieved: dict, *args, **kwargs) -> bool:
+    def run(self, init_role: "STRole", target_role: "STRole", retrieved: dict, *args, **kwargs) -> bool:
         """Run action"""
-        def create_prompt_input(init_role: STRole, target_role: STRole, retrieved: dict) -> str:
+        def create_prompt_input(init_role: "STRole", target_role: "STRole", retrieved: dict) -> str:
             scratch = init_role._rc.scratch
             target_scratch = target_role._rc.scratch
             last_chat = init_role._rc.memory.get_last_chat(target_role.name)

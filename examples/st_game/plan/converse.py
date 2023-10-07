@@ -7,13 +7,12 @@ from typing import Union, Tuple
 from metagpt.logs import logger
 
 from examples.st_game.maze import Maze
-from examples.st_game.roles.st_role import STRole
 from examples.st_game.memory.retrieve import new_agent_retrieve
 from examples.st_game.actions.agent_chat_sum_rel import AgentChatSumRel
 from examples.st_game.actions.gen_iter_chat_utt import GenIterChatUTT
 
 
-def agent_conversation(maze: Maze, init_role: STRole, target_role: STRole) -> list[str]:
+def agent_conversation(maze: Maze, init_role: "STRole", target_role: "STRole") -> list[str]:
     curr_chat = []
     logger.info(f"Role: {init_role.name} starts a conversation with Role: {target_role.name}")
 
@@ -72,8 +71,8 @@ def agent_conversation(maze: Maze, init_role: STRole, target_role: STRole) -> li
     return curr_chat
 
 
-def generate_summarize_agent_relationship(init_role: STRole,
-                                          target_role: STRole,
+def generate_summarize_agent_relationship(init_role: "STRole",
+                                          target_role: "STRole",
                                           retrieved: dict) -> str:
     all_embedding_keys = list()
     for key, val in retrieved.items():

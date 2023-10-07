@@ -4,12 +4,14 @@
 
 import json
 from datetime import datetime
+from dataclasses import dataclass
 
 from metagpt.memory.memory import Memory
 from metagpt.schema import Message
 from metagpt.logs import logger
 
 
+@dataclass(unsafe_hash=True)
 class BasicMemory(Message):
 
     def __init__(self, memory_id: str, memory_count: int, type_count: int, memory_type: str, depth: int,
@@ -44,6 +46,7 @@ class BasicMemory(Message):
         self.predicate: str = predicate  # 谓语
         self.object: str = object  # 宾语
 
+        self.description = content
         self.embedding_key: str = embedding_key  # 内容与self.content一致
         self.poignancy: int = poignancy  # importance值
         self.keywords: list = keywords  # keywords
@@ -339,3 +342,25 @@ class AgentMemory(Memory):
             return self.chat_keywords[target_role_name.lower()][0]
         else:
             return False
+
+    def retrieve_relevant_thoughts(self, s_content: str, p_content: str, o_content: str) -> set:
+        contents = [s_content, p_content, o_content]
+
+        ret = []
+        for i in contents:
+            if i in self.thought_keywords:
+                ret += self.thought_keywords[i.lower()]
+
+        ret = set(ret)
+        return ret
+
+    def retrieve_relevant_events(self, s_content: str, p_content: str, o_content: str) -> set:
+        contents = [s_content, p_content, o_content]
+
+        ret = []
+        for i in contents:
+            if i in self.event_keywords:
+                ret += self.event_keywords[i]
+
+        ret = set(ret)
+        return ret

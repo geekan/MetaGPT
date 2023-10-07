@@ -37,6 +37,7 @@ from examples.st_game.utils.mg_ga_transform import save_movement, get_role_envir
 from examples.st_game.actions.inner_voice_action import AgentWhisperThoughtAction
 from examples.st_game.actions.run_reflect_action import AgentEventTriple
 from examples.st_game.reflect.reflect import role_reflect
+from examples.st_game.plan.st_plan import plan
 
 
 class STRoleContext(RoleContext):
@@ -64,6 +65,7 @@ class STRole(Role):
         self.start_time = datetime.datetime.strptime(f"{start_date}, 00:00:00", "%B %d, %Y, %H:%M:%S")
         self.curr_time = datetime.datetime.strptime(curr_time, "%B %d, %Y, %H:%M:%S")
         self.sec_per_step = sec_per_step
+        self.inner_voice = False
 
         self.game_obj_cleanup = dict()
 
@@ -152,6 +154,7 @@ class STRole(Role):
         thought = generate_inner_thought(whisper)
 
         # init scratch curr_time with self.curr_time
+        self.inner_voice = True
         self._rc.scratch.curr_time = self.curr_time
 
         created = self._rc.scratch.curr_time if self._rc.scratch.curr_time else datetime.datetime.now()
@@ -306,20 +309,22 @@ class STRole(Role):
 
         return ret_events
 
-    def retrieve(self, focus_points, n=30) -> dict:
+    def retrieve(self, observed: list) -> dict:
         # TODO retrieve memories from agent_memory
-        retrieve_memories = new_agent_retrieve(self, focus_points, n)
-        return retrieve_memories
+        retrieved = dict()
+        for event in observed:
+            retrieved[event.description] = dict()
+            retrieved[event.description]["curr_event"] = event
 
-    async def plan(self):
-        # TODO make a plan
+            relevant_events = self._rc.memory.retrieve_relevant_events(
+                event.subject, event.predicate, event.object)
+            retrieved[event.description]["events"] = list(relevant_events)
 
-        # TODO judge if start a conversation
+            relevant_thoughts = self._rc.memory.retrieve_relevant_thoughts(
+                event.subject, event.predicate, event.object)
+            retrieved[event.description]["thoughts"] = list(relevant_thoughts)
 
-        # TODO update plan
-
-        # TODO re-add result into memory
-        pass
+        return retrieved
 
     def reflect(self):
         # TODO reflection if meet reflect condition
@@ -496,31 +501,42 @@ class STRole(Role):
         ret = self.update_role_env()
         if not ret:
             # TODO add message
+            logger.info(f"Role: {self.name} update_role_env return False")
             return DummyMessage()
 
-        # TODO observe
+        new_day = False
+        if not self.scratch.curr_time or self.inner_voice:
+            new_day = "First day"
+        elif (self.scratch.curr_time.strftime('%A %B %d')
+              != self.curr_time.strftime('%A %B %d')):
+            new_day = "New day"
+        logger.info(f"Role: {self.name} {new_day}")
+        self._rc.scratch.curr_time = self.curr_time
+
         # get maze_env from self._rc.env, and observe env info
+        observed = self.observe()
 
-        # TODO retrieve, use self._rc.memory 's retrieve functions
+        # use self._rc.memory 's retrieve functions
+        retrieved = self.retrieve(observed)
 
-        # TODO plan
-        # plan = self.plan()
-        #
-        # # TODO reflect
-        #
-        # # TODO execute(feed-back into maze_env)
-        # next_tile, pronunciatio, description = self.execute(plan)
-        # role_move = {
-        #     "movement": next_tile,
-        #     "pronunciatio": pronunciatio,
-        #     "description": description,
-        #     "chat": self.scratch.chat
-        # }
-        # save_movement(self.name, role_move, step=self.step, sim_code=self.sim_code, curr_time=self.curr_time)
+        plans = plan(self, self._rc.env.maze, self._rc.env.get_roles(), new_day, retrieved)
+
+        self.reflect()
+
+        # feed-back into maze_env
+        next_tile, pronunciatio, description = self.execute(plans)
+        role_move = {
+            "movement": next_tile,
+            "pronunciatio": pronunciatio,
+            "description": description,
+            "chat": self.scratch.chat
+        }
+        save_movement(self.name, role_move, step=self.step, sim_code=self.sim_code, curr_time=self.curr_time)
 
         # step update
         logger.info(f"Role: {self.name} run at {self.step} step on {self.curr_time}")
         self.step += 1
         self.curr_time += datetime.timedelta(seconds=self.sec_per_step)
+        self.inner_voice = False
 
         return DummyMessage()

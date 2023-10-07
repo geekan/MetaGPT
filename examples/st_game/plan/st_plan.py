@@ -4,13 +4,13 @@
 
 import random
 from typing import Union, Tuple
-from datetime import datetime
+import datetime
 import math
 
 from metagpt.llm import LLM
+from metagpt.logs import logger
 from ..maze import Maze
 from ..plan.converse import agent_conversation
-from ..roles.st_role import STRole
 from ..actions.decide_to_talk import DecideToTalk
 from ..actions.summarize_conv import SummarizeConv
 from ..actions.new_decomp_schedule import NewDecompSchedule
@@ -20,16 +20,17 @@ from ..actions.gen_daily_schedule import GenDailySchedule
 from ..actions.gen_hourly_schedule import GenHourlySchedule
 from ..actions.gen_action_details import GenActionDetails
 from ..utils.utils import get_embedding
-from ..memory.retrieve import new_retrieve
+from ..memory.retrieve import new_agent_retrieve
 
 
-def plan(role: STRole, maze: Maze, roles: list[STRole], new_day: bool, retrieved: dict):
+def plan(role: "STRole", maze: Maze, roles: list["STRole"], new_day: bool, retrieved: dict):
     # PART 1: Generate the hourly schedule. 
     if new_day: 
         _long_term_planning(role, new_day)
 
     # PART 2: If the current action has expired, we want to create a new plan.
-    if role.scratch.act_check_finished(): 
+    if role.scratch.act_check_finished():
+        logger.info("act_check_finished is True")
         _determine_action(role, maze)
 
     # PART 3: If you perceived an event that needs to be responded to (saw 
@@ -109,7 +110,7 @@ def _should_react(role: "STRole", retrieved: dict, roles: dict):
     Determines what form of reaction the role should exihibit given the
     retrieved values.
     INPUT
-      role: Current <STRole> instance whose action we are determining.
+      role: Current <"STRole"> instance whose action we are determining.
       retrieved: A dictionary of <ConceptNode> that were retrieved from the
                  the role's associative memory. This dictionary takes the
                  following form:
@@ -118,10 +119,10 @@ def _should_react(role: "STRole", retrieved: dict, roles: dict):
                     ["events"] = [<ConceptNode>, ...],
                     ["thoughts"] = [<ConceptNode>, ...] }
       roles: A dictionary that contains all role names as keys, and the
-                <STRole> instance as values.
+                <"STRole"> instance as values.
     """
 
-    def lets_talk(init_role: STRole, target_role: STRole, retrieved: dict):
+    def lets_talk(init_role: "STRole", target_role: "STRole", retrieved: dict):
         scratch = init_role._rc.scratch
         target_scratch = target_role._rc.scratch
         if (not target_scratch.act_address
@@ -153,7 +154,7 @@ def _should_react(role: "STRole", retrieved: dict, roles: dict):
 
         return False
 
-    def lets_react(init_role: STRole, target_role: STRole, retrieved: dict):
+    def lets_react(init_role: "STRole", target_role: "STRole", retrieved: dict):
         scratch = init_role._rc.scratch
         target_scratch = target_role._rc.scratch
         if (not target_scratch.act_address
@@ -215,7 +216,7 @@ def _should_react(role: "STRole", retrieved: dict, roles: dict):
     return False
 
 
-def _chat_react(maze: Maze, role: STRole, reaction_mode: str, roles: list[STRole]):
+def _chat_react(maze: Maze, role: "STRole", reaction_mode: str, roles: list["STRole"]):
     # There are two roles -- the role who is initiating the conversation
     # and the role who is the target. We get the role instances here.
     init_role = role
@@ -262,7 +263,7 @@ def _chat_react(maze: Maze, role: STRole, reaction_mode: str, roles: list[STRole
                       act_obj_event, act_start_time)
 
 
-def _create_react(role: STRole, inserted_act: str, inserted_act_dur: int,
+def _create_react(role: "STRole", inserted_act: str, inserted_act_dur: int,
                   act_address: str, act_event: Tuple, chatting_with: str, chat: list, chatting_with_buffer: dict,
                   chatting_end_time: datetime,
                   act_pronunciatio: str, act_obj_description: str, act_obj_pronunciatio: str,
@@ -320,7 +321,7 @@ def _create_react(role: STRole, inserted_act: str, inserted_act_dur: int,
                            act_start_time)
 
 
-def _wait_react(role: STRole, reaction_mode: str):
+def _wait_react(role: "STRole", reaction_mode: str):
     scratch = role._rc.scratch
 
     inserted_act = f'waiting to start {scratch.act_description.split("(")[-1][:-1]}'
@@ -345,7 +346,7 @@ def _wait_react(role: STRole, reaction_mode: str):
                   act_pronunciatio, act_obj_description, act_obj_pronunciatio, act_obj_event)
 
 
-def generate_convo(maze: Maze, init_role: STRole, target_role: STRole) -> Union[list, int]:
+def generate_convo(maze: Maze, init_role: "STRole", target_role: "STRole") -> Union[list, int]:
     curr_loc = maze.access_tile(init_role._rc.scratch.curr_tile)
     convo = agent_conversation(maze, init_role, target_role)
     all_utt = ""
@@ -360,12 +361,12 @@ def generate_convo(maze: Maze, init_role: STRole, target_role: STRole) -> Union[
     return convo, convo_length
 
 
-def generate_convo_summary(role: STRole, conv: list) -> str:
+def generate_convo_summary(role: "STRole", conv: list) -> str:
     conv_summary = SummarizeConv().run(conv)
     return conv_summary
 
 
-def generate_new_decomp_schedule(role: STRole, inserted_act: str, inserted_act_dur: int,
+def generate_new_decomp_schedule(role: "STRole", inserted_act: str, inserted_act_dur: int,
                                  start_hour: int, end_hour: int):
     # Step 1: Setting up the core variables for the function.
     # <p> is the role whose schedule we are editing right now.
@@ -433,7 +434,7 @@ def generate_new_decomp_schedule(role: STRole, inserted_act: str, inserted_act_d
                                    inserted_act_dur)
 
 
-def _long_term_planning(role: STRole, new_day: bool): 
+def _long_term_planning(role: "STRole", new_day: bool): 
     """
     Formulates the role's daily long-term plan if it is the start of a new 
     day. This basically has two components: first, we create the wake-up hour, 
@@ -445,6 +446,8 @@ def _long_term_planning(role: STRole, new_day: bool):
     """
     # We start by creating the wake up hour for the role. 
     wake_up_hour = WakeUp().run(role)
+    wake_up_hour = int(wake_up_hour)
+    logger.info(f"Role: {role.name} long_term_planning, wake_up_hour: {wake_up_hour}")
 
     # When it is a new day, we start by creating the daily_req of the role.
     # Note that the daily_req is a list of strings that describe the role's
@@ -454,8 +457,8 @@ def _long_term_planning(role: STRole, new_day: bool):
         # if this is the start of generation (so there is no previous day's 
         # daily requirement, or if we are on a new day, we want to create a new
         # set of daily requirements.
-        role.scratch.daily_req = GenDailySchedule().run(role, 
-                                                            wake_up_hour)
+        role.scratch.daily_req = GenDailySchedule().run(role, wake_up_hour)
+        logger.info(f"Role: {role.name} daily requirements: {role.scratch.daily_req}")
     elif new_day == "New day":
         revise_identity(role)
 
@@ -466,11 +469,9 @@ def _long_term_planning(role: STRole, new_day: bool):
     # Based on the daily_req, we create an hourly schedule for the role, 
     # which is a list of todo items with a time duration (in minutes) that 
     # add up to 24 hours.
-    role.scratch.f_daily_schedule = GenHourlySchedule().run(role, 
-                                                                wake_up_hour)
-    role.scratch.f_daily_schedule_hourly_org = (role.scratch
-                                                    .f_daily_schedule[:])
-
+    role.scratch.f_daily_schedule = GenHourlySchedule().run(role, wake_up_hour)
+    logger.info(f"Role: {role.name} f_daily_schedule: {role.scratch.f_daily_schedule}")
+    role.scratch.f_daily_schedule_hourly_org = (role.scratch.f_daily_schedule[:])
 
     # Added March 4 -- adding plan to the memory.
     thought = f"This is {role.scratch.name}'s plan for {role.scratch.curr_time.strftime('%A %B %d')}:"
@@ -492,7 +493,7 @@ def _long_term_planning(role: STRole, new_day: bool):
     # print("Done sleeping!")
 
 
-def _determine_action(role: STRole, maze: Maze): 
+def _determine_action(role: "STRole", maze: Maze): 
     """
     Creates the next action sequence for the role. 
     The main goal of this function is to run "add_new_action" on the role's 
@@ -593,12 +594,12 @@ def _determine_action(role: STRole, maze: Maze):
     role.scratch.add_new_action(**new_action_details)
     
 
-def revise_identity(role: STRole): 
+def revise_identity(role: "STRole"): 
     p_name = role.scratch.name
 
     focal_points = [f"{p_name}'s plan for {role.scratch.get_str_curr_date_str()}.",
                     f"Important recent events for {p_name}'s life."]
-    retrieved = new_retrieve(role, focal_points)
+    retrieved = new_agent_retrieve(role, focal_points)
 
     statements = "[Statements]\n"
     for key, val in retrieved.items():

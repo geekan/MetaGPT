@@ -7,7 +7,6 @@ import datetime
 from metagpt.logs import logger
 from metagpt.schema import Message
 
-from ..roles.st_role import STRole
 from ..actions.st_action import STAction
 
 
@@ -82,13 +81,9 @@ class TaskDecomp(STAction):
         return fs
 
     def run(self,
-            role: STRole,
+            role: "STRole",
             main_act_dur: int,
             truncated_act_dur: int,
-            start_time_hour: datetime,
-            end_time_hour: datetime,
-            inserted_act: str,
-            inserted_act_dur: int,
             *args, **kwargs):
 
         def create_prompt_input(role, task, duration):
@@ -150,13 +145,9 @@ class TaskDecomp(STAction):
 
         prompt_input = create_prompt_input(role,
                                            main_act_dur,
-                                           truncated_act_dur,
-                                           start_time_hour,
-                                           end_time_hour,
-                                           inserted_act,
-                                           inserted_act_dur)
+                                           truncated_act_dur)
         prompt = self.generate_prompt_with_tmpl_filename(prompt_input,
                                                          "task_decomp_v3.txt")
-        self.fail_default_resp = self._func_fail_default_resp(main_act_dur, truncated_act_dur)
+        self.fail_default_resp = self._func_fail_default_resp()
         output = self._run_v1(prompt)
         return output

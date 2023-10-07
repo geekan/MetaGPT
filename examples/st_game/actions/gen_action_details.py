@@ -8,7 +8,6 @@ import random
 from metagpt.logs import logger
 from metagpt.schema import Message
 
-from ..roles.st_role import STRole
 from ..maze import Maze
 from .st_action import STAction
 
@@ -35,7 +34,7 @@ class GenActionSector(STAction):
         fs = ("kitchen")
         return fs   
 
-    def run(self, role: STRole, maze: Maze, act_desp: str):
+    def run(self, role: "STRole", maze: Maze, act_desp: str):
         def create_prompt_input(role, maze, act_desp): 
             act_world = f"{maze.access_tile(role.scratch.curr_tile)['world']}"
             
@@ -122,7 +121,7 @@ class GenActionArena(STAction):
         fs = ("kitchen")
         return fs
     
-    def run(self, role: STRole, maze: Maze, act_desp: str, act_world: str, act_sector: str):
+    def run(self, role: "STRole", maze: Maze, act_desp: str, act_world: str, act_sector: str):
         def create_prompt_input(role, maze, act_desp, act_world, act_sector): 
             prompt_input = []
             # prompt_input += [role.scratch.get_str_name()]
@@ -185,7 +184,7 @@ class GenActionObject(STAction):
         fs = ("bed")
         return fs
 
-    def run(self, role: STRole, act_desp: str, temp_address: str):
+    def run(self, role: "STRole", act_desp: str, temp_address: str):
 
         def create_prompt_input(role, act_desp, temp_address): 
             prompt_input = []
@@ -231,7 +230,7 @@ class GenPronunciatio(STAction):
         fs = "😋"
         return fs
 
-    def run(self, role: STRole, act_desp: str):
+    def run(self, role: "STRole", act_desp: str):
         def create_prompt_input(act_desp): 
             if "(" in act_desp: 
                 act_desp = act_desp.split("(")[-1].split(")")[0]
@@ -271,7 +270,7 @@ class GenEventTriple(STAction):
         fs = (role.name, "is", "idle")
         return fs        
 
-    def run(self, role: STRole, act_desp: str):
+    def run(self, role: "STRole", act_desp: str):
         def create_prompt_input(role, act_desp): 
             if "(" in act_desp: 
                 act_desp = act_desp.split("(")[-1].split(")")[0]
@@ -309,7 +308,7 @@ class GenActObjDescription(STAction):
         fs = f"{act_game_object} is idle"
         return fs
         
-    def run(self, role: STRole, act_game_object: str, act_desp: str): 
+    def run(self, role: "STRole", act_game_object: str, act_desp: str): 
         def create_prompt_input(act_game_object, act_desp, role): 
             prompt_input = [act_game_object, 
                             role.name,
@@ -349,7 +348,7 @@ class GenObjEventTriple(STAction):
         fs = (act_game_object, "is", "idle")
         return fs
 
-    def run(self, role: STRole, act_game_object, act_obj_desp):
+    def run(self, role: "STRole", act_game_object, act_obj_desp):
         def create_prompt_input(act_game_object, act_obj_desp): 
             prompt_input = [act_game_object, 
                             act_obj_desp,
@@ -385,7 +384,7 @@ class GenActionDetails(STAction):
         return fs
 
     def run(self,
-            role: STRole,
+            role: "STRole",
             act_desp: str,
             act_dura):
         maze = role._rc.env.maze

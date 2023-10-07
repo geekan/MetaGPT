@@ -7,8 +7,8 @@ import datetime
 from metagpt.logs import logger
 from metagpt.schema import Message
 
-from ..roles.st_role import STRole
 from .st_action import STAction
+
 
 class GenDailySchedule(STAction):
     def __init__(self, name="GenDailySchedule", context: list[Message] = None, llm=None):
@@ -41,7 +41,7 @@ class GenDailySchedule(STAction):
             'go to bed at 11:00 pm'] 
         return fs
     
-    def run(self, role: STRole, wake_up_hour: str):
+    def run(self, role: "STRole", wake_up_hour: str):
         def create_prompt_input(role, wake_up_hour):
             prompt_input = []
             prompt_input += [role.scratch.get_str_iss()]

@@ -7,7 +7,6 @@ import datetime
 from metagpt.logs import logger
 from metagpt.schema import Message
 
-from examples.st_game.roles.st_role import STRole
 from examples.st_game.actions.st_action import STAction
 
 
@@ -86,7 +85,7 @@ class NewDecompSchedule(STAction):
         return ret
 
     def run(self,
-            role: STRole,
+            role: "STRole",
             main_act_dur: int,
             truncated_act_dur: int,
             start_time_hour: datetime,
@@ -95,7 +94,7 @@ class NewDecompSchedule(STAction):
             inserted_act_dur: int,
             *args, **kwargs):
 
-        def create_prompt_input(role: STRole,
+        def create_prompt_input(role: "STRole",
                                 main_act_dur: int,
                                 truncated_act_dur: int,
                                 start_time_hour: datetime,
