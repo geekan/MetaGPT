@@ -136,6 +136,24 @@ class MineflayerEnv:
         self.pause()
         return json.loads(returned_data)
 
+    def step(self, code: str, programs: str = ""):
+        if not self.has_reset:
+            raise RuntimeError("Environment has not been reset yet")
+        self.check_process()
+        self.unpause()
+        data = {
+            "code": code,
+            "programs": programs,
+        }
+        res = requests.post(
+            f"{self.server}/step", json=data, timeout=self.request_timeout
+        )
+        if res.status_code != 200:
+            raise RuntimeError("Failed to step Minecraft server")
+        returned_data = res.json()
+        self.pause()
+        return json.loads(returned_data)
+
     def close(self):
         self.unpause()
         if self.connected:

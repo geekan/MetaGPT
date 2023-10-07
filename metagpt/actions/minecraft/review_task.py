@@ -15,7 +15,6 @@ class VerifyTask(Action):
     
     def __init__(self, name="", context=None, llm=None):
         super().__init__(name, context, llm)
-        self.vect_db = ""
 
     async def run(self,human_msg, system_msg, max_retries=5, *args, **kwargs):
         # Implement the logic to verify the task here.
@@ -29,7 +28,8 @@ class VerifyTask(Action):
             logger.info(f"Failed to parse Critic Agent response. Consider updating your prompt.")
             return False, ""
 
-        if human_msg or system_msg is None:
+        if human_msg is None:
+            logger.warning(f"Failed to get human_msg or system_msg.")
             return False, ""
         critic = await self._aask(prompt=human_msg, system_msgs=system_msg)
         try:

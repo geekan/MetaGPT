@@ -28,11 +28,27 @@ class CriticReviewer(Base):
     ) -> None:
         super().__init__(name, profile, goal, constraints)
         # Initialize actions specific to the CriticReviewer role
+        # self._init_actions([VerifyTask])
         self._init_actions([VerifyTask])
 
         # Set events or actions the CriticReviewer should watch or be aware of
         # 需要获取最新的events来进行评估
-        self._watch([GenerateActionCode, AddNewSkills])
+        self._watch([])
+
+    async def run(self, message=None):
+        """Observe, only get the observation"""
+        if message:
+            if isinstance(message, str):
+                message = Message(message)
+            if isinstance(message, Message):
+                self.recv(message)
+            if isinstance(message, list):
+                self.recv(Message("\n".join(message)))
+        elif not await self._observe():
+            # If there is no new information, suspend and wait
+            logger.info(f"{self._setting}: no news. waiting.")
+            return
+        self._rc.todo = VerifyTask
 
     def render_system_message(self):
         system_message = SystemMessage(content=load_prompt("critic"))
@@ -119,6 +135,9 @@ class CriticReviewer(Base):
         self.perform_game_info_callback(
             success, self.game_memory.update_exploration_progress
         )
+        self.perform_game_info_callback(
+            critique, self.game_memory.update_critique
+        )
         return Message(
             content=f"{critique}",
             instruct_content="verify_task",
@@ -126,16 +145,19 @@ class CriticReviewer(Base):
             send_to=agent_registry.entries["skill_manager"]()._setting.name,
         )  # addnewskill
         # TODO:if not success
+    
 
     async def _act(self) -> Message:
+        self._rc.todo = VerifyTask()
         todo = self._rc.todo
+        
         logger.debug(f"Todo is {todo}")
+        
         self.maintain_actions(todo)
         # 获取最新的游戏周边信息
-        events = await self._obtain_events()
-        self.perform_game_info_callback(
-            events, self.game_memory.update_event
-        )  # update chest_memory / chest observation
+        events = await self._execute_events()
+        self.perform_game_info_callback(events, self.game_memory.update_chest_memory)
+        logger.info(f"Execute return event is {self.game_memory.event}")
         context = self.game_memory.context
         task = self.game_memory.current_task
         chest_observation = self.game_memory.chest_observation

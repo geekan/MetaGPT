@@ -28,7 +28,7 @@ class SkillManager(Base):
         super().__init__(name, profile, goal, constraints)
 
         # Initialize actions specific to the SkillManager role
-        self._init_actions([RetrieveSkills, GenerateSkillDescription]) #AddNewSkills])#先去掉add
+        self._init_actions([RetrieveSkills, GenerateSkillDescription, AddNewSkills]) #AddNewSkills])#先去掉add
         
         # Set events or actions the SkillManager should watch or be aware of
         self._watch(
@@ -36,8 +36,8 @@ class SkillManager(Base):
         )
 
     def encapsule_message(self, program_code, program_name, *args, **kwargs):
-        human_msg = self.render_system_message(load_prompt("skill"))
-        system_msg = self.render_human_message(
+        system_msg = self.render_system_message(load_prompt("skill"))
+        human_msg = self.render_human_message(
             program_code + "\n\n" + f"The main function is `{program_name}`."
         )
         return {"system_msg": [system_msg.content], "human_msg": human_msg.content}
@@ -65,6 +65,13 @@ class SkillManager(Base):
     async def handle_add_new_skills(
         self, task, program_name, program_code, skills, *args, **kwargs
     ):
+        if not self.game_memory.runtime_status:
+            return Message(
+            content="",
+            instruct_content="handle_add_new_skills",
+            role=self.profile,
+        )
+        
         skill_desp = self.game_memory.skill_desp
         new_skills_info = await AddNewSkills().run(
             task, program_name, program_code, skills, skill_desp
@@ -83,8 +90,10 @@ class SkillManager(Base):
         # 获取最新的游戏周边信息
         context = self.game_memory.context
         task = self.game_memory.current_task
-        event_summary = self.game_memory.event_summary
+        
         code = self.game_memory.code
+        self.perform_game_info_callback(self.game_memory.event, self.game_memory.summarize_chatlog)
+        event_summary = self.game_memory.event_summary
         try:
             program_code = code["program_code"] # TODO: Handle code is None, cuz first round DesignCurriculum(code is None) trigger this 
         except (KeyError, TypeError):
@@ -96,7 +105,9 @@ class SkillManager(Base):
         # msg = self._rc.memory.get(k=1)[0]
 
         retrieve_skills_message_step1 = {"query": context, "skills": skills}
-
+        logger.info(f"check query {context}")
+        logger.info(f"check event summary {event_summary}")
+        
         retrieve_skills_message_step2 = {"query": context + "\n\n" + event_summary, "skills": skills}
 
         generate_skill_message = self.encapsule_message(program_code, program_name)

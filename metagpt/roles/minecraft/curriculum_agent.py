@@ -313,11 +313,11 @@ class CurriculumDesigner(Base):
         logger.debug(f"Todo is {todo}")
         self.maintain_actions(todo) 
         # 获取最新的游戏周边环境信息
-        events = await self._obtain_events()
-        self.perform_game_info_callback(events, self.game_memory.update_event)
+        # events = await self._obtain_events()
+        events = self.game_memory.event
         chest_observation = self.game_memory.chest_observation
 
-        DesignCurriculum.set_qa_cache(self.game_memory.qa_cache)
+        # DesignCurriculum.set_qa_cache(self.game_memory.qa_cache)
 
         # msg = self._rc.memory.get(k=1)[0]
         # query = msg.content
@@ -335,7 +335,7 @@ class CurriculumDesigner(Base):
         }
         handler = handler_map.get(type(todo))
         if handler:
-            if type(todo) == "DesignTask":
+            if type(todo) == DesignTask:
                 msg = await handler(**design_task_message)
             else:
                 msg = await handler(**design_curriculum_message)

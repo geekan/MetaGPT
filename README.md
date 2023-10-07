@@ -76,20 +76,20 @@ pip install -e.
 **Note:**
 
 - If already have Chrome, Chromium, or MS Edge installed, you can skip downloading Chromium by setting the environment variable
-  `PUPPETEER_SKIP_CHROMIUM_DOWNLOAD` to `true`.
+`PUPPETEER_SKIP_CHROMIUM_DOWNLOAD` to `true`.
 
 - Some people are [having issues](https://github.com/mermaidjs/mermaid.cli/issues/15) installing this tool globally. Installing it locally is an alternative solution,
 
-  ```bash
-  npm install @mermaid-js/mermaid-cli
-  ```
+    ```bash
+    npm install @mermaid-js/mermaid-cli
+    ```
 
 - don't forget to the configuration for mmdc in config.yml
 
-  ```yml
-  PUPPETEER_CONFIG: "./config/puppeteer-config.json"
-  MMDC: "./node_modules/.bin/mmdc"
-  ```
+    ```yml
+    PUPPETEER_CONFIG: "./config/puppeteer-config.json"
+    MMDC: "./node_modules/.bin/mmdc"
+    ```
 
 - if `pip install -e.` fails with error `[Errno 13] Permission denied: '/usr/local/lib/python3.11/dist-packages/test-easy-install-13129.write-test'`, try instead running `pip install -e. --user`
 
@@ -224,12 +224,12 @@ python startup.py "Write a cli snake game"
 # Do not hire an engineer to implement the project
 python startup.py "Write a cli snake game" --implement False
 # Hire an engineer and perform code reviews
-python startup.py "Write a cli snake game" --code_review True
+python startup.py "Write a cli snake game" --code_review True 
 ```
 
 After running the script, you can find your new project in the `workspace/` directory.
 
-### Preference of Platform or Tool
+### Preference of Platform or Tool 
 
 You can tell which platform or tool you want to use when stating your requirements.
 
@@ -286,7 +286,7 @@ You can check `examples` for more details on single role (with knowledge base) a
 
 ## QuickStart
 
-It is difficult to install and configure the local environment for some users. The following tutorials will allow you to quickly experience the charm of MetaGPT.
+It is difficult to install and configure the local environment for some users. The following tutorials will allow you to quickly experience the charm of MetaGPT.  
 
 - [MetaGPT quickstart](https://deepwisdom.feishu.cn/wiki/CyY9wdJc4iNqArku3Lncl4v8n2b)
 
@@ -299,7 +299,7 @@ For now, cite the [Arxiv paper](https://arxiv.org/abs/2308.00352):
 
 ```bibtex
 @misc{hong2023metagpt,
-      title={MetaGPT: Meta Programming for Multi-Agent Collaborative Framework},
+      title={MetaGPT: Meta Programming for Multi-Agent Collaborative Framework}, 
       author={Sirui Hong and Xiawu Zheng and Jonathan Chen and Yuheng Cheng and Jinlin Wang and Ceyao Zhang and Zili Wang and Steven Ka Shing Yau and Zijuan Lin and Liyang Zhou and Chenyu Ran and Lingfeng Xiao and Chenglin Wu},
       year={2023},
       eprint={2308.00352},

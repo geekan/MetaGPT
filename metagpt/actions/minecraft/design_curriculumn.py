@@ -10,12 +10,10 @@ from langchain.vectorstores import Chroma
 from metagpt.document_store import FaissStore
 
 from metagpt.logs import logger
-from metagpt.actions import Action
+from metagpt.actions.minecraft.player_action import PlayerActions as Action
 from metagpt.utils.minecraft import load_prompt, fix_and_parse_json
 from metagpt.schema import HumanMessage, SystemMessage
 from metagpt.const import CKPT_DIR
-
-# from metagpt.actions.minecraft import PlayerActions
 
 
 class DesignTask(Action):
@@ -63,11 +61,12 @@ class DesignTask(Action):
             response = self.parse_llm_response(
                 curriculum
             )  # Task: Craft 4 wooden planks.
+            logger.info(f"Parsed Curriculum Agent response\n{response}")
             assert "next_task" in response
             return response["next_task"]
         except Exception as e:
             logger.info(f"Error parsing curriculum response: {e}. Trying again!")
-            return self.generate_task(
+            return await self.generate_task(
                 human_msg=human_msg,
                 system_msg=system_msg,
                 max_retries=max_retries - 1,
@@ -92,29 +91,6 @@ class DesignCurriculum(Action):
     def __init__(self, name="", context=None, llm=None):
         super().__init__(name, context, llm)
         # voyager vectordb using
-        self.qa_cache = {}
-        self.qa_cache_questions_vectordb = Chroma(
-            collection_name="qa_cache_questions_vectordb",
-            embedding_function=OpenAIEmbeddings(),
-            persist_directory=f"{CKPT_DIR}/curriculum/vectordb",
-        )
-        # TODO: change to FaissStore
-        # self.qa_cache_questions_vectordb = FaissStore( {CKPT_DIR}/ 'curriculum/vectordb')
-        # TODO: 
-        # assert self.qa_cache_questions_vectordb._collection.count() == len(
-        #     self.qa_cache
-        # ), (
-        #     f"Curriculum Agent's qa cache question vectordb is not synced with qa_cache.json.\n"
-        #     f"There are {self.qa_cache_questions_vectordb._collection.count()} questions in vectordb "
-        #     f"but {len(self.qa_cache)} questions in qa_cache.json.\n"
-        #     f"Did you set resume=False when initializing the agent?\n"
-        #     f"You may need to manually delete the qa cache question vectordb directory for running from scratch.\n"
-        # )
-
-    @classmethod
-    def set_qa_cache(cls, qa_cache):
-        cls.qa_cache = qa_cache
-        # Check if qa_cache right using
 
     @classmethod
     def generate_qa(cls, events, chest_observation):
@@ -232,7 +208,7 @@ class DesignCurriculum(Action):
             return context
         except Exception as e:
             logger.info(f"Error parsing curriculum response: {e}. Trying again!")
-            return self.generate_context(
+            return await self.generate_context(
                 task=task,
                 max_retries=max_retries - 1,
             )

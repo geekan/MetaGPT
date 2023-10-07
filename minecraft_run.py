@@ -13,7 +13,7 @@ from metagpt.minecraft_team import MinecraftPlayer
 
 async def learn(task="Start", investment: float = 50.0, n_round: int = 3):
     mc_player = MinecraftPlayer()
-    mc_player.set_port(1077) # Modify this to your Minecraft LAN port
+    mc_player.set_port(33141) # Modify this to your Minecraft LAN port
     # mc_player.set_resume(True) # If load json from ckpt dir(include chest_memory, skills, ...)
     mc_player.hire(
         [

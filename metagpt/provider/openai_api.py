@@ -187,7 +187,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             "max_tokens": self.get_max_tokens(messages),
             "n": 1,
             "stop": None,
-            "temperature": 0.3,
+            "temperature": 0.0,
             "timeout": 3,
         }
         if CONFIG.openai_api_type == "azure":
