@@ -1,3 +1,4 @@
+import asyncio
 import re
 from collections import Counter
 
@@ -53,17 +54,32 @@ class Moderator(Role):
         for role_setting, role in roles_in_env.items():
             for player_name in player_names:
                 if player_name in role_setting:
-                    role.set_status(new_status=1) # 更新为死亡
+                    role.set_status(new_status=1)  # 更新为死亡
 
-    async def _instruct_speak(self):
+    async def _instruct_speak(self, mode="manual", **kwargs):
+        if mode == "manual":
+            return await self._instruct_speak_manual()
+        elif mode == "llm":
+            return await self._instruct_speak_llm(**kwargs)
+
+    async def _instruct_speak_manual(self):
         print("*" * 10, "STEP: ", self.step_idx, "*" * 10)
         step_idx = self.step_idx % len(STEP_INSTRUCTIONS)
         self.step_idx += 1
-        return await InstructSpeak().run(step_idx,
+        return await InstructSpeak().run(mode="manual",
                                          living_players=self.living_players,
                                          werewolf_players=self.werewolf_players,
                                          player_hunted=self.player_hunted,
-                                         player_current_dead=self.player_current_dead)
+                                         player_current_dead=self.player_current_dead,
+                                         step_idx=step_idx)
+
+    async def _instruct_speak_llm(self, **kwargs):
+        return await InstructSpeak().run(mode="llm",
+                                         living_players=self.living_players,
+                                         werewolf_players=self.werewolf_players,
+                                         player_hunted=self.player_hunted,
+                                         player_current_dead=self.player_current_dead,
+                                         **kwargs)
 
     async def _parse_speak(self, memories):
         logger.info(self.step_idx)
@@ -71,7 +87,7 @@ class Moderator(Role):
         latest_msg = memories[-1]
         latest_msg_content = latest_msg.content
 
-        match = re.search(r"Player[0-9]+", latest_msg_content[-10:]) # FIXME: hard code truncation
+        match = re.search(r"Player[0-9]+", latest_msg_content[-10:])  # FIXME: hard code truncation
         target = match.group(0) if match else ""
 
         # default return
@@ -107,19 +123,19 @@ class Moderator(Role):
                 restricted_to = "Moderator,Witch"
             else:
                 self.witch_poison_left -= 1
-                self.player_poisoned = target # "" if not poisoned and "PlayerX" if poisoned
+                self.player_poisoned = target  # "" if not poisoned and "PlayerX" if poisoned
 
         return msg_content, restricted_to
 
     def _update_game_states(self, memories):
 
         step_idx = self.step_idx % len(STEP_INSTRUCTIONS)
-        if step_idx not in [15, 18]: # FIXME: hard code
+        if step_idx not in [15, 18]:  # FIXME: hard code
             return
 
-        if step_idx == 15: # FIXME: hard code
+        if step_idx == 15:  # FIXME: hard code
             # night ends: after all special roles acted, process the whole night
-            self.player_current_dead = [] # reset
+            self.player_current_dead = []  # reset
 
             if self.player_hunted != self.player_protected and not self.is_hunted_player_saved:
                 self.player_current_dead.append(self.player_hunted)
@@ -134,7 +150,7 @@ class Moderator(Role):
             self.is_hunted_player_saved = False
             self.player_poisoned = None
 
-        elif step_idx == 18: # FIXME: hard code
+        elif step_idx == 18:  # FIXME: hard code
             # day ends: after all roles voted, process all votings
             voting_msgs = memories[-len(self.living_players):]
             voted_all = []
@@ -143,7 +159,7 @@ class Moderator(Role):
                 if not voted:
                     continue
                 voted_all.append(voted.group(0))
-            self.player_current_dead = [Counter(voted_all).most_common()[0][0]] # 平票时，杀序号小的
+            self.player_current_dead = [Counter(voted_all).most_common()[0][0]]  # 平票时，杀序号小的
             self.living_players = [p for p in self.living_players if p not in self.player_current_dead]
             self.update_player_status(self.player_current_dead)
 
@@ -198,7 +214,9 @@ class Moderator(Role):
 
         # 根据_think的结果，执行InstructSpeak还是ParseSpeak, 并将结果返回
         if isinstance(todo, InstructSpeak):
-            msg_content, msg_to_send_to, msg_restriced_to = await self._instruct_speak()
+            # FIXME: mode="llm"时，需要使用历史记录，可以更结构化一些的memories
+            # msg_content, msg_to_send_to, msg_restriced_to = await self._instruct_speak(mode="llm", memories=memories)
+            msg_content, msg_to_send_to, msg_restriced_to = await self._instruct_speak(mode="manual")
             # msg_content = f"Step {self.step_idx}: {msg_content}" # HACK: 加一个unique的step_idx避免记忆的自动去重
             msg = Message(content=msg_content, role=self.profile, sent_from=self.name,
                           cause_by=InstructSpeak, send_to=msg_to_send_to, restricted_to=msg_restriced_to)
@@ -223,3 +241,19 @@ class Moderator(Role):
             memories = [f"{m.sent_from}({m.role}): {m.content}" for m in memories]
             memories = "\n".join(memories)
         return memories
+
+
+# 测试_instruct_speak
+async def instruct_speak(mode="manual", conversation=[]):
+    moderator = Moderator()
+    if mode == "llm":
+        msg_content, msg_to_send_to, msg_restriced_to = await moderator._instruct_speak(mode=mode, conversation=conversation)
+    else:
+        msg_content, msg_to_send_to, msg_restriced_to = await moderator._instruct_speak(mode=mode)
+    print(msg_content, msg_to_send_to, msg_restriced_to)
+
+if __name__ == '__main__':
+    conversation1 = "It's nighttime. "
+    conversation2 = "It's daytime. "
+    asyncio.run(instruct_speak(mode="llm", conversation=conversation1))
+    asyncio.run(instruct_speak(mode="llm", conversation=conversation2))

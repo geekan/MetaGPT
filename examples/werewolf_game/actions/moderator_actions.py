@@ -1,5 +1,6 @@
 import asyncio
 import collections
+import re
 from random import random
 
 from metagpt.actions import Action
@@ -79,11 +80,66 @@ STEP_INSTRUCTIONS = {
          "restricted_to": ""},
 }
 
+GAME_RULE = '''
+## Game Overview
+You're the moderator of a text-based game called Werewolf. Your role is to guide the players, who can be a werewolf, villager, seer, guard, or witch. The game has two phases: night and day.
+
+## Night Phase
+During the night, conversations are private. Players use their abilities:
+- Werewolves vote to kill a player.
+- The witch can save a player targeted by werewolves or poison a player (each ability can be used once).
+- The seer can verify if a player is a werewolf.
+- The guard can protect a player from being killed by werewolves (but not from the witch's poison).
+
+## Day Phase
+During the day, all players discuss and vote to eliminate a suspected werewolf. You'll announce who is killed.
+
+## Roles and Objectives
+Werewolves aim to kill all non-werewolves. All other roles aim to eliminate all werewolves. Killed players are out of the game.
+
+## Your Role
+As the moderator of the Werewolf game, you'll provide step-by-step instructions to players in this order: All(Night) -> Guard -> Werewolf -> Witch -> Seer -> All(Daytime) -> All(Discuss) -> All(Vote). Ensure each player understands their instructions before moving on.
+'''
+# 游戏流程：All(Night) -> Guard -> Werewolf -> Witch -> Seer -> All(Daytime) -> All(Discuss) -> All(Vote).
+
+GENERATE_POSSIBLE_ANSWER = '''
+Given the game rules and conversations above, as moderator, ensure each player understands their instruction before moving on.
+Generate a correct instruction based on the context. No need to give options. The instruction should use no more than 2 sentences.
+
+The current player status is as follows:
+living players:{living_players}, for Werewolf to choose to kill, and for Seer to verify, and for Guard to protect, and for Witch to poison
+werewolf players:{werewolf_players}, for Werewolf to know who is the other werewolf
+player hunted:{player_hunted}, for Witch to know who is hunted, then decide to save
+player current dead:{player_current_dead}, for all players to know who is dead
+
+Response should have the following format(split by ## ):
+## Instruction
+The 'Instruction' is the instruction from the moderator. It contains the valuable information that the player needs to know. Such as living players, werewolf players, player hunted, player current dead etc.
+
+## Send To
+'Send To' specifies the player(s) who need to process and respond to a message.
+Using 'Moderator' to send the message to all players and let moderator to process the message.
+Using empty string '' to let all players to process the message.
+Otherwise, specify the player profile to let the player to process the message. 
+But don't reveal the player's name! For example, 'Moderator' or '' or 'Werewolf' or 'Seer' or 'Guard' or 'Witch' etc.
+
+## Day Or Night
+'Day Or Night' specifies the time when the message is sent. It should be 'Day' or 'Night'.
+'''
+
+
 class InstructSpeak(Action):
     def __init__(self, name="InstructSpeak", context=None, llm=None):
         super().__init__(name, context, llm)
 
-    async def run(self, step_idx, living_players, werewolf_players, player_hunted, player_current_dead):
+    async def run(self, mode, living_players, werewolf_players, player_hunted, player_current_dead, **kwargs):
+        if mode == "manual":
+            return await self.run_manual(living_players, werewolf_players, player_hunted, player_current_dead, **kwargs)
+        elif mode == "llm":
+            return await self.run_llm(living_players, werewolf_players, player_hunted, player_current_dead, **kwargs)
+
+    async def run_manual(self, living_players, werewolf_players, player_hunted, player_current_dead, **kwargs):
+        step_idx = kwargs.get("step_idx", 0)
         instruction_info = STEP_INSTRUCTIONS.get(step_idx, {
             "content": "Unknown instruction.",
             "send_to": "",
@@ -105,12 +161,42 @@ class InstructSpeak(Action):
 
         return content, instruction_info["send_to"], instruction_info["restricted_to"]
 
+    async def run_llm(self, living_players, werewolf_players, player_hunted, player_current_dead, **kwargs):
+        conversation = kwargs.get("conversation", "")
+        prompt = GAME_RULE + str(conversation)[:4000] + GENERATE_POSSIBLE_ANSWER.format(
+            living_players=",".join(living_players),
+            werewolf_players=",".join(werewolf_players),
+            player_hunted=player_hunted,
+            player_current_dead=player_current_dead,
+        )
+        rsp = await self._aask(prompt)
+        # 提取content, send_to, restricted_to
+        content = re.search(r"## Instruction\n(.*?)##", rsp, re.DOTALL).group(1).strip()
+
+        # 将内部的单引号去掉
+        send_to = re.search(r"## Send To\n(.*?)##", rsp, re.DOTALL).group(1).strip().replace("'", "")
+        # restricted_to = re.search(r"## Restricted To\n(.*?)##", rsp, re.DOTALL).group(1).strip()
+        restricted_to = ""
+        # FIXME: 是否需要返回day_or_night字段？
+        day_or_night = re.search(r"## Day Or Night\n(.*)", rsp, re.DOTALL).group(1).strip()
+        if day_or_night == "Night":
+            if send_to == "Moderator":
+                restricted_to = ""
+            elif send_to in ["Werewolf", "Seer", "Guard", "Witch"]:
+                restricted_to = "Moderator," + send_to
+        elif day_or_night == "Day":
+            restricted_to = ""
+
+        return content, send_to, restricted_to
+
+
 class ParseSpeak(Action):
     def __init__(self, name="ParseSpeak", context=None, llm=None):
         super().__init__(name, context, llm)
 
     async def run(self):
         pass
+
 
 class SummarizeDay(Action):
     """consider all votes at day, conclude which player dies"""
