@@ -18,6 +18,7 @@ class RetrieveSkills(Action):
 
     def __init__(self, name="", context=None, llm=None):
         super().__init__(name, context, llm)
+        self.llm.model = "gpt-3.5-turbo"
 
     async def run(self, query, skills, *args, **kwargs):
         # Implement the logic for retrieving skills here.
@@ -44,6 +45,7 @@ class AddNewSkills(Action):
 
     def __init__(self, name="", context=None, llm=None):
         super().__init__(name, context, llm)
+        self.llm.model = "gpt-3.5-turbo"
 
     async def run(
         self, task, program_name, program_code, skills, skill_desp, *args, **kwargs
@@ -100,6 +102,7 @@ class GenerateSkillDescription(Action):
 
     def __init__(self, name="", context=None, llm=None):
         super().__init__(name, context, llm)
+        self.llm.model = "gpt-3.5-turbo"
 
     async def run(self, program_name, human_message, system_message, *args, **kwargs):
         # Implement the logic for generating skill descriptions here.
