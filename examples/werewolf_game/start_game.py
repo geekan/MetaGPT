@@ -12,7 +12,11 @@ def init_game_setup(shuffle=True, add_human=False):
     roles = [
         Villager,
         Villager,
-        Werewolf
+        Werewolf,
+        Werewolf,
+        Guard,
+        Seer,
+        Witch
     ]
     if shuffle:
         # random.seed(2023)
@@ -28,7 +32,7 @@ def init_game_setup(shuffle=True, add_human=False):
         logger.info(f"You are assigned {players[assigned_role_idx].name}({players[assigned_role_idx].profile})")
 
     game_setup = ["Game setup:"] + [f"{player.name}: {player.profile}," for player in players]
-    begin_prompt = "Game begins!"
+    begin_prompt = "The Werewolf Game begins!"
     game_setup = "\n".join(game_setup) + "\n" + begin_prompt
 
     return game_setup, players

@@ -1,3 +1,4 @@
+import asyncio
 import re
 from collections import Counter
 
@@ -6,7 +7,7 @@ from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.logs import logger
 from examples.werewolf_game.actions.moderator_actions import (
-    InstructSpeak, ParseSpeak, AnnounceGameResult
+    InstructSpeak, ParseSpeak, AnnounceGameResult, STEP_INSTRUCTIONS
 )
 from examples.werewolf_game.actions import Hunt, Protect, Verify, Save, Poison
 from metagpt.actions import BossRequirement as UserRequirement
@@ -24,7 +25,6 @@ class Moderator(Role):
         self._watch([UserRequirement, InstructSpeak, ParseSpeak])
         self._init_actions([InstructSpeak, ParseSpeak, AnnounceGameResult])
         self.step_idx = 0
-        self.day_or_night = "night"
 
         # game states
         self.living_players = []
@@ -56,14 +56,30 @@ class Moderator(Role):
                 if player_name in role_setting:
                     role.set_status(new_status=1)  # 更新为死亡
 
-    async def _instruct_speak(self, memories):
-        # print("*" * 10, "STEP: ", self.step_idx, "*" * 10)
-        # step_idx = self.step_idx % len(STEP_INSTRUCTIONS)
-        return await InstructSpeak().run(self, conversations=memories,
+    async def _instruct_speak(self, mode="manual", **kwargs):
+        if mode == "manual":
+            return await self._instruct_speak_manual()
+        elif mode == "llm":
+            return await self._instruct_speak_llm(**kwargs)
+
+    async def _instruct_speak_manual(self):
+        print("*" * 10, "STEP: ", self.step_idx, "*" * 10)
+        step_idx = self.step_idx % len(STEP_INSTRUCTIONS)
+        self.step_idx += 1
+        return await InstructSpeak().run(mode="manual",
                                          living_players=self.living_players,
                                          werewolf_players=self.werewolf_players,
                                          player_hunted=self.player_hunted,
-                                         player_current_dead=self.player_current_dead)
+                                         player_current_dead=self.player_current_dead,
+                                         step_idx=step_idx)
+
+    async def _instruct_speak_llm(self, **kwargs):
+        return await InstructSpeak().run(mode="llm",
+                                         living_players=self.living_players,
+                                         werewolf_players=self.werewolf_players,
+                                         player_hunted=self.player_hunted,
+                                         player_current_dead=self.player_current_dead,
+                                         **kwargs)
 
     async def _parse_speak(self, memories):
         logger.info(self.step_idx)
@@ -111,9 +127,13 @@ class Moderator(Role):
 
         return msg_content, restricted_to
 
-    def _update_game_states(self, day_or_night, memories):
-        # FIXME: 不能更新状态，需修改！
-        if day_or_night == "night":
+    def _update_game_states(self, memories):
+
+        step_idx = self.step_idx % len(STEP_INSTRUCTIONS)
+        if step_idx not in [15, 18]:  # FIXME: hard code
+            return
+
+        if step_idx == 15:  # FIXME: hard code
             # night ends: after all special roles acted, process the whole night
             self.player_current_dead = []  # reset
 
@@ -130,7 +150,7 @@ class Moderator(Role):
             self.is_hunted_player_saved = False
             self.player_poisoned = None
 
-        elif day_or_night == "day":
+        elif step_idx == 18:  # FIXME: hard code
             # day ends: after all roles voted, process all votings
             voting_msgs = memories[-len(self.living_players):]
             voted_all = []
@@ -152,13 +172,11 @@ class Moderator(Role):
             self.winner = "werewolf"
 
     def _record_game_history(self):
-        # if self.step_idx == 0 or self.winner is not None:
-        #     logger.info("a night and day cycle completed, examine all history")
-        print("↓" * 10)
-        print(self.get_all_memories())
-        print("↑" * 10)
-        with open(WORKSPACE_ROOT / 'werewolf_transcript.txt', "w") as f:
-            f.write(self.get_all_memories())
+        if self.step_idx % len(STEP_INSTRUCTIONS) == 0 or self.winner is not None:
+            logger.info("a night and day cycle completed, examine all history")
+            print(self.get_all_memories())
+            with open(WORKSPACE_ROOT / 'werewolf_transcript.txt', "w") as f:
+                f.write(self.get_all_memories())
 
     async def _think(self):
 
@@ -192,11 +210,13 @@ class Moderator(Role):
         self._record_game_history()
 
         # 若一晚或一日周期结束，对当晚或当日的死者进行总结，并更新游戏状态
-        self._update_game_states(self.day_or_night, memories)
+        self._update_game_states(memories)
 
         # 根据_think的结果，执行InstructSpeak还是ParseSpeak, 并将结果返回
         if isinstance(todo, InstructSpeak):
-            msg_content, msg_to_send_to, msg_restriced_to, self.day_or_night = await self._instruct_speak(memories)
+            # FIXME: mode="llm"时，需要使用历史记录，可以更结构化一些的memories
+            # msg_content, msg_to_send_to, msg_restriced_to = await self._instruct_speak(mode="llm", memories=memories)
+            msg_content, msg_to_send_to, msg_restriced_to = await self._instruct_speak(mode="manual")
             # msg_content = f"Step {self.step_idx}: {msg_content}" # HACK: 加一个unique的step_idx避免记忆的自动去重
             msg = Message(content=msg_content, role=self.profile, sent_from=self.name,
                           cause_by=InstructSpeak, send_to=msg_to_send_to, restricted_to=msg_restriced_to)
@@ -221,3 +241,19 @@ class Moderator(Role):
             memories = [f"{m.sent_from}({m.role}): {m.content}" for m in memories]
             memories = "\n".join(memories)
         return memories
+
+
+# 测试_instruct_speak
+async def instruct_speak(mode="manual", conversation=[]):
+    moderator = Moderator()
+    if mode == "llm":
+        msg_content, msg_to_send_to, msg_restriced_to = await moderator._instruct_speak(mode=mode, conversation=conversation)
+    else:
+        msg_content, msg_to_send_to, msg_restriced_to = await moderator._instruct_speak(mode=mode)
+    print(msg_content, msg_to_send_to, msg_restriced_to)
+
+if __name__ == '__main__':
+    conversation1 = "It's nighttime. "
+    conversation2 = "It's daytime. "
+    asyncio.run(instruct_speak(mode="llm", conversation=conversation1))
+    asyncio.run(instruct_speak(mode="llm", conversation=conversation2))
