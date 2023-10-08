@@ -142,10 +142,10 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
     Check https://platform.openai.com/examples for examples
     """
 
-    def __init__(self):
-        self.__init_openai(CONFIG)
+    def __init__(self, conf=CONFIG, **kwargs):
+        self.__init_openai(conf)
         self.llm = openai
-        self.model = CONFIG.openai_api_model
+        self.model = conf.openai_api_model
         self.auto_max_tokens = False
         self._cost_manager = CostManager()
         RateLimiter.__init__(self, rpm=self.rpm)

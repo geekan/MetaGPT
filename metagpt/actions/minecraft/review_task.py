@@ -15,6 +15,7 @@ class VerifyTask(Action):
     
     def __init__(self, name="", context=None, llm=None):
         super().__init__(name, context, llm)
+        self.llm.model = "gpt-3.5-turbo"
 
     async def run(self,human_msg, system_msg, max_retries=5, *args, **kwargs):
         # Implement the logic to verify the task here.

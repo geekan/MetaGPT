@@ -18,6 +18,7 @@ class RetrieveSkills(Action):
 
     def __init__(self, name="", context=None, llm=None):
         super().__init__(name, context, llm)
+        self.llm.model = "gpt-3.5-turbo"
 
     async def run(self, query, skills, *args, **kwargs):
         # Implement the logic for retrieving skills here.
@@ -44,18 +45,22 @@ class AddNewSkills(Action):
 
     def __init__(self, name="", context=None, llm=None):
         super().__init__(name, context, llm)
+        self.llm.model = "gpt-3.5-turbo"
 
     async def run(
         self, task, program_name, program_code, skills, skill_desp, *args, **kwargs
     ):
         # Implement the logic for adding new skills here.
         # TODO: Fix this
+        logger.info(f"check task {task}")
         if task.startswith("Deposit useless items into the chest at"):
             # No need to reuse the deposit skill
             return {}
         logger.info(
             f"Skill Manager generated description for {program_name}:\n{skill_desp}\033[0m"
         )
+        logger.info(f"check skills {skills}")
+        
         if program_name in skills:
             logger.info(f"Skill {program_name} already exists. Rewriting!")
             self.vectordb._collection.delete(ids=[program_name])
@@ -97,6 +102,7 @@ class GenerateSkillDescription(Action):
 
     def __init__(self, name="", context=None, llm=None):
         super().__init__(name, context, llm)
+        self.llm.model = "gpt-3.5-turbo"
 
     async def run(self, program_name, human_message, system_message, *args, **kwargs):
         # Implement the logic for generating skill descriptions here.
