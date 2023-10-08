@@ -36,10 +36,10 @@ class Speak(Action):
 
         prompt = self.PROMPT_TEMPLATE.replace("__context__", context).replace("__profile__", profile)
 
-        rsp = await self._aask(prompt)
         re_run = 2
         while re_run > 0:
             try:
+                rsp = await self._aask(prompt)               
                 rsp_json = json.loads(rsp)
                 break
             except:
@@ -85,14 +85,14 @@ class NighttimeWhispers(Action):
             IF_JSON_INPUT = True
             IF_JSON_OUTPUT = True
 
-            def subclass_renew_prompt(self, prompt_json):
+            def _construct_prompt_json(self, prompt_json: dict, role: str, action: str, context: str):
                 del prompt_json['ACTION']
                 del prompt_json['ATTENTION']
 
                 prompt_json["OUTPUT_FORMAT"]["THOUGHTS"] = "It is night time. Return the thinking steps of your decision of whether to save the player JUST be killed at this night."
                 prompt_json["OUTPUT_FORMAT"]["OUTPUT"] = "Follow the Moderator's instruction, decide whether you want to save that person or not. Return SAVE or PASS."
 
-                return prompt_json
+                return self._default_construct_prompt_json(prompt_json, role, action, context)
 
         class Poison(NighttimeWhispers):
             ROLE = "Witch"
@@ -101,9 +101,9 @@ class NighttimeWhispers(Action):
             IF_JSON_INPUT = True
             IF_JSON_OUTPUT = True
 
-            def subclass_renew_prompt(self, prompt_json):
+            def _construct_prompt_json(self, prompt_json: dict, role: str, action: str, context: str):
                 prompt_json["OUTPUT_FORMAT"]["OUTPUT"] += "Or if you want to PASS, then return PASS."
-                return prompt_json
+                return self._default_construct_prompt_json(prompt_json, role, action, context)
 
     """
 
@@ -134,7 +134,7 @@ class NighttimeWhispers(Action):
     def __init__(self, name="NightTimeWhispers", context=None, llm=None):
         super().__init__(name, context, llm)
 
-    def _renew_prompt_json(self, prompt_json: dict, role: str, action: str, context: str):
+    def _default_construct_prompt_json(self, prompt_json: dict, role: str, action: str, context: str):
 
         def replace_string(prompt_json: dict):
             k: str
@@ -153,12 +153,12 @@ class NighttimeWhispers(Action):
 
         return prompt_json
 
-    def subclass_renew_prompt(self, prompt_json: dict):
-        return prompt_json
+    def _construct_prompt_json(self, prompt_json: dict, role: str, action: str, context: str):
+        return self._default_construct_prompt_json(prompt_json, role, action, context)
 
     async def run(self, context: str):
         """
-        Note: `final_prompt` could be undefined and will raise error if `IF_RENEW` is true and `IF_JSON_INPUT` is False
+        Note: `final_prompt` could be undefined and will raise error if `IF_RENEW` is True and `IF_JSON_INPUT` is False
         """
 
         if not self.IF_RENEW:
@@ -168,24 +168,23 @@ class NighttimeWhispers(Action):
 
         if self.IF_JSON_INPUT:
             prompt_json = json.loads(self.PROMPT_TEMPLATE)
-            prompt_json = self._renew_prompt_json(prompt_json=prompt_json, role=self.ROLE, action=self.ACTION,
-                                                  context=context)
-            prompt_json = self.subclass_renew_prompt(prompt_json)  # can be defined in subclass
+            prompt_json = self._construct_prompt_json(prompt_json=prompt_json, role=self.ROLE, action=self.ACTION,
+                                                  context=context)  # can be defined in subclass
             final_prompt = json.dumps(prompt_json, indent=4, separators=(',', ': '), ensure_ascii=False)
-
-        rsp_content = await self._aask(final_prompt)
-
-        with open(WORKSPACE_ROOT / f'{self.ACTION}.txt', 'a') as f:
-            f.write(rsp_content)
 
         if self.IF_JSON_OUTPUT:
             re_run = 2
             while re_run > 0:
                 try:
+                    rsp_content = await self._aask(final_prompt)                  
                     rsp = json.loads(rsp_content)
                     break
                 except:
                     re_run -= 1
+
+            with open(WORKSPACE_ROOT / f'{self.ACTION}.txt', 'a') as f:
+                f.write(rsp_content)
+            
             return f"{self.ACTION} Player" + str(rsp["OUTPUT"])
 
         return rsp_content
