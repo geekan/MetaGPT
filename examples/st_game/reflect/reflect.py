@@ -6,6 +6,7 @@ import datetime
 
 from metagpt.logs import logger
 from examples.st_game.utils.utils import get_embedding
+from examples.st_game.memory.retrieve import new_agent_retrieve
 from examples.st_game.actions.run_reflect_action import (
     AgentFocusPt, AgentInsightAndGuidance, AgentEventTriple,
     AgentEventPoignancy, AgentChatPoignancy, AgentPlanThoughtOnConvo,
@@ -102,13 +103,14 @@ def run_reflect(role: "STRole"):
     focal_points = generate_focal_points(role, 3)
     # Retrieve the relevant Nodesobject for each of the focal points.
     # <retrieved> has keys of focal points, and values of the associated Nodes.
-    retrieved = role.retrieve(focal_points)
+    retrieved = new_agent_retrieve(role, focal_points)
 
     # For each of the focal points, generate thoughts and save it in the
     # agent's memory.
     for focal_pt, nodes in retrieved.items():
         xx = [i.embedding_key for i in nodes]
-        for xxx in xx: logger.info(f"Nodes retrieved for {focal_pt} are {xxx}.")
+        for xxx in xx:
+            logger.info(f"Nodes retrieved for `{focal_pt}` are `{xxx}`.")
 
         thoughts = generate_insights_and_evidence(role, nodes, 5)
         # 生成的是字典类型

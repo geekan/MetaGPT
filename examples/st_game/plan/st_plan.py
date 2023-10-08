@@ -54,6 +54,7 @@ def plan(role: "STRole", maze: Maze, roles: list["STRole"], new_day: bool, retri
     #         c) False
     if focused_event:
         reaction_mode = _should_react(role, focused_event, roles)
+        logger.info(f"Role: {role.name} reaction_mode: {reaction_mode}")
         if reaction_mode:
             # If we do want to chat, then we generate conversation
             if reaction_mode[:9] == "chat with":

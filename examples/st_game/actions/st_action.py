@@ -8,6 +8,7 @@ import json
 
 from metagpt.actions.action import Action
 from metagpt.schema import Message
+from metagpt.logs import logger
 
 from examples.st_game.utils.const import PROMPTS_DIR
 
@@ -63,6 +64,7 @@ class STAction(Action):
         """
         for idx in range(retry):
             llm_resp = self._ask(prompt)
+            logger.info(f"_run_v1 llm raw resp: {llm_resp}")
             if self._func_validate(llm_resp, prompt):
                 return self._func_cleanup(llm_resp, prompt)
         return self.fail_default_resp
@@ -81,7 +83,7 @@ class STAction(Action):
         for idx in range(retry):
             try:
                 llm_resp = self._ask(prompt)
-                print("llm_resp ", llm_resp)
+                logger.info(f"_run_v2 llm raw resp: {llm_resp}")
                 end_idx = llm_resp.strip().rfind("}") + 1
                 llm_resp = llm_resp[:end_idx]
                 llm_resp = json.loads(llm_resp)["output"]

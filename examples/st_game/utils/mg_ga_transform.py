@@ -21,8 +21,7 @@ def save_movement(role_name: str, role_move: dict, step: int, sim_code: str, cur
     if not movement_path.parent.exists():
         movement_path.parent.mkdir(exist_ok=True)
     if movement_path.exists():
-        with open(movement_path, "r") as fin:
-            movement = json.load(fin)
+        movement = read_json_file(movement_path)
     else:
         movement = {
             "persona": dict(),
@@ -33,6 +32,24 @@ def save_movement(role_name: str, role_move: dict, step: int, sim_code: str, cur
 
     write_json_file(movement_path, movement)
     logger.info(f"save_movement at step: {step}, curr_time: {movement['meta']['curr_time']}")
+
+
+def save_environment(role_name: str, step: int, sim_code: str, movement: list[int]):
+    environment_path = STORAGE_PATH.joinpath(f"{sim_code}/environment/{step}.json")
+    if not environment_path.parent.exists():
+        environment_path.parent.mkdir(exist_ok=True)
+    if environment_path.exists():
+        environment = read_json_file(environment_path)
+    else:
+        environment = {}
+
+    environment[role_name] = {
+        "maze": "the_ville",
+        "x": movement[0],
+        "y": movement[1]
+    }
+    write_json_file(environment_path, environment)
+    logger.info(f"save_environment at step: {step}")
 
 
 def get_role_environment(sim_code: str, role_name: str, step: int = 0) -> dict:

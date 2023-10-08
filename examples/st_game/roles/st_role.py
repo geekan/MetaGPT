@@ -33,7 +33,7 @@ from examples.st_game.memory.scratch import Scratch
 from examples.st_game.utils.utils import get_embedding, path_finder
 from examples.st_game.utils.const import collision_block_id, STORAGE_PATH
 from examples.st_game.reflect.reflect import generate_poig_score
-from examples.st_game.utils.mg_ga_transform import save_movement, get_role_environment
+from examples.st_game.utils.mg_ga_transform import save_movement, get_role_environment, save_environment
 from examples.st_game.actions.inner_voice_action import AgentWhisperThoughtAction
 from examples.st_game.actions.run_reflect_action import AgentEventTriple
 from examples.st_game.reflect.reflect import role_reflect
@@ -261,51 +261,52 @@ class STRole(Role):
                     obj = p_event[2].split(":")[-1]
                 keywords.update([sub, obj])
 
-            # Get event embedding
-            desc_embedding_in = desc
-            if "(" in desc:
-                desc_embedding_in = (desc_embedding_in.split("(")[1]
-                                     .split(")")[0]
-                                     .strip())
-            if desc_embedding_in in self._rc.memory.embeddings:
-                event_embedding = self._rc.memory.embeddings[desc_embedding_in]
-            else:
-                event_embedding = get_embedding(desc_embedding_in)
-            event_embedding_pair = (desc_embedding_in, event_embedding)
-
-            # Get event poignancy.
-            event_poignancy = generate_poig_score(self,
-                                                  "action",
-                                                  desc_embedding_in)
-
-            # If we observe the persona's self chat, we include that in the memory
-            # of the persona here.
-            chat_node_ids = []
-            if p_event[0] == f"{self.name}" and p_event[1] == "chat with":
-                curr_event = self._rc.scratch.act_event
-                if self._rc.scratch.act_description in self._rc.memory.embeddings:
-                    chat_embedding = self._rc.memory.embeddings[
-                        self._rc.scratch.act_description]
+                # Get event embedding
+                desc_embedding_in = desc
+                if "(" in desc:
+                    desc_embedding_in = (desc_embedding_in.split("(")[1]
+                                         .split(")")[0]
+                                         .strip())
+                if desc_embedding_in in self._rc.memory.embeddings:
+                    event_embedding = self._rc.memory.embeddings[desc_embedding_in]
                 else:
-                    chat_embedding = get_embedding(self._rc.scratch
-                                                   .act_description)
-                chat_embedding_pair = (self._rc.scratch.act_description,
-                                       chat_embedding)
-                chat_poignancy = generate_poig_score(self._rc.scratch, "chat",
-                                                     self._rc.scratch.act_description)
-                chat_node = self._rc.memory.add_chat(self._rc.scratch.curr_time, None,
-                                                     curr_event[0], curr_event[1], curr_event[2],
-                                                     self._rc.scratch.act_description, keywords,
-                                                     chat_poignancy, chat_embedding_pair,
-                                                     self._rc.scratch.chat)
-                chat_node_ids = [chat_node.node_id]
+                    event_embedding = get_embedding(desc_embedding_in)
+                event_embedding_pair = (desc_embedding_in, event_embedding)
 
-            # Finally, we add the current event to the agent's memory.
-            ret_events += [self._rc.memory.add_event(self._rc.scratch.curr_time, None,
-                                                     s, p, o, desc, keywords, event_poignancy,
-                                                     event_embedding_pair, chat_node_ids)]
-            self._rc.scratch.importance_trigger_curr -= event_poignancy
-            self._rc.scratch.importance_ele_n += 1
+                # Get event poignancy.
+                event_poignancy = generate_poig_score(self,
+                                                      "event",
+                                                      desc_embedding_in)
+                logger.info(f"Role {self.name} event_poignancy: {event_poignancy}")
+
+                # If we observe the persona's self chat, we include that in the memory
+                # of the persona here.
+                chat_node_ids = []
+                if p_event[0] == f"{self.name}" and p_event[1] == "chat with":
+                    curr_event = self._rc.scratch.act_event
+                    if self._rc.scratch.act_description in self._rc.memory.embeddings:
+                        chat_embedding = self._rc.memory.embeddings[
+                            self._rc.scratch.act_description]
+                    else:
+                        chat_embedding = get_embedding(self._rc.scratch
+                                                       .act_description)
+                    chat_embedding_pair = (self._rc.scratch.act_description,
+                                           chat_embedding)
+                    chat_poignancy = generate_poig_score(self._rc.scratch, "chat",
+                                                         self._rc.scratch.act_description)
+                    chat_node = self._rc.memory.add_chat(self._rc.scratch.curr_time, None,
+                                                         curr_event[0], curr_event[1], curr_event[2],
+                                                         self._rc.scratch.act_description, keywords,
+                                                         chat_poignancy, chat_embedding_pair,
+                                                         self._rc.scratch.chat)
+                    chat_node_ids = [chat_node.node_id]
+
+                # Finally, we add the current event to the agent's memory.
+                ret_events += [self._rc.memory.add_event(self._rc.scratch.curr_time, None,
+                                                         s, p, o, desc, keywords, event_poignancy,
+                                                         event_embedding_pair, chat_node_ids)]
+                self._rc.scratch.importance_trigger_curr -= event_poignancy
+                self._rc.scratch.importance_ele_n += 1
 
         return ret_events
 
@@ -353,7 +354,7 @@ class STRole(Role):
             # <target_tiles> is a list of tile coordinates where the persona may go
             # to execute the current action. The goal is to pick one of them.
             target_tiles = None
-            logger.info("plan: ", plan)
+            logger.info(f"Role {self.name} plan: {plan}")
 
             if "<persona>" in plan:
                 # Executing persona-persona interaction.
@@ -510,7 +511,7 @@ class STRole(Role):
         elif (self.scratch.curr_time.strftime('%A %B %d')
               != self.curr_time.strftime('%A %B %d')):
             new_day = "New day"
-        logger.info(f"Role: {self.name} {new_day}")
+        logger.info(f"Role: {self.name} new_day: {new_day}")
         self._rc.scratch.curr_time = self.curr_time
 
         # get maze_env from self._rc.env, and observe env info
@@ -536,7 +537,9 @@ class STRole(Role):
         # step update
         logger.info(f"Role: {self.name} run at {self.step} step on {self.curr_time}")
         self.step += 1
+        save_environment(self.name, self.step, self.sim_code, next_tile)
         self.curr_time += datetime.timedelta(seconds=self.sec_per_step)
         self.inner_voice = False
 
+        time.sleep(0.5)
         return DummyMessage()

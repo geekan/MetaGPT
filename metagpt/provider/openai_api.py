@@ -212,7 +212,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
 
     def _chat_completion(self, messages: list[dict]) -> dict:
         rsp = self.llm.ChatCompletion.create(**self._cons_kwargs(messages))
-        self._update_costs(rsp)
+        self._update_costs(rsp.get("usage"))
         return rsp
 
     def completion(self, messages: list[dict]) -> dict:
@@ -249,7 +249,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
                 usage["completion_tokens"] = completion_tokens
                 return usage
             except Exception as e:
-                logger.error("usage calculation failed!", e)
+                logger.error("usage calculation failed! {e}")
         else:
             return usage
 
@@ -286,7 +286,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
                 completion_tokens = int(usage["completion_tokens"])
                 self._cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
             except Exception as e:
-                logger.error("updating costs failed!", e)
+                logger.error("updating costs failed! {e}")
 
     def get_costs(self) -> Costs:
         return self._cost_manager.get_costs()

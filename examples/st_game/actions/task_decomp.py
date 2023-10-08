@@ -71,7 +71,7 @@ class TaskDecomp(STAction):
     def _func_validate(self, llm_resp: str, prompt: str) -> bool:
         # TODO -- this sometimes generates error 
         try: 
-            self._func_cleanup(llm_resp)
+            self._func_cleanup(llm_resp, prompt)
         except Exception as exp:
             return False
         return True
