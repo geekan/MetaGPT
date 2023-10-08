@@ -1,11 +1,11 @@
 import re
-from typing import List, Callable
+from typing import List, Callable, Dict
 from pathlib import Path
 
 import wrapt
 import textwrap
 import inspect
-from interpreter.interpreter import Interpreter
+from interpreter.core.core import Interpreter
 
 from metagpt.logs import logger
 from metagpt.config import CONFIG
@@ -47,7 +47,8 @@ class OpenCodeInterpreter(object):
     def chat(self, query: str, reset: bool = True):
         if reset:
             self.interpreter.reset()
-        return self.interpreter.chat(query, return_messages=True)
+        # return self.interpreter.chat(query, return_messages=True)
+        return self.interpreter.chat(query)
 
     @staticmethod
     def extract_function(query_respond: List, function_name: str, *, language: str = 'python',
@@ -61,11 +62,19 @@ class OpenCodeInterpreter(object):
             assert language == 'python', f"Expect python language for default function_format, but got {language}."
             function_format = """def {function_name}():\n{code}"""
         # Extract the code module in the open-interpreter respond message.
-        code = [item['function_call']['parsed_arguments']['code'] for item in query_respond
-                if "function_call" in item
-                and "parsed_arguments" in item["function_call"]
-                and 'language' in item["function_call"]['parsed_arguments']
-                and item["function_call"]['parsed_arguments']['language'] == language]
+        if "function_call" in query_respond[1]:
+            code = [item['function_call']['parsed_arguments']['code'] for item in query_respond
+                    if "function_call" in item
+                    and "parsed_arguments" in item["function_call"]
+                    and 'language' in item["function_call"]['parsed_arguments']
+                    and item["function_call"]['parsed_arguments']['language'] == language]
+        elif "code" in query_respond[1]:
+            code = [item['code'] for item in query_respond
+                    if "code" in item
+                    and 'language' in item
+                    and item['language'] == language]
+        else:
+            raise ValueError(f"Unexpect message format in query_respond: {query_respond[1].keys()}")
         # add indent.
         indented_code_str = textwrap.indent("\n".join(code), ' ' * 4)
         # Return the code after deduplication.
@@ -94,13 +103,49 @@ class OpenInterpreterDecorator(object):
         self.code_file_path = code_file_path
         self.clear_code = clear_code
 
+    def _have_code(self, rsp: List[Dict]):
+        # Is there any code generated?
+        return 'code' in rsp[1] and rsp[1]['code'] not in ("", None)
+
+    def _is_faild_plan(self, rsp: List[Dict]):
+        # is faild plan?
+        func_code = OpenCodeInterpreter.extract_function(rsp, 'function')
+        # If there is no more than 1 '\n', the plan execution fails.
+        if isinstance(func_code, str) and func_code.count('\n') <= 1:
+            return True
+        return False
+
+    def _check_respond(self, query: str, interpreter: OpenCodeInterpreter, respond: List[Dict], max_try: int = 3):
+        for _ in range(max_try):
+            # TODO: If no code or faild plan is generated, execute chat again, repeating no more than max_try times.
+            if self._have_code(respond) and not self._is_faild_plan(respond):
+                break
+            elif not self._have_code(respond):
+                logger.warning(f"llm did not return executable code, resend the query: \n{query}")
+                respond = interpreter.chat(query)
+            elif self._is_faild_plan(respond):
+                logger.warning(f"llm did not generate successful plan, resend the query: \n{query}")
+                respond = interpreter.chat(query)
+
+        # Post-processing of respond
+        if not self._have_code(respond):
+            error_msg = f"OpenCodeInterpreter do not generate code for query: \n{query}"
+            logger.error(error_msg)
+            raise ValueError(error_msg)
+
+        if self._is_faild_plan(respond):
+            error_msg = f"OpenCodeInterpreter do not generate code for query: \n{query}"
+            logger.error(error_msg)
+            raise ValueError(error_msg)
+        return respond
+
     def __call__(self, wrapped):
         @wrapt.decorator
         async def wrapper(wrapped: Callable, instance, args, kwargs):
             # Get the decorated function name.
             func_name = wrapped.__name__
             # If the script exists locally and clearcode is not required, execute the function from the script.
-            if Path(self.code_file_path).is_file() and not self.clear_code:
+            if self.code_file_path and Path(self.code_file_path).is_file() and not self.clear_code:
                 return run_function_script(self.code_file_path, func_name, *args, **kwargs)
 
             # Auto run generate code by using open-interpreter.
@@ -108,6 +153,8 @@ class OpenInterpreterDecorator(object):
             query = gen_query(wrapped, args, kwargs)
             logger.info(f"query for OpenCodeInterpreter: \n {query}")
             respond = interpreter.chat(query)
+            # Make sure the response is as expected.
+            respond = self._check_respond(query, interpreter, respond, 3)
             # Assemble the code blocks generated by open-interpreter into a function without parameters.
             func_code = interpreter.extract_function(respond, func_name)
             # Clone the `func_code` into wrapped, that is,
@@ -121,9 +168,10 @@ class OpenInterpreterDecorator(object):
             # execute this function.
             try:
                 res = run_function_code(code, func_name, *args, **kwargs)
-                if self.save_code:
+                if self.save_code and self.code_file_path:
                     cf._save(self.code_file_path, code)
             except Exception as e:
+                logger.error(f"Could not evaluate Python code \n{logger_code}: \nError: {e}")
                 raise Exception("Could not evaluate Python code", e)
             return res
         return wrapper(wrapped)
