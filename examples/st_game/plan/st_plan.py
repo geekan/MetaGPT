@@ -23,7 +23,7 @@ from ..utils.utils import get_embedding
 from ..memory.retrieve import new_agent_retrieve
 
 
-def plan(role: "STRole", maze: Maze, roles: list["STRole"], new_day: bool, retrieved: dict):
+def plan(role: "STRole", maze: Maze, roles: list["STRole"], new_day: bool, retrieved: dict) -> str:
     # PART 1: Generate the hourly schedule. 
     if new_day: 
         _long_term_planning(role, new_day)
@@ -60,6 +60,24 @@ def plan(role: "STRole", maze: Maze, roles: list["STRole"], new_day: bool, retri
                 _chat_react(maze, role, focused_event, reaction_mode, roles)
             elif reaction_mode[:4] == "wait":
                 _wait_react(role, reaction_mode)
+
+    # Step 3: Chat-related state clean up.
+    # If the persona is not chatting with anyone, we clean up any of the
+    # chat-related states here.
+    if role._rc.scratch.act_event[1] != "chat with":
+        role._rc.scratch.chatting_with = None
+        role._rc.scratch.chat = None
+        role._rc.scratch.chatting_end_time = None
+    # We want to make sure that the persona does not keep conversing with each
+    # other in an infinite loop. So, chatting_with_buffer maintains a form of
+    # buffer that makes the persona wait from talking to the same target
+    # immediately after chatting once. We keep track of the buffer value here.
+    curr_persona_chat_buffer = role._rc.scratch.chatting_with_buffer
+    for persona_name, buffer_count in curr_persona_chat_buffer.items():
+        if persona_name != role._rc.scratch.chatting_with:
+            role._rc.scratch.chatting_with_buffer[persona_name] -= 1
+
+    return role._rc.scratch.act_address
 
 
 def _choose_retrieved(role_name: str, retrieved: dict) -> Union[None, dict]:
@@ -534,6 +552,7 @@ def _determine_action(role: "STRole", maze: Maze):
     curr_index = role.scratch.get_f_daily_schedule_index()
     curr_index_60 = role.scratch.get_f_daily_schedule_index(advance=60)
 
+    logger.info(f"f_daily_schedule: {role.scratch.f_daily_schedule}")
     # * Decompose * 
     # During the first hour of the day, we need to decompose two hours 
     # sequence. We do that here. 

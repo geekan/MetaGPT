@@ -72,17 +72,17 @@ class TaskDecomp(STAction):
         # TODO -- this sometimes generates error 
         try: 
             self._func_cleanup(llm_resp)
-        except: 
+        except Exception as exp:
             return False
         return True
 
     def _func_fail_default_resp(self) -> int:
-        fs = ["asleep"]
+        fs = [["asleep", 0]]
         return fs
 
     def run(self,
             role: "STRole",
-            main_act_dur: int,
+            task_desc: int,
             truncated_act_dur: int,
             *args, **kwargs):
 
@@ -144,10 +144,36 @@ class TaskDecomp(STAction):
             return prompt_input
 
         prompt_input = create_prompt_input(role,
-                                           main_act_dur,
+                                           task_desc,
                                            truncated_act_dur)
         prompt = self.generate_prompt_with_tmpl_filename(prompt_input,
                                                          "task_decomp_v3.txt")
         self.fail_default_resp = self._func_fail_default_resp()
         output = self._run_v1(prompt)
+        logger.info(f"Role: {role.name} {self.__class__.__name__} output: {output}")
+
+        fin_output = []
+        time_sum = 0
+        for i_task, i_duration in output:
+            time_sum += i_duration
+            # HM?????????
+            # if time_sum < duration:
+            if time_sum <= truncated_act_dur:
+                fin_output += [[i_task, i_duration]]
+            else:
+                break
+        ftime_sum = 0
+        for fi_task, fi_duration in fin_output:
+            ftime_sum += fi_duration
+
+        # print ("for debugging... line 365", fin_output)
+        fin_output[-1][1] += (truncated_act_dur - ftime_sum)
+        output = fin_output
+
+        task_decomp = output
+        ret = []
+        for decomp_task, duration in task_decomp:
+            ret += [[f"{task_desc} ({decomp_task})", duration]]
+        output = ret
+
         return output

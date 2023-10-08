@@ -8,6 +8,7 @@ import string
 
 from metagpt.logs import logger
 from metagpt.schema import Message
+from metagpt.config import CONFIG
 
 from .st_action import STAction
 
@@ -39,17 +40,19 @@ class GenHourlySchedule(STAction):
             return False
         return True
     
-    def _func_cleanup(self, llm_resp: str, prompt: str) -> list:       
+    def _func_cleanup(self, llm_resp: str, prompt: str) -> list:
         cr = llm_resp.strip()
         if cr[-1] == ".":
             cr = cr[:-1]
+        # to only use the first line of output
+        cr = cr.split("\n")[0]
         return cr
 
     def _func_fail_default_resp(self) -> int:
         fs = "asleep"
         return fs
-    
-    def _generate_schedule_for_given_hour(self, role: "STRole", 
+
+    def _generate_schedule_for_given_hour(self, role: "STRole",
                                           curr_hour_str,
                                           p_f_ds_hourly_org,
                                           hour_str,
@@ -63,13 +66,13 @@ class GenHourlySchedule(STAction):
             for i in hour_str: 
                 schedule_format += f"[{persona.scratch.get_str_curr_date_str()} -- {i}]"
                 schedule_format += f" Activity: [Fill in]\n"
-                schedule_format = schedule_format[:-1]
+            schedule_format = schedule_format[:-1]
 
             intermission_str = f"Here the originally intended hourly breakdown of"
             intermission_str += f" {persona.scratch.get_str_firstname()}'s schedule today: "
             for count, i in enumerate(persona.scratch.daily_req): 
                 intermission_str += f"{str(count+1)}) {i}, "
-                intermission_str = intermission_str[:-2]
+            intermission_str = intermission_str[:-2]
 
             prior_schedule = ""
             if p_f_ds_hourly_org: 
@@ -109,21 +112,30 @@ class GenHourlySchedule(STAction):
                                            p_f_ds_hourly_org,
                                            hour_str,
                                            intermission2)
-        logger.info(f"Role: {role.name} _generate_schedule_for_given_hour prompt_input: {prompt_input}")
+        prompt_input_str = "\n".join(prompt_input)
+        raw_max_tokens_rsp = CONFIG.max_tokens_rsp
         prompt = self.generate_prompt_with_tmpl_filename(prompt_input, prompt_template)
         self.fail_default_resp = self._func_fail_default_resp()
+
+        CONFIG.max_tokens_rsp = 50
         output = self._run_v1(prompt)
+        CONFIG.max_tokens_rsp = raw_max_tokens_rsp
+
+        logger.info(f"max_tokens_rsp: {CONFIG.max_tokens_rsp}")
+        logger.info(f"Role: {role.name} _generate_schedule_for_given_hour prompt_input: {prompt_input_str}, "
+                    f"output: {output}")
         return output
     
-    def run(self, role: "STRole", wake_up_hour: str):          
+    def run(self, role: "STRole", wake_up_hour: int):
         hour_str = ["00:00 AM", "01:00 AM", "02:00 AM", "03:00 AM", "04:00 AM", 
                     "05:00 AM", "06:00 AM", "07:00 AM", "08:00 AM", "09:00 AM", 
                     "10:00 AM", "11:00 AM", "12:00 PM", "01:00 PM", "02:00 PM", 
                     "03:00 PM", "04:00 PM", "05:00 PM", "06:00 PM", "07:00 PM",
                     "08:00 PM", "09:00 PM", "10:00 PM", "11:00 PM"]
         n_m1_activity = []
-        diversity_repeat_count = 3
-        for i in range(diversity_repeat_count): 
+        diversity_repeat_count = 1  # TODO mg 1->3
+        for i in range(diversity_repeat_count):
+            logger.info(f"diversity_repeat_count idx: {i}")
             n_m1_activity_set = set(n_m1_activity)
             if len(n_m1_activity_set) < 5: 
                 n_m1_activity = []
@@ -131,7 +143,8 @@ class GenHourlySchedule(STAction):
                     if wake_up_hour > 0: 
                         n_m1_activity += ["sleeping"]
                         wake_up_hour -= 1
-                    else: 
+                    else:
+                        logger.info(f"_generate_schedule_for_given_hour idx: {count}, n_m1_activity: {n_m1_activity}")
                         n_m1_activity += [self._generate_schedule_for_given_hour(
                                     role, curr_hour_str, n_m1_activity, hour_str)]
             

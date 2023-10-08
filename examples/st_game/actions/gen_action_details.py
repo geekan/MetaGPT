@@ -358,9 +358,9 @@ class GenObjEventTriple(STAction):
         prompt_template = "generate_event_triple_v1.txt"
         prompt_input = create_prompt_input(act_game_object, act_obj_desp)
         prompt = self.generate_prompt_with_tmpl_filename(prompt_input, prompt_template)
-        self.fail_default_resp = self._func_fail_default_resp(role)
+        self.fail_default_resp = self._func_fail_default_resp(act_game_object)
         output = self._run_v1(prompt)
-        output = (role.name, output[0], output[1])
+        output = (act_game_object, output[0], output[1])
         return output
     
 
@@ -404,7 +404,7 @@ class GenActionDetails(STAction):
         result_dict = {
             "action_address": new_address,
             "action_duration": int(act_dura),
-            "act_desp": act_desp,
+            "action_description": act_desp,
             "action_pronunciatio": act_pron,
             "action_event": act_event,
             "chatting_with": None,
