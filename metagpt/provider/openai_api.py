@@ -143,21 +143,12 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
     """
 
     def __init__(self):
-        self.__init_openai(CONFIG)
         self.llm = openai
         self.model = CONFIG.openai_api_model
         self.auto_max_tokens = False
         self._cost_manager = CostManager()
+        self.rpm = int(CONFIG.get("RPM", 10))
         RateLimiter.__init__(self, rpm=self.rpm)
-
-    def __init_openai(self, config):
-        openai.api_key = config.openai_api_key
-        if config.openai_api_base:
-            openai.api_base = config.openai_api_base
-        if config.openai_api_type:
-            openai.api_type = config.openai_api_type
-            openai.api_version = config.openai_api_version
-        self.rpm = int(config.get("RPM", 10))
 
     async def _achat_completion_stream(self, messages: list[dict]) -> str:
         response = await openai.ChatCompletion.acreate(**self._cons_kwargs(messages), stream=True)
@@ -183,6 +174,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
 
     def _cons_kwargs(self, messages: list[dict]) -> dict:
         kwargs = {
+            "api_key": CONFIG.openai_api_key,
             "messages": messages,
             "max_tokens": self.get_max_tokens(messages),
             "n": 1,
@@ -202,7 +194,16 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             )
         else:
             kwargs_mode = {"model": self.model}
+
         kwargs.update(kwargs_mode)
+
+        if CONFIG.openai_api_base:
+            kwargs["api_base"] = CONFIG.openai_api_base
+
+        if CONFIG.openai_api_type:
+            kwargs["api_type"] = CONFIG.openai_api_type
+            kwargs["api_version"] = CONFIG.openai_api_version
+
         return kwargs
 
     async def _achat_completion(self, messages: list[dict]) -> dict:

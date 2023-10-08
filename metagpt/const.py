@@ -5,6 +5,7 @@
 @Author  : alexanderwu
 @File    : const.py
 """
+from contextvars import ContextVar
 from pathlib import Path
 
 
@@ -40,3 +41,5 @@ TUTORIAL_PATH = DATA_PATH / "tutorial_docx"
 SKILL_DIRECTORY = PROJECT_ROOT / "metagpt/skills"
 
 MEM_TTL = 24 * 30 * 3600
+
+CONFIGS_CTX: ContextVar[dict] = ContextVar("CONFIGS_CTX")
