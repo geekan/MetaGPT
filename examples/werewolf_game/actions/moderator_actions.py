@@ -163,7 +163,7 @@ class InstructSpeak(Action):
 
         return content, instruction_info["send_to"], instruction_info["restricted_to"]
 
-    # 若是llm模式，将多返回一个flag字段
+    # 若是llm模式，将多返回一个flag_info字段，用于判断是否需要更新day_or_night
     async def run_llm(self, living_players, werewolf_players, player_hunted, player_current_dead, **kwargs):
         conversation = kwargs.get("conversation", "")
         pre_flag_info = kwargs.get("pre_flag_info", "")
