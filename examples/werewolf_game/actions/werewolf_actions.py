@@ -3,7 +3,8 @@ from examples.werewolf_game.actions.common_actions import Speak, NighttimeWhispe
 
 
 class Hunt(NighttimeWhispers):
-    ACTION = "KILL"
+    def __init__(self, name="Hunt", context=None, llm=None):
+        super().__init__(name, context, llm)
 
 class Impersonate(Speak):
     """Action: werewolf impersonating a good guy in daytime speak"""

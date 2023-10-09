@@ -43,7 +43,7 @@ STEP_INSTRUCTIONS = {
         "restricted_to": "Moderator,Witch"},  # 要先判断女巫是否有解药，再去询问女巫是否使用解药救人
     9: {"content": """Witch, you also have a bottle of poison, would you like to use it to kill one of the living players?
                    Choose one from the following living options: {living_players}.
-                   If so, say "Poison PlayerX", where X is the player index, else, say "Pass".""",
+                   If so, say ONLY "Poison PlayerX", replace PlayerX with the actual player name, else, say "Pass".""",
         "send_to": "Witch",
         "restricted_to": "Moderator,Witch"},  #
     10: {"content": "Witch, close your eyes",
