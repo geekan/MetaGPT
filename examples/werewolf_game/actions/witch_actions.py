@@ -1,45 +1,30 @@
 from metagpt.actions import Action
+from examples.werewolf_game.actions import NighttimeWhispers
 
-class Save(Action):
-    """Action: choose a villager to Save"""
-
-    PROMPT_TEMPLATE = """
-    It's a werewolf game and you are a witch,
-    this is game history:
-    {context}.
-    Follow the Moderator's instruction, decide whether you want to save that person or not:
-    """
-
+class Save(NighttimeWhispers):
     def __init__(self, name="Save", context=None, llm=None):
         super().__init__(name, context, llm)
 
-    async def run(self, context: str):
+    def _update_prompt_json(self, prompt_json: dict, profile: str, name: str, context: str, **kwargs):
+        del prompt_json['ACTION']
+        del prompt_json['ATTENTION']
 
-        prompt = self.PROMPT_TEMPLATE.format(context=context)
+        prompt_json["OUTPUT_FORMAT"]["THOUGHTS"] = "It is night time. Return the thinking steps of your decision of whether to save the player JUST be killed at this night."
+        prompt_json["OUTPUT_FORMAT"]["RESPONSE"] = "Follow the Moderator's instruction, decide whether you want to save that person or not. Return SAVE or PASS."
 
-        rsp = await self._aask(prompt)
-        # rsp = "Save Player 1"
+        return prompt_json
 
-        return rsp
-
-class Poison(Action):
-    """Action: choose a villager to Poison"""
-
-    PROMPT_TEMPLATE = """
-    It's a werewolf game and you are a witch,
-    this is game history:
-    {context}.
-    Follow the Moderator's instruction, decide whether you want to poison another person or not:
+class Poison(NighttimeWhispers):
+    STRATEGY = """
+    Only poison a player if you are confident he/she is a werewolf. Don't poison a player randomly or at first night.
+    If someone claims to be the witch, poison him/her, because you are the only witch, he/she can only be a werewolf.
     """
 
     def __init__(self, name="Poison", context=None, llm=None):
         super().__init__(name, context, llm)
 
-    async def run(self, context: str):
+    def _update_prompt_json(self, prompt_json: dict, profile: str, name: str, context: str, **kwargs):
 
-        prompt = self.PROMPT_TEMPLATE.format(context=context)
+        prompt_json["OUTPUT_FORMAT"]["RESPONSE"] += "Or if you want to PASS, return PASS."
 
-        rsp = await self._aask(prompt)
-        # rsp = "Poison Player 1"
-
-        return rsp
+        return prompt_json

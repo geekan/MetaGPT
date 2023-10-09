@@ -42,7 +42,7 @@ STEP_INSTRUCTIONS = {
         "restricted_to": "Moderator,Witch"},  # 要先判断女巫是否有解药，再去询问女巫是否使用解药救人
     9: {"content": """Witch, you also have a bottle of poison, would you like to use it to kill one of the living players?
                    Choose one from the following living options: {living_players}.
-                   If so, say "Poison PlayerX", where X is the player index, else, say "Pass".""",
+                   If so, say ONLY "Poison PlayerX", replace PlayerX with the actual player name, else, say "Pass".""",
         "send_to": "Witch",
         "restricted_to": "Moderator,Witch"},  #
     10: {"content": "Witch, close your eyes",
@@ -65,13 +65,13 @@ STEP_INSTRUCTIONS = {
     15: {"content": "{player_current_dead} was killed last night!",
          "send_to": "Moderator",
          "restricted_to": ""},
-    16: {"content": """Now freely talk about roles of other players with each other based on your observation and 
-                    reflection with few sentences. Decide whether to reveal your identity based on your reflection.""",
+    16: {"content": """Living players: {living_players}, now freely talk about the current situation based on your observation and
+                    reflection with a few sentences. Decide whether to reveal your identity based on your reflection.""",
          "send_to": "",  # send to all to speak in daytime
          "restricted_to": ""},
     17: {"content": """Now vote and tell me who you think is the werewolf. Don’t mention your role.
                     You only choose one from the following living options please:
-                    {living_players}. Or you can pass. For example: I vote to kill ...""",
+                    {living_players}. Say ONLY: I vote to eliminate ...""",
          "send_to": "",
          "restricted_to": ""},
     18: {"content": """{player_current_dead} was eliminated.""",
@@ -91,12 +91,12 @@ class InstructSpeak(Action):
         })
         content = instruction_info["content"]
         if "{living_players}" in content and "{werewolf_players}" in content:
-            content = content.format(living_players=",".join(living_players),
-                                     werewolf_players=",".join(werewolf_players))
+            content = content.format(living_players=living_players,
+                                     werewolf_players=werewolf_players)
         if "{living_players}" in content:
-            content = content.format(living_players=",".join(living_players))
+            content = content.format(living_players=living_players)
         if "{werewolf_players}" in content:
-            content = content.format(werewolf_players=",".join(werewolf_players))
+            content = content.format(werewolf_players=werewolf_players)
         if "{player_hunted}" in content:
             content = content.format(player_hunted=player_hunted)
         if "{player_current_dead}" in content:
@@ -140,8 +140,8 @@ class SummarizeDay(Action):
 
 class AnnounceGameResult(Action):
 
-    async def run(self, winner: str):
-        return f"Game over! The winner is the {winner}"
+    async def run(self, winner: str, win_reason: str):
+        return f"Game over! {win_reason}. The winner is the {winner}"
 
 async def main():
     rst1 = await SummarizeDay().run({"Player1": 0, "Player2": 0, "Player3": 0, "Player4": 0})
