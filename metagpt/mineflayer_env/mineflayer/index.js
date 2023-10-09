@@ -14,6 +14,7 @@ const Inventory = require("./lib/observation/inventory");
 const OnSave = require("./lib/observation/onSave");
 const Chests = require("./lib/observation/chests");
 const { plugin: tool } = require("mineflayer-tool");
+const { mineflayer: mineflayerViewer } = require('prismarine-viewer')
 
 let bot = null;
 
@@ -50,6 +51,7 @@ app.post("/start", (req, res) => {
     });
 
     bot.once("spawn", async () => {
+        mineflayerViewer(bot, { port: 3007, firstPerson: false }) 
         bot.removeListener("error", onConnectionFailed);
         let itemTicks = 1;
         if (req.body.reset === "hard") {

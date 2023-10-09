@@ -5,6 +5,8 @@
 import os
 import json
 
+from traits.trait_types import self
+
 from metagpt.logs import logger
 from metagpt.actions.minecraft.player_action import PlayerActions as Action
 from metagpt.const import CKPT_DIR
@@ -15,11 +17,11 @@ class RetrieveSkills(Action):
     Action class for retrieving skills.
     Refer to the code in the voyager/agents/skill.py for implementation details.
     """
-
+    
     def __init__(self, name="", context=None, llm=None):
         super().__init__(name, context, llm)
         self.llm.model = "gpt-3.5-turbo"
-
+    
     async def run(self, query, skills, *args, **kwargs):
         # Implement the logic for retrieving skills here.
         k = min(self.vectordb._collection.count(), self.retrieval_top_k)
@@ -42,13 +44,13 @@ class AddNewSkills(Action):
     Action class for adding new skills.
     Refer to the code in the voyager/agents/skill.py for implementation details.
     """
-
+    
     def __init__(self, name="", context=None, llm=None):
         super().__init__(name, context, llm)
         self.llm.model = "gpt-3.5-turbo"
-
+    
     async def run(
-        self, task, program_name, program_code, skills, skill_desp, *args, **kwargs
+            self, task, program_name, program_code, skills, skill_desp, *args, **kwargs
     ):
         # Implement the logic for adding new skills here.
         # TODO: Fix this
@@ -75,12 +77,7 @@ class AddNewSkills(Action):
             ids=[program_name],
             metadatas=[{"name": program_name}],
         )
-
-        # FIXME
-        # assert self.vectordb._collection.count() == len(
-        #     skills
-        # ), "vectordb is not synced with skills.json"
-
+        
         with open(f"{CKPT_DIR}/skill/code/{dumped_program_name}.js", "w") as f:
             f.write(program_code)
         with open(f"{CKPT_DIR}/skill/description/{dumped_program_name}.txt", "w") as f:
@@ -99,13 +96,13 @@ class GenerateSkillDescription(Action):
     Action class for generating skill descriptions.
     Refer to the code in the voyager/agents/skill.py for implementation details.
     """
-
+    
     def __init__(self, name="", context=None, llm=None):
         super().__init__(name, context, llm)
         self.llm.model = "gpt-3.5-turbo"
-
+    
     async def run(self, program_name, human_message, system_message, *args, **kwargs):
         # Implement the logic for generating skill descriptions here.
         rsp = await self._aask(prompt=human_message, system_msgs=system_message)
-        skill_description = f"    // { rsp}"
+        skill_description = f"    // {rsp}"
         return f"async function {program_name}(bot) {{\n{skill_description}\n}}"
