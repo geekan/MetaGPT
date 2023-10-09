@@ -25,6 +25,7 @@ class Moderator(Role):
         self._watch([UserRequirement, InstructSpeak, ParseSpeak])
         self._init_actions([InstructSpeak, ParseSpeak, AnnounceGameResult])
         self.step_idx = 0
+        self.flag_info = None  # 是否转换为白天/夜晚的标志位 和 白天/夜晚的标志位 {"flag": flag, "day_or_night": day_or_night}
 
         # game states
         self.living_players = []
@@ -128,40 +129,30 @@ class Moderator(Role):
         return msg_content, restricted_to
 
     def _update_game_states(self, memories):
+        if self.flag_info is None:
+            step_idx = self.step_idx % len(STEP_INSTRUCTIONS)
+            # 表示不是白天结束或晚上结束就返回
+            if step_idx not in [15, 18]:  # FIXME: hard code ：15是晚上结束，18是白天结束
+                return
 
-        step_idx = self.step_idx % len(STEP_INSTRUCTIONS)
-        if step_idx not in [15, 18]:  # FIXME: hard code
-            return
+            if step_idx == 15:  # FIXME: hard code
+                # night ends: after all special roles acted, process the whole night
+                self._night_process()
 
-        if step_idx == 15:  # FIXME: hard code
-            # night ends: after all special roles acted, process the whole night
-            self.player_current_dead = []  # reset
+            elif step_idx == 18:  # FIXME: hard code
+                # day ends: after all roles voted, process all votings
+                self._day_process(memories)
+        else:
+            # flag_info: 是否转换为白天/夜晚的标志位 和 白天/夜晚的标志位 {"flag": flag, "day_or_night": day_or_night}
+            flag = False if self.step_idx == 1 else self.flag_info["flag"]
+            day_or_night = self.flag_info["day_or_night"]
+            if flag:
+                if day_or_night == "Night":  # 表示白天结束，准备进入晚上
+                    self._day_process(memories)
+                elif day_or_night == "Day":  # 表示晚上结束，进入白天
+                    self._night_process()
 
-            if self.player_hunted != self.player_protected and not self.is_hunted_player_saved:
-                self.player_current_dead.append(self.player_hunted)
-            if self.player_poisoned:
-                self.player_current_dead.append(self.player_poisoned)
-
-            self.living_players = [p for p in self.living_players if p not in self.player_current_dead]
-            self.update_player_status(self.player_current_dead)
-            # reset
-            self.player_hunted = None
-            self.player_protected = None
-            self.is_hunted_player_saved = False
-            self.player_poisoned = None
-
-        elif step_idx == 18:  # FIXME: hard code
-            # day ends: after all roles voted, process all votings
-            voting_msgs = memories[-len(self.living_players):]
-            voted_all = []
-            for msg in voting_msgs:
-                voted = re.search(r"Player[0-9]+", msg.content[-10:])
-                if not voted:
-                    continue
-                voted_all.append(voted.group(0))
-            self.player_current_dead = [Counter(voted_all).most_common()[0][0]]  # 平票时，杀序号小的
-            self.living_players = [p for p in self.living_players if p not in self.player_current_dead]
-            self.update_player_status(self.player_current_dead)
+            self.flag_info = None
 
         # game's termination condition
         living_werewolf = [p for p in self.werewolf_players if p in self.living_players]
@@ -171,10 +162,38 @@ class Moderator(Role):
         elif not living_good_guys:
             self.winner = "werewolf"
 
+    def _day_process(self, memories):
+        voting_msgs = memories[-len(self.living_players):]
+        voted_all = []
+        for msg in voting_msgs:
+            voted = re.search(r"Player[0-9]+", msg.content[-10:])
+            if not voted:
+                continue
+            voted_all.append(voted.group(0))
+        self.player_current_dead = [Counter(voted_all).most_common()[0][0]]  # 平票时，杀序号小的
+        self.living_players = [p for p in self.living_players if p not in self.player_current_dead]
+        self.update_player_status(self.player_current_dead)
+
+    def _night_process(self):
+        self.player_current_dead = []  # reset
+        if self.player_hunted != self.player_protected and not self.is_hunted_player_saved:
+            self.player_current_dead.append(self.player_hunted)
+        if self.player_poisoned:
+            self.player_current_dead.append(self.player_poisoned)
+        self.living_players = [p for p in self.living_players if p not in self.player_current_dead]
+        self.update_player_status(self.player_current_dead)
+        # reset
+        self.player_hunted = None
+        self.player_protected = None
+        self.is_hunted_player_saved = False
+        self.player_poisoned = None
+
     def _record_game_history(self):
         if self.step_idx % len(STEP_INSTRUCTIONS) == 0 or self.winner is not None:
             logger.info("a night and day cycle completed, examine all history")
+            print("↓" * 10)
             print(self.get_all_memories())
+            print("↑" * 10)
             with open(WORKSPACE_ROOT / 'werewolf_transcript.txt', "w") as f:
                 f.write(self.get_all_memories())
 
@@ -215,8 +234,10 @@ class Moderator(Role):
         # 根据_think的结果，执行InstructSpeak还是ParseSpeak, 并将结果返回
         if isinstance(todo, InstructSpeak):
             # FIXME: mode="llm"时，需要使用历史记录，可以更结构化一些的memories
-            # msg_content, msg_to_send_to, msg_restriced_to = await self._instruct_speak(mode="llm", memories=memories)
-            msg_content, msg_to_send_to, msg_restriced_to = await self._instruct_speak(mode="manual")
+            msg_content, msg_to_send_to, msg_restriced_to, self.flag_info = await self._instruct_speak(mode="llm",
+                                                                                                       conversation=memories,
+                                                                                                       pre_flag_info=self.flag_info)
+            # msg_content, msg_to_send_to, msg_restriced_to = await self._instruct_speak(mode="manual")
             # msg_content = f"Step {self.step_idx}: {msg_content}" # HACK: 加一个unique的step_idx避免记忆的自动去重
             msg = Message(content=msg_content, role=self.profile, sent_from=self.name,
                           cause_by=InstructSpeak, send_to=msg_to_send_to, restricted_to=msg_restriced_to)
@@ -247,10 +268,13 @@ class Moderator(Role):
 async def instruct_speak(mode="manual", conversation=[]):
     moderator = Moderator()
     if mode == "llm":
-        msg_content, msg_to_send_to, msg_restriced_to = await moderator._instruct_speak(mode=mode, conversation=conversation)
+        msg_content, msg_to_send_to, msg_restriced_to, flag = await moderator._instruct_speak(mode=mode,
+                                                                                              conversation=conversation)
+        print(msg_content, msg_to_send_to, msg_restriced_to, flag)
     else:
         msg_content, msg_to_send_to, msg_restriced_to = await moderator._instruct_speak(mode=mode)
-    print(msg_content, msg_to_send_to, msg_restriced_to)
+        print(msg_content, msg_to_send_to, msg_restriced_to)
+
 
 if __name__ == '__main__':
     conversation1 = "It's nighttime. "
