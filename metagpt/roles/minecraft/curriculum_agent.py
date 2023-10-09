@@ -306,7 +306,7 @@ class CurriculumDesigner(Base):
                 self, events=events, chest_observation=chest_observation
             )
         else:
-            context = await self.DesignCurriculum().run(
+            context = await DesignCurriculum().run(
                 task, human_msg, system_msg, *args, **kwargs
             )
         
