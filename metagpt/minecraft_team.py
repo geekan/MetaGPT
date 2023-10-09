@@ -106,11 +106,6 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
     def register_roles(self, roles: Iterable[Minecraft]):
         for role in roles:
             role.set_memory(self)
-            for act in role.vdb_actions:
-                logger.info(act)
-                act.set_qa_cache_questions_vectordb(self.qa_cache_questions_vectordb)
-                act.set_qa_cache(self.qa_cache)
-                act.set_vectordb(self.vectordb)
     
     def update_event(self, event: Dict):
         if self.event == event:
