@@ -132,7 +132,7 @@ class CriticReviewer(Base):
         }
 
     async def verify_task(self, human_msg, system_msg, *args, **kwargs):
-        success, critique = await VerifyTask().run(human_msg, system_msg, max_retries=5)
+        success, critique = await VerifyTask().run(human_msg, system_msg, max_retries=1)
         self.perform_game_info_callback(
             success, self.game_memory.update_exploration_progress
         )
@@ -144,8 +144,7 @@ class CriticReviewer(Base):
             instruct_content="verify_task",
             role=self.profile,
             send_to=agent_registry.entries["skill_manager"]()._setting.name,
-        )  # addnewskill
-        # TODO:if not success
+        )
     
 
     async def _act(self) -> Message:
@@ -158,7 +157,7 @@ class CriticReviewer(Base):
         # 获取最新的游戏周边信息
         events = await self._execute_events()
         self.perform_game_info_callback(events, self.game_memory.update_chest_memory)
-        # logger.info(f"Execute return event is {self.game_memory.event}")
+        
         context = self.game_memory.context
         task = self.game_memory.current_task
         chest_observation = self.game_memory.chest_observation

@@ -187,6 +187,8 @@ class ActionDeveloper(Base):
         return len(self._rc.news)
     
     async def run_step(self, human_msg, system_msg, *args, **kwargs):
+        await self._obtain_events()
+        logger.info("reset before step()!")
         while True:
             logger.info(f"self.rollout_num_iter {self.rollout_num_iter}")
             system_msg, human_msg, reward, done, info = await self.runcode_and_evaluate(human_msg, system_msg, *args,

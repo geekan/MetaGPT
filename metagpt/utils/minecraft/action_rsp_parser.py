@@ -38,10 +38,14 @@ def parse_action_response(msg: str):
 
     retry = 3
     error = None # 3 times failed return error
-    babel_generator = require("@babel/generator").default
     while retry > 0:
         try:
-            parsed = parse_js_code(msg)
+            babel = require("@babel/core")
+            babel_generator = require("@babel/generator").default
+
+            code_pattern = re.compile(r"```(?:javascript|js)(.*?)```", re.DOTALL)
+            code = "\n".join(code_pattern.findall(msg))
+            parsed = babel.parse(code)
             # Collect func list: check if func & async
             functions = []
             assert len(list(parsed.program.body)) > 0, "No functions found"
