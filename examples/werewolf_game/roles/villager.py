@@ -19,12 +19,13 @@ class Villager(BasePlayer):
         todo = self._rc.todo
         logger.info(f"{self._setting}: ready to {todo}")
 
-        # 可以用这个函数获取该角色的全部记忆
+        # 可以用这个函数获取该角色的全部记忆和最新的instruction
         memories = self.get_all_memories()
+        latest_instruction = self.get_latest_instruction()
         # print("*" * 10, f"{self._setting}'s current memories: {memories}", "*" * 10)
 
         # 根据自己定义的角色Action，对应地去run
-        rsp = await todo.run(profile=self.profile, context=memories)
+        rsp = await todo.run(profile=self.profile, name=self.name, context=memories, latest_instruction=latest_instruction)
 
         # 返回消息，注意给Moderator发送的加密消息需要用restricted_to="Moderator"
         msg = Message(
