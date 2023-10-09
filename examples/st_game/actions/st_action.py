@@ -82,7 +82,7 @@ class STAction(Action):
 
             CONFIG.max_tokens_rsp = tmp_max_tokens_rsp
             self.llm.model = tmp_model_name
-            logger.info(f"llm _run_text_davinci raw resp: {llm_resp}")
+            logger.info(f"Action: {self.cls_name} llm _run_text_davinci raw resp: {llm_resp}")
             if self._func_validate(llm_resp, prompt):
                 return self._func_cleanup(llm_resp, prompt)
         return self.fail_default_resp
@@ -101,7 +101,7 @@ class STAction(Action):
         for idx in range(retry):
             try:
                 llm_resp = self._ask(prompt)
-                logger.info(f"llm _run_gpt35 raw resp: {llm_resp}")
+                logger.info(f"Action: {self.cls_name} llm _run_gpt35 raw resp: {llm_resp}")
                 end_idx = llm_resp.strip().rfind("}") + 1
                 llm_resp = llm_resp[:end_idx]
                 llm_resp = json.loads(llm_resp)["output"]
@@ -118,7 +118,7 @@ class STAction(Action):
         for idx in range(retry):
             try:
                 llm_resp = self._ask(prompt).strip()
-                logger.info(f"llm _run_gpt35_wo_extra_prompt raw resp: {llm_resp}")
+                logger.info(f"Action: {self.cls_name} llm _run_gpt35_wo_extra_prompt raw resp: {llm_resp}")
                 if self._func_validate(llm_resp, prompt):
                     return self._func_cleanup(llm_resp, prompt)
             except Exception as exp:

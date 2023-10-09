@@ -71,16 +71,10 @@ class STRole(Role):
 
         super(STRole, self).__init__(name=name,
                                      profile=profile)
+
+        self.role_storage_path = STORAGE_PATH.joinpath(f"{sim_code}/personas/{self.name}")
         self._rc = STRoleContext()
-        memory_saved = str(STORAGE_PATH.joinpath(f"{sim_code}/personas/{self.name}/"
-                                                 f"bootstrap_memory/associative_memory"))
-        self._rc.memory.set_mem_path(memory_saved)
-        sp_mem_saved = str(STORAGE_PATH.joinpath(f"{sim_code}/personas/{self.name}/"
-                                                 f"bootstrap_memory/spatial_memory.json"))
-        self._rc.spatial_memory.set_mem_path(f_saved=sp_mem_saved)
-        scratch_f_saved = str(STORAGE_PATH.joinpath(f"{sim_code}/personas/{self.name}/"
-                                                    f"bootstrap_memory/scratch.json"))
-        self._rc.scratch.set_scratch_path(f_saved=scratch_f_saved)
+        self.load_from()  # load role's memory
 
         self._init_actions([])
 
@@ -121,17 +115,35 @@ class STRole(Role):
     def memory(self):
         return self._rc.memory
 
-    def load_from(self, folder: Path):
+    def load_from(self):
         """
-        load role data from `storage/{simulation_name}/personas/{role_name}
+        load role data from `storage/{simulation_name}/personas/{role_name}`
         """
-        pass
+        memory_saved = str(self.role_storage_path.joinpath("bootstrap_memory/associative_memory"))
+        self._rc.memory.set_mem_path(memory_saved)
 
-    def save_into(self, folder: Path):
+        sp_mem_saved = str(self.role_storage_path.joinpath("bootstrap_memory/spatial_memory.json"))
+        self._rc.spatial_memory.set_mem_path(f_saved=sp_mem_saved)
+
+        scratch_f_saved = str(self.role_storage_path.joinpath("bootstrap_memory/scratch.json"))
+        self._rc.scratch.set_scratch_path(f_saved=scratch_f_saved)
+
+        logger.info(f"Role: {self.name} loaded role's memory from {str(self.role_storage_path)}")
+
+    def save_into(self):
         """
-        save role data from `storage/{simulation_name}/personas/{role_name}
+        save role data from `storage/{simulation_name}/personas/{role_name}`
         """
-        pass
+        memory_saved = str(self.role_storage_path.joinpath("bootstrap_memory/associative_memory"))
+        self._rc.memory.save(memory_saved)
+
+        sp_mem_saved = str(self.role_storage_path.joinpath("bootstrap_memory/spatial_memory.json"))
+        self._rc.spatial_memory.save(sp_mem_saved)
+
+        scratch_f_saved = str(self.role_storage_path.joinpath("bootstrap_memory/scratch.json"))
+        self._rc.scratch.save(scratch_f_saved)
+
+        logger.info(f"Role: {self.name} saved role's memory into {str(self.role_storage_path)}")
 
     async def _observe(self) -> int:
         if not self._rc.env:

@@ -25,3 +25,19 @@ class StanfordTown(SoftwareCompany):
         self.environment.publish_message(
             Message(role="User", content=idea, cause_by=UserRequirement)
         )
+
+    async def run(self, n_round: int = 3):
+        """Run company until target round or no money"""
+        while n_round > 0:
+            # self._save()
+            n_round -= 1
+            logger.debug(f"{n_round=}")
+            self._check_balance()
+            await self.environment.run()
+
+        # save simulation result including environment and roles after all rounds
+        roles = self.environment.get_roles()
+        for profile, role in roles.items():
+            role.save_into()
+
+        return self.environment.history

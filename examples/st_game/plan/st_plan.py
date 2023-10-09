@@ -23,7 +23,7 @@ from ..utils.utils import get_embedding
 from ..memory.retrieve import new_agent_retrieve
 
 
-def plan(role: "STRole", maze: Maze, roles: list["STRole"], new_day: bool, retrieved: dict) -> str:
+def plan(role: "STRole", maze: Maze, roles: dict["STRole"], new_day: bool, retrieved: dict) -> str:
     # PART 1: Generate the hourly schedule. 
     if new_day: 
         _long_term_planning(role, new_day)
@@ -52,6 +52,7 @@ def plan(role: "STRole", maze: Maze, roles: list["STRole"], new_day: bool, retri
     #         a) "chat with {target_role.name}"
     #         b) "react"
     #         c) False
+    logger.info(f"Role: {role.name} focused_event: {focused_event}")
     if focused_event:
         reaction_mode = _should_react(role, focused_event, roles)
         logger.info(f"Role: {role.name} reaction_mode: {reaction_mode}")
@@ -235,7 +236,7 @@ def _should_react(role: "STRole", retrieved: dict, roles: dict):
     return False
 
 
-def _chat_react(maze: Maze, role: "STRole", reaction_mode: str, roles: list["STRole"]):
+def _chat_react(maze: Maze, role: "STRole", reaction_mode: str, roles: dict["STRole"]):
     # There are two roles -- the role who is initiating the conversation
     # and the role who is the target. We get the role instances here.
     init_role = role
@@ -244,7 +245,7 @@ def _chat_react(maze: Maze, role: "STRole", reaction_mode: str, roles: list["STR
 
     # Actually creating the conversation here.
     convo, duration_min = generate_convo(maze, init_role, target_role)  # 2222
-    convo_summary = generate_convo_summary(init_role, convo)
+    convo_summary = generate_convo_summary(convo)
     inserted_act = convo_summary
     inserted_act_dur = duration_min
 
@@ -366,7 +367,6 @@ def _wait_react(role: "STRole", reaction_mode: str):
 
 
 def generate_convo(maze: Maze, init_role: "STRole", target_role: "STRole") -> Union[list, int]:
-    curr_loc = maze.access_tile(init_role._rc.scratch.curr_tile)
     convo = agent_conversation(maze, init_role, target_role)
     all_utt = ""
 
@@ -380,7 +380,7 @@ def generate_convo(maze: Maze, init_role: "STRole", target_role: "STRole") -> Un
     return convo, convo_length
 
 
-def generate_convo_summary(role: "STRole", conv: list) -> str:
+def generate_convo_summary(conv: list[list[str]]) -> str:
     conv_summary = SummarizeConv().run(conv)
     return conv_summary
 

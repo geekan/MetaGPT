@@ -12,19 +12,20 @@ from examples.st_game.actions.agent_chat_sum_rel import AgentChatSumRel
 from examples.st_game.actions.gen_iter_chat_utt import GenIterChatUTT
 
 
-def agent_conversation(maze: Maze, init_role: "STRole", target_role: "STRole") -> list[str]:
+def agent_conversation(maze: Maze, init_role: "STRole", target_role: "STRole") -> list[list[str]]:
     curr_chat = []
     logger.info(f"Role: {init_role.name} starts a conversation with Role: {target_role.name}")
 
     conv_rounds = 8
     for idx in range(conv_rounds):
+        logger.info(f"Conv round: {idx} between {init_role.name} and {target_role.name}")
         scratch = init_role._rc.scratch
         target_scratch = target_role._rc.scratch
 
         focal_points = [f"{target_scratch.name}"]
         retrieved = new_agent_retrieve(init_role, focal_points, 50)
         relationship = generate_summarize_agent_relationship(init_role, target_role, retrieved)
-        print("-------- relationship: ", relationship)
+        logger.info(f"The relationship between {init_role.name} and {target_role.name}: {relationship}")
         last_chat = ""
         for i in curr_chat[-4:]:
             last_chat += ": ".join(i) + "\n"
@@ -45,7 +46,7 @@ def agent_conversation(maze: Maze, init_role: "STRole", target_role: "STRole") -
         focal_points = [f"{scratch.name}"]
         retrieved = new_agent_retrieve(target_role, focal_points, 50)
         relationship = generate_summarize_agent_relationship(target_role, init_role, retrieved)
-        print("-------- relationship: ", relationship)
+        logger.info(f"The relationship between {target_role.name} and {init_role.name}: {relationship}")
         last_chat = ""
         for i in curr_chat[-4:]:
             last_chat += ": ".join(i) + "\n"
@@ -63,10 +64,9 @@ def agent_conversation(maze: Maze, init_role: "STRole", target_role: "STRole") -
         if end:
             break
 
-    print("July 23 PU")
+    logger.warning(f"Conversations between {target_role.name} and {init_role.name}:")
     for row in curr_chat:
-        print(row)
-    print("July 23 FIN")
+        logger.info(row)
 
     return curr_chat
 
@@ -101,9 +101,6 @@ def generate_one_utterance(maze: Maze, init_role, target_role, retrieved: dict, 
                      f"is initiating a conversation with " +
                      f"{target_scratch.name}.")
 
-    print("July 23 5")
     x = GenIterChatUTT().run(maze, init_role, target_role, retrieved, curr_context, curr_chat)
-
-    print("July 23 6")
 
     return x["utterance"], x["end"]

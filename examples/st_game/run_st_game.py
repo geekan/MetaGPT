@@ -30,7 +30,7 @@ async def startup(idea: str,
         has_inner_voice = True if idx == 0 else False
         role = STRole(name=role_name,
                       sim_code=sim_code,
-                      profile=f"STMember_{idx}",
+                      profile=role_name,
                       step=reverie_meta.get("step", 0),
                       start_date=reverie_meta.get("start_date"),
                       curr_time=reverie_meta.get("curr_time"),
