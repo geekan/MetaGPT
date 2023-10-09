@@ -36,6 +36,10 @@ class BaseGPTAPI(BaseChatbot):
         rsp = self.completion(message)
         return self.get_choice_text(rsp)
 
+    def ask_nonchat(self, prompt: str) -> str:
+        rsp = self.nonchat_completion(prompt)
+        return self.get_nonchat_choice_text(rsp)
+
     async def aask(self, msg: str, system_msgs: Optional[list[str]] = None) -> str:
         if system_msgs:
             message = self._system_msgs(system_msgs) + [self._user_msg(msg)]
@@ -90,6 +94,10 @@ class BaseGPTAPI(BaseChatbot):
         """
 
     @abstractmethod
+    def nonchat_completion(self, prompt: str) -> dict:
+        """ for openai.Completion request """
+
+    @abstractmethod
     async def acompletion(self, messages: list[dict]):
         """Asynchronous version of completion
         All GPTAPIs are required to provide the standard OpenAI completion interface
@@ -107,6 +115,10 @@ class BaseGPTAPI(BaseChatbot):
     def get_choice_text(self, rsp: dict) -> str:
         """Required to provide the first text of choice"""
         return rsp.get("choices")[0]["message"]["content"]
+
+    def get_nonchat_choice_text(self, rsp: dict) -> str:
+        """ for openai.Completion """
+        return rsp.get("choices")[0]["text"]
 
     def messages_to_prompt(self, messages: list[dict]):
         """[{"role": "user", "content": msg}] to user: <msg> etc."""

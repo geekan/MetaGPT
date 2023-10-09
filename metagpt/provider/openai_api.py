@@ -205,6 +205,17 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         kwargs.update(kwargs_mode)
         return kwargs
 
+    def _nonchat_cons_kwargs(self, prompt: str) -> dict:
+        kwargs = {
+            "model": self.model,
+            "prompt": prompt,
+            "max_tokens": self.get_max_tokens(prompt),  # TODO adapt if auto_max_tokens is True
+            "n": 1,
+            "stop": None,
+            "temperature": 0.3
+        }
+        return kwargs
+
     async def _achat_completion(self, messages: list[dict]) -> dict:
         rsp = await self.llm.ChatCompletion.acreate(**self._cons_kwargs(messages))
         self._update_costs(rsp.get("usage"))
@@ -219,6 +230,14 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         # if isinstance(messages[0], Message):
         #     messages = self.messages_to_dict(messages)
         return self._chat_completion(messages)
+
+    def _nonchat_completion(self, prompt: str) -> dict:
+        rsp = self.llm.Completion.create(**self._nonchat_cons_kwargs(prompt))
+        self._update_costs(rsp.get("usage"))
+        return rsp
+
+    def nonchat_completion(self, prompt: str) -> dict:
+        return self._nonchat_completion(prompt)
 
     async def acompletion(self, messages: list[dict]) -> dict:
         # if isinstance(messages[0], Message):
@@ -249,7 +268,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
                 usage["completion_tokens"] = completion_tokens
                 return usage
             except Exception as e:
-                logger.error("usage calculation failed! {e}")
+                logger.error(f"usage calculation failed! {e}")
         else:
             return usage
 
@@ -286,7 +305,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
                 completion_tokens = int(usage["completion_tokens"])
                 self._cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
             except Exception as e:
-                logger.error("updating costs failed! {e}")
+                logger.error(f"updating costs failed! {e}")
 
     def get_costs(self) -> Costs:
         return self._cost_manager.get_costs()
