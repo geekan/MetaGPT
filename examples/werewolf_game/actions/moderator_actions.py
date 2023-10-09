@@ -84,27 +84,29 @@ GAME_RULE = '''
 ## Game Overview
 You're the moderator of a text-based game called Werewolf. Your role is to guide the players, who can be a werewolf, villager, seer, guard, or witch. The game has two phases: night and day.
 
-## Night Phase
+## PLAYER Night Phase
 During the night, conversations are private. Players use their abilities:
 - Werewolves vote to kill a player.
 - The witch can save a player targeted by werewolves or poison a player (each ability can be used once).
 - The seer can verify if a player is a werewolf.
-- The guard can protect a player from being killed by werewolves (but not from the witch's poison).
+- The guard can protect a player from being killed by werewolves.
 
-## Day Phase
+## PLAYER Day Phase
 During the day, all players discuss and vote to eliminate a suspected werewolf. You'll announce who is killed.
 
 ## Roles and Objectives
 Werewolves aim to kill all non-werewolves. All other roles aim to eliminate all werewolves. Killed players are out of the game.
 
 ## Your Role
-As the moderator of the Werewolf game, you'll provide step-by-step instructions to players in this order: All(Night) -> Guard -> Werewolf -> Witch -> Seer -> All(Daytime) -> All(Discuss) -> All(Vote). Ensure each player understands their instructions before moving on.
+As the moderator of the Werewolf game, you'll provide step-by-step instructions to players in this order: 
+All(Night) -> Guard -> Werewolf -> Witch -> Seer -> All(Daytime) -> All(Discuss) -> All(Vote). 
+Ensure each player understands their instructions before moving on.
 '''
 # 游戏流程：All(Night) -> Guard -> Werewolf -> Witch -> Seer -> All(Daytime) -> All(Discuss) -> All(Vote).
 
 GENERATE_POSSIBLE_ANSWER = '''
 Given the game rules and conversations above, as moderator, ensure each player understands their instruction before moving on.
-Generate a correct instruction based on the context. No need to give options. The instruction should use no more than 2 sentences.
+Generate a correct instruction based on the context. The instruction should use no more than 2 sentences.
 
 The current player status is as follows:
 living players:{living_players}, for Werewolf to choose to kill, and for Seer to verify, and for Guard to protect, and for Witch to poison
@@ -161,8 +163,11 @@ class InstructSpeak(Action):
 
         return content, instruction_info["send_to"], instruction_info["restricted_to"]
 
+    # 若是llm模式，将多返回一个flag字段
     async def run_llm(self, living_players, werewolf_players, player_hunted, player_current_dead, **kwargs):
         conversation = kwargs.get("conversation", "")
+        pre_flag_info = kwargs.get("pre_flag_info", "")
+        pre_day_or_night = pre_flag_info.get("day_or_night", "") if pre_flag_info else ""
         prompt = GAME_RULE + str(conversation)[:4000] + GENERATE_POSSIBLE_ANSWER.format(
             living_players=",".join(living_players),
             werewolf_players=",".join(werewolf_players),
@@ -172,13 +177,15 @@ class InstructSpeak(Action):
         rsp = await self._aask(prompt)
         # 提取content, send_to, restricted_to
         content = re.search(r"## Instruction\n(.*?)##", rsp, re.DOTALL).group(1).strip()
-
         # 将内部的单引号去掉
         send_to = re.search(r"## Send To\n(.*?)##", rsp, re.DOTALL).group(1).strip().replace("'", "")
         # restricted_to = re.search(r"## Restricted To\n(.*?)##", rsp, re.DOTALL).group(1).strip()
         restricted_to = ""
-        # FIXME: 是否需要返回day_or_night字段？
         day_or_night = re.search(r"## Day Or Night\n(.*)", rsp, re.DOTALL).group(1).strip()
+        flag = False
+        if day_or_night != pre_day_or_night and pre_day_or_night != "":
+            flag = True
+        flag_info = {"flag": flag, "day_or_night": day_or_night}
         if day_or_night == "Night":
             if send_to == "Moderator":
                 restricted_to = ""
@@ -187,7 +194,7 @@ class InstructSpeak(Action):
         elif day_or_night == "Day":
             restricted_to = ""
 
-        return content, send_to, restricted_to
+        return content, send_to, restricted_to, flag_info
 
 
 class ParseSpeak(Action):
