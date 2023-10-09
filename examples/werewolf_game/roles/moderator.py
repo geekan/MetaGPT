@@ -25,7 +25,8 @@ class Moderator(Role):
         self._watch([UserRequirement, InstructSpeak, ParseSpeak])
         self._init_actions([InstructSpeak, ParseSpeak, AnnounceGameResult])
         self.step_idx = 0
-        self.eval_step_idx = []
+        self.flag_info = None  # 是否转换为白天/夜晚的标志位 和 白天/夜晚的标志位 {"flag": flag, "day_or_night": day_or_night}
+        self.day_or_night = "night"
 
         # game states
         self.living_players = []
@@ -60,7 +61,7 @@ class Moderator(Role):
         for role_setting, role in roles_in_env.items():
             for player_name in player_names:
                 if player_name in role_setting:
-                    role.set_status(new_status=1)  # 更新为死亡
+                    role.set_status(new_status=1) # 更新为死亡
 
     async def _instruct_speak(self, mode="manual", **kwargs):
         if mode == "manual":
@@ -93,7 +94,7 @@ class Moderator(Role):
         latest_msg = memories[-1]
         latest_msg_content = latest_msg.content
 
-        match = re.search(r"Player[0-9]+", latest_msg_content[-10:])  # FIXME: hard code truncation
+        match = re.search(r"Player[0-9]+", latest_msg_content[-10:]) # FIXME: hard code truncation
         target = match.group(0) if match else ""
 
         # default return
@@ -129,17 +130,11 @@ class Moderator(Role):
                 restricted_to = "Moderator,Witch"
             else:
                 self.witch_poison_left -= 1
-                self.player_poisoned = target  # "" if not poisoned and "PlayerX" if poisoned
+                self.player_poisoned = target # "" if not poisoned and "PlayerX" if poisoned
 
         return msg_content, restricted_to
 
     def _update_game_states(self, memories):
-
-        step_idx = self.step_idx % len(STEP_INSTRUCTIONS)
-        if step_idx not in [15, 18] or self.step_idx in self.eval_step_idx: # FIXME: hard code
-            return
-        else:
-            self.eval_step_idx.append(self.step_idx) # record evaluation, avoid repetitive evaluation at the same step
         if self.flag_info is None:
             step_idx = self.step_idx % len(STEP_INSTRUCTIONS)
             # 表示不是白天结束或晚上结束就返回
@@ -198,9 +193,24 @@ class Moderator(Role):
         self.player_protected = None
         self.is_hunted_player_saved = False
         self.player_poisoned = None
+        if step_idx == 15:  # FIXME: hard code
+            # night ends: after all special roles acted, process the whole night
+            self.player_current_dead = [] # reset
 
-        elif step_idx == 18: # FIXME: hard code
-            print("*" * 10, step_idx)
+            if self.player_hunted != self.player_protected and not self.is_hunted_player_saved:
+                self.player_current_dead.append(self.player_hunted)
+            if self.player_poisoned:
+                self.player_current_dead.append(self.player_poisoned)
+
+            self.living_players = [p for p in self.living_players if p not in self.player_current_dead]
+            self.update_player_status(self.player_current_dead)
+            # reset
+            self.player_hunted = None
+            self.player_protected = None
+            self.is_hunted_player_saved = False
+            self.player_poisoned = None
+
+        elif step_idx == 18:  # FIXME: hard code
             # day ends: after all roles voted, process all votings
             voting_msgs = memories[-len(self.living_players):]
             voted_all = []
@@ -228,9 +238,7 @@ class Moderator(Role):
     def _record_game_history(self):
         if self.step_idx % len(STEP_INSTRUCTIONS) == 0 or self.winner is not None:
             logger.info("a night and day cycle completed, examine all history")
-            print("↓" * 10)
             print(self.get_all_memories())
-            print("↑" * 10)
             with open(WORKSPACE_ROOT / 'werewolf_transcript.txt', "w") as f:
                 f.write(self.get_all_memories())
 
@@ -270,6 +278,7 @@ class Moderator(Role):
 
         # 根据_think的结果，执行InstructSpeak还是ParseSpeak, 并将结果返回
         if isinstance(todo, InstructSpeak):
+            # FIXME: mode="llm"时，需要使用历史记录，可以更结构化一些的memories
             msg_content, msg_to_send_to, msg_restriced_to, self.flag_info = await self._instruct_speak(mode="llm",
                                                                                                        conversation=memories,
                                                                                                        pre_flag_info=self.flag_info)
@@ -285,7 +294,7 @@ class Moderator(Role):
                           cause_by=ParseSpeak, send_to="", restricted_to=msg_restriced_to)
 
         elif isinstance(todo, AnnounceGameResult):
-            msg_content = await AnnounceGameResult().run(winner=self.winner, win_reason=self.win_reason)
+            msg_content = await AnnounceGameResult().run(winner=self.winner)
             msg = Message(content=msg_content, role=self.profile, sent_from=self.name, cause_by=AnnounceGameResult)
 
         logger.info(f"{self._setting}: {msg_content}")
