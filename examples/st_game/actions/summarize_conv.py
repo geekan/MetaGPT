@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # @Desc   : summarize the content of agents' conversation
 
+from metagpt.logs import logger
 from metagpt.schema import Message
 
 from examples.st_game.actions.st_action import STAction
@@ -44,5 +45,6 @@ class SummarizeConv(STAction):
         special_instruction = "The output must continue the sentence above by filling in the <fill in> tag. " \
                               "Don't start with 'this is a conversation about...' Just finish the sentence " \
                               "but do not miss any important details (including who are chatting)."
-        output = self._run_v2(prompt, example_output, special_instruction)
+        output = self._run_gpt35(prompt, example_output, special_instruction)
+        logger.info(f"Action: {self.cls_name} output: {output}")
         return output

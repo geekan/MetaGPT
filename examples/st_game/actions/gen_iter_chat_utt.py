@@ -96,5 +96,6 @@ class GenIterChatUTT(STAction):
                                                          "iterative_convo_v1.txt")
         # original using `ChatGPT_safe_generate_response_OLD`
         self.fail_default_resp = self._func_fail_default_resp()
-        output = self._run_v1(prompt)
+        output = self._run_gpt35_wo_extra_prompt(prompt)
+        logger.info(f"Role: {init_role.name} Action: {self.cls_name} output: {output}")
         return output

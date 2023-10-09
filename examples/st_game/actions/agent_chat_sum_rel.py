@@ -39,7 +39,8 @@ class AgentChatSumRel(STAction):
 
         example_output = "Jane Doe is working on a project"
         special_instruction = "The output should be a string that responds to the question."
-        output = self._run_v2(prompt,
-                              example_output,
-                              special_instruction)
-        return output[0]
+        output = self._run_gpt35(prompt,
+                                 example_output,
+                                 special_instruction)
+        logger.info(f"Role: {init_role.name} Action: {self.cls_name} output: {output}")
+        return output

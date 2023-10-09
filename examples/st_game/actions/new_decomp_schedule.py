@@ -108,16 +108,16 @@ class NewDecompSchedule(STAction):
             original_plan = ""
             for_time = start_time_hour
             for i in main_act_dur:
-                original_plan += f'{for_time.strftime("%H:%M")} ~ {(for_time + datetime.timedelta(minutes=int(i[1]))).strftime("%H:%M")} -- ' + \
-                                 i[0]
+                original_plan += f'{for_time.strftime("%H:%M")} ~ ' \
+                                 f'{(for_time + datetime.timedelta(minutes=int(i[1]))).strftime("%H:%M")} -- ' + i[0]
                 original_plan += "\n"
                 for_time += datetime.timedelta(minutes=int(i[1]))
 
             new_plan_init = ""
             for_time = start_time_hour
             for count, i in enumerate(truncated_act_dur):
-                new_plan_init += f'{for_time.strftime("%H:%M")} ~ {(for_time + datetime.timedelta(minutes=int(i[1]))).strftime("%H:%M")} -- ' + \
-                                 i[0]
+                new_plan_init += f'{for_time.strftime("%H:%M")} ~ ' \
+                                 f'{(for_time + datetime.timedelta(minutes=int(i[1]))).strftime("%H:%M")} -- ' + i[0]
                 new_plan_init += "\n"
                 if count < len(truncated_act_dur) - 1:
                     for_time += datetime.timedelta(minutes=int(i[1]))
@@ -148,5 +148,6 @@ class NewDecompSchedule(STAction):
         prompt = self.generate_prompt_with_tmpl_filename(prompt_input,
                                                          "new_decomp_schedule_v1.txt")
         self.fail_default_resp = self._func_fail_default_resp(main_act_dur, truncated_act_dur)
-        output = self._run_v1(prompt)
+        output = self._run_text_davinci(prompt, max_tokens=1000)
+        logger.info(f"Role: {role.name} Action: {self.cls_name} output: {output}")
         return output

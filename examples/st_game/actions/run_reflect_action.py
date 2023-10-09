@@ -20,7 +20,7 @@ class AgentFocusPt(STAction):
         try:
             self._func_cleanup(llm_resp, prompt)
             return True
-        except:
+        except Exception as exp:
             return False
 
     def _func_cleanup(self, llm_resp: str, prompt: str = "") -> str:
@@ -30,7 +30,7 @@ class AgentFocusPt(STAction):
             """
             return llm_resp
         except Exception as exp:
-            logger.error(f"{self.__class__.__name__} with error {exp}")
+            logger.error(f"{self.cls_name} with error {exp}")
 
     def _func_fail_default_resp(self) -> str:
         pass
@@ -46,10 +46,10 @@ class AgentFocusPt(STAction):
 
         example_output = '["What should Jane do for lunch", "Does Jane like strawberry", "Who is Jane"]'
         special_instruction = "Output must be a list of str."
-        output = self._run_v2(prompt,
-                              example_output,
-                              special_instruction)
-        logger.info(f"Run action: {self.__class__.__name__} with result: {output}")
+        output = self._run_gpt35(prompt,
+                                 example_output,
+                                 special_instruction)
+        logger.info(f"Role: {role.name} Action: {self.cls_name} output: {output}")
         return output
 
 
@@ -63,7 +63,7 @@ class AgentInsightAndGuidance(STAction):
         try:
             self._func_cleanup(llm_resp, prompt)
             return True
-        except:
+        except Exception as exp:
             return False
 
     def _func_cleanup(self, llm_resp: str, prompt: str = "") -> dict:
@@ -79,7 +79,7 @@ class AgentInsightAndGuidance(STAction):
                 ret[thought] = evi_raw
             return ret
         except Exception as exp:
-            logger.error(f"{self.__class__.__name__} with error {exp}")
+            logger.error(f"{self.cls_name} with error {exp}")
 
     def _func_fail_default_resp(self) -> str:
         pass
@@ -93,8 +93,8 @@ class AgentInsightAndGuidance(STAction):
         prompt = self.generate_prompt_with_tmpl_filename(prompt_input,
                                                          "insight_and_evidence_v1.txt")
 
-        output = self._run_v1(prompt)
-        logger.info(f"Run action: {self.__class__.__name__} with result: {output}")
+        output = self._run_text_davinci(prompt, max_tokens=150)
+        logger.info(f"Role: {role.name} Action: {self.cls_name} output: {output}")
         return output
 
 
@@ -108,7 +108,7 @@ class AgentEventTriple(STAction):
             llm_resp = self._func_cleanup(llm_resp, prompt="")
             if len(llm_resp) != 2:
                 return False
-        except:
+        except Exception as exp:
             return False
         return True
 
@@ -120,7 +120,7 @@ class AgentEventTriple(STAction):
                 return cr[-2:]
             return cr
         except Exception as exp:
-            logger.error(f"{self.__class__.__name__} with error {exp}")
+            logger.error(f"{self.cls_name} with error {exp}")
 
     def _func_fail_default_resp(self) -> str:
         pass
@@ -138,10 +138,9 @@ class AgentEventTriple(STAction):
         prompt = self.generate_prompt_with_tmpl_filename(prompt_input,
                                                          "generate_event_triple_v1.txt")
 
-        output = self._run_v1(prompt)
+        output = self._run_text_davinci(prompt, max_tokens=30)
         output = (role.scratch.name, output[0], output[1])
-        logger.info(f"Role: {role.name} Run action: {self.__class__.__name__} with result: {output}")
-
+        logger.info(f"Role: {role.name} Action: {self.cls_name} output: {output}")
         return output
 
 
@@ -154,7 +153,7 @@ class AgentEventPoignancy(STAction):
         try:
             self._func_cleanup(llm_resp, prompt)
             return True
-        except:
+        except Exception as exp:
             return False
 
     def _func_cleanup(self, llm_resp: str, prompt: str = "") -> int:
@@ -162,7 +161,7 @@ class AgentEventPoignancy(STAction):
             llm_resp = int(llm_resp.strip())
             return llm_resp
         except Exception as exp:
-            logger.error(f"{self.__class__.__name__} with error {exp}")
+            logger.error(f"{self.cls_name} with error {exp}")
 
     def _func_fail_default_resp(self) -> str:
         pass
@@ -181,11 +180,10 @@ class AgentEventPoignancy(STAction):
 
         example_output = "5"  # ########
         special_instruction = "The output should ONLY contain ONE integer value on the scale of 1 to 10."
-        output = self._run_v2(prompt,
-                              example_output,
-                              special_instruction)
-        logger.info(f"Run action: {self.__class__.__name__} with result: {output}")
-
+        output = self._run_gpt35(prompt,
+                                 example_output,
+                                 special_instruction)
+        logger.info(f"Role: {role.name} Action: {self.cls_name} output: {output}")
         return output
 
 
@@ -198,7 +196,7 @@ class AgentChatPoignancy(STAction):
         try:
             self._func_cleanup(llm_resp, prompt)
             return True
-        except:
+        except Exception as exp:
             return False
 
     def _func_cleanup(self, llm_resp: str, prompt: str = "") -> int:
@@ -206,7 +204,7 @@ class AgentChatPoignancy(STAction):
             llm_resp = int(llm_resp.strip())
             return llm_resp
         except Exception as exp:
-            logger.error(f"{self.__class__.__name__} with error {exp}")
+            logger.error(f"{self.cls_name} with error {exp}")
 
     def _func_fail_default_resp(self) -> str:
         pass
@@ -225,11 +223,10 @@ class AgentChatPoignancy(STAction):
 
         example_output = "5"  # ########
         special_instruction = "The output should ONLY contain ONE integer value on the scale of 1 to 10."
-        output = self._run_v2(prompt,
-                              example_output,
-                              special_instruction)
-        logger.info(f"Run action: {self.__class__.__name__} with result: {output}")
-
+        output = self._run_gpt35(prompt,
+                                 example_output,
+                                 special_instruction)
+        logger.info(f"Role: {role.name} Action: {self.cls_name} output: {output}")
         return output
 
 
@@ -242,14 +239,14 @@ class AgentPlanThoughtOnConvo(STAction):
         try:
             self._func_cleanup(llm_resp, prompt)
             return True
-        except:
+        except Exception as exp:
             return False
 
     def _func_cleanup(self, llm_resp: str, prompt: str = "") -> str:
         try:
             return llm_resp.split('"')[0].strip()
         except Exception as exp:
-            logger.error(f"{self.__class__.__name__} with error {exp}")
+            logger.error(f"{self.cls_name} with error {exp}")
 
     def _func_fail_default_resp(self) -> str:
         pass
@@ -266,9 +263,8 @@ class AgentPlanThoughtOnConvo(STAction):
         prompt = self.generate_prompt_with_tmpl_filename(prompt_input,
                                                          "planning_thought_on_convo_v1.txt")
 
-        output = self._run_v1(prompt)
-        logger.info(f"Run action: {self.__class__.__name__} with result: {output}")
-
+        output = self._run_text_davinci(prompt, max_tokens=50)
+        logger.info(f"Role: {role.name} Action: {self.cls_name} output: {output}")
         return output
 
 
@@ -281,14 +277,14 @@ class AgentMemoryOnConvo(STAction):
         try:
             self._func_cleanup(llm_resp, prompt)
             return True
-        except:
+        except Exception as exp:
             return False
 
     def _func_cleanup(self, llm_resp: str, prompt: str = "") -> str:
         try:
             return llm_resp.split('"')[0].strip()
         except Exception as exp:
-            logger.error(f"{self.__class__.__name__} with error {exp}")
+            logger.error(f"{self.cls_name} with error {exp}")
 
     def _func_fail_default_resp(self) -> str:
         pass
@@ -304,11 +300,11 @@ class AgentMemoryOnConvo(STAction):
         prompt_input = create_prompt_input(role, statements)
         prompt = self.generate_prompt_with_tmpl_filename(prompt_input,
                                                          "memo_on_convo_v1.txt")
-        example_output = 'Jane Doe was interesting to talk to.'
-        special_instruction = 'The output should ONLY contain a string that summarizes anything interesting that the agent may have noticed'
-        output = self._run_v2(prompt,
-                              example_output,
-                              special_instruction)
-        logger.info(f"Run action: {self.__class__.__name__} with result: {output}")
-
+        example_output = "Jane Doe was interesting to talk to."
+        special_instruction = "The output should ONLY contain a string that summarizes anything interesting " \
+                              "that the agent may have noticed"
+        output = self._run_gpt35(prompt,
+                                 example_output,
+                                 special_instruction)
+        logger.info(f"Role: {role.name} Action: {self.cls_name} output: {output}")
         return output

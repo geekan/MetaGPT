@@ -8,20 +8,19 @@ import string
 
 from metagpt.logs import logger
 from metagpt.schema import Message
-from metagpt.config import CONFIG
 
 from .st_action import STAction
 
 
-def get_random_alphanumeric(i=6, j=6): 
+def get_random_alphanumeric(i=6, j=6):
     """
     Returns a random alpha numeric strength that has the length of somewhere
-    between i and j. 
+    between i and j.
 
-    INPUT: 
+    INPUT:
         i: min_range for the length
         j: max_range for the length
-    OUTPUT: 
+    OUTPUT:
         an alpha numeric str with the length of somewhere between i and j.
     """
     k = random.randint(i, j)
@@ -34,12 +33,12 @@ class GenHourlySchedule(STAction):
         super().__init__(name, context, llm)
 
     def _func_validate(self, llm_resp: str, prompt: str) -> bool:
-        try: 
+        try:
             self._func_cleanup(llm_resp, prompt="")
-        except: 
+        except Exception as exp:
             return False
         return True
-    
+
     def _func_cleanup(self, llm_resp: str, prompt: str) -> list:
         cr = llm_resp.strip()
         if cr[-1] == ".":
@@ -57,28 +56,28 @@ class GenHourlySchedule(STAction):
                                           p_f_ds_hourly_org,
                                           hour_str,
                                           intermission2=None):
-        def create_prompt_input(persona, 
-                                curr_hour_str, 
+        def create_prompt_input(persona,
+                                curr_hour_str,
                                 p_f_ds_hourly_org,
                                 hour_str,
-                                intermission2=None): 
+                                intermission2=None):
             schedule_format = ""
-            for i in hour_str: 
+            for i in hour_str:
                 schedule_format += f"[{persona.scratch.get_str_curr_date_str()} -- {i}]"
                 schedule_format += f" Activity: [Fill in]\n"
             schedule_format = schedule_format[:-1]
 
             intermission_str = f"Here the originally intended hourly breakdown of"
             intermission_str += f" {persona.scratch.get_str_firstname()}'s schedule today: "
-            for count, i in enumerate(persona.scratch.daily_req): 
-                intermission_str += f"{str(count+1)}) {i}, "
+            for count, i in enumerate(persona.scratch.daily_req):
+                intermission_str += f"{str(count + 1)}) {i}, "
             intermission_str = intermission_str[:-2]
 
             prior_schedule = ""
-            if p_f_ds_hourly_org: 
+            if p_f_ds_hourly_org:
                 prior_schedule = "\n"
-                for count, i in enumerate(p_f_ds_hourly_org): 
-                    prior_schedule += f"[(ID:{get_random_alphanumeric()})" 
+                for count, i in enumerate(p_f_ds_hourly_org):
+                    prior_schedule += f"[(ID:{get_random_alphanumeric()})"
                     prior_schedule += f" {persona.scratch.get_str_curr_date_str()} --"
                     prior_schedule += f" {hour_str[count]}] Activity:"
                     prior_schedule += f" {persona.scratch.get_str_firstname()}"
@@ -89,7 +88,7 @@ class GenHourlySchedule(STAction):
             prompt_ending += f" -- {curr_hour_str}] Activity:"
             prompt_ending += f" {persona.scratch.get_str_firstname()} is"
 
-            if intermission2: 
+            if intermission2:
                 intermission2 = f"\n{intermission2}"
 
             prompt_input = []
@@ -98,38 +97,32 @@ class GenHourlySchedule(STAction):
 
             prompt_input += [prior_schedule + "\n"]
             prompt_input += [intermission_str]
-            if intermission2: 
+            if intermission2:
                 prompt_input += [intermission2]
-            else: 
+            else:
                 prompt_input += [""]
                 prompt_input += [prompt_ending]
 
             return prompt_input
 
         prompt_template = "generate_hourly_schedule_v2.txt"
-        prompt_input = create_prompt_input(role, 
-                                           curr_hour_str, 
+        prompt_input = create_prompt_input(role,
+                                           curr_hour_str,
                                            p_f_ds_hourly_org,
                                            hour_str,
                                            intermission2)
         prompt_input_str = "\n".join(prompt_input)
-        raw_max_tokens_rsp = CONFIG.max_tokens_rsp
         prompt = self.generate_prompt_with_tmpl_filename(prompt_input, prompt_template)
         self.fail_default_resp = self._func_fail_default_resp()
-
-        CONFIG.max_tokens_rsp = 50
-        output = self._run_v1(prompt)
-        CONFIG.max_tokens_rsp = raw_max_tokens_rsp
-
-        logger.debug(f"max_tokens_rsp: {CONFIG.max_tokens_rsp}")
+        output = self._run_text_davinci(prompt, max_tokens=50)
         logger.info(f"Role: {role.name} _generate_schedule_for_given_hour prompt_input: {prompt_input_str}, "
                     f"output: {output}")
         return output
-    
+
     def run(self, role: "STRole", wake_up_hour: int):
-        hour_str = ["00:00 AM", "01:00 AM", "02:00 AM", "03:00 AM", "04:00 AM", 
-                    "05:00 AM", "06:00 AM", "07:00 AM", "08:00 AM", "09:00 AM", 
-                    "10:00 AM", "11:00 AM", "12:00 PM", "01:00 PM", "02:00 PM", 
+        hour_str = ["00:00 AM", "01:00 AM", "02:00 AM", "03:00 AM", "04:00 AM",
+                    "05:00 AM", "06:00 AM", "07:00 AM", "08:00 AM", "09:00 AM",
+                    "10:00 AM", "11:00 AM", "12:00 PM", "01:00 PM", "02:00 PM",
                     "03:00 PM", "04:00 PM", "05:00 PM", "06:00 PM", "07:00 PM",
                     "08:00 PM", "09:00 PM", "10:00 PM", "11:00 PM"]
         n_m1_activity = []
@@ -137,42 +130,41 @@ class GenHourlySchedule(STAction):
         for i in range(diversity_repeat_count):
             logger.info(f"diversity_repeat_count idx: {i}")
             n_m1_activity_set = set(n_m1_activity)
-            if len(n_m1_activity_set) < 5: 
+            if len(n_m1_activity_set) < 5:
                 n_m1_activity = []
-                for count, curr_hour_str in enumerate(hour_str): 
-                    if wake_up_hour > 0: 
+                for count, curr_hour_str in enumerate(hour_str):
+                    if wake_up_hour > 0:
                         n_m1_activity += ["sleeping"]
                         wake_up_hour -= 1
                     else:
                         logger.info(f"_generate_schedule_for_given_hour idx: {count}, n_m1_activity: {n_m1_activity}")
                         n_m1_activity += [self._generate_schedule_for_given_hour(
-                                    role, curr_hour_str, n_m1_activity, hour_str)]
-            
-        # Step 1. Compressing the hourly schedule to the following format: 
-        # The integer indicates the number of hours. They should add up to 24. 
-        # [['sleeping', 6], ['waking up and starting her morning routine', 1], 
-        # ['eating breakfast', 1], ['getting ready for the day', 1], 
-        # ['working on her painting', 2], ['taking a break', 1], 
-        # ['having lunch', 1], ['working on her painting', 3], 
-        # ['taking a break', 2], ['working on her painting', 2], 
+                            role, curr_hour_str, n_m1_activity, hour_str)]
+
+        # Step 1. Compressing the hourly schedule to the following format:
+        # The integer indicates the number of hours. They should add up to 24.
+        # [['sleeping', 6], ['waking up and starting her morning routine', 1],
+        # ['eating breakfast', 1], ['getting ready for the day', 1],
+        # ['working on her painting', 2], ['taking a break', 1],
+        # ['having lunch', 1], ['working on her painting', 3],
+        # ['taking a break', 2], ['working on her painting', 2],
         # ['relaxing and watching TV', 1], ['going to bed', 1], ['sleeping', 2]]
         _n_m1_hourly_compressed = []
-        prev = None 
+        prev = None
         prev_count = 0
-        for i in n_m1_activity: 
+        for i in n_m1_activity:
             if i != prev:
-                prev_count = 1 
+                prev_count = 1
                 _n_m1_hourly_compressed += [[i, prev_count]]
                 prev = i
-            elif _n_m1_hourly_compressed: 
+            elif _n_m1_hourly_compressed:
                 _n_m1_hourly_compressed[-1][1] += 1
 
         # Step 2. Expand to min scale (from hour scale)
-        # [['sleeping', 360], ['waking up and starting her morning routine', 60], 
+        # [['sleeping', 360], ['waking up and starting her morning routine', 60],
         # ['eating breakfast', 60],..
         n_m1_hourly_compressed = []
-        for task, duration in _n_m1_hourly_compressed: 
-            n_m1_hourly_compressed += [[task, duration*60]]
-
+        for task, duration in _n_m1_hourly_compressed:
+            n_m1_hourly_compressed += [[task, duration * 60]]
+        logger.info(f"Role: {role.name} Action: {self.cls_name} output: {n_m1_hourly_compressed}")
         return n_m1_hourly_compressed
-

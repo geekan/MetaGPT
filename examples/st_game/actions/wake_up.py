@@ -16,22 +16,22 @@ class WakeUp(STAction):
         super().__init__(name, context, llm)
 
     def _func_validate(self, llm_resp: str, prompt: str) -> bool:
-        try: 
+        try:
             self._func_cleanup(llm_resp, prompt="")
-        except: 
+        except Exception as exp:
             return False
         return True
-    
-    def _func_cleanup(self, llm_resp: str, prompt: str) -> list:       
+
+    def _func_cleanup(self, llm_resp: str, prompt: str) -> list:
         cr = int(llm_resp.strip().lower().split("am")[0])
-        return cr    
+        return cr
 
     def _func_fail_default_resp(self) -> int:
         fs = 8
         return fs
-    
+
     def run(self, role: "STRole"):
-        def create_prompt_input(role): 
+        def create_prompt_input(role):
             prompt_input = [role.scratch.get_str_iss(),
                             role.scratch.get_str_lifestyle(),
                             role.scratch.get_str_firstname()]
@@ -40,5 +40,6 @@ class WakeUp(STAction):
         prompt_input = create_prompt_input(role)
         prompt = self.generate_prompt_with_tmpl_filename(prompt_input, "wake_up_hour_v1.txt")
         self.fail_default_resp = self._func_fail_default_resp()
-        output = self._run_v1(prompt)
+        output = self._run_text_davinci(prompt, max_tokens=5)
+        logger.info(f"Role: {role.name} Action: {self.cls_name} output: {output}")
         return output

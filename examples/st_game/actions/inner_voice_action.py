@@ -31,6 +31,6 @@ class AgentWhisperThoughtAction(STAction):
         prompt = self.generate_prompt_with_tmpl_filename(prompt_input,
                                                          "whisper_inner_thought_v1.txt")
 
-        output = self._run_v1(prompt)
-        logger.info(f"Run action: {self.__class__.__name__} with result: {output}")
+        output = self._run_text_davinci(prompt, max_tokens=50)
+        logger.info(f"Role: {role.name} Action: {self.cls_name} output: {output}")
         return output
