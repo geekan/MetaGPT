@@ -50,7 +50,7 @@ class Witch(BasePlayer):
             )
 
         elif isinstance(todo, Save):
-            rsp = await todo.run(context=memories)
+            rsp = await todo.run(profile=self.profile, name=self.name, context=memories)
             msg = Message(
                 content=rsp, role=self.profile, sent_from=self.name,
                 cause_by=Save, send_to="",
@@ -58,7 +58,7 @@ class Witch(BasePlayer):
             )
 
         elif isinstance(todo, Poison):
-            rsp = await todo.run(context=memories)
+            rsp = await todo.run(profile=self.profile, name=self.name, context=memories)
             msg = Message(
                 content=rsp, role=self.profile, sent_from=self.name,
                 cause_by=Poison, send_to="",

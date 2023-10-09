@@ -33,7 +33,7 @@ class Seer(BasePlayer):
             )
 
         elif isinstance(todo, Verify):
-            rsp = await todo.run(context=memories)
+            rsp = await todo.run(profile=self.profile, name=self.name, context=memories)
             msg = Message(
                 content=rsp, role=self.profile, sent_from=self.name,
                 cause_by=Verify, send_to="",
