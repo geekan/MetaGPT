@@ -233,7 +233,6 @@ class Moderator(Role):
 
         # 根据_think的结果，执行InstructSpeak还是ParseSpeak, 并将结果返回
         if isinstance(todo, InstructSpeak):
-            # FIXME: mode="llm"时，需要使用历史记录，可以更结构化一些的memories
             msg_content, msg_to_send_to, msg_restriced_to, self.flag_info = await self._instruct_speak(mode="llm",
                                                                                                        conversation=memories,
                                                                                                        pre_flag_info=self.flag_info)
