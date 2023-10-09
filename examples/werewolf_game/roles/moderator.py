@@ -25,13 +25,15 @@ class Moderator(Role):
         self._watch([UserRequirement, InstructSpeak, ParseSpeak])
         self._init_actions([InstructSpeak, ParseSpeak, AnnounceGameResult])
         self.step_idx = 0
-        self.flag_info = None  # 是否转换为白天/夜晚的标志位 和 白天/夜晚的标志位 {"flag": flag, "day_or_night": day_or_night}
+        self.eval_step_idx = []
 
         # game states
         self.living_players = []
         self.werewolf_players = []
-        self.good_guys = []
+        self.villager_players = []
+        self.special_role_players = []
         self.winner = None
+        self.win_reason = None
         self.witch_poison_left = 1
         self.witch_antidote_left = 1
 
@@ -46,7 +48,10 @@ class Moderator(Role):
         self.living_players = re.findall(r"Player[0-9]+", game_setup)
         self.werewolf_players = re.findall(r"Player[0-9]+: Werewolf", game_setup)
         self.werewolf_players = [p.replace(": Werewolf", "") for p in self.werewolf_players]
-        self.good_guys = [p for p in self.living_players if p not in self.werewolf_players]
+        self.villager_players = re.findall(r"Player[0-9]+: Villager", game_setup)
+        self.villager_players = [p.replace(": Villager", "") for p in self.villager_players]
+        self.special_role_players = [p for p in self.living_players \
+            if p not in self.werewolf_players + self.villager_players]
 
     def update_player_status(self, player_names: list[str]):
         if not player_names:
@@ -129,6 +134,12 @@ class Moderator(Role):
         return msg_content, restricted_to
 
     def _update_game_states(self, memories):
+
+        step_idx = self.step_idx % len(STEP_INSTRUCTIONS)
+        if step_idx not in [15, 18] or self.step_idx in self.eval_step_idx: # FIXME: hard code
+            return
+        else:
+            self.eval_step_idx.append(self.step_idx) # record evaluation, avoid repetitive evaluation at the same step
         if self.flag_info is None:
             step_idx = self.step_idx % len(STEP_INSTRUCTIONS)
             # 表示不是白天结束或晚上结束就返回
@@ -187,6 +198,32 @@ class Moderator(Role):
         self.player_protected = None
         self.is_hunted_player_saved = False
         self.player_poisoned = None
+
+        elif step_idx == 18: # FIXME: hard code
+            print("*" * 10, step_idx)
+            # day ends: after all roles voted, process all votings
+            voting_msgs = memories[-len(self.living_players):]
+            voted_all = []
+            for msg in voting_msgs:
+                voted = re.search(r"Player[0-9]+", msg.content[-10:])
+                if not voted:
+                    continue
+                voted_all.append(voted.group(0))
+            self.player_current_dead = [Counter(voted_all).most_common()[0][0]] # 平票时，杀序号小的
+            # print("*" * 10, "dead", self.player_current_dead)
+            self.living_players = [p for p in self.living_players if p not in self.player_current_dead]
+            self.update_player_status(self.player_current_dead)
+
+        # game's termination condition
+        living_werewolf = [p for p in self.werewolf_players if p in self.living_players]
+        living_villagers = [p for p in self.villager_players if p in self.living_players]
+        living_special_roles = [p for p in self.special_role_players if p in self.living_players]
+        if not living_werewolf:
+            self.winner = "good guys"
+            self.win_reason = "werewolves all dead"
+        elif not living_villagers or not living_special_roles:
+            self.winner = "werewolf"
+            self.win_reason = "villagers all dead" if not living_villagers else "special roles all dead"
 
     def _record_game_history(self):
         if self.step_idx % len(STEP_INSTRUCTIONS) == 0 or self.winner is not None:
@@ -248,7 +285,7 @@ class Moderator(Role):
                           cause_by=ParseSpeak, send_to="", restricted_to=msg_restriced_to)
 
         elif isinstance(todo, AnnounceGameResult):
-            msg_content = await AnnounceGameResult().run(winner=self.winner)
+            msg_content = await AnnounceGameResult().run(winner=self.winner, win_reason=self.win_reason)
             msg = Message(content=msg_content, role=self.profile, sent_from=self.name, cause_by=AnnounceGameResult)
 
         logger.info(f"{self._setting}: {msg_content}")
