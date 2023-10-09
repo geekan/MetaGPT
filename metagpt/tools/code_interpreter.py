@@ -47,7 +47,6 @@ class OpenCodeInterpreter(object):
     def chat(self, query: str, reset: bool = True):
         if reset:
             self.interpreter.reset()
-        # return self.interpreter.chat(query, return_messages=True)
         return self.interpreter.chat(query)
 
     @staticmethod
@@ -62,12 +61,23 @@ class OpenCodeInterpreter(object):
             assert language == 'python', f"Expect python language for default function_format, but got {language}."
             function_format = """def {function_name}():\n{code}"""
         # Extract the code module in the open-interpreter respond message.
+        # The respond of open-interpreter before v0.1.4 is:
+        # [{'role': 'user', 'content': your query string},
+        #  {'role': 'assistant', 'content': plan from llm, 'function_call': {
+        #   "name": "run_code",  "arguments": "{"language": "python", "code": code of first plan},
+        #   "parsed_arguments": {"language": "python", "code": code of first plan}
+        #  ...]
         if "function_call" in query_respond[1]:
             code = [item['function_call']['parsed_arguments']['code'] for item in query_respond
                     if "function_call" in item
                     and "parsed_arguments" in item["function_call"]
                     and 'language' in item["function_call"]['parsed_arguments']
                     and item["function_call"]['parsed_arguments']['language'] == language]
+        # The respond of open-interpreter v0.1.7 is:
+        # [{'role': 'user', 'message': your query string},
+        #  {'role': 'assistant', 'message': plan from llm, 'language': 'python',
+        #   'code': code of first plan, 'output': output of first plan code},
+        #  ...]
         elif "code" in query_respond[1]:
             code = [item['code'] for item in query_respond
                     if "code" in item
