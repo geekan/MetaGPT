@@ -207,5 +207,11 @@ class WriteDesign(Action):
         prompt = prompt_template.format(context=context, format_example=format_example)
         # system_design = await self._aask(prompt)
         system_design = await self._aask_v1(prompt, "system_design", OUTPUT_MAPPING, format=format)
+        # fix Python package name, we can't system_design.instruct_content.python_package_name = "xxx" since "Python package name" contain space, have to use setattr
+        setattr(
+            system_design.instruct_content,
+            "Python package name",
+            system_design.instruct_content.dict()["Python package name"].strip().strip("'").strip('"'),
+        )
         await self._save(context, system_design)
         return system_design
