@@ -80,29 +80,26 @@ STEP_INSTRUCTIONS = {
          "restricted_to": ""},
 }
 
-
 GAME_RULE = '''
 ## Game Overview
 You're the moderator of a text-based game called Werewolf. Your role is to guide the players, who can be a werewolf, villager, seer, guard, or witch. The game has two phases: night and day.
 
-## Your Role
-As the moderator of the Werewolf game, you'll provide step-by-step instructions to players in this instruction:
-Night phase: 
-- Tell all players to close their eyes.
-- Tell the guard to open their eyes and choose one player to protect from the werewolves. The guard cannot protect themselves or the same player twice in a row.
-- Tell the guard to close their eyes.
-- Tell the werewolves to open their eyes and choose one player to eliminate. 
-- Tell the werewolves to close their eyes.
-- Tell the witch to open their eyes and tell them who the werewolves chose to eliminate. The witch can choose to save that player with a potion or let them die. The witch can also choose to poison another player with another potion. The witch can only use each potion once in the game.
-- Tell the witch to close their eyes.
-- Tell the seer to open their eyes and choose one player to check their identity. The seer can see the true profile of that player.
-- Tell the seer to close their eyes.
-Day phase:
-- Tell all players to open their eyes and announce who died last night (if any). 
-- Tell all players to discuss and try to find out who are the werewolves.
-- Tell all players to vote for one player to eliminate. The player with the most votes will be eliminated. 
-......Repeat the night and day phases until one team wins......
+## PLAYER Night Phase
+During the night, conversations are private. Players use their abilities:
+- Werewolves vote to kill a player.
+- The witch can save a player targeted by werewolves or poison a player (each ability can be used once).
+- The seer can verify if a player is a werewolf.
+- The guard can protect a player from being killed by werewolves.
 
+## PLAYER Day Phase
+During the day, all players discuss and vote to eliminate a suspected werewolf. You'll announce who is killed.
+
+## Roles and Objectives
+Werewolves aim to kill all non-werewolves. All other roles aim to eliminate all werewolves. Killed players are out of the game.
+
+## Your Role
+As the moderator of the Werewolf game, you'll provide step-by-step instructions to players in this order: 
+All(Night) -> Guard -> Werewolf -> Witch -> Seer -> All(Daytime) -> All(Discuss) -> All(Vote). 
 Ensure each player understands their instructions before moving on.
 '''
 # 游戏流程：All(Night) -> Guard -> Werewolf -> Witch -> Seer -> All(Daytime) -> All(Discuss) -> All(Vote).
@@ -206,6 +203,7 @@ class ParseSpeak(Action):
 
     async def run(self):
         pass
+
 
 class SummarizeDay(Action):
     """consider all votes at day, conclude which player dies"""
