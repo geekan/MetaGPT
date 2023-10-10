@@ -8,7 +8,7 @@ from metagpt.actions import Action
 STEP_INSTRUCTIONS = {
     # 上帝需要介入的全部步骤和对应指令
     # The 1-st night
-    0: {"content": "It’s dark, everyone close your eyes. I will talk with you/your team secretly at night.",
+    0: {"content": "It's dark, everyone close your eyes. I will talk with you/your team secretly at night.",
         "send_to": "Moderator",  # for moderator to continuen speaking
         "restricted_to": ""},
     1: {"content": "Guard, please open your eyes!",
@@ -43,7 +43,7 @@ STEP_INSTRUCTIONS = {
         "restricted_to": "Moderator,Witch"},  # 要先判断女巫是否有解药，再去询问女巫是否使用解药救人
     9: {"content": """Witch, you also have a bottle of poison, would you like to use it to kill one of the living players?
                    Choose one from the following living options: {living_players}.
-                   If so, say "Poison PlayerX", where X is the player index, else, say "Pass".""",
+                   If so, say ONLY "Poison PlayerX", replace PlayerX with the actual player name, else, say "Pass".""",
         "send_to": "Witch",
         "restricted_to": "Moderator,Witch"},  #
     10: {"content": "Witch, close your eyes",
@@ -66,13 +66,13 @@ STEP_INSTRUCTIONS = {
     15: {"content": "{player_current_dead} was killed last night!",
          "send_to": "Moderator",
          "restricted_to": ""},
-    16: {"content": """Now freely talk about roles of other players with each other based on your observation and 
-                    reflection with few sentences. Decide whether to reveal your identity based on your reflection.""",
+    16: {"content": """Living players: {living_players}, now freely talk about the current situation based on your observation and
+                    reflection with a few sentences. Decide whether to reveal your identity based on your reflection.""",
          "send_to": "",  # send to all to speak in daytime
          "restricted_to": ""},
     17: {"content": """Now vote and tell me who you think is the werewolf. Don’t mention your role.
                     You only choose one from the following living options please:
-                    {living_players}. Or you can pass. For example: I vote to kill ...""",
+                    {living_players}. Say ONLY: I vote to eliminate ...""",
          "send_to": "",
          "restricted_to": ""},
     18: {"content": """{player_current_dead} was eliminated.""",
@@ -80,46 +80,49 @@ STEP_INSTRUCTIONS = {
          "restricted_to": ""},
 }
 
+
 GAME_RULE = '''
 ## Game Overview
 You're the moderator of a text-based game called Werewolf. Your role is to guide the players, who can be a werewolf, villager, seer, guard, or witch. The game has two phases: night and day.
 
-## PLAYER Night Phase
-During the night, conversations are private. Players use their abilities:
-- Werewolves vote to kill a player.
-- The witch can save a player targeted by werewolves or poison a player (each ability can be used once).
-- The seer can verify if a player is a werewolf.
-- The guard can protect a player from being killed by werewolves.
-
-## PLAYER Day Phase
-During the day, all players discuss and vote to eliminate a suspected werewolf. You'll announce who is killed.
-
-## Roles and Objectives
-Werewolves aim to kill all non-werewolves. All other roles aim to eliminate all werewolves. Killed players are out of the game.
-
 ## Your Role
-As the moderator of the Werewolf game, you'll provide step-by-step instructions to players in this order: 
-All(Night) -> Guard -> Werewolf -> Witch -> Seer -> All(Daytime) -> All(Discuss) -> All(Vote). 
+As the moderator of the Werewolf game, you'll provide step-by-step instructions to players in this instruction:
+Night phase: 
+- Tell all players to close their eyes.
+- Tell the guard to open their eyes and choose one player to protect from the werewolves. The guard cannot protect themselves or the same player twice in a row.
+- Tell the guard to close their eyes.
+- Tell the werewolves to open their eyes and choose one player to eliminate. 
+- Tell the werewolves to close their eyes.
+- Tell the witch to open their eyes and tell them who the werewolves chose to eliminate. The witch can choose to save that player with a potion or let them die. The witch can also choose to poison another player with another potion. The witch can only use each potion once in the game.
+- Tell the witch to close their eyes.
+- Tell the seer to open their eyes and choose one player to check their identity. The seer can see the true profile of that player.
+- Tell the seer to close their eyes.
+Day phase:
+- Tell all players to open their eyes and announce who died last night (if any). 
+- Tell all players to discuss and try to find out who are the werewolves.
+- Tell all players to vote for one player to eliminate. The player with the most votes will be eliminated. 
+......Repeat the night and day phases until one team wins......
+
 Ensure each player understands their instructions before moving on.
 '''
 # 游戏流程：All(Night) -> Guard -> Werewolf -> Witch -> Seer -> All(Daytime) -> All(Discuss) -> All(Vote).
 
 GENERATE_POSSIBLE_ANSWER = '''
 Given the game rules and conversations above, as moderator, ensure each player understands their instruction before moving on.
-Generate a correct instruction based on the context. The instruction should use no more than 2 sentences.
+Generate a correct instruction based on the context. The instruction should use no more than 3 sentences.
 
 The current player status is as follows:
-living players:{living_players}, for Werewolf to choose to kill, and for Seer to verify, and for Guard to protect, and for Witch to poison
-werewolf players:{werewolf_players}, for Werewolf to know who is the other werewolf
-player hunted:{player_hunted}, for Witch to know who is hunted, then decide to save
-player current dead:{player_current_dead}, for all players to know who is dead
+living players are {living_players}, werewolf players are {werewolf_players}, the player hunted is {player_hunted}, and the player currently dead is {player_current_dead}. 
+This information is crucial for the Werewolf to choose their target, the Seer to verify, the Guard to protect, and the Witch to make decisions. They can also choose same player.
+You are required to use 'the current player status' to generate a correct instruction as much as possible. But attention, don't reveal the player's name!
 
 Response should have the following format(split by ## ):
 ## Instruction
-The 'Instruction' is the instruction from the moderator. It contains the valuable information that the player needs to know. Such as living players, werewolf players, player hunted, player current dead etc.
+The 'Instruction' is the instruction from the moderator. It contains which player(s) need to do what, and provides optional players to help make decisions(Choose only one from the following options:).
+For example, 'Guard, now tell me who you protect tonight? You only choose one from the following options please: [players]. Or you can pass.'.
 
 ## Send To
-'Send To' specifies the player(s) who need to process and respond to a message.
+'Send To' specifies the player(s) who need to process and respond to a message. 'Send To' can't not player's name.
 Using 'Moderator' to send the message to all players and let moderator to process the message.
 Using empty string '' to let all players to process the message.
 Otherwise, specify the player profile to let the player to process the message. 
@@ -204,7 +207,6 @@ class ParseSpeak(Action):
     async def run(self):
         pass
 
-
 class SummarizeDay(Action):
     """consider all votes at day, conclude which player dies"""
 
@@ -233,8 +235,8 @@ class SummarizeDay(Action):
 
 class AnnounceGameResult(Action):
 
-    async def run(self, winner: str):
-        return f"Game over! The winner is the {winner}"
+    async def run(self, winner: str, win_reason: str):
+        return f"Game over! {win_reason}. The winner is the {winner}"
 
 async def main():
     rst1 = await SummarizeDay().run({"Player1": 0, "Player2": 0, "Player3": 0, "Player4": 0})
