@@ -103,3 +103,4 @@ async def test_invoice_ocr_assistant(
     df = pd.read_excel(invoice_table_path)
     dict_result = df.to_dict(orient='records')
     assert dict_result == expected_result
+
