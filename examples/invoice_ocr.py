@@ -4,7 +4,7 @@
 """
 @Time    : 2023/9/21 21:40:57
 @Author  : Stitch-z
-@File    : tutorial_assistant.py
+@File    : invoice_ocr.py
 """
 
 import asyncio
