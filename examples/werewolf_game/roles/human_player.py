@@ -14,7 +14,7 @@ async def _act(self):
     ## You are {self.name}({self.profile})
     ## Guidance:
     1. If you are performing a special action or exercising a vote,
-    end your response with "PlayerX" where X is the player index, e.g., "..., kill/protect/poison/.../vote Player1".
+    end your response with "PlayerX", replace PlayerX with the actual player name, e.g., "..., kill/protect/poison/.../vote Player1".
     2. If it is a daytime free speech, you can speak in whatever format.
     Now, please speak:
     """

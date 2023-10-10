@@ -15,8 +15,6 @@ class BasePlayer(Role):
         **kwargs,
     ):
         super().__init__(name, profile, **kwargs)
-        self._init_actions([Speak])
-        self._watch([InstructSpeak])
         # 通过 set_status() 更新状态。
         self.status = 0 # 0代表活着，1代表死亡
 
@@ -60,6 +58,9 @@ class BasePlayer(Role):
         memories = [f"{m.sent_from}: {re.sub(time_stamp_pattern, '', m.content)}" for m in memories] # regex去掉时间戳
         memories = "\n".join(memories)
         return memories
+    
+    def get_latest_instruction(self) -> str:
+        return self._rc.important_memory[-1].content # 角色监听着Moderator的InstructSpeak，是其重要记忆，直接获取即可
 
     def set_status(self, new_status):
         self.status = new_status

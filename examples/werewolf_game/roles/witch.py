@@ -38,18 +38,19 @@ class Witch(BasePlayer):
 
         # 可以用这个函数获取该角色的全部记忆
         memories = self.get_all_memories()
+        latest_instruction = self.get_latest_instruction()
         # print("*" * 10, f"{self._setting}'s current memories: {memories}", "*" * 10)
 
         # 根据自己定义的角色Action，对应地去run，run的入参可能不同
         if isinstance(todo, Speak):
-            rsp = await todo.run(profile=self.profile, context=memories)
+            rsp = await todo.run(profile=self.profile, name=self.name, context=memories, latest_instruction=latest_instruction)
             msg = Message(
                 content=rsp, role=self.profile, sent_from=self.name,
                 cause_by=Speak, send_to="", restricted_to="",
             )
 
         elif isinstance(todo, Save):
-            rsp = await todo.run(context=memories)
+            rsp = await todo.run(profile=self.profile, name=self.name, context=memories)
             msg = Message(
                 content=rsp, role=self.profile, sent_from=self.name,
                 cause_by=Save, send_to="",
@@ -57,7 +58,7 @@ class Witch(BasePlayer):
             )
 
         elif isinstance(todo, Poison):
-            rsp = await todo.run(context=memories)
+            rsp = await todo.run(profile=self.profile, name=self.name, context=memories)
             msg = Message(
                 content=rsp, role=self.profile, sent_from=self.name,
                 cause_by=Poison, send_to="",
