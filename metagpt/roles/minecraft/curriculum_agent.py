@@ -300,6 +300,7 @@ class CurriculumDesigner(Base):
         inventoryUsed = events[-1][1]["status"]["inventoryUsed"]
         task = self.game_memory.current_task
         qa_cache = self.game_memory.qa_cache
+        qa_cache_questions_vectordb = self.game_memory.qa_cache_questions_vectordb
 
         if self.game_memory.progress == 0:
             context = self.game_memory.context
@@ -309,7 +310,7 @@ class CurriculumDesigner(Base):
             )
         else:
             context = await DesignCurriculum().run(
-                task, qa_cache, human_msg, system_msg, *args, **kwargs
+                task, qa_cache, qa_cache_questions_vectordb, human_msg, system_msg, *args, **kwargs
             )
         self.perform_game_info_callback(context, self.game_memory.update_context)
         return Message(
