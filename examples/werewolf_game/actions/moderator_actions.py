@@ -113,7 +113,7 @@ Generate a correct instruction based on the context. The instruction should use 
 
 The current player status is as follows:
 living players are {living_players}, werewolf players are {werewolf_players}, the player hunted is {player_hunted}, and the player currently dead is {player_current_dead}. 
-This information is crucial for the Werewolf to choose their target, the Seer to verify, the Guard to protect, and the Witch to make decisions. They can also choose same player.
+Only you know this information, that is crucial for the Werewolf,Seer, Guard, Witch to choose their target. But you can generally only tell the player about the living players(contain the living werewolf players).
 You are required to use 'the current player status' to generate a correct instruction as much as possible. But attention, don't reveal the player's name!
 
 Response should have the following format(split by ## ):
