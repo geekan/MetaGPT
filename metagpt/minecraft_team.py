@@ -7,6 +7,11 @@ from pydantic import BaseModel, Field
 import requests
 import json
 import re
+import time
+
+from langchain.vectorstores import Chroma
+from langchain.embeddings.openai import OpenAIEmbeddings
+from metagpt.document_store import FaissStore
 
 from metagpt.logs import logger
 from metagpt.roles import Role
@@ -18,6 +23,7 @@ from metagpt.roles.minecraft.minecraft_base import Minecraft
 from metagpt.environment import Environment
 from metagpt.mineflayer_environment import MineflayerEnv
 from metagpt.const import CKPT_DIR
+from metagpt.config import CONFIG
 from metagpt.actions.minecraft.control_primitives import load_skills_code
 
 
@@ -33,6 +39,7 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
         default="You can mine one of oak, birch, spruce, jungle, acacia, dark oak, or mangrove logs."
     )
     code: str = Field(default="")
+    program_code: str = Field(default="") # write in skill/code/*.js
     program_name: str = Field(default="")
     critique: str = Field(default="")
     skills: dict = Field(default_factory=dict)  # for skills.json
@@ -76,12 +83,13 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
     @property
     def core_inv_items_regex(self):
         return self.mf_instance.core_inv_items_regex
-    
+
     def set_mc_port(self, mc_port):
         self.mf_instance.set_mc_port(mc_port)
+        self.set_mc_resume()
     
-    def set_mc_resume(self, resume: bool = False):  # TODO: mv to config
-        if resume:
+    def set_mc_resume(self):
+        if CONFIG.resume:
             logger.info(f"Loading Action Developer from {CKPT_DIR}/action")
             with open(f"{CKPT_DIR}/action/chest_memory.json", "r") as f:
                 self.chest_memory = json.load(f)
@@ -91,12 +99,14 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
                 self.completed_tasks = json.load(f)
             with open(f"{CKPT_DIR}/curriculum/failed_tasks.json", "r") as f:
                 self.failed_tasks = json.load(f)
-            with open(f"{CKPT_DIR}/curriculum/qa_cache.json", "r") as f:
-                self.qa_cache = json.load(f)
-            
+
             logger.info(f"Loading Skill Manager from {CKPT_DIR}/skill\033[0m")
             with open(f"{CKPT_DIR}/skill/skills.json", "r") as f:
                 self.skills = json.load(f)
+            
+            logger.info(f"Loading Qa Cache from {CKPT_DIR}/curriculum\033[0m")
+            with open(f"{CKPT_DIR}/curriculum/qa_cache.json", "r") as f:
+                self.qa_cache = json.load(f) 
     
     def register_roles(self, roles: Iterable[Minecraft]):
         for role in roles:
@@ -114,7 +124,10 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
     
     def update_context(self, context: str):
         self.context = context
-    
+
+    def update_program_code(self, program_code: str):
+        self.program_code = program_code
+
     def update_code(self, code: str):
         self.code = code  # action_developer.gen_action_code to HERE
     
@@ -292,8 +305,19 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
             self.update_event(events)
             return events
         except Exception as e:
+            time.sleep(3)  # wait for mineflayer to exit
+            # reset bot status here
+            events = self.mf_instance.reset(
+                options={
+                    "mode": "hard",
+                    "wait_ticks": 20,
+                    "inventory": self.event[-1][1]["inventory"],
+                    "equipment": self.event[-1][1]["status"]["equipment"],
+                    "position": self.event[-1][1]["status"]["position"],
+                }
+            )
+            self.update_event(events)
             logger.error(f"Failed to retrieve Minecraft events: {str(e)}")
-            raise {}
     
     async def on_event_execute(self, *args):
         """
@@ -316,8 +340,19 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
             self.update_event(events)
             return events
         except Exception as e:
+            time.sleep(3)  # wait for mineflayer to exit
+            # reset bot status here
+            events = self.mf_instance.reset(
+                options={
+                    "mode": "hard",
+                    "wait_ticks": 20,
+                    "inventory": self.event[-1][1]["inventory"],
+                    "equipment": self.event[-1][1]["status"]["equipment"],
+                    "position": self.event[-1][1]["status"]["position"],
+                }
+            )
+            self.update_event(events)
             logger.error(f"Failed to execute Minecraft events: {str(e)}")
-            raise {}
 
 
 class MinecraftPlayer(SoftwareCompany):
@@ -334,9 +369,6 @@ class MinecraftPlayer(SoftwareCompany):
     
     def set_port(self, mc_port):
         self.game_memory.set_mc_port(mc_port)
-    
-    def set_resume(self, resume: bool = False):
-        self.game_memory.set_mc_resume(resume=resume)
     
     def check_complete_round(self):
         complete_round = []
@@ -380,12 +412,23 @@ class MinecraftPlayer(SoftwareCompany):
     async def run(self, n_round=3):
         """Run company until target round or no money"""
         round_id = 0
-        self.game_memory.mf_instance.reset(
-            options={
-                "mode": "soft",
-                "wait_ticks": 20,
-            }
-        )
+        if CONFIG.resume:
+            # keep the inventory
+            self.game_memory.mf_instance.reset(
+                options={
+                    "mode": "soft",
+                    "wait_ticks": 20,
+                }
+            )
+        else:
+            # clear the inventory
+            self.game_memory.mf_instance.reset(
+                options={
+                    "mode": "hard",
+                    "wait_ticks": 20,
+                }
+            )
+
         events = self.game_memory.mf_instance.step(
             code="",
             programs="",

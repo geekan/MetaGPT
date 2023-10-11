@@ -14,6 +14,7 @@ const Inventory = require("./lib/observation/inventory");
 const OnSave = require("./lib/observation/onSave");
 const Chests = require("./lib/observation/chests");
 const { plugin: tool } = require("mineflayer-tool");
+const { mineflayer: mineflayerViewer } = require('prismarine-viewer')
 
 let bot = null;
 
@@ -50,6 +51,7 @@ app.post("/start", (req, res) => {
     });
 
     bot.once("spawn", async () => {
+        mineflayerViewer(bot, { port: 3007, firstPerson: false }) 
         bot.removeListener("error", onConnectionFailed);
         let itemTicks = 1;
         if (req.body.reset === "hard") {
@@ -222,7 +224,7 @@ app.post("/step", async (req, res) => {
         }
     }
 
-    bot.on("physicTick", onTick);
+    bot.on("physicsTick", onTick);
 
     // initialize fail count
     let _craftItemFailCount = 0;
@@ -248,7 +250,7 @@ app.post("/step", async (req, res) => {
         response_sent = true;
         res.json(bot.observe());
     }
-    bot.removeListener("physicTick", onTick);
+    bot.removeListener("physicsTick", onTick);
 
     async function evaluateCode(code, programs) {
         // Echo the code produced for players to see it. Don't echo when the bot code is already producing dialog or it will double echo

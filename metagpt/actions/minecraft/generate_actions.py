@@ -30,19 +30,20 @@ class GenerateActionCode(Action):
 
         try:
             return (
+                parsed_result["program_code"],
                 parsed_result["program_code"] + "\n" + parsed_result["exec_code"],
                 parsed_result["program_name"],
             )
         except:
             logger.error(f"Failed to parse response: {parsed_result}")
-            return None, None
+            return "", "", ""
 
     async def run(self, human_msg, system_msg, *args, **kwargs):
         logger.info(f"run {self.__repr__()}")
         # Generate action code.
-        generated_code, program_name = await self.generate_code(
+        program_code, generated_code, program_name = await self.generate_code(
             human_msg=human_msg, system_msg=system_msg
         )
 
         # Return the generated code.
-        return generated_code, program_name
+        return program_code, generated_code, program_name

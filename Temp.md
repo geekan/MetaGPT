@@ -31,6 +31,8 @@ pip install -r mc_requirement.txt
     mc_player.set_port(2465) # Modify this to your LAN port
 ```
 
+*注意世界游戏模式为生存，这样人物才会有血量，饥饿和库存概念；*
+
 python minecraft_run.py
 
 <img src="docs/resources/workspace/minecraft_tests/on_event.jpeg" style="zoom:67%;" />
@@ -67,3 +69,6 @@ metagpt.minecraft_team:on_event:143 - Failed to retrieve Minecraft events: HTTPC
 1. 若本地已克隆项目不好更改可尝试：删除 metagpt/mineflayer_env/mineflayer + 重新copy voyager/env/mineflayer到目录下 + （npm install...0926.B命令）
 2. 重新拉取最新提交+重新配置
 
+### 第一人称视角
+
+目前使用3007端口，可自行修改，代码运行以后，在浏览器输入127.0.0.1:3007访问

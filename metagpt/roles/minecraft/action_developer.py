@@ -2,8 +2,6 @@
 # @Date    : 2023/9/23 12:45
 # @Author  : stellahong (stellahong@fuzhi.ai)
 # @Desc    :
-import copy
-
 from metagpt.logs import logger
 from metagpt.roles.minecraft.minecraft_base import Minecraft as Base
 from metagpt.schema import Message, HumanMessage, SystemMessage
@@ -40,14 +38,13 @@ class ActionDeveloper(Base):
         # Initialize actions specific to the Action role
         self._init_actions([GenerateActionCode])
         
-        
         # Set events or actions the ActionAgent should watch or be aware of
         # 需要根据events进行自己chest_observation的更新
         self._watch([RetrieveSkills])
         self.rollout_num_iter = 0
         self.task_max_retries = 4
         self.finish_state = len(self._actions)
-        self.critic_reviewer = None  # self._rc.env.roles["Task Reviewer"]
+        self.critic_reviewer = None  # self._rc.env.roles["Task Reviewer"]      
     
     def render_system_message(self, skills=[], *args, **kwargs):
         """
@@ -190,6 +187,8 @@ class ActionDeveloper(Base):
         return len(self._rc.news)
     
     async def run_step(self, human_msg, system_msg, *args, **kwargs):
+        await self._obtain_events()
+        logger.info("reset before step()!")
         while True:
             logger.info(f"self.rollout_num_iter {self.rollout_num_iter}")
             system_msg, human_msg, reward, done, info = await self.runcode_and_evaluate(human_msg, system_msg, *args,
@@ -208,6 +207,7 @@ class ActionDeveloper(Base):
     async def handle_add_new_skills(
             self, task, program_name, program_code, skills, *args, **kwargs
     ):
+        skills = self.game_memory.skills
         skill_desp = self.game_memory.skill_desp
         new_skills_info = await AddNewSkills().run(
             task, program_name, program_code, skills, skill_desp
@@ -231,11 +231,9 @@ class ActionDeveloper(Base):
         context = self.game_memory.context
         
         # 更新生成的代码和对应程序名称
-        code, program_name = await GenerateActionCode().run(
+        program_code, code, program_name = await GenerateActionCode().run(
             human_msg, system_msg, *args, **kwargs
         )
-        # logger.warning(type(code))
-        # logger.info(f"Code is Here:{code}")
         
         if code is not None:
             # fixme：若有独立的mc code执行入口函数，使用独立的函数
@@ -298,6 +296,8 @@ class ActionDeveloper(Base):
             "success": self.game_memory.runtime_status,
         }
         logger.info(f"info is {info}")
+        
+        self.perform_game_info_callback(program_code, self.game_memory.update_program_code)
         self.perform_game_info_callback(code, self.game_memory.update_code)
         self.perform_game_info_callback(
             program_name, self.game_memory.update_program_name
@@ -306,11 +306,10 @@ class ActionDeveloper(Base):
         return system_msg, human_msg, 0, done, info
     
     async def generate_action_code(self, human_msg, system_msg, *args, **kwargs):
-        code, program_name = await GenerateActionCode().run(
+        program_code, code, program_name = await GenerateActionCode().run(
             human_msg, system_msg, *args, **kwargs
         )
-        # logger.warning(type(code))
-        # logger.info(f"Code is Here:{code}")
+        self.perform_game_info_callback(program_code, self.game_memory.update_program_code)
         self.perform_game_info_callback(code, self.game_memory.update_code)
         self.perform_game_info_callback(
             program_name, self.game_memory.update_program_name

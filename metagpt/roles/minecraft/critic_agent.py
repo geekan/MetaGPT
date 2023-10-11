@@ -132,7 +132,7 @@ class CriticReviewer(Base):
         }
 
     async def verify_task(self, human_msg, system_msg, *args, **kwargs):
-        success, critique = await VerifyTask().run(human_msg, system_msg, max_retries=5)
+        success, critique = await VerifyTask().run(human_msg, system_msg, max_retries=1)
         self.perform_game_info_callback(
             success, self.game_memory.update_exploration_progress
         )

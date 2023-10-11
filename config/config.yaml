@@ -85,3 +85,6 @@ MODEL_FOR_RESEARCHER_REPORT: gpt-3.5-turbo-16k
 #PYPPETEER_EXECUTABLE_PATH: "/usr/bin/google-chrome-stable"
 
 PROMPT_FORMAT: json #json or markdown
+
+### Minecraft
+RESUME: false # If load json from ckpt dir(include chest_memory, skills, ...)
