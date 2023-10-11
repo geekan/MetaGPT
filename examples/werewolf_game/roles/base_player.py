@@ -48,8 +48,6 @@ class BasePlayer(Role):
             self._rc.todo = self.special_actions[0]()
 
     async def _act(self):
-        """每个角色要改写此函数以实现该角色的动作"""
-        # raise NotImplementedError
                 
         # todo为_think时确定的，有两种情况，Speak或Protect
         todo = self._rc.todo
