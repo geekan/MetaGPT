@@ -18,29 +18,29 @@ class CurriculumDesigner(Base):
     """
     CurriculumDesigner is the automatic curriculum in paper, refer to the code voyager/agents/curriculum.py
     """
-    
+
     def __init__(
-            self,
-            name: str = "David",
-            profile: str = "Expertise in minecraft task design and curriculum development.",
-            goal: str = " Collect and integrate learner feedback to improve and refine educational content and pathways",
-            constraints: str = "Limited budget and resources for the development of educational content and technology tools.",
+        self,
+        name: str = "David",
+        profile: str = "Expertise in minecraft task design and curriculum development.",
+        goal: str = " Collect and integrate learner feedback to improve and refine educational content and pathways",
+        constraints: str = "Limited budget and resources for the development of educational content and technology tools.",
     ) -> None:
         super().__init__(name, profile, goal, constraints)
         # Initialize actions specific to the Action role
         self._init_actions([DesignTask, DesignCurriculum])
-        
+
         # Set events or actions the ActionAgent should watch or be aware of
         self._watch([PlayerActions, DesignTask])
         logger.info(self._actions)
         self.finish_state = len(self._actions)
-    
+
     def render_curriculum_observation(self, *, events, chest_observation):
         """
         Returns: observation for curriculum
         Refer to @ https://github.com/MineDojo/Voyager/blob/main/voyager/agents/curriculum.py
         """
-        
+
         assert events[-1][0] == "observe", "Last event must be observe"
         event = events[-1][1]
         biome = event["status"]["biome"]
@@ -54,31 +54,31 @@ class CurriculumDesigner(Base):
         equipment = event["status"]["equipment"]
         inventory_used = event["status"]["inventoryUsed"]
         inventory = event["inventory"]
-        
+
         if not any(
-                "dirt" in block
-                or "log" in block
-                or "grass" in block
-                or "sand" in block
-                or "snow" in block
-                for block in voxels
+            "dirt" in block
+            or "log" in block
+            or "grass" in block
+            or "sand" in block
+            or "snow" in block
+            for block in voxels
         ):
             biome = "underground"
-        
+
         other_blocks = ", ".join(
             list(
                 set(block_records).difference(set(voxels).union(set(inventory.keys())))
             )
         )
-        
+
         other_blocks = other_blocks if other_blocks else "None"
-        
+
         nearby_entities = (
             ", ".join([k for k, v in sorted(entities.items(), key=lambda x: x[1])])
             if entities
             else "None"
         )
-        
+
         completed_tasks = (
             ", ".join(self.game_memory.completed_tasks)
             if self.game_memory.completed_tasks
@@ -89,18 +89,18 @@ class CurriculumDesigner(Base):
             if self.game_memory.failed_tasks
             else "None"
         )
-        
+
         # filter out optional inventory items if required
         if (
-                self.game_memory.progress
-                < self.game_memory.warm_up["optional_inventory_items"]
+            self.game_memory.progress
+            < self.game_memory.warm_up["optional_inventory_items"]
         ):
             inventory = {
                 k: v
                 for k, v in inventory.items()
                 if self.game_memory.core_inv_items_regex.search(k) is not None
             }
-        
+
         observation = {
             "context": "",
             "biome": f"Biome: {biome}\n\n",
@@ -118,29 +118,30 @@ class CurriculumDesigner(Base):
             "failed_tasks": f"Failed tasks that are too hard: {failed_tasks}\n\n",
         }
         return observation
-    
+
     # --------------------------------Design Task Prepare---------------------------------------
     async def render_design_task_human_message(
-            self, events, chest_observation, *args, **kwargs
+        self, events, chest_observation, *args, **kwargs
     ):
         """
         Returns: observation for curriculum
         Refer to @ https://github.com/MineDojo/Voyager/blob/main/voyager/agents/curriculum.py
         """
-        
+
         content = ""
         warm_up = self.game_memory.mf_instance.warm_up
+        qa_cache = self.game_memory.qa_cache
         observation = self.render_curriculum_observation(
             events=events, chest_observation=chest_observation
         )
         if self.game_memory.progress >= warm_up["context"]:
-            # if self.game_memory.progress >= 0: # TEST ONLY
+        # if self.game_memory.progress >= 0: # TEST ONLY
             human_msg = self.render_design_curriculum_human_message(
                 events=events, chest_observation=chest_observation
             ).content
             system_msg = [self.render_design_curriculum_system_message().content]
-            questions, answers = await self.curriculum_design_action.generate_qa(
-                events=events, human_msg=human_msg, system_msg=system_msg
+            questions, answers = await DesignCurriculum().generate_qa(
+                events=events, qa_cache=qa_cache, human_msg=human_msg, system_msg=system_msg
             )
             logger.debug(f"Generate_qa result is HERE: Ques: {questions}, Ans: {answers}")
             i = 1
@@ -152,7 +153,7 @@ class CurriculumDesigner(Base):
                 i += 1
                 if i > 5:
                     break
-        
+
         for key in CURRICULUM_OB:
             if self.game_memory.progress >= warm_up[key]:
                 if warm_up[key] != 0:
@@ -161,20 +162,20 @@ class CurriculumDesigner(Base):
                     should_include = True
                 if should_include:
                     content += observation[key]
-        
+
         logger.info(f"Curriculum Agent human message\n{content}")
         return HumanMessage(content=content)
-    
+
     def render_design_task_system_message(self, *args, **kwargs):
         return SystemMessage(content=load_prompt("curriculum"))
-    
+
     async def encapsule_design_task_message(self, events, chest_observation, *args, **kwargs):
         human_msg = await self.render_design_task_human_message(
             events=events, chest_observation=chest_observation, *args, **kwargs
         )
         system_msg = self.render_design_task_system_message(*args, **kwargs)
         return {"system_msg": [system_msg.content], "human_msg": human_msg.content}
-    
+
     def generate_task_if_inventory_full(self, events, chest_observation):
         """
         TODO: Try if this could be done with prompt
@@ -193,15 +194,15 @@ class CurriculumDesigner(Base):
         else:
             task = "Craft 1 chest"
         return task
-    
+
     # -----------------------------------------------------------------------------------------
-    
+
     # --------------------------------Design Curriculum Prepare--------------------------------
     def render_design_curriculum_system_message(self, *args, **kwargs):
         return SystemMessage(content=load_prompt("curriculum_qa_step1_ask_questions"))
-    
+
     def render_design_curriculum_human_message(
-            self, events, chest_observation, *args, **kwargs
+        self, events, chest_observation, *args, **kwargs
     ):
         observation = self.render_curriculum_observation(
             events=events, chest_observation=chest_observation
@@ -210,16 +211,16 @@ class CurriculumDesigner(Base):
         for key in CURRICULUM_OB:
             content += observation[key]
         return HumanMessage(content=content)
-    
+
     def encapsule_design_curriculum_message(
-            self, events, chest_observation, *args, **kwargs
+        self, events, chest_observation, *args, **kwargs
     ):
         human_msg = self.render_design_curriculum_human_message(
             events=events, chest_observation=chest_observation, *args, **kwargs
         )
         system_msg = self.render_design_curriculum_system_message(*args, **kwargs)
         return {"system_msg": [system_msg.content], "human_msg": human_msg.content}
-    
+
     def generate_context_if_inventory_full(self, events, chest_observation):
         """
         TODO: Try if this could be done with prompt
@@ -250,9 +251,9 @@ class CurriculumDesigner(Base):
         else:
             context = "Craft 1 chest with 8 planks of any kind of wood."
         return context
-    
+
     # -----------------------------------------------------------------------------------------
-    
+
     async def handle_task_design(self, human_msg, system_msg, *args, **kwargs):
         """
         Args:
@@ -266,7 +267,7 @@ class CurriculumDesigner(Base):
         events = self.game_memory.event
         chest_observation = self.game_memory.chest_observation
         inventoryUsed = events[-1][1]["status"]["inventoryUsed"]
-        
+
         if self.game_memory.progress == 0:
             task = self.game_memory.current_task
         elif inventoryUsed >= 33:
@@ -276,12 +277,12 @@ class CurriculumDesigner(Base):
         else:
             task = await DesignTask().run(human_msg, system_msg, *args, **kwargs)
         logger.info(f"Handle_task_design result is Here: {task}")
-        
+
         self.perform_game_info_callback(task, self.game_memory.update_task)
         return Message(
             content=f"{task}", instruct_content="task_design", role=self.profile
         )
-    
+
     async def handle_curriculum_design(self, human_msg, system_msg, *args, **kwargs):
         """
         refer to the context generation in voyager
@@ -298,7 +299,8 @@ class CurriculumDesigner(Base):
         chest_observation = self.game_memory.chest_observation
         inventoryUsed = events[-1][1]["status"]["inventoryUsed"]
         task = self.game_memory.current_task
-        
+        qa_cache = self.game_memory.qa_cache
+
         if self.game_memory.progress == 0:
             context = self.game_memory.context
         elif inventoryUsed >= 33:
@@ -307,33 +309,33 @@ class CurriculumDesigner(Base):
             )
         else:
             context = await DesignCurriculum().run(
-                task, human_msg, system_msg, *args, **kwargs
+                task, qa_cache, human_msg, system_msg, *args, **kwargs
             )
-        
         self.perform_game_info_callback(context, self.game_memory.update_context)
         return Message(
             content=f"{context}",
             instruct_content="curriculum_design",
             role=self.profile,
         )
-    
+
     async def _act(self) -> Message:
         todo = self._rc.todo
         logger.debug(f"Todo is {todo}")
         self.maintain_actions(todo)
-        
+
         # 获取最新的游戏周边环境信息
-        # events = await self._obtain_events()
-        events = self.game_memory.event
+        events = await self._obtain_events()
+        logger.info(f"Retrieve event is HERE: {events}, current task is {self.game_memory.current_task}")
+        # events = self.game_memory.event
         chest_observation = self.game_memory.chest_observation
-        
+
         design_task_message = await self.encapsule_design_task_message(
             events, chest_observation
         )
         design_curriculum_message = self.encapsule_design_curriculum_message(
             events, chest_observation
         )
-        
+
         handler_map = {
             DesignTask: self.handle_task_design,
             DesignCurriculum: self.handle_curriculum_design,
@@ -348,5 +350,5 @@ class CurriculumDesigner(Base):
             msg.round_id = self.round_id
             self._publish_message(msg)
             return msg
-        
+
         raise ValueError(f"Unknown todo type: {type(todo)}")

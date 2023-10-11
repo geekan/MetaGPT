@@ -7,9 +7,11 @@ import json
 from metagpt.actions import Action
 from langchain.vectorstores import Chroma
 from langchain.embeddings.openai import OpenAIEmbeddings
-
+from metagpt.document_store import FaissStore
 from metagpt.const import CKPT_DIR
 from metagpt.config import CONFIG
+from metagpt.logs import logger
+from metagpt.actions.minecraft.control_primitives import load_skills_code
 
 
 class PlayerActions(Action):

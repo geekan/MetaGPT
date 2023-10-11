@@ -4,10 +4,14 @@
 # @Desc    :
 from typing import Iterable, Dict, Any
 from pydantic import BaseModel, Field
-
+import requests
 import json
 import re
 import time
+
+from langchain.vectorstores import Chroma
+from langchain.embeddings.openai import OpenAIEmbeddings
+from metagpt.document_store import FaissStore
 
 from metagpt.logs import logger
 from metagpt.roles import Role
@@ -300,30 +304,20 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
             )
             self.update_event(events)
             return events
-        
         except Exception as e:
-            ### add: 异常的话结束当前流程，继续后续运行
-            logger.error(f"Failed to retrieve Minecraft events: {str(e)}")
             time.sleep(3)  # wait for mineflayer to exit
-            info = {
-                "task": self.current_task,
-                "success": False,
-            }
             # reset bot status here
             events = self.mf_instance.reset(
                 options={
                     "mode": "hard",
                     "wait_ticks": 20,
-                    "inventory": self.events[-1][1]["inventory"],
-                    "equipment": self.events[-1][1]["status"]["equipment"],
-                    "position": self.events[-1][1]["status"]["position"],
+                    "inventory": self.event[-1][1]["inventory"],
+                    "equipment": self.event[-1][1]["status"]["equipment"],
+                    "position": self.event[-1][1]["status"]["position"],
                 }
             )
             self.update_event(events)
-            # use red color background to print the error
-            logger.info("Your last round rollout terminated due to error:")
-            logger.info(f"\033[41m{e}\033[0m")
-            
+            logger.error(f"Failed to retrieve Minecraft events: {str(e)}")
     
     async def on_event_execute(self, *args):
         """
@@ -346,27 +340,19 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
             self.update_event(events)
             return events
         except Exception as e:
-            ### add: 异常的话结束当前流程，继续后续运行
-            logger.error(f"Failed to retrieve Minecraft events: {str(e)}")
             time.sleep(3)  # wait for mineflayer to exit
-            info = {
-                "task": self.current_task,
-                "success": False,
-            }
             # reset bot status here
             events = self.mf_instance.reset(
                 options={
                     "mode": "hard",
                     "wait_ticks": 20,
-                    "inventory": self.events[-1][1]["inventory"],
-                    "equipment": self.events[-1][1]["status"]["equipment"],
-                    "position": self.events[-1][1]["status"]["position"],
+                    "inventory": self.event[-1][1]["inventory"],
+                    "equipment": self.event[-1][1]["status"]["equipment"],
+                    "position": self.event[-1][1]["status"]["position"],
                 }
             )
             self.update_event(events)
-            # use red color background to print the error
-            logger.info("Your last round rollout terminated due to error:")
-            logger.info(f"\033[41m{e}\033[0m")
+            logger.error(f"Failed to execute Minecraft events: {str(e)}")
 
 
 class MinecraftPlayer(SoftwareCompany):

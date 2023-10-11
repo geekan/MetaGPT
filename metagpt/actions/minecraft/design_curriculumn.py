@@ -21,11 +21,11 @@ class DesignTask(Action):
     Action class for decomposing a task.
     Refer to the code in the voyager/agents/curriculum.py for implementation details.
     """
-    
+
     def __init__(self, name="", context=None, llm=None):
         super().__init__(name, context, llm)
         self.llm.model = "gpt-3.5-turbo"
-    
+
     async def decompose_task(self, query, events):
         system_msgs = SystemMessage(
             content=load_prompt("curriculum_task_decomposition")
@@ -34,11 +34,11 @@ class DesignTask(Action):
             events=events, chest_observation=""
         ) + HumanMessage(content=f"Final task: {query}")
         logger.info(f"Curriculum Agent task decomposition\nFinal task: {query}")
-        
+
         rsp = await self._aask(prompt=prompt, system_msgs=system_msgs)
         logger.info(f"Curriculum Agent task decomposition\n{rsp}")
         return fix_and_parse_json(rsp)
-    
+
     def parse_llm_response(self, llm_resp):
         task = ""
         for line in llm_resp.split("\n"):
@@ -46,14 +46,14 @@ class DesignTask(Action):
                 task = line[5:].replace(".", "").strip()
         assert task, "Task not found in Curriculum Agent response"
         return {"next_task": task}
-    
+
     async def generate_task(self, human_msg, system_msg, max_retries=5):
         """
         Refer to the code in the voyager/agents/curriculum.py propose_next_ai_task() for implementation details.
         Returns: task & context
 
         """
-        
+
         if max_retries == 0:
             raise RuntimeError("Max retries reached, failed to propose task.")
         curriculum = await self._aask(prompt=human_msg, system_msgs=system_msg)
@@ -72,14 +72,14 @@ class DesignTask(Action):
                 system_msg=system_msg,
                 max_retries=max_retries - 1,
             )
-    
+
     async def run(self, human_msg, system_msg, *args, **kwargs):
         logger.info(f"run {self.__repr__()}")
-        
+
         # Call the language model to generate a response.
-        
+
         task = await self.generate_task(human_msg=human_msg, system_msg=system_msg)
-        
+
         return task
 
 
@@ -88,11 +88,11 @@ class DesignCurriculum(Action):
     Action class for designing curriculum-related questions.
     Refer to the code in the voyager/agents/curriculum.py for implementation details.
     """
-    
+
     def __init__(self, name="", context=None, llm=None):
         super().__init__(name, context, llm)
-    
-    async def generate_qa(self, events, human_msg, system_msg):
+
+    async def generate_qa(self, events, qa_cache, human_msg, system_msg):
         """
         Generate qa for DesignTask's HumanMessage
         """
@@ -112,19 +112,19 @@ class DesignCurriculum(Action):
                 )
                 if docs_and_scores and docs_and_scores[0][1] < 0.05:
                     question_cached = docs_and_scores[0][0].page_content
-                    assert question_cached in self.qa_cache
-                    answer_cached = self.qa_cache[question_cached]
+                    assert question_cached in qa_cache
+                    answer_cached = qa_cache[question_cached]
                     questions.append(question_cached)
                     answers.append(answer_cached)
                     continue
             answer = await self.generate_qa_step2(question=question)
-            assert question not in self.qa_cache
-            self.qa_cache[question] = answer
+            assert question not in qa_cache
+            qa_cache[question] = answer
             self.qa_cache_questions_vectordb.add_texts(
                 texts=[question],
             )
             with open(f"{CKPT_DIR}/curriculum/qa_cache.json", "w") as f:
-                json.dump(self.qa_cache, f)
+                json.dump(qa_cache, f)
             self.qa_cache_questions_vectordb.persist()
             questions.append(question)
             answers.append(answer)
@@ -132,7 +132,7 @@ class DesignCurriculum(Action):
         logger.info(f"Curriculum Agent generate_qa Questions: {questions}")
         logger.info(f"Curriculum Agent generate_qa Answers: {answers}")
         return questions, answers
-    
+
     async def generate_qa_step1(self, events, human_msg, system_msg):
         biome = events[-1][1]["status"]["biome"].replace("_", " ")
         questions = [
@@ -141,7 +141,7 @@ class DesignCurriculum(Action):
             f"What are the mobs that I can find in the {biome} in Minecraft?",
         ]
         qa_response = await self._aask(prompt=human_msg, system_msgs=system_msg)
-        
+
         try:
             # Regex pattern to extract question and concept pairs
             pattern = r"Question \d+: (.+)\nConcept \d+: (.+)"
@@ -156,7 +156,7 @@ class DesignCurriculum(Action):
                 f"QA step 1 ask questions: {e}."
             )
         return questions
-    
+
     async def generate_qa_step2(self, question):
         # Implement the logic for another specific step in generating questions and answers.
         # logger.info(f"Curriculum Agent generate_qa_step2 Question: {question}")
@@ -169,58 +169,59 @@ class DesignCurriculum(Action):
         answer = await self._aask(prompt=human_msg, system_msgs=system_msg)
         # logger.info(f"Curriculum Agent generate_qa_step2 answer: {answer}")
         return answer
-    
-    async def get_context_from_task(self, task):
+
+    async def get_context_from_task(self, task, qa_cache):
         """
         Args: task
         Returns: context: "Question: {question}\n{answer}"
         if include ore in question, gpt will try to use tool with skill touch enhancement to mine
         """
-        
+
         question = (
             f"How to {task.replace('_', ' ').replace(' ore', '').replace(' ores', '').replace('.', '').strip().lower()}"
             f" in Minecraft?"
         )
-        if question in self.qa_cache:
-            answer = self.qa_cache[question]
+        if question in qa_cache:
+            answer = qa_cache[question]
         else:
             answer = await self.generate_qa_step2(question=question)
-            self.qa_cache[question] = answer
+            qa_cache[question] = answer
             self.qa_cache_questions_vectordb.add_texts(
                 texts=[question],
             )
             with open(f"{CKPT_DIR}/curriculum/qa_cache.json", "w") as f:
-                json.dump(self.qa_cache, f)
+                json.dump(qa_cache, f)
             self.qa_cache_questions_vectordb.persist()
         context = f"Question: {question}\n{answer}"
         return context
-    
-    async def generate_context(self, task, max_retries=5):
+
+    async def generate_context(self, task, qa_cache, max_retries=5):
         """
         Refer to the code in the voyager/agents/curriculum.py propose_next_ai_task() for implementation details.
         Returns: context
 
         """
-        
+
         if max_retries == 0:
             raise RuntimeError("Max retries reached, failed to propose context.")
         try:
             context = await self.get_context_from_task(
-                task=task
+                task=task, qa_cache=qa_cache
             )  # Curriculum Agent Question: How to craft 4 wooden planks in Minecraft? & Curriculum Agent Answer: ...
             return context
         except Exception as e:
             logger.info(f"Error parsing curriculum response: {e}. Trying again!")
             return await self.generate_context(
                 task=task,
+                qa_cache=qa_cache,
                 max_retries=max_retries - 1,
             )
-    
-    async def run(self, task, human_msg, system_msg, *args, **kwargs):
+
+    async def run(self, task, qa_cache, human_msg, system_msg, *args, **kwargs):
         logger.info(f"run {self.__repr__()}")
         # Generate curriculum-related questions and answers.
         # curriculum_qustion = await self.generate_qa_step1(events, human_msg, system_msg)
-        curriculum_context = await self.generate_context(task)
-        
+        curriculum_context = await self.generate_context(task, qa_cache)
+
         # Return the generated questions and answers.
         return curriculum_context
