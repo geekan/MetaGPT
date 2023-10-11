@@ -3,6 +3,7 @@
 import asyncio
 
 import fire
+from parea import init, RedisCache
 
 from metagpt.roles import (
     Architect,
@@ -12,6 +13,12 @@ from metagpt.roles import (
     QaEngineer,
 )
 from metagpt.software_company import SoftwareCompany
+
+
+# set this to True to use caching of LLM calls and being able to benchmark function across many inputs in parallel
+IS_DEV = True
+if IS_DEV:
+    init(cache=RedisCache())
 
 
 async def startup(
