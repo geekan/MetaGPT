@@ -4,6 +4,7 @@ import os
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import math
+
 def extract_logs(filename, start_time=None, end_time=None):
     with open(filename, 'r') as f:
         lines = f.readlines()
@@ -25,6 +26,7 @@ def extract_logs(filename, start_time=None, end_time=None):
             break
 
     return logs_block
+
 def extract_time_from_last_round_zero(log_filename):
     with open(log_filename, 'r') as f:
         lines = f.readlines()
@@ -37,6 +39,7 @@ def extract_time_from_last_round_zero(log_filename):
             if match:
                 return match.group(1)
     return None
+
 def analyze_log_block(logs_block):
     rounds: list[int] = []
     items_collected :list[int] = []
@@ -46,10 +49,8 @@ def analyze_log_block(logs_block):
     failed_tasks: list[int] = []
 
     round_start = False
-    check_for_info = False  # 用于检查是否应在下几行中查找 Inventory 的标志
-    line_after_message = 0  # 从 "Critic Agent human message" 开始计数的行数
-    check_for_task = False
-    line_after_task = 0
+    check_for_info = False  # 用于检查是否应在下几行中查找Position  Inventory 的标志
+    line_after_message = 0  # 从 "Curriculum Agent human message" 开始计数的行数
 
     for line in logs_block:
         if "round_id:" in line:
@@ -61,13 +62,13 @@ def analyze_log_block(logs_block):
 
         if round_start:
             if "Curriculum Agent human message" in line:
-                line_after_task = 0
+                line_after_message = 0
                 continue
 
             if check_for_info:
-                line_after_task += 1
+                line_after_message += 1
 
-                if line_after_task <= 20:
+                if line_after_message <= 20:
                     if "Position: x=" in line:
                         match = re.search(r'Position: x=([\d.-]+), y=([\d.-]+), z=([\d.-]+)', line)
                         x, y, z = float(match.group(1)), float(match.group(2)), float(match.group(3))
@@ -80,7 +81,7 @@ def analyze_log_block(logs_block):
                             items = re.search(r'Inventory \(\d+/36\): ({.*?})', line).group(1)
                             items_dict = eval(items)
                             total_items = sum(items_dict.values())
-                            items_collected.append(total_items)  # add previous total before updating
+                            items_collected.append(total_items)
 
                     if "Completed tasks so far:" in line:
                         tasks = line.replace("Completed tasks so far:", "").strip().split(", ")
