@@ -26,7 +26,6 @@ async def startup(idea: str,
     sim_path = STORAGE_PATH.joinpath(sim_code)
     sim_path.mkdir(exist_ok=True)
     for idx, role_name in enumerate(reverie_meta["persona_names"]):
-        role_stg_path = STORAGE_PATH.joinpath(fork_sim_code).joinpath(f"personas/{role_name}")
         has_inner_voice = True if idx == 0 else False
         role = STRole(name=role_name,
                       sim_code=sim_code,
@@ -36,7 +35,6 @@ async def startup(idea: str,
                       curr_time=reverie_meta.get("curr_time"),
                       sec_per_step=reverie_meta.get("sec_per_step"),
                       has_inner_voice=has_inner_voice)
-        role.load_from(role_stg_path)
         roles.append(role)
 
     # init temp_storage

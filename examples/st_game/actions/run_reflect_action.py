@@ -71,8 +71,12 @@ class AgentInsightAndGuidance(STAction):
             llm_resp = "1. " + llm_resp.strip()
             ret = dict()
             for i in llm_resp.split("\n"):
-                row = i.split(". ")[-1]
+                row = " ".join(i.split(". ")[1:])
+                if "(because of " not in row:
+                    continue
                 thought = row.split("(because of ")[0].strip()
+                if ")" not in row.split("(because of ")[1]:
+                    continue
                 evi_raw = row.split("(because of ")[1].split(")")[0].strip()
                 evi_raw = re.findall(r'\d+', evi_raw)
                 evi_raw = [int(i.strip()) for i in evi_raw]
@@ -81,8 +85,8 @@ class AgentInsightAndGuidance(STAction):
         except Exception as exp:
             logger.error(f"{self.cls_name} with error {exp}")
 
-    def _func_fail_default_resp(self) -> str:
-        pass
+    def _func_fail_default_resp(self, n: int) -> str:
+        return ["I am hungry"] * n
 
     def run(self, role: "STRole", statements: str, n: int, test_input=None) -> dict:
         def create_prompt_input(role, statements, n, test_input=None):
@@ -93,6 +97,7 @@ class AgentInsightAndGuidance(STAction):
         prompt = self.generate_prompt_with_tmpl_filename(prompt_input,
                                                          "insight_and_evidence_v1.txt")
 
+        self.fail_default_resp = self._func_fail_default_resp(n)
         output = self._run_text_davinci(prompt, max_tokens=150)
         logger.info(f"Role: {role.name} Action: {self.cls_name} output: {output}")
         return output

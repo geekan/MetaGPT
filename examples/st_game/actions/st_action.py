@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # @Desc   : StanfordTown Action
-
+import time
 from typing import Union, Optional, Any
 from abc import abstractmethod
 import json
@@ -109,7 +109,8 @@ class STAction(Action):
                 if self._func_validate(llm_resp, prompt):
                     return self._func_cleanup(llm_resp, prompt)
             except Exception as exp:
-                pass
+                logger.warning(f"Action: {self.cls_name} _run_gpt35 exp: {exp}")
+                time.sleep(5)  # usually avoid `Rate limit`
         return False
 
     def _run_gpt35_wo_extra_prompt(self,
@@ -122,7 +123,8 @@ class STAction(Action):
                 if self._func_validate(llm_resp, prompt):
                     return self._func_cleanup(llm_resp, prompt)
             except Exception as exp:
-                pass
+                logger.warning(f"Action: {self.cls_name} _run_gpt35_wo_extra_prompt exp: {exp}")
+                time.sleep(5)  # usually avoid `Rate limit`
         return self.fail_default_resp
 
     def run(self, *args, **kwargs):

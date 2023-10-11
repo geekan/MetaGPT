@@ -3,6 +3,7 @@
 # @Desc   : Reflect function
 
 import datetime
+import time
 
 from metagpt.logs import logger
 from examples.st_game.utils.utils import get_embedding
@@ -126,7 +127,8 @@ def run_reflect(role: "STRole"):
                 created, expiration, s, p, o, thought, keywords,
                 thought_poignancy, thought_embedding_pair, evidence
             )
-            logger.info(f"add thought memory: {thought}")
+            logger.info(f"add thought memory: {thought}, evidence: {evidence}")
+            time.sleep(2)  # avoid Rate limit
 
 
 def reflection_trigger(role: "STRole"):
@@ -182,16 +184,23 @@ def role_reflect(role: "STRole"):
         reset_reflection_counter(role)
 
     if role.scratch.chatting_end_time:
-        if role.scratch.curr_time + datetime.timedelta(0, 10) == role.scratch.chatting_end_time:
+        # update 10 to it's real sec_per_step value
+        if role.scratch.curr_time + datetime.timedelta(0, role.sec_per_step) == role.scratch.chatting_end_time:
             all_utt = ""
             if role.scratch.chat:
                 for row in role.scratch.chat:
                     all_utt += f"{row[0]}: {row[1]}\n"
 
-            evidence = [role.memory.get_last_chat(role.scratch.chatting_with).memory_id]
+            last_chat = role.memory.get_last_chat(role.scratch.chatting_with)
+            if last_chat:
+                evidence = [last_chat.memory_id]
+            else:
+                logger.info(f"Role: {role.name} get_last_chat: {last_chat}")
+                return
 
             planning_thought = generate_planning_thought_on_convo(role, all_utt)
             planning_thought = f"For {role.scratch.name}'s planning: {planning_thought}"
+            logger.info(f"Role: {role.name} planning_thought: {planning_thought}")
 
             created = role.scratch.curr_time
             expiration = created + datetime.timedelta(days=30)

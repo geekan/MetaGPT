@@ -59,7 +59,7 @@ def plan(role: "STRole", maze: Maze, roles: dict["STRole"], new_day: bool, retri
         if reaction_mode:
             # If we do want to chat, then we generate conversation
             if reaction_mode[:9] == "chat with":
-                _chat_react(maze, role, focused_event, reaction_mode, roles)
+                _chat_react(maze, role, reaction_mode, roles)
             elif reaction_mode[:4] == "wait":
                 _wait_react(role, reaction_mode)
 
@@ -143,6 +143,10 @@ def _should_react(role: "STRole", retrieved: dict, roles: dict):
     """
 
     def lets_talk(init_role: "STRole", target_role: "STRole", retrieved: dict):
+        if init_role.name == target_role.name:
+            logger.info(f"Role: {role.name} _should_react lets_talk meet same role, return False")
+            return False
+
         scratch = init_role._rc.scratch
         target_scratch = target_role._rc.scratch
         if (not target_scratch.act_address
@@ -175,6 +179,10 @@ def _should_react(role: "STRole", retrieved: dict, roles: dict):
         return False
 
     def lets_react(init_role: "STRole", target_role: "STRole", retrieved: dict):
+        if init_role.name == target_role.name:
+            logger.info(f"Role: {role.name} _should_react lets_react meet same role, return False")
+            return False
+
         scratch = init_role._rc.scratch
         target_scratch = target_role._rc.scratch
         if (not target_scratch.act_address
@@ -225,6 +233,7 @@ def _should_react(role: "STRole", retrieved: dict, roles: dict):
     # Recall that retrieved takes the following form:
     # dictionary {["curr_event"] = <ConceptNode>}
     curr_event = retrieved["curr_event"]
+    logger.info(f"Role: {role.name} _should_react curr_event.subject: {curr_event.subject}")
 
     if ":" not in curr_event.subject:
         # this is a role event.
@@ -260,13 +269,13 @@ def _chat_react(maze: Maze, role: "STRole", reaction_mode: str, roles: dict["STR
 
     for role, p in [("init", init_role), ("target", target_role)]:
         if role == "init":
-            act_address = f"<role> {target_role.name}"
+            act_address = f"<persona> {target_role.name}"
             act_event = (p.name, "chat with", target_role.name)
             chatting_with = target_role.name
             chatting_with_buffer = {}
             chatting_with_buffer[target_role.name] = 800
         elif role == "target":
-            act_address = f"<role> {init_role.name}"
+            act_address = f"<persona> {init_role.name}"
             act_event = (p.name, "chat with", init_role.name)
             chatting_with = init_role.name
             chatting_with_buffer = {}
