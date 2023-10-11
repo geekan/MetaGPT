@@ -30,7 +30,8 @@
   "dependencies": {
     "mineflayer": "^4.0.0",
     "mineflayer-pathfinder": "^2.1.1",
-    "mineflayer-tool": "^1.1.0"
+    "mineflayer-tool": "^1.1.0",
+    "npm": "^10.2.0"
   },
   "devDependencies": {
     "@types/node": "^18.6.4",

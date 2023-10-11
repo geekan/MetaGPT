@@ -9,7 +9,7 @@ def extract_logs(filename, start_time=None, end_time=None):
     with open(filename, 'r') as f:
         lines = f.readlines()
 
-    if start_time is None or end_time is None:
+    if start_time is None :
         # 如果没有提供时间参数，则返回所有日志
         return lines
 
@@ -21,7 +21,7 @@ def extract_logs(filename, start_time=None, end_time=None):
             capture = True
         if capture:
             logs_block.append(line)
-        if end_time in line:
+        if end_time and end_time in line:
             capture = False
             break
 
@@ -33,7 +33,7 @@ def extract_time_from_last_round_zero(log_filename):
 
     # 倒序遍历文件的每一行
     for line in reversed(lines):
-        if "check msg round :0" in line:
+        if "Config loading done" in line:
             # 正则表达式匹配年月日 小时:分钟的格式
             match = re.search(r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2})', line)
             if match:
@@ -44,43 +44,73 @@ def analyze_log_block(logs_block):
     rounds: list[int] = []
     items_collected :list[int] = []
     total_items = 0
-    positions:list[(int,int,int)] = []
+    positions:list[(int, int, int)] = []
+    completed_tasks: list[int] = []
+    failed_tasks: list[int] = []
 
+    round_start = False
     check_for_info = False  # 用于检查是否应在下几行中查找 Inventory 的标志
     line_after_message = 0  # 从 "Critic Agent human message" 开始计数的行数
-
+    check_for_task = False
+    line_after_task = 0
 
     for line in logs_block:
-        if "check msg round :" in line:
-            n = int(re.search(r'check msg round :(\d+)', line).group(1))
+        if "round_id:" in line:
+            n = int(re.search(r'round_id:(\d+)', line).group(1))
             if n not in rounds:
                 rounds.append(n)
                 items_collected.append(total_items)  # add previous total before updating
-        if "Critic Agent human message" in line:
-            check_for_info = True
-            line_after_message = 0
-            continue
+                round_start = True
+                check_for_task = True
+                check_for_info = True
 
-        if check_for_info:
-            line_after_message += 1
+        if round_start:
 
-            if line_after_message <= 20:
-                if "Position: x=" in line:
-                    match = re.search(r'Position: x=([\d.-]+), y=([\d.-]+), z=([\d.-]+)', line)
-                    if match:
-                        x, y, z = float(match.group(1)), float(match.group(2)), float(match.group(3))
-                        positions.append((x, y, z))
+            if "Curriculum Agent human message" in line:
 
-                if "Inventory (" in line:
-                    if ": Empty" in line:
+                line_after_task = 0
+                continue
+
+            if check_for_task:
+                line_after_task += 1
+
+                if line_after_task <= 15:
+                    if "Completed tasks so far:" in line:
+                        tasks = line.replace("Completed tasks so far:", "").strip().split(", ")
+                        completed_tasks.append(len(tasks))
+
+                    if "Failed tasks that are too hard:" in line:
+                        tasks = line.replace("Failed tasks that are too hard:", "").strip().split(", ")
+                        failed_tasks.append(len(tasks))
+                        check_for_task = False
+
+            if "Critic Agent human message" in line:
+                line_after_message = 0
+                continue
+
+            if check_for_info:
+                line_after_message += 1
+
+                if line_after_message <= 20:
+                    if "Position: x=" in line:
+                        match = re.search(r'Position: x=([\d.-]+), y=([\d.-]+), z=([\d.-]+)', line)
+                        if match:
+                            x, y, z = float(match.group(1)), float(match.group(2)), float(match.group(3))
+                            positions.append((x, y, z))
+
+                    if "Inventory (" in line:
+                        if ": Empty" in line:
+                            check_for_info = False
+                            continue
+                        items = re.search(r'Inventory \(\d+/36\): ({.*?})', line).group(1)
+                        items_dict = eval(items)
+                        total_items = sum(items_dict.values())
                         check_for_info = False
-                        continue
-                    items = re.search(r'Inventory \(\d+/36\): ({.*?})', line).group(1)
-                    items_dict = eval(items)
-                    total_items = sum(items_dict.values())
-                    check_for_info = False
 
-    return rounds, items_collected,positions
+
+                        round_start = False
+
+    return rounds, items_collected, positions, completed_tasks, failed_tasks
 
 def save_item_results_png(rounds, items_collected, start_time, path_prefix):
     # item png
@@ -88,8 +118,10 @@ def save_item_results_png(rounds, items_collected, start_time, path_prefix):
     plt.xlabel("Round")
     plt.ylabel("Total Items Collected")
     plt.title("Items Collected Over Rounds")
-    plt.savefig(f'{path_prefix}/{start_time}_items_collected_over_rounds.png', dpi=300)
+    plt.grid(True)
 
+    plt.savefig(f'{path_prefix}/{start_time}_items_collected_over_rounds.png', dpi=300)
+    plt.close()
 def save_path_results_png(positions, start_time, path_prefix):
 
     x_coords = [pos[0] for pos in positions]
@@ -115,7 +147,18 @@ def save_path_results_png(positions, start_time, path_prefix):
     ax.set_zlabel("Z Coordinate")
     ax.text(min(x_coords), max(y_coords), max(z_coords), f"Total Distance: {total_distance:.2f} units", fontsize=15, color='red')
     plt.savefig(f'{path_prefix}/{start_time}_bot_movement_3D_path.png', dpi=300)
+    plt.close()
+def save_task_results_png(rounds , completed, failed, start_time, path_prefix):
+    plt.plot(rounds, completed, label='Completed Tasks', marker='o')
+    plt.plot(rounds, failed, label='Failed Tasks', marker='x')
 
+    plt.xlabel("Rounds")
+    plt.ylabel("Number of Tasks")
+    plt.title("Completed vs Failed Tasks per Round")
+    plt.grid(True)
+    plt.legend()
+    plt.savefig(f'{path_prefix}/{start_time}_task_results.png', dpi=300)
+    plt.close()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Analyze game log file between a start and end time.")
@@ -123,7 +166,8 @@ if __name__ == "__main__":
                         help="Start time for analysis in the log file.")
     parser.add_argument('--end_time', type=str, default=None, nargs='?', help="End time for analysis in the log file.")
     args = parser.parse_args()
-
+    # start_time = "2023-10-07 03:14"
+    # end_time = "2023-10-08 03:14"
 
     current_script_path = os.path.dirname(os.path.abspath(__file__))
     filename = f"{current_script_path}/logs/log.txt"
@@ -137,7 +181,8 @@ if __name__ == "__main__":
         start_time = extract_time_from_last_round_zero(filename)
         logs_block = extract_logs(filename, start_time)
 
-    rounds, items_collected, positions = analyze_log_block(logs_block)
+    rounds, items_collected, positions, completed_tasks, failed_tasks= analyze_log_block(logs_block)
     #save png
     save_item_results_png(rounds, items_collected, args.start_time if args.start_time else start_time, current_script_path+"/results_pic")
     save_path_results_png(positions, args.start_time if args.start_time else start_time, current_script_path+"/results_pic")
+    save_task_results_png(rounds, completed_tasks, failed_tasks, args.start_time if args.start_time else start_time, current_script_path+"/results_pic" )
