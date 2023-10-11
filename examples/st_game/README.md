@@ -20,3 +20,6 @@ TEMP_STORAGE_PATH = Path("{path/to/ga/temp_storage}")
 ### 前端服务启动
 进入`generative_agents/environment/frontend_server`，使用`python manage.py runserver`启动前端服务。  
 访问`http://localhost:8000/simulator_home` 进入当前的仿真界面。  
+
+## Appreciation
+The reproduction work has referred the `https://github.com/joonspk-research/generative_agents`, let's make a general statement here.
