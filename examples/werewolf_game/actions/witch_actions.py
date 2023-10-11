@@ -5,7 +5,7 @@ class Save(NighttimeWhispers):
     def __init__(self, name="Save", context=None, llm=None):
         super().__init__(name, context, llm)
 
-    def _update_prompt_json(self, prompt_json: dict, profile: str, name: str, context: str, **kwargs):
+    def _update_prompt_json(self, prompt_json: dict, profile: str, name: str, context: str, reflection: str, **kwargs):
         del prompt_json['ACTION']
         del prompt_json['ATTENTION']
 
@@ -13,6 +13,11 @@ class Save(NighttimeWhispers):
         prompt_json["OUTPUT_FORMAT"]["RESPONSE"] = "Follow the Moderator's instruction, decide whether you want to save that person or not. Return SAVE or PASS."
 
         return prompt_json
+    
+    async def run(self, *args, **kwargs):
+        rsp = await super().run(*args, **kwargs)
+        action_name, rsp = rsp.split()
+        return rsp # 只需回复SAVE或PASS，不需要带上action名
 
 class Poison(NighttimeWhispers):
     STRATEGY = """
@@ -23,8 +28,14 @@ class Poison(NighttimeWhispers):
     def __init__(self, name="Poison", context=None, llm=None):
         super().__init__(name, context, llm)
 
-    def _update_prompt_json(self, prompt_json: dict, profile: str, name: str, context: str, **kwargs):
+    def _update_prompt_json(self, prompt_json: dict, profile: str, name: str, context: str, reflection: str, **kwargs):
 
         prompt_json["OUTPUT_FORMAT"]["RESPONSE"] += "Or if you want to PASS, return PASS."
 
         return prompt_json
+
+    async def run(self, *args, **kwargs):
+        rsp = await super().run(*args, **kwargs)
+        if "pass" in rsp.lower():
+            action_name, rsp = rsp.split() # 带PASS，只需回复PASS，不需要带上action名，否则是Poison PlayerX，无需改动
+        return rsp

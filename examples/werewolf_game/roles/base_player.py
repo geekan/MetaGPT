@@ -3,7 +3,7 @@ import re
 from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.logs import logger
-from examples.werewolf_game.actions import ACTIONS, Speak, InstructSpeak
+from examples.werewolf_game.actions import ACTIONS, InstructSpeak, Speak, Reflect, NighttimeWhispers
 
 
 class BasePlayer(Role):
@@ -48,8 +48,41 @@ class BasePlayer(Role):
             self._rc.todo = self.special_actions[0]()
 
     async def _act(self):
-        """每个角色要改写此函数以实现该角色的动作"""
-        raise NotImplementedError
+                
+        # todo为_think时确定的，有两种情况，Speak或Protect
+        todo = self._rc.todo
+        logger.info(f"{self._setting}: ready to {str(todo)}")
+
+        # 可以用这个函数获取该角色的全部记忆和最新的instruction
+        memories = self.get_all_memories()
+        latest_instruction = self.get_latest_instruction()
+        # print("*" * 10, f"{self._setting}'s current memories: {memories}", "*" * 10)
+
+        reflection = await Reflect().run(
+            profile=self.profile, name=self.name, context=memories, latest_instruction=latest_instruction
+        )
+
+        # 根据自己定义的角色Action，对应地去run，run的入参可能不同
+        if isinstance(todo, Speak):
+            rsp = await todo.run(
+                profile=self.profile, name=self.name, context=memories,
+                latest_instruction=latest_instruction, reflection=reflection
+            )
+            restricted_to = ""
+
+        elif isinstance(todo, NighttimeWhispers):
+            rsp = await todo.run(profile=self.profile, name=self.name, context=memories, reflection=reflection)
+            restricted_to = f"Moderator,{self.profile}" # 给Moderator发送使用特殊技能的加密消息
+
+        msg = Message(
+            content=rsp, role=self.profile, sent_from=self.name,
+            cause_by=type(todo), send_to="",
+            restricted_to=restricted_to
+        )
+
+        logger.info(f"{self._setting}: {rsp}")
+
+        return msg
 
     def get_all_memories(self) -> str:
         memories = self._rc.memory.get()
