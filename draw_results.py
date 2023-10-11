@@ -93,7 +93,8 @@ def analyze_log_block(logs_block):
                         check_for_info = False
                         round_start = False
 
-    return rounds, items_collected, positions, completed_tasks, failed_tasks
+    min_len: int = min(len(rounds), len(items_collected), len(positions), len(completed_tasks), len(failed_tasks))
+    return rounds[:min_len], items_collected[:min_len], positions[:min_len], completed_tasks[:min_len], failed_tasks[:min_len]
 
 def save_item_results_png(rounds, items_collected, start_time, path_prefix):
     # item png
@@ -150,8 +151,6 @@ if __name__ == "__main__":
                         help="Start time for analysis in the log file.")
     parser.add_argument('--end_time', type=str, default=None, nargs='?', help="End time for analysis in the log file.")
     args = parser.parse_args()
-    # start_time = "2023-10-07 03:14"
-    # end_time = "2023-10-08 03:14"
 
     current_script_path = os.path.dirname(os.path.abspath(__file__))
     filename = f"{current_script_path}/logs/log.txt"
