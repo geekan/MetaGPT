@@ -1,6 +1,6 @@
 '''
 Filename: MetaGPT/examples/werewolf_game/evals/utils.py
-Created Date: Oct 10, 2023
+Created Date: Oct 11, 2023
 Author: [Aria](https://github.com/ariafyy)
 '''
 from metagpt.const import WORKSPACE_ROOT, PROJECT_ROOT
@@ -10,10 +10,8 @@ import re
 class Utils:
     """Utils: utils of logs"""
     
-    def __init__(self):
-        pass
-
-    def polish_log(self, in_logfile, out_txtfile):
+    @staticmethod
+    def polish_log(in_logfile, out_txtfile):
         """polish logs for evaluation"""
         pattern_text = r"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) \| (\w+) +\| ([\w\.]+:\w+:\d+) - (.*\S)"
         pattern_player = r"(Player(\d{1}): \w+)"
@@ -49,13 +47,7 @@ class Utils:
                     out.write(line.strip())
                     json_start = False
 
-                elif line.startswith("(User):"):
-                    out.write(line)
-
-                elif line.startswith("********** STEP:"):
-                    out.write(line)
-
-                elif re.search(pattern_player, line):
+                elif line.startswith("(User):") or line.startswith("********** STEP:") or re.search(pattern_player,line):
                     out.write(line)
 
                 else:
