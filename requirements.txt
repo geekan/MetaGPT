@@ -42,4 +42,4 @@ pytest-mock==3.11.1
 open-interpreter==0.1.4; python_version>"3.9"
 ta==0.10.2
 semantic-kernel==0.3.10.dev0
-
+matplotlib==3.7.2
