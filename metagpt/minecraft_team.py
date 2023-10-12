@@ -2,6 +2,7 @@
 # @Date    : 2023/9/23 14:14
 # @Author  : stellahong (stellahong@fuzhi.ai)
 # @Desc    :
+import os
 from typing import Iterable, Dict, Any
 from pydantic import BaseModel, Field
 import requests
@@ -497,9 +498,10 @@ class MinecraftPlayer(SoftwareCompany):
                     "wait_ticks": 20,
                 }
             )
-            with open(f"{CKPT_DIR}/curriculum/round_id.json", "r") as f:
-    
-                round_id = json.load(f)["last_round_id"]
+            ## add resume round_id
+            if os.path.exists(f"{CKPT_DIR}/curriculum/round_id.json"):
+                with open(f"{CKPT_DIR}/curriculum/round_id.json", "r") as f:
+                    round_id = json.load(f)["last_round_id"]
         else:
             # clear the inventory
             self.game_memory.mf_instance.reset(
