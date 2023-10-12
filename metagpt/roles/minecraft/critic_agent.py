@@ -156,7 +156,7 @@ class CriticReviewer(Base):
         
         self.maintain_actions(todo)
         # 获取最新的游戏周边信息
-        events = await self._execute_events()
+        events = await self._obtain_events()
         self.perform_game_info_callback(events, self.game_memory.update_chest_memory)
         # logger.info(f"Execute return event is {self.game_memory.event}")
         context = self.game_memory.context
