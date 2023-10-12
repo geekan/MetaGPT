@@ -60,6 +60,10 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
     mf_instance: MineflayerEnv = Field(default_factory=MineflayerEnv)
     runtime_status: bool = False  # equal to action execution status: success or failed
 
+    vectordb: Chroma = Field(default_factory=Chroma)
+
+    qa_cache_questions_vectordb: Chroma = Field(default_factory=Chroma)
+
     @property
     def progress(self):
         # return len(self.completed_tasks) + 10 # Test only
@@ -84,27 +88,40 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
     def core_inv_items_regex(self):
         return self.mf_instance.core_inv_items_regex
 
-    @property
-    def qa_cache_questions_vectordb(self):
-        return Chroma(
-            collection_name="qa_cache_questions_vectordb",
-            embedding_function=OpenAIEmbeddings(),
-            persist_directory=f"{CKPT_DIR}/curriculum/vectordb",
-        )
+    # @property
+    # def qa_cache_questions_vectordb(self):
+    #     return Chroma(
+    #         collection_name="qa_cache_questions_vectordb",
+    #         embedding_function=OpenAIEmbeddings(),
+    #         persist_directory=f"{CKPT_DIR}/curriculum/vectordb",
+    #     )
 
-    @property
-    def vectordb(self):
-        return Chroma(
-            collection_name="skill_vectordb",
-            embedding_function=OpenAIEmbeddings(),
-            persist_directory=f"{CKPT_DIR}/skill/vectordb",
-        )
+    # @property
+    # def vectordb(self):
+    #     return Chroma(
+    #         collection_name="skill_vectordb",
+    #         embedding_function=OpenAIEmbeddings(),
+    #         persist_directory=f"{CKPT_DIR}/skill/vectordb",
+    #     )
 
     def set_mc_port(self, mc_port):
         self.mf_instance.set_mc_port(mc_port)
         self.set_mc_resume()
 
     def set_mc_resume(self):
+        self.qa_cache_questions_vectordb = Chroma(
+            collection_name="qa_cache_questions_vectordb",
+            embedding_function=OpenAIEmbeddings(),
+            persist_directory=f"{CKPT_DIR}/curriculum/vectordb",
+        )
+
+        self.vectordb = Chroma(
+            collection_name="skill_vectordb",
+            embedding_function=OpenAIEmbeddings(),
+            persist_directory=f"{CKPT_DIR}/skill/vectordb",
+        )
+
+
         if CONFIG.resume:
             logger.info(f"Loading Action Developer from {CKPT_DIR}/action")
             with open(f"{CKPT_DIR}/action/chest_memory.json", "r") as f:
@@ -125,6 +142,7 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
                 self.qa_cache = json.load(f)
 
             if self.vectordb._collection.count() == 0:
+                logger.info(self.vectordb._collection.count())
                 # Set vdvs for skills & qa_cache
                 skill_desps = [
                     skill["description"] for program_name, skill in self.skills.items()
@@ -140,36 +158,41 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
                     metadatas=metadatas,
                 )
                 self.vectordb.persist()
+                
 
+            logger.info(self.qa_cache_questions_vectordb._collection.count())
             if self.qa_cache_questions_vectordb._collection.count() == 0:
+
                 questions = [question for question, answer in self.qa_cache.items()]
+
                 self.qa_cache_questions_vectordb.add_texts(texts=questions)
 
                 self.qa_cache_questions_vectordb.persist()
 
-        logger.info(
-            f"INIT_CHECK: There are {self.vectordb._collection.count()} skills in vectordb and {len(self.skills)} skills in skills.json."
-        )
-        # Check if Skill Manager's vectordb right using
-        assert self.vectordb._collection.count() >= len(self.skills), (
-            f"Skill Manager's vectordb is not synced with skills.json.\n"
-            f"There are {self.vectordb._collection.count()} skills in vectordb but {len(self.skills)} skills in skills.json.\n"
-            f"Did you set resume=False when initializing the manager?\n"
-            f"You may need to manually delete the vectordb directory for running from scratch."
-        )
+                logger.info(
+                    f"INIT_CHECK: There are {self.vectordb._collection.count()} skills in vectordb and {len(self.skills)} skills in skills.json."
+                )
+                # Check if Skill Manager's vectordb right using
+                assert self.vectordb._collection.count() >= len(self.skills), (
+                    f"Skill Manager's vectordb is not synced with skills.json.\n"
+                    f"There are {self.vectordb._collection.count()} skills in vectordb but {len(self.skills)} skills in skills.json.\n"
+                    f"Did you set resume=False when initializing the manager?\n"
+                    f"You may need to manually delete the vectordb directory for running from scratch."
+                )
 
-        logger.info(
-            f"INIT_CHECK: There are {self.qa_cache_questions_vectordb._collection.count()} qa_cache in vectordb and {len(self.qa_cache)} questions in qa_cache.json."
-        )
-        assert self.qa_cache_questions_vectordb._collection.count() >= len(
-            self.qa_cache
-        ), (
-            f"Curriculum Agent's qa cache question vectordb is not synced with qa_cache.json.\n"
-            f"There are {self.qa_cache_questions_vectordb._collection.count()} questions in vectordb "
-            f"but {len(self.qa_cache)} questions in qa_cache.json.\n"
-            f"Did you set resume=False when initializing the agent?\n"
-            f"You may need to manually delete the qa cache question vectordb directory for running from scratch.\n"
-        )
+                logger.info(
+                    f"INIT_CHECK: There are {self.qa_cache_questions_vectordb._collection.count()} qa_cache in vectordb and {len(self.qa_cache)} questions in qa_cache.json."
+                )
+                assert self.qa_cache_questions_vectordb._collection.count() >= len(
+                    self.qa_cache
+                ), (
+                    f"Curriculum Agent's qa cache question vectordb is not synced with qa_cache.json.\n"
+                    f"There are {self.qa_cache_questions_vectordb._collection.count()} questions in vectordb "
+                    f"but {len(self.qa_cache)} questions in qa_cache.json.\n"
+                    f"Did you set resume=False when initializing the agent?\n"
+                    f"You may need to manually delete the qa cache question vectordb directory for running from scratch.\n"
+                )
+
 
     def register_roles(self, roles: Iterable[Minecraft]):
         for role in roles:
@@ -208,6 +231,9 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
 
     def update_skill_desp(self, skill_desp: str):
         self.skill_desp = skill_desp
+
+    async def update_qa_cache(self, qa_cache: dict):
+        self.qa_cache = qa_cache
 
     def update_chest_memory(self, events: Dict):
         """
@@ -517,3 +543,9 @@ class MinecraftPlayer(SoftwareCompany):
             # self.environment.memory.clear()
             # self._reset()
         return self.environment.history
+
+
+if __name__ == "__main__":
+    A = GameEnvironment()
+    a = A.qa_cache_questions_vectordb
+    print(a._persist_directory)

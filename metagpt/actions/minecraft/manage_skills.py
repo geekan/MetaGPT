@@ -75,6 +75,12 @@ class AddNewSkills(Action):
             ids=[program_name],
             metadatas=[{"name": program_name}],
         )
+
+        skills[program_name] = {
+            "code": program_code,
+            "description": skill_desp,
+        }
+
         logger.debug(f"ADD_CHECK: There are {vectordb._collection.count()} skills in vectordb")
 
         with open(f"{CKPT_DIR}/skill/code/{dumped_program_name}.js", "w") as f:

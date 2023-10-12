@@ -20,11 +20,11 @@ class CurriculumDesigner(Base):
     """
 
     def __init__(
-        self,
-        name: str = "David",
-        profile: str = "Expertise in minecraft task design and curriculum development.",
-        goal: str = " Collect and integrate learner feedback to improve and refine educational content and pathways",
-        constraints: str = "Limited budget and resources for the development of educational content and technology tools.",
+            self,
+            name: str = "David",
+            profile: str = "Expertise in minecraft task design and curriculum development.",
+            goal: str = " Collect and integrate learner feedback to improve and refine educational content and pathways",
+            constraints: str = "Limited budget and resources for the development of educational content and technology tools.",
     ) -> None:
         super().__init__(name, profile, goal, constraints)
         # Initialize actions specific to the Action role
@@ -56,12 +56,12 @@ class CurriculumDesigner(Base):
         inventory = event["inventory"]
 
         if not any(
-            "dirt" in block
-            or "log" in block
-            or "grass" in block
-            or "sand" in block
-            or "snow" in block
-            for block in voxels
+                "dirt" in block
+                or "log" in block
+                or "grass" in block
+                or "sand" in block
+                or "snow" in block
+                for block in voxels
         ):
             biome = "underground"
 
@@ -92,8 +92,8 @@ class CurriculumDesigner(Base):
 
         # filter out optional inventory items if required
         if (
-            self.game_memory.progress
-            < self.game_memory.warm_up["optional_inventory_items"]
+                self.game_memory.progress
+                < self.game_memory.warm_up["optional_inventory_items"]
         ):
             inventory = {
                 k: v
@@ -121,7 +121,7 @@ class CurriculumDesigner(Base):
 
     # --------------------------------Design Task Prepare---------------------------------------
     async def render_design_task_human_message(
-        self, events, chest_observation, *args, **kwargs
+            self, events, chest_observation, *args, **kwargs
     ):
         """
         Returns: observation for curriculum
@@ -135,15 +135,19 @@ class CurriculumDesigner(Base):
             events=events, chest_observation=chest_observation
         )
         if self.game_memory.progress >= warm_up["context"]:
-        # if self.game_memory.progress >= 0: # TEST ONLY
+            # if self.game_memory.progress >= 0: # TEST ONLY
             human_msg = self.render_design_curriculum_human_message(
                 events=events, chest_observation=chest_observation
             ).content
             system_msg = [self.render_design_curriculum_system_message().content]
             questions, answers = await DesignCurriculum().generate_qa(
-                events=events, qa_cache=qa_cache, human_msg=human_msg, system_msg=system_msg
+                events=events, qa_cache=qa_cache,
+                qa_cache_questions_vectordb=self.game_memory.qa_cache_questions_vectordb,
+                game_memory=self.game_memory,
+                human_msg=human_msg, system_msg=system_msg
             )
             logger.debug(f"Generate_qa result is HERE: Ques: {questions}, Ans: {answers}")
+
             i = 1
             for question, answer in zip(questions, answers):
                 if "Answer: Unknown" in answer or "language model" in answer:
@@ -202,7 +206,7 @@ class CurriculumDesigner(Base):
         return SystemMessage(content=load_prompt("curriculum_qa_step1_ask_questions"))
 
     def render_design_curriculum_human_message(
-        self, events, chest_observation, *args, **kwargs
+            self, events, chest_observation, *args, **kwargs
     ):
         observation = self.render_curriculum_observation(
             events=events, chest_observation=chest_observation
@@ -213,7 +217,7 @@ class CurriculumDesigner(Base):
         return HumanMessage(content=content)
 
     def encapsule_design_curriculum_message(
-        self, events, chest_observation, *args, **kwargs
+            self, events, chest_observation, *args, **kwargs
     ):
         human_msg = self.render_design_curriculum_human_message(
             events=events, chest_observation=chest_observation, *args, **kwargs
@@ -309,8 +313,12 @@ class CurriculumDesigner(Base):
                 self, events=events, chest_observation=chest_observation
             )
         else:
+            logger.info(self.game_memory.qa_cache_questions_vectordb._collection.count())
+            logger.info(self.game_memory.vectordb._collection.count())
             context = await DesignCurriculum().run(
-                task, qa_cache, qa_cache_questions_vectordb, human_msg, system_msg, *args, **kwargs
+                task, qa_cache, qa_cache_questions_vectordb, game_memory=self.game_memory,
+                human_msg=human_msg,
+                system_msg=system_msg, *args, **kwargs
             )
         self.perform_game_info_callback(context, self.game_memory.update_context)
         return Message(

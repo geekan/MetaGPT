@@ -91,8 +91,9 @@ class DesignCurriculum(Action):
 
     def __init__(self, name="", context=None, llm=None):
         super().__init__(name, context, llm)
+        self.llm.model = "gpt-3.5-turbo"
 
-    async def generate_qa(self, events, qa_cache, qa_cache_questions_vectordb, human_msg, system_msg):
+    async def generate_qa(self, events, qa_cache, qa_cache_questions_vectordb, game_memory, human_msg, system_msg):
         """
         Generate qa for DesignTask's HumanMessage
         """
@@ -100,7 +101,7 @@ class DesignCurriculum(Action):
             events=events, human_msg=human_msg, system_msg=system_msg
         )
         logger.debug(f"Generate_qa_step1 result list is HERE: {questions_new}")
-        
+
         questions = []
         answers = []
         for question in questions_new:
@@ -128,6 +129,10 @@ class DesignCurriculum(Action):
             qa_cache_questions_vectordb.persist()
             questions.append(question)
             answers.append(answer)
+
+        game_memory.qa_cache = qa_cache
+        
+
         assert len(questions_new) == len(questions) == len(answers)
         logger.info(f"Curriculum Agent generate_qa Questions: {questions}")
         logger.info(f"Curriculum Agent generate_qa Answers: {answers}")
@@ -170,7 +175,7 @@ class DesignCurriculum(Action):
         # logger.info(f"Curriculum Agent generate_qa_step2 answer: {answer}")
         return answer
 
-    async def get_context_from_task(self, task, qa_cache, qa_cache_questions_vectordb):
+    async def get_context_from_task(self, task, qa_cache, qa_cache_questions_vectordb, game_memory):
         """
         Args: task
         Returns: context: "Question: {question}\n{answer}"
@@ -192,10 +197,12 @@ class DesignCurriculum(Action):
             with open(f"{CKPT_DIR}/curriculum/qa_cache.json", "w") as f:
                 json.dump(qa_cache, f)
             qa_cache_questions_vectordb.persist()
+
+        game_memory.qa_cache = qa_cache
         context = f"Question: {question}\n{answer}"
         return context
 
-    async def generate_context(self, task, qa_cache, qa_cache_questions_vectordb, max_retries=5):
+    async def generate_context(self, task, qa_cache, qa_cache_questions_vectordb, game_memory, max_retries=5):
         """
         Refer to the code in the voyager/agents/curriculum.py propose_next_ai_task() for implementation details.
         Returns: context
@@ -206,7 +213,8 @@ class DesignCurriculum(Action):
             raise RuntimeError("Max retries reached, failed to propose context.")
         try:
             context = await self.get_context_from_task(
-                task=task, qa_cache=qa_cache, qa_cache_questions_vectordb=qa_cache_questions_vectordb
+                task=task, qa_cache=qa_cache, qa_cache_questions_vectordb=qa_cache_questions_vectordb,
+                game_memory=game_memory,
             )  # Curriculum Agent Question: How to craft 4 wooden planks in Minecraft? & Curriculum Agent Answer: ...
             return context
         except Exception as e:
@@ -215,14 +223,17 @@ class DesignCurriculum(Action):
                 task=task,
                 qa_cache=qa_cache,
                 qa_cache_questions_vectordb=qa_cache_questions_vectordb,
+                game_memory=game_memory,
                 max_retries=max_retries - 1,
             )
 
-    async def run(self, task, qa_cache, qa_cache_questions_vectordb, human_msg, system_msg, *args, **kwargs):
+    async def run(self, task, qa_cache, qa_cache_questions_vectordb, game_memory, human_msg, system_msg, *args,
+                  **kwargs):
         logger.info(f"run {self.__repr__()}")
         # Generate curriculum-related questions and answers.
         # curriculum_qustion = await self.generate_qa_step1(events, human_msg, system_msg)
-        curriculum_context = await self.generate_context(task, qa_cache, qa_cache_questions_vectordb)
+        curriculum_context = await self.generate_context(task, qa_cache, qa_cache_questions_vectordb,
+                                                         game_memory=game_memory)
 
         # Return the generated questions and answers.
         return curriculum_context
