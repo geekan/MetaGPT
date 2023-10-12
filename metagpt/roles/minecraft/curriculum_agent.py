@@ -80,12 +80,12 @@ class CurriculumDesigner(Base):
         )
 
         completed_tasks = (
-            ", ".join(self.game_memory.completed_tasks)
+            "; ".join(self.game_memory.completed_tasks)
             if self.game_memory.completed_tasks
             else "None"
         )
         failed_tasks = (
-            ", ".join(self.game_memory.failed_tasks)
+            "; ".join(self.game_memory.failed_tasks)
             if self.game_memory.failed_tasks
             else "None"
         )
