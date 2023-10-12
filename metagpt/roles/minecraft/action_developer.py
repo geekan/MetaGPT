@@ -2,6 +2,8 @@
 # @Date    : 2023/9/23 12:45
 # @Author  : stellahong (stellahong@fuzhi.ai)
 # @Desc    :
+import json
+
 from metagpt.logs import logger
 from metagpt.roles.minecraft.minecraft_base import Minecraft as Base
 from metagpt.schema import Message, HumanMessage, SystemMessage
@@ -115,7 +117,13 @@ class ActionDeveloper(Base):
         )
         
         if error_messages:
-            error = "\n".join(error_messages)
+            
+            try:
+                error = "\n".join(error_messages)
+            except:
+                logger.debug(f"error_messages {error_messages}")
+                error = "\n".join(json.dumps(error_messages))
+                
             observation += f"Execution error:\n{error}\n\n"
         else:
             observation += f"Execution error: No error\n\n"
