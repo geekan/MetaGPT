@@ -216,7 +216,7 @@ class ActionDeveloper(Base):
         self.perform_game_info_callback(new_skills_info, self.game_memory.append_skill)
     
     async def retrieve_skills(self, query, skills, *args, **kwargs):
-        retrieve_skills = await RetrieveSkills().run(query, skills)
+        retrieve_skills = await RetrieveSkills().run(query, skills, vectordb=self.game_memory.vectordb)
         logger.info(f"Render Action Agent system message with {len(retrieve_skills)} skills")
         self.perform_game_info_callback(retrieve_skills, self.game_memory.update_retrieve_skills)
         # return Message(content=f"{retrieve_skills}", instruct_content="retrieve_skills",
