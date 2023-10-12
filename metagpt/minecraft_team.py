@@ -183,6 +183,7 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
         if self.event == event:
             return
         self.event = event
+        self.update_chest_observation()
         # self.update_chest_memory(event)
         # self.event_summary = self.summarize_chatlog(event)
     

@@ -34,6 +34,7 @@ Code:
         - Use `smeltItem(bot, name count)` to smelt items. Do not use `bot.openFurnace` directly.
         - Use `placeItem(bot, name, position)` to place blocks. Do not use `bot.placeBlock` directly.
         - Use `killMob(bot, name, timeout)` to kill mobs. Do not use `bot.attack` directly.
+        - Use `exploreUntil(bot, direction, maxTime , callback)` to find what you need.
     3) Your function will be reused for building more complex functions. Therefore, you should make it generic and reusable. You should not make strong assumption about the inventory (as it may be changed at a later time), and therefore you should always check whether you have the required items before using them. If not, you should first collect the required items and reuse the above useful programs.
     4) Functions in the "Code from the last round" section will not be saved or executed. Do not reuse functions listed there.
     5) Anything defined outside a function will be ignored, define all your variables inside your functions.
