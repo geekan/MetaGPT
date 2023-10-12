@@ -1,7 +1,7 @@
 # MetaGPT: マルチエージェントフレームワーク
 
 <p align="center">
-<a href=""><img src="resources/MetaGPT-logo.jpeg" alt="MetaGPT ロゴ: GPT がソフトウェア会社で働けるようにし、協力してより複雑な仕事に取り組む。" width="150px"></a>
+<a href=""><img src="resources/MetaGPT-new-log.png" alt="MetaGPT ロゴ: GPT がソフトウェア会社で働けるようにし、協力してより複雑な仕事に取り組む。" width="150px"></a>
 </p>
 
 <p align="center">
