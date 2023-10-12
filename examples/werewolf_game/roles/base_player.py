@@ -8,21 +8,21 @@ from examples.werewolf_game.actions import ACTIONS, InstructSpeak, Speak, Reflec
 
 class BasePlayer(Role):
     def __init__(
-        self,
-        name: str = "PlayerXYZ",
-        profile: str = "BasePlayer",
-        special_action_names: list[str] = [],
-        **kwargs,
+            self,
+            name: str = "PlayerXYZ",
+            profile: str = "BasePlayer",
+            special_action_names: list[str] = [],
+            **kwargs,
     ):
         super().__init__(name, profile, **kwargs)
         # 通过 set_status() 更新状态。
-        self.status = 0 # 0代表活着，1代表死亡
+        self.status = 0  # 0代表活着，1代表死亡
 
         # 技能和监听配置
-        self._watch([InstructSpeak]) # 监听Moderator的指令以做行动
+        self._watch([InstructSpeak])  # 监听Moderator的指令以做行动
         special_actions = [ACTIONS[action_name] for action_name in special_action_names]
         capable_actions = [Speak] + special_actions
-        self._init_actions(capable_actions) # 给角色赋予行动技能
+        self._init_actions(capable_actions)  # 给角色赋予行动技能
         self.special_actions = special_actions
 
     async def _observe(self) -> int:
@@ -38,7 +38,7 @@ class BasePlayer(Role):
 
     async def _think(self):
         news = self._rc.news[0]
-        assert news.cause_by == InstructSpeak # 消息为来自Moderator的指令时，才去做动作
+        assert news.cause_by == InstructSpeak  # 消息为来自Moderator的指令时，才去做动作
         if not news.restricted_to:
             # 消息接收范围为全体角色的，做公开发言（发表投票观点也算发言）
             self._rc.todo = Speak()
@@ -48,13 +48,13 @@ class BasePlayer(Role):
             self._rc.todo = self.special_actions[0]()
 
     async def _act(self):
-                
+
         # todo为_think时确定的，有两种情况，Speak或Protect
         todo = self._rc.todo
         logger.info(f"{self._setting}: ready to {str(todo)}")
 
         # 可以用这个函数获取该角色的全部记忆和最新的instruction
-        memories = self.get_all_memories()
+        memories = self.get_all_memories(mode="new")
         latest_instruction = self.get_latest_instruction()
         # print("*" * 10, f"{self._setting}'s current memories: {memories}", "*" * 10)
 
@@ -72,7 +72,7 @@ class BasePlayer(Role):
 
         elif isinstance(todo, NighttimeWhispers):
             rsp = await todo.run(profile=self.profile, name=self.name, context=memories, reflection=reflection)
-            restricted_to = f"Moderator,{self.profile}" # 给Moderator发送使用特殊技能的加密消息
+            restricted_to = f"Moderator,{self.profile}"  # 给Moderator发送使用特殊技能的加密消息
 
         msg = Message(
             content=rsp, role=self.profile, sent_from=self.name,
@@ -84,16 +84,75 @@ class BasePlayer(Role):
 
         return msg
 
-    def get_all_memories(self) -> str:
+    def get_all_memories(self, mode="old") -> str:
+        if mode == "old":
+            memories = self.get_memories_old()
+            return memories
+        elif mode == "new":
+            memories = self.get_memories_new()
+            return memories
+
+    def get_memories_old(self) -> str:
         memories = self._rc.memory.get()
         time_stamp_pattern = r'[0-9]+ \| '
         # NOTE: 除Moderator外，其他角色使用memory，只能用m.sent_from（玩家名）不能用m.role（玩家角色），因为他们不知道说话者的身份
-        memories = [f"{m.sent_from}: {re.sub(time_stamp_pattern, '', m.content)}" for m in memories] # regex去掉时间戳
+        memories = [f"{m.sent_from}: {re.sub(time_stamp_pattern, '', m.content)}" for m in memories]  # regex去掉时间戳
         memories = "\n".join(memories)
         return memories
-    
+
+    def get_memories_new(self, m=20, n=10) -> str:
+        all_memories = self._rc.memory.get()
+
+        recent_m_memories = all_memories[-m:]
+
+        # 将所有记忆按照重要性打分
+        scored_memories = [(message, self.score_message(message.content)) for message in all_memories]
+        # 提取分数最高的n条记忆，如果分数相同，则较新时间的记忆排在前面
+        # sorted_memories = sorted(scored_memories, key=lambda x: x[1], reverse=True)
+        sorted_memories = sorted(scored_memories, key=lambda x: (x[1], int(re.findall(r'\d+', x[0].content)[0])),
+                                 reverse=True)
+        top_n_informative_memories = [memory[0] for memory in sorted_memories[:n]]
+
+        time_stamp_pattern = r'[0-9]+ \| '
+
+        recent_memories = [f"{m.sent_from}: {re.sub(time_stamp_pattern, '', m.content)}" for m in
+                           recent_m_memories]
+        informative_memories = [f"{m.sent_from}: {re.sub(time_stamp_pattern, '', m.content)}" for m in
+                                top_n_informative_memories]
+
+        memories = "Recent Messages:\n" + "\n".join(recent_memories) + "\n\nInformative Messages:\n" + "\n".join(
+            informative_memories)
+
+        return memories
+
+    def score_message(self, message: str) -> int:
+        # Score 5: Information related to the player's character
+        pattern_5 = rf"({self.name}|{self.profile})"
+        if re.search(pattern_5, message, re.IGNORECASE):
+            return 5
+
+        # Score 4: Keywords related to elimination or death
+        pattern_4 = r"(die(d|s)?|banish(ed)?|vote(d|s)? out|eliminat(e|ed|ion)?|kill(ed)?|hunt(ed)?)"
+        if re.search(pattern_4, message, re.IGNORECASE):
+            return 4
+
+        # Score 3: Keywords related to speculation or guessing
+        pattern_3 = r"(discover(ed)?|speculat(e|ed|ion)?|guess(ed)?|conjectur(e|ed)?|doubt(ed)?|verif(y|ied|ication)?)"
+        if re.search(pattern_3, message, re.IGNORECASE):
+            return 3
+
+        # Score 2: Keywords related to specific actions
+        pattern_2 = r"(protect(ed|s)?|save(d|s)?|verif(y|ied)|drug(s)?|antidote|poison(ed|s)?)"
+
+        if re.search(pattern_2, message, re.IGNORECASE):
+            return 2
+
+        # Score 1: Other messages
+        else:
+            return 1
+
     def get_latest_instruction(self) -> str:
-        return self._rc.important_memory[-1].content # 角色监听着Moderator的InstructSpeak，是其重要记忆，直接获取即可
+        return self._rc.important_memory[-1].content  # 角色监听着Moderator的InstructSpeak，是其重要记忆，直接获取即可
 
     def set_status(self, new_status):
         self.status = new_status
