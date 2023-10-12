@@ -88,21 +88,6 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
     def core_inv_items_regex(self):
         return self.mf_instance.core_inv_items_regex
 
-    # @property
-    # def qa_cache_questions_vectordb(self):
-    #     return Chroma(
-    #         collection_name="qa_cache_questions_vectordb",
-    #         embedding_function=OpenAIEmbeddings(),
-    #         persist_directory=f"{CKPT_DIR}/curriculum/vectordb",
-    #     )
-
-    # @property
-    # def vectordb(self):
-    #     return Chroma(
-    #         collection_name="skill_vectordb",
-    #         embedding_function=OpenAIEmbeddings(),
-    #         persist_directory=f"{CKPT_DIR}/skill/vectordb",
-    #     )
 
     def set_mc_port(self, mc_port):
         self.mf_instance.set_mc_port(mc_port)
