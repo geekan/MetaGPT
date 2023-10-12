@@ -310,7 +310,7 @@ class CurriculumDesigner(Base):
             context = self.game_memory.context
         elif inventoryUsed >= 33:
             context = self.generate_context_if_inventory_full(
-                self, events=events, chest_observation=chest_observation
+                events=events, chest_observation=chest_observation
             )
         else:
             logger.info(self.game_memory.qa_cache_questions_vectordb._collection.count())
