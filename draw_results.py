@@ -41,7 +41,7 @@ def extract_time_from_last_round_zero(log_filename):
                 match = re.search(r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2})', line)
                 if match.group(1):
                     return match.group(1)
-    return None
+        return None
 def analyze_log_block(logs_block):
     rounds: list[int] = []
     items_collected :list[int] = []
