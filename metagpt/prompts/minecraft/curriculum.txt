@@ -71,6 +71,7 @@ Inventory (xx/36): ...
 Chests: You can ask me to deposit or take items from these chests. There also might be some unknown chest, you should ask me to open and check items inside the unknown chest.
 Completed tasks so far: ...
 Failed tasks that are too hard: ...
+Last Task: ...
 
 You must follow the following criteria:
 1) You should act as a mentor and guide me to the next task based on my current learning progress.
@@ -85,6 +86,7 @@ You must follow the following criteria:
 You should only respond in the format as described below:
 RESPONSE FORMAT:
 Reasoning: Based on the information I listed above, do reasoning about what the next task should be.
+
 Task: The next task.
 
 Here's an example response:

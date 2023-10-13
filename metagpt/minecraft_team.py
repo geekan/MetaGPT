@@ -136,7 +136,7 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
                 ]
                 metadatas = [{"name": program_name} for program_name in program_names]
                 # add vectordb from file
-                ids = self.vectordb.add_texts(
+                self.vectordb.add_texts(
                     texts=skill_desps,
                     ids=program_names,
                     metadatas=metadatas,
@@ -155,7 +155,7 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
                     f"INIT_CHECK: There are {self.vectordb._collection.count()} skills in vectordb and {len(self.skills)} skills in skills.json."
                 )
                 # Check if Skill Manager's vectordb right using
-                assert self.vectordb._collection.count() >= len(self.skills), (
+                assert self.vectordb._collection.count() == len(self.skills), (
                     f"Skill Manager's vectordb is not synced with skills.json.\n"
                     f"There are {self.vectordb._collection.count()} skills in vectordb but {len(self.skills)} skills in skills.json.\n"
                     f"Did you set resume=False when initializing the manager?\n"
@@ -165,7 +165,7 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
                 logger.info(
                     f"INIT_CHECK: There are {self.qa_cache_questions_vectordb._collection.count()} qa_cache in vectordb and {len(self.qa_cache)} questions in qa_cache.json."
                 )
-                assert self.qa_cache_questions_vectordb._collection.count() >= len(
+                assert self.qa_cache_questions_vectordb._collection.count() == len(
                     self.qa_cache
                 ), (
                     f"Curriculum Agent's qa cache question vectordb is not synced with qa_cache.json.\n"
@@ -183,8 +183,8 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
         if self.event == event:
             return
         self.event = event
+        self.update_chest_memory(event)
         self.update_chest_observation()
-        # self.update_chest_memory(event)
         # self.event_summary = self.summarize_chatlog(event)
     
     def update_task(self, task: str):
