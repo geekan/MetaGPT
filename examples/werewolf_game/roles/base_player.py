@@ -4,7 +4,8 @@ from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.logs import logger
 from examples.werewolf_game.actions import ACTIONS, InstructSpeak, Speak, Reflect, NighttimeWhispers
-
+from examples.werewolf_game.actions.experience_operation import AddNewExperiences, RetrieveExperiences
+from examples.werewolf_game.schema import RoleExperience
 
 class BasePlayer(Role):
     def __init__(
@@ -12,6 +13,9 @@ class BasePlayer(Role):
         name: str = "PlayerXYZ",
         profile: str = "BasePlayer",
         special_action_names: list[str] = [],
+        use_reflection: bool = True,
+        use_experience: bool = False,
+        use_memory_selection: bool = False,
         **kwargs,
     ):
         super().__init__(name, profile, **kwargs)
@@ -24,6 +28,16 @@ class BasePlayer(Role):
         capable_actions = [Speak] + special_actions
         self._init_actions(capable_actions) # 给角色赋予行动技能
         self.special_actions = special_actions
+
+        self.use_reflection = use_reflection
+        if not self.use_reflection and use_experience:
+            logger.warning("You must enable use_reflection before using experience")
+            self.use_experience = False
+        else:
+            self.use_experience = use_experience
+        self.use_memory_selection = use_memory_selection
+
+        self.experiences = []
 
     async def _observe(self) -> int:
         if self.status == 1:
@@ -60,24 +74,32 @@ class BasePlayer(Role):
 
         reflection = await Reflect().run(
             profile=self.profile, name=self.name, context=memories, latest_instruction=latest_instruction
-        )
+        ) if self.use_reflection else ""
+
+        experiences = RetrieveExperiences().run(query=reflection, profile=self.profile) \
+            if self.use_experience else ""
 
         # 根据自己定义的角色Action，对应地去run，run的入参可能不同
         if isinstance(todo, Speak):
             rsp = await todo.run(
                 profile=self.profile, name=self.name, context=memories,
-                latest_instruction=latest_instruction, reflection=reflection
-            )
+                latest_instruction=latest_instruction, reflection=reflection, experiences=experiences)
             restricted_to = ""
 
         elif isinstance(todo, NighttimeWhispers):
-            rsp = await todo.run(profile=self.profile, name=self.name, context=memories, reflection=reflection)
+            rsp = await todo.run(profile=self.profile, name=self.name, context=memories, 
+                reflection=reflection, experiences=experiences)
             restricted_to = f"Moderator,{self.profile}" # 给Moderator发送使用特殊技能的加密消息
 
         msg = Message(
             content=rsp, role=self.profile, sent_from=self.name,
             cause_by=type(todo), send_to="",
             restricted_to=restricted_to
+        )
+
+        self.experiences.append(
+            RoleExperience(name=self.name, profile=self.profile, reflection=reflection,
+                instruction=latest_instruction, response=rsp)
         )
 
         logger.info(f"{self._setting}: {rsp}")
@@ -97,3 +119,11 @@ class BasePlayer(Role):
 
     def set_status(self, new_status):
         self.status = new_status
+    
+    def record_experiences(self, round_id: str, outcome: str, game_setup: str):
+        experiences = [exp for exp in self.experiences if exp.reflection]
+        for exp in experiences:
+            exp.round_id = round_id
+            exp.outcome = outcome
+            exp.game_setup = game_setup
+        AddNewExperiences().run(experiences)
