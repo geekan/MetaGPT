@@ -4,6 +4,7 @@ import os
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import math
+from metagpt.config import CONFIG
 
 def extract_logs(filename, start_time=None, end_time=None):
     with open(filename, 'r') as f:
@@ -31,15 +32,16 @@ def extract_time_from_last_round_zero(log_filename):
     with open(log_filename, 'r') as f:
         lines = f.readlines()
 
+    found = None
     # 倒序遍历文件的每一行
-    for line in reversed(lines):
-        if "Config loading done" in line:
-            # 正则表达式匹配年月日 小时:分钟的格式
-            match = re.search(r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2})', line)
-            if match:
-                return match.group(1)
-    return None
-
+    while not found:
+        for line in reversed(lines):
+            if "round_id:1\n" in line:
+                # 正则表达式匹配年月日 小时:分钟的格式
+                match = re.search(r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2})', line)
+                if match.group(1):
+                    return match.group(1)
+        return None
 def analyze_log_block(logs_block):
     rounds: list[int] = []
     items_collected :list[int] = []
@@ -84,11 +86,11 @@ def analyze_log_block(logs_block):
                             items_collected.append(total_items)
 
                     if "Completed tasks so far:" in line:
-                        tasks = line.replace("Completed tasks so far:", "").strip().split(", ")
+                        tasks = line.replace("Completed tasks so far:", "").strip().split(";")
                         completed_tasks.append(0 if tasks == ['None'] else len(tasks))
 
                     if "Failed tasks that are too hard:" in line:
-                        tasks = line.replace("Failed tasks that are too hard:", "").strip().split(", ")
+                        tasks = line.replace("Failed tasks that are too hard:", "").strip().split(";")
                         failed_tasks.append(0 if tasks == ['None'] else len(tasks))
                         check_for_info = False
                         round_start = False
