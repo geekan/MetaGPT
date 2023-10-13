@@ -276,7 +276,7 @@ class CurriculumDesigner(Base):
             task = self.game_memory.current_task
         elif inventoryUsed >= 33:
             task = self.generate_task_if_inventory_full(
-                self, events=events, chest_observation=chest_observation
+                events=events, chest_observation=chest_observation
             )
         else:
             task = await DesignTask().run(human_msg, system_msg, *args, **kwargs)
