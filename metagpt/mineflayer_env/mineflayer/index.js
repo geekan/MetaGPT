@@ -51,7 +51,7 @@ app.post("/start", (req, res) => {
     });
 
     bot.once("spawn", async () => {
-        mineflayerViewer(bot, { port: 3007, firstPerson: false }) 
+        mineflayerViewer(bot, { port: 3007, firstPerson: false })
         bot.removeListener("error", onConnectionFailed);
         let itemTicks = 1;
         if (req.body.reset === "hard") {
@@ -127,7 +127,7 @@ app.post("/start", (req, res) => {
             bot.chat(`/spreadplayers ~ ~ 0 300 under 80 false @s`);
             await bot.waitForTicks(bot.waitTicks);
         }
-
+        bot.chat(`/spawnpoint bot 26 100 20`);
         await bot.waitForTicks(bot.waitTicks * itemTicks);
         res.json(bot.observe());
 
