@@ -224,11 +224,12 @@ class ActionDeveloper(Base):
         self.perform_game_info_callback(new_skills_info, self.game_memory.append_skill)
     
     async def retrieve_skills(self, query, skills, *args, **kwargs):
-        retrieve_skills = await RetrieveSkills().run(query, skills, vectordb=self.game_memory.vectordb)
+        skill_retrieve = RetrieveSkills()
+        skill_retrieve.retrieval_top_k = max(1, skill_retrieve.retrieval_top_k - int(self.round_id // 50))
+        retrieve_skills = await skill_retrieve.run(query, skills, vectordb=self.game_memory.vectordb)
         logger.info(f"Render Action Agent system message with {len(retrieve_skills)} skills")
         self.perform_game_info_callback(retrieve_skills, self.game_memory.update_retrieve_skills)
-        # return Message(content=f"{retrieve_skills}", instruct_content="retrieve_skills",
-        #                role=self.profile, send_to=agent_registry.entries["action_developer"]()._setting.name)
+        
     
     async def runcode_and_evaluate(self, human_msg, system_msg, *args, **kwargs):
         """

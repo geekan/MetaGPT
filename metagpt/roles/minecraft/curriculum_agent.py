@@ -134,6 +134,9 @@ class CurriculumDesigner(Base):
         observation = self.render_curriculum_observation(
             events=events, chest_observation=chest_observation
         )
+        # Add last task
+        observation["last_task"] = f"Last Task: {self.game_memory.current_task}\n\n"
+        
         if self.game_memory.progress >= warm_up["context"]:
             # if self.game_memory.progress >= 0: # TEST ONLY
             human_msg = self.render_design_curriculum_human_message(
@@ -276,7 +279,7 @@ class CurriculumDesigner(Base):
             task = self.game_memory.current_task
         elif inventoryUsed >= 33:
             task = self.generate_task_if_inventory_full(
-                self, events=events, chest_observation=chest_observation
+                events=events, chest_observation=chest_observation
             )
         else:
             task = await DesignTask().run(human_msg, system_msg, *args, **kwargs)

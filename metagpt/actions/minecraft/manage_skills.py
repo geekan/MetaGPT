@@ -26,7 +26,13 @@ class RetrieveSkills(Action):
         if k == 0:
             return []
         logger.info(f"Skill Manager retrieving for {k} skills")
-        docs_and_scores = vectordb.similarity_search_with_score(query, k=k)
+        try:
+            docs_and_scores = vectordb.similarity_search_with_score(query, k=k)
+        
+        except Exception as e:
+            docs_and_scores = vectordb.similarity_search_with_score(query, k=1)
+            logger.debug(f"{e}")
+            
         logger.info(
             f"Skill Manager retrieved skills: "
             f"{', '.join([doc.metadata['name'] for doc, _ in docs_and_scores])}"
