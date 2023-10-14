@@ -304,14 +304,14 @@ class STRole(Role):
                                                        .act_description)
                     chat_embedding_pair = (self._rc.scratch.act_description,
                                            chat_embedding)
-                    chat_poignancy = generate_poig_score(self._rc.scratch, "chat",
+                    chat_poignancy = generate_poig_score(self, "chat",
                                                          self._rc.scratch.act_description)
                     chat_node = self._rc.memory.add_chat(self._rc.scratch.curr_time, None,
                                                          curr_event[0], curr_event[1], curr_event[2],
                                                          self._rc.scratch.act_description, keywords,
                                                          chat_poignancy, chat_embedding_pair,
                                                          self._rc.scratch.chat)
-                    chat_node_ids = [chat_node.node_id]
+                    chat_node_ids = [chat_node.memory_id]
 
                 # Finally, we add the current event to the agent's memory.
                 ret_events += [self._rc.memory.add_event(self._rc.scratch.curr_time, None,
@@ -502,6 +502,9 @@ class STRole(Role):
                 self._rc.env.maze.add_event_from_tile(self.scratch.get_curr_event_and_desc(), new_tile)
                 blank = (self.scratch.get_curr_obj_event_and_desc()[0], None, None, None)
                 self._rc.env.maze.remove_event_from_tile(blank, new_tile)
+
+            # update role's new tile
+            self._rc.scratch.curr_tile = new_tile
         else:
             ret = False
             time.sleep(1)
@@ -547,7 +550,7 @@ class STRole(Role):
         save_movement(self.name, role_move, step=self.step, sim_code=self.sim_code, curr_time=self.curr_time)
 
         # step update
-        logger.info(f"Role: {self.name} run at {self.step} step on {self.curr_time}")
+        logger.info(f"Role: {self.name} run at {self.step} step on {self.curr_time} at tile: {self.scratch.curr_tile}")
         self.step += 1
         save_environment(self.name, self.step, self.sim_code, next_tile)
         self.curr_time += datetime.timedelta(seconds=self.sec_per_step)

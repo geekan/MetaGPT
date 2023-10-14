@@ -226,7 +226,7 @@ class Scratch:
         scratch["planned_path"] = self.planned_path
 
         with open(out_json, "w") as outfile:
-            json.dump(scratch, outfile, indent=2)
+            json.dump(scratch, outfile, ensure_ascii=False, indent=4)
 
     def get_f_daily_schedule_index(self, advance=0):
         """
@@ -452,6 +452,7 @@ class Scratch:
                 x = x.replace(second=0)
                 x = (x + datetime.timedelta(minutes=1))
             end_time = (x + datetime.timedelta(minutes=self.act_duration))
+
 
         if end_time.strftime("%H:%M:%S") == self.curr_time.strftime("%H:%M:%S"):
             return True

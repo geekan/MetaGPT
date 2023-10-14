@@ -29,8 +29,9 @@ def plan(role: "STRole", maze: Maze, roles: dict["STRole"], new_day: bool, retri
         _long_term_planning(role, new_day)
 
     # PART 2: If the current action has expired, we want to create a new plan.
-    if role.scratch.act_check_finished():
-        logger.info("act_check_finished is True")
+    act_check_finished = role.scratch.act_check_finished()
+    logger.info(f"Role: {role.name} act_check_finished is {act_check_finished}")
+    if act_check_finished:
         _determine_action(role, maze)
 
     # PART 3: If you perceived an event that needs to be responded to (saw 

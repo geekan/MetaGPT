@@ -43,10 +43,10 @@ class TaskDecomp(STAction):
             i_task = i[0]
             i_duration = i[1]
 
-        i_duration -= (i_duration % 5)
-        if i_duration > 0:
-            for j in range(i_duration):
-                curr_min_slot += [(i_task, count)]
+            i_duration -= (i_duration % 5)
+            if i_duration > 0:
+                for j in range(i_duration):
+                    curr_min_slot += [(i_task, count)]
         curr_min_slot = curr_min_slot[1:]
 
         if len(curr_min_slot) > total_expected_min:

@@ -139,16 +139,16 @@ class AgentMemory(Memory):
             memory_node = memory_node.save_to_dict()
             memory_json.update(memory_node)
         with open(memory_saved + "/nodes.json", "w") as outfile:
-            json.dump(memory_json, outfile)
+            json.dump(memory_json, outfile, ensure_ascii=False, indent=4)
 
         with open(memory_saved + "/embeddings.json", "w") as outfile:
-            json.dump(self.embeddings, outfile)
+            json.dump(self.embeddings, outfile, ensure_ascii=False, indent=4)
 
         strength_json = dict()
         strength_json["kw_strength_event"] = self.kw_strength_event
         strength_json["kw_strength_thought"] = self.kw_strength_thought
         with open(memory_saved + "/kw_strength.json", "w") as outfile:
-            json.dump(strength_json, outfile)
+            json.dump(strength_json, outfile, ensure_ascii=False, indent=4)
 
     def load(self, memory_saved: str):
         """
