@@ -40,7 +40,7 @@ class BasePlayer(Role):
 
         self.experiences = []
 
-        self.memory_retriever = MemoryRetriever(mode="full")
+        self.memory_retriever = MemoryRetriever(mode="heuristic")
 
     async def _observe(self) -> int:
         if self.status == 1:
