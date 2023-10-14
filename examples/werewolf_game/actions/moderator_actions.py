@@ -1,5 +1,6 @@
 import asyncio
 import collections
+import json
 import re
 from random import random
 
@@ -126,8 +127,8 @@ Attetion, living players contain all players except the dead players.
 
 Response should have the following format(split by ## ):
 ## Instruction
-The 'Instruction' is the instruction from the moderator. It contains which player(s) need to do what, and provides optional players to help make decisions(Choose only one from the following options:).
-For example, 'Guard, now tell me who you protect tonight? You only choose one from the following options please: [players]. Or you can pass.'.
+This section provides directives from the moderator. It tells specific players what actions they need to undertake and offers a list of optional players for decision-making. Format: <role command> + [optional player list]. 
+For example: 'Guard, who will you protect tonight? Choose one from: [player1, player2, player3...]. Alternatively, you may pass.'
 
 ## Send To
 'Send To' specifies the player(s) who need to process and respond to a message. 'Send To' can't not player's name.
@@ -136,8 +137,9 @@ Using empty string '' to let all players to process the message.
 Otherwise, specify the player profile to let the player to process the message. 
 But don't reveal the player's name! For example, 'Moderator' or '' or 'Werewolf' or 'Seer' or 'Guard' or 'Witch' etc.
 
-## Day Or Night
-'Day Or Night' specifies the time when the message is sent. It should be 'Day' or 'Night'.
+## Flag
+'Flag' indicates response attributes. It denotes if a conversion is required ("flag": true or false) and 
+the time phase ("day_or_night": "Day" or "Night"). For example: {{"flag": false, "day_or_night": "Night"}}.
 '''
 
 
@@ -177,8 +179,6 @@ class InstructSpeak(Action):
     # 若是llm模式，将多返回一个flag字段
     async def run_llm(self, living_players, werewolf_players, player_hunted, player_current_dead, **kwargs):
         conversation = kwargs.get("conversation", "")
-        pre_flag_info = kwargs.get("pre_flag_info", "")
-        pre_day_or_night = pre_flag_info.get("day_or_night", "") if pre_flag_info else ""
         prompt = GAME_RULE + str(conversation)[:4000] + GENERATE_POSSIBLE_ANSWER.format(
             living_players=",".join(living_players),
             werewolf_players=",".join(werewolf_players),
@@ -192,21 +192,18 @@ class InstructSpeak(Action):
         send_to = re.search(r"## Send To\n(.*?)##", rsp, re.DOTALL).group(1).strip().replace("'", "")
         # restricted_to = re.search(r"## Restricted To\n(.*?)##", rsp, re.DOTALL).group(1).strip()
         restricted_to = ""
-        day_or_night = re.search(r"## Day Or Night\n(.*)", rsp, re.DOTALL).group(1).strip()
-        flag = False
-        if day_or_night != pre_day_or_night and pre_day_or_night != "":
-            flag = True
-        flag_info = {"flag": flag, "day_or_night": day_or_night}
-        if day_or_night == "Night":
+        flag_info = re.search(r"## Flag\n(.*)", rsp, re.DOTALL).group(1).strip()
+        flag_info = json.loads(flag_info)
+
+        if flag_info["day_or_night"] == "Night":
             if send_to == "Moderator":
                 restricted_to = ""
             elif send_to in ["Werewolf", "Seer", "Guard", "Witch"]:
                 restricted_to = "Moderator," + send_to
-        elif day_or_night == "Day":
+        elif flag_info["day_or_night"] == "Day":
             restricted_to = ""
 
         return content, send_to, restricted_to, flag_info
-
 
 class ParseSpeak(Action):
     def __init__(self, name="ParseSpeak", context=None, llm=None):
