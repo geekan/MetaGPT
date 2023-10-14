@@ -7,7 +7,7 @@ from metagpt.actions import Action
 STEP_INSTRUCTIONS = {
     # 上帝需要介入的全部步骤和对应指令
     # The 1-st night
-    0: {"content": "It’s dark, everyone close your eyes. I will talk with you/your team secretly at night.",
+    0: {"content": "It's dark, everyone close your eyes. I will talk with you/your team secretly at night.",
         "send_to": "Moderator",  # for moderator to continuen speaking
         "restricted_to": ""},
     1: {"content": "Guard, please open your eyes!",
@@ -69,7 +69,7 @@ STEP_INSTRUCTIONS = {
                     reflection with a few sentences. Decide whether to reveal your identity based on your reflection.""",
          "send_to": "",  # send to all to speak in daytime
          "restricted_to": ""},
-    17: {"content": """Now vote and tell me who you think is the werewolf. Don’t mention your role.
+    17: {"content": """Now vote and tell me who you think is the werewolf. Don't mention your role.
                     You only choose one from the following living options please:
                     {living_players}. Say ONLY: I vote to eliminate ...""",
          "send_to": "",

@@ -76,7 +76,7 @@ class AddNewExperiences(Action):
 
     @staticmethod
     def _record_experiences_local(experiences: list[RoleExperience]):
-        round_id = experiences[0].round_id
+        round_id = experiences[0].round_id.replace(":", "-")    # 请修改
         experiences = [exp.json() for exp in experiences]
         experience_folder = WORKSPACE_ROOT / 'werewolf_game/experiences'
         if not os.path.exists(experience_folder):
