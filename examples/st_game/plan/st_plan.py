@@ -44,7 +44,7 @@ def plan(role: "STRole", maze: Maze, roles: dict["STRole"], new_day: bool, retri
     #                     ["thoughts"] = [<ConceptNode>, ...]}    
     focused_event = False
     if retrieved.keys():
-        focused_event = _choose_retrieved(role, retrieved)
+        focused_event = _choose_retrieved(role.name, retrieved)
 
     # Step 2: Once we choose an event, we need to determine whether the
     #         role will take any actions for the perceived event. There are
