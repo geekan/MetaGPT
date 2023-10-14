@@ -1,5 +1,6 @@
 import re
 from collections import Counter
+from datetime import datetime
 
 from metagpt.const import WORKSPACE_ROOT
 from metagpt.roles import Role
@@ -27,6 +28,7 @@ class Moderator(Role):
         self.eval_step_idx = []
 
         # game states
+        self.game_setup = ""
         self.living_players = []
         self.werewolf_players = []
         self.villager_players = []
@@ -44,6 +46,7 @@ class Moderator(Role):
         self.player_current_dead = []
 
     def _parse_game_setup(self, game_setup: str):
+        self.game_setup = game_setup
         self.living_players = re.findall(r"Player[0-9]+", game_setup)
         self.werewolf_players = re.findall(r"Player[0-9]+: Werewolf", game_setup)
         self.werewolf_players = [p.replace(": Werewolf", "") for p in self.werewolf_players]
@@ -60,6 +63,18 @@ class Moderator(Role):
             for player_name in player_names:
                 if player_name in role_setting:
                     role.set_status(new_status=1) # 更新为死亡
+
+    def _record_all_experiences(self):
+        roles_in_env = self._rc.env.get_roles()
+        timestamp = datetime.now().strftime('%Y-%m-%d-%H:%M:%S')
+        for _, role in roles_in_env.items():
+            if role == self:
+                continue
+            if self.winner == "werewolf":
+                outcome = "won" if role.name in self.werewolf_players else "lost"
+            else:
+                outcome = "won" if role.name not in self.werewolf_players else "lost"
+            role.record_experiences(round_id=timestamp, outcome=outcome, game_setup=self.game_setup)
 
     async def _instruct_speak(self):
         print("*" * 10, "STEP: ", self.step_idx, "*" * 10)
@@ -87,7 +102,6 @@ class Moderator(Role):
         msg_cause_by = latest_msg.cause_by
         if msg_cause_by == Hunt:
             self.player_hunted = target
-            # breakpoint()
         elif msg_cause_by == Protect:
             self.player_protected = target
         elif msg_cause_by == Verify:
@@ -167,6 +181,8 @@ class Moderator(Role):
         elif not living_villagers or not living_special_roles:
             self.winner = "werewolf"
             self.win_reason = "villagers all dead" if not living_villagers else "special roles all dead"
+        if self.winner is not None:
+            self._record_all_experiences()
 
     def _record_game_history(self):
         if self.step_idx % len(STEP_INSTRUCTIONS) == 0 or self.winner is not None:

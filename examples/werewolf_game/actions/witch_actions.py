@@ -5,11 +5,13 @@ class Save(NighttimeWhispers):
     def __init__(self, name="Save", context=None, llm=None):
         super().__init__(name, context, llm)
 
-    def _update_prompt_json(self, prompt_json: dict, profile: str, name: str, context: str, reflection: str, **kwargs):
+    def _update_prompt_json(
+        self, prompt_json: dict, role_profile: str, role_name: str, context: str, reflection: str, experiences: str
+    ) -> dict:
         del prompt_json['ACTION']
         del prompt_json['ATTENTION']
 
-        prompt_json["OUTPUT_FORMAT"]["THOUGHTS"] = "It is night time. Return the thinking steps of your decision of whether to save the player JUST be killed at this night."
+        prompt_json["OUTPUT_FORMAT"]["THOUGHTS"] = "It is night time. Return the thinking steps of your decision of whether to save the player JUST killed this night."
         prompt_json["OUTPUT_FORMAT"]["RESPONSE"] = "Follow the Moderator's instruction, decide whether you want to save that person or not. Return SAVE or PASS."
 
         return prompt_json
@@ -28,10 +30,10 @@ class Poison(NighttimeWhispers):
     def __init__(self, name="Poison", context=None, llm=None):
         super().__init__(name, context, llm)
 
-    def _update_prompt_json(self, prompt_json: dict, profile: str, name: str, context: str, reflection: str, **kwargs):
-
+    def _update_prompt_json(
+        self, prompt_json: dict, role_profile: str, role_name: str, context: str, reflection: str, experiences: str
+    ) -> dict:
         prompt_json["OUTPUT_FORMAT"]["RESPONSE"] += "Or if you want to PASS, return PASS."
-
         return prompt_json
 
     async def run(self, *args, **kwargs):
