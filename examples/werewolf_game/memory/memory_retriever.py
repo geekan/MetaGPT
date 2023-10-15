@@ -5,20 +5,20 @@ class MemoryRetriever:
     def __init__(self, mode="full"):
         self.mode = mode  # full or heuristic
 
-    def get_full_memories(self, memory, profile, name) -> str:
-        all_memories = memory.get()
+    # FIXME 是否可以让Moderator也使用MemoryRetriever，使用full_str和full_list的mode进行区分？
+    @staticmethod
+    def get_full_memories(memory) -> str:
         time_stamp_pattern = r'[0-9]+ \| '
         # NOTE: 除Moderator外，其他角色使用memory，只能用m.sent_from（玩家名）不能用m.role（玩家角色），因为他们不知道说话者的身份
-        memories = [f"{m.sent_from}: {re.sub(time_stamp_pattern, '', m.content)}" for m in all_memories]
+        memories = [f"{m.sent_from}: {re.sub(time_stamp_pattern, '', m.content)}" for m in memory]
         return "\n".join(memories)
 
     def get_heuristic_memories(self, memory, profile, name, m=15, n=10) -> str:
-        all_memories = memory.get()
 
-        recent_m_memories = all_memories[-m:]  # 取最近m条记忆
+        recent_m_memories = memory[-m:]  # 取最近m条记忆
 
         # 将所有记忆按照重要性打分
-        scored_memories = [(message, self.score_message(message.content, profile, name)) for message in all_memories]
+        scored_memories = [(message, self.score_message(message.content, profile, name)) for message in memory]
 
         # 提取分数最高的n条记忆，如果分数相同，则较新轮次的记忆排在前面
         # sorted_memories = sorted(scored_memories, key=lambda x: x[1], reverse=True)
@@ -43,7 +43,8 @@ class MemoryRetriever:
 
         return memories
 
-    def score_message(self, message: str, profile, name) -> int:
+    @staticmethod
+    def score_message(message: str, profile, name) -> int:
         message = message.lower()
         profile = profile.lower()
         name = name.lower()
