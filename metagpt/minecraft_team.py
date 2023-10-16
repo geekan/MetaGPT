@@ -369,7 +369,9 @@ class GameEnvironment(BaseModel, arbitrary_types_allowed=True):
                     "wait_ticks": 20,
                 }
             )
-            difficulty = "easy" if len(self.completed_tasks) > 15 else "peaceful"
+            # difficulty = "easy" if len(self.completed_tasks) > 15 else "peaceful"
+            difficulty = "peaceful"
+            
             events = self.mf_instance.step(
                 "bot.chat(`/time set ${getNextTime()}`);\n"
                 + f"bot.chat('/difficulty {difficulty}');"

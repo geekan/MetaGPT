@@ -16,6 +16,7 @@ class GenerateActionCode(Action):
     def __init__(self, name="", context=None, llm=None):
         super().__init__(name, context, llm)
         self.llm.model = "gpt-4"
+        self.llm.temperature = 0.7
 
     async def generate_code(self, human_msg, system_msg=[]):
         """

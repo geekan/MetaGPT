@@ -63,8 +63,8 @@ class ActionDeveloper(Base):
             "smeltItem",
             "killMob",
         ]
-        if not CONFIG.openai_api_model == "gpt-3.5-turbo":
-            base_skills += [
+        # if not CONFIG.openai_api_model == "gpt-3.5-turbo":
+        base_skills += [
                 "useChest",
                 "mineflayer",
             ]
