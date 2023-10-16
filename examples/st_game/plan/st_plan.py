@@ -9,7 +9,6 @@ import math
 
 from metagpt.llm import LLM
 from metagpt.logs import logger
-from ..maze import Maze
 from ..plan.converse import agent_conversation
 from ..actions.decide_to_talk import DecideToTalk
 from ..actions.summarize_conv import SummarizeConv
@@ -23,16 +22,16 @@ from ..utils.utils import get_embedding
 from ..memory.retrieve import new_agent_retrieve
 
 
-def plan(role: "STRole", maze: Maze, roles: dict["STRole"], new_day: bool, retrieved: dict) -> str:
+def plan(role: "STRole", roles: dict["STRole"], new_day: bool, retrieved: dict) -> str:
     # PART 1: Generate the hourly schedule. 
-    if new_day: 
+    if new_day:
         _long_term_planning(role, new_day)
 
     # PART 2: If the current action has expired, we want to create a new plan.
     act_check_finished = role.scratch.act_check_finished()
     logger.info(f"Role: {role.name} act_check_finished is {act_check_finished}")
     if act_check_finished:
-        _determine_action(role, maze)
+        _determine_action(role)
 
     # PART 3: If you perceived an event that needs to be responded to (saw 
     # another role), and retrieved relevant information. 
@@ -60,7 +59,7 @@ def plan(role: "STRole", maze: Maze, roles: dict["STRole"], new_day: bool, retri
         if reaction_mode:
             # If we do want to chat, then we generate conversation
             if reaction_mode[:9] == "chat with":
-                _chat_react(maze, role, reaction_mode, roles)
+                _chat_react(role, reaction_mode, roles)
             elif reaction_mode[:4] == "wait":
                 _wait_react(role, reaction_mode)
 
@@ -246,7 +245,7 @@ def _should_react(role: "STRole", retrieved: dict, roles: dict):
     return False
 
 
-def _chat_react(maze: Maze, role: "STRole", reaction_mode: str, roles: dict["STRole"]):
+def _chat_react(role: "STRole", reaction_mode: str, roles: dict["STRole"]):
     # There are two roles -- the role who is initiating the conversation
     # and the role who is the target. We get the role instances here.
     init_role = role
@@ -254,7 +253,7 @@ def _chat_react(maze: Maze, role: "STRole", reaction_mode: str, roles: dict["STR
     curr_roles = [init_role, target_role]
 
     # Actually creating the conversation here.
-    convo, duration_min = generate_convo(maze, init_role, target_role)  # 2222
+    convo, duration_min = generate_convo(init_role, target_role)  # 2222
     convo_summary = generate_convo_summary(convo)
     inserted_act = convo_summary
     inserted_act_dur = duration_min
@@ -313,9 +312,9 @@ def _create_react(role: "STRole", inserted_act: str, inserted_act_dur: int,
     elif (scratch.f_daily_schedule_hourly_org[scratch.get_f_daily_schedule_hourly_org_index()][1] +
           scratch.f_daily_schedule_hourly_org[scratch.get_f_daily_schedule_hourly_org_index() + 1][1]):
         end_hour = start_hour + (
-                    (scratch.f_daily_schedule_hourly_org[scratch.get_f_daily_schedule_hourly_org_index()][1] +
-                     scratch.f_daily_schedule_hourly_org[scratch.get_f_daily_schedule_hourly_org_index() + 1][
-                         1]) / 60)
+                (scratch.f_daily_schedule_hourly_org[scratch.get_f_daily_schedule_hourly_org_index()][1] +
+                 scratch.f_daily_schedule_hourly_org[scratch.get_f_daily_schedule_hourly_org_index() + 1][
+                     1]) / 60)
 
     else:
         end_hour = start_hour + 2
@@ -357,7 +356,7 @@ def _wait_react(role: "STRole", reaction_mode: str):
     inserted_act = f'waiting to start {scratch.act_description.split("(")[-1][:-1]}'
     end_time = datetime.datetime.strptime(reaction_mode[6:].strip(), "%B %d, %Y, %H:%M:%S")
     inserted_act_dur = (end_time.minute + end_time.hour * 60) - (
-                scratch.curr_time.minute + scratch.curr_time.hour * 60) + 1
+            scratch.curr_time.minute + scratch.curr_time.hour * 60) + 1
 
     act_address = f"<waiting> {scratch.curr_tile[0]} {scratch.curr_tile[1]}"
     act_event = (role.name, "waiting to start", scratch.act_description.split("(")[-1][:-1])
@@ -376,8 +375,8 @@ def _wait_react(role: "STRole", reaction_mode: str):
                   act_pronunciatio, act_obj_description, act_obj_pronunciatio, act_obj_event)
 
 
-def generate_convo(maze: Maze, init_role: "STRole", target_role: "STRole") -> Union[list, int]:
-    convo = agent_conversation(maze, init_role, target_role)
+def generate_convo(init_role: "STRole", target_role: "STRole") -> Union[list, int]:
+    convo = agent_conversation(init_role, target_role)
     all_utt = ""
 
     for row in convo:
@@ -424,7 +423,7 @@ def generate_new_decomp_schedule(role: "STRole", inserted_act: str, inserted_act
                 truncated_act_dur += [[scratch.f_daily_schedule[count][0],
                                        dur_sum - today_min_pass]]
                 truncated_act_dur[-1][-1] -= (
-                            dur_sum - today_min_pass)  # DEC 7 DEBUG;.. is the +1 the right thing to do???
+                        dur_sum - today_min_pass)  # DEC 7 DEBUG;.. is the +1 the right thing to do???
                 # DEC 7 DEBUG;.. is the +1 the right thing to do???
                 # truncated_act_dur[-1][-1] -= (dur_sum - today_min_pass + 1)
                 print("DEBUG::: ", truncated_act_dur)
@@ -463,7 +462,7 @@ def generate_new_decomp_schedule(role: "STRole", inserted_act: str, inserted_act
                                    inserted_act_dur)
 
 
-def _long_term_planning(role: "STRole", new_day: bool): 
+def _long_term_planning(role: "STRole", new_day: bool):
     """
     Formulates the role's daily long-term plan if it is the start of a new 
     day. This basically has two components: first, we create the wake-up hour, 
@@ -481,7 +480,7 @@ def _long_term_planning(role: "STRole", new_day: bool):
     # When it is a new day, we start by creating the daily_req of the role.
     # Note that the daily_req is a list of strings that describe the role's
     # day in broad strokes.
-    if new_day == "First day": 
+    if new_day == "First day":
         # Bootstrapping the daily plan for the start of then generation:
         # if this is the start of generation (so there is no previous day's 
         # daily requirement, or if we are on a new day, we want to create a new
@@ -504,7 +503,7 @@ def _long_term_planning(role: "STRole", new_day: bool):
 
     # Added March 4 -- adding plan to the memory.
     thought = f"This is {role.scratch.name}'s plan for {role.scratch.curr_time.strftime('%A %B %d')}:"
-    for i in role.scratch.daily_req: 
+    for i in role.scratch.daily_req:
         thought += f" {i},"
     thought = thought[:-1] + "."
     created = role.scratch.curr_time
@@ -513,16 +512,16 @@ def _long_term_planning(role: "STRole", new_day: bool):
     keywords = set(["plan"])
     thought_poignancy = 5
     thought_embedding_pair = (thought, get_embedding(thought))
-    role.a_mem.add_thought(created, expiration, s, p, o, 
-                                thought, keywords, thought_poignancy, 
-                                thought_embedding_pair, None)
+    role.a_mem.add_thought(created, expiration, s, p, o,
+                           thought, keywords, thought_poignancy,
+                           thought_embedding_pair, None)
 
     # print("Sleeping for 20 seconds...")
     # time.sleep(10)
     # print("Done sleeping!")
 
 
-def _determine_action(role: "STRole", maze: Maze): 
+def _determine_action(role: "STRole"):
     """
     Creates the next action sequence for the role. 
     The main goal of this function is to run "add_new_action" on the role's 
@@ -531,9 +530,9 @@ def _determine_action(role: "STRole", maze: Maze):
     As a part of this, the role may need to decompose its hourly schedule as 
     needed.   
     INPUT
-        role: Current <Persona> instance whose action we are determining. 
-        maze: Current <Maze> instance. 
+        role: Current <Persona> instance whose action we are determining.
     """
+
     def determine_decomp(act_desp, act_dura):
         """
         Given an action description and its duration, we determine whether we need
@@ -546,12 +545,12 @@ def _determine_action(role: "STRole", maze: Maze):
         OUTPUT: 
         a boolean. True if we need to decompose, False otherwise. 
         """
-        if "sleep" not in act_desp and "bed" not in act_desp: 
+        if "sleep" not in act_desp and "bed" not in act_desp:
             return True
         elif "sleeping" in act_desp or "asleep" in act_desp or "in bed" in act_desp:
             return False
-        elif "sleep" in act_desp or "bed" in act_desp: 
-            if act_dura > 60: 
+        elif "sleep" in act_desp or "bed" in act_desp:
+            if act_dura > 60:
                 return False
         return True
 
@@ -570,18 +569,18 @@ def _determine_action(role: "STRole", maze: Maze):
     if curr_index == 0:
         # This portion is invoked if it is the first hour of the day. 
         act_desp, act_dura = role.scratch.f_daily_schedule[curr_index]
-        if act_dura >= 60: 
-        # We decompose if the next action is longer than an hour, and fits the
-        # criteria described in determine_decomp.
-            if determine_decomp(act_desp, act_dura): 
-                role.scratch.f_daily_schedule[curr_index:curr_index+1] = (
-                                TaskDecomp().run(role, act_desp, act_dura))
+        if act_dura >= 60:
+            # We decompose if the next action is longer than an hour, and fits the
+            # criteria described in determine_decomp.
+            if determine_decomp(act_desp, act_dura):
+                role.scratch.f_daily_schedule[curr_index:curr_index + 1] = (
+                    TaskDecomp().run(role, act_desp, act_dura))
         if curr_index_60 + 1 < len(role.scratch.f_daily_schedule):
-            act_desp, act_dura = role.scratch.f_daily_schedule[curr_index_60+1]
-            if act_dura >= 60: 
-                if determine_decomp(act_desp, act_dura): 
-                    role.scratch.f_daily_schedule[curr_index_60+1:curr_index_60+2] = (
-                                    TaskDecomp().run(role, act_desp, act_dura))
+            act_desp, act_dura = role.scratch.f_daily_schedule[curr_index_60 + 1]
+            if act_dura >= 60:
+                if determine_decomp(act_desp, act_dura):
+                    role.scratch.f_daily_schedule[curr_index_60 + 1:curr_index_60 + 2] = (
+                        TaskDecomp().run(role, act_desp, act_dura))
 
     if curr_index_60 < len(role.scratch.f_daily_schedule):
         # If it is not the first hour of the day, this is always invoked (it is
@@ -589,42 +588,42 @@ def _determine_action(role: "STRole", maze: Maze):
         # decompose two hours in one go). Of course, we need to have something to
         # decompose as well, so we check for that too. 
         if role.scratch.curr_time.hour < 23:
-        # And we don't want to decompose after 11 pm. 
+            # And we don't want to decompose after 11 pm.
             act_desp, act_dura = role.scratch.f_daily_schedule[curr_index_60]
-            if act_dura >= 60: 
-                if determine_decomp(act_desp, act_dura): 
-                   role.scratch.f_daily_schedule[curr_index_60:curr_index_60+1] = (
-                                    TaskDecomp().run(role, act_desp, act_dura))
+            if act_dura >= 60:
+                if determine_decomp(act_desp, act_dura):
+                    role.scratch.f_daily_schedule[curr_index_60:curr_index_60 + 1] = (
+                        TaskDecomp().run(role, act_desp, act_dura))
     # * End of Decompose * 
 
     # Generate an <Action> instance from the action description and duration. By
     # this point, we assume that all the relevant actions are decomposed and 
     # ready in f_daily_schedule. 
-    print ("DEBUG LJSDLFSKJF")
-    for i in role.scratch.f_daily_schedule: print (i)
-    print (curr_index)
-    print (len(role.scratch.f_daily_schedule))
-    print (role.scratch.name)
-    print ("------")
+    print("DEBUG LJSDLFSKJF")
+    for i in role.scratch.f_daily_schedule: print(i)
+    print(curr_index)
+    print(len(role.scratch.f_daily_schedule))
+    print(role.scratch.name)
+    print("------")
 
     # 1440
     x_emergency = 0
-    for i in role.scratch.f_daily_schedule: 
+    for i in role.scratch.f_daily_schedule:
         x_emergency += i[1]
     # print ("x_emergency", x_emergency)
 
-    if 1440 - x_emergency > 0: 
-        print ("x_emergency__AAA", x_emergency)
+    if 1440 - x_emergency > 0:
+        print("x_emergency__AAA", x_emergency)
     role.scratch.f_daily_schedule += [["sleeping", 1440 - x_emergency]]
-    
-    act_desp, act_dura = role.scratch.f_daily_schedule[curr_index] 
+
+    act_desp, act_dura = role.scratch.f_daily_schedule[curr_index]
 
     new_action_details = GenActionDetails().run(role, act_desp, act_dura)
     # Adding the action to role's queue. 
     role.scratch.add_new_action(**new_action_details)
-    
 
-def revise_identity(role: "STRole"): 
+
+def revise_identity(role: "STRole"):
     p_name = role.scratch.name
 
     focal_points = [f"{p_name}'s plan for {role.scratch.get_str_curr_date_str()}.",
@@ -633,7 +632,7 @@ def revise_identity(role: "STRole"):
 
     statements = "[Statements]\n"
     for key, val in retrieved.items():
-        for i in val: 
+        for i in val:
             statements += f"{i.created.strftime('%A %B %d -- %H:%M %p')}: {i.embedding_key}\n"
 
     # print (";adjhfno;asdjao;idfjo;af", p_name)
@@ -653,7 +652,7 @@ def revise_identity(role: "STRole"):
 
     currently_prompt = f"{p_name}'s status from {(role.scratch.curr_time - datetime.timedelta(days=1)).strftime('%A %B %d')}:\n"
     currently_prompt += f"{role.scratch.currently}\n\n"
-    currently_prompt += f"{p_name}'s thoughts at the end of {(role.scratch.curr_time - datetime.timedelta(days=1)).strftime('%A %B %d')}:\n" 
+    currently_prompt += f"{p_name}'s thoughts at the end of {(role.scratch.curr_time - datetime.timedelta(days=1)).strftime('%A %B %d')}:\n"
     currently_prompt += (plan_note + thought_note).replace('\n', '') + "\n\n"
     currently_prompt += f"It is now {role.scratch.curr_time.strftime('%A %B %d')}. Given the above, write {p_name}'s status for {role.scratch.curr_time.strftime('%A %B %d')} that reflects {p_name}'s thoughts at the end of {(role.scratch.curr_time - datetime.timedelta(days=1)).strftime('%A %B %d')}. Write this in third-person talking about {p_name}."
     currently_prompt += f"If there is any scheduling information, be as specific as possible (include date, time, and location if stated in the statement).\n\n"
@@ -673,7 +672,5 @@ def revise_identity(role: "STRole"):
 
     new_daily_req = LLM().ask(daily_req_prompt)
     new_daily_req = new_daily_req.replace('\n', ' ')
-    print ("WE ARE HERE!!!", new_daily_req)
+    print("WE ARE HERE!!!", new_daily_req)
     role.scratch.daily_plan_req = new_daily_req
-
-

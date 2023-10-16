@@ -17,6 +17,9 @@ async def startup(idea: str,
                   sim_code: str,
                   investment: float = 30.0,
                   n_round: int = 500):
+    town = StanfordTown()
+    town.init_env()
+
     # copy `storage/{fork_sim_code}` to `storage/{sim_code}`
     copy_folder(str(STORAGE_PATH.joinpath(fork_sim_code)), str(STORAGE_PATH.joinpath(sim_code)))
 
@@ -28,8 +31,9 @@ async def startup(idea: str,
     for idx, role_name in enumerate(reverie_meta["persona_names"]):
         has_inner_voice = True if idx == 0 else False
         role = STRole(name=role_name,
-                      sim_code=sim_code,
                       profile=role_name,
+                      sim_code=sim_code,
+                      env=town.environment,
                       step=reverie_meta.get("step", 0),
                       start_date=reverie_meta.get("start_date"),
                       curr_time=reverie_meta.get("curr_time"),
@@ -41,7 +45,6 @@ async def startup(idea: str,
     write_curr_sim_code({"sim_code": sim_code})
     write_curr_step({"step": reverie_meta.get("step", 0)})
 
-    town = StanfordTown()
     town.wakeup_roles(roles)
 
     town.invest(investment)

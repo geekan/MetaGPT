@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 
 from metagpt.actions import BossRequirement
 from metagpt.config import CONFIG
-from metagpt.environment import Environment
+from metagpt.environment.environment import Environment
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message

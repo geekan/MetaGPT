@@ -17,6 +17,10 @@ class StanfordTown(SoftwareCompany):
 
     environment: MazeEnvironment = Field(default_factory=MazeEnvironment)
 
+    def init_env(self):
+        logger.info("StanfordTown init environment")
+        self.environment.init_register_funcs()
+
     def wakeup_roles(self, roles: list[Role]):
         logger.warning(f"The Town add {len(roles)} roles, and start to operate.")
         self.environment.add_roles(roles)

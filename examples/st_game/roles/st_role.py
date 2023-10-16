@@ -14,7 +14,6 @@ import math
 import time
 
 from pydantic import Field
-from pathlib import Path
 import random
 import datetime
 from operator import itemgetter
@@ -28,7 +27,6 @@ from examples.st_game.memory.spatial_memory import MemoryTree
 from examples.st_game.actions.dummy_action import DummyAction, DummyMessage
 from examples.st_game.actions.user_requirement import UserRequirement
 from examples.st_game.maze_environment import MazeEnvironment
-from examples.st_game.memory.retrieve import new_agent_retrieve
 from examples.st_game.memory.scratch import Scratch
 from examples.st_game.utils.utils import get_embedding, path_finder
 from examples.st_game.utils.const import collision_block_id, STORAGE_PATH
@@ -55,6 +53,7 @@ class STRole(Role):
                  name: str = "Klaus Mueller",
                  profile: str = "STMember",
                  sim_code: str = "new_sim",
+                 env: "MazeEnvironment" = None,
                  step: int = 0,
                  start_date: str = "",
                  curr_time: str = "",
@@ -74,6 +73,7 @@ class STRole(Role):
 
         self.role_storage_path = STORAGE_PATH.joinpath(f"{sim_code}/personas/{self.name}")
         self._rc = STRoleContext()
+        self.set_env(env)  # init environment before start_project
         self.load_from()  # load role's memory
 
         self._init_actions([])
@@ -89,7 +89,7 @@ class STRole(Role):
         pt_x = role_env["x"]
         pt_y = role_env["y"]
         self._rc.scratch.curr_tile = (pt_x, pt_y)
-        self._rc.env.maze.tiles[pt_y][pt_x]["events"].add(self.scratch.get_curr_event_and_desc())
+        self._rc.env.call_func("add_tiles_event", pt_y=pt_y, pt_x=pt_x, event=self.scratch.get_curr_event_and_desc())
 
     @property
     def name(self):
@@ -195,23 +195,25 @@ class STRole(Role):
         OUTPUT:
             ret_events: a list of <BasicMemory> that are perceived and new.
         """
-        maze = self._rc.env.maze
         # PERCEIVE SPACE
         # We get the nearby tiles given our current tile and the persona's vision
         # radius.
-        nearby_tiles = maze.get_nearby_tiles(self._rc.scratch.curr_tile,
-                                             self._rc.scratch.vision_r)
+        nearby_tiles = self._rc.env.call_func("get_nearby_tiles",
+                                              tile=self._rc.scratch.curr_tile,
+                                              vision_r=self._rc.scratch.vision_r)
 
         # We then store the perceived space. Note that the s_mem of the persona is
         # in the form of a tree constructed using dictionaries.
         for tile in nearby_tiles:
-            tile_info = maze.access_tile(tile)
+            tile_info = self._rc.env.call_func("access_tile", tile=tile)
             self._rc.spatial_memory.add_tile_info(tile_info)
 
         # PERCEIVE EVENTS.
         # We will perceive events that take place in the same arena as the
         # persona's current arena.
-        curr_arena_path = maze.get_tile_path(self._rc.scratch.curr_tile, "arena")
+        curr_arena_path = self._rc.env.call_func("get_tile_path",
+                                                 tile=self._rc.scratch.curr_tile,
+                                                 level="arena")
         # We do not perceive the same event twice (this can happen if an object is
         # extended across multiple tiles).
         percept_events_set = set()
@@ -221,9 +223,12 @@ class STRole(Role):
         # First, we put all events that are occuring in the nearby tiles into the
         # percept_events_list
         for tile in nearby_tiles:
-            tile_details = maze.access_tile(tile)
+            tile_details = self._rc.env.call_func("access_tile", tile=tile)
             if tile_details["events"]:
-                if maze.get_tile_path(tile, "arena") == curr_arena_path:
+                tmp_arena_path = self._rc.env.call_func("get_tile_path",
+                                                        tile=tile,
+                                                        level="arena")
+                if tmp_arena_path == curr_arena_path:
                     # This calculates the distance between the persona's current tile,
                     # and the target tile.
                     dist = math.dist([tile[0], tile[1]],
@@ -356,7 +361,6 @@ class STRole(Role):
             e.g., "dolores double studio:double studio:bedroom 1:bed"
         """
         roles = self._rc.env.get_roles()
-        maze = self._rc.env.maze
         if "<random>" in plan and self._rc.scratch.planned_path == []:
             self._rc.scratch.act_path_set = False
 
@@ -372,18 +376,18 @@ class STRole(Role):
                 # Executing persona-persona interaction.
                 target_p_tile = (roles[plan.split("<persona>")[-1].strip()]
                                  .scratch.curr_tile)
-                potential_path = path_finder(maze.collision_maze,
+                potential_path = path_finder(self._rc.env.call_func("get_collision_maze"),
                                              self._rc.scratch.curr_tile,
                                              target_p_tile,
                                              collision_block_id)
                 if len(potential_path) <= 2:
                     target_tiles = [potential_path[0]]
                 else:
-                    potential_1 = path_finder(maze.collision_maze,
+                    potential_1 = path_finder(self._rc.env.call_func("get_collision_maze"),
                                               self._rc.scratch.curr_tile,
                                               potential_path[int(len(potential_path) / 2)],
                                               collision_block_id)
-                    potential_2 = path_finder(maze.collision_maze,
+                    potential_2 = path_finder(self._rc.env.call_func("get_collision_maze"),
                                               self._rc.scratch.curr_tile,
                                               potential_path[int(len(potential_path) / 2) + 1],
                                               collision_block_id)
@@ -402,7 +406,7 @@ class STRole(Role):
             elif "<random>" in plan:
                 # Executing a random location action.
                 plan = ":".join(plan.split(":")[:-1])
-                target_tiles = maze.address_tiles[plan]
+                target_tiles = self._rc.env.call_func("get_address_tiles")[plan]
                 target_tiles = random.sample(list(target_tiles), 1)
 
             else:
@@ -411,10 +415,10 @@ class STRole(Role):
                 # Retrieve the target addresses. Again, plan is an action address in its
                 # string form. <maze.address_tiles> takes this and returns candidate
                 # coordinates.
-                if plan not in maze.address_tiles:
-                    maze.address_tiles["Johnson Park:park:park garden"]  # ERRORRRRRRR
+                if plan not in self._rc.env.call_func("get_address_tiles"):
+                    self._rc.env.call_func("get_address_tiles")["Johnson Park:park:park garden"]  # ERRORRRRRRR
                 else:
-                    target_tiles = maze.address_tiles[plan]
+                    target_tiles = self._rc.env.call_func("get_address_tiles")[plan]
 
             # There are sometimes more than one tile returned from this (e.g., a tabe
             # may stretch many coordinates). So, we sample a few here. And from that
@@ -430,7 +434,8 @@ class STRole(Role):
             persona_name_set = set(roles.keys())
             new_target_tiles = []
             for i in target_tiles:
-                curr_event_set = maze.access_tile(i)["events"]
+                access_tile = self._rc.env.call_func("access_tile", tile=i)
+                curr_event_set = access_tile["events"]
                 pass_curr_tile = False
                 for j in curr_event_set:
                     if j[0] in persona_name_set:
@@ -444,7 +449,6 @@ class STRole(Role):
             # Now that we've identified the target tile, we find the shortest path to
             # one of the target tiles.
             curr_tile = self._rc.scratch.curr_tile
-            collision_maze = maze.collision_maze
             closest_target_tile = None
             path = None
             for i in target_tiles:
@@ -452,7 +456,7 @@ class STRole(Role):
                 # an input, and returns a list of coordinate tuples that becomes the
                 # path.
                 # e.g., [(0, 1), (1, 1), (1, 2), (1, 3), (1, 4)...]
-                curr_path = path_finder(maze.collision_maze,
+                curr_path = path_finder(self._rc.env.call_func("get_collision_maze"),
                                         curr_tile,
                                         i,
                                         collision_block_id)
@@ -486,22 +490,26 @@ class STRole(Role):
         ret = True
         if role_env:
             for key, val in self.game_obj_cleanup.items():
-                self._rc.env.maze.turn_event_from_tile_idle(key, val)
+                self._rc.env.call_func("turn_event_from_tile_idle", curr_event=key, tile=val)
 
             # reset game_obj_cleanup
             self.game_obj_cleanup = dict()
             curr_tile = self.role_tile
             new_tile = (role_env["x"], role_env["y"])
-            self._rc.env.maze.remove_subject_events_from_tile(self.name, curr_tile)
-            self._rc.env.maze.add_event_from_tile(self.scratch.get_curr_event_and_desc(), new_tile)
+            self._rc.env.call_func("remove_subject_events_from_tile", subject=self.name, tile=curr_tile)
+            self._rc.env.call_func("add_event_from_tile",
+                                   curr_event=self.scratch.get_curr_event_and_desc(),
+                                   tile=new_tile)
 
             # the persona will travel to get to their destination. *Once*
             # the persona gets there, we activate the object action.
             if not self.scratch.planned_path:
                 self.game_obj_cleanup[self.scratch.get_curr_event_and_desc()] = new_tile
-                self._rc.env.maze.add_event_from_tile(self.scratch.get_curr_event_and_desc(), new_tile)
+                self._rc.env.call_func("add_event_from_tile",
+                                       curr_event=self.scratch.get_curr_event_and_desc(),
+                                       tile=new_tile)
                 blank = (self.scratch.get_curr_obj_event_and_desc()[0], None, None, None)
-                self._rc.env.maze.remove_event_from_tile(blank, new_tile)
+                self._rc.env.call_func("remove_event_from_tile", curr_event=blank, tile=new_tile)
 
             # update role's new tile
             self._rc.scratch.curr_tile = new_tile
@@ -535,7 +543,7 @@ class STRole(Role):
         # use self._rc.memory 's retrieve functions
         retrieved = self.retrieve(observed)
 
-        plans = plan(self, self._rc.env.maze, self._rc.env.get_roles(), new_day, retrieved)
+        plans = plan(self, self._rc.env.get_roles(), new_day, retrieved)
 
         self.reflect()
 

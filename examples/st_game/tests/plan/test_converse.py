@@ -5,7 +5,6 @@
 from typing import Tuple
 
 from examples.st_game.roles.st_role import STRole
-from examples.st_game.maze import Maze
 from examples.st_game.utils.const import STORAGE_PATH
 from examples.st_game.utils.mg_ga_transform import get_reverie_meta
 from examples.st_game.utils.utils import copy_folder
@@ -43,8 +42,7 @@ def init_two_roles(fork_sim_code: str = "July1_the_ville_isabella_maria_klaus-st
 def test_agent_conversation():
     role_ir, role_km = init_two_roles()
 
-    maze = Maze()
-    curr_chat = agent_conversation(maze, role_ir, role_km)
+    curr_chat = agent_conversation(role_ir, role_km)
     assert len(curr_chat) % 2 == 0
 
     meet = False

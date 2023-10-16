@@ -11,7 +11,6 @@ from typing import Iterable, Type
 
 from pydantic import BaseModel, Field
 
-# from metagpt.environment import Environment
 from metagpt.config import CONFIG
 from metagpt.actions import Action, ActionOutput
 from metagpt.llm import LLM

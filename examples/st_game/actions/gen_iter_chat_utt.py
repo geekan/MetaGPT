@@ -7,7 +7,6 @@ from metagpt.schema import Message
 
 from examples.st_game.actions.st_action import STAction
 from examples.st_game.utils.utils import extract_first_json_dict
-from examples.st_game.maze import Maze
 
 
 class GenIterChatUTT(STAction):
@@ -44,9 +43,9 @@ class GenIterChatUTT(STAction):
         cleaned_dict["end"] = False
         return cleaned_dict
 
-    def run(self, maze: Maze, init_role: "STRole", target_role: "STRole", retrieved: dict, curr_context: str,
+    def run(self, init_role: "STRole", target_role: "STRole", retrieved: dict, curr_context: str,
             curr_chat: list[str], *args, **kwargs) -> dict:
-        def create_prompt_input(maze: Maze, init_role: "STRole", target_role: "STRole",
+        def create_prompt_input(access_tile: dict[str, str], init_role: "STRole", target_role: "STRole",
                                 retrieved: dict, curr_context: str, curr_chat: list[str]):
             role = init_role
             scratch = role._rc.scratch
@@ -67,8 +66,8 @@ class GenIterChatUTT(STAction):
                     prev_convo_insert = ""
             print(prev_convo_insert)
 
-            curr_sector = f"{maze.access_tile(scratch.curr_tile)['sector']}"
-            curr_arena = f"{maze.access_tile(scratch.curr_tile)['arena']}"
+            curr_sector = f"{access_tile['sector']}"
+            curr_arena = f"{access_tile['arena']}"
             curr_location = f"{curr_arena} in {curr_sector}"
 
             retrieved_str = ""
@@ -91,7 +90,8 @@ class GenIterChatUTT(STAction):
                             ]
             return prompt_input
 
-        prompt_input = create_prompt_input(maze, init_role, target_role, retrieved, curr_context, curr_chat)
+        access_tile = init_role._rc.env.call_func("access_tile", tile=init_role.scratch.curr_tile)
+        prompt_input = create_prompt_input(access_tile, init_role, target_role, retrieved, curr_context, curr_chat)
         prompt = self.generate_prompt_with_tmpl_filename(prompt_input,
                                                          "iterative_convo_v1.txt")
         # original using `ChatGPT_safe_generate_response_OLD`

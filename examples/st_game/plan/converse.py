@@ -6,13 +6,12 @@ from typing import Union, Tuple
 
 from metagpt.logs import logger
 
-from examples.st_game.maze import Maze
 from examples.st_game.memory.retrieve import new_agent_retrieve
 from examples.st_game.actions.agent_chat_sum_rel import AgentChatSumRel
 from examples.st_game.actions.gen_iter_chat_utt import GenIterChatUTT
 
 
-def agent_conversation(maze: Maze, init_role: "STRole", target_role: "STRole") -> list[list[str]]:
+def agent_conversation(init_role: "STRole", target_role: "STRole") -> list[list[str]]:
     curr_chat = []
     logger.info(f"Role: {init_role.name} starts a conversation with Role: {target_role.name}")
 
@@ -37,7 +36,7 @@ def agent_conversation(maze: Maze, init_role: "STRole", target_role: "STRole") -
             focal_points = [f"{relationship}",
                             f"{target_scratch.name} is {target_scratch.act_description}"]
         retrieved = new_agent_retrieve(init_role, focal_points, 15)
-        utt, end = generate_one_utterance(maze, init_role, target_role, retrieved, curr_chat)
+        utt, end = generate_one_utterance(init_role, target_role, retrieved, curr_chat)
 
         curr_chat += [[scratch.name, utt]]
         if end:
@@ -58,7 +57,7 @@ def agent_conversation(maze: Maze, init_role: "STRole", target_role: "STRole") -
             focal_points = [f"{relationship}",
                             f"{scratch.name} is {scratch.act_description}"]
         retrieved = new_agent_retrieve(target_role, focal_points, 15)
-        utt, end = generate_one_utterance(maze, target_role, init_role, retrieved, curr_chat)
+        utt, end = generate_one_utterance(target_role, init_role, retrieved, curr_chat)
 
         curr_chat += [[target_scratch.name, utt]]
         if end:
@@ -88,7 +87,7 @@ def generate_summarize_agent_relationship(init_role: "STRole",
     return summarized_relationship
 
 
-def generate_one_utterance(maze: Maze, init_role, target_role, retrieved: dict, curr_chat: list) -> Tuple[str, str]:
+def generate_one_utterance(init_role, target_role, retrieved: dict, curr_chat: list) -> Tuple[str, str]:
     # Chat version optimized for speed via batch generation
     scratch = init_role._rc.scratch
     target_scratch = target_role._rc.scratch
@@ -101,6 +100,6 @@ def generate_one_utterance(maze: Maze, init_role, target_role, retrieved: dict, 
                      f"is initiating a conversation with " +
                      f"{target_scratch.name}.")
 
-    x = GenIterChatUTT().run(maze, init_role, target_role, retrieved, curr_context, curr_chat)
+    x = GenIterChatUTT().run(init_role, target_role, retrieved, curr_context, curr_chat)
 
     return x["utterance"], x["end"]

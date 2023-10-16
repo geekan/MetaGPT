@@ -8,7 +8,6 @@ import random
 from metagpt.logs import logger
 from metagpt.schema import Message
 
-from ..maze import Maze
 from .st_action import STAction
 
 
@@ -34,9 +33,9 @@ class GenActionSector(STAction):
         fs = ("kitchen")
         return fs
 
-    def run(self, role: "STRole", maze: Maze, act_desp: str):
-        def create_prompt_input(role, maze, act_desp):
-            act_world = f"{maze.access_tile(role.scratch.curr_tile)['world']}"
+    def run(self, role: "STRole", access_tile: dict[str, str], act_desp: str):
+        def create_prompt_input(role, access_tile: dict[str, str], act_desp):
+            act_world = f"{access_tile['world']}"
 
             prompt_input = []
 
@@ -46,8 +45,8 @@ class GenActionSector(STAction):
             prompt_input += [role.s_mem.get_str_accessible_sector_arenas(x)]
 
             prompt_input += [role.scratch.get_str_name()]
-            prompt_input += [f"{maze.access_tile(role.scratch.curr_tile)['sector']}"]
-            x = f"{act_world}:{maze.access_tile(role.scratch.curr_tile)['sector']}"
+            prompt_input += [f"{access_tile['sector']}"]
+            x = f"{act_world}:{access_tile['sector']}"
             prompt_input += [role.s_mem.get_str_accessible_sector_arenas(x)]
 
             if role.scratch.get_str_daily_plan_req() != "":
@@ -57,7 +56,7 @@ class GenActionSector(STAction):
 
             # MAR 11 TEMP
             prompt_input = []
-            act_world = maze.access_tile(role.scratch.curr_tile)["world"]
+            act_world = access_tile["world"]
             accessible_sector_str = role.s_mem.get_str_accessible_sectors(act_world)
             curr = accessible_sector_str.split(", ")
             fin_accessible_sectors = []
@@ -85,12 +84,12 @@ class GenActionSector(STAction):
             return prompt_input
 
         prompt_template = "action_location_sector_v1.txt"
-        prompt_input = create_prompt_input(role, maze, act_desp)
+        prompt_input = create_prompt_input(role, access_tile, act_desp)
         prompt = self.generate_prompt_with_tmpl_filename(prompt_input, prompt_template)
 
         self.fail_default_resp = self._func_fail_default_resp()
         output = self._run_text_davinci(prompt, max_tokens=15)
-        y = f"{maze.access_tile(role.scratch.curr_tile)['world']}"
+        y = f"{access_tile['world']}"
         x = [i.strip() for i in role.s_mem.get_str_accessible_sectors(y).split(",")]
         if output not in x:
             # output = random.choice(x)
@@ -120,12 +119,9 @@ class GenActionArena(STAction):
         fs = ("kitchen")
         return fs
 
-    def run(self, role: "STRole", maze: Maze, act_desp: str, act_world: str, act_sector: str):
-        def create_prompt_input(role, maze, act_desp, act_world, act_sector):
+    def run(self, role: "STRole", act_desp: str, act_world: str, act_sector: str):
+        def create_prompt_input(role, act_desp, act_world, act_sector):
             prompt_input = []
-            # prompt_input += [role.scratch.get_str_name()]
-            # prompt_input += [maze.access_tile(role.scratch.curr_tile)["arena"]]
-            # prompt_input += [maze.access_tile(role.scratch.curr_tile)["sector"]]
             prompt_input += [role.scratch.get_str_name()]
             x = f"{act_world}:{act_sector}"
             prompt_input += [act_sector]
@@ -159,7 +155,7 @@ class GenActionArena(STAction):
             return prompt_input
 
         prompt_template = "action_location_object_vMar11.txt"
-        prompt_input = create_prompt_input(role, maze, act_desp, act_world, act_sector)
+        prompt_input = create_prompt_input(role, act_desp, act_world, act_sector)
         prompt = self.generate_prompt_with_tmpl_filename(prompt_input, prompt_template)
         self.fail_default_resp = self._func_fail_default_resp()
         output = self._run_text_davinci(prompt, max_tokens=15)
@@ -392,10 +388,10 @@ class GenActionDetails(STAction):
             role: "STRole",
             act_desp: str,
             act_dura):
-        maze = role._rc.env.maze
-        act_world = maze.access_tile(role.scratch.curr_tile)["world"]
-        act_sector = GenActionSector().run(role, maze, act_desp)
-        act_arena = GenActionArena().run(role, maze, act_desp, act_world, act_sector)
+        access_tile = role._rc.env.call_func("access_tile", tile=role.scratch.curr_tile)
+        act_world = access_tile["world"]
+        act_sector = GenActionSector().run(role, access_tile, act_desp)
+        act_arena = GenActionArena().run(role, act_desp, act_world, act_sector)
         act_address = f"{act_world}:{act_sector}:{act_arena}"
         act_game_object = GenActionObject().run(role, act_desp, act_address)
         new_address = f"{act_world}:{act_sector}:{act_arena}:{act_game_object}"

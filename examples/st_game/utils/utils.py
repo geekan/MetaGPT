@@ -159,13 +159,13 @@ def path_finder_v2(a, start, end, collision_block_char) -> list[int]:
     return the_path
 
 
-def path_finder(maze: "Maze", start: list[int], end: list[int], collision_block_char: str) -> list[int]:
+def path_finder(collision_maze: list, start: list[int], end: list[int], collision_block_char: str) -> list[int]:
     # EMERGENCY PATCH
     start = (start[1], start[0])
     end = (end[1], end[0])
     # END EMERGENCY PATCH
 
-    path = path_finder_v2(maze, start, end, collision_block_char)
+    path = path_finder_v2(collision_maze, start, end, collision_block_char)
 
     new_path = []
     for i in path:
