@@ -145,6 +145,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
     def __init__(self, conf=CONFIG, **kwargs):
         self.__init_openai(conf)
         self.llm = openai
+        self.temperature = 0.0
         self.model = conf.openai_api_model
         self.auto_max_tokens = False
         self._cost_manager = CostManager()
@@ -187,7 +188,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             "max_tokens": self.get_max_tokens(messages),
             "n": 1,
             "stop": None,
-            "temperature": 0.0,
+            "temperature": self.temperature,
             "timeout": 3,
         }
         if CONFIG.openai_api_type == "azure":

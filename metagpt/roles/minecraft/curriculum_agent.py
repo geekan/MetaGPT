@@ -5,6 +5,8 @@
 import random
 import json
 
+from ordered_set import OrderedSet
+
 from metagpt.logs import logger
 from metagpt.schema import Message, HumanMessage, SystemMessage
 from metagpt.roles.minecraft.minecraft_base import Minecraft as Base
@@ -84,8 +86,10 @@ class CurriculumDesigner(Base):
             if self.game_memory.completed_tasks
             else "None"
         )
+        
+        unique_failed_tasks = OrderedSet(self.game_memory.failed_tasks)
         failed_tasks = (
-            "; ".join(self.game_memory.failed_tasks)
+            "; ".join(unique_failed_tasks.items)  #self.game_memory.failed_tasks
             if self.game_memory.failed_tasks
             else "None"
         )
