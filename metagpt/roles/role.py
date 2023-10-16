@@ -14,7 +14,7 @@ from pydantic import BaseModel, Field
 # from metagpt.environment import Environment
 from metagpt.config import CONFIG
 from metagpt.actions import Action, ActionOutput
-from metagpt import llm as LLM
+from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.memory import Memory, LongTermMemory
 from metagpt.schema import Message
@@ -94,7 +94,7 @@ class Role:
     """Role/Agent"""
 
     def __init__(self, name="", profile="", goal="", constraints="", desc=""):
-        self._llm=LLM.DEFAULT_LLM
+        self._llm = LLM()
         self._setting = RoleSetting(name=name, profile=profile, goal=goal, constraints=constraints, desc=desc)
         self._states = []
         self._actions = []
@@ -185,7 +185,7 @@ class Role:
 
         observed = self._rc.env.memory.get_by_actions(self._rc.watch)
         
-        self._rc.news = self._rc.memory.remember(observed)  # remember recent exact or similar memories
+        self._rc.news = self._rc.memory.find_news(observed)  # find news (previously unseen messages) from observed messages
 
         for i in env_msgs:
             self.recv(i)

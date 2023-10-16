@@ -180,7 +180,7 @@ class OutputParser:
 
         if start_index != -1 and end_index != -1:
             # Extract the structure part
-            structure_text = text[start_index:end_index + 1]
+            structure_text = text[start_index : end_index + 1]
 
             try:
                 # Attempt to convert the text to a Python data type using ast.literal_eval
@@ -237,7 +237,7 @@ class CodeParser:
             logger.error(f"{pattern} not match following text:")
             logger.error(text)
             # raise Exception
-            return ""
+            return text  # just assume original text is code
         return code
 
     @classmethod

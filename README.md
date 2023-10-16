@@ -15,7 +15,7 @@
 <a href="https://discord.gg/wCp6Q3fsAk"><img src="https://img.shields.io/badge/Discord-Join-blue?logo=discord&logoColor=white&color=blue" alt="Discord Follow"></a>
 <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
 <a href="docs/ROADMAP.md"><img src="https://img.shields.io/badge/ROADMAP-路线图-blue" alt="roadmap"></a>
-<a href="https://twitter.com/DeepWisdom2019"><img src="https://img.shields.io/twitter/follow/MetaGPT?style=social" alt="Twitter Follow"></a>
+<a href="https://twitter.com/MetaGPT_"><img src="https://img.shields.io/twitter/follow/MetaGPT?style=social" alt="Twitter Follow"></a>
 </p>
 
 <p align="center">
@@ -162,9 +162,9 @@ pip install -e.
 
 ```bash
 # Step 1: Download metagpt official image and prepare config.yaml
-docker pull metagpt/metagpt:v0.3.1
+docker pull metagpt/metagpt:latest
 mkdir -p /opt/metagpt/{config,workspace}
-docker run --rm metagpt/metagpt:v0.3.1 cat /app/metagpt/config/config.yaml > /opt/metagpt/config/key.yaml
+docker run --rm metagpt/metagpt:latest cat /app/metagpt/config/config.yaml > /opt/metagpt/config/key.yaml
 vim /opt/metagpt/config/key.yaml # Change the config
 
 # Step 2: Run metagpt demo with container
@@ -172,7 +172,7 @@ docker run --rm \
     --privileged \
     -v /opt/metagpt/config/key.yaml:/app/metagpt/config/key.yaml \
     -v /opt/metagpt/workspace:/app/metagpt/workspace \
-    metagpt/metagpt:v0.3.1 \
+    metagpt/metagpt:latest \
     python startup.py "Write a cli snake game"
 
 # You can also start a container and execute commands in it
@@ -180,7 +180,7 @@ docker run --name metagpt -d \
     --privileged \
     -v /opt/metagpt/config/key.yaml:/app/metagpt/config/key.yaml \
     -v /opt/metagpt/workspace:/app/metagpt/workspace \
-    metagpt/metagpt:v0.3.1
+    metagpt/metagpt:latest
 
 docker exec -it metagpt /bin/bash
 $ python startup.py "Write a cli snake game"

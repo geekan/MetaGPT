@@ -22,7 +22,7 @@ class Action(ABC):
     def __init__(self, name: str = "", context=None, llm: LLM = None):
         self.name: str = name
         if llm is None:
-            llm=LLM.DEFAULT_LLM
+            llm = LLM()
         self.llm = llm
         self.context = context
         self.prefix = ""

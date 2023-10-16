@@ -8,7 +8,7 @@
 from metagpt.actions import Action
 from metagpt.const import PROMPT_PATH
 from metagpt.document_store.chromadb_store import ChromaStore
-import metagpt.llm as LLM
+from metagpt.llm import LLM
 from metagpt.logs import logger
 
 Skill = Action
@@ -18,7 +18,7 @@ class SkillManager:
     """Used to manage all skills"""
 
     def __init__(self):
-        self._llm=LLM.DEFAULT_LLM
+        self._llm = LLM()
         self._store = ChromaStore('skill_manager')
         self._skills: dict[str: Skill] = {}
 
