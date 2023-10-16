@@ -254,8 +254,8 @@ class STRole(Role):
                 p = "is"
                 o = "idle"
                 desc = "idle"
-                desc = f"{s.split(':')[-1]} is {desc}"
-                p_event = (s, p, o)
+            desc = f"{s.split(':')[-1]} is {desc}"
+            p_event = (s, p, o)
 
             # We retrieve the latest self._rc.scratch.retention events. If there is
             # something new that is happening (that is, p_event not in latest_events),
