@@ -8,7 +8,7 @@ class Speak(Action):
 
     PROMPT_TEMPLATE = """
     {
-    "BACKGROUND": "It's a Werewolf game, in this game, we have 2 werewolves, 2 villagers, 1 guard, 1 witch, 1 seer. You are __profile__."
+    "BACKGROUND": "It's a Werewolf game, in this game, we have 2 werewolves, 2 villagers, 1 guard, 1 witch, 1 seer. You are __profile__. Note that villager, seer, guard and witch are all in villager side, they have the same objective. Werewolves can collectively hunt ONE player at night."
     ,"HISTORY": "You have knowledge to the following conversation: __context__"
     ,"ATTENTION": "You can NOT VOTE a player who is NOT ALIVE now!"
     ,"REFLECTION": "__reflection__"
@@ -95,7 +95,7 @@ class NighttimeWhispers(Action):
 
     PROMPT_TEMPLATE = """
     {
-    "BACKGROUND": "It's a Werewolf game, in this game, we have 2 werewolves, 2 villagers, 1 guard, 1 witch, 1 seer. You are __profile__."
+    "BACKGROUND": "It's a Werewolf game, in this game, we have 2 werewolves, 2 villagers, 1 guard, 1 witch, 1 seer. You are __profile__. Note that villager, seer, guard and witch are all in villager side, they have the same objective. Werewolves can collectively hunt ONE player at night."
     ,"HISTORY": "You have knowledge to the following conversation: __context__"
     ,"ACTION": "Choose one living player to __action__."
     ,"ATTENTION": "1. You can only __action__ a player who is alive this night! And you can not __action__ a player who is dead this night!  2. `HISTORY` is all the information you observed, DONT hallucinate other player actions!"
@@ -172,7 +172,7 @@ class Reflect(Action):
 
     PROMPT_TEMPLATE = """
     {
-    "BACKGROUND": "It's a Werewolf game, in this game, we have 2 werewolves, 2 villagers, 1 guard, 1 witch, 1 seer. You are __profile__."
+    "BACKGROUND": "It's a Werewolf game, in this game, we have 2 werewolves, 2 villagers, 1 guard, 1 witch, 1 seer. You are __profile__. Note that villager, seer, guard and witch are all in villager side, they have the same objective. Werewolves can collectively hunt ONE player at night."
     ,"HISTORY": "You have knowledge to the following conversation: __context__"
     ,"MODERATOR_INSTRUCTION": __latest_instruction__,
     ,"OUTPUT_FORMAT" (a json):

@@ -10,4 +10,4 @@ class RoleExperience(BaseModel):
     outcome: str = ""
     round_id: str = ""
     game_setup: str = ""
-    version: str = "01-10"
+    version: str = ""
