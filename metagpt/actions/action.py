@@ -11,9 +11,7 @@ from typing import Optional
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 from metagpt.actions.action_output import ActionOutput
-from metagpt.actions.task import Task
 from metagpt.llm import LLM
-from metagpt.roles.prompt import PromptStrategyType
 from metagpt.utils.common import OutputParser
 from metagpt.logs import logger
 
