@@ -8,6 +8,8 @@
 from metagpt.actions import WriteDesign
 from metagpt.actions.action import Action
 from metagpt.actions.task import Task
+from metagpt.strategy.cot import ChainOfThoughtForEngineer as COT
+from metagpt.strategy.tot import TreeOfThoughtForEngineer as TOT
 from metagpt.const import WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.schema import Message
@@ -86,6 +88,12 @@ ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenc
 -----
 """
 
+#Tree of Thought will have depth 4+ for Engineer role
+TOT_PROMPT_GENERATE_PLAN=""#Create a feasible plan for implementing the current file in tutorial style
+TOT_PROMPT_WRITE_INTERFACE=""#From the tutorial style plan, generate the python interface of the class
+TOT_PROMPT_IMPLEMENT_ONE_FUNCTION=""#Following the interface, implement one function at a time
+TOT_PROMPT_EVALUATE_STEP=""#Evaluation prompt for checking if the current intermediate generated code is correct, if not backtrack
+
 class WriteCode(Action):
     def __init__(self, name="WriteCode", context: list[Message] = None, llm=None):
         super().__init__(name, context, llm)
@@ -112,17 +120,8 @@ class WriteCode(Action):
     
     @retry(stop=stop_after_attempt(2), wait=wait_fixed(1))
     async def write_code(self, prompt: str, strategy: PromptStrategyType, task: Task = None):
-        code_rsp = await self._aask(prompt, strategy = strategy, task = task)
-        logger.info(code_rsp)
-        code = CodeParser.parse_code(block="", text=code_rsp)
-        return code
-    
-    async def run(self, context, filename, strategy =  CONFIG.prompt_strategy):
-        strategy = PromptStrategyType(strategy)
-
         if strategy == PromptStrategyType.NAIVE:
-            prompt = PROMPT_TEMPLATE.format(context=context, filename=filename)
-            code = await self.write_code(prompt, strategy = strategy, task = None)
+            code_rsp = await self._aask(prompt)
 
         elif strategy == PromptStrategyType.CHAIN_OF_THOUGHT:
             task = Task(# each task consists of an ordered list of prompts
@@ -136,14 +135,41 @@ class WriteCode(Action):
                         },
                         # an ordered list of prompt output keys
                         task_output_keys = ["plan", "code"])
-            code = await self.write_code('', strategy = strategy, task = task)
-
+            cot_solver = COT(prompt, self._aask, task = task)
+            success, code_rsp = await cot_solver.solve()
+        elif strategy == PromptStrategyType.TREE_OF_THOUGHT:
+            task = Task(# each task consists of an ordered list of prompts
+                        prompts = [TOT_PROMPT_GENERATE_PLAN, 
+                                   TOT_PROMPT_WRITE_INTERFACE,
+                                   TOT_PROMPT_IMPLEMENT_ONE_FUNCTION,
+                                   TOT_PROMPT_EVALUATE_STEP,
+                                   ],
+                        # a pool of key value pairs to format the prompts
+                        task_args_pool = {
+                            #"context": context, 
+                            #"filename": filename, 
+                            # intermediate result is empty
+                            #"plan": ""
+                        },
+                        # an ordered list of prompt output keys
+                        #task_output_keys = ["plan", "code"]
+                        )
+            tot_solver = TOT(prompt, self._aask, task = task)
+            success, code_rsp = await tot_solver.solve()
         else:
             logger.info(f'Strategy not implemented')
             raise NotImplementedError()
-        
+        code_rsp = await self._aask(prompt, strategy = strategy, task = task)
+        logger.info(code_rsp)
+        code = CodeParser.parse_code(block="", text=code_rsp)
+        return code
+    
+    async def run(self, context, filename, strategy = CONFIG.prompt_strategy):
+        strategy = PromptStrategyType(strategy)
+        prompt = PROMPT_TEMPLATE.format(context=context, filename=filename)
+        code = await self.write_code(prompt, strategy = strategy)
+
         logger.info(f'Writing {filename}..')
-        
         # code_rsp = await self._aask_v1(prompt, "code_rsp", OUTPUT_MAPPING)
         # self._save(context, filename, code)
         return code
