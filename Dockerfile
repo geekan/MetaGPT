@@ -20,6 +20,9 @@ RUN mkdir workspace &&\
     pip install --no-cache-dir -r requirements.txt &&\
     pip install -e.
 
+# Create a placeholder key.yaml
+RUN touch /app/metagpt/config/key.yaml
+
 # Running with an infinite loop using the tail command
 CMD ["sh", "-c", "tail -f /dev/null"]
 
