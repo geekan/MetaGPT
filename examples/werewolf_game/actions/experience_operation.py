@@ -1,5 +1,6 @@
 import json
 import os
+import glob
 
 import chromadb
 from chromadb.utils import embedding_functions
@@ -63,6 +64,7 @@ class AddNewExperiences(Action):
         with open(file_path, "r") as fl:
             lines = fl.readlines()
         experiences = [RoleExperience(**json.loads(line)) for line in lines]
+        experiences = [exp for exp in experiences if len(exp.reflection) > 2] # not "" or not '""'
 
         ids = [exp.id for exp in experiences]
         documents = [exp.reflection for exp in experiences]
@@ -77,13 +79,16 @@ class AddNewExperiences(Action):
     @staticmethod
     def _record_experiences_local(experiences: list[RoleExperience]):
         round_id = experiences[0].round_id
+        version = experiences[0].version
+        version = "test" if not version else version
         experiences = [exp.json() for exp in experiences]
-        experience_folder = WORKSPACE_ROOT / 'werewolf_game/experiences'
+        experience_folder = WORKSPACE_ROOT / f'werewolf_game/experiences/{version}'
         if not os.path.exists(experience_folder):
             os.makedirs(experience_folder)
         save_path = f"{experience_folder}/{round_id}.json"
         with open(save_path, "a") as fl:
             fl.write("\n".join(experiences))
+            fl.write("\n")
         logger.info(f"experiences saved to {save_path}")
 
 class RetrieveExperiences(Action):
@@ -102,7 +107,7 @@ class RetrieveExperiences(Action):
             logger.warning(f"No experience pool {collection_name}")
             self.has_experiences = False
     
-    def run(self, query: str, profile: str, topk: int = 5) -> str:
+    def run(self, query: str, profile: str, topk: int = 5, excluded_version: str = "", verbose: bool = False) -> str:
         """_summary_
 
         Args:
@@ -113,20 +118,30 @@ class RetrieveExperiences(Action):
         Returns:
             _type_: _description_
         """
-        if not self.has_experiences:
+        if not self.has_experiences or len(query) <= 2: # not "" or not '""'
             return ""
+        
+        filters = {"profile": profile}
+        ### 消融实验逻辑 ###
+        if profile == "Werewolf": # 狼人作为基线，不用经验
+            logger.warning("Disable werewolves' experiences")
+            return ""
+        if excluded_version:
+            filters = {"$and": [{"profile": profile}, {"version": {"$ne": excluded_version}}]}  # 不用同一版本的经验，只用之前的
+        #################
 
         results = self.collection.query(
             query_texts=[query],
             n_results=topk,
-            where={"profile": profile},
+            where=filters,
         )
         
         logger.info("retrieved exp")
         past_experiences = [RoleExperience(**res) for res in results["metadatas"][0]]
-        # print(*past_experiences, sep="\n\n")
-        distances = results["distances"][0]
-        print(distances)
+        if verbose:
+            print(*past_experiences, sep="\n\n")
+            distances = results["distances"][0]
+            print(distances)
 
         template = """
         {
@@ -148,9 +163,31 @@ class RetrieveExperiences(Action):
 
         return json.dumps(past_experiences)
 
+# FIXME: below are some utility functions, should be moved to appropriate places
 def delete_collection(name):
     chroma_client = chromadb.PersistentClient(path=f"{WORKSPACE_ROOT}/werewolf_game/chroma")
     chroma_client.delete_collection(name=name)
 
+def add_file_batch(folder, **kwargs):
+    action = AddNewExperiences(**kwargs)
+    file_paths = glob.glob(str(folder) + "/*")
+    for fp in file_paths:
+        print(fp)
+        action.add_from_file(fp)
+
+def modify_collection():
+    chroma_client = chromadb.PersistentClient(path=f"{WORKSPACE_ROOT}/werewolf_game/chroma")
+    collection = chroma_client.get_collection(name=DEFAULT_COLLECTION_NAME)
+    updated_name = DEFAULT_COLLECTION_NAME + "_backup"
+    collection.modify(name=updated_name)
+    try:
+        chroma_client.get_collection(name=DEFAULT_COLLECTION_NAME)
+    except:
+        logger.info(f"collection {DEFAULT_COLLECTION_NAME} not found")
+    updated_collection = chroma_client.get_collection(name=updated_name)
+    print(updated_collection.get()["documents"][-5:])
+
 # if __name__ == "__main__":
-#     delete_collection(name="test")
+    # delete_collection(name="test")
+    # add_file_batch(WORKSPACE_ROOT / 'werewolf_game/experiences', collection_name=DEFAULT_COLLECTION_NAME, delete_existing=True)
+    # modify_collection()

@@ -166,7 +166,7 @@ class Moderator(Role):
                 if not voted:
                     continue
                 voted_all.append(voted.group(0))
-            self.player_current_dead = [Counter(voted_all).most_common()[0][0]] # 平票时，杀序号小的
+            self.player_current_dead = [Counter(voted_all).most_common()[0][0]] # 平票时，杀最先被投的
             # print("*" * 10, "dead", self.player_current_dead)
             self.living_players = [p for p in self.living_players if p not in self.player_current_dead]
             self.update_player_status(self.player_current_dead)

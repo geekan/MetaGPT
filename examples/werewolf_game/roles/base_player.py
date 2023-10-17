@@ -16,6 +16,7 @@ class BasePlayer(Role):
         use_reflection: bool = True,
         use_experience: bool = False,
         use_memory_selection: bool = False,
+        new_experience_version: str = "",
         **kwargs,
     ):
         super().__init__(name, profile, **kwargs)
@@ -35,6 +36,7 @@ class BasePlayer(Role):
             self.use_experience = False
         else:
             self.use_experience = use_experience
+        self.new_experience_version = new_experience_version if self.use_experience else ""
         self.use_memory_selection = use_memory_selection
 
         self.experiences = []
@@ -76,8 +78,9 @@ class BasePlayer(Role):
             profile=self.profile, name=self.name, context=memories, latest_instruction=latest_instruction
         ) if self.use_reflection else ""
 
-        experiences = RetrieveExperiences().run(query=reflection, profile=self.profile) \
-            if self.use_experience else ""
+        experiences = RetrieveExperiences().run(
+            query=reflection, profile=self.profile, excluded_version=self.new_experience_version
+        ) if self.use_experience else ""
 
         # 根据自己定义的角色Action，对应地去run，run的入参可能不同
         if isinstance(todo, Speak):
@@ -99,7 +102,7 @@ class BasePlayer(Role):
 
         self.experiences.append(
             RoleExperience(name=self.name, profile=self.profile, reflection=reflection,
-                instruction=latest_instruction, response=rsp)
+                instruction=latest_instruction, response=rsp, version=self.new_experience_version)
         )
 
         logger.info(f"{self._setting}: {rsp}")
@@ -121,7 +124,7 @@ class BasePlayer(Role):
         self.status = new_status
     
     def record_experiences(self, round_id: str, outcome: str, game_setup: str):
-        experiences = [exp for exp in self.experiences if exp.reflection]
+        experiences = [exp for exp in self.experiences if len(exp.reflection) > 2] # not "" or not '""'
         for exp in experiences:
             exp.round_id = round_id
             exp.outcome = outcome
