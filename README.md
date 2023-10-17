@@ -170,16 +170,16 @@ vim /opt/metagpt/config/key.yaml # Change the config
 # Step 2: Run metagpt demo with container
 docker run --rm \
     --privileged \
-    -v /opt/metagpt/config/key.yaml:/app/metagpt/config/key.yaml \
-    -v /opt/metagpt/workspace:/app/metagpt/workspace \
+    -v /opt/metagpt/config/key.yaml:/app/metagpt/config/key.yaml:bind \
+    -v /opt/metagpt/workspace:/app/metagpt/workspace:bind \
     metagpt/metagpt:latest \
     python startup.py "Write a cli snake game"
 
 # You can also start a container and execute commands in it
 docker run --name metagpt -d \
     --privileged \
-    -v /opt/metagpt/config/key.yaml:/app/metagpt/config/key.yaml \
-    -v /opt/metagpt/workspace:/app/metagpt/workspace \
+    -v /opt/metagpt/config/key.yaml:/app/metagpt/config/key.yaml:bind \
+    -v /opt/metagpt/workspace:/app/metagpt/workspace:bind \
     metagpt/metagpt:latest
 
 docker exec -it metagpt /bin/bash
