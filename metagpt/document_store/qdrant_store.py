@@ -38,11 +38,11 @@ class QdrantStore(BaseStore):
             raise Exception("please check QdrantConnection.")
 
     def create_collection(
-            self,
-            collection_name: str,
-            vectors_config: VectorParams,
-            force_recreate=False,
-            **kwargs,
+        self,
+        collection_name: str,
+        vectors_config: VectorParams,
+        force_recreate=False,
+        **kwargs,
     ):
         """
         create a collection
@@ -97,12 +97,12 @@ class QdrantStore(BaseStore):
         )
 
     def search(
-            self,
-            collection_name: str,
-            query: List[float],
-            query_filter: Filter = None,
-            k=10,
-            return_vector=False,
+        self,
+        collection_name: str,
+        query: List[float],
+        query_filter: Filter = None,
+        k=10,
+        return_vector=False,
     ):
         """
         vector search

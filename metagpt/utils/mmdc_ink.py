@@ -6,9 +6,9 @@
 @File    : mermaid.py
 """
 import base64
+import os
 
-from aiohttp import ClientSession, ClientError
-
+from aiohttp import ClientSession,ClientError
 from metagpt.logs import logger
 
 

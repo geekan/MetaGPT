@@ -13,9 +13,9 @@ def get_project_root():
     current_path = Path.cwd()
     while True:
         if (
-                (current_path / ".git").exists()
-                or (current_path / ".project_root").exists()
-                or (current_path / ".gitignore").exists()
+            (current_path / ".git").exists()
+            or (current_path / ".project_root").exists()
+            or (current_path / ".gitignore").exists()
         ):
             return current_path
         parent_path = current_path.parent

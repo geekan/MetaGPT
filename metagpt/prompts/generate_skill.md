@@ -66,10 +66,9 @@ class WritePRD(Action):
         return prd
 ```
 
+
 The main class/function is WritePRD.
 
 Then you should write:
 
-This class is designed to generate a PRD based on input requirements. Notably, there's a template prompt with sections
-for product, function, goals, user scenarios, requirements, constraints, performance metrics. This template gets filled
-with input requirements and then queries a big language model to produce the detailed PRD.
+This class is designed to generate a PRD based on input requirements. Notably, there's a template prompt with sections for product, function, goals, user scenarios, requirements, constraints, performance metrics. This template gets filled with input requirements and then queries a big language model to produce the detailed PRD.

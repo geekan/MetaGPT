@@ -29,12 +29,12 @@ class SkAgent(Role):
     """
 
     def __init__(
-            self,
-            name: str = "Sunshine",
-            profile: str = "sk_agent",
-            goal: str = "Execute task based on passed in task description",
-            constraints: str = "",
-            planner_cls=BasicPlanner,
+        self,
+        name: str = "Sunshine",
+        profile: str = "sk_agent",
+        goal: str = "Execute task based on passed in task description",
+        constraints: str = "",
+        planner_cls=BasicPlanner,
     ) -> None:
         """Initializes the Engineer role with given attributes."""
         super().__init__(name, profile, goal, constraints)

@@ -1,7 +1,7 @@
 # 添加代码语法高亮显示
 from pygments import highlight as highlight_
-from pygments.formatters import TerminalFormatter, HtmlFormatter
 from pygments.lexers import PythonLexer, SqlLexer
+from pygments.formatters import TerminalFormatter, HtmlFormatter
 
 
 def highlight(code: str, language: str = 'python', formatter: str = 'terminal'):

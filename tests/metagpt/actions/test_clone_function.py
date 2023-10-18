@@ -2,6 +2,7 @@ import pytest
 
 from metagpt.actions.clone_function import CloneFunction, run_function_code
 
+
 source_code = """
 import pandas as pd
 import ta
@@ -36,10 +37,7 @@ def get_expected_res():
     stock_data['SMA'] = ta.trend.sma_indicator(stock_data['Close'], window=6)
     stock_data[['Date', 'Close', 'SMA']].head()
     # 计算布林带
-    stock_data['bb_upper'], stock_data['bb_middle'], stock_data['bb_lower'] = ta.volatility.bollinger_hband_indicator(
-        stock_data['Close'], window=20), ta.volatility.bollinger_mavg(stock_data['Close'],
-                                                                      window=20), ta.volatility.bollinger_lband_indicator(
-        stock_data['Close'], window=20)
+    stock_data['bb_upper'], stock_data['bb_middle'], stock_data['bb_lower'] = ta.volatility.bollinger_hband_indicator(stock_data['Close'], window=20), ta.volatility.bollinger_mavg(stock_data['Close'], window=20), ta.volatility.bollinger_lband_indicator(stock_data['Close'], window=20)
     stock_data[['Date', 'Close', 'bb_upper', 'bb_middle', 'bb_lower']].head()
     return stock_data
 

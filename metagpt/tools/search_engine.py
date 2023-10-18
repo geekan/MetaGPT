@@ -20,7 +20,7 @@ class SkSearchEngine:
 
     @sk_function(
         description="searches results from Google. Useful when you need to find short "
-                    "and succinct answers about a specific topic. Input should be a search query.",
+        "and succinct answers about a specific topic. Input should be a search query.",
         name="searchAsync",
         input_description="search",
     )
@@ -42,7 +42,7 @@ class SearchEngine:
     """
 
     def __init__(
-            self,
+        self,
             engine: Optional[SearchEngineType] = None,
             run_func: Callable[[str, int, bool], Coroutine[None, None, Union[str, list[str]]]] = None,
     ):
@@ -68,19 +68,19 @@ class SearchEngine:
 
     @overload
     def run(
-            self,
-            query: str,
-            max_results: int = 8,
-            as_string: Literal[True] = True,
+        self,
+        query: str,
+        max_results: int = 8,
+        as_string: Literal[True] = True,
     ) -> str:
         ...
 
     @overload
     def run(
-            self,
-            query: str,
-            max_results: int = 8,
-            as_string: Literal[False] = False,
+        self,
+        query: str,
+        max_results: int = 8,
+        as_string: Literal[False] = False,
     ) -> list[dict[str, str]]:
         ...
 

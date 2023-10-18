@@ -10,8 +10,8 @@ import os
 from os.path import join
 from typing import List
 
-from PIL import Image, PngImagePlugin
 from aiohttp import ClientSession
+from PIL import Image, PngImagePlugin
 
 from metagpt.config import Config
 from metagpt.const import WORKSPACE_ROOT
@@ -64,12 +64,12 @@ class SDEngine:
         logger.info(self.sd_t2i_url)
 
     def construct_payload(
-            self,
-            prompt,
-            negtive_prompt=default_negative_prompt,
-            width=512,
-            height=512,
-            sd_model="galaxytimemachinesGTM_photoV20",
+        self,
+        prompt,
+        negtive_prompt=default_negative_prompt,
+        width=512,
+        height=512,
+        sd_model="galaxytimemachinesGTM_photoV20",
     ):
         # Configure the payload with provided inputs
         self.payload["prompt"] = prompt
@@ -120,12 +120,10 @@ def decode_base64_to_image(img, save_name):
     image.save(f"{save_name}.png", pnginfo=pnginfo)
     return pnginfo, image
 
-
 def batch_decode_base64_to_image(imgs, save_dir="", save_name=""):
     for idx, _img in enumerate(imgs):
         save_name = join(save_dir, save_name)
         decode_base64_to_image(_img, save_name=save_name)
-
 
 if __name__ == "__main__":
     engine = SDEngine()

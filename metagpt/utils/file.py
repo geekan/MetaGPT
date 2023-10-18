@@ -6,9 +6,8 @@
 @File    : file.py
 @Describe : General file operations.
 """
-from pathlib import Path
-
 import aiofiles
+from pathlib import Path
 
 from metagpt.logs import logger
 
@@ -73,3 +72,4 @@ class File:
         except Exception as e:
             logger.error(f"Error reading file: {e}")
             raise e
+

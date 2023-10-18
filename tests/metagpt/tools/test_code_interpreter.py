@@ -2,9 +2,11 @@ import pytest
 import pandas as pd
 from pathlib import Path
 
+from tests.data import sales_desc, store_desc
 from metagpt.tools.code_interpreter import OpenCodeInterpreter, OpenInterpreterDecorator
 from metagpt.actions import Action
 from metagpt.logs import logger
+
 
 logger.add('./tests/data/test_ci.log')
 stock = "./tests/data/baba_stock.csv"
@@ -36,6 +38,5 @@ async def test_actions():
     # 可视化指标结果
     figure_path = './tests/data/figure_ci.png'
     ci_ploter = OpenCodeInterpreter()
-    ci_ploter.chat(
-        f"使用seaborn对{df_path}中与股票布林带有关的数据列的Date, Close, SMA, BB_upper（布林带上界）, BB_lower（布林带下界）进行可视化, 可视化图片保存在{figure_path}中。不需要任何指标计算，把Date列转换为日期类型。要求图片优美，BB_upper, BB_lower之间使用合适的颜色填充。")
+    ci_ploter.chat(f"使用seaborn对{df_path}中与股票布林带有关的数据列的Date, Close, SMA, BB_upper（布林带上界）, BB_lower（布林带下界）进行可视化, 可视化图片保存在{figure_path}中。不需要任何指标计算，把Date列转换为日期类型。要求图片优美，BB_upper, BB_lower之间使用合适的颜色填充。")
     assert Path(figure_path).is_file()

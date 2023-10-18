@@ -6,8 +6,9 @@
 @File    : __init__.py
 """
 
-from metagpt.memory.longterm_memory import LongTermMemory
 from metagpt.memory.memory import Memory
+from metagpt.memory.longterm_memory import LongTermMemory
+
 
 __all__ = [
     "Memory",

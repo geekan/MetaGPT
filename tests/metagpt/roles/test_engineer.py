@@ -33,7 +33,7 @@ async def test_engineer():
 
 def test_parse_str():
     for idx, i in enumerate(STRS_FOR_PARSING):
-        text = CodeParser.parse_str(f"{idx + 1}", i)
+        text = CodeParser.parse_str(f"{idx+1}", i)
         # logger.info(text)
         assert text == 'a'
 

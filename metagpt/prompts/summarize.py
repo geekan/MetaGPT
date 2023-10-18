@@ -20,6 +20,7 @@ summary. Pick a suitable emoji for every bullet point. Your response should be i
 a YouTube video, use the following text: {{CONTENT}}.
 """
 
+
 # GCP-VertexAI-Text Summarization (SUMMARIZE_PROMPT_2-5 are from this source)
 # https://github.com/GoogleCloudPlatform/generative-ai/blob/main/language/examples/prompt-design/text_summarization.ipynb
 # Long documents require a map-reduce process, see the following notebook
@@ -38,6 +39,7 @@ Summary:
 
 """
 
+
 SUMMARIZE_PROMPT_3 = """
 Provide a TL;DR for the following article:
 
@@ -50,6 +52,7 @@ Instead of computing on the individual qubits themselves, we will then compute o
 
 TL;DR:
 """
+
 
 SUMMARIZE_PROMPT_4 = """
 Provide a very short summary in four bullet points for the following article:
@@ -64,6 +67,7 @@ Instead of computing on the individual qubits themselves, we will then compute o
 Bulletpoints:
 
 """
+
 
 SUMMARIZE_PROMPT_5 = """
 Please generate a summary of the following conversation and at the end summarize the to-do's for the support Agent:

@@ -99,7 +99,7 @@ class RunCode(Action):
         return stdout.decode("utf-8"), stderr.decode("utf-8")
 
     async def run(
-            self, code, mode="script", code_file_name="", test_code="", test_file_name="", command=[], **kwargs
+        self, code, mode="script", code_file_name="", test_code="", test_file_name="", command=[], **kwargs
     ) -> str:
         logger.info(f"Running {' '.join(command)}")
         if mode == "script":

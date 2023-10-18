@@ -7,8 +7,8 @@
 """
 import re
 
-from metagpt.actions.action import Action
 from metagpt.logs import logger
+from metagpt.actions.action import Action
 from metagpt.utils.common import CodeParser
 
 PROMPT_TEMPLATE = """
@@ -24,8 +24,6 @@ The message is as follows:
 Now you should start rewriting the code:
 ## file name of the code to rewrite: Write code with triple quoto. Do your best to implement THIS IN ONLY ONE FILE.
 """
-
-
 class DebugError(Action):
     def __init__(self, name="DebugError", context=None, llm=None):
         super().__init__(name, context, llm)
@@ -35,17 +33,17 @@ class DebugError(Action):
     #              f"\n\n{error}\n\nPlease try to fix the error in this code."
     #     fixed_code = await self._aask(prompt)
     #     return fixed_code
-
+    
     async def run(self, context):
         if "PASS" in context:
             return "", "the original code works fine, no need to debug"
-
+        
         file_name = re.search("## File To Rewrite:\s*(.+\\.py)", context).group(1)
 
         logger.info(f"Debug and rewrite {file_name}")
 
         prompt = PROMPT_TEMPLATE.format(context=context)
-
+        
         rsp = await self._aask(prompt)
 
         code = CodeParser.parse_code(block="", text=rsp)

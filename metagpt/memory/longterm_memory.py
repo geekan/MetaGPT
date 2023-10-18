@@ -68,3 +68,4 @@ class LongTermMemory(Memory):
     def clear(self):
         super(LongTermMemory, self).clear()
         self.memory_storage.clean()
+        

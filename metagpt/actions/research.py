@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 from typing import Callable
 
 from pydantic import parse_obj_as
@@ -59,6 +60,7 @@ a comprehensive summary of the text.
 {content}
 '''
 
+
 CONDUCT_RESEARCH_PROMPT = '''### Reference Information
 {content}
 
@@ -76,13 +78,12 @@ above. The report must meet the following requirements:
 
 class CollectLinks(Action):
     """Action class to collect links from a search engine."""
-
     def __init__(
-            self,
-            name: str = "",
-            *args,
-            rank_func: Callable[[list[str]], None] | None = None,
-            **kwargs,
+        self,
+        name: str = "",
+        *args,
+        rank_func: Callable[[list[str]], None] | None = None,
+        **kwargs,
     ):
         super().__init__(name, *args, **kwargs)
         self.desc = "Collect links from a search engine."
@@ -90,11 +91,11 @@ class CollectLinks(Action):
         self.rank_func = rank_func
 
     async def run(
-            self,
-            topic: str,
-            decomposition_nums: int = 4,
-            url_per_query: int = 4,
-            system_text: str | None = None,
+        self,
+        topic: str,
+        decomposition_nums: int = 4,
+        url_per_query: int = 4,
+        system_text: str | None = None,
     ) -> dict[str, list[str]]:
         """Run the action to collect links.
 
@@ -119,16 +120,13 @@ class CollectLinks(Action):
 
         def gen_msg():
             while True:
-                search_results = "\n".join(
-                    f"#### Keyword: {i}\n Search Result: {j}\n" for (i, j) in zip(keywords, results))
-                prompt = SUMMARIZE_SEARCH_PROMPT.format(decomposition_nums=decomposition_nums,
-                                                        search_results=search_results)
+                search_results = "\n".join(f"#### Keyword: {i}\n Search Result: {j}\n" for (i, j) in zip(keywords, results))
+                prompt = SUMMARIZE_SEARCH_PROMPT.format(decomposition_nums=decomposition_nums, search_results=search_results)
                 yield prompt
                 remove = max(results, key=len)
                 remove.pop()
                 if len(remove) == 0:
                     break
-
         prompt = reduce_message_length(gen_msg(), self.llm.model, system_text, CONFIG.max_tokens_rsp)
         logger.debug(prompt)
         queries = await self._aask(prompt, [system_text])
@@ -174,12 +172,11 @@ class CollectLinks(Action):
 
 class WebBrowseAndSummarize(Action):
     """Action class to explore the web and provide summaries of articles and webpages."""
-
     def __init__(
-            self,
-            *args,
-            browse_func: Callable[[list[str]], None] | None = None,
-            **kwargs,
+        self,
+        *args,
+        browse_func: Callable[[list[str]], None] | None = None,
+        **kwargs,
     ):
         super().__init__(*args, **kwargs)
         if CONFIG.model_for_researcher_summary:
@@ -191,11 +188,11 @@ class WebBrowseAndSummarize(Action):
         self.desc = "Explore the web and provide summaries of articles and webpages."
 
     async def run(
-            self,
-            url: str,
-            *urls: str,
-            query: str,
-            system_text: str = RESEARCH_BASE_SYSTEM,
+        self,
+        url: str,
+        *urls: str,
+        query: str,
+        system_text: str = RESEARCH_BASE_SYSTEM,
     ) -> dict[str, str]:
         """Run the action to browse the web and provide summaries.
 
@@ -217,8 +214,7 @@ class WebBrowseAndSummarize(Action):
         for u, content in zip([url, *urls], contents):
             content = content.inner_text
             chunk_summaries = []
-            for prompt in generate_prompt_chunk(content, prompt_template, self.llm.model, system_text,
-                                                CONFIG.max_tokens_rsp):
+            for prompt in generate_prompt_chunk(content, prompt_template, self.llm.model, system_text, CONFIG.max_tokens_rsp):
                 logger.debug(prompt)
                 summary = await self._aask(prompt, [system_text])
                 if summary == "Not relevant.":
@@ -242,17 +238,16 @@ class WebBrowseAndSummarize(Action):
 
 class ConductResearch(Action):
     """Action class to conduct research and generate a research report."""
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if CONFIG.model_for_researcher_report:
             self.llm.model = CONFIG.model_for_researcher_report
 
     async def run(
-            self,
-            topic: str,
-            content: str,
-            system_text: str = RESEARCH_BASE_SYSTEM,
+        self,
+        topic: str,
+        content: str,
+        system_text: str = RESEARCH_BASE_SYSTEM,
     ) -> str:
         """Run the action to conduct research and generate a research report.
 

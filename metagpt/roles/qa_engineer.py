@@ -26,12 +26,12 @@ from metagpt.utils.special_tokens import FILENAME_CODE_SEP, MSG_SEP
 
 class QaEngineer(Role):
     def __init__(
-            self,
-            name="Edward",
-            profile="QaEngineer",
-            goal="Write comprehensive and robust tests to ensure codes will work as expected without bugs",
-            constraints="The test code you write should conform to code standard like PEP8, be modular, easy to read and maintain",
-            test_round_allowed=5,
+        self,
+        name="Edward",
+        profile="QaEngineer",
+        goal="Write comprehensive and robust tests to ensure codes will work as expected without bugs",
+        constraints="The test code you write should conform to code standard like PEP8, be modular, easy to read and maintain",
+        test_round_allowed=5,
     ):
         super().__init__(name, profile, goal, constraints)
         self._init_actions(

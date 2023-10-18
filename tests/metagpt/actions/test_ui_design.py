@@ -4,7 +4,7 @@
 #
 from tests.metagpt.roles.ui_role import UIDesign
 
-llm_resp = '''
+llm_resp= '''
     # UI Design Description
 ```The user interface for the snake game will be designed in a way that is simple, clean, and intuitive. The main elements of the game such as the game grid, snake, food, score, and game over message will be clearly defined and easy to understand. The game grid will be centered on the screen with the score displayed at the top. The game controls will be intuitive and easy to use. The design will be modern and minimalist with a pleasing color scheme.```
 
@@ -100,7 +100,6 @@ body {
     font-size: 3em;
     '''
 
-
 def test_ui_design_parse_css():
     ui_design_work = UIDesign(name="UI design action")
 
@@ -162,7 +161,7 @@ def test_ui_design_parse_css():
     transform: translate(-50%, -50%);
     font-size: 3em;
     '''
-    assert ui_design_work.parse_css_code(context=llm_resp) == css
+    assert ui_design_work.parse_css_code(context=llm_resp)==css
 
 
 def test_ui_design_parse_html():
@@ -186,4 +185,7 @@ def test_ui_design_parse_html():
 </body>
 </html>
     '''
-    assert ui_design_work.parse_css_code(context=llm_resp) == html
+    assert ui_design_work.parse_css_code(context=llm_resp)==html
+
+
+

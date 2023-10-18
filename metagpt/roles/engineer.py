@@ -61,13 +61,13 @@ class Engineer(Role):
     """
 
     def __init__(
-            self,
-            name: str = "Alex",
-            profile: str = "Engineer",
-            goal: str = "Write elegant, readable, extensible, efficient code",
-            constraints: str = "The code should conform to standards like PEP8 and be modular and maintainable",
-            n_borg: int = 1,
-            use_code_review: bool = False,
+        self,
+        name: str = "Alex",
+        profile: str = "Engineer",
+        goal: str = "Write elegant, readable, extensible, efficient code",
+        constraints: str = "The code should conform to standards like PEP8 and be modular and maintainable",
+        n_borg: int = 1,
+        use_code_review: bool = False,
     ) -> None:
         """Initializes the Engineer role with given attributes."""
         super().__init__(name, profile, goal, constraints)

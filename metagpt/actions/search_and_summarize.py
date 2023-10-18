@@ -54,6 +54,7 @@ SEARCH_AND_SUMMARIZE_PROMPT = """
 
 """
 
+
 SEARCH_AND_SUMMARIZE_SALES_SYSTEM = """## Requirements
 1. Please summarize the latest dialogue based on the reference information (secondary) and dialogue history (primary). Do not include text that is irrelevant to the conversation.
 - The context is for reference only. If it is irrelevant to the user's search request history, please reduce its reference and usage.
@@ -139,3 +140,4 @@ class SearchAndSummarize(Action):
         logger.debug(prompt)
         logger.debug(result)
         return result
+    

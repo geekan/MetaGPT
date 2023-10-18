@@ -16,6 +16,7 @@ The requirements of the tree-structure plan are:
 4. The sub-goals at the bottom level should be basic actions so that I can easily execute them in the game.
 """
 
+
 DECOMPOSE_USER = """USER:
 The goal is to {goal description}. Generate the plan according to the requirements.
 """

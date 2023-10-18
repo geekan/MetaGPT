@@ -73,6 +73,7 @@ The action_list can contain arbitrary number of actions. The args of each action
 6. I will execute your code step by step and give you feedback. If some action fails, I will stop at that action and will not execute its following actions. The feedback will include error messages about the failed action. At that time, you should replan and write the new code just starting from that failed action.
 """
 
+
 SOP_USER = """USER:
 My current state:
 - inventory: {inventory}

@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 # @Desc   : unittest of `metagpt/memory/longterm_memory.py`
 
-from metagpt.actions import BossRequirement
 from metagpt.config import CONFIG
-from metagpt.memory import LongTermMemory
-from metagpt.roles.role import RoleContext
 from metagpt.schema import Message
+from metagpt.actions import BossRequirement
+from metagpt.roles.role import RoleContext
+from metagpt.memory import LongTermMemory
 
 
 def test_ltm_search():

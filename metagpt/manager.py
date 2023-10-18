@@ -51,7 +51,7 @@ class Manager:
         # chosen_role_name = self.llm.ask(self.prompt_template.format(context))
 
         # FIXME: 现在通过简单的字典决定流向，但之后还是应该有思考过程
-        # The direction of flow is now determined by a simple dictionary, but there should still be a thought process afterwards
+        #The direction of flow is now determined by a simple dictionary, but there should still be a thought process afterwards
         next_role_profile = self.role_directions[message.role]
         # logger.debug(f"{next_role_profile}")
         for _, role in roles.items():

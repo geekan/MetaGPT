@@ -12,7 +12,7 @@ async def mock_llm_ask(self, prompt: str, system_msgs):
         return '["dataiku", "datarobot"]'
     elif "Provide up to 4 queries related to your research topic" in prompt:
         return '["Dataiku machine learning platform", "DataRobot AI platform comparison", ' \
-               '"Dataiku vs DataRobot features", "Dataiku and DataRobot use cases"]'
+            '"Dataiku vs DataRobot features", "Dataiku and DataRobot use cases"]'
     elif "sort the remaining search results" in prompt:
         return '[1,2]'
     elif "Not relevant." in prompt:

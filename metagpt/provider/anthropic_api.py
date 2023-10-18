@@ -32,3 +32,4 @@ class Claude2:
             max_tokens_to_sample=1000,
         )
         return res.completion
+    

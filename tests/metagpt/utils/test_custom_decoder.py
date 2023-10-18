@@ -6,6 +6,7 @@
 @File    : test_custom_decoder.py
 """
 
+
 from metagpt.utils.custom_decoder import CustomDecoder
 
 

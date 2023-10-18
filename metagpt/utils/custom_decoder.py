@@ -36,11 +36,11 @@ def py_make_scanner(context):
             return parse_object((string, idx + 1), strict, _scan_once, object_hook, object_pairs_hook, memo)
         elif nextchar == "[":
             return parse_array((string, idx + 1), _scan_once)
-        elif nextchar == "n" and string[idx: idx + 4] == "null":
+        elif nextchar == "n" and string[idx : idx + 4] == "null":
             return None, idx + 4
-        elif nextchar == "t" and string[idx: idx + 4] == "true":
+        elif nextchar == "t" and string[idx : idx + 4] == "true":
             return True, idx + 4
-        elif nextchar == "f" and string[idx: idx + 5] == "false":
+        elif nextchar == "f" and string[idx : idx + 5] == "false":
             return False, idx + 5
 
         m = match_number(string, idx)
@@ -51,11 +51,11 @@ def py_make_scanner(context):
             else:
                 res = parse_int(integer)
             return res, m.end()
-        elif nextchar == "N" and string[idx: idx + 3] == "NaN":
+        elif nextchar == "N" and string[idx : idx + 3] == "NaN":
             return parse_constant("NaN"), idx + 3
-        elif nextchar == "I" and string[idx: idx + 8] == "Infinity":
+        elif nextchar == "I" and string[idx : idx + 8] == "Infinity":
             return parse_constant("Infinity"), idx + 8
-        elif nextchar == "-" and string[idx: idx + 9] == "-Infinity":
+        elif nextchar == "-" and string[idx : idx + 9] == "-Infinity":
             return parse_constant("-Infinity"), idx + 9
         else:
             raise StopIteration(idx)
@@ -89,7 +89,7 @@ WHITESPACE_STR = " \t\n\r"
 
 
 def JSONObject(
-        s_and_end, strict, scan_once, object_hook, object_pairs_hook, memo=None, _w=WHITESPACE.match, _ws=WHITESPACE_STR
+    s_and_end, strict, scan_once, object_hook, object_pairs_hook, memo=None, _w=WHITESPACE.match, _ws=WHITESPACE_STR
 ):
     """Parse a JSON object from a string and return the parsed object.
 
@@ -118,12 +118,12 @@ def JSONObject(
     memo_get = memo.setdefault
     # Use a slice to prevent IndexError from being raised, the following
     # check will raise a more specific ValueError if the string is empty
-    nextchar = s[end: end + 1]
+    nextchar = s[end : end + 1]
     # Normally we expect nextchar == '"'
     if nextchar != '"' and nextchar != "'":
         if nextchar in _ws:
             end = _w(s, end).end()
-            nextchar = s[end: end + 1]
+            nextchar = s[end : end + 1]
         # Trivial empty object
         if nextchar == "}":
             if object_pairs_hook is not None:
@@ -146,9 +146,9 @@ def JSONObject(
         key = memo_get(key, key)
         # To skip some function call overhead we optimize the fast paths where
         # the JSON key separator is ": " or just ":".
-        if s[end: end + 1] != ":":
+        if s[end : end + 1] != ":":
             end = _w(s, end).end()
-            if s[end: end + 1] != ":":
+            if s[end : end + 1] != ":":
                 raise JSONDecodeError("Expecting ':' delimiter", s, end)
         end += 1
 
@@ -179,7 +179,7 @@ def JSONObject(
         elif nextchar != ",":
             raise JSONDecodeError("Expecting ',' delimiter", s, end - 1)
         end = _w(s, end).end()
-        nextchar = s[end: end + 1]
+        nextchar = s[end : end + 1]
         end += 1
         if nextchar != '"':
             raise JSONDecodeError("Expecting property name enclosed in double quotes", s, end - 1)
@@ -257,7 +257,7 @@ def py_scanstring(s, end, strict=True, _b=BACKSLASH, _m=STRINGCHUNK.match, delim
         else:
             uni = _decode_uXXXX(s, end)
             end += 5
-            if 0xD800 <= uni <= 0xDBFF and s[end: end + 2] == "\\u":
+            if 0xD800 <= uni <= 0xDBFF and s[end : end + 2] == "\\u":
                 uni2 = _decode_uXXXX(s, end + 1)
                 if 0xDC00 <= uni2 <= 0xDFFF:
                     uni = 0x10000 + (((uni - 0xD800) << 10) | (uni2 - 0xDC00))
@@ -272,14 +272,14 @@ scanstring = py_scanstring
 
 class CustomDecoder(json.JSONDecoder):
     def __init__(
-            self,
-            *,
-            object_hook=None,
-            parse_float=None,
-            parse_int=None,
-            parse_constant=None,
-            strict=True,
-            object_pairs_hook=None
+        self,
+        *,
+        object_hook=None,
+        parse_float=None,
+        parse_int=None,
+        parse_constant=None,
+        strict=True,
+        object_pairs_hook=None
     ):
         super().__init__(
             object_hook=object_hook,

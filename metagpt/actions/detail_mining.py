@@ -6,6 +6,7 @@
 @File    : detail_mining.py
 """
 from metagpt.actions import Action, ActionOutput
+from metagpt.logs import logger
 
 PROMPT_TEMPLATE = """
 ##TOPIC
@@ -42,7 +43,6 @@ OUTPUT_MAPPING = {
 class DetailMining(Action):
     """This class allows LLM to further mine noteworthy details based on specific "##TOPIC"(discussion topic) and "##RECORD" (discussion records), thereby deepening the discussion.
     """
-
     def __init__(self, name="", context=None, llm=None):
         super().__init__(name, context, llm)
 

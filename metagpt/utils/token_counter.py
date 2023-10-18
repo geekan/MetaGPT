@@ -24,6 +24,7 @@ TOKEN_COSTS = {
     "text-embedding-ada-002": {"prompt": 0.0004, "completion": 0.0},
 }
 
+
 TOKEN_MAX = {
     "gpt-3.5-turbo": 4096,
     "gpt-3.5-turbo-0301": 4096,

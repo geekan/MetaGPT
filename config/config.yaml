@@ -15,19 +15,6 @@ RPM: 10
 #### if Anthropic
 #Anthropic_API_KEY: "YOUR_API_KEY"
 
-#### if Xinghuo
-#XINGHUO_APPID : "YOUR_APPID"
-#XINGHUO_API_SECRET : "YOUR_APISecret"
-#XINGHUO_API_KEY : "YOUR_APIKey"
-#DOMAIN : "generalv2"
-#SPARK_URL : "ws://spark-api.xf-yun.com/v2.1/chat"
-
-XINGHUO_APPID: "ae5e30f4"
-XINGHUO_API_SECRET: "MDhlOWE2NmFhOWMxZWRkOTdlYjY2Njk1"
-XINGHUO_API_KEY: "97b635fe5927d34a857333e11d15f29f"
-DOMAIN: "generalv2"
-SPARK_URL: "ws://spark-api.xf-yun.com/v2.1/chat"
-
 #### if AZURE, check https://github.com/openai/openai-cookbook/blob/main/examples/azure/chat.ipynb
 #### You can use ENGINE or DEPLOYMENT mode
 #OPENAI_API_TYPE: "azure"

@@ -22,11 +22,11 @@ class ProjectManager(Role):
     """
 
     def __init__(
-            self,
-            name: str = "Eve",
-            profile: str = "Project Manager",
-            goal: str = "Improve team efficiency and deliver with quality and quantity",
-            constraints: str = "",
+        self,
+        name: str = "Eve",
+        profile: str = "Project Manager",
+        goal: str = "Improve team efficiency and deliver with quality and quantity",
+        constraints: str = "",
     ) -> None:
         """
         Initializes the ProjectManager role with given attributes.

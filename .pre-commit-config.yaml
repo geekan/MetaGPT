@@ -8,11 +8,11 @@ repos:
     rev: 5.11.5
     hooks:
       - id: isort
-        args: [ '--profile', 'black' ]
+        args: ['--profile', 'black']
         exclude: >-
-          (?x)^(
-          .*__init__\.py$
-          )
+            (?x)^(
+            .*__init__\.py$
+            )
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff version.
@@ -24,4 +24,4 @@ repos:
     rev: 23.3.0
     hooks:
       - id: black
-        args: [ '--line-length', '120' ]
+        args: ['--line-length', '120']

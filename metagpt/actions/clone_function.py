@@ -1,5 +1,5 @@
-import traceback
 from pathlib import Path
+import traceback
 
 from metagpt.actions.write_code import WriteCode
 from metagpt.logs import logger

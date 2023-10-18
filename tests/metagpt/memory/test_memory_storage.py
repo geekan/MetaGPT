@@ -4,11 +4,11 @@
 
 from typing import List
 
+from metagpt.memory.memory_storage import MemoryStorage
+from metagpt.schema import Message
 from metagpt.actions import BossRequirement
 from metagpt.actions import WritePRD
 from metagpt.actions.action_output import ActionOutput
-from metagpt.memory.memory_storage import MemoryStorage
-from metagpt.schema import Message
 
 
 def test_idea_message():
@@ -26,7 +26,7 @@ def test_idea_message():
     sim_idea = 'Write a game of cli snake'
     sim_message = Message(role='BOSS', content=sim_idea, cause_by=BossRequirement)
     new_messages = memory_storage.search(sim_message)
-    assert len(new_messages) == 0  # similar, return []
+    assert len(new_messages) == 0   # similar, return []
 
     new_idea = 'Write a 2048 web game'
     new_message = Message(role='BOSS', content=new_idea, cause_by=BossRequirement)
@@ -68,7 +68,7 @@ def test_actionout_message():
                           role='user',
                           cause_by=WritePRD)
     new_messages = memory_storage.search(sim_message)
-    assert len(new_messages) == 0  # similar, return []
+    assert len(new_messages) == 0   # similar, return []
 
     new_conent = 'Incorporate basic features of a snake game such as scoring and increasing difficulty'
     new_message = Message(content=new_conent,

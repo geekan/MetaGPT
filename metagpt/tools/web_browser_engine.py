@@ -12,9 +12,9 @@ from metagpt.utils.parse_html import WebPage
 
 class WebBrowserEngine:
     def __init__(
-            self,
-            engine: WebBrowserEngineType | None = None,
-            run_func: Callable[..., Coroutine[Any, Any, WebPage | list[WebPage]]] | None = None,
+        self,
+        engine: WebBrowserEngineType | None = None,
+        run_func: Callable[..., Coroutine[Any, Any, WebPage | list[WebPage]]] | None = None,
     ):
         engine = engine or CONFIG.web_browser_engine
 
@@ -46,9 +46,7 @@ class WebBrowserEngine:
 if __name__ == "__main__":
     import fire
 
-
     async def main(url: str, *urls: str, engine_type: Literal["playwright", "selenium"] = "playwright", **kwargs):
         return await WebBrowserEngine(WebBrowserEngineType(engine_type), **kwargs).run(url, *urls)
-
 
     fire.Fire(main)
