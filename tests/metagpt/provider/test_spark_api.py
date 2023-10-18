@@ -6,4 +6,4 @@ def test_message():
     llm = SparkAPI()
 
     logger.info(llm.ask('只回答"收到了"这三个字。'))
-    logger.info(llm.ask('只回答"好的，我将为您写一篇日记"。'))
+    logger.info(llm.ask('从1，数到20。'))
