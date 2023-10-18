@@ -20,11 +20,12 @@ class MemoryRetriever:
         recent_m_memories = memory[-m:]  # 取最近m条记忆
 
         before_k_memories = memory[:-m]  # 取最近m条之前的记忆
+
         # 对最近k条之前的记忆按照重要性打分
-        scored_memories = [(message, self.score_message(message.content, profile, name)) for message in
-                           before_k_memories]
-        scored_memories = [(message, self.score_message(message.content, profile, name)) for message in
-                           recent_m_memories]
+        # scored_memories = [(message, self.score_message(message.content, profile, name)) for message in
+        #                    before_k_memories]
+        scored_memories = [(message, self.score_message(message.content, profile, name)) for message in memory]
+
         # 提取分数最高的n条记忆
         sorted_memories = sorted(scored_memories, key=lambda x: x[1], reverse=True)
         # sorted_memories = sorted(scored_memories, key=lambda x: (x[1], scored_memories.index(x)), reverse=True)
@@ -47,11 +48,13 @@ class MemoryRetriever:
                     "Recent Messages:\n" + "\n".join(recent_memories) +
                     "\n\nInformative Messages:\n" + "\n".join(informative_memories))
 
-        # 记录memories
-        if len(sorted_memories) % 10 == 0:
-            filename = f"{profile}_memories.txt"
-            with open(WORKSPACE_ROOT / filename, "a") as f:
-                f.write(memories + "\n\n得分情况：\n" + str(sorted_memories))
+        # # 记录memories
+        # all_memories = [f"{m.sent_from}: {re.sub(time_stamp_pattern, '', m.content)}" for m in memory]
+        # all_memories = "\n".join(all_memories)
+        # if memory:
+        #     filename = f"{profile}_memories.txt"
+        #     with open(WORKSPACE_ROOT / filename, "a") as f:
+        #         f.write(all_memories + "\n\nScore:\n" + str(sorted_memories) + "\n\n")
 
         return memories
 
@@ -71,17 +74,44 @@ class MemoryRetriever:
         if re.search(pattern_4, message):
             return 4
 
-        # Score 3: Keywords related to speculation or revelation of roles
-        role_patterns = "werewolf|guard|seer|witch"
-        pattern_3 = r"(discov|speculat|guess|conjectur|doubt|reveal|am|is|was|were|assum|believ|think|suspect)"
-        if re.search(fr"{pattern_3}.*({role_patterns}|{name}|{profile})", message):
+        # Score 3: Keywords related to specific actions
+        pattern_3 = r"(protect|save|verif|drug|antidote|poison|rescue|shield|cure)"
+        if re.search(pattern_3, message):
             return 3
 
-        # Score 2: Keywords related to specific actions
-        pattern_2 = r"(protect|save|verif|drug|antidote|poison|rescue|shield|cure)"
-        if re.search(pattern_2, message):
+        # Score 2: Keywords related to speculation or revelation of roles
+        role_patterns = "werewolf|guard|seer|witch|villager"
+        # pattern_2 = r"(discov|speculat|guess|conjectur|doubt|reveal|am|is|was|were|assum|believ|think|suspect)"
+        # if re.search(fr"{pattern_2}.*({role_patterns}|{name}|{profile})", message):
+        if re.search(fr"({role_patterns}|{name})", message):
             return 2
 
         # Score 1: Other messages
         else:
             return 1
+
+    def score(self, memory_path, profile, name, limit):
+        # 从文件中读取记忆，每一行作为列表的一个元素
+        # 使用##控制选取的记忆条数
+        with open(memory_path, "r") as f:
+            memories = f.read().split("##")[0].split("\n")
+
+        scored_memories = [(memory, self.score_message(memory, profile, name)) for memory in memories]
+        # 选择最高分的10条信息
+        sorted_memories = sorted(scored_memories, key=lambda x: (x[1], memories.index(x[0])), reverse=True)[:limit]
+        sorted_memories = sorted(sorted_memories, key=lambda x: memories.index(x[0]))
+        sorted_memories = [f"{memory[0]} : {memory[1]}" for memory in sorted_memories]
+
+        print("\n".join(sorted_memories))
+        new_file_path = str(memory_path).replace(".txt", "_score.txt")
+        with open(new_file_path, "a") as f:
+            f.write("sorted_memories:\n" + "\n".join(sorted_memories) + "\n---\n")
+
+        return scored_memories
+
+
+if __name__ == '__main__':
+    path = WORKSPACE_ROOT / "10132100/10132100 - werewolf.txt"
+    profile = "werewolf"
+    name = "werewolf"
+    MemoryRetriever().score(path, profile, name, limit=12)
