@@ -91,7 +91,7 @@ if __name__ == "__main__":
 
         msg = """
         Write an agent called SimpleTester that will take any code snippet (str) and do the following:
-        1. write a testing code (str) for testing the given code snippet, save the testing code as a .py file in the current working diretory;
+        1. write a testing code (str) for testing the given code snippet, save the testing code as a .py file in the current working directory;
         2. run the testing code.
         You can use pytest as the testing framework.
         """
