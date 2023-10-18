@@ -162,9 +162,9 @@ class WriteDocstring(Action):
         self.desc = "Write docstring for code."
 
     async def run(
-        self, code: str,
-        system_text: str = PYTHON_DOCSTRING_SYSTEM,
-        style: Literal["google", "numpy", "sphinx"] = "google",
+            self, code: str,
+            system_text: str = PYTHON_DOCSTRING_SYSTEM,
+            style: Literal["google", "numpy", "sphinx"] = "google",
     ) -> str:
         """Writes docstrings for the given code and system text in the specified style.
 
@@ -202,6 +202,7 @@ def _simplify_python_code(code: str) -> None:
 if __name__ == "__main__":
     import fire
 
+
     async def run(filename: str, overwrite: bool = False, style: Literal["google", "numpy", "sphinx"] = "google"):
         with open(filename) as f:
             code = f.read()
@@ -210,5 +211,6 @@ if __name__ == "__main__":
             with open(filename, "w") as f:
                 f.write(code)
         return code
+
 
     fire.Fire(run)

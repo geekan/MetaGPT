@@ -45,7 +45,8 @@ def test_set_manager(env: Environment):
 @pytest.mark.asyncio
 async def test_publish_and_process_message(env: Environment):
     product_manager = ProductManager("Alice", "Product Manager", "做AI Native产品", "资源有限")
-    architect = Architect("Bob", "Architect", "设计一个可用、高效、较低成本的系统，包括数据结构与接口", "资源有限，需要节省成本")
+    architect = Architect("Bob", "Architect", "设计一个可用、高效、较低成本的系统，包括数据结构与接口",
+                          "资源有限，需要节省成本")
 
     env.add_roles([product_manager, architect])
     env.set_manager(Manager())

@@ -53,4 +53,3 @@ class LocalStore(BaseStore, ABC):
     @abstractmethod
     def _write(self, docs, metadatas):
         raise NotImplementedError
-    

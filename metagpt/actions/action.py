@@ -51,12 +51,12 @@ class Action(ABC):
 
     @retry(stop=stop_after_attempt(3), wait=wait_fixed(1))
     async def _aask_v1(
-        self,
-        prompt: str,
-        output_class_name: str,
-        output_data_mapping: dict,
-        system_msgs: Optional[list[str]] = None,
-        format="markdown",  # compatible to original format
+            self,
+            prompt: str,
+            output_class_name: str,
+            output_data_mapping: dict,
+            system_msgs: Optional[list[str]] = None,
+            format="markdown",  # compatible to original format
     ) -> ActionOutput:
         """Append default prefix"""
         if not system_msgs:

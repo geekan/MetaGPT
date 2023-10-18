@@ -115,4 +115,3 @@ class BaseGPTAPI(BaseChatbot):
     def messages_to_dict(self, messages):
         """objects to [{"role": "user", "content": msg}] etc."""
         return [i.to_dict() for i in messages]
-    

@@ -248,12 +248,12 @@ class UI(Role):
     """Class representing the UI Role."""
 
     def __init__(
-        self,
-        name="Catherine",
-        profile="UI Design",
-        goal="Finish a workable and good User Interface design based on a product design",
-        constraints="Give clear layout description and use standard icons to finish the design",
-        skills=["SD"],
+            self,
+            name="Catherine",
+            profile="UI Design",
+            goal="Finish a workable and good User Interface design based on a product design",
+            constraints="Give clear layout description and use standard icons to finish the design",
+            skills=["SD"],
     ):
         super().__init__(name, profile, goal, constraints)
         self.load_skills(skills)

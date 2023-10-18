@@ -25,4 +25,3 @@ class BaseChatbot(ABC):
     @abstractmethod
     def ask_code(self, msgs: list) -> str:
         """Ask GPT multiple questions and get a piece of code"""
-        

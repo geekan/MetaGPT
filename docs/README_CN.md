@@ -27,7 +27,7 @@
 
 1. MetaGPT输入**一句话的老板需求**，输出**用户故事 / 竞品分析 / 需求 / 数据结构 / APIs / 文件等**
 2. MetaGPT内部包括**产品经理 / 架构师 / 项目经理 / 工程师**，它提供了一个**软件公司**的全过程与精心调配的SOP
-   1. `Code = SOP(Team)` 是核心哲学。我们将SOP具象化，并且用于LLM构成的团队
+    1. `Code = SOP(Team)` 是核心哲学。我们将SOP具象化，并且用于LLM构成的团队
 
 ![一个完全由大语言模型角色构成的软件公司](resources/software_company_cd.jpeg)
 
@@ -36,7 +36,6 @@
 ## MetaGPT 的能力
 
 https://github.com/geekan/MetaGPT/assets/34952977/34345016-5d13-489d-b9f9-b82ace413419
-
 
 ## 示例（均由 GPT-4 生成）
 
@@ -81,7 +80,9 @@ pip install -e.
     MMDC: "./node_modules/.bin/mmdc"
     ```
 
-- 如果`pip install -e.`失败并显示错误`[Errno 13] Permission denied: '/usr/local/lib/python3.11/dist-packages/test-easy-install-13129.write-test'`，请尝试使用`pip install -e. --user`运行。
+- 如果`pip install -e.`
+  失败并显示错误`[Errno 13] Permission denied: '/usr/local/lib/python3.11/dist-packages/test-easy-install-13129.write-test'`
+  ，请尝试使用`pip install -e. --user`运行。
 
 ### Docker安装
 
@@ -136,10 +137,10 @@ cd MetaGPT && docker build -t metagpt:custom .
 cp config/config.yaml config/key.yaml
 ```
 
-| 变量名                              | config/key.yaml                           | env                                             |
-| ----------------------------------- | ----------------------------------------- | ----------------------------------------------- |
+| 变量名                        | config/key.yaml                           | env                                             |
+|----------------------------|-------------------------------------------|-------------------------------------------------|
 | OPENAI_API_KEY # 用您自己的密钥替换 | OPENAI_API_KEY: "sk-..."                  | export OPENAI_API_KEY="sk-..."                  |
-| OPENAI_API_BASE # 可选              | OPENAI_API_BASE: "https://<YOUR_SITE>/v1" | export OPENAI_API_BASE="https://<YOUR_SITE>/v1" |
+| OPENAI_API_BASE # 可选       | OPENAI_API_BASE: "https://<YOUR_SITE>/v1" | export OPENAI_API_BASE="https://<YOUR_SITE>/v1" |
 
 ## 示例：启动一个创业公司
 
@@ -150,9 +151,12 @@ python startup.py "写一个命令行贪吃蛇" --code_review True
 ```
 
 运行脚本后，您可以在 `workspace/` 目录中找到您的新项目。
+
 ### 平台或工具的倾向性
+
 可以在阐述需求时说明想要使用的平台或工具。
 例如：
+
 ```shell
 python startup.py "写一个基于pygame的命令行贪吃蛇"
 ```
@@ -205,7 +209,8 @@ async def startup(idea: str, investment: float = 3.0, n_round: int = 5):
 你可以查看`examples`，其中有单角色（带知识库）的使用例子与仅LLM的使用例子。
 
 ## 快速体验
-对一些用户来说，安装配置本地环境是有困难的，下面这些教程能够让你快速体验到MetaGPT的魅力。  
+
+对一些用户来说，安装配置本地环境是有困难的，下面这些教程能够让你快速体验到MetaGPT的魅力。
 
 - [MetaGPT快速体验](https://deepwisdom.feishu.cn/wiki/Q8ycw6J9tiNXdHk66MRcIN8Pnlg)
 
@@ -218,7 +223,8 @@ async def startup(idea: str, investment: float = 3.0, n_round: int = 5):
 如果您对这个项目有任何问题或反馈，欢迎联系我们。我们非常欢迎您的建议！
 
 - **邮箱：** alexanderwu@fuzhi.ai
-- **GitHub 问题：** 对于更技术性的问题，您也可以在我们的 [GitHub 仓库](https://github.com/geekan/metagpt/issues) 中创建一个新的问题。
+- **GitHub 问题：** 对于更技术性的问题，您也可以在我们的 [GitHub 仓库](https://github.com/geekan/metagpt/issues)
+  中创建一个新的问题。
 
 我们会在2-3个工作日内回复所有问题。
 

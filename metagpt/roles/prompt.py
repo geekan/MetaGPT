@@ -23,6 +23,7 @@ SUFFIX = """Let's begin!
 Question: {input}
 Thoughts: {agent_scratchpad}"""
 
+
 class PromptString(Enum):
     REFLECTION_QUESTIONS = "Here are some statements:\n{memory_descriptions}\n\nBased solely on the information above, what are the 3 most prominent high-level questions we can answer about the topic in the statements?\n\n{format_instructions}"
 

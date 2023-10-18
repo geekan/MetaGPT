@@ -50,6 +50,7 @@ class UserMessage(Message):
     """便于支持OpenAI的消息
        Facilitate support for OpenAI messages
     """
+
     def __init__(self, content: str):
         super().__init__(content, 'user')
 
@@ -59,6 +60,7 @@ class SystemMessage(Message):
     """便于支持OpenAI的消息
        Facilitate support for OpenAI messages
     """
+
     def __init__(self, content: str):
         super().__init__(content, 'system')
 
@@ -68,6 +70,7 @@ class AIMessage(Message):
     """便于支持OpenAI的消息
        Facilitate support for OpenAI messages
     """
+
     def __init__(self, content: str):
         super().__init__(content, 'assistant')
 

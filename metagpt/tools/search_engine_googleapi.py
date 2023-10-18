@@ -76,11 +76,11 @@ class GoogleAPIWrapper(BaseModel):
         return service.cse()
 
     async def run(
-        self,
-        query: str,
-        max_results: int = 8,
-        as_string: bool = True,
-        focus: list[str] | None = None,
+            self,
+            query: str,
+            max_results: int = 8,
+            as_string: bool = True,
+            focus: list[str] | None = None,
     ) -> str | list[dict]:
         """Return the results of a Google search using the official Google API.
 

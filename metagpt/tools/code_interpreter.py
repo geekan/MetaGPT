@@ -1,16 +1,16 @@
+import inspect
 import re
-from typing import List, Callable
+import textwrap
 from pathlib import Path
+from typing import List, Callable
 
 import wrapt
-import textwrap
-import inspect
 from interpreter.interpreter import Interpreter
 
-from metagpt.logs import logger
-from metagpt.config import CONFIG
-from metagpt.utils.highlight import highlight
 from metagpt.actions.clone_function import CloneFunction, run_function_code, run_function_script
+from metagpt.config import CONFIG
+from metagpt.logs import logger
+from metagpt.utils.highlight import highlight
 
 
 def extract_python_code(code: str):
@@ -36,6 +36,7 @@ def extract_python_code(code: str):
 
 class OpenCodeInterpreter(object):
     """https://github.com/KillianLucas/open-interpreter"""
+
     def __init__(self, auto_run: bool = True) -> None:
         interpreter = Interpreter()
         interpreter.auto_run = auto_run
@@ -126,4 +127,5 @@ class OpenInterpreterDecorator(object):
             except Exception as e:
                 raise Exception("Could not evaluate Python code", e)
             return res
+
         return wrapper(wrapped)

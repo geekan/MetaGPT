@@ -5,13 +5,15 @@ Author: garylin2099
 '''
 import asyncio
 import platform
+
 import fire
 
-from metagpt.software_company import SoftwareCompany
 from metagpt.actions import Action, BossRequirement
+from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
-from metagpt.logs import logger
+from metagpt.software_company import SoftwareCompany
+
 
 class ShoutOut(Action):
     """Action: Shout out loudly in a debate (quarrel)"""
@@ -31,7 +33,6 @@ class ShoutOut(Action):
         super().__init__(name, context, llm)
 
     async def run(self, context: str, name: str, opponent_name: str):
-
         prompt = self.PROMPT_TEMPLATE.format(context=context, name=name, opponent_name=opponent_name)
         # logger.info(prompt)
 
@@ -39,12 +40,13 @@ class ShoutOut(Action):
 
         return rsp
 
+
 class Trump(Role):
     def __init__(
-        self,
-        name: str = "Trump",
-        profile: str = "Republican",
-        **kwargs,
+            self,
+            name: str = "Trump",
+            profile: str = "Republican",
+            **kwargs,
     ):
         super().__init__(name, profile, **kwargs)
         self._init_actions([ShoutOut])
@@ -55,7 +57,7 @@ class Trump(Role):
     async def _observe(self) -> int:
         await super()._observe()
         # accept messages sent (from opponent) to self, disregard own messages from the last round
-        self._rc.news = [msg for msg in self._rc.news if msg.send_to == self.name]  
+        self._rc.news = [msg for msg in self._rc.news if msg.send_to == self.name]
         return len(self._rc.news)
 
     async def _act(self) -> Message:
@@ -79,12 +81,13 @@ class Trump(Role):
 
         return msg
 
+
 class Biden(Role):
     def __init__(
-        self,
-        name: str = "Biden",
-        profile: str = "Democrat",
-        **kwargs,
+            self,
+            name: str = "Biden",
+            profile: str = "Democrat",
+            **kwargs,
     ):
         super().__init__(name, profile, **kwargs)
         self._init_actions([ShoutOut])
@@ -119,6 +122,7 @@ class Biden(Role):
         )
 
         return msg
+
 
 async def startup(idea: str, investment: float = 3.0, n_round: int = 5,
                   code_review: bool = False, run_tests: bool = False):

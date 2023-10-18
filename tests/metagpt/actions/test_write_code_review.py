@@ -27,7 +27,6 @@ def add(a, b):
     captured = capfd.readouterr()
     print(f"输出内容: {captured.out}")
 
-
 # @pytest.mark.asyncio
 # async def test_write_code_review_directly():
 #     code = SEARCH_CODE_SAMPLE

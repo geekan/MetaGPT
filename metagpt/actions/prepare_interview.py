@@ -27,6 +27,7 @@ Requirement: Provide a list of questions for the interviewer to ask the intervie
 Attention: Provide as markdown block as the format above, at least 10 questions.
 """
 
+
 # prepare for a interview
 
 
@@ -38,4 +39,3 @@ class PrepareInterview(Action):
         prompt = PROMPT_TEMPLATE.format(context=context)
         question_list = await self._aask_v1(prompt)
         return question_list
-

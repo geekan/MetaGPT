@@ -21,13 +21,13 @@ class Report(BaseModel):
 
 class Researcher(Role):
     def __init__(
-        self,
-        name: str = "David",
-        profile: str = "Researcher",
-        goal: str = "Gather information and conduct research",
-        constraints: str = "Ensure accuracy and relevance of information",
-        language: str = "en-us",
-        **kwargs,
+            self,
+            name: str = "David",
+            profile: str = "Researcher",
+            goal: str = "Gather information and conduct research",
+            constraints: str = "Ensure accuracy and relevance of information",
+            language: str = "en-us",
+            **kwargs,
     ):
         super().__init__(name, profile, goal, constraints, **kwargs)
         self._init_actions([CollectLinks(name), WebBrowseAndSummarize(name), ConductResearch(name)])
@@ -93,8 +93,10 @@ class Researcher(Role):
 if __name__ == "__main__":
     import fire
 
+
     async def main(topic: str, language="en-us"):
         role = Researcher(topic, language=language)
         await role.run(topic)
+
 
     fire.Fire(main)

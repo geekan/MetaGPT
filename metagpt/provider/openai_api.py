@@ -41,7 +41,7 @@ class RateLimiter:
         self.rpm = rpm
 
     def split_batches(self, batch):
-        return [batch[i : i + self.rpm] for i in range(0, len(batch), self.rpm)]
+        return [batch[i: i + self.rpm] for i in range(0, len(batch), self.rpm)]
 
     async def wait_if_needed(self, num_requests):
         current_time = time.time()
@@ -83,8 +83,9 @@ class CostManager(metaclass=Singleton):
         self.total_prompt_tokens += prompt_tokens
         self.total_completion_tokens += completion_tokens
         cost = (
-            prompt_tokens * TOKEN_COSTS[model]["prompt"] + completion_tokens * TOKEN_COSTS[model]["completion"]
-        ) / 1000
+                       prompt_tokens * TOKEN_COSTS[model]["prompt"] + completion_tokens * TOKEN_COSTS[model][
+                   "completion"]
+               ) / 1000
         self.total_cost += cost
         logger.info(
             f"Total running cost: ${self.total_cost:.3f} | Max budget: ${CONFIG.max_budget:.3f} | "

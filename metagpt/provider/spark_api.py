@@ -12,43 +12,59 @@ import hashlib
 import hmac
 import json
 import ssl
-from collections import OrderedDict
-import datetime
 from time import mktime
+from typing import Optional
 from urllib.parse import urlencode
 from urllib.parse import urlparse
 from wsgiref.handlers import format_date_time
+
 import websocket  # 使用websocket_client
-import websockets
-from websockets.legacy.server import WebSocketServerProtocol
 
 from metagpt.config import CONFIG
 from metagpt.logs import logger
 from metagpt.provider.base_gpt_api import BaseGPTAPI
 
 
-
-
 class SparkAPI(BaseGPTAPI):
+
+    def __init__(self):
+        logger.warning('当前方法无法支持异步运行。当你使用acompletion时，并不能并行访问。')
+
+    def ask(self, msg: str) -> str:
+        message = [self._default_system_msg(), self._user_msg(msg)]
+        rsp = self.completion(message)
+        return rsp
+
+    async def aask(self, msg: str, system_msgs: Optional[list[str]] = None) -> str:
+        if system_msgs:
+            message = self._system_msgs(system_msgs) + [self._user_msg(msg)]
+        else:
+            message = [self._default_system_msg(), self._user_msg(msg)]
+        rsp = await self.acompletion(message)
+        logger.debug(message)
+        return rsp
 
     def get_choice_text(self, rsp: dict) -> str:
         return rsp["payload"]["choices"]["text"][-1]["content"]
+
     async def acompletion_text(self, messages: list[dict], stream=False) -> str:
-        #尚未实现
-        pass
+        # 不支持
+        logger.error('该功能禁用。')
+        w = GetMessageFromWeb(messages)
+        return w.run()
 
     async def acompletion(self, messages: list[dict]):
-        # 尚未实现
+        # 不支持异步
         w = GetMessageFromWeb(messages)
-        return  await w.arun()
+        return w.run()
 
     def completion(self, messages: list[dict]):
-        w= GetMessageFromWeb(messages)
+        w = GetMessageFromWeb(messages)
         return w.run()
 
 
 class GetMessageFromWeb:
-    class WsParam(object):
+    class WsParam:
         """
         该类适合讯飞星火大部分接口的调用。
         输入 app_id, api_key, api_secret, spark_url以初始化，
@@ -97,9 +113,9 @@ class GetMessageFromWeb:
             # 此处打印出建立连接时候的url,参考本demo的时候可取消上方打印的注释，比对相同参数时生成的url与自己代码生成的url是否一致
             return url
 
-    def __init__(self,text):
+    def __init__(self, text):
         self.text = text
-        self.ret =None
+        self.ret = ''
         self.xinghuo_appid = CONFIG.xinghuo_appid
         self.xinghuo_api_secret = CONFIG.xinghuo_api_secret
         self.xinghuo_api_key = CONFIG.xinghuo_api_key
@@ -107,7 +123,6 @@ class GetMessageFromWeb:
         self.spark_url = CONFIG.spark_url
 
     def on_message(self, ws, message):
-        logger.info(message)
         data = json.loads(message)
         code = data['header']['code']
 
@@ -120,9 +135,9 @@ class GetMessageFromWeb:
             seq = choices["seq"]  # 服务端是流式返回，seq为返回的数据序号
             status = choices["status"]  # 服务端是流式返回，status用于判断信息是否传送完毕
             content = choices["text"][0]["content"]  # 本次接收到的回答文本
-            self.ret=data
-            ws.close()
-            logger.info(f"本次通讯关闭")
+            self.ret += content
+            if status == 2:
+                ws.close()
 
     # 收到websocket错误的处理
     def on_error(self, ws, error):
@@ -132,7 +147,6 @@ class GetMessageFromWeb:
     # 收到websocket关闭的处理
     def on_close(self, ws, one, two):
         pass
-        # print("通讯完成")
 
     # 处理请求数据
     def gen_params(self):
@@ -164,8 +178,6 @@ class GetMessageFromWeb:
 
     def send(self, ws, *args):
         data = json.dumps(self.gen_params())
-        logger.info(f"开始尝试建立通讯...")
-        logger.info(f"此次请求的请求头数据为：{data}")
         ws.send(data)
 
     # 收到websocket连接建立的处理
@@ -175,6 +187,7 @@ class GetMessageFromWeb:
     # 处理收到的 websocket消息，出现任何错误，调用on_error方法
     def run(self):
         return self._run(self.text)
+
     def _run(self, text_list):
 
         ws_param = self.WsParam(
@@ -185,7 +198,7 @@ class GetMessageFromWeb:
             text_list)
         ws_url = ws_param.create_url()
 
-        websocket.enableTrace(True)  # 默认禁用 WebSocket 的跟踪功能
+        websocket.enableTrace(False)  # 默认禁用 WebSocket 的跟踪功能
         ws = websocket.WebSocketApp(ws_url, on_message=self.on_message, on_error=self.on_error, on_close=self.on_close,
                                     on_open=self.on_open)
         ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})

@@ -10,6 +10,7 @@ import chromadb
 
 class ChromaStore:
     """If inherited from BaseStore, or importing other modules from metagpt, a Python exception occurs, which is strange."""
+
     def __init__(self, name):
         client = chromadb.Client()
         collection = client.create_collection(name)

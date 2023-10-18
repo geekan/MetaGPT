@@ -7,11 +7,14 @@
 """
 import os
 from urllib.parse import urljoin
-from pyppeteer import launch
-from metagpt.logs import logger
-from metagpt.config import CONFIG
 
-async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, height=2048)-> int:
+from pyppeteer import launch
+
+from metagpt.config import CONFIG
+from metagpt.logs import logger
+
+
+async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, height=2048) -> int:
     """
     Converts the given Mermaid code to various output formats and saves them to files.
 
@@ -24,15 +27,14 @@ async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, 
     Returns:
         int: Returns 1 if the conversion and saving were successful, -1 otherwise.
     """
-    suffixes = ['png', 'svg', 'pdf']   
+    suffixes = ['png', 'svg', 'pdf']
     __dirname = os.path.dirname(os.path.abspath(__file__))
 
-    
     if CONFIG.pyppeteer_executable_path:
         browser = await launch(headless=True,
-                            executablePath=CONFIG.pyppeteer_executable_path,
-                            args=['--disable-extensions',"--no-sandbox"] 
-                            )
+                               executablePath=CONFIG.pyppeteer_executable_path,
+                               args=['--disable-extensions', "--no-sandbox"]
+                               )
     else:
         logger.error("Please set the environment variable:PYPPETEER_EXECUTABLE_PATH.")
         return -1
@@ -41,6 +43,7 @@ async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, 
 
     async def console_message(msg):
         logger.info(msg.text)
+
     page.on('console', console_message)
 
     try:
@@ -73,7 +76,7 @@ async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, 
             }
         }''', [mermaid_code, mermaid_config, my_css, background_color])
 
-        if 'svg' in suffixes :
+        if 'svg' in suffixes:
             svg_xml = await page.evaluate('''() => {
                 const svg = document.querySelector('svg');
                 const xmlSerializer = new XMLSerializer();
@@ -83,7 +86,7 @@ async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, 
             with open(f'{output_file_without_suffix}.svg', 'wb') as f:
                 f.write(svg_xml.encode('utf-8'))
 
-        if  'png' in suffixes:
+        if 'png' in suffixes:
             clip = await page.evaluate('''() => {
                 const svg = document.querySelector('svg');
                 const rect = svg.getBoundingClientRect();
@@ -94,7 +97,8 @@ async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, 
                     height: Math.ceil(rect.height)
                 };
             }''')
-            await page.setViewport({'width': clip['x'] + clip['width'], 'height': clip['y'] + clip['height'], 'deviceScaleFactor': device_scale_factor})
+            await page.setViewport({'width': clip['x'] + clip['width'], 'height': clip['y'] + clip['height'],
+                                    'deviceScaleFactor': device_scale_factor})
             screenshot = await page.screenshot(clip=clip, omit_background=True, scale='device')
             logger.info(f"Generating {output_file_without_suffix}.png..")
             with open(f'{output_file_without_suffix}.png', 'wb') as f:
@@ -110,4 +114,3 @@ async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, 
         return -1
     finally:
         await browser.close()
-

@@ -25,10 +25,10 @@ class DDGAPIWrapper:
     """
 
     def __init__(
-        self,
-        *,
-        loop: asyncio.AbstractEventLoop | None = None,
-        executor: futures.Executor | None = None,
+            self,
+            *,
+            loop: asyncio.AbstractEventLoop | None = None,
+            executor: futures.Executor | None = None,
     ):
         kwargs = {}
         if CONFIG.global_proxy:
@@ -39,29 +39,29 @@ class DDGAPIWrapper:
 
     @overload
     def run(
-        self,
-        query: str,
-        max_results: int = 8,
-        as_string: Literal[True] = True,
-        focus: list[str] | None = None,
+            self,
+            query: str,
+            max_results: int = 8,
+            as_string: Literal[True] = True,
+            focus: list[str] | None = None,
     ) -> str:
         ...
 
     @overload
     def run(
-        self,
-        query: str,
-        max_results: int = 8,
-        as_string: Literal[False] = False,
-        focus: list[str] | None = None,
+            self,
+            query: str,
+            max_results: int = 8,
+            as_string: Literal[False] = False,
+            focus: list[str] | None = None,
     ) -> list[dict[str, str]]:
         ...
 
     async def run(
-        self,
-        query: str,
-        max_results: int = 8,
-        as_string: bool = True,
+            self,
+            query: str,
+            max_results: int = 8,
+            as_string: bool = True,
     ) -> str | list[dict]:
         """Return the results of a Google search using the official Google API
 

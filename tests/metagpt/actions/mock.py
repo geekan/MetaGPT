@@ -159,7 +159,6 @@ sequenceDiagram
 The original requirements did not specify whether the game should have a save/load feature, multiplayer support, or any specific graphical user interface. More information on these aspects could help in further refining the product design and requirements.
 """
 
-
 PROJECT_MANAGEMENT_SAMPLE = '''## Required Python third-party packages: Provided in requirements.txt format
 ```python
 "pytest==6.2.5"
@@ -216,7 +215,6 @@ The original requirements did not specify whether the game should have a save/lo
 """
 ```
 '''
-
 
 WRITE_CODE_PROMPT_SAMPLE = """
 你是一个工程师。下面是背景信息与你的当前任务，请为任务撰写代码。
@@ -374,7 +372,6 @@ if __name__ == '__main__':
     else:
         print('No results found.')
 """
-
 
 REFINED_CODE = '''
 import requests

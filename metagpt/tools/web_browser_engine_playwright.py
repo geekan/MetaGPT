@@ -23,10 +23,10 @@ class PlaywrightWrapper:
     """
 
     def __init__(
-        self,
-        browser_type: Literal["chromium", "firefox", "webkit"] | None = None,
-        launch_kwargs: dict | None = None,
-        **kwargs,
+            self,
+            browser_type: Literal["chromium", "firefox", "webkit"] | None = None,
+            launch_kwargs: dict | None = None,
+            **kwargs,
     ) -> None:
         if browser_type is None:
             browser_type = CONFIG.playwright_browser_type
@@ -139,11 +139,12 @@ async def _log_stream(sr, log_func):
 _install_lock: asyncio.Lock = None
 _install_cache = set()
 
-
 if __name__ == "__main__":
     import fire
 
+
     async def main(url: str, *urls: str, browser_type: str = "chromium", **kwargs):
         return await PlaywrightWrapper(browser_type, **kwargs).run(url, *urls)
+
 
     fire.Fire(main)

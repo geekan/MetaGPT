@@ -135,7 +135,6 @@ MMC2 = """sequenceDiagram
     S-->>SE: return summary
     SE-->>M: return summary"""
 
-
 if __name__ == "__main__":
     loop = asyncio.new_event_loop()
     result = loop.run_until_complete(mermaid_to_file(MMC1, PROJECT_ROOT / f"{CONFIG.mermaid_engine}/1"))

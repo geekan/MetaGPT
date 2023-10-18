@@ -26,8 +26,9 @@
 </p>
 
 1. MetaGPT は、**1 行の要件** を入力とし、**ユーザーストーリー / 競合分析 / 要件 / データ構造 / API / 文書など** を出力します。
-2. MetaGPT には、**プロダクト マネージャー、アーキテクト、プロジェクト マネージャー、エンジニア** が含まれています。MetaGPT は、**ソフトウェア会社のプロセス全体を、慎重に調整された SOP とともに提供します。**
-   1. `Code = SOP(Team)` が基本理念です。私たちは SOP を具体化し、LLM で構成されるチームに適用します。
+2. MetaGPT には、**プロダクト マネージャー、アーキテクト、プロジェクト マネージャー、エンジニア** が含まれています。MetaGPT
+   は、**ソフトウェア会社のプロセス全体を、慎重に調整された SOP とともに提供します。**
+    1. `Code = SOP(Team)` が基本理念です。私たちは SOP を具体化し、LLM で構成されるチームに適用します。
 
 ![ソフトウェア会社は LLM ベースの役割で構成されている](resources/software_company_cd.jpeg)
 
@@ -36,7 +37,6 @@
 ## MetaGPTの能力
 
 https://github.com/geekan/MetaGPT/assets/34952977/34345016-5d13-489d-b9f9-b82ace413419
-
 
 ## 例（GPT-4 で完全生成）
 
@@ -70,10 +70,12 @@ pip install -e.
 
 **注:**
 
-- すでに Chrome、Chromium、MS Edge がインストールされている場合は、環境変数 `PUPPETEER_SKIP_CHROMIUM_DOWNLOAD` を `true` に設定することで、
-Chromium のダウンロードをスキップすることができます。
+- すでに Chrome、Chromium、MS Edge がインストールされている場合は、環境変数 `PUPPETEER_SKIP_CHROMIUM_DOWNLOAD` を `true`
+  に設定することで、
+  Chromium のダウンロードをスキップすることができます。
 
-- このツールをグローバルにインストールする[問題を抱えている](https://github.com/mermaidjs/mermaid.cli/issues/15)人もいます。ローカルにインストールするのが代替の解決策です、
+- このツールをグローバルにインストールする[問題を抱えている](https://github.com/mermaidjs/mermaid.cli/issues/15)
+  人もいます。ローカルにインストールするのが代替の解決策です、
 
   ```bash
   npm install @mermaid-js/mermaid-cli
@@ -86,7 +88,9 @@ Chromium のダウンロードをスキップすることができます。
   MMDC: "./node_modules/.bin/mmdc"
   ```
 
-- もし `pip install -e.` がエラー `[Errno 13] Permission denied: '/usr/local/lib/python3.11/dist-packages/test-easy-install-13129.write-test'` で失敗したら、代わりに `pip install -e. --user` を実行してみてください
+- もし `pip install -e.`
+  がエラー `[Errno 13] Permission denied: '/usr/local/lib/python3.11/dist-packages/test-easy-install-13129.write-test'`
+  で失敗したら、代わりに `pip install -e. --user` を実行してみてください
 
 ### Docker によるインストール
 
@@ -141,10 +145,10 @@ cd MetaGPT && docker build -t metagpt:custom .
 cp config/config.yaml config/key.yaml
 ```
 
-| 変数名                                  | config/key.yaml                           | env                                             |
-| --------------------------------------- | ----------------------------------------- | ----------------------------------------------- |
+| 変数名                          | config/key.yaml                           | env                                             |
+|------------------------------|-------------------------------------------|-------------------------------------------------|
 | OPENAI_API_KEY # 自分のキーに置き換える | OPENAI_API_KEY: "sk-..."                  | export OPENAI_API_KEY="sk-..."                  |
-| OPENAI_API_BASE # オプション            | OPENAI_API_BASE: "https://<YOUR_SITE>/v1" | export OPENAI_API_BASE="https://<YOUR_SITE>/v1" |
+| OPENAI_API_BASE # オプション      | OPENAI_API_BASE: "https://<YOUR_SITE>/v1" | export OPENAI_API_BASE="https://<YOUR_SITE>/v1" |
 
 ## チュートリアル: スタートアップの開始
 
@@ -221,6 +225,7 @@ async def startup(idea: str, investment: float = 3.0, n_round: int = 5):
 - [MetaGPT クイックスタート](https://deepwisdom.feishu.cn/wiki/CyY9wdJc4iNqArku3Lncl4v8n2b)
 
 Hugging Face Space で試す
+
 - https://huggingface.co/spaces/deepwisdom/MetaGPT
 
 ## 引用
@@ -243,7 +248,8 @@ Hugging Face Space で試す
 このプロジェクトに関するご質問やご意見がございましたら、お気軽にお問い合わせください。皆様のご意見をお待ちしております！
 
 - **Email:** alexanderwu@fuzhi.ai
-- **GitHub Issues:** 技術的なお問い合わせについては、[GitHub リポジトリ](https://github.com/geekan/metagpt/issues) に新しい issue を作成することもできます。
+- **GitHub Issues:** 技術的なお問い合わせについては、[GitHub リポジトリ](https://github.com/geekan/metagpt/issues) に新しい
+  issue を作成することもできます。
 
 ご質問には 2-3 営業日以内に回答いたします。
 

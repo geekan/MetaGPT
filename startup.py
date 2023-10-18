@@ -15,12 +15,12 @@ from metagpt.software_company import SoftwareCompany
 
 
 async def startup(
-    idea: str,
-    investment: float = 3.0,
-    n_round: int = 5,
-    code_review: bool = False,
-    run_tests: bool = False,
-    implement: bool = True,
+        idea: str,
+        investment: float = 3.0,
+        n_round: int = 5,
+        code_review: bool = False,
+        run_tests: bool = False,
+        implement: bool = True,
 ):
     """Run a startup. Be a boss."""
     company = SoftwareCompany()
@@ -48,12 +48,12 @@ async def startup(
 
 
 def main(
-    idea: str,
-    investment: float = 3.0,
-    n_round: int = 5,
-    code_review: bool = True,
-    run_tests: bool = False,
-    implement: bool = True,
+        idea: str,
+        investment: float = 3.0,
+        n_round: int = 5,
+        code_review: bool = True,
+        run_tests: bool = False,
+        implement: bool = True,
 ):
     """
     We are a software startup comprised of AI. By investing in us,

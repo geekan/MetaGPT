@@ -23,13 +23,13 @@ class Searcher(Role):
         constraints (str): Constraints or limitations for the searcher.
         engine (SearchEngineType): The type of search engine to use.
     """
-    
-    def __init__(self, 
-                 name: str = 'Alice', 
-                 profile: str = 'Smart Assistant', 
+
+    def __init__(self,
+                 name: str = 'Alice',
+                 profile: str = 'Smart Assistant',
                  goal: str = 'Provide search services for users',
-                 constraints: str = 'Answer is rich and complete', 
-                 engine=SearchEngineType.SERPAPI_GOOGLE, 
+                 constraints: str = 'Answer is rich and complete',
+                 engine=SearchEngineType.SERPAPI_GOOGLE,
                  **kwargs) -> None:
         """
         Initializes the Searcher role with given attributes.
@@ -53,7 +53,7 @@ class Searcher(Role):
         """Performs the search action in a single process."""
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
         response = await self._rc.todo.run(self._rc.memory.get(k=0))
-        
+
         if isinstance(response, ActionOutput):
             msg = Message(content=response.content, instruct_content=response.instruct_content,
                           role=self.profile, cause_by=type(self._rc.todo))

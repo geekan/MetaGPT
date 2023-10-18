@@ -40,4 +40,3 @@ class ActionOutput:
         new_class.__validator_check_name = classmethod(check_name)
         new_class.__root_validator_check_missing_fields = classmethod(check_missing_fields)
         return new_class
-    

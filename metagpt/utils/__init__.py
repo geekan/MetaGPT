@@ -14,7 +14,6 @@ from metagpt.utils.token_counter import (
     count_string_tokens,
 )
 
-
 __all__ = [
     "read_docx",
     "Singleton",

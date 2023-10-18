@@ -29,12 +29,12 @@ class TutorialAssistant(Role):
     """
 
     def __init__(
-        self,
-        name: str = "Stitch",
-        profile: str = "Tutorial Assistant",
-        goal: str = "Generate tutorial documents",
-        constraints: str = "Strictly follow Markdown's syntax, with neat and standardized layout",
-        language: str = "Chinese",
+            self,
+            name: str = "Stitch",
+            profile: str = "Tutorial Assistant",
+            goal: str = "Generate tutorial documents",
+            constraints: str = "Strictly follow Markdown's syntax, with neat and standardized layout",
+            language: str = "Chinese",
     ):
         super().__init__(name, profile, goal, constraints)
         self._init_actions([WriteDirectory(language=language)])

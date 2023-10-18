@@ -65,4 +65,3 @@ class WriteContent(Action):
         """
         prompt = CONTENT_PROMPT.format(topic=topic, language=self.language, directory=self.directory)
         return await self._aask(prompt=prompt)
-

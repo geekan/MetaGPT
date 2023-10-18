@@ -79,4 +79,3 @@ class Document:
             return self._get_docs_and_metadatas_by_langchain()
         else:
             raise NotImplementedError
-        

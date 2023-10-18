@@ -5,18 +5,18 @@ Author: garylin2099
 '''
 import re
 
-from metagpt.const import PROJECT_ROOT, WORKSPACE_ROOT
 from metagpt.actions import Action
+from metagpt.const import PROJECT_ROOT, WORKSPACE_ROOT
+from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
-from metagpt.logs import logger
 
 with open(PROJECT_ROOT / "examples/build_customized_agent.py", "r") as f:
     # use official example script to guide AgentCreator
     MULTI_ACTION_AGENT_CODE_EXAMPLE = f.read()
 
-class CreateAgent(Action):
 
+class CreateAgent(Action):
     PROMPT_TEMPLATE = """
     ### BACKGROUND
     You are using an agent framework called metagpt to write agents capable of different actions,
@@ -34,7 +34,6 @@ class CreateAgent(Action):
     """
 
     async def run(self, example: str, instruction: str):
-
         prompt = self.PROMPT_TEMPLATE.format(example=example, instruction=instruction)
         # logger.info(prompt)
 
@@ -53,13 +52,14 @@ class CreateAgent(Action):
             f.write(code_text)
         return code_text
 
+
 class AgentCreator(Role):
     def __init__(
-        self,
-        name: str = "Matrix",
-        profile: str = "AgentCreator",
-        agent_template: str = MULTI_ACTION_AGENT_CODE_EXAMPLE,
-        **kwargs,
+            self,
+            name: str = "Matrix",
+            profile: str = "AgentCreator",
+            agent_template: str = MULTI_ACTION_AGENT_CODE_EXAMPLE,
+            **kwargs,
     ):
         super().__init__(name, profile, **kwargs)
         self._init_actions([CreateAgent])
@@ -76,11 +76,12 @@ class AgentCreator(Role):
 
         return msg
 
+
 if __name__ == "__main__":
     import asyncio
 
-    async def main():
 
+    async def main():
         agent_template = MULTI_ACTION_AGENT_CODE_EXAMPLE
 
         creator = AgentCreator(agent_template=agent_template)
@@ -96,5 +97,6 @@ if __name__ == "__main__":
         You can use pytest as the testing framework.
         """
         await creator.run(msg)
+
 
     asyncio.run(main())

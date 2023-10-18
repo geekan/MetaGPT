@@ -3,19 +3,19 @@ Filename: MetaGPT/examples/build_customized_agent.py
 Created Date: Tuesday, September 19th 2023, 6:52:25 pm
 Author: garylin2099
 '''
+import asyncio
 import re
 import subprocess
-import asyncio
 
 import fire
 
 from metagpt.actions import Action
+from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
-from metagpt.logs import logger
+
 
 class SimpleWriteCode(Action):
-
     PROMPT_TEMPLATE = """
     Write a python function that can {instruction} and provide two runnnable test cases.
     Return ```python your_code_here ``` with NO other texts,
@@ -35,7 +35,6 @@ class SimpleWriteCode(Action):
         super().__init__(name, context, llm)
 
     async def run(self, instruction: str):
-
         prompt = self.PROMPT_TEMPLATE.format(instruction=instruction)
 
         rsp = await self._aask(prompt)
@@ -51,6 +50,7 @@ class SimpleWriteCode(Action):
         code_text = match.group(1) if match else rsp
         return code_text
 
+
 class SimpleRunCode(Action):
     def __init__(self, name="SimpleRunCode", context=None, llm=None):
         super().__init__(name, context, llm)
@@ -61,12 +61,13 @@ class SimpleRunCode(Action):
         logger.info(f"{code_result=}")
         return code_result
 
+
 class SimpleCoder(Role):
     def __init__(
-        self,
-        name: str = "Alice",
-        profile: str = "SimpleCoder",
-        **kwargs,
+            self,
+            name: str = "Alice",
+            profile: str = "SimpleCoder",
+            **kwargs,
     ):
         super().__init__(name, profile, **kwargs)
         self._init_actions([SimpleWriteCode])
@@ -75,7 +76,7 @@ class SimpleCoder(Role):
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
         todo = self._rc.todo
 
-        msg = self._rc.memory.get()[-1] # retrieve the latest memory
+        msg = self._rc.memory.get()[-1]  # retrieve the latest memory
         instruction = msg.content
 
         code_text = await SimpleWriteCode().run(instruction)
@@ -83,12 +84,13 @@ class SimpleCoder(Role):
 
         return msg
 
+
 class RunnableCoder(Role):
     def __init__(
-        self,
-        name: str = "Alice",
-        profile: str = "RunnableCoder",
-        **kwargs,
+            self,
+            name: str = "Alice",
+            profile: str = "RunnableCoder",
+            **kwargs,
     ):
         super().__init__(name, profile, **kwargs)
         self._init_actions([SimpleWriteCode, SimpleRunCode])
@@ -128,12 +130,14 @@ class RunnableCoder(Role):
             await self._act()
         return Message(content="All job done", role=self.profile)
 
+
 def main(msg="write a function that calculates the sum of a list"):
     # role = SimpleCoder()
     role = RunnableCoder()
     logger.info(msg)
     result = asyncio.run(role.run(msg))
     logger.info(result)
+
 
 if __name__ == '__main__':
     fire.Fire(main)

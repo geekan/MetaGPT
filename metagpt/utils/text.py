@@ -3,7 +3,8 @@ from typing import Generator, Sequence
 from metagpt.utils.token_counter import TOKEN_MAX, count_string_tokens
 
 
-def reduce_message_length(msgs: Generator[str, None, None], model_name: str, system_text: str, reserved: int = 0,) -> str:
+def reduce_message_length(msgs: Generator[str, None, None], model_name: str, system_text: str,
+                          reserved: int = 0, ) -> str:
     """Reduce the length of concatenated message segments to fit within the maximum token size.
 
     Args:
@@ -27,11 +28,11 @@ def reduce_message_length(msgs: Generator[str, None, None], model_name: str, sys
 
 
 def generate_prompt_chunk(
-    text: str,
-    prompt_template: str,
-    model_name: str,
-    system_text: str,
-    reserved: int = 0,
+        text: str,
+        prompt_template: str,
+        model_name: str,
+        system_text: str,
+        reserved: int = 0,
 ) -> Generator[str, None, None]:
     """Split the text into chunks of a maximum token size.
 
@@ -49,9 +50,9 @@ def generate_prompt_chunk(
     current_token = 0
     current_lines = []
 
-    reserved = reserved + count_string_tokens(prompt_template+system_text, model_name)
+    reserved = reserved + count_string_tokens(prompt_template + system_text, model_name)
     # 100 is a magic number to ensure the maximum context length is not exceeded
-    max_token = TOKEN_MAX.get(model_name, 2048) - reserved - 100  
+    max_token = TOKEN_MAX.get(model_name, 2048) - reserved - 100
 
     while paragraphs:
         paragraph = paragraphs.pop(0)
@@ -103,7 +104,7 @@ def decode_unicode_escape(text: str) -> str:
     return text.encode("utf-8").decode("unicode_escape", "ignore")
 
 
-def _split_by_count(lst: Sequence , count: int):
+def _split_by_count(lst: Sequence, count: int):
     avg = len(lst) // count
     remainder = len(lst) % count
     start = 0

@@ -23,4 +23,3 @@ async def test_write_and_read_file(root_path: Path, filename: str, content: byte
     assert root_path / filename == full_file_name
     file_data = await File.read(full_file_name)
     assert file_data.decode("utf-8") == content
-
