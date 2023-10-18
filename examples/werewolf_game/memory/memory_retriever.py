@@ -106,7 +106,9 @@ class MemoryRetriever:
         with open(memory_path, "r") as f:
             rst = f.read().split("##")
             memories = rst[0].split("\n")
+            memories = [re.sub(r'\([^)]*\)', '', item) for item in memories]
             memories_2 = rst[1].split("\n") if len(rst) > 1 else []
+            memories_2 = [re.sub(r'\([^)]*\)', '', item) for item in memories_2]
         scored_memories = [(memory, self.score_message(memory, profile, name)) for memory in memories]
         # 选择最高分的10条信息
         sorted_memories = sorted(scored_memories, key=lambda x: (x[1], memories.index(x[0])), reverse=True)[
@@ -132,11 +134,11 @@ class MemoryRetriever:
 
 
 if __name__ == '__main__':
-    folder = WORKSPACE_ROOT / "10141200"
-    path = folder / "10141200 - werewolf.txt"
-    paths = [folder / "10141200 - guard.txt", folder / "10141200 - werewolf.txt",
-             folder / "10141200 - witch.txt",
-             folder / "10141200 - seer.txt", folder / "10141200 - villager.txt"]
+    folder = WORKSPACE_ROOT / "10141230"
+    path = folder / "10141230 - werewolf.txt"
+    paths = [folder / "10141230 - guard.txt", folder / "10141230 - werewolf.txt",
+             folder / "10141230 - witch.txt",
+             folder / "10141230 - seer.txt", folder / "10141230 - villager.txt"]
     profiles = []
     names = []
     # profile = "werewolf"
