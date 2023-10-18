@@ -8,7 +8,14 @@
 import os
 from pathlib import Path
 
-from metagpt.actions import DebugError, RunCode, WriteCode, WriteDesign, WriteTest
+from metagpt.actions import (
+    DebugError,
+    RunCode,
+    WriteCode,
+    WriteCodeReview,
+    WriteDesign,
+    WriteTest,
+)
 from metagpt.const import WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.roles import Role
@@ -30,13 +37,13 @@ class QaEngineer(Role):
         self._init_actions(
             [WriteTest]
         )  # FIXME: a bit hack here, only init one action to circumvent _think() logic, will overwrite _think() in future updates
-        self._watch([WriteCode, WriteTest, RunCode, DebugError])
+        self._watch([WriteCode, WriteCodeReview, WriteTest, RunCode, DebugError])
         self.test_round = 0
         self.test_round_allowed = test_round_allowed
 
     @classmethod
     def parse_workspace(cls, system_design_msg: Message) -> str:
-        if not system_design_msg.instruct_content:
+        if system_design_msg.instruct_content:
             return system_design_msg.instruct_content.dict().get("Python package name")
         return CodeParser.parse_str(block="Python package name", text=system_design_msg.content)
 
@@ -159,7 +166,7 @@ class QaEngineer(Role):
         for msg in self._rc.news:
             # Decide what to do based on observed msg type, currently defined by human,
             # might potentially be moved to _think, that is, let the agent decides for itself
-            if msg.cause_by == WriteCode:
+            if msg.cause_by in [WriteCode, WriteCodeReview]:
                 # engineer wrote a code, time to write a test for it
                 await self._write_test(msg)
             elif msg.cause_by in [WriteTest, DebugError]:

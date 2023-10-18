@@ -148,8 +148,7 @@ allure-results
 .DS_Store
 .vscode
 
-
-*.txt
+log.txt
 docs/scripts/set_env.sh
 key.yaml
 output.json
@@ -168,3 +167,4 @@ mbpp/
 *.zip
 main.sh
 experiments/
+.aider*

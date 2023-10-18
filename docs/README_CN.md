@@ -1,7 +1,7 @@
 # MetaGPT: 多智能体框架
 
 <p align="center">
-<a href=""><img src="resources/MetaGPT-logo.jpeg" alt="MetaGPT logo: 使 GPT 以软件公司的形式工作，协作处理更复杂的任务" width="150px"></a>
+<a href=""><img src="resources/MetaGPT-new-log.png" alt="MetaGPT logo: 使 GPT 以软件公司的形式工作，协作处理更复杂的任务" width="150px"></a>
 </p>
 
 <p align="center">
@@ -15,7 +15,7 @@
 <a href="https://discord.gg/wCp6Q3fsAk"><img src="https://img.shields.io/badge/Discord-Join-blue?logo=discord&logoColor=white&color=blue" alt="Discord Follow"></a>
 <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
 <a href="docs/ROADMAP.md"><img src="https://img.shields.io/badge/ROADMAP-路线图-blue" alt="roadmap"></a>
-<a href="https://twitter.com/DeepWisdom2019"><img src="https://img.shields.io/twitter/follow/MetaGPT?style=social" alt="Twitter Follow"></a>
+<a href="https://twitter.com/MetaGPT_"><img src="https://img.shields.io/twitter/follow/MetaGPT?style=social" alt="Twitter Follow"></a>
 </p>
 
 <p align="center">
@@ -61,7 +61,7 @@ python --version
 # 第 3 步：克隆仓库到您的本地机器，并进行安装。
 git clone https://github.com/geekan/metagpt
 cd metagpt
-python setup.py install
+pip install -e.
 ```
 
 **注意：**
@@ -81,15 +81,15 @@ python setup.py install
     MMDC: "./node_modules/.bin/mmdc"
     ```
 
-- 如果`python setup.py install`失败并显示错误`[Errno 13] Permission denied: '/usr/local/lib/python3.11/dist-packages/test-easy-install-13129.write-test'`，请尝试使用`python setup.py install --user`运行。
+- 如果`pip install -e.`失败并显示错误`[Errno 13] Permission denied: '/usr/local/lib/python3.11/dist-packages/test-easy-install-13129.write-test'`，请尝试使用`pip install -e. --user`运行。
 
 ### Docker安装
 
 ```bash
 # 步骤1: 下载metagpt官方镜像并准备好config.yaml
-docker pull metagpt/metagpt:v0.3
+docker pull metagpt/metagpt:latest
 mkdir -p /opt/metagpt/{config,workspace}
-docker run --rm metagpt/metagpt:v0.3 cat /app/metagpt/config/config.yaml > /opt/metagpt/config/config.yaml
+docker run --rm metagpt/metagpt:latest cat /app/metagpt/config/config.yaml > /opt/metagpt/config/config.yaml
 vim /opt/metagpt/config/config.yaml # 修改config
 
 # 步骤2: 使用容器运行metagpt演示
@@ -97,7 +97,7 @@ docker run --rm \
     --privileged \
     -v /opt/metagpt/config:/app/metagpt/config \
     -v /opt/metagpt/workspace:/app/metagpt/workspace \
-    metagpt/metagpt:v0.3 \
+    metagpt/metagpt:latest \
     python startup.py "Write a cli snake game"
 
 # 您也可以启动一个容器并在其中执行命令
@@ -105,7 +105,7 @@ docker run --name metagpt -d \
     --privileged \
     -v /opt/metagpt/config:/app/metagpt/config \
     -v /opt/metagpt/workspace:/app/metagpt/workspace \
-    metagpt/metagpt:v0.3
+    metagpt/metagpt:latest
 
 docker exec -it metagpt /bin/bash
 $ python startup.py "Write a cli snake game"
@@ -123,7 +123,7 @@ $ python startup.py "Write a cli snake game"
 ```bash
 # 您也可以自己构建metagpt镜像
 git clone https://github.com/geekan/MetaGPT.git
-cd MetaGPT && docker build -t metagpt:v0.3 .
+cd MetaGPT && docker build -t metagpt:custom .
 ```
 
 ## 配置
@@ -136,10 +136,10 @@ cd MetaGPT && docker build -t metagpt:v0.3 .
 cp config/config.yaml config/key.yaml
 ```
 
-| 变量名                              | config/key.yaml                           | env                            |
-|--------------------------------------------|-------------------------------------------|--------------------------------|
-| OPENAI_API_KEY # 用您自己的密钥替换 | OPENAI_API_KEY: "sk-..."                  | export OPENAI_API_KEY="sk-..." |
-| OPENAI_API_BASE # 可选  | OPENAI_API_BASE: "https://<YOUR_SITE>/v1" | export OPENAI_API_BASE="https://<YOUR_SITE>/v1"   |
+| 变量名                              | config/key.yaml                           | env                                             |
+| ----------------------------------- | ----------------------------------------- | ----------------------------------------------- |
+| OPENAI_API_KEY # 用您自己的密钥替换 | OPENAI_API_KEY: "sk-..."                  | export OPENAI_API_KEY="sk-..."                  |
+| OPENAI_API_BASE # 可选              | OPENAI_API_BASE: "https://<YOUR_SITE>/v1" | export OPENAI_API_BASE="https://<YOUR_SITE>/v1" |
 
 ## 示例：启动一个创业公司
 

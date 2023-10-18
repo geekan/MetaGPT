@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "type": "completion",
+  "description": "Write a chapter of a novel.",
+  "completion": {
+    "max_tokens": 2048,
+    "temperature": 0.3,
+    "top_p": 0.0,
+    "presence_penalty": 0.0,
+    "frequency_penalty": 0.0
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "input",
+        "description": "A synopsis of what the chapter should be about.",
+        "defaultValue": ""
+      },
+      {
+        "name": "theme",
+        "description": "The theme or topic of this novel.",
+        "defaultValue": ""
+      },
+      {
+        "name": "previousChapter",
+        "description": "The synopsis of the previous chapter.",
+        "defaultValue": ""
+      },
+      {
+        "name": "chapterIndex",
+        "description": "The number of the chapter to write.",
+        "defaultValue": "<!--===ENDPART===-->"
+      }
+    ]
+  }
+}

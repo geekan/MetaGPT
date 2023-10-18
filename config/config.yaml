@@ -86,3 +86,5 @@ MODEL_FOR_RESEARCHER_REPORT: gpt-3.5-turbo-16k
 ### for Prompt Strategy
 # Naive, COT, TOT
 PROMPT_STRATEGY: "COT"
+
+PROMPT_FORMAT: json #json or markdown

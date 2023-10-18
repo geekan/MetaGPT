@@ -29,6 +29,7 @@ class Message:
     cause_by: Type["Action"] = field(default="")
     sent_from: str = field(default="")
     send_to: str = field(default="")
+    restricted_to: str = field(default="")
 
     def __str__(self):
         # prefix = '-'.join([self.role, str(self.cause_by)])
