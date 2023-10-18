@@ -13,9 +13,9 @@ MAX_TOKENS: 1500
 RPM: 10
 
 #### if Spark
-#XINGHUO_APPID : "YOUR_APPID"
-#XINGHUO_API_SECRET : "YOUR_APISecret"
-#XINGHUO_API_KEY : "YOUR_APIKey"
+#SPARK_APPID : "YOUR_APPID"
+#SPARK_API_SECRET : "YOUR_APISecret"
+#SPARK_API_KEY : "YOUR_APIKey"
 #DOMAIN : "generalv2"
 #SPARK_URL : "ws://spark-api.xf-yun.com/v2.1/chat"
 
