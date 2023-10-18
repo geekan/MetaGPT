@@ -11,9 +11,9 @@ from typing import Iterable, Type
 
 from pydantic import BaseModel, Field
 
-from metagpt.actions import Action, ActionOutput
 # from metagpt.environment import Environment
 from metagpt.config import CONFIG
+from metagpt.actions import Action, ActionOutput
 from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.memory import Memory, LongTermMemory
@@ -169,7 +169,7 @@ class Role:
         # logger.info(response)
         if isinstance(response, ActionOutput):
             msg = Message(content=response.content, instruct_content=response.instruct_content,
-                          role=self.profile, cause_by=type(self._rc.todo))
+                        role=self.profile, cause_by=type(self._rc.todo))
         else:
             msg = Message(content=response, role=self.profile, cause_by=type(self._rc.todo))
         self._rc.memory.add(msg)
@@ -184,9 +184,8 @@ class Role:
         env_msgs = self._rc.env.memory.get()
 
         observed = self._rc.env.memory.get_by_actions(self._rc.watch)
-
-        self._rc.news = self._rc.memory.find_news(
-            observed)  # find news (previously unseen messages) from observed messages
+        
+        self._rc.news = self._rc.memory.find_news(observed)  # find news (previously unseen messages) from observed messages
 
         for i in env_msgs:
             self.recv(i)

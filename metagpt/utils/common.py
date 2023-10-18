@@ -86,8 +86,8 @@ class OutputParser:
     @staticmethod
     def parse_python_code(text: str) -> str:
         for pattern in (
-                r"(.*?```python.*?\s+)?(?P<code>.*)(```.*?)",
-                r"(.*?```python.*?\s+)?(?P<code>.*)",
+            r"(.*?```python.*?\s+)?(?P<code>.*)(```.*?)",
+            r"(.*?```python.*?\s+)?(?P<code>.*)",
         ):
             match = re.search(pattern, text, re.DOTALL)
             if not match:
@@ -180,7 +180,7 @@ class OutputParser:
 
         if start_index != -1 and end_index != -1:
             # Extract the structure part
-            structure_text = text[start_index: end_index + 1]
+            structure_text = text[start_index : end_index + 1]
 
             try:
                 # Attempt to convert the text to a Python data type using ast.literal_eval

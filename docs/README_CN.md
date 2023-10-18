@@ -1,7 +1,7 @@
 # MetaGPT: 多智能体框架
 
 <p align="center">
-<a href=""><img src="resources/MetaGPT-logo.jpeg" alt="MetaGPT logo: 使 GPT 以软件公司的形式工作，协作处理更复杂的任务" width="150px"></a>
+<a href=""><img src="resources/MetaGPT-new-log.png" alt="MetaGPT logo: 使 GPT 以软件公司的形式工作，协作处理更复杂的任务" width="150px"></a>
 </p>
 
 <p align="center">
