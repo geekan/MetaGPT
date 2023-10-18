@@ -63,31 +63,32 @@ class MemoryRetriever:
         message = message.lower()
         # profile = profile.lower()
         # name = name.lower()
+        role_patterns = "werewolf|guard|seer|witch|villager"
+        name_patterns = "player[0-9]+"
 
         # # Score 5: Information related to the player's character
         # pattern_5 = rf"({name}|{profile})"
         # if re.search(pattern_5, message):
         #     return 5
 
-        # Score 4: Keywords related to elimination or death
-        pattern_4 = r"(die|banish|vote\s*out|eliminate|kill|hunt)"
-        if re.search(pattern_4, message):
+        # vote to eliminate sb投票不能算是高优先级，讨论可以是高优先级
+        pattern_5 = r"(die|banish|vote\s*out|eliminate|kill|hunt)"
+        if re.search(fr"({pattern_5}.*({role_patterns}|{name_patterns})|({role_patterns}|{name_patterns}).*{pattern_5})",
+                     message) and "vote to eliminate" not in message:
+            return 5
+
+        pattern_4 = r"(good guy|werewolf|bad guy)"
+        if re.search(fr"{name_patterns}.*{pattern_4}", message):
             return 4
 
-        # Score 3: Keywords related to specific actions
         pattern_3 = r"(protect|save|verif|drug|antidote|poison|rescue|shield|cure)"
-        if re.search(pattern_3, message):
+        if re.search(pattern_3, message) and "for example" not in message:
             return 3
 
-        # Score 2: Keywords related to speculation or revelation of roles
-        role_patterns = "werewolf|guard|seer|witch|villager"
         # pattern_2 = r"(discov|speculat|guess|conjectur|doubt|reveal|am|is|was|were|assum|believ|think|suspect)"
-        # if re.search(fr"{pattern_2}.*({role_patterns}|{name}|{profile})", message):
-        # if re.search(fr"({role_patterns}|{name})", message):
-        if re.search(fr"({role_patterns}|player)", message):
+        if re.search(fr"({role_patterns}|{name_patterns})", message) and "for example" not in message:
             return 2
 
-        # Score 1: Other messages
         else:
             return 1
 
@@ -143,4 +144,4 @@ if __name__ == '__main__':
     names = []
     # profile = "werewolf"
     # name = "werewolf"
-    MemoryRetriever().score(paths, profiles, names, limit=10)
+    MemoryRetriever().score(paths, profiles, names, limit=15)
