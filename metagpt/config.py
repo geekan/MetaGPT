@@ -62,9 +62,9 @@ class Config(metaclass=Singleton):
         self.deployment_name = self._get("DEPLOYMENT_NAME")
         self.deployment_id = self._get("DEPLOYMENT_ID")
 
-        self.xinghuo_appid = self._get("XINGHUO_APPID")
-        self.xinghuo_api_secret = self._get("XINGHUO_API_SECRET")
-        self.xinghuo_api_key = self._get("XINGHUO_API_KEY")
+        self.spark_appid = self._get("SPARK_APPID")
+        self.spark_api_secret = self._get("SPARK_API_SECRET")
+        self.spark_api_key = self._get("SPARK_API_KEY")
         self.domain = self._get("DOMAIN")
         self.spark_url = self._get("SPARK_URL")
 

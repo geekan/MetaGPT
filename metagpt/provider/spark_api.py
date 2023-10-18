@@ -116,9 +116,9 @@ class GetMessageFromWeb:
     def __init__(self, text):
         self.text = text
         self.ret = ''
-        self.xinghuo_appid = CONFIG.xinghuo_appid
-        self.xinghuo_api_secret = CONFIG.xinghuo_api_secret
-        self.xinghuo_api_key = CONFIG.xinghuo_api_key
+        self.spark_appid = CONFIG.spark_appid
+        self.spark_api_secret = CONFIG.spark_api_secret
+        self.spark_api_key = CONFIG.spark_api_key
         self.domain = CONFIG.domain
         self.spark_url = CONFIG.spark_url
 
@@ -153,7 +153,7 @@ class GetMessageFromWeb:
 
         data = {
             "header": {
-                "app_id": self.xinghuo_appid,
+                "app_id": self.spark_appid,
                 "uid": "1234"
             },
             "parameter": {
@@ -191,9 +191,9 @@ class GetMessageFromWeb:
     def _run(self, text_list):
 
         ws_param = self.WsParam(
-            self.xinghuo_appid,
-            self.xinghuo_api_key,
-            self.xinghuo_api_secret,
+            self.spark_appid,
+            self.spark_api_key,
+            self.spark_api_secret,
             self.spark_url,
             text_list)
         ws_url = ws_param.create_url()
