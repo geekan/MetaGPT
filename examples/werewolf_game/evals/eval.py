@@ -17,7 +17,7 @@ from utils import Utils
 
 
 
-class Eval:
+class Vote:
     """Vote Evaluation"""
     def __init__(self):
         self.OUT_PATH = WORKSPACE_ROOT / "outputs"
@@ -67,9 +67,12 @@ class Eval:
         return chunks
 
 
-    def get_vote_probability(self, text: str) -> float:
+    def get_vote_prob_difficulity(self, text: str) -> float:
         """
         # calculate the probability of goodteam vote werewolves
+        # vote_wolf_difficulty: num_voted_wolfs / num_living_players
+        sometimes werewolf will camouflage as a good person and vote wolf
+
         :example:
 
         input:
@@ -85,6 +88,7 @@ class Eval:
         non_werewolves: ['Player1', 'Player2', 'Player3', 'Player6']
         as you can see :Player2(Villager) and   Player3(Villager) vote to eliminate Player5(Werewolf)
         :return goodteam vote Probability: 100.00%
+        :return vote_wolf_difficulty: 4 / 5
         """
         pattern = re.compile(r'(\w+)\(([^\)]+)\): \d+ \| I vote to eliminate (\w+)')
         # find all werewolves
@@ -108,71 +112,88 @@ class Eval:
 
         # cal the probability of non_werewolves
         prob = correct_votes / num_non_werewolves
-        good_probability = round(prob, 2)
-        return good_probability
+        good_vote_prob = round(prob, 2)
+
+        # count the num of living players voting wolfs, ignore their positions
+        vote2eliminate_wolfs = []
+        for match in pattern.finditer(text):
+            if match.group(2) != 'Werewolf' and match.group(3) in werewolves:
+                correct_votes += 1
+            if match.group(3) in werewolves:
+                vote2eliminate_wolfs.append(match.group(3))
+        num_living_players = len(werewolves) + len(non_werewolves)
+        num_vote2eliminate_wolfs = len(set(vote2eliminate_wolfs))
+        votewolf_difficulty = "{0} / {1}".format(num_vote2eliminate_wolfs, num_living_players)
+        return good_vote_prob, votewolf_difficulty
+
 
     def get_result_df(self, out_txtfile: str) -> pd.DataFrame:
         """
         folder:  sub folders for evals
         file: evaluation file, each file represents one game
         votes: the number of votes, eg. vote_1 represents the first vote of this game,
-        good_prob:the probability of a good person voting against a werewolf, 
+        good_vote_prob:the probability of a good person voting against a werewolf, 
                    correct_votes / the total number of players other than werewolves
-        vote_count:the total number of votes cast
+        total_votes:the total number of votes cast
+        vote_wolf_difficulty: num_voted_wolfs / num_living_players
+        sometimes werewolf will camouflage as a good person and vote wolf
         """
         with open(out_txtfile, "r") as out_file:
             text = out_file.read()
-            chunks = Eval().parse_vote_text2chunks(text)
+            chunks = self.parse_vote_text2chunks(text)
             res = []
             for k, v in chunks.items():
                 if v != "":
                     chunks_list = list(chunks.keys())
-                    vote_count = len(chunks_list) - 1
-                    good_probability = Eval().get_vote_probability(v)
+                    total_votes = len(chunks_list) - 1
+                    good_vote_prob, votewolf_difficulty = self.get_vote_prob_difficulity(v)
                     folder = Utils().filename_to_foldername(out_txtfile)
                     result = {
                         "folder": folder,
                         "file": Path(out_txtfile).stem + ".txt",
-                        "votes": k,
-                        "good_prob": good_probability,
-                        "vote_count": vote_count
+                        "vote_round": k,
+                        "good_vote_prob": good_vote_prob,
+                        "total_votes": total_votes,
+                        "votewolf_difficulty": votewolf_difficulty
                     }
                     res.append(result)
         df = pd.DataFrame(res)
         return df
+ 
 
     def calc_avg_prob(self, IN_PATH) -> pd.DataFrame:
         """
         get avg_prob for each game
         avg_prob : the good_prob/total number of votes in the game
+        vote1_prob: only check vote round1 , eval the mean of good_vote_prob
         """
         infiles_list = self._get_log_fileslist(IN_PATH)
         votefiles_list = self.extract_votes_from_logs(infiles_list)
         df_list = [self._load_df_from_file(file) for file in votefiles_list]
         combined_df = pd.concat(df_list, ignore_index=True)
-        # calculate the average good_prob for each file
+        # calculate the average good_vote_prob for each file
         mean_probs = self._calculate_mean_probs(combined_df)
-        combined_df['avg_prob'] = combined_df['file'].map(mean_probs)
+        combined_df["avg_prob"] = combined_df["file"].map(mean_probs)
         # calculate vote1 prob
         vote1_probs = self._calc_vote1_probs(combined_df)
-        combined_df['vote1_prob'] = combined_df['folder'].map(vote1_probs.set_index('folder')['good_prob'])
-        combined_df.loc[combined_df['votes'] != 'vote_1', 'vote1_prob'] = np.nan
-        combined_df['vote1_prob'] = combined_df['vote1_prob'].apply(self._format_probs)
-        combined_df['good_prob'] = combined_df['good_prob'].apply(self._format_probs)
-        combined_df['avg_prob'] = combined_df['avg_prob'].apply(self._format_probs)
-        combined_df.sort_values(['folder'], ascending=True, inplace=True)
+        combined_df["vote1_prob"] = combined_df["folder"].map(vote1_probs.set_index("folder")["good_vote_prob"])
+        combined_df.loc[combined_df["vote_round"] != "vote_1", "vote1_prob"] = np.nan
+        combined_df["vote1_prob"] = combined_df["vote1_prob"].apply(self._format_probs)
+        combined_df["good_vote_prob"] = combined_df["good_vote_prob"].apply(self._format_probs)
+        combined_df["avg_prob"] = combined_df["avg_prob"].apply(self._format_probs)
+        combined_df.sort_values(["folder"], ascending=True, inplace=True)
         return combined_df
 
     def _calc_vote1_probs(self, df):
-        df_vote1 = df[df['votes'] == 'vote_1']
-        vote1_probs = df_vote1.groupby('folder')['good_prob'].mean().reset_index()
+        df_vote1 = df[df["vote_round"] == 'vote_1']
+        vote1_probs = df_vote1.groupby("folder")["good_vote_prob"].mean().reset_index()
         return vote1_probs
 
     def _load_df_from_file(self, file):
         return self.get_result_df(file)
 
     def _calculate_mean_probs(self, df):
-        return df.groupby('file')['good_prob'].mean()
+        return df.groupby("file")["good_vote_prob"].mean()
 
     def _format_probs(self, s):
         return Utils().float_to_percent(s)
@@ -189,4 +210,4 @@ class Eval:
 if __name__ == '__main__':
     IN_PATH = PROJECT_ROOT / "examples/werewolf_game/evals"
     EVAL_RESULT = WORKSPACE_ROOT / "outputs" / 'goodteam_vote_probability.csv'
-    Eval().get_eval_csv(IN_PATH, EVAL_RESULT)
+    Vote().get_eval_csv(IN_PATH, EVAL_RESULT)

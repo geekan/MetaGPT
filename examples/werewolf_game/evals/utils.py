@@ -60,10 +60,14 @@ class Utils:
         """
         pick the vote log from the log file.
         ready to AnnounceGameResult serves as the 'HINT_TEXT ' which indicates the end of the game.
+        based on bservation and reflection, then discuss is not in vote session.
         """
         pattern_vote = r'(Player\d+)\(([A-Za-z]+)\): (\d+) \| (I vote to eliminate Player\d+)'
+        ignore_text = """reflection"""
         HINT_TEXT = r"ready to AnnounceGameResult"
         pattern_moderator = r'\[([^\]]+)\]\. Say ONLY: I vote to eliminate ...'
+        in_valid_block = False
+
         with open(in_logfile, "r") as f:
             lines = f.read()
             split_lines = lines.split(HINT_TEXT)
@@ -75,12 +79,16 @@ class Utils:
             relevant_lines = split_lines[1].split("\n")
             with open(out_txtfile, "w") as out:
                 for line in relevant_lines:
-                    if re.search(pattern_vote, line):
-                        out.write(line + "\n")
                     if re.search(pattern_moderator, line):
+                        in_valid_block = True
                         out.write(line.lstrip() + "\n")
-        
 
+                    elif in_valid_block and re.search(pattern_vote, line):
+                        out.write(line + "\n")
+                    elif ignore_text in line:
+                        in_valid_block = False
+
+        
     @staticmethod
     def get_file_list(path: str) -> list:
         file_pattern = os.path.join(path, '*.txt')
