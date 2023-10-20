@@ -1,26 +1,16 @@
 '''
 Filename: MetaGPT/examples/werewolf_game/evals/eval.py
 Created Date: Oct 18, 2023
-Updated Date: Oct 19, 2023
+Revised Date: Oct 20, 2023
 Author: [Aria](https://github.com/ariafyy)
 Info: eval the vote correct probability of non_werewolves
-Files Tree:
-    evals
-    ├── 01-10
-    │         ├── ....txt
-    ├── 11-20
-    │         ├── ....txt
-    ├── 21-30
-    │         ├── ....txt
-    ├── outputs
-    │         ├──# 01-10_....txt
 '''
 
-from metagpt.const import PROJECT_ROOT
+from metagpt.const import WORKSPACE_ROOT, PROJECT_ROOT
 from pathlib import Path
 import pandas as pd
+import numpy as np
 import re
-import json
 import os, glob
 from tqdm import tqdm
 from utils import Utils
@@ -28,30 +18,25 @@ from utils import Utils
 
 
 class Eval:
-    """Evaluation"""
+    """Vote Evaluation"""
     def __init__(self):
-        self.OUT_PATH = PROJECT_ROOT / "examples/werewolf_game/evals/outputs"
+        self.OUT_PATH = WORKSPACE_ROOT / "outputs"
         os.makedirs(self.OUT_PATH, exist_ok=True)
         self.SUB_FOLDER_LIST = ["01-10", "11-20", "21-30"]
 
-    def get_all_vote_fileslist(self):
+    def _get_log_fileslist(self, IN_PATH) -> list[str]:
         files_list = []
         for SUB_FOLDER in self.SUB_FOLDER_LIST:
-            ROOT_PATH = PROJECT_ROOT / ("examples/werewolf_game/evals/{}/").format(SUB_FOLDER)
-            tmp_files_list = Utils().get_file_list(ROOT_PATH)
-            files_list.extend(tmp_files_list)
+            files_list.extend(glob.glob(str(IN_PATH / SUB_FOLDER / '*.txt')))
         return files_list
 
-    def inlogfile_to_votelog(self, files_list):
-        for i in tqdm(range(0, len(files_list))):
-            in_logfile = files_list[i]
+    def extract_votes_from_logs(self, files_list: list):
+        for in_logfile in tqdm(files_list):
             SUB_FOLDER = (Path(in_logfile).parent).stem
             out_txtfile = self.OUT_PATH / "# {0}_{1}.txt".format(SUB_FOLDER, Path(in_logfile).stem)
             Utils().pick_vote_log(in_logfile, out_txtfile)
-
-    def get_picked_vote_texts(self):
-        files_list = self.get_all_vote_fileslist()
-        self.inlogfile_to_votelog(files_list)
+        votefiles_list = Utils().get_file_list(self.OUT_PATH)
+        return votefiles_list
 
     @staticmethod
     def parse_vote_text2chunks(text: str):
@@ -141,10 +126,10 @@ class Eval:
             res = []
             for k, v in chunks.items():
                 if v != "":
-                    chunksList = list(chunks.keys())
-                    vote_count = len(chunksList) - 1
+                    chunks_list = list(chunks.keys())
+                    vote_count = len(chunks_list) - 1
                     good_probability = Eval().get_vote_probability(v)
-                    folder = Utils().filename_to_folder(out_txtfile)
+                    folder = Utils().filename_to_foldername(out_txtfile)
                     result = {
                         "folder": folder,
                         "file": Path(out_txtfile).stem + ".txt",
@@ -156,32 +141,52 @@ class Eval:
         df = pd.DataFrame(res)
         return df
 
-    def get_avg_prob_df(self):
+    def calc_avg_prob(self, IN_PATH) -> pd.DataFrame:
         """
         get avg_prob for each game
         avg_prob : the good_prob/total number of votes in the game
         """
-        out_txtfile_list = Utils().get_file_list(self.OUT_PATH)
-        df_list = []
-        for i in tqdm(range(0, len(out_txtfile_list))):
-            out_txtfile = out_txtfile_list[i]
-            file_df = Eval().get_result_df(out_txtfile)
-            df_list.append(file_df)
+        infiles_list = self._get_log_fileslist(IN_PATH)
+        votefiles_list = self.extract_votes_from_logs(infiles_list)
+        df_list = [self._load_df_from_file(file) for file in votefiles_list]
         combined_df = pd.concat(df_list, ignore_index=True)
-
         # calculate the average good_prob for each file
-        mean_probs = combined_df.groupby('file')['good_prob'].mean()
+        mean_probs = self._calculate_mean_probs(combined_df)
         combined_df['avg_prob'] = combined_df['file'].map(mean_probs)
-        combined_df['avg_prob'] = combined_df['avg_prob'].round(2)
-        combined_df['good_prob'] = combined_df['good_prob'].apply(lambda x: Utils()._float_to_percent(x))
-        combined_df['avg_prob'] = combined_df['avg_prob'].apply(lambda x: Utils()._float_to_percent(x))
+        # calculate vote1 prob
+        vote1_probs = self._calc_vote1_probs(combined_df)
+        combined_df['vote1_prob'] = combined_df['folder'].map(vote1_probs.set_index('folder')['good_prob'])
+        combined_df.loc[combined_df['votes'] != 'vote_1', 'vote1_prob'] = np.nan
+        combined_df['vote1_prob'] = combined_df['vote1_prob'].apply(self._format_probs)
+        combined_df['good_prob'] = combined_df['good_prob'].apply(self._format_probs)
+        combined_df['avg_prob'] = combined_df['avg_prob'].apply(self._format_probs)
+        combined_df.sort_values(['folder'], ascending=True, inplace=True)
         return combined_df
 
-    def get_result_csv(self):
-        Eval().get_picked_vote_texts()
-        combined_df = self.get_avg_prob_df()
-        combined_df.to_csv(self.OUT_PATH / 'goodteam_vote_probability.csv', index=False)
+    def _calc_vote1_probs(self, df):
+        df_vote1 = df[df['votes'] == 'vote_1']
+        vote1_probs = df_vote1.groupby('folder')['good_prob'].mean().reset_index()
+        return vote1_probs
+
+    def _load_df_from_file(self, file):
+        return self.get_result_df(file)
+
+    def _calculate_mean_probs(self, df):
+        return df.groupby('file')['good_prob'].mean()
+
+    def _format_probs(self, s):
+        return Utils().float_to_percent(s)
+
+    def get_eval_csv(self, IN_PATH, EVAL_RESULT):
+        """
+        IN_PATH : parent folder of ["01-10", "11-20", "21-30"]
+        EVAL_RESULT : output csv file path
+        """
+        combined_df = self.calc_avg_prob(IN_PATH)
+        combined_df.to_csv(EVAL_RESULT, index=False)
 
 
 if __name__ == '__main__':
-    Eval().get_result_csv()
+    IN_PATH = PROJECT_ROOT / "examples/werewolf_game/evals"
+    EVAL_RESULT = WORKSPACE_ROOT / "outputs" / 'goodteam_vote_probability.csv'
+    Eval().get_eval_csv(IN_PATH, EVAL_RESULT)
