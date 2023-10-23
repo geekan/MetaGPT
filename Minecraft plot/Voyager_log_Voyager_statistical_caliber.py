@@ -12,7 +12,7 @@ import pandas as pd
 mpl.rcParams.update(mpl.rcParamsDefault)
 
 def extract_logs(filename, start_time=None, end_time=None):
-    with open(filename, 'r',encoding='utf-8') as f:
+    with open(filename, 'r', encoding='utf-8') as f:
         lines = f.readlines()
 
     if start_time is None :
@@ -34,7 +34,7 @@ def extract_logs(filename, start_time=None, end_time=None):
     return logs_block
 
 def extract_time_from_first_round_zero(log_filename):
-    with open(log_filename, 'r',encoding='utf-8') as f:
+    with open(log_filename, 'r', encoding='utf-8') as f:
         lines = f.readlines()
 
     # 反向遍历文件的每一行
@@ -106,6 +106,8 @@ def analyze_log_block(logs_block):
                 items_collected_dict.append(latest_items_collected_dict)
     min_len: int = min(len(rounds), len(items_collected), len(positions), len(completed_tasks), len(failed_tasks))
     return rounds[:min_len], items_collected[:min_len], items_variety_collected[:min_len], items_collected_dict[:min_len], positions[:min_len], completed_tasks[:min_len], failed_tasks[:min_len], biomes, biomes_per_round[:min_len], new_biome_rounds
+
+
 def save_item_results_png(rounds, items_collected, items_collected_dict, start_time, path_prefix):
     items_collected_total = {}
     items_collected_total_list = []
@@ -116,7 +118,7 @@ def save_item_results_png(rounds, items_collected, items_collected_dict, start_t
             else:
                 items_collected_total[item] = quantity
         items_collected_total_list.append(sum(items_collected_total.values()))
-    print("总数",items_collected_total_list)
+    print("总数", items_collected_total_list)
     plt.figure(figsize=(10, 5))
     plt.plot(rounds, items_collected_total_list,  label="Items Collected")
     plt.xlabel("# of Rounds")
@@ -180,16 +182,6 @@ def save_item_results_png(rounds, items_collected, items_collected_dict, start_t
 
                 plt.text(rounds[i], y, item, fontsize=4, color=color, ha='center', va='top',
                          bbox=dict(boxstyle='round,pad=0.5', fc=bgcolor, alpha=0.5))
-    """for i in range(0, len(items_collected_dict)):
-        current_round_items_set = set(items_collected_dict[i])
-        diff_items = list(current_round_items_set - collected_items_set)
-        collected_items_set.update(current_round_items_set)
-        items_variety_collected.append(len(collected_items_set))
-        if diff_items:
-            for j, item in enumerate(diff_items):
-                color = 'red' if item in special_items else 'black'
-                plt.text(rounds[i], items_variety_collected[i] - 1 - j * 0.4, item, fontsize=8, color=color, ha='center', va='top',
-         bbox=dict(boxstyle='round,pad=0.5', fc='yellow', alpha=0.5))"""
     plt.plot(rounds, items_variety_collected, label="Variety of Items Collected")
     plt.legend()
     
@@ -281,26 +273,23 @@ def save_task_results_png(rounds , completed, failed, start_time, path_prefix):
     plt.close()
 
 def main():
-    # parser = argparse.ArgumentParser(description="Analyze game log file between a start and end time.")
-    # parser.add_argument('--start_time', type=str, default=None, nargs='?',
-    #                     help="Start time for analysis in the log file.")
-    # parser.add_argument('--end_time', type=str, default=None, nargs='?', help="End time for analysis in the log file.")
-    # args = parser.parse_args()
 
-    filename = r"D:\MG-MC\input\VG-1.txt"
-    path_prefix = r"D:\MG-MC\results_pic"
+    # 获取当前脚本的路径
+    current_script_path = os.path.dirname(os.path.abspath(__file__))
+
+    # 构建其他文件的路径
+    filename = os.path.join(current_script_path, 'input', 'VG-1.txt')
+    path_prefix = os.path.join(current_script_path, 'results_pic')
+
+    # 确保输出路径存在
+    os.makedirs(path_prefix, exist_ok=True)
 
     # 自动寻找最新的实验开始时间
     start_time = extract_time_from_first_round_zero(filename)
     logs_block = extract_logs(filename)
 
     rounds, items_collected, items_variety_collected, items_collected_dict, positions, completed_tasks, failed_tasks, biomes, biomes_per_round, new_biome_rounds = analyze_log_block(logs_block)
-    print(positions)
-    print(items_collected_dict)
-    print(items_variety_collected)
-    print(completed_tasks)
-    print(failed_tasks)
-    print(rounds)
+
     
     positions_0 = [pos for pos in positions if pos is not None]
     items_collected_dict = [item if item is not None else {} for item in items_collected_dict]
@@ -344,6 +333,6 @@ def main():
     df = pd.concat([df, df_new_biomes], axis=1)
 
     # 写入到Excel文件中
-    df.to_excel(fr'D:\MG-MC\results_pic\{start_time}_results.xlsx', index=False)
+    df.to_excel(os.path.join(path_prefix, f'{start_time}_results.xlsx'), index=False)
 if __name__ == "__main__":
     main()
