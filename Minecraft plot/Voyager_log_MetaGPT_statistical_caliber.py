@@ -12,7 +12,7 @@ import pandas as pd
 mpl.rcParams.update(mpl.rcParamsDefault)
 
 def extract_logs(filename, start_time=None, end_time=None):
-    with open(filename, 'r',encoding='utf-8') as f:
+    with open(filename, 'r', encoding='utf-8') as f:
         lines = f.readlines()
 
     if start_time is None :
@@ -34,7 +34,7 @@ def extract_logs(filename, start_time=None, end_time=None):
     return logs_block
 
 def extract_time_from_first_round_zero(log_filename):
-    with open(log_filename, 'r',encoding='utf-8') as f:
+    with open(log_filename, 'r', encoding='utf-8') as f:
         lines = f.readlines()
 
     # 反向遍历文件的每一行
@@ -45,47 +45,6 @@ def extract_time_from_first_round_zero(log_filename):
                 return round_number
     return None
 
-"""def analyze_log_block(logs_block):
-    rounds: list[int] = []
-    items_collected: list[int] = []
-    total_items = 0
-    positions:list[(int, int, int)] = []
-    completed_tasks: list[int] = []
-    failed_tasks: list[int] = []
-    items_variety_collected :list[int] = []
-    items_collected_dict :list[dict] = []
-    line_counter = 0  # 用于计数
-    round_counter = 0  # 用于计数轮数
-    for line in logs_block:
-        if "****Curriculum Agent human message****" in line:
-            line_counter = 0  # 当找到新的 "****Curriculum Agent human message****" 时重置计数器
-            round_counter += 1  # 每次找到 "****Curriculum Agent human message****"，轮数加1
-            rounds.append(round_counter)  # 将新的轮数添加到轮数列表中
-            continue
-
-        if line_counter < 50:
-            if "Position: x=" in line:
-                match = re.search(r'Position: x=([\d.-]+), y=([\d.-]+), z=([\d.-]+)', line)
-                x, y, z = float(match.group(1)), float(match.group(2)), float(match.group(3))
-                positions.append((x, y, z))
-
-            if "Inventory (" in line:
-                items = re.search(r'Inventory \(\d+/36\): ({.*?})', line).group(1)
-                items_dict = eval(items)
-                items_collected_dict.append(items_dict)  # 将这一轮结束时的物品存储状态添加到列表中
-                total_items = sum(items_dict.values())
-                items_collected.append(total_items)
-                items_variety_collected.append(len(items_dict))  # 统计物品种类数量
-
-            if "Completed tasks so far:" in line:
-                tasks = line.replace("Completed tasks so far:", "").strip().split(", ")
-                completed_tasks.append(0 if tasks == ['None'] else len(tasks))
-
-            if "Failed tasks that are too hard:" in line:
-                tasks = line.replace("Failed tasks that are too hard:", "").strip().split(", ")
-                failed_tasks.append(0 if tasks == ['None'] else len(tasks))
-
-        line_counter += 1  # 每处理一行就将计数器加1"""
 def analyze_log_block(logs_block):
     rounds: list[int] = []
     items_collected: list[int] = []
@@ -140,6 +99,8 @@ def analyze_log_block(logs_block):
                 failed_tasks.append(0 if tasks == ['None'] else len(tasks))
     min_len: int = min(len(rounds), len(items_collected), len(positions), len(completed_tasks), len(failed_tasks))
     return rounds[:min_len], items_collected[:min_len], items_variety_collected[:min_len], items_collected_dict[:min_len], positions[:min_len], completed_tasks[:min_len], failed_tasks[:min_len], biomes, biomes_per_round[:min_len], new_biome_rounds
+
+
 def save_item_results_png(rounds, items_collected, items_collected_dict, start_time, path_prefix):
     items_collected_total = {}
     items_collected_total_list = []
@@ -214,16 +175,7 @@ def save_item_results_png(rounds, items_collected, items_collected_dict, start_t
 
                 plt.text(rounds[i], y, item, fontsize=4, color=color, ha='center', va='top',
                          bbox=dict(boxstyle='round,pad=0.5', fc=bgcolor, alpha=0.5))
-    """for i in range(0, len(items_collected_dict)):
-        current_round_items_set = set(items_collected_dict[i])
-        diff_items = list(current_round_items_set - collected_items_set)
-        collected_items_set.update(current_round_items_set)
-        items_variety_collected.append(len(collected_items_set))
-        if diff_items:
-            for j, item in enumerate(diff_items):
-                color = 'red' if item in special_items else 'black'
-                plt.text(rounds[i], items_variety_collected[i] - 1 - j * 0.4, item, fontsize=8, color=color, ha='center', va='top',
-         bbox=dict(boxstyle='round,pad=0.5', fc='yellow', alpha=0.5))"""
+
     plt.plot(rounds, items_variety_collected, label="Variety of Items Collected")
     plt.legend()
     
@@ -315,29 +267,23 @@ def save_task_results_png(rounds , completed, failed, start_time, path_prefix):
     plt.close()
 
 def main():
-    # parser = argparse.ArgumentParser(description="Analyze game log file between a start and end time.")
-    # parser.add_argument('--start_time', type=str, default=None, nargs='?',
-    #                     help="Start time for analysis in the log file.")
-    # parser.add_argument('--end_time', type=str, default=None, nargs='?', help="End time for analysis in the log file.")
-    # args = parser.parse_args()
+    # 获取当前脚本的路径
+    current_script_path = os.path.dirname(os.path.abspath(__file__))
 
-    filename = r"C:\Users\86151\Desktop\数模国赛\新建文件夹\input\VG-2.txt"
-    path_prefix = r"C:\Users\86151\Desktop\数模国赛\新建文件夹\input\results_pic"
+    # 构建其他文件的路径
+    filename = os.path.join(current_script_path, 'input', 'VG-1.txt')
+    path_prefix = os.path.join(current_script_path, 'results_pic')
+
+    # 确保输出路径存在
+    os.makedirs(path_prefix, exist_ok=True)
+    
 
     # 自动寻找最新的实验开始时间
-    filename = r"D:\MG-MC\input\VG-1.txt"
-    path_prefix = r"D:\MG-MC\results_pic"
+    start_time = extract_time_from_first_round_zero(filename)
+    logs_block = extract_logs(filename)
 
     rounds, items_collected, items_variety_collected, items_collected_dict, positions, completed_tasks, failed_tasks, biomes, biomes_per_round, new_biome_rounds = analyze_log_block(logs_block)
-    """    print(positions)
-    print(items_collected_dict)
-    print(items_variety_collected)
-    print(completed_tasks)
-    print(failed_tasks)
-    print(rounds)
-    print(new_biome_rounds)"""
-    #print(biomes_per_round)
-    #print(biomes)
+
     collected_items_set = set()
     total_items_variety = []
     for i in range(0, len(items_collected_dict)):
@@ -350,7 +296,7 @@ def main():
     save_item_results_png(rounds, items_collected, items_collected_dict, start_time, path_prefix)
     save_path_results_png(positions, start_time, path_prefix)
     save_task_results_png(rounds, completed_tasks, failed_tasks, start_time, path_prefix)
-    #save_item_results_png(rounds, items_collected, items_variety_collected, items_collected_dict, start_time, path_prefix)
+
     
     print("种类",total_items_variety)
     print("轮次", rounds)
@@ -377,6 +323,6 @@ def main():
     df = pd.concat([df, df_new_biomes], axis=1)
 
     # 写入到Excel文件中
-    df.to_excel(fr'D:\MG-MC\results_pic\{start_time}_results.xlsx', index=False)
+    df.to_excel(os.path.join(path_prefix, f'{start_time}_results.xlsx'), index=False)
 if __name__ == "__main__":
     main()
