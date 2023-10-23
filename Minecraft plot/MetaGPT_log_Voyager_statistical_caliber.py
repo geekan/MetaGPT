@@ -1,3 +1,4 @@
+#MG-VG
 import re
 import argparse
 import os
@@ -13,7 +14,7 @@ import ast
 mpl.rcParams.update(mpl.rcParamsDefault)
 
 def extract_logs(filename, start_time=None, end_time=None):
-    with open(filename, 'r',encoding='utf-8') as f:
+    with open(filename, 'r', encoding='utf-8') as f:
         lines = f.readlines()
 
     if start_time is None :
@@ -35,7 +36,7 @@ def extract_logs(filename, start_time=None, end_time=None):
     return logs_block
 
 def extract_time_from_first_round_zero(log_filename):
-    with open(log_filename, 'r',encoding='utf-8') as f:
+    with open(log_filename, 'r', encoding='utf-8') as f:
         lines = f.readlines()
 
     # 正向遍历文件的每一行
@@ -46,21 +47,25 @@ def extract_time_from_first_round_zero(log_filename):
             if match:
                 return match.group(1)
     return None
+
 def get_last_element_1(list, default=None):
     if list:
         return list[-1]
     else:
         return default
+    
 def get_last_element_2(list, default=0):
     if list:
         return list[-1]
     else:
         return default
+    
 def get_last_element_3(list, default={}):
     if list:
         return list[-1]
     else:
         return default
+    
 def analyze_log_block(logs_block):
     absolute_rounds_current: list[int] = []
     items_collected_current :list[int] = []
@@ -148,6 +153,7 @@ def analyze_log_block(logs_block):
                         round_start = False
     
     return absolute_rounds, items_collected, items_variety_collected, items_collected_dict, positions, completed_tasks, failed_tasks
+
 def save_item_results_png(absolute_rounds, items_collected, items_collected_dict, start_time, path_prefix):
     items_collected_total = {}
     items_collected_total_list = []
@@ -278,7 +284,7 @@ def save_path_results_png(positions, start_time, path_prefix):
     plt.savefig(f'{path_prefix}/{start_time}_bot_movement_3D_path.png', dpi=300)
     plt.close()
 
-def save_task_results_png(absolute_rounds , completed, failed, start_time, path_prefix):
+def save_task_results_png(absolute_rounds, completed, failed, start_time, path_prefix):
     plt.plot(absolute_rounds, completed, label='Completed Tasks')
     plt.plot(absolute_rounds, failed, label='Failed Tasks')
 
@@ -312,35 +318,25 @@ def save_task_results_png(absolute_rounds , completed, failed, start_time, path_
     plt.close()
 
 def main():
-    # parser = argparse.ArgumentParser(description="Analyze game log file between a start and end time.")
-    # parser.add_argument('--start_time', type=str, default=None, nargs='?',
-    #                     help="Start time for analysis in the log file.")
-    # parser.add_argument('--end_time', type=str, default=None, nargs='?', help="End time for analysis in the log file.")
-    # args = parser.parse_args()
+    # 获取当前脚本的路径
+    current_script_path = os.path.dirname(os.path.abspath(__file__))
 
-    filename = r"D:\MG-MC\input\MG-1.txt"
-    path_prefix = r"D:\MG-MC\results_pic"
+    # 构建其他文件的路径
+    filename = os.path.join(current_script_path, 'input', 'MG-1.txt')
+    path_prefix = os.path.join(current_script_path, 'results_pic')
+
+    # 确保输出路径存在
+    os.makedirs(path_prefix, exist_ok=True)
+
 
     # 自动寻找最新的实验开始时间
     start_time = extract_time_from_first_round_zero(filename)
     logs_block = extract_logs(filename, start_time)
+    
     absolute_rounds, items_collected, items_variety_collected, items_collected_dict, positions, completed_tasks, failed_tasks = analyze_log_block(logs_block)
-    print(len(absolute_rounds))
-    print(len(positions))
-    print(len(items_collected_dict))
-    print(len(items_variety_collected))
-    #print(completed_tasks)
-    #print(failed_tasks)
-    print(positions)
-    print(items_collected_dict)
-    print(items_variety_collected)
-    print(completed_tasks)
-    print(failed_tasks)
-    print(absolute_rounds)
     
     positions_0 = [pos for pos in positions if pos is not None]
         
-    
     collected_items_set = set()
     total_items_variety = []
     for i in range(0, len(items_collected_dict)):
@@ -353,7 +349,6 @@ def main():
     save_item_results_png(absolute_rounds, items_collected, items_collected_dict, start_time, path_prefix)
     save_path_results_png(positions_0, start_time, path_prefix)
     save_task_results_png(absolute_rounds, completed_tasks, failed_tasks, start_time, path_prefix)
-    #save_item_results_png(rounds, items_collected, items_variety_collected, items_collected_dict, start_time, path_prefix)
     
     print("种类",total_items_variety)
     print("轮次", absolute_rounds)
@@ -373,6 +368,6 @@ def main():
     df = pd.DataFrame(data)
 
     # 写入到Excel文件中
-    df.to_excel(fr'D\MG-MC\results_pic\{start_time}_results.xlsx', index=False)
+    df.to_excel(os.path.join(path_prefix, f'{start_time}_results.xlsx'), index=False)
 if __name__ == "__main__":
     main()
