@@ -48,4 +48,3 @@ websocket-client==0.58.0
 aiofiles~=23.2.1
 pygments~=2.16.1
 requests~=2.31.0
-yaml~=0.2.5
