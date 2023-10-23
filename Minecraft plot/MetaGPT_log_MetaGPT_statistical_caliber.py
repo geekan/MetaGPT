@@ -12,7 +12,7 @@ import pandas as pd
 mpl.rcParams.update(mpl.rcParamsDefault)
 
 def extract_logs(filename, start_time=None, end_time=None):
-    with open(filename, 'r',encoding='utf-8') as f:
+    with open(filename, 'r', encoding='utf-8') as f:
         lines = f.readlines()
 
     if start_time is None :
@@ -34,7 +34,7 @@ def extract_logs(filename, start_time=None, end_time=None):
     return logs_block
 
 def extract_time_from_first_round_zero(log_filename):
-    with open(log_filename, 'r',encoding='utf-8') as f:
+    with open(log_filename, 'r', encoding='utf-8') as f:
         lines = f.readlines()
 
     # 正向遍历文件的每一行
@@ -63,8 +63,6 @@ def analyze_log_block(logs_block):
     line_after_message = 0  
     first_group = True  
 
-
-    first_group = True  # 添加一个新变量来跟踪是否已经处理过这一轮的第一组信息
 
     for line in logs_block:
         if "round_id:" in line:
@@ -125,6 +123,8 @@ def analyze_log_block(logs_block):
                         round_start = False
     min_len: int = min(len(rounds), len(items_collected), len(positions), len(completed_tasks), len(failed_tasks))
     return rounds[:min_len], items_collected[:min_len], items_variety_collected[:min_len], items_collected_dict[:min_len], positions[:min_len], completed_tasks[:min_len], failed_tasks[:min_len], biomes, biomes_per_round[:min_len], new_biome_rounds
+
+
 def save_item_results_png(rounds, items_collected, items_collected_dict, start_time, path_prefix):
     items_collected_total = {}
     items_collected_total_list = []
@@ -289,29 +289,23 @@ def save_task_results_png(rounds , completed, failed, start_time, path_prefix):
     plt.close()
 
 def main():
-    # parser = argparse.ArgumentParser(description="Analyze game log file between a start and end time.")
-    # parser.add_argument('--start_time', type=str, default=None, nargs='?',
-    #                     help="Start time for analysis in the log file.")
-    # parser.add_argument('--end_time', type=str, default=None, nargs='?', help="End time for analysis in the log file.")
-    # args = parser.parse_args()
 
-    filename = r"D:\MG-MC\input\MG-1.txt"
-    path_prefix = r"D:\MG-MC\results_pic"
+    # 获取当前脚本的路径
+    current_script_path = os.path.dirname(os.path.abspath(__file__))
+
+    # 构建其他文件的路径
+    filename = os.path.join(current_script_path, 'input', 'MG-1.txt')
+    path_prefix = os.path.join(current_script_path, 'results_pic')
+
+    # 确保输出路径存在
+    os.makedirs(path_prefix, exist_ok=True)
 
     # 自动寻找最新的实验开始时间
     start_time = extract_time_from_first_round_zero(filename)
     logs_block = extract_logs(filename, start_time)
 
     rounds, items_collected, items_variety_collected, items_collected_dict, positions, completed_tasks, failed_tasks, biomes, biomes_per_round, new_biome_rounds = analyze_log_block(logs_block)
-    #print(positions)
-    #print(items_collected_dict)
-    
-    #print(completed_tasks)
-    #print(failed_tasks)
-    #print(rounds)
-    #print(new_biome_rounds)
-    #print(biomes_per_round)
-    #print(biomes)
+
 
     collected_items_set = set()
     total_items_variety = []
@@ -351,6 +345,6 @@ def main():
     df = pd.concat([df, df_new_biomes], axis=1)
 
     # 写入到Excel文件中
-    df.to_excel(fr'D:\MG-MC\results_pic\{start_time}_results.xlsx', index=False)
+    df.to_excel(os.path.join(path_prefix, f'{start_time}_results.xlsx'), index=False)
 if __name__ == "__main__":
     main()
