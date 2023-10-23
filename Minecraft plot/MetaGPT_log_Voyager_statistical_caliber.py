@@ -1,4 +1,3 @@
-#MG-VG
 import re
 import argparse
 import os
