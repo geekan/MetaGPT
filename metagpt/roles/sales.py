@@ -5,8 +5,8 @@
 @Author  : alexanderwu
 @File    : sales.py
 """
-from metagpt.roles import Role
 from metagpt.actions import SearchAndSummarize
+from metagpt.roles import Role
 from metagpt.tools import SearchEngineType
 
 
@@ -32,3 +32,4 @@ class Sales(Role):
         else:
             action = SearchAndSummarize()
         self._init_actions([action])
+        

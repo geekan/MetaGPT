@@ -1,0 +1,25 @@
+Generate a suitable acronym pair for the concept. Creativity is encouraged, including obscure references. 
+The uppercase letters in the acronym expansion must agree with the letters of the acronym
+
+Q: A technology for detecting moving objects, their distance and velocity using radio waves.  
+A: R.A.D.A.R: RAdio Detection And Ranging. 
+
+Q: A weapon that uses high voltage electricity to incapacitate the target
+A. T.A.S.E.R:  Thomas A. Swift’s Electric Rifle
+
+Q: Equipment that lets a diver breathe underwater 
+A: S.C.U.B.A: Self Contained Underwater Breathing Apparatus.
+
+Q: Reminder not to complicated subject matter.
+A. K.I.S.S: Keep It Simple Stupid 
+
+Q: A national organization for investment in space travel, rockets, space ships, space exploration
+A. N.A.S.A: National Aeronautics Space Administration
+
+Q: Agreement that governs trade among North American countries.
+A: N.A.F.T.A: North American Free Trade Agreement. 
+
+Q: Organization to protect the freedom and security of its member countries in North America and Europe.
+A: N.A.T.O: North Atlantic Treaty Organization.  
+
+Q:{{$input}}

@@ -6,10 +6,10 @@
 @File    : search_engine_meilisearch.py
 """
 
-from metagpt.logs import logger
+from typing import List
+
 import meilisearch
 from meilisearch.index import Index
-from typing import List
 
 
 class DataSource:
@@ -39,6 +39,6 @@ class MeilisearchEngine:
             search_results = self._index.search(query)
             return search_results['hits']
         except Exception as e:
-            # 处理MeiliSearch API错误
-            print(f"MeiliSearch API错误: {e}")
+            # Handle MeiliSearch API errors
+            print(f"MeiliSearch API error: {e}")
             return []

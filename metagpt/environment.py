@@ -6,45 +6,54 @@
 @File    : environment.py
 """
 import asyncio
-from queue import Queue
 from typing import Iterable
 
-from metagpt.manager import Manager
+from pydantic import BaseModel, Field
+
+from metagpt.memory import Memory
 from metagpt.roles import Role
 from metagpt.schema import Message
-from metagpt.memory import Memory
 
 
-class Environment:
-    """环境，承载一批角色，角色可以向环境发布消息，可以被其他角色观察到"""
-    def __init__(self):
-        self.roles: dict[str, Role] = {}
-        self.message_queue = Queue()
-        self.memory = Memory()
-        self.history = ''
+class Environment(BaseModel):
+    """环境，承载一批角色，角色可以向环境发布消息，可以被其他角色观察到
+       Environment, hosting a batch of roles, roles can publish messages to the environment, and can be observed by other roles
+    
+    """
+
+    roles: dict[str, Role] = Field(default_factory=dict)
+    memory: Memory = Field(default_factory=Memory)
+    history: str = Field(default='')
+
+    class Config:
+        arbitrary_types_allowed = True
 
     def add_role(self, role: Role):
-        """增加一个在当前环境的Role"""
+        """增加一个在当前环境的角色
+           Add a role in the current environment
+        """
         role.set_env(self)
         self.roles[role.profile] = role
 
     def add_roles(self, roles: Iterable[Role]):
-        """增加一批在当前环境的Role"""
+        """增加一批在当前环境的角色
+            Add a batch of characters in the current environment
+        """
         for role in roles:
             self.add_role(role)
 
-    def set_manager(self, manager):
-        """设置一个当前环境的管理员"""
-        self.manager = manager
-
     def publish_message(self, message: Message):
-        """向当前环境发布信息"""
-        self.message_queue.put(message)
+        """向当前环境发布信息
+          Post information to the current environment
+        """
+        # self.message_queue.put(message)
         self.memory.add(message)
         self.history += f"\n{message}"
 
     async def run(self, k=1):
-        """处理一次所有Role的运行"""
+        """处理一次所有信息的运行
+        Process all Role runs at once
+        """
         # while not self.message_queue.empty():
         # message = self.message_queue.get()
         # rsp = await self.manager.handle(message, self)
@@ -58,9 +67,13 @@ class Environment:
             await asyncio.gather(*futures)
 
     def get_roles(self) -> dict[str, Role]:
-        """获得环境内的所有Role"""
+        """获得环境内的所有角色
+           Process all Role runs at once
+        """
         return self.roles
 
     def get_role(self, name: str) -> Role:
-        """获得环境内的指定Role"""
+        """获得环境内的指定角色
+           get all the environment roles
+        """
         return self.roles.get(name, None)

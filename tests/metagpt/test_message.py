@@ -7,7 +7,7 @@
 """
 import pytest
 
-from metagpt.schema import Message, UserMessage, SystemMessage, AIMessage, RawMessage
+from metagpt.schema import AIMessage, Message, RawMessage, SystemMessage, UserMessage
 
 
 def test_message():

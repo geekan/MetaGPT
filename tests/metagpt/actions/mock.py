@@ -6,66 +6,216 @@
 @File    : mock.py
 """
 
-PRD_SAMPLE = """产品/功能介绍：基于大语言模型的、私有知识库的搜索引擎
+PRD_SAMPLE = """## Original Requirements
+The original requirement is to create a game similar to the classic text-based adventure game, Zork.
 
-目标：实现一个高效、准确、易用的搜索引擎，能够满足用户对私有知识库的搜索需求，提高工作效率和信息检索的准确性。
-
-用户和使用场景：该搜索引擎主要面向需要频繁使用私有知识库进行信息检索的用户，例如企业内部的知识管理者、研发人员和数据分析师等。用户需要通过输入关键词或短语，快速地获取与其相关的知识库内容。
-
-需求：
-1. 支持基于大语言模型的搜索算法，能够对用户输入的关键词或短语进行语义理解，提高搜索结果的准确性。
-2. 支持私有知识库的建立和维护，能够对知识库内容进行分类、标签和关键词的管理，方便用户进行信息检索。
-3. 提供简洁、直观的用户界面，支持多种搜索方式（如全文搜索、精确搜索、模糊搜索等），方便用户进行快速检索。
-4. 支持搜索结果的排序和过滤，能够根据相关度、时间等因素对搜索结果进行排序，方便用户找到最相关的信息。
-5. 支持多种数据格式的导入和导出，方便用户对知识库内容进行备份和分享。
-
-约束与限制：由于资源有限，需要在保证产品质量的前提下，控制开发成本和时间。同时，需要考虑用户的隐私保护和知识库内容的安全性。
-
-性能指标：
-1. 搜索响应时间：搜索引擎的搜索响应时间应该在毫秒级别，能够快速响应用户的搜索请求。
-2. 搜索准确率：搜索引擎应该能够准确地返回与用户搜索意图相关的知识库内容，提高搜索结果的准确率。
-3. 系统稳定性：搜索引擎应该具备良好的稳定性和可靠性，能够在高并发、大数据量等情况下保持正常运行。
-4. 用户体验：搜索引擎的用户界面应该简洁、直观、易用，让用户能够快速地找到所需的信息。
-"""
-
-DESIGN_LLM_KB_SEARCH_SAMPLE = """## 数据结构
-- 文档对象(Document Object)：表示知识库中的一篇文档，包含文档的标题、内容、标签等信息。
-- 知识库对象(Knowledge Base Object)：表示整个知识库，包含多篇文档对象，以及知识库的分类、标签等信息。
-
-## API接口
-- create_document(title, content, tags)：创建一篇新的文档，返回文档对象。
-- delete_document(document_id)：删除指定ID的文档。
-- update_document(document_id, title=None, content=None, tags=None)：更新指定ID的文档的标题、内容、标签等信息。
-- search_documents(query, mode='fulltext', limit=10, sort_by='relevance')：根据查询条件进行搜索，返回符合条件的文档列表。
-- create_knowledge_base(name, description=None)：创建一个新的知识库，返回知识库对象。
-- delete_knowledge_base(kb_id)：删除指定ID的知识库。
-- update_knowledge_base(kb_id, name=None, description=None)：更新指定ID的知识库的名称、描述等信息。
-
-## 调用流程（以dot语言描述）
-```dot
-digraph search_engine {
-  User -> UI [label="1. 输入查询关键词"];
-  UI -> API [label="2. 调用搜索API"];
-  API -> KnowledgeBase [label="3. 查询知识库"];
-  KnowledgeBase -> NLP [label="4. 进行自然语言处理"];
-  NLP -> API [label="5. 返回处理结果"];
-  API -> UI [label="6. 返回搜索结果"];
-  UI -> User [label="7. 显示搜索结果"];
-}
+## Product Goals
+```python
+product_goals = [
+    "Create an engaging text-based adventure game",
+    "Ensure the game is easy to navigate and user-friendly",
+    "Incorporate compelling storytelling and puzzles"
+]
 ```
 
-## 用户编写程序所需的全部、详尽的文件路径列表（以python字符串描述）
-- /api/main.py：主程序入口
-- /api/models/document.py：文档对象的定义
-- /api/models/knowledge_base.py：知识库对象的定义
-- /api/api/search_api.py：搜索API的实现
-- /api/api/knowledge_base_api.py：知识库API的实现
-- /api/nlp/nlp_engine.py：自然语言处理引擎的实现
-- /api/ui/search_ui.py：搜索界面的实现
-- /api/ui/knowledge_base_ui.py：知识库界面的实现
-- /api/utils/database.py：数据库连接和操作相关的工具函数
-- /api/utils/config.py：配置文件，包含数据库连接信息等配置项。
+## User Stories
+```python
+user_stories = [
+    "As a player, I want to be able to easily input commands so that I can interact with the game world",
+    "As a player, I want to explore various rooms and locations to uncover the game's story",
+    "As a player, I want to solve puzzles to progress in the game",
+    "As a player, I want to interact with various in-game objects to enhance my gameplay experience",
+    "As a player, I want a game that challenges my problem-solving skills and keeps me engaged"
+]
+```
+
+## Competitive Analysis
+```python
+competitive_analysis = [
+    "Zork: The original text-based adventure game with complex puzzles and engaging storytelling",
+    "The Hitchhiker's Guide to the Galaxy: A text-based game with a unique sense of humor and challenging gameplay",
+    "Colossal Cave Adventure: The first text adventure game which set the standard for the genre",
+    "Quest: A platform that lets users create their own text adventure games",
+    "ChatGPT: An AI that can generate text-based adventure games",
+    "The Forest of Doom: A text-based game with a fantasy setting and multiple endings",
+    "Wizards Choice: A text-based game with RPG elements and a focus on player choice"
+]
+```
+
+## Competitive Quadrant Chart
+```mermaid
+quadrantChart
+    title Reach and engagement of text-based adventure games
+    x-axis Low Reach --> High Reach
+    y-axis Low Engagement --> High Engagement
+    quadrant-1 High potential games
+    quadrant-2 Popular but less engaging games
+    quadrant-3 Less popular and less engaging games
+    quadrant-4 Popular and engaging games
+    "Zork": [0.9, 0.8]
+    "Hitchhiker's Guide": [0.7, 0.7]
+    "Colossal Cave Adventure": [0.8, 0.6]
+    "Quest": [0.4, 0.5]
+    "ChatGPT": [0.3, 0.6]
+    "Forest of Doom": [0.5, 0.4]
+    "Wizards Choice": [0.6, 0.5]
+    "Our Target Product": [0.5, 0.6]
+```
+
+## Requirement Analysis
+The goal is to create a text-based adventure game similar to Zork. The game should be engaging, user-friendly, and feature compelling storytelling and puzzles. It should allow players to explore various rooms and locations, interact with in-game objects, and solve puzzles to progress. The game should also challenge players' problem-solving skills and keep them engaged.
+
+## Requirement Pool
+```python
+requirement_pool = [
+    ("Design an intuitive command input system for player interactions", "P0"),
+    ("Create a variety of rooms and locations for players to explore", "P0"),
+    ("Develop engaging puzzles that players need to solve to progress", "P0"),
+    ("Incorporate a compelling story that unfolds as players explore the game world", "P1"),
+    ("Ensure the game is user-friendly and easy to navigate", "P1")
+]
+```
+
+## Anything UNCLEAR
+The original requirement did not specify the platform for the game (web, mobile, desktop) or any specific features or themes for the game's story and puzzles. More information on these aspects could help in further refining the product requirements and design.
 """
+
+DESIGN_LLM_KB_SEARCH_SAMPLE = """## Implementation approach:
+
+The game will be developed as a console application in Python, which will allow it to be platform-independent. The game logic will be implemented using Object Oriented Programming principles. 
+
+The game will consist of different "rooms" or "locations" that the player can navigate. Each room will have different objects and puzzles that the player can interact with. The player's progress in the game will be determined by their ability to solve these puzzles.
+
+Python's in-built data structures like lists and dictionaries will be used extensively to manage the game state, player inventory, room details, etc. 
+
+For testing, we can use the PyTest framework. This is a mature full-featured Python testing tool that helps you write better programs.
+
+## Python package name:
+```python
+"adventure_game"
+```
+
+## File list:
+```python
+file_list = ["main.py", "room.py", "player.py", "game.py", "object.py", "puzzle.py", "test_game.py"]
+```
+
+## Data structures and interface definitions:
+```mermaid
+classDiagram
+    class Room{
+        +__init__(self, description: str, objects: List[Object])
+        +get_description(self) -> str
+        +get_objects(self) -> List[Object]
+    }
+    class Player{
+        +__init__(self, current_room: Room, inventory: List[Object])
+        +move(self, direction: str) -> None
+        +get_current_room(self) -> Room
+        +get_inventory(self) -> List[Object]
+    }
+    class Object{
+        +__init__(self, name: str, description: str, is_usable: bool)
+        +get_name(self) -> str
+        +get_description(self) -> str
+        +is_usable(self) -> bool
+    }
+    class Puzzle{
+        +__init__(self, question: str, answer: str, reward: Object)
+        +ask_question(self) -> str
+        +check_answer(self, player_answer: str) -> bool
+        +get_reward(self) -> Object
+    }
+    class Game{
+        +__init__(self, player: Player)
+        +start(self) -> None
+        +end(self) -> None
+    }
+    Room "1" -- "*" Object
+    Player "1" -- "1" Room
+    Player "1" -- "*" Object
+    Puzzle "1" -- "1" Object
+    Game "1" -- "1" Player
+```
+
+## Program call flow:
+```mermaid
+sequenceDiagram
+    participant main as main.py
+    participant Game as Game
+    participant Player as Player
+    participant Room as Room
+    main->>Game: Game(player)
+    Game->>Player: Player(current_room, inventory)
+    Player->>Room: Room(description, objects)
+    Game->>Game: start()
+    Game->>Player: move(direction)
+    Player->>Room: get_description()
+    Game->>Player: get_inventory()
+    Game->>Game: end()
+```
+
+## Anything UNCLEAR:
+The original requirements did not specify whether the game should have a save/load feature, multiplayer support, or any specific graphical user interface. More information on these aspects could help in further refining the product design and requirements.
+"""
+
+
+PROJECT_MANAGEMENT_SAMPLE = '''## Required Python third-party packages: Provided in requirements.txt format
+```python
+"pytest==6.2.5"
+```
+
+## Required Other language third-party packages: Provided in requirements.txt format
+```python
+```
+
+## Full API spec: Use OpenAPI 3.0. Describe all APIs that may be used by both frontend and backend.
+```python
+"""
+This project is a console-based application and doesn't require any API endpoints. All interactions will be done through the console interface.
+"""
+```
+
+## Logic Analysis: Provided as a Python list[str, str]. the first is filename, the second is class/method/function should be implemented in this file. Analyze the dependencies between the files, which work should be done first
+```python
+[
+    ("object.py", "Object"),
+    ("room.py", "Room"),
+    ("player.py", "Player"),
+    ("puzzle.py", "Puzzle"),
+    ("game.py", "Game"),
+    ("main.py", "main"),
+    ("test_game.py", "test_game")
+]
+```
+
+## Task list: Provided as Python list[str]. Each str is a filename, the more at the beginning, the more it is a prerequisite dependency, should be done first
+```python
+[
+    "object.py", 
+    "room.py", 
+    "player.py", 
+    "puzzle.py", 
+    "game.py", 
+    "main.py", 
+    "test_game.py"
+]
+```
+
+## Shared Knowledge: Anything that should be public like utils' functions, config's variables details that should make clear first. 
+```python
+"""
+Shared knowledge for this project includes understanding the basic principles of Object Oriented Programming, Python's built-in data structures like lists and dictionaries, and the PyTest framework for testing. 
+"""
+```
+
+## Anything UNCLEAR: Provide as Plain text. Make clear here. For example, don't forget a main entry. don't forget to init 3rd party libs.
+```python
+"""
+The original requirements did not specify whether the game should have a save/load feature, multiplayer support, or any specific graphical user interface. More information on these aspects could help in further refining the product design and requirements.
+"""
+```
+'''
 
 
 WRITE_CODE_PROMPT_SAMPLE = """
@@ -360,4 +510,3 @@ Process finished with exit code 1'''
 
 MEILI_CODE_REFINED = """
 """
-

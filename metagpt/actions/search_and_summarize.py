@@ -5,14 +5,13 @@
 @Author  : alexanderwu
 @File    : search_google.py
 """
-import asyncio
+import pydantic
 
-from metagpt.logs import logger
-from metagpt.config import SearchEngineType, Config
 from metagpt.actions import Action
+from metagpt.config import Config
+from metagpt.logs import logger
 from metagpt.schema import Message
 from metagpt.tools.search_engine import SearchEngine
-
 
 SEARCH_AND_SUMMARIZE_SYSTEM = """### Requirements
 1. Please summarize the latest dialogue based on the reference information (secondary) and dialogue history (primary). Do not include text that is irrelevant to the conversation.
@@ -37,7 +36,7 @@ A: MLOps competitors
 8. Dataiku
 """
 
-SEARCH_AND_SUMMARIZE_SYSTEM_EN_US = SEARCH_AND_SUMMARIZE_SYSTEM.format(LANG='en-us')
+SEARCH_AND_SUMMARIZE_SYSTEM_EN_US = SEARCH_AND_SUMMARIZE_SYSTEM.format(LANG="en-us")
 
 SEARCH_AND_SUMMARIZE_PROMPT = """
 ### Reference Information
@@ -105,13 +104,18 @@ class SearchAndSummarize(Action):
     def __init__(self, name="", context=None, llm=None, engine=None, search_func=None):
         self.config = Config()
         self.engine = engine or self.config.search_engine
-        self.search_engine = SearchEngine(self.engine, run_func=search_func)
+
+        try:
+            self.search_engine = SearchEngine(self.engine, run_func=search_func)
+        except pydantic.ValidationError:
+            self.search_engine = None
+
         self.result = ""
         super().__init__(name, context, llm)
 
     async def run(self, context: list[Message], system_text=SEARCH_AND_SUMMARIZE_SYSTEM) -> str:
-        if not self.config.serpapi_api_key or 'YOUR_API_KEY' == self.config.serpapi_api_key:
-            logger.warning('Configure SERPAPI_API_KEY to unlock full feature')
+        if self.search_engine is None:
+            logger.warning("Configure one of SERPAPI_API_KEY, SERPER_API_KEY, GOOGLE_API_KEY to unlock full feature")
             return ""
 
         query = context[-1].content
@@ -119,7 +123,7 @@ class SearchAndSummarize(Action):
         rsp = await self.search_engine.run(query)
         self.result = rsp
         if not rsp:
-            logger.error('empty rsp...')
+            logger.error("empty rsp...")
             return ""
         # logger.info(rsp)
 
@@ -127,12 +131,13 @@ class SearchAndSummarize(Action):
 
         prompt = SEARCH_AND_SUMMARIZE_PROMPT.format(
             # PREFIX = self.prefix,
-            ROLE = self.profile,
-            CONTEXT = rsp,
-            QUERY_HISTORY = '\n'.join([str(i) for i in context[:-1]]),
-            QUERY = str(context[-1])
+            ROLE=self.profile,
+            CONTEXT=rsp,
+            QUERY_HISTORY="\n".join([str(i) for i in context[:-1]]),
+            QUERY=str(context[-1]),
         )
         result = await self._aask(prompt, system_prompt)
         logger.debug(prompt)
         logger.debug(result)
         return result
+    

@@ -148,11 +148,11 @@ allure-results
 .DS_Store
 .vscode
 
-
-*.txt
-scripts/set_env.sh
+log.txt
+docs/scripts/set_env.sh
 key.yaml
 output.json
+data
 data/output_add.json
 data.ms
 examples/nb/
@@ -161,3 +161,6 @@ examples/nb/
 workspace/*
 *.mmd
 tmp
+output.wav
+metagpt/roles/idea_agent.py
+.aider*

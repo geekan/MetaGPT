@@ -1,0 +1,27 @@
+default_stages: [ commit ]
+
+# Install
+# 1. pip install pre-commit
+# 2. pre-commit install(the first time you download the repo, it will be cached for future use)
+repos:
+  - repo: https://github.com/pycqa/isort
+    rev: 5.11.5
+    hooks:
+      - id: isort
+        args: ['--profile', 'black']
+        exclude: >-
+            (?x)^(
+            .*__init__\.py$
+            )
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    # Ruff version.
+    rev: v0.0.284
+    hooks:
+      - id: ruff
+
+  - repo: https://github.com/psf/black
+    rev: 23.3.0
+    hooks:
+      - id: black
+        args: ['--line-length', '120']

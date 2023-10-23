@@ -1,20 +1,23 @@
 """wutils: handy tools
 """
+import subprocess
 from codecs import open
 from os import path
-from setuptools import find_packages, setup, Command
 
-import subprocess
+from setuptools import Command, find_packages, setup
 
 
 class InstallMermaidCLI(Command):
     """A custom command to run `npm install -g @mermaid-js/mermaid-cli` via a subprocess."""
 
-    description = 'install mermaid-cli'
+    description = "install mermaid-cli"
     user_options = []
 
     def run(self):
-        subprocess.check_call(['npm', 'install', '-g', '@mermaid-js/mermaid-cli'])
+        try:
+            subprocess.check_call(["npm", "install", "-g", "@mermaid-js/mermaid-cli"])
+        except subprocess.CalledProcessError as e:
+            print(f"Error occurred: {e.output}")
 
 
 here = path.abspath(path.dirname(__file__))
@@ -39,7 +42,14 @@ setup(
     packages=find_packages(exclude=["contrib", "docs", "examples"]),
     python_requires=">=3.9",
     install_requires=requirements,
+    extras_require={
+        "playwright": ["playwright>=1.26", "beautifulsoup4"],
+        "selenium": ["selenium>4", "webdriver_manager", "beautifulsoup4"],
+        "search-google": ["google-api-python-client==2.94.0"],
+        "search-ddg": ["duckduckgo-search==3.8.5"],
+        "pyppeteer": ["pyppeteer>=1.0.2"],
+    },
     cmdclass={
-        'install_mermaid': InstallMermaidCLI,
+        "install_mermaid": InstallMermaidCLI,
     },
 )

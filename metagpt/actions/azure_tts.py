@@ -5,8 +5,9 @@
 @Author  : Leo Xiao
 @File    : azure_tts.py
 """
+from azure.cognitiveservices.speech import AudioConfig, SpeechConfig, SpeechSynthesizer
+
 from metagpt.actions.action import Action
-from azure.cognitiveservices.speech import SpeechConfig, SpeechSynthesizer, AudioConfig
 from metagpt.config import Config
 
 
@@ -15,10 +16,10 @@ class AzureTTS(Action):
         super().__init__(name, context, llm)
         self.config = Config()
 
-    # 参数参考：https://learn.microsoft.com/zh-cn/azure/cognitive-services/speech-service/language-support?tabs=tts#voice-styles-and-roles
+    # Parameters reference: https://learn.microsoft.com/zh-cn/azure/cognitive-services/speech-service/language-support?tabs=tts#voice-styles-and-roles
     def synthesize_speech(self, lang, voice, role, text, output_file):
-        subscription_key = self.config.get('SUBSCRIPTION_KEY')
-        region = self.config.get('REGION')
+        subscription_key = self.config.get('AZURE_TTS_SUBSCRIPTION_KEY')
+        region = self.config.get('AZURE_TTS_REGION')
         speech_config = SpeechConfig(
             subscription=subscription_key, region=region)
 
@@ -48,5 +49,5 @@ if __name__ == "__main__":
         "zh-CN",
         "zh-CN-YunxiNeural",
         "Boy",
-        "你好，我是卡卡",
+        "Hello, I am Kaka",
         "output.wav")

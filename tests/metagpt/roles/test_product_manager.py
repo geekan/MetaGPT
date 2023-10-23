@@ -6,12 +6,10 @@
 @File    : test_product_manager.py
 """
 import pytest
-from metagpt.logs import logger
 
-from metagpt.actions import BossRequirement
+from metagpt.logs import logger
 from metagpt.roles import ProductManager
-from metagpt.schema import Message
-from tests.metagpt.roles.mock import DETAIL_REQUIREMENT, BOSS_REQUIREMENT, MockMessages
+from tests.metagpt.roles.mock import MockMessages
 
 
 @pytest.mark.asyncio
@@ -20,4 +18,4 @@ async def test_product_manager():
     rsp = await product_manager.handle(MockMessages.req)
     logger.info(rsp)
     assert len(rsp.content) > 0
-    assert "产品目标" in rsp.content
+    assert "Product Goals" in rsp.content
