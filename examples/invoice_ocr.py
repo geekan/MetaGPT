@@ -8,7 +8,7 @@
 """
 
 import asyncio
-import os
+from pathlib import Path
 
 from metagpt.roles.invoice_ocr_assistant import InvoiceOCRAssistant
 from metagpt.schema import Message
@@ -16,15 +16,13 @@ from metagpt.schema import Message
 
 async def main():
     relative_paths = [
-        "../tests/data/invoices/invoice-1.pdf",
-        "../tests/data/invoices/invoice-2.png",
-        "../tests/data/invoices/invoice-3.jpg",
-        "../tests/data/invoices/invoice-4.zip"
+        Path("../tests/data/invoices/invoice-1.pdf"),
+        Path("../tests/data/invoices/invoice-2.png"),
+        Path("../tests/data/invoices/invoice-3.jpg"),
+        Path("../tests/data/invoices/invoice-4.zip")
     ]
-    # Get the current working directory
-    current_directory = os.getcwd()
     # The absolute path of the file
-    absolute_file_paths = [os.path.abspath(os.path.join(current_directory, path)) for path in relative_paths]
+    absolute_file_paths = [Path.cwd() / path for path in relative_paths]
 
     for path in absolute_file_paths:
         role = InvoiceOCRAssistant()

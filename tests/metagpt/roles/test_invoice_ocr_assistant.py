@@ -7,11 +7,10 @@
 @File    : test_invoice_ocr_assistant.py
 """
 
-import os
-import pandas as pd
-from typing import List
+from pathlib import Path
 
 import pytest
+import pandas as pd
 
 from metagpt.roles.invoice_ocr_assistant import InvoiceOCRAssistant
 from metagpt.schema import Message
@@ -23,8 +22,8 @@ from metagpt.schema import Message
     [
         (
             "Invoicing date",
-            "../../data/invoices/invoice-1.pdf",
-            "../../../data/invoice_table/invoice-1.xlsx",
+            Path("../../data/invoices/invoice-1.pdf"),
+            Path("../../../data/invoice_table/invoice-1.xlsx"),
             [
                 {
                     "收款人": "小明",
@@ -36,8 +35,8 @@ from metagpt.schema import Message
         ),
         (
             "Invoicing date",
-            "../../data/invoices/invoice-2.png",
-            "../../../data/invoice_table/invoice-2.xlsx",
+            Path("../../data/invoices/invoice-2.png"),
+            Path("../../../data/invoice_table/invoice-2.xlsx"),
             [
                 {
                     "收款人": "铁头",
@@ -49,8 +48,8 @@ from metagpt.schema import Message
         ),
         (
             "Invoicing date",
-            "../../data/invoices/invoice-3.jpg",
-            "../../../data/invoice_table/invoice-3.xlsx",
+            Path("../../data/invoices/invoice-3.jpg"),
+            Path("../../../data/invoice_table/invoice-3.xlsx"),
             [
                 {
                     "收款人": "夏天",
@@ -62,8 +61,8 @@ from metagpt.schema import Message
         ),
         (
             "Invoicing date",
-            "../../data/invoices/invoice-4.zip",
-            "../../../data/invoice_table/invoice-4.xlsx",
+            Path("../../data/invoices/invoice-4.zip"),
+            Path("../../../data/invoice_table/invoice-4.xlsx"),
             [
                 {
                     "收款人": "小明",
@@ -89,17 +88,17 @@ from metagpt.schema import Message
 )
 async def test_invoice_ocr_assistant(
     query: str,
-    invoice_path: str,
-    invoice_table_path: str,
-    expected_result: List[dict]
+    invoice_path: Path,
+    invoice_table_path: Path,
+    expected_result: list[dict]
 ):
-    invoice_path = os.path.abspath(os.path.join(os.getcwd(), invoice_path))
+    invoice_path = Path.cwd() / invoice_path
     role = InvoiceOCRAssistant()
     await role.run(Message(
         content=query,
         instruct_content={"file_path": invoice_path}
     ))
-    invoice_table_path = os.path.abspath(os.path.join(os.getcwd(), invoice_table_path))
+    invoice_table_path = Path.cwd() / invoice_table_path
     df = pd.read_excel(invoice_table_path)
     dict_result = df.to_dict(orient='records')
     assert dict_result == expected_result

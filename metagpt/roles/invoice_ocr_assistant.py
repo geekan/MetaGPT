@@ -7,10 +7,8 @@
 @File    : invoice_ocr_assistant.py
 """
 
-import os
-from pathlib import Path
-
 import pandas as pd
+
 from metagpt.actions.invoice_ocr import InvoiceOCR, GenerateTable, ReplyQuestion
 from metagpt.prompts.invoice_ocr import INVOICE_OCR_SUCCESS
 from metagpt.roles import Role
@@ -33,7 +31,7 @@ class InvoiceOCRAssistant(Role):
     def __init__(
         self,
         name: str = "Stitch",
-        profile: str = "Invoice Ocr Assistant",
+        profile: str = "Invoice OCR Assistant",
         goal: str = "OCR identifies invoice files and generates invoice main information table",
         constraints: str = "",
         language: str = "ch",
@@ -67,11 +65,11 @@ class InvoiceOCRAssistant(Role):
         if isinstance(todo, InvoiceOCR):
             self.origin_query = msg.content
             file_path = msg.instruct_content.get("file_path")
-            self.filename = os.path.basename(file_path)
+            self.filename = file_path.name
             if not file_path:
                 raise Exception("Invoice file not uploaded")
 
-            resp = await todo.run(Path(file_path), self.filename)
+            resp = await todo.run(file_path)
             if len(resp) == 1:
                 # Single file support for questioning based on OCR recognition results
                 self._init_actions([GenerateTable, ReplyQuestion])
