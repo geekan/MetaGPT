@@ -8,10 +8,10 @@
 """
 
 import os
-from pathlib import Path
 from typing import List
 
 import pytest
+from pathlib import Path
 
 from metagpt.actions.invoice_ocr import InvoiceOCR, GenerateTable, ReplyQuestion
 
@@ -48,7 +48,7 @@ async def test_invoice_ocr(invoice_path: str):
         ),
     ]
 )
-async def test_generate_table(invoice_path: str, expected_result: List[dict]):
+async def test_generate_table(invoice_path: str, expected_result: list[dict]):
     invoice_path = os.path.abspath(os.path.join(os.getcwd(), invoice_path))
     filename = os.path.basename(invoice_path)
     ocr_result = await InvoiceOCR().run(file_path=Path(invoice_path), filename=filename)
