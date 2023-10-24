@@ -111,30 +111,30 @@ class CostManager(metaclass=Singleton):
         return self.total_completion_tokens
 
 
-def get_total_cost(self):
-    """
-    Get the total cost of API calls.
-
-    Returns:
-    float: The total cost of API calls.
-    """
-    return self.total_cost
-
-
-def get_costs(self) -> Costs:
-    """Get all costs"""
-    return Costs(self.total_prompt_tokens, self.total_completion_tokens, self.total_cost, self.total_budget)
-
-
-def log_and_reraise(retry_state):
-    logger.error(f"Retry attempts exhausted. Last exception: {retry_state.outcome.exception()}")
-    logger.warning(
+    def get_total_cost(self):
         """
-Recommend going to https://deepwisdom.feishu.cn/wiki/MsGnwQBjiif9c3koSJNcYaoSnu4#part-XdatdVlhEojeAfxaaEZcMV3ZniQ
-See FAQ 5.8
-"""
-    )
-    raise retry_state.outcome.exception()
+        Get the total cost of API calls.
+
+        Returns:
+        float: The total cost of API calls.
+        """
+        return self.total_cost
+
+
+    def get_costs(self) -> Costs:
+        """Get all costs"""
+        return Costs(self.total_prompt_tokens, self.total_completion_tokens, self.total_cost, self.total_budget)
+
+
+    def log_and_reraise(retry_state):
+        logger.error(f"Retry attempts exhausted. Last exception: {retry_state.outcome.exception()}")
+        logger.warning(
+            """
+    Recommend going to https://deepwisdom.feishu.cn/wiki/MsGnwQBjiif9c3koSJNcYaoSnu4#part-XdatdVlhEojeAfxaaEZcMV3ZniQ
+    See FAQ 5.8
+    """
+        )
+        raise retry_state.outcome.exception()
 
 
 class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
