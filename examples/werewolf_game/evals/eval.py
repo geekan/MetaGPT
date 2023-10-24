@@ -1,7 +1,7 @@
 '''
 Filename: MetaGPT/examples/werewolf_game/evals/eval.py
 Created Date: Oct 18, 2023
-Revised Date: Oct 20, 2023
+Updated Date: Oct 24, 2023
 Author: [Aria](https://github.com/ariafyy)
 Info: eval the Voting Accuracy Rate of non_werewolves and Vote Difficulity 
 '''
@@ -68,7 +68,7 @@ class Vote:
 
     def _vote_rate_players(self, text: str):
         """
-        # calculate the rateability of goodteam vote werewolves
+        # calculate the rate of goodteam vote werewolves
         :example:
 
         input:
