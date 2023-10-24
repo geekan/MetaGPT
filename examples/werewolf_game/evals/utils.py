@@ -88,7 +88,6 @@ class Utils:
                     elif ignore_text in line:
                         in_valid_block = False
 
-        
     @staticmethod
     def get_file_list(path: str) -> list:
         file_pattern = os.path.join(path, '*.txt')
