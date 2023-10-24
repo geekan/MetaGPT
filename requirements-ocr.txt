@@ -1,0 +1,4 @@
+paddlepaddle==2.4.2
+paddleocr>=2.0.1
+tabulate==0.9.0
+-r requirements.txt

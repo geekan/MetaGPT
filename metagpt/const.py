@@ -36,6 +36,7 @@ YAPI_URL = "http://yapi.deepwisdomai.com/"
 TMP = PROJECT_ROOT / "tmp"
 RESEARCH_PATH = DATA_PATH / "research"
 TUTORIAL_PATH = DATA_PATH / "tutorial_docx"
+INVOICE_OCR_TABLE_PATH = DATA_PATH / "invoice_table"
 
 SKILL_DIRECTORY = PROJECT_ROOT / "metagpt/skills"
 
