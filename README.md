@@ -60,7 +60,7 @@ It costs approximately **$0.2** (in GPT-4 API fees) to generate one example with
 ### Traditional Installation
 
 ```bash
-# Step 1: Ensure that NPM is installed on your system. Then install mermaid-js. (If you don't have npm in your computer, please go to the Node.js offical website to install Node.js https://nodejs.org/ and then you will have npm tool in your computer.)
+# Step 1: Ensure that NPM is installed on your system. Then install mermaid-js. (If you don't have npm in your computer, please go to the Node.js official website to install Node.js https://nodejs.org/ and then you will have npm tool in your computer.)
 npm --version
 sudo npm install -g @mermaid-js/mermaid-cli
 
@@ -127,7 +127,7 @@ pip install -e.
 
     - **Use your own Browsers**
 
-    pyppeteer alow you use installed browsers,  please set the following envirment
+    pyppeteer allows you use installed browsers,  please set the following envirment
     
     ```bash
     export PUPPETEER_EXECUTABLE_PATH = /path/to/your/chromium or edge or chrome
