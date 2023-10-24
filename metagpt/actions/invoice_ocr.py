@@ -71,9 +71,8 @@ class InvoiceOCR(Action):
                 # Use CP437 to encode the file name, and then use GBK decoding to prevent Chinese garbled code
                 relative_name = Path(zip_info.filename.encode("cp437").decode("gbk"))
                 if relative_name.suffix:
-                    name = relative_name.name
                     full_filename = file_directory / relative_name
-                    await File.write(full_filename.parent, name, zip_ref.read(zip_info.filename))
+                    await File.write(full_filename.parent, relative_name.name, zip_ref.read(zip_info.filename))
 
         logger.info(f"unzip_path: {file_directory}")
         return file_directory
