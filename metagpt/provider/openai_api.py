@@ -126,15 +126,15 @@ class CostManager(metaclass=Singleton):
         return Costs(self.total_prompt_tokens, self.total_completion_tokens, self.total_cost, self.total_budget)
 
 
-    def log_and_reraise(retry_state):
-        logger.error(f"Retry attempts exhausted. Last exception: {retry_state.outcome.exception()}")
-        logger.warning(
-            """
-    Recommend going to https://deepwisdom.feishu.cn/wiki/MsGnwQBjiif9c3koSJNcYaoSnu4#part-XdatdVlhEojeAfxaaEZcMV3ZniQ
-    See FAQ 5.8
-    """
-        )
-        raise retry_state.outcome.exception()
+def log_and_reraise(retry_state):
+    logger.error(f"Retry attempts exhausted. Last exception: {retry_state.outcome.exception()}")
+    logger.warning(
+        """
+Recommend going to https://deepwisdom.feishu.cn/wiki/MsGnwQBjiif9c3koSJNcYaoSnu4#part-XdatdVlhEojeAfxaaEZcMV3ZniQ
+See FAQ 5.8
+"""
+    )
+    raise retry_state.outcome.exception()
 
 
 class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
