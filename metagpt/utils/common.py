@@ -195,7 +195,8 @@ class OutputParser:
             except (ValueError, SyntaxError) as e:
                 raise Exception(f"Error while extracting and parsing the {data_type}: {e}")
         else:
-            raise Exception(f"No {data_type} found in the text.")
+            logger.error(f"No {data_type} found in the text.")
+            return [] if data_type is list else {}
 
 
 class CodeParser:
