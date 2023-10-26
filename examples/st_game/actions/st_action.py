@@ -73,18 +73,22 @@ class STAction(Action):
         """
         assert model_name in ["gpt-3.5-turbo-instruct", "text-davinci-002", "text-davinci-003"]
         for idx in range(retry):
-            tmp_model_name = self.llm.model
-            tmp_max_tokens_rsp = CONFIG.max_tokens_rsp
-            CONFIG.max_tokens_rsp = max_tokens
-            self.llm.model = model_name
+            try:
+                tmp_model_name = self.llm.model
+                tmp_max_tokens_rsp = CONFIG.max_tokens_rsp
+                CONFIG.max_tokens_rsp = max_tokens
+                self.llm.model = model_name
 
-            llm_resp = self._ask_nonchat(prompt)
+                llm_resp = self._ask_nonchat(prompt)
 
-            CONFIG.max_tokens_rsp = tmp_max_tokens_rsp
-            self.llm.model = tmp_model_name
-            logger.info(f"Action: {self.cls_name} llm _run_text_davinci raw resp: {llm_resp}")
-            if self._func_validate(llm_resp, prompt):
-                return self._func_cleanup(llm_resp, prompt)
+                CONFIG.max_tokens_rsp = tmp_max_tokens_rsp
+                self.llm.model = tmp_model_name
+                logger.info(f"Action: {self.cls_name} llm _run_text_davinci raw resp: {llm_resp}")
+                if self._func_validate(llm_resp, prompt):
+                    return self._func_cleanup(llm_resp, prompt)
+            except Exception as exp:
+                logger.warning(f"Action: {self.cls_name} _run_text_davinci exp: {exp}")
+                time.sleep(5)
         return self.fail_default_resp
 
     def _run_gpt35(self,

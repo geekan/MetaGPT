@@ -7,6 +7,7 @@ import errno
 import json
 import os
 import shutil
+import time
 from pathlib import Path
 from typing import Any, Union
 
@@ -66,8 +67,14 @@ def get_embedding(text, model: str = "text-embedding-ada-002"):
     text = text.replace("\n", " ")
     if not text:
         text = "this is blank"
-    return openai.Embedding.create(
-        input=[text], model=model)['data'][0]['embedding']
+    for idx in range(3):
+        try:
+            embedding = openai.Embedding.create(input=[text], model=model)['data'][0]['embedding']
+        except Exception as exp:
+            time.sleep(5)
+    if not embedding:
+        raise ValueError("get_embedding failed")
+    return embedding
 
 
 def extract_first_json_dict(data_str: str) -> Union[None, dict]:
