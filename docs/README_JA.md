@@ -189,8 +189,8 @@ $ python startup.py "Write a cli snake game"
 コマンド `docker run ...` は以下のことを行います:
 
 - 特権モードで実行し、ブラウザの実行権限を得る
-- ホストディレクトリ `/opt/metagpt/config` をコンテナディレクトリ `/app/metagpt/config` にマップする
-- ホストディレクトリ `/opt/metagpt/workspace` をコンテナディレクトリ `/app/metagpt/workspace` にマップする
+- ホスト設定ファイル `/opt/metagpt/config/key.yaml` をコンテナ `/app/metagpt/config/key.yaml` にマップします
+- ホストディレクトリ `/opt/metagpt/workspace` をコンテナディレクトリ `/app/metagpt/workspace` にマップするs
 - デモコマンド `python startup.py "Write a cli snake game"` を実行する
 
 ### 自分でイメージをビルドする
