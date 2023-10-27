@@ -12,7 +12,7 @@
 <a href="docs/README_CN.md"><img src="https://img.shields.io/badge/文档-中文版-blue.svg" alt="CN doc"></a>
 <a href="README.md"><img src="https://img.shields.io/badge/document-English-blue.svg" alt="EN doc"></a>
 <a href="docs/README_JA.md"><img src="https://img.shields.io/badge/ドキュメント-日本語-blue.svg" alt="JA doc"></a>
-<a href="https://discord.gg/wCp6Q3fsAk"><img src="https://img.shields.io/badge/Discord-Join-blue?logo=discord&logoColor=white&color=blue" alt="Discord Follow"></a>
+<a href="https://discord.gg/DYn29wFk9z"><img src="https://dcbadge.vercel.app/api/server/DYn29wFk9z?style=flat" alt="Discord Follow"></a>
 <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
 <a href="docs/ROADMAP.md"><img src="https://img.shields.io/badge/ROADMAP-路线图-blue" alt="roadmap"></a>
 <a href="https://twitter.com/MetaGPT_"><img src="https://img.shields.io/twitter/follow/MetaGPT?style=social" alt="Twitter Follow"></a>
@@ -33,22 +33,8 @@
 
 <p align="center">软件公司多角色示意图（正在逐步实现）</p>
 
-## MetaGPT 的能力
-
-https://github.com/geekan/MetaGPT/assets/34952977/34345016-5d13-489d-b9f9-b82ace413419
-
-
-## 示例（均由 GPT-4 生成）
-
-例如，键入`python startup.py "写个类似今日头条的推荐系统"`并回车，你会获得一系列输出，其一是数据结构与API设计
-
-![今日头条 Recsys 数据 & API 设计](resources/workspace/content_rec_sys/resources/data_api_design.png)
-
-这需要大约**0.2美元**（GPT-4 API的费用）来生成一个带有分析和设计的示例，大约2.0美元用于一个完整的项目
-
 ## 安装
-
-### 传统安装
+### Conda安装
 
 ```bash
 # 第 1 步：确保您的系统上安装了 NPM。并使用npm安装mermaid-js
@@ -56,32 +42,22 @@ npm --version
 sudo npm install -g @mermaid-js/mermaid-cli
 
 # 第 2 步：确保您的系统上安装了 Python 3.9+。您可以使用以下命令进行检查：
+# 可以使用conda来初始化新的python环境
+#     conda create -n metagpt python=3.9
+#     conda activate metagpt
 python --version
 
 # 第 3 步：克隆仓库到您的本地机器，并进行安装。
 git clone https://github.com/geekan/metagpt
 cd metagpt
 pip install -e.
+
+# 第 4 步：执行startup.py
+# 拷贝config.yaml为key.yaml，并设置你自己的OPENAI_API_KEY
+python3 startup.py "Write a cli snake game"
 ```
 
-**注意：**
-
-- 如果已经安装了Chrome、Chromium或MS Edge，可以通过将环境变量`PUPPETEER_SKIP_CHROMIUM_DOWNLOAD`设置为`true`来跳过下载Chromium。
-
-- 一些人在全局安装此工具时遇到问题。在本地安装是替代解决方案，
-
-    ```bash
-    npm install @mermaid-js/mermaid-cli
-    ```
-
-- 不要忘记在config.yml中为mmdc配置配置，
-
-    ```yml
-    PUPPETEER_CONFIG: "./config/puppeteer-config.json"
-    MMDC: "./node_modules/.bin/mmdc"
-    ```
-
-- 如果`pip install -e.`失败并显示错误`[Errno 13] Permission denied: '/usr/local/lib/python3.11/dist-packages/test-easy-install-13129.write-test'`，请尝试使用`pip install -e. --user`运行。
+详细的安装请安装 [cli_install](docs/install/cli_install_cn.md)
 
 ### Docker安装
 
@@ -99,121 +75,39 @@ docker run --rm \
     -v /opt/metagpt/workspace:/app/metagpt/workspace \
     metagpt/metagpt:latest \
     python startup.py "Write a cli snake game"
-
-# 您也可以启动一个容器并在其中执行命令
-docker run --name metagpt -d \
-    --privileged \
-    -v /opt/metagpt/config/key.yaml:/app/metagpt/config/key.yaml \
-    -v /opt/metagpt/workspace:/app/metagpt/workspace \
-    metagpt/metagpt:latest
-
-docker exec -it metagpt /bin/bash
-$ python startup.py "Write a cli snake game"
 ```
 
-`docker run ...`做了以下事情:
+详细的安装请安装 [docker_install](docs/install/docker_install_cn.md)
 
-- 以特权模式运行，有权限运行浏览器
-- 将主机文件 `/opt/metagpt/config/key.yaml` 映射到容器文件 `/app/metagpt/config/key.yaml`
-- 将主机目录 `/opt/metagpt/workspace` 映射到容器目录 `/app/metagpt/workspace`
-- 执行示例命令 `python startup.py "Write a cli snake game"`
+### 快速开始的演示视频
+- 在 [MetaGPT Huggingface Space](https://huggingface.co/spaces/deepwisdom/MetaGPT) 上进行体验
+- [Matthew Berman: How To Install MetaGPT - Build A Startup With One Prompt!!](https://youtu.be/uT75J_KG_aY)
+- [官方演示视频](https://github.com/geekan/MetaGPT/assets/2707039/5e8c1062-8c35-440f-bb20-2b0320f8d27d)
 
-### 自己构建镜像
+## 教程
+- [在线文档]()
+- [如何使用](docs/tutorial/usage_cn.md)  
+- [MetaGPT的能力及应用场景](docs/tutorial/what_can_this_do.md)
+- 如何构建你自己得智能体？
+  - [MetaGPT的使用和开发教程](https://deepwisdom.feishu.cn/wiki/RUnswqUIPimRJmkkDZ7cLYwOndg#Yu2AdUvymoo67Jxbp0bcu8G4nEb)
+- [贡献](docs/develop/contribution.md)
+  - 开发者RFC
+  - [开发路线图](docs/ROADMAP.md)
+- [样例](docs/examples/README.md)
+  - 调研员
+  - 狼人杀游戏
+- [常见问题解答](docs/tutorial/faq.md)  
+- [已生成项目的展示墙](https://github.com/geekan/MetaGPT/assets/34952977/34345016-5d13-489d-b9f9-b82ace413419)
 
-```bash
-# 您也可以自己构建metagpt镜像
-git clone https://github.com/geekan/MetaGPT.git
-cd MetaGPT && docker build -t metagpt:custom .
-```
+## 支持
 
-## 配置
+### 加入我们
 
-- 在 `config/key.yaml / config/config.yaml / env` 中配置您的 `OPENAI_API_KEY`
-- 优先级顺序：`config/key.yaml > config/config.yaml > env`
+📢 加入我们的[Discord频道](https://discord.gg/ZRHeExS6xv)！
 
-```bash
-# 复制配置文件并进行必要的修改
-cp config/config.yaml config/key.yaml
-```
+期待在那里与您相见！🎉
 
-| 变量名                              | config/key.yaml                           | env                                             |
-| ----------------------------------- | ----------------------------------------- | ----------------------------------------------- |
-| OPENAI_API_KEY # 用您自己的密钥替换 | OPENAI_API_KEY: "sk-..."                  | export OPENAI_API_KEY="sk-..."                  |
-| OPENAI_API_BASE # 可选              | OPENAI_API_BASE: "https://<YOUR_SITE>/v1" | export OPENAI_API_BASE="https://<YOUR_SITE>/v1" |
-
-## 示例：启动一个创业公司
-
-```shell
-python startup.py "写一个命令行贪吃蛇"
-# 开启code review模式会花费更多的金钱, 但是会提升代码质量和成功率
-python startup.py "写一个命令行贪吃蛇" --code_review True
-```
-
-运行脚本后，您可以在 `workspace/` 目录中找到您的新项目。
-### 平台或工具的倾向性
-可以在阐述需求时说明想要使用的平台或工具。
-例如：
-```shell
-python startup.py "写一个基于pygame的命令行贪吃蛇"
-```
-
-### 使用
-
-```
-名称
-    startup.py - 我们是一家AI软件创业公司。通过投资我们，您将赋能一个充满无限可能的未来。
-
-概要
-    startup.py IDEA <flags>
-
-描述
-    我们是一家AI软件创业公司。通过投资我们，您将赋能一个充满无限可能的未来。
-
-位置参数
-    IDEA
-        类型: str
-        您的创新想法，例如"写一个命令行贪吃蛇。"
-
-标志
-    --investment=INVESTMENT
-        类型: float
-        默认值: 3.0
-        作为投资者，您有机会向这家AI公司投入一定的美元金额。
-    --n_round=N_ROUND
-        类型: int
-        默认值: 5
-
-备注
-    您也可以用`标志`的语法，来处理`位置参数`
-```
-
-### 代码实现
-
-```python
-from metagpt.software_company import SoftwareCompany
-from metagpt.roles import ProjectManager, ProductManager, Architect, Engineer
-
-async def startup(idea: str, investment: float = 3.0, n_round: int = 5):
-    """运行一个创业公司。做一个老板"""
-    company = SoftwareCompany()
-    company.hire([ProductManager(), Architect(), ProjectManager(), Engineer()])
-    company.invest(investment)
-    company.start_project(idea)
-    await company.run(n_round=n_round)
-```
-
-你可以查看`examples`，其中有单角色（带知识库）的使用例子与仅LLM的使用例子。
-
-## 快速体验
-对一些用户来说，安装配置本地环境是有困难的，下面这些教程能够让你快速体验到MetaGPT的魅力。  
-
-- [MetaGPT快速体验](https://deepwisdom.feishu.cn/wiki/Q8ycw6J9tiNXdHk66MRcIN8Pnlg)
-
-可直接在Huggingface Space体验
-
-- https://huggingface.co/spaces/deepwisdom/MetaGPT
-
-## 联系信息
+### 联系信息
 
 如果您对这个项目有任何问题或反馈，欢迎联系我们。我们非常欢迎您的建议！
 
@@ -222,13 +116,17 @@ async def startup(idea: str, investment: float = 3.0, n_round: int = 5):
 
 我们会在2-3个工作日内回复所有问题。
 
-## 演示
+## 引用
 
-https://github.com/geekan/MetaGPT/assets/2707039/5e8c1062-8c35-440f-bb20-2b0320f8d27d
+引用 [Arxiv paper](https://arxiv.org/abs/2308.00352):
 
-## 加入我们
-
-📢 加入我们的Discord频道！
-https://discord.gg/ZRHeExS6xv
-
-期待在那里与您相见！🎉
+```bibtex
+@misc{hong2023metagpt,
+      title={MetaGPT: Meta Programming for Multi-Agent Collaborative Framework},
+      author={Sirui Hong and Xiawu Zheng and Jonathan Chen and Yuheng Cheng and Jinlin Wang and Ceyao Zhang and Zili Wang and Steven Ka Shing Yau and Zijuan Lin and Liyang Zhou and Chenyu Ran and Lingfeng Xiao and Chenglin Wu},
+      year={2023},
+      eprint={2308.00352},
+      archivePrefix={arXiv},
+      primaryClass={cs.AI}
+}
+```
