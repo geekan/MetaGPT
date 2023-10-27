@@ -1,0 +1,6 @@
+## FAQs
+
+### installation
+
+
+### openai usage
