@@ -1,5 +1,18 @@
 # Dev container
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 This project includes a [dev container](https://containers.dev/), which lets you use a container as a full-featured dev environment.
 
 You can use the dev container configuration in this folder to build and start running MetaGPT locally! For more, refer to the main README under the home directory. 
