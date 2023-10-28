@@ -18,6 +18,7 @@ class InstallMermaidCLI(Command):
             subprocess.check_call(["npm", "install", "-g", "@mermaid-js/mermaid-cli"])
         except subprocess.CalledProcessError as e:
             print(f"Error occurred: {e.output}")
+            print("No Hello World :(")
 
 
 here = path.abspath(path.dirname(__file__))
