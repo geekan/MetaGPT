@@ -46,7 +46,7 @@ class MemoryRetriever:
         memories = ("Two kinds of messages: Recent messages(last k memories) and "
                     "Informative messages(before the last k memories)\n"
                     "Recent Messages:\n" + "\n".join(recent_memories) +
-                    "\n\nInformative Messages:\n" + "\n".join(informative_memories))
+                    "\nInformative Messages:\n" + "\n".join(informative_memories))
 
         # # 记录memories
         # all_memories = [f"{m.sent_from}: {re.sub(time_stamp_pattern, '', m.content)}" for m in memory]
@@ -107,41 +107,42 @@ class MemoryRetriever:
         with open(memory_path, "r") as f:
             rst = f.read().split("##")
             memories = rst[0].split("\n")
-            memories = [re.sub(r'\([^)]*\)', '', item) for item in memories]
-            memories_2 = rst[1].split("\n") if len(rst) > 1 else []
-            memories_2 = [re.sub(r'\([^)]*\)', '', item) for item in memories_2]
-        scored_memories = [(memory, self.score_message(memory, profile, name)) for memory in memories]
+            memories_1 = [re.sub(r'\([^)]*\)', '', item) for item in memories]
+            memories_2 = memories_1[-18:] # 取最近18行记录
+            # 取最近15条之前的记忆 的limit条
+            memories_1 = memories_1[:-18][:limit]
+
+        scored_memories = [(memory, self.score_message(memory, profile, name)) for memory in memories_1]
         # 选择最高分的10条信息
-        sorted_memories = sorted(scored_memories, key=lambda x: (x[1], memories.index(x[0])), reverse=True)[
+        sorted_memories = sorted(scored_memories, key=lambda x: (x[1], memories_1.index(x[0])), reverse=True)[
                           :limit]
-        sorted_memories = sorted(sorted_memories, key=lambda x: memories.index(x[0]))
+        sorted_memories = sorted(sorted_memories, key=lambda x: memories_1.index(x[0]))
         sorted_memories = [f"{memory[0]} : {memory[1]}" for memory in sorted_memories]
         print("\n".join(sorted_memories))
         new_file_path = str(memory_path).replace(".txt", "_score.txt")
-        with open(new_file_path, "a") as f:
-            f.write("sorted_memories:\n" + "\n".join(sorted_memories) + "\n---\n")
-        if memories_2:
-            scored_memories = [(memory, self.score_message(memory, profile, name)) for memory in memories_2]
-            # 选择最高分的10条信息
-            sorted_memories = sorted(scored_memories, key=lambda x: (x[1], memories_2.index(x[0])), reverse=True)[
-                              :limit]
-            sorted_memories = sorted(sorted_memories, key=lambda x: memories_2.index(x[0]))
-            sorted_memories = [f"{memory[0]} : {memory[1]}" for memory in sorted_memories]
+        new_file_path_2 = str(memory_path).replace(".txt", "_compare.txt")
 
-            print("\n".join(sorted_memories))
-            new_file_path = str(memory_path).replace(".txt", "_score.txt")
-            with open(new_file_path, "a") as f:
-                f.write("sorted_memories:\n" + "\n".join(sorted_memories) + "\n---\n")
+        memories_1 = ("Two kinds of messages: Recent messages and Informative messages\n"
+                    "## Recent Messages(the latest 15):" + "\n".join(memories_2) +
+                    "\n\n## Informative Messages(before the latest 15):\n" + "\n".join(sorted_memories) + "\n")
 
+        with open(new_file_path, "w") as f:
+            f.write(memories_1)
+
+        with open(new_file_path_2, "w") as f:
+            f.write("\n".join(memories))
 
 if __name__ == '__main__':
-    folder = WORKSPACE_ROOT / "10141230"
-    path = folder / "10141230 - werewolf.txt"
-    paths = [folder / "10141230 - guard.txt", folder / "10141230 - werewolf.txt",
-             folder / "10141230 - witch.txt",
-             folder / "10141230 - seer.txt", folder / "10141230 - villager.txt"]
+    folder = WORKSPACE_ROOT / "10132100"
+    path = folder / "10132100 - villager.txt"
+    paths = [folder / "10132100 - guard.txt",
+             folder / "10132100 - werewolf.txt",
+             folder / "10132100 - witch.txt",
+             folder / "10132100 - seer.txt",
+             folder / "10132100 - villager.txt"]
     profiles = []
     names = []
     # profile = "werewolf"
     # name = "werewolf"
-    MemoryRetriever().score(paths, profiles, names, limit=15)
+    # 15 + 8
+    MemoryRetriever().score(paths, profiles, names, limit=8)

@@ -1,7 +1,11 @@
+import asyncio
+import re
+
 from metagpt.actions import Action
 import json
 from metagpt.const import WORKSPACE_ROOT
 from tenacity import retry, stop_after_attempt, wait_fixed
+
 
 class Speak(Action):
     """Action: Any speak action in a game"""
@@ -39,8 +43,8 @@ class Speak(Action):
         super().__init__(name, context, llm)
 
     @retry(stop=stop_after_attempt(2), wait=wait_fixed(1))
-    async def run(self, profile: str, name: str, context: str, latest_instruction: str, reflection: str = "", experiences: str = ""):
-
+    async def run(self, profile: str, name: str, context: str, latest_instruction: str, reflection: str = "",
+                  experiences: str = ""):
         prompt = (
             self.PROMPT_TEMPLATE.replace("__context__", context).replace("__profile__", profile)
             .replace("__name__", name).replace("__latest_instruction__", latest_instruction)
@@ -53,6 +57,7 @@ class Speak(Action):
         rsp_json = json.loads(rsp)
 
         return rsp_json['RESPONSE']
+
 
 class NighttimeWhispers(Action):
     """
@@ -119,7 +124,8 @@ class NighttimeWhispers(Action):
     def __init__(self, name="NightTimeWhispers", context=None, llm=None):
         super().__init__(name, context, llm)
 
-    def _construct_prompt_json(self, role_profile: str, role_name: str, context: str, reflection: str, experiences: str, **kwargs):
+    def _construct_prompt_json(self, role_profile: str, role_name: str, context: str, reflection: str, experiences: str,
+                               **kwargs):
         prompt_template = self.PROMPT_TEMPLATE
 
         def replace_string(prompt_json: dict):
@@ -137,20 +143,21 @@ class NighttimeWhispers(Action):
                 prompt_json[k] = prompt_json[k].replace("__experiences__", experiences)
 
             return prompt_json
-        
+
         prompt_json: dict = json.loads(prompt_template)
 
         prompt_json = replace_string(prompt_json)
 
-        prompt_json: dict = self._update_prompt_json(prompt_json, role_profile, role_name, context, reflection, experiences, **kwargs)
+        prompt_json: dict = self._update_prompt_json(prompt_json, role_profile, role_name, context, reflection,
+                                                     experiences, **kwargs)
         assert isinstance(prompt_json, dict)
 
         prompt: str = json.dumps(prompt_json, indent=4, ensure_ascii=False)
-        
+
         return prompt
 
     def _update_prompt_json(
-        self, prompt_json: dict, role_profile: str, role_name: str, context: str, reflection: str, experiences: str
+            self, prompt_json: dict, role_profile: str, role_name: str, context: str, reflection: str, experiences: str
     ) -> dict:
         # one can modify the prompt_json dictionary here
         return prompt_json
@@ -168,8 +175,8 @@ class NighttimeWhispers(Action):
 
         return f"{self.name} " + rsp_json["RESPONSE"]
 
-class Reflect(Action):
 
+class Reflect(Action):
     PROMPT_TEMPLATE = """
     {
     "BACKGROUND": "It's a Werewolf game, in this game, we have 2 werewolves, 2 villagers, 1 guard, 1 witch, 1 seer. You are __profile__."
@@ -202,7 +209,6 @@ class Reflect(Action):
 
     @retry(stop=stop_after_attempt(2), wait=wait_fixed(1))
     async def run(self, profile: str, name: str, context: str, latest_instruction: str):
-
         prompt = (
             self.PROMPT_TEMPLATE.replace("__context__", context).replace("__profile__", profile)
             .replace("__name__", name).replace("__latest_instruction__", latest_instruction)
@@ -213,3 +219,67 @@ class Reflect(Action):
         rsp_json = json.loads(rsp)
 
         return json.dumps(rsp_json['REFLECTION'])
+
+
+if __name__ == '__main__':
+    '''
+Player1: Villager,
+Player2: Villager,
+Player3: Werewolf,
+Player4: Witch,
+Player5: Guard,
+Player6: Seer,
+Player7: Werewolf,
+    '''
+    profile = ["guard", "werewolf", "seer"]
+    name = ["Player5", "Player7", "Player6"]
+    folder = WORKSPACE_ROOT / "10132100"
+    paths = [
+        folder / "10132100 - guard_score.txt",
+        folder / "10132100 - werewolf_score.txt",
+        # folder / "10132100 - witch_score.txt",
+        folder / "10132100 - seer_score.txt",
+        # folder / "10132100 - villager_score.txt",
+    ]
+    # compare_paths = [
+    #     # folder / "10141230 - guard_compare.txt",
+    #     folder / "10141230 - werewolf_compare2.txt",
+    #     folder / "10141230 - witch_compare2.txt",
+    #     folder / "10141230 - seer_compare2.txt",
+    #     # folder / "10141230 - villager_compare.txt",
+    # ]
+    exclude = "## Informative Messages(before the latest 15):"
+    for i, path in enumerate(paths):
+        with open(path, "r", encoding='utf-8') as f:
+            context = f.read()
+            exclude_index = context.find(exclude)
+            if exclude_index != -1:
+                part_before_exclude = context[:exclude_index]
+                latest_instruction = part_before_exclude.strip().split('\n')[-1]
+
+        reflection = asyncio.run(
+            Reflect().run(profile=profile[i], name=name[i], context=context, latest_instruction=latest_instruction))
+
+        # response = asyncio.run(
+        #     Speak().run(profile=profile[i], name=name[i], context=context, latest_instruction=latest_instruction, reflection=reflection))
+
+        response = asyncio.run(
+            NighttimeWhispers().run(profile=profile[i], name=name[i], context=context, reflection=reflection)
+        )
+        with open(path, "a") as f:
+            f.write("\n" + "reflection:\n" + reflection + "\nresponse:\n" + response)
+
+    # for i, path in enumerate(compare_paths):
+    #     with open(path, "r") as f:
+    #         context = f.read().split("\n")
+    #         latest_instruction = context[-1]
+    #         context = [re.sub(r'\([^)]*\)', '', item) for item in context]
+    #         context = "\n".join(context)
+    #
+    #     reflection = asyncio.run(
+    #         Reflect().run(profile=profile[i], name=name[i], context=context, latest_instruction=latest_instruction))
+    #
+    #     response = asyncio.run(
+    #         Speak().run(profile=profile[i], name=name[i], context=context, latest_instruction=latest_instruction, reflection=reflection))
+    #     with open(path, "a") as f:
+    #         f.write("\n" + "reflection:\n" + reflection + "\nresponse:\n" + response)
