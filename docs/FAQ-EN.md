@@ -33,7 +33,7 @@ Our vision is to [extend human life](https://github.com/geekan/HowToLiveLonger) 
 <!---->
 
 1.  Choose a task from the Roadmap (or you can propose one). By submitting a PR, you can become a contributor and join the dev team.
-1.  Current contributors come from backgrounds including: ByteDance AI Lab/DingDong/Didi/Xiaohongshu, Tencent/Baidu/MSRA/TikTok/BloomGPT Infra/Bilibili/CUHK/HKUST/CMU/UCB
+1.  Current contributors come from backgrounds including ByteDance AI Lab/DingDong/Didi/Xiaohongshu, Tencent/Baidu/MSRA/TikTok/BloomGPT Infra/Bilibili/CUHK/HKUST/CMU/UCB
 
 <!---->
 
@@ -41,7 +41,7 @@ Our vision is to [extend human life](https://github.com/geekan/HowToLiveLonger) 
 
 MetaGPT Community - The position of Chief Evangelist rotates on a monthly basis. The primary responsibilities include:
 
-1.  Maintaining community FAQ documents, announcements, Github resources/READMEs.
+1.  Maintaining community FAQ documents, announcements, and Github resources/READMEs.
 1.  Responding to, answering, and distributing community questions within an average of 30 minutes, including on platforms like Github Issues, Discord and WeChat.
 1.  Upholding a community atmosphere that is enthusiastic, genuine, and friendly.
 1.  Encouraging everyone to become contributors and participate in projects that are closely related to achieving AGI (Artificial General Intelligence).
@@ -125,10 +125,10 @@ MetaGPT Community - The position of Chief Evangelist rotates on a monthly basis.
 
     1.  The UI role takes over from the product manager role, extending the output from the 【UI Design draft】 provided by the product manager role. The UI role has implemented the UIDesign Action. Within the run of UIDesign, it processes the respective context, and based on the set template, outputs the UI. The output from the UI role includes:
 
-        1.  UI Design Description：Describes the content to be designed and the design objectives.
-        1.  Selected Elements：Describes the elements in the design that need to be illustrated.
-        1.  HTML Layout：Outputs the HTML code for the page.
-        1.  CSS Styles (styles.css)：Outputs the CSS code for the page.
+        1.  UI Design Description: Describes the content to be designed and the design objectives.
+        1.  Selected Elements： Describes the elements in the design that need to be illustrated.
+        1.  HTML Layout： Outputs the HTML code for the page.
+        1.  CSS Styles (styles.css)： Outputs the CSS code for the page.
 
     1.  Currently, the SD skill is a tool invoked by UIDesign. It instantiates the SDEngine, with specific code found in metagpt/tools/sd_engine.
 
