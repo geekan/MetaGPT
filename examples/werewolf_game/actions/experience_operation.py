@@ -160,7 +160,7 @@ class RetrieveExperiences(Action):
             for i, exp in enumerate(past_experiences)
         ]
         print(*past_experiences, sep="\n")
-        logger.info(f"retrieval done")
+        logger.info("retrieval done")
 
         return json.dumps(past_experiences)
 
