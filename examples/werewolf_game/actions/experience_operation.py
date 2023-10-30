@@ -136,7 +136,7 @@ class RetrieveExperiences(Action):
             where=filters,
         )
         
-        logger.info("retrieved exp")
+        logger.info(f"retrieve {profile}'s experiences")
         past_experiences = [RoleExperience(**res) for res in results["metadatas"][0]]
         if verbose:
             print(*past_experiences, sep="\n\n")
@@ -160,6 +160,7 @@ class RetrieveExperiences(Action):
             for i, exp in enumerate(past_experiences)
         ]
         print(*past_experiences, sep="\n")
+        logger.info(f"retrieval done")
 
         return json.dumps(past_experiences)
 
