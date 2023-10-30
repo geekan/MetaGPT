@@ -77,7 +77,6 @@ class Moderator(Role):
             role.record_experiences(round_id=timestamp, outcome=outcome, game_setup=self.game_setup)
 
     async def _instruct_speak(self):
-        print("*" * 10, "STEP: ", self.step_idx, "*" * 10)
         step_idx = self.step_idx % len(STEP_INSTRUCTIONS)
         self.step_idx += 1
         return await InstructSpeak().run(step_idx,
@@ -157,7 +156,6 @@ class Moderator(Role):
             self.player_poisoned = None
 
         elif step_idx == 18: # FIXME: hard code
-            # print("*" * 10, step_idx)
             # day ends: after all roles voted, process all votings
             voting_msgs = memories[-len(self.living_players):]
             voted_all = []
