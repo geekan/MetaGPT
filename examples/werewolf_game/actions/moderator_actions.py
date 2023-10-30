@@ -112,40 +112,7 @@ class ParseSpeak(Action):
     async def run(self):
         pass
 
-class SummarizeDay(Action):
-    """consider all votes at day, conclude which player dies"""
-
-    def __init__(self, name="SummarizeDay", context=None, llm=None):
-        super().__init__(name, context, llm)
-
-    async def run(self, votes):
-        # 假设votes是一个字典，代表白天投票的结果，key是被投票的玩家，value是得票数
-        # 例如：{"Player1": 2, "Player2": 1, "Player3": 1, "Player4": 0}
-        # 表示Player1得到2票，Player2和Player3各得到1票，Player4得到0票
-        # 若平票，则随机选一个人出局
-        if not votes:
-            return "No votes were cast. No one was killed."
-
-        max_votes = max(votes.values())
-        players_with_max_votes = [player for player, vote_count in votes.items() if vote_count == max_votes]
-
-        if len(players_with_max_votes) == 1:
-            eliminated_player = players_with_max_votes[0]
-            return f"{eliminated_player} was voted out and eliminated."
-        else:
-            # 若平票，则随机选一个人出局
-            eliminated_player = players_with_max_votes[int(random() * len(players_with_max_votes))]
-            return f"There was a tie in the votes. {eliminated_player} was randomly chosen and eliminated."
-
-
 class AnnounceGameResult(Action):
 
     async def run(self, winner: str, win_reason: str):
         return f"Game over! {win_reason}. The winner is the {winner}"
-
-async def main():
-    rst1 = await SummarizeDay().run({"Player1": 0, "Player2": 0, "Player3": 0, "Player4": 0})
-    print(rst1)
-
-if __name__ == '__main__':
-    asyncio.run(main())

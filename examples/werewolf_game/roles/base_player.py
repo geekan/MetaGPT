@@ -36,7 +36,7 @@ class BasePlayer(Role):
             self.use_experience = False
         else:
             self.use_experience = use_experience
-        self.new_experience_version = new_experience_version if self.use_experience else ""
+        self.new_experience_version = new_experience_version
         self.use_memory_selection = use_memory_selection
 
         self.experiences = []
