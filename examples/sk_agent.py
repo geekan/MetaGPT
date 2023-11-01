@@ -4,6 +4,7 @@
 @Time    : 2023/9/13 12:36
 @Author  : femto Zheng
 @File    : sk_agent.py
+@Modified By: mashenquan, 2023-11-1. Standardize the usage of message filtering-related features.
 """
 import asyncio
 
@@ -39,7 +40,7 @@ async def basic_planner_example():
     role.import_semantic_skill_from_directory(SKILL_DIRECTORY, "WriterSkill")
     role.import_skill(TextSkill(), "TextSkill")
     # using BasicPlanner
-    await role.run(Message(content=task, cause_by=BossRequirement))
+    await role.run(Message(content=task, cause_by=BossRequirement.get_class_name()))
 
 
 async def sequential_planner_example():
@@ -53,7 +54,7 @@ async def sequential_planner_example():
     role.import_semantic_skill_from_directory(SKILL_DIRECTORY, "WriterSkill")
     role.import_skill(TextSkill(), "TextSkill")
     # using BasicPlanner
-    await role.run(Message(content=task, cause_by=BossRequirement))
+    await role.run(Message(content=task, cause_by=BossRequirement.get_class_name()))
 
 
 async def basic_planner_web_search_example():
@@ -64,7 +65,7 @@ async def basic_planner_web_search_example():
     role.import_skill(SkSearchEngine(), "WebSearchSkill")
     # role.import_semantic_skill_from_directory(skills_directory, "QASkill")
 
-    await role.run(Message(content=task, cause_by=BossRequirement))
+    await role.run(Message(content=task, cause_by=BossRequirement.get_class_name()))
 
 
 async def action_planner_example():
@@ -75,7 +76,7 @@ async def action_planner_example():
     role.import_skill(TimeSkill(), "time")
     role.import_skill(TextSkill(), "text")
     task = "What is the sum of 110 and 990?"
-    await role.run(Message(content=task, cause_by=BossRequirement))  # it will choose mathskill.Add
+    await role.run(Message(content=task, cause_by=BossRequirement.get_class_name()))  # it will choose mathskill.Add
 
 
 if __name__ == "__main__":

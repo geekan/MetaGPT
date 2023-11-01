@@ -4,6 +4,7 @@
 @Time    : 2023/5/11 14:43
 @Author  : alexanderwu
 @File    : qa_engineer.py
+@Modified By: mashenquan, 2023-11-1. Standardize the usage of message filtering-related features.
 """
 import os
 from pathlib import Path
@@ -48,7 +49,7 @@ class QaEngineer(Role):
         return CodeParser.parse_str(block="Python package name", text=system_design_msg.content)
 
     def get_workspace(self, return_proj_dir=True) -> Path:
-        msg = self._rc.memory.get_by_action(WriteDesign)[-1]
+        msg = self._rc.memory.get_by_action(WriteDesign.get_class_name())[-1]
         if not msg:
             return WORKSPACE_ROOT / "src"
         workspace = self.parse_workspace(msg)
@@ -97,11 +98,11 @@ class QaEngineer(Role):
             msg = Message(
                 content=str(file_info),
                 role=self.profile,
-                cause_by=WriteTest,
-                sent_from=self.profile,
-                send_to=self.profile,
+                cause_by=WriteTest.get_class_name(),
+                tx_from=self.profile,
+                tx_to=self.profile,
             )
-            self._publish_message(msg)
+            self.publish_message(msg)
 
         logger.info(f"Done {self.get_workspace()}/tests generating.")
 
@@ -131,8 +132,10 @@ class QaEngineer(Role):
 
         recipient = parse_recipient(result_msg)  # the recipient might be Engineer or myself
         content = str(file_info) + FILENAME_CODE_SEP + result_msg
-        msg = Message(content=content, role=self.profile, cause_by=RunCode, sent_from=self.profile, send_to=recipient)
-        self._publish_message(msg)
+        msg = Message(
+            content=content, role=self.profile, cause_by=RunCode.get_class_name(), tx_from=self.profile, tx_to=recipient
+        )
+        self.publish_message(msg)
 
     async def _debug_error(self, msg):
         file_info, context = msg.content.split(FILENAME_CODE_SEP)
@@ -141,14 +144,18 @@ class QaEngineer(Role):
             self.write_file(file_name, code)
             recipient = msg.sent_from  # send back to the one who ran the code for another run, might be one's self
             msg = Message(
-                content=file_info, role=self.profile, cause_by=DebugError, sent_from=self.profile, send_to=recipient
+                content=file_info,
+                role=self.profile,
+                cause_by=DebugError.get_class_name(),
+                tx_from=self.profile,
+                tx_to=recipient,
             )
-            self._publish_message(msg)
+            self.publish_message(msg)
 
     async def _observe(self) -> int:
         await super()._observe()
         self._rc.news = [
-            msg for msg in self._rc.news if msg.send_to == self.profile
+            msg for msg in self._rc.news if msg.is_recipient({self.profile})
         ]  # only relevant msgs count as observed news
         return len(self._rc.news)
 
@@ -157,30 +164,31 @@ class QaEngineer(Role):
             result_msg = Message(
                 content=f"Exceeding {self.test_round_allowed} rounds of tests, skip (writing code counts as a round, too)",
                 role=self.profile,
-                cause_by=WriteTest,
-                sent_from=self.profile,
-                send_to="",
+                cause_by=WriteTest.get_class_name(),
+                tx_from=self.profile,
             )
             return result_msg
 
+        code_filters = {WriteCode.get_class_name(), WriteCodeReview.get_class_name()}
+        test_filters = {WriteTest.get_class_name(), DebugError.get_class_name()}
+        run_filters = {RunCode.get_class_name()}
         for msg in self._rc.news:
             # Decide what to do based on observed msg type, currently defined by human,
             # might potentially be moved to _think, that is, let the agent decides for itself
-            if msg.cause_by in [WriteCode, WriteCodeReview]:
+            if msg.is_recipient(code_filters):
                 # engineer wrote a code, time to write a test for it
                 await self._write_test(msg)
-            elif msg.cause_by in [WriteTest, DebugError]:
+            elif msg.is_recipient(test_filters):
                 # I wrote or debugged my test code, time to run it
                 await self._run_code(msg)
-            elif msg.cause_by == RunCode:
+            elif msg.is_recipient(run_filters):
                 # I ran my test code, time to fix bugs, if any
                 await self._debug_error(msg)
         self.test_round += 1
         result_msg = Message(
             content=f"Round {self.test_round} of tests done",
             role=self.profile,
-            cause_by=WriteTest,
-            sent_from=self.profile,
-            send_to="",
+            cause_by=WriteTest.get_class_name(),
+            tx_from=self.profile,
         )
         return result_msg

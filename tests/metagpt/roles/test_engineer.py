@@ -4,6 +4,7 @@
 @Time    : 2023/5/12 10:14
 @Author  : alexanderwu
 @File    : test_engineer.py
+@Modified By: mashenquan, 2023-11-1. Standardize the usage of message transmission.
 """
 import pytest
 
@@ -22,10 +23,10 @@ from tests.metagpt.roles.mock import (
 async def test_engineer():
     engineer = Engineer()
 
-    engineer.recv(MockMessages.req)
-    engineer.recv(MockMessages.prd)
-    engineer.recv(MockMessages.system_design)
-    rsp = await engineer.handle(MockMessages.tasks)
+    engineer.async_put_message(MockMessages.req)
+    engineer.async_put_message(MockMessages.prd)
+    engineer.async_put_message(MockMessages.system_design)
+    rsp = await engineer.run(MockMessages.tasks)
 
     logger.info(rsp)
     assert "all done." == rsp.content
@@ -35,13 +36,13 @@ def test_parse_str():
     for idx, i in enumerate(STRS_FOR_PARSING):
         text = CodeParser.parse_str(f"{idx+1}", i)
         # logger.info(text)
-        assert text == 'a'
+        assert text == "a"
 
 
 def test_parse_blocks():
     tasks = CodeParser.parse_blocks(TASKS)
     logger.info(tasks.keys())
-    assert 'Task list' in tasks.keys()
+    assert "Task list" in tasks.keys()
 
 
 target_list = [

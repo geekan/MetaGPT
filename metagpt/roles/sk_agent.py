@@ -4,6 +4,7 @@
 @Time    : 2023/9/13 12:23
 @Author  : femto Zheng
 @File    : sk_agent.py
+@Modified By: mashenquan, 2023-11-1. Standardize the usage of message filtering-related features.
 """
 from semantic_kernel.planning import SequentialPlanner
 from semantic_kernel.planning.action_planner.action_planner import ActionPlanner
@@ -14,6 +15,7 @@ from metagpt.actions.execute_task import ExecuteTask
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
+from metagpt.utils.common import get_object_name
 from metagpt.utils.make_sk_kernel import make_sk_kernel
 
 
@@ -70,7 +72,7 @@ class SkAgent(Role):
             result = (await self.plan.invoke_async()).result
         logger.info(result)
 
-        msg = Message(content=result, role=self.profile, cause_by=type(self._rc.todo))
+        msg = Message(content=result, role=self.profile, cause_by=get_object_name(self._rc.todo))
         self._rc.memory.add(msg)
-        # logger.debug(f"{response}")
+        self.publish_message(msg)
         return msg

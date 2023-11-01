@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# @Desc   : the unittest of serialize
+"""
+@Desc   : the unittest of serialize
+@Modified By: mashenquan, 2023-11-1. Standardize the usage of message filtering-related features.
+"""
 
 from typing import List, Tuple
 
@@ -55,7 +58,7 @@ def test_serialize_and_deserialize_message():
     ic_obj = ActionOutput.create_model_class("prd", out_mapping)
 
     message = Message(
-        content="prd demand", instruct_content=ic_obj(**out_data), role="user", cause_by=WritePRD
+        content="prd demand", instruct_content=ic_obj(**out_data), role="user", cause_by=WritePRD.get_class_name()
     )  # WritePRD as test action
 
     message_ser = serialize_message(message)

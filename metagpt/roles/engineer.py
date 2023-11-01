@@ -4,6 +4,10 @@
 @Time    : 2023/5/11 14:43
 @Author  : alexanderwu
 @File    : engineer.py
+@Modified By: mashenquan, 2023-11-1. Optimization:
+    1. Consolidate message reception and processing logic within `_observe`.
+    2. Fix bug: Add logic for handling asynchronous message processing when messages are not ready.
+    3. Supplemented the external transmission of internal messages.
 """
 import asyncio
 import shutil
@@ -15,7 +19,7 @@ from metagpt.const import WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
-from metagpt.utils.common import CodeParser
+from metagpt.utils.common import CodeParser, get_object_name
 from metagpt.utils.special_tokens import FILENAME_CODE_SEP, MSG_SEP
 
 
@@ -75,7 +79,7 @@ class Engineer(Role):
         self.use_code_review = use_code_review
         if self.use_code_review:
             self._init_actions([WriteCode, WriteCodeReview])
-        self._watch([WriteTasks])
+        self._watch([WriteTasks, WriteDesign])
         self.todos = []
         self.n_borg = n_borg
 
@@ -96,7 +100,7 @@ class Engineer(Role):
         return CodeParser.parse_str(block="Python package name", text=system_design_msg.content)
 
     def get_workspace(self) -> Path:
-        msg = self._rc.memory.get_by_action(WriteDesign)[-1]
+        msg = self._rc.memory.get_by_action(WriteDesign.get_class_name())[-1]
         if not msg:
             return WORKSPACE_ROOT / "src"
         workspace = self.parse_workspace(msg)
@@ -119,17 +123,13 @@ class Engineer(Role):
         file.write_text(code)
         return file
 
-    def recv(self, message: Message) -> None:
-        self._rc.memory.add(message)
-        if message in self._rc.important_memory:
-            self.todos = self.parse_tasks(message)
-
     async def _act_mp(self) -> Message:
         # self.recreate_workspace()
         todo_coros = []
         for todo in self.todos:
             todo_coro = WriteCode().run(
-                context=self._rc.memory.get_by_actions([WriteTasks, WriteDesign]), filename=todo
+                context=self._rc.memory.get_by_actions([WriteTasks.get_class_name(), WriteDesign.get_class_name()]),
+                filename=todo,
             )
             todo_coros.append(todo_coro)
 
@@ -139,12 +139,13 @@ class Engineer(Role):
             logger.info(todo)
             logger.info(code_rsp)
             # self.write_file(todo, code)
-            msg = Message(content=code_rsp, role=self.profile, cause_by=type(self._rc.todo))
+            msg = Message(content=code_rsp, role=self.profile, cause_by=get_object_name(self._rc.todo))
             self._rc.memory.add(msg)
+            self.publish_message(msg)
             del self.todos[0]
 
         logger.info(f"Done {self.get_workspace()} generating.")
-        msg = Message(content="all done.", role=self.profile, cause_by=type(self._rc.todo))
+        msg = Message(content="all done.", role=self.profile, cause_by=get_object_name(self._rc.todo))
         return msg
 
     async def _act_sp(self) -> Message:
@@ -155,15 +156,19 @@ class Engineer(Role):
             # logger.info(code_rsp)
             # code = self.parse_code(code_rsp)
             file_path = self.write_file(todo, code)
-            msg = Message(content=code, role=self.profile, cause_by=type(self._rc.todo))
+            msg = Message(content=code, role=self.profile, cause_by=get_object_name(self._rc.todo))
             self._rc.memory.add(msg)
+            self.publish_message(msg)
 
             code_msg = todo + FILENAME_CODE_SEP + str(file_path)
             code_msg_all.append(code_msg)
 
         logger.info(f"Done {self.get_workspace()} generating.")
         msg = Message(
-            content=MSG_SEP.join(code_msg_all), role=self.profile, cause_by=type(self._rc.todo), send_to="QaEngineer"
+            content=MSG_SEP.join(code_msg_all),
+            role=self.profile,
+            cause_by=get_object_name(self._rc.todo),
+            tx_to="QaEngineer",
         )
         return msg
 
@@ -178,7 +183,8 @@ class Engineer(Role):
             TODO: The goal is not to need it. After clear task decomposition, based on the design idea, you should be able to write a single file without needing other codes. If you can't, it means you need a clearer definition. This is the key to writing longer code.
             """
             context = []
-            msg = self._rc.memory.get_by_actions([WriteDesign, WriteTasks, WriteCode])
+            msg_filters = [WriteDesign.get_class_name(), WriteTasks.get_class_name(), WriteCode.get_class_name()]
+            msg = self._rc.memory.get_by_actions(msg_filters)
             for m in msg:
                 context.append(m.content)
             context_str = "\n".join(context)
@@ -193,20 +199,50 @@ class Engineer(Role):
                     logger.error("code review failed!", e)
                     pass
             file_path = self.write_file(todo, code)
-            msg = Message(content=code, role=self.profile, cause_by=WriteCode)
+            msg = Message(content=code, role=self.profile, cause_by=WriteCode.get_class_name())
             self._rc.memory.add(msg)
+            self.publish_message(msg)
 
             code_msg = todo + FILENAME_CODE_SEP + str(file_path)
             code_msg_all.append(code_msg)
 
         logger.info(f"Done {self.get_workspace()} generating.")
         msg = Message(
-            content=MSG_SEP.join(code_msg_all), role=self.profile, cause_by=type(self._rc.todo), send_to="QaEngineer"
+            content=MSG_SEP.join(code_msg_all),
+            role=self.profile,
+            cause_by=get_object_name(self._rc.todo),
+            tx_to="QaEngineer",
         )
         return msg
 
     async def _act(self) -> Message:
         """Determines the mode of action based on whether code review is used."""
+        if not self._rc.todo:
+            return None
         if self.use_code_review:
             return await self._act_sp_precision()
         return await self._act_sp()
+
+    async def _observe(self) -> int:
+        ret = await super(Engineer, self)._observe()
+        if ret == 0:
+            return ret
+
+        # Parse task lists
+        message_filter = {WriteTasks.get_class_name()}
+        for message in self._rc.news:
+            if not message.is_recipient(message_filter):
+                continue
+            self.todos = self.parse_tasks(message)
+
+        return ret
+
+    async def _think(self) -> None:
+        # In asynchronous scenarios, first check if the required messages are ready.
+        filters = {WriteTasks.get_class_name()}
+        msgs = self._rc.memory.get_by_actions(filters)
+        if not msgs:
+            self._rc.todo = None
+            return
+
+        await super(Engineer, self)._think()

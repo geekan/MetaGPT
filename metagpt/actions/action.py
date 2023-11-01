@@ -16,9 +16,10 @@ from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.utils.common import OutputParser
 from metagpt.utils.custom_decoder import CustomDecoder
+from metagpt.utils.named import Named
 
 
-class Action(ABC):
+class Action(ABC, Named):
     def __init__(self, name: str = "", context=None, llm: LLM = None):
         self.name: str = name
         if llm is None:

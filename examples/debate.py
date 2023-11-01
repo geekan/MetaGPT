@@ -1,17 +1,20 @@
-'''
+"""
 Filename: MetaGPT/examples/debate.py
 Created Date: Tuesday, September 19th 2023, 6:52:25 pm
 Author: garylin2099
-'''
+@Modified By: mashenquan, 2023-11-1. Standardize the usage of message filtering-related features.
+"""
 import asyncio
 import platform
+
 import fire
 
-from metagpt.software_company import SoftwareCompany
 from metagpt.actions import Action, BossRequirement
+from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
-from metagpt.logs import logger
+from metagpt.software_company import SoftwareCompany
+
 
 class ShoutOut(Action):
     """Action: Shout out loudly in a debate (quarrel)"""
@@ -31,13 +34,13 @@ class ShoutOut(Action):
         super().__init__(name, context, llm)
 
     async def run(self, context: str, name: str, opponent_name: str):
-
         prompt = self.PROMPT_TEMPLATE.format(context=context, name=name, opponent_name=opponent_name)
         # logger.info(prompt)
 
         rsp = await self._aask(prompt)
 
         return rsp
+
 
 class Trump(Role):
     def __init__(
@@ -55,13 +58,13 @@ class Trump(Role):
     async def _observe(self) -> int:
         await super()._observe()
         # accept messages sent (from opponent) to self, disregard own messages from the last round
-        self._rc.news = [msg for msg in self._rc.news if msg.send_to == self.name]  
+        self._rc.news = [msg for msg in self._rc.news if msg.is_recipient({self.name})]
         return len(self._rc.news)
 
     async def _act(self) -> Message:
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
 
-        msg_history = self._rc.memory.get_by_actions([ShoutOut])
+        msg_history = self._rc.memory.get_by_actions([ShoutOut.get_class_name()])
         context = []
         for m in msg_history:
             context.append(str(m))
@@ -72,12 +75,13 @@ class Trump(Role):
         msg = Message(
             content=rsp,
             role=self.profile,
-            cause_by=ShoutOut,
-            sent_from=self.name,
-            send_to=self.opponent_name,
+            cause_by=ShoutOut.get_class_name(),
+            tx_from=self.name,
+            tx_to=self.opponent_name,
         )
 
         return msg
+
 
 class Biden(Role):
     def __init__(
@@ -96,13 +100,14 @@ class Biden(Role):
         await super()._observe()
         # accept the very first human instruction (the debate topic) or messages sent (from opponent) to self,
         # disregard own messages from the last round
-        self._rc.news = [msg for msg in self._rc.news if msg.cause_by == BossRequirement or msg.send_to == self.name]
+        message_filter = {BossRequirement.get_class_name(), self.name}
+        self._rc.news = [msg for msg in self._rc.news if msg.is_recipient(message_filter)]
         return len(self._rc.news)
 
     async def _act(self) -> Message:
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
 
-        msg_history = self._rc.memory.get_by_actions([BossRequirement, ShoutOut])
+        msg_history = self._rc.memory.get_by_actions([BossRequirement.get_class_name(), ShoutOut.get_class_name()])
         context = []
         for m in msg_history:
             context.append(str(m))
@@ -113,17 +118,19 @@ class Biden(Role):
         msg = Message(
             content=rsp,
             role=self.profile,
-            cause_by=ShoutOut,
-            sent_from=self.name,
-            send_to=self.opponent_name,
+            cause_by=ShoutOut.get_class_name(),
+            tx_from=self.name,
+            tx_to=self.opponent_name,
         )
 
         return msg
 
-async def startup(idea: str, investment: float = 3.0, n_round: int = 5,
-                  code_review: bool = False, run_tests: bool = False):
+
+async def startup(
+    idea: str, investment: float = 3.0, n_round: int = 5, code_review: bool = False, run_tests: bool = False
+):
     """We reuse the startup paradigm for roles to interact with each other.
-    Now we run a startup of presidents and watch they quarrel. :) """
+    Now we run a startup of presidents and watch they quarrel. :)"""
     company = SoftwareCompany()
     company.hire([Biden(), Trump()])
     company.invest(investment)
@@ -133,7 +140,7 @@ async def startup(idea: str, investment: float = 3.0, n_round: int = 5,
 
 def main(idea: str, investment: float = 3.0, n_round: int = 10):
     """
-    :param idea: Debate topic, such as "Topic: The U.S. should commit more in climate change fighting" 
+    :param idea: Debate topic, such as "Topic: The U.S. should commit more in climate change fighting"
                  or "Trump: Climate change is a hoax"
     :param investment: contribute a certain dollar amount to watch the debate
     :param n_round: maximum rounds of the debate
@@ -144,5 +151,5 @@ def main(idea: str, investment: float = 3.0, n_round: int = 10):
     asyncio.run(startup(idea, investment, n_round))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     fire.Fire(main)

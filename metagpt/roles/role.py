@@ -4,20 +4,32 @@
 @Time    : 2023/5/11 14:42
 @Author  : alexanderwu
 @File    : role.py
+@Modified By: mashenquan, 2023-11-1. Optimization:
+    1. Merge the `recv` functionality into the `_observe` function. Future message reading operations will be
+    consolidated within the `_observe` function.
+    2. Standardize the message filtering for string label matching. Role objects can access the message labels
+    they've subscribed to through the `subscribed_tags` property.
+    3. Move the message receive buffer from the global variable `self._rc.env.memory` to the role's private variable
+    `self._rc.msg_buffer` for easier message identification and asynchronous appending of messages.
+    4. Standardize the way messages are passed: `publish_message` sends messages out, while `async_put_message` places
+    messages into the Role object's private message receive buffer. There are no other message transmit methods.
+    5. Standardize the parameters for the `run` function: the `test_message` parameter is used for testing purposes
+    only. In the normal workflow, you should use `publish_message` or `async_put_message` to transmit messages.
 """
 from __future__ import annotations
 
-from typing import Iterable, Type
+from typing import Iterable, Set, Type
 
 from pydantic import BaseModel, Field
 
-# from metagpt.environment import Environment
-from metagpt.config import CONFIG
 from metagpt.actions import Action, ActionOutput
+from metagpt.config import CONFIG
 from metagpt.llm import LLM
 from metagpt.logs import logger
-from metagpt.memory import Memory, LongTermMemory
-from metagpt.schema import Message
+from metagpt.memory import LongTermMemory, Memory
+from metagpt.schema import Message, MessageQueue
+from metagpt.utils.common import get_class_name, get_object_name
+from metagpt.utils.named import Named
 
 PREFIX_TEMPLATE = """You are a {profile}, named {name}, your goal is {goal}, and the constraint is {constraints}. """
 
@@ -49,6 +61,7 @@ ROLE_TEMPLATE = """Your response should be based on the previous conversation hi
 
 class RoleSetting(BaseModel):
     """Role Settings"""
+
     name: str
     profile: str
     goal: str
@@ -64,12 +77,14 @@ class RoleSetting(BaseModel):
 
 class RoleContext(BaseModel):
     """Role Runtime Context"""
-    env: 'Environment' = Field(default=None)
+
+    env: "Environment" = Field(default=None)
+    msg_buffer: MessageQueue = Field(default_factory=MessageQueue)  # Message Buffer with Asynchronous Updates
     memory: Memory = Field(default_factory=Memory)
     long_term_memory: LongTermMemory = Field(default_factory=LongTermMemory)
     state: int = Field(default=0)
     todo: Action = Field(default=None)
-    watch: set[Type[Action]] = Field(default_factory=set)
+    watch: set[str] = Field(default_factory=set)
     news: list[Type[Message]] = Field(default=[])
 
     class Config:
@@ -90,7 +105,7 @@ class RoleContext(BaseModel):
         return self.memory.get()
 
 
-class Role:
+class Role(Named):
     """Role/Agent"""
 
     def __init__(self, name="", profile="", goal="", constraints="", desc=""):
@@ -118,7 +133,8 @@ class Role:
 
     def _watch(self, actions: Iterable[Type[Action]]):
         """Listen to the corresponding behaviors"""
-        self._rc.watch.update(actions)
+        tags = [get_class_name(t) for t in actions]
+        self._rc.watch.update(tags)
         # check RoleContext after adding watch actions
         self._rc.check(self._role_id)
 
@@ -128,7 +144,7 @@ class Role:
         logger.debug(self._actions)
         self._rc.todo = self._actions[self._rc.state]
 
-    def set_env(self, env: 'Environment'):
+    def set_env(self, env: "Environment"):
         """Set the environment in which the role works. The role can talk to the environment and can also receive messages by observing."""
         self._rc.env = env
 
@@ -136,6 +152,24 @@ class Role:
     def profile(self):
         """Get the role description (position)"""
         return self._setting.profile
+
+    @property
+    def name(self):
+        """Get virtual user name"""
+        return self._setting.name
+
+    @property
+    def subscribed_tags(self) -> Set:
+        """The labels for messages to be consumed by the Role object."""
+        if self._rc.watch:
+            return self._rc.watch
+        return {
+            self.name,
+            self.get_object_name(),
+            self.profile,
+            f"{self.name}({self.profile})",
+            f"{self.name}({self.get_object_name()})",
+        }
 
     def _get_prefix(self):
         """Get the role prefix"""
@@ -150,57 +184,66 @@ class Role:
             self._set_state(0)
             return
         prompt = self._get_prefix()
-        prompt += STATE_TEMPLATE.format(history=self._rc.history, states="\n".join(self._states),
-                                        n_states=len(self._states) - 1)
+        prompt += STATE_TEMPLATE.format(
+            history=self._rc.history, states="\n".join(self._states), n_states=len(self._states) - 1
+        )
         next_state = await self._llm.aask(prompt)
         logger.debug(f"{prompt=}")
         if not next_state.isdigit() or int(next_state) not in range(len(self._states)):
-            logger.warning(f'Invalid answer of state, {next_state=}')
+            logger.warning(f"Invalid answer of state, {next_state=}")
             next_state = "0"
         self._set_state(int(next_state))
 
     async def _act(self) -> Message:
-        # prompt = self.get_prefix()
-        # prompt += ROLE_TEMPLATE.format(name=self.profile, state=self.states[self.state], result=response,
-        #                                history=self.history)
-
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
         response = await self._rc.todo.run(self._rc.important_memory)
-        # logger.info(response)
         if isinstance(response, ActionOutput):
-            msg = Message(content=response.content, instruct_content=response.instruct_content,
-                        role=self.profile, cause_by=type(self._rc.todo))
+            msg = Message(
+                content=response.content,
+                instruct_content=response.instruct_content,
+                role=self.profile,
+                cause_by=get_object_name(self._rc.todo),
+                tx_from=get_object_name(self),
+            )
         else:
-            msg = Message(content=response, role=self.profile, cause_by=type(self._rc.todo))
-        self._rc.memory.add(msg)
-        # logger.debug(f"{response}")
+            msg = Message(
+                content=response,
+                role=self.profile,
+                cause_by=get_object_name(self._rc.todo),
+                tx_from=get_object_name(self),
+            )
 
         return msg
 
     async def _observe(self) -> int:
-        """Observe from the environment, obtain important information, and add it to memory"""
-        if not self._rc.env:
-            return 0
-        env_msgs = self._rc.env.memory.get()
+        """Prepare new messages for processing from the message buffer and other sources."""
+        # Read unprocessed messages from the msg buffer.
+        self._rc.news = self._rc.msg_buffer.pop_all()
+        # Store the read messages in your own memory to prevent duplicate processing.
+        self._rc.memory.add_batch(self._rc.news)
 
-        observed = self._rc.env.memory.get_by_actions(self._rc.watch)
-        
-        self._rc.news = self._rc.memory.find_news(observed)  # find news (previously unseen messages) from observed messages
-
-        for i in env_msgs:
-            self.recv(i)
-
+        # Design Rules:
+        # If you need to further categorize Message objects, you can do so using the Message.set_meta function.
+        # msg_buffer is a receiving buffer, avoid adding message data and operations to msg_buffer.
         news_text = [f"{i.role}: {i.content[:20]}..." for i in self._rc.news]
         if news_text:
-            logger.debug(f'{self._setting} observed: {news_text}')
+            logger.debug(f"{self._setting} observed: {news_text}")
         return len(self._rc.news)
 
-    def _publish_message(self, msg):
+    def publish_message(self, msg):
         """If the role belongs to env, then the role's messages will be broadcast to env"""
+        if not msg:
+            return
         if not self._rc.env:
             # If env does not exist, do not publish the message
             return
         self._rc.env.publish_message(msg)
+
+    def async_put_message(self, message):
+        """Place the message into the Role object's private message buffer."""
+        if not message:
+            return
+        self._rc.msg_buffer.push(message)
 
     async def _react(self) -> Message:
         """Think first, then act"""
@@ -208,36 +251,32 @@ class Role:
         logger.debug(f"{self._setting}: {self._rc.state=}, will do {self._rc.todo}")
         return await self._act()
 
-    def recv(self, message: Message) -> None:
-        """add message to history."""
-        # self._history += f"\n{message}"
-        # self._context = self._history
-        if message in self._rc.memory.get():
-            return
-        self._rc.memory.add(message)
-
-    async def handle(self, message: Message) -> Message:
-        """Receive information and reply with actions"""
-        # logger.debug(f"{self.name=}, {self.profile=}, {message.role=}")
-        self.recv(message)
-
-        return await self._react()
-
-    async def run(self, message=None):
+    async def run(self, test_message=None):
         """Observe, and think and act based on the results of the observation"""
-        if message:
-            if isinstance(message, str):
-                message = Message(message)
-            if isinstance(message, Message):
-                self.recv(message)
-            if isinstance(message, list):
-                self.recv(Message("\n".join(message)))
-        elif not await self._observe():
+        if test_message:  # For test
+            seed = None
+            if isinstance(test_message, str):
+                seed = Message(test_message)
+            elif isinstance(test_message, Message):
+                seed = test_message
+            elif isinstance(test_message, list):
+                seed = Message("\n".join(test_message))
+            self.async_put_message(seed)
+
+        if not await self._observe():
             # If there is no new information, suspend and wait
             logger.debug(f"{self._setting}: no news. waiting.")
             return
 
         rsp = await self._react()
-        # Publish the reply to the environment, waiting for the next subscriber to process
-        self._publish_message(rsp)
+
+        # Reset the next action to be taken.
+        self._rc.todo = None
+        # Send the response message to the Environment object to have it relay the message to the subscribers.
+        self.publish_message(rsp)
         return rsp
+
+    @property
+    def is_idle(self) -> bool:
+        """If true, all actions have been executed."""
+        return not self._rc.news and not self._rc.todo and self._rc.msg_buffer.empty()

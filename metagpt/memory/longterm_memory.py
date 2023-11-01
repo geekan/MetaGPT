@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# @Desc   : the implement of Long-term memory
+"""
+@Desc   : the implement of Long-term memory
+@Modified By: mashenquan, 2023-11-1. Optimization:
+    1. Replace code related to message filtering with the `Message.is_recipient` function.
+"""
 
 from metagpt.logs import logger
 from metagpt.memory import Memory
@@ -36,11 +40,10 @@ class LongTermMemory(Memory):
 
     def add(self, message: Message):
         super(LongTermMemory, self).add(message)
-        for action in self.rc.watch:
-            if message.cause_by == action and not self.msg_from_recover:
-                # currently, only add role's watching messages to its memory_storage
-                # and ignore adding messages from recover repeatedly
-                self.memory_storage.add(message)
+        if message.is_recipient(self.rc.watch) and not self.msg_from_recover:
+            # currently, only add role's watching messages to its memory_storage
+            # and ignore adding messages from recover repeatedly
+            self.memory_storage.add(message)
 
     def find_news(self, observed: list[Message], k=0) -> list[Message]:
         """
@@ -68,4 +71,3 @@ class LongTermMemory(Memory):
     def clear(self):
         super(LongTermMemory, self).clear()
         self.memory_storage.clean()
-        

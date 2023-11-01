@@ -4,18 +4,20 @@
 @Time    : 2023/5/23 17:25
 @Author  : alexanderwu
 @File    : seacher.py
+@Modified By: mashenquan, 2023-11-1. Standardize the usage of message filtering-related features.
 """
 from metagpt.actions import ActionOutput, SearchAndSummarize
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.tools import SearchEngineType
+from metagpt.utils.common import get_object_name
 
 
 class Searcher(Role):
     """
     Represents a Searcher role responsible for providing search services to users.
-    
+
     Attributes:
         name (str): Name of the searcher.
         profile (str): Role profile.
@@ -23,17 +25,19 @@ class Searcher(Role):
         constraints (str): Constraints or limitations for the searcher.
         engine (SearchEngineType): The type of search engine to use.
     """
-    
-    def __init__(self, 
-                 name: str = 'Alice', 
-                 profile: str = 'Smart Assistant', 
-                 goal: str = 'Provide search services for users',
-                 constraints: str = 'Answer is rich and complete', 
-                 engine=SearchEngineType.SERPAPI_GOOGLE, 
-                 **kwargs) -> None:
+
+    def __init__(
+        self,
+        name: str = "Alice",
+        profile: str = "Smart Assistant",
+        goal: str = "Provide search services for users",
+        constraints: str = "Answer is rich and complete",
+        engine=SearchEngineType.SERPAPI_GOOGLE,
+        **kwargs,
+    ) -> None:
         """
         Initializes the Searcher role with given attributes.
-        
+
         Args:
             name (str): Name of the searcher.
             profile (str): Role profile.
@@ -53,12 +57,16 @@ class Searcher(Role):
         """Performs the search action in a single process."""
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
         response = await self._rc.todo.run(self._rc.memory.get(k=0))
-        
+
         if isinstance(response, ActionOutput):
-            msg = Message(content=response.content, instruct_content=response.instruct_content,
-                          role=self.profile, cause_by=type(self._rc.todo))
+            msg = Message(
+                content=response.content,
+                instruct_content=response.instruct_content,
+                role=self.profile,
+                cause_by=get_object_name(self._rc.todo),
+            )
         else:
-            msg = Message(content=response, role=self.profile, cause_by=type(self._rc.todo))
+            msg = Message(content=response, role=self.profile, cause_by=get_object_name(self._rc.todo))
         self._rc.memory.add(msg)
         return msg
 

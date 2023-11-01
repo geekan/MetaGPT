@@ -85,10 +85,7 @@ class OutputParser:
 
     @staticmethod
     def parse_python_code(text: str) -> str:
-        for pattern in (
-            r"(.*?```python.*?\s+)?(?P<code>.*)(```.*?)",
-            r"(.*?```python.*?\s+)?(?P<code>.*)",
-        ):
+        for pattern in (r"(.*?```python.*?\s+)?(?P<code>.*)(```.*?)", r"(.*?```python.*?\s+)?(?P<code>.*)"):
             match = re.search(pattern, text, re.DOTALL)
             if not match:
                 continue
@@ -305,3 +302,14 @@ def parse_recipient(text):
     pattern = r"## Send To:\s*([A-Za-z]+)\s*?"  # hard code for now
     recipient = re.search(pattern, text)
     return recipient.group(1) if recipient else ""
+
+
+def get_class_name(cls) -> str:
+    """Return class name"""
+    return f"{cls.__module__}.{cls.__name__}"
+
+
+def get_object_name(obj) -> str:
+    """Return class name of the object"""
+    cls = type(obj)
+    return f"{cls.__module__}.{cls.__name__}"

@@ -4,6 +4,9 @@
 @Time    : 2023/9/16 20:03
 @Author  : femto Zheng
 @File    : test_basic_planner.py
+@Modified By: mashenquan, 2023-11-1. Optimization:
+    1. Standardize the usage of message filtering-related features.
+    2. Standardize the usage of message transmission.
 """
 import pytest
 from semantic_kernel.core_skills import FileIOSkill, MathSkill, TextSkill, TimeSkill
@@ -23,7 +26,7 @@ async def test_action_planner():
     role.import_skill(TimeSkill(), "time")
     role.import_skill(TextSkill(), "text")
     task = "What is the sum of 110 and 990?"
-    role.recv(Message(content=task, cause_by=BossRequirement))
-
+    role.async_put_message(Message(content=task, cause_by=BossRequirement.get_class_name()))
+    await role._observe()
     await role._think()  # it will choose mathskill.Add
     assert "1100" == (await role._act()).content
