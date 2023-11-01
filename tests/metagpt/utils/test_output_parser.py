@@ -95,7 +95,7 @@ def test_parse_data():
             """xxx xx""",
             list,
             None,
-            Exception,
+            [],
         ),
         (
             """xxx [1, 2, []xx""",

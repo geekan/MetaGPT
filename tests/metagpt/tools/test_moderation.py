@@ -3,7 +3,7 @@
 """
 @Time    : 2023/9/26 14:46
 @Author  : zhanglei
-@File    : test_translate.py
+@File    : test_moderation.py
 """
 
 import pytest

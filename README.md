@@ -189,8 +189,8 @@ $ python startup.py "Write a cli snake game"
 The command `docker run ...` do the following things:
 
 - Run in privileged mode to have permission to run the browser
-- Map host directory `/opt/metagpt/config` to container directory `/app/metagpt/config`
-- Map host directory `/opt/metagpt/workspace` to container directory `/app/metagpt/workspace`
+- Map host configure file `/opt/metagpt/config/key.yaml` to container `/app/metagpt/config/key.yaml`
+- Map host directory `/opt/metagpt/workspace` to container `/app/metagpt/workspace`
 - Execute the demo command `python startup.py "Write a cli snake game"`
 
 ### Build image by yourself

@@ -33,9 +33,11 @@
 
 <p align="center">ソフトウェア会社のマルチロール図式（順次導入）</p>
 
-## MetaGPTの能力
+## MetaGPT の能力
+
 
 https://github.com/geekan/MetaGPT/assets/34952977/34345016-5d13-489d-b9f9-b82ace413419
+
 
 
 ## 例（GPT-4 で完全生成）
@@ -46,6 +48,9 @@ https://github.com/geekan/MetaGPT/assets/34952977/34345016-5d13-489d-b9f9-b82ace
 
 解析と設計を含む 1 つの例を生成するのに約 **$0.2**（GPT-4 の API 使用料）、完全なプロジェクトでは約 **$2.0** かかります。
 
+
+
+
 ## インストール
 
 ### インストールビデオガイド
@@ -55,7 +60,7 @@ https://github.com/geekan/MetaGPT/assets/34952977/34345016-5d13-489d-b9f9-b82ace
 ### 伝統的なインストール
 
 ```bash
-# ステップ 1: NPM がシステムにインストールされていることを確認してください。次に mermaid-js をインストールします。
+# ステップ 1: NPM がシステムにインストールされていることを確認してください。次に mermaid-js をインストールします。(お使いのコンピューターに npm がない場合は、Node.js 公式サイトで Node.js https://nodejs.org/ をインストールしてください。）
 npm --version
 sudo npm install -g @mermaid-js/mermaid-cli
 
@@ -79,7 +84,7 @@ Chromium のダウンロードをスキップすることができます。
   npm install @mermaid-js/mermaid-cli
   ```
 
-- config.yml に mmdc のコンフィギュレーションを記述するのを忘れないこと
+- config.yml に mmdc のコンフィグを記述するのを忘れないこと
 
   ```yml
   PUPPETEER_CONFIG: "./config/puppeteer-config.json"
@@ -87,6 +92,71 @@ Chromium のダウンロードをスキップすることができます。
   ```
 
 - もし `pip install -e.` がエラー `[Errno 13] Permission denied: '/usr/local/lib/python3.11/dist-packages/test-easy-install-13129.write-test'` で失敗したら、代わりに `pip install -e. --user` を実行してみてください
+
+- Mermaid charts を SVG、PNG、PDF 形式に変換します。Node.js 版の Mermaid-CLI に加えて、Python 版の Playwright、pyppeteer、または mermaid.ink をこのタスクに使用できるようになりました。
+
+  - Playwright
+    - **Playwright のインストール**
+
+    ```bash
+    pip install playwright
+    ```
+
+    - **必要なブラウザのインストール**
+
+    PDF変換をサポートするには、Chrominumをインストールしてください。
+
+    ```bash
+    playwright install --with-deps chromium
+    ```
+
+    - **modify `config.yaml`**
+
+    config.yaml から MERMAID_ENGINE のコメントを外し、`playwright` に変更する
+
+    ```yaml
+    MERMAID_ENGINE: playwright
+    ```
+
+  - pyppeteer
+    - **pyppeteer のインストール**
+
+    ```bash
+    pip install pyppeteer
+    ```
+
+    - **自分のブラウザを使用**
+
+    pyppeteer を使えばインストールされているブラウザを使うことができます、以下の環境を設定してください
+
+    ```bash
+    export PUPPETEER_EXECUTABLE_PATH = /path/to/your/chromium or edge or chrome
+    ```
+
+    ブラウザのインストールにこのコマンドを使わないでください、これは古すぎます
+
+    ```bash
+    pyppeteer-install
+    ```
+
+    - **`config.yaml` を修正**
+
+    config.yaml から MERMAID_ENGINE のコメントを外し、`pyppeteer` に変更する
+
+    ```yaml
+    MERMAID_ENGINE: pyppeteer
+    ```
+
+  - mermaid.ink
+    - **`config.yaml` を修正**
+
+    config.yaml から MERMAID_ENGINE のコメントを外し、`ink` に変更する
+
+    ```yaml
+    MERMAID_ENGINE: ink
+    ```
+
+    注: この方法は pdf エクスポートに対応していません。
 
 ### Docker によるインストール
 
@@ -119,8 +189,8 @@ $ python startup.py "Write a cli snake game"
 コマンド `docker run ...` は以下のことを行います:
 
 - 特権モードで実行し、ブラウザの実行権限を得る
-- ホストディレクトリ `/opt/metagpt/config` をコンテナディレクトリ `/app/metagpt/config` にマップする
-- ホストディレクトリ `/opt/metagpt/workspace` をコンテナディレクトリ `/app/metagpt/workspace` にマップする
+- ホスト設定ファイル `/opt/metagpt/config/key.yaml` をコンテナ `/app/metagpt/config/key.yaml` にマップします
+- ホストディレクトリ `/opt/metagpt/workspace` をコンテナディレクトリ `/app/metagpt/workspace` にマップするs
 - デモコマンド `python startup.py "Write a cli snake game"` を実行する
 
 ### 自分でイメージをビルドする
