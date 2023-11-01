@@ -49,6 +49,8 @@ class CreateAgent(Action):
         pattern = r'```python(.*)```'
         match = re.search(pattern, rsp, re.DOTALL)
         code_text = match.group(1) if match else ""
+        if not WORKSPACE_ROOT.exists():
+            WORKSPACE_ROOT.mkdir(parents=True)
         with open(WORKSPACE_ROOT / "agent_created_agent.py", "w") as f:
             f.write(code_text)
         return code_text
