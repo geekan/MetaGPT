@@ -77,7 +77,7 @@ class Researcher(Role):
             summary_text = "\n---\n".join(f"url: {url}\nsummary: {summary}" for (url, summary) in summaries)
             content = await self._rc.todo.run(topic, summary_text, system_text=research_system_text)
             ret = Message(
-                "", Report(topic=topic, content=content), role=self.profile, get_object_name=type(self._rc.todo)
+                "", Report(topic=topic, content=content), role=self.profile, cause_by=get_object_name(self._rc.todo)
             )
         self._rc.memory.add(ret)
         return ret
