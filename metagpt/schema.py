@@ -229,10 +229,13 @@ class AIMessage(Message):
 
 
 class MessageQueue:
+    """Message queue which supports asynchronous updates."""
+
     def __init__(self):
         self._queue = Queue()
 
     def pop(self) -> Message | None:
+        """Pop one message from queue."""
         try:
             item = self._queue.get_nowait()
             if item:
@@ -242,6 +245,7 @@ class MessageQueue:
             return None
 
     def pop_all(self) -> List[Message]:
+        """Pop all messages from queue."""
         ret = []
         while True:
             msg = self.pop()
@@ -251,12 +255,15 @@ class MessageQueue:
         return ret
 
     def push(self, msg: Message):
+        """Push a message into the queue."""
         self._queue.put_nowait(msg)
 
     def empty(self):
+        """Return true if the queue is empty."""
         return self._queue.empty()
 
     async def save(self) -> str:
+        """Convert the `MessageQueue` object to a json string."""
         if self.empty():
             return "[]"
 
@@ -274,6 +281,7 @@ class MessageQueue:
 
     @staticmethod
     def load(self, v) -> "MessageQueue":
+        """Convert the json string to the `MessageQueue` object."""
         q = MessageQueue()
         try:
             lst = json.loads(v)
