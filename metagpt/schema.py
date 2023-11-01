@@ -235,7 +235,7 @@ class MessageQueue:
         self._queue = Queue()
 
     def pop(self) -> Message | None:
-        """Pop one message from queue."""
+        """Pop one message from the queue."""
         try:
             item = self._queue.get_nowait()
             if item:
@@ -245,7 +245,7 @@ class MessageQueue:
             return None
 
     def pop_all(self) -> List[Message]:
-        """Pop all messages from queue."""
+        """Pop all messages from the queue."""
         ret = []
         while True:
             msg = self.pop()
