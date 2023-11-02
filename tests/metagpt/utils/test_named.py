@@ -1,3 +1,10 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+@Time    : 2023-11-1
+@Author  : mashenquan
+@File    : test_named.py
+"""
 import pytest
 
 from metagpt.utils.named import Named
