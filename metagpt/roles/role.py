@@ -134,6 +134,10 @@ class Role(Named):
     def _watch(self, actions: Iterable[Type[Action]]):
         """Listen to the corresponding behaviors"""
         tags = [get_class_name(t) for t in actions]
+        self.subscribe(tags)
+
+    def subscribe(self, tags: Set[str]):
+        """Listen to the corresponding behaviors"""
         self._rc.watch.update(tags)
         # check RoleContext after adding watch actions
         self._rc.check(self._role_id)
