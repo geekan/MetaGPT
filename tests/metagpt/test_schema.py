@@ -10,7 +10,7 @@ import json
 
 import pytest
 
-from metagpt.schema import AIMessage, Message, SystemMessage, UserMessage
+from metagpt.schema import AIMessage, Message, Routes, SystemMessage, UserMessage
 
 
 @pytest.mark.asyncio
@@ -41,6 +41,29 @@ def test_message():
     m = Message.load(v)
     assert m.content == "a"
     assert m.role == "v2"
+
+    m = Message("a", role="b", cause_by="c", x="d")
+    assert m.content == "a"
+    assert m.role == "b"
+    assert m.is_recipient({"c"})
+    assert m.cause_by == "c"
+    assert m.get_meta("x") == "d"
+
+
+@pytest.mark.asyncio
+def test_routes():
+    route = Routes()
+    route.set_from("a")
+    assert route.tx_from == "a"
+    route.add_to("b")
+    assert route.tx_to == {"b"}
+    route.add_to("c")
+    assert route.tx_to == {"b", "c"}
+    route.set_to({"e", "f"})
+    assert route.tx_to == {"e", "f"}
+    assert route.is_recipient({"e"})
+    assert route.is_recipient({"f"})
+    assert not route.is_recipient({"a"})
 
 
 if __name__ == "__main__":
