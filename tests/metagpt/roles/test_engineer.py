@@ -23,9 +23,9 @@ from tests.metagpt.roles.mock import (
 async def test_engineer():
     engineer = Engineer()
 
-    engineer.async_put_message(MockMessages.req)
-    engineer.async_put_message(MockMessages.prd)
-    engineer.async_put_message(MockMessages.system_design)
+    engineer.put_message(MockMessages.req)
+    engineer.put_message(MockMessages.prd)
+    engineer.put_message(MockMessages.system_design)
     rsp = await engineer.run(MockMessages.tasks)
 
     logger.info(rsp)

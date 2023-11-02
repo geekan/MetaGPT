@@ -29,7 +29,7 @@ async def test_basic_planner():
     role.import_semantic_skill_from_directory(SKILL_DIRECTORY, "WriterSkill")
     role.import_skill(TextSkill(), "TextSkill")
     # using BasicPlanner
-    role.async_put_message(Message(content=task, cause_by=BossRequirement.get_class_name()))
+    role.put_message(Message(content=task, cause_by=BossRequirement.get_class_name()))
     await role._observe()
     await role._think()
     # assuming sk_agent will think he needs WriterSkill.Brainstorm and WriterSkill.Translate

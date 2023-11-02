@@ -50,7 +50,7 @@ class Environment(BaseModel):
         found = False
         for r in self.roles.values():
             if message.is_recipient(r.subscribed_tags):
-                r.async_put_message(message)
+                r.put_message(message)
                 found = True
         if not found:
             logger.warning(f"Message no recipients: {message.save()}")

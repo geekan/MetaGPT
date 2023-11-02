@@ -11,10 +11,10 @@
     they've subscribed to through the `subscribed_tags` property.
     3. Move the message receive buffer from the global variable `self._rc.env.memory` to the role's private variable
     `self._rc.msg_buffer` for easier message identification and asynchronous appending of messages.
-    4. Standardize the way messages are passed: `publish_message` sends messages out, while `async_put_message` places
+    4. Standardize the way messages are passed: `publish_message` sends messages out, while `put_message` places
     messages into the Role object's private message receive buffer. There are no other message transmit methods.
     5. Standardize the parameters for the `run` function: the `test_message` parameter is used for testing purposes
-    only. In the normal workflow, you should use `publish_message` or `async_put_message` to transmit messages.
+    only. In the normal workflow, you should use `publish_message` or `put_message` to transmit messages.
 """
 from __future__ import annotations
 
@@ -239,7 +239,7 @@ class Role(Named):
             return
         self._rc.env.publish_message(msg)
 
-    def async_put_message(self, message):
+    def put_message(self, message):
         """Place the message into the Role object's private message buffer."""
         if not message:
             return
@@ -261,7 +261,7 @@ class Role(Named):
                 seed = test_message
             elif isinstance(test_message, list):
                 seed = Message("\n".join(test_message))
-            self.async_put_message(seed)
+            self.put_message(seed)
 
         if not await self._observe():
             # If there is no new information, suspend and wait

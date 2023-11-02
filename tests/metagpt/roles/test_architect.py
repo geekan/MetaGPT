@@ -16,7 +16,7 @@ from tests.metagpt.roles.mock import MockMessages
 @pytest.mark.asyncio
 async def test_architect():
     role = Architect()
-    role.async_put_message(MockMessages.req)
+    role.put_message(MockMessages.req)
     rsp = await role.run(MockMessages.prd)
     logger.info(rsp)
     assert len(rsp.content) > 0
