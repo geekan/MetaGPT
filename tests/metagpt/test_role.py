@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-@Time    : 2023-11-1
-@Author  : mashenquan
+@Time    : 2023/5/11 14:44
+@Author  : alexanderwu
 @File    : test_role.py
+@Modified By: mashenquan, 2023/11/1. Add unit tests.
 """
 import pytest
 from pydantic import BaseModel
