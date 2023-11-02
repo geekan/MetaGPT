@@ -53,11 +53,17 @@ async def test_react():
             name=seed.name, profile=seed.profile, goal=seed.goal, constraints=seed.constraints, desc=seed.desc
         )
         role.subscribe({seed.subscription})
+        assert role._rc.watch == {seed.subscription}
+        assert role.name == seed.name
+        assert role.profile == seed.profile
+        assert role.is_idle
         env = Environment()
         env.add_role(role)
         env.publish_message(Message(content="test", cause_by=seed.subscription))
+        assert not role.is_idle
         while not env.is_idle:
             await env.run()
+        assert role.is_idle
 
 
 if __name__ == "__main__":
