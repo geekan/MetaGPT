@@ -97,6 +97,7 @@ class Message(BaseModel):
 
     def __init__(self, content, **kwargs):
         """
+        Parameters not listed below will be stored as meta info.
         :param content: Message content.
         :param instruct_content: Message content struct.
         :param meta_info: Message meta info.
