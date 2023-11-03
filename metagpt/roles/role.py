@@ -4,7 +4,7 @@
 @Time    : 2023/5/11 14:42
 @Author  : alexanderwu
 @File    : role.py
-@Modified By: mashenquan, 2023-11-1. Optimization:
+@Modified By: mashenquan, 2023-11-1. According to Chapter 2.2.1 and 2.2.2 of RFC 116:
     1. Merge the `recv` functionality into the `_observe` function. Future message reading operations will be
     consolidated within the `_observe` function.
     2. Standardize the message filtering for string label matching. Role objects can access the message labels

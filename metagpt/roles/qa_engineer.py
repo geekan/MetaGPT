@@ -4,7 +4,8 @@
 @Time    : 2023/5/11 14:43
 @Author  : alexanderwu
 @File    : qa_engineer.py
-@Modified By: mashenquan, 2023-11-1. Standardize the usage of message filtering-related features.
+@Modified By: mashenquan, 2023-11-1. In accordance with Chapter 2.2.1 and 2.2.2 of RFC 116, modify the data
+        type of the `cause_by` value in the `Message` to a string, and utilize the new message filtering feature.
 """
 import os
 from pathlib import Path
