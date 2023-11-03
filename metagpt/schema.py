@@ -4,7 +4,8 @@
 @Time    : 2023/5/8 22:12
 @Author  : alexanderwu
 @File    : schema.py
-@Modified By: mashenquan, 2023-10-31, optimize class members.
+@Modified By: mashenquan, 2023-10-31. According to Chapter 2.2.1 of RFC 116:
+        Replanned the distribution of responsibilities and functional positioning of `Message` class attributes.
 """
 from __future__ import annotations
 
@@ -97,7 +98,7 @@ class Message(BaseModel):
 
     def __init__(self, content, **kwargs):
         """
-        Parameters not listed below will be stored as meta info.
+        Parameters not listed below will be stored as meta info, including custom parameters.
         :param content: Message content.
         :param instruct_content: Message content struct.
         :param meta_info: Message meta info.
