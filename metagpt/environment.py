@@ -4,7 +4,7 @@
 @Time    : 2023/5/11 22:12
 @Author  : alexanderwu
 @File    : environment.py
-@Modified By: mashenquan, 2023-11-1. Optimization:
+@Modified By: mashenquan, 2023-11-1. According to Chapter 2.2.2 of RFC 116:
     1. Remove the functionality of `Environment` class as a public message buffer.
     2. Standardize the message forwarding behavior of the `Environment` class.
     3. Add the `is_idle` property.
