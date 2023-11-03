@@ -44,8 +44,15 @@ class Environment(BaseModel):
         for role in roles:
             self.add_role(role)
 
-    def publish_message(self, message: Message):
-        """Distribute the message to the recipients."""
+    def publish_message(self, message: Message) -> bool:
+        """
+        Distribute the message to the recipients.
+        In accordance with the Message routing structure design in Chapter 2.2.1 of RFC 116, as already planned
+        in RFC 113 for the entire system, the routing information in the Message is only responsible for
+        specifying the message recipient, without concern for where the message recipient is located. How to
+        route the message to the message recipient is a problem addressed by the transport framework designed
+        in RFC 113.
+        """
         logger.info(f"publish_message: {message.save()}")
         found = False
         for r in self.roles.values():
@@ -54,6 +61,12 @@ class Environment(BaseModel):
                 found = True
         if not found:
             logger.warning(f"Message no recipients: {message.save()}")
+
+        # Implemented the functionality related to remote message forwarding as described in RFC 113. Awaiting release.
+        # if self._parent:
+        #     return self._parent.publish_message(message)
+
+        return True
 
     async def run(self, k=1):
         """处理一次所有信息的运行
