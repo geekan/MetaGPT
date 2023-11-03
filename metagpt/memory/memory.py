@@ -26,8 +26,10 @@ class Memory:
         if message in self.storage:
             return
         self.storage.append(message)
-        if message.cause_by:
-            self.index[message.cause_by].append(message)
+        # According to the design of RFC 116, it allows message filtering based on different labels, thus
+        # necessitating the creation of separate indices for each label.
+        for k in message.tx_to:
+            self.index[k].append(message)
 
     def add_batch(self, messages: Iterable[Message]):
         for message in messages:
