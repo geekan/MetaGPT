@@ -4,7 +4,8 @@
 @Time    : 2023/5/23 17:25
 @Author  : alexanderwu
 @File    : seacher.py
-@Modified By: mashenquan, 2023-11-1. Standardize the usage of message filtering-related features.
+@Modified By: mashenquan, 2023-11-1. According to Chapter 2.2.1 and 2.2.2 of RFC 116, change the data type of
+        the `cause_by` value in the `Message` to a string to support the new message distribution feature.
 """
 from metagpt.actions import ActionOutput, SearchAndSummarize
 from metagpt.logs import logger
