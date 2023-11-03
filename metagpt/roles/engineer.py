@@ -4,10 +4,12 @@
 @Time    : 2023/5/11 14:43
 @Author  : alexanderwu
 @File    : engineer.py
-@Modified By: mashenquan, 2023-11-1. Optimization:
-    1. Consolidate message reception and processing logic within `_observe`.
-    2. Fix bug: Add logic for handling asynchronous message processing when messages are not ready.
-    3. Supplemented the external transmission of internal messages.
+@Modified By: mashenquan, 2023-11-1. In accordance with Chapter 2.2.1 and 2.2.2 of RFC 116:
+    1. Modify the data type of the `cause_by` value in the `Message` to a string, and utilize the new message
+        distribution feature for message filtering.
+    2. Consolidate message reception and processing logic within `_observe`.
+    3. Fix bug: Add logic for handling asynchronous message processing when messages are not ready.
+    4. Supplemented the external transmission of internal messages.
 """
 import asyncio
 import shutil
