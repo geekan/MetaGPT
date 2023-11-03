@@ -258,14 +258,14 @@ class Role(Named):
     async def run(self, test_message=None):
         """Observe, and think and act based on the results of the observation"""
         if test_message:  # For test
-            seed = None
+            msg = None
             if isinstance(test_message, str):
-                seed = Message(test_message)
+                msg = Message(test_message)
             elif isinstance(test_message, Message):
-                seed = test_message
+                msg = test_message
             elif isinstance(test_message, list):
-                seed = Message("\n".join(test_message))
-            self.put_message(seed)
+                msg = Message("\n".join(test_message))
+            self.put_message(msg)
 
         if not await self._observe():
             # If there is no new information, suspend and wait
