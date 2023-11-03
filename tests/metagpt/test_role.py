@@ -4,7 +4,8 @@
 @Time    : 2023/5/11 14:44
 @Author  : alexanderwu
 @File    : test_role.py
-@Modified By: mashenquan, 2023/11/1. Add unit tests.
+@Modified By: mashenquan, 2023-11-1. In line with Chapter 2.2.1 and 2.2.2 of RFC 116, introduce unit tests for
+            the utilization of the new message distribution feature in message handling.
 """
 import pytest
 from pydantic import BaseModel
