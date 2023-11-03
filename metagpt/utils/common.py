@@ -4,6 +4,8 @@
 @Time    : 2023/4/29 16:07
 @Author  : alexanderwu
 @File    : common.py
+@Modified By: mashenquan, 2023-11-1. According to Chapter 2.2.2 of RFC 116:
+        Add generic class-to-string and object-to-string conversion functionality.
 """
 import ast
 import contextlib
