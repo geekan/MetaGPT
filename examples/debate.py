@@ -2,7 +2,9 @@
 Filename: MetaGPT/examples/debate.py
 Created Date: Tuesday, September 19th 2023, 6:52:25 pm
 Author: garylin2099
-@Modified By: mashenquan, 2023-11-1. Standardize the usage of message filtering-related features.
+@Modified By: mashenquan, 2023-11-1. In accordance with Chapter 2.2.1 and 2.2.2 of RFC 116, modify the data
+        type of the 'cause_by' value in the 'Message' to a string, and utilize the new message distribution
+        feature for message filtering.
 """
 import asyncio
 import platform
