@@ -4,7 +4,8 @@
 @Time    : 2023/5/20 12:15
 @Author  : alexanderwu
 @File    : memory.py
-@Modified By: mashenquan, 2023-11-1. Standardize the design of message filtering-related features.
+@Modified By: mashenquan, 2023-11-1. According to Chapter 2.2.1 and 2.2.2 of RFC 116:
+        Modify the new message distribution feature for message filtering.
 """
 from collections import defaultdict
 from typing import Iterable, Set
