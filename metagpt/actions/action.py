@@ -4,6 +4,7 @@
 @Time    : 2023/5/11 14:43
 @Author  : alexanderwu
 @File    : action.py
+@Modified By: mashenquan, 2023-11-1. Add generic class-to-string and object-to-string conversion functionality.
 """
 import re
 from abc import ABC
