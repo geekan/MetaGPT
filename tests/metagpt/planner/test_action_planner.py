@@ -4,9 +4,9 @@
 @Time    : 2023/9/16 20:03
 @Author  : femto Zheng
 @File    : test_basic_planner.py
-@Modified By: mashenquan, 2023-11-1. Optimization:
-    1. Standardize the usage of message filtering-related features.
-    2. Standardize the usage of message transmission.
+@Modified By: mashenquan, 2023-11-1. In accordance with Chapter 2.2.1 and 2.2.2 of RFC 116, modify the data
+        type of the `cause_by` value in the `Message` to a string, and utilize the new message distribution
+        feature for message handling.
 """
 import pytest
 from semantic_kernel.core_skills import FileIOSkill, MathSkill, TextSkill, TimeSkill
