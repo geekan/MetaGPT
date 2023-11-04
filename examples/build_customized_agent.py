@@ -13,7 +13,6 @@ from metagpt.actions import Action
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
-from metagpt.utils.common import get_object_name
 
 
 class SimpleWriteCode(Action):
@@ -119,7 +118,7 @@ class RunnableCoder(Role):
             code_text = msg.content
             result = await SimpleRunCode().run(code_text)
 
-        msg = Message(content=result, role=self.profile, cause_by=get_object_name(todo))
+        msg = Message(content=result, role=self.profile, cause_by=todo)
         self._rc.memory.add(msg)
         return msg
 
