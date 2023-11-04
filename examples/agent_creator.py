@@ -2,8 +2,6 @@
 Filename: MetaGPT/examples/agent_creator.py
 Created Date: Tuesday, September 12th 2023, 3:28:37 pm
 Author: garylin2099
-@Modified By: mashenquan, 2023-11-1. According to Chapter 2.2.1 and 2.2.2 of RFC 116, change the data type of
-        the `cause_by` value in the `Message` to a string to support the new message distribution feature.
 """
 import re
 
@@ -12,7 +10,6 @@ from metagpt.const import PROJECT_ROOT, WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
-from metagpt.utils.common import get_object_name
 
 with open(PROJECT_ROOT / "examples/build_customized_agent.py", "r") as f:
     # use official example script to guide AgentCreator
@@ -75,7 +72,7 @@ class AgentCreator(Role):
 
         instruction = msg.content
         code_text = await CreateAgent().run(example=self.agent_template, instruction=instruction)
-        msg = Message(content=code_text, role=self.profile, cause_by=get_object_name(todo))
+        msg = Message(content=code_text, role=self.profile, cause_by=todo)
 
         return msg
 
