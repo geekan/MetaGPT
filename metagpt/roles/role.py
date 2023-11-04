@@ -15,6 +15,8 @@
     messages into the Role object's private message receive buffer. There are no other message transmit methods.
     5. Standardize the parameters for the `run` function: the `test_message` parameter is used for testing purposes
     only. In the normal workflow, you should use `publish_message` or `put_message` to transmit messages.
+@Modified By: mashenquan, 2023-11-4. According to the routing feature plan in Chapter 2.2.3.2 of RFC 113, the routing
+    functionality is to be consolidated into the `Environment` class.
 """
 from __future__ import annotations
 
@@ -133,7 +135,7 @@ class Role(Named):
 
     def _watch(self, actions: Iterable[Type[Action]]):
         """Listen to the corresponding behaviors"""
-        tags = [get_class_name(t) for t in actions]
+        tags = {get_class_name(t) for t in actions}
         self.subscribe(tags)
 
     def subscribe(self, tags: Set[str]):
@@ -141,6 +143,8 @@ class Role(Named):
         self._rc.watch.update(tags)
         # check RoleContext after adding watch actions
         self._rc.check(self._role_id)
+        if self._rc.env:  # According to the routing feature plan in Chapter 2.2.3.2 of RFC 113
+            self._rc.env.set_subscribed_tags(self, self.subscribed_tags)
 
     def _set_state(self, state):
         """Update the current state."""
@@ -149,7 +153,8 @@ class Role(Named):
         self._rc.todo = self._actions[self._rc.state]
 
     def set_env(self, env: "Environment"):
-        """Set the environment in which the role works. The role can talk to the environment and can also receive messages by observing."""
+        """Set the environment in which the role works. The role can talk to the environment and can also receive
+        messages by observing."""
         self._rc.env = env
 
     @property

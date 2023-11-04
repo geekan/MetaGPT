@@ -6,7 +6,11 @@
 @File    : test_role.py
 @Modified By: mashenquan, 2023-11-1. In line with Chapter 2.2.1 and 2.2.2 of RFC 116, introduce unit tests for
             the utilization of the new message distribution feature in message handling.
+@Modified By: mashenquan, 2023-11-4. According to the routing feature plan in Chapter 2.2.3.2 of RFC 113, the routing
+    functionality is to be consolidated into the `Environment` class.
 """
+import uuid
+
 import pytest
 from pydantic import BaseModel
 
@@ -64,6 +68,7 @@ async def test_react():
         assert role.is_idle
         env = Environment()
         env.add_role(role)
+        assert env.get_subscribed_tags(role) == {seed.subscription}
         env.publish_message(Message(content="test", tx_to=seed.subscription))
         assert not role.is_idle
         while not env.is_idle:
@@ -74,6 +79,9 @@ async def test_react():
         while not env.is_idle:
             await env.run()
         assert role.is_idle
+        tag = uuid.uuid4().hex
+        role.subscribe({tag})
+        assert env.get_subscribed_tags(role) == {seed.subscription, tag}
 
 
 if __name__ == "__main__":
