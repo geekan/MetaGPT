@@ -11,6 +11,7 @@ import json
 
 import pytest
 
+from metagpt.actions import Action
 from metagpt.schema import AIMessage, Message, Routes, SystemMessage, UserMessage
 
 
@@ -49,6 +50,15 @@ def test_message():
     assert m.is_recipient({"c"})
     assert m.cause_by == "c"
     assert m.get_meta("x") == "d"
+
+    m.cause_by = "Message"
+    assert m.cause_by == "Message"
+    m.cause_by = Action
+    assert m.cause_by == Action.get_class_name()
+    m.cause_by = Action()
+    assert m.cause_by == Action.get_class_name()
+    m.content = "b"
+    assert m.content == "b"
 
 
 @pytest.mark.asyncio

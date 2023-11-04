@@ -24,6 +24,7 @@ from metagpt.const import (
     MESSAGE_ROUTE_TO,
 )
 from metagpt.logs import logger
+from metagpt.utils.common import get_class_name, get_object_name
 
 
 class RawMessage(TypedDict):
@@ -87,6 +88,14 @@ class Routes(BaseModel):
         route = self._get_route()
         return route.get(MESSAGE_ROUTE_TO)
 
+    def replace(self, old_val, new_val):
+        """Replace old value with new value"""
+        route = self._get_route()
+        tags = route.get(MESSAGE_ROUTE_TO, set())
+        tags.discard(old_val)
+        tags.add(new_val)
+        route[MESSAGE_ROUTE_TO] = tags
+
 
 class Message(BaseModel):
     """list[<role>: <content>]"""
@@ -146,6 +155,26 @@ class Message(BaseModel):
     def cause_by(self):
         """Labels for the consumer to filter its subscribed messages, also serving as meta info."""
         return self.get_meta(MESSAGE_ROUTE_CAUSE_BY)
+
+    def __setattr__(self, key, val):
+        """Override `@property.setter`"""
+        if key == MESSAGE_ROUTE_CAUSE_BY:
+            self.set_cause_by(val)
+            return
+        super().__setattr__(key, val)
+
+    def set_cause_by(self, val):
+        """Update the value of `cause_by` in the `meta_info` and `routes` attributes."""
+        old_value = self.get_meta(MESSAGE_ROUTE_CAUSE_BY)
+        new_value = None
+        if isinstance(val, str):
+            new_value = val
+        elif not callable(val):
+            new_value = get_object_name(val)
+        else:
+            new_value = get_class_name(val)
+        self.set_meta(MESSAGE_ROUTE_CAUSE_BY, new_value)
+        self.route.replace(old_value, new_value)
 
     @property
     def tx_from(self):
@@ -301,6 +330,10 @@ if __name__ == "__main__":
     m.set_role("v2")
     v = m.dump()
     m = Message.load(v)
+    m.cause_by = "Message"
+    m.cause_by = Routes
+    m.cause_by = Routes()
+    m.content = "b"
 
     test_content = "test_message"
     msgs = [
