@@ -4,8 +4,7 @@
 @Time    : 2023/5/11 17:45
 @Author  : alexanderwu
 @File    : test_write_prd.py
-@Modified By: mashenquan, 2023-11-1. According to Chapter 2.2.1 and 2.2.2 of RFC 116, change the data type of
-        the `cause_by` value in the `Message` to a string to support the new message distribution feature.
+@Modified By: mashenquan, 2023-11-1. According to Chapter 2.2.1 and 2.2.2 of RFC 116, replace `handle` with `run`.
 """
 import pytest
 
