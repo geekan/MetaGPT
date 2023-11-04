@@ -31,13 +31,13 @@ def test_messages():
 @pytest.mark.asyncio
 def test_message():
     m = Message("a", role="v1")
-    v = m.save()
+    v = m.dump()
     d = json.loads(v)
     assert d
     assert d.get("content") == "a"
     assert d.get("meta_info") == {"role": "v1"}
     m.set_role("v2")
-    v = m.save()
+    v = m.dump()
     assert v
     m = Message.load(v)
     assert m.content == "a"

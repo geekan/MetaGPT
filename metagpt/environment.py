@@ -58,7 +58,7 @@ class Environment(BaseModel):
         route the message to the message recipient is a problem addressed by the transport framework designed
         in RFC 113.
         """
-        logger.info(f"publish_message: {message.save()}")
+        logger.info(f"publish_message: {message.dump()}")
         found = False
         # According to the routing feature plan in Chapter 2.2.3.2 of RFC 113
         for obj, subscribed_tags in self.consumers.items():
@@ -66,7 +66,7 @@ class Environment(BaseModel):
                 obj.put_message(message)
                 found = True
         if not found:
-            logger.warning(f"Message no recipients: {message.save()}")
+            logger.warning(f"Message no recipients: {message.dump()}")
 
         return True
 

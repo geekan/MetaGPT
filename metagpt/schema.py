@@ -188,7 +188,7 @@ class Message(BaseModel):
         """Return a dict containing `role` and `content` for the LLM call.l"""
         return {"role": self.role, "content": self.content}
 
-    def save(self) -> str:
+    def dump(self) -> str:
         """Convert the object to json string"""
         return self.json(exclude_none=True)
 
@@ -264,7 +264,7 @@ class MessageQueue:
         """Return true if the queue is empty."""
         return self._queue.empty()
 
-    async def save(self) -> str:
+    async def dump(self) -> str:
         """Convert the `MessageQueue` object to a json string."""
         if self.empty():
             return "[]"
@@ -299,7 +299,7 @@ class MessageQueue:
 if __name__ == "__main__":
     m = Message("a", role="v1")
     m.set_role("v2")
-    v = m.save()
+    v = m.dump()
     m = Message.load(v)
 
     test_content = "test_message"
@@ -312,9 +312,9 @@ if __name__ == "__main__":
     logger.info(msgs)
 
     jsons = [
-        UserMessage(test_content).save(),
-        SystemMessage(test_content).save(),
-        AIMessage(test_content).save(),
-        Message(test_content, role="QA").save(),
+        UserMessage(test_content).dump(),
+        SystemMessage(test_content).dump(),
+        AIMessage(test_content).dump(),
+        Message(test_content, role="QA").dump(),
     ]
     logger.info(jsons)
