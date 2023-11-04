@@ -51,7 +51,7 @@ async def test_publish_and_process_message(env: Environment):
 
     env.add_roles([product_manager, architect])
     env.set_manager(Manager())
-    env.publish_message(Message(role="BOSS", content="需要一个基于LLM做总结的搜索引擎", cause_by=BossRequirement.get_class_name()))
+    env.publish_message(Message(role="BOSS", content="需要一个基于LLM做总结的搜索引擎", cause_by=BossRequirement))
 
     await env.run(k=2)
     logger.info(f"{env.history=}")

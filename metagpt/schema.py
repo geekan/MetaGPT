@@ -24,7 +24,7 @@ from metagpt.const import (
     MESSAGE_ROUTE_TO,
 )
 from metagpt.logs import logger
-from metagpt.utils.common import get_class_name, get_object_name
+from metagpt.utils.common import any_to_str
 
 
 class RawMessage(TypedDict):
@@ -129,11 +129,12 @@ class Message(BaseModel):
             if k in attribute_names:
                 continue
             if k == MESSAGE_ROUTE_FROM:
-                self.set_from(v)
+                self.set_from(any_to_str(v))
                 continue
             if k == MESSAGE_ROUTE_CAUSE_BY:
-                self.meta_info[k] = v
-            if k == MESSAGE_ROUTE_TO or k == MESSAGE_ROUTE_CAUSE_BY:
+                self.set_cause_by(v)
+                continue
+            if k == MESSAGE_ROUTE_TO:
                 self.add_to(v)
                 continue
             self.meta_info[k] = v
@@ -161,18 +162,14 @@ class Message(BaseModel):
         if key == MESSAGE_ROUTE_CAUSE_BY:
             self.set_cause_by(val)
             return
+        if key == MESSAGE_ROUTE_FROM:
+            self.set_from(any_to_str(val))
         super().__setattr__(key, val)
 
     def set_cause_by(self, val):
         """Update the value of `cause_by` in the `meta_info` and `routes` attributes."""
         old_value = self.get_meta(MESSAGE_ROUTE_CAUSE_BY)
-        new_value = None
-        if isinstance(val, str):
-            new_value = val
-        elif not callable(val):
-            new_value = get_object_name(val)
-        else:
-            new_value = get_class_name(val)
+        new_value = any_to_str(val)
         self.set_meta(MESSAGE_ROUTE_CAUSE_BY, new_value)
         self.route.replace(old_value, new_value)
 

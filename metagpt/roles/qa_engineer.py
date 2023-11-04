@@ -50,7 +50,7 @@ class QaEngineer(Role):
         return CodeParser.parse_str(block="Python package name", text=system_design_msg.content)
 
     def get_workspace(self, return_proj_dir=True) -> Path:
-        msg = self._rc.memory.get_by_action(WriteDesign.get_class_name())[-1]
+        msg = self._rc.memory.get_by_action(WriteDesign)[-1]
         if not msg:
             return WORKSPACE_ROOT / "src"
         workspace = self.parse_workspace(msg)
@@ -99,7 +99,7 @@ class QaEngineer(Role):
             msg = Message(
                 content=str(file_info),
                 role=self.profile,
-                cause_by=WriteTest.get_class_name(),
+                cause_by=WriteTest,
                 tx_from=self.profile,
                 tx_to=self.profile,
             )
@@ -133,9 +133,7 @@ class QaEngineer(Role):
 
         recipient = parse_recipient(result_msg)  # the recipient might be Engineer or myself
         content = str(file_info) + FILENAME_CODE_SEP + result_msg
-        msg = Message(
-            content=content, role=self.profile, cause_by=RunCode.get_class_name(), tx_from=self.profile, tx_to=recipient
-        )
+        msg = Message(content=content, role=self.profile, cause_by=RunCode, tx_from=self.profile, tx_to=recipient)
         self.publish_message(msg)
 
     async def _debug_error(self, msg):
@@ -147,7 +145,7 @@ class QaEngineer(Role):
             msg = Message(
                 content=file_info,
                 role=self.profile,
-                cause_by=DebugError.get_class_name(),
+                cause_by=DebugError,
                 tx_from=self.profile,
                 tx_to=recipient,
             )
@@ -165,14 +163,14 @@ class QaEngineer(Role):
             result_msg = Message(
                 content=f"Exceeding {self.test_round_allowed} rounds of tests, skip (writing code counts as a round, too)",
                 role=self.profile,
-                cause_by=WriteTest.get_class_name(),
+                cause_by=WriteTest,
                 tx_from=self.profile,
             )
             return result_msg
 
-        code_filters = {WriteCode.get_class_name(), WriteCodeReview.get_class_name()}
-        test_filters = {WriteTest.get_class_name(), DebugError.get_class_name()}
-        run_filters = {RunCode.get_class_name()}
+        code_filters = {WriteCode, WriteCodeReview}
+        test_filters = {WriteTest, DebugError}
+        run_filters = {RunCode}
         for msg in self._rc.news:
             # Decide what to do based on observed msg type, currently defined by human,
             # might potentially be moved to _think, that is, let the agent decides for itself
@@ -189,7 +187,7 @@ class QaEngineer(Role):
         result_msg = Message(
             content=f"Round {self.test_round} of tests done",
             role=self.profile,
-            cause_by=WriteTest.get_class_name(),
+            cause_by=WriteTest,
             tx_from=self.profile,
         )
         return result_msg

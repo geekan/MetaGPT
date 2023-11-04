@@ -254,7 +254,7 @@ a =  'a'
 
 
 class MockMessages:
-    req = Message(role="Boss", content=BOSS_REQUIREMENT, cause_by=BossRequirement.get_class_name())
-    prd = Message(role="Product Manager", content=PRD, cause_by=WritePRD.get_class_name())
-    system_design = Message(role="Architect", content=SYSTEM_DESIGN, cause_by=WriteDesign.get_class_name())
-    tasks = Message(role="Project Manager", content=TASKS, cause_by=WriteTasks.get_class_name())
+    req = Message(role="Boss", content=BOSS_REQUIREMENT, cause_by=BossRequirement)
+    prd = Message(role="Product Manager", content=PRD, cause_by=WritePRD)
+    system_design = Message(role="Architect", content=SYSTEM_DESIGN, cause_by=WriteDesign)
+    tasks = Message(role="Project Manager", content=TASKS, cause_by=WriteTasks)

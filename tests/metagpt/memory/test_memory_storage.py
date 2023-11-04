@@ -18,7 +18,7 @@ from metagpt.schema import Message
 def test_idea_message():
     idea = "Write a cli snake game"
     role_id = "UTUser1(Product Manager)"
-    message = Message(role="BOSS", content=idea, cause_by=BossRequirement.get_class_name())
+    message = Message(role="BOSS", content=idea, cause_by=BossRequirement)
 
     memory_storage: MemoryStorage = MemoryStorage()
     messages = memory_storage.recover_memory(role_id)
@@ -28,12 +28,12 @@ def test_idea_message():
     assert memory_storage.is_initialized is True
 
     sim_idea = "Write a game of cli snake"
-    sim_message = Message(role="BOSS", content=sim_idea, cause_by=BossRequirement.get_class_name())
+    sim_message = Message(role="BOSS", content=sim_idea, cause_by=BossRequirement)
     new_messages = memory_storage.search(sim_message)
     assert len(new_messages) == 0  # similar, return []
 
     new_idea = "Write a 2048 web game"
-    new_message = Message(role="BOSS", content=new_idea, cause_by=BossRequirement.get_class_name())
+    new_message = Message(role="BOSS", content=new_idea, cause_by=BossRequirement)
     new_messages = memory_storage.search(new_message)
     assert new_messages[0].content == message.content
 
@@ -49,7 +49,7 @@ def test_actionout_message():
     role_id = "UTUser2(Architect)"
     content = "The boss has requested the creation of a command-line interface (CLI) snake game"
     message = Message(
-        content=content, instruct_content=ic_obj(**out_data), role="user", cause_by=WritePRD.get_class_name()
+        content=content, instruct_content=ic_obj(**out_data), role="user", cause_by=WritePRD
     )  # WritePRD as test action
 
     memory_storage: MemoryStorage = MemoryStorage()
@@ -60,16 +60,12 @@ def test_actionout_message():
     assert memory_storage.is_initialized is True
 
     sim_conent = "The request is command-line interface (CLI) snake game"
-    sim_message = Message(
-        content=sim_conent, instruct_content=ic_obj(**out_data), role="user", cause_by=WritePRD.get_class_name()
-    )
+    sim_message = Message(content=sim_conent, instruct_content=ic_obj(**out_data), role="user", cause_by=WritePRD)
     new_messages = memory_storage.search(sim_message)
     assert len(new_messages) == 0  # similar, return []
 
     new_conent = "Incorporate basic features of a snake game such as scoring and increasing difficulty"
-    new_message = Message(
-        content=new_conent, instruct_content=ic_obj(**out_data), role="user", cause_by=WritePRD.get_class_name()
-    )
+    new_message = Message(content=new_conent, instruct_content=ic_obj(**out_data), role="user", cause_by=WritePRD)
     new_messages = memory_storage.search(new_message)
     assert new_messages[0].content == message.content
 

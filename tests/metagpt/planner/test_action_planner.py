@@ -26,7 +26,7 @@ async def test_action_planner():
     role.import_skill(TimeSkill(), "time")
     role.import_skill(TextSkill(), "text")
     task = "What is the sum of 110 and 990?"
-    role.put_message(Message(content=task, cause_by=BossRequirement.get_class_name()))
+    role.put_message(Message(content=task, cause_by=BossRequirement))
     await role._observe()
     await role._think()  # it will choose mathskill.Add
     assert "1100" == (await role._act()).content

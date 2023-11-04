@@ -59,7 +59,7 @@ def test_serialize_and_deserialize_message():
     ic_obj = ActionOutput.create_model_class("prd", out_mapping)
 
     message = Message(
-        content="prd demand", instruct_content=ic_obj(**out_data), role="user", cause_by=WritePRD.get_class_name()
+        content="prd demand", instruct_content=ic_obj(**out_data), role="user", cause_by=WritePRD
     )  # WritePRD as test action
 
     message_ser = serialize_message(message)

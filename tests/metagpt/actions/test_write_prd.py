@@ -19,7 +19,7 @@ from metagpt.schema import Message
 async def test_write_prd():
     product_manager = ProductManager()
     requirements = "开发一个基于大语言模型与私有知识库的搜索引擎，希望可以基于大语言模型进行搜索总结"
-    prd = await product_manager.run(Message(content=requirements, cause_by=BossRequirement.get_class_name()))
+    prd = await product_manager.run(Message(content=requirements, cause_by=BossRequirement))
     logger.info(requirements)
     logger.info(prd)
 

@@ -315,3 +315,13 @@ def get_object_name(obj) -> str:
     """Return class name of the object"""
     cls = type(obj)
     return f"{cls.__module__}.{cls.__name__}"
+
+
+def any_to_str(val) -> str:
+    """Return the class name or the class name of the object, or 'val' if it's a string type."""
+    if isinstance(val, str):
+        return val
+    if not callable(val):
+        return get_object_name(val)
+
+    return get_class_name(val)

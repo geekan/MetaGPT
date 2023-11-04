@@ -31,7 +31,6 @@ from metagpt.logs import logger
 from metagpt.memory import LongTermMemory, Memory
 from metagpt.schema import Message, MessageQueue
 from metagpt.utils.common import get_class_name, get_object_name
-from metagpt.utils.named import Named
 
 PREFIX_TEMPLATE = """You are a {profile}, named {name}, your goal is {goal}, and the constraint is {constraints}. """
 
@@ -107,7 +106,7 @@ class RoleContext(BaseModel):
         return self.memory.get()
 
 
-class Role(Named):
+class Role:
     """Role/Agent"""
 
     def __init__(self, name="", profile="", goal="", constraints="", desc=""):
@@ -174,10 +173,10 @@ class Role(Named):
             return self._rc.watch
         return {
             self.name,
-            self.get_object_name(),
+            get_object_name(self),
             self.profile,
             f"{self.name}({self.profile})",
-            f"{self.name}({self.get_object_name()})",
+            f"{self.name}({get_object_name(self)})",
         }
 
     def _get_prefix(self):

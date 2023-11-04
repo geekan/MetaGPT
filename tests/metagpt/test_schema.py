@@ -13,6 +13,7 @@ import pytest
 
 from metagpt.actions import Action
 from metagpt.schema import AIMessage, Message, Routes, SystemMessage, UserMessage
+from metagpt.utils.common import get_class_name
 
 
 @pytest.mark.asyncio
@@ -54,9 +55,9 @@ def test_message():
     m.cause_by = "Message"
     assert m.cause_by == "Message"
     m.cause_by = Action
-    assert m.cause_by == Action.get_class_name()
+    assert m.cause_by == get_class_name(Action)
     m.cause_by = Action()
-    assert m.cause_by == Action.get_class_name()
+    assert m.cause_by == get_class_name(Action)
     m.content = "b"
     assert m.content == "b"
 

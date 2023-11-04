@@ -18,10 +18,9 @@ from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.utils.common import NoMoneyException
-from metagpt.utils.named import Named
 
 
-class SoftwareCompany(BaseModel, Named):
+class SoftwareCompany(BaseModel):
     """
     Software Company: Possesses a team, SOP (Standard Operating Procedures), and a platform for instant messaging,
     dedicated to writing executable code.
@@ -55,8 +54,8 @@ class SoftwareCompany(BaseModel, Named):
             Message(
                 role="BOSS",
                 content=idea,
-                cause_by=BossRequirement.get_class_name(),
-                tx_from=SoftwareCompany.get_class_name(),
+                cause_by=BossRequirement,
+                tx_from=SoftwareCompany,
             )
         )
 

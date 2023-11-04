@@ -66,7 +66,7 @@ class Trump(Role):
     async def _act(self) -> Message:
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
 
-        msg_history = self._rc.memory.get_by_actions([ShoutOut.get_class_name()])
+        msg_history = self._rc.memory.get_by_actions([ShoutOut])
         context = []
         for m in msg_history:
             context.append(str(m))
@@ -77,7 +77,7 @@ class Trump(Role):
         msg = Message(
             content=rsp,
             role=self.profile,
-            cause_by=ShoutOut.get_class_name(),
+            cause_by=ShoutOut,
             tx_from=self.name,
             tx_to=self.opponent_name,
         )
@@ -102,14 +102,14 @@ class Biden(Role):
         await super()._observe()
         # accept the very first human instruction (the debate topic) or messages sent (from opponent) to self,
         # disregard own messages from the last round
-        message_filter = {BossRequirement.get_class_name(), self.name}
+        message_filter = {BossRequirement, self.name}
         self._rc.news = [msg for msg in self._rc.news if msg.is_recipient(message_filter)]
         return len(self._rc.news)
 
     async def _act(self) -> Message:
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
 
-        msg_history = self._rc.memory.get_by_actions([BossRequirement.get_class_name(), ShoutOut.get_class_name()])
+        msg_history = self._rc.memory.get_by_actions([BossRequirement, ShoutOut])
         context = []
         for m in msg_history:
             context.append(str(m))
@@ -120,7 +120,7 @@ class Biden(Role):
         msg = Message(
             content=rsp,
             role=self.profile,
-            cause_by=ShoutOut.get_class_name(),
+            cause_by=ShoutOut,
             tx_from=self.name,
             tx_to=self.opponent_name,
         )
