@@ -44,7 +44,7 @@ SKILL_DIRECTORY = PROJECT_ROOT / "metagpt/skills"
 
 MEM_TTL = 24 * 30 * 3600
 
-MESSAGE_ROUTE_FROM = "tx_from"
-MESSAGE_ROUTE_TO = "tx_to"
+MESSAGE_ROUTE_FROM = "msg_from"
+MESSAGE_ROUTE_TO = "msg_to"
 MESSAGE_ROUTE_CAUSE_BY = "cause_by"
 MESSAGE_META_ROLE = "role"

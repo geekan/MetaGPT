@@ -69,7 +69,7 @@ async def test_react():
         env = Environment()
         env.add_role(role)
         assert env.get_subscribed_tags(role) == {seed.subscription}
-        env.publish_message(Message(content="test", tx_to=seed.subscription))
+        env.publish_message(Message(content="test", msg_to=seed.subscription))
         assert not role.is_idle
         while not env.is_idle:
             await env.run()

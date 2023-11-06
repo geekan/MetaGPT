@@ -211,14 +211,14 @@ class Role:
                 instruct_content=response.instruct_content,
                 role=self.profile,
                 cause_by=get_object_name(self._rc.todo),
-                tx_from=get_object_name(self),
+                msg_from=get_object_name(self),
             )
         else:
             msg = Message(
                 content=response,
                 role=self.profile,
                 cause_by=get_object_name(self._rc.todo),
-                tx_from=get_object_name(self),
+                msg_from=get_object_name(self),
             )
 
         return msg

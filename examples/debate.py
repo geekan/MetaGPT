@@ -78,8 +78,8 @@ class Trump(Role):
             content=rsp,
             role=self.profile,
             cause_by=ShoutOut,
-            tx_from=self.name,
-            tx_to=self.opponent_name,
+            msg_from=self.name,
+            msg_to=self.opponent_name,
         )
 
         return msg
@@ -121,8 +121,8 @@ class Biden(Role):
             content=rsp,
             role=self.profile,
             cause_by=ShoutOut,
-            tx_from=self.name,
-            tx_to=self.opponent_name,
+            msg_from=self.name,
+            msg_to=self.opponent_name,
         )
 
         return msg

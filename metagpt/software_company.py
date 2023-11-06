@@ -53,7 +53,7 @@ class SoftwareCompany(BaseModel):
                 role="BOSS",
                 content=idea,
                 cause_by=BossRequirement,
-                tx_from=SoftwareCompany,
+                msg_from=SoftwareCompany,
             )
         )
 

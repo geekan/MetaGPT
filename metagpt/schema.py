@@ -77,13 +77,13 @@ class Routes(BaseModel):
         return False
 
     @property
-    def tx_from(self):
+    def msg_from(self):
         """Message route info tells who sent this message."""
         route = self._get_route()
         return route.get(MESSAGE_ROUTE_FROM)
 
     @property
-    def tx_to(self):
+    def msg_to(self):
         """Labels for the consumer to filter its subscribed messages."""
         route = self._get_route()
         return route.get(MESSAGE_ROUTE_TO)
@@ -112,8 +112,8 @@ class Message(BaseModel):
         :param instruct_content: Message content struct.
         :param meta_info: Message meta info.
         :param route: Message route configuration.
-        :param tx_from: Message route info tells who sent this message.
-        :param tx_to: Labels for the consumer to filter its subscribed messages.
+        :param msg_from: Message route info tells who sent this message.
+        :param msg_to: Labels for the consumer to filter its subscribed messages.
         :param cause_by: Labels for the consumer to filter its subscribed messages, also serving as meta info.
         :param role: Message meta info tells who sent this message.
         """
@@ -174,14 +174,14 @@ class Message(BaseModel):
         self.route.replace(old_value, new_value)
 
     @property
-    def tx_from(self):
+    def msg_from(self):
         """Message route info tells who sent this message."""
-        return self.route.tx_from
+        return self.route.msg_from
 
     @property
-    def tx_to(self):
+    def msg_to(self):
         """Labels for the consumer to filter its subscribed messages."""
-        return self.route.tx_to
+        return self.route.msg_to
 
     def set_role(self, v):
         """Set the message's meta info indicating the sender."""

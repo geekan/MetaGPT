@@ -66,13 +66,13 @@ def test_message():
 def test_routes():
     route = Routes()
     route.set_from("a")
-    assert route.tx_from == "a"
+    assert route.msg_from == "a"
     route.add_to("b")
-    assert route.tx_to == {"b"}
+    assert route.msg_to == {"b"}
     route.add_to("c")
-    assert route.tx_to == {"b", "c"}
+    assert route.msg_to == {"b", "c"}
     route.set_to({"e", "f"})
-    assert route.tx_to == {"e", "f"}
+    assert route.msg_to == {"e", "f"}
     assert route.is_recipient({"e"})
     assert route.is_recipient({"f"})
     assert not route.is_recipient({"a"})

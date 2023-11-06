@@ -170,7 +170,7 @@ class Engineer(Role):
             content=MSG_SEP.join(code_msg_all),
             role=self.profile,
             cause_by=get_object_name(self._rc.todo),
-            tx_to="QaEngineer",
+            msg_to="QaEngineer",
         )
         return msg
 
@@ -213,7 +213,7 @@ class Engineer(Role):
             content=MSG_SEP.join(code_msg_all),
             role=self.profile,
             cause_by=get_object_name(self._rc.todo),
-            tx_to="QaEngineer",
+            msg_to="QaEngineer",
         )
         return msg
 
