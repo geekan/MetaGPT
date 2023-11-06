@@ -18,6 +18,7 @@ from metagpt.actions import Action, ActionOutput
 from metagpt.environment import Environment
 from metagpt.roles import Role
 from metagpt.schema import Message
+from metagpt.utils.common import get_class_name
 
 
 class MockAction(Action):
@@ -82,6 +83,18 @@ async def test_react():
         tag = uuid.uuid4().hex
         role.subscribe({tag})
         assert env.get_subscribed_tags(role) == {seed.subscription, tag}
+
+
+@pytest.mark.asyncio
+async def test_msg_to():
+    m = Message(content="a", msg_to=["a", MockRole, Message])
+    assert m.msg_to == {"a", get_class_name(MockRole), get_class_name(Message)}
+
+    m = Message(content="a", cause_by=MockAction, msg_to={"a", MockRole, Message})
+    assert m.msg_to == {"a", get_class_name(MockRole), get_class_name(Message), get_class_name(MockAction)}
+
+    m = Message(content="a", msg_to=("a", MockRole, Message))
+    assert m.msg_to == {"a", get_class_name(MockRole), get_class_name(Message)}
 
 
 if __name__ == "__main__":

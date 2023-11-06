@@ -138,7 +138,11 @@ class Message(BaseModel):
                 self.set_cause_by(v)
                 continue
             if k == MESSAGE_ROUTE_TO:
-                self.add_to(any_to_str(v))
+                if isinstance(v, tuple) or isinstance(v, list) or isinstance(v, set):
+                    for i in v:
+                        self.add_to(any_to_str(i))
+                else:
+                    self.add_to(any_to_str(v))
                 continue
             self.meta_info[k] = v
 
