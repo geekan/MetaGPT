@@ -22,6 +22,7 @@ from metagpt.const import (
     MESSAGE_ROUTE_CAUSE_BY,
     MESSAGE_ROUTE_FROM,
     MESSAGE_ROUTE_TO,
+    MESSAGE_ROUTE_TO_ALL,
 )
 from metagpt.logs import logger
 from metagpt.utils.common import any_to_str
@@ -71,6 +72,8 @@ class Routes(BaseModel):
         if not to_tags:
             return True
 
+        if MESSAGE_ROUTE_TO_ALL in to_tags:
+            return True
         for k in tags:
             if k in to_tags:
                 return True

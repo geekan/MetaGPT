@@ -135,6 +135,10 @@ class Role:
     def _watch(self, actions: Iterable[Type[Action]]):
         """Listen to the corresponding behaviors"""
         tags = {get_class_name(t) for t in actions}
+        # Add default subscription tags for developers' direct use.
+        if self.name:
+            tags.add(self.name)
+        tags.add(get_object_name(self))
         self.subscribe(tags)
 
     def subscribe(self, tags: Set[str]):
