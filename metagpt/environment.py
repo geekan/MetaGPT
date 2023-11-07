@@ -4,6 +4,7 @@
 @Time    : 2023/5/11 22:12
 @Author  : alexanderwu
 @File    : environment.py
+@Modified By: mashenquan, 2023-11-7. Add `dispose`.
 """
 import asyncio
 from typing import Iterable
