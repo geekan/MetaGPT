@@ -5,6 +5,7 @@
 @Author  : alexanderwu
 @File    : base_gpt_api.py
 @Desc    : mashenquan, 2023/8/22. + try catch
+@Modified By: mashenquan, 2023-11-7. Add `close`.
 """
 from abc import abstractmethod
 from typing import Optional
