@@ -4,6 +4,7 @@
 @Time    : 2023/5/12 00:30
 @Author  : alexanderwu
 @File    : software_company.py
+@Modified By: mashenquan, 2023-11/7. Add `dispose`.
 """
 from pydantic import BaseModel, Field
 
@@ -21,6 +22,7 @@ class SoftwareCompany(BaseModel):
     Software Company: Possesses a team, SOP (Standard Operating Procedures), and a platform for instant messaging,
     dedicated to writing executable code.
     """
+
     environment: Environment = Field(default_factory=Environment)
     investment: float = Field(default=10.0)
     idea: str = Field(default="")
@@ -36,12 +38,13 @@ class SoftwareCompany(BaseModel):
         """Invest company. raise NoMoneyException when exceed max_budget."""
         self.investment = investment
         CONFIG.cost_manager.max_budget = investment
-        logger.info(f'Investment: ${investment}.')
+        logger.info(f"Investment: ${investment}.")
 
     def _check_balance(self):
         if CONFIG.cost_manager.total_cost > CONFIG.cost_manager.max_budget:
-            raise NoMoneyException(CONFIG.cost_manager.total_cost,
-                                   f'Insufficient funds: {CONFIG.cost_manager.max_budget}')
+            raise NoMoneyException(
+                CONFIG.cost_manager.total_cost, f"Insufficient funds: {CONFIG.cost_manager.max_budget}"
+            )
 
     def start_project(self, idea, role="BOSS", cause_by=BossRequirement, **kwargs):
         """Start a project from publishing boss requirement."""
@@ -59,4 +62,6 @@ class SoftwareCompany(BaseModel):
             logger.debug(f"{n_round=}")
             self._check_balance()
             await self.environment.run()
+
+        await self.environment.dispose()
         return self.environment.history

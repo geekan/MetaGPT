@@ -5,32 +5,30 @@
 @Author  : alexanderwu
 @File    : common.py
 @Modified By: mashenquan, 2023-8-17, add `initalize_enviroment()` to load `config/config.yaml` to `os.environ`
+@Modified By: mashenquan, 2023-11-7. Add `run_backend`.
 """
 import ast
+import asyncio
 import contextlib
 import inspect
 import os
 import re
-from pathlib import Path
 from typing import List, Tuple
-
-import yaml
 
 from metagpt.logs import logger
 
 
 def check_cmd_exists(command) -> int:
-    """ 检查命令是否存在
+    """检查命令是否存在
     :param command: 待检查的命令
     :return: 如果命令存在，返回0，如果不存在，返回非0
     """
-    check_command = 'command -v ' + command + ' >/dev/null 2>&1 || { echo >&2 "no mermaid"; exit 1; }'
+    check_command = "command -v " + command + ' >/dev/null 2>&1 || { echo >&2 "no mermaid"; exit 1; }'
     result = os.system(check_command)
     return result
 
 
 class OutputParser:
-
     @classmethod
     def parse_blocks(cls, text: str):
         # 首先根据"##"将文本分割成不同的block
@@ -54,7 +52,7 @@ class OutputParser:
 
     @classmethod
     def parse_code(cls, text: str, lang: str = "") -> str:
-        pattern = rf'```{lang}.*?\s+(.*?)```'
+        pattern = rf"```{lang}.*?\s+(.*?)```"
         match = re.search(pattern, text, re.DOTALL)
         if match:
             code = match.group(1)
@@ -65,13 +63,13 @@ class OutputParser:
     @classmethod
     def parse_str(cls, text: str):
         text = text.split("=")[-1]
-        text = text.strip().strip("'").strip("\"")
+        text = text.strip().strip("'").strip('"')
         return text
 
     @classmethod
     def parse_file_list(cls, text: str) -> list[str]:
         # Regular expression pattern to find the tasks list.
-        pattern = r'\s*(.*=.*)?(\[.*\])'
+        pattern = r"\s*(.*=.*)?(\[.*\])"
 
         # Extract tasks list string using regex.
         match = re.search(pattern, text, re.DOTALL)
@@ -83,12 +81,12 @@ class OutputParser:
         else:
             tasks = text.split("\n")
         return tasks
-    
+
     @staticmethod
     def parse_python_code(text: str) -> str:
         for pattern in (
-            r'(.*?```python.*?\s+)?(?P<code>.*)(```.*?)', 
-            r'(.*?```python.*?\s+)?(?P<code>.*)', 
+            r"(.*?```python.*?\s+)?(?P<code>.*)(```.*?)",
+            r"(.*?```python.*?\s+)?(?P<code>.*)",
         ):
             match = re.search(pattern, text, re.DOTALL)
             if not match:
@@ -153,7 +151,6 @@ class OutputParser:
 
 
 class CodeParser:
-
     @classmethod
     def parse_block(cls, block: str, text: str) -> str:
         blocks = cls.parse_blocks(text)
@@ -184,7 +181,7 @@ class CodeParser:
     def parse_code(cls, block: str, text: str, lang: str = "") -> str:
         if block:
             text = cls.parse_block(block, text)
-        pattern = rf'```{lang}.*?\s+(.*?)```'
+        pattern = rf"```{lang}.*?\s+(.*?)```"
         match = re.search(pattern, text, re.DOTALL)
         if match:
             code = match.group(1)
@@ -198,7 +195,7 @@ class CodeParser:
     def parse_str(cls, block: str, text: str, lang: str = ""):
         code = cls.parse_code(block, text, lang)
         code = code.split("=")[-1]
-        code = code.strip().strip("'").strip("\"")
+        code = code.strip().strip("'").strip('"')
         return code
 
     @classmethod
@@ -206,7 +203,7 @@ class CodeParser:
         # Regular expression pattern to find the tasks list.
         code = cls.parse_code(block, text, lang)
         # print(code)
-        pattern = r'\s*(.*=.*)?(\[.*\])'
+        pattern = r"\s*(.*=.*)?(\[.*\])"
 
         # Extract tasks list string using regex.
         match = re.search(pattern, code, re.DOTALL)
@@ -229,7 +226,7 @@ class NoMoneyException(Exception):
         super().__init__(self.message)
 
     def __str__(self):
-        return f'{self.message} -> Amount required: {self.amount}'
+        return f"{self.message} -> Amount required: {self.amount}"
 
 
 def print_members(module, indent=0):
@@ -239,19 +236,19 @@ def print_members(module, indent=0):
     :param indent:
     :return:
     """
-    prefix = ' ' * indent
+    prefix = " " * indent
     for name, obj in inspect.getmembers(module):
         print(name, obj)
         if inspect.isclass(obj):
-            print(f'{prefix}Class: {name}')
+            print(f"{prefix}Class: {name}")
             # print the methods within the class
-            if name in ['__class__', '__base__']:
+            if name in ["__class__", "__base__"]:
                 continue
             print_members(obj, indent + 2)
         elif inspect.isfunction(obj):
-            print(f'{prefix}Function: {name}')
+            print(f"{prefix}Function: {name}")
         elif inspect.ismethod(obj):
-            print(f'{prefix}Method: {name}')
+            print(f"{prefix}Method: {name}")
 
 
 def parse_recipient(text):
@@ -259,3 +256,10 @@ def parse_recipient(text):
     recipient = re.search(pattern, text)
     return recipient.group(1) if recipient else ""
 
+
+def run_backend(fun, *args, **kwargs):
+    loop = asyncio.get_event_loop()
+    if asyncio.iscoroutinefunction(fun):
+        return loop.create_task(fun(*args, **kwargs))
+    else:
+        return loop.run_in_executor(None, lambda: fun(*args, **kwargs))

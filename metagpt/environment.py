@@ -17,34 +17,34 @@ from metagpt.schema import Message
 
 class Environment(BaseModel):
     """环境，承载一批角色，角色可以向环境发布消息，可以被其他角色观察到
-       Environment, hosting a batch of roles, roles can publish messages to the environment, and can be observed by other roles
-    
+    Environment, hosting a batch of roles, roles can publish messages to the environment, and can be observed by other roles
+
     """
 
     roles: dict[str, Role] = Field(default_factory=dict)
     memory: Memory = Field(default_factory=Memory)
-    history: str = Field(default='')
+    history: str = Field(default="")
 
     class Config:
         arbitrary_types_allowed = True
 
     def add_role(self, role: Role):
         """增加一个在当前环境的角色
-           Add a role in the current environment
+        Add a role in the current environment
         """
         role.set_env(self)
         self.roles[role.profile] = role
 
     def add_roles(self, roles: Iterable[Role]):
         """增加一批在当前环境的角色
-            Add a batch of characters in the current environment
+        Add a batch of characters in the current environment
         """
         for role in roles:
             self.add_role(role)
 
     def publish_message(self, message: Message):
         """向当前环境发布信息
-          Post information to the current environment
+        Post information to the current environment
         """
         # self.message_queue.put(message)
         self.memory.add(message)
@@ -68,12 +68,17 @@ class Environment(BaseModel):
 
     def get_roles(self) -> dict[str, Role]:
         """获得环境内的所有角色
-           Process all Role runs at once
+        Process all Role runs at once
         """
         return self.roles
 
     def get_role(self, name: str) -> Role:
         """获得环境内的指定角色
-           get all the environment roles
+        get all the environment roles
         """
         return self.roles.get(name, None)
+
+    async def dispose(self):
+        """Dispose of resources"""
+        for r in self.roles.values():
+            await r.dispose()

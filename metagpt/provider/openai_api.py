@@ -5,12 +5,12 @@
 @File    : openai.py
 @Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation;
             Change cost control from global to company level.
+@Modified By: mashenquan, 2023/11/7. Fix bug: unclosed connection.
 """
 import asyncio
 import time
 
-import openai
-from openai.error import APIConnectionError, RateLimitError
+from openai import APIConnectionError, AsyncOpenAI, RateLimitError
 from tenacity import (
     after_log,
     retry,
@@ -24,6 +24,7 @@ from metagpt.config import CONFIG
 from metagpt.llm import LLMType
 from metagpt.logs import logger
 from metagpt.provider.base_gpt_api import BaseGPTAPI
+from metagpt.utils.common import run_backend
 from metagpt.utils.cost_manager import Costs
 from metagpt.utils.token_counter import (
     count_message_tokens,
@@ -77,15 +78,16 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         self.model = CONFIG.openai_api_model
         self.auto_max_tokens = False
         self.rpm = int(CONFIG.get("RPM", 10))
+        self.openai = AsyncOpenAI(api_key=CONFIG.openai_api_key)
         RateLimiter.__init__(self, rpm=self.rpm)
 
     async def _achat_completion_stream(self, messages: list[dict]) -> str:
-        response = await openai.ChatCompletion.acreate(**self._cons_kwargs(messages), stream=True)
+        kwargs = self._cons_kwargs(messages)
+        response = await self.openai.chat.completions.create(**kwargs, stream=True)
         # iterate through the stream of events
         async for chunk in response:
-            chunk_message = chunk["choices"][0]["delta"]  # extract the message
-            if "content" in chunk_message:
-                yield chunk_message["content"]
+            chunk_message = chunk.choices[0].delta.content or ""  # extract the message
+            yield chunk_message
 
     def _cons_kwargs(self, messages: list[dict]) -> dict:
         if CONFIG.openai_api_type == "azure":
@@ -96,6 +98,10 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
                 "n": 1,
                 "stop": None,
                 "temperature": 0.3,
+                "api_base": CONFIG.openai_api_base,
+                "api_key": CONFIG.openai_api_key,
+                "api_type": CONFIG.openai_api_type,
+                "api_version": CONFIG.openai_api_version,
             }
         else:
             kwargs = {
@@ -107,19 +113,15 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
                 "temperature": 0.3,
             }
         kwargs["timeout"] = 3
-        kwargs["api_base"] = CONFIG.openai_api_base
-        kwargs["api_key"] = CONFIG.openai_api_key
-        kwargs["api_type"] = CONFIG.openai_api_type
-        kwargs["api_version"] = CONFIG.openai_api_version
         return kwargs
 
     async def _achat_completion(self, messages: list[dict]) -> dict:
-        rsp = await openai.ChatCompletion.acreate(**self._cons_kwargs(messages))
+        rsp = await self.openai.chat.completions.create(**self._cons_kwargs(messages))
         self._update_costs(rsp.get("usage"))
         return rsp
 
     def _chat_completion(self, messages: list[dict]) -> dict:
-        rsp = openai.ChatCompletion.create(**self._cons_kwargs(messages))
+        rsp = run_backend(self.openai.chat.completions.create, **self._cons_kwargs(messages))
         self._update_costs(rsp)
         return rsp
 
@@ -229,3 +231,10 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
 
         memory = BrainMemory(llm_type=LLMType.OPENAI.value, historical_summary=text, cacheable=False)
         return await memory.summarize(llm=self, max_words=max_words, keep_language=keep_language)
+
+    async def close(self):
+        """Close connection"""
+        if not self.openai:
+            return
+        await self.openai.close()
+        self.openai = None

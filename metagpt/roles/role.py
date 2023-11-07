@@ -6,6 +6,7 @@
 @File    : role.py
 @Modified By: mashenquan, 2023-8-7, Support template-style variables, such as '{teaching_language} Teacher'.
 @Modified By: mashenquan, 2023/8/22. A definition has been provided for the return value of _think: returning false indicates that further reasoning cannot continue.
+@Modified By: mashenquan, 2023/11/7. Add `dispose`.
 """
 from __future__ import annotations
 
@@ -334,3 +335,8 @@ class Role:
         if self._rc.todo.desc:
             return self._rc.todo.desc
         return f"{type(self._rc.todo).__name__}"
+
+    async def dispose(self):
+        """Dispose of resources"""
+        if self._llm:
+            await self._llm.close()
