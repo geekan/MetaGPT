@@ -29,6 +29,7 @@ class Environment(BaseModel):
 
     roles: dict[str, Role] = Field(default_factory=dict)
     consumers: dict[Role, Set] = Field(default_factory=dict)
+    history: str = Field(default="")  # For debug
 
     class Config:
         arbitrary_types_allowed = True
@@ -67,6 +68,7 @@ class Environment(BaseModel):
                 found = True
         if not found:
             logger.warning(f"Message no recipients: {message.dump()}")
+        self.history += f"\n{message}"  # For debug
 
         return True
 
