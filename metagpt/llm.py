@@ -5,10 +5,9 @@
 @Author  : alexanderwu
 @File    : llm.py
 @Modified By: mashenquan, 2023
+@Modified By: mashenquan, 2023-11-7. Update openai to v1.0.0.
 """
 from enum import Enum
-
-import openai
 
 from metagpt.config import CONFIG
 
@@ -41,4 +40,4 @@ class LLMFactory:
         if CONFIG.LLM_TYPE == LLMType.CLAUDE.value:
             return Claude()
 
-        raise openai.InvalidRequestError(message=f"Unsupported LLM TYPE: {CONFIG.LLM_TYPE}", param=None)
+        raise TypeError(f"Unsupported LLM TYPE: {CONFIG.LLM_TYPE}")

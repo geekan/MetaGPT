@@ -5,13 +5,14 @@
 @Author  : mashenquan
 @File    : openai_text_to_image.py
 @Desc    : OpenAI Text-to-Image OAS3 api, which provides text-to-image functionality.
+@Modified By: mashenquan, 2023-11-7. Update openai to v1.0.0
 """
 import asyncio
 import base64
 
 import aiohttp
-import openai
 import requests
+from openai import AsyncOpenAI
 
 from metagpt.config import CONFIG, Config
 from metagpt.logs import logger
@@ -32,16 +33,12 @@ class OpenAIText2Image:
         :return: The image data is returned in Base64 encoding.
         """
         try:
-            result = await openai.Image.acreate(
-                api_key=CONFIG.OPENAI_API_KEY,
-                api_base=CONFIG.OPENAI_API_BASE,
-                api_type=None,
-                api_version=None,
-                organization=None,
-                prompt=text,
-                n=1,
-                size=size_type,
-            )
+            async with AsyncOpenAI(api_key=self.openai_api_key) as openai_conn:
+                result = await openai_conn.images.generate(
+                    prompt=text,
+                    n=1,
+                    size=size_type,
+                )
         except Exception as e:
             logger.error(f"An error occurred:{e}")
             return ""

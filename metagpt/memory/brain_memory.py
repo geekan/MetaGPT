@@ -6,13 +6,13 @@
 @File    : brain_memory.py
 @Desc    : Support memory for multiple tasks and multiple mainlines.
 @Modified By: mashenquan, 2023/9/4. + redis memory cache.
+@Modified By: mashenquan, 2023-11-7. Update openai to v1.0.0.
 """
 import json
 import re
 from enum import Enum
 from typing import Dict, List, Optional
 
-import openai
 import pydantic
 
 from metagpt import Message
@@ -172,7 +172,7 @@ class BrainMemory(pydantic.BaseModel):
         if summary:
             await self.set_history_summary(history_summary=summary, redis_key=CONFIG.REDIS_KEY, redis_conf=CONFIG.REDIS)
             return summary
-        raise openai.error.InvalidRequestError(message="text too long", param=None)
+        raise ValueError("text too long")
 
     async def _metagpt_summarize(self, max_words=200, **kwargs):
         if not self.history:

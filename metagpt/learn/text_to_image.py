@@ -5,8 +5,9 @@
 @Author  : mashenquan
 @File    : text_to_image.py
 @Desc    : Text-to-Image skill, which provides text-to-image functionality.
+@Modified By: mashenquan, 2023-11-7. Update openai to v1.0.0.
 """
-import openai.error
+
 
 from metagpt.config import CONFIG
 from metagpt.const import BASE64_FORMAT
@@ -30,7 +31,7 @@ async def text_to_image(text, size_type: str = "512x512", openai_api_key="", mod
     elif CONFIG.OPENAI_API_KEY or openai_api_key:
         base64_data = await oas3_openai_text_to_image(text, size_type, openai_api_key)
     else:
-        raise openai.error.InvalidRequestError("缺少必要的参数")
+        raise TypeError("缺少必要的参数")
 
     s3 = S3()
     url = await s3.cache(data=base64_data, file_ext=".png", format=BASE64_FORMAT)
