@@ -83,7 +83,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
 
     async def _achat_completion_stream(self, messages: list[dict]) -> str:
         kwargs = self._cons_kwargs(messages)
-        options = self.get_openai_options()
+        options = self._get_openai_options()
         response = await self.openai.with_options(**options).chat.completions.create(**kwargs, stream=True)
         # iterate through the stream of events
         async for chunk in response:
@@ -118,7 +118,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         return kwargs
 
     @staticmethod
-    def get_openai_options():
+    def _get_openai_options():
         options = {}
         if CONFIG.openai_api_base:
             options["base_url"] = CONFIG.openai_api_base
@@ -126,14 +126,14 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
 
     async def _achat_completion(self, messages: list[dict]) -> dict:
         kwargs = self._cons_kwargs(messages)
-        options = self.get_openai_options()
+        options = self._get_openai_options()
         rsp = await self.openai.with_options(**options).chat.completions.create(**kwargs)
         self._update_costs(rsp.get("usage"))
         return rsp
 
     def _chat_completion(self, messages: list[dict]) -> dict:
         kwargs = self._cons_kwargs(messages)
-        options = self.get_openai_options()
+        options = self._get_openai_options()
         rsp = run_backend(self.openai.with_options(**options).chat.completions.create, **kwargs)
         self._update_costs(rsp)
         return rsp
