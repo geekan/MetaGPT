@@ -159,7 +159,7 @@ class Role:
         messages by observing."""
         self._rc.env = env
         if env:
-            env.set_subscribed_tags(self, self._subscription)
+            env.set_subscription(self, self._subscription)
 
     @property
     def profile(self):
