@@ -4,8 +4,7 @@
 @Time    : 2023/5/20 12:15
 @Author  : alexanderwu
 @File    : memory.py
-@Modified By: mashenquan, 2023-11-1. According to Chapter 2.2.1 and 2.2.2 of RFC 116:
-        Updated the message filtering logic.
+@Modified By: mashenquan, 2023-11-1. According to RFC 116: Updated the type of index key.
 """
 from collections import defaultdict
 from typing import Iterable, Set
