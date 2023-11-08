@@ -15,6 +15,7 @@ import platform
 import re
 from typing import List, Tuple, Union
 
+from metagpt.const import MESSAGE_ROUTE_TO_ALL
 from metagpt.logs import logger
 
 
@@ -336,3 +337,14 @@ def any_to_str_set(val) -> set:
     else:
         res.add(any_to_str(val))
     return res
+
+
+def is_subscribed(message, tags):
+    """Return whether it's consumer"""
+    if MESSAGE_ROUTE_TO_ALL in message.send_to:
+        return True
+
+    for t in tags:
+        if t in message.send_to:
+            return True
+    return False

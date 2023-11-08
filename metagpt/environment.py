@@ -19,6 +19,7 @@ from pydantic import BaseModel, Field
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
+from metagpt.utils.common import is_subscribed
 
 
 class Environment(BaseModel):
@@ -63,7 +64,7 @@ class Environment(BaseModel):
         found = False
         # According to the routing feature plan in Chapter 2.2.3.2 of RFC 113
         for obj, subscribed_tags in self.consumers.items():
-            if message.contain_any(subscribed_tags):
+            if is_subscribed(message, subscribed_tags):
                 obj.put_message(message)
                 found = True
         if not found:
