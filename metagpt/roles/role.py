@@ -208,15 +208,9 @@ class Role:
                 instruct_content=response.instruct_content,
                 role=self.profile,
                 cause_by=get_object_name(self._rc.todo),
-                msg_from=get_object_name(self),
             )
         else:
-            msg = Message(
-                content=response,
-                role=self.profile,
-                cause_by=get_object_name(self._rc.todo),
-                msg_from=get_object_name(self),
-            )
+            msg = Message(content=response, role=self.profile, cause_by=get_object_name(self._rc.todo))
 
         return msg
 
