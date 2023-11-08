@@ -34,7 +34,8 @@ class OpenAIText2Image:
         """
         try:
             async with AsyncOpenAI(api_key=self.openai_api_key) as openai_conn:
-                result = await openai_conn.images.generate(
+                options = CONFIG.get_openai_options()
+                result = await openai_conn.with_options(**options).images.generate(
                     prompt=text,
                     n=1,
                     size=size_type,

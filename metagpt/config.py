@@ -11,6 +11,7 @@ from copy import deepcopy
 from typing import Any
 from uuid import uuid4
 
+import httpx
 import yaml
 
 from metagpt.const import OPTIONS, PROJECT_ROOT, WORKSPACE_ROOT
@@ -150,6 +151,18 @@ class Config(metaclass=Singleton):
     def options(self):
         """Return all key-values"""
         return OPTIONS.get()
+
+    @staticmethod
+    def get_openai_options():
+        options = {}
+        if CONFIG.openai_api_base:
+            options["base_url"] = CONFIG.openai_api_base
+        if CONFIG.OPENAI_PROXY:
+            options["http_client"] = httpx.Client(
+                proxies=CONFIG.OPENAI_PROXY,
+                transport=httpx.HTTPTransport(local_address="0.0.0.0"),
+            )
+        return options
 
 
 CONFIG = Config()
