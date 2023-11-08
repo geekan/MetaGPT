@@ -22,7 +22,7 @@ from metagpt.const import WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
-from metagpt.utils.common import CodeParser, parse_recipient
+from metagpt.utils.common import CodeParser, any_to_str_set, parse_recipient
 from metagpt.utils.special_tokens import FILENAME_CODE_SEP, MSG_SEP
 
 
@@ -100,8 +100,8 @@ class QaEngineer(Role):
                 content=str(file_info),
                 role=self.profile,
                 cause_by=WriteTest,
-                msg_from=self.profile,
-                msg_to=self.profile,
+                sent_from=self.profile,
+                send_to=self.profile,
             )
             self.publish_message(msg)
 
@@ -133,7 +133,7 @@ class QaEngineer(Role):
 
         recipient = parse_recipient(result_msg)  # the recipient might be Engineer or myself
         content = str(file_info) + FILENAME_CODE_SEP + result_msg
-        msg = Message(content=content, role=self.profile, cause_by=RunCode, msg_from=self.profile, msg_to=recipient)
+        msg = Message(content=content, role=self.profile, cause_by=RunCode, sent_from=self.profile, send_to=recipient)
         self.publish_message(msg)
 
     async def _debug_error(self, msg):
@@ -146,15 +146,15 @@ class QaEngineer(Role):
                 content=file_info,
                 role=self.profile,
                 cause_by=DebugError,
-                msg_from=self.profile,
-                msg_to=recipient,
+                sent_from=self.profile,
+                send_to=recipient,
             )
             self.publish_message(msg)
 
     async def _observe(self) -> int:
         await super()._observe()
         self._rc.news = [
-            msg for msg in self._rc.news if msg.contain_any({self.profile})
+            msg for msg in self._rc.news if self.profile in msg.send_to
         ]  # only relevant msgs count as observed news
         return len(self._rc.news)
 
@@ -164,23 +164,23 @@ class QaEngineer(Role):
                 content=f"Exceeding {self.test_round_allowed} rounds of tests, skip (writing code counts as a round, too)",
                 role=self.profile,
                 cause_by=WriteTest,
-                msg_from=self.profile,
+                sent_from=self.profile,
             )
             return result_msg
 
-        code_filters = {WriteCode, WriteCodeReview}
-        test_filters = {WriteTest, DebugError}
-        run_filters = {RunCode}
+        code_filters = any_to_str_set({WriteCode, WriteCodeReview})
+        test_filters = any_to_str_set({WriteTest, DebugError})
+        run_filters = any_to_str_set({RunCode})
         for msg in self._rc.news:
             # Decide what to do based on observed msg type, currently defined by human,
             # might potentially be moved to _think, that is, let the agent decides for itself
-            if msg.contain_any(code_filters):
+            if msg.cause_by in code_filters:
                 # engineer wrote a code, time to write a test for it
                 await self._write_test(msg)
-            elif msg.contain_any(test_filters):
+            elif msg.cause_by in test_filters:
                 # I wrote or debugged my test code, time to run it
                 await self._run_code(msg)
-            elif msg.contain_any(run_filters):
+            elif msg.cause_by in run_filters:
                 # I ran my test code, time to fix bugs, if any
                 await self._debug_error(msg)
         self.test_round += 1
@@ -188,6 +188,6 @@ class QaEngineer(Role):
             content=f"Round {self.test_round} of tests done",
             role=self.profile,
             cause_by=WriteTest,
-            msg_from=self.profile,
+            sent_from=self.profile,
         )
         return result_msg
