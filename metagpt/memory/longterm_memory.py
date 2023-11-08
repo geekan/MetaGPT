@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 @Desc   : the implement of Long-term memory
-@Modified By: mashenquan, 2023-11-1. According to Chapter 2.2.1 and 2.2.2 of RFC 116:
-    1. Replace code related to message filtering with the `Message.contain_any` function.
 """
 
 from metagpt.logs import logger
