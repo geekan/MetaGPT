@@ -19,7 +19,7 @@ from pathlib import Path
 from metagpt.actions import WriteCode, WriteCodeReview, WriteDesign, WriteTasks
 from metagpt.const import WORKSPACE_ROOT
 from metagpt.logs import logger
-from metagpt.roles import Role
+from metagpt.roles import QaEngineer, Role
 from metagpt.schema import Message
 from metagpt.utils.common import CodeParser, get_class_name, get_object_name
 from metagpt.utils.special_tokens import FILENAME_CODE_SEP, MSG_SEP
@@ -170,7 +170,7 @@ class Engineer(Role):
             content=MSG_SEP.join(code_msg_all),
             role=self.profile,
             cause_by=get_object_name(self._rc.todo),
-            send_to="QaEngineer",
+            send_to=QaEngineer,
         )
         return msg
 
@@ -212,7 +212,7 @@ class Engineer(Role):
             content=MSG_SEP.join(code_msg_all),
             role=self.profile,
             cause_by=get_object_name(self._rc.todo),
-            send_to="QaEngineer",
+            send_to=QaEngineer,
         )
         return msg
 
