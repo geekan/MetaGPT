@@ -48,14 +48,7 @@ class SoftwareCompany(BaseModel):
     def start_project(self, idea):
         """Start a project from publishing boss requirement."""
         self.idea = idea
-        self.environment.publish_message(
-            Message(
-                role="BOSS",
-                content=idea,
-                cause_by=BossRequirement,
-                msg_from=SoftwareCompany,
-            )
-        )
+        self.environment.publish_message(Message(role="BOSS", content=idea, cause_by=BossRequirement))
 
     def _save(self):
         logger.info(self.json())
@@ -68,3 +61,4 @@ class SoftwareCompany(BaseModel):
             logger.debug(f"{n_round=}")
             self._check_balance()
             await self.environment.run()
+        return self.environment.history
