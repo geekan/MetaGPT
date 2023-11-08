@@ -12,7 +12,7 @@ import json
 import pytest
 
 from metagpt.actions import Action
-from metagpt.schema import AIMessage, Message, Routes, SystemMessage, UserMessage
+from metagpt.schema import AIMessage, Message, SystemMessage, UserMessage
 from metagpt.utils.common import get_class_name
 
 
@@ -37,20 +37,19 @@ def test_message():
     d = json.loads(v)
     assert d
     assert d.get("content") == "a"
-    assert d.get("meta_info") == {"role": "v1"}
-    m.set_role("v2")
+    assert d.get("role") == "v1"
+    m.role = "v2"
     v = m.dump()
     assert v
     m = Message.load(v)
     assert m.content == "a"
     assert m.role == "v2"
 
-    m = Message("a", role="b", cause_by="c", x="d")
+    m = Message("a", role="b", cause_by="c", x="d", send_to="c")
     assert m.content == "a"
     assert m.role == "b"
-    assert m.contain_any({"c"})
+    assert m.send_to == {"c"}
     assert m.cause_by == "c"
-    assert m.get_meta("x") == "d"
 
     m.cause_by = "Message"
     assert m.cause_by == "Message"
@@ -64,18 +63,11 @@ def test_message():
 
 @pytest.mark.asyncio
 def test_routes():
-    route = Routes()
-    route.set_from("a")
-    assert route.msg_from == "a"
-    route.add_to("b")
-    assert route.msg_to == {"b"}
-    route.add_to("c")
-    assert route.msg_to == {"b", "c"}
-    route.set_to({"e", "f"})
-    assert route.msg_to == {"e", "f"}
-    assert route.contain_any({"e"})
-    assert route.contain_any({"f"})
-    assert not route.contain_any({"a"})
+    m = Message("a", role="b", cause_by="c", x="d", send_to="c")
+    m.send_to = "b"
+    assert m.send_to == {"b"}
+    m.send_to = {"e", Action}
+    assert m.send_to == {"e", get_class_name(Action)}
 
 
 if __name__ == "__main__":

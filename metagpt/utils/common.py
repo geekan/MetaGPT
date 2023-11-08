@@ -325,3 +325,14 @@ def any_to_str(val) -> str:
         return get_object_name(val)
 
     return get_class_name(val)
+
+
+def any_to_str_set(val) -> set:
+    """Convert any type to string set."""
+    res = set()
+    if isinstance(val, dict) or isinstance(val, list) or isinstance(val, set) or isinstance(val, tuple):
+        for i in val:
+            res.add(any_to_str(i))
+    else:
+        res.add(any_to_str(val))
+    return res
