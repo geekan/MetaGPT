@@ -4,8 +4,6 @@
 @Time    : 2023/5/12 00:30
 @Author  : alexanderwu
 @File    : software_company.py
-@Modified By: mashenquan, 2023-11-1. According to Chapter 2.2.1 and 2.2.2 of RFC 116:
-        1. Abandon the design of having `Environment` store all messages.
 """
 from pydantic import BaseModel, Field
 
