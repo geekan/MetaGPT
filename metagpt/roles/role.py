@@ -116,6 +116,9 @@ class Role:
         self._actions = []
         self._role_id = str(self._setting)
         self._rc = RoleContext()
+        self._subscription = {get_object_name(self)}
+        if name:
+            self._subscription.add(name)
 
     def _reset(self):
         self._states = []
@@ -133,21 +136,15 @@ class Role:
             self._states.append(f"{idx}. {action}")
 
     def _watch(self, actions: Iterable[Type[Action]]):
-        """Listen to the corresponding behaviors"""
+        """Listen to the corresponding behaviors in private message buffer"""
         tags = {get_class_name(t) for t in actions}
-        # Add default subscription tags for developers' direct use.
-        if self.name:
-            tags.add(self.name)
-        tags.add(get_object_name(self))
-        self.subscribe(tags)
+        self._rc.watch.update(tags)
 
     def subscribe(self, tags: Set[str]):
         """Listen to the corresponding behaviors"""
-        self._rc.watch.update(tags)
-        # check RoleContext after adding watch actions
-        self._rc.check(self._role_id)
+        self._subscription = tags
         if self._rc.env:  # According to the routing feature plan in Chapter 2.2.3.2 of RFC 113
-            self._rc.env.set_subscribed_tags(self, self.subscribed_tags)
+            self._rc.env.set_subscribed_tags(self, self._subscription)
 
     def _set_state(self, state):
         """Update the current state."""
@@ -159,6 +156,8 @@ class Role:
         """Set the environment in which the role works. The role can talk to the environment and can also receive
         messages by observing."""
         self._rc.env = env
+        if env:
+            env.set_subscribed_tags(self, self._subscription)
 
     @property
     def profile(self):
