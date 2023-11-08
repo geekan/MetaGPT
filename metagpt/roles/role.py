@@ -170,17 +170,9 @@ class Role:
         return self._setting.name
 
     @property
-    def subscribed_tags(self) -> Set:
+    def subscription(self) -> Set:
         """The labels for messages to be consumed by the Role object."""
-        if self._rc.watch:
-            return self._rc.watch
-        return {
-            self.name,
-            get_object_name(self),
-            self.profile,
-            f"{self.name}({self.profile})",
-            f"{self.name}({get_object_name(self)})",
-        }
+        return self._subscription
 
     def _get_prefix(self):
         """Get the role prefix"""
