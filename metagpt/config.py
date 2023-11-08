@@ -11,7 +11,6 @@ from copy import deepcopy
 from typing import Any
 from uuid import uuid4
 
-import openai
 import yaml
 
 from metagpt.const import OPTIONS, PROJECT_ROOT, WORKSPACE_ROOT
@@ -65,7 +64,8 @@ class Config(metaclass=Singleton):
             openai_proxy = self._get("OPENAI_PROXY") or self.global_proxy
             if openai_proxy:
                 # https://github.com/openai/openai-python#configuring-the-http-client
-                openai.base_url = openai_proxy
+                # openai.proxy = openai_proxy
+                pass
             else:
                 logger.info("Set OPENAI_API_BASE in case of network issues")
         self.openai_api_type = self._get("OPENAI_API_TYPE")
