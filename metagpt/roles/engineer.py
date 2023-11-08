@@ -21,7 +21,7 @@ from metagpt.const import WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
-from metagpt.utils.common import CodeParser, get_object_name
+from metagpt.utils.common import CodeParser, get_class_name, get_object_name
 from metagpt.utils.special_tokens import FILENAME_CODE_SEP, MSG_SEP
 
 
@@ -170,7 +170,7 @@ class Engineer(Role):
             content=MSG_SEP.join(code_msg_all),
             role=self.profile,
             cause_by=get_object_name(self._rc.todo),
-            msg_to="QaEngineer",
+            send_to="QaEngineer",
         )
         return msg
 
@@ -185,8 +185,7 @@ class Engineer(Role):
             TODO: The goal is not to need it. After clear task decomposition, based on the design idea, you should be able to write a single file without needing other codes. If you can't, it means you need a clearer definition. This is the key to writing longer code.
             """
             context = []
-            msg_filters = [WriteDesign, WriteTasks, WriteCode]
-            msg = self._rc.memory.get_by_actions(msg_filters)
+            msg = self._rc.memory.get_by_actions([WriteDesign, WriteTasks, WriteCode])
             for m in msg:
                 context.append(m.content)
             context_str = "\n".join(context)
@@ -213,7 +212,7 @@ class Engineer(Role):
             content=MSG_SEP.join(code_msg_all),
             role=self.profile,
             cause_by=get_object_name(self._rc.todo),
-            msg_to="QaEngineer",
+            send_to="QaEngineer",
         )
         return msg
 
@@ -231,9 +230,8 @@ class Engineer(Role):
             return ret
 
         # Parse task lists
-        message_filter = {WriteTasks}
         for message in self._rc.news:
-            if not message.contain_any(message_filter):
+            if not message.cause_by == get_class_name(WriteTasks):
                 continue
             self.todos = self.parse_tasks(message)
 
