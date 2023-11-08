@@ -6,7 +6,7 @@
 @File    : const.py
 """
 from pathlib import Path
-
+from loguru import logger
 
 def get_project_root():
     """Search upwards to find the project root directory."""
@@ -17,10 +17,14 @@ def get_project_root():
             or (current_path / ".project_root").exists()
             or (current_path / ".gitignore").exists()
         ):
+            # use metagpt with git clone will land here
             return current_path
         parent_path = current_path.parent
         if parent_path == current_path:
-            raise Exception("Project root not found.")
+            # use metagpt with pip install will land here
+            cwd = Path.cwd()
+            logger.info(f"RPOJECT_ROOT set to current working directory: {str(cwd)}")
+            return cwd
         current_path = parent_path
 
 
