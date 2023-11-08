@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 from typing import Iterable, Type, Union
+from enum import Enum
 
 from pydantic import BaseModel, Field
 
@@ -34,7 +35,6 @@ Now choose one of the following stages you need to go to in the next step:
 
 Just answer a number between 0-{n_states}, choose the most suitable stage according to the understanding of the conversation.
 Please note that the answer only needs a number, no need to add any other text.
-If there is no conversation record or your previous stage is None, choose 0.
 If you think you have completed your goal and don't need to go to any of the stages, return -1.
 Do not answer anything else, and do not add any other information in your answer.
 """
@@ -49,6 +49,14 @@ ROLE_TEMPLATE = """Your response should be based on the previous conversation hi
 {name}: {result}
 """
 
+class RoleReactMode(str, Enum):
+    REACT = "react"
+    BY_ORDER = "by_order"
+    PLAN_AND_ACT = "plan_and_act"
+
+    @classmethod
+    def values(cls):
+        return [item.value for item in cls]
 
 class RoleSetting(BaseModel):
     """Role Settings"""
@@ -70,10 +78,12 @@ class RoleContext(BaseModel):
     env: 'Environment' = Field(default=None)
     memory: Memory = Field(default_factory=Memory)
     long_term_memory: LongTermMemory = Field(default_factory=LongTermMemory)
-    state: int = Field(default=None)
+    state: int = Field(default=-1) # -1 indicates initial or termination state where todo is None
     todo: Action = Field(default=None)
     watch: set[Type[Action]] = Field(default_factory=set)
     news: list[Type[Message]] = Field(default=[])
+    react_mode: RoleReactMode = RoleReactMode.REACT # see `Role._set_react_mode` for definitions of the following two attributes
+    max_react_loop: int = 1
 
     class Config:
         arbitrary_types_allowed = True
@@ -103,9 +113,6 @@ class Role:
         self._actions = []
         self._role_id = str(self._setting)
         self._rc = RoleContext()
-        # see `_set_react_mode` function for definitions of the following two attributes
-        self.react_mode = "react"
-        self.max_react_loop = 1
 
     def _reset(self):
         self._states = []
@@ -127,20 +134,21 @@ class Role:
         this Role elects action to perform during the _think stage, especially if it is capable of multiple Actions.
 
         Args:
-            react_mode (str): Mode for choosing action during the _think stage, can be one of
-                        "by_order": switch action each time by order defined in _init_actions, i.e. _act (Action1) -> _act (Action2) -> ...;
-                        "react": standard think-act loop in the ReAct paper, alternating thinking and acting to solve the task, i.e. _think -> _act -> _think -> _act -> ... 
+            react_mode (str): Mode for choosing action during the _think stage, can be one of:
+                        "react": standard think-act loop in the ReAct paper, alternating thinking and acting to solve the task, i.e. _think -> _act -> _think -> _act -> ...
                                  Use llm to select actions in _think dynamically;
+                        "by_order": switch action each time by order defined in _init_actions, i.e. _act (Action1) -> _act (Action2) -> ...;
                         "plan_and_act": first plan, then execute an action sequence, i.e. _think (of a plan) -> _act -> _act -> ...
                                         Use llm to come up with the plan dynamically.
-                        Defaults to "by_order".
+                        Defaults to "react".
             max_react_loop (int): Maximum react cycles to execute, used to prevent the agent from reacting forever.
                                   Take effect only when react_mode is react, in which we use llm to choose actions, including termination.
                                   Defaults to 1, i.e. _think -> _act (-> return result and end)
         """
-        self.react_mode = react_mode
-        if react_mode == "react":
-            self.max_react_loop = max_react_loop
+        assert react_mode in RoleReactMode.values(), f"react_mode must be one of {RoleReactMode.values()}"
+        self._rc.react_mode = react_mode
+        if react_mode == RoleReactMode.REACT:
+            self._rc.max_react_loop = max_react_loop
 
     def _watch(self, actions: Iterable[Type[Action]]):
         """Listen to the corresponding behaviors"""
@@ -148,11 +156,11 @@ class Role:
         # check RoleContext after adding watch actions
         self._rc.check(self._role_id)
 
-    def _set_state(self, state: Union[int, None]):
+    def _set_state(self, state: int):
         """Update the current state."""
         self._rc.state = state
         logger.debug(self._actions)
-        self._rc.todo = self._actions[self._rc.state] if state is not None else None
+        self._rc.todo = self._actions[self._rc.state] if state >= 0 else None
 
     def set_env(self, env: 'Environment'):
         """Set the environment in which the role works. The role can talk to the environment and can also receive messages by observing."""
@@ -181,14 +189,14 @@ class Role:
         # print(prompt)
         next_state = await self._llm.aask(prompt)
         logger.debug(f"{prompt=}")
-        if not next_state.isdigit() or int(next_state) not in range(-1, len(self._states)):
-            logger.warning(f'Invalid answer of state, {next_state=}')
-            next_state = None
+        if (not next_state.isdigit() and next_state != "-1") \
+            or int(next_state) not in range(-1, len(self._states)):
+            logger.warning(f'Invalid answer of state, {next_state=}, will be set to -1')
+            next_state = -1
         else:
             next_state = int(next_state)
             if next_state == -1:
                 logger.info(f"End actions with {next_state=}")
-                next_state = None
         self._set_state(next_state)
 
     async def _act(self) -> Message:
@@ -240,7 +248,8 @@ class Role:
         Use llm to select actions in _think dynamically
         """
         actions_taken = 0
-        while actions_taken < self.max_react_loop:
+        rsp = Message("No actions taken yet") # will be overwritten after Role _act
+        while actions_taken < self._rc.max_react_loop:
             # think
             await self._think()
             if self._rc.todo is None:
@@ -265,12 +274,14 @@ class Role:
 
     async def react(self) -> Message:
         """Entry to one of three strategies by which Role reacts to the observed Message"""
-        if self.react_mode == "react":
-            return await self._react()
-        elif self.react_mode == "by_order":
-            return await self._act_by_order()
-        elif self.react_mode == "plan_and_act":
-            return await self._plan_and_act()
+        if self._rc.react_mode == RoleReactMode.REACT:
+            rsp = await self._react()
+        elif self._rc.react_mode == RoleReactMode.BY_ORDER:
+            rsp = await self._act_by_order()
+        elif self._rc.react_mode == RoleReactMode.PLAN_AND_ACT:
+            rsp = await self._plan_and_act()
+        self._set_state(state=-1) # current reaction is complete, reset state to -1 and todo back to None
+        return rsp
 
     def recv(self, message: Message) -> None:
         """add message to history."""

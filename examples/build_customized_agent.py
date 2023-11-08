@@ -104,7 +104,7 @@ class RunnableCoder(Role):
         self._rc.memory.add(msg)
         return msg
 
-def main(msg="write a function that calculates the product of a list"):
+def main(msg="write a function that calculates the product of a list and run it"):
     # role = SimpleCoder()
     role = RunnableCoder()
     logger.info(msg)
