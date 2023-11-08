@@ -146,7 +146,7 @@ class Role:
         """Listen to the corresponding behaviors"""
         self._subscription = tags
         if self._rc.env:  # According to the routing feature plan in Chapter 2.2.3.2 of RFC 113
-            self._rc.env.set_subscribed_tags(self, self._subscription)
+            self._rc.env.set_subscription(self, self._subscription)
 
     def _set_state(self, state):
         """Update the current state."""
