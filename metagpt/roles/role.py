@@ -139,6 +139,8 @@ class Role:
         """Listen to the corresponding behaviors in private message buffer"""
         tags = {get_class_name(t) for t in actions}
         self._rc.watch.update(tags)
+        # check RoleContext after adding watch actions
+        self._rc.check(self._role_id)
 
     def subscribe(self, tags: Set[str]):
         """Listen to the corresponding behaviors"""
