@@ -41,8 +41,6 @@ class Environment(BaseModel):
         """
         role.set_env(self)
         self.roles[role.profile] = role
-        # According to the routing feature plan in Chapter 2.2.3.2 of RFC 113
-        self.set_subscribed_tags(role, role.subscribed_tags)
 
     def add_roles(self, roles: Iterable[Role]):
         """增加一批在当前环境的角色
@@ -63,8 +61,8 @@ class Environment(BaseModel):
         logger.info(f"publish_message: {message.dump()}")
         found = False
         # According to the routing feature plan in Chapter 2.2.3.2 of RFC 113
-        for obj, subscribed_tags in self.consumers.items():
-            if is_subscribed(message, subscribed_tags):
+        for obj, subscription in self.consumers.items():
+            if is_subscribed(message, subscription):
                 obj.put_message(message)
                 found = True
         if not found:
@@ -106,10 +104,10 @@ class Environment(BaseModel):
                 return False
         return True
 
-    def get_subscribed_tags(self, obj):
+    def get_subscription(self, obj):
         """Get the labels for messages to be consumed by the object."""
         return self.consumers.get(obj, {})
 
-    def set_subscribed_tags(self, obj, tags):
+    def set_subscription(self, obj, tags):
         """Set the labels for message to be consumed by the object"""
         self.consumers[obj] = tags
