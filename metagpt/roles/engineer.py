@@ -239,7 +239,7 @@ class Engineer(Role):
 
     async def _think(self) -> None:
         # In asynchronous scenarios, first check if the required messages are ready.
-        filters = {WriteTasks}
+        filters = {get_class_name(WriteTasks)}
         msgs = self._rc.memory.get_by_actions(filters)
         if not msgs:
             self._rc.todo = None
