@@ -40,10 +40,11 @@ class LongTermMemory(Memory):
 
     def add(self, message: Message):
         super(LongTermMemory, self).add(message)
-        if message.contain_any(self.rc.watch) and not self.msg_from_recover:
-            # currently, only add role's watching messages to its memory_storage
-            # and ignore adding messages from recover repeatedly
-            self.memory_storage.add(message)
+        for action in self.rc.watch:
+            if message.cause_by == action and not self.msg_from_recover:
+                # currently, only add role's watching messages to its memory_storage
+                # and ignore adding messages from recover repeatedly
+                self.memory_storage.add(message)
 
     def find_news(self, observed: list[Message], k=0) -> list[Message]:
         """
