@@ -59,7 +59,7 @@ class WriteCode(Action):
             return
 
         message_filter = {WriteDesign}
-        design = [i for i in context if i.is_recipient(message_filter)][0]
+        design = [i for i in context if i.contain_any(message_filter)][0]
 
         ws_name = CodeParser.parse_str(block="Python package name", text=design.content)
         ws_path = WORKSPACE_ROOT / ws_name

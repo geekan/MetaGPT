@@ -154,7 +154,7 @@ class QaEngineer(Role):
     async def _observe(self) -> int:
         await super()._observe()
         self._rc.news = [
-            msg for msg in self._rc.news if msg.is_recipient({self.profile})
+            msg for msg in self._rc.news if msg.contain_any({self.profile})
         ]  # only relevant msgs count as observed news
         return len(self._rc.news)
 
@@ -174,13 +174,13 @@ class QaEngineer(Role):
         for msg in self._rc.news:
             # Decide what to do based on observed msg type, currently defined by human,
             # might potentially be moved to _think, that is, let the agent decides for itself
-            if msg.is_recipient(code_filters):
+            if msg.contain_any(code_filters):
                 # engineer wrote a code, time to write a test for it
                 await self._write_test(msg)
-            elif msg.is_recipient(test_filters):
+            elif msg.contain_any(test_filters):
                 # I wrote or debugged my test code, time to run it
                 await self._run_code(msg)
-            elif msg.is_recipient(run_filters):
+            elif msg.contain_any(run_filters):
                 # I ran my test code, time to fix bugs, if any
                 await self._debug_error(msg)
         self.test_round += 1

@@ -3,7 +3,7 @@
 """
 @Desc   : the implement of Long-term memory
 @Modified By: mashenquan, 2023-11-1. According to Chapter 2.2.1 and 2.2.2 of RFC 116:
-    1. Replace code related to message filtering with the `Message.is_recipient` function.
+    1. Replace code related to message filtering with the `Message.contain_any` function.
 """
 
 from metagpt.logs import logger
@@ -40,7 +40,7 @@ class LongTermMemory(Memory):
 
     def add(self, message: Message):
         super(LongTermMemory, self).add(message)
-        if message.is_recipient(self.rc.watch) and not self.msg_from_recover:
+        if message.contain_any(self.rc.watch) and not self.msg_from_recover:
             # currently, only add role's watching messages to its memory_storage
             # and ignore adding messages from recover repeatedly
             self.memory_storage.add(message)

@@ -65,8 +65,8 @@ class Routes(BaseModel):
             self.routes.append({})
         return self.routes[0]
 
-    def is_recipient(self, tags: Set) -> bool:
-        """Check if it is the message recipient."""
+    def contain_any(self, tags: Set) -> bool:
+        """Check if this object contains these tags."""
         route = self._get_route()
         to_tags = route.get(MESSAGE_ROUTE_TO)
         if not to_tags:
@@ -206,9 +206,9 @@ class Message(BaseModel):
         """Add a subscription label for the recipients."""
         self.route.add_to(tag)
 
-    def is_recipient(self, tags: Set):
+    def contain_any(self, tags: Set):
         """Return true if any input label exists in the message's subscription labels."""
-        return self.route.is_recipient(tags)
+        return self.route.contain_any(tags)
 
     def __str__(self):
         # prefix = '-'.join([self.role, str(self.cause_by)])

@@ -63,7 +63,7 @@ class Environment(BaseModel):
         found = False
         # According to the routing feature plan in Chapter 2.2.3.2 of RFC 113
         for obj, subscribed_tags in self.consumers.items():
-            if message.is_recipient(subscribed_tags):
+            if message.contain_any(subscribed_tags):
                 obj.put_message(message)
                 found = True
         if not found:

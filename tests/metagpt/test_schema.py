@@ -48,7 +48,7 @@ def test_message():
     m = Message("a", role="b", cause_by="c", x="d")
     assert m.content == "a"
     assert m.role == "b"
-    assert m.is_recipient({"c"})
+    assert m.contain_any({"c"})
     assert m.cause_by == "c"
     assert m.get_meta("x") == "d"
 
@@ -73,9 +73,9 @@ def test_routes():
     assert route.msg_to == {"b", "c"}
     route.set_to({"e", "f"})
     assert route.msg_to == {"e", "f"}
-    assert route.is_recipient({"e"})
-    assert route.is_recipient({"f"})
-    assert not route.is_recipient({"a"})
+    assert route.contain_any({"e"})
+    assert route.contain_any({"f"})
+    assert not route.contain_any({"a"})
 
 
 if __name__ == "__main__":

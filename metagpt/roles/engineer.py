@@ -233,7 +233,7 @@ class Engineer(Role):
         # Parse task lists
         message_filter = {WriteTasks}
         for message in self._rc.news:
-            if not message.is_recipient(message_filter):
+            if not message.contain_any(message_filter):
                 continue
             self.todos = self.parse_tasks(message)
 
