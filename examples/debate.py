@@ -60,7 +60,7 @@ class Trump(Role):
     async def _observe(self) -> int:
         await super()._observe()
         # accept messages sent (from opponent) to self, disregard own messages from the last round
-        self._rc.news = [msg for msg in self._rc.news if msg.contain_any({self.name})]
+        self._rc.news = [msg for msg in self._rc.news if msg.send_to == {self.name}]
         return len(self._rc.news)
 
     async def _act(self) -> Message:
@@ -78,8 +78,8 @@ class Trump(Role):
             content=rsp,
             role=self.profile,
             cause_by=ShoutOut,
-            msg_from=self.name,
-            msg_to=self.opponent_name,
+            sent_from=self.name,
+            send_to=self.opponent_name,
         )
 
         return msg
@@ -102,8 +102,7 @@ class Biden(Role):
         await super()._observe()
         # accept the very first human instruction (the debate topic) or messages sent (from opponent) to self,
         # disregard own messages from the last round
-        message_filter = {BossRequirement, self.name}
-        self._rc.news = [msg for msg in self._rc.news if msg.contain_any(message_filter)]
+        self._rc.news = [msg for msg in self._rc.news if msg.cause_by == BossRequirement or msg.send_to == {self.name}]
         return len(self._rc.news)
 
     async def _act(self) -> Message:
@@ -121,8 +120,8 @@ class Biden(Role):
             content=rsp,
             role=self.profile,
             cause_by=ShoutOut,
-            msg_from=self.name,
-            msg_to=self.opponent_name,
+            sent_from=self.name,
+            send_to=self.opponent_name,
         )
 
         return msg
