@@ -217,9 +217,11 @@ class Role:
     async def _observe(self) -> int:
         """Prepare new messages for processing from the message buffer and other sources."""
         # Read unprocessed messages from the msg buffer.
-        self._rc.news = self._rc.msg_buffer.pop_all()
+        news = self._rc.msg_buffer.pop_all()
         # Store the read messages in your own memory to prevent duplicate processing.
-        self._rc.memory.add_batch(self._rc.news)
+        self._rc.memory.add_batch(news)
+        # Filter out messages of interest.
+        self._rc.news = [n for n in news if n.cause_by in self._rc.watch]
 
         # Design Rules:
         # If you need to further categorize Message objects, you can do so using the Message.set_meta function.
