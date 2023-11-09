@@ -20,7 +20,7 @@ from tenacity import (
     wait_fixed,
 )
 
-from metagpt.config import CONFIG
+from metagpt.config import CONFIG, Config
 from metagpt.logs import logger
 from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.utils.singleton import Singleton
@@ -152,7 +152,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         self._cost_manager = CostManager()
         RateLimiter.__init__(self, rpm=self.rpm)
 
-    def __init_openai(self, config):
+    def __init_openai(self, config: Config):
         openai.api_key = config.openai_api_key
         if config.openai_api_base:
             openai.api_base = config.openai_api_base
@@ -327,14 +327,14 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         return rsp
 
     @staticmethod
-    def __get_rpm(config) -> int:
-        limit_session_key = config.get("OPENAI_LIMIT_SESSION_KEY", "")
+    def __get_rpm(config: Config) -> int:
+        session_key = config.get("OPENAI_SESSION_KEY", "")
         default_rpm = int(config.get("RPM", 10))
-        if len(limit_session_key) > 0:
+        if len(session_key) > 0:
             try:
                 response = requests.get(
                                         "https://api.openai.com/dashboard/rate_limits",
-                                        headers={'Authorization': f'Bearer {limit_session_key}'},
+                                        headers={'Authorization': f'Bearer {session_key}'},
                                         timeout=10,
                                         proxies={'https': openai.proxy}
                                         )
@@ -350,4 +350,3 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
                 raise ValueError(f"Get rpm from api.openai.com error. {error['message']}")
         else:
             return default_rpm
-
