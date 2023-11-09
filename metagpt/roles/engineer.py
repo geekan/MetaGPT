@@ -239,8 +239,9 @@ class Engineer(Role):
             if not message.cause_by == get_class_name(WriteTasks):
                 continue
             self.todos = self.parse_tasks(message)
+            return 1
 
-        return ret
+        return 0
 
     async def _think(self) -> None:
         # In asynchronous scenarios, first check if the required messages are ready.
