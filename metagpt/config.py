@@ -44,6 +44,7 @@ class Config(metaclass=Singleton):
         logger.info("Config loading done.")
         self.global_proxy = self._get("GLOBAL_PROXY")
         self.openai_api_key = self._get("OPENAI_API_KEY")
+        self.openai_limit_session_key = self._get("OPENAI_LIMIT_SESSION_KEY", "")
         self.anthropic_api_key = self._get("Anthropic_API_KEY")
         if (not self.openai_api_key or "YOUR_API_KEY" == self.openai_api_key) and (
                 not self.anthropic_api_key or "YOUR_API_KEY" == self.anthropic_api_key

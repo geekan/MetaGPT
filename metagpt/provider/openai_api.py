@@ -6,9 +6,11 @@
 """
 import asyncio
 import time
+import json
 from typing import NamedTuple, Union
 
 import openai
+import requests
 from openai.error import APIConnectionError
 from tenacity import (
     after_log,
@@ -157,7 +159,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         if config.openai_api_type:
             openai.api_type = config.openai_api_type
             openai.api_version = config.openai_api_version
-        self.rpm = int(config.get("RPM", 10))
+        self.rpm = self.__get_rpm(config)
 
     async def _achat_completion_stream(self, messages: list[dict]) -> str:
         response = await openai.ChatCompletion.acreate(**self._cons_kwargs(messages), stream=True)
@@ -323,3 +325,29 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
     async def _amoderation(self, content: Union[str, list[str]]):
         rsp = await self.llm.Moderation.acreate(input=content)
         return rsp
+
+    @staticmethod
+    def __get_rpm(config) -> int:
+        limit_session_key = config.get("OPENAI_LIMIT_SESSION_KEY", "")
+        default_rpm = int(config.get("RPM", 10))
+        if len(limit_session_key) > 0:
+            try:
+                response = requests.get(
+                                        "https://api.openai.com/dashboard/rate_limits",
+                                        headers={'Authorization': f'Bearer {limit_session_key}'},
+                                        timeout=10,
+                                        proxies={'https': openai.proxy}
+                                        )
+            except Exception as e:
+                logger.error(f"Connection to api.openai.com failed:{e}.Setting rpm to default parameter.")
+                return default_rpm
+            
+            if response.status_code == 200:
+                limit_dict = json.loads(response.text)[config.openai_api_model]
+                return limit_dict['max_requests_per_1_minute']
+            else:
+                error = json.loads(response.text)['error']
+                raise ValueError(f"Get rpm from api.openai.com error. {error['message']}")
+        else:
+            return default_rpm
+

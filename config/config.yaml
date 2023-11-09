@@ -9,6 +9,10 @@ OPENAI_API_BASE: "https://api.openai.com/v1"
 #OPENAI_PROXY: "http://127.0.0.1:8118"
 #OPENAI_API_KEY: "YOUR_API_KEY"
 OPENAI_API_MODEL: "gpt-4"
+## If you want to automate the setup for RPM and MAX_TOKENS, please log in through your own browser at https://platform.openai.com/account/limits, enable developer mode, and find 'rate_limits' in the network section. 
+## If it's not found, refresh the recording using Ctrl+R. After locating 'rate_limits', find 'Authorization: sess-xxx' in the request header, where 'sess-xxx' is the session key.
+## If you wish to manually set RPM, please set RPM and either do not set OPENAI_LIMIT_SESSION_KEY or set it to "".
+# OPENAI_LIMIT_SESSION_KEY: "YOUR_API_LIMITS_KEY"
 MAX_TOKENS: 1500
 RPM: 10
 
