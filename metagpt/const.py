@@ -18,12 +18,13 @@ def get_project_root():
             or (current_path / ".gitignore").exists()
         ):
             # use metagpt with git clone will land here
+            logger.info(f"PROJECT_ROOT set to {str(current_path)}")
             return current_path
         parent_path = current_path.parent
         if parent_path == current_path:
             # use metagpt with pip install will land here
             cwd = Path.cwd()
-            logger.info(f"RPOJECT_ROOT set to current working directory: {str(cwd)}")
+            logger.info(f"PROJECT_ROOT set to current working directory: {str(cwd)}")
             return cwd
         current_path = parent_path
 
