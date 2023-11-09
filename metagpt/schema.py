@@ -40,7 +40,7 @@ class Message(BaseModel):
     role: str = "user"  # system / user / assistant
     cause_by: str = ""
     sent_from: str = ""
-    send_to: Set = Field(default_factory=set)
+    send_to: Set = Field(default_factory={MESSAGE_ROUTE_TO_ALL})
 
     def __init__(
         self,
