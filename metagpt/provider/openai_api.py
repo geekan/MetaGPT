@@ -334,9 +334,9 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             try:
                 response = requests.get(
                                         "https://api.openai.com/dashboard/rate_limits",
-                                        headers={'Authorization': f'Bearer {session_key}'},
+                                        headers={"Authorization": f"Bearer {session_key}"},
                                         timeout=10,
-                                        proxies={'https': openai.proxy}
+                                        proxies={"https": openai.proxy}
                                         )
             except Exception as e:
                 logger.error(f"Connection to api.openai.com failed:{e}.Setting rpm to default parameter.")
@@ -344,9 +344,9 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             
             if response.status_code == 200:
                 limit_dict = json.loads(response.text)[config.openai_api_model]
-                return limit_dict['max_requests_per_1_minute']
+                return limit_dict["max_requests_per_1_minute"]
             else:
-                error = json.loads(response.text)['error']
+                error = json.loads(response.text)["error"]
                 raise ValueError(f"Get rpm from api.openai.com error. {error['message']}")
         else:
             return default_rpm
