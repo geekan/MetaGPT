@@ -3,7 +3,7 @@ Filename: MetaGPT/examples/debate.py
 Created Date: Tuesday, September 19th 2023, 6:52:25 pm
 Author: garylin2099
 @Modified By: mashenquan, 2023-11-1. In accordance with Chapter 2.1.3 of RFC 116, modify the data type of the `send_to`
-        value of the `Message` object.
+        value of the `Message` object; modify the argument type of `get_by_actions`.
 """
 import asyncio
 import platform
@@ -15,6 +15,7 @@ from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.software_company import SoftwareCompany
+from metagpt.utils.common import any_to_str_set
 
 
 class ShoutOut(Action):
@@ -65,7 +66,7 @@ class Trump(Role):
     async def _act(self) -> Message:
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
 
-        msg_history = self._rc.memory.get_by_actions([ShoutOut])
+        msg_history = self._rc.memory.get_by_actions(any_to_str_set([ShoutOut]))
         context = []
         for m in msg_history:
             context.append(str(m))
@@ -107,7 +108,7 @@ class Biden(Role):
     async def _act(self) -> Message:
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
 
-        msg_history = self._rc.memory.get_by_actions([BossRequirement, ShoutOut])
+        msg_history = self._rc.memory.get_by_actions(any_to_str_set([BossRequirement, ShoutOut]))
         context = []
         for m in msg_history:
             context.append(str(m))
