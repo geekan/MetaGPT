@@ -133,7 +133,9 @@ class QaEngineer(Role):
 
         recipient = parse_recipient(result_msg)  # the recipient might be Engineer or myself
         content = str(file_info) + FILENAME_CODE_SEP + result_msg
-        msg = Message(content=content, role=self.profile, cause_by=RunCode, sent_from=self.profile, send_to=recipient)
+        msg = Message(
+            content=content, role=self.profile, cause_by=any_to_str(RunCode), sent_from=self.profile, send_to=recipient
+        )
         self.publish_message(msg)
 
     async def _debug_error(self, msg):
@@ -145,7 +147,7 @@ class QaEngineer(Role):
             msg = Message(
                 content=file_info,
                 role=self.profile,
-                cause_by=DebugError,
+                cause_by=any_to_str(DebugError),
                 sent_from=self.profile,
                 send_to=recipient,
             )
@@ -163,7 +165,7 @@ class QaEngineer(Role):
             result_msg = Message(
                 content=f"Exceeding {self.test_round_allowed} rounds of tests, skip (writing code counts as a round, too)",
                 role=self.profile,
-                cause_by=WriteTest,
+                cause_by=any_to_str(WriteTest),
                 sent_from=self.profile,
             )
             return result_msg
@@ -187,7 +189,7 @@ class QaEngineer(Role):
         result_msg = Message(
             content=f"Round {self.test_round} of tests done",
             role=self.profile,
-            cause_by=WriteTest,
+            cause_by=any_to_str(WriteTest),
             sent_from=self.profile,
         )
         return result_msg
