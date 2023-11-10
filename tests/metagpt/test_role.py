@@ -60,7 +60,7 @@ async def test_react():
             name=seed.name, profile=seed.profile, goal=seed.goal, constraints=seed.constraints, desc=seed.desc
         )
         role.subscribe({seed.subscription})
-        assert role._rc.watch == {seed.subscription}
+        assert role._rc.watch == set({})
         assert role.name == seed.name
         assert role.profile == seed.profile
         assert role._setting.goal == seed.goal
@@ -69,7 +69,7 @@ async def test_react():
         assert role.is_idle
         env = Environment()
         env.add_role(role)
-        assert env.get_subscribed_tags(role) == {seed.subscription}
+        assert env.get_subscription(role) == {seed.subscription}
         env.publish_message(Message(content="test", msg_to=seed.subscription))
         assert not role.is_idle
         while not env.is_idle:
@@ -82,19 +82,19 @@ async def test_react():
         assert role.is_idle
         tag = uuid.uuid4().hex
         role.subscribe({tag})
-        assert env.get_subscribed_tags(role) == {seed.subscription, tag}
+        assert env.get_subscription(role) == {tag}
 
 
 @pytest.mark.asyncio
 async def test_msg_to():
-    m = Message(content="a", msg_to=["a", MockRole, Message])
-    assert m.msg_to == {"a", get_class_name(MockRole), get_class_name(Message)}
+    m = Message(content="a", send_to=["a", MockRole, Message])
+    assert m.send_to == set({"a", get_class_name(MockRole), get_class_name(Message)})
 
-    m = Message(content="a", cause_by=MockAction, msg_to={"a", MockRole, Message})
-    assert m.msg_to == {"a", get_class_name(MockRole), get_class_name(Message), get_class_name(MockAction)}
+    m = Message(content="a", cause_by=MockAction, send_to={"a", MockRole, Message})
+    assert m.send_to == set({"a", get_class_name(MockRole), get_class_name(Message)})
 
-    m = Message(content="a", msg_to=("a", MockRole, Message))
-    assert m.msg_to == {"a", get_class_name(MockRole), get_class_name(Message)}
+    m = Message(content="a", send_to=("a", MockRole, Message))
+    assert m.send_to == set({"a", get_class_name(MockRole), get_class_name(Message)})
 
 
 if __name__ == "__main__":
