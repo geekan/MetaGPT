@@ -34,7 +34,10 @@ async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, 
     engine = CONFIG.mermaid_engine.lower()
     if engine == "nodejs":
         if check_cmd_exists(CONFIG.mmdc) != 0:
-            logger.warning("RUN `npm install -g @mermaid-js/mermaid-cli` to install mmdc")
+            logger.warning(
+                "RUN `npm install -g @mermaid-js/mermaid-cli` to install mmdc,"
+                "or consider changing MERMAID_ENGINE to `playwright`, `pyppeteer`, or `ink`."
+            )
             return -1
 
         for suffix in ["pdf", "svg", "png"]:
