@@ -134,7 +134,7 @@ class Role:
             self._states.append(f"{idx}. {action}")
 
     def _watch(self, actions: Iterable[Type[Action]]):
-        """Listen to the corresponding behaviors in private message buffer"""
+        """Watch Actions of interest. Role will select Messages caused by these Actions from its personal message buffer during _observe."""
         tags = {any_to_str(t) for t in actions}
         self._rc.watch.update(tags)
         # check RoleContext after adding watch actions
