@@ -58,7 +58,7 @@ class Message(BaseModel):
         :param instruct_content: Message content struct.
         :param cause_by: Message producer
         :param sent_from: Message route info tells who sent this message.
-        :param send_to: Labels for the consumer to filter its subscribed messages.
+        :param send_to: Specifies the target recipient or consumer for message delivery in the environment.
         :param role: Message meta info tells who sent this message.
         """
         super().__init__(
