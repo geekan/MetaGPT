@@ -134,14 +134,17 @@ class Role:
             self._states.append(f"{idx}. {action}")
 
     def _watch(self, actions: Iterable[Type[Action]]):
-        """Watch Actions of interest. Role will select Messages caused by these Actions from its personal message buffer during _observe."""
+        """Watch Actions of interest. Role will select Messages caused by these Actions from its personal message
+        buffer during _observe."""
         tags = {any_to_str(t) for t in actions}
         self._rc.watch.update(tags)
         # check RoleContext after adding watch actions
         self._rc.check(self._role_id)
 
     def subscribe(self, tags: Set[str]):
-        """Used to receive Messages with certain tags from the environment. Message will be put into personal message buffer to be further processed in _observe. By default, a Role subscribes Messages with a tag of its own name or profile."""
+        """Used to receive Messages with certain tags from the environment. Message will be put into personal message
+        buffer to be further processed in _observe. By default, a Role subscribes Messages with a tag of its own name
+        or profile."""
         self._subscription = tags
         if self._rc.env:  # According to the routing feature plan in Chapter 2.2.3.2 of RFC 113
             self._rc.env.set_subscription(self, self._subscription)
