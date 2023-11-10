@@ -81,7 +81,7 @@ class Engineer(Role):
         self.use_code_review = use_code_review
         if self.use_code_review:
             self._init_actions([WriteCode, WriteCodeReview])
-        self._watch([WriteTasks, WriteDesign])
+        self._watch([WriteTasks])
         self.todos = []
         self.n_borg = n_borg
 
