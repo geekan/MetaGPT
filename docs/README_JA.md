@@ -270,12 +270,12 @@ python startup.py "pygame をベースとした cli ヘビゲームを書く"
 ### コードウォークスルー
 
 ```python
-from metagpt.software_company import SoftwareCompany
+from metagpt.team import Team
 from metagpt.roles import ProjectManager, ProductManager, Architect, Engineer
 
 async def startup(idea: str, investment: float = 3.0, n_round: int = 5):
     """スタートアップを実行する。ボスになる。"""
-    company = SoftwareCompany()
+    company = Team()
     company.hire([ProductManager(), Architect(), ProjectManager(), Engineer()])
     company.invest(investment)
     company.start_project(idea)
