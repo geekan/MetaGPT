@@ -116,9 +116,7 @@ class Role:
         self._actions = []
         self._role_id = str(self._setting)
         self._rc = RoleContext()
-        self._subscription = {any_to_str(self)}
-        if name:
-            self._subscription.add(name)
+        self._subscription = {any_to_str(self), name} if name else {any_to_str(self)}
 
     def _reset(self):
         self._states = []
