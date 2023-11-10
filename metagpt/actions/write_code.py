@@ -14,7 +14,7 @@ from metagpt.actions.action import Action
 from metagpt.const import WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.schema import Message
-from metagpt.utils.common import CodeParser, get_class_name
+from metagpt.utils.common import CodeParser, any_to_str
 
 PROMPT_TEMPLATE = """
 NOTICE
@@ -58,7 +58,7 @@ class WriteCode(Action):
         if self._is_invalid(filename):
             return
 
-        design = [i for i in context if i.cause_by == get_class_name(WriteDesign)][0]
+        design = [i for i in context if i.cause_by == any_to_str(WriteDesign)][0]
 
         ws_name = CodeParser.parse_str(block="Python package name", text=design.content)
         ws_path = WORKSPACE_ROOT / ws_name
