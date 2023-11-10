@@ -61,9 +61,9 @@ class Environment(BaseModel):
         logger.info(f"publish_message: {message.dump()}")
         found = False
         # According to the routing feature plan in Chapter 2.2.3.2 of RFC 113
-        for obj, subscription in self.consumers.items():
+        for role, subscription in self.consumers.items():
             if is_subscribed(message, subscription):
-                obj.put_message(message)
+                role.put_message(message)
                 found = True
         if not found:
             logger.warning(f"Message no recipients: {message.dump()}")
