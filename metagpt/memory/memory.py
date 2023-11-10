@@ -73,7 +73,7 @@ class Memory:
             news.append(i)
         return news
 
-    def get_by_action(self, action) -> list[Message]:
+    def get_by_action(self, action: str) -> list[Message]:
         """Return all messages triggered by a specified Action"""
         return self.index[action]
 
