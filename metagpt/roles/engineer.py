@@ -21,12 +21,7 @@ from metagpt.const import WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
-from metagpt.utils.common import (
-    CodeParser,
-    any_to_str_set,
-    get_class_name,
-    get_object_name,
-)
+from metagpt.utils.common import CodeParser, any_to_str, any_to_str_set
 from metagpt.utils.special_tokens import FILENAME_CODE_SEP, MSG_SEP
 
 
@@ -107,7 +102,7 @@ class Engineer(Role):
         return CodeParser.parse_str(block="Python package name", text=system_design_msg.content)
 
     def get_workspace(self) -> Path:
-        msg = self._rc.memory.get_by_action(get_class_name(WriteDesign))[-1]
+        msg = self._rc.memory.get_by_action(any_to_str(WriteDesign))[-1]
         if not msg:
             return WORKSPACE_ROOT / "src"
         workspace = self.parse_workspace(msg)
@@ -146,13 +141,13 @@ class Engineer(Role):
             logger.info(todo)
             logger.info(code_rsp)
             # self.write_file(todo, code)
-            msg = Message(content=code_rsp, role=self.profile, cause_by=get_object_name(self._rc.todo))
+            msg = Message(content=code_rsp, role=self.profile, cause_by=any_to_str(self._rc.todo))
             self._rc.memory.add(msg)
             self.publish_message(msg)
             del self.todos[0]
 
         logger.info(f"Done {self.get_workspace()} generating.")
-        msg = Message(content="all done.", role=self.profile, cause_by=get_object_name(self._rc.todo))
+        msg = Message(content="all done.", role=self.profile, cause_by=any_to_str(self._rc.todo))
         return msg
 
     async def _act_sp(self) -> Message:
@@ -163,7 +158,7 @@ class Engineer(Role):
             # logger.info(code_rsp)
             # code = self.parse_code(code_rsp)
             file_path = self.write_file(todo, code)
-            msg = Message(content=code, role=self.profile, cause_by=get_object_name(self._rc.todo))
+            msg = Message(content=code, role=self.profile, cause_by=any_to_str(self._rc.todo))
             self._rc.memory.add(msg)
             self.publish_message(msg)
 
@@ -174,7 +169,7 @@ class Engineer(Role):
         msg = Message(
             content=MSG_SEP.join(code_msg_all),
             role=self.profile,
-            cause_by=get_object_name(self._rc.todo),
+            cause_by=any_to_str(self._rc.todo),
             send_to="Edward",
         )
         return msg
@@ -216,7 +211,7 @@ class Engineer(Role):
         msg = Message(
             content=MSG_SEP.join(code_msg_all),
             role=self.profile,
-            cause_by=get_object_name(self._rc.todo),
+            cause_by=any_to_str(self._rc.todo),
             send_to="Edward",
         )
         return msg
@@ -236,7 +231,7 @@ class Engineer(Role):
 
         # Parse task lists
         for message in self._rc.news:
-            if not message.cause_by == get_class_name(WriteTasks):
+            if not message.cause_by == any_to_str(WriteTasks):
                 continue
             self.todos = self.parse_tasks(message)
             return 1
@@ -245,7 +240,7 @@ class Engineer(Role):
 
     async def _think(self) -> None:
         # In asynchronous scenarios, first check if the required messages are ready.
-        filters = {get_class_name(WriteTasks)}
+        filters = {any_to_str(WriteTasks)}
         msgs = self._rc.memory.get_by_actions(filters)
         if not msgs:
             self._rc.todo = None

@@ -12,7 +12,7 @@ from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.tools import SearchEngineType
-from metagpt.utils.common import get_object_name
+from metagpt.utils.common import any_to_str
 
 
 class Searcher(Role):
@@ -64,10 +64,10 @@ class Searcher(Role):
                 content=response.content,
                 instruct_content=response.instruct_content,
                 role=self.profile,
-                cause_by=get_object_name(self._rc.todo),
+                cause_by=any_to_str(self._rc.todo),
             )
         else:
-            msg = Message(content=response, role=self.profile, cause_by=get_object_name(self._rc.todo))
+            msg = Message(content=response, role=self.profile, cause_by=any_to_str(self._rc.todo))
         self._rc.memory.add(msg)
         return msg
 

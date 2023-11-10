@@ -30,7 +30,7 @@ from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.memory import LongTermMemory, Memory
 from metagpt.schema import Message, MessageQueue
-from metagpt.utils.common import get_class_name, get_object_name
+from metagpt.utils.common import any_to_str
 
 PREFIX_TEMPLATE = """You are a {profile}, named {name}, your goal is {goal}, and the constraint is {constraints}. """
 
@@ -116,7 +116,7 @@ class Role:
         self._actions = []
         self._role_id = str(self._setting)
         self._rc = RoleContext()
-        self._subscription = {get_object_name(self)}
+        self._subscription = {any_to_str(self)}
         if name:
             self._subscription.add(name)
 
@@ -137,7 +137,7 @@ class Role:
 
     def _watch(self, actions: Iterable[Type[Action]]):
         """Listen to the corresponding behaviors in private message buffer"""
-        tags = {get_class_name(t) for t in actions}
+        tags = {any_to_str(t) for t in actions}
         self._rc.watch.update(tags)
         # check RoleContext after adding watch actions
         self._rc.check(self._role_id)
@@ -207,10 +207,10 @@ class Role:
                 content=response.content,
                 instruct_content=response.instruct_content,
                 role=self.profile,
-                cause_by=get_object_name(self._rc.todo),
+                cause_by=any_to_str(self._rc.todo),
             )
         else:
-            msg = Message(content=response, role=self.profile, cause_by=get_object_name(self._rc.todo))
+            msg = Message(content=response, role=self.profile, cause_by=any_to_str(self._rc.todo))
 
         return msg
 
