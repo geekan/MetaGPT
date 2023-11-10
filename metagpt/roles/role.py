@@ -141,7 +141,7 @@ class Role:
         self._rc.check(self._role_id)
 
     def subscribe(self, tags: Set[str]):
-        """Listen to the corresponding behaviors"""
+        """Used to receive Messages with certain tags from the environment. Message will be put into personal message buffer to be further processed in _observe. By default, a Role subscribes Messages with a tag of its own name or profile."""
         self._subscription = tags
         if self._rc.env:  # According to the routing feature plan in Chapter 2.2.3.2 of RFC 113
             self._rc.env.set_subscription(self, self._subscription)
