@@ -141,13 +141,13 @@ class Engineer(Role):
             logger.info(todo)
             logger.info(code_rsp)
             # self.write_file(todo, code)
-            msg = Message(content=code_rsp, role=self.profile, cause_by=any_to_str(self._rc.todo))
+            msg = Message(content=code_rsp, role=self.profile, cause_by=self._rc.todo)
             self._rc.memory.add(msg)
             self.publish_message(msg)
             del self.todos[0]
 
         logger.info(f"Done {self.get_workspace()} generating.")
-        msg = Message(content="all done.", role=self.profile, cause_by=any_to_str(self._rc.todo))
+        msg = Message(content="all done.", role=self.profile, cause_by=self._rc.todo)
         return msg
 
     async def _act_sp(self) -> Message:
@@ -158,7 +158,7 @@ class Engineer(Role):
             # logger.info(code_rsp)
             # code = self.parse_code(code_rsp)
             file_path = self.write_file(todo, code)
-            msg = Message(content=code, role=self.profile, cause_by=any_to_str(self._rc.todo))
+            msg = Message(content=code, role=self.profile, cause_by=self._rc.todo)
             self._rc.memory.add(msg)
             self.publish_message(msg)
 
@@ -169,7 +169,7 @@ class Engineer(Role):
         msg = Message(
             content=MSG_SEP.join(code_msg_all),
             role=self.profile,
-            cause_by=any_to_str(self._rc.todo),
+            cause_by=self._rc.todo,
             send_to="Edward",
         )
         return msg
@@ -211,7 +211,7 @@ class Engineer(Role):
         msg = Message(
             content=MSG_SEP.join(code_msg_all),
             role=self.profile,
-            cause_by=any_to_str(self._rc.todo),
+            cause_by=self._rc.todo,
             send_to="Edward",
         )
         return msg

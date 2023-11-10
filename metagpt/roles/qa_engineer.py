@@ -22,7 +22,7 @@ from metagpt.const import WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
-from metagpt.utils.common import CodeParser, any_to_str, any_to_str_set, parse_recipient
+from metagpt.utils.common import CodeParser, any_to_str_set, parse_recipient
 from metagpt.utils.special_tokens import FILENAME_CODE_SEP, MSG_SEP
 
 
@@ -99,7 +99,7 @@ class QaEngineer(Role):
             msg = Message(
                 content=str(file_info),
                 role=self.profile,
-                cause_by=any_to_str(WriteTest),
+                cause_by=WriteTest,
                 sent_from=self.profile,
                 send_to=self.profile,
             )
@@ -133,9 +133,7 @@ class QaEngineer(Role):
 
         recipient = parse_recipient(result_msg)  # the recipient might be Engineer or myself
         content = str(file_info) + FILENAME_CODE_SEP + result_msg
-        msg = Message(
-            content=content, role=self.profile, cause_by=any_to_str(RunCode), sent_from=self.profile, send_to=recipient
-        )
+        msg = Message(content=content, role=self.profile, cause_by=RunCode, sent_from=self.profile, send_to=recipient)
         self.publish_message(msg)
 
     async def _debug_error(self, msg):
@@ -147,7 +145,7 @@ class QaEngineer(Role):
             msg = Message(
                 content=file_info,
                 role=self.profile,
-                cause_by=any_to_str(DebugError),
+                cause_by=DebugError,
                 sent_from=self.profile,
                 send_to=recipient,
             )
@@ -165,7 +163,7 @@ class QaEngineer(Role):
             result_msg = Message(
                 content=f"Exceeding {self.test_round_allowed} rounds of tests, skip (writing code counts as a round, too)",
                 role=self.profile,
-                cause_by=any_to_str(WriteTest),
+                cause_by=WriteTest,
                 sent_from=self.profile,
             )
             return result_msg
@@ -189,7 +187,7 @@ class QaEngineer(Role):
         result_msg = Message(
             content=f"Round {self.test_round} of tests done",
             role=self.profile,
-            cause_by=any_to_str(WriteTest),
+            cause_by=WriteTest,
             sent_from=self.profile,
         )
         return result_msg

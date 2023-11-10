@@ -210,10 +210,10 @@ class Role:
                 content=response.content,
                 instruct_content=response.instruct_content,
                 role=self.profile,
-                cause_by=any_to_str(self._rc.todo),
+                cause_by=self._rc.todo,
             )
         else:
-            msg = Message(content=response, role=self.profile, cause_by=any_to_str(self._rc.todo))
+            msg = Message(content=response, role=self.profile, cause_by=self._rc.todo)
 
         return msg
 
