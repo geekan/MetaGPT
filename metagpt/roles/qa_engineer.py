@@ -22,12 +22,7 @@ from metagpt.const import WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
-from metagpt.utils.common import (
-    CodeParser,
-    any_to_str_set,
-    get_class_name,
-    parse_recipient,
-)
+from metagpt.utils.common import CodeParser, any_to_str, any_to_str_set, parse_recipient
 from metagpt.utils.special_tokens import FILENAME_CODE_SEP, MSG_SEP
 
 
@@ -55,7 +50,7 @@ class QaEngineer(Role):
         return CodeParser.parse_str(block="Python package name", text=system_design_msg.content)
 
     def get_workspace(self, return_proj_dir=True) -> Path:
-        msg = self._rc.memory.get_by_action(get_class_name(WriteDesign))[-1]
+        msg = self._rc.memory.get_by_action(WriteDesign)[-1]
         if not msg:
             return WORKSPACE_ROOT / "src"
         workspace = self.parse_workspace(msg)
@@ -104,7 +99,7 @@ class QaEngineer(Role):
             msg = Message(
                 content=str(file_info),
                 role=self.profile,
-                cause_by=WriteTest,
+                cause_by=any_to_str(WriteTest),
                 sent_from=self.profile,
                 send_to=self.profile,
             )

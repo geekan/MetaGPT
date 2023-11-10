@@ -21,7 +21,7 @@ from metagpt.const import WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
-from metagpt.utils.common import CodeParser, any_to_str, any_to_str_set
+from metagpt.utils.common import CodeParser, any_to_str
 from metagpt.utils.special_tokens import FILENAME_CODE_SEP, MSG_SEP
 
 
@@ -102,7 +102,7 @@ class Engineer(Role):
         return CodeParser.parse_str(block="Python package name", text=system_design_msg.content)
 
     def get_workspace(self) -> Path:
-        msg = self._rc.memory.get_by_action(any_to_str(WriteDesign))[-1]
+        msg = self._rc.memory.get_by_action(WriteDesign)[-1]
         if not msg:
             return WORKSPACE_ROOT / "src"
         workspace = self.parse_workspace(msg)
@@ -130,7 +130,7 @@ class Engineer(Role):
         todo_coros = []
         for todo in self.todos:
             todo_coro = WriteCode().run(
-                context=self._rc.memory.get_by_actions(any_to_str_set([WriteTasks, WriteDesign])),
+                context=self._rc.memory.get_by_actions([WriteTasks, WriteDesign]),
                 filename=todo,
             )
             todo_coros.append(todo_coro)
@@ -185,7 +185,7 @@ class Engineer(Role):
             TODO: The goal is not to need it. After clear task decomposition, based on the design idea, you should be able to write a single file without needing other codes. If you can't, it means you need a clearer definition. This is the key to writing longer code.
             """
             context = []
-            msg = self._rc.memory.get_by_actions(any_to_str_set([WriteDesign, WriteTasks, WriteCode]))
+            msg = self._rc.memory.get_by_actions([WriteDesign, WriteTasks, WriteCode])
             for m in msg:
                 context.append(m.content)
             context_str = "\n".join(context)
@@ -240,8 +240,7 @@ class Engineer(Role):
 
     async def _think(self) -> None:
         # In asynchronous scenarios, first check if the required messages are ready.
-        filters = {any_to_str(WriteTasks)}
-        msgs = self._rc.memory.get_by_actions(filters)
+        msgs = self._rc.memory.get_by_actions({WriteTasks})
         if not msgs:
             self._rc.todo = None
             return

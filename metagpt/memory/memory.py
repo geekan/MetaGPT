@@ -10,6 +10,7 @@ from collections import defaultdict
 from typing import Iterable, Set
 
 from metagpt.schema import Message
+from metagpt.utils.common import any_to_str, any_to_str_set
 
 
 class Memory:
@@ -73,14 +74,16 @@ class Memory:
             news.append(i)
         return news
 
-    def get_by_action(self, action: str) -> list[Message]:
+    def get_by_action(self, action) -> list[Message]:
         """Return all messages triggered by a specified Action"""
-        return self.index[action]
+        index = any_to_str(action)
+        return self.index[index]
 
     def get_by_actions(self, actions: Set) -> list[Message]:
         """Return all messages triggered by specified Actions"""
         rsp = []
-        for action in actions:
+        indices = any_to_str_set(actions)
+        for action in indices:
             if action not in self.index:
                 continue
             rsp += self.index[action]

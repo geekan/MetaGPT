@@ -15,7 +15,6 @@ from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.software_company import SoftwareCompany
-from metagpt.utils.common import any_to_str_set
 
 
 class ShoutOut(Action):
@@ -66,7 +65,7 @@ class Trump(Role):
     async def _act(self) -> Message:
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
 
-        msg_history = self._rc.memory.get_by_actions(any_to_str_set([ShoutOut]))
+        msg_history = self._rc.memory.get_by_actions([ShoutOut])
         context = []
         for m in msg_history:
             context.append(str(m))
@@ -108,7 +107,7 @@ class Biden(Role):
     async def _act(self) -> Message:
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
 
-        msg_history = self._rc.memory.get_by_actions(any_to_str_set([BossRequirement, ShoutOut]))
+        msg_history = self._rc.memory.get_by_actions([BossRequirement, ShoutOut])
         context = []
         for m in msg_history:
             context.append(str(m))
