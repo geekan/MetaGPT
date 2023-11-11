@@ -12,6 +12,7 @@ from metagpt.logs import logger
 from metagpt.schema import Message
 from metagpt.utils.common import CodeParser
 from tenacity import retry, stop_after_attempt, wait_fixed
+from config.Customized import ACTION_LLMS_MAPPING
 
 PROMPT_TEMPLATE = """
 NOTICE
@@ -26,7 +27,7 @@ ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenc
 5. Think before writing: What should be implemented and provided in this document?
 6. CAREFULLY CHECK THAT YOU DONT MISS ANY NECESSARY CLASS/FUNCTION IN THIS FILE.
 7. Do not use public member functions that do not exist in your design.
-
+    
 -----
 # Context
 {context}
@@ -44,6 +45,7 @@ ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenc
 
 class WriteCode(Action):
     def __init__(self, name="WriteCode", context: list[Message] = None, llm=None):
+        llm = ACTION_LLMS_MAPPING['WriteCode']
         super().__init__(name, context, llm)
 
     def _is_invalid(self, filename):

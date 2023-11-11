@@ -13,6 +13,7 @@ from metagpt.const import WORKSPACE_ROOT
 from metagpt.utils.common import CodeParser
 from metagpt.utils.get_template import get_template
 from metagpt.utils.json_to_markdown import json_to_markdown
+from config.Customized import ACTION_LLMS_MAPPING
 
 templates = {
     "json": {
@@ -164,6 +165,7 @@ OUTPUT_MAPPING = {
 
 class WriteTasks(Action):
     def __init__(self, name="CreateTasks", context=None, llm=None):
+        llm = ACTION_LLMS_MAPPING['WriteTasks']
         super().__init__(name, context, llm)
 
     def _save(self, context, rsp):

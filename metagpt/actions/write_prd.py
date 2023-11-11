@@ -12,7 +12,7 @@ from metagpt.actions.search_and_summarize import SearchAndSummarize
 from metagpt.config import CONFIG
 from metagpt.logs import logger
 from metagpt.utils.get_template import get_template
-
+from config.Customized import ACTION_LLMS_MAPPING
 templates = {
     "json": {
         "PROMPT_TEMPLATE": """
@@ -220,6 +220,7 @@ OUTPUT_MAPPING = {
 
 class WritePRD(Action):
     def __init__(self, name="", context=None, llm=None):
+        llm = ACTION_LLMS_MAPPING['WritePRD']
         super().__init__(name, context, llm)
 
     async def run(self, requirements, format=CONFIG.prompt_format, *args, **kwargs) -> ActionOutput:
@@ -237,5 +238,5 @@ class WritePRD(Action):
         )
         logger.debug(prompt)
         # prd = await self._aask_v1(prompt, "prd", OUTPUT_MAPPING)
-        prd = await self._aask_v1(prompt, "prd", OUTPUT_MAPPING, format=format)
+        prd = await self._aask_v1(prompt, "prd", OUTPUT_MAPPING, format=format)  # debug时需要步入两次
         return prd

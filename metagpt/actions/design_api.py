@@ -17,7 +17,7 @@ from metagpt.utils.common import CodeParser
 from metagpt.utils.get_template import get_template
 from metagpt.utils.json_to_markdown import json_to_markdown
 from metagpt.utils.mermaid import mermaid_to_file
-
+from config.Customized import ACTION_LLMS_MAPPING
 templates = {
     "json": {
         "PROMPT_TEMPLATE": """
@@ -151,6 +151,7 @@ OUTPUT_MAPPING = {
 
 class WriteDesign(Action):
     def __init__(self, name, context=None, llm=None):
+        llm = ACTION_LLMS_MAPPING['WriteDesign']
         super().__init__(name, context, llm)
         self.desc = (
             "Based on the PRD, think about the system design, and design the corresponding APIs, "

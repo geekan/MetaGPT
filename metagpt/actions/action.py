@@ -16,14 +16,15 @@ from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.utils.common import OutputParser
 from metagpt.utils.custom_decoder import CustomDecoder
-
+from metagpt.provider.openai_api import CustomedGPTAPI as CustomedLLM
 
 class Action(ABC):
     def __init__(self, name: str = "", context=None, llm: LLM = None):
         self.name: str = name
-        if llm is None:
-            llm = LLM()
-        self.llm = llm
+        # if llm is None:
+        #     llm = LLM()
+        # self.llm = llm
+        self.llm = CustomedLLM(llm)
         self.context = context
         self.prefix = ""
         self.profile = ""
@@ -47,9 +48,12 @@ class Action(ABC):
         if not system_msgs:
             system_msgs = []
         system_msgs.append(self.prefix)
+
+        self.llm._CustomedGPTAPI__init_openai()
+
         return await self.llm.aask(prompt, system_msgs)
 
-    @retry(stop=stop_after_attempt(3), wait=wait_fixed(1))
+    @retry(stop=stop_after_attempt(3), wait=wait_fixed(5))
     async def _aask_v1(
         self,
         prompt: str,
@@ -62,6 +66,9 @@ class Action(ABC):
         if not system_msgs:
             system_msgs = []
         system_msgs.append(self.prefix)
+
+        self.llm._CustomedGPTAPI__init_openai()
+
         content = await self.llm.aask(prompt, system_msgs)
         logger.debug(content)
         output_class = ActionOutput.create_model_class(output_class_name, output_data_mapping)

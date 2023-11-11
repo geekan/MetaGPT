@@ -11,6 +11,7 @@ from metagpt.logs import logger
 from metagpt.schema import Message
 from metagpt.utils.common import CodeParser
 from tenacity import retry, stop_after_attempt, wait_fixed
+from config.Customized import ACTION_LLMS_MAPPING
 
 PROMPT_TEMPLATE = """
 NOTICE
@@ -63,6 +64,7 @@ FORMAT_EXAMPLE = """
 
 class WriteCodeReview(Action):
     def __init__(self, name="WriteCodeReview", context: list[Message] = None, llm=None):
+        llm = ACTION_LLMS_MAPPING['WriteCodeReview']
         super().__init__(name, context, llm)
 
     @retry(stop=stop_after_attempt(2), wait=wait_fixed(1))
