@@ -9,7 +9,7 @@
 from metagpt.actions import WritePRD
 from metagpt.actions.design_api import WriteDesign
 from metagpt.roles import Role
-
+from config.Customized import ROLE_LLMS_MAPPING
 
 class Architect(Role):
     """
@@ -30,7 +30,7 @@ class Architect(Role):
         constraints: str = "Try to specify good open source tools as much as possible",
     ) -> None:
         """Initializes the Architect with given attributes."""
-        super().__init__(name, profile, goal, constraints)
+        super().__init__(name, profile, goal, constraints,customedllm = ROLE_LLMS_MAPPING['Architect'])
 
         # Initialize actions specific to the Architect role
         self._init_actions([WriteDesign])

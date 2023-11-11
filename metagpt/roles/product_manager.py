@@ -7,7 +7,7 @@
 """
 from metagpt.actions import BossRequirement, WritePRD
 from metagpt.roles import Role
-
+from config.Customized import ROLE_LLMS_MAPPING
 
 class ProductManager(Role):
     """
@@ -36,6 +36,6 @@ class ProductManager(Role):
             goal (str): Goal of the product manager.
             constraints (str): Constraints or limitations for the product manager.
         """
-        super().__init__(name, profile, goal, constraints)
+        super().__init__(name, profile, goal, constraints,customedllm = ROLE_LLMS_MAPPING['ProductManager'])
         self._init_actions([WritePRD])
         self._watch([BossRequirement])

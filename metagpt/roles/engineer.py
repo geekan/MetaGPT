@@ -17,6 +17,7 @@ from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.utils.common import CodeParser
 from metagpt.utils.special_tokens import FILENAME_CODE_SEP, MSG_SEP
+from config.Customized import ROLE_LLMS_MAPPING
 
 
 async def gather_ordered_k(coros, k) -> list:
@@ -70,7 +71,7 @@ class Engineer(Role):
         use_code_review: bool = False,
     ) -> None:
         """Initializes the Engineer role with given attributes."""
-        super().__init__(name, profile, goal, constraints)
+        super().__init__(name, profile, goal, constraints,customedllm = ROLE_LLMS_MAPPING['Engineer'])
         self._init_actions([WriteCode])
         self.use_code_review = use_code_review
         if self.use_code_review:

@@ -8,7 +8,7 @@
 from metagpt.actions import WriteTasks
 from metagpt.actions.design_api import WriteDesign
 from metagpt.roles import Role
-
+from config.Customized import ROLE_LLMS_MAPPING
 
 class ProjectManager(Role):
     """
@@ -37,6 +37,6 @@ class ProjectManager(Role):
             goal (str): Goal of the project manager.
             constraints (str): Constraints or limitations for the project manager.
         """
-        super().__init__(name, profile, goal, constraints)
+        super().__init__(name, profile, goal, constraints,customedllm = ROLE_LLMS_MAPPING['ProjectManager'])
         self._init_actions([WriteTasks])
         self._watch([WriteDesign])

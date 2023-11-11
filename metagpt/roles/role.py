@@ -18,7 +18,7 @@ from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.memory import Memory, LongTermMemory
 from metagpt.schema import Message
-
+from metagpt.provider.openai_api import CustomedGPTAPI as CustomedLLM
 PREFIX_TEMPLATE = """You are a {profile}, named {name}, your goal is {goal}, and the constraint is {constraints}. """
 
 STATE_TEMPLATE = """Here are your conversation records. You can decide which stage you should enter or stay in based on these records.
@@ -93,8 +93,8 @@ class RoleContext(BaseModel):
 class Role:
     """Role/Agent"""
 
-    def __init__(self, name="", profile="", goal="", constraints="", desc=""):
-        self._llm = LLM()
+    def __init__(self, name="", profile="", goal="", constraints="", desc="",customedllm = None):
+        self._llm = CustomedLLM(customedllm)
         self._setting = RoleSetting(name=name, profile=profile, goal=goal, constraints=constraints, desc=desc)
         self._states = []
         self._actions = []
@@ -109,7 +109,7 @@ class Role:
         self._reset()
         for idx, action in enumerate(actions):
             if not isinstance(action, Action):
-                i = action("")
+                i = action("") # 在这里初始化
             else:
                 i = action
             i.set_prefix(self._get_prefix(), self.profile)
@@ -152,6 +152,9 @@ class Role:
         prompt = self._get_prefix()
         prompt += STATE_TEMPLATE.format(history=self._rc.history, states="\n".join(self._states),
                                         n_states=len(self._states) - 1)
+
+        self._llm._CustomedGPTAPI__init_openai()
+        logger.info(f"Role use LLM : {self._llm.model}")
         next_state = await self._llm.aask(prompt)
         logger.debug(f"{prompt=}")
         if not next_state.isdigit() or int(next_state) not in range(len(self._states)):
@@ -165,7 +168,8 @@ class Role:
         #                                history=self.history)
 
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
-        response = await self._rc.todo.run(self._rc.important_memory)
+
+        response = await self._rc.todo.run(self._rc.important_memory) # debug时这里需要步入多次
         # logger.info(response)
         if isinstance(response, ActionOutput):
             msg = Message(content=response.content, instruct_content=response.instruct_content,
