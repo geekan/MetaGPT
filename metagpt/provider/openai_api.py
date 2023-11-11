@@ -28,7 +28,13 @@ from metagpt.utils.token_counter import (
     count_string_tokens,
     get_max_completion_tokens,
 )
-
+from metagpt.logs import logger
+from config.Customized import (
+    ALL_ROLES,
+    ALL_ACTIONS,
+    ROLE_LLMS_MAPPING,
+    ACTION_LLMS_MAPPING
+)
 
 class RateLimiter:
     """Rate control class, each call goes through wait_if_needed, sleep if rate control is needed"""
@@ -323,3 +329,40 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
     async def _amoderation(self, content: Union[str, list[str]]):
         rsp = await self.llm.Moderation.acreate(input=content)
         return rsp
+
+
+class CustomedGPTAPI(OpenAIGPTAPI):
+    """
+    Check https://platform.openai.com/examples for examples
+    """
+
+    def __init__(self,customedllm = None):
+        # customedllm = 'llm':{
+        #             "api":'http://106.75.10.65:17865/v1',
+        #             "model_name":"llama2-13b-chat"
+        #         }
+        self.customedllm = customedllm
+
+        self.llm = openai
+        self.model = CONFIG.openai_api_model if customedllm is None else customedllm['llm']['model_name']
+        #self.__init_openai(CONFIG)
+        #self.model = CONFIG.openai_api_model
+        self.config = CONFIG
+        self.auto_max_tokens = False
+        self._cost_manager = CostManager()
+        self.rpm = int(self.config.get("RPM", 10))
+        RateLimiter.__init__(self, rpm=self.rpm)
+
+    def __init_openai(self):
+        openai.api_key = self.config.openai_api_key
+        if self.customedllm:
+            openai.api_base = self.customedllm['llm']['api']
+            logger.info(f"Using LLM : {self.model}")
+        else:
+            openai.api_base = self.config.openai_api_base
+            logger.info(f"Using default LLM : {self.config.openai_api_model}")
+        if 'gpt' in self.model:
+            openai.api_key = self.config.openai_api_key
+        if self.config.openai_api_type:
+            openai.api_type = self.config.openai_api_type
+            openai.api_version = self.config.openai_api_version
