@@ -255,16 +255,16 @@ class Role:
         logger.debug(f"{self._setting}: {self._rc.state=}, will do {self._rc.todo}")
         return await self._act()
 
-    async def run(self, test_message=None):
+    async def run(self, with_message=None):
         """Observe, and think and act based on the results of the observation"""
-        if test_message:  # For test
+        if with_message:  # For test
             msg = None
-            if isinstance(test_message, str):
-                msg = Message(test_message)
-            elif isinstance(test_message, Message):
-                msg = test_message
-            elif isinstance(test_message, list):
-                msg = Message("\n".join(test_message))
+            if isinstance(with_message, str):
+                msg = Message(with_message)
+            elif isinstance(with_message, Message):
+                msg = with_message
+            elif isinstance(with_message, list):
+                msg = Message("\n".join(with_message))
             self.put_message(msg)
 
         if not await self._observe():
