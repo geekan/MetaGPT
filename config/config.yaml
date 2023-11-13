@@ -6,17 +6,11 @@
 ## If the official OPENAI_API_BASE is not available, we recommend using the [openai-forward](https://github.com/beidongjiedeguang/openai-forward).
 ## Or, you can configure OPENAI_PROXY to access official OPENAI_API_BASE.
 #OPENAI_API_BASE: "https://api.openai.com/v1"
-#OPENAI_API_BASE: "https://openkey.cloud/v1"
-#OPENAI_API_BASE: "https://api.openai-forward.com/v1"
 #OPENAI_PROXY: "http://127.0.0.1:8118"
-OPENAI_API_BASE : "http://106.75.10.65:17865/v1"
+OPENAI_API_BASE : ""
 OPENAI_API_MODEL: "llama2-13b-chat-hf"
-OPENAI_API_KEY: "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"
-#OPENAI_API_MODEL: "gpt-3.5-turbo-16k-0613"
-
-#MAX_TOKENS: 1500
-# 用于限制最大生成长度，通常要保证生产长度+Prompt长度<= LLM支持长度
-MAX_TOKENS: 4096
+OPENAI_API_KEY: ""
+MAX_TOKENS: 1500
 RPM: 10
 
 #### if Spark
