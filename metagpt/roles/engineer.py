@@ -237,12 +237,3 @@ class Engineer(Role):
             return 1
 
         return 0
-
-    async def _think(self) -> None:
-        # In asynchronous scenarios, first check if the required messages are ready.
-        msgs = self._rc.memory.get_by_actions({WriteTasks})
-        if not msgs:
-            self._rc.todo = None
-            return
-
-        await super(Engineer, self)._think()
