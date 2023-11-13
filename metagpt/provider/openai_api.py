@@ -29,7 +29,7 @@ from metagpt.utils.token_counter import (
     get_max_completion_tokens,
 )
 from metagpt.logs import logger
-from config.Customized import (
+from config.customized import (
     ALL_ROLES,
     ALL_ACTIONS,
     ROLE_LLMS_MAPPING,
