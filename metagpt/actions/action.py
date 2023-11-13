@@ -21,9 +21,7 @@ from metagpt.provider.openai_api import CustomedGPTAPI as CustomedLLM
 class Action(ABC):
     def __init__(self, name: str = "", context=None, llm: LLM = None):
         self.name: str = name
-        # if llm is None:
-        #     llm = LLM()
-        # self.llm = llm
+
         self.llm = CustomedLLM(llm)
         self.context = context
         self.prefix = ""
