@@ -109,7 +109,7 @@ class Role:
         self._reset()
         for idx, action in enumerate(actions):
             if not isinstance(action, Action):
-                i = action("") # 在这里初始化
+                i = action("") 
             else:
                 i = action
             i.set_prefix(self._get_prefix(), self.profile)
