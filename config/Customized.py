@@ -1,5 +1,11 @@
-# 均为类名，而非init中的name
-# 也可以考虑直接用类作为key
+# Configurations for customizing LLM
+# Ability to select a specific LLM as a base for an Action or Role
+# Need to provide an interface similar to OPENAI
+"""
+@Time    : 2023/11/13 15:08
+@Author  : Yangqianli
+@File    : Customized.py
+"""
 ALL_ROLES = [
     "Architect","CustomerService","Engineer","InvoiceOCRAssistant","ProductManager","ProjectManager","PromptString",
     "QaEngineer","Researcher","Sales","Searcher","SkAgent","TutorialAssistant"
@@ -13,21 +19,14 @@ ALL_ACTIONS = [
     "WritePRDReview","WriteTest","WriteDirectory","WriteContent"
 ]
 
-
-#CODE_API = "https://api.openai.com/v1"
-#CODE_MODEL = "gpt-3.5-turbo-0613"
-CODE_API = "https://api.openai-forward.com/v1"
-CODE_MODEL="gpt-3.5-turbo-16k-0613"
-# NOCODE_API = "https://api.openai-forward.com/v1"
-# NOCODE_MODEL="gpt-3.5-turbo-16k-0613"
-NOCODE_API = "http://106.75.10.65:17865/v1"
-NOCODE_MODEL="llama2-13b-chat-hf"
+# You can customize the LLM for each Role/Action here 
+# if it is None or not set, it will use the default settings in config.yaml
 
 ROLE_LLMS_MAPPING = {
     "ProductManager":{
         'llm':{
-            "api":NOCODE_API,
-            "model_name":NOCODE_MODEL
+            "api":"http://xxx.xx.xx.xx:xxxxx/v1",
+            "model_name":"llama2-13b-chat-hf"
         }
     },
 
@@ -35,20 +34,20 @@ ROLE_LLMS_MAPPING = {
 
     "ProjectManager":{
         'llm':{
-            "api":NOCODE_API,
-            "model_name":NOCODE_MODEL
+            "api":"https://api.openai.com/v1",
+            "model_name":"gpt-3.5-turbo-16k-0613"
         }
     },
     "Engineer":{
-        'llm': {
-            "api":NOCODE_API,
-            "model_name":NOCODE_MODEL
+        'llm':{
+            "api":"http://xxx.xx.xx.xx:xxxxx/v1",
+            "model_name":"llama2-13b-chat-hf"
         }
     },
     "QaEngineer":{
-        'llm': {
-            "api": NOCODE_API,
-            "model_name": NOCODE_MODEL
+        'llm':{
+            "api":"http://xxx.xx.xx.xx:xxxxx/v1",
+            "model_name":"llama2-13b-chat-hf"
         }
     }
 }
@@ -58,51 +57,51 @@ ACTION_LLMS_MAPPING = {
     "BossRequirement":None,
 
     "WriteCode":{
-        'llm': {
-            "api":CODE_API,
-            "model_name":CODE_MODEL
+        'llm':{
+            "api":"https://api.openai.com/v1",
+            "model_name":"gpt-3.5-turbo-16k-0613"
         }
     },
     "WritePRD":{
-        'llm': {
-            "api":NOCODE_API,
-            "model_name":NOCODE_MODEL
+        'llm':{
+            "api":"https://api.openai.com/v1",
+            "model_name":"gpt-3.5-turbo-16k-0613"
         }
     },
     "WriteDesign":{
-        'llm': {
-            "api":NOCODE_API,
-            "model_name":NOCODE_MODEL
+        'llm':{
+            "api":"https://api.openai.com/v1",
+            "model_name":"gpt-3.5-turbo-16k-0613"
         }
     },
     "WriteTasks":{
-        'llm': {
-            "api":NOCODE_API,
-            "model_name":NOCODE_MODEL
+        'llm':{
+            "api":"https://api.openai.com/v1",
+            "model_name":"gpt-3.5-turbo-16k-0613"
         }
     },
     "WriteCodeReview":{
-        'llm': {
-            "api":CODE_API,
-            "model_name":CODE_MODEL
+        'llm':{
+            "api":"https://api.openai.com/v1",
+            "model_name":"gpt-3.5-turbo-16k-0613"
         }
     },
     "WriteTest":{
-        'llm': {
-            "api":CODE_API,
-            "model_name":CODE_MODEL
+        'llm':{
+            "api":"https://api.openai.com/v1",
+            "model_name":"gpt-3.5-turbo-16k-0613"
         }
     },
     "RunCode": {
-        'llm': {
-            "api": CODE_API,
-            "model_name": CODE_MODEL
+        'llm':{
+            "api":"https://api.openai.com/v1",
+            "model_name":"gpt-3.5-turbo-16k-0613"
         }
     },
     "DebugError": {
-        'llm': {
-            "api": CODE_API,
-            "model_name": CODE_MODEL
+        'llm':{
+            "api":"https://api.openai.com/v1",
+            "model_name":"gpt-3.5-turbo-16k-0613"
         }
     },
 }
