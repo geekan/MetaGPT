@@ -257,7 +257,7 @@ class Role:
 
     async def run(self, with_message=None):
         """Observe, and think and act based on the results of the observation"""
-        if with_message:  # For test
+        if with_message:
             msg = None
             if isinstance(with_message, str):
                 msg = Message(with_message)
