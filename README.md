@@ -270,12 +270,12 @@ NOTES
 ### Code walkthrough
 
 ```python
-from metagpt.software_company import SoftwareCompany
+from metagpt.team import Team
 from metagpt.roles import ProjectManager, ProductManager, Architect, Engineer
 
 async def startup(idea: str, investment: float = 3.0, n_round: int = 5):
     """Run a startup. Be a boss."""
-    company = SoftwareCompany()
+    company = Team()
     company.hire([ProductManager(), Architect(), ProjectManager(), Engineer()])
     company.invest(investment)
     company.start_project(idea)
@@ -299,8 +299,8 @@ For now, cite the [Arxiv paper](https://arxiv.org/abs/2308.00352):
 
 ```bibtex
 @misc{hong2023metagpt,
-      title={MetaGPT: Meta Programming for Multi-Agent Collaborative Framework},
-      author={Sirui Hong and Xiawu Zheng and Jonathan Chen and Yuheng Cheng and Jinlin Wang and Ceyao Zhang and Zili Wang and Steven Ka Shing Yau and Zijuan Lin and Liyang Zhou and Chenyu Ran and Lingfeng Xiao and Chenglin Wu},
+      title={MetaGPT: Meta Programming for A Multi-Agent Collaborative Framework}, 
+      author={Sirui Hong and Mingchen Zhuge and Jonathan Chen and Xiawu Zheng and Yuheng Cheng and Ceyao Zhang and Jinlin Wang and Zili Wang and Steven Ka Shing Yau and Zijuan Lin and Liyang Zhou and Chenyu Ran and Lingfeng Xiao and Chenglin Wu and Jürgen Schmidhuber},
       year={2023},
       eprint={2308.00352},
       archivePrefix={arXiv},
