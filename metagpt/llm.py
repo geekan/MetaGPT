@@ -8,7 +8,7 @@
 
 from metagpt.provider.anthropic_api import Claude2 as Claude
 from metagpt.provider.openai_api import OpenAIGPTAPI as LLM
-from metagpt.provider.human_gpt import HumanGPT
+from metagpt.provider.human_provider import HumanProvider
 
 DEFAULT_LLM = LLM()
 CLAUDE_LLM = Claude()

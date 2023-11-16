@@ -15,7 +15,7 @@ from pydantic import BaseModel, Field
 # from metagpt.environment import Environment
 from metagpt.config import CONFIG
 from metagpt.actions import Action, ActionOutput
-from metagpt.llm import LLM, HumanGPT
+from metagpt.llm import LLM, HumanProvider
 from metagpt.logs import logger
 from metagpt.memory import Memory, LongTermMemory
 from metagpt.schema import Message
@@ -108,7 +108,7 @@ class Role:
     """Role/Agent"""
 
     def __init__(self, name="", profile="", goal="", constraints="", desc="", is_human=False):
-        self._llm = LLM() if not is_human else HumanGPT()
+        self._llm = LLM() if not is_human else HumanProvider()
         self._setting = RoleSetting(name=name, profile=profile, goal=goal,
                                     constraints=constraints, desc=desc, is_human=is_human)
         self._states = []
@@ -126,7 +126,7 @@ class Role:
             if not isinstance(action, Action):
                 i = action("", llm=self._llm)
             else:
-                if self._setting.is_human and not isinstance(action.llm, HumanGPT):
+                if self._setting.is_human and not isinstance(action.llm, HumanProvider):
                     logger.warning(f"is_human attribute does not take effect,"
                         f"as Role's {str(action)} was initialized using LLM, try passing in Action classes instead of initialized instances")
                 i = action

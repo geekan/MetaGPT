@@ -19,15 +19,6 @@ class SimpleWriteCode(Action):
     PROMPT_TEMPLATE = """
     Write a python function that can {instruction} and provide two runnnable test cases.
     Return ```python your_code_here ``` with NO other texts,
-    example: 
-    ```python
-    # function
-    def add(a, b):
-        return a + b
-    # test cases
-    print(add(1, 2))
-    print(add(3, 4))
-    ```
     your code:
     """
 
@@ -73,12 +64,12 @@ class SimpleCoder(Role):
 
     async def _act(self) -> Message:
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
-        todo = self._rc.todo
+        todo = self._rc.todo # todo will be SimpleWriteCode()
 
         msg = self.get_memories(k=1)[0] # find the most recent messages
 
-        code_text = await SimpleWriteCode().run(msg.content)
-        msg = Message(content=code_text, role=self.profile, cause_by=todo)
+        code_text = await todo.run(msg.content)
+        msg = Message(content=code_text, role=self.profile, cause_by=type(todo))
 
         return msg
 
@@ -95,6 +86,8 @@ class RunnableCoder(Role):
 
     async def _act(self) -> Message:
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
+        # By choosing the Action by order under the hood
+        # todo will be first SimpleWriteCode() then SimpleRunCode()
         todo = self._rc.todo
 
         msg = self.get_memories(k=1)[0] # find the most k recent messages

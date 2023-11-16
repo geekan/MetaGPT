@@ -1,5 +1,5 @@
 '''
-Filename: MetaGPT/metagpt/provider/human_speaker.py
+Filename: MetaGPT/metagpt/provider/human_provider.py
 Created Date: Wednesday, November 8th 2023, 11:55:46 pm
 Author: garylin2099
 '''
@@ -7,8 +7,8 @@ from typing import Optional
 from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.logs import logger
 
-class HumanGPT(BaseGPTAPI):
-    """A dummy GPT that actually takes in human input as its response.
+class HumanProvider(BaseGPTAPI):
+    """Humans provide themselves as a 'model', which actually takes in human input as its response.
     This enables replacing LLM anywhere in the framework with a human, thus introducing human interaction
     """
 
