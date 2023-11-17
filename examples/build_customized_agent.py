@@ -9,6 +9,7 @@ import asyncio
 
 import fire
 
+from metagpt.llm import LLM
 from metagpt.actions import Action
 from metagpt.roles import Role
 from metagpt.schema import Message
@@ -22,7 +23,7 @@ class SimpleWriteCode(Action):
     your code:
     """
 
-    def __init__(self, name="SimpleWriteCode", context=None, llm=None):
+    def __init__(self, name: str = "SimpleWriteCode", context=None, llm: LLM = None):
         super().__init__(name, context, llm)
 
     async def run(self, instruction: str):
@@ -42,8 +43,9 @@ class SimpleWriteCode(Action):
         code_text = match.group(1) if match else rsp
         return code_text
 
+
 class SimpleRunCode(Action):
-    def __init__(self, name="SimpleRunCode", context=None, llm=None):
+    def __init__(self, name: str = "SimpleRunCode", context=None, llm: LLM = None):
         super().__init__(name, context, llm)
 
     async def run(self, code_text: str):
@@ -51,6 +53,7 @@ class SimpleRunCode(Action):
         code_result = result.stdout
         logger.info(f"{code_result=}")
         return code_result
+
 
 class SimpleCoder(Role):
     def __init__(
@@ -72,6 +75,7 @@ class SimpleCoder(Role):
         msg = Message(content=code_text, role=self.profile, cause_by=type(todo))
 
         return msg
+
 
 class RunnableCoder(Role):
     def __init__(
@@ -96,6 +100,7 @@ class RunnableCoder(Role):
         msg = Message(content=result, role=self.profile, cause_by=type(todo))
         self._rc.memory.add(msg)
         return msg
+
 
 def main(msg="write a function that calculates the product of a list and run it"):
     # role = SimpleCoder()

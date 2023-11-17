@@ -6,6 +6,8 @@ Author: garylin2099
 import re
 import asyncio
 import fire
+
+from metagpt.llm import LLM
 from metagpt.actions import Action, BossRequirement
 from metagpt.roles import Role
 from metagpt.team import Team
@@ -26,7 +28,7 @@ class SimpleWriteCode(Action):
     your code:
     """
 
-    def __init__(self, name="SimpleWriteCode", context=None, llm=None):
+    def __init__(self, name: str = "SimpleWriteCode", context=None, llm: LLM = None):
         super().__init__(name, context, llm)
 
     async def run(self, instruction: str):
@@ -39,6 +41,7 @@ class SimpleWriteCode(Action):
 
         return code_text
 
+
 class SimpleCoder(Role):
     def __init__(
         self,
@@ -50,6 +53,7 @@ class SimpleCoder(Role):
         self._watch([BossRequirement])
         self._init_actions([SimpleWriteCode])
 
+
 class SimpleWriteTest(Action):
 
     PROMPT_TEMPLATE = """
@@ -59,7 +63,7 @@ class SimpleWriteTest(Action):
     your code:
     """
 
-    def __init__(self, name="SimpleWriteTest", context=None, llm=None):
+    def __init__(self, name: str = "SimpleWriteTest", context=None, llm: LLM = None):
         super().__init__(name, context, llm)
 
     async def run(self, context: str, k: int = 3):
@@ -71,6 +75,7 @@ class SimpleWriteTest(Action):
         code_text = parse_code(rsp)
 
         return code_text
+
 
 class SimpleTester(Role):
     def __init__(
@@ -96,6 +101,7 @@ class SimpleTester(Role):
 
         return msg
 
+
 class SimpleWriteReview(Action):
 
     PROMPT_TEMPLATE = """
@@ -103,7 +109,7 @@ class SimpleWriteReview(Action):
     Review the test cases and provide one critical comments:
     """
 
-    def __init__(self, name="SimpleWriteReview", context=None, llm=None):
+    def __init__(self, name: str = "SimpleWriteReview", context=None, llm: LLM = None):
         super().__init__(name, context, llm)
 
     async def run(self, context: str):
@@ -113,6 +119,7 @@ class SimpleWriteReview(Action):
         rsp = await self._aask(prompt)
 
         return rsp
+
 
 class SimpleReviewer(Role):
     def __init__(
@@ -124,6 +131,7 @@ class SimpleReviewer(Role):
         super().__init__(name, profile, **kwargs)
         self._init_actions([SimpleWriteReview])
         self._watch([SimpleWriteTest])
+
 
 async def main(
     idea: str = "write a function that calculates the product of a list",
