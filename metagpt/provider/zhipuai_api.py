@@ -68,7 +68,7 @@ class ZhiPuAIGPTAPI(BaseGPTAPI):
 
     def get_choice_text(self, resp: dict) -> str:
         """ get the first text of choice from llm response """
-        assist_msg = resp.get("data").get("choices")[-1]
+        assist_msg = resp.get("data", {}).get("choices", [{"role": "error"}])[-1]
         assert assist_msg["role"] == "assistant"
         return assist_msg.get("content")
 
@@ -121,16 +121,15 @@ class ZhiPuAIGPTAPI(BaseGPTAPI):
 
         self._update_costs(usage)
         full_content = "".join(collected_content)
-        logger.info(f"full_content: {full_content} !!")
         return full_content
 
-    # @retry(
-    #     stop=stop_after_attempt(3),
-    #     wait=wait_fixed(1),
-    #     after=after_log(logger, logger.level("WARNING").name),
-    #     retry=retry_if_exception_type(ConnectionError),
-    #     retry_error_callback=log_and_reraise
-    # )
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_fixed(1),
+        after=after_log(logger, logger.level("WARNING").name),
+        retry=retry_if_exception_type(ConnectionError),
+        retry_error_callback=log_and_reraise
+    )
     async def acompletion_text(self, messages: list[dict], stream=False) -> str:
         """ response in async with stream or non-stream mode """
         if stream:

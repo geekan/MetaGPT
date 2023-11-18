@@ -14,7 +14,7 @@ from metagpt.provider.zhipuai_api import ZhiPuAIGPTAPI
 from metagpt.provider.spark_api import SparkAPI
 
 
-def LLM():
+def LLM() -> "BaseGPTAPI":
     """ initialize different LLM instance according to the key field existence"""
     # TODO a little trick, can use registry to initialize LLM instance further
     if CONFIG.openai_api_key and CONFIG.openai_api_key.starswith("sk-"):

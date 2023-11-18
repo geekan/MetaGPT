@@ -29,8 +29,12 @@ class ZhiPuModelAPI(ModelAPI):
     @classmethod
     def split_zhipu_api_url(cls, invoke_type: InvokeType, kwargs):
         # use this method to prevent zhipu api upgrading to different version.
+        # and follow the GeneralAPIRequestor implemented based on openai sdk
         zhipu_api_url = cls._build_api_url(kwargs, invoke_type)
-        # example: https://open.bigmodel.cn/api/paas/v3/model-api/{model}/{invoke_method}
+        """
+            example:
+                zhipu_api_url: https://open.bigmodel.cn/api/paas/v3/model-api/{model}/{invoke_method}
+        """
         arr = zhipu_api_url.split("/api/")
         # ("https://open.bigmodel.cn/api/" , "/paas/v3/model-api/chatglm_turbo/invoke")
         return f"{arr[0]}/api", f"/{arr[1]}"

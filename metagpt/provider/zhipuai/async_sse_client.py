@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # @Desc   : async_sse_client to make keep the use of Event to access response
+#           refs to `https://github.com/zhipuai/zhipuai-sdk-python/blob/main/zhipuai/utils/sse_client.py`
 
 from zhipuai.utils.sse_client import SSEClient, Event, _FIELD_SEPARATOR
 
