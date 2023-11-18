@@ -1,4 +1,5 @@
 # function in tools, https://platform.openai.com/docs/api-reference/chat/create#chat-create-tools
+# Reference: https://github.com/KillianLucas/open-interpreter/blob/v0.1.14/interpreter/llm/setup_openai_coding_llm.py
 general_function_schema = {
     "name": "execute",
     "description": "Executes code on the user's machine, **in the users local environment**, and returns the output",
