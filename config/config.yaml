@@ -19,6 +19,9 @@ RPM: 10
 #DOMAIN : "generalv2"
 #SPARK_URL : "ws://spark-api.xf-yun.com/v2.1/chat"
 
+####if Chatglm
+#CHATGLM_API_KEY : "YOUR_API_KEY"
+
 #### if Anthropic
 #Anthropic_API_KEY: "YOUR_API_KEY"
 
