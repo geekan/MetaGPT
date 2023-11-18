@@ -5,7 +5,6 @@
 import zhipuai
 from zhipuai.model_api.api import ModelAPI, InvokeType
 from zhipuai.utils.http_client import headers as zhipuai_default_headers
-from zhipuai.utils.sse_client import SSEClient
 
 from metagpt.provider.zhipuai.async_sse_client import AsyncSSEClient
 from metagpt.provider.general_api_requestor import GeneralAPIRequestor

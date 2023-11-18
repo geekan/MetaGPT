@@ -38,7 +38,6 @@ class GeneralAPIRequestor(APIRequestor):
         self, result: aiohttp.ClientResponse, stream: bool
     ) -> Tuple[Union[str, AsyncGenerator[str, None]], bool]:
         if stream and "text/event-stream" in result.headers.get("Content-Type", ""):
-            logger.warning("stream")
             return (
                    self._interpret_response_line(
                        line, result.status, result.headers, stream=True
@@ -46,7 +45,6 @@ class GeneralAPIRequestor(APIRequestor):
                    async for line in result.content
                ), True
         else:
-            logger.warning("non stream")
             try:
                 await result.read()
             except (aiohttp.ServerTimeoutError, asyncio.TimeoutError) as e:
