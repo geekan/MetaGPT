@@ -21,7 +21,8 @@ from tenacity import (
 from metagpt.config import CONFIG
 from metagpt.logs import logger
 from metagpt.provider.base_gpt_api import BaseGPTAPI
-from metagpt.utils.function_schema import general_function_schema, general_tool_choice
+from metagpt.provider.constant import general_function_schema, general_tool_choice
+from metagpt.schema import Message
 from metagpt.utils.singleton import Singleton
 from metagpt.utils.token_counter import (
     TOKEN_COSTS,
@@ -261,7 +262,22 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         self._update_costs(rsp.get("usage"))
         return rsp
 
-    def ask_code(self, messages: list[dict], **kwargs) -> dict:
+    def _process_message(self, messages: Union[str, Message, list[dict]]) -> list[dict]:
+        """convert messages to list[dict]."""
+        if isinstance(messages, list):
+            return messages
+
+        if isinstance(messages, Message):
+            messages = [messages.to_dict()]
+        elif isinstance(messages, str):
+            messages = [{"role": "user", "content": messages}]
+        else:
+            raise ValueError(
+                f"Only support messages type are: str, Message, list[dict], but got {type(messages).__name__}!"
+            )
+        return messages
+
+    def ask_code(self, messages: Union[str, Message, list[dict]], **kwargs) -> dict:
         """Use function of tools to ask a code.
         https://platform.openai.com/docs/api-reference/chat/create#chat-create-tools
 
@@ -272,6 +288,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         >>> llm.ask_code(msg)
         {'language': 'python', 'code': "print('Hello, World!')"}
         """
+        messages = self._process_message(messages)
         rsp = self._chat_completion_function(messages, **kwargs)
         return self.get_choice_function_arguments(rsp)
 
@@ -285,6 +302,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         >>> msg = [{'role': 'user', 'content': "Write a python hello world code."}]
         >>> rsp = await llm.aask_code(msg)   # -> {'language': 'python', 'code': "print('Hello, World!')"}
         """
+        messages = self._process_message(messages)
         rsp = await self._achat_completion_function(messages, **kwargs)
         return self.get_choice_function_arguments(rsp)
 
