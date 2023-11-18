@@ -284,6 +284,8 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         Examples:
 
         >>> llm = OpenAIGPTAPI()
+        >>> llm.ask_code("Write a python hello world code.")
+        {'language': 'python', 'code': "print('Hello, World!')"}
         >>> msg = [{'role': 'user', 'content': "Write a python hello world code."}]
         >>> llm.ask_code(msg)
         {'language': 'python', 'code': "print('Hello, World!')"}
@@ -292,13 +294,16 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         rsp = self._chat_completion_function(messages, **kwargs)
         return self.get_choice_function_arguments(rsp)
 
-    async def aask_code(self, messages: list[dict], **kwargs) -> dict:
+    async def aask_code(self, messages: Union[str, Message, list[dict]], **kwargs) -> dict:
         """Use function of tools to ask a code.
         https://platform.openai.com/docs/api-reference/chat/create#chat-create-tools
 
         Examples:
 
         >>> llm = OpenAIGPTAPI()
+        >>> rsp = await llm.ask_code("Write a python hello world code.")
+        >>> rsp
+        {'language': 'python', 'code': "print('Hello, World!')"}
         >>> msg = [{'role': 'user', 'content': "Write a python hello world code."}]
         >>> rsp = await llm.aask_code(msg)   # -> {'language': 'python', 'code': "print('Hello, World!')"}
         """
