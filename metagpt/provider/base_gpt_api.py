@@ -32,15 +32,17 @@ class BaseGPTAPI(BaseChatbot):
         return self._system_msg(self.system_prompt)
 
     def ask(self, msg: str) -> str:
-        message = [self._default_system_msg(), self._user_msg(msg)]
+        message = [self._default_system_msg(), self._user_msg(msg)] if self.use_system_prompt else [self._user_msg(msg)]
         rsp = self.completion(message)
         return self.get_choice_text(rsp)
 
     async def aask(self, msg: str, system_msgs: Optional[list[str]] = None) -> str:
         if system_msgs:
-            message = self._system_msgs(system_msgs) + [self._user_msg(msg)]
+            message = self._system_msgs(system_msgs) + [self._user_msg(msg)] if self.use_system_prompt \
+                else [self._user_msg(msg)]
         else:
-            message = [self._default_system_msg(), self._user_msg(msg)]
+            message = [self._default_system_msg(), self._user_msg(msg)] if self.use_system_prompt \
+                else [self._user_msg(msg)]
         rsp = await self.acompletion_text(message, stream=True)
         logger.debug(message)
         # logger.debug(rsp)

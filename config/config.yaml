@@ -31,6 +31,9 @@ RPM: 10
 #DEPLOYMENT_NAME: "YOUR_DEPLOYMENT_NAME"
 #DEPLOYMENT_ID: "YOUR_DEPLOYMENT_ID"
 
+#### if zhipuai from `https://open.bigmodel.cn`. You can set here or export API_KEY="YOUR_API_KEY"
+ZHIPUAI_API_KEY: "YOUR_API_KEY"
+
 #### for Search
 
 ## Supported values: serpapi/google/serper/ddg
