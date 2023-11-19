@@ -33,6 +33,8 @@
 
 <p align="center">Software Company Multi-Role Schematic (Gradually Implementing)</p>
 
+
+
 ## Install
 
 ### Conda installation
@@ -58,7 +60,7 @@ pip3 install -e.
 python3 startup.py "Write a cli snake game"
 ```
 
-detail installation please refer to [cli_install](docs/install/cli_install.md)
+detail installation please refer to [cli_install](https://docs.deepwisdom.ai/guide/get_started/installation.html#installation-for-full-features)
 
 ### Docker installation
 
@@ -78,28 +80,30 @@ docker run --rm \
     python startup.py "Write a cli snake game"
 ```
 
-detail installation please refer to [docker_install](docs/install/docker_install.md)
+detail installation please refer to [docker_install](https://docs.deepwisdom.ai/guide/get_started/installation.html#install-with-docker)
 
 ### QuickStart & Demo Video
 - Try it on [MetaGPT Huggingface Space](https://huggingface.co/spaces/deepwisdom/MetaGPT)
 - [Matthew Berman: How To Install MetaGPT - Build A Startup With One Prompt!!](https://youtu.be/uT75J_KG_aY)
 - [Official Demo Video](https://github.com/geekan/MetaGPT/assets/2707039/5e8c1062-8c35-440f-bb20-2b0320f8d27d)
 
+https://github.com/geekan/MetaGPT/assets/34952977/34345016-5d13-489d-b9f9-b82ace413419
+
 ## Tutorial
 
-- [Oneline Document]()
-- [Usage](docs/tutorial/usage.md)  
-- [What can MetaGPT do?](docs/tutorial/what_can_this_do.md)
-- How to build your own agents? 
-  - [MetaGPT Usage & Development Guide](https://deepwisdom.feishu.cn/wiki/RUnswqUIPimRJmkkDZ7cLYwOndg#Yu2AdUvymoo67Jxbp0bcu8G4nEb)
-- [Contribution](docs/develop/contribution.md)
-  - Develop RFC
+- 🗒 [Online Document](https://docs.deepwisdom.ai/)
+- 💻 [Usage](https://docs.deepwisdom.ai/guide/get_started/quickstart.html)  
+- 🔎 [What can MetaGPT do?](https://docs.deepwisdom.ai/guide/get_started/introduction.html)
+- 🛠 How to build your own agents? 
+  - [MetaGPT Usage & Development Guide | Agent 101](https://docs.deepwisdom.ai/guide/tutorials/agent_101.html)
+  - [MetaGPT Usage & Development Guide | MultiAgent 101](https://docs.deepwisdom.ai/guide/tutorials/multi_agent_101.html)
+- 🧑‍💻 Contribution
   - [Develop Roadmap](docs/ROADMAP.md)
-- [Examples](docs/examples/README.md)
-  - Researcher
-  - Werewolf Game
-- [FAQs](docs/tutorial/faq.md)  
-- [The generated projects display wall](https://github.com/geekan/MetaGPT/assets/34952977/34345016-5d13-489d-b9f9-b82ace413419)
+- 🔖 Use Cases
+  - [Debate](https://docs.deepwisdom.ai/guide/use_cases/multi_agent/debate.html)
+  - [Researcher](https://docs.deepwisdom.ai/guide/use_cases/agent/researcher.html)
+  - [Recepit Assistant](https://docs.deepwisdom.ai/guide/use_cases/agent/receipt_assistant.html)
+- ❓ [FAQs](https://docs.deepwisdom.ai/guide/faq.html)
 
 ## Support
 
