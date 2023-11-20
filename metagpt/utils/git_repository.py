@@ -142,6 +142,14 @@ class GitRepository:
             return None
         return Path(self._repository.working_dir)
 
+    def archive(self, comments="Archive"):
+        """Archive the current state of the Git repository.
+
+        :param comments: Comments for the archive commit.
+        """
+        self.add_change(self.changed_files)
+        self.commit(comments)
+
 
 if __name__ == "__main__":
     path = WORKSPACE_ROOT / "git"
