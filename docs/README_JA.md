@@ -60,17 +60,22 @@ https://github.com/geekan/MetaGPT/assets/34952977/34345016-5d13-489d-b9f9-b82ace
 ### 伝統的なインストール
 
 ```bash
-# ステップ 1: NPM がシステムにインストールされていることを確認してください。次に mermaid-js をインストールします。(お使いのコンピューターに npm がない場合は、Node.js 公式サイトで Node.js https://nodejs.org/ をインストールしてください。）
-npm --version
-sudo npm install -g @mermaid-js/mermaid-cli
-
-# ステップ 2: Python 3.9+ がシステムにインストールされていることを確認してください。これを確認するには:
+# ステップ 1: Python 3.9+ がシステムにインストールされていることを確認してください。これを確認するには:
 python --version
 
-# ステップ 3: リポジトリをローカルマシンにクローンし、インストールする。
+# ステップ 2: リポジトリをローカルマシンにクローンし、インストールする。
 git clone https://github.com/geekan/MetaGPT.git
 cd MetaGPT
 pip install -e.
+
+# ステップ 3: startup.py を実行する
+# config.yaml を key.yaml にコピーし、独自の OPENAI_API_KEY を設定します
+python3 startup.py "Write a cli snake game"
+
+# ステップ 4 [オプション]: 実行中に PRD ファイルなどのアーティファクトを保存する場合は、ステップ 3 の前にこのステップを実行できます。デフォルトでは、フレームワークには互換性があり、この手順を実行しなくてもプロセス全体を完了できます。
+# NPM がシステムにインストールされていることを確認してください。次に mermaid-js をインストールします。(お使いのコンピューターに npm がない場合は、Node.js 公式サイトで Node.js https://nodejs.org/ をインストールしてください。）
+npm --version
+sudo npm install -g @mermaid-js/mermaid-cli
 ```
 
 **注:**

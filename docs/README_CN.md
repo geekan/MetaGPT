@@ -37,25 +37,25 @@
 ### Pip安装
 
 ```bash
-# 第 1 步【可选的】：如果你想在执行过程中保存像PRD文件这些产物，可以执行该步骤。默认的，框架做了兼容，在不执行该步的情况下，也可以完整跑完整个流程。
-# 如果执行，确保您的系统上安装了 NPM。并使用npm安装mermaid-js
-npm --version
-sudo npm install -g @mermaid-js/mermaid-cli
-
-# 第 2 步：确保您的系统上安装了 Python 3.9+。您可以使用以下命令进行检查：
+# 第 1 步：确保您的系统上安装了 Python 3.9+。您可以使用以下命令进行检查：
 # 可以使用conda来初始化新的python环境
 #     conda create -n metagpt python=3.9
 #     conda activate metagpt
 python3 --version
 
-# 第 3 步：克隆最新仓库到您的本地机器，并进行安装。
+# 第 2 步：克隆最新仓库到您的本地机器，并进行安装。
 git clone https://github.com/geekan/MetaGPT.git
 cd MetaGPT
 pip3 install -e.  # 或者 pip3 install metagpt  # 安装稳定版本
 
-# 第 4 步：执行startup.py
+# 第 3 步：执行startup.py
 # 拷贝config.yaml为key.yaml，并设置你自己的OPENAI_API_KEY
 python3 startup.py "Write a cli snake game"
+
+# 第 4 步【可选的】：如果你想在执行过程中保存像PRD文件这些产物，可以在第3步前执行该步骤。默认的，框架做了兼容，在不执行该步的情况下，也可以完整跑完整个流程。
+# 如果执行，确保您的系统上安装了 NPM。并使用npm安装mermaid-js
+npm --version
+sudo npm install -g @mermaid-js/mermaid-cli
 ```
 
 详细的安装请安装 [cli_install](https://docs.deepwisdom.ai/guide/get_started/installation.html#install-stable-version)
