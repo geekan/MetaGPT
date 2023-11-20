@@ -11,6 +11,7 @@ import asyncio
 import time
 
 from openai import APIConnectionError, AsyncOpenAI, RateLimitError
+from openai.types import CompletionUsage
 from tenacity import (
     after_log,
     retry,
@@ -24,7 +25,6 @@ from metagpt.config import CONFIG
 from metagpt.llm import LLMType
 from metagpt.logs import logger
 from metagpt.provider.base_gpt_api import BaseGPTAPI
-from metagpt.utils.common import run_backend
 from metagpt.utils.cost_manager import Costs
 from metagpt.utils.token_counter import (
     count_message_tokens,
@@ -124,20 +124,11 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         kwargs = self._cons_kwargs(messages)
         options = self._get_options()
         rsp = await self.openai.with_options(**options).chat.completions.create(**kwargs)
-        self._update_costs(rsp.get("usage"))
-        return rsp
-
-    def _chat_completion(self, messages: list[dict]) -> dict:
-        kwargs = self._cons_kwargs(messages)
-        options = self._get_options()
-        rsp = run_backend(self.openai.with_options(**options).chat.completions.create, **kwargs)
-        self._update_costs(rsp)
-        return rsp
+        self._update_costs(rsp.usage)
+        return rsp.dict()
 
     def completion(self, messages: list[dict]) -> dict:
-        # if isinstance(messages[0], Message):
-        #     messages = self.messages_to_dict(messages)
-        return self._chat_completion(messages)
+        raise NotImplementedError
 
     async def acompletion(self, messages: list[dict]) -> dict:
         # if isinstance(messages[0], Message):
@@ -178,19 +169,20 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         rsp = await self._achat_completion(messages)
         return self.get_choice_text(rsp)
 
-    def _calc_usage(self, messages: list[dict], rsp: str) -> dict:
-        usage = {}
+    def _calc_usage(self, messages: list[dict], rsp: str) -> CompletionUsage:
         if CONFIG.calc_usage:
             try:
                 prompt_tokens = count_message_tokens(messages, self.model)
                 completion_tokens = count_string_tokens(rsp, self.model)
-                usage["prompt_tokens"] = prompt_tokens
-                usage["completion_tokens"] = completion_tokens
+                usage = CompletionUsage(
+                    prompt_tokens=prompt_tokens,
+                    completion_tokens=completion_tokens,
+                    total_tokens=prompt_tokens + completion_tokens,
+                )
                 return usage
             except Exception as e:
                 logger.error("usage calculation failed!", e)
-        else:
-            return usage
+        return CompletionUsage(prompt_tokens=0, completion_tokens=0, total_tokens=0)
 
     async def acompletion_batch(self, batch: list[list[dict]]) -> list[dict]:
         """返回完整JSON"""
@@ -218,14 +210,11 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             logger.info(f"Result of task {idx}: {result}")
         return results
 
-    def _update_costs(self, usage: dict):
+    def _update_costs(self, usage: CompletionUsage):
         if CONFIG.calc_usage:
-            try:
-                prompt_tokens = int(usage["prompt_tokens"])
-                completion_tokens = int(usage["completion_tokens"])
-                CONFIG.cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
-            except Exception as e:
-                logger.error("updating costs failed!", e)
+            prompt_tokens = usage.prompt_tokens
+            completion_tokens = usage.completion_tokens
+            CONFIG.cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
 
     def get_costs(self) -> Costs:
         return CONFIG.cost_manager.get_costs()

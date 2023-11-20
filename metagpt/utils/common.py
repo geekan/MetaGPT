@@ -5,10 +5,8 @@
 @Author  : alexanderwu
 @File    : common.py
 @Modified By: mashenquan, 2023-8-17, add `initalize_enviroment()` to load `config/config.yaml` to `os.environ`
-@Modified By: mashenquan, 2023-11-7. Add `run_backend`.
 """
 import ast
-import asyncio
 import contextlib
 import inspect
 import os
@@ -255,11 +253,3 @@ def parse_recipient(text):
     pattern = r"## Send To:\s*([A-Za-z]+)\s*?"  # hard code for now
     recipient = re.search(pattern, text)
     return recipient.group(1) if recipient else ""
-
-
-def run_backend(fun, *args, **kwargs):
-    loop = asyncio.get_event_loop()
-    if asyncio.iscoroutinefunction(fun):
-        return loop.create_task(fun(*args, **kwargs))
-    else:
-        return loop.run_in_executor(None, lambda: fun(*args, **kwargs))
