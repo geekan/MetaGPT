@@ -17,8 +17,8 @@ sudo npm install -g @mermaid-js/mermaid-cli
 python3 --version
 
 # Step 3: Clone the repository to your local machine, and install it.
-git clone https://github.com/geekan/metagpt
-cd metagpt
+git clone https://github.com/geekan/MetaGPT.git
+cd MetaGPT
 pip install -e.
 ```
 

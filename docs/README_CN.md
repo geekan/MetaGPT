@@ -37,7 +37,8 @@
 ### Pip安装
 
 ```bash
-# 第 1 步：确保您的系统上安装了 NPM。并使用npm安装mermaid-js
+# 第 1 步【可选的】：如果你想在执行过程中保存像PRD文件这些产物，可以执行该步骤。默认的，框架做了兼容，在不执行该步的情况下，也可以完整跑完整个流程。
+# 如果执行，确保您的系统上安装了 NPM。并使用npm安装mermaid-js
 npm --version
 sudo npm install -g @mermaid-js/mermaid-cli
 
@@ -48,8 +49,8 @@ sudo npm install -g @mermaid-js/mermaid-cli
 python3 --version
 
 # 第 3 步：克隆最新仓库到您的本地机器，并进行安装。
-git clone https://github.com/geekan/metagpt
-cd metagpt
+git clone https://github.com/geekan/MetaGPT.git
+cd MetaGPT
 pip3 install -e.  # 或者 pip3 install metagpt  # 安装稳定版本
 
 # 第 4 步：执行startup.py
