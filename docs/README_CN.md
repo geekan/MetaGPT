@@ -45,12 +45,12 @@ sudo npm install -g @mermaid-js/mermaid-cli
 # 可以使用conda来初始化新的python环境
 #     conda create -n metagpt python=3.9
 #     conda activate metagpt
-python --version
+python3 --version
 
 # 第 3 步：克隆最新仓库到您的本地机器，并进行安装。
 git clone https://github.com/geekan/metagpt
 cd metagpt
-pip install -e.  # 或者 pip3 install metagpt  # 安装稳定版本
+pip3 install -e.  # 或者 pip3 install metagpt  # 安装稳定版本
 
 # 第 4 步：执行startup.py
 # 拷贝config.yaml为key.yaml，并设置你自己的OPENAI_API_KEY
