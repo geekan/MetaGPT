@@ -1,3 +1,12 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+@Time    : 2023/11/20
+@Author  : mashenquan
+@File    : test_git_repository.py
+@Desc: Unit tests for git_repository.py
+"""
+
 import shutil
 from pathlib import Path
 
