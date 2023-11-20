@@ -5,7 +5,7 @@
 @Author  : alexanderwu
 @File    : product_manager.py
 """
-from metagpt.actions import BossRequirement, WritePRD
+from metagpt.actions import UserRequirement, WritePRD
 from metagpt.roles import Role
 
 
@@ -38,4 +38,4 @@ class ProductManager(Role):
         """
         super().__init__(name, profile, goal, constraints)
         self._init_actions([WritePRD])
-        self._watch([BossRequirement])
+        self._watch([UserRequirement])

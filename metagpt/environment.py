@@ -10,20 +10,22 @@ from typing import Iterable
 
 from pydantic import BaseModel, Field
 
+# from metagpt.document import Document
+from metagpt.document import Repo
 from metagpt.memory import Memory
 from metagpt.roles import Role
 from metagpt.schema import Message
 
 
 class Environment(BaseModel):
-    """环境，承载一批角色，角色可以向环境发布消息，可以被其他角色观察到
-       Environment, hosting a batch of roles, roles can publish messages to the environment, and can be observed by other roles
-    
+    """
+    Environment, hosting a batch of roles, roles can publish messages to the environment, and can be observed by other roles
     """
 
     roles: dict[str, Role] = Field(default_factory=dict)
     memory: Memory = Field(default_factory=Memory)
     history: str = Field(default='')
+    repo: Repo = Field(default_factory=Repo)
 
     class Config:
         arbitrary_types_allowed = True
@@ -49,6 +51,10 @@ class Environment(BaseModel):
         # self.message_queue.put(message)
         self.memory.add(message)
         self.history += f"\n{message}"
+
+    def publish_doc(self, content: str, filename: str):
+        """向当前环境发布文档（包括代码）"""
+        self.repo.set(content, filename)
 
     async def run(self, k=1):
         """处理一次所有信息的运行

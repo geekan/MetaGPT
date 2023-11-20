@@ -5,44 +5,54 @@
 @Author  : alexanderwu
 @File    : const.py
 """
+import os
 from pathlib import Path
 from loguru import logger
-
-def get_project_root():
-    """Search upwards to find the project root directory."""
-    current_path = Path.cwd()
-    while True:
-        if (
-            (current_path / ".git").exists()
-            or (current_path / ".project_root").exists()
-            or (current_path / ".gitignore").exists()
-        ):
-            # use metagpt with git clone will land here
-            logger.info(f"PROJECT_ROOT set to {str(current_path)}")
-            return current_path
-        parent_path = current_path.parent
-        if parent_path == current_path:
-            # use metagpt with pip install will land here
-            cwd = Path.cwd()
-            logger.info(f"PROJECT_ROOT set to current working directory: {str(cwd)}")
-            return cwd
-        current_path = parent_path
+import metagpt
 
 
-PROJECT_ROOT = get_project_root()
-DATA_PATH = PROJECT_ROOT / "data"
-WORKSPACE_ROOT = PROJECT_ROOT / "workspace"
-PROMPT_PATH = PROJECT_ROOT / "metagpt/prompts"
-UT_PATH = PROJECT_ROOT / "data/ut"
-SWAGGER_PATH = UT_PATH / "files/api/"
-UT_PY_PATH = UT_PATH / "files/ut/"
-API_QUESTIONS_PATH = UT_PATH / "files/question/"
-YAPI_URL = "http://yapi.deepwisdomai.com/"
-TMP = PROJECT_ROOT / "tmp"
+def get_metagpt_package_root():
+    """Get the root directory of the installed package."""
+    package_root = Path(metagpt.__file__).parent.parent
+    logger.info(f"Package root set to {str(package_root)}")
+    return package_root
+
+
+def get_metagpt_root():
+    """Get the project root directory."""
+    # Check if a project root is specified in the environment variable
+    project_root_env = os.getenv('METAGPT_PROJECT_ROOT')
+    if project_root_env:
+        project_root = Path(project_root_env)
+        logger.info(f"PROJECT_ROOT set from environment variable to {str(project_root)}")
+    else:
+        # Fallback to package root if no environment variable is set
+        project_root = get_metagpt_package_root()
+    return project_root
+
+
+# METAGPT PROJECT ROOT AND VARS
+
+METAGPT_ROOT = get_metagpt_root()
+DEFAULT_WORKSPACE_ROOT = METAGPT_ROOT / "workspace"
+
+DATA_PATH = METAGPT_ROOT / "data"
 RESEARCH_PATH = DATA_PATH / "research"
 TUTORIAL_PATH = DATA_PATH / "tutorial_docx"
 INVOICE_OCR_TABLE_PATH = DATA_PATH / "invoice_table"
+UT_PATH = DATA_PATH / "ut"
+SWAGGER_PATH = UT_PATH / "files/api/"
+UT_PY_PATH = UT_PATH / "files/ut/"
+API_QUESTIONS_PATH = UT_PATH / "files/question/"
 
-SKILL_DIRECTORY = PROJECT_ROOT / "metagpt/skills"
+TMP = METAGPT_ROOT / "tmp"
+
+SOURCE_ROOT = METAGPT_ROOT / "metagpt"
+PROMPT_PATH = SOURCE_ROOT / "prompts"
+SKILL_DIRECTORY = SOURCE_ROOT / "skills"
+
+
+# REAL CONSTS
 
 MEM_TTL = 24 * 30 * 3600
+YAPI_URL = "http://yapi.deepwisdomai.com/"

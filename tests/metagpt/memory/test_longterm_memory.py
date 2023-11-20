@@ -4,7 +4,7 @@
 
 from metagpt.config import CONFIG
 from metagpt.schema import Message
-from metagpt.actions import BossRequirement
+from metagpt.actions import UserRequirement
 from metagpt.roles.role import RoleContext
 from metagpt.memory import LongTermMemory
 
@@ -15,24 +15,24 @@ def test_ltm_search():
     assert len(openai_api_key) > 20
 
     role_id = 'UTUserLtm(Product Manager)'
-    rc = RoleContext(watch=[BossRequirement])
+    rc = RoleContext(watch=[UserRequirement])
     ltm = LongTermMemory()
     ltm.recover_memory(role_id, rc)
 
     idea = 'Write a cli snake game'
-    message = Message(role='BOSS', content=idea, cause_by=BossRequirement)
+    message = Message(role='User', content=idea, cause_by=UserRequirement)
     news = ltm.find_news([message])
     assert len(news) == 1
     ltm.add(message)
 
     sim_idea = 'Write a game of cli snake'
-    sim_message = Message(role='BOSS', content=sim_idea, cause_by=BossRequirement)
+    sim_message = Message(role='User', content=sim_idea, cause_by=UserRequirement)
     news = ltm.find_news([sim_message])
     assert len(news) == 0
     ltm.add(sim_message)
 
     new_idea = 'Write a 2048 web game'
-    new_message = Message(role='BOSS', content=new_idea, cause_by=BossRequirement)
+    new_message = Message(role='User', content=new_idea, cause_by=UserRequirement)
     news = ltm.find_news([new_message])
     assert len(news) == 1
     ltm.add(new_message)
@@ -48,7 +48,7 @@ def test_ltm_search():
     assert len(news) == 0
 
     new_idea = 'Write a Battle City'
-    new_message = Message(role='BOSS', content=new_idea, cause_by=BossRequirement)
+    new_message = Message(role='User', content=new_idea, cause_by=UserRequirement)
     news = ltm_new.find_news([new_message])
     assert len(news) == 1
 

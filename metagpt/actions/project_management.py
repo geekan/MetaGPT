@@ -9,7 +9,6 @@ from typing import List
 
 from metagpt.actions.action import Action
 from metagpt.config import CONFIG
-from metagpt.const import WORKSPACE_ROOT
 from metagpt.utils.common import CodeParser
 from metagpt.utils.get_template import get_template
 from metagpt.utils.json_to_markdown import json_to_markdown
@@ -27,9 +26,9 @@ Role: You are a project manager; the goal is to break down tasks according to PR
 Requirements: Based on the context, fill in the following missing information, each section name is a key in json. Here the granularity of the task is a file, if there are any missing files, you can supplement them
 Attention: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD WRITE BEFORE the code and triple quote.
 
-## Required Python third-party packages: Provided in requirements.txt format
+## Required Python third-party packages: Provide Python list[str] in requirements.txt format
 
-## Required Other language third-party packages: Provided in requirements.txt format
+## Required Other language third-party packages: Provide Python list[str] in requirements.txt format
 
 ## Full API spec: Use OpenAPI 3.0. Describe all APIs that may be used by both frontend and backend.
 
@@ -39,7 +38,7 @@ Attention: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD W
 
 ## Shared Knowledge: Anything that should be public like utils' functions, config's variables details that should make clear first. 
 
-## Anything UNCLEAR: Provide as Plain text. Make clear here. For example, don't forget a main entry. don't forget to init 3rd party libs.
+## Anything UNCLEAR: Provide as Plain text. Try to clarify it. For example, don't forget a main entry. don't forget to init 3rd party libs.
 
 output a properly formatted JSON, wrapped inside [CONTENT][/CONTENT] like format example,
 and only output the json inside this tag, nothing else
@@ -95,7 +94,7 @@ Attention: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD W
 
 ## Shared Knowledge: Anything that should be public like utils' functions, config's variables details that should make clear first. 
 
-## Anything UNCLEAR: Provide as Plain text. Make clear here. For example, don't forget a main entry. don't forget to init 3rd party libs.
+## Anything UNCLEAR: Provide as Plain text. Try to clarify it. For example, don't forget a main entry. don't forget to init 3rd party libs.
 
 """,
         "FORMAT_EXAMPLE": '''
@@ -171,11 +170,11 @@ class WriteTasks(Action):
             ws_name = context[-1].instruct_content.dict()["Python package name"]
         else:
             ws_name = CodeParser.parse_str(block="Python package name", text=context[-1].content)
-        file_path = WORKSPACE_ROOT / ws_name / "docs/api_spec_and_tasks.md"
+        file_path = CONFIG.workspace_path / ws_name / "docs/api_spec_and_tasks.md"
         file_path.write_text(json_to_markdown(rsp.instruct_content.dict()))
 
         # Write requirements.txt
-        requirements_path = WORKSPACE_ROOT / ws_name / "requirements.txt"
+        requirements_path = CONFIG.workspace_path / ws_name / "requirements.txt"
         requirements_path.write_text("\n".join(rsp.instruct_content.dict().get("Required Python third-party packages")))
 
     async def run(self, context, format=CONFIG.prompt_format):

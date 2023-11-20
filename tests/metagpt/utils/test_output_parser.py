@@ -218,7 +218,7 @@ We need clarification on how the high score should be stored. Should it persist 
     }
     t_text1 = '''## Original Requirements:
 
-The boss wants to create a web-based version of the game "Fly Bird".
+The user wants to create a web-based version of the game "Fly Bird".
 
 ## Product Goals:
 

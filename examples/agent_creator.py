@@ -5,13 +5,14 @@ Author: garylin2099
 '''
 import re
 
-from metagpt.const import PROJECT_ROOT, WORKSPACE_ROOT
+from metagpt.const import METAGPT_ROOT
+from metagpt.config import CONFIG
 from metagpt.actions import Action
 from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.logs import logger
 
-with open(PROJECT_ROOT / "examples/build_customized_agent.py", "r") as f:
+with open(METAGPT_ROOT / "examples/build_customized_agent.py", "r") as f:
     # use official example script to guide AgentCreator
     MULTI_ACTION_AGENT_CODE_EXAMPLE = f.read()
 
@@ -49,7 +50,7 @@ class CreateAgent(Action):
         pattern = r'```python(.*)```'
         match = re.search(pattern, rsp, re.DOTALL)
         code_text = match.group(1) if match else ""
-        with open(WORKSPACE_ROOT / "agent_created_agent.py", "w") as f:
+        with open(CONFIG.workspace_path / "agent_created_agent.py", "w") as f:
             f.write(code_text)
         return code_text
 

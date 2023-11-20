@@ -17,7 +17,8 @@ from metagpt.config import CONFIG
 from metagpt.actions import Action, ActionOutput
 from metagpt.llm import LLM, HumanProvider
 from metagpt.logs import logger
-from metagpt.memory import Memory, LongTermMemory
+from metagpt.memory import Memory
+# from metagpt.memory import LongTermMemory
 from metagpt.schema import Message
 
 PREFIX_TEMPLATE = """You are a {profile}, named {name}, your goal is {goal}, and the constraint is {constraints}. """
@@ -78,7 +79,7 @@ class RoleContext(BaseModel):
     """Role Runtime Context"""
     env: 'Environment' = Field(default=None)
     memory: Memory = Field(default_factory=Memory)
-    long_term_memory: LongTermMemory = Field(default_factory=LongTermMemory)
+    # long_term_memory: LongTermMemory = Field(default_factory=LongTermMemory)
     state: int = Field(default=-1) # -1 indicates initial or termination state where todo is None
     todo: Action = Field(default=None)
     watch: set[Type[Action]] = Field(default_factory=set)

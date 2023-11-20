@@ -8,7 +8,7 @@
 from metagpt.actions import Action
 
 
-class BossRequirement(Action):
-    """Boss Requirement without any implementation details"""
+class UserRequirement(Action):
+    """User Requirement without any implementation details"""
     async def run(self, *args, **kwargs):
         raise NotImplementedError

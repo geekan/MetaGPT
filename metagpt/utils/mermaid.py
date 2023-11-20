@@ -10,7 +10,7 @@ import os
 from pathlib import Path
 
 from metagpt.config import CONFIG
-from metagpt.const import PROJECT_ROOT
+from metagpt.const import METAGPT_ROOT
 from metagpt.logs import logger
 from metagpt.utils.common import check_cmd_exists
 
@@ -69,7 +69,7 @@ async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, 
             if stdout:
                 logger.info(stdout.decode())
             if stderr:
-                logger.error(stderr.decode())
+                logger.warning(stderr.decode())
     else:
         if engine == "playwright":
             from metagpt.utils.mmdc_playwright import mermaid_to_file
@@ -141,6 +141,6 @@ MMC2 = """sequenceDiagram
 
 if __name__ == "__main__":
     loop = asyncio.new_event_loop()
-    result = loop.run_until_complete(mermaid_to_file(MMC1, PROJECT_ROOT / f"{CONFIG.mermaid_engine}/1"))
-    result = loop.run_until_complete(mermaid_to_file(MMC2, PROJECT_ROOT / f"{CONFIG.mermaid_engine}/1"))
+    result = loop.run_until_complete(mermaid_to_file(MMC1, METAGPT_ROOT / f"{CONFIG.mermaid_engine}/1"))
+    result = loop.run_until_complete(mermaid_to_file(MMC2, METAGPT_ROOT / f"{CONFIG.mermaid_engine}/1"))
     loop.close()

@@ -17,16 +17,14 @@ NOTICE
 Role: You are a professional software engineer, and your main task is to review the code. You need to ensure that the code conforms to the PEP8 standards, is elegantly designed and modularized, easy to read and maintain, and is written in Python 3.9 (or in another programming language).
 ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenced "Format example".
 
-## Code Review: Based on the following context and code, and following the check list, Provide key, clear, concise, and specific code modification suggestions, up to 5.
-```
-1. Check 0: Is the code implemented as per the requirements?
-2. Check 1: Are there any issues with the code logic?
-3. Check 2: Does the existing code follow the "Data structures and interface definitions"?
-4. Check 3: Is there a function in the code that is omitted or not fully implemented that needs to be implemented?
-5. Check 4: Does the code have unnecessary or lack dependencies?
-```
+## Code Review: Based on the following context and code, follow the check list, Provide key, clear, concise, and specific code modification suggestions, up to 5.
+1. Is the code implemented as per the requirements? If not, how to achieve it? Analyse it step by step.
+2. Are there any issues with the code logic? If so, how to solve it?
+3. Does the existing code follow the "Data structures and interfaces"?
+4. Is there a function in the code that is not fully implemented? If so, how to implement it?
+5. Does the code have unnecessary or lack dependencies? If so, how to solve it?
 
-## Rewrite Code: {filename} Base on "Code Review" and the source code, rewrite code with triple quotes. Do your utmost to optimize THIS SINGLE FILE. 
+## Rewrite Code: rewrite {filename} based on "Code Review" with triple quotes. Do your utmost to optimize THIS SINGLE FILE. Implement ALL TODO.
 -----
 # Context
 {context}
@@ -47,7 +45,7 @@ ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenc
 FORMAT_EXAMPLE = """
 
 ## Code Review
-1. The code ...
+1. No, we should add the logic of ...
 2. ...
 3. ...
 4. ...

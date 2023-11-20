@@ -8,7 +8,9 @@ import os
 import openai
 import yaml
 
-from metagpt.const import PROJECT_ROOT
+from pathlib import Path
+
+from metagpt.const import METAGPT_ROOT, DEFAULT_WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.tools import SearchEngineType, WebBrowserEngineType
 from metagpt.utils.singleton import Singleton
@@ -35,13 +37,14 @@ class Config(metaclass=Singleton):
     """
 
     _instance = None
-    key_yaml_file = PROJECT_ROOT / "config/key.yaml"
-    default_yaml_file = PROJECT_ROOT / "config/config.yaml"
+    home_yaml_file = Path.home() / ".metagpt/config.yaml"
+    key_yaml_file = METAGPT_ROOT / "config/key.yaml"
+    default_yaml_file = METAGPT_ROOT / "config/config.yaml"
 
     def __init__(self, yaml_file=default_yaml_file):
         self._configs = {}
         self._init_with_config_files_and_env(self._configs, yaml_file)
-        logger.info("Config loading done.")
+        # logger.info("Config loading done.")
         self.global_proxy = self._get("GLOBAL_PROXY")
         self.openai_api_key = self._get("OPENAI_API_KEY")
         self.anthropic_api_key = self._get("Anthropic_API_KEY")
@@ -94,12 +97,18 @@ class Config(metaclass=Singleton):
         self.pyppeteer_executable_path = self._get("PYPPETEER_EXECUTABLE_PATH", "")
 
         self.prompt_format = self._get("PROMPT_FORMAT", "markdown")
+        self.workspace_path = Path(self._get("WORKSPACE_PATH", DEFAULT_WORKSPACE_ROOT))
+        self._ensure_workspace_exists()
+
+    def _ensure_workspace_exists(self):
+        self.workspace_path.mkdir(parents=True, exist_ok=True)
+        logger.info(f"WORKSPACE_PATH set to {self.workspace_path}")
 
     def _init_with_config_files_and_env(self, configs: dict, yaml_file):
         """Load from config/key.yaml, config/config.yaml, and env in decreasing order of priority"""
         configs.update(os.environ)
 
-        for _yaml_file in [yaml_file, self.key_yaml_file]:
+        for _yaml_file in [yaml_file, self.key_yaml_file, self.home_yaml_file]:
             if not _yaml_file.exists():
                 continue
 

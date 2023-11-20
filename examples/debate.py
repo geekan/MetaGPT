@@ -8,7 +8,7 @@ import platform
 import fire
 
 from metagpt.team import Team
-from metagpt.actions import Action, BossRequirement
+from metagpt.actions import Action, UserRequirement
 from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.logs import logger
@@ -49,7 +49,7 @@ class Debator(Role):
     ):
         super().__init__(name, profile, **kwargs)
         self._init_actions([SpeakAloud])
-        self._watch([BossRequirement, SpeakAloud])
+        self._watch([UserRequirement, SpeakAloud])
         self.name = name
         self.opponent_name = opponent_name
 

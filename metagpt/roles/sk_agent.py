@@ -9,7 +9,7 @@ from semantic_kernel.planning import SequentialPlanner
 from semantic_kernel.planning.action_planner.action_planner import ActionPlanner
 from semantic_kernel.planning.basic_planner import BasicPlanner
 
-from metagpt.actions import BossRequirement
+from metagpt.actions import UserRequirement
 from metagpt.actions.execute_task import ExecuteTask
 from metagpt.logs import logger
 from metagpt.roles import Role
@@ -39,7 +39,7 @@ class SkAgent(Role):
         """Initializes the Engineer role with given attributes."""
         super().__init__(name, profile, goal, constraints)
         self._init_actions([ExecuteTask()])
-        self._watch([BossRequirement])
+        self._watch([UserRequirement])
         self.kernel = make_sk_kernel()
 
         # how funny the interface is inconsistent
