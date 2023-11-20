@@ -52,7 +52,7 @@ pip3 install -e.  # 或者 pip3 install metagpt  # 安装稳定版本
 # 拷贝config.yaml为key.yaml，并设置你自己的OPENAI_API_KEY
 python3 startup.py "Write a cli snake game"
 
-# 第 4 步【可选的】：如果你想在执行过程中保存像PRD文件这些产物，可以在第3步前执行该步骤。默认的，框架做了兼容，在不执行该步的情况下，也可以完整跑完整个流程。
+# 第 4 步【可选的】：如果你想在执行过程中保存像象限图、系统设计、序列流程等图表这些产物，可以在第3步前执行该步骤。默认的，框架做了兼容，在不执行该步的情况下，也可以完整跑完整个流程。
 # 如果执行，确保您的系统上安装了 NPM。并使用npm安装mermaid-js
 npm --version
 sudo npm install -g @mermaid-js/mermaid-cli

@@ -55,7 +55,7 @@ pip3 install -e.     # or pip3 install metagpt  # for stable version
 # setup your OPENAI_API_KEY in key.yaml copy from config.yaml
 python3 startup.py "Write a cli snake game"
 
-# Step 4 [Optional]: If you want to save the artifacts like PRD in the workspace, you can execute the step before Step 3. By default, the framework is compatible, and the entire process can be run completely without executing this step.
+# Step 4 [Optional]: If you want to save the artifacts like diagrams such as quadrant chart, system designs, sequence flow in the workspace, you can execute the step before Step 3. By default, the framework is compatible, and the entire process can be run completely without executing this step.
 # If executing, ensure that NPM is installed on your system. Then install mermaid-js. (If you don't have npm in your computer, please go to the Node.js official website to install Node.js https://nodejs.org/ and then you will have npm tool in your computer.)
 npm --version
 sudo npm install -g @mermaid-js/mermaid-cli
