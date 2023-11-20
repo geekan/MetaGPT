@@ -34,7 +34,7 @@
 <p align="center">软件公司多角色示意图（正在逐步实现）</p>
 
 ## 安装
-### Conda安装
+### Pip安装
 
 ```bash
 # 第 1 步：确保您的系统上安装了 NPM。并使用npm安装mermaid-js
@@ -47,17 +47,17 @@ sudo npm install -g @mermaid-js/mermaid-cli
 #     conda activate metagpt
 python --version
 
-# 第 3 步：克隆仓库到您的本地机器，并进行安装。
+# 第 3 步：克隆最新仓库到您的本地机器，并进行安装。
 git clone https://github.com/geekan/metagpt
 cd metagpt
-pip install -e.
+pip install -e.  # 或者 pip3 install metagpt  # 安装稳定版本
 
 # 第 4 步：执行startup.py
 # 拷贝config.yaml为key.yaml，并设置你自己的OPENAI_API_KEY
 python3 startup.py "Write a cli snake game"
 ```
 
-详细的安装请安装 [cli_install](https://docs.deepwisdom.ai/zhcn/guide/get_started/installation.html#%E5%AE%89%E8%A3%85%E5%85%A8%E9%83%A8%E5%8A%9F%E8%83%BD)
+详细的安装请安装 [cli_install](https://docs.deepwisdom.ai/guide/get_started/installation.html#install-stable-version)
 
 ### Docker安装
 

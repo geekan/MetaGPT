@@ -37,7 +37,7 @@
 
 ## Install
 
-### Conda installation
+### Pip installation
 
 ```bash
 # Step 1: Ensure that NPM is installed on your system. Then install mermaid-js. (If you don't have npm in your computer, please go to the Node.js official website to install Node.js https://nodejs.org/ and then you will have npm tool in your computer.)
@@ -50,17 +50,17 @@ sudo npm install -g @mermaid-js/mermaid-cli
 #     conda activate metagpt
 python3 --version
 
-# Step 3: Clone the repository to your local machine, and install it.
+# Step 3: Clone the repository to your local machine for latest version, and install it.
 git clone https://github.com/geekan/metagpt
 cd metagpt
-pip3 install -e.
+pip3 install -e.     # or pip3 install metagpt  # for stable version
 
 # Step 4: run the startup.py
 # setup your OPENAI_API_KEY in key.yaml copy from config.yaml
 python3 startup.py "Write a cli snake game"
 ```
 
-detail installation please refer to [cli_install](https://docs.deepwisdom.ai/guide/get_started/installation.html#installation-for-full-features)
+detail installation please refer to [cli_install](https://docs.deepwisdom.ai/guide/get_started/installation.html#install-stable-version)
 
 ### Docker installation
 
