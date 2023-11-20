@@ -17,6 +17,7 @@ from git.repo import Repo
 from git.repo.fun import is_git_dir
 
 from metagpt.const import WORKSPACE_ROOT
+from metagpt.utils.file_repository import FileRepository
 
 
 class ChangeType(Enum):
@@ -149,6 +150,14 @@ class GitRepository:
         """
         self.add_change(self.changed_files)
         self.commit(comments)
+
+    def new_file_repository(self, relative_path: Path | str) -> FileRepository:
+        """Create a new instance of FileRepository associated with this Git repository.
+
+        :param relative_path: The relative path to the file repository within the Git repository.
+        :return: A new instance of FileRepository.
+        """
+        return FileRepository(git_repo=self, relative_path=Path(relative_path))
 
 
 if __name__ == "__main__":
