@@ -207,6 +207,7 @@ class Engineer(Role):
 
     async def _act(self) -> Message:
         """Determines the mode of action based on whether code review is used."""
+        logger.info(f"{self._setting}: ready to WriteCode")
         if self.use_code_review:
             return await self._act_sp_precision()
         return await self._act_sp()
