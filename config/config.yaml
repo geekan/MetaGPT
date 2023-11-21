@@ -12,6 +12,7 @@ OPENAI_API_MODEL: "gpt-4"
 MAX_TOKENS: 1500
 RPM: 10
 LLM_TYPE: OpenAI
+TIMEOUT: 60 # in seconds
 
 #### if Anthropic
 #Anthropic_API_KEY: "YOUR_API_KEY"
