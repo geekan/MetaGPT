@@ -20,7 +20,6 @@ from metagpt.logs import logger
 from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.provider.openai_api import CostManager, log_and_reraise
 from metagpt.provider.zhipuai.zhipu_model_api import ZhiPuModelAPI
-from metagpt.utils.ahttp_client import astream
 
 
 class ZhiPuEvent(Enum):
