@@ -21,7 +21,7 @@ from tenacity import (
 from metagpt.config import CONFIG
 from metagpt.logs import logger
 from metagpt.provider.base_gpt_api import BaseGPTAPI
-from metagpt.provider.constant import GENRAL_FUNCTION_SCHEMA_4_ASK_CODE, GENRAL_TOOL_CHOICE_4_ASK_CODE
+from metagpt.provider.constant import general_function_schema, general_tool_choice
 from metagpt.schema import Message
 from metagpt.utils.singleton import Singleton
 from metagpt.utils.token_counter import (
@@ -245,8 +245,8 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
     def _func_configs(self, messages: list[dict], **kwargs) -> dict:
         if "tools" not in kwargs:
             configs = {
-                "tools": [{"type": "function", "function": GENRAL_FUNCTION_SCHEMA_4_ASK_CODE}],
-                "tool_choice": GENRAL_TOOL_CHOICE_4_ASK_CODE,
+                "tools": [{"type": "function", "function": general_function_schema}],
+                "tool_choice": general_tool_choice,
             }
             kwargs.update(configs)
 
