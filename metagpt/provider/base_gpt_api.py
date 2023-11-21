@@ -5,6 +5,7 @@
 @Author  : alexanderwu
 @File    : base_gpt_api.py
 """
+import json
 from abc import abstractmethod
 from typing import Optional
 
@@ -14,7 +15,8 @@ from metagpt.provider.base_chatbot import BaseChatbot
 
 class BaseGPTAPI(BaseChatbot):
     """GPT API abstract class, requiring all inheritors to provide a series of standard capabilities"""
-    system_prompt = 'You are a helpful assistant.'
+
+    system_prompt = "You are a helpful assistant."
 
     def _user_msg(self, msg: str) -> dict[str, str]:
         return {"role": "user", "content": msg}
@@ -110,11 +112,50 @@ class BaseGPTAPI(BaseChatbot):
         """Required to provide the first text of choice"""
         return rsp.get("choices")[0]["message"]["content"]
 
+    def get_choice_function(self, rsp: dict) -> dict:
+        """Required to provide the first function of choice
+        :param dict rsp: OpenAI chat.comletion respond JSON, Note "message" must include "tool_calls",
+            and "tool_calls" must include "function", for example:
+            {...
+                "choices": [
+                    {
+                    "index": 0,
+                    "message": {
+                        "role": "assistant",
+                        "content": null,
+                        "tool_calls": [
+                        {
+                            "id": "call_Y5r6Ddr2Qc2ZrqgfwzPX5l72",
+                            "type": "function",
+                            "function": {
+                            "name": "execute",
+                            "arguments": "{\n  \"language\": \"python\",\n  \"code\": \"print('Hello, World!')\"\n}"
+                            }
+                        }
+                        ]
+                    },
+                    "finish_reason": "stop"
+                    }
+                ],
+                ...}
+        :return dict: return first function of choice, for exmaple,
+            {'name': 'execute', 'arguments': '{\n  "language": "python",\n  "code": "print(\'Hello, World!\')"\n}'}
+        """
+        return rsp.get("choices")[0]["message"]["tool_calls"][0]["function"].to_dict()
+
+    def get_choice_function_arguments(self, rsp: dict) -> dict:
+        """Required to provide the first function arguments of choice.
+
+        :param dict rsp: same as in self.get_choice_function(rsp)
+        :return dict: return the first function arguments of choice, for example,
+            {'language': 'python', 'code': "print('Hello, World!')"}
+        """
+        return json.loads(self.get_choice_function(rsp)["arguments"])
+
     def messages_to_prompt(self, messages: list[dict]):
         """[{"role": "user", "content": msg}] to user: <msg> etc."""
-        return '\n'.join([f"{i['role']}: {i['content']}" for i in messages])
+        return "\n".join([f"{i['role']}: {i['content']}" for i in messages])
 
     def messages_to_dict(self, messages):
         """objects to [{"role": "user", "content": msg}] etc."""
         return [i.to_dict() for i in messages]
-    
