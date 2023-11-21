@@ -243,6 +243,9 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         return self.get_choice_text(rsp)
 
     def _func_configs(self, messages: list[dict], **kwargs) -> dict:
+        """
+        Note: Keep kwargs consistent with the parameters in the https://platform.openai.com/docs/api-reference/chat/create
+        """
         if "tools" not in kwargs:
             configs = {
                 "tools": [{"type": "function", "function": general_function_schema}],
@@ -280,7 +283,8 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
 
     def ask_code(self, messages: Union[str, Message, list[dict]], **kwargs) -> dict:
         """Use function of tools to ask a code.
-        https://platform.openai.com/docs/api-reference/chat/create#chat-create-tools
+
+        Note: Keep kwargs consistent with the parameters in the https://platform.openai.com/docs/api-reference/chat/create
 
         Examples:
 
@@ -297,7 +301,8 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
 
     async def aask_code(self, messages: Union[str, Message, list[dict]], **kwargs) -> dict:
         """Use function of tools to ask a code.
-        https://platform.openai.com/docs/api-reference/chat/create#chat-create-tools
+
+        Note: Keep kwargs consistent with the parameters in the https://platform.openai.com/docs/api-reference/chat/create
 
         Examples:
 
