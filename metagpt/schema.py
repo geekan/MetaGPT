@@ -30,6 +30,7 @@ class Message:
     sent_from: str = field(default="")
     send_to: str = field(default="")
     restricted_to: str = field(default="")
+    state: str = None  # None, done, todo, doing, error
 
     def __str__(self):
         # prefix = '-'.join([self.role, str(self.cause_by)])
