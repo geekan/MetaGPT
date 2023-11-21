@@ -6,7 +6,7 @@ from typing import AsyncGenerator, Tuple, Union, Optional, Literal
 import aiohttp
 import asyncio
 
-from openai.api_requestor import APIRequestor, aiohttp_session
+from openai.api_requestor import APIRequestor
 
 from metagpt.logs import logger
 
