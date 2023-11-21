@@ -1,6 +1,6 @@
 # function in tools, https://platform.openai.com/docs/api-reference/chat/create#chat-create-tools
 # Reference: https://github.com/KillianLucas/open-interpreter/blob/v0.1.14/interpreter/llm/setup_openai_coding_llm.py
-general_function_schema = {
+GENERAL_FUNCTION_SCHEMA = {
     "name": "execute",
     "description": "Executes code on the user's machine, **in the users local environment**, and returns the output",
     "parameters": {
@@ -27,4 +27,4 @@ general_function_schema = {
 
 # tool_choice value for general_function_schema
 # https://platform.openai.com/docs/api-reference/chat/create#chat-create-tool_choice
-general_tool_choice = {"type": "function", "function": {"name": "execute"}}
+GENERAL_TOOL_CHOICE = {"type": "function", "function": {"name": "execute"}}
