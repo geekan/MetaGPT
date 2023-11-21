@@ -24,7 +24,7 @@ from metagpt.actions.write_prd import WritePRD
 from metagpt.actions.write_prd_review import WritePRDReview
 from metagpt.actions.write_test import WriteTest
 from metagpt.actions.code_executor import PyCodeExecutor
-from metagpt.actions.write_code_v2 import WriteCode as WriteCodeFunction
+from metagpt.actions.write_code_function import WriteCodeFunction
 from metagpt.actions.plan import Plan
 
 

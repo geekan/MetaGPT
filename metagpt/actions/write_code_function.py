@@ -10,7 +10,7 @@ from metagpt.actions import Action
 from metagpt.schema import Message
 
 
-class WriteCode(Action):
+class WriteCodeFunction(Action):
     """Use openai function to generate code."""
 
     def __init__(self, name: str = "", context=None, llm=None) -> str:
