@@ -126,15 +126,19 @@ class BrainMemory(pydantic.BaseModel):
         self.last_talk = None
         return v
 
-    async def summarize(self, llm, max_words=200, keep_language: bool = False, limit: int = -1, **kwargs):
+    async def summarize(self, llm, max_words=200, keep_language: bool = False, limit: int = -1, timeout=3, **kwargs):
         if self.llm_type == LLMType.METAGPT.value:
-            return await self._metagpt_summarize(llm=llm, max_words=max_words, keep_language=keep_language, **kwargs)
+            return await self._metagpt_summarize(
+                llm=llm, max_words=max_words, keep_language=keep_language, timeout=timeout, **kwargs
+            )
 
         return await self._openai_summarize(
-            llm=llm, max_words=max_words, keep_language=keep_language, limit=limit, **kwargs
+            llm=llm, max_words=max_words, keep_language=keep_language, limit=limit, timeout=timeout, **kwargs
         )
 
-    async def _openai_summarize(self, llm, max_words=200, keep_language: bool = False, limit: int = -1, **kwargs):
+    async def _openai_summarize(
+        self, llm, max_words=200, keep_language: bool = False, limit: int = -1, timeout=3, **kwargs
+    ):
         max_token_count = DEFAULT_MAX_TOKENS
         max_count = 100
         texts = [self.historical_summary]
@@ -148,7 +152,9 @@ class BrainMemory(pydantic.BaseModel):
         summary = ""
         while max_count > 0:
             if text_length < max_token_count:
-                summary = await self._get_summary(text=text, llm=llm, max_words=max_words, keep_language=keep_language)
+                summary = await self._get_summary(
+                    text=text, llm=llm, max_words=max_words, keep_language=keep_language, timeout=timeout
+                )
                 break
 
             padding_size = 20 if max_token_count > 20 else 0
@@ -157,7 +163,7 @@ class BrainMemory(pydantic.BaseModel):
             summaries = []
             for ws in text_windows:
                 response = await self._get_summary(
-                    text=ws, llm=llm, max_words=part_max_words, keep_language=keep_language
+                    text=ws, llm=llm, max_words=part_max_words, keep_language=keep_language, timeout=timeout
                 )
                 summaries.append(response)
             if len(summaries) == 1:
@@ -174,7 +180,7 @@ class BrainMemory(pydantic.BaseModel):
             return summary
         raise ValueError("text too long")
 
-    async def _metagpt_summarize(self, max_words=200, **kwargs):
+    async def _metagpt_summarize(self, max_words=200, timeout=3, **kwargs):
         if not self.history:
             return ""
 
@@ -210,7 +216,7 @@ class BrainMemory(pydantic.BaseModel):
         return json.dumps(mmsg)
 
     @staticmethod
-    async def _get_summary(text: str, llm, max_words=20, keep_language: bool = False):
+    async def _get_summary(text: str, llm, max_words=20, keep_language: bool = False, timeout=3):
         """Generate text summary"""
         if len(text) < max_words:
             return text
@@ -220,60 +226,60 @@ class BrainMemory(pydantic.BaseModel):
             command = f"Translate the above content into a summary of less than {max_words} words."
         msg = text + "\n\n" + command
         logger.debug(f"summary ask:{msg}")
-        response = await llm.aask(msg=msg, system_msgs=[])
+        response = await llm.aask(msg=msg, system_msgs=[], timeout=timeout)
         logger.debug(f"summary rsp: {response}")
         return response
 
-    async def get_title(self, llm, max_words=5, **kwargs) -> str:
+    async def get_title(self, llm, max_words=5, timeout=3, **kwargs) -> str:
         """Generate text title"""
         if self.llm_type == LLMType.METAGPT.value:
             return Message(**self.history[0]).content if self.history else "New"
 
-        summary = await self.summarize(llm=llm, max_words=500)
+        summary = await self.summarize(llm=llm, max_words=500, timeout=timeout)
 
         language = CONFIG.language or DEFAULT_LANGUAGE
         command = f"Translate the above summary into a {language} title of less than {max_words} words."
         summaries = [summary, command]
         msg = "\n".join(summaries)
         logger.debug(f"title ask:{msg}")
-        response = await llm.aask(msg=msg, system_msgs=[])
+        response = await llm.aask(msg=msg, system_msgs=[], timeout=timeout)
         logger.debug(f"title rsp: {response}")
         return response
 
-    async def is_related(self, text1, text2, llm):
+    async def is_related(self, text1, text2, llm, timeout=3):
         if self.llm_type == LLMType.METAGPT.value:
-            return await self._metagpt_is_related(text1=text1, text2=text2, llm=llm)
-        return await self._openai_is_related(text1=text1, text2=text2, llm=llm)
+            return await self._metagpt_is_related(text1=text1, text2=text2, llm=llm, timeout=timeout)
+        return await self._openai_is_related(text1=text1, text2=text2, llm=llm, timeout=timeout)
 
     @staticmethod
     async def _metagpt_is_related(**kwargs):
         return False
 
     @staticmethod
-    async def _openai_is_related(text1, text2, llm, **kwargs):
+    async def _openai_is_related(text1, text2, llm, timeout=3, **kwargs):
         # command = f"{text1}\n{text2}\n\nIf the two sentences above are related, return [TRUE] brief and clear. Otherwise, return [FALSE]."
         command = f"{text2}\n\nIs there any sentence above related to the following sentence: {text1}.\nIf is there any relevance, return [TRUE] brief and clear. Otherwise, return [FALSE] brief and clear."
-        rsp = await llm.aask(msg=command, system_msgs=[])
+        rsp = await llm.aask(msg=command, system_msgs=[], timeout=timeout)
         result = True if "TRUE" in rsp else False
         p2 = text2.replace("\n", "")
         p1 = text1.replace("\n", "")
         logger.info(f"IS_RELATED:\nParagraph 1: {p2}\nParagraph 2: {p1}\nRESULT: {result}\n")
         return result
 
-    async def rewrite(self, sentence: str, context: str, llm):
+    async def rewrite(self, sentence: str, context: str, llm, timeout=3):
         if self.llm_type == LLMType.METAGPT.value:
-            return await self._metagpt_rewrite(sentence=sentence, context=context, llm=llm)
-        return await self._openai_rewrite(sentence=sentence, context=context, llm=llm)
+            return await self._metagpt_rewrite(sentence=sentence, context=context, llm=llm, timeout=timeout)
+        return await self._openai_rewrite(sentence=sentence, context=context, llm=llm, timeout=timeout)
 
-    async def _metagpt_rewrite(self, sentence: str, **kwargs):
+    async def _metagpt_rewrite(self, sentence: str, timetout=3, **kwargs):
         return sentence
 
-    async def _openai_rewrite(self, sentence: str, context: str, llm, **kwargs):
+    async def _openai_rewrite(self, sentence: str, context: str, llm, timeout=3, **kwargs):
         # command = (
         #     f"{context}\n\nConsidering the content above, rewrite and return this sentence brief and clear:\n{sentence}"
         # )
         command = f"{context}\n\nExtract relevant information from every preceding sentence and use it to succinctly supplement or rewrite the following text in brief and clear:\n{sentence}"
-        rsp = await llm.aask(msg=command, system_msgs=[])
+        rsp = await llm.aask(msg=command, system_msgs=[], timeout=timeout)
         logger.info(f"REWRITE:\nCommand: {command}\nRESULT: {rsp}\n")
         return rsp
 

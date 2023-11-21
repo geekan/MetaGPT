@@ -12,16 +12,17 @@ from dataclasses import dataclass
 @dataclass
 class BaseChatbot(ABC):
     """Abstract GPT class"""
+
     mode: str = "API"
 
     @abstractmethod
-    def ask(self, msg: str) -> str:
+    def ask(self, msg: str, timeout=3) -> str:
         """Ask GPT a question and get an answer"""
 
     @abstractmethod
-    def ask_batch(self, msgs: list) -> str:
+    def ask_batch(self, msgs: list, timeout=3) -> str:
         """Ask GPT multiple questions and get a series of answers"""
 
     @abstractmethod
-    def ask_code(self, msgs: list) -> str:
+    def ask_code(self, msgs: list, timeout=3) -> str:
         """Ask GPT multiple questions and get a piece of code"""

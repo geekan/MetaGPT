@@ -81,8 +81,8 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         self.openai = AsyncOpenAI(api_key=CONFIG.openai_api_key)
         RateLimiter.__init__(self, rpm=self.rpm)
 
-    async def _achat_completion_stream(self, messages: list[dict]) -> str:
-        kwargs = self._cons_kwargs(messages)
+    async def _achat_completion_stream(self, messages: list[dict], timeout=3) -> str:
+        kwargs = self._cons_kwargs(messages, timeout=timeout)
         options = self._get_options()
         response = await self.openai.with_options(**options).chat.completions.create(**kwargs, stream=True)
         # iterate through the stream of events
@@ -90,7 +90,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             chunk_message = chunk.choices[0].delta.content or ""  # extract the message
             yield chunk_message
 
-    def _cons_kwargs(self, messages: list[dict]) -> dict:
+    def _cons_kwargs(self, messages: list[dict], timeout=3) -> dict:
         if CONFIG.openai_api_type == "azure":
             kwargs = {
                 "deployment_id": CONFIG.deployment_id,
@@ -113,27 +113,27 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
                 "stop": None,
                 "temperature": 0.3,
             }
-        kwargs["timeout"] = 3
+        kwargs["timeout"] = max(CONFIG.TIMEOUT, timeout) if CONFIG.TIMEOUT is not None else timeout
 
         return kwargs
 
     def _get_options(self):
         return CONFIG.get_openai_options()
 
-    async def _achat_completion(self, messages: list[dict]) -> dict:
-        kwargs = self._cons_kwargs(messages)
+    async def _achat_completion(self, messages: list[dict], timeout=3) -> dict:
+        kwargs = self._cons_kwargs(messages, timeout=timeout)
         options = self._get_options()
         rsp = await self.openai.with_options(**options).chat.completions.create(**kwargs)
         self._update_costs(rsp.usage)
         return rsp.dict()
 
-    def completion(self, messages: list[dict]) -> dict:
-        raise NotImplementedError
+    def completion(self, messages: list[dict], timeout=3) -> dict:
+        return asyncio.run(self.acompletion(messages, timeout=timeout))
 
-    async def acompletion(self, messages: list[dict]) -> dict:
+    async def acompletion(self, messages: list[dict], timeout=3) -> dict:
         # if isinstance(messages[0], Message):
         #     messages = self.messages_to_dict(messages)
-        return await self._achat_completion(messages)
+        return await self._achat_completion(messages, timeout=timeout)
 
     @retry(
         stop=stop_after_attempt(3),
@@ -149,10 +149,10 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         retry=retry_if_exception_type(RateLimitError),
         reraise=True,
     )
-    async def acompletion_text(self, messages: list[dict], stream=False, generator: bool = False) -> str:
+    async def acompletion_text(self, messages: list[dict], stream=False, generator: bool = False, timeout=3) -> str:
         """when streaming, print each token in place."""
         if stream:
-            resp = self._achat_completion_stream(messages)
+            resp = self._achat_completion_stream(messages, timeout=timeout)
             if generator:
                 return resp
 
@@ -166,7 +166,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             self._update_costs(usage)
             return full_reply_content
 
-        rsp = await self._achat_completion(messages)
+        rsp = await self._achat_completion(messages, timeout=timeout)
         return self.get_choice_text(rsp)
 
     def _calc_usage(self, messages: list[dict], rsp: str) -> CompletionUsage:
@@ -184,7 +184,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
                 logger.error("usage calculation failed!", e)
         return CompletionUsage(prompt_tokens=0, completion_tokens=0, total_tokens=0)
 
-    async def acompletion_batch(self, batch: list[list[dict]]) -> list[dict]:
+    async def acompletion_batch(self, batch: list[list[dict]], timeout=3) -> list[dict]:
         """返回完整JSON"""
         split_batches = self.split_batches(batch)
         all_results = []
@@ -193,16 +193,16 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             logger.info(small_batch)
             await self.wait_if_needed(len(small_batch))
 
-            future = [self.acompletion(prompt) for prompt in small_batch]
+            future = [self.acompletion(prompt, timeout=timeout) for prompt in small_batch]
             results = await asyncio.gather(*future)
             logger.info(results)
             all_results.extend(results)
 
         return all_results
 
-    async def acompletion_batch_text(self, batch: list[list[dict]]) -> list[str]:
+    async def acompletion_batch_text(self, batch: list[list[dict]], timeout=3) -> list[str]:
         """仅返回纯文本"""
-        raw_results = await self.acompletion_batch(batch)
+        raw_results = await self.acompletion_batch(batch, timeout=timeout)
         results = []
         for idx, raw_result in enumerate(raw_results, start=1):
             result = self.get_choice_text(raw_result)
@@ -224,11 +224,11 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             return CONFIG.max_tokens_rsp
         return get_max_completion_tokens(messages, self.model, CONFIG.max_tokens_rsp)
 
-    async def get_summary(self, text: str, max_words=200, keep_language: bool = False, **kwargs) -> str:
+    async def get_summary(self, text: str, max_words=200, keep_language: bool = False, timeout=3, **kwargs) -> str:
         from metagpt.memory.brain_memory import BrainMemory
 
         memory = BrainMemory(llm_type=LLMType.OPENAI.value, historical_summary=text, cacheable=False)
-        return await memory.summarize(llm=self, max_words=max_words, keep_language=keep_language)
+        return await memory.summarize(llm=self, max_words=max_words, keep_language=keep_language, timeout=timeout)
 
     async def close(self):
         """Close connection"""
