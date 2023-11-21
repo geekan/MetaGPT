@@ -262,10 +262,10 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         self._update_costs(rsp.get("usage"))
         return rsp
 
-    def _process_message(self, messages: Union[str, Message, list[dict]]) -> list[dict]:
+    def _process_message(self, messages: Union[str, Message, list[dict], list[Message]]) -> list[dict]:
         """convert messages to list[dict]."""
         if isinstance(messages, list):
-            return messages
+            return [msg if isinstance(msg, dict) else msg.to_dict() for msg in messages]
 
         if isinstance(messages, Message):
             messages = [messages.to_dict()]
