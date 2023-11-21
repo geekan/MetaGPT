@@ -7,6 +7,7 @@
 """
 from metagpt.actions import WriteDesign
 from metagpt.actions.action import Action
+from metagpt.actions.refine_design_api import RefineDesign
 from metagpt.const import WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.schema import Message
@@ -55,7 +56,14 @@ class WriteCode(Action):
         if self._is_invalid(filename):
             return
 
-        design = [i for i in context if i.cause_by == WriteDesign][0]
+        # FIXME: 需要适配increment
+        # design = [i for i in context if i.cause_by == WriteDesign][0]
+        design = []
+        for i in context:
+            if i.cause_by == WriteDesign:
+                design.append(i)
+            elif i.cause_by == RefineDesign:
+                design.append(i)
 
         ws_name = CodeParser.parse_str(block="Python package name", text=design.content)
         ws_path = WORKSPACE_ROOT / ws_name

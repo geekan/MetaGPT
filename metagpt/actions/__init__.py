@@ -15,6 +15,7 @@ from metagpt.actions.design_api import WriteDesign
 from metagpt.actions.design_api_review import DesignReview
 from metagpt.actions.design_filenames import DesignFilenames
 from metagpt.actions.project_management import AssignTasks, WriteTasks
+from metagpt.actions.refine import Refine
 from metagpt.actions.research import CollectLinks, WebBrowseAndSummarize, ConductResearch
 from metagpt.actions.run_code import RunCode
 from metagpt.actions.search_and_summarize import SearchAndSummarize

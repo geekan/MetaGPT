@@ -5,8 +5,11 @@
 @Author  : alexanderwu
 @File    : product_manager.py
 """
-from metagpt.actions import BossRequirement, WritePRD
+from metagpt.actions import BossRequirement, WritePRD, ActionOutput
+from metagpt.actions.refine_prd import RefinePRD
+from metagpt.logs import logger
 from metagpt.roles import Role
+from metagpt.schema import Message
 
 
 class ProductManager(Role):
@@ -26,6 +29,9 @@ class ProductManager(Role):
         profile: str = "Product Manager",
         goal: str = "Efficiently create a successful product",
         constraints: str = "",
+        difference_description: str = "",
+        legacy: str = "",
+        increment: bool = False,
     ) -> None:
         """
         Initializes the ProductManager role with given attributes.
@@ -37,5 +43,31 @@ class ProductManager(Role):
             constraints (str): Constraints or limitations for the product manager.
         """
         super().__init__(name, profile, goal, constraints)
-        self._init_actions([WritePRD])
+        self.difference_description = difference_description
+        self.legacy = legacy
+        self.increment = increment
+
+        if self.increment:
+            self._init_actions([RefinePRD])
+        else:
+            self._init_actions([WritePRD])
         self._watch([BossRequirement])
+
+    async def _act(self) -> Message:
+        if self.increment:
+            logger.info(f"{self._setting}: ready to RefinePRD")
+            response = await self._rc.todo.run(self._rc.history, self.difference_description, self.legacy)
+
+        else:
+            logger.info(f"{self._setting}: ready to WritePRD")
+            response = await self._rc.todo.run(self._rc.history)
+
+        if isinstance(response, ActionOutput):
+            msg = Message(content=response.content, instruct_content=response.instruct_content,
+                        role=self.profile, cause_by=type(self._rc.todo))
+        else:
+            msg = Message(content=response, role=self.profile, cause_by=type(self._rc.todo))
+        self._rc.memory.add(msg)
+        logger.debug(f"{response}")
+
+        return msg
