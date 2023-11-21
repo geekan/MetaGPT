@@ -24,7 +24,7 @@ def LLM() -> "BaseGPTAPI":
         llm = Claude()
     elif CONFIG.spark_api_key:
         llm = SparkAPI()
-    elif CONFIG.zhipuai_api_key and CONFIG.zhipuai_api_key != "YOUR_API_KEY":
+    elif CONFIG.zhipuai_api_key:
         llm = ZhiPuAIGPTAPI()
     else:
         raise RuntimeError("You should config a LLM configuration first")

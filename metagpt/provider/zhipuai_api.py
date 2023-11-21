@@ -13,6 +13,7 @@ from tenacity import (
 )
 from requests import ConnectionError
 
+import openai
 import zhipuai
 
 from metagpt.config import CONFIG
@@ -46,6 +47,7 @@ class ZhiPuAIGPTAPI(BaseGPTAPI):
     def __init_zhipuai(self, config: CONFIG):
         assert config.zhipuai_api_key
         zhipuai.api_key = config.zhipuai_api_key
+        openai.api_key = zhipuai.api_key  # due to use openai sdk, set the api_key but it will't be used.
 
     def _const_kwargs(self, messages: list[dict]) -> dict:
         kwargs = {
