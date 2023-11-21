@@ -68,3 +68,13 @@ def test_ask_code_list_Message():
     assert "language" in rsp
     assert "code" in rsp
     assert len(rsp["code"]) > 0
+
+
+def test_ask_code_list_str():
+    llm = OpenAIGPTAPI()
+    msg = ["a=[1,2,5,10,-10]", "写出求a中最大值的代码python"]
+    rsp = llm.ask_code(msg)  # -> {'language': 'python', 'code': 'max_value = max(a)\nmax_value'}
+    print(rsp)
+    assert "language" in rsp
+    assert "code" in rsp
+    assert len(rsp["code"]) > 0
