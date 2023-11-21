@@ -19,6 +19,8 @@ from metagpt.llm import LLM, HumanProvider
 from metagpt.logs import logger
 from metagpt.memory import Memory, LongTermMemory
 from metagpt.schema import Message
+from metagpt.utils.repair_llm_raw_output import extract_state_value_from_output
+
 
 PREFIX_TEMPLATE = """You are a {profile}, named {name}, your goal is {goal}, and the constraint is {constraints}. """
 
@@ -49,6 +51,7 @@ ROLE_TEMPLATE = """Your response should be based on the previous conversation hi
 {name}: {result}
 """
 
+
 class RoleReactMode(str, Enum):
     REACT = "react"
     BY_ORDER = "by_order"
@@ -57,6 +60,7 @@ class RoleReactMode(str, Enum):
     @classmethod
     def values(cls):
         return [item.value for item in cls]
+
 
 class RoleSetting(BaseModel):
     """Role Settings"""
@@ -79,11 +83,11 @@ class RoleContext(BaseModel):
     env: 'Environment' = Field(default=None)
     memory: Memory = Field(default_factory=Memory)
     long_term_memory: LongTermMemory = Field(default_factory=LongTermMemory)
-    state: int = Field(default=-1) # -1 indicates initial or termination state where todo is None
+    state: int = Field(default=-1)  # -1 indicates initial or termination state where todo is None
     todo: Action = Field(default=None)
     watch: set[Type[Action]] = Field(default_factory=set)
     news: list[Type[Message]] = Field(default=[])
-    react_mode: RoleReactMode = RoleReactMode.REACT # see `Role._set_react_mode` for definitions of the following two attributes
+    react_mode: RoleReactMode = RoleReactMode.REACT  # see `Role._set_react_mode` for definitions of the following two attributes
     max_react_loop: int = 1
 
     class Config:
@@ -127,8 +131,9 @@ class Role:
                 i = action("", llm=self._llm)
             else:
                 if self._setting.is_human and not isinstance(action.llm, HumanProvider):
-                    logger.warning(f"is_human attribute does not take effect,"
-                        f"as Role's {str(action)} was initialized using LLM, try passing in Action classes instead of initialized instances")
+                    logger.warning(f"is_human attribute does not take effect, "
+                                   f"as Role's {str(action)} was initialized using LLM, "
+                                   f"try passing in Action classes instead of initialized instances")
                 i = action
             i.set_prefix(self._get_prefix(), self.profile)
             self._actions.append(i)
@@ -193,6 +198,7 @@ class Role:
                                         n_states=len(self._states) - 1, previous_state=self._rc.state)
         # print(prompt)
         next_state = await self._llm.aask(prompt)
+        next_state = extract_state_value_from_output(next_state)
         logger.debug(f"{prompt=}")
         if (not next_state.isdigit() and next_state != "-1") \
             or int(next_state) not in range(-1, len(self._states)):

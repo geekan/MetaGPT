@@ -16,6 +16,8 @@ from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.utils.common import OutputParser
 from metagpt.utils.custom_decoder import CustomDecoder
+from metagpt.utils.repair_llm_raw_output import repair_llm_raw_output, RepairType,\
+    retry_parse_json_text, extract_content_from_output
 
 
 class Action(ABC):
@@ -49,7 +51,7 @@ class Action(ABC):
         system_msgs.append(self.prefix)
         return await self.llm.aask(prompt, system_msgs)
 
-    @retry(stop=stop_after_attempt(3), wait=wait_fixed(1))
+    # @retry(stop=stop_after_attempt(3), wait=wait_fixed(1))
     async def _aask_v1(
         self,
         prompt: str,
@@ -65,22 +67,19 @@ class Action(ABC):
         content = await self.llm.aask(prompt, system_msgs)
         logger.debug(content)
         output_class = ActionOutput.create_model_class(output_class_name, output_data_mapping)
+        output_class_fields = list(output_class.schema()["properties"].keys())  # Custom ActionOutput's fields
 
         if format == "json":
-            pattern = r"\[CONTENT\](\s*\{.*?\}\s*)\[/CONTENT\]"
-            matches = re.findall(pattern, content, re.DOTALL)
-
-            for match in matches:
-                if match:
-                    content = match
-                    break
-
-            parsed_data = CustomDecoder(strict=False).decode(content)
+            content = repair_llm_raw_output(content, req_keys=output_class_fields + ["[/CONTENT]"])
+            content = extract_content_from_output(content)
+            content = repair_llm_raw_output(content, req_keys=[None], repair_type=RepairType.JSON)  # req_keys mocked
+            logger.info(f"extracted CONTENT from content:\n{content}")
+            parsed_data = retry_parse_json_text(content)
 
         else:  # using markdown parser
             parsed_data = OutputParser.parse_data_with_mapping(content, output_data_mapping)
 
-        logger.debug(parsed_data)
+        logger.debug(f"parsed_data:\n{parsed_data}")
         instruct_content = output_class(**parsed_data)
         return ActionOutput(content, instruct_content)
 
