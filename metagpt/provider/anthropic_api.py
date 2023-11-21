@@ -4,6 +4,7 @@
 @Time    : 2023/7/21 11:15
 @Author  : Leo Xiao
 @File    : anthropic_api.py
+@Modified By: mashenquan, 2023/11/21. Add `timeout`.
 """
 
 import anthropic

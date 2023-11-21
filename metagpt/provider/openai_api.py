@@ -6,6 +6,7 @@
 @Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation;
             Change cost control from global to company level.
 @Modified By: mashenquan, 2023/11/7. Fix bug: unclosed connection.
+@Modified By: mashenquan, 2023/11/21. Fix bug: ReadTimeout.
 """
 import asyncio
 import time
