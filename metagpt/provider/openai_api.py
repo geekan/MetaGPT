@@ -129,7 +129,15 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         return rsp.dict()
 
     def completion(self, messages: list[dict], timeout=3) -> dict:
-        return asyncio.run(self.acompletion(messages, timeout=timeout))
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError as e:
+            if "There is no current event loop in thread" in str(e):
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+            else:
+                raise e
+        return loop.run_until_complete(self.acompletion(messages, timeout=timeout))
 
     async def acompletion(self, messages: list[dict], timeout=3) -> dict:
         # if isinstance(messages[0], Message):
