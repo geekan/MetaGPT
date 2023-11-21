@@ -9,6 +9,7 @@ import asyncio
 
 import fire
 
+from metagpt.llm import LLM
 from metagpt.actions import Action
 from metagpt.roles import Role
 from metagpt.schema import Message
@@ -19,19 +20,10 @@ class SimpleWriteCode(Action):
     PROMPT_TEMPLATE = """
     Write a python function that can {instruction} and provide two runnnable test cases.
     Return ```python your_code_here ``` with NO other texts,
-    example: 
-    ```python
-    # function
-    def add(a, b):
-        return a + b
-    # test cases
-    print(add(1, 2))
-    print(add(3, 4))
-    ```
     your code:
     """
 
-    def __init__(self, name="SimpleWriteCode", context=None, llm=None):
+    def __init__(self, name: str = "SimpleWriteCode", context=None, llm: LLM = None):
         super().__init__(name, context, llm)
 
     async def run(self, instruction: str):
@@ -51,8 +43,9 @@ class SimpleWriteCode(Action):
         code_text = match.group(1) if match else rsp
         return code_text
 
+
 class SimpleRunCode(Action):
-    def __init__(self, name="SimpleRunCode", context=None, llm=None):
+    def __init__(self, name: str = "SimpleRunCode", context=None, llm: LLM = None):
         super().__init__(name, context, llm)
 
     async def run(self, code_text: str):
@@ -60,6 +53,7 @@ class SimpleRunCode(Action):
         code_result = result.stdout
         logger.info(f"{code_result=}")
         return code_result
+
 
 class SimpleCoder(Role):
     def __init__(
@@ -73,14 +67,15 @@ class SimpleCoder(Role):
 
     async def _act(self) -> Message:
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
-        todo = self._rc.todo
+        todo = self._rc.todo # todo will be SimpleWriteCode()
 
         msg = self.get_memories(k=1)[0] # find the most recent messages
 
-        code_text = await SimpleWriteCode().run(msg.content)
-        msg = Message(content=code_text, role=self.profile, cause_by=todo)
+        code_text = await todo.run(msg.content)
+        msg = Message(content=code_text, role=self.profile, cause_by=type(todo))
 
         return msg
+
 
 class RunnableCoder(Role):
     def __init__(
@@ -95,6 +90,8 @@ class RunnableCoder(Role):
 
     async def _act(self) -> Message:
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
+        # By choosing the Action by order under the hood
+        # todo will be first SimpleWriteCode() then SimpleRunCode()
         todo = self._rc.todo
 
         msg = self.get_memories(k=1)[0] # find the most k recent messages
@@ -103,6 +100,7 @@ class RunnableCoder(Role):
         msg = Message(content=result, role=self.profile, cause_by=type(todo))
         self._rc.memory.add(msg)
         return msg
+
 
 def main(msg="write a function that calculates the product of a list and run it"):
     # role = SimpleCoder()

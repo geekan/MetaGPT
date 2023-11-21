@@ -15,7 +15,7 @@ from pydantic import BaseModel, Field
 # from metagpt.environment import Environment
 from metagpt.config import CONFIG
 from metagpt.actions import Action, ActionOutput
-from metagpt.llm import LLM
+from metagpt.llm import LLM, HumanProvider
 from metagpt.logs import logger
 from metagpt.memory import Memory, LongTermMemory
 from metagpt.schema import Message
@@ -65,6 +65,7 @@ class RoleSetting(BaseModel):
     goal: str
     constraints: str
     desc: str
+    is_human: bool
 
     def __str__(self):
         return f"{self.name}({self.profile})"
@@ -106,9 +107,10 @@ class RoleContext(BaseModel):
 class Role:
     """Role/Agent"""
 
-    def __init__(self, name="", profile="", goal="", constraints="", desc=""):
-        self._llm = LLM()
-        self._setting = RoleSetting(name=name, profile=profile, goal=goal, constraints=constraints, desc=desc)
+    def __init__(self, name="", profile="", goal="", constraints="", desc="", is_human=False):
+        self._llm = LLM() if not is_human else HumanProvider()
+        self._setting = RoleSetting(name=name, profile=profile, goal=goal,
+                                    constraints=constraints, desc=desc, is_human=is_human)
         self._states = []
         self._actions = []
         self._role_id = str(self._setting)
@@ -122,8 +124,11 @@ class Role:
         self._reset()
         for idx, action in enumerate(actions):
             if not isinstance(action, Action):
-                i = action("")
+                i = action("", llm=self._llm)
             else:
+                if self._setting.is_human and not isinstance(action.llm, HumanProvider):
+                    logger.warning(f"is_human attribute does not take effect,"
+                        f"as Role's {str(action)} was initialized using LLM, try passing in Action classes instead of initialized instances")
                 i = action
             i.set_prefix(self._get_prefix(), self.profile)
             self._actions.append(i)

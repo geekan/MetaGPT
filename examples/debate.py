@@ -77,6 +77,8 @@ class Debator(Role):
             send_to=self.opponent_name,
         )
 
+        self._rc.memory.add(msg)
+
         return msg
 
 async def debate(idea: str, investment: float = 3.0, n_round: int = 5):
