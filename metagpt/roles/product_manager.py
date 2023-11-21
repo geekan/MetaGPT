@@ -6,6 +6,7 @@
 @File    : product_manager.py
 """
 from metagpt.actions import BossRequirement, WritePRD
+from metagpt.actions.prepare_documents import PrepareDocuments
 from metagpt.roles import Role
 
 
@@ -37,5 +38,13 @@ class ProductManager(Role):
             constraints (str): Constraints or limitations for the product manager.
         """
         super().__init__(name, profile, goal, constraints)
-        self._init_actions([WritePRD])
+        self._init_actions([PrepareDocuments(context={"parent": self}), WritePRD])
         self._watch([BossRequirement])
+
+    async def _think(self) -> None:
+        """Decide what to do"""
+        if self._rc.env.git_repository:
+            self._set_state(1)
+        else:
+            self._set_state(0)
+        return self._rc.todo

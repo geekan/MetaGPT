@@ -164,6 +164,10 @@ class Role:
         if env:
             env.set_subscription(self, self._subscription)
 
+    def get_env(self):
+        """Return the environment in which the role works."""
+        return self._rc.env
+
     @property
     def profile(self):
         """Get the role description (position)"""

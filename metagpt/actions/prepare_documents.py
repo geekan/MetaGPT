@@ -12,4 +12,14 @@ from metagpt.actions import Action
 
 class PrepareDocuments(Action):
     def __init__(self, name="", context=None, llm=None):
-        pass
+        super().__init__(name, context, llm)
+
+    async def run(self, with_message, **kwargs):
+        parent = self.context.get("parent")
+        if not parent:
+            raise ValueError("Invalid owner")
+        env = parent.get_env()
+        if env.git_repository:
+            return
+        env.git_repository = GitRepository()
+        env.git_repository.open(WORKS)
