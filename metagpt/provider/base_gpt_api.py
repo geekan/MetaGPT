@@ -111,16 +111,43 @@ class BaseGPTAPI(BaseChatbot):
         return rsp.get("choices")[0]["message"]["content"]
 
     def get_choice_function(self, rsp: dict) -> dict:
-        """Required to provide the first function of choice. for example:
-        "function": {
-            "name": "execute",
-            "arguments": "{\n  \"language\": \"python\",\n  \"code\": \"print('Hello, World!')\"\n}"
-        }
+        """Required to provide the first function of choice
+        :param dict rsp: OpenAI chat.comletion respond JSON, Note "message" must include "tool_calls",
+            and "tool_calls" must include "function", for example:
+            {...
+                "choices": [
+                    {
+                    "index": 0,
+                    "message": {
+                        "role": "assistant",
+                        "content": null,
+                        "tool_calls": [
+                        {
+                            "id": "call_Y5r6Ddr2Qc2ZrqgfwzPX5l72",
+                            "type": "function",
+                            "function": {
+                            "name": "execute",
+                            "arguments": "{\n  \"language\": \"python\",\n  \"code\": \"print('Hello, World!')\"\n}"
+                            }
+                        }
+                        ]
+                    },
+                    "finish_reason": "stop"
+                    }
+                ],
+                ...}
+        :return dict: return first function of choice, for exmaple,
+            {'name': 'execute', 'arguments': '{\n  "language": "python",\n  "code": "print(\'Hello, World!\')"\n}'}
         """
         return rsp.get("choices")[0]["message"]["tool_calls"][0]["function"].to_dict()
 
     def get_choice_function_arguments(self, rsp: dict) -> dict:
-        """Required to provide the first function arguments of choice."""
+        """Required to provide the first function arguments of choice.
+
+        :param dict rsp: same as in self.get_choice_function(rsp)
+        :return dict: return the first function arguments of choice, for example,
+            {'language': 'python', 'code': "print('Hello, World!')"}
+        """
         return json.loads(self.get_choice_function(rsp)["arguments"])
 
     def messages_to_prompt(self, messages: list[dict]):
