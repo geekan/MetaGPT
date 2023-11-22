@@ -12,12 +12,7 @@ from pymilvus import Collection, CollectionSchema, DataType, FieldSchema, connec
 
 from metagpt.document_store.base_store import BaseStore
 
-type_mapping = {
-    int: DataType.INT64,
-    str: DataType.VARCHAR,
-    float: DataType.DOUBLE,
-    np.ndarray: DataType.FLOAT_VECTOR
-}
+type_mapping = {int: DataType.INT64, str: DataType.VARCHAR, float: DataType.DOUBLE, np.ndarray: DataType.FLOAT_VECTOR}
 
 
 def columns_to_milvus_schema(columns: dict, primary_col_name: str = "", desc: str = ""):
@@ -52,17 +47,11 @@ class MilvusStore(BaseStore):
         self.collection = None
 
     def _create_collection(self, name, schema):
-        collection = Collection(
-            name=name,
-            schema=schema,
-            using='default',
-            shards_num=2,
-            consistency_level="Strong"
-        )
+        collection = Collection(name=name, schema=schema, using="default", shards_num=2, consistency_level="Strong")
         return collection
 
     def create_collection(self, name, columns):
-        schema = columns_to_milvus_schema(columns, 'idx')
+        schema = columns_to_milvus_schema(columns, "idx")
         self.collection = self._create_collection(name, schema)
         return self.collection
 
@@ -72,7 +61,7 @@ class MilvusStore(BaseStore):
     def load_collection(self):
         self.collection.load()
 
-    def build_index(self, field='emb'):
+    def build_index(self, field="emb"):
         self.collection.create_index(field, {"index_type": "FLAT", "metric_type": "L2", "params": {}})
 
     def search(self, query: list[list[float]], *args, **kwargs):
@@ -85,11 +74,11 @@ class MilvusStore(BaseStore):
         search_params = {"metric_type": "L2", "params": {"nprobe": 10}}
         results = self.collection.search(
             data=query,
-            anns_field=kwargs.get('field', 'emb'),
+            anns_field=kwargs.get("field", "emb"),
             param=search_params,
             limit=10,
             expr=None,
-            consistency_level="Strong"
+            consistency_level="Strong",
         )
         # FIXME: results contain id, but to get the actual value from the id, we still need to call the query interface
         return results

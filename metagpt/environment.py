@@ -29,7 +29,7 @@ class Environment(BaseModel):
     """
 
     roles: dict[str, Role] = Field(default_factory=dict)
-    consumers: dict[Role, Set] = Field(default_factory=dict)
+    members: dict[Role, Set] = Field(default_factory=dict)
     history: str = Field(default="")  # For debug
 
     class Config:
@@ -61,7 +61,7 @@ class Environment(BaseModel):
         logger.info(f"publish_message: {message.dump()}")
         found = False
         # According to the routing feature plan in Chapter 2.2.3.2 of RFC 113
-        for role, subscription in self.consumers.items():
+        for role, subscription in self.members.items():
             if is_subscribed(message, subscription):
                 role.put_message(message)
                 found = True
@@ -106,8 +106,8 @@ class Environment(BaseModel):
 
     def get_subscription(self, obj):
         """Get the labels for messages to be consumed by the object."""
-        return self.consumers.get(obj, {})
+        return self.members.get(obj, {})
 
     def set_subscription(self, obj, tags):
         """Set the labels for message to be consumed by the object"""
-        self.consumers[obj] = tags
+        self.members[obj] = tags

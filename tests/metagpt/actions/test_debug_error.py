@@ -144,12 +144,12 @@ Engineer
 ---
 '''
 
+
 @pytest.mark.asyncio
 async def test_debug_error():
-
     debug_error = DebugError("debug_error")
 
     file_name, rewritten_code = await debug_error.run(context=EXAMPLE_MSG_CONTENT)
 
-    assert "class Player" in rewritten_code # rewrite the same class
-    assert "while self.score > 21" in rewritten_code # a key logic to rewrite to (original one is "if self.score > 12")
+    assert "class Player" in rewritten_code  # rewrite the same class
+    assert "while self.score > 21" in rewritten_code  # a key logic to rewrite to (original one is "if self.score > 12")

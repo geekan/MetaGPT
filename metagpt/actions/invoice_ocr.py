@@ -10,8 +10,8 @@
 
 import os
 import zipfile
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
 import pandas as pd
 from paddleocr import PaddleOCR
@@ -19,7 +19,10 @@ from paddleocr import PaddleOCR
 from metagpt.actions import Action
 from metagpt.const import INVOICE_OCR_TABLE_PATH
 from metagpt.logs import logger
-from metagpt.prompts.invoice_ocr import EXTRACT_OCR_MAIN_INFO_PROMPT, REPLY_OCR_QUESTION_PROMPT
+from metagpt.prompts.invoice_ocr import (
+    EXTRACT_OCR_MAIN_INFO_PROMPT,
+    REPLY_OCR_QUESTION_PROMPT,
+)
 from metagpt.utils.common import OutputParser
 from metagpt.utils.file import File
 
@@ -183,4 +186,3 @@ class ReplyQuestion(Action):
         prompt = REPLY_OCR_QUESTION_PROMPT.format(query=query, ocr_result=ocr_result, language=self.language)
         resp = await self._aask(prompt=prompt)
         return resp
-

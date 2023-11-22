@@ -131,10 +131,10 @@ class TestCodeParser:
     def test_parse_file_list(self, parser, text):
         result = parser.parse_file_list("Task list", text)
         print(result)
-        assert result == ['task1', 'task2']
+        assert result == ["task1", "task2"]
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     t = TestCodeParser()
     t.test_parse_file_list(CodeParser(), t_text)
     # TestCodeParser.test_parse_file_list()

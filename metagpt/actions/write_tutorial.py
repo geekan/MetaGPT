@@ -10,7 +10,7 @@
 from typing import Dict
 
 from metagpt.actions import Action
-from metagpt.prompts.tutorial_assistant import DIRECTORY_PROMPT, CONTENT_PROMPT
+from metagpt.prompts.tutorial_assistant import CONTENT_PROMPT, DIRECTORY_PROMPT
 from metagpt.utils.common import OutputParser
 
 
@@ -65,4 +65,3 @@ class WriteContent(Action):
         """
         prompt = CONTENT_PROMPT.format(topic=topic, language=self.language, directory=self.directory)
         return await self._aask(prompt=prompt)
-

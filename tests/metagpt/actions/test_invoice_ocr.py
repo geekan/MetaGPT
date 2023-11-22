@@ -8,12 +8,11 @@
 """
 
 import os
-from typing import List
-
-import pytest
 from pathlib import Path
 
-from metagpt.actions.invoice_ocr import InvoiceOCR, GenerateTable, ReplyQuestion
+import pytest
+
+from metagpt.actions.invoice_ocr import GenerateTable, InvoiceOCR, ReplyQuestion
 
 
 @pytest.mark.asyncio
@@ -22,7 +21,7 @@ from metagpt.actions.invoice_ocr import InvoiceOCR, GenerateTable, ReplyQuestion
     [
         "../../data/invoices/invoice-3.jpg",
         "../../data/invoices/invoice-4.zip",
-    ]
+    ],
 )
 async def test_invoice_ocr(invoice_path: str):
     invoice_path = os.path.abspath(os.path.join(os.getcwd(), invoice_path))
@@ -35,18 +34,8 @@ async def test_invoice_ocr(invoice_path: str):
 @pytest.mark.parametrize(
     ("invoice_path", "expected_result"),
     [
-        (
-            "../../data/invoices/invoice-1.pdf",
-            [
-                {
-                    "收款人": "小明",
-                    "城市": "深圳市",
-                    "总费用/元": "412.00",
-                    "开票日期": "2023年02月03日"
-                }
-            ]
-        ),
-    ]
+        ("../../data/invoices/invoice-1.pdf", [{"收款人": "小明", "城市": "深圳市", "总费用/元": "412.00", "开票日期": "2023年02月03日"}]),
+    ],
 )
 async def test_generate_table(invoice_path: str, expected_result: list[dict]):
     invoice_path = os.path.abspath(os.path.join(os.getcwd(), invoice_path))
@@ -59,9 +48,7 @@ async def test_generate_table(invoice_path: str, expected_result: list[dict]):
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     ("invoice_path", "query", "expected_result"),
-    [
-        ("../../data/invoices/invoice-1.pdf", "Invoicing date", "2023年02月03日")
-    ]
+    [("../../data/invoices/invoice-1.pdf", "Invoicing date", "2023年02月03日")],
 )
 async def test_reply_question(invoice_path: str, query: dict, expected_result: str):
     invoice_path = os.path.abspath(os.path.join(os.getcwd(), invoice_path))
@@ -69,4 +56,3 @@ async def test_reply_question(invoice_path: str, query: dict, expected_result: s
     ocr_result = await InvoiceOCR().run(file_path=Path(invoice_path), filename=filename)
     result = await ReplyQuestion().run(query=query, ocr_result=ocr_result)
     assert expected_result in result
-
