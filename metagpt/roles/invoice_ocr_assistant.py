@@ -9,7 +9,7 @@
 
 import pandas as pd
 
-from metagpt.actions.invoice_ocr import InvoiceOCR, GenerateTable, ReplyQuestion
+from metagpt.actions.invoice_ocr import GenerateTable, InvoiceOCR, ReplyQuestion
 from metagpt.prompts.invoice_ocr import INVOICE_OCR_SUCCESS
 from metagpt.roles import Role
 from metagpt.schema import Message
@@ -107,4 +107,3 @@ class InvoiceOCRAssistant(Role):
                 break
             msg = await self._act()
         return msg
-

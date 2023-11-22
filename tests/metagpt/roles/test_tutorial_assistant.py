@@ -12,10 +12,7 @@ from metagpt.roles.tutorial_assistant import TutorialAssistant
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize(
-    ("language", "topic"),
-    [("Chinese", "Write a tutorial about Python")]
-)
+@pytest.mark.parametrize(("language", "topic"), [("Chinese", "Write a tutorial about Python")])
 async def test_tutorial_assistant(language: str, topic: str):
     topic = "Write a tutorial about MySQL"
     role = TutorialAssistant(language=language)

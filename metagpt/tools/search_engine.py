@@ -6,7 +6,7 @@
 @File    : search_engine.py
 """
 import importlib
-from typing import Callable, Coroutine, Literal, overload, Optional, Union
+from typing import Callable, Coroutine, Literal, Optional, Union, overload
 
 from semantic_kernel.skill_definition import sk_function
 
@@ -43,8 +43,8 @@ class SearchEngine:
 
     def __init__(
         self,
-            engine: Optional[SearchEngineType] = None,
-            run_func: Callable[[str, int, bool], Coroutine[None, None, Union[str, list[str]]]] = None,
+        engine: Optional[SearchEngineType] = None,
+        run_func: Callable[[str, int, bool], Coroutine[None, None, Union[str, list[str]]]] = None,
     ):
         engine = engine or CONFIG.search_engine
         if engine == SearchEngineType.SERPAPI_GOOGLE:

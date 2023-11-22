@@ -9,13 +9,13 @@ from metagpt.schema import AIMessage, Message, SystemMessage, UserMessage
 
 
 def test_messages():
-    test_content = 'test_message'
+    test_content = "test_message"
     msgs = [
         UserMessage(test_content),
         SystemMessage(test_content),
         AIMessage(test_content),
-        Message(test_content, role='QA')
+        Message(test_content, role="QA"),
     ]
     text = str(msgs)
-    roles = ['user', 'system', 'assistant', 'QA']
+    roles = ["user", "system", "assistant", "QA"]
     assert all([i in text for i in roles])

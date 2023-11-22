@@ -16,7 +16,7 @@ from metagpt.tools.translator import Translator
 def test_translate(llm_api):
     poetries = [
         ("Let life be beautiful like summer flowers", "花"),
-        ("The ancient Chinese poetries are all songs.", "中国")
+        ("The ancient Chinese poetries are all songs.", "中国"),
     ]
     for i, j in poetries:
         prompt = Translator.translate_prompt(i)

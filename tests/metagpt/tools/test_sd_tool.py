@@ -4,7 +4,7 @@
 #
 import os
 
-from metagpt.tools.sd_engine import SDEngine, WORKSPACE_ROOT
+from metagpt.tools.sd_engine import WORKSPACE_ROOT, SDEngine
 
 
 def test_sd_engine_init():

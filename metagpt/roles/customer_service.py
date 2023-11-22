@@ -24,12 +24,5 @@ DESC = """
 
 
 class CustomerService(Sales):
-    def __init__(
-            self,
-            name="Xiaomei",
-            profile="Human customer service",
-            desc=DESC,
-            store=None
-    ):
+    def __init__(self, name="Xiaomei", profile="Human customer service", desc=DESC, store=None):
         super().__init__(name, profile, desc=desc, store=store)
-        

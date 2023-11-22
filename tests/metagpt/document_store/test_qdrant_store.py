@@ -24,9 +24,7 @@ random.seed(seed_value)
 vectors = [[random.random() for _ in range(2)] for _ in range(10)]
 
 points = [
-    PointStruct(
-        id=idx, vector=vector, payload={"color": "red", "rand_number": idx % 10}
-    )
+    PointStruct(id=idx, vector=vector, payload={"color": "red", "rand_number": idx % 10})
     for idx, vector in enumerate(vectors)
 ]
 
@@ -57,9 +55,7 @@ def test_milvus_store():
     results = qdrant_store.search(
         "Book",
         query=[1.0, 1.0],
-        query_filter=Filter(
-            must=[FieldCondition(key="rand_number", range=Range(gte=8))]
-        ),
+        query_filter=Filter(must=[FieldCondition(key="rand_number", range=Range(gte=8))]),
     )
     assert results[0]["id"] == 8
     assert results[0]["score"] == 0.9100373450784073
@@ -68,9 +64,7 @@ def test_milvus_store():
     results = qdrant_store.search(
         "Book",
         query=[1.0, 1.0],
-        query_filter=Filter(
-            must=[FieldCondition(key="rand_number", range=Range(gte=8))]
-        ),
+        query_filter=Filter(must=[FieldCondition(key="rand_number", range=Range(gte=8))]),
         return_vector=True,
     )
     assert results[0]["vector"] == [0.35037919878959656, 0.9366079568862915]
