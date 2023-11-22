@@ -82,7 +82,7 @@ def repair_required_key_pair_missing(output: str, req_key: str = "[/CONTENT]") -
         if left_key not in output:
             output = left_key + "\n" + output
         if right_key not in output:
-            def judge_potential_json(routput: str, left_key: str) -> Union[str, bool]:
+            def judge_potential_json(routput: str, left_key: str) -> Union[str]:
                 routput = copy.deepcopy(routput)
                 ridx = routput.rfind(left_key)
                 if ridx < 0:
