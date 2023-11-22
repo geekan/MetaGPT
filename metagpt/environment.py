@@ -12,7 +12,7 @@
     functionality is to be consolidated into the `Environment` class.
 """
 import asyncio
-from typing import Iterable, Optional, Set
+from typing import Iterable, Set
 
 from pydantic import BaseModel, Field
 
@@ -20,7 +20,6 @@ from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.utils.common import is_subscribed
-from metagpt.utils.git_repository import GitRepository
 
 
 class Environment(BaseModel):
@@ -32,7 +31,6 @@ class Environment(BaseModel):
     roles: dict[str, Role] = Field(default_factory=dict)
     consumers: dict[Role, Set] = Field(default_factory=dict)
     history: str = Field(default="")  # For debug
-    git_repository: Optional[GitRepository] = None
 
     class Config:
         arbitrary_types_allowed = True
@@ -113,8 +111,3 @@ class Environment(BaseModel):
     def set_subscription(self, obj, tags):
         """Set the labels for message to be consumed by the object"""
         self.consumers[obj] = tags
-
-    def dict(self, *args, **kwargs):
-        """Generate a dictionary representation of the model, optionally specifying which fields to include or
-        exclude."""
-        return super(Environment, self).dict(exclude={"git_repository"})

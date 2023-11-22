@@ -6,14 +6,16 @@
 @File    : schema.py
 @Modified By: mashenquan, 2023-10-31. According to Chapter 2.2.1 of RFC 116:
         Replanned the distribution of responsibilities and functional positioning of `Message` class attributes.
+@Modified By: mashenquan, 2023/11/22. Add `Document` and `Documents` for `FileRepository` in Section 2.2.3.4 of RFC 135.
 """
 from __future__ import annotations
 
 import asyncio
 import json
+import os.path
 from asyncio import Queue, QueueEmpty, wait_for
 from json import JSONDecodeError
-from typing import List, Set, TypedDict
+from typing import Dict, List, Optional, Set, TypedDict
 
 from pydantic import BaseModel, Field
 
@@ -30,6 +32,42 @@ from metagpt.utils.common import any_to_str, any_to_str_set
 class RawMessage(TypedDict):
     content: str
     role: str
+
+
+class Document(BaseModel):
+    """
+    Represents a document.
+    """
+
+    root_path: str
+    filename: str
+    content: Optional[str] = None
+
+    def get_meta(self) -> Document:
+        """Get metadata of the document.
+
+        :return: A new Document instance with the same root path and filename.
+        """
+
+        return Document(root_path=self.root_path, filename=self.filename)
+
+    @property
+    def root_relative_path(self):
+        """Get relative path from root of git repository.
+
+        :return: relative path from root of git repository.
+        """
+        return os.path.join(self.root_path, self.filename)
+
+
+class Documents(BaseModel):
+    """A class representing a collection of documents.
+
+    Attributes:
+        docs (Dict[str, Document]): A dictionary mapping document names to Document instances.
+    """
+
+    docs: Dict[str, Document] = Field(default_factory=dict)
 
 
 class Message(BaseModel):

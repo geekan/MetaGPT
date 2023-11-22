@@ -46,7 +46,7 @@ class Config(metaclass=Singleton):
         self.openai_api_key = self._get("OPENAI_API_KEY")
         self.anthropic_api_key = self._get("Anthropic_API_KEY")
         if (not self.openai_api_key or "YOUR_API_KEY" == self.openai_api_key) and (
-                not self.anthropic_api_key or "YOUR_API_KEY" == self.anthropic_api_key
+            not self.anthropic_api_key or "YOUR_API_KEY" == self.anthropic_api_key
         ):
             raise NotConfiguredException("Set OPENAI_API_KEY or Anthropic_API_KEY first")
         self.openai_api_base = self._get("OPENAI_API_BASE")
@@ -93,6 +93,7 @@ class Config(metaclass=Singleton):
         self.pyppeteer_executable_path = self._get("PYPPETEER_EXECUTABLE_PATH", "")
 
         self.prompt_format = self._get("PROMPT_FORMAT", "markdown")
+        self.git_repo = None
 
     def _init_with_config_files_and_env(self, configs: dict, yaml_file):
         """Load from config/key.yaml, config/config.yaml, and env in decreasing order of priority"""

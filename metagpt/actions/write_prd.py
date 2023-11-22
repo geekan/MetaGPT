@@ -10,7 +10,10 @@ from typing import List
 from metagpt.actions import Action, ActionOutput
 from metagpt.actions.search_and_summarize import SearchAndSummarize
 from metagpt.config import CONFIG
+from metagpt.const import DOCS_FILE_REPO, PRDS_FILE_REPO, REQUIREMENT_FILENAME
 from metagpt.logs import logger
+from metagpt.schema import Document, Documents
+from metagpt.utils.file_repository import FileRepository
 from metagpt.utils.get_template import get_template
 
 templates = {
@@ -222,7 +225,34 @@ class WritePRD(Action):
     def __init__(self, name="", context=None, llm=None):
         super().__init__(name, context, llm)
 
-    async def run(self, requirements, format=CONFIG.prompt_format, *args, **kwargs) -> ActionOutput:
+    async def run(self, with_messages, format=CONFIG.prompt_format, *args, **kwargs) -> ActionOutput:
+        # 判断哪些需求文档需要重写：调LLM判断新增需求与prd是否相关，若相关就rewrite prd
+        docs_file_repo = CONFIG.git_repo.new_file_repository(DOCS_FILE_REPO)
+        requirement_doc = await docs_file_repo.get(REQUIREMENT_FILENAME)
+        prds_file_repo = CONFIG.git_repo.new_file_repository(PRDS_FILE_REPO)
+        prd_docs = await prds_file_repo.get_all()
+        change_files = Documents()
+        for prd_doc in prd_docs:
+            if await self._is_relative_to(requirement_doc, prd_doc):
+                prd_doc = await self._merge(requirement_doc, prd_doc)
+                await prds_file_repo.save(filename=prd_doc.filename, content=prd_doc.content)
+                change_files.docs[prd_doc.filename] = prd_doc
+        # 如果没有任何PRD，就使用docs/requirement.txt生成一个prd
+        if not change_files.docs:
+            prd = await self._run_new_requirement(
+                requirements=[requirement_doc.content], format=format, *args, **kwargs
+            )
+            doc = Document(
+                root_path=PRDS_FILE_REPO,
+                filename=FileRepository.new_file_name() + ".json",
+                content=prd.instruct_content.json(),
+            )
+            await prds_file_repo.save(filename=doc.filename, content=doc.content)
+            change_files.docs[doc.filename] = doc
+        # 等docs/prds/下所有文件都与新增需求对比完后，再触发publish message让工作流跳转到下一环节。如此设计是为了给后续做全局优化留空间。
+        return ActionOutput(content=change_files.json(), instruct_content=change_files)
+
+    async def _run_new_requirement(self, requirements, format=CONFIG.prompt_format, *args, **kwargs) -> ActionOutput:
         sas = SearchAndSummarize()
         # rsp = await sas.run(context=requirements, system_text=SEARCH_AND_SUMMARIZE_SYSTEM_EN_US)
         rsp = ""
@@ -239,3 +269,9 @@ class WritePRD(Action):
         # prd = await self._aask_v1(prompt, "prd", OUTPUT_MAPPING)
         prd = await self._aask_v1(prompt, "prd", OUTPUT_MAPPING, format=format)
         return prd
+
+    async def _is_relative_to(self, doc1, doc2) -> bool:
+        return False
+
+    async def _merge(self, doc1, doc2) -> Document:
+        pass

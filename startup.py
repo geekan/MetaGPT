@@ -4,6 +4,7 @@ import asyncio
 
 import fire
 
+from metagpt.config import CONFIG
 from metagpt.roles import (
     Architect,
     Engineer,
@@ -54,6 +55,7 @@ def main(
     code_review: bool = True,
     run_tests: bool = False,
     implement: bool = True,
+    project_path: str = None,
 ):
     """
     We are a software startup comprised of AI. By investing in us,
@@ -63,8 +65,12 @@ def main(
     a certain dollar amount to this AI company.
     :param n_round:
     :param code_review: Whether to use code review.
+    :param run_tests: Whether run unit tests.
+    :param implement: Whether to write codes.
+    :param project_path: The path of the old version project to improve.
     :return:
     """
+    CONFIG.WORKDIR = project_path
     asyncio.run(startup(idea, investment, n_round, code_review, run_tests, implement))
 
 

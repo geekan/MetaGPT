@@ -77,5 +77,20 @@ async def test_git1():
     assert not local_path.exists()
 
 
+@pytest.mark.asyncio
+async def test_dependency_file():
+    local_path = Path(__file__).parent / "git2"
+    repo, subdir = await mock_repo(local_path)
+
+    dependancy_file = await repo.get_dependency()
+    assert not dependancy_file.exists
+
+    await dependancy_file.update(filename="a/b.txt", dependencies={"c/d.txt", "e/f.txt"})
+    assert dependancy_file.exists
+
+    repo.delete_repository()
+    assert not dependancy_file.exists
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-s"])

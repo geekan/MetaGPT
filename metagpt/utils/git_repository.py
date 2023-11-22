@@ -17,6 +17,7 @@ from git.repo import Repo
 from git.repo.fun import is_git_dir
 
 from metagpt.const import WORKSPACE_ROOT
+from metagpt.utils.dependency_file import DependencyFile
 from metagpt.utils.file_repository import FileRepository
 
 
@@ -47,6 +48,7 @@ class GitRepository:
         :param auto_init: If True, automatically initializes a new Git repository if the provided path is not a Git repository.
         """
         self._repository = None
+        self._dependency = None
         if local_path:
             self.open(local_path=local_path, auto_init=auto_init)
 
@@ -113,7 +115,7 @@ class GitRepository:
         :param local_path: The local path to check.
         :return: True if the directory is a Git repository, False otherwise.
         """
-        git_dir = local_path / ".git"
+        git_dir = Path(local_path) / ".git"
         if git_dir.exists() and is_git_dir(git_dir):
             return True
         return False
@@ -151,13 +153,22 @@ class GitRepository:
         self.add_change(self.changed_files)
         self.commit(comments)
 
-    def new_file_repository(self, relative_path: Path | str) -> FileRepository:
+    def new_file_repository(self, relative_path: Path | str = ".") -> FileRepository:
         """Create a new instance of FileRepository associated with this Git repository.
 
         :param relative_path: The relative path to the file repository within the Git repository.
         :return: A new instance of FileRepository.
         """
         return FileRepository(git_repo=self, relative_path=Path(relative_path))
+
+    async def get_dependency(self) -> DependencyFile:
+        """Get the dependency file associated with the Git repository.
+
+        :return: An instance of DependencyFile.
+        """
+        if not self._dependency:
+            self._dependency = DependencyFile(workdir=self.workdir)
+        return self._dependency
 
 
 if __name__ == "__main__":

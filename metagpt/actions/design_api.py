@@ -11,8 +11,9 @@ from typing import List
 
 from metagpt.actions import Action, ActionOutput
 from metagpt.config import CONFIG
-from metagpt.const import WORKSPACE_ROOT
+from metagpt.const import PRDS_FILE_REPO, SYS_DESIGN_FILE_REPO, WORKSPACE_ROOT
 from metagpt.logs import logger
+from metagpt.schema import Document, Documents
 from metagpt.utils.common import CodeParser
 from metagpt.utils.get_template import get_template
 from metagpt.utils.json_to_markdown import json_to_markdown
@@ -202,7 +203,44 @@ class WriteDesign(Action):
         await self._save_prd(docs_path, resources_path, context)
         await self._save_system_design(docs_path, resources_path, system_design)
 
-    async def run(self, context, format=CONFIG.prompt_format):
+    async def run(self, with_messages, format=CONFIG.prompt_format):
+        # 通过git diff来识别docs/prds下哪些PRD文档发生了变动
+        prds_file_repo = CONFIG.git_repo.new_file_repository(PRDS_FILE_REPO)
+        changed_prds = prds_file_repo.changed_files
+        # 通过git diff来识别docs/system_designs下那些设计文档发生了变动；
+        system_design_file_repo = CONFIG.git_repo.new_file_repository(SYS_DESIGN_FILE_REPO)
+        changed_system_designs = system_design_file_repo.changed_files
+
+        # 对于那些发生变动的PRD和设计文档，重新生成设计内容；
+        changed_files = Documents()
+        for filename in changed_prds.keys():
+            prd = await prds_file_repo.get(filename)
+            old_system_design_doc = await system_design_file_repo.get(filename)
+            if not old_system_design_doc:
+                system_design = await self._run(context=prd.content)
+                doc = Document(
+                    root_path=SYS_DESIGN_FILE_REPO, filename=filename, content=system_design.instruct_content.json()
+                )
+            else:
+                doc = await self._merge(prd_doc=prd, system_design_doc=old_system_design_doc)
+            await system_design_file_repo.save(
+                filename=filename, content=doc.content, dependencies={prd.root_relative_path}
+            )
+            changed_files.docs[filename] = doc
+
+        for filename in changed_system_designs.keys():
+            if filename in changed_files.docs:
+                continue
+            prd_doc = await prds_file_repo.get(filename=filename)
+            old_system_design_doc = await system_design_file_repo.get(filename)
+            new_system_design_doc = await self._merge(prd_doc, old_system_design_doc)
+            await system_design_file_repo.save(filename=filename, content=new_system_design_doc.content)
+            changed_files.docs[filename] = new_system_design_doc
+
+        # 等docs/system_designs/下所有文件都处理完才发publish message，给后续做全局优化留空间。
+        return ActionOutput(content=changed_files.json(), instruct_content=changed_files)
+
+    async def _run(self, context, format=CONFIG.prompt_format):
         prompt_template, format_example = get_template(templates, format)
         prompt = prompt_template.format(context=context, format_example=format_example)
         # system_design = await self._aask(prompt)
@@ -213,5 +251,8 @@ class WriteDesign(Action):
             "Python package name",
             system_design.instruct_content.dict()["Python package name"].strip().strip("'").strip('"'),
         )
-        await self._save(context, system_design)
+        # await self._save(context, system_design)
         return system_design
+
+    async def _merge(self, prd_doc, system_design_doc):
+        return system_design_doc

@@ -8,16 +8,29 @@
 """
 from __future__ import annotations
 
-import json
+import os
+import uuid
+from datetime import datetime
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Set
 
 import aiofiles
 
 from metagpt.logs import logger
+from metagpt.schema import Document
 
 
 class FileRepository:
+    """A class representing a FileRepository associated with a Git repository.
+
+    :param git_repo: The associated GitRepository instance.
+    :param relative_path: The relative path within the Git repository.
+
+    Attributes:
+        _relative_path (Path): The relative path within the Git repository.
+        _git_repo (GitRepository): The associated GitRepository instance.
+    """
+
     def __init__(self, git_repo, relative_path: Path = Path(".")):
         """Initialize a FileRepository instance.
 
@@ -26,16 +39,9 @@ class FileRepository:
         """
         self._relative_path = relative_path
         self._git_repo = git_repo
-        self._dependencies: Dict[str, List[str]] = {}
 
         # Initializing
         self.workdir.mkdir(parents=True, exist_ok=True)
-        if self.dependency_path_name.exists():
-            try:
-                with open(str(self.dependency_path_name), mode="r") as reader:
-                    self._dependencies = json.load(reader)
-            except Exception as e:
-                logger.error(f"Failed to load {str(self.dependency_path_name)}, error:{e}")
 
     async def save(self, filename: Path | str, content, dependencies: List[str] = None):
         """Save content to a file and update its dependencies.
@@ -44,59 +50,68 @@ class FileRepository:
         :param content: The content to be saved.
         :param dependencies: List of dependency filenames or paths.
         """
-        path_name = self.workdir / filename
-        path_name.parent.mkdir(parents=True, exist_ok=True)
-        async with aiofiles.open(str(path_name), mode="w") as writer:
+        pathname = self.workdir / filename
+        pathname.parent.mkdir(parents=True, exist_ok=True)
+        async with aiofiles.open(str(pathname), mode="w") as writer:
             await writer.write(content)
+        logger.info(f"save to: {str(pathname)}")
+
         if dependencies is not None:
-            await self.update_dependency(filename, dependencies)
+            dependency_file = await self._git_repo.get_dependency()
+            await dependency_file.update(pathname, set(dependencies))
+            logger.info(f"update dependency: {str(pathname)}:{dependencies}")
 
-    async def get(self, filename: Path | str):
-        """Read the content of a file.
-
-        :param filename: The filename or path within the repository.
-        :return: The content of the file.
-        """
-        path_name = self.workdir / filename
-        async with aiofiles.open(str(path_name), mode="r") as reader:
-            return await reader.read()
-
-    def get_dependency(self, filename: Path | str) -> List:
+    async def get_dependency(self, filename: Path | str) -> Set[str]:
         """Get the dependencies of a file.
 
         :param filename: The filename or path within the repository.
-        :return: List of dependency filenames or paths.
+        :return: Set of dependency filenames or paths.
         """
-        key = str(filename)
-        return self._dependencies.get(key, [])
+        pathname = self.workdir / filename
+        dependency_file = await self._git_repo.get_dependency()
+        return await dependency_file.get(pathname)
 
-    def get_changed_dependency(self, filename: Path | str) -> List:
+    async def get_changed_dependency(self, filename: Path | str) -> Set[str]:
         """Get the dependencies of a file that have changed.
 
         :param filename: The filename or path within the repository.
         :return: List of changed dependency filenames or paths.
         """
-        dependencies = self.get_dependency(filename=filename)
+        dependencies = await self.get_dependency(filename=filename)
         changed_files = self.changed_files
-        changed_dependent_files = []
+        changed_dependent_files = set()
         for df in dependencies:
             if df in changed_files.keys():
-                changed_dependent_files.append(df)
+                changed_dependent_files.add(df)
         return changed_dependent_files
 
-    async def update_dependency(self, filename, dependencies: List[str]):
-        """Update the dependencies of a file.
+    async def get(self, filename: Path | str) -> Document | None:
+        """Read the content of a file.
 
         :param filename: The filename or path within the repository.
-        :param dependencies: List of dependency filenames or paths.
+        :return: The content of the file.
         """
-        self._dependencies[str(filename)] = dependencies
+        doc = Document(root_path=str(self.root_path), filename=str(filename))
+        path_name = self.workdir / filename
+        if not path_name.exists():
+            return None
+        async with aiofiles.open(str(path_name), mode="r") as reader:
+            doc.content = await reader.read()
+        return doc
 
-    async def save_dependency(self):
-        """Save the dependencies to a file."""
-        data = json.dumps(self._dependencies)
-        with aiofiles.open(str(self.dependency_path_name), mode="w") as writer:
-            await writer.write(data)
+    async def get_all(self) -> List[Document]:
+        """Get the content of all files in the repository.
+
+        :return: List of Document instances representing files.
+        """
+        docs = []
+        for root, dirs, files in os.walk(str(self.workdir)):
+            for file in files:
+                file_path = Path(root) / file
+                relative_path = file_path.relative_to(self.workdir)
+                doc = await self.get(relative_path)
+                docs.append(doc)
+        return docs
 
     @property
     def workdir(self):
@@ -107,14 +122,9 @@ class FileRepository:
         return self._git_repo.workdir / self._relative_path
 
     @property
-    def dependency_path_name(self):
-        """Return the absolute path to the dependency file.
-
-        :return: The absolute path to the dependency file.
-        """
-        filename = ".dependencies.json"
-        path_name = self.workdir / filename
-        return path_name
+    def root_path(self):
+        """Return the relative path from git repository root"""
+        return self._relative_path
 
     @property
     def changed_files(self) -> Dict[str, str]:
@@ -147,3 +157,13 @@ class FileRepository:
                 continue
             children.append(str(f))
         return children
+
+    @staticmethod
+    def new_file_name():
+        """Generate a new filename based on the current timestamp and a UUID suffix.
+
+        :return: A new filename string.
+        """
+        current_time = datetime.now().strftime("%Y%m%d%H%M%S")
+        guid_suffix = str(uuid.uuid4())[:8]
+        return f"{current_time}t{guid_suffix}"
