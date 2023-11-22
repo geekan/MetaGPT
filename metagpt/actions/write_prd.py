@@ -5,16 +5,28 @@
 @Author  : alexanderwu
 @File    : write_prd.py
 """
+from __future__ import annotations
+
+import json
+from pathlib import Path
 from typing import List
 
 from metagpt.actions import Action, ActionOutput
 from metagpt.actions.search_and_summarize import SearchAndSummarize
 from metagpt.config import CONFIG
-from metagpt.const import DOCS_FILE_REPO, PRDS_FILE_REPO, REQUIREMENT_FILENAME
+from metagpt.const import (
+    COMPETITIVE_ANALYSIS_FILE_REPO,
+    DOCS_FILE_REPO,
+    PRD_PDF_FILE_REPO,
+    PRDS_FILE_REPO,
+    REQUIREMENT_FILENAME,
+)
 from metagpt.logs import logger
 from metagpt.schema import Document, Documents
 from metagpt.utils.file_repository import FileRepository
 from metagpt.utils.get_template import get_template
+from metagpt.utils.json_to_markdown import json_to_markdown
+from metagpt.utils.mermaid import mermaid_to_file
 
 templates = {
     "json": {
@@ -233,22 +245,15 @@ class WritePRD(Action):
         prd_docs = await prds_file_repo.get_all()
         change_files = Documents()
         for prd_doc in prd_docs:
-            if await self._is_relative_to(requirement_doc, prd_doc):
-                prd_doc = await self._merge(requirement_doc, prd_doc)
-                await prds_file_repo.save(filename=prd_doc.filename, content=prd_doc.content)
-                change_files.docs[prd_doc.filename] = prd_doc
+            prd_doc = await self._update_prd(requirement_doc, prd_doc, prds_file_repo, *args, **kwargs)
+            if not prd_doc:
+                continue
+            change_files.docs[prd_doc.filename] = prd_doc
         # 如果没有任何PRD，就使用docs/requirement.txt生成一个prd
         if not change_files.docs:
-            prd = await self._run_new_requirement(
-                requirements=[requirement_doc.content], format=format, *args, **kwargs
-            )
-            doc = Document(
-                root_path=PRDS_FILE_REPO,
-                filename=FileRepository.new_file_name() + ".json",
-                content=prd.instruct_content.json(),
-            )
-            await prds_file_repo.save(filename=doc.filename, content=doc.content)
-            change_files.docs[doc.filename] = doc
+            prd_doc = await self._update_prd(requirement_doc, None, prds_file_repo)
+            if prd_doc:
+                change_files.docs[prd_doc.filename] = prd_doc
         # 等docs/prds/下所有文件都与新增需求对比完后，再触发publish message让工作流跳转到下一环节。如此设计是为了给后续做全局优化留空间。
         return ActionOutput(content=change_files.json(), instruct_content=change_files)
 
@@ -275,3 +280,38 @@ class WritePRD(Action):
 
     async def _merge(self, doc1, doc2) -> Document:
         pass
+
+    async def _update_prd(self, requirement_doc, prd_doc, prds_file_repo, *args, **kwargs) -> Document | None:
+        if not prd_doc:
+            prd = await self._run_new_requirement(
+                requirements=[requirement_doc.content], format=format, *args, **kwargs
+            )
+            new_prd_doc = Document(
+                root_path=PRDS_FILE_REPO,
+                filename=FileRepository.new_file_name() + ".json",
+                content=prd.instruct_content.json(),
+            )
+        elif await self._is_relative_to(requirement_doc, prd_doc):
+            new_prd_doc = await self._merge(requirement_doc, prd_doc)
+        else:
+            return None
+        await prds_file_repo.save(filename=new_prd_doc.filename, content=new_prd_doc.content)
+        await self._save_competitive_analysis(new_prd_doc)
+        await self._save_pdf(new_prd_doc)
+
+    @staticmethod
+    async def _save_competitive_analysis(prd_doc):
+        m = json.loads(prd_doc.content)
+        quadrant_chart = m.get("Competitive Quadrant Chart")
+        if not quadrant_chart:
+            return
+        path = CONFIG.git_repo.workdir / COMPETITIVE_ANALYSIS_FILE_REPO
+        if not path.exists():
+            path.mkdir(parents=True, exists_ok=True)
+        await mermaid_to_file(quadrant_chart, path / Path(prd_doc).with_suffix(".mmd"))
+
+    @staticmethod
+    async def _save_pdf(prd_doc):
+        m = json.loads(prd_doc.content)
+        file_repo = CONFIG.git_repo.new_file_repository(PRD_PDF_FILE_REPO)
+        await file_repo.save(filename=prd_doc.filename, content=json_to_markdown(m))

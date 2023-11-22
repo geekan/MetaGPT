@@ -5,13 +5,21 @@
 @Author  : alexanderwu
 @File    : design_api.py
 """
+import json
 import shutil
 from pathlib import Path
 from typing import List
 
 from metagpt.actions import Action, ActionOutput
 from metagpt.config import CONFIG
-from metagpt.const import PRDS_FILE_REPO, SYSTEM_DESIGN_FILE_REPO, WORKSPACE_ROOT
+from metagpt.const import (
+    DATA_API_DESIGN_FILE_REPO,
+    PRDS_FILE_REPO,
+    SEQ_FLOW_FILE_REPO,
+    SYSTEM_DESIGN_FILE_REPO,
+    SYSTEM_DESIGN_PDF_FILE_REPO,
+    WORKSPACE_ROOT,
+)
 from metagpt.logs import logger
 from metagpt.schema import Document, Documents
 from metagpt.utils.common import CodeParser
@@ -214,40 +222,29 @@ class WriteDesign(Action):
         # 对于那些发生变动的PRD和设计文档，重新生成设计内容；
         changed_files = Documents()
         for filename in changed_prds.keys():
-            prd = await prds_file_repo.get(filename)
-            old_system_design_doc = await system_design_file_repo.get(filename)
-            if not old_system_design_doc:
-                system_design = await self._run(context=prd.content)
-                doc = Document(
-                    root_path=SYSTEM_DESIGN_FILE_REPO, filename=filename, content=system_design.instruct_content.json()
-                )
-            else:
-                doc = await self._merge(prd_doc=prd, system_design_doc=old_system_design_doc)
-            await system_design_file_repo.save(
-                filename=filename, content=doc.content, dependencies={prd.root_relative_path}
+            doc = await self._update_system_design(
+                filename=filename, prds_file_repo=prds_file_repo, system_design_file_repo=system_design_file_repo
             )
             changed_files.docs[filename] = doc
 
         for filename in changed_system_designs.keys():
             if filename in changed_files.docs:
                 continue
-            prd_doc = await prds_file_repo.get(filename=filename)
-            old_system_design_doc = await system_design_file_repo.get(filename)
-            new_system_design_doc = await self._merge(prd_doc, old_system_design_doc)
-            await system_design_file_repo.save(
-                filename=filename, content=new_system_design_doc.content, dependencies={prd_doc.root_relative_path}
+            doc = await self._update_system_design(
+                filename=filename, prds_file_repo=prds_file_repo, system_design_file_repo=system_design_file_repo
             )
-            changed_files.docs[filename] = new_system_design_doc
+            changed_files.docs[filename] = doc
 
         # 等docs/system_designs/下所有文件都处理完才发publish message，给后续做全局优化留空间。
         return ActionOutput(content=changed_files.json(), instruct_content=changed_files)
 
-    async def _run(self, context, format=CONFIG.prompt_format):
+    async def _new_system_design(self, context, format=CONFIG.prompt_format):
         prompt_template, format_example = get_template(templates, format)
         prompt = prompt_template.format(context=context, format_example=format_example)
         # system_design = await self._aask(prompt)
         system_design = await self._aask_v1(prompt, "system_design", OUTPUT_MAPPING, format=format)
-        # fix Python package name, we can't system_design.instruct_content.python_package_name = "xxx" since "Python package name" contain space, have to use setattr
+        # fix Python package name, we can't system_design.instruct_content.python_package_name = "xxx" since "Python
+        # package name" contain space, have to use setattr
         setattr(
             system_design.instruct_content,
             "Python package name",
@@ -268,3 +265,49 @@ class WriteDesign(Action):
         else:
             ws_name = CodeParser.parse_str(block="Python package name", text=system_design)
         CONFIG.git_repo.rename_root(ws_name)
+
+    async def _update_system_design(self, filename, prds_file_repo, system_design_file_repo) -> Document:
+        prd = await prds_file_repo.get(filename)
+        old_system_design_doc = await system_design_file_repo.get(filename)
+        if not old_system_design_doc:
+            system_design = await self._new_system_design(context=prd.content)
+            doc = Document(
+                root_path=SYSTEM_DESIGN_FILE_REPO, filename=filename, content=system_design.instruct_content.json()
+            )
+        else:
+            doc = await self._merge(prd_doc=prd, system_design_doc=old_system_design_doc)
+        await system_design_file_repo.save(
+            filename=filename, content=doc.content, dependencies={prd.root_relative_path}
+        )
+        await self._save_data_api_design(doc)
+        await self._save_seq_flow(doc)
+        await self._save_pdf(doc)
+        return doc
+
+    @staticmethod
+    async def _save_data_api_design(design_doc):
+        m = json.loads(design_doc.content)
+        data_api_design = m.get("Data structures and interface definitions")
+        if not data_api_design:
+            return
+        path = CONFIG.git_repo.workdir / DATA_API_DESIGN_FILE_REPO
+        if not path.exists():
+            path.mkdir(parents=True, exists_ok=True)
+        await mermaid_to_file(data_api_design, path / Path(design_doc).with_suffix(".mmd"))
+
+    @staticmethod
+    async def _save_seq_flow(design_doc):
+        m = json.loads(design_doc.content)
+        seq_flow = m.get("Program call flow")
+        if not seq_flow:
+            return
+        path = CONFIG.git_repo.workdir / SEQ_FLOW_FILE_REPO
+        if not path.exists():
+            path.mkdir(parents=True, exists_ok=True)
+        await mermaid_to_file(seq_flow, path / Path(design_doc).with_suffix(".mmd"))
+
+    @staticmethod
+    async def _save_pdf(design_doc):
+        m = json.loads(design_doc.content)
+        file_repo = CONFIG.git_repo.new_file_repository(SYSTEM_DESIGN_PDF_FILE_REPO)
+        await file_repo.save(filename=design_doc.filename, content=json_to_markdown(m))
