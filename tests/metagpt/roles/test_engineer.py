@@ -35,13 +35,13 @@ def test_parse_str():
     for idx, i in enumerate(STRS_FOR_PARSING):
         text = CodeParser.parse_str(f"{idx+1}", i)
         # logger.info(text)
-        assert text == 'a'
+        assert text == "a"
 
 
 def test_parse_blocks():
     tasks = CodeParser.parse_blocks(TASKS)
     logger.info(tasks.keys())
-    assert 'Task list' in tasks.keys()
+    assert "Task list" in tasks.keys()
 
 
 target_list = [

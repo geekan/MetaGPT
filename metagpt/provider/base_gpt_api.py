@@ -14,7 +14,8 @@ from metagpt.provider.base_chatbot import BaseChatbot
 
 class BaseGPTAPI(BaseChatbot):
     """GPT API abstract class, requiring all inheritors to provide a series of standard capabilities"""
-    system_prompt = 'You are a helpful assistant.'
+
+    system_prompt = "You are a helpful assistant."
 
     def _user_msg(self, msg: str) -> dict[str, str]:
         return {"role": "user", "content": msg}
@@ -110,9 +111,8 @@ class BaseGPTAPI(BaseChatbot):
 
     def messages_to_prompt(self, messages: list[dict]):
         """[{"role": "user", "content": msg}] to user: <msg> etc."""
-        return '\n'.join([f"{i['role']}: {i['content']}" for i in messages])
+        return "\n".join([f"{i['role']}: {i['content']}" for i in messages])
 
     def messages_to_dict(self, messages):
         """objects to [{"role": "user", "content": msg}] etc."""
         return [i.to_dict() for i in messages]
-    

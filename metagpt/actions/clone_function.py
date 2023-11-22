@@ -1,5 +1,5 @@
-from pathlib import Path
 import traceback
+from pathlib import Path
 
 from metagpt.actions.write_code import WriteCode
 from metagpt.logs import logger
@@ -42,7 +42,7 @@ class CloneFunction(WriteCode):
         prompt = CLONE_PROMPT.format(source_code=source_code, template_func=template_func)
         logger.info(f"query for CloneFunction: \n {prompt}")
         code = await self.write_code(prompt)
-        logger.info(f'CloneFunction code is \n {highlight(code)}')
+        logger.info(f"CloneFunction code is \n {highlight(code)}")
         return code
 
 
@@ -61,5 +61,5 @@ def run_function_script(code_script_path: str, func_name: str, *args, **kwargs):
     """Run function code from script."""
     if isinstance(code_script_path, str):
         code_path = Path(code_script_path)
-    code = code_path.read_text(encoding='utf-8')
+    code = code_path.read_text(encoding="utf-8")
     return run_function_code(code, func_name, *args, **kwargs)

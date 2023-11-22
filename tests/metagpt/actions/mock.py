@@ -311,12 +311,10 @@ TASKS = [
     "添加数据API：接受用户输入的文档库，对文档库进行索引\n- 使用MeiliSearch连接并添加文档库",
     "搜索API：接收用户输入的关键词，返回相关的搜索结果\n- 使用MeiliSearch连接并使用接口获得对应数据",
     "多条件筛选API：接收用户选择的筛选条件，返回符合条件的搜索结果。\n- 使用MeiliSearch进行筛选并返回符合条件的搜索结果",
-    "智能推荐API：根据用户的搜索历史记录和搜索行为，推荐相关的搜索结果。"
+    "智能推荐API：根据用户的搜索历史记录和搜索行为，推荐相关的搜索结果。",
 ]
 
-TASKS_2 = [
-    "完成main.py的功能"
-]
+TASKS_2 = ["完成main.py的功能"]
 
 SEARCH_CODE_SAMPLE = """
 import requests
@@ -460,7 +458,7 @@ if __name__ == '__main__':
         print('No results found.')
 '''
 
-MEILI_CODE = '''import meilisearch
+MEILI_CODE = """import meilisearch
 from typing import List
 
 
@@ -496,9 +494,9 @@ if __name__ == '__main__':
 
     # 添加文档库到搜索引擎
     search_engine.add_documents(books_data_source, documents)
-'''
+"""
 
-MEILI_ERROR = '''/usr/local/bin/python3.9 /Users/alexanderwu/git/metagpt/examples/search/meilisearch_index.py
+MEILI_ERROR = """/usr/local/bin/python3.9 /Users/alexanderwu/git/metagpt/examples/search/meilisearch_index.py
 Traceback (most recent call last):
   File "/Users/alexanderwu/git/metagpt/examples/search/meilisearch_index.py", line 44, in <module>
     search_engine.add_documents(books_data_source, documents)
@@ -506,7 +504,7 @@ Traceback (most recent call last):
     index = self.client.get_or_create_index(index_name)
 AttributeError: 'Client' object has no attribute 'get_or_create_index'
 
-Process finished with exit code 1'''
+Process finished with exit code 1"""
 
 MEILI_CODE_REFINED = """
 """

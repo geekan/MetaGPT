@@ -41,7 +41,7 @@ class LocalStore(BaseStore, ABC):
             self.store = self.write()
 
     def _get_index_and_store_fname(self):
-        fname = self.raw_data.name.split('.')[0]
+        fname = self.raw_data.name.split(".")[0]
         index_file = self.cache_dir / f"{fname}.index"
         store_file = self.cache_dir / f"{fname}.pkl"
         return index_file, store_file
@@ -53,4 +53,3 @@ class LocalStore(BaseStore, ABC):
     @abstractmethod
     def _write(self, docs, metadatas):
         raise NotImplementedError
-    

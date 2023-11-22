@@ -29,7 +29,7 @@ class MeilisearchEngine:
     def add_documents(self, data_source: DataSource, documents: List[dict]):
         index_name = f"{data_source.name}_index"
         if index_name not in self.client.get_indexes():
-            self.client.create_index(uid=index_name, options={'primaryKey': 'id'})
+            self.client.create_index(uid=index_name, options={"primaryKey": "id"})
         index = self.client.get_index(index_name)
         index.add_documents(documents)
         self.set_index(index)
@@ -37,7 +37,7 @@ class MeilisearchEngine:
     def search(self, query):
         try:
             search_results = self._index.search(query)
-            return search_results['hits']
+            return search_results["hits"]
         except Exception as e:
             # Handle MeiliSearch API errors
             print(f"MeiliSearch API error: {e}")

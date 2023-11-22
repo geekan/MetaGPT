@@ -29,7 +29,7 @@ def _paragraphs(n):
         (_msgs(), "gpt-4", "Hello," * 1000, 2000, 2),
         (_msgs(), "gpt-4-32k", "System", 4000, 14),
         (_msgs(), "gpt-4-32k", "Hello," * 2000, 4000, 12),
-    ]
+    ],
 )
 def test_reduce_message_length(msgs, model_name, system_text, reserved, expected):
     assert len(reduce_message_length(msgs, model_name, system_text, reserved)) / (len("Hello,")) / 1000 == expected
@@ -42,7 +42,7 @@ def test_reduce_message_length(msgs, model_name, system_text, reserved, expected
         (" ".join("Hello World." for _ in range(1000)), "Prompt: {}", "gpt-3.5-turbo-16k", "System", 3000, 1),
         (" ".join("Hello World." for _ in range(4000)), "Prompt: {}", "gpt-4", "System", 2000, 2),
         (" ".join("Hello World." for _ in range(8000)), "Prompt: {}", "gpt-4-32k", "System", 4000, 1),
-    ]
+    ],
 )
 def test_generate_prompt_chunk(text, prompt_template, model_name, system_text, reserved, expected):
     ret = list(generate_prompt_chunk(text, prompt_template, model_name, system_text, reserved))
@@ -58,7 +58,7 @@ def test_generate_prompt_chunk(text, prompt_template, model_name, system_text, r
         ("......", ".", 2, ["...", "..."]),
         ("......", ".", 3, ["..", "..", ".."]),
         (".......", ".", 2, ["....", "..."]),
-    ]
+    ],
 )
 def test_split_paragraph(paragraph, sep, count, expected):
     ret = split_paragraph(paragraph, sep, count)
@@ -71,7 +71,7 @@ def test_split_paragraph(paragraph, sep, count, expected):
         ("Hello\\nWorld", "Hello\nWorld"),
         ("Hello\\tWorld", "Hello\tWorld"),
         ("Hello\\u0020World", "Hello World"),
-    ]
+    ],
 )
 def test_decode_unicode_escape(text, expected):
     assert decode_unicode_escape(text) == expected

@@ -9,7 +9,7 @@
 from datetime import datetime
 from typing import Dict
 
-from metagpt.actions.write_tutorial import WriteDirectory, WriteContent
+from metagpt.actions.write_tutorial import WriteContent, WriteDirectory
 from metagpt.const import TUTORIAL_PATH
 from metagpt.logs import logger
 from metagpt.roles import Role
@@ -110,5 +110,5 @@ class TutorialAssistant(Role):
                 break
             msg = await self._act()
         root_path = TUTORIAL_PATH / datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        await File.write(root_path, f"{self.main_title}.md", self.total_content.encode('utf-8'))
+        await File.write(root_path, f"{self.main_title}.md", self.total_content.encode("utf-8"))
         return msg

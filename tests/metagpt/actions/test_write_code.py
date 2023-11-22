@@ -22,13 +22,13 @@ async def test_write_code():
     logger.info(code)
 
     # 我们不能精确地预测生成的代码，但我们可以检查某些关键字
-    assert 'def add' in code
-    assert 'return' in code
+    assert "def add" in code
+    assert "return" in code
 
 
 @pytest.mark.asyncio
 async def test_write_code_directly():
-    prompt = WRITE_CODE_PROMPT_SAMPLE + '\n' + TASKS_2[0]
+    prompt = WRITE_CODE_PROMPT_SAMPLE + "\n" + TASKS_2[0]
     llm = LLM()
     rsp = await llm.aask(prompt)
     logger.info(rsp)
