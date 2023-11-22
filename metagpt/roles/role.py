@@ -25,12 +25,15 @@ from typing import Iterable, Set, Type
 from pydantic import BaseModel, Field
 
 from metagpt.actions import Action, ActionOutput
+
 from metagpt.config import CONFIG
 from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.memory import LongTermMemory, Memory
+
 from metagpt.schema import Message, MessageQueue
 from metagpt.utils.common import any_to_str
+
 
 PREFIX_TEMPLATE = """You are a {profile}, named {name}, your goal is {goal}, and the constraint is {constraints}. """
 

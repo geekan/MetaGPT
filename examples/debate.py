@@ -15,6 +15,7 @@ from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.software_company import SoftwareCompany
+
 from metagpt.utils.common import any_to_str
 
 
@@ -60,6 +61,7 @@ class Trump(Role):
     async def _observe(self) -> int:
         await super()._observe()
         # accept messages sent (from opponent) to self, disregard own messages from the last round
+
         self._rc.news = [msg for msg in self._rc.news if msg.send_to == {self.name}]
         return len(self._rc.news)
 

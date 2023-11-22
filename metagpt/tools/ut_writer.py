@@ -6,7 +6,7 @@ from pathlib import Path
 
 from metagpt.provider.openai_api import OpenAIGPTAPI as GPTAPI
 
-ICL_SAMPLE = '''Interface definition:
+ICL_SAMPLE = """Interface definition:
 ```text
 Interface Name: Element Tagging
 Interface Path: /projects/{project_key}/node-tags
@@ -60,20 +60,20 @@ def test_node_tags(project_key, nodes, operations, expected_msg):
 # 3. If comments are needed, use Chinese.
 
 # If you understand, please wait for me to give the interface definition and just answer "Understood" to save tokens.
-'''
+"""
 
-ACT_PROMPT_PREFIX = '''Refer to the test types: such as missing request parameters, field boundary verification, incorrect field type.
+ACT_PROMPT_PREFIX = """Refer to the test types: such as missing request parameters, field boundary verification, incorrect field type.
 Please output 10 test cases within one `@pytest.mark.parametrize` scope.
 ```text
-'''
+"""
 
-YFT_PROMPT_PREFIX = '''Refer to the test types: such as SQL injection, cross-site scripting (XSS), unauthorized access and privilege escalation, 
+YFT_PROMPT_PREFIX = """Refer to the test types: such as SQL injection, cross-site scripting (XSS), unauthorized access and privilege escalation, 
 authentication and authorization, parameter verification, exception handling, file upload and download.
 Please output 10 test cases within one `@pytest.mark.parametrize` scope.
 ```text
-'''
+"""
 
-OCR_API_DOC = '''```text
+OCR_API_DOC = """```text
 Interface Name: OCR recognition
 Interface Path: /api/v1/contract/treaty/task/ocr
 Method: POST
@@ -96,14 +96,20 @@ code	integer	Yes
 message	string	Yes		
 data	object	Yes		
 ```
-'''
+"""
 
 
 class UTGenerator:
     """UT Generator: Construct UT through API documentation"""
 
-    def __init__(self, swagger_file: str, ut_py_path: str, questions_path: str,
-                 chatgpt_method: str = "API", template_prefix=YFT_PROMPT_PREFIX) -> None:
+    def __init__(
+        self,
+        swagger_file: str,
+        ut_py_path: str,
+        questions_path: str,
+        chatgpt_method: str = "API",
+        template_prefix=YFT_PROMPT_PREFIX,
+    ) -> None:
         """Initialize UT Generator
 
         Args:
@@ -274,7 +280,7 @@ class UTGenerator:
 
     def gpt_msgs_to_code(self, messages: list) -> str:
         """Choose based on different calling methods"""
-        result = ''
+        result = ""
         if self.chatgpt_method == "API":
             result = GPTAPI().ask_code(msgs=messages)
 

@@ -20,12 +20,12 @@ def test_config_class_is_singleton():
 def test_config_class_get_key_exception():
     with pytest.raises(Exception) as exc_info:
         config = Config()
-        config.get('wtf')
+        config.get("wtf")
     assert str(exc_info.value) == "Key 'wtf' not found in environment variables or in the YAML file"
 
 
 def test_config_yaml_file_not_exists():
-    config = Config('wtf.yaml')
+    config = Config("wtf.yaml")
     with pytest.raises(Exception) as exc_info:
-        config.get('OPENAI_BASE_URL')
+        config.get("OPENAI_BASE_URL")
     assert str(exc_info.value) == "Key 'OPENAI_BASE_URL' not found in environment variables or in the YAML file"

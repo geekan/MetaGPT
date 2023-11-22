@@ -2,7 +2,7 @@ import pytest
 
 from metagpt.actions.write_docstring import WriteDocstring
 
-code = '''
+code = """
 def add_numbers(a: int, b: int):
     return a + b
 
@@ -14,7 +14,7 @@ class Person:
 
     def greet(self):
         return f"Hello, my name is {self.name} and I am {self.age} years old."
-'''
+"""
 
 
 @pytest.mark.asyncio
@@ -25,7 +25,7 @@ class Person:
         ("numpy", "Parameters"),
         ("sphinx", ":param name:"),
     ],
-    ids=["google", "numpy", "sphinx"]
+    ids=["google", "numpy", "sphinx"],
 )
 async def test_write_docstring(style: str, part: str):
     ret = await WriteDocstring().run(code, style=style)

@@ -83,6 +83,7 @@ class Message(BaseModel):
             new_val = val
         super().__setattr__(key, new_val)
 
+
     def __str__(self):
         # prefix = '-'.join([self.role, str(self.cause_by)])
         return f"{self.role}: {self.content}"
@@ -109,6 +110,7 @@ class Message(BaseModel):
         return None
 
 
+
 class UserMessage(Message):
     """便于支持OpenAI的消息
     Facilitate support for OpenAI messages
@@ -116,6 +118,7 @@ class UserMessage(Message):
 
     def __init__(self, content: str):
         super().__init__(content=content, role="user")
+
 
 
 class SystemMessage(Message):
@@ -200,3 +203,4 @@ class MessageQueue:
             logger.warning(f"JSON load failed: {v}, error:{e}")
 
         return q
+
