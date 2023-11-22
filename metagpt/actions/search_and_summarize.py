@@ -140,4 +140,3 @@ class SearchAndSummarize(Action):
         logger.debug(prompt)
         logger.debug(result)
         return result
-    

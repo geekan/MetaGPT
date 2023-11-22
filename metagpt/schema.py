@@ -23,9 +23,10 @@ class RawMessage(TypedDict):
 @dataclass
 class Message:
     """list[<role>: <content>]"""
+
     content: str
     instruct_content: BaseModel = field(default=None)
-    role: str = field(default='user')  # system / user / assistant
+    role: str = field(default="user")  # system / user / assistant
     cause_by: Type["Action"] = field(default="")
     sent_from: str = field(default="")
     send_to: str = field(default="")
@@ -39,45 +40,45 @@ class Message:
         return self.__str__()
 
     def to_dict(self) -> dict:
-        return {
-            "role": self.role,
-            "content": self.content
-        }
+        return {"role": self.role, "content": self.content}
 
 
 @dataclass
 class UserMessage(Message):
     """便于支持OpenAI的消息
-       Facilitate support for OpenAI messages
+    Facilitate support for OpenAI messages
     """
+
     def __init__(self, content: str):
-        super().__init__(content, 'user')
+        super().__init__(content, "user")
 
 
 @dataclass
 class SystemMessage(Message):
     """便于支持OpenAI的消息
-       Facilitate support for OpenAI messages
+    Facilitate support for OpenAI messages
     """
+
     def __init__(self, content: str):
-        super().__init__(content, 'system')
+        super().__init__(content, "system")
 
 
 @dataclass
 class AIMessage(Message):
     """便于支持OpenAI的消息
-       Facilitate support for OpenAI messages
+    Facilitate support for OpenAI messages
     """
+
     def __init__(self, content: str):
-        super().__init__(content, 'assistant')
+        super().__init__(content, "assistant")
 
 
-if __name__ == '__main__':
-    test_content = 'test_message'
+if __name__ == "__main__":
+    test_content = "test_message"
     msgs = [
         UserMessage(test_content),
         SystemMessage(test_content),
         AIMessage(test_content),
-        Message(test_content, role='QA')
+        Message(test_content, role="QA"),
     ]
     logger.info(msgs)

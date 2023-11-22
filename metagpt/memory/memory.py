@@ -85,4 +85,3 @@ class Memory:
                 continue
             rsp += self.index[action]
         return rsp
-    

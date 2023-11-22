@@ -11,26 +11,26 @@ from metagpt.schema import AIMessage, Message, RawMessage, SystemMessage, UserMe
 
 
 def test_message():
-    msg = Message(role='User', content='WTF')
-    assert msg.to_dict()['role'] == 'User'
-    assert 'User' in str(msg)
+    msg = Message(role="User", content="WTF")
+    assert msg.to_dict()["role"] == "User"
+    assert "User" in str(msg)
 
 
 def test_all_messages():
-    test_content = 'test_message'
+    test_content = "test_message"
     msgs = [
         UserMessage(test_content),
         SystemMessage(test_content),
         AIMessage(test_content),
-        Message(test_content, role='QA')
+        Message(test_content, role="QA"),
     ]
     for msg in msgs:
         assert msg.content == test_content
 
 
 def test_raw_message():
-    msg = RawMessage(role='user', content='raw')
-    assert msg['role'] == 'user'
-    assert msg['content'] == 'raw'
+    msg = RawMessage(role="user", content="raw")
+    assert msg["role"] == "user"
+    assert msg["content"] == "raw"
     with pytest.raises(KeyError):
-        assert msg['1'] == 1, "KeyError: '1'"
+        assert msg["1"] == 1, "KeyError: '1'"

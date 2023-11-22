@@ -14,11 +14,11 @@ from metagpt.logs import logger
 async def main():
     llm = LLM()
     claude = Claude()
-    logger.info(await claude.aask('你好，请进行自我介绍'))
-    logger.info(await llm.aask('hello world'))
-    logger.info(await llm.aask_batch(['hi', 'write python hello world.']))
+    logger.info(await claude.aask("你好，请进行自我介绍"))
+    logger.info(await llm.aask("hello world"))
+    logger.info(await llm.aask_batch(["hi", "write python hello world."]))
 
-    hello_msg = [{'role': 'user', 'content': 'count from 1 to 10. split by newline.'}]
+    hello_msg = [{"role": "user", "content": "count from 1 to 10. split by newline."}]
     logger.info(await llm.acompletion(hello_msg))
     logger.info(await llm.acompletion_batch([hello_msg]))
     logger.info(await llm.acompletion_batch_text([hello_msg]))
@@ -27,5 +27,5 @@ async def main():
     await llm.acompletion_text(hello_msg, stream=True)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     asyncio.run(main())

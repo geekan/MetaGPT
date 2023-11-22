@@ -19,8 +19,8 @@ class SkillManager:
 
     def __init__(self):
         self._llm = LLM()
-        self._store = ChromaStore('skill_manager')
-        self._skills: dict[str: Skill] = {}
+        self._store = ChromaStore("skill_manager")
+        self._skills: dict[str:Skill] = {}
 
     def add_skill(self, skill: Skill):
         """
@@ -54,7 +54,7 @@ class SkillManager:
         :param desc: Skill description
         :return: Multiple skills
         """
-        return self._store.search(desc, n_results=n_results)['ids'][0]
+        return self._store.search(desc, n_results=n_results)["ids"][0]
 
     def retrieve_skill_scored(self, desc: str, n_results: int = 2) -> dict:
         """
@@ -75,6 +75,6 @@ class SkillManager:
         logger.info(text)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     manager = SkillManager()
     manager.generate_skill_desc(Action())

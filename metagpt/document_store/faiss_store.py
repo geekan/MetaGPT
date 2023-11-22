@@ -20,7 +20,7 @@ from metagpt.logs import logger
 
 
 class FaissStore(LocalStore):
-    def __init__(self, raw_data: Path, cache_dir=None, meta_col='source', content_col='output'):
+    def __init__(self, raw_data: Path, cache_dir=None, meta_col="source", content_col="output"):
         self.meta_col = meta_col
         self.content_col = content_col
         super().__init__(raw_data, cache_dir)
@@ -50,7 +50,7 @@ class FaissStore(LocalStore):
             pickle.dump(store, f)
         store.index = index
 
-    def search(self, query, expand_cols=False, sep='\n', *args, k=5, **kwargs):
+    def search(self, query, expand_cols=False, sep="\n", *args, k=5, **kwargs):
         rsp = self.store.similarity_search(query, k=k, **kwargs)
         logger.debug(rsp)
         if expand_cols:
@@ -78,8 +78,8 @@ class FaissStore(LocalStore):
         raise NotImplementedError
 
 
-if __name__ == '__main__':
-    faiss_store = FaissStore(DATA_PATH / 'qcs/qcs_4w.json')
-    logger.info(faiss_store.search('Oily Skin Facial Cleanser'))
-    faiss_store.add([f'Oily Skin Facial Cleanser-{i}' for i in range(3)])
-    logger.info(faiss_store.search('Oily Skin Facial Cleanser'))
+if __name__ == "__main__":
+    faiss_store = FaissStore(DATA_PATH / "qcs/qcs_4w.json")
+    logger.info(faiss_store.search("Oily Skin Facial Cleanser"))
+    faiss_store.add([f"Oily Skin Facial Cleanser-{i}" for i in range(3)])
+    logger.info(faiss_store.search("Oily Skin Facial Cleanser"))

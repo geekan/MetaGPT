@@ -39,11 +39,11 @@ user: 没有了
 
 @pytest.mark.asyncio
 async def test_faiss_store_search():
-    store = FaissStore(DATA_PATH / 'qcs/qcs_4w.json')
-    store.add(['油皮洗面奶'])
+    store = FaissStore(DATA_PATH / "qcs/qcs_4w.json")
+    store.add(["油皮洗面奶"])
     role = Sales(store=store)
 
-    queries = ['油皮洗面奶', '介绍下欧莱雅的']
+    queries = ["油皮洗面奶", "介绍下欧莱雅的"]
     for query in queries:
         rsp = await role.run(query)
         assert rsp
@@ -60,7 +60,10 @@ def customer_service():
 async def test_faiss_store_customer_service():
     allq = [
         # ["我的餐怎么两小时都没到", "退货吧"],
-        ["你好收不到取餐码，麻烦帮我开箱", "14750187158", ]
+        [
+            "你好收不到取餐码，麻烦帮我开箱",
+            "14750187158",
+        ]
     ]
     role = customer_service()
     for queries in allq:
@@ -71,4 +74,4 @@ async def test_faiss_store_customer_service():
 
 def test_faiss_store_no_file():
     with pytest.raises(FileNotFoundError):
-        FaissStore(DATA_PATH / 'wtf.json')
+        FaissStore(DATA_PATH / "wtf.json")

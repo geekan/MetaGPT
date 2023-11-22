@@ -71,7 +71,7 @@ PRD = '''## 原始需求
 ```
 '''
 
-SYSTEM_DESIGN = '''## Python package name
+SYSTEM_DESIGN = """## Python package name
 ```python
 "smart_search_engine"
 ```
@@ -149,10 +149,10 @@ sequenceDiagram
     S-->>SE: return summary
     SE-->>M: return summary
 ```
-'''
+"""
 
 
-TASKS = '''## Logic Analysis
+TASKS = """## Logic Analysis
 
 在这个项目中，所有的模块都依赖于“SearchEngine”类，这是主入口，其他的模块（Index、Ranking和Summary）都通过它交互。另外，"Index"类又依赖于"KnowledgeBase"类，因为它需要从知识库中获取数据。
 
@@ -181,7 +181,7 @@ task_list = [
 ]
 ```
 这个任务列表首先定义了最基础的模块，然后是依赖这些模块的模块，最后是辅助模块。可以根据团队的能力和资源，同时开发多个任务，只要满足依赖关系。例如，在开发"search.py"之前，可以同时开发"knowledge_base.py"、"index.py"、"ranking.py"和"summary.py"。
-'''
+"""
 
 
 TASKS_TOMATO_CLOCK = '''## Required Python third-party packages: Provided in requirements.txt format
@@ -224,30 +224,30 @@ task_list = [
 TASK = """smart_search_engine/knowledge_base.py"""
 
 STRS_FOR_PARSING = [
-"""
+    """
 ## 1
 ```python
 a
 ```
 """,
-"""
+    """
 ##2
 ```python
 "a"
 ```
 """,
-"""
+    """
 ##  3
 ```python
 a = "a"
 ```
 """,
-"""
+    """
 ## 4
 ```python
 a =  'a'
 ```
-"""
+""",
 ]
 
 
