@@ -10,3 +10,4 @@ async def test_plan():
     rsp = await p.run(task_desc, role="data analyst")
     assert len(rsp.content) > 0
     assert rsp.sent_from == "Plan"
+    print(rsp)

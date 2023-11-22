@@ -9,6 +9,7 @@ from typing import Union
 from metagpt.actions import Action
 from metagpt.prompts.plan import TASK_PLAN_SYSTEM_MSG
 from metagpt.schema import Message
+from metagpt.utils.common import CodeParser
 
 
 class Plan(Action):
@@ -19,4 +20,5 @@ class Plan(Action):
         if role:
             system_msg = TASK_PLAN_SYSTEM_MSG.format(role=role)
         rsp = self._aask(system_msg + prompt.content) if isinstance(prompt, Message) else await self._aask(system_msg + prompt)
-        return Message(rsp, role="assistant", sent_from=self.__class__.__name__)
+        plan = CodeParser.parse_code(None, rsp).split('\n\n')
+        return Message(plan, role="assistant", sent_from=self.__class__.__name__)
