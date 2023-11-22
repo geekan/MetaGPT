@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "type": "completion",
+  "description": "Write a chapter of a novel using notes about the chapter to write.",
+  "completion": {
+    "max_tokens": 1024,
+    "temperature": 0.5,
+    "top_p": 0.0,
+    "presence_penalty": 0.0,
+    "frequency_penalty": 0.0
+  },
+  "input": {
+    "parameters": [
+      {
+        "name": "input",
+        "description": "What the novel should be about.",
+        "defaultValue": ""
+      },
+      {
+        "name": "theme",
+        "description": "The theme of this novel.",
+        "defaultValue": ""
+      },
+      {
+        "name": "notes",
+        "description": "Notes useful to write this chapter.",
+        "defaultValue": ""
+      },
+      {
+        "name": "previousChapter",
+        "description": "The previous chapter synopsis.",
+        "defaultValue": ""
+      },
+      {
+        "name": "chapterIndex",
+        "description": "The number of the chapter to write.",
+        "defaultValue": ""
+      }
+    ]
+  }
+}

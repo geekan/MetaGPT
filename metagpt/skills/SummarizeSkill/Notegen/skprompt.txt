@@ -1,0 +1,21 @@
+Analyze the following extract taken from a document. 
+- Produce key points for memory. 
+- Give memory a name. 
+- Extract only points worth remembering. 
+- Be brief. Conciseness is very important.  
+- Use broken English. 
+You will use this memory to analyze the rest of this document, and for other relevant tasks. 
+
+[Input]
+My name is Macbeth. I used to be King of Scotland, but I died. My wife's name is Lady Macbeth and we were married for 15 years. We had no children. Our beloved dog Toby McDuff was a famous hunter of rats in the forest.
+My story was immortalized by Shakespeare in a play.
++++++
+Family History
+- Macbeth, King Scotland
+- Wife Lady Macbeth, No Kids
+- Dog Toby McDuff. Hunter, dead. 
+- Shakespeare play
+
+[Input]
+[[{{$input}}]]
++++++

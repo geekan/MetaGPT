@@ -7,22 +7,34 @@
 ## Or, you can configure OPENAI_PROXY to access official OPENAI_API_BASE.
 OPENAI_API_BASE: "https://api.openai.com/v1"
 #OPENAI_PROXY: "http://127.0.0.1:8118"
-#OPENAI_API_KEY: "YOUR_API_KEY"
+#OPENAI_API_KEY: "YOUR_API_KEY"   # set the value to sk-xxx if you host the openai interface for open llm model
 OPENAI_API_MODEL: "gpt-4"
 MAX_TOKENS: 1500
 RPM: 10
+
+#### if Spark
+#SPARK_APPID : "YOUR_APPID"
+#SPARK_API_SECRET : "YOUR_APISecret"
+#SPARK_API_KEY : "YOUR_APIKey"
+#DOMAIN : "generalv2"
+#SPARK_URL : "ws://spark-api.xf-yun.com/v2.1/chat"
 
 #### if Anthropic
 #Anthropic_API_KEY: "YOUR_API_KEY"
 
 #### if AZURE, check https://github.com/openai/openai-cookbook/blob/main/examples/azure/chat.ipynb
-
+#### You can use ENGINE or DEPLOYMENT mode
 #OPENAI_API_TYPE: "azure"
 #OPENAI_API_BASE: "YOUR_AZURE_ENDPOINT"
 #OPENAI_API_KEY: "YOUR_AZURE_API_KEY"
 #OPENAI_API_VERSION: "YOUR_AZURE_API_VERSION"
+#DEPLOYMENT_NAME: "YOUR_DEPLOYMENT_NAME"
 #DEPLOYMENT_ID: "YOUR_DEPLOYMENT_ID"
 STREAM: true
+
+#### if zhipuai from `https://open.bigmodel.cn`. You can set here or export API_KEY="YOUR_API_KEY"
+# ZHIPUAI_API_KEY: "YOUR_API_KEY"
+
 #### for Search
 
 ## Supported values: serpapi/google/serper/ddg
@@ -75,3 +87,12 @@ SD_T2I_API: "/sdapi/v1/txt2img"
 ### for Research
 MODEL_FOR_RESEARCHER_SUMMARY: gpt-3.5-turbo
 MODEL_FOR_RESEARCHER_REPORT: gpt-3.5-turbo-16k
+
+### choose the engine for mermaid conversion, 
+# default is nodejs, you can change it to playwright,pyppeteer or ink
+# MERMAID_ENGINE: nodejs
+
+### browser path for pyppeteer engine, support Chrome, Chromium,MS Edge
+#PYPPETEER_EXECUTABLE_PATH: "/usr/bin/google-chrome-stable"
+
+PROMPT_FORMAT: json #json or markdown

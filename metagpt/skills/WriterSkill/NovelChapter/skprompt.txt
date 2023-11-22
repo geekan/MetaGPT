@@ -1,0 +1,20 @@
+[CONTEXT]
+
+THEME OF STORY:
+{{$theme}}
+
+PREVIOUS CHAPTER:
+{{$previousChapter}}
+
+[END CONTEXT]
+
+
+WRITE THIS CHAPTER USING [CONTEXT] AND
+CHAPTER SYNOPSIS. DO NOT REPEAT SYNOPSIS IN THE OUTPUT
+
+Chapter Synopsis:
+{{$input}}
+
+Chapter {{$chapterIndex}}
+
+

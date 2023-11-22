@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "type": "completion",
+  "description": "Given a single word or acronym, generate the expanded form matching the acronym letters.",
+  "completion": {
+    "max_tokens": 256,
+    "temperature": 0.5,
+    "top_p": 1.0,
+    "presence_penalty": 0.8,
+    "frequency_penalty": 0.0,
+    "stop_sequences": [
+      "#END#"
+    ]
+  }
+}

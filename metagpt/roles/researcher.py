@@ -31,19 +31,10 @@ class Researcher(Role):
     ):
         super().__init__(name, profile, goal, constraints, **kwargs)
         self._init_actions([CollectLinks(name), WebBrowseAndSummarize(name), ConductResearch(name)])
+        self._set_react_mode(react_mode="by_order")
         self.language = language
         if language not in ("en-us", "zh-cn"):
             logger.warning(f"The language `{language}` has not been tested, it may not work.")
-
-    async def _think(self) -> None:
-        if self._rc.todo is None:
-            self._set_state(0)
-            return
-
-        if self._rc.state + 1 < len(self._states):
-            self._set_state(self._rc.state + 1)
-        else:
-            self._rc.todo = None
 
     async def _act(self) -> Message:
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
@@ -73,12 +64,8 @@ class Researcher(Role):
         self._rc.memory.add(ret)
         return ret
 
-    async def _react(self) -> Message:
-        while True:
-            await self._think()
-            if self._rc.todo is None:
-                break
-            msg = await self._act()
+    async def react(self) -> Message:
+        msg = await super().react()
         report = msg.instruct_content
         self.write_report(report.topic, report.content)
         return msg
