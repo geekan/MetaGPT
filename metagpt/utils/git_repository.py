@@ -17,6 +17,7 @@ from git.repo import Repo
 from git.repo.fun import is_git_dir
 
 from metagpt.const import WORKSPACE_ROOT
+from metagpt.logs import logger
 from metagpt.utils.dependency_file import DependencyFile
 from metagpt.utils.file_repository import FileRepository
 
@@ -169,6 +170,21 @@ class GitRepository:
         if not self._dependency:
             self._dependency = DependencyFile(workdir=self.workdir)
         return self._dependency
+
+    def rename_root(self, new_dir_name):
+        """Rename the root directory of the Git repository.
+
+        :param new_dir_name: The new name for the root directory.
+        """
+        if self.workdir.name == new_dir_name:
+            return
+        new_path = self.workdir.parent / new_dir_name
+        if new_path.exists():
+            logger.info(f"Delete directory {str(new_path)}")
+            shutil.rmtree(new_path)
+        self.workdir.rename(new_path)
+        logger.info(f"Rename directory {str(self.workdir)} to {str(new_path)}")
+        self._repository = Repo(new_path)
 
 
 if __name__ == "__main__":

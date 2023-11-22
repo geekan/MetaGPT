@@ -11,7 +11,7 @@ from typing import List
 
 from metagpt.actions import Action, ActionOutput
 from metagpt.config import CONFIG
-from metagpt.const import PRDS_FILE_REPO, SYS_DESIGN_FILE_REPO, WORKSPACE_ROOT
+from metagpt.const import PRDS_FILE_REPO, SYSTEM_DESIGN_FILE_REPO, WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.schema import Document, Documents
 from metagpt.utils.common import CodeParser
@@ -208,7 +208,7 @@ class WriteDesign(Action):
         prds_file_repo = CONFIG.git_repo.new_file_repository(PRDS_FILE_REPO)
         changed_prds = prds_file_repo.changed_files
         # 通过git diff来识别docs/system_designs下那些设计文档发生了变动；
-        system_design_file_repo = CONFIG.git_repo.new_file_repository(SYS_DESIGN_FILE_REPO)
+        system_design_file_repo = CONFIG.git_repo.new_file_repository(SYSTEM_DESIGN_FILE_REPO)
         changed_system_designs = system_design_file_repo.changed_files
 
         # 对于那些发生变动的PRD和设计文档，重新生成设计内容；
@@ -219,7 +219,7 @@ class WriteDesign(Action):
             if not old_system_design_doc:
                 system_design = await self._run(context=prd.content)
                 doc = Document(
-                    root_path=SYS_DESIGN_FILE_REPO, filename=filename, content=system_design.instruct_content.json()
+                    root_path=SYSTEM_DESIGN_FILE_REPO, filename=filename, content=system_design.instruct_content.json()
                 )
             else:
                 doc = await self._merge(prd_doc=prd, system_design_doc=old_system_design_doc)
@@ -234,7 +234,9 @@ class WriteDesign(Action):
             prd_doc = await prds_file_repo.get(filename=filename)
             old_system_design_doc = await system_design_file_repo.get(filename)
             new_system_design_doc = await self._merge(prd_doc, old_system_design_doc)
-            await system_design_file_repo.save(filename=filename, content=new_system_design_doc.content)
+            await system_design_file_repo.save(
+                filename=filename, content=new_system_design_doc.content, dependencies={prd_doc.root_relative_path}
+            )
             changed_files.docs[filename] = new_system_design_doc
 
         # 等docs/system_designs/下所有文件都处理完才发publish message，给后续做全局优化留空间。
@@ -251,8 +253,18 @@ class WriteDesign(Action):
             "Python package name",
             system_design.instruct_content.dict()["Python package name"].strip().strip("'").strip('"'),
         )
-        # await self._save(context, system_design)
+        await self._rename_workspace(system_design)
         return system_design
 
     async def _merge(self, prd_doc, system_design_doc):
         return system_design_doc
+
+    async def _rename_workspace(self, system_design):
+        if CONFIG.WORKDIR:  # 已经指定了在旧版本上更新
+            return
+
+        if isinstance(system_design, ActionOutput):
+            ws_name = system_design.instruct_content.dict()["Python package name"]
+        else:
+            ws_name = CodeParser.parse_str(block="Python package name", text=system_design)
+        CONFIG.git_repo.rename_root(ws_name)
