@@ -83,7 +83,7 @@ class PyCodeExecutor(CodeExecutor, Action):
 
     def parse_outputs(self, outputs: List) -> str:
         assert isinstance(outputs, list)
-        parsed_output = {"text": [], "image": []}
+        parsed_output = ""
 
         # empty outputs: such as 'x=1\ny=2'
         if not outputs:
@@ -91,11 +91,12 @@ class PyCodeExecutor(CodeExecutor, Action):
 
         for output in outputs:
             if output["output_type"] == "stream":
-                parsed_output["text"].append(output["text"])
+                parsed_output += output["text"]
             elif output["output_type"] == "display_data":
                 self.show_bytes_figure(output["data"]["image/png"], self.interaction)
-                parsed_output["image"].append(output["data"]["image/png"])
-        return str(parsed_output)
+            elif output["output_type"] == "execute_result":
+                parsed_output += output["data"]["text/plain"]
+        return parsed_output
 
     def show_bytes_figure(self, image_base64: str, interaction_type: str = "ipython"):
         import base64
@@ -139,8 +140,8 @@ class PyCodeExecutor(CodeExecutor, Action):
             assert "language" in code
             code, language = code["code"], code["language"]
         elif isinstance(code, Message):
-            assert hasattr(code, "language")
-            code, language = code.content, code.language
+            assert "language" in code.content
+            code, language = code.content["code"], code.content["language"]
         else:
             raise ValueError(f"Not support code type {type(code).__name__}.")
 
