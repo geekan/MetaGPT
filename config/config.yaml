@@ -94,4 +94,9 @@ MODEL_FOR_RESEARCHER_REPORT: gpt-3.5-turbo-16k
 ### browser path for pyppeteer engine, support Chrome, Chromium,MS Edge
 #PYPPETEER_EXECUTABLE_PATH: "/usr/bin/google-chrome-stable"
 
+### for repair non-openai LLM's output when parse json-text if PROMPT_FORMAT=json
+### due to non-openai LLM's output will not always follow the instruction, so here activate a post-process
+### repair operation on the content extracted from LLM's raw output. Warning, it improves the result but not fix all cases.
+# REPAIR_LLM_OUTPUT: false
+
 PROMPT_FORMAT: json #json or markdown

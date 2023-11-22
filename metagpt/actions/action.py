@@ -5,17 +5,16 @@
 @Author  : alexanderwu
 @File    : action.py
 """
-import re
+
 from abc import ABC
 from typing import Optional
 
-from tenacity import retry, stop_after_attempt, wait_fixed
+from tenacity import retry, stop_after_attempt, wait_fixed, after_log
 
 from metagpt.actions.action_output import ActionOutput
 from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.utils.common import OutputParser
-from metagpt.utils.custom_decoder import CustomDecoder
 from metagpt.utils.repair_llm_raw_output import repair_llm_raw_output, RepairType,\
     retry_parse_json_text, extract_content_from_output
 
@@ -51,7 +50,11 @@ class Action(ABC):
         system_msgs.append(self.prefix)
         return await self.llm.aask(prompt, system_msgs)
 
-    # @retry(stop=stop_after_attempt(3), wait=wait_fixed(1))
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_fixed(1),
+        after=after_log(logger, logger.level("ERROR").name),
+    )
     async def _aask_v1(
         self,
         prompt: str,
@@ -65,7 +68,7 @@ class Action(ABC):
             system_msgs = []
         system_msgs.append(self.prefix)
         content = await self.llm.aask(prompt, system_msgs)
-        logger.debug(content)
+        logger.debug(f"llm raw output:\n{content}")
         output_class = ActionOutput.create_model_class(output_class_name, output_data_mapping)
         output_class_fields = list(output_class.schema()["properties"].keys())  # Custom ActionOutput's fields
 
@@ -73,8 +76,8 @@ class Action(ABC):
             content = repair_llm_raw_output(content, req_keys=output_class_fields + ["[/CONTENT]"])
             content = extract_content_from_output(content)
             content = repair_llm_raw_output(content, req_keys=[None], repair_type=RepairType.JSON)  # req_keys mocked
-            logger.info(f"extracted CONTENT from content:\n{content}")
-            parsed_data = retry_parse_json_text(content)
+            logger.info(f"extracted json CONTENT from output:\n{content}")
+            parsed_data = retry_parse_json_text(output=content)  # should use output=content
 
         else:  # using markdown parser
             parsed_data = OutputParser.parse_data_with_mapping(content, output_data_mapping)

@@ -42,20 +42,69 @@ def test_repair_special_character_missing():
                                    req_keys=req_keys)
     assert output == target_output
 
+    raw_output = """[CONTENT] tag
+[CONTENT]
+{
+"Anything UNCLEAR": "No unclear requirements or information."
+}
+[CONTENT]"""
+    target_output = """[CONTENT] tag
+[CONTENT]
+{
+"Anything UNCLEAR": "No unclear requirements or information."
+}
+[/CONTENT]"""
+    output = repair_llm_raw_output(output=raw_output,
+                                   req_keys=req_keys)
+    assert output == target_output
+
+    raw_output = '[CONTENT] {"a": "b"} [CONTENT]'
+    target_output = '[CONTENT] {"a": "b"} [/CONTENT]'
+
+    output = repair_llm_raw_output(output=raw_output,
+                                   req_keys=["[/CONTENT]"])
+    print("output\n", output)
+    assert output == target_output
+
 
 def test_required_key_pair_missing():
-    raw_output = "[CONTENT] xxx"
-    target_output = "[CONTENT] xxx[/CONTENT]"
+    raw_output = '[CONTENT] {"a": "b"}'
+    target_output = '[CONTENT] {"a": "b"}\n[/CONTENT]'
 
     output = repair_llm_raw_output(output=raw_output,
                                    req_keys=["[/CONTENT]"])
     assert output == target_output
 
-    raw_output = "xxx[/CONTENT]"
-    target_output = "[CONTENT]xxx[/CONTENT]"
+    raw_output = '''[CONTENT]
+{
+    "a": "b"
+]'''
+    target_output = '''[CONTENT]
+{
+    "a": "b"
+]
+[/CONTENT]'''
 
     output = repair_llm_raw_output(output=raw_output,
-                                   req_keys=["[CONTENT]"])
+                                   req_keys=["[/CONTENT]"])
+    assert output == target_output
+
+    raw_output = '''[CONTENT] tag
+[CONTENT]
+{
+    "a": "b"
+}
+xxx
+'''
+    target_output = '''[CONTENT] tag
+[CONTENT]
+{
+    "a": "b"
+}
+[/CONTENT]
+'''
+    output = repair_llm_raw_output(output=raw_output,
+                                   req_keys=["[/CONTENT]"])
     assert output == target_output
 
 
@@ -100,6 +149,13 @@ def test_retry_parse_json_text():
 
 
 def test_extract_content_from_output():
+    """
+    cases
+        xxx [CONTENT] xxxx [/CONTENT]
+        xxx [CONTENT] xxx [CONTENT] xxxx [/CONTENT]
+        xxx [CONTENT] xxxx [/CONTENT] xxx [CONTENT][/CONTENT] xxx [CONTENT][/CONTENT]   # target pair is the last one
+    """
+
     output = 'Sure! Here is the properly formatted JSON output based on the given context:\n\n[CONTENT]\n{\n"' \
              'Required Python third-party packages": [\n"pygame==2.0.4",\n"pytest"\n],\n"Required Other language ' \
              'third-party packages": [\n"No third-party packages are required."\n],\n"Full API spec": "\nopenapi: ' \
