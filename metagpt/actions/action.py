@@ -6,17 +6,29 @@
 @File    : action.py
 """
 
+import typing
 from abc import ABC
 from typing import Optional
 
-from tenacity import retry, stop_after_attempt, wait_fixed, after_log
+from tenacity import retry, stop_after_attempt, wait_fixed, after_log, _utils
 
 from metagpt.actions.action_output import ActionOutput
 from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.utils.common import OutputParser
-from metagpt.utils.repair_llm_raw_output import repair_llm_raw_output, RepairType,\
-    retry_parse_json_text, extract_content_from_output
+from metagpt.provider.postprecess.llm_output_postprecess import llm_output_postprecess
+
+
+def action_after_log(logger: "loguru.Logger", sec_format: str = "%0.3f") -> typing.Callable[["RetryCallState"], None]:
+    def log_it(retry_state: "RetryCallState") -> None:
+        if retry_state.fn is None:
+            fn_name = "<unknown>"
+        else:
+            fn_name = _utils.get_callback_name(retry_state.fn)
+        logger.error(f"Finished call to '{fn_name}' after {sec_format % retry_state.seconds_since_start}(s), "
+                     f"this was the {_utils.to_ordinal(retry_state.attempt_number)} time calling it. "
+                     f"exp: {retry_state.outcome.exception()}")
+    return log_it
 
 
 class Action(ABC):
@@ -53,7 +65,7 @@ class Action(ABC):
     @retry(
         stop=stop_after_attempt(3),
         wait=wait_fixed(1),
-        after=after_log(logger, logger.level("ERROR").name),
+        after=action_after_log(logger),
     )
     async def _aask_v1(
         self,
@@ -70,14 +82,9 @@ class Action(ABC):
         content = await self.llm.aask(prompt, system_msgs)
         logger.debug(f"llm raw output:\n{content}")
         output_class = ActionOutput.create_model_class(output_class_name, output_data_mapping)
-        output_class_fields = list(output_class.schema()["properties"].keys())  # Custom ActionOutput's fields
 
         if format == "json":
-            content = repair_llm_raw_output(content, req_keys=output_class_fields + ["[/CONTENT]"])
-            content = extract_content_from_output(content)
-            content = repair_llm_raw_output(content, req_keys=[None], repair_type=RepairType.JSON)  # req_keys mocked
-            logger.info(f"extracted json CONTENT from output:\n{content}")
-            parsed_data = retry_parse_json_text(output=content)  # should use output=content
+            parsed_data = llm_output_postprecess(output=content, schema=output_class.schema(), req_key="[/CONTENT]")
 
         else:  # using markdown parser
             parsed_data = OutputParser.parse_data_with_mapping(content, output_data_mapping)

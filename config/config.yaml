@@ -34,6 +34,15 @@ RPM: 10
 #### if zhipuai from `https://open.bigmodel.cn`. You can set here or export API_KEY="YOUR_API_KEY"
 # ZHIPUAI_API_KEY: "YOUR_API_KEY"
 
+#### if use self-host open llm model with openai-compatible interface
+#OPEN_LLM_API_BASE: "http://127.0.0.1:8000/v1"
+#OPEN_LLM_API_MODEL: "llama2-13b"
+#
+##### if use Fireworks api
+#FIREWORKS_API_KEY: "YOUR_API_KEY"
+#FIREWORKS_API_BASE: "https://api.fireworks.ai/inference/v1"
+#FIREWORKS_API_MODEL: "YOUR_LLM_MODEL"  # example, accounts/fireworks/models/llama-v2-13b-chat
+
 #### for Search
 
 ## Supported values: serpapi/google/serper/ddg

@@ -91,13 +91,13 @@ def repair_required_key_pair_missing(output: str, req_key: str = "[/CONTENT]") -
                 idx1 = sub_output.rfind("}")
                 idx2 = sub_output.rindex("]")
                 idx = idx1 if idx1 >= idx2 else idx2
-                sub_output = sub_output[: idx]
+                sub_output = sub_output[: idx+1]
                 return sub_output
 
             if output.strip().endswith("}") or (output.strip().endswith("]") and not output.strip().endswith(left_key)):
                 # # avoid [req_key]xx[req_key] case to append [/req_key]
                 output = output + "\n" + right_key
-            elif judge_potential_json(output, left_key):
+            elif judge_potential_json(output, left_key) and (not output.strip().endswith(left_key)):
                 sub_content = judge_potential_json(output, left_key)
                 output = sub_content + "\n" + right_key
 
@@ -116,7 +116,7 @@ def repair_json_format(output: str) -> str:
     elif output.endswith("}]"):
         output = output[:-1]
         logger.info(f"repair_json_format: {'}]'}")
-    elif output.startswith("{") and output.startswith("]"):
+    elif output.startswith("{") and output.endswith("]"):
         output = output[:-1] + "}"
 
     return output
@@ -183,9 +183,11 @@ def repair_invalid_json(output: str, error: str) -> str:
         if line.endswith("],"):
             # problem, redundant char `]`
             line = line.replace("]", "")
-        elif line.endswith("},"):
+        elif line.endswith("},") and not output.endswith("},"):
             # problem, redundant char `}`
             line = line.replace("}", "")
+        elif line.endswith("},") and output.endswith("},"):
+            line = line[:-1]
         elif '",' not in line:
             line = f'{line}",'
         elif "," not in line:
@@ -218,11 +220,10 @@ def run_after_exp_and_passon_next_retry(logger: "loguru.Logger") -> Callable[["R
         """
         if retry_state.outcome.failed:
             if len(retry_state.args) > 0:
-                # # can't used as args=retry_state.args
+                # # can't be used as args=retry_state.args
                 func_param_output = retry_state.args[0]
             elif len(retry_state.kwargs) > 0:
                 func_param_output = retry_state.kwargs.get("output", "")
-            # import pdb; pdb.set_trace()
             exp_str = str(retry_state.outcome.exception())
             logger.warning(f"parse json from content inside [CONTENT][/CONTENT] failed at retry "
                            f"{retry_state.attempt_number}, try to fix it, exp: {exp_str}")
@@ -265,6 +266,7 @@ def extract_content_from_output(content: str, right_key: str = "[/CONTENT]"):
                 break
         return cont.strip()
 
+    # TODO construct the extract pattern with the `right_key`
     raw_content = copy.deepcopy(content)
     pattern = r"\[CONTENT\]([\s\S]*)\[/CONTENT\]"
     new_content = re_extract_content(raw_content, pattern)

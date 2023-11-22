@@ -46,10 +46,18 @@ class Config(metaclass=Singleton):
         self.openai_api_key = self._get("OPENAI_API_KEY")
         self.anthropic_api_key = self._get("Anthropic_API_KEY")
         self.zhipuai_api_key = self._get("ZHIPUAI_API_KEY")
+
+        self.open_llm_api_base = self._get("OPEN_LLM_API_BASE")
+        self.open_llm_api_model = self._get("OPEN_LLM_API_MODEL")
+
+        self.fireworks_api_key = self._get("FIREWORKS_API_KEY")
         if (not self.openai_api_key or "YOUR_API_KEY" == self.openai_api_key) and \
                 (not self.anthropic_api_key or "YOUR_API_KEY" == self.anthropic_api_key) and \
-                (not self.zhipuai_api_key or "YOUR_API_KEY" == self.zhipuai_api_key):
-            raise NotConfiguredException("Set OPENAI_API_KEY or Anthropic_API_KEY or ZHIPUAI_API_KEY first")
+                (not self.zhipuai_api_key or "YOUR_API_KEY" == self.zhipuai_api_key) and \
+                (not self.open_llm_api_base) and \
+                (not self.fireworks_api_key or "YOUR_API_KEY" == self.fireworks_api_key):
+            raise NotConfiguredException("Set OPENAI_API_KEY or Anthropic_API_KEY or ZHIPUAI_API_KEY first "
+                                         "or FIREWORKS_API_KEY or OPEN_LLM_API_BASE")
         self.openai_api_base = self._get("OPENAI_API_BASE")
         openai_proxy = self._get("OPENAI_PROXY") or self.global_proxy
         if openai_proxy:
@@ -68,6 +76,9 @@ class Config(metaclass=Singleton):
         self.spark_api_key = self._get("SPARK_API_KEY")
         self.domain = self._get("DOMAIN")
         self.spark_url = self._get("SPARK_URL")
+
+        self.fireworks_api_base = self._get("FIREWORKS_API_BASE")
+        self.fireworks_api_model = self._get("FIREWORKS_API_MODEL")
 
         self.claude_api_key = self._get("Anthropic_API_KEY")
         self.serpapi_api_key = self._get("SERPAPI_API_KEY")

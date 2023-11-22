@@ -77,11 +77,11 @@ def test_required_key_pair_missing():
 
     raw_output = '''[CONTENT]
 {
-    "a": "b"
+    "key": "value"
 ]'''
     target_output = '''[CONTENT]
 {
-    "a": "b"
+    "key": "value"
 ]
 [/CONTENT]'''
 
@@ -92,17 +92,15 @@ def test_required_key_pair_missing():
     raw_output = '''[CONTENT] tag
 [CONTENT]
 {
-    "a": "b"
+    "key": "value"
 }
 xxx
 '''
-    target_output = '''[CONTENT] tag
-[CONTENT]
+    target_output = '''[CONTENT]
 {
-    "a": "b"
+    "key": "value"
 }
-[/CONTENT]
-'''
+[/CONTENT]'''
     output = repair_llm_raw_output(output=raw_output,
                                    req_keys=["[/CONTENT]"])
     assert output == target_output
@@ -110,6 +108,22 @@ xxx
 
 def test_repair_json_format():
     raw_output = "{ xxx }]"
+    target_output = "{ xxx }"
+
+    output = repair_llm_raw_output(output=raw_output,
+                                   req_keys=[None],
+                                   repair_type=RepairType.JSON)
+    assert output == target_output
+
+    raw_output = "[{ xxx }"
+    target_output = "{ xxx }"
+
+    output = repair_llm_raw_output(output=raw_output,
+                                   req_keys=[None],
+                                   repair_type=RepairType.JSON)
+    assert output == target_output
+
+    raw_output = "{ xxx ]"
     target_output = "{ xxx }"
 
     output = repair_llm_raw_output(output=raw_output,
@@ -130,7 +144,7 @@ def test_retry_parse_json_text():
         "Competitive Quadrant Chart": "quadrantChart\n\ttitle Reach and engagement of campaigns\n\t\tx-axis",
         "Requirement Analysis": "The requirements are clear and well-defined"
     }
-    output = retry_parse_json_text(invalid_json_text)
+    output = retry_parse_json_text(output=invalid_json_text)
     assert output == target_json
 
     invalid_json_text = """{
@@ -144,7 +158,7 @@ def test_retry_parse_json_text():
         "Competitive Quadrant Chart": "quadrantChart\n\ttitle Reach and engagement of campaigns\n\t\tx-axis",
         "Requirement Analysis": "The requirements are clear and well-defined"
     }
-    output = retry_parse_json_text(invalid_json_text)
+    output = retry_parse_json_text(output=invalid_json_text)
     assert output == target_json
 
 
