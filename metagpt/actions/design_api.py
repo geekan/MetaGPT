@@ -290,7 +290,7 @@ class WriteDesign(Action):
         data_api_design = m.get("Data structures and interface definitions")
         if not data_api_design:
             return
-        pathname = CONFIG.git_repo.workdir / DATA_API_DESIGN_FILE_REPO / Path(design_doc).with_suffix(".mmd")
+        pathname = CONFIG.git_repo.workdir / Path(DATA_API_DESIGN_FILE_REPO) / Path(design_doc).with_suffix(".mmd")
         await WriteDesign._save_mermaid_file(data_api_design, pathname)
         logger.info(f"Save class view to {str(pathname)}")
 
@@ -300,7 +300,7 @@ class WriteDesign(Action):
         seq_flow = m.get("Program call flow")
         if not seq_flow:
             return
-        pathname = CONFIG.git_repo.workdir / SEQ_FLOW_FILE_REPO / Path(design_doc).with_suffix(".mmd")
+        pathname = CONFIG.git_repo.workdir / Path(SEQ_FLOW_FILE_REPO) / Path(design_doc).with_suffix(".mmd")
         await WriteDesign._save_mermaid_file(seq_flow, pathname)
         logger.info(f"Saving sequence flow to {str(pathname)}")
 
