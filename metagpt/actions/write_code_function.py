@@ -21,16 +21,31 @@ class WriteCodeFunction(Action):
             return system_msg + prompt if system_msg else prompt
 
         if isinstance(prompt, Message):
-            prompt.content = system_msg + prompt.content if system_msg else prompt.content
+            if isinstance(prompt.content, dict):
+                prompt.content = system_msg + str([(k, v) for k, v in prompt.content.items()])\
+                    if system_msg else prompt.content
+            else:
+                prompt.content = system_msg + prompt.content if system_msg else prompt.content
             return prompt
 
+        if isinstance(prompt, list):
+            _prompt = []
+            for msg in prompt:
+                if isinstance(msg, Message) and isinstance(msg.content, dict):
+                    msg.content = str([(k, v) for k, v in msg.content.items()])
+                if isinstance(msg, Message):
+                    msg = msg.to_dict()
+                _prompt.append(msg)
+            prompt = _prompt
+
         if isinstance(prompt, list) and system_msg:
-            prompt.insert(0, {"role": "system", "content": system_msg})
+            if system_msg not in prompt[0]['content']:
+                prompt[0]['content'] = system_msg + prompt[0]['content']
         return prompt
 
     async def run(
         self, prompt: Union[str, List[Dict], Message, List[Message]], system_msg: str = None, **kwargs
-    ) -> Dict:
+    ) -> Message:
         prompt = self.process_msg(prompt, system_msg)
         code_content = await self.llm.aask_code(prompt, **kwargs)
         return Message(content=code_content, role="assistant")
