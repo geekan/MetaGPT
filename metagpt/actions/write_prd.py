@@ -305,10 +305,10 @@ class WritePRD(Action):
         quadrant_chart = m.get("Competitive Quadrant Chart")
         if not quadrant_chart:
             return
-        path = CONFIG.git_repo.workdir / COMPETITIVE_ANALYSIS_FILE_REPO
-        if not path.exists():
-            path.mkdir(parents=True, exists_ok=True)
-        await mermaid_to_file(quadrant_chart, path / Path(prd_doc).with_suffix(".mmd"))
+        pathname = CONFIG.git_repo.workdir / Path(COMPETITIVE_ANALYSIS_FILE_REPO) / Path(prd_doc).with_suffix(".mmd")
+        if not pathname.parent.exists():
+            pathname.parent.mkdir(parents=True, exists_ok=True)
+        await mermaid_to_file(quadrant_chart, pathname)
 
     @staticmethod
     async def _save_pdf(prd_doc):

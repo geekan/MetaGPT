@@ -290,10 +290,9 @@ class WriteDesign(Action):
         data_api_design = m.get("Data structures and interface definitions")
         if not data_api_design:
             return
-        path = CONFIG.git_repo.workdir / DATA_API_DESIGN_FILE_REPO
-        if not path.exists():
-            path.mkdir(parents=True, exists_ok=True)
-        await mermaid_to_file(data_api_design, path / Path(design_doc).with_suffix(".mmd"))
+        pathname = CONFIG.git_repo.workdir / DATA_API_DESIGN_FILE_REPO / Path(design_doc).with_suffix(".mmd")
+        await WriteDesign._save_mermaid_file(data_api_design, pathname)
+        logger.info(f"Save class view to {str(pathname)}")
 
     @staticmethod
     async def _save_seq_flow(design_doc):
@@ -301,13 +300,19 @@ class WriteDesign(Action):
         seq_flow = m.get("Program call flow")
         if not seq_flow:
             return
-        path = CONFIG.git_repo.workdir / SEQ_FLOW_FILE_REPO
-        if not path.exists():
-            path.mkdir(parents=True, exists_ok=True)
-        await mermaid_to_file(seq_flow, path / Path(design_doc).with_suffix(".mmd"))
+        pathname = CONFIG.git_repo.workdir / SEQ_FLOW_FILE_REPO / Path(design_doc).with_suffix(".mmd")
+        await WriteDesign._save_mermaid_file(seq_flow, pathname)
+        logger.info(f"Saving sequence flow to {str(pathname)}")
 
     @staticmethod
     async def _save_pdf(design_doc):
         m = json.loads(design_doc.content)
         file_repo = CONFIG.git_repo.new_file_repository(SYSTEM_DESIGN_PDF_FILE_REPO)
         await file_repo.save(filename=design_doc.filename, content=json_to_markdown(m))
+        logger.info(f"Saving system design pdf to {design_doc.root_relative_path}")
+
+    @staticmethod
+    async def _save_mermaid_file(data: str, pathname: Path):
+        if not pathname.parent.exists():
+            pathname.parent.mkdir(parents=True, exists_ok=True)
+        await mermaid_to_file(data, pathname)
