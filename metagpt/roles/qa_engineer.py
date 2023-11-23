@@ -11,7 +11,7 @@ import json
 
 from metagpt.actions import DebugError, RunCode, WriteCode, WriteCodeReview, WriteTest
 from metagpt.config import CONFIG
-from metagpt.const import OUTPUTS_FILE_REPO, TEST_CODES_FILE_REPO
+from metagpt.const import MESSAGE_ROUTE_TO_NONE, OUTPUTS_FILE_REPO, TEST_CODES_FILE_REPO
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Document, Message, RunCodeContext, TestingContext
@@ -66,7 +66,6 @@ class QaEngineer(Role):
                 working_directory=str(CONFIG.git_repo.workdir),
                 additional_python_paths=[CONFIG.src_workspace],
             )
-
             msg = Message(
                 content=run_code_context.json(),
                 role=self.profile,
@@ -135,7 +134,7 @@ class QaEngineer(Role):
                 role=self.profile,
                 cause_by=WriteTest,
                 sent_from=self.profile,
-                send_to="",
+                send_to=MESSAGE_ROUTE_TO_NONE,
             )
             return result_msg
 
@@ -160,6 +159,6 @@ class QaEngineer(Role):
             role=self.profile,
             cause_by=WriteTest,
             sent_from=self.profile,
-            send_to="",
+            send_to=MESSAGE_ROUTE_TO_NONE,
         )
         return result_msg

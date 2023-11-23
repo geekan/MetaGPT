@@ -49,6 +49,7 @@ MESSAGE_ROUTE_TO = "send_to"
 MESSAGE_ROUTE_CAUSE_BY = "cause_by"
 MESSAGE_META_ROLE = "role"
 MESSAGE_ROUTE_TO_ALL = "<all>"
+MESSAGE_ROUTE_TO_NONE = "<none>"
 
 REQUIREMENT_FILENAME = "requirement.txt"
 DOCS_FILE_REPO = "docs"
