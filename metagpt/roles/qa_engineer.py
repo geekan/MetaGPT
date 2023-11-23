@@ -15,7 +15,7 @@ from metagpt.const import OUTPUTS_FILE_REPO, TEST_CODES_FILE_REPO
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Document, Message, RunCodeContext, TestingContext
-from metagpt.utils.common import CodeParser, any_to_str_set
+from metagpt.utils.common import any_to_str_set
 
 
 class QaEngineer(Role):
@@ -34,12 +34,6 @@ class QaEngineer(Role):
         self._watch([WriteCode, WriteCodeReview, WriteTest, RunCode, DebugError])
         self.test_round = 0
         self.test_round_allowed = test_round_allowed
-
-    @classmethod
-    def parse_workspace(cls, system_design_msg: Message) -> str:
-        if system_design_msg.instruct_content:
-            return system_design_msg.instruct_content.dict().get("Python package name")
-        return CodeParser.parse_str(block="Python package name", text=system_design_msg.content)
 
     async def _write_test(self, message: Message) -> None:
         changed_files = message.content.splitlines()
