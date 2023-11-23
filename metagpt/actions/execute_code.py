@@ -7,6 +7,7 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Dict, List, Tuple, Union
+import traceback
 
 import nbformat
 from nbclient import NotebookClient
@@ -152,7 +153,7 @@ class ExecutePyCode(ExecuteCode, Action):
 
         return code, language
 
-    async def run(self, code: Union[str, Dict, Message], language: str = "python") -> Message:
+    async def run(self, code: Union[str, Dict, Message], language: str = "python") -> Tuple[str, bool]:
         code, language = self._process_code(code, language)
 
         self._display(code, language)
@@ -167,13 +168,11 @@ class ExecutePyCode(ExecuteCode, Action):
                 # TODO: add max_tries for run code.
                 cell_index = len(self.nb.cells) - 1
                 await self.nb_client.async_execute_cell(self.nb.cells[-1], cell_index)
-                return Message(
-                    self.parse_outputs(self.nb.cells[-1].outputs), state="done", sent_from=self.__class__.__name__
-                )
+                return self.parse_outputs(self.nb.cells[-1].outputs), True
             except Exception as e:
                 # FIXME: CellExecutionError is hard to read. for example `1\0` raise ZeroDivisionError:
                 #  CellExecutionError('An error occurred while executing the following cell:\n------------------\nz=1/0\n------------------\n\n\n\x1b[0;31m---------------------------------------------------------------------------\x1b[0m\n\x1b[0;31mZeroDivisionError\x1b[0m                         Traceback (most recent call last)\nCell \x1b[0;32mIn[1], line 1\x1b[0m\n\x1b[0;32m----> 1\x1b[0m z\x1b[38;5;241m=\x1b[39m\x1b[38;5;241;43m1\x1b[39;49m\x1b[38;5;241;43m/\x1b[39;49m\x1b[38;5;241;43m0\x1b[39;49m\n\n\x1b[0;31mZeroDivisionError\x1b[0m: division by zero\n')
-                return Message(e, state="error", sent_from=self.__class__.__name__)
+                return traceback.format_exc(), False
         else:
             # TODO: markdown
             raise NotImplementedError(f"Not support this code type : {language}, Only support code!")

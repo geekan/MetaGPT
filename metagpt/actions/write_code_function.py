@@ -7,10 +7,20 @@
 from typing import Dict, List, Union
 
 from metagpt.actions import Action
-from metagpt.schema import Message
+from metagpt.schema import Message, Plan
 
+class BaseWriteAnalysisCode(Action):
 
-class WriteCodeFunction(Action):
+    async def run(self, context: List[Message], plan: Plan = None, task_guidance: str = ""):
+        """Run of a code writing action, used in data analysis or modeling
+
+        Args:
+            context (List[Message]): Action output history, source action denoted by Message.cause_by
+            plan (Plan, optional): Overall plan. Defaults to None.
+            task_guidance (str, optional): suggested step breakdown for the current task. Defaults to "".
+        """
+
+class WriteCodeFunction(BaseWriteAnalysisCode):
     """Use openai function to generate code."""
 
     def __init__(self, name: str = "", context=None, llm=None) -> str:
@@ -44,8 +54,8 @@ class WriteCodeFunction(Action):
         return prompt
 
     async def run(
-        self, prompt: Union[str, List[Dict], Message, List[Message]], system_msg: str = None, **kwargs
-    ) -> Message:
-        prompt = self.process_msg(prompt, system_msg)
+        self, context: [List[Message]], plan: Plan = None, task_guidance: str = "", system_msg: str = None, **kwargs
+    ) -> str:
+        prompt = self.process_msg(context, system_msg)
         code_content = await self.llm.aask_code(prompt, **kwargs)
-        return Message(content=code_content, role="assistant")
+        return code_content

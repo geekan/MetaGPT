@@ -46,3 +46,7 @@ wrapt==1.15.0
 websocket-client==0.58.0
 zhipuai==1.0.7
 rich==13.6.0
+nbclient==0.9.0
+nbformat==5.9.2
+ipython==8.17.2
+ipykernel==6.27.0
