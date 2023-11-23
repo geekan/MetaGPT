@@ -151,13 +151,6 @@ class QaEngineer(Role):
             )
             self.publish_message(msg)
 
-    async def _observe(self) -> int:
-        await super()._observe()
-        self._rc.news = [
-            msg for msg in self._rc.news if self.profile in msg.send_to
-        ]  # only relevant msgs count as observed news
-        return len(self._rc.news)
-
     async def _act(self) -> Message:
         if self.test_round > self.test_round_allowed:
             result_msg = Message(
