@@ -132,6 +132,48 @@ def test_repair_json_format():
     assert output == target_output
 
 
+def test_repair_invalid_json():
+    raw_output = """{
+    "key": "value"
+    },
+}"""
+    target_output = """{
+    "key": "value"
+,
+}"""
+    output = repair_invalid_json(raw_output, "Expecting ',' delimiter: line 3 column 1")
+    assert output == target_output
+
+    raw_output = """{
+    "key": "
+value
+    },
+}"""
+    target_output = """{
+    "key": "
+value
+",
+}"""
+    output = repair_invalid_json(raw_output, "Expecting ',' delimiter: line 4 column 1")
+    output = repair_invalid_json(output, "Expecting ',' delimiter: line 4 column 1")
+    assert output == target_output
+
+    raw_output = """{
+    "key": '
+value
+    },
+}"""
+    target_output = """{
+    "key": '
+value
+',
+}"""
+    output = repair_invalid_json(raw_output, "Expecting ',' delimiter: line 4 column 1")
+    output = repair_invalid_json(output, "Expecting ',' delimiter: line 4 column 1")
+    output = repair_invalid_json(output, "Expecting ',' delimiter: line 4 column 1")
+    assert output == target_output
+
+
 def test_retry_parse_json_text():
     invalid_json_text = """{
 "Original Requirements": "Create a 2048 game",

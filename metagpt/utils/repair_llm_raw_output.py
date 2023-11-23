@@ -182,19 +182,23 @@ def repair_invalid_json(output: str, error: str) -> str:
         # different general problems
         if line.endswith("],"):
             # problem, redundant char `]`
-            line = line.replace("]", "")
+            new_line = line.replace("]", "")
         elif line.endswith("},") and not output.endswith("},"):
             # problem, redundant char `}`
-            line = line.replace("}", "")
+            new_line = line.replace("}", "")
         elif line.endswith("},") and output.endswith("},"):
-            line = line[:-1]
-        elif '",' not in line:
-            line = f'{line}",'
+            new_line = line[:-1]
+        elif '",' not in line and ',' not in line:
+            new_line = f'{line}",'
         elif "," not in line:
             # problem, miss char `,` at the end.
-            line = f"{line},"
+            new_line = f"{line},"
+        elif "," in line and len(line) == 1:
+            new_line = f'"{line}'
+        elif '",' in line:
+            new_line = line[:-2] + "',"
 
-        arr[line_no] = line
+        arr[line_no] = new_line
         output = "\n".join(arr)
         logger.info(f"repair_invalid_json, raw error: {error}")
 
