@@ -146,8 +146,8 @@ class QaEngineer(Role):
                 content=file_info,
                 role=self.profile,
                 cause_by=DebugError,
-                sent_from=self.profile,
-                send_to=recipient,
+                sent_from=self,
+                send_to=self,
             )
             self.publish_message(msg)
 
@@ -158,6 +158,7 @@ class QaEngineer(Role):
                 role=self.profile,
                 cause_by=WriteTest,
                 sent_from=self.profile,
+                send_to=""
             )
             return result_msg
 
