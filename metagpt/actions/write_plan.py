@@ -12,7 +12,7 @@ from metagpt.schema import Message
 from metagpt.utils.common import CodeParser
 
 
-class Plan(Action):
+class WritePlan(Action):
     def __init__(self, llm=None):
         super().__init__("", None, llm)
 

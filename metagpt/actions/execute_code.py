@@ -18,7 +18,7 @@ from metagpt.actions import Action
 from metagpt.schema import Message
 
 
-class CodeExecutor(ABC):
+class ExecuteCode(ABC):
     @abstractmethod
     async def build(self):
         """build code executor"""
@@ -40,7 +40,7 @@ class CodeExecutor(ABC):
         ...
 
 
-class PyCodeExecutor(CodeExecutor, Action):
+class ExecutePyCode(ExecuteCode, Action):
     """execute code, return result to llm, and display it."""
 
     def __init__(self, name: str = "python_executor", context=None, llm=None):
@@ -128,6 +128,7 @@ class PyCodeExecutor(CodeExecutor, Action):
             return False
 
     def _process_code(self, code: Union[str, Dict, Message], language: str = None) -> Tuple:
+        language = language or 'python'
         if isinstance(code, str) and Path(code).suffix in (".py", ".txt"):
             code = Path(code).read_text(encoding="utf-8")
             return code, language
@@ -137,11 +138,15 @@ class PyCodeExecutor(CodeExecutor, Action):
 
         if isinstance(code, dict):
             assert "code" in code
-            assert "language" in code
+            if "language" not in code:
+                code['language'] = 'python'
             code, language = code["code"], code["language"]
         elif isinstance(code, Message):
-            assert "language" in code.content
-            code, language = code.content["code"], code.content["language"]
+            if isinstance(code.content, dict) and "language" not in code.content:
+                code.content["language"] = 'python'
+                code, language = code.content["code"], code.content["language"]
+            elif isinstance(code.content, str):
+                code, language = code.content, language
         else:
             raise ValueError(f"Not support code type {type(code).__name__}.")
 

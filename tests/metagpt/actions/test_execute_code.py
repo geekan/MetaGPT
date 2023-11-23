@@ -1,25 +1,24 @@
 import pytest
 
-from metagpt.actions import PyCodeExecutor
+from metagpt.actions import ExecutePyCode
 from metagpt.schema import Message
 
 
 @pytest.mark.asyncio
 async def test_code_running():
-    pi = PyCodeExecutor()
+    pi = ExecutePyCode()
     output = await pi.run("print('hello world!')")
     assert output.state == "done"
     output = await pi.run({"code": "print('hello world!')", "language": "python"})
     assert output.state == "done"
     code_msg = Message("print('hello world!')")
-    setattr(code_msg, "language", "python")
     output = await pi.run(code_msg)
     assert output.state == "done"
 
 
 @pytest.mark.asyncio
 async def test_split_code_running():
-    pi = PyCodeExecutor()
+    pi = ExecutePyCode()
     output = await pi.run("x=1\ny=2")
     output = await pi.run("z=x+y")
     output = await pi.run("assert z==3")
@@ -28,14 +27,14 @@ async def test_split_code_running():
 
 @pytest.mark.asyncio
 async def test_execute_error():
-    pi = PyCodeExecutor()
+    pi = ExecutePyCode()
     output = await pi.run("z=1/0")
     assert output.state == "error"
 
 
 @pytest.mark.asyncio
 async def test_plotting_code():
-    pi = PyCodeExecutor()
+    pi = ExecutePyCode()
     code = """
     import numpy as np
     import matplotlib.pyplot as plt
