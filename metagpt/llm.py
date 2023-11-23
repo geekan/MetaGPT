@@ -21,8 +21,6 @@ def LLM() -> "BaseGPTAPI":
     # TODO a little trick, can use registry to initialize LLM instance further
     if CONFIG.openai_api_key:
         llm = OpenAIGPTAPI()
-    elif CONFIG.claude_api_key:
-        llm = Claude()
     elif CONFIG.spark_api_key:
         llm = SparkAPI()
     elif CONFIG.zhipuai_api_key:
