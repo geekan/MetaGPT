@@ -275,13 +275,15 @@ def extract_content_from_output(content: str, right_key: str = "[/CONTENT]"):
         # TODO find a more general pattern
         # # for `[CONTENT]xxx[CONTENT]xxxx[/CONTENT] situation
         logger.warning(f"extract_content try another pattern: {pattern}")
-        raw_content = copy.deepcopy(new_content + right_key)
+        if right_key not in new_content:
+            raw_content = copy.deepcopy(new_content + "\n" + right_key)
         # # pattern = r"\[CONTENT\](\s*\{.*?\}\s*)\[/CONTENT\]"
         new_content = re_extract_content(raw_content, pattern)
     else:
         if right_key in new_content:
             idx = new_content.find(right_key)
             new_content = new_content[:idx]
+            new_content = new_content.strip()
 
     return new_content
 

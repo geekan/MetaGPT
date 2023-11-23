@@ -216,7 +216,8 @@ def test_extract_content_from_output():
              'UNCLEAR:\n\n* How to start the game.\n\nGreat job! This JSON output should provide a clear and ' \
              'comprehensive overview of the project\'s requirements and dependencies.'
     output = extract_content_from_output(output)
-    assert output.startswith('{\n"Required Python third-party packages')
+    assert output.startswith('{\n"Required Python third-party packages') and \
+           output.endswith('UNCLEAR": "How to start the game."\n]')
 
     output = 'Sure, I would be happy to help! Here is the information you provided, formatted as a JSON object ' \
              'inside the [CONTENT] tag:\n\n[CONTENT]\n{\n"Original Requirements": "Create a 2048 game",\n"Search ' \
@@ -245,7 +246,8 @@ def test_extract_content_from_output():
              '[/CONTENT]\n\nI hope this helps! Let me know if you have any further questions or if there anything ' \
              'else I can do to assist you.'
     output = extract_content_from_output(output)
-    assert output.startswith('{\n"Original Requirements"')
+    assert output.startswith('{\n"Original Requirements"') and \
+           output.endswith('"Anything UNCLEAR": ""\n}')
 
     output = """ Sure, I'd be happy to help! Here's the JSON output for the given context:\n\n[CONTENT]\n{
 "Implementation approach": "We will use the open-source framework PyGame to create a 2D game engine, which will
@@ -270,4 +272,5 @@ def test_extract_content_from_output():
         information for a developer to understand the design and implementation of the 2048 game.
 """
     output = extract_content_from_output(output)
-    assert output.startswith('{\n"Implementation approach"') and "[/CONTENT]" not in output
+    assert output.startswith('{\n"Implementation approach"') and \
+           output.endswith('"Anything UNCLEAR": "The requirement is clear to me."\n}')
