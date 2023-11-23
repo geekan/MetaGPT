@@ -6,7 +6,6 @@
 @File    : action.py
 """
 
-import typing
 from abc import ABC
 from typing import Optional
 
@@ -16,19 +15,8 @@ from metagpt.actions.action_output import ActionOutput
 from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.utils.common import OutputParser
+from metagpt.utils.utils import general_after_log
 from metagpt.provider.postprecess.llm_output_postprecess import llm_output_postprecess
-
-
-def action_after_log(logger: "loguru.Logger", sec_format: str = "%0.3f") -> typing.Callable[["RetryCallState"], None]:
-    def log_it(retry_state: "RetryCallState") -> None:
-        if retry_state.fn is None:
-            fn_name = "<unknown>"
-        else:
-            fn_name = _utils.get_callback_name(retry_state.fn)
-        logger.error(f"Finished call to '{fn_name}' after {sec_format % retry_state.seconds_since_start}(s), "
-                     f"this was the {_utils.to_ordinal(retry_state.attempt_number)} time calling it. "
-                     f"exp: {retry_state.outcome.exception()}")
-    return log_it
 
 
 class Action(ABC):
@@ -65,7 +53,7 @@ class Action(ABC):
     @retry(
         stop=stop_after_attempt(3),
         wait=wait_fixed(1),
-        after=action_after_log(logger),
+        after=general_after_log(logger),
     )
     async def _aask_v1(
         self,
