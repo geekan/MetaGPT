@@ -98,24 +98,22 @@ class RunCode(Action):
             stdout, stderr = process.communicate()
         return stdout.decode("utf-8"), stderr.decode("utf-8")
 
-    async def run(
-        self, code, mode="script", code_file_name="", test_code="", test_file_name="", command=[], **kwargs
-    ) -> str:
-        logger.info(f"Running {' '.join(command)}")
-        if mode == "script":
-            outs, errs = await self.run_script(command=command, **kwargs)
-        elif mode == "text":
-            outs, errs = await self.run_text(code=code)
+    async def run(self, *args, **kwargs) -> str:
+        logger.info(f"Running {' '.join(self.context.command)}")
+        if self.context.mode == "script":
+            outs, errs = await self.run_script(command=self.context.command, **kwargs)
+        elif self.context.mode == "text":
+            outs, errs = await self.run_text(code=self.context.code)
 
         logger.info(f"{outs=}")
         logger.info(f"{errs=}")
 
         context = CONTEXT.format(
-            code=code,
-            code_file_name=code_file_name,
-            test_code=test_code,
-            test_file_name=test_file_name,
-            command=" ".join(command),
+            code=self.context.code,
+            code_file_name=self.context.code_filename,
+            test_code=self.context.test_code,
+            test_file_name=self.context.test_filename,
+            command=" ".join(self.context.command),
             outs=outs[:500],  # outs might be long but they are not important, truncate them to avoid token overflow
             errs=errs[:10000],  # truncate errors to avoid token overflow
         )

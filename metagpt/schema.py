@@ -19,6 +19,7 @@ from typing import Dict, List, Optional, Set, TypedDict
 
 from pydantic import BaseModel, Field
 
+from metagpt.config import CONFIG
 from metagpt.const import (
     MESSAGE_ROUTE_CAUSE_BY,
     MESSAGE_ROUTE_FROM,
@@ -58,6 +59,12 @@ class Document(BaseModel):
         :return: relative path from root of git repository.
         """
         return os.path.join(self.root_path, self.filename)
+
+    @property
+    def full_path(self):
+        if not CONFIG.git_repo:
+            return None
+        return str(CONFIG.git_repo.workdir / self.root_path / self.filename)
 
 
 class Documents(BaseModel):
@@ -245,3 +252,22 @@ class CodingContext(BaseModel):
     design_doc: Document
     task_doc: Document
     code_doc: Document
+
+
+class TestingContext(BaseModel):
+    filename: str
+    code_doc: Document
+    test_doc: Document
+
+
+class RunCodeContext(BaseModel):
+    mode: str = "script"
+    code: Optional[str]
+    code_filename: str = ""
+    test_code: Optional[str]
+    test_filename: str = ""
+    command: List[str] = Field(default_factory=list)
+    working_directory: str = ""
+    additional_python_paths: List[str] = Field(default_factory=list)
+    output_filename: Optional[str]
+    output: Optional[str]

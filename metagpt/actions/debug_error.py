@@ -5,7 +5,6 @@
 @Author  : alexanderwu
 @File    : debug_error.py
 """
-import re
 
 from metagpt.actions.action import Action
 from metagpt.logs import logger
@@ -36,18 +35,17 @@ class DebugError(Action):
     #     fixed_code = await self._aask(prompt)
     #     return fixed_code
 
-    async def run(self, context):
-        if "PASS" in context:
+    async def run(self, *args, **kwargs) -> str:
+        if "PASS" in self.context.output:
             return "", "the original code works fine, no need to debug"
 
-        file_name = re.search("## File To Rewrite:\s*(.+\\.py)", context).group(1)
-
+        file_name = self.context.code_filename
         logger.info(f"Debug and rewrite {file_name}")
 
-        prompt = PROMPT_TEMPLATE.format(context=context)
+        prompt = PROMPT_TEMPLATE.format(context=self.context.output)
 
         rsp = await self._aask(prompt)
 
         code = CodeParser.parse_code(block="", text=rsp)
 
-        return file_name, code
+        return code

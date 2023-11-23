@@ -160,7 +160,12 @@ class GitRepository:
         :param relative_path: The relative path to the file repository within the Git repository.
         :return: A new instance of FileRepository.
         """
-        return FileRepository(git_repo=self, relative_path=Path(relative_path))
+        path = Path(relative_path)
+        try:
+            path = path.relative_to(self.workdir)
+        except ValueError:
+            path = relative_path
+        return FileRepository(git_repo=self, relative_path=Path(path))
 
     async def get_dependency(self) -> DependencyFile:
         """Get the dependency file associated with the Git repository.

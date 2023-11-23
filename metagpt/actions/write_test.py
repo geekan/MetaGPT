@@ -6,7 +6,9 @@
 @File    : environment.py
 """
 from metagpt.actions.action import Action
+from metagpt.config import CONFIG
 from metagpt.logs import logger
+from metagpt.schema import TestingContext
 from metagpt.utils.common import CodeParser
 
 PROMPT_TEMPLATE = """
@@ -47,12 +49,12 @@ class WriteTest(Action):
             code = code_rsp
         return code
 
-    async def run(self, code_to_test, test_file_name, source_file_path, workspace):
+    async def run(self, *args, **kwargs) -> TestingContext:
         prompt = PROMPT_TEMPLATE.format(
-            code_to_test=code_to_test,
-            test_file_name=test_file_name,
-            source_file_path=source_file_path,
-            workspace=workspace,
+            code_to_test=self.context.code_doc.content,
+            test_file_name=self.context.test_doc.filename,
+            source_file_path=self.context.code_doc.root_relative_path,
+            workspace=CONFIG.git_repo.workdir,
         )
-        code = await self.write_code(prompt)
-        return code
+        self.context.test_doc.content = await self.write_code(prompt)
+        return self.context

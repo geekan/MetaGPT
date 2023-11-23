@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Set
 
 from metagpt.actions import Action, WriteCode, WriteCodeReview, WriteTasks
 from metagpt.config import CONFIG
@@ -22,7 +23,6 @@ from metagpt.const import SYSTEM_DESIGN_FILE_REPO, TASK_FILE_REPO
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import CodingContext, Document, Documents, Message
-from metagpt.utils.special_tokens import FILENAME_CODE_SEP, MSG_SEP
 
 
 class Engineer(Role):
@@ -60,8 +60,8 @@ class Engineer(Role):
         m = json.loads(task_msg.content)
         return m.get("Task list")
 
-    async def _act_sp_precision(self, review=False) -> Message:
-        code_msg_all = []  # gather all code info, will pass to qa_engineer for tests later
+    async def _act_sp_precision(self, review=False) -> Set[str]:
+        changed_files = set()
         src_file_repo = CONFIG.git_repo.new_file_repository(CONFIG.src_workspace)
         for todo in self.todos:
             """
@@ -88,23 +88,26 @@ class Engineer(Role):
                 content=coding_context.json(), instruct_content=coding_context, role=self.profile, cause_by=WriteCode
             )
             self._rc.memory.add(msg)
-            self.publish_message(msg)
 
-            code_msg = coding_context.filename + FILENAME_CODE_SEP + str(coding_context.code_doc.root_relative_path)
-            code_msg_all.append(code_msg)
-
-        logger.info(f"Done {CONFIG.src_workspace} generating.")
-        msg = Message(
-            content=MSG_SEP.join(code_msg_all),
-            role=self.profile,
-            cause_by=self._rc.todo,
-            send_to="Edward",
-        )
-        return msg
+            changed_files.add(coding_context.code_doc.filename)
+        return changed_files
 
     async def _act(self) -> Message:
         """Determines the mode of action based on whether code review is used."""
-        return await self._act_sp_precision(review=self.use_code_review)
+        changed_files = await self._act_sp_precision(review=self.use_code_review)
+        # 仅单测
+        if CONFIG.REQA_FILENAME and CONFIG.REQA_FILENAME not in changed_files:
+            changed_files.add(CONFIG.REQA_FILENAME)
+
+        from metagpt.roles import QaEngineer  # 避免循环引用
+
+        msg = Message(
+            content="\n".join(changed_files),
+            role=self.profile,
+            cause_by=WriteCodeReview if self.use_code_review else WriteCode,
+            send_to=QaEngineer,
+        )
+        return msg
 
     async def _think(self) -> Action | None:
         if not CONFIG.src_workspace:
@@ -153,16 +156,6 @@ class Engineer(Role):
             )
             changed_files.docs[filename] = coding_doc
             self.todos.append(WriteCode(context=coding_doc, llm=self._llm))
-        # 仅单测
-        if CONFIG.REQA_FILENAME and CONFIG.REQA_FILENAME not in changed_files.docs:
-            context = await self._new_coding_context(
-                filename=CONFIG.REQA_FILENAME,
-                src_file_repo=src_file_repo,
-                task_file_repo=task_file_repo,
-                design_file_repo=design_file_repo,
-                dependency=dependency,
-            )
-            self.publish_message(Message(content=context.json(), instruct_content=context, cause_by=WriteCode))
 
         if self.todos:
             self._rc.todo = self.todos[0]
