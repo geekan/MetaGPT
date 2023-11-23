@@ -141,6 +141,7 @@ class QaEngineer(Role):
                 role=self.profile,
                 cause_by=WriteTest,
                 sent_from=self.profile,
+                send_to="",
             )
             return result_msg
 
