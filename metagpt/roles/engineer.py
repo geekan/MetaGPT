@@ -143,7 +143,6 @@ class Engineer(Role):
             # self.write_file(todo, code)
             msg = Message(content=code_rsp, role=self.profile, cause_by=self._rc.todo)
             self._rc.memory.add(msg)
-            self.publish_message(msg)
             del self.todos[0]
 
         logger.info(f"Done {self.get_workspace()} generating.")
@@ -160,7 +159,6 @@ class Engineer(Role):
             file_path = self.write_file(todo, code)
             msg = Message(content=code, role=self.profile, cause_by=self._rc.todo)
             self._rc.memory.add(msg)
-            self.publish_message(msg)
 
             code_msg = todo + FILENAME_CODE_SEP + str(file_path)
             code_msg_all.append(code_msg)
@@ -202,7 +200,6 @@ class Engineer(Role):
             file_path = self.write_file(todo, code)
             msg = Message(content=code, role=self.profile, cause_by=WriteCode)
             self._rc.memory.add(msg)
-            self.publish_message(msg)
 
             code_msg = todo + FILENAME_CODE_SEP + str(file_path)
             code_msg_all.append(code_msg)
