@@ -11,7 +11,12 @@ from typing import List
 from metagpt.actions import ActionOutput
 from metagpt.actions.action import Action
 from metagpt.config import CONFIG
-from metagpt.const import SYSTEM_DESIGN_FILE_REPO, TASK_FILE_REPO, WORKSPACE_ROOT
+from metagpt.const import (
+    SYSTEM_DESIGN_FILE_REPO,
+    TASK_FILE_REPO,
+    TASK_PDF_FILE_REPO,
+    WORKSPACE_ROOT,
+)
 from metagpt.schema import Document, Documents
 from metagpt.utils.common import CodeParser
 from metagpt.utils.get_template import get_template
@@ -190,46 +195,50 @@ class WriteTasks(Action):
         change_files = Documents()
         # 根据docs/system_designs/下的git head diff识别哪些task文档需要重写
         for filename in changed_system_designs:
-            system_design_doc = await system_design_file_repo.get(filename)
-            task_doc = await tasks_file_repo.get(filename)
-            if task_doc:
-                task_doc = await self._merge(system_design_doc, task_doc)
-            else:
-                rsp = await self._run(system_design_doc.content)
-                task_doc = Document(root_path=TASK_FILE_REPO, filename=filename, content=rsp.instruct_content.json())
-            await tasks_file_repo.save(
-                filename=filename, content=task_doc.content, dependencies={system_design_doc.root_relative_path}
+            task_doc = await self._update_tasks(
+                filename=filename, system_design_file_repo=system_design_file_repo, tasks_file_repo=tasks_file_repo
             )
-            await self._update_requirements(task_doc)
             change_files.docs[filename] = task_doc
 
         # 根据docs/tasks/下的git head diff识别哪些task文件被用户修改了，需要重写
         for filename in changed_tasks:
             if filename in change_files.docs:
                 continue
-            system_design_doc = await system_design_file_repo.get(filename)
-            task_doc = await tasks_file_repo.get(filename)
-            task_doc = await self._merge(system_design_doc, task_doc)
-            await tasks_file_repo.save(
-                filename=filename, content=task_doc.content, dependencies={system_design_doc.root_relative_path}
+            task_doc = await self._update_tasks(
+                filename=filename, system_design_file_repo=system_design_file_repo, tasks_file_repo=tasks_file_repo
             )
-            await self._update_requirements(task_doc)
             change_files.docs[filename] = task_doc
 
         # 等docs/tasks/下所有文件都处理完才发publish message，给后续做全局优化留空间。
         return ActionOutput(content=change_files.json(), instruct_content=change_files)
 
-    async def _run(self, context, format=CONFIG.prompt_format):
+    async def _update_tasks(self, filename, system_design_file_repo, tasks_file_repo):
+        system_design_doc = await system_design_file_repo.get(filename)
+        task_doc = await tasks_file_repo.get(filename)
+        if task_doc:
+            task_doc = await self._merge(system_design_doc=system_design_doc, task_dock=task_doc)
+        else:
+            rsp = await self._run_new_tasks(context=system_design_doc.content)
+            task_doc = Document(root_path=TASK_FILE_REPO, filename=filename, content=rsp.instruct_content.json())
+        await tasks_file_repo.save(
+            filename=filename, content=task_doc.content, dependencies={system_design_doc.root_relative_path}
+        )
+        await self._update_requirements(task_doc)
+        await self._save_pdf(task_doc=task_doc)
+        return task_doc
+
+    async def _run_new_tasks(self, context, format=CONFIG.prompt_format):
         prompt_template, format_example = get_template(templates, format)
         prompt = prompt_template.format(context=context, format_example=format_example)
         rsp = await self._aask_v1(prompt, "task", OUTPUT_MAPPING, format=format)
-        self._save(context, rsp)
+        # self._save(context, rsp)
         return rsp
 
     async def _merge(self, system_design_doc, task_dock) -> Document:
         return task_dock
 
-    async def _update_requirements(self, doc):
+    @staticmethod
+    async def _update_requirements(doc):
         m = json.loads(doc.content)
         packages = set(m.get("Required Python third-party packages", set()))
         file_repo = CONFIG.git_repo.new_file_repository()
@@ -243,6 +252,11 @@ class WriteTasks(Action):
                 continue
             packages.add(pkg)
         await file_repo.save(filename, content="\n".join(packages))
+
+    @staticmethod
+    async def _save_pdf(task_doc):
+        file_repo = CONFIG.git_repo.new_file_repository(TASK_PDF_FILE_REPO)
+        await file_repo.save_pdf(doc=task_doc)
 
 
 class AssignTasks(Action):

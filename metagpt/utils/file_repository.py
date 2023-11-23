@@ -8,8 +8,8 @@
 """
 from __future__ import annotations
 
+import json
 import os
-import uuid
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Set
@@ -18,6 +18,7 @@ import aiofiles
 
 from metagpt.logs import logger
 from metagpt.schema import Document
+from metagpt.utils.json_to_markdown import json_to_markdown
 
 
 class FileRepository:
@@ -165,5 +166,16 @@ class FileRepository:
         :return: A new filename string.
         """
         current_time = datetime.now().strftime("%Y%m%d%H%M%S")
-        guid_suffix = str(uuid.uuid4())[:8]
-        return f"{current_time}x{guid_suffix}"
+        return current_time
+        # guid_suffix = str(uuid.uuid4())[:8]
+        # return f"{current_time}x{guid_suffix}"
+
+    async def save_pdf(self, doc: Document):
+        """Save a Document as a PDF file.
+
+        :param doc: The Document instance to be saved.
+        """
+        m = json.loads(doc.content)
+        filename = Path(doc.filename).with_suffix(".md")
+        await self.save(filename=str(filename), content=json_to_markdown(m))
+        logger.info(f"File Saved: {str(filename)}")
