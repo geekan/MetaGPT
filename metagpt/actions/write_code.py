@@ -7,13 +7,15 @@
 @Modified By: mashenquan, 2023-11-1. In accordance with Chapter 2.1.3 of RFC 116, modify the data type of the `cause_by`
             value of the `Message` object.
 """
+import json
+
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 from metagpt.actions import WriteDesign
 from metagpt.actions.action import Action
 from metagpt.const import WORKSPACE_ROOT
 from metagpt.logs import logger
-from metagpt.schema import Message
+from metagpt.schema import CodingContext
 from metagpt.utils.common import CodeParser, any_to_str
 
 PROMPT_TEMPLATE = """
@@ -46,7 +48,7 @@ ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenc
 
 
 class WriteCode(Action):
-    def __init__(self, name="WriteCode", context: list[Message] = None, llm=None):
+    def __init__(self, name="WriteCode", context=None, llm=None):
         super().__init__(name, context, llm)
 
     def _is_invalid(self, filename):
@@ -70,15 +72,19 @@ class WriteCode(Action):
         logger.info(f"Saving Code to {code_path}")
 
     @retry(stop=stop_after_attempt(2), wait=wait_fixed(1))
-    async def write_code(self, prompt):
+    async def write_code(self, prompt) -> str:
         code_rsp = await self._aask(prompt)
         code = CodeParser.parse_code(block="", text=code_rsp)
         return code
 
-    async def run(self, context, filename):
-        prompt = PROMPT_TEMPLATE.format(context=context, filename=filename)
-        logger.info(f"Writing {filename}..")
+    async def run(self, *args, **kwargs) -> CodingContext:
+        m = json.loads(self.context.content)
+        coding_context = CodingContext(**m)
+        context = "\n".join(
+            [coding_context.design_doc.content, coding_context.task_doc.content, coding_context.code_doc.content]
+        )
+        prompt = PROMPT_TEMPLATE.format(context=context, filename=self.context.filename)
+        logger.info(f"Writing {coding_context.filename}..")
         code = await self.write_code(prompt)
-        # code_rsp = await self._aask_v1(prompt, "code_rsp", OUTPUT_MAPPING)
-        # self._save(context, filename, code)
-        return code
+        coding_context.code_doc.content = code
+        return coding_context

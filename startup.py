@@ -56,6 +56,7 @@ def main(
     run_tests: bool = False,
     implement: bool = True,
     project_path: str = None,
+    reqa_file: str = None,
 ):
     """
     We are a software startup comprised of AI. By investing in us,
@@ -71,6 +72,7 @@ def main(
     :return:
     """
     CONFIG.WORKDIR = project_path
+    CONFIG.REQA_FILENAME = reqa_file
     asyncio.run(startup(idea, investment, n_round, code_review, run_tests, implement))
 
 

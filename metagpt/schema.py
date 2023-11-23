@@ -238,3 +238,10 @@ class MessageQueue:
             logger.warning(f"JSON load failed: {v}, error:{e}")
 
         return q
+
+
+class CodingContext(BaseModel):
+    filename: str
+    design_doc: Document
+    task_doc: Document
+    code_doc: Document

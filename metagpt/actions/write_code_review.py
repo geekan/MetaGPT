@@ -10,7 +10,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed
 
 from metagpt.actions.action import Action
 from metagpt.logs import logger
-from metagpt.schema import Message
+from metagpt.schema import CodingContext
 from metagpt.utils.common import CodeParser
 
 PROMPT_TEMPLATE = """
@@ -63,7 +63,7 @@ FORMAT_EXAMPLE = """
 
 
 class WriteCodeReview(Action):
-    def __init__(self, name="WriteCodeReview", context: list[Message] = None, llm=None):
+    def __init__(self, name="WriteCodeReview", context=None, llm=None):
         super().__init__(name, context, llm)
 
     @retry(stop=stop_after_attempt(2), wait=wait_fixed(1))
@@ -72,11 +72,18 @@ class WriteCodeReview(Action):
         code = CodeParser.parse_code(block="", text=code_rsp)
         return code
 
-    async def run(self, context, code, filename):
-        format_example = FORMAT_EXAMPLE.format(filename=filename)
-        prompt = PROMPT_TEMPLATE.format(context=context, code=code, filename=filename, format_example=format_example)
-        logger.info(f"Code review {filename}..")
+    async def run(self, *args, **kwargs) -> CodingContext:
+        format_example = FORMAT_EXAMPLE.format(filename=self.context.code_doc.filename)
+        context = "\n".join(
+            [self.context.design_doc.content, self.context.task_doc.content, self.context.code_doc.content]
+        )
+        prompt = PROMPT_TEMPLATE.format(
+            context=context,
+            code=self.context.code_doc.content,
+            filename=self.context.code_doc.filename,
+            format_example=format_example,
+        )
+        logger.info(f"Code review {self.context.code_doc.filename}..")
         code = await self.write_code(prompt)
-        # code_rsp = await self._aask_v1(prompt, "code_rsp", OUTPUT_MAPPING)
-        # self._save(context, filename, code)
-        return code
+        self.context.code_doc.content = code
+        return self.context
