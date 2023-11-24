@@ -299,7 +299,7 @@ Hugging Face Space で試す
 
 ## 引用
 
-現時点では、[Arxiv 論文](https://arxiv.org/abs/2308.00352)を引用してください:
+現時点では、[arXiv 論文](https://arxiv.org/abs/2308.00352)を引用してください:
 
 ```bibtex
 @misc{hong2023metagpt,
