@@ -151,6 +151,7 @@ class GitRepository:
 
         :param comments: Comments for the archive commit.
         """
+        logger.info(f"Archive: {[list(self.changed_files.keys())]}")
         self.add_change(self.changed_files)
         self.commit(comments)
 

@@ -59,4 +59,6 @@ class SoftwareCompany(BaseModel):
             logger.debug(f"{n_round=}")
             self._check_balance()
             await self.environment.run()
+        if CONFIG.git_repo:
+            CONFIG.git_repo.archive()
         return self.environment.history
