@@ -6,3 +6,4 @@
 # @Desc    :
 from metagpt.tools.functions.register.register import registry
 import metagpt.tools.functions.libs.feature_engineering
+print(registry.functions)

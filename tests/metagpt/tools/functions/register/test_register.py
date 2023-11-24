@@ -7,7 +7,7 @@
 import pytest
 
 from metagpt.tools.functions.register.register import FunctionRegistry
-from metagpt.tools.functions.schemas.base import ToolSchema, field
+from metagpt.tools.functions.schemas.base import ToolSchema, tool_field
 
 
 @pytest.fixture
@@ -18,8 +18,8 @@ def registry():
 class AddNumbers(ToolSchema):
     """Add two numbers"""
 
-    num1: int = field(description="First number")
-    num2: int = field(description="Second number")
+    num1: int = tool_field(description="First number")
+    num2: int = tool_field(description="Second number")
 
 
 def test_register(registry):

@@ -16,7 +16,7 @@ class NoDefault:
     pass
 
 
-def field(
+def tool_field(
     description: str, default: Any = NoDefault(), enum: Optional[List[Any]] = None, **kwargs
 ):
     """
