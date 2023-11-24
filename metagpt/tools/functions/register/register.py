@@ -4,6 +4,7 @@
 # @Author  : lidanyang
 # @File    : register.py
 # @Desc    :
+import inspect
 from typing import Type, Optional, Callable, Dict, Union, List
 
 from metagpt.tools.functions.schemas.base import ToolSchema
@@ -13,16 +14,28 @@ class FunctionRegistry:
     def __init__(self):
         self.functions: Dict[str, Dict[str, Dict]] = {}
 
-    def register(self, module: str, tool_schema: Type[ToolSchema]) -> Callable:
+    @staticmethod
+    def _check_param_consistency(func_params, schema):
+        param_names = set(func_params.keys())
+        schema_names = set(schema["parameters"]["properties"].keys())
 
+        if param_names != schema_names:
+            raise ValueError("Function parameters do not match schema properties")
+
+    def register(self, module: str, tool_schema: Type[ToolSchema]) -> Callable:
         def wrapper(func: Callable) -> Callable:
             module_registry = self.functions.setdefault(module, {})
 
             if func.__name__ in module_registry:
                 raise ValueError(f"Function {func.__name__} is already registered in {module}")
 
+            func_params = inspect.signature(func).parameters
+
             schema = tool_schema.schema()
             schema["name"] = func.__name__
+
+            self._check_param_consistency(func_params, schema)
+
             module_registry[func.__name__] = {
                 "func": func,
                 "schema": schema,
