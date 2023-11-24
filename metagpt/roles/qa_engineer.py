@@ -112,8 +112,7 @@ class QaEngineer(Role):
 
     async def _debug_error(self, msg):
         run_code_context = RunCodeContext.loads(msg.content)
-        output_file_repo = CONFIG.git_repo.new_file_repository(OUTPUTS_FILE_REPO)
-        output_doc = await output_file_repo.get(run_code_context.output_filename)
+        output_doc = await CONFIG.git_repo.new_file_repository(OUTPUTS_FILE_REPO).get(run_code_context.output_filename)
         if not output_doc:
             return
         run_code_context.output = output_doc.content
