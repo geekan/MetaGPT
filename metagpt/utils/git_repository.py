@@ -72,7 +72,14 @@ class GitRepository:
 
         :param local_path: The local path where the new Git repository will be initialized.
         """
-        self._repository = Repo.init(path=local_path)
+        self._repository = Repo.init(path=Path(local_path))
+
+        gitignore_filename = Path(local_path) / ".gitignore"
+        ignores = ["__pycache__", "*.pyc"]
+        with open(str(gitignore_filename), mode="w") as writer:
+            writer.write("\n".join(ignores))
+        self._repository.index.add([".gitignore"])
+        self._repository.index.commit("Add .gitignore")
 
     def add_change(self, files: Dict):
         """Add or remove files from the staging area based on the provided changes.

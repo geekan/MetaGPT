@@ -295,3 +295,17 @@ class RunCodeContext(BaseModel):
             return RunCodeContext(**m)
         except Exception:
             return None
+
+
+class RunCodeResult(BaseModel):
+    summary: str
+    stdout: str
+    stderr: str
+
+    @staticmethod
+    def loads(val: str) -> RunCodeResult | None:
+        try:
+            m = json.loads(val)
+            return RunCodeResult(**m)
+        except Exception:
+            return None

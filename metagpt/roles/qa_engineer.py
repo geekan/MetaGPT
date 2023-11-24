@@ -9,7 +9,11 @@
 """
 from metagpt.actions import DebugError, RunCode, WriteCode, WriteCodeReview, WriteTest
 from metagpt.config import CONFIG
-from metagpt.const import MESSAGE_ROUTE_TO_NONE, OUTPUTS_FILE_REPO, TEST_CODES_FILE_REPO
+from metagpt.const import (
+    MESSAGE_ROUTE_TO_NONE,
+    TEST_CODES_FILE_REPO,
+    TEST_OUTPUTS_FILE_REPO,
+)
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Document, Message, RunCodeContext, TestingContext
@@ -86,20 +90,17 @@ class QaEngineer(Role):
             return
         run_code_context.code = src_doc.content
         run_code_context.test_code = test_doc.content
-        result_msg = await RunCode(context=run_code_context, llm=self._llm).run()
-        run_code_context.output_filename = run_code_context.test_filename + ".md"
-        await CONFIG.git_repo.new_file_repository(OUTPUTS_FILE_REPO).save(
+        result = await RunCode(context=run_code_context, llm=self._llm).run()
+        run_code_context.output_filename = run_code_context.test_filename + ".json"
+        await CONFIG.git_repo.new_file_repository(TEST_OUTPUTS_FILE_REPO).save(
             filename=run_code_context.output_filename,
-            content=result_msg,
+            content=result.json(),
             dependencies={src_doc.root_relative_path, test_doc.root_relative_path},
         )
         run_code_context.code = None
         run_code_context.test_code = None
-        recipient = parse_recipient(result_msg)  # the recipient might be Engineer or myself
-        mappings = {
-            "Engineer": "Alex",
-            "QaEngineer": "Edward",
-        }
+        recipient = parse_recipient(result.summary)  # the recipient might be Engineer or myself
+        mappings = {"Engineer": "Alex", "QaEngineer": "Edward"}
         self.publish_message(
             Message(
                 content=run_code_context.json(),
@@ -112,16 +113,11 @@ class QaEngineer(Role):
 
     async def _debug_error(self, msg):
         run_code_context = RunCodeContext.loads(msg.content)
-        output_doc = await CONFIG.git_repo.new_file_repository(OUTPUTS_FILE_REPO).get(run_code_context.output_filename)
-        if not output_doc:
-            return
-        run_code_context.output = output_doc.content
         code = await DebugError(context=run_code_context, llm=self._llm).run()
         await CONFIG.git_repo.new_file_repository(CONFIG.src_workspace).save(
             filename=run_code_context.code_filename, content=code
         )
         run_code_context.output = None
-        run_code_context.output_filename = None
         self.publish_message(
             Message(
                 content=run_code_context.json(),

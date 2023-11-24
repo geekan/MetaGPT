@@ -7,16 +7,15 @@
 @Modified By: mashenquan, 2023-11-1. In accordance with Chapter 2.1.3 of RFC 116, modify the data type of the `cause_by`
             value of the `Message` object.
 """
-import json
 
 from tenacity import retry, stop_after_attempt, wait_fixed
 
-from metagpt.actions import WriteDesign
 from metagpt.actions.action import Action
-from metagpt.const import WORKSPACE_ROOT
+from metagpt.config import CONFIG
+from metagpt.const import TEST_OUTPUTS_FILE_REPO
 from metagpt.logs import logger
-from metagpt.schema import CodingContext
-from metagpt.utils.common import CodeParser, any_to_str
+from metagpt.schema import CodingContext, RunCodeResult
+from metagpt.utils.common import CodeParser
 
 PROMPT_TEMPLATE = """
 NOTICE
@@ -33,8 +32,25 @@ ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenc
 7. Do not use public member functions that do not exist in your design.
 
 -----
-# Context
-{context}
+# Design
+```json
+{design}
+```
+-----
+# Tasks
+```json
+{tasks}
+```
+-----
+# Legacy Code
+```python
+{code}
+```
+-----
+# Debug logs
+```text
+{logs}
+```
 -----
 ## Format example
 -----
@@ -51,26 +67,6 @@ class WriteCode(Action):
     def __init__(self, name="WriteCode", context=None, llm=None):
         super().__init__(name, context, llm)
 
-    def _is_invalid(self, filename):
-        return any(i in filename for i in ["mp3", "wav"])
-
-    def _save(self, context, filename, code):
-        # logger.info(filename)
-        # logger.info(code_rsp)
-        if self._is_invalid(filename):
-            return
-
-        design = [i for i in context if i.cause_by == any_to_str(WriteDesign)][0]
-
-        ws_name = CodeParser.parse_str(block="Python package name", text=design.content)
-        ws_path = WORKSPACE_ROOT / ws_name
-        if f"{ws_name}/" not in filename and all(i not in filename for i in ["requirements.txt", ".md"]):
-            ws_path = ws_path / ws_name
-        code_path = ws_path / filename
-        code_path.parent.mkdir(parents=True, exist_ok=True)
-        code_path.write_text(code)
-        logger.info(f"Saving Code to {code_path}")
-
     @retry(stop=stop_after_attempt(2), wait=wait_fixed(1))
     async def write_code(self, prompt) -> str:
         code_rsp = await self._aask(prompt)
@@ -78,12 +74,21 @@ class WriteCode(Action):
         return code
 
     async def run(self, *args, **kwargs) -> CodingContext:
-        m = json.loads(self.context.content)
-        coding_context = CodingContext(**m)
-        context = "\n".join(
-            [coding_context.design_doc.content, coding_context.task_doc.content, coding_context.code_doc.content]
+        coding_context = CodingContext.loads(self.context.content)
+        test_doc = await CONFIG.git_repo.new_file_repository(TEST_OUTPUTS_FILE_REPO).get(
+            "test_" + coding_context.filename + ".json"
         )
-        prompt = PROMPT_TEMPLATE.format(context=context, filename=self.context.filename)
+        logs = ""
+        if test_doc:
+            test_detail = RunCodeResult.loads(test_doc.content)
+            logs = test_detail.stderr
+        prompt = PROMPT_TEMPLATE.format(
+            design=coding_context.design_doc.content,
+            tasks=coding_context.task_doc.content,
+            code=coding_context.code_doc.content,
+            logs=logs,
+            filename=self.context.filename,
+        )
         logger.info(f"Writing {coding_context.filename}..")
         code = await self.write_code(prompt)
         coding_context.code_doc.content = code

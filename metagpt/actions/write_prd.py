@@ -219,6 +219,7 @@ There are no unclear points.
     },
 }
 
+
 OUTPUT_MAPPING = {
     "Original Requirements": (str, ...),
     "Product Goals": (List[str], ...),
@@ -231,13 +232,60 @@ OUTPUT_MAPPING = {
     "Anything UNCLEAR": (str, ...),
 }
 
+IS_RELATIVE_PROMPT = """
+## PRD:
+{old_prd}
+
+## New Requirement:
+{requirements}
+
+___
+You are a professional product manager; You need to assess whether the new requirements are relevant to the existing PRD to determine whether to merge the new requirements into this PRD.
+Is the newly added requirement in "New Requirement" related to the PRD? 
+Respond with `YES` if it is related, `NO` if it is not, and provide the reasons. Return the response in JSON format.
+"""
+
+MERGE_PROMPT = """
+# Context
+## Original Requirements
+{requirements}
+
+
+## Old PRD
+{old_prd}
+-----
+Role: You are a professional product manager; The goal is to merge the newly added requirements into the existing PRD in order to design a concise, usable, and efficient product.
+Requirements: According to the context, fill in the following missing information, each section name is a key in json ,If the requirements are unclear, ensure minimum viability and avoid excessive design
+
+## Original Requirements: Provide as Plain text, place the polished complete original requirements here
+
+## Product Goals: Provided as Python list[str], up to 3 clear, orthogonal product goals. If the requirement itself is simple, the goal should also be simple
+
+## User Stories: Provided as Python list[str], up to 5 scenario-based user stories, If the requirement itself is simple, the user stories should also be less
+
+## Competitive Analysis: Provided as Python list[str], up to 7 competitive product analyses, consider as similar competitors as possible
+
+## Competitive Quadrant Chart: Use mermaid quadrantChart code syntax. up to 14 competitive products. Translation: Distribute these competitor scores evenly between 0 and 1, trying to conform to a normal distribution centered around 0.5 as much as possible.
+
+## Requirement Analysis: Provide as Plain text. Be simple. LESS IS MORE. Make your requirements less dumb. Delete the parts unnessasery.
+
+## Requirement Pool: Provided as Python list[list[str], the parameters are requirement description, priority(P0/P1/P2), respectively, comply with PEP standards; no more than 5 requirements and consider to make its difficulty lower
+
+## UI Design draft: Provide as Plain text. Be simple. Describe the elements and functions, also provide a simple style description and layout description.
+## Anything UNCLEAR: Provide as Plain text. Make clear here.
+
+output a properly formatted JSON, wrapped inside [CONTENT][/CONTENT] like "Old PRD" format,
+and only output the json inside this tag, nothing else
+"""
+
 
 class WritePRD(Action):
     def __init__(self, name="", context=None, llm=None):
         super().__init__(name, context, llm)
 
     async def run(self, with_messages, format=CONFIG.prompt_format, *args, **kwargs) -> ActionOutput:
-        # 判断哪些需求文档需要重写：调LLM判断新增需求与prd是否相关，若相关就rewrite prd
+        # Determine which requirement documents need to be rewritten: Use LLM to assess whether new requirements are
+        # related to the PRD. If they are related, rewrite the PRD.
         docs_file_repo = CONFIG.git_repo.new_file_repository(DOCS_FILE_REPO)
         requirement_doc = await docs_file_repo.get(REQUIREMENT_FILENAME)
         prds_file_repo = CONFIG.git_repo.new_file_repository(PRDS_FILE_REPO)
@@ -250,14 +298,16 @@ class WritePRD(Action):
             if not prd_doc:
                 continue
             change_files.docs[prd_doc.filename] = prd_doc
-        # 如果没有任何PRD，就使用docs/requirement.txt生成一个prd
+        # If there is no existing PRD, generate one using 'docs/requirement.txt'.
         if not change_files.docs:
             prd_doc = await self._update_prd(
                 requirement_doc=requirement_doc, prd_doc=None, prds_file_repo=prds_file_repo, *args, **kwargs
             )
             if prd_doc:
                 change_files.docs[prd_doc.filename] = prd_doc
-        # 等docs/prds/下所有文件都与新增需求对比完后，再触发publish message让工作流跳转到下一环节。如此设计是为了给后续做全局优化留空间。
+        # Once all files under 'docs/prds/' have been compared with the newly added requirements, trigger the
+        # 'publish' message to transition the workflow to the next stage. This design allows room for global
+        # optimization in subsequent steps.
         return ActionOutput(content=change_files.json(), instruct_content=change_files)
 
     async def _run_new_requirement(self, requirements, format=CONFIG.prompt_format, *args, **kwargs) -> ActionOutput:
@@ -278,11 +328,23 @@ class WritePRD(Action):
         prd = await self._aask_v1(prompt, "prd", OUTPUT_MAPPING, format=format)
         return prd
 
-    async def _is_relative_to(self, doc1, doc2) -> bool:
+    async def _is_relative_to(self, new_requirement_doc, old_prd_doc) -> bool:
+        m = json.loads(old_prd_doc.content)
+        if m.get("Original Requirements") == new_requirement_doc.content:
+            # There have been no changes in the requirements, so they are considered unrelated.
+            return False
+        prompt = IS_RELATIVE_PROMPT.format(old_prd=old_prd_doc.content, requirements=new_requirement_doc.content)
+        res = await self._aask(prompt=prompt)
+        logger.info(f"[{new_requirement_doc.root_relative_path}, {old_prd_doc.root_relative_path}]: {res}")
+        if "YES" in res:
+            return True
         return False
 
-    async def _merge(self, doc1, doc2) -> Document:
-        pass
+    async def _merge(self, new_requirement_doc, prd_doc, format=CONFIG.prompt_format) -> Document:
+        prompt = MERGE_PROMPT.format(requirements=new_requirement_doc.content, old_prd=prd_doc.content)
+        prd = await self._aask_v1(prompt, "prd", OUTPUT_MAPPING, format=format)
+        prd_doc.content = prd.instruct_content.json()
+        return prd_doc
 
     async def _update_prd(self, requirement_doc, prd_doc, prds_file_repo, *args, **kwargs) -> Document | None:
         if not prd_doc:

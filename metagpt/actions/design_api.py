@@ -6,7 +6,6 @@
 @File    : design_api.py
 """
 import json
-import shutil
 from pathlib import Path
 from typing import List
 
@@ -18,13 +17,11 @@ from metagpt.const import (
     SEQ_FLOW_FILE_REPO,
     SYSTEM_DESIGN_FILE_REPO,
     SYSTEM_DESIGN_PDF_FILE_REPO,
-    WORKSPACE_ROOT,
 )
 from metagpt.logs import logger
 from metagpt.schema import Document, Documents
 from metagpt.utils.common import CodeParser
 from metagpt.utils.get_template import get_template
-from metagpt.utils.json_to_markdown import json_to_markdown
 from metagpt.utils.mermaid import mermaid_to_file
 
 templates = {
@@ -157,6 +154,34 @@ OUTPUT_MAPPING = {
     "Anything UNCLEAR": (str, ...),
 }
 
+MERGE_PROMPT = """
+## Old Design
+{old_design}
+
+## Context
+{context}
+
+-----
+Role: You are an architect; The goal is to incrementally update the "Old Design" based on the information provided by the "Context," aiming to design a state-of-the-art (SOTA) Python system compliant with PEP8. Additionally, the objective is to optimize the use of high-quality open-source tools.
+Requirement: Fill in the following missing information based on the context, each section name is a key in json
+Max Output: 8192 chars or 2048 tokens. Try to use them up.
+
+## Implementation approach: Provide as Plain text. Analyze the difficult points of the requirements, select the appropriate open-source framework.
+
+## Python package name: Provide as Python str with python triple quoto, concise and clear, characters only use a combination of all lowercase and underscores
+
+## File list: Provided as Python list[str], the list of ONLY REQUIRED files needed to write the program(LESS IS MORE!). Only need relative paths, comply with PEP8 standards. ALWAYS write a main.py or app.py here
+
+## Data structures and interface definitions: Use mermaid classDiagram code syntax, including classes (INCLUDING __init__ method) and functions (with type annotations), CLEARLY MARK the RELATIONSHIPS between classes, and comply with PEP8 standards. The data structures SHOULD BE VERY DETAILED and the API should be comprehensive with a complete design. 
+
+## Program call flow: Use sequenceDiagram code syntax, COMPLETE and VERY DETAILED, using CLASSES AND API DEFINED ABOVE accurately, covering the CRUD AND INIT of each object, SYNTAX MUST BE CORRECT.
+
+## Anything UNCLEAR: Provide as Plain text. Make clear here.
+
+output a properly formatted JSON, wrapped inside [CONTENT][/CONTENT] like "Old Design" format,
+and only output the json inside this tag, nothing else
+"""
+
 
 class WriteDesign(Action):
     def __init__(self, name, context=None, llm=None):
@@ -166,50 +191,6 @@ class WriteDesign(Action):
             "data structures, library tables, processes, and paths. Please provide your design, feedback "
             "clearly and in detail."
         )
-
-    def recreate_workspace(self, workspace: Path):
-        try:
-            shutil.rmtree(workspace)
-        except FileNotFoundError:
-            pass  # Folder does not exist, but we don't care
-        workspace.mkdir(parents=True, exist_ok=True)
-
-    async def _save_prd(self, docs_path, resources_path, context):
-        prd_file = docs_path / "prd.md"
-        if context[-1].instruct_content and context[-1].instruct_content.dict()["Competitive Quadrant Chart"]:
-            quadrant_chart = context[-1].instruct_content.dict()["Competitive Quadrant Chart"]
-            await mermaid_to_file(quadrant_chart, resources_path / "competitive_analysis")
-
-        if context[-1].instruct_content:
-            logger.info(f"Saving PRD to {prd_file}")
-            prd_file.write_text(json_to_markdown(context[-1].instruct_content.dict()))
-
-    async def _save_system_design(self, docs_path, resources_path, system_design):
-        data_api_design = system_design.instruct_content.dict()[
-            "Data structures and interface definitions"
-        ]  # CodeParser.parse_code(block="Data structures and interface definitions", text=content)
-        seq_flow = system_design.instruct_content.dict()[
-            "Program call flow"
-        ]  # CodeParser.parse_code(block="Program call flow", text=content)
-        await mermaid_to_file(data_api_design, resources_path / "data_api_design")
-        await mermaid_to_file(seq_flow, resources_path / "seq_flow")
-        system_design_file = docs_path / "system_design.md"
-        logger.info(f"Saving System Designs to {system_design_file}")
-        system_design_file.write_text((json_to_markdown(system_design.instruct_content.dict())))
-
-    async def _save(self, context, system_design):
-        if isinstance(system_design, ActionOutput):
-            ws_name = system_design.instruct_content.dict()["Python package name"]
-        else:
-            ws_name = CodeParser.parse_str(block="Python package name", text=system_design)
-        workspace = WORKSPACE_ROOT / ws_name
-        self.recreate_workspace(workspace)
-        docs_path = workspace / "docs"
-        resources_path = workspace / "resources"
-        docs_path.mkdir(parents=True, exist_ok=True)
-        resources_path.mkdir(parents=True, exist_ok=True)
-        await self._save_prd(docs_path, resources_path, context)
-        await self._save_system_design(docs_path, resources_path, system_design)
 
     async def run(self, with_messages, format=CONFIG.prompt_format):
         # 通过git diff来识别docs/prds下哪些PRD文档发生了变动
@@ -234,7 +215,8 @@ class WriteDesign(Action):
                 filename=filename, prds_file_repo=prds_file_repo, system_design_file_repo=system_design_file_repo
             )
             changed_files.docs[filename] = doc
-
+        if not changed_files.docs:
+            logger.info("Nothing has changed.")
         # 等docs/system_designs/下所有文件都处理完才发publish message，给后续做全局优化留空间。
         return ActionOutput(content=changed_files.json(), instruct_content=changed_files)
 
@@ -253,10 +235,21 @@ class WriteDesign(Action):
         await self._rename_workspace(system_design)
         return system_design
 
-    async def _merge(self, prd_doc, system_design_doc):
+    async def _merge(self, prd_doc, system_design_doc, format=CONFIG.prompt_format):
+        prompt = MERGE_PROMPT.format(old_design=system_design_doc.content, context=prd_doc.content)
+        system_design = await self._aask_v1(prompt, "system_design", OUTPUT_MAPPING, format=format)
+        # fix Python package name, we can't system_design.instruct_content.python_package_name = "xxx" since "Python
+        # package name" contain space, have to use setattr
+        setattr(
+            system_design.instruct_content,
+            "Python package name",
+            system_design.instruct_content.dict()["Python package name"].strip().strip("'").strip('"'),
+        )
+        system_design_doc.content = system_design.instruct_content.json()
         return system_design_doc
 
-    async def _rename_workspace(self, system_design):
+    @staticmethod
+    async def _rename_workspace(system_design):
         if CONFIG.WORKDIR:  # 已经指定了在旧版本上更新
             return
 

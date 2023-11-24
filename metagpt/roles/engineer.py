@@ -90,6 +90,8 @@ class Engineer(Role):
             self._rc.memory.add(msg)
 
             changed_files.add(coding_context.code_doc.filename)
+        if not changed_files:
+            logger.info("Nothing has changed.")
         return changed_files
 
     async def _act(self) -> Message:
@@ -136,8 +138,8 @@ class Engineer(Role):
                     root_path=str(src_file_repo.root_path), filename=task_filename, content=context.json()
                 )
                 if task_filename in changed_files.docs:
-                    logger.error(
-                        f"Log to expose potential file name conflicts: {coding_doc.json()} & "
+                    logger.warning(
+                        f"Log to expose potential conflicts: {coding_doc.json()} & "
                         f"{changed_files.docs[task_filename].json()}"
                     )
                 changed_files.docs[task_filename] = coding_doc
@@ -168,7 +170,7 @@ class Engineer(Role):
         old_code_doc = await src_file_repo.get(filename)
         if not old_code_doc:
             old_code_doc = Document(root_path=str(src_file_repo.root_path), filename=filename, content="")
-        dependencies = {Path(i) for i in dependency.get(old_code_doc.root_relative_path)}
+        dependencies = {Path(i) for i in await dependency.get(old_code_doc.root_relative_path)}
         task_doc = None
         design_doc = None
         for i in dependencies:

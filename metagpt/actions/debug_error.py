@@ -8,7 +8,10 @@
 import re
 
 from metagpt.actions.action import Action
+from metagpt.config import CONFIG
+from metagpt.const import TEST_CODES_FILE_REPO, TEST_OUTPUTS_FILE_REPO
 from metagpt.logs import logger
+from metagpt.schema import RunCodeResult
 from metagpt.utils.common import CodeParser
 
 PROMPT_TEMPLATE = """
@@ -19,7 +22,20 @@ Based on the message, first, figure out your own role, i.e. Engineer or QaEngine
 then rewrite the development code or the test code based on your role, the error, and the summary, such that all bugs are fixed and the code performs well.
 Attention: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD WRITE BEFORE the test case or script and triple quotes.
 The message is as follows:
-{context}
+# Legacy Code
+```python
+{code}
+```
+---
+# Unit Test Code
+```python
+{test_code}
+```
+---
+# Console logs
+```text
+{logs}
+```
 ---
 Now you should start rewriting the code:
 ## file name of the code to rewrite: Write code with triple quoto. Do your best to implement THIS IN ONLY ONE FILE.
@@ -30,25 +46,26 @@ class DebugError(Action):
     def __init__(self, name="DebugError", context=None, llm=None):
         super().__init__(name, context, llm)
 
-    # async def run(self, code, error):
-    #     prompt = f"Here is a piece of Python code:\n\n{code}\n\nThe following error occurred during execution:" \
-    #              f"\n\n{error}\n\nPlease try to fix the error in this code."
-    #     fixed_code = await self._aask(prompt)
-    #     return fixed_code
-
     async def run(self, *args, **kwargs) -> str:
+        output_doc = await CONFIG.git_repo.new_file_repository(TEST_OUTPUTS_FILE_REPO).get(self.context.output_filename)
+        if not output_doc:
+            return ""
+        output_detail = RunCodeResult.loads(output_doc.content)
         pattern = r"Ran (\d+) tests in ([\d.]+)s\n\nOK"
-        matches = re.search(pattern, self.context.output)
+        matches = re.search(pattern, output_detail.stderr)
         if matches:
-            return "", "the original code works fine, no need to debug"
+            return ""
 
-        file_name = self.context.code_filename
-        logger.info(f"Debug and rewrite {file_name}")
-
-        prompt = PROMPT_TEMPLATE.format(context=self.context.output)
+        logger.info(f"Debug and rewrite {self.context.code_filename}")
+        code_doc = await CONFIG.git_repo.new_file_repository(CONFIG.src_workspace).get(self.context.code_filename)
+        if not code_doc:
+            return ""
+        test_doc = await CONFIG.git_repo.new_file_repository(TEST_CODES_FILE_REPO).get(self.context.test_filename)
+        if not test_doc:
+            return ""
+        prompt = PROMPT_TEMPLATE.format(code=code_doc.content, test_code=test_doc.content, logs=output_detail.stderr)
 
         rsp = await self._aask(prompt)
-
         code = CodeParser.parse_code(block="", text=rsp)
 
         return code
