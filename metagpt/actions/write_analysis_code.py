@@ -30,31 +30,30 @@ class WriteCodeByGenerate(BaseWriteAnalysisCode):
         super().__init__(name, context, llm)
 
     def process_msg(self, prompt: Union[str, List[Dict], Message, List[Message]], system_msg: str = None):
-        if isinstance(prompt, str):
-            return system_msg + prompt if system_msg else prompt
+        default_system_msg = """You are Open Interpreter, a world-class programmer that can complete any goal by executing code. Strictly follow the plan and generate code step by step. Each step of the code will be executed on the user's machine, and the user will provide the code execution results to you.**Notice: The code for the next step depends on the code for the previous step.**"""
+        # 全部转成list
+        if not isinstance(prompt, list):
+            prompt = [prompt]
+        assert isinstance(prompt, list)
+        # 转成list[dict]
+        messages = []
+        for p in prompt:
+            if isinstance(p, str):
+                messages.append({'role': 'user', 'content': p})
+            elif isinstance(p, dict):
+                messages.append(p)
+            elif isinstance(p, Message):
+                if isinstance(p.content, str):
+                    messages.append(p.to_dict())
+                elif isinstance(p.content, dict) and 'code' in p.content:
+                    messages.append(p.content['code'])
 
-        if isinstance(prompt, Message):
-            if isinstance(prompt.content, dict):
-                prompt.content = system_msg + str([(k, v) for k, v in prompt.content.items()])\
-                    if system_msg else prompt.content
-            else:
-                prompt.content = system_msg + prompt.content if system_msg else prompt.content
-            return prompt
-
-        if isinstance(prompt, list):
-            _prompt = []
-            for msg in prompt:
-                if isinstance(msg, Message) and isinstance(msg.content, dict):
-                    msg.content = str([(k, v) for k, v in msg.content.items()])
-                if isinstance(msg, Message):
-                    msg = msg.to_dict()
-                _prompt.append(msg)
-            prompt = _prompt
-
-        if isinstance(prompt, list) and system_msg:
-            if system_msg not in prompt[0]['content']:
-                prompt[0]['content'] = system_msg + prompt[0]['content']
-        return prompt
+        # 添加默认的提示词
+        if default_system_msg not in messages[0]['content'] and messages[0]['role'] != 'system':
+            messages.insert(0, {'role': 'system', 'content': default_system_msg})
+        elif default_system_msg not in messages[0]['content'] and messages[0]['role'] == 'system':
+            messages[0] = {'role': 'system', 'content': messages[0]['content']+default_system_msg}
+        return messages
 
     async def run(
         self, context: [List[Message]], plan: Plan = None, task_guide: str = "", system_msg: str = None, **kwargs

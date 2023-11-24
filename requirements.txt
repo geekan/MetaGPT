@@ -50,3 +50,4 @@ nbclient==0.9.0
 nbformat==5.9.2
 ipython==8.17.2
 ipykernel==6.27.0
+scikit_learn==1.3.2
