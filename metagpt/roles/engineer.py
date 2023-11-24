@@ -6,13 +6,16 @@
 @File    : engineer.py
 """
 import asyncio
+import re
 import shutil
 from collections import OrderedDict
 from pathlib import Path
+from typing import List
 
-from metagpt.actions import WriteCode, WriteCodeReview, WriteDesign, WriteTasks
+from metagpt.actions import WriteCode, WriteCodeReview, WriteDesign, WriteTasks, BossRequirement
 from metagpt.actions.refine_design_api import RefineDesign
 from metagpt.actions.refine_project_management import RefineTasks
+from metagpt.actions.write_code_refine import WriteCodeRefine
 from metagpt.const import WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.roles import Role
@@ -72,6 +75,8 @@ class Engineer(Role):
         use_code_review: bool = False,
         legacy: str = "",
         increment: bool = False,
+        bug_msgs: List = None,
+        bug_fix: bool = False,
     ) -> None:
         """Initializes the Engineer role with given attributes."""
         super().__init__(name, profile, goal, constraints)
@@ -79,13 +84,20 @@ class Engineer(Role):
         self.use_code_review = use_code_review
         self.legacy = legacy
         self.increment = increment
+        self.bug_msgs = bug_msgs
+        self.bug_fix = bug_fix
         if self.use_code_review or self.increment:
-            self._init_actions([WriteCode, WriteCodeReview])
+            self._init_actions([WriteCode, WriteCodeReview, WriteCodeRefine])
+
         if self.increment:
             self._watch([RefineTasks])
+            self.todos = []
+        elif self.bug_fix:
+            self._watch([BossRequirement])
+            self.todos = []
         else:
             self._watch([WriteTasks])
-        self.todos = []
+            self.todos = []
         self.n_borg = n_borg
 
     @classmethod
@@ -93,6 +105,18 @@ class Engineer(Role):
         if task_msg.instruct_content:
             return task_msg.instruct_content.dict().get("Task list")
         return CodeParser.parse_file_list(block="Task list", text=task_msg.content)
+
+    @classmethod
+    def parse_todos(self, bug_context: List) -> list[str]:
+        for msg in bug_context:
+            if msg.sent_from == "ProjectManager":
+                content = msg.content
+                tasks_section = re.search(r"## Task list\n\n(.*?)(\n\n|$)", content, re.DOTALL)
+                if tasks_section:
+                    tasks = tasks_section.group(1).split("\n")
+                    tasks = [task.strip("-").strip() for task in tasks]
+                    return tasks
+                return []
 
     @classmethod
     def parse_code(self, code_text: str) -> str:
@@ -107,13 +131,17 @@ class Engineer(Role):
     def get_workspace(self) -> Path:
         if self.increment:
             msg = self._rc.memory.get_by_action(RefineDesign)[-1]
+        elif self.bug_fix:
+            msg = self._rc.memory.get_by_action(BossRequirement)[-1]
         else:
             msg = self._rc.memory.get_by_action(WriteDesign)[-1]
         if not msg:
             return WORKSPACE_ROOT / "src"
         workspace = self.parse_workspace(msg)
+        workspace = workspace if workspace else "src"
         # Codes are written in workspace/{package_name}/{package_name}
         return WORKSPACE_ROOT / workspace / workspace
+        # return self.create_or_increment_workspace(WORKSPACE_ROOT, workspace)
 
     def recreate_workspace(self):
         workspace = self.get_workspace()
@@ -123,8 +151,7 @@ class Engineer(Role):
             pass  # The folder does not exist, but we don't care
         workspace.mkdir(parents=True, exist_ok=True)
 
-    def write_file(self, filename: str, code: str):
-        workspace = self.get_workspace()
+    def write_file(self, workspace: Path, filename: str, code: str) -> Path:
         filename = filename.replace('"', "").replace("\n", "")
         file = workspace / filename
         file.parent.mkdir(parents=True, exist_ok=True)
@@ -134,7 +161,10 @@ class Engineer(Role):
     def recv(self, message: Message) -> None:
         self._rc.memory.add(message)
         if message in self._rc.important_memory:
-            self.todos = self.parse_tasks(message)
+            if not self.bug_fix:
+                self.todos = self.parse_tasks(message)
+            else:
+                self.todos = self.parse_todos(self.bug_msgs)
 
     async def _act_mp(self) -> Message:
         # self.recreate_workspace()
@@ -161,12 +191,13 @@ class Engineer(Role):
 
     async def _act_sp(self) -> Message:
         code_msg_all = []  # gather all code info, will pass to qa_engineer for tests later
+        workspace = self.get_workspace()
         for todo in self.todos:
             code = await WriteCode().run(context=self._rc.history, filename=todo)
             # logger.info(todo)
             # logger.info(code_rsp)
             # code = self.parse_code(code_rsp)
-            file_path = self.write_file(todo, code)
+            file_path = self.write_file(workspace, todo, code)
             msg = Message(content=code, role=self.profile, cause_by=type(self._rc.todo))
             self._rc.memory.add(msg)
 
@@ -181,41 +212,76 @@ class Engineer(Role):
 
     async def _act_increment(self, legacy) -> Message:
         code_msg_all = []  # gather all code info, will pass to qa_engineer for tests later
+        workspace = self.get_workspace()
         flag = True
+        # legacy_codes = legacy.split('---')
         for todo in self.todos:
-            """
-            # Select essential information from the historical data to reduce the length of the prompt (summarized from human experience):
-            1. All from Architect
-            2. All from ProjectManager
-            3. Do we need other codes (currently needed)?
-            TODO: The goal is not to need it. After clear task decomposition, based on the design idea, you should be able to write a single file without needing other codes. If you can't, it means you need a clearer definition. This is the key to writing longer code.
-            """
             context = []
 
-            if self.increment:
-                msg = self._rc.memory.get_by_actions([RefineDesign, RefineTasks, WriteCode])
-            else:
-                msg = self._rc.memory.get_by_actions([WriteDesign, WriteTasks, WriteCode])
-
+            msg = self._rc.memory.get_by_actions([RefineDesign, RefineTasks, WriteCodeRefine])
             for m in msg:
                 context.append(m.content)
             context_str = "\n".join(context)
+            code = legacy
+
             # Refine code or Write code
-            if flag and self.increment:
-                code = legacy
-                flag = False
-            else:
-                code = await WriteCode().run(context=context_str, filename=todo)
+            # if self.increment and len(legacy_codes) > 0:
+            #     code = legacy_codes.pop(0)
 
             # Code review
-            if self.use_code_review:
-                try:
-                    rewrite_code = await WriteCode().run(context=context_str, code=code, filename=todo)
-                    code = rewrite_code
-                except Exception as e:
-                    logger.error("code review failed!", e)
-                    pass
-            file_path = self.write_file(todo, code)
+            try:
+                rewrite_code = await WriteCodeRefine().run(context=context_str, code=code, filename=todo)
+                code = rewrite_code
+            except Exception as e:
+                logger.error("code review failed!", e)
+                pass
+
+            # code = await WriteCode().run(context=context_str, filename=todo)
+
+            file_path = self.write_file(workspace, todo, code)
+            msg = Message(content=code, role=self.profile, cause_by=WriteCode)
+            self._rc.memory.add(msg)
+
+            code_msg = todo + FILENAME_CODE_SEP + str(file_path)
+            code_msg_all.append(code_msg)
+
+        logger.info(f"Done {self.get_workspace()} generating.")
+        msg = Message(
+            content=MSG_SEP.join(code_msg_all), role=self.profile, cause_by=type(self._rc.todo), send_to="QaEngineer"
+        )
+        return msg
+
+    async def _act_bug_fix(self, bug_msgs) -> Message:
+        code_msg_all = []  # gather all code info, will pass to qa_engineer for tests later
+        workspace = self.get_workspace()
+        flag = True
+        # legacy_codes = legacy.split('---')
+        for todo in self.todos:
+            context = []
+
+            for m in bug_msgs:
+                if m.sent_from != "Engineer":
+                    context.append(m.content)
+                context.append(m.content)
+            context_str = "\n".join(context)
+            code = [m.content for m in bug_msgs if m.sent_from == "Engineer"]
+            code = "\n".join(code)
+
+            # Refine code or Write code
+            # if self.increment and len(legacy_codes) > 0:
+            #     code = legacy_codes.pop(0)
+
+            # Code review
+            try:
+                rewrite_code = await WriteCodeRefine().run(context=context_str, code=code, filename=todo)
+                code = rewrite_code
+            except Exception as e:
+                logger.error("code review failed!", e)
+                pass
+
+            # code = await WriteCode().run(context=context_str, filename=todo)
+
+            file_path = self.write_file(workspace, todo, code)
             msg = Message(content=code, role=self.profile, cause_by=WriteCode)
             self._rc.memory.add(msg)
 
@@ -230,6 +296,7 @@ class Engineer(Role):
 
     async def _act_sp_precision(self) -> Message:
         code_msg_all = []  # gather all code info, will pass to qa_engineer for tests later
+        workspace = self.get_workspace()
         for todo in self.todos:
             """
             # Select essential information from the historical data to reduce the length of the prompt (summarized from human experience):
@@ -253,7 +320,7 @@ class Engineer(Role):
                 except Exception as e:
                     logger.error("code review failed!", e)
                     pass
-            file_path = self.write_file(todo, code)
+            file_path = self.write_file(workspace, todo, code)
             msg = Message(content=code, role=self.profile, cause_by=WriteCode)
             self._rc.memory.add(msg)
 
@@ -266,14 +333,35 @@ class Engineer(Role):
         )
         return msg
 
+    async def _observe(self) -> int:
+        if self.bug_fix:
+            msg = Message(
+                content=self.bug_msgs[0].content + "\n---\n" + self.legacy,
+                role=self.profile,
+                cause_by=BossRequirement,
+                sent_from=self.profile,
+                send_to=self.profile,
+            )
+            self._publish_message(msg)
+        await super()._observe()
+        self._rc.news = [
+            msg for msg in self._rc.news if msg.send_to == self.profile
+        ]  # only relevant msgs count as observed news
+        return len(self._rc.news)
+
     async def _act(self) -> Message:
         """Determines the mode of action based on whether code review is used."""
         if self.increment:
             logger.info(f"{self._setting}: ready to RefineWriteCode")
+        elif self.bug_fix:
+            logger.info(f"{self._setting}: ready to BugFix")
         else:
             logger.info(f"{self._setting}: ready to WriteCode")
+
         if self.use_code_review:
             return await self._act_sp_precision()
         elif self.increment:
             return await self._act_increment(self.legacy)
+        elif self.bug_fix:
+            return await self._act_bug_fix(self.bug_msgs)
         return await self._act_sp()

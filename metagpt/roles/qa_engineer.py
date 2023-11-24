@@ -14,8 +14,9 @@ from metagpt.actions import (
     WriteCode,
     WriteCodeReview,
     WriteDesign,
-    WriteTest,
+    WriteTest, BossRequirement,
 )
+from metagpt.actions.write_code_refine import WriteCodeRefine
 from metagpt.const import WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.roles import Role
@@ -32,12 +33,20 @@ class QaEngineer(Role):
         goal="Write comprehensive and robust tests to ensure codes will work as expected without bugs",
         constraints="The test code you write should conform to code standard like PEP8, be modular, easy to read and maintain",
         test_round_allowed=5,
+        legacy="",
+        bug_context="",
     ):
         super().__init__(name, profile, goal, constraints)
-        self._init_actions(
-            [WriteTest]
-        )  # FIXME: a bit hack here, only init one action to circumvent _think() logic, will overwrite _think() in future updates
-        self._watch([WriteCode, WriteCodeReview, WriteTest, RunCode, DebugError])
+        self.legacy = legacy
+        self.bug_context = bug_context
+        if self.bug_context:
+            self._init_actions([WriteTest])
+            self._watch([WriteCode, WriteCodeRefine, WriteTest, RunCode, DebugError])
+        else:
+            self._init_actions(
+                [WriteTest]
+            )  # FIXME: a bit hack here, only init one action to circumvent _think() logic, will overwrite _think() in future updates
+            self._watch([WriteCode, WriteCodeReview, WriteTest, RunCode, DebugError])
         self.test_round = 0
         self.test_round_allowed = test_round_allowed
 
@@ -48,10 +57,14 @@ class QaEngineer(Role):
         return CodeParser.parse_str(block="Python package name", text=system_design_msg.content)
 
     def get_workspace(self, return_proj_dir=True) -> Path:
-        msg = self._rc.memory.get_by_action(WriteDesign)[-1]
+        if self.bug_context:
+            msg = self._rc.memory.get_by_action(WriteCodeRefine)[-1]
+        else:
+            msg = self._rc.memory.get_by_action(WriteDesign)[-1]
         if not msg:
             return WORKSPACE_ROOT / "src"
         workspace = self.parse_workspace(msg)
+        workspace = workspace if workspace else "src"
         # project directory: workspace/{package_name}, which contains package source code folder, tests folder, resources folder, etc.
         if return_proj_dir:
             return WORKSPACE_ROOT / workspace
@@ -146,6 +159,15 @@ class QaEngineer(Role):
             self._publish_message(msg)
 
     async def _observe(self) -> int:
+        if self.bug_context:
+            msg = Message(
+                content=self.bug_context + "\n---\n" + self.legacy,
+                role=self.profile,
+                cause_by=BossRequirement,
+                sent_from=self.profile,
+                send_to=self.profile,
+            )
+            self._publish_message(msg)
         await super()._observe()
         self._rc.news = [
             msg for msg in self._rc.news if msg.send_to == self.profile
@@ -166,7 +188,7 @@ class QaEngineer(Role):
         for msg in self._rc.news:
             # Decide what to do based on observed msg type, currently defined by human,
             # might potentially be moved to _think, that is, let the agent decides for itself
-            if msg.cause_by in [WriteCode, WriteCodeReview]:
+            if msg.cause_by in [WriteCode, WriteCodeReview, WriteCodeRefine]:
                 # engineer wrote a code, time to write a test for it
                 await self._write_test(msg)
             elif msg.cause_by in [WriteTest, DebugError]:
