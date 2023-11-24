@@ -304,7 +304,13 @@ def print_members(module, indent=0):
 def parse_recipient(text):
     pattern = r"## Send To:\s*([A-Za-z]+)\s*?"  # hard code for now
     recipient = re.search(pattern, text)
-    return recipient.group(1) if recipient else ""
+    if recipient:
+        return recipient.group(1)
+    pattern = r"Send To:\s*([A-Za-z]+)\s*?"
+    recipient = re.search(pattern, text)
+    if recipient:
+        return recipient.group(1)
+    return ""
 
 
 def get_class_name(cls) -> str:

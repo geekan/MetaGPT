@@ -253,11 +253,27 @@ class CodingContext(BaseModel):
     task_doc: Document
     code_doc: Document
 
+    @staticmethod
+    def loads(val: str) -> CodingContext | None:
+        try:
+            m = json.loads(val)
+            return CodingContext(**m)
+        except Exception:
+            return None
+
 
 class TestingContext(BaseModel):
     filename: str
     code_doc: Document
     test_doc: Document
+
+    @staticmethod
+    def loads(val: str) -> TestingContext | None:
+        try:
+            m = json.loads(val)
+            return TestingContext(**m)
+        except Exception:
+            return None
 
 
 class RunCodeContext(BaseModel):
@@ -271,3 +287,11 @@ class RunCodeContext(BaseModel):
     additional_python_paths: List[str] = Field(default_factory=list)
     output_filename: Optional[str]
     output: Optional[str]
+
+    @staticmethod
+    def loads(val: str) -> RunCodeContext | None:
+        try:
+            m = json.loads(val)
+            return RunCodeContext(**m)
+        except Exception:
+            return None

@@ -96,8 +96,15 @@ class FileRepository:
         path_name = self.workdir / filename
         if not path_name.exists():
             return None
-        async with aiofiles.open(str(path_name), mode="r") as reader:
-            doc.content = await reader.read()
+        try:
+            async with aiofiles.open(str(path_name), mode="r") as reader:
+                doc.content = await reader.read()
+        except FileNotFoundError as e:
+            logger.info(f"open {str(path_name)} failed:{e}")
+            return None
+        except Exception as e:
+            logger.info(f"open {str(path_name)} failed:{e}")
+            return None
         return doc
 
     async def get_all(self) -> List[Document]:

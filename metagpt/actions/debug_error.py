@@ -5,6 +5,7 @@
 @Author  : alexanderwu
 @File    : debug_error.py
 """
+import re
 
 from metagpt.actions.action import Action
 from metagpt.logs import logger
@@ -36,7 +37,9 @@ class DebugError(Action):
     #     return fixed_code
 
     async def run(self, *args, **kwargs) -> str:
-        if "PASS" in self.context.output:
+        pattern = r"Ran (\d+) tests in ([\d.]+)s\n\nOK"
+        matches = re.search(pattern, self.context.output)
+        if matches:
             return "", "the original code works fine, no need to debug"
 
         file_name = self.context.code_filename

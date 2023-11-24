@@ -7,15 +7,13 @@
 @Modified By: mashenquan, 2023-11-1. In accordance with Chapter 2.2.1 and 2.2.2 of RFC 116, modify the data
         type of the `cause_by` value in the `Message` to a string, and utilize the new message filtering feature.
 """
-import json
-
 from metagpt.actions import DebugError, RunCode, WriteCode, WriteCodeReview, WriteTest
 from metagpt.config import CONFIG
 from metagpt.const import MESSAGE_ROUTE_TO_NONE, OUTPUTS_FILE_REPO, TEST_CODES_FILE_REPO
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Document, Message, RunCodeContext, TestingContext
-from metagpt.utils.common import any_to_str_set
+from metagpt.utils.common import any_to_str_set, parse_recipient
 
 
 class QaEngineer(Role):
@@ -64,68 +62,76 @@ class QaEngineer(Role):
                 code_filename=context.code_doc.filename,
                 test_filename=context.test_doc.filename,
                 working_directory=str(CONFIG.git_repo.workdir),
-                additional_python_paths=[CONFIG.src_workspace],
+                additional_python_paths=[str(CONFIG.src_workspace)],
             )
-            msg = Message(
-                content=run_code_context.json(),
-                role=self.profile,
-                cause_by=WriteTest,
-                sent_from=self,
-                send_to=self,
+            self.publish_message(
+                Message(
+                    content=run_code_context.json(),
+                    role=self.profile,
+                    cause_by=WriteTest,
+                    sent_from=self,
+                    send_to=self,
+                )
             )
-            self.publish_message(msg)
 
         logger.info(f"Done {str(tests_file_repo.workdir)} generating.")
 
     async def _run_code(self, msg):
-        m = json.loads(msg.content)
-        run_code_context = RunCodeContext(**m)
-        src_file_repo = CONFIG.git_repo.new_file_repository(CONFIG.src_workspace)
-        src_doc = await src_file_repo.get(run_code_context.code_filename)
+        run_code_context = RunCodeContext.loads(msg.content)
+        src_doc = await CONFIG.git_repo.new_file_repository(CONFIG.src_workspace).get(run_code_context.code_filename)
         if not src_doc:
             return
-        test_file_repo = CONFIG.git_repo.new_file_repository(TEST_CODES_FILE_REPO)
-        test_doc = await test_file_repo.get(run_code_context.test_filename)
+        test_doc = await CONFIG.git_repo.new_file_repository(TEST_CODES_FILE_REPO).get(run_code_context.test_filename)
         if not test_doc:
             return
         run_code_context.code = src_doc.content
         run_code_context.test_code = test_doc.content
         result_msg = await RunCode(context=run_code_context, llm=self._llm).run()
-        outputs_file_repo = CONFIG.git_repo.new_file_repository(OUTPUTS_FILE_REPO)
-        run_code_context.output_filename = run_code_context.test_filename + ".log"
-        await outputs_file_repo.save(
+        run_code_context.output_filename = run_code_context.test_filename + ".md"
+        await CONFIG.git_repo.new_file_repository(OUTPUTS_FILE_REPO).save(
             filename=run_code_context.output_filename,
             content=result_msg,
             dependencies={src_doc.root_relative_path, test_doc.root_relative_path},
         )
         run_code_context.code = None
         run_code_context.test_code = None
-        msg = Message(
-            content=run_code_context.json(), role=self.profile, cause_by=RunCode, sent_from=self, send_to=self
+        recipient = parse_recipient(result_msg)  # the recipient might be Engineer or myself
+        mappings = {
+            "Engineer": "Alex",
+            "QaEngineer": "Edward",
+        }
+        self.publish_message(
+            Message(
+                content=run_code_context.json(),
+                role=self.profile,
+                cause_by=RunCode,
+                sent_from=self,
+                send_to=mappings.get(recipient, MESSAGE_ROUTE_TO_NONE),
+            )
         )
-        self.publish_message(msg)
 
     async def _debug_error(self, msg):
-        m = json.loads(msg.context)
-        run_code_context = RunCodeContext(**m)
+        run_code_context = RunCodeContext.loads(msg.content)
         output_file_repo = CONFIG.git_repo.new_file_repository(OUTPUTS_FILE_REPO)
         output_doc = await output_file_repo.get(run_code_context.output_filename)
         if not output_doc:
             return
         run_code_context.output = output_doc.content
         code = await DebugError(context=run_code_context, llm=self._llm).run()
-        src_file_repo = CONFIG.git_repo.new_file_repository(CONFIG.src_workspace)
-        await src_file_repo.save(filename=run_code_context.code_filename, content=code)
+        await CONFIG.git_repo.new_file_repository(CONFIG.src_workspace).save(
+            filename=run_code_context.code_filename, content=code
+        )
         run_code_context.output = None
         run_code_context.output_filename = None
-        msg = Message(
-            content=run_code_context.json(),
-            role=self.profile,
-            cause_by=DebugError,
-            sent_from=self,
-            send_to=self,
+        self.publish_message(
+            Message(
+                content=run_code_context.json(),
+                role=self.profile,
+                cause_by=DebugError,
+                sent_from=self,
+                send_to=self,
+            )
         )
-        self.publish_message(msg)
 
     async def _act(self) -> Message:
         if self.test_round > self.test_round_allowed:
@@ -154,11 +160,10 @@ class QaEngineer(Role):
                 # I ran my test code, time to fix bugs, if any
                 await self._debug_error(msg)
         self.test_round += 1
-        result_msg = Message(
+        return Message(
             content=f"Round {self.test_round} of tests done",
             role=self.profile,
             cause_by=WriteTest,
             sent_from=self.profile,
             send_to=MESSAGE_ROUTE_TO_NONE,
         )
-        return result_msg

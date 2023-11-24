@@ -51,8 +51,14 @@ CONTEXT = """
 ## Running Command
 {command}
 ## Running Output
-standard output: {outs};
-standard errors: {errs};
+standard output: 
+```text
+{outs}
+```
+standard errors: 
+```text
+{errs}
+```
 """
 
 
@@ -84,10 +90,19 @@ class RunCode(Action):
         additional_python_paths = ":".join(additional_python_paths)
         env["PYTHONPATH"] = additional_python_paths + ":" + env.get("PYTHONPATH", "")
 
+        install_command = ["python", "-m", "pip", "install", "-r", "requirements.txt"]
+        logger.info(" ".join(install_command))
+        subprocess.run(install_command, check=True, cwd=working_directory, env=env)
+
+        install_pytest_command = ["python", "-m", "pip", "install", "pytest"]
+        logger.info(" ".join(install_pytest_command))
+        subprocess.run(install_pytest_command, check=True, cwd=working_directory, env=env)
+
         # Start the subprocess
         process = subprocess.Popen(
             command, cwd=working_directory, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env
         )
+        logger.info(" ".join(command))
 
         try:
             # Wait for the process to complete, with a timeout
@@ -101,7 +116,11 @@ class RunCode(Action):
     async def run(self, *args, **kwargs) -> str:
         logger.info(f"Running {' '.join(self.context.command)}")
         if self.context.mode == "script":
-            outs, errs = await self.run_script(command=self.context.command, **kwargs)
+            outs, errs = await self.run_script(
+                command=self.context.command,
+                working_directory=self.context.working_directory,
+                additional_python_paths=self.context.additional_python_paths,
+            )
         elif self.context.mode == "text":
             outs, errs = await self.run_text(code=self.context.code)
 
