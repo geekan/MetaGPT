@@ -120,7 +120,7 @@ https://github.com/geekan/MetaGPT/assets/34952977/34345016-5d13-489d-b9f9-b82ace
 
 ## 引用
 
-引用 [Arxiv paper](https://arxiv.org/abs/2308.00352):
+引用 [arXiv paper](https://arxiv.org/abs/2308.00352):
 
 ```bibtex
 @misc{hong2023metagpt,
