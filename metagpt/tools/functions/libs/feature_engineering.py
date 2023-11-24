@@ -11,7 +11,7 @@ from pandas.api.types import is_numeric_dtype
 from sklearn.preprocessing import PolynomialFeatures, OneHotEncoder
 
 from metagpt.tools.functions import registry
-from metagpt.tools.functions.schemas.machine_learning.feature_engineering import *
+from metagpt.tools.functions.schemas.feature_engineering import *
 
 
 @registry.register("feature_engineering", PolynomialExpansion)
