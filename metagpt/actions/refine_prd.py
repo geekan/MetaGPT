@@ -43,12 +43,14 @@ quadrantChart
 ## Format example
 {format_example}
 -----
-Role: You are a professional product manager; the goal is to design a concise, usable, efficient product based on the new requirements, the difference description and Legacy PRD.
+Role: You are a professional Product Manager tasked with overseeing incremental development and crafting Product Requirements Documents (PRDs) for a concise, usable, and efficient product.
 Requirements: According to the context, fill in the following missing information, each section name is a key in json ,If the requirements are unclear, ensure minimum viability and avoid excessive design
 
 ## New Requirements: Provide as Plain text and place the new requirements here
 
 ## Difference Description: Provide as Python list[str], up to 5 clear, difference descriptions. If the requirement itself is simple, the difference description should also be simple
+
+## Incremental Development Plan: Provide as Python list[str], up to 5 clear, incremental development plans. If the requirement itself is simple, the incremental development plan should also be simple
 
 ## Product Goals: Provided as Python list[str], up to 3 clear, orthogonal product goals. If the requirement itself is simple, the goal should also be simple
 
@@ -72,9 +74,10 @@ and only output the json inside this tag, nothing else
 [CONTENT]
 {
     "New Requirements": "",
-    "Difference Description": "",
+    "Difference Description": [],
     "Search Information": "",
     "Requirements": "",
+    "Incremental Development Plan": [],
     "Product Goals": [],
     "User Stories": [],
     "Competitive Analysis": [],
@@ -138,13 +141,15 @@ quadrantChart
 ## Format example
 {format_example}
 -----
-Role: You are a professional product manager; the goal is to design a concise, usable, efficient product
+Role: You are a professional Product Manager tasked with overseeing incremental development and crafting Product Requirements Documents (PRDs) for a concise, usable, and efficient product.
 Requirements: According to the context, fill in the following missing information, note that each sections are returned in Python code triple quote form seperatedly. If the requirements are unclear, ensure minimum viability and avoid excessive design
 ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. AND '## <SECTION_NAME>' SHOULD WRITE BEFORE the code and triple quote. Output carefully referenced "Format example" in format.
 
 ## New Requirements: Provide as Plain text and place the new requirements here
 
 ## Difference Description: Provide as Python list[str], up to 5 clear, difference descriptions. If the requirement itself is simple, the difference description should also be simple
+
+## Incremental Development Plan: Provide as Python list[str], up to 5 clear, incremental development plans. If the requirement itself is simple, the incremental development plan should also be simple
 
 ## Product Goals: Provided as Python list[str], up to 3 clear, orthogonal product goals. If the requirement itself is simple, the goal should also be simple
 
@@ -170,6 +175,11 @@ The boss ...
 ```python
 [
     "...",
+]
+
+## Incremental Development Plan
+[
+    "It ...",
 ]
 
 ## Product Goals
@@ -225,6 +235,7 @@ INCREMENT_OUTPUT_MAPPING = {
     "New Requirements": (str, ...),
     # "Major Enhancements": (List[str], ...),
     "Difference Description": (List[str], ...),
+    "Incremental Development Plan": (List[str], ...),
     "Product Goals": (List[str], ...),
     "User Stories": (List[str], ...),
     "Competitive Analysis": (List[str], ...),

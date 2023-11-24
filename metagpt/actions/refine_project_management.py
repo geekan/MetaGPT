@@ -21,7 +21,7 @@ templates = {
 ## Format example
 {format_example}
 -----
-Role: You are a project manager; the goal is to break down tasks according to PRD/technical design, give a task list, and analyze task dependencies to start with the prerequisite modules
+Role: You are a project manager; the goal is to perform incremental development based on the context and difference descriptions and the legacy. Break down tasks according to PRD/technical design, provide a task list, and analyze task dependencies to start with the prerequisite modules.
 Requirements: Based on the context, fill in the following missing information, each section name is a key in json. Here the granularity of the task is a file, if there are any missing files, you can supplement them
 Attention: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD WRITE BEFORE the code and triple quote.
 
@@ -31,13 +31,13 @@ Attention: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD W
 
 ## Full API spec: Use OpenAPI 3.0. Describe all APIs that may be used by both frontend and backend.
 
+## Difference Description: Please provide a detailed description of the differences between this project and its predecessors or similar projects that can include changes in technology, architecture.
+
 ## Logic Analysis: Provided as a Python list[list[str]. the first is filename, the second is class/method/function should be implemented in this file. Analyze the dependencies between the files, which work should be done first
 
 ## Task list: Provided as Python list[str]. Each str is a filename, the more at the beginning, the more it is a prerequisite dependency, should be done first
 
 ## Shared Knowledge: Anything that should be public like utils' functions, config's variables details that should make clear first. 
-
-## Difference Description: Please provide a detailed description of the differences between this project and its predecessors or similar projects that can include changes in technology, architecture.
 
 ## Anything UNCLEAR: Provide as Plain text. Make clear here. For example, don't forget a main entry. don't forget to init 3rd party libs.
 
@@ -58,6 +58,9 @@ and only output the json inside this tag, nothing else
         ...
         description: A JSON object ...
      """,
+    "Difference Description": """
+        The ...
+    """,
     "Logic Analysis": [
         ["game.py","Contains..."]
     ],
@@ -66,9 +69,6 @@ and only output the json inside this tag, nothing else
     ],
     "Shared Knowledge": """
         'game.py' contains ...
-    """,
-    "Difference Description": """
-        The ...
     """,
     "Anything UNCLEAR": "We need ... how to start."
 }
@@ -85,7 +85,7 @@ and only output the json inside this tag, nothing else
 ## Format example
 {format_example}
 -----
-Role: You are a project manager; the goal is to break down tasks according to PRD/technical design, give a task list, and analyze task dependencies to start with the prerequisite modules
+Role: You are a project manager; the goal is to perform incremental development based on the context and difference descriptions and the legacy. Break down tasks according to PRD/technical design, provide a task list, and analyze task dependencies to start with the prerequisite modules.
 Requirements: Based on the context, fill in the following missing information, note that all sections are returned in Python code triple quote form seperatedly. Here the granularity of the task is a file, if there are any missing files, you can supplement them
 Attention: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD WRITE BEFORE the code and triple quote.
 
@@ -95,13 +95,13 @@ Attention: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD W
 
 ## Full API spec: Use OpenAPI 3.0. Describe all APIs that may be used by both frontend and backend.
 
+## Difference Description: Please provide a detailed description of the differences between this project and its predecessors or similar projects that can include changes in technology, architecture.
+
 ## Logic Analysis: Provided as a Python list[list[str]. the first is filename, the second is class/method/function should be implemented in this file. Analyze the dependencies between the files, which work should be done first
 
 ## Task list: Provided as Python list[str]. Each str is a filename, the more at the beginning, the more it is a prerequisite dependency, should be done first
 
 ## Shared Knowledge: Anything that should be public like utils' functions, config's variables details that should make clear first. 
-
-## Difference Description: Please provide a detailed description of the differences between this project and its predecessors or similar projects that can include changes in technology, architecture.
 
 ## Anything UNCLEAR: Provide as Plain text. Make clear here. For example, don't forget a main entry. don't forget to init 3rd party libs.
 
@@ -132,6 +132,13 @@ description: A JSON object ...
 """
 ```
 
+## Difference Description
+```python
+"""
+The ...
+"""
+```
+
 ## Logic Analysis
 ```python
 [
@@ -153,13 +160,6 @@ description: A JSON object ...
 """
 ```
 
-## Difference Description
-```python
-"""
-The ...
-"""
-```
-
 ## Anything UNCLEAR
 We need ... how to start.
 ---
@@ -170,10 +170,10 @@ OUTPUT_MAPPING = {
     "Required Python third-party packages": (List[str], ...),
     "Required Other language third-party packages": (List[str], ...),
     "Full API spec": (str, ...),
+    "Difference Description": (str, ...),
     "Logic Analysis": (List[List[str]], ...),
     "Task list": (List[str], ...),
     "Shared Knowledge": (str, ...),
-    "Difference Description": (str, ...),
     "Anything UNCLEAR": (str, ...),
 }
 

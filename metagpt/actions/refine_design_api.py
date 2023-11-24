@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import re
 import shutil
 from pathlib import Path
 from typing import List
@@ -25,7 +26,7 @@ templates = {
 ## Format example
 {format_example}
 -----
-Role: You are an architect; the goal is to design a SOTA PEP8-compliant python system; make the best use of good open source tools
+Role: You are an architect; the goal is to perform incremental development and design a state-of-the-art (SOTA) PEP8-compliant Python system based on the context and the provided difference descriptions. Make the best use of good open source tools.
 Requirement: Fill in the following missing information based on the context, each section name is a key in json
 Max Output: 8192 chars or 2048 tokens. Try to use them up.
 
@@ -83,7 +84,7 @@ and only output the json inside this tag, nothing else
 ## Format example
 {format_example}
 -----
-Role: You are an architect; the goal is to design a SOTA PEP8-compliant python system; make the best use of good open source tools
+Role: You are an architect; the goal is to perform incremental development and design a state-of-the-art (SOTA) PEP8-compliant Python system based on the context and the provided difference descriptions. Make the best use of good open source tools.
 Requirement: Fill in the following missing information based on the context, note that all sections are response with code form separately
 Max Output: 8192 chars or 2048 tokens. Try to use them up.
 Attention: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD WRITE BEFORE the code and triple quote.
@@ -179,6 +180,25 @@ class RefineDesign(Action):
             pass  # Folder does not exist, but we don't care
         workspace.mkdir(parents=True, exist_ok=True)
 
+    def create_or_increment_workspace(self, workspace: Path):
+        # 如果工作空间已存在，添加数字以区分
+        original_workspace = workspace
+        index = 1
+        while workspace.exists():
+            ws_name_match = re.match(r'^(.*)_([\d]+)$', original_workspace.name)
+            if ws_name_match:
+                base_name, existing_index = ws_name_match.groups()
+                index = int(existing_index)
+                index += 1
+                workspace = original_workspace.parent / f"{base_name}_{index}"
+            else:
+                workspace = original_workspace.parent / f"{original_workspace.name}_{index}"
+            index += 1
+
+        # 创建工作空间，包括所有必要的父文件夹
+        workspace.mkdir(parents=True, exist_ok=True)
+        return workspace
+
     async def _save_prd(self, docs_path, resources_path, context):
         prd_file = docs_path / "prd.md"
         if context[-1].instruct_content and context[-1].instruct_content.dict()["Competitive Quadrant Chart"]:
@@ -208,6 +228,7 @@ class RefineDesign(Action):
         else:
             ws_name = CodeParser.parse_str(block="Python package name", text=system_design)
         workspace = WORKSPACE_ROOT / ws_name
+        # workspace = self.create_or_increment_workspace(workspace)
         self.recreate_workspace(workspace)
         docs_path = workspace / "docs"
         resources_path = workspace / "resources"
