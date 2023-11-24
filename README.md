@@ -123,7 +123,7 @@ We will respond to all questions within 2-3 business days.
 
 ## Citation
 
-For now, cite the [Arxiv paper](https://arxiv.org/abs/2308.00352):
+For now, cite the [arXiv paper](https://arxiv.org/abs/2308.00352):
 
 ```bibtex
 @misc{hong2023metagpt,
