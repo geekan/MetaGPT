@@ -64,14 +64,14 @@ class MLEngineer(Role):
         success = False
         while not success and counter < max_retry:
             context = self.get_memories()
-
-            code = "print('abc')"
-            # code = await WriteCodeFunction().run(context=context)
+            print(f"{'*'*20}\n {context}")
+            # code = "print('abc')"
+            code = await WriteCodeFunction().run(context=context)
             # code = await WriteCodeWithOps.run(context, task, result)
             self._rc.memory.add(Message(content=code, role="assistant", cause_by=WriteCodeFunction))
 
             result, success = await ExecutePyCode().run(code)
-            self._rc.memory.add(Message(content=result, role="assistant", cause_by=ExecutePyCode))
+            self._rc.memory.add(Message(content=result, role="user", cause_by=ExecutePyCode))
 
             # if not success:
             #     await self._ask_review()
@@ -83,7 +83,7 @@ class MLEngineer(Role):
     async def _ask_review(self):
         context = self.get_memories()
         review, confirmed = await AskReview().run(context=context[-5:], plan=self.plan)
-        self._rc.memory.add(Message(content=review, role="assistant", cause_by=AskReview))
+        self._rc.memory.add(Message(content=review, role="user", cause_by=AskReview))
         return confirmed
 
     async def _update_plan(self, max_tasks: int = 3):

@@ -9,6 +9,7 @@ import json
 
 from metagpt.actions import Action
 from metagpt.schema import Message, Task
+from metagpt.utils.common import CodeParser
 
 class WritePlan(Action):
     PROMPT_TEMPLATE = """
@@ -35,7 +36,7 @@ class WritePlan(Action):
             .replace("__current_plan__", current_plan).replace("__max_tasks__", str(max_tasks))
         )
         rsp = await self._aask(prompt)
-        return rsp
+        return CodeParser.parse_code(None, rsp) if rsp.startswith("```") else rsp
 
     @staticmethod
     def rsp_to_tasks(rsp: str) -> List[Task]:

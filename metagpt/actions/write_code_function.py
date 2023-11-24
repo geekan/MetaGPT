@@ -58,4 +58,4 @@ class WriteCodeFunction(BaseWriteAnalysisCode):
     ) -> str:
         prompt = self.process_msg(context, system_msg)
         code_content = await self.llm.aask_code(prompt, **kwargs)
-        return code_content
+        return code_content['code']
