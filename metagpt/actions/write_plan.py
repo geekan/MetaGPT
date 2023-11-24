@@ -9,6 +9,7 @@ import json
 
 from metagpt.actions import Action
 from metagpt.schema import Message, Task
+from metagpt.utils.common import CodeParser
 
 class WritePlan(Action):
     PROMPT_TEMPLATE = """
@@ -20,14 +21,16 @@ class WritePlan(Action):
     Based on the context, write a plan or modify an existing plan of what you should do to achieve the goal. A plan consists of one to __max_tasks__ tasks.
     If you are modifying an existing plan, carefully follow the instruction, don't make unnecessary changes.
     Output a list of jsons following the format:
+    ```json
     [
         {
-            "task_id": str = "unique identifier for a task in plan, can be a ordinal",
+            "task_id": str = "unique identifier for a task in plan, can be an ordinal",
             "dependent_task_ids": list[str] = "ids of tasks prerequisite to this task",
             "instruction": "what you should do in this task, one short phrase or sentence",
         },
         ...
     ]
+    ```
     """
     async def run(self, context: List[Message], current_plan: str = "", max_tasks: int = 5) -> str:
         prompt = (
@@ -35,6 +38,7 @@ class WritePlan(Action):
             .replace("__current_plan__", current_plan).replace("__max_tasks__", str(max_tasks))
         )
         rsp = await self._aask(prompt)
+        rsp = CodeParser.parse_code(block=None, text=rsp)
         return rsp
 
     @staticmethod

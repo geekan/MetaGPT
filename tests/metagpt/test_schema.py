@@ -24,7 +24,7 @@ def test_messages():
 
 class TestPlan:
     def test_add_tasks_ordering(self):
-        plan = Plan()
+        plan = Plan(goal="")
 
         tasks = [
             Task(task_id="1", dependent_task_ids=["2", "3"], instruction="Third"),
@@ -36,7 +36,7 @@ class TestPlan:
         assert [task.task_id for task in plan.tasks] == ["2", "3", "1"]
 
     def test_add_tasks_to_existing_no_common_prefix(self):
-        plan = Plan()
+        plan = Plan(goal="")
 
         tasks = [
             Task(task_id="1", dependent_task_ids=["2", "3"], instruction="Third"),
@@ -52,7 +52,7 @@ class TestPlan:
         assert not plan.tasks[0].is_finished  # must be the new unfinished task
 
     def test_add_tasks_to_existing_with_common_prefix(self):
-        plan = Plan()
+        plan = Plan(goal="")
 
         tasks = [
             Task(task_id="1", dependent_task_ids=["2", "3"], instruction="Third"),
@@ -75,7 +75,7 @@ class TestPlan:
         assert plan.current_task_id == "4"
 
     def test_current_task(self):
-        plan = Plan()
+        plan = Plan(goal="")
         tasks = [
             Task(task_id="1", dependent_task_ids=["2"], instruction="Second"),
             Task(task_id="2", instruction="First")
@@ -84,7 +84,7 @@ class TestPlan:
         assert plan.current_task.task_id == "2"
 
     def test_finish_task(self):
-        plan = Plan()
+        plan = Plan(goal="")
         tasks = [
             Task(task_id="1", instruction="First"),
             Task(task_id="2", dependent_task_ids=["1"], instruction="Second")
@@ -94,7 +94,7 @@ class TestPlan:
         assert plan.current_task.task_id == "2"
 
     def test_finished_tasks(self):
-        plan = Plan()
+        plan = Plan(goal="")
         tasks = [
             Task(task_id="1", instruction="First"),
             Task(task_id="2", dependent_task_ids=["1"], instruction="Second")

@@ -9,30 +9,41 @@ from metagpt.actions import Action
 from metagpt.schema import Message, Task, Plan
 from metagpt.logs import logger
 from metagpt.actions.write_plan import WritePlan
-from metagpt.actions.write_code_function import WriteCodeFunction
+from metagpt.actions.write_analysis_code import WriteCodeByGenerate, WriteCodeWithTools
 from metagpt.actions.execute_code import ExecutePyCode
 
 class AskReview(Action):
 
     async def run(self, context: List[Message], plan: Plan = None):
-        prompt = "\n".join(
-            [f"{msg.cause_by() if msg.cause_by else 'Main Requirement'}: {msg.content}" for msg in context]
-        )
+        logger.info("Current overall plan:")
+        logger.info("\n".join([f"{task.task_id}: {task.instruction}" for task in plan.tasks]))
 
-        latest_action = context[-1].cause_by()
-
-        prompt += f"\nPlease review output from {latest_action}, " \
-            "provide feedback or type YES to continue with the process:\n"
+        logger.info("most recent context:")
+        # prompt = "\n".join(
+        #     [f"{msg.cause_by.__name__ if msg.cause_by else 'Main Requirement'}: {msg.content}" for msg in context]
+        # )
+        prompt = ""
+        latest_action = context[-1].cause_by.__name__
+        prompt += f"\nPlease review output from {latest_action}:\n" \
+            "If you want to change a task in the plan, say 'change task task_id, ... (things to change)'\n" \
+            "If you confirm the output and wish to continue with the current process, type CONFIRM:\n"
         rsp = input(prompt)
-        confirmed = "yes" in rsp.lower()
+        confirmed = "confirm" in rsp.lower()
+
         return rsp, confirmed
 
+class WriteTaskGuide(Action):
+
+    async def run(self, task_instruction: str, data_desc: str = "") -> str:
+        return ""
 
 class MLEngineer(Role):
-    def __init__(self, name="ABC", profile="MLEngineer"):
-        super().__init__(name=name, profile=profile)
+    def __init__(self, name="ABC", profile="MLEngineer", goal=""):
+        super().__init__(name=name, profile=profile, goal=goal)
         self._set_react_mode(react_mode="plan_and_act")
-        self.plan = Plan()
+        self.plan = Plan(goal=goal)
+        self.use_tools = False
+        self.use_task_guide = False
 
     async def _plan_and_act(self):
 
@@ -60,18 +71,28 @@ class MLEngineer(Role):
                 await self._update_plan()
 
     async def _write_and_exec_code(self, max_retry: int = 3):
+
+        task_guide = await WriteTaskGuide().run(self.plan.current_task.instruction) if self.use_task_guide else ""
+
         counter = 0
         success = False
         while not success and counter < max_retry:
-            context = self.get_memories()
+            context = self.get_useful_memories()
 
-            code = "print('abc')"
-            # code = await WriteCodeFunction().run(context=context)
-            # code = await WriteCodeWithOps.run(context, task, result)
-            self._rc.memory.add(Message(content=code, role="assistant", cause_by=WriteCodeFunction))
+            if not self.use_tools:
+                # code = "print('abc')"
+                code = await WriteCodeByGenerate().run(context=context, plan=self.plan, task_guide=task_guide)
+                cause_by = WriteCodeByGenerate
+
+            else:
+                code = await WriteCodeWithTools().run(context=context, plan=self.plan, task_guide=task_guide)
+                cause_by = WriteCodeWithTools
+
+            self._rc.memory.add(Message(content=code, role="assistant", cause_by=cause_by))
 
             result, success = await ExecutePyCode().run(code)
-            self._rc.memory.add(Message(content=result, role="assistant", cause_by=ExecutePyCode))
+            print(result)
+            self._rc.memory.add(Message(content=result, role="user", cause_by=ExecutePyCode))
 
             # if not success:
             #     await self._ask_review()
@@ -81,16 +102,16 @@ class MLEngineer(Role):
         return code, result, success
 
     async def _ask_review(self):
-        context = self.get_memories()
+        context = self.get_useful_memories()
         review, confirmed = await AskReview().run(context=context[-5:], plan=self.plan)
-        self._rc.memory.add(Message(content=review, role="assistant", cause_by=AskReview))
+        self._rc.memory.add(Message(content=review, role="user", cause_by=AskReview))
         return confirmed
 
     async def _update_plan(self, max_tasks: int = 3):
         current_plan = str([task.json() for task in self.plan.tasks])
         plan_confirmed = False
         while not plan_confirmed:
-            context = self.get_memories()
+            context = self.get_useful_memories()
             rsp = await WritePlan().run(context, current_plan=current_plan, max_tasks=max_tasks)
             self._rc.memory.add(Message(content=rsp, role="assistant", cause_by=WritePlan))
             plan_confirmed = await self._ask_review()
@@ -98,13 +119,18 @@ class MLEngineer(Role):
         tasks = WritePlan.rsp_to_tasks(rsp)
         self.plan.add_tasks(tasks)
 
+    def get_useful_memories(self, current_task_memories: List[str] = []) -> List[Message]:
+        """find useful memories only to reduce context length and improve performance"""
+        memories = super().get_memories()
+        return memories
+
 
 if __name__ == "__main__":
     # requirement = "create a normal distribution and visualize it"
     requirement = "run some analysis on iris dataset"
 
     async def main(requirement: str = requirement):
-        role = MLEngineer()
+        role = MLEngineer(goal=requirement)
         await role.run(requirement)
 
     fire.Fire(main)

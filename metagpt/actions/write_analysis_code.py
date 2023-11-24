@@ -11,17 +11,20 @@ from metagpt.schema import Message, Plan
 
 class BaseWriteAnalysisCode(Action):
 
-    async def run(self, context: List[Message], plan: Plan = None, task_guidance: str = ""):
+    async def run(self, context: List[Message], plan: Plan = None, task_guide: str = "") -> str:
         """Run of a code writing action, used in data analysis or modeling
 
         Args:
             context (List[Message]): Action output history, source action denoted by Message.cause_by
             plan (Plan, optional): Overall plan. Defaults to None.
-            task_guidance (str, optional): suggested step breakdown for the current task. Defaults to "".
+            task_guide (str, optional): suggested step breakdown for the current task. Defaults to "".
+        
+        Returns:
+            str: The code string.
         """
 
-class WriteCodeFunction(BaseWriteAnalysisCode):
-    """Use openai function to generate code."""
+class WriteCodeByGenerate(BaseWriteAnalysisCode):
+    """Write code fully by generation"""
 
     def __init__(self, name: str = "", context=None, llm=None) -> str:
         super().__init__(name, context, llm)
@@ -54,8 +57,15 @@ class WriteCodeFunction(BaseWriteAnalysisCode):
         return prompt
 
     async def run(
-        self, context: [List[Message]], plan: Plan = None, task_guidance: str = "", system_msg: str = None, **kwargs
+        self, context: [List[Message]], plan: Plan = None, task_guide: str = "", system_msg: str = None, **kwargs
     ) -> str:
         prompt = self.process_msg(context, system_msg)
         code_content = await self.llm.aask_code(prompt, **kwargs)
-        return code_content
+        return code_content["code"]
+
+
+class WriteCodeWithTools(BaseWriteAnalysisCode):
+    """Write code with help of local available tools. Choose tools first, then generate code to use the tools"""
+
+    async def run(self, context: List[Message], plan: Plan = None, task_guide: str = "") -> str:
+        return "print('abc')"
