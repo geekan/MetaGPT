@@ -6,6 +6,13 @@
 @File    : write_code.py
 @Modified By: mashenquan, 2023-11-1. In accordance with Chapter 2.1.3 of RFC 116, modify the data type of the `cause_by`
             value of the `Message` object.
+@Modified By: mashenquan, 2023-11-27.
+        1. Mark the location of Design, Tasks, Legacy Code and Debug logs in the PROMPT_TEMPLATE with markdown
+        code-block formatting to enhance the understanding for the LLM.
+        2. Following the think-act principle, solidify the task parameters when creating the WriteCode object, rather
+        than passing them in when calling the run function.
+        3. Encapsulate the input of RunCode into RunCodeContext and encapsulate the output of RunCode into
+        RunCodeResult to standardize and unify parameter passing between WriteCode, RunCode, and DebugError.
 """
 
 from tenacity import retry, stop_after_attempt, wait_fixed
