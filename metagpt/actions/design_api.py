@@ -4,6 +4,9 @@
 @Time    : 2023/5/11 19:26
 @Author  : alexanderwu
 @File    : design_api.py
+@Modified By: mashenquan, 2023/11/27. According to Section 2.2.3.1 of RFC 135, replace file data in the message with
+            the file name. According to the design in Section 2.2.3.5.3 of RFC 135, add incremental iteration
+            functionality.
 """
 import json
 from pathlib import Path
