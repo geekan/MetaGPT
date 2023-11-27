@@ -12,13 +12,15 @@
             RunCodeResult to standardize and unify parameter passing between WriteCode, RunCode, and DebugError.
             4. According to section 2.2.3.5.7 of RFC 135, change the method of transferring file content
             (code files, unit test files, log files) from using the message to using the file name.
+            5. Merged the `Config` class of send18:dev branch to take over the set/get operations of the Environment
+            class.
 """
-import os
 import subprocess
 import traceback
 from typing import Tuple
 
 from metagpt.actions.action import Action
+from metagpt.config import CONFIG
 from metagpt.logs import logger
 from metagpt.schema import RunCodeResult
 
@@ -92,7 +94,7 @@ class RunCode(Action):
         additional_python_paths = [str(path) for path in additional_python_paths]
 
         # Copy the current environment variables
-        env = os.environ.copy()
+        env = CONFIG.new_environ()
 
         # Modify the PYTHONPATH environment variable
         additional_python_paths = [working_directory] + additional_python_paths

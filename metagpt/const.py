@@ -8,6 +8,7 @@
         common properties in the Message.
 @Modified By: mashenquan, 2023-11-27. Defines file repository paths according to Section 2.2.3.4 of RFC 135.
 """
+import contextvars
 from pathlib import Path
 
 
@@ -26,6 +27,8 @@ def get_project_root():
             raise Exception("Project root not found.")
         current_path = parent_path
 
+
+OPTIONS = contextvars.ContextVar("OPTIONS")
 
 PROJECT_ROOT = get_project_root()
 DATA_PATH = PROJECT_ROOT / "data"
