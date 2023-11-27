@@ -4,6 +4,10 @@
 @Time    : 2023/5/11 19:12
 @Author  : alexanderwu
 @File    : project_management.py
+@Modified By: mashenquan, 2023/11/27.
+        1. Divide the context into three components: legacy code, unit test code, and console log.
+        2. Move the document storage operations related to WriteDesign to the save operation of WriteDesign.
+        3. According to the design in Section 2.2.3.5.4 of RFC 135, add incremental iteration functionality.
 """
 import json
 from typing import List
@@ -11,17 +15,10 @@ from typing import List
 from metagpt.actions import ActionOutput
 from metagpt.actions.action import Action
 from metagpt.config import CONFIG
-from metagpt.const import (
-    SYSTEM_DESIGN_FILE_REPO,
-    TASK_FILE_REPO,
-    TASK_PDF_FILE_REPO,
-    WORKSPACE_ROOT,
-)
+from metagpt.const import SYSTEM_DESIGN_FILE_REPO, TASK_FILE_REPO, TASK_PDF_FILE_REPO
 from metagpt.logs import logger
 from metagpt.schema import Document, Documents
-from metagpt.utils.common import CodeParser
 from metagpt.utils.get_template import get_template
-from metagpt.utils.json_to_markdown import json_to_markdown
 
 templates = {
     "json": {
@@ -204,18 +201,6 @@ class WriteTasks(Action):
     def __init__(self, name="CreateTasks", context=None, llm=None):
         super().__init__(name, context, llm)
 
-    def _save(self, context, rsp):
-        if context[-1].instruct_content:
-            ws_name = context[-1].instruct_content.dict()["Python package name"]
-        else:
-            ws_name = CodeParser.parse_str(block="Python package name", text=context[-1].content)
-        file_path = WORKSPACE_ROOT / ws_name / "docs/api_spec_and_tasks.md"
-        file_path.write_text(json_to_markdown(rsp.instruct_content.dict()))
-
-        # Write requirements.txt
-        requirements_path = WORKSPACE_ROOT / ws_name / "requirements.txt"
-        requirements_path.write_text("\n".join(rsp.instruct_content.dict().get("Required Python third-party packages")))
-
     async def run(self, with_messages, format=CONFIG.prompt_format):
         system_design_file_repo = CONFIG.git_repo.new_file_repository(SYSTEM_DESIGN_FILE_REPO)
         changed_system_designs = system_design_file_repo.changed_files
@@ -263,7 +248,6 @@ class WriteTasks(Action):
         prompt_template, format_example = get_template(templates, format)
         prompt = prompt_template.format(context=context, format_example=format_example)
         rsp = await self._aask_v1(prompt, "task", OUTPUT_MAPPING, format=format)
-        # self._save(context, rsp)
         return rsp
 
     async def _merge(self, system_design_doc, task_doc, format=CONFIG.prompt_format) -> Document:
