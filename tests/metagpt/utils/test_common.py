@@ -10,7 +10,7 @@ import os
 
 import pytest
 
-from metagpt.const import get_project_root
+from metagpt.const import get_metagpt_root
 
 
 class TestGetProjectRoot:
@@ -20,11 +20,11 @@ class TestGetProjectRoot:
         os.chdir(abs_root)
 
     def test_get_project_root(self):
-        project_root = get_project_root()
+        project_root = get_metagpt_root()
         assert project_root.name == 'metagpt'
 
     def test_get_root_exception(self):
         with pytest.raises(Exception) as exc_info:
             self.change_etc_dir()
-            get_project_root()
+            get_metagpt_root()
         assert str(exc_info.value) == "Project root not found."

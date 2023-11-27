@@ -7,9 +7,9 @@
 ## Or, you can configure OPENAI_PROXY to access official OPENAI_API_BASE.
 OPENAI_API_BASE: "https://api.openai.com/v1"
 #OPENAI_PROXY: "http://127.0.0.1:8118"
-#OPENAI_API_KEY: "YOUR_API_KEY"   # set the value to sk-xxx if you host the openai interface for open llm model
-OPENAI_API_MODEL: "gpt-4"
-MAX_TOKENS: 1500
+#OPENAI_API_KEY: "YOUR_API_KEY"  # set the value to sk-xxx if you host the openai interface for open llm model
+OPENAI_API_MODEL: "gpt-4-1106-preview"
+MAX_TOKENS: 4096
 RPM: 10
 
 #### if Spark

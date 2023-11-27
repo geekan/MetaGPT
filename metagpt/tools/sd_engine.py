@@ -13,11 +13,9 @@ from typing import List
 from aiohttp import ClientSession
 from PIL import Image, PngImagePlugin
 
-from metagpt.config import Config
-from metagpt.const import WORKSPACE_ROOT
+from metagpt.config import CONFIG
+# from metagpt.const import WORKSPACE_ROOT
 from metagpt.logs import logger
-
-config = Config()
 
 payload = {
     "prompt": "",
@@ -56,9 +54,8 @@ default_negative_prompt = "(easynegative:0.8),black, dark,Low resolution"
 class SDEngine:
     def __init__(self):
         # Initialize the SDEngine with configuration
-        self.config = Config()
-        self.sd_url = self.config.get("SD_URL")
-        self.sd_t2i_url = f"{self.sd_url}{self.config.get('SD_T2I_API')}"
+        self.sd_url = CONFIG.get("SD_URL")
+        self.sd_t2i_url = f"{self.sd_url}{CONFIG.get('SD_T2I_API')}"
         # Define default payload settings for SD API
         self.payload = payload
         logger.info(self.sd_t2i_url)
@@ -81,7 +78,7 @@ class SDEngine:
         return self.payload
 
     def _save(self, imgs, save_name=""):
-        save_dir = WORKSPACE_ROOT / "resources" / "SD_Output"
+        save_dir = CONFIG.workspace_path / "resources" / "SD_Output"
         if not os.path.exists(save_dir):
             os.makedirs(save_dir, exist_ok=True)
         batch_decode_base64_to_image(imgs, save_dir, save_name=save_name)
@@ -124,6 +121,7 @@ def batch_decode_base64_to_image(imgs, save_dir="", save_name=""):
     for idx, _img in enumerate(imgs):
         save_name = join(save_dir, save_name)
         decode_base64_to_image(_img, save_name=save_name)
+
 
 if __name__ == "__main__":
     engine = SDEngine()

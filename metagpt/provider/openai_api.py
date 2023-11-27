@@ -157,6 +157,8 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         if config.openai_api_type:
             openai.api_type = config.openai_api_type
             openai.api_version = config.openai_api_version
+        if config.openai_proxy:
+            openai.proxy = config.openai_proxy
         self.rpm = int(config.get("RPM", 10))
 
     async def _achat_completion_stream(self, messages: list[dict]) -> str:

@@ -11,7 +11,8 @@ from collections import OrderedDict
 from pathlib import Path
 
 from metagpt.actions import WriteCode, WriteCodeReview, WriteDesign, WriteTasks
-from metagpt.const import WORKSPACE_ROOT
+from metagpt.actions.summarize_code import SummarizeCode
+from metagpt.config import CONFIG
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
@@ -73,35 +74,35 @@ class Engineer(Role):
         super().__init__(name, profile, goal, constraints)
         self._init_actions([WriteCode])
         self.use_code_review = use_code_review
-        if self.use_code_review:
-            self._init_actions([WriteCode, WriteCodeReview])
+        # if self.use_code_review:
+        #     self._init_actions([WriteCode, WriteCodeReview])
         self._watch([WriteTasks])
         self.todos = []
         self.n_borg = n_borg
 
     @classmethod
-    def parse_tasks(self, task_msg: Message) -> list[str]:
+    def parse_tasks(cls, task_msg: Message) -> list[str]:
         if task_msg.instruct_content:
             return task_msg.instruct_content.dict().get("Task list")
         return CodeParser.parse_file_list(block="Task list", text=task_msg.content)
 
     @classmethod
-    def parse_code(self, code_text: str) -> str:
+    def parse_code(cls, code_text: str) -> str:
         return CodeParser.parse_code(block="", text=code_text)
 
     @classmethod
     def parse_workspace(cls, system_design_msg: Message) -> str:
         if system_design_msg.instruct_content:
-            return system_design_msg.instruct_content.dict().get("Python package name").strip().strip("'").strip('"')
-        return CodeParser.parse_str(block="Python package name", text=system_design_msg.content)
+            return system_design_msg.instruct_content.dict().get("project_name").strip().strip("'").strip('"')
+        return CodeParser.parse_str(block="project_name", text=system_design_msg.content)
 
     def get_workspace(self) -> Path:
         msg = self._rc.memory.get_by_action(WriteDesign)[-1]
         if not msg:
-            return WORKSPACE_ROOT / "src"
+            return CONFIG.workspace_path / "src"
         workspace = self.parse_workspace(msg)
         # Codes are written in workspace/{package_name}/{package_name}
-        return WORKSPACE_ROOT / workspace / workspace
+        return CONFIG.workspace_path / workspace / workspace
 
     def recreate_workspace(self):
         workspace = self.get_workspace()
@@ -167,7 +168,7 @@ class Engineer(Role):
         )
         return msg
 
-    async def _act_sp_precision(self) -> Message:
+    async def _act_sp_with_cr(self) -> Message:
         code_msg_all = []  # gather all code info, will pass to qa_engineer for tests later
         for todo in self.todos:
             """
@@ -181,23 +182,29 @@ class Engineer(Role):
             msg = self._rc.memory.get_by_actions([WriteDesign, WriteTasks, WriteCode])
             for m in msg:
                 context.append(m.content)
-            context_str = "\n".join(context)
+            context_str = "\n----------\n".join(context)
             # Write code
             code = await WriteCode().run(context=context_str, filename=todo)
             # Code review
             if self.use_code_review:
-                try:
-                    rewrite_code = await WriteCodeReview().run(context=context_str, code=code, filename=todo)
-                    code = rewrite_code
-                except Exception as e:
-                    logger.error("code review failed!", e)
-                    pass
+                # try:
+                rewrite_code = await WriteCodeReview().run(context=context_str, code=code, filename=todo)
+                code = rewrite_code
+                # except Exception as e:
+                #     logger.error("code review failed!", e)
             file_path = self.write_file(todo, code)
             msg = Message(content=code, role=self.profile, cause_by=WriteCode)
             self._rc.memory.add(msg)
 
             code_msg = todo + FILENAME_CODE_SEP + str(file_path)
             code_msg_all.append(code_msg)
+
+        context = []
+        msg = self._rc.memory.get_by_actions([WriteDesign, WriteTasks, WriteCode])
+        for m in msg:
+            context.append(m.content)
+        context_str = "\n----------\n".join(context)
+        summary = await SummarizeCode().run(context=context_str)
 
         logger.info(f"Done {self.get_workspace()} generating.")
         msg = Message(
@@ -209,5 +216,5 @@ class Engineer(Role):
         """Determines the mode of action based on whether code review is used."""
         logger.info(f"{self._setting}: ready to WriteCode")
         if self.use_code_review:
-            return await self._act_sp_precision()
+            return await self._act_sp_with_cr()
         return await self._act_sp()

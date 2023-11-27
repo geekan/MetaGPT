@@ -11,11 +11,9 @@ from typing import List
 
 from metagpt.actions import Action, ActionOutput
 from metagpt.config import CONFIG
-from metagpt.const import WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.utils.common import CodeParser
 from metagpt.utils.get_template import get_template
-from metagpt.utils.json_to_markdown import json_to_markdown
 from metagpt.utils.mermaid import mermaid_to_file
 
 templates = {
@@ -27,21 +25,21 @@ templates = {
 ## Format example
 {format_example}
 -----
-Role: You are an architect; the goal is to design a SOTA PEP8-compliant python system; make the best use of good open source tools
+Role: You are an architect; the goal is to design a SOTA PEP8-compliant python system
+Language: Please use the same language as the user requirement, but the title and code should be still in English. For example, if the user speaks Chinese, the specific text of your answer should also be in Chinese.
 Requirement: Fill in the following missing information based on the context, each section name is a key in json
-Max Output: 8192 chars or 2048 tokens. Try to use them up.
 
-## Implementation approach: Provide as Plain text. Analyze the difficult points of the requirements, select the appropriate open-source framework.
+## Implementation approach: Provide as Plain text. Analyze the difficult points of the requirements, select appropriate open-source frameworks.
 
-## Python package name: Provide as Python str with python triple quoto, concise and clear, characters only use a combination of all lowercase and underscores
+## project_name: Provide as Plain text, concise and clear, characters only use a combination of all lowercase and underscores
 
-## File list: Provided as Python list[str], the list of ONLY REQUIRED files needed to write the program(LESS IS MORE!). Only need relative paths, comply with PEP8 standards. ALWAYS write a main.py or app.py here
+## File list: Provided as Python list[str], the list of files needed (including HTML & CSS IF NEEDED) to write the program. Only need relative paths. ALWAYS write a main.py or app.py here
 
-## Data structures and interface definitions: Use mermaid classDiagram code syntax, including classes (INCLUDING __init__ method) and functions (with type annotations), CLEARLY MARK the RELATIONSHIPS between classes, and comply with PEP8 standards. The data structures SHOULD BE VERY DETAILED and the API should be comprehensive with a complete design. 
+## Data structures and interfaces: Use mermaid classDiagram code syntax, including classes (INCLUDING __init__ method) and functions (with type annotations), CLEARLY MARK the RELATIONSHIPS between classes, and comply with PEP8 standards. The data structures SHOULD BE VERY DETAILED and the API should be comprehensive with a complete design. 
 
 ## Program call flow: Use sequenceDiagram code syntax, COMPLETE and VERY DETAILED, using CLASSES AND API DEFINED ABOVE accurately, covering the CRUD AND INIT of each object, SYNTAX MUST BE CORRECT.
 
-## Anything UNCLEAR: Provide as Plain text. Make clear here.
+## Anything UNCLEAR: Provide as Plain text. Try to clarify it.
 
 output a properly formatted JSON, wrapped inside [CONTENT][/CONTENT] like format example,
 and only output the json inside this tag, nothing else
@@ -50,9 +48,9 @@ and only output the json inside this tag, nothing else
 [CONTENT]
 {
     "Implementation approach": "We will ...",
-    "Python package name": "snake_game",
+    "project_name": "snake_game",
     "File list": ["main.py"],
-    "Data structures and interface definitions": '
+    "Data structures and interfaces": '
     classDiagram
         class Game{
             +int score
@@ -80,21 +78,21 @@ and only output the json inside this tag, nothing else
 {format_example}
 -----
 Role: You are an architect; the goal is to design a SOTA PEP8-compliant python system; make the best use of good open source tools
+Language: Please use the same language as the user requirement, but the title and code should be still in English. For example, if the user speaks Chinese, the specific text of your answer should also be in Chinese.
 Requirement: Fill in the following missing information based on the context, note that all sections are response with code form separately
-Max Output: 8192 chars or 2048 tokens. Try to use them up.
-Attention: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD WRITE BEFORE the code and triple quote.
+ATTENTION: Output carefully referenced "Format example" in format.
 
 ## Implementation approach: Provide as Plain text. Analyze the difficult points of the requirements, select the appropriate open-source framework.
 
-## Python package name: Provide as Python str with python triple quoto, concise and clear, characters only use a combination of all lowercase and underscores
+## project_name: Provide as Plain text, concise and clear, characters only use a combination of all lowercase and underscores
 
-## File list: Provided as Python list[str], the list of ONLY REQUIRED files needed to write the program(LESS IS MORE!). Only need relative paths, comply with PEP8 standards. ALWAYS write a main.py or app.py here
+## File list: Provided as Python list[str], the list of code files (including HTML & CSS IF NEEDED) to write the program. Only need relative paths. ALWAYS write a main.py or app.py here
 
-## Data structures and interface definitions: Use mermaid classDiagram code syntax, including classes (INCLUDING __init__ method) and functions (with type annotations), CLEARLY MARK the RELATIONSHIPS between classes, and comply with PEP8 standards. The data structures SHOULD BE VERY DETAILED and the API should be comprehensive with a complete design. 
+## Data structures and interfaces: Use mermaid classDiagram code syntax, including classes (INCLUDING __init__ method) and functions (with type annotations), CLEARLY MARK the RELATIONSHIPS between classes, and comply with PEP8 standards. The data structures SHOULD BE VERY DETAILED and the API should be comprehensive with a complete design. 
 
 ## Program call flow: Use sequenceDiagram code syntax, COMPLETE and VERY DETAILED, using CLASSES AND API DEFINED ABOVE accurately, covering the CRUD AND INIT of each object, SYNTAX MUST BE CORRECT.
 
-## Anything UNCLEAR: Provide as Plain text. Make clear here.
+## Anything UNCLEAR: Provide as Plain text. Try to clarify it.
 
 """,
         "FORMAT_EXAMPLE": """
@@ -102,7 +100,7 @@ Attention: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD W
 ## Implementation approach
 We will ...
 
-## Python package name
+## project_name
 ```python
 "snake_game"
 ```
@@ -114,7 +112,7 @@ We will ...
 ]
 ```
 
-## Data structures and interface definitions
+## Data structures and interfaces
 ```mermaid
 classDiagram
     class Game{
@@ -141,9 +139,9 @@ The requirement is clear to me.
 
 OUTPUT_MAPPING = {
     "Implementation approach": (str, ...),
-    "Python package name": (str, ...),
+    "project_name": (str, ...),
     "File list": (List[str], ...),
-    "Data structures and interface definitions": (str, ...),
+    "Data structures and interfaces": (str, ...),
     "Program call flow": (str, ...),
     "Anything UNCLEAR": (str, ...),
 }
@@ -173,12 +171,12 @@ class WriteDesign(Action):
 
         if context[-1].instruct_content:
             logger.info(f"Saving PRD to {prd_file}")
-            prd_file.write_text(json_to_markdown(context[-1].instruct_content.dict()))
+            prd_file.write_text(context[-1].instruct_content.json(ensure_ascii=False), encoding='utf-8')
 
     async def _save_system_design(self, docs_path, resources_path, system_design):
         data_api_design = system_design.instruct_content.dict()[
-            "Data structures and interface definitions"
-        ]  # CodeParser.parse_code(block="Data structures and interface definitions", text=content)
+            "Data structures and interfaces"
+        ]  # CodeParser.parse_code(block="Data structures and interfaces", text=content)
         seq_flow = system_design.instruct_content.dict()[
             "Program call flow"
         ]  # CodeParser.parse_code(block="Program call flow", text=content)
@@ -186,14 +184,14 @@ class WriteDesign(Action):
         await mermaid_to_file(seq_flow, resources_path / "seq_flow")
         system_design_file = docs_path / "system_design.md"
         logger.info(f"Saving System Designs to {system_design_file}")
-        system_design_file.write_text((json_to_markdown(system_design.instruct_content.dict())))
+        system_design_file.write_text(system_design.instruct_content.json(ensure_ascii=False), encoding='utf-8')
 
     async def _save(self, context, system_design):
         if isinstance(system_design, ActionOutput):
-            ws_name = system_design.instruct_content.dict()["Python package name"]
+            project_name = system_design.instruct_content.dict()["project_name"]
         else:
-            ws_name = CodeParser.parse_str(block="Python package name", text=system_design)
-        workspace = WORKSPACE_ROOT / ws_name
+            project_name = CodeParser.parse_str(block="project_name", text=system_design)
+        workspace = CONFIG.workspace_path / project_name
         self.recreate_workspace(workspace)
         docs_path = workspace / "docs"
         resources_path = workspace / "resources"
@@ -207,11 +205,11 @@ class WriteDesign(Action):
         prompt = prompt_template.format(context=context, format_example=format_example)
         # system_design = await self._aask(prompt)
         system_design = await self._aask_v1(prompt, "system_design", OUTPUT_MAPPING, format=format)
-        # fix Python package name, we can't system_design.instruct_content.python_package_name = "xxx" since "Python package name" contain space, have to use setattr
-        setattr(
-            system_design.instruct_content,
-            "Python package name",
-            system_design.instruct_content.dict()["Python package name"].strip().strip("'").strip('"'),
-        )
+        # fix project_name, we can't system_design.instruct_content.python_package_name = "xxx" since "project_name" contain space, have to use setattr
+        # setattr(
+        #     system_design.instruct_content,
+        #     "project_name",
+        #     system_design.instruct_content.dict()["project_name"].strip().strip("'").strip('"'),
+        # )
         await self._save(context, system_design)
         return system_design

@@ -30,6 +30,10 @@ class Action(ABC):
         self.desc = ""
         self.content = ""
         self.instruct_content = None
+        self.env = None
+
+    def set_env(self, env):
+        self.env = env
 
     def set_prefix(self, prefix, profile):
         """Set prefix for later usage"""

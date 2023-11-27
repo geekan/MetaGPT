@@ -8,7 +8,7 @@ import platform
 import fire
 
 from metagpt.team import Team
-from metagpt.actions import Action, BossRequirement
+from metagpt.actions import Action, UserRequirement
 from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.logs import logger
@@ -49,7 +49,7 @@ class Debator(Role):
     ):
         super().__init__(name, profile, **kwargs)
         self._init_actions([SpeakAloud])
-        self._watch([BossRequirement, SpeakAloud])
+        self._watch([UserRequirement, SpeakAloud])
         self.name = name
         self.opponent_name = opponent_name
 
@@ -88,7 +88,7 @@ async def debate(idea: str, investment: float = 3.0, n_round: int = 5):
     team = Team()
     team.hire([Biden, Trump])
     team.invest(investment)
-    team.start_project(idea, send_to="Biden") # send debate topic to Biden and let him speak first
+    team.run_project(idea, send_to="Biden") # send debate topic to Biden and let him speak first
     await team.run(n_round=n_round)
 
 

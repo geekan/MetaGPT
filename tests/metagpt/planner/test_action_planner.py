@@ -9,7 +9,7 @@ import pytest
 from semantic_kernel.core_skills import FileIOSkill, MathSkill, TextSkill, TimeSkill
 from semantic_kernel.planning.action_planner.action_planner import ActionPlanner
 
-from metagpt.actions import BossRequirement
+from metagpt.actions import UserRequirement
 from metagpt.roles.sk_agent import SkAgent
 from metagpt.schema import Message
 
@@ -23,7 +23,7 @@ async def test_action_planner():
     role.import_skill(TimeSkill(), "time")
     role.import_skill(TextSkill(), "text")
     task = "What is the sum of 110 and 990?"
-    role.recv(Message(content=task, cause_by=BossRequirement))
+    role.recv(Message(content=task, cause_by=UserRequirement))
 
     await role._think()  # it will choose mathskill.Add
     assert "1100" == (await role._act()).content
