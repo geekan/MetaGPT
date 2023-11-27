@@ -6,15 +6,19 @@
 @File    : repo_parser.py
 """
 import json
-import pathlib
+from pathlib import Path
+
 import ast
-
 import pandas as pd
+from pydantic import BaseModel, Field
+from pprint import pformat
+
+from metagpt.config import CONFIG
+from metagpt.logs import logger
 
 
-class RepoParser:
-    def __init__(self):
-        self.base_directory = None
+class RepoParser(BaseModel):
+    base_directory: Path = Field(default=None)
 
     def parse_file(self, file_path):
         """Parse a Python file in the repository."""
@@ -38,43 +42,42 @@ class RepoParser:
                 file_info["classes"].append({"name": node.name, "methods": class_methods})
             elif is_func(node):
                 file_info["functions"].append(node.name)
-            elif isinstance(node, ast.Assign) or isinstance(node, ast.AnnAssign):
+            elif isinstance(node, (ast.Assign, ast.AnnAssign)):
                 for target in node.targets if isinstance(node, ast.Assign) else [node.target]:
                     if isinstance(target, ast.Name):
                         file_info["globals"].append(target.id)
         return file_info
 
-    def generate_json_structure(self, directory, output_path):
-        """Generate a JSON file documenting the repository structure."""
+    def generate_symbols(self):
         files_classes = []
+        directory = self.base_directory
         for path in directory.rglob('*.py'):
             tree = self.parse_file(path)
             file_info = self.extract_class_and_function_info(tree, path)
             files_classes.append(file_info)
 
+        return files_classes
+
+    def generate_json_structure(self, output_path):
+        """Generate a JSON file documenting the repository structure."""
+        files_classes = self.generate_symbols()
         output_path.write_text(json.dumps(files_classes, indent=4))
 
-    def generate_dataframe_structure(self, directory, output_path):
+    def generate_dataframe_structure(self, output_path):
         """Generate a DataFrame documenting the repository structure and save as CSV."""
-        files_classes = []
-        for path in directory.rglob('*.py'):
-            tree = self.parse_file(path)
-            file_info = self.extract_class_and_function_info(tree, path)
-            files_classes.append(file_info)
-
+        files_classes = self.generate_symbols()
         df = pd.DataFrame(files_classes)
         df.to_csv(output_path, index=False)
 
-    def generate_structure(self, directory_path, output_path=None, mode='json'):
+    def generate_structure(self, output_path=None, mode='json'):
         """Generate the structure of the repository as a specified format."""
-        self.base_directory = pathlib.Path(directory_path)
         output_file = self.base_directory / f"{self.base_directory.name}-structure.{mode}"
-        output_path = pathlib.Path(output_path) if output_path else output_file
+        output_path = Path(output_path) if output_path else output_file
 
         if mode == 'json':
-            self.generate_json_structure(self.base_directory, output_path)
+            self.generate_json_structure(output_path)
         elif mode == 'csv':
-            self.generate_dataframe_structure(self.base_directory, output_path)
+            self.generate_dataframe_structure(output_path)
 
 
 def is_func(node):
@@ -82,8 +85,9 @@ def is_func(node):
 
 
 def main():
-    repo_parser = RepoParser()
-    repo_parser.generate_structure("/Users/alexanderwu/git/mg1/metagpt", "/Users/alexanderwu/git/mg1/mg1-structure.csv", mode='csv')
+    repo_parser = RepoParser(base_directory=CONFIG.workspace_path / "web_2048")
+    symbols = repo_parser.generate_symbols()
+    logger.info(pformat(symbols))
 
 
 if __name__ == '__main__':

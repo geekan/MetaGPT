@@ -11,7 +11,6 @@ from metagpt.actions.action import Action
 from metagpt.config import CONFIG
 from metagpt.utils.common import CodeParser
 from metagpt.utils.get_template import get_template
-from metagpt.utils.json_to_markdown import json_to_markdown
 
 templates = {
     "json": {
@@ -23,18 +22,19 @@ templates = {
 {format_example}
 -----
 Role: You are a project manager; the goal is to break down tasks according to PRD/technical design, give a task list, and analyze task dependencies to start with the prerequisite modules
+Language: Please use the same language as the user requirement, but the title and code should be still in English. For example, if the user speaks Chinese, the specific text of your answer should also be in Chinese.
 Requirements: Based on the context, fill in the following missing information, each section name is a key in json. Here the granularity of the task is a file, if there are any missing files, you can supplement them
-Attention: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD WRITE BEFORE the code and triple quote.
+ATTENTION: Output carefully referenced "Format example" in format.
 
 ## Required Python third-party packages: Provide Python list[str] in requirements.txt format
 
 ## Required Other language third-party packages: Provide Python list[str] in requirements.txt format
 
-## Full API spec: Use OpenAPI 3.0. Describe all APIs that may be used by both frontend and backend.
-
 ## Logic Analysis: Provided as a Python list[list[str]. the first is filename, the second is class/method/function should be implemented in this file. Analyze the dependencies between the files, which work should be done first
 
 ## Task list: Provided as Python list[str]. Each str is a filename, the more at the beginning, the more it is a prerequisite dependency, should be done first
+
+## Full API spec: Use OpenAPI 3.0. Describe all APIs that may be used by both frontend and backend.
 
 ## Shared Knowledge: Anything that should be public like utils' functions, config's variables details that should make clear first. 
 
@@ -52,17 +52,17 @@ and only output the json inside this tag, nothing else
     "Required Other language third-party packages": [
         "No third-party ..."
     ],
+    "Logic Analysis": [
+        ["game.py", "Contains..."]
+    ],
+    "Task list": [
+        "game.py"
+    ],
     "Full API spec": """
         openapi: 3.0.0
         ...
         description: A JSON object ...
      """,
-    "Logic Analysis": [
-        ["game.py","Contains..."]
-    ],
-    "Task list": [
-        "game.py"
-    ],
     "Shared Knowledge": """
         'game.py' contains ...
     """,
@@ -86,11 +86,11 @@ Attention: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD W
 
 ## Required Other language third-party packages: Provided in requirements.txt format
 
-## Full API spec: Use OpenAPI 3.0. Describe all APIs that may be used by both frontend and backend.
-
 ## Logic Analysis: Provided as a Python list[list[str]. the first is filename, the second is class/method/function should be implemented in this file. Analyze the dependencies between the files, which work should be done first
 
 ## Task list: Provided as Python list[str]. Each str is a filename, the more at the beginning, the more it is a prerequisite dependency, should be done first
+
+## Full API spec: Use OpenAPI 3.0. Describe all APIs that may be used by both frontend and backend.
 
 ## Shared Knowledge: Anything that should be public like utils' functions, config's variables details that should make clear first. 
 
@@ -126,14 +126,16 @@ description: A JSON object ...
 ## Logic Analysis
 ```python
 [
-    ["game.py", "Contains ..."],
+    ["index.js", "Contains ..."],
+    ["main.py", "Contains ..."],
 ]
 ```
 
 ## Task list
 ```python
 [
-    "game.py",
+    "index.js",
+    "main.py",
 ]
 ```
 
@@ -167,11 +169,11 @@ class WriteTasks(Action):
 
     def _save(self, context, rsp):
         if context[-1].instruct_content:
-            ws_name = context[-1].instruct_content.dict()["Python package name"]
+            ws_name = context[-1].instruct_content.dict()["project_name"]
         else:
-            ws_name = CodeParser.parse_str(block="Python package name", text=context[-1].content)
+            ws_name = CodeParser.parse_str(block="project_name", text=context[-1].content)
         file_path = CONFIG.workspace_path / ws_name / "docs/api_spec_and_tasks.md"
-        file_path.write_text(json_to_markdown(rsp.instruct_content.dict()))
+        file_path.write_text(rsp.instruct_content.json(ensure_ascii=False))
 
         # Write requirements.txt
         requirements_path = CONFIG.workspace_path / ws_name / "requirements.txt"

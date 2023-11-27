@@ -54,10 +54,7 @@ class Config(metaclass=Singleton):
                 (not self.zhipuai_api_key or "YOUR_API_KEY" == self.zhipuai_api_key):
             raise NotConfiguredException("Set OPENAI_API_KEY or Anthropic_API_KEY or ZHIPUAI_API_KEY first")
         self.openai_api_base = self._get("OPENAI_API_BASE")
-        openai_proxy = self._get("OPENAI_PROXY") or self.global_proxy
-        if openai_proxy:
-            openai.proxy = openai_proxy
-            openai.api_base = self.openai_api_base
+        self.openai_proxy = self._get("OPENAI_PROXY") or self.global_proxy
         self.openai_api_type = self._get("OPENAI_API_TYPE")
         self.openai_api_version = self._get("OPENAI_API_VERSION")
         self.openai_api_rpm = self._get("RPM", 3)
@@ -87,6 +84,7 @@ class Config(metaclass=Singleton):
             logger.warning("LONG_TERM_MEMORY is True")
         self.max_budget = self._get("MAX_BUDGET", 10.0)
         self.total_cost = 0.0
+        self.code_review_k_times = 2
 
         self.puppeteer_config = self._get("PUPPETEER_CONFIG", "")
         self.mmdc = self._get("MMDC", "mmdc")

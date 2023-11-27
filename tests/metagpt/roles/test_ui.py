@@ -18,5 +18,5 @@ async def test_ui_role(idea: str, investment: float = 3.0, n_round: int = 5):
     company = Team()
     company.hire([ProductManager(), UI()])
     company.invest(investment)
-    company.start_project(idea)
+    company.run_project(idea)
     await company.run(n_round=n_round)

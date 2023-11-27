@@ -50,6 +50,7 @@ ROLE_TEMPLATE = """Your response should be based on the previous conversation hi
 {name}: {result}
 """
 
+
 class RoleReactMode(str, Enum):
     REACT = "react"
     BY_ORDER = "by_order"
@@ -58,6 +59,7 @@ class RoleReactMode(str, Enum):
     @classmethod
     def values(cls):
         return [item.value for item in cls]
+
 
 class RoleSetting(BaseModel):
     """Role Settings"""
@@ -131,6 +133,7 @@ class Role:
                     logger.warning(f"is_human attribute does not take effect,"
                         f"as Role's {str(action)} was initialized using LLM, try passing in Action classes instead of initialized instances")
                 i = action
+            i.set_env(self._rc.env)
             i.set_prefix(self._get_prefix(), self.profile)
             self._actions.append(i)
             self._states.append(f"{idx}. {action}")
@@ -171,6 +174,18 @@ class Role:
     def set_env(self, env: 'Environment'):
         """Set the environment in which the role works. The role can talk to the environment and can also receive messages by observing."""
         self._rc.env = env
+
+    def set_doc(self, content: str, filename: str):
+        return self._rc.env.set_doc(content, filename)
+
+    def get_doc(self, filename: str):
+        return self._rc.env.get_doc(filename)
+
+    def set(self, k, v):
+        return self._rc.env.set(k, v)
+
+    def get(self, k):
+        return self._rc.env.get(k)
 
     @property
     def profile(self):

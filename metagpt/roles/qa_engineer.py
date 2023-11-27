@@ -45,8 +45,8 @@ class QaEngineer(Role):
     @classmethod
     def parse_workspace(cls, system_design_msg: Message) -> str:
         if system_design_msg.instruct_content:
-            return system_design_msg.instruct_content.dict().get("Python package name")
-        return CodeParser.parse_str(block="Python package name", text=system_design_msg.content)
+            return system_design_msg.instruct_content.dict().get("project_name")
+        return CodeParser.parse_str(block="project_name", text=system_design_msg.content)
 
     def get_workspace(self, return_proj_dir=True) -> Path:
         msg = self._rc.memory.get_by_action(WriteDesign)[-1]

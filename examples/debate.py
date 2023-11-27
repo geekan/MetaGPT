@@ -88,7 +88,7 @@ async def debate(idea: str, investment: float = 3.0, n_round: int = 5):
     team = Team()
     team.hire([Biden, Trump])
     team.invest(investment)
-    team.start_project(idea, send_to="Biden") # send debate topic to Biden and let him speak first
+    team.run_project(idea, send_to="Biden") # send debate topic to Biden and let him speak first
     await team.run(n_round=n_round)
 
 

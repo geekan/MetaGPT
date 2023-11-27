@@ -15,7 +15,8 @@ def startup(
     code_review: bool = typer.Option(True, help="Whether to use code review."),
     run_tests: bool = typer.Option(False, help="Whether to enable QA for adding & running tests."),
     implement: bool = typer.Option(True, help="Enable or disable code implementation."),
-    project_name: str = typer.Option("", help="Unique project name, such as 'game_2048'"),
+    project_name: str = typer.Option("", help="Unique project name, such as 'game_2048'."),
+    inc: bool = typer.Option(False, help="Incremental mode. Use it to coop with existing repo."),
 ):
     """Run a startup. Be a boss."""
     from metagpt.roles import ProductManager, Architect, ProjectManager, Engineer, QaEngineer
@@ -37,9 +38,9 @@ def startup(
         company.hire([QaEngineer()])
 
     company.invest(investment)
-    company.start_project(project_name, idea)
+    company.run_project(idea, project_name=project_name, inc=inc)
     asyncio.run(company.run(n_round=n_round))
 
 
 if __name__ == "__main__":
-    app()
+    startup(idea="Make a 2048 game.")

@@ -16,6 +16,7 @@ from metagpt.utils.common import CodeParser
 PROMPT_TEMPLATE = """
 NOTICE
 Role: You are a professional engineer; the main goal is to write PEP8 compliant, elegant, modular, easy to read and maintain Python 3.9 code (but you can also use other programming language)
+Language: Please use the same language as the user requirement, but the title and code should be still in English. For example, if the user speaks Chinese, the specific text of your answer should also be in Chinese.
 ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenced "Format example".
 
 -----
@@ -60,7 +61,7 @@ class WriteCode(Action):
 
         design = [i for i in context if i.cause_by == WriteDesign][0]
 
-        ws_name = CodeParser.parse_str(block="Python package name", text=design.content)
+        ws_name = CodeParser.parse_str(block="project_name", text=design.content)
         ws_path = CONFIG.workspace_path / ws_name
         if f"{ws_name}/" not in filename and all(i not in filename for i in ["requirements.txt", ".md"]):
             ws_path = ws_path / ws_name

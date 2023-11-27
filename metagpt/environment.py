@@ -7,10 +7,12 @@
 """
 import asyncio
 from typing import Iterable
+from pathlib import Path
 
 from pydantic import BaseModel, Field
 
 # from metagpt.document import Document
+from metagpt.logs import logger
 from metagpt.document import Repo
 from metagpt.memory import Memory
 from metagpt.roles import Role
@@ -26,6 +28,7 @@ class Environment(BaseModel):
     memory: Memory = Field(default_factory=Memory)
     history: str = Field(default='')
     repo: Repo = Field(default_factory=Repo)
+    kv: dict = Field(default_factory=dict)
 
     class Config:
         arbitrary_types_allowed = True
@@ -52,9 +55,32 @@ class Environment(BaseModel):
         self.memory.add(message)
         self.history += f"\n{message}"
 
-    def publish_doc(self, content: str, filename: str):
+    def set_doc(self, content: str, filename: str):
         """向当前环境发布文档（包括代码）"""
-        self.repo.set(content, filename)
+        return self.repo.set(content, filename)
+
+    def get_doc(self, filename: str):
+        return self.repo.get(filename)
+
+    def set(self, k: str, v: str):
+        self.kv[k] = v
+
+    def get(self, k: str):
+        return self.kv.get(k, None)
+
+    def load_existing_repo(self, path: Path, inc: bool):
+        self.repo = Repo.from_path(path)
+        logger.info(self.repo.eda())
+
+        # Incremental mode: publish all docs to messages. Then roles can read the docs.
+        if inc:
+            docs = self.repo.get_text_documents()
+            for doc in docs:
+                msg = Message(content=doc.content)
+                self.publish_message(msg)
+                logger.info(f"Message from existing doc {doc.path}: {msg}")
+            logger.info(f"Load {len(docs)} docs from existing repo.")
+            raise NotImplementedError
 
     async def run(self, k=1):
         """处理一次所有信息的运行

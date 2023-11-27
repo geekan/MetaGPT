@@ -11,7 +11,7 @@ from collections import OrderedDict
 from pathlib import Path
 
 from metagpt.actions import WriteCode, WriteCodeReview, WriteDesign, WriteTasks
-from metagpt.actions.SummarizeCode import SummarizeCode
+from metagpt.actions.summarize_code import SummarizeCode
 from metagpt.config import CONFIG
 from metagpt.logs import logger
 from metagpt.roles import Role
@@ -74,8 +74,8 @@ class Engineer(Role):
         super().__init__(name, profile, goal, constraints)
         self._init_actions([WriteCode])
         self.use_code_review = use_code_review
-        if self.use_code_review:
-            self._init_actions([WriteCode, WriteCodeReview])
+        # if self.use_code_review:
+        #     self._init_actions([WriteCode, WriteCodeReview])
         self._watch([WriteTasks])
         self.todos = []
         self.n_borg = n_borg
@@ -93,8 +93,8 @@ class Engineer(Role):
     @classmethod
     def parse_workspace(cls, system_design_msg: Message) -> str:
         if system_design_msg.instruct_content:
-            return system_design_msg.instruct_content.dict().get("Python package name").strip().strip("'").strip('"')
-        return CodeParser.parse_str(block="Python package name", text=system_design_msg.content)
+            return system_design_msg.instruct_content.dict().get("project_name").strip().strip("'").strip('"')
+        return CodeParser.parse_str(block="project_name", text=system_design_msg.content)
 
     def get_workspace(self) -> Path:
         msg = self._rc.memory.get_by_action(WriteDesign)[-1]
@@ -182,16 +182,16 @@ class Engineer(Role):
             msg = self._rc.memory.get_by_actions([WriteDesign, WriteTasks, WriteCode])
             for m in msg:
                 context.append(m.content)
-            context_str = "\n".join(context)
+            context_str = "\n----------\n".join(context)
             # Write code
             code = await WriteCode().run(context=context_str, filename=todo)
             # Code review
             if self.use_code_review:
-                try:
-                    rewrite_code = await WriteCodeReview().run(context=context_str, code=code, filename=todo)
-                    code = rewrite_code
-                except Exception as e:
-                    logger.error("code review failed!", e)
+                # try:
+                rewrite_code = await WriteCodeReview().run(context=context_str, code=code, filename=todo)
+                code = rewrite_code
+                # except Exception as e:
+                #     logger.error("code review failed!", e)
             file_path = self.write_file(todo, code)
             msg = Message(content=code, role=self.profile, cause_by=WriteCode)
             self._rc.memory.add(msg)
@@ -203,8 +203,8 @@ class Engineer(Role):
         msg = self._rc.memory.get_by_actions([WriteDesign, WriteTasks, WriteCode])
         for m in msg:
             context.append(m.content)
-        context_str = "\n".join(context)
-        code_review_all = await SummarizeCode().run(context=context_str)
+        context_str = "\n----------\n".join(context)
+        summary = await SummarizeCode().run(context=context_str)
 
         logger.info(f"Done {self.get_workspace()} generating.")
         msg = Message(

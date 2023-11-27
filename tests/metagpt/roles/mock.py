@@ -71,7 +71,7 @@ PRD = '''## 原始需求
 ```
 '''
 
-SYSTEM_DESIGN = '''## Python package name
+SYSTEM_DESIGN = '''## project_name
 ```python
 "smart_search_engine"
 ```

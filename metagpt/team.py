@@ -42,15 +42,19 @@ class Team(BaseModel):
         if CONFIG.total_cost > CONFIG.max_budget:
             raise NoMoneyException(CONFIG.total_cost, f'Insufficient funds: {CONFIG.max_budget}')
 
-    def start_project(self, project_name, idea, send_to: str = ""):
+    def run_project(self, idea, send_to: str = "", project_name: str = "", inc: bool = False):
         """Start a project from publishing user requirement."""
         self.idea = idea
         # If user set project_name, then use it.
-        self.env.repo.name = project_name
+        if project_name:
+            path = CONFIG.workspace_path / project_name
+            self.env.load_existing_repo(path, inc=inc)
+
+        # Human requirement.
         self.env.publish_message(Message(role="Human", content=idea, cause_by=UserRequirement, send_to=send_to))
 
     def _save(self):
-        logger.info(self.json())
+        logger.info(self.json(ensure_ascii=False))
 
     async def run(self, n_round=3):
         """Run company until target round or no money"""
