@@ -208,14 +208,15 @@ class WriteTasks(Action):
         tasks_file_repo = CONFIG.git_repo.new_file_repository(TASK_FILE_REPO)
         changed_tasks = tasks_file_repo.changed_files
         change_files = Documents()
-        # 根据docs/system_designs/下的git head diff识别哪些task文档需要重写
+        # Rewrite the system designs that have undergone changes based on the git head diff under
+        # `docs/system_designs/`.
         for filename in changed_system_designs:
             task_doc = await self._update_tasks(
                 filename=filename, system_design_file_repo=system_design_file_repo, tasks_file_repo=tasks_file_repo
             )
             change_files.docs[filename] = task_doc
 
-        # 根据docs/tasks/下的git head diff识别哪些task文件被用户修改了，需要重写
+        # Rewrite the task files that have undergone changes based on the git head diff under docs/tasks/.
         for filename in changed_tasks:
             if filename in change_files.docs:
                 continue
@@ -226,7 +227,8 @@ class WriteTasks(Action):
 
         if not change_files.docs:
             logger.info("Nothing has changed.")
-        # 等docs/tasks/下所有文件都处理完才发publish message，给后续做全局优化留空间。
+        # Wait until all files under `docs/tasks/` are processed before sending the publish message, leaving room for
+        # global optimization in subsequent steps.
         return ActionOutput(content=change_files.json(), instruct_content=change_files)
 
     async def _update_tasks(self, filename, system_design_file_repo, tasks_file_repo):
