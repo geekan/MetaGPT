@@ -24,8 +24,7 @@ class PrepareDocuments(Action):
 
     async def run(self, with_messages, **kwargs):
         if CONFIG.git_repo:
-            docs_repo = CONFIG.git_repo.new_file_repository(DOCS_FILE_REPO)
-            doc = await docs_repo.get(REQUIREMENT_FILENAME)
+            doc = await FileRepository.get_file(filename=REQUIREMENT_FILENAME, relative_path=DOCS_FILE_REPO)
             return ActionOutput(content=doc.json(exclue="content"), instruct_content=doc)
 
         # Create and initialize the workspace folder, initialize the Git environment.
@@ -34,9 +33,8 @@ class PrepareDocuments(Action):
         CONFIG.git_repo.open(local_path=workdir, auto_init=True)
 
         # Write the newly added requirements from the main parameter idea to `docs/requirement.txt`.
-        docs_file_repository = CONFIG.git_repo.new_file_repository(DOCS_FILE_REPO)
         doc = Document(root_path=DOCS_FILE_REPO, filename=REQUIREMENT_FILENAME, content=with_messages[0].content)
-        await docs_file_repository.save(REQUIREMENT_FILENAME, content=doc.content)
+        await FileRepository.save_file(filename=REQUIREMENT_FILENAME, content=doc.content, relative_path=DOCS_FILE_REPO)
 
         # Send a Message notification to the WritePRD action, instructing it to process requirements using
         # `docs/requirement.txt` and `docs/prds/`.
