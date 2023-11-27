@@ -216,7 +216,7 @@ class WriteTasks(Action):
             )
             change_files.docs[filename] = task_doc
 
-        # Rewrite the task files that have undergone changes based on the git head diff under docs/tasks/.
+        # Rewrite the task files that have undergone changes based on the git head diff under `docs/tasks/`.
         for filename in changed_tasks:
             if filename in change_files.docs:
                 continue
@@ -227,7 +227,7 @@ class WriteTasks(Action):
 
         if not change_files.docs:
             logger.info("Nothing has changed.")
-        # Wait until all files under `docs/tasks/` are processed before sending the publish message, leaving room for
+        # Wait until all files under `docs/tasks/` are processed before sending the publish_message, leaving room for
         # global optimization in subsequent steps.
         return ActionOutput(content=change_files.json(), instruct_content=change_files)
 
