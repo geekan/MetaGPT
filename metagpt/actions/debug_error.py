@@ -5,7 +5,7 @@
 @Author  : alexanderwu
 @File    : debug_error.py
 @Modified By: mashenquan, 2023/11/27. Divide the context into three components: legacy code, unit test code, and
-        console log.
+        console log. According to Section 2.2.3.1 of RFC 135, replace file data in the message with the file name.
 """
 import re
 
