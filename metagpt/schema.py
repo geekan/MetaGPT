@@ -6,7 +6,10 @@
 @File    : schema.py
 @Modified By: mashenquan, 2023-10-31. According to Chapter 2.2.1 of RFC 116:
         Replanned the distribution of responsibilities and functional positioning of `Message` class attributes.
-@Modified By: mashenquan, 2023/11/22. Add `Document` and `Documents` for `FileRepository` in Section 2.2.3.4 of RFC 135.
+@Modified By: mashenquan, 2023/11/22.
+        1. Add `Document` and `Documents` for `FileRepository` in Section 2.2.3.4 of RFC 135.
+        2. Encapsulate the common key-values set to pydantic structures to standardize and unify parameter passing
+        between actions.
 """
 from __future__ import annotations
 
