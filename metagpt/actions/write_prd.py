@@ -10,10 +10,13 @@
             3. Move the document storage operations related to WritePRD from the save operation of WriteDesign.
 @Modified By: mashenquan, 2023/12/5. Move the generation logic of the project name to WritePRD.
 """
+
 from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import List, Optional, Any
+from pydantic import BaseModel, Field
 
 from metagpt.actions import Action, ActionOutput
 from metagpt.actions.action_node import ActionNode
@@ -23,6 +26,8 @@ from metagpt.actions.write_prd_an import (
     WP_ISSUE_TYPE_NODE,
     WRITE_PRD_NODE,
 )
+from metagpt.llm import LLM
+from metagpt.actions.search_and_summarize import SearchAndSummarize
 from metagpt.config import CONFIG
 from metagpt.const import (
     BUGFIX_FILENAME,
@@ -36,11 +41,7 @@ from metagpt.logs import logger
 from metagpt.schema import BugFixContext, Document, Documents, Message
 from metagpt.utils.common import CodeParser
 from metagpt.utils.file_repository import FileRepository
-
-# from metagpt.utils.get_template import get_template
 from metagpt.utils.mermaid import mermaid_to_file
-
-# from typing import List
 
 
 CONTEXT_TEMPLATE = """
@@ -64,8 +65,9 @@ NEW_REQ_TEMPLATE = """
 
 
 class WritePRD(Action):
-    def __init__(self, name="", context=None, llm=None):
-        super().__init__(name, context, llm)
+    name: str = ""
+    content: Optional[str] = None
+    llm: LLM = Field(default_factory=LLM)
 
     async def run(self, with_messages, format=CONFIG.prompt_format, *args, **kwargs) -> ActionOutput | Message:
         # Determine which requirement documents need to be rewritten: Use LLM to assess whether new requirements are

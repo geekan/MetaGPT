@@ -6,10 +6,9 @@
 @File    : action.py
 """
 
-from abc import ABC
-from typing import Optional
-
+from typing import Optional, Any
 from tenacity import retry, stop_after_attempt, wait_random_exponential
+from pydantic import BaseModel, Field
 
 from metagpt.actions.action_output import ActionOutput
 from metagpt.llm import LLM
@@ -20,25 +19,22 @@ from metagpt.utils.utils import general_after_log
 from metagpt.utils.utils import import_class
 
 
-class Action(ABC):
-    def __init__(self, name: str = "", context=None, llm: LLM = None):
-        self.name: str = name
-        if llm is None:
-            llm = LLM()
-        self.llm = llm
-        self.context = context
-        self.prefix = ""  # aask*时会加上prefix，作为system_message
-        self.profile = ""  # FIXME: USELESS
-        self.desc = ""  # for skill manager
-        self.nodes = ...
+action_subclass_registry = {}
 
-        # Output, useless
-        # self.content = ""
-        # self.instruct_content = None
-        # self.env = None
 
-    # def set_env(self, env):
-    #     self.env = env
+class Action(BaseModel):
+    name: str = ""
+    llm: LLM = Field(default_factory=LLM)
+    context = None
+    prefix = ""   # aask*时会加上prefix，作为system_message
+    profile = ""  # FIXME: USELESS
+    desc = ""     # for skill manager
+    nodes = None
+    # content: Optional[str] = None
+    # instruct_content: Optional[str] = None
+    
+    def __init__(self, **kwargs: Any):
+        super().__init__(**kwargs)
 
     def set_prefix(self, prefix, profile):
         """Set prefix for later usage"""
@@ -95,27 +91,26 @@ class Action(ABC):
         after=general_after_log(logger),
     )
     async def _aask_v1(
-        self,
-        prompt: str,
-        output_class_name: str,
-        output_data_mapping: dict,
-        system_msgs: Optional[list[str]] = None,
-        format="markdown",  # compatible to original format
+            self,
+            prompt: str,
+            output_class_name: str,
+            output_data_mapping: dict,
+            system_msgs: Optional[list[str]] = None,
+            format="markdown",  # compatible to original format
     ) -> ActionOutput:
         content = await self.llm.aask(prompt, system_msgs)
         logger.debug(f"llm raw output:\n{content}")
         output_class = ActionOutput.create_model_class(output_class_name, output_data_mapping)
-
+        
         if format == "json":
             parsed_data = llm_output_postprecess(output=content, schema=output_class.schema(), req_key="[/CONTENT]")
-
         else:  # using markdown parser
             parsed_data = OutputParser.parse_data_with_mapping(content, output_data_mapping)
-
-        logger.debug(f"parsed_data:\n{parsed_data}")
+        
+        logger.debug(parsed_data)
         instruct_content = output_class(**parsed_data)
         return ActionOutput(content, instruct_content)
-
+    
     async def run(self, *args, **kwargs):
         """Run action"""
         raise NotImplementedError("The run method should be implemented in a subclass.")

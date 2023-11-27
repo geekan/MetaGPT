@@ -60,7 +60,7 @@ SWAGGER_PATH = UT_PATH / "files/api/"
 UT_PY_PATH = UT_PATH / "files/ut/"
 API_QUESTIONS_PATH = UT_PATH / "files/question/"
 
-SERDES_PATH = DEFAULT_WORKSPACE_ROOT / "storage"  # TODO to store `storage` under the individual generated project
+SERDESER_PATH = DEFAULT_WORKSPACE_ROOT / "storage"  # TODO to store `storage` under the individual generated project
 
 TMP = METAGPT_ROOT / "tmp"
 

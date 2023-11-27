@@ -9,11 +9,15 @@
         2. Move the document storage operations related to WritePRD from the save operation of WriteDesign.
         3. According to the design in Section 2.2.3.5.4 of RFC 135, add incremental iteration functionality.
 """
+
 import json
+from typing import List, Optional, Any
+from pydantic import Field
 
 from metagpt.actions import ActionOutput
 from metagpt.actions.action import Action
 from metagpt.actions.project_management_an import PM_NODE
+from metagpt.llm import LLM
 from metagpt.config import CONFIG
 from metagpt.const import (
     PACKAGE_REQUIREMENTS_FILENAME,
@@ -24,10 +28,8 @@ from metagpt.const import (
 from metagpt.logs import logger
 from metagpt.schema import Document, Documents
 from metagpt.utils.file_repository import FileRepository
+from metagpt.provider.base_gpt_api import BaseGPTAPI
 
-# from typing import List
-
-# from metagpt.utils.get_template import get_template
 
 NEW_REQ_TEMPLATE = """
 ### Legacy Content
@@ -39,8 +41,9 @@ NEW_REQ_TEMPLATE = """
 
 
 class WriteTasks(Action):
-    def __init__(self, name="CreateTasks", context=None, llm=None):
-        super().__init__(name, context, llm)
+    name: str = "CreateTasks"
+    context: Optional[str] = None
+    llm: BaseGPTAPI = Field(default_factory=LLM)
 
     async def run(self, with_messages, format=CONFIG.prompt_format):
         system_design_file_repo = CONFIG.git_repo.new_file_repository(SYSTEM_DESIGN_FILE_REPO)

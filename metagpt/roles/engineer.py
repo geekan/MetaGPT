@@ -16,8 +16,9 @@
 @Modified By: mashenquan, 2023-12-5. Enhance the workflow to navigate to WriteCode or QaEngineer based on the results
     of SummarizeCode.
 """
-from __future__ import annotations
 
+from __future__ import annotations
+from pydantic import Field
 import json
 from collections import defaultdict
 from pathlib import Path
@@ -44,9 +45,11 @@ from metagpt.schema import (
 )
 from metagpt.utils.common import any_to_str, any_to_str_set
 
+
 IS_PASS_PROMPT = """
 {context}
 
+<<<<<<< HEAD
 ----
 Does the above log indicate anything that needs to be done?
 If there are any tasks to be completed, please answer 'NO' along with the to-do list in JSON format;
@@ -66,25 +69,21 @@ class Engineer(Role):
         n_borg (int): Number of borgs.
         use_code_review (bool): Whether to use code review.
     """
+    name: str = "Alex"
+    role_profile: str = Field(default="Engineer", alias='profile')
+    goal: str = "write elegant, readable, extensible, efficient code"
+    constraints: str = "the code should conform to standards like google-style and be modular and maintainable. " \
+                       "Use same language as user requirement",
+    n_borg: int = 1
+    use_code_review: bool = False
+    code_todos: list = []
+    summarize_todos = []
+    
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
 
-    def __init__(
-        self,
-        name: str = "Alex",
-        profile: str = "Engineer",
-        goal: str = "write elegant, readable, extensible, efficient code",
-        constraints: str = "the code should conform to standards like google-style and be modular and maintainable. "
-                           "Use same language as user requirement",
-        n_borg: int = 1,
-        use_code_review: bool = False,
-    ) -> None:
-        """Initializes the Engineer role with given attributes."""
-        super().__init__(name, profile, goal, constraints)
-        self.use_code_review = use_code_review
         self._init_actions([WriteCode])
         self._watch([WriteTasks, SummarizeCode, WriteCode, WriteCodeReview, FixBug])
-        self.code_todos = []
-        self.summarize_todos = []
-        self.n_borg = n_borg
 
     @staticmethod
     def _parse_tasks(task_msg: Document) -> list[str]:

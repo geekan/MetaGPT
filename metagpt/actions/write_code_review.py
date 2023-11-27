@@ -8,9 +8,12 @@
         WriteCode object, rather than passing them in when calling the run function.
 """
 
+from typing import List, Optional, Any
+from pydantic import Field
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.actions import WriteCode
+from metagpt.llm import LLM
 from metagpt.actions.action import Action
 from metagpt.config import CONFIG
 from metagpt.logs import logger
@@ -119,8 +122,9 @@ REWRITE_CODE_TEMPLATE = """
 
 
 class WriteCodeReview(Action):
-    def __init__(self, name="WriteCodeReview", context=None, llm=None):
-        super().__init__(name, context, llm)
+    name: str = "WriteCodeReview"
+    context: Optional[str] = None
+    llm: LLM = Field(default_factory=LLM)
 
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     async def write_code_review_and_rewrite(self, context_prompt, cr_prompt, filename):

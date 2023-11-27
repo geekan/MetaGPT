@@ -55,30 +55,32 @@ class Environment(BaseModel):
 
     def deserialize(self, stg_path: Path):
         """ stg_path: ./storage/team/environment/ """
+        """ stg_path: ./storage/team/environment/ """
         roles_path = stg_path.joinpath("roles.json")
         roles_info = read_json_file(roles_path)
+        roles = []
         for role_info in roles_info:
-            role_class = role_info.get("role_class")
-            role_name = role_info.get("role_name")
-
-            role_path = stg_path.joinpath(f"roles/{role_class}_{role_name}")
+            # role stored in ./environment/roles/{role_class}_{role_name}
+            role_path = stg_path.joinpath(f'roles/{role_info.get("role_class")}_{role_info.get("role_name")}')
             role = Role.deserialize(role_path)
+            roles.append(role)
 
-            self.add_role(role)
+        history = read_json_file(stg_path.joinpath("history.json"))
+        history = history.get("content")
 
-        memory = Memory.deserialize(stg_path)
-        self.memory = memory
-
-        history_path = stg_path.joinpath("history.json")
-        history = read_json_file(history_path)
-        self.history = history.get("content")
+        environment = Environment(**{
+            "history": history
+        })
+        environment.add_roles(roles)
+        return environment
 
     def add_role(self, role: Role):
         """增加一个在当前环境的角色
         Add a role in the current environment
         """
         role.set_env(self)
-        self.roles[role.profile] = role
+        # use alias
+        self.roles[role.role_profile] = role
 
     def add_roles(self, roles: Iterable[Role]):
         """增加一批在当前环境的角色
