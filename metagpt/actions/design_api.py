@@ -196,14 +196,15 @@ class WriteDesign(Action):
         )
 
     async def run(self, with_messages, format=CONFIG.prompt_format):
-        # 通过git diff来识别docs/prds下哪些PRD文档发生了变动
+        # Use `git diff` to identify which PRD documents have been modified in the `docs/prds` directory.
         prds_file_repo = CONFIG.git_repo.new_file_repository(PRDS_FILE_REPO)
         changed_prds = prds_file_repo.changed_files
-        # 通过git diff来识别docs/system_designs下那些设计文档发生了变动；
+        # Use `git diff` to identify which design documents in the `docs/system_designs` directory have undergone
+        # changes.
         system_design_file_repo = CONFIG.git_repo.new_file_repository(SYSTEM_DESIGN_FILE_REPO)
         changed_system_designs = system_design_file_repo.changed_files
 
-        # 对于那些发生变动的PRD和设计文档，重新生成设计内容；
+        # For those PRDs and design documents that have undergone changes, regenerate the design content.
         changed_files = Documents()
         for filename in changed_prds.keys():
             doc = await self._update_system_design(
@@ -220,7 +221,8 @@ class WriteDesign(Action):
             changed_files.docs[filename] = doc
         if not changed_files.docs:
             logger.info("Nothing has changed.")
-        # 等docs/system_designs/下所有文件都处理完才发publish message，给后续做全局优化留空间。
+        # Wait until all files under `docs/system_designs/` are processed before sending the publish message,
+        # leaving room for global optimization in subsequent steps.
         return ActionOutput(content=changed_files.json(), instruct_content=changed_files)
 
     async def _new_system_design(self, context, format=CONFIG.prompt_format):
@@ -253,7 +255,7 @@ class WriteDesign(Action):
 
     @staticmethod
     async def _rename_workspace(system_design):
-        if CONFIG.WORKDIR:  # 已经指定了在旧版本上更新
+        if CONFIG.WORKDIR:  # Updating on the old version has already been specified if it's valid.
             return
 
         if isinstance(system_design, ActionOutput):
