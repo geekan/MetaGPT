@@ -53,6 +53,8 @@ MESSAGE_ROUTE_TO_ALL = "<all>"
 MESSAGE_ROUTE_TO_NONE = "<none>"
 
 REQUIREMENT_FILENAME = "requirement.txt"
+PACKAGE_REQUIREMENTS_FILENAME = "requirements.txt"
+
 DOCS_FILE_REPO = "docs"
 PRDS_FILE_REPO = "docs/prds"
 SYSTEM_DESIGN_FILE_REPO = "docs/system_design"

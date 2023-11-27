@@ -15,7 +15,7 @@ from typing import List
 from metagpt.actions import ActionOutput
 from metagpt.actions.action import Action
 from metagpt.config import CONFIG
-from metagpt.const import SYSTEM_DESIGN_FILE_REPO, TASK_FILE_REPO, TASK_PDF_FILE_REPO
+from metagpt.const import SYSTEM_DESIGN_FILE_REPO, TASK_FILE_REPO, TASK_PDF_FILE_REPO, PACKAGE_REQUIREMENTS_FILENAME
 from metagpt.logs import logger
 from metagpt.schema import Document, Documents
 from metagpt.utils.get_template import get_template
@@ -263,16 +263,15 @@ class WriteTasks(Action):
         m = json.loads(doc.content)
         packages = set(m.get("Required Python third-party packages", set()))
         file_repo = CONFIG.git_repo.new_file_repository()
-        filename = "requirements.txt"
-        requirement_doc = await file_repo.get(filename)
+        requirement_doc = await file_repo.get(filename=PACKAGE_REQUIREMENTS_FILENAME)
         if not requirement_doc:
-            requirement_doc = Document(filename=filename, root_path=".", content="")
+            requirement_doc = Document(filename=PACKAGE_REQUIREMENTS_FILENAME, root_path=".", content="")
         lines = requirement_doc.content.splitlines()
         for pkg in lines:
             if pkg == "":
                 continue
             packages.add(pkg)
-        await file_repo.save(filename, content="\n".join(packages))
+        await file_repo.save(PACKAGE_REQUIREMENTS_FILENAME, content="\n".join(packages))
 
     @staticmethod
     async def _save_pdf(task_doc):
