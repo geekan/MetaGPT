@@ -22,6 +22,7 @@ TOKEN_COSTS = {
     "gpt-4-32k-0314": {"prompt": 0.06, "completion": 0.12},
     "gpt-4-0613": {"prompt": 0.06, "completion": 0.12},
     "text-embedding-ada-002": {"prompt": 0.0004, "completion": 0.0},
+    "chatglm_turbo": {"prompt": 0.0, "completion": 0.00069}  # 32k version, prompt + completion tokens=0.005￥/k-tokens
 }
 
 
@@ -37,6 +38,7 @@ TOKEN_MAX = {
     "gpt-4-32k-0314": 32768,
     "gpt-4-0613": 8192,
     "text-embedding-ada-002": 8192,
+    "chatglm_turbo": 32768
 }
 
 
@@ -68,7 +70,9 @@ def count_message_tokens(messages, model="gpt-3.5-turbo-0613"):
         return count_message_tokens(messages, model="gpt-4-0613")
     else:
         raise NotImplementedError(
-            f"""num_tokens_from_messages() is not implemented for model {model}. See https://github.com/openai/openai-python/blob/main/chatml.md for information on how messages are converted to tokens."""
+            f"num_tokens_from_messages() is not implemented for model {model}. "
+            f"See https://github.com/openai/openai-python/blob/main/chatml.md "
+            f"for information on how messages are converted to tokens."
         )
     num_tokens = 0
     for message in messages:

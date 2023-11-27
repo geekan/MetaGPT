@@ -11,7 +11,7 @@ from metagpt.roles import (
     ProjectManager,
     QaEngineer,
 )
-from metagpt.software_company import SoftwareCompany
+from metagpt.team import Team
 
 
 async def startup(
@@ -23,7 +23,7 @@ async def startup(
     implement: bool = True,
 ):
     """Run a startup. Be a boss."""
-    company = SoftwareCompany()
+    company = Team()
     company.hire(
         [
             ProductManager(),
