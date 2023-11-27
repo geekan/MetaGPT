@@ -5,9 +5,12 @@
 @Author  : alexanderwu
 @File    : write_prd.py
 """
-from typing import List
+from typing import List, Optional, Any
+
+from pydantic import BaseModel, Field
 
 from metagpt.actions import Action, ActionOutput
+from metagpt.llm import LLM
 from metagpt.actions.search_and_summarize import SearchAndSummarize
 from metagpt.config import CONFIG
 from metagpt.logs import logger
@@ -219,18 +222,25 @@ OUTPUT_MAPPING = {
 
 
 class WritePRD(Action):
-    def __init__(self, name="", context=None, llm=None):
-        super().__init__(name, context, llm)
-
+    name: str = ""
+    content: Optional[str] = None
+    llm: LLM = Field(default_factory=LLM)
+    assistant_search_action: Action = None
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+    
     async def run(self, requirements, format=CONFIG.prompt_format, *args, **kwargs) -> ActionOutput:
-        sas = SearchAndSummarize()
-        # rsp = await sas.run(context=requirements, system_text=SEARCH_AND_SUMMARIZE_SYSTEM_EN_US)
-        rsp = ""
-        info = f"### Search Results\n{sas.result}\n\n### Search Summary\n{rsp}"
-        if sas.result:
-            logger.info(sas.result)
+        # self.assistant_search_action = SearchAndSummarize()
+        if self.assistant_search_action is None:
+            self.assistant_search_action = SearchAndSummarize()
+        # self.assistant_search_action = SearchAndSummarize()
+        rsp = await self.assistant_search_action.run(context=requirements)
+        info = f"### Search Results\n{self.assistant_search_action.result}\n\n### Search Summary\n{rsp}"
+        if self.assistant_search_action.result:
+            logger.info(self.assistant_search_action.result)
             logger.info(rsp)
-
+        
         prompt_template, format_example = get_template(templates, format)
         prompt = prompt_template.format(
             requirements=requirements, search_information=info, format_example=format_example
