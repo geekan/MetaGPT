@@ -6,6 +6,11 @@
 @File    : qa_engineer.py
 @Modified By: mashenquan, 2023-11-1. In accordance with Chapter 2.2.1 and 2.2.2 of RFC 116, modify the data
         type of the `cause_by` value in the `Message` to a string, and utilize the new message filtering feature.
+@Modified By: mashenquan, 2023-11-27.
+        1. Following the think-act principle, solidify the task parameters when creating the
+        WriteTest/RunCode/DebugError object, rather than passing them in when calling the run function.
+        2. According to Section 2.2.3.5.7 of RFC 135, change the method of transferring files from using the Message
+        to using file references.
 """
 from metagpt.actions import DebugError, RunCode, WriteCode, WriteCodeReview, WriteTest
 from metagpt.config import CONFIG
