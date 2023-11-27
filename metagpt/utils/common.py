@@ -6,6 +6,8 @@
 @File    : common.py
 @Modified By: mashenquan, 2023-11-1. According to Chapter 2.2.2 of RFC 116:
         Add generic class-to-string and object-to-string conversion functionality.
+@Modified By: mashenquan, 2023/11/27. Bug fix: `parse_recipient` failed to parse the recipient in certain GPT-3.5
+        responses.
 """
 import ast
 import contextlib
