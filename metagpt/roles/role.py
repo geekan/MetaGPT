@@ -158,19 +158,6 @@ class Role(BaseModel):
         module = getattr(module_file, module_name)
         return module
     
-    # def deserialize(self, dict_data: Dict):
-    #     data = self.parse_obj(dict_data)
-    #     actions = []
-    #
-    #     # 反序列化按states顺序
-    #     for idx, _item in enumerate(data._actions):
-    #         action_cls = data._actions_type[idx]
-    #         cls = data._states[idx].split(f"{idx}. ")[-1]
-    #
-    #         module = self._process_class(cls, module_name=action_cls)
-    #         actions.append(module().deserialize(_item))
-    #     object.__setattr__(data, '_actions', actions)
-    #     return data
     
     def _init_actions(self, actions):
         self._reset()
