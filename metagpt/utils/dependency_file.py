@@ -18,11 +18,21 @@ from metagpt.logs import logger
 
 
 class DependencyFile:
+    """A class representing a DependencyFile for managing dependencies.
+
+    :param workdir: The working directory path for the DependencyFile.
+    """
+
     def __init__(self, workdir: Path | str):
+        """Initialize a DependencyFile instance.
+
+        :param workdir: The working directory path for the DependencyFile.
+        """
         self._dependencies = {}
         self._filename = Path(workdir) / ".dependencies.json"
 
     async def load(self):
+        """Load dependencies from the file asynchronously."""
         if not self._filename.exists():
             return
         try:
@@ -33,6 +43,7 @@ class DependencyFile:
             logger.error(f"Failed to load {str(self._filename)}, error:{e}")
 
     async def save(self):
+        """Save dependencies to the file asynchronously."""
         try:
             data = json.dumps(self._dependencies)
             async with aiofiles.open(str(self._filename), mode="w") as writer:
@@ -41,6 +52,12 @@ class DependencyFile:
             logger.error(f"Failed to save {str(self._filename)}, error:{e}")
 
     async def update(self, filename: Path | str, dependencies: Set[Path | str], persist=True):
+        """Update dependencies for a file asynchronously.
+
+        :param filename: The filename or path.
+        :param dependencies: The set of dependencies.
+        :param persist: Whether to persist the changes immediately.
+        """
         if persist:
             await self.load()
 
@@ -65,6 +82,12 @@ class DependencyFile:
             await self.save()
 
     async def get(self, filename: Path | str, persist=False):
+        """Get dependencies for a file asynchronously.
+
+        :param filename: The filename or path.
+        :param persist: Whether to load dependencies from the file immediately.
+        :return: A set of dependencies.
+        """
         if persist:
             await self.load()
 
@@ -76,8 +99,10 @@ class DependencyFile:
         return set(self._dependencies.get(str(key), {}))
 
     def delete_file(self):
+        """Delete the dependency file."""
         self._filename.unlink(missing_ok=True)
 
     @property
     def exists(self):
+        """Check if the dependency file exists."""
         return self._filename.exists()
