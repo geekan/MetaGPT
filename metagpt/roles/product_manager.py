@@ -4,6 +4,7 @@
 @Time    : 2023/5/11 14:43
 @Author  : alexanderwu
 @File    : product_manager.py
+@Modified By: mashenquan, 2023/11/27. Add `PrepareDocuments` action according to Section 2.2.3.5.1 of RFC 135.
 """
 from metagpt.actions import BossRequirement, WritePRD
 from metagpt.actions.prepare_documents import PrepareDocuments
