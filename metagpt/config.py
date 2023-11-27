@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 """
 Provide configuration, singleton
+@Modified By: mashenquan, 2023/11/27.
+        1. According to Section 2.2.3.11 of RFC 135, add git repository support.
+        2. Add the parameter `src_workspace` for the old version project path.
 """
 import os
 
