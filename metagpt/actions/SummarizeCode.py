@@ -5,11 +5,10 @@
 @File    : SummarizeCode.py
 """
 
+from tenacity import retry, stop_after_attempt, wait_fixed
 from metagpt.actions.action import Action
 from metagpt.logs import logger
 from metagpt.schema import Message
-from metagpt.utils.common import CodeParser
-from tenacity import retry, stop_after_attempt, wait_fixed
 
 PROMPT_TEMPLATE = """
 NOTICE
@@ -23,9 +22,9 @@ ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenc
 
 ## Code Review All: 请你对历史所有文件进行阅读，分析每个文件是否都完整实现了用户需求，找到可能的bug，如函数未实现、调用错误、未引用等
 
-## Summary: 根据历史文件的实现情况进行总结
-
 ## Call flow: 根据实现的函数，使用mermaid绘制完整的调用链
+
+## Summary: 根据历史文件的实现情况进行总结
 
 ## TODOs: 这里写出需要修改的文件列表，我们会在之后进行修改
 
@@ -80,14 +79,13 @@ class SummarizeCode(Action):
         super().__init__(name, context, llm)
 
     @retry(stop=stop_after_attempt(2), wait=wait_fixed(1))
-    async def write_code_review_all(self, prompt):
+    async def summarize_code(self, prompt):
         code_rsp = await self._aask(prompt)
         return code_rsp
 
     async def run(self, context):
         format_example = FORMAT_EXAMPLE.format()
         prompt = PROMPT_TEMPLATE.format(context=context, format_example=format_example)
-        logger.info(f'Code review all..')
-        rsp = await self.write_code_review_all(prompt)
+        logger.info("Code review all..")
+        rsp = await self.summarize_code(prompt)
         return rsp
-    
