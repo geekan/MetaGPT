@@ -4,6 +4,8 @@
 @Time    : 2023/5/11 22:12
 @Author  : alexanderwu
 @File    : environment.py
+@Modified By: mashenquan, 2023-11-27. Following the think-act principle, solidify the task parameters when creating the
+        WriteTest object, rather than passing them in when calling the run function.
 """
 from metagpt.actions.action import Action
 from metagpt.config import CONFIG
