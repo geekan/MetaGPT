@@ -10,6 +10,9 @@
     2. Consolidate message reception and processing logic within `_observe`.
     3. Fix bug: Add logic for handling asynchronous message processing when messages are not ready.
     4. Supplemented the external transmission of internal messages.
+@Modified By: mashenquan, 2023-11-27.
+    1. According to Section 2.2.3.1 of RFC 135, replace file data in the message with the file name.
+    2. According to the design in Section 2.2.3.5.5 of RFC 135, add incremental iteration functionality.
 """
 from __future__ import annotations
 
@@ -97,11 +100,11 @@ class Engineer(Role):
     async def _act(self) -> Message:
         """Determines the mode of action based on whether code review is used."""
         changed_files = await self._act_sp_precision(review=self.use_code_review)
-        # 仅单测
+        # Unit tests only.
         if CONFIG.REQA_FILENAME and CONFIG.REQA_FILENAME not in changed_files:
             changed_files.add(CONFIG.REQA_FILENAME)
 
-        from metagpt.roles import QaEngineer  # 避免循环引用
+        from metagpt.roles import QaEngineer  # Avoid circular references.
 
         msg = Message(
             content="\n".join(changed_files),
@@ -122,7 +125,7 @@ class Engineer(Role):
         design_file_repo = CONFIG.git_repo.new_file_repository(SYSTEM_DESIGN_FILE_REPO)
 
         changed_files = Documents()
-        # 由上游变化导致的recode
+        # Recode caused by upstream changes.
         for filename in changed_task_files:
             design_doc = await design_file_repo.get(filename)
             task_doc = await task_file_repo.get(filename)
@@ -144,7 +147,7 @@ class Engineer(Role):
                     )
                 changed_files.docs[task_filename] = coding_doc
         self.todos = [WriteCode(context=i, llm=self._llm) for i in changed_files.docs.values()]
-        # 用户直接修改的code
+        # Code directly modified by the user.
         dependency = await CONFIG.git_repo.get_dependency()
         for filename in changed_src_files:
             if filename in changed_files.docs:
