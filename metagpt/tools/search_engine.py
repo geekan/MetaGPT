@@ -8,6 +8,8 @@
 import importlib
 from typing import Callable, Coroutine, Literal, overload, Optional, Union
 
+from pydantic import BaseModel, root_validator, ValidationError, validator
+
 from semantic_kernel.skill_definition import sk_function
 
 from metagpt.config import CONFIG
@@ -20,7 +22,7 @@ class SkSearchEngine:
 
     @sk_function(
         description="searches results from Google. Useful when you need to find short "
-        "and succinct answers about a specific topic. Input should be a search query.",
+                    "and succinct answers about a specific topic. Input should be a search query.",
         name="searchAsync",
         input_description="search",
     )
@@ -29,7 +31,7 @@ class SkSearchEngine:
         return result
 
 
-class SearchEngine:
+class SearchEngine(BaseModel):
     """Class representing a search engine.
 
     Args:
@@ -40,13 +42,18 @@ class SearchEngine:
         run_func: The function to run the search.
         engine: The search engine type.
     """
+    engine:SearchEngineType
+    run_func: Callable[[str, int, bool], Coroutine[None, None, Union[str, list[str]]]] = None
 
-    def __init__(
-        self,
-            engine: Optional[SearchEngineType] = None,
-            run_func: Callable[[str, int, bool], Coroutine[None, None, Union[str, list[str]]]] = None,
-    ):
-        engine = engine or CONFIG.search_engine
+    @root_validator
+    def validate_engine_and_run_func(cls, values):
+        engine = values.get('engine')
+        run_func = values.get('run_func')
+        # values = {}
+        # 对 engine 属性进行验证和处理
+        if engine is None:
+            raise ValidationError('engine cannot be None')
+    
         if engine == SearchEngineType.SERPAPI_GOOGLE:
             module = "metagpt.tools.search_engine_serpapi"
             run_func = importlib.import_module(module).SerpAPIWrapper().run
@@ -60,27 +67,30 @@ class SearchEngine:
             module = "metagpt.tools.search_engine_ddg"
             run_func = importlib.import_module(module).DDGAPIWrapper().run
         elif engine == SearchEngineType.CUSTOM_ENGINE:
-            pass  # run_func = run_func
+            # 在这里添加对 custom_engine 的处理逻辑
+            pass
         else:
-            raise NotImplementedError
-        self.engine = engine
-        self.run_func = run_func
+            raise ValidationError('Invalid engine type')
+    
+        # 将处理后的 run_func 设置回模型
+        values['run_func'] = run_func
+        return values
 
     @overload
     def run(
-        self,
-        query: str,
-        max_results: int = 8,
-        as_string: Literal[True] = True,
+            self,
+            query: str,
+            max_results: int = 8,
+            as_string: Literal[True] = True,
     ) -> str:
         ...
 
     @overload
     def run(
-        self,
-        query: str,
-        max_results: int = 8,
-        as_string: Literal[False] = False,
+            self,
+            query: str,
+            max_results: int = 8,
+            as_string: Literal[False] = False,
     ) -> list[dict[str, str]]:
         ...
 
@@ -96,3 +106,21 @@ class SearchEngine:
             The search results as a string or a list of dictionaries.
         """
         return await self.run_func(query, max_results=max_results, as_string=as_string)
+
+
+if __name__ =="__main__":
+    # from metagpt.config import Config
+    # engine = Config().search_engine
+    # print(engine)
+    # ss_engine = SearchEngine({"engine":None,
+    #                           "run_func":""})
+    config_data = {
+        'engine': SearchEngineType.SERPAPI_GOOGLE,
+        'run_func': None  # 你可以设置一个默认值，或者让 Pydantic 抛出 ValidationError
+    }
+
+    # try:
+    # search_engine_config = SearchEngine(SearchEngineType.SERPAPI_GOOGLE, None)
+    search_engine_config = SearchEngine(**config_data)
+    # except ValidationError as e:
+    #     print(f"Validation error: {e}")

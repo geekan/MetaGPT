@@ -19,7 +19,6 @@ DETAIL_REQUIREMENT = """需求：开发一个基于LLM（大语言模型）与�
 1. 大语言模型已经有前置的抽象、部署，可以通过 `from metagpt.llm import LLM`，再使用`LLM().ask(prompt)`直接调用
 2. Elastic已有[部署](http://192.168.50.82:9200/)，代码可以直接使用这个部署"""
 
-
 PRD = '''## 原始需求
 ```python
 """
@@ -151,7 +150,6 @@ sequenceDiagram
 ```
 '''
 
-
 TASKS = '''## Logic Analysis
 
 在这个项目中，所有的模块都依赖于“SearchEngine”类，这是主入口，其他的模块（Index、Ranking和Summary）都通过它交互。另外，"Index"类又依赖于"KnowledgeBase"类，因为它需要从知识库中获取数据。
@@ -182,7 +180,6 @@ task_list = [
 ```
 这个任务列表首先定义了最基础的模块，然后是依赖这些模块的模块，最后是辅助模块。可以根据团队的能力和资源，同时开发多个任务，只要满足依赖关系。例如，在开发"search.py"之前，可以同时开发"knowledge_base.py"、"index.py"、"ranking.py"和"summary.py"。
 '''
-
 
 TASKS_TOMATO_CLOCK = '''## Required Python third-party packages: Provided in requirements.txt format
 ```python
@@ -224,30 +221,30 @@ task_list = [
 TASK = """smart_search_engine/knowledge_base.py"""
 
 STRS_FOR_PARSING = [
-"""
-## 1
-```python
-a
-```
-""",
-"""
-##2
-```python
-"a"
-```
-""",
-"""
-##  3
-```python
-a = "a"
-```
-""",
-"""
-## 4
-```python
-a =  'a'
-```
-"""
+    """
+    ## 1
+    ```python
+    a
+    ```
+    """,
+    """
+    ##2
+    ```python
+    "a"
+    ```
+    """,
+    """
+    ##  3
+    ```python
+    a = "a"
+    ```
+    """,
+    """
+    ## 4
+    ```python
+    a =  'a'
+    ```
+    """
 ]
 
 

@@ -5,12 +5,15 @@
 @Author  : alexanderwu
 @File    : write_code_review.py
 """
+from typing import List, Optional, Any
+from pydantic import Field
+from tenacity import retry, stop_after_attempt, wait_fixed
 
+from metagpt.llm import LLM
 from metagpt.actions.action import Action
 from metagpt.logs import logger
 from metagpt.schema import Message
 from metagpt.utils.common import CodeParser
-from tenacity import retry, stop_after_attempt, wait_fixed
 
 PROMPT_TEMPLATE = """
 NOTICE
@@ -62,9 +65,10 @@ FORMAT_EXAMPLE = """
 
 
 class WriteCodeReview(Action):
-    def __init__(self, name="WriteCodeReview", context: list[Message] = None, llm=None):
-        super().__init__(name, context, llm)
-
+    name: str = "WriteCodeReview"
+    context: Optional[str] = None
+    llm: LLM = Field(default_factory=LLM)
+    
     @retry(stop=stop_after_attempt(2), wait=wait_fixed(1))
     async def write_code(self, prompt):
         code_rsp = await self._aask(prompt)
@@ -79,4 +83,3 @@ class WriteCodeReview(Action):
         # code_rsp = await self._aask_v1(prompt, "code_rsp", OUTPUT_MAPPING)
         # self._save(context, filename, code)
         return code
-    

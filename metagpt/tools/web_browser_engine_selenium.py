@@ -28,12 +28,12 @@ class SeleniumWrapper:
     """
 
     def __init__(
-        self,
-        browser_type: Literal["chrome", "firefox", "edge", "ie"] | None = None,
-        launch_kwargs: dict | None = None,
-        *,
-        loop: asyncio.AbstractEventLoop | None = None,
-        executor: futures.Executor | None = None,
+            self,
+            browser_type: Literal["chrome", "firefox", "edge", "ie"] | None = None,
+            launch_kwargs: dict | None = None,
+            *,
+            loop: asyncio.AbstractEventLoop | None = None,
+            executor: futures.Executor | None = None,
     ) -> None:
         if browser_type is None:
             browser_type = CONFIG.selenium_browser_type
@@ -117,7 +117,9 @@ def _gen_get_driver_func(browser_type, *args, executable_path=None):
 if __name__ == "__main__":
     import fire
 
+
     async def main(url: str, *urls: str, browser_type: str = "chrome", **kwargs):
         return await SeleniumWrapper(browser_type, **kwargs).run(url, *urls)
+
 
     fire.Fire(main)

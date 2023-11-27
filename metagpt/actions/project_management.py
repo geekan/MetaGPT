@@ -5,9 +5,12 @@
 @Author  : alexanderwu
 @File    : project_management.py
 """
-from typing import List
+from typing import List, Optional, Any
+
+from pydantic import Field
 
 from metagpt.actions.action import Action
+from metagpt.llm import LLM
 from metagpt.config import CONFIG
 from metagpt.const import WORKSPACE_ROOT
 from metagpt.utils.common import CodeParser
@@ -163,21 +166,25 @@ OUTPUT_MAPPING = {
 
 
 class WriteTasks(Action):
-    def __init__(self, name="CreateTasks", context=None, llm=None):
-        super().__init__(name, context, llm)
-
+    name: str = "CreateTasks"
+    context: Optional[str] = None
+    llm: LLM = Field(default_factory=LLM)
+    
     def _save(self, context, rsp):
-        if context[-1].instruct_content:
-            ws_name = context[-1].instruct_content.dict()["Python package name"]
-        else:
-            ws_name = CodeParser.parse_str(block="Python package name", text=context[-1].content)
+        try:
+            if context[-1].instruct_content:
+                ws_name = context[-1].instruct_content.dict()["Python package name"]
+            else:
+                ws_name = CodeParser.parse_str(block="Python package name", text=context[-1].content)
+        except:
+            ws_name = "cli_snake_game" # fixme: 应该透传
         file_path = WORKSPACE_ROOT / ws_name / "docs/api_spec_and_tasks.md"
         file_path.write_text(json_to_markdown(rsp.instruct_content.dict()))
-
+        
         # Write requirements.txt
         requirements_path = WORKSPACE_ROOT / ws_name / "requirements.txt"
         requirements_path.write_text("\n".join(rsp.instruct_content.dict().get("Required Python third-party packages")))
-
+    
     async def run(self, context, format=CONFIG.prompt_format):
         prompt_template, format_example = get_template(templates, format)
         prompt = prompt_template.format(context=context, format_example=format_example)

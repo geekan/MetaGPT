@@ -29,7 +29,7 @@ class Message:
     cause_by: Type["Action"] = field(default="")
     sent_from: str = field(default="")
     send_to: str = field(default="")
-    round_id: int=0
+    restricted_to: str = field(default="")
 
     def __str__(self):
         # prefix = '-'.join([self.role, str(self.cause_by)])
@@ -50,6 +50,7 @@ class UserMessage(Message):
     """便于支持OpenAI的消息
        Facilitate support for OpenAI messages
     """
+
     def __init__(self, content: str):
         super().__init__(content, 'user')
 
@@ -59,6 +60,7 @@ class SystemMessage(Message):
     """便于支持OpenAI的消息
        Facilitate support for OpenAI messages
     """
+
     def __init__(self, content: str):
         super().__init__(content, 'system')
 
@@ -68,19 +70,11 @@ class AIMessage(Message):
     """便于支持OpenAI的消息
        Facilitate support for OpenAI messages
     """
+
     def __init__(self, content: str):
         super().__init__(content, 'assistant')
 
-class HumanMessage(Message):
-    """
-    便于支持OpenAI的消息
-    Facilitate support for OpenAI messages
-    """
 
-    def __init__(self, content: str):
-        super().__init__(content, 'human')
-        
-        
 if __name__ == '__main__':
     test_content = 'test_message'
     msgs = [

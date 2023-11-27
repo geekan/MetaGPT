@@ -5,11 +5,21 @@
 @Author  : alexanderwu
 @File    : role.py
 """
+
 from __future__ import annotations
 
-from typing import Iterable, Type
-
+import sys
+from types import SimpleNamespace
+from typing import (
+    Dict,
+    Optional,
+    Union,
+    Iterable,
+    Type
+)
+import re
 from pydantic import BaseModel, Field
+from importlib import import_module
 
 # from metagpt.environment import Environment
 from metagpt.config import CONFIG
@@ -49,15 +59,15 @@ ROLE_TEMPLATE = """Your response should be based on the previous conversation hi
 
 class RoleSetting(BaseModel):
     """Role Settings"""
-    name: str
-    profile: str
-    goal: str
-    constraints: str
-    desc: str
-
+    name: str = ""
+    profile: str = ""
+    goal: str = ""
+    constraints: str = ""
+    desc: str = ""
+    
     def __str__(self):
         return f"{self.name}({self.profile})"
-
+    
     def __repr__(self):
         return self.__str__()
 
@@ -71,79 +81,138 @@ class RoleContext(BaseModel):
     todo: Action = Field(default=None)
     watch: set[Type[Action]] = Field(default_factory=set)
     news: list[Type[Message]] = Field(default=[])
-
+    
     class Config:
         arbitrary_types_allowed = True
-
+    
     def check(self, role_id: str):
         if hasattr(CONFIG, "long_term_memory") and CONFIG.long_term_memory:
             self.long_term_memory.recover_memory(role_id, self)
             self.memory = self.long_term_memory  # use memory to act as long_term_memory for unify operation
-
+    
     @property
     def important_memory(self) -> list[Message]:
         """Get the information corresponding to the watched actions"""
         return self.memory.get_by_actions(self.watch)
-
+    
     @property
     def history(self) -> list[Message]:
         return self.memory.get()
 
 
-class Role:
+class Role(BaseModel):
     """Role/Agent"""
-
-    def __init__(self, name="", profile="", goal="", constraints="", desc=""):
-        self._llm = LLM()
-        self._setting = RoleSetting(name=name, profile=profile, goal=goal, constraints=constraints, desc=desc)
-        self._states = []
-        self._actions = []
-        self._role_id = str(self._setting)
-        self._rc = RoleContext()
-
+    name: str = ""
+    profile: str = ""
+    goal: str = ""
+    constraints: str = ""
+    desc: str = ""
+    _setting: RoleSetting = Field(default_factory=RoleSetting, alias="_setting")
+    _setting = RoleSetting(name=name, profile=profile, goal=goal, constraints=constraints)
+    _role_id: str = ""
+    _states: list = Field(default=[])
+    _actions: list = Field(default=[])
+    _actions_type: list = Field(default=[])
+    _rc: RoleContext = RoleContext()
+    
+    _private_attributes = {
+        '_setting': _setting,
+        '_role_id': _role_id,
+        '_states': [],
+        '_actions': [],
+        '_actions_type': []  # 用于记录和序列化
+    }
+    
+    class Config:
+        arbitrary_types_allowed = True
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # 关于私有变量的初始化  https://github.com/pydantic/pydantic/issues/655
+        for key in self._private_attributes.keys():
+            if key in kwargs:
+                object.__setattr__(self, key, kwargs[key])
+                if key =="_setting":
+                    _setting = RoleSetting(**kwargs[key])
+                    object.__setattr__(self, '_setting', _setting)
+                elif key == "_rc":
+                    _rc = RoleContext
+                    object.__setattr__(self, '_rc', _rc)
+            else:
+                object.__setattr__(self, key, self._private_attributes[key])
+    
     def _reset(self):
-        self._states = []
-        self._actions = []
+        object.__setattr__(self, '_states', [])
+        object.__setattr__(self, '_actions', [])
+    
 
+    
+    @staticmethod
+    def _process_class(class_str, module_name):
+        cleaned_string = re.sub(r"[<>']", "", class_str).replace("class ", "")
+        package_name = "metagpt"
+        file_name = cleaned_string.replace(package_name, "").replace("." + module_name, "")
+        print(file_name)
+        # print("\n", sys.modules)
+        module_file = import_module(file_name, package=package_name)
+        module = getattr(module_file, module_name)
+        return module
+    
+    # def deserialize(self, dict_data: Dict):
+    #     data = self.parse_obj(dict_data)
+    #     actions = []
+    #
+    #     # 反序列化按states顺序
+    #     for idx, _item in enumerate(data._actions):
+    #         action_cls = data._actions_type[idx]
+    #         cls = data._states[idx].split(f"{idx}. ")[-1]
+    #
+    #         module = self._process_class(cls, module_name=action_cls)
+    #         actions.append(module().deserialize(_item))
+    #     object.__setattr__(data, '_actions', actions)
+    #     return data
+    
     def _init_actions(self, actions):
         self._reset()
         for idx, action in enumerate(actions):
             if not isinstance(action, Action):
-                i = action("")
+                ## 默认初始化
+                i = action()
             else:
                 i = action
             i.set_prefix(self._get_prefix(), self.profile)
             self._actions.append(i)
             self._states.append(f"{idx}. {action}")
-
+            action_title = action.schema()["title"]
+            self._actions_type.append(action_title)
+    
     def _watch(self, actions: Iterable[Type[Action]]):
         """Listen to the corresponding behaviors"""
         self._rc.watch.update(actions)
         # check RoleContext after adding watch actions
         self._rc.check(self._role_id)
-
+    
     def _set_state(self, state):
         """Update the current state."""
         self._rc.state = state
         logger.debug(self._actions)
         self._rc.todo = self._actions[self._rc.state]
-        logger.info(self._rc.todo)
-
+    
     def set_env(self, env: 'Environment'):
         """Set the environment in which the role works. The role can talk to the environment and can also receive messages by observing."""
         self._rc.env = env
-
+    
     @property
     def profile(self):
         """Get the role description (position)"""
         return self._setting.profile
-
+    
     def _get_prefix(self):
         """Get the role prefix"""
         if self._setting.desc:
             return self._setting.desc
         return PREFIX_TEMPLATE.format(**self._setting.dict())
-
+    
     async def _think(self) -> None:
         """Think about what to do and decide on the next action"""
         if len(self._actions) == 1:
@@ -159,58 +228,53 @@ class Role:
             logger.warning(f'Invalid answer of state, {next_state=}')
             next_state = "0"
         self._set_state(int(next_state))
-
+    
     async def _act(self) -> Message:
-        # prompt = self.get_prefix()
-        # prompt += ROLE_TEMPLATE.format(name=self.profile, state=self.states[self.state], result=response,
-        #                                history=self.history)
-
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
         response = await self._rc.todo.run(self._rc.important_memory)
         # logger.info(response)
         if isinstance(response, ActionOutput):
             msg = Message(content=response.content, instruct_content=response.instruct_content,
-                        role=self.profile, cause_by=type(self._rc.todo))
+                          role=self.profile, cause_by=type(self._rc.todo))
         else:
             msg = Message(content=response, role=self.profile, cause_by=type(self._rc.todo))
         self._rc.memory.add(msg)
         # logger.debug(f"{response}")
-
+        
         return msg
-
+    
     async def _observe(self) -> int:
         """Observe from the environment, obtain important information, and add it to memory"""
         if not self._rc.env:
             return 0
         env_msgs = self._rc.env.memory.get()
-    
+        
         observed = self._rc.env.memory.get_by_actions(self._rc.watch)
-        #logger.info(observed)
-        #self._rc.news = observed
-        self._rc.news = self._rc.memory.remember(observed)  # remember recent exact or similar memories
-        if len(self._rc.news)>0:
-            logger.info(self._rc.news)
+        
+        self._rc.news = self._rc.memory.find_news(
+            observed)  # find news (previously unseen messages) from observed messages
+        
         for i in env_msgs:
             self.recv(i)
-
+        
         news_text = [f"{i.role}: {i.content[:20]}..." for i in self._rc.news]
         if news_text:
-            logger.info(f'{self._setting} observed: {news_text}')
+            logger.debug(f'{self._setting} observed: {news_text}')
         return len(self._rc.news)
-
+    
     def _publish_message(self, msg):
         """If the role belongs to env, then the role's messages will be broadcast to env"""
         if not self._rc.env:
             # If env does not exist, do not publish the message
             return
         self._rc.env.publish_message(msg)
-
+    
     async def _react(self) -> Message:
         """Think first, then act"""
         await self._think()
-        logger.info(f"{self._setting}: {self._rc.state=}, will do {self._rc.todo}")
+        logger.debug(f"{self._setting}: {self._rc.state=}, will do {self._rc.todo}")
         return await self._act()
-
+    
     def recv(self, message: Message) -> None:
         """add message to history."""
         # self._history += f"\n{message}"
@@ -218,14 +282,14 @@ class Role:
         if message in self._rc.memory.get():
             return
         self._rc.memory.add(message)
-
+    
     async def handle(self, message: Message) -> Message:
         """Receive information and reply with actions"""
         # logger.debug(f"{self.name=}, {self.profile=}, {message.role=}")
         self.recv(message)
-
+        
         return await self._react()
-
+    
     async def run(self, message=None):
         """Observe, and think and act based on the results of the observation"""
         if message:
@@ -237,9 +301,9 @@ class Role:
                 self.recv(Message("\n".join(message)))
         elif not await self._observe():
             # If there is no new information, suspend and wait
-            logger.info(f"{self._setting}: no news. waiting.")
+            logger.debug(f"{self._setting}: no news. waiting.")
             return
-
+        
         rsp = await self._react()
         # Publish the reply to the environment, waiting for the next subscriber to process
         self._publish_message(rsp)

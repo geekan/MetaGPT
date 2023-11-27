@@ -37,7 +37,8 @@ class Config(metaclass=Singleton):
     _instance = None
     key_yaml_file = PROJECT_ROOT / "config/key.yaml"
     default_yaml_file = PROJECT_ROOT / "config/config.yaml"
-
+    
+    
     def __init__(self, yaml_file=default_yaml_file):
         self._configs = {}
         self._init_with_config_files_and_env(self._configs, yaml_file)
@@ -46,7 +47,7 @@ class Config(metaclass=Singleton):
         self.openai_api_key = self._get("OPENAI_API_KEY")
         self.anthropic_api_key = self._get("Anthropic_API_KEY")
         if (not self.openai_api_key or "YOUR_API_KEY" == self.openai_api_key) and (
-            not self.anthropic_api_key or "YOUR_API_KEY" == self.anthropic_api_key
+                not self.anthropic_api_key or "YOUR_API_KEY" == self.anthropic_api_key
         ):
             raise NotConfiguredException("Set OPENAI_API_KEY or Anthropic_API_KEY first")
         self.openai_api_base = self._get("OPENAI_API_BASE")
@@ -61,6 +62,12 @@ class Config(metaclass=Singleton):
         self.max_tokens_rsp = self._get("MAX_TOKENS", 2048)
         self.deployment_name = self._get("DEPLOYMENT_NAME")
         self.deployment_id = self._get("DEPLOYMENT_ID")
+
+        self.xinghuo_appid = self._get("XINGHUO_APPID")
+        self.xinghuo_api_secret = self._get("XINGHUO_API_SECRET")
+        self.xinghuo_api_key = self._get("XINGHUO_API_KEY")
+        self.domain = self._get("DOMAIN")
+        self.spark_url = self._get("SPARK_URL")
 
         self.claude_api_key = self._get("Anthropic_API_KEY")
         self.serpapi_api_key = self._get("SERPAPI_API_KEY")

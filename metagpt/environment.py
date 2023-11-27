@@ -7,6 +7,7 @@
 """
 import asyncio
 from typing import Iterable
+
 from pydantic import BaseModel, Field
 
 from metagpt.memory import Memory
@@ -28,11 +29,12 @@ class Environment(BaseModel):
         arbitrary_types_allowed = True
 
     def add_role(self, role: Role):
-        """增加一个在当前环境的角色
+        """增加一个在当前环境的角色, 默认为profile/role_profile
            Add a role in the current environment
         """
         role.set_env(self)
-        self.roles[role.profile] = role
+        # use alias
+        self.roles[role.role_profile] = role
 
     def add_roles(self, roles: Iterable[Role]):
         """增加一批在当前环境的角色
