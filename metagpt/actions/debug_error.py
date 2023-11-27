@@ -16,6 +16,7 @@ from metagpt.const import TEST_CODES_FILE_REPO, TEST_OUTPUTS_FILE_REPO
 from metagpt.logs import logger
 from metagpt.schema import RunCodeResult
 from metagpt.utils.common import CodeParser
+from metagpt.utils.file_repository import FileRepository
 
 PROMPT_TEMPLATE = """
 NOTICE
@@ -50,7 +51,7 @@ class DebugError(Action):
         super().__init__(name, context, llm)
 
     async def run(self, *args, **kwargs) -> str:
-        output_doc = await CONFIG.git_repo.new_file_repository(TEST_OUTPUTS_FILE_REPO).get(self.context.output_filename)
+        output_doc = await FileRepository.get_file(filename=self.context.output_filename, relative_path=TEST_OUTPUTS_FILE_REPO)
         if not output_doc:
             return ""
         output_detail = RunCodeResult.loads(output_doc.content)
@@ -60,10 +61,10 @@ class DebugError(Action):
             return ""
 
         logger.info(f"Debug and rewrite {self.context.code_filename}")
-        code_doc = await CONFIG.git_repo.new_file_repository(CONFIG.src_workspace).get(self.context.code_filename)
+        code_doc = await FileRepository.get_file(filename=self.context.code_filename, relative_path=CONFIG.src_workspace)
         if not code_doc:
             return ""
-        test_doc = await CONFIG.git_repo.new_file_repository(TEST_CODES_FILE_REPO).get(self.context.test_filename)
+        test_doc = await FileRepository.get_file(filename=self.context.test_filename, relative_path=TEST_CODES_FILE_REPO)
         if not test_doc:
             return ""
         prompt = PROMPT_TEMPLATE.format(code=code_doc.content, test_code=test_doc.content, logs=output_detail.stderr)

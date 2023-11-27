@@ -16,6 +16,7 @@ from typing import Dict, List, Set
 
 import aiofiles
 
+from metagpt.config import CONFIG
 from metagpt.logs import logger
 from metagpt.schema import Document
 from metagpt.utils.json_to_markdown import json_to_markdown
@@ -186,3 +187,44 @@ class FileRepository:
         filename = Path(doc.filename).with_suffix(".md")
         await self.save(filename=str(filename), content=json_to_markdown(m))
         logger.info(f"File Saved: {str(filename)}")
+
+    @staticmethod
+    async def get_file(filename: Path | str, relative_path: Path | str = ".") -> Document | None:
+        """Retrieve a specific file from the file repository.
+
+        :param filename: The name or path of the file to retrieve.
+        :type filename: Path or str
+        :param relative_path: The relative path within the file repository.
+        :type relative_path: Path or str, optional
+        :return: The document representing the file, or None if not found.
+        :rtype: Document or None
+        """
+        file_repo = CONFIG.git_repo.new_file_repository(relative_path=relative_path)
+        return await file_repo.get(filename=filename)
+
+    @staticmethod
+    async def get_all_files(relative_path: Path | str = ".") -> List[Document]:
+        """Retrieve all files from the file repository.
+
+        :param relative_path: The relative path within the file repository.
+        :type relative_path: Path or str, optional
+        :return: A list of documents representing all files in the repository.
+        :rtype: List[Document]
+        """
+        file_repo = CONFIG.git_repo.new_file_repository(relative_path=relative_path)
+        return await file_repo.get_all()
+
+    @staticmethod
+    async def save_file(filename: Path | str, content, dependencies: List[str] = None, relative_path: Path | str = "."):
+        """Save a file to the file repository.
+
+        :param filename: The name or path of the file to save.
+        :type filename: Path or str
+        :param content: The content of the file.
+        :param dependencies: A list of dependencies for the file.
+        :type dependencies: List[str], optional
+        :param relative_path: The relative path within the file repository.
+        :type relative_path: Path or str, optional
+        """
+        file_repo = CONFIG.git_repo.new_file_repository(relative_path=relative_path)
+        return await file_repo.save(filename=filename, content=content, dependencies=dependencies)
