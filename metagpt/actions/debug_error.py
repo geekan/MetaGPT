@@ -4,6 +4,8 @@
 @Time    : 2023/5/11 17:46
 @Author  : alexanderwu
 @File    : debug_error.py
+@Modified By: mashenquan, 2023/11/27. Divide the context into three components: legacy code, unit test code, and
+        console log.
 """
 import re
 
