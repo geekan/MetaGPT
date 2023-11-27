@@ -290,8 +290,7 @@ class WritePRD(Action):
     async def run(self, with_messages, format=CONFIG.prompt_format, *args, **kwargs) -> ActionOutput:
         # Determine which requirement documents need to be rewritten: Use LLM to assess whether new requirements are
         # related to the PRD. If they are related, rewrite the PRD.
-        docs_file_repo = CONFIG.git_repo.new_file_repository(DOCS_FILE_REPO)
-        requirement_doc = await docs_file_repo.get(REQUIREMENT_FILENAME)
+        requirement_doc = await FileRepository.get_file(filename=REQUIREMENT_FILENAME, relative_path=DOCS_FILE_REPO)
         prds_file_repo = CONFIG.git_repo.new_file_repository(PRDS_FILE_REPO)
         prd_docs = await prds_file_repo.get_all()
         change_files = Documents()
@@ -355,7 +354,7 @@ class WritePRD(Action):
             prd = await self._run_new_requirement(requirements=[requirement_doc.content], *args, **kwargs)
             new_prd_doc = Document(
                 root_path=PRDS_FILE_REPO,
-                filename=FileRepository.new_file_name() + ".json",
+                filename=FileRepository.new_filename() + ".json",
                 content=prd.instruct_content.json(),
             )
         elif await self._is_relative_to(requirement_doc, prd_doc):
@@ -382,5 +381,4 @@ class WritePRD(Action):
 
     @staticmethod
     async def _save_pdf(prd_doc):
-        file_repo = CONFIG.git_repo.new_file_repository(PRD_PDF_FILE_REPO)
-        await file_repo.save_pdf(doc=prd_doc)
+        await FileRepository.save_as(doc=prd_doc, with_suffix=".md", relative_path=PRD_PDF_FILE_REPO)

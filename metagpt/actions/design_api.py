@@ -24,6 +24,7 @@ from metagpt.const import (
 from metagpt.logs import logger
 from metagpt.schema import Document, Documents
 from metagpt.utils.common import CodeParser
+from metagpt.utils.file_repository import FileRepository
 from metagpt.utils.get_template import get_template
 from metagpt.utils.mermaid import mermaid_to_file
 
@@ -304,8 +305,7 @@ class WriteDesign(Action):
 
     @staticmethod
     async def _save_pdf(design_doc):
-        file_repo = CONFIG.git_repo.new_file_repository(SYSTEM_DESIGN_PDF_FILE_REPO)
-        await file_repo.save_pdf(doc=design_doc)
+        await FileRepository.save_as(doc=design_doc, with_suffix=".md", relative_path=SYSTEM_DESIGN_PDF_FILE_REPO)
 
     @staticmethod
     async def _save_mermaid_file(data: str, pathname: Path):

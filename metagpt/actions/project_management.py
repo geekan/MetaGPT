@@ -18,6 +18,7 @@ from metagpt.config import CONFIG
 from metagpt.const import SYSTEM_DESIGN_FILE_REPO, TASK_FILE_REPO, TASK_PDF_FILE_REPO, PACKAGE_REQUIREMENTS_FILENAME
 from metagpt.logs import logger
 from metagpt.schema import Document, Documents
+from metagpt.utils.file_repository import FileRepository
 from metagpt.utils.get_template import get_template
 
 templates = {
@@ -275,8 +276,7 @@ class WriteTasks(Action):
 
     @staticmethod
     async def _save_pdf(task_doc):
-        file_repo = CONFIG.git_repo.new_file_repository(TASK_PDF_FILE_REPO)
-        await file_repo.save_pdf(doc=task_doc)
+        await FileRepository.save_as(doc=task_doc, with_suffix=".md", relative_path=TASK_PDF_FILE_REPO)
 
 
 class AssignTasks(Action):

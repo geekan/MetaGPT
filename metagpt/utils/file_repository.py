@@ -168,7 +168,7 @@ class FileRepository:
         return children
 
     @staticmethod
-    def new_file_name():
+    def new_filename():
         """Generate a new filename based on the current timestamp and a UUID suffix.
 
         :return: A new filename string.
@@ -178,14 +178,22 @@ class FileRepository:
         # guid_suffix = str(uuid.uuid4())[:8]
         # return f"{current_time}x{guid_suffix}"
 
-    async def save_pdf(self, doc: Document):
-        """Save a Document as a PDF file.
+    async def save_doc(self, doc: Document, with_suffix:str = None, dependencies: List[str] = None):
+        """Save a Document instance as a PDF file.
+
+        This method converts the content of the Document instance to Markdown,
+        saves it to a file with an optional specified suffix, and logs the saved file.
 
         :param doc: The Document instance to be saved.
+        :type doc: Document
+        :param with_suffix: An optional suffix to append to the saved file's name.
+        :type with_suffix: str, optional
+        :param dependencies: A list of dependencies for the saved file.
+        :type dependencies: List[str], optional
         """
         m = json.loads(doc.content)
-        filename = Path(doc.filename).with_suffix(".md")
-        await self.save(filename=str(filename), content=json_to_markdown(m))
+        filename = Path(doc.filename).with_suffix(with_suffix) if with_suffix is not None else Path(doc.filename)
+        await self.save(filename=str(filename), content=json_to_markdown(m), dependencies=dependencies)
         logger.info(f"File Saved: {str(filename)}")
 
     @staticmethod
@@ -228,3 +236,24 @@ class FileRepository:
         """
         file_repo = CONFIG.git_repo.new_file_repository(relative_path=relative_path)
         return await file_repo.save(filename=filename, content=content, dependencies=dependencies)
+
+    @staticmethod
+    async def save_as(doc:Document, with_suffix:str = None, dependencies: List[str] = None, relative_path: Path | str = "."):
+        """Save a Document instance with optional modifications.
+
+        This static method creates a new FileRepository, saves the Document instance
+        with optional modifications (such as a suffix), and logs the saved file.
+
+        :param doc: The Document instance to be saved.
+        :type doc: Document
+        :param with_suffix: An optional suffix to append to the saved file's name.
+        :type with_suffix: str, optional
+        :param dependencies: A list of dependencies for the saved file.
+        :type dependencies: List[str], optional
+        :param relative_path: The relative path within the file repository.
+        :type relative_path: Path or str, optional
+        :return: A boolean indicating whether the save operation was successful.
+        :rtype: bool
+        """
+        file_repo = CONFIG.git_repo.new_file_repository(relative_path=relative_path)
+        return await file_repo.save_doc(doc=doc, with_suffix=with_suffix, dependencies=dependencies)

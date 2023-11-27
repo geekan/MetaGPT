@@ -29,7 +29,7 @@ class PrepareDocuments(Action):
 
         # Create and initialize the workspace folder, initialize the Git environment.
         CONFIG.git_repo = GitRepository()
-        workdir = Path(CONFIG.WORKDIR) if CONFIG.WORKDIR else WORKSPACE_ROOT / FileRepository.new_file_name()
+        workdir = Path(CONFIG.WORKDIR) if CONFIG.WORKDIR else WORKSPACE_ROOT / FileRepository.new_filename()
         CONFIG.git_repo.open(local_path=workdir, auto_init=True)
 
         # Write the newly added requirements from the main parameter idea to `docs/requirement.txt`.

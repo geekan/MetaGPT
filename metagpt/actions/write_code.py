@@ -23,6 +23,7 @@ from metagpt.const import TEST_OUTPUTS_FILE_REPO
 from metagpt.logs import logger
 from metagpt.schema import CodingContext, RunCodeResult
 from metagpt.utils.common import CodeParser
+from metagpt.utils.file_repository import FileRepository
 
 PROMPT_TEMPLATE = """
 NOTICE
@@ -82,9 +83,8 @@ class WriteCode(Action):
 
     async def run(self, *args, **kwargs) -> CodingContext:
         coding_context = CodingContext.loads(self.context.content)
-        test_doc = await CONFIG.git_repo.new_file_repository(TEST_OUTPUTS_FILE_REPO).get(
-            "test_" + coding_context.filename + ".json"
-        )
+        test_doc = await FileRepository.get_file(filename="test_" + coding_context.filename + ".json",
+                                                 relative_path=TEST_OUTPUTS_FILE_REPO)
         logs = ""
         if test_doc:
             test_detail = RunCodeResult.loads(test_doc.content)
