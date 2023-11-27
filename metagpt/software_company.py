@@ -4,6 +4,8 @@
 @Time    : 2023/5/12 00:30
 @Author  : alexanderwu
 @File    : software_company.py
+@Modified By: mashenquan, 2023/11/27. Add an archiving operation after completing the project, as specified in
+        Section 2.2.3.3 of RFC 135.
 """
 from pydantic import BaseModel, Field
 
