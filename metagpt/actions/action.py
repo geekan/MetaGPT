@@ -16,13 +16,16 @@ from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.utils.common import OutputParser
 from metagpt.utils.custom_decoder import CustomDecoder
-
+from metagpt.provider.openai_api import OpenAIGPTAPI
+from metagpt.provider.customized_api import CustomizedGPTAPI
+from metagpt.config import CONFIG
+import  openai
 
 class Action(ABC):
     def __init__(self, name: str = "", context=None, llm: LLM = None):
         self.name: str = name
         if llm is None:
-            llm = LLM()
+            llm = LLM(self.__str__())    # Pass in Action name for LLM selection.
         self.llm = llm
         self.context = context
         self.prefix = ""
@@ -47,6 +50,14 @@ class Action(ABC):
         if not system_msgs:
             system_msgs = []
         system_msgs.append(self.prefix)
+
+        # For openai\like openai model,will switch openai base,
+        # no effect on the rest of the model.
+        if isinstance(self.llm,CustomizedGPTAPI):
+            self.llm._CustomizedGPTAPI__start_model(CONFIG)
+        elif isinstance(self.llm,OpenAIGPTAPI):
+            self.llm._OpenAIGPTAPI__init_openai(CONFIG)
+
         return await self.llm.aask(prompt, system_msgs)
 
     @retry(stop=stop_after_attempt(3), wait=wait_fixed(1))
@@ -62,6 +73,14 @@ class Action(ABC):
         if not system_msgs:
             system_msgs = []
         system_msgs.append(self.prefix)
+
+        # For openai\like openai model,will switch openai base,
+        # no effect on the rest of the model.
+        if isinstance(self.llm,CustomizedGPTAPI):
+            self.llm._CustomizedGPTAPI__start_model(CONFIG)
+        elif isinstance(self.llm,OpenAIGPTAPI):
+            self.llm._OpenAIGPTAPI__init_openai(CONFIG)
+
         content = await self.llm.aask(prompt, system_msgs)
         logger.debug(content)
         output_class = ActionOutput.create_model_class(output_class_name, output_data_mapping)
