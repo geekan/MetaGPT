@@ -96,7 +96,14 @@ def count_string_tokens(string: str, model_name: str) -> int:
     Returns:
         int: The number of tokens in the text string.
     """
-    encoding = tiktoken.encoding_for_model(model_name)
+
+    try:
+        encoding = tiktoken.encoding_for_model(model_name)
+    except KeyError:
+        # can be ignored, only used to calculate tokens,
+        # if not openai series, use the same calculation method as gpt-3.5-turbo-0613
+        encoding = tiktoken.get_encoding("cl100k_base")
+
     return len(encoding.encode(string))
 
 
