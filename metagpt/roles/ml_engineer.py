@@ -84,7 +84,7 @@ class MLEngineer(Role):
             # ask for acceptance, users can other refuse and change tasks in the plan
             task_result_confirmed = await self._ask_review()
 
-            if success and task_result_confirmed and not code.startswith("!pip"):
+            if success and task_result_confirmed:
                 # tick off this task and record progress
                 task.code = code
                 task.result = result
@@ -126,6 +126,8 @@ class MLEngineer(Role):
             # print(result)
             self.working_memory.add(Message(content=result, role="user", cause_by=ExecutePyCode))
 
+            if code.startswith("!pip"):
+                success = False
             # if not success:
             #     await self._ask_review()
 
