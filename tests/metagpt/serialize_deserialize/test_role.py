@@ -34,7 +34,7 @@ async def test_engineer_deserialize():
     # also can be deserialized in this way:
     new_role = Engineer(**ser_role_dict)
     assert new_role.name == "Alex"
-    assert new_role.use_code_review == True
+    assert new_role.use_code_review is True
     assert len(new_role._actions) == 2
     assert isinstance(new_role._actions[0], Action)
     assert isinstance(new_role._actions[1], Action)

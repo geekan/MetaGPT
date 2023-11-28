@@ -7,11 +7,13 @@ import pytest
 from metagpt.actions import Action
 from metagpt.llm import LLM
 
+
 def test_action_serialize():
     action = Action()
     ser_action_dict = action.dict()
     assert "name" in ser_action_dict
     assert "llm" in ser_action_dict
+
 
 @pytest.mark.asyncio
 async def test_action_deserialize():

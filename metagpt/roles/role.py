@@ -6,16 +6,11 @@
 @File    : role.py
 """
 
-import sys
 from enum import Enum
-import importlib
+from pathlib import Path
 from __future__ import annotations
 
-from types import SimpleNamespace
 from typing import (
-    Dict,
-    Optional,
-    Union,
     Iterable,
     Type
 )
@@ -30,6 +25,7 @@ from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.memory import Memory, LongTermMemory
 from metagpt.schema import Message
+from metagpt.provider.human_provider import HumanProvider
 from metagpt.utils.utils import read_json_file, write_json_file, import_class
 
 PREFIX_TEMPLATE = """You are a {profile}, named {name}, your goal is {goal}, and the constraint is {constraints}. """
@@ -133,11 +129,11 @@ class Role(BaseModel):
     _rc: RoleContext = RoleContext()
     
     _private_attributes = {
-        "_setting': _setting,
-        "_role_id': _role_id,
-        '_states': [],
-        '_actions': [],
-        '_actions_type': []  # 用于记录和序列化
+        "_setting": _setting,
+        "_role_id": _role_id,
+        "_states": [],
+        "_actions": [],
+        "_actions_type": []  # 用于记录和序列化
     }
     
     class Config:
@@ -161,17 +157,6 @@ class Role(BaseModel):
     def _reset(self):
         object.__setattr__(self, '_states', [])
         object.__setattr__(self, '_actions', [])
-
-    @staticmethod
-    def _process_class(class_str, module_name):
-        cleaned_string = re.sub(r"[<>']", "", class_str).replace("class ", "")
-        package_name = "metagpt"
-        file_name = cleaned_string.replace(package_name, "").replace("." + module_name, "")
-        print(file_name)
-        # print("\n", sys.modules)
-        module_file = import_module(file_name, package=package_name)
-        module = getattr(module_file, module_name)
-        return module
 
     def serialize(self, stg_path: Path):
         role_info_path = stg_path.joinpath("role_info.json")
