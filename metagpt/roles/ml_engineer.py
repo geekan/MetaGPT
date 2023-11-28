@@ -38,13 +38,14 @@ class WriteTaskGuide(Action):
         return ""
 
 class MLEngineer(Role):
-    def __init__(self, name="ABC", profile="MLEngineer", goal=""):
+    def __init__(self, name="ABC", profile="MLEngineer", goal="", auto_run: bool = False):
         super().__init__(name=name, profile=profile, goal=goal)
         self._set_react_mode(react_mode="plan_and_act")
         self.plan = Plan(goal=goal)
         self.use_tools = False
         self.use_task_guide = False
         self.execute_code = ExecutePyCode()
+        self.auto_run = auto_run
 
     async def _plan_and_act(self):
 
@@ -104,11 +105,13 @@ class MLEngineer(Role):
         return code, result, success
 
     async def _ask_review(self):
-        context = self.get_useful_memories()
-        review, confirmed = await AskReview().run(context=context[-5:], plan=self.plan)
-        if review.lower() not in ("confirm", "y", "yes"):
-            self._rc.memory.add(Message(content=review, role="user", cause_by=AskReview))
-        return confirmed
+        if not self.auto_run:
+            context = self.get_useful_memories()
+            review, confirmed = await AskReview().run(context=context[-5:], plan=self.plan)
+            if review.lower() not in ("confirm", "y", "yes"):
+                self._rc.memory.add(Message(content=review, role="user", cause_by=AskReview))
+            return confirmed
+        return True
 
     async def _update_plan(self, max_tasks: int = 3):
         current_plan = str([task.json() for task in self.plan.tasks])
