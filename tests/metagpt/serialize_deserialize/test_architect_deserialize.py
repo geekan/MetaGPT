@@ -7,12 +7,14 @@ import pytest
 from metagpt.roles.architect import Architect
 from metagpt.actions.action import Action
 
+
 def test_architect_serialize():
     role = Architect()
     ser_role_dict = role.dict(by_alias=True)
     assert "name" in ser_role_dict
     assert "_states" in ser_role_dict
     assert "_actions" in ser_role_dict
+
 
 @pytest.mark.asyncio
 async def test_architect_deserialize():

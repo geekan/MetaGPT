@@ -8,6 +8,7 @@ from metagpt.roles.product_manager import ProductManager
 from metagpt.actions.action import Action
 from metagpt.schema import Message
 
+
 @pytest.mark.asyncio
 async def test_product_manager_deserialize():
     role = ProductManager()

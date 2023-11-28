@@ -20,8 +20,6 @@
 """
 
 from __future__ import annotations
-
-
 from enum import Enum
 from typing import Iterable, Set, Type
 from pathlib import Path
@@ -30,12 +28,13 @@ from pydantic import BaseModel, Field
 from metagpt.actions.action import Action, ActionOutput, action_subclass_registry
 from metagpt.actions.action_node import ActionNode
 from metagpt.actions.add_requirement import UserRequirement
-from metagpt.llm import LLM, HumanProvider
+from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.schema import Message, MessageQueue
 from metagpt.utils.common import any_to_str
 from metagpt.utils.repair_llm_raw_output import extract_state_value_from_output
 from metagpt.memory import Memory
+from metagpt.provider.human_provider import HumanProvider
 from metagpt.utils.utils import read_json_file, write_json_file, import_class
 from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.const import SERDESER_PATH
