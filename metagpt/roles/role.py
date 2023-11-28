@@ -9,8 +9,9 @@ from __future__ import annotations
 
 from typing import Iterable, Type, Union
 from enum import Enum
-
+from pathlib import Path
 from pydantic import BaseModel, Field
+import importlib
 
 # from metagpt.environment import Environment
 from metagpt.config import CONFIG
@@ -19,6 +20,7 @@ from metagpt.llm import LLM, HumanProvider
 from metagpt.logs import logger
 from metagpt.memory import Memory, LongTermMemory
 from metagpt.schema import Message
+from metagpt.utils.utils import read_json_file, write_json_file, import_class
 
 PREFIX_TEMPLATE = """You are a {profile}, named {name}, your goal is {goal}, and the constraint is {constraints}. """
 
@@ -115,10 +117,100 @@ class Role:
         self._actions = []
         self._role_id = str(self._setting)
         self._rc = RoleContext()
+        self._recovered = False
+
+    def serialize(self, stg_path: Path):
+        role_info_path = stg_path.joinpath("role_info.json")
+        role_info = {
+            "role_class": self.__class__.__name__,
+            "module_name": self.__module__
+        }
+        setting = self._setting.dict()
+        setting.pop("desc")
+        setting.pop("is_human")   # not all inherited roles have this atrr
+        role_info.update(setting)
+        write_json_file(role_info_path, role_info)
+
+        actions_info_path = stg_path.joinpath("actions/actions_info.json")
+        actions_info = []
+        for action in self._actions:
+            actions_info.append(action.serialize())
+        write_json_file(actions_info_path, actions_info)
+
+        watches_info_path = stg_path.joinpath("watches/watches_info.json")
+        watches_info = []
+        for watch in self._rc.watch:
+            watches_info.append(watch.ser_class())
+        write_json_file(watches_info_path, watches_info)
+
+        actions_todo_path = stg_path.joinpath("actions/todo.json")
+        actions_todo = {
+            "cur_state": self._rc.state,
+            "react_mode": self._rc.react_mode.value,
+            "max_react_loop": self._rc.max_react_loop
+        }
+        write_json_file(actions_todo_path, actions_todo)
+
+        self._rc.memory.serialize(stg_path)
+
+    @classmethod
+    def deserialize(cls, stg_path: Path) -> "Role":
+        """ stg_path = ./storage/team/environment/roles/{role_class}_{role_name}"""
+        role_info_path = stg_path.joinpath("role_info.json")
+        role_info = read_json_file(role_info_path)
+
+        role_class_str = role_info.pop("role_class")
+        module_name = role_info.pop("module_name")
+        role_class = import_class(class_name=role_class_str, module_name=module_name)
+
+        role = role_class(**role_info)  # initiate particular Role
+        actions_info_path = stg_path.joinpath("actions/actions_info.json")
+        actions = []
+        actions_info = read_json_file(actions_info_path)
+        for action_info in actions_info:
+            action = Action.deserialize(action_info)
+            actions.append(action)
+
+        watches_info_path = stg_path.joinpath("watches/watches_info.json")
+        watches = []
+        watches_info = read_json_file(watches_info_path)
+        for watch_info in watches_info:
+            action = Action.deser_class(watch_info)
+            watches.append(action)
+
+        role.init_actions(actions)
+        role.watch(watches)
+
+        actions_todo_path = stg_path.joinpath("actions/todo.json")
+        # recover self._rc.state
+        actions_todo = read_json_file(actions_todo_path)
+        max_react_loop = actions_todo.get("max_react_loop", 1)
+        cur_state = actions_todo.get("cur_state", -1)
+        role.set_state(cur_state)
+        role.set_recovered(True)
+        react_mode_str = actions_todo.get("react_mode", RoleReactMode.REACT.value)
+        if react_mode_str not in RoleReactMode.values():
+            logger.warning(f"ReactMode: {react_mode_str} not in {RoleReactMode.values()}, use react as default")
+            react_mode_str = RoleReactMode.REACT.value
+        role.set_react_mode(RoleReactMode(react_mode_str), max_react_loop)
+
+        role_memory = Memory.deserialize(stg_path)
+        role.set_memory(role_memory)
+
+        return role
 
     def _reset(self):
         self._states = []
         self._actions = []
+
+    def set_recovered(self, recovered: bool = False):
+        self._recovered = recovered
+
+    def set_memory(self, memory: Memory):
+        self._rc.memory = memory
+
+    def init_actions(self, actions):
+        self._init_actions(actions)
 
     def _init_actions(self, actions):
         self._reset()
@@ -133,6 +225,9 @@ class Role:
             i.set_prefix(self._get_prefix(), self.profile)
             self._actions.append(i)
             self._states.append(f"{idx}. {action}")
+
+    def set_react_mode(self, react_mode: RoleReactMode, max_react_loop: int = 1):
+        self._set_react_mode(react_mode, max_react_loop)
 
     def _set_react_mode(self, react_mode: str, max_react_loop: int = 1):
         """Set strategy of the Role reacting to observed Message. Variation lies in how
@@ -155,11 +250,17 @@ class Role:
         if react_mode == RoleReactMode.REACT:
             self._rc.max_react_loop = max_react_loop
 
+    def watch(self, actions: Iterable[Type[Action]]):
+        self._watch(actions)
+
     def _watch(self, actions: Iterable[Type[Action]]):
         """Listen to the corresponding behaviors"""
         self._rc.watch.update(actions)
         # check RoleContext after adding watch actions
         self._rc.check(self._role_id)
+
+    def set_state(self, state: int):
+        self._set_state(state)
 
     def _set_state(self, state: int):
         """Update the current state."""
@@ -170,6 +271,10 @@ class Role:
     def set_env(self, env: 'Environment'):
         """Set the environment in which the role works. The role can talk to the environment and can also receive messages by observing."""
         self._rc.env = env
+
+    @property
+    def name(self):
+        return self._setting.name
 
     @property
     def profile(self):
@@ -188,6 +293,11 @@ class Role:
             # If there is only one action, then only this one can be performed
             self._set_state(0)
             return
+        if self._recovered and self._rc.state >= 0:
+            self._set_state(self._rc.state)  # action to run from recovered state
+            self._recovered = False   # avoid max_react_loop out of work
+            return
+
         prompt = self._get_prefix()
         prompt += STATE_TEMPLATE.format(history=self._rc.history, states="\n".join(self._states),
                                         n_states=len(self._states) - 1, previous_state=self._rc.state)
@@ -267,7 +377,8 @@ class Role:
 
     async def _act_by_order(self) -> Message:
         """switch action each time by order defined in _init_actions, i.e. _act (Action1) -> _act (Action2) -> ..."""
-        for i in range(len(self._states)):
+        start_idx = self._rc.state if self._rc.state >= 0 else 0  # action to run from recovered state
+        for i in range(start_idx, len(self._states)):
             self._set_state(i)
             rsp = await self._act()
         return rsp # return output from the last action

@@ -5,6 +5,7 @@
 @Author  : alexanderwu
 @File    : software_company.py
 """
+from pathlib import Path
 from pydantic import BaseModel, Field
 
 from metagpt.actions import BossRequirement
@@ -14,6 +15,7 @@ from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.utils.common import NoMoneyException
+from metagpt.utils.utils import read_json_file, write_json_file
 
 
 class Team(BaseModel):
@@ -27,6 +29,30 @@ class Team(BaseModel):
 
     class Config:
         arbitrary_types_allowed = True
+
+    def serialize(self, stg_path: Path):
+        team_info_path = stg_path.joinpath("team_info.json")
+        write_json_file(team_info_path, {
+            "idea": self.idea,
+            "investment": self.investment
+        })
+
+        self.environment.serialize(stg_path.joinpath("environment"))
+
+    def deserialize(self, stg_path: Path):
+        """ stg_path = ./storage/team """
+        # recover team_info
+        team_info_path = stg_path.joinpath("team_info.json")
+        if not team_info_path.exists():
+            logger.error("recover storage not exist, not to recover and continue run the old project.")
+        team_info = read_json_file(team_info_path)
+        self.investment = team_info.get("investment", 10.0)
+        self.idea = team_info.get("idea", "")
+
+        # recover environment
+        environment_path = stg_path.joinpath("environment")
+        self.environment = Environment()
+        self.environment.deserialize(stg_path=environment_path)
 
     def hire(self, roles: list[Role]):
         """Hire roles to cooperate"""
