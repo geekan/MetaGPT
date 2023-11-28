@@ -14,7 +14,7 @@ import pytest
 from pydantic import BaseModel
 
 from metagpt.actions import RunCode
-from metagpt.const import get_project_root
+from metagpt.const import get_metagpt_root
 from metagpt.roles.tutorial_assistant import TutorialAssistant
 from metagpt.schema import Message
 from metagpt.utils.common import any_to_str, any_to_str_set
@@ -27,13 +27,13 @@ class TestGetProjectRoot:
         os.chdir(abs_root)
 
     def test_get_project_root(self):
-        project_root = get_project_root()
-        assert project_root.name == "MetaGPT"
+        project_root = get_metagpt_root()
+        assert project_root.name == "metagpt"
 
     def test_get_root_exception(self):
         with pytest.raises(Exception) as exc_info:
             self.change_etc_dir()
-            get_project_root()
+            get_metagpt_root()
         assert str(exc_info.value) == "Project root not found."
 
     def test_any_to_str(self):

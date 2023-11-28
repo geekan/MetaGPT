@@ -90,7 +90,7 @@ Python's in-built data structures like lists and dictionaries will be used exten
 
 For testing, we can use the PyTest framework. This is a mature full-featured Python testing tool that helps you write better programs.
 
-## Python package name:
+## project_name:
 ```python
 "adventure_game"
 ```
@@ -100,7 +100,7 @@ For testing, we can use the PyTest framework. This is a mature full-featured Pyt
 file_list = ["main.py", "room.py", "player.py", "game.py", "object.py", "puzzle.py", "test_game.py"]
 ```
 
-## Data structures and interface definitions:
+## Data structures and interfaces:
 ```mermaid
 classDiagram
     class Room{
@@ -209,7 +209,7 @@ Shared knowledge for this project includes understanding the basic principles of
 """
 ```
 
-## Anything UNCLEAR: Provide as Plain text. Make clear here. For example, don't forget a main entry. don't forget to init 3rd party libs.
+## Anything UNCLEAR: Provide as Plain text. Try to clarify it. For example, don't forget a main entry. don't forget to init 3rd party libs.
 ```python
 """
 The original requirements did not specify whether the game should have a save/load feature, multiplayer support, or any specific graphical user interface. More information on these aspects could help in further refining the product design and requirements.

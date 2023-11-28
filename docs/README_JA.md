@@ -19,7 +19,6 @@
 </p>
 
 <p align="center">
-   <a href="https://airtable.com/appInfdG0eJ9J4NNL/shrEd9DrwVE3jX6oz"><img src="https://img.shields.io/badge/AgentStore-Waitlist-ffc107?logoColor=white" alt="AgentStore Waitlist"></a>
    <a href="https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/geekan/MetaGPT"><img src="https://img.shields.io/static/v1?label=Dev%20Containers&message=Open&color=blue&logo=visualstudiocode" alt="Open in Dev Containers"></a>
    <a href="https://codespaces.new/geekan/MetaGPT"><img src="https://img.shields.io/badge/Github_Codespace-Open-blue?logo=github" alt="Open in GitHub Codespaces"></a>
    <a href="https://huggingface.co/spaces/deepwisdom/MetaGPT" target="_blank"><img alt="Hugging Face" src="https://img.shields.io/badge/%F0%9F%A4%97%20-Hugging%20Face-blue?color=blue&logoColor=white" /></a>
@@ -60,17 +59,22 @@ https://github.com/geekan/MetaGPT/assets/34952977/34345016-5d13-489d-b9f9-b82ace
 ### 伝統的なインストール
 
 ```bash
-# ステップ 1: NPM がシステムにインストールされていることを確認してください。次に mermaid-js をインストールします。(お使いのコンピューターに npm がない場合は、Node.js 公式サイトで Node.js https://nodejs.org/ をインストールしてください。）
-npm --version
-sudo npm install -g @mermaid-js/mermaid-cli
-
-# ステップ 2: Python 3.9+ がシステムにインストールされていることを確認してください。これを確認するには:
+# ステップ 1: Python 3.9+ がシステムにインストールされていることを確認してください。これを確認するには:
 python --version
 
-# ステップ 3: リポジトリをローカルマシンにクローンし、インストールする。
-git clone https://github.com/geekan/metagpt
-cd metagpt
+# ステップ 2: リポジトリをローカルマシンにクローンし、インストールする。
+git clone https://github.com/geekan/MetaGPT.git
+cd MetaGPT
 pip install -e.
+
+# ステップ 3: startup.py を実行する
+# config.yaml を key.yaml にコピーし、独自の OPENAI_API_KEY を設定します
+python3 startup.py "Write a cli snake game"
+
+# ステップ 4 [オプション]: 実行中に PRD ファイルなどのアーティファクトを保存する場合は、ステップ 3 の前にこのステップを実行できます。デフォルトでは、フレームワークには互換性があり、この手順を実行しなくてもプロセス全体を完了できます。
+# NPM がシステムにインストールされていることを確認してください。次に mermaid-js をインストールします。(お使いのコンピューターに npm がない場合は、Node.js 公式サイトで Node.js https://nodejs.org/ をインストールしてください。）
+npm --version
+sudo npm install -g @mermaid-js/mermaid-cli
 ```
 
 **注:**
@@ -159,6 +163,7 @@ Chromium のダウンロードをスキップすることができます。
     注: この方法は pdf エクスポートに対応していません。
 
 ### Docker によるインストール
+> Windowsでは、"/opt/metagpt"をDockerが作成する権限を持つディレクトリに置き換える必要があります。例えば、"D:\Users\x\metagpt"などです。
 
 ```bash
 # ステップ 1: metagpt 公式イメージをダウンロードし、config.yaml を準備する
@@ -270,12 +275,12 @@ python startup.py "pygame をベースとした cli ヘビゲームを書く"
 ### コードウォークスルー
 
 ```python
-from metagpt.software_company import SoftwareCompany
+from metagpt.team import Team
 from metagpt.roles import ProjectManager, ProductManager, Architect, Engineer
 
 async def startup(idea: str, investment: float = 3.0, n_round: int = 5):
     """スタートアップを実行する。ボスになる。"""
-    company = SoftwareCompany()
+    company = Team()
     company.hire([ProductManager(), Architect(), ProjectManager(), Engineer()])
     company.invest(investment)
     company.start_project(idea)
@@ -295,12 +300,12 @@ Hugging Face Space で試す
 
 ## 引用
 
-現時点では、[Arxiv 論文](https://arxiv.org/abs/2308.00352)を引用してください:
+現時点では、[arXiv 論文](https://arxiv.org/abs/2308.00352)を引用してください:
 
 ```bibtex
 @misc{hong2023metagpt,
-      title={MetaGPT: Meta Programming for Multi-Agent Collaborative Framework},
-      author={Sirui Hong and Xiawu Zheng and Jonathan Chen and Yuheng Cheng and Jinlin Wang and Ceyao Zhang and Zili Wang and Steven Ka Shing Yau and Zijuan Lin and Liyang Zhou and Chenyu Ran and Lingfeng Xiao and Chenglin Wu},
+      title={MetaGPT: Meta Programming for A Multi-Agent Collaborative Framework}, 
+      author={Sirui Hong and Mingchen Zhuge and Jonathan Chen and Xiawu Zheng and Yuheng Cheng and Ceyao Zhang and Jinlin Wang and Zili Wang and Steven Ka Shing Yau and Zijuan Lin and Liyang Zhou and Chenyu Ran and Lingfeng Xiao and Chenglin Wu and Jürgen Schmidhuber},
       year={2023},
       eprint={2308.00352},
       archivePrefix={arXiv},

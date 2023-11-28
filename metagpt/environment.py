@@ -23,6 +23,7 @@ from metagpt.utils.common import is_subscribed
 
 
 class Environment(BaseModel):
+    # <<<<<<< HEAD
     """环境，承载一批角色，角色可以向环境发布消息，可以被其他角色观察到
     Environment, hosting a batch of roles, roles can publish messages to the environment, and can be observed by other roles
 
@@ -31,6 +32,17 @@ class Environment(BaseModel):
     roles: dict[str, Role] = Field(default_factory=dict)
     members: dict[Role, Set] = Field(default_factory=dict)
     history: str = Field(default="")  # For debug
+    # =======
+    #     """
+    #     Environment, hosting a batch of roles, roles can publish messages to the environment, and can be observed by other roles
+    #     """
+    #
+    #     roles: dict[str, Role] = Field(default_factory=dict)
+    #     memory: Memory = Field(default_factory=Memory) # 已经私有化
+    #     history: str = Field(default='')
+    #     repo: Repo = Field(default_factory=Repo) # 在CONFIG里
+    #     kv: dict = Field(default_factory=dict) # 在CONFIG里
+    # >>>>>>> feature/geekan_cli_etc
 
     class Config:
         arbitrary_types_allowed = True
@@ -70,6 +82,38 @@ class Environment(BaseModel):
         self.history += f"\n{message}"  # For debug
 
         return True
+
+    # # Replaced by FileRepository.set_file
+    # def set_doc(self, content: str, filename: str):
+    #     """向当前环境发布文档（包括代码）"""
+    #     return self.repo.set(content, filename)
+    #
+    # # Replaced by FileRepository.get_file
+    # def get_doc(self, filename: str):
+    #     return self.repo.get(filename)
+    #
+    # # Replaced by CONFIG.xx
+    # def set(self, k: str, v: str):
+    #     self.kv[k] = v
+    #
+    # # Replaced by CONFIG.xx
+    # def get(self, k: str):
+    #     return self.kv.get(k, None)
+
+    # Replaced By 增量变更流程
+    # def load_existing_repo(self, path: Path, inc: bool):
+    #     self.repo = Repo.from_path(path)
+    #     logger.info(self.repo.eda())
+    #
+    #     # Incremental mode: publish all docs to messages. Then roles can read the docs.
+    #     if inc:
+    #         docs = self.repo.get_text_documents()
+    #         for doc in docs:
+    #             msg = Message(content=doc.content)
+    #             self.publish_message(msg)
+    #             logger.info(f"Message from existing doc {doc.path}: {msg}")
+    #         logger.info(f"Load {len(docs)} docs from existing repo.")
+    #         raise NotImplementedError
 
     async def run(self, k=1):
         """处理一次所有信息的运行

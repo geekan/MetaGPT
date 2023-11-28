@@ -18,6 +18,7 @@ import json
 import os.path
 from asyncio import Queue, QueueEmpty, wait_for
 from json import JSONDecodeError
+from pathlib import Path
 from typing import Dict, List, Optional, Set, TypedDict
 
 from pydantic import BaseModel, Field
@@ -28,6 +29,8 @@ from metagpt.const import (
     MESSAGE_ROUTE_FROM,
     MESSAGE_ROUTE_TO,
     MESSAGE_ROUTE_TO_ALL,
+    SYSTEM_DESIGN_FILE_REPO,
+    TASK_FILE_REPO,
 )
 from metagpt.logs import logger
 from metagpt.utils.common import any_to_str, any_to_str_set
@@ -312,3 +315,21 @@ class RunCodeResult(BaseModel):
             return RunCodeResult(**m)
         except Exception:
             return None
+
+
+class CodeSummarizeContext(BaseModel):
+    design_filename: str = ""
+    task_filename: str = ""
+    codes_filenames: Set[str] = Field(default_factory=set)
+
+    @staticmethod
+    def loads(filenames: Set) -> CodeSummarizeContext:
+        ctx = CodeSummarizeContext()
+        for filename in filenames:
+            if Path(filename).is_relative_to(SYSTEM_DESIGN_FILE_REPO):
+                ctx.design_filename = str(filename)
+                continue
+            if Path(filename).is_relative_to(TASK_FILE_REPO):
+                ctx.task_filename = str(filename)
+                continue
+        return ctx

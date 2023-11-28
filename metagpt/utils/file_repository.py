@@ -54,7 +54,7 @@ class FileRepository:
         """
         pathname = self.workdir / filename
         pathname.parent.mkdir(parents=True, exist_ok=True)
-        async with aiofiles.open(str(pathname), mode="w") as writer:
+        async with aiofiles.open(str(pathname), mode="wb") as writer:
             await writer.write(content)
         logger.info(f"save to: {str(pathname)}")
 
@@ -98,7 +98,7 @@ class FileRepository:
         if not path_name.exists():
             return None
         try:
-            async with aiofiles.open(str(path_name), mode="r") as reader:
+            async with aiofiles.open(str(path_name), mode="rb") as reader:
                 doc.content = await reader.read()
         except FileNotFoundError as e:
             logger.info(f"open {str(path_name)} failed:{e}")
@@ -178,7 +178,7 @@ class FileRepository:
         # guid_suffix = str(uuid.uuid4())[:8]
         # return f"{current_time}x{guid_suffix}"
 
-    async def save_doc(self, doc: Document, with_suffix:str = None, dependencies: List[str] = None):
+    async def save_doc(self, doc: Document, with_suffix: str = None, dependencies: List[str] = None):
         """Save a Document instance as a PDF file.
 
         This method converts the content of the Document instance to Markdown,
@@ -238,7 +238,9 @@ class FileRepository:
         return await file_repo.save(filename=filename, content=content, dependencies=dependencies)
 
     @staticmethod
-    async def save_as(doc:Document, with_suffix:str = None, dependencies: List[str] = None, relative_path: Path | str = "."):
+    async def save_as(
+        doc: Document, with_suffix: str = None, dependencies: List[str] = None, relative_path: Path | str = "."
+    ):
         """Save a Document instance with optional modifications.
 
         This static method creates a new FileRepository, saves the Document instance

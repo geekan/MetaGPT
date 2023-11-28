@@ -6,7 +6,8 @@ channels==4.0.0
 # docx==0.2.4
 #faiss==1.5.3
 faiss_cpu==1.7.4
-fire==0.4.0
+# fire==0.4.0
+typer
 # godot==0.1.1
 # google_api_python_client==2.93.0
 lancedb==0.1.16
@@ -14,7 +15,7 @@ langchain==0.0.231
 loguru==0.6.0
 meilisearch==0.21.0
 numpy==1.24.3
-openai==0.28.1
+openai>=0.28.1
 openpyxl
 beautifulsoup4==4.12.2
 pandas==2.0.3
@@ -46,3 +47,5 @@ wrapt==1.15.0
 websocket-client==0.58.0
 aiofiles==23.2.1
 gitpython==3.1.40
+zhipuai==1.0.7
+

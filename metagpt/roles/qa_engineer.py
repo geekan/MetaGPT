@@ -13,6 +13,8 @@
         to using file references.
 """
 from metagpt.actions import DebugError, RunCode, WriteCode, WriteCodeReview, WriteTest
+
+# from metagpt.const import WORKSPACE_ROOT
 from metagpt.config import CONFIG
 from metagpt.const import (
     MESSAGE_ROUTE_TO_NONE,
@@ -42,6 +44,32 @@ class QaEngineer(Role):
         self.test_round = 0
         self.test_round_allowed = test_round_allowed
 
+    # <<<<<<< HEAD
+    # =======
+    #     @classmethod
+    #     def parse_workspace(cls, system_design_msg: Message) -> str:
+    #         if system_design_msg.instruct_content:
+    #             return system_design_msg.instruct_content.dict().get("project_name")
+    #         return CodeParser.parse_str(block="project_name", text=system_design_msg.content)
+    #
+    #     def get_workspace(self, return_proj_dir=True) -> Path:
+    #         msg = self._rc.memory.get_by_action(WriteDesign)[-1]
+    #         if not msg:
+    #             return CONFIG.workspace_path / "src"
+    #         workspace = self.parse_workspace(msg)
+    #         # project directory: workspace/{package_name}, which contains package source code folder, tests folder, resources folder, etc.
+    #         if return_proj_dir:
+    #             return CONFIG.workspace_path / workspace
+    #         # development codes directory: workspace/{package_name}/{package_name}
+    #         return CONFIG.workspace_path / workspace / workspace
+    #
+    #     def write_file(self, filename: str, code: str):
+    #         workspace = self.get_workspace() / "tests"
+    #         file = workspace / filename
+    #         file.parent.mkdir(parents=True, exist_ok=True)
+    #         file.write_text(code)
+    #
+    # >>>>>>> feature/geekan_cli_etc
     async def _write_test(self, message: Message) -> None:
         changed_files = message.content.splitlines()
         src_file_repo = CONFIG.git_repo.new_file_repository(CONFIG.src_workspace)

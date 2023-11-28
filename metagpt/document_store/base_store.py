@@ -28,20 +28,20 @@ class BaseStore(ABC):
 
 
 class LocalStore(BaseStore, ABC):
-    def __init__(self, raw_data: Path, cache_dir: Path = None):
-        if not raw_data:
+    def __init__(self, raw_data_path: Path, cache_dir: Path = None):
+        if not raw_data_path:
             raise FileNotFoundError
         self.config = Config()
-        self.raw_data = raw_data
+        self.raw_data_path = raw_data_path
         if not cache_dir:
-            cache_dir = raw_data.parent
+            cache_dir = raw_data_path.parent
         self.cache_dir = cache_dir
         self.store = self._load()
         if not self.store:
             self.store = self.write()
 
     def _get_index_and_store_fname(self):
-        fname = self.raw_data.name.split(".")[0]
+        fname = self.raw_data_path.name.split(".")[0]
         index_file = self.cache_dir / f"{fname}.index"
         store_file = self.cache_dir / f"{fname}.pkl"
         return index_file, store_file

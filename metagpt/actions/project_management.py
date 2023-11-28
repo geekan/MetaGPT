@@ -15,7 +15,12 @@ from typing import List
 from metagpt.actions import ActionOutput
 from metagpt.actions.action import Action
 from metagpt.config import CONFIG
-from metagpt.const import SYSTEM_DESIGN_FILE_REPO, TASK_FILE_REPO, TASK_PDF_FILE_REPO, PACKAGE_REQUIREMENTS_FILENAME
+from metagpt.const import (
+    PACKAGE_REQUIREMENTS_FILENAME,
+    SYSTEM_DESIGN_FILE_REPO,
+    TASK_FILE_REPO,
+    TASK_PDF_FILE_REPO,
+)
 from metagpt.logs import logger
 from metagpt.schema import Document, Documents
 from metagpt.utils.file_repository import FileRepository
@@ -31,22 +36,23 @@ templates = {
 {format_example}
 -----
 Role: You are a project manager; the goal is to break down tasks according to PRD/technical design, give a task list, and analyze task dependencies to start with the prerequisite modules
+Language: Please use the same language as the user requirement, but the title and code should be still in English. For example, if the user speaks Chinese, the specific text of your answer should also be in Chinese.
 Requirements: Based on the context, fill in the following missing information, each section name is a key in json. Here the granularity of the task is a file, if there are any missing files, you can supplement them
-Attention: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD WRITE BEFORE the code and triple quote.
+ATTENTION: Output carefully referenced "Format example" in format.
 
-## Required Python third-party packages: Provided in requirements.txt format
+## Required Python third-party packages: Provide Python list[str] in requirements.txt format
 
-## Required Other language third-party packages: Provided in requirements.txt format
-
-## Full API spec: Use OpenAPI 3.0. Describe all APIs that may be used by both frontend and backend.
+## Required Other language third-party packages: Provide Python list[str] in requirements.txt format
 
 ## Logic Analysis: Provided as a Python list[list[str]. the first is filename, the second is class/method/function should be implemented in this file. Analyze the dependencies between the files, which work should be done first
 
 ## Task list: Provided as Python list[str]. Each str is a filename, the more at the beginning, the more it is a prerequisite dependency, should be done first
 
+## Full API spec: Use OpenAPI 3.0. Describe all APIs that may be used by both frontend and backend.
+
 ## Shared Knowledge: Anything that should be public like utils' functions, config's variables details that should make clear first. 
 
-## Anything UNCLEAR: Provide as Plain text. Make clear here. For example, don't forget a main entry. don't forget to init 3rd party libs.
+## Anything UNCLEAR: Provide as Plain text. Try to clarify it. For example, don't forget a main entry. don't forget to init 3rd party libs.
 
 output a properly formatted JSON, wrapped inside [CONTENT][/CONTENT] like format example,
 and only output the json inside this tag, nothing else
@@ -60,17 +66,17 @@ and only output the json inside this tag, nothing else
     "Required Other language third-party packages": [
         "No third-party ..."
     ],
+    "Logic Analysis": [
+        ["game.py", "Contains..."]
+    ],
+    "Task list": [
+        "game.py"
+    ],
     "Full API spec": """
         openapi: 3.0.0
         ...
         description: A JSON object ...
      """,
-    "Logic Analysis": [
-        ["game.py","Contains..."]
-    ],
-    "Task list": [
-        "game.py"
-    ],
     "Shared Knowledge": """
         'game.py' contains ...
     """,
@@ -94,15 +100,15 @@ Attention: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD W
 
 ## Required Other language third-party packages: Provided in requirements.txt format
 
-## Full API spec: Use OpenAPI 3.0. Describe all APIs that may be used by both frontend and backend.
-
 ## Logic Analysis: Provided as a Python list[list[str]. the first is filename, the second is class/method/function should be implemented in this file. Analyze the dependencies between the files, which work should be done first
 
 ## Task list: Provided as Python list[str]. Each str is a filename, the more at the beginning, the more it is a prerequisite dependency, should be done first
 
+## Full API spec: Use OpenAPI 3.0. Describe all APIs that may be used by both frontend and backend.
+
 ## Shared Knowledge: Anything that should be public like utils' functions, config's variables details that should make clear first. 
 
-## Anything UNCLEAR: Provide as Plain text. Make clear here. For example, don't forget a main entry. don't forget to init 3rd party libs.
+## Anything UNCLEAR: Provide as Plain text. Try to clarify it. For example, don't forget a main entry. don't forget to init 3rd party libs.
 
 """,
         "FORMAT_EXAMPLE": '''
@@ -134,14 +140,16 @@ description: A JSON object ...
 ## Logic Analysis
 ```python
 [
-    ["game.py", "Contains ..."],
+    ["index.js", "Contains ..."],
+    ["main.py", "Contains ..."],
 ]
 ```
 
 ## Task list
 ```python
 [
-    "game.py",
+    "index.js",
+    "main.py",
 ]
 ```
 
@@ -239,7 +247,9 @@ class WriteTasks(Action):
             task_doc = await self._merge(system_design_doc=system_design_doc, task_doc=task_doc)
         else:
             rsp = await self._run_new_tasks(context=system_design_doc.content)
-            task_doc = Document(root_path=TASK_FILE_REPO, filename=filename, content=rsp.instruct_content.json())
+            task_doc = Document(
+                root_path=TASK_FILE_REPO, filename=filename, content=rsp.instruct_content.json(ensure_ascii=False)
+            )
         await tasks_file_repo.save(
             filename=filename, content=task_doc.content, dependencies={system_design_doc.root_relative_path}
         )
@@ -248,6 +258,21 @@ class WriteTasks(Action):
         return task_doc
 
     async def _run_new_tasks(self, context, format=CONFIG.prompt_format):
+        # =======
+        #     def _save(self, context, rsp):
+        #         if context[-1].instruct_content:
+        #             ws_name = context[-1].instruct_content.dict()["project_name"]
+        #         else:
+        #             ws_name = CodeParser.parse_str(block="project_name", text=context[-1].content)
+        #         file_path = CONFIG.workspace_path / ws_name / "docs/api_spec_and_tasks.md"
+        #         file_path.write_text(rsp.instruct_content.json(ensure_ascii=False))
+        #
+        #         # Write requirements.txt
+        #         requirements_path = CONFIG.workspace_path / ws_name / "requirements.txt"
+        #         requirements_path.write_text("\n".join(rsp.instruct_content.dict().get("Required Python third-party packages")))
+        #
+        #     async def run(self, context, format=CONFIG.prompt_format):
+        # >>>>>>> feature/geekan_cli_etc
         prompt_template, format_example = get_template(templates, format)
         prompt = prompt_template.format(context=context, format_example=format_example)
         rsp = await self._aask_v1(prompt, "task", OUTPUT_MAPPING, format=format)
@@ -256,7 +281,7 @@ class WriteTasks(Action):
     async def _merge(self, system_design_doc, task_doc, format=CONFIG.prompt_format) -> Document:
         prompt = MERGE_PROMPT.format(context=system_design_doc.content, old_tasks=task_doc.content)
         rsp = await self._aask_v1(prompt, "task", OUTPUT_MAPPING, format=format)
-        task_doc.content = rsp.instruct_content.json()
+        task_doc.content = rsp.instruct_content.json(ensure_ascii=False)
         return task_doc
 
     @staticmethod

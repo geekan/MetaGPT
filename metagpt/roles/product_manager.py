@@ -6,7 +6,8 @@
 @File    : product_manager.py
 @Modified By: mashenquan, 2023/11/27. Add `PrepareDocuments` action according to Section 2.2.3.5.1 of RFC 135.
 """
-from metagpt.actions import BossRequirement, WritePRD
+
+from metagpt.actions import UserRequirement, WritePRD
 from metagpt.actions.prepare_documents import PrepareDocuments
 from metagpt.config import CONFIG
 from metagpt.roles import Role
@@ -40,8 +41,9 @@ class ProductManager(Role):
             constraints (str): Constraints or limitations for the product manager.
         """
         super().__init__(name, profile, goal, constraints)
+
         self._init_actions([PrepareDocuments, WritePRD])
-        self._watch([BossRequirement, PrepareDocuments])
+        self._watch([UserRequirement, PrepareDocuments])
 
     async def _think(self) -> None:
         """Decide what to do"""

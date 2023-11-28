@@ -5,10 +5,10 @@
 @Author  : alexanderwu
 @File    : mock.py
 """
-from metagpt.actions import BossRequirement, WriteDesign, WritePRD, WriteTasks
+from metagpt.actions import UserRequirement, WriteDesign, WritePRD, WriteTasks
 from metagpt.schema import Message
 
-BOSS_REQUIREMENT = """开发一个基于大语言模型与私有知识库的搜索引擎，希望可以基于大语言模型进行搜索总结"""
+USER_REQUIREMENT = """开发一个基于大语言模型与私有知识库的搜索引擎，希望可以基于大语言模型进行搜索总结"""
 
 DETAIL_REQUIREMENT = """需求：开发一个基于LLM（大语言模型）与私有知识库的搜索引擎，希望有几点能力
 1. 用户可以在私有知识库进行搜索，再根据大语言模型进行总结，输出的结果包括了总结
@@ -71,7 +71,7 @@ PRD = '''## 原始需求
 ```
 '''
 
-SYSTEM_DESIGN = """## Python package name
+SYSTEM_DESIGN = """## project_name
 ```python
 "smart_search_engine"
 ```
@@ -94,7 +94,7 @@ SYSTEM_DESIGN = """## Python package name
 ]
 ```
 
-## Data structures and interface definitions
+## Data structures and interfaces
 ```mermaid
 classDiagram
     class Main {
@@ -252,7 +252,7 @@ a =  'a'
 
 
 class MockMessages:
-    req = Message(role="Boss", content=BOSS_REQUIREMENT, cause_by=BossRequirement)
+    req = Message(role="User", content=USER_REQUIREMENT, cause_by=UserRequirement)
     prd = Message(role="Product Manager", content=PRD, cause_by=WritePRD)
     system_design = Message(role="Architect", content=SYSTEM_DESIGN, cause_by=WriteDesign)
     tasks = Message(role="Project Manager", content=TASKS, cause_by=WriteTasks)

@@ -9,6 +9,8 @@
 @Modified By: mashenquan, 2023/11/27. Bug fix: `parse_recipient` failed to parse the recipient in certain GPT-3.5
         responses.
 """
+from __future__ import annotations
+
 import ast
 import contextlib
 import inspect
