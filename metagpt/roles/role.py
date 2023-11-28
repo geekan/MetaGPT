@@ -217,7 +217,7 @@ class Role:
             )
         else:
             msg = Message(content=response, role=self.profile, cause_by=self._rc.todo)
-            self._rc.memory.add(msg)
+        self._rc.memory.add(msg)
 
         return msg
 
