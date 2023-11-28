@@ -84,10 +84,14 @@ class CostManager(metaclass=Singleton):
         """
         self.total_prompt_tokens += prompt_tokens
         self.total_completion_tokens += completion_tokens
-        cost = (
-            prompt_tokens * TOKEN_COSTS[model]["prompt"] + completion_tokens * TOKEN_COSTS[model]["completion"]
-        ) / 1000
-        self.total_cost += cost
+        try:
+            cost = (
+                prompt_tokens * TOKEN_COSTS[model]["prompt"] + completion_tokens * TOKEN_COSTS[model]["completion"]
+            ) / 1000
+        except:
+            cost = (
+                prompt_tokens * TOKEN_COSTS["gpt-3.5-turbo-0613"]["prompt"] + completion_tokens * TOKEN_COSTS["gpt-3.5-turbo-0613"]["completion"]
+            ) / 1000
         logger.info(
             f"Total running cost: ${self.total_cost:.3f} | Max budget: ${CONFIG.max_budget:.3f} | "
             f"Current cost: ${cost:.3f}, prompt_tokens: {prompt_tokens}, completion_tokens: {completion_tokens}"
@@ -147,6 +151,8 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         self.llm = openai
         self.model = CONFIG.openai_api_model
         self.auto_max_tokens = False
+        # TODO The call to the interface spend calculation method has not been updated
+        #  currently each instance uses its own CostManager instance
         self._cost_manager = CostManager()
         RateLimiter.__init__(self, rpm=self.rpm)
 
@@ -327,7 +333,12 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
                 usage["completion_tokens"] = completion_tokens
                 return usage
             except Exception as e:
-                logger.error("usage calculation failed!", e)
+                prompt_tokens = count_message_tokens(messages,"gpt-3.5-turbo-0613")
+                completion_tokens = count_string_tokens(rsp, "gpt-3.5-turbo-0613")
+                usage["prompt_tokens"] = prompt_tokens
+                usage["completion_tokens"] = completion_tokens
+                logger.info("tiktoken can't calculate the LLM you're using, tokens are calculated as in gpt-3.5-turbo-0613")
+                return usage
         else:
             return usage
 
@@ -364,7 +375,10 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
                 completion_tokens = int(usage["completion_tokens"])
                 self._cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
             except Exception as e:
-                logger.error("updating costs failed!", e)
+                prompt_tokens = int(usage["prompt_tokens"])
+                completion_tokens = int(usage["completion_tokens"])
+                self._cost_manager.update_cost(prompt_tokens, completion_tokens,"gpt-3.5-turbo-0613" )
+                # logger.error("updating costs failed!", e)
 
     def get_costs(self) -> Costs:
         return self._cost_manager.get_costs()
