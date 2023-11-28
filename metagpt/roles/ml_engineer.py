@@ -44,6 +44,7 @@ class MLEngineer(Role):
         self.plan = Plan(goal=goal)
         self.use_tools = False
         self.use_task_guide = False
+        self.execute_code = ExecutePyCode()
 
     async def _plan_and_act(self):
 
@@ -90,9 +91,10 @@ class MLEngineer(Role):
 
             self._rc.memory.add(Message(content=code, role="assistant", cause_by=cause_by))
 
-            result, success = await ExecutePyCode().run(code)
-            print(result)
-            self._rc.memory.add(Message(content=result, role="user", cause_by=ExecutePyCode))
+            result, success = await self.execute_code.run(code)
+            # truncated the result
+            print(self.truncate(result))
+            self._rc.memory.add(Message(content=self.truncate(result), role="user", cause_by=ExecutePyCode))
 
             # if not success:
             #     await self._ask_review()
@@ -104,7 +106,8 @@ class MLEngineer(Role):
     async def _ask_review(self):
         context = self.get_useful_memories()
         review, confirmed = await AskReview().run(context=context[-5:], plan=self.plan)
-        self._rc.memory.add(Message(content=review, role="user", cause_by=AskReview))
+        if review.lower() not in ("confirm", "y", "yes"):
+            self._rc.memory.add(Message(content=review, role="user", cause_by=AskReview))
         return confirmed
 
     async def _update_plan(self, max_tasks: int = 3):
@@ -123,6 +126,18 @@ class MLEngineer(Role):
         """find useful memories only to reduce context length and improve performance"""
         memories = super().get_memories()
         return memories
+
+    def truncate(self, result: str, keep_len: int = 1000) -> str:
+        desc = """I truncated the result to only keep the last 1000 characters\n"""
+        if result.startswith(desc):
+            result = result[-len(desc):]
+
+        if len(result) > keep_len:
+            result = result[-keep_len:]
+
+        if not result.startswith(desc):
+            return desc + result
+        return desc
 
 
 if __name__ == "__main__":
