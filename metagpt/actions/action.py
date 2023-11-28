@@ -19,7 +19,7 @@ from metagpt.utils.custom_decoder import CustomDecoder
 from metagpt.provider.openai_api import OpenAIGPTAPI
 from metagpt.provider.customized_api import CustomizedGPTAPI
 from metagpt.config import CONFIG
-import  openai
+import openai
 
 class Action(ABC):
     def __init__(self, name: str = "", context=None, llm: LLM = None):
