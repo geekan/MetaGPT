@@ -7,18 +7,21 @@ import pytest
 from metagpt.actions import WriteCode, WriteCodeReview
 from metagpt.llm import LLM
 
+
 def test_write_design_serialize():
     action = WriteCode()
     ser_action_dict = action.dict()
     assert ser_action_dict["name"] == "WriteCode"
     assert "llm" in ser_action_dict
 
+
 def test_write_task_serialize():
     action = WriteCodeReview()
     ser_action_dict = action.dict()
     assert ser_action_dict["name"] == "WriteCodeReview"
     assert "llm" in ser_action_dict
-    
+
+
 @pytest.mark.asyncio
 async def test_write_code_deserialize():
     action = WriteCode()
@@ -28,6 +31,7 @@ async def test_write_code_deserialize():
     assert new_action.name == "WriteCode"
     assert new_action.llm == LLM()
     await new_action.run(context="write a cli snake game", filename="test_code")
+
 
 @pytest.mark.asyncio
 async def test_write_code_review_deserialize():
