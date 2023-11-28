@@ -168,7 +168,7 @@ class Engineer(Role):
             content=MSG_SEP.join(code_msg_all),
             role=self.profile,
             cause_by=self._rc.todo,
-            send_to="Edward",
+            send_to="Edward",  # name of QaEngineer
         )
         return msg
 
@@ -209,7 +209,7 @@ class Engineer(Role):
             content=MSG_SEP.join(code_msg_all),
             role=self.profile,
             cause_by=self._rc.todo,
-            send_to="Edward",
+            send_to="Edward",  # name of QaEngineer
         )
         return msg
 
