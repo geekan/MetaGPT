@@ -7,12 +7,16 @@
 @Modified By: mashenquan, 2023-11-1. In line with Chapter 2.2.1 and 2.2.2 of RFC 116, introduce unit tests for
             the utilization of the new feature of `Message` class.
 """
+
 import json
 
 import pytest
 
 from metagpt.actions import Action
 from metagpt.schema import AIMessage, Message, SystemMessage, UserMessage
+from metagpt.actions.action_output import ActionOutput
+from metagpt.actions.write_code import WriteCode
+from metagpt.utils.serialize import serialize_general_message, deserialize_general_message
 from metagpt.utils.common import get_class_name
 
 
@@ -68,6 +72,44 @@ def test_routes():
     assert m.send_to == {"b"}
     m.send_to = {"e", Action}
     assert m.send_to == {"e", get_class_name(Action)}
+
+
+def test_message_serdes():
+    out_mapping = {"field3": (str, ...), "field4": (list[str], ...)}
+    out_data = {"field3": "field3 value3", "field4": ["field4 value1", "field4 value2"]}
+    ic_obj = ActionOutput.create_model_class("code", out_mapping)
+
+    message = Message(
+        content="code",
+        instruct_content=ic_obj(**out_data),
+        role="engineer",
+        cause_by=WriteCode
+    )
+    message_dict = serialize_general_message(message)
+    assert message_dict["cause_by"] == {"action_class": "WriteCode"}
+    assert message_dict["instruct_content"] == {
+        "class": "code",
+        "mapping": {
+            "field3": "(<class 'str'>, Ellipsis)",
+            "field4": "(list[str], Ellipsis)"
+        },
+        "value": {
+            "field3": "field3 value3",
+            "field4": ["field4 value1", "field4 value2"]
+        }
+    }
+
+    new_message = deserialize_general_message(message_dict)
+    assert new_message.content == message.content
+    assert new_message.instruct_content == message.instruct_content
+    assert new_message.cause_by == message.cause_by
+    assert new_message.instruct_content.field3 == out_data["field3"]
+
+    message = Message(content="code")
+    message_dict = serialize_general_message(message)
+    new_message = deserialize_general_message(message_dict)
+    assert new_message.instruct_content is None
+    assert new_message.cause_by == ""
 
 
 if __name__ == "__main__":

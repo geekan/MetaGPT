@@ -22,7 +22,6 @@ from asyncio import Queue, QueueEmpty, wait_for
 from json import JSONDecodeError
 from pathlib import Path
 from typing import Dict, List, Optional, Set, TypedDict
-
 from pydantic import BaseModel, Field
 
 from metagpt.config import CONFIG
@@ -36,6 +35,9 @@ from metagpt.const import (
 )
 from metagpt.logs import logger
 from metagpt.utils.common import any_to_str, any_to_str_set
+# from metagpt.utils.serialize import actionoutout_schema_to_mapping
+# from metagpt.actions.action_output import ActionOutput
+# from metagpt.actions.action import Action
 
 
 class RawMessage(TypedDict):
@@ -154,6 +156,46 @@ class Message(BaseModel):
 
     def __repr__(self):
         return self.__str__()
+
+    # def serialize(self):
+    #     message_cp: Message = copy.deepcopy(self)
+    #     ic = message_cp.instruct_content
+    #     if ic:
+    #         # model create by pydantic create_model like `pydantic.main.prd`, can't pickle.dump directly
+    #         schema = ic.schema()
+    #         mapping = actionoutout_schema_to_mapping(schema)
+    #
+    #         message_cp.instruct_content = {"class": schema["title"], "mapping": mapping, "value": ic.dict()}
+    #     cb = message_cp.cause_by
+    #     if cb:
+    #         message_cp.cause_by = cb.serialize()
+    #
+    #     return message_cp.dict()
+    #
+    # @classmethod
+    # def deserialize(cls, message_dict: dict):
+    #     instruct_content = message_dict.get("instruct_content")
+    #     if instruct_content:
+    #         ic = instruct_content
+    #         ic_obj = ActionOutput.create_model_class(class_name=ic["class"], mapping=ic["mapping"])
+    #         ic_new = ic_obj(**ic["value"])
+    #         message_dict.instruct_content = ic_new
+    #     cause_by = message_dict.get("cause_by")
+    #     if cause_by:
+    #         message_dict.cause_by = Action.deserialize(cause_by)
+    #
+    #     return Message(**message_dict)
+
+    def dict(self):
+        return {
+            "content": self.content,
+            "instruct_content": self.instruct_content,
+            "role": self.role,
+            "cause_by": self.cause_by,
+            "sent_from": self.sent_from,
+            "send_to": self.send_to,
+            "restricted_to": self.restricted_to
+        }
 
     def to_dict(self) -> dict:
         """Return a dict containing `role` and `content` for the LLM call.l"""
