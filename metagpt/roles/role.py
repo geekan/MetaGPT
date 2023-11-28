@@ -126,8 +126,7 @@ class Role:
         self._reset()
         for idx, action in enumerate(actions):
             if not isinstance(action, Action):
-                #i = action("", llm=self._llm)
-                i = action("") # 不使用与Role相同的LLM
+                i = action("") # Do not use the same LLM as Role
             else:
                 if self._setting.is_human and not isinstance(action.llm, HumanProvider):
                     logger.warning(f"is_human attribute does not take effect,"
@@ -195,7 +194,7 @@ class Role:
         prompt += STATE_TEMPLATE.format(history=self._rc.history, states="\n".join(self._states),
                                         n_states=len(self._states) - 1, previous_state=self._rc.state)
         # print(prompt)
-        next_state = (await self._llm.aask(prompt)).rstrip()  # 防止出现 '0\n'这种情况
+        next_state = await self._llm.aask(prompt)
         logger.debug(f"{prompt=}")
         if (not next_state.isdigit() and next_state != "-1") \
             or int(next_state) not in range(-1, len(self._states)):
