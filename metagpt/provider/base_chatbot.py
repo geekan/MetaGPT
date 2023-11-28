@@ -13,6 +13,7 @@ from dataclasses import dataclass
 class BaseChatbot(ABC):
     """Abstract GPT class"""
     mode: str = "API"
+    use_system_prompt: bool = True
 
     @abstractmethod
     def ask(self, msg: str) -> str:
