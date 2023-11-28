@@ -30,7 +30,8 @@ class WriteCodeByGenerate(BaseWriteAnalysisCode):
         super().__init__(name, context, llm)
 
     def process_msg(self, prompt: Union[str, List[Dict], Message, List[Message]], system_msg: str = None):
-        default_system_msg = """You are Open Interpreter, a world-class programmer that can complete any goal by executing code. Strictly follow the plan and generate code step by step. Each step of the code will be executed on the user's machine, and the user will provide the code execution results to you.**Notice: The code for the next step depends on the code for the previous step.**"""
+        # Reference: https://github.com/KillianLucas/open-interpreter/blob/v0.1.4/interpreter/system_message.txt
+        default_system_msg = """You are Code Interpreter, a world-class programmer that can complete any goal by executing code. Strictly follow the plan and generate code step by step. Each step of the code will be executed on the user's machine, and the user will provide the code execution results to you.**Notice: The code for the next step depends on the code for the previous step. Reuse existing code directly. Use !pip install to install missing packages.**"""
         # 全部转成list
         if not isinstance(prompt, list):
             prompt = [prompt]
