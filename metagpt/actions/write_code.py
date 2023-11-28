@@ -5,13 +5,18 @@
 @Author  : alexanderwu
 @File    : write_code.py
 """
+from typing import List, Optional, Any
+
+from pydantic import Field
+from tenacity import retry, stop_after_attempt, wait_fixed
+
 from metagpt.actions import WriteDesign
 from metagpt.actions.action import Action
+from metagpt.llm import LLM
 from metagpt.const import WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.schema import Message
 from metagpt.utils.common import CodeParser
-from tenacity import retry, stop_after_attempt, wait_fixed
 
 PROMPT_TEMPLATE = """
 NOTICE
@@ -43,9 +48,10 @@ ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenc
 
 
 class WriteCode(Action):
-    def __init__(self, name="WriteCode", context: list[Message] = None, llm=None):
-        super().__init__(name, context, llm)
-
+    name: str = "WriteCode"
+    context: Optional[str] = None
+    llm: LLM = Field(default_factory=LLM)
+    
     def _is_invalid(self, filename):
         return any(i in filename for i in ["mp3", "wav"])
 
@@ -79,4 +85,3 @@ class WriteCode(Action):
         # code_rsp = await self._aask_v1(prompt, "code_rsp", OUTPUT_MAPPING)
         # self._save(context, filename, code)
         return code
-    

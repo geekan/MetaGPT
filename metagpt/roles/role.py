@@ -5,18 +5,28 @@
 @Author  : alexanderwu
 @File    : role.py
 """
+
+import sys
+from enum import Enum
+import importlib
 from __future__ import annotations
 
-from typing import Iterable, Type, Union
-from enum import Enum
-from pathlib import Path
+from types import SimpleNamespace
+from typing import (
+    Dict,
+    Optional,
+    Union,
+    Iterable,
+    Type
+)
+import re
 from pydantic import BaseModel, Field
-import importlib
+from importlib import import_module
 
 # from metagpt.environment import Environment
 from metagpt.config import CONFIG
 from metagpt.actions import Action, ActionOutput
-from metagpt.llm import LLM, HumanProvider
+from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.memory import Memory, LongTermMemory
 from metagpt.schema import Message
@@ -60,18 +70,18 @@ class RoleReactMode(str, Enum):
     def values(cls):
         return [item.value for item in cls]
 
+
 class RoleSetting(BaseModel):
     """Role Settings"""
-    name: str
-    profile: str
-    goal: str
-    constraints: str
-    desc: str
-    is_human: bool
-
+    name: str = ""
+    profile: str = ""
+    goal: str = ""
+    constraints: str = ""
+    desc: str = ""
+    
     def __str__(self):
         return f"{self.name}({self.profile})"
-
+    
     def __repr__(self):
         return self.__str__()
 
@@ -81,43 +91,87 @@ class RoleContext(BaseModel):
     env: 'Environment' = Field(default=None)
     memory: Memory = Field(default_factory=Memory)
     long_term_memory: LongTermMemory = Field(default_factory=LongTermMemory)
-    state: int = Field(default=-1) # -1 indicates initial or termination state where todo is None
+    state: int = Field(default=0)
     todo: Action = Field(default=None)
     watch: set[Type[Action]] = Field(default_factory=set)
     news: list[Type[Message]] = Field(default=[])
     react_mode: RoleReactMode = RoleReactMode.REACT # see `Role._set_react_mode` for definitions of the following two attributes
     max_react_loop: int = 1
-
+    
     class Config:
         arbitrary_types_allowed = True
-
+    
     def check(self, role_id: str):
         if hasattr(CONFIG, "long_term_memory") and CONFIG.long_term_memory:
             self.long_term_memory.recover_memory(role_id, self)
             self.memory = self.long_term_memory  # use memory to act as long_term_memory for unify operation
-
+    
     @property
     def important_memory(self) -> list[Message]:
         """Get the information corresponding to the watched actions"""
         return self.memory.get_by_actions(self.watch)
-
+    
     @property
     def history(self) -> list[Message]:
         return self.memory.get()
 
 
-class Role:
+class Role(BaseModel):
     """Role/Agent"""
 
-    def __init__(self, name="", profile="", goal="", constraints="", desc="", is_human=False):
-        self._llm = LLM() if not is_human else HumanProvider()
-        self._setting = RoleSetting(name=name, profile=profile, goal=goal,
-                                    constraints=constraints, desc=desc, is_human=is_human)
-        self._states = []
-        self._actions = []
-        self._role_id = str(self._setting)
-        self._rc = RoleContext()
-        self._recovered = False
+    name: str = ""
+    profile: str = ""
+    goal: str = ""
+    constraints: str = ""
+    desc: str = ""
+    _setting: RoleSetting = Field(default_factory=RoleSetting, alias="_setting")
+    _setting = RoleSetting(name=name, profile=profile, goal=goal, constraints=constraints)
+    _role_id: str = ""
+    _states: list = Field(default=[])
+    _actions: list = Field(default=[])
+    _actions_type: list = Field(default=[])
+    _rc: RoleContext = RoleContext()
+    
+    _private_attributes = {
+        "_setting': _setting,
+        "_role_id': _role_id,
+        '_states': [],
+        '_actions': [],
+        '_actions_type': []  # 用于记录和序列化
+    }
+    
+    class Config:
+        arbitrary_types_allowed = True
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # 关于私有变量的初始化  https://github.com/pydantic/pydantic/issues/655
+        for key in self._private_attributes.keys():
+            if key in kwargs:
+                object.__setattr__(self, key, kwargs[key])
+                if key =="_setting":
+                    _setting = RoleSetting(**kwargs[key])
+                    object.__setattr__(self, '_setting', _setting)
+                elif key == "_rc":
+                    _rc = RoleContext
+                    object.__setattr__(self, '_rc', _rc)
+            else:
+                object.__setattr__(self, key, self._private_attributes[key])
+    
+    def _reset(self):
+        object.__setattr__(self, '_states', [])
+        object.__setattr__(self, '_actions', [])
+
+    @staticmethod
+    def _process_class(class_str, module_name):
+        cleaned_string = re.sub(r"[<>']", "", class_str).replace("class ", "")
+        package_name = "metagpt"
+        file_name = cleaned_string.replace(package_name, "").replace("." + module_name, "")
+        print(file_name)
+        # print("\n", sys.modules)
+        module_file = import_module(file_name, package=package_name)
+        module = getattr(module_file, module_name)
+        return module
 
     def serialize(self, stg_path: Path):
         role_info_path = stg_path.joinpath("role_info.json")
@@ -216,6 +270,7 @@ class Role:
         self._reset()
         for idx, action in enumerate(actions):
             if not isinstance(action, Action):
+                ## 默认初始化
                 i = action("", llm=self._llm)
             else:
                 if self._setting.is_human and not isinstance(action.llm, HumanProvider):
@@ -225,6 +280,8 @@ class Role:
             i.set_prefix(self._get_prefix(), self.profile)
             self._actions.append(i)
             self._states.append(f"{idx}. {action}")
+            action_title = action.schema()["title"]
+            self._actions_type.append(action_title)
 
     def set_react_mode(self, react_mode: RoleReactMode, max_react_loop: int = 1):
         self._set_react_mode(react_mode, max_react_loop)
@@ -267,11 +324,11 @@ class Role:
         self._rc.state = state
         logger.debug(self._actions)
         self._rc.todo = self._actions[self._rc.state] if state >= 0 else None
-
+    
     def set_env(self, env: 'Environment'):
         """Set the environment in which the role works. The role can talk to the environment and can also receive messages by observing."""
         self._rc.env = env
-
+    
     @property
     def name(self):
         return self._setting.name
@@ -280,13 +337,13 @@ class Role:
     def profile(self):
         """Get the role description (position)"""
         return self._setting.profile
-
+    
     def _get_prefix(self):
         """Get the role prefix"""
         if self._setting.desc:
             return self._setting.desc
         return PREFIX_TEMPLATE.format(**self._setting.dict())
-
+    
     async def _think(self) -> None:
         """Think about what to do and decide on the next action"""
         if len(self._actions) == 1:
@@ -301,7 +358,6 @@ class Role:
         prompt = self._get_prefix()
         prompt += STATE_TEMPLATE.format(history=self._rc.history, states="\n".join(self._states),
                                         n_states=len(self._states) - 1, previous_state=self._rc.state)
-        # print(prompt)
         next_state = await self._llm.aask(prompt)
         logger.debug(f"{prompt=}")
         if (not next_state.isdigit() and next_state != "-1") \
@@ -313,50 +369,46 @@ class Role:
             if next_state == -1:
                 logger.info(f"End actions with {next_state=}")
         self._set_state(next_state)
-
+    
     async def _act(self) -> Message:
-        # prompt = self.get_prefix()
-        # prompt += ROLE_TEMPLATE.format(name=self.profile, state=self.states[self.state], result=response,
-        #                                history=self.history)
-
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
         response = await self._rc.todo.run(self._rc.important_memory)
         # logger.info(response)
         if isinstance(response, ActionOutput):
             msg = Message(content=response.content, instruct_content=response.instruct_content,
-                        role=self.profile, cause_by=type(self._rc.todo))
+                          role=self.profile, cause_by=type(self._rc.todo))
         else:
             msg = Message(content=response, role=self.profile, cause_by=type(self._rc.todo))
         self._rc.memory.add(msg)
         # logger.debug(f"{response}")
-
+        
         return msg
-
+    
     async def _observe(self) -> int:
         """Observe from the environment, obtain important information, and add it to memory"""
         if not self._rc.env:
             return 0
         env_msgs = self._rc.env.memory.get()
-
+        
         observed = self._rc.env.memory.get_by_actions(self._rc.watch)
         
         self._rc.news = self._rc.memory.find_news(observed)  # find news (previously unseen messages) from observed messages
-
+        
         for i in env_msgs:
             self.recv(i)
-
+        
         news_text = [f"{i.role}: {i.content[:20]}..." for i in self._rc.news]
         if news_text:
             logger.debug(f'{self._setting} observed: {news_text}')
         return len(self._rc.news)
-
+    
     def _publish_message(self, msg):
         """If the role belongs to env, then the role's messages will be broadcast to env"""
         if not self._rc.env:
             # If env does not exist, do not publish the message
             return
         self._rc.env.publish_message(msg)
-
+    
     async def _react(self) -> Message:
         """Think first, then act, until the Role _think it is time to stop and requires no more todo.
         This is the standard think-act loop in the ReAct paper, which alternates thinking and acting in task solving, i.e. _think -> _act -> _think -> _act -> ... 
@@ -406,18 +458,18 @@ class Role:
         if message in self._rc.memory.get():
             return
         self._rc.memory.add(message)
-
+    
     async def handle(self, message: Message) -> Message:
         """Receive information and reply with actions"""
         # logger.debug(f"{self.name=}, {self.profile=}, {message.role=}")
         self.recv(message)
-
+        
         return await self._react()
-
+    
     def get_memories(self, k=0) -> list[Message]:
         """A wrapper to return the most recent k memories of this role, return all when k=0"""
         return self._rc.memory.get(k=k)
-
+    
     async def run(self, message=None):
         """Observe, and think and act based on the results of the observation"""
         if message:
@@ -431,7 +483,7 @@ class Role:
             # If there is no new information, suspend and wait
             logger.debug(f"{self._setting}: no news. waiting.")
             return
-
+        
         rsp = await self.react()
         # Publish the reply to the environment, waiting for the next subscriber to process
         self._publish_message(rsp)

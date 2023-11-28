@@ -7,9 +7,12 @@
 """
 import shutil
 from pathlib import Path
-from typing import List
+from typing import List, Optional, Any
+
+from pydantic import Field
 
 from metagpt.actions import Action, ActionOutput
+from metagpt.llm import LLM
 from metagpt.config import CONFIG
 from metagpt.const import WORKSPACE_ROOT
 from metagpt.logs import logger
@@ -150,13 +153,13 @@ OUTPUT_MAPPING = {
 
 
 class WriteDesign(Action):
-    def __init__(self, name, context=None, llm=None):
-        super().__init__(name, context, llm)
-        self.desc = (
-            "Based on the PRD, think about the system design, and design the corresponding APIs, "
-            "data structures, library tables, processes, and paths. Please provide your design, feedback "
-            "clearly and in detail."
-        )
+    name: str = ""
+    context: Optional[str] = None
+    llm: LLM = Field(default_factory=LLM)
+    desc: str = "Based on the PRD, think about the system design, and design the corresponding APIs, "
+    "data structures, library tables, processes, and paths. Please provide your design, feedback "
+    "clearly and in detail."
+
 
     def recreate_workspace(self, workspace: Path):
         try:
@@ -165,15 +168,17 @@ class WriteDesign(Action):
             pass  # Folder does not exist, but we don't care
         workspace.mkdir(parents=True, exist_ok=True)
 
+
     async def _save_prd(self, docs_path, resources_path, context):
         prd_file = docs_path / "prd.md"
         if context[-1].instruct_content and context[-1].instruct_content.dict()["Competitive Quadrant Chart"]:
             quadrant_chart = context[-1].instruct_content.dict()["Competitive Quadrant Chart"]
             await mermaid_to_file(quadrant_chart, resources_path / "competitive_analysis")
-
+        
         if context[-1].instruct_content:
             logger.info(f"Saving PRD to {prd_file}")
             prd_file.write_text(json_to_markdown(context[-1].instruct_content.dict()))
+
 
     async def _save_system_design(self, docs_path, resources_path, system_design):
         data_api_design = system_design.instruct_content.dict()[
@@ -188,6 +193,7 @@ class WriteDesign(Action):
         logger.info(f"Saving System Designs to {system_design_file}")
         system_design_file.write_text((json_to_markdown(system_design.instruct_content.dict())))
 
+
     async def _save(self, context, system_design):
         if isinstance(system_design, ActionOutput):
             ws_name = system_design.instruct_content.dict()["Python package name"]
@@ -199,8 +205,12 @@ class WriteDesign(Action):
         resources_path = workspace / "resources"
         docs_path.mkdir(parents=True, exist_ok=True)
         resources_path.mkdir(parents=True, exist_ok=True)
-        await self._save_prd(docs_path, resources_path, context)
+        try:
+            await self._save_prd(docs_path, resources_path, context)
+        except Exception as e:
+            logger.error(f"Failed to save PRD {e}")
         await self._save_system_design(docs_path, resources_path, system_design)
+
 
     async def run(self, context, format=CONFIG.prompt_format):
         prompt_template, format_example = get_template(templates, format)
