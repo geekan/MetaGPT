@@ -5,10 +5,11 @@
 @Author  : alexanderwu
 @File    : architect.py
 """
+from pydantic import Field
 
 from metagpt.actions import WritePRD
 from metagpt.actions.design_api import WriteDesign
-from metagpt.roles import Role
+from metagpt.roles.role import Role
 
 
 class Architect(Role):
@@ -21,17 +22,16 @@ class Architect(Role):
         goal (str): Primary goal or responsibility of the architect.
         constraints (str): Constraints or guidelines for the architect.
     """
+    name: str = "Bob"
+    role_profile: str = Field(default="Architect" , alias='profile')
+    goal: str = "Design a concise, usable, complete python system"
+    constraints: str = "Try to specify good open source tools as much as possible"
 
     def __init__(
-        self,
-        name: str = "Bob",
-        profile: str = "Architect",
-        goal: str = "Design a concise, usable, complete python system",
-        constraints: str = "Try to specify good open source tools as much as possible",
+            self,
+            **kwargs
     ) -> None:
-        """Initializes the Architect with given attributes."""
-        super().__init__(name, profile, goal, constraints)
-
+        super().__init__(**kwargs)
         # Initialize actions specific to the Architect role
         self._init_actions([WriteDesign])
 

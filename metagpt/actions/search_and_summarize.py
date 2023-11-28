@@ -6,12 +6,16 @@
 @File    : search_google.py
 """
 import pydantic
+from typing import Optional, Any
+from pydantic import BaseModel, Field
 
 from metagpt.actions import Action
+from metagpt.llm import LLM
 from metagpt.config import Config
 from metagpt.logs import logger
 from metagpt.schema import Message
 from metagpt.tools.search_engine import SearchEngine
+from pydantic import  root_validator
 
 SEARCH_AND_SUMMARIZE_SYSTEM = """### Requirements
 1. Please summarize the latest dialogue based on the reference information (secondary) and dialogue history (primary). Do not include text that is irrelevant to the conversation.
@@ -53,7 +57,6 @@ SEARCH_AND_SUMMARIZE_PROMPT = """
 
 
 """
-
 
 SEARCH_AND_SUMMARIZE_SALES_SYSTEM = """## Requirements
 1. Please summarize the latest dialogue based on the reference information (secondary) and dialogue history (primary). Do not include text that is irrelevant to the conversation.
@@ -101,23 +104,41 @@ You are a member of a professional butler team and will provide helpful suggesti
 
 
 class SearchAndSummarize(Action):
-    def __init__(self, name="", context=None, llm=None, engine=None, search_func=None):
-        self.config = Config()
-        self.engine = engine or self.config.search_engine
+    name: str = ""
+    content: Optional[str] = None
+    llm: None = Field(default_factory=LLM)
+    config: None = Field(default_factory=Config)
+    engine: Optional[str] = None
+    search_func: Optional[str] = None
 
-        try:
-            self.search_engine = SearchEngine(self.engine, run_func=search_func)
-        except pydantic.ValidationError:
-            self.search_engine = None
+    result = ""
+    
 
-        self.result = ""
-        super().__init__(name, context, llm)
+    @root_validator
+    def validate_engine_and_run_func(cls, values):
+        engine = values.get('engine')
+        search_func = values.get('search_func')
+        config = Config()
+        
+        if engine is None:
+            engine = config.search_engine
+        config_data = {
+                'engine': engine,
+                'run_func': search_func
+        }
+        search_engine = SearchEngine(**config_data)
 
+        values['search_engine'] = search_engine
+        return values
+    
+    
+    
     async def run(self, context: list[Message], system_text=SEARCH_AND_SUMMARIZE_SYSTEM) -> str:
+        print(context)
         if self.search_engine is None:
             logger.warning("Configure one of SERPAPI_API_KEY, SERPER_API_KEY, GOOGLE_API_KEY to unlock full feature")
             return ""
-
+        
         query = context[-1].content
         # logger.debug(query)
         rsp = await self.search_engine.run(query)
@@ -126,9 +147,9 @@ class SearchAndSummarize(Action):
             logger.error("empty rsp...")
             return ""
         # logger.info(rsp)
-
+        
         system_prompt = [system_text]
-
+        
         prompt = SEARCH_AND_SUMMARIZE_PROMPT.format(
             # PREFIX = self.prefix,
             ROLE=self.profile,
@@ -140,4 +161,7 @@ class SearchAndSummarize(Action):
         logger.debug(prompt)
         logger.debug(result)
         return result
-    
+
+
+if __name__ == "__main__":
+    action = SearchAndSummarize()
