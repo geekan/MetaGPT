@@ -24,7 +24,11 @@ def check_cmd_exists(command) -> int:
     if platform.system().lower() == "windows":
         check_command = "where " + command
     else:
-        check_command = "command -v " + command + ' >/dev/null 2>&1 || { echo >&2 "no mermaid"; exit 1; }'
+        check_command = (
+            "command -v "
+            + command
+            + ' >/dev/null 2>&1 || { echo >&2 "no mermaid"; exit 1; }'
+        )
     result = os.system(check_command)
     return result
 
@@ -134,7 +138,11 @@ class OutputParser:
                 typing = typing_define[0]
             else:
                 typing = typing_define
-            if typing == List[str] or typing == List[Tuple[str, str]] or typing == List[List[str]]:
+            if (
+                typing == List[str]
+                or typing == List[Tuple[str, str]]
+                or typing == List[List[str]]
+            ):
                 # 尝试解析list
                 try:
                     content = cls.parse_file_list(text=content)
@@ -151,7 +159,9 @@ class OutputParser:
         return parsed_data
 
     @classmethod
-    def extract_struct(cls, text: str, data_type: Union[type(list), type(dict)]) -> Union[list, dict]:
+    def extract_struct(
+        cls, text: str, data_type: Union[type(list), type(dict)]
+    ) -> Union[list, dict]:
         """Extracts and parses a specified type of structure (dictionary or list) from the given text.
         The text only contains a list or dictionary, which may have nested structures.
 
@@ -193,7 +203,9 @@ class OutputParser:
                 raise ValueError(f"The extracted structure is not a {data_type}.")
 
             except (ValueError, SyntaxError) as e:
-                raise Exception(f"Error while extracting and parsing the {data_type}: {e}")
+                raise Exception(
+                    f"Error while extracting and parsing the {data_type}: {e}"
+                )
         else:
             logger.error(f"No {data_type} found in the text.")
             return [] if data_type is list else {}
@@ -305,3 +317,13 @@ def parse_recipient(text):
     pattern = r"## Send To:\s*([A-Za-z]+)\s*?"  # hard code for now
     recipient = re.search(pattern, text)
     return recipient.group(1) if recipient else ""
+
+
+def create_func_config(func_schema: dict) -> dict:
+    """Create new function call config"""
+    tools = [{"type": "function", "function": func_schema}]
+    tool_choice = {"type": "function", "function": {"name": func_schema["name"]}}
+    return {
+        "tools": tools,
+        "tool_choice": tool_choice,
+    }
