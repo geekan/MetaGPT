@@ -15,8 +15,6 @@ class WritePlan(Action):
     PROMPT_TEMPLATE = """
     # Context:
     __context__
-    # Current Plan:
-    __current_plan__
     # Task:
     Based on the context, write a plan or modify an existing plan of what you should do to achieve the goal. A plan consists of one to __max_tasks__ tasks.
     If you are modifying an existing plan, carefully follow the instruction, don't make unnecessary changes.
@@ -32,10 +30,11 @@ class WritePlan(Action):
     ]
     ```
     """
-    async def run(self, context: List[Message], current_plan: str = "", max_tasks: int = 5) -> str:
+    async def run(self, context: List[Message], max_tasks: int = 5) -> str:
         prompt = (
             self.PROMPT_TEMPLATE.replace("__context__", "\n".join([str(ct) for ct in context]))
-            .replace("__current_plan__", current_plan).replace("__max_tasks__", str(max_tasks))
+            # .replace("__current_plan__", current_plan)
+            .replace("__max_tasks__", str(max_tasks))
         )
         rsp = await self._aask(prompt)
         rsp = CodeParser.parse_code(block=None, text=rsp)
