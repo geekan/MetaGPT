@@ -5,12 +5,18 @@
 ## The official OPENAI_API_BASE is https://api.openai.com/v1
 ## If the official OPENAI_API_BASE is not available, we recommend using the [openai-forward](https://github.com/beidongjiedeguang/openai-forward).
 ## Or, you can configure OPENAI_PROXY to access official OPENAI_API_BASE.
-OPENAI_API_BASE: "https://api.openai.com/v1"
-#OPENAI_PROXY: "http://127.0.0.1:8118"
-#OPENAI_API_KEY: "YOUR_API_KEY"   # set the value to sk-xxx if you host the openai interface for open llm model
-OPENAI_API_MODEL: "gpt-4"
+#OPENAI_API_BASE: "https://api.openai.com/v1"
+##OPENAI_PROXY: "http://127.0.0.1:8118"
+#OPENAI_API_KEY: ""   # set the value to sk-xxx if you host the openai interface for open llm model
+#OPENAI_API_MODEL: "gpt-3.5-turbo-16k-0613"
 MAX_TOKENS: 1500
 RPM: 10
+
+
+#### if like openai customized model
+CUSTOMIZED_API_BASE: "http://0.0.0.0:17865/v1"
+CUSTOMIZED_API_MODEL: "llama2-13b-chat-hf"
+
 
 #### if Spark
 #SPARK_APPID : "YOUR_APPID"
@@ -89,9 +95,35 @@ MODEL_FOR_RESEARCHER_REPORT: gpt-3.5-turbo-16k
 
 ### choose the engine for mermaid conversion, 
 # default is nodejs, you can change it to playwright,pyppeteer or ink
-# MERMAID_ENGINE: nodejs
+MERMAID_ENGINE: pyppeteer
+
 
 ### browser path for pyppeteer engine, support Chrome, Chromium,MS Edge
-#PYPPETEER_EXECUTABLE_PATH: "/usr/bin/google-chrome-stable"
+PYPPETEER_EXECUTABLE_PATH: "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
 
 PROMPT_FORMAT: json #json or markdown
+
+
+####Customizing the LLM used by Action and Role
+MULTI_LLM: True
+
+#### 请提供LLM名称
+####Currently support openai,claude,spark,zhipu,class openai
+###Customize the LLM used by the role
+ProductManager: llama2-13b-chat-hf
+Architect: llama2-13b-chat-hf
+ProjectManager: llama2-13b-chat-hf
+Engineer: llama2-13b-chat-hf
+#
+####Customizing the LLM used by Action
+WritePRD: llama2-13b-chat-hf
+WriteDesign: llama2-13b-chat-hf
+WriteTasks: llama2-13b-chat-hf
+WriteCode: openai
+WriteCodeReview: openai
+#
+#
+####Customize LLM name and request address
+MODEL_LIST:
+  llama2-13b-chat-hf: "http://0.0.0.0:17865/v1"
+  deepseek-coder-33b-instruct: "http://0.0.0.0:17866/v1"
