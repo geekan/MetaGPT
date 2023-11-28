@@ -42,6 +42,7 @@ TMP = PROJECT_ROOT / "tmp"
 RESEARCH_PATH = DATA_PATH / "research"
 TUTORIAL_PATH = DATA_PATH / "tutorial_docx"
 INVOICE_OCR_TABLE_PATH = DATA_PATH / "invoice_table"
+SERDES_PATH = WORKSPACE_ROOT / "storage"  # TODO to store `storage` under the individual generated project
 
 SKILL_DIRECTORY = PROJECT_ROOT / "metagpt/skills"
 

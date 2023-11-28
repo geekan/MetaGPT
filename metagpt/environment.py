@@ -7,12 +7,14 @@
 """
 import asyncio
 from typing import Iterable
+from pathlib import Path
 
 from pydantic import BaseModel, Field
 
 from metagpt.memory import Memory
 from metagpt.roles import Role
 from metagpt.schema import Message
+from metagpt.utils.utils import read_json_file, write_json_file
 
 
 class Environment(BaseModel):
@@ -27,6 +29,42 @@ class Environment(BaseModel):
 
     class Config:
         arbitrary_types_allowed = True
+
+    def serialize(self, stg_path: Path):
+        roles_path = stg_path.joinpath("roles.json")
+        roles_info = []
+        for role_key, role in self.roles.items():
+            roles_info.append({
+                "role_class": role.__class__.__name__,
+                "module_name": role.__module__,
+                "role_name": role.name
+            })
+            role.serialize(stg_path=stg_path.joinpath(f"roles/{role.__class__.__name__}_{role.name}"))
+        write_json_file(roles_path, roles_info)
+
+        self.memory.serialize(stg_path)
+        history_path = stg_path.joinpath("history.json")
+        write_json_file(history_path, {"content": self.history})
+
+    def deserialize(self, stg_path: Path):
+        """ stg_path: ./storage/team/environment/ """
+        roles_path = stg_path.joinpath("roles.json")
+        roles_info = read_json_file(roles_path)
+        for role_info in roles_info:
+            role_class = role_info.get("role_class")
+            role_name = role_info.get("role_name")
+
+            role_path = stg_path.joinpath(f"roles/{role_class}_{role_name}")
+            role = Role.deserialize(role_path)
+
+            self.add_role(role)
+
+        memory = Memory.deserialize(stg_path)
+        self.memory = memory
+
+        history_path = stg_path.joinpath("history.json")
+        history = read_json_file(history_path)
+        self.history = history.get("content")
 
     def add_role(self, role: Role):
         """增加一个在当前环境的角色, 默认为profile/role_profile

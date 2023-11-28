@@ -4,6 +4,7 @@ import asyncio
 
 import fire
 
+from metagpt.const import SERDES_PATH
 from metagpt.roles import (
     Architect,
     Engineer,
@@ -21,26 +22,32 @@ async def startup(
     code_review: bool = False,
     run_tests: bool = False,
     implement: bool = True,
+    recover_path: bool = False,
 ):
     """Run a startup. Be a boss."""
     company = Team()
-    company.hire(
-        [
-            ProductManager(),
-            Architect(),
-            ProjectManager(),
-        ]
-    )
+    if not recover_path:
+        company.hire(
+            [
+                ProductManager(),
+                Architect(),
+                ProjectManager(),
+            ]
+        )
 
-    # if implement or code_review
-    if implement or code_review:
-        # developing features: implement the idea
-        company.hire([Engineer(n_borg=5, use_code_review=code_review)])
+        # if implement or code_review
+        if implement or code_review:
+            # developing features: implement the idea
+            company.hire([Engineer(n_borg=5, use_code_review=code_review)])
 
-    if run_tests:
-        # developing features: run tests on the spot and identify bugs
-        # (bug fixing capability comes soon!)
-        company.hire([QaEngineer()])
+        if run_tests:
+            # developing features: run tests on the spot and identify bugs
+            # (bug fixing capability comes soon!)
+            company.hire([QaEngineer()])
+    else:
+        stg_path = SERDES_PATH.joinpath("team")
+        company.deserialize(stg_path=stg_path)
+        idea = company.idea  # use original idea
 
     company.invest(investment)
     company.start_project(idea)
@@ -54,6 +61,7 @@ def main(
     code_review: bool = True,
     run_tests: bool = False,
     implement: bool = True,
+    recover_path: str = None,
 ):
     """
     We are a software startup comprised of AI. By investing in us,
@@ -63,9 +71,10 @@ def main(
     a certain dollar amount to this AI company.
     :param n_round:
     :param code_review: Whether to use code review.
+    :param recover_path: recover the project from existing serialized storage
     :return:
     """
-    asyncio.run(startup(idea, investment, n_round, code_review, run_tests, implement))
+    asyncio.run(startup(idea, investment, n_round, code_review, run_tests, implement, recover_path))
 
 
 if __name__ == "__main__":

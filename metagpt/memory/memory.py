@@ -7,9 +7,12 @@
 """
 from collections import defaultdict
 from typing import Iterable, Type
+from pathlib import Path
 
 from metagpt.actions import Action
 from metagpt.schema import Message
+from metagpt.utils.utils import read_json_file, write_json_file
+from metagpt.utils.serialize import serialize_general_message, deserialize_general_message
 
 
 class Memory:
@@ -19,6 +22,33 @@ class Memory:
         """Initialize an empty storage list and an empty index dictionary"""
         self.storage: list[Message] = []
         self.index: dict[Type[Action], list[Message]] = defaultdict(list)
+
+    def serialize(self, stg_path: Path):
+        """ stg_path = ./storage/team/environment/ or ./storage/team/environment/roles/{role_class}_{role_name}/ """
+        memory_path = stg_path.joinpath("memory.json")
+
+        storage = []
+        for message in self.storage:
+            # msg_dict = message.serialize()
+            msg_dict = serialize_general_message(message)
+            storage.append(msg_dict)
+
+        write_json_file(memory_path, storage)
+
+    @classmethod
+    def deserialize(cls, stg_path: Path) -> "Memory":
+        """ stg_path = ./storage/team/environment/ or ./storage/team/environment/roles/{role_class}_{role_name}/"""
+        memory_path = stg_path.joinpath("memory.json")
+
+        memory = Memory()
+        memory_list = read_json_file(memory_path)
+        for message in memory_list:
+            # distinguish instruct_content type in message
+            # msg = Message.deserialize(message)
+            msg = deserialize_general_message(message)
+            memory.add(msg)
+
+        return memory
 
     def add(self, message: Message):
         """Add a new message to storage, while updating the index"""
