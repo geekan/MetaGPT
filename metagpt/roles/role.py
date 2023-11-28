@@ -34,9 +34,9 @@ Now choose one of the following stages you need to go to in the next step:
 {states}
 
 Just answer a number between 0-{n_states}, choose the most suitable stage according to the understanding of the conversation.
-Please note that the answer only needs a number, no need to add any other text.
+Please note that the answer only needs a number, no need to add any other text, specially the line break \n.
 If you think you have completed your goal and don't need to go to any of the stages, return -1.
-Do not answer anything else, and do not add any other information in your answer.
+Do not answer anything else, and do not add any other information in your answer, specially the line break \n.
 """
 
 ROLE_TEMPLATE = """Your response should be based on the previous conversation history and the current conversation stage.
@@ -108,7 +108,9 @@ class Role:
     """Role/Agent"""
 
     def __init__(self, name="", profile="", goal="", constraints="", desc="", is_human=False):
-        self._llm = LLM() if not is_human else HumanProvider()
+
+        role_name = type(self).__name__  # Pass in specific Role name for base LLM selection
+        self._llm = LLM(role_name) if not is_human else HumanProvider()
         self._setting = RoleSetting(name=name, profile=profile, goal=goal,
                                     constraints=constraints, desc=desc, is_human=is_human)
         self._states = []
@@ -124,7 +126,8 @@ class Role:
         self._reset()
         for idx, action in enumerate(actions):
             if not isinstance(action, Action):
-                i = action("", llm=self._llm)
+                #i = action("", llm=self._llm)
+                i = action("") # 不使用与Role相同的LLM
             else:
                 if self._setting.is_human and not isinstance(action.llm, HumanProvider):
                     logger.warning(f"is_human attribute does not take effect,"
@@ -192,7 +195,7 @@ class Role:
         prompt += STATE_TEMPLATE.format(history=self._rc.history, states="\n".join(self._states),
                                         n_states=len(self._states) - 1, previous_state=self._rc.state)
         # print(prompt)
-        next_state = await self._llm.aask(prompt)
+        next_state = (await self._llm.aask(prompt)).rstrip()  # 防止出现 '0\n'这种情况
         logger.debug(f"{prompt=}")
         if (not next_state.isdigit() and next_state != "-1") \
             or int(next_state) not in range(-1, len(self._states)):
