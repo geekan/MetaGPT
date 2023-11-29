@@ -3,7 +3,7 @@
 import re
 import shutil
 from pathlib import Path
-from typing import List
+from typing import List, Union
 
 from metagpt.actions import Action, ActionOutput
 from metagpt.config import CONFIG
@@ -26,34 +26,29 @@ templates = {
 ## Format example
 {format_example}
 -----
-Role: You are an architect; the goal is to perform incremental development and design a state-of-the-art (SOTA) PEP8-compliant Python system based on the context and the provided difference descriptions. Make the best use of good open source tools.
-Requirement: Fill in the following missing information based on the context, each section name is a key in json
+Role: You are an architect; the goal is to perform incremental development and design a state-of-the-art (SOTA) PEP8-compliant Python system based on the context and legacy design. Make the best use of good open source tools.
+Requirement: Fill in the following missing information based on the context, each section name is a key in json. Output exactly as shown in the example, including single and double quotes.
 Max Output: 8192 chars or 2048 tokens. Try to use them up.
 
-## Difference Description: Provided as Python list[str], the list of differences between the new design and the legacy design
+## Difference Description: Provide as list, the foremost differences description for system design here based on the previous.
 
-## Implementation approach: Provide as Plain text. Analyze the difficult points of the requirements, select the appropriate open-source framework.
+## Incremental implementation approach: Provide as Plain text. Analyze the difficult points of the requirements, select the appropriate open-source framework.
 
 ## Python package name: Provide as Python str with python triple quoto, concise and clear, characters only use a combination of all lowercase and underscores
 
-## File list: Provided as Python list[str], the list of ONLY REQUIRED files needed to write the program(LESS IS MORE!). Only need relative paths, comply with PEP8 standards. ALWAYS write a main.py or app.py here
+## Data structures and interface definitions: Use single quotes to wrap content. Use mermaid classDiagram code syntax, including classes (INCLUDING __init__ method) and functions (with type annotations), CLEARLY MARK the RELATIONSHIPS between classes, and comply with PEP8 standards. The data structures SHOULD BE VERY DETAILED and the API should be comprehensive with a complete design. 
 
-## Data structures and interface definitions: Use mermaid classDiagram code syntax, including classes (INCLUDING __init__ method) and functions (with type annotations), CLEARLY MARK the RELATIONSHIPS between classes, and comply with PEP8 standards. The data structures SHOULD BE VERY DETAILED and the API should be comprehensive with a complete design. 
+## Program call flow: Use single quotes to wrap content. Use sequenceDiagram code syntax, COMPLETE and VERY DETAILED, using CLASSES AND API DEFINED ABOVE accurately, covering the CRUD AND INIT of each object, SYNTAX MUST BE CORRECT.
 
-## Program call flow: Use sequenceDiagram code syntax, COMPLETE and VERY DETAILED, using CLASSES AND API DEFINED ABOVE accurately, covering the CRUD AND INIT of each object, SYNTAX MUST BE CORRECT.
-
-## Anything UNCLEAR: Provide as Plain text. Make clear here.
-
-output a properly formatted JSON, wrapped inside [CONTENT][/CONTENT] like format example,
-and only output the json inside this tag, nothing else
+output a properly formatted JSON, wrapped inside [CONTENT][/CONTENT] like format example.
+Output exactly as shown in the example, including single and double quotes, and only output the json inside this tag, nothing else
 """,
         "FORMAT_EXAMPLE": """
 [CONTENT]
 {
     "Difference Description": ["The ..."],
-    "Implementation approach": "We will ...",
-    "Python package name": "snake_game",
-    "File list": ["main.py"],
+    "Incremental implementation approach": "We will ...",
+    "Python package name": "new_name",
     "Data structures and interface definitions": '
     classDiagram
         class Game{
@@ -67,8 +62,7 @@ and only output the json inside this tag, nothing else
         participant M as Main
         ...
         G->>M: end game
-    ',
-    "Anything UNCLEAR": "The requirement is clear to me."
+    '
 }
 [/CONTENT]
 """,
@@ -84,24 +78,20 @@ and only output the json inside this tag, nothing else
 ## Format example
 {format_example}
 -----
-Role: You are an architect; the goal is to perform incremental development and design a state-of-the-art (SOTA) PEP8-compliant Python system based on the context and the provided difference descriptions. Make the best use of good open source tools.
-Requirement: Fill in the following missing information based on the context, note that all sections are response with code form separately
+Role: You are an architect; the goal is to perform incremental development and design a state-of-the-art (SOTA) PEP8-compliant Python system based on the context and legacy design. Make the best use of good open source tools.
+Requirement: Fill in the following missing information based on the context, note that all sections are response with code form separately. Output exactly as shown in the example, including single and double quotes.
 Max Output: 8192 chars or 2048 tokens. Try to use them up.
 Attention: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD WRITE BEFORE the code and triple quote.
 
-## Difference Description: Provided as Python list[str], the list of differences between the new design and the legacy design
+## Difference Description: Provide as list, the foremost differences description for system design here based on the previous.
 
-## Implementation approach: Provide as Plain text. Analyze the difficult points of the requirements, select the appropriate open-source framework.
+## Incremental implementation approach: Provide as Plain text. Analyze the difficult points of the requirements, select the appropriate open-source framework.
 
 ## Python package name: Provide as Python str with python triple quoto, concise and clear, characters only use a combination of all lowercase and underscores
 
-## File list: Provided as Python list[str], the list of ONLY REQUIRED files needed to write the program(LESS IS MORE!). Only need relative paths, comply with PEP8 standards. ALWAYS write a main.py or app.py here
+## Data structures and interface definitions: Use single quotes to wrap content. Use mermaid classDiagram code syntax, including classes (INCLUDING __init__ method) and functions (with type annotations), CLEARLY MARK the RELATIONSHIPS between classes, and comply with PEP8 standards. The data structures SHOULD BE VERY DETAILED and the API should be comprehensive with a complete design. 
 
-## Data structures and interface definitions: Use mermaid classDiagram code syntax, including classes (INCLUDING __init__ method) and functions (with type annotations), CLEARLY MARK the RELATIONSHIPS between classes, and comply with PEP8 standards. The data structures SHOULD BE VERY DETAILED and the API should be comprehensive with a complete design. 
-
-## Program call flow: Use sequenceDiagram code syntax, COMPLETE and VERY DETAILED, using CLASSES AND API DEFINED ABOVE accurately, covering the CRUD AND INIT of each object, SYNTAX MUST BE CORRECT.
-
-## Anything UNCLEAR: Provide as Plain text. Make clear here.
+## Program call flow: Use single quotes to wrap content. Use sequenceDiagram code syntax, COMPLETE and VERY DETAILED, using CLASSES AND API DEFINED ABOVE accurately, covering the CRUD AND INIT of each object, SYNTAX MUST BE CORRECT.
 
 """,
         "FORMAT_EXAMPLE": """
@@ -113,19 +103,12 @@ Attention: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD W
 ]
 ```
 
-## Implementation approach
+## Incremental implementation approach
 We will ...
 
 ## Python package name
 ```python
-"snake_game"
-```
-
-## File list
-```python
-[
-    "main.py",
-]
+"new_name"
 ```
 
 ## Data structures and interface definitions
@@ -145,22 +128,19 @@ sequenceDiagram
     ...
     G->>M: end game
 ```
-
-## Anything UNCLEAR
-The requirement is clear to me.
 ---
 """,
     },
 }
 
 OUTPUT_MAPPING = {
-    "Difference Description": (List[str], ...),
-    "Implementation approach": (str, ...),
+    # "Incremental Requirements": (str, ...),
+    "Difference Description": (Union[List[str], str], ...),
+    "Incremental implementation approach": (str, ...),
     "Python package name": (str, ...),
-    "File list": (List[str], ...),
+    # "File list": (List[str], ...),
     "Data structures and interface definitions": (str, ...),
-    "Program call flow": (str, ...),
-    "Anything UNCLEAR": (str, ...),
+    "Program call flow": (str, ...)
 }
 
 
@@ -201,9 +181,6 @@ class RefineDesign(Action):
 
     async def _save_prd(self, docs_path, resources_path, context):
         prd_file = docs_path / "prd.md"
-        if context[-1].instruct_content and context[-1].instruct_content.dict()["Competitive Quadrant Chart"]:
-            quadrant_chart = context[-1].instruct_content.dict()["Competitive Quadrant Chart"]
-            await mermaid_to_file(quadrant_chart, resources_path / "competitive_analysis")
 
         if context[-1].instruct_content:
             logger.info(f"Saving PRD to {prd_file}")

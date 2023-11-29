@@ -7,56 +7,42 @@ from metagpt.schema import Message
 from metagpt.utils.common import CodeParser
 from tenacity import retry, stop_after_attempt, wait_fixed
 
-
 PROMPT_TEMPLATE = """
 NOTICE
-Role: You are a professional software engineer, and your main task is to conduct incremental development, which includes reviewing existing code, providing modification suggestions, rewriting code, and optimizing the codebase. Existing code and logic that need to be retained must also appear in the code after incremental development, do not omit it. Ensure that the code conforms to the PEP8 standards, is elegantly designed and modularized, easy to read and maintain, and is written in Python 3.9 (or in another programming language).
-ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenced "Format example".
+Role: You are a professional engineer; your primary goal is to write PEP8 compliant, elegant, modular, easy-to-read, and maintainable Python 3.9 code (or any other programming language of your choice). 
+Requirements: You should modify the corresponding code based on the guidance. Then, output the complete code, fixing all errors according to the context. Ensure that you adhere to the specified guidelines for incremental development and modification of legacy code. 
+ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format should be carefully referenced using the "Format example". Only output the current modified code, nothing else. In the modified code, if unchanged, you should output it, the complete code.
 
-## Code Review: Based on the following context and legacy code, and following the checklist, provide key, clear, concise, and specific code modification suggestions, up to 5.
-```
-1. Check 0: Is the code implemented as per the requirements?
-2. Check 1: Are there any issues with the code logic?
-3. Check 2: Does the existing code follow the "Data structures and interface definitions"?
-4. Check 3: Is there a function in the code that is omitted or not fully implemented that needs to be implemented?
-5. Check 4: Does the code have unnecessary or lack dependencies?
-```
-
-## Incremental Development: {filename} Based on the findings from the "Code Review," context, and the legacy code, conduct incremental development by rewriting, optimizing, and adding new code using triple quotes.
+## Code: Only Write {filename}, Write code using triple quotes, based on the following list and context.
+1. Do your best to implement THIS ONLY ONE FILE. ONLY USE EXISTING API. IF NO API, IMPLEMENT IT.
+2. Requirement: Implement one of the following code files based on the provided context. Return the code in the specified format. Your code will be part of the entire project, so ensure it is complete, reliable, and reusable.
+3. Attention1: If there is any setting, ALWAYS SET A DEFAULT VALUE, ALWAYS USE STRONG TYPE AND EXPLICIT VARIABLE.
+4. Attention2: YOU MUST FOLLOW "Data structures and interface definitions". DONT CHANGE ANY DESIGN.
+5. Think before writing: What should be implemented and provided in this document?
+6. CAREFULLY CHECK THAT YOU DONT MISS ANY NECESSARY CLASS/FUNCTION IN THIS FILE.
+7. Do not use public member functions that do not exist in your design.
 -----
 # Context
 {context}
 
-## Legacy Code
-You are tasked with conducting incremental development in the existing code and creating a new code file, {filename}, based on the provided legacy code and above information.
-```
-{code}
-```
 -----
+## Guidelines: The foremost guidelines of modification for incremental development.
+{guide}
 
+-----
+## Legacy Code: The Legacy Code that needs to be modified.
+{legacy}
+
+-----
 ## Format example
 -----
-{format_example}
------
-
-"""
-
-FORMAT_EXAMPLE = """
-
-## Code Review
-1. The code ...
-2. ...
-3. ...
-4. ...
-5. ...
-
-## Incremental Development: {filename}
+## Modified/Added Code: {filename}
 ```python
-## {filename} - Incremental Development
+# {filename}
 ...
 ```
+-----
 """
-
 
 
 class WriteCodeRefine(Action):
@@ -69,9 +55,8 @@ class WriteCodeRefine(Action):
         code = CodeParser.parse_code(block="", text=code_rsp)
         return code
 
-    async def run(self, context, code, filename):
-        format_example = FORMAT_EXAMPLE.format(filename=filename)
-        prompt = PROMPT_TEMPLATE.format(context=context, code=code, filename=filename, format_example=format_example)
+    async def run(self, context, code, filename, guide):
+        prompt = PROMPT_TEMPLATE.format(context=context, legacy=code, filename=filename, guide=guide)
         logger.info(f'Code refine {filename}..')
         code = await self.write_code(prompt)
         # code_rsp = await self._aask_v1(prompt, "code_rsp", OUTPUT_MAPPING)
