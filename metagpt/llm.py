@@ -8,9 +8,12 @@
 
 from metagpt.config import CONFIG
 from metagpt.provider.anthropic_api import Claude2 as Claude
+from metagpt.provider.human_provider import HumanProvider
 from metagpt.provider.openai_api import OpenAIGPTAPI
 from metagpt.provider.spark_api import SparkAPI
 from metagpt.provider.zhipuai_api import ZhiPuAIGPTAPI
+
+_ = HumanProvider()
 
 
 def LLM() -> "BaseGPTAPI":
