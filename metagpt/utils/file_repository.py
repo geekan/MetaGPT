@@ -54,7 +54,7 @@ class FileRepository:
         """
         pathname = self.workdir / filename
         pathname.parent.mkdir(parents=True, exist_ok=True)
-        async with aiofiles.open(str(pathname), mode="wb") as writer:
+        async with aiofiles.open(str(pathname), mode="w") as writer:
             await writer.write(content)
         logger.info(f"save to: {str(pathname)}")
 
@@ -98,7 +98,7 @@ class FileRepository:
         if not path_name.exists():
             return None
         try:
-            async with aiofiles.open(str(path_name), mode="rb") as reader:
+            async with aiofiles.open(str(path_name), mode="r") as reader:
                 doc.content = await reader.read()
         except FileNotFoundError as e:
             logger.info(f"open {str(path_name)} failed:{e}")
