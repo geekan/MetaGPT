@@ -166,24 +166,22 @@ MERGE_PROMPT = """
 {context}
 
 -----
-Role: You are an architect; The goal is to incrementally update the "Old Design" based on the information provided by the "Context," aiming to design a state-of-the-art (SOTA) Python system compliant with PEP8. Additionally, the objective is to optimize the use of high-quality open-source tools.
-Requirement: Fill in the following missing information based on the context, each section name is a key in json
-Max Output: 8192 chars or 2048 tokens. Try to use them up.
+Role: You are an architect; The goal is to incrementally update the "Old Design" based on the information provided by the "Context," aiming to design a SOTA PEP8-compliant python system; make the best use of good open source tools
+Language: Please use the same language as the user requirement, but the title and code should be still in English. For example, if the user speaks Chinese, the specific text of your answer should also be in Chinese.
+Requirement: Fill in the following missing information based on the context, note that all sections are response with code form separately
+ATTENTION: Output carefully referenced "Old Design" in format.
 
 ## Implementation approach: Provide as Plain text. Analyze the difficult points of the requirements, select the appropriate open-source framework.
 
-## Python package name: Provide as Python str with python triple quote, concise and clear, characters only use a combination of all lowercase and underscores
+## project_name: Provide as Plain text, concise and clear, characters only use a combination of all lowercase and underscores
 
-## File list: Provided as Python list[str], the list of ONLY REQUIRED files needed to write the program(LESS IS MORE!). Only need relative paths, comply with PEP8 standards. ALWAYS write a main.py or app.py here
+## File list: Provided as Python list[str], the list of code files (including HTML & CSS IF NEEDED) to write the program. Only need relative paths. ALWAYS write a main.py or app.py here
 
-## Data structures and interface definitions: Use mermaid classDiagram code syntax, including classes (INCLUDING __init__ method) and functions (with type annotations), CLEARLY MARK the RELATIONSHIPS between classes, and comply with PEP8 standards. The data structures SHOULD BE VERY DETAILED and the API should be comprehensive with a complete design. 
+## Data structures and interfaces: Use mermaid classDiagram code syntax, including classes (INCLUDING __init__ method) and functions (with type annotations), CLEARLY MARK the RELATIONSHIPS between classes, and comply with PEP8 standards. The data structures SHOULD BE VERY DETAILED and the API should be comprehensive with a complete design. 
 
 ## Program call flow: Use sequenceDiagram code syntax, COMPLETE and VERY DETAILED, using CLASSES AND API DEFINED ABOVE accurately, covering the CRUD AND INIT of each object, SYNTAX MUST BE CORRECT.
 
-## Anything UNCLEAR: Provide as Plain text. Make clear here.
-
-output a properly formatted JSON, wrapped inside [CONTENT][/CONTENT] like "Old Design" format,
-and only output the json inside this tag, nothing else
+## Anything UNCLEAR: Provide as Plain text. Try to clarify it.
 """
 
 
