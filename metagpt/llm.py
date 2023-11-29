@@ -13,7 +13,7 @@ from metagpt.provider.openai_api import OpenAIGPTAPI
 from metagpt.provider.spark_api import SparkAPI
 from metagpt.provider.zhipuai_api import ZhiPuAIGPTAPI
 
-_ = HumanProvider()
+_ = HumanProvider()  # Avoid pre-commit error
 
 
 def LLM() -> "BaseGPTAPI":
