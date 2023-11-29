@@ -123,7 +123,7 @@ class MLEngineer(Role):
             # print("*" * 10)
             # breakpoint()
 
-            if not self.use_tools or self.plan.current_task.task_type == "unknown":
+            if not self.use_tools or self.plan.current_task.task_type == "":
                 # code = "print('abc')"
                 code = await WriteCodeByGenerate().run(
                     context=context, plan=self.plan, task_guide=task_guide
