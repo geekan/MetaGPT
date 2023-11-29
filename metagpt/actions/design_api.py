@@ -182,6 +182,9 @@ ATTENTION: Output carefully referenced "Old Design" in format.
 ## Program call flow: Use sequenceDiagram code syntax, COMPLETE and VERY DETAILED, using CLASSES AND API DEFINED ABOVE accurately, covering the CRUD AND INIT of each object, SYNTAX MUST BE CORRECT.
 
 ## Anything UNCLEAR: Provide as Plain text. Try to clarify it.
+
+output a properly formatted JSON, wrapped inside [CONTENT][/CONTENT] like "Old Design" format,
+and only output the json inside this tag, nothing else
 """
 
 
