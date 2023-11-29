@@ -10,7 +10,7 @@ from metagpt.actions.action import Action
 from metagpt.logs import logger
 from metagpt.schema import Message
 from metagpt.utils.common import CodeParser
-from tenacity import retry, stop_after_attempt, wait_exponential
+from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 PROMPT_TEMPLATE = """
 NOTICE
@@ -65,7 +65,7 @@ class WriteCodeReview(Action):
     def __init__(self, name="WriteCodeReview", context: list[Message] = None, llm=None):
         super().__init__(name, context, llm)
 
-    @retry(stop=stop_after_attempt(4), wait=wait_exponential(10,60,3))
+    @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     async def write_code(self, prompt):
         code_rsp = await self._aask(prompt)
         code = CodeParser.parse_code(block="", text=code_rsp)
