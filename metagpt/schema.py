@@ -10,12 +10,14 @@
         1. Add `Document` and `Documents` for `FileRepository` in Section 2.2.3.4 of RFC 135.
         2. Encapsulate the common key-values set to pydantic structures to standardize and unify parameter passing
         between actions.
+        3. Add `id` to `Message` according to Section 2.2.3.1.1 of RFC 135.
 """
 from __future__ import annotations
 
 import asyncio
 import json
 import os.path
+import uuid
 from asyncio import Queue, QueueEmpty, wait_for
 from json import JSONDecodeError
 from pathlib import Path
@@ -86,6 +88,7 @@ class Documents(BaseModel):
 class Message(BaseModel):
     """list[<role>: <content>]"""
 
+    id: str  # According to Section 2.2.3.1.1 of RFC 135
     content: str
     instruct_content: BaseModel = Field(default=None)
     role: str = "user"  # system / user / assistant
@@ -113,6 +116,7 @@ class Message(BaseModel):
         :param role: Message meta info tells who sent this message.
         """
         super().__init__(
+            id=uuid.uuid4().hex,
             content=content,
             instruct_content=instruct_content,
             role=role,
