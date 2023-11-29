@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 
 from metagpt.actions import UserRequirement
 from metagpt.config import CONFIG
+from metagpt.const import MESSAGE_ROUTE_TO_ALL
 from metagpt.environment import Environment
 from metagpt.logs import logger
 from metagpt.roles import Role
@@ -45,16 +46,14 @@ class Team(BaseModel):
         if CONFIG.total_cost > CONFIG.max_budget:
             raise NoMoneyException(CONFIG.total_cost, f"Insufficient funds: {CONFIG.max_budget}")
 
-    def run_project(self, idea, send_to: str = "", project_name: str = "", inc: bool = False):
+    def run_project(self, idea, send_to: str = ""):
         """Start a project from publishing user requirement."""
         self.idea = idea
-        # If user set project_name, then use it.
-        if project_name:
-            path = CONFIG.workspace_path / project_name
-            self.env.load_existing_repo(path, inc=inc)
 
         # Human requirement.
-        self.env.publish_message(Message(role="Human", content=idea, cause_by=UserRequirement, send_to=send_to))
+        self.env.publish_message(
+            Message(role="Human", content=idea, cause_by=UserRequirement, send_to=send_to or MESSAGE_ROUTE_TO_ALL)
+        )
 
     def _save(self):
         logger.info(self.json(ensure_ascii=False))

@@ -12,7 +12,7 @@ from pathlib import Path
 
 from metagpt.actions import Action, ActionOutput
 from metagpt.config import CONFIG
-from metagpt.const import DOCS_FILE_REPO, REQUIREMENT_FILENAME, WORKSPACE_ROOT
+from metagpt.const import DEFAULT_WORKSPACE_ROOT, DOCS_FILE_REPO, REQUIREMENT_FILENAME
 from metagpt.schema import Document
 from metagpt.utils.file_repository import FileRepository
 from metagpt.utils.git_repository import GitRepository
@@ -28,8 +28,11 @@ class PrepareDocuments(Action):
             return ActionOutput(content=doc.json(exclue="content"), instruct_content=doc)
 
         # Create and initialize the workspace folder, initialize the Git environment.
+        default_workspace_root = CONFIG.project_path or DEFAULT_WORKSPACE_ROOT
+        default_project_name = CONFIG.project_name or FileRepository.new_filename()
+        default_workdir = Path(default_workspace_root) / default_project_name
         CONFIG.git_repo = GitRepository()
-        workdir = Path(CONFIG.WORKDIR) if CONFIG.WORKDIR else WORKSPACE_ROOT / FileRepository.new_filename()
+        workdir = Path(CONFIG.WORKDIR) if CONFIG.WORKDIR else default_workdir
         CONFIG.git_repo.open(local_path=workdir, auto_init=True)
 
         # Write the newly added requirements from the main parameter idea to `docs/requirement.txt`.

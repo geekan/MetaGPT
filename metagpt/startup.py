@@ -4,6 +4,8 @@ import asyncio
 
 import typer
 
+from metagpt.config import CONFIG
+
 app = typer.Typer()
 
 
@@ -17,6 +19,10 @@ def startup(
     implement: bool = typer.Option(True, help="Enable or disable code implementation."),
     project_name: str = typer.Option("", help="Unique project name, such as 'game_2048'."),
     inc: bool = typer.Option(False, help="Incremental mode. Use it to coop with existing repo."),
+    project_path: str = typer.Option(
+        help="Specify the directory path of the old version project to fulfill the " "incremental requirements."
+    ),
+    reqa_file: str = typer.Option(help="Specify the source file name for rewriting the quality test code."),
 ):
     """Run a startup. Be a boss."""
     from metagpt.roles import (
@@ -27,6 +33,12 @@ def startup(
         QaEngineer,
     )
     from metagpt.team import Team
+
+    # Use in the PrepareDocuments action according to Section 2.2.3.5.1 of RFC 135.
+    CONFIG.project_name = project_name
+    CONFIG.inc = inc
+    CONFIG.project_path = project_path
+    CONFIG.reqa_file = reqa_file
 
     company = Team()
     company.hire(
@@ -44,9 +56,9 @@ def startup(
         company.hire([QaEngineer()])
 
     company.invest(investment)
-    company.run_project(idea, project_name=project_name, inc=inc)
+    company.run_project(idea)
     asyncio.run(company.run(n_round=n_round))
 
 
 if __name__ == "__main__":
-    startup(idea="Make a 2048 game.")
+    app()

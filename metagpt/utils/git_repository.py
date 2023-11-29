@@ -16,7 +16,7 @@ from typing import Dict
 from git.repo import Repo
 from git.repo.fun import is_git_dir
 
-from metagpt.const import WORKSPACE_ROOT
+from metagpt.const import DEFAULT_WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.utils.dependency_file import DependencyFile
 from metagpt.utils.file_repository import FileRepository
@@ -201,7 +201,7 @@ class GitRepository:
 
 
 if __name__ == "__main__":
-    path = WORKSPACE_ROOT / "git"
+    path = DEFAULT_WORKSPACE_ROOT / "git"
     path.mkdir(exist_ok=True, parents=True)
 
     repo = GitRepository()
