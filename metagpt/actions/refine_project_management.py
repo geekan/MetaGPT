@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from typing import List
+from typing import List, Union
 
 from metagpt.actions.action import Action
 from metagpt.config import CONFIG
@@ -15,62 +15,50 @@ templates = {
 # Context
 {context}
 
-## Legacy Design
+## Legacy
 {legacy}
 
 ## Format example
 {format_example}
 -----
-Role: You are a project manager; the goal is to perform incremental development based on the context and difference descriptions and the legacy. Break down tasks according to PRD/technical design, provide a task list, and analyze task dependencies to start with the prerequisite modules.
-Requirements: Based on the context, fill in the following missing information, each section name is a key in json. Here the granularity of the task is a file, if there are any missing files, you can supplement them
+Role: You are a project manager; the goal is to perform incremental development based on the context and difference descriptions and the legacy. Break down tasks according to PRD/technical design, provide a Task list, and analyze task dependencies to start with the prerequisite modules.
+Requirements: Based on the context and the Legacy Project Management and Legacy Code, fill in the following missing information. Note that Please try your best to reuse legacy code, and all sections are returned in Python code triple quote form seperatedly. Here the granularity of the task is a file that need to modified.
 Attention: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD WRITE BEFORE the code and triple quote.
 
-## Required Python third-party packages: Provided in requirements.txt format
+## Difference Description: Provide as a python list, the foremost differences description for project management here based on the previous.
 
-## Required Other language third-party packages: Provided in requirements.txt format
+## Incremental Required Python third-party packages: Provided as a python list, the requirements.txt format
 
-## Full API spec: Use OpenAPI 3.0. Describe all APIs that may be used by both frontend and backend.
+## Full API spec: Use OpenAPI 3.0. Describe all APIs that may be used by both frontend and backend based on the previous.
 
-## Difference Description: Please provide a detailed description of the differences between this project and its predecessors or similar projects that can include changes in technology, architecture.
+## Logic Analysis: Only files need to modified, Provided as a Python list[list[str]. If the file has no changes, the file will not be output. the first is filename, the second is class/method/function should be implemented in this file. Analyze the dependencies between the files, which work should be done first based on the previous.
 
-## Logic Analysis: Provided as a Python list[list[str]. the first is filename, the second is class/method/function should be implemented in this file. Analyze the dependencies between the files, which work should be done first
-
-## Task list: Provided as Python list[str]. Each str is a filename, the more at the beginning, the more it is a prerequisite dependency, should be done first
-
-## Shared Knowledge: Anything that should be public like utils' functions, config's variables details that should make clear first. 
-
-## Anything UNCLEAR: Provide as Plain text. Make clear here. For example, don't forget a main entry. don't forget to init 3rd party libs.
+## Task list: Only files need to modified, provided as Python list[str]. If the file has no changes, the file will not be output. Each str is a filename, the more at the beginning, the more it is a prerequisite dependency, should be done first
 
 output a properly formatted JSON, wrapped inside [CONTENT][/CONTENT] like format example,
 and only output the json inside this tag, nothing else
 """,
         "FORMAT_EXAMPLE": '''
 {
-    "Required Python third-party packages": [
+    "Incremental Requirements": "...",
+    "Difference Description": [
+        "...",
+    ]
+    "Incremental Required Python third-party packages": [
         "flask==1.1.2",
         "bcrypt==3.2.0"
-    ],
-    "Required Other language third-party packages": [
-        "No third-party ..."
     ],
     "Full API spec": """
         openapi: 3.0.0
         ...
         description: A JSON object ...
      """,
-    "Difference Description": """
-        The ...
-    """,
     "Logic Analysis": [
         ["game.py","Contains..."]
     ],
     "Task list": [
         "game.py"
-    ],
-    "Shared Knowledge": """
-        'game.py' contains ...
-    """,
-    "Anything UNCLEAR": "We need ... how to start."
+    ]
 }
 ''',
     },
@@ -79,48 +67,44 @@ and only output the json inside this tag, nothing else
 # Context
 {context}
 
-## Legacy Design
+## Legacy
 {legacy}
 
 ## Format example
 {format_example}
 -----
-Role: You are a project manager; the goal is to perform incremental development based on the context and difference descriptions and the legacy. Break down tasks according to PRD/technical design, provide a task list, and analyze task dependencies to start with the prerequisite modules.
-Requirements: Based on the context, fill in the following missing information, note that all sections are returned in Python code triple quote form seperatedly. Here the granularity of the task is a file, if there are any missing files, you can supplement them
+Role: You are a project manager; the goal is to perform incremental development based on the context and the legacy. Break down tasks according to PRD/technical design, provide a Task list need to modified files, and analyze task dependencies to start with the prerequisite modules.
+Requirements: Based on the context and the Legacy Project Management and Legacy Code, fill in the following missing information. Note that Please try your best to reuse legacy code, and all sections are returned in Python code triple quote form seperatedly. Here the granularity of the task is a file that need to modified.
 Attention: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD WRITE BEFORE the code and triple quote.
 
-## Required Python third-party packages: Provided in requirements.txt format
+## Difference Description: Provided as a python list, the foremost differences description for project management here based on the previous.
 
-## Required Other language third-party packages: Provided in requirements.txt format
+## Incremental Required Python third-party packages: Provided as a python list, the requirements.txt format
 
-## Full API spec: Use OpenAPI 3.0. Describe all APIs that may be used by both frontend and backend.
+## Full API spec: Use OpenAPI 3.0. Describe all APIs that may be used by both frontend and backend based on the previous.
 
-## Difference Description: Please provide a detailed description of the differences between this project and its predecessors or similar projects that can include changes in technology, architecture.
+## Logic Analysis: Only files need to modified, Provided as a Python list[list[str]. If the file has no changes, the file will not be output. the first is filename, the second is class/method/function should be implemented in this file. Analyze the dependencies between the files, which work should be done first based on the previous.
 
-## Logic Analysis: Provided as a Python list[list[str]. the first is filename, the second is class/method/function should be implemented in this file. Analyze the dependencies between the files, which work should be done first
-
-## Task list: Provided as Python list[str]. Each str is a filename, the more at the beginning, the more it is a prerequisite dependency, should be done first
-
-## Shared Knowledge: Anything that should be public like utils' functions, config's variables details that should make clear first. 
-
-## Anything UNCLEAR: Provide as Plain text. Make clear here. For example, don't forget a main entry. don't forget to init 3rd party libs.
-
+## Task list: Only files need to modified, provided as Python list[str]. If the file has no changes, the file will not be output. Each str is a filename, the more at the beginning, the more it is a prerequisite dependency, should be done first
 """,
         "FORMAT_EXAMPLE": '''
 ---
-## Required Python third-party packages
+## Incremental Requirements
+...
+
+## Difference Description
 ```python
-"""
-flask==1.1.2
-bcrypt==3.2.0
-"""
+[
+    "The ...",
+]
 ```
 
-## Required Other language third-party packages
+## Incremental Required Python third-party packages
 ```python
-"""
-No third-party ...
-"""
+[
+    "flask==1.1.2",
+    "bcrypt==3.2.0"
+]
 ```
 
 ## Full API spec
@@ -129,13 +113,6 @@ No third-party ...
 openapi: 3.0.0
 ...
 description: A JSON object ...
-"""
-```
-
-## Difference Description
-```python
-"""
-The ...
 """
 ```
 
@@ -152,29 +129,18 @@ The ...
     "game.py",
 ]
 ```
-
-## Shared Knowledge
-```python
-"""
-'game.py' contains ...
-"""
-```
-
-## Anything UNCLEAR
-We need ... how to start.
 ---
 ''',
     },
 }
 OUTPUT_MAPPING = {
-    "Required Python third-party packages": (List[str], ...),
-    "Required Other language third-party packages": (List[str], ...),
+    # "Incremental Requirements": (str, ...),
+    # ## Incremental Requirements: Provided as a str, the foremost incremental requirements for project management here based on the previous.
+    "Difference Description": (Union[List[str], str], ...),
+    "Incremental Required Python third-party packages": (Union[List[str], str], ...),
     "Full API spec": (str, ...),
-    "Difference Description": (str, ...),
     "Logic Analysis": (List[List[str]], ...),
     "Task list": (List[str], ...),
-    "Shared Knowledge": (str, ...),
-    "Anything UNCLEAR": (str, ...),
 }
 
 
@@ -192,11 +158,13 @@ class RefineTasks(Action):
 
         # Write requirements.txt
         requirements_path = WORKSPACE_ROOT / ws_name / "requirements.txt"
-        requirements_path.write_text("\n".join(rsp.instruct_content.dict().get("Required Python third-party packages")))
+        requirements_path.write_text("\n".join(rsp.instruct_content.dict().get("Incremental Required Python third-party packages")))
 
     async def run(self, context, legacy, format=CONFIG.prompt_format):
         prompt_template, format_example = get_template(templates, format)
-        prompt = prompt_template.format(context=context, legacy=legacy, format_example=format_example)
+        prompt = prompt_template.format(context=context,
+                                        legacy=legacy,
+                                        format_example=format_example)
         rsp = await self._aask_v1(prompt, "task", OUTPUT_MAPPING, format=format)
         self._save(context, rsp)
         return rsp

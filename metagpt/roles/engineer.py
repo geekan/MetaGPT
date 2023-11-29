@@ -14,8 +14,10 @@ from typing import List
 
 from metagpt.actions import WriteCode, WriteCodeReview, WriteDesign, WriteTasks, BossRequirement
 from metagpt.actions.refine_design_api import RefineDesign
+from metagpt.actions.refine_prd import RefinePRD
 from metagpt.actions.refine_project_management import RefineTasks
 from metagpt.actions.write_code_refine import WriteCodeRefine
+from metagpt.actions.write_code_guide import WriteCodeGuide
 from metagpt.const import WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.roles import Role
@@ -73,31 +75,25 @@ class Engineer(Role):
         constraints: str = "The code should conform to standards like PEP8 and be modular and maintainable",
         n_borg: int = 1,
         use_code_review: bool = False,
-        legacy: str = "",
         increment: bool = False,
-        bug_msgs: List = None,
         bug_fix: bool = False,
     ) -> None:
         """Initializes the Engineer role with given attributes."""
         super().__init__(name, profile, goal, constraints)
         self._init_actions([WriteCode])
         self.use_code_review = use_code_review
-        self.legacy = legacy
         self.increment = increment
-        self.bug_msgs = bug_msgs
         self.bug_fix = bug_fix
-        if self.use_code_review or self.increment:
-            self._init_actions([WriteCode, WriteCodeReview, WriteCodeRefine])
+        if self.use_code_review:
+            self._init_actions([WriteCode, WriteCodeReview])
 
         if self.increment:
+            self._init_actions([WriteCodeGuide, WriteCodeRefine, WriteCodeReview])
             self._watch([RefineTasks])
-            self.todos = []
-        elif self.bug_fix:
-            self._watch([BossRequirement])
-            self.todos = []
         else:
             self._watch([WriteTasks])
-            self.todos = []
+
+        self.todos = []
         self.n_borg = n_borg
 
     @classmethod
@@ -210,36 +206,50 @@ class Engineer(Role):
         )
         return msg
 
-    async def _act_increment(self, legacy) -> Message:
+    async def _act_increment(self) -> Message:
         code_msg_all = []  # gather all code info, will pass to qa_engineer for tests later
         workspace = self.get_workspace()
-        flag = True
-        # legacy_codes = legacy.split('---')
+        # human_str = "\n".join([msg.content for msg in self._rc.memory.get_by_role("Human")])
+        human_str = str(self._rc.memory.get_by_role("Human")[0])
+        code = self._rc.env.get_legacy()["legacy_code"]
+
+        # Refine code
+        context = []
+        msg = self._rc.memory.get_by_actions([RefinePRD, RefineDesign, RefineTasks])
+
+        for m in msg:
+            context.append(m.content)
+        context_str = human_str + "\n".join(context)
+        try:
+            logger.info("Write Code Guide start!")
+            guide = await WriteCodeGuide().run(context=context_str, code=code)
+            msg = Message(content=guide, role=self.profile, cause_by=WriteCodeGuide)
+            self._rc.memory.add(msg)
+        except Exception as e:
+            logger.error("Write Code Guide failed!", e)
+            pass
+
+        # Write code or Code review
         for todo in self.todos:
-            context = []
-
-            msg = self._rc.memory.get_by_actions([RefineDesign, RefineTasks, WriteCodeRefine])
-            for m in msg:
-                context.append(m.content)
-            context_str = "\n".join(context)
-            code = legacy
-
-            # Refine code or Write code
-            # if self.increment and len(legacy_codes) > 0:
-            #     code = legacy_codes.pop(0)
-
-            # Code review
+            msg = self._rc.memory.get_by_actions([RefineTasks])
+            context_str = human_str + "\n".join([m.content for m in msg])
+            # WriteCodeRefine
             try:
-                rewrite_code = await WriteCodeRefine().run(context=context_str, code=code, filename=todo)
-                code = rewrite_code
+                logger.info("Write Code Refine start!")
+                code = await WriteCodeRefine().run(context=context_str, code=code, filename=todo, guide=guide)
             except Exception as e:
-                logger.error("code review failed!", e)
+                logger.error("Write Code Refine failed!", e)
                 pass
-
-            # code = await WriteCode().run(context=context_str, filename=todo)
-
+            # FIXME: Code review Action
+            # if self.use_code_review:
+            #     try:
+            #         rewrite_code = await WriteCodeReview().run(context=context_str, code=code, filename=todo)
+            #         code = rewrite_code
+            #     except Exception as e:
+            #         logger.error("code review failed!", e)
+            #         pass
             file_path = self.write_file(workspace, todo, code)
-            msg = Message(content=code, role=self.profile, cause_by=WriteCode)
+            msg = Message(content=code, role=self.profile, cause_by=WriteCodeRefine)
             self._rc.memory.add(msg)
 
             code_msg = todo + FILENAME_CODE_SEP + str(file_path)
@@ -273,7 +283,7 @@ class Engineer(Role):
 
             # Code review
             try:
-                rewrite_code = await WriteCodeRefine().run(context=context_str, code=code, filename=todo)
+                rewrite_code = await WriteCodeGuide().run(context=context_str, code=code, filename=todo)
                 code = rewrite_code
             except Exception as e:
                 logger.error("code review failed!", e)
@@ -333,35 +343,31 @@ class Engineer(Role):
         )
         return msg
 
-    async def _observe(self) -> int:
-        if self.bug_fix:
-            msg = Message(
-                content=self.bug_msgs[0].content + "\n---\n" + self.legacy,
-                role=self.profile,
-                cause_by=BossRequirement,
-                sent_from=self.profile,
-                send_to=self.profile,
-            )
-            self._publish_message(msg)
-        await super()._observe()
-        self._rc.news = [
-            msg for msg in self._rc.news if msg.send_to == self.profile
-        ]  # only relevant msgs count as observed news
-        return len(self._rc.news)
+    # async def _observe(self) -> int:
+    #     if self.bug_fix:
+    #         msg = Message(
+    #             content=self.bug_msgs[0].content + "\n---\n" + self.legacy,
+    #             role=self.profile,
+    #             cause_by=BossRequirement,
+    #             sent_from=self.profile,
+    #             send_to=self.profile,
+    #         )
+    #         self._publish_message(msg)
+    #     await super()._observe()
+    #     self._rc.news = [
+    #         msg for msg in self._rc.news if msg.send_to == self.profile
+    #     ]  # only relevant msgs count as observed news
+    #     return len(self._rc.news)
 
     async def _act(self) -> Message:
         """Determines the mode of action based on whether code review is used."""
         if self.increment:
-            logger.info(f"{self._setting}: ready to RefineWriteCode")
-        elif self.bug_fix:
-            logger.info(f"{self._setting}: ready to BugFix")
+            logger.info(f"{self._setting}: ready to WriteExtraCode and WriteCodeRefine")
         else:
             logger.info(f"{self._setting}: ready to WriteCode")
 
-        if self.use_code_review:
+        if self.increment:
+            return await self._act_increment()
+        elif self.use_code_review:
             return await self._act_sp_precision()
-        elif self.increment:
-            return await self._act_increment(self.legacy)
-        elif self.bug_fix:
-            return await self._act_bug_fix(self.bug_msgs)
         return await self._act_sp()

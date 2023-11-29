@@ -24,6 +24,7 @@ class Environment(BaseModel):
     roles: dict[str, Role] = Field(default_factory=dict)
     memory: Memory = Field(default_factory=Memory)
     history: str = Field(default='')
+    legacy: dict = Field(default_factory=dict)
 
     class Config:
         arbitrary_types_allowed = True
@@ -77,3 +78,15 @@ class Environment(BaseModel):
            get all the environment roles
         """
         return self.roles.get(name, None)
+
+    def set_legacy(self, legacy_dict: dict) -> None:
+        """设置环境的遗产
+           set the environment legacy
+        """
+        self.legacy = legacy_dict
+
+    def get_legacy(self) -> dict:
+        """获得环境的遗产
+           get the environment legacy
+        """
+        return self.legacy

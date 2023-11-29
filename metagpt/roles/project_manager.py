@@ -32,7 +32,6 @@ class ProjectManager(Role):
         goal: str = "Improve team efficiency and deliver with quality and quantity",
         constraints: str = "",
         increment: bool = False,
-        legacy: str = "",
     ) -> None:
         """
         Initializes the ProjectManager role with given attributes.
@@ -45,8 +44,6 @@ class ProjectManager(Role):
         """
         super().__init__(name, profile, goal, constraints)
         self.increment = increment
-        self.legacy = legacy
-
         if self.increment:
             self._init_actions([RefineTasks])
             self._watch([RefineDesign])
@@ -57,7 +54,11 @@ class ProjectManager(Role):
     async def _act(self) -> Message:
         if self.increment:
             logger.info(f"{self._setting}: ready to RefineTasks")
-            response = await self._rc.todo.run(self._rc.history, self.legacy)
+            human_str = "\n".join([msg.content for msg in self._rc.memory.get_by_role("Human")])
+            # legacy_project_management and legacy_code
+            legacy_dict = self._rc.env.get_legacy()
+            legacy_str = "Legacy Project Management:\n" + legacy_dict["legacy_project_management"] + "\nLegacy Code:\n" + legacy_dict["legacy_code"]
+            response = await self._rc.todo.run(self._rc.history, legacy=legacy_str)
 
         else:
             logger.info(f"{self._setting}: ready to WriteTasks")

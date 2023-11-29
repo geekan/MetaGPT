@@ -32,12 +32,10 @@ class Architect(Role):
             profile: str = "Architect",
             goal: str = "Design a concise, usable, complete python system",
             constraints: str = "Try to specify good open source tools as much as possible",
-            legacy: str = "",
             increment: bool = False,
     ) -> None:
         """Initializes the Architect with given attributes."""
         super().__init__(name, profile, goal, constraints)
-        self.legacy = legacy
         self.increment = increment
 
         # Initialize actions specific to the Architect role
@@ -52,7 +50,8 @@ class Architect(Role):
     async def _act(self) -> Message:
         if self.increment:
             logger.info(f"{self._setting}: ready to RefineDesign")
-            response = await self._rc.todo.run(self._rc.history, self.legacy)
+            legacy = self._rc.env.get_legacy()["legacy_design"]
+            response = await self._rc.todo.run(self._rc.history, legacy)
 
         else:
             logger.info(f"{self._setting}: ready to WriteDesign")

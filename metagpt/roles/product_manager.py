@@ -29,8 +29,6 @@ class ProductManager(Role):
         profile: str = "Product Manager",
         goal: str = "Efficiently create a successful product",
         constraints: str = "",
-        difference_description: str = "",
-        legacy: str = "",
         increment: bool = False,
     ) -> None:
         """
@@ -43,8 +41,6 @@ class ProductManager(Role):
             constraints (str): Constraints or limitations for the product manager.
         """
         super().__init__(name, profile, goal, constraints)
-        self.difference_description = difference_description
-        self.legacy = legacy
         self.increment = increment
 
         if self.increment:
@@ -56,7 +52,8 @@ class ProductManager(Role):
     async def _act(self) -> Message:
         if self.increment:
             logger.info(f"{self._setting}: ready to RefinePRD")
-            response = await self._rc.todo.run(self._rc.history, self.difference_description, self.legacy)
+            legacy = self._rc.env.get_legacy()["legacy_prd"]
+            response = await self._rc.todo.run(self._rc.history, legacy)
 
         else:
             logger.info(f"{self._setting}: ready to WritePRD")
