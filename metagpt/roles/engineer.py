@@ -209,13 +209,12 @@ class Engineer(Role):
     async def _act_increment(self) -> Message:
         code_msg_all = []  # gather all code info, will pass to qa_engineer for tests later
         workspace = self.get_workspace()
-        # human_str = "\n".join([msg.content for msg in self._rc.memory.get_by_role("Human")])
         human_str = str(self._rc.memory.get_by_role("Human")[0])
         code = self._rc.env.get_legacy()["legacy_code"]
 
         # Refine code
         context = []
-        msg = self._rc.memory.get_by_actions([RefinePRD, RefineDesign, RefineTasks])
+        msg = self._rc.memory.get_by_actions([RefineDesign, RefineTasks])
 
         for m in msg:
             context.append(m.content)
@@ -342,22 +341,6 @@ class Engineer(Role):
             content=MSG_SEP.join(code_msg_all), role=self.profile, cause_by=type(self._rc.todo), send_to="QaEngineer"
         )
         return msg
-
-    # async def _observe(self) -> int:
-    #     if self.bug_fix:
-    #         msg = Message(
-    #             content=self.bug_msgs[0].content + "\n---\n" + self.legacy,
-    #             role=self.profile,
-    #             cause_by=BossRequirement,
-    #             sent_from=self.profile,
-    #             send_to=self.profile,
-    #         )
-    #         self._publish_message(msg)
-    #     await super()._observe()
-    #     self._rc.news = [
-    #         msg for msg in self._rc.news if msg.send_to == self.profile
-    #     ]  # only relevant msgs count as observed news
-    #     return len(self._rc.news)
 
     async def _act(self) -> Message:
         """Determines the mode of action based on whether code review is used."""

@@ -60,9 +60,3 @@ class Team(BaseModel):
             await self.environment.run()
         return self.environment.history
 
-    def set_legacy(self, legacy_dict):
-        self.environment.legacy = legacy_dict
-
-    def get_legacy(self):
-        return self.environment.legacy
-    

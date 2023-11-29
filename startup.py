@@ -61,7 +61,7 @@ async def startup(
             'legacy_project_management': legacy_project_management,
             'legacy_code': legacy_code
         }
-        company.set_legacy(legacy_dict)
+        company.environment.set_legacy(legacy_dict)
         company.hire(
             [
                 ProductManager(increment=increment),
