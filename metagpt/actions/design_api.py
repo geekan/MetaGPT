@@ -281,11 +281,7 @@ class WriteDesign(Action):
 
         # fix project_name, we can't system_design.instruct_content.python_package_name = "xxx" since "project_name"
         # contain space, have to use setattr
-        setattr(
-            system_design.instruct_content,
-            "project_name",
-            system_design.instruct_content.dict()["project_name"].strip().strip("'").strip('"'),
-        )
+        self._rename_project_name(system_design=system_design)
         await self._rename_workspace(system_design)
         # =======
         #         # fix project_name, we can't system_design.instruct_content.python_package_name = "xxx" since "project_name" contain space, have to use setattr
@@ -303,17 +299,29 @@ class WriteDesign(Action):
         system_design = await self._aask_v1(prompt, "system_design", OUTPUT_MAPPING, format=format)
         # fix Python package name, we can't system_design.instruct_content.python_package_name = "xxx" since "Python
         # package name" contain space, have to use setattr
+        self._rename_project_name(system_design=system_design)
+        system_design_doc.content = system_design.instruct_content.json(ensure_ascii=False)
+        return system_design_doc
+
+    @staticmethod
+    def _rename_project_name(system_design):
+        if CONFIG.project_name:
+            setattr(
+                system_design.instruct_content,
+                "project_name",
+                CONFIG.project_name,
+            )
+            return
         setattr(
             system_design.instruct_content,
             "project_name",
             system_design.instruct_content.dict()["project_name"].strip().strip("'").strip('"'),
         )
-        system_design_doc.content = system_design.instruct_content.json(ensure_ascii=False)
-        return system_design_doc
 
     @staticmethod
     async def _rename_workspace(system_design):
-        if CONFIG.WORKDIR:  # Updating on the old version has already been specified if it's valid.
+        if CONFIG.project_path:  # Updating on the old version has already been specified if it's valid. According to
+            # Section 2.2.3.10 of RFC 135
             return
 
         if isinstance(system_design, ActionOutput):
