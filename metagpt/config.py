@@ -46,11 +46,13 @@ class Config(metaclass=Singleton):
         self.openai_api_key = self._get("OPENAI_API_KEY")
         self.anthropic_api_key = self._get("Anthropic_API_KEY")
         self.zhipuai_api_key = self._get("ZHIPUAI_API_KEY")
-        if (not self.openai_api_key or "YOUR_API_KEY" == self.openai_api_key) and \
-                (not self.anthropic_api_key or "YOUR_API_KEY" == self.anthropic_api_key) and \
-                (not self.zhipuai_api_key or "YOUR_API_KEY" == self.zhipuai_api_key):
+        if (
+            (not self.openai_api_key or "YOUR_API_KEY" == self.openai_api_key)
+            and (not self.anthropic_api_key or "YOUR_API_KEY" == self.anthropic_api_key)
+            and (not self.zhipuai_api_key or "YOUR_API_KEY" == self.zhipuai_api_key)
+        ):
             raise NotConfiguredException("Set OPENAI_API_KEY or Anthropic_API_KEY or ZHIPUAI_API_KEY first")
-        self.openai_api_base = self._get("OPENAI_API_BASE")
+        self.openai_api_base = self._get("OPENAI_BASE_URL")
         openai_proxy = self._get("OPENAI_PROXY") or self.global_proxy
         if openai_proxy:
             openai.proxy = openai_proxy
