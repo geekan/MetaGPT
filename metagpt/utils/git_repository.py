@@ -59,6 +59,7 @@ class GitRepository:
         :param local_path: The local path to the Git repository.
         :param auto_init: If True, automatically initializes a new Git repository if the provided path is not a Git repository.
         """
+        local_path = Path(local_path)
         if self.is_git_dir(local_path):
             self._repository = Repo(local_path)
             return
