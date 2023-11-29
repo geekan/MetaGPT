@@ -22,7 +22,7 @@ STRUCTURAL_CONTEXT = """
 """
 
 def truncate(result: str, keep_len: int = 1000) -> str:
-    desc = """I truncated the result to only keep the last 1000 characters\n"""
+    desc = "Truncated to show only the last 1000 characters\n"
     if result.startswith(desc):
         result = result[-len(desc):]
 
@@ -38,19 +38,22 @@ class AskReview(Action):
 
     async def run(self, context: List[Message], plan: Plan = None):
         logger.info("Current overall plan:")
-        logger.info("\n".join([f"{task.task_id}: {task.instruction}, is_finished: {task.is_finished}" for task in plan.tasks]))
+        logger.info(
+            "\n".join([f"{task.task_id}: {task.instruction}, is_finished: {task.is_finished}" for task in plan.tasks])
+        )
 
         logger.info("most recent context:")
-        # prompt = "\n".join(
-        #     [f"{msg.cause_by.__name__ if msg.cause_by else 'Main Requirement'}: {msg.content}" for msg in context]
-        # )
-        prompt = ""
         latest_action = context[-1].cause_by.__name__ if context[-1].cause_by else ""
-        prompt += f"\nPlease review output from {latest_action}:\n" \
+        prompt = f"\nPlease review output from {latest_action}:\n" \
             "If you want to change a task in the plan, say 'change task task_id, ... (things to change)'\n" \
-            "If you confirm the output and wish to continue with the current process, type CONFIRM:\n"
+            "If you confirm the output and wish to continue with the current process, type CONFIRM\n" \
+            "If you want to terminate the process, type exit:\n"
         rsp = input(prompt)
-        confirmed = "confirm" in rsp.lower()
+
+        if rsp.lower() in ("exit"):
+            exit()
+
+        confirmed = rsp.lower() in ("confirm", "yes", "y")
 
         return rsp, confirmed
 
@@ -126,7 +129,7 @@ class MLEngineer(Role):
             # print(result)
             self.working_memory.add(Message(content=result, role="user", cause_by=ExecutePyCode))
 
-            if code.startswith("!pip"):
+            if "!pip" in code:
                 success = False
             # if not success:
             #     await self._ask_review()
@@ -139,8 +142,8 @@ class MLEngineer(Role):
         if not self.auto_run:
             context = self.get_useful_memories()
             review, confirmed = await AskReview().run(context=context[-5:], plan=self.plan)
-            if review.lower() not in ("confirm", "y", "yes"):
-                self._rc.memory.add(Message(content=review, role="user", cause_by=AskReview))
+            if not confirmed:
+                self.working_memory.add(Message(content=review, role="user", cause_by=AskReview))
             return confirmed
         return True
 
@@ -172,11 +175,14 @@ class MLEngineer(Role):
         return self._rc.memory
 
 if __name__ == "__main__":
-    # requirement = "create a normal distribution and visualize it"
-    requirement = "run some analysis on iris dataset"
+    requirement = "Run data analysis on sklearn Iris dataset, include a plot"
+    # requirement = "Run data analysis on sklearn Diabetes dataset, include a plot"
+    # requirement = "Run data analysis on sklearn Wine recognition dataset, include a plot, and train a model to predict wine class (20% as validation), and show validation accuracy"
+    # requirement = "Run data analysis on sklearn Wisconsin Breast Cancer dataset, include a plot, train a model to predict targets (20% as validation), and show validation accuracy"
+    # requirement = "Run EDA and visualization on this dataset, train a model to predict survival, report metrics on validation set (20%), dataset: workspace/titanic/train.csv"
 
-    async def main(requirement: str = requirement):
-        role = MLEngineer(goal=requirement)
+    async def main(requirement: str = requirement, auto_run: bool = False):
+        role = MLEngineer(goal=requirement, auto_run=auto_run)
         await role.run(requirement)
 
     fire.Fire(main)
