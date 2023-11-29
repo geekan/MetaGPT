@@ -126,6 +126,8 @@ class MLEngineer(Role):
             # print(result)
             self.working_memory.add(Message(content=result, role="user", cause_by=ExecutePyCode))
 
+            if code.startswith("!pip"):
+                success = False
             # if not success:
             #     await self._ask_review()
 
