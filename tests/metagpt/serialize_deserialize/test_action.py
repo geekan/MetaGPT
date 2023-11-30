@@ -13,14 +13,13 @@ def test_action_serialize():
     action = Action()
     ser_action_dict = action.dict()
     assert "name" in ser_action_dict
-    assert "llm" in ser_action_dict
+    assert "llm" not in ser_action_dict
 
 
 @pytest.mark.asyncio
 async def test_action_deserialize():
     action = Action()
     serialized_data = action.dict()
-    assert isinstance(serialized_data["llm"], OpenAIGPTAPI)
 
     new_action = Action(**serialized_data)
 

@@ -17,7 +17,15 @@ from metagpt.const import SERDESER_PATH
 from metagpt.roles.engineer import Engineer
 from metagpt.utils.utils import format_trackback_info
 
-from tests.metagpt.serialize_deserialize.test_serdeser_base import RoleC, serdeser_path
+from tests.metagpt.serialize_deserialize.test_serdeser_base import RoleA, RoleB, RoleC, serdeser_path
+
+
+def test_roles():
+    role_a = RoleA()
+    assert len(role_a._rc.watch) == 1
+    role_b = RoleB()
+    assert len(role_a._rc.watch) == 1
+    assert len(role_b._rc.watch) == 1
 
 
 def test_role_serialize():
