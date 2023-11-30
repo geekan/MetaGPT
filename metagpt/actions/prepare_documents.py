@@ -23,14 +23,11 @@ class PrepareDocuments(Action):
         super().__init__(name, context, llm)
 
     async def run(self, with_messages, **kwargs):
-        if CONFIG.git_repo:
-            doc = await FileRepository.get_file(filename=REQUIREMENT_FILENAME, relative_path=DOCS_FILE_REPO)
-            return ActionOutput(content=doc.json(exclue="content"), instruct_content=doc)
-
-        # Create and initialize the workspace folder, initialize the Git environment.
-        CONFIG.git_repo = GitRepository()
-        workdir = Path(CONFIG.WORKDIR) if CONFIG.WORKDIR else WORKSPACE_ROOT / FileRepository.new_filename()
-        CONFIG.git_repo.open(local_path=workdir, auto_init=True)
+        if not CONFIG.git_repo:
+            # Create and initialize the workspace folder, initialize the Git environment.
+            CONFIG.git_repo = GitRepository()
+            workdir = Path(CONFIG.WORKDIR) if CONFIG.WORKDIR else WORKSPACE_ROOT / FileRepository.new_filename()
+            CONFIG.git_repo.open(local_path=workdir, auto_init=True)
 
         # Write the newly added requirements from the main parameter idea to `docs/requirement.txt`.
         doc = Document(root_path=DOCS_FILE_REPO, filename=REQUIREMENT_FILENAME, content=with_messages[0].content)
