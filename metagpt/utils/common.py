@@ -305,3 +305,13 @@ def parse_recipient(text):
     pattern = r"## Send To:\s*([A-Za-z]+)\s*?"  # hard code for now
     recipient = re.search(pattern, text)
     return recipient.group(1) if recipient else ""
+
+
+def create_func_config(func_schema: dict) -> dict:
+    """Create new function call config"""
+    tools = [{"type": "function", "function": func_schema}]
+    tool_choice = {"type": "function", "function": {"name": func_schema["name"]}}
+    return {
+        "tools": tools,
+        "tool_choice": tool_choice,
+    }

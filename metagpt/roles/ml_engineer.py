@@ -21,10 +21,11 @@ STRUCTURAL_CONTEXT = """
 {current_task}
 """
 
+
 def truncate(result: str, keep_len: int = 1000) -> str:
     desc = "Truncated to show only the last 1000 characters\n"
     if result.startswith(desc):
-        result = result[-len(desc):]
+        result = result[-len(desc) :]
 
     if len(result) > keep_len:
         result = result[-keep_len:]
@@ -35,7 +36,6 @@ def truncate(result: str, keep_len: int = 1000) -> str:
 
 
 class AskReview(Action):
-
     async def run(self, context: List[Message], plan: Plan = None):
         logger.info("Current overall plan:")
         logger.info(
@@ -57,13 +57,16 @@ class AskReview(Action):
 
         return rsp, confirmed
 
-class WriteTaskGuide(Action):
 
+class WriteTaskGuide(Action):
     async def run(self, task_instruction: str, data_desc: str = "") -> str:
         return ""
 
+
 class MLEngineer(Role):
-    def __init__(self, name="ABC", profile="MLEngineer", goal="", auto_run: bool = False):
+    def __init__(
+        self, name="ABC", profile="MLEngineer", goal="", auto_run: bool = False
+    ):
         super().__init__(name=name, profile=profile, goal=goal)
         self._set_react_mode(react_mode="plan_and_act")
         self.plan = Plan(goal=goal)
@@ -73,7 +76,6 @@ class MLEngineer(Role):
         self.auto_run = auto_run
 
     async def _plan_and_act(self):
-
         # create initial plan and update until confirmation
         await self._update_plan()
 
@@ -99,8 +101,11 @@ class MLEngineer(Role):
                 await self._update_plan()
 
     async def _write_and_exec_code(self, max_retry: int = 3):
-
-        task_guide = await WriteTaskGuide().run(self.plan.current_task.instruction) if self.use_task_guide else ""
+        task_guide = (
+            await WriteTaskGuide().run(self.plan.current_task.instruction)
+            if self.use_task_guide
+            else ""
+        )
 
         counter = 0
         success = False
@@ -112,22 +117,29 @@ class MLEngineer(Role):
             # print("*" * 10)
             # breakpoint()
 
-            if not self.use_tools:
+            if not self.use_tools or self.plan.current_task.task_type == "":
                 # code = "print('abc')"
-                code = await WriteCodeByGenerate().run(context=context, plan=self.plan, task_guide=task_guide)
+                code = await WriteCodeByGenerate().run(
+                    context=context, plan=self.plan, task_guide=task_guide
+                )
                 cause_by = WriteCodeByGenerate
-
             else:
-                code = await WriteCodeWithTools().run(context=context, plan=self.plan, task_guide=task_guide)
+                code = await WriteCodeWithTools().run(
+                    context=context, plan=self.plan, task_guide=task_guide, data_desc=""
+                )
                 cause_by = WriteCodeWithTools
 
-            self.working_memory.add(Message(content=code, role="assistant", cause_by=cause_by))
+            self.working_memory.add(
+                Message(content=code, role="assistant", cause_by=cause_by)
+            )
 
             result, success = await self.execute_code.run(code)
             # truncated the result
             print(truncate(result))
             # print(result)
-            self.working_memory.add(Message(content=result, role="user", cause_by=ExecutePyCode))
+            self.working_memory.add(
+                Message(content=result, role="user", cause_by=ExecutePyCode)
+            )
 
             if "!pip" in code:
                 success = False
@@ -152,7 +164,9 @@ class MLEngineer(Role):
         while not plan_confirmed:
             context = self.get_useful_memories()
             rsp = await WritePlan().run(context, max_tasks=max_tasks)
-            self.working_memory.add(Message(content=rsp, role="assistant", cause_by=WritePlan))
+            self.working_memory.add(
+                Message(content=rsp, role="assistant", cause_by=WritePlan)
+            )
             plan_confirmed = await self._ask_review()
 
         tasks = WritePlan.rsp_to_tasks(rsp)
@@ -163,9 +177,13 @@ class MLEngineer(Role):
         """find useful memories only to reduce context length and improve performance"""
 
         user_requirement = self.plan.goal
-        tasks = json.dumps([task.dict() for task in self.plan.tasks], indent=4, ensure_ascii=False)
+        tasks = json.dumps(
+            [task.dict() for task in self.plan.tasks], indent=4, ensure_ascii=False
+        )
         current_task = self.plan.current_task.json() if self.plan.current_task else {}
-        context = STRUCTURAL_CONTEXT.format(user_requirement=user_requirement, tasks=tasks, current_task=current_task)
+        context = STRUCTURAL_CONTEXT.format(
+            user_requirement=user_requirement, tasks=tasks, current_task=current_task
+        )
         context_msg = [Message(content=context, role="user")]
 
         return context_msg + self.working_memory.get()
@@ -173,6 +191,7 @@ class MLEngineer(Role):
     @property
     def working_memory(self):
         return self._rc.memory
+
 
 if __name__ == "__main__":
     requirement = "Run data analysis on sklearn Iris dataset, include a plot"
