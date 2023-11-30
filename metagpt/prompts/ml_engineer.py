@@ -95,8 +95,12 @@ from metagpt.tools.functions.libs.feature_engineering import fill_missing_value
 ```
 
 ## Available Functions for Each Step:
-Each function is described in JSON format, including the function name and parameters. {output_desc}
+Here's a list of all available functions for each step. You can find more details about each function in [## Function Catalog]
 {available_tools}
+
+## Function Catalog:
+Each function is described in JSON format, including the function name and parameters. {output_desc}
+{function_catalog}
 
 ## Your Output Format:
 Generate the complete code for every step, listing any used function tools at the beginning of the step:
