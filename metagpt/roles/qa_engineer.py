@@ -167,3 +167,6 @@ class QaEngineer(Role):
             sent_from=self.profile,
             send_to=MESSAGE_ROUTE_TO_NONE,
         )
+
+    async def _observe(self, ignore_memory=False) -> int:
+        return await super(QaEngineer, self)._observe(ignore_memory=True)
