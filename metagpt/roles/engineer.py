@@ -218,15 +218,15 @@ class Engineer(Role):
         src_file_repo = CONFIG.git_repo.new_file_repository(CONFIG.src_workspace)
         changed_src_files = src_file_repo.changed_files
         # Generate a SummarizeCode action for each pair of (system_design_doc, task_doc).
-        summerizations = {}
+        summarizations = {}
         for filename in changed_src_files:
-            depenencies = src_file_repo.get_dependency(filename=filename)
-            ctx = CodeSummarizeContext.loads(filenames=depenencies)
-            if ctx not in summerizations:
-                summerizations[ctx] = set()
-            srcs = summerizations.get(ctx)
+            dependencies = src_file_repo.get_dependency(filename=filename)
+            ctx = CodeSummarizeContext.loads(filenames=dependencies)
+            if ctx not in summarizations:
+                summarizations[ctx] = set()
+            srcs = summarizations.get(ctx)
             srcs.add(filename)
-        for ctx, filenames in summerizations.items():
+        for ctx, filenames in summarizations.items():
             ctx.codes_filenames = filenames
             self.summarize_todos.append(SummarizeCode(context=ctx, llm=self._llm))
         if self.summarize_todos:
