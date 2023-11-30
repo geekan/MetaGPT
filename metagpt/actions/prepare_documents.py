@@ -7,6 +7,7 @@
 @Desc: PrepareDocuments Action: initialize project folder and add new requirements to docs/requirements.txt.
         RFC 135 2.2.3.5.1.
 """
+import shutil
 
 from metagpt.actions import Action, ActionOutput
 from metagpt.config import CONFIG
@@ -28,6 +29,8 @@ class PrepareDocuments(Action):
         # Create and initialize the workspace folder, initialize the Git environment.
         project_name = CONFIG.project_name or FileRepository.new_filename()
         workdir = CONFIG.project_path or DEFAULT_WORKSPACE_ROOT / project_name
+        if not CONFIG.inc and workdir.exists():
+            shutil.rmtree(workdir)
         CONFIG.git_repo = GitRepository()
         CONFIG.git_repo.open(local_path=workdir, auto_init=True)
 
