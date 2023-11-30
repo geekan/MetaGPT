@@ -8,6 +8,10 @@ TOOL_RECOMMENDATION_PROMPT = """
 ## Comprehensive Task Description:
 {task}
 
+## Dataset Description:
+Details about the dataset for the project:
+{data_desc}
+
 This task is divided into several steps, and you need to select the most suitable tools for each step. A tool means a function that can be used to help you solve the task.
 
 ## Detailed Code Steps for the Task:
@@ -122,6 +126,11 @@ Additionally, ensure that the columns being processed must be the ones that actu
 """
 
 FEATURE_ENGINEERING_PROMPT = """
+When performing feature engineering, please adhere to the following principles:
+- For specific user requests (such as removing a feature, creating a new feature based on existing data), directly generate the corresponding code.
+- In cases of unclear user requirements, write feature engineering code that you believe will most improve model performance. This may include feature transformation, combination, aggregation, etc., with a limit of five features at a time.
+- Ensure that the feature you're working with is indeed present in the dataset and consider the data type (numerical, categorical, etc.) and application scenario (classification, regression tasks, etc.).
+- Importantly, provide detailed comments explaining the purpose of each feature and how it might enhance model performance, especially when the features are generated based on semantic understanding without clear user directives.
 """
 
 CLASSIFICATION_MODEL_PROMPT = """
@@ -130,10 +139,9 @@ CLASSIFICATION_MODEL_PROMPT = """
 REGRESSION_MODEL_PROMPT = """
 """
 
-
 DATA_PREPROCESS_OUTPUT_DESC = "Please note that all functions uniformly output a processed pandas.DataFrame, facilitating seamless integration into the broader workflow."
 
-FEATURE_ENGINEERING_OUTPUT_DESC = ""
+FEATURE_ENGINEERING_OUTPUT_DESC = "Please note that all functions uniformly output updated pandas.DataFrame with feature engineering applied."
 
 CLASSIFICATION_MODEL_OUTPUT_DESC = ""
 
