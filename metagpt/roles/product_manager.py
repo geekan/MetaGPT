@@ -21,10 +21,11 @@ class ProductManager(Role):
         goal (str): Goal of the product manager.
         constraints (str): Constraints or limitations for the product manager.
     """
-    name: str = "Alice"
-    role_profile: str = Field(default="Product Manager", alias='profile')
+    name: str = Field(default="Alice")
+    profile: str = Field(default="Product Manager")
     goal: str = "Efficiently create a successful product"
     constraints: str = ""
+
     """
     Represents a Product Manager role responsible for product development and management.
     """

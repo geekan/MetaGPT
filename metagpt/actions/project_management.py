@@ -11,6 +11,7 @@ from pydantic import Field
 
 from metagpt.actions.action import Action
 from metagpt.llm import LLM
+from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.config import CONFIG
 from metagpt.const import WORKSPACE_ROOT
 from metagpt.utils.common import CodeParser
@@ -168,7 +169,7 @@ OUTPUT_MAPPING = {
 class WriteTasks(Action):
     name: str = "CreateTasks"
     context: Optional[str] = None
-    llm: LLM = Field(default_factory=LLM)
+    llm: BaseGPTAPI = Field(default_factory=LLM)
     
     def _save(self, context, rsp):
         try:

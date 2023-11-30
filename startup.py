@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
+from typing import Optional
 import asyncio
-
 import fire
+from pathlib import Path
 
-from metagpt.const import SERDES_PATH
 from metagpt.roles import (
     Architect,
     Engineer,
@@ -22,11 +23,11 @@ async def startup(
     code_review: bool = False,
     run_tests: bool = False,
     implement: bool = True,
-    recover_path: bool = False,
+    recover_path: Optional[str] = None,
 ):
     """Run a startup. Be a boss."""
-    company = Team()
     if not recover_path:
+        company = Team()
         company.hire(
             [
                 ProductManager(),
@@ -45,8 +46,12 @@ async def startup(
             # (bug fixing capability comes soon!)
             company.hire([QaEngineer()])
     else:
-        stg_path = SERDES_PATH.joinpath("team")
-        company.deserialize(stg_path=stg_path)
+        # # stg_path = SERDESER_PATH.joinpath("team")
+        stg_path = Path(recover_path)
+        if not stg_path.exists() or not str(stg_path).endswith("team"):
+            raise FileNotFoundError(f"{recover_path} not exists or not endswith `team`")
+
+        company = Team.recover(stg_path=stg_path)
         idea = company.idea  # use original idea
 
     company.invest(investment)

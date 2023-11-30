@@ -12,7 +12,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed
 from metagpt.llm import LLM
 from metagpt.actions.action import Action
 from metagpt.logs import logger
-from metagpt.schema import Message
+from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.utils.common import CodeParser
 
 PROMPT_TEMPLATE = """
@@ -67,7 +67,7 @@ FORMAT_EXAMPLE = """
 class WriteCodeReview(Action):
     name: str = "WriteCodeReview"
     context: Optional[str] = None
-    llm: LLM = Field(default_factory=LLM)
+    llm: BaseGPTAPI = Field(default_factory=LLM)
     
     @retry(stop=stop_after_attempt(2), wait=wait_fixed(1))
     async def write_code(self, prompt):

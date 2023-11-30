@@ -6,27 +6,29 @@
 @File    : role.py
 """
 
+from __future__ import annotations
 from enum import Enum
 from pathlib import Path
-from __future__ import annotations
 
 from typing import (
     Iterable,
-    Type
+    Type,
+    Any
 )
-import re
-from pydantic import BaseModel, Field
-from importlib import import_module
+from pydantic import BaseModel, Field, validator
 
 # from metagpt.environment import Environment
 from metagpt.config import CONFIG
-from metagpt.actions import Action, ActionOutput
+from metagpt.actions.action import Action, ActionOutput, action_subclass_registry
 from metagpt.llm import LLM
+from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.logs import logger
 from metagpt.memory import Memory, LongTermMemory
 from metagpt.schema import Message
 from metagpt.provider.human_provider import HumanProvider
-from metagpt.utils.utils import read_json_file, write_json_file, import_class
+from metagpt.utils.utils import read_json_file, write_json_file, import_class, role_raise_decorator
+from metagpt.const import SERDESER_PATH
+
 
 PREFIX_TEMPLATE = """You are a {profile}, named {name}, your goal is {goal}, and the constraint is {constraints}. """
 
@@ -57,6 +59,7 @@ ROLE_TEMPLATE = """Your response should be based on the previous conversation hi
 {name}: {result}
 """
 
+
 class RoleReactMode(str, Enum):
     REACT = "react"
     BY_ORDER = "by_order"
@@ -74,6 +77,7 @@ class RoleSetting(BaseModel):
     goal: str = ""
     constraints: str = ""
     desc: str = ""
+    is_human: bool = False
     
     def __str__(self):
         return f"{self.name}({self.profile})"
@@ -84,10 +88,10 @@ class RoleSetting(BaseModel):
 
 class RoleContext(BaseModel):
     """Role Runtime Context"""
-    env: 'Environment' = Field(default=None)
+    env: "Environment" = Field(default=None)
     memory: Memory = Field(default_factory=Memory)
     long_term_memory: LongTermMemory = Field(default_factory=LongTermMemory)
-    state: int = Field(default=0)
+    state: int = Field(default=-1)  # -1 indicates initial or termination state where todo is None
     todo: Action = Field(default=None)
     watch: set[Type[Action]] = Field(default_factory=set)
     news: list[Type[Message]] = Field(default=[])
@@ -112,53 +116,86 @@ class RoleContext(BaseModel):
         return self.memory.get()
 
 
+role_subclass_registry = {}
+
+
 class Role(BaseModel):
     """Role/Agent"""
-
     name: str = ""
     profile: str = ""
     goal: str = ""
     constraints: str = ""
     desc: str = ""
-    _setting: RoleSetting = Field(default_factory=RoleSetting, alias="_setting")
-    _setting = RoleSetting(name=name, profile=profile, goal=goal, constraints=constraints)
+    is_human: bool = False
+
+    _llm: BaseGPTAPI = Field(default_factory=LLM, exclude=True)
+    _setting: RoleSetting = Field(default_factory=RoleSetting, alias=True)
     _role_id: str = ""
-    _states: list = Field(default=[])
-    _actions: list = Field(default=[])
-    _actions_type: list = Field(default=[])
+    _states: list[str] = Field(default=[])
+    _actions: list[Action] = Field(default=[])
     _rc: RoleContext = RoleContext()
-    
+
+    # builtin variables
+    recovered: bool = False  # to tag if a recovered role
+    builtin_class_name: str = ""
+
     _private_attributes = {
-        "_setting": _setting,
+        "_llm": LLM() if not is_human else HumanProvider(),
         "_role_id": _role_id,
         "_states": [],
-        "_actions": [],
-        "_actions_type": []  # 用于记录和序列化
+        "_actions": []
     }
-    
+
     class Config:
         arbitrary_types_allowed = True
-    
-    def __init__(self, **kwargs):
+        exclude = ["_llm"]
+
+    def __init__(self, **kwargs: Any):
+        for index in range(len(kwargs.get("_actions", []))):
+            current_action = kwargs["_actions"][index]
+            if isinstance(current_action, dict):
+                item_class_name = current_action.get("builtin_class_name", None)
+                for name, subclass in action_subclass_registry.items():
+                    registery_class_name = subclass.__fields__["builtin_class_name"].default
+                    if item_class_name == registery_class_name:
+                        current_action = subclass(**current_action)
+                        break
+                kwargs["_actions"][index] = current_action
+
         super().__init__(**kwargs)
+
         # 关于私有变量的初始化  https://github.com/pydantic/pydantic/issues/655
+        self._private_attributes["_llm"] = LLM() if not self.is_human else HumanProvider()
+        self._private_attributes["_setting"] = RoleSetting(name=self.name, profile=self.profile, goal=self.goal,
+                                                           desc=self.desc, constraints=self.constraints,
+                                                           is_human=self.is_human)
         for key in self._private_attributes.keys():
             if key in kwargs:
                 object.__setattr__(self, key, kwargs[key])
-                if key =="_setting":
-                    _setting = RoleSetting(**kwargs[key])
-                    object.__setattr__(self, '_setting', _setting)
+                if key == "_setting":
+                    setting = RoleSetting(**kwargs[key])
+                    object.__setattr__(self, "_setting", setting)
                 elif key == "_rc":
                     _rc = RoleContext
-                    object.__setattr__(self, '_rc', _rc)
+                    object.__setattr__(self, "_rc", _rc)
             else:
                 object.__setattr__(self, key, self._private_attributes[key])
+
+        # deserialize child classes dynamically for inherited `role`
+        object.__setattr__(self, "builtin_class_name", self.__class__.__name__)
+        self.__fields__["builtin_class_name"].default = self.__class__.__name__
+
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        super().__init_subclass__(**kwargs)
+        role_subclass_registry[cls.__name__] = cls
     
     def _reset(self):
-        object.__setattr__(self, '_states', [])
-        object.__setattr__(self, '_actions', [])
+        object.__setattr__(self, "_states", [])
+        object.__setattr__(self, "_actions", [])
 
-    def serialize(self, stg_path: Path):
+    def serialize(self, stg_path: Path = None):
+        stg_path = SERDESER_PATH.joinpath(f"team/environment/roles/{self.__class__.__name__}_{self.name}") \
+            if stg_path is None else stg_path
         role_info_path = stg_path.joinpath("role_info.json")
         role_info = {
             "role_class": self.__class__.__name__,
@@ -207,7 +244,7 @@ class Role(BaseModel):
         actions = []
         actions_info = read_json_file(actions_info_path)
         for action_info in actions_info:
-            action = Action.deserialize(action_info)
+            action = Action.deser_class(action_info)
             actions.append(action)
 
         watches_info_path = stg_path.joinpath("watches/watches_info.json")
@@ -238,12 +275,8 @@ class Role(BaseModel):
 
         return role
 
-    def _reset(self):
-        self._states = []
-        self._actions = []
-
     def set_recovered(self, recovered: bool = False):
-        self._recovered = recovered
+        self.recovered = recovered
 
     def set_memory(self, memory: Memory):
         self._rc.memory = memory
@@ -256,7 +289,8 @@ class Role(BaseModel):
         for idx, action in enumerate(actions):
             if not isinstance(action, Action):
                 ## 默认初始化
-                i = action("", llm=self._llm)
+                # import pdb; pdb.set_trace()
+                i = action(name="", llm=self._llm)
             else:
                 if self._setting.is_human and not isinstance(action.llm, HumanProvider):
                     logger.warning(f"is_human attribute does not take effect,"
@@ -265,8 +299,6 @@ class Role(BaseModel):
             i.set_prefix(self._get_prefix(), self.profile)
             self._actions.append(i)
             self._states.append(f"{idx}. {action}")
-            action_title = action.schema()["title"]
-            self._actions_type.append(action_title)
 
     def set_react_mode(self, react_mode: RoleReactMode, max_react_loop: int = 1):
         self._set_react_mode(react_mode, max_react_loop)
@@ -310,18 +342,9 @@ class Role(BaseModel):
         logger.debug(self._actions)
         self._rc.todo = self._actions[self._rc.state] if state >= 0 else None
     
-    def set_env(self, env: 'Environment'):
+    def set_env(self, env: "Environment"):
         """Set the environment in which the role works. The role can talk to the environment and can also receive messages by observing."""
         self._rc.env = env
-    
-    @property
-    def name(self):
-        return self._setting.name
-
-    @property
-    def profile(self):
-        """Get the role description (position)"""
-        return self._setting.profile
     
     def _get_prefix(self):
         """Get the role prefix"""
@@ -347,7 +370,7 @@ class Role(BaseModel):
         logger.debug(f"{prompt=}")
         if (not next_state.isdigit() and next_state != "-1") \
             or int(next_state) not in range(-1, len(self._states)):
-            logger.warning(f'Invalid answer of state, {next_state=}, will be set to -1')
+            logger.warning(f"Invalid answer of state, {next_state=}, will be set to -1")
             next_state = -1
         else:
             next_state = int(next_state)
@@ -384,7 +407,7 @@ class Role(BaseModel):
         
         news_text = [f"{i.role}: {i.content[:20]}..." for i in self._rc.news]
         if news_text:
-            logger.debug(f'{self._setting} observed: {news_text}')
+            logger.debug(f"{self._setting} observed: {news_text}")
         return len(self._rc.news)
     
     def _publish_message(self, msg):
@@ -400,7 +423,7 @@ class Role(BaseModel):
         Use llm to select actions in _think dynamically
         """
         actions_taken = 0
-        rsp = Message("No actions taken yet") # will be overwritten after Role _act
+        rsp = Message(content="No actions taken yet")  # will be overwritten after Role _act
         while actions_taken < self._rc.max_react_loop:
             # think
             await self._think()
@@ -410,7 +433,7 @@ class Role(BaseModel):
             logger.debug(f"{self._setting}: {self._rc.state=}, will do {self._rc.todo}")
             rsp = await self._act()
             actions_taken += 1
-        return rsp # return output from the last action
+        return rsp  # return output from the last action
 
     async def _act_by_order(self) -> Message:
         """switch action each time by order defined in _init_actions, i.e. _act (Action1) -> _act (Action2) -> ..."""
@@ -454,7 +477,8 @@ class Role(BaseModel):
     def get_memories(self, k=0) -> list[Message]:
         """A wrapper to return the most recent k memories of this role, return all when k=0"""
         return self._rc.memory.get(k=k)
-    
+
+    @role_raise_decorator
     async def run(self, message=None):
         """Observe, and think and act based on the results of the observation"""
         if message:

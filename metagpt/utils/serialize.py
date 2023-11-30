@@ -5,9 +5,7 @@
 import copy
 import pickle
 
-from metagpt.actions.action_output import ActionOutput
-from metagpt.schema import Message
-from metagpt.actions.action import Action
+from metagpt.utils.utils import import_class
 
 
 def actionoutout_schema_to_mapping(schema: dict) -> dict:
@@ -59,7 +57,7 @@ def actionoutput_str_to_mapping(mapping: dict) -> dict:
     return new_mapping
 
 
-def serialize_general_message(message: Message) -> dict:
+def serialize_general_message(message: "Message") -> dict:
     """ serialize Message, not to save"""
     message_cp = copy.deepcopy(message)
     ic = message_cp.instruct_content
@@ -76,7 +74,7 @@ def serialize_general_message(message: Message) -> dict:
     return message_cp.dict()
 
 
-def serialize_message(message: Message):
+def serialize_message(message: "Message"):
     message_cp = copy.deepcopy(message)  # avoid `instruct_content` value update by reference
     ic = message_cp.instruct_content
     if ic:
@@ -90,29 +88,35 @@ def serialize_message(message: Message):
     return msg_ser
 
 
-def deserialize_general_message(message_dict: dict) -> Message:
+def deserialize_general_message(message_dict: dict) -> "Message":
     """ deserialize Message, not to load"""
     instruct_content = message_dict.pop("instruct_content")
     cause_by = message_dict.pop("cause_by")
 
-    message = Message(**message_dict)
+    message_cls = import_class("Message", "metagpt.schema")
+    message = message_cls(**message_dict)
     if instruct_content:
         ic = instruct_content
         mapping = actionoutput_str_to_mapping(ic["mapping"])
-        ic_obj = ActionOutput.create_model_class(class_name=ic["class"], mapping=mapping)
+
+        actionoutput_class = import_class("ActionOutput", "metagpt.actions.action_output")
+        ic_obj = actionoutput_class.create_model_class(class_name=ic["class"], mapping=mapping)
         ic_new = ic_obj(**ic["value"])
         message.instruct_content = ic_new
     if cause_by:
-        message.cause_by = Action.deser_class(cause_by)
+        action_class = import_class("Action", "metagpt.actions.action")
+        message.cause_by = action_class.deser_class(cause_by)
 
     return message
 
 
-def deserialize_message(message_ser: str) -> Message:
+def deserialize_message(message_ser: str) -> "Message":
     message = pickle.loads(message_ser)
     if message.instruct_content:
         ic = message.instruct_content
-        ic_obj = ActionOutput.create_model_class(class_name=ic["class"], mapping=ic["mapping"])
+
+        actionoutput_class = import_class("ActionOutput", "metagpt.actions.action_output")
+        ic_obj = actionoutput_class.create_model_class(class_name=ic["class"], mapping=ic["mapping"])
         ic_new = ic_obj(**ic["value"])
         message.instruct_content = ic_new
 

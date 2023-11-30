@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 
 from metagpt.actions import Action, ActionOutput
 from metagpt.llm import LLM
+from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.actions.search_and_summarize import SearchAndSummarize
 from metagpt.config import CONFIG
 from metagpt.logs import logger
@@ -224,11 +225,8 @@ OUTPUT_MAPPING = {
 class WritePRD(Action):
     name: str = ""
     content: Optional[str] = None
-    llm: LLM = Field(default_factory=LLM)
+    llm: BaseGPTAPI = Field(default_factory=LLM)
     assistant_search_action: Action = None
-    
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
     
     async def run(self, requirements, format=CONFIG.prompt_format, *args, **kwargs) -> ActionOutput:
         # self.assistant_search_action = SearchAndSummarize()

@@ -6,6 +6,9 @@ from typing import Any
 import json
 from pathlib import Path
 import importlib
+import traceback
+
+from metagpt.logs import logger
 
 
 def read_json_file(json_file: str, encoding=None) -> list[Any]:
@@ -39,3 +42,43 @@ def import_class_inst(class_name: str, module_name: str, *args, **kwargs) -> obj
     a_class = import_class(class_name, module_name)
     class_inst = a_class(*args, **kwargs)
     return class_inst
+
+
+def format_trackback_info(limit: int = 2):
+    return traceback.format_exc(limit=limit)
+
+
+def serialize_decorator(func):
+    async def wrapper(self, *args, **kwargs):
+        try:
+            return await func(self, *args, **kwargs)
+        except KeyboardInterrupt as kbi:
+            logger.error(f"KeyboardInterrupt occurs, start to serialize the project, exp:\n{format_trackback_info()}")
+            self.serialize()  # Team.serialize
+        except Exception as exp:
+            logger.error(f"Exception occurs, start to serialize the project, exp:\n{format_trackback_info()}")
+            self.serialize()  # Team.serialize
+
+    return wrapper
+
+
+def role_raise_decorator(func):
+    async def wrapper(self, *args, **kwargs):
+        try:
+            return await func(self, *args, **kwargs)
+        except KeyboardInterrupt as kbi:
+            logger.error(f"KeyboardInterrupt: {kbi} occurs, start to serialize the project")
+            if self._rc.env:
+                newest_msgs = self._rc.env.memory.get(1)
+                if len(newest_msgs) > 0:
+                    self._rc.memory.delete(newest_msgs[0])
+        except Exception as exp:
+            if self._rc.env:
+                newest_msgs = self._rc.env.memory.get(1)
+                if len(newest_msgs) > 0:
+                    logger.warning("There is a exception in role's execution, in order to resume, "
+                                   "we delete the newest role communication message in the role's memory.")
+                    self._rc.memory.delete(newest_msgs[0])  # remove newest msg of the role to make it observed again
+            raise Exception(format_trackback_info(limit=None))  # raise again to make it captured outside
+
+    return wrapper

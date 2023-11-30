@@ -5,6 +5,12 @@
 @Author  : alexanderwu
 @File    : environment.py
 """
+
+from typing import Optional
+from pydantic import Field
+
+from metagpt.llm import LLM
+from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.actions.action import Action
 from metagpt.logs import logger
 from metagpt.utils.common import CodeParser
@@ -31,8 +37,9 @@ you should correctly import the necessary classes based on these file locations!
 
 
 class WriteTest(Action):
-    def __init__(self, name="WriteTest", context=None, llm=None):
-        super().__init__(name, context, llm)
+    name: str = "WriteTest"
+    context: Optional[str] = None
+    llm: BaseGPTAPI = Field(default_factory=LLM)
 
     async def write_code(self, prompt):
         code_rsp = await self._aask(prompt)

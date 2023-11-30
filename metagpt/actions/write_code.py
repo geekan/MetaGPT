@@ -13,6 +13,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed
 from metagpt.actions import WriteDesign
 from metagpt.actions.action import Action
 from metagpt.llm import LLM
+from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.const import WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.schema import Message
@@ -50,7 +51,7 @@ ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenc
 class WriteCode(Action):
     name: str = "WriteCode"
     context: Optional[str] = None
-    llm: LLM = Field(default_factory=LLM)
+    llm: BaseGPTAPI = Field(default_factory=LLM)
     
     def _is_invalid(self, filename):
         return any(i in filename for i in ["mp3", "wav"])
