@@ -88,13 +88,14 @@ class RoleSetting(BaseModel):
 
 class RoleContext(BaseModel):
     """Role Runtime Context"""
+    # # env exclude=True to avoid `RecursionError: maximum recursion depth exceeded in comparison`
     env: "Environment" = Field(default=None, exclude=True)
     memory: Memory = Field(default_factory=Memory)
-    long_term_memory: LongTermMemory = Field(default_factory=LongTermMemory)
+    long_term_memory: LongTermMemory = Field(default_factory=LongTermMemory, exclude=True)  # TODO not used now
     state: int = Field(default=-1)  # -1 indicates initial or termination state where todo is None
     todo: Action = Field(default=None)
     watch: set[Type[Action]] = Field(default_factory=set)
-    news: list[Type[Message]] = Field(default=[])
+    news: list[Type[Message]] = Field(default=[], exclude=True)  # TODO not used
     react_mode: RoleReactMode = RoleReactMode.REACT # see `Role._set_react_mode` for definitions of the following two attributes
     max_react_loop: int = 1
     
@@ -128,12 +129,12 @@ class Role(BaseModel):
     desc: str = ""
     is_human: bool = False
 
-    _llm: BaseGPTAPI = Field(default_factory=LLM, exclude=True)
+    _llm: BaseGPTAPI = Field(default_factory=LLM)
     _setting: RoleSetting = Field(default_factory=RoleSetting, alias=True)
     _role_id: str = ""
     _states: list[str] = Field(default=[])
     _actions: list[Action] = Field(default=[])
-    _rc: RoleContext = Field(default=RoleContext, exclude=True)
+    _rc: RoleContext = Field(default=RoleContext)
 
     # builtin variables
     recovered: bool = False  # to tag if a recovered role
@@ -179,7 +180,7 @@ class Role(BaseModel):
                     setting = RoleSetting(**kwargs[key])
                     object.__setattr__(self, "_setting", setting)
                 elif key == "_rc":
-                    _rc = RoleContext()
+                    _rc = RoleContext(**kwargs["_rc"])
                     object.__setattr__(self, "_rc", _rc)
             else:
                 if key == "_rc":

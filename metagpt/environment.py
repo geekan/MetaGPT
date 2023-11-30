@@ -31,6 +31,7 @@ class Environment(BaseModel):
         arbitrary_types_allowed = True
 
     def __init__(self, **kwargs):
+        roles = []
         for role_key, role in kwargs.get("roles", {}).items():
             current_role = kwargs["roles"][role_key]
             if isinstance(current_role, dict):
@@ -41,7 +42,10 @@ class Environment(BaseModel):
                         current_role = subclass(**current_role)
                         break
                 kwargs["roles"][role_key] = current_role
+                roles.append(current_role)
         super().__init__(**kwargs)
+
+        self.add_roles(roles)  # add_roles again to init the Role.set_env
 
     def serialize(self, stg_path: Path):
         roles_path = stg_path.joinpath("roles.json")
