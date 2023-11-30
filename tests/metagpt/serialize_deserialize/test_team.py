@@ -39,7 +39,7 @@ def test_team_deserialize():
     assert new_company.environment.get_role(arch.profile) is not None
 
 
-def test_team_serdeser():
+def test_team_serdeser_save():
     company = Team()
     company.hire([RoleC()])
 
@@ -60,12 +60,19 @@ async def test_team_recover():
     shutil.rmtree(stg_path, ignore_errors=True)
 
     company = Team()
-    company.hire([RoleC()])
+    role_c = RoleC()
+    company.hire([role_c])
     company.start_project(idea)
     await company.run(n_round=4)
 
     ser_data = company.dict()
     new_company = Team(**ser_data)
+
+    new_role_c = new_company.environment.get_role(role_c.profile)
+    assert new_role_c._rc.memory == role_c._rc.memory
+    assert new_role_c._rc.env != role_c._rc.env  # due to Action raise, role's memory has been changed.
+    assert new_role_c._rc.env.memory == role_c._rc.env.memory
+
     assert new_company.environment.memory.count() == 1
     assert type(list(new_company.environment.roles.values())[0]._actions[0]) == ActionOK
 
@@ -80,11 +87,17 @@ async def test_team_recover_save():
     shutil.rmtree(stg_path, ignore_errors=True)
 
     company = Team()
-    company.hire([RoleC()])
+    role_c = RoleC()
+    company.hire([role_c])
     company.start_project(idea)
     await company.run(n_round=4)
 
     new_company = Team.recover(stg_path)
+    new_role_c = new_company.environment.get_role(role_c.profile)
+    assert new_role_c._rc.memory == role_c._rc.memory
+    assert new_role_c._rc.env != role_c._rc.env  # due to Action raise, role's memory has been changed.
+    assert new_role_c._rc.env.memory == role_c._rc.env.memory
+
     new_company.start_project(idea)
     await new_company.run(n_round=4)
 

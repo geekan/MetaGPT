@@ -113,6 +113,7 @@ class RoleSetting(BaseModel):
 
 class RoleContext(BaseModel):
     """Role Runtime Context"""
+    # # env exclude=True to avoid `RecursionError: maximum recursion depth exceeded in comparison`
     env: "Environment" = Field(default=None, exclude=True)
     msg_buffer: MessageQueue = Field(default_factory=MessageQueue)  # Message Buffer with Asynchronous Updates
     memory: Memory = Field(default_factory=Memory)
