@@ -103,7 +103,6 @@ class Engineer(Role):
         # Unit tests only.
         if CONFIG.REQA_FILENAME and CONFIG.REQA_FILENAME not in changed_files:
             changed_files.add(CONFIG.REQA_FILENAME)
-
         msg = Message(
             content="\n".join(changed_files),
             role=self.profile,
