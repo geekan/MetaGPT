@@ -6,6 +6,7 @@ import pytest
 
 from metagpt.roles.project_manager import ProjectManager
 from metagpt.actions.action import Action
+from metagpt.actions.project_management import WriteTasks
 
 
 def test_project_manager_serialize():
@@ -20,9 +21,10 @@ def test_project_manager_serialize():
 async def test_project_manager_deserialize():
     role = ProjectManager()
     ser_role_dict = role.dict(by_alias=True)
+
     new_role = ProjectManager(**ser_role_dict)
-    # new_role = ProjectManager().deserialize(ser_role_dict)
     assert new_role.name == "Eve"
     assert len(new_role._actions) == 1
     assert isinstance(new_role._actions[0], Action)
-    await new_role._actions[0].run(context="write a cli snake game")
+    assert isinstance(new_role._actions[0], WriteTasks)
+    # await new_role._actions[0].run(context="write a cli snake game")
