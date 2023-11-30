@@ -103,14 +103,11 @@ class Engineer(Role):
         # Unit tests only.
         if CONFIG.REQA_FILENAME and CONFIG.REQA_FILENAME not in changed_files:
             changed_files.add(CONFIG.REQA_FILENAME)
-
-        from metagpt.roles import QaEngineer  # Avoid circular references.
-
         msg = Message(
             content="\n".join(changed_files),
             role=self.profile,
             cause_by=WriteCodeReview if self.use_code_review else WriteCode,
-            send_to=QaEngineer,
+            send_to="Edward",  # name of QaEngineer
         )
         return msg
 
