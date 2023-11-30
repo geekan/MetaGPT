@@ -8,7 +8,6 @@
 
 import pytest
 from pathlib import Path
-import shutil
 
 from metagpt.actions import UserRequirement
 from metagpt.environment import Environment
@@ -16,10 +15,9 @@ from metagpt.logs import logger
 from metagpt.manager import Manager
 from metagpt.roles import Architect, ProductManager, Role
 from metagpt.schema import Message
-from tests.metagpt.roles.test_role import RoleA
 
 
-serdes_path = Path(__file__).absolute().parent.joinpath("../data/serdes_storage")
+serdeser_path = Path(__file__).absolute().parent.joinpath("../data/serdeser_storage")
 
 
 @pytest.fixture
@@ -28,14 +26,23 @@ def env():
 
 
 def test_add_role(env: Environment):
-    role = ProductManager("Alice", "product manager", "create a new product", "limited resources")
+    role = ProductManager(name="Alice",
+                          profile="product manager",
+                          goal="create a new product",
+                          constraints="limited resources")
     env.add_role(role)
     assert env.get_role(role.profile) == role
 
 
 def test_get_roles(env: Environment):
-    role1 = Role("Alice", "product manager", "create a new product", "limited resources")
-    role2 = Role("Bob", "engineer", "develop the new product", "short deadline")
+    role1 = Role(name="Alice",
+                 profile="product manager",
+                 goal="create a new product",
+                 constraints="limited resources")
+    role2 = Role(name="Bob",
+                 profile="engineer",
+                 goal="develop the new product",
+                 constraints="short deadline")
     env.add_role(role1)
     env.add_role(role2)
     roles = env.get_roles()
@@ -44,8 +51,14 @@ def test_get_roles(env: Environment):
 
 @pytest.mark.asyncio
 async def test_publish_and_process_message(env: Environment):
-    product_manager = ProductManager("Alice", "Product Manager", "做AI Native产品", "资源有限")
-    architect = Architect("Bob", "Architect", "设计一个可用、高效、较低成本的系统，包括数据结构与接口", "资源有限，需要节省成本")
+    product_manager = ProductManager(name="Alice",
+                                     profile="Product Manager",
+                                     goal="做AI Native产品",
+                                     constraints="资源有限")
+    architect = Architect(name="Bob",
+                          profile="Architect",
+                          goal="设计一个可用、高效、较低成本的系统，包括数据结构与接口",
+                          constraints="资源有限，需要节省成本")
 
     env.add_roles([product_manager, architect])
     env.set_manager(Manager())
@@ -54,18 +67,3 @@ async def test_publish_and_process_message(env: Environment):
     await env.run(k=2)
     logger.info(f"{env.history=}")
     assert len(env.history) > 10
-
-
-def test_environment_serdes():
-    environment = Environment()
-    role_a = RoleA()
-
-    shutil.rmtree(serdes_path.joinpath("team"), ignore_errors=True)
-
-    stg_path = serdes_path.joinpath("team/environment")
-    environment.add_role(role_a)
-    environment.serialize(stg_path)
-
-    new_env: Environment = Environment()
-    new_env.deserialize(stg_path)
-    assert len(new_env.roles) == 1

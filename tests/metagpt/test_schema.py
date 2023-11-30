@@ -74,7 +74,7 @@ def test_routes():
     assert m.send_to == {"e", get_class_name(Action)}
 
 
-def test_message_serdes():
+def test_message_serdeser():
     out_mapping = {"field3": (str, ...), "field4": (list[str], ...)}
     out_data = {"field3": "field3 value3", "field4": ["field4 value1", "field4 value2"]}
     ic_obj = ActionOutput.create_model_class("code", out_mapping)
@@ -86,7 +86,7 @@ def test_message_serdes():
         cause_by=WriteCode
     )
     message_dict = serialize_general_message(message)
-    assert message_dict["cause_by"] == {"action_class": "WriteCode"}
+    assert message_dict["cause_by"] == {"action_class": "WriteCode", "module_name": "metagpt.actions.write_code"}
     assert message_dict["instruct_content"] == {
         "class": "code",
         "mapping": {
