@@ -234,7 +234,7 @@ async def test_write_code_reuse_code_long_for_wine():
     trials = [WriteCodeByGenerate().run(context=context, temperature=0.0) for _ in range(trials_num)]
     trial_results = await asyncio.gather(*trials)
     print(*trial_results, sep="\n\n***\n\n")
-    success = ["load_wine" not in result\
+    success = ["load_wine" not in result and "wine_data" in result\
         for result in trial_results]  # should reuse iris_data from previous tasks
     success_rate = sum(success) / trials_num
     logger.info(f"success rate: {success_rate :.2f}")
