@@ -260,7 +260,7 @@ MERGE_PROMPT = """
 ## Old PRD
 {old_prd}
 -----
-Role: You are a professional product manager; The goal is to merge the newly added requirements into the existing PRD in order to design a concise, usable, and efficient product.
+Role: You are a professional product manager; The goal is to incorporate the newly added requirements from the "Original Requirements" into the existing Product Requirements Document (PRD) in the "Old PRD" in order to design a concise, usable, and efficient product.
 Language: Please use the same language as the user requirement, but the title and code should be still in English. For example, if the user speaks Chinese, the specific text of your answer should also be in Chinese.
 Requirements: According to the context, fill in the following missing information, each section name is a key in json ,If the requirements are unclear, ensure minimum viability and avoid excessive design
 ATTENTION: Output carefully referenced "Old PRD" in format.

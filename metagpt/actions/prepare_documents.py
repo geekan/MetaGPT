@@ -8,6 +8,7 @@
         RFC 135 2.2.3.5.1.
 """
 import shutil
+from pathlib import Path
 
 from metagpt.actions import Action, ActionOutput
 from metagpt.config import CONFIG
@@ -28,7 +29,7 @@ class PrepareDocuments(Action):
 
         # Create and initialize the workspace folder, initialize the Git environment.
         project_name = CONFIG.project_name or FileRepository.new_filename()
-        workdir = CONFIG.project_path or DEFAULT_WORKSPACE_ROOT / project_name
+        workdir = Path(CONFIG.project_path or DEFAULT_WORKSPACE_ROOT / project_name)
         if not CONFIG.inc and workdir.exists():
             shutil.rmtree(workdir)
         CONFIG.git_repo = GitRepository()
