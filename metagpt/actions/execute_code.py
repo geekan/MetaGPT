@@ -17,6 +17,7 @@ from rich.syntax import Syntax
 
 from metagpt.actions import Action
 from metagpt.schema import Message
+from metagpt.logs import logger
 
 
 class ExecuteCode(ABC):
@@ -90,11 +91,14 @@ class ExecutePyCode(ExecuteCode, Action):
         if not outputs:
             return parsed_output
 
-        for output in outputs:
+        for i, output in enumerate(outputs):
             if output["output_type"] == "stream":
                 parsed_output += output["text"]
             elif output["output_type"] == "display_data":
-                self.show_bytes_figure(output["data"]["image/png"], self.interaction)
+                if "image/png" in output["data"]:
+                    self.show_bytes_figure(output["data"]["image/png"], self.interaction)
+                else:
+                    logger.info(f"{i}th output['data'] from nbclient outputs dont have image/png, continue next output ...")
             elif output["output_type"] == "execute_result":
                 parsed_output += output["data"]["text/plain"]
         return parsed_output
@@ -136,7 +140,6 @@ class ExecutePyCode(ExecuteCode, Action):
 
         if isinstance(code, str):
             return code, language
-
         if isinstance(code, dict):
             assert "code" in code
             if "language" not in code:
