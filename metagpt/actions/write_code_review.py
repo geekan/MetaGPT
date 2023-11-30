@@ -103,23 +103,6 @@ class WriteCodeReview(Action):
         code = CodeParser.parse_code(block="", text=code_rsp)
         return result, code
 
-    # <<<<<<< HEAD
-    #     async def run(self, *args, **kwargs) -> CodingContext:
-    #         format_example = FORMAT_EXAMPLE.format(filename=self.context.code_doc.filename)
-    #         context = "\n----------\n".join(
-    #             [self.context.design_doc.content, self.context.task_doc.content, self.context.code_doc.content]
-    #         )
-    #         prompt = PROMPT_TEMPLATE.format(
-    #             context=context,
-    #             code=self.context.code_doc.content,
-    #             filename=self.context.code_doc.filename,
-    #             format_example=format_example,
-    #         )
-    #         logger.info(f"Code review {self.context.code_doc.filename}..")
-    #         code = await self.write_code(prompt)
-    #         self.context.code_doc.content = code
-    #         return self.context
-    # =======
     async def run(self, *args, **kwargs) -> CodingContext:
         iterative_code = self.context.code_doc.content
         k = CONFIG.code_review_k_times or 1

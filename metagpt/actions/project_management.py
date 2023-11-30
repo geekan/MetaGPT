@@ -258,21 +258,6 @@ class WriteTasks(Action):
         return task_doc
 
     async def _run_new_tasks(self, context, format=CONFIG.prompt_format):
-        # =======
-        #     def _save(self, context, rsp):
-        #         if context[-1].instruct_content:
-        #             ws_name = context[-1].instruct_content.dict()["project_name"]
-        #         else:
-        #             ws_name = CodeParser.parse_str(block="project_name", text=context[-1].content)
-        #         file_path = CONFIG.workspace_path / ws_name / "docs/api_spec_and_tasks.md"
-        #         file_path.write_text(rsp.instruct_content.json(ensure_ascii=False))
-        #
-        #         # Write requirements.txt
-        #         requirements_path = CONFIG.workspace_path / ws_name / "requirements.txt"
-        #         requirements_path.write_text("\n".join(rsp.instruct_content.dict().get("Required Python third-party packages")))
-        #
-        #     async def run(self, context, format=CONFIG.prompt_format):
-        # >>>>>>> feature/geekan_cli_etc
         prompt_template, format_example = get_template(templates, format)
         prompt = prompt_template.format(context=context, format_example=format_example)
         rsp = await self._aask_v1(prompt, "task", OUTPUT_MAPPING, format=format)

@@ -183,24 +183,6 @@ class Engineer(Role):
             msg = Message(
                 content=coding_context.json(), instruct_content=coding_context, role=self.profile, cause_by=WriteCode
             )
-            # =======
-            #             context = []
-            #             msg = self._rc.memory.get_by_actions([WriteDesign, WriteTasks, WriteCode])
-            #             for m in msg:
-            #                 context.append(m.content)
-            #             context_str = "\n----------\n".join(context)
-            #             # Write code
-            #             code = await WriteCode().run(context=context_str, filename=todo)
-            #             # Code review
-            #             if self.use_code_review:
-            #                 # try:
-            #                 rewrite_code = await WriteCodeReview().run(context=context_str, code=code, filename=todo)
-            #                 code = rewrite_code
-            #                 # except Exception as e:
-            #                 #     logger.error("code review failed!", e)
-            #             file_path = self.write_file(todo, code)
-            #             msg = Message(content=code, role=self.profile, cause_by=WriteCode)
-            # >>>>>>> feature/geekan_cli_etc
             self._rc.memory.add(msg)
 
             changed_files.add(coding_context.code_doc.filename)
@@ -272,15 +254,6 @@ class Engineer(Role):
         )
         coding_doc = Document(root_path=str(src_file_repo.root_path), filename=filename, content=context.json())
         return coding_doc
-
-    # =======
-    #     async def _act(self) -> Message:
-    #         """Determines the mode of action based on whether code review is used."""
-    #         logger.info(f"{self._setting}: ready to WriteCode")
-    #         if self.use_code_review:
-    #             return await self._act_sp_with_cr()
-    #         return await self._act_sp()
-    # >>>>>>> feature/geekan_cli_etc
 
     async def _new_code_actions(self):
         # Prepare file repos

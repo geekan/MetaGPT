@@ -79,29 +79,6 @@ class WriteCode(Action):
     def __init__(self, name="WriteCode", context=None, llm=None):
         super().__init__(name, context, llm)
 
-    # <<<<<<< HEAD
-    # =======
-    #     def _is_invalid(self, filename):
-    #         return any(i in filename for i in ["mp3", "wav"])
-    #
-    #     def _save(self, context, filename, code):
-    #         # logger.info(filename)
-    #         # logger.info(code_rsp)
-    #         if self._is_invalid(filename):
-    #             return
-    #
-    #         design = [i for i in context if i.cause_by == WriteDesign][0]
-    #
-    #         ws_name = CodeParser.parse_str(block="project_name", text=design.content)
-    #         ws_path = CONFIG.workspace_path / ws_name
-    #         if f"{ws_name}/" not in filename and all(i not in filename for i in ["requirements.txt", ".md"]):
-    #             ws_path = ws_path / ws_name
-    #         code_path = ws_path / filename
-    #         code_path.parent.mkdir(parents=True, exist_ok=True)
-    #         code_path.write_text(code)
-    #         logger.info(f"Saving Code to {code_path}")
-    #
-    # >>>>>>> feature/geekan_cli_etc
     @retry(stop=stop_after_attempt(2), wait=wait_fixed(1))
     async def write_code(self, prompt) -> str:
         code_rsp = await self._aask(prompt)
