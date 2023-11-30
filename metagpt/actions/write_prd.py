@@ -27,6 +27,7 @@ from metagpt.actions.write_prd_an import (
     WRITE_PRD_NODE,
 )
 from metagpt.llm import LLM
+from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.actions.search_and_summarize import SearchAndSummarize
 from metagpt.config import CONFIG
 from metagpt.const import (
@@ -67,7 +68,7 @@ NEW_REQ_TEMPLATE = """
 class WritePRD(Action):
     name: str = ""
     content: Optional[str] = None
-    llm: LLM = Field(default_factory=LLM)
+    llm: BaseGPTAPI = Field(default_factory=LLM)
 
     async def run(self, with_messages, format=CONFIG.prompt_format, *args, **kwargs) -> ActionOutput | Message:
         # Determine which requirement documents need to be rewritten: Use LLM to assess whether new requirements are

@@ -18,6 +18,7 @@ from metagpt.actions import ActionOutput
 from metagpt.actions.action import Action
 from metagpt.actions.project_management_an import PM_NODE
 from metagpt.llm import LLM
+from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.config import CONFIG
 from metagpt.const import (
     PACKAGE_REQUIREMENTS_FILENAME,

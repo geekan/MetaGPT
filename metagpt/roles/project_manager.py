@@ -22,7 +22,7 @@ class ProjectManager(Role):
         goal (str): Goal of the project manager.
         constraints (str): Constraints or limitations for the project manager.
     """
-    name: str = "Eve"
+    name: str = Field(default="Eve")
     profile: str = Field(default="Project Manager")
     
     goal: str = "reak down tasks according to PRD/technical design, generate a task list, and analyze task " \

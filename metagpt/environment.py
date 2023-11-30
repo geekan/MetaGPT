@@ -19,6 +19,8 @@ from pydantic import BaseModel, Field
 
 from metagpt.logs import logger
 from metagpt.roles import Role
+from metagpt.memory import Memory
+from metagpt.roles.role import Role, role_subclass_registry
 from metagpt.schema import Message
 from metagpt.utils.common import is_subscribed
 from metagpt.utils.utils import read_json_file, write_json_file
@@ -37,6 +39,19 @@ class Environment(BaseModel):
     class Config:
         arbitrary_types_allowed = True
 
+    def __init__(self, **kwargs):
+        for role_key, role in kwargs.get("roles", {}).items():
+            current_role = kwargs["roles"][role_key]
+            if isinstance(current_role, dict):
+                item_class_name = current_role.get("builtin_class_name", None)
+                for name, subclass in role_subclass_registry.items():
+                    registery_class_name = subclass.__fields__["builtin_class_name"].default
+                    if item_class_name == registery_class_name:
+                        current_role = subclass(**current_role)
+                        break
+                kwargs["roles"][role_key] = current_role
+        super().__init__(**kwargs)
+
     def serialize(self, stg_path: Path):
         roles_path = stg_path.joinpath("roles.json")
         roles_info = []
@@ -53,7 +68,8 @@ class Environment(BaseModel):
         history_path = stg_path.joinpath("history.json")
         write_json_file(history_path, {"content": self.history})
 
-    def deserialize(self, stg_path: Path):
+    @classmethod
+    def deserialize(cls, stg_path: Path) -> "Environment":
         """ stg_path: ./storage/team/environment/ """
         """ stg_path: ./storage/team/environment/ """
         roles_path = stg_path.joinpath("roles.json")
@@ -80,7 +96,7 @@ class Environment(BaseModel):
         """
         role.set_env(self)
         # use alias
-        self.roles[role.role_profile] = role
+        self.roles[role.profile] = role
 
     def add_roles(self, roles: Iterable[Role]):
         """增加一批在当前环境的角色

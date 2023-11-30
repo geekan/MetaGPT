@@ -28,15 +28,32 @@ from pydantic import BaseModel, Field
 from metagpt.actions.action import Action, ActionOutput, action_subclass_registry
 from metagpt.actions.action_node import ActionNode
 from metagpt.actions.add_requirement import UserRequirement
+
+from pathlib import Path
+
+from typing import (
+    Iterable,
+    Type,
+    Any
+)
+from pydantic import BaseModel, Field, validator
+
+# from metagpt.environment import Environment
+from metagpt.config import CONFIG
+from metagpt.actions.action import Action, ActionOutput, action_subclass_registry
 from metagpt.llm import LLM
+from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.logs import logger
 from metagpt.schema import Message, MessageQueue
 from metagpt.utils.common import any_to_str
 from metagpt.utils.repair_llm_raw_output import extract_state_value_from_output
 from metagpt.memory import Memory
 from metagpt.provider.human_provider import HumanProvider
+
 from metagpt.utils.utils import read_json_file, write_json_file, import_class
 from metagpt.provider.base_gpt_api import BaseGPTAPI
+
+from metagpt.utils.utils import read_json_file, write_json_file, import_class, role_raise_decorator
 from metagpt.const import SERDESER_PATH
 
 
@@ -80,13 +97,12 @@ class RoleReactMode(str, Enum):
 
 class RoleSetting(BaseModel):
     """Role Settings"""
-
-    name: str
-    profile: str
-    goal: str
-    constraints: str
-    desc: str
-    is_human: bool
+    name: str = ""
+    profile: str = ""
+    goal: str = ""
+    constraints: str = ""
+    desc: str = ""
+    is_human: bool = False
 
     def __str__(self):
         return f"{self.name}({self.profile})"
@@ -174,8 +190,8 @@ class Role(BaseModel):
     class Config:
         arbitrary_types_allowed = True
         exclude = ["_llm"]
-    
-    def __init__(self, **kwargs):
+
+    def __init__(self, **kwargs: Any):
         for index in range(len(kwargs.get("_actions", []))):
             current_action = kwargs["_actions"][index]
             if isinstance(current_action, dict):
@@ -212,15 +228,19 @@ class Role(BaseModel):
         object.__setattr__(self, "builtin_class_name", self.__class__.__name__)
         self.__fields__["builtin_class_name"].default = self.__class__.__name__
 
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        super().__init_subclass__(**kwargs)
+        role_subclass_registry[cls.__name__] = cls
+
     def _reset(self):
-        object.__setattr__(self, '_states', [])
-        object.__setattr__(self, '_actions', [])
+        object.__setattr__(self, "_states", [])
+        object.__setattr__(self, "_actions", [])
 
     @property
     def _setting(self):
         return f"{self.name}({self.profile})"
 
-    def serialize(self, stg_path: Path):
+    def serialize(self, stg_path: Path = None):
         stg_path = SERDESER_PATH.joinpath(f"team/environment/roles/{self.__class__.__name__}_{self.name}") \
             if stg_path is None else stg_path
 
@@ -256,7 +276,7 @@ class Role(BaseModel):
         action.set_prefix(self._get_prefix(), self.profile)
 
     def set_recovered(self, recovered: bool = False):
-        self._recovered = recovered
+        self.recovered = recovered
 
     def set_memory(self, memory: Memory):
         self._rc.memory = memory
@@ -269,7 +289,7 @@ class Role(BaseModel):
         for idx, action in enumerate(actions):
             if not isinstance(action, Action):
                 ## 默认初始化
-                i = action()
+                i = action(name="", llm=self._llm)
             else:
                 if self._setting.is_human and not isinstance(action.llm, HumanProvider):
                     logger.warning(
@@ -358,6 +378,10 @@ class Role(BaseModel):
     def subscription(self) -> Set:
         """The labels for messages to be consumed by the Role object."""
         return self._subscription
+    
+    def set_env(self, env: "Environment"):
+        """Set the environment in which the role works. The role can talk to the environment and can also receive messages by observing."""
+        self._rc.env = env
 
     def _get_prefix(self):
         """Get the role prefix"""

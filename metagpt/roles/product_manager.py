@@ -29,6 +29,7 @@ class ProductManager(Role):
     role_profile: str = Field(default="Product Manager", alias='profile')
     goal: str = "efficiently create a successful product"
     constraints: str = "use same language as user requiremen"
+
     """
     Represents a Product Manager role responsible for product development and management.
     """

@@ -17,6 +17,7 @@ from pydantic import Field
 from metagpt.actions import Action, ActionOutput
 from metagpt.actions.design_api_an import DESIGN_API_NODE
 from metagpt.llm import LLM
+from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.config import CONFIG
 from metagpt.const import (
     DATA_API_DESIGN_FILE_REPO,
@@ -43,7 +44,7 @@ NEW_REQ_TEMPLATE = """
 class WriteDesign(Action):
     name: str = ""
     context: Optional[str] = None
-    llm: LLM = Field(default_factory=LLM)
+    llm: BaseGPTAPI = Field(default_factory=LLM)
     desc: str = "Based on the PRD, think about the system design, and design the corresponding APIs, "
     "data structures, library tables, processes, and paths. Please provide your design, feedback "
     "clearly and in detail."

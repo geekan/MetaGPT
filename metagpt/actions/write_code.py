@@ -16,14 +16,9 @@
 """
 
 import json
-
 from tenacity import retry, stop_after_attempt, wait_random_exponential
-
-
-
 from typing import List, Optional, Any
 from pydantic import Field
-from tenacity import retry, stop_after_attempt, wait_fixed
 
 from metagpt.actions.action import Action
 from metagpt.config import CONFIG
@@ -34,8 +29,8 @@ from metagpt.const import (
     TASK_FILE_REPO,
     TEST_OUTPUTS_FILE_REPO,
 )
-from metagpt.actions import WriteDesign
 from metagpt.llm import LLM
+from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.logs import logger
 from metagpt.schema import CodingContext, Document, RunCodeResult
 from metagpt.utils.common import CodeParser
@@ -95,7 +90,7 @@ ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenc
 class WriteCode(Action):
     name: str = "WriteCode"
     context: Optional[str] = None
-    llm: LLM = Field(default_factory=LLM)
+    llm: BaseGPTAPI = Field(default_factory=LLM)
 
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     async def write_code(self, prompt) -> str:

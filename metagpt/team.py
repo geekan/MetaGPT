@@ -18,7 +18,8 @@ from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.utils.common import NoMoneyException
-from metagpt.utils.utils import read_json_file, write_json_file
+from metagpt.utils.utils import read_json_file, write_json_file, serialize_decorator
+from metagpt.const import SERDESER_PATH
 
 
 class Team(BaseModel):
@@ -34,29 +35,35 @@ class Team(BaseModel):
     class Config:
         arbitrary_types_allowed = True
 
-    def serialize(self, stg_path: Path):
+    def serialize(self, stg_path: Path = None):
+        stg_path = SERDESER_PATH.joinpath("team") if stg_path is None else stg_path
+
         team_info_path = stg_path.joinpath("team_info.json")
-        write_json_file(team_info_path, {
-            "idea": self.idea,
-            "investment": self.investment
-        })
+        write_json_file(team_info_path, self.dict(exclude={"environment": True}))
 
-        self.environment.serialize(stg_path.joinpath("environment"))
+        self.environment.serialize(stg_path.joinpath("environment"))  # save environment alone
 
-    def deserialize(self, stg_path: Path):
+    @classmethod
+    def recover(cls, stg_path: Path) -> "Team":
+        return cls.deserialize(stg_path)
+
+    @classmethod
+    def deserialize(cls, stg_path: Path) -> "Team":
         """ stg_path = ./storage/team """
         # recover team_info
         team_info_path = stg_path.joinpath("team_info.json")
         if not team_info_path.exists():
-            logger.error("recover storage not exist, not to recover and continue run the old project.")
-        team_info = read_json_file(team_info_path)
-        self.investment = team_info.get("investment", 10.0)
-        self.idea = team_info.get("idea", "")
+            raise FileNotFoundError("recover storage meta file `team_info.json` not exist, "
+                                    "not to recover and please start a new project.")
+
+        team_info: dict = read_json_file(team_info_path)
 
         # recover environment
-        environment_path = stg_path.joinpath("environment")
-        self.environment = Environment()
-        self.environment.deserialize(stg_path=environment_path)
+        environment = Environment.deserialize(stg_path=stg_path.joinpath("environment"))
+        team_info.update({"environment": environment})
+
+        team = Team(**team_info)
+        return team
 
     def hire(self, roles: list[Role]):
         """Hire roles to cooperate"""
@@ -84,6 +91,7 @@ class Team(BaseModel):
     def _save(self):
         logger.info(self.json(ensure_ascii=False))
 
+    @serialize_decorator
     async def run(self, n_round=3):
         """Run company until target round or no money"""
         while n_round > 0:

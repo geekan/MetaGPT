@@ -12,7 +12,6 @@
         between actions.
         3. Add `id` to `Message` according to Section 2.2.3.1.1 of RFC 135.
 """
-from __future__ import annotations
 
 import asyncio
 import json
@@ -24,6 +23,12 @@ from pathlib import Path
 from typing import Dict, List, Optional, Set, TypedDict
 from pydantic import BaseModel, Field
 
+from dataclasses import dataclass, field
+from typing import Type, TypedDict, Union, Optional
+
+from pydantic import BaseModel, Field
+from pydantic.main import ModelMetaclass
+
 from metagpt.config import CONFIG
 from metagpt.const import (
     MESSAGE_ROUTE_CAUSE_BY,
@@ -34,10 +39,15 @@ from metagpt.const import (
     TASK_FILE_REPO,
 )
 from metagpt.logs import logger
+
 from metagpt.utils.common import any_to_str, any_to_str_set
 # from metagpt.utils.serialize import actionoutout_schema_to_mapping
 # from metagpt.actions.action_output import ActionOutput
 # from metagpt.actions.action import Action
+
+from metagpt.utils.serialize import actionoutout_schema_to_mapping, actionoutput_mapping_to_str, \
+    actionoutput_str_to_mapping
+from metagpt.utils.utils import import_class
 
 
 class RawMessage(TypedDict):
@@ -54,7 +64,7 @@ class Document(BaseModel):
     filename: str = ""
     content: str = ""
 
-    def get_meta(self) -> Document:
+    def get_meta(self) -> "Document"":
         """Get metadata of the document.
 
         :return: A new Document instance with the same root path and filename.
@@ -104,39 +114,21 @@ class Message(BaseModel):
     sent_from: str = ""
     send_to: Set = Field(default_factory={MESSAGE_ROUTE_TO_ALL})
 
-    def __init__(
-        self,
-        content,
-        instruct_content=None,
-        role="user",
-        cause_by="",
-        sent_from="",
-        send_to=MESSAGE_ROUTE_TO_ALL,
-        **kwargs,
-    ):
-        """
-        Parameters not listed below will be stored as meta info, including custom parameters.
-        :param content: Message content.
-        :param instruct_content: Message content struct.
-        :param cause_by: Message producer
-        :param sent_from: Message route info tells who sent this message.
-        :param send_to: Specifies the target recipient or consumer for message delivery in the environment.
-        :param role: Message meta info tells who sent this message.
-        """
-        if not cause_by:
-            from metagpt.actions import UserRequirement
-            cause_by = UserRequirement
+    def __init__(self, **kwargs):
+        instruct_content = kwargs.get("instruct_content", None)
+        cause_by = kwargs.get("cause_by", None)
+        if instruct_content and not isinstance(instruct_content, BaseModel):
+            ic = instruct_content
+            mapping = actionoutput_str_to_mapping(ic["mapping"])
 
-        super().__init__(
-            id=uuid.uuid4().hex,
-            content=content,
-            instruct_content=instruct_content,
-            role=role,
-            cause_by=any_to_str(cause_by),
-            sent_from=any_to_str(sent_from),
-            send_to=any_to_str_set(send_to),
-            **kwargs,
-        )
+            actionoutput_class = import_class("ActionOutput", "metagpt.actions.action_output")
+            ic_obj = actionoutput_class.create_model_class(class_name=ic["class"], mapping=mapping)
+            ic_new = ic_obj(**ic["value"])
+            kwargs["instruct_content"] = ic_new
+        if cause_by and not isinstance(cause_by, ModelMetaclass):
+            action_class = import_class("Action", "metagpt.actions.action")
+            kwargs["cause_by"] = action_class.deser_class(cause_by)
+        super(Message, self).__init__(**kwargs)
 
     def __setattr__(self, key, val):
         """Override `@property.setter`, convert non-string parameters into string parameters."""
@@ -150,6 +142,21 @@ class Message(BaseModel):
             new_val = val
         super().__setattr__(key, new_val)
 
+    def dict(self, *args, **kwargs) -> "DictStrAny":
+        """ overwrite the `dict` to dump dynamic pydantic model"""
+        obj_dict = super(Message, self).dict(*args, **kwargs)
+        ic = self.instruct_content  # deal custom-defined action
+        if ic:
+            schema = ic.schema()
+            mapping = actionoutout_schema_to_mapping(schema)
+            mapping = actionoutput_mapping_to_str(mapping)
+
+            obj_dict["instruct_content"] = {"class": schema["title"], "mapping": mapping, "value": ic.dict()}
+        cb = self.cause_by
+        if cb:
+            obj_dict["cause_by"] = cb.ser_class()
+        return obj_dict
+
     def __str__(self):
         # prefix = '-'.join([self.role, str(self.cause_by)])
         return f"{self.role}: {self.content}"
@@ -157,45 +164,16 @@ class Message(BaseModel):
     def __repr__(self):
         return self.__str__()
 
-    # def serialize(self):
-    #     message_cp: Message = copy.deepcopy(self)
-    #     ic = message_cp.instruct_content
-    #     if ic:
-    #         # model create by pydantic create_model like `pydantic.main.prd`, can't pickle.dump directly
-    #         schema = ic.schema()
-    #         mapping = actionoutout_schema_to_mapping(schema)
-    #
-    #         message_cp.instruct_content = {"class": schema["title"], "mapping": mapping, "value": ic.dict()}
-    #     cb = message_cp.cause_by
-    #     if cb:
-    #         message_cp.cause_by = cb.serialize()
-    #
-    #     return message_cp.dict()
-    #
-    # @classmethod
-    # def deserialize(cls, message_dict: dict):
-    #     instruct_content = message_dict.get("instruct_content")
-    #     if instruct_content:
-    #         ic = instruct_content
-    #         ic_obj = ActionOutput.create_model_class(class_name=ic["class"], mapping=ic["mapping"])
-    #         ic_new = ic_obj(**ic["value"])
-    #         message_dict.instruct_content = ic_new
-    #     cause_by = message_dict.get("cause_by")
-    #     if cause_by:
-    #         message_dict.cause_by = Action.deserialize(cause_by)
-    #
-    #     return Message(**message_dict)
-
-    def dict(self):
-        return {
-            "content": self.content,
-            "instruct_content": self.instruct_content,
-            "role": self.role,
-            "cause_by": self.cause_by,
-            "sent_from": self.sent_from,
-            "send_to": self.send_to,
-            "restricted_to": self.restricted_to
-        }
+    # def dict(self):
+    #     return {
+    #         "content": self.content,
+    #         "instruct_content": self.instruct_content,
+    #         "role": self.role,
+    #         "cause_by": self.cause_by,
+    #         "sent_from": self.sent_from,
+    #         "send_to": self.send_to,
+    #         "restricted_to": self.restricted_to
+    #     }
 
     def to_dict(self) -> dict:
         """Return a dict containing `role` and `content` for the LLM call.l"""
@@ -316,7 +294,7 @@ class CodingContext(BaseModel):
     code_doc: Optional[Document]
 
     @staticmethod
-    def loads(val: str) -> CodingContext | None:
+    def loads(val: str) -> "CodingContext" | None:
         try:
             m = json.loads(val)
             return CodingContext(**m)
@@ -330,7 +308,7 @@ class TestingContext(BaseModel):
     test_doc: Optional[Document]
 
     @staticmethod
-    def loads(val: str) -> TestingContext | None:
+    def loads(val: str) -> "TestingContext" | None:
         try:
             m = json.loads(val)
             return TestingContext(**m)
@@ -351,7 +329,7 @@ class RunCodeContext(BaseModel):
     output: Optional[str]
 
     @staticmethod
-    def loads(val: str) -> RunCodeContext | None:
+    def loads(val: str) -> "RunCodeContext" | None:
         try:
             m = json.loads(val)
             return RunCodeContext(**m)
@@ -365,7 +343,7 @@ class RunCodeResult(BaseModel):
     stderr: str
 
     @staticmethod
-    def loads(val: str) -> RunCodeResult | None:
+    def loads(val: str) -> "RunCodeResult" | None:
         try:
             m = json.loads(val)
             return RunCodeResult(**m)
@@ -380,7 +358,7 @@ class CodeSummarizeContext(BaseModel):
     reason: str = ""
 
     @staticmethod
-    def loads(filenames: List) -> CodeSummarizeContext:
+    def loads(filenames: List) -> "CodeSummarizeContext":
         ctx = CodeSummarizeContext()
         for filename in filenames:
             if Path(filename).is_relative_to(SYSTEM_DESIGN_FILE_REPO):

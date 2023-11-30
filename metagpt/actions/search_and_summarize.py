@@ -11,7 +11,8 @@ from pydantic import BaseModel, Field
 
 from metagpt.actions import Action
 from metagpt.llm import LLM
-from metagpt.config import Config
+from metagpt.provider.base_gpt_api import BaseGPTAPI
+from metagpt.config import Config, CONFIG
 from metagpt.logs import logger
 from metagpt.schema import Message
 from metagpt.tools.search_engine import SearchEngine
@@ -106,9 +107,9 @@ You are a member of a professional butler team and will provide helpful suggesti
 class SearchAndSummarize(Action):
     name: str = ""
     content: Optional[str] = None
-    llm: None = Field(default_factory=LLM)
+    llm: BaseGPTAPI = Field(default_factory=LLM)
     config: None = Field(default_factory=Config)
-    engine: Optional[str] = None
+    engine: Optional[str] = CONFIG.search_engine
     search_func: Optional[str] = None
     search_engine: SearchEngine = None
 
