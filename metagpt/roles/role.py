@@ -287,6 +287,7 @@ class Role:
             )
         else:
             msg = Message(content=response, role=self.profile, cause_by=self._rc.todo)
+        self._rc.memory.add(msg)
 
         return msg
 
@@ -295,9 +296,10 @@ class Role:
         # Read unprocessed messages from the msg buffer.
         news = self._rc.msg_buffer.pop_all()
         # Store the read messages in your own memory to prevent duplicate processing.
+        old_messages = self._rc.memory.get()
         self._rc.memory.add_batch(news)
         # Filter out messages of interest.
-        self._rc.news = [n for n in news if n.cause_by in self._rc.watch]
+        self._rc.news = [n for n in news if n.cause_by in self._rc.watch and n not in old_messages]
 
         # Design Rules:
         # If you need to further categorize Message objects, you can do so using the Message.set_meta function.

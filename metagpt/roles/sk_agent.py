@@ -74,5 +74,4 @@ class SkAgent(Role):
 
         msg = Message(content=result, role=self.profile, cause_by=self._rc.todo)
         self._rc.memory.add(msg)
-        self.publish_message(msg)
         return msg
