@@ -113,8 +113,7 @@ class RoleSetting(BaseModel):
 
 class RoleContext(BaseModel):
     """Role Runtime Context"""
-
-    env: "Environment" = Field(default=None)
+    env: "Environment" = Field(default=None, exclude=True)
     msg_buffer: MessageQueue = Field(default_factory=MessageQueue)  # Message Buffer with Asynchronous Updates
     memory: Memory = Field(default_factory=Memory)
     # long_term_memory: LongTermMemory = Field(default_factory=LongTermMemory)
@@ -235,6 +234,7 @@ class Role(BaseModel):
     def _reset(self):
         object.__setattr__(self, "_states", [])
         object.__setattr__(self, "_actions", [])
+        # object.__setattr__(self, "_rc", RoleContext())
 
     @property
     def _setting(self):

@@ -65,7 +65,9 @@ def format_trackback_info(limit: int = 2):
 def serialize_decorator(func):
     async def wrapper(self, *args, **kwargs):
         try:
-            return await func(self, *args, **kwargs)
+            result = await func(self, *args, **kwargs)
+            self.serialize()  # Team.serialize
+            return result
         except KeyboardInterrupt as kbi:
             logger.error(f"KeyboardInterrupt occurs, start to serialize the project, exp:\n{format_trackback_info()}")
             self.serialize()  # Team.serialize
