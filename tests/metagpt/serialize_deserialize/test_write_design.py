@@ -26,7 +26,7 @@ def test_write_task_serialize():
 async def test_write_design_deserialize():
     action = WriteDesign()
     serialized_data = action.dict()
-    new_action = WriteDesign().deserialize(serialized_data)
+    new_action = WriteDesign(**serialized_data)
     assert new_action.name == ""
     assert new_action.llm == LLM()
     await new_action.run(context="write a cli snake game")
@@ -37,7 +37,6 @@ async def test_write_task_deserialize():
     action = WriteTasks()
     serialized_data = action.dict()
     new_action = WriteTasks(**serialized_data)
-    # new_action = WriteTasks().deserialize(serialized_data)
     assert new_action.name == "CreateTasks"
     assert new_action.llm == LLM()
     await new_action.run(context="write a cli snake game")

@@ -14,7 +14,6 @@ async def test_product_manager_deserialize():
     role = ProductManager()
     ser_role_dict = role.dict(by_alias=True)
     new_role = ProductManager(**ser_role_dict)
-    # new_role = ProductManager().deserialize(ser_role_dict)
 
     assert new_role.name == "Alice"
     assert len(new_role._actions) == 1

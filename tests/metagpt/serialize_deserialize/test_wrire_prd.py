@@ -21,7 +21,7 @@ async def test_action_deserialize():
     action = WritePRD()
     serialized_data = action.dict()
     new_action = WritePRD(**serialized_data)
-    # new_action = WritePRD().deserialize(serialized_data)
     assert new_action.name == ""
     assert new_action.llm == LLM()
-    assert len(await new_action.run([Message(content="write a cli snake game")])) > 0
+    action_output = await new_action.run([Message(content="write a cli snake game")])
+    assert len(action_output.content) > 0

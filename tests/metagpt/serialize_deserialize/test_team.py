@@ -11,7 +11,7 @@ from metagpt.roles import ProjectManager, ProductManager, Architect
 from metagpt.team import Team
 from metagpt.const import SERDESER_PATH
 
-from tests.metagpt.serialize_deserialize.test_serdeser_base import RoleA, RoleB, RoleC, serdeser_path
+from tests.metagpt.serialize_deserialize.test_serdeser_base import RoleA, RoleB, RoleC, serdeser_path, ActionOK
 
 
 def test_team_deserialize():
