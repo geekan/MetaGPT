@@ -85,6 +85,7 @@ class Task(BaseModel):
 
 class Plan(BaseModel):
     goal: str
+    context: str = ""
     tasks: list[Task] = []
     task_map: dict[str, Task] = {}
     current_task_id = ""
