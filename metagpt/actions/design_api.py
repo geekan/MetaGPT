@@ -227,72 +227,12 @@ class WriteDesign(Action):
         # leaving room for global optimization in subsequent steps.
         return ActionOutput(content=changed_files.json(), instruct_content=changed_files)
 
-    # =======
-    # def recreate_workspace(self, workspace: Path):
-    #     try:
-    #         shutil.rmtree(workspace)
-    #     except FileNotFoundError:
-    #         pass  # Folder does not exist, but we don't care
-    #     workspace.mkdir(parents=True, exist_ok=True)
-
-    # async def _save_prd(self, docs_path, resources_path, context):
-    #     prd_file = docs_path / "prd.md"
-    #     if context[-1].instruct_content and context[-1].instruct_content.dict()["Competitive Quadrant Chart"]:
-    #         quadrant_chart = context[-1].instruct_content.dict()["Competitive Quadrant Chart"]
-    #         await mermaid_to_file(quadrant_chart, resources_path / "competitive_analysis")
-    #
-    #     if context[-1].instruct_content:
-    #         logger.info(f"Saving PRD to {prd_file}")
-    #         prd_file.write_text(context[-1].instruct_content.json(ensure_ascii=False), encoding='utf-8')
-
-    # async def _save_system_design(self, docs_path, resources_path, system_design):
-    #     data_api_design = system_design.instruct_content.dict()[
-    #         "Data structures and interfaces"
-    #     ]  # CodeParser.parse_code(block="Data structures and interfaces", text=content)
-    #     seq_flow = system_design.instruct_content.dict()[
-    #         "Program call flow"
-    #     ]  # CodeParser.parse_code(block="Program call flow", text=content)
-    #     await mermaid_to_file(data_api_design, resources_path / "data_api_design")
-    #     await mermaid_to_file(seq_flow, resources_path / "seq_flow")
-    #     system_design_file = docs_path / "system_design.md"
-    #     logger.info(f"Saving System Designs to {system_design_file}")
-    #     system_design_file.write_text(system_design.instruct_content.json(ensure_ascii=False), encoding='utf-8')
-
-    # async def _save(self, context, system_design):
-    #     if isinstance(system_design, ActionOutput):
-    #         project_name = system_design.instruct_content.dict()["project_name"]
-    #     else:
-    #         project_name = CodeParser.parse_str(block="project_name", text=system_design)
-    #     workspace = CONFIG.workspace_path / project_name
-    #     self.recreate_workspace(workspace)
-    #     docs_path = workspace / "docs"
-    #     resources_path = workspace / "resources"
-    #     docs_path.mkdir(parents=True, exist_ok=True)
-    #     resources_path.mkdir(parents=True, exist_ok=True)
-    #     await self._save_prd(docs_path, resources_path, context)
-    #     await self._save_system_design(docs_path, resources_path, system_design)
-
-    #    async def run(self, context, format=CONFIG.prompt_format):
-
     async def _new_system_design(self, context, format=CONFIG.prompt_format):
         prompt_template, format_example = get_template(templates, format)
         prompt = prompt_template.format(context=context, format_example=format_example)
-        # system_design = await self._aask(prompt)
         system_design = await self._aask_v1(prompt, "system_design", OUTPUT_MAPPING, format=format)
-
-        # fix project_name, we can't system_design.instruct_content.python_package_name = "xxx" since "project_name"
-        # contain space, have to use setattr
         self._rename_project_name(system_design=system_design)
         await self._rename_workspace(system_design)
-        # =======
-        #         # fix project_name, we can't system_design.instruct_content.python_package_name = "xxx" since "project_name" contain space, have to use setattr
-        #         # setattr(
-        #         #     system_design.instruct_content,
-        #         #     "project_name",
-        #         #     system_design.instruct_content.dict()["project_name"].strip().strip("'").strip('"'),
-        #         # )
-        #         await self._save(context, system_design)
-        # >>>>>>> feature/geekan_cli_etc
         return system_design
 
     async def _merge(self, prd_doc, system_design_doc, format=CONFIG.prompt_format):
@@ -306,6 +246,8 @@ class WriteDesign(Action):
 
     @staticmethod
     def _rename_project_name(system_design):
+        # fix project_name, we can't system_design.instruct_content.python_package_name = "xxx" since "project_name"
+        # contain space, have to use setattr
         if CONFIG.project_name:
             setattr(
                 system_design.instruct_content,
