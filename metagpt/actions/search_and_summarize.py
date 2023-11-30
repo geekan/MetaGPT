@@ -117,23 +117,21 @@ class SearchAndSummarize(Action):
 
     @root_validator
     def validate_engine_and_run_func(cls, values):
-        engine = values.get('engine')
-        search_func = values.get('search_func')
+        engine = values.get("engine")
+        search_func = values.get("search_func")
         config = Config()
         
         if engine is None:
             engine = config.search_engine
-        config_data = {
-                'engine': engine,
-                'run_func': search_func
-        }
-        search_engine = SearchEngine(**config_data)
+        try:
+            search_engine = SearchEngine(engine=engine, run_func=search_func)
+        except pydantic.ValidationError:
+            search_engine = None
 
-        values['search_engine'] = search_engine
+        values["search_engine"] = search_engine
         return values
 
     async def run(self, context: list[Message], system_text=SEARCH_AND_SUMMARIZE_SYSTEM) -> str:
-        print(context)
         if self.search_engine is None:
             logger.warning("Configure one of SERPAPI_API_KEY, SERPER_API_KEY, GOOGLE_API_KEY to unlock full feature")
             return ""

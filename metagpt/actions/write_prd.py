@@ -226,17 +226,14 @@ class WritePRD(Action):
     name: str = ""
     content: Optional[str] = None
     llm: BaseGPTAPI = Field(default_factory=LLM)
-    assistant_search_action: Action = None
     
     async def run(self, requirements, format=CONFIG.prompt_format, *args, **kwargs) -> ActionOutput:
-        # self.assistant_search_action = SearchAndSummarize()
-        if self.assistant_search_action is None:
-            self.assistant_search_action = SearchAndSummarize()
-        # self.assistant_search_action = SearchAndSummarize()
-        rsp = await self.assistant_search_action.run(context=requirements)
-        info = f"### Search Results\n{self.assistant_search_action.result}\n\n### Search Summary\n{rsp}"
-        if self.assistant_search_action.result:
-            logger.info(self.assistant_search_action.result)
+        sas = SearchAndSummarize()
+        # rsp = await sas.run(context=requirements, system_text=SEARCH_AND_SUMMARIZE_SYSTEM_EN_US)
+        rsp = ""
+        info = f"### Search Results\n{sas.result}\n\n### Search Summary\n{rsp}"
+        if sas.result:
+            logger.info(sas.result)
             logger.info(rsp)
         
         prompt_template, format_example = get_template(templates, format)

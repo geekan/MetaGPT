@@ -88,7 +88,7 @@ class RoleSetting(BaseModel):
 
 class RoleContext(BaseModel):
     """Role Runtime Context"""
-    env: "Environment" = Field(default=None)
+    env: "Environment" = Field(default=None, exclude=True)
     memory: Memory = Field(default_factory=Memory)
     long_term_memory: LongTermMemory = Field(default_factory=LongTermMemory)
     state: int = Field(default=-1)  # -1 indicates initial or termination state where todo is None
@@ -133,7 +133,7 @@ class Role(BaseModel):
     _role_id: str = ""
     _states: list[str] = Field(default=[])
     _actions: list[Action] = Field(default=[])
-    _rc: RoleContext = RoleContext()
+    _rc: RoleContext = Field(default=RoleContext, exclude=True)
 
     # builtin variables
     recovered: bool = False  # to tag if a recovered role
@@ -143,7 +143,8 @@ class Role(BaseModel):
         "_llm": LLM() if not is_human else HumanProvider(),
         "_role_id": _role_id,
         "_states": [],
-        "_actions": []
+        "_actions": [],
+        "_rc": RoleContext()
     }
 
     class Config:
@@ -169,6 +170,8 @@ class Role(BaseModel):
         self._private_attributes["_setting"] = RoleSetting(name=self.name, profile=self.profile, goal=self.goal,
                                                            desc=self.desc, constraints=self.constraints,
                                                            is_human=self.is_human)
+        self._private_attributes["_role_id"] = str(self._setting)
+
         for key in self._private_attributes.keys():
             if key in kwargs:
                 object.__setattr__(self, key, kwargs[key])
@@ -176,10 +179,15 @@ class Role(BaseModel):
                     setting = RoleSetting(**kwargs[key])
                     object.__setattr__(self, "_setting", setting)
                 elif key == "_rc":
-                    _rc = RoleContext
+                    _rc = RoleContext()
                     object.__setattr__(self, "_rc", _rc)
             else:
-                object.__setattr__(self, key, self._private_attributes[key])
+                if key == "_rc":
+                    # # Warning, if use self._private_attributes["_rc"],
+                    # # self._rc will be a shared object between roles, so init one or reset it inside `_reset`
+                    object.__setattr__(self, key, RoleContext())
+                else:
+                    object.__setattr__(self, key, self._private_attributes[key])
 
         # deserialize child classes dynamically for inherited `role`
         object.__setattr__(self, "builtin_class_name", self.__class__.__name__)
@@ -192,6 +200,7 @@ class Role(BaseModel):
     def _reset(self):
         object.__setattr__(self, "_states", [])
         object.__setattr__(self, "_actions", [])
+        # object.__setattr__(self, "_rc", RoleContext())
 
     def serialize(self, stg_path: Path = None):
         stg_path = SERDESER_PATH.joinpath(f"team/environment/roles/{self.__class__.__name__}_{self.name}") \
@@ -289,7 +298,6 @@ class Role(BaseModel):
         for idx, action in enumerate(actions):
             if not isinstance(action, Action):
                 ## 默认初始化
-                # import pdb; pdb.set_trace()
                 i = action(name="", llm=self._llm)
             else:
                 if self._setting.is_human and not isinstance(action.llm, HumanProvider):
