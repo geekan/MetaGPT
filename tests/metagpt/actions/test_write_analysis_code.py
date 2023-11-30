@@ -159,7 +159,7 @@ async def test_write_code_reuse_code_long():
         Message(content=structural_context, role="user"),
     ]
     trials_num = 5
-    trials = [WriteCodeByGenerate().run(context=context) for _ in range(trials_num)]
+    trials = [WriteCodeByGenerate().run(context=context, temperature=0.0) for _ in range(trials_num)]
     trial_results = await asyncio.gather(*trials)
     print(*trial_results, sep="\n\n***\n\n")
     success = ["load_iris" not in result and "iris_data" in result \
