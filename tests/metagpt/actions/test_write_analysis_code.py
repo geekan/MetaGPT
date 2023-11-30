@@ -6,110 +6,110 @@ from metagpt.actions.execute_code import ExecutePyCode
 from metagpt.schema import Message
 from metagpt.logs import logger
 
-# @pytest.mark.asyncio
-# async def test_write_code_by_list_plan():
-#     write_code = WriteCodeByGenerate()
-#     execute_code = ExecutePyCode()
-#     messages = []
-#     plan = ["随机生成一个pandas DataFrame时间序列", "绘制这个时间序列的直方图", "求均值"]
-#     for task in plan:
-#         print(f"\n任务: {task}\n\n")
-#         messages.append(Message(task, role='assistant'))
-#         code = await write_code.run(messages)
-#         messages.append(Message(code, role='assistant'))
-#         assert len(code) > 0
-#         output = await execute_code.run(code)
-#         print(f"\n[Output]: 任务{task}的执行结果是: \n{output}\n")
-#         messages.append(output[0])
+@pytest.mark.asyncio
+async def test_write_code_by_list_plan():
+    write_code = WriteCodeByGenerate()
+    execute_code = ExecutePyCode()
+    messages = []
+    plan = ["随机生成一个pandas DataFrame时间序列", "绘制这个时间序列的直方图", "求均值"]
+    for task in plan:
+        print(f"\n任务: {task}\n\n")
+        messages.append(Message(task, role='assistant'))
+        code = await write_code.run(messages)
+        messages.append(Message(code, role='assistant'))
+        assert len(code) > 0
+        output = await execute_code.run(code)
+        print(f"\n[Output]: 任务{task}的执行结果是: \n{output}\n")
+        messages.append(output[0])
 
-# @pytest.mark.asyncio
-# async def test_write_code_to_correct_error():
+@pytest.mark.asyncio
+async def test_write_code_to_correct_error():
 
-#     structural_context = """
-#     ## User Requirement
-#     read a dataset test.csv and print its head
-#     ## Current Plan
-#     [
-#         {
-#             "task_id": "1",
-#             "dependent_task_ids": [],
-#             "instruction": "import pandas and load the dataset from 'test.csv'.",
-#             "task_type": "",
-#             "code": "",
-#             "result": "",
-#             "is_finished": false
-#         },
-#         {
-#             "task_id": "2",
-#             "dependent_task_ids": [
-#                 "1"
-#             ],
-#             "instruction": "Print the head of the dataset to display the first few rows.",
-#             "task_type": "",
-#             "code": "",
-#             "result": "",
-#             "is_finished": false
-#         }
-#     ]
-#     ## Current Task
-#     {"task_id": "1", "dependent_task_ids": [], "instruction": "import pandas and load the dataset from 'test.csv'.", "task_type": "", "code": "", "result": "", "is_finished": false}
-#     """
-#     wrong_code = """import pandas as pd\ndata = pd.read_excel('test.csv')\ndata"""  # use read_excel to read a csv
-#     error = """
-#     Traceback (most recent call last):
-#         File "<stdin>", line 2, in <module>
-#         File "/Users/gary/miniconda3/envs/py39_scratch/lib/python3.9/site-packages/pandas/io/excel/_base.py", line 478, in read_excel
-#             io = ExcelFile(io, storage_options=storage_options, engine=engine)
-#         File "/Users/gary/miniconda3/envs/py39_scratch/lib/python3.9/site-packages/pandas/io/excel/_base.py", line 1500, in __init__
-#             raise ValueError(
-#         ValueError: Excel file format cannot be determined, you must specify an engine manually.
-#     """
-#     context = [
-#         Message(content=structural_context, role="user"),
-#         Message(content=wrong_code, role="assistant"),
-#         Message(content=error, role="user"),
-#     ]
-#     new_code = await WriteCodeByGenerate().run(context=context)
-#     print(new_code)
-#     assert "read_csv" in new_code # should correct read_excel to read_csv
+    structural_context = """
+    ## User Requirement
+    read a dataset test.csv and print its head
+    ## Current Plan
+    [
+        {
+            "task_id": "1",
+            "dependent_task_ids": [],
+            "instruction": "import pandas and load the dataset from 'test.csv'.",
+            "task_type": "",
+            "code": "",
+            "result": "",
+            "is_finished": false
+        },
+        {
+            "task_id": "2",
+            "dependent_task_ids": [
+                "1"
+            ],
+            "instruction": "Print the head of the dataset to display the first few rows.",
+            "task_type": "",
+            "code": "",
+            "result": "",
+            "is_finished": false
+        }
+    ]
+    ## Current Task
+    {"task_id": "1", "dependent_task_ids": [], "instruction": "import pandas and load the dataset from 'test.csv'.", "task_type": "", "code": "", "result": "", "is_finished": false}
+    """
+    wrong_code = """import pandas as pd\ndata = pd.read_excel('test.csv')\ndata"""  # use read_excel to read a csv
+    error = """
+    Traceback (most recent call last):
+        File "<stdin>", line 2, in <module>
+        File "/Users/gary/miniconda3/envs/py39_scratch/lib/python3.9/site-packages/pandas/io/excel/_base.py", line 478, in read_excel
+            io = ExcelFile(io, storage_options=storage_options, engine=engine)
+        File "/Users/gary/miniconda3/envs/py39_scratch/lib/python3.9/site-packages/pandas/io/excel/_base.py", line 1500, in __init__
+            raise ValueError(
+        ValueError: Excel file format cannot be determined, you must specify an engine manually.
+    """
+    context = [
+        Message(content=structural_context, role="user"),
+        Message(content=wrong_code, role="assistant"),
+        Message(content=error, role="user"),
+    ]
+    new_code = await WriteCodeByGenerate().run(context=context)
+    print(new_code)
+    assert "read_csv" in new_code # should correct read_excel to read_csv
 
-# @pytest.mark.asyncio
-# async def test_write_code_reuse_code_simple():
-#     structural_context = """
-#     ## User Requirement
-#     read a dataset test.csv and print its head
-#     ## Current Plan
-#     [
-#         {
-#             "task_id": "1",
-#             "dependent_task_ids": [],
-#             "instruction": "import pandas and load the dataset from 'test.csv'.",
-#             "task_type": "",
-#             "code": "import pandas as pd\ndata = pd.read_csv('test.csv')",
-#             "result": "",
-#             "is_finished": true
-#         },
-#         {
-#             "task_id": "2",
-#             "dependent_task_ids": [
-#                 "1"
-#             ],
-#             "instruction": "Print the head of the dataset to display the first few rows.",
-#             "task_type": "",
-#             "code": "",
-#             "result": "",
-#             "is_finished": false
-#         }
-#     ]
-#     ## Current Task
-#     {"task_id": "2", "dependent_task_ids": ["1"], "instruction": "Print the head of the dataset to display the first few rows.", "task_type": "", "code": "", "result": "", "is_finished": false}
-#     """
-#     context = [
-#         Message(content=structural_context, role="user"),
-#     ]
-#     code = await WriteCodeByGenerate().run(context=context)
-#     print(code)
-#     assert "pandas" not in code and "read_csv" not in code # should reuse import and read statement from previous one
+@pytest.mark.asyncio
+async def test_write_code_reuse_code_simple():
+    structural_context = """
+    ## User Requirement
+    read a dataset test.csv and print its head
+    ## Current Plan
+    [
+        {
+            "task_id": "1",
+            "dependent_task_ids": [],
+            "instruction": "import pandas and load the dataset from 'test.csv'.",
+            "task_type": "",
+            "code": "import pandas as pd\ndata = pd.read_csv('test.csv')",
+            "result": "",
+            "is_finished": true
+        },
+        {
+            "task_id": "2",
+            "dependent_task_ids": [
+                "1"
+            ],
+            "instruction": "Print the head of the dataset to display the first few rows.",
+            "task_type": "",
+            "code": "",
+            "result": "",
+            "is_finished": false
+        }
+    ]
+    ## Current Task
+    {"task_id": "2", "dependent_task_ids": ["1"], "instruction": "Print the head of the dataset to display the first few rows.", "task_type": "", "code": "", "result": "", "is_finished": false}
+    """
+    context = [
+        Message(content=structural_context, role="user"),
+    ]
+    code = await WriteCodeByGenerate().run(context=context)
+    print(code)
+    assert "pandas" not in code and "read_csv" not in code # should reuse import and read statement from previous one
 
 @pytest.mark.asyncio
 async def test_write_code_reuse_code_long():
