@@ -120,13 +120,14 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
         return json.dumps(valid_tools)
 
     async def _tool_recommendation(
-        self, task: str, code_steps: str, available_tools: list
+        self, task: str, data_desc: str, code_steps: str, available_tools: list
     ) -> list:
         """
         Recommend tools for each step of the specified task
 
         Args:
             task (str): the task description
+            data_desc (str): the description of the dataset for the task
             code_steps (str): the code steps to generate the full code for the task
             available_tools (list): the available tools for the task
 
@@ -135,6 +136,7 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
         """
         prompt = TOOL_RECOMMENDATION_PROMPT.format(
             task=task,
+            data_desc=data_desc,
             code_steps=code_steps,
             available_tools=available_tools,
         )
@@ -166,7 +168,7 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
         )
         recommend_tools = self._parse_recommend_tools(task_type, recommend_tools)
 
-        specific_prompt = ML_SPECIFIC_PROMPT.get(task_type, "")
+        special_prompt = ML_SPECIFIC_PROMPT.get(task_type, "")
         module_name = ML_MODULE_MAP[task_type]
         output_desc = TOOL_OUTPUT_DESC.get(task_type, "")
         all_tasks = ""
@@ -184,7 +186,7 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
             all_tasks=all_tasks,
             completed_code=completed_code,
             data_desc=data_desc,
-            special_prompt=specific_prompt,
+            special_prompt=special_prompt,
             code_steps=task_guide,
             module_name=module_name,
             output_desc=output_desc,
