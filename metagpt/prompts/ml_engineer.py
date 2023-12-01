@@ -4,6 +4,35 @@
 # @Author  : lidanyang
 # @File    : ml_engineer
 # @Desc    :
+ASSIGN_TASK_TYPE_PROMPT = """
+## All Task Type:
+- **data_preprocess**: Only involve cleaning and preparing data through techniques like imputation, scaling, and encoding, not containing reading data, feature engineering, model training, etc.
+- **feature_engineering**: Involves enhancing data features through techniques like encoding, aggregation, time component analysis, and creating polynomial and interaction features, etc.
+- **other**: Any tasks that do not fit into the previous categories, such as visualization, summarizing findings, build model, etc.
+
+Please assign a task type to each task in the list below from the given categories:
+{task_list}
+"""
+
+ASSIGN_TASK_TYPE = {
+    "name": "assign_task_type",
+    "description": "assign task type to each task by order",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "task_type": {
+                "type": "array",
+                "description": "List of task type.",
+                "items": {
+                    "type": "string",
+                },
+            },
+        },
+        "required": ["task_type"],
+    },
+}
+
+
 TOOL_RECOMMENDATION_PROMPT = """
 ## Comprehensive Task Description:
 {task}
@@ -137,11 +166,12 @@ When performing feature engineering, please adhere to the following principles:
 - Importantly, provide detailed comments explaining the purpose of each feature and how it might enhance model performance, especially when the features are generated based on semantic understanding without clear user directives.
 """
 
-CLASSIFICATION_MODEL_PROMPT = """
+MODEL_TRAIN_PROMPT = """
+When selecting and training a model, please follow these guidelines to ensure optimal performance:
+- Keep in mind that your user prioritizes results and is highly focused on model performance. So, when needed, feel free to use models of any complexity to improve effectiveness, such as lightGBM, XGBoost, CatBoost, etc.
+— If user specifies a model, use that model. Otherwise, use the model you believe will best solve the problem.
 """
 
-REGRESSION_MODEL_PROMPT = """
-"""
 
 DATA_PREPROCESS_OUTPUT_DESC = "Please note that all functions uniformly output a processed pandas.DataFrame, facilitating seamless integration into the broader workflow."
 
@@ -155,8 +185,8 @@ REGRESSION_MODEL_OUTPUT_DESC = ""
 ML_SPECIFIC_PROMPT = {
     "data_preprocess": DATA_PREPROCESS_PROMPT,
     "feature_engineering": FEATURE_ENGINEERING_PROMPT,
-    "classification_model": CLASSIFICATION_MODEL_PROMPT,
-    "regression_model": REGRESSION_MODEL_PROMPT,
+    "classification_model": MODEL_TRAIN_PROMPT,
+    "regression_model": MODEL_TRAIN_PROMPT,
 }
 
 TOOL_OUTPUT_DESC = {

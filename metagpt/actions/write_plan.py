@@ -4,12 +4,14 @@
 @Author  :   orange-crow
 @File    :   plan.py
 """
-from typing import List
+from typing import List, Dict
 import json
 
 from metagpt.actions import Action
+from metagpt.prompts.ml_engineer import ASSIGN_TASK_TYPE_PROMPT, ASSIGN_TASK_TYPE
 from metagpt.schema import Message, Task
-from metagpt.utils.common import CodeParser
+from metagpt.utils.common import CodeParser, create_func_config
+
 
 class WritePlan(Action):
     PROMPT_TEMPLATE = """
@@ -30,7 +32,28 @@ class WritePlan(Action):
     ]
     ```
     """
-    async def run(self, context: List[Message], max_tasks: int = 5) -> str:
+
+    async def assign_task_type(self, tasks: List[Dict]) -> List[Dict]:
+        """Assign task type to each task in tasks
+
+        Args:
+            tasks (List[Dict]): tasks to be assigned task type
+
+        Returns:
+            List[Dict]: tasks with task type assigned
+        """
+        task_list = "\n".join(
+            [f"Task {task['task_id']}: {task['instruction']}" for task in tasks]
+        )
+        prompt = ASSIGN_TASK_TYPE_PROMPT.format(task_list=task_list)
+        tool_config = create_func_config(ASSIGN_TASK_TYPE)
+        rsp = await self.llm.aask_code(prompt, **tool_config)
+        task_type_list = rsp["task_type"]
+        for task, task_type in zip(tasks, task_type_list):
+            task["task_type"] = task_type
+        return tasks
+
+    async def run(self, context: List[Message], max_tasks: int = 5) -> List[Dict]:
         prompt = (
             self.PROMPT_TEMPLATE.replace("__context__", "\n".join([str(ct) for ct in context]))
             # .replace("__current_plan__", current_plan)
@@ -38,10 +61,10 @@ class WritePlan(Action):
         )
         rsp = await self._aask(prompt)
         rsp = CodeParser.parse_code(block=None, text=rsp)
+        rsp = await self.assign_task_type(json.loads(rsp))
         return rsp
 
     @staticmethod
-    def rsp_to_tasks(rsp: str) -> List[Task]:
-        rsp = json.loads(rsp)
+    def rsp_to_tasks(rsp: List[Dict]) -> List[Task]:
         tasks = [Task(**task_config) for task_config in rsp]
         return tasks
