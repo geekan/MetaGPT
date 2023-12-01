@@ -125,7 +125,7 @@ class MLEngineer(Role):
             # print("*" * 10)
             # breakpoint()
 
-            if not self.use_tools or self.plan.current_task.task_type == "":
+            if not self.use_tools or self.plan.current_task.task_type == "other":
                 # code = "print('abc')"
                 code = await WriteCodeByGenerate().run(
                     context=context, plan=self.plan, task_guide=task_guide, temperature=0.0
@@ -171,7 +171,9 @@ class MLEngineer(Role):
         plan_confirmed = False
         while not plan_confirmed:
             context = self.get_useful_memories()
-            rsp = await WritePlan().run(context, max_tasks=max_tasks)
+            rsp = await WritePlan().run(
+                context, max_tasks=max_tasks, use_tools=self.use_tools
+            )
             self.working_memory.add(
                 Message(content=rsp, role="assistant", cause_by=WritePlan)
             )
