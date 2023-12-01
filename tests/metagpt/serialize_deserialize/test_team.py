@@ -70,7 +70,7 @@ async def test_team_recover():
 
     new_role_c = new_company.environment.get_role(role_c.profile)
     assert new_role_c._rc.memory == role_c._rc.memory
-    assert new_role_c._rc.env == role_c._rc.env  # TODO check again
+    assert new_role_c._rc.env == role_c._rc.env
     assert new_role_c._rc.env.memory == role_c._rc.env.memory
 
     assert new_company.environment.memory.count() == 1
@@ -95,7 +95,10 @@ async def test_team_recover_save():
     new_company = Team.recover(stg_path)
     new_role_c = new_company.environment.get_role(role_c.profile)
     assert new_role_c._rc.memory == role_c._rc.memory
-    assert new_role_c._rc.env != role_c._rc.env  # due to Action raise, role's memory has been changed.
+    assert new_role_c._rc.env != role_c._rc.env
+    assert new_role_c.recovered != role_c.recovered  # here cause previous ut is `!=`
+    assert new_role_c._rc.todo != role_c._rc.todo  # serialize exclude `_rc.todo`
+    assert new_role_c._rc.news != role_c._rc.news  # serialize exclude `_rc.news`
     assert new_role_c._rc.env.memory == role_c._rc.env.memory
 
     new_company.start_project(idea)
