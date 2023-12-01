@@ -21,7 +21,7 @@ class MockMessage(BaseModel):
 
 
 class ActionPass(Action):
-    name: str = "ActionPass"
+    name: str = Field(default="ActionPass")
 
     async def run(self, messages: list["Message"]) -> ActionOutput:
         output_mapping = {
@@ -34,14 +34,14 @@ class ActionPass(Action):
 
 
 class ActionOK(Action):
-    name: str = "ActionOK"
+    name: str = Field(default="ActionOK")
 
     async def run(self, messages: list["Message"]) -> str:
         return "ok"
 
 
 class ActionRaise(Action):
-    name: str = "ActionRaise"
+    name: str = Field(default="ActionRaise")
 
     async def run(self, messages: list["Message"]) -> str:
         raise RuntimeError("parse error in ActionRaise")

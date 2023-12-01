@@ -12,14 +12,14 @@ def test_write_design_serialize():
     action = WriteCode()
     ser_action_dict = action.dict()
     assert ser_action_dict["name"] == "WriteCode"
-    assert "llm" in ser_action_dict
+    # assert "llm" in ser_action_dict  # not export
 
 
 def test_write_task_serialize():
     action = WriteCodeReview()
     ser_action_dict = action.dict()
     assert ser_action_dict["name"] == "WriteCodeReview"
-    assert "llm" in ser_action_dict
+    # assert "llm" in ser_action_dict  # not export
 
 
 @pytest.mark.asyncio

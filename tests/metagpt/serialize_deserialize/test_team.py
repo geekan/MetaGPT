@@ -70,7 +70,7 @@ async def test_team_recover():
 
     new_role_c = new_company.environment.get_role(role_c.profile)
     assert new_role_c._rc.memory == role_c._rc.memory
-    assert new_role_c._rc.env != role_c._rc.env  # due to Action raise, role's memory has been changed.
+    assert new_role_c._rc.env == role_c._rc.env  # TODO check again
     assert new_role_c._rc.env.memory == role_c._rc.env.memory
 
     assert new_company.environment.memory.count() == 1

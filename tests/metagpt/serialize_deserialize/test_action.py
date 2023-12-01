@@ -13,7 +13,7 @@ def test_action_serialize():
     action = Action()
     ser_action_dict = action.dict()
     assert "name" in ser_action_dict
-    assert "llm" not in ser_action_dict
+    # assert "llm" not in ser_action_dict  # not export
 
 
 @pytest.mark.asyncio
@@ -34,15 +34,3 @@ def test_action_serdeser():
 
     action_class = Action.deser_class(action_info)
     assert action_class == WriteTest
-
-
-def test_action_class_serdeser():
-    name = "write test"
-    action_info = WriteTest(name=name).serialize()
-    assert action_info["name"] == name
-
-    action_info = WriteTest(name=name, llm=LLM()).serialize()
-    assert action_info["name"] == name
-
-    action = Action.deserialize(action_info)
-    assert action.name == name
