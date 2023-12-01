@@ -64,7 +64,7 @@ class Document(BaseModel):
     filename: str = ""
     content: str = ""
 
-    def get_meta(self) -> "Document"":
+    def get_meta(self) -> "Document":
         """Get metadata of the document.
 
         :return: A new Document instance with the same root path and filename.
@@ -163,17 +163,6 @@ class Message(BaseModel):
 
     def __repr__(self):
         return self.__str__()
-
-    # def dict(self):
-    #     return {
-    #         "content": self.content,
-    #         "instruct_content": self.instruct_content,
-    #         "role": self.role,
-    #         "cause_by": self.cause_by,
-    #         "sent_from": self.sent_from,
-    #         "send_to": self.send_to,
-    #         "restricted_to": self.restricted_to
-    #     }
 
     def to_dict(self) -> dict:
         """Return a dict containing `role` and `content` for the LLM call.l"""

@@ -119,17 +119,33 @@ class RoleContext(BaseModel):
     memory: Memory = Field(default_factory=Memory)
     # long_term_memory: LongTermMemory = Field(default_factory=LongTermMemory)
     state: int = Field(default=-1)  # -1 indicates initial or termination state where todo is None
-    todo: Action = Field(default=None)
-    watch: set[str] = Field(default_factory=set)
-    news: list[Type[Message]] = Field(default=[])
-    react_mode: RoleReactMode = (
-        RoleReactMode.REACT
-    )  # see `Role._set_react_mode` for definitions of the following two attributes
+    todo: Action = Field(default=None, exclude=True)
+    watch: set[Type[Action]] = Field(default_factory=set)
+    news: list[Type[Message]] = Field(default=[], exclude=True)  # TODO not used
+    react_mode: RoleReactMode = RoleReactMode.REACT # see `Role._set_react_mode` for definitions of the following two attributes
     max_react_loop: int = 1
 
     class Config:
         arbitrary_types_allowed = True
-    
+
+    def __init__(self, **kwargs):
+        watch_info = kwargs.get("watch", set())
+        watch = set()
+        for item in watch_info:
+            action = Action.deser_class(item)
+            watch.update([action])
+        kwargs["watch"] = watch
+        super(RoleContext, self).__init__(**kwargs)
+
+    def dict(self, *args, **kwargs) -> "DictStrAny":
+        obj_dict = super(RoleContext, self).dict(*args, **kwargs)
+        watch = obj_dict.get("watch", set())
+        watch_info = []
+        for item in watch:
+            watch_info.append(item.ser_class())
+        obj_dict["watch"] = watch_info
+        return obj_dict
+
     def check(self, role_id: str):
         # if hasattr(CONFIG, "long_term_memory") and CONFIG.long_term_memory:
         #     self.long_term_memory.recover_memory(role_id, self)
@@ -290,7 +306,7 @@ class Role(BaseModel):
         for idx, action in enumerate(actions):
             if not isinstance(action, Action):
                 ## 默认初始化
-                i = action(name="", llm=self._llm)
+                i = action(llm=self._llm)
             else:
                 if self._setting.is_human and not isinstance(action.llm, HumanProvider):
                     logger.warning(
@@ -386,9 +402,14 @@ class Role(BaseModel):
 
     def _get_prefix(self):
         """Get the role prefix"""
-        if self._setting.desc:
-            return self._setting.desc
-        return PREFIX_TEMPLATE.format(**self._setting.dict())
+        if self.desc:
+            return self.desc
+        return PREFIX_TEMPLATE.format(**{
+            "profile": self.profile,
+            "name": self.name,
+            "goal": self.goal,
+            "constraints": self.constraints
+        })
     
     async def _think(self) -> None:
         """Think about what to do and decide on the next action"""
