@@ -4,6 +4,7 @@
 
 from pydantic import BaseModel, Field
 from pathlib import Path
+import asyncio
 
 from metagpt.actions.action import Action
 from metagpt.roles.role import Role, RoleReactMode
@@ -24,6 +25,7 @@ class ActionPass(Action):
     name: str = Field(default="ActionPass")
 
     async def run(self, messages: list["Message"]) -> ActionOutput:
+        await asyncio.sleep(5)  # sleep to make other roles can watch the executed Message
         output_mapping = {
             "result": (str, ...)
         }
@@ -37,6 +39,7 @@ class ActionOK(Action):
     name: str = Field(default="ActionOK")
 
     async def run(self, messages: list["Message"]) -> str:
+        await asyncio.sleep(5)
         return "ok"
 
 
@@ -55,13 +58,9 @@ class RoleA(Role):
     constraints: str = "RoleA's constraints"
 
     def __init__(self, **kwargs):
-        # super(RoleA, self).__init__(**kwargs)
-        super().__init__(**kwargs)
+        super(RoleA, self).__init__(**kwargs)
         self._init_actions([ActionPass])
         self._watch([BossRequirement])
-
-    async def run(self, message: "Message" = None):
-        await super(RoleA, self).run(message)
 
 
 class RoleB(Role):
@@ -71,14 +70,10 @@ class RoleB(Role):
     constraints: str = "RoleB's constraints"
 
     def __init__(self, **kwargs):
-        # super(RoleB, self).__init__(**kwargs)
-        super().__init__(**kwargs)
+        super(RoleB, self).__init__(**kwargs)
         self._init_actions([ActionOK, ActionRaise])
         self._watch([ActionPass])
         self._rc.react_mode = RoleReactMode.BY_ORDER
-
-    async def run(self, message: "Message" = None):
-        await super(RoleB, self).run(message)
 
 
 class RoleC(Role):
@@ -92,6 +87,3 @@ class RoleC(Role):
         self._init_actions([ActionOK, ActionRaise])
         self._watch([BossRequirement])
         self._rc.react_mode = RoleReactMode.BY_ORDER
-
-    async def run(self, message: "Message" = None):
-        await super(RoleC, self).run(message)
