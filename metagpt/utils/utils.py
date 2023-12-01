@@ -88,6 +88,7 @@ def role_raise_decorator(func):
                 newest_msgs = self._rc.env.memory.get(1)
                 if len(newest_msgs) > 0:
                     self._rc.memory.delete(newest_msgs[0])
+            raise Exception(format_trackback_info(limit=None))  # raise again to make it captured outside
         except Exception as exp:
             if self._rc.env:
                 newest_msgs = self._rc.env.memory.get(1)
