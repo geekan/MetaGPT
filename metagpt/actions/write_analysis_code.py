@@ -4,10 +4,10 @@
 @Author  :   orange-crow
 @File    :   write_code_v2.py
 """
-import json
 from typing import Dict, List, Union, Tuple
 
 from metagpt.actions import Action
+from metagpt.logs import logger
 from metagpt.prompts.ml_engineer import (
     TOOL_RECOMMENDATION_PROMPT,
     SELECT_FUNCTION_TOOLS,
@@ -174,6 +174,7 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
             task, task_guide, available_tools
         )
         recommend_tools, tool_catalog = self._parse_recommend_tools(task_type, recommend_tools)
+        logger.info(f"Recommended tools for every steps: {recommend_tools}")
 
         special_prompt = ML_SPECIFIC_PROMPT.get(task_type, "")
         module_name = ML_MODULE_MAP[task_type]
