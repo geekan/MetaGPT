@@ -48,23 +48,9 @@ class Message(BaseModel):
             kwargs["cause_by"] = action_class.deser_class(cause_by)
         super(Message, self).__init__(**kwargs)
 
-    def dict(self,
-             *,
-             include: Optional[Union["AbstractSetIntStr", "MappingIntStrAny"]] = None,
-             exclude: Optional[Union["AbstractSetIntStr", "MappingIntStrAny"]] = None,
-             by_alias: bool = False,
-             skip_defaults: Optional[bool] = None,
-             exclude_unset: bool = False,
-             exclude_defaults: bool = False,
-             exclude_none: bool = False) -> "DictStrAny":
+    def dict(self, *args, **kwargs) -> "DictStrAny":
         """ overwrite the `dict` to dump dynamic pydantic model"""
-        obj_dict = super(Message, self).dict(include=include,
-                                             exclude=exclude,
-                                             by_alias=by_alias,
-                                             skip_defaults=skip_defaults,
-                                             exclude_unset=exclude_unset,
-                                             exclude_defaults=exclude_defaults,
-                                             exclude_none=exclude_none)
+        obj_dict = super(Message, self).dict(*args, **kwargs)
         ic = self.instruct_content  # deal custom-defined action
         if ic:
             schema = ic.schema()
@@ -77,36 +63,12 @@ class Message(BaseModel):
             obj_dict["cause_by"] = cb.ser_class()
         return obj_dict
 
-#
-#
-# @dataclass
-# class Message:
-#     """list[<role>: <content>]"""
-#     content: str
-#     instruct_content: BaseModel = field(default=None)
-#     role: str = field(default='user')  # system / user / assistant
-#     cause_by: Type["Action"] = field(default="")
-#     sent_from: str = field(default="")
-#     send_to: str = field(default="")
-#     restricted_to: str = field(default="")
-
     def __str__(self):
         # prefix = '-'.join([self.role, str(self.cause_by)])
         return f"{self.role}: {self.content}"
 
     def __repr__(self):
         return self.__str__()
-
-    # def dict(self):
-    #     return {
-    #         "content": self.content,
-    #         "instruct_content": self.instruct_content,
-    #         "role": self.role,
-    #         "cause_by": self.cause_by,
-    #         "sent_from": self.sent_from,
-    #         "send_to": self.send_to,
-    #         "restricted_to": self.restricted_to
-    #     }
 
     def to_dict(self) -> dict:
         return {

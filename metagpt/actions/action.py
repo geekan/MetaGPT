@@ -52,6 +52,12 @@ class Action(BaseModel):
         super().__init_subclass__(**kwargs)
         action_subclass_registry[cls.__name__] = cls
 
+    def dict(self, *args, **kwargs) -> "DictStrAny":
+        obj_dict = super(Action, self).dict(*args, **kwargs)
+        if "llm" in obj_dict:
+            obj_dict.pop("llm")
+        return obj_dict
+
     def set_prefix(self, prefix, profile):
         """Set prefix for later usage"""
         self.prefix = prefix
@@ -62,20 +68,6 @@ class Action(BaseModel):
     
     def __repr__(self):
         return self.__str__()
-
-    def serialize(self):
-        return {
-            "action_class": self.__class__.__name__,
-            "module_name": self.__module__,
-            "name": self.name
-        }
-
-    @classmethod
-    def deserialize(cls, action_dict: dict) -> "Action":
-        action_class_str = action_dict.pop("action_class")
-        module_name = action_dict.pop("module_name")
-        action_class = import_class(action_class_str, module_name)
-        return action_class(**action_dict)
 
     @classmethod
     def ser_class(cls) -> dict:

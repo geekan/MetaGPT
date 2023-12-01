@@ -70,10 +70,8 @@ class Environment(BaseModel):
         roles_info = read_json_file(roles_path)
         roles = []
         for role_info in roles_info:
-            role_class = role_info.get("role_class")
-            role_name = role_info.get("role_name")
-
-            role_path = stg_path.joinpath(f"roles/{role_class}_{role_name}")
+            # role stored in ./environment/roles/{role_class}_{role_name}
+            role_path = stg_path.joinpath(f'roles/{role_info.get("role_class")}_{role_info.get("role_name")}')
             role = Role.deserialize(role_path)
             roles.append(role)
 

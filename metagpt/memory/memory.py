@@ -36,23 +36,9 @@ class Memory(BaseModel):
         super(Memory, self).__init__(**kwargs)
         self.index = new_index
 
-    def dict(self,
-             *,
-             include: Optional[Union["AbstractSetIntStr", "MappingIntStrAny"]] = None,
-             exclude: Optional[Union["AbstractSetIntStr", "MappingIntStrAny"]] = None,
-             by_alias: bool = False,
-             skip_defaults: Optional[bool] = None,
-             exclude_unset: bool = False,
-             exclude_defaults: bool = False,
-             exclude_none: bool = False) -> "DictStrAny":
+    def dict(self, *args, **kwargs) -> "DictStrAny":
         """ overwrite the `dict` to dump dynamic pydantic model"""
-        obj_dict = super(Memory, self).dict(include=include,
-                                            exclude=exclude,
-                                            by_alias=by_alias,
-                                            skip_defaults=skip_defaults,
-                                            exclude_unset=exclude_unset,
-                                            exclude_defaults=exclude_defaults,
-                                            exclude_none=exclude_none)
+        obj_dict = super(Memory, self).dict(*args, **kwargs)
         new_obj_dict = copy.deepcopy(obj_dict)
         new_obj_dict["index"] = {}
         for action, value in obj_dict["index"].items():
