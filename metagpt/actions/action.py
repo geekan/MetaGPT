@@ -5,8 +5,9 @@
 @Author  : alexanderwu
 @File    : action.py
 """
+
+from __future__ import annotations
 import re
-from abc import ABC
 from typing import Optional, Any
 
 from pydantic import BaseModel, Field
@@ -14,25 +15,49 @@ from tenacity import retry, stop_after_attempt, wait_fixed
 
 from metagpt.actions.action_output import ActionOutput
 from metagpt.llm import LLM
+from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.logs import logger
 from metagpt.utils.common import OutputParser
 from metagpt.utils.custom_decoder import CustomDecoder
 from metagpt.utils.utils import import_class
 
 
+action_subclass_registry = {}
+
+
 class Action(BaseModel):
     name: str = ""
-    llm: LLM = Field(default_factory=LLM)
+    llm: BaseGPTAPI = Field(default_factory=LLM, exclude=True)
     context = ""
     prefix = ""
     profile = ""
     desc = ""
     content: Optional[str] = None
     instruct_content: Optional[str] = None
+
+    # builtin variables
+    builtin_class_name: str = ""
+
+    class Config:
+        arbitrary_types_allowed = True
     
     def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
-    
+
+        # deserialize child classes dynamically for inherited `action`
+        object.__setattr__(self, "builtin_class_name", self.__class__.__name__)
+        self.__fields__["builtin_class_name"].default = self.__class__.__name__
+
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        super().__init_subclass__(**kwargs)
+        action_subclass_registry[cls.__name__] = cls
+
+    def dict(self, *args, **kwargs) -> "DictStrAny":
+        obj_dict = super(Action, self).dict(*args, **kwargs)
+        if "llm" in obj_dict:
+            obj_dict.pop("llm")
+        return obj_dict
+
     def set_prefix(self, prefix, profile):
         """Set prefix for later usage"""
         self.prefix = prefix
@@ -44,22 +69,8 @@ class Action(BaseModel):
     def __repr__(self):
         return self.__str__()
 
-    def serialize(self):
-        return {
-            "action_class": self.__class__.__name__,
-            "module_name": self.__module__,
-            "name": self.name
-        }
-
     @classmethod
-    def deserialize(cls, action_dict: dict):
-        action_class_str = action_dict.pop("action_class")
-        module_name = action_dict.pop("module_name")
-        action_class = import_class(action_class_str, module_name)
-        return action_class(**action_dict)
-
-    @classmethod
-    def ser_class(cls):
+    def ser_class(cls) -> dict:
         """ serialize class type"""
         return {
             "action_class": cls.__name__,

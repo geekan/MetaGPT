@@ -12,7 +12,7 @@ from pathlib import Path
 from pydantic import BaseModel, Field
 
 from metagpt.memory import Memory
-from metagpt.roles import Role
+from metagpt.roles.role import Role, role_subclass_registry
 from metagpt.schema import Message
 from metagpt.utils.utils import read_json_file, write_json_file
 
@@ -30,6 +30,23 @@ class Environment(BaseModel):
     class Config:
         arbitrary_types_allowed = True
 
+    def __init__(self, **kwargs):
+        roles = []
+        for role_key, role in kwargs.get("roles", {}).items():
+            current_role = kwargs["roles"][role_key]
+            if isinstance(current_role, dict):
+                item_class_name = current_role.get("builtin_class_name", None)
+                for name, subclass in role_subclass_registry.items():
+                    registery_class_name = subclass.__fields__["builtin_class_name"].default
+                    if item_class_name == registery_class_name:
+                        current_role = subclass(**current_role)
+                        break
+                kwargs["roles"][role_key] = current_role
+                roles.append(current_role)
+        super().__init__(**kwargs)
+
+        self.add_roles(roles)  # add_roles again to init the Role.set_env
+
     def serialize(self, stg_path: Path):
         roles_path = stg_path.joinpath("roles.json")
         roles_info = []
@@ -46,33 +63,37 @@ class Environment(BaseModel):
         history_path = stg_path.joinpath("history.json")
         write_json_file(history_path, {"content": self.history})
 
-    def deserialize(self, stg_path: Path):
+    @classmethod
+    def deserialize(cls, stg_path: Path) -> "Environment":
         """ stg_path: ./storage/team/environment/ """
         roles_path = stg_path.joinpath("roles.json")
         roles_info = read_json_file(roles_path)
+        roles = []
         for role_info in roles_info:
-            role_class = role_info.get("role_class")
-            role_name = role_info.get("role_name")
-
-            role_path = stg_path.joinpath(f"roles/{role_class}_{role_name}")
+            # role stored in ./environment/roles/{role_class}_{role_name}
+            role_path = stg_path.joinpath(f'roles/{role_info.get("role_class")}_{role_info.get("role_name")}')
             role = Role.deserialize(role_path)
-
-            self.add_role(role)
+            roles.append(role)
 
         memory = Memory.deserialize(stg_path)
-        self.memory = memory
 
-        history_path = stg_path.joinpath("history.json")
-        history = read_json_file(history_path)
-        self.history = history.get("content")
+        history = read_json_file(stg_path.joinpath("history.json"))
+        history = history.get("content")
+
+        environment = Environment(**{
+            "memory": memory,
+            "history": history
+        })
+        environment.add_roles(roles)
+        return environment
 
     def add_role(self, role: Role):
-        """增加一个在当前环境的角色, 默认为profile/role_profile
+        """增加一个在当前环境的角色, 默认为profile
            Add a role in the current environment
         """
         role.set_env(self)
         # use alias
-        self.roles[role.role_profile] = role
+        self.roles[role.profile] = role
 
     def add_roles(self, roles: Iterable[Role]):
         """增加一批在当前环境的角色

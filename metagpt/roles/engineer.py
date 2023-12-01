@@ -60,8 +60,8 @@ class Engineer(Role):
         use_code_review (bool): Whether to use code review.
         todos (list): List of tasks.
     """
-    name: str = "Alex"
-    role_profile: str = Field(default="Engineer", alias='profile')
+    name: str = Field(default="Alex")
+    profile: str = Field(default="Engineer")
     goal: str = "Write elegant, readable, extensible, efficient code"
     constraints: str = "The code should conform to standards like PEP8 and be modular and maintainable"
     n_borg: int = 1

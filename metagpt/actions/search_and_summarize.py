@@ -8,14 +8,15 @@
 import pydantic
 from typing import Optional, Any
 from pydantic import BaseModel, Field
+from pydantic import root_validator
 
 from metagpt.actions import Action
 from metagpt.llm import LLM
-from metagpt.config import Config
+from metagpt.provider.base_gpt_api import BaseGPTAPI
+from metagpt.config import Config, CONFIG
 from metagpt.logs import logger
 from metagpt.schema import Message
 from metagpt.tools.search_engine import SearchEngine
-from pydantic import  root_validator
 
 SEARCH_AND_SUMMARIZE_SYSTEM = """### Requirements
 1. Please summarize the latest dialogue based on the reference information (secondary) and dialogue history (primary). Do not include text that is irrelevant to the conversation.
@@ -106,35 +107,31 @@ You are a member of a professional butler team and will provide helpful suggesti
 class SearchAndSummarize(Action):
     name: str = ""
     content: Optional[str] = None
-    llm: None = Field(default_factory=LLM)
+    llm: BaseGPTAPI = Field(default_factory=LLM)
     config: None = Field(default_factory=Config)
-    engine: Optional[str] = None
+    engine: Optional[str] = CONFIG.search_engine
     search_func: Optional[str] = None
+    search_engine: SearchEngine = None
 
     result = ""
-    
 
     @root_validator
     def validate_engine_and_run_func(cls, values):
-        engine = values.get('engine')
-        search_func = values.get('search_func')
+        engine = values.get("engine")
+        search_func = values.get("search_func")
         config = Config()
         
         if engine is None:
             engine = config.search_engine
-        config_data = {
-                'engine': engine,
-                'run_func': search_func
-        }
-        search_engine = SearchEngine(**config_data)
+        try:
+            search_engine = SearchEngine(engine=engine, run_func=search_func)
+        except pydantic.ValidationError:
+            search_engine = None
 
-        values['search_engine'] = search_engine
+        values["search_engine"] = search_engine
         return values
-    
-    
-    
+
     async def run(self, context: list[Message], system_text=SEARCH_AND_SUMMARIZE_SYSTEM) -> str:
-        print(context)
         if self.search_engine is None:
             logger.warning("Configure one of SERPAPI_API_KEY, SERPER_API_KEY, GOOGLE_API_KEY to unlock full feature")
             return ""

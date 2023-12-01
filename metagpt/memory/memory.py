@@ -5,34 +5,51 @@
 @Author  : alexanderwu
 @File    : memory.py
 """
+import copy
 from collections import defaultdict
-from typing import Iterable, Type
+from typing import Iterable, Type, Union, Optional
 from pathlib import Path
+from pydantic import BaseModel, Field
+import json
 
 from metagpt.actions import Action
 from metagpt.schema import Message
 from metagpt.utils.utils import read_json_file, write_json_file
-from metagpt.utils.serialize import serialize_general_message, deserialize_general_message
+from metagpt.utils.utils import import_class
 
 
-class Memory:
+class Memory(BaseModel):
     """The most basic memory: super-memory"""
 
-    def __init__(self):
-        """Initialize an empty storage list and an empty index dictionary"""
-        self.storage: list[Message] = []
-        self.index: dict[Type[Action], list[Message]] = defaultdict(list)
+    storage: list[Message] = Field(default=[])
+    index: dict[Type[Action], list[Message]] = Field(default_factory=defaultdict(list))
+
+    def __init__(self, **kwargs):
+        index = kwargs.get("index", {})
+        new_index = defaultdict(list)
+        for action_str, value in index.items():
+            action_dict = json.loads(action_str)
+            action_class = import_class("Action", "metagpt.actions.action")
+            action_obj = action_class.deser_class(action_dict)
+            new_index[action_obj] = [Message(**item_dict) for item_dict in value]
+        kwargs["index"] = new_index
+        super(Memory, self).__init__(**kwargs)
+        self.index = new_index
+
+    def dict(self, *args, **kwargs) -> "DictStrAny":
+        """ overwrite the `dict` to dump dynamic pydantic model"""
+        obj_dict = super(Memory, self).dict(*args, **kwargs)
+        new_obj_dict = copy.deepcopy(obj_dict)
+        new_obj_dict["index"] = {}
+        for action, value in obj_dict["index"].items():
+            action_ser = json.dumps(action.ser_class())
+            new_obj_dict["index"][action_ser] = value
+        return new_obj_dict
 
     def serialize(self, stg_path: Path):
         """ stg_path = ./storage/team/environment/ or ./storage/team/environment/roles/{role_class}_{role_name}/ """
         memory_path = stg_path.joinpath("memory.json")
-
-        storage = []
-        for message in self.storage:
-            # msg_dict = message.serialize()
-            msg_dict = serialize_general_message(message)
-            storage.append(msg_dict)
-
+        storage = self.dict()
         write_json_file(memory_path, storage)
 
     @classmethod
@@ -40,13 +57,8 @@ class Memory:
         """ stg_path = ./storage/team/environment/ or ./storage/team/environment/roles/{role_class}_{role_name}/"""
         memory_path = stg_path.joinpath("memory.json")
 
-        memory = Memory()
-        memory_list = read_json_file(memory_path)
-        for message in memory_list:
-            # distinguish instruct_content type in message
-            # msg = Message.deserialize(message)
-            msg = deserialize_general_message(message)
-            memory.add(msg)
+        memory_dict = read_json_file(memory_path)
+        memory = Memory(**memory_dict)
 
         return memory
 
@@ -69,6 +81,16 @@ class Memory:
     def get_by_content(self, content: str) -> list[Message]:
         """Return all messages containing a specified content"""
         return [message for message in self.storage if content in message.content]
+
+    def delete_newest(self) -> "Message":
+        """ delete the newest message from the storage"""
+        if len(self.storage) > 0:
+            newest_msg = self.storage.pop()
+            if newest_msg.cause_by and newest_msg in self.index[newest_msg.cause_by]:
+                self.index[newest_msg.cause_by].remove(newest_msg)
+        else:
+            newest_msg = None
+        return newest_msg
 
     def delete(self, message: Message):
         """Delete the specified message from storage, while updating the index"""
@@ -115,4 +137,3 @@ class Memory:
                 continue
             rsp += self.index[action]
         return rsp
-    

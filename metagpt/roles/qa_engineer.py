@@ -7,6 +7,7 @@
 """
 import os
 from pathlib import Path
+from pydantic import Field
 
 from metagpt.actions import (
     DebugError,
@@ -25,21 +26,22 @@ from metagpt.utils.special_tokens import FILENAME_CODE_SEP, MSG_SEP
 
 
 class QaEngineer(Role):
+    name: str = Field(default="Edward")
+    profile: str = Field(default="QaEngineer")
+    goal: str = "Write comprehensive and robust tests to ensure codes will work as expected without bugs"
+    constraints: str = "The test code you write should conform to code standard like PEP8, be modular, easy to read and maintain"
+    test_round_allowed: int = 5
+
     def __init__(
         self,
-        name="Edward",
-        profile="QaEngineer",
-        goal="Write comprehensive and robust tests to ensure codes will work as expected without bugs",
-        constraints="The test code you write should conform to code standard like PEP8, be modular, easy to read and maintain",
-        test_round_allowed=5,
+        **kwargs
     ):
-        super().__init__(name, profile, goal, constraints)
+        super().__init__(**kwargs)
         self._init_actions(
             [WriteTest]
         )  # FIXME: a bit hack here, only init one action to circumvent _think() logic, will overwrite _think() in future updates
         self._watch([WriteCode, WriteCodeReview, WriteTest, RunCode, DebugError])
         self.test_round = 0
-        self.test_round_allowed = test_round_allowed
 
     @classmethod
     def parse_workspace(cls, system_design_msg: Message) -> str:

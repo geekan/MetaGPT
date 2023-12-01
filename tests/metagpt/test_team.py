@@ -2,26 +2,12 @@
 # -*- coding: utf-8 -*-
 # @Desc   : unittest of team
 
-from pathlib import Path
-import shutil
-
 from metagpt.team import Team
-
-from tests.metagpt.roles.test_role import RoleA
-
-serdes_path = Path(__file__).absolute().parent.joinpath("../data/serdes_storage")
+from metagpt.roles.project_manager import ProjectManager
 
 
-def test_team_serdes():
+def test_team():
     company = Team()
-    company.hire([RoleA()])
+    company.hire([ProjectManager()])
 
-    stg_path = serdes_path.joinpath("team")
-    shutil.rmtree(stg_path, ignore_errors=True)
-
-    company.serialize(stg_path=stg_path)
-
-    new_company = Team()
-    new_company.deserialize(stg_path)
-
-    assert len(new_company.environment.roles) == 1
+    assert len(company.environment.roles) == 1

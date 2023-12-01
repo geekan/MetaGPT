@@ -22,8 +22,8 @@ class ProjectManager(Role):
         goal (str): Goal of the project manager.
         constraints (str): Constraints or limitations for the project manager.
     """
-    name: str = "Eve"
-    role_profile: str = Field(default="Project Manager", alias='profile')
+    name: str = Field(default="Eve")
+    profile: str = Field(default="Project Manager")
     
     goal: str = "Improve team efficiency and deliver with quality and quantity"
     constraints: str = ""

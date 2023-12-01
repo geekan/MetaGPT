@@ -5,6 +5,9 @@
 @Author  : alexanderwu
 @File    : seacher.py
 """
+
+from pydantic import Field
+
 from metagpt.actions import ActionOutput, SearchAndSummarize
 from metagpt.logs import logger
 from metagpt.roles import Role
@@ -23,14 +26,14 @@ class Searcher(Role):
         constraints (str): Constraints or limitations for the searcher.
         engine (SearchEngineType): The type of search engine to use.
     """
+
+    name: str = Field(default="Alice")
+    profile: str = Field(default="Smart Assistant")
+    goal: str = "Provide search services for users"
+    constraints: str = "Answer is rich and complete"
+    engine: SearchEngineType = SearchEngineType.SERPAPI_GOOGLE
     
-    def __init__(self, 
-                 name: str = 'Alice', 
-                 profile: str = 'Smart Assistant', 
-                 goal: str = 'Provide search services for users',
-                 constraints: str = 'Answer is rich and complete', 
-                 engine=SearchEngineType.SERPAPI_GOOGLE, 
-                 **kwargs) -> None:
+    def __init__(self, **kwargs) -> None:
         """
         Initializes the Searcher role with given attributes.
         
@@ -41,8 +44,8 @@ class Searcher(Role):
             constraints (str): Constraints or limitations for the searcher.
             engine (SearchEngineType): The type of search engine to use.
         """
-        super().__init__(name, profile, goal, constraints, **kwargs)
-        self._init_actions([SearchAndSummarize(engine=engine)])
+        super().__init__(**kwargs)
+        self._init_actions([SearchAndSummarize(engine=self.engine)])
 
     def set_search_func(self, search_func):
         """Sets a custom search function for the searcher."""
