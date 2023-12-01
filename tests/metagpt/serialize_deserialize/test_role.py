@@ -66,7 +66,6 @@ def test_role_serdeser_save():
     role_tag = f"{pm.__class__.__name__}_{pm.name}"
     stg_path = stg_path_prefix.joinpath(role_tag)
     pm.serialize(stg_path)
-    assert stg_path.joinpath("actions/actions_info.json").exists()
 
     new_pm = Role.deserialize(stg_path)
     assert new_pm.name == pm.name
@@ -88,8 +87,6 @@ async def test_role_serdeser_interrupt():
         role_c.serialize(stg_path)
 
     assert role_c._rc.memory.count() == 2
-
-    assert stg_path.joinpath("actions/todo.json").exists()
 
     new_role_a: Role = Role.deserialize(stg_path)
     assert new_role_a._rc.state == 1

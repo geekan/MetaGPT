@@ -13,7 +13,7 @@ def test_action_serialize():
     action = WritePRD()
     ser_action_dict = action.dict()
     assert "name" in ser_action_dict
-    assert "llm" in ser_action_dict
+    # assert "llm" in ser_action_dict  # not export
 
 
 @pytest.mark.asyncio
