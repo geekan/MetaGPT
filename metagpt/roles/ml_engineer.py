@@ -145,9 +145,8 @@ class MLEngineer(Role):
             # truncated the result
             print(truncate(result))
             # print(result)
-            _result = truncate(remove_escape_and_color_codes(result))
             self.working_memory.add(
-                Message(content=_result, role="user", cause_by=ExecutePyCode)
+                Message(content=truncate(remove_escape_and_color_codes(result)), role="user", cause_by=ExecutePyCode)
             )
 
             if "!pip" in code:
