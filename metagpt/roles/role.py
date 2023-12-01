@@ -337,9 +337,9 @@ class Role(BaseModel):
             # If there is only one action, then only this one can be performed
             self._set_state(0)
             return
-        if self._recovered and self._rc.state >= 0:
+        if self.recovered and self._rc.state >= 0:
             self._set_state(self._rc.state)  # action to run from recovered state
-            self._recovered = False   # avoid max_react_loop out of work
+            self.recovered = False   # avoid max_react_loop out of work
             return
 
         prompt = self._get_prefix()
