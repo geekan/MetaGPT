@@ -4,8 +4,8 @@ import openai
 class CustomizedGPTAPI(OpenAIGPTAPI):
 
     def __init__(self,model = None):
-        self.__start_model(CONFIG)
         self.model = model
+        self.__start_model(CONFIG)
         self.auto_max_tokens = False
         self._cost_manager = CostManager()
         RateLimiter.__init__(self, rpm=self.rpm)
