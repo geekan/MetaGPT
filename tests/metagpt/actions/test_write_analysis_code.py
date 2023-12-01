@@ -159,10 +159,82 @@ async def test_write_code_reuse_code_long():
         Message(content=structural_context, role="user"),
     ]
     trials_num = 5
-    trials = [WriteCodeByGenerate().run(context=context) for _ in range(trials_num)]
+    trials = [WriteCodeByGenerate().run(context=context, temperature=0.0) for _ in range(trials_num)]
     trial_results = await asyncio.gather(*trials)
     print(*trial_results, sep="\n\n***\n\n")
     success = ["load_iris" not in result and "iris_data" in result \
+        for result in trial_results]  # should reuse iris_data from previous tasks
+    success_rate = sum(success) / trials_num
+    logger.info(f"success rate: {success_rate :.2f}")
+    assert success_rate >= 0.8
+
+
+@pytest.mark.asyncio
+async def test_write_code_reuse_code_long_for_wine():
+    """test code reuse for long context"""
+
+    structural_context = """
+    ## User Requirement
+    Run data analysis on sklearn Wisconsin Breast Cancer dataset, include a plot, train a model to predict targets (20% as validation), and show validation accuracy
+    ## Current Plan
+    [
+        {
+            "task_id": "1",
+            "dependent_task_ids": [],
+            "instruction": "Load the sklearn Wine recognition dataset and perform exploratory data analysis."
+            "task_type": "",
+            "code": "from sklearn.datasets import load_wine\n# Load the Wine recognition dataset\nwine_data = load_wine()\n# Perform exploratory data analysis\nwine_data.keys()",
+            "result": "Truncated to show only the last 1000 characters\ndict_keys(['data', 'target', 'frame', 'target_names', 'DESCR', 'feature_names'])",
+            "is_finished": true
+        },
+        {
+            "task_id": "2",
+            "dependent_task_ids": ["1"],
+            "instruction": "Create a plot to visualize some aspect of the wine dataset."
+            "task_type": "",
+            "code": "",
+            "result": "",
+            "is_finished": false
+        },
+        {
+            "task_id": "3",
+            "dependent_task_ids": ["1"],
+            "instruction": "Split the dataset into training and validation sets with a 20% validation size.",
+            "task_type": "",
+            "code": "",
+            "result": "",
+            "is_finished": false
+        },
+        {
+            "task_id": "4",
+            "dependent_task_ids": ["3"],
+            "instruction": "Train a model on the training set to predict wine class.",
+            "task_type": "",
+            "code": "",
+            "result": "",
+            "is_finished": false
+        },
+        {
+            "task_id": "5",
+            "dependent_task_ids": ["4"],
+            "instruction": "Evaluate the model on the validation set and report the accuracy.",
+            "task_type": "",
+            "code": "",
+            "result": "",
+            "is_finished": false
+        }
+    ]
+    ## Current Task
+    {"task_id": "2", "dependent_task_ids": ["1"], "instruction": "Create a plot to visualize some aspect of the Wine dataset.", "task_type": "", "code": "", "result": "", "is_finished": false}
+    """
+    context = [
+        Message(content=structural_context, role="user"),
+    ]
+    trials_num = 5
+    trials = [WriteCodeByGenerate().run(context=context, temperature=0.0) for _ in range(trials_num)]
+    trial_results = await asyncio.gather(*trials)
+    print(*trial_results, sep="\n\n***\n\n")
+    success = ["load_wine" not in result and "wine_data" in result\
         for result in trial_results]  # should reuse iris_data from previous tasks
     success_rate = sum(success) / trials_num
     logger.info(f"success rate: {success_rate :.2f}")

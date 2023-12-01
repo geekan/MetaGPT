@@ -3,6 +3,7 @@ import json
 import subprocess
 
 import fire
+import re
 
 from metagpt.roles import Role
 from metagpt.actions import Action
@@ -33,6 +34,13 @@ def truncate(result: str, keep_len: int = 1000) -> str:
     if not result.startswith(desc):
         return desc + result
     return desc
+
+
+def remove_escape_and_color_codes(input_str):
+    # 使用正则表达式去除转义字符和颜色代码
+    pattern = re.compile(r'\x1b\[[0-9;]*[mK]')
+    result = pattern.sub('', input_str)
+    return result
 
 
 class AskReview(Action):
@@ -120,7 +128,7 @@ class MLEngineer(Role):
             if not self.use_tools or self.plan.current_task.task_type == "":
                 # code = "print('abc')"
                 code = await WriteCodeByGenerate().run(
-                    context=context, plan=self.plan, task_guide=task_guide
+                    context=context, plan=self.plan, task_guide=task_guide, temperature=0.0
                 )
                 cause_by = WriteCodeByGenerate
             else:
@@ -138,7 +146,7 @@ class MLEngineer(Role):
             print(truncate(result))
             # print(result)
             self.working_memory.add(
-                Message(content=result, role="user", cause_by=ExecutePyCode)
+                Message(content=truncate(remove_escape_and_color_codes(result)), role="user", cause_by=ExecutePyCode)
             )
 
             if "!pip" in code:
