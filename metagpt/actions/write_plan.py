@@ -17,7 +17,7 @@ class WritePlan(Action):
     __context__
     # Task:
     Based on the context, write a plan or modify an existing plan of what you should do to achieve the goal. A plan consists of one to __max_tasks__ tasks.
-    If you are modifying an existing plan, carefully follow the instruction, don't make unnecessary changes.
+    If you are modifying an existing plan, carefully follow the instruction, don't make unnecessary changes. Give the whole plan unless instructed to modify only one task of the plan.
     Output a list of jsons following the format:
     ```json
     [

@@ -168,3 +168,14 @@ ML_MODULE_MAP = {
     "classification_model": "metagpt.tools.functions.libs.machine_learning.ml_model",
     "regression_model": "metagpt.tools.functions.libs.machine_learning.ml_model",
 }
+
+STRUCTURAL_CONTEXT = """
+## User Requirement
+{user_requirement}
+## Data Description
+{data_desc}
+## Current Plan
+{tasks}
+## Current Task
+{current_task}
+"""

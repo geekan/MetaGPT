@@ -104,3 +104,42 @@ class TestPlan:
         finished_tasks = plan.get_finished_tasks()
         assert len(finished_tasks) == 1
         assert finished_tasks[0].task_id == "1"
+
+    def test_reset_task_existing(self):
+        plan = Plan(goal="")
+        task = Task(task_id="1", instruction="Do something", code="print('Hello')", result="Hello", finished=True)
+        plan.add_tasks([task])
+        plan.reset_task("1")
+        reset_task = plan.task_map["1"]
+        assert reset_task.code == ""
+        assert reset_task.result == ""
+        assert not reset_task.is_finished
+
+    def test_reset_task_non_existing(self):
+        plan = Plan(goal="")
+        task = Task(task_id="1", instruction="Do something", code="print('Hello')", result="Hello", finished=True)
+        plan.add_tasks([task])
+        plan.reset_task("2")  # Task with ID 2 does not exist
+        assert "1" in plan.task_map
+        assert "2" not in plan.task_map
+
+    def test_replace_task_with_dependents(self):
+        plan = Plan(goal="")
+        tasks = [Task(task_id="1", instruction="First Task", finished=True),
+                 Task(task_id="2", instruction="Second Task", dependent_task_ids=["1"], finished=True)]
+        plan.add_tasks(tasks)
+        new_task = Task(task_id="1", instruction="Updated First Task")
+        plan.replace_task(new_task)
+        assert plan.task_map["1"].instruction == "Updated First Task"
+        assert not plan.task_map["2"].is_finished  # Dependent task should be reset
+        assert plan.task_map["2"].code == ""
+        assert plan.task_map["2"].result == ""
+
+    def test_replace_task_non_existing(self):
+        plan = Plan(goal="")
+        task = Task(task_id="1", instruction="First Task")
+        plan.add_tasks([task])
+        new_task = Task(task_id="2", instruction="New Task")
+        plan.replace_task(new_task)  # Task with ID 2 does not exist in plan
+        assert "1" in plan.task_map
+        assert "2" not in plan.task_map

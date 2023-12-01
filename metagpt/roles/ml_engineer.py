@@ -7,55 +7,14 @@ import fire
 from metagpt.roles import Role
 from metagpt.actions import Action
 from metagpt.schema import Message, Task, Plan
+from metagpt.memory import Memory
 from metagpt.logs import logger
 from metagpt.actions.write_plan import WritePlan
 from metagpt.actions.write_analysis_code import WriteCodeByGenerate, WriteCodeWithTools
+from metagpt.actions.ml_da_action import AskReview, SummarizeAnalysis, Reflect, ReviewConst, truncate
 from metagpt.actions.execute_code import ExecutePyCode
-
-STRUCTURAL_CONTEXT = """
-## User Requirement
-{user_requirement}
-## Current Plan
-{tasks}
-## Current Task
-{current_task}
-"""
-
-
-def truncate(result: str, keep_len: int = 1000) -> str:
-    desc = "Truncated to show only the last 1000 characters\n"
-    if result.startswith(desc):
-        result = result[-len(desc) :]
-
-    if len(result) > keep_len:
-        result = result[-keep_len:]
-
-    if not result.startswith(desc):
-        return desc + result
-    return desc
-
-
-class AskReview(Action):
-    async def run(self, context: List[Message], plan: Plan = None):
-        logger.info("Current overall plan:")
-        logger.info(
-            "\n".join([f"{task.task_id}: {task.instruction}, is_finished: {task.is_finished}" for task in plan.tasks])
-        )
-
-        logger.info("most recent context:")
-        latest_action = context[-1].cause_by.__name__ if context[-1].cause_by else ""
-        prompt = f"\nPlease review output from {latest_action}:\n" \
-            "If you want to change a task in the plan, say 'change task task_id, ... (things to change)'\n" \
-            "If you confirm the output and wish to continue with the current process, type CONFIRM\n" \
-            "If you want to terminate the process, type exit:\n"
-        rsp = input(prompt)
-
-        if rsp.lower() in ("exit"):
-            exit()
-
-        confirmed = rsp.lower() in ("confirm", "yes", "y")
-
-        return rsp, confirmed
+from metagpt.roles.kaggle_manager import DownloadData, SubmitResult
+from metagpt.prompts.ml_engineer import STRUCTURAL_CONTEXT
 
 
 class WriteTaskGuide(Action):
@@ -69,13 +28,35 @@ class MLEngineer(Role):
     ):
         super().__init__(name=name, profile=profile, goal=goal)
         self._set_react_mode(react_mode="plan_and_act")
+        self._watch([DownloadData, SubmitResult])
+
         self.plan = Plan(goal=goal)
         self.use_tools = False
         self.use_task_guide = False
         self.execute_code = ExecutePyCode()
         self.auto_run = auto_run
 
+        # memory for working on each task, discarded each time a task is done
+        self.working_memory = Memory()
+
     async def _plan_and_act(self):
+
+        ### Actions in a multi-agent multi-turn setting ###
+        memories = self.get_memories()
+        if memories:
+            latest_event = memories[-1].cause_by
+            if latest_event == DownloadData:
+                self.plan.context = memories[-1].content
+            elif latest_event == SubmitResult:
+                # get feedback for improvement from human, add to working memory
+                await self._ask_review(trigger=ReviewConst.TASK_REVIEW_TRIGGER)
+                # self reflect on previous plan outcomes and think about how to improve the plan, add to working  memory
+                prev_plan_outcomes = memories[-1].content
+                reflection = await Reflect().run(context=prev_plan_outcomes)
+                self.working_memory.add(Message(content=reflection, role="assistant"))
+
+
+        ### Common Procedure in both single- and multi-agent setting ###
         # create initial plan and update until confirmation
         await self._update_plan()
 
@@ -87,7 +68,7 @@ class MLEngineer(Role):
             code, result, success = await self._write_and_exec_code()
 
             # ask for acceptance, users can other refuse and change tasks in the plan
-            task_result_confirmed = await self._ask_review()
+            review, task_result_confirmed = await self._ask_review(trigger=ReviewConst.TASK_REVIEW_TRIGGER)
 
             if success and task_result_confirmed:
                 # tick off this task and record progress
@@ -98,7 +79,16 @@ class MLEngineer(Role):
 
             else:
                 # update plan according to user's feedback and to take on changed tasks
-                await self._update_plan()
+                await self._update_plan(review)
+
+        completed_plan_memory = self.get_useful_memories()  # completed plan as a outcome
+        self._rc.memory.add(completed_plan_memory[0])  # add to persistent memory
+
+        summary = await SummarizeAnalysis().run(self.plan)
+        rsp = Message(content=summary, cause_by=SummarizeAnalysis)
+        self._rc.memory.add(rsp)
+
+        return rsp
 
     async def _write_and_exec_code(self, max_retry: int = 3):
         task_guide = (
@@ -143,23 +133,28 @@ class MLEngineer(Role):
 
             if "!pip" in code:
                 success = False
-            # if not success:
-            #     await self._ask_review()
 
             counter += 1
 
+            if not success and counter >= max_retry:
+                logger.info("coding failed!")
+                review, _ = await self._ask_review(auto_run=False, trigger=ReviewConst.CODE_REVIEW_TRIGGER)
+                if ReviewConst.CHANGE_WORD in review:
+                    counter = 0  # redo the task again with help of human suggestions
+
         return code, result, success
 
-    async def _ask_review(self):
-        if not self.auto_run:
+    async def _ask_review(self, auto_run: bool = None, trigger: str = ReviewConst.TASK_REVIEW_TRIGGER):
+        auto_run = auto_run or self.auto_run
+        if not auto_run:
             context = self.get_useful_memories()
-            review, confirmed = await AskReview().run(context=context[-5:], plan=self.plan)
+            review, confirmed = await AskReview().run(context=context[-5:], plan=self.plan, trigger=trigger)
             if not confirmed:
                 self.working_memory.add(Message(content=review, role="user", cause_by=AskReview))
-            return confirmed
-        return True
+            return review, confirmed
+        return "", True
 
-    async def _update_plan(self, max_tasks: int = 3):
+    async def _update_plan(self, review: str = "", max_tasks: int = 3):
         plan_confirmed = False
         while not plan_confirmed:
             context = self.get_useful_memories()
@@ -167,30 +162,36 @@ class MLEngineer(Role):
             self.working_memory.add(
                 Message(content=rsp, role="assistant", cause_by=WritePlan)
             )
-            plan_confirmed = await self._ask_review()
+
+            # TODO: precheck plan before asking reviews
+
+            _, plan_confirmed = await self._ask_review(trigger=ReviewConst.TASK_REVIEW_TRIGGER)
 
         tasks = WritePlan.rsp_to_tasks(rsp)
-        self.plan.add_tasks(tasks)
-        self.working_memory.clear()
+        if len(tasks) == 1 and self.plan.has_task_id(tasks[0].task_id):
+            self.plan.replace_task(tasks[0])
+        else:
+            self.plan.add_tasks(tasks)
+        self.working_memory.clear()        
 
     def get_useful_memories(self) -> List[Message]:
         """find useful memories only to reduce context length and improve performance"""
 
         user_requirement = self.plan.goal
+        data_desc = self.plan.context
         tasks = json.dumps(
             [task.dict() for task in self.plan.tasks], indent=4, ensure_ascii=False
         )
         current_task = self.plan.current_task.json() if self.plan.current_task else {}
         context = STRUCTURAL_CONTEXT.format(
-            user_requirement=user_requirement, tasks=tasks, current_task=current_task
+            user_requirement=user_requirement, data_desc=data_desc, tasks=tasks, current_task=current_task
         )
         context_msg = [Message(content=context, role="user")]
 
-        return context_msg + self.working_memory.get()
-
-    @property
-    def working_memory(self):
-        return self._rc.memory
+        return context_msg + self.get_working_memories()
+    
+    def get_working_memories(self) -> List[Message]:
+        return self.working_memory.get()
 
 
 if __name__ == "__main__":

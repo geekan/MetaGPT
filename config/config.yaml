@@ -95,3 +95,6 @@ MODEL_FOR_RESEARCHER_REPORT: gpt-3.5-turbo-16k
 #PYPPETEER_EXECUTABLE_PATH: "/usr/bin/google-chrome-stable"
 
 PROMPT_FORMAT: json #json or markdown
+
+KAGGLE_USERNAME: ""
+KAGGLE_KEY: ""

@@ -156,7 +156,49 @@ class Plan(BaseModel):
 
         # Update the task map for quick access to tasks by ID
         self.task_map = {task.task_id: task for task in self.tasks}
+    
+    def reset_task(self, task_id: str):
+        """
+        Clear code and result of the task based on task_id, and set the task as unfinished.
 
+        Args:
+            task_id (str): The ID of the task to be reset.
+
+        Returns:
+            None
+        """
+        if task_id in self.task_map:
+            task = self.task_map[task_id]
+            task.code = ""
+            task.result = ""
+            task.is_finished = False
+
+    def replace_task(self, new_task: Task):
+        """
+        Replace an existing task with the new input task based on task_id, and reset all tasks depending on it.
+
+        Args:
+            new_task (Task): The new task that will replace an existing one.
+
+        Returns:
+            None
+        """
+        if new_task.task_id in self.task_map:
+            # Replace the task in the task map and the task list
+            self.task_map[new_task.task_id] = new_task
+            for i, task in enumerate(self.tasks):
+                if task.task_id == new_task.task_id:
+                    self.tasks[i] = new_task
+                    break
+
+            # Reset dependent tasks
+            for task in self.tasks:
+                if new_task.task_id in task.dependent_task_ids:
+                    self.reset_task(task.task_id)
+
+    def has_task_id(self, task_id: str) -> bool:
+        return task_id in self.task_map
+    
     @property
     def current_task(self) -> Task:
         """Find current task to execute

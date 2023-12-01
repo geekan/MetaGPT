@@ -12,13 +12,14 @@ async def main(
     # competition: str,
     # data_desc: str,
     # requirement: str,
-    investment: float = 3.0,
+    investment: float = 5.0,
     n_round: int = 5,
 ):
     competition, data_desc, requirement = (
         "titanic",
         "Training set is train.csv.\nTest set is test.csv. We also include gender_submission.csv, a set of predictions that assume all and only female passengers survive, as an example of what a submission file should look like.",
         "Run EDA on the train dataset, train a model to predict survival (20% as validation) and save it, predict the test set using saved model, save the test result according to format",
+        # "generate a random prediction of the same shape as gender_submission.csv and save",
     )
 
     team = Team()
