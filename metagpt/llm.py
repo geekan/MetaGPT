@@ -50,8 +50,9 @@ def LLM(name = None) -> "BaseGPTAPI":
             elif CONFIG.zhipuai_api_key:
                 llm = ZhiPuAIGPTAPI()
             else:
-                raise RuntimeError("You should config a LLM configuration first")
-            logger.info(f'{name} LLM is undefined and will use {llm.__name__}')
+                llm = CustomizedGPTAPI(model)
+            logger.info(f'{name} LLM is undefined and will use {model}')
+            return llm
 
     else:
         if CONFIG.openai_api_key and not CONFIG.customized_api_base:
