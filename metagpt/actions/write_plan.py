@@ -33,7 +33,7 @@ class WritePlan(Action):
     ```
     """
 
-    async def assign_task_type(self, tasks: List[Dict]) -> List[Dict]:
+    async def assign_task_type(self, tasks: List[Dict]) -> str:
         """Assign task type to each task in tasks
 
         Args:
@@ -51,9 +51,9 @@ class WritePlan(Action):
         task_type_list = rsp["task_type"]
         for task, task_type in zip(tasks, task_type_list):
             task["task_type"] = task_type
-        return tasks
+        return json.dumps(tasks)
 
-    async def run(self, context: List[Message], max_tasks: int = 5) -> List[Dict]:
+    async def run(self, context: List[Message], max_tasks: int = 5) -> str:
         prompt = (
             self.PROMPT_TEMPLATE.replace("__context__", "\n".join([str(ct) for ct in context]))
             # .replace("__current_plan__", current_plan)
@@ -65,6 +65,7 @@ class WritePlan(Action):
         return rsp
 
     @staticmethod
-    def rsp_to_tasks(rsp: List[Dict]) -> List[Task]:
+    def rsp_to_tasks(rsp: str) -> List[Task]:
+        rsp = json.loads(rsp)
         tasks = [Task(**task_config) for task_config in rsp]
         return tasks
