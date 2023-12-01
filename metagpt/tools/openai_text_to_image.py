@@ -19,11 +19,12 @@ from metagpt.logs import logger
 
 
 class OpenAIText2Image:
-    def __init__(self, openai_api_key):
+    def __init__(self, openai_api_key, base_url):
         """
         :param openai_api_key: OpenAI API key, For more details, checkout: `https://platform.openai.com/account/api-keys`
         """
         self.openai_api_key = openai_api_key if openai_api_key else CONFIG.OPENAI_API_KEY
+        self.base_url = base_url if base_url else CONFIG.openai_api_base
 
     async def text_2_image(self, text, size_type="1024x1024"):
         """Text to image
@@ -33,9 +34,8 @@ class OpenAIText2Image:
         :return: The image data is returned in Base64 encoding.
         """
         try:
-            async with AsyncOpenAI(api_key=self.openai_api_key) as openai_conn:
-                options = CONFIG.get_openai_options()
-                result = await openai_conn.with_options(**options).images.generate(
+            async with AsyncOpenAI(api_key=self.openai_api_key, base_url=self.base_url) as openai_conn:
+                result = await openai_conn.images.generate(
                     prompt=text,
                     n=1,
                     size=size_type,
@@ -68,7 +68,7 @@ class OpenAIText2Image:
 
 
 # Export
-async def oas3_openai_text_to_image(text, size_type: str = "1024x1024", openai_api_key=""):
+async def oas3_openai_text_to_image(text, size_type: str = "1024x1024", openai_api_key="", base_url=""):
     """Text to image
 
     :param text: The text used for image conversion.
@@ -80,7 +80,9 @@ async def oas3_openai_text_to_image(text, size_type: str = "1024x1024", openai_a
         return ""
     if not openai_api_key:
         openai_api_key = CONFIG.OPENAI_API_KEY
-    return await OpenAIText2Image(openai_api_key).text_2_image(text, size_type=size_type)
+    if not base_url:
+        base_url = CONFIG.OPENAI_API_BASE
+    return await OpenAIText2Image(openai_api_key, base_url=base_url).text_2_image(text, size_type=size_type)
 
 
 if __name__ == "__main__":

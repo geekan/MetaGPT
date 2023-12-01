@@ -7,11 +7,12 @@
             Change cost control from global to company level.
 @Modified By: mashenquan, 2023/11/7. Fix bug: unclosed connection.
 @Modified By: mashenquan, 2023/11/21. Fix bug: ReadTimeout.
+@Modified By: mashenquan, 2023/12/1. Fix bug: Unclosed connection caused by openai 0.x.
 """
 import asyncio
 import time
 
-from openai import APIConnectionError, AsyncOpenAI, RateLimitError
+from openai import APIConnectionError, AsyncAzureOpenAI, AsyncOpenAI, RateLimitError
 from openai.types import CompletionUsage
 from tenacity import (
     after_log,
@@ -79,13 +80,21 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         self.model = CONFIG.openai_api_model
         self.auto_max_tokens = False
         self.rpm = int(CONFIG.get("RPM", 10))
-        self.openai = AsyncOpenAI(api_key=CONFIG.openai_api_key)
+        if CONFIG.openai_api_type == "azure":
+            # https://learn.microsoft.com/zh-cn/azure/ai-services/openai/how-to/migration?tabs=python-new%2Cdalle-fix
+            self._client = AsyncAzureOpenAI(
+                api_key=CONFIG.openai_api_key,
+                api_version=CONFIG.openai_api_version,
+                azure_endpoint=CONFIG.openai_api_base,
+            )
+        else:
+            # https://github.com/openai/openai-python#async-usage
+            self._client = AsyncOpenAI(api_key=CONFIG.openai_api_key, base_url=CONFIG.openai_api_base)
         RateLimiter.__init__(self, rpm=self.rpm)
 
     async def _achat_completion_stream(self, messages: list[dict], timeout=3) -> str:
         kwargs = self._cons_kwargs(messages, timeout=timeout)
-        options = self._get_options()
-        response = await self.openai.with_options(**options).chat.completions.create(**kwargs, stream=True)
+        response = await self._client.chat.completions.create(**kwargs, stream=True)
         # iterate through the stream of events
         async for chunk in response:
             chunk_message = chunk.choices[0].delta.content or ""  # extract the message
@@ -94,16 +103,12 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
     def _cons_kwargs(self, messages: list[dict], timeout=3) -> dict:
         if CONFIG.openai_api_type == "azure":
             kwargs = {
-                "deployment_id": CONFIG.deployment_id,
+                "model": CONFIG.deployment_id,
                 "messages": messages,
                 "max_tokens": self.get_max_tokens(messages),
                 "n": 1,
                 "stop": None,
                 "temperature": 0.3,
-                "api_base": CONFIG.openai_api_base,
-                "api_key": CONFIG.openai_api_key,
-                "api_type": CONFIG.openai_api_type,
-                "api_version": CONFIG.openai_api_version,
             }
         else:
             kwargs = {
@@ -118,13 +123,9 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
 
         return kwargs
 
-    def _get_options(self):
-        return CONFIG.get_openai_options()
-
     async def _achat_completion(self, messages: list[dict], timeout=3) -> dict:
         kwargs = self._cons_kwargs(messages, timeout=timeout)
-        options = self._get_options()
-        rsp = await self.openai.with_options(**options).chat.completions.create(**kwargs)
+        rsp = await self._client.chat.completions.create(**kwargs)
         self._update_costs(rsp.usage)
         return rsp.dict()
 
@@ -241,7 +242,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
 
     async def close(self):
         """Close connection"""
-        if not self.openai:
+        if not self._client:
             return
-        await self.openai.close()
-        self.openai = None
+        await self._client.close()
+        self._client = None
