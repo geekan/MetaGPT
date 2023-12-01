@@ -53,7 +53,9 @@ class WritePlan(Action):
             task["task_type"] = task_type
         return json.dumps(tasks)
 
-    async def run(self, context: List[Message], max_tasks: int = 5) -> str:
+    async def run(
+        self, context: List[Message], max_tasks: int = 5, use_tools: bool = False
+    ) -> str:
         prompt = (
             self.PROMPT_TEMPLATE.replace("__context__", "\n".join([str(ct) for ct in context]))
             # .replace("__current_plan__", current_plan)
@@ -61,7 +63,8 @@ class WritePlan(Action):
         )
         rsp = await self._aask(prompt)
         rsp = CodeParser.parse_code(block=None, text=rsp)
-        rsp = await self.assign_task_type(json.loads(rsp))
+        if use_tools:
+            rsp = await self.assign_task_type(json.loads(rsp))
         return rsp
 
     @staticmethod

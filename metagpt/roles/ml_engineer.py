@@ -173,7 +173,9 @@ class MLEngineer(Role):
         plan_confirmed = False
         while not plan_confirmed:
             context = self.get_useful_memories()
-            rsp = await WritePlan().run(context, max_tasks=max_tasks)
+            rsp = await WritePlan().run(
+                context, max_tasks=max_tasks, use_tools=self.use_tools
+            )
             self.working_memory.add(
                 Message(content=rsp, role="assistant", cause_by=WritePlan)
             )
