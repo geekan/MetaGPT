@@ -50,7 +50,11 @@ class Architect(Role):
     async def _act(self) -> Message:
         if self.increment:
             logger.info(f"{self._setting}: ready to RefineDesign")
-            legacy = self._rc.env.get_legacy()["legacy_design"]
+            legacy_dict = self._rc.env.get_legacy()
+            legacy_code = ""
+            for code_dict in legacy_dict.get("legacy_code"):
+                legacy_code += code_dict.get("code") + "\n===\n"
+            legacy = "Legacy Design:\n" + legacy_dict.get("legacy_design") + "\nLegacy Code:\n" + legacy_code
             response = await self._rc.todo.run(self._rc.history, legacy)
 
         else:

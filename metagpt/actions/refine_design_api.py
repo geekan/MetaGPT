@@ -20,7 +20,7 @@ templates = {
 # Context
 {context}
 
-## Legacy Design
+## Legacy
 {legacy}
 
 ## Format example
@@ -30,9 +30,7 @@ Role: You are an architect; the goal is to perform incremental development and d
 Requirement: Fill in the following missing information based on the context, each section name is a key in json. Output exactly as shown in the example, including single and double quotes.
 Max Output: 8192 chars or 2048 tokens. Try to use them up.
 
-## Difference Description: Provide as list, the foremost differences description for system design here based on the previous.
-
-## Incremental implementation approach: Provide as Plain text. Analyze the difficult points of the requirements, select the appropriate open-source framework.
+## Incremental implementation approach: Provide as Python list[str]. Analyze the difficult points of the requirements, select the appropriate open-source framework. Up to 5.
 
 ## Python package name: Provide as Python str with python triple quoto, concise and clear, characters only use a combination of all lowercase and underscores
 
@@ -46,8 +44,7 @@ Output exactly as shown in the example, including single and double quotes, and 
         "FORMAT_EXAMPLE": """
 [CONTENT]
 {
-    "Difference Description": ["The ..."],
-    "Incremental implementation approach": "We will ...",
+    "Incremental implementation approach": ["We will ...",],
     "Python package name": "new_name",
     "Data structures and interface definitions": '
     classDiagram
@@ -72,7 +69,7 @@ Output exactly as shown in the example, including single and double quotes, and 
 # Context
 {context}
 
-## Legacy Design
+## Legacy
 {legacy}
 
 ## Format example
@@ -83,9 +80,7 @@ Requirement: Fill in the following missing information based on the context, not
 Max Output: 8192 chars or 2048 tokens. Try to use them up.
 Attention: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD WRITE BEFORE the code and triple quote.
 
-## Difference Description: Provide as list, the foremost differences description for system design here based on the previous.
-
-## Incremental implementation approach: Provide as Plain text. Analyze the difficult points of the requirements, select the appropriate open-source framework.
+## Incremental implementation approach: Provide as Python list[str]. Analyze the difficult points of the requirements, select the appropriate open-source framework. Up to 5.
 
 ## Python package name: Provide as Python str with python triple quoto, concise and clear, characters only use a combination of all lowercase and underscores
 
@@ -96,15 +91,13 @@ Attention: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD W
 """,
         "FORMAT_EXAMPLE": """
 ---
-## Difference Description
-```python
-[
-    "The ...",
-]
-```
 
 ## Incremental implementation approach
-We will ...
+```python
+[
+    "We will ...",
+]
+```
 
 ## Python package name
 ```python
@@ -135,8 +128,8 @@ sequenceDiagram
 
 OUTPUT_MAPPING = {
     # "Incremental Requirements": (str, ...),
-    "Difference Description": (Union[List[str], str], ...),
-    "Incremental implementation approach": (str, ...),
+    # "Difference Description": (Union[List[str], str], ...),
+    "Incremental implementation approach": (Union[List[str], str], ...),
     "Python package name": (str, ...),
     # "File list": (List[str], ...),
     "Data structures and interface definitions": (str, ...),

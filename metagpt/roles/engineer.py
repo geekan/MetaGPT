@@ -16,6 +16,7 @@ from metagpt.actions import WriteCode, WriteCodeReview, WriteDesign, WriteTasks,
 from metagpt.actions.refine_design_api import RefineDesign
 from metagpt.actions.refine_prd import RefinePRD
 from metagpt.actions.refine_project_management import RefineTasks
+from metagpt.actions.rewrite_code import RewriteCode
 from metagpt.actions.write_code_refine import WriteCodeRefine
 from metagpt.actions.write_code_guide import WriteCodeGuide
 from metagpt.const import WORKSPACE_ROOT
@@ -88,7 +89,7 @@ class Engineer(Role):
             self._init_actions([WriteCode, WriteCodeReview])
 
         if self.increment:
-            self._init_actions([WriteCodeGuide, WriteCodeRefine, WriteCodeReview])
+            self._init_actions([WriteCodeGuide, WriteCodeRefine, RewriteCode])
             self._watch([RefineTasks])
         else:
             self._watch([WriteTasks])
@@ -210,18 +211,21 @@ class Engineer(Role):
         code_msg_all = []  # gather all code info, will pass to qa_engineer for tests later
         workspace = self.get_workspace()
         human_str = str(self._rc.memory.get_by_role("Human")[0])
-        code = self._rc.env.get_legacy()["legacy_code"]
+        legacy_code = ""
+        code_list = self._rc.env.get_legacy().get("legacy_code")
+        for code_dict in code_list:
+            legacy_code += code_dict.get("code") + "\n===\n"
 
-        # Refine code
+        # Code guide
         context = []
-        msg = self._rc.memory.get_by_actions([RefineDesign, RefineTasks])
-
-        for m in msg:
-            context.append(m.content)
+        # msg = self._rc.memory.get_by_actions([RefineDesign, RefineTasks])
+        msg = self._rc.memory.get_by_actions([RefineTasks])
+        for tasks_msg in msg:
+            context.append(tasks_msg.content)
         context_str = human_str + "\n".join(context)
         try:
             logger.info("Write Code Guide start!")
-            guide = await WriteCodeGuide().run(context=context_str, code=code)
+            guide = await WriteCodeGuide().run(context=context_str, legacy=legacy_code)
             msg = Message(content=guide, role=self.profile, cause_by=WriteCodeGuide)
             self._rc.memory.add(msg)
         except Exception as e:
@@ -230,19 +234,18 @@ class Engineer(Role):
 
         # Write code or Code review
         for todo in self.todos:
-            msg = self._rc.memory.get_by_actions([RefineTasks])
-            context_str = human_str + "\n".join([m.content for m in msg])
             # WriteCodeRefine
             try:
                 logger.info("Write Code Refine start!")
-                code = await WriteCodeRefine().run(context=context_str, code=code, filename=todo, guide=guide)
+                code = await WriteCodeRefine().run(context=context_str, legacy=legacy_code, filename=todo, guide=guide)
             except Exception as e:
                 logger.error("Write Code Refine failed!", e)
                 pass
-            # FIXME: Code review Action
+            # FIXME: Code review Action : 如果有 pass 在代码里面，需要重写
             # if self.use_code_review:
             #     try:
-            #         rewrite_code = await WriteCodeReview().run(context=context_str, code=code, filename=todo)
+            #         # 解析成guides context = guide + human_str
+            #         rewrite_code = await RewriteCode().run(context=human_str, code=code, filename=todo, legacy=legacy_code)
             #         code = rewrite_code
             #     except Exception as e:
             #         logger.error("code review failed!", e)
@@ -251,48 +254,17 @@ class Engineer(Role):
             msg = Message(content=code, role=self.profile, cause_by=WriteCodeRefine)
             self._rc.memory.add(msg)
 
-            code_msg = todo + FILENAME_CODE_SEP + str(file_path)
-            code_msg_all.append(code_msg)
-
-        logger.info(f"Done {self.get_workspace()} generating.")
-        msg = Message(
-            content=MSG_SEP.join(code_msg_all), role=self.profile, cause_by=type(self._rc.todo), send_to="QaEngineer"
-        )
-        return msg
-
-    async def _act_bug_fix(self, bug_msgs) -> Message:
-        code_msg_all = []  # gather all code info, will pass to qa_engineer for tests later
-        workspace = self.get_workspace()
-        flag = True
-        # legacy_codes = legacy.split('---')
-        for todo in self.todos:
-            context = []
-
-            for m in bug_msgs:
-                if m.sent_from != "Engineer":
-                    context.append(m.content)
-                context.append(m.content)
-            context_str = "\n".join(context)
-            code = [m.content for m in bug_msgs if m.sent_from == "Engineer"]
-            code = "\n".join(code)
-
-            # Refine code or Write code
-            # if self.increment and len(legacy_codes) > 0:
-            #     code = legacy_codes.pop(0)
-
-            # Code review
-            try:
-                rewrite_code = await WriteCodeGuide().run(context=context_str, code=code, filename=todo)
-                code = rewrite_code
-            except Exception as e:
-                logger.error("code review failed!", e)
-                pass
-
-            # code = await WriteCode().run(context=context_str, filename=todo)
-
-            file_path = self.write_file(workspace, todo, code)
-            msg = Message(content=code, role=self.profile, cause_by=WriteCode)
-            self._rc.memory.add(msg)
+            # 利用todo作为key，去更新code_list的code
+            legacy_code = ""
+            for code_dict in code_list:
+                if code_dict.get("filename") == todo:
+                    code_dict["code"] = code
+                legacy_code += code_dict.get("code") + "\n===\n"
+            # 若code_list中没有todo，则新增一个code_dict
+            if todo not in [code_dict.get("filename") for code_dict in code_list]:
+                code_dict = {"filename": todo, "code": code}
+                code_list.append(code_dict)
+            print(len(code_list))
 
             code_msg = todo + FILENAME_CODE_SEP + str(file_path)
             code_msg_all.append(code_msg)

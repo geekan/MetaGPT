@@ -52,7 +52,9 @@ class ProductManager(Role):
     async def _act(self) -> Message:
         if self.increment:
             logger.info(f"{self._setting}: ready to RefinePRD")
-            legacy = self._rc.env.get_legacy()["legacy_prd"]
+            legacy_dict = self._rc.env.get_legacy()
+            # legacy = "Legacy PRD:\n" + legacy_dict.get("legacy_prd") + "\nLegacy Code:\n" + legacy_dict.get("legacy_code")
+            legacy = legacy_dict.get("legacy_prd")
             response = await self._rc.todo.run(self._rc.history, legacy)
 
         else:

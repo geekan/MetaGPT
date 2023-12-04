@@ -20,48 +20,20 @@ from metagpt.utils.special_tokens import MSG_SEP
 
 async def startup(
     idea: str,
-    difference_description: str = "",
-    project_path: str = "",
     investment: float = 3.0,
     n_round: int = 5,
     code_review: bool = False,
     run_tests: bool = False,
     implement: bool = True,
     increment: bool = False,
+    path: str = "",
+    difference: str = "",
 ):
     """Run a startup. Be a boss."""
     company = Team()
 
     if increment:
-        # 读取文件
-        prd_path = os.path.join(project_path, 'docs/prd.md')
-        design_path = os.path.join(project_path, 'docs/system_design.md')
-        api_spec_and_tasks_path = os.path.join(project_path, 'docs/api_spec_and_tasks.md')
-        code_path = os.path.join(project_path, os.path.basename(project_path))
-
-        with open(prd_path, 'r', encoding='utf-8') as f:
-            legacy_prd = f.read()
-
-        with open(design_path, 'r', encoding='utf-8') as f:
-            legacy_design = f.read()
-
-        with open(api_spec_and_tasks_path, 'r', encoding='utf-8') as f:
-            legacy_project_management = f.read()
-
-        legacy_code = ''
-        for root, dirs, files in os.walk(code_path):
-            for file in files:
-                if file.endswith('.py'):
-                    with open(os.path.join(root, file), 'r', encoding='utf-8') as f:
-                        legacy_code += f.read() + '\n---\n'
-
-        legacy_dict = {
-            'legacy_prd': legacy_prd,
-            'legacy_design': legacy_design,
-            'legacy_project_management': legacy_project_management,
-            'legacy_code': legacy_code
-        }
-        company.environment.set_legacy(legacy_dict)
+        company.save_legacy(path)
         company.hire(
             [
                 ProductManager(increment=increment),
@@ -85,20 +57,20 @@ async def startup(
         company.hire([QaEngineer()])
 
     company.invest(investment)
-    company.start_project(idea+"\n"+difference_description)
+    company.start_project(idea +"\n" + difference)
     await company.run(n_round=n_round)
 
 
 def main(
     idea: str,
-    difference_description: str = "",
-    project_path: str = "",
     investment: float = 3.0,
     n_round: int = 5,
     code_review: bool = True,
     run_tests: bool = False,
     implement: bool = True,
     increment: bool = False,
+    path: str = "",
+    difference: str = "",
 ):
     """
     We are a software startup comprised of AI. By investing in us,
@@ -111,7 +83,7 @@ def main(
     :return:
     """
     asyncio.run(
-        startup(idea, difference_description, project_path, investment, n_round, code_review, run_tests, implement, increment))
+        startup(idea, investment, n_round, code_review, run_tests, implement, increment, path, difference))
 
 
 if __name__ == "__main__":

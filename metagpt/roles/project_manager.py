@@ -57,7 +57,10 @@ class ProjectManager(Role):
             human_str = "\n".join([msg.content for msg in self._rc.memory.get_by_role("Human")])
             # legacy_project_management and legacy_code
             legacy_dict = self._rc.env.get_legacy()
-            legacy_str = "Legacy Project Management:\n" + legacy_dict["legacy_project_management"] + "\nLegacy Code:\n" + legacy_dict["legacy_code"]
+            legacy_code = ""
+            for code_dict in legacy_dict.get("legacy_code"):
+                legacy_code += code_dict.get("code") + "\n===\n"
+            legacy_str = "Legacy Project Management:\n" + legacy_dict["legacy_project_management"] + "\nLegacy Code:\n" + legacy_code
             response = await self._rc.todo.run(self._rc.history, legacy=legacy_str)
 
         else:

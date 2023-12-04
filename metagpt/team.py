@@ -5,6 +5,8 @@
 @Author  : alexanderwu
 @File    : software_company.py
 """
+import os
+
 from pydantic import BaseModel, Field
 
 from metagpt.actions import BossRequirement
@@ -59,4 +61,32 @@ class Team(BaseModel):
             self._check_balance()
             await self.environment.run()
         return self.environment.history
+
+    def save_legacy(self, project_path):
+        prd_path = os.path.join(project_path, 'docs/prd.md')
+        design_path = os.path.join(project_path, 'docs/system_design.md')
+        api_spec_and_tasks_path = os.path.join(project_path, 'docs/api_spec_and_tasks.md')
+        code_path = os.path.join(project_path, os.path.basename(project_path))
+        with open(prd_path, 'r', encoding='utf-8') as f:
+            legacy_prd = f.read()
+        with open(design_path, 'r', encoding='utf-8') as f:
+            legacy_design = f.read()
+        with open(api_spec_and_tasks_path, 'r', encoding='utf-8') as f:
+            legacy_project_management = f.read()
+        legacy_codes = []
+        for root, dirs, files in os.walk(code_path):
+            for file in files:
+                legacy_code = {}
+                if file.endswith('.py'):
+                    with open(os.path.join(root, file), 'r', encoding='utf-8') as f:
+                        legacy_code['filename'] = file
+                        legacy_code['code'] = f.read()
+                        legacy_codes.append(legacy_code)
+        legacy_dict = {
+            'legacy_prd': legacy_prd,
+            'legacy_design': legacy_design,
+            'legacy_project_management': legacy_project_management,
+            'legacy_code': legacy_codes
+        }
+        self.environment.set_legacy(legacy_dict)
 
