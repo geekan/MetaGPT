@@ -183,6 +183,10 @@ MERGE_PROMPT = """
 ## Old Tasks
 {old_tasks}
 -----
+
+## Format example
+{format_example}
+-----
 Role: You are a project manager; The goal is to merge the new PRD/technical design content from 'Context' into 'Old Tasks.' Based on this merged result, break down tasks, give a task list, and analyze task dependencies to start with the prerequisite modules.
 Requirements: Based on the context, fill in the following missing information, each section name is a key in json. Here the granularity of the task is a file, if there are any missing files, you can supplement them
 Attention: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD WRITE BEFORE the code and triple quote.
@@ -201,7 +205,7 @@ Attention: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD W
 
 ## Anything UNCLEAR: Provide as Plain text. Make clear here. For example, don't forget a main entry. don't forget to init 3rd party libs.
 
-output a properly formatted JSON, wrapped inside [CONTENT][/CONTENT] like "Old Tasks" format,
+output a properly formatted JSON, wrapped inside [CONTENT][/CONTENT] like "Format example" format,
 and only output the json inside this tag, nothing else
 """
 
@@ -264,7 +268,9 @@ class WriteTasks(Action):
         return rsp
 
     async def _merge(self, system_design_doc, task_doc, format=CONFIG.prompt_format) -> Document:
-        prompt = MERGE_PROMPT.format(context=system_design_doc.content, old_tasks=task_doc.content)
+        _, format_example = get_template(templates, format)
+        prompt = MERGE_PROMPT.format(context=system_design_doc.content, old_tasks=task_doc.content,
+                                     format_example=format_example)
         rsp = await self._aask_v1(prompt, "task", OUTPUT_MAPPING, format=format)
         task_doc.content = rsp.instruct_content.json(ensure_ascii=False)
         return task_doc
