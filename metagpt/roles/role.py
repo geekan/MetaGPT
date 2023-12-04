@@ -291,12 +291,12 @@ class Role:
 
         return msg
 
-    async def _observe(self) -> int:
+    async def _observe(self, ignore_memory=False) -> int:
         """Prepare new messages for processing from the message buffer and other sources."""
         # Read unprocessed messages from the msg buffer.
         news = self._rc.msg_buffer.pop_all()
         # Store the read messages in your own memory to prevent duplicate processing.
-        old_messages = self._rc.memory.get()
+        old_messages = [] if ignore_memory else self._rc.memory.get()
         self._rc.memory.add_batch(news)
         # Filter out messages of interest.
         self._rc.news = [n for n in news if n.cause_by in self._rc.watch and n not in old_messages]
