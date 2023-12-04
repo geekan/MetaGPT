@@ -115,7 +115,7 @@ class CostManager(metaclass=Singleton):
     def get_total_cost(self):
         """
         Get the total cost of API calls.
-
+    
         Returns:
         float: The total cost of API calls.
         """
