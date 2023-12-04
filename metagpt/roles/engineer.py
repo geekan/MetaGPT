@@ -13,17 +13,25 @@
 @Modified By: mashenquan, 2023-11-27.
     1. According to Section 2.2.3.1 of RFC 135, replace file data in the message with the file name.
     2. According to the design in Section 2.2.3.5.5 of RFC 135, add incremental iteration functionality.
+@Modified By: mashenquan, 2023-12-5. Enhance the workflow to navigate to WriteCode or QaEngineer based on the results
+    of SummarizeCode.
 """
 from __future__ import annotations
 
 import json
+from collections import defaultdict
 from pathlib import Path
 from typing import Set
 
 from metagpt.actions import Action, WriteCode, WriteCodeReview, WriteTasks
 from metagpt.actions.summarize_code import SummarizeCode
 from metagpt.config import CONFIG
-from metagpt.const import MESSAGE_ROUTE_TO_NONE, SYSTEM_DESIGN_FILE_REPO, TASK_FILE_REPO
+from metagpt.const import (
+    CODE_SUMMARIES_FILE_REPO,
+    CODE_SUMMARIES_PDF_FILE_REPO,
+    SYSTEM_DESIGN_FILE_REPO,
+    TASK_FILE_REPO,
+)
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import (
@@ -33,6 +41,16 @@ from metagpt.schema import (
     Documents,
     Message,
 )
+from metagpt.utils.common import any_to_str, any_to_str_set
+
+IS_PASS_PROMPT = """
+{context}
+
+----
+Does the above log indicate anything that needs to be done?
+If there are any tasks to be completed, please answer 'NO' along with the to-do list in JSON format;
+otherwise, answer 'YES' in JSON format.
+"""
 
 
 class Engineer(Role):
@@ -60,7 +78,7 @@ class Engineer(Role):
         """Initializes the Engineer role with given attributes."""
         super().__init__(name, profile, goal, constraints)
         self.use_code_review = use_code_review
-        self._watch([WriteTasks])
+        self._watch([WriteTasks, SummarizeCode, WriteCode, WriteCodeReview])
         self.code_todos = []
         self.summarize_todos = []
         self.n_borg = n_borg
@@ -105,39 +123,88 @@ class Engineer(Role):
         if self._rc.todo is None:
             return None
         if isinstance(self._rc.todo, WriteCode):
-            changed_files = await self._act_sp_with_cr(review=self.use_code_review)
-            # Unit tests only.
-            if CONFIG.REQA_FILENAME and CONFIG.REQA_FILENAME not in changed_files:
-                changed_files.add(CONFIG.REQA_FILENAME)
-            return Message(
-                content="\n".join(changed_files),
-                role=self.profile,
-                cause_by=WriteCodeReview if self.use_code_review else WriteCode,
-                send_to="Edward",  # The name of QaEngineer
-            )
+            return await self._act_write_code()
         if isinstance(self._rc.todo, SummarizeCode):
-            summaries = []
-            for todo in self.summarize_todos:
-                summary = await todo.run()
-                summaries.append(summary.json(ensure_ascii=False))
+            return await self._act_summarize()
+        return None
+
+    async def _act_write_code(self):
+        changed_files = await self._act_sp_with_cr(review=self.use_code_review)
+        return Message(
+            content="\n".join(changed_files),
+            role=self.profile,
+            cause_by=WriteCodeReview if self.use_code_review else WriteCode,
+            send_to=self,
+            sent_from=self,
+        )
+
+    async def _act_summarize(self):
+        code_summaries_file_repo = CONFIG.git_repo.new_file_repository(CODE_SUMMARIES_FILE_REPO)
+        code_summaries_pdf_file_repo = CONFIG.git_repo.new_file_repository(CODE_SUMMARIES_PDF_FILE_REPO)
+        tasks = []
+        src_relative_path = CONFIG.src_workspace.relative_to(CONFIG.git_repo.workdir)
+        for todo in self.summarize_todos:
+            summary = await todo.run()
+            summary_filename = Path(todo.context.design_filename).with_suffix(".md").name
+            dependencies = {todo.context.design_filename, todo.context.task_filename}
+            for filename in todo.context.codes_filenames:
+                rpath = src_relative_path / filename
+                dependencies.add(str(rpath))
+            await code_summaries_pdf_file_repo.save(
+                filename=summary_filename, content=summary, dependencies=dependencies
+            )
+            is_pass, reason = await self._is_pass(summary)
+            if not is_pass:
+                todo.context.reason = reason
+                tasks.append(todo.context.dict())
+                await code_summaries_file_repo.save(
+                    filename=Path(todo.context.design_filename).name,
+                    content=todo.context.json(),
+                    dependencies=dependencies,
+                )
+            else:
+                await code_summaries_file_repo.delete(filename=Path(todo.context.design_filename).name)
+
+        logger.info(f"--max-auto-summarize-code={CONFIG.max_auto_summarize_code}")
+        if not tasks or CONFIG.max_auto_summarize_code == 0:
             return Message(
-                content="\n".join(summaries),
+                content="",
                 role=self.profile,
                 cause_by=SummarizeCode,
-                send_to=MESSAGE_ROUTE_TO_NONE,
+                sent_from=self,
+                send_to="Edward",  # The name of QaEngineer
             )
-        return None
+        # The maximum number of times the 'SummarizeCode' action is automatically invoked, with -1 indicating unlimited.
+        # This parameter is used for debugging the workflow.
+        CONFIG.max_auto_summarize_code -= 1 if CONFIG.max_auto_summarize_code > 0 else 0
+        return Message(
+            content=json.dumps(tasks), role=self.profile, cause_by=SummarizeCode, send_to=self, sent_from=self
+        )
+
+    async def _is_pass(self, summary) -> (str, str):
+        rsp = await self._llm.aask(msg=IS_PASS_PROMPT.format(context=summary), stream=False)
+        logger.info(rsp)
+        if "YES" in rsp:
+            return True, rsp
+        return False, rsp
 
     async def _think(self) -> Action | None:
         if not CONFIG.src_workspace:
             CONFIG.src_workspace = CONFIG.git_repo.workdir / CONFIG.git_repo.workdir.name
-        if not self.code_todos:
-            await self._new_code_actions()
-        elif not self.summarize_todos:
-            await self._new_summarize_actions()
-        else:
+        write_code_filters = any_to_str_set([WriteTasks, SummarizeCode])
+        summarize_code_filters = any_to_str_set([WriteCode, WriteCodeReview])
+        if not self._rc.news:
             return None
-        return self._rc.todo  # For agent store
+        msg = self._rc.news[0]
+        if msg.cause_by in write_code_filters:
+            logger.info(f"TODO WriteCode:{msg.json()}")
+            await self._new_code_actions()
+            return self._rc.todo
+        if msg.cause_by in summarize_code_filters and msg.sent_from == any_to_str(self):
+            logger.info(f"TODO SummarizeCode:{msg.json()}")
+            await self._new_summarize_actions()
+            return self._rc.todo
+        return None
 
     @staticmethod
     async def _new_coding_context(
@@ -151,9 +218,9 @@ class Engineer(Role):
         design_doc = None
         for i in dependencies:
             if str(i.parent) == TASK_FILE_REPO:
-                task_doc = task_file_repo.get(i.filename)
+                task_doc = await task_file_repo.get(i.name)
             elif str(i.parent) == SYSTEM_DESIGN_FILE_REPO:
-                design_doc = design_file_repo.get(i.filename)
+                design_doc = await design_file_repo.get(i.name)
         context = CodingContext(filename=filename, design_doc=design_doc, task_doc=task_doc, code_doc=old_code_doc)
         return context
 
@@ -216,16 +283,13 @@ class Engineer(Role):
 
     async def _new_summarize_actions(self):
         src_file_repo = CONFIG.git_repo.new_file_repository(CONFIG.src_workspace)
-        changed_src_files = src_file_repo.changed_files
+        src_files = src_file_repo.all_files
         # Generate a SummarizeCode action for each pair of (system_design_doc, task_doc).
-        summarizations = {}
-        for filename in changed_src_files:
-            dependencies = src_file_repo.get_dependency(filename=filename)
+        summarizations = defaultdict(list)
+        for filename in src_files:
+            dependencies = await src_file_repo.get_dependency(filename=filename)
             ctx = CodeSummarizeContext.loads(filenames=dependencies)
-            if ctx not in summarizations:
-                summarizations[ctx] = set()
-            srcs = summarizations.get(ctx)
-            srcs.add(filename)
+            summarizations[ctx].append(filename)
         for ctx, filenames in summarizations.items():
             ctx.codes_filenames = filenames
             self.summarize_todos.append(SummarizeCode(context=ctx, llm=self._llm))

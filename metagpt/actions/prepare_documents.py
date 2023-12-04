@@ -3,7 +3,7 @@
 """
 @Time    : 2023/11/20
 @Author  : mashenquan
-@File    : git_repository.py
+@File    : prepare_documents.py
 @Desc: PrepareDocuments Action: initialize project folder and add new requirements to docs/requirements.txt.
         RFC 135 2.2.3.5.1.
 """

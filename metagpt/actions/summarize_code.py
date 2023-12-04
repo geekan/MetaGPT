@@ -3,12 +3,15 @@
 """
 @Author  : alexanderwu
 @File    : summarize_code.py
+@Modified By: mashenquan, 2023/12/5. Archive the summarization content of issue discovery for use in WriteCode.
 """
+from pathlib import Path
 
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 from metagpt.actions.action import Action
 from metagpt.config import CONFIG
+from metagpt.const import SYSTEM_DESIGN_FILE_REPO, TASK_FILE_REPO
 from metagpt.logs import logger
 from metagpt.utils.file_repository import FileRepository
 
@@ -95,8 +98,10 @@ class SummarizeCode(Action):
         return code_rsp
 
     async def run(self):
-        design_doc = await FileRepository.get_file(self.context.design_filename)
-        task_doc = await FileRepository.get_file(self.context.task_filename)
+        design_pathname = Path(self.context.design_filename)
+        design_doc = await FileRepository.get_file(filename=design_pathname.name, relative_path=SYSTEM_DESIGN_FILE_REPO)
+        task_pathname = Path(self.context.task_filename)
+        task_doc = await FileRepository.get_file(filename=task_pathname.name, relative_path=TASK_FILE_REPO)
         src_file_repo = CONFIG.git_repo.new_file_repository(relative_path=CONFIG.src_workspace)
         code_blocks = []
         for filename in self.context.codes_filenames:
