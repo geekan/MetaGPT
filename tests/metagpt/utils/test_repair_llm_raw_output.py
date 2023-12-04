@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 # @Desc   : unittest of repair_llm_raw_output
 
-import pytest
+
+from metagpt.config import CONFIG
+CONFIG.repair_llm_output = True
 
 from metagpt.utils.repair_llm_raw_output import repair_llm_raw_output, RepairType, repair_invalid_json,\
     extract_content_from_output, retry_parse_json_text
