@@ -4,6 +4,7 @@
 @Time    : 2023/5/16 10:57
 @Author  : alexanderwu
 @File    : test_message.py
+@Modified By: mashenquan, 2023-11-1. Modify coding style.
 """
 import pytest
 
@@ -34,3 +35,8 @@ def test_raw_message():
     assert msg["content"] == "raw"
     with pytest.raises(KeyError):
         assert msg["1"] == 1, "KeyError: '1'"
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-s"])
+

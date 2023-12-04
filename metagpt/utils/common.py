@@ -4,6 +4,8 @@
 @Time    : 2023/4/29 16:07
 @Author  : alexanderwu
 @File    : common.py
+@Modified By: mashenquan, 2023-11-1. According to Chapter 2.2.2 of RFC 116:
+        Add generic class-to-string and object-to-string conversion functionality.
 """
 import ast
 import contextlib
@@ -13,6 +15,7 @@ import platform
 import re
 from typing import List, Tuple, Union
 
+from metagpt.const import MESSAGE_ROUTE_TO_ALL
 from metagpt.logs import logger
 
 
@@ -85,10 +88,7 @@ class OutputParser:
 
     @staticmethod
     def parse_python_code(text: str) -> str:
-        for pattern in (
-            r"(.*?```python.*?\s+)?(?P<code>.*)(```.*?)",
-            r"(.*?```python.*?\s+)?(?P<code>.*)",
-        ):
+        for pattern in (r"(.*?```python.*?\s+)?(?P<code>.*)(```.*?)", r"(.*?```python.*?\s+)?(?P<code>.*)"):
             match = re.search(pattern, text, re.DOTALL)
             if not match:
                 continue
@@ -305,3 +305,46 @@ def parse_recipient(text):
     pattern = r"## Send To:\s*([A-Za-z]+)\s*?"  # hard code for now
     recipient = re.search(pattern, text)
     return recipient.group(1) if recipient else ""
+
+
+def get_class_name(cls) -> str:
+    """Return class name"""
+    return f"{cls.__module__}.{cls.__name__}"
+
+
+def get_object_name(obj) -> str:
+    """Return class name of the object"""
+    cls = type(obj)
+    return f"{cls.__module__}.{cls.__name__}"
+
+
+def any_to_str(val) -> str:
+    """Return the class name or the class name of the object, or 'val' if it's a string type."""
+    if isinstance(val, str):
+        return val
+    if not callable(val):
+        return get_object_name(val)
+
+    return get_class_name(val)
+
+
+def any_to_str_set(val) -> set:
+    """Convert any type to string set."""
+    res = set()
+    if isinstance(val, dict) or isinstance(val, list) or isinstance(val, set) or isinstance(val, tuple):
+        for i in val:
+            res.add(any_to_str(i))
+    else:
+        res.add(any_to_str(val))
+    return res
+
+
+def is_subscribed(message, tags):
+    """Return whether it's consumer"""
+    if MESSAGE_ROUTE_TO_ALL in message.send_to:
+        return True
+
+    for t in tags:
+        if t in message.send_to:
+            return True
+    return False

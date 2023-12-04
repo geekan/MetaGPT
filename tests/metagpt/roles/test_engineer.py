@@ -4,6 +4,8 @@
 @Time    : 2023/5/12 10:14
 @Author  : alexanderwu
 @File    : test_engineer.py
+@Modified By: mashenquan, 2023-11-1. In accordance with Chapter 2.2.1 and 2.2.2 of RFC 116, utilize the new message
+        distribution feature for message handling.
 """
 import pytest
 
@@ -22,10 +24,10 @@ from tests.metagpt.roles.mock import (
 async def test_engineer():
     engineer = Engineer()
 
-    engineer.recv(MockMessages.req)
-    engineer.recv(MockMessages.prd)
-    engineer.recv(MockMessages.system_design)
-    rsp = await engineer.handle(MockMessages.tasks)
+    engineer.put_message(MockMessages.req)
+    engineer.put_message(MockMessages.prd)
+    engineer.put_message(MockMessages.system_design)
+    rsp = await engineer.run(MockMessages.tasks)
 
     logger.info(rsp)
     assert "all done." == rsp.content

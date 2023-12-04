@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# @Desc   : unittest of `metagpt/memory/longterm_memory.py`
+"""
+@Desc   : unittest of `metagpt/memory/longterm_memory.py`
+"""
 
 from metagpt.actions import BossRequirement
 from metagpt.config import CONFIG

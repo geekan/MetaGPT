@@ -4,6 +4,12 @@
 @Time    : 2023/5/11 14:43
 @Author  : alexanderwu
 @File    : engineer.py
+@Modified By: mashenquan, 2023-11-1. In accordance with Chapter 2.2.1 and 2.2.2 of RFC 116:
+    1. Modify the data type of the `cause_by` value in the `Message` to a string, and utilize the new message
+        distribution feature for message filtering.
+    2. Consolidate message reception and processing logic within `_observe`.
+    3. Fix bug: Add logic for handling asynchronous message processing when messages are not ready.
+    4. Supplemented the external transmission of internal messages.
 """
 import asyncio
 import shutil
@@ -15,7 +21,7 @@ from metagpt.const import WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
-from metagpt.utils.common import CodeParser
+from metagpt.utils.common import CodeParser, any_to_str
 from metagpt.utils.special_tokens import FILENAME_CODE_SEP, MSG_SEP
 
 
@@ -119,17 +125,13 @@ class Engineer(Role):
         file.write_text(code)
         return file
 
-    def recv(self, message: Message) -> None:
-        self._rc.memory.add(message)
-        if message in self._rc.important_memory:
-            self.todos = self.parse_tasks(message)
-
     async def _act_mp(self) -> Message:
         # self.recreate_workspace()
         todo_coros = []
         for todo in self.todos:
             todo_coro = WriteCode().run(
-                context=self._rc.memory.get_by_actions([WriteTasks, WriteDesign]), filename=todo
+                context=self._rc.memory.get_by_actions([WriteTasks, WriteDesign]),
+                filename=todo,
             )
             todo_coros.append(todo_coro)
 
@@ -139,12 +141,12 @@ class Engineer(Role):
             logger.info(todo)
             logger.info(code_rsp)
             # self.write_file(todo, code)
-            msg = Message(content=code_rsp, role=self.profile, cause_by=type(self._rc.todo))
+            msg = Message(content=code_rsp, role=self.profile, cause_by=self._rc.todo)
             self._rc.memory.add(msg)
             del self.todos[0]
 
         logger.info(f"Done {self.get_workspace()} generating.")
-        msg = Message(content="all done.", role=self.profile, cause_by=type(self._rc.todo))
+        msg = Message(content="all done.", role=self.profile, cause_by=self._rc.todo)
         return msg
 
     async def _act_sp(self) -> Message:
@@ -155,7 +157,7 @@ class Engineer(Role):
             # logger.info(code_rsp)
             # code = self.parse_code(code_rsp)
             file_path = self.write_file(todo, code)
-            msg = Message(content=code, role=self.profile, cause_by=type(self._rc.todo))
+            msg = Message(content=code, role=self.profile, cause_by=self._rc.todo)
             self._rc.memory.add(msg)
 
             code_msg = todo + FILENAME_CODE_SEP + str(file_path)
@@ -163,7 +165,10 @@ class Engineer(Role):
 
         logger.info(f"Done {self.get_workspace()} generating.")
         msg = Message(
-            content=MSG_SEP.join(code_msg_all), role=self.profile, cause_by=type(self._rc.todo), send_to="QaEngineer"
+            content=MSG_SEP.join(code_msg_all),
+            role=self.profile,
+            cause_by=self._rc.todo,
+            send_to="Edward",  # name of QaEngineer
         )
         return msg
 
@@ -201,12 +206,31 @@ class Engineer(Role):
 
         logger.info(f"Done {self.get_workspace()} generating.")
         msg = Message(
-            content=MSG_SEP.join(code_msg_all), role=self.profile, cause_by=type(self._rc.todo), send_to="QaEngineer"
+            content=MSG_SEP.join(code_msg_all),
+            role=self.profile,
+            cause_by=self._rc.todo,
+            send_to="Edward",  # name of QaEngineer
         )
         return msg
 
     async def _act(self) -> Message:
         """Determines the mode of action based on whether code review is used."""
+        if not self._rc.todo:
+            return None
         if self.use_code_review:
             return await self._act_sp_precision()
         return await self._act_sp()
+
+    async def _observe(self) -> int:
+        ret = await super(Engineer, self)._observe()
+        if ret == 0:
+            return ret
+
+        # Parse task lists
+        for message in self._rc.news:
+            if not message.cause_by == any_to_str(WriteTasks):
+                continue
+            self.todos = self.parse_tasks(message)
+            return 1
+
+        return 0

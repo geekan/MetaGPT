@@ -4,6 +4,8 @@
 @Time    : 2023/5/11 14:43
 @Author  : alexanderwu
 @File    : qa_engineer.py
+@Modified By: mashenquan, 2023-11-1. In accordance with Chapter 2.2.1 and 2.2.2 of RFC 116, modify the data
+        type of the `cause_by` value in the `Message` to a string, and utilize the new message filtering feature.
 """
 import os
 from pathlib import Path
@@ -20,7 +22,7 @@ from metagpt.const import WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
-from metagpt.utils.common import CodeParser, parse_recipient
+from metagpt.utils.common import CodeParser, any_to_str_set, parse_recipient
 from metagpt.utils.special_tokens import FILENAME_CODE_SEP, MSG_SEP
 
 
@@ -98,10 +100,10 @@ class QaEngineer(Role):
                 content=str(file_info),
                 role=self.profile,
                 cause_by=WriteTest,
-                sent_from=self.profile,
-                send_to=self.profile,
+                sent_from=self,
+                send_to=self,
             )
-            self._publish_message(msg)
+            self.publish_message(msg)
 
         logger.info(f"Done {self.get_workspace()}/tests generating.")
 
@@ -132,7 +134,7 @@ class QaEngineer(Role):
         recipient = parse_recipient(result_msg)  # the recipient might be Engineer or myself
         content = str(file_info) + FILENAME_CODE_SEP + result_msg
         msg = Message(content=content, role=self.profile, cause_by=RunCode, sent_from=self.profile, send_to=recipient)
-        self._publish_message(msg)
+        self.publish_message(msg)
 
     async def _debug_error(self, msg):
         file_info, context = msg.content.split(FILENAME_CODE_SEP)
@@ -141,16 +143,13 @@ class QaEngineer(Role):
             self.write_file(file_name, code)
             recipient = msg.sent_from  # send back to the one who ran the code for another run, might be one's self
             msg = Message(
-                content=file_info, role=self.profile, cause_by=DebugError, sent_from=self.profile, send_to=recipient
+                content=file_info,
+                role=self.profile,
+                cause_by=DebugError,
+                sent_from=self,
+                send_to=self,
             )
-            self._publish_message(msg)
-
-    async def _observe(self) -> int:
-        await super()._observe()
-        self._rc.news = [
-            msg for msg in self._rc.news if msg.send_to == self.profile
-        ]  # only relevant msgs count as observed news
-        return len(self._rc.news)
+            self.publish_message(msg)
 
     async def _act(self) -> Message:
         if self.test_round > self.test_round_allowed:
@@ -159,20 +158,23 @@ class QaEngineer(Role):
                 role=self.profile,
                 cause_by=WriteTest,
                 sent_from=self.profile,
-                send_to="",
+                send_to=""
             )
             return result_msg
 
+        code_filters = any_to_str_set({WriteCode, WriteCodeReview})
+        test_filters = any_to_str_set({WriteTest, DebugError})
+        run_filters = any_to_str_set({RunCode})
         for msg in self._rc.news:
             # Decide what to do based on observed msg type, currently defined by human,
             # might potentially be moved to _think, that is, let the agent decides for itself
-            if msg.cause_by in [WriteCode, WriteCodeReview]:
+            if msg.cause_by in code_filters:
                 # engineer wrote a code, time to write a test for it
                 await self._write_test(msg)
-            elif msg.cause_by in [WriteTest, DebugError]:
+            elif msg.cause_by in test_filters:
                 # I wrote or debugged my test code, time to run it
                 await self._run_code(msg)
-            elif msg.cause_by == RunCode:
+            elif msg.cause_by in run_filters:
                 # I ran my test code, time to fix bugs, if any
                 await self._debug_error(msg)
         self.test_round += 1
@@ -181,6 +183,6 @@ class QaEngineer(Role):
             role=self.profile,
             cause_by=WriteTest,
             sent_from=self.profile,
-            send_to="",
+            send_to=""
         )
         return result_msg

@@ -4,6 +4,8 @@
 @Time    : 2023/9/13 12:23
 @Author  : femto Zheng
 @File    : sk_agent.py
+@Modified By: mashenquan, 2023-11-1. In accordance with Chapter 2.2.1 and 2.2.2 of RFC 116, utilize the new message
+        distribution feature for message filtering.
 """
 from semantic_kernel.planning import SequentialPlanner
 from semantic_kernel.planning.action_planner.action_planner import ActionPlanner
@@ -70,7 +72,6 @@ class SkAgent(Role):
             result = (await self.plan.invoke_async()).result
         logger.info(result)
 
-        msg = Message(content=result, role=self.profile, cause_by=type(self._rc.todo))
+        msg = Message(content=result, role=self.profile, cause_by=self._rc.todo)
         self._rc.memory.add(msg)
-        # logger.debug(f"{response}")
         return msg

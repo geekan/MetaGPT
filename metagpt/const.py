@@ -4,6 +4,8 @@
 @Time    : 2023/5/1 11:59
 @Author  : alexanderwu
 @File    : const.py
+@Modified By: mashenquan, 2023-11-1. According to Chapter 2.2.1 and 2.2.2 of RFC 116, added key definitions for
+        common properties in the Message.
 """
 from pathlib import Path
 
@@ -41,3 +43,9 @@ INVOICE_OCR_TABLE_PATH = DATA_PATH / "invoice_table"
 SKILL_DIRECTORY = PROJECT_ROOT / "metagpt/skills"
 
 MEM_TTL = 24 * 30 * 3600
+
+MESSAGE_ROUTE_FROM = "sent_from"
+MESSAGE_ROUTE_TO = "send_to"
+MESSAGE_ROUTE_CAUSE_BY = "cause_by"
+MESSAGE_META_ROLE = "role"
+MESSAGE_ROUTE_TO_ALL = "<all>"

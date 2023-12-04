@@ -4,6 +4,8 @@
 @Time    : 2023/5/20 14:37
 @Author  : alexanderwu
 @File    : test_architect.py
+@Modified By: mashenquan, 2023-11-1. In accordance with Chapter 2.2.1 and 2.2.2 of RFC 116, utilize the new message
+        distribution feature for message handling.
 """
 import pytest
 
@@ -15,7 +17,7 @@ from tests.metagpt.roles.mock import MockMessages
 @pytest.mark.asyncio
 async def test_architect():
     role = Architect()
-    role.recv(MockMessages.req)
-    rsp = await role.handle(MockMessages.prd)
+    role.put_message(MockMessages.req)
+    rsp = await role.run(MockMessages.prd)
     logger.info(rsp)
     assert len(rsp.content) > 0

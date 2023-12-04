@@ -2,6 +2,8 @@
 Filename: MetaGPT/examples/debate.py
 Created Date: Tuesday, September 19th 2023, 6:52:25 pm
 Author: garylin2099
+@Modified By: mashenquan, 2023-11-1. In accordance with Chapter 2.1.3 of RFC 116, modify the data type of the `send_to`
+        value of the `Message` object; modify the argument type of `get_by_actions`.
 """
 import asyncio
 import platform
@@ -13,6 +15,8 @@ from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.software_company import SoftwareCompany
+
+from metagpt.utils.common import any_to_str
 
 
 class ShoutOut(Action):
@@ -57,7 +61,8 @@ class Trump(Role):
     async def _observe(self) -> int:
         await super()._observe()
         # accept messages sent (from opponent) to self, disregard own messages from the last round
-        self._rc.news = [msg for msg in self._rc.news if msg.send_to == self.name]
+
+        self._rc.news = [msg for msg in self._rc.news if msg.send_to == {self.name}]
         return len(self._rc.news)
 
     async def _act(self) -> Message:
@@ -99,7 +104,9 @@ class Biden(Role):
         await super()._observe()
         # accept the very first human instruction (the debate topic) or messages sent (from opponent) to self,
         # disregard own messages from the last round
-        self._rc.news = [msg for msg in self._rc.news if msg.cause_by == BossRequirement or msg.send_to == self.name]
+        self._rc.news = [
+            msg for msg in self._rc.news if msg.cause_by == any_to_str(BossRequirement) or msg.send_to == {self.name}
+        ]
         return len(self._rc.news)
 
     async def _act(self) -> Message:

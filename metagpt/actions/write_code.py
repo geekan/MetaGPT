@@ -4,6 +4,8 @@
 @Time    : 2023/5/11 17:45
 @Author  : alexanderwu
 @File    : write_code.py
+@Modified By: mashenquan, 2023-11-1. In accordance with Chapter 2.1.3 of RFC 116, modify the data type of the `cause_by`
+            value of the `Message` object.
 """
 from tenacity import retry, stop_after_attempt, wait_fixed
 
@@ -12,7 +14,8 @@ from metagpt.actions.action import Action
 from metagpt.const import WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.schema import Message
-from metagpt.utils.common import CodeParser
+
+from metagpt.utils.common import CodeParser, any_to_str
 
 PROMPT_TEMPLATE = """
 NOTICE
@@ -56,7 +59,7 @@ class WriteCode(Action):
         if self._is_invalid(filename):
             return
 
-        design = [i for i in context if i.cause_by == WriteDesign][0]
+        design = [i for i in context if i.cause_by == any_to_str(WriteDesign)][0]
 
         ws_name = CodeParser.parse_str(block="Python package name", text=design.content)
         ws_path = WORKSPACE_ROOT / ws_name
