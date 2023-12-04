@@ -21,7 +21,7 @@ from tenacity import (
     wait_fixed,
 )
 
-from metagpt.config import CONFIG, Config
+from metagpt.config import CONFIG
 from metagpt.logs import logger
 from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.utils.singleton import Singleton
@@ -36,15 +36,56 @@ from metagpt.utils.token_counter import (
 class RateLimiter:
     """Rate control class, each call goes through wait_if_needed, sleep if rate control is needed"""
 
-    def __init__(self, rpm):
+    def __init__(self):
         self.last_call_time = 0
+        self.rpm = None
+        self.interval = None
         # Here 1.1 is used because even if the calls are made strictly according to time,
         # they will still be QOS'd; consider switching to simple error retry later
-        self.interval = 1.1 * 60 / rpm
-        self.rpm = rpm
 
     def split_batches(self, batch):
+        if self.rpm is None:
+            raise ValueError("Your must run update_rpm before calling split_batches.")
         return [batch[i : i + self.rpm] for i in range(0, len(batch), self.rpm)]
+
+    async def update_rpm(self):
+        if self.rpm is None:
+            self.rpm = await self._aget_rpm()
+            self.interval = 1.1 * 60 / self.rpm
+            logger.info(f'Setting rpm to {self.rpm}')
+
+    async def _aget_rpm(self):
+        session_key = CONFIG.get("OPENAI_SESSION_KEY", "")
+        default_rpm = int(CONFIG.get("RPM", 10))
+        if len(session_key) > 0:
+            try:
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(
+                                        "https://api.openai.com/dashboard/rate_limits",
+                                        headers={"Authorization": f"Bearer {session_key}"},
+                                        timeout=10,
+                                        proxy=openai.proxy
+                    ) as response:
+                        if response.status == 200:
+                            response_content = json.loads(await response.text())
+                            if CONFIG.openai_api_model not in response_content:
+                                raise ValueError("Get rpm from api.openai.com error. \
+                                                 You have entered a model name that is not supported by OpenAI, or the input is incorrect. \
+                                                 Please enter the correct name in the configuration file. \
+                                                 Setting rpm to default parameter.")
+                            
+                            limit_dict = response_content[CONFIG.openai_api_model]
+                            return limit_dict["max_requests_per_1_minute"]
+                        else:
+                            error = json.loads(await response.text())["error"]
+                            logger.error(f"Connection to api.openai.com failed:{error}.Setting rpm to default parameter.")
+                            return default_rpm
+
+            except Exception as exp:
+                logger.error(f"Connection to api.openai.com failed, error type:{type(exp).__name__}, error message:{str(exp)}.Setting rpm to default parameter.")
+                return default_rpm
+        else:
+            return default_rpm
 
     async def wait_if_needed(self, num_requests):
         current_time = time.time()
@@ -146,21 +187,20 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
     """
 
     def __init__(self):
-        self.__init_openai(CONFIG)
+        self.__init_openai()
         self.llm = openai
         self.model = CONFIG.openai_api_model
         self.auto_max_tokens = False
         self._cost_manager = CostManager()
-        RateLimiter.__init__(self, rpm=self.rpm)
 
-    def __init_openai(self, config: Config):
-        openai.api_key = config.openai_api_key
-        if config.openai_api_base:
-            openai.api_base = config.openai_api_base
-        if config.openai_api_type:
-            openai.api_type = config.openai_api_type
-            openai.api_version = config.openai_api_version
-        self.rpm = self.aget_rpm(config)
+    def __init_openai(self):
+        openai.api_key = CONFIG.openai_api_key
+        if CONFIG.openai_api_base:
+            openai.api_base = CONFIG.openai_api_base
+        if CONFIG.openai_api_type:
+            openai.api_type = CONFIG.openai_api_type
+            openai.api_version = CONFIG.openai_api_version
+        self.rpm = None
 
     async def _achat_completion_stream(self, messages: list[dict]) -> str:
         response = await openai.ChatCompletion.acreate(**self._cons_kwargs(messages), stream=True)
@@ -258,6 +298,8 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
 
     async def acompletion_batch(self, batch: list[list[dict]]) -> list[dict]:
         """Return full JSON"""
+
+        await self.update_rpm()
         split_batches = self.split_batches(batch)
         all_results = []
 
@@ -326,41 +368,3 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
     async def _amoderation(self, content: Union[str, list[str]]):
         rsp = await self.llm.Moderation.acreate(input=content)
         return rsp
-    
-    def aget_rpm(self, config: Config):
-        loop = asyncio.get_event_loop()
-        rpm = loop.run_until_complete(self._aget_rpm(config))
-        return rpm
-
-    async def _aget_rpm(self, config: Config):
-        session_key = config.get("OPENAI_SESSION_KEY", "")
-        default_rpm = int(config.get("RPM", 10))
-        if len(session_key) > 0:
-            try:
-                async with aiohttp.ClientSession() as session:
-                    async with session.get(
-                                        "https://api.openai.com/dashboard/rate_limits",
-                                        headers={"Authorization": f"Bearer {session_key}"},
-                                        timeout=10,
-                                        proxies=config.openai_proxy
-                    ) as response:
-                        if response.status_code == 200:
-                            response_content = json.loads(await response.text())
-                            if config.openai_api_model not in response_content:
-                                raise ValueError("Get rpm from api.openai.com error. \
-                                                 You have entered a model name that is not supported by OpenAI, or the input is incorrect. \
-                                                 Please enter the correct name in the configuration file. \
-                                                 Setting rpm to default parameter.")
-                            
-                            limit_dict = response_content[config.openai_api_model]
-                            return limit_dict["max_requests_per_1_minute"]
-                        else:
-                            error = json.loads(response.text)["error"]
-                            logger.error(f"Connection to api.openai.com failed:{error}.Setting rpm to default parameter.")
-                            return default_rpm
-
-            except Exception as e:
-                logger.error(f"Connection to api.openai.com failed:{e}.Setting rpm to default parameter.")
-                return default_rpm
-        else:
-            return default_rpm
