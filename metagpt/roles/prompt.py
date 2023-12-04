@@ -43,3 +43,8 @@ class PromptString(Enum):
     HAS_HAPPENED = "Given the descriptions of the observations of the following characters and the events they are awaiting, indicate whether the character has witnessed the event.\n{format_instructions}\n\nExample:\n\nObservations:\nJoe entered the office at 2023-05-04 08:00:00+00:00\nJoe said hi to Sally at 2023-05-04 08:05:00+00:00\nSally said hello to Joe at 2023-05-04 08:05:30+00:00\nRebecca started working at 2023-05-04 08:10:00+00:00\nJoe made some breakfast at 2023-05-04 08:15:00+00:00\n\nAwaiting: Sally responded to Joe\n\nYour response: '{{\"has_happened\": true, \"date_occured\": 2023-05-04 08:05:30+00:00}}'\n\nLet's begin!\n\nObservations:\n{memory_descriptions}\n\nAwaiting: {event_description}\n"
 
     OUTPUT_FORMAT = "\n\n(Remember! Make sure your output always adheres to one of the following two formats:\n\nA. If you have completed the task:\nThoughts: 'I have completed the task'\nFinal Response: <str>\n\nB. If you haven't completed the task:\nThoughts: <str>\nAction: <str>\nAction Input: <str>\nObservation: <str>)\n"
+
+class PromptStrategyType(Enum):
+    NAIVE = "Naive"
+    CHAIN_OF_THOUGHT = "COT"
+    TREE_OF_THOUGHT = "TOT"

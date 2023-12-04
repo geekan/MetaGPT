@@ -163,4 +163,8 @@ workspace/*
 tmp
 output.wav
 metagpt/roles/idea_agent.py
+mbpp/
+*.zip
+main.sh
+experiments/
 .aider*

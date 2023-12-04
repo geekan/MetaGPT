@@ -51,7 +51,7 @@ def main(
     idea: str,
     investment: float = 3.0,
     n_round: int = 5,
-    code_review: bool = True,
+    code_review: bool = False,
     run_tests: bool = False,
     implement: bool = True,
 ):
