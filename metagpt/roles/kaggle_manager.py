@@ -38,8 +38,8 @@ class DownloadData(Action):
         
         run_command(f"kaggle competitions download {competition} --path {WORKSPACE_ROOT}")
         
-        # if not os.path.exists(data_path):
-        if True:
+        if not os.path.exists(data_path):
+        # if True:
             # run_command(f"rm -r {data_path / '*'}")
             run_command(f"unzip -o {WORKSPACE_ROOT / '*.zip'} -d {data_path}")  # FIXME: not safe
         

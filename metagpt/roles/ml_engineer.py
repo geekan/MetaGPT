@@ -48,13 +48,11 @@ class MLEngineer(Role):
             if latest_event == DownloadData:
                 self.plan.context = memories[-1].content
             elif latest_event == SubmitResult:
+                # self reflect on previous plan outcomes and think about how to improve the plan, add to working  memory
+                await self._reflect()
+
                 # get feedback for improvement from human, add to working memory
                 await self._ask_review(trigger=ReviewConst.TASK_REVIEW_TRIGGER)
-                # self reflect on previous plan outcomes and think about how to improve the plan, add to working  memory
-                prev_plan_outcomes = memories[-1].content
-                reflection = await Reflect().run(context=prev_plan_outcomes)
-                self.working_memory.add(Message(content=reflection, role="assistant"))
-
 
         ### Common Procedure in both single- and multi-agent setting ###
         # create initial plan and update until confirmation
@@ -172,7 +170,16 @@ class MLEngineer(Role):
             self.plan.replace_task(tasks[0])
         else:
             self.plan.add_tasks(tasks)
-        self.working_memory.clear()        
+        self.working_memory.clear()
+    
+    async def _reflect(self):
+        context = self.get_memories()
+        context = "\n".join([str(msg) for msg in context])
+        # print("*" * 10)
+        # print(context)
+        # print("*" * 10)
+        reflection = await Reflect().run(context=context)
+        self.working_memory.add(Message(content=reflection, role="assistant"))
 
     def get_useful_memories(self) -> List[Message]:
         """find useful memories only to reduce context length and improve performance"""

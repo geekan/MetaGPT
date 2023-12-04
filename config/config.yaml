@@ -96,5 +96,5 @@ MODEL_FOR_RESEARCHER_REPORT: gpt-3.5-turbo-16k
 
 PROMPT_FORMAT: json #json or markdown
 
-KAGGLE_USERNAME: ""
-KAGGLE_KEY: ""
+# KAGGLE_USERNAME: ""
+# KAGGLE_KEY: ""

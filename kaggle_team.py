@@ -13,20 +13,21 @@ async def main(
     # data_desc: str,
     # requirement: str,
     investment: float = 5.0,
-    n_round: int = 5,
+    n_round: int = 10,
+    auto_run: bool = False,
 ):
     competition, data_desc, requirement = (
         "titanic",
         "Training set is train.csv.\nTest set is test.csv. We also include gender_submission.csv, a set of predictions that assume all and only female passengers survive, as an example of what a submission file should look like.",
         "Run EDA on the train dataset, train a model to predict survival (20% as validation) and save it, predict the test set using saved model, save the test result according to format",
-        # "generate a random prediction of the same shape as gender_submission.csv and save",
+        # "generate a random prediction, replace the Survived column of gender_submission.csv, and save the prediction to a new submission file",
     )
 
     team = Team()
     team.hire(
         [
             KaggleManager(competition=competition, data_desc=data_desc),
-            MLEngineer(goal=requirement),
+            MLEngineer(goal=requirement, auto_run=auto_run),
         ]
     )
 
