@@ -43,6 +43,10 @@ async def test_file_repo():
     assert {"a.txt"} == await file_repo.get_changed_dependency("b.txt")
     await file_repo.save("d/e.txt", "EEE")
     assert ["d/e.txt"] == file_repo.get_change_dir_files("d")
+    assert set(file_repo.all_files) == {"a.txt", "b.txt", "d/e.txt"}
+    await file_repo.delete("d/e.txt")
+    await file_repo.delete("d/e.txt")  # delete twice
+    assert set(file_repo.all_files) == {"a.txt", "b.txt"}
 
     git_repo.delete_repository()
 

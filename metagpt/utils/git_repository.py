@@ -8,10 +8,11 @@
 """
 from __future__ import annotations
 
+import os
 import shutil
 from enum import Enum
 from pathlib import Path
-from typing import Dict
+from typing import Dict, List
 
 from git.repo import Repo
 from git.repo.fun import is_git_dir
@@ -196,9 +197,45 @@ class GitRepository:
         if new_path.exists():
             logger.info(f"Delete directory {str(new_path)}")
             shutil.rmtree(new_path)
-        self.workdir.rename(new_path)
+        try:
+            shutil.move(src=str(self.workdir), dst=str(new_path))
+        except Exception as e:
+            logger.warning(f"Move {str(self.workdir)} to {str(new_path)} error: {e}")
         logger.info(f"Rename directory {str(self.workdir)} to {str(new_path)}")
         self._repository = Repo(new_path)
+
+    def get_files(self, relative_path: Path | str, root_relative_path: Path | str = None) -> List:
+        """Retrieve a list of files in the specified relative path.
+
+        The method returns a list of file paths relative to the current FileRepository.
+
+        :param relative_path: The relative path within the repository.
+        :type relative_path: Path or str
+        :param root_relative_path: The root relative path within the repository.
+        :type root_relative_path: Path or str
+        :return: A list of file paths in the specified directory.
+        :rtype: List[str]
+        """
+        try:
+            relative_path = Path(relative_path).relative_to(self.workdir)
+        except ValueError:
+            relative_path = Path(relative_path)
+
+        if not root_relative_path:
+            root_relative_path = Path(self.workdir) / relative_path
+        files = []
+        try:
+            directory_path = Path(self.workdir) / relative_path
+            for file_path in directory_path.iterdir():
+                if file_path.is_file():
+                    rpath = file_path.relative_to(root_relative_path)
+                    files.append(str(rpath))
+                else:
+                    subfolder_files = self.get_files(relative_path=file_path, root_relative_path=root_relative_path)
+                    files.extend(subfolder_files)
+        except Exception as e:
+            logger.error(f"Error: {e}")
+        return files
 
 
 if __name__ == "__main__":

@@ -12,8 +12,11 @@ from unittest.mock import Mock
 
 import pytest
 
+from metagpt.config import CONFIG
+from metagpt.const import DEFAULT_WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.provider.openai_api import OpenAIGPTAPI as GPTAPI
+from metagpt.utils.git_repository import GitRepository
 
 
 class Context:
@@ -68,3 +71,16 @@ def proxy():
 
     server = asyncio.get_event_loop().run_until_complete(asyncio.start_server(handle_client, "127.0.0.1", 0))
     return "http://{}:{}".format(*server.sockets[0].getsockname())
+
+
+# init & dispose git repo
+@pytest.fixture(scope="session", autouse=True)
+def setup_and_teardown_git_repo(request):
+    CONFIG.git_repo = GitRepository(local_path=DEFAULT_WORKSPACE_ROOT / "unittest")
+
+    # Destroy git repo at the end of the test session.
+    def fin():
+        CONFIG.git_repo.delete_repository()
+
+    # Register the function for destroying the environment.
+    request.addfinalizer(fin)
