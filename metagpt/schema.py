@@ -324,10 +324,11 @@ class RunCodeResult(BaseModel):
 class CodeSummarizeContext(BaseModel):
     design_filename: str = ""
     task_filename: str = ""
-    codes_filenames: Set[str] = Field(default_factory=set)
+    codes_filenames: List[str] = Field(default_factory=list)
+    reason: str = ""
 
     @staticmethod
-    def loads(filenames: Set) -> CodeSummarizeContext:
+    def loads(filenames: List) -> CodeSummarizeContext:
         ctx = CodeSummarizeContext()
         for filename in filenames:
             if Path(filename).is_relative_to(SYSTEM_DESIGN_FILE_REPO):
@@ -337,3 +338,7 @@ class CodeSummarizeContext(BaseModel):
                 ctx.task_filename = str(filename)
                 continue
         return ctx
+
+    def __hash__(self):
+        return hash((self.design_filename, self.task_filename))
+

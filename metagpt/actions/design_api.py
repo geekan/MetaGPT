@@ -7,6 +7,7 @@
 @Modified By: mashenquan, 2023/11/27.
             1. According to Section 2.2.3.1 of RFC 135, replace file data in the message with the file name.
             2. According to the design in Section 2.2.3.5.3 of RFC 135, add incremental iteration functionality.
+@Modified By: mashenquan, 2023/12/5. Move the generation logic of the project name to WritePRD.
 """
 import json
 from pathlib import Path
@@ -43,7 +44,7 @@ Requirement: Fill in the following missing information based on the context, eac
 
 ## Implementation approach: Provide as Plain text. Analyze the difficult points of the requirements, select appropriate open-source frameworks.
 
-## project_name: Provide as Plain text, concise and clear, characters only use a combination of all lowercase and underscores
+## project_name: Constant text.
 
 ## File list: Provided as Python list[str], the list of files needed (including HTML & CSS IF NEEDED) to write the program. Only need relative paths. ALWAYS write a main.py or app.py here
 
@@ -58,15 +59,15 @@ and only output the json inside this tag, nothing else
 """,
         "FORMAT_EXAMPLE": """
 [CONTENT]
-{
+{{
     "Implementation approach": "We will ...",
-    "project_name": "snake_game",
+    "project_name": "{project_name}",
     "File list": ["main.py"],
     "Data structures and interfaces": '
     classDiagram
-        class Game{
+        class Game{{
             +int score
-        }
+        }}
         ...
         Game "1" -- "1" Food: has
     ',
@@ -77,7 +78,7 @@ and only output the json inside this tag, nothing else
         G->>M: end game
     ',
     "Anything UNCLEAR": "The requirement is clear to me."
-}
+}}
 [/CONTENT]
 """,
     },
@@ -96,7 +97,7 @@ ATTENTION: Output carefully referenced "Format example" in format.
 
 ## Implementation approach: Provide as Plain text. Analyze the difficult points of the requirements, select the appropriate open-source framework.
 
-## project_name: Provide as Plain text, concise and clear, characters only use a combination of all lowercase and underscores
+## project_name: Constant text.
 
 ## File list: Provided as Python list[str], the list of code files (including HTML & CSS IF NEEDED) to write the program. Only need relative paths. ALWAYS write a main.py or app.py here
 
@@ -114,7 +115,7 @@ We will ...
 
 ## project_name
 ```python
-"snake_game"
+"{project_name}"
 ```
 
 ## File list
@@ -173,7 +174,7 @@ ATTENTION: Output carefully referenced "Old Design" in format.
 
 ## Implementation approach: Provide as Plain text. Analyze the difficult points of the requirements, select the appropriate open-source framework.
 
-## project_name: Provide as Plain text, concise and clear, characters only use a combination of all lowercase and underscores
+## project_name: Constant text "{project_name}".
 
 ## File list: Provided as Python list[str], the list of code files (including HTML & CSS IF NEEDED) to write the program. Only need relative paths. ALWAYS write a main.py or app.py here
 
@@ -229,49 +230,19 @@ class WriteDesign(Action):
 
     async def _new_system_design(self, context, format=CONFIG.prompt_format):
         prompt_template, format_example = get_template(templates, format)
+        format_example = format_example.format(project_name=CONFIG.project_name)
         prompt = prompt_template.format(context=context, format_example=format_example)
         system_design = await self._aask_v1(prompt, "system_design", OUTPUT_MAPPING, format=format)
-        self._rename_project_name(system_design=system_design)
-        await self._rename_workspace(system_design)
         return system_design
 
     async def _merge(self, prd_doc, system_design_doc, format=CONFIG.prompt_format):
-        prompt = MERGE_PROMPT.format(old_design=system_design_doc.content, context=prd_doc.content)
+        prompt = MERGE_PROMPT.format(old_design=system_design_doc.content, context=prd_doc.content,
+                                     project_name=CONFIG.project_name)
         system_design = await self._aask_v1(prompt, "system_design", OUTPUT_MAPPING, format=format)
         # fix Python package name, we can't system_design.instruct_content.python_package_name = "xxx" since "Python
         # package name" contain space, have to use setattr
-        self._rename_project_name(system_design=system_design)
         system_design_doc.content = system_design.instruct_content.json(ensure_ascii=False)
         return system_design_doc
-
-    @staticmethod
-    def _rename_project_name(system_design):
-        # fix project_name, we can't system_design.instruct_content.python_package_name = "xxx" since "project_name"
-        # contain space, have to use setattr
-        if CONFIG.project_name:
-            setattr(
-                system_design.instruct_content,
-                "project_name",
-                CONFIG.project_name,
-            )
-            return
-        setattr(
-            system_design.instruct_content,
-            "project_name",
-            system_design.instruct_content.dict()["project_name"].strip().strip("'").strip('"'),
-        )
-
-    @staticmethod
-    async def _rename_workspace(system_design):
-        if CONFIG.project_path:  # Updating on the old version has already been specified if it's valid. According to
-            # Section 2.2.3.10 of RFC 135
-            return
-
-        if isinstance(system_design, ActionOutput):
-            ws_name = system_design.instruct_content.dict()["project_name"]
-        else:
-            ws_name = CodeParser.parse_str(block="project_name", text=system_design)
-        CONFIG.git_repo.rename_root(ws_name)
 
     async def _update_system_design(self, filename, prds_file_repo, system_design_file_repo) -> Document:
         prd = await prds_file_repo.get(filename)
