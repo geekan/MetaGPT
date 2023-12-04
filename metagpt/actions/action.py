@@ -9,7 +9,7 @@ import re
 from abc import ABC
 from typing import Optional
 
-from tenacity import retry, stop_after_attempt, wait_fixed
+from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.actions.action_output import ActionOutput
 from metagpt.llm import LLM
@@ -49,7 +49,7 @@ class Action(ABC):
         system_msgs.append(self.prefix)
         return await self.llm.aask(prompt, system_msgs)
 
-    @retry(stop=stop_after_attempt(3), wait=wait_fixed(1))
+    @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     async def _aask_v1(
         self,
         prompt: str,
