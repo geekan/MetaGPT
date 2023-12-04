@@ -15,7 +15,7 @@ langchain==0.0.231
 loguru==0.6.0
 meilisearch==0.21.0
 numpy==1.24.3
-openai>=0.28.1
+openai>=1.3.6
 openpyxl
 beautifulsoup4==4.12.2
 pandas==2.0.3
@@ -42,9 +42,13 @@ qdrant-client==1.4.0
 pytest-mock==3.11.1
 open-interpreter==0.1.7; python_version>"3.9"
 ta==0.10.2
-semantic-kernel==0.3.13.dev0
+semantic-kernel
 wrapt==1.15.0
-websocket-client==0.58.0
+#aiohttp_jinja2
+#azure-cognitiveservices-speech~=1.31.0
+#aioboto3~=11.3.0
+#redis==4.3.5
+websocket-client==1.6.2
 aiofiles==23.2.1
 gitpython==3.1.40
 zhipuai==1.0.7
