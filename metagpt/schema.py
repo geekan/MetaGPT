@@ -6,22 +6,33 @@
 @File    : schema.py
 @Modified By: mashenquan, 2023-10-31. According to Chapter 2.2.1 of RFC 116:
         Replanned the distribution of responsibilities and functional positioning of `Message` class attributes.
+@Modified By: mashenquan, 2023/11/22.
+        1. Add `Document` and `Documents` for `FileRepository` in Section 2.2.3.4 of RFC 135.
+        2. Encapsulate the common key-values set to pydantic structures to standardize and unify parameter passing
+        between actions.
+        3. Add `id` to `Message` according to Section 2.2.3.1.1 of RFC 135.
 """
 from __future__ import annotations
 
 import asyncio
 import json
+import os.path
+import uuid
 from asyncio import Queue, QueueEmpty, wait_for
 from json import JSONDecodeError
-from typing import List, Set, TypedDict
+from pathlib import Path
+from typing import Dict, List, Optional, Set, TypedDict
 
 from pydantic import BaseModel, Field
 
+from metagpt.config import CONFIG
 from metagpt.const import (
     MESSAGE_ROUTE_CAUSE_BY,
     MESSAGE_ROUTE_FROM,
     MESSAGE_ROUTE_TO,
     MESSAGE_ROUTE_TO_ALL,
+    SYSTEM_DESIGN_FILE_REPO,
+    TASK_FILE_REPO,
 )
 from metagpt.logs import logger
 from metagpt.utils.common import any_to_str, any_to_str_set
@@ -32,9 +43,52 @@ class RawMessage(TypedDict):
     role: str
 
 
+class Document(BaseModel):
+    """
+    Represents a document.
+    """
+
+    root_path: str
+    filename: str
+    content: Optional[str] = None
+
+    def get_meta(self) -> Document:
+        """Get metadata of the document.
+
+        :return: A new Document instance with the same root path and filename.
+        """
+
+        return Document(root_path=self.root_path, filename=self.filename)
+
+    @property
+    def root_relative_path(self):
+        """Get relative path from root of git repository.
+
+        :return: relative path from root of git repository.
+        """
+        return os.path.join(self.root_path, self.filename)
+
+    @property
+    def full_path(self):
+        if not CONFIG.git_repo:
+            return None
+        return str(CONFIG.git_repo.workdir / self.root_path / self.filename)
+
+
+class Documents(BaseModel):
+    """A class representing a collection of documents.
+
+    Attributes:
+        docs (Dict[str, Document]): A dictionary mapping document names to Document instances.
+    """
+
+    docs: Dict[str, Document] = Field(default_factory=dict)
+
+
 class Message(BaseModel):
     """list[<role>: <content>]"""
 
+    id: str  # According to Section 2.2.3.1.1 of RFC 135
     content: str
     instruct_content: BaseModel = Field(default=None)
     role: str = "user"  # system / user / assistant
@@ -62,6 +116,7 @@ class Message(BaseModel):
         :param role: Message meta info tells who sent this message.
         """
         super().__init__(
+            id=uuid.uuid4().hex,
             content=content,
             instruct_content=instruct_content,
             role=role,
@@ -82,7 +137,6 @@ class Message(BaseModel):
         else:
             new_val = val
         super().__setattr__(key, new_val)
-
 
     def __str__(self):
         # prefix = '-'.join([self.role, str(self.cause_by)])
@@ -110,7 +164,6 @@ class Message(BaseModel):
         return None
 
 
-
 class UserMessage(Message):
     """便于支持OpenAI的消息
     Facilitate support for OpenAI messages
@@ -118,7 +171,6 @@ class UserMessage(Message):
 
     def __init__(self, content: str):
         super().__init__(content=content, role="user")
-
 
 
 class SystemMessage(Message):
@@ -204,3 +256,84 @@ class MessageQueue:
 
         return q
 
+
+class CodingContext(BaseModel):
+    filename: str
+    design_doc: Document
+    task_doc: Document
+    code_doc: Document
+
+    @staticmethod
+    def loads(val: str) -> CodingContext | None:
+        try:
+            m = json.loads(val)
+            return CodingContext(**m)
+        except Exception:
+            return None
+
+
+class TestingContext(BaseModel):
+    filename: str
+    code_doc: Document
+    test_doc: Document
+
+    @staticmethod
+    def loads(val: str) -> TestingContext | None:
+        try:
+            m = json.loads(val)
+            return TestingContext(**m)
+        except Exception:
+            return None
+
+
+class RunCodeContext(BaseModel):
+    mode: str = "script"
+    code: Optional[str]
+    code_filename: str = ""
+    test_code: Optional[str]
+    test_filename: str = ""
+    command: List[str] = Field(default_factory=list)
+    working_directory: str = ""
+    additional_python_paths: List[str] = Field(default_factory=list)
+    output_filename: Optional[str]
+    output: Optional[str]
+
+    @staticmethod
+    def loads(val: str) -> RunCodeContext | None:
+        try:
+            m = json.loads(val)
+            return RunCodeContext(**m)
+        except Exception:
+            return None
+
+
+class RunCodeResult(BaseModel):
+    summary: str
+    stdout: str
+    stderr: str
+
+    @staticmethod
+    def loads(val: str) -> RunCodeResult | None:
+        try:
+            m = json.loads(val)
+            return RunCodeResult(**m)
+        except Exception:
+            return None
+
+
+class CodeSummarizeContext(BaseModel):
+    design_filename: str = ""
+    task_filename: str = ""
+    codes_filenames: Set[str] = Field(default_factory=set)
+
+    @staticmethod
+    def loads(filenames: Set) -> CodeSummarizeContext:
+        ctx = CodeSummarizeContext()
+        for filename in filenames:
+            if Path(filename).is_relative_to(SYSTEM_DESIGN_FILE_REPO):
+                ctx.design_filename = str(filename)
+                continue
+            if Path(filename).is_relative_to(TASK_FILE_REPO):
+                ctx.task_filename = str(filename)
+                continue
+        return ctx

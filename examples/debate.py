@@ -10,17 +10,15 @@ import platform
 
 import fire
 
-from metagpt.actions import Action, BossRequirement
+from metagpt.actions import Action, UserRequirement
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
-from metagpt.software_company import SoftwareCompany
-
-from metagpt.utils.common import any_to_str
+from metagpt.team import Team
 
 
-class ShoutOut(Action):
-    """Action: Shout out loudly in a debate (quarrel)"""
+class SpeakAloud(Action):
+    """Action: Speak out aloud in a debate (quarrel)"""
 
     PROMPT_TEMPLATE = """
     ## BACKGROUND
@@ -33,7 +31,7 @@ class ShoutOut(Action):
     craft a strong and emotional response in 80 words, in {name}'s rhetoric and viewpoints, your will argue:
     """
 
-    def __init__(self, name="ShoutOut", context=None, llm=None):
+    def __init__(self, name="SpeakAloud", context=None, llm=None):
         super().__init__(name, context, llm)
 
     async def run(self, context: str, name: str, opponent_name: str):
@@ -45,102 +43,56 @@ class ShoutOut(Action):
         return rsp
 
 
-class Trump(Role):
+class Debator(Role):
     def __init__(
         self,
-        name: str = "Trump",
-        profile: str = "Republican",
+        name: str,
+        profile: str,
+        opponent_name: str,
         **kwargs,
     ):
         super().__init__(name, profile, **kwargs)
-        self._init_actions([ShoutOut])
-        self._watch([ShoutOut])
-        self.name = "Trump"
-        self.opponent_name = "Biden"
+        self._init_actions([SpeakAloud])
+        self._watch([UserRequirement, SpeakAloud])
+        self.opponent_name = opponent_name
 
     async def _observe(self) -> int:
         await super()._observe()
         # accept messages sent (from opponent) to self, disregard own messages from the last round
-
         self._rc.news = [msg for msg in self._rc.news if msg.send_to == {self.name}]
         return len(self._rc.news)
 
     async def _act(self) -> Message:
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
+        todo = self._rc.todo  # An instance of SpeakAloud
 
-        msg_history = self._rc.memory.get_by_actions([ShoutOut])
-        context = []
-        for m in msg_history:
-            context.append(str(m))
-        context = "\n".join(context)
+        memories = self.get_memories()
+        context = "\n".join(f"{msg.sent_from}: {msg.content}" for msg in memories)
+        # print(context)
 
-        rsp = await ShoutOut().run(context=context, name=self.name, opponent_name=self.opponent_name)
-
-        msg = Message(
-            content=rsp,
-            role=self.profile,
-            cause_by=ShoutOut,
-            sent_from=self.name,
-            send_to=self.opponent_name,
-        )
-
-        return msg
-
-
-class Biden(Role):
-    def __init__(
-        self,
-        name: str = "Biden",
-        profile: str = "Democrat",
-        **kwargs,
-    ):
-        super().__init__(name, profile, **kwargs)
-        self._init_actions([ShoutOut])
-        self._watch([BossRequirement, ShoutOut])
-        self.name = "Biden"
-        self.opponent_name = "Trump"
-
-    async def _observe(self) -> int:
-        await super()._observe()
-        # accept the very first human instruction (the debate topic) or messages sent (from opponent) to self,
-        # disregard own messages from the last round
-        self._rc.news = [
-            msg for msg in self._rc.news if msg.cause_by == any_to_str(BossRequirement) or msg.send_to == {self.name}
-        ]
-        return len(self._rc.news)
-
-    async def _act(self) -> Message:
-        logger.info(f"{self._setting}: ready to {self._rc.todo}")
-
-        msg_history = self._rc.memory.get_by_actions([BossRequirement, ShoutOut])
-        context = []
-        for m in msg_history:
-            context.append(str(m))
-        context = "\n".join(context)
-
-        rsp = await ShoutOut().run(context=context, name=self.name, opponent_name=self.opponent_name)
+        rsp = await todo.run(context=context, name=self.name, opponent_name=self.opponent_name)
 
         msg = Message(
             content=rsp,
             role=self.profile,
-            cause_by=ShoutOut,
+            cause_by=type(todo),
             sent_from=self.name,
             send_to=self.opponent_name,
         )
+        self._rc.memory.add(msg)
 
         return msg
 
 
-async def startup(
-    idea: str, investment: float = 3.0, n_round: int = 5, code_review: bool = False, run_tests: bool = False
-):
-    """We reuse the startup paradigm for roles to interact with each other.
-    Now we run a startup of presidents and watch they quarrel. :)"""
-    company = SoftwareCompany()
-    company.hire([Biden(), Trump()])
-    company.invest(investment)
-    company.start_project(idea)
-    await company.run(n_round=n_round)
+async def debate(idea: str, investment: float = 3.0, n_round: int = 5):
+    """Run a team of presidents and watch they quarrel. :)"""
+    Biden = Debator(name="Biden", profile="Democrat", opponent_name="Trump")
+    Trump = Debator(name="Trump", profile="Republican", opponent_name="Biden")
+    team = Team()
+    team.hire([Biden, Trump])
+    team.invest(investment)
+    team.run_project(idea, send_to="Biden")  # send debate topic to Biden and let him speak first
+    await team.run(n_round=n_round)
 
 
 def main(idea: str, investment: float = 3.0, n_round: int = 10):
@@ -153,7 +105,7 @@ def main(idea: str, investment: float = 3.0, n_round: int = 10):
     """
     if platform.system() == "Windows":
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-    asyncio.run(startup(idea, investment, n_round))
+    asyncio.run(debate(idea, investment, n_round))
 
 
 if __name__ == "__main__":

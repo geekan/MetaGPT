@@ -6,7 +6,11 @@
 @File    : common.py
 @Modified By: mashenquan, 2023-11-1. According to Chapter 2.2.2 of RFC 116:
         Add generic class-to-string and object-to-string conversion functionality.
+@Modified By: mashenquan, 2023/11/27. Bug fix: `parse_recipient` failed to parse the recipient in certain GPT-3.5
+        responses.
 """
+from __future__ import annotations
+
 import ast
 import contextlib
 import inspect
@@ -304,7 +308,13 @@ def print_members(module, indent=0):
 def parse_recipient(text):
     pattern = r"## Send To:\s*([A-Za-z]+)\s*?"  # hard code for now
     recipient = re.search(pattern, text)
-    return recipient.group(1) if recipient else ""
+    if recipient:
+        return recipient.group(1)
+    pattern = r"Send To:\s*([A-Za-z]+)\s*?"
+    recipient = re.search(pattern, text)
+    if recipient:
+        return recipient.group(1)
+    return ""
 
 
 def get_class_name(cls) -> str:

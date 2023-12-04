@@ -97,7 +97,5 @@ async def test_msg_to():
     assert m.send_to == set({"a", get_class_name(MockRole), get_class_name(Message)})
 
 
-
 if __name__ == "__main__":
     pytest.main([__file__, "-s"])
-

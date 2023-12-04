@@ -3,10 +3,14 @@
 """
 @Time    : 2023/5/11 22:12
 @Author  : alexanderwu
-@File    : environment.py
+@File    : write_test.py
+@Modified By: mashenquan, 2023-11-27. Following the think-act principle, solidify the task parameters when creating the
+        WriteTest object, rather than passing them in when calling the run function.
 """
 from metagpt.actions.action import Action
+from metagpt.config import CONFIG
 from metagpt.logs import logger
+from metagpt.schema import TestingContext
 from metagpt.utils.common import CodeParser
 
 PROMPT_TEMPLATE = """
@@ -15,7 +19,7 @@ NOTICE
 2. Requirement: Based on the context, develop a comprehensive test suite that adequately covers all relevant aspects of the code file under review. Your test suite will be part of the overall project QA, so please develop complete, robust, and reusable test cases.
 3. Attention1: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD WRITE BEFORE the test case or script.
 4. Attention2: If there are any settings in your tests, ALWAYS SET A DEFAULT VALUE, ALWAYS USE STRONG TYPE AND EXPLICIT VARIABLE.
-5. Attention3: YOU MUST FOLLOW "Data structures and interface definitions". DO NOT CHANGE ANY DESIGN. Make sure your tests respect the existing design and ensure its validity.
+5. Attention3: YOU MUST FOLLOW "Data structures and interfaces". DO NOT CHANGE ANY DESIGN. Make sure your tests respect the existing design and ensure its validity.
 6. Think before writing: What should be tested and validated in this document? What edge cases could exist? What might fail?
 7. CAREFULLY CHECK THAT YOU DON'T MISS ANY NECESSARY TEST CASES/SCRIPTS IN THIS FILE.
 Attention: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD WRITE BEFORE the test case or script and triple quotes.
@@ -47,12 +51,12 @@ class WriteTest(Action):
             code = code_rsp
         return code
 
-    async def run(self, code_to_test, test_file_name, source_file_path, workspace):
+    async def run(self, *args, **kwargs) -> TestingContext:
         prompt = PROMPT_TEMPLATE.format(
-            code_to_test=code_to_test,
-            test_file_name=test_file_name,
-            source_file_path=source_file_path,
-            workspace=workspace,
+            code_to_test=self.context.code_doc.content,
+            test_file_name=self.context.test_doc.filename,
+            source_file_path=self.context.code_doc.root_relative_path,
+            workspace=CONFIG.git_repo.workdir,
         )
-        code = await self.write_code(prompt)
-        return code
+        self.context.test_doc.content = await self.write_code(prompt)
+        return self.context

@@ -10,7 +10,7 @@
 import pytest
 from semantic_kernel.core_skills import TextSkill
 
-from metagpt.actions import BossRequirement
+from metagpt.actions import UserRequirement
 from metagpt.const import SKILL_DIRECTORY
 from metagpt.roles.sk_agent import SkAgent
 from metagpt.schema import Message
@@ -28,7 +28,7 @@ async def test_basic_planner():
     role.import_semantic_skill_from_directory(SKILL_DIRECTORY, "WriterSkill")
     role.import_skill(TextSkill(), "TextSkill")
     # using BasicPlanner
-    role.put_message(Message(content=task, cause_by=BossRequirement))
+    role.put_message(Message(content=task, cause_by=UserRequirement))
     await role._observe()
     await role._think()
     # assuming sk_agent will think he needs WriterSkill.Brainstorm and WriterSkill.Translate

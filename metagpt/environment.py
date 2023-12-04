@@ -32,7 +32,6 @@ class Environment(BaseModel):
     members: dict[Role, Set] = Field(default_factory=dict)
     history: str = Field(default="")  # For debug
 
-
     class Config:
         arbitrary_types_allowed = True
 
@@ -49,7 +48,6 @@ class Environment(BaseModel):
         """
         for role in roles:
             self.add_role(role)
-
 
     def publish_message(self, message: Message) -> bool:
         """

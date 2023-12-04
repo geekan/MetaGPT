@@ -8,7 +8,9 @@ from functools import wraps
 from importlib import import_module
 
 from metagpt.actions import Action, ActionOutput, WritePRD
-from metagpt.const import WORKSPACE_ROOT
+
+# from metagpt.const import WORKSPACE_ROOT
+from metagpt.config import CONFIG
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
@@ -29,7 +31,7 @@ Attention: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD W
 ## Selected Elements:Provide as Plain text, up to 5 specified elements, clear and simple
 ## HTML Layout:Provide as Plain text, use standard HTML code
 ## CSS Styles (styles.css):Provide as Plain text,use standard css code
-## Anything UNCLEAR:Provide as Plain text. Make clear here.
+## Anything UNCLEAR:Provide as Plain text. Try to clarify it.
 
 """
 
@@ -214,7 +216,7 @@ class UIDesign(Action):
         logger.info("Finish icon design using StableDiffusion API")
 
     async def _save(self, css_content, html_content):
-        save_dir = WORKSPACE_ROOT / "resources" / "codes"
+        save_dir = CONFIG.workspace_path / "resources" / "codes"
         if not os.path.exists(save_dir):
             os.makedirs(save_dir, exist_ok=True)
         # Save CSS and HTML content to files

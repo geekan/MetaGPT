@@ -21,7 +21,9 @@ TOKEN_COSTS = {
     "gpt-4-32k": {"prompt": 0.06, "completion": 0.12},
     "gpt-4-32k-0314": {"prompt": 0.06, "completion": 0.12},
     "gpt-4-0613": {"prompt": 0.06, "completion": 0.12},
+    "gpt-4-1106-preview": {"prompt": 0.01, "completion": 0.03},
     "text-embedding-ada-002": {"prompt": 0.0004, "completion": 0.0},
+    "chatglm_turbo": {"prompt": 0.0, "completion": 0.00069},  # 32k version, prompt + completion tokens=0.005￥/k-tokens
 }
 
 
@@ -36,7 +38,9 @@ TOKEN_MAX = {
     "gpt-4-32k": 32768,
     "gpt-4-32k-0314": 32768,
     "gpt-4-0613": 8192,
+    "gpt-4-1106-preview": 128000,
     "text-embedding-ada-002": 8192,
+    "chatglm_turbo": 32768,
 }
 
 
@@ -54,21 +58,24 @@ def count_message_tokens(messages, model="gpt-3.5-turbo-0613"):
         "gpt-4-32k-0314",
         "gpt-4-0613",
         "gpt-4-32k-0613",
+        "gpt-4-1106-preview",
     }:
         tokens_per_message = 3
         tokens_per_name = 1
     elif model == "gpt-3.5-turbo-0301":
         tokens_per_message = 4  # every message follows <|start|>{role/name}\n{content}<|end|>\n
         tokens_per_name = -1  # if there's a name, the role is omitted
-    elif "gpt-3.5-turbo" in model:
+    elif "gpt-3.5-turbo" == model:
         print("Warning: gpt-3.5-turbo may update over time. Returning num tokens assuming gpt-3.5-turbo-0613.")
         return count_message_tokens(messages, model="gpt-3.5-turbo-0613")
-    elif "gpt-4" in model:
+    elif "gpt-4" == model:
         print("Warning: gpt-4 may update over time. Returning num tokens assuming gpt-4-0613.")
         return count_message_tokens(messages, model="gpt-4-0613")
     else:
         raise NotImplementedError(
-            f"""num_tokens_from_messages() is not implemented for model {model}. See https://github.com/openai/openai-python/blob/main/chatml.md for information on how messages are converted to tokens."""
+            f"num_tokens_from_messages() is not implemented for model {model}. "
+            f"See https://github.com/openai/openai-python/blob/main/chatml.md "
+            f"for information on how messages are converted to tokens."
         )
     num_tokens = 0
     for message in messages:

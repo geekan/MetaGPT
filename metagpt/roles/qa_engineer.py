@@ -6,24 +6,25 @@
 @File    : qa_engineer.py
 @Modified By: mashenquan, 2023-11-1. In accordance with Chapter 2.2.1 and 2.2.2 of RFC 116, modify the data
         type of the `cause_by` value in the `Message` to a string, and utilize the new message filtering feature.
+@Modified By: mashenquan, 2023-11-27.
+        1. Following the think-act principle, solidify the task parameters when creating the
+        WriteTest/RunCode/DebugError object, rather than passing them in when calling the run function.
+        2. According to Section 2.2.3.5.7 of RFC 135, change the method of transferring files from using the Message
+        to using file references.
 """
-import os
-from pathlib import Path
+from metagpt.actions import DebugError, RunCode, WriteCode, WriteCodeReview, WriteTest
 
-from metagpt.actions import (
-    DebugError,
-    RunCode,
-    WriteCode,
-    WriteCodeReview,
-    WriteDesign,
-    WriteTest,
+# from metagpt.const import WORKSPACE_ROOT
+from metagpt.config import CONFIG
+from metagpt.const import (
+    MESSAGE_ROUTE_TO_NONE,
+    TEST_CODES_FILE_REPO,
+    TEST_OUTPUTS_FILE_REPO,
 )
-from metagpt.const import WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.roles import Role
-from metagpt.schema import Message
-from metagpt.utils.common import CodeParser, any_to_str_set, parse_recipient
-from metagpt.utils.special_tokens import FILENAME_CODE_SEP, MSG_SEP
+from metagpt.schema import Document, Message, RunCodeContext, TestingContext
+from metagpt.utils.common import any_to_str_set, parse_recipient
 
 
 class QaEngineer(Role):
@@ -43,113 +44,96 @@ class QaEngineer(Role):
         self.test_round = 0
         self.test_round_allowed = test_round_allowed
 
-    @classmethod
-    def parse_workspace(cls, system_design_msg: Message) -> str:
-        if system_design_msg.instruct_content:
-            return system_design_msg.instruct_content.dict().get("Python package name")
-        return CodeParser.parse_str(block="Python package name", text=system_design_msg.content)
-
-    def get_workspace(self, return_proj_dir=True) -> Path:
-        msg = self._rc.memory.get_by_action(WriteDesign)[-1]
-        if not msg:
-            return WORKSPACE_ROOT / "src"
-        workspace = self.parse_workspace(msg)
-        # project directory: workspace/{package_name}, which contains package source code folder, tests folder, resources folder, etc.
-        if return_proj_dir:
-            return WORKSPACE_ROOT / workspace
-        # development codes directory: workspace/{package_name}/{package_name}
-        return WORKSPACE_ROOT / workspace / workspace
-
-    def write_file(self, filename: str, code: str):
-        workspace = self.get_workspace() / "tests"
-        file = workspace / filename
-        file.parent.mkdir(parents=True, exist_ok=True)
-        file.write_text(code)
-
     async def _write_test(self, message: Message) -> None:
-        code_msgs = message.content.split(MSG_SEP)
-        # result_msg_all = []
-        for code_msg in code_msgs:
+        changed_files = message.content.splitlines()
+        src_file_repo = CONFIG.git_repo.new_file_repository(CONFIG.src_workspace)
+        tests_file_repo = CONFIG.git_repo.new_file_repository(TEST_CODES_FILE_REPO)
+        for filename in changed_files:
             # write tests
-            file_name, file_path = code_msg.split(FILENAME_CODE_SEP)
-            code_to_test = open(file_path, "r").read()
-            if "test" in file_name:
-                continue  # Engineer might write some test files, skip testing a test file
-            test_file_name = "test_" + file_name
-            test_file_path = self.get_workspace() / "tests" / test_file_name
-            logger.info(f"Writing {test_file_name}..")
-            test_code = await WriteTest().run(
-                code_to_test=code_to_test,
-                test_file_name=test_file_name,
-                # source_file_name=file_name,
-                source_file_path=file_path,
-                workspace=self.get_workspace(),
+            if not filename or "test" in filename:
+                continue
+            code_doc = await src_file_repo.get(filename)
+            test_doc = await tests_file_repo.get("test_" + code_doc.filename)
+            if not test_doc:
+                test_doc = Document(
+                    root_path=str(tests_file_repo.root_path), filename="test_" + code_doc.filename, content=""
+                )
+            logger.info(f"Writing {test_doc.filename}..")
+            context = TestingContext(filename=test_doc.filename, test_doc=test_doc, code_doc=code_doc)
+            context = await WriteTest(context=context, llm=self._llm).run()
+            await tests_file_repo.save(
+                filename=context.test_doc.filename,
+                content=context.test_doc.content,
+                dependencies={context.code_doc.root_relative_path},
             )
-            self.write_file(test_file_name, test_code)
 
             # prepare context for run tests in next round
-            command = ["python", f"tests/{test_file_name}"]
-            file_info = {
-                "file_name": file_name,
-                "file_path": str(file_path),
-                "test_file_name": test_file_name,
-                "test_file_path": str(test_file_path),
-                "command": command,
-            }
-            msg = Message(
-                content=str(file_info),
-                role=self.profile,
-                cause_by=WriteTest,
-                sent_from=self,
-                send_to=self,
+            run_code_context = RunCodeContext(
+                command=["python", context.test_doc.root_relative_path],
+                code_filename=context.code_doc.filename,
+                test_filename=context.test_doc.filename,
+                working_directory=str(CONFIG.git_repo.workdir),
+                additional_python_paths=[str(CONFIG.src_workspace)],
             )
-            self.publish_message(msg)
+            self.publish_message(
+                Message(
+                    content=run_code_context.json(),
+                    role=self.profile,
+                    cause_by=WriteTest,
+                    sent_from=self,
+                    send_to=self,
+                )
+            )
 
-        logger.info(f"Done {self.get_workspace()}/tests generating.")
+        logger.info(f"Done {str(tests_file_repo.workdir)} generating.")
 
     async def _run_code(self, msg):
-        file_info = eval(msg.content)
-        development_file_path = file_info["file_path"]
-        test_file_path = file_info["test_file_path"]
-        if not os.path.exists(development_file_path) or not os.path.exists(test_file_path):
+        run_code_context = RunCodeContext.loads(msg.content)
+        src_doc = await CONFIG.git_repo.new_file_repository(CONFIG.src_workspace).get(run_code_context.code_filename)
+        if not src_doc:
             return
-
-        development_code = open(development_file_path, "r").read()
-        test_code = open(test_file_path, "r").read()
-        proj_dir = self.get_workspace()
-        development_code_dir = self.get_workspace(return_proj_dir=False)
-
-        result_msg = await RunCode().run(
-            mode="script",
-            code=development_code,
-            code_file_name=file_info["file_name"],
-            test_code=test_code,
-            test_file_name=file_info["test_file_name"],
-            command=file_info["command"],
-            working_directory=proj_dir,  # workspace/package_name, will run tests/test_xxx.py here
-            additional_python_paths=[development_code_dir],  # workspace/package_name/package_name,
-            # import statement inside package code needs this
+        test_doc = await CONFIG.git_repo.new_file_repository(TEST_CODES_FILE_REPO).get(run_code_context.test_filename)
+        if not test_doc:
+            return
+        run_code_context.code = src_doc.content
+        run_code_context.test_code = test_doc.content
+        result = await RunCode(context=run_code_context, llm=self._llm).run()
+        run_code_context.output_filename = run_code_context.test_filename + ".json"
+        await CONFIG.git_repo.new_file_repository(TEST_OUTPUTS_FILE_REPO).save(
+            filename=run_code_context.output_filename,
+            content=result.json(),
+            dependencies={src_doc.root_relative_path, test_doc.root_relative_path},
+        )
+        run_code_context.code = None
+        run_code_context.test_code = None
+        recipient = parse_recipient(result.summary)  # the recipient might be Engineer or myself
+        mappings = {"Engineer": "Alex", "QaEngineer": "Edward"}
+        self.publish_message(
+            Message(
+                content=run_code_context.json(),
+                role=self.profile,
+                cause_by=RunCode,
+                sent_from=self,
+                send_to=mappings.get(recipient, MESSAGE_ROUTE_TO_NONE),
+            )
         )
 
-        recipient = parse_recipient(result_msg)  # the recipient might be Engineer or myself
-        content = str(file_info) + FILENAME_CODE_SEP + result_msg
-        msg = Message(content=content, role=self.profile, cause_by=RunCode, sent_from=self.profile, send_to=recipient)
-        self.publish_message(msg)
-
     async def _debug_error(self, msg):
-        file_info, context = msg.content.split(FILENAME_CODE_SEP)
-        file_name, code = await DebugError().run(context)
-        if file_name:
-            self.write_file(file_name, code)
-            recipient = msg.sent_from  # send back to the one who ran the code for another run, might be one's self
-            msg = Message(
-                content=file_info,
+        run_code_context = RunCodeContext.loads(msg.content)
+        code = await DebugError(context=run_code_context, llm=self._llm).run()
+        await CONFIG.git_repo.new_file_repository(CONFIG.src_workspace).save(
+            filename=run_code_context.code_filename, content=code
+        )
+        run_code_context.output = None
+        self.publish_message(
+            Message(
+                content=run_code_context.json(),
                 role=self.profile,
                 cause_by=DebugError,
                 sent_from=self,
                 send_to=self,
             )
-            self.publish_message(msg)
+        )
 
     async def _act(self) -> Message:
         if self.test_round > self.test_round_allowed:
@@ -158,7 +142,7 @@ class QaEngineer(Role):
                 role=self.profile,
                 cause_by=WriteTest,
                 sent_from=self.profile,
-                send_to=""
+                send_to=MESSAGE_ROUTE_TO_NONE,
             )
             return result_msg
 
@@ -178,11 +162,15 @@ class QaEngineer(Role):
                 # I ran my test code, time to fix bugs, if any
                 await self._debug_error(msg)
         self.test_round += 1
-        result_msg = Message(
+        return Message(
             content=f"Round {self.test_round} of tests done",
             role=self.profile,
             cause_by=WriteTest,
             sent_from=self.profile,
-            send_to=""
+            send_to=MESSAGE_ROUTE_TO_NONE,
         )
-        return result_msg
+
+    async def _observe(self, ignore_memory=False) -> int:
+        # This role has events that trigger and execute themselves based on conditions, and cannot rely on the
+        # content of memory to activate.
+        return await super(QaEngineer, self)._observe(ignore_memory=True)

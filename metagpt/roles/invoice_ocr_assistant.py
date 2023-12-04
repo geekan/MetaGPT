@@ -42,17 +42,7 @@ class InvoiceOCRAssistant(Role):
         self.filename = ""
         self.origin_query = ""
         self.orc_data = None
-
-    async def _think(self) -> None:
-        """Determine the next action to be taken by the role."""
-        if self._rc.todo is None:
-            self._set_state(0)
-            return
-
-        if self._rc.state + 1 < len(self._states):
-            self._set_state(self._rc.state + 1)
-        else:
-            self._rc.todo = None
+        self._set_react_mode(react_mode="by_order")
 
     async def _act(self) -> Message:
         """Perform an action as determined by the role.
@@ -93,17 +83,4 @@ class InvoiceOCRAssistant(Role):
 
         msg = Message(content=content, instruct_content=resp)
         self._rc.memory.add(msg)
-        return msg
-
-    async def _react(self) -> Message:
-        """Execute the invoice ocr assistant's think and actions.
-
-        Returns:
-            A message containing the final result of the assistant's actions.
-        """
-        while True:
-            await self._think()
-            if self._rc.todo is None:
-                break
-            msg = await self._act()
         return msg
