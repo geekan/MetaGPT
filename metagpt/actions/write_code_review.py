@@ -108,10 +108,11 @@ class WriteCodeReview(Action):
         k = CONFIG.code_review_k_times or 1
         for i in range(k):
             format_example = FORMAT_EXAMPLE.format(filename=self.context.code_doc.filename)
+            task_content = self.context.task_doc.content if self.context.task_doc else ""
             context = "\n----------\n".join(
                 [
                     "```text\n" + self.context.design_doc.content + "```\n",
-                    "```text\n" + self.context.task_doc.content + "```\n",
+                    "```text\n" + task_content + "```\n",
                     "```python\n" + self.context.code_doc.content + "```\n",
                 ]
             )

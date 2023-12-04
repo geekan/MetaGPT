@@ -7,6 +7,7 @@
 @Modified By: mashenquan, 2023-11-1. According to Section 2.2.1 and 2.2.2 of RFC 116, added key definitions for
         common properties in the Message.
 @Modified By: mashenquan, 2023-11-27. Defines file repository paths according to Section 2.2.3.4 of RFC 135.
+@Modified By: mashenquan, 2023/12/5. Add directories for code summarization..
 """
 import contextvars
 import os
@@ -87,5 +88,7 @@ PRD_PDF_FILE_REPO = "resources/prd"
 TASK_PDF_FILE_REPO = "resources/api_spec_and_tasks"
 TEST_CODES_FILE_REPO = "tests"
 TEST_OUTPUTS_FILE_REPO = "test_outputs"
+CODE_SUMMARIES_FILE_REPO = "docs/code_summaries"
+CODE_SUMMARIES_PDF_FILE_REPO = "resources/code_summaries"
 
 YAPI_URL = "http://yapi.deepwisdomai.com/"

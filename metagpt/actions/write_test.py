@@ -9,8 +9,9 @@
 """
 from metagpt.actions.action import Action
 from metagpt.config import CONFIG
+from metagpt.const import TEST_CODES_FILE_REPO
 from metagpt.logs import logger
-from metagpt.schema import TestingContext
+from metagpt.schema import Document, TestingContext
 from metagpt.utils.common import CodeParser
 
 PROMPT_TEMPLATE = """
@@ -52,6 +53,10 @@ class WriteTest(Action):
         return code
 
     async def run(self, *args, **kwargs) -> TestingContext:
+        if not self.context.test_doc:
+            self.context.test_doc = Document(
+                filename="test_" + self.context.code_doc.filename, root_path=TEST_CODES_FILE_REPO
+            )
         prompt = PROMPT_TEMPLATE.format(
             code_to_test=self.context.code_doc.content,
             test_file_name=self.context.test_doc.filename,

@@ -284,9 +284,10 @@ class Role:
                 instruct_content=response.instruct_content,
                 role=self.profile,
                 cause_by=self._rc.todo,
+                sent_from=self,
             )
         else:
-            msg = Message(content=response, role=self.profile, cause_by=self._rc.todo)
+            msg = Message(content=response, role=self.profile, cause_by=self._rc.todo, sent_from=self)
         self._rc.memory.add(msg)
 
         return msg

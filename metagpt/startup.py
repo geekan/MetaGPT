@@ -24,6 +24,10 @@ def startup(
         help="Specify the directory path of the old version project to fulfill the " "incremental requirements.",
     ),
     reqa_file: str = typer.Option(default="", help="Specify the source file name for rewriting the quality test code."),
+    max_auto_summarize_code: int = typer.Option(
+        default=-1,
+        help="The maximum number of times the 'SummarizeCode' action is automatically invoked, with -1 indicating unlimited. This parameter is used for debugging the workflow.",
+    ),
 ):
     """Run a startup. Be a boss."""
     from metagpt.roles import (
@@ -40,6 +44,7 @@ def startup(
     CONFIG.inc = inc
     CONFIG.project_path = project_path
     CONFIG.reqa_file = reqa_file
+    CONFIG.max_auto_summarize_code = max_auto_summarize_code
 
     company = Team()
     company.hire(

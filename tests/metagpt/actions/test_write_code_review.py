@@ -8,6 +8,8 @@
 import pytest
 
 from metagpt.actions.write_code_review import WriteCodeReview
+from metagpt.document import Document
+from metagpt.schema import CodingContext
 
 
 @pytest.mark.asyncio
@@ -16,13 +18,15 @@ async def test_write_code_review(capfd):
 def add(a, b):
     return a + 
 """
-    # write_code_review = WriteCodeReview("write_code_review")
+    context = CodingContext(
+        filename="math.py", design_doc=Document(content="编写一个从a加b的函数，返回a+b"), code_doc=Document(content=code)
+    )
 
-    code = await WriteCodeReview().run(context="编写一个从a加b的函数，返回a+b", code=code, filename="math.py")
+    context = await WriteCodeReview(context=context).run()
 
     # 我们不能精确地预测生成的代码评审，但我们可以检查返回的是否为字符串
-    assert isinstance(code, str)
-    assert len(code) > 0
+    assert isinstance(context.code_doc.content, str)
+    assert len(context.code_doc.content) > 0
 
     captured = capfd.readouterr()
     print(f"输出内容: {captured.out}")

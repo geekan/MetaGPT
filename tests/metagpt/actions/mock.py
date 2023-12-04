@@ -90,7 +90,7 @@ Python's in-built data structures like lists and dictionaries will be used exten
 
 For testing, we can use the PyTest framework. This is a mature full-featured Python testing tool that helps you write better programs.
 
-## project_name:
+## Project Name:
 ```python
 "adventure_game"
 ```
