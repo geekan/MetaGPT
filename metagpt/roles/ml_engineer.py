@@ -3,6 +3,7 @@ import json
 import subprocess
 
 import fire
+import re
 
 from metagpt.roles import Role
 from metagpt.actions import Action
@@ -11,7 +12,7 @@ from metagpt.memory import Memory
 from metagpt.logs import logger
 from metagpt.actions.write_plan import WritePlan
 from metagpt.actions.write_analysis_code import WriteCodeByGenerate, WriteCodeWithTools
-from metagpt.actions.ml_da_action import AskReview, SummarizeAnalysis, Reflect, ReviewConst, truncate
+from metagpt.actions.ml_da_action import AskReview, SummarizeAnalysis, Reflect, ReviewConst
 from metagpt.actions.execute_code import ExecutePyCode
 from metagpt.roles.kaggle_manager import DownloadData, SubmitResult
 from metagpt.prompts.ml_engineer import STRUCTURAL_CONTEXT
@@ -105,10 +106,10 @@ class MLEngineer(Role):
             # print("*" * 10)
             # breakpoint()
 
-            if not self.use_tools or self.plan.current_task.task_type == "":
+            if not self.use_tools or self.plan.current_task.task_type == "other":
                 # code = "print('abc')"
                 code = await WriteCodeByGenerate().run(
-                    context=context, plan=self.plan, task_guide=task_guide
+                    context=context, plan=self.plan, task_guide=task_guide, temperature=0.0
                 )
                 cause_by = WriteCodeByGenerate
             else:
@@ -122,9 +123,7 @@ class MLEngineer(Role):
             )
 
             result, success = await self.execute_code.run(code)
-            # truncated the result
-            print(truncate(result))
-            # print(result)
+            print(result)
             self.working_memory.add(
                 Message(content=result, role="user", cause_by=ExecutePyCode)
             )
@@ -156,7 +155,9 @@ class MLEngineer(Role):
         plan_confirmed = False
         while not plan_confirmed:
             context = self.get_useful_memories()
-            rsp = await WritePlan().run(context, max_tasks=max_tasks)
+            rsp = await WritePlan().run(
+                context, max_tasks=max_tasks, use_tools=self.use_tools
+            )
             self.working_memory.add(
                 Message(content=rsp, role="assistant", cause_by=WritePlan)
             )

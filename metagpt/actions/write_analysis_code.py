@@ -4,10 +4,10 @@
 @Author  :   orange-crow
 @File    :   write_code_v2.py
 """
-import json
-from typing import Dict, List, Union
+from typing import Dict, List, Union, Tuple
 
 from metagpt.actions import Action
+from metagpt.logs import logger
 from metagpt.prompts.ml_engineer import (
     TOOL_RECOMMENDATION_PROMPT,
     SELECT_FUNCTION_TOOLS,
@@ -40,8 +40,8 @@ class BaseWriteAnalysisCode(Action):
 
 class WriteCodeByGenerate(BaseWriteAnalysisCode):
     """Write code fully by generation"""
-    DEFAULT_SYSTEM_MSG = """You are Code Interpreter, a world-class programmer that can complete any goal by executing code. Strictly follow the plan and generate code step by step. Each step of the code will be executed on the user's machine, and the user will provide the code execution results to you.**Notice: Use !pip install in a standalone block to install missing packages.**""" # prompt reference: https://github.com/KillianLucas/open-interpreter/blob/v0.1.4/interpreter/system_message.txt
-    REUSE_CODE_INSTRUCTION = """ATTENTION: DONT include codes from previous tasks in your current code block, include new codes only, DONT repeat codes!"""
+    DEFAULT_SYSTEM_MSG = """You are Code Interpreter, a world-class programmer that can complete any goal by executing code. Strictly follow the plan and generate code step by step. Each step of the code will be executed on the user's machine, and the user will provide the code execution results to you.**Notice: The code for the next step depends on the code for the previous step. Must reuse variables in the lastest other code directly, dont creat it again, it is very import for you. Use !pip install in a standalone block to install missing packages.**""" # prompt reference: https://github.com/KillianLucas/open-interpreter/blob/v0.1.4/interpreter/system_message.txt
+    # REUSE_CODE_INSTRUCTION = """ATTENTION: DONT include codes from previous tasks in your current code block, include new codes only, DONT repeat codes!"""
 
     def __init__(self, name: str = "", context=None, llm=None) -> str:
         super().__init__(name, context, llm)
@@ -89,7 +89,7 @@ class WriteCodeByGenerate(BaseWriteAnalysisCode):
         system_msg: str = None,
         **kwargs,
     ) -> str:
-        context.append(Message(content=self.REUSE_CODE_INSTRUCTION, role="user"))
+        # context.append(Message(content=self.REUSE_CODE_INSTRUCTION, role="user"))
         prompt = self.process_msg(context, system_msg)
         code_content = await self.llm.aask_code(prompt, **kwargs)
         return code_content["code"]
@@ -99,24 +99,31 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
     """Write code with help of local available tools. Choose tools first, then generate code to use the tools"""
 
     @staticmethod
-    def _parse_recommend_tools(module: str, recommend_tools: list) -> str:
+    def _parse_recommend_tools(module: str, recommend_tools: list) -> Tuple[Dict, List[Dict]]:
         """
-        Converts recommended tools to a JSON string and checks tool availability in the registry.
+        Parses and validates a list of recommended tools, and retrieves their schema from registry.
 
         Args:
             module (str): The module name for querying tools in the registry.
             recommend_tools (list): A list of lists of recommended tools for each step.
 
         Returns:
-            str: A JSON string with available tools and their schemas for each step.
+            Tuple[Dict, List[Dict]]:
+                - valid_tools: A dict of lists of valid tools for each step.
+                - tool_catalog: A list of dicts of unique tool schemas.
         """
         valid_tools = {}
         available_tools = registry.get_all_by_module(module).keys()
         for index, tools in enumerate(recommend_tools):
             key = f"Step {index + 1}"
             tools = [tool for tool in tools if tool in available_tools]
-            valid_tools[key] = registry.get_schemas(module, tools)
-        return json.dumps(valid_tools)
+            valid_tools[key] = tools
+
+        unique_tools = set()
+        for tools in valid_tools.values():
+            unique_tools.update(tools)
+        tool_catalog = registry.get_schemas(module, unique_tools)
+        return valid_tools, tool_catalog
 
     async def _tool_recommendation(
         self, task: str, data_desc: str, code_steps: str, available_tools: list
@@ -165,7 +172,8 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
         recommend_tools = await self._tool_recommendation(
             task, task_guide, available_tools
         )
-        recommend_tools = self._parse_recommend_tools(task_type, recommend_tools)
+        recommend_tools, tool_catalog = self._parse_recommend_tools(task_type, recommend_tools)
+        logger.info(f"Recommended tools for every steps: {recommend_tools}")
 
         special_prompt = ML_SPECIFIC_PROMPT.get(task_type, "")
         module_name = ML_MODULE_MAP[task_type]
@@ -190,6 +198,7 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
             module_name=module_name,
             output_desc=output_desc,
             available_tools=recommend_tools,
+            tool_catalog=tool_catalog,
         )
         tool_config = create_func_config(CODE_GENERATOR_WITH_TOOLS)
         rsp = await self.llm.aask_code(prompt, **tool_config)
