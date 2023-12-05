@@ -11,10 +11,13 @@
         WriteTest/RunCode/DebugError object, rather than passing them in when calling the run function.
         2. According to Section 2.2.3.5.7 of RFC 135, change the method of transferring files from using the Message
         to using file references.
+@Modified By: mashenquan, 2023-12-5. Enhance the workflow to navigate to WriteCode or QaEngineer based on the results
+    of SummarizeCode.
 """
 from metagpt.actions import DebugError, RunCode, WriteCode, WriteCodeReview, WriteTest
 
 # from metagpt.const import WORKSPACE_ROOT
+from metagpt.actions.summarize_code import SummarizeCode
 from metagpt.config import CONFIG
 from metagpt.const import (
     MESSAGE_ROUTE_TO_NONE,
@@ -40,13 +43,16 @@ class QaEngineer(Role):
         self._init_actions(
             [WriteTest]
         )  # FIXME: a bit hack here, only init one action to circumvent _think() logic, will overwrite _think() in future updates
-        self._watch([WriteCode, WriteCodeReview, WriteTest, RunCode, DebugError])
+        self._watch([SummarizeCode, WriteTest, RunCode, DebugError])
         self.test_round = 0
         self.test_round_allowed = test_round_allowed
 
     async def _write_test(self, message: Message) -> None:
-        changed_files = message.content.splitlines()
         src_file_repo = CONFIG.git_repo.new_file_repository(CONFIG.src_workspace)
+        changed_files = set(src_file_repo.changed_files.keys())
+        # Unit tests only.
+        if CONFIG.reqa_file and CONFIG.reqa_file not in changed_files:
+            changed_files.add(CONFIG.reqa_file)
         tests_file_repo = CONFIG.git_repo.new_file_repository(TEST_CODES_FILE_REPO)
         for filename in changed_files:
             # write tests
@@ -146,7 +152,7 @@ class QaEngineer(Role):
             )
             return result_msg
 
-        code_filters = any_to_str_set({WriteCode, WriteCodeReview})
+        code_filters = any_to_str_set({SummarizeCode})
         test_filters = any_to_str_set({WriteTest, DebugError})
         run_filters = any_to_str_set({RunCode})
         for msg in self._rc.news:

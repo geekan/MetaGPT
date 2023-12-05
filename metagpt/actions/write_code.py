@@ -19,7 +19,7 @@
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 from metagpt.actions.action import Action
-from metagpt.const import TEST_OUTPUTS_FILE_REPO
+from metagpt.const import TEST_OUTPUTS_FILE_REPO, CODE_SUMMARIES_FILE_REPO
 from metagpt.logs import logger
 from metagpt.schema import CodingContext, RunCodeResult
 from metagpt.utils.common import CodeParser
@@ -50,6 +50,8 @@ ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenc
 # Debug logs
 ```text
 {logs}
+
+{summary_log}
 ```
 -----
 
@@ -90,6 +92,8 @@ class WriteCode(Action):
         test_doc = await FileRepository.get_file(
             filename="test_" + coding_context.filename + ".json", relative_path=TEST_OUTPUTS_FILE_REPO
         )
+        summary_doc = await FileRepository.get_file(filename=coding_context.design_doc.filename,
+                                                    relative_path=CODE_SUMMARIES_FILE_REPO)
         logs = ""
         if test_doc:
             test_detail = RunCodeResult.loads(test_doc.content)
@@ -100,6 +104,7 @@ class WriteCode(Action):
             code=coding_context.code_doc.content,
             logs=logs,
             filename=self.context.filename,
+            summary_log=summary_doc.content if summary_doc else ""
         )
         logger.info(f"Writing {coding_context.filename}..")
         code = await self.write_code(prompt)

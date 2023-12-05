@@ -151,6 +151,17 @@ class FileRepository:
             relative_files[str(rf)] = ct
         return relative_files
 
+    @property
+    def all_files(self) -> List:
+        """Get a dictionary of all files in the repository.
+
+        The dictionary includes file paths relative to the current FileRepository.
+
+        :return: A dictionary where keys are file paths and values are file information.
+        :rtype: List
+        """
+        return self._git_repo.get_files(relative_path=self._relative_path)
+
     def get_change_dir_files(self, dir: Path | str) -> List:
         """Get the files in a directory that have changed.
 
