@@ -63,7 +63,7 @@ class WriteTaskGuide(Action):
             'task_id': 'task_id',
             'instruction': 'instruction',
             'is_finished': 'is_finished',
-            # 'task_guide': 'code_plan'
+            'task_guide': 'code_plan'
         }
 
         def process_task(task):
