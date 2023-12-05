@@ -324,6 +324,7 @@ class WritePRD(Action):
             if not prd_doc:
                 continue
             change_files.docs[prd_doc.filename] = prd_doc
+            logger.info(f"REWRITE PRD:{prd_doc.filename}")
         # If there is no existing PRD, generate one using 'docs/requirement.txt'.
         if not change_files.docs:
             prd_doc = await self._update_prd(
@@ -331,6 +332,7 @@ class WritePRD(Action):
             )
             if prd_doc:
                 change_files.docs[prd_doc.filename] = prd_doc
+                logger.info(f"NEW PRD:{prd_doc.filename}")
         # Once all files under 'docs/prds/' have been compared with the newly added requirements, trigger the
         # 'publish' message to transition the workflow to the next stage. This design allows room for global
         # optimization in subsequent steps.
@@ -362,13 +364,9 @@ class WritePRD(Action):
         return prd
 
     async def _is_relative_to(self, new_requirement_doc, old_prd_doc) -> bool:
-        m = json.loads(old_prd_doc.content)
-        if m.get("Original Requirements") == new_requirement_doc.content:
-            # There have been no changes in the requirements, so they are considered unrelated.
-            return False
         prompt = IS_RELATIVE_PROMPT.format(old_prd=old_prd_doc.content, requirements=new_requirement_doc.content)
         res = await self._aask(prompt=prompt)
-        logger.info(f"[{new_requirement_doc.root_relative_path}, {old_prd_doc.root_relative_path}]: {res}")
+        logger.info(f"REQ-RELATIVE:[{new_requirement_doc.root_relative_path}, {old_prd_doc.root_relative_path}]: {res}")
         if "YES" in res:
             return True
         return False

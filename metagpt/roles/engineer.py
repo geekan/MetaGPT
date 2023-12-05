@@ -187,9 +187,11 @@ class Engineer(Role):
             return None
         msg = self._rc.news[0]
         if msg.cause_by in write_code_filters:
+            logger.info(f"TODO WriteCode:{msg.json()}")
             await self._new_code_actions()
             return self._rc.todo
         if msg.cause_by in summarize_code_filters and msg.sent_from == any_to_str(self):
+            logger.info(f"TODO SummarizeCode:{msg.json()}")
             await self._new_summarize_actions()
             return self._rc.todo
         return None
