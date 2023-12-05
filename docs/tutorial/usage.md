@@ -13,7 +13,7 @@ cp config/config.yaml config/key.yaml
 | Variable Name                              | config/key.yaml                           | env                                             |
 | ------------------------------------------ | ----------------------------------------- | ----------------------------------------------- |
 | OPENAI_API_KEY # Replace with your own key | OPENAI_API_KEY: "sk-..."                  | export OPENAI_API_KEY="sk-..."                  |
-| OPENAI_BASE_URL # Optional                 | OPENAI_BASE_URL: "https://<YOUR_SITE>/v1/" | export OPENAI_BASE_URL="https://<YOUR_SITE>/v1/" |
+| OPENAI_BASE_URL # Optional                 | OPENAI_BASE_URL: "https://<YOUR_SITE>/v1" | export OPENAI_BASE_URL="https://<YOUR_SITE>/v1" |
 
 ### Initiating a startup
 
