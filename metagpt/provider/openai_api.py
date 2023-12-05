@@ -172,6 +172,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             if value:
                 kwargs[key] = value
 
+        # OpenAI v1 requires the base_url to end with /
         if config.openai_base_url:
             kwargs["base_url"] = ensure_trailing_slash(config.openai_base_url)
 
