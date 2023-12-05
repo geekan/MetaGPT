@@ -1,22 +1,26 @@
+import inspect
 import re
-from typing import List, Callable, Dict
+import textwrap
 from pathlib import Path
+from typing import Callable, Dict, List
 
 import wrapt
-import textwrap
-import inspect
 from interpreter.core.core import Interpreter
 
-from metagpt.logs import logger
+from metagpt.actions.clone_function import (
+    CloneFunction,
+    run_function_code,
+    run_function_script,
+)
 from metagpt.config import CONFIG
+from metagpt.logs import logger
 from metagpt.utils.highlight import highlight
-from metagpt.actions.clone_function import CloneFunction, run_function_code, run_function_script
 
 
 def extract_python_code(code: str):
     """Extract code blocks: If the code comments are the same, only the last code block is kept."""
     # Use regular expressions to match comment blocks and related code.
-    pattern = r'(#\s[^\n]*)\n(.*?)(?=\n\s*#|$)'
+    pattern = r"(#\s[^\n]*)\n(.*?)(?=\n\s*#|$)"
     matches = re.findall(pattern, code, re.DOTALL)
 
     # Extract the last code block when encountering the same comment.
@@ -25,8 +29,8 @@ def extract_python_code(code: str):
         unique_comments[comment] = code_block
 
     # concatenate into functional form
-    result_code = '\n'.join([f"{comment}\n{code_block}" for comment, code_block in unique_comments.items()])
-    header_code = code[:code.find("#")]
+    result_code = "\n".join([f"{comment}\n{code_block}" for comment, code_block in unique_comments.items()])
+    header_code = code[: code.find("#")]
     code = header_code + result_code
 
     logger.info(f"Extract python code: \n {highlight(code)}")
@@ -36,12 +40,12 @@ def extract_python_code(code: str):
 
 class OpenCodeInterpreter(object):
     """https://github.com/KillianLucas/open-interpreter"""
+
     def __init__(self, auto_run: bool = True) -> None:
         interpreter = Interpreter()
         interpreter.auto_run = auto_run
         interpreter.model = CONFIG.openai_api_model or "gpt-3.5-turbo"
         interpreter.api_key = CONFIG.openai_api_key
-        # interpreter.api_base = CONFIG.openai_api_base
         self.interpreter = interpreter
 
     def chat(self, query: str, reset: bool = True):
@@ -50,15 +54,16 @@ class OpenCodeInterpreter(object):
         return self.interpreter.chat(query)
 
     @staticmethod
-    def extract_function(query_respond: List, function_name: str, *, language: str = 'python',
-                         function_format: str = None) -> str:
+    def extract_function(
+        query_respond: List, function_name: str, *, language: str = "python", function_format: str = None
+    ) -> str:
         """create a function from query_respond."""
-        if language not in ('python'):
+        if language not in ("python"):
             raise NotImplementedError(f"Not support to parse language {language}!")
 
         # set function form
         if function_format is None:
-            assert language == 'python', f"Expect python language for default function_format, but got {language}."
+            assert language == "python", f"Expect python language for default function_format, but got {language}."
             function_format = """def {function_name}():\n{code}"""
         # Extract the code module in the open-interpreter respond message.
         # The query_respond of open-interpreter before v0.1.4 is:
@@ -68,25 +73,29 @@ class OpenCodeInterpreter(object):
         #   "parsed_arguments": {"language": "python", "code": code of first plan}
         #  ...]
         if "function_call" in query_respond[1]:
-            code = [item['function_call']['parsed_arguments']['code'] for item in query_respond
-                    if "function_call" in item
-                    and "parsed_arguments" in item["function_call"]
-                    and 'language' in item["function_call"]['parsed_arguments']
-                    and item["function_call"]['parsed_arguments']['language'] == language]
+            code = [
+                item["function_call"]["parsed_arguments"]["code"]
+                for item in query_respond
+                if "function_call" in item
+                and "parsed_arguments" in item["function_call"]
+                and "language" in item["function_call"]["parsed_arguments"]
+                and item["function_call"]["parsed_arguments"]["language"] == language
+            ]
         # The query_respond of open-interpreter v0.1.7 is:
         # [{'role': 'user', 'message': your query string},
         #  {'role': 'assistant', 'message': plan from llm, 'language': 'python',
         #   'code': code of first plan, 'output': output of first plan code},
         #  ...]
         elif "code" in query_respond[1]:
-            code = [item['code'] for item in query_respond
-                    if "code" in item
-                    and 'language' in item
-                    and item['language'] == language]
+            code = [
+                item["code"]
+                for item in query_respond
+                if "code" in item and "language" in item and item["language"] == language
+            ]
         else:
             raise ValueError(f"Unexpect message format in query_respond: {query_respond[1].keys()}")
         # add indent.
-        indented_code_str = textwrap.indent("\n".join(code), ' ' * 4)
+        indented_code_str = textwrap.indent("\n".join(code), " " * 4)
         # Return the code after deduplication.
         if language == "python":
             return extract_python_code(function_format.format(function_name=function_name, code=indented_code_str))
@@ -115,13 +124,13 @@ class OpenInterpreterDecorator(object):
 
     def _have_code(self, rsp: List[Dict]):
         # Is there any code generated?
-        return 'code' in rsp[1] and rsp[1]['code'] not in ("", None)
+        return "code" in rsp[1] and rsp[1]["code"] not in ("", None)
 
     def _is_faild_plan(self, rsp: List[Dict]):
         # is faild plan?
-        func_code = OpenCodeInterpreter.extract_function(rsp, 'function')
+        func_code = OpenCodeInterpreter.extract_function(rsp, "function")
         # If there is no more than 1 '\n', the plan execution fails.
-        if isinstance(func_code, str) and func_code.count('\n') <= 1:
+        if isinstance(func_code, str) and func_code.count("\n") <= 1:
             return True
         return False
 
@@ -184,4 +193,5 @@ class OpenInterpreterDecorator(object):
                 logger.error(f"Could not evaluate Python code \n{logger_code}: \nError: {e}")
                 raise Exception("Could not evaluate Python code", e)
             return res
+
         return wrapper(wrapped)

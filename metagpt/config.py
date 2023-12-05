@@ -5,7 +5,6 @@ Provide configuration, singleton
 """
 import os
 
-import openai
 import yaml
 
 from metagpt.const import PROJECT_ROOT
@@ -52,11 +51,8 @@ class Config(metaclass=Singleton):
             and (not self.zhipuai_api_key or "YOUR_API_KEY" == self.zhipuai_api_key)
         ):
             raise NotConfiguredException("Set OPENAI_API_KEY or Anthropic_API_KEY or ZHIPUAI_API_KEY first")
-        self.openai_api_base = self._get("OPENAI_BASE_URL")
-        openai_proxy = self._get("OPENAI_PROXY") or self.global_proxy
-        if openai_proxy:
-            openai.proxy = openai_proxy
-            openai.api_base = self.openai_api_base
+        self.openai_base_url = self._get("OPENAI_BASE_URL")
+        self.openai_proxy = self._get("OPENAI_PROXY") or self.global_proxy
         self.openai_api_type = self._get("OPENAI_API_TYPE")
         self.openai_api_version = self._get("OPENAI_API_VERSION")
         self.openai_api_rpm = self._get("RPM", 3)
