@@ -81,6 +81,7 @@ class Task(BaseModel):
     code: str = ""
     result: str = ""
     is_finished: bool = False
+    task_guide: str = ""
 
 
 class Plan(BaseModel):
