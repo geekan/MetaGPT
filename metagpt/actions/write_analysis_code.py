@@ -23,28 +23,8 @@ from metagpt.utils.common import create_func_config
 
 
 class BaseWriteAnalysisCode(Action):
-    async def run(
-        self, context: List[Message], plan: Plan = None, task_guide: str = ""
-    ) -> str:
-        """Run of a code writing action, used in data analysis or modeling
-
-        Args:
-            context (List[Message]): Action output history, source action denoted by Message.cause_by
-            plan (Plan, optional): Overall plan. Defaults to None.
-            task_guide (str, optional): suggested step breakdown for the current task. Defaults to "".
-
-        Returns:
-            str: The code string.
-        """
-
-
-class WriteCodeByGenerate(BaseWriteAnalysisCode):
-    """Write code fully by generation"""
-    DEFAULT_SYSTEM_MSG = """You are Code Interpreter, a world-class programmer that can complete any goal by executing code. Strictly follow the plan and generate code step by step. Each step of the code will be executed on the user's machine, and the user will provide the code execution results to you.**Notice: The code for the next step depends on the code for the previous step. Must reuse variables in the lastest other code directly, dont creat it again, it is very import for you. Use !pip install in a standalone block to install missing packages.**""" # prompt reference: https://github.com/KillianLucas/open-interpreter/blob/v0.1.4/interpreter/system_message.txt
-    # REUSE_CODE_INSTRUCTION = """ATTENTION: DONT include codes from previous tasks in your current code block, include new codes only, DONT repeat codes!"""
-
-    def __init__(self, name: str = "", context=None, llm=None) -> str:
-        super().__init__(name, context, llm)
+    DEFAULT_SYSTEM_MSG = """You are Code Interpreter, a world-class programmer that can complete any goal by executing code. Strictly follow the plan and generate code step by step. Each step of the code will be executed on the user's machine, and the user will provide the code execution results to you."""  # prompt reference: https://github.com/KillianLucas/open-interpreter/blob/v0.1.4/interpreter/system_message.txt
+    REUSE_CODE_INSTRUCTION = """ATTENTION: DONT include codes from previous tasks in your current code block, include new codes only, DONT repeat codes!"""
 
     def process_msg(self, prompt: Union[str, List[Dict], Message, List[Message]], system_msg: str = None):
         default_system_msg = system_msg or self.DEFAULT_SYSTEM_MSG
@@ -82,6 +62,27 @@ class WriteCodeByGenerate(BaseWriteAnalysisCode):
         return messages
 
     async def run(
+        self, context: List[Message], plan: Plan = None, task_guide: str = ""
+    ) -> str:
+        """Run of a code writing action, used in data analysis or modeling
+
+        Args:
+            context (List[Message]): Action output history, source action denoted by Message.cause_by
+            plan (Plan, optional): Overall plan. Defaults to None.
+            task_guide (str, optional): suggested step breakdown for the current task. Defaults to "".
+
+        Returns:
+            str: The code string.
+        """
+
+
+class WriteCodeByGenerate(BaseWriteAnalysisCode):
+    """Write code fully by generation"""
+
+    def __init__(self, name: str = "", context=None, llm=None) -> str:
+        super().__init__(name, context, llm)
+
+    async def run(
         self,
         context: [List[Message]],
         plan: Plan = None,
@@ -89,7 +90,7 @@ class WriteCodeByGenerate(BaseWriteAnalysisCode):
         system_msg: str = None,
         **kwargs,
     ) -> str:
-        # context.append(Message(content=self.REUSE_CODE_INSTRUCTION, role="user"))
+        context.append(Message(content=self.REUSE_CODE_INSTRUCTION, role="user"))
         prompt = self.process_msg(context, system_msg)
         code_content = await self.llm.aask_code(prompt, **kwargs)
         return code_content["code"]
@@ -99,7 +100,7 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
     """Write code with help of local available tools. Choose tools first, then generate code to use the tools"""
 
     @staticmethod
-    def _parse_recommend_tools(module: str, recommend_tools: list) -> Tuple[Dict, List[Dict]]:
+    def _parse_recommend_tools(module: str, recommend_tools: list) -> List[Dict]:
         """
         Parses and validates a list of recommended tools, and retrieves their schema from registry.
 
@@ -108,44 +109,40 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
             recommend_tools (list): A list of lists of recommended tools for each step.
 
         Returns:
-            Tuple[Dict, List[Dict]]:
-                - valid_tools: A dict of lists of valid tools for each step.
-                - tool_catalog: A list of dicts of unique tool schemas.
+            List[Dict]: A list of dicts of valid tool schemas.
         """
-        valid_tools = {}
+        valid_tools = []
         available_tools = registry.get_all_by_module(module).keys()
-        for index, tools in enumerate(recommend_tools):
-            key = f"Step {index + 1}"
-            tools = [tool for tool in tools if tool in available_tools]
-            valid_tools[key] = tools
+        for tool in recommend_tools:
+            if tool in available_tools:
+                valid_tools.append(tool)
 
-        unique_tools = set()
-        for tools in valid_tools.values():
-            unique_tools.update(tools)
-        tool_catalog = registry.get_schemas(module, unique_tools)
-        return valid_tools, tool_catalog
+        tool_catalog = registry.get_schemas(module, valid_tools)
+        return tool_catalog
 
     async def _tool_recommendation(
-        self, task: str, data_desc: str, code_steps: str, available_tools: list
+        self,
+        context: [List[Message]],
+        code_steps: str,
+        available_tools: list
     ) -> list:
         """
-        Recommend tools for each step of the specified task
+        Recommend tools for the specified task.
 
         Args:
-            task (str): the task description
-            data_desc (str): the description of the dataset for the task
+            context (List[Message]): Action output history, source action denoted by Message.cause_by
             code_steps (str): the code steps to generate the full code for the task
             available_tools (list): the available tools for the task
 
         Returns:
-            list: recommended tools for each step of the specified task
+            list: recommended tools for the specified task
         """
-        prompt = TOOL_RECOMMENDATION_PROMPT.format(
-            task=task,
-            data_desc=data_desc,
+        system_prompt = TOOL_RECOMMENDATION_PROMPT.format(
             code_steps=code_steps,
             available_tools=available_tools,
         )
+        prompt = self.process_msg(context, system_prompt)
+
         tool_config = create_func_config(SELECT_FUNCTION_TOOLS)
         rsp = await self.llm.aask_code(prompt, **tool_config)
         recommend_tools = rsp["recommend_tools"]
@@ -156,50 +153,36 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
         context: List[Message],
         plan: Plan = None,
         task_guide: str = "",
-        data_desc: str = "",
     ) -> str:
         task_type = plan.current_task.task_type
-        task = plan.current_task.instruction
         available_tools = registry.get_all_schema_by_module(task_type)
-        available_tools = [
-            {k: tool[k] for k in ["name", "description"] if k in tool}
-            for tool in available_tools
-        ]
-        task_guide = "\n".join(
-            [f"Step {step.strip()}" for step in task_guide.split("\n")]
-        )
-
-        recommend_tools = await self._tool_recommendation(
-            task, task_guide, available_tools
-        )
-        recommend_tools, tool_catalog = self._parse_recommend_tools(task_type, recommend_tools)
-        logger.info(f"Recommended tools for every steps: {recommend_tools}")
-
         special_prompt = ML_SPECIFIC_PROMPT.get(task_type, "")
-        module_name = ML_MODULE_MAP[task_type]
-        output_desc = TOOL_OUTPUT_DESC.get(task_type, "")
-        all_tasks = ""
-        completed_code = ""
 
-        for i, task in enumerate(plan.tasks):
-            stats = "DONE" if task.is_finished else "TODO"
-            all_tasks += f"Subtask {task.task_id}: {task.instruction}({stats})\n"
+        if len(available_tools) > 0:
+            available_tools = [
+                {k: tool[k] for k in ["name", "description"] if k in tool}
+                for tool in available_tools
+            ]
 
-        for task in plan.tasks:
-            if task.code:
-                completed_code += task.code + "\n"
+            recommend_tools = await self._tool_recommendation(context, task_guide, available_tools)
+            tool_catalog = self._parse_recommend_tools(task_type, recommend_tools)
+            logger.info(f"Recommended tools: \n{recommend_tools}")
 
-        prompt = TOO_ORGANIZATION_PROMPT.format(
-            all_tasks=all_tasks,
-            completed_code=completed_code,
-            data_desc=data_desc,
-            special_prompt=special_prompt,
-            code_steps=task_guide,
-            module_name=module_name,
-            output_desc=output_desc,
-            available_tools=recommend_tools,
-            tool_catalog=tool_catalog,
-        )
+            module_name = ML_MODULE_MAP[task_type]
+            output_desc = TOOL_OUTPUT_DESC.get(task_type, "")
+            prompt = TOO_ORGANIZATION_PROMPT.format(
+                special_prompt=special_prompt,
+                code_steps=task_guide,
+                module_name=module_name,
+                output_desc=output_desc,
+                function_catalog=tool_catalog,
+            )
+            context.append(Message(content=prompt, role="user"))
+        else:
+            context.append(Message(content=self.REUSE_CODE_INSTRUCTION, role="user"))
+            context.append(Message(content=special_prompt, role="user"))
+
+        prompt = self.process_msg(context)
         tool_config = create_func_config(CODE_GENERATOR_WITH_TOOLS)
         rsp = await self.llm.aask_code(prompt, **tool_config)
         return rsp["code"]
