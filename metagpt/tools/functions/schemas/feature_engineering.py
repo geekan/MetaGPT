@@ -20,7 +20,7 @@ class PolynomialExpansion(ToolSchema):
 
 
 class OneHotEncoding(ToolSchema):
-    """Apply one-hot encoding to specified categorical columns in a DataFrame."""
+    """Apply one-hot encoding to specified categorical columns, the original columns will be dropped."""
 
     df: pd.DataFrame = tool_field(description="DataFrame to process.")
     cols: list = tool_field(description="Categorical columns to be one-hot encoded.")
