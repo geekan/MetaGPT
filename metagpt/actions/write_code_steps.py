@@ -6,7 +6,7 @@ from metagpt.actions import Action
 from metagpt.schema import Message, Task, Plan
 
 
-TASK_GUIDE_PROMPT_TEMPLATE = """
+CODE_STEPS_PROMPT_TEMPLATE = """
 # Context
 {context}
 
@@ -38,7 +38,7 @@ STRUCTURAL_CONTEXT = """
 """
 
 
-class WriteTaskGuide(Action):
+class WriteCodeSteps(Action):
 
     async def run(self, plan: Plan) -> str:
         """Run of a task guide writing action, used in ml engineer
@@ -51,24 +51,19 @@ class WriteTaskGuide(Action):
         """
 
         context = self.get_context(plan)
-        task_guide_prompt = TASK_GUIDE_PROMPT_TEMPLATE.format(
+        code_steps_prompt = CODE_STEPS_PROMPT_TEMPLATE.format(
             context=context,
         )
-        task_guide = await self._aask(task_guide_prompt)
-        return task_guide
+        code_steps = await self._aask(code_steps_prompt)
+        return code_steps
 
     def get_context(self, plan: Plan):
         user_requirement = plan.goal
-        task_rename_map = {
-            'task_id': 'task_id',
-            'instruction': 'instruction',
-            'is_finished': 'is_finished',
-            'task_guide': 'code_plan'
-        }
+        select_task_keys = ['task_id', 'instruction', 'is_finished', 'code_steps']
 
         def process_task(task):
             task_dict = task.dict()
-            ptask = {task_rename_map[k]: task_dict[k] for k in task_dict if k in task_rename_map}
+            ptask = {k: task_dict[k] for k in task_dict if k in select_task_keys}
             return ptask
         tasks = json.dumps(
             [process_task(task) for task in plan.tasks], indent=4, ensure_ascii=False
@@ -77,6 +72,6 @@ class WriteTaskGuide(Action):
         context = STRUCTURAL_CONTEXT.format(
             user_requirement=user_requirement, tasks=tasks, current_task=current_task
         )
-        # print(context)
+        print(context)
         return context
 
