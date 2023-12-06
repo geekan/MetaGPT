@@ -123,10 +123,10 @@ class MLEngineer(Role):
             # breakpoint()
 
             if not self.use_tools or self.plan.current_task.task_type == "other":
-                code = "print('abc')"
-                # code = await WriteCodeByGenerate().run(
-                #     context=context, plan=self.plan, code_steps=code_steps, temperature=0.0
-                # )
+                # code = "print('abc')"
+                code = await WriteCodeByGenerate().run(
+                    context=context, plan=self.plan, code_steps=code_steps, temperature=0.0
+                )
                 cause_by = WriteCodeByGenerate
             else:
                 code = await WriteCodeWithTools().run(
