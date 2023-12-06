@@ -10,7 +10,7 @@ from metagpt.actions import Action
 from metagpt.actions.execute_code import ExecutePyCode
 from metagpt.actions.write_analysis_code import WriteCodeByGenerate, WriteCodeWithTools
 from metagpt.actions.write_plan import WritePlan
-from metagpt.actions.write_task_guide import WriteTaskGuide
+# from metagpt.actions.write_task_guide import WriteTaskGuide
 from metagpt.logs import logger
 from metagpt.prompts.ml_engineer import GEN_DATA_DESC_PROMPT
 from metagpt.roles import Role
@@ -39,7 +39,7 @@ catboost
 def truncate(result: str, keep_len: int = 1000) -> str:
     desc = "Truncated to show only the last 1000 characters\n"
     if result.startswith(desc):
-        result = result[-len(desc) :]
+        result = result[-len(desc):]
 
     if len(result) > keep_len:
         result = result[-keep_len:]
@@ -110,9 +110,9 @@ class AskReview(Action):
         logger.info("most recent context:")
         latest_action = context[-1].cause_by.__name__ if context[-1].cause_by else ""
         prompt = f"\nPlease review output from {latest_action}:\n" \
-            "If you want to change a task in the plan, say 'change task task_id, ... (things to change)'\n" \
-            "If you confirm the output and wish to continue with the current process, type CONFIRM\n" \
-            "If you want to terminate the process, type exit:\n"
+                 "If you want to change a task in the plan, say 'change task task_id, ... (things to change)'\n" \
+                 "If you confirm the output and wish to continue with the current process, type CONFIRM\n" \
+                 "If you want to terminate the process, type exit:\n"
         rsp = input(prompt)
 
         if rsp.lower() in ("exit"):
@@ -148,7 +148,7 @@ class GenerateDataDesc(Action):
 
 class MLEngineer(Role):
     def __init__(
-        self, name="ABC", profile="MLEngineer", goal="", auto_run: bool = False, data_path: str = None
+            self, name="ABC", profile="MLEngineer", goal="", auto_run: bool = False, data_path: str = None
     ):
         super().__init__(name=name, profile=profile, goal=goal)
         self._set_react_mode(react_mode="plan_and_act")
@@ -300,11 +300,15 @@ if __name__ == "__main__":
     # requirement = "Run data analysis on sklearn Wisconsin Breast Cancer dataset, include a plot, train a model to predict targets (20% as validation), and show validation accuracy"
     # requirement = "Run EDA and visualization on this dataset, train a model to predict survival, report metrics on validation set (20%), dataset: workspace/titanic/train.csv"
 
+    from metagpt.const import DATA_PATH
+
     requirement = "Perform data analysis on the provided data. Train a model to predict the target variable Survived. Include data preprocessing, feature engineering, and modeling in your pipeline. The metric is accuracy."
-    data_path = "/data/lidanyang/tabular_data/titanic"
+    data_path = f"{DATA_PATH}/titanic"
+
 
     async def main(requirement: str = requirement, auto_run: bool = True, data_path: str = data_path):
         role = MLEngineer(goal=requirement, auto_run=auto_run, data_path=data_path)
         await role.run(requirement)
+
 
     fire.Fire(main)

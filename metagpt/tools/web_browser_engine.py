@@ -7,7 +7,7 @@ from typing import Any, Callable, Coroutine, Literal, overload
 
 from metagpt.config import CONFIG
 from metagpt.tools import WebBrowserEngineType
-from metagpt.utils.parse_html import WebPage
+# from metagpt.utils.parse_html import WebPage
 
 
 class WebBrowserEngine:
