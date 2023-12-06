@@ -3,10 +3,11 @@
 # @Desc   : async_sse_client to make keep the use of Event to access response
 #           refs to `https://github.com/zhipuai/zhipuai-sdk-python/blob/main/zhipuai/utils/sse_client.py`
 
-from zhipuai.utils.sse_client import _FIELD_SEPARATOR, Event, SSEClient
+from zhipuai.utils.sse_client import SSEClient, Event, _FIELD_SEPARATOR
 
 
 class AsyncSSEClient(SSEClient):
+
     async def _aread(self):
         data = b""
         async for chunk in self._event_source:
@@ -36,7 +37,9 @@ class AsyncSSEClient(SSEClient):
 
                 # Ignore unknown fields.
                 if field not in event.__dict__:
-                    self._logger.debug("Saw invalid field %s while parsing " "Server Side Event", field)
+                    self._logger.debug(
+                        "Saw invalid field %s while parsing " "Server Side Event", field
+                    )
                     continue
 
                 if len(data) > 1:

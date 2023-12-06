@@ -41,8 +41,8 @@ class ZhiPuModelAPI(ModelAPI):
         # TODO to make the async request to be more generic for models in http mode.
         assert method in ["post", "get"]
 
-        api_base, url = cls.split_zhipu_api_url(invoke_type, kwargs)
-        requester = GeneralAPIRequestor(api_base=api_base)
+        base_url, url = cls.split_zhipu_api_url(invoke_type, kwargs)
+        requester = GeneralAPIRequestor(base_url=base_url)
         result, _, api_key = await requester.arequest(
             method=method,
             url=url,

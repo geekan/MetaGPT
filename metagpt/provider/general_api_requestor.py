@@ -6,16 +6,16 @@ import asyncio
 from typing import AsyncGenerator, Tuple, Union
 
 import aiohttp
-from openai.api_requestor import APIRequestor
 
 from metagpt.logs import logger
+from metagpt.provider.general_api_base import APIRequestor
 
 
 class GeneralAPIRequestor(APIRequestor):
     """
     usage
-        # full_url = "{api_base}{url}"
-        requester = GeneralAPIRequestor(api_base=api_base)
+        # full_url = "{base_url}{url}"
+        requester = GeneralAPIRequestor(base_url=base_url)
         result, _, api_key = await requester.arequest(
             method=method,
             url=url,
