@@ -62,14 +62,14 @@ class BaseWriteAnalysisCode(Action):
         return messages
 
     async def run(
-        self, context: List[Message], plan: Plan = None, task_guide: str = ""
+        self, context: List[Message], plan: Plan = None, code_steps: str = ""
     ) -> str:
         """Run of a code writing action, used in data analysis or modeling
 
         Args:
             context (List[Message]): Action output history, source action denoted by Message.cause_by
             plan (Plan, optional): Overall plan. Defaults to None.
-            task_guide (str, optional): suggested step breakdown for the current task. Defaults to "".
+            code_steps (str, optional): suggested step breakdown for the current task. Defaults to "".
 
         Returns:
             str: The code string.
@@ -86,7 +86,7 @@ class WriteCodeByGenerate(BaseWriteAnalysisCode):
         self,
         context: [List[Message]],
         plan: Plan = None,
-        task_guide: str = "",
+        code_steps: str = "",
         system_msg: str = None,
         **kwargs,
     ) -> str:
@@ -152,7 +152,8 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
         self,
         context: List[Message],
         plan: Plan = None,
-        task_guide: str = "",
+        code_steps: str = "",
+        data_desc: str = "",
     ) -> str:
         task_type = plan.current_task.task_type
         available_tools = registry.get_all_schema_by_module(task_type)
@@ -164,7 +165,7 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
                 for tool in available_tools
             ]
 
-            recommend_tools = await self._tool_recommendation(context, task_guide, available_tools)
+            recommend_tools = await self._tool_recommendation(context, code_steps, available_tools)
             tool_catalog = self._parse_recommend_tools(task_type, recommend_tools)
             logger.info(f"Recommended tools: \n{recommend_tools}")
 
@@ -172,7 +173,7 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
             output_desc = TOOL_OUTPUT_DESC.get(task_type, "")
             prompt = TOO_ORGANIZATION_PROMPT.format(
                 special_prompt=special_prompt,
-                code_steps=task_guide,
+                code_steps=code_steps,
                 module_name=module_name,
                 output_desc=output_desc,
                 function_catalog=tool_catalog,
