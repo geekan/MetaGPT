@@ -305,9 +305,3 @@ def parse_recipient(text):
     pattern = r"## Send To:\s*([A-Za-z]+)\s*?"  # hard code for now
     recipient = re.search(pattern, text)
     return recipient.group(1) if recipient else ""
-
-
-def ensure_trailing_slash(url):
-    if not url:
-        return url
-    return url if url.endswith("/") else url + "/"

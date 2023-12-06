@@ -1,5 +1,6 @@
+from unittest.mock import Mock
+
 import pytest
-from httpx import AsyncClient, Client
 
 from metagpt.provider.openai_api import OpenAIGPTAPI
 from metagpt.schema import UserMessage
@@ -81,41 +82,64 @@ def test_ask_code_list_str():
     assert len(rsp["code"]) > 0
 
 
-def test_make_client_kwargs():
-    class Config:
-        openai_api_key = "test_key"
-        openai_base_url = "test_url"
-        openai_proxy = "http://test_proxy"
+class TestOpenAI:
+    @pytest.fixture
+    def config(self):
+        return Mock(openai_api_key="test_key", openai_base_url="test_url", openai_proxy=None, openai_api_type="other")
 
-    config = Config()
-    obj = OpenAIGPTAPI()
-    kwargs, async_kwargs = obj._make_client_kwargs(config)
+    @pytest.fixture
+    def config_azure(self):
+        return Mock(
+            openai_api_key="test_key",
+            openai_api_version="test_version",
+            openai_base_url="test_url",
+            openai_proxy=None,
+            openai_api_type="azure",
+        )
 
-    assert kwargs["api_key"] == "test_key"
-    assert kwargs["base_url"] == "test_url/"
-    assert isinstance(kwargs["http_client"], Client)
-    assert kwargs["http_client"].base_url == "test_url/"
+    @pytest.fixture
+    def config_proxy(self):
+        return Mock(
+            openai_api_key="test_key",
+            openai_base_url="test_url",
+            openai_proxy="http://proxy.com",
+            openai_api_type="other",
+        )
 
-    assert async_kwargs["api_key"] == "test_key"
-    assert async_kwargs["base_url"] == "test_url/"
-    assert isinstance(async_kwargs["http_client"], AsyncClient)
-    assert async_kwargs["http_client"].base_url == "test_url/"
+    @pytest.fixture
+    def config_azure_proxy(self):
+        return Mock(
+            openai_api_key="test_key",
+            openai_api_version="test_version",
+            openai_base_url="test_url",
+            openai_proxy="http://proxy.com",
+            openai_api_type="azure",
+        )
 
+    def test_make_client_kwargs_without_proxy(self, config):
+        instance = OpenAIGPTAPI()
+        kwargs, async_kwargs = instance._make_client_kwargs(config)
+        assert kwargs == {"api_key": "test_key", "base_url": "test_url"}
+        assert async_kwargs == {"api_key": "test_key", "base_url": "test_url"}
+        assert "http_client" not in kwargs
+        assert "http_client" not in async_kwargs
 
-def test_make_client_kwargs_no_proxy():
-    class Config:
-        openai_api_key = "test_key"
-        openai_base_url = "test_url"
-        openai_proxy = None
+    def test_make_client_kwargs_without_proxy_azure(self, config_azure):
+        instance = OpenAIGPTAPI()
+        kwargs, async_kwargs = instance._make_client_kwargs(config_azure)
+        assert kwargs == {"api_key": "test_key", "api_version": "test_version", "azure_endpoint": "test_url"}
+        assert async_kwargs == {"api_key": "test_key", "api_version": "test_version", "azure_endpoint": "test_url"}
+        assert "http_client" not in kwargs
+        assert "http_client" not in async_kwargs
 
-    config = Config()
-    obj = OpenAIGPTAPI()
-    kwargs, async_kwargs = obj._make_client_kwargs(config)
+    def test_make_client_kwargs_with_proxy(self, config_proxy):
+        instance = OpenAIGPTAPI()
+        kwargs, async_kwargs = instance._make_client_kwargs(config_proxy)
+        assert "http_client" in kwargs
+        assert "http_client" in async_kwargs
 
-    assert kwargs["api_key"] == "test_key"
-    assert kwargs["base_url"] == "test_url/"
-    assert "http_client" not in kwargs
-
-    assert async_kwargs["api_key"] == "test_key"
-    assert async_kwargs["base_url"] == "test_url/"
-    assert "http_client" not in async_kwargs
+    def test_make_client_kwargs_with_proxy_azure(self, config_azure_proxy):
+        instance = OpenAIGPTAPI()
+        kwargs, async_kwargs = instance._make_client_kwargs(config_azure_proxy)
+        assert "http_client" in kwargs
+        assert "http_client" in async_kwargs
