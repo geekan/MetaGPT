@@ -140,10 +140,12 @@ class MLEngineer(Role):
 
             result, success = await self.execute_code.run(code)
             # truncated the result
-            print(truncate(result))
+            _keep_result_len = 2000
+            truncate_result = truncate(remove_escape_and_color_codes(result), keep_len=_keep_result_len)
+            print(truncate_result)
             # print(result)
             self.working_memory.add(
-                Message(content=truncate(remove_escape_and_color_codes(result)), role="user", cause_by=ExecutePyCode)
+                Message(content=truncate_result, role="user", cause_by=ExecutePyCode)
             )
 
             if "!pip" in code:
