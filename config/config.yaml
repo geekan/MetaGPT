@@ -23,13 +23,11 @@ RPM: 10
 #Anthropic_API_KEY: "YOUR_API_KEY"
 
 #### if AZURE, check https://github.com/openai/openai-cookbook/blob/main/examples/azure/chat.ipynb
-#### You can use ENGINE or DEPLOYMENT mode
 #OPENAI_API_TYPE: "azure"
 #OPENAI_BASE_URL: "YOUR_AZURE_ENDPOINT"
 #OPENAI_API_KEY: "YOUR_AZURE_API_KEY"
 #OPENAI_API_VERSION: "YOUR_AZURE_API_VERSION"
 #DEPLOYMENT_NAME: "YOUR_DEPLOYMENT_NAME"
-#DEPLOYMENT_ID: "YOUR_DEPLOYMENT_ID"
 
 #### if zhipuai from `https://open.bigmodel.cn`. You can set here or export API_KEY="YOUR_API_KEY"
 # ZHIPUAI_API_KEY: "YOUR_API_KEY"
