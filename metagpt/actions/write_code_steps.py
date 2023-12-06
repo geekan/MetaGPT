@@ -4,17 +4,11 @@ from typing import Dict, List, Union
 
 from metagpt.actions import Action
 from metagpt.schema import Message, Task, Plan
-
+from metagpt.utils.common import CodeParser
 
 CODE_STEPS_PROMPT_TEMPLATE = """
 # Context
 {context}
-
-##  Format example
-1.
-2.
-3.
-...
 
 -----
 Tasks are all code development tasks.
@@ -25,7 +19,16 @@ The output plan should following the subsequent principles:
 1.The plan is a rough checklist of steps outlining the entire program's structure.Try to keep the number of steps fewer than 5.
 2.The steps should be written concisely and at a high level, avoiding overly detailed implementation specifics.
 3.The execution of the plan happens sequentially, but the plan can incorporate conditional (if) and looping(loop) keywords for more complex structures.
-4.Output carefully referenced "Format example" in format.
+
+Output the code steps in a JSON format, as shown in this example:
+```json
+{
+    "Step 1": "",
+    "Step 2": "",
+    "Step 3": "",
+    ...
+}
+```
 """
 
 STRUCTURAL_CONTEXT = """
@@ -51,10 +54,11 @@ class WriteCodeSteps(Action):
         """
 
         context = self.get_context(plan)
-        code_steps_prompt = CODE_STEPS_PROMPT_TEMPLATE.format(
-            context=context,
+        code_steps_prompt = CODE_STEPS_PROMPT_TEMPLATE.replace(
+            "{context}", context
         )
         code_steps = await self._aask(code_steps_prompt)
+        code_steps = CodeParser.parse_code(block=None, text=code_steps)
         return code_steps
 
     def get_context(self, plan: Plan):
@@ -74,4 +78,3 @@ class WriteCodeSteps(Action):
         )
         # print(context)
         return context
-

@@ -153,7 +153,6 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
         context: List[Message],
         plan: Plan = None,
         code_steps: str = "",
-        data_desc: str = "",
     ) -> str:
         task_type = plan.current_task.task_type
         available_tools = registry.get_all_schema_by_module(task_type)
