@@ -148,7 +148,7 @@ class MLEngineer(Role):
             print(truncate_result)
             # print(result)
             self.working_memory.add(
-                Message(content=truncate_result, keep_len=_keep_result_len), role="user", cause_by=ExecutePyCode)
+                Message(content=truncate_result, role="user", cause_by=ExecutePyCode)
             )
 
             if "!pip" in code:
