@@ -197,7 +197,7 @@ class GitRepository:
         if new_path.exists():
             logger.info(f"Delete directory {str(new_path)}")
             shutil.rmtree(new_path)
-        os.rename(src=str(self.workdir), dst=str(new_path))  # self.workdir.rename(new_path)
+        shutil.move(src=str(self.workdir), dst=str(new_path))  # self.workdir.rename(new_path)
         logger.info(f"Rename directory {str(self.workdir)} to {str(new_path)}")
         self._repository = Repo(new_path)
 
