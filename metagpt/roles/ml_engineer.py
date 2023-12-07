@@ -10,12 +10,12 @@ from metagpt.actions import Action
 from metagpt.actions.execute_code import ExecutePyCode
 from metagpt.actions.write_analysis_code import WriteCodeByGenerate, WriteCodeWithTools
 from metagpt.actions.write_plan import WritePlan
-# from metagpt.actions.write_task_guide import WriteTaskGuide
 from metagpt.logs import logger
 from metagpt.prompts.ml_engineer import GEN_DATA_DESC_PROMPT
 from metagpt.roles import Role
 from metagpt.schema import Message, Plan
 from metagpt.utils.common import CodeParser
+from metagpt.actions.write_code_steps import WriteCodeSteps
 
 STRUCTURAL_CONTEXT = """
 ## User Requirement
@@ -39,7 +39,7 @@ catboost
 def truncate(result: str, keep_len: int = 1000) -> str:
     desc = "Truncated to show only the last 1000 characters\n"
     if result.startswith(desc):
-        result = result[-len(desc):]
+        result = result[-len(desc) :]
 
     if len(result) > keep_len:
         result = result[-keep_len:]
@@ -110,9 +110,9 @@ class AskReview(Action):
         logger.info("most recent context:")
         latest_action = context[-1].cause_by.__name__ if context[-1].cause_by else ""
         prompt = f"\nPlease review output from {latest_action}:\n" \
-                 "If you want to change a task in the plan, say 'change task task_id, ... (things to change)'\n" \
-                 "If you confirm the output and wish to continue with the current process, type CONFIRM\n" \
-                 "If you want to terminate the process, type exit:\n"
+            "If you want to change a task in the plan, say 'change task task_id, ... (things to change)'\n" \
+            "If you confirm the output and wish to continue with the current process, type CONFIRM\n" \
+            "If you want to terminate the process, type exit:\n"
         rsp = input(prompt)
 
         if rsp.lower() in ("exit"):
@@ -121,11 +121,6 @@ class AskReview(Action):
         confirmed = rsp.lower() in ("confirm", "yes", "y")
 
         return rsp, confirmed
-
-
-# class WriteTaskGuide(Action):
-#     async def run(self, task_instruction: str, data_desc: dict = None) -> str:
-#         return ""
 
 
 class GenerateDataDesc(Action):
@@ -148,13 +143,13 @@ class GenerateDataDesc(Action):
 
 class MLEngineer(Role):
     def __init__(
-            self, name="ABC", profile="MLEngineer", goal="", auto_run: bool = False, data_path: str = None
+        self, name="ABC", profile="MLEngineer", goal="", auto_run: bool = False, data_path: str = None
     ):
         super().__init__(name=name, profile=profile, goal=goal)
         self._set_react_mode(react_mode="plan_and_act")
         self.plan = Plan(goal=goal)
         self.use_tools = True
-        self.use_task_guide = True
+        self.use_code_steps = True
         self.execute_code = ExecutePyCode()
         self.auto_run = auto_run
         self.data_path = data_path
@@ -164,6 +159,7 @@ class MLEngineer(Role):
         if self.data_path:
             self.data_desc = await self._generate_data_desc()
 
+
         # create initial plan and update until confirmation
         await self._update_plan()
 
@@ -172,7 +168,7 @@ class MLEngineer(Role):
             logger.info(f"ready to take on task {task}")
 
             # take on current task
-            code, result, success = await self._write_and_exec_code()
+            code, result, success, code_steps = await self._write_and_exec_code()
 
             # ask for acceptance, users can other refuse and change tasks in the plan
             task_result_confirmed = await self._ask_review()
@@ -181,6 +177,7 @@ class MLEngineer(Role):
                 # tick off this task and record progress
                 task.code = code
                 task.result = result
+                task.code_steps = code_steps
                 self.plan.finish_current_task()
                 self.working_memory.clear()
 
@@ -194,9 +191,9 @@ class MLEngineer(Role):
         return data_desc
 
     async def _write_and_exec_code(self, max_retry: int = 3):
-        task_guide = (
-            await WriteTaskGuide().run(self.plan)
-            if self.use_task_guide
+        code_steps = (
+            await WriteCodeSteps().run(self.plan)
+            if self.use_code_steps
             else ""
         )
 
@@ -204,23 +201,22 @@ class MLEngineer(Role):
         success = False
         while not success and counter < max_retry:
             context = self.get_useful_memories()
-
-            # print("*" * 10)
-            # print(context)
-            # print("*" * 10)
             # breakpoint()
+
+            column_names_dict = {key: value["column_info"] for key,value in self.data_desc.items()}
 
             if not self.use_tools or self.plan.current_task.task_type == "other":
                 logger.info("Write code with pure generation")
                 # code = "print('abc')"
                 code = await WriteCodeByGenerate().run(
-                    context=context, plan=self.plan, task_guide=task_guide, temperature=0.0
+                    context=context, plan=self.plan, code_steps=code_steps, temperature=0.0
                 )
                 cause_by = WriteCodeByGenerate
             else:
                 logger.info("Write code with tools")
+
                 code = await WriteCodeWithTools().run(
-                    context=context, plan=self.plan, task_guide=task_guide
+                    context=context, plan=self.plan, code_steps=code_steps, **{"column_names": column_names_dict}
                 )
                 cause_by = WriteCodeWithTools
 
@@ -243,7 +239,7 @@ class MLEngineer(Role):
 
             counter += 1
 
-        return code, result, success
+        return code, result, success, code_steps
 
     async def _ask_review(self):
         if not self.auto_run:
@@ -272,7 +268,7 @@ class MLEngineer(Role):
 
     def get_useful_memories(self) -> List[Message]:
         """find useful memories only to reduce context length and improve performance"""
-
+        # TODO dataset description , code steps
         user_requirement = self.plan.goal
         tasks = json.dumps(
             [task.dict() for task in self.plan.tasks], indent=4, ensure_ascii=False
@@ -294,7 +290,7 @@ class MLEngineer(Role):
 
 
 if __name__ == "__main__":
-    # requirement = "Run data analysis on sklearn Iris dataset, include a plot.."
+    # requirement = "Run data analysis on sklearn Iris dataset, include a plot"
     # requirement = "Run data analysis on sklearn Diabetes dataset, include a plot"
     # requirement = "Run data analysis on sklearn Wine recognition dataset, include a plot, and train a model to predict wine class (20% as validation), and show validation accuracy"
     # requirement = "Run data analysis on sklearn Wisconsin Breast Cancer dataset, include a plot, train a model to predict targets (20% as validation), and show validation accuracy"
@@ -305,10 +301,8 @@ if __name__ == "__main__":
     requirement = "Perform data analysis on the provided data. Train a model to predict the target variable Survived. Include data preprocessing, feature engineering, and modeling in your pipeline. The metric is accuracy."
     data_path = f"{DATA_PATH}/titanic"
 
-
     async def main(requirement: str = requirement, auto_run: bool = True, data_path: str = data_path):
         role = MLEngineer(goal=requirement, auto_run=auto_run, data_path=data_path)
         await role.run(requirement)
-
 
     fire.Fire(main)

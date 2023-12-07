@@ -23,7 +23,6 @@ Output the information in a JSON format, as shown in this example:
 ```
 """
 
-
 ASSIGN_TASK_TYPE_PROMPT = """
 Please assign a task type to each task in the list below from the given categories:
 {task_list}
@@ -52,7 +51,6 @@ ASSIGN_TASK_TYPE = {
         "required": ["task_type"],
     },
 }
-
 
 TOOL_RECOMMENDATION_PROMPT = """
 Your are a tool recommender, the main goal is to recommend suitable tools for current task before coding. A tool means a function that can be used to help you solve the task.
@@ -88,7 +86,6 @@ SELECT_FUNCTION_TOOLS = {
     },
 }
 
-
 CODE_GENERATOR_WITH_TOOLS = {
     "name": "add_subtask_code",
     "description": "Add new code cell of current task to the end of an active Jupyter notebook.",
@@ -103,6 +100,54 @@ CODE_GENERATOR_WITH_TOOLS = {
         "required": ["code"],
     },
 }
+
+TOOL_USAGE_PROMPT = """
+## Target
+{goal}
+
+## History Info
+{context}
+
+## Available Tools:
+Each function is described in JSON format, including the function name and parameters. {output_desc}
+{function_catalog}
+
+When you call a function above, you should import the function from `{module_name}` first, e.g.:
+```python
+from metagpt.tools.functions.libs.data_preprocess import fill_missing_value
+```end
+
+## Your Output Format:
+Generate the complete code for this task:
+```python
+# Tools used: [function names or 'none']
+<your code for the current task, without any comments>
+```end
+
+## Attention:
+Make sure use the columns from the dataset columns
+Finish your coding tasks as a helpful programmer based on the tools.
+
+"""
+GENERATE_CODE_PROMPT = """
+## Target
+{goal}
+
+## History Info
+{context}
+
+## Your Output Format:
+Generate the complete code for this task:
+```python
+# Tools used: [function names or 'none']
+<your code for the current task>
+```end
+
+## Attention:
+Make sure use the columns from the dataset columns
+Finish your coding tasks as a helpful programmer based on the tools.
+
+"""
 
 TOO_ORGANIZATION_PROMPT = """
 The previous conversation has provided all tasks step-by-step for the use goal and their statuses. 
@@ -166,7 +211,6 @@ FEATURE_ENGINEERING_OUTPUT_DESC = "Please note that all functions uniformly outp
 CLASSIFICATION_MODEL_OUTPUT_DESC = ""
 
 REGRESSION_MODEL_OUTPUT_DESC = ""
-
 
 ML_SPECIFIC_PROMPT = {
     "data_preprocess": DATA_PREPROCESS_PROMPT,
