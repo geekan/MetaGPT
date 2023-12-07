@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import asyncio
+from pathlib import Path
 
 import typer
 
@@ -40,9 +41,12 @@ def startup(
     from metagpt.team import Team
 
     # Use in the PrepareDocuments action according to Section 2.2.3.5.1 of RFC 135.
+    CONFIG.project_path = project_path
+    if project_path:
+        inc = True
+        project_name = project_name or Path(project_path).name
     CONFIG.project_name = project_name
     CONFIG.inc = inc
-    CONFIG.project_path = project_path
     CONFIG.reqa_file = reqa_file
     CONFIG.max_auto_summarize_code = max_auto_summarize_code
 
