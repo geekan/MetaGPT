@@ -24,7 +24,6 @@ from metagpt.const import (
 )
 from metagpt.logs import logger
 from metagpt.schema import Document, Documents
-from metagpt.utils.common import CodeParser
 from metagpt.utils.file_repository import FileRepository
 from metagpt.utils.get_template import get_template
 from metagpt.utils.mermaid import mermaid_to_file
@@ -44,7 +43,7 @@ Requirement: Fill in the following missing information based on the context, eac
 
 ## Implementation approach: Provide as Plain text. Analyze the difficult points of the requirements, select appropriate open-source frameworks.
 
-## project_name: Constant text.
+## Project name: Constant text.
 
 ## File list: Provided as Python list[str], the list of files needed (including HTML & CSS IF NEEDED) to write the program. Only need relative paths. ALWAYS write a main.py or app.py here
 
@@ -61,7 +60,7 @@ and only output the json inside this tag, nothing else
 [CONTENT]
 {{
     "Implementation approach": "We will ...",
-    "project_name": "{project_name}",
+    "Project name": "{project_name}",
     "File list": ["main.py"],
     "Data structures and interfaces": '
     classDiagram
@@ -97,7 +96,7 @@ ATTENTION: Output carefully referenced "Format example" in format.
 
 ## Implementation approach: Provide as Plain text. Analyze the difficult points of the requirements, select the appropriate open-source framework.
 
-## project_name: Constant text.
+## Project name: Constant text.
 
 ## File list: Provided as Python list[str], the list of code files (including HTML & CSS IF NEEDED) to write the program. Only need relative paths. ALWAYS write a main.py or app.py here
 
@@ -113,7 +112,7 @@ ATTENTION: Output carefully referenced "Format example" in format.
 ## Implementation approach
 We will ...
 
-## project_name
+## Project name
 ```python
 "{project_name}"
 ```
@@ -152,7 +151,7 @@ The requirement is clear to me.
 
 OUTPUT_MAPPING = {
     "Implementation approach": (str, ...),
-    "project_name": (str, ...),
+    "Project name": (str, ...),
     "File list": (List[str], ...),
     "Data structures and interfaces": (str, ...),
     "Program call flow": (str, ...),
@@ -174,7 +173,7 @@ ATTENTION: Output carefully referenced "Old Design" in format.
 
 ## Implementation approach: Provide as Plain text. Analyze the difficult points of the requirements, select the appropriate open-source framework.
 
-## project_name: Constant text "{project_name}".
+## Project name: Constant text "{project_name}".
 
 ## File list: Provided as Python list[str], the list of code files (including HTML & CSS IF NEEDED) to write the program. Only need relative paths. ALWAYS write a main.py or app.py here
 
@@ -236,8 +235,9 @@ class WriteDesign(Action):
         return system_design
 
     async def _merge(self, prd_doc, system_design_doc, format=CONFIG.prompt_format):
-        prompt = MERGE_PROMPT.format(old_design=system_design_doc.content, context=prd_doc.content,
-                                     project_name=CONFIG.project_name)
+        prompt = MERGE_PROMPT.format(
+            old_design=system_design_doc.content, context=prd_doc.content, project_name=CONFIG.project_name
+        )
         system_design = await self._aask_v1(prompt, "system_design", OUTPUT_MAPPING, format=format)
         # fix Python package name, we can't system_design.instruct_content.python_package_name = "xxx" since "Python
         # package name" contain space, have to use setattr

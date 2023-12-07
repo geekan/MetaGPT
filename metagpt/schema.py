@@ -48,9 +48,9 @@ class Document(BaseModel):
     Represents a document.
     """
 
-    root_path: str
-    filename: str
-    content: Optional[str] = None
+    root_path: str = ""
+    filename: str = ""
+    content: str = ""
 
     def get_meta(self) -> Document:
         """Get metadata of the document.
@@ -260,8 +260,8 @@ class MessageQueue:
 class CodingContext(BaseModel):
     filename: str
     design_doc: Document
-    task_doc: Document
-    code_doc: Document
+    task_doc: Optional[Document]
+    code_doc: Optional[Document]
 
     @staticmethod
     def loads(val: str) -> CodingContext | None:
@@ -275,7 +275,7 @@ class CodingContext(BaseModel):
 class TestingContext(BaseModel):
     filename: str
     code_doc: Document
-    test_doc: Document
+    test_doc: Optional[Document]
 
     @staticmethod
     def loads(val: str) -> TestingContext | None:
@@ -341,4 +341,3 @@ class CodeSummarizeContext(BaseModel):
 
     def __hash__(self):
         return hash((self.design_filename, self.task_filename))
-

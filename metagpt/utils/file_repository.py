@@ -270,3 +270,25 @@ class FileRepository:
         """
         file_repo = CONFIG.git_repo.new_file_repository(relative_path=relative_path)
         return await file_repo.save_doc(doc=doc, with_suffix=with_suffix, dependencies=dependencies)
+
+    async def delete(self, filename: Path | str):
+        """Delete a file from the file repository.
+
+        This method deletes a file from the file repository based on the provided filename.
+
+        :param filename: The name or path of the file to be deleted.
+        :type filename: Path or str
+        """
+        pathname = self.workdir / filename
+        if not pathname.exists():
+            return
+        pathname.unlink(missing_ok=True)
+
+        dependency_file = await self._git_repo.get_dependency()
+        await dependency_file.update(filename=pathname, dependencies=None)
+        logger.info(f"remove dependency key: {str(pathname)}")
+
+    @staticmethod
+    async def delete_file(filename: Path | str, relative_path: Path | str = "."):
+        file_repo = CONFIG.git_repo.new_file_repository(relative_path=relative_path)
+        await file_repo.delete(filename=filename)

@@ -14,6 +14,7 @@ from typing import Set
 
 import aiofiles
 
+from metagpt.config import CONFIG
 from metagpt.logs import logger
 
 
@@ -81,7 +82,7 @@ class DependencyFile:
         if persist:
             await self.save()
 
-    async def get(self, filename: Path | str, persist=False):
+    async def get(self, filename: Path | str, persist=True):
         """Get dependencies for a file asynchronously.
 
         :param filename: The filename or path.
@@ -91,7 +92,7 @@ class DependencyFile:
         if persist:
             await self.load()
 
-        root = self._filename.parent
+        root = CONFIG.git_repo.workdir
         try:
             key = Path(filename).relative_to(root)
         except ValueError:

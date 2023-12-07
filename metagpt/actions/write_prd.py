@@ -55,7 +55,7 @@ ATTENTION: Output carefully referenced "Format example" in format.
 {{
     "Language": "", # str, use the same language as the user requirement. en_us / zh_cn etc.
     "Original Requirements": "", # str, place the polished complete original requirements here
-    "project_name": "{project_name}", # str, if it's empty, name it with snake case style, like game_2048 / web_2048 / simple_crm etc.
+    "Project Name": "{project_name}", # str, if it's empty, name it with snake case style, like game_2048 / web_2048 / simple_crm etc.
     "Search Information": "",
     "Requirements": "", 
     "Product Goals": [], # Provided as Python list[str], up to 3 clear, orthogonal product goals.
@@ -90,7 +90,7 @@ and only output the json inside this tag, nothing else
 {{
     "Language": "",
     "Original Requirements": "",
-    "project_name": "{project_name}",
+    "Project Name": "{project_name}",
     "Search Information": "",
     "Requirements": "",
     "Product Goals": [],
@@ -231,7 +231,7 @@ There are no unclear points.
 OUTPUT_MAPPING = {
     "Language": (str, ...),
     "Original Requirements": (str, ...),
-    "project_name": (str, ...),
+    "Project Name": (str, ...),
     "Product Goals": (List[str], ...),
     "User Stories": (List[str], ...),
     "Competitive Analysis": (List[str], ...),
@@ -274,7 +274,7 @@ ATTENTION: Output carefully referenced "Old PRD" in format.
 {{
     "Language": "", # str, use the same language as the user requirement. en_us / zh_cn etc.
     "Original Requirements": "", # str, place the polished complete original requirements here
-    "project_name": "{project_name}", # str, if it's empty, name it with snake case style, like game_2048 / web_2048 / simple_crm etc.
+    "Project Name": "{project_name}", # str, if it's empty, name it with snake case style, like game_2048 / web_2048 / simple_crm etc.
     "Search Information": "",
     "Requirements": "", 
     "Product Goals": [], # Provided as Python list[str], up to 3 clear, orthogonal product goals.
@@ -354,8 +354,7 @@ class WritePRD(Action):
         # logger.info(prompt_template)
         # logger.info(format_example)
         prompt = prompt_template.format(
-            requirements=requirements, search_information=info, format_example=format_example,
-            project_name=project_name
+            requirements=requirements, search_information=info, format_example=format_example, project_name=project_name
         )
         # logger.info(prompt)
         # prd = await self._aask_v1(prompt, "prd", OUTPUT_MAPPING)
@@ -374,8 +373,9 @@ class WritePRD(Action):
     async def _merge(self, new_requirement_doc, prd_doc, format=CONFIG.prompt_format) -> Document:
         if not CONFIG.project_name:
             CONFIG.project_name = Path(CONFIG.project_path).name
-        prompt = MERGE_PROMPT.format(requirements=new_requirement_doc.content, old_prd=prd_doc.content,
-                                     project_name=CONFIG.project_name)
+        prompt = MERGE_PROMPT.format(
+            requirements=new_requirement_doc.content, old_prd=prd_doc.content, project_name=CONFIG.project_name
+        )
         prd = await self._aask_v1(prompt, "prd", OUTPUT_MAPPING, format=format)
         prd_doc.content = prd.instruct_content.json(ensure_ascii=False)
         await self._rename_workspace(prd)
@@ -425,8 +425,8 @@ class WritePRD(Action):
 
         if not CONFIG.project_name:
             if isinstance(prd, ActionOutput):
-                ws_name = prd.instruct_content.dict()["project_name"]
+                ws_name = prd.instruct_content.dict()["Project Name"]
             else:
-                ws_name = CodeParser.parse_str(block="project_name", text=prd)
+                ws_name = CodeParser.parse_str(block="Project Name", text=prd)
             CONFIG.project_name = ws_name
         CONFIG.git_repo.rename_root(CONFIG.project_name)
