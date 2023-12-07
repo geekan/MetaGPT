@@ -8,14 +8,13 @@ class FillMissingValue(ToolSchema):
     """Completing missing values with simple strategies"""
     df: pd.DataFrame = tool_field(description="input dataframe")
     features: list = tool_field(description="columns to be processed")
-    strategy: str = tool_field(description="the imputation strategy", default='mean')
-    fill_value: int = tool_field(description="fill_value is used to replace all occurrences of missing_values", default=None)
-
-
-# class LabelEncode(ToolSchema):
-#     """Completing missing values with simple strategies"""
-#     df: pd.DataFrame = tool_field(description="input dataframe")
-#     features: list = tool_field(description="columns to be processed")
+    strategy: str = tool_field(
+        description="the imputation strategy",
+        default='mean',
+        enum=['mean', 'median', 'most_frequent', 'constant']
+    )
+    fill_value: int = tool_field(
+        description="fill_value is used to replace all occurrences of missing_values", default=None)
 
 
 class SplitBins(ToolSchema):
@@ -60,3 +59,9 @@ class OrdinalEncode(ToolSchema):
     df: pd.DataFrame = tool_field(description="input dataframe")
     features: list = tool_field(description="columns to be processed")
 
+
+class OneHotEncoding(ToolSchema):
+    """Apply one-hot encoding to specified categorical columns, the original columns will be dropped."""
+
+    df: pd.DataFrame = tool_field(description="DataFrame to process.")
+    cols: list = tool_field(description="Categorical columns to be one-hot encoded and dropped.")

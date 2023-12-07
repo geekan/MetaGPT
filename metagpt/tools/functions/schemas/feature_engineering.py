@@ -12,29 +12,39 @@ from metagpt.tools.functions.schemas.base import ToolSchema, tool_field
 
 
 class PolynomialExpansion(ToolSchema):
-    """Generate polynomial and interaction features from selected columns, excluding the bias column."""
+    """Add polynomial and interaction features from selected numeric columns, excluding the bias column."""
 
     df: pd.DataFrame = tool_field(description="DataFrame to process.")
     cols: list = tool_field(description="Columns for polynomial expansion.")
     degree: int = tool_field(description="Degree of polynomial features.", default=2)
 
 
-class OneHotEncoding(ToolSchema):
-    """Apply one-hot encoding to specified categorical columns, the original columns will be dropped."""
-
-    df: pd.DataFrame = tool_field(description="DataFrame to process.")
-    cols: list = tool_field(description="Categorical columns to be one-hot encoded.")
-
-
 class FrequencyEncoding(ToolSchema):
-    """Convert categorical columns to frequency encoding."""
+    """Add value counts of categorical columns as new features."""
 
     df: pd.DataFrame = tool_field(description="DataFrame to process.")
     cols: list = tool_field(description="Categorical columns to be frequency encoded.")
 
 
+class TargetMeanEncoder(ToolSchema):
+    """Encodes a categorical column by the mean of the label column, and adds the result as a new feature."""
+
+    df: pd.DataFrame = tool_field(description="DataFrame to process.")
+    col: str = tool_field(description="Column to be mean encoded.")
+    label: str = tool_field(description="Predicted label column.")
+
+
+class KFoldTargetMeanEncoder(ToolSchema):
+    """Adds a new feature to the DataFrame by k-fold mean encoding of a categorical column using the label column."""
+    df: pd.DataFrame = tool_field(description="DataFrame to process.")
+    col: str = tool_field(description="Column to be k-fold mean encoded.")
+    label: str = tool_field(description="Predicted label column.")
+    n_splits: int = tool_field(description="Number of splits for K-fold.", default=5)
+    random_state: int = tool_field(description="Random seed.", default=2021)
+
+
 class CatCross(ToolSchema):
-    """Create pairwise crossed features from categorical columns, joining values with '_'."""
+    """Add pairwise crossed features and convert them to numerical features."""
 
     df: pd.DataFrame = tool_field(description="DataFrame to process.")
     cols: list = tool_field(description="Columns to be pairwise crossed.")
@@ -44,7 +54,7 @@ class CatCross(ToolSchema):
 
 
 class GroupStat(ToolSchema):
-    """Perform aggregation operations on a specified column grouped by certain categories."""
+    """Aggregate specified column in a DataFrame grouped by another column, adding new features named '<agg_col>_<agg_func>_by_<group_col>'."""
 
     df: pd.DataFrame = tool_field(description="DataFrame to process.")
     group_col: str = tool_field(description="Column used for grouping.")
@@ -56,7 +66,7 @@ class GroupStat(ToolSchema):
 
 
 class ExtractTimeComps(ToolSchema):
-    """Extract specific time components from a designated time column in a DataFrame."""
+    """Extract and add specific time components as new features from a designated time column."""
 
     df: pd.DataFrame = tool_field(description="DataFrame to process.")
     time_col: str = tool_field(
@@ -69,7 +79,7 @@ class ExtractTimeComps(ToolSchema):
 
 
 class FeShiftByTime(ToolSchema):
-    """Shift column values in a DataFrame based on specified time intervals."""
+    """Shift column values based on specified time intervals and add the resulting new features to the DataFrame. New features are named in the format of '<group_col>_<shift_col>_lag_<period>_<freq>'."""
 
     df: pd.DataFrame = tool_field(description="DataFrame to process.")
     time_col: str = tool_field(description="Column for time-based shifting.")
