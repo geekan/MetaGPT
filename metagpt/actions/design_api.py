@@ -267,10 +267,10 @@ class WriteDesign(Action):
     @staticmethod
     async def _save_data_api_design(design_doc):
         m = json.loads(design_doc.content)
-        data_api_design = m.get("Data structures and interface definitions")
+        data_api_design = m.get("Data structures and interfaces")
         if not data_api_design:
             return
-        pathname = CONFIG.git_repo.workdir / Path(DATA_API_DESIGN_FILE_REPO) / Path(design_doc.filename).with_suffix("")
+        pathname = CONFIG.git_repo.workdir / DATA_API_DESIGN_FILE_REPO / Path(design_doc.filename).with_suffix("")
         await WriteDesign._save_mermaid_file(data_api_design, pathname)
         logger.info(f"Save class view to {str(pathname)}")
 

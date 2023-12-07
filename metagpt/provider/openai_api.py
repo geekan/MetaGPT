@@ -12,6 +12,7 @@ import asyncio
 import time
 from typing import NamedTuple, Union
 
+import openai
 from openai import APIConnectionError, AsyncAzureOpenAI, AsyncOpenAI, RateLimitError
 from openai.types import CompletionUsage
 from tenacity import (
@@ -188,7 +189,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         else:
             kwargs["model"] = self.model
         kwargs["timeout"] = max(CONFIG.TIMEOUT, timeout) if CONFIG.TIMEOUT is not None else timeout
-        
+
         return kwargs
 
     async def _achat_completion(self, messages: list[dict], timeout=3) -> dict:
@@ -312,8 +313,12 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         >>> rsp = await llm.aask_code(msg)   # -> {'language': 'python', 'code': "print('Hello, World!')"}
         """
         messages = self._process_message(messages)
-        rsp = await self._achat_completion_function(messages, **kwargs)
-        return self.get_choice_function_arguments(rsp)
+        try:
+            rsp = await self._achat_completion_function(messages, **kwargs)
+            return self.get_choice_function_arguments(rsp)
+        except openai.NotFoundError as e:
+            logger.error(f"API TYPE:{CONFIG.openai_api_type}, err:{e}")
+            raise e
 
     def _calc_usage(self, messages: list[dict], rsp: str) -> CompletionUsage:
         if CONFIG.calc_usage:
@@ -406,4 +411,3 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
                 return loop
             else:
                 raise e
-
