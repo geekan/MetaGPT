@@ -1,21 +1,21 @@
-import glob
 import json
+import re
 from typing import List
 
 import fire
 import pandas as pd
-import re
 
 from metagpt.actions import Action
 from metagpt.actions.execute_code import ExecutePyCode
 from metagpt.actions.write_analysis_code import WriteCodeByGenerate, WriteCodeWithTools
+from metagpt.actions.write_code_steps import WriteCodeSteps
 from metagpt.actions.write_plan import WritePlan
+from metagpt.const import DATA_PATH
 from metagpt.logs import logger
 from metagpt.prompts.ml_engineer import GEN_DATA_DESC_PROMPT
 from metagpt.roles import Role
 from metagpt.schema import Message, Plan
 from metagpt.utils.common import CodeParser
-from metagpt.actions.write_code_steps import WriteCodeSteps
 
 STRUCTURAL_CONTEXT = """
 ## User Requirement
@@ -70,32 +70,16 @@ def read_data(file: str) -> pd.DataFrame:
     return df
 
 
-def get_samples(df: pd.DataFrame) -> str:
+def get_column_info(df: pd.DataFrame) -> str:
     data = []
-
-    if len(df) > 5:
-        df_ = df.sample(5, random_state=0)
-    else:
-        df_ = df
-
-    for i in list(df_):
+    for i in df.columns:
         nan_freq = float("%.2g" % (df[i].isna().mean() * 100))
         n_unique = df[i].nunique()
-        s = df_[i].tolist()
+        data.append([i, df[i].dtype, nan_freq, n_unique])
 
-        if str(df[i].dtype) == "float64":
-            s = [round(sample, 2) if not pd.isna(sample) else None for sample in s]
-
-        data.append([df_[i].name, df[i].dtype, nan_freq, n_unique, s])
     samples = pd.DataFrame(
         data,
-        columns=[
-            "Column_name",
-            "Data_type",
-            "NaN_Frequency(%)",
-            "N_unique",
-            "Samples",
-        ],
+        columns=["Column_name", "Data_type", "NaN_Frequency(%)", "N_unique"],
     )
     return samples.to_string(index=False)
 
@@ -124,20 +108,19 @@ class AskReview(Action):
 
 
 class GenerateDataDesc(Action):
-    async def run(self, files: list) -> dict:
+    async def run(self, file: str) -> dict:
         data_desc = {}
-        for file in files:
-            df = read_data(file)
-            file_name = file.split("/")[-1]
-            data_head = df.head().to_dict(orient="list")
-            data_head = json.dumps(data_head, indent=4, ensure_ascii=False)
-            prompt = GEN_DATA_DESC_PROMPT.replace("{data_head}", data_head)
-            rsp = await self._aask(prompt)
-            rsp = CodeParser.parse_code(block=None, text=rsp)
-            data_desc[file_name] = {}
-            data_desc[file_name]["path"] = file
-            data_desc[file_name]["description"] = rsp
-            data_desc[file_name]["column_info"] = get_samples(df)
+        df = read_data(file)
+        data_head = df.head().to_dict(orient="list")
+        data_head = json.dumps(data_head, indent=4, ensure_ascii=False)
+        prompt = GEN_DATA_DESC_PROMPT.replace("{data_head}", data_head)
+        rsp = await self._aask(prompt)
+        rsp = CodeParser.parse_code(block=None, text=rsp)
+        rsp = json.loads(rsp)
+        data_desc["path"] = file
+        data_desc["data_desc"] = rsp["data_desc"]
+        data_desc["column_desc"] = rsp["column_desc"]
+        data_desc["column_info"] = get_column_info(df)
         return data_desc
 
 
@@ -158,7 +141,6 @@ class MLEngineer(Role):
     async def _plan_and_act(self):
         if self.data_path:
             self.data_desc = await self._generate_data_desc()
-
 
         # create initial plan and update until confirmation
         await self._update_plan()
@@ -181,13 +163,14 @@ class MLEngineer(Role):
                 self.plan.finish_current_task()
                 self.working_memory.clear()
 
+                if "print(df_processed.info())" in code:
+                    self.data_desc["column_info"] = result
             else:
                 # update plan according to user's feedback and to take on changed tasks
                 await self._update_plan()
 
     async def _generate_data_desc(self):
-        files = glob.glob(self.data_path + "/*.csv")
-        data_desc = await GenerateDataDesc().run(files=files)
+        data_desc = await GenerateDataDesc().run(self.data_path)
         return data_desc
 
     async def _write_and_exec_code(self, max_retry: int = 3):
@@ -201,9 +184,11 @@ class MLEngineer(Role):
         success = False
         while not success and counter < max_retry:
             context = self.get_useful_memories()
-            # breakpoint()
 
-            column_names_dict = {key: value["column_info"] for key,value in self.data_desc.items()}
+            # print("*" * 10)
+            # print(context)
+            # print("*" * 10)
+            # breakpoint()
 
             if not self.use_tools or self.plan.current_task.task_type == "other":
                 logger.info("Write code with pure generation")
@@ -214,9 +199,9 @@ class MLEngineer(Role):
                 cause_by = WriteCodeByGenerate
             else:
                 logger.info("Write code with tools")
-
+                column_info = self.data_desc['column_info']
                 code = await WriteCodeWithTools().run(
-                    context=context, plan=self.plan, code_steps=code_steps, **{"column_names": column_names_dict}
+                    context=context, plan=self.plan, code_steps=code_steps, column_info=column_info
                 )
                 cause_by = WriteCodeWithTools
 
@@ -296,10 +281,8 @@ if __name__ == "__main__":
     # requirement = "Run data analysis on sklearn Wisconsin Breast Cancer dataset, include a plot, train a model to predict targets (20% as validation), and show validation accuracy"
     # requirement = "Run EDA and visualization on this dataset, train a model to predict survival, report metrics on validation set (20%), dataset: workspace/titanic/train.csv"
 
-    from metagpt.const import DATA_PATH
-
     requirement = "Perform data analysis on the provided data. Train a model to predict the target variable Survived. Include data preprocessing, feature engineering, and modeling in your pipeline. The metric is accuracy."
-    data_path = f"{DATA_PATH}/titanic"
+    data_path = f"{DATA_PATH}/titanic.csv"
 
     async def main(requirement: str = requirement, auto_run: bool = True, data_path: str = data_path):
         role = MLEngineer(goal=requirement, auto_run=auto_run, data_path=data_path)
