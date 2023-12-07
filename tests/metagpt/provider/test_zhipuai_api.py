@@ -15,8 +15,8 @@ def mock_llm_ask(self, messages: list[dict]) -> dict:
     return default_resp
 
 
-def test_zhipuai_completion(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setattr(ZhiPuAIGPTAPI, "completion", mock_llm_ask)
+def test_zhipuai_completion(mocker):
+    mocker.patch("metagpt.provider.zhipuai_api.ZhiPuAIGPTAPI.completion", mock_llm_ask)
 
     resp = ZhiPuAIGPTAPI().completion(messages)
     assert resp["code"] == 200
@@ -28,8 +28,8 @@ async def mock_llm_aask(self, messgaes: list[dict], stream: bool = False) -> dic
 
 
 @pytest.mark.asyncio
-async def test_zhipuai_acompletion(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setattr(ZhiPuAIGPTAPI, "acompletion_text", mock_llm_aask)
+async def test_zhipuai_acompletion(mocker):
+    mocker.patch("metagpt.provider.zhipuai_api.ZhiPuAIGPTAPI.acompletion_text", mock_llm_aask)
 
     resp = await ZhiPuAIGPTAPI().acompletion_text(messages, stream=False)
 
