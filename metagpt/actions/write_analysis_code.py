@@ -192,7 +192,7 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
             output_desc = TOOL_OUTPUT_DESC.get(task_type, "")
 
             hist_info = f"Previous finished code is \n\n ```Python {final_code} ``` \n\n " \
-                        f"Conde runtime result is {result} \n\n"
+                        f"Runtime result is {result} \n\n"
 
             prompt = TOOL_USAGE_PROMPT.format(
                 goal=plan.current_task.instruction,
@@ -213,7 +213,7 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
 
         else:
             hist_info = f"Previous finished code is \n\n ```Python {code_context} ``` \n\n " \
-                     f"Conde runtime result is {result} \n\n"
+                     f"runtime result is {result} \n\n"
 
             prompt = GENERATE_CODE_PROMPT.format(
                 goal=plan.current_task.instruction,
