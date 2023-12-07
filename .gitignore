@@ -148,6 +148,9 @@ allure-results
 .DS_Store
 .vscode
 
+# Config
+config/config.yaml
+
 log.txt
 docs/scripts/set_env.sh
 key.yaml

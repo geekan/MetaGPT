@@ -159,6 +159,7 @@ class MLEngineer(Role):
         if self.data_path:
             self.data_desc = await self._generate_data_desc()
 
+
         # create initial plan and update until confirmation
         await self._update_plan()
 
@@ -200,11 +201,9 @@ class MLEngineer(Role):
         success = False
         while not success and counter < max_retry:
             context = self.get_useful_memories()
-
-            # print("*" * 10)
-            # print(context)
-            # print("*" * 10)
             # breakpoint()
+
+            column_names_dict = {key: value["column_info"] for key,value in self.data_desc.items()}
 
             if not self.use_tools or self.plan.current_task.task_type == "other":
                 logger.info("Write code with pure generation")
@@ -215,8 +214,9 @@ class MLEngineer(Role):
                 cause_by = WriteCodeByGenerate
             else:
                 logger.info("Write code with tools")
+
                 code = await WriteCodeWithTools().run(
-                    context=context, plan=self.plan, code_steps=code_steps,
+                    context=context, plan=self.plan, code_steps=code_steps, **{"column_names": column_names_dict}
                 )
                 cause_by = WriteCodeWithTools
 
@@ -296,8 +296,10 @@ if __name__ == "__main__":
     # requirement = "Run data analysis on sklearn Wisconsin Breast Cancer dataset, include a plot, train a model to predict targets (20% as validation), and show validation accuracy"
     # requirement = "Run EDA and visualization on this dataset, train a model to predict survival, report metrics on validation set (20%), dataset: workspace/titanic/train.csv"
 
+    from metagpt.const import DATA_PATH
+
     requirement = "Perform data analysis on the provided data. Train a model to predict the target variable Survived. Include data preprocessing, feature engineering, and modeling in your pipeline. The metric is accuracy."
-    data_path = "/data/lidanyang/tabular_data/titanic"
+    data_path = f"{DATA_PATH}/titanic"
 
     async def main(requirement: str = requirement, auto_run: bool = True, data_path: str = data_path):
         role = MLEngineer(goal=requirement, auto_run=auto_run, data_path=data_path)

@@ -16,10 +16,14 @@ from metagpt.prompts.ml_engineer import (
     ML_SPECIFIC_PROMPT,
     ML_MODULE_MAP,
     TOOL_OUTPUT_DESC,
+    TOOL_USAGE_PROMPT,
 )
 from metagpt.schema import Message, Plan
 from metagpt.tools.functions import registry
 from metagpt.utils.common import create_func_config
+from metagpt.prompts.ml_engineer import GEN_DATA_DESC_PROMPT, GENERATE_CODE_PROMPT
+from metagpt.utils.common import CodeParser
+from metagpt.actions.execute_code import ExecutePyCode
 
 
 class BaseWriteAnalysisCode(Action):
@@ -47,13 +51,13 @@ class BaseWriteAnalysisCode(Action):
 
         # 添加默认的提示词
         if (
-            default_system_msg not in messages[0]["content"]
-            and messages[0]["role"] != "system"
+                default_system_msg not in messages[0]["content"]
+                and messages[0]["role"] != "system"
         ):
             messages.insert(0, {"role": "system", "content": default_system_msg})
         elif (
-            default_system_msg not in messages[0]["content"]
-            and messages[0]["role"] == "system"
+                default_system_msg not in messages[0]["content"]
+                and messages[0]["role"] == "system"
         ):
             messages[0] = {
                 "role": "system",
@@ -62,7 +66,7 @@ class BaseWriteAnalysisCode(Action):
         return messages
 
     async def run(
-        self, context: List[Message], plan: Plan = None, code_steps: str = ""
+            self, context: List[Message], plan: Plan = None, code_steps: str = ""
     ) -> str:
         """Run of a code writing action, used in data analysis or modeling
 
@@ -83,12 +87,12 @@ class WriteCodeByGenerate(BaseWriteAnalysisCode):
         super().__init__(name, context, llm)
 
     async def run(
-        self,
-        context: [List[Message]],
-        plan: Plan = None,
-        code_steps: str = "",
-        system_msg: str = None,
-        **kwargs,
+            self,
+            context: [List[Message]],
+            plan: Plan = None,
+            code_steps: str = "",
+            system_msg: str = None,
+            **kwargs,
     ) -> str:
         context.append(Message(content=self.REUSE_CODE_INSTRUCTION, role="user"))
         prompt = self.process_msg(context, system_msg)
@@ -98,6 +102,7 @@ class WriteCodeByGenerate(BaseWriteAnalysisCode):
 
 class WriteCodeWithTools(BaseWriteAnalysisCode):
     """Write code with help of local available tools. Choose tools first, then generate code to use the tools"""
+    execute_code = ExecutePyCode()
 
     @staticmethod
     def _parse_recommend_tools(module: str, recommend_tools: list) -> List[Dict]:
@@ -121,10 +126,10 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
         return tool_catalog
 
     async def _tool_recommendation(
-        self,
-        context: [List[Message]],
-        code_steps: str,
-        available_tools: list
+            self,
+            context: [List[Message]],
+            code_steps: str,
+            available_tools: list
     ) -> list:
         """
         Recommend tools for the specified task.
@@ -148,15 +153,28 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
         recommend_tools = rsp["recommend_tools"]
         return recommend_tools
 
+
     async def run(
-        self,
-        context: List[Message],
-        plan: Plan = None,
-        code_steps: str = "",
+            self,
+            context: List[Message],
+            plan: Plan = None,
+            code_steps: str = "",
+            **kwargs,
     ) -> str:
         task_type = plan.current_task.task_type
+        logger.info(f"task_type is: {task_type}")
         available_tools = registry.get_all_schema_by_module(task_type)
-        special_prompt = ML_SPECIFIC_PROMPT.get(task_type, "")
+
+        # special_prompt = ML_SPECIFIC_PROMPT.get(task_type, "")
+
+        finished_tasks = plan.get_finished_tasks()
+        code_context = [task.code for task in finished_tasks]
+
+        code_context = "\n\n".join(code_context)
+
+        ### add runtime info
+        result, success = await self.execute_code.run(code_context)
+        logger.info(result)
 
         if len(available_tools) > 0:
             available_tools = [
@@ -164,25 +182,46 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
                 for tool in available_tools
             ]
 
+            final_code = code_context
+
             recommend_tools = await self._tool_recommendation(context, code_steps, available_tools)
             tool_catalog = self._parse_recommend_tools(task_type, recommend_tools)
             logger.info(f"Recommended tools: \n{recommend_tools}")
 
             module_name = ML_MODULE_MAP[task_type]
             output_desc = TOOL_OUTPUT_DESC.get(task_type, "")
-            prompt = TOO_ORGANIZATION_PROMPT.format(
-                special_prompt=special_prompt,
+
+            hist_info = f"Previous finished code is \n\n ```Python {final_code} ``` \n\n " \
+                        f"Runtime result is {result} \n\n"
+
+            prompt = TOOL_USAGE_PROMPT.format(
+                goal=plan.current_task.instruction,
+                context=hist_info,
                 code_steps=code_steps,
                 module_name=module_name,
                 output_desc=output_desc,
                 function_catalog=tool_catalog,
             )
-            context.append(Message(content=prompt, role="user"))
-        else:
-            context.append(Message(content=self.REUSE_CODE_INSTRUCTION, role="user"))
-            context.append(Message(content=special_prompt, role="user"))
 
-        prompt = self.process_msg(context)
-        tool_config = create_func_config(CODE_GENERATOR_WITH_TOOLS)
-        rsp = await self.llm.aask_code(prompt, **tool_config)
-        return rsp["code"]
+            tool_config = create_func_config(CODE_GENERATOR_WITH_TOOLS)
+
+            rsp = await self.llm.aask_code(prompt, **tool_config)
+            logger.info(f"rsp is: {rsp}")
+            final_code = final_code + "\n\n" + rsp["code"]
+
+            return final_code
+
+        else:
+            hist_info = f"Previous finished code is \n\n ```Python {code_context} ``` \n\n " \
+                     f"runtime result is {result} \n\n"
+
+            prompt = GENERATE_CODE_PROMPT.format(
+                goal=plan.current_task.instruction,
+                context=hist_info,
+            )
+
+            tool_config = create_func_config(CODE_GENERATOR_WITH_TOOLS)
+            logger.info(f"prompt is: {prompt}")
+            rsp = await self.llm.aask_code(prompt, **tool_config)
+            logger.info(f"rsp is: {rsp}")
+            return rsp["code"]
