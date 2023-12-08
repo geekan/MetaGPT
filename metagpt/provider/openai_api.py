@@ -6,15 +6,23 @@
 """
 import asyncio
 import time
-from typing import NamedTuple
+from typing import NamedTuple, Union
 
 import openai
 from openai.error import APIConnectionError
-from tenacity import retry, stop_after_attempt, after_log, wait_fixed, retry_if_exception_type
+from tenacity import (
+    after_log,
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_random_exponential,
+)
 
 from metagpt.config import CONFIG
 from metagpt.logs import logger
 from metagpt.provider.base_gpt_api import BaseGPTAPI
+from metagpt.provider.constant import GENERAL_FUNCTION_SCHEMA, GENERAL_TOOL_CHOICE
+from metagpt.schema import Message
 from metagpt.utils.singleton import Singleton
 from metagpt.utils.token_counter import (
     TOKEN_COSTS,
@@ -48,11 +56,13 @@ class RateLimiter:
 
         self.last_call_time = time.time()
 
+
 class Costs(NamedTuple):
     total_prompt_tokens: int
     total_completion_tokens: int
     total_cost: float
     total_budget: float
+
 
 class CostManager(metaclass=Singleton):
     """计算使用接口的开销"""
@@ -74,7 +84,9 @@ class CostManager(metaclass=Singleton):
         """
         self.total_prompt_tokens += prompt_tokens
         self.total_completion_tokens += completion_tokens
-        cost = (prompt_tokens * TOKEN_COSTS[model]["prompt"] + completion_tokens * TOKEN_COSTS[model]["completion"]) / 1000
+        cost = (
+            prompt_tokens * TOKEN_COSTS[model]["prompt"] + completion_tokens * TOKEN_COSTS[model]["completion"]
+        ) / 1000
         self.total_cost += cost
         logger.info(
             f"Total running cost: ${self.total_cost:.3f} | Max budget: ${CONFIG.max_budget:.3f} | "
@@ -100,34 +112,28 @@ class CostManager(metaclass=Singleton):
         """
         return self.total_completion_tokens
 
-def get_total_cost(self):
-    """
-    Get the total cost of API calls.
+    def get_total_cost(self):
+        """
+        Get the total cost of API calls.
+    
+        Returns:
+        float: The total cost of API calls.
+        """
+        return self.total_cost
 
-    Returns:
-    float: The total cost of API calls.
-    """
-    return self.total_cost
-
-def get_costs(self) -> Costs:
-    """Get all costs"""
-    return Costs(self.total_prompt_tokens, self.total_completion_tokens, self.total_cost, self.total_budget)
-
-def log_and_reraise(retry_state):
-    logger.error(f"Retry attempts exhausted. Last exception: {retry_state.outcome.exception()}")
-    logger.warning("""
-Recommend going to https://deepwisdom.feishu.cn/wiki/MsGnwQBjiif9c3koSJNcYaoSnu4#part-XdatdVlhEojeAfxaaEZcMV3ZniQ
-See FAQ 5.8
-""")
-    raise retry_state.outcome.exception()
+    def get_costs(self) -> Costs:
+        """Get all costs"""
+        return Costs(self.total_prompt_tokens, self.total_completion_tokens, self.total_cost, self.total_budget)
 
 
 def log_and_reraise(retry_state):
     logger.error(f"Retry attempts exhausted. Last exception: {retry_state.outcome.exception()}")
-    logger.warning("""
+    logger.warning(
+        """
 Recommend going to https://deepwisdom.feishu.cn/wiki/MsGnwQBjiif9c3koSJNcYaoSnu4#part-XdatdVlhEojeAfxaaEZcMV3ZniQ
 See FAQ 5.8
-""")
+"""
+    )
     raise retry_state.outcome.exception()
 
 
@@ -162,10 +168,12 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         # iterate through the stream of events
         async for chunk in response:
             collected_chunks.append(chunk)  # save the event response
-            chunk_message = chunk["choices"][0]["delta"]  # extract the message
-            collected_messages.append(chunk_message)  # save the message
-            if "content" in chunk_message:
-                print(chunk_message["content"], end="")
+            choices = chunk["choices"]
+            if len(choices) > 0:
+                chunk_message = chunk["choices"][0].get("delta", {})  # extract the message
+                collected_messages.append(chunk_message)  # save the message
+                if "content" in chunk_message:
+                    print(chunk_message["content"], end="")
         print()
 
         full_reply_content = "".join([m.get("content", "") for m in collected_messages])
@@ -173,26 +181,31 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         self._update_costs(usage)
         return full_reply_content
 
-    def _cons_kwargs(self, messages: list[dict]) -> dict:
+    def _cons_kwargs(self, messages: list[dict], **configs) -> dict:
+        kwargs = {
+            "messages": messages,
+            "max_tokens": self.get_max_tokens(messages),
+            "n": 1,
+            "stop": None,
+            "temperature": 0.3,
+            "timeout": 3,
+        }
+        if configs:
+            kwargs.update(configs)
+
         if CONFIG.openai_api_type == "azure":
-            kwargs = {
-                "deployment_id": CONFIG.deployment_id,
-                "messages": messages,
-                "max_tokens": self.get_max_tokens(messages),
-                "n": 1,
-                "stop": None,
-                "temperature": 0.3,
-            }
+            if CONFIG.deployment_name and CONFIG.deployment_id:
+                raise ValueError("You can only use one of the `deployment_id` or `deployment_name` model")
+            elif not CONFIG.deployment_name and not CONFIG.deployment_id:
+                raise ValueError("You must specify `DEPLOYMENT_NAME` or `DEPLOYMENT_ID` parameter")
+            kwargs_mode = (
+                {"engine": CONFIG.deployment_name}
+                if CONFIG.deployment_name
+                else {"deployment_id": CONFIG.deployment_id}
+            )
         else:
-            kwargs = {
-                "model": self.model,
-                "messages": messages,
-                "max_tokens": self.get_max_tokens(messages),
-                "n": 1,
-                "stop": None,
-                "temperature": 0.3,
-            }
-        kwargs["timeout"] = 3
+            kwargs_mode = {"model": self.model}
+        kwargs.update(kwargs_mode)
         return kwargs
 
     async def _achat_completion(self, messages: list[dict]) -> dict:
@@ -216,9 +229,9 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         return await self._achat_completion(messages)
 
     @retry(
-        stop=stop_after_attempt(3),
-        wait=wait_fixed(1),
-        after=after_log(logger, logger.level('WARNING').name),
+        wait=wait_random_exponential(min=1, max=60),
+        stop=stop_after_attempt(6),
+        after=after_log(logger, logger.level("WARNING").name),
         retry=retry_if_exception_type(APIConnectionError),
         retry_error_callback=log_and_reraise,
     )
@@ -229,14 +242,89 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         rsp = await self._achat_completion(messages)
         return self.get_choice_text(rsp)
 
+    def _func_configs(self, messages: list[dict], **kwargs) -> dict:
+        """
+        Note: Keep kwargs consistent with the parameters in the https://platform.openai.com/docs/api-reference/chat/create
+        """
+        if "tools" not in kwargs:
+            configs = {
+                "tools": [{"type": "function", "function": GENERAL_FUNCTION_SCHEMA}],
+                "tool_choice": GENERAL_TOOL_CHOICE,
+            }
+            kwargs.update(configs)
+
+        return self._cons_kwargs(messages, **kwargs)
+
+    def _chat_completion_function(self, messages: list[dict], **kwargs) -> dict:
+        rsp = self.llm.ChatCompletion.create(**self._func_configs(messages, **kwargs))
+        self._update_costs(rsp.get("usage"))
+        return rsp
+
+    async def _achat_completion_function(self, messages: list[dict], **chat_configs) -> dict:
+        rsp = await self.llm.ChatCompletion.acreate(**self._func_configs(messages, **chat_configs))
+        self._update_costs(rsp.get("usage"))
+        return rsp
+
+    def _process_message(self, messages: Union[str, Message, list[dict], list[Message], list[str]]) -> list[dict]:
+        """convert messages to list[dict]."""
+        if isinstance(messages, list):
+            messages = [Message(msg) if isinstance(msg, str) else msg for msg in messages]
+            return [msg if isinstance(msg, dict) else msg.to_dict() for msg in messages]
+
+        if isinstance(messages, Message):
+            messages = [messages.to_dict()]
+        elif isinstance(messages, str):
+            messages = [{"role": "user", "content": messages}]
+        else:
+            raise ValueError(
+                f"Only support messages type are: str, Message, list[dict], but got {type(messages).__name__}!"
+            )
+        return messages
+
+    def ask_code(self, messages: Union[str, Message, list[dict]], **kwargs) -> dict:
+        """Use function of tools to ask a code.
+
+        Note: Keep kwargs consistent with the parameters in the https://platform.openai.com/docs/api-reference/chat/create
+
+        Examples:
+
+        >>> llm = OpenAIGPTAPI()
+        >>> llm.ask_code("Write a python hello world code.")
+        {'language': 'python', 'code': "print('Hello, World!')"}
+        >>> msg = [{'role': 'user', 'content': "Write a python hello world code."}]
+        >>> llm.ask_code(msg)
+        {'language': 'python', 'code': "print('Hello, World!')"}
+        """
+        messages = self._process_message(messages)
+        rsp = self._chat_completion_function(messages, **kwargs)
+        return self.get_choice_function_arguments(rsp)
+
+    async def aask_code(self, messages: Union[str, Message, list[dict]], **kwargs) -> dict:
+        """Use function of tools to ask a code.
+
+        Note: Keep kwargs consistent with the parameters in the https://platform.openai.com/docs/api-reference/chat/create
+
+        Examples:
+
+        >>> llm = OpenAIGPTAPI()
+        >>> rsp = await llm.ask_code("Write a python hello world code.")
+        >>> rsp
+        {'language': 'python', 'code': "print('Hello, World!')"}
+        >>> msg = [{'role': 'user', 'content': "Write a python hello world code."}]
+        >>> rsp = await llm.aask_code(msg)   # -> {'language': 'python', 'code': "print('Hello, World!')"}
+        """
+        messages = self._process_message(messages)
+        rsp = await self._achat_completion_function(messages, **kwargs)
+        return self.get_choice_function_arguments(rsp)
+
     def _calc_usage(self, messages: list[dict], rsp: str) -> dict:
         usage = {}
         if CONFIG.calc_usage:
             try:
                 prompt_tokens = count_message_tokens(messages, self.model)
                 completion_tokens = count_string_tokens(rsp, self.model)
-                usage['prompt_tokens'] = prompt_tokens
-                usage['completion_tokens'] = completion_tokens
+                usage["prompt_tokens"] = prompt_tokens
+                usage["completion_tokens"] = completion_tokens
                 return usage
             except Exception as e:
                 logger.error("usage calculation failed!", e)
@@ -272,8 +360,8 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
     def _update_costs(self, usage: dict):
         if CONFIG.calc_usage:
             try:
-                prompt_tokens = int(usage['prompt_tokens'])
-                completion_tokens = int(usage['completion_tokens'])
+                prompt_tokens = int(usage["prompt_tokens"])
+                completion_tokens = int(usage["completion_tokens"])
                 self._cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
             except Exception as e:
                 logger.error("updating costs failed!", e)
@@ -285,3 +373,31 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         if not self.auto_max_tokens:
             return CONFIG.max_tokens_rsp
         return get_max_completion_tokens(messages, self.model, CONFIG.max_tokens_rsp)
+
+    def moderation(self, content: Union[str, list[str]]):
+        try:
+            if not content:
+                logger.error("content cannot be empty!")
+            else:
+                rsp = self._moderation(content=content)
+                return rsp
+        except Exception as e:
+            logger.error(f"moderating failed:{e}")
+
+    def _moderation(self, content: Union[str, list[str]]):
+        rsp = self.llm.Moderation.create(input=content)
+        return rsp
+
+    async def amoderation(self, content: Union[str, list[str]]):
+        try:
+            if not content:
+                logger.error("content cannot be empty!")
+            else:
+                rsp = await self._amoderation(content=content)
+                return rsp
+        except Exception as e:
+            logger.error(f"moderating failed:{e}")
+
+    async def _amoderation(self, content: Union[str, list[str]]):
+        rsp = await self.llm.Moderation.acreate(input=content)
+        return rsp

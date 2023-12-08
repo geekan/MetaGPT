@@ -14,7 +14,7 @@ langchain==0.0.231
 loguru==0.6.0
 meilisearch==0.21.0
 numpy==1.24.3
-openai==0.27.8
+openai>=0.28.0
 openpyxl
 beautifulsoup4==4.12.2
 pandas==2.0.3
@@ -23,11 +23,11 @@ pydantic==1.10.8
 #pymilvus==2.2.8
 pytest==7.2.2
 python_docx==0.8.11
-PyYAML==6.0
+PyYAML==6.0.1
 # sentence_transformers==2.2.2
 setuptools==65.6.3
 tenacity==8.2.2
-tiktoken==0.3.3
+tiktoken==0.4.0
 tqdm==4.64.0
 #unstructured[local-inference]
 # playwright
@@ -38,3 +38,10 @@ typing-inspect==0.8.0
 typing_extensions==4.5.0
 libcst==1.0.1
 qdrant-client==1.4.0
+pytest-mock==3.11.1
+open-interpreter==0.1.7; python_version>"3.9"
+ta==0.10.2
+semantic-kernel==0.3.13.dev0
+wrapt==1.15.0
+websocket-client==0.58.0
+zhipuai==1.0.7

@@ -45,10 +45,11 @@ class Config(metaclass=Singleton):
         self.global_proxy = self._get("GLOBAL_PROXY")
         self.openai_api_key = self._get("OPENAI_API_KEY")
         self.anthropic_api_key = self._get("Anthropic_API_KEY")
-        if (not self.openai_api_key or "YOUR_API_KEY" == self.openai_api_key) and (
-            not self.anthropic_api_key or "YOUR_API_KEY" == self.anthropic_api_key
-        ):
-            raise NotConfiguredException("Set OPENAI_API_KEY or Anthropic_API_KEY first")
+        self.zhipuai_api_key = self._get("ZHIPUAI_API_KEY")
+        if (not self.openai_api_key or "YOUR_API_KEY" == self.openai_api_key) and \
+                (not self.anthropic_api_key or "YOUR_API_KEY" == self.anthropic_api_key) and \
+                (not self.zhipuai_api_key or "YOUR_API_KEY" == self.zhipuai_api_key):
+            raise NotConfiguredException("Set OPENAI_API_KEY or Anthropic_API_KEY or ZHIPUAI_API_KEY first")
         self.openai_api_base = self._get("OPENAI_API_BASE")
         openai_proxy = self._get("OPENAI_PROXY") or self.global_proxy
         if openai_proxy:
@@ -59,7 +60,14 @@ class Config(metaclass=Singleton):
         self.openai_api_rpm = self._get("RPM", 3)
         self.openai_api_model = self._get("OPENAI_API_MODEL", "gpt-4")
         self.max_tokens_rsp = self._get("MAX_TOKENS", 2048)
+        self.deployment_name = self._get("DEPLOYMENT_NAME")
         self.deployment_id = self._get("DEPLOYMENT_ID")
+
+        self.spark_appid = self._get("SPARK_APPID")
+        self.spark_api_secret = self._get("SPARK_API_SECRET")
+        self.spark_api_key = self._get("SPARK_API_KEY")
+        self.domain = self._get("DOMAIN")
+        self.spark_url = self._get("SPARK_URL")
 
         self.claude_api_key = self._get("Anthropic_API_KEY")
         self.serpapi_api_key = self._get("SERPAPI_API_KEY")
@@ -82,6 +90,10 @@ class Config(metaclass=Singleton):
         self.calc_usage = self._get("CALC_USAGE", True)
         self.model_for_researcher_summary = self._get("MODEL_FOR_RESEARCHER_SUMMARY")
         self.model_for_researcher_report = self._get("MODEL_FOR_RESEARCHER_REPORT")
+        self.mermaid_engine = self._get("MERMAID_ENGINE", "nodejs")
+        self.pyppeteer_executable_path = self._get("PYPPETEER_EXECUTABLE_PATH", "")
+
+        self.prompt_format = self._get("PROMPT_FORMAT", "markdown")
 
     def _init_with_config_files_and_env(self, configs: dict, yaml_file):
         """Load from config/key.yaml, config/config.yaml, and env in decreasing order of priority"""

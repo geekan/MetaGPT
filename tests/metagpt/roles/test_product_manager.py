@@ -18,4 +18,4 @@ async def test_product_manager():
     rsp = await product_manager.handle(MockMessages.req)
     logger.info(rsp)
     assert len(rsp.content) > 0
-    assert "产品目标" in rsp.content
+    assert "Product Goals" in rsp.content

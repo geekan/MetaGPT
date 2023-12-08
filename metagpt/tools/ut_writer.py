@@ -60,6 +60,7 @@ def test_node_tags(project_key, nodes, operations, expected_msg):
 # 3. If comments are needed, use Chinese.
 
 # If you understand, please wait for me to give the interface definition and just answer "Understood" to save tokens.
+'''
 
 ACT_PROMPT_PREFIX = '''Refer to the test types: such as missing request parameters, field boundary verification, incorrect field type.
 Please output 10 test cases within one `@pytest.mark.parametrize` scope.
@@ -94,7 +95,8 @@ Name	Type	Required	Default Value	Remarks
 code	integer	Yes		
 message	string	Yes		
 data	object	Yes		
-
+```
+'''
 
 
 class UTGenerator:
