@@ -52,13 +52,14 @@ class Team(BaseModel):
 
         # Human requirement.
         self.env.publish_message(
-            Message(role="Human", content=idea, cause_by=UserRequirement, send_to=send_to or MESSAGE_ROUTE_TO_ALL)
+            Message(role="Human", content=idea, cause_by=UserRequirement, send_to=send_to or MESSAGE_ROUTE_TO_ALL),
+            peekable=False,
         )
 
     def _save(self):
         logger.info(self.json(ensure_ascii=False))
 
-    async def run(self, n_round=3):
+    async def run(self, n_round=3, auto_archive=True):
         """Run company until target round or no money"""
         while n_round > 0:
             # self._save()
@@ -66,6 +67,6 @@ class Team(BaseModel):
             logger.debug(f"{n_round=}")
             self._check_balance()
             await self.env.run()
-        if CONFIG.git_repo:
+        if auto_archive and CONFIG.git_repo:
             CONFIG.git_repo.archive()
         return self.env.history

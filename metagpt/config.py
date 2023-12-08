@@ -105,6 +105,7 @@ class Config(metaclass=Singleton):
         self.prompt_format = self._get("PROMPT_FORMAT", "markdown")
         self.workspace_path = Path(self._get("WORKSPACE_PATH", DEFAULT_WORKSPACE_ROOT))
         self._ensure_workspace_exists()
+        self.max_auto_summarize_code = self.max_auto_summarize_code or self._get("MAX_AUTO_SUMMARIZE_CODE", 1)
 
     def _ensure_workspace_exists(self):
         self.workspace_path.mkdir(parents=True, exist_ok=True)
