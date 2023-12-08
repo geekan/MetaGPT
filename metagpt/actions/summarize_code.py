@@ -7,7 +7,7 @@
 """
 from pathlib import Path
 
-from tenacity import retry, stop_after_attempt, wait_fixed
+from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.actions.action import Action
 from metagpt.config import CONFIG
@@ -92,7 +92,7 @@ class SummarizeCode(Action):
     def __init__(self, name="SummarizeCode", context=None, llm=None):
         super().__init__(name, context, llm)
 
-    @retry(stop=stop_after_attempt(2), wait=wait_fixed(1))
+    @retry(stop=stop_after_attempt(2), wait=wait_random_exponential(min=1, max=60))
     async def summarize_code(self, prompt):
         code_rsp = await self._aask(prompt)
         return code_rsp
