@@ -11,7 +11,7 @@ OPENAI_API_BASE: "https://api.openai.com/v1"
 OPENAI_API_MODEL: "gpt-4"
 MAX_TOKENS: 1500
 RPM: 10
-
+TIMEOUT: 10000
 #### if Spark
 #SPARK_APPID : "YOUR_APPID"
 #SPARK_API_SECRET : "YOUR_APISecret"
