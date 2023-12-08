@@ -8,7 +8,8 @@ import itertools
 
 from dateutil.relativedelta import relativedelta
 from pandas.api.types import is_numeric_dtype
-from sklearn.preprocessing import PolynomialFeatures, OneHotEncoder
+from sklearn.model_selection import KFold
+from sklearn.preprocessing import PolynomialFeatures
 
 from metagpt.tools.functions import registry
 from metagpt.tools.functions.schemas.feature_engineering import *
@@ -29,22 +30,36 @@ def polynomial_expansion(df, cols, degree=2):
     return df
 
 
-@registry.register("feature_engineering", OneHotEncoding)
-def one_hot_encoding(df, cols):
-    enc = OneHotEncoder(handle_unknown="ignore", sparse=False)
-    ts_data = enc.fit_transform(df[cols])
-    new_columns = enc.get_feature_names_out(cols)
-    ts_data = pd.DataFrame(ts_data, columns=new_columns, index=df.index)
-    df.drop(cols, axis=1, inplace=True)
-    df = pd.concat([df, ts_data], axis=1)
-    return df
-
-
 @registry.register("feature_engineering", FrequencyEncoding)
 def frequency_encoding(df, cols):
     for col in cols:
         encoder_dict = df[col].value_counts().to_dict()
         df[f"{col}_cnt"] = df[col].map(encoder_dict)
+    return df
+
+
+@registry.register("feature_engineering", TargetMeanEncoder)
+def target_mean_encoder(df, col, label):
+    encoder_dict = df.groupby(col)[label].mean().to_dict()
+    df[f"{col}_target_mean"] = df[col].map(encoder_dict)
+    return df
+
+
+@registry.register("feature_engineering", KFoldTargetMeanEncoder)
+def k_fold_target_mean_encoder(df, col, label, n_splits=5, random_state=2021):
+    tmp = df.copy()
+    kf = KFold(n_splits=n_splits, shuffle=True, random_state=random_state)
+
+    global_mean = tmp[label].mean()
+    col_name = f"{col}_kf_target_mean"
+    for trn_idx, val_idx in kf.split(tmp, tmp[label]):
+        _trn, _val = tmp.iloc[trn_idx], tmp.iloc[val_idx]
+        tmp.loc[tmp.index[val_idx], col_name] = _val[col].map(
+            _trn.groupby(col)[label].mean()
+        )
+    tmp[col_name].fillna(global_mean, inplace=True)
+    encoder_dict = tmp.groupby(col)[col_name].mean().to_dict()
+    df[f"{col}_kf_target_mean"] = df[col].map(encoder_dict)
     return df
 
 
@@ -56,7 +71,8 @@ def cat_cross(df, cols, max_cat_num=100):
 
     for col1, col2 in itertools.combinations(cols, 2):
         cross_col = f"{col1}_cross_{col2}"
-        df[cross_col] = df[col1].astype(str) + "_" + df[col2].astype(str)
+        crossed = df[col1].astype(str) + "_" + df[col2].astype(str)
+        df[cross_col] = crossed.astype('category').cat.codes
     return df
 
 

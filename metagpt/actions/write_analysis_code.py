@@ -12,21 +12,15 @@ from metagpt.prompts.ml_engineer import (
     TOOL_RECOMMENDATION_PROMPT,
     SELECT_FUNCTION_TOOLS,
     CODE_GENERATOR_WITH_TOOLS,
-    TOOL_ORGANIZATION_PROMPT,
+    TOOL_USAGE_PROMPT,
     ML_SPECIFIC_PROMPT,
     ML_MODULE_MAP,
-    TOOL_OUTPUT_DESC,
-    TOOL_USAGE_PROMPT,
+    TOOL_OUTPUT_DESC, DATA_PROCESS_PROMPT,
+    GENERATE_CODE_PROMPT
 )
 from metagpt.schema import Message, Plan
 from metagpt.tools.functions import registry
-from metagpt.utils.common import create_func_config
-from metagpt.prompts.ml_engineer import GEN_DATA_DESC_PROMPT, GENERATE_CODE_PROMPT
-
-from metagpt.actions.execute_code import ExecutePyCode
-
-
-
+from metagpt.utils.common import create_func_config, remove_comments
 
 
 class BaseWriteAnalysisCode(Action):
@@ -83,8 +77,6 @@ class BaseWriteAnalysisCode(Action):
         """
 
 
-
-
 class WriteCodeByGenerate(BaseWriteAnalysisCode):
     """Write code fully by generation"""
 
@@ -107,7 +99,6 @@ class WriteCodeByGenerate(BaseWriteAnalysisCode):
 
 class WriteCodeWithTools(BaseWriteAnalysisCode):
     """Write code with help of local available tools. Choose tools first, then generate code to use the tools"""
-    execute_code = ExecutePyCode()
 
     @staticmethod
     def _parse_recommend_tools(module: str, recommend_tools: list) -> List[Dict]:
@@ -132,7 +123,7 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
 
     async def _tool_recommendation(
             self,
-            context: [List[Message]],
+            task: str,
             code_steps: str,
             available_tools: list
     ) -> list:
@@ -147,12 +138,11 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
         Returns:
             list: recommended tools for the specified task
         """
-        system_prompt = TOOL_RECOMMENDATION_PROMPT.format(
+        prompt = TOOL_RECOMMENDATION_PROMPT.format(
+            current_task=task,
             code_steps=code_steps,
             available_tools=available_tools,
         )
-        prompt = self.process_msg(context, system_prompt)
-
         tool_config = create_func_config(SELECT_FUNCTION_TOOLS)
         rsp = await self.llm.aask_code(prompt, **tool_config)
         recommend_tools = rsp["recommend_tools"]
@@ -163,17 +153,16 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
             context: List[Message],
             plan: Plan = None,
             code_steps: str = "",
+            column_info: str = "",
             **kwargs,
     ) -> str:
         task_type = plan.current_task.task_type
-        logger.info(f"task_type is: {task_type}")
         available_tools = registry.get_all_schema_by_module(task_type)
         special_prompt = ML_SPECIFIC_PROMPT.get(task_type, "")
 
         column_names = kwargs.get("column_names", {})
         finished_tasks = plan.get_finished_tasks()
-        code_context = [task.code for task in finished_tasks]
-
+        code_context = [remove_comments(task.code) for task in finished_tasks]
         code_context = "\n\n".join(code_context)
 
         if len(available_tools) > 0:
@@ -182,17 +171,17 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
                 for tool in available_tools
             ]
 
-            final_code = {}
-            new_code = ""
-            code_steps_dict = eval(code_steps)
-
-            recommend_tools = await self._tool_recommendation(context, code_steps, available_tools)
+            recommend_tools = await self._tool_recommendation(
+                plan.current_task.instruction,
+                code_steps,
+                available_tools
+            )
             tool_catalog = self._parse_recommend_tools(task_type, recommend_tools)
             logger.info(f"Recommended tools: \n{recommend_tools}")
 
             module_name = ML_MODULE_MAP[task_type]
             output_desc = TOOL_OUTPUT_DESC.get(task_type, "")
-
+            new_code = ""
 
             for idx, tool in enumerate(recommend_tools):
                 hist_info = f"Previous finished code is \n\n ```Python {code_context} ``` \n\n "

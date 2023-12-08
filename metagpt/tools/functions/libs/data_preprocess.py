@@ -1,15 +1,12 @@
-
-import pandas as pd
 import numpy as np
-
 from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import KBinsDiscretizer
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import MaxAbsScaler
-from sklearn.preprocessing import RobustScaler
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import OneHotEncoder
 from sklearn.preprocessing import OrdinalEncoder
+from sklearn.preprocessing import RobustScaler
+from sklearn.preprocessing import StandardScaler
 
 from metagpt.tools.functions import registry
 from metagpt.tools.functions.schemas.data_preprocess import *
@@ -19,13 +16,6 @@ from metagpt.tools.functions.schemas.data_preprocess import *
 def fill_missing_value(df: pd.DataFrame, features: list, strategy: str = 'mean', fill_value=None,):
     df[features] = SimpleImputer(strategy=strategy, fill_value=fill_value).fit_transform(df[features])
     return df
-
-
-# @registry.register("data_preprocess", FillMissingValue)
-# def label_encode(df: pd.DataFrame, features: list,):
-#     for col in features:
-#         df[col] = LabelEncoder().fit_transform(df[col])
-#     return df
 
 
 @registry.register("data_preprocess", SplitBins)
@@ -70,6 +60,17 @@ def robust_scale(df: pd.DataFrame, features: list, ):
 @registry.register("data_preprocess", OrdinalEncode)
 def ordinal_encode(df: pd.DataFrame, features: list,):
     df[features] = OrdinalEncoder().fit_transform(df[features])
+    return df
+
+
+@registry.register("data_preprocess", OneHotEncoding)
+def one_hot_encoding(df, cols):
+    enc = OneHotEncoder(handle_unknown="ignore", sparse=False)
+    ts_data = enc.fit_transform(df[cols])
+    new_columns = enc.get_feature_names_out(cols)
+    ts_data = pd.DataFrame(ts_data, columns=new_columns, index=df.index)
+    df.drop(cols, axis=1, inplace=True)
+    df = pd.concat([df, ts_data], axis=1)
     return df
 
 
