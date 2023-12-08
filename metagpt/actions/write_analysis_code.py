@@ -4,7 +4,7 @@
 @Author  :   orange-crow
 @File    :   write_code_v2.py
 """
-from typing import Dict, List, Union, Tuple
+from typing import Dict, List, Union, Tuple, Optional, Any
 
 from metagpt.actions import Action
 from metagpt.logs import logger
@@ -12,7 +12,7 @@ from metagpt.prompts.ml_engineer import (
     TOOL_RECOMMENDATION_PROMPT,
     SELECT_FUNCTION_TOOLS,
     CODE_GENERATOR_WITH_TOOLS,
-    TOO_ORGANIZATION_PROMPT,
+    TOOL_ORGANIZATION_PROMPT,
     ML_SPECIFIC_PROMPT,
     ML_MODULE_MAP,
     TOOL_OUTPUT_DESC,
@@ -22,8 +22,11 @@ from metagpt.schema import Message, Plan
 from metagpt.tools.functions import registry
 from metagpt.utils.common import create_func_config
 from metagpt.prompts.ml_engineer import GEN_DATA_DESC_PROMPT, GENERATE_CODE_PROMPT
-from metagpt.utils.common import CodeParser
+
 from metagpt.actions.execute_code import ExecutePyCode
+
+
+
 
 
 class BaseWriteAnalysisCode(Action):
@@ -78,6 +81,8 @@ class BaseWriteAnalysisCode(Action):
         Returns:
             str: The code string.
         """
+
+
 
 
 class WriteCodeByGenerate(BaseWriteAnalysisCode):
@@ -153,7 +158,6 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
         recommend_tools = rsp["recommend_tools"]
         return recommend_tools
 
-
     async def run(
             self,
             context: List[Message],
@@ -164,17 +168,13 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
         task_type = plan.current_task.task_type
         logger.info(f"task_type is: {task_type}")
         available_tools = registry.get_all_schema_by_module(task_type)
+        special_prompt = ML_SPECIFIC_PROMPT.get(task_type, "")
 
-        # special_prompt = ML_SPECIFIC_PROMPT.get(task_type, "")
-
+        column_names = kwargs.get("column_names", {})
         finished_tasks = plan.get_finished_tasks()
         code_context = [task.code for task in finished_tasks]
 
         code_context = "\n\n".join(code_context)
-
-        ### add runtime info
-        result, success = await self.execute_code.run(code_context)
-        logger.info(result)
 
         if len(available_tools) > 0:
             available_tools = [
@@ -182,7 +182,9 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
                 for tool in available_tools
             ]
 
-            final_code = code_context
+            final_code = {}
+            new_code = ""
+            code_steps_dict = eval(code_steps)
 
             recommend_tools = await self._tool_recommendation(context, code_steps, available_tools)
             tool_catalog = self._parse_recommend_tools(task_type, recommend_tools)
@@ -191,33 +193,40 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
             module_name = ML_MODULE_MAP[task_type]
             output_desc = TOOL_OUTPUT_DESC.get(task_type, "")
 
-            hist_info = f"Previous finished code is \n\n ```Python {final_code} ``` \n\n " \
-                        f"Runtime result is {result} \n\n"
 
-            prompt = TOOL_USAGE_PROMPT.format(
-                goal=plan.current_task.instruction,
-                context=hist_info,
-                code_steps=code_steps,
-                module_name=module_name,
-                output_desc=output_desc,
-                function_catalog=tool_catalog,
-            )
+            for idx, tool in enumerate(recommend_tools):
+                hist_info = f"Previous finished code is \n\n ```Python {code_context} ``` \n\n "
 
-            tool_config = create_func_config(CODE_GENERATOR_WITH_TOOLS)
+                prompt = TOOL_USAGE_PROMPT.format(
+                    goal=plan.current_task.instruction,
+                    context=hist_info,
+                    code_steps=code_steps,
+                    column_names=column_names,
+                    special_prompt=special_prompt,
+                    module_name=module_name,
+                    output_desc=output_desc,
+                    function_catalog=tool_catalog[idx],
+                )
 
-            rsp = await self.llm.aask_code(prompt, **tool_config)
-            logger.info(f"rsp is: {rsp}")
-            final_code = final_code + "\n\n" + rsp["code"]
+                tool_config = create_func_config(CODE_GENERATOR_WITH_TOOLS)
 
-            return final_code
+                rsp = await self.llm.aask_code(prompt, **tool_config)
+                logger.info(f"rsp is: {rsp}")
+                # final_code = final_code + "\n\n" + rsp["code"]
+                # final_code[key] = rsp["code"]
+                new_code = new_code + "\n\n" + rsp["code"]
+                code_context = code_context + "\n\n" + rsp["code"]
+            return new_code
 
         else:
-            hist_info = f"Previous finished code is \n\n ```Python {code_context} ``` \n\n " \
-                     f"runtime result is {result} \n\n"
+            hist_info = f"Previous finished code is \n\n ```Python {code_context} ``` \n\n "
 
             prompt = GENERATE_CODE_PROMPT.format(
                 goal=plan.current_task.instruction,
                 context=hist_info,
+                code_steps=code_steps,
+                special_prompt=special_prompt,
+                # column_names=column_names
             )
 
             tool_config = create_func_config(CODE_GENERATOR_WITH_TOOLS)

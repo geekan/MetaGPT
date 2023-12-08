@@ -105,8 +105,14 @@ TOOL_USAGE_PROMPT = """
 ## Target
 {goal}
 
+Specifically, {special_prompt}
+
 ## History Info
 {context}
+
+## Code Steps for Current Task:
+Follow steps below when you writing code if it's convenient.
+{code_steps}
 
 ## Available Tools:
 Each function is described in JSON format, including the function name and parameters. {output_desc}
@@ -125,7 +131,7 @@ Generate the complete code for this task:
 ```end
 
 ## Attention:
-Make sure use the columns from the dataset columns
+Make sure use the columns from the dataset columns: {column_names}
 Finish your coding tasks as a helpful programmer based on the tools.
 
 """
@@ -133,23 +139,30 @@ GENERATE_CODE_PROMPT = """
 ## Target
 {goal}
 
+Specifically, {special_prompt}
+
+
 ## History Info
 {context}
+
+## Code Steps for Current Task:
+Follow steps below when you writing code if it's convenient.
+{code_steps}
 
 ## Your Output Format:
 Generate the complete code for this task:
 ```python
-# Tools used: [function names or 'none']
-<your code for the current task>
-```end
+import pandas as pd
+
+```
 
 ## Attention:
 Make sure use the columns from the dataset columns
-Finish your coding tasks as a helpful programmer based on the tools.
+Finish your coding tasks as a helpful programmer based on the code.
 
 """
 
-TOO_ORGANIZATION_PROMPT = """
+TOOL_ORGANIZATION_PROMPT = """
 The previous conversation has provided all tasks step-by-step for the use goal and their statuses. 
 Now, begin writing code for the current task. This code should writen strictly on the basis of all previous completed tasks code, not a standalone code. And avoid writing duplicate code that has already been written in previous tasks, such as repeated import of packages, reading data, etc.
 Specifically, {special_prompt}

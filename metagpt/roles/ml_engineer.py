@@ -16,6 +16,7 @@ from metagpt.roles import Role
 from metagpt.schema import Message, Plan
 from metagpt.utils.common import CodeParser
 from metagpt.actions.write_code_steps import WriteCodeSteps
+from metagpt.actions.debug_code import DebugCode
 
 STRUCTURAL_CONTEXT = """
 ## User Requirement
@@ -36,10 +37,13 @@ catboost
 """
 
 
+
+
+
 def truncate(result: str, keep_len: int = 1000) -> str:
     desc = "Truncated to show only the last 1000 characters\n"
     if result.startswith(desc):
-        result = result[-len(desc) :]
+        result = result[-len(desc):]
 
     if len(result) > keep_len:
         result = result[-keep_len:]
@@ -110,9 +114,9 @@ class AskReview(Action):
         logger.info("most recent context:")
         latest_action = context[-1].cause_by.__name__ if context[-1].cause_by else ""
         prompt = f"\nPlease review output from {latest_action}:\n" \
-            "If you want to change a task in the plan, say 'change task task_id, ... (things to change)'\n" \
-            "If you confirm the output and wish to continue with the current process, type CONFIRM\n" \
-            "If you want to terminate the process, type exit:\n"
+                 "If you want to change a task in the plan, say 'change task task_id, ... (things to change)'\n" \
+                 "If you confirm the output and wish to continue with the current process, type CONFIRM\n" \
+                 "If you want to terminate the process, type exit:\n"
         rsp = input(prompt)
 
         if rsp.lower() in ("exit"):
@@ -143,7 +147,7 @@ class GenerateDataDesc(Action):
 
 class MLEngineer(Role):
     def __init__(
-        self, name="ABC", profile="MLEngineer", goal="", auto_run: bool = False, data_path: str = None
+            self, name="ABC", profile="MLEngineer", goal="", auto_run: bool = False, data_path: str = None
     ):
         super().__init__(name=name, profile=profile, goal=goal)
         self._set_react_mode(react_mode="plan_and_act")
@@ -158,7 +162,6 @@ class MLEngineer(Role):
     async def _plan_and_act(self):
         if self.data_path:
             self.data_desc = await self._generate_data_desc()
-
 
         # create initial plan and update until confirmation
         await self._update_plan()
@@ -185,6 +188,15 @@ class MLEngineer(Role):
                 # update plan according to user's feedback and to take on changed tasks
                 await self._update_plan()
 
+
+        finished_tasks = self.plan.get_finished_tasks()
+        if len(finished_tasks) == len(self.plan.tasks):
+            code_context = [task.code for task in finished_tasks]
+            code_context = "\n\n".join(code_context)
+            result, success = await self.execute_code.run(code_context)
+            # truncated the result
+            print(truncate(result))
+
     async def _generate_data_desc(self):
         files = glob.glob(self.data_path + "/*.csv")
         data_desc = await GenerateDataDesc().run(files=files)
@@ -198,16 +210,29 @@ class MLEngineer(Role):
         )
 
         counter = 0
+        improve_code = ""
         success = False
+
+        finished_tasks = self.plan.get_finished_tasks()
+        code_context = [task.code for task in finished_tasks]
+        code_context = "\n\n".join(code_context)
+
         while not success and counter < max_retry:
-            context = self.get_useful_memories()
+            if counter == 0:
+                context = self.get_useful_memories()
+            else:
+                # improve_code = await DebugCode().run(plan=self.plan,
+                #                                      code= code_context + "\n\n" + code,
+                #                                      runtime_result=self.working_memory.get())
+                improve_code = ""
+
             # breakpoint()
 
-            column_names_dict = {key: value["column_info"] for key,value in self.data_desc.items()}
+            column_names_dict = {key: value["column_info"] for key, value in self.data_desc.items()}
 
             if not self.use_tools or self.plan.current_task.task_type == "other":
                 logger.info("Write code with pure generation")
-                # code = "print('abc')"
+
                 code = await WriteCodeByGenerate().run(
                     context=context, plan=self.plan, code_steps=code_steps, temperature=0.0
                 )
@@ -215,16 +240,24 @@ class MLEngineer(Role):
             else:
                 logger.info("Write code with tools")
 
-                code = await WriteCodeWithTools().run(
-                    context=context, plan=self.plan, code_steps=code_steps, **{"column_names": column_names_dict}
-                )
-                cause_by = WriteCodeWithTools
+                if improve_code!="":
+                    code = improve_code
+                    logger.info(f"new code {code}")
+                    cause_by = DebugCode
+                else:
+                    code = await WriteCodeWithTools().run(
+                        context=context, plan=self.plan, code_steps=code_steps, **{"column_names": column_names_dict}
+                    )
+
+                    cause_by = WriteCodeWithTools
 
             self.working_memory.add(
                 Message(content=code, role="assistant", cause_by=cause_by)
             )
 
-            result, success = await self.execute_code.run(code)
+            # debug on code, run on runcode with finished code and new_df
+            runcode = code_context + "\n\n" + code
+            result, success = await self.execute_code.run(runcode)
             # truncated the result
             print(truncate(result))
             # print(result)
@@ -266,6 +299,7 @@ class MLEngineer(Role):
         self.plan.add_tasks(tasks)
         self.working_memory.clear()
 
+
     def get_useful_memories(self) -> List[Message]:
         """find useful memories only to reduce context length and improve performance"""
         # TODO dataset description , code steps
@@ -298,11 +332,13 @@ if __name__ == "__main__":
 
     from metagpt.const import DATA_PATH
 
-    requirement = "Perform data analysis on the provided data. Train a model to predict the target variable Survived. Include data preprocessing, feature engineering, and modeling in your pipeline. The metric is accuracy."
+    # requirement = "Perform data analysis on the provided data. Train a model to predict the target variable Survived. Include data preprocessing, feature engineering, and modeling in your pipeline. The metric is accuracy."
     data_path = f"{DATA_PATH}/titanic"
+    requirement = f"This is a titanic passenger survival dataset, your goal is to predict passenger survival outcome. The target column is Survived. Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. Report accuracy on the eval data. Train data path: '{data_path}/split_train.csv', eval data path: '{data_path}/split_eval.csv'."
 
-    async def main(requirement: str = requirement, auto_run: bool = True, data_path: str = data_path):
+    async def main(requirement: str = requirement, auto_run: bool = True, data_path: str = ""):
         role = MLEngineer(goal=requirement, auto_run=auto_run, data_path=data_path)
         await role.run(requirement)
+
 
     fire.Fire(main)
