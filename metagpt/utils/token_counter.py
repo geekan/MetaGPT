@@ -22,7 +22,22 @@ TOKEN_COSTS = {
     "gpt-4-32k-0314": {"prompt": 0.06, "completion": 0.12},
     "gpt-4-0613": {"prompt": 0.06, "completion": 0.12},
     "text-embedding-ada-002": {"prompt": 0.0004, "completion": 0.0},
-    "chatglm_turbo": {"prompt": 0.0, "completion": 0.00069}  # 32k version, prompt + completion tokens=0.005￥/k-tokens
+    "chatglm_turbo": {"prompt": 0.0, "completion": 0.00069},
+    # AWS Bedrock models
+    "bedrock/amazon.titan-text-lite-v1": {"prompt": 0.0003, "completion": 0.0004},
+    "bedrock/amazon.titan-text-express-v1": {"prompt": 0.0008, "completion": 0.0016},
+    "bedrock/amazon.titan-embed-text-v1": {"prompt": 0.0003, "completion": 0.0004},
+    "bedrock/ai21.j2-mid-v1": {"prompt": 0.0125, "completion": 0.0125},
+    "bedrock/ai21.j2-ultra-v1": {"prompt": 0.0188, "completion": 0.0188},
+    "bedrock/anthropic.claude-instant-v1": {"prompt": 0.00163, "completion": 0.00551},
+    "bedrock/anthropic.claude-v1": {"prompt": 0.00163, "completion": 0.00551},
+    "bedrock/anthropic.claude-v2": {"prompt": 0.008, "completion": 0.024},
+    "bedrock/anthropic.claude-v2:1s": {"prompt": 0.008, "completion": 0.024},
+    "bedrock/cohere.command-text-v14": {"prompt": 0.0015, "completion": 0.002},
+    "bedrock/cohere.command-light-text-v14": {"prompt": 0.0003, "completion": 0.0006},
+    "bedrock/cohere.embed-english-v3": {"prompt": 0.0001, "completion": 0.0},
+    "bedrock/v": {"prompt": 0.0001, "completion": 0.0},
+    # 32k version, prompt + completion tokens=0.005￥/k-tokens
 }
 
 
@@ -38,7 +53,16 @@ TOKEN_MAX = {
     "gpt-4-32k-0314": 32768,
     "gpt-4-0613": 8192,
     "text-embedding-ada-002": 8192,
-    "chatglm_turbo": 32768
+    "chatglm_turbo": 32768,
+    "bedrock/amazon.titan-text-lite-v1": 4096,
+    "bedrock/amazon.titan-text-express-v1": 8191,
+    "bedrock/amazon.titan-embed-text-v1": 8191,
+    "bedrock/ai21.j2-mid-v1": 8191,
+    "bedrock/ai21.j2-ultra-v1": 8191,
+    "bedrock/anthropic.claude-v2:1": 204800,
+    "bedrock/anthropic.claude-v2": 102400,
+    "bedrock/anthropic.claude-v1": 102400,
+    "bedrock/anthropic.claude-instant-v1": 102400,
 }
 
 
