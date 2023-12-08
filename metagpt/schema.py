@@ -48,9 +48,9 @@ class Document(BaseModel):
     Represents a document.
     """
 
-    root_path: str
-    filename: str
-    content: Optional[str] = None
+    root_path: str = ""
+    filename: str = ""
+    content: str = ""
 
     def get_meta(self) -> Document:
         """Get metadata of the document.
@@ -260,8 +260,8 @@ class MessageQueue:
 class CodingContext(BaseModel):
     filename: str
     design_doc: Document
-    task_doc: Document
-    code_doc: Document
+    task_doc: Optional[Document]
+    code_doc: Optional[Document]
 
     @staticmethod
     def loads(val: str) -> CodingContext | None:
@@ -275,7 +275,7 @@ class CodingContext(BaseModel):
 class TestingContext(BaseModel):
     filename: str
     code_doc: Document
-    test_doc: Document
+    test_doc: Optional[Document]
 
     @staticmethod
     def loads(val: str) -> TestingContext | None:
@@ -324,10 +324,11 @@ class RunCodeResult(BaseModel):
 class CodeSummarizeContext(BaseModel):
     design_filename: str = ""
     task_filename: str = ""
-    codes_filenames: Set[str] = Field(default_factory=set)
+    codes_filenames: List[str] = Field(default_factory=list)
+    reason: str = ""
 
     @staticmethod
-    def loads(filenames: Set) -> CodeSummarizeContext:
+    def loads(filenames: List) -> CodeSummarizeContext:
         ctx = CodeSummarizeContext()
         for filename in filenames:
             if Path(filename).is_relative_to(SYSTEM_DESIGN_FILE_REPO):
@@ -337,3 +338,6 @@ class CodeSummarizeContext(BaseModel):
                 ctx.task_filename = str(filename)
                 continue
         return ctx
+
+    def __hash__(self):
+        return hash((self.design_filename, self.task_filename))

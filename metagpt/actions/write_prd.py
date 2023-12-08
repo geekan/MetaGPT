@@ -8,6 +8,7 @@
             1. According to Section 2.2.3.1 of RFC 135, replace file data in the message with the file name.
             2. According to the design in Section 2.2.3.5.2 of RFC 135, add incremental iteration functionality.
             3. Move the document storage operations related to WritePRD from the save operation of WriteDesign.
+@Modified By: mashenquan, 2023/12/5. Move the generation logic of the project name to WritePRD.
 """
 from __future__ import annotations
 
@@ -27,6 +28,7 @@ from metagpt.const import (
 )
 from metagpt.logs import logger
 from metagpt.schema import Document, Documents
+from metagpt.utils.common import CodeParser
 from metagpt.utils.file_repository import FileRepository
 from metagpt.utils.get_template import get_template
 from metagpt.utils.mermaid import mermaid_to_file
@@ -53,7 +55,7 @@ ATTENTION: Output carefully referenced "Format example" in format.
 {{
     "Language": "", # str, use the same language as the user requirement. en_us / zh_cn etc.
     "Original Requirements": "", # str, place the polished complete original requirements here
-    "project_name": "", # str, name it like game_2048 / web_2048 / simple_crm etc.
+    "Project Name": "{project_name}", # str, if it's empty, name it with snake case style, like game_2048 / web_2048 / simple_crm etc.
     "Search Information": "",
     "Requirements": "", 
     "Product Goals": [], # Provided as Python list[str], up to 3 clear, orthogonal product goals.
@@ -85,9 +87,10 @@ and only output the json inside this tag, nothing else
 """,
         "FORMAT_EXAMPLE": """
 [CONTENT]
-{
+{{
     "Language": "",
     "Original Requirements": "",
+    "Project Name": "{project_name}",
     "Search Information": "",
     "Requirements": "",
     "Product Goals": [],
@@ -111,7 +114,7 @@ and only output the json inside this tag, nothing else
     "Requirement Pool": [["P0","P0 requirement"],["P1","P1 requirement"]],
     "UI Design draft": "",
     "Anything UNCLEAR": "",
-}
+}}
 [/CONTENT]
 """,
     },
@@ -228,6 +231,7 @@ There are no unclear points.
 OUTPUT_MAPPING = {
     "Language": (str, ...),
     "Original Requirements": (str, ...),
+    "Project Name": (str, ...),
     "Product Goals": (List[str], ...),
     "User Stories": (List[str], ...),
     "Competitive Analysis": (List[str], ...),
@@ -270,7 +274,7 @@ ATTENTION: Output carefully referenced "Old PRD" in format.
 {{
     "Language": "", # str, use the same language as the user requirement. en_us / zh_cn etc.
     "Original Requirements": "", # str, place the polished complete original requirements here
-    "project_name": "", # str, name it like game_2048 / web_2048 / simple_crm etc.
+    "Project Name": "{project_name}", # str, if it's empty, name it with snake case style, like game_2048 / web_2048 / simple_crm etc.
     "Search Information": "",
     "Requirements": "", 
     "Product Goals": [], # Provided as Python list[str], up to 3 clear, orthogonal product goals.
@@ -320,6 +324,7 @@ class WritePRD(Action):
             if not prd_doc:
                 continue
             change_files.docs[prd_doc.filename] = prd_doc
+            logger.info(f"REWRITE PRD:{prd_doc.filename}")
         # If there is no existing PRD, generate one using 'docs/requirement.txt'.
         if not change_files.docs:
             prd_doc = await self._update_prd(
@@ -327,6 +332,7 @@ class WritePRD(Action):
             )
             if prd_doc:
                 change_files.docs[prd_doc.filename] = prd_doc
+                logger.info(f"NEW PRD:{prd_doc.filename}")
         # Once all files under 'docs/prds/' have been compared with the newly added requirements, trigger the
         # 'publish' message to transition the workflow to the next stage. This design allows room for global
         # optimization in subsequent steps.
@@ -343,32 +349,36 @@ class WritePRD(Action):
 
         # logger.info(format)
         prompt_template, format_example = get_template(templates, format)
+        project_name = CONFIG.project_name if CONFIG.project_name else ""
+        format_example = format_example.format(project_name=project_name)
         # logger.info(prompt_template)
         # logger.info(format_example)
         prompt = prompt_template.format(
-            requirements=requirements, search_information=info, format_example=format_example
+            requirements=requirements, search_information=info, format_example=format_example, project_name=project_name
         )
         # logger.info(prompt)
         # prd = await self._aask_v1(prompt, "prd", OUTPUT_MAPPING)
         prd = await self._aask_v1(prompt, "prd", OUTPUT_MAPPING, format=format)
+        await self._rename_workspace(prd)
         return prd
 
     async def _is_relative_to(self, new_requirement_doc, old_prd_doc) -> bool:
-        m = json.loads(old_prd_doc.content)
-        if m.get("Original Requirements") == new_requirement_doc.content:
-            # There have been no changes in the requirements, so they are considered unrelated.
-            return False
         prompt = IS_RELATIVE_PROMPT.format(old_prd=old_prd_doc.content, requirements=new_requirement_doc.content)
         res = await self._aask(prompt=prompt)
-        logger.info(f"[{new_requirement_doc.root_relative_path}, {old_prd_doc.root_relative_path}]: {res}")
+        logger.info(f"REQ-RELATIVE:[{new_requirement_doc.root_relative_path}, {old_prd_doc.root_relative_path}]: {res}")
         if "YES" in res:
             return True
         return False
 
     async def _merge(self, new_requirement_doc, prd_doc, format=CONFIG.prompt_format) -> Document:
-        prompt = MERGE_PROMPT.format(requirements=new_requirement_doc.content, old_prd=prd_doc.content)
+        if not CONFIG.project_name:
+            CONFIG.project_name = Path(CONFIG.project_path).name
+        prompt = MERGE_PROMPT.format(
+            requirements=new_requirement_doc.content, old_prd=prd_doc.content, project_name=CONFIG.project_name
+        )
         prd = await self._aask_v1(prompt, "prd", OUTPUT_MAPPING, format=format)
         prd_doc.content = prd.instruct_content.json(ensure_ascii=False)
+        await self._rename_workspace(prd)
         return prd_doc
 
     async def _update_prd(self, requirement_doc, prd_doc, prds_file_repo, *args, **kwargs) -> Document | None:
@@ -404,3 +414,19 @@ class WritePRD(Action):
     @staticmethod
     async def _save_pdf(prd_doc):
         await FileRepository.save_as(doc=prd_doc, with_suffix=".md", relative_path=PRD_PDF_FILE_REPO)
+
+    @staticmethod
+    async def _rename_workspace(prd):
+        if CONFIG.project_path:  # Updating on the old version has already been specified if it's valid. According to
+            # Section 2.2.3.10 of RFC 135
+            if not CONFIG.project_name:
+                CONFIG.project_name = Path(CONFIG.project_path).name
+                return
+
+        if not CONFIG.project_name:
+            if isinstance(prd, ActionOutput):
+                ws_name = prd.instruct_content.dict()["Project Name"]
+            else:
+                ws_name = CodeParser.parse_str(block="Project Name", text=prd)
+            CONFIG.project_name = ws_name
+        CONFIG.git_repo.rename_root(CONFIG.project_name)
