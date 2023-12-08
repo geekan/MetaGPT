@@ -41,7 +41,7 @@ qdrant-client==1.4.0
 pytest-mock==3.11.1
 open-interpreter==0.1.7; python_version>"3.9"
 ta==0.10.2
-semantic-kernel==0.3.13.dev0
+semantic-kernel
 wrapt==1.15.0
 websocket-client==0.58.0
 zhipuai==1.0.7
