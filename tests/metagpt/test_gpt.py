@@ -20,7 +20,7 @@ class TestGPT:
         assert len(answer) > 0
 
     def test_gptapi_ask_batch(self, llm_api):
-        answer = llm_api.ask_batch(["请扮演一个Google Python专家工程师，如果理解，回复明白", "写一个hello world"])
+        answer = llm_api.ask_batch(["请扮演一个Google Python专家工程师，如果理解，回复明白", "写一个hello world"], timeout=60)
         assert len(answer) > 0
 
     def test_llm_api_ask_code(self, llm_api):
