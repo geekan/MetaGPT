@@ -104,6 +104,9 @@ def _gen_get_driver_func(browser_type, *args, executable_path=None):
     def _get_driver():
         options = Options()
         options.add_argument("--headless")
+        options.add_argument("--no-sandbox") # This flag is important for running in a Docker container
+        options.add_argument("--disable-gpu") # This flag can help avoid renderer issue
+        options.add_argument("--disable-dev-shm-usage") # Overcome limited resource problems
         options.add_argument("--enable-javascript")
         if browser_type == "chrome":
             options.add_argument("--no-sandbox")
