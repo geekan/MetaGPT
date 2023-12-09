@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 from typing import Callable
+from typing import Generator
 
 from pydantic import parse_obj_as
 
@@ -14,7 +15,7 @@ from metagpt.logs import logger
 from metagpt.tools.search_engine import SearchEngine
 from metagpt.tools.web_browser_engine import WebBrowserEngine, WebBrowserEngineType
 from metagpt.utils.common import OutputParser
-from metagpt.utils.text import generate_prompt_chunk, reduce_message_length
+from metagpt.utils.text import generate_prompt_chunk
 
 LANG_PROMPT = "Please respond in {language}."
 
@@ -127,7 +128,8 @@ class CollectLinks(Action):
                 remove.pop()
                 if len(remove) == 0:
                     break
-        prompt = reduce_message_length(gen_msg(), self.llm.model, system_text, CONFIG.max_tokens_rsp)
+
+        prompt = self.reduce_message_length(gen_msg())
         logger.debug(prompt)
         queries = await self._aask(prompt, [system_text])
         try:
@@ -140,6 +142,10 @@ class CollectLinks(Action):
         for query in queries:
             ret[query] = await self._search_and_rank_urls(topic, query, url_per_query)
         return ret
+
+    def reduce_message_length(self, msgs: Generator[str, None, None]) -> str:
+        for msg in msgs:
+            return msg
 
     async def _search_and_rank_urls(self, topic: str, query: str, num_results: int = 4) -> list[str]:
         """Search and rank URLs based on a query.
