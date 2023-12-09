@@ -42,7 +42,7 @@ qdrant-client==1.4.0
 pytest-mock==3.11.1
 open-interpreter==0.1.7; python_version>"3.9"
 ta==0.10.2
-semantic-kernel
+semantic-kernel==0.4.0.dev0
 wrapt==1.15.0
 #aiohttp_jinja2
 #azure-cognitiveservices-speech~=1.31.0

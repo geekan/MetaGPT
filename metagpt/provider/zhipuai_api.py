@@ -9,7 +9,7 @@ from tenacity import (
     retry,
     retry_if_exception_type,
     stop_after_attempt,
-    wait_fixed,
+    wait_random_exponential,
 )
 from requests import ConnectionError
 
@@ -126,7 +126,7 @@ class ZhiPuAIGPTAPI(BaseGPTAPI):
 
     @retry(
         stop=stop_after_attempt(3),
-        wait=wait_fixed(1),
+        wait=wait_random_exponential(min=1, max=60),
         after=after_log(logger, logger.level("WARNING").name),
         retry=retry_if_exception_type(ConnectionError),
         retry_error_callback=log_and_reraise
