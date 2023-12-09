@@ -32,7 +32,7 @@ TOKEN_COSTS = {
     "bedrock/anthropic.claude-instant-v1": {"prompt": 0.00163, "completion": 0.00551},
     "bedrock/anthropic.claude-v1": {"prompt": 0.00163, "completion": 0.00551},
     "bedrock/anthropic.claude-v2": {"prompt": 0.008, "completion": 0.024},
-    "bedrock/anthropic.claude-v2:1s": {"prompt": 0.008, "completion": 0.024},
+    "bedrock/anthropic.claude-v2:1": {"prompt": 0.008, "completion": 0.024},
     "bedrock/cohere.command-text-v14": {"prompt": 0.0015, "completion": 0.002},
     "bedrock/cohere.command-light-text-v14": {"prompt": 0.0003, "completion": 0.0006},
     "bedrock/cohere.embed-english-v3": {"prompt": 0.0001, "completion": 0.0},
