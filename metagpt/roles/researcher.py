@@ -75,6 +75,7 @@ class Researcher(Role):
         Returns: str
         """
         return get_research_system_text(topic, self.language)
+
     async def react(self) -> Message:
         msg = await super().react()
         report = msg.instruct_content
