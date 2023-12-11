@@ -19,6 +19,12 @@ class MakeTools(WriteCodeByGenerate):
     """
 
     def __init__(self, name: str = '', context: list[Message] = None, llm: LLM = None, workspace: str = None):
+        """
+        :param str name: name, defaults to ''
+        :param list[Message] context: context, defaults to None
+        :param LLM llm: llm, defaults to None
+        :param str workspace: tools code saved file path dir, defaults to None
+        """
         super().__init__(name, context, llm)
         self.workspace = workspace or "."
         self.file_suffix: str = '.py'
