@@ -227,9 +227,9 @@ cp config/config.yaml config/key.yaml
 # スクリプトの実行
 metagpt "Write a cli snake game"
 # プロジェクトの実施にエンジニアを雇わないこと
-metagpt "Write a cli snake game" --implement False
+metagpt "Write a cli snake game" --no-implement
 # エンジニアを雇い、コードレビューを行う
-metagpt "Write a cli snake game" --code_review True
+metagpt "Write a cli snake game" --code_review
 ```
 
 スクリプトを実行すると、`workspace/` ディレクトリに新しいプロジェクトが見つかります。

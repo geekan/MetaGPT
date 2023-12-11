@@ -21,9 +21,9 @@ cp config/config.yaml config/key.yaml
 # Run the script
 metagpt "Write a cli snake game"
 # Do not hire an engineer to implement the project
-metagpt "Write a cli snake game" --implement False
+metagpt "Write a cli snake game" --no-implement
 # Hire an engineer and perform code reviews
-metagpt "Write a cli snake game" --code_review True
+metagpt "Write a cli snake game" --code_review
 ```
 
 After running the script, you can find your new project in the `workspace/` directory.
