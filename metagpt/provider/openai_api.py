@@ -326,19 +326,17 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
     def _calc_usage(self, messages: list[dict], rsp: str) -> dict:
         usage = {}
         if CONFIG.calc_usage:
-            try:
+            if self.model in TOKEN_COSTS:
                 prompt_tokens = count_message_tokens(messages, self.model)
                 completion_tokens = count_string_tokens(rsp, self.model)
-                usage["prompt_tokens"] = prompt_tokens
-                usage["completion_tokens"] = completion_tokens
-                return usage
-            except Exception as e:
-                prompt_tokens = count_message_tokens(messages,"gpt-3.5-turbo-0613")
+            else:
+                logger.info(
+                    "tiktoken can't calculate the LLM you're using, tokens are calculated as in gpt-3.5-turbo-0613")
+                prompt_tokens = count_message_tokens(messages, "gpt-3.5-turbo-0613")
                 completion_tokens = count_string_tokens(rsp, "gpt-3.5-turbo-0613")
-                usage["prompt_tokens"] = prompt_tokens
-                usage["completion_tokens"] = completion_tokens
-                logger.info("tiktoken can't calculate the LLM you're using, tokens are calculated as in gpt-3.5-turbo-0613")
-                return usage
+            usage["prompt_tokens"] = prompt_tokens
+            usage["completion_tokens"] = completion_tokens
+            return usage
         else:
             return usage
 
