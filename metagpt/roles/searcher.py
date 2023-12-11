@@ -3,7 +3,7 @@
 """
 @Time    : 2023/5/23 17:25
 @Author  : alexanderwu
-@File    : seacher.py
+@File    : searcher.py
 """
 from metagpt.actions import ActionOutput, SearchAndSummarize
 from metagpt.logs import logger

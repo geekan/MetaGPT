@@ -163,6 +163,7 @@ Chromium のダウンロードをスキップすることができます。
     注: この方法は pdf エクスポートに対応していません。
 
 ### Docker によるインストール
+> Windowsでは、"/opt/metagpt"をDockerが作成する権限を持つディレクトリに置き換える必要があります。例えば、"D:\Users\x\metagpt"などです。
 
 ```bash
 # ステップ 1: metagpt 公式イメージをダウンロードし、config.yaml を準備する
@@ -299,7 +300,7 @@ Hugging Face Space で試す
 
 ## 引用
 
-現時点では、[Arxiv 論文](https://arxiv.org/abs/2308.00352)を引用してください:
+現時点では、[arXiv 論文](https://arxiv.org/abs/2308.00352)を引用してください:
 
 ```bibtex
 @misc{hong2023metagpt,

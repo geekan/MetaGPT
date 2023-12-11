@@ -63,6 +63,7 @@ sudo npm install -g @mermaid-js/mermaid-cli
 detail installation please refer to [cli_install](https://docs.deepwisdom.ai/guide/get_started/installation.html#install-stable-version)
 
 ### Docker installation
+> Note: In the Windows, you need to replace "/opt/metagpt" with a directory that Docker has permission to create, such as "D:\Users\x\metagpt"
 
 ```bash
 # Step 1: Download metagpt official image and prepare config.yaml
@@ -123,7 +124,7 @@ We will respond to all questions within 2-3 business days.
 
 ## Citation
 
-For now, cite the [Arxiv paper](https://arxiv.org/abs/2308.00352):
+For now, cite the [arXiv paper](https://arxiv.org/abs/2308.00352):
 
 ```bibtex
 @misc{hong2023metagpt,

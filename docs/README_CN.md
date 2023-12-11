@@ -60,6 +60,7 @@ sudo npm install -g @mermaid-js/mermaid-cli
 详细的安装请安装 [cli_install](https://docs.deepwisdom.ai/guide/get_started/installation.html#install-stable-version)
 
 ### Docker安装
+> 注意：在Windows中，你需要将 "/opt/metagpt" 替换为Docker具有创建权限的目录，比如"D:\Users\x\metagpt"
 
 ```bash
 # 步骤1: 下载metagpt官方镜像并准备好config.yaml
@@ -120,7 +121,7 @@ https://github.com/geekan/MetaGPT/assets/34952977/34345016-5d13-489d-b9f9-b82ace
 
 ## 引用
 
-引用 [Arxiv paper](https://arxiv.org/abs/2308.00352):
+引用 [arXiv paper](https://arxiv.org/abs/2308.00352):
 
 ```bibtex
 @misc{hong2023metagpt,
