@@ -17,9 +17,10 @@ from metagpt.logs import logger
 from metagpt.utils.common import OutputParser
 from metagpt.utils.custom_decoder import CustomDecoder
 from metagpt.provider.openai_api import OpenAIGPTAPI
-from metagpt.provider.customized_api import CustomizedGPTAPI
+from metagpt.provider.open_llm_api import OpenLLMGPTAPI
 from metagpt.config import CONFIG
 import openai
+
 
 class Action(ABC):
     def __init__(self, name: str = "", context=None, llm: LLM = None):
@@ -53,9 +54,9 @@ class Action(ABC):
 
         # For openai\like openai model,will switch openai base,
         # no effect on the rest of the model.
-        if isinstance(self.llm,CustomizedGPTAPI):
-            self.llm._CustomizedGPTAPI__start_model(CONFIG)
-        elif isinstance(self.llm,OpenAIGPTAPI):
+        if isinstance(self.llm, OpenLLMGPTAPI):
+            self.llm._OpenLLMGPTAPI__init_openllm(CONFIG)
+        elif isinstance(self.llm, OpenAIGPTAPI):
             self.llm._OpenAIGPTAPI__init_openai(CONFIG)
 
         return await self.llm.aask(prompt, system_msgs)
@@ -76,9 +77,9 @@ class Action(ABC):
 
         # For openai\like openai model,will switch openai base,
         # no effect on the rest of the model.
-        if isinstance(self.llm,CustomizedGPTAPI):
-            self.llm._CustomizedGPTAPI__start_model(CONFIG)
-        elif isinstance(self.llm,OpenAIGPTAPI):
+        if isinstance(self.llm, OpenLLMGPTAPI):
+            self.llm._OpenLLMGPTAPI__init_openllm(CONFIG)
+        elif isinstance(self.llm, OpenAIGPTAPI):
             self.llm._OpenAIGPTAPI__init_openai(CONFIG)
 
         content = await self.llm.aask(prompt, system_msgs)
