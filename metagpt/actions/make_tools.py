@@ -13,8 +13,8 @@ class MakeTools(WriteCodeByGenerate):
     DEFAULT_SYSTEM_MSG = """Please Create a General Function Code startswith `def` from any codes you got.\n
     **Notice:1. The import statement must be written after `def`, it is very important for you.
     2. Reflect on whether it meets the requirements of function.
-    3. Refactor your code with the best performance when dealing with big data.
-    4. Must Write example code, and it could be execute in the user machine.**
+    3. Refactor your code to get the most efficient implementation for large input data in the shortest amount of time.
+    4. Write example code by using old varibales in old code, and make sure it could be execute in the user's machine.**
     """
 
     def __init__(self, name: str = '', context=None, llm=None, workspace: str = None):
