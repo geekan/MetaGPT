@@ -16,7 +16,8 @@ class MakeTools(WriteCodeByGenerate):
     1. Reflect on whether it meets the requirements of a general function.
     2. Refactor your code to get the most efficient implementation for large input data in the shortest amount of time.
     3. Use Google style for function annotations.
-    4. Write example code by using old varibales in old code, and make sure it could be execute in the user's machine.**
+    4. Write example code after `if __name__ == '__main__':`by using old varibales in old code,
+    and make sure it could be execute in the user's machine.**
     """
 
     def __init__(self, name: str = '', context: list[Message] = None, llm: LLM = None, workspace: str = None):
