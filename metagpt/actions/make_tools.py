@@ -10,9 +10,9 @@ from metagpt.actions.write_analysis_code import WriteCodeByGenerate
 
 
 class MakeTools(WriteCodeByGenerate):
-    DEFAULT_SYSTEM_MSG = """Please Create a General Function Code startswith `def` from any codes you got.\n
+    DEFAULT_SYSTEM_MSG = """Please Create a very General Function Code startswith `def` from any codes you got.\n
     **Notice:1. The import statement must be written after `def`, it is very important for you.
-    2. Reflect on whether it meets the requirements of function.
+    2. Reflect on whether it meets the requirements of a general function.
     3. Refactor your code to get the most efficient implementation for large input data in the shortest amount of time.
     4. Write example code by using old varibales in old code, and make sure it could be execute in the user's machine.**
     """
