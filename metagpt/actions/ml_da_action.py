@@ -7,8 +7,8 @@ from metagpt.utils.common import CodeParser
 from metagpt.logs import logger
 
 
-def truncate(result: str, keep_len: int = 1000) -> str:
-    desc = "Truncated to show only the last 1000 characters\n"
+def truncate(result: str, keep_len: int = 2000) -> str:
+    desc = "Truncated to show only the last keep_len characters\n"
     if result.startswith(desc):
         result = result[-len(desc) :]
 
@@ -70,7 +70,9 @@ class AskReview(Action):
         if rsp.lower() in ReviewConst.EXIT_WORD:
             exit()
 
-        confirmed = rsp.lower() in ReviewConst.CONTINUE_WORD
+        # Confirmation can be one of "confirm", "continue", "c", "yes", "y" exactly, or sentences containing "confirm".
+        # One could say "confirm this task, but change the next task to ..."
+        confirmed = rsp.lower() in ReviewConst.CONTINUE_WORD or ReviewConst.CONTINUE_WORD[0] in rsp.lower()
 
         return rsp, confirmed
 
@@ -109,13 +111,13 @@ class Reflect(Action):
     ```json
     {
         "summary": str = "summarize each of your previous trial in a triple of (your methods, the corresponding result, potential improvement), list them out",
-        "takeaways": str = "carefully find key takeaways from your summarization in a step-by-step thinking process",
-        "reflection": "in one sentence, state executable actions for improving your future plan",
+        "takeaways": str = "carefully find key takeaways from your summarization",
+        "reflection": str = "give specific instruction to improve your next trial in a step-by-step thinking process",
     }
     ```
     """
-    REWRITE_PLAN_INSTRUCTION = """When taking this reflection for rewriting plan, modify the current plan in place, replace, add, or delete tasks in the plan,
-    only make necessary change to the current plan, keep reusable tasks unchanged, provide the complete new plan."""
+    REWRITE_PLAN_INSTRUCTION = """Take this reflection for rewriting plan, modify the current plan in place, make reference to your specific instruction, think about you should
+    change which task, add or delete what tasks in the plan. Only make necessary changes, keep reusable tasks unchanged, output the COMPLETE new plan starting from the first task. Your plan should have no more than 5 tasks."""
 
     async def run(self, context: str, user_requirement: str = "") -> str:
         user_requirement = user_requirement or "Score as high as possible in a data modeling competition"
@@ -124,5 +126,4 @@ class Reflect(Action):
         rsp_json = await self._aask(prompt)
         rsp = CodeParser.parse_code(block=None, text=rsp_json)
         reflection = json.loads(rsp)["reflection"]
-        reflection += self.REWRITE_PLAN_INSTRUCTION
         return reflection

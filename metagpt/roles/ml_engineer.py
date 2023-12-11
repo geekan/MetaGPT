@@ -10,7 +10,7 @@ from metagpt.actions import Action
 from metagpt.schema import Message, Task, Plan
 from metagpt.memory import Memory
 from metagpt.logs import logger
-from metagpt.actions.write_plan import WritePlan
+from metagpt.actions.write_plan import WritePlan, update_plan_from_rsp, precheck_update_plan_from_rsp
 from metagpt.actions.write_analysis_code import WriteCodeByGenerate, WriteCodeWithTools
 from metagpt.actions.ml_da_action import AskReview, SummarizeAnalysis, Reflect, ReviewConst
 from metagpt.actions.execute_code import ExecutePyCode
@@ -69,12 +69,23 @@ class MLEngineer(Role):
             # ask for acceptance, users can other refuse and change tasks in the plan
             review, task_result_confirmed = await self._ask_review(trigger=ReviewConst.TASK_REVIEW_TRIGGER)
 
-            if success and task_result_confirmed:
+            if task_result_confirmed:
                 # tick off this task and record progress
                 task.code = code
                 task.result = result
                 self.plan.finish_current_task()
                 self.working_memory.clear()
+
+                confirmed_and_more = (ReviewConst.CONTINUE_WORD[0] in review.lower()
+                    and review.lower() not in ReviewConst.CONTINUE_WORD[0])  # "confirm, ... (more content, such as changing downstream tasks)"
+                if confirmed_and_more:
+                    self.working_memory.add(Message(content=review, role="user", cause_by=AskReview))
+                    await self._update_plan(review)
+            
+            elif "redo" in review:
+                # Ask the Role to redo this task with help of review feedback,
+                # useful when the code run is successful but the procedure or result is not what we want
+                continue
 
             else:
                 # update plan according to user's feedback and to take on changed tasks
@@ -151,7 +162,7 @@ class MLEngineer(Role):
             return review, confirmed
         return "", True
 
-    async def _update_plan(self, review: str = "", max_tasks: int = 3):
+    async def _update_plan(self, review: str = "", max_tasks: int = 3, max_retries: int = 3):
         plan_confirmed = False
         while not plan_confirmed:
             context = self.get_useful_memories()
@@ -162,15 +173,19 @@ class MLEngineer(Role):
                 Message(content=rsp, role="assistant", cause_by=WritePlan)
             )
 
-            # TODO: precheck plan before asking reviews
+            # precheck plan before asking reviews
+            is_plan_valid, error = precheck_update_plan_from_rsp(rsp, self.plan)
+            if not is_plan_valid and max_retries > 0:
+                error_msg = f"The generated plan is not valid with error: {error}, try regenerating, remember to generate either the whole plan or the single changed task only"
+                logger.warning(error_msg)
+                self.working_memory.add(Message(content=error_msg, role="assistant", cause_by=WritePlan))
+                max_retries -= 1
+                continue
 
             _, plan_confirmed = await self._ask_review(trigger=ReviewConst.TASK_REVIEW_TRIGGER)
 
-        tasks = WritePlan.rsp_to_tasks(rsp)
-        if len(tasks) == 1 and self.plan.has_task_id(tasks[0].task_id):
-            self.plan.replace_task(tasks[0])
-        else:
-            self.plan.add_tasks(tasks)
+        update_plan_from_rsp(rsp, self.plan)
+
         self.working_memory.clear()
     
     async def _reflect(self):
@@ -181,6 +196,7 @@ class MLEngineer(Role):
         # print("*" * 10)
         reflection = await Reflect().run(context=context)
         self.working_memory.add(Message(content=reflection, role="assistant"))
+        self.working_memory.add(Message(content=Reflect.REWRITE_PLAN_INSTRUCTION, role="user"))
 
     def get_useful_memories(self) -> List[Message]:
         """find useful memories only to reduce context length and improve performance"""

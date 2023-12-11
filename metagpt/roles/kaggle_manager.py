@@ -1,6 +1,7 @@
 from typing import Dict, List, Union, Tuple
 import json
 import subprocess
+import os
 
 import fire
 import pandas as pd
@@ -14,7 +15,7 @@ from metagpt.schema import Message, Task, Plan
 from metagpt.logs import logger
 from metagpt.utils.common import CodeParser
 
-import os
+
 os.environ["KAGGLE_USERNAME"] = CONFIG.kaggle_username
 os.environ["KAGGLE_KEY"] = CONFIG.kaggle_key
 

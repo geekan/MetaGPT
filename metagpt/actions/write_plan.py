@@ -4,12 +4,14 @@
 @Author  :   orange-crow
 @File    :   plan.py
 """
-from typing import List, Dict
+from typing import List, Dict, Tuple
 import json
+from copy import deepcopy
+import traceback
 
 from metagpt.actions import Action
 from metagpt.prompts.ml_engineer import ASSIGN_TASK_TYPE_PROMPT, ASSIGN_TASK_TYPE
-from metagpt.schema import Message, Task
+from metagpt.schema import Message, Task, Plan
 from metagpt.utils.common import CodeParser, create_func_config
 
 
@@ -67,8 +69,30 @@ class WritePlan(Action):
             rsp = await self.assign_task_type(json.loads(rsp))
         return rsp
 
-    @staticmethod
-    def rsp_to_tasks(rsp: str) -> List[Task]:
-        rsp = json.loads(rsp)
-        tasks = [Task(**task_config) for task_config in rsp]
-        return tasks
+def rsp_to_tasks(rsp: str) -> List[Task]:
+    rsp = json.loads(rsp)
+    tasks = [Task(**task_config) for task_config in rsp]
+    return tasks
+
+def update_plan_from_rsp(rsp: str, current_plan: Plan):
+    tasks = rsp_to_tasks(rsp)
+    if len(tasks) == 1:
+        # handle a single task
+        if current_plan.has_task_id(tasks[0].task_id):
+            # replace an existing task
+            current_plan.replace_task(tasks[0])
+        else:
+            # append one task
+            current_plan.append_task(tasks[0])
+
+    else:
+        # add tasks in general
+        current_plan.add_tasks(tasks)
+
+def precheck_update_plan_from_rsp(rsp: str, current_plan: Plan) -> Tuple[bool, str]:
+    temp_plan = deepcopy(current_plan)
+    try:
+        update_plan_from_rsp(rsp, temp_plan)
+        return True, ""
+    except Exception as e:
+        return False, e
