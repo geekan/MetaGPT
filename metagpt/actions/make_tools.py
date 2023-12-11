@@ -12,9 +12,10 @@ from metagpt.actions.write_analysis_code import WriteCodeByGenerate
 
 class MakeTools(WriteCodeByGenerate):
     DEFAULT_SYSTEM_MSG = """Please Create a very General Function Code startswith `def` from any codes you got.\n
-    **Notice:1. The import statement must be written after `def`, it is very important for you.
-    2. Reflect on whether it meets the requirements of a general function.
-    3. Refactor your code to get the most efficient implementation for large input data in the shortest amount of time.
+    **Notice:
+    1. Reflect on whether it meets the requirements of a general function.
+    2. Refactor your code to get the most efficient implementation for large input data in the shortest amount of time.
+    3. Use Google style for function annotations.
     4. Write example code by using old varibales in old code, and make sure it could be execute in the user's machine.**
     """
 
@@ -26,7 +27,7 @@ class MakeTools(WriteCodeByGenerate):
         :param str workspace: tools code saved file path dir, defaults to None
         """
         super().__init__(name, context, llm)
-        self.workspace = workspace or "."
+        self.workspace = workspace or str(Path(__file__).parents[1].joinpath("./tools/functions/libs/udf"))
         self.file_suffix: str = '.py'
 
     def parse_function_name(self, function_code: str) -> str:
@@ -47,6 +48,7 @@ class MakeTools(WriteCodeByGenerate):
         saved_path = Path(self.workspace).joinpath(func_name+self.file_suffix)
         logger.info(f"Saved tool_code {func_name} in {str(saved_path)}.")
         saved_path.write_text(tool_code, encoding='utf-8')
+        # TODO: 保存到udf中，供WriteCodeWithMakeTools使用
 
     @retry(stop=stop_after_attempt(3), wait=wait_fixed(1))
     async def run(self, code_message: List[Message | Dict], **kwargs) -> str:
