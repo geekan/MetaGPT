@@ -98,7 +98,7 @@ MetaGPT Community - The position of Chief Evangelist rotates on a monthly basis.
 
 1.  How to change the investment amount?
 
-    1.  You can view all commands by typing `python startup.py --help`
+    1.  You can view all commands by typing `metagpt --help`
 
 1.  Which version of Python is more stable?
 

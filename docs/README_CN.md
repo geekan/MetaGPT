@@ -47,9 +47,9 @@ git clone https://github.com/geekan/MetaGPT.git
 cd MetaGPT
 pip3 install -e.  # 或者 pip3 install metagpt  # 安装稳定版本
 
-# 第 3 步：执行startup.py
+# 第 3 步：执行metagpt
 # 拷贝config.yaml为key.yaml，并设置你自己的OPENAI_API_KEY
-python3 startup.py "Write a cli snake game"
+metagpt "Write a cli snake game"
 
 # 第 4 步【可选的】：如果你想在执行过程中保存像象限图、系统设计、序列流程等图表这些产物，可以在第3步前执行该步骤。默认的，框架做了兼容，在不执行该步的情况下，也可以完整跑完整个流程。
 # 如果执行，确保您的系统上安装了 NPM。并使用npm安装mermaid-js
@@ -75,7 +75,7 @@ docker run --rm \
     -v /opt/metagpt/config/key.yaml:/app/metagpt/config/key.yaml \
     -v /opt/metagpt/workspace:/app/metagpt/workspace \
     metagpt/metagpt:latest \
-    python startup.py "Write a cli snake game"
+    metagpt "Write a cli snake game"
 ```
 
 详细的安装请安装 [docker_install](https://docs.deepwisdom.ai/zhcn/guide/get_started/installation.html#%E4%BD%BF%E7%94%A8docker%E5%AE%89%E8%A3%85)
