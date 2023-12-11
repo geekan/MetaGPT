@@ -4,6 +4,7 @@ import re
 
 from tenacity import retry, stop_after_attempt, wait_fixed
 
+from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.schema import Message
 from metagpt.actions.write_analysis_code import WriteCodeByGenerate
@@ -17,10 +18,10 @@ class MakeTools(WriteCodeByGenerate):
     4. Write example code by using old varibales in old code, and make sure it could be execute in the user's machine.**
     """
 
-    def __init__(self, name: str = '', context=None, llm=None, workspace: str = None):
+    def __init__(self, name: str = '', context: list[Message] = None, llm: LLM = None, workspace: str = None):
         super().__init__(name, context, llm)
         self.workspace = workspace or "."
-        self.file_suffix = '.py'
+        self.file_suffix: str = '.py'
 
     def parse_function_name(self, function_code: str) -> str:
         # 定义正则表达式模式
