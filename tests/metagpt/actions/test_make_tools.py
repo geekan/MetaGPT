@@ -2,6 +2,7 @@ import pytest
 
 from metagpt.actions.execute_code import ExecutePyCode
 from metagpt.actions.make_tools import MakeTools
+from metagpt.logs import logger
 
 
 @pytest.mark.asyncio
@@ -10,12 +11,12 @@ async def test_make_tools():
     msgs = [{'role': 'assistant', 'content': code}]
     mt = MakeTools()
     tool_code = await mt.run(msgs)
-    print(tool_code)
+    logger.debug(tool_code)
     ep = ExecutePyCode()
     tool_code = "!pip install yfinance\n" + tool_code
     result, res_type = await ep.run(tool_code)
     assert res_type is True
-    print(result)
+    logger.debug(result)
 
 
 @pytest.mark.asyncio
@@ -26,12 +27,12 @@ async def test_make_tools2():
     msgs = [{'role': 'assistant', 'content': code}]
     mt = MakeTools()
     tool_code = await mt.run(msgs)
-    print(tool_code)
+    logger.debug(tool_code)
     ep = ExecutePyCode()
     tool_code = tool_code
     result, res_type = await ep.run(tool_code)
     assert res_type is True
-    print(result)
+    logger.debug(result)
 
 
 @pytest.mark.asyncio
@@ -43,9 +44,9 @@ async def test_make_tools3():
     msgs = [{'role': 'assistant', 'content': code}]
     mt = MakeTools()
     tool_code = await mt.run(msgs)
-    print(tool_code)
+    logger.debug(tool_code)
     ep = ExecutePyCode()
     tool_code = tool_code
     result, res_type = await ep.run(tool_code)
     assert res_type is True
-    print(result)
+    logger.debug(result)
