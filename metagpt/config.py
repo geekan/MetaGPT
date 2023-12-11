@@ -37,6 +37,7 @@ class Config(metaclass=Singleton):
     _instance = None
     key_yaml_file = PROJECT_ROOT / "config/key.yaml"
     default_yaml_file = PROJECT_ROOT / "config/config.yaml"
+    multi_llm_yaml_file = PROJECT_ROOT / "config/multi_llm_config.yaml"
 
     def __init__(self, yaml_file=default_yaml_file):
         self._configs = {}
@@ -46,10 +47,13 @@ class Config(metaclass=Singleton):
         self.openai_api_key = self._get("OPENAI_API_KEY")
         self.anthropic_api_key = self._get("Anthropic_API_KEY")
         self.zhipuai_api_key = self._get("ZHIPUAI_API_KEY")
+        self.open_llm_api_base = self._get("OPEN_LLM_API_BASE")
+        self.open_llm_api_model = self._get("OPEN_LLM_API_MODEL")
         if (not self.openai_api_key or "YOUR_API_KEY" == self.openai_api_key) and \
                 (not self.anthropic_api_key or "YOUR_API_KEY" == self.anthropic_api_key) and \
-                (not self.zhipuai_api_key or "YOUR_API_KEY" == self.zhipuai_api_key):
-            raise NotConfiguredException("Set OPENAI_API_KEY or Anthropic_API_KEY or ZHIPUAI_API_KEY first")
+                (not self.zhipuai_api_key or "YOUR_API_KEY" == self.zhipuai_api_key) and \
+                (not self.open_llm_api_base):
+            raise NotConfiguredException("Set OPENAI_API_KEY or Anthropic_API_KEY or ZHIPUAI_API_KEY first or OPEN_LLM_API_BASE")
         self.openai_api_base = self._get("OPENAI_API_BASE")
         openai_proxy = self._get("OPENAI_PROXY") or self.global_proxy
         if openai_proxy:
@@ -95,16 +99,13 @@ class Config(metaclass=Singleton):
 
         self.prompt_format = self._get("PROMPT_FORMAT", "markdown")
 
-        self.customized_api_base = self._get("CUSTOMIZED_API_BASE","")
-        self.customized_api_model = self._get("CUSTOMIZED_API_MODEL","")
-        self.multi_llm = self._get("MULTI_LLM",False)
-        self.model_list = self._get("MODEL_LIST",[])
+        self.model_list = self._get("MODEL_LIST")
 
     def _init_with_config_files_and_env(self, configs: dict, yaml_file):
         """Load from config/key.yaml, config/config.yaml, and env in decreasing order of priority"""
         configs.update(os.environ)
 
-        for _yaml_file in [yaml_file, self.key_yaml_file]:
+        for _yaml_file in [yaml_file, self.key_yaml_file,self.multi_llm_yaml_file]:
             if not _yaml_file.exists():
                 continue
 
