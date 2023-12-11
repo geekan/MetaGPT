@@ -60,7 +60,7 @@ https://github.com/geekan/MetaGPT/assets/34952977/34345016-5d13-489d-b9f9-b82ace
 
 ```bash
 # ステップ 1: Python 3.9+ がシステムにインストールされていることを確認してください。これを確認するには:
-python --version
+python3 --version
 
 # ステップ 2: リポジトリをローカルマシンにクローンし、インストールする。
 git clone https://github.com/geekan/MetaGPT.git
