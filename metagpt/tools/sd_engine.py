@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # @Date    : 2023/7/19 16:28
-# @Author  : stellahong (stellahong@fuzhi.ai)
+# @Author  : stellahong (stellahong@deepwisdom.ai)
 # @Desc    :
 import asyncio
 import base64

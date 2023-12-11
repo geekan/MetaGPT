@@ -7,8 +7,8 @@ from metagpt.tools import WebBrowserEngineType, web_browser_engine
 @pytest.mark.parametrize(
     "browser_type, url, urls",
     [
-        (WebBrowserEngineType.PLAYWRIGHT, "https://fuzhi.ai", ("https://fuzhi.ai",)),
-        (WebBrowserEngineType.SELENIUM, "https://fuzhi.ai", ("https://fuzhi.ai",)),
+        (WebBrowserEngineType.PLAYWRIGHT, "https://deepwisdom.ai", ("https://deepwisdom.ai",)),
+        (WebBrowserEngineType.SELENIUM, "https://deepwisdom.ai", ("https://deepwisdom.ai",)),
     ],
     ids=["playwright", "selenium"],
 )

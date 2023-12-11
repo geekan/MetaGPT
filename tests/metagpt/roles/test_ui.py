@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # @Date    : 2023/7/22 02:40
-# @Author  : stellahong (stellahong@fuzhi.ai)
+# @Author  : stellahong (stellahong@deepwisdom.ai)
 #
 from metagpt.roles import ProductManager
 from metagpt.team import Team

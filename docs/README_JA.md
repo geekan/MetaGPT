@@ -317,7 +317,7 @@ Hugging Face Space で試す
 
 このプロジェクトに関するご質問やご意見がございましたら、お気軽にお問い合わせください。皆様のご意見をお待ちしております！
 
-- **Email:** alexanderwu@fuzhi.ai
+- **Email:** alexanderwu@deepwisdom.ai
 - **GitHub Issues:** 技術的なお問い合わせについては、[GitHub リポジトリ](https://github.com/geekan/metagpt/issues) に新しい issue を作成することもできます。
 
 ご質問には 2-3 営業日以内に回答いたします。

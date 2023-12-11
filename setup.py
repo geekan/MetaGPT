@@ -36,7 +36,7 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/geekan/MetaGPT",
     author="Alexander Wu",
-    author_email="alexanderwu@fuzhi.ai",
+    author_email="alexanderwu@deepwisdom.ai",
     license="MIT",
     keywords="metagpt multi-role multi-agent programming gpt llm metaprogramming",
     packages=find_packages(exclude=["contrib", "docs", "examples", "tests*"]),

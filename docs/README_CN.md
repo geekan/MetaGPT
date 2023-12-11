@@ -114,7 +114,7 @@ https://github.com/geekan/MetaGPT/assets/34952977/34345016-5d13-489d-b9f9-b82ace
 
 如果您对这个项目有任何问题或反馈，欢迎联系我们。我们非常欢迎您的建议！
 
-- **邮箱：** alexanderwu@fuzhi.ai
+- **邮箱：** alexanderwu@deepwisdom.ai
 - **GitHub 问题：** 对于更技术性的问题，您也可以在我们的 [GitHub 仓库](https://github.com/geekan/metagpt/issues) 中创建一个新的问题。
 
 我们会在2-3个工作日内回复所有问题。
