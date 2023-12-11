@@ -16,3 +16,19 @@ async def test_make_tools():
     result, res_type = await ep.run(tool_code)
     assert res_type is True
     print(result)
+
+
+@pytest.mark.asyncio
+async def test_make_tools2():
+    code = '''import pandas as pd\npath = "./tests/data/test.csv"\ndf = pd.read_csv(path)\ndata = df.copy()\n
+    data['started_at'] = data['started_at'].apply(lambda r: pd.to_datetime(r))\n
+    data['ended_at'] = data['ended_at'].apply(lambda r: pd.to_datetime(r))\ndata.head()'''
+    msgs = [{'role': 'assistant', 'content': code}]
+    mt = MakeTools()
+    tool_code = await mt.run(msgs)
+    print(tool_code)
+    ep = ExecutePyCode()
+    tool_code = tool_code
+    result, res_type = await ep.run(tool_code)
+    assert res_type is True
+    print(result)
