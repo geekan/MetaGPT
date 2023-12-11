@@ -16,12 +16,7 @@ from metagpt.actions.ml_da_action import AskReview, SummarizeAnalysis, Reflect, 
 from metagpt.actions.execute_code import ExecutePyCode
 from metagpt.roles.kaggle_manager import DownloadData, SubmitResult
 from metagpt.prompts.ml_engineer import STRUCTURAL_CONTEXT
-
-
-class WriteTaskGuide(Action):
-    async def run(self, task_instruction: str, data_desc: str = "") -> str:
-        return ""
-
+from metagpt.actions.write_code_steps import WriteCodeSteps
 
 class MLEngineer(Role):
     def __init__(
@@ -33,7 +28,7 @@ class MLEngineer(Role):
 
         self.plan = Plan(goal=goal)
         self.use_tools = False
-        self.use_task_guide = False
+        self.use_code_steps = True
         self.execute_code = ExecutePyCode()
         self.auto_run = auto_run
 
@@ -64,7 +59,7 @@ class MLEngineer(Role):
             logger.info(f"ready to take on task {task}")
 
             # take on current task
-            code, result, success = await self._write_and_exec_code()
+            code, result, success, code_steps = await self._write_and_exec_code()
 
             # ask for acceptance, users can other refuse and change tasks in the plan
             review, task_result_confirmed = await self._ask_review(trigger=ReviewConst.TASK_REVIEW_TRIGGER)
@@ -73,6 +68,7 @@ class MLEngineer(Role):
                 # tick off this task and record progress
                 task.code = code
                 task.result = result
+                task.code_steps = code_steps
                 self.plan.finish_current_task()
                 self.working_memory.clear()
 
@@ -101,9 +97,9 @@ class MLEngineer(Role):
         return rsp
 
     async def _write_and_exec_code(self, max_retry: int = 3):
-        task_guide = (
-            await WriteTaskGuide().run(self.plan.current_task.instruction)
-            if self.use_task_guide
+        code_steps = (
+            await WriteCodeSteps().run(self.plan)
+            if self.use_code_steps
             else ""
         )
 
@@ -120,12 +116,12 @@ class MLEngineer(Role):
             if not self.use_tools or self.plan.current_task.task_type == "other":
                 # code = "print('abc')"
                 code = await WriteCodeByGenerate().run(
-                    context=context, plan=self.plan, task_guide=task_guide, temperature=0.0
+                    context=context, plan=self.plan, code_steps=code_steps, temperature=0.0
                 )
                 cause_by = WriteCodeByGenerate
             else:
                 code = await WriteCodeWithTools().run(
-                    context=context, plan=self.plan, task_guide=task_guide, data_desc=""
+                    context=context, plan=self.plan, code_steps=code_steps, data_desc=""
                 )
                 cause_by = WriteCodeWithTools
 
@@ -150,7 +146,7 @@ class MLEngineer(Role):
                 if ReviewConst.CHANGE_WORD in review:
                     counter = 0  # redo the task again with help of human suggestions
 
-        return code, result, success
+        return code, result, success, code_steps
 
     async def _ask_review(self, auto_run: bool = None, trigger: str = ReviewConst.TASK_REVIEW_TRIGGER):
         auto_run = auto_run or self.auto_run
@@ -200,7 +196,7 @@ class MLEngineer(Role):
 
     def get_useful_memories(self) -> List[Message]:
         """find useful memories only to reduce context length and improve performance"""
-
+        # TODO dataset description , code steps
         user_requirement = self.plan.goal
         data_desc = self.plan.context
         tasks = json.dumps(
@@ -219,11 +215,11 @@ class MLEngineer(Role):
 
 
 if __name__ == "__main__":
-    requirement = "Run data analysis on sklearn Iris dataset, include a plot"
+    # requirement = "Run data analysis on sklearn Iris dataset, include a plot"
     # requirement = "Run data analysis on sklearn Diabetes dataset, include a plot"
     # requirement = "Run data analysis on sklearn Wine recognition dataset, include a plot, and train a model to predict wine class (20% as validation), and show validation accuracy"
     # requirement = "Run data analysis on sklearn Wisconsin Breast Cancer dataset, include a plot, train a model to predict targets (20% as validation), and show validation accuracy"
-    # requirement = "Run EDA and visualization on this dataset, train a model to predict survival, report metrics on validation set (20%), dataset: workspace/titanic/train.csv"
+    requirement = "Run EDA and visualization on this dataset, train a model to predict survival, report metrics on validation set (20%), dataset: workspace/titanic/train.csv"
 
     async def main(requirement: str = requirement, auto_run: bool = False):
         role = MLEngineer(goal=requirement, auto_run=auto_run)

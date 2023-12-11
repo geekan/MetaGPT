@@ -85,7 +85,7 @@ class WriteCodeByGenerate(BaseWriteAnalysisCode):
         self,
         context: [List[Message]],
         plan: Plan = None,
-        task_guide: str = "",
+        code_steps: str = "",
         system_msg: str = None,
         **kwargs,
     ) -> str:
@@ -155,7 +155,7 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
         self,
         context: List[Message],
         plan: Plan = None,
-        task_guide: str = "",
+        code_steps: str = "",
         data_desc: str = "",
     ) -> str:
         task_type = plan.current_task.task_type
@@ -165,12 +165,12 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
             {k: tool[k] for k in ["name", "description"] if k in tool}
             for tool in available_tools
         ]
-        task_guide = "\n".join(
-            [f"Step {step.strip()}" for step in task_guide.split("\n")]
+        code_steps = "\n".join(
+            [f"Step {step.strip()}" for step in code_steps.split("\n")]
         )
 
         recommend_tools = await self._tool_recommendation(
-            task, task_guide, available_tools
+            task, code_steps, available_tools
         )
         recommend_tools, tool_catalog = self._parse_recommend_tools(task_type, recommend_tools)
         logger.info(f"Recommended tools for every steps: {recommend_tools}")
@@ -194,7 +194,7 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
             completed_code=completed_code,
             data_desc=data_desc,
             special_prompt=special_prompt,
-            code_steps=task_guide,
+            code_steps=code_steps,
             module_name=module_name,
             output_desc=output_desc,
             available_tools=recommend_tools,
