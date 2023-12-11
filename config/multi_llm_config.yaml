@@ -17,6 +17,6 @@ WriteCodeReview: deepseek-llm-67b-chat
 ####Customize LLM name and request address
 MODEL_LIST:
   deepseek-llm-67b-chat:
-    open_llm_api_base: "http://106.75.10.65:17866/v1"
+    open_llm_api_base: "http://0.0.0.0:12346/v1"
   Llama-2-13b-chat-hf:
-    open_llm_api_base: "http://106.75.10.65:17867/v1"
+    open_llm_api_base: "http://0.0.0.0:12347/v1"
