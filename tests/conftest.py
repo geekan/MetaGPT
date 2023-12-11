@@ -7,6 +7,7 @@
 """
 
 import asyncio
+import logging
 import re
 from unittest.mock import Mock
 
@@ -71,6 +72,17 @@ def proxy():
 
     server = asyncio.get_event_loop().run_until_complete(asyncio.start_server(handle_client, "127.0.0.1", 0))
     return "http://{}:{}".format(*server.sockets[0].getsockname())
+
+
+# see https://github.com/Delgan/loguru/issues/59#issuecomment-466591978
+@pytest.fixture
+def loguru_caplog(caplog):
+    class PropogateHandler(logging.Handler):
+        def emit(self, record):
+            logging.getLogger(record.name).handle(record)
+
+    logger.add(PropogateHandler(), format="{message}")
+    yield caplog
 
 
 # init & dispose git repo

@@ -15,7 +15,7 @@
         RunCodeResult to standardize and unify parameter passing between WriteCode, RunCode, and DebugError.
 """
 
-from tenacity import retry, stop_after_attempt, wait_fixed
+from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.actions.action import Action
 from metagpt.config import CONFIG
@@ -81,7 +81,7 @@ class WriteCode(Action):
     def __init__(self, name="WriteCode", context=None, llm=None):
         super().__init__(name, context, llm)
 
-    @retry(stop=stop_after_attempt(2), wait=wait_fixed(1))
+    @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     async def write_code(self, prompt) -> str:
         code_rsp = await self._aask(prompt)
         code = CodeParser.parse_code(block="", text=code_rsp)
