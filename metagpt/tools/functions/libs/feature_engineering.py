@@ -283,5 +283,5 @@ class GeneralSelection(MLProcess):
         self.feats = feats
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        df = df[self.feats]
+        df = df[self.feats + [self.label_col]]
         return df
