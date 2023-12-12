@@ -24,6 +24,7 @@ from pathlib import Path
 from typing import Set
 
 from metagpt.actions import Action, WriteCode, WriteCodeReview, WriteTasks
+from metagpt.actions.fix_bug import FixBug
 from metagpt.actions.summarize_code import SummarizeCode
 from metagpt.config import CONFIG
 from metagpt.const import (
@@ -78,7 +79,7 @@ class Engineer(Role):
         """Initializes the Engineer role with given attributes."""
         super().__init__(name, profile, goal, constraints)
         self.use_code_review = use_code_review
-        self._watch([WriteTasks, SummarizeCode, WriteCode, WriteCodeReview])
+        self._watch([WriteTasks, SummarizeCode, WriteCode, WriteCodeReview, FixBug])
         self.code_todos = []
         self.summarize_todos = []
         self.n_borg = n_borg
@@ -191,14 +192,14 @@ class Engineer(Role):
     async def _think(self) -> Action | None:
         if not CONFIG.src_workspace:
             CONFIG.src_workspace = CONFIG.git_repo.workdir / CONFIG.git_repo.workdir.name
-        write_code_filters = any_to_str_set([WriteTasks, SummarizeCode])
+        write_code_filters = any_to_str_set([WriteTasks, SummarizeCode, FixBug])
         summarize_code_filters = any_to_str_set([WriteCode, WriteCodeReview])
         if not self._rc.news:
             return None
         msg = self._rc.news[0]
         if msg.cause_by in write_code_filters:
             logger.info(f"TODO WriteCode:{msg.json()}")
-            await self._new_code_actions()
+            await self._new_code_actions(bug_fix=msg.cause_by == any_to_str(FixBug))
             return self._rc.todo
         if msg.cause_by in summarize_code_filters and msg.sent_from == any_to_str(self):
             logger.info(f"TODO SummarizeCode:{msg.json()}")
@@ -232,10 +233,10 @@ class Engineer(Role):
         coding_doc = Document(root_path=str(src_file_repo.root_path), filename=filename, content=context.json())
         return coding_doc
 
-    async def _new_code_actions(self):
+    async def _new_code_actions(self, bug_fix=False):
         # Prepare file repos
         src_file_repo = CONFIG.git_repo.new_file_repository(CONFIG.src_workspace)
-        changed_src_files = src_file_repo.changed_files
+        changed_src_files = src_file_repo.all_files if bug_fix else src_file_repo.changed_files
         task_file_repo = CONFIG.git_repo.new_file_repository(TASK_FILE_REPO)
         changed_task_files = task_file_repo.changed_files
         design_file_repo = CONFIG.git_repo.new_file_repository(SYSTEM_DESIGN_FILE_REPO)

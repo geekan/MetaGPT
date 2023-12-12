@@ -20,7 +20,8 @@ from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.actions.action import Action
 from metagpt.config import CONFIG
-from metagpt.const import CODE_SUMMARIES_FILE_REPO, TEST_OUTPUTS_FILE_REPO, TASK_FILE_REPO
+from metagpt.const import CODE_SUMMARIES_FILE_REPO, TEST_OUTPUTS_FILE_REPO, TASK_FILE_REPO, BUGFIX_FILENAME, \
+    DOCS_FILE_REPO
 from metagpt.logs import logger
 from metagpt.schema import CodingContext, Document, RunCodeResult
 from metagpt.utils.common import CodeParser
@@ -55,6 +56,12 @@ ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenc
 {summary_log}
 ```
 -----
+# Bug Feedback logs
+```text
+{feedback}
+```
+-----
+
 
 ## Code: {filename} Write code with triple quoto, based on the following list and context.
 1. Do your best to implement THIS ONLY ONE FILE. ONLY USE EXISTING API. IF NO API, IMPLEMENT IT.
@@ -89,6 +96,7 @@ class WriteCode(Action):
         return code
 
     async def run(self, *args, **kwargs) -> CodingContext:
+        bug_feedback = await FileRepository.get_file(filename=BUGFIX_FILENAME, relative_path=DOCS_FILE_REPO)
         coding_context = CodingContext.loads(self.context.content)
         test_doc = await FileRepository.get_file(
             filename="test_" + coding_context.filename + ".json", relative_path=TEST_OUTPUTS_FILE_REPO
@@ -108,6 +116,7 @@ class WriteCode(Action):
             tasks=coding_context.task_doc.content if coding_context.task_doc else "",
             code=code_context,
             logs=logs,
+            feedback=bug_feedback.content if bug_feedback else "",
             filename=self.context.filename,
             summary_log=summary_doc.content if summary_doc else "",
         )

@@ -8,15 +8,13 @@
 """
 from __future__ import annotations
 
-import os
+from gitignore_parser import parse_gitignore, rule_from_pattern, handle_negation
 import shutil
 from enum import Enum
 from pathlib import Path
 from typing import Dict, List
-
 from git.repo import Repo
 from git.repo.fun import is_git_dir
-
 from metagpt.const import DEFAULT_WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.utils.dependency_file import DependencyFile
@@ -51,6 +49,7 @@ class GitRepository:
         """
         self._repository = None
         self._dependency = None
+        self._gitignore_rules = None
         if local_path:
             self.open(local_path=local_path, auto_init=auto_init)
 
@@ -63,6 +62,7 @@ class GitRepository:
         local_path = Path(local_path)
         if self.is_git_dir(local_path):
             self._repository = Repo(local_path)
+            self._gitignore_rules = parse_gitignore(full_path=str(local_path / ".gitignore"))
             return
         if not auto_init:
             return
@@ -82,6 +82,7 @@ class GitRepository:
             writer.write("\n".join(ignores))
         self._repository.index.add([".gitignore"])
         self._repository.index.commit("Add .gitignore")
+        self._gitignore_rules = parse_gitignore(full_path=gitignore_filename)
 
     def add_change(self, files: Dict):
         """Add or remove files from the staging area based on the provided changes.
@@ -204,8 +205,9 @@ class GitRepository:
         logger.info(f"Rename directory {str(self.workdir)} to {str(new_path)}")
         self._repository = Repo(new_path)
 
-    def get_files(self, relative_path: Path | str, root_relative_path: Path | str = None) -> List:
-        """Retrieve a list of files in the specified relative path.
+    def get_files(self, relative_path: Path | str, root_relative_path: Path | str = None, filter_ignored=True) -> List:
+        """
+        Retrieve a list of files in the specified relative path.
 
         The method returns a list of file paths relative to the current FileRepository.
 
@@ -213,6 +215,8 @@ class GitRepository:
         :type relative_path: Path or str
         :param root_relative_path: The root relative path within the repository.
         :type root_relative_path: Path or str
+        :param filter_ignored: Flag to indicate whether to filter files based on .gitignore rules.
+        :type filter_ignored: bool
         :return: A list of file paths in the specified directory.
         :rtype: List[str]
         """
@@ -231,10 +235,35 @@ class GitRepository:
                     rpath = file_path.relative_to(root_relative_path)
                     files.append(str(rpath))
                 else:
-                    subfolder_files = self.get_files(relative_path=file_path, root_relative_path=root_relative_path)
+                    subfolder_files = self.get_files(relative_path=file_path, root_relative_path=root_relative_path,
+                                                     filter_ignored=False)
                     files.extend(subfolder_files)
         except Exception as e:
             logger.error(f"Error: {e}")
+        if not filter_ignored:
+            return files
+        filtered_files = self.filter_gitignore(filenames=files, root_relative_path=root_relative_path)
+        return filtered_files
+
+    def filter_gitignore(self, filenames: List[str], root_relative_path: Path | str = None) -> List[str]:
+        """
+        Filter a list of filenames based on .gitignore rules.
+
+        :param filenames: A list of filenames to be filtered.
+        :type filenames: List[str]
+        :param root_relative_path: The root relative path within the repository.
+        :type root_relative_path: Path or str
+        :return: A list of filenames that pass the .gitignore filtering.
+        :rtype: List[str]
+        """
+        if root_relative_path is None:
+            root_relative_path = self.workdir
+        files = []
+        for filename in filenames:
+            pathname = root_relative_path / filename
+            if self._gitignore_rules(str(pathname)):
+                continue
+            files.append(filename)
         return files
 
 
@@ -244,6 +273,7 @@ if __name__ == "__main__":
 
     repo = GitRepository()
     repo.open(path, auto_init=True)
+    repo.filter_gitignore(filenames=["snake_game/snake_game/__pycache__", "snake_game/snake_game/game.py"])
 
     changes = repo.changed_files
     print(changes)
