@@ -156,6 +156,11 @@ class MLEngineer(Role):
             # ask for acceptance, users can other refuse and change tasks in the plan
             task_result_confirmed = await self._ask_review()
             
+            # 针对当前task进行单独plan
+            if not success or not task_result_confirmed:
+                # fixme: 增加对应plan
+                self.state.plan()
+                
             if success and task_result_confirmed:
                 # tick off this task and record progress
                 task.code = code
@@ -203,8 +208,6 @@ class MLEngineer(Role):
             if counter == 0:
                 context = self.get_useful_memories()
             else:
-                # context = self.get_useful_memories()
-                # logger.info(f"context {context}")
                 improve_code = await DebugCode().run(plan=self.plan.current_task.instruction,
                                                      finished_code=code_context,
                                                      finished_code_result=code_result,
@@ -254,6 +257,8 @@ class MLEngineer(Role):
             #     await self._ask_review()
             
             counter += 1
+        
+        success = False
         
         return code, result, success, code_steps
     
