@@ -18,6 +18,7 @@ from metagpt.utils.common import OutputParser
 from metagpt.utils.custom_decoder import CustomDecoder
 from metagpt.provider.openai_api import OpenAIGPTAPI
 from metagpt.provider.open_llm_api import OpenLLMGPTAPI
+from metagpt.provider.zhipuai_api import ZhiPuAIGPTAPI
 from metagpt.config import CONFIG
 import openai
 
@@ -58,7 +59,9 @@ class Action(ABC):
             self.llm._OpenLLMGPTAPI__init_openllm(CONFIG)
         elif isinstance(self.llm, OpenAIGPTAPI):
             self.llm._OpenAIGPTAPI__init_openai(CONFIG)
-
+        elif isinstance(self.llm, ZhiPuAIGPTAPI):
+            self.llm._ZhiPuAIGPTAPI__init_zhipuai(CONFIG)
+            
         return await self.llm.aask(prompt, system_msgs)
 
     @retry(stop=stop_after_attempt(3), wait=wait_fixed(1))
@@ -81,7 +84,9 @@ class Action(ABC):
             self.llm._OpenLLMGPTAPI__init_openllm(CONFIG)
         elif isinstance(self.llm, OpenAIGPTAPI):
             self.llm._OpenAIGPTAPI__init_openai(CONFIG)
-
+        elif isinstance(self.llm, ZhiPuAIGPTAPI):
+            self.llm._ZhiPuAIGPTAPI__init_zhipuai(CONFIG)
+        
         content = await self.llm.aask(prompt, system_msgs)
         logger.debug(content)
         output_class = ActionOutput.create_model_class(output_class_name, output_data_mapping)
