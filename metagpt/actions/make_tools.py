@@ -49,7 +49,6 @@ class MakeTools(WriteCodeByGenerate):
         saved_path = Path(self.workspace).joinpath(func_name+self.file_suffix)
         logger.info(f"Saved tool_code {func_name} in {str(saved_path)}.")
         saved_path.write_text(tool_code, encoding='utf-8')
-        # TODO: 保存到udf中，供WriteCodeWithMakeTools使用
 
     @retry(stop=stop_after_attempt(3), wait=wait_fixed(1))
     async def run(self, code_message: List[Message | Dict], **kwargs) -> str:
