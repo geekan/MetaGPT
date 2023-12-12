@@ -222,10 +222,10 @@ def run_after_exp_and_passon_next_retry(logger: "loguru.Logger") -> Callable[["R
             }
         """
         if retry_state.outcome.failed:
-            if len(retry_state.args) > 0:
+            if retry_state.args:
                 # # can't be used as args=retry_state.args
                 func_param_output = retry_state.args[0]
-            elif len(retry_state.kwargs) > 0:
+            elif retry_state.kwargs:
                 func_param_output = retry_state.kwargs.get("output", "")
             exp_str = str(retry_state.outcome.exception())
             logger.warning(f"parse json from content inside [CONTENT][/CONTENT] failed at retry "
