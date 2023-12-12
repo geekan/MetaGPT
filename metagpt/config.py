@@ -62,6 +62,7 @@ class Config(metaclass=Singleton):
         self.max_tokens_rsp = self._get("MAX_TOKENS", 2048)
         self.deployment_name = self._get("DEPLOYMENT_NAME")
         self.deployment_id = self._get("DEPLOYMENT_ID")
+        self.stream = self._get("STREAM")
 
         self.spark_appid = self._get("SPARK_APPID")
         self.spark_api_secret = self._get("SPARK_API_SECRET")

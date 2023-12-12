@@ -15,7 +15,7 @@ from metagpt.provider.base_chatbot import BaseChatbot
 
 class BaseGPTAPI(BaseChatbot):
     """GPT API abstract class, requiring all inheritors to provide a series of standard capabilities"""
-
+    stream = True
     system_prompt = "You are a helpful assistant."
 
     def _user_msg(self, msg: str) -> dict[str, str]:
@@ -45,13 +45,16 @@ class BaseGPTAPI(BaseChatbot):
         else:
             message = [self._default_system_msg(), self._user_msg(msg)] if self.use_system_prompt \
                 else [self._user_msg(msg)]
-        rsp = await self.acompletion_text(message, stream=True)
+        rsp = await self.acompletion_text(message, stream=self.stream)
         logger.debug(message)
         # logger.debug(rsp)
         return rsp
 
     def _extract_assistant_rsp(self, context):
         return "\n".join([i["content"] for i in context if i["role"] == "assistant"])
+
+    def set_stream(self, stream: bool):
+        self.stream = stream
 
     def ask_batch(self, msgs: list) -> str:
         context = []
