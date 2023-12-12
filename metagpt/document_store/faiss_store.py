@@ -5,6 +5,7 @@
 @Author  : alexanderwu
 @File    : faiss_store.py
 """
+import asyncio
 import pickle
 from pathlib import Path
 from typing import Optional
@@ -57,6 +58,9 @@ class FaissStore(LocalStore):
             return str(sep.join([f"{x.page_content}: {x.metadata}" for x in rsp]))
         else:
             return str(sep.join([f"{x.page_content}" for x in rsp]))
+
+    async def asearch(self, *args, **kwargs):
+        return await asyncio.to_thread(self.search, *args, **kwargs)
 
     def write(self):
         """Initialize the index and library based on the Document (JSON / XLSX, etc.) file provided by the user."""

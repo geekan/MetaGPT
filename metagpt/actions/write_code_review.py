@@ -94,7 +94,7 @@ class WriteCodeReview(Action):
     def __init__(self, name="WriteCodeReview", context=None, llm=None):
         super().__init__(name, context, llm)
 
-    @retry(stop=stop_after_attempt(2), wait=wait_random_exponential(min=1, max=60))
+    @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     async def write_code_review_and_rewrite(self, prompt):
         code_rsp = await self._aask(prompt)
         result = CodeParser.parse_block("Code Review Result", code_rsp)

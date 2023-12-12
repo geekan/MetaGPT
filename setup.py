@@ -30,8 +30,8 @@ with open(path.join(here, "requirements.txt"), encoding="utf-8") as f:
 
 setup(
     name="metagpt",
-    version="0.3.0",
-    description="The Multi-Agent Framework",
+    version="0.4.0",
+    description="The Multi-Role Meta Programming Framework",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/geekan/MetaGPT",

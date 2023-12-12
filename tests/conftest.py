@@ -7,6 +7,7 @@
 """
 
 import asyncio
+import logging
 import re
 from unittest.mock import Mock
 
