@@ -175,8 +175,6 @@ class ExecutePyCode(ExecuteCode, Action):
                 outputs = self.parse_outputs(self.nb.cells[-1].outputs)
                 success = True
             except Exception as e:
-                # FIXME: CellExecutionError is hard to read. for example `1\0` raise ZeroDivisionError:
-                #  CellExecutionError('An error occurred while executing the following cell:\n------------------\nz=1/0\n------------------\n\n\n\x1b[0;31m---------------------------------------------------------------------------\x1b[0m\n\x1b[0;31mZeroDivisionError\x1b[0m                         Traceback (most recent call last)\nCell \x1b[0;32mIn[1], line 1\x1b[0m\n\x1b[0;32m----> 1\x1b[0m z\x1b[38;5;241m=\x1b[39m\x1b[38;5;241;43m1\x1b[39;49m\x1b[38;5;241;43m/\x1b[39;49m\x1b[38;5;241;43m0\x1b[39;49m\n\n\x1b[0;31mZeroDivisionError\x1b[0m: division by zero\n')
                 outputs = traceback.format_exc()
                 success = False
             return truncate(remove_escape_and_color_codes(outputs)), success
