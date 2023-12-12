@@ -74,6 +74,7 @@ MESSAGE_ROUTE_TO_ALL = "<all>"
 MESSAGE_ROUTE_TO_NONE = "<none>"
 
 REQUIREMENT_FILENAME = "requirement.txt"
+BUGFIX_FILENAME = "bugfix.txt"
 PACKAGE_REQUIREMENTS_FILENAME = "requirements.txt"
 
 DOCS_FILE_REPO = "docs"

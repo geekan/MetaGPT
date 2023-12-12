@@ -286,6 +286,8 @@ class Role:
                 cause_by=self._rc.todo,
                 sent_from=self,
             )
+        elif isinstance(response, Message):
+            msg = response
         else:
             msg = Message(content=response, role=self.profile, cause_by=self._rc.todo, sent_from=self)
         self._rc.memory.add(msg)

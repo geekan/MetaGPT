@@ -48,4 +48,4 @@ websocket-client==0.58.0
 aiofiles==23.2.1
 gitpython==3.1.40
 zhipuai==1.0.7
-
+gitignore-parser==0.1.9
