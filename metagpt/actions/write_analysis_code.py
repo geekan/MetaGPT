@@ -211,13 +211,16 @@ class WriteCodeWithUDFs(WriteCodeByGenerate):
     from metagpt.tools.functions.libs.udf import UDFS
 
     DEFAULT_SYSTEM_MSG = f"""Please remember these functions, you will use these functions to write code:\n
-    {UDFS}
+    {UDFS}, **Notice: 1. if no right udf for user requirement, please send `No udf found`**
     """
 
     async def aask_code_and_text(self, context: List[Dict], **kwargs) -> Tuple[str]:
         rsp = await self.llm.acompletion(context, **kwargs)
         rsp_content = self.llm.get_choice_text(rsp)
         code = CodeParser.parse_code(None, rsp_content)
+        if code.startswith('No udf found') or rsp_content.startswith('No udf found'):
+            rsp_content = 'No udf found'
+            code = 'No udf found'
         return code, rsp_content
 
     async def run(self, context: List[Message], plan: Plan = None, task_guide: str = "", **kwargs) -> str:
