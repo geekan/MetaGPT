@@ -323,3 +323,11 @@ async def test_write_code_with_udfs():
     output, output_type = await ep.run(rsp)
     assert output_type is True
     logger.info(output)
+
+
+@pytest.mark.asyncio
+async def test_write_code_with_udfs_no_udf_found():
+    wudf = WriteCodeWithUDFs()
+    rsp = await wudf.run("Identify if there is a dog in the picture.")
+    logger.info(rsp)
+    assert 'No udf found' in rsp
