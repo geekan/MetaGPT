@@ -41,6 +41,12 @@ REFLECTION_PROMPT = """
                        {debug_example}
                        [requirement]
                        {goal}
+                       [finished code]
+                       finished code are executable, and you should based on the code to continue your current code debug
+                       {finished_code}
+                       
+                       try to reuse the code here to understand the coding task.
+                       
                        [previous impl]
                        {code}
                        [runtime Error]
@@ -65,47 +71,56 @@ class DebugCode(BaseWriteAnalysisCode):
     name: str = "debugcode"
     context: Optional[str] = None
     llm: None
-
+    
     def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
-
-    async def run_reflection(self, plan, code, runtime_result) -> str:
+    
+    async def run_reflection(self, goal, finished_code, finished_code_result, code, runtime_result) -> str:
         info = []
+        finished_code_and_result = finished_code + "\n [finished results]\n\n" + finished_code_result
         reflection_prompt = REFLECTION_PROMPT.format(debug_example=DEBUG_REFLECTION_EXAMPLE,
-                                                     goal=plan.goal,
+                                                     goal=goal,
+                                                     finished_code=finished_code_and_result,
                                                      code=code,
                                                      runtime_result=runtime_result
                                                      )
         system_prompt = "You are an AI Python assistant. You will be given your previous implementation of a function, runtime error results, and a hint to change the implementation appropriately. Write your full implementation "
         info.append(Message(role="system", content=system_prompt))
         info.append(Message(role="assistant", content=reflection_prompt))
-
+        
         msg = messages_to_str(info)
         resp = await self.llm.aask(msg=msg)
         logger.info(f"reflection is {resp}")
         return resp
-
-    async def rewrite_code(self, reflection: str = "") -> str:
+    
+    async def rewrite_code(self, reflection: str = "", code_context: str = "") -> str:
         """
         根据reflection重写代码
         """
         info = []
-        info.append(Message(role="assistant", content=f"[reflection]: \n {reflection}"))
+        info.append(Message(role="assistant", content=f"[code context]:{code_context}"
+                                                      f"finished code are executable, and you should based on the code to continue your current code debug and improvement"
+                                                      f"[reflection]: \n {reflection}"))
         info.append(Message(role="user", content=f"[improved impl]:\n Return in Python block"))
         msg = messages_to_str(info)
         resp = await self.llm.aask(msg=msg)
         logger.info(f"improve code is {resp}")
         improv_code = CodeParser.parse_code(block=None, text=resp)
         return improv_code
-
+    
     async def run(self,
-                  plan: Plan = None,
+                  plan: str = "",
+                  finished_code: str = "",
+                  finished_code_result: str = "",
                   code: str = "",
                   runtime_result: str = "") -> str:
         """
         根据当前运行代码和报错信息进行reflection和纠错
         """
-        reflection = await self.run_reflection(plan, code, runtime_result)
+        reflection = await self.run_reflection(plan, finished_code=finished_code,
+                                               finished_code_result=finished_code_result,
+                                               code=code,
+                                               runtime_result=runtime_result)
         # 根据reflection结果重写代码
-        improv_code = await self.rewrite_code(reflection)
+        improv_code = await self.rewrite_code(reflection, code_context=finished_code)
         return improv_code
