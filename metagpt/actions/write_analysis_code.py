@@ -7,6 +7,7 @@
 from typing import Dict, List, Union, Tuple
 
 from metagpt.actions import Action
+from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.prompts.ml_engineer import (
     TOOL_RECOMMENDATION_PROMPT,
@@ -19,7 +20,7 @@ from metagpt.prompts.ml_engineer import (
 )
 from metagpt.schema import Message, Plan
 from metagpt.tools.functions import registry
-from metagpt.utils.common import create_func_config
+from metagpt.utils.common import create_func_config, CodeParser
 
 
 class BaseWriteAnalysisCode(Action):
@@ -203,3 +204,24 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
         tool_config = create_func_config(CODE_GENERATOR_WITH_TOOLS)
         rsp = await self.llm.aask_code(prompt, **tool_config)
         return rsp["code"]
+
+
+class WriteCodeWithUDFs(WriteCodeByGenerate):
+    """Write code with user defined function."""
+    from metagpt.tools.functions.libs.udf import UDFS
+
+    DEFAULT_SYSTEM_MSG = f"""Please remember these functions, you will use these functions to write code:\n
+    {UDFS}
+    """
+
+    async def aask_code_and_text(self, context: List[Dict], **kwargs) -> Tuple[str]:
+        rsp = await self.llm.acompletion(context, **kwargs)
+        rsp_content = self.llm.get_choice_text(rsp)
+        code = CodeParser.parse_code(None, rsp_content)
+        return code, rsp_content
+
+    async def run(self, context: List[Message], plan: Plan = None, task_guide: str = "", **kwargs) -> str:
+        prompt = self.process_msg(context)
+        logger.info(prompt[-1])
+        code, _ = await self.aask_code_and_text(prompt, **kwargs)
+        return code
