@@ -95,7 +95,7 @@ MODEL_FOR_RESEARCHER_REPORT: gpt-3.5-turbo-16k
 
 ### choose the engine for mermaid conversion, 
 # default is nodejs, you can change it to playwright,pyppeteer or ink
-MERMAID_ENGINE: pyppeteer
+MERMAID_ENGINE: nodejs
 
 
 ### browser path for pyppeteer engine, support Chrome, Chromium,MS Edge
