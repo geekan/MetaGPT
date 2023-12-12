@@ -16,7 +16,8 @@ def save_code_file(name: str, code_context: str, file_format: str = "py") -> Non
     Args:
     - name (str): The name of the folder to save the files.
     - code_context (str): The code content.
-    - file_format (str, optional): The file format, supports 'py' (Python file) and 'json' (JSON file). Default is 'py'.
+    - file_format (str, optional): The file format. Supports 'py' (Python file), 'json' (JSON file), and 'ipynb' (Jupyter Notebook file). Default is 'py'.
+
 
     Returns:
     - None
@@ -37,7 +38,7 @@ def save_code_file(name: str, code_context: str, file_format: str = "py") -> Non
     elif file_format == "ipynb":
          nbformat.write(code_context, file_path)
     else:
-        raise ValueError("Unsupported file format. Please choose 'py' or 'json'.")
+        raise ValueError("Unsupported file format. Please choose 'py', 'json', or 'ipynb'.")
 
 
 
