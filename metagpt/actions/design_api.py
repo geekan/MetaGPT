@@ -33,7 +33,7 @@ Max Output: 8192 chars or 2048 tokens. Try to use them up.
 
 ## Implementation approach: Provide as Plain text. Analyze the difficult points of the requirements, select the appropriate open-source framework.
 
-## Python package name: Provide as Python str with python triple quoto, concise and clear, characters only use a combination of all lowercase and underscores
+## Python package name: Provide as Python str with python triple quote, concise and clear, characters only use a combination of all lowercase and underscores
 
 ## File list: Provided as Python list[str], the list of ONLY REQUIRED files needed to write the program(LESS IS MORE!). Only need relative paths, comply with PEP8 standards. ALWAYS write a main.py or app.py here
 
@@ -86,7 +86,7 @@ Attention: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD W
 
 ## Implementation approach: Provide as Plain text. Analyze the difficult points of the requirements, select the appropriate open-source framework.
 
-## Python package name: Provide as Python str with python triple quoto, concise and clear, characters only use a combination of all lowercase and underscores
+## Python package name: Provide as Python str with python triple quote, concise and clear, characters only use a combination of all lowercase and underscores
 
 ## File list: Provided as Python list[str], the list of ONLY REQUIRED files needed to write the program(LESS IS MORE!). Only need relative paths, comply with PEP8 standards. ALWAYS write a main.py or app.py here
 

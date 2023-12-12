@@ -22,7 +22,7 @@ The message is as follows:
 {context}
 ---
 Now you should start rewriting the code:
-## file name of the code to rewrite: Write code with triple quoto. Do your best to implement THIS IN ONLY ONE FILE.
+## file name of the code to rewrite: Write code with triple quote. Do your best to implement THIS IN ONLY ONE FILE.
 """
 class DebugError(Action):
     def __init__(self, name="DebugError", context=None, llm=None):

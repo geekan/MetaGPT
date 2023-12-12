@@ -26,7 +26,7 @@ Attention: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD W
 ```
 Note that the code to test is at {source_file_path}, we will put your test code at {workspace}/tests/{test_file_name}, and run your test code from {workspace},
 you should correctly import the necessary classes based on these file locations!
-## {test_file_name}: Write test code with triple quoto. Do your best to implement THIS ONLY ONE FILE.
+## {test_file_name}: Write test code with triple quote. Do your best to implement THIS ONLY ONE FILE.
 """
 
 

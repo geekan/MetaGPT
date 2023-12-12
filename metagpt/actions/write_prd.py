@@ -23,7 +23,7 @@ templates = {
 ## Search Information
 {search_information}
 
-## mermaid quadrantChart code syntax example. DONT USE QUOTO IN CODE DUE TO INVALID SYNTAX. Replace the <Campain X> with REAL COMPETITOR NAME
+## mermaid quadrantChart code syntax example. DONT USE QUOTE IN CODE DUE TO INVALID SYNTAX. Replace the <Campain X> with REAL COMPETITOR NAME
 ```mermaid
 quadrantChart
     title Reach and engagement of campaigns
@@ -108,7 +108,7 @@ and only output the json inside this tag, nothing else
 ## Search Information
 {search_information}
 
-## mermaid quadrantChart code syntax example. DONT USE QUOTO IN CODE DUE TO INVALID SYNTAX. Replace the <Campain X> with REAL COMPETITOR NAME
+## mermaid quadrantChart code syntax example. DONT USE QUOTE IN CODE DUE TO INVALID SYNTAX. Replace the <Campain X> with REAL COMPETITOR NAME
 ```mermaid
 quadrantChart
     title Reach and engagement of campaigns
