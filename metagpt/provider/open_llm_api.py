@@ -12,7 +12,7 @@ class OpenLLMGPTAPI(OpenAIGPTAPI):
         self._cost_manager = CostManager()
         RateLimiter.__init__(self, rpm=self.rpm)
 
-    def __init_openllm(self,config: CONFIG):
+    def __init_openllm(self, config: CONFIG):
 
         if config.model_list:
             openai.api_base = config.model_list[self.model]['open_llm_api_base']
