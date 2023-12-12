@@ -13,6 +13,7 @@ from metagpt.actions import Action
 from metagpt.prompts.ml_engineer import ASSIGN_TASK_TYPE_PROMPT, ASSIGN_TASK_TYPE
 from metagpt.schema import Message, Task, Plan
 from metagpt.utils.common import CodeParser, create_func_config
+from metagpt.logs import logger
 
 
 class WritePlan(Action):
@@ -22,6 +23,7 @@ class WritePlan(Action):
     # Task:
     Based on the context, write a plan or modify an existing plan of what you should do to achieve the goal. A plan consists of one to __max_tasks__ tasks.
     If you are modifying an existing plan, carefully follow the instruction, don't make unnecessary changes. Give the whole plan unless instructed to modify only one task of the plan.
+    If you encounter errors on the current task, revise and output the current single task only.
     Output a list of jsons following the format:
     ```json
     [
@@ -76,7 +78,13 @@ def rsp_to_tasks(rsp: str) -> List[Task]:
 
 def update_plan_from_rsp(rsp: str, current_plan: Plan):
     tasks = rsp_to_tasks(rsp)
-    if len(tasks) == 1:
+    if len(tasks) == 1 or tasks[0].dependent_task_ids:
+        if tasks[0].dependent_task_ids and len(tasks) > 1:
+            # tasks[0].dependent_task_ids means the generated tasks are not a complete plan
+            # for they depend on tasks in the current plan, in this case, we only support updating one task each time
+            logger.warning(
+                "Current plan will take only the first generated task if the generated tasks are not a complete plan"
+            )
         # handle a single task
         if current_plan.has_task_id(tasks[0].task_id):
             # replace an existing task
