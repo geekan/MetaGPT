@@ -5,6 +5,7 @@
 @Author  : alexanderwu
 @File    : test_schema.py
 """
+import pytest
 from metagpt.schema import AIMessage, Message, SystemMessage, UserMessage
 from metagpt.schema import Task, Plan
 
@@ -104,3 +105,82 @@ class TestPlan:
         finished_tasks = plan.get_finished_tasks()
         assert len(finished_tasks) == 1
         assert finished_tasks[0].task_id == "1"
+
+    def test_reset_task_existing(self):
+        plan = Plan(goal="")
+        task = Task(task_id="1", instruction="Do something", code="print('Hello')", result="Hello", finished=True)
+        plan.add_tasks([task])
+        plan.reset_task("1")
+        reset_task = plan.task_map["1"]
+        assert reset_task.code == ""
+        assert reset_task.result == ""
+        assert not reset_task.is_finished
+
+    def test_reset_task_non_existing(self):
+        plan = Plan(goal="")
+        task = Task(task_id="1", instruction="Do something", code="print('Hello')", result="Hello", finished=True)
+        plan.add_tasks([task])
+        plan.reset_task("2")  # Task with ID 2 does not exist
+        assert "1" in plan.task_map
+        assert "2" not in plan.task_map
+
+    def test_replace_task_with_dependents(self):
+        plan = Plan(goal="")
+        tasks = [Task(task_id="1", instruction="First Task", finished=True),
+                 Task(task_id="2", instruction="Second Task", dependent_task_ids=["1"], finished=True)]
+        plan.add_tasks(tasks)
+        new_task = Task(task_id="1", instruction="Updated First Task")
+        plan.replace_task(new_task)
+        assert plan.task_map["1"].instruction == "Updated First Task"
+        assert not plan.task_map["2"].is_finished  # Dependent task should be reset
+        assert plan.task_map["2"].code == ""
+        assert plan.task_map["2"].result == ""
+
+    def test_replace_task_non_existing(self):
+        plan = Plan(goal="")
+        task = Task(task_id="1", instruction="First Task")
+        plan.add_tasks([task])
+        new_task = Task(task_id="2", instruction="New Task")
+        plan.replace_task(new_task)  # Task with ID 2 does not exist in plan
+        assert "1" in plan.task_map
+        assert "2" not in plan.task_map
+    
+    def test_append_task_with_valid_dependencies(self):
+        plan = Plan(goal="Test")
+        existing_task = [Task(task_id="1")]
+        plan.add_tasks(existing_task)
+        new_task = Task(task_id="2", dependent_task_ids=["1"])
+        plan.append_task(new_task)
+        assert plan.tasks[-1].task_id == "2"
+        assert plan.task_map["2"] == new_task
+
+    def test_append_task_with_invalid_dependencies(self):
+        new_task = Task(task_id="2", dependent_task_ids=["3"])
+        plan = Plan(goal="Test")
+        with pytest.raises(AssertionError):
+            plan.append_task(new_task)
+    
+    def test_append_task_without_dependencies(self):
+        plan = Plan(goal="Test")
+        existing_task = [Task(task_id="1")]
+        plan.add_tasks(existing_task)
+
+        new_task = Task(task_id="2")
+        plan.append_task(new_task)
+
+        assert len(plan.tasks) == 2
+        assert plan.current_task_id == "1"
+
+    def test_append_task_updates_current_task(self):
+        finished_task = Task(task_id="1", is_finished=True)
+        new_task = Task(task_id="2")
+        plan = Plan(goal="Test", tasks=[finished_task])
+        plan.append_task(new_task)
+        assert plan.current_task_id == "2"
+
+    def test_update_current_task(self):
+        task1 = Task(task_id="1", is_finished=True)
+        task2 = Task(task_id="2")
+        plan = Plan(goal="Test", tasks=[task1, task2])
+        plan._update_current_task()
+        assert plan.current_task_id == "2"
