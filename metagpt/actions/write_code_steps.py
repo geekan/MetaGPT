@@ -63,7 +63,7 @@ class WriteCodeSteps(Action):
 
     def get_context(self, plan: Plan):
         user_requirement = plan.goal
-        select_task_keys = ['task_id', 'instruction', 'is_finished', 'code_steps']
+        select_task_keys = ['task_id', 'instruction', 'is_finished', 'code']
 
         def process_task(task):
             task_dict = task.dict()
