@@ -25,8 +25,9 @@ def extract_function_signatures(file_path):
                 module_name = Path(file_path).parts[-1][:-len(Path(file_path).suffix)]
                 module = importlib.import_module(f"metagpt.tools.functions.libs.udf.{module_name}")
                 # 获取函数注释和函数路径
-                function_schema = {'name': function_signature, 'doc': inspect.getdoc(getattr(module, function_name)),
-                                   'path': f'from metagpt.tools.functions.libs.udf.{module_name} import {function_name}'}
+                function_schema = {'udf_name': function_signature,
+                                   'udf_path': f'from metagpt.tools.functions.libs.udf.{module_name} import {function_name}',
+                                   'udf_doc': inspect.getdoc(getattr(module, function_name))}
                 function_signatures.append(function_schema)
 
     return function_signatures
@@ -48,4 +49,4 @@ folder_path = str(Path(__file__).parent.absolute())
 function_signatures = get_function_signatures_in_folder(folder_path)
 
 UDFS = [func for func in function_signatures
-        if not func['name'].startswith(('extract_function_signatures', 'get_function_signatures_in_folder'))]
+        if not func['udf_name'].startswith(('extract_function_signatures', 'get_function_signatures_in_folder'))]
