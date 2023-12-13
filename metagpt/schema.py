@@ -86,6 +86,7 @@ class Task(BaseModel):
 
 class Plan(BaseModel):
     goal: str
+    context: str = ""
     tasks: list[Task] = []
     task_map: dict[str, Task] = {}
     current_task_id = ""
@@ -149,14 +150,81 @@ class Plan(BaseModel):
             self.tasks = final_tasks
         
         # Update current_task_id to the first unfinished task in the merged list
-        for task in self.tasks:
-            if not task.is_finished:
-                self.current_task_id = task.task_id
-                break
+        self._update_current_task()
 
         # Update the task map for quick access to tasks by ID
         self.task_map = {task.task_id: task for task in self.tasks}
+    
+    def reset_task(self, task_id: str):
+        """
+        Clear code and result of the task based on task_id, and set the task as unfinished.
 
+        Args:
+            task_id (str): The ID of the task to be reset.
+
+        Returns:
+            None
+        """
+        if task_id in self.task_map:
+            task = self.task_map[task_id]
+            task.code = ""
+            task.result = ""
+            task.is_finished = False
+
+    def replace_task(self, new_task: Task):
+        """
+        Replace an existing task with the new input task based on task_id, and reset all tasks depending on it.
+
+        Args:
+            new_task (Task): The new task that will replace an existing one.
+
+        Returns:
+            None
+        """
+        if new_task.task_id in self.task_map:
+            # Replace the task in the task map and the task list
+            self.task_map[new_task.task_id] = new_task
+            for i, task in enumerate(self.tasks):
+                if task.task_id == new_task.task_id:
+                    self.tasks[i] = new_task
+                    break
+
+            # Reset dependent tasks
+            for task in self.tasks:
+                if new_task.task_id in task.dependent_task_ids:
+                    self.reset_task(task.task_id)
+
+    def append_task(self, new_task: Task):
+        """
+        Append a new task to the end of existing task sequences
+
+        Args:
+            new_task (Task): The new task to be appended to the existing task sequence
+        
+        Returns:
+            None
+        """
+        assert not self.has_task_id(new_task.task_id), "Task already in current plan, use replace_task instead"
+
+        assert all([self.has_task_id(dep_id) for dep_id in new_task.dependent_task_ids]), \
+            "New task has unknown dependencies"
+
+        # Existing tasks do not depend on the new task, it's fine to put it to the end of the sorted task sequence
+        self.tasks.append(new_task)
+        self.task_map[new_task.task_id] = new_task
+        self._update_current_task()
+
+    def has_task_id(self, task_id: str) -> bool:
+        return task_id in self.task_map
+
+    def _update_current_task(self):
+        current_task_id = ""
+        for task in self.tasks:
+            if not task.is_finished:
+                current_task_id = task.task_id
+                break
+        self.current_task_id = current_task_id  # all tasks finished
+    
     @property
     def current_task(self) -> Task:
         """Find current task to execute
@@ -170,10 +238,8 @@ class Plan(BaseModel):
         """Finish current task, set Task.is_finished=True, set current task to next task
         """
         if self.current_task_id:
-            current_task = self.current_task
-            current_task.is_finished = True
-            next_task_index = self.tasks.index(current_task) + 1
-            self.current_task_id = self.tasks[next_task_index].task_id if next_task_index < len(self.tasks) else None
+            self.current_task.is_finished = True
+            self._update_current_task()  # set to next task
 
     def get_finished_tasks(self) -> list[Task]:
         """return all finished tasks in correct linearized order

@@ -302,3 +302,14 @@ ML_MODULE_MAP = {
     "data_preprocess": "metagpt.tools.functions.libs.data_preprocess",
     "feature_engineering": "metagpt.tools.functions.libs.feature_engineering",
 }
+
+STRUCTURAL_CONTEXT = """
+## User Requirement
+{user_requirement}
+## Data Description
+{data_desc}
+## Current Plan
+{tasks}
+## Current Task
+{current_task}
+"""
