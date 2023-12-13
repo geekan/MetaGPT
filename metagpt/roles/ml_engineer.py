@@ -1,13 +1,11 @@
-from typing import Dict, List, Union
+from typing import  List
 import json
-import subprocess
+from datetime import datetime
 
 import fire
-import re
 
 from metagpt.roles import Role
-from metagpt.actions import Action
-from metagpt.schema import Message, Task, Plan
+from metagpt.schema import Message, Plan
 from metagpt.memory import Memory
 from metagpt.logs import logger
 from metagpt.actions.write_plan import WritePlan, update_plan_from_rsp, precheck_update_plan_from_rsp
@@ -17,6 +15,7 @@ from metagpt.actions.execute_code import ExecutePyCode
 from metagpt.roles.kaggle_manager import DownloadData, SubmitResult
 from metagpt.prompts.ml_engineer import STRUCTURAL_CONTEXT
 from metagpt.actions.write_code_steps import WriteCodeSteps
+from metagpt.utils.save_code import save_code_file
 
 class MLEngineer(Role):
     def __init__(
@@ -99,6 +98,9 @@ class MLEngineer(Role):
         rsp = Message(content=summary, cause_by=SummarizeAnalysis)
         self._rc.memory.add(rsp)
 
+        # save code using datetime.now or  keywords related to the goal of your project (plan.goal).
+        project_record = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        save_code_file(name=project_record, code_context=self.execute_code.nb, file_format="ipynb")
         return rsp
 
     async def _write_and_exec_code(self, max_retry: int = 3):
@@ -223,14 +225,13 @@ class MLEngineer(Role):
 
 
 if __name__ == "__main__":
-    # requirement = "Run data analysis on sklearn Iris dataset, include a plot"
+    requirement = "Run data analysis on sklearn Iris dataset, include a plot"
     # requirement = "Run data analysis on sklearn Diabetes dataset, include a plot"
     # requirement = "Run data analysis on sklearn Wine recognition dataset, include a plot, and train a model to predict wine class (20% as validation), and show validation accuracy"
     # requirement = "Run data analysis on sklearn Wisconsin Breast Cancer dataset, include a plot, train a model to predict targets (20% as validation), and show validation accuracy"
     # requirement = "Run EDA and visualization on this dataset, train a model to predict survival, report metrics on validation set (20%), dataset: workspace/titanic/train.csv"
-    requirement = "This is a house price dataset, your goal is to predict the sale price of a property based on its features. The target column is SalePrice. Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. Report RMSE between the logarithm of the predicted value and the logarithm of the observed sales price on the eval data. Train data path: 'workspace/house-prices-advanced-regression-techniques/split_train.csv', eval data path: 'workspace/house-prices-advanced-regression-techniques/split_eval.csv'."
 
-    async def main(requirement: str = requirement, auto_run: bool = False):
+    async def main(requirement: str = requirement, auto_run: bool = True):
         role = MLEngineer(goal=requirement, auto_run=auto_run)
         await role.run(requirement)
 
