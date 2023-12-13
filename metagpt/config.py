@@ -108,7 +108,7 @@ class Config(metaclass=Singleton):
 
     def _ensure_workspace_exists(self):
         self.workspace_path.mkdir(parents=True, exist_ok=True)
-        logger.info(f"WORKSPACE_PATH set to {self.workspace_path}")
+        logger.debug(f"WORKSPACE_PATH set to {self.workspace_path}")
 
     def _init_with_config_files_and_env(self, yaml_file):
         """Load from config/key.yaml, config/config.yaml, and env in decreasing order of priority"""

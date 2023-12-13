@@ -361,7 +361,7 @@ class WritePRD(Action):
             )
             if prd_doc:
                 change_files.docs[prd_doc.filename] = prd_doc
-                logger.info(f"NEW PRD:{prd_doc.filename}")
+                logger.debug(f"new prd: {prd_doc.filename}")
         # Once all files under 'docs/prds/' have been compared with the newly added requirements, trigger the
         # 'publish' message to transition the workflow to the next stage. This design allows room for global
         # optimization in subsequent steps.
@@ -394,7 +394,7 @@ class WritePRD(Action):
     async def _is_relative_to(self, new_requirement_doc, old_prd_doc) -> bool:
         prompt = IS_RELATIVE_PROMPT.format(old_prd=old_prd_doc.content, requirements=new_requirement_doc.content)
         res = await self._aask(prompt=prompt)
-        logger.info(f"REQ-RELATIVE:[{new_requirement_doc.root_relative_path}, {old_prd_doc.root_relative_path}]: {res}")
+        logger.info(f"REQ-RELATIVE: [{new_requirement_doc.root_relative_path}, {old_prd_doc.root_relative_path}]: {res}")
         if "YES" in res:
             return True
         return False

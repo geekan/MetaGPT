@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import List
 
 from metagpt.actions import Action, ActionOutput
+from metagpt.actions.design_api_an import DESIGN_API_NODE, SIMPLE_TEMPLATE
 from metagpt.config import CONFIG
 from metagpt.const import (
     DATA_API_DESIGN_FILE_REPO,
@@ -227,10 +228,19 @@ class WriteDesign(Action):
         # leaving room for global optimization in subsequent steps.
         return ActionOutput(content=changed_files.json(), instruct_content=changed_files)
 
-    async def _new_system_design(self, context, format=CONFIG.prompt_format):
+    async def _new_system_design_bakup(self, context, format=CONFIG.prompt_format):
         prompt_template, format_example = get_template(templates, format)
         format_example = format_example.format(project_name=CONFIG.project_name)
         prompt = prompt_template.format(context=context, format_example=format_example)
+        system_design = await self._aask_v1(prompt, "system_design", OUTPUT_MAPPING, format=format)
+        return system_design
+
+    async def _new_system_design(self, context, format=CONFIG.prompt_format):
+        instruction, example = DESIGN_API_NODE.compile()
+        prompt = SIMPLE_TEMPLATE.format(context=context, example=example, instruction=instruction)
+        # prompt_template, format_example = get_template(templates, format)
+        # format_example = format_example.format(project_name=CONFIG.project_name)
+        # prompt = prompt_template.format(context=context, format_example=format_example)
         system_design = await self._aask_v1(prompt, "system_design", OUTPUT_MAPPING, format=format)
         return system_design
 

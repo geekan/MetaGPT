@@ -25,9 +25,9 @@ class Action(ABC):
             llm = LLM()
         self.llm = llm
         self.context = context
-        self.prefix = ""
-        self.profile = ""
-        self.desc = ""
+        self.prefix = ""  # aask*时会加上prefix，作为system_message
+        self.profile = ""  # FIXME: USELESS
+        self.desc = ""  # FIXME: USELESS
         self.content = ""
         self.instruct_content = None
         self.env = None

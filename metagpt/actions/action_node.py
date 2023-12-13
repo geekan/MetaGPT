@@ -5,7 +5,7 @@
 @Author  : alexanderwu
 @File    : action_node.py
 """
-from typing import Dict, Type, List, Any
+from typing import Dict, Type, List, Any, Tuple
 import json
 
 from pydantic import BaseModel, create_model, root_validator, validator
@@ -14,7 +14,16 @@ from pydantic import BaseModel, create_model, root_validator, validator
 from metagpt.logs import logger
 
 
-def dict_to_markdown(d, prefix="##", postfix="\n\n"):
+SIMPLE_TEMPLATE = """
+## example
+{example}
+
+## instruction
+{instruction}
+"""
+
+
+def dict_to_markdown(d, prefix="###", postfix="\n"):
     markdown_str = ""
     for key, value in d.items():
         markdown_str += f"{prefix} {key}: {value}{postfix}"
@@ -23,13 +32,17 @@ def dict_to_markdown(d, prefix="##", postfix="\n\n"):
 
 class ActionNode:
     """ActionNode is a tree of nodes."""
+    # 应该是定义子任务，收集子任务结果，并且父任务同时执行吗？
+    # 初期只提供两种模式，一种是用父任务compile，一种是用子任务逐个执行
+    # 1. context、example、instruction-nodes、instruction-action
+    # 2. context、example
 
     # Action Inputs
     key: str  # Product Requirement / File list / Code
     expected_type: Type  # such as str / int / float etc.
     # context: str  # everything in the history.
     instruction: str  # the instructions should be followed.
-    example: str  # example for In Context-Learning.
+    example: Any  # example for In Context-Learning.
 
     # Action Outputs
     content: str
@@ -56,7 +69,7 @@ class ActionNode:
         """增加子ActionNode"""
         self.children[node.key] = node
 
-    def add_childs(self, nodes: List["ActionNode"]):
+    def add_children(self, nodes: List["ActionNode"]):
         """批量增加子ActionNode"""
         for node in nodes:
             self.add_child(node)
@@ -140,7 +153,7 @@ class ActionNode:
 
         return node_dict
 
-    def compile_to(self, i: Dict, to="raw") -> str:
+    def compile_to(self, i: Dict, to) -> str:
         if to == "json":
             return json.dumps(i, indent=4)
         elif to == "markdown":
@@ -148,88 +161,49 @@ class ActionNode:
         else:
             return str(i)
 
-    def compile_instruction(self, to="raw", mode="children") -> str:
+    def tagging(self, text, to, tag="") -> str:
+        if not tag:
+            return text
+        if to == "json":
+            return f"[{tag}]\n" + "{" + text + "}" + f"\n[/{tag}]"
+        else:
+            return f"[{tag}]\n" + text + f"\n[/{tag}]"
+
+    def _compile_f(self, to, mode, tag, format_func) -> str:
+        nodes = self.to_dict(format_func=format_func, mode=mode)
+        text = self.compile_to(nodes, to)
+        return self.tagging(text, to, tag)
+
+    def compile_instruction(self, to="raw", mode="children", tag="") -> str:
         """compile to raw/json/markdown template with all/root/children nodes"""
         format_func = lambda i: f"{i.expected_type}  # {i.instruction}"
-        nodes = self.to_dict(format_func=format_func, mode=mode)
-        return self.compile_to(nodes, to)
+        return self._compile_f(to, mode, tag, format_func)
 
-    def compile_example(self, to="raw", mode="all") -> str:
+    def compile_example(self, to="raw", mode="children", tag="") -> str:
         """compile to raw/json/markdown examples with all/root/children nodes"""
-        format_func = lambda i: f"{i.example}"
-        nodes = self.to_dict(format_func=format_func, mode=mode)
-        return self.compile_to(nodes, to)
 
-    def compile(self, to="raw", mode="all") -> str:
-        pass
+        # 这里不能使用f-string，因为转译为str后再json.dumps会额外加上引号，无法作为有效的example
+        # 错误示例："File list": "['main.py', 'const.py', 'game.py']", 注意这里值不是list，而是str
+        format_func = lambda i: i.example
+        return self._compile_f(to, mode, tag, format_func)
+
+    def compile(self, mode="children") -> Tuple[str, str]:
+        """
+        mode: all/root/children
+            mode="children": 编译所有子节点为一个统一模板，包括instruction与example
+            mode="all": NotImplemented
+            mode="root": NotImplemented
+        """
+        self.instruction = self.compile_instruction(to="json", mode=mode)
+        self.example = self.compile_example(to="json", tag="CONTENT", mode=mode)
+        # prompt = template.format(example=self.example, instruction=self.instruction)
+        return self.instruction, self.example
 
     def run(self):
         """运行这个ActionNode，可以采用不同策略，比如只运行子节点"""
-        pass
 
-
-IMPLEMENTATION_APPROACH = ActionNode(
-    key="implementation_approach",
-    expected_type=str,
-    instruction="Analyze the difficult points of the requirements, select the appropriate open-source framework",
-    example="We will ..."
-)
-
-PROJECT_NAME = ActionNode(
-    key="project_name",
-    expected_type=str,
-    instruction="The project name with underline",
-    example="game_2048"
-)
-
-FILE_LIST = ActionNode(
-    key="file_list",
-    expected_type=List[str],
-    instruction="Only need relative paths. ALWAYS write a main.py or app.py here",
-    example="['main.py', 'const.py', 'utils.py']"
-)
-
-DATA_STRUCTURES_AND_INTERFACES = ActionNode(
-    key="data_structures_and_interfaces",
-    expected_type=str,
-    instruction="Use mermaid classDiagram code syntax, including classes (INCLUDING __init__ method) and functions "
-     "(with type annotations), CLEARLY MARK the RELATIONSHIPS between classes, and comply with PEP8 standards. "
-     "The data structures SHOULD BE VERY DETAILED and the API should be comprehensive with a complete design.",
-    example="""classDiagram
-class Game{{
-    +int score
-}}
-...
-Game "1" -- "1" Food: has"""
-)
-
-PROGRAM_CALL_FLOW = ActionNode(
-    key="program_call_flow",
-    expected_type=str,
-    instruction="Use sequenceDiagram code syntax, COMPLETE and VERY DETAILED, using CLASSES AND API DEFINED ABOVE "
-                "accurately, covering the CRUD AND INIT of each object, SYNTAX MUST BE CORRECT.",
-    example="""sequenceDiagram
-participant M as Main
-...
-G->>M: end game"""
-)
-
-ANYTHING_UNCLEAR = ActionNode(
-    key="anything_unclear",
-    expected_type=str,
-    instruction="Mention unclear project aspects, then try to clarify it.",
-    example="Clarification needed on third-party API integration, ..."
-)
-
-
-ACTION_NODES = [
-    IMPLEMENTATION_APPROACH,
-    PROJECT_NAME,
-    FILE_LIST,
-    DATA_STRUCTURES_AND_INTERFACES,
-    PROGRAM_CALL_FLOW,
-    ANYTHING_UNCLEAR
-]
+        # 需要传入llm，并且实际在ActionNode中执行。需要规划好具体的执行方法
+        raise NotImplementedError
 
 
 def action_node_from_tuple_example():
@@ -246,13 +220,5 @@ def action_node_from_tuple_example():
         logger.info(i)
 
 
-def main():
-    write_design_node = ActionNode("WriteDesign", str, "", "")
-    write_design_node.add_childs(ACTION_NODES)
-    instruction = write_design_node.compile_instruction(to="markdown")
-    logger.info(instruction)
-    logger.info(write_design_node.compile_example())
-
-
 if __name__ == '__main__':
-    main()
+    action_node_from_tuple_example()
