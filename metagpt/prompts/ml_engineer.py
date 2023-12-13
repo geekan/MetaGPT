@@ -4,6 +4,31 @@
 # @Author  : lidanyang
 # @File    : ml_engineer
 # @Desc    :
+UPDATE_DATA_COLUMNS = """
+# Background
+Keep dataset column information updated to reflect changes in training or testing datasets, aiding in informed decision-making during data analysis.
+## Done Tasks
+```python
+{history_code}
+```end
+
+# Task
+Update and print the dataset's column information only if the train or test data has changed. Use the following code:
+```python
+from metagpt.tools.functions.libs.data_preprocess import get_column_info
+
+column_info = get_column_info(df)
+print("df_column_info")
+print(column_info)
+```end
+
+# Constraints:
+- Use the DataFrame variable from 'Done Tasks' in place of df.
+- Import `get_column_info` only if it's not already imported.
+- Skip update if no changes in training/testing data, except for initial data load.
+- No need to update info if only model evaluation is performed.
+"""
+
 GEN_DATA_DESC_PROMPT = """
 Here is the head 5 rows of the dataset:
 {data_head}
@@ -34,7 +59,8 @@ Please assign a task type to each task in the list below from the given categori
 - **feature_engineering**: Only for creating new columns for input data.
 - **data_preprocess**: Only for changing value inplace.
 - **model_train**: Only for training model.
-- **other**: Any tasks that do not fit into the previous categories, such as visualization, summarizing findings, build model, etc.
+- **model_evaluate**: Only for evaluating model.
+- **other**: Any tasks that do not fit into the previous categories, such as visualization, summarizing findings, etc.
 """
 
 ASSIGN_TASK_TYPE = {
@@ -107,206 +133,122 @@ CODE_GENERATOR_WITH_TOOLS = {
     },
 }
 
-TOOL_USAGE_PROMPT = """
-## Target
-{goal}
 
-Specifically, {special_prompt}
-
-## History Info
-{context}
-
-## Code Steps for Current Task:
-Follow steps below when you writing code if it's convenient.
-{code_steps}
-
-## Available Tools:
-Each function is described in JSON format, including the function name and parameters. {output_desc}
-{function_catalog}
-
-When you call a function above, you should import the function from `{module_name}` first, e.g.:
-```python
-from metagpt.tools.functions.libs.data_preprocess import fill_missing_value
-```end
-
-## Your Output Format:
-Generate the complete code for this task:
-```python
-# Tools used: [function names or 'none']
-<your code for the current task, without any comments>
-```end
-
-## Attention:
-Make sure use the columns from the dataset columns: {column_names}
-Finish your coding tasks as a helpful programmer based on the tools.
-
-"""
+PRINT_DATA_COLUMNS = {
+    "name": "print_column_info",
+    "description": "Print the latest column information after 'Done Tasks' code if first read or data changed.",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "is_update": {
+                "type": "boolean",
+                "description": "Whether need to update the column info.",
+            },
+            "code": {
+                "type": "string",
+                "description": "The code to be added to a new cell in jupyter.",
+            },
+        },
+        "required": ["is_update", "code"],
+    },
+}
 
 GENERATE_CODE_PROMPT = """
-## Target
-{goal}
-
-Specifically, {special_prompt}
-
-
-## Finished Task and Code 
-{context}
-
-## Code Steps for Current Task:
-Follow steps below when you writing code if it's convenient.
-{code_steps}
-
-## Instruction
-Finished task and code are executable, and you should based on the code to continue your current task
-Do not repeat functions and code, try to reuse the code in [Finished Task and Code]
- 
-## Your Output Format:
-Generate the complete code for this task:
-```python
-import pandas as pd
-
-```
-
-## Attention:
-Make sure use the columns from the dataset columns
-Finish your coding tasks as a helpful programmer based on the code.
-
-"""
-
-TOOL_USAGE_PROMPT = """
-## Target
-{goal}
-
-## History Info
-{context}
-
-## Available Tools:
-Each function is described in JSON format, including the function name and parameters. {output_desc}
-{function_catalog}
-
-When you call a function above, you should import the function from `{module_name}` first, e.g.:
-```python
-from metagpt.tools.functions.libs.data_preprocess import fill_missing_value
-```end
-
-## Your Output Format:
-Generate the complete code for this task:
-```python
-# Tools used: [function names or 'none']
-<your code for the current task, without any comments>
-```end
-
-## Attention:
-Make sure use the columns from the dataset columns
-Finish your coding tasks as a helpful programmer based on the tools.
-"""
-
-TOOL_ORGANIZATION_PROMPT = """
-The previous conversation has provided all tasks step-by-step for the use goal and their statuses. 
-Now, begin writing code for the current task. This code should writen strictly on the basis of all previous completed tasks code, not a standalone code. And avoid writing duplicate code that has already been written in previous tasks, such as repeated import of packages, reading data, etc.
-Specifically, {special_prompt}
-You can utilize pre-defined tools in 'Available Tools' if the tools are sufficient. And you should combine the use of other public packages if necessary, like sklearn, numpy, pandas, etc..
-
-## Code Steps for Current Task:
-Follow steps below when you writing code if it's convenient.
-{code_steps}
-
-## Available Tools:
-Each function is described in JSON format, including the function name and parameters. {output_desc}
-{function_catalog}
-
-When you call a function above, you should import the function from `{module_name}` first, e.g.:
-```python
-from metagpt.tools.functions.libs.data_preprocess import fill_missing_value
-```end
-
-## Your Output Format:
-Generate the complete code for this task:
-```python
-# Tools used: [function names or 'none']
-<your code for the current task, without any comments>
-```end
-
-*** Important Rules ***
-- If you use tool not in the list, you should implement it by yourself.
-- Ensure the output new code is executable in the same Jupyter notebook environment with previous tasks code have been executed.
-- When write code for current task, remember the code should be coherent with previous tasks code.
-- Remember that don't process the columns have been processed in previous tasks and don't mock data yourself.
-- Prioritize using tools for the same functionality.
-"""
-
-DATA_PREPROCESS_PROMPT = """
-The current task is about data preprocessing, closely monitor each column's data type. Apply suitable methods for various types (numerical, categorical, datetime, textual, etc.) to ensure the pandas.DataFrame is correctly formatted.
-Additionally, ensure that the columns being processed must be the ones that actually exist in the dataset.
-Don't write processed data to files.
-"""
-
-FEATURE_ENGINEERING_PROMPT = """
-The current task is about feature engineering. when performing it, please adhere to the following principles:
-- Ensure that the feature you're working with is indeed present in the dataset and consider the data type (numerical, categorical, etc.) and application scenario (classification, regression tasks, etc.).
-- When generate new features, you should combine real world knowledge and decide what features are useful for the task.
-- Generate as diverse features as possible to improve the model's performance.
-- Before generating a new feature, ensure the used features are already processed and ready to use.
-"""
-
-DATA_PROCESS_PROMPT = """
 # Background
-As a data scientist, you need to help user to achieve the goal [{user_requirement}] step-by-step in an continuous Jupyter notebook.
+Assist in completing [{user_requirement}] in a Jupyter notebook.
 
-## Done Tasks
+## Task Progress
+### Done Tasks
 ```python
 {history_code}
 ```end
 
-## Current Task
+### Current Task
 {current_task}
 
-# Latest Data Info
-Latest data info after previous tasks:
+## Latest Data Info
 {column_info}
 
 # Task
-Write a Python function for 'Current Task'. Start by copying the input DataFrame. Avoid duplicating code from 'Done Tasks'.
-Specifically, {special_prompt}
+Fully implement 'Current Task', ensuring all necessary steps are covered without repeating code from 'Done Tasks'. Specifically, {special_prompt}
+
+# Code Steps:
+Follow steps below when you writing code if it's convenient.
+{code_steps}
+"""
+
+TOOL_USAGE_PROMPT = """
+# Background
+Assist in completing [{user_requirement}] in a Jupyter notebook.
+
+## Task Progress
+### Done Tasks
+```python
+{history_code}
+```end
+
+### Current Task
+{current_task}
+
+## Latest Data Info
+{column_info}
+
+# Task
+Fully implement 'Current Task', ensuring all necessary steps are covered without repeating code from 'Done Tasks'. Specifically, {special_prompt}
 
 # Code Steps:
 Follow steps below when you writing code if it's convenient.
 {code_steps}
 
 # Capabilities
-- You can utilize pre-defined tools in any code lines from 'Available Tools' in the form of python functions.
+- You can utilize pre-defined tools in any code lines from 'Available Tools' in the form of Python Class.
 - You can freely combine the use of any other public packages, like sklearn, numpy, pandas, etc..
-- You can do anything about data preprocessing, feature engineering, model training, etc..
 
 # Available Tools:
-Each function tool is described in JSON format. {output_desc}
-When you call a function below, import the function from `{module_name}` first.
-{function_catalog}
+Each Class tool is described in JSON format. When you call it, import the tool from `{module_name}` first.
+{tool_catalog}
 
 # Output Example:
-when current task is "fill missing value and handle outliers", the output code be like:
+For "fill missing value and handle outliers", the output code be like when there are training data and test data:
 ```python
-from metagpt.tools.functions.libs.data_preprocess import fill_missing_value
+# Tools used: ['FillMissingValue']
+from metagpt.tools.functions.libs.data_preprocess import FillMissingValue
 
-def function_name(df):
-    df_processed = df.copy()
-    num_cols = df_processed.select_dtypes(include='number').columns.tolist()
-    df_processed = fill_missing_value(df_processed, num_cols, 'mean')
-    
-    for col in num_cols:
-        low, high = df_processed[col].quantile([0.01, 0.99])
-        df_processed[col] = df_processed[col].clip(low, high)
-    return df_processed
+train_processed = train.copy()
+test_processed = test.copy()
+num_cols = train_processed.select_dtypes(include='number').columns.tolist()
+fill_missing_value = FillMissingValue(features=num_cols, strategy='mean')
+fill_missing_value.fit(train_processed)
+train_processed = fill_missing_value.transform(train_processed)
+test_processed = fill_missing_value.transform(test_processed)
 
-df_processed = function_name(df)
-print(df_processed.info())
+for col in num_cols:
+    low, high = train_processed[col].quantile([0.01, 0.99])
+    train_processed[col] = train_processed[col].clip(low, high)
+    test_processed[col] = test_processed[col].clip(low, high)
 ```end
 
 # Constraints:
-- Ensure the output new code is executable in the same Jupyter notebook with previous tasks code have been executed.
 - Prioritize using pre-defined tools for the same functionality.
-- Return DataFrame should always be named `df_processed`, while the input DataFrame should based on the done tasks' output DataFrame.
-- Limit to one print statement for the output DataFrame's info.
+- Copy DataFrame before processing if needed.
+- If 'Code Steps' contains step done in 'Done Tasks', such as reading data, don't repeat it.
+"""
+
+DATA_PREPROCESS_PROMPT = """
+The current task is about data preprocessing, please note the following:
+- Monitor data types per column, applying appropriate methods.
+- Ensure operations are on existing dataset columns.
+- Avoid writing processed data to files.
+- Prefer alternatives to one-hot encoding for categorical data.
+- Only encode necessary categorical columns to allow for potential feature-specific engineering tasks later.
+"""
+
+FEATURE_ENGINEERING_PROMPT = """
+The current task is about feature engineering. when performing it, please adhere to the following principles:
+- Ensure operations are on existing dataset columns and consider the data type (numerical, categorical, etc.) and application scenario (classification, regression tasks, etc.).
+- Create impactful features based on real-world knowledge and column info.
+- Generate as diverse features as possible to improve the model's performance.
+- If potential impactful features are not included in 'Code Steps', add new steps to generate them.
 """
 
 MODEL_TRAIN_PROMPT = """
@@ -316,23 +258,17 @@ The current task is about training a model, please ensure high performance:
 - Use the data from previous task result directly, do not mock or reload data yourself.
 """
 
-DATA_PREPROCESS_OUTPUT_DESC = "Please note that all functions output a updated pandas.DataFrame after data preprocessing."
-
-FEATURE_ENGINEERING_OUTPUT_DESC = "Please note that all functions output a updated pandas.DataFrame with new features added or existing features modified."
-
-CLASSIFICATION_MODEL_OUTPUT_DESC = ""
-
-REGRESSION_MODEL_OUTPUT_DESC = ""
+MODEL_EVALUATE_PROMPT = """
+The current task is about evaluating a model, please note the following:
+- Ensure that the evaluated data is same processed as the training data.
+- Use trained model from previous task result directly, do not mock or reload model yourself.
+"""
 
 ML_SPECIFIC_PROMPT = {
     "data_preprocess": DATA_PREPROCESS_PROMPT,
     "feature_engineering": FEATURE_ENGINEERING_PROMPT,
     "model_train": MODEL_TRAIN_PROMPT,
-}
-
-TOOL_OUTPUT_DESC = {
-    "data_preprocess": DATA_PREPROCESS_OUTPUT_DESC,
-    "feature_engineering": FEATURE_ENGINEERING_OUTPUT_DESC,
+    "model_evaluate": MODEL_EVALUATE_PROMPT,
 }
 
 ML_MODULE_MAP = {
