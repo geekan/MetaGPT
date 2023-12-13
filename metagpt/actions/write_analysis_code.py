@@ -23,9 +23,7 @@ from metagpt.utils.common import create_func_config
 
 
 class BaseWriteAnalysisCode(Action):
-    async def run(
-        self, context: List[Message], plan: Plan = None, task_guide: str = ""
-    ) -> str:
+    async def run(self, context: List[Message], plan: Plan = None) -> str:
         """Run of a code writing action, used in data analysis or modeling
 
         Args:
@@ -85,7 +83,6 @@ class WriteCodeByGenerate(BaseWriteAnalysisCode):
         self,
         context: [List[Message]],
         plan: Plan = None,
-        code_steps: str = "",
         system_msg: str = None,
         **kwargs,
     ) -> str:
@@ -155,11 +152,11 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
         self,
         context: List[Message],
         plan: Plan = None,
-        code_steps: str = "",
         data_desc: str = "",
     ) -> str:
         task_type = plan.current_task.task_type
         task = plan.current_task.instruction
+        code_steps = plan.current_task.code_steps
         available_tools = registry.get_all_schema_by_module(task_type)
         available_tools = [
             {k: tool[k] for k in ["name", "description"] if k in tool}
