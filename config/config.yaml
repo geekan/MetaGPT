@@ -5,7 +5,7 @@
 ## The official OPENAI_API_BASE is https://api.openai.com/v1
 ## If the official OPENAI_API_BASE is not available, we recommend using the [openai-forward](https://github.com/beidongjiedeguang/openai-forward).
 ## Or, you can configure OPENAI_PROXY to access official OPENAI_API_BASE.
-#OPENAI_API_BASE: "https://api.openai.com/v1"
+OPENAI_API_BASE: "https://api.openai.com/v1"
 #OPENAI_PROXY: "http://127.0.0.1:8118"
 #OPENAI_API_KEY: "YOUR_API_KEY"   # set the value to sk-xxx if you host the openai interface for open llm model
 OPENAI_API_MODEL: "gpt-4"
@@ -24,13 +24,12 @@ RPM: 10
 
 #### if AZURE, check https://github.com/openai/openai-cookbook/blob/main/examples/azure/chat.ipynb
 #### You can use ENGINE or DEPLOYMENT mode
-OPENAI_API_TYPE: "azure"
-OPENAI_API_BASE: "https://deepwisdom.openai.azure.com/"
-OPENAI_API_KEY: "02ae6058d09849c691176befeae2107c"
-#OPENAI_API_VERSION: "2023-05-15"
-OPENAI_API_VERSION: "2023-07-01-preview"
-DEPLOYMENT_ID: "GPT-4"
-OPENAI_API_ENGINE: "gpt-4"
+#OPENAI_API_TYPE: "azure"
+#OPENAI_API_BASE: "YOUR_AZURE_ENDPOINT"
+#OPENAI_API_KEY: "YOUR_AZURE_API_KEY"
+#OPENAI_API_VERSION: "YOUR_AZURE_API_VERSION"
+#DEPLOYMENT_NAME: "YOUR_DEPLOYMENT_NAME"
+#DEPLOYMENT_ID: "YOUR_DEPLOYMENT_ID"
 
 #### if zhipuai from `https://open.bigmodel.cn`. You can set here or export API_KEY="YOUR_API_KEY"
 # ZHIPUAI_API_KEY: "YOUR_API_KEY"
@@ -88,7 +87,7 @@ SD_T2I_API: "/sdapi/v1/txt2img"
 MODEL_FOR_RESEARCHER_SUMMARY: gpt-3.5-turbo
 MODEL_FOR_RESEARCHER_REPORT: gpt-3.5-turbo-16k
 
-### choose the engine for mermaid conversion, 
+### choose the engine for mermaid conversion,
 # default is nodejs, you can change it to playwright,pyppeteer or ink
 # MERMAID_ENGINE: nodejs
 
