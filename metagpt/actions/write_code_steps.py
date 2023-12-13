@@ -120,6 +120,5 @@ class WriteCodeSteps(Action):
         context = STRUCTURAL_CONTEXT.format(
             user_requirement=user_requirement, tasks=tasks, codes=codes, current_task=current_task
         )
-        print(context)
         # print(context)
         return context
