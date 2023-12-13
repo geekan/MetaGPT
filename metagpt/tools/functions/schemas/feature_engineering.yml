@@ -53,17 +53,17 @@ PolynomialExpansion:
 
 CatCount:
   type: class
-  description: "Add value counts of categorical columns as new features."
+  description: "Add value counts of a categorical column as new feature."
   methods:
     __init__:
       description: "Initialize self."
       parameters:
         properties:
-          cols:
-            type: list
-            description: "Columns for value counts."
+          col:
+            type: str
+            description: "Column for value counts."
         required:
-          - cols
+          - col
     fit:
       description: "Fit the CatCount model."
       parameters:
