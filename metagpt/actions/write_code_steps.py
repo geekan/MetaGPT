@@ -44,7 +44,7 @@ The output plan should following the subsequent principles:
 1.The plan is a rough checklist of steps outlining the entire program's structure.Try to keep the number of steps fewer than 5.
 2.The steps should be written concisely and at a high level, avoiding overly detailed implementation specifics.
 3.The execution of the plan happens sequentially, but the plan can incorporate conditional (if) and looping(loop) keywords for more complex structures.
-4.Follow the code logic to design and provide the code steps. You can analysis it step by step
+4.Design and provide code steps by following the code logic. Analyze the provided code step by step and reuse the imported library.
 
 Output the code steps in a JSON format, as shown in this example:
 ```json
@@ -101,11 +101,12 @@ class WriteCodeSteps(Action):
     def get_context(self, plan: Plan):
         user_requirement = plan.goal
         # select_task_keys = ['task_id', 'instruction', 'is_finished', 'code']
-        select_task_keys = ['task_id','instruction']
+        # select_task_keys = ['task_id','instruction']
         
         def process_task(task):
             task_dict = task.dict()
-            ptask = {k: task_dict[k] for k in task_dict if k in select_task_keys }
+            # ptask = {k: task_dict[k] for k in task_dict if k in select_task_keys }
+            ptask = f"task_id_{task_dict['task_id']}:{task_dict['instruction']}\n"
             return ptask
         
         

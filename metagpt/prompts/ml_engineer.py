@@ -231,8 +231,8 @@ for col in num_cols:
 # Constraints:
 - Prioritize using pre-defined tools for the same functionality.
 - Copy DataFrame before processing if needed.
-- If 'Code Steps' contains step done in 'Done Tasks', such as reading data, don't repeat it.
 """
+#- If 'Code Steps' contains step done in 'Done Tasks', such as reading data, don't repeat it.
 
 DATA_PREPROCESS_PROMPT = """
 The current task is about data preprocessing, please note the following:
