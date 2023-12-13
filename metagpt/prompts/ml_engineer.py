@@ -155,46 +155,51 @@ PRINT_DATA_COLUMNS = {
 
 GENERATE_CODE_PROMPT = """
 # Background
-Assist in completing [{user_requirement}] in a Jupyter notebook.
+As a data scientist, you need to help user to achieve their goal [{user_requirement}] step-by-step in an continuous Jupyter notebook.
 
-## Task Progress
-### Done Tasks
+## Done Tasks
 ```python
 {history_code}
 ```end
 
-### Current Task
+## Current Task
 {current_task}
 
-## Latest Data Info
+# Latest Data Info
+Latest data info after previous tasks:
 {column_info}
 
 # Task
-Fully implement 'Current Task', ensuring all necessary steps are covered without repeating code from 'Done Tasks'. Specifically, {special_prompt}
+Write complete code for 'Current Task'. And avoid duplicating code from 'Done Tasks', such as repeated import of packages, reading data, etc.
+Specifically, {special_prompt}
 
 # Code Steps:
 Follow steps below when you writing code if it's convenient.
 {code_steps}
+
+# Constraints:
+- Ensure the output new code is executable in the same Jupyter notebook with previous tasks code have been executed.
 """
 
 TOOL_USAGE_PROMPT = """
 # Background
-Assist in completing [{user_requirement}] in a Jupyter notebook.
+As a data scientist, you need to help user to achieve their goal [{user_requirement}] step-by-step in an continuous Jupyter notebook.
 
-## Task Progress
-### Done Tasks
+## Done Tasks
 ```python
 {history_code}
 ```end
 
-### Current Task
+## Current Task
 {current_task}
 
-## Latest Data Info
+# Latest Data Info
+Latest data info after previous tasks:
 {column_info}
 
 # Task
-Fully implement 'Current Task', ensuring all necessary steps are covered without repeating code from 'Done Tasks'. Specifically, {special_prompt}
+Write complete code for 'Current Task'. And avoid duplicating code from 'Done Tasks', such as repeated import of packages, reading data, etc.
+Specifically, {special_prompt}
 
 # Code Steps:
 Follow steps below when you writing code if it's convenient.
@@ -205,11 +210,11 @@ Follow steps below when you writing code if it's convenient.
 - You can freely combine the use of any other public packages, like sklearn, numpy, pandas, etc..
 
 # Available Tools:
-Each Class tool is described in JSON format. When you call it, import the tool from `{module_name}` first.
+Each Class tool is described in JSON format. When you call a tool, import the tool from `{module_name}` first.
 {tool_catalog}
 
 # Output Example:
-For "fill missing value and handle outliers", the output code be like when there are training data and test data:
+when current task is "fill missing value and handle outliers", and their are training data and test data, the output code be like:
 ```python
 # Tools used: ['FillMissingValue']
 from metagpt.tools.functions.libs.data_preprocess import FillMissingValue
@@ -229,8 +234,9 @@ for col in num_cols:
 ```end
 
 # Constraints:
+- Ensure the output new code is executable in the same Jupyter notebook with previous tasks code have been executed.
 - Prioritize using pre-defined tools for the same functionality.
-- Copy DataFrame before processing if needed.
+- Always copy the DataFrame before processing it and use the copy to process.
 """
 #- If 'Code Steps' contains step done in 'Done Tasks', such as reading data, don't repeat it.
 
