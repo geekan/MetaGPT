@@ -1,6 +1,6 @@
 import pytest
 
-from metagpt.actions.execute_code import ExecutePyCode
+from metagpt.actions.execute_code import ExecutePyCode, truncate
 from metagpt.schema import Message
 
 
@@ -81,3 +81,10 @@ async def test_plotting_bug():
     pi = ExecutePyCode()
     output = await pi.run(code)
     assert output[1] is True
+
+
+def test_truncate():
+    output = "hello world"
+    assert truncate(output) == output
+    output = "hello world"
+    assert truncate(output, 5) == "Truncated to show only the last 5 characters\nworld"
