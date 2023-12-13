@@ -148,7 +148,7 @@ class MLEngineer(Role):
         
         while self.plan.current_task:
             task = self.plan.current_task
-            logger.info(f"ready to take on task {task}")
+            logger.info(f"ready to take on task: {task}")
             
             # take on current task
             code, result, success, code_steps = await self._write_and_exec_code()
@@ -157,9 +157,11 @@ class MLEngineer(Role):
             task_result_confirmed = await self._ask_review()
             
             # 针对当前task进行单独plan
-            if not success or not task_result_confirmed:
-                # fixme: 增加对应plan
-                self.state.plan()
+            # if not success or not task_result_confirmed:
+            #     # fixme: 增加对应plan
+            #     logger.info(task.result)
+            #     # import pdb;pdb.set_trace()
+            # #     self.state.plan()
                 
             if success and task_result_confirmed:
                 # tick off this task and record progress
@@ -175,13 +177,13 @@ class MLEngineer(Role):
                 # update plan according to user's feedback and to take on changed tasks
                 await self._update_plan()
         
-        finished_tasks = self.plan.get_finished_tasks()
-        if len(finished_tasks) == len(self.plan.tasks):
-            code_context = [task.code for task in finished_tasks]
-            code_context = "\n\n".join(code_context)
-            result, success = await self.execute_code.run(code_context)
-            # truncated the result
-            print(truncate(result))
+        # finished_tasks = self.plan.get_finished_tasks()
+        # if len(finished_tasks) == len(self.plan.tasks):
+        #     code_context = [task.code for task in finished_tasks]
+        #     code_context = "\n\n".join(code_context)
+        #     result, success = await self.execute_code.run(code_context)
+        #     # truncated the result
+        #     print(truncate(result))
     
     async def _generate_data_desc(self):
         data_desc = await GenerateDataDesc().run(self.data_path)
@@ -257,8 +259,6 @@ class MLEngineer(Role):
             #     await self._ask_review()
             
             counter += 1
-        
-        success = False
         
         return code, result, success, code_steps
     

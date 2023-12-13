@@ -63,18 +63,22 @@ class WriteCodeSteps(Action):
 
     def get_context(self, plan: Plan):
         user_requirement = plan.goal
-        select_task_keys = ['task_id', 'instruction', 'is_finished', 'code']
-
+        # select_task_keys = ['task_id', 'instruction', 'is_finished', 'code']
+        select_task_keys = ['task_id','code']
+        
         def process_task(task):
             task_dict = task.dict()
-            ptask = {k: task_dict[k] for k in task_dict if k in select_task_keys}
+            ptask = {k: task_dict[k] for k in task_dict if k in select_task_keys }
             return ptask
+        
         tasks = json.dumps(
-            [process_task(task) for task in plan.tasks], indent=4, ensure_ascii=False
+            [process_task(task) for task in plan.tasks if task.is_finished==True], indent=4, ensure_ascii=False
         )
+        
         current_task = json.dumps(process_task(plan.current_task)) if plan.current_task else {}
         context = STRUCTURAL_CONTEXT.format(
             user_requirement=user_requirement, tasks=tasks, current_task=current_task
         )
+        print(context)
         # print(context)
         return context
