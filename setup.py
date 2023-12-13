@@ -30,13 +30,13 @@ with open(path.join(here, "requirements.txt"), encoding="utf-8") as f:
 
 setup(
     name="metagpt",
-    version="0.3.0",
-    description="The Multi-Agent Framework",
+    version="0.4.0",
+    description="The Multi-Role Meta Programming Framework",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/geekan/MetaGPT",
     author="Alexander Wu",
-    author_email="alexanderwu@fuzhi.ai",
+    author_email="alexanderwu@deepwisdom.ai",
     license="MIT",
     keywords="metagpt multi-role multi-agent programming gpt llm metaprogramming",
     packages=find_packages(exclude=["contrib", "docs", "examples", "tests*"]),

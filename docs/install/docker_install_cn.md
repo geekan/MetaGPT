@@ -15,7 +15,7 @@ docker run --rm \
     -v /opt/metagpt/config/key.yaml:/app/metagpt/config/key.yaml \
     -v /opt/metagpt/workspace:/app/metagpt/workspace \
     metagpt/metagpt:latest \
-    python startup.py "Write a cli snake game"
+    metagpt "Write a cli snake game"
 
 # 您也可以启动一个容器并在其中执行命令
 docker run --name metagpt -d \
@@ -25,7 +25,7 @@ docker run --name metagpt -d \
     metagpt/metagpt:latest
 
 docker exec -it metagpt /bin/bash
-$ python startup.py "Write a cli snake game"
+$ metagpt "Write a cli snake game"
 ```
 
 `docker run ...`做了以下事情:
@@ -33,7 +33,7 @@ $ python startup.py "Write a cli snake game"
 - 以特权模式运行，有权限运行浏览器
 - 将主机文件 `/opt/metagpt/config/key.yaml` 映射到容器文件 `/app/metagpt/config/key.yaml`
 - 将主机目录 `/opt/metagpt/workspace` 映射到容器目录 `/app/metagpt/workspace`
-- 执行示例命令 `python startup.py "Write a cli snake game"`
+- 执行示例命令 `metagpt "Write a cli snake game"`
 
 ### 自己构建镜像
 

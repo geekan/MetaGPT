@@ -98,7 +98,7 @@ MetaGPT Community - The position of Chief Evangelist rotates on a monthly basis.
 
 1.  How to change the investment amount?
 
-    1.  You can view all commands by typing `python startup.py --help`
+    1.  You can view all commands by typing `metagpt --help`
 
 1.  Which version of Python is more stable?
 
@@ -134,7 +134,7 @@ MetaGPT Community - The position of Chief Evangelist rotates on a monthly basis.
 
     1.  Configuration instructions for SD Skills: The SD interface is currently deployed based on *https://github.com/AUTOMATIC1111/stable-diffusion-webui* **For environmental configurations and model downloads, please refer to the aforementioned GitHub repository. To initiate the SD service that supports API calls, run the command specified in cmd with the parameter nowebui, i.e.,
 
-        1.  > python webui.py --enable-insecure-extension-access --port xxx --no-gradio-queue --nowebui
+        1.  > python3 webui.py --enable-insecure-extension-access --port xxx --no-gradio-queue --nowebui
         1.      Once it runs without errors, the interface will be accessible after approximately 1 minute when the model finishes loading.
         1.  Configure SD_URL and SD_T2I_API in the config.yaml/key.yaml files.
         1.  ![](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/065295a67b0b4feea665d1372722d49d~tplv-k3u1fbpfcp-zoom-1.image)

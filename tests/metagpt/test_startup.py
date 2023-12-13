@@ -16,6 +16,7 @@ runner = CliRunner()
 
 @pytest.mark.asyncio
 async def test_team():
+    # FIXME: we're now using "metagpt" cli, so the entrance should be replaced instead.
     company = Team()
     company.run_project("做一个基础搜索引擎，可以支持知识库")
     history = await company.run(n_round=5)

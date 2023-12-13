@@ -14,12 +14,14 @@
         3. Encapsulate the input of RunCode into RunCodeContext and encapsulate the output of RunCode into
         RunCodeResult to standardize and unify parameter passing between WriteCode, RunCode, and DebugError.
 """
+import json
 
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.actions.action import Action
 from metagpt.config import CONFIG
-from metagpt.const import CODE_SUMMARIES_FILE_REPO, TEST_OUTPUTS_FILE_REPO
+from metagpt.const import CODE_SUMMARIES_FILE_REPO, TEST_OUTPUTS_FILE_REPO, TASK_FILE_REPO, BUGFIX_FILENAME, \
+    DOCS_FILE_REPO
 from metagpt.logs import logger
 from metagpt.schema import CodingContext, Document, RunCodeResult
 from metagpt.utils.common import CodeParser
@@ -54,6 +56,12 @@ ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenc
 {summary_log}
 ```
 -----
+# Bug Feedback logs
+```text
+{feedback}
+```
+-----
+
 
 ## Code: {filename} Write code with triple quoto, based on the following list and context.
 1. Do your best to implement THIS ONLY ONE FILE. ONLY USE EXISTING API. IF NO API, IMPLEMENT IT.
@@ -88,6 +96,7 @@ class WriteCode(Action):
         return code
 
     async def run(self, *args, **kwargs) -> CodingContext:
+        bug_feedback = await FileRepository.get_file(filename=BUGFIX_FILENAME, relative_path=DOCS_FILE_REPO)
         coding_context = CodingContext.loads(self.context.content)
         test_doc = await FileRepository.get_file(
             filename="test_" + coding_context.filename + ".json", relative_path=TEST_OUTPUTS_FILE_REPO
@@ -101,11 +110,13 @@ class WriteCode(Action):
         if test_doc:
             test_detail = RunCodeResult.loads(test_doc.content)
             logs = test_detail.stderr
+        code_context = await self._get_codes(coding_context.task_doc)
         prompt = PROMPT_TEMPLATE.format(
             design=coding_context.design_doc.content,
             tasks=coding_context.task_doc.content if coding_context.task_doc else "",
-            code=coding_context.code_doc.content if coding_context.code_doc else "",
+            code=code_context,
             logs=logs,
+            feedback=bug_feedback.content if bug_feedback else "",
             filename=self.context.filename,
             summary_log=summary_doc.content if summary_doc else "",
         )
@@ -115,3 +126,21 @@ class WriteCode(Action):
             coding_context.code_doc = Document(filename=coding_context.filename, root_path=CONFIG.src_workspace)
         coding_context.code_doc.content = code
         return coding_context
+
+    @staticmethod
+    async def _get_codes(task_doc) -> str:
+        if not task_doc:
+            return ""
+        if not task_doc.content:
+            task_doc.content = FileRepository.get_file(filename=task_doc.filename, relative_path=TASK_FILE_REPO)
+        m = json.loads(task_doc.content)
+        code_filenames = m.get("Task list", [])
+        codes = []
+        src_file_repo = CONFIG.git_repo.new_file_repository(relative_path=CONFIG.src_workspace)
+        for filename in code_filenames:
+            doc = await src_file_repo.get(filename=filename)
+            if not doc:
+                continue
+            codes.append(doc.content)
+        return "\n----------\n".join(codes)
+

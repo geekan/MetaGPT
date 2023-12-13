@@ -73,6 +73,13 @@ async def test_git1():
     repo1 = GitRepository(local_path=local_path, auto_init=False)
     assert repo1.changed_files
 
+    file_repo = repo1.new_file_repository("__pycache__")
+    await file_repo.save("a.pyc", content="")
+    all_files = repo1.get_files(relative_path=".", filter_ignored=False)
+    assert "__pycache__/a.pyc" in all_files
+    all_files = repo1.get_files(relative_path=".", filter_ignored=True)
+    assert "__pycache__/a.pyc" not in all_files
+
     repo1.delete_repository()
     assert not local_path.exists()
 

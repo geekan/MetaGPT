@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import List
 
 from metagpt.actions import Action, ActionOutput
+from metagpt.actions.fix_bug import FixBug
 from metagpt.actions.search_and_summarize import SearchAndSummarize
 from metagpt.config import CONFIG
 from metagpt.const import (
@@ -24,10 +25,10 @@ from metagpt.const import (
     DOCS_FILE_REPO,
     PRD_PDF_FILE_REPO,
     PRDS_FILE_REPO,
-    REQUIREMENT_FILENAME,
+    REQUIREMENT_FILENAME, BUGFIX_FILENAME,
 )
 from metagpt.logs import logger
-from metagpt.schema import Document, Documents
+from metagpt.schema import Document, Documents, Message, BugFixContext
 from metagpt.utils.common import CodeParser
 from metagpt.utils.file_repository import FileRepository
 from metagpt.utils.get_template import get_template
@@ -227,7 +228,6 @@ There are no unclear points.
     },
 }
 
-
 OUTPUT_MAPPING = {
     "Language": (str, ...),
     "Original Requirements": (str, ...),
@@ -305,15 +305,44 @@ output a properly formatted JSON, wrapped inside [CONTENT][/CONTENT] like "Old P
 and only output the json inside this tag, nothing else
 """
 
+IS_BUGFIX_PROMPT = """
+{content}
+
+___
+You are a professional product manager; You need to determine whether the above content describes a requirement or provides feedback about a bug.
+Respond with `YES` if it is a feedback about a bug, `NO` if it is not, and provide the reasons. Return the response in JSON format like below:
+
+```json
+{{
+    "is_bugfix": ..., # `YES` or `NO`
+    "reason": ..., # reason string
+}}
+```
+"""
+
 
 class WritePRD(Action):
     def __init__(self, name="", context=None, llm=None):
         super().__init__(name, context, llm)
 
-    async def run(self, with_messages, format=CONFIG.prompt_format, *args, **kwargs) -> ActionOutput:
+    async def run(self, with_messages, format=CONFIG.prompt_format, *args, **kwargs) -> ActionOutput | Message:
         # Determine which requirement documents need to be rewritten: Use LLM to assess whether new requirements are
         # related to the PRD. If they are related, rewrite the PRD.
-        requirement_doc = await FileRepository.get_file(filename=REQUIREMENT_FILENAME, relative_path=DOCS_FILE_REPO)
+        docs_file_repo = CONFIG.git_repo.new_file_repository(relative_path=DOCS_FILE_REPO)
+        requirement_doc = await docs_file_repo.get(filename=REQUIREMENT_FILENAME)
+        if await self._is_bugfix(requirement_doc.content):
+            await docs_file_repo.save(filename=BUGFIX_FILENAME, content=requirement_doc.content)
+            await docs_file_repo.save(filename=REQUIREMENT_FILENAME, content="")
+            bug_fix = BugFixContext(filename=BUGFIX_FILENAME)
+            return Message(content=bug_fix.json(), instruct_content=bug_fix,
+                           role=self.profile,
+                           cause_by=FixBug,
+                           sent_from=self,
+                           send_to="Alex",  # the name of Engineer
+                           )
+        else:
+            await docs_file_repo.delete(filename=BUGFIX_FILENAME)
+
         prds_file_repo = CONFIG.git_repo.new_file_repository(PRDS_FILE_REPO)
         prd_docs = await prds_file_repo.get_all()
         change_files = Documents()
@@ -405,7 +434,7 @@ class WritePRD(Action):
         if not quadrant_chart:
             return
         pathname = (
-            CONFIG.git_repo.workdir / Path(COMPETITIVE_ANALYSIS_FILE_REPO) / Path(prd_doc.filename).with_suffix("")
+                CONFIG.git_repo.workdir / Path(COMPETITIVE_ANALYSIS_FILE_REPO) / Path(prd_doc.filename).with_suffix("")
         )
         if not pathname.parent.exists():
             pathname.parent.mkdir(parents=True, exist_ok=True)
@@ -430,3 +459,11 @@ class WritePRD(Action):
                 ws_name = CodeParser.parse_str(block="Project Name", text=prd)
             CONFIG.project_name = ws_name
         CONFIG.git_repo.rename_root(CONFIG.project_name)
+
+    async def _is_bugfix(self, content):
+        prompt = IS_BUGFIX_PROMPT.format(content=content)
+        res = await self._aask(prompt=prompt)
+        logger.info(f"IS_BUGFIX:{res}")
+        if "YES" in res:
+            return True
+        return False
