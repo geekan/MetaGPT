@@ -164,5 +164,4 @@ tmp
 output.wav
 metagpt/roles/idea_agent.py
 .aider*
-/config/config.yaml
 /tests/metagpt/actions/check_data.py

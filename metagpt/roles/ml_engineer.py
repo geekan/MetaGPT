@@ -217,11 +217,11 @@ class MLEngineer(Role):
 
 
 if __name__ == "__main__":
-    # requirement = "Run data analysis on sklearn Iris dataset, include a plot"
+    requirement = "Run data analysis on sklearn Iris dataset, include a plot"
     # requirement = "Run data analysis on sklearn Diabetes dataset, include a plot"
     # requirement = "Run data analysis on sklearn Wine recognition dataset, include a plot, and train a model to predict wine class (20% as validation), and show validation accuracy"
     # requirement = "Run data analysis on sklearn Wisconsin Breast Cancer dataset, include a plot, train a model to predict targets (20% as validation), and show validation accuracy"
-    requirement = "Run EDA and visualization on this dataset, train a model to predict survival, report metrics on validation set (20%), dataset: workspace/titanic/train.csv"
+    # requirement = "Run EDA and visualization on this dataset, train a model to predict survival, report metrics on validation set (20%), dataset: workspace/titanic/train.csv"
 
     async def main(requirement: str = requirement, auto_run: bool = True):
         role = MLEngineer(goal=requirement, auto_run=auto_run)
