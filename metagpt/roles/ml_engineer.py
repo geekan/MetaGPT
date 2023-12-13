@@ -32,13 +32,6 @@ STRUCTURAL_CONTEXT = """
 {tasks}
 ## Current Task
 {current_task}
-## Packages Installed
-scikit-learn
-pandas
-numpy
-lightgbm
-xgboost
-catboost
 """
 
 
@@ -212,7 +205,7 @@ class MLEngineer(Role):
             result, success = await self.execute_code.run(code)
             # truncated the result
             print(truncate(result))
-            
+
             self.working_memory.add(
                 Message(content=truncate(remove_escape_and_color_codes(result)), role="user", cause_by=ExecutePyCode)
             )
