@@ -47,7 +47,7 @@ REFLECTION_PROMPT = """
                        [runtime Error]
                        {runtime_result}
 
-                        Analysis the error step by step, provide me improve method and code. Remember to follow [context] requirement.
+                        Analysis the error step by step, provide me improve method and code. Remember to follow [context] rerquirement. Don't forget write code for steps behind the error step.
                         [reflection on previous impl]:
                         xxx
 
