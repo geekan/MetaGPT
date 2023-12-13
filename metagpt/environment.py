@@ -49,7 +49,7 @@ class Environment(BaseModel):
         for role in roles:
             self.add_role(role)
 
-    def publish_message(self, message: Message) -> bool:
+    def publish_message(self, message: Message, peekable: bool = True) -> bool:
         """
         Distribute the message to the recipients.
         In accordance with the Message routing structure design in Chapter 2.2.1 of RFC 116, as already planned

@@ -11,6 +11,7 @@ from metagpt.actions import UserRequirement, WritePRD
 from metagpt.actions.prepare_documents import PrepareDocuments
 from metagpt.config import CONFIG
 from metagpt.roles import Role
+from metagpt.utils.common import any_to_name
 
 
 class ProductManager(Role):
@@ -55,3 +56,10 @@ class ProductManager(Role):
 
     async def _observe(self, ignore_memory=False) -> int:
         return await super(ProductManager, self)._observe(ignore_memory=True)
+
+    @property
+    def todo(self) -> str:
+        if self._rc.state == 0:
+            return any_to_name(WritePRD)
+        else:
+            return any_to_name(PrepareDocuments)

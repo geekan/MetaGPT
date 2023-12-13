@@ -358,3 +358,14 @@ def is_subscribed(message, tags):
         if t in message.send_to:
             return True
     return False
+
+
+def any_to_name(val):
+    """
+    Convert a value to its name by extracting the last part of the dotted path.
+
+    :param val: The value to convert.
+
+    :return: The name of the value.
+    """
+    return any_to_str(val).split(".")[-1]

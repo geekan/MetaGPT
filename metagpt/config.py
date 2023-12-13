@@ -6,10 +6,12 @@ Provide configuration, singleton
         1. According to Section 2.2.3.11 of RFC 135, add git repository support.
         2. Add the parameter `src_workspace` for the old version project path.
 """
+import datetime
 import os
 from copy import deepcopy
 from pathlib import Path
 from typing import Any
+from uuid import uuid4
 
 import yaml
 
@@ -60,7 +62,11 @@ class Config(metaclass=Singleton):
             and (not self.anthropic_api_key or "YOUR_API_KEY" == self.anthropic_api_key)
             and (not self.zhipuai_api_key or "YOUR_API_KEY" == self.zhipuai_api_key)
         ):
-            raise NotConfiguredException("Set OPENAI_API_KEY or Anthropic_API_KEY or ZHIPUAI_API_KEY first")
+            val = self._get("RAISE_NOT_CONFIG_ERROR")
+            if val is None or val.lower() == "true":
+                raise NotConfiguredException("Set OPENAI_API_KEY or Anthropic_API_KEY or ZHIPUAI_API_KEY first")
+            else:  # for agent
+                logger.warning("Set OPENAI_API_KEY or Anthropic_API_KEY or ZHIPUAI_API_KEY first")
         self.openai_api_base = self._get("OPENAI_API_BASE")
         self.openai_proxy = self._get("OPENAI_PROXY") or self.global_proxy
         self.openai_api_type = self._get("OPENAI_API_TYPE")
@@ -103,8 +109,15 @@ class Config(metaclass=Singleton):
         self.pyppeteer_executable_path = self._get("PYPPETEER_EXECUTABLE_PATH", "")
 
         self.prompt_format = self._get("PROMPT_FORMAT", "markdown")
+        workspace_uid = (
+            self._get("WORKSPACE_UID") or f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}-{uuid4().hex[-8:]}"
+        )
         self.workspace_path = Path(self._get("WORKSPACE_PATH", DEFAULT_WORKSPACE_ROOT))
+        val = self._get("WORKSPACE_PATH_WITH_UID")
+        if val and val.lower() == "true":  # for agent
+            self.workspace_path = self.workspace_path / workspace_uid
         self._ensure_workspace_exists()
+        self.max_auto_summarize_code = self.max_auto_summarize_code or self._get("MAX_AUTO_SUMMARIZE_CODE", 1)
 
     def _ensure_workspace_exists(self):
         self.workspace_path.mkdir(parents=True, exist_ok=True)

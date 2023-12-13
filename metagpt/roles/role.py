@@ -30,10 +30,8 @@ from metagpt.config import CONFIG
 from metagpt.llm import LLM, HumanProvider
 from metagpt.logs import logger
 from metagpt.memory import Memory
-
-# from metagpt.memory import LongTermMemory
 from metagpt.schema import Message, MessageQueue
-from metagpt.utils.common import any_to_str
+from metagpt.utils.common import any_to_name, any_to_str
 
 PREFIX_TEMPLATE = """You are a {profile}, named {name}, your goal is {goal}, and the constraint is {constraints}. """
 
@@ -191,6 +189,9 @@ class Role:
         # check RoleContext after adding watch actions
         self._rc.check(self._role_id)
 
+    def is_watch(self, caused_by: str):
+        return caused_by in self._rc.watch
+
     def subscribe(self, tags: Set[str]):
         """Used to receive Messages with certain tags from the environment. Message will be put into personal message
         buffer to be further processed in _observe. By default, a Role subscribes Messages with a tag of its own name
@@ -212,22 +213,6 @@ class Role:
         self._rc.env = env
         if env:
             env.set_subscription(self, self._subscription)
-
-    # # Replaced by FileRepository.set_file
-    # def set_doc(self, content: str, filename: str):
-    #     return self._rc.env.set_doc(content, filename)
-    #
-    # # Replaced by FileRepository.get_file
-    # def get_doc(self, filename: str):
-    #     return self._rc.env.get_doc(filename)
-    #
-    # # Replaced by CONFIG.xx
-    # def set(self, k, v):
-    #     return self._rc.env.set(k, v)
-    #
-    # # Replaced by CONFIG.xx
-    # def get(self, k):
-    #     return self._rc.env.get(k)
 
     @property
     def profile(self):
@@ -368,23 +353,6 @@ class Role:
         self._set_state(state=-1)  # current reaction is complete, reset state to -1 and todo back to None
         return rsp
 
-    # # Replaced by run()
-    # def recv(self, message: Message) -> None:
-    #     """add message to history."""
-    #     # self._history += f"\n{message}"
-    #     # self._context = self._history
-    #     if message in self._rc.memory.get():
-    #         return
-    #     self._rc.memory.add(message)
-
-    # # Replaced by run()
-    # async def handle(self, message: Message) -> Message:
-    #     """Receive information and reply with actions"""
-    #     # logger.debug(f"{self.name=}, {self.profile=}, {message.role=}")
-    #     self.recv(message)
-    #
-    #     return await self._react()
-
     def get_memories(self, k=0) -> list[Message]:
         """A wrapper to return the most recent k memories of this role, return all when k=0"""
         return self._rc.memory.get(k=k)
@@ -418,3 +386,19 @@ class Role:
     def is_idle(self) -> bool:
         """If true, all actions have been executed."""
         return not self._rc.news and not self._rc.todo and self._rc.msg_buffer.empty()
+
+    async def think(self) -> Action:
+        """The exported `think` function"""
+        await self._think()
+        return self._rc.todo
+
+    async def act(self) -> ActionOutput:
+        """The exported `act` function"""
+        msg = await self._act()
+        return ActionOutput(content=msg.content, instruct_content=msg.instruct_content)
+
+    @property
+    def todo(self) -> str:
+        if self._actions:
+            return any_to_name(self._actions[0])
+        return ""
