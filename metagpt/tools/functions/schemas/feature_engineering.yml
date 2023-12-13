@@ -328,7 +328,7 @@ GroupStat:
 
 SplitBins:
   type: class
-  description: "Bin continuous data into intervals and return the bin identifier encoded as an integer value"
+  description: "Inplace binning of continuous data into intervals, returning integer-encoded bin identifiers directly."
   methods:
     __init__:
       description: "Initialize self."
@@ -336,11 +336,15 @@ SplitBins:
         properties:
           cols:
             type: list
-            description: "Columns to be binned."
+            description: "Columns to be binned inplace."
           strategy:
             type: str
             description: "Strategy used to define the widths of the bins."
             default: quantile
+            enum:
+              - quantile
+              - uniform
+              - kmeans
         required:
           - cols
     fit:

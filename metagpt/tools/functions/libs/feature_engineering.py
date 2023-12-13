@@ -10,6 +10,7 @@ import numpy as np
 from dateutil.relativedelta import relativedelta
 from joblib import Parallel, delayed
 from pandas.api.types import is_numeric_dtype
+from pandas.core.dtypes.common import is_object_dtype
 from sklearn.model_selection import KFold
 from sklearn.preprocessing import PolynomialFeatures, KBinsDiscretizer
 
@@ -280,6 +281,10 @@ class GeneralSelection(MLProcess):
                 or df.loc[df[col] == np.inf].shape[0] != 0
             ):
                 feats.remove(col)
+
+            if is_object_dtype(df[col]) and df[col].nunique() == df.shape[0]:
+                feats.remove(col)
+
         self.feats = feats
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:

@@ -1,6 +1,6 @@
 import numpy as np
 from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import KBinsDiscretizer, LabelEncoder
+from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import MaxAbsScaler
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import OneHotEncoder
@@ -8,7 +8,6 @@ from sklearn.preprocessing import OrdinalEncoder
 from sklearn.preprocessing import RobustScaler
 from sklearn.preprocessing import StandardScaler
 
-from metagpt.tools.functions import registry
 from metagpt.tools.functions.libs.base import MLProcess
 from metagpt.tools.functions.schemas.data_preprocess import *
 
@@ -55,15 +54,6 @@ class StandardScale(MLProcess):
     def transform(self, df: pd.DataFrame):
         df[self.features] = self.ss.transform(df[self.features])
         return df
-
-
-@registry.register("data_preprocess", LogTransform)
-def log_transform(df: pd.DataFrame, features: list, ):
-    for col in features:
-        if df[col].min() <= 0:
-            df[col] = df[col] - df[col].min() + 2
-        df[col] = np.log(df[col])
-    return df
 
 
 class MaxAbsScale(MLProcess):
@@ -146,7 +136,7 @@ class LabelEncode(MLProcess):
         return df
 
 
-def get_column_info(df: pd.DataFrame) -> str:
+def get_column_info(df: pd.DataFrame) -> dict:
     data = []
     for i in df.columns:
         nan_freq = float("%.2g" % (df[i].isna().mean() * 100))
@@ -157,7 +147,7 @@ def get_column_info(df: pd.DataFrame) -> str:
         data,
         columns=["Column_name", "Data_type", "NaN_Frequency(%)", "N_unique"],
     )
-    return samples.to_string(index=False)
+    return samples.to_dict(orient='list')
 #
 #
 # if __name__ == '__main__':

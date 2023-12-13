@@ -4,7 +4,9 @@
 @Author  :   orange-crow
 @File    :   write_code_v2.py
 """
-from typing import Dict, List, Union, Tuple, Optional, Any
+from typing import Dict, List, Union, Tuple
+
+import yaml
 
 from metagpt.actions import Action
 from metagpt.logs import logger
@@ -15,11 +17,9 @@ from metagpt.prompts.ml_engineer import (
     TOOL_USAGE_PROMPT,
     ML_SPECIFIC_PROMPT,
     ML_MODULE_MAP,
-    TOOL_OUTPUT_DESC, DATA_PROCESS_PROMPT,
-    GENERATE_CODE_PROMPT
+    GENERATE_CODE_PROMPT,
 )
 from metagpt.schema import Message, Plan
-from metagpt.tools.functions import registry
 from metagpt.utils.common import create_func_config, remove_comments
 
 
@@ -100,40 +100,55 @@ class WriteCodeByGenerate(BaseWriteAnalysisCode):
 class WriteCodeWithTools(BaseWriteAnalysisCode):
     """Write code with help of local available tools. Choose tools first, then generate code to use the tools"""
 
-    @staticmethod
-    def _parse_recommend_tools(module: str, recommend_tools: list) -> List[Dict]:
+    def __init__(self, name: str = "", context=None, llm=None, schema_path=None):
+        super().__init__(name, context, llm)
+        self.schema_path = schema_path
+        self.available_tools = {}
+
+        if self.schema_path is not None:
+            self._load_tools(schema_path)
+
+    def _load_tools(self, schema_path):
+        """Load tools from yaml file"""
+        yml_files = schema_path.glob("*.yml")
+        for yml_file in yml_files:
+            module = yml_file.stem
+            with open(yml_file, "r", encoding="utf-8") as f:
+                self.available_tools[module] = yaml.safe_load(f)
+
+    def _parse_recommend_tools(self, module: str, recommend_tools: list) -> dict:
         """
         Parses and validates a list of recommended tools, and retrieves their schema from registry.
 
         Args:
             module (str): The module name for querying tools in the registry.
-            recommend_tools (list): A list of lists of recommended tools for each step.
+            recommend_tools (list): A list of recommended tools.
 
         Returns:
-            List[Dict]: A list of dicts of valid tool schemas.
+            dict: A dict of valid tool schemas.
         """
         valid_tools = []
-        available_tools = registry.get_all_by_module(module).keys()
+        available_tools = self.available_tools[module].keys()
         for tool in recommend_tools:
             if tool in available_tools:
                 valid_tools.append(tool)
 
-        tool_catalog = registry.get_schemas(module, valid_tools)
+        tool_catalog = {tool: self.available_tools[module][tool] for tool in valid_tools}
         return tool_catalog
 
     async def _tool_recommendation(
-            self,
-            task: str,
-            code_steps: str,
-            available_tools: list
+        self,
+        task: str,
+        code_steps: str,
+        available_tools: dict,
     ) -> list:
         """
         Recommend tools for the specified task.
 
         Args:
-            context (List[Message]): Action output history, source action denoted by Message.cause_by
+            task (str): the task to recommend tools for
             code_steps (str): the code steps to generate the full code for the task
-            available_tools (list): the available tools for the task
+            available_tools (dict): the available tools description
 
         Returns:
             list: recommended tools for the specified task
@@ -149,27 +164,23 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
         return recommend_tools
 
     async def run(
-            self,
-            context: List[Message],
-            plan: Plan = None,
-            code_steps: str = "",
-            column_info: str = "",
-            **kwargs,
-    ) -> str:
+        self,
+        context: List[Message],
+        plan: Plan = None,
+        code_steps: str = "",
+        column_info: str = "",
+        **kwargs,
+    ) -> Tuple[List[Message], str]:
         task_type = plan.current_task.task_type
-        available_tools = registry.get_all_schema_by_module(task_type)
+        available_tools = self.available_tools.get(task_type, {})
         special_prompt = ML_SPECIFIC_PROMPT.get(task_type, "")
 
-        column_names = kwargs.get("column_names", {})
         finished_tasks = plan.get_finished_tasks()
         code_context = [remove_comments(task.code) for task in finished_tasks]
         code_context = "\n\n".join(code_context)
 
         if len(available_tools) > 0:
-            available_tools = [
-                {k: tool[k] for k in ["name", "description"] if k in tool}
-                for tool in available_tools
-            ]
+            available_tools = {k: v["description"] for k, v in available_tools.items()}
 
             recommend_tools = await self._tool_recommendation(
                 plan.current_task.instruction,
@@ -180,46 +191,27 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
             logger.info(f"Recommended tools: \n{recommend_tools}")
 
             module_name = ML_MODULE_MAP[task_type]
-            output_desc = TOOL_OUTPUT_DESC.get(task_type, "")
-            new_code = ""
-
-            for idx, tool in enumerate(recommend_tools):
-                hist_info = f"Previous finished code is \n\n ```Python {code_context} ``` \n\n "
-
-                prompt = TOOL_USAGE_PROMPT.format(
-                    goal=plan.current_task.instruction,
-                    context=hist_info,
-                    code_steps=code_steps,
-                    column_names=column_names,
-                    special_prompt=special_prompt,
-                    module_name=module_name,
-                    output_desc=output_desc,
-                    function_catalog=tool_catalog[idx],
-                )
-
-                tool_config = create_func_config(CODE_GENERATOR_WITH_TOOLS)
-
-                rsp = await self.llm.aask_code(prompt, **tool_config)
-                logger.info(f"rsp is: {rsp}")
-                # final_code = final_code + "\n\n" + rsp["code"]
-                # final_code[key] = rsp["code"]
-                new_code = new_code + "\n\n" + rsp["code"]
-                code_context = code_context + "\n\n" + rsp["code"]
-            return new_code
-
-        else:
-            hist_info = f"Previous finished code is \n\n ```Python {code_context} ``` \n\n "
-
-            prompt = GENERATE_CODE_PROMPT.format(
-                goal=plan.current_task.instruction,
-                context=hist_info,
-                code_steps=code_steps,
+            prompt = TOOL_USAGE_PROMPT.format(
+                user_requirement=plan.goal,
+                history_code=code_context,
+                current_task=plan.current_task.instruction,
+                column_info=column_info,
                 special_prompt=special_prompt,
-                # column_names=column_names
+                code_steps=code_steps,
+                module_name=module_name,
+                tool_catalog=tool_catalog,
+            )
+        else:
+            prompt = GENERATE_CODE_PROMPT.format(
+                user_requirement=plan.goal,
+                history_code=code_context,
+                current_task=plan.current_task.instruction,
+                column_info=column_info,
+                special_prompt=special_prompt,
+                code_steps=code_steps,
             )
 
-            tool_config = create_func_config(CODE_GENERATOR_WITH_TOOLS)
-            logger.info(f"prompt is: {prompt}")
-            rsp = await self.llm.aask_code(prompt, **tool_config)
-            logger.info(f"rsp is: {rsp}")
-            return rsp["code"]
+        tool_config = create_func_config(CODE_GENERATOR_WITH_TOOLS)
+        rsp = await self.llm.aask_code(prompt, **tool_config)
+        context = [Message(content=prompt, role="user")]
+        return context, rsp["code"]
