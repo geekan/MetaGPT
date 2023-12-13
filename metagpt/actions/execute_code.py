@@ -186,14 +186,13 @@ class ExecutePyCode(ExecuteCode, Action):
 def truncate(result: str, keep_len: int = 2000) -> str:
     desc = f"Truncated to show only the last {keep_len} characters\n"
     if result.startswith(desc):
-        result = result[-len(desc) :]
+        result = result[len(desc) :]
 
     if len(result) > keep_len:
         result = result[-keep_len:]
-
-    if not result.startswith(desc):
         return desc + result
-    return desc
+
+    return result
 
 
 def remove_escape_and_color_codes(input_str):
