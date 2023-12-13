@@ -165,3 +165,4 @@ tmp
 output.wav
 metagpt/roles/idea_agent.py
 .aider*
+/tests/metagpt/actions/check_data.py
