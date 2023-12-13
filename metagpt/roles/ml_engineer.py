@@ -59,7 +59,7 @@ class MLEngineer(Role):
             logger.info(f"ready to take on task {task}")
 
             # take on current task
-            code, result, success, code_steps = await self._write_and_exec_code()
+            code, result, success = await self._write_and_exec_code()
 
             # ask for acceptance, users can other refuse and change tasks in the plan
             review, task_result_confirmed = await self._ask_review(trigger=ReviewConst.TASK_REVIEW_TRIGGER)
@@ -73,7 +73,6 @@ class MLEngineer(Role):
                 # tick off this task and record progress
                 task.code = code
                 task.result = result
-                task.code_steps = code_steps
                 self.plan.finish_current_task()
                 self.working_memory.clear()
 
@@ -102,7 +101,7 @@ class MLEngineer(Role):
         return rsp
 
     async def _write_and_exec_code(self, max_retry: int = 3):
-        code_steps = (
+        self.plan.current_task.code_steps = (
             await WriteCodeSteps().run(self.plan)
             if self.use_code_steps
             else ""
@@ -121,12 +120,12 @@ class MLEngineer(Role):
             if not self.use_tools or self.plan.current_task.task_type == "other":
                 # code = "print('abc')"
                 code = await WriteCodeByGenerate().run(
-                    context=context, plan=self.plan, code_steps=code_steps, temperature=0.0
+                    context=context, plan=self.plan, temperature=0.0
                 )
                 cause_by = WriteCodeByGenerate
             else:
                 code = await WriteCodeWithTools().run(
-                    context=context, plan=self.plan, code_steps=code_steps, data_desc=""
+                    context=context, plan=self.plan, data_desc=""
                 )
                 cause_by = WriteCodeWithTools
 
@@ -151,7 +150,7 @@ class MLEngineer(Role):
                 if ReviewConst.CHANGE_WORD[0] in review:
                     counter = 0  # redo the task again with help of human suggestions
 
-        return code, result, success, code_steps
+        return code, result, success
 
     async def _ask_review(self, auto_run: bool = None, trigger: str = ReviewConst.TASK_REVIEW_TRIGGER):
         auto_run = auto_run or self.auto_run
