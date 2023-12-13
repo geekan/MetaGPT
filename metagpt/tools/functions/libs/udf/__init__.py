@@ -3,6 +3,7 @@ import os
 import inspect
 import importlib
 from pathlib import Path
+from typing import Dict, List
 
 
 def extract_function_signatures(file_path):
@@ -50,3 +51,8 @@ function_signatures = get_function_signatures_in_folder(folder_path)
 
 UDFS = [func for func in function_signatures
         if not func['udf_name'].startswith(('extract_function_signatures', 'get_function_signatures_in_folder'))]
+
+
+# TODO: Create Yaml style UDFS Schema
+def udfs2yaml(udfs: List[Dict]) -> Dict:
+    pass
