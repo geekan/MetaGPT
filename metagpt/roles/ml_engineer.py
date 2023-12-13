@@ -28,7 +28,7 @@ class MLEngineer(Role):
 
         self.plan = Plan(goal=goal)
         self.use_tools = False
-        self.use_code_steps = True
+        self.use_code_steps = False
         self.execute_code = ExecutePyCode()
         self.auto_run = auto_run
 
@@ -63,6 +63,11 @@ class MLEngineer(Role):
 
             # ask for acceptance, users can other refuse and change tasks in the plan
             review, task_result_confirmed = await self._ask_review(trigger=ReviewConst.TASK_REVIEW_TRIGGER)
+
+            if self.auto_run:
+                # if human confirms the task result, then we deem the task completed, regardless of whether the code run succeeds;
+                # if auto mode, then the code run has to succeed for the task to be considered completed
+                task_result_confirmed = success
 
             if task_result_confirmed:
                 # tick off this task and record progress
@@ -143,7 +148,7 @@ class MLEngineer(Role):
             if not success and counter >= max_retry:
                 logger.info("coding failed!")
                 review, _ = await self._ask_review(auto_run=False, trigger=ReviewConst.CODE_REVIEW_TRIGGER)
-                if ReviewConst.CHANGE_WORD in review:
+                if ReviewConst.CHANGE_WORD[0] in review:
                     counter = 0  # redo the task again with help of human suggestions
 
         return code, result, success, code_steps
@@ -199,9 +204,12 @@ class MLEngineer(Role):
         # TODO dataset description , code steps
         user_requirement = self.plan.goal
         data_desc = self.plan.context
-        tasks = json.dumps(
-            [task.dict() for task in self.plan.tasks], indent=4, ensure_ascii=False
-        )
+        tasks = [task.dict() for task in self.plan.tasks]
+        for task in tasks:
+            # Shorten the context as we don't need code steps after we get the codes.
+            # This doesn't affect current_task below, which should hold the code steps
+            task.pop("code_steps")
+        tasks = json.dumps(tasks, indent=4, ensure_ascii=False)
         current_task = self.plan.current_task.json() if self.plan.current_task else {}
         context = STRUCTURAL_CONTEXT.format(
             user_requirement=user_requirement, data_desc=data_desc, tasks=tasks, current_task=current_task
@@ -219,7 +227,8 @@ if __name__ == "__main__":
     # requirement = "Run data analysis on sklearn Diabetes dataset, include a plot"
     # requirement = "Run data analysis on sklearn Wine recognition dataset, include a plot, and train a model to predict wine class (20% as validation), and show validation accuracy"
     # requirement = "Run data analysis on sklearn Wisconsin Breast Cancer dataset, include a plot, train a model to predict targets (20% as validation), and show validation accuracy"
-    requirement = "Run EDA and visualization on this dataset, train a model to predict survival, report metrics on validation set (20%), dataset: workspace/titanic/train.csv"
+    # requirement = "Run EDA and visualization on this dataset, train a model to predict survival, report metrics on validation set (20%), dataset: workspace/titanic/train.csv"
+    requirement = "This is a house price dataset, your goal is to predict the sale price of a property based on its features. The target column is SalePrice. Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. Report RMSE between the logarithm of the predicted value and the logarithm of the observed sales price on the eval data. Train data path: 'workspace/house-prices-advanced-regression-techniques/split_train.csv', eval data path: 'workspace/house-prices-advanced-regression-techniques/split_eval.csv'."
 
     async def main(requirement: str = requirement, auto_run: bool = False):
         role = MLEngineer(goal=requirement, auto_run=auto_run)
