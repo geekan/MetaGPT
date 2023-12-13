@@ -1,13 +1,11 @@
-from typing import Dict, List, Union
+from typing import  List
 import json
-import subprocess
+from datetime import datetime
 
 import fire
-import re
 
 from metagpt.roles import Role
-from metagpt.actions import Action
-from metagpt.schema import Message, Task, Plan
+from metagpt.schema import Message, Plan
 from metagpt.memory import Memory
 from metagpt.logs import logger
 from metagpt.actions.write_plan import WritePlan, update_plan_from_rsp, precheck_update_plan_from_rsp
@@ -17,6 +15,7 @@ from metagpt.actions.execute_code import ExecutePyCode
 from metagpt.roles.kaggle_manager import DownloadData, SubmitResult
 from metagpt.prompts.ml_engineer import STRUCTURAL_CONTEXT
 from metagpt.actions.write_code_steps import WriteCodeSteps
+from metagpt.utils.save_code import save_code_file
 
 class MLEngineer(Role):
     def __init__(
@@ -93,7 +92,10 @@ class MLEngineer(Role):
         summary = await SummarizeAnalysis().run(self.plan)
         rsp = Message(content=summary, cause_by=SummarizeAnalysis)
         self._rc.memory.add(rsp)
-        
+
+        # save code using datetime.now or  keywords related to the goal of your project (plan.goal).
+        project_record = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        save_code_file(name=project_record, code_context=self.execute_code.nb, file_format="ipynb")
         return rsp
 
     async def _write_and_exec_code(self, max_retry: int = 3):
