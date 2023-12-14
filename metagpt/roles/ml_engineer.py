@@ -261,14 +261,12 @@ class MLEngineer(Role):
         """find useful memories only to reduce context length and improve performance"""
         # TODO dataset description , code steps
         if task_exclude_field is None:
+            # Shorten the context as we don't need code steps after we get the codes.
+            # This doesn't affect current_task below, which should hold the code steps
             task_exclude_field = {'code_steps'}
         user_requirement = self.plan.goal
         data_desc = self.plan.context
         tasks = [task.dict(exclude=task_exclude_field) for task in self.plan.tasks]
-        # for task in tasks:
-        #     # Shorten the context as we don't need code steps after we get the codes.
-        #     # This doesn't affect current_task below, which should hold the code steps
-        #     task.pop("code_steps")
         tasks = json.dumps(tasks, indent=4, ensure_ascii=False)
         current_task = self.plan.current_task.json() if self.plan.current_task else {}
         context = STRUCTURAL_CONTEXT.format(
