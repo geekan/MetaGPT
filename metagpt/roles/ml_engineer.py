@@ -295,8 +295,6 @@ if __name__ == "__main__":
     requirement = f"This is a house price dataset, your goal is to predict the sale price of a property based on its features. The target column is SalePrice. Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. Report RMSE between the logarithm of the predicted value and the logarithm of the observed sales price on the eval data. Train data path: '{data_path}/split_train.csv', eval data path: '{data_path}/split_eval.csv'."
     
     save_dir = ""
-    
-    
     # save_dir = DATA_PATH / "output" / "2023-12-14_20-40-34"
     
     def load_history(save_dir: str = save_dir):
