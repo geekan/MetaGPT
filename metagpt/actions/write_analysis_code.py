@@ -193,16 +193,16 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
             
             module_name = ML_MODULE_MAP[task_type]
             
-            prompt = TOOL_USAGE_PROMPT.format(
-                user_requirement=plan.goal,
-                history_code=code_context,
-                current_task=plan.current_task.instruction,
-                column_info=column_info,
-                special_prompt=special_prompt,
-                code_steps=code_steps,
-                module_name=module_name,
-                tool_catalog=tool_catalog,
-            )
+                prompt = TOOL_USAGE_PROMPT.format(
+                        user_requirement=plan.goal,
+                        history_code=code_context,
+                        current_task=plan.current_task.instruction,
+                        column_info=column_info,
+                        special_prompt=special_prompt,
+                		code_steps=code_steps,
+                        module_name=module_name,
+                        tool_catalog=tool_catalog,
+                    )
     
 
 
