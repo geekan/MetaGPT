@@ -71,7 +71,7 @@ ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenc
 
 # Instruction: Based on the context, follow "Format example", write code.
 
-## Code: {filename} Write code with triple quoto, based on the following attentions and context.
+## Code: {filename}. Write code with triple quoto, based on the following attentions and context.
 1. Only One file: do your best to implement THIS ONLY ONE FILE.
 2. COMPLETE CODE: Your code will be part of the entire project, so please implement complete, reliable, reusable code snippets.
 3. Set default value: If there is any setting, ALWAYS SET A DEFAULT VALUE, ALWAYS USE STRONG TYPE AND EXPLICIT VARIABLE. AVOID circular import.
@@ -100,7 +100,7 @@ class WriteCode(Action):
             filename="test_" + coding_context.filename + ".json", relative_path=TEST_OUTPUTS_FILE_REPO
         )
         summary_doc = None
-        if coding_context.design_doc.filename:
+        if coding_context.design_doc and coding_context.design_doc.filename:
             summary_doc = await FileRepository.get_file(
                 filename=coding_context.design_doc.filename, relative_path=CODE_SUMMARIES_FILE_REPO
             )
@@ -108,9 +108,14 @@ class WriteCode(Action):
         if test_doc:
             test_detail = RunCodeResult.loads(test_doc.content)
             logs = test_detail.stderr
-        code_context = await self.get_codes(coding_context.task_doc, exclude=self.context.filename)
+
+        if bug_feedback:
+            code_context = coding_context.code_doc.content
+        else:
+            code_context = await self.get_codes(coding_context.task_doc, exclude=self.context.filename)
+
         prompt = PROMPT_TEMPLATE.format(
-            design=coding_context.design_doc.content,
+            design=coding_context.design_doc.content if coding_context.design_doc else "",
             tasks=coding_context.task_doc.content if coding_context.task_doc else "",
             code=code_context,
             logs=logs,

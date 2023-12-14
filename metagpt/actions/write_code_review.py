@@ -124,7 +124,7 @@ class WriteCodeReview(Action):
             code_context = await WriteCode.get_codes(self.context.task_doc, exclude=self.context.filename)
             context = "\n".join(
                 [
-                    "## System Design\n" + self.context.design_doc.content + "\n",
+                    "## System Design\n" + str(self.context.design_doc) + "\n",
                     "## Tasks\n" + task_content + "\n",
                     "## Code Files\n" + code_context + "\n",
                 ]
