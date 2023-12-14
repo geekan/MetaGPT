@@ -10,6 +10,7 @@
 
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
+from metagpt.actions import WriteCode
 from metagpt.actions.action import Action
 from metagpt.config import CONFIG
 from metagpt.logs import logger
@@ -109,11 +110,12 @@ class WriteCodeReview(Action):
         for i in range(k):
             format_example = FORMAT_EXAMPLE.format(filename=self.context.code_doc.filename)
             task_content = self.context.task_doc.content if self.context.task_doc else ""
+            code_context = await WriteCode.get_codes(self.context.task_doc, exclude=self.context.filename)
             context = "\n----------\n".join(
                 [
                     "```text\n" + self.context.design_doc.content + "```\n",
                     "```text\n" + task_content + "```\n",
-                    "```python\n" + self.context.code_doc.content + "```\n",
+                    "```python\n" + code_context + "```\n",
                 ]
             )
             prompt = PROMPT_TEMPLATE.format(

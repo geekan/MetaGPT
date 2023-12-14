@@ -115,7 +115,7 @@ class WriteCode(Action):
         if test_doc:
             test_detail = RunCodeResult.loads(test_doc.content)
             logs = test_detail.stderr
-        code_context = await self._get_codes(coding_context.task_doc)
+        code_context = await self.get_codes(coding_context.task_doc, exclude=self.context.filename)
         prompt = PROMPT_TEMPLATE.format(
             design=coding_context.design_doc.content,
             tasks=coding_context.task_doc.content if coding_context.task_doc else "",
@@ -133,7 +133,7 @@ class WriteCode(Action):
         return coding_context
 
     @staticmethod
-    async def _get_codes(task_doc) -> str:
+    async def get_codes(task_doc, exclude) -> str:
         if not task_doc:
             return ""
         if not task_doc.content:
@@ -143,6 +143,8 @@ class WriteCode(Action):
         codes = []
         src_file_repo = CONFIG.git_repo.new_file_repository(relative_path=CONFIG.src_workspace)
         for filename in code_filenames:
+            if filename == exclude:
+                continue
             doc = await src_file_repo.get(filename=filename)
             if not doc:
                 continue
