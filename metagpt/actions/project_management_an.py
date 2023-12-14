@@ -28,7 +28,7 @@ LOGIC_ANALYSIS = ActionNode(
     instruction="Provide a list of files with the classes/methods/functions to be implemented, "
                 "including dependency analysis and imports.",
     example=[["game.py", "Contains Game class and ... functions"],
-             ["main.py", "Contains main function, from game import Game"]]
+             ["main.py", "Contains main function, depends on game.py"]]
 )
 
 TASK_LIST = ActionNode(
