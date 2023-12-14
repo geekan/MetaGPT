@@ -285,7 +285,7 @@ class ActionNode:
 def action_node_from_tuple_example():
     # 示例：列表中包含元组
     list_of_tuples = [
-        ("key1", int, "Instruction 1", "Example 1")
+        ("key1", str, "Instruction 1", "Example 1")
     ]
 
     # 从列表中创建 ActionNode 实例

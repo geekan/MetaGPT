@@ -106,7 +106,7 @@ ANYTHING_UNCLEAR = ActionNode(
 ISSUE_TYPE = ActionNode(
     key="issue_type",
     expected_type=str,
-    instruction="Answer BUG/REQUIREMENT. If it is a bugfix, answer Bug, otherwise answer Requirement",
+    instruction="Answer BUG/REQUIREMENT. If it is a bugfix, answer BUG, otherwise answer Requirement",
     example="BUG"
 )
 
