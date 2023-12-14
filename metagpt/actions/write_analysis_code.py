@@ -24,8 +24,8 @@ from metagpt.utils.common import create_func_config, remove_comments
 
 
 class BaseWriteAnalysisCode(Action):
-    DEFAULT_SYSTEM_MSG = """You are Code Interpreter, a world-class programmer that can complete any goal by executing code. Strictly follow the plan and generate code step by step. Each step of the code will be executed on the user's machine, and the user will provide the code execution results to you."""  # prompt reference: https://github.com/KillianLucas/open-interpreter/blob/v0.1.4/interpreter/system_message.txt
-    REUSE_CODE_INSTRUCTION = """ATTENTION: DONT include codes from previous tasks in your current code block, include new codes only, DONT repeat codes!"""
+    DEFAULT_SYSTEM_MSG = """You are Code Interpreter, a world-class programmer that can complete any goal by executing code. Strictly follow the plan and generate code step by step. Each step of the code will be executed on the user's machine, and the user will provide the code execution results to you.**Notice: The code for the next step depends on the code for the previous step. Must reuse variables in the lastest other code directly, dont creat it again, it is very import for you. Use !pip install in a standalone block to install missing packages.**"""  # prompt reference: https://github.com/KillianLucas/open-interpreter/blob/v0.1.4/interpreter/system_message.txt
+    # REUSE_CODE_INSTRUCTION = """ATTENTION: DONT include codes from previous tasks in your current code block, include new codes only, DONT repeat codes!"""
 
     def process_msg(self, prompt: Union[str, List[Dict], Message, List[Message]], system_msg: str = None):
         default_system_msg = system_msg or self.DEFAULT_SYSTEM_MSG
@@ -201,8 +201,6 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
                 module_name=module_name,
                 tool_catalog=tool_catalog,
             )
-
-
         else:
             prompt = GENERATE_CODE_PROMPT.format(
                 user_requirement=plan.goal,

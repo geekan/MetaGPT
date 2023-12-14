@@ -159,12 +159,12 @@ class MLEngineer(Role):
             # print("*" * 10)
             # breakpoint()
             if counter > 0:
-                improve_code = await DebugCode().run(plan=self.plan.current_task.instruction,
-                                                     # finished_code=code_context,
-                                                     # finished_code_result=code_result,
-                                                     code=code,
-                                                     runtime_result=self.working_memory.get(),
-                                                     context=debug_context)
+                improve_code = await DebugCode().run(
+                    plan=self.plan.current_task.instruction,
+                    code=code,
+                    runtime_result=self.working_memory.get(),
+                    context=debug_context
+                )
 
             if improve_code != "":
                 code = improve_code
