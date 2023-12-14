@@ -45,9 +45,12 @@ class ExecuteCode(ABC):
 class ExecutePyCode(ExecuteCode, Action):
     """execute code, return result to llm, and display it."""
 
-    def __init__(self, name: str = "python_executor", context=None, llm=None):
+    def __init__(self, name: str = "python_executor", context=None, llm=None, nb=None):
         super().__init__(name, context, llm)
-        self.nb = nbformat.v4.new_notebook()
+        if nb is None:
+            self.nb = nbformat.v4.new_notebook()
+        else:
+            self.nb = nb
         self.nb_client = NotebookClient(self.nb)
         self.console = Console()
         self.interaction = "ipython" if self.is_ipython() else "terminal"
@@ -158,6 +161,7 @@ class ExecutePyCode(ExecuteCode, Action):
 
     def save_notebook(self, path: str):
         path = Path(path)
+        print(path)
         path.parent.mkdir(parents=True, exist_ok=True)
         nbformat.write(self.nb, path)
 

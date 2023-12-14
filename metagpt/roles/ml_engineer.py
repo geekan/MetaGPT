@@ -4,7 +4,8 @@ from datetime import datetime
 from typing import List
 
 import fire
-import pandas as pd
+import nbformat
+from pathlib import Path
 
 from metagpt.actions import Action
 from metagpt.actions.execute_code import ExecutePyCode
@@ -36,6 +37,8 @@ STRUCTURAL_CONTEXT = """
 pandas
 numpy
 """
+
+
 # scikit-learn
 # lightgbm
 # xgboost
@@ -129,17 +132,18 @@ class MLEngineer(Role):
                 task.code_steps = code_steps
                 self.plan.finish_current_task()
                 self.working_memory.clear()
-
+                
                 success, new_code = await self._update_data_columns()
                 if success:
                     task.code = task.code + "\n\n" + new_code
+            
             else:
                 # update plan according to user's feedback and to take on changed tasks
                 await self._update_plan()
-
+        
         time = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
         self.execute_code.save_notebook(f"{DATA_PATH}/notebooks/ml_{time}.ipynb")
-
+    
     async def _update_data_columns(self):
         rsp = await UpdateDataColumns().run(self.plan)
         is_update, code = rsp["is_update"], rsp["code"]
@@ -149,7 +153,7 @@ class MLEngineer(Role):
             if success:
                 self.data_desc["column_info"] = result
         return success, code
-
+    
     async def _write_and_exec_code(self, max_retry: int = 3):
         code_steps = (
             await WriteCodeSteps().run(self.plan)
@@ -162,23 +166,15 @@ class MLEngineer(Role):
         success = False
         debug_context = []
         
-        finished_tasks = self.plan.get_finished_tasks()
-        code_context = [task.code for task in finished_tasks]
-        code_result = [task.result for task in finished_tasks]
-        code_context = "\n\n".join(code_context)
-        code_result = "\n\n".join(code_result)
-        
         while not success and counter < max_retry:
             context = self.get_useful_memories()
-
+            
             if counter > 0:
                 improve_code = await DebugCode().run(plan=self.plan.current_task.instruction,
-                                                     # finished_code=code_context,
-                                                     # finished_code_result=code_result,
                                                      code=code,
                                                      runtime_result=self.working_memory.get(),
                                                      context=debug_context)
-
+            
             if improve_code != "":
                 code = improve_code
                 logger.info(f"new code \n{improve_code}")
@@ -217,7 +213,7 @@ class MLEngineer(Role):
             )
             
             if "!pip" in code:
-                 success = False
+                success = False
             # if not success:
             #     await self._ask_review()
             
@@ -294,14 +290,91 @@ if __name__ == "__main__":
     # requirement = f"Run data analysis on sklearn Wine recognition dataset, include a plot, and train a model to predict wine class (20% as validation), and show validation accuracy"
     # data_path = f"{DATA_PATH}/icr-identify-age-related-conditions"
     # requirement = f"This is a medical dataset with over fifty anonymized health characteristics linked to three age-related conditions. Your goal is to predict whether a subject has or has not been diagnosed with one of these conditions.The target column is Class. Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. Report f1 score on the eval data. Train data path: {data_path}/split_train.csv, eval data path: {data_path}/split_eval.csv."
-    # data_path = f"{DATA_PATH}/house-prices-advanced-regression-techniques"
-    # requirement = f"This is a house price dataset, your goal is to predict the sale price of a property based on its features. The target column is SalePrice. Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. Report RMSE between the logarithm of the predicted value and the logarithm of the observed sales price on the eval data. Train data path: '{data_path}/split_train.csv', eval data path: '{data_path}/split_eval.csv'."
     
-    data_path = f"{DATA_PATH}/santander-customer-transaction-prediction"
-    requirement = f"This is a customers financial dataset. Your goal is to predict which customers will make a specific transaction in the future. The target column is target. Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. Report F1 Score on the eval data. Train data path: '{data_path}/split_train.csv', eval data path: '{data_path}/split_eval.csv' ."
-    async def main(requirement: str = requirement, auto_run: bool = True):
-        role = MLEngineer(goal=requirement, auto_run=auto_run)
-        await role.run(requirement)
+    data_path = f"{DATA_PATH}/house-prices-advanced-regression-techniques"
+    requirement = f"This is a house price dataset, your goal is to predict the sale price of a property based on its features. The target column is SalePrice. Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. Report RMSE between the logarithm of the predicted value and the logarithm of the observed sales price on the eval data. Train data path: '{data_path}/split_train.csv', eval data path: '{data_path}/split_eval.csv'."
+    # data_path = f"{DATA_PATH}/santander-customer-transaction-prediction"
+    # requirement = f"This is a customers financial dataset. Your goal is to predict which customers will make a specific transaction in the future. The target column is target. Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. Report F1 Score on the eval data. Train data path: '{data_path}/split_train.csv', eval data path: '{data_path}/split_eval.csv' ."
+    
+    
+    save_dir = ""
+    save_dir = DATA_PATH / "save" / "2023-12-14_15-11-40"
+    
+    
+    def load_history(save_dir: str = save_dir):
+        """
+        Load history from the specified save directory.
+
+        Args:
+            save_dir (str): The directory from which to load the history.
+
+        Returns:
+            Tuple: A tuple containing the loaded plan and notebook.
+        """
+        
+        plan_path = Path(save_dir) / "plan.json"
+        nb_path = Path(save_dir) / "history_nb.ipynb"
+        plan = json.load(open(plan_path, "r", encoding="utf-8"))
+        nb = nbformat.read(open(nb_path, "r", encoding="utf-8"), as_version=nbformat.NO_CONVERT)
+        return plan, nb
+    
+    
+    async def save_history(role: Role = MLEngineer, save_dir: str = save_dir):
+        """
+        Save history to the specified directory.
+
+        Args:
+            role (Role): The role containing the plan and execute_code attributes.
+            save_dir (str): The directory to save the history.
+
+        Returns:
+            Path: The path to the saved history directory.
+        """
+        save_path = Path(save_dir) if save_dir else DATA_PATH / "save" / datetime.now().strftime(
+            '%Y-%m-%d_%H-%M-%S')
+        # overwrite
+        save_path.mkdir(parents=True, exist_ok=True)
+        
+        plan = role.plan.dict()
+        logger.info(f"Plan is {plan}")
+        
+        with open(save_path / "plan.json", "w", encoding="utf-8") as plan_file:
+            json.dump(plan, plan_file, indent=4, ensure_ascii=False)
+        
+        role.execute_code.save_notebook(path=save_path / "history_nb.ipynb")
+        return save_path
+    
+    
+    async def main(requirement: str = requirement, auto_run: bool = True, save_dir: str = save_dir):
+        """
+        The main function to run the MLEngineer with optional history loading.
+
+        Args:
+            requirement (str): The requirement for the MLEngineer.
+            auto_run (bool): Whether to auto-run the MLEngineer.
+            save_dir (str): The directory from which to load the history or to save the new history.
+
+        Raises:
+            Exception: If an error occurs during execution, log the error and save the history.
+        """
+        if save_dir:
+            logger.info("Resuming from history trajectory")
+            plan, nb = load_history(save_dir)
+            role = MLEngineer(goal=requirement, auto_run=auto_run)
+            role.plan = Plan(**plan)
+            role.execute_code = ExecutePyCode(nb)
+            import pdb;pdb.set_trace()
+        else:
+            logger.info("Run from scratch")
+            role = MLEngineer(goal=requirement, auto_run=auto_run)
+        
+        try:
+            await role.run(requirement)
+        except Exception as e:
+            
+            save_path = await save_history(role, save_dir)
+            
+            logger.exception(f"An error occurred: {e}, save trajectory here: {save_path}")
     
     
     fire.Fire(main)
