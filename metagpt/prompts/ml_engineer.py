@@ -155,49 +155,72 @@ PRINT_DATA_COLUMNS = {
 
 GENERATE_CODE_PROMPT = """
 # Background
-Assist in completing [{user_requirement}] in a Jupyter notebook.
+As a data scientist, you need to help user to achieve their goal [{user_requirement}] step-by-step in an continuous Jupyter notebook.
 
-## Task Progress
-### Done Tasks
+## Done Tasks
 ```python
 {history_code}
 ```end
 
-### Current Task
+## Current Task
 {current_task}
 
-## Latest Data Info
+# Latest Data Info
+Latest data info after previous tasks:
 {column_info}
 
 # Task
-Fully implement 'Current Task', ensuring all necessary steps are covered without repeating code from 'Done Tasks'. Specifically, {special_prompt}
+Write complete code for 'Current Task'. And avoid duplicating code from 'Done Tasks', such as repeated import of packages, reading data, etc.
+Specifically, {special_prompt}
 
 # Code Steps:
-Follow steps below when you writing code if it's convenient.
+Strictly follow steps below when you writing code if it's convenient.
 {code_steps}
+
+# Output Example:
+when current task is "train a lightgbm model on training data", and their are two steps in 'Code Steps', the code be like:
+```python
+# Step 1: check data type and convert to numeric
+ojb_cols = train.select_dtypes(include='object').columns.tolist()
+
+for col in obj_cols:
+    encoder = LabelEncoder()
+    train[col] = encoder.fit_transform(train[col])
+    test[col] = test[col].apply(lambda x: x if x in encoder.classes_ else 'unknown')
+    test[col] = encoder.transform(test[col])
+
+# Step 2: train lightgbm model
+model = LGBMClassifier()
+model.fit(train, y_train)
+```end
+
+# Constraints:
+- Ensure the output new code is executable in the same Jupyter notebook with previous tasks code have been executed.
+- The output code should contain all steps implemented in 'Code Steps'.
 """
 
 TOOL_USAGE_PROMPT = """
 # Background
-Assist in completing [{user_requirement}] in a Jupyter notebook.
+As a data scientist, you need to help user to achieve their goal [{user_requirement}] step-by-step in an continuous Jupyter notebook.
 
-## Task Progress
-### Done Tasks
+## Done Tasks
 ```python
 {history_code}
 ```end
 
-### Current Task
+## Current Task
 {current_task}
 
-## Latest Data Info
+# Latest Data Info
+Latest data info after previous tasks:
 {column_info}
 
 # Task
-Fully implement 'Current Task', ensuring all necessary steps are covered without repeating code from 'Done Tasks'. Specifically, {special_prompt}
+Write complete code for 'Current Task'. And avoid duplicating code from 'Done Tasks', such as repeated import of packages, reading data, etc.
+Specifically, {special_prompt}
 
 # Code Steps:
-Follow steps below when you writing code if it's convenient.
+Strictly follow steps below when you writing code if it's convenient.
 {code_steps}
 
 # Capabilities
@@ -205,14 +228,13 @@ Follow steps below when you writing code if it's convenient.
 - You can freely combine the use of any other public packages, like sklearn, numpy, pandas, etc..
 
 # Available Tools:
-Each Class tool is described in JSON format. When you call it, import the tool from `{module_name}` first.
+Each Class tool is described in JSON format. When you call a tool, import the tool from `{module_name}` first.
 {tool_catalog}
 
-# Step Example:
-Here is a coding example for each code step:
-[Step 1]: Handle missing values by imputing or dropping them. For numerical columns, use median or mean imputation
-[Code]
+# Output Example:
+when current task is "do data preprocess, like fill missing value, handle outliers, etc.", and their are two steps in 'Code Steps', the code be like:
 ```python
+# Step 1: fill missing value
 # Tools used: ['FillMissingValue']
 from metagpt.tools.functions.libs.data_preprocess import FillMissingValue
 
@@ -224,31 +246,20 @@ fill_missing_value.fit(train_processed)
 train_processed = fill_missing_value.transform(train_processed)
 test_processed = fill_missing_value.transform(test_processed)
 
+# Step 2: handle outliers
 for col in num_cols:
     low, high = train_processed[col].quantile([0.01, 0.99])
     train_processed[col] = train_processed[col].clip(low, high)
     test_processed[col] = test_processed[col].clip(low, high)
 ```end
-[Step 2]: xxx
-[Code]:
-```python
-# Tools used: [xxx]
-from metagpt.tools.functions.libs.xxx import
-```end
-[Step 3]: xxx
-[Code]:
-```python
-# Tools used: [xxx]
-from metagpt.tools.functions.libs.xxx import
-```end
 
 # Constraints:
-- Prioritize using pre-defined tools for the same functionality.
-- Copy DataFrame before processing if needed.
-- Strictly follow the code steps to write code
+- Ensure the output new code is executable in the same Jupyter notebook with previous tasks code have been executed.
+- Always prioritize using pre-defined tools for the same functionality.
+- Always copy the DataFrame before processing it and use the copy to process.
+- The output code should contain all steps implemented correctly in 'Code Steps'.
 """
 #- If 'Code Steps' contains step done in 'Done Tasks', such as reading data, don't repeat it.
-#For "fill missing value and handle outliers", the output code be like when there are training data and test data:
 
 DATA_PREPROCESS_PROMPT = """
 The current task is about data preprocessing, please note the following:
@@ -276,7 +287,7 @@ The current task is about training a model, please ensure high performance:
 
 MODEL_EVALUATE_PROMPT = """
 The current task is about evaluating a model, please note the following:
-- Ensure that the evaluated data is same processed as the training data.
+- Ensure that the evaluated data is same processed as the training data. If not, remember use object in 'Done Tasks' to transform the data.
 - Use trained model from previous task result directly, do not mock or reload model yourself.
 """
 
@@ -291,3 +302,14 @@ ML_MODULE_MAP = {
     "data_preprocess": "metagpt.tools.functions.libs.data_preprocess",
     "feature_engineering": "metagpt.tools.functions.libs.feature_engineering",
 }
+
+STRUCTURAL_CONTEXT = """
+## User Requirement
+{user_requirement}
+## Data Description
+{data_desc}
+## Current Plan
+{tasks}
+## Current Task
+{current_task}
+"""

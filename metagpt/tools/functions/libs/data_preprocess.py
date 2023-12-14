@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import MaxAbsScaler
@@ -9,7 +10,6 @@ from sklearn.preprocessing import RobustScaler
 from sklearn.preprocessing import StandardScaler
 
 from metagpt.tools.functions.libs.base import MLProcess
-from metagpt.tools.functions.schemas.data_preprocess import *
 
 
 class FillMissingValue(MLProcess):
@@ -141,7 +141,10 @@ def get_column_info(df: pd.DataFrame) -> dict:
     for i in df.columns:
         nan_freq = float("%.2g" % (df[i].isna().mean() * 100))
         n_unique = df[i].nunique()
-        data.append([i, df[i].dtype, nan_freq, n_unique])
+        data_type = str(df[i].dtype).replace("dtype('", "").replace("')", "")
+        if data_type == "O":
+            data_type = "object"
+        data.append([i, data_type, nan_freq, n_unique])
 
     samples = pd.DataFrame(
         data,

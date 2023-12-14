@@ -7,6 +7,7 @@
 import itertools
 
 import numpy as np
+import pandas as pd
 from dateutil.relativedelta import relativedelta
 from joblib import Parallel, delayed
 from pandas.api.types import is_numeric_dtype
@@ -15,7 +16,6 @@ from sklearn.model_selection import KFold
 from sklearn.preprocessing import PolynomialFeatures, KBinsDiscretizer
 
 from metagpt.tools.functions.libs.base import MLProcess
-from metagpt.tools.functions.schemas.feature_engineering import *
 
 
 class PolynomialExpansion(MLProcess):

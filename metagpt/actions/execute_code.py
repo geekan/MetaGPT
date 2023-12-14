@@ -8,6 +8,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Dict, List, Tuple, Union
 import traceback
+import re
 
 import nbformat
 from nbclient import NotebookClient
@@ -180,11 +181,31 @@ class ExecutePyCode(ExecuteCode, Action):
                 # TODO: add max_tries for run code.
                 cell_index = len(self.nb.cells) - 1
                 await self.nb_client.async_execute_cell(self.nb.cells[-1], cell_index)
-                return self.parse_outputs(self.nb.cells[-1].outputs), True
+                outputs = self.parse_outputs(self.nb.cells[-1].outputs)
+                success = True
             except Exception as e:
-                # FIXME: CellExecutionError is hard to read. for example `1\0` raise ZeroDivisionError:
-                #  CellExecutionError('An error occurred while executing the following cell:\n------------------\nz=1/0\n------------------\n\n\n\x1b[0;31m---------------------------------------------------------------------------\x1b[0m\n\x1b[0;31mZeroDivisionError\x1b[0m                         Traceback (most recent call last)\nCell \x1b[0;32mIn[1], line 1\x1b[0m\n\x1b[0;32m----> 1\x1b[0m z\x1b[38;5;241m=\x1b[39m\x1b[38;5;241;43m1\x1b[39;49m\x1b[38;5;241;43m/\x1b[39;49m\x1b[38;5;241;43m0\x1b[39;49m\n\n\x1b[0;31mZeroDivisionError\x1b[0m: division by zero\n')
-                return traceback.format_exc(), False
+                outputs = traceback.format_exc()
+                success = False
+            return truncate(remove_escape_and_color_codes(outputs)), success
         else:
             # TODO: markdown
             raise NotImplementedError(f"Not support this code type : {language}, Only support code!")
+
+
+def truncate(result: str, keep_len: int = 2000) -> str:
+    desc = f"Truncated to show only the last {keep_len} characters\n"
+    if result.startswith(desc):
+        result = result[len(desc) :]
+
+    if len(result) > keep_len:
+        result = result[-keep_len:]
+        return desc + result
+
+    return result
+
+
+def remove_escape_and_color_codes(input_str):
+    # 使用正则表达式去除转义字符和颜色代码
+    pattern = re.compile(r'\x1b\[[0-9;]*[mK]')
+    result = pattern.sub('', input_str)
+    return result
