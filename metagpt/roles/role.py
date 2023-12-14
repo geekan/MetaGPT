@@ -27,14 +27,12 @@ from pydantic import BaseModel, Field
 
 from metagpt.actions import Action, ActionOutput
 from metagpt.actions.action_node import ActionNode
-from metagpt.config import CONFIG
 from metagpt.llm import LLM, HumanProvider
 from metagpt.logs import logger
 from metagpt.memory import Memory
-
-# from metagpt.memory import LongTermMemory
 from metagpt.schema import Message, MessageQueue
 from metagpt.utils.common import any_to_str
+from metagpt.utils.repair_llm_raw_output import extract_state_value_from_output
 
 PREFIX_TEMPLATE = """You are a {profile}, named {name}, your goal is {goal}, and the constraint is {constraints}. """
 
@@ -113,9 +111,10 @@ class RoleContext(BaseModel):
         arbitrary_types_allowed = True
 
     def check(self, role_id: str):
-        if hasattr(CONFIG, "long_term_memory") and CONFIG.long_term_memory:
-            self.long_term_memory.recover_memory(role_id, self)
-            self.memory = self.long_term_memory  # use memory to act as long_term_memory for unify operation
+        # if hasattr(CONFIG, "long_term_memory") and CONFIG.long_term_memory:
+        #     self.long_term_memory.recover_memory(role_id, self)
+        #     self.memory = self.long_term_memory  # use memory to act as long_term_memory for unify operation
+        pass
 
     @property
     def important_memory(self) -> list[Message]:
@@ -153,8 +152,9 @@ class Role:
             else:
                 if self._setting.is_human and not isinstance(action.llm, HumanProvider):
                     logger.warning(
-                        f"is_human attribute does not take effect,"
-                        f"as Role's {str(action)} was initialized using LLM, try passing in Action classes instead of initialized instances"
+                        f"is_human attribute does not take effect, "
+                        f"as Role's {str(action)} was initialized using LLM, "
+                        f"try passing in Action classes instead of initialized instances"
                     )
                 i = action
             # i.set_env(self._rc.env)
@@ -266,6 +266,7 @@ class Role:
         )
         # print(prompt)
         next_state = await self._llm.aask(prompt)
+        next_state = extract_state_value_from_output(next_state)
         logger.debug(f"{prompt=}")
         if (not next_state.isdigit() and next_state != "-1") or int(next_state) not in range(-1, len(self._states)):
             logger.warning(f"Invalid answer of state, {next_state=}, will be set to -1")

@@ -5,7 +5,7 @@
 @Author  : alexanderwu
 @File    : action.py
 """
-import re
+
 from abc import ABC
 from typing import Optional
 
@@ -14,8 +14,9 @@ from tenacity import retry, stop_after_attempt, wait_random_exponential
 from metagpt.actions.action_output import ActionOutput
 from metagpt.llm import LLM
 from metagpt.logs import logger
+from metagpt.provider.postprecess.llm_output_postprecess import llm_output_postprecess
 from metagpt.utils.common import OutputParser
-from metagpt.utils.custom_decoder import CustomDecoder
+from metagpt.utils.utils import general_after_log
 
 
 class Action(ABC):
@@ -57,7 +58,11 @@ class Action(ABC):
         system_msgs.append(self.prefix)
         return await self.llm.aask(prompt, system_msgs)
 
-    @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
+    @retry(
+        wait=wait_random_exponential(min=1, max=60),
+        stop=stop_after_attempt(6),
+        after=general_after_log(logger),
+    )
     async def _aask_v1(
         self,
         prompt: str,
@@ -67,24 +72,16 @@ class Action(ABC):
         format="markdown",  # compatible to original format
     ) -> ActionOutput:
         content = await self.llm.aask(prompt, system_msgs)
-        logger.debug(content)
+        logger.debug(f"llm raw output:\n{content}")
         output_class = ActionOutput.create_model_class(output_class_name, output_data_mapping)
 
         if format == "json":
-            pattern = r"\[CONTENT\](\s*\{.*?\}\s*)\[/CONTENT\]"
-            matches = re.findall(pattern, content, re.DOTALL)
-
-            for match in matches:
-                if match:
-                    content = match
-                    break
-
-            parsed_data = CustomDecoder(strict=False).decode(content)
+            parsed_data = llm_output_postprecess(output=content, schema=output_class.schema(), req_key="[/CONTENT]")
 
         else:  # using markdown parser
             parsed_data = OutputParser.parse_data_with_mapping(content, output_data_mapping)
 
-        logger.debug(parsed_data)
+        logger.debug(f"parsed_data:\n{parsed_data}")
         instruct_content = output_class(**parsed_data)
         return ActionOutput(content, instruct_content)
 

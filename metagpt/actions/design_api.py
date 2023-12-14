@@ -11,7 +11,6 @@
 """
 import json
 from pathlib import Path
-# from typing import List
 
 from metagpt.actions import Action, ActionOutput
 from metagpt.actions.design_api_an import DESIGN_API_NODE
@@ -26,8 +25,12 @@ from metagpt.const import (
 from metagpt.logs import logger
 from metagpt.schema import Document, Documents
 from metagpt.utils.file_repository import FileRepository
+
 # from metagpt.utils.get_template import get_template
 from metagpt.utils.mermaid import mermaid_to_file
+
+# from typing import List
+
 
 NEW_REQ_TEMPLATE = """
 ### Legacy Content
@@ -82,9 +85,7 @@ class WriteDesign(Action):
         return node
 
     async def _merge(self, prd_doc, system_design_doc, format=CONFIG.prompt_format):
-        context = NEW_REQ_TEMPLATE.format(
-            old_design=system_design_doc.content, context=prd_doc.content
-        )
+        context = NEW_REQ_TEMPLATE.format(old_design=system_design_doc.content, context=prd_doc.content)
         node = await DESIGN_API_NODE.fill(context=context, llm=self.llm, to=format)
         system_design_doc.content = node.instruct_content.json(ensure_ascii=False)
         return system_design_doc

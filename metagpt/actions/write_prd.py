@@ -14,27 +14,34 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-# from typing import List
 
 from metagpt.actions import Action, ActionOutput
 from metagpt.actions.action_node import ActionNode
-from metagpt.actions.write_prd_an import WRITE_PRD_NODE, WP_ISSUE_TYPE_NODE, WP_IS_RELATIVE_NODE
 from metagpt.actions.fix_bug import FixBug
-from metagpt.actions.search_and_summarize import SearchAndSummarize
+from metagpt.actions.write_prd_an import (
+    WP_IS_RELATIVE_NODE,
+    WP_ISSUE_TYPE_NODE,
+    WRITE_PRD_NODE,
+)
 from metagpt.config import CONFIG
 from metagpt.const import (
+    BUGFIX_FILENAME,
     COMPETITIVE_ANALYSIS_FILE_REPO,
     DOCS_FILE_REPO,
     PRD_PDF_FILE_REPO,
     PRDS_FILE_REPO,
-    REQUIREMENT_FILENAME, BUGFIX_FILENAME,
+    REQUIREMENT_FILENAME,
 )
 from metagpt.logs import logger
-from metagpt.schema import Document, Documents, Message, BugFixContext
+from metagpt.schema import BugFixContext, Document, Documents, Message
 from metagpt.utils.common import CodeParser
 from metagpt.utils.file_repository import FileRepository
+
 # from metagpt.utils.get_template import get_template
 from metagpt.utils.mermaid import mermaid_to_file
+
+# from typing import List
+
 
 CONTEXT_TEMPLATE = """
 ### Project Name
@@ -69,12 +76,14 @@ class WritePRD(Action):
             await docs_file_repo.save(filename=BUGFIX_FILENAME, content=requirement_doc.content)
             await docs_file_repo.save(filename=REQUIREMENT_FILENAME, content="")
             bug_fix = BugFixContext(filename=BUGFIX_FILENAME)
-            return Message(content=bug_fix.json(), instruct_content=bug_fix,
-                           role="",
-                           cause_by=FixBug,
-                           sent_from=self,
-                           send_to="Alex",  # the name of Engineer
-                           )
+            return Message(
+                content=bug_fix.json(),
+                instruct_content=bug_fix,
+                role="",
+                cause_by=FixBug,
+                sent_from=self,
+                send_to="Alex",  # the name of Engineer
+            )
         else:
             await docs_file_repo.delete(filename=BUGFIX_FILENAME)
 
@@ -154,7 +163,7 @@ class WritePRD(Action):
         if not quadrant_chart:
             return
         pathname = (
-                CONFIG.git_repo.workdir / Path(COMPETITIVE_ANALYSIS_FILE_REPO) / Path(prd_doc.filename).with_suffix("")
+            CONFIG.git_repo.workdir / Path(COMPETITIVE_ANALYSIS_FILE_REPO) / Path(prd_doc.filename).with_suffix("")
         )
         if not pathname.parent.exists():
             pathname.parent.mkdir(parents=True, exist_ok=True)
