@@ -4,13 +4,13 @@
 
 import openai
 
-from metagpt.logs import logger
 from metagpt.config import CONFIG
-from metagpt.provider.openai_api import OpenAIGPTAPI, CostManager, RateLimiter
+from metagpt.logs import logger
+from metagpt.provider.openai_api import CostManager, OpenAIGPTAPI, RateLimiter
 
 
 class OpenLLMCostManager(CostManager):
-    """ open llm model is self-host, it's free and without cost"""
+    """open llm model is self-host, it's free and without cost"""
 
     def update_cost(self, prompt_tokens, completion_tokens, model):
         """
@@ -32,7 +32,6 @@ class OpenLLMCostManager(CostManager):
 
 
 class OpenLLMGPTAPI(OpenAIGPTAPI):
-
     def __init__(self):
         self.__init_openllm(CONFIG)
         self.llm = openai

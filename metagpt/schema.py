@@ -97,14 +97,14 @@ class Message(BaseModel):
     send_to: Set = Field(default_factory={MESSAGE_ROUTE_TO_ALL})
 
     def __init__(
-            self,
-            content,
-            instruct_content=None,
-            role="user",
-            cause_by="",
-            sent_from="",
-            send_to=MESSAGE_ROUTE_TO_ALL,
-            **kwargs,
+        self,
+        content,
+        instruct_content=None,
+        role="user",
+        cause_by="",
+        sent_from="",
+        send_to=MESSAGE_ROUTE_TO_ALL,
+        **kwargs,
     ):
         """
         Parameters not listed below will be stored as meta info, including custom parameters.

@@ -5,11 +5,10 @@
 import openai
 
 from metagpt.config import CONFIG
-from metagpt.provider.openai_api import OpenAIGPTAPI, CostManager, RateLimiter
+from metagpt.provider.openai_api import CostManager, OpenAIGPTAPI, RateLimiter
 
 
 class FireWorksGPTAPI(OpenAIGPTAPI):
-
     def __init__(self):
         self.__init_fireworks(CONFIG)
         self.llm = openai

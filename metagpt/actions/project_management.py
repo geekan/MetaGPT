@@ -10,7 +10,6 @@
         3. According to the design in Section 2.2.3.5.4 of RFC 135, add incremental iteration functionality.
 """
 import json
-# from typing import List
 
 from metagpt.actions import ActionOutput
 from metagpt.actions.action import Action
@@ -25,6 +24,9 @@ from metagpt.const import (
 from metagpt.logs import logger
 from metagpt.schema import Document, Documents
 from metagpt.utils.file_repository import FileRepository
+
+# from typing import List
+
 # from metagpt.utils.get_template import get_template
 
 NEW_REQ_TEMPLATE = """
@@ -97,7 +99,8 @@ class WriteTasks(Action):
     async def _merge(self, system_design_doc, task_doc, format=CONFIG.prompt_format) -> Document:
         context = NEW_REQ_TEMPLATE.format(context=system_design_doc.content, old_tasks=task_doc.content)
         node = await PM_NODE.fill(context, self.llm, format)
-        return node
+        task_doc.content = node.content
+        return task_doc
 
     @staticmethod
     async def _update_requirements(doc):
