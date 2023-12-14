@@ -56,7 +56,6 @@ class MLEngineer(Role):
         # memory for working on each task, discarded each time a task is done
         self.working_memory = Memory()
 
-
     async def _plan_and_act(self):
 
         ### Actions in a multi-agent multi-turn setting ###
@@ -81,7 +80,7 @@ class MLEngineer(Role):
             logger.info(f"ready to take on task {task}")
 
             # take on current task
-            code, result, success, code_steps = await self._write_and_exec_code()
+            code, result, success = await self._write_and_exec_code()
 
             # ask for acceptance, users can other refuse and change tasks in the plan
             review, task_result_confirmed = await self._ask_review(trigger=ReviewConst.TASK_REVIEW_TRIGGER)
@@ -95,7 +94,6 @@ class MLEngineer(Role):
                 # tick off this task and record progress
                 task.code = code
                 task.result = result
-                task.code_steps = code_steps
                 self.plan.finish_current_task()
                 self.working_memory.clear()
 
@@ -109,7 +107,7 @@ class MLEngineer(Role):
                 if confirmed_and_more:
                     self.working_memory.add(Message(content=review, role="user", cause_by=AskReview))
                     await self._update_plan(review)
-
+            
             elif "redo" in review:
                 # Ask the Role to redo this task with help of review feedback,
                 # useful when the code run is successful but the procedure or result is not what we want
@@ -142,7 +140,7 @@ class MLEngineer(Role):
         return success, code
 
     async def _write_and_exec_code(self, max_retry: int = 3):
-        code_steps = (
+        self.plan.current_task.code_steps = (
             await WriteCodeSteps().run(self.plan)
             if self.use_code_steps
             else ""
@@ -175,7 +173,7 @@ class MLEngineer(Role):
             elif not self.use_tools or self.plan.current_task.task_type == "other":
                 logger.info("Write code with pure generation")
                 code = await WriteCodeByGenerate().run(
-                    context=context, plan=self.plan, code_steps=code_steps, temperature=0.0
+                    context=context, plan=self.plan, temperature=0.0
                 )
                 debug_context = [self.get_useful_memories(task_exclude_field={'result', 'code_steps'})[0]]
                 cause_by = WriteCodeByGenerate
@@ -185,7 +183,6 @@ class MLEngineer(Role):
                 tool_context, code = await WriteCodeWithTools(schema_path=schema_path).run(
                     context=context,
                     plan=self.plan,
-                    code_steps=code_steps,
                     column_info=self.data_desc.get("column_info", ""),
                 )
                 debug_context = tool_context
@@ -212,7 +209,7 @@ class MLEngineer(Role):
                 if ReviewConst.CHANGE_WORD[0] in review:
                     counter = 0  # redo the task again with help of human suggestions
 
-        return code, result, success, code_steps
+        return code, result, success
 
     async def _ask_review(self, auto_run: bool = None, trigger: str = ReviewConst.TASK_REVIEW_TRIGGER):
         auto_run = auto_run or self.auto_run
@@ -249,7 +246,7 @@ class MLEngineer(Role):
         update_plan_from_rsp(rsp, self.plan)
 
         self.working_memory.clear()
-
+    
     async def _reflect(self):
         context = self.get_memories()
         context = "\n".join([str(msg) for msg in context])
@@ -280,7 +277,7 @@ class MLEngineer(Role):
         context_msg = [Message(content=context, role="user")]
 
         return context_msg + self.get_working_memories()
-
+    
     def get_working_memories(self) -> List[Message]:
         return self.working_memory.get()
 
