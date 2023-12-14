@@ -147,7 +147,6 @@ class MLEngineer(Role):
         )
 
         counter = 0
-        improve_code = ""
         success = False
         debug_context = []
 
@@ -158,17 +157,14 @@ class MLEngineer(Role):
             # print(context)
             # print("*" * 10)
             # breakpoint()
-            if counter > 0:
-                improve_code = await DebugCode().run(
+            if counter > 0 and self.use_tools:
+                code = await DebugCode().run(
                     plan=self.plan.current_task.instruction,
                     code=code,
                     runtime_result=self.working_memory.get(),
                     context=debug_context
                 )
-
-            if improve_code != "":
-                code = improve_code
-                logger.info(f"new code \n{improve_code}")
+                logger.info(f"new code \n{code}")
                 cause_by = DebugCode
             elif not self.use_tools or self.plan.current_task.task_type == "other":
                 logger.info("Write code with pure generation")
