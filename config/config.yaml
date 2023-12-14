@@ -11,6 +11,7 @@ OPENAI_API_BASE: "https://api.openai.com/v1"
 OPENAI_API_MODEL: "gpt-4-1106-preview"
 MAX_TOKENS: 4096
 RPM: 10
+LLM_TYPE: OpenAI
 
 #### if Spark
 #SPARK_APPID : "YOUR_APPID"
@@ -99,3 +100,20 @@ PROMPT_FORMAT: json #json or markdown
 ### Agent configurations
 # RAISE_NOT_CONFIG_ERROR: true  # "true" if the LLM key is not configured, throw a NotConfiguredException, else "false".
 # WORKSPACE_PATH_WITH_UID: false  # "true" if using `{workspace}/{uid}` as the workspace path; "false" use `{workspace}`.
+
+### Meta Models
+#METAGPT_TEXT_TO_IMAGE_MODEL: MODEL_URL
+
+### S3 config
+S3_ACCESS_KEY: "YOUR_S3_ACCESS_KEY"
+S3_SECRET_KEY: "YOUR_S3_SECRET_KEY"
+S3_ENDPOINT_URL: "YOUR_S3_ENDPOINT_URL"
+S3_SECURE: true # true/false
+S3_BUCKET: "YOUR_S3_BUCKET"
+
+### Redis config
+REDIS_HOST: "YOUR_REDIS_HOST"
+REDIS_PORT: "YOUR_REDIS_PORT"
+REDIS_PASSWORD: "YOUR_REDIS_PASSWORD"
+REDIS_DB: "YOUR_REDIS_DB_INDEX, str, 0-based"
+

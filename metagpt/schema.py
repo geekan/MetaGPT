@@ -22,9 +22,7 @@ from asyncio import Queue, QueueEmpty, wait_for
 from json import JSONDecodeError
 from pathlib import Path
 from typing import Dict, List, Optional, Set, TypedDict
-
 from pydantic import BaseModel, Field
-
 from metagpt.config import CONFIG
 from metagpt.const import (
     MESSAGE_ROUTE_CAUSE_BY,
@@ -345,3 +343,4 @@ class CodeSummarizeContext(BaseModel):
 
 class BugFixContext(BaseModel):
     filename: str = ""
+

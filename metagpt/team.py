@@ -42,9 +42,11 @@ class Team(BaseModel):
         CONFIG.max_budget = investment
         logger.info(f"Investment: ${investment}.")
 
-    def _check_balance(self):
-        if CONFIG.total_cost > CONFIG.max_budget:
-            raise NoMoneyException(CONFIG.total_cost, f"Insufficient funds: {CONFIG.max_budget}")
+    @staticmethod
+    def _check_balance():
+        if CONFIG.cost_manager.total_cost > CONFIG.cost_manager.max_budget:
+            raise NoMoneyException(CONFIG.cost_manager.total_cost,
+                                   f'Insufficient funds: {CONFIG.cost_manager.max_budget}')
 
     def run_project(self, idea, send_to: str = ""):
         """Start a project from publishing user requirement."""

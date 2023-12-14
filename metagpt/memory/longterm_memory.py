@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 @Desc   : the implement of Long-term memory
+@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
 """
 
 from metagpt.logs import logger

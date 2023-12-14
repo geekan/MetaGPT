@@ -14,6 +14,7 @@
 @Modified By: mashenquan, 2023-12-5. Enhance the workflow to navigate to WriteCode or QaEngineer based on the results
     of SummarizeCode.
 """
+<<<<<<< HEAD
 from metagpt.actions import DebugError, RunCode, WriteCode, WriteCodeReview, WriteTest
 
 # from metagpt.const import WORKSPACE_ROOT
@@ -24,6 +25,13 @@ from metagpt.const import (
     TEST_CODES_FILE_REPO,
     TEST_OUTPUTS_FILE_REPO,
 )
+=======
+import os
+from pathlib import Path
+
+from metagpt.actions import DebugError, RunCode, WriteCode, WriteDesign, WriteTest
+from metagpt.config import CONFIG
+>>>>>>> send18/dev
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Document, Message, RunCodeContext, TestingContext
@@ -47,6 +55,32 @@ class QaEngineer(Role):
         self.test_round = 0
         self.test_round_allowed = test_round_allowed
 
+<<<<<<< HEAD
+=======
+    @classmethod
+    def parse_workspace(cls, system_design_msg: Message) -> str:
+        if not system_design_msg.instruct_content:
+            return system_design_msg.instruct_content.dict().get("Python package name")
+        return CodeParser.parse_str(block="Python package name", text=system_design_msg.content)
+
+    def get_workspace(self, return_proj_dir=True) -> Path:
+        msg = self._rc.memory.get_by_action(WriteDesign)[-1]
+        if not msg:
+            return CONFIG.workspace / "src"
+        workspace = self.parse_workspace(msg)
+        # project directory: workspace/{package_name}, which contains package source code folder, tests folder, resources folder, etc.
+        if return_proj_dir:
+            return CONFIG.workspace / workspace
+        # development codes directory: workspace/{package_name}/{package_name}
+        return CONFIG.workspace / workspace / workspace
+
+    def write_file(self, filename: str, code: str):
+        workspace = self.get_workspace() / "tests"
+        file = workspace / filename
+        file.parent.mkdir(parents=True, exist_ok=True)
+        file.write_text(code)
+
+>>>>>>> send18/dev
     async def _write_test(self, message: Message) -> None:
         src_file_repo = CONFIG.git_repo.new_file_repository(CONFIG.src_workspace)
         changed_files = set(src_file_repo.changed_files.keys())

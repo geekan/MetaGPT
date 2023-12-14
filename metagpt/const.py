@@ -12,9 +12,7 @@
 import contextvars
 import os
 from pathlib import Path
-
 from loguru import logger
-
 import metagpt
 
 OPTIONS = contextvars.ContextVar("OPTIONS")
@@ -42,7 +40,7 @@ def get_metagpt_root():
 
 # METAGPT PROJECT ROOT AND VARS
 
-METAGPT_ROOT = get_metagpt_root()
+METAGPT_ROOT = get_metagpt_root()  # Dependent on METAGPT_PROJECT_ROOT
 DEFAULT_WORKSPACE_ROOT = METAGPT_ROOT / "workspace"
 
 DATA_PATH = METAGPT_ROOT / "data"
@@ -93,3 +91,18 @@ CODE_SUMMARIES_FILE_REPO = "docs/code_summaries"
 CODE_SUMMARIES_PDF_FILE_REPO = "resources/code_summaries"
 
 YAPI_URL = "http://yapi.deepwisdomai.com/"
+
+DEFAULT_LANGUAGE = "English"
+DEFAULT_MAX_TOKENS = 1500
+COMMAND_TOKENS = 500
+BRAIN_MEMORY = "BRAIN_MEMORY"
+SKILL_PATH = "SKILL_PATH"
+SERPER_API_KEY = "SERPER_API_KEY"
+
+
+# format
+BASE64_FORMAT = "base64"
+
+# REDIS
+REDIS_KEY = "REDIS_KEY"
+

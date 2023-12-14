@@ -8,8 +8,6 @@ from functools import wraps
 from importlib import import_module
 
 from metagpt.actions import Action, ActionOutput, WritePRD
-
-# from metagpt.const import WORKSPACE_ROOT
 from metagpt.config import CONFIG
 from metagpt.logs import logger
 from metagpt.roles import Role

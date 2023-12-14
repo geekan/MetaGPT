@@ -8,13 +8,13 @@
 @Modified By: mashenquan, 2023/11/21. Fix bug: ReadTimeout.
 @Modified By: mashenquan, 2023/12/1. Fix bug: Unclosed connection caused by openai 0.x.
 """
-import asyncio
-import time
-from typing import NamedTuple, Union
 
-import openai
+from typing import Union
 from openai import APIConnectionError, AsyncAzureOpenAI, AsyncOpenAI, RateLimitError
 from openai.types import CompletionUsage
+import asyncio
+import time
+import openai
 from tenacity import (
     after_log,
     retry,
@@ -22,15 +22,14 @@ from tenacity import (
     stop_after_attempt,
     wait_random_exponential,
 )
-
 from metagpt.config import CONFIG
+from metagpt.llm import LLMType
 from metagpt.logs import logger
 from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.provider.constant import GENERAL_FUNCTION_SCHEMA, GENERAL_TOOL_CHOICE
 from metagpt.schema import Message
-from metagpt.utils.singleton import Singleton
+from metagpt.utils.cost_manager import Costs
 from metagpt.utils.token_counter import (
-    TOKEN_COSTS,
     count_message_tokens,
     count_string_tokens,
     get_max_completion_tokens,
@@ -60,75 +59,6 @@ class RateLimiter:
             await asyncio.sleep(remaining_time)
 
         self.last_call_time = time.time()
-
-
-class Costs(NamedTuple):
-    total_prompt_tokens: int
-    total_completion_tokens: int
-    total_cost: float
-    total_budget: float
-
-
-class CostManager(metaclass=Singleton):
-    """计算使用接口的开销"""
-
-    def __init__(self):
-        self.total_prompt_tokens = 0
-        self.total_completion_tokens = 0
-        self.total_cost = 0
-        self.total_budget = 0
-
-    def update_cost(self, prompt_tokens, completion_tokens, model):
-        """
-        Update the total cost, prompt tokens, and completion tokens.
-
-        Args:
-        prompt_tokens (int): The number of tokens used in the prompt.
-        completion_tokens (int): The number of tokens used in the completion.
-        model (str): The model used for the API call.
-        """
-        self.total_prompt_tokens += prompt_tokens
-        self.total_completion_tokens += completion_tokens
-        cost = (
-            prompt_tokens * TOKEN_COSTS[model]["prompt"] + completion_tokens * TOKEN_COSTS[model]["completion"]
-        ) / 1000
-        self.total_cost += cost
-        logger.info(
-            f"Total running cost: ${self.total_cost:.3f} | Max budget: ${CONFIG.max_budget:.3f} | "
-            f"Current cost: ${cost:.3f}, prompt_tokens: {prompt_tokens}, completion_tokens: {completion_tokens}"
-        )
-        CONFIG.total_cost = self.total_cost
-
-    def get_total_prompt_tokens(self):
-        """
-        Get the total number of prompt tokens.
-
-        Returns:
-        int: The total number of prompt tokens.
-        """
-        return self.total_prompt_tokens
-
-    def get_total_completion_tokens(self):
-        """
-        Get the total number of completion tokens.
-
-        Returns:
-        int: The total number of completion tokens.
-        """
-        return self.total_completion_tokens
-
-    def get_total_cost(self):
-        """
-        Get the total cost of API calls.
-
-        Returns:
-        float: The total cost of API calls.
-        """
-        return self.total_cost
-
-    def get_costs(self) -> Costs:
-        """Get all costs"""
-        return Costs(self.total_prompt_tokens, self.total_completion_tokens, self.total_cost, self.total_budget)
 
 
 def log_and_reraise(retry_state):
@@ -161,7 +91,6 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         else:
             # https://github.com/openai/openai-python#async-usage
             self._client = AsyncOpenAI(api_key=CONFIG.openai_api_key, base_url=CONFIG.openai_api_base)
-        self._cost_manager = CostManager()
         RateLimiter.__init__(self, rpm=self.rpm)
 
     async def _achat_completion_stream(self, messages: list[dict], timeout=3) -> str:
@@ -362,12 +291,15 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
 
     def _update_costs(self, usage: CompletionUsage):
         if CONFIG.calc_usage:
-            prompt_tokens = usage.prompt_tokens
-            completion_tokens = usage.completion_tokens
-            self._cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
+            try:
+                prompt_tokens = usage.prompt_tokens
+                completion_tokens = usage.completion_tokens
+                CONFIG.cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
+            except Exception as e:
+                logger.error("updating costs failed!", e)
 
     def get_costs(self) -> Costs:
-        return self._cost_manager.get_costs()
+        return CONFIG.cost_manager.get_costs()
 
     def get_max_tokens(self, messages: list[dict]):
         if not self.auto_max_tokens:
@@ -410,3 +342,10 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
                 return loop
             else:
                 raise e
+
+    async def get_summary(self, text: str, max_words=200, keep_language: bool = False, **kwargs) -> str:
+        from metagpt.memory.brain_memory import BrainMemory
+
+        memory = BrainMemory(llm_type=LLMType.OPENAI.value, historical_summary=text, cacheable=False)
+        return await memory.summarize(llm=self, max_words=max_words, keep_language=keep_language)
+

@@ -4,14 +4,19 @@
 @Time    : 2023/5/11 19:12
 @Author  : alexanderwu
 @File    : project_management.py
+<<<<<<< HEAD
 @Modified By: mashenquan, 2023/11/27.
         1. Divide the context into three components: legacy code, unit test code, and console log.
         2. Move the document storage operations related to WritePRD from the save operation of WriteDesign.
         3. According to the design in Section 2.2.3.5.4 of RFC 135, add incremental iteration functionality.
+=======
+@Modified By: mashenquan, 2023-8-9, align `run` parameters with the parent :class:`Action` class.
+>>>>>>> send18/dev
 """
 import json
 from typing import List
 
+<<<<<<< HEAD
 from metagpt.actions import ActionOutput
 from metagpt.actions.action import Action
 from metagpt.config import CONFIG
@@ -86,6 +91,14 @@ and only output the json inside this tag, nothing else
     },
     "markdown": {
         "PROMPT_TEMPLATE": """
+=======
+import aiofiles
+
+from metagpt.actions.action import Action
+from metagpt.config import CONFIG
+
+PROMPT_TEMPLATE = """
+>>>>>>> send18/dev
 # Context
 {context}
 
@@ -108,7 +121,11 @@ Attention: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD W
 
 ## Shared Knowledge: Anything that should be public like utils' functions, config's variables details that should make clear first. 
 
+<<<<<<< HEAD
 ## Anything UNCLEAR: Provide as Plain text. Try to clarify it. For example, don't forget a main entry. don't forget to init 3rd party libs.
+=======
+"""
+>>>>>>> send18/dev
 
 """,
         "FORMAT_EXAMPLE": '''
@@ -180,6 +197,7 @@ MERGE_PROMPT = """
 # Context
 {context}
 
+<<<<<<< HEAD
 ## Old Tasks
 {old_tasks}
 -----
@@ -210,10 +228,13 @@ and only output the json inside this tag, nothing else
 """
 
 
+=======
+>>>>>>> send18/dev
 class WriteTasks(Action):
     def __init__(self, name="CreateTasks", context=None, llm=None):
         super().__init__(name, context, llm)
 
+<<<<<<< HEAD
     async def run(self, with_messages, format=CONFIG.prompt_format):
         system_design_file_repo = CONFIG.git_repo.new_file_repository(SYSTEM_DESIGN_FILE_REPO)
         changed_system_designs = system_design_file_repo.changed_files
@@ -265,6 +286,23 @@ class WriteTasks(Action):
         prompt_template, format_example = get_template(templates, format)
         prompt = prompt_template.format(context=context, format_example=format_example)
         rsp = await self._aask_v1(prompt, "task", OUTPUT_MAPPING, format=format)
+=======
+    async def _save(self, rsp):
+        file_path = CONFIG.workspace / "docs/api_spec_and_tasks.md"
+        async with aiofiles.open(file_path, "w") as f:
+            await f.write(rsp.content)
+
+        # Write requirements.txt
+        requirements_path = CONFIG.workspace / "requirements.txt"
+
+        async with aiofiles.open(requirements_path, "w") as f:
+            await f.write(rsp.instruct_content.dict().get("Required Python third-party packages").strip('"\n'))
+
+    async def run(self, context, **kwargs):
+        prompt = PROMPT_TEMPLATE.format(context=context, format_example=FORMAT_EXAMPLE)
+        rsp = await self._aask_v1(prompt, "task", OUTPUT_MAPPING)
+        await self._save(rsp)
+>>>>>>> send18/dev
         return rsp
 
     async def _merge(self, system_design_doc, task_doc, format=CONFIG.prompt_format) -> Document:

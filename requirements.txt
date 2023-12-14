@@ -37,6 +37,7 @@ tqdm==4.64.0
 anthropic==0.3.6
 typing-inspect==0.8.0
 typing_extensions==4.5.0
+aiofiles
 libcst==1.0.1
 qdrant-client==1.4.0
 pytest-mock==3.11.1
@@ -54,3 +55,4 @@ gitpython==3.1.40
 zhipuai==1.0.7
 socksio~=1.0.0
 gitignore-parser==0.1.9
+connexion[swagger-ui]

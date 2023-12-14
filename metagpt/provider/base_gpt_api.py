@@ -4,6 +4,7 @@
 @Time    : 2023/5/5 23:04
 @Author  : alexanderwu
 @File    : base_gpt_api.py
+@Desc    : mashenquan, 2023/8/22. + try catch
 """
 import json
 from abc import abstractmethod

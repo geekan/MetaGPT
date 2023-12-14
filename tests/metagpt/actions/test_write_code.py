@@ -7,9 +7,8 @@
 @Modifiled By: mashenquan, 2023-12-6. According to RFC 135
 """
 import pytest
-
+from metagpt.provider.openai_api import OpenAIGPTAPI as LLM
 from metagpt.actions.write_code import WriteCode
-from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.schema import CodingContext, Document
 from tests.metagpt.actions.mock import TASKS_2, WRITE_CODE_PROMPT_SAMPLE

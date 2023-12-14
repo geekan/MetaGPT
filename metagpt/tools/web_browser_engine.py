@@ -1,9 +1,12 @@
 #!/usr/bin/env python
+"""
+@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
+"""
 
 from __future__ import annotations
 
 import importlib
-from typing import Any, Callable, Coroutine, Literal, overload
+from typing import Any, Callable, Coroutine, Dict, Literal, overload
 
 from metagpt.config import CONFIG
 from metagpt.tools import WebBrowserEngineType
@@ -13,18 +16,21 @@ from metagpt.utils.parse_html import WebPage
 class WebBrowserEngine:
     def __init__(
         self,
+        options: Dict,
         engine: WebBrowserEngineType | None = None,
         run_func: Callable[..., Coroutine[Any, Any, WebPage | list[WebPage]]] | None = None,
     ):
-        engine = engine or CONFIG.web_browser_engine
+        engine = engine or options.get("web_browser_engine")
+        if engine is None:
+            raise NotImplementedError
 
-        if engine == WebBrowserEngineType.PLAYWRIGHT:
+        if WebBrowserEngineType(engine) is WebBrowserEngineType.PLAYWRIGHT:
             module = "metagpt.tools.web_browser_engine_playwright"
-            run_func = importlib.import_module(module).PlaywrightWrapper().run
-        elif engine == WebBrowserEngineType.SELENIUM:
+            run_func = importlib.import_module(module).PlaywrightWrapper(options=options).run
+        elif WebBrowserEngineType(engine) is WebBrowserEngineType.SELENIUM:
             module = "metagpt.tools.web_browser_engine_selenium"
-            run_func = importlib.import_module(module).SeleniumWrapper().run
-        elif engine == WebBrowserEngineType.CUSTOM:
+            run_func = importlib.import_module(module).SeleniumWrapper(options=options).run
+        elif WebBrowserEngineType(engine) is WebBrowserEngineType.CUSTOM:
             run_func = run_func
         else:
             raise NotImplementedError
@@ -47,6 +53,8 @@ if __name__ == "__main__":
     import fire
 
     async def main(url: str, *urls: str, engine_type: Literal["playwright", "selenium"] = "playwright", **kwargs):
-        return await WebBrowserEngine(WebBrowserEngineType(engine_type), **kwargs).run(url, *urls)
+        return await WebBrowserEngine(options=CONFIG.options, engine=WebBrowserEngineType(engine_type), **kwargs).run(
+            url, *urls
+        )
 
     fire.Fire(main)

@@ -2,11 +2,12 @@
 # -*- coding: utf-8 -*-
 """
 @Desc   : unittest of `metagpt/memory/longterm_memory.py`
+@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
 """
 
 from metagpt.actions import UserRequirement
 from metagpt.config import CONFIG
-from metagpt.memory import LongTermMemory
+from metagpt.memory.longterm_memory import LongTermMemory
 from metagpt.roles.role import RoleContext
 from metagpt.schema import Message
 
@@ -28,6 +29,7 @@ def test_ltm_search():
     ltm.add(message)
 
     sim_idea = "Write a game of cli snake"
+
     sim_message = Message(role="User", content=sim_idea, cause_by=UserRequirement)
     news = ltm.find_news([sim_message])
     assert len(news) == 0

@@ -24,3 +24,4 @@ async def test_sd_engine_run_t2i():
     await sd_engine.run_t2i(prompts=["test"])
     img_path = CONFIG.workspace_path / "resources" / "SD_Output" / "output_0.png"
     assert os.path.exists(img_path)
+

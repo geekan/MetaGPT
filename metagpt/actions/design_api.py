@@ -4,6 +4,7 @@
 @Time    : 2023/5/11 19:26
 @Author  : alexanderwu
 @File    : design_api.py
+<<<<<<< HEAD
 @Modified By: mashenquan, 2023/11/27.
             1. According to Section 2.2.3.1 of RFC 135, replace file data in the message with the file name.
             2. According to the design in Section 2.2.3.5.3 of RFC 135, add incremental iteration functionality.
@@ -22,6 +23,16 @@ from metagpt.const import (
     SYSTEM_DESIGN_FILE_REPO,
     SYSTEM_DESIGN_PDF_FILE_REPO,
 )
+=======
+@Modified By: mashenquan, 2023-8-9, align `run` parameters with the parent :class:`Action` class.
+"""
+from typing import List
+
+import aiofiles
+
+from metagpt.actions import Action
+from metagpt.config import CONFIG
+>>>>>>> send18/dev
 from metagpt.logs import logger
 from metagpt.schema import Document, Documents
 from metagpt.utils.file_repository import FileRepository
@@ -197,6 +208,7 @@ class WriteDesign(Action):
             "clearly and in detail."
         )
 
+<<<<<<< HEAD
     async def run(self, with_messages, format=CONFIG.prompt_format):
         # Use `git diff` to identify which PRD documents have been modified in the `docs/prds` directory.
         prds_file_repo = CONFIG.git_repo.new_file_repository(PRDS_FILE_REPO)
@@ -232,6 +244,30 @@ class WriteDesign(Action):
         format_example = format_example.format(project_name=CONFIG.project_name)
         prompt = prompt_template.format(context=context, format_example=format_example)
         system_design = await self._aask_v1(prompt, "system_design", OUTPUT_MAPPING, format=format)
+=======
+    async def _save_system_design(self, docs_path, resources_path, content):
+        data_api_design = CodeParser.parse_code(block="Data structures and interface definitions", text=content)
+        seq_flow = CodeParser.parse_code(block="Program call flow", text=content)
+        await mermaid_to_file(data_api_design, resources_path / "data_api_design")
+        await mermaid_to_file(seq_flow, resources_path / "seq_flow")
+        system_design_file = docs_path / "system_design.md"
+        logger.info(f"Saving System Designs to {system_design_file}")
+        async with aiofiles.open(system_design_file, "w") as f:
+            await f.write(content)
+
+    async def _save(self, system_design: str):
+        workspace = CONFIG.workspace
+        docs_path = workspace / "docs"
+        resources_path = workspace / "resources"
+        docs_path.mkdir(parents=True, exist_ok=True)
+        resources_path.mkdir(parents=True, exist_ok=True)
+        await self._save_system_design(docs_path, resources_path, system_design)
+
+    async def run(self, context, **kwargs):
+        prompt = PROMPT_TEMPLATE.format(context=context, format_example=FORMAT_EXAMPLE)
+        system_design = await self._aask_v1(prompt, "system_design", OUTPUT_MAPPING)
+        await self._save(system_design.content)
+>>>>>>> send18/dev
         return system_design
 
     async def _merge(self, prd_doc, system_design_doc, format=CONFIG.prompt_format):
