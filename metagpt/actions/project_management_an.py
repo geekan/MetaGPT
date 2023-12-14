@@ -43,7 +43,8 @@ TASK_LIST = ActionNode(
 FULL_API_SPEC = ActionNode(
     key="Full API spec",
     expected_type=str,
-    instruction="Describe all APIs using OpenAPI 3.0 spec that may be used by both frontend and backend.",
+    instruction="Describe all APIs using OpenAPI 3.0 spec that may be used by both frontend and backend. If front-end "
+                "and back-end communication is not required, leave it blank.",
     example="openapi: 3.0.0 ...",
 )
 

@@ -52,10 +52,6 @@ def dict_to_markdown(d, prefix="-", postfix="\n"):
 
 class ActionNode:
     """ActionNode is a tree of nodes."""
-
-    # Action Strgy
-    # - sop: 仅使用一级SOP
-    # - complex: 使用一级SOP+自定义策略填槽
     mode: str
 
     # Action Context

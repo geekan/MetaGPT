@@ -72,7 +72,8 @@ class Engineer(Role):
         name: str = "Alex",
         profile: str = "Engineer",
         goal: str = "write elegant, readable, extensible, efficient code",
-        constraints: str = "the code should conform to standards like PEP8 and be modular and maintainable",
+        constraints: str = "the code should conform to standards like PEP8 and be modular and maintainable. "
+                           "Use same language as user requirement",
         n_borg: int = 1,
         use_code_review: bool = False,
     ) -> None:

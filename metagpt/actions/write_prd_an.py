@@ -86,7 +86,7 @@ REQUIREMENT_ANALYSIS = ActionNode(
     key="Requirement Analysis",
     expected_type=str,
     instruction="Provide a detailed analysis of the requirements.",
-    example="The product should be user-friendly and performance-optimized.",
+    example="The product should be user-friendly.",
 )
 
 REQUIREMENT_POOL = ActionNode(
