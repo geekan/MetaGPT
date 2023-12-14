@@ -259,7 +259,7 @@ class MessageQueue:
 
 class CodingContext(BaseModel):
     filename: str
-    design_doc: Document
+    design_doc: Optional[Document]
     task_doc: Optional[Document]
     code_doc: Optional[Document]
 

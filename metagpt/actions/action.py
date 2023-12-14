@@ -44,6 +44,7 @@ class Action(ABC):
         self.prefix = prefix
         self.profile = profile
         self.llm.system_prompt = prefix
+        return self
 
     def __str__(self):
         return self.__class__.__name__

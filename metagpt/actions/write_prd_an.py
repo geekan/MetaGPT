@@ -93,7 +93,7 @@ REQUIREMENT_POOL = ActionNode(
     key="Requirement Pool",
     expected_type=list[list[str]],
     instruction="List down the requirements with their priority (P0, P1, P2).",
-    example=[["P0", "High priority requirement"], ["P1", "Medium priority requirement"]],
+    example=[["P0", "..."], ["P1", "..."]],
 )
 
 UI_DESIGN_DRAFT = ActionNode(
