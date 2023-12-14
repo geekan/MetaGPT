@@ -190,5 +190,9 @@ class WritePRD(Action):
         CONFIG.git_repo.rename_root(CONFIG.project_name)
 
     async def _is_bugfix(self, context) -> bool:
+        src_workspace_path = CONFIG.git_repo.workdir / CONFIG.git_repo.workdir.name
+        code_files = CONFIG.git_repo.get_files(relative_path=src_workspace_path)
+        if not code_files:
+            return False
         node = await WP_ISSUE_TYPE_NODE.fill(context, self.llm)
         return node.get("issue_type") == "BUG"
