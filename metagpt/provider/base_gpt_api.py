@@ -49,8 +49,8 @@ class BaseGPTAPI(BaseChatbot):
             message = (
                 [self._default_system_msg(), self._user_msg(msg)] if self.use_system_prompt else [self._user_msg(msg)]
             )
-        rsp = await self.acompletion_text(message, stream=stream)
         logger.debug(message)
+        rsp = await self.acompletion_text(message, stream=stream)
         # logger.debug(rsp)
         return rsp
 

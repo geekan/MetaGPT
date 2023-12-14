@@ -34,59 +34,52 @@ from metagpt.utils.file_repository import FileRepository
 
 PROMPT_TEMPLATE = """
 NOTICE
-Role: You are a professional engineer; the main goal is to write PEP8 compliant, elegant, modular, easy to read and maintain Python 3.9 code (but you can also use other programming language)
+Role: You are a professional engineer; the main goal is to write google-style, elegant, modular, easy to read and maintain code
 Language: Please use the same language as the user requirement, but the title and code should be still in English. For example, if the user speaks Chinese, the specific text of your answer should also be in Chinese.
 ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenced "Format example".
 
------
-# Design
-```json
+# Context
+## Design
 {design}
-```
------
-# Tasks
-```json
+
+## Tasks
 {tasks}
-```
------
-# Legacy Code
-```python
+
+## Legacy Code
+```Code
 {code}
 ```
------
-# Debug logs
+
+## Debug logs
 ```text
 {logs}
 
 {summary_log}
 ```
------
-# Bug Feedback logs
+
+## Bug Feedback logs
 ```text
 {feedback}
 ```
------
 
-
-## Code: {filename} Write code with triple quoto, based on the following list and context.
-1. Do your best to implement THIS ONLY ONE FILE. ONLY USE EXISTING API. IF NO API, IMPLEMENT IT.
-2. Requirement: Based on the context, implement one following code file, note to return only in code form, your code will be part of the entire project, so please implement complete, reliable, reusable code snippets
-3. Set default value: If there is any setting, ALWAYS SET A DEFAULT VALUE, ALWAYS USE STRONG TYPE AND EXPLICIT VARIABLE.
-4. Follow design: YOU MUST FOLLOW "Data structures and interfaces". DONT CHANGE ANY DESIGN.
-5. Think before writing: What should be implemented and provided in this document?
-6. CAREFULLY CHECK THAT YOU DONT MISS ANY NECESSARY CLASS/FUNCTION IN THIS FILE.
-7. Do not use public member functions that do not exist in your design.
-8. Before using a variable, make sure you reference it first
-9. Write out EVERY DETAIL, DON'T LEAVE TODO.
-
-## Format example
------
+# Format example
 ## Code: {filename}
 ```python
 ## {filename}
 ...
 ```
------
+
+# Instruction: Based on the context, follow "Format example", write code.
+
+## Code: {filename}. Write code with triple quoto, based on the following attentions and context.
+1. Only One file: do your best to implement THIS ONLY ONE FILE.
+2. COMPLETE CODE: Your code will be part of the entire project, so please implement complete, reliable, reusable code snippets.
+3. Set default value: If there is any setting, ALWAYS SET A DEFAULT VALUE, ALWAYS USE STRONG TYPE AND EXPLICIT VARIABLE. AVOID circular import.
+4. Follow design: YOU MUST FOLLOW "Data structures and interfaces". DONT CHANGE ANY DESIGN. Do not use public member functions that do not exist in your design.
+5. CAREFULLY CHECK THAT YOU DONT MISS ANY NECESSARY CLASS/FUNCTION IN THIS FILE.
+6. Before using a external variable/module, make sure you import it first.
+7. Write out EVERY CODE DETAIL, DON'T LEAVE TODO.
+
 """
 
 
@@ -107,7 +100,7 @@ class WriteCode(Action):
             filename="test_" + coding_context.filename + ".json", relative_path=TEST_OUTPUTS_FILE_REPO
         )
         summary_doc = None
-        if coding_context.design_doc.filename:
+        if coding_context.design_doc and coding_context.design_doc.filename:
             summary_doc = await FileRepository.get_file(
                 filename=coding_context.design_doc.filename, relative_path=CODE_SUMMARIES_FILE_REPO
             )
@@ -115,9 +108,14 @@ class WriteCode(Action):
         if test_doc:
             test_detail = RunCodeResult.loads(test_doc.content)
             logs = test_detail.stderr
-        code_context = await self.get_codes(coding_context.task_doc, exclude=self.context.filename)
+
+        if bug_feedback:
+            code_context = coding_context.code_doc.content
+        else:
+            code_context = await self.get_codes(coding_context.task_doc, exclude=self.context.filename)
+
         prompt = PROMPT_TEMPLATE.format(
-            design=coding_context.design_doc.content,
+            design=coding_context.design_doc.content if coding_context.design_doc else "",
             tasks=coding_context.task_doc.content if coding_context.task_doc else "",
             code=code_context,
             logs=logs,
@@ -148,5 +146,5 @@ class WriteCode(Action):
             doc = await src_file_repo.get(filename=filename)
             if not doc:
                 continue
-            codes.append(doc.content)
-        return "\n----------\n".join(codes)
+            codes.append(f"----- {filename}\n" + doc.content)
+        return "\n".join(codes)

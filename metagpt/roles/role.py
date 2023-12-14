@@ -134,6 +134,7 @@ class Role:
         self._setting = RoleSetting(
             name=name, profile=profile, goal=goal, constraints=constraints, desc=desc, is_human=is_human
         )
+        self._llm.system_prompt = self._get_prefix()
         self._states = []
         self._actions = []
         self._role_id = str(self._setting)
@@ -143,6 +144,9 @@ class Role:
     def _reset(self):
         self._states = []
         self._actions = []
+
+    def _init_action_system_message(self, action: Action):
+        action.set_prefix(self._get_prefix(), self.profile)
 
     def _init_actions(self, actions):
         self._reset()
@@ -158,7 +162,7 @@ class Role:
                     )
                 i = action
             # i.set_env(self._rc.env)
-            i.set_prefix(self._get_prefix(), self.profile)
+            self._init_action_system_message(i)
             self._actions.append(i)
             self._states.append(f"{idx}. {action}")
 
@@ -408,7 +412,7 @@ class Role:
             logger.debug(f"{self._setting}: no news. waiting.")
             return
 
-        rsp = await self._react()
+        rsp = await self.react()
 
         # Reset the next action to be taken.
         self._rc.todo = None

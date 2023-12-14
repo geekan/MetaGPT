@@ -243,7 +243,7 @@ class ActionNode:
         )
         return prompt
 
-    @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
+    @retry(wait=wait_random_exponential(min=1, max=10), stop=stop_after_attempt(6))
     async def _aask_v1(
         self,
         prompt: str,
