@@ -106,7 +106,7 @@ class WriteCodeSteps(Action):
         def process_task(task):
             task_dict = task.dict()
             # ptask = {k: task_dict[k] for k in task_dict if k in select_task_keys }
-            ptask = f"task_id_{task_dict['task_id']}:{task_dict['instruction']}\n"
+            ptask = f"task_id_{task_dict['task_id']}:{task_dict['instruction']}"
             return ptask
         
         
