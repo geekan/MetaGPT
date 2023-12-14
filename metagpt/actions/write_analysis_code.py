@@ -107,7 +107,8 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
         
         if self.schema_path is not None:
             self._load_tools(schema_path)
-    
+        logger.info(f"available_tools: {len(self.available_tools)}")
+        
     def _load_tools(self, schema_path):
         """Load tools from yaml file"""
         yml_files = schema_path.glob("*.yml")
@@ -202,7 +203,7 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
                 module_name=module_name,
                 tool_catalog=tool_catalog,
             )
-            
+    
 
 
         else:
