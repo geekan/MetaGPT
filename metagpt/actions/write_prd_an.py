@@ -16,6 +16,13 @@ LANGUAGE = ActionNode(
     example="en_us",
 )
 
+PROGRAMMING_LANGUAGE = ActionNode(
+    key="Programming Language",
+    expected_type=str,
+    instruction="Python/JavaScript or other mainstream programming language.",
+    example="Python",
+)
+
 ORIGINAL_REQUIREMENTS = ActionNode(
     key="Original Requirements",
     expected_type=str,
@@ -59,14 +66,14 @@ COMPETITIVE_QUADRANT_CHART = ActionNode(
     expected_type=str,
     instruction="Use mermaid quadrantChart syntax. Distribute scores evenly between 0 and 1",
     example="""quadrantChart
-    title Reach and engagement of campaigns
-    x-axis Low Reach --> High Reach
-    y-axis Low Engagement --> High Engagement
-    quadrant-1 We should expand
-    quadrant-2 Need to promote
-    quadrant-3 Re-evaluate
-    quadrant-4 May be improved
-    "Campaign: A": [0.3, 0.6]
+    title "Reach and engagement of campaigns"
+    x-axis "Low Reach" --> "High Reach"
+    y-axis "Low Engagement" --> "High Engagement"
+    quadrant-1 "We should expand"
+    quadrant-2 "Need to promote"
+    quadrant-3 "Re-evaluate"
+    quadrant-4 "May be improved"
+    "Campaign A": [0.3, 0.6]
     "Campaign B": [0.45, 0.23]
     "Campaign C": [0.57, 0.69]
     "Campaign D": [0.78, 0.34]
@@ -124,6 +131,7 @@ REASON = ActionNode(
 
 NODES = [
     LANGUAGE,
+    PROGRAMMING_LANGUAGE,
     ORIGINAL_REQUIREMENTS,
     PROJECT_NAME,
     PRODUCT_GOALS,
