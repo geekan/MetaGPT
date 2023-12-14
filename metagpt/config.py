@@ -51,13 +51,17 @@ class Config(metaclass=Singleton):
         self.open_llm_api_model = self._get("OPEN_LLM_API_MODEL")
 
         self.fireworks_api_key = self._get("FIREWORKS_API_KEY")
+
+        self.gemini_api_key = self._get("GEMINI_API_KEY")
+
         if (not self.openai_api_key or "YOUR_API_KEY" == self.openai_api_key) and \
                 (not self.anthropic_api_key or "YOUR_API_KEY" == self.anthropic_api_key) and \
                 (not self.zhipuai_api_key or "YOUR_API_KEY" == self.zhipuai_api_key) and \
                 (not self.open_llm_api_base) and \
-                (not self.fireworks_api_key or "YOUR_API_KEY" == self.fireworks_api_key):
+                (not self.fireworks_api_key or "YOUR_API_KEY" == self.fireworks_api_key) and \
+                (not self.gemini_api_key or "YOUR_API_KEY" in self.gemini_api_key):
             raise NotConfiguredException("Set OPENAI_API_KEY or Anthropic_API_KEY or ZHIPUAI_API_KEY first "
-                                         "or FIREWORKS_API_KEY or OPEN_LLM_API_BASE")
+                                         "or FIREWORKS_API_KEY or OPEN_LLM_API_BASE or GEMINI_API_KEY")
         self.openai_api_base = self._get("OPENAI_API_BASE")
         openai_proxy = self._get("OPENAI_PROXY") or self.global_proxy
         if openai_proxy:

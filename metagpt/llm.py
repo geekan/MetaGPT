@@ -14,6 +14,7 @@ from metagpt.provider.spark_api import SparkAPI
 from metagpt.provider.open_llm_api import OpenLLMGPTAPI
 from metagpt.provider.fireworks_api import FireWorksGPTAPI
 from metagpt.provider.human_provider import HumanProvider
+from metagpt.provider.google_gemini_api import GeminiGPTAPI
 
 
 def LLM() -> "BaseGPTAPI":
@@ -29,6 +30,8 @@ def LLM() -> "BaseGPTAPI":
         llm = OpenLLMGPTAPI()
     elif CONFIG.fireworks_api_key:
         llm = FireWorksGPTAPI()
+    elif CONFIG.gemini_api_key:
+        llm = GeminiGPTAPI()
     else:
         raise RuntimeError("You should config a LLM configuration first")
 
