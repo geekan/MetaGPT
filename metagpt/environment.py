@@ -82,7 +82,7 @@ class Environment(BaseModel):
                 futures.append(future)
 
             await asyncio.gather(*futures)
-            logger.info(f"is idle: {self.is_idle}")
+            logger.debug(f"is idle: {self.is_idle}")
 
     def get_roles(self) -> dict[str, Role]:
         """获得环境内的所有角色

@@ -71,14 +71,15 @@ class Engineer(Role):
         self,
         name: str = "Alex",
         profile: str = "Engineer",
-        goal: str = "Write elegant, readable, extensible, efficient code",
-        constraints: str = "The code should conform to standards like PEP8 and be modular and maintainable",
+        goal: str = "write elegant, readable, extensible, efficient code",
+        constraints: str = "the code should conform to standards like PEP8 and be modular and maintainable",
         n_borg: int = 1,
         use_code_review: bool = False,
     ) -> None:
         """Initializes the Engineer role with given attributes."""
         super().__init__(name, profile, goal, constraints)
         self.use_code_review = use_code_review
+        self._init_actions([WriteCode])
         self._watch([WriteTasks, SummarizeCode, WriteCode, WriteCodeReview, FixBug])
         self.code_todos = []
         self.summarize_todos = []
@@ -198,11 +199,11 @@ class Engineer(Role):
             return None
         msg = self._rc.news[0]
         if msg.cause_by in write_code_filters:
-            logger.info(f"TODO WriteCode:{msg.json()}")
+            logger.debug(f"TODO WriteCode:{msg.json()}")
             await self._new_code_actions(bug_fix=msg.cause_by == any_to_str(FixBug))
             return self._rc.todo
         if msg.cause_by in summarize_code_filters and msg.sent_from == any_to_str(self):
-            logger.info(f"TODO SummarizeCode:{msg.json()}")
+            logger.debug(f"TODO SummarizeCode:{msg.json()}")
             await self._new_summarize_actions()
             return self._rc.todo
         return None

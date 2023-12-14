@@ -26,6 +26,7 @@ from typing import Iterable, Set, Type
 from pydantic import BaseModel, Field
 
 from metagpt.actions import Action, ActionOutput
+from metagpt.actions.action_node import ActionNode
 from metagpt.config import CONFIG
 from metagpt.llm import LLM, HumanProvider
 from metagpt.logs import logger
@@ -156,7 +157,7 @@ class Role:
                         f"as Role's {str(action)} was initialized using LLM, try passing in Action classes instead of initialized instances"
                     )
                 i = action
-            i.set_env(self._rc.env)
+            # i.set_env(self._rc.env)
             i.set_prefix(self._get_prefix(), self.profile)
             self._actions.append(i)
             self._states.append(f"{idx}. {action}")
@@ -278,7 +279,7 @@ class Role:
     async def _act(self) -> Message:
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
         response = await self._rc.todo.run(self._rc.important_memory)
-        if isinstance(response, ActionOutput):
+        if isinstance(response, ActionOutput) or isinstance(response, ActionNode):
             msg = Message(
                 content=response.content,
                 instruct_content=response.instruct_content,

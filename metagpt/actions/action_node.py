@@ -5,25 +5,44 @@
 @Author  : alexanderwu
 @File    : action_node.py
 """
-from typing import Dict, Type, List, Any, Tuple
+import re
+from typing import Dict, Type, List, Any, Tuple, Optional
 import json
 
 from pydantic import BaseModel, create_model, root_validator, validator
 #    , model_validator, field_validator
+from tenacity import wait_random_exponential, stop_after_attempt, retry
 
+from metagpt.actions import ActionOutput
+from metagpt.llm import BaseGPTAPI
 from metagpt.logs import logger
+from metagpt.utils.common import OutputParser
+from metagpt.utils.custom_decoder import CustomDecoder
 
+CONSTRAINT = """
+- Language: Please use the same language as the user input.
+- Format: output wrapped inside [CONTENT][/CONTENT] as format example, nothing else.
+"""
 
 SIMPLE_TEMPLATE = """
-## example
+## context
+{context}
+
+## format example
 {example}
 
-## instruction
+## nodes: "<node>: <type>  # <comment>"
 {instruction}
+
+## constraint
+{constraint}
+
+## action
+Fill in the above nodes based on the context. Answer in format example.
 """
 
 
-def dict_to_markdown(d, prefix="###", postfix="\n"):
+def dict_to_markdown(d, prefix="-", postfix="\n"):
     markdown_str = ""
     for key, value in d.items():
         markdown_str += f"{prefix} {key}: {value}{postfix}"
@@ -32,22 +51,26 @@ def dict_to_markdown(d, prefix="###", postfix="\n"):
 
 class ActionNode:
     """ActionNode is a tree of nodes."""
-    # 应该是定义子任务，收集子任务结果，并且父任务同时执行吗？
-    # 初期只提供两种模式，一种是用父任务compile，一种是用子任务逐个执行
-    # 1. context、example、instruction-nodes、instruction-action
-    # 2. context、example
+    # Action Strgy
+    # - sop: 仅使用一级SOP
+    # - complex: 使用一级SOP+自定义策略填槽
+    mode: str
 
-    # Action Inputs
+    # Action Context
+    context: str  # all the context, including all necessary info
+    llm: BaseGPTAPI  # LLM with aask interface
+    children: dict[str, "ActionNode"]
+
+    # Action Input
     key: str  # Product Requirement / File list / Code
     expected_type: Type  # such as str / int / float etc.
     # context: str  # everything in the history.
     instruction: str  # the instructions should be followed.
     example: Any  # example for In Context-Learning.
 
-    # Action Outputs
+    # Action Output
     content: str
     instruct_content: BaseModel
-    children: dict[str, "ActionNode"]
 
     def __init__(self, key, expected_type, instruction, example, content="",
                  children=None):
@@ -74,9 +97,16 @@ class ActionNode:
         for node in nodes:
             self.add_child(node)
 
+    @classmethod
+    def from_children(cls, key, nodes: List["ActionNode"]):
+        """直接从一系列的子nodes初始化"""
+        obj = cls(key, str, "", "")
+        obj.add_children(nodes)
+        return obj
+
     def get_children_mapping(self) -> Dict[str, Type]:
         """获得子ActionNode的字典，以key索引"""
-        return {k: v.expected_type for k, v in self.children.items()}
+        return {k: (v.expected_type, ...) for k, v in self.children.items()}
 
     @classmethod
     def create_model_class(cls, class_name: str, mapping: Dict[str, Type]):
@@ -131,6 +161,8 @@ class ActionNode:
         return self.create_model_class(class_name, mapping)
 
     def to_dict(self, format_func=None, mode="all") -> Dict:
+        """将当前节点与子节点都按照node: format的格式组织称字典"""
+
         # 如果没有提供格式化函数，使用默认的格式化方式
         if format_func is None:
             format_func = lambda node: f"{node.instruction}"
@@ -165,7 +197,7 @@ class ActionNode:
         if not tag:
             return text
         if to == "json":
-            return f"[{tag}]\n" + "{" + text + "}" + f"\n[/{tag}]"
+            return f"[{tag}]\n" + text + f"\n[/{tag}]"
         else:
             return f"[{tag}]\n" + text + f"\n[/{tag}]"
 
@@ -187,31 +219,73 @@ class ActionNode:
         format_func = lambda i: i.example
         return self._compile_f(to, mode, tag, format_func)
 
-    def compile(self, mode="children") -> Tuple[str, str]:
+    def compile(self, context, to="json", mode="children", template=SIMPLE_TEMPLATE) -> str:
         """
         mode: all/root/children
             mode="children": 编译所有子节点为一个统一模板，包括instruction与example
             mode="all": NotImplemented
             mode="root": NotImplemented
         """
-        self.instruction = self.compile_instruction(to="json", mode=mode)
-        self.example = self.compile_example(to="json", tag="CONTENT", mode=mode)
-        # prompt = template.format(example=self.example, instruction=self.instruction)
-        return self.instruction, self.example
 
-    def run(self):
-        """运行这个ActionNode，可以采用不同策略，比如只运行子节点"""
+        # FIXME: json instruction会带来 "Project name": "web_2048  # 项目名称使用下划线",
+        self.instruction = self.compile_instruction(to="markdown", mode=mode)
+        self.example = self.compile_example(to=to, tag="CONTENT", mode=mode)
+        prompt = template.format(context=context, example=self.example, instruction=self.instruction,
+                                 constraint=CONSTRAINT)
+        return prompt
 
+    @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
+    async def _aask_v1(
+        self,
+        prompt: str,
+        output_class_name: str,
+        output_data_mapping: dict,
+        system_msgs: Optional[list[str]] = None,
+        format="markdown",  # compatible to original format
+    ) -> ActionOutput:
+        content = await self.llm.aask(prompt, system_msgs)
+        logger.debug(content)
+        output_class = ActionOutput.create_model_class(output_class_name, output_data_mapping)
+
+        if format == "json":
+            pattern = r"\[CONTENT\](\s*\{.*?\}\s*)\[/CONTENT\]"
+            matches = re.findall(pattern, content, re.DOTALL)
+
+            for match in matches:
+                if match:
+                    content = match
+                    break
+
+            parsed_data = CustomDecoder(strict=False).decode(content)
+
+        else:  # using markdown parser
+            parsed_data = OutputParser.parse_data_with_mapping(content, output_data_mapping)
+
+        logger.debug(parsed_data)
+        instruct_content = output_class(**parsed_data)
+        return ActionOutput(content, instruct_content)
+
+    def get(self, key):
+        return self.instruct_content.dict()[key]
+
+    async def fill(self, context, llm, to="json"):
+        """运行这个ActionNode，并且填槽，可以采用不同策略，比如只运行子节点"""
+        self.llm = llm
+        prompt = self.compile(context=context, to=to)
+        mapping = self.get_children_mapping()
+
+        class_name = f"{self.key}_AN"
         # 需要传入llm，并且实际在ActionNode中执行。需要规划好具体的执行方法
-        raise NotImplementedError
+        output = await self._aask_v1(prompt, class_name, mapping, format=to)
+        self.content = output.content
+        self.instruct_content = output.instruct_content
+        return self
 
 
 def action_node_from_tuple_example():
     # 示例：列表中包含元组
     list_of_tuples = [
-        ("key1", str, "Instruction 1", "Example 1", "Content 1", {"child1": ...}),
-        ("key2", int, "Instruction 2", "Example 2", "Content 2"),
-        ("key3", int, "Instruction 3", "Example 3")
+        ("key1", int, "Instruction 1", "Example 1")
     ]
 
     # 从列表中创建 ActionNode 实例

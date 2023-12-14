@@ -25,7 +25,8 @@ class ProjectManager(Role):
         self,
         name: str = "Eve",
         profile: str = "Project Manager",
-        goal: str = "Improve team efficiency and deliver with quality and quantity",
+        goal: str = "break down tasks according to PRD/technical design, generate a task list, and analyze task "
+                    "dependencies to start with the prerequisite modules",
         constraints: str = "",
     ) -> None:
         """

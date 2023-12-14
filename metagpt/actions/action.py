@@ -27,18 +27,22 @@ class Action(ABC):
         self.context = context
         self.prefix = ""  # aask*时会加上prefix，作为system_message
         self.profile = ""  # FIXME: USELESS
-        self.desc = ""  # FIXME: USELESS
-        self.content = ""
-        self.instruct_content = None
-        self.env = None
+        self.desc = ""  # for skill manager
+        self.nodes = ...
 
-    def set_env(self, env):
-        self.env = env
+        # Output, useless
+        # self.content = ""
+        # self.instruct_content = None
+        # self.env = None
+
+    # def set_env(self, env):
+    #     self.env = env
 
     def set_prefix(self, prefix, profile):
         """Set prefix for later usage"""
         self.prefix = prefix
         self.profile = profile
+        self.llm.system_prompt = prefix
 
     def __str__(self):
         return self.__class__.__name__
@@ -62,10 +66,6 @@ class Action(ABC):
         system_msgs: Optional[list[str]] = None,
         format="markdown",  # compatible to original format
     ) -> ActionOutput:
-        """Append default prefix"""
-        if not system_msgs:
-            system_msgs = []
-        system_msgs.append(self.prefix)
         content = await self.llm.aask(prompt, system_msgs)
         logger.debug(content)
         output_class = ActionOutput.create_model_class(output_class_name, output_data_mapping)
