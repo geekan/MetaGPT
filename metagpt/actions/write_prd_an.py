@@ -13,52 +13,52 @@ LANGUAGE = ActionNode(
     key="Language",
     expected_type=str,
     instruction="Provide the language used in the project, typically matching the user's requirement language.",
-    example="en_us"
+    example="en_us",
 )
 
 PROGRAMMING_LANGUAGE = ActionNode(
     key="Programming Language",
     expected_type=str,
     instruction="Python/JavaScript or other mainstream programming language.",
-    example="Python"
+    example="Python",
 )
 
 ORIGINAL_REQUIREMENTS = ActionNode(
     key="Original Requirements",
     expected_type=str,
     instruction="Place the polished, complete original requirements here.",
-    example="The game should have a leaderboard and multiple difficulty levels."
+    example="The game should have a leaderboard and multiple difficulty levels.",
 )
 
 PROJECT_NAME = ActionNode(
     key="Project Name",
     expected_type=str,
     instruction="Name the project using snake case style, like 'game_2048' or 'simple_crm'.",
-    example="game_2048"
+    example="game_2048",
 )
 
 PRODUCT_GOALS = ActionNode(
     key="Product Goals",
     expected_type=list[str],
     instruction="Provide up to three clear, orthogonal product goals.",
-    example=["Create an engaging user experience",
-             "Ensure high performance",
-             "Provide customizable features"]
+    example=["Create an engaging user experience", "Ensure high performance", "Provide customizable features"],
 )
 
 USER_STORIES = ActionNode(
     key="User Stories",
     expected_type=list[str],
     instruction="Provide up to five scenario-based user stories.",
-    example=["As a user, I want to be able to choose difficulty levels",
-             "As a player, I want to see my score after each game"]
+    example=[
+        "As a user, I want to be able to choose difficulty levels",
+        "As a player, I want to see my score after each game",
+    ],
 )
 
 COMPETITIVE_ANALYSIS = ActionNode(
     key="Competitive Analysis",
     expected_type=list[str],
     instruction="Provide analyses for up to seven competitive products.",
-    example=["Python Snake Game: Simple interface, lacks advanced features"]
+    example=["Python Snake Game: Simple interface, lacks advanced features"],
 )
 
 COMPETITIVE_QUADRANT_CHART = ActionNode(
@@ -79,56 +79,53 @@ COMPETITIVE_QUADRANT_CHART = ActionNode(
     "Campaign D": [0.78, 0.34]
     "Campaign E": [0.40, 0.34]
     "Campaign F": [0.35, 0.78]
-    "Our Target Product": [0.5, 0.6]"""
+    "Our Target Product": [0.5, 0.6]""",
 )
 
 REQUIREMENT_ANALYSIS = ActionNode(
     key="Requirement Analysis",
     expected_type=str,
     instruction="Provide a detailed analysis of the requirements.",
-    example="The product should be user-friendly and performance-optimized."
+    example="The product should be user-friendly and performance-optimized.",
 )
 
 REQUIREMENT_POOL = ActionNode(
     key="Requirement Pool",
     expected_type=list[list[str]],
     instruction="List down the requirements with their priority (P0, P1, P2).",
-    example=[["P0", "High priority requirement"], ["P1", "Medium priority requirement"]]
+    example=[["P0", "High priority requirement"], ["P1", "Medium priority requirement"]],
 )
 
 UI_DESIGN_DRAFT = ActionNode(
     key="UI Design draft",
     expected_type=str,
     instruction="Provide a simple description of UI elements, functions, style, and layout.",
-    example="Basic function description with a simple style and layout."
+    example="Basic function description with a simple style and layout.",
 )
 
 ANYTHING_UNCLEAR = ActionNode(
     key="Anything UNCLEAR",
     expected_type=str,
     instruction="Mention any aspects of the project that are unclear and try to clarify them.",
-    example="..."
+    example="...",
 )
 
 ISSUE_TYPE = ActionNode(
     key="issue_type",
     expected_type=str,
     instruction="Answer BUG/REQUIREMENT. If it is a bugfix, answer BUG, otherwise answer Requirement",
-    example="BUG"
+    example="BUG",
 )
 
 IS_RELATIVE = ActionNode(
     key="is_relative",
     expected_type=str,
     instruction="Answer YES/NO. If the requirement is related to the old PRD, answer YES, otherwise NO",
-    example="YES"
+    example="YES",
 )
 
 REASON = ActionNode(
-    key="reason",
-    expected_type=str,
-    instruction="Explain the reasoning process from question to answer",
-    example="..."
+    key="reason", expected_type=str, instruction="Explain the reasoning process from question to answer", example="..."
 )
 
 
@@ -144,7 +141,7 @@ NODES = [
     REQUIREMENT_ANALYSIS,
     REQUIREMENT_POOL,
     UI_DESIGN_DRAFT,
-    ANYTHING_UNCLEAR
+    ANYTHING_UNCLEAR,
 ]
 
 WRITE_PRD_NODE = ActionNode.from_children("WritePRD", NODES)
@@ -157,5 +154,5 @@ def main():
     logger.info(prompt)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -5,13 +5,12 @@
 @Author  : alexanderwu
 @File    : action_node.py
 """
-import re
-from typing import Dict, Type, List, Any, Tuple, Optional
 import json
+import re
+from typing import Any, Dict, List, Optional, Type
 
 from pydantic import BaseModel, create_model, root_validator, validator
-#    , model_validator, field_validator
-from tenacity import wait_random_exponential, stop_after_attempt, retry
+from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.actions import ActionOutput
 from metagpt.llm import BaseGPTAPI
@@ -53,6 +52,7 @@ def dict_to_markdown(d, prefix="-", postfix="\n"):
 
 class ActionNode:
     """ActionNode is a tree of nodes."""
+
     # Action Strgy
     # - sop: 仅使用一级SOP
     # - complex: 使用一级SOP+自定义策略填槽
@@ -74,8 +74,7 @@ class ActionNode:
     content: str
     instruct_content: BaseModel
 
-    def __init__(self, key, expected_type, instruction, example, content="",
-                 children=None):
+    def __init__(self, key, expected_type, instruction, example, content="", children=None):
         self.key = key
         self.expected_type = expected_type
         self.instruction = instruction
@@ -84,8 +83,9 @@ class ActionNode:
         self.children = children if children is not None else {}
 
     def __str__(self):
-        return f"{self.key}, {self.expected_type}, {self.instruction}, {self.example}" \
-               f", {self.content}, {self.children}"
+        return (
+            f"{self.key}, {self.expected_type}, {self.instruction}, {self.example}" f", {self.content}, {self.children}"
+        )
 
     def __repr__(self):
         return self.__str__()
@@ -116,7 +116,7 @@ class ActionNode:
 
     def get_mapping(self, mode="children") -> Dict[str, Type]:
         """get key: type mapping under mode"""
-        if mode == "children" or (mode=="auto" and self.children):
+        if mode == "children" or (mode == "auto" and self.children):
             return self.get_children_mapping()
         return self.get_self_mapping()
 
@@ -148,7 +148,7 @@ class ActionNode:
         """基于pydantic v2的模型动态生成，用来检验结果类型正确性，待验证"""
         new_class = create_model(class_name, **mapping)
 
-        @model_validator(mode='before')
+        @model_validator(mode="before")
         def check_missing_fields(data):
             required_fields = set(mapping.keys())
             missing_fields = required_fields - set(data.keys())
@@ -156,7 +156,7 @@ class ActionNode:
                 raise ValueError(f"Missing fields: {missing_fields}")
             return data
 
-        @field_validator('*')
+        @field_validator("*")
         def check_name(v: Any, field: str) -> Any:
             if field not in mapping.keys():
                 raise ValueError(f"Unrecognized block: {field}")
@@ -242,8 +242,9 @@ class ActionNode:
         # FIXME: json instruction会带来格式问题，如："Project name": "web_2048  # 项目名称使用下划线",
         self.instruction = self.compile_instruction(to="markdown", mode=mode)
         self.example = self.compile_example(to=to, tag="CONTENT", mode=mode)
-        prompt = template.format(context=context, example=self.example, instruction=self.instruction,
-                                 constraint=CONSTRAINT)
+        prompt = template.format(
+            context=context, example=self.example, instruction=self.instruction, constraint=CONSTRAINT
+        )
         return prompt
 
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
@@ -302,7 +303,7 @@ class ActionNode:
         return self
 
     async def fill(self, context, llm, to="json", mode="auto", strgy="simple"):
-        """ Fill the node(s) with mode.
+        """Fill the node(s) with mode.
 
         :param context: Everything we should know when filling node.
         :param llm: Large Language Model with pre-defined system message.
@@ -336,9 +337,7 @@ class ActionNode:
 
 def action_node_from_tuple_example():
     # 示例：列表中包含元组
-    list_of_tuples = [
-        ("key1", str, "Instruction 1", "Example 1")
-    ]
+    list_of_tuples = [("key1", str, "Instruction 1", "Example 1")]
 
     # 从列表中创建 ActionNode 实例
     nodes = [ActionNode(*data) for data in list_of_tuples]
@@ -346,5 +345,5 @@ def action_node_from_tuple_example():
         logger.info(i)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     action_node_from_tuple_example()

@@ -20,8 +20,13 @@ from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.actions.action import Action
 from metagpt.config import CONFIG
-from metagpt.const import CODE_SUMMARIES_FILE_REPO, TEST_OUTPUTS_FILE_REPO, TASK_FILE_REPO, BUGFIX_FILENAME, \
-    DOCS_FILE_REPO
+from metagpt.const import (
+    BUGFIX_FILENAME,
+    CODE_SUMMARIES_FILE_REPO,
+    DOCS_FILE_REPO,
+    TASK_FILE_REPO,
+    TEST_OUTPUTS_FILE_REPO,
+)
 from metagpt.logs import logger
 from metagpt.schema import CodingContext, Document, RunCodeResult
 from metagpt.utils.common import CodeParser
@@ -143,4 +148,3 @@ class WriteCode(Action):
                 continue
             codes.append(doc.content)
         return "\n----------\n".join(codes)
-
