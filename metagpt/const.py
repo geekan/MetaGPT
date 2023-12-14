@@ -12,7 +12,9 @@
 import contextvars
 import os
 from pathlib import Path
+
 from loguru import logger
+
 import metagpt
 
 OPTIONS = contextvars.ContextVar("OPTIONS")
@@ -89,6 +91,8 @@ TEST_CODES_FILE_REPO = "tests"
 TEST_OUTPUTS_FILE_REPO = "test_outputs"
 CODE_SUMMARIES_FILE_REPO = "docs/code_summaries"
 CODE_SUMMARIES_PDF_FILE_REPO = "resources/code_summaries"
+RESOURCES_FILE_REPO = "resources"
+SD_OUTPUT_FILE_REPO = "resources/SD_Output"
 
 YAPI_URL = "http://yapi.deepwisdomai.com/"
 
@@ -105,4 +109,3 @@ BASE64_FORMAT = "base64"
 
 # REDIS
 REDIS_KEY = "REDIS_KEY"
-

@@ -8,8 +8,9 @@
 
 import asyncio
 from typing import Optional
-from pydantic import BaseModel
+
 from langchain.llms.base import LLM
+from pydantic import BaseModel
 
 from metagpt.actions.write_teaching_plan import WriteTeachingPlanPart
 from metagpt.config import Config
@@ -17,7 +18,7 @@ from metagpt.schema import Message
 
 
 class MockWriteTeachingPlanPart(WriteTeachingPlanPart):
-    def __init__(self, options, name: str = '', context=None, llm: LLM = None, topic="", language="Chinese"):
+    def __init__(self, options, name: str = "", context=None, llm: LLM = None, topic="", language="Chinese"):
         super().__init__(options, name, context, llm, topic, language)
 
     async def _aask(self, prompt: str, system_msgs: Optional[list[str]] = None) -> str:
@@ -32,18 +33,8 @@ async def mock_write_teaching_plan_part():
         language: str
 
     inputs = [
-        {
-            "input": "AABBCC",
-            "name": "A",
-            "topic": WriteTeachingPlanPart.COURSE_TITLE,
-            "language": "C"
-        },
-        {
-            "input": "DDEEFFF",
-            "name": "A1",
-            "topic": "B1",
-            "language": "C1"
-        }
+        {"input": "AABBCC", "name": "A", "topic": WriteTeachingPlanPart.COURSE_TITLE, "language": "C"},
+        {"input": "DDEEFFF", "name": "A1", "topic": "B1", "language": "C1"},
     ]
 
     for i in inputs:
@@ -63,5 +54,5 @@ def test_suite():
     loop.run_until_complete(task)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     test_suite()

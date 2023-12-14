@@ -8,26 +8,23 @@
             For more details, checkout: `https://platform.openai.com/docs/api-reference/embeddings/object`
 """
 import asyncio
-import os
-from pathlib import Path
 from typing import List
 
 import aiohttp
 import requests
 from pydantic import BaseModel
-import sys
 
 from metagpt.config import CONFIG, Config
-
-sys.path.append(str(Path(__file__).resolve().parent.parent.parent))  # fix-bug: No module named 'metagpt'
 from metagpt.logs import logger
 
 
 class Embedding(BaseModel):
     """Represents an embedding vector returned by embedding endpoint."""
+
     object: str  # The object type, which is always "embedding".
     embedding: List[
-        float]  # The embedding vector, which is a list of floats. The length of vector depends on the model as listed in the embedding guide.
+        float
+    ]  # The embedding vector, which is a list of floats. The length of vector depends on the model as listed in the embedding guide.
     index: int  # The index of the embedding in the list of embeddings.
 
 
@@ -58,10 +55,7 @@ class OpenAIText2Embedding:
         :return: A json object of :class:`ResultEmbedding` class if successful, otherwise `{}`.
         """
 
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.openai_api_key}"
-        }
+        headers = {"Content-Type": "application/json", "Authorization": f"Bearer {self.openai_api_key}"}
         data = {"input": text, "model": model}
         try:
             async with aiohttp.ClientSession() as session:

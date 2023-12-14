@@ -1,15 +1,9 @@
 #!/usr/bin/env python
 """
-<<<<<<< HEAD
+@Modified By: mashenquan, 2023/8/22. A definition has been provided for the return value of _think: returning false indicates that further reasoning cannot continue.
 @Modified By: mashenquan, 2023-11-1. According to Chapter 2.2.1 and 2.2.2 of RFC 116, change the data type of
         the `cause_by` value in the `Message` to a string to support the new message distribution feature.
 """
-
-=======
-@Modified By: mashenquan, 2023/8/22. A definition has been provided for the return value of _think: returning false indicates that further reasoning cannot continue.
-
-"""
->>>>>>> send18/dev
 
 import asyncio
 
@@ -47,8 +41,6 @@ class Researcher(Role):
         if language not in ("en-us", "zh-cn"):
             logger.warning(f"The language `{language}` has not been tested, it may not work.")
 
-<<<<<<< HEAD
-=======
     async def _think(self) -> bool:
         if self._rc.todo is None:
             self._set_state(0)
@@ -60,7 +52,6 @@ class Researcher(Role):
             self._rc.todo = None
             return False
 
->>>>>>> send18/dev
     async def _act(self) -> Message:
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
         todo = self._rc.todo

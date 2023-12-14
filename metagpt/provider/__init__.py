@@ -4,11 +4,23 @@
 @Time    : 2023/5/5 22:59
 @Author  : alexanderwu
 @File    : __init__.py
-@Modified By: mashenquan, 2023/9/8. Add `MetaGPTLLMAPI`
+@Modified By: mashenquan, 2023-12-15. Add LLMType
 """
-
-from metagpt.provider.openai_api import OpenAIGPTAPI
-from metagpt.provider.metagpt_llm_api import MetaGPTLLMAPI
+from enum import Enum
 
 
-__all__ = ["OpenAIGPTAPI", "MetaGPTLLMAPI"]
+class LLMType(Enum):
+    OPENAI = "OpenAI"
+    METAGPT = "MetaGPT"
+    UNKNOWN = "UNKNOWN"
+
+    @classmethod
+    def get(cls, value):
+        for member in cls:
+            if member.value == value:
+                return member
+        return cls.UNKNOWN
+
+    @classmethod
+    def __missing__(cls, value):
+        return cls.UNKNOWN

@@ -14,27 +14,23 @@
         3. Encapsulate the input of RunCode into RunCodeContext and encapsulate the output of RunCode into
         RunCodeResult to standardize and unify parameter passing between WriteCode, RunCode, and DebugError.
 """
-<<<<<<< HEAD
 import json
 
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.actions.action import Action
 from metagpt.config import CONFIG
-from metagpt.const import CODE_SUMMARIES_FILE_REPO, TEST_OUTPUTS_FILE_REPO, TASK_FILE_REPO, BUGFIX_FILENAME, \
-    DOCS_FILE_REPO
-=======
-from tenacity import retry, stop_after_attempt, wait_fixed
-
-from metagpt.actions.action import Action
->>>>>>> send18/dev
+from metagpt.const import (
+    BUGFIX_FILENAME,
+    CODE_SUMMARIES_FILE_REPO,
+    DOCS_FILE_REPO,
+    TASK_FILE_REPO,
+    TEST_OUTPUTS_FILE_REPO,
+)
 from metagpt.logs import logger
 from metagpt.schema import CodingContext, Document, RunCodeResult
 from metagpt.utils.common import CodeParser
-<<<<<<< HEAD
 from metagpt.utils.file_repository import FileRepository
-=======
->>>>>>> send18/dev
 
 PROMPT_TEMPLATE = """
 NOTICE
@@ -98,21 +94,12 @@ class WriteCode(Action):
     def __init__(self, name="WriteCode", context=None, llm=None):
         super().__init__(name, context, llm)
 
-<<<<<<< HEAD
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     async def write_code(self, prompt) -> str:
-=======
-    def _is_invalid(self, filename):
-        return any(i in filename for i in ["mp3", "wav"])
-
-    @retry(stop=stop_after_attempt(2), wait=wait_fixed(1))
-    async def write_code(self, prompt):
->>>>>>> send18/dev
         code_rsp = await self._aask(prompt)
         code = CodeParser.parse_code(block="", text=code_rsp)
         return code
 
-<<<<<<< HEAD
     async def run(self, *args, **kwargs) -> CodingContext:
         bug_feedback = await FileRepository.get_file(filename=BUGFIX_FILENAME, relative_path=DOCS_FILE_REPO)
         coding_context = CodingContext.loads(self.context.content)
@@ -139,11 +126,6 @@ class WriteCode(Action):
             summary_log=summary_doc.content if summary_doc else "",
         )
         logger.info(f"Writing {coding_context.filename}..")
-=======
-    async def run(self, context, filename):
-        prompt = PROMPT_TEMPLATE.format(context=context, filename=filename)
-        logger.info(f"Writing {filename}..")
->>>>>>> send18/dev
         code = await self.write_code(prompt)
         if not coding_context.code_doc:
             coding_context.code_doc = Document(filename=coding_context.filename, root_path=CONFIG.src_workspace)
@@ -166,4 +148,3 @@ class WriteCode(Action):
                 continue
             codes.append(doc.content)
         return "\n----------\n".join(codes)
-

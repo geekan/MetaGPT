@@ -24,8 +24,9 @@ async def test_scrape_web_page(browser_type, use_proxy, kwagrs, url, urls, proxy
     try:
         if use_proxy:
             conf.global_proxy = proxy
-        browser = web_browser_engine_playwright.PlaywrightWrapper(options=conf.runtime_options,
-                                                                  browser_type=browser_type, **kwagrs)
+        browser = web_browser_engine_playwright.PlaywrightWrapper(
+            options=conf.runtime_options, browser_type=browser_type, **kwagrs
+        )
         result = await browser.run(url)
         result = result.inner_text
         assert isinstance(result, str)

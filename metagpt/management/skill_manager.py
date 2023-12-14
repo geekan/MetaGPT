@@ -18,14 +18,8 @@ class SkillManager:
     """Used to manage all skills"""
 
     def __init__(self):
-<<<<<<< HEAD
-        self._llm = LLM()
         self._store = ChromaStore("skill_manager")
         self._skills: dict[str:Skill] = {}
-=======
-        self._store = ChromaStore('skill_manager')
-        self._skills: dict[str: Skill] = {}
->>>>>>> send18/dev
 
     def add_skill(self, skill: Skill):
         """

@@ -8,19 +8,21 @@
 @Modified By: mashenquan, 2023/9/8. Replace LLM with LLMFactory
 """
 
-import re
 from __future__ import annotations
+
+import re
 from abc import ABC
 from typing import Optional
+
 from tenacity import retry, stop_after_attempt, wait_random_exponential
+
 from metagpt.actions.action_output import ActionOutput
 from metagpt.llm import LLM
 from metagpt.logs import logger
-from metagpt.utils.common import OutputParser
-from metagpt.utils.custom_decoder import CustomDecoder
-from metagpt.logs import logger
 from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.utils.common import OutputParser
+from metagpt.utils.custom_decoder import CustomDecoder
+
 
 class Action(ABC):
     def __init__(self, name: str = "", context=None, llm: BaseGPTAPI = None):

@@ -22,7 +22,9 @@ from asyncio import Queue, QueueEmpty, wait_for
 from json import JSONDecodeError
 from pathlib import Path
 from typing import Dict, List, Optional, Set, TypedDict
+
 from pydantic import BaseModel, Field
+
 from metagpt.config import CONFIG
 from metagpt.const import (
     MESSAGE_ROUTE_CAUSE_BY,
@@ -95,14 +97,14 @@ class Message(BaseModel):
     send_to: Set = Field(default_factory={MESSAGE_ROUTE_TO_ALL})
 
     def __init__(
-            self,
-            content,
-            instruct_content=None,
-            role="user",
-            cause_by="",
-            sent_from="",
-            send_to=MESSAGE_ROUTE_TO_ALL,
-            **kwargs,
+        self,
+        content,
+        instruct_content=None,
+        role="user",
+        cause_by="",
+        sent_from="",
+        send_to=MESSAGE_ROUTE_TO_ALL,
+        **kwargs,
     ):
         """
         Parameters not listed below will be stored as meta info, including custom parameters.
@@ -343,4 +345,3 @@ class CodeSummarizeContext(BaseModel):
 
 class BugFixContext(BaseModel):
     filename: str = ""
-

@@ -16,22 +16,20 @@ import json
 from pathlib import Path
 from typing import List
 
-import aiofiles
-
 from metagpt.actions import Action, ActionOutput
 from metagpt.actions.fix_bug import FixBug
 from metagpt.actions.search_and_summarize import SearchAndSummarize
 from metagpt.config import CONFIG
-<<<<<<< HEAD
 from metagpt.const import (
+    BUGFIX_FILENAME,
     COMPETITIVE_ANALYSIS_FILE_REPO,
     DOCS_FILE_REPO,
     PRD_PDF_FILE_REPO,
     PRDS_FILE_REPO,
-    REQUIREMENT_FILENAME, BUGFIX_FILENAME,
+    REQUIREMENT_FILENAME,
 )
 from metagpt.logs import logger
-from metagpt.schema import Document, Documents, Message, BugFixContext
+from metagpt.schema import BugFixContext, Document, Documents, Message
 from metagpt.utils.common import CodeParser
 from metagpt.utils.file_repository import FileRepository
 from metagpt.utils.get_template import get_template
@@ -55,11 +53,6 @@ Requirements: According to the context, fill in the following missing informatio
 ATTENTION: Output carefully referenced "Format example" in format.
 
 ## YOU NEED TO FULFILL THE BELOW JSON DOC
-=======
-from metagpt.logs import logger
-from metagpt.utils.common import CodeParser
-from metagpt.utils.mermaid import mermaid_to_file
->>>>>>> send18/dev
 
 {{
     "Language": "", # str, use the same language as the user requirement. en_us / zh_cn etc.
@@ -245,11 +238,7 @@ OUTPUT_MAPPING = {
     "Competitive Analysis": (List[str], ...),
     "Competitive Quadrant Chart": (str, ...),
     "Requirement Analysis": (str, ...),
-<<<<<<< HEAD
     "Requirement Pool": (List[List[str]], ...),
-=======
-    "Requirement Pool": (List[Tuple[str, str]], ...),
->>>>>>> send18/dev
     "UI Design draft": (str, ...),
     "Anything UNCLEAR": (str, ...),
 }
@@ -346,12 +335,14 @@ class WritePRD(Action):
             await docs_file_repo.save(filename=BUGFIX_FILENAME, content=requirement_doc.content)
             await docs_file_repo.save(filename=REQUIREMENT_FILENAME, content="")
             bug_fix = BugFixContext(filename=BUGFIX_FILENAME)
-            return Message(content=bug_fix.json(), instruct_content=bug_fix,
-                           role=self.profile,
-                           cause_by=FixBug,
-                           sent_from=self,
-                           send_to="Alex",  # the name of Engineer
-                           )
+            return Message(
+                content=bug_fix.json(),
+                instruct_content=bug_fix,
+                role=self.profile,
+                cause_by=FixBug,
+                sent_from=self,
+                send_to="Alex",  # the name of Engineer
+            )
         else:
             await docs_file_repo.delete(filename=BUGFIX_FILENAME)
 
@@ -388,7 +379,6 @@ class WritePRD(Action):
             logger.info(sas.result)
             logger.info(rsp)
 
-<<<<<<< HEAD
         # logger.info(format)
         prompt_template, format_example = get_template(templates, format)
         project_name = CONFIG.project_name if CONFIG.project_name else ""
@@ -447,7 +437,7 @@ class WritePRD(Action):
         if not quadrant_chart:
             return
         pathname = (
-                CONFIG.git_repo.workdir / Path(COMPETITIVE_ANALYSIS_FILE_REPO) / Path(prd_doc.filename).with_suffix("")
+            CONFIG.git_repo.workdir / Path(COMPETITIVE_ANALYSIS_FILE_REPO) / Path(prd_doc.filename).with_suffix("")
         )
         if not pathname.parent.exists():
             pathname.parent.mkdir(parents=True, exist_ok=True)
@@ -480,33 +470,3 @@ class WritePRD(Action):
         if "YES" in res:
             return True
         return False
-=======
-        prompt = PROMPT_TEMPLATE.format(
-            requirements=requirements, search_information=info, format_example=FORMAT_EXAMPLE
-        )
-        logger.debug(prompt)
-        prd = await self._aask_v1(prompt, "prd", OUTPUT_MAPPING)
-
-        await self._save(prd.content)
-        return prd
-
-    async def _save_prd(self, docs_path, resources_path, prd):
-        prd_file = docs_path / "prd.md"
-        quadrant_chart = CodeParser.parse_code(block="Competitive Quadrant Chart", text=prd)
-        await mermaid_to_file(
-            mermaid_code=quadrant_chart, output_file_without_suffix=resources_path / "competitive_analysis"
-        )
-        async with aiofiles.open(prd_file, "w") as f:
-            await f.write(prd)
-        logger.info(f"Saving PRD to {prd_file}")
-
-    async def _save(self, prd):
-        workspace = CONFIG.workspace
-        workspace.mkdir(parents=True, exist_ok=True)
-
-        docs_path = workspace / "docs"
-        resources_path = workspace / "resources"
-        docs_path.mkdir(parents=True, exist_ok=True)
-        resources_path.mkdir(parents=True, exist_ok=True)
-        await self._save_prd(docs_path, resources_path, prd)
->>>>>>> send18/dev

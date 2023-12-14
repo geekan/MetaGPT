@@ -21,18 +21,13 @@ from metagpt.logs import logger
 
 
 class FaissStore(LocalStore):
-<<<<<<< HEAD
-    def __init__(self, raw_data_path: Path, cache_dir=None, meta_col="source", content_col="output"):
-        self.meta_col = meta_col
-        self.content_col = content_col
-        super().__init__(raw_data_path, cache_dir)
-=======
-    def __init__(self, raw_data: Path, cache_dir=None, meta_col="source", content_col="output", embedding_conf=None):
+    def __init__(
+        self, raw_data_path: Path, cache_dir=None, meta_col="source", content_col="output", embedding_conf=None
+    ):
         self.meta_col = meta_col
         self.content_col = content_col
         self.embedding_conf = embedding_conf or {}
-        super().__init__(raw_data, cache_dir)
->>>>>>> send18/dev
+        super().__init__(raw_data_path, cache_dir)
 
     def _load(self) -> Optional["FaissStore"]:
         index_file, store_file = self._get_index_and_store_fname()
@@ -46,7 +41,9 @@ class FaissStore(LocalStore):
         return store
 
     def _write(self, docs, metadatas):
-        store = FAISS.from_texts(docs, OpenAIEmbeddings(openai_api_version="2020-11-07", **self.embedding_conf), metadatas=metadatas)
+        store = FAISS.from_texts(
+            docs, OpenAIEmbeddings(openai_api_version="2020-11-07", **self.embedding_conf), metadatas=metadatas
+        )
         return store
 
     def persist(self):
@@ -92,12 +89,6 @@ class FaissStore(LocalStore):
 
 if __name__ == "__main__":
     faiss_store = FaissStore(DATA_PATH / "qcs/qcs_4w.json")
-<<<<<<< HEAD
     logger.info(faiss_store.search("Oily Skin Facial Cleanser"))
     faiss_store.add([f"Oily Skin Facial Cleanser-{i}" for i in range(3)])
     logger.info(faiss_store.search("Oily Skin Facial Cleanser"))
-=======
-    logger.info(faiss_store.search("油皮洗面奶"))
-    faiss_store.add([f"油皮洗面奶-{i}" for i in range(3)])
-    logger.info(faiss_store.search("油皮洗面奶"))
->>>>>>> send18/dev

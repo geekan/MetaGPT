@@ -19,9 +19,7 @@ async def mock_text_to_image():
         input: str
         size_type: str
 
-    inputs = [
-        {"input": "Panda emoji", "size_type": "512x512"}
-    ]
+    inputs = [{"input": "Panda emoji", "size_type": "512x512"}]
 
     for i in inputs:
         seed = Input(**i)
@@ -31,7 +29,7 @@ async def mock_text_to_image():
         flags = ";base64,"
         assert flags in base64_data
         ix = base64_data.find(flags) + len(flags)
-        declaration = base64_data[0: ix]
+        declaration = base64_data[0:ix]
         assert declaration
         data = base64_data[ix:]
         assert data
@@ -44,5 +42,5 @@ def test_suite():
     loop.run_until_complete(task)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     test_suite()

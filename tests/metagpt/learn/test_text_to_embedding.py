@@ -19,9 +19,7 @@ async def mock_text_to_embedding():
     class Input(BaseModel):
         input: str
 
-    inputs = [
-        {"input": "Panda emoji"}
-    ]
+    inputs = [{"input": "Panda emoji"}]
 
     for i in inputs:
         seed = Input(**i)
@@ -36,5 +34,5 @@ def test_suite():
     loop.run_until_complete(task)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     test_suite()

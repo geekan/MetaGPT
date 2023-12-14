@@ -8,18 +8,13 @@
 """
 import asyncio
 import base64
-import os
-import sys
-from pathlib import Path
-from typing import List, Dict
+from typing import Dict, List
 
 import aiohttp
 import requests
 from pydantic import BaseModel
 
 from metagpt.config import CONFIG, Config
-
-sys.path.append(str(Path(__file__).resolve().parent.parent.parent))  # fix-bug: No module named 'metagpt'
 from metagpt.logs import logger
 
 
@@ -38,9 +33,7 @@ class MetaGPTText2Image:
         :return: The image data is returned in Base64 encoding.
         """
 
-        headers = {
-            "Content-Type": "application/json"
-        }
+        headers = {"Content-Type": "application/json"}
         dims = size_type.split("x")
         data = {
             "prompt": text,

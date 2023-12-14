@@ -7,22 +7,15 @@
 @Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
 """
 import asyncio
-<<<<<<< HEAD
 import os
 from pathlib import Path
 
-from metagpt.config import CONFIG
-from metagpt.const import METAGPT_ROOT
-=======
-from pathlib import Path
-
-# from metagpt.utils.common import check_cmd_exists
 import aiofiles
 
-from metagpt.config import CONFIG, Config
-from metagpt.const import PROJECT_ROOT
->>>>>>> send18/dev
+from metagpt.config import CONFIG
+from metagpt.const import METAGPT_ROOT
 from metagpt.logs import logger
+from metagpt.utils.common import check_cmd_exists
 
 
 async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, height=2048) -> int:
@@ -43,7 +36,6 @@ async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, 
         await f.write(mermaid_code)
     # tmp.write_text(mermaid_code, encoding="utf-8")
 
-<<<<<<< HEAD
     engine = CONFIG.mermaid_engine.lower()
     if engine == "nodejs":
         if check_cmd_exists(CONFIG.mmdc) != 0:
@@ -100,25 +92,6 @@ async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, 
             logger.warning(f"Unsupported mermaid engine: {engine}")
     return 0
 
-=======
-    # if check_cmd_exists("mmdc") != 0:
-    #     logger.warning("RUN `npm install -g @mermaid-js/mermaid-cli` to install mmdc")
-    #     return -1
-
-    # for suffix in ["pdf", "svg", "png"]:
-    for suffix in ["png"]:
-        output_file = f"{output_file_without_suffix}.{suffix}"
-        # Call the `mmdc` command to convert the Mermaid code to a PNG
-        logger.info(f"Generating {output_file}..")
-        cmds = [CONFIG.mmdc, "-i", str(tmp), "-o", output_file, "-w", str(width), "-H", str(height)]
-
-        if CONFIG.puppeteer_config:
-            cmds.extend(["-p", CONFIG.puppeteer_config])
-        process = await asyncio.create_subprocess_exec(*cmds)
-        await process.wait()
-    return process.returncode
->>>>>>> send18/dev
-
 
 if __name__ == "__main__":
     MMC1 = """classDiagram
@@ -171,22 +144,7 @@ if __name__ == "__main__":
         S-->>SE: return summary
         SE-->>M: return summary"""
 
-<<<<<<< HEAD
-if __name__ == "__main__":
     loop = asyncio.new_event_loop()
     result = loop.run_until_complete(mermaid_to_file(MMC1, METAGPT_ROOT / f"{CONFIG.mermaid_engine}/1"))
-    result = loop.run_until_complete(mermaid_to_file(MMC2, METAGPT_ROOT / f"{CONFIG.mermaid_engine}/1"))
+    result = loop.run_until_complete(mermaid_to_file(MMC2, METAGPT_ROOT / f"{CONFIG.mermaid_engine}/2"))
     loop.close()
-=======
-    conf = Config()
-    asyncio.run(
-        mermaid_to_file(
-            options=conf.runtime_options, mermaid_code=MMC1, output_file_without_suffix=PROJECT_ROOT / "tmp/1.png"
-        )
-    )
-    asyncio.run(
-        mermaid_to_file(
-            options=conf.runtime_options, mermaid_code=MMC2, output_file_without_suffix=PROJECT_ROOT / "tmp/2.png"
-        )
-    )
->>>>>>> send18/dev

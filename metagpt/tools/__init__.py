@@ -24,6 +24,6 @@ class WebBrowserEngineType(Enum):
     CUSTOM = "custom"
 
     @classmethod
-    def _missing_(cls, key):
-        """缺省类型转换"""
+    def __missing__(cls, key):
+        """Default type conversion"""
         return cls.CUSTOM

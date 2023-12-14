@@ -6,21 +6,14 @@ import asyncio
 import base64
 import io
 import json
-import os
 from os.path import join
 from typing import List
 
 from aiohttp import ClientSession
 from PIL import Image, PngImagePlugin
 
-<<<<<<< HEAD
 from metagpt.config import CONFIG
-=======
-from metagpt.config import Config
-from metagpt.logs import logger
->>>>>>> send18/dev
-
-# from metagpt.const import WORKSPACE_ROOT
+from metagpt.const import SD_OUTPUT_FILE_REPO
 from metagpt.logs import logger
 
 payload = {
@@ -84,14 +77,10 @@ class SDEngine:
         return self.payload
 
     def _save(self, imgs, save_name=""):
-<<<<<<< HEAD
-        save_dir = CONFIG.workspace_path / "resources" / "SD_Output"
-=======
-        save_dir = CONFIG.get_workspace() / "resources" / "SD_Output"
->>>>>>> send18/dev
-        if not os.path.exists(save_dir):
-            os.makedirs(save_dir, exist_ok=True)
-        batch_decode_base64_to_image(imgs, save_dir, save_name=save_name)
+        save_dir = CONFIG.workspace_path / SD_OUTPUT_FILE_REPO
+        if not save_dir.exists():
+            save_dir.mkdir(parents=True, exist_ok=True)
+        batch_decode_base64_to_image(imgs, str(save_dir), save_name=save_name)
 
     async def run_t2i(self, prompts: List):
         # Asynchronously run the SD API for multiple prompts

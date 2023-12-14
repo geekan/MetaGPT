@@ -4,7 +4,7 @@
 @Time    : 2023/5/11 14:42
 @Author  : alexanderwu
 @File    : role.py
-<<<<<<< HEAD
+@Modified By: mashenquan, 2023/8/22. A definition has been provided for the return value of _think: returning false indicates that further reasoning cannot continue.
 @Modified By: mashenquan, 2023-11-1. According to Chapter 2.2.1 and 2.2.2 of RFC 116:
     1. Merge the `recv` functionality into the `_observe` function. Future message reading operations will be
     consolidated within the `_observe` function.
@@ -18,10 +18,6 @@
     only. In the normal workflow, you should use `publish_message` or `put_message` to transmit messages.
 @Modified By: mashenquan, 2023-11-4. According to the routing feature plan in Chapter 2.2.3.2 of RFC 113, the routing
     functionality is to be consolidated into the `Environment` class.
-=======
-@Modified By: mashenquan, 2023-8-7, Support template-style variables, such as '{teaching_language} Teacher'.
-@Modified By: mashenquan, 2023/8/22. A definition has been provided for the return value of _think: returning false indicates that further reasoning cannot continue.
->>>>>>> send18/dev
 """
 from __future__ import annotations
 
@@ -31,20 +27,11 @@ from typing import Iterable, Set, Type
 from pydantic import BaseModel, Field
 
 from metagpt.actions import Action, ActionOutput
-from metagpt.config import CONFIG
-<<<<<<< HEAD
 from metagpt.llm import LLM, HumanProvider
 from metagpt.logs import logger
 from metagpt.memory import Memory
 from metagpt.schema import Message, MessageQueue
 from metagpt.utils.common import any_to_name, any_to_str
-=======
-from metagpt.const import OPTIONS
-from metagpt.llm import LLMFactory
-from metagpt.logs import logger
-from metagpt.memory import LongTermMemory, Memory
-from metagpt.schema import Message, MessageTag
->>>>>>> send18/dev
 
 PREFIX_TEMPLATE = """You are a {profile}, named {name}, your goal is {goal}, and the constraint is {constraints}. """
 
@@ -87,11 +74,7 @@ class RoleReactMode(str, Enum):
 
 
 class RoleSetting(BaseModel):
-<<<<<<< HEAD
-    """Role Settings"""
-=======
     """Role properties"""
->>>>>>> send18/dev
 
     name: str
     profile: str
@@ -108,16 +91,10 @@ class RoleSetting(BaseModel):
 
 
 class RoleContext(BaseModel):
-<<<<<<< HEAD
     """Role Runtime Context"""
 
     env: "Environment" = Field(default=None)
     msg_buffer: MessageQueue = Field(default_factory=MessageQueue)  # Message Buffer with Asynchronous Updates
-=======
-    """Runtime role context"""
-
-    env: "Environment" = Field(default=None)
->>>>>>> send18/dev
     memory: Memory = Field(default_factory=Memory)
     # long_term_memory: LongTermMemory = Field(default_factory=LongTermMemory)
     state: int = Field(default=-1)  # -1 indicates initial or termination state where todo is None
@@ -133,34 +110,22 @@ class RoleContext(BaseModel):
         arbitrary_types_allowed = True
 
     def check(self, role_id: str):
-        if CONFIG.long_term_memory:
-            self.long_term_memory.recover_memory(role_id, self)
-            self.memory = self.long_term_memory  # use memory to act as long_term_memory for unify operation
+        # if hasattr(CONFIG, "long_term_memory") and CONFIG.long_term_memory:
+        #     self.long_term_memory.recover_memory(role_id, self)
+        #     self.memory = self.long_term_memory  # use memory to act as long_term_memory for unify operation
+        pass
 
     @property
     def important_memory(self) -> list[Message]:
-<<<<<<< HEAD
-        """Get the information corresponding to the watched actions"""
-=======
         """Retrieve information corresponding to the attention action."""
->>>>>>> send18/dev
         return self.memory.get_by_actions(self.watch)
 
     @property
     def history(self) -> list[Message]:
         return self.memory.get()
 
-    @property
-    def prerequisite(self):
-        """Retrieve information with `prerequisite` tag"""
-        if self.memory and hasattr(self.memory, "get_by_tags"):
-            vv = self.memory.get_by_tags([MessageTag.Prerequisite.value])
-            return vv[-1:] if len(vv) > 1 else vv
-        return []
-
 
 class Role:
-<<<<<<< HEAD
     """Role/Agent"""
 
     def __init__(self, name="", profile="", goal="", constraints="", desc="", is_human=False):
@@ -168,20 +133,6 @@ class Role:
         self._setting = RoleSetting(
             name=name, profile=profile, goal=goal, constraints=constraints, desc=desc, is_human=is_human
         )
-=======
-    """Role/Proxy"""
-
-    def __init__(self, name="", profile="", goal="", constraints="", desc="", *args, **kwargs):
-        # Replace template-style variables, such as '{teaching_language} Teacher'.
-        name = Role.format_value(name)
-        profile = Role.format_value(profile)
-        goal = Role.format_value(goal)
-        constraints = Role.format_value(constraints)
-        desc = Role.format_value(desc)
-
-        self._llm = LLMFactory.new_llm()
-        self._setting = RoleSetting(name=name, profile=profile, goal=goal, constraints=constraints, desc=desc)
->>>>>>> send18/dev
         self._states = []
         self._actions = []
         self._role_id = str(self._setting)
@@ -258,12 +209,8 @@ class Role:
         self._rc.todo = self._actions[self._rc.state] if state >= 0 else None
 
     def set_env(self, env: "Environment"):
-<<<<<<< HEAD
         """Set the environment in which the role works. The role can talk to the environment and can also receive
         messages by observing."""
-=======
-        """设置角色工作所处的环境，角色可以向环境说话，也可以通过观察接受环境消息"""
->>>>>>> send18/dev
         self._rc.env = env
         if env:
             env.set_subscription(self, self._subscription)
@@ -275,7 +222,6 @@ class Role:
 
     @property
     def name(self):
-<<<<<<< HEAD
         """Get virtual user name"""
         return self._setting.name
 
@@ -283,9 +229,6 @@ class Role:
     def subscription(self) -> Set:
         """The labels for messages to be consumed by the Role object."""
         return self._subscription
-=======
-        """Return role `name`, read only"""
-        return self._setting.name
 
     @property
     def desc(self):
@@ -306,7 +249,6 @@ class Role:
     def action_count(self):
         """Return number of action"""
         return len(self._actions)
->>>>>>> send18/dev
 
     def _get_prefix(self):
         """Get the role prefix"""
@@ -314,20 +256,14 @@ class Role:
             return self._setting.desc
         return PREFIX_TEMPLATE.format(**self._setting.dict())
 
-<<<<<<< HEAD
-    async def _think(self) -> None:
-        """Think about what to do and decide on the next action"""
-=======
     async def _think(self) -> bool:
         """Consider what to do and decide on the next course of action. Return false if nothing can be done."""
->>>>>>> send18/dev
         if len(self._actions) == 1:
             # If there is only one action, then only this one can be performed
             self._set_state(0)
             return True
         prompt = self._get_prefix()
         prompt += STATE_TEMPLATE.format(
-<<<<<<< HEAD
             history=self._rc.history,
             states="\n".join(self._states),
             n_states=len(self._states) - 1,
@@ -344,49 +280,27 @@ class Role:
             if next_state == -1:
                 logger.info(f"End actions with {next_state=}")
         self._set_state(next_state)
-=======
-            history=self._rc.history, states="\n".join(self._states), n_states=len(self._states) - 1
-        )
-        next_state = await self._llm.aask(prompt)
-        logger.debug(f"{prompt=}")
-        if not next_state.isdigit() or int(next_state) not in range(len(self._states)):
-            logger.warning(f"Invalid answer of state, {next_state=}")
-            next_state = "0"
-        self._set_state(int(next_state))
         return True
->>>>>>> send18/dev
 
     async def _act(self) -> Message:
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
-<<<<<<< HEAD
         response = await self._rc.todo.run(self._rc.important_memory)
-=======
-        requirement = self._rc.important_memory or self._rc.prerequisite
-        response = await self._rc.todo.run(requirement)
-        # logger.info(response)
->>>>>>> send18/dev
         if isinstance(response, ActionOutput):
             msg = Message(
                 content=response.content,
                 instruct_content=response.instruct_content,
                 role=self.profile,
-<<<<<<< HEAD
                 cause_by=self._rc.todo,
                 sent_from=self,
             )
         elif isinstance(response, Message):
             msg = response
-=======
-                cause_by=type(self._rc.todo),
-            )
->>>>>>> send18/dev
         else:
             msg = Message(content=response, role=self.profile, cause_by=self._rc.todo, sent_from=self)
         self._rc.memory.add(msg)
 
         return msg
 
-<<<<<<< HEAD
     async def _observe(self, ignore_memory=False) -> int:
         """Prepare new messages for processing from the message buffer and other sources."""
         # Read unprocessed messages from the msg buffer.
@@ -400,21 +314,6 @@ class Role:
         # Design Rules:
         # If you need to further categorize Message objects, you can do so using the Message.set_meta function.
         # msg_buffer is a receiving buffer, avoid adding message data and operations to msg_buffer.
-=======
-    async def _observe(self) -> int:
-        """从环境中观察，获得重要信息，并加入记忆"""
-        if not self._rc.env:
-            return 0
-        env_msgs = self._rc.env.memory.get()
-
-        observed = self._rc.env.memory.get_by_actions(self._rc.watch)
-
-        self._rc.news = self._rc.memory.remember(observed)  # remember recent exact or similar memories
-
-        for i in env_msgs:
-            self.recv(i)
-
->>>>>>> send18/dev
         news_text = [f"{i.role}: {i.content[:20]}..." for i in self._rc.news]
         if news_text:
             logger.debug(f"{self._setting} observed: {news_text}")
@@ -505,36 +404,10 @@ class Role:
         self.publish_message(rsp)
         return rsp
 
-<<<<<<< HEAD
     @property
     def is_idle(self) -> bool:
         """If true, all actions have been executed."""
         return not self._rc.news and not self._rc.todo and self._rc.msg_buffer.empty()
-=======
-    @staticmethod
-    def format_value(value):
-        """Fill parameters inside `value` with `options`."""
-        if not isinstance(value, str):
-            return value
-        if "{" not in value:
-            return value
-
-        merged_opts = OPTIONS.get() or {}
-        try:
-            return value.format(**merged_opts)
-        except KeyError as e:
-            logger.warning(f"Parameter is missing:{e}")
-
-        for k, v in merged_opts.items():
-            value = value.replace("{" + f"{k}" + "}", str(v))
-        return value
-
-    def add_action(self, act):
-        self._actions.append(act)
-
-    def add_to_do(self, act):
-        self._rc.todo = act
->>>>>>> send18/dev
 
     async def think(self) -> Action:
         """The exported `think` function"""
@@ -547,16 +420,7 @@ class Role:
         return ActionOutput(content=msg.content, instruct_content=msg.instruct_content)
 
     @property
-<<<<<<< HEAD
     def todo(self) -> str:
         if self._actions:
             return any_to_name(self._actions[0])
         return ""
-=======
-    def todo_description(self):
-        if not self._rc or not self._rc.todo:
-            return ""
-        if self._rc.todo.desc:
-            return self._rc.todo.desc
-        return f"{type(self._rc.todo).__name__}"
->>>>>>> send18/dev

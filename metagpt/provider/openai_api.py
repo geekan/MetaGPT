@@ -9,12 +9,13 @@
 @Modified By: mashenquan, 2023/12/1. Fix bug: Unclosed connection caused by openai 0.x.
 """
 
-from typing import Union
-from openai import APIConnectionError, AsyncAzureOpenAI, AsyncOpenAI, RateLimitError
-from openai.types import CompletionUsage
 import asyncio
 import time
+from typing import Union
+
 import openai
+from openai import APIConnectionError, AsyncAzureOpenAI, AsyncOpenAI, RateLimitError
+from openai.types import CompletionUsage
 from tenacity import (
     after_log,
     retry,
@@ -22,9 +23,10 @@ from tenacity import (
     stop_after_attempt,
     wait_random_exponential,
 )
+
 from metagpt.config import CONFIG
-from metagpt.llm import LLMType
 from metagpt.logs import logger
+from metagpt.provider import LLMType
 from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.provider.constant import GENERAL_FUNCTION_SCHEMA, GENERAL_TOOL_CHOICE
 from metagpt.schema import Message
@@ -348,4 +350,3 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
 
         memory = BrainMemory(llm_type=LLMType.OPENAI.value, historical_summary=text, cacheable=False)
         return await memory.summarize(llm=self, max_words=max_words, keep_language=keep_language)
-

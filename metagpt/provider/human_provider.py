@@ -21,11 +21,14 @@ class HumanProvider(BaseGPTAPI):
             exit()
         return rsp
 
-    async def aask(self, msg: str,
+    async def aask(
+        self,
+        msg: str,
         system_msgs: Optional[list[str]] = None,
         format_msgs: Optional[list[dict[str, str]]] = None,
         generator: bool = False,
-        timeout=3,) -> str:
+        timeout=3,
+    ) -> str:
         return self.ask(msg, timeout=timeout)
 
     def completion(self, messages: list[dict], timeout=3):

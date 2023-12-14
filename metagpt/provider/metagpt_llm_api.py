@@ -7,13 +7,14 @@
 """
 
 from metagpt.provider.openai_api import OpenAIGPTAPI
+
 # from metagpt.provider.base_gpt_api import BaseGPTAPI
 # from metagpt.provider.openai_api import RateLimiter
 
 
 class MetaGPTLLMAPI(OpenAIGPTAPI):
     """MetaGPT LLM api"""
-    
+
     def __init__(self):
         super(MetaGPTLLMAPI, self).__init__()
 
@@ -24,7 +25,7 @@ class MetaGPTLLMAPI(OpenAIGPTAPI):
     #     self.auto_max_tokens = False
     #     self._cost_manager = CostManager()
     #     RateLimiter.__init__(self, rpm=self.rpm)
-    # 
+    #
     # def __init_openai(self, config):
     #     openai.api_key = config.openai_api_key
     #     if config.openai_api_base:
@@ -33,10 +34,10 @@ class MetaGPTLLMAPI(OpenAIGPTAPI):
     #         openai.api_type = config.openai_api_type
     #         openai.api_version = config.openai_api_version
     #     self.rpm = int(config.get("RPM", 10))
-    # 
+    #
     # async def _achat_completion_stream(self, messages: list[dict]) -> str:
     #     response = await openai.ChatCompletion.acreate(**self._cons_kwargs(messages), stream=True)
-    # 
+    #
     #     # create variables to collect the stream of chunks
     #     collected_chunks = []
     #     collected_messages = []
@@ -50,12 +51,12 @@ class MetaGPTLLMAPI(OpenAIGPTAPI):
     #             if "content" in chunk_message:
     #                 print(chunk_message["content"], end="")
     #     print()
-    # 
+    #
     #     full_reply_content = "".join([m.get("content", "") for m in collected_messages])
     #     usage = self._calc_usage(messages, full_reply_content)
     #     self._update_costs(usage)
     #     return full_reply_content
-    # 
+    #
     # def _cons_kwargs(self, messages: list[dict], **configs) -> dict:
     #     kwargs = {
     #         "messages": messages,
@@ -67,7 +68,7 @@ class MetaGPTLLMAPI(OpenAIGPTAPI):
     #     }
     #     if configs:
     #         kwargs.update(configs)
-    # 
+    #
     #     if CONFIG.openai_api_type == "azure":
     #         if CONFIG.deployment_name and CONFIG.deployment_id:
     #             raise ValueError("You can only use one of the `deployment_id` or `deployment_name` model")
@@ -82,27 +83,27 @@ class MetaGPTLLMAPI(OpenAIGPTAPI):
     #         kwargs_mode = {"model": self.model}
     #     kwargs.update(kwargs_mode)
     #     return kwargs
-    # 
+    #
     # async def _achat_completion(self, messages: list[dict]) -> dict:
     #     rsp = await self.llm.ChatCompletion.acreate(**self._cons_kwargs(messages))
     #     self._update_costs(rsp.get("usage"))
     #     return rsp
-    # 
+    #
     # def _chat_completion(self, messages: list[dict]) -> dict:
     #     rsp = self.llm.ChatCompletion.create(**self._cons_kwargs(messages))
     #     self._update_costs(rsp)
     #     return rsp
-    # 
+    #
     # def completion(self, messages: list[dict]) -> dict:
     #     # if isinstance(messages[0], Message):
     #     #     messages = self.messages_to_dict(messages)
     #     return self._chat_completion(messages)
-    # 
+    #
     # async def acompletion(self, messages: list[dict]) -> dict:
     #     # if isinstance(messages[0], Message):
     #     #     messages = self.messages_to_dict(messages)
     #     return await self._achat_completion(messages)
-    # 
+    #
     # @retry(
     #     wait=wait_random_exponential(min=1, max=60),
     #     stop=stop_after_attempt(6),
@@ -116,7 +117,7 @@ class MetaGPTLLMAPI(OpenAIGPTAPI):
     #         return await self._achat_completion_stream(messages)
     #     rsp = await self._achat_completion(messages)
     #     return self.get_choice_text(rsp)
-    # 
+    #
     # def _func_configs(self, messages: list[dict], **kwargs) -> dict:
     #     """
     #     Note: Keep kwargs consistent with the parameters in the https://platform.openai.com/docs/api-reference/chat/create
@@ -127,25 +128,25 @@ class MetaGPTLLMAPI(OpenAIGPTAPI):
     #             "tool_choice": GENERAL_TOOL_CHOICE,
     #         }
     #         kwargs.update(configs)
-    # 
+    #
     #     return self._cons_kwargs(messages, **kwargs)
-    # 
+    #
     # def _chat_completion_function(self, messages: list[dict], **kwargs) -> dict:
     #     rsp = self.llm.ChatCompletion.create(**self._func_configs(messages, **kwargs))
     #     self._update_costs(rsp.get("usage"))
     #     return rsp
-    # 
+    #
     # async def _achat_completion_function(self, messages: list[dict], **chat_configs) -> dict:
     #     rsp = await self.llm.ChatCompletion.acreate(**self._func_configs(messages, **chat_configs))
     #     self._update_costs(rsp.get("usage"))
     #     return rsp
-    # 
+    #
     # def _process_message(self, messages: Union[str, Message, list[dict], list[Message], list[str]]) -> list[dict]:
     #     """convert messages to list[dict]."""
     #     if isinstance(messages, list):
     #         messages = [Message(msg) if isinstance(msg, str) else msg for msg in messages]
     #         return [msg if isinstance(msg, dict) else msg.to_dict() for msg in messages]
-    # 
+    #
     #     if isinstance(messages, Message):
     #         messages = [messages.to_dict()]
     #     elif isinstance(messages, str):
@@ -155,14 +156,14 @@ class MetaGPTLLMAPI(OpenAIGPTAPI):
     #             f"Only support messages type are: str, Message, list[dict], but got {type(messages).__name__}!"
     #         )
     #     return messages
-    # 
+    #
     # def ask_code(self, messages: Union[str, Message, list[dict]], **kwargs) -> dict:
     #     """Use function of tools to ask a code.
-    # 
+    #
     #     Note: Keep kwargs consistent with the parameters in the https://platform.openai.com/docs/api-reference/chat/create
-    # 
+    #
     #     Examples:
-    # 
+    #
     #     >>> llm = OpenAIGPTAPI()
     #     >>> llm.ask_code("Write a python hello world code.")
     #     {'language': 'python', 'code': "print('Hello, World!')"}
@@ -173,14 +174,14 @@ class MetaGPTLLMAPI(OpenAIGPTAPI):
     #     messages = self._process_message(messages)
     #     rsp = self._chat_completion_function(messages, **kwargs)
     #     return self.get_choice_function_arguments(rsp)
-    # 
+    #
     # async def aask_code(self, messages: Union[str, Message, list[dict]], **kwargs) -> dict:
     #     """Use function of tools to ask a code.
-    # 
+    #
     #     Note: Keep kwargs consistent with the parameters in the https://platform.openai.com/docs/api-reference/chat/create
-    # 
+    #
     #     Examples:
-    # 
+    #
     #     >>> llm = OpenAIGPTAPI()
     #     >>> rsp = await llm.ask_code("Write a python hello world code.")
     #     >>> rsp
@@ -191,7 +192,7 @@ class MetaGPTLLMAPI(OpenAIGPTAPI):
     #     messages = self._process_message(messages)
     #     rsp = await self._achat_completion_function(messages, **kwargs)
     #     return self.get_choice_function_arguments(rsp)
-    # 
+    #
     # def _calc_usage(self, messages: list[dict], rsp: str) -> dict:
     #     usage = {}
     #     if CONFIG.calc_usage:
@@ -205,23 +206,23 @@ class MetaGPTLLMAPI(OpenAIGPTAPI):
     #             logger.error("usage calculation failed!", e)
     #     else:
     #         return usage
-    # 
+    #
     # async def acompletion_batch(self, batch: list[list[dict]]) -> list[dict]:
     #     """Return full JSON"""
     #     split_batches = self.split_batches(batch)
     #     all_results = []
-    # 
+    #
     #     for small_batch in split_batches:
     #         logger.info(small_batch)
     #         await self.wait_if_needed(len(small_batch))
-    # 
+    #
     #         future = [self.acompletion(prompt) for prompt in small_batch]
     #         results = await asyncio.gather(*future)
     #         logger.info(results)
     #         all_results.extend(results)
-    # 
+    #
     #     return all_results
-    # 
+    #
     # async def acompletion_batch_text(self, batch: list[list[dict]]) -> list[str]:
     #     """Only return plain text"""
     #     raw_results = await self.acompletion_batch(batch)
@@ -231,7 +232,7 @@ class MetaGPTLLMAPI(OpenAIGPTAPI):
     #         results.append(result)
     #         logger.info(f"Result of task {idx}: {result}")
     #     return results
-    # 
+    #
     # def _update_costs(self, usage: dict):
     #     if CONFIG.calc_usage:
     #         try:
@@ -240,15 +241,15 @@ class MetaGPTLLMAPI(OpenAIGPTAPI):
     #             self._cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
     #         except Exception as e:
     #             logger.error("updating costs failed!", e)
-    # 
+    #
     # def get_costs(self) -> Costs:
     #     return self._cost_manager.get_costs()
-    # 
+    #
     # def get_max_tokens(self, messages: list[dict]):
     #     if not self.auto_max_tokens:
     #         return CONFIG.max_tokens_rsp
     #     return get_max_completion_tokens(messages, self.model, CONFIG.max_tokens_rsp)
-    # 
+    #
     # def moderation(self, content: Union[str, list[str]]):
     #     try:
     #         if not content:
@@ -258,11 +259,11 @@ class MetaGPTLLMAPI(OpenAIGPTAPI):
     #             return rsp
     #     except Exception as e:
     #         logger.error(f"moderating failed:{e}")
-    # 
+    #
     # def _moderation(self, content: Union[str, list[str]]):
     #     rsp = self.llm.Moderation.create(input=content)
     #     return rsp
-    # 
+    #
     # async def amoderation(self, content: Union[str, list[str]]):
     #     try:
     #         if not content:
@@ -272,7 +273,7 @@ class MetaGPTLLMAPI(OpenAIGPTAPI):
     #             return rsp
     #     except Exception as e:
     #         logger.error(f"moderating failed:{e}")
-    # 
+    #
     # async def _amoderation(self, content: Union[str, list[str]]):
     #     rsp = await self.llm.Moderation.acreate(input=content)
     #     return rsp

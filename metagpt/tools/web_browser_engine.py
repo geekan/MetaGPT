@@ -20,16 +20,16 @@ class WebBrowserEngine:
         engine: WebBrowserEngineType | None = None,
         run_func: Callable[..., Coroutine[Any, Any, WebPage | list[WebPage]]] | None = None,
     ):
-        engine = engine or options.get("web_browser_engine")
+        engine = engine or CONFIG.web_browser_engine
         if engine is None:
             raise NotImplementedError
 
         if WebBrowserEngineType(engine) is WebBrowserEngineType.PLAYWRIGHT:
             module = "metagpt.tools.web_browser_engine_playwright"
-            run_func = importlib.import_module(module).PlaywrightWrapper(options=options).run
+            run_func = importlib.import_module(module).PlaywrightWrapper().run
         elif WebBrowserEngineType(engine) is WebBrowserEngineType.SELENIUM:
             module = "metagpt.tools.web_browser_engine_selenium"
-            run_func = importlib.import_module(module).SeleniumWrapper(options=options).run
+            run_func = importlib.import_module(module).SeleniumWrapper().run
         elif WebBrowserEngineType(engine) is WebBrowserEngineType.CUSTOM:
             run_func = run_func
         else:
@@ -53,8 +53,6 @@ if __name__ == "__main__":
     import fire
 
     async def main(url: str, *urls: str, engine_type: Literal["playwright", "selenium"] = "playwright", **kwargs):
-        return await WebBrowserEngine(options=CONFIG.options, engine=WebBrowserEngineType(engine_type), **kwargs).run(
-            url, *urls
-        )
+        return await WebBrowserEngine(engine=WebBrowserEngineType(engine_type), **kwargs).run(url, *urls)
 
     fire.Fire(main)

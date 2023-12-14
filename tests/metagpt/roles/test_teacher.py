@@ -7,10 +7,9 @@
 """
 
 from typing import Dict, Optional
+
 from pydantic import BaseModel
 
-from metagpt.config import Config
-from metagpt.provider.openai_api import CostManager
 from metagpt.roles.teacher import Teacher
 
 
@@ -40,7 +39,7 @@ def test_init():
             "expect_constraints": "Do in HaHa, CN",
             "kwargs": {"language": "CN", "key1": "HaHa", "something_big": "sleep", "teaching_language": "EN"},
             "desc": "aaa{language}",
-            "expect_desc": "aaaCN"
+            "expect_desc": "aaaCN",
         },
         {
             "name": "Lily{language}",
@@ -53,17 +52,20 @@ def test_init():
             "expect_constraints": "Do in {key1}, {language}",
             "kwargs": {},
             "desc": "aaa{language}",
-            "expect_desc": "aaa{language}"
+            "expect_desc": "aaa{language}",
         },
     ]
 
     for i in inputs:
         seed = Inputs(**i)
-        options = Config().runtime_options
-        cost_manager = CostManager(**options)
-        teacher = Teacher(options=options, cost_manager=cost_manager, name=seed.name, profile=seed.profile,
-                          goal=seed.goal, constraints=seed.constraints,
-                          desc=seed.desc, **seed.kwargs)
+        teacher = Teacher(
+            name=seed.name,
+            profile=seed.profile,
+            goal=seed.goal,
+            constraints=seed.constraints,
+            desc=seed.desc,
+            **seed.kwargs
+        )
         assert teacher.name == seed.expect_name
         assert teacher.desc == seed.expect_desc
         assert teacher.profile == seed.expect_profile
@@ -79,16 +81,8 @@ def test_new_file_name():
         expect: str
 
     inputs = [
-        {
-            "lesson_title": "# @344\n12",
-            "ext": ".md",
-            "expect": "_344_12.md"
-        },
-        {
-            "lesson_title": "1#@$%!*&\\/:*?\"<>|\n\t \'1",
-            "ext": ".cc",
-            "expect": "1_1.cc"
-        }
+        {"lesson_title": "# @344\n12", "ext": ".md", "expect": "_344_12.md"},
+        {"lesson_title": "1#@$%!*&\\/:*?\"<>|\n\t '1", "ext": ".cc", "expect": "1_1.cc"},
     ]
     for i in inputs:
         seed = Inputs(**i)
@@ -96,6 +90,6 @@ def test_new_file_name():
         assert result == seed.expect
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     test_init()
     test_new_file_name()

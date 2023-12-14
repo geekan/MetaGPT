@@ -18,10 +18,9 @@ import os
 import platform
 import re
 from typing import List, Tuple, Union
+
+from metagpt.config import CONFIG
 from metagpt.const import MESSAGE_ROUTE_TO_ALL
-from pathlib import Path
-from typing import List, Tuple
-import yaml
 from metagpt.logs import logger
 
 
@@ -186,7 +185,7 @@ class OutputParser:
 
         if start_index != -1 and end_index != -1:
             # Extract the structure part
-            structure_text = text[start_index: end_index + 1]
+            structure_text = text[start_index : end_index + 1]
 
             try:
                 # Attempt to convert the text to a Python data type using ast.literal_eval
@@ -371,3 +370,21 @@ def any_to_name(val):
     :return: The name of the value.
     """
     return any_to_str(val).split(".")[-1]
+
+
+def format_value(value):
+    """Fill parameters inside `value` with `options`."""
+    if not isinstance(value, str):
+        return value
+    if "{" not in value:
+        return value
+
+    merged_opts = CONFIG.options or {}
+    try:
+        return value.format(**merged_opts)
+    except KeyError as e:
+        logger.warning(f"Parameter is missing:{e}")
+
+    for k, v in merged_opts.items():
+        value = value.replace("{" + f"{k}" + "}", str(v))
+    return value

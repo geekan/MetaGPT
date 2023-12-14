@@ -13,7 +13,9 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
+
 import yaml
+
 from metagpt.const import DEFAULT_WORKSPACE_ROOT, METAGPT_ROOT, OPTIONS
 from metagpt.logs import logger
 from metagpt.tools import SearchEngineType, WebBrowserEngineType

@@ -6,10 +6,12 @@
 @Desc    : mashenquan, 2023/8/28. Separate the `CostManager` class to support user-level cost accounting.
 """
 
+from typing import NamedTuple
+
 from pydantic import BaseModel
+
 from metagpt.logs import logger
 from metagpt.utils.token_counter import TOKEN_COSTS
-from typing import NamedTuple
 
 
 class Costs(NamedTuple):
@@ -39,8 +41,9 @@ class CostManager(BaseModel):
         """
         self.total_prompt_tokens += prompt_tokens
         self.total_completion_tokens += completion_tokens
-        cost = (prompt_tokens * TOKEN_COSTS[model]["prompt"] + completion_tokens * TOKEN_COSTS[model][
-            "completion"]) / 1000
+        cost = (
+            prompt_tokens * TOKEN_COSTS[model]["prompt"] + completion_tokens * TOKEN_COSTS[model]["completion"]
+        ) / 1000
         self.total_cost += cost
         logger.info(
             f"Total running cost: ${self.total_cost:.3f} | Max budget: ${self.max_budget:.3f} | "

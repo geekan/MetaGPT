@@ -21,14 +21,7 @@ def test_json():
         knowledge: List[str]
         stack: List[str]
 
-    inputs = [
-        {
-            "history": ["a", "b"],
-            "solution": ["c"],
-            "knowledge": ["d", "e"],
-            "stack": ["f"]
-        }
-    ]
+    inputs = [{"history": ["a", "b"], "solution": ["c"], "knowledge": ["d", "e"], "stack": ["f"]}]
 
     for i in inputs:
         v = Input(**i)
@@ -53,5 +46,6 @@ def test_json():
             msg = Message(**v)
             assert msg
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     test_json()

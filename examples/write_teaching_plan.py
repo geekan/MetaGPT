@@ -15,14 +15,15 @@
 import asyncio
 from pathlib import Path
 
-from metagpt.config import CONFIG
-
 import aiofiles
 import fire
-from metagpt.logs import logger
+
 from metagpt.actions.write_teaching_plan import TeachingPlanRequirement
+from metagpt.config import CONFIG
+from metagpt.logs import logger
 from metagpt.roles.teacher import Teacher
-from metagpt.software_company import SoftwareCompany
+from metagpt.schema import Message
+from metagpt.team import Team
 
 
 async def startup(lesson_file: str, investment: float = 3.0, n_round: int = 1, *args, **kwargs):
@@ -82,10 +83,10 @@ async def startup(lesson_file: str, investment: float = 3.0, n_round: int = 1, *
         logger.info("No course content provided, using the demo course.")
         lesson = demo_lesson
 
-    company = SoftwareCompany()
+    company = Team()
     company.hire([Teacher(*args, **kwargs)])
     company.invest(investment)
-    company.start_project(lesson, cause_by=TeachingPlanRequirement, role="Teacher", **kwargs)
+    company.env.publish_message(Message(content=lesson, cause_by=TeachingPlanRequirement))
     await company.run(n_round=1)
 
 
@@ -102,7 +103,7 @@ def main(idea: str, investment: float = 3.0, n_round: int = 5, *args, **kwargs):
     asyncio.run(startup(idea, investment, n_round, *args, **kwargs))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     """
     Formats:
     ```
