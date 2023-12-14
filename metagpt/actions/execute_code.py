@@ -157,11 +157,6 @@ class ExecutePyCode(ExecuteCode, Action):
 
         return code, language
 
-    def save_notebook(self, path: str):
-        path = Path(path)
-        path.parent.mkdir(parents=True, exist_ok=True)
-        nbformat.write(self.nb, path)
-
     async def run(self, code: Union[str, Dict, Message], language: str = "python") -> Tuple[str, bool]:
         code, language = self._process_code(code, language)
 
