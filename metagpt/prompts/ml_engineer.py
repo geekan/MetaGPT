@@ -208,8 +208,10 @@ Follow steps below when you writing code if it's convenient.
 Each Class tool is described in JSON format. When you call it, import the tool from `{module_name}` first.
 {tool_catalog}
 
-# Output Example:
-For "fill missing value and handle outliers", the output code be like when there are training data and test data:
+# Step Example:
+Here is a coding example for each code step:
+[Step 1]: Handle missing values by imputing or dropping them. For numerical columns, use median or mean imputation
+[Code]
 ```python
 # Tools used: ['FillMissingValue']
 from metagpt.tools.functions.libs.data_preprocess import FillMissingValue
@@ -227,12 +229,26 @@ for col in num_cols:
     train_processed[col] = train_processed[col].clip(low, high)
     test_processed[col] = test_processed[col].clip(low, high)
 ```end
+[Step 2]: xxx
+[Code]:
+```python
+# Tools used: [xxx]
+from metagpt.tools.functions.libs.xxx import
+```end
+[Step 3]: xxx
+[Code]:
+```python
+# Tools used: [xxx]
+from metagpt.tools.functions.libs.xxx import
+```end
 
 # Constraints:
 - Prioritize using pre-defined tools for the same functionality.
 - Copy DataFrame before processing if needed.
+- Strictly follow the code steps to write code
 """
 #- If 'Code Steps' contains step done in 'Done Tasks', such as reading data, don't repeat it.
+#For "fill missing value and handle outliers", the output code be like when there are training data and test data:
 
 DATA_PREPROCESS_PROMPT = """
 The current task is about data preprocessing, please note the following:
