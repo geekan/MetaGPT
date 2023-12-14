@@ -39,6 +39,7 @@ class LLMProviderEnum(Enum):
     ZHIPUAI = "zhipuai"
     FIREWORKS = "fireworks"
     OPEN_LLM = "open_llm"
+    GEMINI = "gemini"
 
 
 class Config(metaclass=Singleton):
@@ -74,7 +75,8 @@ class Config(metaclass=Singleton):
             (self.anthropic_api_key, LLMProviderEnum.ANTHROPIC),
             (self.zhipuai_api_key, LLMProviderEnum.ZHIPUAI),
             (self.fireworks_api_key, LLMProviderEnum.FIREWORKS),
-            (self.open_llm_api_base, LLMProviderEnum.OPEN_LLM),  # reuse logic. but not a key
+            (self.open_llm_api_base, LLMProviderEnum.OPEN_LLM),
+            (self.gemini_api_key, LLMProviderEnum.GEMINI),  # reuse logic. but not a key
         ]:
             if self._is_valid_llm_key(k):
                 if self.openai_api_model:
@@ -96,6 +98,8 @@ class Config(metaclass=Singleton):
         self.open_llm_api_base = self._get("OPEN_LLM_API_BASE")
         self.open_llm_api_model = self._get("OPEN_LLM_API_MODEL")
         self.fireworks_api_key = self._get("FIREWORKS_API_KEY")
+        self.gemini_api_key = self._get("GEMINI_API_KEY")
+
         _ = self.get_default_llm_provider_enum()
 
         self.openai_api_base = self._get("OPENAI_API_BASE")
