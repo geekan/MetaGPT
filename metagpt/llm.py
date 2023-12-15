@@ -44,7 +44,7 @@ class LLMFactory:
         if constructor:
             return constructor()
 
-        raise ValueError(f"Unsupported LLM TYPE: {CONFIG.LLM_TYPE}")
+        raise RuntimeError("You should config a LLM configuration first")
 
 
 # Used in metagpt
