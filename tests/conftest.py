@@ -13,7 +13,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from metagpt.config import CONFIG
+from metagpt.config import CONFIG, Config
 from metagpt.const import DEFAULT_WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.provider.openai_api import OpenAIGPTAPI as GPTAPI

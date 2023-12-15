@@ -6,7 +6,6 @@
 @File    : text_to_image.py
 @Desc    : Text-to-Image skill, which provides text-to-image functionality.
 """
-import openai.error
 
 from metagpt.config import CONFIG
 from metagpt.const import BASE64_FORMAT
@@ -30,10 +29,10 @@ async def text_to_image(text, size_type: str = "512x512", openai_api_key="", mod
     elif CONFIG.OPENAI_API_KEY or openai_api_key:
         base64_data = await oas3_openai_text_to_image(text, size_type, openai_api_key)
     else:
-        raise openai.error.InvalidRequestError("缺少必要的参数")
+        raise ValueError("Missing necessary parameters.")
 
     s3 = S3()
-    url = await s3.cache(data=base64_data, file_ext=".png", format=BASE64_FORMAT)
+    url = await s3.cache(data=base64_data, file_ext=".png", format=BASE64_FORMAT) if s3.is_valid else ""
     if url:
         return f"![{text}]({url})"
     return image_declaration + base64_data if base64_data else ""

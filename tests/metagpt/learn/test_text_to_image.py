@@ -6,15 +6,17 @@
 @File    : test_text_to_image.py
 @Desc    : Unit tests.
 """
-import asyncio
+
 import base64
 
+import pytest
 from pydantic import BaseModel
 
 from metagpt.learn.text_to_image import text_to_image
 
 
-async def mock_text_to_image():
+@pytest.mark.asyncio
+async def test():
     class Input(BaseModel):
         input: str
         size_type: str
@@ -36,11 +38,5 @@ async def mock_text_to_image():
         assert base64.b64decode(data, validate=True)
 
 
-def test_suite():
-    loop = asyncio.get_event_loop()
-    task = loop.create_task(mock_text_to_image())
-    loop.run_until_complete(task)
-
-
 if __name__ == "__main__":
-    test_suite()
+    pytest.main([__file__, "-s"])

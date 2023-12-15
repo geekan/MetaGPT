@@ -11,6 +11,7 @@
 import pytest
 
 from metagpt.actions import UserRequirement
+from metagpt.config import CONFIG
 from metagpt.environment import Environment
 from metagpt.logs import logger
 from metagpt.roles import Architect, ProductManager, Role
@@ -41,6 +42,10 @@ def test_get_roles(env: Environment):
 
 @pytest.mark.asyncio
 async def test_publish_and_process_message(env: Environment):
+    if CONFIG.git_repo:
+        CONFIG.git_repo.delete_repository()
+        CONFIG.git_repo = None
+
     product_manager = ProductManager(name="Alice", profile="Product Manager", goal="做AI Native产品", constraints="资源有限")
     architect = Architect(
         name="Bob", profile="Architect", goal="设计一个可用、高效、较低成本的系统，包括数据结构与接口", constraints="资源有限，需要节省成本"

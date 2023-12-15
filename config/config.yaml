@@ -11,7 +11,7 @@ OPENAI_API_BASE: "https://api.openai.com/v1"
 OPENAI_API_MODEL: "gpt-4-1106-preview"
 MAX_TOKENS: 4096
 RPM: 10
-#LLM_TYPE: OpenAI  # Except for these three major models – OpenAI, MetaGPT LLM, and Azure – other large models can be distinguished based on the validity of the key.
+LLM_TYPE: OpenAI  # Except for these three major models – OpenAI, MetaGPT LLM, and Azure – other large models can be distinguished based on the validity of the key.
 
 #### if Spark
 #SPARK_APPID : "YOUR_APPID"
