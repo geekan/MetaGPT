@@ -43,7 +43,6 @@ class Action(ABC):
         """Set prefix for later usage"""
         self.prefix = prefix
         self.profile = profile
-        self.llm.system_prompt = prefix
         return self
 
     def __str__(self):

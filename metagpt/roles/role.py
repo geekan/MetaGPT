@@ -218,22 +218,6 @@ class Role:
         if env:
             env.set_subscription(self, self._subscription)
 
-    # # Replaced by FileRepository.set_file
-    # def set_doc(self, content: str, filename: str):
-    #     return self._rc.env.set_doc(content, filename)
-    #
-    # # Replaced by FileRepository.get_file
-    # def get_doc(self, filename: str):
-    #     return self._rc.env.get_doc(filename)
-    #
-    # # Replaced by CONFIG.xx
-    # def set(self, k, v):
-    #     return self._rc.env.set(k, v)
-    #
-    # # Replaced by CONFIG.xx
-    # def get(self, k):
-    #     return self._rc.env.get(k)
-
     @property
     def profile(self):
         """Get the role description (position)"""
