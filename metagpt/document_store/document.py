@@ -4,6 +4,7 @@
 @Time    : 2023/6/8 14:03
 @Author  : alexanderwu
 @File    : document.py
+@Desc    : Classes and Operations Related to Vector Files in the Vector Database. Still under design.
 """
 from pathlib import Path
 
