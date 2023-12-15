@@ -10,6 +10,7 @@
 
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
+from metagpt.actions import WriteCode
 from metagpt.actions.action import Action
 from metagpt.config import CONFIG
 from metagpt.logs import logger
@@ -17,8 +18,8 @@ from metagpt.schema import CodingContext
 from metagpt.utils.common import CodeParser
 
 PROMPT_TEMPLATE = """
-NOTICE
-Role: You are a professional software engineer, and your main task is to review the code. You need to ensure that the code conforms to the PEP8 standards, is elegantly designed and modularized, easy to read and maintain, and is written in Python 3.9 (or in another programming language).
+# System
+Role: You are a professional software engineer, and your main task is to review and revise the code. You need to ensure that the code conforms to the google-style standards, is elegantly designed and modularized, easy to read and maintain.
 Language: Please use the same language as the user requirement, but the title and code should be still in English. For example, if the user speaks Chinese, the specific text of your answer should also be in Chinese.
 ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenced "Format example".
 
@@ -26,53 +27,72 @@ ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenc
 {context}
 
 ## Code to be Reviewed: {filename}
-```
+```Code
 {code}
 ```
+"""
 
------
 
-## Code Review: Based on the "Code to be Reviewed", provide key, clear, concise, and specific code modification suggestions, up to 5.
+EXAMPLE_AND_INSTRUCTION = """
+
+{format_example}
+
+
+# Instruction: Based on the actual code situation, follow one of the "Format example".
+
+## Code Review: Ordered List. Based on the "Code to be Reviewed", provide key, clear, concise, and specific answer. If any answer is no, explain how to fix it step by step.
 1. Is the code implemented as per the requirements? If not, how to achieve it? Analyse it step by step.
 2. Is the code logic completely correct? If there are errors, please indicate how to correct them.
 3. Does the existing code follow the "Data structures and interfaces"?
 4. Are all functions implemented? If there is no implementation, please indicate how to achieve it step by step.
 5. Have all necessary pre-dependencies been imported? If not, indicate which ones need to be imported
-6. Is the code implemented concisely enough? Are methods from other files being reused correctly?
+6. Are methods from other files being reused correctly?
 
-## Code Review Result: If the code doesn't have bugs, we don't need to rewrite it, so answer LGTM and stop. ONLY ANSWER LGTM/LBTM.
+## Actions: Ordered List. Things that should be done after CR, such as implementing class A and function B
+
+## Code Review Result: str. If the code doesn't have bugs, we don't need to rewrite it, so answer LGTM and stop. ONLY ANSWER LGTM/LBTM.
 LGTM/LBTM
-
-## Rewrite Code: if it still has some bugs, rewrite {filename} based on "Code Review" with triple quotes, try to get LGTM. Do your utmost to optimize THIS SINGLE FILE. Implement ALL TODO. RETURN ALL CODE, NEVER OMIT ANYTHING. 以任何方式省略代码都是不允许的。
-```
-```
-
-## Format example
-{format_example}
 
 """
 
 FORMAT_EXAMPLE = """
------
-# EXAMPLE 1
+# Format example 1
 ## Code Review: {filename}
-1. No, we should add the logic of ...
+1. No, we should fix the logic of class A due to ...
 2. ...
 3. ...
-4. ...
+4. No, function B is not implemented, ...
 5. ...
 6. ...
 
-## Code Review Result: {filename}
+## Actions
+1. Fix the `handle_events` method to update the game state only if a move is successful.
+   ```python
+   def handle_events(self):
+       for event in pygame.event.get():
+           if event.type == pygame.QUIT:
+               return False
+           if event.type == pygame.KEYDOWN:
+               moved = False
+               if event.key == pygame.K_UP:
+                   moved = self.game.move('UP')
+               elif event.key == pygame.K_DOWN:
+                   moved = self.game.move('DOWN')
+               elif event.key == pygame.K_LEFT:
+                   moved = self.game.move('LEFT')
+               elif event.key == pygame.K_RIGHT:
+                   moved = self.game.move('RIGHT')
+               if moved:
+                   # Update the game state only if a move was successful
+                   self.render()
+       return True
+   ```
+2. Implement function B
+
+## Code Review Result
 LBTM
 
-## Rewrite Code: {filename}
-```python
-## {filename}
-...
-```
------
-# EXAMPLE 2
+# Format example 2
 ## Code Review: {filename}
 1. Yes.
 2. Yes.
@@ -81,12 +101,20 @@ LBTM
 5. Yes.
 6. Yes.
 
-## Code Review Result: {filename}
-LGTM
-
-## Rewrite Code: {filename}
+## Actions
 pass
------
+
+## Code Review Result
+LGTM
+"""
+
+REWRITE_CODE_TEMPLATE = """
+# Instruction: rewrite code based on the Code Review and Actions
+## Rewrite Code: CodeBlock. If it still has some bugs, rewrite {filename} with triple quotes. Do your utmost to optimize THIS SINGLE FILE. Return all completed codes and prohibit the return of unfinished codes.
+```Code
+## {filename}
+...
+```
 """
 
 
@@ -95,11 +123,15 @@ class WriteCodeReview(Action):
         super().__init__(name, context, llm)
 
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
-    async def write_code_review_and_rewrite(self, prompt):
-        code_rsp = await self._aask(prompt)
-        result = CodeParser.parse_block("Code Review Result", code_rsp)
+    async def write_code_review_and_rewrite(self, context_prompt, cr_prompt, filename):
+        cr_rsp = await self._aask(context_prompt + cr_prompt)
+        result = CodeParser.parse_block("Code Review Result", cr_rsp)
         if "LGTM" in result:
             return result, None
+
+        # if LBTM, rewrite code
+        rewrite_prompt = f"{context_prompt}\n{cr_rsp}\n{REWRITE_CODE_TEMPLATE.format(filename=filename)}"
+        code_rsp = await self._aask(rewrite_prompt)
         code = CodeParser.parse_code(block="", text=code_rsp)
         return result, code
 
@@ -109,23 +141,24 @@ class WriteCodeReview(Action):
         for i in range(k):
             format_example = FORMAT_EXAMPLE.format(filename=self.context.code_doc.filename)
             task_content = self.context.task_doc.content if self.context.task_doc else ""
-            context = "\n----------\n".join(
+            code_context = await WriteCode.get_codes(self.context.task_doc, exclude=self.context.filename)
+            context = "\n".join(
                 [
-                    "```text\n" + self.context.design_doc.content + "```\n",
-                    "```text\n" + task_content + "```\n",
-                    "```python\n" + self.context.code_doc.content + "```\n",
+                    "## System Design\n" + str(self.context.design_doc) + "\n",
+                    "## Tasks\n" + task_content + "\n",
+                    "## Code Files\n" + code_context + "\n",
                 ]
             )
-            prompt = PROMPT_TEMPLATE.format(
+            context_prompt = PROMPT_TEMPLATE.format(
                 context=context,
                 code=iterative_code,
                 filename=self.context.code_doc.filename,
-                format_example=format_example,
             )
+            cr_prompt = EXAMPLE_AND_INSTRUCTION.format(format_example=format_example, )
             logger.info(
-                f"Code review and rewrite {self.context.code_doc.filename,}: {i+1}/{k} | {len(iterative_code)=}, {len(self.context.code_doc.content)=}"
+                f"Code review and rewrite {self.context.code_doc.filename}: {i+1}/{k} | {len(iterative_code)=}, {len(self.context.code_doc.content)=}"
             )
-            result, rewrited_code = await self.write_code_review_and_rewrite(prompt)
+            result, rewrited_code = await self.write_code_review_and_rewrite(context_prompt, cr_prompt, self.context.code_doc.filename)
             if "LBTM" in result:
                 iterative_code = rewrited_code
             elif "LGTM" in result:

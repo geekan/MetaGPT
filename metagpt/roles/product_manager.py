@@ -29,8 +29,8 @@ class ProductManager(Role):
         self,
         name: str = "Alice",
         profile: str = "Product Manager",
-        goal: str = "Efficiently create a successful product",
-        constraints: str = "",
+        goal: str = "efficiently create a successful product",
+        constraints: str = "use same language as user requirement",
     ) -> None:
         """
         Initializes the ProductManager role with given attributes.

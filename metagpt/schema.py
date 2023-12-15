@@ -74,6 +74,12 @@ class Document(BaseModel):
             return None
         return str(CONFIG.git_repo.workdir / self.root_path / self.filename)
 
+    def __str__(self):
+        return self.content
+
+    def __repr__(self):
+        return self.content
+
 
 class Documents(BaseModel):
     """A class representing a collection of documents.
@@ -259,7 +265,7 @@ class MessageQueue:
 
 class CodingContext(BaseModel):
     filename: str
-    design_doc: Document
+    design_doc: Optional[Document]
     task_doc: Optional[Document]
     code_doc: Optional[Document]
 

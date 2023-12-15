@@ -114,7 +114,7 @@ class CollectLinks(Action):
             keywords = OutputParser.extract_struct(keywords, list)
             keywords = parse_obj_as(list[str], keywords)
         except Exception as e:
-            logger.exception(f'fail to get keywords related to the research topic "{topic}" for {e}')
+            logger.exception(f"fail to get keywords related to the research topic '{topic}' for {e}")
             keywords = [topic]
         results = await asyncio.gather(*(self.search_engine.run(i, as_string=False) for i in keywords))
 

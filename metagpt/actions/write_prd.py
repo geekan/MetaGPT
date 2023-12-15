@@ -14,11 +14,15 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import List
 
 from metagpt.actions import Action, ActionOutput
+from metagpt.actions.action_node import ActionNode
 from metagpt.actions.fix_bug import FixBug
-from metagpt.actions.search_and_summarize import SearchAndSummarize
+from metagpt.actions.write_prd_an import (
+    WP_IS_RELATIVE_NODE,
+    WP_ISSUE_TYPE_NODE,
+    WRITE_PRD_NODE,
+)
 from metagpt.config import CONFIG
 from metagpt.const import (
     BUGFIX_FILENAME,
@@ -32,293 +36,30 @@ from metagpt.logs import logger
 from metagpt.schema import BugFixContext, Document, Documents, Message
 from metagpt.utils.common import CodeParser
 from metagpt.utils.file_repository import FileRepository
-from metagpt.utils.get_template import get_template
+
+# from metagpt.utils.get_template import get_template
 from metagpt.utils.mermaid import mermaid_to_file
 
-templates = {
-    "json": {
-        "PROMPT_TEMPLATE": """
-# Context
-{{
-    "Original Requirements": "{requirements}",
-    "Search Information": ""
-}} 
+# from typing import List
 
-## Format example
-{format_example}
------
-Role: You are a professional product manager; the goal is to design a concise, usable, efficient product
-Language: Please use the same language as the user requirement, but the title and code should be still in English. For example, if the user speaks Chinese, the specific text of your answer should also be in Chinese.
-Requirements: According to the context, fill in the following missing information, note that each sections are returned in Python code triple quote form seperatedly.
-ATTENTION: Output carefully referenced "Format example" in format.
 
-## YOU NEED TO FULFILL THE BELOW JSON DOC
+CONTEXT_TEMPLATE = """
+### Project Name
+{project_name}
 
-{{
-    "Language": "", # str, use the same language as the user requirement. en_us / zh_cn etc.
-    "Original Requirements": "", # str, place the polished complete original requirements here
-    "Project Name": "{project_name}", # str, if it's empty, name it with snake case style, like game_2048 / web_2048 / simple_crm etc.
-    "Search Information": "",
-    "Requirements": "", 
-    "Product Goals": [], # Provided as Python list[str], up to 3 clear, orthogonal product goals.
-    "User Stories": [], # Provided as Python list[str], up to 5 scenario-based user stories
-    "Competitive Analysis": [], # Provided as Python list[str], up to 8 competitive product analyses
-    # Use mermaid quadrantChart code syntax. up to 14 competitive products. Translation: Distribute these competitor scores evenly between 0 and 1, trying to conform to a normal distribution centered around 0.5 as much as possible.
-    "Competitive Quadrant Chart": "quadrantChart
-                title Reach and engagement of campaigns
-                x-axis Low Reach --> High Reach
-                y-axis Low Engagement --> High Engagement
-                quadrant-1 We should expand
-                quadrant-2 Need to promote
-                quadrant-3 Re-evaluate
-                quadrant-4 May be improved
-                Campaign A: [0.3, 0.6]
-                Campaign B: [0.45, 0.23]
-                Campaign C: [0.57, 0.69]
-                Campaign D: [0.78, 0.34]
-                Campaign E: [0.40, 0.34]
-                Campaign F: [0.35, 0.78]",
-    "Requirement Analysis": "", # Provide as Plain text.
-    "Requirement Pool": [["P0","P0 requirement"],["P1","P1 requirement"]], # Provided as Python list[list[str], the parameters are requirement description, priority(P0/P1/P2), respectively, comply with PEP standards
-    "UI Design draft": "", # Provide as Plain text. Be simple. Describe the elements and functions, also provide a simple style description and layout description.
-    "Anything UNCLEAR": "", # Provide as Plain text. Try to clarify it.
-}}
-
-output a properly formatted JSON, wrapped inside [CONTENT][/CONTENT] like format example,
-and only output the json inside this tag, nothing else
-""",
-        "FORMAT_EXAMPLE": """
-[CONTENT]
-{{
-    "Language": "",
-    "Original Requirements": "",
-    "Project Name": "{project_name}",
-    "Search Information": "",
-    "Requirements": "",
-    "Product Goals": [],
-    "User Stories": [],
-    "Competitive Analysis": [],
-    "Competitive Quadrant Chart": "quadrantChart
-                title Reach and engagement of campaigns
-                x-axis Low Reach --> High Reach
-                y-axis Low Engagement --> High Engagement
-                quadrant-1 We should expand
-                quadrant-2 Need to promote
-                quadrant-3 Re-evaluate
-                quadrant-4 May be improved
-                Campaign A: [0.3, 0.6]
-                Campaign B: [0.45, 0.23]
-                Campaign C: [0.57, 0.69]
-                Campaign D: [0.78, 0.34]
-                Campaign E: [0.40, 0.34]
-                Campaign F: [0.35, 0.78]",
-    "Requirement Analysis": "",
-    "Requirement Pool": [["P0","P0 requirement"],["P1","P1 requirement"]],
-    "UI Design draft": "",
-    "Anything UNCLEAR": "",
-}}
-[/CONTENT]
-""",
-    },
-    "markdown": {
-        "PROMPT_TEMPLATE": """
-# Context
-## Original Requirements
+### Original Requirements
 {requirements}
 
-## Search Information
-{search_information}
-
-## mermaid quadrantChart code syntax example. DONT USE QUOTO IN CODE DUE TO INVALID SYNTAX. Replace the <Campain X> with REAL COMPETITOR NAME
-```mermaid
-quadrantChart
-    title Reach and engagement of campaigns
-    x-axis Low Reach --> High Reach
-    y-axis Low Engagement --> High Engagement
-    quadrant-1 We should expand
-    quadrant-2 Need to promote
-    quadrant-3 Re-evaluate
-    quadrant-4 May be improved
-    "Campaign: A": [0.3, 0.6]
-    "Campaign B": [0.45, 0.23]
-    "Campaign C": [0.57, 0.69]
-    "Campaign D": [0.78, 0.34]
-    "Campaign E": [0.40, 0.34]
-    "Campaign F": [0.35, 0.78]
-    "Our Target Product": [0.5, 0.6]
-```
-
-## Format example
-{format_example}
------
-Role: You are a professional product manager; the goal is to design a concise, usable, efficient product
-Language: Please use the same language as the user requirement to answer, but the title and code should be still in English. For example, if the user speaks Chinese, the specific text of your answer should also be in Chinese.
-Requirements: According to the context, fill in the following missing information, note that each sections are returned in Python code triple quote form seperatedly.
-ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. AND '## <SECTION_NAME>' SHOULD WRITE BEFORE the code and triple quote. Output carefully referenced "Format example" in format.
-
-## Language: Provide as Plain text, use the same language as the user requirement.
-
-## Original Requirements: Provide as Plain text, place the polished complete original requirements here
-
-## Product Goals: Provided as Python list[str], up to 3 clear, orthogonal product goals.
-
-## User Stories: Provided as Python list[str], up to 5 scenario-based user stories
-
-## Competitive Analysis: Provided as Python list[str], up to 7 competitive product analyses, consider as similar competitors as possible
-
-## Competitive Quadrant Chart: Use mermaid quadrantChart code syntax. up to 14 competitive products. Translation: Distribute these competitor scores evenly between 0 and 1, trying to conform to a normal distribution centered around 0.5 as much as possible.
-
-## Requirement Analysis: Provide as Plain text.
-
-## Requirement Pool: Provided as Python list[list[str], the parameters are requirement description, priority(P0/P1/P2), respectively, comply with PEP standards
-
-## UI Design draft: Provide as Plain text. Be simple. Describe the elements and functions, also provide a simple style description and layout description.
-## Anything UNCLEAR: Provide as Plain text. Try to clarify it.
-""",
-        "FORMAT_EXAMPLE": """
----
-## Original Requirements
-The user ... 
-
-## Product Goals
-```python
-[
-    "Create a ...",
-]
-```
-
-## User Stories
-```python
-[
-    "As a user, ...",
-]
-```
-
-## Competitive Analysis
-```python
-[
-    "Python Snake Game: ...",
-]
-```
-
-## Competitive Quadrant Chart
-```mermaid
-quadrantChart
-    title Reach and engagement of campaigns
-    ...
-    "Our Target Product": [0.6, 0.7]
-```
-
-## Requirement Analysis
-The product should be a ...
-
-## Requirement Pool
-```python
-[
-    ["End game ...", "P0"]
-]
-```
-
-## UI Design draft
-Give a basic function description, and a draft
-
-## Anything UNCLEAR
-There are no unclear points.
----
-""",
-    },
-}
-
-OUTPUT_MAPPING = {
-    "Language": (str, ...),
-    "Original Requirements": (str, ...),
-    "Project Name": (str, ...),
-    "Product Goals": (List[str], ...),
-    "User Stories": (List[str], ...),
-    "Competitive Analysis": (List[str], ...),
-    "Competitive Quadrant Chart": (str, ...),
-    "Requirement Analysis": (str, ...),
-    "Requirement Pool": (List[List[str]], ...),
-    "UI Design draft": (str, ...),
-    "Anything UNCLEAR": (str, ...),
-}
-
-IS_RELATIVE_PROMPT = """
-## PRD:
-{old_prd}
-
-## New Requirement:
-{requirements}
-
-___
-You are a professional product manager; You need to assess whether the new requirements are relevant to the existing PRD to determine whether to merge the new requirements into this PRD.
-Is the newly added requirement in "New Requirement" related to the PRD? 
-Respond with `YES` if it is related, `NO` if it is not, and provide the reasons. Return the response in JSON format.
+### Search Information
+-
 """
 
-MERGE_PROMPT = """
-# Context
-## Original Requirements
-{requirements}
-
-
-## Old PRD
+NEW_REQ_TEMPLATE = """
+### Legacy Content
 {old_prd}
------
-Role: You are a professional product manager; The goal is to incorporate the newly added requirements from the "Original Requirements" into the existing Product Requirements Document (PRD) in the "Old PRD" in order to design a concise, usable, and efficient product.
-Language: Please use the same language as the user requirement, but the title and code should be still in English. For example, if the user speaks Chinese, the specific text of your answer should also be in Chinese.
-Requirements: According to the context, fill in the following missing information, each section name is a key in json ,If the requirements are unclear, ensure minimum viability and avoid excessive design
-ATTENTION: Output carefully referenced "Old PRD" in format.
 
-## YOU NEED TO FULFILL THE BELOW JSON DOC
-
-{{
-    "Language": "", # str, use the same language as the user requirement. en_us / zh_cn etc.
-    "Original Requirements": "", # str, place the polished complete original requirements here
-    "Project Name": "{project_name}", # str, if it's empty, name it with snake case style, like game_2048 / web_2048 / simple_crm etc.
-    "Search Information": "",
-    "Requirements": "", 
-    "Product Goals": [], # Provided as Python list[str], up to 3 clear, orthogonal product goals.
-    "User Stories": [], # Provided as Python list[str], up to 5 scenario-based user stories
-    "Competitive Analysis": [], # Provided as Python list[str], up to 8 competitive product analyses
-    # Use mermaid quadrantChart code syntax. up to 14 competitive products. Translation: Distribute these competitor scores evenly between 0 and 1, trying to conform to a normal distribution centered around 0.5 as much as possible.
-    "Competitive Quadrant Chart": "quadrantChart
-                title Reach and engagement of campaigns
-                x-axis Low Reach --> High Reach
-                y-axis Low Engagement --> High Engagement
-                quadrant-1 We should expand
-                quadrant-2 Need to promote
-                quadrant-3 Re-evaluate
-                quadrant-4 May be improved
-                Campaign A: [0.3, 0.6]
-                Campaign B: [0.45, 0.23]
-                Campaign C: [0.57, 0.69]
-                Campaign D: [0.78, 0.34]
-                Campaign E: [0.40, 0.34]
-                Campaign F: [0.35, 0.78]",
-    "Requirement Analysis": "", # Provide as Plain text.
-    "Requirement Pool": [["P0","P0 requirement"],["P1","P1 requirement"]], # Provided as Python list[list[str], the parameters are requirement description, priority(P0/P1/P2), respectively, comply with PEP standards
-    "UI Design draft": "", # Provide as Plain text. Be simple. Describe the elements and functions, also provide a simple style description and layout description.
-    "Anything UNCLEAR": "", # Provide as Plain text. Try to clarify it.
-}}
-
-output a properly formatted JSON, wrapped inside [CONTENT][/CONTENT] like "Old PRD" format,
-and only output the json inside this tag, nothing else
-"""
-
-IS_BUGFIX_PROMPT = """
-{content}
-
-___
-You are a professional product manager; You need to determine whether the above content describes a requirement or provides feedback about a bug.
-Respond with `YES` if it is a feedback about a bug, `NO` if it is not, and provide the reasons. Return the response in JSON format like below:
-
-```json
-{{
-    "is_bugfix": ..., # `YES` or `NO`
-    "reason": ..., # reason string
-}}
-```
+### New Requirements
+{requirements}
 """
 
 
@@ -338,7 +79,7 @@ class WritePRD(Action):
             return Message(
                 content=bug_fix.json(),
                 instruct_content=bug_fix,
-                role=self.profile,
+                role="",
                 cause_by=FixBug,
                 sent_from=self,
                 send_to="Alex",  # the name of Engineer
@@ -356,7 +97,7 @@ class WritePRD(Action):
             if not prd_doc:
                 continue
             change_files.docs[prd_doc.filename] = prd_doc
-            logger.info(f"REWRITE PRD:{prd_doc.filename}")
+            logger.info(f"rewrite prd: {prd_doc.filename}")
         # If there is no existing PRD, generate one using 'docs/requirement.txt'.
         if not change_files.docs:
             prd_doc = await self._update_prd(
@@ -364,53 +105,38 @@ class WritePRD(Action):
             )
             if prd_doc:
                 change_files.docs[prd_doc.filename] = prd_doc
-                logger.info(f"NEW PRD:{prd_doc.filename}")
+                logger.debug(f"new prd: {prd_doc.filename}")
         # Once all files under 'docs/prds/' have been compared with the newly added requirements, trigger the
         # 'publish' message to transition the workflow to the next stage. This design allows room for global
         # optimization in subsequent steps.
         return ActionOutput(content=change_files.json(), instruct_content=change_files)
 
-    async def _run_new_requirement(self, requirements, format=CONFIG.prompt_format, *args, **kwargs) -> ActionOutput:
-        sas = SearchAndSummarize()
-        # rsp = await sas.run(context=requirements, system_text=SEARCH_AND_SUMMARIZE_SYSTEM_EN_US)
-        rsp = ""
-        info = f"### Search Results\n{sas.result}\n\n### Search Summary\n{rsp}"
-        if sas.result:
-            logger.info(sas.result)
-            logger.info(rsp)
-
-        # logger.info(format)
-        prompt_template, format_example = get_template(templates, format)
+    async def _run_new_requirement(self, requirements, format=CONFIG.prompt_format) -> ActionOutput:
+        # sas = SearchAndSummarize()
+        # # rsp = await sas.run(context=requirements, system_text=SEARCH_AND_SUMMARIZE_SYSTEM_EN_US)
+        # rsp = ""
+        # info = f"### Search Results\n{sas.result}\n\n### Search Summary\n{rsp}"
+        # if sas.result:
+        #     logger.info(sas.result)
+        #     logger.info(rsp)
         project_name = CONFIG.project_name if CONFIG.project_name else ""
-        format_example = format_example.format(project_name=project_name)
-        # logger.info(prompt_template)
-        # logger.info(format_example)
-        prompt = prompt_template.format(
-            requirements=requirements, search_information=info, format_example=format_example, project_name=project_name
-        )
-        # logger.info(prompt)
-        # prd = await self._aask_v1(prompt, "prd", OUTPUT_MAPPING)
-        prd = await self._aask_v1(prompt, "prd", OUTPUT_MAPPING, format=format)
-        await self._rename_workspace(prd)
-        return prd
+        context = CONTEXT_TEMPLATE.format(requirements=requirements, project_name=project_name)
+        node = await WRITE_PRD_NODE.fill(context=context, llm=self.llm, to=format)
+        await self._rename_workspace(node)
+        return node
 
-    async def _is_relative_to(self, new_requirement_doc, old_prd_doc) -> bool:
-        prompt = IS_RELATIVE_PROMPT.format(old_prd=old_prd_doc.content, requirements=new_requirement_doc.content)
-        res = await self._aask(prompt=prompt)
-        logger.info(f"REQ-RELATIVE:[{new_requirement_doc.root_relative_path}, {old_prd_doc.root_relative_path}]: {res}")
-        if "YES" in res:
-            return True
-        return False
+    async def _is_relative(self, new_requirement_doc, old_prd_doc) -> bool:
+        context = NEW_REQ_TEMPLATE.format(old_prd=old_prd_doc.content, requirements=new_requirement_doc.content)
+        node = await WP_IS_RELATIVE_NODE.fill(context, self.llm)
+        return node.get("is_relative") == "YES"
 
     async def _merge(self, new_requirement_doc, prd_doc, format=CONFIG.prompt_format) -> Document:
         if not CONFIG.project_name:
             CONFIG.project_name = Path(CONFIG.project_path).name
-        prompt = MERGE_PROMPT.format(
-            requirements=new_requirement_doc.content, old_prd=prd_doc.content, project_name=CONFIG.project_name
-        )
-        prd = await self._aask_v1(prompt, "prd", OUTPUT_MAPPING, format=format)
-        prd_doc.content = prd.instruct_content.json(ensure_ascii=False)
-        await self._rename_workspace(prd)
+        prompt = NEW_REQ_TEMPLATE.format(requirements=new_requirement_doc.content, old_prd=prd_doc.content)
+        node = await WRITE_PRD_NODE.fill(context=prompt, llm=self.llm, to=format)
+        prd_doc.content = node.instruct_content.json(ensure_ascii=False)
+        await self._rename_workspace(node)
         return prd_doc
 
     async def _update_prd(self, requirement_doc, prd_doc, prds_file_repo, *args, **kwargs) -> Document | None:
@@ -421,7 +147,7 @@ class WritePRD(Action):
                 filename=FileRepository.new_filename() + ".json",
                 content=prd.instruct_content.json(ensure_ascii=False),
             )
-        elif await self._is_relative_to(requirement_doc, prd_doc):
+        elif await self._is_relative(requirement_doc, prd_doc):
             new_prd_doc = await self._merge(requirement_doc, prd_doc)
         else:
             return None
@@ -456,17 +182,17 @@ class WritePRD(Action):
                 return
 
         if not CONFIG.project_name:
-            if isinstance(prd, ActionOutput):
+            if isinstance(prd, ActionOutput) or isinstance(prd, ActionNode):
                 ws_name = prd.instruct_content.dict()["Project Name"]
             else:
                 ws_name = CodeParser.parse_str(block="Project Name", text=prd)
             CONFIG.project_name = ws_name
         CONFIG.git_repo.rename_root(CONFIG.project_name)
 
-    async def _is_bugfix(self, content):
-        prompt = IS_BUGFIX_PROMPT.format(content=content)
-        res = await self._aask(prompt=prompt)
-        logger.info(f"IS_BUGFIX:{res}")
-        if "YES" in res:
-            return True
-        return False
+    async def _is_bugfix(self, context) -> bool:
+        src_workspace_path = CONFIG.git_repo.workdir / CONFIG.git_repo.workdir.name
+        code_files = CONFIG.git_repo.get_files(relative_path=src_workspace_path)
+        if not code_files:
+            return False
+        node = await WP_ISSUE_TYPE_NODE.fill(context, self.llm)
+        return node.get("issue_type") == "BUG"

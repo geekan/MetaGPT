@@ -224,10 +224,15 @@ class CodeParser:
         # 遍历所有的block
         for block in blocks:
             # 如果block不为空，则继续处理
-            if block.strip() != "":
+            if block.strip() == "":
+                continue
+            if "\n" not in block:
+                block_title = block
+                block_content = ""
+            else:
                 # 将block的标题和内容分开，并分别去掉前后的空白字符
                 block_title, block_content = block.split("\n", 1)
-                block_dict[block_title.strip()] = block_content.strip()
+            block_dict[block_title.strip()] = block_content.strip()
 
         return block_dict
 

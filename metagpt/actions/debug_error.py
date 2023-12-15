@@ -42,7 +42,7 @@ The message is as follows:
 ```
 ---
 Now you should start rewriting the code:
-## file name of the code to rewrite: Write code with triple quoto. Do your best to implement THIS IN ONLY ONE FILE.
+## file name of the code to rewrite: Write code with triple quote. Do your best to implement THIS IN ONLY ONE FILE.
 """
 
 
@@ -62,7 +62,7 @@ class DebugError(Action):
         if matches:
             return ""
 
-        logger.info(f"Debug and rewrite {self.context.code_filename}")
+        logger.info(f"Debug and rewrite {self.context.test_filename}")
         code_doc = await FileRepository.get_file(
             filename=self.context.code_filename, relative_path=CONFIG.src_workspace
         )
