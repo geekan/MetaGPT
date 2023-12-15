@@ -17,7 +17,7 @@ from loguru import logger
 
 import metagpt
 
-OPTIONS = contextvars.ContextVar("OPTIONS")
+OPTIONS = contextvars.ContextVar("OPTIONS", default={})
 
 
 def get_metagpt_package_root():
