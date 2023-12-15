@@ -99,7 +99,7 @@ class WriteTasks(Action):
     async def _merge(self, system_design_doc, task_doc, format=CONFIG.prompt_format) -> Document:
         context = NEW_REQ_TEMPLATE.format(context=system_design_doc.content, old_tasks=task_doc.content)
         node = await PM_NODE.fill(context, self.llm, format)
-        task_doc.content = node.content
+        task_doc.content = node.instruct_content.json(ensure_ascii=False)
         return task_doc
 
     @staticmethod
