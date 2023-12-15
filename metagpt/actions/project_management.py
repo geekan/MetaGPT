@@ -10,10 +10,10 @@
         3. According to the design in Section 2.2.3.5.4 of RFC 135, add incremental iteration functionality.
 """
 import json
-from typing import List
 
 from metagpt.actions import ActionOutput
 from metagpt.actions.action import Action
+from metagpt.actions.project_management_an import PM_NODE
 from metagpt.config import CONFIG
 from metagpt.const import (
     PACKAGE_REQUIREMENTS_FILENAME,
@@ -24,189 +24,17 @@ from metagpt.const import (
 from metagpt.logs import logger
 from metagpt.schema import Document, Documents
 from metagpt.utils.file_repository import FileRepository
-from metagpt.utils.get_template import get_template
 
-templates = {
-    "json": {
-        "PROMPT_TEMPLATE": """
-# Context
-{context}
+# from typing import List
 
-## Format example
-{format_example}
------
-Role: You are a project manager; the goal is to break down tasks according to PRD/technical design, give a task list, and analyze task dependencies to start with the prerequisite modules
-Language: Please use the same language as the user requirement, but the title and code should be still in English. For example, if the user speaks Chinese, the specific text of your answer should also be in Chinese.
-Requirements: Based on the context, fill in the following missing information, each section name is a key in json. Here the granularity of the task is a file, if there are any missing files, you can supplement them
-ATTENTION: Output carefully referenced "Format example" in format.
+# from metagpt.utils.get_template import get_template
 
-## Required Python third-party packages: Provide Python list[str] in requirements.txt format
-
-## Required Other language third-party packages: Provide Python list[str] in requirements.txt format
-
-## Logic Analysis: Provided as a Python list[list[str]. the first is filename, the second is class/method/function should be implemented in this file. Analyze the dependencies between the files, which work should be done first
-
-## Task list: Provided as Python list[str]. Each str is a filename, the more at the beginning, the more it is a prerequisite dependency, should be done first
-
-## Full API spec: Use OpenAPI 3.0. Describe all APIs that may be used by both frontend and backend.
-
-## Shared Knowledge: Anything that should be public like utils' functions, config's variables details that should make clear first. 
-
-## Anything UNCLEAR: Provide as Plain text. Try to clarify it. For example, don't forget a main entry. don't forget to init 3rd party libs.
-
-output a properly formatted JSON, wrapped inside [CONTENT][/CONTENT] like format example,
-and only output the json inside this tag, nothing else
-""",
-        "FORMAT_EXAMPLE": '''
-{
-    "Required Python third-party packages": [
-        "flask==1.1.2",
-        "bcrypt==3.2.0"
-    ],
-    "Required Other language third-party packages": [
-        "No third-party ..."
-    ],
-    "Logic Analysis": [
-        ["game.py", "Contains..."]
-    ],
-    "Task list": [
-        "game.py"
-    ],
-    "Full API spec": """
-        openapi: 3.0.0
-        ...
-        description: A JSON object ...
-     """,
-    "Shared Knowledge": """
-        'game.py' contains ...
-    """,
-    "Anything UNCLEAR": "We need ... how to start."
-}
-''',
-    },
-    "markdown": {
-        "PROMPT_TEMPLATE": """
-# Context
-{context}
-
-## Format example
-{format_example}
------
-Role: You are a project manager; the goal is to break down tasks according to PRD/technical design, give a task list, and analyze task dependencies to start with the prerequisite modules
-Requirements: Based on the context, fill in the following missing information, note that all sections are returned in Python code triple quote form seperatedly. Here the granularity of the task is a file, if there are any missing files, you can supplement them
-Attention: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD WRITE BEFORE the code and triple quote.
-
-## Required Python third-party packages: Provided in requirements.txt format
-
-## Required Other language third-party packages: Provided in requirements.txt format
-
-## Logic Analysis: Provided as a Python list[list[str]. the first is filename, the second is class/method/function should be implemented in this file. Analyze the dependencies between the files, which work should be done first
-
-## Task list: Provided as Python list[str]. Each str is a filename, the more at the beginning, the more it is a prerequisite dependency, should be done first
-
-## Full API spec: Use OpenAPI 3.0. Describe all APIs that may be used by both frontend and backend.
-
-## Shared Knowledge: Anything that should be public like utils' functions, config's variables details that should make clear first. 
-
-## Anything UNCLEAR: Provide as Plain text. Try to clarify it. For example, don't forget a main entry. don't forget to init 3rd party libs.
-
-""",
-        "FORMAT_EXAMPLE": '''
----
-## Required Python third-party packages
-```python
-"""
-flask==1.1.2
-bcrypt==3.2.0
-"""
-```
-
-## Required Other language third-party packages
-```python
-"""
-No third-party ...
-"""
-```
-
-## Full API spec
-```python
-"""
-openapi: 3.0.0
-...
-description: A JSON object ...
-"""
-```
-
-## Logic Analysis
-```python
-[
-    ["index.js", "Contains ..."],
-    ["main.py", "Contains ..."],
-]
-```
-
-## Task list
-```python
-[
-    "index.js",
-    "main.py",
-]
-```
-
-## Shared Knowledge
-```python
-"""
-'game.py' contains ...
-"""
-```
-
-## Anything UNCLEAR
-We need ... how to start.
----
-''',
-    },
-}
-OUTPUT_MAPPING = {
-    "Required Python third-party packages": (List[str], ...),
-    "Required Other language third-party packages": (List[str], ...),
-    "Full API spec": (str, ...),
-    "Logic Analysis": (List[List[str]], ...),
-    "Task list": (List[str], ...),
-    "Shared Knowledge": (str, ...),
-    "Anything UNCLEAR": (str, ...),
-}
-
-MERGE_PROMPT = """
-# Context
-{context}
-
-## Old Tasks
+NEW_REQ_TEMPLATE = """
+### Legacy Content
 {old_tasks}
------
 
-## Format example
-{format_example}
------
-Role: You are a project manager; The goal is to merge the new PRD/technical design content from 'Context' into 'Old Tasks.' Based on this merged result, break down tasks, give a task list, and analyze task dependencies to start with the prerequisite modules.
-Requirements: Based on the context, fill in the following missing information, each section name is a key in json. Here the granularity of the task is a file, if there are any missing files, you can supplement them
-Attention: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD WRITE BEFORE the code and triple quote.
-
-## Required Python third-party packages: Provided in requirements.txt format
-
-## Required Other language third-party packages: Provided in requirements.txt format
-
-## Full API spec: Use OpenAPI 3.0. Describe all APIs that may be used by both frontend and backend.
-
-## Logic Analysis: Provided as a Python list[list[str]. the first is filename, the second is class/method/function should be implemented in this file. Analyze the dependencies between the files, which work should be done first
-
-## Task list: Provided as Python list[str]. Each str is a filename, the more at the beginning, the more it is a prerequisite dependency, should be done first
-
-## Shared Knowledge: Anything that should be public like utils' functions, config's variables details that should make clear first. 
-
-## Anything UNCLEAR: Provide as Plain text. Make clear here. For example, don't forget a main entry. don't forget to init 3rd party libs.
-
-output a properly formatted JSON, wrapped inside [CONTENT][/CONTENT] like "Format example" format,
-and only output the json inside this tag, nothing else
+### New Requirements
+{context}
 """
 
 
@@ -262,17 +90,16 @@ class WriteTasks(Action):
         return task_doc
 
     async def _run_new_tasks(self, context, format=CONFIG.prompt_format):
-        prompt_template, format_example = get_template(templates, format)
-        prompt = prompt_template.format(context=context, format_example=format_example)
-        rsp = await self._aask_v1(prompt, "task", OUTPUT_MAPPING, format=format)
-        return rsp
+        node = await PM_NODE.fill(context, self.llm, format)
+        # prompt_template, format_example = get_template(templates, format)
+        # prompt = prompt_template.format(context=context, format_example=format_example)
+        # rsp = await self._aask_v1(prompt, "task", OUTPUT_MAPPING, format=format)
+        return node
 
     async def _merge(self, system_design_doc, task_doc, format=CONFIG.prompt_format) -> Document:
-        _, format_example = get_template(templates, format)
-        prompt = MERGE_PROMPT.format(context=system_design_doc.content, old_tasks=task_doc.content,
-                                     format_example=format_example)
-        rsp = await self._aask_v1(prompt, "task", OUTPUT_MAPPING, format=format)
-        task_doc.content = rsp.instruct_content.json(ensure_ascii=False)
+        context = NEW_REQ_TEMPLATE.format(context=system_design_doc.content, old_tasks=task_doc.content)
+        node = await PM_NODE.fill(context, self.llm, format)
+        task_doc.content = node.instruct_content.json(ensure_ascii=False)
         return task_doc
 
     @staticmethod

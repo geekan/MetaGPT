@@ -9,7 +9,6 @@ import json
 from abc import abstractmethod
 from typing import Optional
 
-from metagpt.logs import logger
 from metagpt.provider.base_chatbot import BaseChatbot
 
 
@@ -55,7 +54,6 @@ class BaseGPTAPI(BaseChatbot):
             message.extend(format_msgs)
         message.append(self._user_msg(msg))
         rsp = await self.acompletion_text(message, stream=stream, generator=generator, timeout=timeout)
-        logger.debug(message)
         # logger.debug(rsp)
         return rsp
 

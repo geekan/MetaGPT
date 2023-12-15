@@ -14,9 +14,7 @@
 @Modified By: mashenquan, 2023-12-5. Enhance the workflow to navigate to WriteCode or QaEngineer based on the results
     of SummarizeCode.
 """
-from metagpt.actions import DebugError, RunCode, WriteCode, WriteCodeReview, WriteTest
-
-# from metagpt.const import WORKSPACE_ROOT
+from metagpt.actions import DebugError, RunCode, WriteTest
 from metagpt.actions.summarize_code import SummarizeCode
 from metagpt.config import CONFIG
 from metagpt.const import (
@@ -28,6 +26,7 @@ from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Document, Message, RunCodeContext, TestingContext
 from metagpt.utils.common import any_to_str_set, parse_recipient
+from metagpt.utils.file_repository import FileRepository
 
 
 class QaEngineer(Role):
@@ -127,8 +126,8 @@ class QaEngineer(Role):
     async def _debug_error(self, msg):
         run_code_context = RunCodeContext.loads(msg.content)
         code = await DebugError(context=run_code_context, llm=self._llm).run()
-        await CONFIG.git_repo.new_file_repository(CONFIG.src_workspace).save(
-            filename=run_code_context.code_filename, content=code
+        await FileRepository.save_file(
+            filename=run_code_context.test_filename, content=code, relative_path=TEST_CODES_FILE_REPO
         )
         run_code_context.output = None
         self.publish_message(

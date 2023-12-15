@@ -74,6 +74,12 @@ class Document(BaseModel):
             return None
         return str(CONFIG.git_repo.workdir / self.root_path / self.filename)
 
+    def __str__(self):
+        return self.content
+
+    def __repr__(self):
+        return self.content
+
 
 class Documents(BaseModel):
     """A class representing a collection of documents.
@@ -97,14 +103,14 @@ class Message(BaseModel):
     send_to: Set = Field(default_factory={MESSAGE_ROUTE_TO_ALL})
 
     def __init__(
-            self,
-            content,
-            instruct_content=None,
-            role="user",
-            cause_by="",
-            sent_from="",
-            send_to=MESSAGE_ROUTE_TO_ALL,
-            **kwargs,
+        self,
+        content,
+        instruct_content=None,
+        role="user",
+        cause_by="",
+        sent_from="",
+        send_to=MESSAGE_ROUTE_TO_ALL,
+        **kwargs,
     ):
         """
         Parameters not listed below will be stored as meta info, including custom parameters.
@@ -259,7 +265,7 @@ class MessageQueue:
 
 class CodingContext(BaseModel):
     filename: str
-    design_doc: Document
+    design_doc: Optional[Document]
     task_doc: Optional[Document]
     code_doc: Optional[Document]
 

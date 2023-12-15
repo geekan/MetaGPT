@@ -11,9 +11,9 @@
 """
 import json
 from pathlib import Path
-from typing import List
 
 from metagpt.actions import Action, ActionOutput
+from metagpt.actions.design_api_an import DESIGN_API_NODE
 from metagpt.config import CONFIG
 from metagpt.const import (
     DATA_API_DESIGN_FILE_REPO,
@@ -25,166 +25,19 @@ from metagpt.const import (
 from metagpt.logs import logger
 from metagpt.schema import Document, Documents
 from metagpt.utils.file_repository import FileRepository
-from metagpt.utils.get_template import get_template
+
+# from metagpt.utils.get_template import get_template
 from metagpt.utils.mermaid import mermaid_to_file
 
-templates = {
-    "json": {
-        "PROMPT_TEMPLATE": """
-# Context
-{context}
+# from typing import List
 
-## Format example
-{format_example}
------
-Role: You are an architect; the goal is to design a SOTA PEP8-compliant python system
-Language: Please use the same language as the user requirement, but the title and code should be still in English. For example, if the user speaks Chinese, the specific text of your answer should also be in Chinese.
-Requirement: Fill in the following missing information based on the context, each section name is a key in json
 
-## Implementation approach: Provide as Plain text. Analyze the difficult points of the requirements, select appropriate open-source frameworks.
-
-## Project name: Constant text.
-
-## File list: Provided as Python list[str], the list of files needed (including HTML & CSS IF NEEDED) to write the program. Only need relative paths. ALWAYS write a main.py or app.py here
-
-## Data structures and interfaces: Use mermaid classDiagram code syntax, including classes (INCLUDING __init__ method) and functions (with type annotations), CLEARLY MARK the RELATIONSHIPS between classes, and comply with PEP8 standards. The data structures SHOULD BE VERY DETAILED and the API should be comprehensive with a complete design. 
-
-## Program call flow: Use sequenceDiagram code syntax, COMPLETE and VERY DETAILED, using CLASSES AND API DEFINED ABOVE accurately, covering the CRUD AND INIT of each object, SYNTAX MUST BE CORRECT.
-
-## Anything UNCLEAR: Provide as Plain text. Try to clarify it.
-
-output a properly formatted JSON, wrapped inside [CONTENT][/CONTENT] like format example,
-and only output the json inside this tag, nothing else
-""",
-        "FORMAT_EXAMPLE": """
-[CONTENT]
-{{
-    "Implementation approach": "We will ...",
-    "Project name": "{project_name}",
-    "File list": ["main.py"],
-    "Data structures and interfaces": '
-    classDiagram
-        class Game{{
-            +int score
-        }}
-        ...
-        Game "1" -- "1" Food: has
-    ',
-    "Program call flow": '
-    sequenceDiagram
-        participant M as Main
-        ...
-        G->>M: end game
-    ',
-    "Anything UNCLEAR": "The requirement is clear to me."
-}}
-[/CONTENT]
-""",
-    },
-    "markdown": {
-        "PROMPT_TEMPLATE": """
-# Context
-{context}
-
-## Format example
-{format_example}
------
-Role: You are an architect; the goal is to design a SOTA PEP8-compliant python system; make the best use of good open source tools
-Language: Please use the same language as the user requirement, but the title and code should be still in English. For example, if the user speaks Chinese, the specific text of your answer should also be in Chinese.
-Requirement: Fill in the following missing information based on the context, note that all sections are response with code form separately
-ATTENTION: Output carefully referenced "Format example" in format.
-
-## Implementation approach: Provide as Plain text. Analyze the difficult points of the requirements, select the appropriate open-source framework.
-
-## Project name: Constant text.
-
-## File list: Provided as Python list[str], the list of code files (including HTML & CSS IF NEEDED) to write the program. Only need relative paths. ALWAYS write a main.py or app.py here
-
-## Data structures and interfaces: Use mermaid classDiagram code syntax, including classes (INCLUDING __init__ method) and functions (with type annotations), CLEARLY MARK the RELATIONSHIPS between classes, and comply with PEP8 standards. The data structures SHOULD BE VERY DETAILED and the API should be comprehensive with a complete design. 
-
-## Program call flow: Use sequenceDiagram code syntax, COMPLETE and VERY DETAILED, using CLASSES AND API DEFINED ABOVE accurately, covering the CRUD AND INIT of each object, SYNTAX MUST BE CORRECT.
-
-## Anything UNCLEAR: Provide as Plain text. Try to clarify it.
-
-""",
-        "FORMAT_EXAMPLE": """
----
-## Implementation approach
-We will ...
-
-## Project name
-```python
-"{project_name}"
-```
-
-## File list
-```python
-[
-    "main.py",
-]
-```
-
-## Data structures and interfaces
-```mermaid
-classDiagram
-    class Game{
-        +int score
-    }
-    ...
-    Game "1" -- "1" Food: has
-```
-
-## Program call flow
-```mermaid
-sequenceDiagram
-    participant M as Main
-    ...
-    G->>M: end game
-```
-
-## Anything UNCLEAR
-The requirement is clear to me.
----
-""",
-    },
-}
-
-OUTPUT_MAPPING = {
-    "Implementation approach": (str, ...),
-    "Project name": (str, ...),
-    "File list": (List[str], ...),
-    "Data structures and interfaces": (str, ...),
-    "Program call flow": (str, ...),
-    "Anything UNCLEAR": (str, ...),
-}
-
-MERGE_PROMPT = """
-## Old Design
+NEW_REQ_TEMPLATE = """
+### Legacy Content
 {old_design}
 
-## Context
+### New Requirements
 {context}
-
------
-Role: You are an architect; The goal is to incrementally update the "Old Design" based on the information provided by the "Context," aiming to design a SOTA PEP8-compliant python system; make the best use of good open source tools
-Language: Please use the same language as the user requirement, but the title and code should be still in English. For example, if the user speaks Chinese, the specific text of your answer should also be in Chinese.
-Requirement: Fill in the following missing information based on the context, note that all sections are response with code form separately
-ATTENTION: Output carefully referenced "Old Design" in format.
-
-## Implementation approach: Provide as Plain text. Analyze the difficult points of the requirements, select the appropriate open-source framework.
-
-## Project name: Constant text "{project_name}".
-
-## File list: Provided as Python list[str], the list of code files (including HTML & CSS IF NEEDED) to write the program. Only need relative paths. ALWAYS write a main.py or app.py here
-
-## Data structures and interfaces: Use mermaid classDiagram code syntax, including classes (INCLUDING __init__ method) and functions (with type annotations), CLEARLY MARK the RELATIONSHIPS between classes, and comply with PEP8 standards. The data structures SHOULD BE VERY DETAILED and the API should be comprehensive with a complete design. 
-
-## Program call flow: Use sequenceDiagram code syntax, COMPLETE and VERY DETAILED, using CLASSES AND API DEFINED ABOVE accurately, covering the CRUD AND INIT of each object, SYNTAX MUST BE CORRECT.
-
-## Anything UNCLEAR: Provide as Plain text. Try to clarify it.
-
-output a properly formatted JSON, wrapped inside [CONTENT][/CONTENT] like "Old Design" format,
-and only output the json inside this tag, nothing else
 """
 
 
@@ -228,20 +81,13 @@ class WriteDesign(Action):
         return ActionOutput(content=changed_files.json(), instruct_content=changed_files)
 
     async def _new_system_design(self, context, format=CONFIG.prompt_format):
-        prompt_template, format_example = get_template(templates, format)
-        format_example = format_example.format(project_name=CONFIG.project_name)
-        prompt = prompt_template.format(context=context, format_example=format_example)
-        system_design = await self._aask_v1(prompt, "system_design", OUTPUT_MAPPING, format=format)
-        return system_design
+        node = await DESIGN_API_NODE.fill(context=context, llm=self.llm, to=format)
+        return node
 
     async def _merge(self, prd_doc, system_design_doc, format=CONFIG.prompt_format):
-        prompt = MERGE_PROMPT.format(
-            old_design=system_design_doc.content, context=prd_doc.content, project_name=CONFIG.project_name
-        )
-        system_design = await self._aask_v1(prompt, "system_design", OUTPUT_MAPPING, format=format)
-        # fix Python package name, we can't system_design.instruct_content.python_package_name = "xxx" since "Python
-        # package name" contain space, have to use setattr
-        system_design_doc.content = system_design.instruct_content.json(ensure_ascii=False)
+        context = NEW_REQ_TEMPLATE.format(old_design=system_design_doc.content, context=prd_doc.content)
+        node = await DESIGN_API_NODE.fill(context=context, llm=self.llm, to=format)
+        system_design_doc.content = node.instruct_content.json(ensure_ascii=False)
         return system_design_doc
 
     async def _update_system_design(self, filename, prds_file_repo, system_design_file_repo) -> Document:

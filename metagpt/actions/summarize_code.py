@@ -34,13 +34,13 @@ ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenc
 -----
 {code_blocks}
 
-## Code Review All: 请你对历史所有文件进行阅读，在文件中找到可能的bug，如函数未实现、调用错误、未引用等
+## Code Review All: Please read all historical files and find possible bugs in the files, such as unimplemented functions, calling errors, unreferences, etc.
 
-## Call flow: mermaid代码，根据实现的函数，使用mermaid绘制完整的调用链
+## Call flow: mermaid code, based on the implemented function, use mermaid to draw a complete call chain
 
-## Summary: 根据历史文件的实现情况进行总结
+## Summary: Summary based on the implementation of historical files
 
-## TODOs: Python dict[str, str]，这里写出需要修改的文件列表与理由，我们会在之后进行修改
+## TODOs: Python dict[str, str], write down the list of files that need to be modified and the reasons. We will modify them later.
 
 """
 
@@ -49,9 +49,9 @@ FORMAT_EXAMPLE = """
 ## Code Review All
 
 ### a.py
-- 它少实现了xxx需求...
-- 字段yyy没有给出...
-- ...
+- It fulfills less of xxx requirements...
+- Field yyy is not given...
+-...
 
 ### b.py
 ...

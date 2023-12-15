@@ -8,13 +8,15 @@
 """
 from __future__ import annotations
 
-from gitignore_parser import parse_gitignore, rule_from_pattern, handle_negation
 import shutil
 from enum import Enum
 from pathlib import Path
 from typing import Dict, List
+
 from git.repo import Repo
 from git.repo.fun import is_git_dir
+from gitignore_parser import parse_gitignore
+
 from metagpt.const import DEFAULT_WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.utils.dependency_file import DependencyFile
@@ -204,6 +206,7 @@ class GitRepository:
             logger.warning(f"Move {str(self.workdir)} to {str(new_path)} error: {e}")
         logger.info(f"Rename directory {str(self.workdir)} to {str(new_path)}")
         self._repository = Repo(new_path)
+        self._gitignore_rules = parse_gitignore(full_path=str(new_path / ".gitignore"))
 
     def get_files(self, relative_path: Path | str, root_relative_path: Path | str = None, filter_ignored=True) -> List:
         """
@@ -230,13 +233,16 @@ class GitRepository:
         files = []
         try:
             directory_path = Path(self.workdir) / relative_path
+            if not directory_path.exists():
+                return []
             for file_path in directory_path.iterdir():
                 if file_path.is_file():
                     rpath = file_path.relative_to(root_relative_path)
                     files.append(str(rpath))
                 else:
-                    subfolder_files = self.get_files(relative_path=file_path, root_relative_path=root_relative_path,
-                                                     filter_ignored=False)
+                    subfolder_files = self.get_files(
+                        relative_path=file_path, root_relative_path=root_relative_path, filter_ignored=False
+                    )
                     files.extend(subfolder_files)
         except Exception as e:
             logger.error(f"Error: {e}")

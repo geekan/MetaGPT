@@ -63,7 +63,7 @@ class Team(BaseModel):
         while n_round > 0:
             # self._save()
             n_round -= 1
-            logger.debug(f"{n_round=}")
+            logger.debug(f"max {n_round=} left.")
             self._check_balance()
             await self.env.run()
         if CONFIG.git_repo:

@@ -205,7 +205,7 @@ class FileRepository:
         m = json.loads(doc.content)
         filename = Path(doc.filename).with_suffix(with_suffix) if with_suffix is not None else Path(doc.filename)
         await self.save(filename=str(filename), content=json_to_markdown(m), dependencies=dependencies)
-        logger.info(f"File Saved: {str(filename)}")
+        logger.debug(f"File Saved: {str(filename)}")
 
     @staticmethod
     async def get_file(filename: Path | str, relative_path: Path | str = ".") -> Document | None:

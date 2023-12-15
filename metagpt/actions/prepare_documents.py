@@ -27,8 +27,8 @@ class PrepareDocuments(Action):
             # Create and initialize the workspace folder, initialize the Git environment.
             project_name = CONFIG.project_name or FileRepository.new_filename()
             workdir = CONFIG.project_path
-            if not workdir and CONFIG.workspace:
-                workdir = Path(CONFIG.workspace) / project_name
+            if not workdir and CONFIG.workspace_path:
+                workdir = Path(CONFIG.workspace_path) / project_name
             workdir = Path(workdir or DEFAULT_WORKSPACE_ROOT / project_name)
             if not CONFIG.inc and workdir.exists():
                 shutil.rmtree(workdir)

@@ -58,7 +58,7 @@ class Environment(BaseModel):
         route the message to the message recipient is a problem addressed by the transport framework designed
         in RFC 113.
         """
-        logger.info(f"publish_message: {message.dump()}")
+        logger.debug(f"publish_message: {message.dump()}")
         found = False
         # According to the routing feature plan in Chapter 2.2.3.2 of RFC 113
         for role, subscription in self.members.items():
@@ -82,7 +82,7 @@ class Environment(BaseModel):
                 futures.append(future)
 
             await asyncio.gather(*futures)
-            logger.info(f"is idle: {self.is_idle}")
+            logger.debug(f"is idle: {self.is_idle}")
 
     def get_roles(self) -> dict[str, Role]:
         """获得环境内的所有角色

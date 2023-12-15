@@ -26,8 +26,9 @@ class Architect(Role):
         self,
         name: str = "Bob",
         profile: str = "Architect",
-        goal: str = "Design a concise, usable, complete python system",
-        constraints: str = "Try to specify good open source tools as much as possible",
+        goal: str = "design a concise, usable, complete software system",
+        constraints: str = "make sure the architecture is simple enough and use appropriate open source libraries."
+                           "Use same language as user requirement"
     ) -> None:
         """Initializes the Architect with given attributes."""
         super().__init__(name, profile, goal, constraints)

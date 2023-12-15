@@ -26,14 +26,13 @@ from typing import Iterable, Set, Type
 from pydantic import BaseModel, Field
 
 from metagpt.actions import Action, ActionOutput
-from metagpt.config import CONFIG
+from metagpt.actions.action_node import ActionNode
 from metagpt.llm import LLM, HumanProvider
 from metagpt.logs import logger
 from metagpt.memory import Memory
-
-# from metagpt.memory import LongTermMemory
 from metagpt.schema import Message, MessageQueue
 from metagpt.utils.common import any_to_str
+from metagpt.utils.repair_llm_raw_output import extract_state_value_from_output
 
 PREFIX_TEMPLATE = """You are a {profile}, named {name}, your goal is {goal}, and the constraint is {constraints}. """
 
@@ -112,9 +111,10 @@ class RoleContext(BaseModel):
         arbitrary_types_allowed = True
 
     def check(self, role_id: str):
-        if hasattr(CONFIG, "long_term_memory") and CONFIG.long_term_memory:
-            self.long_term_memory.recover_memory(role_id, self)
-            self.memory = self.long_term_memory  # use memory to act as long_term_memory for unify operation
+        # if hasattr(CONFIG, "long_term_memory") and CONFIG.long_term_memory:
+        #     self.long_term_memory.recover_memory(role_id, self)
+        #     self.memory = self.long_term_memory  # use memory to act as long_term_memory for unify operation
+        pass
 
     @property
     def important_memory(self) -> list[Message]:
@@ -134,6 +134,7 @@ class Role:
         self._setting = RoleSetting(
             name=name, profile=profile, goal=goal, constraints=constraints, desc=desc, is_human=is_human
         )
+        self._llm.system_prompt = self._get_prefix()
         self._states = []
         self._actions = []
         self._role_id = str(self._setting)
@@ -144,6 +145,9 @@ class Role:
         self._states = []
         self._actions = []
 
+    def _init_action_system_message(self, action: Action):
+        action.set_prefix(self._get_prefix(), self.profile)
+
     def _init_actions(self, actions):
         self._reset()
         for idx, action in enumerate(actions):
@@ -152,12 +156,13 @@ class Role:
             else:
                 if self._setting.is_human and not isinstance(action.llm, HumanProvider):
                     logger.warning(
-                        f"is_human attribute does not take effect,"
-                        f"as Role's {str(action)} was initialized using LLM, try passing in Action classes instead of initialized instances"
+                        f"is_human attribute does not take effect, "
+                        f"as Role's {str(action)} was initialized using LLM, "
+                        f"try passing in Action classes instead of initialized instances"
                     )
                 i = action
-            i.set_env(self._rc.env)
-            i.set_prefix(self._get_prefix(), self.profile)
+            # i.set_env(self._rc.env)
+            self._init_action_system_message(i)
             self._actions.append(i)
             self._states.append(f"{idx}. {action}")
 
@@ -213,22 +218,6 @@ class Role:
         if env:
             env.set_subscription(self, self._subscription)
 
-    # # Replaced by FileRepository.set_file
-    # def set_doc(self, content: str, filename: str):
-    #     return self._rc.env.set_doc(content, filename)
-    #
-    # # Replaced by FileRepository.get_file
-    # def get_doc(self, filename: str):
-    #     return self._rc.env.get_doc(filename)
-    #
-    # # Replaced by CONFIG.xx
-    # def set(self, k, v):
-    #     return self._rc.env.set(k, v)
-    #
-    # # Replaced by CONFIG.xx
-    # def get(self, k):
-    #     return self._rc.env.get(k)
-
     @property
     def profile(self):
         """Get the role description (position)"""
@@ -265,6 +254,7 @@ class Role:
         )
         # print(prompt)
         next_state = await self._llm.aask(prompt)
+        next_state = extract_state_value_from_output(next_state)
         logger.debug(f"{prompt=}")
         if (not next_state.isdigit() and next_state != "-1") or int(next_state) not in range(-1, len(self._states)):
             logger.warning(f"Invalid answer of state, {next_state=}, will be set to -1")
@@ -278,7 +268,7 @@ class Role:
     async def _act(self) -> Message:
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
         response = await self._rc.todo.run(self._rc.important_memory)
-        if isinstance(response, ActionOutput):
+        if isinstance(response, ActionOutput) or isinstance(response, ActionNode):
             msg = Message(
                 content=response.content,
                 instruct_content=response.instruct_content,
@@ -406,7 +396,7 @@ class Role:
             logger.debug(f"{self._setting}: no news. waiting.")
             return
 
-        rsp = await self._react()
+        rsp = await self.react()
 
         # Reset the next action to be taken.
         self._rc.todo = None

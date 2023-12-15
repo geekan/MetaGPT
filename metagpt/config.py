@@ -46,7 +46,7 @@ class Config(metaclass=Singleton):
 
     def __init__(self, yaml_file=default_yaml_file):
         self._init_with_config_files_and_env(yaml_file)
-        logger.info("Config loading done.")
+        logger.debug("Config loading done.")
         self._update()
 
     def _update(self):
@@ -55,12 +55,20 @@ class Config(metaclass=Singleton):
         self.openai_api_key = self._get("OPENAI_API_KEY")
         self.anthropic_api_key = self._get("Anthropic_API_KEY")
         self.zhipuai_api_key = self._get("ZHIPUAI_API_KEY")
+        self.open_llm_api_base = self._get("OPEN_LLM_API_BASE")
+        self.open_llm_api_model = self._get("OPEN_LLM_API_MODEL")
+        self.fireworks_api_key = self._get("FIREWORKS_API_KEY")
         if (
             (not self.openai_api_key or "YOUR_API_KEY" == self.openai_api_key)
             and (not self.anthropic_api_key or "YOUR_API_KEY" == self.anthropic_api_key)
             and (not self.zhipuai_api_key or "YOUR_API_KEY" == self.zhipuai_api_key)
+            and (not self.open_llm_api_base)
+            and (not self.fireworks_api_key or "YOUR_API_KEY" == self.fireworks_api_key)
         ):
-            raise NotConfiguredException("Set OPENAI_API_KEY or Anthropic_API_KEY or ZHIPUAI_API_KEY first")
+            raise NotConfiguredException(
+                "Set OPENAI_API_KEY or Anthropic_API_KEY or ZHIPUAI_API_KEY first "
+                "or FIREWORKS_API_KEY or OPEN_LLM_API_BASE"
+            )
         self.openai_api_base = self._get("OPENAI_API_BASE")
         self.openai_proxy = self._get("OPENAI_PROXY") or self.global_proxy
         self.openai_api_type = self._get("OPENAI_API_TYPE")
@@ -76,6 +84,9 @@ class Config(metaclass=Singleton):
         self.spark_api_key = self._get("SPARK_API_KEY")
         self.domain = self._get("DOMAIN")
         self.spark_url = self._get("SPARK_URL")
+
+        self.fireworks_api_base = self._get("FIREWORKS_API_BASE")
+        self.fireworks_api_model = self._get("FIREWORKS_API_MODEL")
 
         self.claude_api_key = self._get("Anthropic_API_KEY")
         self.serpapi_api_key = self._get("SERPAPI_API_KEY")
@@ -102,13 +113,14 @@ class Config(metaclass=Singleton):
         self.mermaid_engine = self._get("MERMAID_ENGINE", "nodejs")
         self.pyppeteer_executable_path = self._get("PYPPETEER_EXECUTABLE_PATH", "")
 
-        self.prompt_format = self._get("PROMPT_FORMAT", "markdown")
+        self.repair_llm_output = self._get("REPAIR_LLM_OUTPUT", False)
+        self.prompt_format = self._get("PROMPT_FORMAT", "json")
         self.workspace_path = Path(self._get("WORKSPACE_PATH", DEFAULT_WORKSPACE_ROOT))
         self._ensure_workspace_exists()
 
     def _ensure_workspace_exists(self):
         self.workspace_path.mkdir(parents=True, exist_ok=True)
-        logger.info(f"WORKSPACE_PATH set to {self.workspace_path}")
+        logger.debug(f"WORKSPACE_PATH set to {self.workspace_path}")
 
     def _init_with_config_files_and_env(self, yaml_file):
         """Load from config/key.yaml, config/config.yaml, and env in decreasing order of priority"""
