@@ -412,7 +412,7 @@ class Role:
             logger.debug(f"{self._setting}: no news. waiting.")
             return
 
-        rsp = await self._react()
+        rsp = await self.react()
 
         # Reset the next action to be taken.
         self._rc.todo = None
