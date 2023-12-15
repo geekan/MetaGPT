@@ -93,57 +93,57 @@ async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, 
     return 0
 
 
+MMC1 = """classDiagram
+class Main {
+    -SearchEngine search_engine
+    +main() str
+}
+class SearchEngine {
+    -Index index
+    -Ranking ranking
+    -Summary summary
+    +search(query: str) str
+}
+class Index {
+    -KnowledgeBase knowledge_base
+    +create_index(data: dict)
+    +query_index(query: str) list
+}
+class Ranking {
+    +rank_results(results: list) list
+}
+class Summary {
+    +summarize_results(results: list) str
+}
+class KnowledgeBase {
+    +update(data: dict)
+    +fetch_data(query: str) dict
+}
+Main --> SearchEngine
+SearchEngine --> Index
+SearchEngine --> Ranking
+SearchEngine --> Summary
+Index --> KnowledgeBase"""
+
+MMC2 = """sequenceDiagram
+participant M as Main
+participant SE as SearchEngine
+participant I as Index
+participant R as Ranking
+participant S as Summary
+participant KB as KnowledgeBase
+M->>SE: search(query)
+SE->>I: query_index(query)
+I->>KB: fetch_data(query)
+KB-->>I: return data
+I-->>SE: return results
+SE->>R: rank_results(results)
+R-->>SE: return ranked_results
+SE->>S: summarize_results(ranked_results)
+S-->>SE: return summary
+SE-->>M: return summary"""
+
 if __name__ == "__main__":
-    MMC1 = """classDiagram
-        class Main {
-            -SearchEngine search_engine
-            +main() str
-        }
-        class SearchEngine {
-            -Index index
-            -Ranking ranking
-            -Summary summary
-            +search(query: str) str
-        }
-        class Index {
-            -KnowledgeBase knowledge_base
-            +create_index(data: dict)
-            +query_index(query: str) list
-        }
-        class Ranking {
-            +rank_results(results: list) list
-        }
-        class Summary {
-            +summarize_results(results: list) str
-        }
-        class KnowledgeBase {
-            +update(data: dict)
-            +fetch_data(query: str) dict
-        }
-        Main --> SearchEngine
-        SearchEngine --> Index
-        SearchEngine --> Ranking
-        SearchEngine --> Summary
-        Index --> KnowledgeBase"""
-
-    MMC2 = """sequenceDiagram
-        participant M as Main
-        participant SE as SearchEngine
-        participant I as Index
-        participant R as Ranking
-        participant S as Summary
-        participant KB as KnowledgeBase
-        M->>SE: search(query)
-        SE->>I: query_index(query)
-        I->>KB: fetch_data(query)
-        KB-->>I: return data
-        I-->>SE: return results
-        SE->>R: rank_results(results)
-        R-->>SE: return ranked_results
-        SE->>S: summarize_results(ranked_results)
-        S-->>SE: return summary
-        SE-->>M: return summary"""
-
     loop = asyncio.new_event_loop()
     result = loop.run_until_complete(mermaid_to_file(MMC1, METAGPT_ROOT / f"{CONFIG.mermaid_engine}/1"))
     result = loop.run_until_complete(mermaid_to_file(MMC2, METAGPT_ROOT / f"{CONFIG.mermaid_engine}/2"))

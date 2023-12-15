@@ -6,7 +6,8 @@ import openai
 
 from metagpt.config import CONFIG
 from metagpt.logs import logger
-from metagpt.provider.openai_api import CostManager, OpenAIGPTAPI, RateLimiter
+from metagpt.provider.openai_api import OpenAIGPTAPI, RateLimiter
+from metagpt.utils.cost_manager import CostManager
 
 
 class OpenLLMCostManager(CostManager):

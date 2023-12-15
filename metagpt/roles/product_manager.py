@@ -45,6 +45,7 @@ class ProductManager(Role):
 
         self._init_actions([PrepareDocuments, WritePRD])
         self._watch([UserRequirement, PrepareDocuments])
+        self._todo = any_to_name(PrepareDocuments)
 
     async def _think(self) -> None:
         """Decide what to do"""
@@ -52,6 +53,7 @@ class ProductManager(Role):
             self._set_state(1)
         else:
             self._set_state(0)
+            self._todo = any_to_name(WritePRD)
         return self._rc.todo
 
     async def _observe(self, ignore_memory=False) -> int:
@@ -59,7 +61,4 @@ class ProductManager(Role):
 
     @property
     def todo(self) -> str:
-        if self._rc.state == 0:
-            return any_to_name(WritePRD)
-        else:
-            return any_to_name(PrepareDocuments)
+        return self._todo

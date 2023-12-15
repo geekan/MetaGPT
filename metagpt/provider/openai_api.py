@@ -118,7 +118,11 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             kwargs["model"] = CONFIG.deployment_id
         else:
             kwargs["model"] = self.model
-        kwargs["timeout"] = max(CONFIG.TIMEOUT, timeout) if CONFIG.TIMEOUT is not None else timeout
+        try:
+            default_timeout = int(CONFIG.TIMEOUT) if CONFIG.TIMEOUT else 0
+        except ValueError:
+            default_timeout = 0
+        kwargs["timeout"] = max(default_timeout, timeout)
 
         return kwargs
 
