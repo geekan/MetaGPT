@@ -233,6 +233,8 @@ class GitRepository:
         files = []
         try:
             directory_path = Path(self.workdir) / relative_path
+            if not directory_path.exists():
+                return []
             for file_path in directory_path.iterdir():
                 if file_path.is_file():
                     rpath = file_path.relative_to(root_relative_path)
