@@ -65,7 +65,7 @@ class ZhiPuAIGPTAPI(BaseGPTAPI):
                 completion_tokens = int(usage.get("completion_tokens", 0))
                 self._cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
             except Exception as e:
-                logger.error("zhipuai updats costs failed!", e)
+                logger.error(f"zhipuai updats costs failed! exp: {e}")
 
     def get_choice_text(self, resp: dict) -> str:
         """ get the first text of choice from llm response """
