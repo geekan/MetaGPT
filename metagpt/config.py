@@ -46,7 +46,7 @@ class Config(metaclass=Singleton):
 
     def __init__(self, yaml_file=default_yaml_file):
         self._init_with_config_files_and_env(yaml_file)
-        logger.info("Config loading done.")
+        logger.debug("Config loading done.")
         self._update()
 
     def _update(self):
