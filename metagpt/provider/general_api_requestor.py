@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 # @Desc   : General Async API for http-based LLM model
 
-from typing import AsyncGenerator, Tuple, Union, Optional, Literal
-import aiohttp
 import asyncio
+from typing import AsyncGenerator, Tuple, Union
 
+import aiohttp
 from openai.api_requestor import APIRequestor
 
 from metagpt.logs import logger
@@ -26,9 +26,7 @@ class GeneralAPIRequestor(APIRequestor):
         )
     """
 
-    def _interpret_response_line(
-        self, rbody: str, rcode: int, rheaders, stream: bool
-    ) -> str:
+    def _interpret_response_line(self, rbody: str, rcode: int, rheaders, stream: bool) -> str:
         # just do nothing to meet the APIRequestor process and return the raw data
         # due to the openai sdk will convert the data into OpenAIResponse which we don't need in general cases.
 
@@ -39,11 +37,9 @@ class GeneralAPIRequestor(APIRequestor):
     ) -> Tuple[Union[str, AsyncGenerator[str, None]], bool]:
         if stream and "text/event-stream" in result.headers.get("Content-Type", ""):
             return (
-                   self._interpret_response_line(
-                       line, result.status, result.headers, stream=True
-                   )
-                   async for line in result.content
-               ), True
+                self._interpret_response_line(line, result.status, result.headers, stream=True)
+                async for line in result.content
+            ), True
         else:
             try:
                 await result.read()

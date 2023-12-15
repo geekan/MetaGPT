@@ -2,16 +2,16 @@
 # -*- coding: utf-8 -*-
 # @Desc   : the implement of memory storage
 
-from typing import List
 from pathlib import Path
+from typing import List
 
 from langchain.vectorstores.faiss import FAISS
 
 from metagpt.const import DATA_PATH, MEM_TTL
+from metagpt.document_store.faiss_store import FaissStore
 from metagpt.logs import logger
 from metagpt.schema import Message
-from metagpt.utils.serialize import serialize_message, deserialize_message
-from metagpt.document_store.faiss_store import FaissStore
+from metagpt.utils.serialize import deserialize_message, serialize_message
 
 
 class MemoryStorage(FaissStore):
@@ -34,7 +34,7 @@ class MemoryStorage(FaissStore):
 
     def recover_memory(self, role_id: str) -> List[Message]:
         self.role_id = role_id
-        self.role_mem_path = Path(DATA_PATH / f'role_mem/{self.role_id}/')
+        self.role_mem_path = Path(DATA_PATH / f"role_mem/{self.role_id}/")
         self.role_mem_path.mkdir(parents=True, exist_ok=True)
 
         self.store = self._load()
@@ -51,18 +51,18 @@ class MemoryStorage(FaissStore):
 
     def _get_index_and_store_fname(self):
         if not self.role_mem_path:
-            logger.error(f'You should call {self.__class__.__name__}.recover_memory fist when using LongTermMemory')
+            logger.error(f"You should call {self.__class__.__name__}.recover_memory fist when using LongTermMemory")
             return None, None
-        index_fpath = Path(self.role_mem_path / f'{self.role_id}.index')
-        storage_fpath = Path(self.role_mem_path / f'{self.role_id}.pkl')
+        index_fpath = Path(self.role_mem_path / f"{self.role_id}.index")
+        storage_fpath = Path(self.role_mem_path / f"{self.role_id}.pkl")
         return index_fpath, storage_fpath
 
     def persist(self):
         super(MemoryStorage, self).persist()
-        logger.debug(f'Agent {self.role_id} persist memory into local')
+        logger.debug(f"Agent {self.role_id} persist memory into local")
 
     def add(self, message: Message) -> bool:
-        """ add message into memory storage"""
+        """add message into memory storage"""
         docs = [message.content]
         metadatas = [{"message_ser": serialize_message(message)}]
         if not self.store:
@@ -79,10 +79,7 @@ class MemoryStorage(FaissStore):
         if not self.store:
             return []
 
-        resp = self.store.similarity_search_with_score(
-            query=message.content,
-            k=k
-        )
+        resp = self.store.similarity_search_with_score(query=message.content, k=k)
         # filter the result which score is smaller than the threshold
         filtered_resp = []
         for item, score in resp:
@@ -104,4 +101,3 @@ class MemoryStorage(FaissStore):
 
         self.store = None
         self._initialized = False
-        

@@ -2,19 +2,19 @@
 # -*- coding: utf-8 -*-
 # @Desc   : zhipuai LLM from https://open.bigmodel.cn/dev/api#sdk
 
-from enum import Enum
 import json
+from enum import Enum
+
+import openai
+import zhipuai
+from requests import ConnectionError
 from tenacity import (
     after_log,
     retry,
     retry_if_exception_type,
     stop_after_attempt,
-    wait_fixed,
+    wait_random_exponential,
 )
-from requests import ConnectionError
-
-import openai
-import zhipuai
 
 from metagpt.config import CONFIG
 from metagpt.logs import logger
@@ -50,15 +50,11 @@ class ZhiPuAIGPTAPI(BaseGPTAPI):
         openai.api_key = zhipuai.api_key  # due to use openai sdk, set the api_key but it will't be used.
 
     def _const_kwargs(self, messages: list[dict]) -> dict:
-        kwargs = {
-            "model": self.model,
-            "prompt": messages,
-            "temperature": 0.3
-        }
+        kwargs = {"model": self.model, "prompt": messages, "temperature": 0.3}
         return kwargs
 
     def _update_costs(self, usage: dict):
-        """ update each request's token cost """
+        """update each request's token cost"""
         if CONFIG.calc_usage:
             try:
                 prompt_tokens = int(usage.get("prompt_tokens", 0))
@@ -68,7 +64,7 @@ class ZhiPuAIGPTAPI(BaseGPTAPI):
                 logger.error("zhipuai updats costs failed!", e)
 
     def get_choice_text(self, resp: dict) -> str:
-        """ get the first text of choice from llm response """
+        """get the first text of choice from llm response"""
         assist_msg = resp.get("data", {}).get("choices", [{"role": "error"}])[-1]
         assert assist_msg["role"] == "assistant"
         return assist_msg.get("content")
@@ -126,13 +122,13 @@ class ZhiPuAIGPTAPI(BaseGPTAPI):
 
     @retry(
         stop=stop_after_attempt(3),
-        wait=wait_fixed(1),
+        wait=wait_random_exponential(min=1, max=60),
         after=after_log(logger, logger.level("WARNING").name),
         retry=retry_if_exception_type(ConnectionError),
-        retry_error_callback=log_and_reraise
+        retry_error_callback=log_and_reraise,
     )
     async def acompletion_text(self, messages: list[dict], stream=False) -> str:
-        """ response in async with stream or non-stream mode """
+        """response in async with stream or non-stream mode"""
         if stream:
             return await self._achat_completion_stream(messages)
         resp = await self._achat_completion(messages)

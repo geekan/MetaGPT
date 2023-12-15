@@ -8,6 +8,7 @@
 
 import docx
 
+
 def read_docx(file_path: str) -> list:
     """Open a docx file"""
     doc = docx.Document(file_path)

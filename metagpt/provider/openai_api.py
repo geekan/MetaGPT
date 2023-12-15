@@ -115,7 +115,7 @@ class CostManager(metaclass=Singleton):
     def get_total_cost(self):
         """
         Get the total cost of API calls.
-    
+
         Returns:
         float: The total cost of API calls.
         """
@@ -157,6 +157,8 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         if config.openai_api_type:
             openai.api_type = config.openai_api_type
             openai.api_version = config.openai_api_version
+        if config.openai_proxy:
+            openai.proxy = config.openai_proxy
         self.rpm = int(config.get("RPM", 10))
 
     async def _achat_completion_stream(self, messages: list[dict]) -> str:

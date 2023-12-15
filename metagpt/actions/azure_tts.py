@@ -18,16 +18,13 @@ class AzureTTS(Action):
 
     # Parameters reference: https://learn.microsoft.com/zh-cn/azure/cognitive-services/speech-service/language-support?tabs=tts#voice-styles-and-roles
     def synthesize_speech(self, lang, voice, role, text, output_file):
-        subscription_key = self.config.get('AZURE_TTS_SUBSCRIPTION_KEY')
-        region = self.config.get('AZURE_TTS_REGION')
-        speech_config = SpeechConfig(
-            subscription=subscription_key, region=region)
+        subscription_key = self.config.get("AZURE_TTS_SUBSCRIPTION_KEY")
+        region = self.config.get("AZURE_TTS_REGION")
+        speech_config = SpeechConfig(subscription=subscription_key, region=region)
 
         speech_config.speech_synthesis_voice_name = voice
         audio_config = AudioConfig(filename=output_file)
-        synthesizer = SpeechSynthesizer(
-            speech_config=speech_config,
-            audio_config=audio_config)
+        synthesizer = SpeechSynthesizer(speech_config=speech_config, audio_config=audio_config)
 
         # if voice=="zh-CN-YunxiNeural":
         ssml_string = f"""
@@ -45,9 +42,4 @@ class AzureTTS(Action):
 
 if __name__ == "__main__":
     azure_tts = AzureTTS("azure_tts")
-    azure_tts.synthesize_speech(
-        "zh-CN",
-        "zh-CN-YunxiNeural",
-        "Boy",
-        "Hello, I am Kaka",
-        "output.wav")
+    azure_tts.synthesize_speech("zh-CN", "zh-CN-YunxiNeural", "Boy", "Hello, I am Kaka", "output.wav")

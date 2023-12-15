@@ -3,15 +3,14 @@
 # @Desc   : zhipu model api to support sync & async for invoke & sse_invoke
 
 import zhipuai
-from zhipuai.model_api.api import ModelAPI, InvokeType
+from zhipuai.model_api.api import InvokeType, ModelAPI
 from zhipuai.utils.http_client import headers as zhipuai_default_headers
 
-from metagpt.provider.zhipuai.async_sse_client import AsyncSSEClient
 from metagpt.provider.general_api_requestor import GeneralAPIRequestor
+from metagpt.provider.zhipuai.async_sse_client import AsyncSSEClient
 
 
 class ZhiPuModelAPI(ModelAPI):
-
     @classmethod
     def get_header(cls) -> dict:
         token = cls._generate_token()
@@ -21,9 +20,7 @@ class ZhiPuModelAPI(ModelAPI):
     @classmethod
     def get_sse_header(cls) -> dict:
         token = cls._generate_token()
-        headers = {
-            "Authorization": token
-        }
+        headers = {"Authorization": token}
         return headers
 
     @classmethod
@@ -52,28 +49,24 @@ class ZhiPuModelAPI(ModelAPI):
             headers=headers,
             stream=stream,
             params=kwargs,
-            request_timeout=zhipuai.api_timeout_seconds
+            request_timeout=zhipuai.api_timeout_seconds,
         )
 
         return result
 
     @classmethod
     async def ainvoke(cls, **kwargs) -> dict:
-        """ async invoke different from raw method `async_invoke` which get the final result by task_id"""
+        """async invoke different from raw method `async_invoke` which get the final result by task_id"""
         headers = cls.get_header()
-        resp = await cls.arequest(invoke_type=InvokeType.SYNC,
-                                  stream=False,
-                                  method="post",
-                                  headers=headers,
-                                  kwargs=kwargs)
+        resp = await cls.arequest(
+            invoke_type=InvokeType.SYNC, stream=False, method="post", headers=headers, kwargs=kwargs
+        )
         return resp
 
     @classmethod
     async def asse_invoke(cls, **kwargs) -> AsyncSSEClient:
-        """ async sse_invoke """
+        """async sse_invoke"""
         headers = cls.get_sse_header()
-        return AsyncSSEClient(await cls.arequest(invoke_type=InvokeType.SSE,
-                                                 stream=True,
-                                                 method="post",
-                                                 headers=headers,
-                                                 kwargs=kwargs))
+        return AsyncSSEClient(
+            await cls.arequest(invoke_type=InvokeType.SSE, stream=True, method="post", headers=headers, kwargs=kwargs)
+        )

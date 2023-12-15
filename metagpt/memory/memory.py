@@ -4,12 +4,13 @@
 @Time    : 2023/5/20 12:15
 @Author  : alexanderwu
 @File    : memory.py
+@Modified By: mashenquan, 2023-11-1. According to RFC 116: Updated the type of index key.
 """
 from collections import defaultdict
-from typing import Iterable, Type
+from typing import Iterable, Set
 
-from metagpt.actions import Action
 from metagpt.schema import Message
+from metagpt.utils.common import any_to_str, any_to_str_set
 
 
 class Memory:
@@ -18,7 +19,7 @@ class Memory:
     def __init__(self):
         """Initialize an empty storage list and an empty index dictionary"""
         self.storage: list[Message] = []
-        self.index: dict[Type[Action], list[Message]] = defaultdict(list)
+        self.index: dict[str, list[Message]] = defaultdict(list)
 
     def add(self, message: Message):
         """Add a new message to storage, while updating the index"""
@@ -73,16 +74,17 @@ class Memory:
             news.append(i)
         return news
 
-    def get_by_action(self, action: Type[Action]) -> list[Message]:
+    def get_by_action(self, action) -> list[Message]:
         """Return all messages triggered by a specified Action"""
-        return self.index[action]
+        index = any_to_str(action)
+        return self.index[index]
 
-    def get_by_actions(self, actions: Iterable[Type[Action]]) -> list[Message]:
+    def get_by_actions(self, actions: Set) -> list[Message]:
         """Return all messages triggered by specified Actions"""
         rsp = []
-        for action in actions:
+        indices = any_to_str_set(actions)
+        for action in indices:
             if action not in self.index:
                 continue
             rsp += self.index[action]
         return rsp
-    

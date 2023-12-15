@@ -8,9 +8,9 @@ from metagpt.tools import web_browser_engine_playwright
 @pytest.mark.parametrize(
     "browser_type, use_proxy, kwagrs, url, urls",
     [
-        ("chromium", {"proxy": True}, {}, "https://fuzhi.ai", ("https://fuzhi.ai",)),
-        ("firefox", {}, {"ignore_https_errors": True}, "https://fuzhi.ai", ("https://fuzhi.ai",)),
-        ("webkit", {}, {"ignore_https_errors": True}, "https://fuzhi.ai", ("https://fuzhi.ai",)),
+        ("chromium", {"proxy": True}, {}, "https://deepwisdom.ai", ("https://deepwisdom.ai",)),
+        ("firefox", {}, {"ignore_https_errors": True}, "https://deepwisdom.ai", ("https://deepwisdom.ai",)),
+        ("webkit", {}, {"ignore_https_errors": True}, "https://deepwisdom.ai", ("https://deepwisdom.ai",)),
     ],
     ids=["chromium-normal", "firefox-normal", "webkit-normal"],
 )

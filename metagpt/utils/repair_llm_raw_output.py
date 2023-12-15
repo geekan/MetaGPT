@@ -4,12 +4,13 @@
 
 import copy
 from enum import Enum
-from typing import Union, Callable
-import regex as re
-from tenacity import retry, stop_after_attempt, wait_fixed, after_log, RetryCallState
+from typing import Callable, Union
 
-from metagpt.logs import logger
+import regex as re
+from tenacity import RetryCallState, retry, stop_after_attempt, wait_fixed
+
 from metagpt.config import CONFIG
+from metagpt.logs import logger
 from metagpt.utils.custom_decoder import CustomDecoder
 
 
@@ -33,7 +34,7 @@ def repair_case_sensitivity(output: str, req_key: str) -> str:
     if req_key_lower in output_lower:
         # find the sub-part index, and replace it with raw req_key
         lidx = output_lower.find(req_key_lower)
-        source = output[lidx: lidx + len(req_key_lower)]
+        source = output[lidx : lidx + len(req_key_lower)]
         output = output.replace(source, req_key)
         logger.info(f"repair_case_sensitivity: {req_key}")
 
@@ -73,7 +74,7 @@ def repair_required_key_pair_missing(output: str, req_key: str = "[/CONTENT]") -
     sc = "/"  # special char
     if req_key.startswith("[") and req_key.endswith("]"):
         if sc in req_key:
-            left_key = req_key.replace(sc, "")        # `[/req_key]` -> `[req_key]`
+            left_key = req_key.replace(sc, "")  # `[/req_key]` -> `[req_key]`
             right_key = req_key
         else:
             left_key = req_key
@@ -82,6 +83,7 @@ def repair_required_key_pair_missing(output: str, req_key: str = "[/CONTENT]") -
         if left_key not in output:
             output = left_key + "\n" + output
         if right_key not in output:
+
             def judge_potential_json(routput: str, left_key: str) -> Union[str, None]:
                 ridx = routput.rfind(left_key)
                 if ridx < 0:
@@ -90,7 +92,7 @@ def repair_required_key_pair_missing(output: str, req_key: str = "[/CONTENT]") -
                 idx1 = sub_output.rfind("}")
                 idx2 = sub_output.rindex("]")
                 idx = idx1 if idx1 >= idx2 else idx2
-                sub_output = sub_output[: idx+1]
+                sub_output = sub_output[: idx + 1]
                 return sub_output
 
             if output.strip().endswith("}") or (output.strip().endswith("]") and not output.strip().endswith(left_key)):
@@ -155,9 +157,7 @@ def repair_llm_raw_output(output: str, req_keys: list[str], repair_type: RepairT
 
     # do the repairation usually for non-openai models
     for req_key in req_keys:
-        output = _repair_llm_raw_output(output=output,
-                                        req_key=req_key,
-                                        repair_type=repair_type)
+        output = _repair_llm_raw_output(output=output, req_key=req_key, repair_type=repair_type)
     return output
 
 
@@ -187,7 +187,7 @@ def repair_invalid_json(output: str, error: str) -> str:
             new_line = line.replace("}", "")
         elif line.endswith("},") and output.endswith("},"):
             new_line = line[:-1]
-        elif '",' not in line and ',' not in line:
+        elif '",' not in line and "," not in line:
             new_line = f'{line}",'
         elif "," not in line:
             # problem, miss char `,` at the end.
@@ -228,8 +228,10 @@ def run_after_exp_and_passon_next_retry(logger: "loguru.Logger") -> Callable[["R
             elif retry_state.kwargs:
                 func_param_output = retry_state.kwargs.get("output", "")
             exp_str = str(retry_state.outcome.exception())
-            logger.warning(f"parse json from content inside [CONTENT][/CONTENT] failed at retry "
-                           f"{retry_state.attempt_number}, try to fix it, exp: {exp_str}")
+            logger.warning(
+                f"parse json from content inside [CONTENT][/CONTENT] failed at retry "
+                f"{retry_state.attempt_number}, try to fix it, exp: {exp_str}"
+            )
 
             repaired_output = repair_invalid_json(func_param_output, exp_str)
             retry_state.kwargs["output"] = repaired_output
@@ -260,7 +262,8 @@ def retry_parse_json_text(output: str) -> Union[list, dict]:
 
 
 def extract_content_from_output(content: str, right_key: str = "[/CONTENT]"):
-    """ extract xxx from [CONTENT](xxx)[/CONTENT] using regex pattern """
+    """extract xxx from [CONTENT](xxx)[/CONTENT] using regex pattern"""
+
     def re_extract_content(cont: str, pattern: str) -> str:
         matches = re.findall(pattern, cont, re.DOTALL)
         for match in matches:

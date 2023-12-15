@@ -4,12 +4,14 @@
 @Time    : 2023/9/13 12:23
 @Author  : femto Zheng
 @File    : sk_agent.py
+@Modified By: mashenquan, 2023-11-1. In accordance with Chapter 2.2.1 and 2.2.2 of RFC 116, utilize the new message
+        distribution feature for message filtering.
 """
 from semantic_kernel.planning import SequentialPlanner
 from semantic_kernel.planning.action_planner.action_planner import ActionPlanner
 from semantic_kernel.planning.basic_planner import BasicPlanner
 
-from metagpt.actions import BossRequirement
+from metagpt.actions import UserRequirement
 from metagpt.actions.execute_task import ExecuteTask
 from metagpt.logs import logger
 from metagpt.roles import Role
@@ -39,7 +41,7 @@ class SkAgent(Role):
         """Initializes the Engineer role with given attributes."""
         super().__init__(name, profile, goal, constraints)
         self._init_actions([ExecuteTask()])
-        self._watch([BossRequirement])
+        self._watch([UserRequirement])
         self.kernel = make_sk_kernel()
 
         # how funny the interface is inconsistent
@@ -70,7 +72,6 @@ class SkAgent(Role):
             result = (await self.plan.invoke_async()).result
         logger.info(result)
 
-        msg = Message(content=result, role=self.profile, cause_by=type(self._rc.todo))
+        msg = Message(content=result, role=self.profile, cause_by=self._rc.todo)
         self._rc.memory.add(msg)
-        # logger.debug(f"{response}")
         return msg

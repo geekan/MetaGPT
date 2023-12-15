@@ -1,3 +1,4 @@
+
 # MetaGPT: The Multi-Agent Framework
 
 <p align="center">
@@ -50,9 +51,9 @@ git clone https://github.com/geekan/MetaGPT.git
 cd MetaGPT
 pip3 install -e.     # or pip3 install metagpt  # for stable version
 
-# Step 3: run the startup.py
+# Step 3: run metagpt cli
 # setup your OPENAI_API_KEY in key.yaml copy from config.yaml
-python3 startup.py "Write a cli snake game"
+metagpt "Write a cli snake game"
 
 # Step 4 [Optional]: If you want to save the artifacts like diagrams such as quadrant chart, system designs, sequence flow in the workspace, you can execute the step before Step 3. By default, the framework is compatible, and the entire process can be run completely without executing this step.
 # If executing, ensure that NPM is installed on your system. Then install mermaid-js. (If you don't have npm in your computer, please go to the Node.js official website to install Node.js https://nodejs.org/ and then you will have npm tool in your computer.)
@@ -78,7 +79,7 @@ docker run --rm \
     -v /opt/metagpt/config/key.yaml:/app/metagpt/config/key.yaml \
     -v /opt/metagpt/workspace:/app/metagpt/workspace \
     metagpt/metagpt:latest \
-    python startup.py "Write a cli snake game"
+    metagpt "Write a cli snake game"
 ```
 
 detail installation please refer to [docker_install](https://docs.deepwisdom.ai/guide/get_started/installation.html#install-with-docker)
@@ -117,7 +118,7 @@ Looking forward to seeing you there! 🎉
 
 If you have any questions or feedback about this project, please feel free to contact us. We highly appreciate your suggestions!
 
-- **Email:** alexanderwu@fuzhi.ai
+- **Email:** alexanderwu@deepwisdom.ai
 - **GitHub Issues:** For more technical inquiries, you can also create a new issue in our [GitHub repository](https://github.com/geekan/metagpt/issues).
 
 We will respond to all questions within 2-3 business days.

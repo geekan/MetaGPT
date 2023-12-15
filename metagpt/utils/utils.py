@@ -4,7 +4,7 @@
 
 import typing
 
-from tenacity import after_log, _utils
+from tenacity import _utils
 
 
 def general_after_log(logger: "loguru.Logger", sec_format: str = "%0.3f") -> typing.Callable[["RetryCallState"], None]:
@@ -13,7 +13,10 @@ def general_after_log(logger: "loguru.Logger", sec_format: str = "%0.3f") -> typ
             fn_name = "<unknown>"
         else:
             fn_name = _utils.get_callback_name(retry_state.fn)
-        logger.error(f"Finished call to '{fn_name}' after {sec_format % retry_state.seconds_since_start}(s), "
-                     f"this was the {_utils.to_ordinal(retry_state.attempt_number)} time calling it. "
-                     f"exp: {retry_state.outcome.exception()}")
+        logger.error(
+            f"Finished call to '{fn_name}' after {sec_format % retry_state.seconds_since_start}(s), "
+            f"this was the {_utils.to_ordinal(retry_state.attempt_number)} time calling it. "
+            f"exp: {retry_state.outcome.exception()}"
+        )
+
     return log_it

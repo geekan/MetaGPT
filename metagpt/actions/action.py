@@ -14,9 +14,9 @@ from tenacity import retry, stop_after_attempt, wait_random_exponential
 from metagpt.actions.action_output import ActionOutput
 from metagpt.llm import LLM
 from metagpt.logs import logger
+from metagpt.provider.postprecess.llm_output_postprecess import llm_output_postprecess
 from metagpt.utils.common import OutputParser
 from metagpt.utils.utils import general_after_log
-from metagpt.provider.postprecess.llm_output_postprecess import llm_output_postprecess
 
 
 class Action(ABC):
@@ -26,16 +26,24 @@ class Action(ABC):
             llm = LLM()
         self.llm = llm
         self.context = context
-        self.prefix = ""
-        self.profile = ""
-        self.desc = ""
-        self.content = ""
-        self.instruct_content = None
+        self.prefix = ""  # aask*时会加上prefix，作为system_message
+        self.profile = ""  # FIXME: USELESS
+        self.desc = ""  # for skill manager
+        self.nodes = ...
+
+        # Output, useless
+        # self.content = ""
+        # self.instruct_content = None
+        # self.env = None
+
+    # def set_env(self, env):
+    #     self.env = env
 
     def set_prefix(self, prefix, profile):
         """Set prefix for later usage"""
         self.prefix = prefix
         self.profile = profile
+        return self
 
     def __str__(self):
         return self.__class__.__name__
@@ -63,10 +71,6 @@ class Action(ABC):
         system_msgs: Optional[list[str]] = None,
         format="markdown",  # compatible to original format
     ) -> ActionOutput:
-        """Append default prefix"""
-        if not system_msgs:
-            system_msgs = []
-        system_msgs.append(self.prefix)
         content = await self.llm.aask(prompt, system_msgs)
         logger.debug(f"llm raw output:\n{content}")
         output_class = ActionOutput.create_model_class(output_class_name, output_data_mapping)

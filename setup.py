@@ -36,9 +36,9 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/geekan/MetaGPT",
     author="Alexander Wu",
-    author_email="alexanderwu@fuzhi.ai",
-    license="Apache 2.0",
-    keywords="metagpt multi-role multi-agent programming gpt llm",
+    author_email="alexanderwu@deepwisdom.ai",
+    license="MIT",
+    keywords="metagpt multi-role multi-agent programming gpt llm metaprogramming",
     packages=find_packages(exclude=["contrib", "docs", "examples", "tests*"]),
     python_requires=">=3.9",
     install_requires=requirements,
@@ -51,5 +51,10 @@ setup(
     },
     cmdclass={
         "install_mermaid": InstallMermaidCLI,
+    },
+    entry_points={
+        "console_scripts": [
+            "metagpt=metagpt.startup:app",
+        ],
     },
 )

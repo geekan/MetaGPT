@@ -6,19 +6,9 @@ import pytest
 
 from metagpt.provider.zhipuai_api import ZhiPuAIGPTAPI
 
+default_resp = {"code": 200, "data": {"choices": [{"role": "assistant", "content": "I'm chatglm-turbo"}]}}
 
-default_resp = {
-    "code": 200,
-    "data": {
-        "choices": [
-            {"role": "assistant", "content": "I'm chatglm-turbo"}
-        ]
-    }
-}
-
-messages = [
-    {"role": "user", "content": "who are you"}
-]
+messages = [{"role": "user", "content": "who are you"}]
 
 
 def mock_llm_ask(self, messages: list[dict]) -> dict:

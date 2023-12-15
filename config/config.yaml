@@ -7,9 +7,9 @@
 ## Or, you can configure OPENAI_PROXY to access official OPENAI_API_BASE.
 OPENAI_API_BASE: "https://api.openai.com/v1"
 #OPENAI_PROXY: "http://127.0.0.1:8118"
-#OPENAI_API_KEY: "YOUR_API_KEY"   # set the value to sk-xxx if you host the openai interface for open llm model
-OPENAI_API_MODEL: "gpt-4"
-MAX_TOKENS: 1500
+#OPENAI_API_KEY: "YOUR_API_KEY"  # set the value to sk-xxx if you host the openai interface for open llm model
+OPENAI_API_MODEL: "gpt-4-1106-preview"
+MAX_TOKENS: 4096
 RPM: 10
 
 #### if Spark
@@ -77,8 +77,8 @@ RPM: 10
 
 #### for Stable Diffusion
 ## Use SD service, based on https://github.com/AUTOMATIC1111/stable-diffusion-webui
-SD_URL: "YOUR_SD_URL"
-SD_T2I_API: "/sdapi/v1/txt2img"
+#SD_URL: "YOUR_SD_URL"
+#SD_T2I_API: "/sdapi/v1/txt2img"
 
 #### for Execution
 #LONG_TERM_MEMORY: false
@@ -93,8 +93,8 @@ SD_T2I_API: "/sdapi/v1/txt2img"
 # CALC_USAGE: false
 
 ### for Research
-MODEL_FOR_RESEARCHER_SUMMARY: gpt-3.5-turbo
-MODEL_FOR_RESEARCHER_REPORT: gpt-3.5-turbo-16k
+# MODEL_FOR_RESEARCHER_SUMMARY: gpt-3.5-turbo
+# MODEL_FOR_RESEARCHER_REPORT: gpt-3.5-turbo-16k
 
 ### choose the engine for mermaid conversion, 
 # default is nodejs, you can change it to playwright,pyppeteer or ink
@@ -108,4 +108,4 @@ MODEL_FOR_RESEARCHER_REPORT: gpt-3.5-turbo-16k
 ### repair operation on the content extracted from LLM's raw output. Warning, it improves the result but not fix all cases.
 # REPAIR_LLM_OUTPUT: false
 
-PROMPT_FORMAT: json #json or markdown
+# PROMPT_FORMAT: json #json or markdown

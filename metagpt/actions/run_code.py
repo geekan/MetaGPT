@@ -4,14 +4,25 @@
 @Time    : 2023/5/11 17:46
 @Author  : alexanderwu
 @File    : run_code.py
+@Modified By: mashenquan, 2023/11/27.
+            1. Mark the location of Console logs in the PROMPT_TEMPLATE with markdown code-block formatting to enhance
+            the understanding for the LLM.
+            2. Fix bug: Add the "install dependency" operation.
+            3. Encapsulate the input of RunCode into RunCodeContext and encapsulate the output of RunCode into
+            RunCodeResult to standardize and unify parameter passing between WriteCode, RunCode, and DebugError.
+            4. According to section 2.2.3.5.7 of RFC 135, change the method of transferring file content
+            (code files, unit test files, log files) from using the message to using the file name.
+            5. Merged the `Config` class of send18:dev branch to take over the set/get operations of the Environment
+            class.
 """
-import os
 import subprocess
 import traceback
 from typing import Tuple
 
 from metagpt.actions.action import Action
+from metagpt.config import CONFIG
 from metagpt.logs import logger
+from metagpt.schema import RunCodeResult
 
 PROMPT_TEMPLATE = """
 Role: You are a senior development and qa engineer, your role is summarize the code running result.
@@ -51,8 +62,14 @@ CONTEXT = """
 ## Running Command
 {command}
 ## Running Output
-standard output: {outs};
-standard errors: {errs};
+standard output: 
+```text
+{outs}
+```
+standard errors: 
+```text
+{errs}
+```
 """
 
 
@@ -77,17 +94,19 @@ class RunCode(Action):
         additional_python_paths = [str(path) for path in additional_python_paths]
 
         # Copy the current environment variables
-        env = os.environ.copy()
+        env = CONFIG.new_environ()
 
         # Modify the PYTHONPATH environment variable
         additional_python_paths = [working_directory] + additional_python_paths
         additional_python_paths = ":".join(additional_python_paths)
         env["PYTHONPATH"] = additional_python_paths + ":" + env.get("PYTHONPATH", "")
+        RunCode._install_dependencies(working_directory=working_directory, env=env)
 
         # Start the subprocess
         process = subprocess.Popen(
             command, cwd=working_directory, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env
         )
+        logger.info(" ".join(command))
 
         try:
             # Wait for the process to complete, with a timeout
@@ -98,31 +117,46 @@ class RunCode(Action):
             stdout, stderr = process.communicate()
         return stdout.decode("utf-8"), stderr.decode("utf-8")
 
-    async def run(
-        self, code, mode="script", code_file_name="", test_code="", test_file_name="", command=[], **kwargs
-    ) -> str:
-        logger.info(f"Running {' '.join(command)}")
-        if mode == "script":
-            outs, errs = await self.run_script(command=command, **kwargs)
-        elif mode == "text":
-            outs, errs = await self.run_text(code=code)
+    async def run(self, *args, **kwargs) -> RunCodeResult:
+        logger.info(f"Running {' '.join(self.context.command)}")
+        if self.context.mode == "script":
+            outs, errs = await self.run_script(
+                command=self.context.command,
+                working_directory=self.context.working_directory,
+                additional_python_paths=self.context.additional_python_paths,
+            )
+        elif self.context.mode == "text":
+            outs, errs = await self.run_text(code=self.context.code)
 
         logger.info(f"{outs=}")
         logger.info(f"{errs=}")
 
         context = CONTEXT.format(
-            code=code,
-            code_file_name=code_file_name,
-            test_code=test_code,
-            test_file_name=test_file_name,
-            command=" ".join(command),
+            code=self.context.code,
+            code_file_name=self.context.code_filename,
+            test_code=self.context.test_code,
+            test_file_name=self.context.test_filename,
+            command=" ".join(self.context.command),
             outs=outs[:500],  # outs might be long but they are not important, truncate them to avoid token overflow
             errs=errs[:10000],  # truncate errors to avoid token overflow
         )
 
         prompt = PROMPT_TEMPLATE.format(context=context)
         rsp = await self._aask(prompt)
+        return RunCodeResult(summary=rsp, stdout=outs, stderr=errs)
 
-        result = context + rsp
+    @staticmethod
+    def _install_dependencies(working_directory, env):
+        install_command = ["python", "-m", "pip", "install", "-r", "requirements.txt"]
+        logger.info(" ".join(install_command))
+        try:
+            subprocess.run(install_command, check=True, cwd=working_directory, env=env)
+        except subprocess.CalledProcessError as e:
+            logger.warning(f"{e}")
 
-        return result
+        install_pytest_command = ["python", "-m", "pip", "install", "pytest"]
+        logger.info(" ".join(install_pytest_command))
+        try:
+            subprocess.run(install_pytest_command, check=True, cwd=working_directory, env=env)
+        except subprocess.CalledProcessError as e:
+            logger.warning(f"{e}")
