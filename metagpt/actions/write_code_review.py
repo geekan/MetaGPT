@@ -66,8 +66,28 @@ FORMAT_EXAMPLE = """
 6. ...
 
 ## Actions
-1. fix class A
-2. implement function B
+1. Fix the `handle_events` method to update the game state only if a move is successful.
+   ```python
+   def handle_events(self):
+       for event in pygame.event.get():
+           if event.type == pygame.QUIT:
+               return False
+           if event.type == pygame.KEYDOWN:
+               moved = False
+               if event.key == pygame.K_UP:
+                   moved = self.game.move('UP')
+               elif event.key == pygame.K_DOWN:
+                   moved = self.game.move('DOWN')
+               elif event.key == pygame.K_LEFT:
+                   moved = self.game.move('LEFT')
+               elif event.key == pygame.K_RIGHT:
+                   moved = self.game.move('RIGHT')
+               if moved:
+                   # Update the game state only if a move was successful
+                   self.render()
+       return True
+   ```
+2. Implement function B
 
 ## Code Review Result
 LBTM
