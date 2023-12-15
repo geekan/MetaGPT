@@ -15,12 +15,11 @@ from typing import Dict, List, Optional
 import openai
 import pydantic
 
-from metagpt import Message
 from metagpt.config import CONFIG
 from metagpt.const import DEFAULT_LANGUAGE, DEFAULT_MAX_TOKENS
 from metagpt.llm import LLMType
 from metagpt.logs import logger
-from metagpt.schema import RawMessage
+from metagpt.schema import Message, RawMessage
 from metagpt.utils.redis import Redis
 
 
@@ -45,12 +44,12 @@ class BrainMemory(pydantic.BaseModel):
     cacheable: bool = True
 
     def add_talk(self, msg: Message):
-        msg.add_tag(MessageType.Talk.value)
+        msg.role = "user"
         self.add_history(msg)
         self.is_dirty = True
 
     def add_answer(self, msg: Message):
-        msg.add_tag(MessageType.Answer.value)
+        msg.role = "assistant"
         self.add_history(msg)
         self.is_dirty = True
 
