@@ -21,7 +21,13 @@ def define_log_level(print_level="INFO", logfile_level="DEBUG"):
 
     _logger.remove()
     _logger.add(sys.stderr, level=print_level)
-    _logger.add(METAGPT_ROOT / f"logs/{formatted_date}.txt", level=logfile_level)
+    _logger.add(
+        METAGPT_ROOT / f"logs/{formatted_date}.txt",
+        level=logfile_level,
+        mode="a",
+        rotation="1 day",
+        retention="30 days",
+    )
     return _logger
 
 
