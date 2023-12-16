@@ -45,9 +45,11 @@ class Config(metaclass=Singleton):
     default_yaml_file = METAGPT_ROOT / "config/config.yaml"
 
     def __init__(self, yaml_file=default_yaml_file):
+        golbal_options = OPTIONS.get()
         self._init_with_config_files_and_env(yaml_file)
         logger.debug("Config loading done.")
         self._update()
+        golbal_options.update(OPTIONS.get())
 
     def _update(self):
         # logger.info("Config loading done.")

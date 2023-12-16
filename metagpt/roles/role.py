@@ -27,6 +27,7 @@ from pydantic import BaseModel, Field
 
 from metagpt.actions import Action, ActionOutput
 from metagpt.actions.action_node import ActionNode
+from metagpt.actions.add_requirement import UserRequirement
 from metagpt.llm import LLM, HumanProvider
 from metagpt.logs import logger
 from metagpt.memory import Memory
@@ -126,7 +127,17 @@ class RoleContext(BaseModel):
         return self.memory.get()
 
 
-class Role:
+class _RoleInjector(type):
+    def __call__(cls, *args, **kwargs):
+        instance = super().__call__(*args, **kwargs)
+
+        if not instance._rc.watch:
+            instance._watch([UserRequirement])
+
+        return instance
+
+
+class Role(metaclass=_RoleInjector):
     """Role/Agent"""
 
     def __init__(self, name="", profile="", goal="", constraints="", desc="", is_human=False):
@@ -140,6 +151,7 @@ class Role:
         self._role_id = str(self._setting)
         self._rc = RoleContext()
         self._subscription = {any_to_str(self), name} if name else {any_to_str(self)}
+
 
     def _reset(self):
         self._states = []
