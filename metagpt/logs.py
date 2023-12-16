@@ -26,7 +26,6 @@ def define_log_level(print_level="INFO", logfile_level="DEBUG"):
         level=logfile_level,
         mode="a",
         rotation="1 day",
-        retention="30 days",
     )
     return _logger
 
