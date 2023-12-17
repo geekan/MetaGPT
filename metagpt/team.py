@@ -3,10 +3,11 @@
 """
 @Time    : 2023/5/12 00:30
 @Author  : alexanderwu
-@File    : software_company.py
+@File    : team.py
 @Modified By: mashenquan, 2023/11/27. Add an archiving operation after completing the project, as specified in
         Section 2.2.3.3 of RFC 135.
 """
+import warnings
 from pydantic import BaseModel, Field
 
 from metagpt.actions import UserRequirement
@@ -47,13 +48,23 @@ class Team(BaseModel):
             raise NoMoneyException(CONFIG.total_cost, f"Insufficient funds: {CONFIG.max_budget}")
 
     def run_project(self, idea, send_to: str = ""):
-        """Start a project from publishing user requirement."""
+        """Run a project from publishing user requirement."""
         self.idea = idea
 
         # Human requirement.
         self.env.publish_message(
             Message(role="Human", content=idea, cause_by=UserRequirement, send_to=send_to or MESSAGE_ROUTE_TO_ALL)
         )
+
+    def start_project(self, idea, send_to: str = ""):
+        """
+        Deprecated: This method will be removed in the future.
+        Please use the `run_project` method instead.
+        """
+        warnings.warn("The 'start_project' method is deprecated and will be removed in the future. "
+                      "Please use the 'run_project' method instead.",
+                      DeprecationWarning, stacklevel=2)
+        return self.run_project(idea=idea, send_to=send_to)
 
     def _save(self):
         logger.info(self.json(ensure_ascii=False))
