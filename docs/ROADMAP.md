@@ -21,7 +21,7 @@ To reach version v0.5, approximately 70% of the following tasks need to be compl
    3. ~~Support human confirmation and modification during the process~~ (v0.3.0) New: Support human confirmation and modification with fewer constrainsts and a more user-friendly interface
    4. Support process caching: Consider carefully whether to add server caching mechanism
    5. ~~Resolve occasional failure to follow instruction under current prompts, causing code parsing errors, through stricter system prompts~~ (v0.4.0, with function call)
-   6. Write documentation, describing the current features and usage at all levels (ongoing, continuously adding contents to [documentation site](https://docs.deepwisdom.ai/guide/get_started/introduction.html))
+   6. Write documentation, describing the current features and usage at all levels (ongoing, continuously adding contents to [documentation site](https://docs.deepwisdom.ai/main/en/guide/get_started/introduction.html))
    7. ~~Support Docker~~
 2. Features
    1. Support a more standard and stable parser (need to analyze the format that the current LLM is better at)

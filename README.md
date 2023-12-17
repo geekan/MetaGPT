@@ -62,7 +62,7 @@ npm --version
 sudo npm install -g @mermaid-js/mermaid-cli
 ```
 
-detail installation please refer to [cli_install](https://docs.deepwisdom.ai/guide/get_started/installation.html#install-stable-version)
+detail installation please refer to [cli_install](https://docs.deepwisdom.ai/main/en/guide/get_started/installation.html#install-stable-version)
 
 ### Docker installation
 > Note: In the Windows, you need to replace "/opt/metagpt" with a directory that Docker has permission to create, such as "D:\Users\x\metagpt"
@@ -83,7 +83,7 @@ docker run --rm \
     metagpt "Write a cli snake game"
 ```
 
-detail installation please refer to [docker_install](https://docs.deepwisdom.ai/guide/get_started/installation.html#install-with-docker)
+detail installation please refer to [docker_install](https://docs.deepwisdom.ai/main/en/guide/get_started/installation.html#install-with-docker)
 
 ### QuickStart & Demo Video
 - Try it on [MetaGPT Huggingface Space](https://huggingface.co/spaces/deepwisdom/MetaGPT)
@@ -94,19 +94,19 @@ https://github.com/geekan/MetaGPT/assets/34952977/34345016-5d13-489d-b9f9-b82ace
 
 ## Tutorial
 
-- 🗒 [Online Document](https://docs.deepwisdom.ai/)
-- 💻 [Usage](https://docs.deepwisdom.ai/guide/get_started/quickstart.html)  
-- 🔎 [What can MetaGPT do?](https://docs.deepwisdom.ai/guide/get_started/introduction.html)
+- 🗒 [Online Document](https://docs.deepwisdom.ai/main/en/)
+- 💻 [Usage](https://docs.deepwisdom.ai/main/en/guide/get_started/quickstart.html)  
+- 🔎 [What can MetaGPT do?](https://docs.deepwisdom.ai/main/en/guide/get_started/introduction.html)
 - 🛠 How to build your own agents? 
-  - [MetaGPT Usage & Development Guide | Agent 101](https://docs.deepwisdom.ai/guide/tutorials/agent_101.html)
-  - [MetaGPT Usage & Development Guide | MultiAgent 101](https://docs.deepwisdom.ai/guide/tutorials/multi_agent_101.html)
+  - [MetaGPT Usage & Development Guide | Agent 101](https://docs.deepwisdom.ai/main/en/guide/tutorials/agent_101.html)
+  - [MetaGPT Usage & Development Guide | MultiAgent 101](https://docs.deepwisdom.ai/main/en/guide/tutorials/multi_agent_101.html)
 - 🧑‍💻 Contribution
   - [Develop Roadmap](docs/ROADMAP.md)
 - 🔖 Use Cases
-  - [Debate](https://docs.deepwisdom.ai/guide/use_cases/multi_agent/debate.html)
-  - [Researcher](https://docs.deepwisdom.ai/guide/use_cases/agent/researcher.html)
-  - [Recepit Assistant](https://docs.deepwisdom.ai/guide/use_cases/agent/receipt_assistant.html)
-- ❓ [FAQs](https://docs.deepwisdom.ai/guide/faq.html)
+  - [Debate](https://docs.deepwisdom.ai/main/en/guide/use_cases/multi_agent/debate.html)
+  - [Researcher](https://docs.deepwisdom.ai/main/en/guide/use_cases/agent/researcher.html)
+  - [Recepit Assistant](https://docs.deepwisdom.ai/main/en/guide/use_cases/agent/receipt_assistant.html)
+- ❓ [FAQs](https://docs.deepwisdom.ai/main/en/guide/faq.html)
 
 ## Support
 
