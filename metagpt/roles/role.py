@@ -25,9 +25,8 @@ from typing import Iterable, Set, Type
 
 from pydantic import BaseModel, Field
 
-from metagpt.actions import Action, ActionOutput
+from metagpt.actions import Action, ActionOutput, UserRequirement
 from metagpt.actions.action_node import ActionNode
-from metagpt.actions.add_requirement import UserRequirement
 from metagpt.llm import LLM, HumanProvider
 from metagpt.logs import logger
 from metagpt.memory import Memory
@@ -127,17 +126,7 @@ class RoleContext(BaseModel):
         return self.memory.get()
 
 
-class _RoleInjector(type):
-    def __call__(cls, *args, **kwargs):
-        instance = super().__call__(*args, **kwargs)
-
-        if not instance._rc.watch:
-            instance._watch([UserRequirement])
-
-        return instance
-
-
-class Role(metaclass=_RoleInjector):
+class Role:
     """Role/Agent"""
 
     def __init__(self, name="", profile="", goal="", constraints="", desc="", is_human=False):
@@ -149,9 +138,8 @@ class Role(metaclass=_RoleInjector):
         self._states = []
         self._actions = []
         self._role_id = str(self._setting)
-        self._rc = RoleContext()
+        self._rc = RoleContext(watch={any_to_str(UserRequirement)})
         self._subscription = {any_to_str(self), name} if name else {any_to_str(self)}
-
 
     def _reset(self):
         self._states = []
@@ -203,8 +191,7 @@ class Role(metaclass=_RoleInjector):
         """Watch Actions of interest. Role will select Messages caused by these Actions from its personal message
         buffer during _observe.
         """
-        tags = {any_to_str(t) for t in actions}
-        self._rc.watch.update(tags)
+        self._rc.watch = {any_to_str(t) for t in actions}
         # check RoleContext after adding watch actions
         self._rc.check(self._role_id)
 
@@ -401,6 +388,8 @@ class Role(metaclass=_RoleInjector):
                 msg = with_message
             elif isinstance(with_message, list):
                 msg = Message("\n".join(with_message))
+            if not msg.cause_by:
+                msg.cause_by = UserRequirement
             self.put_message(msg)
 
         if not await self._observe():
