@@ -8,7 +8,7 @@ from metagpt.actions import Action
 from metagpt.actions.debug_code import DebugCode
 from metagpt.actions.execute_code import ExecutePyCode
 from metagpt.actions.ml_da_action import AskReview, SummarizeAnalysis, Reflect, ReviewConst
-from metagpt.actions.write_analysis_code import WriteCodeByGenerate, WriteCodeWithTools
+from metagpt.actions.write_analysis_code import WriteCodeByGenerate, WriteCodeWithTools, MakeTools
 from metagpt.actions.write_code_steps import WriteCodeSteps
 from metagpt.actions.write_plan import WritePlan
 from metagpt.actions.write_plan import update_plan_from_rsp, precheck_update_plan_from_rsp
@@ -48,6 +48,7 @@ class MLEngineer(Role):
 
         self.plan = Plan(goal=goal)
         self.use_tools = False
+        self.make_tools = True
         self.use_code_steps = False
         self.execute_code = ExecutePyCode()
         self.auto_run = auto_run
@@ -173,10 +174,11 @@ class MLEngineer(Role):
                 )
                 debug_context = [self.get_useful_memories(task_exclude_field={'result', 'code_steps'})[0]]
                 cause_by = WriteCodeByGenerate
-                # make and save tools.
-                make_tools = MakeTools()
-                tool_code = await make_tools.run(code)
-                make_tools.save(tool_code)
+                if self.make_tools:
+                    # make and save tools.
+                    make_tools = MakeTools()
+                    tool_code = await make_tools.run(code)
+                    make_tools.save(tool_code)
             else:
                 logger.info("Write code with tools")
                 schema_path = PROJECT_ROOT / "metagpt/tools/functions/schemas"
