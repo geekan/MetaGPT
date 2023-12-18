@@ -78,10 +78,10 @@ class Task(BaseModel):
     dependent_task_ids: list[str] = [] # Tasks prerequisite to this Task
     instruction: str = ""
     task_type: str = ""
+    code_steps: str = ""
     code: str = ""
     result: str = ""
     is_finished: bool = False
-    code_steps: str = ""
 
 
 class Plan(BaseModel):

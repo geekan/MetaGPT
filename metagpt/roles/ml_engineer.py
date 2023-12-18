@@ -4,18 +4,39 @@ from datetime import datetime
 
 import fire
 
-from metagpt.roles import Role
-from metagpt.schema import Message, Plan
-from metagpt.memory import Memory
-from metagpt.logs import logger
-from metagpt.actions.write_plan import WritePlan, update_plan_from_rsp, precheck_update_plan_from_rsp
-from metagpt.actions.write_analysis_code import WriteCodeByGenerate, WriteCodeWithTools, MakeTools
-from metagpt.actions.ml_da_action import AskReview, SummarizeAnalysis, Reflect, ReviewConst
+from metagpt.actions import Action
+from metagpt.actions.debug_code import DebugCode
 from metagpt.actions.execute_code import ExecutePyCode
-from metagpt.roles.kaggle_manager import DownloadData, SubmitResult
-from metagpt.prompts.ml_engineer import STRUCTURAL_CONTEXT
+from metagpt.actions.ml_da_action import AskReview, SummarizeAnalysis, Reflect, ReviewConst
+from metagpt.actions.write_analysis_code import WriteCodeByGenerate, WriteCodeWithTools
 from metagpt.actions.write_code_steps import WriteCodeSteps
+from metagpt.actions.write_plan import WritePlan
+from metagpt.actions.write_plan import update_plan_from_rsp, precheck_update_plan_from_rsp
+from metagpt.const import DATA_PATH, PROJECT_ROOT
+from metagpt.logs import logger
+from metagpt.memory import Memory
+from metagpt.prompts.ml_engineer import STRUCTURAL_CONTEXT
+from metagpt.prompts.ml_engineer import (
+    UPDATE_DATA_COLUMNS,
+    PRINT_DATA_COLUMNS
+)
+from metagpt.roles import Role
+from metagpt.roles.kaggle_manager import DownloadData, SubmitResult
+from metagpt.schema import Message, Plan
+from metagpt.utils.common import remove_comments, create_func_config
 from metagpt.utils.save_code import save_code_file
+
+
+class UpdateDataColumns(Action):
+    async def run(self, plan: Plan = None) -> dict:
+        finished_tasks = plan.get_finished_tasks()
+        code_context = [remove_comments(task.code) for task in finished_tasks]
+        code_context = "\n\n".join(code_context)
+        prompt = UPDATE_DATA_COLUMNS.format(history_code=code_context)
+        tool_config = create_func_config(PRINT_DATA_COLUMNS)
+        rsp = await self.llm.aask_code(prompt, **tool_config)
+        return rsp
+
 
 class MLEngineer(Role):
     def __init__(
@@ -30,6 +51,7 @@ class MLEngineer(Role):
         self.use_code_steps = False
         self.execute_code = ExecutePyCode()
         self.auto_run = auto_run
+        self.data_desc = {}
 
         # memory for working on each task, discarded each time a task is done
         self.working_memory = Memory()
@@ -58,7 +80,7 @@ class MLEngineer(Role):
             logger.info(f"ready to take on task {task}")
 
             # take on current task
-            code, result, success, code_steps = await self._write_and_exec_code()
+            code, result, success = await self._write_and_exec_code()
 
             # ask for acceptance, users can other refuse and change tasks in the plan
             review, task_result_confirmed = await self._ask_review(trigger=ReviewConst.TASK_REVIEW_TRIGGER)
@@ -72,9 +94,13 @@ class MLEngineer(Role):
                 # tick off this task and record progress
                 task.code = code
                 task.result = result
-                task.code_steps = code_steps
                 self.plan.finish_current_task()
                 self.working_memory.clear()
+
+                if self.use_tools:
+                    success, new_code = await self._update_data_columns()
+                    if success:
+                        task.code = task.code + "\n\n" + new_code
 
                 confirmed_and_more = (ReviewConst.CONTINUE_WORD[0] in review.lower()
                     and review.lower() not in ReviewConst.CONTINUE_WORD[0])  # "confirm, ... (more content, such as changing downstream tasks)"
@@ -103,8 +129,18 @@ class MLEngineer(Role):
         save_code_file(name=project_record, code_context=self.execute_code.nb, file_format="ipynb")
         return rsp
 
+    async def _update_data_columns(self):
+        rsp = await UpdateDataColumns().run(self.plan)
+        is_update, code = rsp["is_update"], rsp["code"]
+        success = False
+        if is_update:
+            result, success = await self.execute_code.run(code)
+            if success:
+                self.data_desc["column_info"] = result
+        return success, code
+
     async def _write_and_exec_code(self, max_retry: int = 3):
-        code_steps = (
+        self.plan.current_task.code_steps = (
             await WriteCodeSteps().run(self.plan)
             if self.use_code_steps
             else ""
@@ -112,6 +148,8 @@ class MLEngineer(Role):
 
         counter = 0
         success = False
+        debug_context = []
+
         while not success and counter < max_retry:
             context = self.get_useful_memories()
 
@@ -119,21 +157,35 @@ class MLEngineer(Role):
             # print(context)
             # print("*" * 10)
             # breakpoint()
-
-            if not self.use_tools or self.plan.current_task.task_type == "other":
-                # code = "print('abc')"
-                code = await WriteCodeByGenerate().run(
-                    context=context, plan=self.plan, code_steps=code_steps, temperature=0.0
+            if counter > 0 and self.use_tools:
+                code = await DebugCode().run(
+                    plan=self.plan.current_task.instruction,
+                    code=code,
+                    runtime_result=self.working_memory.get(),
+                    context=debug_context
                 )
+                logger.info(f"new code \n{code}")
+                cause_by = DebugCode
+            elif not self.use_tools or self.plan.current_task.task_type == "other":
+                logger.info("Write code with pure generation")
+                code = await WriteCodeByGenerate().run(
+                    context=context, plan=self.plan, temperature=0.0
+                )
+                debug_context = [self.get_useful_memories(task_exclude_field={'result', 'code_steps'})[0]]
                 cause_by = WriteCodeByGenerate
                 # make and save tools.
                 make_tools = MakeTools()
                 tool_code = await make_tools.run(code)
                 make_tools.save(tool_code)
             else:
-                code = await WriteCodeWithTools().run(
-                    context=context, plan=self.plan, code_steps=code_steps, data_desc=""
+                logger.info("Write code with tools")
+                schema_path = PROJECT_ROOT / "metagpt/tools/functions/schemas"
+                tool_context, code = await WriteCodeWithTools(schema_path=schema_path).run(
+                    context=context,
+                    plan=self.plan,
+                    column_info=self.data_desc.get("column_info", ""),
                 )
+                debug_context = tool_context
                 cause_by = WriteCodeWithTools
 
             self.working_memory.add(
@@ -157,7 +209,7 @@ class MLEngineer(Role):
                 if ReviewConst.CHANGE_WORD[0] in review:
                     counter = 0  # redo the task again with help of human suggestions
 
-        return code, result, success, code_steps
+        return code, result, success
 
     async def _ask_review(self, auto_run: bool = None, trigger: str = ReviewConst.TASK_REVIEW_TRIGGER):
         auto_run = auto_run or self.auto_run
@@ -205,16 +257,16 @@ class MLEngineer(Role):
         self.working_memory.add(Message(content=reflection, role="assistant"))
         self.working_memory.add(Message(content=Reflect.REWRITE_PLAN_INSTRUCTION, role="user"))
 
-    def get_useful_memories(self) -> List[Message]:
+    def get_useful_memories(self, task_exclude_field=None) -> List[Message]:
         """find useful memories only to reduce context length and improve performance"""
         # TODO dataset description , code steps
-        user_requirement = self.plan.goal
-        data_desc = self.plan.context
-        tasks = [task.dict() for task in self.plan.tasks]
-        for task in tasks:
+        if task_exclude_field is None:
             # Shorten the context as we don't need code steps after we get the codes.
             # This doesn't affect current_task below, which should hold the code steps
-            task.pop("code_steps")
+            task_exclude_field = {'code_steps'}
+        user_requirement = self.plan.goal
+        data_desc = self.plan.context
+        tasks = [task.dict(exclude=task_exclude_field) for task in self.plan.tasks]
         tasks = json.dumps(tasks, indent=4, ensure_ascii=False)
         current_task = self.plan.current_task.json() if self.plan.current_task else {}
         context = STRUCTURAL_CONTEXT.format(
