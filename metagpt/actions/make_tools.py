@@ -51,7 +51,7 @@ class MakeTools(WriteCodeByGenerate):
         logger.info(f"Saved tool_code {func_name} in {str(saved_path)}.")
         saved_path.write_text(tool_code, encoding='utf-8')
 
-    # @retry(stop=stop_after_attempt(3), wait=wait_fixed(1))
+    @retry(stop=stop_after_attempt(3), wait=wait_fixed(1))
     async def run(self, code_message: List[Message | Dict], **kwargs) -> str:
         msgs = self.process_msg(code_message)
         logger.info(f"Ask: {msgs[-1]}")
