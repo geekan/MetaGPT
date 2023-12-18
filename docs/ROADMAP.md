@@ -30,10 +30,10 @@ To reach version v0.5, approximately 70% of the following tasks need to be compl
    4. Complete the design and implementation of module breakdown
    5. Support various modes of memory: clearly distinguish between long-term and short-term memory
    6. Perfect the test role, and carry out necessary interactions with humans
-   7. Allowing natural communication between roles (expected v0.5.0)
+   7. ~~Allowing natural communication between roles~~ (v0.5.0)
    8. Implement SkillManager and the process of incremental Skill learning (experimentation done with game agents)
    9. Automatically get RPM and configure it by calling the corresponding openai page, so that each key does not need to be manually configured
-   10. IMPORTANT: Support incremental development (expected v0.5.0)
+   10. ~~IMPORTANT: Support incremental development~~ (v0.5.0)
 3. Strategies
    1. Support ReAct strategy (experimentation done with game agents)
    2. Support CoT strategy (experimentation done with game agents)
@@ -45,8 +45,8 @@ To reach version v0.5, approximately 70% of the following tasks need to be compl
    2. Implementation: Knowledge search, supporting 10+ data formats
    3. Implementation: Data EDA (expected v0.6.0)
    4. Implementation: Review
-   5. Implementation: Add Document (expected v0.5.0)
-   6. Implementation: Delete Document (expected v0.5.0)
+   5. ~~Implementation~~: Add Document (v0.5.0)
+   6. ~~Implementation~~: Delete Document (v0.5.0)
    7. Implementation: Self-training
    8. ~~Implementation: DebugError~~ (v0.2.1)
    9. Implementation: Generate reliable unit tests based on YAPI
