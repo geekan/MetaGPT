@@ -35,5 +35,5 @@ async def test_llm_acompletion(llm):
     assert len(await llm.acompletion_batch_text([hello_msg])) > 0
 
 
-# if __name__ == "__main__":
-#     pytest.main([__file__, "-s"])
+if __name__ == "__main__":
+    pytest.main([__file__, "-s"])

@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 # @Desc   : self-host open llm model with openai-compatible interface
 
-import openai
-
 from metagpt.config import CONFIG
 from metagpt.logs import logger
 from metagpt.provider.openai_api import OpenAIGPTAPI, RateLimiter
@@ -35,13 +33,14 @@ class OpenLLMCostManager(CostManager):
 class OpenLLMGPTAPI(OpenAIGPTAPI):
     def __init__(self):
         self.__init_openllm(CONFIG)
-        self.llm = openai
         self.model = CONFIG.open_llm_api_model
         self.auto_max_tokens = False
         self._cost_manager = OpenLLMCostManager()
         RateLimiter.__init__(self, rpm=self.rpm)
 
     def __init_openllm(self, config: "Config"):
-        openai.api_key = "sk-xx"  # self-host api doesn't need api-key, use the default value
-        openai.api_base = config.open_llm_api_base
+        # TODO: The 'openai.api_base' option isn't read in the client API. You will need to pass it when you
+        #  instantiate the client, e.g. 'OpenAI(api_base=config.open_llm_api_base)'
+        # openai.api_key = "sk-xx"  # self-host api doesn't need api-key, use the default value
+        # openai.api_base = config.open_llm_api_base
         self.rpm = int(config.get("RPM", 10))

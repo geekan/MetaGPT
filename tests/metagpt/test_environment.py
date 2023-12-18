@@ -56,3 +56,7 @@ async def test_publish_and_process_message(env: Environment):
     await env.run(k=2)
     logger.info(f"{env.history=}")
     assert len(env.history) > 10
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-s"])

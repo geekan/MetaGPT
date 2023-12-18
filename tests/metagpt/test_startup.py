@@ -26,3 +26,7 @@ async def test_team():
 # def test_startup():
 #     args = ["Make a 2048 game"]
 #     result = runner.invoke(app, args)
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-s"])

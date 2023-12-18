@@ -171,7 +171,7 @@ class BrainMemory(pydantic.BaseModel):
         if summary:
             await self.set_history_summary(history_summary=summary, redis_key=CONFIG.REDIS_KEY, redis_conf=CONFIG.REDIS)
             return summary
-        raise openai.error.InvalidRequestError(message="text too long", param=None)
+        raise openai.InvalidRequestError(message="text too long", param=None)
 
     async def _metagpt_summarize(self, max_words=200, **kwargs):
         if not self.history:

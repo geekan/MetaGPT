@@ -10,8 +10,8 @@ import asyncio
 import base64
 
 import aiohttp
-import openai
 import requests
+from openai import AsyncOpenAI
 
 from metagpt.config import CONFIG, Config
 from metagpt.logs import logger
@@ -23,6 +23,11 @@ class OpenAIText2Image:
         :param openai_api_key: OpenAI API key, For more details, checkout: `https://platform.openai.com/account/api-keys`
         """
         self.openai_api_key = openai_api_key if openai_api_key else CONFIG.OPENAI_API_KEY
+        self._client = AsyncOpenAI(api_key=self.openai_api_key, base_url=CONFIG.openai_api_base)
+
+    def __del__(self):
+        if self._client:
+            self._client.close()
 
     async def text_2_image(self, text, size_type="1024x1024"):
         """Text to image
@@ -32,16 +37,7 @@ class OpenAIText2Image:
         :return: The image data is returned in Base64 encoding.
         """
         try:
-            result = await openai.Image.acreate(
-                api_key=CONFIG.OPENAI_API_KEY,
-                api_base=CONFIG.OPENAI_API_BASE,
-                api_type=None,
-                api_version=None,
-                organization=None,
-                prompt=text,
-                n=1,
-                size=size_type,
-            )
+            result = await self._client.images.generate(prompt=text, n=1, size=size_type)
         except Exception as e:
             logger.error(f"An error occurred:{e}")
             return ""

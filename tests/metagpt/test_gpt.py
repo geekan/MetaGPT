@@ -54,5 +54,5 @@ class TestGPT:
         assert costs.total_cost > 0
 
 
-# if __name__ == "__main__":
-#     pytest.main([__file__, "-s"])
+if __name__ == "__main__":
+    pytest.main([__file__, "-s"])

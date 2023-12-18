@@ -5,7 +5,6 @@
 import json
 from enum import Enum
 
-import openai
 import zhipuai
 from requests import ConnectionError
 from tenacity import (
@@ -48,7 +47,8 @@ class ZhiPuAIGPTAPI(BaseGPTAPI):
     def __init_zhipuai(self, config: CONFIG):
         assert config.zhipuai_api_key
         zhipuai.api_key = config.zhipuai_api_key
-        openai.api_key = zhipuai.api_key  # due to use openai sdk, set the api_key but it will't be used.
+        # due to use openai sdk, set the api_key but it will't be used.
+        # openai.api_key = zhipuai.api_key  # due to use openai sdk, set the api_key but it will't be used.
 
     def _const_kwargs(self, messages: list[dict]) -> dict:
         kwargs = {"model": self.model, "prompt": messages, "temperature": 0.3}

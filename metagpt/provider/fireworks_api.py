@@ -19,6 +19,8 @@ class FireWorksGPTAPI(OpenAIGPTAPI):
         RateLimiter.__init__(self, rpm=self.rpm)
 
     def __init_fireworks(self, config: "Config"):
-        openai.api_key = config.fireworks_api_key
-        openai.api_base = config.fireworks_api_base
+        # TODO: The 'openai.api_base' option isn't read in the client API. You will need to pass it when you
+        #  instantiate the client, e.g. 'OpenAI(api_base=config.fireworks_api_base)'
+        # openai.api_key = config.fireworks_api_key
+        # openai.api_base = config.fireworks_api_base
         self.rpm = int(config.get("RPM", 10))
