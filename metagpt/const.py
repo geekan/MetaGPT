@@ -17,12 +17,18 @@ from loguru import logger
 
 import metagpt
 
-OPTIONS = contextvars.ContextVar("OPTIONS")
+OPTIONS = contextvars.ContextVar("OPTIONS", default={})
 
 
 def get_metagpt_package_root():
     """Get the root directory of the installed package."""
     package_root = Path(metagpt.__file__).parent.parent
+    for i in (".git", ".project_root", ".gitignore"):
+        if (package_root / i).exists():
+            break
+    else:
+        package_root = Path.cwd()
+
     logger.info(f"Package root set to {str(package_root)}")
     return package_root
 

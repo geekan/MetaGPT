@@ -33,7 +33,8 @@
 
 <p align="center">Software Company Multi-Role Schematic (Gradually Implementing)</p>
 
-
+## News
+- Dec 15: v0.5.0 is released! We introduce **incremental development**, facilitating agents to build up larger projects on top of their previous efforts or exisiting human codebase. We also launch a whole collection of important features, including multilingual support (experimental), multiple programming languages support (experimental), incremental development (experimental), CLI support, pip support, enhanced code review, documentation mechanism, and optimized messaging mechanism!
 
 ## Install
 
