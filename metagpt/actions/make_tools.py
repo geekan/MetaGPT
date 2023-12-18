@@ -13,11 +13,12 @@ from metagpt.actions.write_analysis_code import WriteCodeByGenerate
 class MakeTools(WriteCodeByGenerate):
     DEFAULT_SYSTEM_MSG = """Please Create a very General Function Code startswith `def` from any codes you got.\n
     **Notice:
-    1. Reflect on whether it meets the requirements of a general function.
+    1. Your code must contain a general function start with `def`.
     2. Refactor your code to get the most efficient implementation for large input data in the shortest amount of time.
     3. Use Google style for function annotations.
     4. Write example code after `if __name__ == '__main__':`by using old varibales in old code,
-    and make sure it could be execute in the user's machine.**
+    and make sure it could be execute in the user's machine.
+    5. Do not have missing package references.**
     """
 
     def __init__(self, name: str = '', context: list[Message] = None, llm: LLM = None, workspace: str = None):
@@ -50,11 +51,21 @@ class MakeTools(WriteCodeByGenerate):
         logger.info(f"Saved tool_code {func_name} in {str(saved_path)}.")
         saved_path.write_text(tool_code, encoding='utf-8')
 
-    @retry(stop=stop_after_attempt(3), wait=wait_fixed(1))
+    # @retry(stop=stop_after_attempt(3), wait=wait_fixed(1))
     async def run(self, code_message: List[Message | Dict], **kwargs) -> str:
         msgs = self.process_msg(code_message)
         logger.info(f"Ask: {msgs[-1]}")
         tool_code = await self.llm.aask_code(msgs, **kwargs)
+        max_tries, current_try = 3, 1
+        func_name = self.parse_function_name(tool_code['code'])
+        while current_try < max_tries and func_name is None:
+            logger.warning(f"No function name found in code: \n{tool_code['code']}\n we will retry make tools.")
+            msgs.append({'role': 'assistant', 'content': 'We need a general function in above code,but not found function.'})
+            tool_code = await self.llm.aask_code(msgs, **kwargs)
+            current_try += 1
+            func_name = self.parse_function_name(tool_code['code'])
+            if func_name is not None:
+                break
         logger.info(f"Respond: Got {tool_code} from llm.")
         self.save(tool_code['code'])
         return tool_code["code"]
