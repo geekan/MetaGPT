@@ -315,3 +315,17 @@ def create_func_config(func_schema: dict) -> dict:
         "tools": tools,
         "tool_choice": tool_choice,
     }
+
+
+def remove_comments(code_str):
+    """Remove comments from code."""
+    pattern = r"(\".*?\"|\'.*?\')|(\#.*?$)"
+    def replace_func(match):
+        if match.group(2) is not None:
+            return ""
+        else:
+            return match.group(1)
+
+    clean_code = re.sub(pattern, replace_func, code_str, flags=re.MULTILINE)
+    clean_code = os.linesep.join([s.rstrip() for s in clean_code.splitlines() if s.strip()])
+    return clean_code

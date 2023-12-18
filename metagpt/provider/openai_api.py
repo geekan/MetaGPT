@@ -15,6 +15,7 @@ from tenacity import (
     retry,
     retry_if_exception_type,
     stop_after_attempt,
+    wait_random_exponential,
     wait_fixed,
 )
 
@@ -259,7 +260,8 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         rsp = self.llm.ChatCompletion.create(**self._func_configs(messages, **kwargs))
         self._update_costs(rsp.get("usage"))
         return rsp
-
+    
+    @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     async def _achat_completion_function(self, messages: list[dict], **chat_configs) -> dict:
         rsp = await self.llm.ChatCompletion.acreate(**self._func_configs(messages, **chat_configs))
         self._update_costs(rsp.get("usage"))

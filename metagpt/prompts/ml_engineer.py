@@ -4,25 +4,74 @@
 # @Author  : lidanyang
 # @File    : ml_engineer
 # @Desc    :
-ASSIGN_TASK_TYPE_PROMPT = """
-## All Task Type:
-- **data_preprocess**: Only involve cleaning and preparing data through techniques like imputation, scaling, and encoding, not containing reading data, feature engineering, model training, etc.
-- **feature_engineering**: Involves enhancing data features through techniques like encoding, aggregation, time component analysis, and creating polynomial and interaction features, etc.
-- **other**: Any tasks that do not fit into the previous categories, such as visualization, summarizing findings, build model, etc.
+UPDATE_DATA_COLUMNS = """
+# Background
+Keep dataset column information updated to reflect changes in training or testing datasets, aiding in informed decision-making during data analysis.
+## Done Tasks
+```python
+{history_code}
+```end
 
+# Task
+Update and print the dataset's column information only if the train or test data has changed. Use the following code:
+```python
+from metagpt.tools.functions.libs.data_preprocess import get_column_info
+
+column_info = get_column_info(df)
+print("df_column_info")
+print(column_info)
+```end
+
+# Constraints:
+- Use the DataFrame variable from 'Done Tasks' in place of df.
+- Import `get_column_info` only if it's not already imported.
+- Skip update if no changes in training/testing data, except for initial data load.
+- No need to update info if only model evaluation is performed.
+"""
+
+GEN_DATA_DESC_PROMPT = """
+Here is the head 5 rows of the dataset:
+{data_head}
+
+Please provide a brief one-sentence background of the dataset, and concise meaning for each column. Keep descriptions short.
+
+Output the information in a JSON format, as shown in this example:
+```json
+{
+    "data_desc": "Brief dataset background.",
+    "column_desc": {
+        "column_name1": "Abstract meaning of the first column.",
+        "column_name2": "Abstract meaning of the second column.",
+        ...
+    }
+}
+```
+
+# Constraints:
+- Don't contain specific values or examples found in the data column.
+"""
+
+ASSIGN_TASK_TYPE_PROMPT = """
 Please assign a task type to each task in the list below from the given categories:
 {task_list}
+
+## All Task Type:
+- **feature_engineering**: Only for creating new columns for input data.
+- **data_preprocess**: Only for changing value inplace.
+- **model_train**: Only for training model.
+- **model_evaluate**: Only for evaluating model.
+- **other**: Any tasks that do not fit into the previous categories, such as visualization, summarizing findings, etc.
 """
 
 ASSIGN_TASK_TYPE = {
     "name": "assign_task_type",
-    "description": "assign task type to each task by order",
+    "description": "Assign task type to each task by order.",
     "parameters": {
         "type": "object",
         "properties": {
             "task_type": {
                 "type": "array",
-                "description": "List of task type.",
+                "description": "List of task type. The length should as long as task list",
                 "items": {
                     "type": "string",
                 },
@@ -32,45 +81,36 @@ ASSIGN_TASK_TYPE = {
     },
 }
 
-
 TOOL_RECOMMENDATION_PROMPT = """
-## Comprehensive Task Description:
-{task}
+## User Requirement:
+{current_task}
 
-## Dataset Description:
-Details about the dataset for the project:
-{data_desc}
-
-This task is divided into several steps, and you need to select the most suitable tools for each step. A tool means a function that can be used to help you solve the task.
-
-## Detailed Code Steps for the Task:
+## Task
+Recommend up to five tools from 'Available Tools' that can help solve the 'User Requirement'. 
+This is a detailed code steps for current task. You can refer to it when recommending tools.
 {code_steps}
 
-## List of Available Tools:
+## Available Tools:
 {available_tools}
 
 ## Tool Selection and Instructions:
-- For each code step listed above, choose up to five tools that are most likely to be useful in solving the task.
-- If you believe that no tools are suitable for a step, indicate with an empty list.
+- Select tools most relevant to completing the 'User Requirement'.
+- If you believe that no tools are suitable, indicate with an empty list.
 - Only list the names of the tools, not the full schema of each tool.
-- The result should only contain tool names that are in the list of available tools.
-- The result list should be in the same order as the code steps.
+- Ensure selected tools are listed in 'Available Tools'.
 """
 
 SELECT_FUNCTION_TOOLS = {
     "name": "select_function_tools",
-    "description": "Given code steps to generate full code for a task, select suitable tools for each step by order.",
+    "description": "For current task, select suitable tools for it.",
     "parameters": {
         "type": "object",
         "properties": {
             "recommend_tools": {
                 "type": "array",
-                "description": "List of tool names for each code step. Empty list if no tool is suitable.",
+                "description": "List of tool names. Empty list if no tool is suitable.",
                 "items": {
-                    "type": "array",
-                    "items": {
-                        "type": "string",
-                    },
+                    "type": "string",
                 },
             },
         },
@@ -78,129 +118,189 @@ SELECT_FUNCTION_TOOLS = {
     },
 }
 
-
 CODE_GENERATOR_WITH_TOOLS = {
     "name": "add_subtask_code",
-    "description": "Add new code of current subtask to the end of an active Jupyter notebook.",
+    "description": "Add new code cell of current task to the end of an active Jupyter notebook.",
     "parameters": {
         "type": "object",
         "properties": {
             "code": {
                 "type": "string",
-                "description": "The code to be added.",
+                "description": "The code to be added to a new cell in jupyter.",
             },
         },
         "required": ["code"],
     },
 }
 
-TOO_ORGANIZATION_PROMPT = """
-As a senior data scientist, your role involves developing code for a specific sub-task within a larger project. This project is divided into several sub-tasks, which may either be new challenges or extensions of previous work.
 
-## Sub-tasks Overview
-Here's a list of all the sub-tasks, indicating their current status (DONE or TODO). Your responsibility is the first TODO task on this list.
-{all_tasks}
+PRINT_DATA_COLUMNS = {
+    "name": "print_column_info",
+    "description": "Print the latest column information after 'Done Tasks' code if first read or data changed.",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "is_update": {
+                "type": "boolean",
+                "description": "Whether need to update the column info.",
+            },
+            "code": {
+                "type": "string",
+                "description": "The code to be added to a new cell in jupyter.",
+            },
+        },
+        "required": ["is_update", "code"],
+    },
+}
 
-## Historical Code (Previously Done Sub-tasks):
-This code, already executed in the Jupyter notebook, is critical for understanding the background and foundation for your current task.
+GENERATE_CODE_PROMPT = """
+# Background
+As a data scientist, you need to help user to achieve their goal [{user_requirement}] step-by-step in an continuous Jupyter notebook.
+
+## Done Tasks
 ```python
-{completed_code}
-```
-
-## Dataset Description:
-Details about the dataset for the project:
-{data_desc}
-
-## Current Task Notion:
-{special_prompt}
-
-## Code Steps for Your Sub-task:
-Follow these steps to complete your current TODO task. You may use external Python functions or write custom code as needed. Ensure your code is self-contained.
-{code_steps}
-
-When you call a function, you should import the function from `{module_name}` first, e.g.:
-```python
-from metagpt.tools.functions.libs.feature_engineering import fill_missing_value
-```
-
-## Available Functions for Each Step:
-Here's a list of all available functions for each step. You can find more details about each function in [## Function Catalog]
-{available_tools}
-
-## Function Catalog:
-Each function is described in JSON format, including the function name and parameters. {output_desc}
-{function_catalog}
-
-## Your Output Format:
-Generate the complete code for every step, listing any used function tools at the beginning of the step:
-```python
-# Step 1
-# Tools used: [function names or 'none']
-<your code for this step, without any comments>
-
-# Step 2
-# Tools used: [function names or 'none']
-<your code for this step, without any comments>
-
-# Continue with additional steps, following the same format...
+{history_code}
 ```end
 
-*** Important Rules ***
-- Use only the tools designated for each code step.
-- Your output should only include code for the current sub-task. Don't repeat historical code.
-- Only mention functions in comments if used in the code.
-- Ensure the output new code is executable in the current Jupyter notebook environment, with all historical code executed.
+## Current Task
+{current_task}
+
+# Latest Data Info
+Latest data info after previous tasks:
+{column_info}
+
+# Task
+Write complete code for 'Current Task'. And avoid duplicating code from 'Done Tasks', such as repeated import of packages, reading data, etc.
+Specifically, {special_prompt}
+
+# Code Steps:
+Strictly follow steps below when you writing code if it's convenient.
+{code_steps}
+
+# Output Example:
+when current task is "train a lightgbm model on training data", and their are two steps in 'Code Steps', the code be like:
+```python
+# Step 1: check data type and convert to numeric
+ojb_cols = train.select_dtypes(include='object').columns.tolist()
+
+for col in obj_cols:
+    encoder = LabelEncoder()
+    train[col] = encoder.fit_transform(train[col])
+    test[col] = test[col].apply(lambda x: x if x in encoder.classes_ else 'unknown')
+    test[col] = encoder.transform(test[col])
+
+# Step 2: train lightgbm model
+model = LGBMClassifier()
+model.fit(train, y_train)
+```end
+
+# Constraints:
+- Ensure the output new code is executable in the same Jupyter notebook with previous tasks code have been executed.
+- The output code should contain all steps implemented in 'Code Steps'.
 """
 
+TOOL_USAGE_PROMPT = """
+# Background
+As a data scientist, you need to help user to achieve their goal [{user_requirement}] step-by-step in an continuous Jupyter notebook.
+
+## Done Tasks
+```python
+{history_code}
+```end
+
+## Current Task
+{current_task}
+
+# Latest Data Info
+Latest data info after previous tasks:
+{column_info}
+
+# Task
+Write complete code for 'Current Task'. And avoid duplicating code from 'Done Tasks', such as repeated import of packages, reading data, etc.
+Specifically, {special_prompt}
+
+# Code Steps:
+Strictly follow steps below when you writing code if it's convenient.
+{code_steps}
+
+# Capabilities
+- You can utilize pre-defined tools in any code lines from 'Available Tools' in the form of Python Class.
+- You can freely combine the use of any other public packages, like sklearn, numpy, pandas, etc..
+
+# Available Tools:
+Each Class tool is described in JSON format. When you call a tool, import the tool from `{module_name}` first.
+{tool_catalog}
+
+# Output Example:
+when current task is "do data preprocess, like fill missing value, handle outliers, etc.", and their are two steps in 'Code Steps', the code be like:
+```python
+# Step 1: fill missing value
+# Tools used: ['FillMissingValue']
+from metagpt.tools.functions.libs.data_preprocess import FillMissingValue
+
+train_processed = train.copy()
+test_processed = test.copy()
+num_cols = train_processed.select_dtypes(include='number').columns.tolist()
+fill_missing_value = FillMissingValue(features=num_cols, strategy='mean')
+fill_missing_value.fit(train_processed)
+train_processed = fill_missing_value.transform(train_processed)
+test_processed = fill_missing_value.transform(test_processed)
+
+# Step 2: handle outliers
+for col in num_cols:
+    low, high = train_processed[col].quantile([0.01, 0.99])
+    train_processed[col] = train_processed[col].clip(low, high)
+    test_processed[col] = test_processed[col].clip(low, high)
+```end
+
+# Constraints:
+- Ensure the output new code is executable in the same Jupyter notebook with previous tasks code have been executed.
+- Always prioritize using pre-defined tools for the same functionality.
+- Always copy the DataFrame before processing it and use the copy to process.
+- The output code should contain all steps implemented correctly in 'Code Steps'.
+"""
+#- If 'Code Steps' contains step done in 'Done Tasks', such as reading data, don't repeat it.
 
 DATA_PREPROCESS_PROMPT = """
-In data preprocessing, closely monitor each column's data type. Apply suitable methods for various types (numerical, categorical, datetime, textual, etc.) to ensure the pandas.DataFrame is correctly formatted.
-Additionally, ensure that the columns being processed must be the ones that actually exist in the dataset.
+The current task is about data preprocessing, please note the following:
+- Monitor data types per column, applying appropriate methods.
+- Ensure operations are on existing dataset columns.
+- Avoid writing processed data to files.
+- Prefer alternatives to one-hot encoding for categorical data.
+- Only encode necessary categorical columns to allow for potential feature-specific engineering tasks later.
 """
 
 FEATURE_ENGINEERING_PROMPT = """
-When performing feature engineering, please adhere to the following principles:
-- For specific user requests (such as removing a feature, creating a new feature based on existing data), directly generate the corresponding code.
-- In cases of unclear user requirements, write feature engineering code that you believe will most improve model performance. This may include feature transformation, combination, aggregation, etc., with a limit of five features at a time.
-- Ensure that the feature you're working with is indeed present in the dataset and consider the data type (numerical, categorical, etc.) and application scenario (classification, regression tasks, etc.).
-- Importantly, provide detailed comments explaining the purpose of each feature and how it might enhance model performance, especially when the features are generated based on semantic understanding without clear user directives.
+The current task is about feature engineering. when performing it, please adhere to the following principles:
+- Ensure operations are on existing dataset columns and consider the data type (numerical, categorical, etc.) and application scenario (classification, regression tasks, etc.).
+- Create impactful features based on real-world knowledge and column info.
+- Generate as diverse features as possible to improve the model's performance.
+- If potential impactful features are not included in 'Code Steps', add new steps to generate them.
 """
 
 MODEL_TRAIN_PROMPT = """
-When selecting and training a model, please follow these guidelines to ensure optimal performance:
+The current task is about training a model, please ensure high performance:
 - Keep in mind that your user prioritizes results and is highly focused on model performance. So, when needed, feel free to use models of any complexity to improve effectiveness, such as lightGBM, XGBoost, CatBoost, etc.
-— If user specifies a model, use that model. Otherwise, use the model you believe will best solve the problem.
+- Before training, first check not is_numeric_dtype columns and use label encoding to convert them to numeric columns.
+- Use the data from previous task result directly, do not mock or reload data yourself.
 """
 
-
-DATA_PREPROCESS_OUTPUT_DESC = "Please note that all functions uniformly output a processed pandas.DataFrame, facilitating seamless integration into the broader workflow."
-
-FEATURE_ENGINEERING_OUTPUT_DESC = "Please note that all functions uniformly output updated pandas.DataFrame with feature engineering applied."
-
-CLASSIFICATION_MODEL_OUTPUT_DESC = ""
-
-REGRESSION_MODEL_OUTPUT_DESC = ""
-
+MODEL_EVALUATE_PROMPT = """
+The current task is about evaluating a model, please note the following:
+- Ensure that the evaluated data is same processed as the training data. If not, remember use object in 'Done Tasks' to transform the data.
+- Use trained model from previous task result directly, do not mock or reload model yourself.
+"""
 
 ML_SPECIFIC_PROMPT = {
     "data_preprocess": DATA_PREPROCESS_PROMPT,
     "feature_engineering": FEATURE_ENGINEERING_PROMPT,
-    "classification_model": MODEL_TRAIN_PROMPT,
-    "regression_model": MODEL_TRAIN_PROMPT,
-}
-
-TOOL_OUTPUT_DESC = {
-    "data_preprocess": DATA_PREPROCESS_OUTPUT_DESC,
-    "feature_engineering": FEATURE_ENGINEERING_OUTPUT_DESC,
-    "classification_model": CLASSIFICATION_MODEL_OUTPUT_DESC,
-    "regression_model": REGRESSION_MODEL_OUTPUT_DESC,
+    "model_train": MODEL_TRAIN_PROMPT,
+    "model_evaluate": MODEL_EVALUATE_PROMPT,
 }
 
 ML_MODULE_MAP = {
-    "data_preprocess": "metagpt.tools.functions.libs.machine_learning.data_preprocess",
-    "feature_engineering": "metagpt.tools.functions.libs.machine_learning.feature_engineering",
-    "classification_model": "metagpt.tools.functions.libs.machine_learning.ml_model",
-    "regression_model": "metagpt.tools.functions.libs.machine_learning.ml_model",
+    "data_preprocess": "metagpt.tools.functions.libs.data_preprocess",
+    "feature_engineering": "metagpt.tools.functions.libs.feature_engineering",
 }
 
 STRUCTURAL_CONTEXT = """
