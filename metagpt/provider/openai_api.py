@@ -8,7 +8,7 @@ import asyncio
 import aiohttp
 import time
 import json
-from typing import NamedTuple, Union
+from typing import NamedTuple, Union, List, Dict
 
 import openai
 import requests
@@ -43,18 +43,45 @@ class RateLimiter:
         # Here 1.1 is used because even if the calls are made strictly according to time,
         # they will still be QOS'd; consider switching to simple error retry later
 
-    def split_batches(self, batch):
+    def split_batches(self, batch: List[Dict[str, str]]):
+        """
+        Splits a batch of requests into smaller batches based on the current RPM.
+
+        Args:
+            batch (list): A batch of requests to be split.
+
+        Returns:
+            list: A list of smaller batches, each not exceeding the RPM limit.
+
+        Raises:
+            ValueError: If RPM is not set before calling this method.
+        """
         if self.rpm is None:
             raise ValueError("Your must run update_rpm before calling split_batches.")
         return [batch[i : i + self.rpm] for i in range(0, len(batch), self.rpm)]
 
     async def update_rpm(self):
+        """
+        Asynchronously updates the RPM (requests per minute) limit.
+
+        This method fetches the RPM limit from an external API and updates the rate limiting parameters.
+        It is designed to be run before making any batched API calls.
+        """
         if self.rpm is None:
             self.rpm = await self._aget_rpm()
             self.interval = 1.1 * 60 / self.rpm
             logger.info(f'Setting rpm to {self.rpm}')
 
-    async def _aget_rpm(self):
+    async def _aget_rpm(self) -> int:
+        """
+        Asynchronously fetches the RPM (requests per minute) limit from an external API.
+
+        This is an internal method used by update_rpm to fetch the current RPM limit. It uses
+        the OPENAI_SESSION_KEY for authorization and falls back to a default RPM value in case of failure.
+
+        Returns:
+            int: The fetched or default RPM value.
+        """
         session_key = CONFIG.get("OPENAI_SESSION_KEY", "")
         default_rpm = int(CONFIG.get("RPM", 10))
         if len(session_key) > 0:
@@ -87,7 +114,19 @@ class RateLimiter:
         else:
             return default_rpm
 
-    async def wait_if_needed(self, num_requests):
+    async def wait_if_needed(self, num_requests: int):
+        """
+        Asynchronously waits before making API requests if the rate limit is about to be exceeded.
+
+        This method calculates the time elapsed since the last API call and determines if a delay
+        is required to stay within the RPM limit. If a delay is needed, it pauses the execution
+        for the required amount of time.
+
+        Args:
+            num_requests (int): The number of upcoming API requests for which to check the rate limit.
+
+        The method updates `self.last_call_time` to the current time after the waiting period, if any.
+        """
         current_time = time.time()
         elapsed_time = current_time - self.last_call_time
 
