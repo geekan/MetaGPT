@@ -1,7 +1,7 @@
 import pytest
 
 from metagpt.actions.execute_code import ExecutePyCode
-from metagpt.actions.make_tools import MakeTools
+from metagpt.actions.write_analysis_code import MakeTools
 from metagpt.logs import logger
 
 
