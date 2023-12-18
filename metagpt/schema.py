@@ -121,10 +121,6 @@ class Message(BaseModel):
         :param send_to: Specifies the target recipient or consumer for message delivery in the environment.
         :param role: Message meta info tells who sent this message.
         """
-        if not cause_by:
-            from metagpt.actions import UserRequirement
-            cause_by = UserRequirement
-
         super().__init__(
             id=uuid.uuid4().hex,
             content=content,

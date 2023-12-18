@@ -14,11 +14,11 @@ import uuid
 import pytest
 from pydantic import BaseModel
 
-from metagpt.actions import Action, ActionOutput
+from metagpt.actions import Action, ActionOutput, UserRequirement
 from metagpt.environment import Environment
 from metagpt.roles import Role
 from metagpt.schema import Message
-from metagpt.utils.common import get_class_name
+from metagpt.utils.common import any_to_str, get_class_name
 
 
 class MockAction(Action):
@@ -60,7 +60,7 @@ async def test_react():
             name=seed.name, profile=seed.profile, goal=seed.goal, constraints=seed.constraints, desc=seed.desc
         )
         role.subscribe({seed.subscription})
-        assert role._rc.watch == set({})
+        assert role._rc.watch == {any_to_str(UserRequirement)}
         assert role.name == seed.name
         assert role.profile == seed.profile
         assert role._setting.goal == seed.goal
