@@ -27,15 +27,15 @@ from typing import Iterable, Set, Type, Any
 
 from pydantic import BaseModel, Field
 
+
 from metagpt.actions.action import Action, ActionOutput, action_subclass_registry
 from metagpt.actions.action_node import ActionNode
 from metagpt.actions.add_requirement import UserRequirement
 from metagpt.const import SERDESER_PATH
-from metagpt.llm import LLM
+from metagpt.llm import LLM, HumanProvider
 from metagpt.logs import logger
 from metagpt.memory import Memory
 from metagpt.provider.base_gpt_api import BaseGPTAPI
-from metagpt.provider.human_provider import HumanProvider
 from metagpt.schema import Message, MessageQueue
 from metagpt.utils.common import any_to_str, read_json_file, write_json_file, import_class, role_raise_decorator
 from metagpt.utils.repair_llm_raw_output import extract_state_value_from_output
@@ -293,8 +293,7 @@ class Role(BaseModel):
         """Watch Actions of interest. Role will select Messages caused by these Actions from its personal message
         buffer during _observe.
         """
-        tags = {any_to_str(t) for t in actions}
-        self._rc.watch.update(tags)
+        self._rc.watch = {any_to_str(t) for t in actions}
         # check RoleContext after adding watch actions
         self._rc.check(self._role_id)
 
@@ -509,6 +508,8 @@ class Role(BaseModel):
                 msg = with_message
             elif isinstance(with_message, list):
                 msg = Message(content="\n".join(with_message))
+            if not msg.cause_by:
+                msg.cause_by = UserRequirement
             self.put_message(msg)
 
         if not await self._observe():
