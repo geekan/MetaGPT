@@ -39,6 +39,9 @@ from metagpt.const import (
     TASK_FILE_REPO,
 )
 from metagpt.logs import logger
+from metagpt.utils.serialize import actionoutout_schema_to_mapping, actionoutput_mapping_to_str, \
+    actionoutput_str_to_mapping
+from metagpt.utils.utils import import_class
 
 from metagpt.utils.common import any_to_str, any_to_str_set
 # from metagpt.utils.serialize import actionoutout_schema_to_mapping
@@ -53,6 +56,7 @@ from metagpt.utils.utils import import_class
 class RawMessage(TypedDict):
     content: str
     role: str
+
 
 
 class Document(BaseModel):

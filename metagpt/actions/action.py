@@ -64,11 +64,10 @@ class Action(BaseModel):
         """Set prefix for later usage"""
         self.prefix = prefix
         self.profile = profile
-        return self
 
     def __str__(self):
         return self.__class__.__name__
-
+    
     def __repr__(self):
         return self.__str__()
 

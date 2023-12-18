@@ -124,7 +124,7 @@ class RoleContext(BaseModel):
     news: list[Type[Message]] = Field(default=[], exclude=True)  # TODO not used
     react_mode: RoleReactMode = RoleReactMode.REACT # see `Role._set_react_mode` for definitions of the following two attributes
     max_react_loop: int = 1
-
+    
     class Config:
         arbitrary_types_allowed = True
 
@@ -175,7 +175,7 @@ class _RoleInjector(type):
 role_subclass_registry = {}
 
 
-class Role(BaseModel):
+class Role(BaseModel, metaclass=_RoleInjector):
     """Role/Agent"""
     name: str = ""
     profile: str = ""
@@ -248,6 +248,62 @@ class Role(BaseModel):
         super().__init_subclass__(**kwargs)
         role_subclass_registry[cls.__name__] = cls
 
+    # builtin variables
+    recovered: bool = False  # to tag if a recovered role
+    builtin_class_name: str = ""
+
+    _private_attributes = {
+        "_llm": LLM() if not is_human else HumanProvider(),
+        "_role_id": _role_id,
+        "_states": [],
+        "_actions": [],
+        "_rc": RoleContext()
+    }
+
+    class Config:
+        arbitrary_types_allowed = True
+        exclude = ["_llm"]
+
+    def __init__(self, **kwargs: Any):
+        for index in range(len(kwargs.get("_actions", []))):
+            current_action = kwargs["_actions"][index]
+            if isinstance(current_action, dict):
+                item_class_name = current_action.get("builtin_class_name", None)
+                for name, subclass in action_subclass_registry.items():
+                    registery_class_name = subclass.__fields__["builtin_class_name"].default
+                    if item_class_name == registery_class_name:
+                        current_action = subclass(**current_action)
+                        break
+                kwargs["_actions"][index] = current_action
+
+        super().__init__(**kwargs)
+
+        # 关于私有变量的初始化  https://github.com/pydantic/pydantic/issues/655
+        self._private_attributes["_llm"] = LLM() if not self.is_human else HumanProvider()
+        self._private_attributes["_role_id"] = str(self._setting)
+
+        for key in self._private_attributes.keys():
+            if key in kwargs:
+                object.__setattr__(self, key, kwargs[key])
+                if key == "_rc":
+                    _rc = RoleContext(**kwargs["_rc"])
+                    object.__setattr__(self, "_rc", _rc)
+            else:
+                if key == "_rc":
+                    # # Warning, if use self._private_attributes["_rc"],
+                    # # self._rc will be a shared object between roles, so init one or reset it inside `_reset`
+                    object.__setattr__(self, key, RoleContext())
+                else:
+                    object.__setattr__(self, key, self._private_attributes[key])
+
+        # deserialize child classes dynamically for inherited `role`
+        object.__setattr__(self, "builtin_class_name", self.__class__.__name__)
+        self.__fields__["builtin_class_name"].default = self.__class__.__name__
+
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        super().__init_subclass__(**kwargs)
+        role_subclass_registry[cls.__name__] = cls
+    
     def _reset(self):
         object.__setattr__(self, "_states", [])
         object.__setattr__(self, "_actions", [])
@@ -442,7 +498,7 @@ class Role(BaseModel):
             if next_state == -1:
                 logger.info(f"End actions with {next_state=}")
         self._set_state(next_state)
-
+    
     async def _act(self) -> Message:
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
         response = await self._rc.todo.run(self._rc.important_memory)
@@ -574,7 +630,7 @@ class Role(BaseModel):
             # If there is no new information, suspend and wait
             logger.debug(f"{self._setting}: no news. waiting.")
             return
-
+        
         rsp = await self.react()
 
         # Reset the next action to be taken.

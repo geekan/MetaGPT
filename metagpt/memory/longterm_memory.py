@@ -7,6 +7,9 @@
 from typing import Optional
 from pydantic import Field
 
+from typing import Optional
+from pydantic import Field
+
 from metagpt.logs import logger
 from metagpt.memory import Memory
 from metagpt.memory.memory_storage import MemoryStorage

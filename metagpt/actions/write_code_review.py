@@ -7,6 +7,9 @@
 @Modified By: mashenquan, 2023/11/27. Following the think-act principle, solidify the task parameters when creating the
         WriteCode object, rather than passing them in when calling the run function.
 """
+from typing import List, Optional, Any
+from pydantic import Field
+from tenacity import retry, stop_after_attempt, wait_fixed
 
 from typing import List, Optional, Any
 from pydantic import Field

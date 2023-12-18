@@ -8,6 +8,9 @@ import json
 from pathlib import Path
 import importlib
 from tenacity import _utils
+import traceback
+
+from metagpt.logs import logger
 
 
 def general_after_log(logger: "loguru.Logger", sec_format: str = "%0.3f") -> typing.Callable[["RetryCallState"], None]:

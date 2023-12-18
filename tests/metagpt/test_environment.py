@@ -61,6 +61,7 @@ async def test_publish_and_process_message(env: Environment):
                           constraints="资源有限，需要节省成本")
 
     env.add_roles([product_manager, architect])
+
     env.set_manager(Manager())
     env.publish_message(Message(role="User", content="需要一个基于LLM做总结的搜索引擎", cause_by=UserRequirement))
 

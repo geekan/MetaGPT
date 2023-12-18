@@ -25,6 +25,7 @@ class ProjectManager(Role):
     name: str = Field(default="Eve")
     profile: str = Field(default="Project Manager")
     
+
     goal: str = "reak down tasks according to PRD/technical design, generate a task list, and analyze task " \
                 "dependencies to start with the prerequisite modules"
     constraints: str = "use same language as user requirement"

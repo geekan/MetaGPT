@@ -49,7 +49,6 @@ from metagpt.utils.common import any_to_str, any_to_str_set
 IS_PASS_PROMPT = """
 {context}
 
-<<<<<<< HEAD
 ----
 Does the above log indicate anything that needs to be done?
 If there are any tasks to be completed, please answer 'NO' along with the to-do list in JSON format;
