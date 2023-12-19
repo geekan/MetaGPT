@@ -57,3 +57,4 @@ socksio~=1.0.0
 gitignore-parser==0.1.9
 connexion[swagger-ui]
 websockets~=12.0
+networkx~=3.2.1

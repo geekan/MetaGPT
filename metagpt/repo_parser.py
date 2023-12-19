@@ -51,7 +51,11 @@ class RepoParser(BaseModel):
     def generate_symbols(self):
         files_classes = []
         directory = self.base_directory
-        for path in directory.rglob("*.py"):
+        matching_files = []
+        extensions = ["*.py", "*.js"]
+        for ext in extensions:
+            matching_files += directory.rglob(ext)
+        for path in matching_files:
             tree = self.parse_file(path)
             file_info = self.extract_class_and_function_info(tree, path)
             files_classes.append(file_info)

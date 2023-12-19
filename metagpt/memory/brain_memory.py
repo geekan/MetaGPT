@@ -4,7 +4,7 @@
 @Time    : 2023/8/18
 @Author  : mashenquan
 @File    : brain_memory.py
-@Desc    : Support memory for multiple tasks and multiple mainlines.
+@Desc    : Support memory for multiple tasks and multiple mainlines. Obsoleted by `utils/*_repository.py`.
 @Modified By: mashenquan, 2023/9/4. + redis memory cache.
 """
 import json

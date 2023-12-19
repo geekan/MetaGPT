@@ -393,3 +393,7 @@ def format_value(value):
     for k, v in merged_opts.items():
         value = value.replace("{" + f"{k}" + "}", str(v))
     return value
+
+
+def concat_namespace(*args) -> str:
+    return ":".join(str(value) for value in args)
