@@ -144,24 +144,18 @@ cython_debug/
 allure-report
 allure-results
 
-# idea
+# idea / vscode / macos
 .idea
 .DS_Store
 .vscode
 
-log.txt
-docs/scripts/set_env.sh
 key.yaml
-output.json
 data
-data/output_add.json
 data.ms
 examples/nb/
 .chroma
 *~$*
 workspace/*
-*.mmd
 tmp
-output.wav
 metagpt/roles/idea_agent.py
 .aider*
