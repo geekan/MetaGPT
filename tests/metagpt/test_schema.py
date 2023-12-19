@@ -16,7 +16,6 @@ from metagpt.schema import AIMessage, Message, SystemMessage, UserMessage
 from metagpt.utils.common import get_class_name
 
 
-@pytest.mark.asyncio
 def test_messages():
     test_content = "test_message"
     msgs = [
@@ -30,7 +29,6 @@ def test_messages():
     assert all([i in text for i in roles])
 
 
-@pytest.mark.asyncio
 def test_message():
     m = Message("a", role="v1")
     v = m.dump()
@@ -61,7 +59,6 @@ def test_message():
     assert m.content == "b"
 
 
-@pytest.mark.asyncio
 def test_routes():
     m = Message("a", role="b", cause_by="c", x="d", send_to="c")
     m.send_to = "b"

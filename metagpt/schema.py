@@ -163,8 +163,14 @@ class Message(BaseModel):
     def load(val):
         """Convert the json string to object."""
         try:
-            d = json.loads(val)
-            return Message(**d)
+            m = json.loads(val)
+            id = m.get("id")
+            if "id" in m:
+                del m["id"]
+            msg = Message(**m)
+            if id:
+                msg.id = id
+            return msg
         except JSONDecodeError as err:
             logger.error(f"parse json failed: {val}, error:{err}")
         return None

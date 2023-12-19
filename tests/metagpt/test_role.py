@@ -88,13 +88,13 @@ async def test_react():
 @pytest.mark.asyncio
 async def test_msg_to():
     m = Message(content="a", send_to=["a", MockRole, Message])
-    assert m.send_to == set({"a", get_class_name(MockRole), get_class_name(Message)})
+    assert m.send_to == {"a", get_class_name(MockRole), get_class_name(Message)}
 
     m = Message(content="a", cause_by=MockAction, send_to={"a", MockRole, Message})
-    assert m.send_to == set({"a", get_class_name(MockRole), get_class_name(Message)})
+    assert m.send_to == {"a", get_class_name(MockRole), get_class_name(Message)}
 
     m = Message(content="a", send_to=("a", MockRole, Message))
-    assert m.send_to == set({"a", get_class_name(MockRole), get_class_name(Message)})
+    assert m.send_to == {"a", get_class_name(MockRole), get_class_name(Message)}
 
 
 if __name__ == "__main__":
