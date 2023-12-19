@@ -9,7 +9,7 @@
 from metagpt.config import CONFIG
 from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.provider.human_provider import HumanProvider
-from metagpt.provider.llm_provider_registry import LLMProviderRegistry
+from metagpt.provider.llm_provider_registry import LLM_REGISTRY
 
 _ = HumanProvider()  # Avoid pre-commit error
 
@@ -17,4 +17,4 @@ _ = HumanProvider()  # Avoid pre-commit error
 def LLM() -> BaseGPTAPI:
     """initialize different LLM instance according to the key field existence"""
     # TODO a little trick, can use registry to initialize LLM instance further
-    return LLMProviderRegistry.get_provider(CONFIG.get_default_llm_provider_enum())
+    return LLM_REGISTRY.get_provider(CONFIG.get_default_llm_provider_enum())
