@@ -25,8 +25,8 @@ from metagpt.utils.common import NoMoneyException, read_json_file, write_json_fi
 
 class Team(BaseModel):
     """
-    Team: Possesses one or more roles (agents), SOP (Standard Operating Procedures), and a platform for instant messaging,
-    dedicated to perform any multi-agent activity, such as collaboratively writing executable code.
+    Team: Possesses one or more roles (agents), SOP (Standard Operating Procedures), and a env for instant messaging,
+    dedicated to env any multi-agent activity, such as collaboratively writing executable code.
     """
 
     env: Environment = Field(default_factory=Environment)
