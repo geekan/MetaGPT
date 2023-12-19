@@ -77,7 +77,7 @@ def docstring_to_yaml(docstring: str, return_vars: List[str] = None):
         err_msg = f"No Args found in docstring as following, Please make sure it is google style\
             : \n\n{'-'*60}\n{docstring}\n{'-'*60}\n\n."
         logger.error(err_msg)
-        params = (('', '', ''),)
+        params = ((None, None, None),)
     # 匹配Returns部分
     returns_match = re.search(r'Returns:\s*(.*?)(?:Raises:|$)', docstring, re.DOTALL)
     returns = returns_match.group(1).strip() if returns_match else ""
@@ -89,8 +89,8 @@ def docstring_to_yaml(docstring: str, return_vars: List[str] = None):
     yaml_data = {
         'description': description.strip('.').strip(),
         'parameters': {
-            'properties': {param[0]: {'type': param[1], 'description': param[2]} for param in params},
-            'required': [param[0] for param in params]
+            'properties': {param[0]: {'type': param[1], 'description': param[2]} for param in params if param[0] is not None},
+            'required': [param[0] for param in params if param[0] is not None]
         },
         'returns': {ret[0]: {'type': ret[1], 'description': ret[2]} for ret in returns}
     }
