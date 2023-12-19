@@ -55,7 +55,7 @@ class Config(metaclass=Singleton):
     default_yaml_file = METAGPT_ROOT / "config/config.yaml"
 
     def __init__(self, yaml_file=default_yaml_file):
-        golbal_options = OPTIONS.get()
+        global_options = OPTIONS.get()
         # cli paras
         self.project_path = ""
         self.project_name = ""
@@ -65,7 +65,7 @@ class Config(metaclass=Singleton):
 
         self._init_with_config_files_and_env(yaml_file)
         self._update()
-        golbal_options.update(OPTIONS.get())
+        global_options.update(OPTIONS.get())
         logger.debug("Config loading done.")
 
     def get_default_llm_provider_enum(self):
