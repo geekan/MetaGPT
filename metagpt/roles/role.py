@@ -146,7 +146,7 @@ class Role:
         self._actions = []
 
     def _init_action_system_message(self, action: Action):
-        action.set_prefix(self._get_prefix(), self.profile)
+        action.set_prefix(self._get_prefix())
 
     def _init_actions(self, actions):
         self._reset()

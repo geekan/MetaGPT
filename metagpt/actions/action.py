@@ -26,22 +26,12 @@ class Action(ABC):
         self.llm = llm
         self.context = context
         self.prefix = ""  # aask*时会加上prefix，作为system_message
-        self.profile = ""  # FIXME: USELESS
         self.desc = ""  # for skill manager
         self.nodes = ...
 
-        # Output, useless
-        # self.content = ""
-        # self.instruct_content = None
-        # self.env = None
-
-    # def set_env(self, env):
-    #     self.env = env
-
-    def set_prefix(self, prefix, profile):
+    def set_prefix(self, prefix):
         """Set prefix for later usage"""
         self.prefix = prefix
-        self.profile = profile
         return self
 
     def __str__(self):
