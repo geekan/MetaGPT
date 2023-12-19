@@ -282,11 +282,11 @@ T = TypeVar("T", bound="BaseModel")
 
 
 class BaseContext(BaseModel):
-    @staticmethod
+    @classmethod
     @handle_exception
-    def loads(val: str, cls: Type[T]) -> Optional[T]:
-        m = json.loads(val)
-        return cls(**m)
+    def loads(cls: Type[T], val: str) -> Optional[T]:
+        i = json.loads(val)
+        return cls(**i)
 
 
 class CodingContext(BaseContext):
