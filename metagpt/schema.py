@@ -22,7 +22,7 @@ import uuid
 from asyncio import Queue, QueueEmpty, wait_for
 from json import JSONDecodeError
 from pathlib import Path
-from typing import Dict, List, Set, TypedDict, Optional, Any
+from typing import Dict, List, Optional, Set, Type, TypedDict, TypeVar, Any
 
 from pydantic import BaseModel, Field
 
@@ -39,6 +39,7 @@ from metagpt.logs import logger
 from metagpt.utils.common import any_to_str, any_to_str_set, import_class
 from metagpt.utils.serialize import actionoutout_schema_to_mapping, actionoutput_mapping_to_str, \
     actionoutput_str_to_mapping
+from metagpt.utils.exceptions import handle_exception
 
 
 class RawMessage(TypedDict):
@@ -163,14 +164,11 @@ class Message(BaseModel):
         return self.json(exclude_none=True)
 
     @staticmethod
+    @handle_exception(exception_type=JSONDecodeError, default_return=None)
     def load(val):
         """Convert the json string to object."""
-        try:
-            d = json.loads(val)
-            return Message(**d)
-        except JSONDecodeError as err:
-            logger.error(f"parse json failed: {val}, error:{err}")
-        return None
+        d = json.loads(val)
+        return Message(**d)
 
 
 class UserMessage(Message):
@@ -265,50 +263,46 @@ class MessageQueue(BaseModel):
         return json.dumps(lst)
 
     @staticmethod
-    def load(self, v) -> MessageQueue:
+    def load(i) -> "MessageQueue":
         """Convert the json string to the `MessageQueue` object."""
-        q = MessageQueue()
+        queue = MessageQueue()
         try:
-            lst = json.loads(v)
+            lst = json.loads(i)
             for i in lst:
                 msg = Message(**i)
-                q.push(msg)
+                queue.push(msg)
         except JSONDecodeError as e:
-            logger.warning(f"JSON load failed: {v}, error:{e}")
+            logger.warning(f"JSON load failed: {i}, error:{e}")
 
-        return q
+        return queue
 
 
-class CodingContext(BaseModel):
+# 定义一个泛型类型变量
+T = TypeVar("T", bound="BaseModel")
+
+
+class BaseContext(BaseModel):
+    @staticmethod
+    @handle_exception
+    def loads(val: str, cls: Type[T]) -> Optional[T]:
+        m = json.loads(val)
+        return cls(**m)
+
+
+class CodingContext(BaseContext):
     filename: str
     design_doc: Optional[Document]
     task_doc: Optional[Document]
     code_doc: Optional[Document]
 
-    @staticmethod
-    def loads(val: str) -> CodingContext | None:
-        try:
-            m = json.loads(val)
-            return CodingContext(**m)
-        except Exception:
-            return None
 
-
-class TestingContext(BaseModel):
+class TestingContext(BaseContext):
     filename: str
     code_doc: Document
     test_doc: Optional[Document]
 
-    @staticmethod
-    def loads(val: str) -> TestingContext | None:
-        try:
-            m = json.loads(val)
-            return TestingContext(**m)
-        except Exception:
-            return None
 
-
-class RunCodeContext(BaseModel):
+class RunCodeContext(BaseContext):
     mode: str = "script"
     code: Optional[str]
     code_filename: str = ""
@@ -320,27 +314,11 @@ class RunCodeContext(BaseModel):
     output_filename: Optional[str]
     output: Optional[str]
 
-    @staticmethod
-    def loads(val: str) -> RunCodeContext | None:
-        try:
-            m = json.loads(val)
-            return RunCodeContext(**m)
-        except Exception:
-            return None
 
-
-class RunCodeResult(BaseModel):
+class RunCodeResult(BaseContext):
     summary: str
     stdout: str
     stderr: str
-
-    @staticmethod
-    def loads(val: str) -> RunCodeResult | None:
-        try:
-            m = json.loads(val)
-            return RunCodeResult(**m)
-        except Exception:
-            return None
 
 
 class CodeSummarizeContext(BaseModel):
@@ -365,5 +343,5 @@ class CodeSummarizeContext(BaseModel):
         return hash((self.design_filename, self.task_filename))
 
 
-class BugFixContext(BaseModel):
+class BugFixContext(BaseContext):
     filename: str = ""

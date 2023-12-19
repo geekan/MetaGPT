@@ -15,17 +15,17 @@ from pydantic import BaseModel, Field
 
 from metagpt.config import CONFIG
 from metagpt.logs import logger
+from metagpt.utils.exceptions import handle_exception
 
 
 class RepoParser(BaseModel):
     base_directory: Path = Field(default=None)
 
-    def parse_file(self, file_path):
+    @classmethod
+    @handle_exception(exception_type=Exception, default_return=[])
+    def _parse_file(cls, file_path: Path) -> list:
         """Parse a Python file in the repository."""
-        try:
-            return ast.parse(file_path.read_text()).body
-        except:
-            return []
+        return ast.parse(file_path.read_text()).body
 
     def extract_class_and_function_info(self, tree, file_path):
         """Extract class, function, and global variable information from the AST."""
@@ -52,7 +52,7 @@ class RepoParser(BaseModel):
         files_classes = []
         directory = self.base_directory
         for path in directory.rglob("*.py"):
-            tree = self.parse_file(path)
+            tree = self._parse_file(path)
             file_info = self.extract_class_and_function_info(tree, path)
             files_classes.append(file_info)
 
@@ -90,5 +90,10 @@ def main():
     logger.info(pformat(symbols))
 
 
+def error():
+    """raise Exception and logs it"""
+    RepoParser._parse_file(Path("test.py"))
+
+
 if __name__ == "__main__":
-    main()
+    error()

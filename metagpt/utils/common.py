@@ -25,12 +25,14 @@ from pathlib import Path
 from typing import Any
 from typing import List, Tuple, Union
 
+import aiofiles
 import loguru
 from pydantic.json import pydantic_encoder
 from tenacity import RetryCallState, _utils
 
 from metagpt.const import MESSAGE_ROUTE_TO_ALL
 from metagpt.logs import logger
+from metagpt.utils.exceptions import handle_exception
 
 
 def check_cmd_exists(command) -> int:
@@ -478,3 +480,11 @@ def role_raise_decorator(func):
             raise Exception(format_trackback_info(limit=None))  # raise again to make it captured outside
 
     return wrapper
+
+
+@handle_exception
+async def aread(file_path: str) -> str:
+    """Read file asynchronously."""
+    async with aiofiles.open(str(file_path), mode="r") as reader:
+        content = await reader.read()
+    return content

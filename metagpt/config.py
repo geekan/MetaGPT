@@ -139,6 +139,7 @@ class Config(metaclass=Singleton):
                     continue
                 configs.update(yaml_data)
         OPTIONS.set(configs)
+        logger.info(f"Default OpenAI API Model: {self.openai_api_model}")
 
     @staticmethod
     def _get(*args, **kwargs):
