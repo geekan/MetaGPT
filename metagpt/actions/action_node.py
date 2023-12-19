@@ -6,7 +6,7 @@
 @File    : action_node.py
 """
 import json
-from typing import Dict, Generic, List, Optional, Type, TypeVar
+from typing import Any, Dict, Generic, List, Optional, Tuple, Type, TypeVar
 
 from pydantic import BaseModel, create_model, root_validator, validator
 from tenacity import retry, stop_after_attempt, wait_random_exponential
@@ -127,7 +127,7 @@ class ActionNode(Generic[T]):
         return self.get_self_mapping()
 
     @classmethod
-    def create_model_class(cls, class_name: str, mapping: Dict[str, Type]):
+    def create_model_class(cls, class_name: str, mapping: Dict[str, Tuple[Type, Any]]):
         """基于pydantic v1的模型动态生成，用来检验结果类型正确性"""
         new_class = create_model(class_name, **mapping)
 

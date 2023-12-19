@@ -7,7 +7,7 @@
 """
 from typing import List, Tuple
 
-from metagpt.actions import ActionOutput
+from metagpt.actions.action_node import ActionNode
 
 t_dict = {
     "Required Python third-party packages": '"""\nflask==1.1.2\npygame==2.0.1\n"""\n',
@@ -37,12 +37,12 @@ WRITE_TASKS_OUTPUT_MAPPING = {
 
 
 def test_create_model_class():
-    test_class = ActionOutput.create_model_class("test_class", WRITE_TASKS_OUTPUT_MAPPING)
+    test_class = ActionNode.create_model_class("test_class", WRITE_TASKS_OUTPUT_MAPPING)
     assert test_class.__name__ == "test_class"
 
 
 def test_create_model_class_with_mapping():
-    t = ActionOutput.create_model_class("test_class_1", WRITE_TASKS_OUTPUT_MAPPING)
+    t = ActionNode.create_model_class("test_class_1", WRITE_TASKS_OUTPUT_MAPPING)
     t1 = t(**t_dict)
     value = t1.dict()["Task list"]
     assert value == ["game.py", "app.py", "static/css/styles.css", "static/js/script.js", "templates/index.html"]
