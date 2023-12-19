@@ -182,7 +182,7 @@ class WritePRD(Action):
                 return
 
         if not CONFIG.project_name:
-            if isinstance(prd, ActionOutput) or isinstance(prd, ActionNode):
+            if isinstance(prd, (ActionOutput, ActionNode)):
                 ws_name = prd.instruct_content.dict()["Project Name"]
             else:
                 ws_name = CodeParser.parse_str(block="Project Name", text=prd)

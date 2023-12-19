@@ -197,7 +197,7 @@ class OutputParser:
                 result = ast.literal_eval(structure_text)
 
                 # Ensure the result matches the specified data type
-                if isinstance(result, list) or isinstance(result, dict):
+                if isinstance(result, (list, dict)):
                     return result
 
                 raise ValueError(f"The extracted structure is not a {data_type}.")
