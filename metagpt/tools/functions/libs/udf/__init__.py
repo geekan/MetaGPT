@@ -114,4 +114,5 @@ function_signatures, function_returns = get_function_signatures_in_folder(folder
 UDFS = [func for func in function_signatures
         if not func['udf_name'].startswith(('extract_function_signatures', 'get_function_signatures_in_folder', 'docstring_to_yaml'))]
 
-UDFS_YAML = extract_function_schema_yaml_in_folder(folder_path)
+UDFS_YAML_STR: str = extract_function_schema_yaml_in_folder(folder_path)
+UDFS_YAML: dict = yaml.load(UDFS_YAML_STR, Loader=yaml.FullLoader)
