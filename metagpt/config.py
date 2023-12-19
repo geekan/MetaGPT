@@ -131,8 +131,20 @@ class Config(metaclass=Singleton):
         self.workspace_path = Path(self._get("WORKSPACE_PATH", DEFAULT_WORKSPACE_ROOT))
         self._ensure_workspace_exists()
 
+    def _init_cli_paras(self):
+        self.project_path = None
+        self.project_name = None
+        self.inc = None
+        self.reqa_file = None
+        self.max_auto_summarize_code = None
+
     def update_via_cli(self, project_path, project_name, inc, reqa_file, max_auto_summarize_code):
         """update config via cli"""
+
+        # Use in the PrepareDocuments action according to Section 2.2.3.5.1 of RFC 135.
+        if project_path:
+            inc = True
+            project_name = project_name or Path(project_path).name
         self.project_path = project_path
         self.project_name = project_name
         self.inc = inc
