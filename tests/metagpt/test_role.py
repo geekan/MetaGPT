@@ -18,7 +18,7 @@ from metagpt.actions import Action, ActionOutput, UserRequirement
 from metagpt.environment import Environment
 from metagpt.roles import Role
 from metagpt.schema import Message
-from metagpt.utils.common import any_to_str, get_class_name
+from metagpt.utils.common import any_to_str
 
 
 class MockAction(Action):
@@ -88,13 +88,13 @@ async def test_react():
 @pytest.mark.asyncio
 async def test_msg_to():
     m = Message(content="a", send_to=["a", MockRole, Message])
-    assert m.send_to == set({"a", get_class_name(MockRole), get_class_name(Message)})
+    assert m.send_to == {"a", any_to_str(MockRole), any_to_str(Message)}
 
     m = Message(content="a", cause_by=MockAction, send_to={"a", MockRole, Message})
-    assert m.send_to == set({"a", get_class_name(MockRole), get_class_name(Message)})
+    assert m.send_to == {"a", any_to_str(MockRole), any_to_str(Message)}
 
     m = Message(content="a", send_to=("a", MockRole, Message))
-    assert m.send_to == set({"a", get_class_name(MockRole), get_class_name(Message)})
+    assert m.send_to == {"a", any_to_str(MockRole), any_to_str(Message)}
 
 
 if __name__ == "__main__":
