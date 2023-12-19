@@ -32,10 +32,10 @@ JUDGE_PROMPT_TEMPLATE = """
 # State
 Output "Ture" or "False". Judging from the code perspective, whether the user's needs have been completely fulfilled.
 =====
-# Finally output State, Thought and Next Action separately in one sentence
+# Output State("Ture" or "False") firstly, then output Thought and Next Steps for the code requirements based on the context respectively in one sentence
 State:
 Thought:
-Next Action:
+Next Steps:
 """
 
 
@@ -132,10 +132,10 @@ class MLEngineerSimple(Role):
         )
         context_msg = [Message(content=context, role="user")]
 
-        return context_msg + self.get_working_memories()
+        return context_msg + self.get_working_memories(6)
 
-    def get_working_memories(self, num=6) -> List[Message]:
-        return self.working_memory.get(num)   # 默认为6
+    def get_working_memories(self, num=0) -> List[Message]:
+        return self.working_memory.get(num)  # 默认为6
 
 
 if __name__ == "__main__":
