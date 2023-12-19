@@ -8,22 +8,16 @@
             the utilization of the new feature of `Message` class.
 """
 
-<<<<<<< HEAD
 import json
-
 import pytest
 
 from metagpt.actions import Action
-=======
->>>>>>> a69be36abf7beef1a989a707d1aa027948c07fee
 from metagpt.schema import AIMessage, Message, SystemMessage, UserMessage
 from metagpt.actions.action_output import ActionOutput
 from metagpt.actions.write_code import WriteCode
 from metagpt.utils.serialize import serialize_general_message, deserialize_general_message
-<<<<<<< HEAD
+
 from metagpt.utils.common import get_class_name
-=======
->>>>>>> a69be36abf7beef1a989a707d1aa027948c07fee
 
 
 @pytest.mark.asyncio

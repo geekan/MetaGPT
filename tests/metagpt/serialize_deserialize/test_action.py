@@ -4,9 +4,8 @@
 # @Desc    :
 import pytest
 
-from metagpt.actions import Action, WritePRD, WriteTest
+from metagpt.actions import Action, WriteTest
 from metagpt.llm import LLM
-from metagpt.provider.openai_api import OpenAIGPTAPI
 
 
 def test_action_serialize():

@@ -8,9 +8,11 @@ import shutil
 from metagpt.schema import Message
 from metagpt.actions.action_output import ActionOutput
 from metagpt.roles.project_manager import ProjectManager
-from metagpt.actions.add_requirement import BossRequirement
+from metagpt.actions.add_requirement import UserRequirement
 from metagpt.actions.project_management import WriteTasks
 from metagpt.environment import Environment
+from metagpt.utils.common import any_to_str
+
 from tests.metagpt.serialize_deserialize.test_serdeser_base import RoleC, ActionOK, serdeser_path
 
 
@@ -18,7 +20,6 @@ def test_env_serialize():
     env = Environment()
     ser_env_dict = env.dict()
     assert "roles" in ser_env_dict
-    assert "memory" in ser_env_dict
 
 
 def test_env_deserialize():
@@ -27,7 +28,6 @@ def test_env_deserialize():
     ser_env_dict = env.dict()
     new_env = Environment(**ser_env_dict)
     assert len(new_env.roles) == 0
-    assert new_env.memory.storage[0].content == "test env serialize"
     assert len(new_env.history) == 25
 
 
@@ -40,7 +40,7 @@ def test_environment_serdeser():
         content="prd",
         instruct_content=ic_obj(**out_data),
         role="product manager",
-        cause_by=BossRequirement
+        cause_by=any_to_str(UserRequirement)
     )
 
     environment = Environment()
@@ -54,8 +54,6 @@ def test_environment_serdeser():
     new_env: Environment = Environment(**ser_data)
     assert len(new_env.roles) == 1
 
-    assert new_env.memory.count() == 1
-    assert new_env.memory.storage[0].instruct_content == ic_obj(**out_data)
     assert list(new_env.roles.values())[0]._states == list(environment.roles.values())[0]._states
     assert list(new_env.roles.values())[0]._actions == list(environment.roles.values())[0]._actions
     assert isinstance(list(environment.roles.values())[0]._actions[0], ActionOK)
@@ -82,7 +80,7 @@ def test_environment_serdeser_save():
 
     shutil.rmtree(serdeser_path.joinpath("team"), ignore_errors=True)
 
-    stg_path = serdeser_path.joinpath("team/environment")
+    stg_path = serdeser_path.joinpath("team", "environment")
     environment.add_role(role_c)
     environment.serialize(stg_path)
 

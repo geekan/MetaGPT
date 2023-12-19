@@ -16,6 +16,6 @@ async def test_product_manager_deserialize():
     new_role = ProductManager(**ser_role_dict)
 
     assert new_role.name == "Alice"
-    assert len(new_role._actions) == 1
+    assert len(new_role._actions) == 2
     assert isinstance(new_role._actions[0], Action)
     await new_role._actions[0].run([Message(content="write a cli snake game")])

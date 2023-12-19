@@ -5,6 +5,7 @@
 from metagpt.schema import Message
 from metagpt.actions.action_output import ActionOutput
 from metagpt.actions.write_code import WriteCode
+from metagpt.utils.common import any_to_str
 
 from tests.metagpt.serialize_deserialize.test_serdeser_base import MockMessage
 
@@ -21,15 +22,12 @@ def test_message_serdeser():
         cause_by=WriteCode
     )
     ser_data = message.dict()
-    assert ser_data["cause_by"] == {
-        "action_class": "WriteCode",
-        "module_name": "metagpt.actions.write_code"
-    }
+    assert ser_data["cause_by"] == "metagpt.actions.write_code.WriteCode"
     assert ser_data["instruct_content"]["class"] == "code"
 
     new_message = Message(**ser_data)
-    assert new_message.cause_by == WriteCode
-    assert new_message.cause_by in [WriteCode]
+    assert new_message.cause_by == any_to_str(WriteCode)
+    assert new_message.cause_by in [any_to_str(WriteCode)]
     assert new_message.instruct_content == ic_obj(**out_data)
 
 

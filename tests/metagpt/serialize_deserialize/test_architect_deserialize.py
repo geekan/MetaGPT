@@ -25,4 +25,4 @@ async def test_architect_deserialize():
     assert new_role.name == "Bob"
     assert len(new_role._actions) == 1
     assert isinstance(new_role._actions[0], Action)
-    await new_role._actions[0].run(context="write a cli snake game")
+    await new_role._actions[0].run(with_messages="write a cli snake game")

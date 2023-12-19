@@ -8,11 +8,11 @@ import asyncio
 
 from metagpt.actions.action import Action
 from metagpt.roles.role import Role, RoleReactMode
-from metagpt.actions.add_requirement import BossRequirement
+from metagpt.actions.add_requirement import UserRequirement
 from metagpt.actions.action_output import ActionOutput
 
 
-serdeser_path = Path(__file__).absolute().parent.joinpath("../../data/serdeser_storage")
+serdeser_path = Path(__file__).absolute().parent.joinpath("..", "..", "data", "serdeser_storage")
 
 
 class MockMessage(BaseModel):
@@ -60,7 +60,7 @@ class RoleA(Role):
     def __init__(self, **kwargs):
         super(RoleA, self).__init__(**kwargs)
         self._init_actions([ActionPass])
-        self._watch([BossRequirement])
+        self._watch([UserRequirement])
 
 
 class RoleB(Role):
@@ -85,5 +85,5 @@ class RoleC(Role):
     def __init__(self, **kwargs):
         super(RoleC, self).__init__(**kwargs)
         self._init_actions([ActionOK, ActionRaise])
-        self._watch([BossRequirement])
+        self._watch([UserRequirement])
         self._rc.react_mode = RoleReactMode.BY_ORDER

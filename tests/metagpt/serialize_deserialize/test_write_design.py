@@ -29,7 +29,7 @@ async def test_write_design_deserialize():
     new_action = WriteDesign(**serialized_data)
     assert new_action.name == ""
     assert new_action.llm == LLM()
-    await new_action.run(context="write a cli snake game")
+    await new_action.run(with_messages="write a cli snake game")
 
 
 @pytest.mark.asyncio
@@ -39,4 +39,4 @@ async def test_write_task_deserialize():
     new_action = WriteTasks(**serialized_data)
     assert new_action.name == "CreateTasks"
     assert new_action.llm == LLM()
-    await new_action.run(context="write a cli snake game")
+    await new_action.run(with_messages="write a cli snake game")

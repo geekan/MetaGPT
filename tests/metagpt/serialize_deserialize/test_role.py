@@ -3,15 +3,14 @@
 # @Author  : stellahong (stellahong@fuzhi.ai)
 # @Desc    :
 
-from pathlib import Path
 import shutil
 import pytest
 
 from metagpt.logs import logger
 from metagpt.roles.role import Role
-from metagpt.actions import WriteCode, WriteCodeReview
+from metagpt.actions import WriteCode
 from metagpt.schema import Message
-from metagpt.actions.add_requirement import BossRequirement
+from metagpt.actions.add_requirement import UserRequirement
 from metagpt.roles.product_manager import ProductManager
 from metagpt.const import SERDESER_PATH
 from metagpt.roles.engineer import Engineer
@@ -52,14 +51,13 @@ async def test_engineer_deserialize():
     new_role = Engineer(**ser_role_dict)
     assert new_role.name == "Alex"
     assert new_role.use_code_review is True
-    assert len(new_role._actions) == 2
+    assert len(new_role._actions) == 1
     assert isinstance(new_role._actions[0], WriteCode)
-    assert isinstance(new_role._actions[1], WriteCodeReview)
     # await new_role._actions[0].run(context="write a cli snake game", filename="test_code")
 
 
 def test_role_serdeser_save():
-    stg_path_prefix = serdeser_path.joinpath("team/environment/roles/")
+    stg_path_prefix = serdeser_path.joinpath("team", "environment", "roles")
     shutil.rmtree(serdeser_path.joinpath("team"), ignore_errors=True)
 
     pm = ProductManager()
@@ -77,10 +75,10 @@ async def test_role_serdeser_interrupt():
     role_c = RoleC()
     shutil.rmtree(SERDESER_PATH.joinpath("team"), ignore_errors=True)
 
-    stg_path = SERDESER_PATH.joinpath(f"team/environment/roles/{role_c.__class__.__name__}_{role_c.name}")
+    stg_path = SERDESER_PATH.joinpath(f"team", "environment", "roles", "{role_c.__class__.__name__}_{role_c.name}")
     try:
         await role_c.run(
-            message=Message(content="demo", cause_by=BossRequirement)
+            with_message=Message(content="demo", cause_by=UserRequirement)
         )
     except Exception as exp:
         logger.error(f"Exception in `role_a.run`, detail: {format_trackback_info()}")
@@ -93,5 +91,5 @@ async def test_role_serdeser_interrupt():
 
     with pytest.raises(Exception):
         await role_c.run(
-            message=Message(content="demo", cause_by=BossRequirement)
+            with_message=Message(content="demo", cause_by=UserRequirement)
         )

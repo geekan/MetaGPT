@@ -2,6 +2,7 @@
 # @Date    : 11/22/2023 1:47 PM
 # @Author  : stellahong (stellahong@fuzhi.ai)
 # @Desc    :
+
 import pytest
 
 from metagpt.actions import WritePRD
@@ -23,5 +24,5 @@ async def test_action_deserialize():
     new_action = WritePRD(**serialized_data)
     assert new_action.name == ""
     assert new_action.llm == LLM()
-    action_output = await new_action.run([Message(content="write a cli snake game")])
+    action_output = await new_action.run(with_messages=Message(content="write a cli snake game"))
     assert len(action_output.content) > 0
