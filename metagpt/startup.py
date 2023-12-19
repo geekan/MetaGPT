@@ -21,10 +21,10 @@ def startup(
     inc: bool = typer.Option(default=False, help="Incremental mode. Use it to coop with existing repo."),
     project_path: str = typer.Option(
         default="",
-        help="Specify the directory path of the old version project to fulfill the " "incremental requirements.",
+        help="Specify the directory path of the old version project to fulfill the incremental requirements.",
     ),
     reqa_file: str = typer.Option(
-        default="", help="Specify the source file name for rewriting the quality assurance " "code."
+        default="", help="Specify the source file name for rewriting the quality assurance code."
     ),
     max_auto_summarize_code: int = typer.Option(
         default=-1,
