@@ -6,17 +6,15 @@
 @File    : action_node.py
 """
 import json
-import re
-from typing import Any, Dict, List, Optional, Type
+from typing import Dict, Generic, List, Optional, Type, TypeVar
 
 from pydantic import BaseModel, create_model, root_validator, validator
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
-from metagpt.actions import ActionOutput
 from metagpt.llm import BaseGPTAPI
 from metagpt.logs import logger
-from metagpt.utils.common import OutputParser
-from metagpt.utils.custom_decoder import CustomDecoder
+from metagpt.provider.postprecess.llm_output_postprecess import llm_output_postprecess
+from metagpt.utils.common import OutputParser, general_after_log
 
 CONSTRAINT = """
 - Language: Please use the same language as the user input.
@@ -43,14 +41,17 @@ Fill in the above nodes based on the format example.
 """
 
 
-def dict_to_markdown(d, prefix="###", postfix="\n"):
+def dict_to_markdown(d, prefix="-", postfix="\n"):
     markdown_str = ""
     for key, value in d.items():
         markdown_str += f"{prefix} {key}: {value}{postfix}"
     return markdown_str
 
 
-class ActionNode:
+T = TypeVar("T")
+
+
+class ActionNode(Generic[T]):
     """ActionNode is a tree of nodes."""
 
     mode: str
@@ -65,7 +66,7 @@ class ActionNode:
     expected_type: Type  # such as str / int / float etc.
     # context: str  # everything in the history.
     instruction: str  # the instructions should be followed.
-    example: Any  # example for In Context-Learning.
+    example: T  # example for In Context-Learning.
 
     # Action Output
     content: str
@@ -76,7 +77,7 @@ class ActionNode:
         key: str,
         expected_type: Type,
         instruction: str,
-        example: str,
+        example: T,
         content: str = "",
         children: dict[str, "ActionNode"] = None,
     ):
@@ -146,29 +147,6 @@ class ActionNode:
 
         new_class.__validator_check_name = classmethod(check_name)
         new_class.__root_validator_check_missing_fields = classmethod(check_missing_fields)
-        return new_class
-
-    @classmethod
-    def create_model_class_v2(cls, class_name: str, mapping: Dict[str, Type]):
-        """基于pydantic v2的模型动态生成，用来检验结果类型正确性，待验证"""
-        new_class = create_model(class_name, **mapping)
-
-        @model_validator(mode="before")
-        def check_missing_fields(data):
-            required_fields = set(mapping.keys())
-            missing_fields = required_fields - set(data.keys())
-            if missing_fields:
-                raise ValueError(f"Missing fields: {missing_fields}")
-            return data
-
-        @field_validator("*")
-        def check_name(v: Any, field: str) -> Any:
-            if field not in mapping.keys():
-                raise ValueError(f"Unrecognized block: {field}")
-            return v
-
-        new_class.__model_validator_check_missing_fields = classmethod(check_missing_fields)
-        new_class.__field_validator_check_name = classmethod(check_name)
         return new_class
 
     def create_children_class(self):
@@ -245,6 +223,7 @@ class ActionNode:
         """
 
         # FIXME: json instruction会带来格式问题，如："Project name": "web_2048  # 项目名称使用下划线",
+        # compile example暂时不支持markdown
         self.instruction = self.compile_instruction(to="markdown", mode=mode)
         self.example = self.compile_example(to=to, tag="CONTENT", mode=mode)
         prompt = template.format(
@@ -252,36 +231,32 @@ class ActionNode:
         )
         return prompt
 
-    @retry(wait=wait_random_exponential(min=1, max=10), stop=stop_after_attempt(6))
+    @retry(
+        wait=wait_random_exponential(min=1, max=60),
+        stop=stop_after_attempt(6),
+        after=general_after_log(logger),
+    )
     async def _aask_v1(
         self,
         prompt: str,
         output_class_name: str,
         output_data_mapping: dict,
         system_msgs: Optional[list[str]] = None,
-        format="markdown",  # compatible to original format
-    ) -> ActionOutput:
+        schema="markdown",  # compatible to original format
+    ) -> (str, BaseModel):
+        """Use ActionOutput to wrap the output of aask"""
         content = await self.llm.aask(prompt, system_msgs)
-        logger.debug(content)
-        output_class = ActionOutput.create_model_class(output_class_name, output_data_mapping)
+        logger.debug(f"llm raw output:\n{content}")
+        output_class = self.create_model_class(output_class_name, output_data_mapping)
 
-        if format == "json":
-            pattern = r"\[CONTENT\](\s*\{.*?\}\s*)\[/CONTENT\]"
-            matches = re.findall(pattern, content, re.DOTALL)
-
-            for match in matches:
-                if match:
-                    content = match
-                    break
-
-            parsed_data = CustomDecoder(strict=False).decode(content)
-
+        if schema == "json":
+            parsed_data = llm_output_postprecess(output=content, schema=output_class.schema(), req_key="[/CONTENT]")
         else:  # using markdown parser
             parsed_data = OutputParser.parse_data_with_mapping(content, output_data_mapping)
 
-        logger.debug(parsed_data)
+        logger.debug(f"parsed_data:\n{parsed_data}")
         instruct_content = output_class(**parsed_data)
-        return ActionOutput(content, instruct_content)
+        return content, instruct_content
 
     def get(self, key):
         return self.instruct_content.dict()[key]
@@ -302,9 +277,9 @@ class ActionNode:
         mapping = self.get_mapping(mode)
 
         class_name = f"{self.key}_AN"
-        output = await self._aask_v1(prompt, class_name, mapping, format=to)
-        self.content = output.content
-        self.instruct_content = output.instruct_content
+        content, scontent = await self._aask_v1(prompt, class_name, mapping, schema=to)
+        self.content = content
+        self.instruct_content = scontent
         return self
 
     async def fill(self, context, llm, to="json", mode="auto", strgy="simple"):

@@ -49,7 +49,7 @@ class WriteDesign(Action):
                 "data structures, library tables, processes, and paths. Please provide your design, feedback " \
                 "clearly and in detail."
 
-    async def run(self, with_messages: Message, format: str = CONFIG.prompt_format):
+    async def run(self, with_messages: Message, schema: str = CONFIG.prompt_schema):
         # Use `git diff` to identify which PRD documents have been modified in the `docs/prds` directory.
         prds_file_repo = CONFIG.git_repo.new_file_repository(PRDS_FILE_REPO)
         changed_prds = prds_file_repo.changed_files
@@ -79,13 +79,13 @@ class WriteDesign(Action):
         # leaving room for global optimization in subsequent steps.
         return ActionOutput(content=changed_files.json(), instruct_content=changed_files)
 
-    async def _new_system_design(self, context, format=CONFIG.prompt_format):
-        node = await DESIGN_API_NODE.fill(context=context, llm=self.llm, to=format)
+    async def _new_system_design(self, context, schema=CONFIG.prompt_schema):
+        node = await DESIGN_API_NODE.fill(context=context, llm=self.llm, to=schema)
         return node
 
-    async def _merge(self, prd_doc, system_design_doc, format=CONFIG.prompt_format):
+    async def _merge(self, prd_doc, system_design_doc, schema=CONFIG.prompt_schema):
         context = NEW_REQ_TEMPLATE.format(old_design=system_design_doc.content, context=prd_doc.content)
-        node = await DESIGN_API_NODE.fill(context=context, llm=self.llm, to=format)
+        node = await DESIGN_API_NODE.fill(context=context, llm=self.llm, to=schema)
         system_design_doc.content = node.instruct_content.json(ensure_ascii=False)
         return system_design_doc
 

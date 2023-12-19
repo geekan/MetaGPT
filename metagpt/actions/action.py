@@ -11,15 +11,9 @@ from __future__ import annotations
 from typing import Optional, Any
 
 from pydantic import BaseModel, Field
-from tenacity import retry, stop_after_attempt, wait_random_exponential
-
-from metagpt.actions.action_output import ActionOutput
 from metagpt.actions.action_node import ActionNode
 from metagpt.llm import LLM
-from metagpt.logs import logger
 from metagpt.provider.base_gpt_api import BaseGPTAPI
-from metagpt.provider.postprecess.llm_output_postprecess import llm_output_postprecess
-from metagpt.utils.common import OutputParser, general_after_log
 
 
 action_subclass_registry = {}
@@ -31,7 +25,7 @@ class Action(BaseModel):
     context = ""
     prefix = ""  # aask*时会加上prefix，作为system_message
     desc = ""  # for skill manager
-    node: ActionNode = Field(default_factory=ActionNode)
+    node: ActionNode = Field(default_factory=ActionNode, exclude=True)
 
     # builtin variables
     builtin_class_name: str = ""
@@ -73,32 +67,6 @@ class Action(BaseModel):
             system_msgs = []
         system_msgs.append(self.prefix)
         return await self.llm.aask(prompt, system_msgs)
-
-    @retry(
-        wait=wait_random_exponential(min=1, max=60),
-        stop=stop_after_attempt(6),
-        after=general_after_log(logger),
-    )
-    async def _aask_v1(
-            self,
-            prompt: str,
-            output_class_name: str,
-            output_data_mapping: dict,
-            system_msgs: Optional[list[str]] = None,
-            format="markdown",  # compatible to original format
-    ) -> ActionOutput:
-        content = await self.llm.aask(prompt, system_msgs)
-        logger.debug(f"llm raw output:\n{content}")
-        output_class = ActionOutput.create_model_class(output_class_name, output_data_mapping)
-
-        if format == "json":
-            parsed_data = llm_output_postprecess(output=content, schema=output_class.schema(), req_key="[/CONTENT]")
-        else:  # using markdown parser
-            parsed_data = OutputParser.parse_data_with_mapping(content, output_data_mapping)
-
-        logger.debug(parsed_data)
-        instruct_content = output_class(**parsed_data)
-        return ActionOutput(content, instruct_content)
 
     async def run(self, *args, **kwargs):
         """Run action"""
