@@ -26,9 +26,8 @@ from typing import Iterable, Set, Type
 
 from pydantic import BaseModel, Field
 
-from metagpt.actions import Action, ActionOutput
+from metagpt.actions import Action, ActionOutput, UserRequirement
 from metagpt.actions.action_node import ActionNode
-from metagpt.actions.role_run import RoleRun
 from metagpt.llm import LLM, HumanProvider
 from metagpt.logs import logger
 from metagpt.memory import Memory
@@ -140,7 +139,7 @@ class Role:
         self._states = []
         self._actions = []
         self._role_id = str(self._setting)
-        self._rc = RoleContext()
+        self._rc = RoleContext(watch={any_to_str(UserRequirement)})
         self._subscription = {any_to_str(self), name} if name else {any_to_str(self)}
 
     def _reset(self):
@@ -193,8 +192,7 @@ class Role:
         """Watch Actions of interest. Role will select Messages caused by these Actions from its personal message
         buffer during _observe.
         """
-        tags = {any_to_str(t) for t in actions}
-        self._rc.watch.update(tags)
+        self._rc.watch = {any_to_str(t) for t in actions}
         # check RoleContext after adding watch actions
         self._rc.check(self._role_id)
 
@@ -318,9 +316,7 @@ class Role:
         old_messages = [] if ignore_memory else self._rc.memory.get()
         self._rc.memory.add_batch(news)
         # Filter out messages of interest.
-        watch = self._rc.watch or set()
-        watch.add(any_to_str(RoleRun))
-        self._rc.news = [n for n in news if n.cause_by in watch and n not in old_messages]
+        self._rc.news = [n for n in news if n.cause_by in self._rc.watch and n not in old_messages]
 
         # Design Rules:
         # If you need to further categorize Message objects, you can do so using the Message.set_meta function.
@@ -401,7 +397,7 @@ class Role:
             elif isinstance(with_message, list):
                 msg = Message("\n".join(with_message))
             if not msg.cause_by:
-                msg.cause_by = RoleRun
+                msg.cause_by = UserRequirement
             self.put_message(msg)
 
         if not await self._observe():
