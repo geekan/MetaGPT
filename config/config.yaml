@@ -1,6 +1,9 @@
 # DO NOT MODIFY THIS FILE, create a new key.yaml, define OPENAI_API_KEY.
 # The configuration of key.yaml has a higher priority and will not enter git
 
+#### Project Path Setting
+# WORKSPACE_PATH: "Path for placing output files"
+
 #### if OpenAI
 ## The official OPENAI_API_BASE is https://api.openai.com/v1
 ## If the official OPENAI_API_BASE is not available, we recommend using the [openai-forward](https://github.com/beidongjiedeguang/openai-forward).
