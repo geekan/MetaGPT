@@ -15,7 +15,8 @@ from typing import Set
 import aiofiles
 
 from metagpt.config import CONFIG
-from metagpt.logs import logger
+from metagpt.utils.common import aread
+from metagpt.utils.exceptions import handle_exception
 
 
 class DependencyFile:
@@ -36,21 +37,14 @@ class DependencyFile:
         """Load dependencies from the file asynchronously."""
         if not self._filename.exists():
             return
-        try:
-            async with aiofiles.open(str(self._filename), mode="r") as reader:
-                data = await reader.read()
-            self._dependencies = json.loads(data)
-        except Exception as e:
-            logger.error(f"Failed to load {str(self._filename)}, error:{e}")
+        self._dependencies = await aread(self._filename)
 
+    @handle_exception
     async def save(self):
         """Save dependencies to the file asynchronously."""
-        try:
-            data = json.dumps(self._dependencies)
-            async with aiofiles.open(str(self._filename), mode="w") as writer:
-                await writer.write(data)
-        except Exception as e:
-            logger.error(f"Failed to save {str(self._filename)}, error:{e}")
+        data = json.dumps(self._dependencies)
+        async with aiofiles.open(str(self._filename), mode="w") as writer:
+            await writer.write(data)
 
     async def update(self, filename: Path | str, dependencies: Set[Path | str], persist=True):
         """Update dependencies for a file asynchronously.

@@ -20,11 +20,13 @@ import re
 import typing
 from typing import List, Tuple, Union
 
+import aiofiles
 import loguru
 from tenacity import RetryCallState, _utils
 
 from metagpt.const import MESSAGE_ROUTE_TO_ALL
 from metagpt.logs import logger
+from metagpt.utils.exceptions import handle_exception
 
 
 def check_cmd_exists(command) -> int:
@@ -399,3 +401,11 @@ def general_after_log(i: "loguru.Logger", sec_format: str = "%0.3f") -> typing.C
         )
 
     return log_it
+
+
+@handle_exception
+async def aread(file_path: str) -> str:
+    """Read file asynchronously."""
+    async with aiofiles.open(str(file_path), mode="r") as reader:
+        content = await reader.read()
+    return content
