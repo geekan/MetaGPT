@@ -37,7 +37,7 @@ class DependencyFile:
         """Load dependencies from the file asynchronously."""
         if not self._filename.exists():
             return
-        self._dependencies = await aread(self._filename)
+        self._dependencies = json.loads(await aread(self._filename))
 
     @handle_exception
     async def save(self):
