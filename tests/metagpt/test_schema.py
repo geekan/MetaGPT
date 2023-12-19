@@ -13,7 +13,7 @@ import pytest
 
 from metagpt.actions import Action
 from metagpt.schema import AIMessage, Message, SystemMessage, UserMessage
-from metagpt.utils.common import get_class_name
+from metagpt.utils.common import any_to_str
 
 
 def test_messages():
@@ -52,9 +52,9 @@ def test_message():
     m.cause_by = "Message"
     assert m.cause_by == "Message"
     m.cause_by = Action
-    assert m.cause_by == get_class_name(Action)
+    assert m.cause_by == any_to_str(Action)
     m.cause_by = Action()
-    assert m.cause_by == get_class_name(Action)
+    assert m.cause_by == any_to_str(Action)
     m.content = "b"
     assert m.content == "b"
 
@@ -64,7 +64,7 @@ def test_routes():
     m.send_to = "b"
     assert m.send_to == {"b"}
     m.send_to = {"e", Action}
-    assert m.send_to == {"e", get_class_name(Action)}
+    assert m.send_to == {"e", any_to_str(Action)}
 
 
 if __name__ == "__main__":

@@ -266,7 +266,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
                 )
                 return usage
             except Exception as e:
-                logger.error("usage calculation failed!", e)
+                logger.error(f"{self.model} usage calculation failed!", e)
         return CompletionUsage(prompt_tokens=0, completion_tokens=0, total_tokens=0)
 
     async def acompletion_batch(self, batch: list[list[dict]], timeout=3) -> list[dict]:
