@@ -5,12 +5,10 @@
 import copy
 import pickle
 
-<<<<<<< HEAD
+
 from metagpt.utils.common import import_class
-=======
 from metagpt.actions.action_node import ActionNode
 from metagpt.schema import Message
->>>>>>> 09e2f05 (refactor action_output and action_node)
 
 
 def actionoutout_schema_to_mapping(schema: dict) -> dict:

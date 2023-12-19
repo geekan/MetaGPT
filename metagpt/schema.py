@@ -19,6 +19,7 @@ import asyncio
 import json
 import os.path
 import uuid
+from abc import ABC
 from asyncio import Queue, QueueEmpty, wait_for
 from json import JSONDecodeError
 from pathlib import Path
@@ -281,7 +282,7 @@ class MessageQueue(BaseModel):
 T = TypeVar("T", bound="BaseModel")
 
 
-class BaseContext(BaseModel):
+class BaseContext(BaseModel, ABC):
     @classmethod
     @handle_exception
     def loads(cls: Type[T], val: str) -> Optional[T]:

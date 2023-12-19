@@ -3,18 +3,10 @@
 """
 @Time    : 2023/9/12 17:45
 @Author  : fisherdeng
-@File    : detail_mining.py
+@File    : generate_questions.py
 """
 from metagpt.actions import Action
 from metagpt.actions.action_node import ActionNode
-
-CONTEXT_TEMPLATE = """
-## TOPIC
-{topic}
-
-## RECORD
-{record}
-"""
 
 QUESTIONS = ActionNode(
     key="Questions",
@@ -25,11 +17,9 @@ QUESTIONS = ActionNode(
 )
 
 
-class DetailMining(Action):
+class GenerateQuestions(Action):
     """This class allows LLM to further mine noteworthy details based on specific "##TOPIC"(discussion topic) and
     "##RECORD" (discussion records), thereby deepening the discussion."""
 
-    async def run(self, topic, record):
-        context = CONTEXT_TEMPLATE.format(topic=topic, record=record)
-        rsp = await QUESTIONS.fill(context=context, llm=self.llm)
-        return rsp
+    async def run(self, context):
+        return await QUESTIONS.fill(context=context, llm=self.llm)

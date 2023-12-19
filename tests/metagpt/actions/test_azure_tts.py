@@ -5,11 +5,11 @@
 @Author  : alexanderwu
 @File    : test_azure_tts.py
 """
-from metagpt.actions.azure_tts import AzureTTS
+from metagpt.tools.azure_tts import AzureTTS
 
 
 def test_azure_tts():
-    azure_tts = AzureTTS("azure_tts")
+    azure_tts = AzureTTS()
     azure_tts.synthesize_speech("zh-CN", "zh-CN-YunxiNeural", "Boy", "你好，我是卡卡", "output.wav")
 
     # 运行需要先配置 SUBSCRIPTION_KEY
