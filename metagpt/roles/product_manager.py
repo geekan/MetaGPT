@@ -45,4 +45,4 @@ class ProductManager(Role):
         return self._rc.todo
 
     async def _observe(self, ignore_memory=False) -> int:
-        return await super(ProductManager, self)._observe(ignore_memory=True)
+        return await super()._observe(ignore_memory=True)

@@ -44,7 +44,7 @@ class LongTermMemory(Memory):
         self.msg_from_recover = False
 
     def add(self, message: Message):
-        super(LongTermMemory, self).add(message)
+        super().add(message)
         for action in self.rc.watch:
             if message.cause_by == action and not self.msg_from_recover:
                 # currently, only add role's watching messages to its memory_storage
@@ -57,7 +57,7 @@ class LongTermMemory(Memory):
             1. find the short-term memory(stm) news
             2. furthermore, filter out similar messages based on ltm(long-term memory), get the final news
         """
-        stm_news = super(LongTermMemory, self).find_news(observed, k=k)  # shot-term memory news
+        stm_news = super().find_news(observed, k=k)  # shot-term memory news
         if not self.memory_storage.is_initialized:
             # memory_storage hasn't initialized, use default `find_news` to get stm_news
             return stm_news
@@ -71,9 +71,9 @@ class LongTermMemory(Memory):
         return ltm_news[-k:]
 
     def delete(self, message: Message):
-        super(LongTermMemory, self).delete(message)
+        super().delete(message)
         # TODO delete message in memory_storage
 
     def clear(self):
-        super(LongTermMemory, self).clear()
+        super().clear()
         self.memory_storage.clean()
