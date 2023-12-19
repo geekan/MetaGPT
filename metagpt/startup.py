@@ -27,8 +27,8 @@ def startup(
     reqa_file: str = typer.Option(default="", help="Specify the source file name for rewriting the quality test code."),
     max_auto_summarize_code: int = typer.Option(
         default=-1,
-        help="The maximum number of times the 'SummarizeCode' action is automatically invoked, "
-             "with -1 indicating unlimited. This parameter is used for debugging the workflow.",
+        help="The maximum number of times the 'SummarizeCode' action is automatically invoked, with -1 indicating "
+        "unlimited. This parameter is used for debugging the workflow.",
     ),
     recover_path: str = typer.Option(default=None, help="recover the project from existing serialized storage")
 ):
@@ -43,14 +43,10 @@ def startup(
     from metagpt.team import Team
 
     # Use in the PrepareDocuments action according to Section 2.2.3.5.1 of RFC 135.
-    CONFIG.project_path = project_path
     if project_path:
         inc = True
         project_name = project_name or Path(project_path).name
-    CONFIG.project_name = project_name
-    CONFIG.inc = inc
-    CONFIG.reqa_file = reqa_file
-    CONFIG.max_auto_summarize_code = max_auto_summarize_code
+    CONFIG.update_via_cli(project_path, project_name, inc, reqa_file, max_auto_summarize_code)
 
     if not recover_path:
         company = Team()
