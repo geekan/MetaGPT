@@ -29,7 +29,7 @@ from metagpt.utils.common import create_func_config, remove_comments
 
 
 class BaseWriteAnalysisCode(Action):
-    DEFAULT_SYSTEM_MSG = """You are Code Interpreter, a world-class programmer that can complete any goal by executing code. Strictly follow the plan and generate code step by step. Each step of the code will be executed on the user's machine, and the user will provide the code execution results to you.**Notice: The code for the next step depends on the code for the previous step. Must reuse variables in the lastest other code directly, dont creat it again, it is very import for you. Use !pip install in a standalone block to install missing packages.**"""  # prompt reference: https://github.com/KillianLucas/open-interpreter/blob/v0.1.4/interpreter/system_message.txt
+    DEFAULT_SYSTEM_MSG = """You are Code Interpreter, a world-class programmer that can complete any goal by executing code. Strictly follow the plan and generate code step by step. Each step of the code will be executed on the user's machine, and the user will provide the code execution results to you.**Notice: The code for the next step depends on the code for the previous step. Must reuse variables in the lastest other code directly, dont creat it again, it is very import for you. Use !pip install in a standalone block to install missing packages.Usually the libraries you need are already installed.**"""  # prompt reference: https://github.com/KillianLucas/open-interpreter/blob/v0.1.4/interpreter/system_message.txt
     # REUSE_CODE_INSTRUCTION = """ATTENTION: DONT include codes from previous tasks in your current code block, include new codes only, DONT repeat codes!"""
 
     def process_msg(self, prompt: Union[str, List[Dict], Message, List[Message]], system_msg: str = None):
@@ -112,13 +112,17 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
         if self.schema_path is not None:
             self._load_tools(schema_path)
 
-    def _load_tools(self, schema_path):
+    def _load_tools(self, schema_path, schema_module=None):
         """Load tools from yaml file"""
-        yml_files = schema_path.glob("*.yml")
-        for yml_file in yml_files:
-            module = yml_file.stem
-            with open(yml_file, "r", encoding="utf-8") as f:
-                self.available_tools[module] = yaml.safe_load(f)
+        if isinstance(schema_path, dict):
+            schema_module = schema_module or 'udf'
+            self.available_tools.update({schema_module: schema_path})
+        else:
+            yml_files = schema_path.glob("*.yml")
+            for yml_file in yml_files:
+                module = yml_file.stem
+                with open(yml_file, "r", encoding="utf-8") as f:
+                    self.available_tools[module] = yaml.safe_load(f)
 
     def _parse_recommend_tools(self, module: str, recommend_tools: list) -> dict:
         """
@@ -174,7 +178,7 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
         column_info: str = "",
         **kwargs,
     ) -> Tuple[List[Message], str]:
-        task_type = plan.current_task.task_type
+        task_type = plan.current_task.task_type or 'udf'
         available_tools = self.available_tools.get(task_type, {})
         special_prompt = ML_SPECIFIC_PROMPT.get(task_type, "")
         code_steps = plan.current_task.code_steps
@@ -227,7 +231,7 @@ class MakeTools(WriteCodeByGenerate):
     **Notice:
     1. Your code must contain a general function start with `def`.
     2. Refactor your code to get the most efficient implementation for large input data in the shortest amount of time.
-    3. Use Google style for function annotations.
+    3. Must use Google style for function docstring, and your code must have function docstring.
     4. Write example code after `if __name__ == '__main__':`by using old varibales in old code,
     and make sure it could be execute in the user's machine.
     5. Dont have missing package references.**
