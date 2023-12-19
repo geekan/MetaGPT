@@ -67,7 +67,7 @@ class WritePRD(Action):
     def __init__(self, name="", context=None, llm=None):
         super().__init__(name, context, llm)
 
-    async def run(self, with_messages, format=CONFIG.prompt_format, *args, **kwargs) -> ActionOutput | Message:
+    async def run(self, with_messages, schema=CONFIG.prompt_schema, *args, **kwargs) -> ActionOutput | Message:
         # Determine which requirement documents need to be rewritten: Use LLM to assess whether new requirements are
         # related to the PRD. If they are related, rewrite the PRD.
         docs_file_repo = CONFIG.git_repo.new_file_repository(relative_path=DOCS_FILE_REPO)
@@ -111,7 +111,7 @@ class WritePRD(Action):
         # optimization in subsequent steps.
         return ActionOutput(content=change_files.json(), instruct_content=change_files)
 
-    async def _run_new_requirement(self, requirements, format=CONFIG.prompt_format) -> ActionOutput:
+    async def _run_new_requirement(self, requirements, schema=CONFIG.prompt_schema) -> ActionOutput:
         # sas = SearchAndSummarize()
         # # rsp = await sas.run(context=requirements, system_text=SEARCH_AND_SUMMARIZE_SYSTEM_EN_US)
         # rsp = ""
@@ -121,7 +121,7 @@ class WritePRD(Action):
         #     logger.info(rsp)
         project_name = CONFIG.project_name if CONFIG.project_name else ""
         context = CONTEXT_TEMPLATE.format(requirements=requirements, project_name=project_name)
-        node = await WRITE_PRD_NODE.fill(context=context, llm=self.llm, to=format)
+        node = await WRITE_PRD_NODE.fill(context=context, llm=self.llm, schema=schema)
         await self._rename_workspace(node)
         return node
 
@@ -130,11 +130,11 @@ class WritePRD(Action):
         node = await WP_IS_RELATIVE_NODE.fill(context, self.llm)
         return node.get("is_relative") == "YES"
 
-    async def _merge(self, new_requirement_doc, prd_doc, format=CONFIG.prompt_format) -> Document:
+    async def _merge(self, new_requirement_doc, prd_doc, schema=CONFIG.prompt_schema) -> Document:
         if not CONFIG.project_name:
             CONFIG.project_name = Path(CONFIG.project_path).name
         prompt = NEW_REQ_TEMPLATE.format(requirements=new_requirement_doc.content, old_prd=prd_doc.content)
-        node = await WRITE_PRD_NODE.fill(context=prompt, llm=self.llm, to=format)
+        node = await WRITE_PRD_NODE.fill(context=prompt, llm=self.llm, schema=schema)
         prd_doc.content = node.instruct_content.json(ensure_ascii=False)
         await self._rename_workspace(node)
         return prd_doc
@@ -182,7 +182,7 @@ class WritePRD(Action):
                 return
 
         if not CONFIG.project_name:
-            if isinstance(prd, ActionOutput) or isinstance(prd, ActionNode):
+            if isinstance(prd, (ActionOutput, ActionNode)):
                 ws_name = prd.instruct_content.dict()["Project Name"]
             else:
                 ws_name = CodeParser.parse_str(block="Project Name", text=prd)

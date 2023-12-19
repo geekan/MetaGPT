@@ -59,7 +59,7 @@ class Searcher(Role):
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
         response = await self._rc.todo.run(self._rc.memory.get(k=0))
 
-        if isinstance(response, ActionOutput) or isinstance(response, ActionNode):
+        if isinstance(response, (ActionOutput, ActionNode)):
             msg = Message(
                 content=response.content,
                 instruct_content=response.instruct_content,

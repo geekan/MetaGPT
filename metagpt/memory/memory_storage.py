@@ -58,7 +58,7 @@ class MemoryStorage(FaissStore):
         return index_fpath, storage_fpath
 
     def persist(self):
-        super(MemoryStorage, self).persist()
+        super().persist()
         logger.debug(f"Agent {self.role_id} persist memory into local")
 
     def add(self, message: Message) -> bool:

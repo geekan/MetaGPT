@@ -130,8 +130,7 @@ class SearchAndSummarize(Action):
         system_prompt = [system_text]
 
         prompt = SEARCH_AND_SUMMARIZE_PROMPT.format(
-            # PREFIX = self.prefix,
-            ROLE=self.profile,
+            ROLE=self.prefix,
             CONTEXT=rsp,
             QUERY_HISTORY="\n".join([str(i) for i in context[:-1]]),
             QUERY=str(context[-1]),

@@ -16,9 +16,10 @@ from tenacity import (
     wait_random_exponential,
 )
 
-from metagpt.config import CONFIG
+from metagpt.config import CONFIG, LLMProviderEnum
 from metagpt.logs import logger
 from metagpt.provider.base_gpt_api import BaseGPTAPI
+from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.provider.openai_api import CostManager, log_and_reraise
 from metagpt.provider.zhipuai.zhipu_model_api import ZhiPuModelAPI
 
@@ -30,6 +31,7 @@ class ZhiPuEvent(Enum):
     FINISH = "finish"
 
 
+@register_provider(LLMProviderEnum.ZHIPUAI)
 class ZhiPuAIGPTAPI(BaseGPTAPI):
     """
     Refs to `https://open.bigmodel.cn/dev/api#chatglm_turbo`

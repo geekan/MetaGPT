@@ -18,10 +18,11 @@ from tenacity import (
     wait_random_exponential,
 )
 
-from metagpt.config import CONFIG
+from metagpt.config import CONFIG, LLMProviderEnum
 from metagpt.logs import logger
 from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.provider.constant import GENERAL_FUNCTION_SCHEMA, GENERAL_TOOL_CHOICE
+from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.schema import Message
 from metagpt.utils.singleton import Singleton
 from metagpt.utils.token_counter import (
@@ -137,6 +138,7 @@ See FAQ 5.8
     raise retry_state.outcome.exception()
 
 
+@register_provider(LLMProviderEnum.OPENAI)
 class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
     """
     Check https://platform.openai.com/examples for examples
@@ -329,7 +331,8 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
                 usage["completion_tokens"] = completion_tokens
                 return usage
             except Exception as e:
-                logger.error("usage calculation failed!", e)
+                logger.error(f"{self.model} usage calculation failed!", e)
+                return {}
         else:
             return usage
 
@@ -360,7 +363,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         return results
 
     def _update_costs(self, usage: dict):
-        if CONFIG.calc_usage:
+        if CONFIG.calc_usage and usage:
             try:
                 prompt_tokens = int(usage["prompt_tokens"])
                 completion_tokens = int(usage["completion_tokens"])

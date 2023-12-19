@@ -6,7 +6,7 @@ import copy
 import pickle
 from typing import Dict, List
 
-from metagpt.actions.action_output import ActionOutput
+from metagpt.actions.action_node import ActionNode
 from metagpt.schema import Message
 
 
@@ -60,7 +60,7 @@ def deserialize_message(message_ser: str) -> Message:
     message = pickle.loads(message_ser)
     if message.instruct_content:
         ic = message.instruct_content
-        ic_obj = ActionOutput.create_model_class(class_name=ic["class"], mapping=ic["mapping"])
+        ic_obj = ActionNode.create_model_class(class_name=ic["class"], mapping=ic["mapping"])
         ic_new = ic_obj(**ic["value"])
         message.instruct_content = ic_new
 

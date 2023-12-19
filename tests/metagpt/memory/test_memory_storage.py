@@ -8,7 +8,7 @@
 from typing import List
 
 from metagpt.actions import UserRequirement, WritePRD
-from metagpt.actions.action_output import ActionOutput
+from metagpt.actions.action_node import ActionNode
 from metagpt.memory.memory_storage import MemoryStorage
 from metagpt.schema import Message
 
@@ -42,7 +42,7 @@ def test_idea_message():
 def test_actionout_message():
     out_mapping = {"field1": (str, ...), "field2": (List[str], ...)}
     out_data = {"field1": "field1 value", "field2": ["field2 value1", "field2 value2"]}
-    ic_obj = ActionOutput.create_model_class("prd", out_mapping)
+    ic_obj = ActionNode.create_model_class("prd", out_mapping)
 
     role_id = "UTUser2(Architect)"
     content = "The user has requested the creation of a command-line interface (CLI) snake game"

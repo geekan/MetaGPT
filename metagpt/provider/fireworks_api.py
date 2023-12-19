@@ -4,10 +4,12 @@
 
 import openai
 
-from metagpt.config import CONFIG
+from metagpt.config import CONFIG, LLMProviderEnum
+from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.provider.openai_api import CostManager, OpenAIGPTAPI, RateLimiter
 
 
+@register_provider(LLMProviderEnum.FIREWORKS)
 class FireWorksGPTAPI(OpenAIGPTAPI):
     def __init__(self):
         self.__init_fireworks(CONFIG)
