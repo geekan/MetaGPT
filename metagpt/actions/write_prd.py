@@ -123,7 +123,7 @@ class WritePRD(Action):
         #     logger.info(rsp)
         project_name = CONFIG.project_name if CONFIG.project_name else ""
         context = CONTEXT_TEMPLATE.format(requirements=requirements, project_name=project_name)
-        node = await WRITE_PRD_NODE.fill(context=context, llm=self.llm, to=schema)
+        node = await WRITE_PRD_NODE.fill(context=context, llm=self.llm, schema=schema)
         await self._rename_workspace(node)
         return node
 
@@ -136,7 +136,7 @@ class WritePRD(Action):
         if not CONFIG.project_name:
             CONFIG.project_name = Path(CONFIG.project_path).name
         prompt = NEW_REQ_TEMPLATE.format(requirements=new_requirement_doc.content, old_prd=prd_doc.content)
-        node = await WRITE_PRD_NODE.fill(context=prompt, llm=self.llm, to=schema)
+        node = await WRITE_PRD_NODE.fill(context=prompt, llm=self.llm, schema=schema)
         prd_doc.content = node.instruct_content.json(ensure_ascii=False)
         await self._rename_workspace(node)
         return prd_doc
