@@ -13,7 +13,7 @@ from typing import Optional
 
 from metagpt.actions.action_node import ActionNode
 from metagpt.llm import LLM
-from metagpt.schema import BaseContext
+from metagpt.schema import CodingContext, CodeSummarizeContext, TestingContext, RunCodeContext
 
 
 class Action(ABC):
@@ -21,7 +21,8 @@ class Action(ABC):
 
     name: str
     llm: LLM
-    context: dict | BaseContext | str | None
+    # FIXME: simplify context
+    context: dict | CodingContext | CodeSummarizeContext | TestingContext | RunCodeContext | str | None
     prefix: str
     desc: str
     node: ActionNode | None
