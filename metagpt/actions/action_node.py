@@ -52,6 +52,7 @@ def dict_to_markdown(d, prefix="-", postfix="\n"):
 
 class ActionNode:
     """ActionNode is a tree of nodes."""
+
     mode: str
 
     # Action Context
@@ -70,8 +71,15 @@ class ActionNode:
     content: str
     instruct_content: BaseModel
 
-    def __init__(self, key: str, expected_type: Type, instruction: str, example: str, content: str = "",
-                 children: dict[str, "ActionNode"] = None):
+    def __init__(
+        self,
+        key: str,
+        expected_type: Type,
+        instruction: str,
+        example: str,
+        content: str = "",
+        children: dict[str, "ActionNode"] = None,
+    ):
         self.key = key
         self.expected_type = expected_type
         self.instruction = instruction
