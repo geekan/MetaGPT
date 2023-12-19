@@ -130,6 +130,14 @@ class Config(metaclass=Singleton):
         self.workspace_path = Path(self._get("WORKSPACE_PATH", DEFAULT_WORKSPACE_ROOT))
         self._ensure_workspace_exists()
 
+    def update_via_cli(self, project_path, project_name, inc, reqa_file, max_auto_summarize_code):
+        """update config via cli"""
+        self.project_path = project_path
+        self.project_name = project_name
+        self.inc = inc
+        self.reqa_file = reqa_file
+        self.max_auto_summarize_code = max_auto_summarize_code
+
     def _ensure_workspace_exists(self):
         self.workspace_path.mkdir(parents=True, exist_ok=True)
         logger.debug(f"WORKSPACE_PATH set to {self.workspace_path}")
