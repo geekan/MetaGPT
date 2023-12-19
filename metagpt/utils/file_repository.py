@@ -19,6 +19,7 @@ import aiofiles
 from metagpt.config import CONFIG
 from metagpt.logs import logger
 from metagpt.schema import Document
+from metagpt.utils.common import aread
 from metagpt.utils.json_to_markdown import json_to_markdown
 
 
@@ -97,15 +98,7 @@ class FileRepository:
         path_name = self.workdir / filename
         if not path_name.exists():
             return None
-        try:
-            async with aiofiles.open(str(path_name), mode="r") as reader:
-                doc.content = await reader.read()
-        except FileNotFoundError as e:
-            logger.info(f"open {str(path_name)} failed:{e}")
-            return None
-        except Exception as e:
-            logger.info(f"open {str(path_name)} failed:{e}")
-            return None
+        doc.content = await aread(path_name)
         return doc
 
     async def get_all(self) -> List[Document]:

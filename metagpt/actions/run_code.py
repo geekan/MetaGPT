@@ -16,13 +16,13 @@
             class.
 """
 import subprocess
-import traceback
 from typing import Tuple
 
 from metagpt.actions.action import Action
 from metagpt.config import CONFIG
 from metagpt.logs import logger
 from metagpt.schema import RunCodeResult
+from metagpt.utils.exceptions import handle_exception
 
 PROMPT_TEMPLATE = """
 Role: You are a senior development and qa engineer, your role is summarize the code running result.
@@ -78,15 +78,12 @@ class RunCode(Action):
         super().__init__(name, context, llm)
 
     @classmethod
+    @handle_exception
     async def run_text(cls, code) -> Tuple[str, str]:
-        try:
-            # We will document_store the result in this dictionary
-            namespace = {}
-            exec(code, namespace)
-            return namespace.get("result", ""), ""
-        except Exception:
-            # If there is an error in the code, return the error message
-            return "", traceback.format_exc()
+        # We will document_store the result in this dictionary
+        namespace = {}
+        exec(code, namespace)
+        return namespace.get("result", ""), ""
 
     @classmethod
     async def run_script(cls, working_directory, additional_python_paths=[], command=[]) -> Tuple[str, str]:
@@ -146,17 +143,16 @@ class RunCode(Action):
         return RunCodeResult(summary=rsp, stdout=outs, stderr=errs)
 
     @staticmethod
+    @handle_exception(exception_type=subprocess.CalledProcessError)
+    def _install_via_subprocess(cmd, check, cwd, env):
+        return subprocess.run(cmd, check=check, cwd=cwd, env=env)
+
+    @staticmethod
     def _install_dependencies(working_directory, env):
         install_command = ["python", "-m", "pip", "install", "-r", "requirements.txt"]
         logger.info(" ".join(install_command))
-        try:
-            subprocess.run(install_command, check=True, cwd=working_directory, env=env)
-        except subprocess.CalledProcessError as e:
-            logger.warning(f"{e}")
+        RunCode._install_via_subprocess(install_command, check=True, cwd=working_directory, env=env)
 
         install_pytest_command = ["python", "-m", "pip", "install", "pytest"]
         logger.info(" ".join(install_pytest_command))
-        try:
-            subprocess.run(install_pytest_command, check=True, cwd=working_directory, env=env)
-        except subprocess.CalledProcessError as e:
-            logger.warning(f"{e}")
+        RunCode._install_via_subprocess(install_pytest_command, check=True, cwd=working_directory, env=env)

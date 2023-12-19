@@ -154,11 +154,15 @@ class WriteCodeReview(Action):
                 code=iterative_code,
                 filename=self.context.code_doc.filename,
             )
-            cr_prompt = EXAMPLE_AND_INSTRUCTION.format(format_example=format_example, )
+            cr_prompt = EXAMPLE_AND_INSTRUCTION.format(
+                format_example=format_example,
+            )
             logger.info(
                 f"Code review and rewrite {self.context.code_doc.filename}: {i+1}/{k} | {len(iterative_code)=}, {len(self.context.code_doc.content)=}"
             )
-            result, rewrited_code = await self.write_code_review_and_rewrite(context_prompt, cr_prompt, self.context.code_doc.filename)
+            result, rewrited_code = await self.write_code_review_and_rewrite(
+                context_prompt, cr_prompt, self.context.code_doc.filename
+            )
             if "LBTM" in result:
                 iterative_code = rewrited_code
             elif "LGTM" in result:

@@ -15,8 +15,7 @@ from metagpt.actions.action_output import ActionOutput
 from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.provider.postprecess.llm_output_postprecess import llm_output_postprecess
-from metagpt.utils.common import OutputParser
-from metagpt.utils.utils import general_after_log
+from metagpt.utils.common import OutputParser, general_after_log
 
 
 class Action(ABC):

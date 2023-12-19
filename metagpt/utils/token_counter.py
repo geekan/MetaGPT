@@ -56,6 +56,7 @@ def count_message_tokens(messages, model="gpt-3.5-turbo-0613"):
     if model in {
         "gpt-3.5-turbo-0613",
         "gpt-3.5-turbo-16k-0613",
+        "gpt-3.5-turbo-16k",
         "gpt-3.5-turbo-1106",
         "gpt-4-0314",
         "gpt-4-32k-0314",
@@ -63,7 +64,7 @@ def count_message_tokens(messages, model="gpt-3.5-turbo-0613"):
         "gpt-4-32k-0613",
         "gpt-4-1106-preview",
     }:
-        tokens_per_message = 3
+        tokens_per_message = 3  # # every reply is primed with <|start|>assistant<|message|>
         tokens_per_name = 1
     elif model == "gpt-3.5-turbo-0301":
         tokens_per_message = 4  # every message follows <|start|>{role/name}\n{content}<|end|>\n

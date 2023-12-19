@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import asyncio
-from pathlib import Path
 
 import typer
 
@@ -27,7 +26,8 @@ def startup(
     reqa_file: str = typer.Option(default="", help="Specify the source file name for rewriting the quality test code."),
     max_auto_summarize_code: int = typer.Option(
         default=0,
-        help="The maximum number of times the 'SummarizeCode' action is automatically invoked, with -1 indicating unlimited. This parameter is used for debugging the workflow.",
+        help="The maximum number of times the 'SummarizeCode' action is automatically invoked, with -1 indicating "
+        "unlimited. This parameter is used for debugging the workflow.",
     ),
 ):
     """Run a startup. Be a boss."""
@@ -40,15 +40,7 @@ def startup(
     )
     from metagpt.team import Team
 
-    # Use in the PrepareDocuments action according to Section 2.2.3.5.1 of RFC 135.
-    CONFIG.project_path = project_path
-    if project_path:
-        inc = True
-        project_name = project_name or Path(project_path).name
-    CONFIG.project_name = project_name
-    CONFIG.inc = inc
-    CONFIG.reqa_file = reqa_file
-    CONFIG.max_auto_summarize_code = max_auto_summarize_code
+    CONFIG.update_via_cli(project_path, project_name, inc, reqa_file, max_auto_summarize_code)
 
     company = Team()
     company.hire(
