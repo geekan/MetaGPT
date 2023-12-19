@@ -18,10 +18,11 @@ from tenacity import (
     wait_random_exponential,
 )
 
-from metagpt.config import CONFIG
+from metagpt.config import CONFIG, LLMProviderEnum
 from metagpt.logs import logger
 from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.provider.constant import GENERAL_FUNCTION_SCHEMA, GENERAL_TOOL_CHOICE
+from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.schema import Message
 from metagpt.utils.singleton import Singleton
 from metagpt.utils.token_counter import (
@@ -137,6 +138,7 @@ See FAQ 5.8
     raise retry_state.outcome.exception()
 
 
+@register_provider(LLMProviderEnum.OPENAI)
 class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
     """
     Check https://platform.openai.com/examples for examples

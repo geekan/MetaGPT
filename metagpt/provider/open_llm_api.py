@@ -4,8 +4,9 @@
 
 import openai
 
-from metagpt.config import CONFIG
+from metagpt.config import CONFIG, LLMProviderEnum
 from metagpt.logs import logger
+from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.provider.openai_api import CostManager, OpenAIGPTAPI, RateLimiter
 
 
@@ -31,6 +32,7 @@ class OpenLLMCostManager(CostManager):
         CONFIG.total_cost = self.total_cost
 
 
+@register_provider(LLMProviderEnum.OPEN_LLM)
 class OpenLLMGPTAPI(OpenAIGPTAPI):
     def __init__(self):
         self.__init_openllm(CONFIG)

@@ -167,8 +167,8 @@ class Message(BaseModel):
     @handle_exception(exception_type=JSONDecodeError, default_return=None)
     def load(val):
         """Convert the json string to object."""
-        d = json.loads(val)
-        return Message(**d)
+        i = json.loads(val)
+        return Message(**i)
 
 
 class UserMessage(Message):
@@ -263,16 +263,16 @@ class MessageQueue(BaseModel):
         return json.dumps(lst)
 
     @staticmethod
-    def load(i) -> "MessageQueue":
+    def load(data) -> "MessageQueue":
         """Convert the json string to the `MessageQueue` object."""
         queue = MessageQueue()
         try:
-            lst = json.loads(i)
+            lst = json.loads(data)
             for i in lst:
                 msg = Message(**i)
                 queue.push(msg)
         except JSONDecodeError as e:
-            logger.warning(f"JSON load failed: {i}, error:{e}")
+            logger.warning(f"JSON load failed: {data}, error:{e}")
 
         return queue
 
