@@ -5,10 +5,13 @@
 @File    : openai.py
 """
 import asyncio
+import aiohttp
 import time
-from typing import NamedTuple, Union
+import json
+from typing import NamedTuple, Union, List, Dict
 
 import openai
+import requests
 from openai.error import APIConnectionError
 from tenacity import (
     after_log,
@@ -35,17 +38,97 @@ from metagpt.utils.token_counter import (
 class RateLimiter:
     """Rate control class, each call goes through wait_if_needed, sleep if rate control is needed"""
 
-    def __init__(self, rpm):
+    def __init__(self):
         self.last_call_time = 0
+        self.rpm = None
+        self.interval = None
         # Here 1.1 is used because even if the calls are made strictly according to time,
         # they will still be QOS'd; consider switching to simple error retry later
-        self.interval = 1.1 * 60 / rpm
-        self.rpm = rpm
 
-    def split_batches(self, batch):
+    def split_batches(self, batch: List[Dict[str, str]]):
+        """
+        Splits a batch of requests into smaller batches based on the current RPM.
+
+        Args:
+            batch (list): A batch of requests to be split.
+
+        Returns:
+            list: A list of smaller batches, each not exceeding the RPM limit.
+
+        Raises:
+            ValueError: If RPM is not set before calling this method.
+        """
+        if self.rpm is None:
+            raise ValueError("Your must run update_rpm before calling split_batches.")
         return [batch[i : i + self.rpm] for i in range(0, len(batch), self.rpm)]
 
-    async def wait_if_needed(self, num_requests):
+    async def update_rpm(self):
+        """
+        Asynchronously updates the RPM (requests per minute) limit.
+
+        This method fetches the RPM limit from an external API and updates the rate limiting parameters.
+        It is designed to be run before making any batched API calls.
+        """
+        if self.rpm is None:
+            self.rpm = await self._aget_rpm()
+            self.interval = 1.1 * 60 / self.rpm
+            logger.info(f'Setting rpm to {self.rpm}')
+
+    async def _aget_rpm(self) -> int:
+        """
+        Asynchronously fetches the RPM (requests per minute) limit from an external API.
+
+        This is an internal method used by update_rpm to fetch the current RPM limit. It uses
+        the OPENAI_SESSION_KEY for authorization and falls back to a default RPM value in case of failure.
+
+        Returns:
+            int: The fetched or default RPM value.
+        """
+        session_key = CONFIG.get("OPENAI_SESSION_KEY", "")
+        default_rpm = int(CONFIG.get("RPM", 10))
+        if len(session_key) > 0:
+            try:
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(
+                                        "https://api.openai.com/dashboard/rate_limits",
+                                        headers={"Authorization": f"Bearer {session_key}"},
+                                        timeout=10,
+                                        proxy=openai.proxy
+                    ) as response:
+                        if response.status == 200:
+                            response_content = json.loads(await response.text())
+                            if CONFIG.openai_api_model not in response_content:
+                                raise ValueError("Get rpm from api.openai.com error. \
+                                                 You have entered a model name that is not supported by OpenAI, or the input is incorrect. \
+                                                 Please enter the correct name in the configuration file. \
+                                                 Setting rpm to default parameter.")
+                            
+                            limit_dict = response_content[CONFIG.openai_api_model]
+                            return limit_dict["max_requests_per_1_minute"]
+                        else:
+                            error = json.loads(await response.text())["error"]
+                            logger.error(f"Connection to api.openai.com failed:{error}.Setting rpm to default parameter.")
+                            return default_rpm
+
+            except Exception as exp:
+                logger.error(f"Connection to api.openai.com failed, error type:{type(exp).__name__}, error message:{str(exp)}.Setting rpm to default parameter.")
+                return default_rpm
+        else:
+            return default_rpm
+
+    async def wait_if_needed(self, num_requests: int):
+        """
+        Asynchronously waits before making API requests if the rate limit is about to be exceeded.
+
+        This method calculates the time elapsed since the last API call and determines if a delay
+        is required to stay within the RPM limit. If a delay is needed, it pauses the execution
+        for the required amount of time.
+
+        Args:
+            num_requests (int): The number of upcoming API requests for which to check the rate limit.
+
+        The method updates `self.last_call_time` to the current time after the waiting period, if any.
+        """
         current_time = time.time()
         elapsed_time = current_time - self.last_call_time
 
@@ -143,23 +226,22 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
     """
 
     def __init__(self):
-        self.__init_openai(CONFIG)
+        self.__init_openai()
         self.llm = openai
         self.model = CONFIG.openai_api_model
         self.auto_max_tokens = False
         self._cost_manager = CostManager()
-        RateLimiter.__init__(self, rpm=self.rpm)
 
-    def __init_openai(self, config):
-        openai.api_key = config.openai_api_key
-        if config.openai_api_base:
-            openai.api_base = config.openai_api_base
-        if config.openai_api_type:
-            openai.api_type = config.openai_api_type
-            openai.api_version = config.openai_api_version
-        if config.openai_proxy:
-            openai.proxy = config.openai_proxy
-        self.rpm = int(config.get("RPM", 10))
+    def __init_openai(self):
+        openai.api_key = CONFIG.openai_api_key
+        if CONFIG.openai_api_base:
+            openai.api_base = CONFIG.openai_api_base
+        if CONFIG.openai_api_type:
+            openai.api_type = CONFIG.openai_api_type
+            openai.api_version = CONFIG.openai_api_version
+        if CONFIG.openai_proxy:
+            openai.proxy = CONFIG.openai_proxy
+        self.rpm = None
 
     async def _achat_completion_stream(self, messages: list[dict]) -> str:
         response = await openai.ChatCompletion.acreate(**self._cons_kwargs(messages), stream=True)
@@ -335,6 +417,8 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
 
     async def acompletion_batch(self, batch: list[list[dict]]) -> list[dict]:
         """Return full JSON"""
+
+        await self.update_rpm()
         split_batches = self.split_batches(batch)
         all_results = []
 

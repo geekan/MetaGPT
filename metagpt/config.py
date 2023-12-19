@@ -55,6 +55,7 @@ class Config(metaclass=Singleton):
         # logger.info("Config loading done.")
         self.global_proxy = self._get("GLOBAL_PROXY")
         self.openai_api_key = self._get("OPENAI_API_KEY")
+        self.openai_session_key = self._get("OPENAI_SESSION_KEY", "")
         self.anthropic_api_key = self._get("Anthropic_API_KEY")
         self.zhipuai_api_key = self._get("ZHIPUAI_API_KEY")
         self.open_llm_api_base = self._get("OPEN_LLM_API_BASE")
