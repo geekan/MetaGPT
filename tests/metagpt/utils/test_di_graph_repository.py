@@ -42,6 +42,7 @@ async def test_di_graph_repository():
     graph.pathname.unlink()
 
 
+@pytest.mark.asyncio
 async def test_js_parser():
     class Input(BaseModel):
         path: str
@@ -77,6 +78,7 @@ async def test_js_parser():
     assert data
 
 
+@pytest.mark.asyncio
 async def test_codes():
     path = DEFAULT_WORKSPACE_ROOT / "snake_game"
     repo_parser = RepoParser(base_directory=path)

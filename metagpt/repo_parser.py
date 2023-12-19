@@ -5,16 +5,20 @@
 @Author  : alexanderwu
 @File    : repo_parser.py
 """
+from __future__ import annotations
+
 import ast
 import json
 from pathlib import Path
 from pprint import pformat
+from typing import List
 
 import pandas as pd
 from pydantic import BaseModel, Field
 
 from metagpt.config import CONFIG
 from metagpt.logs import logger
+from metagpt.utils.common import any_to_str
 from metagpt.utils.exceptions import handle_exception
 
 
@@ -36,7 +40,10 @@ class RepoParser(BaseModel):
             "globals": [],
         }
 
+        page_info = []
         for node in tree:
+            info = RepoParser.node_to_str(node)
+            page_info.append(info)
             if isinstance(node, ast.ClassDef):
                 class_methods = [m.name for m in node.body if is_func(m)]
                 file_info["classes"].append({"name": node.name, "methods": class_methods})
@@ -46,6 +53,7 @@ class RepoParser(BaseModel):
                 for target in node.targets if isinstance(node, ast.Assign) else [node.target]:
                     if isinstance(target, ast.Name):
                         file_info["globals"].append(target.id)
+        file_info["page_info"] = page_info
         return file_info
 
     def generate_symbols(self):
@@ -57,7 +65,7 @@ class RepoParser(BaseModel):
         for ext in extensions:
             matching_files += directory.rglob(ext)
         for path in matching_files:
-            tree = self.parse_file(path)
+            tree = self._parse_file(path)
             file_info = self.extract_class_and_function_info(tree, path)
             files_classes.append(file_info)
 
@@ -83,6 +91,39 @@ class RepoParser(BaseModel):
             self.generate_json_structure(output_path)
         elif mode == "csv":
             self.generate_dataframe_structure(output_path)
+
+    @staticmethod
+    def node_to_str(node) -> (int, int, str, str | List):
+        def _parse_name(n):
+            if n.asname:
+                return f"{n.name} as {n.asname}"
+            return n.name
+
+        if any_to_str(node) == any_to_str(ast.Expr):
+            return node.lineno, node.end_lineno, any_to_str(node), RepoParser._parse_expr(node)
+        mappings = {
+            any_to_str(ast.Import): lambda x: [_parse_name(n) for n in x.names],
+            any_to_str(ast.Assign): lambda x: [n.id for n in x.targets],
+            any_to_str(ast.ClassDef): lambda x: x.name,
+            any_to_str(ast.FunctionDef): lambda x: x.name,
+            any_to_str(ast.ImportFrom): lambda x: {"module": x.module, "names": [_parse_name(n) for n in x.names]},
+            any_to_str(ast.If): lambda x: x.test.left.id,
+        }
+        func = mappings.get(any_to_str(node))
+        if func:
+            return node.lineno, node.end_lineno, any_to_str(node), func(node)
+        return node.lineno, node.end_lineno, any_to_str(node), None
+
+    @staticmethod
+    def _parse_expr(node) -> (int, int, str, str | List):
+        if isinstance(node.value, ast.Constant):
+            return any_to_str(ast.Constant), node.value.value
+        if isinstance(node.value, ast.Call):
+            if isinstance(node.value.func, ast.Attribute):
+                return any_to_str(ast.Call), f"{node.value.func.value.id}.{node.value.func.attr}"
+            if isinstance(node.value.func, ast.Name):
+                return any_to_str(ast.Call), node.value.func.id
+        return any_to_str(node.value), None
 
 
 def is_func(node):
