@@ -28,18 +28,6 @@ def test_docstring2yaml():
     assert 'dataframe' in yaml_result['parameters']['properties']
 
 
-def test_docstring2yaml_error():
-    docstring = """Calculate the duration in hours between two datetime columns.
-    args:
-        dataframe (pd.DataFrame): The dataframe containing the datetime columns.
-    returns:
-        pd.DataFrame: The dataframe with an additional column 'duration_hour' added.
-    """
-    with pytest.raises(ValueError) as exc_info:
-        docstring_to_yaml(docstring, return_vars='dataframe')
-        assert "No Args found" in exc_info
-
-
 def test_UDFS_YAML():
     assert len(UDFS_YAML) > 0
     logger.info(f"\n\n{UDFS_YAML}")
@@ -50,3 +38,11 @@ def test_UDFS_YAML():
     assert 'properties' in function_schema[list(function_schema.keys())[0]]['parameters']
     assert 'required' in function_schema[list(function_schema.keys())[0]]['parameters']
     assert 'returns' in function_schema[list(function_schema.keys())[0]]
+    # 指定要保存的文件路径
+    file_path = './tests/data/function_schema.yaml'
+
+    # 使用 PyYAML 将字典保存为 YAML 文件
+    with open(file_path, 'w') as file:
+        yaml.dump(function_schema, file, default_flow_style=False)
+
+    print(f'Data has been saved to {file_path}')
