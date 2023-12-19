@@ -20,7 +20,8 @@ import re
 import typing
 from typing import List, Tuple, Union
 
-from tenacity import _utils
+import loguru
+from tenacity import RetryCallState, _utils
 
 from metagpt.const import MESSAGE_ROUTE_TO_ALL
 from metagpt.logs import logger
