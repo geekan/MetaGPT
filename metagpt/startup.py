@@ -6,7 +6,7 @@ import typer
 
 from metagpt.config import CONFIG
 
-app = typer.Typer()
+app = typer.Typer(add_completion=False)
 
 
 @app.command()
@@ -23,7 +23,9 @@ def startup(
         default="",
         help="Specify the directory path of the old version project to fulfill the " "incremental requirements.",
     ),
-    reqa_file: str = typer.Option(default="", help="Specify the source file name for rewriting the quality test code."),
+    reqa_file: str = typer.Option(
+        default="", help="Specify the source file name for rewriting the quality assurance " "code."
+    ),
     max_auto_summarize_code: int = typer.Option(
         default=0,
         help="The maximum number of times the 'SummarizeCode' action is automatically invoked, with -1 indicating "
