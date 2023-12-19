@@ -301,6 +301,7 @@ ML_SPECIFIC_PROMPT = {
 ML_MODULE_MAP = {
     "data_preprocess": "metagpt.tools.functions.libs.data_preprocess",
     "feature_engineering": "metagpt.tools.functions.libs.feature_engineering",
+    "udf": "metagpt.tools.functions.libs.udf",
 }
 
 STRUCTURAL_CONTEXT = """
