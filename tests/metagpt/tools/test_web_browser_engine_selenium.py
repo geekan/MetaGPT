@@ -8,9 +8,9 @@ from metagpt.tools import web_browser_engine_selenium
 @pytest.mark.parametrize(
     "browser_type, use_proxy, url, urls",
     [
-        ("chrome", True, "https://fuzhi.ai", ("https://fuzhi.ai",)),
-        ("firefox", False, "https://fuzhi.ai", ("https://fuzhi.ai",)),
-        ("edge", False, "https://fuzhi.ai", ("https://fuzhi.ai",)),
+        ("chrome", True, "https://deepwisdom.ai", ("https://deepwisdom.ai",)),
+        ("firefox", False, "https://deepwisdom.ai", ("https://deepwisdom.ai",)),
+        ("edge", False, "https://deepwisdom.ai", ("https://deepwisdom.ai",)),
     ],
     ids=["chrome-normal", "firefox-normal", "edge-normal"],
 )

@@ -38,4 +38,3 @@ class PrepareInterview(Action):
         prompt = PROMPT_TEMPLATE.format(context=context)
         question_list = await self._aask_v1(prompt)
         return question_list
-

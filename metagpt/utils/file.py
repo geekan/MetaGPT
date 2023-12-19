@@ -6,8 +6,9 @@
 @File    : file.py
 @Describe : General file operations.
 """
-import aiofiles
 from pathlib import Path
+
+import aiofiles
 
 from metagpt.logs import logger
 
@@ -66,10 +67,9 @@ class File:
                     if not chunk:
                         break
                     chunks.append(chunk)
-                content = b''.join(chunks)
+                content = b"".join(chunks)
                 logger.debug(f"Successfully read file, the path of file: {file_path}")
                 return content
         except Exception as e:
             logger.error(f"Error reading file: {e}")
             raise e
-

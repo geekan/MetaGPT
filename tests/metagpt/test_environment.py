@@ -8,7 +8,7 @@
 
 import pytest
 
-from metagpt.actions import BossRequirement
+from metagpt.actions import UserRequirement
 from metagpt.environment import Environment
 from metagpt.logs import logger
 from metagpt.manager import Manager
@@ -49,7 +49,7 @@ async def test_publish_and_process_message(env: Environment):
 
     env.add_roles([product_manager, architect])
     env.set_manager(Manager())
-    env.publish_message(Message(role="BOSS", content="需要一个基于LLM做总结的搜索引擎", cause_by=BossRequirement))
+    env.publish_message(Message(role="User", content="需要一个基于LLM做总结的搜索引擎", cause_by=UserRequirement))
 
     await env.run(k=2)
     logger.info(f"{env.history=}")

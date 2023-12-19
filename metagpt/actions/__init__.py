@@ -9,7 +9,7 @@ from enum import Enum
 
 from metagpt.actions.action import Action
 from metagpt.actions.action_output import ActionOutput
-from metagpt.actions.add_requirement import BossRequirement
+from metagpt.actions.add_requirement import UserRequirement
 from metagpt.actions.debug_error import DebugError
 from metagpt.actions.design_api import WriteDesign
 from metagpt.actions.design_api_review import DesignReview
@@ -28,7 +28,7 @@ from metagpt.actions.write_test import WriteTest
 class ActionType(Enum):
     """All types of Actions, used for indexing."""
 
-    ADD_REQUIREMENT = BossRequirement
+    ADD_REQUIREMENT = UserRequirement
     WRITE_PRD = WritePRD
     WRITE_PRD_REVIEW = WritePRDReview
     WRITE_DESIGN = WriteDesign

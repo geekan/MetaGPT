@@ -10,6 +10,7 @@ import pytest
 from metagpt.actions.detail_mining import DetailMining
 from metagpt.logs import logger
 
+
 @pytest.mark.asyncio
 async def test_detail_mining():
     topic = "如何做一个生日蛋糕"
@@ -17,7 +18,6 @@ async def test_detail_mining():
     detail_mining = DetailMining("detail_mining")
     rsp = await detail_mining.run(topic=topic, record=record)
     logger.info(f"{rsp.content=}")
-    
-    assert '##OUTPUT' in rsp.content
-    assert '蛋糕' in rsp.content
 
+    assert "##OUTPUT" in rsp.content
+    assert "蛋糕" in rsp.content

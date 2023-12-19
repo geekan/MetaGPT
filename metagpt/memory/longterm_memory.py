@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# @Desc   : the implement of Long-term memory
+"""
+@Desc   : the implement of Long-term memory
+"""
 
 from metagpt.logs import logger
 from metagpt.memory import Memory
@@ -28,7 +30,7 @@ class LongTermMemory(Memory):
             logger.warning(f"It may the first time to run Agent {role_id}, the long-term memory is empty")
         else:
             logger.warning(
-                f"Agent {role_id} has existed memory storage with {len(messages)} messages " f"and has recovered them."
+                f"Agent {role_id} has existing memory storage with {len(messages)} messages " f"and has recovered them."
             )
         self.msg_from_recover = True
         self.add_batch(messages)
@@ -68,4 +70,3 @@ class LongTermMemory(Memory):
     def clear(self):
         super(LongTermMemory, self).clear()
         self.memory_storage.clean()
-        

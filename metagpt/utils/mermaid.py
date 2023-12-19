@@ -10,7 +10,7 @@ import os
 from pathlib import Path
 
 from metagpt.config import CONFIG
-from metagpt.const import PROJECT_ROOT
+from metagpt.const import METAGPT_ROOT
 from metagpt.logs import logger
 from metagpt.utils.common import check_cmd_exists
 
@@ -34,7 +34,10 @@ async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, 
     engine = CONFIG.mermaid_engine.lower()
     if engine == "nodejs":
         if check_cmd_exists(CONFIG.mmdc) != 0:
-            logger.warning("RUN `npm install -g @mermaid-js/mermaid-cli` to install mmdc")
+            logger.warning(
+                "RUN `npm install -g @mermaid-js/mermaid-cli` to install mmdc,"
+                "or consider changing MERMAID_ENGINE to `playwright`, `pyppeteer`, or `ink`."
+            )
             return -1
 
         for suffix in ["pdf", "svg", "png"]:
@@ -66,7 +69,7 @@ async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, 
             if stdout:
                 logger.info(stdout.decode())
             if stderr:
-                logger.error(stderr.decode())
+                logger.warning(stderr.decode())
     else:
         if engine == "playwright":
             from metagpt.utils.mmdc_playwright import mermaid_to_file
@@ -138,6 +141,6 @@ MMC2 = """sequenceDiagram
 
 if __name__ == "__main__":
     loop = asyncio.new_event_loop()
-    result = loop.run_until_complete(mermaid_to_file(MMC1, PROJECT_ROOT / f"{CONFIG.mermaid_engine}/1"))
-    result = loop.run_until_complete(mermaid_to_file(MMC2, PROJECT_ROOT / f"{CONFIG.mermaid_engine}/1"))
+    result = loop.run_until_complete(mermaid_to_file(MMC1, METAGPT_ROOT / f"{CONFIG.mermaid_engine}/1"))
+    result = loop.run_until_complete(mermaid_to_file(MMC2, METAGPT_ROOT / f"{CONFIG.mermaid_engine}/1"))
     loop.close()

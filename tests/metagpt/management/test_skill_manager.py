@@ -30,7 +30,7 @@ def test_skill_manager():
 
     rsp = manager.retrieve_skill("写测试用例")
     logger.info(rsp)
-    assert rsp[0] == 'WriteTest'
+    assert rsp[0] == "WriteTest"
 
     rsp = manager.retrieve_skill_scored("写PRD")
     logger.info(rsp)

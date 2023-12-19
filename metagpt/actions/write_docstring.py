@@ -16,7 +16,7 @@ Options:
                                 Default: 'google'
 
 Example:
-    python3 -m metagpt.actions.write_docstring startup.py --overwrite False --style=numpy
+    python3 -m metagpt.actions.write_docstring ./metagpt/startup.py --overwrite False --style=numpy
 
 This script uses the 'fire' library to create a command-line interface. It generates docstrings for the given Python code using
 the specified docstring style and adds them to the code.
@@ -28,7 +28,7 @@ from metagpt.actions.action import Action
 from metagpt.utils.common import OutputParser
 from metagpt.utils.pycst import merge_docstring
 
-PYTHON_DOCSTRING_SYSTEM = '''### Requirements
+PYTHON_DOCSTRING_SYSTEM = """### Requirements
 1. Add docstrings to the given code following the {style} style.
 2. Replace the function body with an Ellipsis object(...) to reduce output.
 3. If the types are already annotated, there is no need to include them in the docstring.
@@ -48,7 +48,7 @@ class ExampleError(Exception):
 ```python
 {example}
 ```
-'''
+"""
 
 # https://www.sphinx-doc.org/en/master/usage/extensions/napoleon.html
 
@@ -162,7 +162,8 @@ class WriteDocstring(Action):
         self.desc = "Write docstring for code."
 
     async def run(
-        self, code: str,
+        self,
+        code: str,
         system_text: str = PYTHON_DOCSTRING_SYSTEM,
         style: Literal["google", "numpy", "sphinx"] = "google",
     ) -> str:
