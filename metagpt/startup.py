@@ -26,7 +26,7 @@ def startup(
     ),
     reqa_file: str = typer.Option(default="", help="Specify the source file name for rewriting the quality test code."),
     max_auto_summarize_code: int = typer.Option(
-        default=-1,
+        default=0,
         help="The maximum number of times the 'SummarizeCode' action is automatically invoked, with -1 indicating unlimited. This parameter is used for debugging the workflow.",
     ),
 ):
