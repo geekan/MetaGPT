@@ -48,7 +48,7 @@ class MLEngineer(Role):
 
         self.plan = Plan(goal=goal)
         self.use_tools = False
-        self.make_udfs = False
+        self.make_udfs = False   # user-defined functions
         self.use_udfs = False
         self.use_code_steps = False
         self.execute_code = ExecutePyCode()
@@ -171,7 +171,17 @@ class MLEngineer(Role):
             elif not self.use_tools or self.plan.current_task.task_type == "other":
                 if self.use_udfs:
                     # use user-defined function tools.
-                    pass
+                    from metagpt.tools.functions.libs.udf import UDFS_YAML
+                    logger.warning("Writing code with user-defined function tools...")
+                    logger.info(f"Local user defined function as following:\
+                        \n{json.dumps(list(UDFS_YAML.keys()), indent=2, ensure_ascii=False)}")
+                    tool_context, code = await WriteCodeWithTools(schema_path=UDFS_YAML).run(
+                        context=context,
+                        plan=self.plan,
+                        column_info=self.data_desc.get("column_info", ""),
+                    )
+                    debug_context = tool_context
+                    cause_by = WriteCodeWithTools
                 else:
                     logger.info("Write code with pure generation")
                     code = await WriteCodeByGenerate().run(
@@ -180,8 +190,10 @@ class MLEngineer(Role):
                     debug_context = [self.get_useful_memories(task_exclude_field={'result', 'code_steps'})[0]]
                     cause_by = WriteCodeByGenerate
 
-                if self.make_udfs and len(code.split('\n')) > 2:
+                if self.make_udfs and len(code.split('\n')) > 4:
                     # make and save user-defined function tools.
+                    logger.warning(f"Making tools for task_id {self.plan.current_task_id}: \
+                        `{self.plan.current_task.instruction}` \n code {code}")
                     make_tools = MakeTools()
                     code_prompt = f"The following code is about {self.plan.current_task.instruction},\
                         convert it to be a General Function, {code}"
@@ -299,7 +311,8 @@ if __name__ == "__main__":
 
     async def main(requirement: str = requirement, auto_run: bool = True):
         role = MLEngineer(goal=requirement, auto_run=auto_run)
-        role.make_udfs = True
+        role.make_udfs = False
+        role.use_udfs = True
         await role.run(requirement)
 
     fire.Fire(main)
