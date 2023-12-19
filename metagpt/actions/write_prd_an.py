@@ -47,7 +47,7 @@ PRODUCT_GOALS = ActionNode(
 USER_STORIES = ActionNode(
     key="User Stories",
     expected_type=list[str],
-    instruction="Provide up to five scenario-based user stories.",
+    instruction="Provide up to 3 to 5 scenario-based user stories.",
     example=[
         "As a user, I want to be able to choose difficulty levels",
         "As a player, I want to see my score after each game",
@@ -57,7 +57,7 @@ USER_STORIES = ActionNode(
 COMPETITIVE_ANALYSIS = ActionNode(
     key="Competitive Analysis",
     expected_type=list[str],
-    instruction="Provide analyses for up to seven competitive products.",
+    instruction="Provide 5 to 7 competitive products.",
     example=["Python Snake Game: Simple interface, lacks advanced features"],
 )
 
@@ -92,8 +92,8 @@ REQUIREMENT_ANALYSIS = ActionNode(
 REQUIREMENT_POOL = ActionNode(
     key="Requirement Pool",
     expected_type=list[list[str]],
-    instruction="List down the requirements with their priority (P0, P1, P2).",
-    example=[["P0", "..."], ["P1", "..."]],
+    instruction="List down the top-5 requirements with their priority (P0, P1, P2).",
+    example=[["P0", "The main code ..."], ["P0", "The game algorithm ..."]],
 )
 
 UI_DESIGN_DRAFT = ActionNode(
