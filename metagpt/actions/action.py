@@ -14,6 +14,7 @@ from pydantic import BaseModel, Field
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.actions.action_output import ActionOutput
+from metagpt.actions.action_node import ActionNode
 from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.provider.base_gpt_api import BaseGPTAPI
@@ -29,11 +30,8 @@ class Action(BaseModel):
     llm: BaseGPTAPI = Field(default_factory=LLM, exclude=True)
     context = ""
     prefix = ""  # aask*时会加上prefix，作为system_message
-    profile = ""  # FIXME: USELESS
     desc = ""  # for skill manager
-    nodes = []
-    # content: Optional[str] = None
-    # instruct_content: Optional[str] = None
+    node: ActionNode = Field(default_factory=ActionNode)
 
     # builtin variables
     builtin_class_name: str = ""
@@ -58,10 +56,9 @@ class Action(BaseModel):
             obj_dict.pop("llm")
         return obj_dict
 
-    def set_prefix(self, prefix, profile):
+    def set_prefix(self, prefix):
         """Set prefix for later usage"""
         self.prefix = prefix
-        self.profile = profile
         return self
 
     def __str__(self):

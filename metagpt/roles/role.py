@@ -238,7 +238,7 @@ class Role(BaseModel):
         return role
 
     def _init_action_system_message(self, action: Action):
-        action.set_prefix(self._get_prefix(), self.profile)
+        action.set_prefix(self._get_prefix())
 
     def set_recovered(self, recovered: bool = False):
         self.recovered = recovered
