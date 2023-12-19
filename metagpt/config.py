@@ -68,23 +68,22 @@ class Config(metaclass=Singleton):
         global_options.update(OPTIONS.get())
         logger.debug("Config loading done.")
 
-    def get_default_llm_provider_enum(self):
-        if self._is_valid_llm_key(self.openai_api_key):
-            llm = LLMProviderEnum.OPENAI
-        elif self._is_valid_llm_key(self.anthropic_api_key):
-            llm = LLMProviderEnum.ANTHROPIC
-        elif self._is_valid_llm_key(self.zhipuai_api_key):
-            llm = LLMProviderEnum.ZHIPUAI
-        elif self._is_valid_llm_key(self.fireworks_api_key):
-            llm = LLMProviderEnum.FIREWORKS
-        elif self.open_llm_api_base:
-            llm = LLMProviderEnum.OPEN_LLM
-        else:
-            raise NotConfiguredException("You should config a LLM configuration first")
-        return llm
+    def get_default_llm_provider_enum(self) -> LLMProviderEnum:
+        for k, v in [
+            (self.openai_api_key, LLMProviderEnum.OPENAI),
+            (self.anthropic_api_key, LLMProviderEnum.ANTHROPIC),
+            (self.zhipuai_api_key, LLMProviderEnum.ZHIPUAI),
+            (self.fireworks_api_key, LLMProviderEnum.FIREWORKS),
+            (self.open_llm_api_base, LLMProviderEnum.OPEN_LLM),  # reuse logic. but not a key
+        ]:
+            if self._is_valid_llm_key(k):
+                if self.openai_api_model:
+                    logger.info(f"OpenAI API Model: {self.openai_api_model}")
+                return v
+        raise NotConfiguredException("You should config a LLM configuration first")
 
     @staticmethod
-    def _is_valid_llm_key(k) -> bool:
+    def _is_valid_llm_key(k: str) -> bool:
         return k and k != "YOUR_API_KEY"
 
     def _update(self):
