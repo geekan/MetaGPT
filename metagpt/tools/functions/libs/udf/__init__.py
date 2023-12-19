@@ -81,9 +81,6 @@ def docstring_to_yaml(docstring: str, return_vars: List[str] = None):
     variable_pattern = re.compile(r'(\w+)\s*\((.*?)\):\s*(.*)')
     params = variable_pattern.findall(_args)
     if not params:
-        err_msg = f"No Args found in docstring as following, Please make sure it is google style\
-            : \n\n{'-'*60}\n{docstring}\n{'-'*60}\n\n."
-        logger.warning(err_msg)
         params = ((None, None, None),)
     # 匹配Returns部分
     returns_match = re.search(r'Returns:\s*(.*?)(?:Raises:|$)', docstring, re.DOTALL)
