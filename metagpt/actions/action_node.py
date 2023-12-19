@@ -232,7 +232,7 @@ class ActionNode(Generic[T]):
         return prompt
 
     @retry(
-        wait=wait_random_exponential(min=1, max=60),
+        wait=wait_random_exponential(min=1, max=20),
         stop=stop_after_attempt(6),
         after=general_after_log(logger),
     )
