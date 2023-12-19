@@ -29,6 +29,8 @@ def extract_function_signatures(file_path):
                 # 导入函数
                 module_name = Path(file_path).parts[-1][:-len(Path(file_path).suffix)]
                 module = importlib.import_module(f"metagpt.tools.functions.libs.udf.{module_name}")
+                # 将函数导入到当前命名空间
+                globals().update({function_name: getattr(module, function_name)})
                 # 获取函数注释和函数路径
                 function_schema = {'udf_name': function_signature,
                                    'udf_path': f'from metagpt.tools.functions.libs.udf.{module_name} import {function_name}',
