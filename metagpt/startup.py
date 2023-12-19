@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import asyncio
-from pathlib import Path
 
 import typer
 
@@ -41,10 +40,6 @@ def startup(
     )
     from metagpt.team import Team
 
-    # Use in the PrepareDocuments action according to Section 2.2.3.5.1 of RFC 135.
-    if project_path:
-        inc = True
-        project_name = project_name or Path(project_path).name
     CONFIG.update_via_cli(project_path, project_name, inc, reqa_file, max_auto_summarize_code)
 
     company = Team()
