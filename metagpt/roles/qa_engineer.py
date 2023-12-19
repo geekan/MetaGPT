@@ -178,4 +178,4 @@ class QaEngineer(Role):
     async def _observe(self, ignore_memory=False) -> int:
         # This role has events that trigger and execute themselves based on conditions, and cannot rely on the
         # content of memory to activate.
-        return await super(QaEngineer, self)._observe(ignore_memory=True)
+        return await super()._observe(ignore_memory=True)

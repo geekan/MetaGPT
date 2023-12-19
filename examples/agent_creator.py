@@ -12,9 +12,8 @@ from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
 
-with open(METAGPT_ROOT / "examples/build_customized_agent.py", "r") as f:
-    # use official example script to guide AgentCreator
-    MULTI_ACTION_AGENT_CODE_EXAMPLE = f.read()
+EXAMPLE_CODE_FILE = METAGPT_ROOT / "examples/build_customized_agent.py"
+MULTI_ACTION_AGENT_CODE_EXAMPLE = EXAMPLE_CODE_FILE.read_text()
 
 
 class CreateAgent(Action):
@@ -50,8 +49,8 @@ class CreateAgent(Action):
         match = re.search(pattern, rsp, re.DOTALL)
         code_text = match.group(1) if match else ""
         CONFIG.workspace_path.mkdir(parents=True, exist_ok=True)
-        with open(CONFIG.workspace_path / "agent_created_agent.py", "w") as f:
-            f.write(code_text)
+        new_file = CONFIG.workspace_path / "agent_created_agent.py"
+        new_file.write_text(code_text)
         return code_text
 
 
