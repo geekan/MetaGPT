@@ -25,11 +25,3 @@ async def test_action_deserialize():
     assert new_action.name == ""
     assert new_action.llm == LLM()
     assert len(await new_action._aask("who are you")) > 0
-
-
-def test_action_serdeser():
-    action_info = WriteTest.ser_class()
-    assert action_info["action_class"] == "WriteTest"
-
-    action_class = Action.deser_class(action_info)
-    assert action_class == WriteTest

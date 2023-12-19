@@ -11,14 +11,13 @@
 """
 
 import json
-from typing import List, Optional, Any
+from typing import Optional
+
 from pydantic import Field
 
 from metagpt.actions import ActionOutput
 from metagpt.actions.action import Action
 from metagpt.actions.project_management_an import PM_NODE
-from metagpt.llm import LLM
-from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.config import CONFIG
 from metagpt.const import (
     PACKAGE_REQUIREMENTS_FILENAME,
@@ -26,11 +25,11 @@ from metagpt.const import (
     TASK_FILE_REPO,
     TASK_PDF_FILE_REPO,
 )
+from metagpt.llm import LLM
 from metagpt.logs import logger
+from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.schema import Document, Documents
 from metagpt.utils.file_repository import FileRepository
-from metagpt.provider.base_gpt_api import BaseGPTAPI
-
 
 NEW_REQ_TEMPLATE = """
 ### Legacy Content

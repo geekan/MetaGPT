@@ -61,6 +61,7 @@ class Environment(BaseModel):
                 "role_class": role.__class__.__name__,
                 "module_name": role.__module__,
                 "role_name": role.name,
+                "role_sub_tags": list(self.members.get(role))
             })
             role.serialize(stg_path=stg_path.joinpath(f"roles/{role.__class__.__name__}_{role.name}"))
         write_json_file(roles_path, roles_info)
@@ -71,13 +72,12 @@ class Environment(BaseModel):
     @classmethod
     def deserialize(cls, stg_path: Path) -> "Environment":
         """ stg_path: ./storage/team/environment/ """
-        """ stg_path: ./storage/team/environment/ """
         roles_path = stg_path.joinpath("roles.json")
         roles_info = read_json_file(roles_path)
         roles = []
         for role_info in roles_info:
             # role stored in ./environment/roles/{role_class}_{role_name}
-            role_path = stg_path.joinpath(f'roles/{role_info.get("role_class")}_{role_info.get("role_name")}')
+            role_path = stg_path.joinpath(f"roles/{role_info.get('role_class')}_{role_info.get('role_name')}")
             role = Role.deserialize(role_path)
             roles.append(role)
 
@@ -96,7 +96,6 @@ class Environment(BaseModel):
         Add a role in the current environment
         """
         role.set_env(self)
-        # use alias
         self.roles[role.profile] = role
 
     def add_roles(self, roles: Iterable[Role]):

@@ -166,7 +166,7 @@ class WritePRD(Action):
         if not quadrant_chart:
             return
         pathname = (
-                CONFIG.git_repo.workdir / Path(COMPETITIVE_ANALYSIS_FILE_REPO) / Path(prd_doc.filename).with_suffix("")
+            CONFIG.git_repo.workdir / Path(COMPETITIVE_ANALYSIS_FILE_REPO) / Path(prd_doc.filename).with_suffix("")
         )
         if not pathname.parent.exists():
             pathname.parent.mkdir(parents=True, exist_ok=True)

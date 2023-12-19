@@ -68,9 +68,6 @@ def serialize_general_message(message: "Message") -> dict:
         mapping = actionoutput_mapping_to_str(mapping)
 
         message_cp.instruct_content = {"class": schema["title"], "mapping": mapping, "value": ic.dict()}
-    cb = message_cp.cause_by
-    if cb:
-        message_cp.cause_by = cb.ser_class()
     return message_cp.dict()
 
 
@@ -103,9 +100,6 @@ def deserialize_general_message(message_dict: dict) -> "Message":
         ic_obj = actionoutput_class.create_model_class(class_name=ic["class"], mapping=mapping)
         ic_new = ic_obj(**ic["value"])
         message.instruct_content = ic_new
-    if cause_by:
-        action_class = import_class("Action", "metagpt.actions.action")
-        message.cause_by = action_class.deser_class(cause_by)
 
     return message
 

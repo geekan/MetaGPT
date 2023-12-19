@@ -26,6 +26,7 @@ from typing import Dict, List, Set, TypedDict, Optional, Any
 
 from pydantic import BaseModel, Field
 
+from metagpt.actions import UserRequirement
 from metagpt.config import CONFIG
 from metagpt.const import (
     MESSAGE_ROUTE_CAUSE_BY,
@@ -118,7 +119,7 @@ class Message(BaseModel):
             kwargs["instruct_content"] = ic_new
 
         kwargs["id"] = uuid.uuid4().hex
-        kwargs["cause_by"] = any_to_str(kwargs.get("cause_by", ""))
+        kwargs["cause_by"] = any_to_str(kwargs.get("cause_by", UserRequirement))
         kwargs["sent_from"] = any_to_str(kwargs.get("sent_from", ""))
         kwargs["send_to"] = any_to_str_set(kwargs.get("send_to", {MESSAGE_ROUTE_TO_ALL}))
         super(Message, self).__init__(**kwargs)

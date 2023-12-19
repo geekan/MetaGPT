@@ -81,22 +81,6 @@ class RoleReactMode(str, Enum):
         return [item.value for item in cls]
 
 
-class RoleSetting(BaseModel):
-    """Role Settings"""
-    name: str = ""
-    profile: str = ""
-    goal: str = ""
-    constraints: str = ""
-    desc: str = ""
-    is_human: bool = False
-
-    def __str__(self):
-        return f"{self.name}({self.profile})"
-
-    def __repr__(self):
-        return self.__str__()
-
-
 class RoleContext(BaseModel):
     """Role Runtime Context"""
     # # env exclude=True to avoid `RecursionError: maximum recursion depth exceeded in comparison`
@@ -160,7 +144,8 @@ class Role(BaseModel):
         "_role_id": _role_id,
         "_states": [],
         "_actions": [],
-        "_rc": RoleContext()
+        "_rc": RoleContext(),
+        "_subscription": set()
     }
 
     __hash__ = object.__hash__  # support Role as hashable type in `Environment.members`
@@ -186,7 +171,7 @@ class Role(BaseModel):
         # 关于私有变量的初始化  https://github.com/pydantic/pydantic/issues/655
         self._private_attributes["_llm"] = LLM() if not self.is_human else HumanProvider()
         self._private_attributes["_role_id"] = str(self._setting)
-        self._subscription = {any_to_str(self), name} if name else {any_to_str(self)}
+        self._private_attributes["_subscription"] = {any_to_str(self), self.name} if self.name else {any_to_str(self)}
 
         for key in self._private_attributes.keys():
             if key in kwargs:
@@ -202,64 +187,7 @@ class Role(BaseModel):
                 else:
                     object.__setattr__(self, key, self._private_attributes[key])
 
-        if not self._rc.watch:
-            self._watch([UserRequirement])
-
-        # deserialize child classes dynamically for inherited `role`
-        object.__setattr__(self, "builtin_class_name", self.__class__.__name__)
-        self.__fields__["builtin_class_name"].default = self.__class__.__name__
-
-    def __init_subclass__(cls, **kwargs: Any) -> None:
-        super().__init_subclass__(**kwargs)
-        role_subclass_registry[cls.__name__] = cls
-
-    # builtin variables
-    recovered: bool = False  # to tag if a recovered role
-    builtin_class_name: str = ""
-
-    _private_attributes = {
-        "_llm": LLM() if not is_human else HumanProvider(),
-        "_role_id": _role_id,
-        "_states": [],
-        "_actions": [],
-        "_rc": RoleContext()
-    }
-
-    class Config:
-        arbitrary_types_allowed = True
-        exclude = ["_llm"]
-
-    def __init__(self, **kwargs: Any):
-        for index in range(len(kwargs.get("_actions", []))):
-            current_action = kwargs["_actions"][index]
-            if isinstance(current_action, dict):
-                item_class_name = current_action.get("builtin_class_name", None)
-                for name, subclass in action_subclass_registry.items():
-                    registery_class_name = subclass.__fields__["builtin_class_name"].default
-                    if item_class_name == registery_class_name:
-                        current_action = subclass(**current_action)
-                        break
-                kwargs["_actions"][index] = current_action
-
-        super().__init__(**kwargs)
-
-        # 关于私有变量的初始化  https://github.com/pydantic/pydantic/issues/655
-        self._private_attributes["_llm"] = LLM() if not self.is_human else HumanProvider()
-        self._private_attributes["_role_id"] = str(self._setting)
-
-        for key in self._private_attributes.keys():
-            if key in kwargs:
-                object.__setattr__(self, key, kwargs[key])
-                if key == "_rc":
-                    _rc = RoleContext(**kwargs["_rc"])
-                    object.__setattr__(self, "_rc", _rc)
-            else:
-                if key == "_rc":
-                    # # Warning, if use self._private_attributes["_rc"],
-                    # # self._rc will be a shared object between roles, so init one or reset it inside `_reset`
-                    object.__setattr__(self, key, RoleContext())
-                else:
-                    object.__setattr__(self, key, self._private_attributes[key])
+        self._llm.system_prompt = self._get_prefix()
 
         # deserialize child classes dynamically for inherited `role`
         object.__setattr__(self, "builtin_class_name", self.__class__.__name__)
@@ -341,9 +269,6 @@ class Role(BaseModel):
             self._actions.append(i)
             self._states.append(f"{idx}. {action}")
 
-    def set_react_mode(self, react_mode: RoleReactMode, max_react_loop: int = 1):
-        self._set_react_mode(react_mode, max_react_loop)
-
     def _set_react_mode(self, react_mode: str, max_react_loop: int = 1):
         """Set strategy of the Role reacting to observed Message. Variation lies in how
         this Role elects action to perform during the _think stage, especially if it is capable of multiple Actions.
@@ -365,9 +290,6 @@ class Role(BaseModel):
         if react_mode == RoleReactMode.REACT:
             self._rc.max_react_loop = max_react_loop
 
-    def watch(self, actions: Iterable[Type[Action]]):
-        self._watch(actions)
-
     def _watch(self, actions: Iterable[Type[Action]]):
         """Watch Actions of interest. Role will select Messages caused by these Actions from its personal message
         buffer during _observe.
@@ -385,9 +307,6 @@ class Role(BaseModel):
         self._subscription = tags
         if self._rc.env:  # According to the routing feature plan in Chapter 2.2.3.2 of RFC 113
             self._rc.env.set_subscription(self, self._subscription)
-
-    def set_state(self, state: int):
-        self._set_state(state)
 
     def _set_state(self, state: int):
         """Update the current state."""
@@ -436,7 +355,7 @@ class Role(BaseModel):
             n_states=len(self._states) - 1,
             previous_state=self._rc.state,
         )
-        # print(prompt)
+
         next_state = await self._llm.aask(prompt)
         next_state = extract_state_value_from_output(next_state)
         logger.debug(f"{prompt=}")

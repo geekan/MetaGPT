@@ -71,22 +71,6 @@ class Action(BaseModel):
     def __repr__(self):
         return self.__str__()
 
-    @classmethod
-    def ser_class(cls) -> dict:
-        """ serialize class type"""
-        return {
-            "action_class": cls.__name__,
-            "module_name": cls.__module__
-        }
-
-    @classmethod
-    def deser_class(cls, action_dict: dict):
-        """ deserialize class type """
-        action_class_str = action_dict.pop("action_class")
-        module_name = action_dict.pop("module_name")
-        action_class = import_class(action_class_str, module_name)
-        return action_class
-
     async def _aask(self, prompt: str, system_msgs: Optional[list[str]] = None) -> str:
         """Append default prefix"""
         if not system_msgs:

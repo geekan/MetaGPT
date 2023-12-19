@@ -17,7 +17,7 @@ from metagpt.roles.role import Role
 
 class ProductManager(Role):
     """
-    Represents a Project Manager role responsible for overseeing project execution and team efficiency.
+    Represents a Product Manager role responsible for product development and management.
 
     Attributes:
         name (str): Name of the project manager.
@@ -28,11 +28,7 @@ class ProductManager(Role):
     name: str = "Alice"
     profile: str = Field(default="Product Manager")
     goal: str = "efficiently create a successful product"
-    constraints: str = "use same language as user requiremen"
-
-    """
-    Represents a Product Manager role responsible for product development and management.
-    """
+    constraints: str = "use same language as user requirement"
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)

@@ -9,16 +9,24 @@
 """
 import shutil
 from pathlib import Path
+from typing import Optional
+
+from pydantic import Field
 
 from metagpt.actions import Action, ActionOutput
 from metagpt.config import CONFIG
 from metagpt.const import DEFAULT_WORKSPACE_ROOT, DOCS_FILE_REPO, REQUIREMENT_FILENAME
+from metagpt.llm import LLM
+from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.schema import Document
 from metagpt.utils.file_repository import FileRepository
 from metagpt.utils.git_repository import GitRepository
 
 
 class PrepareDocuments(Action):
+    name: str = "PrepareDocuments"
+    context: Optional[str] = None
+    llm: BaseGPTAPI = Field(default_factory=LLM)
 
     async def run(self, with_messages, **kwargs):
         if not CONFIG.git_repo:

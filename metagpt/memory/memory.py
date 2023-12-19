@@ -20,7 +20,6 @@ from metagpt.utils.utils import read_json_file, write_json_file
 
 class Memory(BaseModel):
     """The most basic memory: super-memory"""
-
     storage: list[Message] = Field(default=[])
     index: dict[str, list[Message]] = Field(default_factory=defaultdict(list))
 
@@ -32,15 +31,6 @@ class Memory(BaseModel):
         kwargs["index"] = new_index
         super(Memory, self).__init__(**kwargs)
         self.index = new_index
-
-    def dict(self, *args, **kwargs) -> "DictStrAny":
-        """ overwrite the `dict` to dump dynamic pydantic model"""
-        obj_dict = super(Memory, self).dict(*args, **kwargs)
-        new_obj_dict = copy.deepcopy(obj_dict)
-        new_obj_dict["index"] = {}
-        for action_str, value in obj_dict["index"].items():
-            new_obj_dict["index"][action_str] = value
-        return new_obj_dict
 
     def serialize(self, stg_path: Path):
         """ stg_path = ./storage/team/environment/ or ./storage/team/environment/roles/{role_class}_{role_name}/ """
