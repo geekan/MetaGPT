@@ -8,18 +8,19 @@
         Section 2.2.3.3 of RFC 135.
 """
 from pathlib import Path
+
 from pydantic import BaseModel, Field
 
 from metagpt.actions import UserRequirement
 from metagpt.config import CONFIG
 from metagpt.const import MESSAGE_ROUTE_TO_ALL
+from metagpt.const import SERDESER_PATH
 from metagpt.environment import Environment
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.utils.common import NoMoneyException
 from metagpt.utils.utils import read_json_file, write_json_file, serialize_decorator
-from metagpt.const import SERDESER_PATH
 
 
 class Team(BaseModel):
@@ -39,9 +40,9 @@ class Team(BaseModel):
         stg_path = SERDESER_PATH.joinpath("team") if stg_path is None else stg_path
 
         team_info_path = stg_path.joinpath("team_info.json")
-        write_json_file(team_info_path, self.dict(exclude={"environment": True}))
+        write_json_file(team_info_path, self.dict(exclude={"env": True}))
 
-        self.environment.serialize(stg_path.joinpath("environment"))  # save environment alone
+        self.env.serialize(stg_path.joinpath("environment"))  # save environment alone
 
     @classmethod
     def recover(cls, stg_path: Path) -> "Team":
@@ -60,7 +61,7 @@ class Team(BaseModel):
 
         # recover environment
         environment = Environment.deserialize(stg_path=stg_path.joinpath("environment"))
-        team_info.update({"environment": environment})
+        team_info.update({"env": environment})
 
         team = Team(**team_info)
         return team

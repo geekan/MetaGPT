@@ -20,42 +20,26 @@
 """
 
 from __future__ import annotations
+
 from enum import Enum
-from typing import Iterable, Set, Type
 from pathlib import Path
+from typing import Iterable, Set, Type, Any
+
 from pydantic import BaseModel, Field
 
 from metagpt.actions.action import Action, ActionOutput, action_subclass_registry
 from metagpt.actions.action_node import ActionNode
 from metagpt.actions.add_requirement import UserRequirement
-
-from pathlib import Path
-
-from typing import (
-    Iterable,
-    Type,
-    Any
-)
-from pydantic import BaseModel, Field, validator
-
-# from metagpt.environment import Environment
-from metagpt.config import CONFIG
-from metagpt.actions.action import Action, ActionOutput, action_subclass_registry
+from metagpt.const import SERDESER_PATH
 from metagpt.llm import LLM
-from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.logs import logger
+from metagpt.memory import Memory
+from metagpt.provider.base_gpt_api import BaseGPTAPI
+from metagpt.provider.human_provider import HumanProvider
 from metagpt.schema import Message, MessageQueue
 from metagpt.utils.common import any_to_str
 from metagpt.utils.repair_llm_raw_output import extract_state_value_from_output
-from metagpt.memory import Memory
-from metagpt.provider.human_provider import HumanProvider
-
 from metagpt.utils.utils import read_json_file, write_json_file, import_class
-from metagpt.provider.base_gpt_api import BaseGPTAPI
-
-from metagpt.utils.utils import read_json_file, write_json_file, import_class, role_raise_decorator
-from metagpt.const import SERDESER_PATH
-
 
 PREFIX_TEMPLATE = """You are a {profile}, named {name}, your goal is {goal}, and the constraint is {constraints}. """
 
@@ -65,12 +49,14 @@ Please note that only the text between the first and second "===" is information
 {history}
 ===
 
-You can now choose one of the following stages to decide the stage you need to go in the next step:
+Your previous stage: {previous_state}
+
+Now choose one of the following stages you need to go to in the next step:
 {states}
 
 Just answer a number between 0-{n_states}, choose the most suitable stage according to the understanding of the conversation.
 Please note that the answer only needs a number, no need to add any other text.
-If there is no conversation record, choose 0.
+If you think you have completed your goal and don't need to go to any of the stages, return -1.
 Do not answer anything else, and do not add any other information in your answer.
 """
 
@@ -106,7 +92,7 @@ class RoleSetting(BaseModel):
 
     def __str__(self):
         return f"{self.name}({self.profile})"
-    
+
     def __repr__(self):
         return self.__str__()
 
@@ -115,36 +101,20 @@ class RoleContext(BaseModel):
     """Role Runtime Context"""
     # # env exclude=True to avoid `RecursionError: maximum recursion depth exceeded in comparison`
     env: "Environment" = Field(default=None, exclude=True)
-    msg_buffer: MessageQueue = Field(default_factory=MessageQueue)  # Message Buffer with Asynchronous Updates
+    # TODO judge if ser&deser
+    msg_buffer: MessageQueue = Field(default_factory=MessageQueue,
+                                     exclude=True)  # Message Buffer with Asynchronous Updates
     memory: Memory = Field(default_factory=Memory)
     # long_term_memory: LongTermMemory = Field(default_factory=LongTermMemory)
     state: int = Field(default=-1)  # -1 indicates initial or termination state where todo is None
     todo: Action = Field(default=None, exclude=True)
-    watch: set[Type[Action]] = Field(default_factory=set)
+    watch: set[str] = Field(default_factory=set)
     news: list[Type[Message]] = Field(default=[], exclude=True)  # TODO not used
-    react_mode: RoleReactMode = RoleReactMode.REACT # see `Role._set_react_mode` for definitions of the following two attributes
+    react_mode: RoleReactMode = RoleReactMode.REACT  # see `Role._set_react_mode` for definitions of the following two attributes
     max_react_loop: int = 1
-    
+
     class Config:
         arbitrary_types_allowed = True
-
-    def __init__(self, **kwargs):
-        watch_info = kwargs.get("watch", set())
-        watch = set()
-        for item in watch_info:
-            action = Action.deser_class(item)
-            watch.update([action])
-        kwargs["watch"] = watch
-        super(RoleContext, self).__init__(**kwargs)
-
-    def dict(self, *args, **kwargs) -> "DictStrAny":
-        obj_dict = super(RoleContext, self).dict(*args, **kwargs)
-        watch = obj_dict.get("watch", set())
-        watch_info = []
-        for item in watch:
-            watch_info.append(item.ser_class())
-        obj_dict["watch"] = watch_info
-        return obj_dict
 
     def check(self, role_id: str):
         # if hasattr(CONFIG, "long_term_memory") and CONFIG.long_term_memory:
@@ -156,26 +126,16 @@ class RoleContext(BaseModel):
     def important_memory(self) -> list[Message]:
         """Get the information corresponding to the watched actions"""
         return self.memory.get_by_actions(self.watch)
-    
+
     @property
     def history(self) -> list[Message]:
         return self.memory.get()
 
 
-class _RoleInjector(type):
-    def __call__(cls, *args, **kwargs):
-        instance = super().__call__(*args, **kwargs)
-
-        if not instance._rc.watch:
-            instance._watch([UserRequirement])
-
-        return instance
-
-
 role_subclass_registry = {}
 
 
-class Role(BaseModel, metaclass=_RoleInjector):
+class Role(BaseModel):
     """Role/Agent"""
     name: str = ""
     profile: str = ""
@@ -189,7 +149,7 @@ class Role(BaseModel, metaclass=_RoleInjector):
     _states: list[str] = Field(default=[])
     _actions: list[Action] = Field(default=[])
     _rc: RoleContext = Field(default=RoleContext)
-    _subscription: tuple = set()
+    _subscription: tuple[str] = set()
 
     # builtin variables
     recovered: bool = False  # to tag if a recovered role
@@ -202,6 +162,8 @@ class Role(BaseModel, metaclass=_RoleInjector):
         "_actions": [],
         "_rc": RoleContext()
     }
+
+    __hash__ = object.__hash__  # support Role as hashable type in `Environment.members`
 
     class Config:
         arbitrary_types_allowed = True
@@ -240,6 +202,9 @@ class Role(BaseModel, metaclass=_RoleInjector):
                 else:
                     object.__setattr__(self, key, self._private_attributes[key])
 
+        if not self._rc.watch:
+            self._watch([UserRequirement])
+
         # deserialize child classes dynamically for inherited `role`
         object.__setattr__(self, "builtin_class_name", self.__class__.__name__)
         self.__fields__["builtin_class_name"].default = self.__class__.__name__
@@ -303,7 +268,7 @@ class Role(BaseModel, metaclass=_RoleInjector):
     def __init_subclass__(cls, **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)
         role_subclass_registry[cls.__name__] = cls
-    
+
     def _reset(self):
         object.__setattr__(self, "_states", [])
         object.__setattr__(self, "_actions", [])
@@ -338,7 +303,7 @@ class Role(BaseModel, metaclass=_RoleInjector):
         role_class = import_class(class_name=role_class_str, module_name=module_name)
 
         role = role_class(**role_info)  # initiate particular Role
-        role.set_recovered(True)        # set True to make a tag
+        role.set_recovered(True)  # set True to make a tag
 
         role_memory = Memory.deserialize(stg_path)
         role.set_memory(role_memory)
@@ -362,7 +327,7 @@ class Role(BaseModel, metaclass=_RoleInjector):
         for idx, action in enumerate(actions):
             if not isinstance(action, Action):
                 ## 默认初始化
-                i = action(llm=self._llm)
+                i = action(name="", llm=self._llm)
             else:
                 if self._setting.is_human and not isinstance(action.llm, HumanProvider):
                     logger.warning(
@@ -438,23 +403,9 @@ class Role(BaseModel, metaclass=_RoleInjector):
             env.set_subscription(self, self._subscription)
 
     @property
-    def profile(self):
-        """Get the role description (position)"""
-        return self._setting.profile
-
-    @property
-    def name(self):
-        """Get virtual user name"""
-        return self._setting.name
-
-    @property
     def subscription(self) -> Set:
         """The labels for messages to be consumed by the Role object."""
         return self._subscription
-    
-    def set_env(self, env: "Environment"):
-        """Set the environment in which the role works. The role can talk to the environment and can also receive messages by observing."""
-        self._rc.env = env
 
     def _get_prefix(self):
         """Get the role prefix"""
@@ -466,7 +417,7 @@ class Role(BaseModel, metaclass=_RoleInjector):
             "goal": self.goal,
             "constraints": self.constraints
         })
-    
+
     async def _think(self) -> None:
         """Think about what to do and decide on the next action"""
         if len(self._actions) == 1:
@@ -475,7 +426,7 @@ class Role(BaseModel, metaclass=_RoleInjector):
             return
         if self.recovered and self._rc.state >= 0:
             self._set_state(self._rc.state)  # action to run from recovered state
-            self.recovered = False   # avoid max_react_loop out of work
+            self.recovered = False  # avoid max_react_loop out of work
             return
 
         prompt = self._get_prefix()
@@ -498,7 +449,7 @@ class Role(BaseModel, metaclass=_RoleInjector):
             if next_state == -1:
                 logger.info(f"End actions with {next_state=}")
         self._set_state(next_state)
-    
+
     async def _act(self) -> Message:
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
         response = await self._rc.todo.run(self._rc.important_memory)
@@ -535,8 +486,8 @@ class Role(BaseModel, metaclass=_RoleInjector):
         if news_text:
             logger.debug(f"{self._setting} observed: {news_text}")
         return len(self._rc.news)
-    
-    def _publish_message(self, msg):
+
+    def publish_message(self, msg):
         """If the role belongs to env, then the role's messages will be broadcast to env"""
         if not msg:
             return
@@ -557,7 +508,7 @@ class Role(BaseModel, metaclass=_RoleInjector):
         Use llm to select actions in _think dynamically
         """
         actions_taken = 0
-        rsp = Message("No actions taken yet")  # will be overwritten after Role _act
+        rsp = Message(content="No actions taken yet")  # will be overwritten after Role _act
         while actions_taken < self._rc.max_react_loop:
             # think
             await self._think()
@@ -580,7 +531,7 @@ class Role(BaseModel, metaclass=_RoleInjector):
     async def _plan_and_act(self) -> Message:
         """first plan, then execute an action sequence, i.e. _think (of a plan) -> _act -> _act -> ... Use llm to come up with the plan dynamically."""
         # TODO: to be implemented
-        return Message("")
+        return Message(content="")
 
     async def react(self) -> Message:
         """Entry to one of three strategies by which Role reacts to the observed Message"""
@@ -613,24 +564,24 @@ class Role(BaseModel, metaclass=_RoleInjector):
     def get_memories(self, k=0) -> list[Message]:
         """A wrapper to return the most recent k memories of this role, return all when k=0"""
         return self._rc.memory.get(k=k)
-    
+
     async def run(self, with_message=None):
         """Observe, and think and act based on the results of the observation"""
         if with_message:
             msg = None
             if isinstance(with_message, str):
-                msg = Message(with_message)
+                msg = Message(content=with_message)
             elif isinstance(with_message, Message):
                 msg = with_message
             elif isinstance(with_message, list):
-                msg = Message("\n".join(with_message))
+                msg = Message(content="\n".join(with_message))
             self.put_message(msg)
 
         if not await self._observe():
             # If there is no new information, suspend and wait
             logger.debug(f"{self._setting}: no news. waiting.")
             return
-        
+
         rsp = await self.react()
 
         # Reset the next action to be taken.

@@ -7,21 +7,19 @@
 @Modified By: mashenquan, 2023/11/27. Following the think-act principle, solidify the task parameters when creating the
         WriteCode object, rather than passing them in when calling the run function.
 """
-from typing import List, Optional, Any
-from pydantic import Field
-from tenacity import retry, stop_after_attempt, wait_fixed
 
-from typing import List, Optional, Any
+from typing import Optional
+
 from pydantic import Field
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.actions import WriteCode
-from metagpt.llm import LLM
 from metagpt.actions.action import Action
 from metagpt.config import CONFIG
+from metagpt.llm import LLM
 from metagpt.logs import logger
-from metagpt.schema import CodingContext
 from metagpt.provider.base_gpt_api import BaseGPTAPI
+from metagpt.schema import CodingContext
 from metagpt.utils.common import CodeParser
 
 PROMPT_TEMPLATE = """
@@ -38,7 +36,6 @@ ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenc
 {code}
 ```
 """
-
 
 EXAMPLE_AND_INSTRUCTION = """
 
@@ -127,7 +124,7 @@ REWRITE_CODE_TEMPLATE = """
 
 class WriteCodeReview(Action):
     name: str = "WriteCodeReview"
-    context: Optional[str] = None
+    context: Optional[CodingContext] = None
     llm: BaseGPTAPI = Field(default_factory=LLM)
 
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
@@ -147,9 +144,15 @@ class WriteCodeReview(Action):
         iterative_code = self.context.code_doc.content
         k = CONFIG.code_review_k_times or 1
         for i in range(k):
-            format_example = FORMAT_EXAMPLE.format(filename=self.context.code_doc.filename)
-            task_content = self.context.task_doc.content if self.context.task_doc else ""
-            code_context = await WriteCode.get_codes(self.context.task_doc, exclude=self.context.filename)
+            format_example = FORMAT_EXAMPLE.format(
+                filename=self.context.code_doc.filename
+            )
+            task_content = (
+                self.context.task_doc.content if self.context.task_doc else ""
+            )
+            code_context = await WriteCode.get_codes(
+                self.context.task_doc, exclude=self.context.filename
+            )
             context = "\n".join(
                 [
                     "## System Design\n" + str(self.context.design_doc) + "\n",
@@ -162,11 +165,16 @@ class WriteCodeReview(Action):
                 code=iterative_code,
                 filename=self.context.code_doc.filename,
             )
-            cr_prompt = EXAMPLE_AND_INSTRUCTION.format(format_example=format_example, )
-            logger.info(
-                f"Code review and rewrite {self.context.code_doc.filename}: {i+1}/{k} | {len(iterative_code)=}, {len(self.context.code_doc.content)=}"
+            cr_prompt = EXAMPLE_AND_INSTRUCTION.format(
+                format_example=format_example,
             )
-            result, rewrited_code = await self.write_code_review_and_rewrite(context_prompt, cr_prompt, self.context.code_doc.filename)
+            logger.info(
+                f"Code review and rewrite {self.context.code_doc.filename}: {i + 1}/{k} | {len(iterative_code)=}, "
+                f"{len(self.context.code_doc.content)=}"
+            )
+            result, rewrited_code = await self.write_code_review_and_rewrite(
+                context_prompt, cr_prompt, self.context.code_doc.filename
+            )
             if "LBTM" in result:
                 iterative_code = rewrited_code
             elif "LGTM" in result:

@@ -19,8 +19,6 @@ from metagpt.utils.git_repository import GitRepository
 
 
 class PrepareDocuments(Action):
-    def __init__(self, name="", context=None, llm=None):
-        super().__init__(name, context, llm)
 
     async def run(self, with_messages, **kwargs):
         if not CONFIG.git_repo:

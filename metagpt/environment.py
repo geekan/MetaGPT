@@ -12,14 +12,12 @@
     functionality is to be consolidated into the `Environment` class.
 """
 import asyncio
-from typing import Iterable, Set
 from pathlib import Path
+from typing import Iterable, Set
 
 from pydantic import BaseModel, Field
 
 from metagpt.logs import logger
-from metagpt.roles import Role
-from metagpt.memory import Memory
 from metagpt.roles.role import Role, role_subclass_registry
 from metagpt.schema import Message
 from metagpt.utils.common import is_subscribed
@@ -29,7 +27,6 @@ from metagpt.utils.utils import read_json_file, write_json_file
 class Environment(BaseModel):
     """环境，承载一批角色，角色可以向环境发布消息，可以被其他角色观察到
     Environment, hosting a batch of roles, roles can publish messages to the environment, and can be observed by other roles
-
     """
 
     roles: dict[str, Role] = Field(default_factory=dict)
@@ -63,12 +60,11 @@ class Environment(BaseModel):
             roles_info.append({
                 "role_class": role.__class__.__name__,
                 "module_name": role.__module__,
-                "role_name": role.name
+                "role_name": role.name,
             })
             role.serialize(stg_path=stg_path.joinpath(f"roles/{role.__class__.__name__}_{role.name}"))
         write_json_file(roles_path, roles_info)
 
-        self.memory.serialize(stg_path)
         history_path = stg_path.joinpath("history.json")
         write_json_file(history_path, {"content": self.history})
 
@@ -92,6 +88,7 @@ class Environment(BaseModel):
             "history": history
         })
         environment.add_roles(roles)
+
         return environment
 
     def add_role(self, role: Role):

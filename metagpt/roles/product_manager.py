@@ -26,13 +26,14 @@ class ProductManager(Role):
         constraints (str): Constraints or limitations for the project manager.
     """
     name: str = "Alice"
-    role_profile: str = Field(default="Product Manager", alias='profile')
+    profile: str = Field(default="Product Manager")
     goal: str = "efficiently create a successful product"
     constraints: str = "use same language as user requiremen"
 
     """
     Represents a Product Manager role responsible for product development and management.
     """
+
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 

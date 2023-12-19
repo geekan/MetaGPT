@@ -9,6 +9,7 @@ from pathlib import Path
 import importlib
 from tenacity import _utils
 import traceback
+from pydantic.json import pydantic_encoder
 
 from metagpt.logs import logger
 
@@ -46,7 +47,7 @@ def write_json_file(json_file: str, data: list, encoding=None):
         folder_path.mkdir(parents=True, exist_ok=True)
 
     with open(json_file, "w", encoding=encoding) as fout:
-        json.dump(data, fout, ensure_ascii=False, indent=4)
+        json.dump(data, fout, ensure_ascii=False, indent=4, default=pydantic_encoder)
 
 
 def import_class(class_name: str, module_name: str) -> type:

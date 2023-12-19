@@ -8,16 +8,14 @@
 """
 import copy
 from collections import defaultdict
-
-from typing import Iterable, Type, Union, Optional, Set
 from pathlib import Path
+from typing import Iterable, Set
+
 from pydantic import BaseModel, Field
-import json
 
 from metagpt.schema import Message
 from metagpt.utils.common import any_to_str, any_to_str_set
 from metagpt.utils.utils import read_json_file, write_json_file
-from metagpt.utils.utils import import_class
 
 
 class Memory(BaseModel):
@@ -30,10 +28,7 @@ class Memory(BaseModel):
         index = kwargs.get("index", {})
         new_index = defaultdict(list)
         for action_str, value in index.items():
-            action_dict = json.loads(action_str)
-            action_class = import_class("Action", "metagpt.actions.action")
-            action_obj = action_class.deser_class(action_dict)
-            new_index[action_obj] = [Message(**item_dict) for item_dict in value]
+            new_index[action_str] = [Message(**item_dict) for item_dict in value]
         kwargs["index"] = new_index
         super(Memory, self).__init__(**kwargs)
         self.index = new_index
@@ -43,9 +38,8 @@ class Memory(BaseModel):
         obj_dict = super(Memory, self).dict(*args, **kwargs)
         new_obj_dict = copy.deepcopy(obj_dict)
         new_obj_dict["index"] = {}
-        for action, value in obj_dict["index"].items():
-            action_ser = json.dumps(action.ser_class())
-            new_obj_dict["index"][action_ser] = value
+        for action_str, value in obj_dict["index"].items():
+            new_obj_dict["index"][action_str] = value
         return new_obj_dict
 
     def serialize(self, stg_path: Path):
