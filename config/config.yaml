@@ -20,7 +20,7 @@ RPM: 10
 #SPARK_URL : "ws://spark-api.xf-yun.com/v2.1/chat"
 
 #### if Anthropic
-#Anthropic_API_KEY: "YOUR_API_KEY"
+#ANTHROPIC_API_KEY: "YOUR_API_KEY"
 
 #### if AZURE, check https://github.com/openai/openai-cookbook/blob/main/examples/azure/chat.ipynb
 #### You can use ENGINE or DEPLOYMENT mode

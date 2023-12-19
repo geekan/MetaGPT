@@ -46,30 +46,41 @@ class Config(metaclass=Singleton):
 
     def __init__(self, yaml_file=default_yaml_file):
         self._init_with_config_files_and_env(yaml_file)
-        logger.debug("Config loading done.")
         self._update()
+        logger.debug("Config loading done.")
         logger.info(f"OpenAI API Model: {self.openai_api_model}")
+
+    @staticmethod
+    def _is_valid_llm_key(k) -> bool:
+        return k and k != "YOUR_API_KEY"
+
+    def _check_llm_exists(self):
+        if not any(
+            [
+                self._is_valid_llm_key(self.openai_api_key),
+                self._is_valid_llm_key(self.anthropic_api_key),
+                self._is_valid_llm_key(self.zhipuai_api_key),
+                self._is_valid_llm_key(self.fireworks_api_key),
+                self.open_llm_api_base,
+            ]
+        ):
+            raise NotConfiguredException(
+                "Set OPENAI_API_KEY or Anthropic_API_KEY or ZHIPUAI_API_KEY "
+                "or FIREWORKS_API_KEY or OPEN_LLM_API_BASE"
+            )
 
     def _update(self):
         # logger.info("Config loading done.")
         self.global_proxy = self._get("GLOBAL_PROXY")
+
         self.openai_api_key = self._get("OPENAI_API_KEY")
-        self.anthropic_api_key = self._get("Anthropic_API_KEY")
+        self.anthropic_api_key = self._get("ANTHROPIC_API_KEY")
         self.zhipuai_api_key = self._get("ZHIPUAI_API_KEY")
         self.open_llm_api_base = self._get("OPEN_LLM_API_BASE")
         self.open_llm_api_model = self._get("OPEN_LLM_API_MODEL")
         self.fireworks_api_key = self._get("FIREWORKS_API_KEY")
-        if (
-            (not self.openai_api_key or "YOUR_API_KEY" == self.openai_api_key)
-            and (not self.anthropic_api_key or "YOUR_API_KEY" == self.anthropic_api_key)
-            and (not self.zhipuai_api_key or "YOUR_API_KEY" == self.zhipuai_api_key)
-            and (not self.open_llm_api_base)
-            and (not self.fireworks_api_key or "YOUR_API_KEY" == self.fireworks_api_key)
-        ):
-            raise NotConfiguredException(
-                "Set OPENAI_API_KEY or Anthropic_API_KEY or ZHIPUAI_API_KEY first "
-                "or FIREWORKS_API_KEY or OPEN_LLM_API_BASE"
-            )
+        self._check_llm_exists()
+
         self.openai_api_base = self._get("OPENAI_API_BASE")
         self.openai_proxy = self._get("OPENAI_PROXY") or self.global_proxy
         self.openai_api_type = self._get("OPENAI_API_TYPE")
@@ -89,7 +100,7 @@ class Config(metaclass=Singleton):
         self.fireworks_api_base = self._get("FIREWORKS_API_BASE")
         self.fireworks_api_model = self._get("FIREWORKS_API_MODEL")
 
-        self.claude_api_key = self._get("Anthropic_API_KEY")
+        self.claude_api_key = self._get("ANTHROPIC_API_KEY")
         self.serpapi_api_key = self._get("SERPAPI_API_KEY")
         self.serper_api_key = self._get("SERPER_API_KEY")
         self.google_api_key = self._get("GOOGLE_API_KEY")
@@ -141,8 +152,8 @@ class Config(metaclass=Singleton):
 
     @staticmethod
     def _get(*args, **kwargs):
-        m = OPTIONS.get()
-        return m.get(*args, **kwargs)
+        i = OPTIONS.get()
+        return i.get(*args, **kwargs)
 
     def get(self, key, *args, **kwargs):
         """Search for a value in config/key.yaml, config/config.yaml, and env; raise an error if not found"""
@@ -155,8 +166,8 @@ class Config(metaclass=Singleton):
         OPTIONS.get()[name] = value
 
     def __getattr__(self, name: str) -> Any:
-        m = OPTIONS.get()
-        return m.get(name)
+        i = OPTIONS.get()
+        return i.get(name)
 
     def set_context(self, options: dict):
         """Update current config"""
@@ -175,8 +186,8 @@ class Config(metaclass=Singleton):
     def new_environ(self):
         """Return a new os.environ object"""
         env = os.environ.copy()
-        m = self.options
-        env.update({k: v for k, v in m.items() if isinstance(v, str)})
+        i = self.options
+        env.update({k: v for k, v in i.items() if isinstance(v, str)})
         return env
 
 
