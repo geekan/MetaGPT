@@ -48,6 +48,7 @@ setup(
         "search-google": ["google-api-python-client==2.94.0"],
         "search-ddg": ["duckduckgo-search==3.8.5"],
         "pyppeteer": ["pyppeteer>=1.0.2"],
+        "ocr": ["paddlepaddle==2.4.2", "paddleocr>=2.0.1", "tabulate==0.9.0"],
     },
     cmdclass={
         "install_mermaid": InstallMermaidCLI,
