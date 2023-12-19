@@ -30,5 +30,6 @@ class ProjectManager(Role):
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
+
         self._init_actions([WriteTasks])
         self._watch([WriteDesign])
