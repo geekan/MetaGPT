@@ -43,11 +43,18 @@ def extract_function_signatures(file_path):
                             'udf_returns': [var.strip() for var in line.strip()[len("return "):].split(',')]
                         })
                         break
+
+                # 没有返回值的函数
+                if not function_returns or function_returns[-1]['udf_name'] != function_name:
+                    function_returns.append({
+                        'udf_name': function_name,
+                        'udf_returns': [None]
+                    })
     return function_signatures, function_returns
 
 
 def get_function_signatures_in_folder(folder_path):
-    python_files = [f for f in os.listdir(folder_path) if f.endswith('.py')]
+    python_files = [f for f in os.listdir(folder_path) if f.endswith('.py') and f != '__init__.py']
     all_function_signatures = []
     all_function_returns = []
 
@@ -59,7 +66,7 @@ def get_function_signatures_in_folder(folder_path):
     return all_function_signatures, all_function_returns
 
 
-# TODO: Create Tools Yaml Style Schema
+# Create Tools Yaml Style Schema
 def docstring_to_yaml(docstring: str, return_vars: List[str] = None):
     logger.debug(f"\n\nFunction Docstring: \n{'-'*60}\n {docstring} \n\nFunction Returns: \n{'-'*60}\n{return_vars}\n")
     if docstring is None:
@@ -111,8 +118,7 @@ def extract_function_schema_yaml_in_folder(folder_path: str):
 folder_path = str(Path(__file__).parent.absolute())
 function_signatures, function_returns = get_function_signatures_in_folder(folder_path)
 
-UDFS = [func for func in function_signatures
-        if not func['udf_name'].startswith(('extract_function_signatures', 'get_function_signatures_in_folder', 'docstring_to_yaml'))]
+UDFS = [func for func in function_signatures]
 
 UDFS_YAML_STR: str = extract_function_schema_yaml_in_folder(folder_path)
 UDFS_YAML: dict = yaml.load(UDFS_YAML_STR, Loader=yaml.FullLoader)

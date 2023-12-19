@@ -1,5 +1,6 @@
 import pytest
 import yaml
+import json
 
 from metagpt.tools.functions.libs.udf import UDFS, docstring_to_yaml, UDFS_YAML
 from metagpt.logs import logger
@@ -30,8 +31,8 @@ def test_docstring2yaml():
 
 def test_UDFS_YAML():
     assert len(UDFS_YAML) > 0
-    logger.info(f"\n\n{UDFS_YAML}")
-    function_schema = yaml.load(UDFS_YAML, Loader=yaml.FullLoader)
+    logger.info(f"\n\n{json.dumps(UDFS_YAML, indent=2, ensure_ascii=False)}")
+    function_schema = UDFS_YAML
     assert 'description' in function_schema[list(function_schema.keys())[0]]
     assert 'type' in function_schema[list(function_schema.keys())[0]]
     assert 'parameters' in function_schema[list(function_schema.keys())[0]]
