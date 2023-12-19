@@ -25,8 +25,9 @@ from pathlib import Path
 from typing import Any
 from typing import List, Tuple, Union
 
+import loguru
 from pydantic.json import pydantic_encoder
-from tenacity import _utils
+from tenacity import RetryCallState, _utils
 
 from metagpt.const import MESSAGE_ROUTE_TO_ALL
 from metagpt.logs import logger
