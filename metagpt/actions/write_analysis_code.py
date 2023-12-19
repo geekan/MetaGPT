@@ -223,7 +223,7 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
 
 
 class MakeTools(WriteCodeByGenerate):
-    DEFAULT_SYSTEM_MSG = """Please Create a very General Function Code startswith `def` from any codes you got.\n
+    DEFAULT_SYSTEM_MSG = """Convert any codes provied for you to a very General Function Code startswith `def`.\n
     **Notice:
     1. Your code must contain a general function start with `def`.
     2. Refactor your code to get the most efficient implementation for large input data in the shortest amount of time.
