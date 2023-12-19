@@ -48,6 +48,7 @@ class Config(metaclass=Singleton):
         self._init_with_config_files_and_env(yaml_file)
         logger.debug("Config loading done.")
         self._update()
+        logger.info(f"OpenAI API Model: {self.openai_api_model}")
 
     def _update(self):
         # logger.info("Config loading done.")
@@ -74,7 +75,7 @@ class Config(metaclass=Singleton):
         self.openai_api_type = self._get("OPENAI_API_TYPE")
         self.openai_api_version = self._get("OPENAI_API_VERSION")
         self.openai_api_rpm = self._get("RPM", 3)
-        self.openai_api_model = self._get("OPENAI_API_MODEL", "gpt-4")
+        self.openai_api_model = self._get("OPENAI_API_MODEL", "gpt-4-1106-preview")
         self.max_tokens_rsp = self._get("MAX_TOKENS", 2048)
         self.deployment_name = self._get("DEPLOYMENT_NAME")
         self.deployment_id = self._get("DEPLOYMENT_ID")
@@ -137,7 +138,6 @@ class Config(metaclass=Singleton):
                     continue
                 configs.update(yaml_data)
         OPTIONS.set(configs)
-        logger.info(f"Default OpenAI API Model: {self.openai_api_model}")
 
     @staticmethod
     def _get(*args, **kwargs):
