@@ -2,11 +2,10 @@
 # -*- coding: utf-8 -*-
 # @Desc   : unittest of schema ser&deser
 
-from metagpt.schema import Message
 from metagpt.actions.action_output import ActionOutput
 from metagpt.actions.write_code import WriteCode
+from metagpt.schema import Message
 from metagpt.utils.common import any_to_str
-
 from tests.metagpt.serialize_deserialize.test_serdeser_base import MockMessage
 
 

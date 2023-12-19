@@ -4,18 +4,18 @@
 # @Desc    :
 
 import shutil
+
 import pytest
 
-from metagpt.logs import logger
-from metagpt.roles.role import Role
 from metagpt.actions import WriteCode
-from metagpt.schema import Message
 from metagpt.actions.add_requirement import UserRequirement
-from metagpt.roles.product_manager import ProductManager
 from metagpt.const import SERDESER_PATH
+from metagpt.logs import logger
 from metagpt.roles.engineer import Engineer
+from metagpt.roles.product_manager import ProductManager
+from metagpt.roles.role import Role
+from metagpt.schema import Message
 from metagpt.utils.utils import format_trackback_info
-
 from tests.metagpt.serialize_deserialize.test_serdeser_base import RoleA, RoleB, RoleC, serdeser_path
 
 

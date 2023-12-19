@@ -3,14 +3,13 @@
 # @Author  : stellahong (stellahong@fuzhi.ai)
 # @Desc    :
 
-from pathlib import Path
 import shutil
+
 import pytest
 
+from metagpt.const import SERDESER_PATH
 from metagpt.roles import ProjectManager, ProductManager, Architect
 from metagpt.team import Team
-from metagpt.const import SERDESER_PATH
-
 from tests.metagpt.serialize_deserialize.test_serdeser_base import RoleA, RoleB, RoleC, serdeser_path, ActionOK
 
 

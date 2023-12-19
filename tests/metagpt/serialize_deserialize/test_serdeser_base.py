@@ -2,15 +2,15 @@
 # -*- coding: utf-8 -*-
 # @Desc   : base test actions / roles used in unittest
 
-from pydantic import BaseModel, Field
-from pathlib import Path
 import asyncio
+from pathlib import Path
+
+from pydantic import BaseModel, Field
 
 from metagpt.actions.action import Action
-from metagpt.roles.role import Role, RoleReactMode
-from metagpt.actions.add_requirement import UserRequirement
 from metagpt.actions.action_output import ActionOutput
-
+from metagpt.actions.add_requirement import UserRequirement
+from metagpt.roles.role import Role, RoleReactMode
 
 serdeser_path = Path(__file__).absolute().parent.joinpath("..", "..", "data", "serdeser_storage")
 
@@ -51,7 +51,6 @@ class ActionRaise(Action):
 
 
 class RoleA(Role):
-
     name: str = Field(default="RoleA")
     profile: str = Field(default="Role A")
     goal: str = "RoleA's goal"

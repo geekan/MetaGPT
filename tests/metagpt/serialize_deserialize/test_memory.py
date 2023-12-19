@@ -2,16 +2,14 @@
 # -*- coding: utf-8 -*-
 # @Desc   : unittest of memory
 
-from pathlib import Path
 from pydantic import BaseModel
 
-from metagpt.schema import Message
-from metagpt.memory.memory import Memory
 from metagpt.actions.action_output import ActionOutput
-from metagpt.actions.design_api import WriteDesign
 from metagpt.actions.add_requirement import UserRequirement
+from metagpt.actions.design_api import WriteDesign
+from metagpt.memory.memory import Memory
+from metagpt.schema import Message
 from metagpt.utils.common import any_to_str
-
 from tests.metagpt.serialize_deserialize.test_serdeser_base import serdeser_path
 
 

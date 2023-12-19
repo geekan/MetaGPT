@@ -4,8 +4,8 @@
 # @Desc    :
 import pytest
 
-from metagpt.roles.product_manager import ProductManager
 from metagpt.actions.action import Action
+from metagpt.roles.product_manager import ProductManager
 from metagpt.schema import Message
 
 

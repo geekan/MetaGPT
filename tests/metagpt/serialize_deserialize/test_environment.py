@@ -2,17 +2,15 @@
 # -*- coding: utf-8 -*-
 # @Desc   :
 
-from pathlib import Path
 import shutil
 
-from metagpt.schema import Message
 from metagpt.actions.action_output import ActionOutput
-from metagpt.roles.project_manager import ProjectManager
 from metagpt.actions.add_requirement import UserRequirement
 from metagpt.actions.project_management import WriteTasks
 from metagpt.environment import Environment
+from metagpt.roles.project_manager import ProjectManager
+from metagpt.schema import Message
 from metagpt.utils.common import any_to_str
-
 from tests.metagpt.serialize_deserialize.test_serdeser_base import RoleC, ActionOK, serdeser_path
 
 

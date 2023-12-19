@@ -4,8 +4,8 @@
 # @Desc    :
 import pytest
 
-from metagpt.roles.architect import Architect
 from metagpt.actions.action import Action
+from metagpt.roles.architect import Architect
 
 
 def test_architect_serialize():

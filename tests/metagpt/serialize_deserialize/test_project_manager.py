@@ -4,9 +4,9 @@
 # @Desc    :
 import pytest
 
-from metagpt.roles.project_manager import ProjectManager
 from metagpt.actions.action import Action
 from metagpt.actions.project_management import WriteTasks
+from metagpt.roles.project_manager import ProjectManager
 
 
 def test_project_manager_serialize():
