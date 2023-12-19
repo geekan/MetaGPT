@@ -143,7 +143,7 @@ class Config(metaclass=Singleton):
         self.pyppeteer_executable_path = self._get("PYPPETEER_EXECUTABLE_PATH", "")
 
         self.repair_llm_output = self._get("REPAIR_LLM_OUTPUT", False)
-        self.prompt_format = self._get("PROMPT_FORMAT", "json")
+        self.prompt_schema = self._get("PROMPT_FORMAT", "json")
         self.workspace_path = Path(self._get("WORKSPACE_PATH", DEFAULT_WORKSPACE_ROOT))
         self._ensure_workspace_exists()
 

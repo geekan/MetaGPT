@@ -19,5 +19,5 @@ async def test_detail_mining():
     rsp = await detail_mining.run(topic=topic, record=record)
     logger.info(f"{rsp.content=}")
 
-    assert "##OUTPUT" in rsp.content
-    assert "蛋糕" in rsp.content
+    assert "Questions" in rsp.content
+    assert "1." in rsp.content

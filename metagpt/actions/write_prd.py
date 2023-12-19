@@ -111,7 +111,7 @@ class WritePRD(Action):
         # optimization in subsequent steps.
         return ActionOutput(content=change_files.json(), instruct_content=change_files)
 
-    async def _run_new_requirement(self, requirements, format=CONFIG.prompt_format) -> ActionOutput:
+    async def _run_new_requirement(self, requirements, schema=CONFIG.prompt_schema) -> ActionOutput:
         # sas = SearchAndSummarize()
         # # rsp = await sas.run(context=requirements, system_text=SEARCH_AND_SUMMARIZE_SYSTEM_EN_US)
         # rsp = ""
@@ -121,7 +121,7 @@ class WritePRD(Action):
         #     logger.info(rsp)
         project_name = CONFIG.project_name if CONFIG.project_name else ""
         context = CONTEXT_TEMPLATE.format(requirements=requirements, project_name=project_name)
-        node = await WRITE_PRD_NODE.fill(context=context, llm=self.llm, to=format)
+        node = await WRITE_PRD_NODE.fill(context=context, llm=self.llm, to=schema)
         await self._rename_workspace(node)
         return node
 
@@ -130,11 +130,11 @@ class WritePRD(Action):
         node = await WP_IS_RELATIVE_NODE.fill(context, self.llm)
         return node.get("is_relative") == "YES"
 
-    async def _merge(self, new_requirement_doc, prd_doc, format=CONFIG.prompt_format) -> Document:
+    async def _merge(self, new_requirement_doc, prd_doc, schema=CONFIG.prompt_schema) -> Document:
         if not CONFIG.project_name:
             CONFIG.project_name = Path(CONFIG.project_path).name
         prompt = NEW_REQ_TEMPLATE.format(requirements=new_requirement_doc.content, old_prd=prd_doc.content)
-        node = await WRITE_PRD_NODE.fill(context=prompt, llm=self.llm, to=format)
+        node = await WRITE_PRD_NODE.fill(context=prompt, llm=self.llm, to=schema)
         prd_doc.content = node.instruct_content.json(ensure_ascii=False)
         await self._rename_workspace(node)
         return prd_doc
