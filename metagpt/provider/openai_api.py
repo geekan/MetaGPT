@@ -329,7 +329,8 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
                 usage["completion_tokens"] = completion_tokens
                 return usage
             except Exception as e:
-                logger.error("usage calculation failed!", e)
+                logger.error(f"{self.model} usage calculation failed!", e)
+                return {}
         else:
             return usage
 
@@ -360,7 +361,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         return results
 
     def _update_costs(self, usage: dict):
-        if CONFIG.calc_usage:
+        if CONFIG.calc_usage and usage:
             try:
                 prompt_tokens = int(usage["prompt_tokens"])
                 completion_tokens = int(usage["completion_tokens"])
