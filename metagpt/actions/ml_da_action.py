@@ -3,9 +3,12 @@ from typing import Dict, List, Union
 
 from metagpt.actions import Action
 from metagpt.schema import Message, Plan
-from metagpt.utils.common import CodeParser
+from metagpt.utils.common import CodeParser, remove_comments, create_func_config
 from metagpt.logs import logger
-
+from metagpt.prompts.ml_engineer import (
+    UPDATE_DATA_COLUMNS,
+    PRINT_DATA_COLUMNS
+)
 
 class ReviewConst:
     TASK_REVIEW_TRIGGER = "task"
@@ -114,3 +117,14 @@ class Reflect(Action):
         rsp = CodeParser.parse_code(block=None, text=rsp_json)
         reflection = json.loads(rsp)["reflection"]
         return reflection
+
+
+class UpdateDataColumns(Action):
+    async def run(self, plan: Plan = None) -> dict:
+        finished_tasks = plan.get_finished_tasks()
+        code_context = [remove_comments(task.code) for task in finished_tasks]
+        code_context = "\n\n".join(code_context)
+        prompt = UPDATE_DATA_COLUMNS.format(history_code=code_context)
+        tool_config = create_func_config(PRINT_DATA_COLUMNS)
+        rsp = await self.llm.aask_code(prompt, **tool_config)
+        return rsp
