@@ -16,14 +16,14 @@ from metagpt.tools import SearchEngineType
 
 class Sales(Role):
 
-    name: str = Field(default="Xiaomei")
-    profile: str = Field(default="Retail sales guide")
+    name: str = "Xiaomei"
+    profile: str = "Retail sales guide"
     desc: str = "I am a sales guide in retail. My name is Xiaomei. I will answer some customer questions next, and I "
     "will answer questions only based on the information in the knowledge base."
     "If I feel that you can't get the answer from the reference material, then I will directly reply that"
     " I don't know, and I won't tell you that this is from the knowledge base,"
     "but pretend to be what I know. Note that each of my replies will be replied in the tone of a "
-    "professional guide",
+    "professional guide"
 
     store: Optional[str] = None
 

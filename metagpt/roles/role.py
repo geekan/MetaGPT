@@ -129,9 +129,9 @@ class Role(BaseModel):
 
     _llm: BaseGPTAPI = Field(default_factory=LLM)
     _role_id: str = ""
-    _states: list[str] = Field(default=[])
-    _actions: list[Action] = Field(default=[])
-    _rc: RoleContext = Field(default=RoleContext)
+    _states: list[str] = []
+    _actions: list[Action] = []
+    _rc: RoleContext = Field(default_factory=RoleContext)
     _subscription: tuple[str] = set()
 
     # builtin variables

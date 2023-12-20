@@ -20,13 +20,13 @@ class ProductManager(Role):
     Represents a Product Manager role responsible for product development and management.
 
     Attributes:
-        name (str): Name of the project manager.
-        profile (str): Role profile, default is 'Project Manager'.
-        goal (str): Goal of the project manager.
-        constraints (str): Constraints or limitations for the project manager.
+        name (str): Name of the product manager.
+        profile (str): Role profile, default is 'Product Manager'.
+        goal (str): Goal of the product manager.
+        constraints (str): Constraints or limitations for the product manager.
     """
     name: str = "Alice"
-    profile: str = Field(default="Product Manager")
+    profile: str = "Product Manager"
     goal: str = "efficiently create a successful product that meets market demands and user expectations"
     constraints: str = "utilize the same language as the user requirements for seamless communication"
 

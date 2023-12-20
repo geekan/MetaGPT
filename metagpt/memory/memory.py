@@ -19,7 +19,7 @@ from metagpt.utils.common import any_to_str, any_to_str_set, read_json_file, wri
 
 class Memory(BaseModel):
     """The most basic memory: super-memory"""
-    storage: list[Message] = Field(default=[])
+    storage: list[Message] = []
     index: dict[str, list[Message]] = Field(default_factory=defaultdict(list))
 
     def __init__(self, **kwargs):

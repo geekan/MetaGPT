@@ -70,7 +70,7 @@ class Engineer(Role):
         use_code_review (bool): Whether to use code review.
     """
     name: str = "Alex"
-    profile: str = Field(default="Engineer")
+    profile: str = "Engineer"
     goal: str = "write elegant, readable, extensible, efficient code"
     constraints: str = "the code should conform to standards like google-style and be modular and maintainable. " \
                        "Use same language as user requirement"

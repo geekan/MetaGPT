@@ -37,8 +37,8 @@ from metagpt.utils.file_repository import FileRepository
 
 
 class QaEngineer(Role):
-    name: str = Field(default="Edward")
-    profile: str = Field(default="QaEngineer")
+    name: str = "Edward"
+    profile: str = "QaEngineer"
     goal: str = "Write comprehensive and robust tests to ensure codes will work as expected without bugs"
     constraints: str = "The test code you write should conform to code standard like PEP8, be modular, " \
                        "easy to read and maintain"

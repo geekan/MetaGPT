@@ -22,11 +22,11 @@ class Architect(Role):
         goal (str): Primary goal or responsibility of the architect.
         constraints (str): Constraints or guidelines for the architect.
     """
-    name: str = Field(default="Bob")
-    profile: str = Field(default="Architect")
-    goal: str = Field(default="design a concise, usable, complete software system")
-    constraints: str = Field(default="make sure the architecture is simple enough and use appropriate open source "
-                                     "libraries. Use same language as user requirement")
+    name: str = "Bob"
+    profile: str = "Architect"
+    goal: str = "design a concise, usable, complete software system"
+    constraints: str = "make sure the architecture is simple enough and use  appropriate open source " \
+                       "libraries. Use same language as user requirement"
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)

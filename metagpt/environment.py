@@ -30,7 +30,7 @@ class Environment(BaseModel):
 
     roles: dict[str, Role] = Field(default_factory=dict)
     members: dict[Role, Set] = Field(default_factory=dict)
-    history: str = Field(default="")  # For debug
+    history: str = ""  # For debug
 
     class Config:
         arbitrary_types_allowed = True

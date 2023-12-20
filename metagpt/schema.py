@@ -101,7 +101,7 @@ class Message(BaseModel):
 
     id: str  # According to Section 2.2.3.1.1 of RFC 135
     content: str
-    instruct_content: BaseModel = Field(default=None)
+    instruct_content: BaseModel = None
     role: str = "user"  # system / user / assistant
     cause_by: str = ""
     sent_from: str = ""

@@ -28,9 +28,9 @@ DESC = """
 
 class CustomerService(Sales):
 
-    name: str = Field(default="Xiaomei")
-    profile: str = Field(default="Human customer service")
-    desc: str = DESC,
+    name: str = "Xiaomei"
+    profile: str = "Human customer service"
+    desc: str = DESC
 
     store: Optional[str] = None
 
