@@ -15,7 +15,7 @@ from pydantic import Field
 
 from metagpt.actions import Action, ActionOutput
 from metagpt.config import CONFIG
-from metagpt.const import DEFAULT_WORKSPACE_ROOT, DOCS_FILE_REPO, REQUIREMENT_FILENAME
+from metagpt.const import DOCS_FILE_REPO, REQUIREMENT_FILENAME
 from metagpt.llm import LLM
 from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.schema import Document
@@ -24,22 +24,26 @@ from metagpt.utils.git_repository import GitRepository
 
 
 class PrepareDocuments(Action):
+    """PrepareDocuments Action: initialize project folder and add new requirements to docs/requirements.txt."""
+
     name: str = "PrepareDocuments"
     context: Optional[str] = None
     llm: BaseGPTAPI = Field(default_factory=LLM)
 
+    def _init_repo(self):
+        """Initialize the Git environment."""
+        path = CONFIG.project_path
+        if not path:
+            name = CONFIG.project_name or FileRepository.new_filename()
+            path = Path(CONFIG.workspace_path) / name
+
+        if path.exists() and not CONFIG.inc:
+            shutil.rmtree(path)
+        CONFIG.git_repo = GitRepository(local_path=path, auto_init=True)
+
     async def run(self, with_messages, **kwargs):
-        if not CONFIG.git_repo:
-            # Create and initialize the workspace folder, initialize the Git environment.
-            project_name = CONFIG.project_name or FileRepository.new_filename()
-            workdir = CONFIG.project_path
-            if not workdir and CONFIG.workspace_path:
-                workdir = Path(CONFIG.workspace_path) / project_name
-            workdir = Path(workdir or DEFAULT_WORKSPACE_ROOT / project_name)
-            if not CONFIG.inc and workdir.exists():
-                shutil.rmtree(workdir)
-            CONFIG.git_repo = GitRepository()
-            CONFIG.git_repo.open(local_path=workdir, auto_init=True)
+        """Create and initialize the workspace folder, initialize the Git environment."""
+        self._init_repo()
 
         # Write the newly added requirements from the main parameter idea to `docs/requirement.txt`.
         doc = Document(root_path=DOCS_FILE_REPO, filename=REQUIREMENT_FILENAME, content=with_messages[0].content)
