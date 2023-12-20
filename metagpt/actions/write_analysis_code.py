@@ -202,33 +202,7 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
                 tool_catalog=tool_catalog,
             )
             
-            # code_steps_ = eval(code_steps)
-            # print(code_steps_)
-            #
-            # new_code = ""
-            # tool_context = ""
-            # for idx, (step_id, step_instruction) in enumerate(code_steps_.items()):
-            #     prompt = TOOL_USAGE_PROMPT.format(
-            #         user_requirement=plan.goal,
-            #         history_code=code_context,
-            #         current_task=plan.current_task.instruction,
-            #         column_info=column_info,
-            #         special_prompt=special_prompt,
-            #         code_steps=step_instruction,
-            #         module_name=module_name,
-            #         tool_catalog=tool_catalog,
-            #     )
-            #
-            #     tool_config = create_func_config(CODE_GENERATOR_WITH_TOOLS)
-            #
-            #     rsp = await self.llm.aask_code(prompt, **tool_config)
-            #     logger.info(f"rsp is: {rsp}")
-            #     new_code = new_code + "\n\n" + rsp["code"]
-            #     code_context = code_context + "\n\n" + new_code
-            #     tool_context = tool_context + "\n\n" + prompt
-            # context = [Message(content=tool_context, role="user")]
-            # return context, new_code
-        
+            
         else:
             prompt = GENERATE_CODE_PROMPT.format(
                 user_requirement=plan.goal,
