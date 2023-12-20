@@ -14,8 +14,7 @@ from typing import Iterable, Set
 from pydantic import BaseModel, Field
 
 from metagpt.schema import Message
-from metagpt.utils.common import any_to_str, any_to_str_set
-from metagpt.utils.utils import read_json_file, write_json_file
+from metagpt.utils.common import any_to_str, any_to_str_set, read_json_file, write_json_file
 
 
 class Memory(BaseModel):

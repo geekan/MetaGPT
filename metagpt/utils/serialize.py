@@ -5,7 +5,7 @@
 import copy
 import pickle
 
-from metagpt.utils.utils import import_class
+from metagpt.utils.common import import_class
 
 
 def actionoutout_schema_to_mapping(schema: dict) -> dict:

@@ -15,7 +15,7 @@ from metagpt.roles.engineer import Engineer
 from metagpt.roles.product_manager import ProductManager
 from metagpt.roles.role import Role
 from metagpt.schema import Message
-from metagpt.utils.utils import format_trackback_info
+from metagpt.utils.common import format_trackback_info
 from tests.metagpt.serialize_deserialize.test_serdeser_base import RoleA, RoleB, RoleC, serdeser_path
 
 

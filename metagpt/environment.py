@@ -20,8 +20,7 @@ from pydantic import BaseModel, Field
 from metagpt.logs import logger
 from metagpt.roles.role import Role, role_subclass_registry
 from metagpt.schema import Message
-from metagpt.utils.common import is_subscribed
-from metagpt.utils.utils import read_json_file, write_json_file
+from metagpt.utils.common import is_subscribed, read_json_file, write_json_file
 
 
 class Environment(BaseModel):

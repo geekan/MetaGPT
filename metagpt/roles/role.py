@@ -37,9 +37,8 @@ from metagpt.memory import Memory
 from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.provider.human_provider import HumanProvider
 from metagpt.schema import Message, MessageQueue
-from metagpt.utils.common import any_to_str
+from metagpt.utils.common import any_to_str, read_json_file, write_json_file, import_class, role_raise_decorator
 from metagpt.utils.repair_llm_raw_output import extract_state_value_from_output
-from metagpt.utils.utils import read_json_file, write_json_file, import_class, role_raise_decorator
 
 PREFIX_TEMPLATE = """You are a {profile}, named {name}, your goal is {goal}, and the constraint is {constraints}. """
 

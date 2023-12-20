@@ -19,8 +19,7 @@ from metagpt.environment import Environment
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
-from metagpt.utils.common import NoMoneyException
-from metagpt.utils.utils import read_json_file, write_json_file, serialize_decorator
+from metagpt.utils.common import NoMoneyException, read_json_file, write_json_file, serialize_decorator
 
 
 class Team(BaseModel):
