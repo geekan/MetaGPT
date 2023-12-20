@@ -33,7 +33,7 @@ class BaseWriteAnalysisCode(Action):
     # REUSE_CODE_INSTRUCTION = """ATTENTION: DONT include codes from previous tasks in your current code block, include new codes only, DONT repeat codes!"""
 
     def process_msg(self, prompt: Union[str, List[Dict], Message, List[Message]], system_msg: str = None):
-        default_system_msg = system_msg or self.DEFAULT_SYSTEM_MSG
+        default_system_msg = system_msg or ""
         # 全部转成list
         if not isinstance(prompt, list):
             prompt = [prompt]
@@ -231,7 +231,7 @@ class MakeTools(WriteCodeByGenerate):
     **Notice:
     1. Your code must contain a general function start with `def`.
     2. Refactor your code to get the most efficient implementation for large input data in the shortest amount of time.
-    3. Must use Google style for function docstring, and your code must have function docstring.
+    3. Must use Google style for function docstring, and your docstring must be consistent with the code,without missing anything.
     4. Write example code after `if __name__ == '__main__':`by using old varibales in old code,
     and make sure it could be execute in the user's machine.
     5. Dont have missing package references.**
