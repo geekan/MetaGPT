@@ -4,7 +4,6 @@ from datetime import datetime
 
 import fire
 
-
 from metagpt.actions import Action
 from metagpt.actions.debug_code import DebugCode
 from metagpt.actions.execute_code import ExecutePyCode
@@ -28,6 +27,7 @@ from metagpt.utils.common import remove_comments, create_func_config
 from metagpt.utils.save_code import save_code_file
 from metagpt.utils.recovery_util import save_history, load_history
 
+
 class UpdateDataColumns(Action):
     async def run(self, plan: Plan = None) -> dict:
         finished_tasks = plan.get_finished_tasks()
@@ -41,7 +41,7 @@ class UpdateDataColumns(Action):
 
 class MLEngineer(Role):
     def __init__(
-            self, name="ABC", profile="MLEngineer", goal="", auto_run: bool = False
+        self, name="ABC", profile="MLEngineer", goal="", auto_run: bool = False
     ):
         super().__init__(name=name, profile=profile, goal=goal)
         self._set_react_mode(react_mode="plan_and_act")
@@ -104,8 +104,7 @@ class MLEngineer(Role):
                         task.code = task.code + "\n\n" + new_code
                 
                 confirmed_and_more = (ReviewConst.CONTINUE_WORD[0] in review.lower()
-                                      and review.lower() not in ReviewConst.CONTINUE_WORD[
-                                          0])  # "confirm, ... (more content, such as changing downstream tasks)"
+                                      and review.lower() not in ReviewConst.CONTINUE_WORD[0])  # "confirm, ... (more content, such as changing downstream tasks)"
                 if confirmed_and_more:
                     self.working_memory.add(Message(content=review, role="user", cause_by=AskReview))
                     await self._update_plan(review)
@@ -294,10 +293,9 @@ if __name__ == "__main__":
     requirement = f"This is a house price dataset, your goal is to predict the sale price of a property based on its features. The target column is SalePrice. Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. Report RMSE between the logarithm of the predicted value and the logarithm of the observed sales price on the eval data. Train data path: '{data_path}/split_train.csv', eval data path: '{data_path}/split_eval.csv'."
     
     save_dir = ""
+    
+    
     # save_dir = DATA_PATH / "output" / "2023-12-14_20-40-34"
-    
-    
-    
     
     async def main(requirement: str = requirement, auto_run: bool = True, save_dir: str = save_dir):
         """
