@@ -4,7 +4,7 @@
 
 import shutil
 
-from metagpt.actions.action_output import ActionOutput
+from metagpt.actions.action_node import ActionNode
 from metagpt.actions.add_requirement import UserRequirement
 from metagpt.actions.project_management import WriteTasks
 from metagpt.environment import Environment
@@ -32,7 +32,7 @@ def test_env_deserialize():
 def test_environment_serdeser():
     out_mapping = {"field1": (list[str], ...)}
     out_data = {"field1": ["field1 value1", "field1 value2"]}
-    ic_obj = ActionOutput.create_model_class("prd", out_mapping)
+    ic_obj = ActionNode.create_model_class("prd", out_mapping)
 
     message = Message(
         content="prd",

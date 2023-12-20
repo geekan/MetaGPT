@@ -4,7 +4,7 @@
 # @Desc    :
 import pytest
 
-from metagpt.actions import Action, WriteTest
+from metagpt.actions import Action
 from metagpt.llm import LLM
 
 

@@ -13,7 +13,7 @@ import pytest
 
 from metagpt.actions import Action
 from metagpt.schema import AIMessage, Message, SystemMessage, UserMessage
-from metagpt.actions.action_output import ActionOutput
+from metagpt.actions.action_node import ActionNode
 from metagpt.actions.write_code import WriteCode
 from metagpt.utils.serialize import serialize_general_message, deserialize_general_message
 from metagpt.utils.common import any_to_str
@@ -76,7 +76,7 @@ def test_routes():
 def test_message_serdeser():
     out_mapping = {"field3": (str, ...), "field4": (list[str], ...)}
     out_data = {"field3": "field3 value3", "field4": ["field4 value1", "field4 value2"]}
-    ic_obj = ActionOutput.create_model_class("code", out_mapping)
+    ic_obj = ActionNode.create_model_class("code", out_mapping)
 
     message = Message(
         content="code",

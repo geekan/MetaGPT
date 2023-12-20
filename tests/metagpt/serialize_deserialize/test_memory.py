@@ -4,7 +4,7 @@
 
 from pydantic import BaseModel
 
-from metagpt.actions.action_output import ActionOutput
+from metagpt.actions.action_node import ActionNode
 from metagpt.actions.add_requirement import UserRequirement
 from metagpt.actions.design_api import WriteDesign
 from metagpt.memory.memory import Memory
@@ -20,7 +20,7 @@ def test_memory_serdeser():
 
     out_mapping = {"field2": (list[str], ...)}
     out_data = {"field2": ["field2 value1", "field2 value2"]}
-    ic_obj = ActionOutput.create_model_class("system_design", out_mapping)
+    ic_obj = ActionNode.create_model_class("system_design", out_mapping)
     msg2 = Message(role="Architect",
                    instruct_content=ic_obj(**out_data),
                    content="system design content",
@@ -46,7 +46,7 @@ def test_memory_serdeser_save():
 
     out_mapping = {"field1": (list[str], ...)}
     out_data = {"field1": ["field1 value1", "field1 value2"]}
-    ic_obj = ActionOutput.create_model_class("system_design", out_mapping)
+    ic_obj = ActionNode.create_model_class("system_design", out_mapping)
     msg2 = Message(role="Architect",
                    instruct_content=ic_obj(**out_data),
                    content="system design content",

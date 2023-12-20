@@ -7,8 +7,8 @@ from pathlib import Path
 
 from pydantic import BaseModel, Field
 
-from metagpt.actions.action import Action
-from metagpt.actions.action_output import ActionOutput
+from metagpt.actions import Action, ActionOutput
+from metagpt.actions.action_node import ActionNode
 from metagpt.actions.add_requirement import UserRequirement
 from metagpt.roles.role import Role, RoleReactMode
 
@@ -29,7 +29,7 @@ class ActionPass(Action):
         output_mapping = {
             "result": (str, ...)
         }
-        pass_class = ActionOutput.create_model_class("pass", output_mapping)
+        pass_class = ActionNode.create_model_class("pass", output_mapping)
         pass_output = ActionOutput("ActionPass run passed", pass_class(**{"result": "pass result"}))
 
         return pass_output
