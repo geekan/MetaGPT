@@ -96,7 +96,7 @@ class WriteCodeByGenerate(BaseWriteAnalysisCode):
         **kwargs,
     ) -> str:
         # context.append(Message(content=self.REUSE_CODE_INSTRUCTION, role="user"))
-        prompt = self.process_msg(context, system_msg)
+        prompt = self.process_msg(context, system_msg or self.DEFAULT_SYSTEM_MSG)
         code_content = await self.llm.aask_code(prompt, **kwargs)
         return code_content["code"]
 
@@ -269,7 +269,7 @@ class MakeTools(WriteCodeByGenerate):
 
     @retry(stop=stop_after_attempt(3), wait=wait_fixed(1))
     async def run(self, code_message: List[Message | Dict], **kwargs) -> str:
-        msgs = self.process_msg(code_message)
+        msgs = self.process_msg(code_message, self.DEFAULT_SYSTEM_MSG)
         logger.info(f"\n\nAsk to Make tools:\n{'-'*60}\n {msgs[-1]}")
         tool_code = await self.llm.aask_code(msgs, **kwargs)
         max_tries, current_try = 3, 1
