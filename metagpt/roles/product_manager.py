@@ -27,8 +27,8 @@ class ProductManager(Role):
     """
     name: str = "Alice"
     profile: str = Field(default="Product Manager")
-    goal: str = "efficiently create a successful product"
-    constraints: str = "use same language as user requirement"
+    goal: str = "efficiently create a successful product that meets market demands and user expectations"
+    constraints: str = "utilize the same language as the user requirements for seamless communication"
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
