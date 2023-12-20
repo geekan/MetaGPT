@@ -1,7 +1,7 @@
 import asyncio
 import pytest
 
-from metagpt.actions.write_analysis_code import WriteCodeByGenerate, WriteCodeWithTools, WriteCodeWithUDFs
+from metagpt.actions.write_analysis_code import WriteCodeByGenerate, WriteCodeWithTools
 from metagpt.actions.execute_code import ExecutePyCode
 from metagpt.schema import Message, Plan, Task
 from metagpt.logs import logger
@@ -304,23 +304,3 @@ async def test_write_code_reuse_code_long_for_wine():
     success_rate = sum(success) / trials_num
     logger.info(f"success rate: {success_rate :.2f}")
     assert success_rate >= 0.8
-
-
-@pytest.mark.asyncio
-async def test_write_code_with_udfs():
-    wudf = WriteCodeWithUDFs()
-    ep = ExecutePyCode()
-    rsp = await wudf.run("Get Apple stock data for the past 90 days.")
-    logger.info(rsp)
-    assert 'metagpt' in rsp
-    output, output_type = await ep.run(rsp)
-    assert output_type is True
-    logger.info(output)
-
-
-@pytest.mark.asyncio
-async def test_write_code_with_udfs_no_udf_found():
-    wudf = WriteCodeWithUDFs()
-    rsp = await wudf.run("Identify if there is a dog in the picture.")
-    logger.info(rsp)
-    assert 'No udf found' in rsp
