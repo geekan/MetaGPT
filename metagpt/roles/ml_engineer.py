@@ -21,7 +21,6 @@ from metagpt.prompts.ml_engineer import (
     PRINT_DATA_COLUMNS
 )
 from metagpt.roles import Role
-from metagpt.roles.role import RoleContext
 from metagpt.roles.kaggle_manager import DownloadData, SubmitResult
 from metagpt.schema import Message, Plan
 from metagpt.utils.common import remove_comments, create_func_config
