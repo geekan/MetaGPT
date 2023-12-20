@@ -4,6 +4,9 @@
 @Time    : 2023/12/11 18:45
 @Author  : alexanderwu
 @File    : action_node.py
+
+NOTE: You should use typing.List instead of list to do type annotation. Because in the markdown extraction process,
+  we can use typing to extract the type of the node, but we cannot use built-in list to extract.
 """
 import json
 from typing import Any, Dict, Generic, List, Optional, Tuple, Type, TypeVar
@@ -41,10 +44,10 @@ Fill in the above nodes based on the format example.
 """
 
 
-def dict_to_markdown(d, prefix="-", postfix="\n"):
+def dict_to_markdown(d, prefix="##", kv_sep="\n", postfix="\n"):
     markdown_str = ""
     for key, value in d.items():
-        markdown_str += f"{prefix} {key}: {value}{postfix}"
+        markdown_str += f"{prefix}{key}{kv_sep}{value}{postfix}"
     return markdown_str
 
 
