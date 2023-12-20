@@ -6,8 +6,6 @@ import copy
 import pickle
 
 from metagpt.utils.common import import_class
-from metagpt.actions.action_node import ActionNode
-from metagpt.schema import Message
 
 
 def actionoutout_schema_to_mapping(schema: dict) -> dict:
@@ -90,27 +88,26 @@ def serialize_message(message: "Message"):
 def deserialize_general_message(message_dict: dict) -> "Message":
     """ deserialize Message, not to load"""
     instruct_content = message_dict.pop("instruct_content")
-    cause_by = message_dict.pop("cause_by")
 
     message_cls = import_class("Message", "metagpt.schema")
     message = message_cls(**message_dict)
     if instruct_content:
         ic = instruct_content
         mapping = actionoutput_str_to_mapping(ic["mapping"])
-
-        actionoutput_class = import_class("ActionOutput", "metagpt.actions.action_output")
-        ic_obj = actionoutput_class.create_model_class(class_name=ic["class"], mapping=mapping)
+        actionnode_class = import_class("ActionNode", "metagpt.actions.action_node")  # avoid circular import
+        ic_obj = actionnode_class.create_model_class(class_name=ic["class"], mapping=mapping)
         ic_new = ic_obj(**ic["value"])
         message.instruct_content = ic_new
 
     return message
 
 
-def deserialize_message(message_ser: str) -> Message:
+def deserialize_message(message_ser: str) -> "Message":
     message = pickle.loads(message_ser)
     if message.instruct_content:
         ic = message.instruct_content
-        ic_obj = ActionNode.create_model_class(class_name=ic["class"], mapping=ic["mapping"])
+        actionnode_class = import_class("ActionNode", "metagpt.actions.action_node")  # avoid circular import
+        ic_obj = actionnode_class.create_model_class(class_name=ic["class"], mapping=ic["mapping"])
         ic_new = ic_obj(**ic["value"])
         message.instruct_content = ic_new
 

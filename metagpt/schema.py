@@ -113,8 +113,8 @@ class Message(BaseModel):
             ic = instruct_content
             mapping = actionoutput_str_to_mapping(ic["mapping"])
 
-            actionoutput_class = import_class("ActionOutput", "metagpt.actions.action_output")
-            ic_obj = actionoutput_class.create_model_class(class_name=ic["class"], mapping=mapping)
+            actionnode_class = import_class("ActionNode", "metagpt.actions.action_node")  # avoid circular import
+            ic_obj = actionnode_class.create_model_class(class_name=ic["class"], mapping=mapping)
             ic_new = ic_obj(**ic["value"])
             kwargs["instruct_content"] = ic_new
 

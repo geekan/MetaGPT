@@ -16,7 +16,6 @@
 """
 
 import json
-from typing import Optional
 
 from pydantic import Field
 from tenacity import retry, stop_after_attempt, wait_random_exponential
@@ -90,7 +89,7 @@ ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenc
 
 class WriteCode(Action):
     name: str = "WriteCode"
-    context: Optional[Document] = None
+    context: Document = Field(default_factory=Document)
     llm: BaseGPTAPI = Field(default_factory=LLM)
 
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))

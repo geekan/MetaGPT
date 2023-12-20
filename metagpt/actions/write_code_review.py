@@ -8,8 +8,6 @@
         WriteCode object, rather than passing them in when calling the run function.
 """
 
-from typing import Optional
-
 from pydantic import Field
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
@@ -124,7 +122,7 @@ REWRITE_CODE_TEMPLATE = """
 
 class WriteCodeReview(Action):
     name: str = "WriteCodeReview"
-    context: Optional[CodingContext] = None
+    context: CodingContext = Field(default_factory=CodingContext)
     llm: BaseGPTAPI = Field(default_factory=LLM)
 
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
