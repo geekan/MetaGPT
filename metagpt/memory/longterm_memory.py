@@ -22,7 +22,6 @@ class LongTermMemory(Memory):
     - recover memory when it staruped
     - update memory when it changed
     """
-
     memory_storage: MemoryStorage = Field(default_factory=MemoryStorage)
     rc: Optional["RoleContext"] = None
     msg_from_recover: bool = False

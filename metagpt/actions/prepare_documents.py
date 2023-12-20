@@ -25,7 +25,6 @@ from metagpt.utils.git_repository import GitRepository
 
 class PrepareDocuments(Action):
     """PrepareDocuments Action: initialize project folder and add new requirements to docs/requirements.txt."""
-
     name: str = "PrepareDocuments"
     context: Optional[str] = None
     llm: BaseGPTAPI = Field(default_factory=LLM)

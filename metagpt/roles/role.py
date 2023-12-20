@@ -27,7 +27,6 @@ from typing import Iterable, Set, Type, Any
 
 from pydantic import BaseModel, Field
 
-
 from metagpt.actions.action import Action, ActionOutput, action_subclass_registry
 from metagpt.actions.action_node import ActionNode
 from metagpt.actions.add_requirement import UserRequirement

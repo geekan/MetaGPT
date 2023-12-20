@@ -22,7 +22,6 @@ class Architect(Role):
         goal (str): Primary goal or responsibility of the architect.
         constraints (str): Constraints or guidelines for the architect.
     """
-
     name: str = Field(default="Bob")
     profile: str = Field(default="Architect")
     goal: str = Field(default="design a concise, usable, complete software system")

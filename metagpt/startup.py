@@ -3,6 +3,7 @@
 import asyncio
 
 import typer
+from pathlib import Path
 
 from metagpt.config import CONFIG
 
@@ -27,7 +28,7 @@ def startup(
         default="", help="Specify the source file name for rewriting the quality assurance code."
     ),
     max_auto_summarize_code: int = typer.Option(
-        default=-1,
+        default=0,
         help="The maximum number of times the 'SummarizeCode' action is automatically invoked, with -1 indicating "
         "unlimited. This parameter is used for debugging the workflow.",
     ),

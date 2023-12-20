@@ -5,7 +5,6 @@
 import copy
 import pickle
 
-
 from metagpt.utils.common import import_class
 from metagpt.actions.action_node import ActionNode
 from metagpt.schema import Message
