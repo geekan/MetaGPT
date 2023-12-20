@@ -84,7 +84,7 @@ async def test_role_serdeser_interrupt():
         logger.error(f"Exception in `role_a.run`, detail: {format_trackback_info()}")
         role_c.serialize(stg_path)
 
-    assert role_c._rc.memory.count() == 2
+    assert role_c._rc.memory.count() == 1
 
     new_role_a: Role = Role.deserialize(stg_path)
     assert new_role_a._rc.state == 1

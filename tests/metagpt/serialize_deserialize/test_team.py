@@ -106,11 +106,23 @@ async def test_team_recover_multi_roles_save():
     stg_path = SERDESER_PATH.joinpath("team")
     shutil.rmtree(stg_path, ignore_errors=True)
 
+    role_a = RoleA()
+    role_b = RoleB()
+
+    assert role_a.subscription == {"tests.metagpt.serialize_deserialize.test_serdeser_base.RoleA",
+                                   "RoleA"}
+    assert role_b.subscription == {"tests.metagpt.serialize_deserialize.test_serdeser_base.RoleB",
+                                   "RoleB"}
+    assert role_b._rc.watch == {"tests.metagpt.serialize_deserialize.test_serdeser_base.ActionPass"}
+
     company = Team()
-    company.hire([RoleA(), RoleB()])
+    company.hire([role_a, role_b])
     company.run_project(idea)
     await company.run(n_round=4)
 
     new_company = Team.recover(stg_path)
     new_company.run_project(idea)
+
+    assert new_company.env.get_role(role_b.profile)._rc.state == 1
+
     await new_company.run(n_round=4)

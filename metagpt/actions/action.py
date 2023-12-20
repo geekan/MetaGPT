@@ -20,7 +20,6 @@ from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.provider.postprecess.llm_output_postprecess import llm_output_postprecess
 from metagpt.utils.common import OutputParser
 from metagpt.utils.utils import general_after_log
-from metagpt.utils.utils import import_class
 
 action_subclass_registry = {}
 

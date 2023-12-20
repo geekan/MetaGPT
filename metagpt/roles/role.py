@@ -39,7 +39,7 @@ from metagpt.provider.human_provider import HumanProvider
 from metagpt.schema import Message, MessageQueue
 from metagpt.utils.common import any_to_str
 from metagpt.utils.repair_llm_raw_output import extract_state_value_from_output
-from metagpt.utils.utils import read_json_file, write_json_file, import_class
+from metagpt.utils.utils import read_json_file, write_json_file, import_class, role_raise_decorator
 
 PREFIX_TEMPLATE = """You are a {profile}, named {name}, your goal is {goal}, and the constraint is {constraints}. """
 
@@ -137,6 +137,7 @@ class Role(BaseModel):
 
     # builtin variables
     recovered: bool = False  # to tag if a recovered role
+    latest_observed_msg: Message = None  # record the latest observed message when interrupted
     builtin_class_name: str = ""
 
     _private_attributes = {
@@ -200,7 +201,6 @@ class Role(BaseModel):
     def _reset(self):
         object.__setattr__(self, "_states", [])
         object.__setattr__(self, "_actions", [])
-        # object.__setattr__(self, "_rc", RoleContext())
 
     @property
     def _setting(self):
@@ -210,7 +210,7 @@ class Role(BaseModel):
         stg_path = SERDESER_PATH.joinpath(f"team/environment/roles/{self.__class__.__name__}_{self.name}") \
             if stg_path is None else stg_path
 
-        role_info = self.dict(exclude={"_rc": {"memory": True}, "_llm": True})
+        role_info = self.dict(exclude={"_rc": {"memory": True, "msg_buffer": True}, "_llm": True})
         role_info.update({
             "role_class": self.__class__.__name__,
             "module_name": self.__module__
@@ -311,7 +311,7 @@ class Role(BaseModel):
     def _set_state(self, state: int):
         """Update the current state."""
         self._rc.state = state
-        logger.debug(self._actions)
+        logger.debug(f"actions={self._actions}, state={state}")
         self._rc.todo = self._actions[self._rc.state] if state >= 0 else None
 
     def set_env(self, env: "Environment"):
@@ -388,15 +388,30 @@ class Role(BaseModel):
 
         return msg
 
+    def _find_news(self, observed: list[Message], existed: list[Message]) -> list[Message]:
+        news = []
+        # Warning, remove `id` here to make it work for recover
+        observed_pure = [msg.dict(exclude={"id": True}) for msg in observed]
+        existed_pure = [msg.dict(exclude={"id": True}) for msg in existed]
+        for idx, new in enumerate(observed_pure):
+            if new["cause_by"] in self._rc.watch and new not in existed_pure:
+                news.append(observed[idx])
+        return news
+
     async def _observe(self, ignore_memory=False) -> int:
         """Prepare new messages for processing from the message buffer and other sources."""
         # Read unprocessed messages from the msg buffer.
         news = self._rc.msg_buffer.pop_all()
+        if self.recovered:
+            news = [self.latest_observed_msg] if self.latest_observed_msg else []
+        else:
+            self.latest_observed_msg = news[-1] if len(news) > 0 else None  # record the latest observed msg
+
         # Store the read messages in your own memory to prevent duplicate processing.
         old_messages = [] if ignore_memory else self._rc.memory.get()
         self._rc.memory.add_batch(news)
         # Filter out messages of interest.
-        self._rc.news = [n for n in news if n.cause_by in self._rc.watch and n not in old_messages]
+        self._rc.news = self._find_news(news, old_messages)
 
         # Design Rules:
         # If you need to further categorize Message objects, you can do so using the Message.set_meta function.
@@ -484,6 +499,7 @@ class Role(BaseModel):
         """A wrapper to return the most recent k memories of this role, return all when k=0"""
         return self._rc.memory.get(k=k)
 
+    @role_raise_decorator
     async def run(self, with_message=None):
         """Observe, and think and act based on the results of the observation"""
         if with_message:

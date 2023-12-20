@@ -26,7 +26,6 @@ from typing import Dict, List, Set, TypedDict, Optional, Any
 
 from pydantic import BaseModel, Field
 
-from metagpt.actions import UserRequirement
 from metagpt.config import CONFIG
 from metagpt.const import (
     MESSAGE_ROUTE_CAUSE_BY,
@@ -118,8 +117,9 @@ class Message(BaseModel):
             ic_new = ic_obj(**ic["value"])
             kwargs["instruct_content"] = ic_new
 
-        kwargs["id"] = uuid.uuid4().hex
-        kwargs["cause_by"] = any_to_str(kwargs.get("cause_by", UserRequirement))
+        kwargs["id"] = kwargs.get("id", uuid.uuid4().hex)
+        kwargs["cause_by"] = any_to_str(kwargs.get("cause_by",
+                                                   import_class("UserRequirement", "metagpt.actions.add_requirement")))
         kwargs["sent_from"] = any_to_str(kwargs.get("sent_from", ""))
         kwargs["send_to"] = any_to_str_set(kwargs.get("send_to", {MESSAGE_ROUTE_TO_ALL}))
         super(Message, self).__init__(**kwargs)
@@ -218,7 +218,7 @@ class MessageQueue(BaseModel):
             if key in kwargs:
                 object.__setattr__(self, key, kwargs[key])
             else:
-                object.__setattr__(self, key, self._private_attributes[key])
+                object.__setattr__(self, key, Queue())
 
     def pop(self) -> Message | None:
         """Pop one message from the queue."""

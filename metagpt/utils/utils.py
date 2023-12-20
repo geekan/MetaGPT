@@ -88,18 +88,15 @@ def role_raise_decorator(func):
             return await func(self, *args, **kwargs)
         except KeyboardInterrupt as kbi:
             logger.error(f"KeyboardInterrupt: {kbi} occurs, start to serialize the project")
-            if self._rc.env:
-                newest_msgs = self._rc.env.memory.get(1)
-                if len(newest_msgs) > 0:
-                    self._rc.memory.delete(newest_msgs[0])
+            if self.latest_observed_msg:
+                self._rc.memory.delete(self.latest_observed_msg)
             raise Exception(format_trackback_info(limit=None))  # raise again to make it captured outside
         except Exception as exp:
-            if self._rc.env:
-                newest_msgs = self._rc.env.memory.get(1)
-                if len(newest_msgs) > 0:
-                    logger.warning("There is a exception in role's execution, in order to resume, "
-                                   "we delete the newest role communication message in the role's memory.")
-                    self._rc.memory.delete(newest_msgs[0])  # remove newest msg of the role to make it observed again
+            if self.latest_observed_msg:
+                logger.warning("There is a exception in role's execution, in order to resume, "
+                               "we delete the newest role communication message in the role's memory.")
+                # remove role newest observed msg to make it observed again
+                self._rc.memory.delete(self.latest_observed_msg)
             raise Exception(format_trackback_info(limit=None))  # raise again to make it captured outside
 
     return wrapper

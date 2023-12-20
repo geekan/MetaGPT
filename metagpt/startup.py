@@ -27,8 +27,10 @@ def startup(
     reqa_file: str = typer.Option(default="", help="Specify the source file name for rewriting the quality test code."),
     max_auto_summarize_code: int = typer.Option(
         default=-1,
-        help="The maximum number of times the 'SummarizeCode' action is automatically invoked, with -1 indicating unlimited. This parameter is used for debugging the workflow.",
+        help="The maximum number of times the 'SummarizeCode' action is automatically invoked, "
+             "with -1 indicating unlimited. This parameter is used for debugging the workflow.",
     ),
+    recover_path: str = typer.Option(default=None, help="recover the project from existing serialized storage")
 ):
     """Run a startup. Be a boss."""
     from metagpt.roles import (
@@ -50,20 +52,29 @@ def startup(
     CONFIG.reqa_file = reqa_file
     CONFIG.max_auto_summarize_code = max_auto_summarize_code
 
-    company = Team()
-    company.hire(
-        [
-            ProductManager(),
-            Architect(),
-            ProjectManager(),
-        ]
-    )
+    if not recover_path:
+        company = Team()
+        company.hire(
+            [
+                ProductManager(),
+                Architect(),
+                ProjectManager(),
+            ]
+        )
 
-    if implement or code_review:
-        company.hire([Engineer(n_borg=5, use_code_review=code_review)])
+        if implement or code_review:
+            company.hire([Engineer(n_borg=5, use_code_review=code_review)])
 
-    if run_tests:
-        company.hire([QaEngineer()])
+        if run_tests:
+            company.hire([QaEngineer()])
+    else:
+        # # stg_path = SERDESER_PATH.joinpath("team")
+        stg_path = Path(recover_path)
+        if not stg_path.exists() or not str(stg_path).endswith("team"):
+            raise FileNotFoundError(f"{recover_path} not exists or not endswith `team`")
+
+        company = Team.recover(stg_path=stg_path)
+        idea = company.idea  # use original idea
 
     company.invest(investment)
     company.run_project(idea)
