@@ -57,20 +57,6 @@ def actionoutput_str_to_mapping(mapping: dict) -> dict:
     return new_mapping
 
 
-def serialize_general_message(message: "Message") -> dict:
-    """ serialize Message, not to save"""
-    message_cp = copy.deepcopy(message)
-    ic = message_cp.instruct_content
-    if ic:
-        # model create by pydantic create_model like `pydantic.main.prd`, can't load directly
-        schema = ic.schema()
-        mapping = actionoutout_schema_to_mapping(schema)
-        mapping = actionoutput_mapping_to_str(mapping)
-
-        message_cp.instruct_content = {"class": schema["title"], "mapping": mapping, "value": ic.dict()}
-    return message_cp.dict()
-
-
 def serialize_message(message: "Message"):
     message_cp = copy.deepcopy(message)  # avoid `instruct_content` value update by reference
     ic = message_cp.instruct_content
@@ -83,23 +69,6 @@ def serialize_message(message: "Message"):
     msg_ser = pickle.dumps(message_cp)
 
     return msg_ser
-
-
-def deserialize_general_message(message_dict: dict) -> "Message":
-    """ deserialize Message, not to load"""
-    instruct_content = message_dict.pop("instruct_content")
-
-    message_cls = import_class("Message", "metagpt.schema")
-    message = message_cls(**message_dict)
-    if instruct_content:
-        ic = instruct_content
-        mapping = actionoutput_str_to_mapping(ic["mapping"])
-        actionnode_class = import_class("ActionNode", "metagpt.actions.action_node")  # avoid circular import
-        ic_obj = actionnode_class.create_model_class(class_name=ic["class"], mapping=mapping)
-        ic_new = ic_obj(**ic["value"])
-        message.instruct_content = ic_new
-
-    return message
 
 
 def deserialize_message(message_ser: str) -> "Message":

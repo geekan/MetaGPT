@@ -15,7 +15,6 @@ from metagpt.actions import Action
 from metagpt.schema import AIMessage, Message, SystemMessage, UserMessage
 from metagpt.actions.action_node import ActionNode
 from metagpt.actions.write_code import WriteCode
-from metagpt.utils.serialize import serialize_general_message, deserialize_general_message
 from metagpt.utils.common import any_to_str
 
 
@@ -23,10 +22,10 @@ from metagpt.utils.common import any_to_str
 def test_messages():
     test_content = "test_message"
     msgs = [
-        UserMessage(test_content),
-        SystemMessage(test_content),
-        AIMessage(test_content),
-        Message(test_content, role="QA"),
+        UserMessage(content=test_content),
+        SystemMessage(content=test_content),
+        AIMessage(content=test_content),
+        Message(content=test_content, role="QA"),
     ]
     text = str(msgs)
     roles = ["user", "system", "assistant", "QA"]
@@ -35,7 +34,7 @@ def test_messages():
 
 @pytest.mark.asyncio
 def test_message():
-    m = Message("a", role="v1")
+    m = Message(content="a", role="v1")
     v = m.dump()
     d = json.loads(v)
     assert d
@@ -48,7 +47,7 @@ def test_message():
     assert m.content == "a"
     assert m.role == "v2"
 
-    m = Message("a", role="b", cause_by="c", x="d", send_to="c")
+    m = Message(content="a", role="b", cause_by="c", x="d", send_to="c")
     assert m.content == "a"
     assert m.role == "b"
     assert m.send_to == {"c"}
@@ -66,7 +65,7 @@ def test_message():
 
 @pytest.mark.asyncio
 def test_routes():
-    m = Message("a", role="b", cause_by="c", x="d", send_to="c")
+    m = Message(content="a", role="b", cause_by="c", x="d", send_to="c")
     m.send_to = "b"
     assert m.send_to == {"b"}
     m.send_to = {"e", Action}
@@ -84,8 +83,8 @@ def test_message_serdeser():
         role="engineer",
         cause_by=WriteCode
     )
-    message_dict = serialize_general_message(message)
-    assert message_dict["cause_by"] == {"action_class": "WriteCode", "module_name": "metagpt.actions.write_code"}
+    message_dict = message.dict()
+    assert message_dict["cause_by"] == "metagpt.actions.write_code.WriteCode"
     assert message_dict["instruct_content"] == {
         "class": "code",
         "mapping": {
@@ -98,14 +97,14 @@ def test_message_serdeser():
         }
     }
 
-    new_message = deserialize_general_message(message_dict)
+    new_message = Message(**message_dict)
     assert new_message.content == message.content
     assert new_message.instruct_content == message.instruct_content
     assert new_message.cause_by == message.cause_by
     assert new_message.instruct_content.field3 == out_data["field3"]
 
     message = Message(content="code")
-    message_dict = serialize_general_message(message)
-    new_message = deserialize_general_message(message_dict)
+    message_dict = message.dict()
+    new_message = Message(**message_dict)
     assert new_message.instruct_content is None
-    assert new_message.cause_by == ""
+    assert new_message.cause_by == "metagpt.actions.add_requirement.UserRequirement"
