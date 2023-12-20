@@ -7,9 +7,9 @@
 ## Or, you can configure OPENAI_PROXY to access official OPENAI_API_BASE.
 OPENAI_API_BASE: "https://api.openai.com/v1"
 #OPENAI_PROXY: "http://127.0.0.1:8118"
-OPENAI_API_KEY: "YOUR_API_KEY"   # set the value to sk-xxx if you host the openai interface for open llm model
-OPENAI_API_MODEL: "gpt-4"
-MAX_TOKENS: 1500
+#OPENAI_API_KEY: "YOUR_API_KEY"  # set the value to sk-xxx if you host the openai interface for open llm model
+OPENAI_API_MODEL: "gpt-4-1106-preview"
+MAX_TOKENS: 4096
 RPM: 10
 
 
@@ -102,4 +102,9 @@ MODEL_FOR_RESEARCHER_REPORT: gpt-3.5-turbo-16k
 #PYPPETEER_EXECUTABLE_PATH: "/usr/bin/google-chrome-stable"
 PROMPT_FORMAT: json #json or markdown
 
+### for repair non-openai LLM's output when parse json-text if PROMPT_FORMAT=json
+### due to non-openai LLM's output will not always follow the instruction, so here activate a post-process
+### repair operation on the content extracted from LLM's raw output. Warning, it improves the result but not fix all cases.
+# REPAIR_LLM_OUTPUT: false
 
+# PROMPT_FORMAT: json #json or markdown
