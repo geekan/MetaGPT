@@ -67,7 +67,7 @@ def startup(
         if not stg_path.exists() or not str(stg_path).endswith("team"):
             raise FileNotFoundError(f"{recover_path} not exists or not endswith `team`")
 
-        company = Team.recover(stg_path=stg_path)
+        company = Team.deserialize(stg_path=stg_path)
         idea = company.idea  # use original idea
 
     company.invest(investment)

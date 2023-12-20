@@ -89,7 +89,7 @@ async def test_team_recover_save():
     company.run_project(idea)
     await company.run(n_round=4)
 
-    new_company = Team.recover(stg_path)
+    new_company = Team.deserialize(stg_path)
     new_role_c = new_company.env.get_role(role_c.profile)
     # assert new_role_c._rc.memory == role_c._rc.memory
     assert new_role_c._rc.env != role_c._rc.env
@@ -123,7 +123,7 @@ async def test_team_recover_multi_roles_save():
 
     logger.info("Team recovered")
 
-    new_company = Team.recover(stg_path)
+    new_company = Team.deserialize(stg_path)
     new_company.run_project(idea)
 
     assert new_company.env.get_role(role_b.profile)._rc.state == 1
