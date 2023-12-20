@@ -5,6 +5,7 @@
 @Author  : alexanderwu
 @File    : write_prd_an.py
 """
+from typing import List
 
 from metagpt.actions.action_node import ActionNode
 from metagpt.logs import logger
@@ -39,14 +40,14 @@ PROJECT_NAME = ActionNode(
 
 PRODUCT_GOALS = ActionNode(
     key="Product Goals",
-    expected_type=list[str],
+    expected_type=List[str],
     instruction="Provide up to three clear, orthogonal product goals.",
     example=["Create an engaging user experience", "Improve accessibility, be responsive", "More beautiful UI"],
 )
 
 USER_STORIES = ActionNode(
     key="User Stories",
-    expected_type=list[str],
+    expected_type=List[str],
     instruction="Provide up to 3 to 5 scenario-based user stories.",
     example=[
         "As a player, I want to be able to choose difficulty levels",
@@ -59,7 +60,7 @@ USER_STORIES = ActionNode(
 
 COMPETITIVE_ANALYSIS = ActionNode(
     key="Competitive Analysis",
-    expected_type=list[str],
+    expected_type=List[str],
     instruction="Provide 5 to 7 competitive products.",
     example=[
         "2048 Game A: Simple interface, lacks responsive features",
@@ -98,7 +99,7 @@ REQUIREMENT_ANALYSIS = ActionNode(
 
 REQUIREMENT_POOL = ActionNode(
     key="Requirement Pool",
-    expected_type=list[list[str]],
+    expected_type=List[List[str]],
     instruction="List down the top-5 requirements with their priority (P0, P1, P2).",
     example=[["P0", "The main code ..."], ["P0", "The game algorithm ..."]],
 )
