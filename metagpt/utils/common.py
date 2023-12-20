@@ -450,14 +450,12 @@ def serialize_decorator(func):
     async def wrapper(self, *args, **kwargs):
         try:
             result = await func(self, *args, **kwargs)
-            self.serialize()  # Team.serialize
             return result
         except KeyboardInterrupt as kbi:
             logger.error(f"KeyboardInterrupt occurs, start to serialize the project, exp:\n{format_trackback_info()}")
-            self.serialize()  # Team.serialize
         except Exception as exp:
             logger.error(f"Exception occurs, start to serialize the project, exp:\n{format_trackback_info()}")
-            self.serialize()  # Team.serialize
+        self.serialize()  # Team.serialize
 
     return wrapper
 

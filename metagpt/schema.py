@@ -108,9 +108,9 @@ class Message(BaseModel):
     send_to: Set = Field(default_factory={MESSAGE_ROUTE_TO_ALL})
 
     def __init__(self, **kwargs):
-        instruct_content = kwargs.get("instruct_content", None)
-        if instruct_content and not isinstance(instruct_content, BaseModel):
-            ic = instruct_content
+        ic = kwargs.get("instruct_content", None)
+        if ic and not isinstance(ic, BaseModel) and "class" in ic:
+            # compatible with custom-defined ActionOutput
             mapping = actionoutput_str_to_mapping(ic["mapping"])
 
             actionnode_class = import_class("ActionNode", "metagpt.actions.action_node")  # avoid circular import
@@ -140,13 +140,17 @@ class Message(BaseModel):
     def dict(self, *args, **kwargs) -> "DictStrAny":
         """ overwrite the `dict` to dump dynamic pydantic model"""
         obj_dict = super(Message, self).dict(*args, **kwargs)
-        ic = self.instruct_content  # deal custom-defined action
+        ic = self.instruct_content
         if ic:
+            # compatible with custom-defined ActionOutput
             schema = ic.schema()
-            mapping = actionoutout_schema_to_mapping(schema)
-            mapping = actionoutput_mapping_to_str(mapping)
+            # `Documents` contain definitions
+            if "definitions" not in schema:
+                # TODO refine with nested BaseModel
+                mapping = actionoutout_schema_to_mapping(schema)
+                mapping = actionoutput_mapping_to_str(mapping)
 
-            obj_dict["instruct_content"] = {"class": schema["title"], "mapping": mapping, "value": ic.dict()}
+                obj_dict["instruct_content"] = {"class": schema["title"], "mapping": mapping, "value": ic.dict()}
         return obj_dict
 
     def __str__(self):

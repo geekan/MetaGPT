@@ -62,7 +62,7 @@ def serialize_general_message(message: "Message") -> dict:
     message_cp = copy.deepcopy(message)
     ic = message_cp.instruct_content
     if ic:
-        # model create by pydantic create_model like `pydantic.main.prd`, can't pickle.dump directly
+        # model create by pydantic create_model like `pydantic.main.prd`, can't load directly
         schema = ic.schema()
         mapping = actionoutout_schema_to_mapping(schema)
         mapping = actionoutput_mapping_to_str(mapping)

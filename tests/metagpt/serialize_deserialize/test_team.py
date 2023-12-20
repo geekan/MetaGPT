@@ -10,6 +10,7 @@ import pytest
 from metagpt.const import SERDESER_PATH
 from metagpt.roles import ProjectManager, ProductManager, Architect
 from metagpt.team import Team
+from metagpt.logs import logger
 from tests.metagpt.serialize_deserialize.test_serdeser_base import RoleA, RoleB, RoleC, serdeser_path, ActionOK
 
 
@@ -119,6 +120,8 @@ async def test_team_recover_multi_roles_save():
     company.hire([role_a, role_b])
     company.run_project(idea)
     await company.run(n_round=4)
+
+    logger.info("Team recovered")
 
     new_company = Team.recover(stg_path)
     new_company.run_project(idea)
