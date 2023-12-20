@@ -4,6 +4,9 @@
 @Time    : 2023/12/11 18:45
 @Author  : alexanderwu
 @File    : action_node.py
+
+NOTE: You should use typing.List instead of list to do type annotation. Because in the markdown extraction process,
+  we can use typing to extract the type of the node, but we cannot use built-in list to extract.
 """
 import json
 from typing import Any, Dict, Generic, List, Optional, Tuple, Type, TypeVar

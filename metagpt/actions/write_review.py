@@ -9,8 +9,6 @@ from typing import List
 from metagpt.actions import Action
 from metagpt.actions.action_node import ActionNode
 
-# from metagpt.llm import LLM
-
 REVIEW = ActionNode(
     key="Review",
     expected_type=List[str],
@@ -24,7 +22,7 @@ REVIEW = ActionNode(
 LGTM = ActionNode(
     key="LGTM",
     expected_type=str,
-    instruction="If the output is good enough, give a LGTM (Looks Good To Me) to the writer, "
+    instruction="LGTM/LBTM. If the output is good enough, give a LGTM (Looks Good To Me) to the writer, "
     "else LBTM (Looks Bad To Me).",
     example="LGTM",
 )

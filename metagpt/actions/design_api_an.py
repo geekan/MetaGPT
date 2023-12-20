@@ -5,6 +5,8 @@
 @Author  : alexanderwu
 @File    : design_api_an.py
 """
+from typing import List
+
 from metagpt.actions.action_node import ActionNode
 from metagpt.logs import logger
 from metagpt.utils.mermaid import MMC1, MMC2
@@ -22,7 +24,7 @@ PROJECT_NAME = ActionNode(
 
 FILE_LIST = ActionNode(
     key="File list",
-    expected_type=list[str],
+    expected_type=List[str],
     instruction="Only need relative paths. ALWAYS write a main.py or app.py here",
     example=["main.py", "game.py"],
 )
