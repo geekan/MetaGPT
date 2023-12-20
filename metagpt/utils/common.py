@@ -18,7 +18,7 @@ import os
 import platform
 import re
 import typing
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, get_args, get_origin
 
 import aiofiles
 import loguru
@@ -129,8 +129,31 @@ class OutputParser:
             parsed_data[block] = content
         return parsed_data
 
+    @staticmethod
+    def extract_content(text, tag="CONTENT"):
+        # Use regular expression to extract content between [CONTENT] and [/CONTENT]
+        extracted_content = re.search(rf"\[{tag}\](.*?)\[/{tag}\]", text, re.DOTALL)
+
+        if extracted_content:
+            return extracted_content.group(1).strip()
+        else:
+            return "No content found between [CONTENT] and [/CONTENT] tags."
+
+    @staticmethod
+    def is_supported_list_type(i):
+        origin = get_origin(i)
+        if origin is not List:
+            return False
+
+        args = get_args(i)
+        if args == (str,) or args == (Tuple[str, str],) or args == (List[str],):
+            return True
+
+        return False
+
     @classmethod
     def parse_data_with_mapping(cls, data, mapping):
+        data = cls.extract_content(text=data)
         block_dict = cls.parse_blocks(data)
         parsed_data = {}
         for block, content in block_dict.items():

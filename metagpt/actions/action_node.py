@@ -41,10 +41,10 @@ Fill in the above nodes based on the format example.
 """
 
 
-def dict_to_markdown(d, prefix="-", postfix="\n"):
+def dict_to_markdown(d, prefix="##", kv_sep="\n", postfix="\n"):
     markdown_str = ""
     for key, value in d.items():
-        markdown_str += f"{prefix} {key}: {value}{postfix}"
+        markdown_str += f"{prefix}{key}{kv_sep}{value}{postfix}"
     return markdown_str
 
 
