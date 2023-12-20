@@ -178,7 +178,7 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
         column_info: str = "",
         **kwargs,
     ) -> Tuple[List[Message], str]:
-        task_type = plan.current_task.task_type or 'udf'
+        task_type = plan.current_task.task_type
         available_tools = self.available_tools.get(task_type, {})
         special_prompt = ML_SPECIFIC_PROMPT.get(task_type, "")
         code_steps = plan.current_task.code_steps
