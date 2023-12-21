@@ -8,7 +8,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 from pydantic import BaseModel, Field
 
@@ -27,7 +27,7 @@ action_subclass_registry = {}
 class Action(BaseModel):
     name: str = ""
     llm: BaseGPTAPI = Field(default_factory=LLM, exclude=True)
-    context: dict | CodingContext | CodeSummarizeContext | TestingContext | RunCodeContext | str | None = ""
+    context: Union[dict, CodingContext, CodeSummarizeContext, TestingContext, RunCodeContext, str, None] = ""
     prefix = ""  # aask*时会加上prefix，作为system_message
     desc = ""  # for skill manager
     # node: ActionNode = Field(default_factory=ActionNode, exclude=True)
