@@ -129,3 +129,19 @@ class Memory(BaseModel):
                 continue
             rsp += self.index[action]
         return rsp
+
+    def update_storage_by_ttl(self):
+        """update storage by turns-to-live of message."""
+        # find message to delete in storage
+        to_delete_msgs = []
+        for i, msg in enumerate(self.storage):
+            if msg.ttl > -1 and len(self.storage) - i > msg.ttl:
+                to_delete_msgs.append(msg)
+
+        # delete message in storage
+        for msg in to_delete_msgs:
+            self.delete(msg)
+
+    def get_by_ttl(self, k=0):
+        self.update_storage_by_ttl()
+        return self.storage[-k:]
