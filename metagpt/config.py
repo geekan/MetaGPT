@@ -7,6 +7,7 @@ Provide configuration, singleton
         2. Add the parameter `src_workspace` for the old version project path.
 """
 import os
+import warnings
 from copy import deepcopy
 from enum import Enum
 from pathlib import Path
@@ -17,6 +18,7 @@ import yaml
 from metagpt.const import DEFAULT_WORKSPACE_ROOT, METAGPT_ROOT, OPTIONS
 from metagpt.logs import logger
 from metagpt.tools import SearchEngineType, WebBrowserEngineType
+from metagpt.utils.common import require_python_version
 from metagpt.utils.singleton import Singleton
 
 
@@ -79,6 +81,9 @@ class Config(metaclass=Singleton):
             (self.gemini_api_key, LLMProviderEnum.GEMINI),  # reuse logic. but not a key
         ]:
             if self._is_valid_llm_key(k):
+                logger.info(f"Use LLMProvider: {v.value}")
+                if v == LLMProviderEnum.GEMINI and not require_python_version(req_version=(3, 10)):
+                    warnings.warn("Use Gemini requires Python >= 3.10")
                 if self.openai_api_key and self.openai_api_model:
                     logger.info(f"OpenAI API Model: {self.openai_api_model}")
                 return v
