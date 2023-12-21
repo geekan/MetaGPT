@@ -39,7 +39,7 @@ SIMPLE_TEMPLATE = """
 {constraint}
 
 ## action
-Fill in the above nodes based on the format example.
+Based on the 'context' content, fill in the {node_name} using the 'format example' format above."
 """
 
 
@@ -247,8 +247,13 @@ class ActionNode:
         # FIXME: json instruction会带来格式问题，如："Project name": "web_2048  # 项目名称使用下划线",
         self.instruction = self.compile_instruction(to="markdown", mode=mode)
         self.example = self.compile_example(to=to, tag="CONTENT", mode=mode)
+        node_name = "nodes" if template != SIMPLE_TEMPLATE else f'"{list(self.children.keys())[0]}" node'
         prompt = template.format(
-            context=context, example=self.example, instruction=self.instruction, constraint=CONSTRAINT
+            context=context,
+            example=self.example,
+            instruction=self.instruction,
+            constraint=CONSTRAINT,
+            node_name=node_name,
         )
         return prompt
 
@@ -302,6 +307,7 @@ class ActionNode:
         mapping = self.get_mapping(mode)
 
         class_name = f"{self.key}_AN"
+        print(prompt)
         output = await self._aask_v1(prompt, class_name, mapping, format=to)
         self.content = output.content
         self.instruct_content = output.instruct_content

@@ -17,8 +17,8 @@ import inspect
 import os
 import platform
 import re
-import typing
-from typing import List, Tuple, Union
+from pathlib import Path
+from typing import Callable, List, Tuple, Union
 
 import aiofiles
 import loguru
@@ -332,7 +332,7 @@ def get_class_name(cls) -> str:
     return f"{cls.__module__}.{cls.__name__}"
 
 
-def any_to_str(val: str | typing.Callable) -> str:
+def any_to_str(val: str | Callable) -> str:
     """Return the class name or the class name of the object, or 'val' if it's a string type."""
     if isinstance(val, str):
         return val
@@ -443,3 +443,20 @@ async def aread(file_path: str) -> str:
     async with aiofiles.open(str(file_path), mode="r") as reader:
         content = await reader.read()
     return content
+
+
+async def read_file_block(filename: str | Path, lineno: int, end_lineno: int):
+    if not Path(filename).exists():
+        return ""
+    lines = []
+    async with aiofiles.open(str(filename), mode="r") as reader:
+        ix = 0
+        while ix < end_lineno:
+            ix += 1
+            line = await reader.readline()
+            if ix < lineno:
+                continue
+            if ix > end_lineno:
+                break
+            lines.append(line)
+    return "".join(lines)

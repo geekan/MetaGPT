@@ -14,9 +14,8 @@ from pydantic import BaseModel
 
 from metagpt.const import DEFAULT_WORKSPACE_ROOT
 from metagpt.repo_parser import RepoParser
-from metagpt.utils.common import concat_namespace
 from metagpt.utils.di_graph_repository import DiGraphRepository
-from metagpt.utils.graph_repository import GraphKeyword
+from metagpt.utils.graph_repository import GraphRepository
 
 
 @pytest.mark.asyncio
@@ -57,23 +56,7 @@ async def test_js_parser():
         repo_parser = RepoParser(base_directory=data.path)
         symbols = repo_parser.generate_symbols()
         for s in symbols:
-            ns = s.get("file", "")
-            for c in s.get("classes", []):
-                await graph.insert(
-                    subject=concat_namespace(ns, c), predicate=GraphKeyword.IS.value, object_=GraphKeyword.CLASS.value
-                )
-            for f in s.get("functions", []):
-                await graph.insert(
-                    subject=concat_namespace(ns, f),
-                    predicate=GraphKeyword.IS.value,
-                    object_=GraphKeyword.FUNCTION.value,
-                )
-            for g in s.get("globals", []):
-                await graph.insert(
-                    subject=concat_namespace(ns, g),
-                    predicate=GraphKeyword.IS.value,
-                    object_=GraphKeyword.GLOBAL_VARIABLE.value,
-                )
+            await GraphRepository.update_graph_db(graph_db=graph, file_info=s)
     data = graph.json()
     assert data
 
@@ -85,35 +68,14 @@ async def test_codes():
 
     graph = DiGraphRepository(name="test", root=path)
     symbols = repo_parser.generate_symbols()
-    for s in symbols:
-        ns = s.get("file", "")
-        for c in s.get("classes", []):
-            class_name = c.get("name", "")
-            await graph.insert(
-                subject=ns, predicate=GraphKeyword.HAS_CLASS.value, object_=concat_namespace(ns, class_name)
-            )
-            await graph.insert(
-                subject=concat_namespace(ns, class_name),
-                predicate=GraphKeyword.IS.value,
-                object_=GraphKeyword.CLASS.value,
-            )
-            methods = c.get("methods", [])
-            for fn in methods:
-                await graph.insert(
-                    subject=concat_namespace(ns, class_name, fn),
-                    predicate=GraphKeyword.IS.value,
-                    object_=GraphKeyword.CLASS_FUNCTION.value,
-                )
-        for f in s.get("functions", []):
-            await graph.insert(
-                subject=concat_namespace(ns, f), predicate=GraphKeyword.IS.value, object_=GraphKeyword.FUNCTION.value
-            )
-        for g in s.get("globals", []):
-            await graph.insert(
-                subject=concat_namespace(ns, g),
-                predicate=GraphKeyword.IS.value,
-                object_=GraphKeyword.GLOBAL_VARIABLE.value,
-            )
+    for file_info in symbols:
+        for code_block in file_info.page_info:
+            try:
+                val = code_block.json(ensure_ascii=False)
+                assert val
+            except TypeError as e:
+                assert not e
+        await GraphRepository.update_graph_db(graph_db=graph, file_info=file_info)
     data = graph.json()
     assert data
     print(data)

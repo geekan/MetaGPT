@@ -99,6 +99,8 @@ CODE_SUMMARIES_FILE_REPO = "docs/code_summaries"
 CODE_SUMMARIES_PDF_FILE_REPO = "resources/code_summaries"
 RESOURCES_FILE_REPO = "resources"
 SD_OUTPUT_FILE_REPO = "resources/SD_Output"
+GRAPH_REPO_FILE_REPO = "docs/graph_repo"
+CLASS_VIEW_FILE_REPO = "docs/class_views"
 
 YAPI_URL = "http://yapi.deepwisdomai.com/"
 
