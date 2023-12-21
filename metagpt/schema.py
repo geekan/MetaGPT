@@ -110,7 +110,7 @@ class Message(BaseModel):
     sent_from: str = ""
     send_to: Set = Field(default_factory={MESSAGE_ROUTE_TO_ALL})
 
-    def __init__(self, **kwargs):
+    def __init__(self, content: str = "", **kwargs):
         ic = kwargs.get("instruct_content", None)
         if ic and not isinstance(ic, BaseModel) and "class" in ic:
             # compatible with custom-defined ActionOutput
@@ -122,6 +122,7 @@ class Message(BaseModel):
             kwargs["instruct_content"] = ic_new
 
         kwargs["id"] = kwargs.get("id", uuid.uuid4().hex)
+        kwargs["content"] = kwargs.get("content", content)
         kwargs["cause_by"] = any_to_str(
             kwargs.get("cause_by", import_class("UserRequirement", "metagpt.actions.add_requirement"))
         )

@@ -31,8 +31,8 @@ async def search():
     role = Sales(profile="Sales", store=store)
     role._watch({Action})
     queries = [
-        Message("Which facial cleanser is good for oily skin?", cause_by=Action),
-        Message("Is L'Oreal good to use?", cause_by=Action),
+        Message(content="Which facial cleanser is good for oily skin?", cause_by=Action),
+        Message(content="Is L'Oreal good to use?", cause_by=Action),
     ]
     for query in queries:
         logger.info(f"User: {query}")
