@@ -20,6 +20,7 @@ from metagpt.roles.kaggle_manager import DownloadData, SubmitResult
 from metagpt.schema import Message, Plan
 from metagpt.utils.save_code import save_code_file
 from metagpt.utils.recovery_util import save_history, load_history
+from metagpt.utils.common import remove_comments
 
 
 class MLEngineer(Role):
@@ -189,7 +190,7 @@ class MLEngineer(Role):
             result, success = await self.execute_code.run(code)
             print(result)
             # make tools for successful code and long code.
-            if success and self.make_udfs and len(code.split('\n')) > 4:
+            if success and self.make_udfs and len(remove_comments(code).split('\n')) > 4:
                 logger.info('Execute code successfully. Now start to make tools ...')
                 await self.make_tools(code=code)
             self.working_memory.add(
@@ -326,12 +327,12 @@ if __name__ == "__main__":
         role.use_udfs = False
         await role.run(requirement)
         # use udfs
-        role.reset()
-        role.make_udfs = False
-        role.use_udfs = True
-        role.use_code_steps = False
-        role.use_tools = False
-        await role.run(requirement)
+        # role.reset()
+        # role.make_udfs = False
+        # role.use_udfs = True
+        # role.use_code_steps = False
+        # role.use_tools = False
+        # await role.run(requirement)
 
     
     # requirement = "Perform data analysis on the provided data. Train a model to predict the target variable Survived. Include data preprocessing, feature engineering, and modeling in your pipeline. The metric is accuracy."
@@ -381,4 +382,4 @@ if __name__ == "__main__":
             
             logger.exception(f"An error occurred: {e}, save trajectory here: {save_path}")
 
-    fire.Fire(main)
+    fire.Fire(run_udfs)
