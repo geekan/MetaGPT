@@ -3,7 +3,7 @@ Filename: MetaGPT/metagpt/provider/human_provider.py
 Created Date: Wednesday, November 8th 2023, 11:55:46 pm
 Author: garylin2099
 """
-from typing import Optional
+from typing import Optional, Union
 
 from metagpt.logs import logger
 from metagpt.provider.base_gpt_api import BaseGPTAPI
@@ -35,3 +35,17 @@ class HumanProvider(BaseGPTAPI):
     async def acompletion_text(self, messages: list[dict], stream=False) -> str:
         """dummy implementation of abstract method in base"""
         return []
+
+    def moderation(self, content: Union[str, list[str]]):
+        """
+        synchronous function
+        :param content: str
+        :return: [True,False,True]
+        """
+
+    async def amoderation(self, content: Union[str, list[str]]):
+        """
+        asynchronous function
+        :param content: str
+        :return: [True,False,True]
+        """

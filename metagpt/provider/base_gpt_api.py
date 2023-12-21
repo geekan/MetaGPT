@@ -112,6 +112,24 @@ class BaseGPTAPI(BaseChatbot):
     async def acompletion_text(self, messages: list[dict], stream=False) -> str:
         """Asynchronous version of completion. Return str. Support stream-print"""
 
+    @abstractmethod
+    def moderation(self, content: Union[str, list[str]]):
+        """
+        synchronous function
+        Currently, only OpenAI supports it
+        :param content: str
+        :return: [True,False,True]
+        """
+
+    @abstractmethod
+    async def amoderation(self, content: Union[str, list[str]]):
+        """
+        asynchronous function
+        Currently, only OpenAI supports it
+        :param content: str
+        :return: [True,False,True]
+        """
+
     def get_choice_text(self, rsp: dict) -> str:
         """Required to provide the first text of choice"""
         return rsp.get("choices")[0]["message"]["content"]
@@ -163,9 +181,3 @@ class BaseGPTAPI(BaseChatbot):
     def messages_to_dict(self, messages):
         """objects to [{"role": "user", "content": msg}] etc."""
         return [i.to_dict() for i in messages]
-
-    def moderation(self, content: Union[str, list[str]]):
-        return self.moderation(content)
-
-    async def amoderation(self, content: Union[str, list[str]]):
-        return self.amoderation(content)
