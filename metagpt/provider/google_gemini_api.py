@@ -2,6 +2,12 @@
 # -*- coding: utf-8 -*-
 # @Desc   : Google Gemini LLM from https://ai.google.dev/tutorials/python_quickstart
 
+import google.generativeai as genai
+from google.ai import generativelanguage as glm
+from google.generativeai.generative_models import GenerativeModel
+from google.generativeai.types import content_types
+from google.generativeai.types.generation_types import GenerateContentResponse, AsyncGenerateContentResponse
+from google.generativeai.types.generation_types import GenerationConfig
 from tenacity import (
     after_log,
     retry,
@@ -9,16 +15,11 @@ from tenacity import (
     stop_after_attempt,
     wait_random_exponential,
 )
-import google.generativeai as genai
-from google.ai import generativelanguage as glm
-from google.generativeai.types import content_types
-from google.generativeai.generative_models import GenerativeModel
-from google.generativeai.types.generation_types import GenerateContentResponse, AsyncGenerateContentResponse
-from google.generativeai.types.generation_types import GenerationConfig
 
-from metagpt.config import CONFIG
+from metagpt.config import CONFIG, LLMProviderEnum
 from metagpt.logs import logger
 from metagpt.provider.base_gpt_api import BaseGPTAPI
+from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.provider.openai_api import CostManager, log_and_reraise
 
 
@@ -29,18 +30,19 @@ class GeminiGenerativeModel(GenerativeModel):
     """
 
     def count_tokens(
-        self, contents: content_types.ContentsType
+            self, contents: content_types.ContentsType
     ) -> glm.CountTokensResponse:
         contents = content_types.to_contents(contents)
         return self._client.count_tokens(model=self.model_name, contents=contents)
 
     async def count_tokens_async(
-        self, contents: content_types.ContentsType
+            self, contents: content_types.ContentsType
     ) -> glm.CountTokensResponse:
         contents = content_types.to_contents(contents)
         return await self._async_client.count_tokens(model=self.model_name, contents=contents)
 
 
+@register_provider(LLMProviderEnum.GEMINI)
 class GeminiGPTAPI(BaseGPTAPI):
     """
     Refs to `https://ai.google.dev/tutorials/python_quickstart`

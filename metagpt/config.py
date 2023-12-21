@@ -79,7 +79,7 @@ class Config(metaclass=Singleton):
             (self.gemini_api_key, LLMProviderEnum.GEMINI),  # reuse logic. but not a key
         ]:
             if self._is_valid_llm_key(k):
-                if self.openai_api_model:
+                if self.openai_api_key and self.openai_api_model:
                     logger.info(f"OpenAI API Model: {self.openai_api_model}")
                 return v
         raise NotConfiguredException("You should config a LLM configuration first")
