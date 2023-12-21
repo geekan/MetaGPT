@@ -8,7 +8,6 @@ import json
 from datetime import datetime
 
 from metagpt.roles.role import Role
-from metagpt.roles.ml_engineer import MLEngineer
 from metagpt.const import DATA_PATH
 from metagpt.utils.save_code import save_code_file
 
@@ -30,7 +29,7 @@ def load_history(save_dir: str = ""):
     return plan, nb
 
 
-def save_history(role: Role = MLEngineer, save_dir: str = ""):
+def save_history(role: Role, save_dir: str = ""):
     """
     Save history to the specified directory.
 
