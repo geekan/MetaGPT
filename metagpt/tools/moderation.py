@@ -7,12 +7,12 @@
 """
 from typing import Union
 
-from metagpt.llm import LLM
+from metagpt.provider import OpenAIGPTAPI
 
 
 class Moderation:
     def __init__(self):
-        self.llm = LLM()
+        self.llm = OpenAIGPTAPI()
 
     def moderation(self, content: Union[str, list[str]]):
         resp = []
@@ -37,4 +37,4 @@ class Moderation:
 
 if __name__ == "__main__":
     moderation = Moderation()
-    print(moderation.moderation(content=["I will kill you", "The weather is really nice today", "I want to hit you"]))
+    print(moderation.moderation(content=["Fuck your mother", "The weather is really nice today", "I want to hit you"]))
