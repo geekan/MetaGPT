@@ -28,7 +28,6 @@ from tenacity import (
     wait_random_exponential,
 )
 
-
 from metagpt.config import CONFIG, Config, LLMProviderEnum
 from metagpt.logs import logger
 from metagpt.provider.base_gpt_api import BaseGPTAPI
