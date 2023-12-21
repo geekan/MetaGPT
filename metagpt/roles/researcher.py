@@ -9,7 +9,7 @@ import asyncio
 
 from pydantic import BaseModel
 
-from metagpt.actions import CollectLinks, ConductResearch, WebBrowseAndSummarize
+from metagpt.actions import Action, CollectLinks, ConductResearch, WebBrowseAndSummarize
 from metagpt.actions.research import get_research_system_text
 from metagpt.const import RESEARCH_PATH
 from metagpt.logs import logger
@@ -51,7 +51,7 @@ class Researcher(Role):
         else:
             topic = msg.content
 
-        research_system_text = get_research_system_text(topic, self.language)
+        research_system_text = self.research_system_text(topic, todo)
         if isinstance(todo, CollectLinks):
             links = await todo.run(topic, 4, 4)
             ret = Message("", Report(topic=topic, links=links), role=self.profile, cause_by=todo)
@@ -68,6 +68,18 @@ class Researcher(Role):
             ret = Message("", Report(topic=topic, content=content), role=self.profile, cause_by=self._rc.todo)
         self._rc.memory.add(ret)
         return ret
+
+    def research_system_text(self, topic, current_task: Action) -> str:
+        """ BACKWARD compatible
+        This allows sub-class able to define its own system prompt based on topic.
+        return the previous implementation to have backward compatible
+        Args:
+            topic:
+            language:
+
+        Returns: str
+        """
+        return get_research_system_text(topic, self.language)
 
     async def react(self) -> Message:
         msg = await super().react()
