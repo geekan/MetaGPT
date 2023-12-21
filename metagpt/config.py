@@ -81,7 +81,7 @@ class Config(metaclass=Singleton):
             (self.gemini_api_key, LLMProviderEnum.GEMINI),  # reuse logic. but not a key
         ]:
             if self._is_valid_llm_key(k):
-                logger.info(f"Use LLMProvider: {v.value}")
+                # logger.debug(f"Use LLMProvider: {v.value}")
                 if v == LLMProviderEnum.GEMINI and not require_python_version(req_version=(3, 10)):
                     warnings.warn("Use Gemini requires Python >= 3.10")
                 if self.openai_api_key and self.openai_api_model:
@@ -94,7 +94,6 @@ class Config(metaclass=Singleton):
         return k and k != "YOUR_API_KEY"
 
     def _update(self):
-        # logger.info("Config loading done.")
         self.global_proxy = self._get("GLOBAL_PROXY")
 
         self.openai_api_key = self._get("OPENAI_API_KEY")
