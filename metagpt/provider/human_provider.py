@@ -39,6 +39,7 @@ class HumanProvider(BaseGPTAPI):
     def moderation(self, content: Union[str, list[str]]):
         """
         synchronous function
+        Currently, only OpenAI supports it
         :param content: str
         :return: [True,False,True]
         """
@@ -46,6 +47,7 @@ class HumanProvider(BaseGPTAPI):
     async def amoderation(self, content: Union[str, list[str]]):
         """
         asynchronous function
+        Currently, only OpenAI supports it
         :param content: str
         :return: [True,False,True]
         """
