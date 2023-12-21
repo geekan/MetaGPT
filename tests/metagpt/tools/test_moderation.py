@@ -15,7 +15,7 @@ from metagpt.tools.moderation import Moderation
     ("content",),
     [
         [
-            ["I will kill you", "The weather is really nice today", "I want to hit you"],
+            ["Fuck your mother", "The weather is really nice today", "I want to hit you"],
         ]
     ],
 )
@@ -31,7 +31,7 @@ def test_moderation(content):
     ("content",),
     [
         [
-            ["I will kill you", "The weather is really nice today", "I want to hit you"],
+            ["Fuck your mother", "The weather is really nice today", "I want to hit you"],
         ]
     ],
 )
