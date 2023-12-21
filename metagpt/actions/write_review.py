@@ -31,8 +31,7 @@ WRITE_REVIEW_NODE = ActionNode.from_children("WRITE_REVIEW_NODE", [REVIEW, LGTM]
 
 
 class WriteReview(Action):
-    """This class allows LLM to further mine noteworthy details based on specific "##TOPIC"(discussion topic) and
-    "##RECORD" (discussion records), thereby deepening the discussion."""
+    """Write a review for the given context."""
 
     async def run(self, context):
-        return await WRITE_REVIEW_NODE.fill(context=context, llm=self.llm, schema="markdown")
+        return await WRITE_REVIEW_NODE.fill(context=context, llm=self.llm, schema="json")

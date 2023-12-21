@@ -158,7 +158,8 @@ class OutputParser:
 
     @classmethod
     def parse_data_with_mapping(cls, data, mapping):
-        data = cls.extract_content(text=data)
+        if "[CONTENT]" in data:
+            data = cls.extract_content(text=data)
         block_dict = cls.parse_blocks(data)
         parsed_data = {}
         for block, content in block_dict.items():

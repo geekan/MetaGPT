@@ -9,7 +9,7 @@ NOTE: You should use typing.List instead of list to do type annotation. Because 
   we can use typing to extract the type of the node, but we cannot use built-in list to extract.
 """
 import json
-from typing import Any, Dict, Generic, List, Optional, Tuple, Type, TypeVar
+from typing import Any, Dict, List, Optional, Tuple, Type
 
 from pydantic import BaseModel, create_model, root_validator, validator
 from tenacity import retry, stop_after_attempt, wait_random_exponential
@@ -19,10 +19,11 @@ from metagpt.logs import logger
 from metagpt.provider.postprecess.llm_output_postprecess import llm_output_postprecess
 from metagpt.utils.common import OutputParser, general_after_log
 
-CONSTRAINT = """
-- Language: Please use the same language as the user input.
-- Format: output wrapped inside [CONTENT][/CONTENT] as format example, nothing else.
-"""
+TAG = "CONTENT"
+
+LANGUAGE_CONSTRAINT = "Language: Please use the same language as the user input."
+FORMAT_CONSTRAINT = f"Format: output wrapped inside [{TAG}][/{TAG}] like format example, nothing else."
+
 
 SIMPLE_TEMPLATE = """
 ## context
@@ -33,28 +34,25 @@ SIMPLE_TEMPLATE = """
 ## format example
 {example}
 
-## nodes: "<node>: <type>  # <comment>"
+## nodes: "<node>: <type>  # <instruction>"
 {instruction}
 
 ## constraint
 {constraint}
 
 ## action
-Fill in the above nodes based on the format example.
+Follow instructions of nodes, generate output and make sure it follows the format example.
 """
 
 
-def dict_to_markdown(d, prefix="##", kv_sep="\n", postfix="\n"):
+def dict_to_markdown(d, prefix="- ", kv_sep="\n", postfix="\n"):
     markdown_str = ""
     for key, value in d.items():
         markdown_str += f"{prefix}{key}{kv_sep}{value}{postfix}"
     return markdown_str
 
 
-T = TypeVar("T")
-
-
-class ActionNode(Generic[T]):
+class ActionNode:
     """ActionNode is a tree of nodes."""
 
     mode: str
@@ -69,7 +67,7 @@ class ActionNode(Generic[T]):
     expected_type: Type  # such as str / int / float etc.
     # context: str  # everything in the history.
     instruction: str  # the instructions should be followed.
-    example: T  # example for In Context-Learning.
+    example: Any  # example for In Context-Learning.
 
     # Action Output
     content: str
@@ -80,7 +78,7 @@ class ActionNode(Generic[T]):
         key: str,
         expected_type: Type,
         instruction: str,
-        example: T,
+        example: Any,
         content: str = "",
         children: dict[str, "ActionNode"] = None,
     ):
@@ -183,11 +181,11 @@ class ActionNode(Generic[T]):
 
         return node_dict
 
-    def compile_to(self, i: Dict, schema) -> str:
+    def compile_to(self, i: Dict, schema, kv_sep) -> str:
         if schema == "json":
             return json.dumps(i, indent=4)
         elif schema == "markdown":
-            return dict_to_markdown(i)
+            return dict_to_markdown(i, kv_sep=kv_sep)
         else:
             return str(i)
 
@@ -196,26 +194,26 @@ class ActionNode(Generic[T]):
             return text
         if schema == "json":
             return f"[{tag}]\n" + text + f"\n[/{tag}]"
-        else:
+        else:  # markdown
             return f"[{tag}]\n" + text + f"\n[/{tag}]"
 
-    def _compile_f(self, schema, mode, tag, format_func) -> str:
+    def _compile_f(self, schema, mode, tag, format_func, kv_sep) -> str:
         nodes = self.to_dict(format_func=format_func, mode=mode)
-        text = self.compile_to(nodes, schema)
+        text = self.compile_to(nodes, schema, kv_sep)
         return self.tagging(text, schema, tag)
 
-    def compile_instruction(self, schema="raw", mode="children", tag="") -> str:
+    def compile_instruction(self, schema="markdown", mode="children", tag="") -> str:
         """compile to raw/json/markdown template with all/root/children nodes"""
         format_func = lambda i: f"{i.expected_type}  # {i.instruction}"
-        return self._compile_f(schema, mode, tag, format_func)
+        return self._compile_f(schema, mode, tag, format_func, kv_sep=": ")
 
-    def compile_example(self, schema="raw", mode="children", tag="") -> str:
+    def compile_example(self, schema="json", mode="children", tag="") -> str:
         """compile to raw/json/markdown examples with all/root/children nodes"""
 
         # 这里不能使用f-string，因为转译为str后再json.dumps会额外加上引号，无法作为有效的example
         # 错误示例："File list": "['main.py', 'const.py', 'game.py']", 注意这里值不是list，而是str
         format_func = lambda i: i.example
-        return self._compile_f(schema, mode, tag, format_func)
+        return self._compile_f(schema, mode, tag, format_func, kv_sep="\n")
 
     def compile(self, context, schema="json", mode="children", template=SIMPLE_TEMPLATE) -> str:
         """
@@ -228,9 +226,16 @@ class ActionNode(Generic[T]):
         # FIXME: json instruction会带来格式问题，如："Project name": "web_2048  # 项目名称使用下划线",
         # compile example暂时不支持markdown
         self.instruction = self.compile_instruction(schema="markdown", mode=mode)
-        self.example = self.compile_example(schema=schema, tag="CONTENT", mode=mode)
+        self.example = self.compile_example(schema=schema, tag=TAG, mode=mode)
+        # nodes = ", ".join(self.to_dict(mode=mode).keys())
+        constraints = [LANGUAGE_CONSTRAINT, FORMAT_CONSTRAINT]
+        constraint = "\n".join(constraints)
+
         prompt = template.format(
-            context=context, example=self.example, instruction=self.instruction, constraint=CONSTRAINT
+            context=context,
+            example=self.example,
+            instruction=self.instruction,
+            constraint=constraint,
         )
         return prompt
 
@@ -253,7 +258,7 @@ class ActionNode(Generic[T]):
         output_class = self.create_model_class(output_class_name, output_data_mapping)
 
         if schema == "json":
-            parsed_data = llm_output_postprecess(output=content, schema=output_class.schema(), req_key="[/CONTENT]")
+            parsed_data = llm_output_postprecess(output=content, schema=output_class.schema(), req_key=f"[/{TAG}]")
         else:  # using markdown parser
             parsed_data = OutputParser.parse_data_with_mapping(content, output_data_mapping)
 
