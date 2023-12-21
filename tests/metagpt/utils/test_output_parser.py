@@ -14,17 +14,17 @@ from metagpt.utils.common import OutputParser
 
 def test_parse_blocks():
     test_text = "##block1\nThis is block 1.\n##block2\nThis is block 2."
-    expected_result = {'block1': 'This is block 1.', 'block2': 'This is block 2.'}
+    expected_result = {"block1": "This is block 1.", "block2": "This is block 2."}
     assert OutputParser.parse_blocks(test_text) == expected_result
 
 
 def test_parse_code():
     test_text = "```python\nprint('Hello, world!')```"
     expected_result = "print('Hello, world!')"
-    assert OutputParser.parse_code(test_text, 'python') == expected_result
+    assert OutputParser.parse_code(test_text, "python") == expected_result
 
     with pytest.raises(Exception):
-        OutputParser.parse_code(test_text, 'java')
+        OutputParser.parse_code(test_text, "java")
 
 
 def test_parse_python_code():
@@ -45,13 +45,13 @@ def test_parse_python_code():
 
 def test_parse_str():
     test_text = "name = 'Alice'"
-    expected_result = 'Alice'
+    expected_result = "Alice"
     assert OutputParser.parse_str(test_text) == expected_result
 
 
 def test_parse_file_list():
     test_text = "files=['file1', 'file2', 'file3']"
-    expected_result = ['file1', 'file2', 'file3']
+    expected_result = ["file1", "file2", "file3"]
     assert OutputParser.parse_file_list(test_text) == expected_result
 
     with pytest.raises(Exception):
@@ -60,7 +60,7 @@ def test_parse_file_list():
 
 def test_parse_data():
     test_data = "##block1\n```python\nprint('Hello, world!')\n```\n##block2\nfiles=['file1', 'file2', 'file3']"
-    expected_result = {'block1': "print('Hello, world!')", 'block2': ['file1', 'file2', 'file3']}
+    expected_result = {"block1": "print('Hello, world!')", "block2": ["file1", "file2", "file3"]}
     assert OutputParser.parse_data(test_data) == expected_result
 
 
@@ -103,9 +103,11 @@ def test_parse_data():
             None,
             Exception,
         ),
-    ]
+    ],
 )
-def test_extract_struct(text: str, data_type: Union[type(list), type(dict)], parsed_data: Union[list, dict], expected_exception):
+def test_extract_struct(
+    text: str, data_type: Union[type(list), type(dict)], parsed_data: Union[list, dict], expected_exception
+):
     def case():
         resp = OutputParser.extract_struct(text, data_type)
         assert resp == parsed_data
@@ -117,7 +119,7 @@ def test_extract_struct(text: str, data_type: Union[type(list), type(dict)], par
         case()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     t_text = '''
 ## Required Python third-party packages
 ```python
@@ -216,9 +218,9 @@ We need clarification on how the high score should be stored. Should it persist 
         "Requirement Pool": (List[Tuple[str, str]], ...),
         "Anything UNCLEAR": (str, ...),
     }
-    t_text1 = '''## Original Requirements:
+    t_text1 = """## Original Requirements:
 
-The boss wants to create a web-based version of the game "Fly Bird".
+The user wants to create a web-based version of the game "Fly Bird".
 
 ## Product Goals:
 
@@ -284,7 +286,7 @@ The product should be a web-based version of the game "Fly Bird" that is engagin
 ## Anything UNCLEAR:
 
 There are no unclear points.
-    '''
+    """
     d = OutputParser.parse_data_with_mapping(t_text1, OUTPUT_MAPPING)
     import json
 

@@ -10,8 +10,9 @@ from typing import Union
 
 class GPTPromptGenerator:
     """Using LLM, given an output, request LLM to provide input (supporting instruction, chatbot, and query styles)"""
+
     def __init__(self):
-        self._generators = {i: getattr(self, f"gen_{i}_style") for i in ['instruction', 'chatbot', 'query']}
+        self._generators = {i: getattr(self, f"gen_{i}_style") for i in ["instruction", "chatbot", "query"]}
 
     def gen_instruction_style(self, example):
         """Instruction style: Given an output, request LLM to provide input"""
@@ -35,7 +36,7 @@ Query: X
 Document: {example} What is the detailed query X?
 X:"""
 
-    def gen(self, example: str, style: str = 'all') -> Union[list[str], str]:
+    def gen(self, example: str, style: str = "all") -> Union[list[str], str]:
         """
         Generate one or multiple outputs using the example, allowing LLM to reply with the corresponding input
 
@@ -43,7 +44,7 @@ X:"""
         :param style: (all|instruction|chatbot|query)
         :return: Expected LLM input sample (one or multiple)
         """
-        if style != 'all':
+        if style != "all":
             return self._generators[style](example)
         return [f(example) for f in self._generators.values()]
 

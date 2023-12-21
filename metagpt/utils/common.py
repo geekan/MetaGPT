@@ -4,16 +4,34 @@
 @Time    : 2023/4/29 16:07
 @Author  : alexanderwu
 @File    : common.py
+@Modified By: mashenquan, 2023-11-1. According to Chapter 2.2.2 of RFC 116:
+        Add generic class-to-string and object-to-string conversion functionality.
+@Modified By: mashenquan, 2023/11/27. Bug fix: `parse_recipient` failed to parse the recipient in certain GPT-3.5
+        responses.
 """
+from __future__ import annotations
+
 import ast
 import contextlib
+import importlib
 import inspect
+import json
 import os
 import platform
 import re
-from typing import List, Tuple, Union
+import traceback
+import typing
+from pathlib import Path
+from typing import Any, List, Tuple, Union, get_args, get_origin
 
+import aiofiles
+import loguru
+from pydantic.json import pydantic_encoder
+from tenacity import RetryCallState, _utils
+
+from metagpt.const import MESSAGE_ROUTE_TO_ALL
 from metagpt.logs import logger
+from metagpt.utils.exceptions import handle_exception
 
 
 def check_cmd_exists(command) -> int:
@@ -85,10 +103,7 @@ class OutputParser:
 
     @staticmethod
     def parse_python_code(text: str) -> str:
-        for pattern in (
-            r"(.*?```python.*?\s+)?(?P<code>.*)(```.*?)",
-            r"(.*?```python.*?\s+)?(?P<code>.*)",
-        ):
+        for pattern in (r"(.*?```python.*?\s+)?(?P<code>.*)(```.*?)", r"(.*?```python.*?\s+)?(?P<code>.*)"):
             match = re.search(pattern, text, re.DOTALL)
             if not match:
                 continue
@@ -119,8 +134,32 @@ class OutputParser:
             parsed_data[block] = content
         return parsed_data
 
+    @staticmethod
+    def extract_content(text, tag="CONTENT"):
+        # Use regular expression to extract content between [CONTENT] and [/CONTENT]
+        extracted_content = re.search(rf"\[{tag}\](.*?)\[/{tag}\]", text, re.DOTALL)
+
+        if extracted_content:
+            return extracted_content.group(1).strip()
+        else:
+            return "No content found between [CONTENT] and [/CONTENT] tags."
+
+    @staticmethod
+    def is_supported_list_type(i):
+        origin = get_origin(i)
+        if origin is not List:
+            return False
+
+        args = get_args(i)
+        if args == (str,) or args == (Tuple[str, str],) or args == (List[str],):
+            return True
+
+        return False
+
     @classmethod
     def parse_data_with_mapping(cls, data, mapping):
+        if "[CONTENT]" in data:
+            data = cls.extract_content(text=data)
         block_dict = cls.parse_blocks(data)
         parsed_data = {}
         for block, content in block_dict.items():
@@ -187,7 +226,7 @@ class OutputParser:
                 result = ast.literal_eval(structure_text)
 
                 # Ensure the result matches the specified data type
-                if isinstance(result, list) or isinstance(result, dict):
+                if isinstance(result, (list, dict)):
                     return result
 
                 raise ValueError(f"The extracted structure is not a {data_type}.")
@@ -219,10 +258,15 @@ class CodeParser:
         # 遍历所有的block
         for block in blocks:
             # 如果block不为空，则继续处理
-            if block.strip() != "":
+            if block.strip() == "":
+                continue
+            if "\n" not in block:
+                block_title = block
+                block_content = ""
+            else:
                 # 将block的标题和内容分开，并分别去掉前后的空白字符
                 block_title, block_content = block.split("\n", 1)
-                block_dict[block_title.strip()] = block_content.strip()
+            block_dict[block_title.strip()] = block_content.strip()
 
         return block_dict
 
@@ -282,9 +326,6 @@ class NoMoneyException(Exception):
 def print_members(module, indent=0):
     """
     https://stackoverflow.com/questions/1796180/how-can-i-get-a-list-of-all-classes-within-current-module-in-python
-    :param module:
-    :param indent:
-    :return:
     """
     prefix = " " * indent
     for name, obj in inspect.getmembers(module):
@@ -302,6 +343,173 @@ def print_members(module, indent=0):
 
 
 def parse_recipient(text):
+    # FIXME: use ActionNode instead.
     pattern = r"## Send To:\s*([A-Za-z]+)\s*?"  # hard code for now
     recipient = re.search(pattern, text)
-    return recipient.group(1) if recipient else ""
+    if recipient:
+        return recipient.group(1)
+    pattern = r"Send To:\s*([A-Za-z]+)\s*?"
+    recipient = re.search(pattern, text)
+    if recipient:
+        return recipient.group(1)
+    return ""
+
+
+def get_class_name(cls) -> str:
+    """Return class name"""
+    return f"{cls.__module__}.{cls.__name__}"
+
+
+def any_to_str(val: str | typing.Callable) -> str:
+    """Return the class name or the class name of the object, or 'val' if it's a string type."""
+    if isinstance(val, str):
+        return val
+    if not callable(val):
+        return get_class_name(type(val))
+
+    return get_class_name(val)
+
+
+def any_to_str_set(val) -> set:
+    """Convert any type to string set."""
+    res = set()
+
+    # Check if the value is iterable, but not a string (since strings are technically iterable)
+    if isinstance(val, (dict, list, set, tuple)):
+        # Special handling for dictionaries to iterate over values
+        if isinstance(val, dict):
+            val = val.values()
+
+        for i in val:
+            res.add(any_to_str(i))
+    else:
+        res.add(any_to_str(val))
+
+    return res
+
+
+def is_subscribed(message: "Message", tags: set):
+    """Return whether it's consumer"""
+    if MESSAGE_ROUTE_TO_ALL in message.send_to:
+        return True
+
+    for i in tags:
+        if i in message.send_to:
+            return True
+    return False
+
+
+def general_after_log(i: "loguru.Logger", sec_format: str = "%0.3f") -> typing.Callable[["RetryCallState"], None]:
+    """
+    Generates a logging function to be used after a call is retried.
+
+    This generated function logs an error message with the outcome of the retried function call. It includes
+    the name of the function, the time taken for the call in seconds (formatted according to `sec_format`),
+    the number of attempts made, and the exception raised, if any.
+
+    :param i: A Logger instance from the loguru library used to log the error message.
+    :param sec_format: A string format specifier for how to format the number of seconds since the start of the call.
+                       Defaults to three decimal places.
+    :return: A callable that accepts a RetryCallState object and returns None. This callable logs the details
+             of the retried call.
+    """
+
+    def log_it(retry_state: "RetryCallState") -> None:
+        # If the function name is not known, default to "<unknown>"
+        if retry_state.fn is None:
+            fn_name = "<unknown>"
+        else:
+            # Retrieve the callable's name using a utility function
+            fn_name = _utils.get_callback_name(retry_state.fn)
+
+        # Log an error message with the function name, time since start, attempt number, and the exception
+        i.error(
+            f"Finished call to '{fn_name}' after {sec_format % retry_state.seconds_since_start}(s), "
+            f"this was the {_utils.to_ordinal(retry_state.attempt_number)} time calling it. "
+            f"exp: {retry_state.outcome.exception()}"
+        )
+
+    return log_it
+
+
+def read_json_file(json_file: str, encoding=None) -> list[Any]:
+    if not Path(json_file).exists():
+        raise FileNotFoundError(f"json_file: {json_file} not exist, return []")
+
+    with open(json_file, "r", encoding=encoding) as fin:
+        try:
+            data = json.load(fin)
+        except Exception:
+            raise ValueError(f"read json file: {json_file} failed")
+    return data
+
+
+def write_json_file(json_file: str, data: list, encoding=None):
+    folder_path = Path(json_file).parent
+    if not folder_path.exists():
+        folder_path.mkdir(parents=True, exist_ok=True)
+
+    with open(json_file, "w", encoding=encoding) as fout:
+        json.dump(data, fout, ensure_ascii=False, indent=4, default=pydantic_encoder)
+
+
+def import_class(class_name: str, module_name: str) -> type:
+    module = importlib.import_module(module_name)
+    a_class = getattr(module, class_name)
+    return a_class
+
+
+def import_class_inst(class_name: str, module_name: str, *args, **kwargs) -> object:
+    a_class = import_class(class_name, module_name)
+    class_inst = a_class(*args, **kwargs)
+    return class_inst
+
+
+def format_trackback_info(limit: int = 2):
+    return traceback.format_exc(limit=limit)
+
+
+def serialize_decorator(func):
+    async def wrapper(self, *args, **kwargs):
+        try:
+            result = await func(self, *args, **kwargs)
+            return result
+        except KeyboardInterrupt:
+            logger.error(f"KeyboardInterrupt occurs, start to serialize the project, exp:\n{format_trackback_info()}")
+        except Exception:
+            logger.error(f"Exception occurs, start to serialize the project, exp:\n{format_trackback_info()}")
+        self.serialize()  # Team.serialize
+
+    return wrapper
+
+
+def role_raise_decorator(func):
+    async def wrapper(self, *args, **kwargs):
+        try:
+            return await func(self, *args, **kwargs)
+        except KeyboardInterrupt as kbi:
+            logger.error(f"KeyboardInterrupt: {kbi} occurs, start to serialize the project")
+            if self.latest_observed_msg:
+                self._rc.memory.delete(self.latest_observed_msg)
+            # raise again to make it captured outside
+            raise Exception(format_trackback_info(limit=None))
+        except Exception:
+            if self.latest_observed_msg:
+                logger.warning(
+                    "There is a exception in role's execution, in order to resume, "
+                    "we delete the newest role communication message in the role's memory."
+                )
+                # remove role newest observed msg to make it observed again
+                self._rc.memory.delete(self.latest_observed_msg)
+            # raise again to make it captured outside
+            raise Exception(format_trackback_info(limit=None))
+
+    return wrapper
+
+
+@handle_exception
+async def aread(file_path: str) -> str:
+    """Read file asynchronously."""
+    async with aiofiles.open(str(file_path), mode="r") as reader:
+        content = await reader.read()
+    return content

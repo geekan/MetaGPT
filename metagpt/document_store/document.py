@@ -4,6 +4,7 @@
 @Time    : 2023/6/8 14:03
 @Author  : alexanderwu
 @File    : document.py
+@Desc    : Classes and Operations Related to Vector Files in the Vector Database. Still under design.
 """
 from pathlib import Path
 
@@ -24,20 +25,20 @@ def validate_cols(content_col: str, df: pd.DataFrame):
 
 def read_data(data_path: Path):
     suffix = data_path.suffix
-    if '.xlsx' == suffix:
+    if ".xlsx" == suffix:
         data = pd.read_excel(data_path)
-    elif '.csv' == suffix:
+    elif ".csv" == suffix:
         data = pd.read_csv(data_path)
-    elif '.json' == suffix:
+    elif ".json" == suffix:
         data = pd.read_json(data_path)
-    elif suffix in ('.docx', '.doc'):
-        data = UnstructuredWordDocumentLoader(str(data_path), mode='elements').load()
-    elif '.txt' == suffix:
+    elif suffix in (".docx", ".doc"):
+        data = UnstructuredWordDocumentLoader(str(data_path), mode="elements").load()
+    elif ".txt" == suffix:
         data = TextLoader(str(data_path)).load()
-        text_splitter = CharacterTextSplitter(separator='\n', chunk_size=256, chunk_overlap=0)
+        text_splitter = CharacterTextSplitter(separator="\n", chunk_size=256, chunk_overlap=0)
         texts = text_splitter.split_documents(data)
         data = texts
-    elif '.pdf' == suffix:
+    elif ".pdf" == suffix:
         data = UnstructuredPDFLoader(str(data_path), mode="elements").load()
     else:
         raise NotImplementedError
@@ -45,8 +46,7 @@ def read_data(data_path: Path):
 
 
 class Document:
-
-    def __init__(self, data_path, content_col='content', meta_col='metadata'):
+    def __init__(self, data_path, content_col="content", meta_col="metadata"):
         self.data = read_data(data_path)
         if isinstance(self.data, pd.DataFrame):
             validate_cols(content_col, self.data)
@@ -79,4 +79,3 @@ class Document:
             return self._get_docs_and_metadatas_by_langchain()
         else:
             raise NotImplementedError
-        

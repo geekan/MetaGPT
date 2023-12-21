@@ -14,7 +14,7 @@ from metagpt.config import CONFIG
 
 class Claude2:
     def ask(self, prompt):
-        client = Anthropic(api_key=CONFIG.claude_api_key)
+        client = Anthropic(api_key=CONFIG.anthropic_api_key)
 
         res = client.completions.create(
             model="claude-2",
@@ -24,7 +24,7 @@ class Claude2:
         return res.completion
 
     async def aask(self, prompt):
-        client = Anthropic(api_key=CONFIG.claude_api_key)
+        client = Anthropic(api_key=CONFIG.anthropic_api_key)
 
         res = client.completions.create(
             model="claude-2",
@@ -32,4 +32,3 @@ class Claude2:
             max_tokens_to_sample=1000,
         )
         return res.completion
-    

@@ -9,14 +9,11 @@ from typing import Dict
 
 import pytest
 
-from metagpt.actions.write_tutorial import WriteDirectory, WriteContent
+from metagpt.actions.write_tutorial import WriteContent, WriteDirectory
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize(
-    ("language", "topic"),
-    [("English", "Write a tutorial about Python")]
-)
+@pytest.mark.parametrize(("language", "topic"), [("English", "Write a tutorial about Python")])
 async def test_write_directory(language: str, topic: str):
     ret = await WriteDirectory(language=language).run(topic=topic)
     assert isinstance(ret, dict)
@@ -30,7 +27,7 @@ async def test_write_directory(language: str, topic: str):
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     ("language", "topic", "directory"),
-    [("English", "Write a tutorial about Python", {"Introduction": ["What is Python?", "Why learn Python?"]})]
+    [("English", "Write a tutorial about Python", {"Introduction": ["What is Python?", "Why learn Python?"]})],
 )
 async def test_write_content(language: str, topic: str, directory: Dict):
     ret = await WriteContent(language=language, directory=directory).run(topic=topic)

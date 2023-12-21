@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 # @Date    : 2023/7/22 02:40
-# @Author  : stellahong (stellahong@fuzhi.ai)
+# @Author  : stellahong (stellahong@deepwisdom.ai)
 #
 import os
 
-from metagpt.tools.sd_engine import SDEngine, WORKSPACE_ROOT
+from metagpt.config import CONFIG
+from metagpt.tools.sd_engine import SDEngine
 
 
 def test_sd_engine_init():
@@ -21,5 +22,5 @@ def test_sd_engine_generate_prompt():
 async def test_sd_engine_run_t2i():
     sd_engine = SDEngine()
     await sd_engine.run_t2i(prompts=["test"])
-    img_path = WORKSPACE_ROOT / "resources" / "SD_Output" / "output_0.png"
-    assert os.path.exists(img_path) == True
+    img_path = CONFIG.workspace_path / "resources" / "SD_Output" / "output_0.png"
+    assert os.path.exists(img_path)

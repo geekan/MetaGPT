@@ -6,9 +6,9 @@
 @File    : mermaid.py
 """
 import base64
-import os
 
-from aiohttp import ClientSession,ClientError
+from aiohttp import ClientError, ClientSession
+
 from metagpt.logs import logger
 
 
@@ -29,7 +29,7 @@ async def mermaid_to_file(mermaid_code, output_file_without_suffix):
                 async with session.get(url) as response:
                     if response.status == 200:
                         text = await response.content.read()
-                        with open(output_file, 'wb') as f:
+                        with open(output_file, "wb") as f:
                             f.write(text)
                         logger.info(f"Generating {output_file}..")
                     else:

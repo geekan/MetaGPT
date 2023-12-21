@@ -5,6 +5,7 @@
 @Author  : alexanderwu
 @File    : faiss_store.py
 """
+import asyncio
 import pickle
 from pathlib import Path
 from typing import Optional
@@ -14,16 +15,16 @@ from langchain.embeddings import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
 
 from metagpt.const import DATA_PATH
+from metagpt.document import IndexableDocument
 from metagpt.document_store.base_store import LocalStore
-from metagpt.document_store.document import Document
 from metagpt.logs import logger
 
 
 class FaissStore(LocalStore):
-    def __init__(self, raw_data: Path, cache_dir=None, meta_col='source', content_col='output'):
+    def __init__(self, raw_data_path: Path, cache_dir=None, meta_col="source", content_col="output"):
         self.meta_col = meta_col
         self.content_col = content_col
-        super().__init__(raw_data, cache_dir)
+        super().__init__(raw_data_path, cache_dir)
 
     def _load(self) -> Optional["FaissStore"]:
         index_file, store_file = self._get_index_and_store_fname()
@@ -50,7 +51,7 @@ class FaissStore(LocalStore):
             pickle.dump(store, f)
         store.index = index
 
-    def search(self, query, expand_cols=False, sep='\n', *args, k=5, **kwargs):
+    def search(self, query, expand_cols=False, sep="\n", *args, k=5, **kwargs):
         rsp = self.store.similarity_search(query, k=k, **kwargs)
         logger.debug(rsp)
         if expand_cols:
@@ -58,11 +59,14 @@ class FaissStore(LocalStore):
         else:
             return str(sep.join([f"{x.page_content}" for x in rsp]))
 
+    async def asearch(self, *args, **kwargs):
+        return await asyncio.to_thread(self.search, *args, **kwargs)
+
     def write(self):
         """Initialize the index and library based on the Document (JSON / XLSX, etc.) file provided by the user."""
-        if not self.raw_data.exists():
+        if not self.raw_data_path.exists():
             raise FileNotFoundError
-        doc = Document(self.raw_data, self.content_col, self.meta_col)
+        doc = IndexableDocument.from_path(self.raw_data_path, self.content_col, self.meta_col)
         docs, metadatas = doc.get_docs_and_metadatas()
 
         self.store = self._write(docs, metadatas)
@@ -78,8 +82,8 @@ class FaissStore(LocalStore):
         raise NotImplementedError
 
 
-if __name__ == '__main__':
-    faiss_store = FaissStore(DATA_PATH / 'qcs/qcs_4w.json')
-    logger.info(faiss_store.search('Oily Skin Facial Cleanser'))
-    faiss_store.add([f'Oily Skin Facial Cleanser-{i}' for i in range(3)])
-    logger.info(faiss_store.search('Oily Skin Facial Cleanser'))
+if __name__ == "__main__":
+    faiss_store = FaissStore(DATA_PATH / "qcs/qcs_4w.json")
+    logger.info(faiss_store.search("Oily Skin Facial Cleanser"))
+    faiss_store.add([f"Oily Skin Facial Cleanser-{i}" for i in range(3)])
+    logger.info(faiss_store.search("Oily Skin Facial Cleanser"))

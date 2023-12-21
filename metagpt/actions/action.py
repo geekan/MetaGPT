@@ -5,36 +5,60 @@
 @Author  : alexanderwu
 @File    : action.py
 """
-import re
-from abc import ABC
-from typing import Optional
 
-from tenacity import retry, stop_after_attempt, wait_fixed
+from __future__ import annotations
 
-from metagpt.actions.action_output import ActionOutput
+from typing import Any, Optional, Union
+
+from pydantic import BaseModel, Field
+
 from metagpt.llm import LLM
-from metagpt.logs import logger
-from metagpt.utils.common import OutputParser
-from metagpt.utils.custom_decoder import CustomDecoder
+from metagpt.provider.base_gpt_api import BaseGPTAPI
+from metagpt.schema import (
+    CodeSummarizeContext,
+    CodingContext,
+    RunCodeContext,
+    TestingContext,
+)
+
+action_subclass_registry = {}
 
 
-class Action(ABC):
-    def __init__(self, name: str = "", context=None, llm: LLM = None):
-        self.name: str = name
-        if llm is None:
-            llm = LLM()
-        self.llm = llm
-        self.context = context
-        self.prefix = ""
-        self.profile = ""
-        self.desc = ""
-        self.content = ""
-        self.instruct_content = None
+class Action(BaseModel):
+    name: str = ""
+    llm: BaseGPTAPI = Field(default_factory=LLM, exclude=True)
+    context: Union[dict, CodingContext, CodeSummarizeContext, TestingContext, RunCodeContext, str, None] = ""
+    prefix = ""  # aask*时会加上prefix，作为system_message
+    desc = ""  # for skill manager
+    # node: ActionNode = Field(default_factory=ActionNode, exclude=True)
 
-    def set_prefix(self, prefix, profile):
+    # builtin variables
+    builtin_class_name: str = ""
+
+    class Config:
+        arbitrary_types_allowed = True
+
+    def __init__(self, **kwargs: Any):
+        super().__init__(**kwargs)
+
+        # deserialize child classes dynamically for inherited `action`
+        object.__setattr__(self, "builtin_class_name", self.__class__.__name__)
+        self.__fields__["builtin_class_name"].default = self.__class__.__name__
+
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        super().__init_subclass__(**kwargs)
+        action_subclass_registry[cls.__name__] = cls
+
+    def dict(self, *args, **kwargs) -> "DictStrAny":
+        obj_dict = super(Action, self).dict(*args, **kwargs)
+        if "llm" in obj_dict:
+            obj_dict.pop("llm")
+        return obj_dict
+
+    def set_prefix(self, prefix):
         """Set prefix for later usage"""
         self.prefix = prefix
-        self.profile = profile
+        return self
 
     def __str__(self):
         return self.__class__.__name__
@@ -48,41 +72,6 @@ class Action(ABC):
             system_msgs = []
         system_msgs.append(self.prefix)
         return await self.llm.aask(prompt, system_msgs)
-
-    @retry(stop=stop_after_attempt(3), wait=wait_fixed(1))
-    async def _aask_v1(
-        self,
-        prompt: str,
-        output_class_name: str,
-        output_data_mapping: dict,
-        system_msgs: Optional[list[str]] = None,
-        format="markdown",  # compatible to original format
-    ) -> ActionOutput:
-        """Append default prefix"""
-        if not system_msgs:
-            system_msgs = []
-        system_msgs.append(self.prefix)
-        content = await self.llm.aask(prompt, system_msgs)
-        logger.debug(content)
-        output_class = ActionOutput.create_model_class(output_class_name, output_data_mapping)
-
-        if format == "json":
-            pattern = r"\[CONTENT\](\s*\{.*?\}\s*)\[/CONTENT\]"
-            matches = re.findall(pattern, content, re.DOTALL)
-
-            for match in matches:
-                if match:
-                    content = match
-                    break
-
-            parsed_data = CustomDecoder(strict=False).decode(content)
-
-        else:  # using markdown parser
-            parsed_data = OutputParser.parse_data_with_mapping(content, output_data_mapping)
-
-        logger.debug(parsed_data)
-        instruct_content = output_class(**parsed_data)
-        return ActionOutput(content, instruct_content)
 
     async def run(self, *args, **kwargs):
         """Run action"""

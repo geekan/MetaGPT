@@ -25,13 +25,15 @@ from tenacity import (
     retry,
     retry_if_exception_type,
     stop_after_attempt,
-    wait_fixed,
+    wait_random_exponential,
 )
 
-from metagpt.config import CONFIG, Config
+
+from metagpt.config import CONFIG, Config, LLMProviderEnum
 from metagpt.logs import logger
 from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.provider.constant import GENERAL_FUNCTION_SCHEMA, GENERAL_TOOL_CHOICE
+from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.schema import Message
 from metagpt.utils.singleton import Singleton
 from metagpt.utils.token_counter import (
@@ -147,6 +149,7 @@ See FAQ 5.8
     raise retry_state.outcome.exception()
 
 
+@register_provider(LLMProviderEnum.OPENAI)
 class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
     """
     Check https://platform.openai.com/examples for examples
@@ -259,8 +262,8 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         return await self._achat_completion(messages)
 
     @retry(
-        stop=stop_after_attempt(3),
-        wait=wait_fixed(1),
+        wait=wait_random_exponential(min=1, max=60),
+        stop=stop_after_attempt(6),
         after=after_log(logger, logger.level("WARNING").name),
         retry=retry_if_exception_type(APIConnectionError),
         retry_error_callback=log_and_reraise,
@@ -366,15 +369,16 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
 
     def _calc_usage(self, messages: list[dict], rsp: str) -> CompletionUsage:
         usage = CompletionUsage(prompt_tokens=0, completion_tokens=0, total_tokens=0)
-        if CONFIG.calc_usage:
-            try:
-                usage.prompt_tokens = count_message_tokens(messages, self.model)
-                usage.completion_tokens = count_string_tokens(rsp, self.model)
-                return usage
-            except Exception as e:
-                logger.error(f"usage calculation failed!: {e}")
-        else:
+        if not CONFIG.calc_usage:
             return usage
+
+        try:
+            usage.prompt_tokens = count_message_tokens(messages, self.model)
+            usage.completion_tokens = count_string_tokens(rsp, self.model)
+        except Exception as e:
+            logger.error(f"usage calculation failed!: {e}")
+
+        return usage
 
     async def acompletion_batch(self, batch: list[list[dict]]) -> list[ChatCompletion]:
         """Return full JSON"""
@@ -403,7 +407,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         return results
 
     def _update_costs(self, usage: CompletionUsage):
-        if CONFIG.calc_usage:
+        if CONFIG.calc_usage and usage:
             try:
                 self._cost_manager.update_cost(usage.prompt_tokens, usage.completion_tokens, self.model)
             except Exception as e:

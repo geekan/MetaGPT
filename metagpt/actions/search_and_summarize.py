@@ -5,11 +5,16 @@
 @Author  : alexanderwu
 @File    : search_google.py
 """
+from typing import Optional
+
 import pydantic
+from pydantic import Field, root_validator
 
 from metagpt.actions import Action
-from metagpt.config import Config
+from metagpt.config import CONFIG, Config
+from metagpt.llm import LLM
 from metagpt.logs import logger
+from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.schema import Message
 from metagpt.tools.search_engine import SearchEngine
 
@@ -53,7 +58,6 @@ SEARCH_AND_SUMMARIZE_PROMPT = """
 
 
 """
-
 
 SEARCH_AND_SUMMARIZE_SALES_SYSTEM = """## Requirements
 1. Please summarize the latest dialogue based on the reference information (secondary) and dialogue history (primary). Do not include text that is irrelevant to the conversation.
@@ -101,17 +105,31 @@ You are a member of a professional butler team and will provide helpful suggesti
 
 
 class SearchAndSummarize(Action):
-    def __init__(self, name="", context=None, llm=None, engine=None, search_func=None):
-        self.config = Config()
-        self.engine = engine or self.config.search_engine
+    name: str = ""
+    content: Optional[str] = None
+    llm: BaseGPTAPI = Field(default_factory=LLM)
+    config: None = Field(default_factory=Config)
+    engine: Optional[str] = CONFIG.search_engine
+    search_func: Optional[str] = None
+    search_engine: SearchEngine = None
 
+    result = ""
+
+    @root_validator
+    def validate_engine_and_run_func(cls, values):
+        engine = values.get("engine")
+        search_func = values.get("search_func")
+        config = Config()
+
+        if engine is None:
+            engine = config.search_engine
         try:
-            self.search_engine = SearchEngine(self.engine, run_func=search_func)
+            search_engine = SearchEngine(engine=engine, run_func=search_func)
         except pydantic.ValidationError:
-            self.search_engine = None
+            search_engine = None
 
-        self.result = ""
-        super().__init__(name, context, llm)
+        values["search_engine"] = search_engine
+        return values
 
     async def run(self, context: list[Message], system_text=SEARCH_AND_SUMMARIZE_SYSTEM) -> str:
         if self.search_engine is None:
@@ -130,8 +148,7 @@ class SearchAndSummarize(Action):
         system_prompt = [system_text]
 
         prompt = SEARCH_AND_SUMMARIZE_PROMPT.format(
-            # PREFIX = self.prefix,
-            ROLE=self.profile,
+            ROLE=self.prefix,
             CONTEXT=rsp,
             QUERY_HISTORY="\n".join([str(i) for i in context[:-1]]),
             QUERY=str(context[-1]),
@@ -140,4 +157,3 @@ class SearchAndSummarize(Action):
         logger.debug(prompt)
         logger.debug(result)
         return result
-    

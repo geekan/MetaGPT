@@ -7,6 +7,7 @@ channels==4.0.0
 #faiss==1.5.3
 faiss_cpu==1.7.4
 fire==0.4.0
+typer
 # godot==0.1.1
 # google_api_python_client==2.93.0
 lancedb==0.1.16
@@ -44,4 +45,7 @@ ta==0.10.2
 semantic-kernel==0.4.0.dev0
 wrapt==1.15.0
 websocket-client==0.58.0
+aiofiles==23.2.1
+gitpython==3.1.40
 zhipuai==1.0.7
+gitignore-parser==0.1.9

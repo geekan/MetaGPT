@@ -1,6 +1,6 @@
 from metagpt.utils import pycst
 
-code = '''
+code = """
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from typing import overload
@@ -24,7 +24,7 @@ class Person:
 
     def greet(self):
         return f"Hello, my name is {self.name} and I am {self.age} years old."
-'''
+"""
 
 documented_code = '''
 """

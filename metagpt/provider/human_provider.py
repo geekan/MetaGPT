@@ -1,11 +1,13 @@
-'''
+"""
 Filename: MetaGPT/metagpt/provider/human_provider.py
 Created Date: Wednesday, November 8th 2023, 11:55:46 pm
 Author: garylin2099
-'''
+"""
 from typing import Optional
-from metagpt.provider.base_gpt_api import BaseGPTAPI
+
 from metagpt.logs import logger
+from metagpt.provider.base_gpt_api import BaseGPTAPI
+
 
 class HumanProvider(BaseGPTAPI):
     """Humans provide themselves as a 'model', which actually takes in human input as its response.

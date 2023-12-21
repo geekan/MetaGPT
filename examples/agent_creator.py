@@ -1,22 +1,22 @@
-'''
+"""
 Filename: MetaGPT/examples/agent_creator.py
 Created Date: Tuesday, September 12th 2023, 3:28:37 pm
 Author: garylin2099
-'''
+"""
 import re
 
-from metagpt.const import PROJECT_ROOT, WORKSPACE_ROOT
 from metagpt.actions import Action
+from metagpt.config import CONFIG
+from metagpt.const import METAGPT_ROOT
+from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
-from metagpt.logs import logger
 
-with open(PROJECT_ROOT / "examples/build_customized_agent.py", "r") as f:
-    # use official example script to guide AgentCreator
-    MULTI_ACTION_AGENT_CODE_EXAMPLE = f.read()
+EXAMPLE_CODE_FILE = METAGPT_ROOT / "examples/build_customized_agent.py"
+MULTI_ACTION_AGENT_CODE_EXAMPLE = EXAMPLE_CODE_FILE.read_text()
+
 
 class CreateAgent(Action):
-
     PROMPT_TEMPLATE = """
     ### BACKGROUND
     You are using an agent framework called metagpt to write agents capable of different actions,
@@ -34,7 +34,6 @@ class CreateAgent(Action):
     """
 
     async def run(self, example: str, instruction: str):
-
         prompt = self.PROMPT_TEMPLATE.format(example=example, instruction=instruction)
         # logger.info(prompt)
 
@@ -46,12 +45,14 @@ class CreateAgent(Action):
 
     @staticmethod
     def parse_code(rsp):
-        pattern = r'```python(.*)```'
+        pattern = r"```python(.*)```"
         match = re.search(pattern, rsp, re.DOTALL)
         code_text = match.group(1) if match else ""
-        with open(WORKSPACE_ROOT / "agent_created_agent.py", "w") as f:
-            f.write(code_text)
+        CONFIG.workspace_path.mkdir(parents=True, exist_ok=True)
+        new_file = CONFIG.workspace_path / "agent_created_agent.py"
+        new_file.write_text(code_text)
         return code_text
+
 
 class AgentCreator(Role):
     def __init__(
@@ -76,11 +77,11 @@ class AgentCreator(Role):
 
         return msg
 
+
 if __name__ == "__main__":
     import asyncio
 
     async def main():
-
         agent_template = MULTI_ACTION_AGENT_CODE_EXAMPLE
 
         creator = AgentCreator(agent_template=agent_template)

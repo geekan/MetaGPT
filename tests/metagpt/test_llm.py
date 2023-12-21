@@ -18,17 +18,21 @@ def llm():
 
 @pytest.mark.asyncio
 async def test_llm_aask(llm):
-    assert len(await llm.aask('hello world')) > 0
+    assert len(await llm.aask("hello world")) > 0
 
 
 @pytest.mark.asyncio
 async def test_llm_aask_batch(llm):
-    assert len(await llm.aask_batch(['hi', 'write python hello world.'])) > 0
+    assert len(await llm.aask_batch(["hi", "write python hello world."])) > 0
 
 
 @pytest.mark.asyncio
 async def test_llm_acompletion(llm):
-    hello_msg = [{'role': 'user', 'content': 'hello'}]
+    hello_msg = [{"role": "user", "content": "hello"}]
     assert len(await llm.acompletion(hello_msg)) > 0
     assert len(await llm.acompletion_batch([hello_msg])) > 0
     assert len(await llm.acompletion_batch_text([hello_msg])) > 0
+
+
+# if __name__ == "__main__":
+#     pytest.main([__file__, "-s"])

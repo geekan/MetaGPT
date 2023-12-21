@@ -12,7 +12,9 @@ You are now a seasoned technical professional in the field of the internet.
 We need you to write a technical tutorial with the topic "{topic}".
 """
 
-DIRECTORY_PROMPT = COMMON_PROMPT + """
+DIRECTORY_PROMPT = (
+    COMMON_PROMPT
+    + """
 Please provide the specific table of contents for this tutorial, strictly following the following requirements:
 1. The output must be strictly in the specified language, {language}.
 2. Answer strictly in the dictionary format like {{"title": "xxx", "directory": [{{"dir 1": ["sub dir 1", "sub dir 2"]}}, {{"dir 2": ["sub dir 3", "sub dir 4"]}}]}}.
@@ -20,8 +22,11 @@ Please provide the specific table of contents for this tutorial, strictly follow
 4. Do not have extra spaces or line breaks.
 5. Each directory title has practical significance.
 """
+)
 
-CONTENT_PROMPT = COMMON_PROMPT + """
+CONTENT_PROMPT = (
+    COMMON_PROMPT
+    + """
 Now I will give you the module directory titles for the topic. 
 Please output the detailed principle content of this title in detail. 
 If there are code examples, please provide them according to standard code specifications. 
@@ -37,3 +42,4 @@ Strictly limit output according to the following requirements:
 4. Do not have redundant output, including concluding remarks.
 5. Strict requirement not to output the topic "{topic}".
 """
+)
