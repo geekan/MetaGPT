@@ -102,3 +102,5 @@ CODE_SUMMARIES_FILE_REPO = "docs/code_summaries"
 CODE_SUMMARIES_PDF_FILE_REPO = "resources/code_summaries"
 
 YAPI_URL = "http://yapi.deepwisdomai.com/"
+
+LLM_API_TIMEOUT = 300
