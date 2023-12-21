@@ -31,7 +31,7 @@ class Sales(Role):
 
     def _set_store(self, store):
         if store:
-            action = SearchAndSummarize("", engine=SearchEngineType.CUSTOM_ENGINE, search_func=store.asearch)
+            action = SearchAndSummarize(name="", engine=SearchEngineType.CUSTOM_ENGINE, search_func=store.asearch)
         else:
             action = SearchAndSummarize()
         self._init_actions([action])

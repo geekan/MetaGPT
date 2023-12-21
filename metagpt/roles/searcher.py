@@ -52,7 +52,7 @@ class Searcher(Role):
 
     def set_search_func(self, search_func):
         """Sets a custom search function for the searcher."""
-        action = SearchAndSummarize("", engine=SearchEngineType.CUSTOM_ENGINE, search_func=search_func)
+        action = SearchAndSummarize(name="", engine=SearchEngineType.CUSTOM_ENGINE, search_func=search_func)
         self._init_actions([action])
 
     async def _act_sp(self) -> Message:

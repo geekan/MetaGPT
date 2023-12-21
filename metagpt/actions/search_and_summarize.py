@@ -16,6 +16,7 @@ from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.schema import Message
+from metagpt.tools import SearchEngineType
 from metagpt.tools.search_engine import SearchEngine
 
 SEARCH_AND_SUMMARIZE_SYSTEM = """### Requirements
@@ -109,7 +110,7 @@ class SearchAndSummarize(Action):
     content: Optional[str] = None
     llm: BaseGPTAPI = Field(default_factory=LLM)
     config: None = Field(default_factory=Config)
-    engine: Optional[str] = CONFIG.search_engine
+    engine: Optional[SearchEngineType] = CONFIG.search_engine
     search_func: Optional[str] = None
     search_engine: SearchEngine = None
 

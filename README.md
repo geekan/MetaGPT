@@ -53,7 +53,7 @@ cd MetaGPT
 pip3 install -e .     # or pip3 install metagpt  # for stable version
 
 # Step 3: setup your OPENAI_API_KEY, or make sure it existed in the env
-mkdir ~/.metagpt/key.yaml
+mkdir ~/.metagpt
 cp config/config.yaml ~/.metagpt/key.yaml
 vim ~/.metagpt/key.yaml
 

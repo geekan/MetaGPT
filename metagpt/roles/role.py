@@ -267,7 +267,7 @@ class Role(BaseModel):
                 ## 默认初始化
                 i = action(name="", llm=self._llm)
             else:
-                if self._setting.is_human and not isinstance(action.llm, HumanProvider):
+                if self.is_human and not isinstance(action.llm, HumanProvider):
                     logger.warning(
                         f"is_human attribute does not take effect, "
                         f"as Role's {str(action)} was initialized using LLM, "
