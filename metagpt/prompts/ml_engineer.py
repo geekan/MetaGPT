@@ -6,7 +6,7 @@
 # @Desc    :
 UPDATE_DATA_COLUMNS = """
 # Background
-Keep dataset column information updated to reflect changes in training or testing datasets, aiding in informed decision-making during data analysis.
+Keep dataset column information updated before model train.
 ## Done Tasks
 ```python
 {history_code}
@@ -18,15 +18,13 @@ Update and print the dataset's column information only if the train or test data
 from metagpt.tools.functions.libs.data_preprocess import get_column_info
 
 column_info = get_column_info(df)
-print("df_column_info")
+print("column_info")
 print(column_info)
 ```end
 
 # Constraints:
 - Use the DataFrame variable from 'Done Tasks' in place of df.
 - Import `get_column_info` only if it's not already imported.
-- Skip update if no changes in training/testing data, except for initial data load.
-- No need to update info if only model evaluation is performed.
 """
 
 GEN_DATA_DESC_PROMPT = """
@@ -185,7 +183,7 @@ ojb_cols = train.select_dtypes(include='object').columns.tolist()
 
 for col in obj_cols:
     encoder = LabelEncoder()
-    train[col] = encoder.fit_transform(train[col])
+    train[col] = encoder.fit_transform(train[col].unique().tolist() + ['unknown'])
     test[col] = test[col].apply(lambda x: x if x in encoder.classes_ else 'unknown')
     test[col] = encoder.transform(test[col])
 
@@ -241,6 +239,8 @@ from metagpt.tools.functions.libs.data_preprocess import FillMissingValue
 train_processed = train.copy()
 test_processed = test.copy()
 num_cols = train_processed.select_dtypes(include='number').columns.tolist()
+if 'label' in num_cols:
+    num_cols.remove('label')
 fill_missing_value = FillMissingValue(features=num_cols, strategy='mean')
 fill_missing_value.fit(train_processed)
 train_processed = fill_missing_value.transform(train_processed)
@@ -266,23 +266,29 @@ The current task is about data preprocessing, please note the following:
 - Monitor data types per column, applying appropriate methods.
 - Ensure operations are on existing dataset columns.
 - Avoid writing processed data to files.
+- Avoid any change to label column, such as standardization, etc.
 - Prefer alternatives to one-hot encoding for categorical data.
-- Only encode necessary categorical columns to allow for potential feature-specific engineering tasks later.
+- Only encode or scale necessary columns to allow for potential feature-specific engineering tasks (like time_extract, binning, extraction, etc.) later.
+- Each step do data preprocessing to train, must do same for test separately at the same time.
 """
 
 FEATURE_ENGINEERING_PROMPT = """
 The current task is about feature engineering. when performing it, please adhere to the following principles:
-- Ensure operations are on existing dataset columns and consider the data type (numerical, categorical, etc.) and application scenario (classification, regression tasks, etc.).
-- Create impactful features based on real-world knowledge and column info.
-- Generate as diverse features as possible to improve the model's performance.
+- Generate as diverse features as possible to improve the model's performance step-by-step. 
 - If potential impactful features are not included in 'Code Steps', add new steps to generate them.
+- Avoid creating redundant or excessively numerous features in one step.
+- Exclude ID columns from feature generation and remove them.
+- Each step do feature engineering to train, must do same for test separately at the same time.
+- Avoid using the label column to create features, except for cat encoding.
+- Use the data from previous task result if exist, do not mock or reload data yourself.
 """
 
 MODEL_TRAIN_PROMPT = """
 The current task is about training a model, please ensure high performance:
 - Keep in mind that your user prioritizes results and is highly focused on model performance. So, when needed, feel free to use models of any complexity to improve effectiveness, such as lightGBM, XGBoost, CatBoost, etc.
-- Before training, first check not is_numeric_dtype columns and use label encoding to convert them to numeric columns.
+- If non-numeric columns exist, perform label encode together with all steps.
 - Use the data from previous task result directly, do not mock or reload data yourself.
+- Set suitable hyperparameters for the model, make metrics as high as possible.
 """
 
 MODEL_EVALUATE_PROMPT = """

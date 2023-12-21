@@ -80,8 +80,8 @@ class MLEngineer(Role):
                 task.result = result
                 self.plan.finish_current_task()
                 self.working_memory.clear()
-                
-                if self.use_tools:
+
+                if self.use_tools and task.task_type not in ['model_train', 'model_evaluate']:
                     success, new_code = await self._update_data_columns()
                     if success:
                         task.code = task.code + "\n\n" + new_code
@@ -120,6 +120,7 @@ class MLEngineer(Role):
         if is_update:
             result, success = await self.execute_code.run(code)
             if success:
+                print(result)
                 self.data_desc["column_info"] = result
         return success, code
     
@@ -269,7 +270,7 @@ if __name__ == "__main__":
     # requirement = f"This is a medical dataset with over fifty anonymized health characteristics linked to three age-related conditions. Your goal is to predict whether a subject has or has not been diagnosed with one of these conditions.The target column is Class. Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. Report f1 score on the eval data. Train data path: {data_path}/split_train.csv, eval data path: {data_path}/split_eval.csv."
     
     # data_path = f"{DATA_PATH}/santander-customer-transaction-prediction"
-    # requirement = f"This is a customers financial dataset. Your goal is to predict which customers will make a specific transaction in the future. The target column is target. Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. Report F1 Score on the eval data. Train data path: '{data_path}/split_train.csv', eval data path: '{data_path}/split_eval.csv' ."
+    # requirement = f"This is a customers financial dataset. Your goal is to predict which customers will make a specific transaction in the future. The target column is target. Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. Report AUC Score on the eval data. Train data path: '{data_path}/split_train.csv', eval data path: '{data_path}/split_eval.csv' ."
     
     data_path = f"{DATA_PATH}/house-prices-advanced-regression-techniques"
     requirement = f"This is a house price dataset, your goal is to predict the sale price of a property based on its features. The target column is SalePrice. Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. Report RMSE between the logarithm of the predicted value and the logarithm of the observed sales price on the eval data. Train data path: '{data_path}/split_train.csv', eval data path: '{data_path}/split_eval.csv'."
