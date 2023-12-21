@@ -7,7 +7,7 @@
 """
 import json
 from abc import abstractmethod
-from typing import Optional
+from typing import Optional, Union
 
 from metagpt.logs import logger
 from metagpt.provider.base_chatbot import BaseChatbot
@@ -163,3 +163,9 @@ class BaseGPTAPI(BaseChatbot):
     def messages_to_dict(self, messages):
         """objects to [{"role": "user", "content": msg}] etc."""
         return [i.to_dict() for i in messages]
+
+    def moderation(self, content: Union[str, list[str]]):
+        return self.moderation(content)
+
+    async def amoderation(self, content: Union[str, list[str]]):
+        return self.amoderation(content)

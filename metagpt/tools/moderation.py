@@ -7,12 +7,12 @@
 """
 from typing import Union
 
-from metagpt.provider import OpenAIGPTAPI
+from metagpt.llm import LLM
 
 
 class Moderation:
     def __init__(self):
-        self.llm = OpenAIGPTAPI()
+        self.llm = LLM()
 
     def moderation(self, content: Union[str, list[str]]):
         resp = []
