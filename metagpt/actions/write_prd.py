@@ -10,10 +10,14 @@
             3. Move the document storage operations related to WritePRD from the save operation of WriteDesign.
 @Modified By: mashenquan, 2023/12/5. Move the generation logic of the project name to WritePRD.
 """
+
 from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Optional
+
+from pydantic import Field
 
 from metagpt.actions import Action, ActionOutput
 from metagpt.actions.action_node import ActionNode
@@ -32,16 +36,13 @@ from metagpt.const import (
     PRDS_FILE_REPO,
     REQUIREMENT_FILENAME,
 )
+from metagpt.llm import LLM
 from metagpt.logs import logger
+from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.schema import BugFixContext, Document, Documents, Message
 from metagpt.utils.common import CodeParser
 from metagpt.utils.file_repository import FileRepository
-
-# from metagpt.utils.get_template import get_template
 from metagpt.utils.mermaid import mermaid_to_file
-
-# from typing import List
-
 
 CONTEXT_TEMPLATE = """
 ### Project Name
@@ -64,15 +65,16 @@ NEW_REQ_TEMPLATE = """
 
 
 class WritePRD(Action):
-    def __init__(self, name="", context=None, llm=None):
-        super().__init__(name, context, llm)
+    name: str = ""
+    content: Optional[str] = None
+    llm: BaseGPTAPI = Field(default_factory=LLM)
 
     async def run(self, with_messages, schema=CONFIG.prompt_schema, *args, **kwargs) -> ActionOutput | Message:
         # Determine which requirement documents need to be rewritten: Use LLM to assess whether new requirements are
         # related to the PRD. If they are related, rewrite the PRD.
         docs_file_repo = CONFIG.git_repo.new_file_repository(relative_path=DOCS_FILE_REPO)
         requirement_doc = await docs_file_repo.get(filename=REQUIREMENT_FILENAME)
-        if await self._is_bugfix(requirement_doc.content):
+        if requirement_doc and await self._is_bugfix(requirement_doc.content):
             await docs_file_repo.save(filename=BUGFIX_FILENAME, content=requirement_doc.content)
             await docs_file_repo.save(filename=REQUIREMENT_FILENAME, content="")
             bug_fix = BugFixContext(filename=BUGFIX_FILENAME)
@@ -141,7 +143,8 @@ class WritePRD(Action):
 
     async def _update_prd(self, requirement_doc, prd_doc, prds_file_repo, *args, **kwargs) -> Document | None:
         if not prd_doc:
-            prd = await self._run_new_requirement(requirements=[requirement_doc.content], *args, **kwargs)
+            prd = await self._run_new_requirement(requirements=[requirement_doc.content if requirement_doc else ""],
+                                                  *args, **kwargs)
             new_prd_doc = Document(
                 root_path=PRDS_FILE_REPO,
                 filename=FileRepository.new_filename() + ".json",

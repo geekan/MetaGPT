@@ -44,7 +44,7 @@ class BasePostPrecessPlugin(object):
 
     def run_retry_parse_json_text(self, content: str) -> Union[dict, list]:
         """inherited class can re-implement the function"""
-        logger.debug(f"extracted json CONTENT from output:\n{content}")
+        # logger.info(f"extracted json CONTENT from output:\n{content}")
         parsed_data = retry_parse_json_text(output=content)  # should use output=content
         return parsed_data
 

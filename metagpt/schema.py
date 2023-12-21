@@ -12,6 +12,7 @@
         between actions.
         3. Add `id` to `Message` according to Section 2.2.3.1.1 of RFC 135.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -22,7 +23,7 @@ from abc import ABC
 from asyncio import Queue, QueueEmpty, wait_for
 from json import JSONDecodeError
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Type, TypedDict, TypeVar
+from typing import Dict, List, Optional, Set, Type, TypedDict, TypeVar, Any
 
 from pydantic import BaseModel, Field
 
@@ -36,7 +37,9 @@ from metagpt.const import (
     TASK_FILE_REPO,
 )
 from metagpt.logs import logger
-from metagpt.utils.common import any_to_str, any_to_str_set
+from metagpt.utils.common import any_to_str, any_to_str_set, import_class
+from metagpt.utils.serialize import actionoutout_schema_to_mapping, actionoutput_mapping_to_str, \
+    actionoutput_str_to_mapping
 from metagpt.utils.exceptions import handle_exception
 
 
@@ -98,41 +101,29 @@ class Message(BaseModel):
 
     id: str  # According to Section 2.2.3.1.1 of RFC 135
     content: str
-    instruct_content: BaseModel = Field(default=None)
+    instruct_content: BaseModel = None
     role: str = "user"  # system / user / assistant
     cause_by: str = ""
     sent_from: str = ""
     send_to: Set = Field(default_factory={MESSAGE_ROUTE_TO_ALL})
 
-    def __init__(
-        self,
-        content,
-        instruct_content=None,
-        role="user",
-        cause_by="",
-        sent_from="",
-        send_to=MESSAGE_ROUTE_TO_ALL,
-        **kwargs,
-    ):
-        """
-        Parameters not listed below will be stored as meta info, including custom parameters.
-        :param content: Message content.
-        :param instruct_content: Message content struct.
-        :param cause_by: Message producer
-        :param sent_from: Message route info tells who sent this message.
-        :param send_to: Specifies the target recipient or consumer for message delivery in the environment.
-        :param role: Message meta info tells who sent this message.
-        """
-        super().__init__(
-            id=uuid.uuid4().hex,
-            content=content,
-            instruct_content=instruct_content,
-            role=role,
-            cause_by=any_to_str(cause_by),
-            sent_from=any_to_str(sent_from),
-            send_to=any_to_str_set(send_to),
-            **kwargs,
-        )
+    def __init__(self, **kwargs):
+        ic = kwargs.get("instruct_content", None)
+        if ic and not isinstance(ic, BaseModel) and "class" in ic:
+            # compatible with custom-defined ActionOutput
+            mapping = actionoutput_str_to_mapping(ic["mapping"])
+
+            actionnode_class = import_class("ActionNode", "metagpt.actions.action_node")  # avoid circular import
+            ic_obj = actionnode_class.create_model_class(class_name=ic["class"], mapping=mapping)
+            ic_new = ic_obj(**ic["value"])
+            kwargs["instruct_content"] = ic_new
+
+        kwargs["id"] = kwargs.get("id", uuid.uuid4().hex)
+        kwargs["cause_by"] = any_to_str(kwargs.get("cause_by",
+                                                   import_class("UserRequirement", "metagpt.actions.add_requirement")))
+        kwargs["sent_from"] = any_to_str(kwargs.get("sent_from", ""))
+        kwargs["send_to"] = any_to_str_set(kwargs.get("send_to", {MESSAGE_ROUTE_TO_ALL}))
+        super(Message, self).__init__(**kwargs)
 
     def __setattr__(self, key, val):
         """Override `@property.setter`, convert non-string parameters into string parameters."""
@@ -145,6 +136,22 @@ class Message(BaseModel):
         else:
             new_val = val
         super().__setattr__(key, new_val)
+
+    def dict(self, *args, **kwargs) -> "DictStrAny":
+        """ overwrite the `dict` to dump dynamic pydantic model"""
+        obj_dict = super(Message, self).dict(*args, **kwargs)
+        ic = self.instruct_content
+        if ic:
+            # compatible with custom-defined ActionOutput
+            schema = ic.schema()
+            # `Documents` contain definitions
+            if "definitions" not in schema:
+                # TODO refine with nested BaseModel
+                mapping = actionoutout_schema_to_mapping(schema)
+                mapping = actionoutput_mapping_to_str(mapping)
+
+                obj_dict["instruct_content"] = {"class": schema["title"], "mapping": mapping, "value": ic.dict()}
+        return obj_dict
 
     def __str__(self):
         # prefix = '-'.join([self.role, str(self.cause_by)])
@@ -196,11 +203,24 @@ class AIMessage(Message):
         super().__init__(content=content, role="assistant")
 
 
-class MessageQueue:
+class MessageQueue(BaseModel):
     """Message queue which supports asynchronous updates."""
 
-    def __init__(self):
-        self._queue = Queue()
+    _queue: Queue = Field(default_factory=Queue)
+
+    _private_attributes = {
+        "_queue": Queue()
+    }
+
+    class Config:
+        arbitrary_types_allowed = True
+
+    def __init__(self, **kwargs: Any):
+        for key in self._private_attributes.keys():
+            if key in kwargs:
+                object.__setattr__(self, key, kwargs[key])
+            else:
+                object.__setattr__(self, key, Queue())
 
     def pop(self) -> Message | None:
         """Pop one message from the queue."""

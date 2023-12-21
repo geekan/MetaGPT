@@ -9,10 +9,15 @@
 """
 import shutil
 from pathlib import Path
+from typing import Optional
+
+from pydantic import Field
 
 from metagpt.actions import Action, ActionOutput
 from metagpt.config import CONFIG
 from metagpt.const import DOCS_FILE_REPO, REQUIREMENT_FILENAME
+from metagpt.llm import LLM
+from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.schema import Document
 from metagpt.utils.file_repository import FileRepository
 from metagpt.utils.git_repository import GitRepository
@@ -20,6 +25,9 @@ from metagpt.utils.git_repository import GitRepository
 
 class PrepareDocuments(Action):
     """PrepareDocuments Action: initialize project folder and add new requirements to docs/requirements.txt."""
+    name: str = "PrepareDocuments"
+    context: Optional[str] = None
+    llm: BaseGPTAPI = Field(default_factory=LLM)
 
     def _init_repo(self):
         """Initialize the Git environment."""

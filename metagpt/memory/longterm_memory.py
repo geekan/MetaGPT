@@ -4,6 +4,12 @@
 @Desc   : the implement of Long-term memory
 """
 
+from typing import Optional
+from pydantic import Field
+
+from typing import Optional
+from pydantic import Field
+
 from metagpt.logs import logger
 from metagpt.memory import Memory
 from metagpt.memory.memory_storage import MemoryStorage
@@ -16,12 +22,12 @@ class LongTermMemory(Memory):
     - recover memory when it staruped
     - update memory when it changed
     """
+    memory_storage: MemoryStorage = Field(default_factory=MemoryStorage)
+    rc: Optional["RoleContext"] = None
+    msg_from_recover: bool = False
 
-    def __init__(self):
-        self.memory_storage: MemoryStorage = MemoryStorage()
-        super().__init__()
-        self.rc = None  # RoleContext
-        self.msg_from_recover = False
+    class Config:
+        arbitrary_types_allowed = True
 
     def recover_memory(self, role_id: str, rc: "RoleContext"):
         messages = self.memory_storage.recover_memory(role_id)

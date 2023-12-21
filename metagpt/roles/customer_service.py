@@ -5,6 +5,9 @@
 @Author  : alexanderwu
 @File    : sales.py
 """
+from typing import Optional
+from pydantic import Field
+
 from metagpt.roles import Sales
 
 # from metagpt.actions import SearchAndSummarize
@@ -24,5 +27,14 @@ DESC = """
 
 
 class CustomerService(Sales):
-    def __init__(self, name="Xiaomei", profile="Human customer service", desc=DESC, store=None):
-        super().__init__(name, profile, desc=desc, store=store)
+
+    name: str = "Xiaomei"
+    profile: str = "Human customer service"
+    desc: str = DESC
+
+    store: Optional[str] = None
+
+    def __init__(
+            self,
+            **kwargs):
+        super().__init__(**kwargs)

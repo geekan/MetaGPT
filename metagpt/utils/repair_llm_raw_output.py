@@ -253,7 +253,7 @@ def retry_parse_json_text(output: str) -> Union[list, dict]:
         if CONFIG.repair_llm_output is True, the _aask_v1 and the retry_parse_json_text will loop for {x=3*3} times.
             it's a two-layer retry cycle
     """
-    logger.debug(f"output to json decode:\n{output}")
+    # logger.debug(f"output to json decode:\n{output}")
 
     # if CONFIG.repair_llm_output is True, it will try to fix output until the retry break
     parsed_data = CustomDecoder(strict=False).decode(output)
