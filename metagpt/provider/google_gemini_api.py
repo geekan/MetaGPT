@@ -50,6 +50,7 @@ class GeminiGPTAPI(BaseGPTAPI):
 
     def __init__(self):
         self.use_system_prompt = False  # google gemini has no system prompt when use api
+
         self.__init_gemini(CONFIG)
         self.model = "gemini-pro"  # so far only one model
         self.llm = GeminiGenerativeModel(model_name=self.model)

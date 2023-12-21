@@ -104,7 +104,6 @@ class Config(metaclass=Singleton):
         self.open_llm_api_model = self._get("OPEN_LLM_API_MODEL")
         self.fireworks_api_key = self._get("FIREWORKS_API_KEY")
         self.gemini_api_key = self._get("GEMINI_API_KEY")
-
         _ = self.get_default_llm_provider_enum()
 
         self.openai_api_base = self._get("OPENAI_API_BASE")
