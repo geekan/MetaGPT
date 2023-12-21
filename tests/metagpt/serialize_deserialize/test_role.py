@@ -16,7 +16,12 @@ from metagpt.roles.product_manager import ProductManager
 from metagpt.roles.role import Role
 from metagpt.schema import Message
 from metagpt.utils.common import format_trackback_info
-from tests.metagpt.serialize_deserialize.test_serdeser_base import RoleA, RoleB, RoleC, serdeser_path
+from tests.metagpt.serialize_deserialize.test_serdeser_base import (
+    RoleA,
+    RoleB,
+    RoleC,
+    serdeser_path,
+)
 
 
 def test_roles():
@@ -75,12 +80,10 @@ async def test_role_serdeser_interrupt():
     role_c = RoleC()
     shutil.rmtree(SERDESER_PATH.joinpath("team"), ignore_errors=True)
 
-    stg_path = SERDESER_PATH.joinpath(f"team", "environment", "roles", "{role_c.__class__.__name__}_{role_c.name}")
+    stg_path = SERDESER_PATH.joinpath("team", "environment", "roles", f"{role_c.__class__.__name__}_{role_c.name}")
     try:
-        await role_c.run(
-            with_message=Message(content="demo", cause_by=UserRequirement)
-        )
-    except Exception as exp:
+        await role_c.run(with_message=Message(content="demo", cause_by=UserRequirement))
+    except Exception:
         logger.error(f"Exception in `role_a.run`, detail: {format_trackback_info()}")
         role_c.serialize(stg_path)
 
@@ -90,6 +93,4 @@ async def test_role_serdeser_interrupt():
     assert new_role_a._rc.state == 1
 
     with pytest.raises(Exception):
-        await role_c.run(
-            with_message=Message(content="demo", cause_by=UserRequirement)
-        )
+        await role_c.run(with_message=Message(content="demo", cause_by=UserRequirement))

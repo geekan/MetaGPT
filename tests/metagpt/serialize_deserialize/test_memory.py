@@ -14,17 +14,14 @@ from tests.metagpt.serialize_deserialize.test_serdeser_base import serdeser_path
 
 
 def test_memory_serdeser():
-    msg1 = Message(role="Boss",
-                   content="write a snake game",
-                   cause_by=UserRequirement)
+    msg1 = Message(role="Boss", content="write a snake game", cause_by=UserRequirement)
 
     out_mapping = {"field2": (list[str], ...)}
     out_data = {"field2": ["field2 value1", "field2 value2"]}
     ic_obj = ActionNode.create_model_class("system_design", out_mapping)
-    msg2 = Message(role="Architect",
-                   instruct_content=ic_obj(**out_data),
-                   content="system design content",
-                   cause_by=WriteDesign)
+    msg2 = Message(
+        role="Architect", instruct_content=ic_obj(**out_data), content="system design content", cause_by=WriteDesign
+    )
 
     memory = Memory()
     memory.add_batch([msg1, msg2])
@@ -40,17 +37,14 @@ def test_memory_serdeser():
 
 
 def test_memory_serdeser_save():
-    msg1 = Message(role="User",
-                   content="write a 2048 game",
-                   cause_by=UserRequirement)
+    msg1 = Message(role="User", content="write a 2048 game", cause_by=UserRequirement)
 
     out_mapping = {"field1": (list[str], ...)}
     out_data = {"field1": ["field1 value1", "field1 value2"]}
     ic_obj = ActionNode.create_model_class("system_design", out_mapping)
-    msg2 = Message(role="Architect",
-                   instruct_content=ic_obj(**out_data),
-                   content="system design content",
-                   cause_by=WriteDesign)
+    msg2 = Message(
+        role="Architect", instruct_content=ic_obj(**out_data), content="system design content", cause_by=WriteDesign
+    )
 
     memory = Memory()
     memory.add_batch([msg1, msg2])

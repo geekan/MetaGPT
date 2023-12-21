@@ -7,7 +7,6 @@
 """
 
 from typing import Optional
-from pydantic import Field
 
 from metagpt.actions import SearchAndSummarize
 from metagpt.roles import Role
@@ -15,7 +14,6 @@ from metagpt.tools import SearchEngineType
 
 
 class Sales(Role):
-
     name: str = "Xiaomei"
     profile: str = "Retail sales guide"
     desc: str = "I am a sales guide in retail. My name is Xiaomei. I will answer some customer questions next, and I "

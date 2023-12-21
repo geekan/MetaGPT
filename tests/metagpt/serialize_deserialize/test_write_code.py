@@ -19,8 +19,9 @@ def test_write_design_serialize():
 
 @pytest.mark.asyncio
 async def test_write_code_deserialize():
-    context = CodingContext(filename="test_code.py",
-                            design_doc=Document(content="write add function to calculate two numbers"))
+    context = CodingContext(
+        filename="test_code.py", design_doc=Document(content="write add function to calculate two numbers")
+    )
     doc = Document(content=context.json())
     action = WriteCode(context=doc)
     serialized_data = action.dict()

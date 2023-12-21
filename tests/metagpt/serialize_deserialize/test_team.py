@@ -8,10 +8,16 @@ import shutil
 import pytest
 
 from metagpt.const import SERDESER_PATH
-from metagpt.roles import ProjectManager, ProductManager, Architect
-from metagpt.team import Team
 from metagpt.logs import logger
-from tests.metagpt.serialize_deserialize.test_serdeser_base import RoleA, RoleB, RoleC, serdeser_path, ActionOK
+from metagpt.roles import Architect, ProductManager, ProjectManager
+from metagpt.team import Team
+from tests.metagpt.serialize_deserialize.test_serdeser_base import (
+    ActionOK,
+    RoleA,
+    RoleB,
+    RoleC,
+    serdeser_path,
+)
 
 
 def test_team_deserialize():
@@ -110,10 +116,8 @@ async def test_team_recover_multi_roles_save():
     role_a = RoleA()
     role_b = RoleB()
 
-    assert role_a.subscription == {"tests.metagpt.serialize_deserialize.test_serdeser_base.RoleA",
-                                   "RoleA"}
-    assert role_b.subscription == {"tests.metagpt.serialize_deserialize.test_serdeser_base.RoleB",
-                                   "RoleB"}
+    assert role_a.subscription == {"tests.metagpt.serialize_deserialize.test_serdeser_base.RoleA", "RoleA"}
+    assert role_b.subscription == {"tests.metagpt.serialize_deserialize.test_serdeser_base.RoleB", "RoleB"}
     assert role_b._rc.watch == {"tests.metagpt.serialize_deserialize.test_serdeser_base.ActionPass"}
 
     company = Team()

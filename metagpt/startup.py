@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import asyncio
+from pathlib import Path
 
 import typer
-from pathlib import Path
 
 from metagpt.config import CONFIG
 
@@ -32,7 +32,7 @@ def startup(
         help="The maximum number of times the 'SummarizeCode' action is automatically invoked, with -1 indicating "
         "unlimited. This parameter is used for debugging the workflow.",
     ),
-    recover_path: str = typer.Option(default=None, help="recover the project from existing serialized storage")
+    recover_path: str = typer.Option(default=None, help="recover the project from existing serialized storage"),
 ):
     """Run a startup. Be a boss."""
     from metagpt.roles import (

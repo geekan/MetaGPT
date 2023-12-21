@@ -16,7 +16,8 @@ serdeser_path = Path(__file__).absolute().parent.joinpath("..", "..", "data", "s
 
 
 class MockMessage(BaseModel):
-    """ to test normal dict without postprocess """
+    """to test normal dict without postprocess"""
+
     content: str = ""
     instruct_content: BaseModel = Field(default=None)
 
@@ -26,9 +27,7 @@ class ActionPass(Action):
 
     async def run(self, messages: list["Message"]) -> ActionOutput:
         await asyncio.sleep(5)  # sleep to make other roles can watch the executed Message
-        output_mapping = {
-            "result": (str, ...)
-        }
+        output_mapping = {"result": (str, ...)}
         pass_class = ActionNode.create_model_class("pass", output_mapping)
         pass_output = ActionOutput("ActionPass run passed", pass_class(**{"result": "pass result"}))
 

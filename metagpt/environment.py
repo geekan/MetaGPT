@@ -56,12 +56,14 @@ class Environment(BaseModel):
         roles_path = stg_path.joinpath("roles.json")
         roles_info = []
         for role_key, role in self.roles.items():
-            roles_info.append({
-                "role_class": role.__class__.__name__,
-                "module_name": role.__module__,
-                "role_name": role.name,
-                "role_sub_tags": list(self.members.get(role))
-            })
+            roles_info.append(
+                {
+                    "role_class": role.__class__.__name__,
+                    "module_name": role.__module__,
+                    "role_name": role.name,
+                    "role_sub_tags": list(self.members.get(role)),
+                }
+            )
             role.serialize(stg_path=stg_path.joinpath(f"roles/{role.__class__.__name__}_{role.name}"))
         write_json_file(roles_path, roles_info)
 
@@ -70,7 +72,7 @@ class Environment(BaseModel):
 
     @classmethod
     def deserialize(cls, stg_path: Path) -> "Environment":
-        """ stg_path: ./storage/team/environment/ """
+        """stg_path: ./storage/team/environment/"""
         roles_path = stg_path.joinpath("roles.json")
         roles_info = read_json_file(roles_path)
         roles = []
@@ -83,9 +85,7 @@ class Environment(BaseModel):
         history = read_json_file(stg_path.joinpath("history.json"))
         history = history.get("content")
 
-        environment = Environment(**{
-            "history": history
-        })
+        environment = Environment(**{"history": history})
         environment.add_roles(roles)
 
         return environment

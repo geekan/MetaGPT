@@ -142,15 +142,9 @@ class WriteCodeReview(Action):
         iterative_code = self.context.code_doc.content
         k = CONFIG.code_review_k_times or 1
         for i in range(k):
-            format_example = FORMAT_EXAMPLE.format(
-                filename=self.context.code_doc.filename
-            )
-            task_content = (
-                self.context.task_doc.content if self.context.task_doc else ""
-            )
-            code_context = await WriteCode.get_codes(
-                self.context.task_doc, exclude=self.context.filename
-            )
+            format_example = FORMAT_EXAMPLE.format(filename=self.context.code_doc.filename)
+            task_content = self.context.task_doc.content if self.context.task_doc else ""
+            code_context = await WriteCode.get_codes(self.context.task_doc, exclude=self.context.filename)
             context = "\n".join(
                 [
                     "## System Design\n" + str(self.context.design_doc) + "\n",

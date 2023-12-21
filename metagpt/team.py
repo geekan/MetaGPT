@@ -8,20 +8,24 @@
         Section 2.2.3.3 of RFC 135.
 """
 
-from pathlib import Path
 import warnings
+from pathlib import Path
 
 from pydantic import BaseModel, Field
 
 from metagpt.actions import UserRequirement
 from metagpt.config import CONFIG
-from metagpt.const import MESSAGE_ROUTE_TO_ALL
-from metagpt.const import SERDESER_PATH
+from metagpt.const import MESSAGE_ROUTE_TO_ALL, SERDESER_PATH
 from metagpt.environment import Environment
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
-from metagpt.utils.common import NoMoneyException, read_json_file, write_json_file, serialize_decorator
+from metagpt.utils.common import (
+    NoMoneyException,
+    read_json_file,
+    serialize_decorator,
+    write_json_file,
+)
 
 
 class Team(BaseModel):
@@ -51,12 +55,14 @@ class Team(BaseModel):
 
     @classmethod
     def deserialize(cls, stg_path: Path) -> "Team":
-        """ stg_path = ./storage/team """
+        """stg_path = ./storage/team"""
         # recover team_info
         team_info_path = stg_path.joinpath("team_info.json")
         if not team_info_path.exists():
-            raise FileNotFoundError("recover storage meta file `team_info.json` not exist, "
-                                    "not to recover and please start a new project.")
+            raise FileNotFoundError(
+                "recover storage meta file `team_info.json` not exist, "
+                "not to recover and please start a new project."
+            )
 
         team_info: dict = read_json_file(team_info_path)
 

@@ -14,12 +14,7 @@ def test_message_serdeser():
     out_data = {"field3": "field3 value3", "field4": ["field4 value1", "field4 value2"]}
     ic_obj = ActionNode.create_model_class("code", out_mapping)
 
-    message = Message(
-        content="code",
-        instruct_content=ic_obj(**out_data),
-        role="engineer",
-        cause_by=WriteCode
-    )
+    message = Message(content="code", instruct_content=ic_obj(**out_data), role="engineer", cause_by=WriteCode)
     ser_data = message.dict()
     assert ser_data["cause_by"] == "metagpt.actions.write_code.WriteCode"
     assert ser_data["instruct_content"]["class"] == "code"
@@ -31,14 +26,11 @@ def test_message_serdeser():
 
 
 def test_message_without_postprocess():
-    """ to explain `instruct_content` should be postprocessed """
+    """to explain `instruct_content` should be postprocessed"""
     out_mapping = {"field1": (list[str], ...)}
     out_data = {"field1": ["field1 value1", "field1 value2"]}
     ic_obj = ActionNode.create_model_class("code", out_mapping)
-    message = MockMessage(
-        content="code",
-        instruct_content=ic_obj(**out_data)
-    )
+    message = MockMessage(content="code", instruct_content=ic_obj(**out_data))
     ser_data = message.dict()
     assert ser_data["instruct_content"] == {"field1": ["field1 value1", "field1 value2"]}
 

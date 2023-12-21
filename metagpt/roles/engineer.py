@@ -24,8 +24,6 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Set
 
-from pydantic import Field
-
 from metagpt.actions import Action, WriteCode, WriteCodeReview, WriteTasks
 from metagpt.actions.fix_bug import FixBug
 from metagpt.actions.summarize_code import SummarizeCode
@@ -69,11 +67,14 @@ class Engineer(Role):
         n_borg (int): Number of borgs.
         use_code_review (bool): Whether to use code review.
     """
+
     name: str = "Alex"
     profile: str = "Engineer"
     goal: str = "write elegant, readable, extensible, efficient code"
-    constraints: str = "the code should conform to standards like google-style and be modular and maintainable. " \
-                       "Use same language as user requirement"
+    constraints: str = (
+        "the code should conform to standards like google-style and be modular and maintainable. "
+        "Use same language as user requirement"
+    )
     n_borg: int = 1
     use_code_review: bool = False
     code_todos: list = []
@@ -212,7 +213,7 @@ class Engineer(Role):
 
     @staticmethod
     async def _new_coding_context(
-            filename, src_file_repo, task_file_repo, design_file_repo, dependency
+        filename, src_file_repo, task_file_repo, design_file_repo, dependency
     ) -> CodingContext:
         old_code_doc = await src_file_repo.get(filename)
         if not old_code_doc:

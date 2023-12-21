@@ -7,7 +7,6 @@
 @Modified By: mashenquan, 2023/11/27. Add `PrepareDocuments` action according to Section 2.2.3.5.1 of RFC 135.
 """
 
-from pydantic import Field
 
 from metagpt.actions import UserRequirement, WritePRD
 from metagpt.actions.prepare_documents import PrepareDocuments
@@ -25,6 +24,7 @@ class ProductManager(Role):
         goal (str): Goal of the product manager.
         constraints (str): Constraints or limitations for the product manager.
     """
+
     name: str = "Alice"
     profile: str = "Product Manager"
     goal: str = "efficiently create a successful product that meets market demands and user expectations"

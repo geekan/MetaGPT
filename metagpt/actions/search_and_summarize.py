@@ -5,18 +5,18 @@
 @Author  : alexanderwu
 @File    : search_google.py
 """
+from typing import Optional
+
 import pydantic
-from typing import Optional, Any
-from pydantic import BaseModel, Field
+from pydantic import Field, root_validator
 
 from metagpt.actions import Action
+from metagpt.config import CONFIG, Config
 from metagpt.llm import LLM
-from metagpt.provider.base_gpt_api import BaseGPTAPI
-from metagpt.config import Config, CONFIG
 from metagpt.logs import logger
+from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.schema import Message
 from metagpt.tools.search_engine import SearchEngine
-from pydantic import root_validator
 
 SEARCH_AND_SUMMARIZE_SYSTEM = """### Requirements
 1. Please summarize the latest dialogue based on the reference information (secondary) and dialogue history (primary). Do not include text that is irrelevant to the conversation.
@@ -120,7 +120,7 @@ class SearchAndSummarize(Action):
         engine = values.get("engine")
         search_func = values.get("search_func")
         config = Config()
-        
+
         if engine is None:
             engine = config.search_engine
         try:
@@ -135,7 +135,7 @@ class SearchAndSummarize(Action):
         if self.search_engine is None:
             logger.warning("Configure one of SERPAPI_API_KEY, SERPER_API_KEY, GOOGLE_API_KEY to unlock full feature")
             return ""
-        
+
         query = context[-1].content
         # logger.debug(query)
         rsp = await self.search_engine.run(query)
@@ -144,9 +144,9 @@ class SearchAndSummarize(Action):
             logger.error("empty rsp...")
             return ""
         # logger.info(rsp)
-        
+
         system_prompt = [system_text]
-        
+
         prompt = SEARCH_AND_SUMMARIZE_PROMPT.format(
             ROLE=self.prefix,
             CONTEXT=rsp,

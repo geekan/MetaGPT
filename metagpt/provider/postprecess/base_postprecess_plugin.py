@@ -4,7 +4,6 @@
 
 from typing import Union
 
-from metagpt.logs import logger
 from metagpt.utils.repair_llm_raw_output import (
     RepairType,
     extract_content_from_output,

@@ -23,7 +23,7 @@ from __future__ import annotations
 
 from enum import Enum
 from pathlib import Path
-from typing import Iterable, Set, Type, Any
+from typing import Any, Iterable, Set, Type
 
 from pydantic import BaseModel, Field
 
@@ -37,7 +37,13 @@ from metagpt.logs import logger
 from metagpt.memory import Memory
 from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.schema import Message, MessageQueue
-from metagpt.utils.common import any_to_str, read_json_file, write_json_file, import_class, role_raise_decorator
+from metagpt.utils.common import (
+    any_to_str,
+    import_class,
+    read_json_file,
+    role_raise_decorator,
+    write_json_file,
+)
 from metagpt.utils.repair_llm_raw_output import extract_state_value_from_output
 
 PREFIX_TEMPLATE = """You are a {profile}, named {name}, your goal is {goal}, and the constraint is {constraints}. """
@@ -82,18 +88,22 @@ class RoleReactMode(str, Enum):
 
 class RoleContext(BaseModel):
     """Role Runtime Context"""
+
     # # env exclude=True to avoid `RecursionError: maximum recursion depth exceeded in comparison`
     env: "Environment" = Field(default=None, exclude=True)
     # TODO judge if ser&deser
-    msg_buffer: MessageQueue = Field(default_factory=MessageQueue,
-                                     exclude=True)  # Message Buffer with Asynchronous Updates
+    msg_buffer: MessageQueue = Field(
+        default_factory=MessageQueue, exclude=True
+    )  # Message Buffer with Asynchronous Updates
     memory: Memory = Field(default_factory=Memory)
     # long_term_memory: LongTermMemory = Field(default_factory=LongTermMemory)
     state: int = Field(default=-1)  # -1 indicates initial or termination state where todo is None
     todo: Action = Field(default=None, exclude=True)
     watch: set[str] = Field(default_factory=set)
     news: list[Type[Message]] = Field(default=[], exclude=True)  # TODO not used
-    react_mode: RoleReactMode = RoleReactMode.REACT  # see `Role._set_react_mode` for definitions of the following two attributes
+    react_mode: RoleReactMode = (
+        RoleReactMode.REACT
+    )  # see `Role._set_react_mode` for definitions of the following two attributes
     max_react_loop: int = 1
 
     class Config:
@@ -120,6 +130,7 @@ role_subclass_registry = {}
 
 class Role(BaseModel):
     """Role/Agent"""
+
     name: str = ""
     profile: str = ""
     goal: str = ""
@@ -145,7 +156,7 @@ class Role(BaseModel):
         "_states": [],
         "_actions": [],
         "_rc": RoleContext(),
-        "_subscription": set()
+        "_subscription": set(),
     }
 
     __hash__ = object.__hash__  # support Role as hashable type in `Environment.members`
@@ -206,14 +217,14 @@ class Role(BaseModel):
         return f"{self.name}({self.profile})"
 
     def serialize(self, stg_path: Path = None):
-        stg_path = SERDESER_PATH.joinpath(f"team/environment/roles/{self.__class__.__name__}_{self.name}") \
-            if stg_path is None else stg_path
+        stg_path = (
+            SERDESER_PATH.joinpath(f"team/environment/roles/{self.__class__.__name__}_{self.name}")
+            if stg_path is None
+            else stg_path
+        )
 
         role_info = self.dict(exclude={"_rc": {"memory": True, "msg_buffer": True}, "_llm": True})
-        role_info.update({
-            "role_class": self.__class__.__name__,
-            "module_name": self.__module__
-        })
+        role_info.update({"role_class": self.__class__.__name__, "module_name": self.__module__})
         role_info_path = stg_path.joinpath("role_info.json")
         write_json_file(role_info_path, role_info)
 
@@ -221,7 +232,7 @@ class Role(BaseModel):
 
     @classmethod
     def deserialize(cls, stg_path: Path) -> "Role":
-        """ stg_path = ./storage/team/environment/roles/{role_class}_{role_name}"""
+        """stg_path = ./storage/team/environment/roles/{role_class}_{role_name}"""
         role_info_path = stg_path.joinpath("role_info.json")
         role_info = read_json_file(role_info_path)
 
@@ -328,12 +339,9 @@ class Role(BaseModel):
         """Get the role prefix"""
         if self.desc:
             return self.desc
-        return PREFIX_TEMPLATE.format(**{
-            "profile": self.profile,
-            "name": self.name,
-            "goal": self.goal,
-            "constraints": self.constraints
-        })
+        return PREFIX_TEMPLATE.format(
+            **{"profile": self.profile, "name": self.name, "goal": self.goal, "constraints": self.constraints}
+        )
 
     async def _think(self) -> None:
         """Think about what to do and decide on the next action"""
