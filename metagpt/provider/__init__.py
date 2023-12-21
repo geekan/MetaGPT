@@ -6,7 +6,10 @@
 @File    : __init__.py
 """
 
+from metagpt.provider.fireworks_api import FireWorksGPTAPI
+from metagpt.provider.google_gemini_api import GeminiGPTAPI
+from metagpt.provider.open_llm_api import OpenLLMGPTAPI
 from metagpt.provider.openai_api import OpenAIGPTAPI
+from metagpt.provider.zhipuai_api import ZhiPuAIGPTAPI
 
-
-__all__ = ["OpenAIGPTAPI"]
+__all__ = ["FireWorksGPTAPI", "GeminiGPTAPI", "OpenLLMGPTAPI", "OpenAIGPTAPI", "ZhiPuAIGPTAPI"]

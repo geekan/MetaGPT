@@ -19,6 +19,7 @@ import json
 import os
 import platform
 import re
+import sys
 import traceback
 import typing
 from pathlib import Path
@@ -45,6 +46,12 @@ def check_cmd_exists(command) -> int:
         check_command = "command -v " + command + ' >/dev/null 2>&1 || { echo >&2 "no mermaid"; exit 1; }'
     result = os.system(check_command)
     return result
+
+
+def require_python_version(req_version: tuple[int]) -> bool:
+    if not (2 <= len(req_version) <= 3):
+        raise ValueError("req_version should be (3, 9) or (3, 10, 13)")
+    return True if sys.version_info > req_version else False
 
 
 class OutputParser:

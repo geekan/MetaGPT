@@ -7,6 +7,7 @@
 ref1: https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb
 ref2: https://github.com/Significant-Gravitas/Auto-GPT/blob/master/autogpt/llm/token_counter.py
 ref3: https://github.com/hwchase17/langchain/blob/master/langchain/chat_models/openai.py
+ref4: https://ai.google.dev/models/gemini
 """
 import tiktoken
 
@@ -27,6 +28,7 @@ TOKEN_COSTS = {
     "gpt-4-1106-preview": {"prompt": 0.01, "completion": 0.03},
     "text-embedding-ada-002": {"prompt": 0.0004, "completion": 0.0},
     "chatglm_turbo": {"prompt": 0.0, "completion": 0.00069},  # 32k version, prompt + completion tokens=0.005￥/k-tokens
+    "gemini-pro": {"prompt": 0.00025, "completion": 0.0005},
 }
 
 
@@ -47,6 +49,7 @@ TOKEN_MAX = {
     "gpt-4-1106-preview": 128000,
     "text-embedding-ada-002": 8192,
     "chatglm_turbo": 32768,
+    "gemini-pro": 32768,
 }
 
 
