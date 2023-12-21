@@ -9,7 +9,6 @@ import json
 import time
 from typing import NamedTuple, Union
 
-import httpx
 from openai import (
     APIConnectionError,
     AsyncAzureOpenAI,
@@ -18,6 +17,7 @@ from openai import (
     AzureOpenAI,
     OpenAI,
 )
+from openai._base_client import AsyncHttpxClientWrapper, SyncHttpxClientWrapper
 from openai.types import CompletionUsage
 from openai.types.chat import ChatCompletion, ChatCompletionChunk
 from tenacity import (
@@ -190,8 +190,8 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         # to use proxy, openai v1 needs http_client
         proxy_params = self._get_proxy_params()
         if proxy_params:
-            kwargs["http_client"] = httpx.Client(**proxy_params)
-            async_kwargs["http_client"] = httpx.AsyncClient(**proxy_params)
+            kwargs["http_client"] = SyncHttpxClientWrapper(**proxy_params)
+            async_kwargs["http_client"] = AsyncHttpxClientWrapper(**proxy_params)
 
         return kwargs, async_kwargs
 
