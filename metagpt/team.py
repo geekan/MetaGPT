@@ -8,6 +8,7 @@
         Section 2.2.3.3 of RFC 135.
 """
 import warnings
+
 from pydantic import BaseModel, Field
 
 from metagpt.actions import UserRequirement
@@ -61,9 +62,12 @@ class Team(BaseModel):
         Deprecated: This method will be removed in the future.
         Please use the `run_project` method instead.
         """
-        warnings.warn("The 'start_project' method is deprecated and will be removed in the future. "
-                      "Please use the 'run_project' method instead.",
-                      DeprecationWarning, stacklevel=2)
+        warnings.warn(
+            "The 'start_project' method is deprecated and will be removed in the future. "
+            "Please use the 'run_project' method instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         return self.run_project(idea=idea, send_to=send_to)
 
     def _save(self):
