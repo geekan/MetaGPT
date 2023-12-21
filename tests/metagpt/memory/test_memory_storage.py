@@ -9,9 +9,9 @@ from typing import List
 
 from metagpt.actions import UserRequirement, WritePRD
 from metagpt.actions.action_node import ActionNode
+from metagpt.memory import Memory
 from metagpt.memory.memory_storage import MemoryStorage
 from metagpt.schema import Message
-from metagpt.memory import Memory
 
 
 def test_idea_message():
@@ -74,10 +74,10 @@ def test_actionout_message():
 
 def test_memory_ttl():
     working_memory = Memory()
-    msg = Message(content='This msg will be droped on 2th dialogue.', ttl=1)
-    msg2 = Message(content='This msg will be droped after live 2 turn dialogue.', ttl=2)
-    msg3 = Message(content='This msg will never be droped.')
-    msg4 = Message(content='This msg will never be droped too.')
+    msg = Message(content="This msg will be droped on 2th dialogue.", ttl=1)
+    msg2 = Message(content="This msg will be droped after live 2 turn dialogue.", ttl=2)
+    msg3 = Message(content="This msg will never be droped.")
+    msg4 = Message(content="This msg will never be droped too.")
     # 第1轮对话
     working_memory.add(msg)
     assert msg in working_memory.storage

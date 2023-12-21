@@ -109,7 +109,7 @@ class Message(BaseModel):
     cause_by: str = ""
     sent_from: str = ""
     send_to: Set = Field(default_factory={MESSAGE_ROUTE_TO_ALL})
-    ttl: int = -1       # dialogue turns-to-live, default value -1, means keep it forever.
+    ttl: int = -1  # dialogue turns-to-live, default value -1, means keep it forever.
 
     def __init__(self, **kwargs):
         ic = kwargs.get("instruct_content", None)
