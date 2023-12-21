@@ -236,7 +236,7 @@ class MakeTools(WriteCodeByGenerate):
     3. Must use Google style for function docstring, and your docstring must be consistent with the code,without missing anything.
     4. Write example code after `if __name__ == '__main__':`by using old varibales in old code,
     and make sure it could be execute in the user's machine.
-    5. Dont have missing package references.**
+    5. Only use the imported packages**
     """
 
     def __init__(self, name: str = '', context: list[Message] = None, llm: LLM = None, workspace: str = None):
