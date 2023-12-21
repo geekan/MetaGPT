@@ -39,6 +39,7 @@ class QaEngineer(Role):
         "The test code you write should conform to code standard like PEP8, be modular, " "easy to read and maintain"
     )
     test_round_allowed: int = 5
+    test_round: int = 0
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
