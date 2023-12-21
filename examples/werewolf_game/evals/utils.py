@@ -1,11 +1,13 @@
 '''
 Filename: MetaGPT/examples/werewolf_game/evals/utils.py
 Created Date: Oct 11, 2023
+Revised Date: Oct 20, 2023
 Author: [Aria](https://github.com/ariafyy)
 '''
 from metagpt.const import WORKSPACE_ROOT, PROJECT_ROOT
 import re
-
+import os,glob
+from pathlib import Path
 
 class Utils:
     """Utils: utils of logs"""
@@ -53,8 +55,70 @@ class Utils:
                 else:
                     out.write("\n")
 
+    @staticmethod
+    def pick_vote_log(in_logfile, out_txtfile):
+        """
+        pick the vote log from the log file.
+        ready to AnnounceGameResult serves as the 'HINT_TEXT ' which indicates the end of the game.
+        based on bservation and reflection, then discuss is not in vote session.
+        """
+        pattern_vote = r'(Player\d+)\(([A-Za-z]+)\): (\d+) \| (I vote to eliminate Player\d+)'
+        ignore_text = """reflection"""
+        HINT_TEXT = r"ready to AnnounceGameResult"
+        pattern_moderator = r'\[([^\]]+)\]\. Say ONLY: I vote to eliminate ...'
+        in_valid_block = False
+
+        with open(in_logfile, "r") as f:
+            lines = f.read()
+            split_lines = lines.split(HINT_TEXT)
+
+            if len(split_lines) < 2:
+                print(f"Key text :{HINT_TEXT} not found in {in_logfile}")
+                return
+
+            relevant_lines = split_lines[1].split("\n")
+            with open(out_txtfile, "w") as out:
+                for line in relevant_lines:
+                    if re.search(pattern_moderator, line):
+                        in_valid_block = True
+                        out.write(line.lstrip() + "\n")
+
+                    elif in_valid_block and re.search(pattern_vote, line):
+                        out.write(line + "\n")
+                    elif ignore_text in line:
+                        in_valid_block = False
+
+    @staticmethod
+    def get_file_list(path: str) -> list:
+        file_pattern = os.path.join(path, '*.txt')
+        files_list = glob.glob(file_pattern)
+        return files_list
+
+    @staticmethod
+    def filename_to_foldername(out_txtfile: str):
+        """
+        convert filename into its parent folder name
+        input:"....../# 01-10_10132100.txt"
+        output:# 01-10
+        """
+        s = Path(out_txtfile).stem
+        pattern_folder = r'([^_]*)_'
+        match = re.match(pattern_folder, s)
+        if match:
+            folder = match.group(1)
+            return folder
+
+    @staticmethod
+    def float_to_percent(decimal: float) -> str:
+        """
+        input:  1.00
+        output: 100.00%
+        """
+        percent = decimal * 100
+        return f"{percent:.2f}%"
 
 if __name__ == '__main__':
     in_logfile = PROJECT_ROOT / "logs/log.txt"
     out_txtfile = "input your wish path"
-    Utils().polish_log(in_logfile, out_txtfile)
+    # Utils().polish_log(in_logfile, out_txtfile)
+    Utils().pick_vote_log(in_logfile, out_txtfile)
