@@ -5,10 +5,10 @@
 # WORKSPACE_PATH: "Path for placing output files"
 
 #### if OpenAI
-## The official OPENAI_API_BASE is https://api.openai.com/v1
-## If the official OPENAI_API_BASE is not available, we recommend using the [openai-forward](https://github.com/beidongjiedeguang/openai-forward).
-## Or, you can configure OPENAI_PROXY to access official OPENAI_API_BASE.
-OPENAI_API_BASE: "https://api.openai.com/v1"
+## The official OPENAI_BASE_URL is https://api.openai.com/v1
+## If the official OPENAI_BASE_URL is not available, we recommend using the [openai-forward](https://github.com/beidongjiedeguang/openai-forward).
+## Or, you can configure OPENAI_PROXY to access official OPENAI_BASE_URL.
+OPENAI_BASE_URL: "https://api.openai.com/v1"
 #OPENAI_PROXY: "http://127.0.0.1:8118"
 #OPENAI_API_KEY: "YOUR_API_KEY"  # set the value to sk-xxx if you host the openai interface for open llm model
 OPENAI_API_MODEL: "gpt-4-1106-preview"
@@ -26,13 +26,11 @@ RPM: 10
 #ANTHROPIC_API_KEY: "YOUR_API_KEY"
 
 #### if AZURE, check https://github.com/openai/openai-cookbook/blob/main/examples/azure/chat.ipynb
-#### You can use ENGINE or DEPLOYMENT mode
 #OPENAI_API_TYPE: "azure"
-#OPENAI_API_BASE: "YOUR_AZURE_ENDPOINT"
+#OPENAI_BASE_URL: "YOUR_AZURE_ENDPOINT"
 #OPENAI_API_KEY: "YOUR_AZURE_API_KEY"
 #OPENAI_API_VERSION: "YOUR_AZURE_API_VERSION"
 #DEPLOYMENT_NAME: "YOUR_DEPLOYMENT_NAME"
-#DEPLOYMENT_ID: "YOUR_DEPLOYMENT_ID"
 
 #### if zhipuai from `https://open.bigmodel.cn`. You can set here or export API_KEY="YOUR_API_KEY"
 # ZHIPUAI_API_KEY: "YOUR_API_KEY"

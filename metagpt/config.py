@@ -98,15 +98,14 @@ class Config(metaclass=Singleton):
         self.fireworks_api_key = self._get("FIREWORKS_API_KEY")
         _ = self.get_default_llm_provider_enum()
 
-        self.openai_api_base = self._get("OPENAI_API_BASE")
+        self.openai_base_url = self._get("OPENAI_BASE_URL")
         self.openai_proxy = self._get("OPENAI_PROXY") or self.global_proxy
         self.openai_api_type = self._get("OPENAI_API_TYPE")
         self.openai_api_version = self._get("OPENAI_API_VERSION")
         self.openai_api_rpm = self._get("RPM", 3)
         self.openai_api_model = self._get("OPENAI_API_MODEL", "gpt-4-1106-preview")
         self.max_tokens_rsp = self._get("MAX_TOKENS", 2048)
-        self.deployment_name = self._get("DEPLOYMENT_NAME")
-        self.deployment_id = self._get("DEPLOYMENT_ID")
+        self.deployment_name = self._get("DEPLOYMENT_NAME", "gpt-4")
 
         self.spark_appid = self._get("SPARK_APPID")
         self.spark_api_secret = self._get("SPARK_API_SECRET")

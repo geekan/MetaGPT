@@ -5,11 +5,21 @@
 @File    : openai.py
 """
 import asyncio
+import json
 import time
 from typing import NamedTuple, Union
 
-import openai
-from openai.error import APIConnectionError
+from openai import (
+    APIConnectionError,
+    AsyncAzureOpenAI,
+    AsyncOpenAI,
+    AsyncStream,
+    AzureOpenAI,
+    OpenAI,
+)
+from openai._base_client import AsyncHttpxClientWrapper, SyncHttpxClientWrapper
+from openai.types import CompletionUsage
+from openai.types.chat import ChatCompletion, ChatCompletionChunk
 from tenacity import (
     after_log,
     retry,
@@ -18,7 +28,7 @@ from tenacity import (
     wait_random_exponential,
 )
 
-from metagpt.config import CONFIG, LLMProviderEnum
+from metagpt.config import CONFIG, Config, LLMProviderEnum
 from metagpt.logs import logger
 from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.provider.constant import GENERAL_FUNCTION_SCHEMA, GENERAL_TOOL_CHOICE
@@ -145,26 +155,61 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
     """
 
     def __init__(self):
-        self.__init_openai(CONFIG)
-        self.llm = openai
-        self.model = CONFIG.openai_api_model
+        self.config: Config = CONFIG
+        self.__init_openai()
         self.auto_max_tokens = False
         self._cost_manager = CostManager()
         RateLimiter.__init__(self, rpm=self.rpm)
 
-    def __init_openai(self, config):
-        openai.api_key = config.openai_api_key
-        if config.openai_api_base:
-            openai.api_base = config.openai_api_base
-        if config.openai_api_type:
-            openai.api_type = config.openai_api_type
-            openai.api_version = config.openai_api_version
-        if config.openai_proxy:
-            openai.proxy = config.openai_proxy
-        self.rpm = int(config.get("RPM", 10))
+    def __init_openai(self):
+        self.is_azure = self.config.openai_api_type == "azure"
+        self.model = self.config.deployment_name if self.is_azure else self.config.openai_api_model
+        self.rpm = int(self.config.get("RPM", 10))
+        self._make_client()
+
+    def _make_client(self):
+        kwargs, async_kwargs = self._make_client_kwargs()
+
+        if self.is_azure:
+            self.client = AzureOpenAI(**kwargs)
+            self.async_client = AsyncAzureOpenAI(**async_kwargs)
+        else:
+            self.client = OpenAI(**kwargs)
+            self.async_client = AsyncOpenAI(**async_kwargs)
+
+    def _make_client_kwargs(self) -> (dict, dict):
+        if self.is_azure:
+            kwargs = dict(
+                api_key=self.config.openai_api_key,
+                api_version=self.config.openai_api_version,
+                azure_endpoint=self.config.openai_base_url,
+            )
+        else:
+            kwargs = dict(api_key=self.config.openai_api_key, base_url=self.config.openai_base_url)
+
+        async_kwargs = kwargs.copy()
+
+        # to use proxy, openai v1 needs http_client
+        proxy_params = self._get_proxy_params()
+        if proxy_params:
+            kwargs["http_client"] = SyncHttpxClientWrapper(**proxy_params)
+            async_kwargs["http_client"] = AsyncHttpxClientWrapper(**proxy_params)
+
+        return kwargs, async_kwargs
+
+    def _get_proxy_params(self) -> dict:
+        params = {}
+        if self.config.openai_proxy:
+            params = {"proxies": self.config.openai_proxy}
+            if self.config.openai_base_url:
+                params["base_url"] = self.config.openai_base_url
+
+        return params
 
     async def _achat_completion_stream(self, messages: list[dict]) -> str:
-        response = await openai.ChatCompletion.acreate(**self._cons_kwargs(messages), stream=True)
+        response: AsyncStream[ChatCompletionChunk] = await self.async_client.chat.completions.create(
+            **self._cons_kwargs(messages), stream=True
+        )
 
         # create variables to collect the stream of chunks
         collected_chunks = []
@@ -172,15 +217,14 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         # iterate through the stream of events
         async for chunk in response:
             collected_chunks.append(chunk)  # save the event response
-            choices = chunk["choices"]
-            if len(choices) > 0:
-                chunk_message = chunk["choices"][0].get("delta", {})  # extract the message
+            if chunk.choices:
+                chunk_message = chunk.choices[0].delta  # extract the message
                 collected_messages.append(chunk_message)  # save the message
-                if "content" in chunk_message:
-                    print(chunk_message["content"], end="")
+                if chunk_message.content:
+                    print(chunk_message.content, end="")
         print()
 
-        full_reply_content = "".join([m.get("content", "") for m in collected_messages])
+        full_reply_content = "".join([m.content for m in collected_messages if m.content])
         usage = self._calc_usage(messages, full_reply_content)
         self._update_costs(usage)
         return full_reply_content
@@ -193,43 +237,27 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             "stop": None,
             "temperature": 0.3,
             "timeout": 3,
+            "model": self.model,
         }
         if configs:
             kwargs.update(configs)
 
-        if CONFIG.openai_api_type == "azure":
-            if CONFIG.deployment_name and CONFIG.deployment_id:
-                raise ValueError("You can only use one of the `deployment_id` or `deployment_name` model")
-            elif not CONFIG.deployment_name and not CONFIG.deployment_id:
-                raise ValueError("You must specify `DEPLOYMENT_NAME` or `DEPLOYMENT_ID` parameter")
-            kwargs_mode = (
-                {"engine": CONFIG.deployment_name}
-                if CONFIG.deployment_name
-                else {"deployment_id": CONFIG.deployment_id}
-            )
-        else:
-            kwargs_mode = {"model": self.model}
-        kwargs.update(kwargs_mode)
         return kwargs
 
-    async def _achat_completion(self, messages: list[dict]) -> dict:
-        rsp = await self.llm.ChatCompletion.acreate(**self._cons_kwargs(messages))
-        self._update_costs(rsp.get("usage"))
+    async def _achat_completion(self, messages: list[dict]) -> ChatCompletion:
+        rsp: ChatCompletion = await self.async_client.chat.completions.create(**self._cons_kwargs(messages))
+        self._update_costs(rsp.usage)
         return rsp
 
-    def _chat_completion(self, messages: list[dict]) -> dict:
-        rsp = self.llm.ChatCompletion.create(**self._cons_kwargs(messages))
-        self._update_costs(rsp)
+    def _chat_completion(self, messages: list[dict]) -> ChatCompletion:
+        rsp: ChatCompletion = self.client.chat.completions.create(**self._cons_kwargs(messages))
+        self._update_costs(rsp.usage)
         return rsp
 
-    def completion(self, messages: list[dict]) -> dict:
-        # if isinstance(messages[0], Message):
-        #     messages = self.messages_to_dict(messages)
+    def completion(self, messages: list[dict]) -> ChatCompletion:
         return self._chat_completion(messages)
 
-    async def acompletion(self, messages: list[dict]) -> dict:
-        # if isinstance(messages[0], Message):
-        #     messages = self.messages_to_dict(messages)
+    async def acompletion(self, messages: list[dict]) -> ChatCompletion:
         return await self._achat_completion(messages)
 
     @retry(
@@ -259,14 +287,16 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
 
         return self._cons_kwargs(messages, **kwargs)
 
-    def _chat_completion_function(self, messages: list[dict], **kwargs) -> dict:
-        rsp = self.llm.ChatCompletion.create(**self._func_configs(messages, **kwargs))
-        self._update_costs(rsp.get("usage"))
+    def _chat_completion_function(self, messages: list[dict], **kwargs) -> ChatCompletion:
+        rsp: ChatCompletion = self.client.chat.completions.create(**self._func_configs(messages, **kwargs))
+        self._update_costs(rsp.usage)
         return rsp
 
-    async def _achat_completion_function(self, messages: list[dict], **chat_configs) -> dict:
-        rsp = await self.llm.ChatCompletion.acreate(**self._func_configs(messages, **chat_configs))
-        self._update_costs(rsp.get("usage"))
+    async def _achat_completion_function(self, messages: list[dict], **chat_configs) -> ChatCompletion:
+        rsp: ChatCompletion = await self.async_client.chat.completions.create(
+            **self._func_configs(messages, **chat_configs)
+        )
+        self._update_costs(rsp.usage)
         return rsp
 
     def _process_message(self, messages: Union[str, Message, list[dict], list[Message], list[str]]) -> list[dict]:
@@ -321,22 +351,35 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         rsp = await self._achat_completion_function(messages, **kwargs)
         return self.get_choice_function_arguments(rsp)
 
-    def _calc_usage(self, messages: list[dict], rsp: str) -> dict:
-        usage = {}
-        if CONFIG.calc_usage:
-            try:
-                prompt_tokens = count_message_tokens(messages, self.model)
-                completion_tokens = count_string_tokens(rsp, self.model)
-                usage["prompt_tokens"] = prompt_tokens
-                usage["completion_tokens"] = completion_tokens
-                return usage
-            except Exception as e:
-                logger.error(f"{self.model} usage calculation failed!", e)
-                return {}
-        else:
+    def get_choice_function_arguments(self, rsp: ChatCompletion) -> dict:
+        """Required to provide the first function arguments of choice.
+
+        :return dict: return the first function arguments of choice, for example,
+            {'language': 'python', 'code': "print('Hello, World!')"}
+        """
+        try:
+            return json.loads(rsp.choices[0].message.tool_calls[0].function.arguments)
+        except json.JSONDecodeError:
+            return {}
+
+    def get_choice_text(self, rsp: ChatCompletion) -> str:
+        """Required to provide the first text of choice"""
+        return rsp.choices[0].message.content if rsp.choices else ""
+
+    def _calc_usage(self, messages: list[dict], rsp: str) -> CompletionUsage:
+        usage = CompletionUsage(prompt_tokens=0, completion_tokens=0, total_tokens=0)
+        if not CONFIG.calc_usage:
             return usage
 
-    async def acompletion_batch(self, batch: list[list[dict]]) -> list[dict]:
+        try:
+            usage.prompt_tokens = count_message_tokens(messages, self.model)
+            usage.completion_tokens = count_string_tokens(rsp, self.model)
+        except Exception as e:
+            logger.error(f"usage calculation failed!: {e}")
+
+        return usage
+
+    async def acompletion_batch(self, batch: list[list[dict]]) -> list[ChatCompletion]:
         """Return full JSON"""
         split_batches = self.split_batches(batch)
         all_results = []
@@ -362,12 +405,10 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             logger.info(f"Result of task {idx}: {result}")
         return results
 
-    def _update_costs(self, usage: dict):
+    def _update_costs(self, usage: CompletionUsage):
         if CONFIG.calc_usage and usage:
             try:
-                prompt_tokens = int(usage["prompt_tokens"])
-                completion_tokens = int(usage["completion_tokens"])
-                self._cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
+                self._cost_manager.update_cost(usage.prompt_tokens, usage.completion_tokens, self.model)
             except Exception as e:
                 logger.error("updating costs failed!", e)
 
@@ -390,7 +431,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             logger.error(f"moderating failed:{e}")
 
     def _moderation(self, content: Union[str, list[str]]):
-        rsp = self.llm.Moderation.create(input=content)
+        rsp = self.client.moderations.create(input=content)
         return rsp
 
     async def amoderation(self, content: Union[str, list[str]]):
@@ -404,5 +445,5 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             logger.error(f"moderating failed:{e}")
 
     async def _amoderation(self, content: Union[str, list[str]]):
-        rsp = await self.llm.Moderation.acreate(input=content)
+        rsp = await self.async_client.moderations.create(input=content)
         return rsp

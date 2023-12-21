@@ -219,7 +219,7 @@ cp config/config.yaml config/key.yaml
 | 変数名                                  | config/key.yaml                           | env                                             |
 | --------------------------------------- | ----------------------------------------- | ----------------------------------------------- |
 | OPENAI_API_KEY # 自分のキーに置き換える | OPENAI_API_KEY: "sk-..."                  | export OPENAI_API_KEY="sk-..."                  |
-| OPENAI_API_BASE # オプション            | OPENAI_API_BASE: "https://<YOUR_SITE>/v1" | export OPENAI_API_BASE="https://<YOUR_SITE>/v1" |
+| OPENAI_BASE_URL # オプション            | OPENAI_BASE_URL: "https://<YOUR_SITE>/v1" | export OPENAI_BASE_URL="https://<YOUR_SITE>/v1" |
 
 ## チュートリアル: スタートアップの開始
 

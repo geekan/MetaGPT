@@ -70,7 +70,7 @@ class Researcher(Role):
         return ret
 
     def research_system_text(self, topic, current_task: Action) -> str:
-        """ BACKWARD compatible
+        """BACKWARD compatible
         This allows sub-class able to define its own system prompt based on topic.
         return the previous implementation to have backward compatible
         Args:
