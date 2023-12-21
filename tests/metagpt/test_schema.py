@@ -9,12 +9,13 @@
 """
 
 import json
+
 import pytest
 
 from metagpt.actions import Action
-from metagpt.schema import AIMessage, Message, SystemMessage, UserMessage
 from metagpt.actions.action_node import ActionNode
 from metagpt.actions.write_code import WriteCode
+from metagpt.schema import AIMessage, Message, SystemMessage, UserMessage
 from metagpt.utils.common import any_to_str
 
 
@@ -77,24 +78,13 @@ def test_message_serdeser():
     out_data = {"field3": "field3 value3", "field4": ["field4 value1", "field4 value2"]}
     ic_obj = ActionNode.create_model_class("code", out_mapping)
 
-    message = Message(
-        content="code",
-        instruct_content=ic_obj(**out_data),
-        role="engineer",
-        cause_by=WriteCode
-    )
+    message = Message(content="code", instruct_content=ic_obj(**out_data), role="engineer", cause_by=WriteCode)
     message_dict = message.dict()
     assert message_dict["cause_by"] == "metagpt.actions.write_code.WriteCode"
     assert message_dict["instruct_content"] == {
         "class": "code",
-        "mapping": {
-            "field3": "(<class 'str'>, Ellipsis)",
-            "field4": "(list[str], Ellipsis)"
-        },
-        "value": {
-            "field3": "field3 value3",
-            "field4": ["field4 value1", "field4 value2"]
-        }
+        "mapping": {"field3": "(<class 'str'>, Ellipsis)", "field4": "(list[str], Ellipsis)"},
+        "value": {"field3": "field3 value3", "field4": ["field4 value1", "field4 value2"]},
     }
 
     new_message = Message(**message_dict)

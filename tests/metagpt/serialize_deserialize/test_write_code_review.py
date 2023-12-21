@@ -18,7 +18,7 @@ def div(a: int, b: int = 0):
     context = CodingContext(
         filename="test_op.py",
         design_doc=Document(content="divide two numbers"),
-        code_doc=Document(content=code_content)
+        code_doc=Document(content=code_content),
     )
 
     action = WriteCodeReview(context=context)

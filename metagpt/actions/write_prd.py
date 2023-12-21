@@ -143,8 +143,9 @@ class WritePRD(Action):
 
     async def _update_prd(self, requirement_doc, prd_doc, prds_file_repo, *args, **kwargs) -> Document | None:
         if not prd_doc:
-            prd = await self._run_new_requirement(requirements=[requirement_doc.content if requirement_doc else ""],
-                                                  *args, **kwargs)
+            prd = await self._run_new_requirement(
+                requirements=[requirement_doc.content if requirement_doc else ""], *args, **kwargs
+            )
             new_prd_doc = Document(
                 root_path=PRDS_FILE_REPO,
                 filename=FileRepository.new_filename() + ".json",

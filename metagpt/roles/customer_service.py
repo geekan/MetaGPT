@@ -6,7 +6,6 @@
 @File    : sales.py
 """
 from typing import Optional
-from pydantic import Field
 
 from metagpt.roles import Sales
 
@@ -27,14 +26,11 @@ DESC = """
 
 
 class CustomerService(Sales):
-
     name: str = "Xiaomei"
     profile: str = "Human customer service"
     desc: str = DESC
 
     store: Optional[str] = None
 
-    def __init__(
-            self,
-            **kwargs):
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)

@@ -17,7 +17,7 @@ from metagpt.config import CONFIG
 from metagpt.const import TEST_CODES_FILE_REPO, TEST_OUTPUTS_FILE_REPO
 from metagpt.llm import LLM, BaseGPTAPI
 from metagpt.logs import logger
-from metagpt.schema import RunCodeResult, RunCodeContext
+from metagpt.schema import RunCodeContext, RunCodeResult
 from metagpt.utils.common import CodeParser
 from metagpt.utils.file_repository import FileRepository
 

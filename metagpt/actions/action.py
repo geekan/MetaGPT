@@ -8,13 +8,18 @@
 
 from __future__ import annotations
 
-from typing import Optional, Any
+from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 
 from metagpt.llm import LLM
 from metagpt.provider.base_gpt_api import BaseGPTAPI
-from metagpt.schema import CodingContext, CodeSummarizeContext, TestingContext, RunCodeContext
+from metagpt.schema import (
+    CodeSummarizeContext,
+    CodingContext,
+    RunCodeContext,
+    TestingContext,
+)
 
 action_subclass_registry = {}
 

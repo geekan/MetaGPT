@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 # @Desc   : unittest of team
 
-from metagpt.team import Team
 from metagpt.roles.project_manager import ProjectManager
+from metagpt.team import Team
 
 
 def test_team():

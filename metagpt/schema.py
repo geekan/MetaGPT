@@ -23,7 +23,7 @@ from abc import ABC
 from asyncio import Queue, QueueEmpty, wait_for
 from json import JSONDecodeError
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Type, TypedDict, TypeVar, Any
+from typing import Any, Dict, List, Optional, Set, Type, TypedDict, TypeVar
 
 from pydantic import BaseModel, Field
 
@@ -38,9 +38,12 @@ from metagpt.const import (
 )
 from metagpt.logs import logger
 from metagpt.utils.common import any_to_str, any_to_str_set, import_class
-from metagpt.utils.serialize import actionoutout_schema_to_mapping, actionoutput_mapping_to_str, \
-    actionoutput_str_to_mapping
 from metagpt.utils.exceptions import handle_exception
+from metagpt.utils.serialize import (
+    actionoutout_schema_to_mapping,
+    actionoutput_mapping_to_str,
+    actionoutput_str_to_mapping,
+)
 
 
 class RawMessage(TypedDict):
@@ -119,8 +122,9 @@ class Message(BaseModel):
             kwargs["instruct_content"] = ic_new
 
         kwargs["id"] = kwargs.get("id", uuid.uuid4().hex)
-        kwargs["cause_by"] = any_to_str(kwargs.get("cause_by",
-                                                   import_class("UserRequirement", "metagpt.actions.add_requirement")))
+        kwargs["cause_by"] = any_to_str(
+            kwargs.get("cause_by", import_class("UserRequirement", "metagpt.actions.add_requirement"))
+        )
         kwargs["sent_from"] = any_to_str(kwargs.get("sent_from", ""))
         kwargs["send_to"] = any_to_str_set(kwargs.get("send_to", {MESSAGE_ROUTE_TO_ALL}))
         super(Message, self).__init__(**kwargs)
@@ -138,7 +142,7 @@ class Message(BaseModel):
         super().__setattr__(key, new_val)
 
     def dict(self, *args, **kwargs) -> "DictStrAny":
-        """ overwrite the `dict` to dump dynamic pydantic model"""
+        """overwrite the `dict` to dump dynamic pydantic model"""
         obj_dict = super(Message, self).dict(*args, **kwargs)
         ic = self.instruct_content
         if ic:
@@ -208,9 +212,7 @@ class MessageQueue(BaseModel):
 
     _queue: Queue = Field(default_factory=Queue)
 
-    _private_attributes = {
-        "_queue": Queue()
-    }
+    _private_attributes = {"_queue": Queue()}
 
     class Config:
         arbitrary_types_allowed = True

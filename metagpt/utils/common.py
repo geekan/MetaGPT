@@ -22,8 +22,7 @@ import re
 import traceback
 import typing
 from pathlib import Path
-from typing import Any
-from typing import List, Tuple, Union, get_args, get_origin
+from typing import Any, List, Tuple, Union, get_args, get_origin
 
 import aiofiles
 import loguru
@@ -219,7 +218,7 @@ class OutputParser:
 
         if start_index != -1 and end_index != -1:
             # Extract the structure part
-            structure_text = text[start_index: end_index + 1]
+            structure_text = text[start_index : end_index + 1]
 
             try:
                 # Attempt to convert the text to a Python data type using ast.literal_eval
@@ -439,7 +438,7 @@ def read_json_file(json_file: str, encoding=None) -> list[Any]:
     with open(json_file, "r", encoding=encoding) as fin:
         try:
             data = json.load(fin)
-        except Exception as exp:
+        except Exception:
             raise ValueError(f"read json file: {json_file} failed")
     return data
 
@@ -474,9 +473,9 @@ def serialize_decorator(func):
         try:
             result = await func(self, *args, **kwargs)
             return result
-        except KeyboardInterrupt as kbi:
+        except KeyboardInterrupt:
             logger.error(f"KeyboardInterrupt occurs, start to serialize the project, exp:\n{format_trackback_info()}")
-        except Exception as exp:
+        except Exception:
             logger.error(f"Exception occurs, start to serialize the project, exp:\n{format_trackback_info()}")
         self.serialize()  # Team.serialize
 
@@ -491,14 +490,18 @@ def role_raise_decorator(func):
             logger.error(f"KeyboardInterrupt: {kbi} occurs, start to serialize the project")
             if self.latest_observed_msg:
                 self._rc.memory.delete(self.latest_observed_msg)
-            raise Exception(format_trackback_info(limit=None))  # raise again to make it captured outside
-        except Exception as exp:
+            # raise again to make it captured outside
+            raise Exception(format_trackback_info(limit=None))
+        except Exception:
             if self.latest_observed_msg:
-                logger.warning("There is a exception in role's execution, in order to resume, "
-                               "we delete the newest role communication message in the role's memory.")
+                logger.warning(
+                    "There is a exception in role's execution, in order to resume, "
+                    "we delete the newest role communication message in the role's memory."
+                )
                 # remove role newest observed msg to make it observed again
                 self._rc.memory.delete(self.latest_observed_msg)
-            raise Exception(format_trackback_info(limit=None))  # raise again to make it captured outside
+            # raise again to make it captured outside
+            raise Exception(format_trackback_info(limit=None))
 
     return wrapper
 

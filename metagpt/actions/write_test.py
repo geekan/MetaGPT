@@ -9,14 +9,15 @@
 """
 
 from typing import Optional
+
 from pydantic import Field
 
-from metagpt.llm import LLM
-from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.actions.action import Action
 from metagpt.config import CONFIG
 from metagpt.const import TEST_CODES_FILE_REPO
+from metagpt.llm import LLM
 from metagpt.logs import logger
+from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.schema import Document, TestingContext
 from metagpt.utils.common import CodeParser
 

@@ -24,7 +24,7 @@ from metagpt.actions.action import Action
 from metagpt.config import CONFIG
 from metagpt.llm import LLM, BaseGPTAPI
 from metagpt.logs import logger
-from metagpt.schema import RunCodeResult, RunCodeContext
+from metagpt.schema import RunCodeContext, RunCodeResult
 from metagpt.utils.exceptions import handle_exception
 
 PROMPT_TEMPLATE = """

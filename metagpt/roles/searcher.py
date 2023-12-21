@@ -35,7 +35,7 @@ class Searcher(Role):
     goal: str = "Provide search services for users"
     constraints: str = "Answer is rich and complete"
     engine: SearchEngineType = SearchEngineType.SERPAPI_GOOGLE
-    
+
     def __init__(self, **kwargs) -> None:
         """
         Initializes the Searcher role with given attributes.

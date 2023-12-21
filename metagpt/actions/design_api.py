@@ -45,9 +45,11 @@ class WriteDesign(Action):
     name: str = ""
     context: Optional[str] = None
     llm: BaseGPTAPI = Field(default_factory=LLM)
-    desc: str = "Based on the PRD, think about the system design, and design the corresponding APIs, " \
-                "data structures, library tables, processes, and paths. Please provide your design, feedback " \
-                "clearly and in detail."
+    desc: str = (
+        "Based on the PRD, think about the system design, and design the corresponding APIs, "
+        "data structures, library tables, processes, and paths. Please provide your design, feedback "
+        "clearly and in detail."
+    )
 
     async def run(self, with_messages: Message, schema: str = CONFIG.prompt_schema):
         # Use `git diff` to identify which PRD documents have been modified in the `docs/prds` directory.

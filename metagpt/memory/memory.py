@@ -6,7 +6,6 @@
 @File    : memory.py
 @Modified By: mashenquan, 2023-11-1. According to RFC 116: Updated the type of index key.
 """
-import copy
 from collections import defaultdict
 from pathlib import Path
 from typing import Iterable, Set
@@ -14,11 +13,17 @@ from typing import Iterable, Set
 from pydantic import BaseModel, Field
 
 from metagpt.schema import Message
-from metagpt.utils.common import any_to_str, any_to_str_set, read_json_file, write_json_file
+from metagpt.utils.common import (
+    any_to_str,
+    any_to_str_set,
+    read_json_file,
+    write_json_file,
+)
 
 
 class Memory(BaseModel):
     """The most basic memory: super-memory"""
+
     storage: list[Message] = []
     index: dict[str, list[Message]] = Field(default_factory=defaultdict(list))
 
@@ -32,14 +37,14 @@ class Memory(BaseModel):
         self.index = new_index
 
     def serialize(self, stg_path: Path):
-        """ stg_path = ./storage/team/environment/ or ./storage/team/environment/roles/{role_class}_{role_name}/ """
+        """stg_path = ./storage/team/environment/ or ./storage/team/environment/roles/{role_class}_{role_name}/"""
         memory_path = stg_path.joinpath("memory.json")
         storage = self.dict()
         write_json_file(memory_path, storage)
 
     @classmethod
     def deserialize(cls, stg_path: Path) -> "Memory":
-        """ stg_path = ./storage/team/environment/ or ./storage/team/environment/roles/{role_class}_{role_name}/"""
+        """stg_path = ./storage/team/environment/ or ./storage/team/environment/roles/{role_class}_{role_name}/"""
         memory_path = stg_path.joinpath("memory.json")
 
         memory_dict = read_json_file(memory_path)
@@ -68,7 +73,7 @@ class Memory(BaseModel):
         return [message for message in self.storage if content in message.content]
 
     def delete_newest(self) -> "Message":
-        """ delete the newest message from the storage"""
+        """delete the newest message from the storage"""
         if len(self.storage) > 0:
             newest_msg = self.storage.pop()
             if newest_msg.cause_by and newest_msg in self.index[newest_msg.cause_by]:

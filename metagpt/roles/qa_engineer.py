@@ -15,13 +15,8 @@
     of SummarizeCode.
 """
 
-from pydantic import Field
 
-from metagpt.actions import (
-    DebugError,
-    RunCode,
-    WriteTest,
-)
+from metagpt.actions import DebugError, RunCode, WriteTest
 from metagpt.actions.summarize_code import SummarizeCode
 from metagpt.config import CONFIG
 from metagpt.const import (
@@ -40,8 +35,9 @@ class QaEngineer(Role):
     name: str = "Edward"
     profile: str = "QaEngineer"
     goal: str = "Write comprehensive and robust tests to ensure codes will work as expected without bugs"
-    constraints: str = "The test code you write should conform to code standard like PEP8, be modular, " \
-                       "easy to read and maintain"
+    constraints: str = (
+        "The test code you write should conform to code standard like PEP8, be modular, " "easy to read and maintain"
+    )
     test_round_allowed: int = 5
 
     def __init__(self, **kwargs):
@@ -118,7 +114,8 @@ class QaEngineer(Role):
         )
         run_code_context.code = None
         run_code_context.test_code = None
-        recipient = parse_recipient(result.summary)  # the recipient might be Engineer or myself
+        # the recipient might be Engineer or myself
+        recipient = parse_recipient(result.summary)
         mappings = {"Engineer": "Alex", "QaEngineer": "Edward"}
         self.publish_message(
             Message(
