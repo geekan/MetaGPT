@@ -291,15 +291,14 @@ class MLEngineer(Role):
         logger.warning(f"Making tools for task_id {self.plan.current_task_id}: \
             `{self.plan.current_task.instruction}` \n code: \n {code}")
         make_tools = MakeTools()
-        code_prompt = f"The following code is about {self.plan.current_task.instruction},\
-            convert it to be a General Function, {code}"
-        tool_code = await make_tools.run(code_prompt)
+        tool_code = await make_tools.run(code, self.plan.current_task.instruction)
         # check tool_code by execute_code
         logger.info(f"Checking task_id {self.plan.current_task_id} tool code by executor...")
         _, success = await self.execute_code.run(tool_code)
         make_tool_retries, make_tool_current_retry = 3, 1
         while not success:
-            tool_code = await make_tools.run(code_prompt)
+            # tool_code = await make_tools.run(code_prompt)
+            tool_code = await make_tools.run(code)
             _, success = await self.execute_code.run(tool_code)
             if make_tool_current_retry > make_tool_retries:
                 logger.error(f"We have tried the maximum number of attempts {make_tool_retries}\

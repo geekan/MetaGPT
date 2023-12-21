@@ -270,9 +270,18 @@ class MakeTools(WriteCodeByGenerate):
         saved_path.write_text(tool_code, encoding='utf-8')
 
     @retry(stop=stop_after_attempt(3), wait=wait_fixed(1))
-    async def run(self, code_message: List[Message | Dict], **kwargs) -> str:
-        msgs = self.process_msg(code_message, self.DEFAULT_SYSTEM_MSG)
+    async def run(self, code: str, code_desc: str = None, **kwargs) -> str:
+        # 拼接code prompt
+        code_prompt = f"The following code is about {code_desc}, convert it to be a General Function, {code}"
+        msgs = self.process_msg(code_prompt, self.DEFAULT_SYSTEM_MSG)
         logger.info(f"\n\nAsk to Make tools:\n{'-'*60}\n {msgs[-1]}")
+
+        # 更新kwargs
+        if 'code' in kwargs:
+            kwargs.pop('code')
+        if 'code_desc' in kwargs:
+            kwargs.pop('code_desc')
+
         tool_code = await self.llm.aask_code(msgs, **kwargs)
         max_tries, current_try = 3, 1
         func_name = self.parse_function_name(tool_code['code'])
