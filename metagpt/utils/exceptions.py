@@ -21,6 +21,7 @@ def handle_exception(
     _func: Callable[..., ReturnType] = None,
     *,
     exception_type: Union[Type[Exception], Tuple[Type[Exception], ...]] = Exception,
+    exception_msg: str = "",
     default_return: Any = None,
 ) -> Callable[..., ReturnType]:
     """handle exception, return default value"""
@@ -32,8 +33,9 @@ def handle_exception(
                 return await func(*args, **kwargs)
             except exception_type as e:
                 logger.opt(depth=1).error(
-                    f"Calling {func.__name__} with args: {args}, kwargs: {kwargs} failed: {e}, "
-                    f"stack: {traceback.format_exc()}"
+                    f"{e}: {exception_msg}, "
+                    f"\nCalling {func.__name__} with args: {args}, kwargs: {kwargs} "
+                    f"\nStack: {traceback.format_exc()}"
                 )
                 return default_return
 

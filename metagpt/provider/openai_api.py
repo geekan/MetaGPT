@@ -34,6 +34,7 @@ from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.provider.constant import GENERAL_FUNCTION_SCHEMA, GENERAL_TOOL_CHOICE
 from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.schema import Message
+from metagpt.utils.exceptions import handle_exception
 from metagpt.utils.singleton import Singleton
 from metagpt.utils.token_counter import (
     TOKEN_COSTS,
@@ -420,30 +421,6 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             return CONFIG.max_tokens_rsp
         return get_max_completion_tokens(messages, self.model, CONFIG.max_tokens_rsp)
 
-    def moderation(self, content: Union[str, list[str]]):
-        try:
-            if not content:
-                logger.error("content cannot be empty!")
-            else:
-                rsp = self._moderation(content=content)
-                return rsp
-        except Exception as e:
-            logger.error(f"moderating failed:{e}")
-
-    def _moderation(self, content: Union[str, list[str]]):
-        rsp = self.client.moderations.create(input=content)
-        return rsp
-
+    @handle_exception
     async def amoderation(self, content: Union[str, list[str]]):
-        try:
-            if not content:
-                logger.error("content cannot be empty!")
-            else:
-                rsp = await self._amoderation(content=content)
-                return rsp
-        except Exception as e:
-            logger.error(f"moderating failed:{e}")
-
-    async def _amoderation(self, content: Union[str, list[str]]):
-        rsp = await self.async_client.moderations.create(input=content)
-        return rsp
+        return await self.async_client.moderations.create(input=content)
