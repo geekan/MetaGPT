@@ -11,7 +11,7 @@ FillMissingValue:
             description: "columns to be processed"
           strategy:
             type: str
-            description: "the imputation strategy"
+            description: "the imputation strategy, notice mean/median can only be used for numeric features"
             default: mean
             enum:
               - mean

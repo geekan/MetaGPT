@@ -1,6 +1,6 @@
 PolynomialExpansion:
   type: class
-  description: "Add polynomial and interaction features from selected numeric columns, excluding the bias column."
+  description: "Add polynomial and interaction features from selected numeric columns to input DataFrame."
   methods:
     __init__:
       description: "Initialize self."
@@ -9,12 +9,16 @@ PolynomialExpansion:
           cols:
             type: list
             description: "Columns for polynomial expansion."
+          label_col:
+            type: str
+            description: "Label column name."
           degree:
             type: int
             description: "The degree of the polynomial features."
             default: 2
         required:
           - cols
+          - label_col
     fit:
       description: "Fit the PolynomialExpansion model."
       parameters:
@@ -36,14 +40,14 @@ PolynomialExpansion:
       returns:
         df:
           type: DataFrame
-          description: "The transformed DataFrame."
+          description: "The transformed DataFrame without duplicated columns."
     fit_transform:
       description: "Fit and transform the input DataFrame."
       parameters:
         properties:
           df:
             type: DataFrame
-            description: "The input DataFrame."
+            description: "The input DataFrame without duplicated columns."
         required:
           - df
       returns:
@@ -224,7 +228,7 @@ CatCross:
         properties:
           cols:
             type: list
-            description: "Columns to be pairwise crossed."
+            description: "Columns to be pairwise crossed, at least 2 columns."
           max_cat_num:
             type: int
             description: "Maximum unique categories per crossed feature."
@@ -431,3 +435,114 @@ GeneralSelection:
         df:
           type: DataFrame
           description: "The transformed DataFrame."
+
+
+TreeBasedSelection:
+  type: class
+  description: "Select features based on tree-based model and remove features with low importance."
+  methods:
+    __init__:
+      description: "Initialize self."
+      parameters:
+        properties:
+          label_col:
+            type: str
+            description: "Label column name."
+          task_type:
+            type: str
+            description: "Task type, 'cls' for classification, 'mcls' for multi-class classification, 'reg' for regression."
+            enum:
+              - cls
+              - mcls
+              - reg
+        required:
+          - label_col
+          - task_type
+    fit:
+      description: "Fit the TreeBasedSelection model."
+      parameters:
+        properties:
+          df:
+            type: DataFrame
+            description: "The input DataFrame."
+        required:
+          - df
+    transform:
+      description: "Transform the input DataFrame with the fitted model."
+      parameters:
+        properties:
+          df:
+            type: DataFrame
+            description: "The input DataFrame."
+        required:
+          - df
+      returns:
+        df:
+          type: DataFrame
+          description: "The transformed DataFrame contain label_col."
+    fit_transform:
+      description: "Fit and transform the input DataFrame."
+      parameters:
+        properties:
+          df:
+            type: DataFrame
+            description: "The input DataFrame."
+        required:
+          - df
+      returns:
+        df:
+          type: DataFrame
+          description: "The transformed DataFrame contain label_col."
+
+VarianceBasedSelection:
+  type: class
+  description: "Select features based on variance and remove features with low variance."
+  methods:
+    __init__:
+      description: "Initialize self."
+      parameters:
+        properties:
+          label_col:
+            type: str
+            description: "Label column name."
+          threshold:
+            type: float
+            description: "Threshold for variance."
+            default: 0.0
+        required:
+          - label_col
+    fit:
+      description: "Fit the VarianceBasedSelection model."
+      parameters:
+        properties:
+          df:
+            type: DataFrame
+            description: "The input DataFrame."
+        required:
+          - df
+    transform:
+      description: "Transform the input DataFrame with the fitted model."
+      parameters:
+        properties:
+          df:
+            type: DataFrame
+            description: "The input DataFrame."
+        required:
+          - df
+      returns:
+        df:
+          type: DataFrame
+          description: "The transformed DataFrame contain label_col."
+    fit_transform:
+      description: "Fit and transform the input DataFrame."
+      parameters:
+        properties:
+          df:
+            type: DataFrame
+            description: "The input DataFrame."
+        required:
+          - df
+      returns:
+        df:
+          type: DataFrame
+          description: "The transformed DataFrame contain label_col."
