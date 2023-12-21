@@ -40,7 +40,7 @@ typing_extensions==4.7.0
 libcst==1.0.1
 qdrant-client==1.4.0
 pytest-mock==3.11.1
-open-interpreter==0.1.7; python_version>"3.9"
+# open-interpreter==0.1.7; python_version>"3.9"
 ta==0.10.2
 semantic-kernel==0.4.0.dev0
 wrapt==1.15.0
