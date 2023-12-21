@@ -2,16 +2,14 @@
 # -*- coding: utf-8 -*-
 # @Desc   : the unittest of google gemini api
 
-import pytest
 from abc import ABC
 from dataclasses import dataclass
 
+import pytest
+
 from metagpt.provider.google_gemini_api import GeminiGPTAPI
 
-
-messages = [
-    {"role": "user", "content": "who are you"}
-]
+messages = [{"role": "user", "content": "who are you"}]
 
 
 @dataclass

@@ -12,10 +12,4 @@ from metagpt.provider.open_llm_api import OpenLLMGPTAPI
 from metagpt.provider.openai_api import OpenAIGPTAPI
 from metagpt.provider.zhipuai_api import ZhiPuAIGPTAPI
 
-__all__ = [
-    "FireWorksGPTAPI",
-    "GeminiGPTAPI",
-    "OpenLLMGPTAPI",
-    "OpenAIGPTAPI",
-    "ZhiPuAIGPTAPI"
-]
+__all__ = ["FireWorksGPTAPI", "GeminiGPTAPI", "OpenLLMGPTAPI", "OpenAIGPTAPI", "ZhiPuAIGPTAPI"]
