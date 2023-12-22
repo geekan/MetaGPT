@@ -139,7 +139,7 @@ class Role(BaseModel):
     desc: str = ""
     is_human: bool = False
 
-    _llm: BaseGPTAPI = Field(default_factory=LLM)
+    _llm: BaseGPTAPI = Field(default_factory=LLM)  # Each role has its own LLM, use different system message
     _role_id: str = ""
     _states: list[str] = []
     _actions: list[Action] = []
@@ -258,6 +258,9 @@ class Role(BaseModel):
     def _init_action_system_message(self, action: Action):
         action.set_prefix(self._get_prefix())
 
+    def refresh_system_message(self):
+        self._llm.system_prompt = self._get_prefix()
+
     def set_recovered(self, recovered: bool = False):
         self.recovered = recovered
 
@@ -336,6 +339,7 @@ class Role(BaseModel):
         self._rc.env = env
         if env:
             env.set_subscription(self, self._subscription)
+            self.refresh_system_message()  # add env message to system message
 
     @property
     def subscription(self) -> Set:
@@ -353,7 +357,8 @@ class Role(BaseModel):
             prefix += CONSTRAINT_TEMPLATE.format(**{"constraints": self.constraints})
 
         if self._rc.env and self._rc.env.desc:
-            env_desc = f"You are in {self._rc.env.desc} with roles({self._rc.env.role_names()})."
+            other_role_names = ", ".join(self._rc.env.role_names())
+            env_desc = f"You are in {self._rc.env.desc} with roles({other_role_names})."
             prefix += env_desc
         return prefix
 
@@ -390,13 +395,13 @@ class Role(BaseModel):
         self._set_state(next_state)
 
     async def _act(self) -> Message:
-        logger.info(f"{self._setting}: ready to {self._rc.todo}")
+        logger.info(f"{self._setting}: to do {self._rc.todo}")
         response = await self._rc.todo.run(self._rc.important_memory)
         if isinstance(response, (ActionOutput, ActionNode)):
             msg = Message(
                 content=response.content,
                 instruct_content=response.instruct_content,
-                role=self.profile,
+                role=self._setting,
                 cause_by=self._rc.todo,
                 sent_from=self,
             )

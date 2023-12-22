@@ -42,7 +42,7 @@ class Researcher(Role):
             logger.warning(f"The language `{language}` has not been tested, it may not work.")
 
     async def _act(self) -> Message:
-        logger.info(f"{self._setting}: ready to {self._rc.todo}")
+        logger.info(f"{self._setting}: to do {self._rc.todo}({self._rc.todo.name})")
         todo = self._rc.todo
         msg = self._rc.memory.get(k=1)[0]
         if isinstance(msg.instruct_content, Report):

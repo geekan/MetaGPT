@@ -88,7 +88,7 @@ class SimpleTester(Role):
         self._watch([SimpleWriteCode, SimpleWriteReview])  # feel free to try this too
 
     async def _act(self) -> Message:
-        logger.info(f"{self._setting}: ready to {self._rc.todo}")
+        logger.info(f"{self._setting}: to do {self._rc.todo}")
         todo = self._rc.todo
 
         # context = self.get_memories(k=1)[0].content # use the most recent memory as context

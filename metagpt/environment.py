@@ -95,15 +95,18 @@ class Environment(BaseModel):
         """增加一个在当前环境的角色
         Add a role in the current environment
         """
-        role.set_env(self)
         self.roles[role.profile] = role
+        role.set_env(self)
 
     def add_roles(self, roles: Iterable[Role]):
         """增加一批在当前环境的角色
         Add a batch of characters in the current environment
         """
         for role in roles:
-            self.add_role(role)
+            self.roles[role.profile] = role
+
+        for role in roles:  # setup system message with roles
+            role.set_env(self)
 
     def publish_message(self, message: Message) -> bool:
         """
@@ -152,8 +155,8 @@ class Environment(BaseModel):
         """
         return self.roles.get(name, None)
 
-    def role_names(self) -> str:
-        return ", ".join([f"{i.name}" for i in self.roles.values()])
+    def role_names(self) -> list[str]:
+        return [i.name for i in self.roles.values()]
 
     @property
     def is_idle(self):
