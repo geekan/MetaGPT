@@ -33,7 +33,7 @@ class LocalStore(BaseStore, ABC):
             raise FileNotFoundError
         self.config = Config()
         self.raw_data_path = raw_data_path
-        self.fname = self.raw_data_path.name.split(".")[0]
+        self.fname = self.raw_data_path.stem
         if not cache_dir:
             cache_dir = raw_data_path.parent
         self.cache_dir = cache_dir
