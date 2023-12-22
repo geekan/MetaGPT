@@ -42,6 +42,7 @@ class LLMProviderEnum(Enum):
     FIREWORKS = "fireworks"
     OPEN_LLM = "open_llm"
     GEMINI = "gemini"
+    OLLAMA = "ollama"
 
 
 class Config(metaclass=Singleton):
@@ -78,7 +79,8 @@ class Config(metaclass=Singleton):
             (self.zhipuai_api_key, LLMProviderEnum.ZHIPUAI),
             (self.fireworks_api_key, LLMProviderEnum.FIREWORKS),
             (self.open_llm_api_base, LLMProviderEnum.OPEN_LLM),
-            (self.gemini_api_key, LLMProviderEnum.GEMINI),  # reuse logic. but not a key
+            (self.gemini_api_key, LLMProviderEnum.GEMINI),
+            (self.ollama_api_base, LLMProviderEnum.OLLAMA),  # reuse logic. but not a key
         ]:
             if self._is_valid_llm_key(k):
                 # logger.debug(f"Use LLMProvider: {v.value}")
@@ -103,6 +105,8 @@ class Config(metaclass=Singleton):
         self.open_llm_api_model = self._get("OPEN_LLM_API_MODEL")
         self.fireworks_api_key = self._get("FIREWORKS_API_KEY")
         self.gemini_api_key = self._get("GEMINI_API_KEY")
+        self.ollama_api_base = self._get("OLLAMA_API_BASE")
+        self.ollama_api_model = self._get("OLLAMA_API_MODEL")
         _ = self.get_default_llm_provider_enum()
 
         self.openai_base_url = self._get("OPENAI_BASE_URL")

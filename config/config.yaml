@@ -48,6 +48,10 @@ RPM: 10
 #FIREWORKS_API_BASE: "https://api.fireworks.ai/inference/v1"
 #FIREWORKS_API_MODEL: "YOUR_LLM_MODEL"  # example, accounts/fireworks/models/llama-v2-13b-chat
 
+#### if use self-host open llm model by ollama
+# OLLAMA_API_BASE: http://127.0.0.1:11434/api
+# OLLAMA_API_MODEL: llama2
+
 #### for Search
 
 ## Supported values: serpapi/google/serper/ddg
