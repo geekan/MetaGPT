@@ -93,13 +93,13 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         self._client = AsyncOpenAI(api_key=CONFIG.openai_api_key, base_url=CONFIG.openai_api_base)
         RateLimiter.__init__(self, rpm=self.rpm)
 
-    async def _achat_completion_stream(self, messages: list[dict], timeout=3) -> str:
-        kwargs = self._cons_kwargs(messages, timeout=timeout)
-        response = await self._client.chat.completions.create(**kwargs, stream=True)
-        # iterate through the stream of events
-        async for chunk in response:
-            chunk_message = chunk.choices[0].delta.content or ""  # extract the message
-            yield chunk_message
+    # async def _achat_completion_stream(self, messages: list[dict], timeout=3) -> str:
+    #     kwargs = self._cons_kwargs(messages, timeout=timeout)
+    #     response = await self._client.chat.completions.create(**kwargs, stream=True)
+    #     # iterate through the stream of events
+    #     async for chunk in response:
+    #         chunk_message = chunk.choices[0].delta.content or ""  # extract the message
+    #         yield chunk_message
 
     def __init_openai(self):
         self.rpm = int(self.config.get("RPM", 10))
@@ -131,9 +131,9 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
 
         return params
 
-    async def _achat_completion_stream(self, messages: list[dict]) -> str:
-        response: AsyncStream[ChatCompletionChunk] = await self.async_client.chat.completions.create(
-            **self._cons_kwargs(messages), stream=True
+    async def _achat_completion_stream(self, messages: list[dict], timeout=3) -> str:
+        response: AsyncStream[ChatCompletionChunk] = await self._client.chat.completions.create(
+            **self._cons_kwargs(messages, timeout=timeout), stream=True
         )
 
         # create variables to collect the stream of chunks

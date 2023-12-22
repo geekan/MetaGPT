@@ -70,22 +70,22 @@ class ZhiPuAIGPTAPI(BaseGPTAPI):
         assert assist_msg["role"] == "assistant"
         return assist_msg.get("content")
 
-    def completion(self, messages: list[dict]) -> dict:
+    def completion(self, messages: list[dict], timeout=3) -> dict:
         resp = self.llm.invoke(**self._const_kwargs(messages))
         usage = resp.get("data").get("usage")
         self._update_costs(usage)
         return resp
 
-    async def _achat_completion(self, messages: list[dict]) -> dict:
+    async def _achat_completion(self, messages: list[dict], timeout=3) -> dict:
         resp = await self.llm.ainvoke(**self._const_kwargs(messages))
         usage = resp.get("data").get("usage")
         self._update_costs(usage)
         return resp
 
-    async def acompletion(self, messages: list[dict]) -> dict:
-        return await self._achat_completion(messages)
+    async def acompletion(self, messages: list[dict], timeout=3) -> dict:
+        return await self._achat_completion(messages, timeout=timeout)
 
-    async def _achat_completion_stream(self, messages: list[dict]) -> str:
+    async def _achat_completion_stream(self, messages: list[dict], timeout=3) -> str:
         response = await self.llm.asse_invoke(**self._const_kwargs(messages))
         collected_content = []
         usage = {}
@@ -128,9 +128,9 @@ class ZhiPuAIGPTAPI(BaseGPTAPI):
         retry=retry_if_exception_type(ConnectionError),
         retry_error_callback=log_and_reraise,
     )
-    async def acompletion_text(self, messages: list[dict], stream=False) -> str:
+    async def acompletion_text(self, messages: list[dict], stream=False, generator: bool = False, timeout=3) -> str:
         """response in async with stream or non-stream mode"""
         if stream:
-            return await self._achat_completion_stream(messages)
+            return await self._achat_completion_stream(messages, timeout=timeout)
         resp = await self._achat_completion(messages)
         return self.get_choice_text(resp)
