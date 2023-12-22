@@ -6,9 +6,9 @@
 @File    : write_teaching_plan.py
 """
 from metagpt.actions import Action
+from metagpt.config import CONFIG
 from metagpt.logs import logger
 from metagpt.schema import Message
-from metagpt.utils.common import format_value
 
 
 class TeachingPlanRequirement(Action):
@@ -80,6 +80,24 @@ class WriteTeachingPlanPart(Action):
     def __repr__(self):
         """Show `topic` value when debug"""
         return self.topic
+
+    @staticmethod
+    def format_value(value):
+        """Fill parameters inside `value` with `options`."""
+        if not isinstance(value, str):
+            return value
+        if "{" not in value:
+            return value
+
+        merged_opts = CONFIG.options or {}
+        try:
+            return value.format(**merged_opts)
+        except KeyError as e:
+            logger.warning(f"Parameter is missing:{e}")
+
+        for k, v in merged_opts.items():
+            value = value.replace("{" + f"{k}" + "}", str(v))
+        return value
 
     FORMATION = (
         '"Capacity and role" defines the role you are currently playing;\n'

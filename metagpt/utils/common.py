@@ -30,7 +30,6 @@ import loguru
 from pydantic.json import pydantic_encoder
 from tenacity import RetryCallState, _utils
 
-from metagpt.config import CONFIG
 from metagpt.const import MESSAGE_ROUTE_TO_ALL
 from metagpt.logs import logger
 from metagpt.utils.exceptions import handle_exception
@@ -416,24 +415,6 @@ def any_to_name(val):
     :return: The name of the value.
     """
     return any_to_str(val).split(".")[-1]
-
-
-def format_value(value):
-    """Fill parameters inside `value` with `options`."""
-    if not isinstance(value, str):
-        return value
-    if "{" not in value:
-        return value
-
-    merged_opts = CONFIG.options or {}
-    try:
-        return value.format(**merged_opts)
-    except KeyError as e:
-        logger.warning(f"Parameter is missing:{e}")
-
-    for k, v in merged_opts.items():
-        value = value.replace("{" + f"{k}" + "}", str(v))
-    return value
 
 
 def concat_namespace(*args) -> str:
