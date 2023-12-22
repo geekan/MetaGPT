@@ -489,6 +489,7 @@ class Role(BaseModel):
     async def _act_by_order(self) -> Message:
         """switch action each time by order defined in _init_actions, i.e. _act (Action1) -> _act (Action2) -> ..."""
         start_idx = self._rc.state if self._rc.state >= 0 else 0  # action to run from recovered state
+        rsp = Message(content="No actions taken yet")  # return default message if _actions=[]
         for i in range(start_idx, len(self._states)):
             self._set_state(i)
             rsp = await self._act()

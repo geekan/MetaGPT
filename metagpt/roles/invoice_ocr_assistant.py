@@ -7,14 +7,32 @@
 @File    : invoice_ocr_assistant.py
 """
 
+from pathlib import Path
 from typing import Optional
 
 import pandas as pd
+from pydantic import BaseModel
 
 from metagpt.actions.invoice_ocr import GenerateTable, InvoiceOCR, ReplyQuestion
 from metagpt.prompts.invoice_ocr import INVOICE_OCR_SUCCESS
 from metagpt.roles.role import Role, RoleReactMode
 from metagpt.schema import Message
+
+
+class InvoicePath(BaseModel):
+    file_path: Path = ""
+
+
+class OCRResults(BaseModel):
+    ocr_results: list[dict] = []
+
+
+class InvoiceData(BaseModel):
+    invoice_data: list[dict] = []
+
+
+class ReplyData(BaseModel):
+    content: str = ""
 
 
 class InvoiceOCRAssistant(Role):
@@ -54,7 +72,8 @@ class InvoiceOCRAssistant(Role):
         todo = self._rc.todo
         if isinstance(todo, InvoiceOCR):
             self.origin_query = msg.content
-            file_path = msg.instruct_content.get("file_path")
+            invoice_path: InvoicePath = msg.instruct_content
+            file_path = invoice_path.file_path
             self.filename = file_path.name
             if not file_path:
                 raise Exception("Invoice file not uploaded")
@@ -69,17 +88,20 @@ class InvoiceOCRAssistant(Role):
 
             self._rc.todo = None
             content = INVOICE_OCR_SUCCESS
+            resp = OCRResults(ocr_results=resp)
         elif isinstance(todo, GenerateTable):
-            ocr_results = msg.instruct_content
-            resp = await todo.run(ocr_results, self.filename)
+            ocr_results: OCRResults = msg.instruct_content
+            resp = await todo.run(ocr_results.ocr_results, self.filename)
 
             # Convert list to Markdown format string
             df = pd.DataFrame(resp)
             markdown_table = df.to_markdown(index=False)
             content = f"{markdown_table}\n\n\n"
+            resp = InvoiceData(invoice_data=resp)
         else:
             resp = await todo.run(self.origin_query, self.orc_data)
             content = resp
+            resp = ReplyData(content=resp)
 
         msg = Message(content=content, instruct_content=resp)
         self._rc.memory.add(msg)
