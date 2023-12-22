@@ -21,7 +21,7 @@ from metagpt.utils.common import OutputParser, general_after_log
 
 TAG = "CONTENT"
 
-LANGUAGE_CONSTRAINT = "Language: Please use the same language as the user input."
+LANGUAGE_CONSTRAINT = "Language: Please use the same language as Human INPUT."
 FORMAT_CONSTRAINT = f"Format: output wrapped inside [{TAG}][/{TAG}] like format example, nothing else."
 
 
@@ -55,7 +55,7 @@ def dict_to_markdown(d, prefix="- ", kv_sep="\n", postfix="\n"):
 class ActionNode:
     """ActionNode is a tree of nodes."""
 
-    mode: str
+    schema: str  # raw/json/markdown, default: ""
 
     # Action Context
     context: str  # all the context, including all necessary info
@@ -81,6 +81,7 @@ class ActionNode:
         example: Any,
         content: str = "",
         children: dict[str, "ActionNode"] = None,
+        schema: str = "",
     ):
         self.key = key
         self.expected_type = expected_type
@@ -88,6 +89,7 @@ class ActionNode:
         self.example = example
         self.content = content
         self.children = children if children is not None else {}
+        self.schema = schema
 
     def __str__(self):
         return (
@@ -222,7 +224,13 @@ class ActionNode:
             mode="children": 编译所有子节点为一个统一模板，包括instruction与example
             mode="all": NotImplemented
             mode="root": NotImplemented
+        schmea: raw/json/markdown
+            schema="raw": 不编译，context, lang_constaint, instruction
+            schema="json"：编译context, example(json), instruction(markdown), constraint, action
+            schema="markdown": 编译context, example(markdown), instruction(markdown), constraint, action
         """
+        if schema == "raw":
+            return context + "\n\n## Actions\n" + LANGUAGE_CONSTRAINT + "\n" + self.instruction
 
         # FIXME: json instruction会带来格式问题，如："Project name": "web_2048  # 项目名称使用下划线",
         # compile example暂时不支持markdown
@@ -283,12 +291,17 @@ class ActionNode:
 
     async def simple_fill(self, schema, mode):
         prompt = self.compile(context=self.context, schema=schema, mode=mode)
-        mapping = self.get_mapping(mode)
 
-        class_name = f"{self.key}_AN"
-        content, scontent = await self._aask_v1(prompt, class_name, mapping, schema=schema)
-        self.content = content
-        self.instruct_content = scontent
+        if schema != "raw":
+            mapping = self.get_mapping(mode)
+            class_name = f"{self.key}_AN"
+            content, scontent = await self._aask_v1(prompt, class_name, mapping, schema=schema)
+            self.content = content
+            self.instruct_content = scontent
+        else:
+            self.content = await self.llm.aask(prompt)
+            self.instruct_content = None
+
         return self
 
     async def fill(self, context, llm, schema="json", mode="auto", strgy="simple"):
@@ -297,6 +310,7 @@ class ActionNode:
         :param context: Everything we should know when filling node.
         :param llm: Large Language Model with pre-defined system message.
         :param schema: json/markdown, determine example and output format.
+         - raw: free form text
          - json: it's easy to open source LLM with json format
          - markdown: when generating code, markdown is always better
         :param mode: auto/children/root
@@ -310,14 +324,16 @@ class ActionNode:
         """
         self.set_llm(llm)
         self.set_context(context)
+        if self.schema:
+            schema = self.schema
 
         if strgy == "simple":
-            return await self.simple_fill(schema, mode)
+            return await self.simple_fill(schema=schema, mode=mode)
         elif strgy == "complex":
             # 这里隐式假设了拥有children
             tmp = {}
             for _, i in self.children.items():
-                child = await i.simple_fill(schema, mode)
+                child = await i.simple_fill(schema=schema, mode=mode)
                 tmp.update(child.instruct_content.dict())
             cls = self.create_children_class()
             self.instruct_content = cls(**tmp)

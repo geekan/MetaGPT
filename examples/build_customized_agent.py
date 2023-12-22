@@ -60,7 +60,7 @@ class SimpleCoder(Role):
         self._init_actions([SimpleWriteCode])
 
     async def _act(self) -> Message:
-        logger.info(f"{self._setting}: ready to {self._rc.todo}")
+        logger.info(f"{self._setting}: to do {self._rc.todo}")
         todo = self._rc.todo  # todo will be SimpleWriteCode()
 
         msg = self.get_memories(k=1)[0]  # find the most recent messages
@@ -80,7 +80,7 @@ class RunnableCoder(Role):
         self._set_react_mode(react_mode=RoleReactMode.BY_ORDER.value)
 
     async def _act(self) -> Message:
-        logger.info(f"{self._setting}: ready to {self._rc.todo}")
+        logger.info(f"{self._setting}: to do {self._rc.todo}")
         # By choosing the Action by order under the hood
         # todo will be first SimpleWriteCode() then SimpleRunCode()
         todo = self._rc.todo

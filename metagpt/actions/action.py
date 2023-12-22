@@ -41,7 +41,7 @@ class Action(BaseModel):
 
     def __init_with_instruction(self, instruction: str):
         """Initialize action with instruction"""
-        self.node = ActionNode(key=self.name, expected_type=str, instruction=instruction, example="")
+        self.node = ActionNode(key=self.name, expected_type=str, instruction=instruction, example="", schema="raw")
         return self
 
     def __init__(self, **kwargs: Any):
@@ -85,7 +85,8 @@ class Action(BaseModel):
     async def _run_action_node(self, *args, **kwargs):
         """Run action node"""
         msgs = args[0]
-        context = "\n".join([f"Msg {idx}: {i}" for idx, i in enumerate(reversed(msgs))])
+        context = "## History Messages\n"
+        context += "\n".join([f"{idx}: {i}" for idx, i in enumerate(reversed(msgs))])
         return await self.node.fill(context=context, llm=self.llm)
 
     async def run(self, *args, **kwargs):
