@@ -24,7 +24,7 @@ class InvoicePath(BaseModel):
 
 
 class OCRResults(BaseModel):
-    ocr_results: list[dict] = []
+    ocr_results: list = []
 
 
 class InvoiceData(BaseModel):
