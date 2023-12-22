@@ -10,7 +10,7 @@
 import asyncio
 from pathlib import Path
 
-from metagpt.roles.invoice_ocr_assistant import InvoiceOCRAssistant
+from metagpt.roles.invoice_ocr_assistant import InvoiceOCRAssistant, InvoicePath
 from metagpt.schema import Message
 
 
@@ -26,7 +26,7 @@ async def main():
 
     for path in absolute_file_paths:
         role = InvoiceOCRAssistant()
-        await role.run(Message(content="Invoicing date", instruct_content={"file_path": path}))
+        await role.run(Message(content="Invoicing date", instruct_content=InvoicePath(file_path=path)))
 
 
 if __name__ == "__main__":
