@@ -6,9 +6,10 @@
 @File    : sales.py
 """
 
-from typing import Any, Optional
+from typing import Optional
 
 from metagpt.actions import SearchAndSummarize, UserRequirement
+from metagpt.document_store.base_store import BaseStore
 from metagpt.roles import Role
 from metagpt.tools import SearchEngineType
 
@@ -23,7 +24,7 @@ class Sales(Role):
     "but pretend to be what I know. Note that each of my replies will be replied in the tone of a "
     "professional guide"
 
-    store: Optional[Any] = None
+    store: Optional[BaseStore] = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
