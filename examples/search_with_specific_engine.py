@@ -9,9 +9,9 @@ async def main():
     # Serper API
     # await Searcher(engine=SearchEngineType.SERPER_GOOGLE).run(question)
     # SerpAPI
-    # await Searcher(engine=SearchEngineType.SERPAPI_GOOGLE).run(question)
+    await Searcher(engine=SearchEngineType.SERPAPI_GOOGLE).run(question)
     # Google API
-    await Searcher(engine=SearchEngineType.DIRECT_GOOGLE).run(question)
+    # await Searcher(engine=SearchEngineType.DIRECT_GOOGLE).run(question)
 
 
 if __name__ == "__main__":

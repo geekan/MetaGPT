@@ -12,7 +12,7 @@ from typing import Dict
 from metagpt.actions.write_tutorial import WriteContent, WriteDirectory
 from metagpt.const import TUTORIAL_PATH
 from metagpt.logs import logger
-from metagpt.roles import Role
+from metagpt.roles.role import Role, RoleReactMode
 from metagpt.schema import Message
 from metagpt.utils.file import File
 
@@ -28,21 +28,20 @@ class TutorialAssistant(Role):
         language: The language in which the tutorial documents will be generated.
     """
 
-    def __init__(
-        self,
-        name: str = "Stitch",
-        profile: str = "Tutorial Assistant",
-        goal: str = "Generate tutorial documents",
-        constraints: str = "Strictly follow Markdown's syntax, with neat and standardized layout",
-        language: str = "Chinese",
-    ):
-        super().__init__(name, profile, goal, constraints)
-        self._init_actions([WriteDirectory(language=language)])
-        self.topic = ""
-        self.main_title = ""
-        self.total_content = ""
-        self.language = language
-        self._set_react_mode(react_mode="by_order")
+    name: str = "Stitch"
+    profile: str = "Tutorial Assistant"
+    goal: str = "Generate tutorial documents"
+    constraints: str = "Strictly follow Markdown's syntax, with neat and standardized layout"
+    language: str = "Chinese"
+
+    topic = ""
+    main_title = ""
+    total_content = ""
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._init_actions([WriteDirectory(language=self.language)])
+        self._set_react_mode(react_mode=RoleReactMode.BY_ORDER.value)
 
     async def _handle_directory(self, titles: Dict) -> Message:
         """Handle the directories for the tutorial document.

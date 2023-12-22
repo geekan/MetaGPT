@@ -10,9 +10,8 @@ import subprocess
 import fire
 
 from metagpt.actions import Action
-from metagpt.llm import LLM
 from metagpt.logs import logger
-from metagpt.roles import Role
+from metagpt.roles.role import Role, RoleReactMode
 from metagpt.schema import Message
 
 
@@ -23,8 +22,7 @@ class SimpleWriteCode(Action):
     your code:
     """
 
-    def __init__(self, name: str = "SimpleWriteCode", context=None, llm: LLM = None):
-        super().__init__(name, context, llm)
+    name: str = "SimpleWriteCode"
 
     async def run(self, instruction: str):
         prompt = self.PROMPT_TEMPLATE.format(instruction=instruction)
@@ -44,8 +42,7 @@ class SimpleWriteCode(Action):
 
 
 class SimpleRunCode(Action):
-    def __init__(self, name: str = "SimpleRunCode", context=None, llm: LLM = None):
-        super().__init__(name, context, llm)
+    name: str = "SimpleRunCode"
 
     async def run(self, code_text: str):
         result = subprocess.run(["python3", "-c", code_text], capture_output=True, text=True)
@@ -55,13 +52,11 @@ class SimpleRunCode(Action):
 
 
 class SimpleCoder(Role):
-    def __init__(
-        self,
-        name: str = "Alice",
-        profile: str = "SimpleCoder",
-        **kwargs,
-    ):
-        super().__init__(name, profile, **kwargs)
+    name: str = "Alice"
+    profile: str = "SimpleCoder"
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self._init_actions([SimpleWriteCode])
 
     async def _act(self) -> Message:
@@ -76,15 +71,13 @@ class SimpleCoder(Role):
 
 
 class RunnableCoder(Role):
-    def __init__(
-        self,
-        name: str = "Alice",
-        profile: str = "RunnableCoder",
-        **kwargs,
-    ):
-        super().__init__(name, profile, **kwargs)
+    name: str = "Alice"
+    profile: str = "RunnableCoder"
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self._init_actions([SimpleWriteCode, SimpleRunCode])
-        self._set_react_mode(react_mode="by_order")
+        self._set_react_mode(react_mode=RoleReactMode.BY_ORDER.value)
 
     async def _act(self) -> Message:
         logger.info(f"{self._setting}: to do {self._rc.todo}({self._rc.todo.name})")

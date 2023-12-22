@@ -208,8 +208,7 @@ class Role(BaseModel):
         if "actions" in kwargs:
             self._init_actions(kwargs["actions"])
 
-        if "watch" in kwargs:
-            self._watch(kwargs["watch"])
+        self._watch(kwargs.get("watch") or [UserRequirement])
 
     def __init_subclass__(cls, **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)
@@ -482,6 +481,7 @@ class Role(BaseModel):
     async def _act_by_order(self) -> Message:
         """switch action each time by order defined in _init_actions, i.e. _act (Action1) -> _act (Action2) -> ..."""
         start_idx = self._rc.state if self._rc.state >= 0 else 0  # action to run from recovered state
+        rsp = Message(content="No actions taken yet")  # return default message if _actions=[]
         for i in range(start_idx, len(self._states)):
             self._set_state(i)
             rsp = await self._act()

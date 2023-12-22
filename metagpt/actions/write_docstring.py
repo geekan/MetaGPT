@@ -22,9 +22,13 @@ This script uses the 'fire' library to create a command-line interface. It gener
 the specified docstring style and adds them to the code.
 """
 import ast
-from typing import Literal
+from typing import Literal, Optional
+
+from pydantic import Field
 
 from metagpt.actions.action import Action
+from metagpt.llm import LLM
+from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.utils.common import OutputParser
 from metagpt.utils.pycst import merge_docstring
 
@@ -157,9 +161,9 @@ class WriteDocstring(Action):
         desc: A string describing the action.
     """
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.desc = "Write docstring for code."
+    desc: str = "Write docstring for code."
+    context: Optional[str] = None
+    llm: BaseGPTAPI = Field(default_factory=LLM)
 
     async def run(
         self,

@@ -3,13 +3,15 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Callable
+from typing import Callable, Optional, Union
 
-from pydantic import parse_obj_as
+from pydantic import Field, parse_obj_as
 
 from metagpt.actions import Action
 from metagpt.config import CONFIG
+from metagpt.llm import LLM
 from metagpt.logs import logger
+from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.tools.search_engine import SearchEngine
 from metagpt.tools.web_browser_engine import WebBrowserEngine, WebBrowserEngineType
 from metagpt.utils.common import OutputParser
@@ -78,17 +80,12 @@ above. The report must meet the following requirements:
 class CollectLinks(Action):
     """Action class to collect links from a search engine."""
 
-    def __init__(
-        self,
-        name: str = "",
-        *args,
-        rank_func: Callable[[list[str]], None] | None = None,
-        **kwargs,
-    ):
-        super().__init__(name, *args, **kwargs)
-        self.desc = "Collect links from a search engine."
-        self.search_engine = SearchEngine()
-        self.rank_func = rank_func
+    name: str = "CollectLinks"
+    context: Optional[str] = None
+    llm: BaseGPTAPI = Field(default_factory=LLM)
+    desc: str = "Collect links from a search engine."
+    search_engine: SearchEngine = Field(default_factory=SearchEngine)
+    rank_func: Union[Callable[[list[str]], None], None] = None
 
     async def run(
         self,
@@ -178,20 +175,20 @@ class CollectLinks(Action):
 class WebBrowseAndSummarize(Action):
     """Action class to explore the web and provide summaries of articles and webpages."""
 
-    def __init__(
-        self,
-        *args,
-        browse_func: Callable[[list[str]], None] | None = None,
-        **kwargs,
-    ):
-        super().__init__(*args, **kwargs)
+    name: str = "WebBrowseAndSummarize"
+    context: Optional[str] = None
+    llm: BaseGPTAPI = Field(default_factory=LLM)
+    desc: str = "Explore the web and provide summaries of articles and webpages."
+    browse_func: Union[Callable[[list[str]], None], None] = None
+    web_browser_engine: WebBrowserEngine = WebBrowserEngine(
+        engine=WebBrowserEngineType.CUSTOM if browse_func else None,
+        run_func=browse_func,
+    )
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         if CONFIG.model_for_researcher_summary:
             self.llm.model = CONFIG.model_for_researcher_summary
-        self.web_browser_engine = WebBrowserEngine(
-            engine=WebBrowserEngineType.CUSTOM if browse_func else None,
-            run_func=browse_func,
-        )
-        self.desc = "Explore the web and provide summaries of articles and webpages."
 
     async def run(
         self,
@@ -247,8 +244,12 @@ class WebBrowseAndSummarize(Action):
 class ConductResearch(Action):
     """Action class to conduct research and generate a research report."""
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    name: str = "ConductResearch"
+    context: Optional[str] = None
+    llm: BaseGPTAPI = Field(default_factory=LLM)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         if CONFIG.model_for_researcher_report:
             self.llm.model = CONFIG.model_for_researcher_report
 

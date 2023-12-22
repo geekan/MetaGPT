@@ -6,8 +6,12 @@
 """
 from typing import List
 
+from pydantic import Field
+
 from metagpt.actions import Action
 from metagpt.actions.action_node import ActionNode
+from metagpt.llm import LLM
+from metagpt.provider.base_gpt_api import BaseGPTAPI
 
 REVIEW = ActionNode(
     key="Review",
@@ -32,6 +36,9 @@ WRITE_REVIEW_NODE = ActionNode.from_children("WRITE_REVIEW_NODE", [REVIEW, LGTM]
 
 class WriteReview(Action):
     """Write a review for the given context."""
+
+    name: str = "WriteReview"
+    llm: BaseGPTAPI = Field(default_factory=LLM)
 
     async def run(self, context):
         return await WRITE_REVIEW_NODE.fill(context=context, llm=self.llm, schema="json")

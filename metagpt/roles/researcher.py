@@ -4,7 +4,6 @@
         the `cause_by` value in the `Message` to a string to support the new message distribution feature.
 """
 
-
 import asyncio
 
 from pydantic import BaseModel
@@ -13,7 +12,7 @@ from metagpt.actions import Action, CollectLinks, ConductResearch, WebBrowseAndS
 from metagpt.actions.research import get_research_system_text
 from metagpt.const import RESEARCH_PATH
 from metagpt.logs import logger
-from metagpt.roles import Role
+from metagpt.roles.role import Role, RoleReactMode
 from metagpt.schema import Message
 
 
@@ -25,21 +24,20 @@ class Report(BaseModel):
 
 
 class Researcher(Role):
-    def __init__(
-        self,
-        name: str = "David",
-        profile: str = "Researcher",
-        goal: str = "Gather information and conduct research",
-        constraints: str = "Ensure accuracy and relevance of information",
-        language: str = "en-us",
-        **kwargs,
-    ):
-        super().__init__(name, profile, goal, constraints, **kwargs)
-        self._init_actions([CollectLinks(name), WebBrowseAndSummarize(name), ConductResearch(name)])
-        self._set_react_mode(react_mode="by_order")
-        self.language = language
-        if language not in ("en-us", "zh-cn"):
-            logger.warning(f"The language `{language}` has not been tested, it may not work.")
+    name: str = "David"
+    profile: str = "Researcher"
+    goal: str = "Gather information and conduct research"
+    constraints: str = "Ensure accuracy and relevance of information"
+    language: str = "en-us"
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._init_actions(
+            [CollectLinks(name=self.name), WebBrowseAndSummarize(name=self.name), ConductResearch(name=self.name)]
+        )
+        self._set_react_mode(react_mode=RoleReactMode.BY_ORDER.value)
+        if self.language not in ("en-us", "zh-cn"):
+            logger.warning(f"The language `{self.language}` has not been tested, it may not work.")
 
     async def _act(self) -> Message:
         logger.info(f"{self._setting}: to do {self._rc.todo}({self._rc.todo.name})")
@@ -107,7 +105,7 @@ if __name__ == "__main__":
     import fire
 
     async def main(topic: str, language="en-us"):
-        role = Researcher(topic, language=language)
+        role = Researcher(language=language)
         await role.run(topic)
 
     fire.Fire(main)
