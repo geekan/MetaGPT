@@ -22,7 +22,7 @@ def make_sk_kernel():
         kernel.add_chat_service(
             "chat_completion",
             AzureChatCompletion(
-                deployment_name=CONFIG.deployment_name, base_url=CONFIG.openai_base_url, api_key=CONFIG.openai_api_key
+                deployment_name=CONFIG.deployment_name, endpoint=CONFIG.openai_base_url, api_key=CONFIG.openai_api_key
             ),
         )
     else:

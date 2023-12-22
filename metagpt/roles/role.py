@@ -204,6 +204,8 @@ class Role(BaseModel):
         object.__setattr__(self, "builtin_class_name", self.__class__.__name__)
         self.__fields__["builtin_class_name"].default = self.__class__.__name__
 
+        self._watch(kwargs.get("watch") or [UserRequirement])
+
     def __init_subclass__(cls, **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)
         role_subclass_registry[cls.__name__] = cls
