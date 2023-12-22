@@ -7,11 +7,13 @@
 @File    : invoice_ocr_assistant.py
 """
 
+from typing import Optional
+
 import pandas as pd
 
 from metagpt.actions.invoice_ocr import GenerateTable, InvoiceOCR, ReplyQuestion
 from metagpt.prompts.invoice_ocr import INVOICE_OCR_SUCCESS
-from metagpt.roles import Role
+from metagpt.roles.role import Role, RoleReactMode
 from metagpt.schema import Message
 
 
@@ -28,21 +30,18 @@ class InvoiceOCRAssistant(Role):
         language: The language in which the invoice table will be generated.
     """
 
-    def __init__(
-        self,
-        name: str = "Stitch",
-        profile: str = "Invoice OCR Assistant",
-        goal: str = "OCR identifies invoice files and generates invoice main information table",
-        constraints: str = "",
-        language: str = "ch",
-    ):
-        super().__init__(name, profile, goal, constraints)
-        self._init_actions([InvoiceOCR])
-        self.language = language
-        self.filename = ""
-        self.origin_query = ""
-        self.orc_data = None
-        self._set_react_mode(react_mode="by_order")
+    name: str = "Stitch"
+    profile: str = "Invoice OCR Assistant"
+    goal: str = "OCR identifies invoice files and generates invoice main information table"
+    constraints: str = ""
+    language: str = "ch"
+    filename: str = ""
+    origin_query: str = ""
+    orc_data: Optional[list] = None
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._set_react_mode(react_mode=RoleReactMode.BY_ORDER.value)
 
     async def _act(self) -> Message:
         """Perform an action as determined by the role.

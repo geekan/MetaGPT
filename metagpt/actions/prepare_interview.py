@@ -19,5 +19,7 @@ Attention: Provide as markdown block as the format above, at least 10 questions.
 
 
 class PrepareInterview(Action):
+    name: str = "PrepareInterview"
+
     async def run(self, context):
         return await QUESTIONS.fill(context=context, llm=self.llm)
