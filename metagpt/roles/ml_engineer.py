@@ -149,7 +149,8 @@ class MLEngineer(Role):
                 )
                 logger.info(f"new code \n{code}")
                 cause_by = DebugCode
-            elif not self.use_tools or self.plan.current_task.task_type == 'other':
+            elif (not self.use_tools and not self.use_udfs) or (
+                    self.plan.current_task.task_type == 'other' and not self.use_udfs):
                 logger.info("Write code with pure generation")
                 # TODO: 添加基于current_task.instruction-code_path的k-v缓存
                 code = await WriteCodeByGenerate().run(
@@ -326,12 +327,12 @@ if __name__ == "__main__":
         role.use_udfs = False
         await role.run(requirement)
         # use udfs
-        # role.reset()
-        # role.make_udfs = False
-        # role.use_udfs = True
-        # role.use_code_steps = False
-        # role.use_tools = False
-        # await role.run(requirement)
+        role.reset()
+        role.make_udfs = False
+        role.use_udfs = True
+        role.use_code_steps = False
+        role.use_tools = False
+        await role.run(requirement)
 
     
     # requirement = "Perform data analysis on the provided data. Train a model to predict the target variable Survived. Include data preprocessing, feature engineering, and modeling in your pipeline. The metric is accuracy."
