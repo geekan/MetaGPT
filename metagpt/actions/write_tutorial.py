@@ -55,7 +55,7 @@ class WriteContent(Action):
 
     name: str = "WriteContent"
     llm: BaseGPTAPI = Field(default_factory=LLM)
-    directory: str = ""
+    directory: dict = dict()
     language: str = "Chinese"
 
     async def run(self, topic: str, *args, **kwargs) -> str:

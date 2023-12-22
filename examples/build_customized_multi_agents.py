@@ -8,7 +8,6 @@ import re
 import fire
 
 from metagpt.actions import Action, UserRequirement
-from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
@@ -28,9 +27,7 @@ class SimpleWriteCode(Action):
     Return ```python your_code_here ``` with NO other texts,
     your code:
     """
-
-    def __init__(self, name: str = "SimpleWriteCode", context=None, llm: LLM = None):
-        super().__init__(name, context, llm)
+    name: str = "SimpleWriteCode"
 
     async def run(self, instruction: str):
         prompt = self.PROMPT_TEMPLATE.format(instruction=instruction)
@@ -43,13 +40,11 @@ class SimpleWriteCode(Action):
 
 
 class SimpleCoder(Role):
-    def __init__(
-        self,
-        name: str = "Alice",
-        profile: str = "SimpleCoder",
-        **kwargs,
-    ):
-        super().__init__(name, profile, **kwargs)
+    name: str = "Alice"
+    profile: str = "SimpleCoder"
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self._watch([UserRequirement])
         self._init_actions([SimpleWriteCode])
 
@@ -62,8 +57,7 @@ class SimpleWriteTest(Action):
     your code:
     """
 
-    def __init__(self, name: str = "SimpleWriteTest", context=None, llm: LLM = None):
-        super().__init__(name, context, llm)
+    name: str = "SimpleWriteTest"
 
     async def run(self, context: str, k: int = 3):
         prompt = self.PROMPT_TEMPLATE.format(context=context, k=k)
@@ -76,13 +70,11 @@ class SimpleWriteTest(Action):
 
 
 class SimpleTester(Role):
-    def __init__(
-        self,
-        name: str = "Bob",
-        profile: str = "SimpleTester",
-        **kwargs,
-    ):
-        super().__init__(name, profile, **kwargs)
+    name: str = "Bob"
+    profile: str = "SimpleTester"
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self._init_actions([SimpleWriteTest])
         # self._watch([SimpleWriteCode])
         self._watch([SimpleWriteCode, SimpleWriteReview])  # feel free to try this too
@@ -106,8 +98,7 @@ class SimpleWriteReview(Action):
     Review the test cases and provide one critical comments:
     """
 
-    def __init__(self, name: str = "SimpleWriteReview", context=None, llm: LLM = None):
-        super().__init__(name, context, llm)
+    name: str = "SimpleWriteReview"
 
     async def run(self, context: str):
         prompt = self.PROMPT_TEMPLATE.format(context=context)
@@ -118,13 +109,11 @@ class SimpleWriteReview(Action):
 
 
 class SimpleReviewer(Role):
-    def __init__(
-        self,
-        name: str = "Charlie",
-        profile: str = "SimpleReviewer",
-        **kwargs,
-    ):
-        super().__init__(name, profile, **kwargs)
+    name: str = "Charlie"
+    profile: str = "SimpleReviewer"
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self._init_actions([SimpleWriteReview])
         self._watch([SimpleWriteTest])
 
@@ -147,7 +136,7 @@ async def main(
     )
 
     team.invest(investment=investment)
-    team.start_project(idea)
+    team.run_project(idea)
     await team.run(n_round=n_round)
 
 
