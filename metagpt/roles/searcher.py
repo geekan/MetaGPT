@@ -57,7 +57,7 @@ class Searcher(Role):
 
     async def _act_sp(self) -> Message:
         """Performs the search action in a single process."""
-        logger.info(f"{self._setting}: to do {self._rc.todo}")
+        logger.info(f"{self._setting}: to do {self._rc.todo}({self._rc.todo.name})")
         response = await self._rc.todo.run(self._rc.memory.get(k=0))
 
         if isinstance(response, (ActionOutput, ActionNode)):

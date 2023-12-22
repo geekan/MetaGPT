@@ -407,7 +407,7 @@ class Role(BaseModel):
         return True
 
     async def _act(self) -> Message:
-        logger.info(f"{self._setting}: to do {self._rc.todo}")
+        logger.info(f"{self._setting}: to do {self._rc.todo}({self._rc.todo.name})")
         response = await self._rc.todo.run(self._rc.important_memory)
         if isinstance(response, (ActionOutput, ActionNode)):
             msg = Message(
