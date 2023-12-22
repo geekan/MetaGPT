@@ -7,6 +7,7 @@
 @File    : test_invoice_ocr_assistant.py
 """
 
+import json
 from pathlib import Path
 
 import pandas as pd
@@ -59,4 +60,4 @@ async def test_invoice_ocr_assistant(
     invoice_table_path = Path.cwd() / invoice_table_path
     df = pd.read_excel(invoice_table_path)
     dict_result = df.to_dict(orient="records")
-    assert dict_result == expected_result
+    assert json.dumps(dict_result) == json.dumps(expected_result)

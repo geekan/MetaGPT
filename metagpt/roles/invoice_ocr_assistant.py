@@ -90,6 +90,9 @@ class InvoiceOCRAssistant(Role):
             self._rc.todo = None
             content = INVOICE_OCR_SUCCESS
             resp = OCRResults(ocr_result=json.dumps(resp))
+            msg = Message(content=content, instruct_content=resp)
+            self._rc.memory.add(msg)
+            return await super().react()
         elif isinstance(todo, GenerateTable):
             ocr_results: OCRResults = msg.instruct_content
             resp = await todo.run(json.loads(ocr_results.ocr_result), self.filename)
