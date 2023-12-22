@@ -11,7 +11,7 @@ typer
 # godot==0.1.1
 # google_api_python_client==2.93.0
 lancedb==0.1.16
-langchain==0.0.231
+langchain==0.0.352
 loguru==0.6.0
 meilisearch==0.21.0
 numpy==1.24.3
