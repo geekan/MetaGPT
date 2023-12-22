@@ -38,6 +38,13 @@ class Team(BaseModel):
     investment: float = Field(default=10.0)
     idea: str = Field(default="")
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if "roles" in kwargs:
+            self.hire(kwargs["roles"])
+        if "env_desc" in kwargs:
+            self.env.desc = kwargs["env_desc"]
+
     class Config:
         arbitrary_types_allowed = True
 
@@ -113,8 +120,11 @@ class Team(BaseModel):
         logger.info(self.json(ensure_ascii=False))
 
     @serialize_decorator
-    async def run(self, n_round=3):
+    async def run(self, n_round=3, idea=""):
         """Run company until target round or no money"""
+        if idea:
+            self.run_project(idea=idea)
+
         while n_round > 0:
             # self._save()
             n_round -= 1
