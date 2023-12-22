@@ -22,7 +22,6 @@ class Sales(Role):
     " I don't know, and I won't tell you that this is from the knowledge base,"
     "but pretend to be what I know. Note that each of my replies will be replied in the tone of a "
     "professional guide"
-
     store: Optional[str] = None
 
     def __init__(self, **kwargs):

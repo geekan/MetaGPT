@@ -29,8 +29,4 @@ class CustomerService(Sales):
     name: str = "Xiaomei"
     profile: str = "Human customer service"
     desc: str = DESC
-
     store: Optional[str] = None
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)

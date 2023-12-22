@@ -12,17 +12,21 @@ import os
 import zipfile
 from datetime import datetime
 from pathlib import Path
+from typing import Optional
 
 import pandas as pd
 from paddleocr import PaddleOCR
+from pydantic import Field
 
 from metagpt.actions import Action
 from metagpt.const import INVOICE_OCR_TABLE_PATH
+from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.prompts.invoice_ocr import (
     EXTRACT_OCR_MAIN_INFO_PROMPT,
     REPLY_OCR_QUESTION_PROMPT,
 )
+from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.utils.common import OutputParser
 from metagpt.utils.file import File
 
@@ -36,8 +40,9 @@ class InvoiceOCR(Action):
 
     """
 
-    def __init__(self, name: str = "", *args, **kwargs):
-        super().__init__(name, *args, **kwargs)
+    name: str = "InvoiceOCR"
+    context: Optional[str] = None
+    llm: BaseGPTAPI = Field(default_factory=LLM)
 
     @staticmethod
     async def _check_file_type(file_path: Path) -> str:
@@ -125,9 +130,9 @@ class GenerateTable(Action):
 
     """
 
-    def __init__(self, name: str = "", language: str = "ch", *args, **kwargs):
-        super().__init__(name, *args, **kwargs)
-        self.language = language
+    name: str = "GenerateTable"
+    context: Optional[str] = None
+    llm: BaseGPTAPI = Field(default_factory=LLM)
 
     async def run(self, ocr_results: list, filename: str, *args, **kwargs) -> dict[str, str]:
         """Processes OCR results, extracts invoice information, generates a table, and saves it as an Excel file.
@@ -169,9 +174,10 @@ class ReplyQuestion(Action):
 
     """
 
-    def __init__(self, name: str = "", language: str = "ch", *args, **kwargs):
-        super().__init__(name, *args, **kwargs)
-        self.language = language
+    name: str = "ReplyQuestion"
+    context: Optional[str] = None
+    llm: BaseGPTAPI = Field(default_factory=LLM)
+    language: str = "ch"
 
     async def run(self, query: str, ocr_result: list, *args, **kwargs) -> str:
         """Reply to questions based on ocr results.

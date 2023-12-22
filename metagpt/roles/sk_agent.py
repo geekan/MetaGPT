@@ -7,13 +7,16 @@
 @Modified By: mashenquan, 2023-11-1. In accordance with Chapter 2.2.1 and 2.2.2 of RFC 116, utilize the new message
         distribution feature for message filtering.
 """
+
+from pydantic import Field
 from semantic_kernel.planning import SequentialPlanner
 from semantic_kernel.planning.action_planner.action_planner import ActionPlanner
 from semantic_kernel.planning.basic_planner import BasicPlanner
 
 from metagpt.actions import UserRequirement
 from metagpt.actions.execute_task import ExecuteTask
-from metagpt.logs import logger
+from metagpt.llm import LLM
+from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.utils.make_sk_kernel import make_sk_kernel
@@ -30,27 +33,28 @@ class SkAgent(Role):
         constraints (str): Constraints for the SkAgent.
     """
 
-    def __init__(
-        self,
-        name: str = "Sunshine",
-        profile: str = "sk_agent",
-        goal: str = "Execute task based on passed in task description",
-        constraints: str = "",
-        planner_cls=BasicPlanner,
-    ) -> None:
+    name: str = "Sunshine"
+    profile: str = "sk_agent"
+    goal: str = "Execute task based on passed in task description"
+    constraints: str = ""
+    planner_cls: BasicPlanner = BasicPlanner
+    planner: BasicPlanner = Field(default_factory=BasicPlanner)
+    llm: BaseGPTAPI = Field(default_factory=LLM)
+
+    def __init__(self, **kwargs) -> None:
         """Initializes the Engineer role with given attributes."""
-        super().__init__(name, profile, goal, constraints)
+        super().__init__(**kwargs)
         self._init_actions([ExecuteTask()])
         self._watch([UserRequirement])
         self.kernel = make_sk_kernel()
 
         # how funny the interface is inconsistent
-        if planner_cls == BasicPlanner:
-            self.planner = planner_cls()
-        elif planner_cls in [SequentialPlanner, ActionPlanner]:
-            self.planner = planner_cls(self.kernel)
+        if self.planner_cls == BasicPlanner:
+            self.planner = self.planner_cls()
+        elif self.planner_cls in [SequentialPlanner, ActionPlanner]:
+            self.planner = self.planner_cls(self.kernel)
         else:
-            raise f"Unsupported planner of type {planner_cls}"
+            raise Exception(f"Unsupported planner of type {self.planner_cls}")
 
         self.import_semantic_skill_from_directory = self.kernel.import_semantic_skill_from_directory
         self.import_skill = self.kernel.import_skill

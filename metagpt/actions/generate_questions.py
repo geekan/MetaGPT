@@ -21,5 +21,7 @@ class GenerateQuestions(Action):
     """This class allows LLM to further mine noteworthy details based on specific "##TOPIC"(discussion topic) and
     "##RECORD" (discussion records), thereby deepening the discussion."""
 
+    name: str = "GenerateQuestions"
+
     async def run(self, context):
         return await QUESTIONS.fill(context=context, llm=self.llm)
