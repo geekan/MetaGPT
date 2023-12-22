@@ -5,6 +5,7 @@
 @Author  : alexanderwu
 @File    : write_prd_an.py
 """
+from typing import List
 
 from metagpt.actions.action_node import ActionNode
 from metagpt.logs import logger
@@ -26,8 +27,8 @@ PROGRAMMING_LANGUAGE = ActionNode(
 ORIGINAL_REQUIREMENTS = ActionNode(
     key="Original Requirements",
     expected_type=str,
-    instruction="Place the polished, complete original requirements here.",
-    example="The game should have a leaderboard and multiple difficulty levels.",
+    instruction="Place the original user's requirements here.",
+    example="Create a 2048 game",
 )
 
 PROJECT_NAME = ActionNode(
@@ -39,26 +40,33 @@ PROJECT_NAME = ActionNode(
 
 PRODUCT_GOALS = ActionNode(
     key="Product Goals",
-    expected_type=list[str],
+    expected_type=List[str],
     instruction="Provide up to three clear, orthogonal product goals.",
-    example=["Create an engaging user experience", "Ensure high performance", "Provide customizable features"],
+    example=["Create an engaging user experience", "Improve accessibility, be responsive", "More beautiful UI"],
 )
 
 USER_STORIES = ActionNode(
     key="User Stories",
-    expected_type=list[str],
-    instruction="Provide up to five scenario-based user stories.",
+    expected_type=List[str],
+    instruction="Provide up to 3 to 5 scenario-based user stories.",
     example=[
-        "As a user, I want to be able to choose difficulty levels",
+        "As a player, I want to be able to choose difficulty levels",
         "As a player, I want to see my score after each game",
+        "As a player, I want to get restart button when I lose",
+        "As a player, I want to see beautiful UI that make me feel good",
+        "As a player, I want to play game via mobile phone",
     ],
 )
 
 COMPETITIVE_ANALYSIS = ActionNode(
     key="Competitive Analysis",
-    expected_type=list[str],
-    instruction="Provide analyses for up to seven competitive products.",
-    example=["Python Snake Game: Simple interface, lacks advanced features"],
+    expected_type=List[str],
+    instruction="Provide 5 to 7 competitive products.",
+    example=[
+        "2048 Game A: Simple interface, lacks responsive features",
+        "play2048.co: Beautiful and responsive UI with my best score shown",
+        "2048game.com: Responsive UI with my best score shown, but many ads",
+    ],
 )
 
 COMPETITIVE_QUADRANT_CHART = ActionNode(
@@ -86,14 +94,14 @@ REQUIREMENT_ANALYSIS = ActionNode(
     key="Requirement Analysis",
     expected_type=str,
     instruction="Provide a detailed analysis of the requirements.",
-    example="The product should be user-friendly.",
+    example="",
 )
 
 REQUIREMENT_POOL = ActionNode(
     key="Requirement Pool",
-    expected_type=list[list[str]],
-    instruction="List down the requirements with their priority (P0, P1, P2).",
-    example=[["P0", "..."], ["P1", "..."]],
+    expected_type=List[List[str]],
+    instruction="List down the top-5 requirements with their priority (P0, P1, P2).",
+    example=[["P0", "The main code ..."], ["P0", "The game algorithm ..."]],
 )
 
 UI_DESIGN_DRAFT = ActionNode(
@@ -107,7 +115,7 @@ ANYTHING_UNCLEAR = ActionNode(
     key="Anything UNCLEAR",
     expected_type=str,
     instruction="Mention any aspects of the project that are unclear and try to clarify them.",
-    example="...",
+    example="",
 )
 
 ISSUE_TYPE = ActionNode(

@@ -10,12 +10,15 @@
 """
 
 import asyncio
+import json
 import time
-from typing import Union
+from typing import List, Union
 
 import openai
-from openai import APIConnectionError, AsyncAzureOpenAI, AsyncOpenAI, RateLimitError
+from openai import APIConnectionError, AsyncOpenAI, AsyncStream, OpenAI, RateLimitError
+from openai._base_client import AsyncHttpxClientWrapper, SyncHttpxClientWrapper
 from openai.types import CompletionUsage
+from openai.types.chat import ChatCompletion, ChatCompletionChunk
 from tenacity import (
     after_log,
     retry,
@@ -24,13 +27,15 @@ from tenacity import (
     wait_random_exponential,
 )
 
-from metagpt.config import CONFIG
+from metagpt.config import CONFIG, Config, LLMProviderEnum
+from metagpt.const import DEFAULT_MAX_TOKENS
 from metagpt.logs import logger
-from metagpt.provider import LLMType
 from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.provider.constant import GENERAL_FUNCTION_SCHEMA, GENERAL_TOOL_CHOICE
+from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.schema import Message
 from metagpt.utils.cost_manager import Costs
+from metagpt.utils.exceptions import handle_exception
 from metagpt.utils.token_counter import (
     count_message_tokens,
     count_string_tokens,
@@ -74,25 +79,18 @@ See FAQ 5.8
     raise retry_state.outcome.exception()
 
 
+@register_provider(LLMProviderEnum.OPENAI)
 class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
     """
     Check https://platform.openai.com/examples for examples
     """
 
     def __init__(self):
-        self.model = CONFIG.openai_api_model
+        self.config: Config = CONFIG
+        self.__init_openai()
         self.auto_max_tokens = False
-        self.rpm = int(CONFIG.get("RPM", 10))
-        if CONFIG.openai_api_type == "azure":
-            # https://learn.microsoft.com/zh-cn/azure/ai-services/openai/how-to/migration?tabs=python-new%2Cdalle-fix
-            self._client = AsyncAzureOpenAI(
-                api_key=CONFIG.openai_api_key,
-                api_version=CONFIG.openai_api_version,
-                azure_endpoint=CONFIG.openai_api_base,
-            )
-        else:
-            # https://github.com/openai/openai-python#async-usage
-            self._client = AsyncOpenAI(api_key=CONFIG.openai_api_key, base_url=CONFIG.openai_api_base)
+        # https://github.com/openai/openai-python#async-usage
+        self._client = AsyncOpenAI(api_key=CONFIG.openai_api_key, base_url=CONFIG.openai_api_base)
         RateLimiter.__init__(self, rpm=self.rpm)
 
     async def _achat_completion_stream(self, messages: list[dict], timeout=3) -> str:
@@ -103,6 +101,59 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             chunk_message = chunk.choices[0].delta.content or ""  # extract the message
             yield chunk_message
 
+    def __init_openai(self):
+        self.rpm = int(self.config.get("RPM", 10))
+        self._make_client()
+
+    def _make_client(self):
+        kwargs, async_kwargs = self._make_client_kwargs()
+        self.client = OpenAI(**kwargs)
+        self.async_client = AsyncOpenAI(**async_kwargs)
+
+    def _make_client_kwargs(self) -> (dict, dict):
+        kwargs = dict(api_key=self.config.openai_api_key, base_url=self.config.openai_base_url)
+        async_kwargs = kwargs.copy()
+
+        # to use proxy, openai v1 needs http_client
+        proxy_params = self._get_proxy_params()
+        if proxy_params:
+            kwargs["http_client"] = SyncHttpxClientWrapper(**proxy_params)
+            async_kwargs["http_client"] = AsyncHttpxClientWrapper(**proxy_params)
+
+        return kwargs, async_kwargs
+
+    def _get_proxy_params(self) -> dict:
+        params = {}
+        if self.config.openai_proxy:
+            params = {"proxies": self.config.openai_proxy}
+            if self.config.openai_base_url:
+                params["base_url"] = self.config.openai_base_url
+
+        return params
+
+    async def _achat_completion_stream(self, messages: list[dict]) -> str:
+        response: AsyncStream[ChatCompletionChunk] = await self.async_client.chat.completions.create(
+            **self._cons_kwargs(messages), stream=True
+        )
+
+        # create variables to collect the stream of chunks
+        collected_chunks = []
+        collected_messages = []
+        # iterate through the stream of events
+        async for chunk in response:
+            collected_chunks.append(chunk)  # save the event response
+            if chunk.choices:
+                chunk_message = chunk.choices[0].delta  # extract the message
+                collected_messages.append(chunk_message)  # save the message
+                if chunk_message.content:
+                    print(chunk_message.content, end="")
+        print()
+
+        full_reply_content = "".join([m.content for m in collected_messages if m.content])
+        usage = self._calc_usage(messages, full_reply_content)
+        self._update_costs(usage)
+        return full_reply_content
+
     def _cons_kwargs(self, messages: list[dict], timeout=3, **configs) -> dict:
         kwargs = {
             "messages": messages,
@@ -110,14 +161,10 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             "n": 1,
             "stop": None,
             "temperature": 0.3,
+            "model": self.config.openai_api_model,
         }
         if configs:
             kwargs.update(configs)
-
-        if CONFIG.openai_api_type == "azure":
-            kwargs["model"] = CONFIG.deployment_id
-        else:
-            kwargs["model"] = self.model
         try:
             default_timeout = int(CONFIG.TIMEOUT) if CONFIG.TIMEOUT else 0
         except ValueError:
@@ -126,19 +173,17 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
 
         return kwargs
 
-    async def _achat_completion(self, messages: list[dict], timeout=3) -> dict:
+    async def _achat_completion(self, messages: list[dict], timeout=3) -> ChatCompletion:
         kwargs = self._cons_kwargs(messages, timeout=timeout)
-        rsp = await self._client.chat.completions.create(**kwargs)
+        rsp: ChatCompletion = await self._client.chat.completions.create(**kwargs)
         self._update_costs(rsp.usage)
-        return rsp.dict()
+        return rsp
 
-    def completion(self, messages: list[dict], timeout=3) -> dict:
+    def completion(self, messages: list[dict], timeout=3) -> ChatCompletion:
         loop = self.get_event_loop()
         return loop.run_until_complete(self.acompletion(messages, timeout=timeout))
 
-    async def acompletion(self, messages: list[dict], timeout=3) -> dict:
-        # if isinstance(messages[0], Message):
-        #     messages = self.messages_to_dict(messages)
+    async def acompletion(self, messages: list[dict], timeout=3) -> ChatCompletion:
         return await self._achat_completion(messages, timeout=timeout)
 
     @retry(
@@ -188,20 +233,20 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
 
         return self._cons_kwargs(messages=messages, timeout=timeout, **kwargs)
 
-    def _chat_completion_function(self, messages: list[dict], timeout=3, **kwargs) -> dict:
+    def _chat_completion_function(self, messages: list[dict], timeout=3, **kwargs) -> ChatCompletion:
         loop = self.get_event_loop()
         return loop.run_until_complete(self._achat_completion_function(messages=messages, timeout=timeout, **kwargs))
 
-    async def _achat_completion_function(self, messages: list[dict], timeout=3, **chat_configs) -> dict:
+    async def _achat_completion_function(self, messages: list[dict], timeout=3, **chat_configs) -> ChatCompletion:
         kwargs = self._func_configs(messages=messages, timeout=timeout, **chat_configs)
-        rsp = await self._client.chat.completions.create(**kwargs)
+        rsp: ChatCompletion = await self._client.chat.completions.create(**kwargs)
         self._update_costs(rsp.usage)
-        return rsp.dict()
+        return rsp
 
     def _process_message(self, messages: Union[str, Message, list[dict], list[Message], list[str]]) -> list[dict]:
         """convert messages to list[dict]."""
         if isinstance(messages, list):
-            messages = [Message(msg) if isinstance(msg, str) else msg for msg in messages]
+            messages = [Message(content=msg) if isinstance(msg, str) else msg for msg in messages]
             return [msg if isinstance(msg, dict) else msg.to_dict() for msg in messages]
 
         if isinstance(messages, Message):
@@ -269,7 +314,35 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
                 logger.error(f"{self.model} usage calculation failed!", e)
         return CompletionUsage(prompt_tokens=0, completion_tokens=0, total_tokens=0)
 
-    async def acompletion_batch(self, batch: list[list[dict]], timeout=3) -> list[dict]:
+    def get_choice_function_arguments(self, rsp: ChatCompletion) -> dict:
+        """Required to provide the first function arguments of choice.
+
+        :return dict: return the first function arguments of choice, for example,
+            {'language': 'python', 'code': "print('Hello, World!')"}
+        """
+        try:
+            return json.loads(rsp.choices[0].message.tool_calls[0].function.arguments)
+        except json.JSONDecodeError:
+            return {}
+
+    def get_choice_text(self, rsp: ChatCompletion) -> str:
+        """Required to provide the first text of choice"""
+        return rsp.choices[0].message.content if rsp.choices else ""
+
+    def _calc_usage(self, messages: list[dict], rsp: str) -> CompletionUsage:
+        usage = CompletionUsage(prompt_tokens=0, completion_tokens=0, total_tokens=0)
+        if not CONFIG.calc_usage:
+            return usage
+
+        try:
+            usage.prompt_tokens = count_message_tokens(messages, self.model)
+            usage.completion_tokens = count_string_tokens(rsp, self.model)
+        except Exception as e:
+            logger.error(f"usage calculation failed!: {e}")
+
+        return usage
+
+    async def acompletion_batch(self, batch: list[list[dict]], timeout=3) -> list[ChatCompletion]:
         """Return full JSON"""
         split_batches = self.split_batches(batch)
         all_results = []
@@ -296,11 +369,9 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         return results
 
     def _update_costs(self, usage: CompletionUsage):
-        if CONFIG.calc_usage:
+        if CONFIG.calc_usage and usage:
             try:
-                prompt_tokens = usage.prompt_tokens
-                completion_tokens = usage.completion_tokens
-                CONFIG.cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
+                CONFIG.cost_manager.update_cost(usage.prompt_tokens, usage.completion_tokens, self.model)
             except Exception as e:
                 logger.error("updating costs failed!", e)
 
@@ -316,19 +387,9 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         loop = self.get_event_loop()
         loop.run_until_complete(self.amoderation(content=content))
 
+    @handle_exception
     async def amoderation(self, content: Union[str, list[str]]):
-        try:
-            if not content:
-                logger.error("content cannot be empty!")
-            else:
-                rsp = await self._amoderation(content=content)
-                return rsp
-        except Exception as e:
-            logger.error(f"moderating failed:{e}")
-
-    async def _amoderation(self, content: Union[str, list[str]]):
-        rsp = await self._client.moderations.create(input=content)
-        return rsp
+        return await self._client.moderations.create(input=content)
 
     async def close(self):
         """Close connection"""
@@ -349,8 +410,73 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             else:
                 raise e
 
-    async def get_summary(self, text: str, max_words=200, keep_language: bool = False, **kwargs) -> str:
-        from metagpt.memory.brain_memory import BrainMemory
+    async def summarize(self, text: str, max_words=200, keep_language: bool = False, limit: int = -1, **kwargs) -> str:
+        max_token_count = DEFAULT_MAX_TOKENS
+        max_count = 100
+        text_length = len(text)
+        if limit > 0 and text_length < limit:
+            return text
+        summary = ""
+        while max_count > 0:
+            if text_length < max_token_count:
+                summary = await self._get_summary(text=text, max_words=max_words, keep_language=keep_language)
+                break
 
-        memory = BrainMemory(llm_type=LLMType.OPENAI.value, historical_summary=text, cacheable=False)
-        return await memory.summarize(llm=self, max_words=max_words, keep_language=keep_language)
+            padding_size = 20 if max_token_count > 20 else 0
+            text_windows = self.split_texts(text, window_size=max_token_count - padding_size)
+            part_max_words = min(int(max_words / len(text_windows)) + 1, 100)
+            summaries = []
+            for ws in text_windows:
+                response = await self._get_summary(text=ws, max_words=part_max_words, keep_language=keep_language)
+                summaries.append(response)
+            if len(summaries) == 1:
+                summary = summaries[0]
+                break
+
+            # Merged and retry
+            text = "\n".join(summaries)
+            text_length = len(text)
+
+            max_count -= 1  # safeguard
+        return summary
+
+    async def _get_summary(self, text: str, max_words=20, keep_language: bool = False):
+        """Generate text summary"""
+        if len(text) < max_words:
+            return text
+        if keep_language:
+            command = f".Translate the above content into a summary of less than {max_words} words in language of the content strictly."
+        else:
+            command = f"Translate the above content into a summary of less than {max_words} words."
+        msg = text + "\n\n" + command
+        logger.debug(f"summary ask:{msg}")
+        response = await self.aask(msg=msg, system_msgs=[])
+        logger.debug(f"summary rsp: {response}")
+        return response
+
+    @staticmethod
+    def split_texts(text: str, window_size) -> List[str]:
+        """Splitting long text into sliding windows text"""
+        if window_size <= 0:
+            window_size = DEFAULT_TOKEN_SIZE
+        total_len = len(text)
+        if total_len <= window_size:
+            return [text]
+
+        padding_size = 20 if window_size > 20 else 0
+        windows = []
+        idx = 0
+        data_len = window_size - padding_size
+        while idx < total_len:
+            if window_size + idx > total_len:  # 不足一个滑窗
+                windows.append(text[idx:])
+                break
+            # 每个窗口少算padding_size自然就可实现滑窗功能, 比如: [1, 2, 3, 4, 5, 6, 7, ....]
+            # window_size=3, padding_size=1：
+            # [1, 2, 3], [3, 4, 5], [5, 6, 7], ....
+            #   idx=2,  |  idx=5   |  idx=8  | ...
+            w = text[idx : idx + window_size]
+            windows.append(w)
+            idx += data_len
+
+        return windows

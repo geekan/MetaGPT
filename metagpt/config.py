@@ -9,7 +9,9 @@ Provide configuration, singleton
 import datetime
 import json
 import os
+import warnings
 from copy import deepcopy
+from enum import Enum
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
@@ -19,6 +21,7 @@ import yaml
 from metagpt.const import DEFAULT_WORKSPACE_ROOT, METAGPT_ROOT, OPTIONS
 from metagpt.logs import logger
 from metagpt.tools import SearchEngineType, WebBrowserEngineType
+from metagpt.utils.common import require_python_version
 from metagpt.utils.cost_manager import CostManager
 from metagpt.utils.singleton import Singleton
 
@@ -35,6 +38,18 @@ class NotConfiguredException(Exception):
         super().__init__(self.message)
 
 
+class LLMProviderEnum(Enum):
+    OPENAI = "openai"
+    ANTHROPIC = "anthropic"
+    SPARK = "spark"
+    ZHIPUAI = "zhipuai"
+    FIREWORKS = "fireworks"
+    OPEN_LLM = "open_llm"
+    GEMINI = "gemini"
+    METAGPT = "metagpt"
+    AZURE_OPENAI = "azure_openai"
+
+
 class Config(metaclass=Singleton):
     """
     Regular usage method:
@@ -49,47 +64,63 @@ class Config(metaclass=Singleton):
     default_yaml_file = METAGPT_ROOT / "config/config.yaml"
 
     def __init__(self, yaml_file=default_yaml_file, cost_data=""):
+        global_options = OPTIONS.get()
+        # cli paras
+        self.project_path = ""
+        self.project_name = ""
+        self.inc = False
+        self.reqa_file = ""
+        self.max_auto_summarize_code = 0
+
         self._init_with_config_files_and_env(yaml_file)
         # The agent needs to be billed per user, so billing information cannot be destroyed when the session ends.
         self.cost_manager = CostManager(**json.loads(cost_data)) if cost_data else CostManager()
-        logger.info("Config loading done.")
         self._update()
-        logger.info(f"OpenAI API Model: {self.openai_api_model}")
+        global_options.update(OPTIONS.get())
+        logger.debug("Config loading done.")
+
+    def get_default_llm_provider_enum(self) -> LLMProviderEnum:
+        for k, v in [
+            (self.openai_api_key, LLMProviderEnum.OPENAI),
+            (self.anthropic_api_key, LLMProviderEnum.ANTHROPIC),
+            (self.zhipuai_api_key, LLMProviderEnum.ZHIPUAI),
+            (self.fireworks_api_key, LLMProviderEnum.FIREWORKS),
+            (self.open_llm_api_base, LLMProviderEnum.OPEN_LLM),
+            (self.gemini_api_key, LLMProviderEnum.GEMINI),  # reuse logic. but not a key
+        ]:
+            if self._is_valid_llm_key(k):
+                # logger.debug(f"Use LLMProvider: {v.value}")
+                if v == LLMProviderEnum.GEMINI and not require_python_version(req_version=(3, 10)):
+                    warnings.warn("Use Gemini requires Python >= 3.10")
+                if self.openai_api_key and self.openai_api_model:
+                    logger.info(f"OpenAI API Model: {self.openai_api_model}")
+                return v
+        raise NotConfiguredException("You should config a LLM configuration first")
+
+    @staticmethod
+    def _is_valid_llm_key(k: str) -> bool:
+        return k and k != "YOUR_API_KEY"
 
     def _update(self):
         self.global_proxy = self._get("GLOBAL_PROXY")
+
         self.openai_api_key = self._get("OPENAI_API_KEY")
-        self.anthropic_api_key = self._get("Anthropic_API_KEY")
+        self.anthropic_api_key = self._get("ANTHROPIC_API_KEY")
         self.zhipuai_api_key = self._get("ZHIPUAI_API_KEY")
         self.open_llm_api_base = self._get("OPEN_LLM_API_BASE")
         self.open_llm_api_model = self._get("OPEN_LLM_API_MODEL")
         self.fireworks_api_key = self._get("FIREWORKS_API_KEY")
-        if (
-            (not self.openai_api_key or "YOUR_API_KEY" == self.openai_api_key)
-            and (not self.anthropic_api_key or "YOUR_API_KEY" == self.anthropic_api_key)
-            and (not self.zhipuai_api_key or "YOUR_API_KEY" == self.zhipuai_api_key)
-            and (not self.open_llm_api_base)
-            and (not self.fireworks_api_key or "YOUR_API_KEY" == self.fireworks_api_key)
-        ):
-            error_info = (
-                "Set OPENAI_API_KEY or Anthropic_API_KEY or ZHIPUAI_API_KEY first "
-                "or FIREWORKS_API_KEY or OPEN_LLM_API_BASE"
-            )
-            val = self._get("RAISE_NOT_CONFIG_ERROR")
-            if val is None or val.lower() == "true":
-                raise NotConfiguredException(error_info)
-            else:  # for agent
-                logger.warning(error_info)
+        self.gemini_api_key = self._get("GEMINI_API_KEY")
+        _ = self.get_default_llm_provider_enum()
 
-        self.openai_api_base = self._get("OPENAI_API_BASE")
+        self.openai_base_url = self._get("OPENAI_BASE_URL")
         self.openai_proxy = self._get("OPENAI_PROXY") or self.global_proxy
         self.openai_api_type = self._get("OPENAI_API_TYPE")
         self.openai_api_version = self._get("OPENAI_API_VERSION")
         self.openai_api_rpm = self._get("RPM", 3)
         self.openai_api_model = self._get("OPENAI_API_MODEL", "gpt-4-1106-preview")
         self.max_tokens_rsp = self._get("MAX_TOKENS", 2048)
-        self.deployment_name = self._get("DEPLOYMENT_NAME")
-        self.deployment_id = self._get("DEPLOYMENT_ID")
+        self.deployment_name = self._get("DEPLOYMENT_NAME", "gpt-4")
 
         self.spark_appid = self._get("SPARK_APPID")
         self.spark_api_secret = self._get("SPARK_API_SECRET")
@@ -100,7 +131,7 @@ class Config(metaclass=Singleton):
         self.fireworks_api_base = self._get("FIREWORKS_API_BASE")
         self.fireworks_api_model = self._get("FIREWORKS_API_MODEL")
 
-        self.claude_api_key = self._get("Anthropic_API_KEY")
+        self.claude_api_key = self._get("ANTHROPIC_API_KEY")
         self.serpapi_api_key = self._get("SERPAPI_API_KEY")
         self.serper_api_key = self._get("SERPER_API_KEY")
         self.google_api_key = self._get("GOOGLE_API_KEY")
@@ -124,17 +155,30 @@ class Config(metaclass=Singleton):
         self.mermaid_engine = self._get("MERMAID_ENGINE", "nodejs")
         self.pyppeteer_executable_path = self._get("PYPPETEER_EXECUTABLE_PATH", "")
 
-        self.prompt_format = self._get("PROMPT_FORMAT", "json")
         workspace_uid = (
             self._get("WORKSPACE_UID") or f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}-{uuid4().hex[-8:]}"
         )
         self.repair_llm_output = self._get("REPAIR_LLM_OUTPUT", False)
+        self.prompt_format = self._get("PROMPT_FORMAT", "json")
         self.workspace_path = Path(self._get("WORKSPACE_PATH", DEFAULT_WORKSPACE_ROOT))
         val = self._get("WORKSPACE_PATH_WITH_UID")
         if val and val.lower() == "true":  # for agent
             self.workspace_path = self.workspace_path / workspace_uid
         self._ensure_workspace_exists()
         self.max_auto_summarize_code = self.max_auto_summarize_code or self._get("MAX_AUTO_SUMMARIZE_CODE", 1)
+
+    def update_via_cli(self, project_path, project_name, inc, reqa_file, max_auto_summarize_code):
+        """update config via cli"""
+
+        # Use in the PrepareDocuments action according to Section 2.2.3.5.1 of RFC 135.
+        if project_path:
+            inc = True
+            project_name = project_name or Path(project_path).name
+        self.project_path = project_path
+        self.project_name = project_name
+        self.inc = inc
+        self.reqa_file = reqa_file
+        self.max_auto_summarize_code = max_auto_summarize_code
 
     def _ensure_workspace_exists(self):
         self.workspace_path.mkdir(parents=True, exist_ok=True)
@@ -158,8 +202,8 @@ class Config(metaclass=Singleton):
 
     @staticmethod
     def _get(*args, **kwargs):
-        m = OPTIONS.get()
-        return m.get(*args, **kwargs)
+        i = OPTIONS.get()
+        return i.get(*args, **kwargs)
 
     def get(self, key, *args, **kwargs):
         """Retrieve values from config/key.yaml, config/config.yaml, and environment variables.
@@ -173,8 +217,8 @@ class Config(metaclass=Singleton):
         OPTIONS.get()[name] = value
 
     def __getattr__(self, name: str) -> Any:
-        m = OPTIONS.get()
-        return m.get(name)
+        i = OPTIONS.get()
+        return i.get(name)
 
     def set_context(self, options: dict):
         """Update current config"""
@@ -193,8 +237,8 @@ class Config(metaclass=Singleton):
     def new_environ(self):
         """Return a new os.environ object"""
         env = os.environ.copy()
-        m = self.options
-        env.update({k: v for k, v in m.items() if isinstance(v, str)})
+        i = self.options
+        env.update({k: v for k, v in i.items() if isinstance(v, str)})
         return env
 
 

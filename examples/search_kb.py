@@ -2,11 +2,10 @@
 # -*- coding: utf-8 -*-
 """
 @File    : search_kb.py
-@Modified By: mashenquan, 2023-8-9, fix-bug: cannot find metagpt module.
+@Modified By: mashenquan, 2023-12-22. Delete useless codes.
 """
 import asyncio
 
-from metagpt.actions import Action
 from metagpt.const import DATA_PATH
 from metagpt.document_store import FaissStore
 from metagpt.logs import logger
@@ -30,10 +29,9 @@ from metagpt.schema import Message
 async def search():
     store = FaissStore(DATA_PATH / "example.json")
     role = Sales(profile="Sales", store=store)
-    role._watch({Action})
     queries = [
-        Message("Which facial cleanser is good for oily skin?", cause_by=Action),
-        Message("Is L'Oreal good to use?", cause_by=Action),
+        Message(content="Which facial cleanser is good for oily skin?"),
+        Message(content="Is L'Oreal good to use?"),
     ]
     for query in queries:
         logger.info(f"User: {query}")

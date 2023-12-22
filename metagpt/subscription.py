@@ -19,7 +19,7 @@ class SubscriptionRunner(BaseModel):
 
         >>> async def trigger():
         ...     while True:
-        ...         yield Message("the latest news about OpenAI")
+        ...         yield Message(content="the latest news about OpenAI")
         ...         await asyncio.sleep(3600 * 24)
 
         >>> async def callback(msg: Message):

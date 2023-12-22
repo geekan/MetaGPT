@@ -78,7 +78,7 @@ docker run --rm \
     metagpt "Write a cli snake game"
 ```
 
-详细的安装请安装 [docker_install](https://docs.deepwisdom.ai/zhcn/guide/get_started/installation.html#%E4%BD%BF%E7%94%A8docker%E5%AE%89%E8%A3%85)
+详细的安装请安装 [docker_install](https://docs.deepwisdom.ai/main/zh/guide/get_started/installation.html#%E4%BD%BF%E7%94%A8docker%E5%AE%89%E8%A3%85)
 
 ### 快速开始的演示视频
 - 在 [MetaGPT Huggingface Space](https://huggingface.co/spaces/deepwisdom/MetaGPT) 上进行体验
@@ -88,19 +88,19 @@ docker run --rm \
 https://github.com/geekan/MetaGPT/assets/34952977/34345016-5d13-489d-b9f9-b82ace413419
 
 ## 教程
-- 🗒 [在线文档](https://docs.deepwisdom.ai/zhcn/)
-- 💻 [如何使用](https://docs.deepwisdom.ai/zhcn/guide/get_started/quickstart.html)  
-- 🔎 [MetaGPT的能力及应用场景](https://docs.deepwisdom.ai/zhcn/guide/get_started/introduction.html)
+- 🗒 [在线文档](https://docs.deepwisdom.ai/main/zh/)
+- 💻 [如何使用](https://docs.deepwisdom.ai/main/zh/guide/get_started/quickstart.html)  
+- 🔎 [MetaGPT的能力及应用场景](https://docs.deepwisdom.ai/main/zh/guide/get_started/introduction.html)
 - 🛠 如何构建你自己的智能体？
-  - [MetaGPT的使用和开发教程 | 智能体入门](https://docs.deepwisdom.ai/zhcn/guide/tutorials/agent_101.html)
-  - [MetaGPT的使用和开发教程 | 多智能体入门](https://docs.deepwisdom.ai/zhcn/guide/tutorials/multi_agent_101.html)
+  - [MetaGPT的使用和开发教程 | 智能体入门](https://docs.deepwisdom.ai/main/zh/guide/tutorials/agent_101.html)
+  - [MetaGPT的使用和开发教程 | 多智能体入门](https://docs.deepwisdom.ai/main/zh/guide/tutorials/multi_agent_101.html)
 - 🧑‍💻 贡献
   - [开发路线图](ROADMAP.md)
 - 🔖 示例
-  - [辩论](https://docs.deepwisdom.ai/zhcn/guide/use_cases/multi_agent/debate.html)
-  - [调研员](https://docs.deepwisdom.ai/zhcn/guide/use_cases/agent/researcher.html)
-  - [票据助手](https://docs.deepwisdom.ai/zhcn/guide/use_cases/agent/receipt_assistant.html)
-- ❓ [常见问题解答](https://docs.deepwisdom.ai/zhcn/guide/faq.html)
+  - [辩论](https://docs.deepwisdom.ai/main/zh/guide/use_cases/multi_agent/debate.html)
+  - [调研员](https://docs.deepwisdom.ai/main/zh/guide/use_cases/agent/researcher.html)
+  - [票据助手](https://docs.deepwisdom.ai/main/zh/guide/use_cases/agent/receipt_assistant.html)
+- ❓ [常见问题解答](https://docs.deepwisdom.ai/main/zh/guide/faq.html)
 
 ## 支持
 

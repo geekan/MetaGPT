@@ -34,7 +34,7 @@
 <p align="center">Software Company Multi-Role Schematic (Gradually Implementing)</p>
 
 ## News
-- Dec 15: v0.5.0 is released! We introduce **incremental development**, facilitating agents to build up larger projects on top of their previous efforts or exisiting human codebase. We also launch a whole collection of important features, including multilingual support (experimental), multiple programming languages support (experimental), incremental development (experimental), CLI support, pip support, enhanced code review, documentation mechanism, and optimized messaging mechanism!
+- Dec 15: [v0.5.0](https://github.com/geekan/MetaGPT/releases/tag/v0.5.0) is released! We introduce **incremental development**, facilitating agents to build up larger projects on top of their previous efforts or exisiting codebase. We also launch a whole collection of important features, including **multilingual support** (experimental), multiple **programming languages support** (experimental), **incremental development** (experimental), CLI support, pip support, enhanced code review, documentation mechanism, and optimized messaging mechanism!
 
 ## Install
 
@@ -50,19 +50,23 @@ python3 --version
 # Step 2: Clone the repository to your local machine for latest version, and install it.
 git clone https://github.com/geekan/MetaGPT.git
 cd MetaGPT
-pip3 install -e.     # or pip3 install metagpt  # for stable version
+pip3 install -e .     # or pip3 install metagpt  # for stable version
 
-# Step 3: run metagpt cli
-# setup your OPENAI_API_KEY in key.yaml copy from config.yaml
-metagpt "Write a cli snake game"
+# Step 3: setup your OPENAI_API_KEY, or make sure it existed in the env
+mkdir ~/.metagpt
+cp config/config.yaml ~/.metagpt/key.yaml
+vim ~/.metagpt/key.yaml
 
-# Step 4 [Optional]: If you want to save the artifacts like diagrams such as quadrant chart, system designs, sequence flow in the workspace, you can execute the step before Step 3. By default, the framework is compatible, and the entire process can be run completely without executing this step.
+# Step 4: run metagpt cli
+metagpt "Create a 2048 game in python"
+
+# Step 5 [Optional]: If you want to save the artifacts like diagrams such as quadrant chart, system designs, sequence flow in the workspace, you can execute the step before Step 3. By default, the framework is compatible, and the entire process can be run completely without executing this step.
 # If executing, ensure that NPM is installed on your system. Then install mermaid-js. (If you don't have npm in your computer, please go to the Node.js official website to install Node.js https://nodejs.org/ and then you will have npm tool in your computer.)
 npm --version
 sudo npm install -g @mermaid-js/mermaid-cli
 ```
 
-detail installation please refer to [cli_install](https://docs.deepwisdom.ai/guide/get_started/installation.html#install-stable-version)
+detail installation please refer to [cli_install](https://docs.deepwisdom.ai/main/en/guide/get_started/installation.html#install-stable-version)
 
 ### Docker installation
 > Note: In the Windows, you need to replace "/opt/metagpt" with a directory that Docker has permission to create, such as "D:\Users\x\metagpt"
@@ -83,7 +87,7 @@ docker run --rm \
     metagpt "Write a cli snake game"
 ```
 
-detail installation please refer to [docker_install](https://docs.deepwisdom.ai/guide/get_started/installation.html#install-with-docker)
+detail installation please refer to [docker_install](https://docs.deepwisdom.ai/main/en/guide/get_started/installation.html#install-with-docker)
 
 ### QuickStart & Demo Video
 - Try it on [MetaGPT Huggingface Space](https://huggingface.co/spaces/deepwisdom/MetaGPT)
@@ -94,19 +98,19 @@ https://github.com/geekan/MetaGPT/assets/34952977/34345016-5d13-489d-b9f9-b82ace
 
 ## Tutorial
 
-- 🗒 [Online Document](https://docs.deepwisdom.ai/)
-- 💻 [Usage](https://docs.deepwisdom.ai/guide/get_started/quickstart.html)  
-- 🔎 [What can MetaGPT do?](https://docs.deepwisdom.ai/guide/get_started/introduction.html)
+- 🗒 [Online Document](https://docs.deepwisdom.ai/main/en/)
+- 💻 [Usage](https://docs.deepwisdom.ai/main/en/guide/get_started/quickstart.html)  
+- 🔎 [What can MetaGPT do?](https://docs.deepwisdom.ai/main/en/guide/get_started/introduction.html)
 - 🛠 How to build your own agents? 
-  - [MetaGPT Usage & Development Guide | Agent 101](https://docs.deepwisdom.ai/guide/tutorials/agent_101.html)
-  - [MetaGPT Usage & Development Guide | MultiAgent 101](https://docs.deepwisdom.ai/guide/tutorials/multi_agent_101.html)
+  - [MetaGPT Usage & Development Guide | Agent 101](https://docs.deepwisdom.ai/main/en/guide/tutorials/agent_101.html)
+  - [MetaGPT Usage & Development Guide | MultiAgent 101](https://docs.deepwisdom.ai/main/en/guide/tutorials/multi_agent_101.html)
 - 🧑‍💻 Contribution
   - [Develop Roadmap](docs/ROADMAP.md)
 - 🔖 Use Cases
-  - [Debate](https://docs.deepwisdom.ai/guide/use_cases/multi_agent/debate.html)
-  - [Researcher](https://docs.deepwisdom.ai/guide/use_cases/agent/researcher.html)
-  - [Recepit Assistant](https://docs.deepwisdom.ai/guide/use_cases/agent/receipt_assistant.html)
-- ❓ [FAQs](https://docs.deepwisdom.ai/guide/faq.html)
+  - [Debate](https://docs.deepwisdom.ai/main/en/guide/use_cases/multi_agent/debate.html)
+  - [Researcher](https://docs.deepwisdom.ai/main/en/guide/use_cases/agent/researcher.html)
+  - [Recepit Assistant](https://docs.deepwisdom.ai/main/en/guide/use_cases/agent/receipt_assistant.html)
+- ❓ [FAQs](https://docs.deepwisdom.ai/main/en/guide/faq.html)
 
 ## Support
 

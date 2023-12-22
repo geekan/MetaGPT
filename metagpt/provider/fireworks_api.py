@@ -4,18 +4,18 @@
 
 import openai
 
-from metagpt.config import CONFIG
+from metagpt.config import CONFIG, LLMProviderEnum
+from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.provider.openai_api import OpenAIGPTAPI, RateLimiter
-from metagpt.utils.cost_manager import CostManager
 
 
+@register_provider(LLMProviderEnum.FIREWORKS)
 class FireWorksGPTAPI(OpenAIGPTAPI):
     def __init__(self):
         self.__init_fireworks(CONFIG)
         self.llm = openai
         self.model = CONFIG.fireworks_api_model
         self.auto_max_tokens = False
-        self._cost_manager = CostManager()
         RateLimiter.__init__(self, rpm=self.rpm)
 
     def __init_fireworks(self, config: "Config"):

@@ -9,7 +9,11 @@
         2. Move the document storage operations related to WritePRD from the save operation of WriteDesign.
         3. According to the design in Section 2.2.3.5.4 of RFC 135, add incremental iteration functionality.
 """
+
 import json
+from typing import Optional
+
+from pydantic import Field
 
 from metagpt.actions import ActionOutput
 from metagpt.actions.action import Action
@@ -21,7 +25,9 @@ from metagpt.const import (
     TASK_FILE_REPO,
     TASK_PDF_FILE_REPO,
 )
+from metagpt.llm import LLM
 from metagpt.logs import logger
+from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.schema import Document, Documents
 from metagpt.utils.file_repository import FileRepository
 
@@ -35,10 +41,11 @@ NEW_REQ_TEMPLATE = """
 
 
 class WriteTasks(Action):
-    def __init__(self, name="CreateTasks", context=None, llm=None):
-        super().__init__(name, context, llm)
+    name: str = "CreateTasks"
+    context: Optional[str] = None
+    llm: BaseGPTAPI = Field(default_factory=LLM)
 
-    async def run(self, with_messages, format=CONFIG.prompt_format):
+    async def run(self, with_messages, schema=CONFIG.prompt_schema):
         system_design_file_repo = CONFIG.git_repo.new_file_repository(SYSTEM_DESIGN_FILE_REPO)
         changed_system_designs = system_design_file_repo.changed_files
 
@@ -85,16 +92,16 @@ class WriteTasks(Action):
         await self._save_pdf(task_doc=task_doc)
         return task_doc
 
-    async def _run_new_tasks(self, context, format=CONFIG.prompt_format):
-        node = await PM_NODE.fill(context, self.llm, format)
+    async def _run_new_tasks(self, context, schema=CONFIG.prompt_schema):
+        node = await PM_NODE.fill(context, self.llm, schema)
         # prompt_template, format_example = get_template(templates, format)
         # prompt = prompt_template.format(context=context, format_example=format_example)
         # rsp = await self._aask_v1(prompt, "task", OUTPUT_MAPPING, format=format)
         return node
 
-    async def _merge(self, system_design_doc, task_doc, format=CONFIG.prompt_format) -> Document:
+    async def _merge(self, system_design_doc, task_doc, schema=CONFIG.prompt_schema) -> Document:
         context = NEW_REQ_TEMPLATE.format(context=system_design_doc.content, old_tasks=task_doc.content)
-        node = await PM_NODE.fill(context, self.llm, format)
+        node = await PM_NODE.fill(context, self.llm, schema)
         task_doc.content = node.instruct_content.json(ensure_ascii=False)
         return task_doc
 

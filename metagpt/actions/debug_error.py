@@ -10,11 +10,14 @@
 """
 import re
 
+from pydantic import Field
+
 from metagpt.actions.action import Action
 from metagpt.config import CONFIG
 from metagpt.const import TEST_CODES_FILE_REPO, TEST_OUTPUTS_FILE_REPO
+from metagpt.llm import LLM, BaseGPTAPI
 from metagpt.logs import logger
-from metagpt.schema import RunCodeResult
+from metagpt.schema import RunCodeContext, RunCodeResult
 from metagpt.utils.common import CodeParser
 from metagpt.utils.file_repository import FileRepository
 
@@ -47,8 +50,9 @@ Now you should start rewriting the code:
 
 
 class DebugError(Action):
-    def __init__(self, name="DebugError", context=None, llm=None):
-        super().__init__(name, context, llm)
+    name: str = "DebugError"
+    context: RunCodeContext = Field(default_factory=RunCodeContext)
+    llm: BaseGPTAPI = Field(default_factory=LLM)
 
     async def run(self, *args, **kwargs) -> str:
         output_doc = await FileRepository.get_file(

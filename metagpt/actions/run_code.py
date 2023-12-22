@@ -18,10 +18,13 @@
 import subprocess
 from typing import Tuple
 
+from pydantic import Field
+
 from metagpt.actions.action import Action
 from metagpt.config import CONFIG
+from metagpt.llm import LLM, BaseGPTAPI
 from metagpt.logs import logger
-from metagpt.schema import RunCodeResult
+from metagpt.schema import RunCodeContext, RunCodeResult
 from metagpt.utils.exceptions import handle_exception
 
 PROMPT_TEMPLATE = """
@@ -74,8 +77,9 @@ standard errors:
 
 
 class RunCode(Action):
-    def __init__(self, name="RunCode", context=None, llm=None):
-        super().__init__(name, context, llm)
+    name: str = "RunCode"
+    context: RunCodeContext = Field(default_factory=RunCodeContext)
+    llm: BaseGPTAPI = Field(default_factory=LLM)
 
     @classmethod
     @handle_exception

@@ -47,7 +47,7 @@ class TestGetProjectRoot:
             Input(x=RunCode, want="metagpt.actions.run_code.RunCode"),
             Input(x=RunCode(), want="metagpt.actions.run_code.RunCode"),
             Input(x=Message, want="metagpt.schema.Message"),
-            Input(x=Message(""), want="metagpt.schema.Message"),
+            Input(x=Message(content=""), want="metagpt.schema.Message"),
             Input(x="A", want="A"),
         ]
         for i in inputs:

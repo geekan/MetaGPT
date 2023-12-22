@@ -16,6 +16,7 @@
 @Modified By: mashenquan, 2023-12-5. Enhance the workflow to navigate to WriteCode or QaEngineer based on the results
     of SummarizeCode.
 """
+
 from __future__ import annotations
 
 import json
@@ -67,24 +68,25 @@ class Engineer(Role):
         use_code_review (bool): Whether to use code review.
     """
 
-    def __init__(
-        self,
-        name: str = "Alex",
-        profile: str = "Engineer",
-        goal: str = "write elegant, readable, extensible, efficient code",
-        constraints: str = "the code should conform to standards like google-style and be modular and maintainable. "
-        "Use same language as user requirement",
-        n_borg: int = 1,
-        use_code_review: bool = False,
-    ) -> None:
-        """Initializes the Engineer role with given attributes."""
-        super().__init__(name, profile, goal, constraints)
-        self.use_code_review = use_code_review
+    name: str = "Alex"
+    profile: str = "Engineer"
+    goal: str = "write elegant, readable, extensible, efficient code"
+    constraints: str = (
+        "the code should conform to standards like google-style and be modular and maintainable. "
+        "Use same language as user requirement"
+    )
+    n_borg: int = 1
+    use_code_review: bool = False
+    code_todos: list = []
+    summarize_todos = []
+
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
+
         self._init_actions([WriteCode])
         self._watch([WriteTasks, SummarizeCode, WriteCode, WriteCodeReview, FixBug])
         self.code_todos = []
         self.summarize_todos = []
-        self.n_borg = n_borg
         self._next_todo = any_to_name(WriteCode)
 
     @staticmethod
@@ -307,4 +309,5 @@ class Engineer(Role):
 
     @property
     def todo(self) -> str:
+        """AgentStore uses this attribute to display to the user what actions the current role should take."""
         return self._next_todo

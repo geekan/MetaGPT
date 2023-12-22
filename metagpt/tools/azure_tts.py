@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-@Time    : 2023/8/17
-@Author  : mashenquan
+@Time    : 2023/6/9 22:22
+@Author  : Leo Xiao
 @File    : azure_tts.py
-@Desc    : azure TTS OAS3 api, which provides text-to-speech functionality
+@Modified by: mashenquan, 2023/8/17. Azure TTS OAS3 api, which provides text-to-speech functionality
 """
 import asyncio
 import base64

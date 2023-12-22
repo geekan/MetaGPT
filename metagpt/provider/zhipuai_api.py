@@ -15,12 +15,12 @@ from tenacity import (
     wait_random_exponential,
 )
 
-from metagpt.config import CONFIG
+from metagpt.config import CONFIG, LLMProviderEnum
 from metagpt.logs import logger
 from metagpt.provider.base_gpt_api import BaseGPTAPI
+from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.provider.openai_api import log_and_reraise
 from metagpt.provider.zhipuai.zhipu_model_api import ZhiPuModelAPI
-from metagpt.utils.cost_manager import CostManager
 
 
 class ZhiPuEvent(Enum):
@@ -30,6 +30,7 @@ class ZhiPuEvent(Enum):
     FINISH = "finish"
 
 
+@register_provider(LLMProviderEnum.ZHIPUAI)
 class ZhiPuAIGPTAPI(BaseGPTAPI):
     """
     Refs to `https://open.bigmodel.cn/dev/api#chatglm_turbo`
@@ -42,7 +43,6 @@ class ZhiPuAIGPTAPI(BaseGPTAPI):
         self.__init_zhipuai(CONFIG)
         self.llm = ZhiPuModelAPI
         self.model = "chatglm_turbo"  # so far only one model, just use it
-        self._cost_manager = CostManager()
 
     def __init_zhipuai(self, config: CONFIG):
         assert config.zhipuai_api_key
@@ -60,9 +60,9 @@ class ZhiPuAIGPTAPI(BaseGPTAPI):
             try:
                 prompt_tokens = int(usage.get("prompt_tokens", 0))
                 completion_tokens = int(usage.get("completion_tokens", 0))
-                self._cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
+                CONFIG.cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
             except Exception as e:
-                logger.error("zhipuai updats costs failed!", e)
+                logger.error(f"zhipuai updats costs failed! exp: {e}")
 
     def get_choice_text(self, resp: dict) -> str:
         """get the first text of choice from llm response"""

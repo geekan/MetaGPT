@@ -7,6 +7,9 @@
 @Modified By: mashenquan, 2023-11-1. According to Chapter 2.2.1 and 2.2.2 of RFC 116, change the data type of
         the `cause_by` value in the `Message` to a string to support the new message distribution feature.
 """
+
+from pydantic import Field
+
 from metagpt.actions import ActionOutput, SearchAndSummarize
 from metagpt.actions.action_node import ActionNode
 from metagpt.logs import logger
@@ -27,15 +30,13 @@ class Searcher(Role):
         engine (SearchEngineType): The type of search engine to use.
     """
 
-    def __init__(
-        self,
-        name: str = "Alice",
-        profile: str = "Smart Assistant",
-        goal: str = "Provide search services for users",
-        constraints: str = "Answer is rich and complete",
-        engine=SearchEngineType.SERPAPI_GOOGLE,
-        **kwargs,
-    ) -> None:
+    name: str = Field(default="Alice")
+    profile: str = Field(default="Smart Assistant")
+    goal: str = "Provide search services for users"
+    constraints: str = "Answer is rich and complete"
+    engine: SearchEngineType = SearchEngineType.SERPAPI_GOOGLE
+
+    def __init__(self, **kwargs) -> None:
         """
         Initializes the Searcher role with given attributes.
 
@@ -46,12 +47,12 @@ class Searcher(Role):
             constraints (str): Constraints or limitations for the searcher.
             engine (SearchEngineType): The type of search engine to use.
         """
-        super().__init__(name, profile, goal, constraints, **kwargs)
-        self._init_actions([SearchAndSummarize(engine=engine)])
+        super().__init__(**kwargs)
+        self._init_actions([SearchAndSummarize(engine=self.engine)])
 
     def set_search_func(self, search_func):
         """Sets a custom search function for the searcher."""
-        action = SearchAndSummarize("", engine=SearchEngineType.CUSTOM_ENGINE, search_func=search_func)
+        action = SearchAndSummarize(name="", engine=SearchEngineType.CUSTOM_ENGINE, search_func=search_func)
         self._init_actions([action])
 
     async def _act_sp(self) -> Message:
@@ -59,7 +60,7 @@ class Searcher(Role):
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
         response = await self._rc.todo.run(self._rc.memory.get(k=0))
 
-        if isinstance(response, ActionOutput) or isinstance(response, ActionNode):
+        if isinstance(response, (ActionOutput, ActionNode)):
             msg = Message(
                 content=response.content,
                 instruct_content=response.instruct_content,

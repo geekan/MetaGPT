@@ -8,12 +8,15 @@
         WriteCode object, rather than passing them in when calling the run function.
 """
 
+from pydantic import Field
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.actions import WriteCode
 from metagpt.actions.action import Action
 from metagpt.config import CONFIG
+from metagpt.llm import LLM
 from metagpt.logs import logger
+from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.schema import CodingContext
 from metagpt.utils.common import CodeParser
 
@@ -31,7 +34,6 @@ ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenc
 {code}
 ```
 """
-
 
 EXAMPLE_AND_INSTRUCTION = """
 
@@ -119,8 +121,9 @@ REWRITE_CODE_TEMPLATE = """
 
 
 class WriteCodeReview(Action):
-    def __init__(self, name="WriteCodeReview", context=None, llm=None):
-        super().__init__(name, context, llm)
+    name: str = "WriteCodeReview"
+    context: CodingContext = Field(default_factory=CodingContext)
+    llm: BaseGPTAPI = Field(default_factory=LLM)
 
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     async def write_code_review_and_rewrite(self, context_prompt, cr_prompt, filename):
@@ -158,7 +161,8 @@ class WriteCodeReview(Action):
                 format_example=format_example,
             )
             logger.info(
-                f"Code review and rewrite {self.context.code_doc.filename}: {i+1}/{k} | {len(iterative_code)=}, {len(self.context.code_doc.content)=}"
+                f"Code review and rewrite {self.context.code_doc.filename}: {i + 1}/{k} | {len(iterative_code)=}, "
+                f"{len(self.context.code_doc.content)=}"
             )
             result, rewrited_code = await self.write_code_review_and_rewrite(
                 context_prompt, cr_prompt, self.context.code_doc.filename

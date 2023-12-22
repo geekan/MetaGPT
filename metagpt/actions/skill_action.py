@@ -12,6 +12,7 @@ import ast
 import importlib
 import traceback
 from copy import deepcopy
+from typing import Dict, Optional
 
 from metagpt.actions import Action, ActionOutput
 from metagpt.learn.skill_loader import Skill
@@ -19,12 +20,10 @@ from metagpt.logs import logger
 
 
 class ArgumentsParingAction(Action):
-    def __init__(self, last_talk: str, skill: Skill, context=None, llm=None, **kwargs):
-        super(ArgumentsParingAction, self).__init__(name="", context=context, llm=llm)
-        self.skill = skill
-        self.ask = last_talk
-        self.rsp = None
-        self.args = None
+    skill: Skill
+    ask: str
+    rsp: Optional[ActionOutput]
+    args: Optional[Dict]
 
     @property
     def prompt(self):
@@ -70,25 +69,23 @@ class ArgumentsParingAction(Action):
 
 
 class SkillAction(Action):
-    def __init__(self, skill: Skill, args: dict, context=None, llm=None, **kwargs):
-        super(SkillAction, self).__init__(name="", context=context, llm=llm)
-        self._skill = skill
-        self._args = args
-        self.rsp = None
+    skill: Skill
+    args: Dict
+    rsp: str = ""
 
     async def run(self, *args, **kwargs) -> str | ActionOutput | None:
         """Run action"""
         options = deepcopy(kwargs)
-        if self._args:
-            for k in self._args.keys():
+        if self.args:
+            for k in self.args.keys():
                 if k in options:
                     options.pop(k)
         try:
-            self.rsp = await self.find_and_call_function(self._skill.name, args=self._args, **options)
+            self.rsp = await self.find_and_call_function(self.skill.name, args=self.args, **options)
         except Exception as e:
             logger.exception(f"{e}, traceback:{traceback.format_exc()}")
             self.rsp = f"Error: {e}"
-        return ActionOutput(content=self.rsp, instruct_content=self._skill.json())
+        return ActionOutput(content=self.rsp, instruct_content=self.skill.json())
 
     @staticmethod
     async def find_and_call_function(function_name, args, **kwargs):

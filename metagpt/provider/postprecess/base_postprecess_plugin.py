@@ -4,7 +4,6 @@
 
 from typing import Union
 
-from metagpt.logs import logger
 from metagpt.utils.repair_llm_raw_output import (
     RepairType,
     extract_content_from_output,
@@ -44,7 +43,7 @@ class BasePostPrecessPlugin(object):
 
     def run_retry_parse_json_text(self, content: str) -> Union[dict, list]:
         """inherited class can re-implement the function"""
-        logger.info(f"extracted json CONTENT from output:\n{content}")
+        # logger.info(f"extracted json CONTENT from output:\n{content}")
         parsed_data = retry_parse_json_text(output=content)  # should use output=content
         return parsed_data
 

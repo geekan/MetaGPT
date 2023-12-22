@@ -23,7 +23,7 @@ def test_all_messages():
         UserMessage(test_content),
         SystemMessage(test_content),
         AIMessage(test_content),
-        Message(test_content, role="QA"),
+        Message(content=test_content, role="QA"),
     ]
     for msg in msgs:
         assert msg.content == test_content

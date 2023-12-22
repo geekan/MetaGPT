@@ -4,23 +4,12 @@
 @Time    : 2023/5/5 22:59
 @Author  : alexanderwu
 @File    : __init__.py
-@Modified By: mashenquan, 2023-12-15. Add LLMType
 """
-from enum import Enum
 
+from metagpt.provider.fireworks_api import FireWorksGPTAPI
+from metagpt.provider.google_gemini_api import GeminiGPTAPI
+from metagpt.provider.open_llm_api import OpenLLMGPTAPI
+from metagpt.provider.openai_api import OpenAIGPTAPI
+from metagpt.provider.zhipuai_api import ZhiPuAIGPTAPI
 
-class LLMType(Enum):
-    OPENAI = "OpenAI"
-    METAGPT = "MetaGPT"
-    UNKNOWN = "UNKNOWN"
-
-    @classmethod
-    def get(cls, value):
-        for member in cls:
-            if member.value == value:
-                return member
-        return cls.UNKNOWN
-
-    @classmethod
-    def __missing__(cls, value):
-        return cls.UNKNOWN
+__all__ = ["FireWorksGPTAPI", "GeminiGPTAPI", "OpenLLMGPTAPI", "OpenAIGPTAPI", "ZhiPuAIGPTAPI"]

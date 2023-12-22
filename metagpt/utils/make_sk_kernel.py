@@ -21,14 +21,12 @@ def make_sk_kernel():
     if CONFIG.openai_api_type == "azure":
         kernel.add_chat_service(
             "chat_completion",
-            AzureChatCompletion(CONFIG.deployment_name, CONFIG.openai_api_base, CONFIG.openai_api_key),
+            AzureChatCompletion(CONFIG.deployment_name, CONFIG.openai_base_url, CONFIG.openai_api_key),
         )
     else:
         kernel.add_chat_service(
             "chat_completion",
-            OpenAIChatCompletion(
-                CONFIG.openai_api_model, CONFIG.openai_api_key, org_id=None, endpoint=CONFIG.openai_api_base
-            ),
+            OpenAIChatCompletion(CONFIG.openai_api_model, CONFIG.openai_api_key),
         )
 
     return kernel

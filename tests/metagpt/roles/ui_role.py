@@ -8,6 +8,7 @@ from functools import wraps
 from importlib import import_module
 
 from metagpt.actions import Action, ActionOutput, WritePRD
+from metagpt.actions.action_node import ActionNode
 from metagpt.config import CONFIG
 from metagpt.logs import logger
 from metagpt.roles import Role
@@ -15,44 +16,38 @@ from metagpt.schema import Message
 from metagpt.tools.sd_engine import SDEngine
 
 PROMPT_TEMPLATE = """
-# Context
 {context}
 
-## Format example
-{format_example}
------
-Role: You are a UserInterface Designer; the goal is to finish a UI design according to PRD, give a design description, and select specified elements and UI style.
-Requirements: Based on the context, fill in the following missing information, provide detailed HTML and CSS code
-Attention: Use '##' to split sections, not '#', and '## <SECTION_NAME>' SHOULD WRITE BEFORE the code and triple quote.
-
-## UI Design Description:Provide as Plain text, place the design objective here
-## Selected Elements:Provide as Plain text, up to 5 specified elements, clear and simple
-## HTML Layout:Provide as Plain text, use standard HTML code
-## CSS Styles (styles.css):Provide as Plain text,use standard css code
-## Anything UNCLEAR:Provide as Plain text. Try to clarify it.
-
+## Role
+You are a UserInterface Designer; the goal is to finish a UI design according to PRD, give a design description, and select specified elements and UI style.
 """
 
-FORMAT_EXAMPLE = """
+UI_DESIGN_DESC = ActionNode(
+    key="UI Design Desc",
+    expected_type=str,
+    instruction="place the design objective here",
+    example="Snake games are classic and addictive games with simple yet engaging elements. Here are the main elements"
+    " commonly found in snake games",
+)
 
-## UI Design Description
-```Snake games are classic and addictive games with simple yet engaging elements. Here are the main elements commonly found in snake games ```
+SELECTED_ELEMENTS = ActionNode(
+    key="Selected Elements",
+    expected_type=list[str],
+    instruction="up to 5 specified elements, clear and simple",
+    example=[
+        "Game Grid: The game grid is a rectangular...",
+        "Snake: The player controls a snake that moves across the grid...",
+        "Food: Food items (often represented as small objects or differently colored blocks)",
+        "Score: The player's score increases each time the snake eats a piece of food. The longer the snake becomes, the higher the score.",
+        "Game Over: The game ends when the snake collides with itself or an obstacle. At this point, the player's final score is displayed, and they are given the option to restart the game.",
+    ],
+)
 
-## Selected Elements
-
-Game Grid: The game grid is a rectangular...
-
-Snake: The player controls a snake that moves across the grid...
-
-Food: Food items (often represented as small objects or differently colored blocks)
-
-Score: The player's score increases each time the snake eats a piece of food. The longer the snake becomes, the higher the score.
-
-Game Over: The game ends when the snake collides with itself or an obstacle. At this point, the player's final score is displayed, and they are given the option to restart the game.
-
-
-## HTML Layout
-<!DOCTYPE html>
+HTML_LAYOUT = ActionNode(
+    key="HTML Layout",
+    expected_type=str,
+    instruction="use standard HTML code",
+    example="""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -69,9 +64,14 @@ Game Over: The game ends when the snake collides with itself or an obstacle. At 
     </div>
 </body>
 </html>
+""",
+)
 
-## CSS Styles (styles.css)
-body {
+CSS_STYLES = ActionNode(
+    key="CSS Styles",
+    expected_type=str,
+    instruction="use standard css code",
+    example="""body {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -119,19 +119,25 @@ body {
     color: #ff0000;
     display: none;
 }
+""",
+)
 
-## Anything UNCLEAR
-There are no unclear points.
+ANYTHING_UNCLEAR = ActionNode(
+    key="Anything UNCLEAR",
+    expected_type=str,
+    instruction="Mention any aspects of the project that are unclear and try to clarify them.",
+    example="...",
+)
 
-"""
+NODES = [
+    UI_DESIGN_DESC,
+    SELECTED_ELEMENTS,
+    HTML_LAYOUT,
+    CSS_STYLES,
+    ANYTHING_UNCLEAR,
+]
 
-OUTPUT_MAPPING = {
-    "UI Design Description": (str, ...),
-    "Selected Elements": (str, ...),
-    "HTML Layout": (str, ...),
-    "CSS Styles (styles.css)": (str, ...),
-    "Anything UNCLEAR": (str, ...),
-}
+UI_DESIGN_NODE = ActionNode.from_children("UI_DESIGN", NODES)
 
 
 def load_engine(func):
@@ -221,10 +227,8 @@ class UIDesign(Action):
         css_file_path = save_dir / "ui_design.css"
         html_file_path = save_dir / "ui_design.html"
 
-        with open(css_file_path, "w") as css_file:
-            css_file.write(css_content)
-        with open(html_file_path, "w") as html_file:
-            html_file.write(html_content)
+        css_file_path.write_text(css_content)
+        html_file_path.write_text(html_content)
 
     async def run(self, requirements: list[Message], *args, **kwargs) -> ActionOutput:
         """Run the UI Design action."""
@@ -232,9 +236,9 @@ class UIDesign(Action):
         context = requirements[-1].content
         ui_design_draft = self.parse_requirement(context=context)
         # todo: parse requirements str
-        prompt = PROMPT_TEMPLATE.format(context=ui_design_draft, format_example=FORMAT_EXAMPLE)
+        prompt = PROMPT_TEMPLATE.format(context=ui_design_draft)
         logger.info(prompt)
-        ui_describe = await self._aask_v1(prompt, "ui_design", OUTPUT_MAPPING)
+        ui_describe = await UI_DESIGN_NODE.fill(prompt)
         logger.info(ui_describe.content)
         logger.info(ui_describe.instruct_content)
         css = self.parse_css_code(context=ui_describe.content)
