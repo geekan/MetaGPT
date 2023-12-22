@@ -23,7 +23,7 @@ from metagpt.config import CONFIG, LLMProviderEnum
 from metagpt.logs import logger
 from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.provider.llm_provider_registry import register_provider
-from metagpt.provider.openai_api import CostManager, log_and_reraise
+from metagpt.provider.openai_api import log_and_reraise
 
 
 class GeminiGenerativeModel(GenerativeModel):
@@ -53,7 +53,6 @@ class GeminiGPTAPI(BaseGPTAPI):
         self.__init_gemini(CONFIG)
         self.model = "gemini-pro"  # so far only one model
         self.llm = GeminiGenerativeModel(model_name=self.model)
-        self._cost_manager = CostManager()
 
     def __init_gemini(self, config: CONFIG):
         genai.configure(api_key=config.gemini_api_key)
@@ -76,7 +75,7 @@ class GeminiGPTAPI(BaseGPTAPI):
             try:
                 prompt_tokens = int(usage.get("prompt_tokens", 0))
                 completion_tokens = int(usage.get("completion_tokens", 0))
-                self._cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
+                CONFIG.cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
             except Exception as e:
                 logger.error(f"google gemini updats costs failed! exp: {e}")
 

@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# @Desc   : the implement of memory storage
+"""
+@Desc   : the implement of memory storage
+@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
+"""
 
 from pathlib import Path
 from typing import List

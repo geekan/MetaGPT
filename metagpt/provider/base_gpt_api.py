@@ -4,12 +4,12 @@
 @Time    : 2023/5/5 23:04
 @Author  : alexanderwu
 @File    : base_gpt_api.py
+@Desc    : mashenquan, 2023/8/22. + try catch
 """
 import json
 from abc import abstractmethod
 from typing import Optional
 
-from metagpt.logs import logger
 from metagpt.provider.base_chatbot import BaseChatbot
 
 
@@ -33,62 +33,66 @@ class BaseGPTAPI(BaseChatbot):
     def _default_system_msg(self):
         return self._system_msg(self.system_prompt)
 
-    def ask(self, msg: str) -> str:
+    def ask(self, msg: str, timeout=3) -> str:
         message = [self._default_system_msg(), self._user_msg(msg)] if self.use_system_prompt else [self._user_msg(msg)]
-        rsp = self.completion(message)
+        rsp = self.completion(message, timeout=timeout)
         return self.get_choice_text(rsp)
 
-    async def aask(self, msg: str, system_msgs: Optional[list[str]] = None, stream=True) -> str:
+    async def aask(
+        self,
+        msg: str,
+        system_msgs: Optional[list[str]] = None,
+        format_msgs: Optional[list[dict[str, str]]] = None,
+        generator: bool = False,
+        timeout=3,
+        stream=True,
+    ) -> str:
         if system_msgs:
-            message = (
-                self._system_msgs(system_msgs) + [self._user_msg(msg)]
-                if self.use_system_prompt
-                else [self._user_msg(msg)]
-            )
+            message = self._system_msgs(system_msgs)
         else:
-            message = (
-                [self._default_system_msg(), self._user_msg(msg)] if self.use_system_prompt else [self._user_msg(msg)]
-            )
-        logger.debug(message)
-        rsp = await self.acompletion_text(message, stream=stream)
+            message = [self._default_system_msg()]
+        if format_msgs:
+            message.extend(format_msgs)
+        message.append(self._user_msg(msg))
+        rsp = await self.acompletion_text(message, stream=stream, generator=generator, timeout=timeout)
         # logger.debug(rsp)
         return rsp
 
     def _extract_assistant_rsp(self, context):
         return "\n".join([i["content"] for i in context if i["role"] == "assistant"])
 
-    def ask_batch(self, msgs: list) -> str:
+    def ask_batch(self, msgs: list, timeout=3) -> str:
         context = []
         for msg in msgs:
             umsg = self._user_msg(msg)
             context.append(umsg)
-            rsp = self.completion(context)
+            rsp = self.completion(context, timeout=timeout)
             rsp_text = self.get_choice_text(rsp)
             context.append(self._assistant_msg(rsp_text))
         return self._extract_assistant_rsp(context)
 
-    async def aask_batch(self, msgs: list) -> str:
+    async def aask_batch(self, msgs: list, timeout=3) -> str:
         """Sequential questioning"""
         context = []
         for msg in msgs:
             umsg = self._user_msg(msg)
             context.append(umsg)
-            rsp_text = await self.acompletion_text(context)
+            rsp_text = await self.acompletion_text(context, timeout=timeout)
             context.append(self._assistant_msg(rsp_text))
         return self._extract_assistant_rsp(context)
 
-    def ask_code(self, msgs: list[str]) -> str:
+    def ask_code(self, msgs: list[str], timeout=3) -> str:
         """FIXME: No code segment filtering has been done here, and all results are actually displayed"""
-        rsp_text = self.ask_batch(msgs)
+        rsp_text = self.ask_batch(msgs, timeout=timeout)
         return rsp_text
 
-    async def aask_code(self, msgs: list[str]) -> str:
+    async def aask_code(self, msgs: list[str], timeout=3) -> str:
         """FIXME: No code segment filtering has been done here, and all results are actually displayed"""
-        rsp_text = await self.aask_batch(msgs)
+        rsp_text = await self.aask_batch(msgs, timeout=timeout)
         return rsp_text
 
     @abstractmethod
-    def completion(self, messages: list[dict]):
+    def completion(self, messages: list[dict], timeout=3):
         """All GPTAPIs are required to provide the standard OpenAI completion interface
         [
             {"role": "system", "content": "You are a helpful assistant."},
@@ -98,7 +102,7 @@ class BaseGPTAPI(BaseChatbot):
         """
 
     @abstractmethod
-    async def acompletion(self, messages: list[dict]):
+    async def acompletion(self, messages: list[dict], timeout=3):
         """Asynchronous version of completion
         All GPTAPIs are required to provide the standard OpenAI completion interface
         [
@@ -109,7 +113,7 @@ class BaseGPTAPI(BaseChatbot):
         """
 
     @abstractmethod
-    async def acompletion_text(self, messages: list[dict], stream=False) -> str:
+    async def acompletion_text(self, messages: list[dict], stream=False, generator: bool = False, timeout=3) -> str:
         """Asynchronous version of completion. Return str. Support stream-print"""
 
     def get_choice_text(self, rsp: dict) -> str:
@@ -145,7 +149,7 @@ class BaseGPTAPI(BaseChatbot):
         :return dict: return first function of choice, for exmaple,
             {'name': 'execute', 'arguments': '{\n  "language": "python",\n  "code": "print(\'Hello, World!\')"\n}'}
         """
-        return rsp.get("choices")[0]["message"]["tool_calls"][0]["function"].to_dict()
+        return rsp.get("choices")[0]["message"]["tool_calls"][0]["function"]
 
     def get_choice_function_arguments(self, rsp: dict) -> dict:
         """Required to provide the first function arguments of choice.
@@ -163,3 +167,8 @@ class BaseGPTAPI(BaseChatbot):
     def messages_to_dict(self, messages):
         """objects to [{"role": "user", "content": msg}] etc."""
         return [i.to_dict() for i in messages]
+
+    @abstractmethod
+    async def close(self):
+        """Close connection"""
+        pass

@@ -90,9 +90,12 @@ class Team(BaseModel):
         CONFIG.max_budget = investment
         logger.info(f"Investment: ${investment}.")
 
-    def _check_balance(self):
-        if CONFIG.total_cost > CONFIG.max_budget:
-            raise NoMoneyException(CONFIG.total_cost, f"Insufficient funds: {CONFIG.max_budget}")
+    @staticmethod
+    def _check_balance():
+        if CONFIG.cost_manager.total_cost > CONFIG.cost_manager.max_budget:
+            raise NoMoneyException(
+                CONFIG.cost_manager.total_cost, f"Insufficient funds: {CONFIG.cost_manager.max_budget}"
+            )
 
     def run_project(self, idea, send_to: str = ""):
         """Run a project from publishing user requirement."""
@@ -100,7 +103,8 @@ class Team(BaseModel):
 
         # Human requirement.
         self.env.publish_message(
-            Message(role="Human", content=idea, cause_by=UserRequirement, send_to=send_to or MESSAGE_ROUTE_TO_ALL)
+            Message(role="Human", content=idea, cause_by=UserRequirement, send_to=send_to or MESSAGE_ROUTE_TO_ALL),
+            peekable=False,
         )
 
     def start_project(self, idea, send_to: str = ""):
@@ -120,7 +124,7 @@ class Team(BaseModel):
         logger.info(self.json(ensure_ascii=False))
 
     @serialize_decorator
-    async def run(self, n_round=3, idea=""):
+    async def run(self, n_round=3, idea="", auto_archive=True):
         """Run company until target round or no money"""
         if idea:
             self.run_project(idea=idea)
@@ -132,6 +136,5 @@ class Team(BaseModel):
             self._check_balance()
 
             await self.env.run()
-        if CONFIG.git_repo:
-            CONFIG.git_repo.archive()
+        self.env.archive(auto_archive)
         return self.env.history

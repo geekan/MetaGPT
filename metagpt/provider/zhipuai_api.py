@@ -5,7 +5,6 @@
 import json
 from enum import Enum
 
-import openai
 import zhipuai
 from requests import ConnectionError
 from tenacity import (
@@ -20,7 +19,7 @@ from metagpt.config import CONFIG, LLMProviderEnum
 from metagpt.logs import logger
 from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.provider.llm_provider_registry import register_provider
-from metagpt.provider.openai_api import CostManager, log_and_reraise
+from metagpt.provider.openai_api import log_and_reraise
 from metagpt.provider.zhipuai.zhipu_model_api import ZhiPuModelAPI
 
 
@@ -44,12 +43,12 @@ class ZhiPuAIGPTAPI(BaseGPTAPI):
         self.__init_zhipuai(CONFIG)
         self.llm = ZhiPuModelAPI
         self.model = "chatglm_turbo"  # so far only one model, just use it
-        self._cost_manager = CostManager()
 
     def __init_zhipuai(self, config: CONFIG):
         assert config.zhipuai_api_key
         zhipuai.api_key = config.zhipuai_api_key
-        openai.api_key = zhipuai.api_key  # due to use openai sdk, set the api_key but it will't be used.
+        # due to use openai sdk, set the api_key but it will't be used.
+        # openai.api_key = zhipuai.api_key  # due to use openai sdk, set the api_key but it will't be used.
 
     def _const_kwargs(self, messages: list[dict]) -> dict:
         kwargs = {"model": self.model, "prompt": messages, "temperature": 0.3}
@@ -61,7 +60,7 @@ class ZhiPuAIGPTAPI(BaseGPTAPI):
             try:
                 prompt_tokens = int(usage.get("prompt_tokens", 0))
                 completion_tokens = int(usage.get("completion_tokens", 0))
-                self._cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
+                CONFIG.cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
             except Exception as e:
                 logger.error(f"zhipuai updats costs failed! exp: {e}")
 

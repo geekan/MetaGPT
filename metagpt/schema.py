@@ -162,8 +162,7 @@ class Message(BaseModel):
         # prefix = '-'.join([self.role, str(self.cause_by)])
         if self.instruct_content:
             return f"{self.role}: {self.instruct_content.dict()}"
-        else:
-            return f"{self.role}: {self.content}"
+        return f"{self.role}: {self.content}"
 
     def __repr__(self):
         return self.__str__()
@@ -180,8 +179,19 @@ class Message(BaseModel):
     @handle_exception(exception_type=JSONDecodeError, default_return=None)
     def load(val):
         """Convert the json string to object."""
-        i = json.loads(val)
-        return Message(**i)
+
+        try:
+            m = json.loads(val)
+            id = m.get("id")
+            if "id" in m:
+                del m["id"]
+            msg = Message(**m)
+            if id:
+                msg.id = id
+            return msg
+        except JSONDecodeError as err:
+            logger.error(f"parse json failed: {val}, error:{err}")
+        return None
 
 
 class UserMessage(Message):

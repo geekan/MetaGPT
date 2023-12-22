@@ -23,7 +23,7 @@ import sys
 import traceback
 import typing
 from pathlib import Path
-from typing import Any, List, Tuple, Union, get_args, get_origin
+from typing import Any, Callable, List, Tuple, Union, get_args, get_origin
 
 import aiofiles
 import loguru
@@ -367,7 +367,7 @@ def get_class_name(cls) -> str:
     return f"{cls.__module__}.{cls.__name__}"
 
 
-def any_to_str(val: str | typing.Callable) -> str:
+def any_to_str(val: str | Callable) -> str:
     """Return the class name or the class name of the object, or 'val' if it's a string type."""
     if isinstance(val, str):
         return val
@@ -404,6 +404,21 @@ def is_subscribed(message: "Message", tags: set):
         if i in message.send_to:
             return True
     return False
+
+
+def any_to_name(val):
+    """
+    Convert a value to its name by extracting the last part of the dotted path.
+
+    :param val: The value to convert.
+
+    :return: The name of the value.
+    """
+    return any_to_str(val).split(".")[-1]
+
+
+def concat_namespace(*args) -> str:
+    return ":".join(str(value) for value in args)
 
 
 def general_after_log(i: "loguru.Logger", sec_format: str = "%0.3f") -> typing.Callable[["RetryCallState"], None]:
@@ -520,3 +535,20 @@ async def aread(file_path: str) -> str:
     async with aiofiles.open(str(file_path), mode="r") as reader:
         content = await reader.read()
     return content
+
+
+async def read_file_block(filename: str | Path, lineno: int, end_lineno: int):
+    if not Path(filename).exists():
+        return ""
+    lines = []
+    async with aiofiles.open(str(filename), mode="r") as reader:
+        ix = 0
+        while ix < end_lineno:
+            ix += 1
+            line = await reader.readline()
+            if ix < lineno:
+                continue
+            if ix > end_lineno:
+                break
+            lines.append(line)
+    return "".join(lines)

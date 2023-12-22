@@ -36,6 +36,7 @@ tqdm==4.64.0
 # webdriver_manager<3.9
 anthropic==0.3.6
 typing-inspect==0.8.0
+aiofiles
 typing_extensions==4.7.0
 libcst==1.0.1
 qdrant-client==1.4.0
@@ -44,9 +45,18 @@ pytest-mock==3.11.1
 ta==0.10.2
 semantic-kernel==0.4.0.dev0
 wrapt==1.15.0
-websocket-client==0.58.0
+#aiohttp_jinja2
+#azure-cognitiveservices-speech~=1.31.0
+#aioboto3~=11.3.0
+#redis==4.3.5
+websocket-client==1.6.2
 aiofiles==23.2.1
 gitpython==3.1.40
 zhipuai==1.0.7
+socksio~=1.0.0
 gitignore-parser==0.1.9
+# connexion[swagger-ui]
+websockets~=12.0
+networkx~=3.2.1
+pylint~=3.0.3
 google-generativeai==0.3.1

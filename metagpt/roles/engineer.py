@@ -43,7 +43,7 @@ from metagpt.schema import (
     Documents,
     Message,
 )
-from metagpt.utils.common import any_to_str, any_to_str_set
+from metagpt.utils.common import any_to_name, any_to_str, any_to_str_set
 
 IS_PASS_PROMPT = """
 {context}
@@ -85,6 +85,9 @@ class Engineer(Role):
 
         self._init_actions([WriteCode])
         self._watch([WriteTasks, SummarizeCode, WriteCode, WriteCodeReview, FixBug])
+        self.code_todos = []
+        self.summarize_todos = []
+        self._next_todo = any_to_name(WriteCode)
 
     @staticmethod
     def _parse_tasks(task_msg: Document) -> list[str]:
@@ -128,8 +131,10 @@ class Engineer(Role):
         if self._rc.todo is None:
             return None
         if isinstance(self._rc.todo, WriteCode):
+            self._next_todo = any_to_name(SummarizeCode)
             return await self._act_write_code()
         if isinstance(self._rc.todo, SummarizeCode):
+            self._next_todo = any_to_name(WriteCode)
             return await self._act_summarize()
         return None
 
@@ -301,3 +306,8 @@ class Engineer(Role):
             self.summarize_todos.append(SummarizeCode(context=ctx, llm=self._llm))
         if self.summarize_todos:
             self._rc.todo = self.summarize_todos[0]
+
+    @property
+    def todo(self) -> str:
+        """AgentStore uses this attribute to display to the user what actions the current role should take."""
+        return self._next_todo

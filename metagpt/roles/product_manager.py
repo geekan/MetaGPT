@@ -12,6 +12,7 @@ from metagpt.actions import UserRequirement, WritePRD
 from metagpt.actions.prepare_documents import PrepareDocuments
 from metagpt.config import CONFIG
 from metagpt.roles.role import Role
+from metagpt.utils.common import any_to_name
 
 
 class ProductManager(Role):
@@ -35,6 +36,7 @@ class ProductManager(Role):
 
         self._init_actions([PrepareDocuments, WritePRD])
         self._watch([UserRequirement, PrepareDocuments])
+        self._todo = any_to_name(PrepareDocuments)
 
     async def _think(self) -> None:
         """Decide what to do"""
@@ -42,7 +44,13 @@ class ProductManager(Role):
             self._set_state(1)
         else:
             self._set_state(0)
+            self._todo = any_to_name(WritePRD)
         return self._rc.todo
 
     async def _observe(self, ignore_memory=False) -> int:
-        return await super()._observe(ignore_memory=True)
+        return await super(ProductManager, self)._observe(ignore_memory=True)
+
+    @property
+    def todo(self) -> str:
+        """AgentStore uses this attribute to display to the user what actions the current role should take."""
+        return self._todo

@@ -17,6 +17,7 @@ from typing import Iterable, Set
 
 from pydantic import BaseModel, Field
 
+from metagpt.config import CONFIG
 from metagpt.logs import logger
 from metagpt.roles.role import Role, role_subclass_registry
 from metagpt.schema import Message
@@ -105,7 +106,7 @@ class Environment(BaseModel):
         for role in roles:
             self.add_role(role)
 
-    def publish_message(self, message: Message) -> bool:
+    def publish_message(self, message: Message, peekable: bool = True) -> bool:
         """
         Distribute the message to the recipients.
         In accordance with the Message routing structure design in Chapter 2.2.1 of RFC 116, as already planned
@@ -170,3 +171,8 @@ class Environment(BaseModel):
     def set_subscription(self, obj, tags):
         """Set the labels for message to be consumed by the object"""
         self.members[obj] = tags
+
+    @staticmethod
+    def archive(auto_archive=True):
+        if auto_archive and CONFIG.git_repo:
+            CONFIG.git_repo.archive()

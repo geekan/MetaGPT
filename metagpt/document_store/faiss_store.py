@@ -21,9 +21,12 @@ from metagpt.logs import logger
 
 
 class FaissStore(LocalStore):
-    def __init__(self, raw_data_path: Path, cache_dir=None, meta_col="source", content_col="output"):
+    def __init__(
+        self, raw_data_path: Path, cache_dir=None, meta_col="source", content_col="output", embedding_conf=None
+    ):
         self.meta_col = meta_col
         self.content_col = content_col
+        self.embedding_conf = embedding_conf or {}
         super().__init__(raw_data_path, cache_dir)
 
     def _load(self) -> Optional["FaissStore"]:
@@ -38,7 +41,9 @@ class FaissStore(LocalStore):
         return store
 
     def _write(self, docs, metadatas):
-        store = FAISS.from_texts(docs, OpenAIEmbeddings(openai_api_version="2020-11-07"), metadatas=metadatas)
+        store = FAISS.from_texts(
+            docs, OpenAIEmbeddings(openai_api_version="2020-11-07", **self.embedding_conf), metadatas=metadatas
+        )
         return store
 
     def persist(self):

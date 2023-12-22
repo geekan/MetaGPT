@@ -13,7 +13,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from metagpt.config import CONFIG
+from metagpt.config import CONFIG, Config
 from metagpt.const import DEFAULT_WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.provider.openai_api import OpenAIGPTAPI as GPTAPI
@@ -96,3 +96,8 @@ def setup_and_teardown_git_repo(request):
 
     # Register the function for destroying the environment.
     request.addfinalizer(fin)
+
+
+@pytest.fixture(scope="session", autouse=True)
+def init_config():
+    Config()

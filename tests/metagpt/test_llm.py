@@ -4,11 +4,12 @@
 @Time    : 2023/5/11 14:45
 @Author  : alexanderwu
 @File    : test_llm.py
+@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
 """
 
 import pytest
 
-from metagpt.llm import LLM
+from metagpt.provider.openai_api import OpenAIGPTAPI as LLM
 
 
 @pytest.fixture()
@@ -34,5 +35,5 @@ async def test_llm_acompletion(llm):
     assert len(await llm.acompletion_batch_text([hello_msg])) > 0
 
 
-# if __name__ == "__main__":
-#     pytest.main([__file__, "-s"])
+if __name__ == "__main__":
+    pytest.main([__file__, "-s"])

@@ -6,12 +6,15 @@ Provide configuration, singleton
         1. According to Section 2.2.3.11 of RFC 135, add git repository support.
         2. Add the parameter `src_workspace` for the old version project path.
 """
+import datetime
+import json
 import os
 import warnings
 from copy import deepcopy
 from enum import Enum
 from pathlib import Path
 from typing import Any
+from uuid import uuid4
 
 import yaml
 
@@ -19,6 +22,7 @@ from metagpt.const import DEFAULT_WORKSPACE_ROOT, METAGPT_ROOT, OPTIONS
 from metagpt.logs import logger
 from metagpt.tools import SearchEngineType, WebBrowserEngineType
 from metagpt.utils.common import require_python_version
+from metagpt.utils.cost_manager import CostManager
 from metagpt.utils.singleton import Singleton
 
 
@@ -42,6 +46,8 @@ class LLMProviderEnum(Enum):
     FIREWORKS = "fireworks"
     OPEN_LLM = "open_llm"
     GEMINI = "gemini"
+    METAGPT = "metagpt"
+    AZURE_OPENAI = "azure_openai"
 
 
 class Config(metaclass=Singleton):
@@ -57,7 +63,7 @@ class Config(metaclass=Singleton):
     key_yaml_file = METAGPT_ROOT / "config/key.yaml"
     default_yaml_file = METAGPT_ROOT / "config/config.yaml"
 
-    def __init__(self, yaml_file=default_yaml_file):
+    def __init__(self, yaml_file=default_yaml_file, cost_data=""):
         global_options = OPTIONS.get()
         # cli paras
         self.project_path = ""
@@ -67,6 +73,8 @@ class Config(metaclass=Singleton):
         self.max_auto_summarize_code = 0
 
         self._init_with_config_files_and_env(yaml_file)
+        # The agent needs to be billed per user, so billing information cannot be destroyed when the session ends.
+        self.cost_manager = CostManager(**json.loads(cost_data)) if cost_data else CostManager()
         self._update()
         global_options.update(OPTIONS.get())
         logger.debug("Config loading done.")
@@ -136,8 +144,7 @@ class Config(metaclass=Singleton):
         self.long_term_memory = self._get("LONG_TERM_MEMORY", False)
         if self.long_term_memory:
             logger.warning("LONG_TERM_MEMORY is True")
-        self.max_budget = self._get("MAX_BUDGET", 10.0)
-        self.total_cost = 0.0
+        self.cost_manager.max_budget = self._get("MAX_BUDGET", 10.0)
         self.code_review_k_times = 2
 
         self.puppeteer_config = self._get("PUPPETEER_CONFIG", "")
@@ -148,10 +155,17 @@ class Config(metaclass=Singleton):
         self.mermaid_engine = self._get("MERMAID_ENGINE", "nodejs")
         self.pyppeteer_executable_path = self._get("PYPPETEER_EXECUTABLE_PATH", "")
 
+        workspace_uid = (
+            self._get("WORKSPACE_UID") or f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}-{uuid4().hex[-8:]}"
+        )
         self.repair_llm_output = self._get("REPAIR_LLM_OUTPUT", False)
-        self.prompt_schema = self._get("PROMPT_FORMAT", "json")
+        self.prompt_format = self._get("PROMPT_FORMAT", "json")
         self.workspace_path = Path(self._get("WORKSPACE_PATH", DEFAULT_WORKSPACE_ROOT))
+        val = self._get("WORKSPACE_PATH_WITH_UID")
+        if val and val.lower() == "true":  # for agent
+            self.workspace_path = self.workspace_path / workspace_uid
         self._ensure_workspace_exists()
+        self.max_auto_summarize_code = self.max_auto_summarize_code or self._get("MAX_AUTO_SUMMARIZE_CODE", 1)
 
     def update_via_cli(self, project_path, project_name, inc, reqa_file, max_auto_summarize_code):
         """update config via cli"""
@@ -192,7 +206,8 @@ class Config(metaclass=Singleton):
         return i.get(*args, **kwargs)
 
     def get(self, key, *args, **kwargs):
-        """Search for a value in config/key.yaml, config/config.yaml, and env; raise an error if not found"""
+        """Retrieve values from config/key.yaml, config/config.yaml, and environment variables.
+        Throw an error if not found."""
         value = self._get(key, *args, **kwargs)
         if value is None:
             raise ValueError(f"Key '{key}' not found in environment variables or in the YAML file")

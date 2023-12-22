@@ -6,7 +6,7 @@ import openai
 
 from metagpt.config import CONFIG, LLMProviderEnum
 from metagpt.provider.llm_provider_registry import register_provider
-from metagpt.provider.openai_api import CostManager, OpenAIGPTAPI, RateLimiter
+from metagpt.provider.openai_api import OpenAIGPTAPI, RateLimiter
 
 
 @register_provider(LLMProviderEnum.FIREWORKS)
@@ -16,10 +16,11 @@ class FireWorksGPTAPI(OpenAIGPTAPI):
         self.llm = openai
         self.model = CONFIG.fireworks_api_model
         self.auto_max_tokens = False
-        self._cost_manager = CostManager()
         RateLimiter.__init__(self, rpm=self.rpm)
 
     def __init_fireworks(self, config: "Config"):
-        openai.api_key = config.fireworks_api_key
-        openai.api_base = config.fireworks_api_base
+        # TODO: The 'openai.api_base' option isn't read in the client API. You will need to pass it when you
+        #  instantiate the client, e.g. 'OpenAI(api_base=config.fireworks_api_base)'
+        # openai.api_key = config.fireworks_api_key
+        # openai.api_base = config.fireworks_api_base
         self.rpm = int(config.get("RPM", 10))

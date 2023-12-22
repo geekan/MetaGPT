@@ -5,9 +5,10 @@
 @Author  : alexanderwu
 @File    : test_gpt.py
 """
-
+import openai
 import pytest
 
+from metagpt.config import CONFIG
 from metagpt.logs import logger
 
 
@@ -18,14 +19,17 @@ class TestGPT:
         logger.info(answer)
         assert len(answer) > 0
 
-    # def test_gptapi_ask_batch(self, llm_api):
-    #     answer = llm_api.ask_batch(['请扮演一个Google Python专家工程师，如果理解，回复明白', '写一个hello world'])
-    #     assert len(answer) > 0
+    def test_gptapi_ask_batch(self, llm_api):
+        answer = llm_api.ask_batch(["请扮演一个Google Python专家工程师，如果理解，回复明白", "写一个hello world"], timeout=60)
+        assert len(answer) > 0
 
     def test_llm_api_ask_code(self, llm_api):
-        answer = llm_api.ask_code(["请扮演一个Google Python专家工程师，如果理解，回复明白", "写一个hello world"])
-        logger.info(answer)
-        assert len(answer) > 0
+        try:
+            answer = llm_api.ask_code(["请扮演一个Google Python专家工程师，如果理解，回复明白", "写一个hello world"])
+            logger.info(answer)
+            assert len(answer) > 0
+        except openai.NotFoundError:
+            assert CONFIG.openai_api_type == "azure"
 
     @pytest.mark.asyncio
     async def test_llm_api_aask(self, llm_api):
@@ -35,9 +39,12 @@ class TestGPT:
 
     @pytest.mark.asyncio
     async def test_llm_api_aask_code(self, llm_api):
-        answer = await llm_api.aask_code(["请扮演一个Google Python专家工程师，如果理解，回复明白", "写一个hello world"])
-        logger.info(answer)
-        assert len(answer) > 0
+        try:
+            answer = await llm_api.aask_code(["请扮演一个Google Python专家工程师，如果理解，回复明白", "写一个hello world"])
+            logger.info(answer)
+            assert len(answer) > 0
+        except openai.NotFoundError:
+            assert CONFIG.openai_api_type == "azure"
 
     @pytest.mark.asyncio
     async def test_llm_api_costs(self, llm_api):
@@ -47,5 +54,5 @@ class TestGPT:
         assert costs.total_cost > 0
 
 
-# if __name__ == "__main__":
-#     pytest.main([__file__, "-s"])
+if __name__ == "__main__":
+    pytest.main([__file__, "-s"])

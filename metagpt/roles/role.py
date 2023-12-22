@@ -4,6 +4,7 @@
 @Time    : 2023/5/11 14:42
 @Author  : alexanderwu
 @File    : role.py
+@Modified By: mashenquan, 2023/8/22. A definition has been provided for the return value of _think: returning false indicates that further reasoning cannot continue.
 @Modified By: mashenquan, 2023-11-1. According to Chapter 2.2.1 and 2.2.2 of RFC 116:
     1. Merge the `recv` functionality into the `_observe` function. Future message reading operations will be
     consolidated within the `_observe` function.
@@ -38,6 +39,7 @@ from metagpt.memory import Memory
 from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.schema import Message, MessageQueue
 from metagpt.utils.common import (
+    any_to_name,
     any_to_str,
     import_class,
     read_json_file,
@@ -118,7 +120,7 @@ class RoleContext(BaseModel):
 
     @property
     def important_memory(self) -> list[Message]:
-        """Get the information corresponding to the watched actions"""
+        """Retrieve information corresponding to the attention action."""
         return self.memory.get_by_actions(self.watch)
 
     @property
@@ -208,8 +210,7 @@ class Role(BaseModel):
         if "actions" in kwargs:
             self._init_actions(kwargs["actions"])
 
-        if "watch" in kwargs:
-            self._watch(kwargs["watch"])
+        self._watch(kwargs.get("watch") or [UserRequirement])
 
     def __init_subclass__(cls, **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)
@@ -315,6 +316,9 @@ class Role(BaseModel):
         # check RoleContext after adding watch actions
         self._rc.check(self._role_id)
 
+    def is_watch(self, caused_by: str):
+        return caused_by in self._rc.watch
+
     def subscribe(self, tags: Set[str]):
         """Used to receive Messages with certain tags from the environment. Message will be put into personal message
         buffer to be further processed in _observe. By default, a Role subscribes Messages with a tag of its own name
@@ -340,7 +344,12 @@ class Role(BaseModel):
     @property
     def subscription(self) -> Set:
         """The labels for messages to be consumed by the Role object."""
-        return self._subscription
+        return set(self._subscription)
+
+    @property
+    def action_count(self):
+        """Return number of action"""
+        return len(self._actions)
 
     def _get_prefix(self):
         """Get the role prefix"""
@@ -357,16 +366,18 @@ class Role(BaseModel):
             prefix += env_desc
         return prefix
 
-    async def _think(self) -> None:
-        """Think about what to do and decide on the next action"""
+    async def _think(self) -> bool:
+        """Consider what to do and decide on the next course of action. Return false if nothing can be done."""
         if len(self._actions) == 1:
             # If there is only one action, then only this one can be performed
             self._set_state(0)
-            return
+
+            return True
+
         if self.recovered and self._rc.state >= 0:
             self._set_state(self._rc.state)  # action to run from recovered state
             self.recovered = False  # avoid max_react_loop out of work
-            return
+            return True
 
         prompt = self._get_prefix()
         prompt += STATE_TEMPLATE.format(
@@ -388,6 +399,7 @@ class Role(BaseModel):
             if next_state == -1:
                 logger.info(f"End actions with {next_state=}")
         self._set_state(next_state)
+        return True
 
     async def _act(self) -> Message:
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
@@ -498,23 +510,6 @@ class Role(BaseModel):
         self._set_state(state=-1)  # current reaction is complete, reset state to -1 and todo back to None
         return rsp
 
-    # # Replaced by run()
-    # def recv(self, message: Message) -> None:
-    #     """add message to history."""
-    #     # self._history += f"\n{message}"
-    #     # self._context = self._history
-    #     if message in self._rc.memory.get():
-    #         return
-    #     self._rc.memory.add(message)
-
-    # # Replaced by run()
-    # async def handle(self, message: Message) -> Message:
-    #     """Receive information and reply with actions"""
-    #     # logger.debug(f"{self.name=}, {self.profile=}, {message.role=}")
-    #     self.recv(message)
-    #
-    #     return await self._react()
-
     def get_memories(self, k=0) -> list[Message]:
         """A wrapper to return the most recent k memories of this role, return all when k=0"""
         return self._rc.memory.get(k=k)
@@ -551,3 +546,20 @@ class Role(BaseModel):
     def is_idle(self) -> bool:
         """If true, all actions have been executed."""
         return not self._rc.news and not self._rc.todo and self._rc.msg_buffer.empty()
+
+    async def think(self) -> Action:
+        """The exported `think` function"""
+        await self._think()
+        return self._rc.todo
+
+    async def act(self) -> ActionOutput:
+        """The exported `act` function"""
+        msg = await self._act()
+        return ActionOutput(content=msg.content, instruct_content=msg.instruct_content)
+
+    @property
+    def todo(self) -> str:
+        """AgentStore uses this attribute to display to the user what actions the current role should take."""
+        if self._actions:
+            return any_to_name(self._actions[0])
+        return ""
