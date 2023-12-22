@@ -7,6 +7,7 @@
 @File    : invoice_ocr_assistant.py
 """
 
+import json
 from pathlib import Path
 from typing import Optional
 
@@ -24,7 +25,7 @@ class InvoicePath(BaseModel):
 
 
 class OCRResults(BaseModel):
-    ocr_results: list = []
+    ocr_result: str = "[]"
 
 
 class InvoiceData(BaseModel):
@@ -88,10 +89,10 @@ class InvoiceOCRAssistant(Role):
 
             self._rc.todo = None
             content = INVOICE_OCR_SUCCESS
-            resp = OCRResults(ocr_results=resp)
+            resp = OCRResults(ocr_result=json.dumps(resp))
         elif isinstance(todo, GenerateTable):
             ocr_results: OCRResults = msg.instruct_content
-            resp = await todo.run(ocr_results.ocr_results, self.filename)
+            resp = await todo.run(json.loads(ocr_results.ocr_result), self.filename)
 
             # Convert list to Markdown format string
             df = pd.DataFrame(resp)
