@@ -29,6 +29,7 @@ class Environment(BaseModel):
     Environment, hosting a batch of roles, roles can publish messages to the environment, and can be observed by other roles
     """
 
+    desc: str = Field(default="")  # 环境描述
     roles: dict[str, Role] = Field(default_factory=dict)
     members: dict[Role, Set] = Field(default_factory=dict)
     history: str = ""  # For debug
@@ -151,6 +152,9 @@ class Environment(BaseModel):
         get all the environment roles
         """
         return self.roles.get(name, None)
+
+    def role_names(self) -> str:
+        return ", ".join([f"{i.name}" for i in self.roles.values()])
 
     @property
     def is_idle(self):

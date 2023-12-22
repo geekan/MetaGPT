@@ -91,7 +91,8 @@ class ActionNode:
 
     def __str__(self):
         return (
-            f"{self.key}, {self.expected_type}, {self.instruction}, {self.example}" f", {self.content}, {self.children}"
+            f"{self.key}, {repr(self.expected_type)}, {self.instruction}, {self.example}"
+            f", {self.content}, {self.children}"
         )
 
     def __repr__(self):
@@ -225,16 +226,16 @@ class ActionNode:
 
         # FIXME: json instruction会带来格式问题，如："Project name": "web_2048  # 项目名称使用下划线",
         # compile example暂时不支持markdown
-        self.instruction = self.compile_instruction(schema="markdown", mode=mode)
-        self.example = self.compile_example(schema=schema, tag=TAG, mode=mode)
+        instruction = self.compile_instruction(schema="markdown", mode=mode)
+        example = self.compile_example(schema=schema, tag=TAG, mode=mode)
         # nodes = ", ".join(self.to_dict(mode=mode).keys())
         constraints = [LANGUAGE_CONSTRAINT, FORMAT_CONSTRAINT]
         constraint = "\n".join(constraints)
 
         prompt = template.format(
             context=context,
-            example=self.example,
-            instruction=self.instruction,
+            example=example,
+            instruction=instruction,
             constraint=constraint,
         )
         return prompt
