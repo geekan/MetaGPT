@@ -133,6 +133,7 @@ class GenerateTable(Action):
     name: str = "GenerateTable"
     context: Optional[str] = None
     llm: BaseGPTAPI = Field(default_factory=LLM)
+    language: str = "ch"
 
     async def run(self, ocr_results: list, filename: str, *args, **kwargs) -> dict[str, str]:
         """Processes OCR results, extracts invoice information, generates a table, and saves it as an Excel file.
