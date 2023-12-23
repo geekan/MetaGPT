@@ -53,7 +53,7 @@ async def test_debate_one_role():
 
 
 @pytest.mark.asyncio
-async def test_action_node():
+async def test_action_node_one_layer():
     node = ActionNode(key="key-a", expected_type=str, instruction="instruction-b", example="example-c")
 
     raw_template = node.compile(context="123", schema="raw", mode="auto")
@@ -74,3 +74,15 @@ async def test_action_node():
     assert "key-a" in markdown_template
 
     assert node_dict["key-a"] == "instruction-b"
+
+
+@pytest.mark.asyncio
+async def test_action_node_two_layer():
+    node_a = ActionNode(key="key-a", expected_type=str, instruction="i-a", example="e-a")
+    node_b = ActionNode(key="key-b", expected_type=str, instruction="i-b", example="e-b")
+
+    root = ActionNode.from_children(key="", nodes=[node_a, node_b])
+    assert "key-a" in root.children
+    assert node_b in root.children.values()
+    json_template = root.compile(context="123", schema="json", mode="auto")
+    assert "i-a" in json_template
