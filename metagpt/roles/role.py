@@ -152,7 +152,7 @@ class Role(BaseModel):
     builtin_class_name: str = ""
 
     _private_attributes = {
-        "_llm": LLM() if not is_human else HumanProvider(),
+        "_llm": None,
         "_role_id": _role_id,
         "_states": [],
         "_actions": [],
