@@ -80,26 +80,41 @@ class Config(metaclass=Singleton):
         logger.debug("Config loading done.")
 
     def get_default_llm_provider_enum(self) -> LLMProviderEnum:
-        for k, v in [
-            (self.openai_api_key, LLMProviderEnum.OPENAI),
-            (self.anthropic_api_key, LLMProviderEnum.ANTHROPIC),
-            (self.zhipuai_api_key, LLMProviderEnum.ZHIPUAI),
-            (self.fireworks_api_key, LLMProviderEnum.FIREWORKS),
-            (self.open_llm_api_base, LLMProviderEnum.OPEN_LLM),
-            (self.gemini_api_key, LLMProviderEnum.GEMINI),  # reuse logic. but not a key
-        ]:
-            if self._is_valid_llm_key(k):
-                # logger.debug(f"Use LLMProvider: {v.value}")
-                if v == LLMProviderEnum.GEMINI and not require_python_version(req_version=(3, 10)):
-                    warnings.warn("Use Gemini requires Python >= 3.10")
-                if self.openai_api_key and self.openai_api_model:
-                    logger.info(f"OpenAI API Model: {self.openai_api_model}")
-                return v
+        mappings = {
+            LLMProviderEnum.OPENAI: bool(
+                self._is_valid_llm_key(self.OPENAI_API_KEY) and not self.OPENAI_API_TYPE and self.OPENAI_API_MODEL
+            ),
+            LLMProviderEnum.ANTHROPIC: self._is_valid_llm_key(self.ANTHROPIC_API_KEY),
+            LLMProviderEnum.ZHIPUAI: self._is_valid_llm_key(self.ZHIPUAI_API_KEY),
+            LLMProviderEnum.FIREWORKS: self._is_valid_llm_key(self.FIREWORKS_API_KEY),
+            LLMProviderEnum.OPEN_LLM: self._is_valid_llm_key(self.OPEN_LLM_API_BASE),
+            LLMProviderEnum.GEMINI: self._is_valid_llm_key(self.GEMINI_API_KEY),
+            LLMProviderEnum.METAGPT: bool(
+                self._is_valid_llm_key(self.OPENAI_API_KEY) and self.OPENAI_API_TYPE == "metagpt"
+            ),
+            LLMProviderEnum.AZURE_OPENAI: bool(
+                self._is_valid_llm_key(self.OPENAI_API_KEY)
+                and self.OPENAI_API_TYPE == "azure"
+                and self.DEPLOYMENT_NAME
+                and self.OPENAI_API_VERSION
+            ),
+        }
+        provider = None
+        for k, v in mappings.items():
+            if v:
+                provider = k
+                break
+
+        if provider is LLMProviderEnum.GEMINI and not require_python_version(req_version=(3, 10)):
+            warnings.warn("Use Gemini requires Python >= 3.10")
+        if provider:
+            logger.info(f"API: {provider}")
+            return provider
         raise NotConfiguredException("You should config a LLM configuration first")
 
     @staticmethod
     def _is_valid_llm_key(k: str) -> bool:
-        return k and k != "YOUR_API_KEY"
+        return bool(k and k != "YOUR_API_KEY")
 
     def _update(self):
         self.global_proxy = self._get("GLOBAL_PROXY")
@@ -113,7 +128,7 @@ class Config(metaclass=Singleton):
         self.gemini_api_key = self._get("GEMINI_API_KEY")
         _ = self.get_default_llm_provider_enum()
 
-        self.openai_base_url = self._get("OPENAI_BASE_URL")
+        # self.openai_base_url = self._get("OPENAI_BASE_URL")
         self.openai_proxy = self._get("OPENAI_PROXY") or self.global_proxy
         self.openai_api_type = self._get("OPENAI_API_TYPE")
         self.openai_api_version = self._get("OPENAI_API_VERSION")

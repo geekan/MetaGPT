@@ -11,5 +11,15 @@ from metagpt.provider.google_gemini_api import GeminiGPTAPI
 from metagpt.provider.open_llm_api import OpenLLMGPTAPI
 from metagpt.provider.openai_api import OpenAIGPTAPI
 from metagpt.provider.zhipuai_api import ZhiPuAIGPTAPI
+from metagpt.provider.azure_openai_api import AzureOpenAIGPTAPI
+from metagpt.provider.metagpt_api import METAGPTAPI
 
-__all__ = ["FireWorksGPTAPI", "GeminiGPTAPI", "OpenLLMGPTAPI", "OpenAIGPTAPI", "ZhiPuAIGPTAPI"]
+__all__ = [
+    "FireWorksGPTAPI",
+    "GeminiGPTAPI",
+    "OpenLLMGPTAPI",
+    "OpenAIGPTAPI",
+    "ZhiPuAIGPTAPI",
+    "AzureOpenAIGPTAPI",
+    "METAGPTAPI",
+]

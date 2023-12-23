@@ -26,26 +26,22 @@ class AzureOpenAIGPTAPI(OpenAIGPTAPI):
 
     def __init__(self):
         self.config: Config = CONFIG
-        self.__init_openai()
+        self._init_openai()
         self.auto_max_tokens = False
-        # https://learn.microsoft.com/zh-cn/azure/ai-services/openai/how-to/migration?tabs=python-new%2Cdalle-fix
-        self._client = AsyncAzureOpenAI(
-            api_key=CONFIG.openai_api_key,
-            api_version=CONFIG.openai_api_version,
-            azure_endpoint=CONFIG.openai_api_base,
-        )
         RateLimiter.__init__(self, rpm=self.rpm)
 
     def _make_client(self):
         kwargs, async_kwargs = self._make_client_kwargs()
+        # https://learn.microsoft.com/zh-cn/azure/ai-services/openai/how-to/migration?tabs=python-new%2Cdalle-fix
         self.client = AzureOpenAI(**kwargs)
         self.async_client = AsyncAzureOpenAI(**async_kwargs)
+        self.model = self.config.DEPLOYMENT_NAME  # Used in _calc_usage & _cons_kwargs
 
     def _make_client_kwargs(self) -> (dict, dict):
         kwargs = dict(
-            api_key=self.config.openai_api_key,
-            api_version=self.config.openai_api_version,
-            azure_endpoint=self.config.openai_base_url,
+            api_key=self.config.OPENAI_API_KEY,
+            api_version=self.config.OPENAI_API_VERSION,
+            azure_endpoint=self.config.OPENAI_BASE_URL,
         )
         async_kwargs = kwargs.copy()
 
@@ -64,7 +60,7 @@ class AzureOpenAIGPTAPI(OpenAIGPTAPI):
             "n": 1,
             "stop": None,
             "temperature": 0.3,
-            "model": CONFIG.deployment_id,
+            "model": self.model,
         }
         if configs:
             kwargs.update(configs)
