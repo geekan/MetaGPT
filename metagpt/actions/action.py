@@ -59,7 +59,7 @@ class Action(BaseModel):
         action_subclass_registry[cls.__name__] = cls
 
     def dict(self, *args, **kwargs) -> "DictStrAny":
-        obj_dict = super(Action, self).dict(*args, **kwargs)
+        obj_dict = super().dict(*args, **kwargs)
         if "llm" in obj_dict:
             obj_dict.pop("llm")
         return obj_dict
