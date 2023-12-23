@@ -124,10 +124,10 @@ class Team(BaseModel):
         logger.info(self.json(ensure_ascii=False))
 
     @serialize_decorator
-    async def run(self, n_round=3, idea="", auto_archive=True):
+    async def run(self, n_round=3, idea="", send_to="", auto_archive=True):
         """Run company until target round or no money"""
         if idea:
-            self.run_project(idea=idea)
+            self.run_project(idea=idea, send_to=send_to)
 
         while n_round > 0:
             # self._save()

@@ -146,7 +146,7 @@ class Role(BaseModel):
     _states: list[str] = []
     _actions: list[Action] = []
     _rc: RoleContext = Field(default_factory=RoleContext)
-    _subscription: tuple[str] = set()
+    subscription: set[str] = set()
 
     # builtin variables
     recovered: bool = False  # to tag if a recovered role
@@ -185,7 +185,7 @@ class Role(BaseModel):
         # 关于私有变量的初始化  https://github.com/pydantic/pydantic/issues/655
         self._private_attributes["_llm"] = LLM() if not self.is_human else HumanProvider()
         self._private_attributes["_role_id"] = str(self._setting)
-        self._private_attributes["_subscription"] = {any_to_str(self), self.name} if self.name else {any_to_str(self)}
+        self.subscription = {any_to_str(self), self.name} if self.name else {any_to_str(self)}
 
         for key in self._private_attributes.keys():
             if key in kwargs:
@@ -327,9 +327,9 @@ class Role(BaseModel):
         buffer to be further processed in _observe. By default, a Role subscribes Messages with a tag of its own name
         or profile.
         """
-        self._subscription = tags
+        self.subscription = tags
         if self._rc.env:  # According to the routing feature plan in Chapter 2.2.3.2 of RFC 113
-            self._rc.env.set_subscription(self, self._subscription)
+            self._rc.env.set_subscription(self, self.subscription)
 
     def _set_state(self, state: int):
         """Update the current state."""
@@ -342,7 +342,7 @@ class Role(BaseModel):
         messages by observing."""
         self._rc.env = env
         if env:
-            env.set_subscription(self, self._subscription)
+            env.set_subscription(self, self.subscription)
             self.refresh_system_message()  # add env message to system message
 
     @property
@@ -431,7 +431,7 @@ class Role(BaseModel):
         observed_pure = [msg.dict(exclude={"id": True}) for msg in observed]
         existed_pure = [msg.dict(exclude={"id": True}) for msg in existed]
         for idx, new in enumerate(observed_pure):
-            if new["cause_by"] in self._rc.watch and new not in existed_pure:
+            if (new["cause_by"] in self._rc.watch or self.name in new["send_to"]) and new not in existed_pure:
                 news.append(observed[idx])
         return news
 
