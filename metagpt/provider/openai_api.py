@@ -237,7 +237,6 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             "n": 1,
             "stop": None,
             "temperature": 0.3,
-            "timeout": 3,
             "model": self.model,
         }
         if configs:
