@@ -21,8 +21,8 @@ context = """
 
 @pytest.mark.asyncio
 async def test_generate_questions():
-    detail_mining = GenerateQuestions()
-    rsp = await detail_mining.run(context)
+    action = GenerateQuestions()
+    rsp = await action.run(context)
     logger.info(f"{rsp.content=}")
 
     assert "Questions" in rsp.content

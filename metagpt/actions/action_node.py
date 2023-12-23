@@ -340,15 +340,15 @@ class ActionNode:
             return self
 
 
-def action_node_from_tuple_example():
-    # 示例：列表中包含元组
-    list_of_tuples = [("key1", str, "Instruction 1", "Example 1")]
+def action_node_example():
+    node = ActionNode(key="key-0", expected_type=str, instruction="instruction-a", example="example-b")
 
-    # 从列表中创建 ActionNode 实例
-    nodes = [ActionNode(*data) for data in list_of_tuples]
-    for i in nodes:
-        logger.info(i)
+    logger.info(node.compile(context="123", schema="raw", mode="auto"))
+    logger.info(node.compile(context="123", schema="json", mode="auto"))
+    logger.info(node.compile(context="123", schema="markdown", mode="auto"))
+    logger.info(node.to_dict())
+    logger.info(node)
 
 
 if __name__ == "__main__":
-    action_node_from_tuple_example()
+    action_node_example()
