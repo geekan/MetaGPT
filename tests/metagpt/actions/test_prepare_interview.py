@@ -3,7 +3,7 @@
 """
 @Time    : 2023/9/13 00:26
 @Author  : fisherdeng
-@File    : test_detail_mining.py
+@File    : test_generate_questions.py
 """
 import pytest
 

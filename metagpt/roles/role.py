@@ -520,7 +520,7 @@ class Role(BaseModel):
         return self._rc.memory.get(k=k)
 
     @role_raise_decorator
-    async def run(self, with_message=None):
+    async def run(self, with_message=None) -> Message | None:
         """Observe, and think and act based on the results of the observation"""
         if with_message:
             msg = None
