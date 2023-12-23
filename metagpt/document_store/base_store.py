@@ -33,6 +33,7 @@ class LocalStore(BaseStore, ABC):
             raise FileNotFoundError
         self.config = Config()
         self.raw_data_path = raw_data_path
+        self.fname = self.raw_data_path.name.split(".")[0]
         if not cache_dir:
             cache_dir = raw_data_path.parent
         self.cache_dir = cache_dir
@@ -40,10 +41,9 @@ class LocalStore(BaseStore, ABC):
         if not self.store:
             self.store = self.write()
 
-    def _get_index_and_store_fname(self):
-        fname = self.raw_data_path.name.split(".")[0]
-        index_file = self.cache_dir / f"{fname}.index"
-        store_file = self.cache_dir / f"{fname}.pkl"
+    def _get_index_and_store_fname(self, index_ext=".index", pkl_ext=".pkl"):
+        index_file = self.cache_dir / f"{self.fname}{index_ext}"
+        store_file = self.cache_dir / f"{self.fname}{pkl_ext}"
         return index_file, store_file
 
     @abstractmethod
