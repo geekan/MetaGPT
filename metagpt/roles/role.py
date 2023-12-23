@@ -426,7 +426,7 @@ class Role(BaseModel):
         observed_pure = [msg.dict(exclude={"id": True}) for msg in observed]
         existed_pure = [msg.dict(exclude={"id": True}) for msg in existed]
         for idx, new in enumerate(observed_pure):
-            if new["cause_by"] in self._rc.watch and new not in existed_pure:
+            if (new["cause_by"] in self._rc.watch and new not in existed_pure) or (not self._rc.watch):
                 news.append(observed[idx])
         return news
 

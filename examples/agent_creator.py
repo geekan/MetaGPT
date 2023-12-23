@@ -55,16 +55,13 @@ class CreateAgent(Action):
 
 
 class AgentCreator(Role):
-    def __init__(
-        self,
-        name: str = "Matrix",
-        profile: str = "AgentCreator",
-        agent_template: str = MULTI_ACTION_AGENT_CODE_EXAMPLE,
-        **kwargs,
-    ):
-        super().__init__(name, profile, **kwargs)
+    name: str = "Matrix"
+    profile: str = "AgentCreator"
+    agent_template: str = MULTI_ACTION_AGENT_CODE_EXAMPLE
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self._init_actions([CreateAgent])
-        self.agent_template = agent_template
 
     async def _act(self) -> Message:
         logger.info(f"{self._setting}: ready to {self._rc.todo}")
@@ -85,10 +82,6 @@ if __name__ == "__main__":
         agent_template = MULTI_ACTION_AGENT_CODE_EXAMPLE
 
         creator = AgentCreator(agent_template=agent_template)
-
-        # msg = """Write an agent called SimpleTester that will take any code snippet (str)
-        #     and return a testing code (str) for testing
-        #     the given code snippet. Use pytest as the testing framework."""
 
         msg = """
         Write an agent called SimpleTester that will take any code snippet (str) and do the following:

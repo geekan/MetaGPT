@@ -9,13 +9,16 @@
 """
 
 from pydantic import Field
+from semantic_kernel import Kernel
+from semantic_kernel.orchestration.sk_function_base import SKFunctionBase
 from semantic_kernel.planning import SequentialPlanner
 from semantic_kernel.planning.action_planner.action_planner import ActionPlanner
-from semantic_kernel.planning.basic_planner import BasicPlanner
+from semantic_kernel.planning.basic_planner import BasicPlanner, Plan
 
 from metagpt.actions import UserRequirement
 from metagpt.actions.execute_task import ExecuteTask
 from metagpt.llm import LLM
+from metagpt.logs import logger
 from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.roles import Role
 from metagpt.schema import Message
@@ -37,9 +40,14 @@ class SkAgent(Role):
     profile: str = "sk_agent"
     goal: str = "Execute task based on passed in task description"
     constraints: str = ""
+
+    plan: Plan = None
     planner_cls: BasicPlanner = BasicPlanner
     planner: BasicPlanner = Field(default_factory=BasicPlanner)
     llm: BaseGPTAPI = Field(default_factory=LLM)
+    kernel: Kernel = Field(default_factory=Kernel)
+    import_semantic_skill_from_directory: str = ""
+    import_skill: dict[str, SKFunctionBase] = dict()
 
     def __init__(self, **kwargs) -> None:
         """Initializes the Engineer role with given attributes."""
