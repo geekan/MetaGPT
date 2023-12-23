@@ -3,12 +3,36 @@
 # @Desc   : General Async API for http-based LLM model
 
 import asyncio
-from typing import AsyncGenerator, Tuple, Union
+from typing import AsyncGenerator, Generator, Iterator, Optional, Tuple, Union
 
 import aiohttp
+import requests
 
 from metagpt.logs import logger
 from metagpt.provider.general_api_base import APIRequestor
+
+
+def parse_stream_helper(line: bytes) -> Optional[str]:
+    if line and line.startswith(b"data:"):
+        if line.startswith(b"data: "):
+            # SSE event may be valid when it contain whitespace
+            line = line[len(b"data: ") :]
+        else:
+            line = line[len(b"data:") :]
+        if line.strip() == b"[DONE]":
+            # return here will cause GeneratorExit exception in urllib3
+            # and it will close http connection with TCP Reset
+            return None
+        else:
+            return line.decode("utf-8")
+    return None
+
+
+def parse_stream(rbody: Iterator[bytes]) -> Iterator[str]:
+    for line in rbody:
+        _line = parse_stream_helper(line)
+        if _line is not None:
+            yield _line
 
 
 class GeneralAPIRequestor(APIRequestor):
@@ -32,10 +56,34 @@ class GeneralAPIRequestor(APIRequestor):
 
         return rbody
 
+    def _interpret_response(
+        self, result: requests.Response, stream: bool
+    ) -> Tuple[Union[str, Iterator[Generator]], bool]:
+        """Returns the response(s) and a bool indicating whether it is a stream."""
+        if stream and "text/event-stream" in result.headers.get("Content-Type", ""):
+            return (
+                self._interpret_response_line(line, result.status_code, result.headers, stream=True)
+                for line in parse_stream(result.iter_lines())
+            ), True
+        else:
+            return (
+                self._interpret_response_line(
+                    result.content,  # let the caller to decode the msg
+                    result.status_code,
+                    result.headers,
+                    stream=False,
+                ),
+                False,
+            )
+
     async def _interpret_async_response(
         self, result: aiohttp.ClientResponse, stream: bool
     ) -> Tuple[Union[str, AsyncGenerator[str, None]], bool]:
-        if stream and "text/event-stream" in result.headers.get("Content-Type", ""):
+        if stream and (
+            "text/event-stream" in result.headers.get("Content-Type", "")
+            or "application/x-ndjson" in result.headers.get("Content-Type", "")
+        ):
+            # the `Content-Type` of ollama stream resp is "application/x-ndjson"
             return (
                 self._interpret_response_line(line, result.status, result.headers, stream=True)
                 async for line in result.content

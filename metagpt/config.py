@@ -48,6 +48,7 @@ class LLMProviderEnum(Enum):
     GEMINI = "gemini"
     METAGPT = "metagpt"
     AZURE_OPENAI = "azure_openai"
+    OLLAMA = "ollama"
 
 
 class Config(metaclass=Singleton):
@@ -98,6 +99,7 @@ class Config(metaclass=Singleton):
                 and self.DEPLOYMENT_NAME
                 and self.OPENAI_API_VERSION
             ),
+            LLMProviderEnum.OLLAMA: self._is_valid_llm_key(self.OLLAMA_API_BASE),
         }
         provider = None
         for k, v in mappings.items():
@@ -107,6 +109,8 @@ class Config(metaclass=Singleton):
 
         if provider is LLMProviderEnum.GEMINI and not require_python_version(req_version=(3, 10)):
             warnings.warn("Use Gemini requires Python >= 3.10")
+        if self.openai_api_key and self.openai_api_model:
+            logger.info(f"OpenAI API Model: {self.openai_api_model}")
         if provider:
             logger.info(f"API: {provider}")
             return provider
@@ -126,6 +130,8 @@ class Config(metaclass=Singleton):
         self.open_llm_api_model = self._get("OPEN_LLM_API_MODEL")
         self.fireworks_api_key = self._get("FIREWORKS_API_KEY")
         self.gemini_api_key = self._get("GEMINI_API_KEY")
+        self.ollama_api_base = self._get("OLLAMA_API_BASE")
+        self.ollama_api_model = self._get("OLLAMA_API_MODEL")
         _ = self.get_default_llm_provider_enum()
 
         # self.openai_base_url = self._get("OPENAI_BASE_URL")
