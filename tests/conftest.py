@@ -15,15 +15,15 @@ import pytest
 
 from metagpt.config import CONFIG, Config
 from metagpt.const import DEFAULT_WORKSPACE_ROOT
+from metagpt.llm import LLM
 from metagpt.logs import logger
-from metagpt.provider.openai_api import OpenAIGPTAPI as GPTAPI
 from metagpt.utils.git_repository import GitRepository
 
 
 class Context:
     def __init__(self):
         self._llm_ui = None
-        self._llm_api = GPTAPI()
+        self._llm_api = LLM(provider=CONFIG.get_default_llm_provider_enum())
 
     @property
     def llm_api(self):
