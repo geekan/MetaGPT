@@ -29,7 +29,7 @@ from tenacity import (
 )
 
 from metagpt.config import CONFIG, Config, LLMProviderEnum
-from metagpt.logs import logger
+from metagpt.logs import log_llm_stream, logger
 from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.provider.constant import GENERAL_FUNCTION_SCHEMA, GENERAL_TOOL_CHOICE
 from metagpt.provider.llm_provider_registry import register_provider
@@ -222,7 +222,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
                 chunk_message = chunk.choices[0].delta  # extract the message
                 collected_messages.append(chunk_message)  # save the message
                 if chunk_message.content:
-                    print(chunk_message.content, end="")
+                    log_llm_stream(chunk_message.content)
         print()
 
         full_reply_content = "".join([m.content for m in collected_messages if m.content])
