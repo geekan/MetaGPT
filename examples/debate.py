@@ -63,7 +63,7 @@ class Debator(Role):
         return len(self._rc.news)
 
     async def _act(self) -> Message:
-        logger.info(f"{self._setting}: ready to {self._rc.todo}")
+        logger.info(f"{self._setting}: to do {self._rc.todo}({self._rc.todo.name})")
         todo = self._rc.todo  # An instance of SpeakAloud
 
         memories = self.get_memories()

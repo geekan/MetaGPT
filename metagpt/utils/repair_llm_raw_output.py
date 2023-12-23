@@ -196,6 +196,8 @@ def repair_invalid_json(output: str, error: str) -> str:
             new_line = f'"{line}'
         elif '",' in line:
             new_line = line[:-2] + "',"
+        else:
+            new_line = line
 
         arr[line_no] = new_line
         output = "\n".join(arr)

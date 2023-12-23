@@ -12,6 +12,7 @@ from typing import Any, Optional, Union
 
 from pydantic import BaseModel, Field
 
+from metagpt.actions.action_node import ActionNode
 from metagpt.llm import LLM
 from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.schema import (
@@ -30,7 +31,7 @@ class Action(BaseModel):
     context: Union[dict, CodingContext, CodeSummarizeContext, TestingContext, RunCodeContext, str, None] = ""
     prefix = ""  # aask*时会加上prefix，作为system_message
     desc = ""  # for skill manager
-    # node: ActionNode = Field(default_factory=ActionNode, exclude=True)
+    node: ActionNode = Field(default=None, exclude=True)
 
     # builtin variables
     builtin_class_name: str = ""
@@ -38,12 +39,20 @@ class Action(BaseModel):
     class Config:
         arbitrary_types_allowed = True
 
+    def __init_with_instruction(self, instruction: str):
+        """Initialize action with instruction"""
+        self.node = ActionNode(key=self.name, expected_type=str, instruction=instruction, example="", schema="raw")
+        return self
+
     def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
 
         # deserialize child classes dynamically for inherited `action`
         object.__setattr__(self, "builtin_class_name", self.__class__.__name__)
         self.__fields__["builtin_class_name"].default = self.__class__.__name__
+
+        if "instruction" in kwargs:
+            self.__init_with_instruction(kwargs["instruction"])
 
     def __init_subclass__(cls, **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)
@@ -58,6 +67,9 @@ class Action(BaseModel):
     def set_prefix(self, prefix):
         """Set prefix for later usage"""
         self.prefix = prefix
+        self.llm.system_prompt = prefix
+        if self.node:
+            self.node.llm = self.llm
         return self
 
     def __str__(self):
@@ -68,11 +80,17 @@ class Action(BaseModel):
 
     async def _aask(self, prompt: str, system_msgs: Optional[list[str]] = None) -> str:
         """Append default prefix"""
-        if not system_msgs:
-            system_msgs = []
-        system_msgs.append(self.prefix)
         return await self.llm.aask(prompt, system_msgs)
+
+    async def _run_action_node(self, *args, **kwargs):
+        """Run action node"""
+        msgs = args[0]
+        context = "## History Messages\n"
+        context += "\n".join([f"{idx}: {i}" for idx, i in enumerate(reversed(msgs))])
+        return await self.node.fill(context=context, llm=self.llm)
 
     async def run(self, *args, **kwargs):
         """Run action"""
+        if self.node:
+            return await self._run_action_node(*args, **kwargs)
         raise NotImplementedError("The run method should be implemented in a subclass.")

@@ -9,7 +9,7 @@ import pytest
 
 from metagpt.provider.google_gemini_api import GeminiGPTAPI
 
-messages = [{"role": "user", "content": "who are you"}]
+messages = [{"role": "user", "parts": "who are you"}]
 
 
 @dataclass

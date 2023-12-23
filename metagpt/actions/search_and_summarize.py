@@ -5,7 +5,7 @@
 @Author  : alexanderwu
 @File    : search_google.py
 """
-from typing import Optional
+from typing import Any, Optional
 
 import pydantic
 from pydantic import Field, root_validator
@@ -111,7 +111,7 @@ class SearchAndSummarize(Action):
     llm: BaseGPTAPI = Field(default_factory=LLM)
     config: None = Field(default_factory=Config)
     engine: Optional[SearchEngineType] = CONFIG.search_engine
-    search_func: Optional[str] = None
+    search_func: Optional[Any] = None
     search_engine: SearchEngine = None
 
     result = ""

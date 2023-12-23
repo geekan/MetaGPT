@@ -160,7 +160,10 @@ class Message(BaseModel):
 
     def __str__(self):
         # prefix = '-'.join([self.role, str(self.cause_by)])
-        return f"{self.role}: {self.content}"
+        if self.instruct_content:
+            return f"{self.role}: {self.instruct_content.dict()}"
+        else:
+            return f"{self.role}: {self.content}"
 
     def __repr__(self):
         return self.__str__()

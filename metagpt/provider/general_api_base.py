@@ -1,3 +1,7 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# @Desc   : refs to openai 0.x sdk
+
 import asyncio
 import json
 import os
@@ -43,8 +47,8 @@ MAX_CONNECTION_RETRIES = 2
 # Has one attribute per thread, 'session'.
 _thread_context = threading.local()
 
-OPENAI_LOG = os.environ.get("OPENAI_LOG")
-OPENAI_LOG = "debug"
+LLM_LOG = os.environ.get("LLM_LOG")
+LLM_LOG = "debug"
 
 
 class ApiType(Enum):
@@ -74,8 +78,8 @@ api_key_to_header = (
 
 
 def _console_log_level():
-    if OPENAI_LOG in ["debug", "info"]:
-        return OPENAI_LOG
+    if LLM_LOG in ["debug", "info"]:
+        return LLM_LOG
     else:
         return None
 
@@ -140,7 +144,7 @@ class OpenAIResponse:
 
     @property
     def organization(self) -> Optional[str]:
-        return self._headers.get("OpenAI-Organization")
+        return self._headers.get("LLM-Organization")
 
     @property
     def response_ms(self) -> Optional[int]:
@@ -478,7 +482,7 @@ class APIRequestor:
             error_data["message"] += "\n\n" + error_data["internal_message"]
 
         log_info(
-            "OpenAI API error received",
+            "LLM API error received",
             error_code=error_data.get("code"),
             error_type=error_data.get("type"),
             error_message=error_data.get("message"),
@@ -516,7 +520,7 @@ class APIRequestor:
             )
 
     def request_headers(self, method: str, extra, request_id: Optional[str]) -> Dict[str, str]:
-        user_agent = "OpenAI/v1 PythonBindings/%s" % (version.VERSION,)
+        user_agent = "LLM/v1 PythonBindings/%s" % (version.VERSION,)
 
         uname_without_node = " ".join(v for k, v in platform.uname()._asdict().items() if k != "node")
         ua = {
@@ -530,17 +534,17 @@ class APIRequestor:
         }
 
         headers = {
-            "X-OpenAI-Client-User-Agent": json.dumps(ua),
+            "X-LLM-Client-User-Agent": json.dumps(ua),
             "User-Agent": user_agent,
         }
 
         headers.update(api_key_to_header(self.api_type, self.api_key))
 
         if self.organization:
-            headers["OpenAI-Organization"] = self.organization
+            headers["LLM-Organization"] = self.organization
 
         if self.api_version is not None and self.api_type == ApiType.OPEN_AI:
-            headers["OpenAI-Version"] = self.api_version
+            headers["LLM-Version"] = self.api_version
         if request_id is not None:
             headers["X-Request-Id"] = request_id
         headers.update(extra)
@@ -592,15 +596,14 @@ class APIRequestor:
                 headers["Content-Type"] = "application/json"
         else:
             raise openai.APIConnectionError(
-                "Unrecognized HTTP method %r. This may indicate a bug in the "
-                "OpenAI bindings. Please contact us through our help center at help.openai.com for "
-                "assistance." % (method,)
+                message=f"Unrecognized HTTP method {method}. This may indicate a bug in the LLM bindings.",
+                request=None,
             )
 
         headers = self.request_headers(method, headers, request_id)
 
-        log_debug("Request to OpenAI API", method=method, path=abs_url)
-        log_debug("Post details", data=data, api_version=self.api_version)
+        # log_debug("Request to LLM API", method=method, path=abs_url)
+        # log_debug("Post details", data=data, api_version=self.api_version)
 
         return abs_url, headers, data
 
@@ -639,14 +642,14 @@ class APIRequestor:
         except requests.exceptions.Timeout as e:
             raise openai.APITimeoutError("Request timed out: {}".format(e)) from e
         except requests.exceptions.RequestException as e:
-            raise openai.APIConnectionError("Error communicating with OpenAI: {}".format(e)) from e
-        log_debug(
-            "OpenAI API response",
-            path=abs_url,
-            response_code=result.status_code,
-            processing_ms=result.headers.get("OpenAI-Processing-Ms"),
-            request_id=result.headers.get("X-Request-Id"),
-        )
+            raise openai.APIConnectionError(message="Error communicating with LLM: {}".format(e), request=None) from e
+        # log_debug(
+        #     "LLM API response",
+        #     path=abs_url,
+        #     response_code=result.status_code,
+        #     processing_ms=result.headers.get("LLM-Processing-Ms"),
+        #     request_id=result.headers.get("X-Request-Id"),
+        # )
         return result
 
     async def arequest_raw(
@@ -685,18 +688,18 @@ class APIRequestor:
         }
         try:
             result = await session.request(**request_kwargs)
-            log_info(
-                "OpenAI API response",
-                path=abs_url,
-                response_code=result.status,
-                processing_ms=result.headers.get("OpenAI-Processing-Ms"),
-                request_id=result.headers.get("X-Request-Id"),
-            )
+            # log_info(
+            #     "LLM API response",
+            #     path=abs_url,
+            #     response_code=result.status,
+            #     processing_ms=result.headers.get("LLM-Processing-Ms"),
+            #     request_id=result.headers.get("X-Request-Id"),
+            # )
             return result
         except (aiohttp.ServerTimeoutError, asyncio.TimeoutError) as e:
             raise openai.APITimeoutError("Request timed out") from e
         except aiohttp.ClientError as e:
-            raise openai.APIConnectionError("Error communicating with OpenAI") from e
+            raise openai.APIConnectionError(message="Error communicating with LLM", request=None) from e
 
     def _interpret_response(
         self, result: requests.Response, stream: bool
