@@ -180,9 +180,11 @@ class WebBrowseAndSummarize(Action):
     llm: BaseGPTAPI = Field(default_factory=LLM)
     desc: str = "Explore the web and provide summaries of articles and webpages."
     browse_func: Union[Callable[[list[str]], None], None] = None
-    web_browser_engine: WebBrowserEngine = WebBrowserEngine(
-        engine=WebBrowserEngineType.CUSTOM if browse_func else None,
-        run_func=browse_func,
+    web_browser_engine: WebBrowserEngine = Field(
+        default_factory=lambda: WebBrowserEngine(
+            engine=WebBrowserEngineType.CUSTOM if WebBrowseAndSummarize.browse_func else None,
+            run_func=WebBrowseAndSummarize.browse_func,
+        )
     )
 
     def __init__(self, **kwargs):
