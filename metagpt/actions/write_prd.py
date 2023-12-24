@@ -69,7 +69,7 @@ class WritePRD(Action):
     content: Optional[str] = None
     llm: BaseGPTAPI = Field(default_factory=LLM)
 
-    async def run(self, with_messages, schema=CONFIG.prompt_schema, *args, **kwargs) -> ActionOutput | Message:
+    async def run(self, with_messages, schema=CONFIG.prompt_format, *args, **kwargs) -> ActionOutput | Message:
         # Determine which requirement documents need to be rewritten: Use LLM to assess whether new requirements are
         # related to the PRD. If they are related, rewrite the PRD.
         docs_file_repo = CONFIG.git_repo.new_file_repository(relative_path=DOCS_FILE_REPO)
@@ -113,7 +113,7 @@ class WritePRD(Action):
         # optimization in subsequent steps.
         return ActionOutput(content=change_files.json(), instruct_content=change_files)
 
-    async def _run_new_requirement(self, requirements, schema=CONFIG.prompt_schema) -> ActionOutput:
+    async def _run_new_requirement(self, requirements, schema=CONFIG.prompt_format) -> ActionOutput:
         # sas = SearchAndSummarize()
         # # rsp = await sas.run(context=requirements, system_text=SEARCH_AND_SUMMARIZE_SYSTEM_EN_US)
         # rsp = ""
@@ -132,7 +132,7 @@ class WritePRD(Action):
         node = await WP_IS_RELATIVE_NODE.fill(context, self.llm)
         return node.get("is_relative") == "YES"
 
-    async def _merge(self, new_requirement_doc, prd_doc, schema=CONFIG.prompt_schema) -> Document:
+    async def _merge(self, new_requirement_doc, prd_doc, schema=CONFIG.prompt_format) -> Document:
         if not CONFIG.project_name:
             CONFIG.project_name = Path(CONFIG.project_path).name
         prompt = NEW_REQ_TEMPLATE.format(requirements=new_requirement_doc.content, old_prd=prd_doc.content)

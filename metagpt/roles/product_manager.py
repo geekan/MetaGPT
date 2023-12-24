@@ -7,7 +7,6 @@
 @Modified By: mashenquan, 2023/11/27. Add `PrepareDocuments` action according to Section 2.2.3.5.1 of RFC 135.
 """
 
-
 from metagpt.actions import UserRequirement, WritePRD
 from metagpt.actions.prepare_documents import PrepareDocuments
 from metagpt.config import CONFIG
@@ -31,21 +30,22 @@ class ProductManager(Role):
     goal: str = "efficiently create a successful product that meets market demands and user expectations"
     constraints: str = "utilize the same language as the user requirements for seamless communication"
 
+    todo_desc: str = any_to_name(PrepareDocuments)
+
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 
         self._init_actions([PrepareDocuments, WritePRD])
         self._watch([UserRequirement, PrepareDocuments])
-        self._todo = any_to_name(PrepareDocuments)
 
-    async def _think(self) -> None:
+    async def _think(self) -> bool:
         """Decide what to do"""
         if CONFIG.git_repo:
             self._set_state(1)
         else:
             self._set_state(0)
-            self._todo = any_to_name(WritePRD)
-        return self._rc.todo
+            self.todo_desc = any_to_name(WritePRD)
+        return bool(self._rc.todo)
 
     async def _observe(self, ignore_memory=False) -> int:
         return await super(ProductManager, self)._observe(ignore_memory=True)
@@ -53,4 +53,4 @@ class ProductManager(Role):
     @property
     def todo(self) -> str:
         """AgentStore uses this attribute to display to the user what actions the current role should take."""
-        return self._todo
+        return self.todo_desc

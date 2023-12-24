@@ -6,7 +6,7 @@
 from __future__ import annotations
 
 import importlib
-from typing import Any, Callable, Coroutine, Dict, Literal, overload
+from typing import Any, Callable, Coroutine, Literal, overload
 
 from metagpt.config import CONFIG
 from metagpt.tools import WebBrowserEngineType
@@ -16,7 +16,6 @@ from metagpt.utils.parse_html import WebPage
 class WebBrowserEngine:
     def __init__(
         self,
-        options: Dict,
         engine: WebBrowserEngineType | None = None,
         run_func: Callable[..., Coroutine[Any, Any, WebPage | list[WebPage]]] | None = None,
     ):

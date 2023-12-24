@@ -129,7 +129,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         )
 
         async for chunk in response:
-            chunk_message = chunk.choices[0].delta.content or ""  # extract the message
+            chunk_message = chunk.choices[0].delta.content or "" if chunk.choices else ""  # extract the message
             yield chunk_message
 
     def _cons_kwargs(self, messages: list[dict], timeout=3, **configs) -> dict:
@@ -143,11 +143,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         }
         if configs:
             kwargs.update(configs)
-        try:
-            default_timeout = int(CONFIG.TIMEOUT) if CONFIG.TIMEOUT else 0
-        except ValueError:
-            default_timeout = 0
-        kwargs["timeout"] = max(default_timeout, timeout)
+        kwargs["timeout"] = max(CONFIG.timeout, timeout)
 
         return kwargs
 
