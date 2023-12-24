@@ -1,8 +1,6 @@
-"""wutils: handy tools
-"""
+"""Setup script for MetaGPT."""
 import subprocess
-from codecs import open
-from os import path
+from pathlib import Path
 
 from setuptools import Command, find_packages, setup
 
@@ -20,13 +18,9 @@ class InstallMermaidCLI(Command):
             print(f"Error occurred: {e.output}")
 
 
-here = path.abspath(path.dirname(__file__))
-
-with open(path.join(here, "README.md"), encoding="utf-8") as f:
-    long_description = f.read()
-
-with open(path.join(here, "requirements.txt"), encoding="utf-8") as f:
-    requirements = [line.strip() for line in f if line]
+here = Path(__file__).resolve().parent
+long_description = (here / "README.md").read_text(encoding="utf-8")
+requirements = (here / "requirements.txt").read_text(encoding="utf-8").splitlines()
 
 setup(
     name="metagpt",
