@@ -48,7 +48,7 @@ def check_cmd_exists(command) -> int:
     return result
 
 
-def require_python_version(req_version: tuple[int]) -> bool:
+def require_python_version(req_version: Tuple) -> bool:
     if not (2 <= len(req_version) <= 3):
         raise ValueError("req_version should be (3, 9) or (3, 10, 13)")
     return True if sys.version_info > req_version else False

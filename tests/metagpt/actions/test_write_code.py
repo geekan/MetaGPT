@@ -12,7 +12,7 @@ from metagpt.actions.write_code import WriteCode
 from metagpt.logs import logger
 from metagpt.provider.openai_api import OpenAIGPTAPI as LLM
 from metagpt.schema import CodingContext, Document
-from tests.metagpt.actions.mock import TASKS_2, WRITE_CODE_PROMPT_SAMPLE
+from tests.metagpt.actions.mock_markdown import TASKS_2, WRITE_CODE_PROMPT_SAMPLE
 
 
 @pytest.mark.asyncio
