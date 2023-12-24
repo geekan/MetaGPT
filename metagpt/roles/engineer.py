@@ -78,9 +78,8 @@ class Engineer(Role):
     n_borg: int = 1
     use_code_review: bool = False
     code_todos: list = []
-    summarize_todos = []
-
-    todo_desc: str = any_to_name(WriteCode)
+    summarize_todos: list = []
+    next_todo_action: str = ""
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
@@ -89,6 +88,7 @@ class Engineer(Role):
         self._watch([WriteTasks, SummarizeCode, WriteCode, WriteCodeReview, FixBug])
         self.code_todos = []
         self.summarize_todos = []
+        self.next_todo_action = any_to_name(WriteCode)
 
     @staticmethod
     def _parse_tasks(task_msg: Document) -> list[str]:
@@ -132,10 +132,10 @@ class Engineer(Role):
         if self._rc.todo is None:
             return None
         if isinstance(self._rc.todo, WriteCode):
-            self.todo_desc = any_to_name(SummarizeCode)
+            self.next_todo_action = any_to_name(SummarizeCode)
             return await self._act_write_code()
         if isinstance(self._rc.todo, SummarizeCode):
-            self.todo_desc = any_to_name(WriteCode)
+            self.next_todo_action = any_to_name(WriteCode)
             return await self._act_summarize()
         return None
 
@@ -311,4 +311,4 @@ class Engineer(Role):
     @property
     def todo(self) -> str:
         """AgentStore uses this attribute to display to the user what actions the current role should take."""
-        return self.todo_desc
+        return self.next_todo_action

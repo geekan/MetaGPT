@@ -28,7 +28,7 @@ from tenacity import (
 )
 
 from metagpt.config import CONFIG, Config, LLMProviderEnum
-from metagpt.const import DEFAULT_MAX_TOKENS
+from metagpt.const import DEFAULT_MAX_TOKENS, DEFAULT_TOKEN_SIZE
 from metagpt.logs import logger
 from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.provider.constant import GENERAL_FUNCTION_SCHEMA, GENERAL_TOOL_CHOICE
