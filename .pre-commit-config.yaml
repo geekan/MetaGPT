@@ -1,7 +1,7 @@
 default_stages: [ commit ]
 
 # Install
-# 1. pip install pre-commit
+# 1. pip install pre-commit isort black
 # 2. pre-commit install(the first time you download the repo, it will be cached for future use)
 repos:
   - repo: https://github.com/pycqa/isort
