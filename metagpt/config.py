@@ -185,7 +185,7 @@ class Config(metaclass=Singleton):
             self._get("WORKSPACE_UID") or f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}-{uuid4().hex[-8:]}"
         )
         self.repair_llm_output = self._get("REPAIR_LLM_OUTPUT", False)
-        self.prompt_format = self._get("PROMPT_FORMAT", "json")
+        self.prompt_schema = self._get("PROMPT_FORMAT", "json")
         self.workspace_path = Path(self._get("WORKSPACE_PATH", DEFAULT_WORKSPACE_ROOT))
         val = self._get("WORKSPACE_PATH_WITH_UID")
         if val and val.lower() == "true":  # for agent

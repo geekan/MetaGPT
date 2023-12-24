@@ -21,7 +21,7 @@ class RebuildClassView(Action):
     def __init__(self, name="", context=None, llm=None):
         super().__init__(name=name, context=context, llm=llm)
 
-    async def run(self, with_messages=None, format=CONFIG.prompt_format):
+    async def run(self, with_messages=None, format=CONFIG.prompt_schema):
         graph_repo_pathname = CONFIG.git_repo.workdir / GRAPH_REPO_FILE_REPO / CONFIG.git_repo.workdir.name
         graph_db = await DiGraphRepository.load_from(str(graph_repo_pathname.with_suffix(".json")))
         repo_parser = RepoParser(base_directory=self.context)

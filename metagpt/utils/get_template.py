@@ -8,7 +8,7 @@
 from metagpt.config import CONFIG
 
 
-def get_template(templates, schema=CONFIG.prompt_format):
+def get_template(templates, schema=CONFIG.prompt_schema):
     selected_templates = templates.get(schema)
     if selected_templates is None:
         raise ValueError(f"Can't find {schema} in passed in templates")
