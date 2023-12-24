@@ -31,7 +31,6 @@ tenacity==8.2.2
 tiktoken==0.5.2
 tqdm==4.64.0
 #unstructured[local-inference]
-# playwright
 # selenium>4
 # webdriver_manager<3.9
 anthropic==0.3.6
@@ -58,6 +57,5 @@ gitignore-parser==0.1.9
 # connexion[swagger-ui]
 websockets~=12.0
 networkx~=3.2.1
-pylint~=3.0.3
 google-generativeai==0.3.1
 playwright==1.40.0
