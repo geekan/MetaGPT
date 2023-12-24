@@ -14,6 +14,7 @@ from typing import Any, Dict, List, Optional, Tuple, Type
 from pydantic import BaseModel, create_model, root_validator, validator
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
+from metagpt.config import CONFIG
 from metagpt.llm import BaseGPTAPI
 from metagpt.logs import logger
 from metagpt.provider.postprecess.llm_output_postprecess import llm_output_postprecess
@@ -260,9 +261,10 @@ class ActionNode:
         output_data_mapping: dict,
         system_msgs: Optional[list[str]] = None,
         schema="markdown",  # compatible to original format
+        timeout=CONFIG.timeout,
     ) -> (str, BaseModel):
         """Use ActionOutput to wrap the output of aask"""
-        content = await self.llm.aask(prompt, system_msgs)
+        content = await self.llm.aask(prompt, system_msgs, timeout=timeout)
         logger.debug(f"llm raw output:\n{content}")
         output_class = self.create_model_class(output_class_name, output_data_mapping)
 
@@ -289,13 +291,13 @@ class ActionNode:
     def set_context(self, context):
         self.set_recursive("context", context)
 
-    async def simple_fill(self, schema, mode):
+    async def simple_fill(self, schema, mode, timeout=CONFIG.timeout):
         prompt = self.compile(context=self.context, schema=schema, mode=mode)
 
         if schema != "raw":
             mapping = self.get_mapping(mode)
             class_name = f"{self.key}_AN"
-            content, scontent = await self._aask_v1(prompt, class_name, mapping, schema=schema)
+            content, scontent = await self._aask_v1(prompt, class_name, mapping, schema=schema, timeout=timeout)
             self.content = content
             self.instruct_content = scontent
         else:
@@ -304,7 +306,7 @@ class ActionNode:
 
         return self
 
-    async def fill(self, context, llm, schema="json", mode="auto", strgy="simple"):
+    async def fill(self, context, llm, schema="json", mode="auto", strgy="simple", timeout=CONFIG.timeout):
         """Fill the node(s) with mode.
 
         :param context: Everything we should know when filling node.
@@ -320,6 +322,7 @@ class ActionNode:
         :param strgy: simple/complex
          - simple: run only once
          - complex: run each node
+        :param timeout: Timeout for llm invocation.
         :return: self
         """
         self.set_llm(llm)
@@ -328,12 +331,12 @@ class ActionNode:
             schema = self.schema
 
         if strgy == "simple":
-            return await self.simple_fill(schema=schema, mode=mode)
+            return await self.simple_fill(schema=schema, mode=mode, timeout=timeout)
         elif strgy == "complex":
             # 这里隐式假设了拥有children
             tmp = {}
             for _, i in self.children.items():
-                child = await i.simple_fill(schema=schema, mode=mode)
+                child = await i.simple_fill(schema=schema, mode=mode, timeout=timeout)
                 tmp.update(child.instruct_content.dict())
             cls = self.create_children_class()
             self.instruct_content = cls(**tmp)

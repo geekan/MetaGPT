@@ -7,7 +7,6 @@
 @Modified By: mashenquan, 2023/11/27. Add `PrepareDocuments` action according to Section 2.2.3.5.1 of RFC 135.
 """
 
-
 from metagpt.actions import UserRequirement, WritePRD
 from metagpt.actions.prepare_documents import PrepareDocuments
 from metagpt.config import CONFIG
@@ -39,14 +38,19 @@ class ProductManager(Role):
         self._watch([UserRequirement, PrepareDocuments])
         self.todo_action = any_to_name(PrepareDocuments)
 
-    async def _think(self) -> None:
+    async def _think(self) -> bool:
         """Decide what to do"""
         if CONFIG.git_repo:
             self._set_state(1)
         else:
             self._set_state(0)
             self.todo_action = any_to_name(WritePRD)
-        return self._rc.todo
+        return bool(self._rc.todo)
 
     async def _observe(self, ignore_memory=False) -> int:
         return await super()._observe(ignore_memory=True)
+
+    @property
+    def todo(self) -> str:
+        """AgentStore uses this attribute to display to the user what actions the current role should take."""
+        return self.todo_action

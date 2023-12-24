@@ -64,10 +64,6 @@ class AzureOpenAIGPTAPI(OpenAIGPTAPI):
         }
         if configs:
             kwargs.update(configs)
-        try:
-            default_timeout = int(CONFIG.TIMEOUT) if CONFIG.TIMEOUT else 0
-        except ValueError:
-            default_timeout = 0
-        kwargs["timeout"] = max(default_timeout, timeout)
+        kwargs["timeout"] = max(CONFIG.timeout, timeout)
 
         return kwargs

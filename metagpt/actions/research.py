@@ -181,7 +181,6 @@ class WebBrowseAndSummarize(Action):
     desc: str = "Explore the web and provide summaries of articles and webpages."
     browse_func: Union[Callable[[list[str]], None], None] = None
     web_browser_engine: WebBrowserEngine = WebBrowserEngine(
-        options={},  # FIXME: REMOVE options?
         engine=WebBrowserEngineType.CUSTOM if browse_func else None,
         run_func=browse_func,
     )

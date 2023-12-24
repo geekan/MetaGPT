@@ -311,4 +311,4 @@ class Engineer(Role):
     @property
     def todo(self) -> str:
         """AgentStore uses this attribute to display to the user what actions the current role should take."""
-        return self._next_todo
+        return self.next_todo_action
