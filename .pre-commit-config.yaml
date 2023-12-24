@@ -1,7 +1,7 @@
 default_stages: [ commit ]
 
 # Install
-# 1. pip install pre-commit
+# 1. pip install metagpt[dev]
 # 2. pre-commit install
 repos:
   - repo: https://github.com/pycqa/isort

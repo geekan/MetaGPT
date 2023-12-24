@@ -49,7 +49,7 @@ setup(
         "search-ddg": ["duckduckgo-search==3.8.5"],
         "pyppeteer": ["pyppeteer>=1.0.2"],
         "ocr": ["paddlepaddle==2.4.2", "paddleocr>=2.0.1", "tabulate==0.9.0"],
-        "dev": ["pylint~=3.0.3", "black~=21.9b0", "isort~=5.9.3", "pre-commit~=2.15.0"],
+        "dev": ["pylint~=3.0.3", "black~=23.3.0", "isort~=5.12.0", "pre-commit~=3.6.0"],
         "test": ["pytest", "pytest-cov", "pytest-asyncio", "pytest-mock"],
     },
     cmdclass={
