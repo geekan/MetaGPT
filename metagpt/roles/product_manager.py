@@ -30,13 +30,14 @@ class ProductManager(Role):
     profile: str = "Product Manager"
     goal: str = "efficiently create a successful product that meets market demands and user expectations"
     constraints: str = "utilize the same language as the user requirements for seamless communication"
+    todo_action: str = ""
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 
         self._init_actions([PrepareDocuments, WritePRD])
         self._watch([UserRequirement, PrepareDocuments])
-        self._todo = any_to_name(PrepareDocuments)
+        self.todo_action = any_to_name(PrepareDocuments)
 
     async def _think(self) -> None:
         """Decide what to do"""
@@ -44,13 +45,8 @@ class ProductManager(Role):
             self._set_state(1)
         else:
             self._set_state(0)
-            self._todo = any_to_name(WritePRD)
+            self.todo_action = any_to_name(WritePRD)
         return self._rc.todo
 
     async def _observe(self, ignore_memory=False) -> int:
-        return await super(ProductManager, self)._observe(ignore_memory=True)
-
-    @property
-    def todo(self) -> str:
-        """AgentStore uses this attribute to display to the user what actions the current role should take."""
-        return self._todo
+        return await super()._observe(ignore_memory=True)

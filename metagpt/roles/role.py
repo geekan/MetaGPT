@@ -346,11 +346,6 @@ class Role(BaseModel):
             self.refresh_system_message()  # add env message to system message
 
     @property
-    def subscription(self) -> Set:
-        """The labels for messages to be consumed by the Role object."""
-        return set(self._subscription)
-
-    @property
     def action_count(self):
         """Return number of action"""
         return len(self._actions)

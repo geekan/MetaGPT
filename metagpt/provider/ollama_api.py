@@ -19,7 +19,8 @@ from metagpt.logs import logger
 from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.provider.general_api_requestor import GeneralAPIRequestor
 from metagpt.provider.llm_provider_registry import register_provider
-from metagpt.provider.openai_api import CostManager, log_and_reraise
+from metagpt.provider.openai_api import log_and_reraise
+from metagpt.utils.cost_manager import CostManager
 
 
 class OllamaCostManager(CostManager):
