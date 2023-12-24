@@ -13,7 +13,7 @@ from metagpt.provider.open_llm_api import OpenLLMGPTAPI
 from metagpt.provider.openai_api import OpenAIGPTAPI
 from metagpt.provider.zhipuai_api import ZhiPuAIGPTAPI
 from metagpt.provider.azure_openai_api import AzureOpenAIGPTAPI
-from metagpt.provider.metagpt_api import METAGPTAPI
+from metagpt.provider.metagpt_api import MetaGPTAPI
 
 __all__ = [
     "FireWorksGPTAPI",
@@ -22,6 +22,6 @@ __all__ = [
     "OpenAIGPTAPI",
     "ZhiPuAIGPTAPI",
     "AzureOpenAIGPTAPI",
-    "METAGPTAPI",
+    "MetaGPTAPI",
     "OllamaGPTAPI",
 ]
