@@ -15,7 +15,7 @@ import time
 from typing import List, Union
 
 import openai
-from openai import APIConnectionError, AsyncOpenAI, AsyncStream, OpenAI, RateLimitError
+from openai import APIConnectionError, AsyncOpenAI, AsyncStream, OpenAI
 from openai._base_client import AsyncHttpxClientWrapper, SyncHttpxClientWrapper
 from openai.types import CompletionUsage
 from openai.types.chat import ChatCompletion, ChatCompletionChunk
@@ -170,13 +170,6 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         after=after_log(logger, logger.level("WARNING").name),
         retry=retry_if_exception_type(APIConnectionError),
         retry_error_callback=log_and_reraise,
-    )
-    @retry(
-        wait=wait_random_exponential(min=1, max=60),
-        stop=stop_after_attempt(6),
-        after=after_log(logger, logger.level("WARNING").name),
-        retry=retry_if_exception_type(RateLimitError),
-        reraise=True,
     )
     async def acompletion_text(self, messages: list[dict], stream=False, generator: bool = False, timeout=3) -> str:
         """when streaming, print each token in place."""
@@ -337,7 +330,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             try:
                 CONFIG.cost_manager.update_cost(usage.prompt_tokens, usage.completion_tokens, self.model)
             except Exception as e:
-                logger.error("updating costs failed!", e)
+                logger.error(f"updating costs failed!, exp: {e}")
 
     def get_costs(self) -> Costs:
         return CONFIG.cost_manager.get_costs()
