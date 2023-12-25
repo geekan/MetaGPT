@@ -127,7 +127,7 @@ class OllamaGPTAPI(BaseGPTAPI):
             if not chunk.get("done", False):
                 content = self.get_choice_text(chunk)
                 collected_content.append(content)
-                log_llm_stream(content, end="")
+                log_llm_stream(content)
             else:
                 # stream finished
                 usage = self.get_usage(chunk)

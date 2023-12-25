@@ -119,7 +119,7 @@ class GeminiGPTAPI(BaseGPTAPI):
         collected_content = []
         async for chunk in resp:
             content = chunk.text
-            log_llm_stream(content, end="")
+            log_llm_stream(content)
             collected_content.append(content)
 
         full_content = "".join(collected_content)
