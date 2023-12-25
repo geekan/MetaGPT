@@ -23,7 +23,7 @@ from abc import ABC
 from asyncio import Queue, QueueEmpty, wait_for
 from json import JSONDecodeError
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Type, TypedDict, TypeVar
+from typing import Any, Dict, List, Optional, Set, Type, TypeVar
 
 from pydantic import BaseModel, Field
 
@@ -46,7 +46,7 @@ from metagpt.utils.serialize import (
 )
 
 
-class RawMessage(TypedDict):
+class SimpleMessage(BaseModel):
     content: str
     role: str
 

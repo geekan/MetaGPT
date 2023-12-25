@@ -11,23 +11,23 @@ import base64
 
 import aiohttp
 import requests
-from openai import AsyncOpenAI
 
-from metagpt.config import CONFIG, Config
+from metagpt.config import Config
+from metagpt.llm import LLM
 from metagpt.logs import logger
 
 
 class OpenAIText2Image:
-    def __init__(self, openai_api_key):
+    def __init__(self):
         """
         :param openai_api_key: OpenAI API key, For more details, checkout: `https://platform.openai.com/account/api-keys`
         """
-        self.openai_api_key = openai_api_key if openai_api_key else CONFIG.OPENAI_API_KEY
-        self._client = AsyncOpenAI(api_key=self.openai_api_key, base_url=CONFIG.openai_api_base)
+        self._llm = LLM()
+        self._client = self._llm.async_client
 
     def __del__(self):
-        if self._client:
-            self._client.close()
+        if self._llm:
+            self._llm.close()
 
     async def text_2_image(self, text, size_type="1024x1024"):
         """Text to image
@@ -66,19 +66,16 @@ class OpenAIText2Image:
 
 
 # Export
-async def oas3_openai_text_to_image(text, size_type: str = "1024x1024", openai_api_key=""):
+async def oas3_openai_text_to_image(text, size_type: str = "1024x1024"):
     """Text to image
 
     :param text: The text used for image conversion.
-    :param openai_api_key: OpenAI API key, For more details, checkout: `https://platform.openai.com/account/api-keys`
     :param size_type: One of ['256x256', '512x512', '1024x1024']
     :return: The image data is returned in Base64 encoding.
     """
     if not text:
         return ""
-    if not openai_api_key:
-        openai_api_key = CONFIG.OPENAI_API_KEY
-    return await OpenAIText2Image(openai_api_key).text_2_image(text, size_type=size_type)
+    return await OpenAIText2Image().text_2_image(text, size_type=size_type)
 
 
 if __name__ == "__main__":
