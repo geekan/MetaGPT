@@ -44,7 +44,7 @@ you should correctly import the necessary classes based on these file locations!
 
 class WriteTest(Action):
     name: str = "WriteTest"
-    context: Optional[str] = None
+    context: Optional[TestingContext] = None
     llm: BaseGPTAPI = Field(default_factory=LLM)
 
     async def write_code(self, prompt):

@@ -376,7 +376,7 @@ class Role(BaseModel):
 
         if self.recovered and self._rc.state >= 0:
             self._set_state(self._rc.state)  # action to run from recovered state
-            self.recovered = False  # avoid max_react_loop out of work
+            self.set_recovered(False)  # avoid max_react_loop out of work
             return True
 
         prompt = self._get_prefix()
@@ -433,17 +433,17 @@ class Role(BaseModel):
     async def _observe(self, ignore_memory=False) -> int:
         """Prepare new messages for processing from the message buffer and other sources."""
         # Read unprocessed messages from the msg buffer.
-        news = self._rc.msg_buffer.pop_all()
+        news = []
         if self.recovered:
             news = [self.latest_observed_msg] if self.latest_observed_msg else []
-        else:
-            self.latest_observed_msg = news[-1] if len(news) > 0 else None  # record the latest observed msg
-
+        if not news:
+            news = self._rc.msg_buffer.pop_all()
         # Store the read messages in your own memory to prevent duplicate processing.
         old_messages = [] if ignore_memory else self._rc.memory.get()
         self._rc.memory.add_batch(news)
         # Filter out messages of interest.
-        self._rc.news = self._find_news(news, old_messages)
+        self._rc.news = [n for n in news if n.cause_by in self._rc.watch and n not in old_messages]
+        self.latest_observed_msg = self._rc.news[-1] if self._rc.news else None  # record the latest observed msg
 
         # Design Rules:
         # If you need to further categorize Message objects, you can do so using the Message.set_meta function.
@@ -452,6 +452,29 @@ class Role(BaseModel):
         if news_text:
             logger.debug(f"{self._setting} observed: {news_text}")
         return len(self._rc.news)
+
+    # async def _observe(self, ignore_memory=False) -> int:
+    #     """Prepare new messages for processing from the message buffer and other sources."""
+    #     # Read unprocessed messages from the msg buffer.
+    #     news = self._rc.msg_buffer.pop_all()
+    #     if self.recovered:
+    #         news = [self.latest_observed_msg] if self.latest_observed_msg else []
+    #     else:
+    #         self.latest_observed_msg = news[-1] if len(news) > 0 else None  # record the latest observed msg
+    #
+    #     # Store the read messages in your own memory to prevent duplicate processing.
+    #     old_messages = [] if ignore_memory else self._rc.memory.get()
+    #     self._rc.memory.add_batch(news)
+    #     # Filter out messages of interest.
+    #     self._rc.news = self._find_news(news, old_messages)
+    #
+    #     # Design Rules:
+    #     # If you need to further categorize Message objects, you can do so using the Message.set_meta function.
+    #     # msg_buffer is a receiving buffer, avoid adding message data and operations to msg_buffer.
+    #     news_text = [f"{i.role}: {i.content[:20]}..." for i in self._rc.news]
+    #     if news_text:
+    #         logger.debug(f"{self._setting} observed: {news_text}")
+    #     return len(self._rc.news)
 
     def publish_message(self, msg):
         """If the role belongs to env, then the role's messages will be broadcast to env"""

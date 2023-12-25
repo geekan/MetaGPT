@@ -51,3 +51,7 @@ async def test_write_code_invalid_code(mocker):
 
     # Assert that the returned code is the same as the invalid code string
     assert code == "Invalid Code String"
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-s"])
