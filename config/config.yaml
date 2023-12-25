@@ -121,6 +121,7 @@ TIMEOUT: 60 # Timeout for llm invocation
 
 # PROMPT_FORMAT: json #json or markdown
 
+<<<<<<< HEAD
 ### Agent configurations
 # RAISE_NOT_CONFIG_ERROR: true  # "true" if the LLM key is not configured, throw a NotConfiguredException, else "false".
 # WORKSPACE_PATH_WITH_UID: false  # "true" if using `{workspace}/{uid}` as the workspace path; "false" use `{workspace}`.
@@ -141,3 +142,6 @@ TIMEOUT: 60 # Timeout for llm invocation
 #REDIS_PASSWORD: "YOUR_REDIS_PASSWORD"
 #REDIS_DB: "YOUR_REDIS_DB_INDEX, str, 0-based"
 
+=======
+# DISABLE_LLM_PROVIDER_CHECK: false
+>>>>>>> main

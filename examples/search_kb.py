@@ -6,10 +6,18 @@
 """
 import asyncio
 
-from metagpt.const import EXAMPLE_PATH
+from langchain.embeddings import OpenAIEmbeddings
+
+from metagpt.config import CONFIG
+from metagpt.const import DATA_PATH, EXAMPLE_PATH
 from metagpt.document_store import FaissStore
 from metagpt.logs import logger
 from metagpt.roles import Sales
+
+
+def get_store():
+    embedding = OpenAIEmbeddings(openai_api_key=CONFIG.openai_api_key, openai_api_base=CONFIG.openai_base_url)
+    return FaissStore(DATA_PATH / "example.json", embedding=embedding)
 
 
 async def search():

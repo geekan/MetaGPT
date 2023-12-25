@@ -8,6 +8,7 @@
 
 import sys
 from datetime import datetime
+from functools import partial
 
 from loguru import logger as _logger
 
@@ -26,3 +27,15 @@ def define_log_level(print_level="INFO", logfile_level="DEBUG"):
 
 
 logger = define_log_level()
+
+
+def log_llm_stream(msg):
+    _llm_stream_log(msg)
+
+
+def set_llm_stream_logfunc(func):
+    global _llm_stream_log
+    _llm_stream_log = func
+
+
+_llm_stream_log = partial(print, end="")
