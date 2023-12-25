@@ -1,6 +1,13 @@
+import os
+import tempfile
+
 import pytest
 
-from metagpt.actions.clone_function import CloneFunction, run_function_code
+from metagpt.actions.clone_function import (
+    CloneFunction,
+    run_function_code,
+    run_function_script,
+)
 
 source_code = """
 import pandas as pd
@@ -55,3 +62,40 @@ async def test_clone_function():
     assert not msg
     expected_df = get_expected_res()
     assert df.equals(expected_df)
+
+
+def test_run_function_script():
+    # 创建一个临时文件并写入脚本内容
+    script_content = """def valid_function(arg1, arg2):\n    return arg1 + arg2\n"""
+    with tempfile.NamedTemporaryFile(mode="w+", suffix=".py", delete=False) as temp_file:
+        temp_file.write(script_content)
+        temp_file_path = temp_file.name
+
+    invalid_script_content = """def valid_function(arg1, arg2)\n    return arg1 + arg2\n"""
+    with tempfile.NamedTemporaryFile(mode="w+", suffix=".py", delete=False) as error_temp_file:
+        error_temp_file.write(invalid_script_content)
+        error_temp_file_path = error_temp_file.name
+
+    try:
+        # 正常情况下运行脚本
+        result, _ = run_function_script(temp_file_path, "valid_function", 1, arg2=2)
+        assert result == 3
+
+        # 不存在的脚本路径
+        with pytest.raises(FileNotFoundError):
+            run_function_script("nonexistent/path/script.py", "valid_function", 1, arg2=2)
+
+        # 无效的脚本内容
+        result, traceback = run_function_script(error_temp_file_path, "invalid_function", 1, arg2=2)
+        assert not result
+        assert "SyntaxError" in traceback
+
+        # 函数调用失败的情况
+        result, traceback = run_function_script(temp_file_path, "function_that_raises_exception", 1, arg2=2)
+        assert not result
+        assert "KeyError" in traceback
+
+    finally:
+        # 删除临时文件
+        if os.path.exists(temp_file_path):
+            os.remove(temp_file_path)
