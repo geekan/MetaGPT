@@ -6,26 +6,20 @@
 @File    : talk_action.py
 @Desc    : Act as it’s a talk
 """
-import json
+from typing import Optional
 
-from metagpt.actions import Action, ActionOutput
+from metagpt.actions import Action
 from metagpt.config import CONFIG
 from metagpt.const import DEFAULT_LANGUAGE
-from metagpt.llm import LLMType
 from metagpt.logs import logger
+from metagpt.schema import Message
 
 
 class TalkAction(Action):
-    def __init__(self, name: str = "", talk="", history_summary="", knowledge="", context=None, llm=None, **kwargs):
-        context = context or {}
-        context["talk"] = talk
-        context["history_summery"] = history_summary
-        context["knowledge"] = knowledge
-        super(TalkAction, self).__init__(name=name, context=context, llm=llm)
-        self._talk = talk
-        self._history_summary = history_summary
-        self._knowledge = knowledge
-        self._rsp = None
+    context: str
+    history_summary: str = ""
+    knowledge: str = ""
+    rsp: Optional[Message] = None
 
     @property
     def prompt(self):
@@ -36,15 +30,15 @@ class TalkAction(Action):
                 f"maintaining the character's persona and habits. When faced with unrelated questions, playfully "
                 f"decline to answer without revealing your AI nature to preserve the character's image.\n\n"
             )
-        prompt += f"Knowledge:\n{self._knowledge}\n\n" if self._knowledge else ""
-        prompt += f"{self._history_summary}\n\n"
+        prompt += f"Knowledge:\n{self.knowledge}\n\n" if self.knowledge else ""
+        prompt += f"{self.history_summary}\n\n"
         prompt += (
             "If the information is insufficient, you can search in the historical conversation or knowledge above.\n"
         )
         language = CONFIG.language or DEFAULT_LANGUAGE
         prompt += (
             f"Answer the following questions strictly in {language}, and the answers must follow the Markdown format.\n "
-            f"{self._talk}"
+            f"{self.context}"
         )
         logger.debug(f"PROMPT: {prompt}")
         return prompt
@@ -53,23 +47,23 @@ class TalkAction(Action):
     def prompt_gpt4(self):
         kvs = {
             "{role}": CONFIG.agent_description or "",
-            "{history}": self._history_summary or "",
-            "{knowledge}": self._knowledge or "",
+            "{history}": self.history_summary or "",
+            "{knowledge}": self.knowledge or "",
             "{language}": CONFIG.language or DEFAULT_LANGUAGE,
-            "{ask}": self._talk,
+            "{ask}": self.context,
         }
-        prompt = TalkAction.__FORMATION_LOOSE__
+        prompt = TalkActionPrompt.FORMATION_LOOSE
         for k, v in kvs.items():
             prompt = prompt.replace(k, v)
         logger.info(f"PROMPT: {prompt}")
         return prompt
 
-    async def run_old(self, *args, **kwargs) -> ActionOutput:
-        prompt = self.prompt
-        rsp = await self.llm.aask(msg=prompt, system_msgs=[])
-        logger.debug(f"PROMPT:{prompt}\nRESULT:{rsp}\n")
-        self._rsp = ActionOutput(content=rsp)
-        return self._rsp
+    # async def run_old(self, *args, **kwargs) -> ActionOutput:
+    #     prompt = self.prompt
+    #     rsp = await self.llm.aask(msg=prompt, system_msgs=[])
+    #     logger.debug(f"PROMPT:{prompt}\nRESULT:{rsp}\n")
+    #     self._rsp = ActionOutput(content=rsp)
+    #     return self._rsp
 
     @property
     def aask_args(self):
@@ -83,22 +77,21 @@ class TalkAction(Action):
             f"Answer the following questions strictly in {language}, and the answers must follow the Markdown format.",
         ]
         format_msgs = []
-        if self._knowledge:
-            format_msgs.append({"role": "assistant", "content": self._knowledge})
-        if self._history_summary:
-            if CONFIG.LLM_TYPE == LLMType.METAGPT.value:
-                format_msgs.extend(json.loads(self._history_summary))
-            else:
-                format_msgs.append({"role": "assistant", "content": self._history_summary})
-        return self._talk, format_msgs, system_msgs
+        if self.knowledge:
+            format_msgs.append({"role": "assistant", "content": self.knowledge})
+        if self.history_summary:
+            format_msgs.append({"role": "assistant", "content": self.history_summary})
+        return self.context, format_msgs, system_msgs
 
-    async def run(self, *args, **kwargs) -> ActionOutput:
+    async def run(self, with_message=None, **kwargs) -> Message:
         msg, format_msgs, system_msgs = self.aask_args
         rsp = await self.llm.aask(msg=msg, format_msgs=format_msgs, system_msgs=system_msgs)
-        self._rsp = ActionOutput(content=rsp)
-        return self._rsp
+        self.rsp = Message(content=rsp, role="assistant", cause_by=self)
+        return self.rsp
 
-    __FORMATION__ = """Formation: "Capacity and role" defines the role you are currently playing;
+
+class TalkActionPrompt:
+    FORMATION = """Formation: "Capacity and role" defines the role you are currently playing;
   "[HISTORY_BEGIN]" and "[HISTORY_END]" tags enclose the historical conversation;
   "[KNOWLEDGE_BEGIN]" and "[KNOWLEDGE_END]" tags enclose the knowledge may help for your responses;
   "Statement" defines the work detail you need to complete at this stage;
@@ -134,7 +127,7 @@ Statement: Unless you are a language professional, answer the following question
 {ask}
 """
 
-    __FORMATION_LOOSE__ = """Formation: "Capacity and role" defines the role you are currently playing;
+    FORMATION_LOOSE = """Formation: "Capacity and role" defines the role you are currently playing;
   "[HISTORY_BEGIN]" and "[HISTORY_END]" tags enclose the historical conversation;
   "[KNOWLEDGE_BEGIN]" and "[KNOWLEDGE_END]" tags enclose the knowledge may help for your responses;
   "Statement" defines the work detail you need to complete at this stage;

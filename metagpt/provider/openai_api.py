@@ -356,7 +356,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
             await self.async_client.close()
             self.async_client = None
 
-    async def summarize(self, text: str, max_words=200, keep_language: bool = False, limit: int = -1, **kwargs) -> str:
+    async def summarize(self, text: str, max_words=200, keep_language: bool = False, limit: int = -1) -> str:
         max_token_count = DEFAULT_MAX_TOKENS
         max_count = 100
         text_length = len(text)

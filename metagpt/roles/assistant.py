@@ -14,46 +14,51 @@
             indicates that further reasoning cannot continue.
 
 """
-import asyncio
+from enum import Enum
 from pathlib import Path
+from typing import Optional
 
-from metagpt.actions import ActionOutput
+from pydantic import Field
+
 from metagpt.actions.skill_action import ArgumentsParingAction, SkillAction
 from metagpt.actions.talk_action import TalkAction
 from metagpt.config import CONFIG
-from metagpt.learn.skill_loader import SkillLoader
+from metagpt.learn.skill_loader import SkillsDeclaration
 from metagpt.logs import logger
-from metagpt.memory.brain_memory import BrainMemory, MessageType
+from metagpt.memory.brain_memory import BrainMemory
 from metagpt.roles import Role
 from metagpt.schema import Message
+
+
+class MessageType(Enum):
+    Talk = "TALK"
+    Skill = "SKILL"
 
 
 class Assistant(Role):
     """Assistant for solving common issues."""
 
-    def __init__(
-        self,
-        name="Lily",
-        profile="An assistant",
-        goal="Help to solve problem",
-        constraints="Talk in {language}",
-        desc="",
-        *args,
-        **kwargs,
-    ):
-        super(Assistant, self).__init__(
-            name=name, profile=profile, goal=goal, constraints=constraints, desc=desc, *args, **kwargs
-        )
-        brain_memory = CONFIG.BRAIN_MEMORY
-        self.memory = BrainMemory(**brain_memory) if brain_memory else BrainMemory(llm_type=CONFIG.LLM_TYPE)
-        skill_path = Path(CONFIG.SKILL_PATH) if CONFIG.SKILL_PATH else None
-        self.skills = SkillLoader(skill_yaml_file_name=skill_path)
+    name: str = "Lily"
+    profile: str = "An assistant"
+    goal: str = "Help to solve problem"
+    constraints: str = "Talk in {language}"
+    desc: str = ""
+    memory: BrainMemory = Field(default_factory=BrainMemory)
+    skills: Optional[SkillsDeclaration] = None
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.constraints = self.constraints.format(language=kwargs.get("language") or CONFIG.language or "Chinese")
 
     async def think(self) -> bool:
         """Everything will be done part by part."""
         last_talk = await self.refine_memory()
         if not last_talk:
             return False
+        if not self.skills:
+            skill_path = Path(CONFIG.SKILL_PATH) if CONFIG.SKILL_PATH else None
+            self.skills = await SkillsDeclaration.load(skill_yaml_file_name=skill_path)
+
         prompt = ""
         skills = self.skills.get_skill_list()
         for desc, name in skills.items():
@@ -64,20 +69,20 @@ class Assistant(Role):
         logger.info(f"THINK: {prompt}\n, THINK RESULT: {rsp}\n")
         return await self._plan(rsp, last_talk=last_talk)
 
-    async def act(self) -> ActionOutput:
-        result = await self._rc.todo.run(**CONFIG.options)
+    async def act(self) -> Message:
+        result = await self._rc.todo.run()
         if not result:
             return None
         if isinstance(result, str):
-            msg = Message(content=result)
-            output = ActionOutput(content=result)
+            msg = Message(content=result, role="assistant", cause_by=self._rc.todo)
+        elif isinstance(result, Message):
+            msg = result
         else:
             msg = Message(
                 content=result.content, instruct_content=result.instruct_content, cause_by=type(self._rc.todo)
             )
-            output = result
         self.memory.add_answer(msg)
-        return output
+        return msg
 
     async def talk(self, text):
         self.memory.add_talk(Message(content=text))
@@ -94,10 +99,9 @@ class Assistant(Role):
     async def talk_handler(self, text, **kwargs) -> bool:
         history = self.memory.history_text
         text = kwargs.get("last_talk") or text
-        action = TalkAction(
-            talk=text, knowledge=self.memory.get_knowledge(), history_summary=history, llm=self._llm, **kwargs
+        self._rc.todo = TalkAction(
+            context=text, knowledge=self.memory.get_knowledge(), history_summary=history, llm=self._llm, **kwargs
         )
-        self.add_to_do(action)
         return True
 
     async def skill_handler(self, text, **kwargs) -> bool:
@@ -106,12 +110,13 @@ class Assistant(Role):
         if not skill:
             logger.info(f"skill not found: {text}")
             return await self.talk_handler(text=last_talk, **kwargs)
-        action = ArgumentsParingAction(skill=skill, llm=self._llm, **kwargs)
+        action = ArgumentsParingAction(skill=skill, llm=self._llm, ask=last_talk, **kwargs)
         await action.run(**kwargs)
         if action.args is None:
             return await self.talk_handler(text=last_talk, **kwargs)
-        action = SkillAction(skill=skill, args=action.args, llm=self._llm, name=skill.name, desc=skill.description)
-        self.add_to_do(action)
+        self._rc.todo = SkillAction(
+            skill=skill, args=action.args, llm=self._llm, name=skill.name, desc=skill.description
+        )
         return True
 
     async def refine_memory(self) -> str:
@@ -123,8 +128,8 @@ class Assistant(Role):
         history_summary = await self.memory.summarize(max_words=800, keep_language=True, llm=self._llm)
         if last_talk and await self.memory.is_related(text1=last_talk, text2=history_summary, llm=self._llm):
             # Merge relevant content.
-            last_talk = await self.memory.rewrite(sentence=last_talk, context=history_summary, llm=self._llm)
-            return last_talk
+            merged = await self.memory.rewrite(sentence=last_talk, context=history_summary, llm=self._llm)
+            return f"{merged} {last_talk}"
 
         return last_talk
 
@@ -136,24 +141,3 @@ class Assistant(Role):
             self.memory = BrainMemory(**jsn)
         except Exception as e:
             logger.exception(f"load error:{e}, data:{jsn}")
-
-
-async def main():
-    topic = "what's apple"
-    role = Assistant(language="Chinese")
-    await role.talk(topic)
-    while True:
-        has_action = await role.think()
-        if not has_action:
-            break
-        msg = await role.act()
-        logger.info(msg)
-        # Retrieve user terminal input.
-        logger.info("Enter prompt")
-        talk = input("You: ")
-        await role.talk(talk)
-
-
-if __name__ == "__main__":
-    CONFIG.language = "Chinese"
-    asyncio.run(main())
