@@ -5,51 +5,42 @@
 @Author  : mashenquan
 @File    : write_teaching_plan.py
 """
+from typing import Optional
+
+from pydantic import Field
+
 from metagpt.actions import Action
 from metagpt.config import CONFIG
+from metagpt.llm import LLM
 from metagpt.logs import logger
-from metagpt.schema import Message
-
-
-class TeachingPlanRequirement(Action):
-    """Teaching Plan Requirement without any implementation details"""
-
-    async def run(self, *args, **kwargs):
-        raise NotImplementedError
+from metagpt.provider.base_gpt_api import BaseGPTAPI
 
 
 class WriteTeachingPlanPart(Action):
     """Write Teaching Plan Part"""
 
-    def __init__(self, name: str = "", context=None, llm=None, topic: str = "", language: str = "Chinese"):
-        """
+    context: Optional[str] = None
+    llm: BaseGPTAPI = Field(default_factory=LLM)
+    topic: str = ""
+    language: str = "Chinese"
+    rsp: Optional[str] = None
 
-        :param name: action name
-        :param context: context
-        :param llm: object of :class:`LLM`
-        :param topic: topic part of teaching plan
-        :param language: A human language, such as Chinese, English, French, etc.
-        """
-        super().__init__(name, context, llm)
-        self.topic = topic
-        self.language = language
-        self.rsp = None
-
-    async def run(self, messages, *args, **kwargs):
-        if len(messages) < 1 or not isinstance(messages[0], Message):
-            raise ValueError("Invalid args, a tuple of List[Message] is expected")
-
-        statement_patterns = self.TOPIC_STATEMENTS.get(self.topic, [])
+    async def run(self, with_message=None, **kwargs):
+        statement_patterns = TeachingPlanBlock.TOPIC_STATEMENTS.get(self.topic, [])
         statements = []
         for p in statement_patterns:
-            s = format_value(p)
+            s = self.format_value(p)
             statements.append(s)
-        formatter = self.PROMPT_TITLE_TEMPLATE if self.topic == self.COURSE_TITLE else self.PROMPT_TEMPLATE
+        formatter = (
+            TeachingPlanBlock.PROMPT_TITLE_TEMPLATE
+            if self.topic == TeachingPlanBlock.COURSE_TITLE
+            else TeachingPlanBlock.PROMPT_TEMPLATE
+        )
         prompt = formatter.format(
-            formation=self.FORMATION,
+            formation=TeachingPlanBlock.FORMATION,
             role=self.prefix,
             statements="\n".join(statements),
-            lesson=messages[0].content,
+            lesson=self.context,
             topic=self.topic,
             language=self.language,
         )
@@ -61,14 +52,14 @@ class WriteTeachingPlanPart(Action):
         return self.rsp
 
     def _set_result(self, rsp):
-        if self.DATA_BEGIN_TAG in rsp:
-            ix = rsp.index(self.DATA_BEGIN_TAG)
-            rsp = rsp[ix + len(self.DATA_BEGIN_TAG) :]
-        if self.DATA_END_TAG in rsp:
-            ix = rsp.index(self.DATA_END_TAG)
+        if TeachingPlanBlock.DATA_BEGIN_TAG in rsp:
+            ix = rsp.index(TeachingPlanBlock.DATA_BEGIN_TAG)
+            rsp = rsp[ix + len(TeachingPlanBlock.DATA_BEGIN_TAG) :]
+        if TeachingPlanBlock.DATA_END_TAG in rsp:
+            ix = rsp.index(TeachingPlanBlock.DATA_END_TAG)
             rsp = rsp[0:ix]
         self.rsp = rsp.strip()
-        if self.topic != self.COURSE_TITLE:
+        if self.topic != TeachingPlanBlock.COURSE_TITLE:
             return
         if "#" not in self.rsp or self.rsp.index("#") != 0:
             self.rsp = "# " + self.rsp
@@ -99,6 +90,8 @@ class WriteTeachingPlanPart(Action):
             value = value.replace("{" + f"{k}" + "}", str(v))
         return value
 
+
+class TeachingPlanBlock:
     FORMATION = (
         '"Capacity and role" defines the role you are currently playing;\n'
         '\t"[LESSON_BEGIN]" and "[LESSON_END]" tags enclose the content of textbook;\n'
