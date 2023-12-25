@@ -26,7 +26,7 @@ API列表:
 """
     _ = "API设计看起来非常合理，满足了PRD中的所有需求。"
 
-    design_api_review = DesignReview("design_api_review")
+    design_api_review = DesignReview()
 
     result = await design_api_review.run(prd, api_design)
 
