@@ -4,49 +4,54 @@
 @Time    : 2023/7/27
 @Author  : mashenquan
 @File    : teacher.py
+@Desc    : Used by Agent Store
 @Modified By: mashenquan, 2023/8/22. A definition has been provided for the return value of _think: returning false indicates that further reasoning cannot continue.
 
 """
-
 
 import re
 
 import aiofiles
 
-from metagpt.actions.write_teaching_plan import (
-    TeachingPlanRequirement,
-    WriteTeachingPlanPart,
-)
+from metagpt.actions import UserRequirement
+from metagpt.actions.write_teaching_plan import TeachingPlanBlock, WriteTeachingPlanPart
 from metagpt.config import CONFIG
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
+from metagpt.utils.common import any_to_str
 
 
 class Teacher(Role):
     """Support configurable teacher roles,
     with native and teaching languages being replaceable through configurations."""
 
-    def __init__(
-        self,
-        name="Lily",
-        profile="{teaching_language} Teacher",
-        goal="writing a {language} teaching plan part by part",
-        constraints="writing in {language}",
-        desc="",
-        *args,
-        **kwargs,
-    ):
-        super().__init__(name=name, profile=profile, goal=goal, constraints=constraints, desc=desc, *args, **kwargs)
-        actions = []
-        for topic in WriteTeachingPlanPart.TOPICS:
-            act = WriteTeachingPlanPart(topic=topic, llm=self._llm)
-            actions.append(act)
-        self._init_actions(actions)
-        self._watch({TeachingPlanRequirement})
+    name: str = "Lily"
+    profile: str = "{teaching_language} Teacher"
+    goal: str = "writing a {language} teaching plan part by part"
+    constraints: str = "writing in {language}"
+    desc: str = ""
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = WriteTeachingPlanPart.format_value(self.name)
+        self.profile = WriteTeachingPlanPart.format_value(self.profile)
+        self.goal = WriteTeachingPlanPart.format_value(self.goal)
+        self.constraints = WriteTeachingPlanPart.format_value(self.constraints)
+        self.desc = WriteTeachingPlanPart.format_value(self.desc)
 
     async def _think(self) -> bool:
         """Everything will be done part by part."""
+        if not self._actions:
+            if not self._rc.news or self._rc.news[0].cause_by != any_to_str(UserRequirement):
+                raise ValueError("Lesson content invalid.")
+            actions = []
+            print(TeachingPlanBlock.TOPICS)
+            for topic in TeachingPlanBlock.TOPICS:
+                act = WriteTeachingPlanPart(context=self._rc.news[0].content, topic=topic, llm=self._llm)
+                actions.append(act)
+            self._init_actions(actions)
+
         if self._rc.todo is None:
             self._set_state(0)
             return True
@@ -76,7 +81,7 @@ class Teacher(Role):
     async def save(self, content):
         """Save teaching plan"""
         filename = Teacher.new_file_name(self.course_title)
-        pathname = CONFIG.workspace / "teaching_plan"
+        pathname = CONFIG.workspace_path / "teaching_plan"
         pathname.mkdir(exist_ok=True)
         pathname = pathname / filename
         try:
@@ -100,7 +105,7 @@ class Teacher(Role):
         """Return course title of teaching plan"""
         default_title = "teaching_plan"
         for act in self._actions:
-            if act.topic != WriteTeachingPlanPart.COURSE_TITLE:
+            if act.topic != TeachingPlanBlock.COURSE_TITLE:
                 continue
             if act.rsp is None:
                 return default_title
