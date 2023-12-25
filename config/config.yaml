@@ -118,3 +118,5 @@ RPM: 10
 # REPAIR_LLM_OUTPUT: false
 
 # PROMPT_FORMAT: json #json or markdown
+
+# DISABLE_LLM_PROVIDER_CHECK: false
