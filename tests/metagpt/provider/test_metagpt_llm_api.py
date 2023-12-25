@@ -5,11 +5,11 @@
 @Author  : mashenquan
 @File    : test_metagpt_llm_api.py
 """
-from metagpt.provider.metagpt_llm_api import MetaGPTLLMAPI
+from metagpt.provider.metagpt_api import MetaGPTAPI
 
 
 def test_metagpt():
-    llm = MetaGPTLLMAPI()
+    llm = MetaGPTAPI()
     assert llm
 
 

@@ -64,6 +64,9 @@ class ZhiPuAIGPTAPI(BaseGPTAPI):
             except Exception as e:
                 logger.error(f"zhipuai updats costs failed! exp: {e}")
 
+    def close(self):
+        pass
+
     def get_choice_text(self, resp: dict) -> str:
         """get the first text of choice from llm response"""
         assist_msg = resp.get("data", {}).get("choices", [{"role": "error"}])[-1]
@@ -131,6 +134,6 @@ class ZhiPuAIGPTAPI(BaseGPTAPI):
     async def acompletion_text(self, messages: list[dict], stream=False, generator: bool = False, timeout=3) -> str:
         """response in async with stream or non-stream mode"""
         if stream:
-            return await self._achat_completion_stream(messages, timeout=timeout)
+            return await self._achat_completion_stream(messages)
         resp = await self._achat_completion(messages)
         return self.get_choice_text(resp)

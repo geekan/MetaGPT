@@ -85,14 +85,23 @@ def test_ask_code_list_str():
 class TestOpenAI:
     @pytest.fixture
     def config(self):
-        return Mock(openai_api_key="test_key", openai_base_url="test_url", openai_proxy=None, openai_api_type="other")
+        return Mock(
+            openai_api_key="test_key",
+            OPENAI_API_KEY="test_key",
+            openai_base_url="test_url",
+            OPENAI_BASE_URL="test_url",
+            openai_proxy=None,
+            openai_api_type="other",
+        )
 
     @pytest.fixture
     def config_azure(self):
         return Mock(
             openai_api_key="test_key",
+            OPENAI_API_KEY="test_key",
             openai_api_version="test_version",
             openai_base_url="test_url",
+            OPENAI_BASE_URL="test_url",
             openai_proxy=None,
             openai_api_type="azure",
         )
@@ -101,7 +110,9 @@ class TestOpenAI:
     def config_proxy(self):
         return Mock(
             openai_api_key="test_key",
+            OPENAI_API_KEY="test_key",
             openai_base_url="test_url",
+            OPENAI_BASE_URL="test_url",
             openai_proxy="http://proxy.com",
             openai_api_type="other",
         )
@@ -110,8 +121,10 @@ class TestOpenAI:
     def config_azure_proxy(self):
         return Mock(
             openai_api_key="test_key",
+            OPENAI_API_KEY="test_key",
             openai_api_version="test_version",
             openai_base_url="test_url",
+            OPENAI_BASE_URL="test_url",
             openai_proxy="http://proxy.com",
             openai_api_type="azure",
         )
@@ -129,8 +142,8 @@ class TestOpenAI:
         instance = OpenAIGPTAPI()
         instance.config = config_azure
         kwargs, async_kwargs = instance._make_client_kwargs()
-        assert kwargs == {"api_key": "test_key", "api_version": "test_version", "azure_endpoint": "test_url"}
-        assert async_kwargs == {"api_key": "test_key", "api_version": "test_version", "azure_endpoint": "test_url"}
+        assert kwargs == {"api_key": "test_key", "base_url": "test_url"}
+        assert async_kwargs == {"api_key": "test_key", "base_url": "test_url"}
         assert "http_client" not in kwargs
         assert "http_client" not in async_kwargs
 

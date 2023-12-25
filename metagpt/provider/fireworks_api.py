@@ -133,7 +133,9 @@ class FireWorksGPTAPI(OpenAIGPTAPI):
         retry=retry_if_exception_type(APIConnectionError),
         retry_error_callback=log_and_reraise,
     )
-    async def acompletion_text(self, messages: list[dict], stream=False, generator: bool = False, timeout=3) -> str:
+    async def acompletion_text(
+        self, messages: list[dict], stream=False, generator: bool = False, timeout: int = 3
+    ) -> str:
         """when streaming, print each token in place."""
         if stream:
             return await self._achat_completion_stream(messages)
