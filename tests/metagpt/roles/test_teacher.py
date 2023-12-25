@@ -105,9 +105,52 @@ async def test_new_file_name():
 @pytest.mark.asyncio
 async def test_run():
     CONFIG.set_context({"language": "Chinese", "teaching_language": "English"})
-    lesson = "Lesson 1: How to draw a tree. First step, buy a book."
+    lesson = """
+    UNIT 1 Making New Friends
+    TOPIC 1 Welcome to China!
+    Section A
+
+    1a Listen and number the following names.
+    Jane Mari Kangkang Michael
+    Look, listen and understand. Then practice the conversation.
+    Work in groups. Introduce yourself using
+    I ’m ... Then practice 1a
+    with your own hometown or the following places.
+
+    1b Listen and number the following names
+    Jane Michael Maria Kangkang
+    1c Work in groups. Introduce yourself using I ’m ... Then practice 1a with your own hometown or the following places.
+    China the USA the UK Hong Kong Beijing
+
+    2a Look, listen and understand. Then practice the conversation
+    Hello! 
+    Hello! 
+    Hello! 
+    Hello! Are you Maria? 
+    No, I’m not. I’m Jane.
+    Oh, nice to meet you, Jane
+    Nice to meet you, too.
+    Hi, Maria!
+    Hi, Kangkang!
+    Welcome to China!
+    Thanks.
+
+    2b Work in groups. Make up a conversation with your own name and the
+    following structures.
+    A: Hello! / Good morning! / Hi! I’m ... Are you ... ?
+    B: ...
+
+    3a Listen, say and trace
+    Aa Bb Cc Dd Ee Ff Gg
+
+    3b Listen and number the following letters. Then circle the letters with the same sound as Bb.
+    Aa Bb Cc Dd Ee Ff Gg
+
+    3c Match the big letters with the small ones. Then write them on the lines.
+    """
     teacher = Teacher()
-    await teacher.run(Message(content=lesson))
+    rsp = await teacher.run(Message(content=lesson))
+    assert rsp
 
 
 if __name__ == "__main__":
