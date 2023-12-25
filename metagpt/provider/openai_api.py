@@ -29,7 +29,7 @@ from tenacity import (
 
 from metagpt.config import CONFIG, Config, LLMProviderEnum
 from metagpt.const import DEFAULT_MAX_TOKENS, DEFAULT_TOKEN_SIZE
-from metagpt.logs import logger
+from metagpt.logs import log_llm_stream, logger
 from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.provider.constant import GENERAL_FUNCTION_SCHEMA, GENERAL_TOOL_CHOICE
 from metagpt.provider.llm_provider_registry import register_provider
@@ -180,7 +180,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
 
             collected_messages = []
             async for i in resp:
-                print(i, end="")
+                log_llm_stream(i)
                 collected_messages.append(i)
 
             full_reply_content = "".join(collected_messages)
