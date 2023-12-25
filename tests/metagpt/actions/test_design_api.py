@@ -13,7 +13,7 @@ from metagpt.const import PRDS_FILE_REPO
 from metagpt.logs import logger
 from metagpt.schema import Message
 from metagpt.utils.file_repository import FileRepository
-from tests.metagpt.actions.mock import PRD_SAMPLE
+from tests.metagpt.actions.mock_markdown import PRD_SAMPLE
 
 
 @pytest.mark.asyncio

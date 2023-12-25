@@ -162,7 +162,7 @@ class BaseGPTAPI(BaseChatbot):
 
     def messages_to_prompt(self, messages: list[dict]):
         """[{"role": "user", "content": msg}] to user: <msg> etc."""
-        return "\n".join([f"{i['role']}: {i['content']}" for i in messages])
+        return "\n".join([f"{i.role}: {i.content}" for i in messages])
 
     def messages_to_dict(self, messages):
         """objects to [{"role": "user", "content": msg}] etc."""

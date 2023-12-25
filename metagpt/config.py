@@ -81,6 +81,7 @@ class Config(metaclass=Singleton):
         logger.debug("Config loading done.")
 
     def get_default_llm_provider_enum(self) -> LLMProviderEnum:
+        """Get first valid LLM provider enum"""
         mappings = {
             LLMProviderEnum.OPENAI: bool(
                 self._is_valid_llm_key(self.OPENAI_API_KEY) and not self.OPENAI_API_TYPE and self.OPENAI_API_MODEL
