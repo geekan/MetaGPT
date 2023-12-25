@@ -51,6 +51,7 @@ def get_metagpt_root():
 METAGPT_ROOT = get_metagpt_root()  # Dependent on METAGPT_PROJECT_ROOT
 DEFAULT_WORKSPACE_ROOT = METAGPT_ROOT / "workspace"
 
+EXAMPLE_PATH = METAGPT_ROOT / "examples"
 DATA_PATH = METAGPT_ROOT / "data"
 RESEARCH_PATH = DATA_PATH / "research"
 TUTORIAL_PATH = DATA_PATH / "tutorial_docx"
