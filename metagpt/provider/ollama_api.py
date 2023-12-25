@@ -57,6 +57,9 @@ class OllamaGPTAPI(BaseGPTAPI):
 
         self.model = config.ollama_api_model
 
+    def close(self):
+        pass
+
     def _const_kwargs(self, messages: list[dict], stream: bool = False) -> dict:
         kwargs = {"model": self.model, "messages": messages, "options": {"temperature": 0.3}, "stream": stream}
         return kwargs
@@ -144,7 +147,9 @@ class OllamaGPTAPI(BaseGPTAPI):
         retry=retry_if_exception_type(ConnectionError),
         retry_error_callback=log_and_reraise,
     )
-    async def acompletion_text(self, messages: list[dict], stream=False) -> str:
+    async def acompletion_text(
+        self, messages: list[dict], stream=False, generator: bool = False, timeout: int = 3
+    ) -> str:
         """response in async with stream or non-stream mode"""
         if stream:
             return await self._achat_completion_stream(messages)

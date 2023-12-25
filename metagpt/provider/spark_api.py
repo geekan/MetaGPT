@@ -26,16 +26,19 @@ from metagpt.provider.llm_provider_registry import register_provider
 
 
 @register_provider(LLMProviderEnum.SPARK)
-class SparkAPI(BaseGPTAPI):
+class SparkGPTAPI(BaseGPTAPI):
     def __init__(self):
         logger.warning("当前方法无法支持异步运行。当你使用acompletion时，并不能并行访问。")
+
+    def close(self):
+        pass
 
     def ask(self, msg: str) -> str:
         message = [self._default_system_msg(), self._user_msg(msg)]
         rsp = self.completion(message)
         return rsp
 
-    async def aask(self, msg: str, system_msgs: Optional[list[str]] = None) -> str:
+    async def aask(self, msg: str, system_msgs: Optional[list[str]] = None, stream: bool = True) -> str:
         if system_msgs:
             message = self._system_msgs(system_msgs) + [self._user_msg(msg)]
         else:
@@ -47,7 +50,9 @@ class SparkAPI(BaseGPTAPI):
     def get_choice_text(self, rsp: dict) -> str:
         return rsp["payload"]["choices"]["text"][-1]["content"]
 
-    async def acompletion_text(self, messages: list[dict], stream=False) -> str:
+    async def acompletion_text(
+        self, messages: list[dict], stream=False, generator: bool = False, timeout: int = 3
+    ) -> str:
         # 不支持
         logger.error("该功能禁用。")
         w = GetMessageFromWeb(messages)
