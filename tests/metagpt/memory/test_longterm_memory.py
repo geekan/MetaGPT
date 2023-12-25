@@ -5,6 +5,8 @@
 @Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
 """
 
+import os
+
 from metagpt.actions import UserRequirement
 from metagpt.config import CONFIG
 from metagpt.memory.longterm_memory import LongTermMemory
@@ -14,11 +16,11 @@ from metagpt.schema import Message
 
 def test_ltm_search():
     assert hasattr(CONFIG, "long_term_memory") is True
-    openai_api_key = CONFIG.openai_api_key
-    assert len(openai_api_key) > 20
+    os.environ.setdefault("OPENAI_API_KEY", CONFIG.openai_api_key)
+    assert len(CONFIG.openai_api_key) > 20
 
     role_id = "UTUserLtm(Product Manager)"
-    rc = RoleContext(watch=[UserRequirement])
+    rc = RoleContext(watch={"metagpt.actions.add_requirement.UserRequirement"})
     ltm = LongTermMemory()
     ltm.recover_memory(role_id, rc)
 
