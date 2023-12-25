@@ -12,6 +12,7 @@ from typing import Iterable, Set
 
 from pydantic import BaseModel, Field
 
+from metagpt.const import IGNORED_MESSAGE_ID
 from metagpt.schema import Message
 from metagpt.utils.common import (
     any_to_str,
@@ -26,6 +27,7 @@ class Memory(BaseModel):
 
     storage: list[Message] = []
     index: dict[str, list[Message]] = Field(default_factory=defaultdict(list))
+    ignore_id: bool = False
 
     def __init__(self, **kwargs):
         index = kwargs.get("index", {})
@@ -54,6 +56,8 @@ class Memory(BaseModel):
 
     def add(self, message: Message):
         """Add a new message to storage, while updating the index"""
+        if self.ignore_id:
+            message.id = IGNORED_MESSAGE_ID
         if message in self.storage:
             return
         self.storage.append(message)
@@ -84,6 +88,8 @@ class Memory(BaseModel):
 
     def delete(self, message: Message):
         """Delete the specified message from storage, while updating the index"""
+        if self.ignore_id:
+            message.id = IGNORED_MESSAGE_ID
         self.storage.remove(message)
         if message.cause_by and message in self.index[message.cause_by]:
             self.index[message.cause_by].remove(message)
