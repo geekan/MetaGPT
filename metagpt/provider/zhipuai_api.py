@@ -49,6 +49,9 @@ class ZhiPuAIGPTAPI(BaseLLM):
         zhipuai.api_key = config.zhipuai_api_key
         # due to use openai sdk, set the api_key but it will't be used.
         # openai.api_key = zhipuai.api_key  # due to use openai sdk, set the api_key but it will't be used.
+        if config.openai_proxy:
+            # FIXME: openai v1.x sdk has no proxy support
+            openai.proxy = config.openai_proxy
 
     def _const_kwargs(self, messages: list[dict]) -> dict:
         kwargs = {"model": self.model, "prompt": messages, "temperature": 0.3}

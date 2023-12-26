@@ -51,3 +51,13 @@ async def test_zhipuai_acompletion(mocker):
 
     resp = await zhipu_gpt.aask(prompt_msg)
     assert resp == resp_content
+
+
+def test_zhipuai_proxy(mocker):
+    import openai
+
+    from metagpt.config import CONFIG
+
+    CONFIG.openai_proxy = "http://127.0.0.1:8080"
+    _ = ZhiPuAIGPTAPI()
+    assert openai.proxy == CONFIG.openai_proxy

@@ -6,7 +6,7 @@
 @File    : test_tutorial_assistant.py
 """
 import shutil
-
+import aiofiles
 import pytest
 
 from metagpt.const import TUTORIAL_PATH
@@ -14,20 +14,17 @@ from metagpt.roles.tutorial_assistant import TutorialAssistant
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize(("language", "topic"), [("Chinese", "Write a tutorial about Python")])
+@pytest.mark.parametrize(("language", "topic"), [("Chinese", "Write a tutorial about pip")])
 async def test_tutorial_assistant(language: str, topic: str):
     shutil.rmtree(path=TUTORIAL_PATH, ignore_errors=True)
 
-    topic = "Write a tutorial about MySQL"
     role = TutorialAssistant(language=language)
     msg = await role.run(topic)
-    assert "MySQL" in msg.content
     assert TUTORIAL_PATH.exists()
-    # filename = msg.content
-    # title = filename.split("/")[-1].split(".")[0]
-    # async with aiofiles.open(filename, mode="r") as reader:
-    #     content = await reader.read()
-    #     assert content.startswith(f"# {title}")
+    filename = msg.content
+    async with aiofiles.open(filename, mode="r", encoding="utf-8") as reader:
+        content = await reader.read()
+        assert "pip" in content
 
 
 if __name__ == "__main__":
