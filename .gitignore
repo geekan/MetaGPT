@@ -166,3 +166,4 @@ output
 tmp.png
 .dependencies.json
 tests/metagpt/utils/file_repo_git
+*.tmp
