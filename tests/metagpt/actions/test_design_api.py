@@ -13,7 +13,7 @@ from metagpt.const import PRDS_FILE_REPO
 from metagpt.logs import logger
 from metagpt.schema import Message
 from metagpt.utils.file_repository import FileRepository
-from tests.metagpt.actions.mock import PRD_SAMPLE
+from tests.metagpt.actions.mock_markdown import PRD_SAMPLE
 
 
 @pytest.mark.asyncio
@@ -22,9 +22,9 @@ async def test_design_api():
     for prd in inputs:
         await FileRepository.save_file("new_prd.txt", content=prd, relative_path=PRDS_FILE_REPO)
 
-        design_api = WriteDesign("design_api")
+        design_api = WriteDesign()
 
-        result = await design_api.run([Message(content=prd, instruct_content=None)])
+        result = await design_api.run(Message(content=prd, instruct_content=None))
         logger.info(result)
 
         assert result

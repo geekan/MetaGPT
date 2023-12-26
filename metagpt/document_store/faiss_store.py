@@ -13,6 +13,7 @@ from langchain.embeddings import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
 from langchain_core.embeddings import Embeddings
 
+from metagpt.config import CONFIG
 from metagpt.const import DATA_PATH
 from metagpt.document import IndexableDocument
 from metagpt.document_store.base_store import LocalStore
@@ -25,7 +26,9 @@ class FaissStore(LocalStore):
     ):
         self.meta_col = meta_col
         self.content_col = content_col
-        self.embedding = embedding or OpenAIEmbeddings()
+        self.embedding = embedding or OpenAIEmbeddings(
+            openai_api_key=CONFIG.openai_api_key, openai_api_base=CONFIG.openai_base_url
+        )
         super().__init__(raw_data, cache_dir)
 
     def _load(self) -> Optional["FaissStore"]:

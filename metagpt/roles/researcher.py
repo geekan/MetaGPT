@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """
+@Modified By: mashenquan, 2023/8/22. A definition has been provided for the return value of _think: returning false indicates that further reasoning cannot continue.
 @Modified By: mashenquan, 2023-11-1. According to Chapter 2.2.1 and 2.2.2 of RFC 116, change the data type of
         the `cause_by` value in the `Message` to a string to support the new message distribution feature.
 """
@@ -38,6 +39,17 @@ class Researcher(Role):
         self._set_react_mode(react_mode=RoleReactMode.BY_ORDER.value)
         if self.language not in ("en-us", "zh-cn"):
             logger.warning(f"The language `{self.language}` has not been tested, it may not work.")
+
+    async def _think(self) -> bool:
+        if self._rc.todo is None:
+            self._set_state(0)
+            return True
+
+        if self._rc.state + 1 < len(self._states):
+            self._set_state(self._rc.state + 1)
+        else:
+            self._rc.todo = None
+            return False
 
     async def _act(self) -> Message:
         logger.info(f"{self._setting}: to do {self._rc.todo}({self._rc.todo.name})")

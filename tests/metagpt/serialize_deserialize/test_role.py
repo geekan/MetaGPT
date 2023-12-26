@@ -93,4 +93,8 @@ async def test_role_serdeser_interrupt():
     assert new_role_a._rc.state == 1
 
     with pytest.raises(Exception):
-        await role_c.run(with_message=Message(content="demo", cause_by=UserRequirement))
+        await new_role_a.run(with_message=Message(content="demo", cause_by=UserRequirement))
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-s"])

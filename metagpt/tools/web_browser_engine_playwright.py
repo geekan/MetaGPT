@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+"""
+@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
+"""
+
 from __future__ import annotations
 
 import asyncio
@@ -144,6 +148,6 @@ if __name__ == "__main__":
     import fire
 
     async def main(url: str, *urls: str, browser_type: str = "chromium", **kwargs):
-        return await PlaywrightWrapper(browser_type, **kwargs).run(url, *urls)
+        return await PlaywrightWrapper(browser_type=browser_type, **kwargs).run(url, *urls)
 
     fire.Fire(main)

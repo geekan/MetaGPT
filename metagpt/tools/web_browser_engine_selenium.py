@@ -1,11 +1,15 @@
 #!/usr/bin/env python
+"""
+@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
+"""
+
 from __future__ import annotations
 
 import asyncio
 import importlib
 from concurrent import futures
 from copy import deepcopy
-from typing import Literal
+from typing import Dict, Literal
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
@@ -29,6 +33,7 @@ class SeleniumWrapper:
 
     def __init__(
         self,
+        options: Dict,
         browser_type: Literal["chrome", "firefox", "edge", "ie"] | None = None,
         launch_kwargs: dict | None = None,
         *,
@@ -120,6 +125,6 @@ if __name__ == "__main__":
     import fire
 
     async def main(url: str, *urls: str, browser_type: str = "chrome", **kwargs):
-        return await SeleniumWrapper(browser_type, **kwargs).run(url, *urls)
+        return await SeleniumWrapper(browser_type=browser_type, **kwargs).run(url, *urls)
 
     fire.Fire(main)

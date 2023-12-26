@@ -85,3 +85,4 @@ class RoleC(Role):
         self._init_actions([ActionOK, ActionRaise])
         self._watch([UserRequirement])
         self._rc.react_mode = RoleReactMode.BY_ORDER
+        self._rc.memory.ignore_id = True

@@ -1,4 +1,3 @@
-import traceback
 from pathlib import Path
 
 from pydantic import Field
@@ -8,6 +7,7 @@ from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.schema import Message
+from metagpt.utils.exceptions import handle_exception
 from metagpt.utils.highlight import highlight
 
 CLONE_PROMPT = """
@@ -39,7 +39,7 @@ class CloneFunction(WriteCode):
         if isinstance(code_path, str):
             code_path = Path(code_path)
         code_path.parent.mkdir(parents=True, exist_ok=True)
-        code_path.write_text(code)
+        code_path.write_text(code, encoding="utf-8")
         logger.info(f"Saving Code to {code_path}")
 
     async def run(self, template_func: str, source_code: str) -> str:
@@ -51,20 +51,17 @@ class CloneFunction(WriteCode):
         return code
 
 
+@handle_exception
 def run_function_code(func_code: str, func_name: str, *args, **kwargs):
     """Run function code from string code."""
-    try:
-        locals_ = {}
-        exec(func_code, locals_)
-        func = locals_[func_name]
-        return func(*args, **kwargs), ""
-    except Exception:
-        return "", traceback.format_exc()
+    locals_ = {}
+    exec(func_code, locals_)
+    func = locals_[func_name]
+    return func(*args, **kwargs), ""
 
 
 def run_function_script(code_script_path: str, func_name: str, *args, **kwargs):
     """Run function code from script."""
-    if isinstance(code_script_path, str):
-        code_path = Path(code_script_path)
+    code_path = Path(code_script_path)
     code = code_path.read_text(encoding="utf-8")
     return run_function_code(code, func_name, *args, **kwargs)

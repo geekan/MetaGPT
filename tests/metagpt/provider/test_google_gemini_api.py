@@ -9,33 +9,62 @@ import pytest
 
 from metagpt.provider.google_gemini_api import GeminiGPTAPI
 
-messages = [{"role": "user", "parts": "who are you"}]
-
 
 @dataclass
 class MockGeminiResponse(ABC):
     text: str
 
 
-default_resp = MockGeminiResponse(text="I'm gemini from google")
+prompt_msg = "who are you"
+messages = [{"role": "user", "parts": prompt_msg}]
+resp_content = "I'm gemini from google"
+default_resp = MockGeminiResponse(text=resp_content)
 
 
-def mock_llm_ask(self, messages: list[dict]) -> MockGeminiResponse:
+def mock_llm_completion(self, messages: list[dict], timeout: int = 60) -> MockGeminiResponse:
     return default_resp
+
+
+async def mock_llm_acompletion(
+    self, messgaes: list[dict], stream: bool = False, timeout: int = 60
+) -> MockGeminiResponse:
+    return default_resp
+
+
+async def mock_llm_achat_completion_stream(self, messgaes: list[dict]) -> str:
+    return resp_content
 
 
 def test_gemini_completion(mocker):
-    mocker.patch("metagpt.provider.google_gemini_api.GeminiGPTAPI.completion", mock_llm_ask)
-    resp = GeminiGPTAPI().completion(messages)
-    assert resp.text == default_resp.text
+    mocker.patch("metagpt.provider.google_gemini_api.GeminiGPTAPI.completion", mock_llm_completion)
+    gemini_gpt = GeminiGPTAPI()
+    resp = gemini_gpt.completion(messages)
+    assert resp.text == resp_content
 
-
-async def mock_llm_aask(self, messgaes: list[dict]) -> MockGeminiResponse:
-    return default_resp
+    resp = gemini_gpt.ask(prompt_msg)
+    assert resp == resp_content
 
 
 @pytest.mark.asyncio
 async def test_gemini_acompletion(mocker):
-    mocker.patch("metagpt.provider.google_gemini_api.GeminiGPTAPI.acompletion", mock_llm_aask)
-    resp = await GeminiGPTAPI().acompletion(messages)
+    mocker.patch("metagpt.provider.google_gemini_api.GeminiGPTAPI.acompletion", mock_llm_acompletion)
+    mocker.patch("metagpt.provider.google_gemini_api.GeminiGPTAPI._achat_completion", mock_llm_acompletion)
+    mocker.patch(
+        "metagpt.provider.google_gemini_api.GeminiGPTAPI._achat_completion_stream", mock_llm_achat_completion_stream
+    )
+    gemini_gpt = GeminiGPTAPI()
+
+    resp = await gemini_gpt.acompletion(messages)
     assert resp.text == default_resp.text
+
+    resp = await gemini_gpt.aask(prompt_msg, stream=False)
+    assert resp == resp_content
+
+    resp = await gemini_gpt.acompletion_text(messages, stream=False)
+    assert resp == resp_content
+
+    resp = await gemini_gpt.acompletion_text(messages, stream=True)
+    assert resp == resp_content
+
+    resp = await gemini_gpt.aask(prompt_msg)
+    assert resp == resp_content

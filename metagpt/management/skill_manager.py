@@ -4,11 +4,11 @@
 @Time    : 2023/6/5 01:44
 @Author  : alexanderwu
 @File    : skill_manager.py
+@Modified By: mashenquan, 2023/8/20. Remove useless `_llm`
 """
 from metagpt.actions import Action
 from metagpt.const import PROMPT_PATH
 from metagpt.document_store.chromadb_store import ChromaStore
-from metagpt.llm import LLM
 from metagpt.logs import logger
 
 Skill = Action
@@ -18,7 +18,6 @@ class SkillManager:
     """Used to manage all skills"""
 
     def __init__(self):
-        self._llm = LLM()
         self._store = ChromaStore("skill_manager")
         self._skills: dict[str:Skill] = {}
 
