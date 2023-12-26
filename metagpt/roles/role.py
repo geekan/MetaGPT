@@ -36,7 +36,7 @@ from metagpt.const import SERDESER_PATH
 from metagpt.llm import LLM, HumanProvider
 from metagpt.logs import logger
 from metagpt.memory import Memory
-from metagpt.provider.base_gpt_api import BaseGPTAPI
+from metagpt.provider.base_llm import BaseLLM
 from metagpt.schema import Message, MessageQueue
 from metagpt.utils.common import (
     any_to_name,
@@ -141,7 +141,7 @@ class Role(BaseModel):
     desc: str = ""
     is_human: bool = False
 
-    _llm: BaseGPTAPI = Field(default_factory=LLM)  # Each role has its own LLM, use different system message
+    _llm: BaseLLM = Field(default_factory=LLM)  # Each role has its own LLM, use different system message
     _role_id: str = ""
     _states: list[str] = []
     _actions: list[Action] = []

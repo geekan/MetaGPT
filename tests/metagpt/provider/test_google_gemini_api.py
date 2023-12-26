@@ -35,16 +35,6 @@ async def mock_llm_achat_completion_stream(self, messgaes: list[dict]) -> str:
     return resp_content
 
 
-def test_gemini_completion(mocker):
-    mocker.patch("metagpt.provider.google_gemini_api.GeminiGPTAPI.completion", mock_llm_completion)
-    gemini_gpt = GeminiGPTAPI()
-    resp = gemini_gpt.completion(messages)
-    assert resp.text == resp_content
-
-    resp = gemini_gpt.ask(prompt_msg)
-    assert resp == resp_content
-
-
 @pytest.mark.asyncio
 async def test_gemini_acompletion(mocker):
     mocker.patch("metagpt.provider.google_gemini_api.GeminiGPTAPI.acompletion", mock_llm_acompletion)

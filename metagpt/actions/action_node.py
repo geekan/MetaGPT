@@ -15,7 +15,7 @@ from pydantic import BaseModel, create_model, root_validator, validator
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.config import CONFIG
-from metagpt.llm import BaseGPTAPI
+from metagpt.llm import BaseLLM
 from metagpt.logs import logger
 from metagpt.provider.postprecess.llm_output_postprecess import llm_output_postprecess
 from metagpt.utils.common import OutputParser, general_after_log
@@ -60,7 +60,7 @@ class ActionNode:
 
     # Action Context
     context: str  # all the context, including all necessary info
-    llm: BaseGPTAPI  # LLM with aask interface
+    llm: BaseLLM  # LLM with aask interface
     children: dict[str, "ActionNode"]
 
     # Action Input

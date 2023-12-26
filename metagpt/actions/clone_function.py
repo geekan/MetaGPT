@@ -5,7 +5,7 @@ from pydantic import Field
 from metagpt.actions.write_code import WriteCode
 from metagpt.llm import LLM
 from metagpt.logs import logger
-from metagpt.provider.base_gpt_api import BaseGPTAPI
+from metagpt.provider.base_llm import BaseLLM
 from metagpt.schema import Message
 from metagpt.utils.exceptions import handle_exception
 from metagpt.utils.highlight import highlight
@@ -33,7 +33,7 @@ def run(*args) -> pd.DataFrame:
 class CloneFunction(WriteCode):
     name: str = "CloneFunction"
     context: list[Message] = []
-    llm: BaseGPTAPI = Field(default_factory=LLM)
+    llm: BaseLLM = Field(default_factory=LLM)
 
     def _save(self, code_path, code):
         if isinstance(code_path, str):

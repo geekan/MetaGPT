@@ -3,15 +3,13 @@
 @Time    : 2023/5/5 23:08
 @Author  : alexanderwu
 @File    : openai.py
-@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation;
+@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for isolation;
             Change cost control from global to company level.
 @Modified By: mashenquan, 2023/11/21. Fix bug: ReadTimeout.
 @Modified By: mashenquan, 2023/12/1. Fix bug: Unclosed connection caused by openai 0.x.
 """
 
-import asyncio
 import json
-import time
 from typing import AsyncIterator, Union
 
 from openai import APIConnectionError, AsyncOpenAI, AsyncStream
@@ -28,7 +26,7 @@ from tenacity import (
 
 from metagpt.config import CONFIG, Config, LLMProviderEnum
 from metagpt.logs import log_llm_stream, logger
-from metagpt.provider.base_gpt_api import BaseGPTAPI
+from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.constant import GENERAL_FUNCTION_SCHEMA, GENERAL_TOOL_CHOICE
 from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.schema import Message
@@ -39,31 +37,6 @@ from metagpt.utils.token_counter import (
     count_string_tokens,
     get_max_completion_tokens,
 )
-
-
-class RateLimiter:
-    """Rate control class, each call goes through wait_if_needed, sleep if rate control is needed"""
-
-    def __init__(self, rpm):
-        self.last_call_time = 0
-        # Here 1.1 is used because even if the calls are made strictly according to time,
-        # they will still be QOS'd; consider switching to simple error retry later
-        self.interval = 1.1 * 60 / rpm
-        self.rpm = rpm
-
-    def split_batches(self, batch):
-        return [batch[i : i + self.rpm] for i in range(0, len(batch), self.rpm)]
-
-    async def wait_if_needed(self, num_requests):
-        current_time = time.time()
-        elapsed_time = current_time - self.last_call_time
-
-        if elapsed_time < self.interval * num_requests:
-            remaining_time = self.interval * num_requests - elapsed_time
-            logger.info(f"sleep {remaining_time}")
-            await asyncio.sleep(remaining_time)
-
-        self.last_call_time = time.time()
 
 
 def log_and_reraise(retry_state):
@@ -78,7 +51,7 @@ See FAQ 5.8
 
 
 @register_provider(LLMProviderEnum.OPENAI)
-class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
+class OpenAILLM(BaseLLM):
     """Check https://platform.openai.com/examples for examples"""
 
     def __init__(self):
@@ -86,11 +59,8 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         self._init_openai()
         self._init_client()
         self.auto_max_tokens = False
-        RateLimiter.__init__(self, rpm=self.rpm)
-        super().__init__()
 
     def _init_openai(self):
-        self.rpm = int(self.config.openai_api_rpm)
         self.model = self.config.OPENAI_API_MODEL  # Used in _calc_usage & _cons_kwargs
 
     def _init_client(self):
@@ -211,7 +181,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         Note: Keep kwargs consistent with https://platform.openai.com/docs/api-reference/chat/create
 
         Examples:
-        >>> llm = OpenAIGPTAPI()
+        >>> llm = OpenAILLM()
         >>> msg = [{'role': 'user', 'content': "Write a python hello world code."}]
         >>> rsp = await llm.aask_code(msg)
         # -> {'language': 'python', 'code': "print('Hello, World!')"}

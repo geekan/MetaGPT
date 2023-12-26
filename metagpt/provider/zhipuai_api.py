@@ -17,7 +17,7 @@ from tenacity import (
 
 from metagpt.config import CONFIG, LLMProviderEnum
 from metagpt.logs import log_llm_stream, logger
-from metagpt.provider.base_gpt_api import BaseGPTAPI
+from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.provider.openai_api import log_and_reraise
 from metagpt.provider.zhipuai.zhipu_model_api import ZhiPuModelAPI
@@ -31,7 +31,7 @@ class ZhiPuEvent(Enum):
 
 
 @register_provider(LLMProviderEnum.ZHIPUAI)
-class ZhiPuAIGPTAPI(BaseGPTAPI):
+class ZhiPuAIGPTAPI(BaseLLM):
     """
     Refs to `https://open.bigmodel.cn/dev/api#chatglm_turbo`
     From now, there is only one model named `chatglm_turbo`

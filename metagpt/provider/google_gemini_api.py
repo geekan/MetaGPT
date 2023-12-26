@@ -21,7 +21,7 @@ from tenacity import (
 
 from metagpt.config import CONFIG, LLMProviderEnum
 from metagpt.logs import log_llm_stream, logger
-from metagpt.provider.base_gpt_api import BaseGPTAPI
+from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.provider.openai_api import log_and_reraise
 
@@ -42,7 +42,7 @@ class GeminiGenerativeModel(GenerativeModel):
 
 
 @register_provider(LLMProviderEnum.GEMINI)
-class GeminiGPTAPI(BaseGPTAPI):
+class GeminiGPTAPI(BaseLLM):
     """
     Refs to `https://ai.google.dev/tutorials/python_quickstart`
     """

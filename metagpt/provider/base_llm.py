@@ -3,19 +3,18 @@
 """
 @Time    : 2023/5/5 23:04
 @Author  : alexanderwu
-@File    : base_gpt_api.py
+@File    : base_llm.py
 @Desc    : mashenquan, 2023/8/22. + try catch
 """
 import json
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from typing import Optional
 
-from metagpt.provider.base_chatbot import BaseChatbot
 
+class BaseLLM(ABC):
+    """LLM API abstract class, requiring all inheritors to provide a series of standard capabilities"""
 
-class BaseGPTAPI(BaseChatbot):
-    """GPT API abstract class, requiring all inheritors to provide a series of standard capabilities"""
-
+    use_system_prompt: bool = True
     system_prompt = "You are a helpful assistant."
 
     def _user_msg(self, msg: str) -> dict[str, str]:
@@ -33,11 +32,6 @@ class BaseGPTAPI(BaseChatbot):
     def _default_system_msg(self):
         return self._system_msg(self.system_prompt)
 
-    def ask(self, msg: str, timeout=3) -> str:
-        message = [self._default_system_msg(), self._user_msg(msg)] if self.use_system_prompt else [self._user_msg(msg)]
-        rsp = self.completion(message, timeout=timeout)
-        return self.get_choice_text(rsp)
-
     async def aask(
         self,
         msg: str,
@@ -54,7 +48,6 @@ class BaseGPTAPI(BaseChatbot):
             message.extend(format_msgs)
         message.append(self._user_msg(msg))
         rsp = await self.acompletion_text(message, stream=stream, timeout=timeout)
-        # logger.debug(rsp)
         return rsp
 
     def _extract_assistant_rsp(self, context):
@@ -74,15 +67,6 @@ class BaseGPTAPI(BaseChatbot):
         """FIXME: No code segment filtering has been done here, and all results are actually displayed"""
         rsp_text = await self.aask_batch(msgs, timeout=timeout)
         return rsp_text
-
-    def completion(self, messages: list[dict], timeout=3) -> dict:
-        """All GPTAPIs are required to provide the standard OpenAI completion interface
-        [
-            {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": "hello, show me python hello world code"},
-            # {"role": "assistant", "content": ...}, # If there is an answer in the history, also include it
-        ]
-        """
 
     @abstractmethod
     async def acompletion(self, messages: list[dict], timeout=3):

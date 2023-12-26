@@ -6,11 +6,11 @@
 @Desc    : MetaGPT LLM provider.
 """
 from metagpt.config import LLMProviderEnum
-from metagpt.provider import OpenAIGPTAPI
+from metagpt.provider import OpenAILLM
 from metagpt.provider.llm_provider_registry import register_provider
 
 
 @register_provider(LLMProviderEnum.METAGPT)
-class MetaGPTAPI(OpenAIGPTAPI):
+class MetaGPTAPI(OpenAILLM):
     def __init__(self):
         super().__init__()

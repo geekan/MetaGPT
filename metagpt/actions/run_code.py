@@ -22,7 +22,7 @@ from pydantic import Field
 
 from metagpt.actions.action import Action
 from metagpt.config import CONFIG
-from metagpt.llm import LLM, BaseGPTAPI
+from metagpt.llm import LLM, BaseLLM
 from metagpt.logs import logger
 from metagpt.schema import RunCodeContext, RunCodeResult
 from metagpt.utils.exceptions import handle_exception
@@ -79,7 +79,7 @@ standard errors:
 class RunCode(Action):
     name: str = "RunCode"
     context: RunCodeContext = Field(default_factory=RunCodeContext)
-    llm: BaseGPTAPI = Field(default_factory=LLM)
+    llm: BaseLLM = Field(default_factory=LLM)
 
     @classmethod
     @handle_exception

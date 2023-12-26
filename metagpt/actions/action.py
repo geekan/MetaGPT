@@ -14,7 +14,7 @@ from pydantic import BaseModel, Field
 
 from metagpt.actions.action_node import ActionNode
 from metagpt.llm import LLM
-from metagpt.provider.base_gpt_api import BaseGPTAPI
+from metagpt.provider.base_llm import BaseLLM
 from metagpt.schema import (
     CodeSummarizeContext,
     CodingContext,
@@ -27,7 +27,7 @@ action_subclass_registry = {}
 
 class Action(BaseModel):
     name: str = ""
-    llm: BaseGPTAPI = Field(default_factory=LLM, exclude=True)
+    llm: BaseLLM = Field(default_factory=LLM, exclude=True)
     context: Union[dict, CodingContext, CodeSummarizeContext, TestingContext, RunCodeContext, str, None] = ""
     prefix = ""  # aask*时会加上prefix，作为system_message
     desc = ""  # for skill manager

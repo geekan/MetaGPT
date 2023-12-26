@@ -14,15 +14,6 @@ from metagpt.logs import logger
 
 @pytest.mark.usefixtures("llm_api")
 class TestGPT:
-    def test_llm_api_ask(self, llm_api):
-        answer = llm_api.ask("hello chatgpt")
-        logger.info(answer)
-        assert len(answer) > 0
-
-    def test_gptapi_ask_batch(self, llm_api):
-        answer = llm_api.ask_batch(["请扮演一个Google Python专家工程师，如果理解，回复明白", "写一个hello world"], timeout=60)
-        assert len(answer) > 0
-
     @pytest.mark.asyncio
     async def test_llm_api_aask(self, llm_api):
         answer = await llm_api.aask("hello chatgpt", stream=False)

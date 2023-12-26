@@ -9,7 +9,7 @@
 
 import pytest
 
-from metagpt.provider.openai_api import OpenAIGPTAPI as LLM
+from metagpt.provider.openai_api import OpenAILLM as LLM
 
 
 @pytest.fixture()

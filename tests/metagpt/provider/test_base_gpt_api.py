@@ -8,7 +8,7 @@
 
 import pytest
 
-from metagpt.provider.base_gpt_api import BaseGPTAPI
+from metagpt.provider.base_llm import BaseLLM
 from metagpt.schema import Message
 
 default_chat_resp = {
@@ -27,7 +27,7 @@ prompt_msg = "who are you"
 resp_content = default_chat_resp["choices"][0]["message"]["content"]
 
 
-class MockBaseGPTAPI(BaseGPTAPI):
+class MockBaseGPTAPI(BaseLLM):
     def completion(self, messages: list[dict], timeout=3):
         return default_chat_resp
 

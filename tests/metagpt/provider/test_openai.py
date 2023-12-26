@@ -2,13 +2,13 @@ from unittest.mock import Mock
 
 import pytest
 
-from metagpt.provider.openai_api import OpenAIGPTAPI
+from metagpt.provider.openai_api import OpenAILLM
 from metagpt.schema import UserMessage
 
 
 @pytest.mark.asyncio
 async def test_aask_code():
-    llm = OpenAIGPTAPI()
+    llm = OpenAILLM()
     msg = [{"role": "user", "content": "Write a python hello world code."}]
     rsp = await llm.aask_code(msg)  # -> {'language': 'python', 'code': "print('Hello, World!')"}
     assert "language" in rsp
@@ -18,7 +18,7 @@ async def test_aask_code():
 
 @pytest.mark.asyncio
 async def test_aask_code_str():
-    llm = OpenAIGPTAPI()
+    llm = OpenAILLM()
     msg = "Write a python hello world code."
     rsp = await llm.aask_code(msg)  # -> {'language': 'python', 'code': "print('Hello, World!')"}
     assert "language" in rsp
@@ -28,7 +28,7 @@ async def test_aask_code_str():
 
 @pytest.mark.asyncio
 async def test_aask_code_Message():
-    llm = OpenAIGPTAPI()
+    llm = OpenAILLM()
     msg = UserMessage("Write a python hello world code.")
     rsp = await llm.aask_code(msg)  # -> {'language': 'python', 'code': "print('Hello, World!')"}
     assert "language" in rsp
@@ -84,7 +84,7 @@ class TestOpenAI:
         )
 
     def test_make_client_kwargs_without_proxy(self, config):
-        instance = OpenAIGPTAPI()
+        instance = OpenAILLM()
         instance.config = config
         kwargs, async_kwargs = instance._make_client_kwargs()
         assert kwargs == {"api_key": "test_key", "base_url": "test_url"}
@@ -93,7 +93,7 @@ class TestOpenAI:
         assert "http_client" not in async_kwargs
 
     def test_make_client_kwargs_without_proxy_azure(self, config_azure):
-        instance = OpenAIGPTAPI()
+        instance = OpenAILLM()
         instance.config = config_azure
         kwargs, async_kwargs = instance._make_client_kwargs()
         assert kwargs == {"api_key": "test_key", "base_url": "test_url"}
@@ -102,14 +102,14 @@ class TestOpenAI:
         assert "http_client" not in async_kwargs
 
     def test_make_client_kwargs_with_proxy(self, config_proxy):
-        instance = OpenAIGPTAPI()
+        instance = OpenAILLM()
         instance.config = config_proxy
         kwargs, async_kwargs = instance._make_client_kwargs()
         assert "http_client" in kwargs
         assert "http_client" in async_kwargs
 
     def test_make_client_kwargs_with_proxy_azure(self, config_azure_proxy):
-        instance = OpenAIGPTAPI()
+        instance = OpenAILLM()
         instance.config = config_azure_proxy
         kwargs, async_kwargs = instance._make_client_kwargs()
         assert "http_client" in kwargs

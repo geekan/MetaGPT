@@ -17,7 +17,7 @@ from metagpt.config import CONFIG
 from metagpt.const import TEST_CODES_FILE_REPO
 from metagpt.llm import LLM
 from metagpt.logs import logger
-from metagpt.provider.base_gpt_api import BaseGPTAPI
+from metagpt.provider.base_llm import BaseLLM
 from metagpt.schema import Document, TestingContext
 from metagpt.utils.common import CodeParser
 
@@ -45,7 +45,7 @@ you should correctly import the necessary classes based on these file locations!
 class WriteTest(Action):
     name: str = "WriteTest"
     context: Optional[TestingContext] = None
-    llm: BaseGPTAPI = Field(default_factory=LLM)
+    llm: BaseLLM = Field(default_factory=LLM)
 
     async def write_code(self, prompt):
         code_rsp = await self._aask(prompt)

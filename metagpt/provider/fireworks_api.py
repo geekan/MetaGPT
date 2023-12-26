@@ -18,7 +18,7 @@ from tenacity import (
 from metagpt.config import CONFIG, Config, LLMProviderEnum
 from metagpt.logs import logger
 from metagpt.provider.llm_provider_registry import register_provider
-from metagpt.provider.openai_api import OpenAIGPTAPI, RateLimiter, log_and_reraise
+from metagpt.provider.openai_api import OpenAILLM, log_and_reraise
 from metagpt.utils.cost_manager import CostManager, Costs
 
 MODEL_GRADE_TOKEN_COSTS = {
@@ -72,13 +72,12 @@ class FireworksCostManager(CostManager):
 
 
 @register_provider(LLMProviderEnum.FIREWORKS)
-class FireWorksGPTAPI(OpenAIGPTAPI):
+class FireworksLLM(OpenAILLM):
     def __init__(self):
         self.config: Config = CONFIG
         self.__init_fireworks()
         self.auto_max_tokens = False
         self._cost_manager = FireworksCostManager()
-        RateLimiter.__init__(self, rpm=self.rpm)
 
     def __init_fireworks(self):
         self.is_azure = False

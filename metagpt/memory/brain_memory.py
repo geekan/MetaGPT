@@ -18,7 +18,7 @@ from metagpt.config import CONFIG
 from metagpt.const import DEFAULT_LANGUAGE, DEFAULT_MAX_TOKENS, DEFAULT_TOKEN_SIZE
 from metagpt.logs import logger
 from metagpt.provider import MetaGPTAPI
-from metagpt.provider.base_gpt_api import BaseGPTAPI
+from metagpt.provider.base_llm import BaseLLM
 from metagpt.schema import Message, SimpleMessage
 from metagpt.utils.redis import Redis
 
@@ -31,7 +31,7 @@ class BrainMemory(BaseModel):
     is_dirty: bool = False
     last_talk: str = None
     cacheable: bool = True
-    llm: Optional[BaseGPTAPI] = None
+    llm: Optional[BaseLLM] = None
 
     def add_talk(self, msg: Message):
         """

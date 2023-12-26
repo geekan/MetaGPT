@@ -6,22 +6,22 @@
 @File    : __init__.py
 """
 
-from metagpt.provider.fireworks_api import FireWorksGPTAPI
+from metagpt.provider.fireworks_api import FireworksLLM
 from metagpt.provider.google_gemini_api import GeminiGPTAPI
-from metagpt.provider.ollama_api import OllamaGPTAPI
+from metagpt.provider.ollama_api import OllamaLLM
 from metagpt.provider.open_llm_api import OpenLLMGPTAPI
-from metagpt.provider.openai_api import OpenAIGPTAPI
+from metagpt.provider.openai_api import OpenAILLM
 from metagpt.provider.zhipuai_api import ZhiPuAIGPTAPI
-from metagpt.provider.azure_openai_api import AzureOpenAIGPTAPI
+from metagpt.provider.azure_openai_api import AzureOpenAILLM
 from metagpt.provider.metagpt_api import MetaGPTAPI
 
 __all__ = [
-    "FireWorksGPTAPI",
+    "FireworksLLM",
     "GeminiGPTAPI",
     "OpenLLMGPTAPI",
-    "OpenAIGPTAPI",
+    "OpenAILLM",
     "ZhiPuAIGPTAPI",
-    "AzureOpenAIGPTAPI",
+    "AzureOpenAILLM",
     "MetaGPTAPI",
-    "OllamaGPTAPI",
+    "OllamaLLM",
 ]

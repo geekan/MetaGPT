@@ -4,7 +4,7 @@
 import json
 from pathlib import Path
 
-from metagpt.provider.openai_api import OpenAIGPTAPI as GPTAPI
+from metagpt.provider.openai_api import OpenAILLM as GPTAPI
 
 ICL_SAMPLE = """Interface definition:
 ```text

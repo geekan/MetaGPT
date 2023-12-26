@@ -16,7 +16,7 @@ from tenacity import (
 from metagpt.config import CONFIG, LLMProviderEnum
 from metagpt.const import LLM_API_TIMEOUT
 from metagpt.logs import log_llm_stream, logger
-from metagpt.provider.base_gpt_api import BaseGPTAPI
+from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.general_api_requestor import GeneralAPIRequestor
 from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.provider.openai_api import log_and_reraise
@@ -39,7 +39,7 @@ class OllamaCostManager(CostManager):
 
 
 @register_provider(LLMProviderEnum.OLLAMA)
-class OllamaGPTAPI(BaseGPTAPI):
+class OllamaLLM(BaseLLM):
     """
     Refs to `https://github.com/jmorganca/ollama/blob/main/docs/api.md#generate-a-chat-completion`
     """
@@ -54,11 +54,7 @@ class OllamaGPTAPI(BaseGPTAPI):
 
     def __init_ollama(self, config: CONFIG):
         assert config.ollama_api_base
-
         self.model = config.ollama_api_model
-
-    def close(self):
-        pass
 
     def _const_kwargs(self, messages: list[dict], stream: bool = False) -> dict:
         kwargs = {"model": self.model, "messages": messages, "options": {"temperature": 0.3}, "stream": stream}
@@ -87,18 +83,6 @@ class OllamaGPTAPI(BaseGPTAPI):
         chunk = chunk.decode(encoding)
         return json.loads(chunk)
 
-    def completion(self, messages: list[dict]) -> dict:
-        resp, _, _ = self.client.request(
-            method=self.http_method,
-            url=self.suffix_url,
-            params=self._const_kwargs(messages),
-            request_timeout=LLM_API_TIMEOUT,
-        )
-        resp = self._decode_and_load(resp)
-        usage = self.get_usage(resp)
-        self._update_costs(usage)
-        return resp
-
     async def _achat_completion(self, messages: list[dict]) -> dict:
         resp, _, _ = await self.client.arequest(
             method=self.http_method,
@@ -111,7 +95,7 @@ class OllamaGPTAPI(BaseGPTAPI):
         self._update_costs(usage)
         return resp
 
-    async def acompletion(self, messages: list[dict]) -> dict:
+    async def acompletion(self, messages: list[dict], timeout=3) -> dict:
         return await self._achat_completion(messages)
 
     async def _achat_completion_stream(self, messages: list[dict]) -> str:

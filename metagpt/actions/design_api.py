@@ -27,7 +27,7 @@ from metagpt.const import (
 )
 from metagpt.llm import LLM
 from metagpt.logs import logger
-from metagpt.provider.base_gpt_api import BaseGPTAPI
+from metagpt.provider.base_llm import BaseLLM
 from metagpt.schema import Document, Documents, Message
 from metagpt.utils.file_repository import FileRepository
 from metagpt.utils.mermaid import mermaid_to_file
@@ -44,7 +44,7 @@ NEW_REQ_TEMPLATE = """
 class WriteDesign(Action):
     name: str = ""
     context: Optional[str] = None
-    llm: BaseGPTAPI = Field(default_factory=LLM)
+    llm: BaseLLM = Field(default_factory=LLM)
     desc: str = (
         "Based on the PRD, think about the system design, and design the corresponding APIs, "
         "data structures, library tables, processes, and paths. Please provide your design, feedback "

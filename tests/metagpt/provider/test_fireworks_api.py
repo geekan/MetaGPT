@@ -13,7 +13,7 @@ from openai.types.completion_usage import CompletionUsage
 from metagpt.provider.fireworks_api import (
     MODEL_GRADE_TOKEN_COSTS,
     FireworksCostManager,
-    FireWorksGPTAPI,
+    FireworksLLM,
 )
 
 resp_content = "I'm fireworks"
@@ -62,7 +62,7 @@ async def test_fireworks_acompletion(mocker):
     mocker.patch(
         "metagpt.provider.fireworks_api.FireWorksGPTAPI._achat_completion_stream", mock_llm_achat_completion_stream
     )
-    fireworks_gpt = FireWorksGPTAPI()
+    fireworks_gpt = FireworksLLM()
 
     resp = await fireworks_gpt.acompletion(messages, stream=False)
     assert resp.choices[0].message.content in resp_content

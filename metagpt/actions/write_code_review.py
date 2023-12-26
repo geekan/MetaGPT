@@ -16,7 +16,7 @@ from metagpt.actions.action import Action
 from metagpt.config import CONFIG
 from metagpt.llm import LLM
 from metagpt.logs import logger
-from metagpt.provider.base_gpt_api import BaseGPTAPI
+from metagpt.provider.base_llm import BaseLLM
 from metagpt.schema import CodingContext
 from metagpt.utils.common import CodeParser
 
@@ -123,7 +123,7 @@ REWRITE_CODE_TEMPLATE = """
 class WriteCodeReview(Action):
     name: str = "WriteCodeReview"
     context: CodingContext = Field(default_factory=CodingContext)
-    llm: BaseGPTAPI = Field(default_factory=LLM)
+    llm: BaseLLM = Field(default_factory=LLM)
 
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     async def write_code_review_and_rewrite(self, context_prompt, cr_prompt, filename):
