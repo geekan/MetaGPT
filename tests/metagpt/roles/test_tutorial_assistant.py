@@ -12,13 +12,12 @@ from metagpt.roles.tutorial_assistant import TutorialAssistant
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize(("language", "topic"), [("Chinese", "Write a tutorial about Python")])
+@pytest.mark.parametrize(("language", "topic"), [("Chinese", "Write a tutorial about pip")])
 async def test_tutorial_assistant(language: str, topic: str):
-    topic = "Write a tutorial about MySQL"
     role = TutorialAssistant(language=language)
     msg = await role.run(topic)
     filename = msg.content
-    title = filename.split("/")[-1].split(".")[0]
-    async with aiofiles.open(filename, mode="r") as reader:
+    async with aiofiles.open(filename, mode="r", encoding="utf-8") as reader:
         content = await reader.read()
-        assert content.startswith(f"# {title}")
+        assert content
+

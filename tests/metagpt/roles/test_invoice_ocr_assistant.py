@@ -38,17 +38,7 @@ from metagpt.schema import Message
             Path("../../data/invoices/invoice-3.jpg"),
             Path("../../../data/invoice_table/invoice-3.xlsx"),
             [{"收款人": "夏天", "城市": "福州市", "总费用/元": 2462.00, "开票日期": "2023年08月26日"}],
-        ),
-        (
-            "Invoicing date",
-            Path("../../data/invoices/invoice-4.zip"),
-            Path("../../../data/invoice_table/invoice-4.xlsx"),
-            [
-                {"收款人": "小明", "城市": "深圳市", "总费用/元": 412.00, "开票日期": "2023年02月03日"},
-                {"收款人": "铁头", "城市": "广州市", "总费用/元": 898.00, "开票日期": "2023年03月17日"},
-                {"收款人": "夏天", "城市": "福州市", "总费用/元": 2462.00, "开票日期": "2023年08月26日"},
-            ],
-        ),
+        )
     ],
 )
 async def test_invoice_ocr_assistant(

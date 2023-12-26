@@ -6,7 +6,7 @@
 @Author  : Stitch-z
 @File    : test_invoice_ocr.py
 """
-
+import json
 import os
 from pathlib import Path
 
@@ -42,7 +42,7 @@ async def test_generate_table(invoice_path: str, expected_result: list[dict]):
     filename = os.path.basename(invoice_path)
     ocr_result = await InvoiceOCR().run(file_path=Path(invoice_path), filename=filename)
     table_data = await GenerateTable().run(ocr_results=ocr_result, filename=filename)
-    assert table_data == expected_result
+    assert json.dumps(table_data) == json.dumps(expected_result)
 
 
 @pytest.mark.asyncio
