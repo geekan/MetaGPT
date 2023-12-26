@@ -31,7 +31,7 @@ def test_message_without_postprocess():
     out_data = {"field1": ["field1 value1", "field1 value2"]}
     ic_obj = ActionNode.create_model_class("code", out_mapping)
     message = MockMessage(content="code", instruct_content=ic_obj(**out_data))
-    ser_data = message.dict()
+    ser_data = message.model_dump()
     assert ser_data["instruct_content"] == {"field1": ["field1 value1", "field1 value2"]}
 
     new_message = MockMessage(**ser_data)

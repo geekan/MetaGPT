@@ -20,14 +20,14 @@ from tests.metagpt.serialize_deserialize.test_serdeser_base import (
 
 def test_env_serialize():
     env = Environment()
-    ser_env_dict = env.dict()
+    ser_env_dict = env.model_dump()
     assert "roles" in ser_env_dict
 
 
 def test_env_deserialize():
     env = Environment()
     env.publish_message(message=Message(content="test env serialize"))
-    ser_env_dict = env.dict()
+    ser_env_dict = env.model_dump()
     new_env = Environment(**ser_env_dict)
     assert len(new_env.roles) == 0
     assert len(new_env.history) == 25
@@ -47,7 +47,7 @@ def test_environment_serdeser():
     environment.add_role(role_c)
     environment.publish_message(message)
 
-    ser_data = environment.dict()
+    ser_data = environment.model_dump()
     assert ser_data["roles"]["Role C"]["name"] == "RoleC"
 
     new_env: Environment = Environment(**ser_data)
@@ -64,7 +64,7 @@ def test_environment_serdeser_v2():
     pm = ProjectManager()
     environment.add_role(pm)
 
-    ser_data = environment.dict()
+    ser_data = environment.model_dump()
 
     new_env: Environment = Environment(**ser_data)
     role = new_env.get_role(pm.profile)

@@ -21,8 +21,8 @@ from metagpt.utils.dependency_file import DependencyFile
 async def test_dependency_file():
     class Input(BaseModel):
         x: Union[Path, str]
-        deps: Optional[Set[Union[Path, str]]]
-        key: Optional[Union[Path, str]]
+        deps: Optional[Set[Union[Path, str]]] = None
+        key: Optional[Union[Path, str]] = None
         want: Set[str]
 
     inputs = [

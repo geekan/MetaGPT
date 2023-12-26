@@ -11,7 +11,7 @@ NOTE: You should use typing.List instead of list to do type annotation. Because 
 import json
 from typing import Any, Dict, List, Optional, Tuple, Type
 
-from pydantic import BaseModel, create_model, root_validator, validator
+from pydantic import BaseModel, create_model, field_validator, model_validator
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.config import CONFIG
@@ -136,13 +136,15 @@ class ActionNode:
         """基于pydantic v1的模型动态生成，用来检验结果类型正确性"""
         new_class = create_model(class_name, **mapping)
 
-        @validator("*", allow_reuse=True)
+        @field_validator("*", mode="before")
+        @classmethod
         def check_name(v, field):
             if field.name not in mapping.keys():
                 raise ValueError(f"Unrecognized block: {field.name}")
             return v
 
-        @root_validator(pre=True, allow_reuse=True)
+        @model_validator(mode="before")
+        @classmethod
         def check_missing_fields(values):
             required_fields = set(mapping.keys())
             missing_fields = required_fields - set(values.keys())
@@ -269,7 +271,9 @@ class ActionNode:
         output_class = self.create_model_class(output_class_name, output_data_mapping)
 
         if schema == "json":
-            parsed_data = llm_output_postprecess(output=content, schema=output_class.schema(), req_key=f"[/{TAG}]")
+            parsed_data = llm_output_postprecess(
+                output=content, schema=output_class.model_json_schema(), req_key=f"[/{TAG}]"
+            )
         else:  # using markdown parser
             parsed_data = OutputParser.parse_data_with_mapping(content, output_data_mapping)
 
@@ -278,7 +282,7 @@ class ActionNode:
         return content, instruct_content
 
     def get(self, key):
-        return self.instruct_content.dict()[key]
+        return self.instruct_content.model_dump()[key]
 
     def set_recursive(self, name, value):
         setattr(self, name, value)
@@ -337,7 +341,7 @@ class ActionNode:
             tmp = {}
             for _, i in self.children.items():
                 child = await i.simple_fill(schema=schema, mode=mode, timeout=timeout)
-                tmp.update(child.instruct_content.dict())
+                tmp.update(child.instruct_content.model_dump())
             cls = self.create_children_class()
             self.instruct_content = cls(**tmp)
             return self

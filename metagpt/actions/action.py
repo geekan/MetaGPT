@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from typing import Any, Optional, Union
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from metagpt.actions.action_node import ActionNode
 from metagpt.llm import LLM
@@ -26,18 +26,17 @@ action_subclass_registry = {}
 
 
 class Action(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     name: str = ""
     llm: BaseGPTAPI = Field(default_factory=LLM, exclude=True)
     context: Union[dict, CodingContext, CodeSummarizeContext, TestingContext, RunCodeContext, str, None] = ""
-    prefix = ""  # aask*时会加上prefix，作为system_message
-    desc = ""  # for skill manager
+    prefix: str = ""  # aask*时会加上prefix，作为system_message
+    desc: str = ""  # for skill manager
     node: ActionNode = Field(default=None, exclude=True)
 
     # builtin variables
     builtin_class_name: str = ""
-
-    class Config:
-        arbitrary_types_allowed = True
 
     def __init_with_instruction(self, instruction: str):
         """Initialize action with instruction"""
@@ -58,8 +57,8 @@ class Action(BaseModel):
         super().__init_subclass__(**kwargs)
         action_subclass_registry[cls.__name__] = cls
 
-    def dict(self, *args, **kwargs) -> "DictStrAny":
-        obj_dict = super().dict(*args, **kwargs)
+    def dict(self, *args, **kwargs) -> dict[str, Any]:
+        obj_dict = super().model_dump(*args, **kwargs)
         if "llm" in obj_dict:
             obj_dict.pop("llm")
         return obj_dict

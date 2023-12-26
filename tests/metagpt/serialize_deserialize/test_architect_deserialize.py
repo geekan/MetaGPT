@@ -10,7 +10,7 @@ from metagpt.roles.architect import Architect
 
 def test_architect_serialize():
     role = Architect()
-    ser_role_dict = role.dict(by_alias=True)
+    ser_role_dict = role.model_dump(by_alias=True)
     assert "name" in ser_role_dict
     assert "_states" in ser_role_dict
     assert "_actions" in ser_role_dict
@@ -19,7 +19,7 @@ def test_architect_serialize():
 @pytest.mark.asyncio
 async def test_architect_deserialize():
     role = Architect()
-    ser_role_dict = role.dict(by_alias=True)
+    ser_role_dict = role.model_dump(by_alias=True)
     new_role = Architect(**ser_role_dict)
     # new_role = Architect.deserialize(ser_role_dict)
     assert new_role.name == "Bob"

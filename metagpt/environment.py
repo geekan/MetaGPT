@@ -15,7 +15,7 @@ import asyncio
 from pathlib import Path
 from typing import Iterable, Set
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from metagpt.config import CONFIG
 from metagpt.logs import logger
@@ -29,13 +29,12 @@ class Environment(BaseModel):
     Environment, hosting a batch of roles, roles can publish messages to the environment, and can be observed by other roles
     """
 
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     desc: str = Field(default="")  # 环境描述
     roles: dict[str, Role] = Field(default_factory=dict)
     members: dict[Role, Set] = Field(default_factory=dict)
     history: str = ""  # For debug
-
-    class Config:
-        arbitrary_types_allowed = True
 
     def __init__(self, **kwargs):
         roles = []

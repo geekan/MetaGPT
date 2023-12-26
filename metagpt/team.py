@@ -11,7 +11,7 @@
 import warnings
 from pathlib import Path
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from metagpt.actions import UserRequirement
 from metagpt.config import CONFIG
@@ -34,6 +34,8 @@ class Team(BaseModel):
     dedicated to env any multi-agent activity, such as collaboratively writing executable code.
     """
 
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     env: Environment = Field(default_factory=Environment)
     investment: float = Field(default=10.0)
     idea: str = Field(default="")
@@ -45,14 +47,11 @@ class Team(BaseModel):
         if "env_desc" in kwargs:
             self.env.desc = kwargs["env_desc"]
 
-    class Config:
-        arbitrary_types_allowed = True
-
     def serialize(self, stg_path: Path = None):
         stg_path = SERDESER_PATH.joinpath("team") if stg_path is None else stg_path
 
         team_info_path = stg_path.joinpath("team_info.json")
-        write_json_file(team_info_path, self.dict(exclude={"env": True}))
+        write_json_file(team_info_path, self.model_dump(exclude={"env": True}))
 
         self.env.serialize(stg_path.joinpath("environment"))  # save environment alone
 

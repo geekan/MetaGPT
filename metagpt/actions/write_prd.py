@@ -187,7 +187,7 @@ class WritePRD(Action):
 
         if not CONFIG.project_name:
             if isinstance(prd, (ActionOutput, ActionNode)):
-                ws_name = prd.instruct_content.dict()["Project Name"]
+                ws_name = prd.instruct_content.model_dump()["Project Name"]
             else:
                 ws_name = CodeParser.parse_str(block="Project Name", text=prd)
             CONFIG.project_name = ws_name

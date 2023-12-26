@@ -25,7 +25,7 @@ def test_memory_serdeser():
 
     memory = Memory()
     memory.add_batch([msg1, msg2])
-    ser_data = memory.dict()
+    ser_data = memory.model_dump()
 
     new_memory = Memory(**ser_data)
     assert new_memory.count() == 2

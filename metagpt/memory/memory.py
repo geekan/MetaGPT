@@ -41,7 +41,7 @@ class Memory(BaseModel):
     def serialize(self, stg_path: Path):
         """stg_path = ./storage/team/environment/ or ./storage/team/environment/roles/{role_class}_{role_name}/"""
         memory_path = stg_path.joinpath("memory.json")
-        storage = self.dict()
+        storage = self.model_dump()
         write_json_file(memory_path, storage)
 
     @classmethod

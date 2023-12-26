@@ -25,7 +25,7 @@ from json import JSONDecodeError
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Type, TypeVar
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field, PrivateAttr
 
 from metagpt.config import CONFIG
 from metagpt.const import (
@@ -108,7 +108,7 @@ class Message(BaseModel):
     role: str = "user"  # system / user / assistant
     cause_by: str = ""
     sent_from: str = ""
-    send_to: Set = Field(default_factory={MESSAGE_ROUTE_TO_ALL})
+    send_to: Set = Field(default={MESSAGE_ROUTE_TO_ALL})
 
     def __init__(self, content: str = "", **kwargs):
         ic = kwargs.get("instruct_content", None)
@@ -142,26 +142,26 @@ class Message(BaseModel):
             new_val = val
         super().__setattr__(key, new_val)
 
-    def dict(self, *args, **kwargs) -> "DictStrAny":
+    def dict(self, *args, **kwargs) -> dict[str, Any]:
         """overwrite the `dict` to dump dynamic pydantic model"""
-        obj_dict = super(Message, self).dict(*args, **kwargs)
+        obj_dict = super(Message, self).model_dump(*args, **kwargs)
         ic = self.instruct_content
         if ic:
             # compatible with custom-defined ActionOutput
-            schema = ic.schema()
+            schema = ic.model_json_schema()
             # `Documents` contain definitions
             if "definitions" not in schema:
                 # TODO refine with nested BaseModel
                 mapping = actionoutout_schema_to_mapping(schema)
                 mapping = actionoutput_mapping_to_str(mapping)
 
-                obj_dict["instruct_content"] = {"class": schema["title"], "mapping": mapping, "value": ic.dict()}
+                obj_dict["instruct_content"] = {"class": schema["title"], "mapping": mapping, "value": ic.model_dump()}
         return obj_dict
 
     def __str__(self):
         # prefix = '-'.join([self.role, str(self.cause_by)])
         if self.instruct_content:
-            return f"{self.role}: {self.instruct_content.dict()}"
+            return f"{self.role}: {self.instruct_content.model_dump()}"
         return f"{self.role}: {self.content}"
 
     def __repr__(self):
@@ -224,19 +224,18 @@ class AIMessage(Message):
 class MessageQueue(BaseModel):
     """Message queue which supports asynchronous updates."""
 
-    _queue: Queue = Field(default_factory=Queue)
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    _private_attributes = {"_queue": Queue()}
+    _queue: Queue = PrivateAttr(default_factory=Queue)
 
-    class Config:
-        arbitrary_types_allowed = True
+    # _private_attributes = {"_queue": Queue()}
 
-    def __init__(self, **kwargs: Any):
-        for key in self._private_attributes.keys():
-            if key in kwargs:
-                object.__setattr__(self, key, kwargs[key])
-            else:
-                object.__setattr__(self, key, Queue())
+    # def __init__(self, **kwargs: Any):
+    #     for key in self._private_attributes.keys():
+    #         if key in kwargs:
+    #             object.__setattr__(self, key, kwargs[key])
+    #         else:
+    #             object.__setattr__(self, key, Queue())
 
     def pop(self) -> Message | None:
         """Pop one message from the queue."""
@@ -312,28 +311,28 @@ class BaseContext(BaseModel, ABC):
 
 class CodingContext(BaseContext):
     filename: str
-    design_doc: Optional[Document]
-    task_doc: Optional[Document]
-    code_doc: Optional[Document]
+    design_doc: Optional[Document] = None
+    task_doc: Optional[Document] = None
+    code_doc: Optional[Document] = None
 
 
 class TestingContext(BaseContext):
     filename: str
     code_doc: Document
-    test_doc: Optional[Document]
+    test_doc: Optional[Document] = None
 
 
 class RunCodeContext(BaseContext):
     mode: str = "script"
-    code: Optional[str]
+    code: Optional[str] = None
     code_filename: str = ""
-    test_code: Optional[str]
+    test_code: Optional[str] = None
     test_filename: str = ""
     command: List[str] = Field(default_factory=list)
     working_directory: str = ""
     additional_python_paths: List[str] = Field(default_factory=list)
-    output_filename: Optional[str]
-    output: Optional[str]
+    output_filename: Optional[str] = None
+    output: Optional[str] = None
 
 
 class RunCodeResult(BaseContext):

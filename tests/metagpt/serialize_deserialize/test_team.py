@@ -33,7 +33,7 @@ def test_team_deserialize():
         ]
     )
     assert len(company.env.get_roles()) == 3
-    ser_company = company.dict()
+    ser_company = company.model_dump()
     new_company = Team(**ser_company)
 
     assert len(new_company.env.get_roles()) == 3
@@ -71,7 +71,7 @@ async def test_team_recover():
     company.run_project(idea)
     await company.run(n_round=4)
 
-    ser_data = company.dict()
+    ser_data = company.model_dump()
     new_company = Team(**ser_data)
 
     new_role_c = new_company.env.get_role(role_c.profile)

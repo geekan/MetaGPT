@@ -38,7 +38,7 @@ class TestGetProjectRoot:
 
     def test_any_to_str(self):
         class Input(BaseModel):
-            x: Any
+            x: Any = None
             want: str
 
         inputs = [
@@ -56,7 +56,7 @@ class TestGetProjectRoot:
 
     def test_any_to_str_set(self):
         class Input(BaseModel):
-            x: Any
+            x: Any = None
             want: Set
 
         inputs = [

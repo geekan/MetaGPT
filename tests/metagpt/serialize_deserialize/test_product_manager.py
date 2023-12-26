@@ -12,7 +12,7 @@ from metagpt.schema import Message
 @pytest.mark.asyncio
 async def test_product_manager_deserialize():
     role = ProductManager()
-    ser_role_dict = role.dict(by_alias=True)
+    ser_role_dict = role.model_dump(by_alias=True)
     new_role = ProductManager(**ser_role_dict)
 
     assert new_role.name == "Alice"

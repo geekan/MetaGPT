@@ -26,7 +26,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Iterable, Set, Type
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field, PrivateAttr
 
 from metagpt.actions import Action, ActionOutput
 from metagpt.actions.action import action_subclass_registry
@@ -108,9 +108,7 @@ class RoleContext(BaseModel):
         RoleReactMode.REACT
     )  # see `Role._set_react_mode` for definitions of the following two attributes
     max_react_loop: int = 1
-
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def check(self, role_id: str):
         # if hasattr(CONFIG, "long_term_memory") and CONFIG.long_term_memory:
@@ -134,6 +132,8 @@ role_subclass_registry = {}
 class Role(BaseModel):
     """Role/Agent"""
 
+    model_config = ConfigDict(arbitrary_types_allowed=True, exclude=["_llm"])
+
     name: str = ""
     profile: str = ""
     goal: str = ""
@@ -141,11 +141,11 @@ class Role(BaseModel):
     desc: str = ""
     is_human: bool = False
 
-    _llm: BaseGPTAPI = Field(default_factory=LLM)  # Each role has its own LLM, use different system message
-    _role_id: str = ""
-    _states: list[str] = []
-    _actions: list[Action] = []
-    _rc: RoleContext = Field(default_factory=RoleContext)
+    _llm: BaseGPTAPI = PrivateAttr(default_factory=LLM)  # Each role has its own LLM, use different system message
+    _role_id: str = PrivateAttr(default="")
+    _states: list[str] = PrivateAttr(default=[])
+    _actions: list[Action] = PrivateAttr(default=[])
+    _rc: RoleContext = PrivateAttr(default_factory=RoleContext)
     subscription: set[str] = set()
 
     # builtin variables
@@ -154,19 +154,15 @@ class Role(BaseModel):
     builtin_class_name: str = ""
 
     _private_attributes = {
-        "_llm": None,
-        "_role_id": _role_id,
-        "_states": [],
-        "_actions": [],
-        "_rc": RoleContext(),
-        "_subscription": set(),
+        # "_llm": None,
+        # "_role_id": _role_id,
+        # "_states": [],
+        # "_actions": [],
+        # "_rc": RoleContext(),
+        # "_subscription": set(),
     }
 
     __hash__ = object.__hash__  # support Role as hashable type in `Environment.members`
-
-    class Config:
-        arbitrary_types_allowed = True
-        exclude = ["_llm"]
 
     def __init__(self, **kwargs: Any):
         for index in range(len(kwargs.get("_actions", []))):
@@ -179,7 +175,7 @@ class Role(BaseModel):
                         current_action = subclass(**current_action)
                         break
                 kwargs["_actions"][index] = current_action
-
+        RoleContext.model_rebuild()
         super().__init__(**kwargs)
 
         # 关于私有变量的初始化  https://github.com/pydantic/pydantic/issues/655
@@ -187,25 +183,25 @@ class Role(BaseModel):
         self._private_attributes["_role_id"] = str(self._setting)
         self.subscription = {any_to_str(self), self.name} if self.name else {any_to_str(self)}
 
-        for key in self._private_attributes.keys():
-            if key in kwargs:
-                object.__setattr__(self, key, kwargs[key])
-                if key == "_rc":
-                    _rc = RoleContext(**kwargs["_rc"])
-                    object.__setattr__(self, "_rc", _rc)
-            else:
-                if key == "_rc":
-                    # # Warning, if use self._private_attributes["_rc"],
-                    # # self._rc will be a shared object between roles, so init one or reset it inside `_reset`
-                    object.__setattr__(self, key, RoleContext())
-                else:
-                    object.__setattr__(self, key, self._private_attributes[key])
+        # for key in self._private_attributes.keys():
+        #     if key in kwargs:
+        #         object.__setattr__(self, key, kwargs[key])
+        #         if key == "_rc":
+        #             _rc = RoleContext(**kwargs["_rc"])
+        #             object.__setattr__(self, "_rc", _rc)
+        #     else:
+        #         if key == "_rc":
+        #             # # Warning, if use self._private_attributes["_rc"],
+        #             # # self._rc will be a shared object between roles, so init one or reset it inside `_reset`
+        #             object.__setattr__(self, key, RoleContext())
+        #         else:
+        #             object.__setattr__(self, key, self._private_attributes[key])
 
         self._llm.system_prompt = self._get_prefix()
 
         # deserialize child classes dynamically for inherited `role`
         object.__setattr__(self, "builtin_class_name", self.__class__.__name__)
-        self.__fields__["builtin_class_name"].default = self.__class__.__name__
+        self.model_fields["builtin_class_name"].default = self.__class__.__name__
 
         if "actions" in kwargs:
             self._init_actions(kwargs["actions"])
@@ -231,7 +227,7 @@ class Role(BaseModel):
             else stg_path
         )
 
-        role_info = self.dict(exclude={"_rc": {"memory": True, "msg_buffer": True}, "_llm": True})
+        role_info = self.model_dump(exclude={"_rc": {"memory": True, "msg_buffer": True}, "_llm": True})
         role_info.update({"role_class": self.__class__.__name__, "module_name": self.__module__})
         role_info_path = stg_path.joinpath("role_info.json")
         write_json_file(role_info_path, role_info)

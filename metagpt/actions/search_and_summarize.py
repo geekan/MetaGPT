@@ -8,7 +8,7 @@
 from typing import Any, Optional
 
 import pydantic
-from pydantic import Field, root_validator
+from pydantic import Field, model_validator
 
 from metagpt.actions import Action
 from metagpt.config import CONFIG, Config
@@ -114,10 +114,10 @@ class SearchAndSummarize(Action):
     engine: Optional[SearchEngineType] = CONFIG.search_engine
     search_func: Optional[Any] = None
     search_engine: SearchEngine = None
+    result: str = ""
 
-    result = ""
-
-    @root_validator
+    @model_validator(mode="before")
+    @classmethod
     def validate_engine_and_run_func(cls, values):
         engine = values.get("engine")
         search_func = values.get("search_func")

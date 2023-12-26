@@ -11,7 +11,7 @@ from metagpt.roles.project_manager import ProjectManager
 
 def test_project_manager_serialize():
     role = ProjectManager()
-    ser_role_dict = role.dict(by_alias=True)
+    ser_role_dict = role.model_dump(by_alias=True)
     assert "name" in ser_role_dict
     assert "_states" in ser_role_dict
     assert "_actions" in ser_role_dict
@@ -20,7 +20,7 @@ def test_project_manager_serialize():
 @pytest.mark.asyncio
 async def test_project_manager_deserialize():
     role = ProjectManager()
-    ser_role_dict = role.dict(by_alias=True)
+    ser_role_dict = role.model_dump(by_alias=True)
 
     new_role = ProjectManager(**ser_role_dict)
     assert new_role.name == "Eve"

@@ -34,7 +34,7 @@ def test_roles():
 
 def test_role_serialize():
     role = Role()
-    ser_role_dict = role.dict(by_alias=True)
+    ser_role_dict = role.model_dump(by_alias=True)
     assert "name" in ser_role_dict
     assert "_states" in ser_role_dict
     assert "_actions" in ser_role_dict
@@ -42,7 +42,7 @@ def test_role_serialize():
 
 def test_engineer_serialize():
     role = Engineer()
-    ser_role_dict = role.dict(by_alias=True)
+    ser_role_dict = role.model_dump(by_alias=True)
     assert "name" in ser_role_dict
     assert "_states" in ser_role_dict
     assert "_actions" in ser_role_dict
@@ -51,7 +51,7 @@ def test_engineer_serialize():
 @pytest.mark.asyncio
 async def test_engineer_deserialize():
     role = Engineer(use_code_review=True)
-    ser_role_dict = role.dict(by_alias=True)
+    ser_role_dict = role.model_dump(by_alias=True)
 
     new_role = Engineer(**ser_role_dict)
     assert new_role.name == "Alex"
