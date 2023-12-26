@@ -33,7 +33,7 @@ class BaseWriteAnalysisCode(Action):
     # REUSE_CODE_INSTRUCTION = """ATTENTION: DONT include codes from previous tasks in your current code block, include new codes only, DONT repeat codes!"""
 
     def process_msg(self, prompt: Union[str, List[Dict], Message, List[Message]], system_msg: str = None):
-        default_system_msg = system_msg or ""
+        default_system_msg = system_msg or self.DEFAULT_SYSTEM_MSG
         # 全部转成list
         if not isinstance(prompt, list):
             prompt = [prompt]
@@ -96,7 +96,7 @@ class WriteCodeByGenerate(BaseWriteAnalysisCode):
         **kwargs,
     ) -> str:
         # context.append(Message(content=self.REUSE_CODE_INSTRUCTION, role="user"))
-        prompt = self.process_msg(context, system_msg or self.DEFAULT_SYSTEM_MSG)
+        prompt = self.process_msg(context, system_msg)
         code_content = await self.llm.aask_code(prompt, **kwargs)
         return code_content["code"]
 
