@@ -9,6 +9,8 @@ async def make_use_tools(requirement: str, auto_run: bool = True):
     """make and use tools for requirement."""
     role = MLEngineer(goal=requirement, auto_run=auto_run)
     # make udfs
+    role.use_tools = False
+    role.use_code_steps = False
     role.make_udfs = True
     role.use_udfs = False
     await role.run(requirement)
@@ -16,6 +18,8 @@ async def make_use_tools(requirement: str, auto_run: bool = True):
     role.reset()
     role.make_udfs = False
     role.use_udfs = True
+    role.use_code_steps = False
+    role.use_tools = False
     await role.run(requirement)
 
 

@@ -249,6 +249,7 @@ class MakeTools(WriteCodeByGenerate):
         super().__init__(name, context, llm)
         self.workspace = workspace or str(Path(__file__).parents[1].joinpath("./tools/functions/libs/udf"))
         self.file_suffix: str = '.py'
+        self.context = []
 
     def parse_function_name(self, function_code: str) -> str:
         # 定义正则表达式模式
@@ -270,11 +271,14 @@ class MakeTools(WriteCodeByGenerate):
         saved_path.write_text(tool_code, encoding='utf-8')
 
     @retry(stop=stop_after_attempt(3), wait=wait_fixed(1))
-    async def run(self, code: str, code_desc: str = None, **kwargs) -> str:
+    async def run(self, code: str | List[dict], code_desc: str = None, **kwargs) -> str:
         # 拼接code prompt
         code_prompt = f"The following code is about {code_desc}, convert it to be a General Function, {code}"
-        msgs = self.process_msg(code_prompt, self.DEFAULT_SYSTEM_MSG)
-        logger.info(f"\n\nAsk to Make tools:\n{'-'*60}\n {msgs[-1]}")
+        if not self.context:
+            self.context = self.process_msg(code_prompt)
+        else:
+            self.context.append(self.process_msg(code_prompt)[-1])
+        logger.info(f"\n\nAsk to Make tools:\n{'-'*60}\n {self.context[-1]}")
 
         # 更新kwargs
         if 'code' in kwargs:
@@ -282,17 +286,21 @@ class MakeTools(WriteCodeByGenerate):
         if 'code_desc' in kwargs:
             kwargs.pop('code_desc')
 
-        tool_code = await self.llm.aask_code(msgs, **kwargs)
-        max_tries, current_try = 3, 1
-        func_name = self.parse_function_name(tool_code['code'])
-        while current_try < max_tries and func_name is None:
-            logger.info(f"\n\nTools Respond\n{'-'*60}\n: {tool_code}")
-            logger.warning(f"No function name found in code, we will retry make tools. \n\n{tool_code['code']}\n")
-            msgs.append({'role': 'assistant', 'content': 'We need a general function in above code,but not found function.'})
-            tool_code = await self.llm.aask_code(msgs, **kwargs)
-            current_try += 1
+        max_tries, current_try = 3, 0
+        while True:
+            tool_code = await self.llm.aask_code(self.context, **kwargs)
             func_name = self.parse_function_name(tool_code['code'])
-            if func_name is not None:
+            current_try += 1
+            # make tools failed, add error message to context.
+            if not func_name:
+                logger.info(f"\n\nTools Respond\n{'-'*60}\n: {tool_code}")
+                logger.error(f"No function name found in code, we will retry make tools.\n{tool_code['code']}\n")
+                self.context.append({'role': 'user', 'content': 'We need a general function in above code,but not found function.'})
+            # end make tools
+            if func_name is not None or current_try >= max_tries:
+                if current_try >= max_tries:
+                    logger.error(f"We have tried the maximum number of attempts {max_tries}\
+                    and still have not created tools successfully, we will skip it.")
                 break
         logger.info(f"\n\nTools Respond\n{'-'*60}\n: {tool_code}")
         self.save(tool_code['code'])

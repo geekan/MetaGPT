@@ -286,65 +286,45 @@ class MLEngineer(Role):
         logger.warning(f"Making tools for task_id {self.plan.current_task_id}: \
             `{self.plan.current_task.instruction}` \n code: \n {code}")
         make_tools = MakeTools()
-        tool_code = await make_tools.run(code, self.plan.current_task.instruction)
-        # check tool_code by execute_code
-        logger.info(f"Checking task_id {self.plan.current_task_id} tool code by executor...")
-        _, success = await self.execute_code.run(tool_code)
-        make_tool_retries, make_tool_current_retry = 3, 1
-        while not success:
-            # tool_code = await make_tools.run(code_prompt)
-            tool_code = await make_tools.run(code)
-            _, success = await self.execute_code.run(tool_code)
+        make_tool_retries, make_tool_current_retry = 3, 0
+        while True:
+            # start make tools
+            tool_code = await make_tools.run(code, self.plan.current_task.instruction)
             make_tool_current_retry += 1
-            if make_tool_current_retry > make_tool_retries:
-                logger.error(f"We have tried the maximum number of attempts {make_tool_retries}\
-                    and still have not created tools for task_id {self.plan.current_task_id} successfully,\
-                        we will skip it.")
+
+            # check tool_code by execute_code
+            logger.info(f"Checking task_id {self.plan.current_task_id} tool code by executor...")
+            execute_result, execute_success = await self.execute_code.run(tool_code)
+            if not execute_success:
+                logger.error(f"Tool code faild to execute, \n{execute_result}\n.We will try to fix it ...")
+            # end make tools
+            if execute_success or make_tool_current_retry >= make_tool_retries:
+                if make_tool_current_retry >= make_tool_retries:
+                    logger.error(f"We have tried the maximum number of attempts {make_tool_retries}\
+                        and still have not created tools for task_id {self.plan.current_task_id} successfully,\
+                            we will skip it.")
                 break
         # save successful tool code in udf
-        if success:
+        if execute_success:
             make_tools.save(tool_code)
 
 
 if __name__ == "__main__":
-    requirement = "Run data analysis on sklearn Iris dataset, include a plot"
-    # requirement = "Run data analysis on sklearn Diabetes dataset, include a plot"
-    # requirement = "Run data analysis on sklearn Wine recognition dataset, include a plot, and train a model to predict wine class (20% as validation), and show validation accuracy"
-    # requirement = "Run data analysis on sklearn Wisconsin Breast Cancer dataset, include a plot, train a model to predict targets (20% as validation), and show validation accuracy"
-    # requirement = "Run EDA and visualization on this dataset, train a model to predict survival, report metrics on validation set (20%), dataset: workspace/titanic/train.csv"
-
-    async def run_udfs(requirement: str = requirement, auto_run: bool = True):
-        role = MLEngineer(goal=requirement, auto_run=auto_run)
-        # make udfs
-        role.use_tools = False
-        role.use_code_steps = False
-        role.make_udfs = True
-        role.use_udfs = False
-        await role.run(requirement)
-        # use udfs
-        role.reset()
-        role.make_udfs = False
-        role.use_udfs = True
-        role.use_code_steps = False
-        role.use_tools = False
-        await role.run(requirement)
-
+    requirement = "Perform data analysis on the provided data. Train a model to predict the target variable Survived. Include data preprocessing, feature engineering, and modeling in your pipeline. The metric is accuracy."
     
-    # requirement = "Perform data analysis on the provided data. Train a model to predict the target variable Survived. Include data preprocessing, feature engineering, and modeling in your pipeline. The metric is accuracy."
+    data_path = f"{DATA_PATH}/titanic"
+    requirement = f"This is a titanic passenger survival dataset, your goal is to predict passenger survival outcome. The target column is Survived. Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. Report accuracy on the eval data. Train data path: '{data_path}/split_train.csv', eval data path: '{data_path}/split_eval.csv'."
+    requirement = f"Run data analysis on sklearn Wine recognition dataset, include a plot, and train a model to predict wine class (20% as validation), and show validation accuracy"
+    data_path = f"{DATA_PATH}/icr-identify-age-related-conditions"
+    requirement = f"This is a medical dataset with over fifty anonymized health characteristics linked to three age-related conditions. Your goal is to predict whether a subject has or has not been diagnosed with one of these conditions.The target column is Class. Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. Report f1 score on the eval data. Train data path: {data_path}/split_train.csv, eval data path: {data_path}/split_eval.csv."
     
-    # data_path = f"{DATA_PATH}/titanic"
-    # requirement = f"This is a titanic passenger survival dataset, your goal is to predict passenger survival outcome. The target column is Survived. Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. Report accuracy on the eval data. Train data path: '{data_path}/split_train.csv', eval data path: '{data_path}/split_eval.csv'."
-    # requirement = f"Run data analysis on sklearn Wine recognition dataset, include a plot, and train a model to predict wine class (20% as validation), and show validation accuracy"
-    # data_path = f"{DATA_PATH}/icr-identify-age-related-conditions"
-    # requirement = f"This is a medical dataset with over fifty anonymized health characteristics linked to three age-related conditions. Your goal is to predict whether a subject has or has not been diagnosed with one of these conditions.The target column is Class. Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. Report f1 score on the eval data. Train data path: {data_path}/split_train.csv, eval data path: {data_path}/split_eval.csv."
+    data_path = f"{DATA_PATH}/santander-customer-transaction-prediction"
+    requirement = f"This is a customers financial dataset. Your goal is to predict which customers will make a specific transaction in the future. The target column is target. Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. Report F1 Score on the eval data. Train data path: '{data_path}/split_train.csv', eval data path: '{data_path}/split_eval.csv' ."
     
-    # data_path = f"{DATA_PATH}/santander-customer-transaction-prediction"
-    # requirement = f"This is a customers financial dataset. Your goal is to predict which customers will make a specific transaction in the future. The target column is target. Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. Report F1 Score on the eval data. Train data path: '{data_path}/split_train.csv', eval data path: '{data_path}/split_eval.csv' ."
-    
-    # data_path = f"{DATA_PATH}/house-prices-advanced-regression-techniques"
-    # requirement = f"This is a house price dataset, your goal is to predict the sale price of a property based on its features. The target column is SalePrice. Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. Report RMSE between the logarithm of the predicted value and the logarithm of the observed sales price on the eval data. Train data path: '{data_path}/split_train.csv', eval data path: '{data_path}/split_eval.csv'."
-    # save_dir = ""
-    # # save_dir = DATA_PATH / "output" / "2023-12-14_20-40-34"
+    data_path = f"{DATA_PATH}/house-prices-advanced-regression-techniques"
+    requirement = f"This is a house price dataset, your goal is to predict the sale price of a property based on its features. The target column is SalePrice. Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. Report RMSE between the logarithm of the predicted value and the logarithm of the observed sales price on the eval data. Train data path: '{data_path}/split_train.csv', eval data path: '{data_path}/split_eval.csv'."
+    save_dir = ""
+    # save_dir = DATA_PATH / "output" / "2023-12-14_20-40-34"
 
     async def main(requirement: str = requirement, auto_run: bool = True, use_tools: bool = False, use_code_steps: bool = False, save_dir: str = ""):
         """
@@ -377,4 +357,4 @@ if __name__ == "__main__":
             
             logger.exception(f"An error occurred: {e}, save trajectory here: {save_path}")
 
-    fire.Fire(run_udfs)
+    fire.Fire(main)
