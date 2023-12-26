@@ -6,7 +6,6 @@
 @File    : iflytek_tts.py
 @Desc    : iFLYTEK TTS OAS3 api, which provides text-to-speech functionality
 """
-import asyncio
 import base64
 import hashlib
 import hmac
@@ -74,12 +73,13 @@ class IFlyTekTTS(object):
             await websocket.send(req)
 
             # receive frames
-            async with aiofiles.open(str(output_file), "w") as writer:
+            async with aiofiles.open(str(output_file), "wb") as writer:
                 while True:
                     v = await websocket.recv()
                     rsp = IFlyTekTTSResponse(**json.loads(v))
                     if rsp.data:
-                        await writer.write(rsp.data.audio)
+                        binary_data = base64.b64decode(rsp.data.audio)
+                        await writer.write(binary_data)
                         if rsp.data.status != IFlyTekTTSStatus.STATUS_LAST_FRAME.value:
                             continue
                     break
@@ -140,23 +140,13 @@ async def oas3_iflytek_tts(text: str, voice: str = "", app_id: str = "", api_key
     try:
         tts = IFlyTekTTS(app_id=app_id, api_key=api_key, api_secret=api_secret)
         await tts.synthesize_speech(text=text, output_file=str(filename), voice=voice)
-        async with aiofiles.open(str(filename), mode="r") as reader:
-            base64_string = await reader.read()
+        async with aiofiles.open(str(filename), mode="rb") as reader:
+            data = await reader.read()
+            base64_string = base64.b64encode(data).decode("utf-8")
     except Exception as e:
         logger.error(f"text:{text}, error:{e}")
         base64_string = ""
     finally:
-        filename.unlink()
+        filename.unlink(missing_ok=True)
 
     return base64_string
-
-
-if __name__ == "__main__":
-    asyncio.get_event_loop().run_until_complete(
-        oas3_iflytek_tts(
-            text="你好，hello",
-            app_id="f7acef62",
-            api_key="fda72e3aa286042a492525816a5efa08",
-            api_secret="ZDk3NjdiMDBkODJlOWQ1NjRjMGI2NDY4",
-        )
-    )

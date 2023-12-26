@@ -6,7 +6,6 @@
 @File    : text_to_speech.py
 @Desc    : Text-to-Speech skill, which provides text-to-speech functionality
 """
-import openai
 
 from metagpt.config import CONFIG
 from metagpt.const import BASE64_FORMAT
@@ -66,7 +65,6 @@ async def text_to_speech(
             return f"[{text}]({url})"
         return audio_declaration + base64_data if base64_data else base64_data
 
-    raise openai.InvalidRequestError(
-        message="AZURE_TTS_SUBSCRIPTION_KEY, AZURE_TTS_REGION, IFLYTEK_APP_ID, IFLYTEK_API_KEY, IFLYTEK_API_SECRET error",
-        param={},
+    raise ValueError(
+        "AZURE_TTS_SUBSCRIPTION_KEY, AZURE_TTS_REGION, IFLYTEK_APP_ID, IFLYTEK_API_KEY, IFLYTEK_API_SECRET error"
     )

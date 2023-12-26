@@ -96,9 +96,10 @@ async def oas3_azsure_tts(text, lang="", voice="", style="", role="", subscripti
         async with aiofiles.open(filename, mode="rb") as reader:
             data = await reader.read()
             base64_string = base64.b64encode(data).decode("utf-8")
-        filename.unlink()
     except Exception as e:
         logger.error(f"text:{text}, error:{e}")
         return ""
+    finally:
+        filename.unlink(missing_ok=True)
 
     return base64_string

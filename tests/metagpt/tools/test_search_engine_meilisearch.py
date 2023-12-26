@@ -18,6 +18,10 @@ MASTER_KEY = "116Qavl2qpCYNEJNv5-e0RC9kncev1nr1gt7ybEGVLk"
 
 @pytest.fixture()
 def search_engine_server():
+    # Prerequisites
+    # https://www.meilisearch.com/docs/learn/getting_started/installation
+    # brew update && brew install meilisearch
+
     meilisearch_process = subprocess.Popen(["meilisearch", "--master-key", f"{MASTER_KEY}"], stdout=subprocess.PIPE)
     time.sleep(3)
     yield
@@ -26,6 +30,10 @@ def search_engine_server():
 
 
 def test_meilisearch(search_engine_server):
+    # Prerequisites
+    # https://www.meilisearch.com/docs/learn/getting_started/installation
+    # brew update && brew install meilisearch
+
     search_engine = MeilisearchEngine(url="http://localhost:7700", token=MASTER_KEY)
 
     # 假设有一个名为"books"的数据源，包含要添加的文档库
@@ -44,3 +52,7 @@ def test_meilisearch(search_engine_server):
     # 添加文档库到搜索引擎
     search_engine.add_documents(books_data_source, documents)
     logger.info(search_engine.search("Book 1"))
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-s"])

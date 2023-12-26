@@ -3,7 +3,7 @@
 """
 @Time    : 2023/12/26
 @Author  : mashenquan
-@File    : test_hello.py
+@File    : test_metagpt_oas3_api_svc.py
 """
 import asyncio
 import subprocess
@@ -14,12 +14,12 @@ import requests
 
 
 @pytest.mark.asyncio
-async def test_hello():
-    script_pathname = Path(__file__).parent / "../../../metagpt/tools/hello.py"
+async def test_oas2_svc():
+    script_pathname = Path(__file__).parent / "../../../metagpt/tools/metagpt_oas3_api_svc.py"
     process = subprocess.Popen(["python", str(script_pathname)])
     await asyncio.sleep(5)
 
-    url = "http://localhost:8082/openapi/greeting/dave"
+    url = "http://localhost:8080/openapi/greeting/dave"
     headers = {"accept": "text/plain", "Content-Type": "application/json"}
     data = {}
     response = requests.post(url, headers=headers, json=data)

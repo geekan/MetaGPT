@@ -6,7 +6,6 @@
 @File    : metagpt_text_to_image.py
 @Desc    : MetaGPT Text-to-Image OAS3 api, which provides text-to-image functionality.
 """
-import asyncio
 import base64
 from typing import Dict, List
 
@@ -14,7 +13,7 @@ import aiohttp
 import requests
 from pydantic import BaseModel
 
-from metagpt.config import CONFIG, Config
+from metagpt.config import CONFIG
 from metagpt.logs import logger
 
 
@@ -75,11 +74,12 @@ class MetaGPTText2Image:
                 async with session.post(self.model_url, headers=headers, json=data) as response:
                     result = ImageResult(**await response.json())
             if len(result.images) == 0:
-                return ""
-            return result.images[0]
+                return 0
+            data = base64.b64decode(result.images[0])
+            return data
         except requests.exceptions.RequestException as e:
             logger.error(f"An error occurred:{e}")
-        return ""
+        return 0
 
 
 # Export
@@ -96,15 +96,3 @@ async def oas3_metagpt_text_to_image(text, size_type: str = "512x512", model_url
     if not model_url:
         model_url = CONFIG.METAGPT_TEXT_TO_IMAGE_MODEL_URL
     return await MetaGPTText2Image(model_url).text_2_image(text, size_type=size_type)
-
-
-if __name__ == "__main__":
-    Config()
-    loop = asyncio.new_event_loop()
-    task = loop.create_task(oas3_metagpt_text_to_image("Panda emoji"))
-    v = loop.run_until_complete(task)
-    print(v)
-    data = base64.b64decode(v)
-    with open("tmp.png", mode="wb") as writer:
-        writer.write(data)
-    print(v)
