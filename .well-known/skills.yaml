@@ -1,0 +1,161 @@
+skillapi: "0.1.0"
+
+info:
+  title: "Agent Skill Specification"
+  version: "1.0"
+
+entities:
+  Assistant:
+    summary: assistant
+    description: assistant
+    skills:
+      - name: text_to_speech
+        description: Generate a voice file from the input text, text-to-speech
+        id: text_to_speech.text_to_speech
+        x-prerequisite:
+          configurations:
+            AZURE_TTS_SUBSCRIPTION_KEY:
+              type: string
+              description: "For more details, check out: [Azure Text-to_Speech](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts)"
+            AZURE_TTS_REGION:
+              type: string
+              description: "For more details, check out: [Azure Text-to_Speech](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts)"
+            IFLYTEK_APP_ID:
+              type: string
+              description: "Application ID is used to access your iFlyTek service API, see: `https://console.xfyun.cn/services/tts`"
+            IFLYTEK_API_KEY:
+              type: string
+              description: "WebAPI argument, see: `https://console.xfyun.cn/services/tts`"
+            IFLYTEK_API_SECRET:
+              type: string
+              description: "WebAPI argument, see: `https://console.xfyun.cn/services/tts`"
+          required:
+            oneOf:
+              - allOf:
+                - AZURE_TTS_SUBSCRIPTION_KEY
+                - AZURE_TTS_REGION
+              - allOf:
+                - IFLYTEK_APP_ID
+                - IFLYTEK_API_KEY
+                - IFLYTEK_API_SECRET
+        parameters:
+          text:
+            description: 'The text used for voice conversion.'
+            required: true
+            type: string
+          lang:
+            description: 'The value can contain a language code such as en (English), or a locale such as en-US (English - United States).'
+            type: string
+            enum:
+              - English
+              - Chinese
+            default: Chinese
+          voice:
+            description: Name of voice styles
+            type: string
+            default: zh-CN-XiaomoNeural
+          style:
+            type: string
+            description: Speaking style to express different emotions like cheerfulness, empathy, and calm.
+            enum:
+              - affectionate
+              - angry
+              - calm
+              - cheerful
+              - depressed
+              - disgruntled
+              - embarrassed
+              - envious
+              - fearful
+              - gentle
+              - sad
+              - serious
+            default: affectionate
+          role:
+            type: string
+            description: With roles, the same voice can act as a different age and gender.
+            enum:
+              - Girl
+              - Boy
+              - OlderAdultFemale
+              - OlderAdultMale
+              - SeniorFemale
+              - SeniorMale
+              - YoungAdultFemale
+              - YoungAdultMale
+            default: Girl
+        examples:
+           - ask: 'A girl says "hello world"'
+             answer: 'text_to_speech(text="hello world", role="Girl")'
+           - ask: 'A boy affectionate says "hello world"'
+             answer: 'text_to_speech(text="hello world", role="Boy", style="affectionate")'
+           - ask: 'A boy says "你好"'
+             answer: 'text_to_speech(text="你好", role="Boy", lang="Chinese")'
+        returns:
+          type: string
+          format: base64
+
+      - name: text_to_image
+        description: Create a drawing based on the text.
+        id: text_to_image.text_to_image
+        x-prerequisite:
+          configurations:
+            OPENAI_API_KEY:
+              type: string
+              description: "OpenAI API key, For more details, checkout: `https://platform.openai.com/account/api-keys`"
+            METAGPT_TEXT_TO_IMAGE_MODEL_URL:
+              type: string
+              description: "Model url."
+          required:
+            oneOf:
+              - OPENAI_API_KEY
+              - METAGPT_TEXT_TO_IMAGE_MODEL_URL
+        parameters:
+          text:
+            description: 'The text used for image conversion.'
+            type: string
+            required: true
+          size_type:
+            description: size type
+            type: string
+            default: "512x512"
+        examples:
+          - ask: 'Draw a girl'
+            answer: 'text_to_image(text="Draw a girl", size_type="512x512")'
+          - ask: 'Draw an apple'
+            answer: 'text_to_image(text="Draw an apple", size_type="512x512")'
+        returns:
+          type: string
+          format: base64
+
+      - name: web_search
+        description: Perform Google searches to provide real-time information.
+        id: web_search.web_search
+        x-prerequisite:
+          configurations:
+            SEARCH_ENGINE:
+              type: string
+              description: "Supported values: serpapi/google/serper/ddg"
+            SERPER_API_KEY:
+              type: string
+              description: "SERPER API KEY, For more details, checkout: `https://serper.dev/api-key`"
+          required:
+            allOf:
+              - SEARCH_ENGINE
+              - SERPER_API_KEY
+        parameters:
+          query:
+            type: string
+            description: 'The search query.'
+            required: true
+          max_results:
+            type: number
+            default: 6
+            description: 'The number of search results to retrieve.'
+        examples:
+          - ask: 'Search for information about artificial intelligence'
+            answer: 'web_search(query="Search for information about artificial intelligence", max_results=6)'
+          - ask: 'Find news articles about climate change'
+            answer: 'web_search(query="Find news articles about climate change", max_results=6)'
+        returns:
+          type: string

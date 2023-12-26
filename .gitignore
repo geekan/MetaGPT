@@ -159,3 +159,9 @@ workspace/*
 tmp
 metagpt/roles/idea_agent.py
 .aider*
+*.bak
+
+# output folder
+output
+tmp.png
+

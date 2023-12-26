@@ -10,8 +10,6 @@
 
 import json
 
-import pytest
-
 from metagpt.actions import Action
 from metagpt.actions.action_node import ActionNode
 from metagpt.actions.write_code import WriteCode
@@ -19,7 +17,6 @@ from metagpt.schema import AIMessage, Message, SystemMessage, UserMessage
 from metagpt.utils.common import any_to_str
 
 
-@pytest.mark.asyncio
 def test_messages():
     test_content = "test_message"
     msgs = [
@@ -33,7 +30,6 @@ def test_messages():
     assert all([i in text for i in roles])
 
 
-@pytest.mark.asyncio
 def test_message():
     m = Message(content="a", role="v1")
     v = m.dump()
@@ -64,7 +60,6 @@ def test_message():
     assert m.content == "b"
 
 
-@pytest.mark.asyncio
 def test_routes():
     m = Message(content="a", role="b", cause_by="c", x="d", send_to="c")
     m.send_to = "b"

@@ -19,5 +19,5 @@ class ExecuteTask(Action):
     context: list[Message] = []
     llm: BaseGPTAPI = Field(default_factory=LLM)
 
-    def run(self, *args, **kwargs):
+    async def run(self, *args, **kwargs):
         pass

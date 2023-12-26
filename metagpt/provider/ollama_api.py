@@ -19,7 +19,8 @@ from metagpt.logs import log_llm_stream, logger
 from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.provider.general_api_requestor import GeneralAPIRequestor
 from metagpt.provider.llm_provider_registry import register_provider
-from metagpt.provider.openai_api import CostManager, log_and_reraise
+from metagpt.provider.openai_api import log_and_reraise
+from metagpt.utils.cost_manager import CostManager
 
 
 class OllamaCostManager(CostManager):
@@ -55,6 +56,9 @@ class OllamaGPTAPI(BaseGPTAPI):
         assert config.ollama_api_base
 
         self.model = config.ollama_api_model
+
+    def close(self):
+        pass
 
     def _const_kwargs(self, messages: list[dict], stream: bool = False) -> dict:
         kwargs = {"model": self.model, "messages": messages, "options": {"temperature": 0.3}, "stream": stream}
@@ -143,7 +147,9 @@ class OllamaGPTAPI(BaseGPTAPI):
         retry=retry_if_exception_type(ConnectionError),
         retry_error_callback=log_and_reraise,
     )
-    async def acompletion_text(self, messages: list[dict], stream=False) -> str:
+    async def acompletion_text(
+        self, messages: list[dict], stream=False, generator: bool = False, timeout: int = 3
+    ) -> str:
         """response in async with stream or non-stream mode"""
         if stream:
             return await self._achat_completion_stream(messages)

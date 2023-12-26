@@ -4,34 +4,62 @@
 
 import pytest
 
+from metagpt.config import CONFIG
 from metagpt.provider.zhipuai_api import ZhiPuAIGPTAPI
 
-default_resp = {"code": 200, "data": {"choices": [{"role": "assistant", "content": "I'm chatglm-turbo"}]}}
+CONFIG.zhipuai_api_key = "xxx"
 
-messages = [{"role": "user", "content": "who are you"}]
+prompt_msg = "who are you"
+messages = [{"role": "user", "content": prompt_msg}]
+
+resp_content = "I'm chatglm-turbo"
+default_resp = {"code": 200, "data": {"choices": [{"role": "assistant", "content": resp_content}]}}
 
 
-def mock_llm_ask(self, messages: list[dict]) -> dict:
+def mock_llm_completion(self, messages: list[dict], timeout: int = 60) -> dict:
     return default_resp
+
+
+async def mock_llm_acompletion(self, messgaes: list[dict], stream: bool = False, timeout: int = 60) -> dict:
+    return default_resp
+
+
+async def mock_llm_achat_completion_stream(self, messgaes: list[dict]) -> str:
+    return resp_content
 
 
 def test_zhipuai_completion(mocker):
-    mocker.patch("metagpt.provider.zhipuai_api.ZhiPuAIGPTAPI.completion", mock_llm_ask)
+    mocker.patch("metagpt.provider.zhipuai_api.ZhiPuAIGPTAPI.completion", mock_llm_completion)
+    zhipu_gpt = ZhiPuAIGPTAPI()
 
-    resp = ZhiPuAIGPTAPI().completion(messages)
+    resp = zhipu_gpt.completion(messages)
     assert resp["code"] == 200
-    assert "chatglm-turbo" in resp["data"]["choices"][0]["content"]
+    assert resp["data"]["choices"][0]["content"] == resp_content
 
-
-async def mock_llm_aask(self, messgaes: list[dict], stream: bool = False) -> dict:
-    return default_resp
+    resp = zhipu_gpt.ask(prompt_msg)
+    assert resp == resp_content
 
 
 @pytest.mark.asyncio
 async def test_zhipuai_acompletion(mocker):
-    mocker.patch("metagpt.provider.zhipuai_api.ZhiPuAIGPTAPI.acompletion_text", mock_llm_aask)
+    mocker.patch("metagpt.provider.zhipuai_api.ZhiPuAIGPTAPI.acompletion", mock_llm_acompletion)
+    mocker.patch("metagpt.provider.zhipuai_api.ZhiPuAIGPTAPI._achat_completion", mock_llm_acompletion)
+    mocker.patch(
+        "metagpt.provider.zhipuai_api.ZhiPuAIGPTAPI._achat_completion_stream", mock_llm_achat_completion_stream
+    )
+    zhipu_gpt = ZhiPuAIGPTAPI()
 
-    resp = await ZhiPuAIGPTAPI().acompletion_text(messages, stream=False)
+    resp = await zhipu_gpt.acompletion(messages)
+    assert resp["data"]["choices"][0]["content"] == resp_content
 
-    assert resp["code"] == 200
-    assert "chatglm-turbo" in resp["data"]["choices"][0]["content"]
+    resp = await zhipu_gpt.aask(prompt_msg, stream=False)
+    assert resp == resp_content
+
+    resp = await zhipu_gpt.acompletion_text(messages, stream=False)
+    assert resp == resp_content
+
+    resp = await zhipu_gpt.acompletion_text(messages, stream=True)
+    assert resp == resp_content
+
+    resp = await zhipu_gpt.aask(prompt_msg)
+    assert resp == resp_content
