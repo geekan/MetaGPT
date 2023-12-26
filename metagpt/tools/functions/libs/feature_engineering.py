@@ -6,12 +6,12 @@
 # @Desc    : Feature Engineering Tools
 import itertools
 
+import lightgbm as lgb
 import numpy as np
 import pandas as pd
-from dateutil.relativedelta import relativedelta
 from joblib import Parallel, delayed
-from pandas.api.types import is_numeric_dtype
 from pandas.core.dtypes.common import is_object_dtype
+from sklearn.feature_selection import VarianceThreshold
 from sklearn.model_selection import KFold
 from sklearn.preprocessing import PolynomialFeatures, KBinsDiscretizer
 
@@ -19,15 +19,27 @@ from metagpt.tools.functions.libs.base import MLProcess
 
 
 class PolynomialExpansion(MLProcess):
-    def __init__(self, cols: list, degree: int = 2):
+    def __init__(self, cols: list, degree: int = 2, label_col: str = None):
         self.cols = cols
         self.degree = degree
+        self.label_col = label_col
+        if self.label_col in self.cols:
+            self.cols.remove(self.label_col)
         self.poly = PolynomialFeatures(degree=degree, include_bias=False)
 
     def fit(self, df: pd.DataFrame):
+        if len(self.cols) == 0:
+            return
+        if len(self.cols) > 10:
+            corr = df[self.cols + [self.label_col]].corr()
+            corr = corr[self.label_col].abs().sort_values(ascending=False)
+            self.cols = corr.index.tolist()[1:11]
+
         self.poly.fit(df[self.cols].fillna(0))
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
+        if len(self.cols) == 0:
+            return df
         ts_data = self.poly.transform(df[self.cols].fillna(0))
         column_name = self.poly.get_feature_names_out(self.cols)
         ts_data = pd.DataFrame(ts_data, index=df.index, columns=column_name)
@@ -158,27 +170,35 @@ class SplitBins(MLProcess):
         df[self.cols] = self.encoder.transform(df[self.cols].fillna(0))
         return df
 
-# @registry.register("feature_engineering", ExtractTimeComps)
-# def extract_time_comps(df, time_col, time_comps):
-#     time_s = pd.to_datetime(df[time_col], errors="coerce")
-#     time_comps_df = pd.DataFrame()
-#
-#     if "year" in time_comps:
-#         time_comps_df["year"] = time_s.dt.year
-#     if "month" in time_comps:
-#         time_comps_df["month"] = time_s.dt.month
-#     if "day" in time_comps:
-#         time_comps_df["day"] = time_s.dt.day
-#     if "hour" in time_comps:
-#         time_comps_df["hour"] = time_s.dt.hour
-#     if "dayofweek" in time_comps:
-#         time_comps_df["dayofweek"] = time_s.dt.dayofweek + 1
-#     if "is_weekend" in time_comps:
-#         time_comps_df["is_weekend"] = time_s.dt.dayofweek.isin([5, 6]).astype(int)
-#     df = pd.concat([df, time_comps_df], axis=1)
-#     return df
-#
-#
+
+class ExtractTimeComps(MLProcess):
+    def __init__(self, time_col: str, time_comps: list):
+        self.time_col = time_col
+        self.time_comps = time_comps
+
+    def fit(self, df: pd.DataFrame):
+        pass
+
+    def transform(self, df: pd.DataFrame) -> pd.DataFrame:
+        time_s = pd.to_datetime(df[self.time_col], errors="coerce")
+        time_comps_df = pd.DataFrame()
+
+        if "year" in self.time_comps:
+            time_comps_df["year"] = time_s.dt.year
+        if "month" in self.time_comps:
+            time_comps_df["month"] = time_s.dt.month
+        if "day" in self.time_comps:
+            time_comps_df["day"] = time_s.dt.day
+        if "hour" in self.time_comps:
+            time_comps_df["hour"] = time_s.dt.hour
+        if "dayofweek" in self.time_comps:
+            time_comps_df["dayofweek"] = time_s.dt.dayofweek + 1
+        if "is_weekend" in self.time_comps:
+            time_comps_df["is_weekend"] = time_s.dt.dayofweek.isin([5, 6]).astype(int)
+        df = pd.concat([df, time_comps_df], axis=1)
+        return df
+
+
 # @registry.register("feature_engineering", FeShiftByTime)
 # def fe_shift_by_time(df, time_col, group_col, shift_col, periods, freq):
 #     df[time_col] = pd.to_datetime(df[time_col])
@@ -289,4 +309,67 @@ class GeneralSelection(MLProcess):
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
         df = df[self.feats + [self.label_col]]
+        return df
+
+
+class TreeBasedSelection(MLProcess):
+    def __init__(self, label_col: str, task_type: str):
+        self.label_col = label_col
+        self.task_type = task_type
+        self.feats = None
+
+    def fit(self, df: pd.DataFrame):
+        params = {
+            'boosting_type': 'gbdt',
+            'objective': 'binary',
+            'learning_rate': 0.1,
+            'num_leaves': 31,
+        }
+
+        if self.task_type == "cls":
+            params["objective"] = "binary"
+            params["metric"] = "auc"
+        elif self.task_type == "mcls":
+            params["objective"] = "multiclass"
+            params["num_class"] = df[self.label_col].nunique()
+            params["metric"] = "auc_mu"
+        elif self.task_type == "reg":
+            params["objective"] = "regression"
+            params["metric"] = "rmse"
+
+        num_cols = df.select_dtypes(include=np.number).columns.tolist()
+        cols = [f for f in num_cols if f not in [self.label_col]]
+
+        dtrain = lgb.Dataset(df[cols], df[self.label_col])
+        model = lgb.train(params, dtrain, num_boost_round=100)
+        df_imp = pd.DataFrame({'feature_name': dtrain.feature_name,
+                               'importance': model.feature_importance("gain")})
+
+        df_imp.sort_values("importance", ascending=False, inplace=True)
+        df_imp = df_imp[df_imp["importance"] > 0]
+        self.feats = df_imp['feature_name'].tolist()
+        self.feats.append(self.label_col)
+
+    def transform(self, df: pd.DataFrame) -> pd.DataFrame:
+        df = df[self.feats]
+        return df
+
+
+class VarianceBasedSelection(MLProcess):
+    def __init__(self, label_col: str, threshold: float = 0):
+        self.label_col = label_col
+        self.threshold = threshold
+        self.feats = None
+        self.selector = VarianceThreshold(threshold=self.threshold)
+
+    def fit(self, df: pd.DataFrame):
+        num_cols = df.select_dtypes(include=np.number).columns.tolist()
+        cols = [f for f in num_cols if f not in [self.label_col]]
+
+        self.selector.fit(df[cols])
+        self.feats = df[cols].columns[self.selector.get_support(indices=True)].tolist()
+        self.feats.append(self.label_col)
+
+    def transform(self, df: pd.DataFrame) -> pd.DataFrame:
+        df = df[self.feats]
         return df
