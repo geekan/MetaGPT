@@ -90,7 +90,6 @@ class BaseGPTAPI(BaseChatbot):
         rsp_text = await self.aask_batch(msgs, timeout=timeout)
         return rsp_text
 
-    @abstractmethod
     def completion(self, messages: list[dict], timeout=3):
         """All GPTAPIs are required to provide the standard OpenAI completion interface
         [
@@ -166,8 +165,3 @@ class BaseGPTAPI(BaseChatbot):
     def messages_to_dict(self, messages):
         """objects to [{"role": "user", "content": msg}] etc."""
         return [i.to_dict() for i in messages]
-
-    @abstractmethod
-    async def close(self):
-        """Close connection"""
-        pass
