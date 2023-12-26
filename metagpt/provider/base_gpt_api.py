@@ -43,7 +43,6 @@ class BaseGPTAPI(BaseChatbot):
         msg: str,
         system_msgs: Optional[list[str]] = None,
         format_msgs: Optional[list[dict[str, str]]] = None,
-        generator: bool = False,
         timeout=3,
         stream=True,
     ) -> str:
@@ -54,7 +53,7 @@ class BaseGPTAPI(BaseChatbot):
         if format_msgs:
             message.extend(format_msgs)
         message.append(self._user_msg(msg))
-        rsp = await self.acompletion_text(message, stream=stream, generator=generator, timeout=timeout)
+        rsp = await self.acompletion_text(message, stream=stream, timeout=timeout)
         # logger.debug(rsp)
         return rsp
 

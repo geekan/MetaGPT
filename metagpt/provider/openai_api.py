@@ -12,7 +12,7 @@
 import asyncio
 import json
 import time
-from typing import List, Union
+from typing import AsyncIterator, List, Union
 
 import openai
 from openai import APIConnectionError, AsyncOpenAI, AsyncStream, OpenAI
@@ -123,7 +123,7 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
 
         return params
 
-    async def _achat_completion_stream(self, messages: list[dict], timeout=3) -> str:
+    async def _achat_completion_stream(self, messages: list[dict], timeout=3) -> AsyncIterator[str]:
         response: AsyncStream[ChatCompletionChunk] = await self.async_client.chat.completions.create(
             **self._cons_kwargs(messages, timeout=timeout), stream=True
         )
@@ -171,12 +171,10 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
         retry=retry_if_exception_type(APIConnectionError),
         retry_error_callback=log_and_reraise,
     )
-    async def acompletion_text(self, messages: list[dict], stream=False, generator: bool = False, timeout=3) -> str:
+    async def acompletion_text(self, messages: list[dict], stream=False, timeout=3) -> str:
         """when streaming, print each token in place."""
         if stream:
             resp = self._achat_completion_stream(messages, timeout=timeout)
-            if generator:
-                return resp
 
             collected_messages = []
             async for i in resp:
