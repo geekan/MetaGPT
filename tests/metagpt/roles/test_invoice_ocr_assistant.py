@@ -37,12 +37,10 @@ from metagpt.schema import Message
             Path("../../data/invoices/invoice-3.jpg"),
             Path("../../../data/invoice_table/invoice-3.xlsx"),
             {"收款人": "夏天", "城市": "福州", "总费用/元": 2462.00, "开票日期": "2023年08月26日"},
-        )
+        ),
     ],
 )
-async def test_invoice_ocr_assistant(
-    query: str, invoice_path: Path, invoice_table_path: Path, expected_result: dict
-):
+async def test_invoice_ocr_assistant(query: str, invoice_path: Path, invoice_table_path: Path, expected_result: dict):
     invoice_path = Path.cwd() / invoice_path
     role = InvoiceOCRAssistant()
     await role.run(Message(content=query, instruct_content=InvoicePath(file_path=invoice_path)))
@@ -56,4 +54,3 @@ async def test_invoice_ocr_assistant(
     assert expected_result["城市"] in resp["城市"]
     assert int(expected_result["总费用/元"]) == int(resp["总费用/元"])
     assert expected_result["开票日期"] == resp["开票日期"]
-
