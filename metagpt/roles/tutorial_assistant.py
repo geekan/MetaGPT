@@ -90,4 +90,5 @@ class TutorialAssistant(Role):
         msg = await super().react()
         root_path = TUTORIAL_PATH / datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         await File.write(root_path, f"{self.main_title}.md", self.total_content.encode("utf-8"))
+        msg.content = str(root_path / f"{self.main_title}.md")
         return msg

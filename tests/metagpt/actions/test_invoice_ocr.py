@@ -6,7 +6,7 @@
 @Author  : Stitch-z
 @File    : test_invoice_ocr.py
 """
-
+import json
 import os
 from pathlib import Path
 
@@ -34,7 +34,10 @@ async def test_invoice_ocr(invoice_path: str):
 @pytest.mark.parametrize(
     ("invoice_path", "expected_result"),
     [
-        ("../../data/invoices/invoice-1.pdf", [{"收款人": "小明", "城市": "深圳市", "总费用/元": "412.00", "开票日期": "2023年02月03日"}]),
+        (
+            "../../data/invoices/invoice-1.pdf",
+            [{"收款人": "小明", "城市": "深圳市", "总费用/元": "412.00", "开票日期": "2023年02月03日"}]
+        ),
     ],
 )
 async def test_generate_table(invoice_path: str, expected_result: list[dict]):
@@ -42,7 +45,7 @@ async def test_generate_table(invoice_path: str, expected_result: list[dict]):
     filename = os.path.basename(invoice_path)
     ocr_result = await InvoiceOCR().run(file_path=Path(invoice_path), filename=filename)
     table_data = await GenerateTable().run(ocr_results=ocr_result, filename=filename)
-    assert table_data == expected_result
+    assert json.dumps(table_data) == json.dumps(expected_result)
 
 
 @pytest.mark.asyncio
