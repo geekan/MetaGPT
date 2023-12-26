@@ -5,10 +5,15 @@
 @File    :   write_code_v2.py
 """
 from typing import Dict, List, Union, Tuple
+from tenacity import retry, stop_after_attempt, wait_fixed
+from pathlib import Path
+import re
+import json
 
 import yaml
 
 from metagpt.actions import Action
+from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.prompts.ml_engineer import (
     TOOL_RECOMMENDATION_PROMPT,
@@ -24,7 +29,7 @@ from metagpt.utils.common import create_func_config, remove_comments
 
 
 class BaseWriteAnalysisCode(Action):
-    DEFAULT_SYSTEM_MSG = """You are Code Interpreter, a world-class programmer that can complete any goal by executing code. Strictly follow the plan and generate code step by step. Each step of the code will be executed on the user's machine, and the user will provide the code execution results to you.**Notice: The code for the next step depends on the code for the previous step. Must reuse variables in the lastest other code directly, dont creat it again, it is very import for you. Use !pip install in a standalone block to install missing packages.**"""  # prompt reference: https://github.com/KillianLucas/open-interpreter/blob/v0.1.4/interpreter/system_message.txt
+    DEFAULT_SYSTEM_MSG = """You are Code Interpreter, a world-class programmer that can complete any goal by executing code. Strictly follow the plan and generate code step by step. Each step of the code will be executed on the user's machine, and the user will provide the code execution results to you.**Notice: The code for the next step depends on the code for the previous step. Must reuse variables in the lastest other code directly, dont creat it again, it is very import for you. Use !pip install in a standalone block to install missing packages.Usually the libraries you need are already installed.Dont check if packages already imported.**"""  # prompt reference: https://github.com/KillianLucas/open-interpreter/blob/v0.1.4/interpreter/system_message.txt
     # REUSE_CODE_INSTRUCTION = """ATTENTION: DONT include codes from previous tasks in your current code block, include new codes only, DONT repeat codes!"""
 
     def process_msg(self, prompt: Union[str, List[Dict], Message, List[Message]], system_msg: str = None):
@@ -107,13 +112,17 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
         if self.schema_path is not None:
             self._load_tools(schema_path)
 
-    def _load_tools(self, schema_path):
+    def _load_tools(self, schema_path, schema_module=None):
         """Load tools from yaml file"""
-        yml_files = schema_path.glob("*.yml")
-        for yml_file in yml_files:
-            module = yml_file.stem
-            with open(yml_file, "r", encoding="utf-8") as f:
-                self.available_tools[module] = yaml.safe_load(f)
+        if isinstance(schema_path, dict):
+            schema_module = schema_module or 'udf'
+            self.available_tools.update({schema_module: schema_path})
+        else:
+            yml_files = schema_path.glob("*.yml")
+            for yml_file in yml_files:
+                module = yml_file.stem
+                with open(yml_file, "r", encoding="utf-8") as f:
+                    self.available_tools[module] = yaml.safe_load(f)
 
     def _parse_recommend_tools(self, module: str, recommend_tools: list) -> dict:
         """
@@ -217,3 +226,82 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
         rsp = await self.llm.aask_code(prompt, **tool_config)
         context = [Message(content=prompt, role="user")]
         return context, rsp["code"]
+
+
+class MakeTools(WriteCodeByGenerate):
+    DEFAULT_SYSTEM_MSG = """Convert any codes provied for you to a very General Function Code startswith `def`.\n
+    **Notice:
+    1. Your code must contain a general function start with `def`.
+    2. Refactor your code to get the most efficient implementation for large input data in the shortest amount of time.
+    3. Must use Google style for function docstring, and your docstring must be consistent with the code,without missing anything.
+    4. Write example code after `if __name__ == '__main__':`by using old varibales in old code,
+    and make sure it could be execute in the user's machine.
+    5. Only use the imported packages**
+    """
+
+    def __init__(self, name: str = '', context: list[Message] = None, llm: LLM = None, workspace: str = None):
+        """
+        :param str name: name, defaults to ''
+        :param list[Message] context: context, defaults to None
+        :param LLM llm: llm, defaults to None
+        :param str workspace: tools code saved file path dir, defaults to None
+        """
+        super().__init__(name, context, llm)
+        self.workspace = workspace or str(Path(__file__).parents[1].joinpath("./tools/functions/libs/udf"))
+        self.file_suffix: str = '.py'
+        self.context = []
+
+    def parse_function_name(self, function_code: str) -> str:
+        # 定义正则表达式模式
+        pattern = r'\bdef\s+([a-zA-Z_]\w*)\s*\('
+        # 在代码中搜索匹配的模式
+        match = re.search(pattern, function_code)
+        # 如果找到匹配项，则返回匹配的函数名；否则返回None
+        if match:
+            return match.group(1)
+        else:
+            return None
+
+    def save(self, tool_code: str) -> None:
+        func_name = self.parse_function_name(tool_code)
+        if func_name is None:
+            raise ValueError(f"No function name found in {tool_code}")
+        saved_path = Path(self.workspace).joinpath(func_name+self.file_suffix)
+        logger.info(f"Saved tool_code {func_name} in {str(saved_path)}.")
+        saved_path.write_text(tool_code, encoding='utf-8')
+
+    @retry(stop=stop_after_attempt(3), wait=wait_fixed(1))
+    async def run(self, code: str | List[dict], code_desc: str = None, **kwargs) -> str:
+        # 拼接code prompt
+        code_prompt = f"The following code is about {code_desc}, convert it to be a General Function, {code}"
+        if not self.context:
+            self.context = self.process_msg(code_prompt)
+        else:
+            self.context.append(self.process_msg(code_prompt)[-1])
+        logger.info(f"\n\nAsk to Make tools:\n{'-'*60}\n {self.context[-1]}")
+
+        # 更新kwargs
+        if 'code' in kwargs:
+            kwargs.pop('code')
+        if 'code_desc' in kwargs:
+            kwargs.pop('code_desc')
+
+        max_tries, current_try = 3, 0
+        while True:
+            tool_code = await self.llm.aask_code(self.context, **kwargs)
+            func_name = self.parse_function_name(tool_code['code'])
+            current_try += 1
+            # make tools failed, add error message to context.
+            if not func_name:
+                logger.info(f"\n\nTools Respond\n{'-'*60}\n: {tool_code}")
+                logger.error(f"No function name found in code, we will retry make tools.\n{tool_code['code']}\n")
+                self.context.append({'role': 'user', 'content': 'We need a general function in above code,but not found function.'})
+            # end make tools
+            if func_name is not None or current_try >= max_tries:
+                if current_try >= max_tries:
+                    logger.error(f"We have tried the maximum number of attempts {max_tries}\
+                    and still have not created tools successfully, we will skip it.")
+                break
+        logger.info(f"\n\nTools Respond\n{'-'*60}\n: {tool_code}")
+        self.save(tool_code['code'])
+        return tool_code["code"]

@@ -150,7 +150,7 @@ class BaseGPTAPI(BaseChatbot):
         :return dict: return the first function arguments of choice, for example,
             {'language': 'python', 'code': "print('Hello, World!')"}
         """
-        return json.loads(self.get_choice_function(rsp)["arguments"])
+        return json.loads(self.get_choice_function(rsp)["arguments"], strict=False)
 
     def messages_to_prompt(self, messages: list[dict]):
         """[{"role": "user", "content": msg}] to user: <msg> etc."""

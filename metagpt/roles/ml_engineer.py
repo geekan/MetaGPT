@@ -7,7 +7,7 @@ import fire
 from metagpt.actions.debug_code import DebugCode
 from metagpt.actions.execute_code import ExecutePyCode
 from metagpt.actions.ml_da_action import AskReview, SummarizeAnalysis, Reflect, ReviewConst, UpdateDataColumns
-from metagpt.actions.write_analysis_code import WriteCodeByGenerate, WriteCodeWithTools
+from metagpt.actions.write_analysis_code import WriteCodeByGenerate, WriteCodeWithTools, MakeTools
 from metagpt.actions.write_code_steps import WriteCodeSteps
 from metagpt.actions.write_plan import WritePlan
 from metagpt.actions.write_plan import update_plan_from_rsp, precheck_update_plan_from_rsp
@@ -20,6 +20,7 @@ from metagpt.roles.kaggle_manager import DownloadData, SubmitResult
 from metagpt.schema import Message, Plan
 from metagpt.utils.save_code import save_code_file
 from metagpt.utils.recovery_util import save_history, load_history
+from metagpt.utils.common import remove_comments
 
 
 class MLEngineer(Role):
@@ -31,6 +32,8 @@ class MLEngineer(Role):
         self._watch([DownloadData, SubmitResult])
         
         self.plan = Plan(goal=goal)
+        self.make_udfs = False   # user-defined functions
+        self.use_udfs = False
         self.execute_code = ExecutePyCode()
         self.auto_run = auto_run
         self.use_tools = use_tools
@@ -81,7 +84,7 @@ class MLEngineer(Role):
                 self.plan.finish_current_task()
                 self.working_memory.clear()
 
-                if self.use_tools and task.task_type not in ['model_train', 'model_evaluate']:
+                if (self.use_tools and task.task_type not in ['model_train', 'model_evaluate']) or self.use_udfs:
                     success, new_code = await self._update_data_columns()
                     if success:
                         task.code = task.code + "\n\n" + new_code
@@ -137,8 +140,8 @@ class MLEngineer(Role):
         
         while not success and counter < max_retry:
             context = self.get_useful_memories()
-            
-            if counter > 0 and self.use_tools:
+            if counter > 0 and (self.use_tools or self.use_udfs):
+                logger.warning('We got a bug code, now start to debug...')
                 code = await DebugCode().run(
                     plan=self.plan.current_task.instruction,
                     code=code,
@@ -147,8 +150,10 @@ class MLEngineer(Role):
                 )
                 logger.info(f"new code \n{code}")
                 cause_by = DebugCode
-            elif not self.use_tools or self.plan.current_task.task_type == "other":
+            elif (not self.use_tools and not self.use_udfs) or (
+                    self.plan.current_task.task_type == 'other' and not self.use_udfs):
                 logger.info("Write code with pure generation")
+                # TODO: 添加基于current_task.instruction-code_path的k-v缓存
                 code = await WriteCodeByGenerate().run(
                     context=context, plan=self.plan, temperature=0.0
                 )
@@ -156,7 +161,17 @@ class MLEngineer(Role):
                 cause_by = WriteCodeByGenerate
             else:
                 logger.info("Write code with tools")
-                schema_path = PROJECT_ROOT / "metagpt/tools/functions/schemas"
+                if self.use_udfs:
+                    # use user-defined function tools.
+                    from metagpt.tools.functions.libs.udf import UDFS_YAML
+                    logger.warning("Writing code with user-defined function tools by WriteCodeWithTools.")
+                    logger.info(f"Local user defined function as following:\
+                        \n{json.dumps(list(UDFS_YAML.keys()), indent=2, ensure_ascii=False)}")
+                    # set task_type to `udf`
+                    self.plan.current_task.task_type = 'udf'
+                    schema_path = UDFS_YAML
+                else:
+                    schema_path = PROJECT_ROOT / "metagpt/tools/functions/schemas"
                 tool_context, code = await WriteCodeWithTools(schema_path=schema_path).run(
                     context=context,
                     plan=self.plan,
@@ -164,13 +179,16 @@ class MLEngineer(Role):
                 )
                 debug_context = tool_context
                 cause_by = WriteCodeWithTools
-            
             self.working_memory.add(
                 Message(content=code, role="assistant", cause_by=cause_by)
             )
             
             result, success = await self.execute_code.run(code)
             print(result)
+            # make tools for successful code and long code.
+            if success and self.make_udfs and len(remove_comments(code).split('\n')) > 4:
+                logger.info('Execute code successfully. Now start to make tools ...')
+                await self.make_tools(code=code)
             self.working_memory.add(
                 Message(content=result, role="user", cause_by=ExecutePyCode)
             )
@@ -254,20 +272,52 @@ class MLEngineer(Role):
     def get_working_memories(self) -> List[Message]:
         return self.working_memory.get()
 
+    def reset(self):
+        """Restart role with the same goal."""
+        self.plan = Plan(goal=self.plan.goal)
+        self.execute_code = ExecutePyCode()
+        self.working_memory = Memory()
+
+    async def make_tools(self, code: str):
+        """Make user-defined functions(udfs, aka tools) for pure generation code.
+
+        Args:
+            code (str): pure generation code by class WriteCodeByGenerate.
+        """
+        logger.warning(f"Making tools for task_id {self.plan.current_task_id}: \
+            `{self.plan.current_task.instruction}` \n code: \n {code}")
+        make_tools = MakeTools()
+        make_tool_retries, make_tool_current_retry = 3, 0
+        while True:
+            # start make tools
+            tool_code = await make_tools.run(code, self.plan.current_task.instruction)
+            make_tool_current_retry += 1
+
+            # check tool_code by execute_code
+            logger.info(f"Checking task_id {self.plan.current_task_id} tool code by executor...")
+            execute_result, execute_success = await self.execute_code.run(tool_code)
+            if not execute_success:
+                logger.error(f"Tool code faild to execute, \n{execute_result}\n.We will try to fix it ...")
+            # end make tools
+            if execute_success or make_tool_current_retry >= make_tool_retries:
+                if make_tool_current_retry >= make_tool_retries:
+                    logger.error(f"We have tried the maximum number of attempts {make_tool_retries}\
+                        and still have not created tools for task_id {self.plan.current_task_id} successfully,\
+                            we will skip it.")
+                break
+        # save successful tool code in udf
+        if execute_success:
+            make_tools.save(tool_code)
+
 
 if __name__ == "__main__":
-    # requirement = "Run data analysis on sklearn Iris dataset, include a plot"
-    # requirement = "Run data analysis on sklearn Diabetes dataset, include a plot"
-    # requirement = "Run data analysis on sklearn Wine recognition dataset, include a plot, and train a model to predict wine class (20% as validation), and show validation accuracy"
-    # requirement = "Run data analysis on sklearn Wisconsin Breast Cancer dataset, include a plot, train a model to predict targets (20% as validation), and show validation accuracy"
-    # requirement = "Run EDA and visualization on this dataset, train a model to predict survival, report metrics on validation set (20%), dataset: workspace/titanic/train.csv"
-    # requirement = "Perform data analysis on the provided data. Train a model to predict the target variable Survived. Include data preprocessing, feature engineering, and modeling in your pipeline. The metric is accuracy."
+    requirement = "Perform data analysis on the provided data. Train a model to predict the target variable Survived. Include data preprocessing, feature engineering, and modeling in your pipeline. The metric is accuracy."
     
-    # data_path = f"{DATA_PATH}/titanic"
-    # requirement = f"This is a titanic passenger survival dataset, your goal is to predict passenger survival outcome. The target column is Survived. Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. Report accuracy on the eval data. Train data path: '{data_path}/split_train.csv', eval data path: '{data_path}/split_eval.csv'."
-    # requirement = f"Run data analysis on sklearn Wine recognition dataset, include a plot, and train a model to predict wine class (20% as validation), and show validation accuracy"
-    # data_path = f"{DATA_PATH}/icr-identify-age-related-conditions"
-    # requirement = f"This is a medical dataset with over fifty anonymized health characteristics linked to three age-related conditions. Your goal is to predict whether a subject has or has not been diagnosed with one of these conditions.The target column is Class. Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. Report f1 score on the eval data. Train data path: {data_path}/split_train.csv, eval data path: {data_path}/split_eval.csv."
+    data_path = f"{DATA_PATH}/titanic"
+    requirement = f"This is a titanic passenger survival dataset, your goal is to predict passenger survival outcome. The target column is Survived. Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. Report accuracy on the eval data. Train data path: '{data_path}/split_train.csv', eval data path: '{data_path}/split_eval.csv'."
+    requirement = f"Run data analysis on sklearn Wine recognition dataset, include a plot, and train a model to predict wine class (20% as validation), and show validation accuracy"
+    data_path = f"{DATA_PATH}/icr-identify-age-related-conditions"
+    requirement = f"This is a medical dataset with over fifty anonymized health characteristics linked to three age-related conditions. Your goal is to predict whether a subject has or has not been diagnosed with one of these conditions.The target column is Class. Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. Report f1 score on the eval data. Train data path: {data_path}/split_train.csv, eval data path: {data_path}/split_eval.csv."
     
     # data_path = f"{DATA_PATH}/santander-customer-transaction-prediction"
     # requirement = f"This is a customers financial dataset. Your goal is to predict which customers will make a specific transaction in the future. The target column is target. Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. Report AUC Score on the eval data. Train data path: '{data_path}/split_train.csv', eval data path: '{data_path}/split_eval.csv' ."
