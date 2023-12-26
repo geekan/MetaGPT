@@ -295,7 +295,7 @@ class MLEngineer(Role):
             # tool_code = await make_tools.run(code_prompt)
             tool_code = await make_tools.run(code)
             _, success = await self.execute_code.run(tool_code)
-            make_tool_retries += 1
+            make_tool_current_retry += 1
             if make_tool_current_retry > make_tool_retries:
                 logger.error(f"We have tried the maximum number of attempts {make_tool_retries}\
                     and still have not created tools for task_id {self.plan.current_task_id} successfully,\
