@@ -37,7 +37,7 @@ class PrepareDocuments(Action):
             name = CONFIG.project_name or FileRepository.new_filename()
             path = Path(CONFIG.workspace_path) / name
 
-        if path.exists() and not CONFIG.inc:
+        if Path(path).exists() and not CONFIG.inc:
             shutil.rmtree(path)
         CONFIG.git_repo = GitRepository(local_path=path, auto_init=True)
 

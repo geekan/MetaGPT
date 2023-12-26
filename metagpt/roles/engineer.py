@@ -20,6 +20,7 @@
 from __future__ import annotations
 
 import json
+import os
 from collections import defaultdict
 from pathlib import Path
 from typing import Set
@@ -27,6 +28,7 @@ from typing import Set
 from metagpt.actions import Action, WriteCode, WriteCodeReview, WriteTasks
 from metagpt.actions.fix_bug import FixBug
 from metagpt.actions.summarize_code import SummarizeCode
+from metagpt.actions.write_code_guide_an import CODE_GUIDE_CONTEXT, WRITE_CODE_GUIDE_NODE, WriteCodeGuide
 from metagpt.config import CONFIG
 from metagpt.const import (
     CODE_SUMMARIES_FILE_REPO,
@@ -77,6 +79,7 @@ class Engineer(Role):
     )
     n_borg: int = 1
     use_code_review: bool = False
+    use_code_guide: bool = True
     code_todos: list = []
     summarize_todos = []
 
@@ -84,14 +87,14 @@ class Engineer(Role):
         super().__init__(**kwargs)
 
         self._init_actions([WriteCode])
-        self._watch([WriteTasks, SummarizeCode, WriteCode, WriteCodeReview, FixBug])
+        self._watch([WriteTasks, SummarizeCode, WriteCode, WriteCodeReview, FixBug, WriteCodeGuide])
 
     @staticmethod
     def _parse_tasks(task_msg: Document) -> list[str]:
         m = json.loads(task_msg.content)
         return m.get("Task list")
 
-    async def _act_sp_with_cr(self, review=False) -> Set[str]:
+    async def _act_sp_with_cr(self, review=False, guideline="") -> Set[str]:
         changed_files = set()
         src_file_repo = CONFIG.git_repo.new_file_repository(CONFIG.src_workspace)
         for todo in self.code_todos:
@@ -102,7 +105,7 @@ class Engineer(Role):
             3. Do we need other codes (currently needed)?
             TODO: The goal is not to need it. After clear task decomposition, based on the design idea, you should be able to write a single file without needing other codes. If you can't, it means you need a clearer definition. This is the key to writing longer code.
             """
-            coding_context = await todo.run()
+            coding_context = await todo.run(guideline=guideline)
             # Code review
             if review:
                 action = WriteCodeReview(context=coding_context, llm=self._llm)
@@ -134,7 +137,11 @@ class Engineer(Role):
         return None
 
     async def _act_write_code(self):
-        changed_files = await self._act_sp_with_cr(review=self.use_code_review)
+        if self.use_code_guide:
+            code_guideline = await self._write_code_guideline()
+            changed_files = await self._act_sp_with_cr(review=self.use_code_review, guideline=code_guideline)
+        else:
+            changed_files = await self._act_sp_with_cr(review=self.use_code_review)
         return Message(
             content="\n".join(changed_files),
             role=self.profile,
