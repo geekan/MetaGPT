@@ -40,12 +40,12 @@ typing_extensions==4.7.0
 libcst==1.0.1
 qdrant-client==1.4.0
 pytest-mock==3.11.1
-# open-interpreter==0.1.7; python_version>"3.9"
+# open-interpreter==0.1.7; python_version>"3.9" # Conflict with openai 1.x
 ta==0.10.2
 semantic-kernel==0.4.0.dev0
 wrapt==1.15.0
 #aiohttp_jinja2
-#azure-cognitiveservices-speech~=1.31.0
+# azure-cognitiveservices-speech~=1.31.0 # Used by metagpt/tools/azure_tts.py
 #aioboto3~=11.3.0
 #redis==4.3.5
 websocket-client==1.6.2
@@ -54,7 +54,7 @@ gitpython==3.1.40
 zhipuai==1.0.7
 socksio~=1.0.0
 gitignore-parser==0.1.9
-# connexion[swagger-ui]
+# connexion[uvicorn]~=3.0.5 # Used by metagpt/tools/hello.py
 websockets~=12.0
 networkx~=3.2.1
 google-generativeai==0.3.1

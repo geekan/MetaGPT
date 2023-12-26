@@ -7,13 +7,20 @@
 @Modified By: mashenquan, 2023-8-9, add more text formatting options
 @Modified By: mashenquan, 2023-8-17, move to `tools` folder.
 """
-import asyncio
+
+import pytest
+from azure.cognitiveservices.speech import ResultReason
 
 from metagpt.config import CONFIG
 from metagpt.tools.azure_tts import AzureTTS
 
 
-def test_azure_tts():
+@pytest.mark.asyncio
+async def test_azure_tts():
+    # Prerequisites
+    assert CONFIG.AZURE_TTS_SUBSCRIPTION_KEY and CONFIG.AZURE_TTS_SUBSCRIPTION_KEY != "YOUR_API_KEY"
+    assert CONFIG.AZURE_TTS_REGION
+
     azure_tts = AzureTTS(subscription_key="", region="")
     text = """
         女儿看见父亲走了进来，问道：
@@ -25,20 +32,19 @@ def test_azure_tts():
                 “Writing a binary file in Python is similar to writing a regular text file, but you'll work with bytes instead of strings.”
             </mstts:express-as>
         """
-    path = CONFIG.workspace / "tts"
+    path = CONFIG.workspace_path / "tts"
     path.mkdir(exist_ok=True, parents=True)
     filename = path / "girl.wav"
-    loop = asyncio.new_event_loop()
-    v = loop.create_task(
-        azure_tts.synthesize_speech(lang="zh-CN", voice="zh-CN-XiaomoNeural", text=text, output_file=str(filename))
+    filename.unlink(missing_ok=True)
+    result = await azure_tts.synthesize_speech(
+        lang="zh-CN", voice="zh-CN-XiaomoNeural", text=text, output_file=str(filename)
     )
-    result = loop.run_until_complete(v)
-
     print(result)
-
-    # 运行需要先配置 SUBSCRIPTION_KEY
-    # TODO: 这里如果要检验，还要额外加上对应的asr，才能确保前后生成是接近一致的，但现在还没有
+    assert result
+    assert result.audio_data
+    assert result.reason == ResultReason.SynthesizingAudioCompleted
+    assert filename.exists()
 
 
 if __name__ == "__main__":
-    test_azure_tts()
+    pytest.main([__file__, "-s"])

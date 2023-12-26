@@ -1,0 +1,5 @@
+# For unit test
+-r requirements.txt
+
+connexion[uvicorn]~=3.0.5
+azure-cognitiveservices-speech~=1.31.0

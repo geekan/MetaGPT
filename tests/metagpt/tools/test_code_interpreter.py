@@ -1,3 +1,13 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+@Time    :
+@Author  :
+@File    : test_code_interpreter.py
+@Warning : open-interpreter 0.1.17 requires openai<0.29.0,>=0.28.0, but you have openai 1.6.0 which is incompatible.
+           open-interpreter 0.1.17 requires tiktoken<0.5.0,>=0.4.0, but you have tiktoken 0.5.2 which is incompatible.
+"""
+
 from pathlib import Path
 
 import pandas as pd
@@ -23,6 +33,9 @@ class CreateStockIndicators(Action):
 
 @pytest.mark.asyncio
 async def test_actions():
+    # Prerequisites
+    # Conflict with openai 1.x
+
     # 计算指标
     indicators = ["Simple Moving Average", "BollingerBands"]
     stocker = CreateStockIndicators()
@@ -41,3 +54,7 @@ async def test_actions():
         f"使用seaborn对{df_path}中与股票布林带有关的数据列的Date, Close, SMA, BB_upper（布林带上界）, BB_lower（布林带下界）进行可视化, 可视化图片保存在{figure_path}中。不需要任何指标计算，把Date列转换为日期类型。要求图片优美，BB_upper, BB_lower之间使用合适的颜色填充。"
     )
     assert Path(figure_path).is_file()
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-s"])
