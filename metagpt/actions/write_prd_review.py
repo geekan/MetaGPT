@@ -12,13 +12,13 @@ from pydantic import Field
 
 from metagpt.actions.action import Action
 from metagpt.llm import LLM
-from metagpt.provider.base_gpt_api import BaseGPTAPI
+from metagpt.provider.base_llm import BaseLLM
 
 
 class WritePRDReview(Action):
     name: str = ""
     context: Optional[str] = None
-    llm: BaseGPTAPI = Field(default_factory=LLM)
+    llm: BaseLLM = Field(default_factory=LLM)
     prd: Optional[str] = None
     desc: str = "Based on the PRD, conduct a PRD Review, providing clear and detailed feedback"
     prd_review_prompt_template: str = """

@@ -13,7 +13,7 @@ from openai.types.completion_usage import CompletionUsage
 from metagpt.provider.fireworks_api import (
     MODEL_GRADE_TOKEN_COSTS,
     FireworksCostManager,
-    FireWorksGPTAPI,
+    FireworksLLM,
 )
 
 resp_content = "I'm fireworks"
@@ -55,17 +55,6 @@ async def mock_llm_achat_completion_stream(self, messgaes: list[dict]) -> str:
     return default_resp.choices[0].message.content
 
 
-def test_fireworks_completion(mocker):
-    mocker.patch("metagpt.provider.fireworks_api.FireWorksGPTAPI.completion", mock_llm_completion)
-    fireworks_gpt = FireWorksGPTAPI()
-
-    resp = fireworks_gpt.completion(messages)
-    assert resp.choices[0].message.content == resp_content
-
-    resp = fireworks_gpt.ask(prompt_msg)
-    assert resp == resp_content
-
-
 @pytest.mark.asyncio
 async def test_fireworks_acompletion(mocker):
     mocker.patch("metagpt.provider.fireworks_api.FireWorksGPTAPI.acompletion", mock_llm_acompletion)
@@ -73,7 +62,7 @@ async def test_fireworks_acompletion(mocker):
     mocker.patch(
         "metagpt.provider.fireworks_api.FireWorksGPTAPI._achat_completion_stream", mock_llm_achat_completion_stream
     )
-    fireworks_gpt = FireWorksGPTAPI()
+    fireworks_gpt = FireworksLLM()
 
     resp = await fireworks_gpt.acompletion(messages, stream=False)
     assert resp.choices[0].message.content in resp_content

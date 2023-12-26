@@ -9,7 +9,7 @@
 
 import pytest
 
-from metagpt.provider.openai_api import OpenAIGPTAPI as LLM
+from metagpt.provider.openai_api import OpenAILLM as LLM
 
 
 @pytest.fixture()
@@ -24,17 +24,10 @@ async def test_llm_aask(llm):
 
 
 @pytest.mark.asyncio
-async def test_llm_aask_batch(llm):
-    assert len(await llm.aask_batch(["hi", "write python hello world."])) > 0
-
-
-@pytest.mark.asyncio
 async def test_llm_acompletion(llm):
     hello_msg = [{"role": "user", "content": "hello"}]
     rsp = await llm.acompletion(hello_msg)
     assert len(rsp.choices[0].message.content) > 0
-    assert len(await llm.acompletion_batch([hello_msg])) > 0
-    assert len(await llm.acompletion_batch_text([hello_msg])) > 0
 
 
 if __name__ == "__main__":

@@ -18,7 +18,7 @@ from tenacity import (
 from metagpt.config import CONFIG, Config, LLMProviderEnum
 from metagpt.logs import logger
 from metagpt.provider.llm_provider_registry import register_provider
-from metagpt.provider.openai_api import OpenAIGPTAPI, RateLimiter, log_and_reraise
+from metagpt.provider.openai_api import OpenAILLM, log_and_reraise
 from metagpt.utils.cost_manager import CostManager, Costs
 
 MODEL_GRADE_TOKEN_COSTS = {
@@ -72,18 +72,17 @@ class FireworksCostManager(CostManager):
 
 
 @register_provider(LLMProviderEnum.FIREWORKS)
-class FireWorksGPTAPI(OpenAIGPTAPI):
+class FireworksLLM(OpenAILLM):
     def __init__(self):
         self.config: Config = CONFIG
         self.__init_fireworks()
         self.auto_max_tokens = False
         self._cost_manager = FireworksCostManager()
-        RateLimiter.__init__(self, rpm=self.rpm)
 
     def __init_fireworks(self):
         self.is_azure = False
         self.rpm = int(self.config.get("RPM", 10))
-        self._make_client()
+        self._init_client()
         self.model = self.config.fireworks_api_model  # `self.model` should after `_make_client` to rewrite it
 
     def _make_client_kwargs(self) -> (dict, dict):
@@ -103,7 +102,7 @@ class FireWorksGPTAPI(OpenAIGPTAPI):
         return self._cost_manager.get_costs()
 
     async def _achat_completion_stream(self, messages: list[dict]) -> str:
-        response: AsyncStream[ChatCompletionChunk] = await self.async_client.chat.completions.create(
+        response: AsyncStream[ChatCompletionChunk] = await self.aclient.chat.completions.create(
             **self._cons_kwargs(messages), stream=True
         )
 
@@ -133,9 +132,7 @@ class FireWorksGPTAPI(OpenAIGPTAPI):
         retry=retry_if_exception_type(APIConnectionError),
         retry_error_callback=log_and_reraise,
     )
-    async def acompletion_text(
-        self, messages: list[dict], stream=False, generator: bool = False, timeout: int = 3
-    ) -> str:
+    async def acompletion_text(self, messages: list[dict], stream=False, timeout: int = 3) -> str:
         """when streaming, print each token in place."""
         if stream:
             return await self._achat_completion_stream(messages)

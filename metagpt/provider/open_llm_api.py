@@ -7,7 +7,7 @@ from openai.types import CompletionUsage
 from metagpt.config import CONFIG, Config, LLMProviderEnum
 from metagpt.logs import logger
 from metagpt.provider.llm_provider_registry import register_provider
-from metagpt.provider.openai_api import OpenAIGPTAPI, RateLimiter
+from metagpt.provider.openai_api import OpenAILLM
 from metagpt.utils.cost_manager import CostManager, Costs
 from metagpt.utils.token_counter import count_message_tokens, count_string_tokens
 
@@ -35,18 +35,17 @@ class OpenLLMCostManager(CostManager):
 
 
 @register_provider(LLMProviderEnum.OPEN_LLM)
-class OpenLLMGPTAPI(OpenAIGPTAPI):
+class OpenLLMGPTAPI(OpenAILLM):
     def __init__(self):
         self.config: Config = CONFIG
         self.__init_openllm()
         self.auto_max_tokens = False
         self._cost_manager = OpenLLMCostManager()
-        RateLimiter.__init__(self, rpm=self.rpm)
 
     def __init_openllm(self):
         self.is_azure = False
         self.rpm = int(self.config.get("RPM", 10))
-        self._make_client()
+        self._init_client()
         self.model = self.config.open_llm_api_model  # `self.model` should after `_make_client` to rewrite it
 
     def _make_client_kwargs(self) -> (dict, dict):

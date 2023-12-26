@@ -28,18 +28,6 @@ async def mock_llm_achat_completion_stream(self, messgaes: list[dict]) -> str:
     return resp_content
 
 
-def test_zhipuai_completion(mocker):
-    mocker.patch("metagpt.provider.zhipuai_api.ZhiPuAIGPTAPI.completion", mock_llm_completion)
-    zhipu_gpt = ZhiPuAIGPTAPI()
-
-    resp = zhipu_gpt.completion(messages)
-    assert resp["code"] == 200
-    assert resp["data"]["choices"][0]["content"] == resp_content
-
-    resp = zhipu_gpt.ask(prompt_msg)
-    assert resp == resp_content
-
-
 @pytest.mark.asyncio
 async def test_zhipuai_acompletion(mocker):
     mocker.patch("metagpt.provider.zhipuai_api.ZhiPuAIGPTAPI.acompletion", mock_llm_acompletion)

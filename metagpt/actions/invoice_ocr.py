@@ -26,7 +26,7 @@ from metagpt.prompts.invoice_ocr import (
     EXTRACT_OCR_MAIN_INFO_PROMPT,
     REPLY_OCR_QUESTION_PROMPT,
 )
-from metagpt.provider.base_gpt_api import BaseGPTAPI
+from metagpt.provider.base_llm import BaseLLM
 from metagpt.utils.common import OutputParser
 from metagpt.utils.file import File
 
@@ -42,7 +42,7 @@ class InvoiceOCR(Action):
 
     name: str = "InvoiceOCR"
     context: Optional[str] = None
-    llm: BaseGPTAPI = Field(default_factory=LLM)
+    llm: BaseLLM = Field(default_factory=LLM)
 
     @staticmethod
     async def _check_file_type(file_path: Path) -> str:
@@ -132,7 +132,7 @@ class GenerateTable(Action):
 
     name: str = "GenerateTable"
     context: Optional[str] = None
-    llm: BaseGPTAPI = Field(default_factory=LLM)
+    llm: BaseLLM = Field(default_factory=LLM)
     language: str = "ch"
 
     async def run(self, ocr_results: list, filename: str, *args, **kwargs) -> dict[str, str]:
@@ -177,7 +177,7 @@ class ReplyQuestion(Action):
 
     name: str = "ReplyQuestion"
     context: Optional[str] = None
-    llm: BaseGPTAPI = Field(default_factory=LLM)
+    llm: BaseLLM = Field(default_factory=LLM)
     language: str = "ch"
 
     async def run(self, query: str, ocr_result: list, *args, **kwargs) -> str:

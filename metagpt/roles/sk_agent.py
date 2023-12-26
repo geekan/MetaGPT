@@ -19,7 +19,7 @@ from metagpt.actions import UserRequirement
 from metagpt.actions.execute_task import ExecuteTask
 from metagpt.llm import LLM
 from metagpt.logs import logger
-from metagpt.provider.base_gpt_api import BaseGPTAPI
+from metagpt.provider.base_llm import BaseLLM
 from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.utils.make_sk_kernel import make_sk_kernel
@@ -44,7 +44,7 @@ class SkAgent(Role):
     plan: Any = None
     planner_cls: Any = None
     planner: Any = None
-    llm: BaseGPTAPI = Field(default_factory=LLM)
+    llm: BaseLLM = Field(default_factory=LLM)
     kernel: Kernel = Field(default_factory=Kernel)
     import_semantic_skill_from_directory: Type[Kernel.import_semantic_skill_from_directory] = None
     import_skill: Type[Kernel.import_skill] = None

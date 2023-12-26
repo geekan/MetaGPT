@@ -6,10 +6,10 @@ Author: garylin2099
 from typing import Optional
 
 from metagpt.logs import logger
-from metagpt.provider.base_gpt_api import BaseGPTAPI
+from metagpt.provider.base_llm import BaseLLM
 
 
-class HumanProvider(BaseGPTAPI):
+class HumanProvider(BaseLLM):
     """Humans provide themselves as a 'model', which actually takes in human input as its response.
     This enables replacing LLM anywhere in the framework with a human, thus introducing human interaction
     """
@@ -31,10 +31,6 @@ class HumanProvider(BaseGPTAPI):
     ) -> str:
         return self.ask(msg, timeout=timeout)
 
-    def completion(self, messages: list[dict], timeout=3):
-        """dummy implementation of abstract method in base"""
-        return []
-
     async def acompletion(self, messages: list[dict], timeout=3):
         """dummy implementation of abstract method in base"""
         return []
@@ -42,7 +38,3 @@ class HumanProvider(BaseGPTAPI):
     async def acompletion_text(self, messages: list[dict], stream=False, timeout=3) -> str:
         """dummy implementation of abstract method in base"""
         return ""
-
-    async def close(self):
-        """Close connection"""
-        pass

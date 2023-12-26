@@ -4,7 +4,7 @@
 
 import pytest
 
-from metagpt.provider.spark_api import SparkGPTAPI
+from metagpt.provider.spark_api import SparkLLM
 
 prompt_msg = "who are you"
 resp_content = "I'm Spark"
@@ -18,24 +18,13 @@ async def mock_llm_acompletion(self, messgaes: list[dict], stream: bool = False,
     return resp_content
 
 
-def test_spark_completion(mocker):
-    mocker.patch("metagpt.provider.spark_api.SparkGPTAPI.completion", mock_llm_completion)
-    spark_gpt = SparkGPTAPI()
-
-    resp = spark_gpt.completion([])
-    assert resp == resp_content
-
-    resp = spark_gpt.ask(prompt_msg)
-    assert resp == resp_content
-
-
 @pytest.mark.asyncio
 async def test_spark_acompletion(mocker):
     mocker.patch("metagpt.provider.spark_api.SparkGPTAPI.acompletion", mock_llm_acompletion)
     mocker.patch("metagpt.provider.spark_api.SparkGPTAPI.acompletion_text", mock_llm_acompletion)
-    spark_gpt = SparkGPTAPI()
+    spark_gpt = SparkLLM()
 
-    resp = await spark_gpt.acompletion([], stream=False)
+    resp = await spark_gpt.acompletion([])
     assert resp == resp_content
 
     resp = await spark_gpt.aask(prompt_msg, stream=False)
