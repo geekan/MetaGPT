@@ -209,14 +209,13 @@ class WriteCodeGuide(Action):
     context: Document = Field(default_factory=Document)
     llm: BaseGPTAPI = Field(default_factory=LLM)
 
-    async def run(self):
-        rsp = await WRITE_CODE_GUIDE_NODE.fill(context=CODE_GUIDE_CONTEXT, llm=self.llm, schema="json")
-        return rsp
+    async def run(self, context):
+        return await WRITE_CODE_GUIDE_NODE.fill(context=context, llm=self.llm, schema="json")
 
 
 def main():
     action = WriteCodeGuide()
-    return asyncio.run(action.run())
+    return asyncio.run(action.run(CODE_GUIDE_CONTEXT))
 
 
 if __name__ == "__main__":
