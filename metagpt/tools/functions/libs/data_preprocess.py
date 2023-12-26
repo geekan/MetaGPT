@@ -1,3 +1,5 @@
+import json
+
 import numpy as np
 import pandas as pd
 from sklearn.impute import SimpleImputer
@@ -20,10 +22,14 @@ class FillMissingValue(MLProcess):
         self.si = None
 
     def fit(self, df: pd.DataFrame):
+        if len(self.features) == 0:
+            return
         self.si = SimpleImputer(strategy=self.strategy, fill_value=self.fill_value)
         self.si.fit(df[self.features])
 
     def transform(self, df: pd.DataFrame):
+        if len(self.features) == 0:
+            return df
         df[self.features] = self.si.transform(df[self.features])
         return df
 
@@ -122,11 +128,15 @@ class LabelEncode(MLProcess):
         self.le_encoders = []
 
     def fit(self, df: pd.DataFrame):
+        if len(self.features) == 0:
+            return
         for col in self.features:
             le = LabelEncoder().fit(df[col].astype(str).unique().tolist() + ['unknown'])
             self.le_encoders.append(le)
 
     def transform(self, df: pd.DataFrame):
+        if len(self.features) == 0:
+            return df
         for i in range(len(self.features)):
             data_list = df[self.features[i]].astype(str).tolist()
             for unique_item in np.unique(df[self.features[i]].astype(str)):
@@ -137,17 +147,23 @@ class LabelEncode(MLProcess):
 
 
 def get_column_info(df: pd.DataFrame) -> dict:
-    data = []
-    for i in df.columns:
-        nan_freq = float("%.2g" % (df[i].isna().mean() * 100))
-        n_unique = df[i].nunique()
-        data_type = str(df[i].dtype).replace("dtype('", "").replace("')", "")
-        if data_type == "O":
-            data_type = "object"
-        data.append([i, data_type, nan_freq, n_unique])
+    column_info = {
+        "Category": [],
+        "Numeric": [],
+        "Datetime": [],
+        "Others": [],
+    }
+    for col in df.columns:
+        data_type = str(df[col].dtype).replace("dtype('", "").replace("')", "")
+        if data_type.startswith("object"):
+            column_info["Category"].append(col)
+        elif data_type.startswith("int") or data_type.startswith("float"):
+            column_info["Numeric"].append(col)
+        elif data_type.startswith("datetime"):
+            column_info["Datetime"].append(col)
+        else:
+            column_info["Others"].append(col)
 
-    samples = pd.DataFrame(
-        data,
-        columns=["Column_name", "Data_type", "NaN_Frequency(%)", "N_unique"],
-    )
-    return samples.to_dict(orient='list')
+    if len(json.dumps(column_info)) > 2000:
+        column_info['Numeric'] = column_info['Numeric'][0:5] + ['Too many cols, omission here...']
+    return column_info
