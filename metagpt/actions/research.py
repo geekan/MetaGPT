@@ -85,7 +85,7 @@ class CollectLinks(Action):
     llm: BaseGPTAPI = Field(default_factory=LLM)
     desc: str = "Collect links from a search engine."
     search_engine: SearchEngine = Field(default_factory=SearchEngine)
-    rank_func: Union[Callable[[list[str]], None], None] = None
+    rank_func: Optional[Callable[[list[str]], None]] = None
 
     async def run(
         self,
@@ -180,17 +180,17 @@ class WebBrowseAndSummarize(Action):
     llm: BaseGPTAPI = Field(default_factory=LLM)
     desc: str = "Explore the web and provide summaries of articles and webpages."
     browse_func: Union[Callable[[list[str]], None], None] = None
-    web_browser_engine: WebBrowserEngine = Field(
-        default_factory=lambda: WebBrowserEngine(
-            engine=WebBrowserEngineType.CUSTOM if WebBrowseAndSummarize.browse_func else None,
-            run_func=WebBrowseAndSummarize.browse_func,
-        )
-    )
+    web_browser_engine: Optional[WebBrowserEngine] = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         if CONFIG.model_for_researcher_summary:
             self.llm.model = CONFIG.model_for_researcher_summary
+
+        self.web_browser_engine = WebBrowserEngine(
+            engine=WebBrowserEngineType.CUSTOM if self.browse_func else None,
+            run_func=self.browse_func,
+        )
 
     async def run(
         self,
