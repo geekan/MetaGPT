@@ -11,21 +11,6 @@ import pytest
 from metagpt.tools.moderation import Moderation
 
 
-@pytest.mark.parametrize(
-    ("content",),
-    [
-        [
-            ["I will kill you", "The weather is really nice today", "I want to hit you"],
-        ]
-    ],
-)
-def test_moderation(content):
-    moderation = Moderation()
-    results = moderation.moderation(content=content)
-    assert isinstance(results, list)
-    assert len(results) == len(content)
-
-
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     ("content",),
