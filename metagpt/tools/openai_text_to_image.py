@@ -29,7 +29,7 @@ class OpenAIText2Image:
         :return: The image data is returned in Base64 encoding.
         """
         try:
-            result = await self._llm.async_client.images.generate(prompt=text, n=1, size=size_type)
+            result = await self._llm.aclient.images.generate(prompt=text, n=1, size=size_type)
         except Exception as e:
             logger.error(f"An error occurred:{e}")
             return ""

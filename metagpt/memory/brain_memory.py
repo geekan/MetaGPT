@@ -33,6 +33,9 @@ class BrainMemory(BaseModel):
     cacheable: bool = True
     llm: Optional[BaseLLM] = None
 
+    class Config:
+        arbitrary_types_allowed = True
+
     def add_talk(self, msg: Message):
         """
         Add message from user.

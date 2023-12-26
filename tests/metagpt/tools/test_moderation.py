@@ -12,33 +12,6 @@ from metagpt.config import CONFIG
 from metagpt.tools.moderation import Moderation
 
 
-@pytest.mark.parametrize(
-    ("content",),
-    [
-        [
-            ["I will kill you", "The weather is really nice today", "I want to hit you"],
-        ]
-    ],
-)
-def test_moderation(content):
-    # Prerequisites
-    assert CONFIG.OPENAI_API_KEY and CONFIG.OPENAI_API_KEY != "YOUR_API_KEY"
-    assert not CONFIG.OPENAI_API_TYPE
-    assert CONFIG.OPENAI_API_MODEL
-
-    moderation = Moderation()
-    results = moderation.moderation(content=content)
-    assert isinstance(results, list)
-    assert len(results) == len(content)
-
-    results = moderation.moderation_with_categories(content=content)
-    assert isinstance(results, list)
-    assert results
-    for m in results:
-        assert "flagged" in m
-        assert "true_categories" in m
-
-
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     ("content",),
