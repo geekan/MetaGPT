@@ -25,10 +25,6 @@ class OpenAIText2Image:
         self._llm = LLM()
         self._client = self._llm.async_client
 
-    def __del__(self):
-        if self._llm:
-            self._llm.close()
-
     async def text_2_image(self, text, size_type="1024x1024"):
         """Text to image
 

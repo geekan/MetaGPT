@@ -50,9 +50,7 @@ class SparkGPTAPI(BaseGPTAPI):
     def get_choice_text(self, rsp: dict) -> str:
         return rsp["payload"]["choices"]["text"][-1]["content"]
 
-    async def acompletion_text(
-        self, messages: list[dict], stream=False, generator: bool = False, timeout: int = 3
-    ) -> str:
+    async def acompletion_text(self, messages: list[dict], stream=False, timeout: int = 3) -> str:
         # 不支持
         logger.error("该功能禁用。")
         w = GetMessageFromWeb(messages)

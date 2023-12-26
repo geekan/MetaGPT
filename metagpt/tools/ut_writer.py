@@ -278,11 +278,11 @@ class UTGenerator:
                 question += self.build_api_doc(node, path, method)
                 self.ask_gpt_and_save(question, tag, summary)
 
-    def gpt_msgs_to_code(self, messages: list) -> str:
+    async def gpt_msgs_to_code(self, messages: list) -> str:
         """Choose based on different calling methods"""
         result = ""
         if self.chatgpt_method == "API":
-            result = GPTAPI().ask_code(msgs=messages)
+            result = await GPTAPI().aask_code(msgs=messages)
 
         return result
 

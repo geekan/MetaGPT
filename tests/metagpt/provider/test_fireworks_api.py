@@ -55,17 +55,6 @@ async def mock_llm_achat_completion_stream(self, messgaes: list[dict]) -> str:
     return default_resp.choices[0].message.content
 
 
-def test_fireworks_completion(mocker):
-    mocker.patch("metagpt.provider.fireworks_api.FireWorksGPTAPI.completion", mock_llm_completion)
-    fireworks_gpt = FireWorksGPTAPI()
-
-    resp = fireworks_gpt.completion(messages)
-    assert resp.choices[0].message.content == resp_content
-
-    resp = fireworks_gpt.ask(prompt_msg)
-    assert resp == resp_content
-
-
 @pytest.mark.asyncio
 async def test_fireworks_acompletion(mocker):
     mocker.patch("metagpt.provider.fireworks_api.FireWorksGPTAPI.acompletion", mock_llm_acompletion)

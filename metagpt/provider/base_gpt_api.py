@@ -112,7 +112,7 @@ class BaseGPTAPI(BaseChatbot):
         """
 
     @abstractmethod
-    async def acompletion_text(self, messages: list[dict], stream=False, generator: bool = False, timeout=3) -> str:
+    async def acompletion_text(self, messages: list[dict], stream=False, timeout=3) -> str:
         """Asynchronous version of completion. Return str. Support stream-print"""
 
     def get_choice_text(self, rsp: dict) -> str:

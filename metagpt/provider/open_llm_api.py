@@ -46,7 +46,7 @@ class OpenLLMGPTAPI(OpenAIGPTAPI):
     def __init_openllm(self):
         self.is_azure = False
         self.rpm = int(self.config.get("RPM", 10))
-        self._make_client()
+        self._init_client()
         self.model = self.config.open_llm_api_model  # `self.model` should after `_make_client` to rewrite it
 
     def _make_client_kwargs(self) -> (dict, dict):
