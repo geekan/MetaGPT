@@ -23,14 +23,6 @@ class TestGPT:
         answer = llm_api.ask_batch(["请扮演一个Google Python专家工程师，如果理解，回复明白", "写一个hello world"], timeout=60)
         assert len(answer) > 0
 
-    def test_llm_api_ask_code(self, llm_api):
-        try:
-            answer = llm_api.ask_code(["请扮演一个Google Python专家工程师，如果理解，回复明白", "写一个hello world"])
-            logger.info(answer)
-            assert len(answer) > 0
-        except openai.BadRequestError:
-            assert CONFIG.OPENAI_API_TYPE == "azure"
-
     @pytest.mark.asyncio
     async def test_llm_api_aask(self, llm_api):
         answer = await llm_api.aask("hello chatgpt", stream=False)

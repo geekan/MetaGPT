@@ -60,16 +60,6 @@ class BaseGPTAPI(BaseChatbot):
     def _extract_assistant_rsp(self, context):
         return "\n".join([i["content"] for i in context if i["role"] == "assistant"])
 
-    def ask_batch(self, msgs: list, timeout=3) -> str:
-        context = []
-        for msg in msgs:
-            umsg = self._user_msg(msg)
-            context.append(umsg)
-            rsp = self.completion(context, timeout=timeout)
-            rsp_text = self.get_choice_text(rsp)
-            context.append(self._assistant_msg(rsp_text))
-        return self._extract_assistant_rsp(context)
-
     async def aask_batch(self, msgs: list, timeout=3) -> str:
         """Sequential questioning"""
         context = []
@@ -80,17 +70,12 @@ class BaseGPTAPI(BaseChatbot):
             context.append(self._assistant_msg(rsp_text))
         return self._extract_assistant_rsp(context)
 
-    def ask_code(self, msgs: list[str], timeout=3) -> str:
-        """FIXME: No code segment filtering has been done here, and all results are actually displayed"""
-        rsp_text = self.ask_batch(msgs, timeout=timeout)
-        return rsp_text
-
     async def aask_code(self, msgs: list[str], timeout=3) -> str:
         """FIXME: No code segment filtering has been done here, and all results are actually displayed"""
         rsp_text = await self.aask_batch(msgs, timeout=timeout)
         return rsp_text
 
-    def completion(self, messages: list[dict], timeout=3):
+    def completion(self, messages: list[dict], timeout=3) -> dict:
         """All GPTAPIs are required to provide the standard OpenAI completion interface
         [
             {"role": "system", "content": "You are a helpful assistant."},
@@ -157,11 +142,3 @@ class BaseGPTAPI(BaseChatbot):
             {'language': 'python', 'code': "print('Hello, World!')"}
         """
         return json.loads(self.get_choice_function(rsp)["arguments"])
-
-    def messages_to_prompt(self, messages: list[dict]):
-        """[{"role": "user", "content": msg}] to user: <msg> etc."""
-        return "\n".join([f"{i.role}: {i.content}" for i in messages])
-
-    def messages_to_dict(self, messages):
-        """objects to [{"role": "user", "content": msg}] etc."""
-        return [i.to_dict() for i in messages]

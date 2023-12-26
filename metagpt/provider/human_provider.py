@@ -31,10 +31,6 @@ class HumanProvider(BaseGPTAPI):
     ) -> str:
         return self.ask(msg, timeout=timeout)
 
-    def completion(self, messages: list[dict], timeout=3):
-        """dummy implementation of abstract method in base"""
-        return []
-
     async def acompletion(self, messages: list[dict], timeout=3):
         """dummy implementation of abstract method in base"""
         return []
@@ -42,7 +38,3 @@ class HumanProvider(BaseGPTAPI):
     async def acompletion_text(self, messages: list[dict], stream=False, timeout=3) -> str:
         """dummy implementation of abstract method in base"""
         return ""
-
-    async def close(self):
-        """Close connection"""
-        pass

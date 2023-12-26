@@ -47,11 +47,6 @@ def test_base_gpt_api():
     assert "user" in str(message)
 
     base_gpt_api = MockBaseGPTAPI()
-    msg_prompt = base_gpt_api.messages_to_prompt([message])
-    assert msg_prompt == "user: hello"
-
-    msg_dict = base_gpt_api.messages_to_dict([message])
-    assert msg_dict == [{"role": "user", "content": "hello"}]
 
     openai_funccall_resp = {
         "choices": [
