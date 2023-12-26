@@ -9,7 +9,7 @@ import asyncio
 import importlib
 from concurrent import futures
 from copy import deepcopy
-from typing import Dict, Literal
+from typing import Literal
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
@@ -33,7 +33,6 @@ class SeleniumWrapper:
 
     def __init__(
         self,
-        options: Dict,
         browser_type: Literal["chrome", "firefox", "edge", "ie"] | None = None,
         launch_kwargs: dict | None = None,
         *,

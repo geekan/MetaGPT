@@ -7,11 +7,12 @@
 @Desc    : Implement the OpenAPI Specification 3.0 demo and use the following command to test the HTTP service:
 
         curl -X 'POST' \
-        'http://localhost:8080/openapi/greeting/dave' \
+        'http://localhost:8082/openapi/greeting/dave' \
         -H 'accept: text/plain' \
         -H 'Content-Type: application/json' \
         -d '{}'
 """
+from pathlib import Path
 
 import connexion
 
@@ -22,6 +23,7 @@ async def post_greeting(name: str) -> str:
 
 
 if __name__ == "__main__":
-    app = connexion.AioHttpApp(__name__, specification_dir="../../.well-known/")
+    specification_dir = Path(__file__).parent.parent.parent / ".well-known"
+    app = connexion.AsyncApp(__name__, specification_dir=str(specification_dir))
     app.add_api("openapi.yaml", arguments={"title": "Hello World Example"})
-    app.run(port=8080)
+    app.run(port=8082)

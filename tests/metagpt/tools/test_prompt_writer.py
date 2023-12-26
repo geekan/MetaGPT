@@ -3,7 +3,7 @@
 """
 @Time    : 2023/5/2 17:46
 @Author  : alexanderwu
-@File    : test_prompt_generator.py
+@File    : test_prompt_writer.py
 """
 
 import pytest

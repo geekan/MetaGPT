@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import pytest
 
+from metagpt.config import CONFIG
 from metagpt.logs import logger
 from metagpt.tools import SearchEngineType
 from metagpt.tools.search_engine import SearchEngine
@@ -44,6 +45,15 @@ async def test_search_engine(
     max_results,
     as_string,
 ):
+    # Prerequisites
+    if search_engine_typpe is SearchEngineType.SERPAPI_GOOGLE:
+        assert CONFIG.SERPAPI_API_KEY and CONFIG.SERPAPI_API_KEY != "YOUR_API_KEY"
+    elif search_engine_typpe is SearchEngineType.DIRECT_GOOGLE:
+        assert CONFIG.GOOGLE_API_KEY and CONFIG.GOOGLE_API_KEY != "YOUR_API_KEY"
+        assert CONFIG.GOOGLE_CSE_ID and CONFIG.GOOGLE_CSE_ID != "YOUR_CSE_ID"
+    elif search_engine_typpe is SearchEngineType.SERPER_GOOGLE:
+        assert CONFIG.SERPER_API_KEY and CONFIG.SERPER_API_KEY != "YOUR_API_KEY"
+
     search_engine = SearchEngine(search_engine_typpe, run_func)
     rsp = await search_engine.run("metagpt", max_results=max_results, as_string=as_string)
     logger.info(rsp)
@@ -52,3 +62,7 @@ async def test_search_engine(
     else:
         assert isinstance(rsp, list)
         assert len(rsp) == max_results
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-s"])

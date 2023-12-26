@@ -1,0 +1,12 @@
+# For unit test
+-r requirements.txt
+
+connexion[uvicorn]~=3.0.5
+azure-cognitiveservices-speech~=1.31.0
+duckduckgo_search
+serpapi
+google
+httplib2
+google_api_python_client
+selenium
+webdriver_manager

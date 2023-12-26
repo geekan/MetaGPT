@@ -164,4 +164,6 @@ metagpt/roles/idea_agent.py
 # output folder
 output
 tmp.png
-
+.dependencies.json
+tests/metagpt/utils/file_repo_git
+*.tmp

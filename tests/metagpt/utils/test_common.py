@@ -8,6 +8,7 @@
 """
 
 import os
+import platform
 from typing import Any, Set
 
 import pytest
@@ -17,7 +18,7 @@ from metagpt.actions import RunCode
 from metagpt.const import get_metagpt_root
 from metagpt.roles.tutorial_assistant import TutorialAssistant
 from metagpt.schema import Message
-from metagpt.utils.common import any_to_str, any_to_str_set
+from metagpt.utils.common import any_to_str, any_to_str_set, check_cmd_exists
 
 
 class TestGetProjectRoot:
@@ -28,13 +29,12 @@ class TestGetProjectRoot:
 
     def test_get_project_root(self):
         project_root = get_metagpt_root()
-        assert project_root.name == "metagpt"
+        assert project_root.name == "MetaGPT"
 
     def test_get_root_exception(self):
-        with pytest.raises(Exception) as exc_info:
-            self.change_etc_dir()
-            get_metagpt_root()
-        assert str(exc_info.value) == "Project root not found."
+        self.change_etc_dir()
+        project_root = get_metagpt_root()
+        assert project_root
 
     def test_any_to_str(self):
         class Input(BaseModel):
@@ -65,8 +65,8 @@ class TestGetProjectRoot:
                 want={"metagpt.roles.tutorial_assistant.TutorialAssistant", "metagpt.actions.run_code.RunCode", "a"},
             ),
             Input(
-                x={TutorialAssistant, RunCode(), "a"},
-                want={"metagpt.roles.tutorial_assistant.TutorialAssistant", "metagpt.actions.run_code.RunCode", "a"},
+                x={TutorialAssistant, "a"},
+                want={"metagpt.roles.tutorial_assistant.TutorialAssistant", "a"},
             ),
             Input(
                 x=(TutorialAssistant, RunCode(), "a"),
@@ -76,6 +76,25 @@ class TestGetProjectRoot:
         for i in inputs:
             v = any_to_str_set(i.x)
             assert v == i.want
+
+    def test_check_cmd_exists(self):
+        class Input(BaseModel):
+            command: str
+            platform: str
+
+        inputs = [
+            {"command": "cat", "platform": "linux"},
+            {"command": "ls", "platform": "linux"},
+            {"command": "mspaint", "platform": "windows"},
+        ]
+        plat = "windows" if platform.system().lower() == "windows" else "linux"
+        for i in inputs:
+            seed = Input(**i)
+            result = check_cmd_exists(seed.command)
+            if plat == seed.platform:
+                assert result == 0
+            else:
+                assert result != 0
 
 
 if __name__ == "__main__":

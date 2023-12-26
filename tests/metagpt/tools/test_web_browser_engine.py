@@ -4,8 +4,8 @@
 
 import pytest
 
-from metagpt.config import Config
 from metagpt.tools import WebBrowserEngineType, web_browser_engine
+from metagpt.utils.parse_html import WebPage
 
 
 @pytest.mark.asyncio
@@ -18,14 +18,17 @@ from metagpt.tools import WebBrowserEngineType, web_browser_engine
     ids=["playwright", "selenium"],
 )
 async def test_scrape_web_page(browser_type, url, urls):
-    conf = Config()
-    browser = web_browser_engine.WebBrowserEngine(options=conf.runtime_options, engine=browser_type)
+    browser = web_browser_engine.WebBrowserEngine(engine=browser_type)
     result = await browser.run(url)
-    assert isinstance(result, str)
-    assert "深度赋智" in result
+    assert isinstance(result, WebPage)
+    assert "MetaGPT" in result.inner_text
 
     if urls:
         results = await browser.run(url, *urls)
         assert isinstance(results, list)
         assert len(results) == len(urls) + 1
-        assert all(("深度赋智" in i) for i in results)
+        assert all(("MetaGPT" in i.inner_text) for i in results)
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-s"])

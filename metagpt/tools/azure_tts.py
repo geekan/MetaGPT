@@ -6,7 +6,6 @@
 @File    : azure_tts.py
 @Modified by: mashenquan, 2023/8/17. Azure TTS OAS3 api, which provides text-to-speech functionality
 """
-import asyncio
 import base64
 from pathlib import Path
 from uuid import uuid4
@@ -14,7 +13,7 @@ from uuid import uuid4
 import aiofiles
 from azure.cognitiveservices.speech import AudioConfig, SpeechConfig, SpeechSynthesizer
 
-from metagpt.config import CONFIG, Config
+from metagpt.config import CONFIG
 from metagpt.logs import logger
 
 
@@ -97,17 +96,10 @@ async def oas3_azsure_tts(text, lang="", voice="", style="", role="", subscripti
         async with aiofiles.open(filename, mode="rb") as reader:
             data = await reader.read()
             base64_string = base64.b64encode(data).decode("utf-8")
-        filename.unlink()
     except Exception as e:
         logger.error(f"text:{text}, error:{e}")
         return ""
+    finally:
+        filename.unlink(missing_ok=True)
 
     return base64_string
-
-
-if __name__ == "__main__":
-    Config()
-    loop = asyncio.new_event_loop()
-    v = loop.create_task(oas3_azsure_tts("测试，test"))
-    loop.run_until_complete(v)
-    print(v)
