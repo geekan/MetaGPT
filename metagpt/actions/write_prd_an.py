@@ -136,7 +136,6 @@ REASON = ActionNode(
     key="reason", expected_type=str, instruction="Explain the reasoning process from question to answer", example="..."
 )
 
-
 NODES = [
     LANGUAGE,
     PROGRAMMING_LANGUAGE,
