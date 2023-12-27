@@ -17,7 +17,7 @@ from tenacity import (
 )
 
 from metagpt.config import CONFIG, LLMProviderEnum
-from metagpt.logs import logger
+from metagpt.logs import log_llm_stream, logger
 from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.provider.openai_api import CostManager, log_and_reraise
@@ -50,6 +50,8 @@ class ZhiPuAIGPTAPI(BaseGPTAPI):
         assert config.zhipuai_api_key
         zhipuai.api_key = config.zhipuai_api_key
         openai.api_key = zhipuai.api_key  # due to use openai sdk, set the api_key but it will't be used.
+        if config.openai_proxy:
+            openai.proxy = config.openai_proxy
 
     def _const_kwargs(self, messages: list[dict]) -> dict:
         kwargs = {"model": self.model, "prompt": messages, "temperature": 0.3}
@@ -94,7 +96,7 @@ class ZhiPuAIGPTAPI(BaseGPTAPI):
             if event.event == ZhiPuEvent.ADD.value:
                 content = event.data
                 collected_content.append(content)
-                print(content, end="")
+                log_llm_stream(content)
             elif event.event == ZhiPuEvent.ERROR.value or event.event == ZhiPuEvent.INTERRUPTED.value:
                 content = event.data
                 logger.error(f"event error: {content}", end="")

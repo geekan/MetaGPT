@@ -32,3 +32,19 @@ async def test_researcher(mocker):
         researcher.RESEARCH_PATH = Path(dirname)
         await researcher.Researcher().run(topic)
         assert (researcher.RESEARCH_PATH / f"{topic}.md").read_text().startswith("# Research Report")
+
+
+def test_write_report(mocker):
+    with TemporaryDirectory() as dirname:
+        for i, topic in enumerate(
+            [
+                ("1./metagpt"),
+                ('2.:"metagpt'),
+                ("3.*?<>|metagpt"),
+                ("4. metagpt\n"),
+            ]
+        ):
+            researcher.RESEARCH_PATH = Path(dirname)
+            content = "# Research Report"
+            researcher.Researcher().write_report(topic, content)
+            assert (researcher.RESEARCH_PATH / f"{i+1}. metagpt.md").read_text().startswith("# Research Report")

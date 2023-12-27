@@ -7,13 +7,13 @@
 @Modified By: mashenquan, 2023-11-1. In accordance with Chapter 2.2.1 and 2.2.2 of RFC 116, utilize the new message
         distribution feature for message filtering.
 """
+from typing import Any, Type
 
 from pydantic import Field
 from semantic_kernel import Kernel
-from semantic_kernel.orchestration.sk_function_base import SKFunctionBase
 from semantic_kernel.planning import SequentialPlanner
 from semantic_kernel.planning.action_planner.action_planner import ActionPlanner
-from semantic_kernel.planning.basic_planner import BasicPlanner, Plan
+from semantic_kernel.planning.basic_planner import BasicPlanner
 
 from metagpt.actions import UserRequirement
 from metagpt.actions.execute_task import ExecuteTask
@@ -41,13 +41,13 @@ class SkAgent(Role):
     goal: str = "Execute task based on passed in task description"
     constraints: str = ""
 
-    plan: Plan = None
-    planner_cls: BasicPlanner = BasicPlanner
-    planner: BasicPlanner = Field(default_factory=BasicPlanner)
+    plan: Any = None
+    planner_cls: Any = None
+    planner: Any = None
     llm: BaseGPTAPI = Field(default_factory=LLM)
     kernel: Kernel = Field(default_factory=Kernel)
-    import_semantic_skill_from_directory: str = ""
-    import_skill: dict[str, SKFunctionBase] = dict()
+    import_semantic_skill_from_directory: Type[Kernel.import_semantic_skill_from_directory] = None
+    import_skill: Type[Kernel.import_skill] = None
 
     def __init__(self, **kwargs) -> None:
         """Initializes the Engineer role with given attributes."""
@@ -57,8 +57,8 @@ class SkAgent(Role):
         self.kernel = make_sk_kernel()
 
         # how funny the interface is inconsistent
-        if self.planner_cls == BasicPlanner:
-            self.planner = self.planner_cls()
+        if self.planner_cls == BasicPlanner or self.planner_cls is None:
+            self.planner = BasicPlanner()
         elif self.planner_cls in [SequentialPlanner, ActionPlanner]:
             self.planner = self.planner_cls(self.kernel)
         else:
@@ -78,6 +78,7 @@ class SkAgent(Role):
 
     async def _act(self) -> Message:
         # how funny the interface is inconsistent
+        result = None
         if isinstance(self.planner, BasicPlanner):
             result = await self.planner.execute_plan_async(self.plan, self.kernel)
         elif any(isinstance(self.planner, cls) for cls in [SequentialPlanner, ActionPlanner]):

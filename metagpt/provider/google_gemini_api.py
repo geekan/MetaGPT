@@ -20,7 +20,7 @@ from tenacity import (
 )
 
 from metagpt.config import CONFIG, LLMProviderEnum
-from metagpt.logs import logger
+from metagpt.logs import log_llm_stream, logger
 from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.provider.openai_api import CostManager, log_and_reraise
@@ -119,7 +119,7 @@ class GeminiGPTAPI(BaseGPTAPI):
         collected_content = []
         async for chunk in resp:
             content = chunk.text
-            print(content, end="")
+            log_llm_stream(content)
             collected_content.append(content)
 
         full_content = "".join(collected_content)

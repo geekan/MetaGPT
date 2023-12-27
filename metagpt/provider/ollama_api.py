@@ -15,7 +15,7 @@ from tenacity import (
 
 from metagpt.config import CONFIG, LLMProviderEnum
 from metagpt.const import LLM_API_TIMEOUT
-from metagpt.logs import logger
+from metagpt.logs import log_llm_stream, logger
 from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.provider.general_api_requestor import GeneralAPIRequestor
 from metagpt.provider.llm_provider_registry import register_provider
@@ -127,7 +127,7 @@ class OllamaGPTAPI(BaseGPTAPI):
             if not chunk.get("done", False):
                 content = self.get_choice_text(chunk)
                 collected_content.append(content)
-                print(content, end="")
+                log_llm_stream(content)
             else:
                 # stream finished
                 usage = self.get_usage(chunk)
