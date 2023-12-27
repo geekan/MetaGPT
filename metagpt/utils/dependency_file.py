@@ -14,7 +14,6 @@ from typing import Set
 
 import aiofiles
 
-from metagpt.config import CONFIG
 from metagpt.utils.common import aread
 from metagpt.utils.exceptions import handle_exception
 
@@ -86,7 +85,7 @@ class DependencyFile:
         if persist:
             await self.load()
 
-        root = CONFIG.git_repo.workdir
+        root = self._filename.parent
         try:
             key = Path(filename).relative_to(root)
         except ValueError:

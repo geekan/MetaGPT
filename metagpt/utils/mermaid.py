@@ -13,7 +13,6 @@ from pathlib import Path
 import aiofiles
 
 from metagpt.config import CONFIG
-from metagpt.const import METAGPT_ROOT
 from metagpt.logs import logger
 from metagpt.utils.common import check_cmd_exists
 
@@ -146,9 +145,3 @@ sequenceDiagram
     S-->>SE: return summary
     SE-->>M: return summary
 """
-
-if __name__ == "__main__":
-    loop = asyncio.new_event_loop()
-    result = loop.run_until_complete(mermaid_to_file(MMC1, METAGPT_ROOT / f"{CONFIG.mermaid_engine}/1"))
-    result = loop.run_until_complete(mermaid_to_file(MMC2, METAGPT_ROOT / f"{CONFIG.mermaid_engine}/2"))
-    loop.close()

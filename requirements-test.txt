@@ -10,3 +10,6 @@ httplib2
 google_api_python_client
 selenium
 webdriver_manager
+pyppeteer
+#aioboto3~=11.3.0  # Used by metagpt/utils/s3.py
+aioredis~=2.0.1 # Used by metagpt/utils/redis.py

@@ -26,6 +26,7 @@ from metagpt.actions.write_prd_an import (
     WP_IS_RELATIVE_NODE,
     WP_ISSUE_TYPE_NODE,
     WRITE_PRD_NODE,
+    WRITE_PRD_NODE_NO_NAME,
 )
 from metagpt.config import CONFIG
 from metagpt.const import (
@@ -123,7 +124,8 @@ class WritePRD(Action):
         #     logger.info(rsp)
         project_name = CONFIG.project_name if CONFIG.project_name else ""
         context = CONTEXT_TEMPLATE.format(requirements=requirements, project_name=project_name)
-        node = await WRITE_PRD_NODE.fill(context=context, llm=self.llm)  # schema=schema
+        write_prd_node = WRITE_PRD_NODE if not project_name else WRITE_PRD_NODE_NO_NAME
+        node = await write_prd_node.fill(context=context, llm=self.llm)  # schema=schema
         await self._rename_workspace(node)
         return node
 

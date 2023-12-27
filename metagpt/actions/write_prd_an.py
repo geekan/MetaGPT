@@ -34,7 +34,7 @@ ORIGINAL_REQUIREMENTS = ActionNode(
 PROJECT_NAME = ActionNode(
     key="Project Name",
     expected_type=str,
-    instruction="Name the project using snake case style, like 'game_2048' or 'simple_crm'.",
+    instruction="According to the content of \"Original Requirements,\" name the project using snake case style , like 'game_2048' or 'simple_crm.",
     example="game_2048",
 )
 
@@ -141,7 +141,6 @@ NODES = [
     LANGUAGE,
     PROGRAMMING_LANGUAGE,
     ORIGINAL_REQUIREMENTS,
-    PROJECT_NAME,
     PRODUCT_GOALS,
     USER_STORIES,
     COMPETITIVE_ANALYSIS,
@@ -152,7 +151,8 @@ NODES = [
     ANYTHING_UNCLEAR,
 ]
 
-WRITE_PRD_NODE = ActionNode.from_children("WritePRD", NODES)
+WRITE_PRD_NODE = ActionNode.from_children("WritePRD", NODES + [PROJECT_NAME])
+WRITE_PRD_NODE_NO_NAME = ActionNode.from_children("WritePRD", NODES)
 WP_ISSUE_TYPE_NODE = ActionNode.from_children("WP_ISSUE_TYPE", [ISSUE_TYPE, REASON])
 WP_IS_RELATIVE_NODE = ActionNode.from_children("WP_IS_RELATIVE", [IS_RELATIVE, REASON])
 

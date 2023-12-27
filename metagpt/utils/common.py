@@ -51,7 +51,7 @@ def check_cmd_exists(command) -> int:
 def require_python_version(req_version: Tuple) -> bool:
     if not (2 <= len(req_version) <= 3):
         raise ValueError("req_version should be (3, 9) or (3, 10, 13)")
-    return True if sys.version_info > req_version else False
+    return bool(sys.version_info > req_version)
 
 
 class OutputParser:
@@ -454,7 +454,7 @@ def general_after_log(i: "loguru.Logger", sec_format: str = "%0.3f") -> typing.C
     return log_it
 
 
-def read_json_file(json_file: str, encoding=None) -> list[Any]:
+def read_json_file(json_file: str, encoding="utf-8") -> list[Any]:
     if not Path(json_file).exists():
         raise FileNotFoundError(f"json_file: {json_file} not exist, return []")
 

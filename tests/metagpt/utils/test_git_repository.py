@@ -61,6 +61,11 @@ async def test_git():
 
     assert repo.status
 
+    exist_dir = repo.workdir / "git4"
+    exist_dir.mkdir(parents=True, exist_ok=True)
+    repo.rename_root("git4")
+    assert repo.workdir.name == "git4"
+
     repo.delete_repository()
     assert not local_path.exists()
 
@@ -80,6 +85,9 @@ async def test_git1():
     all_files = repo1.get_files(relative_path=".", filter_ignored=True)
     assert "__pycache__/a.pyc" not in all_files
 
+    res = repo1.filter_gitignore(filenames=["snake_game/snake_game/__pycache__", "snake_game/snake_game/game.py"])
+    assert res == ["snake_game/snake_game/game.py"]
+
     repo1.delete_repository()
     assert not local_path.exists()
 
@@ -97,6 +105,21 @@ async def test_dependency_file():
 
     repo.delete_repository()
     assert not dependancy_file.exists
+
+
+@pytest.mark.asyncio
+async def test_git_open():
+    local_path = Path(__file__).parent / "git3"
+    local_path.mkdir(exist_ok=True, parents=True)
+
+    assert not GitRepository.is_git_dir(local_path)
+    repo = GitRepository()
+    repo.open(local_path, auto_init=False)
+    assert not repo.is_valid
+    assert not repo.status
+    assert not repo.workdir
+
+    shutil.rmtree(path=str(local_path), ignore_errors=True)
 
 
 if __name__ == "__main__":
