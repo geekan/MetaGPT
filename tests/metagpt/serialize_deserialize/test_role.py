@@ -17,9 +17,11 @@ from metagpt.roles.role import Role
 from metagpt.schema import Message
 from metagpt.utils.common import format_trackback_info
 from tests.metagpt.serialize_deserialize.test_serdeser_base import (
+    ActionOK,
     RoleA,
     RoleB,
     RoleC,
+    RoleD,
     serdeser_path,
 )
 
@@ -30,6 +32,9 @@ def test_roles():
     role_b = RoleB()
     assert len(role_a.rc.watch) == 1
     assert len(role_b.rc.watch) == 1
+
+    role_d = RoleD(actions=[ActionOK()])
+    assert len(role_d.actions) == 1
 
 
 def test_role_serialize():

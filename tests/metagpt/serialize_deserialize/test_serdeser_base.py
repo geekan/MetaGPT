@@ -91,3 +91,10 @@ class RoleC(Role):
         self._watch([UserRequirement])
         self.rc.react_mode = RoleReactMode.BY_ORDER
         self.rc.memory.ignore_id = True
+
+
+class RoleD(Role):
+    name: str = Field(default="RoleD")
+    profile: str = Field(default="Role D")
+    goal: str = "RoleD's goal"
+    constraints: str = "RoleD's constraints"

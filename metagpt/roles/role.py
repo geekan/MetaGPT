@@ -163,6 +163,7 @@ class Role(BaseModel):
     def check_actions(cls, actions: list[Union[dict, Action]]) -> list[Action]:
         new_actions = []
         for action in actions:
+            new_action = action
             if isinstance(action, dict):
                 item_class_name = action.get("builtin_class_name", None)
                 if item_class_name:
@@ -171,9 +172,7 @@ class Role(BaseModel):
                         if item_class_name == registery_class_name:
                             new_action = subclass(**action)
                             break
-                    new_actions.append(new_action)
-                else:
-                    new_actions.append(action)
+            new_actions.append(new_action)
         return new_actions
 
     @model_validator(mode="after")
