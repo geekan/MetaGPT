@@ -7,21 +7,19 @@
 """
 import asyncio
 
-from metagpt.actions.action_node import ActionNode
-
 from pydantic import Field
 
 from metagpt.actions.action import Action
+from metagpt.actions.action_node import ActionNode
 from metagpt.llm import LLM
 from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.schema import Document
-
 
 GUIDELINE = ActionNode(
     key="Code Guideline",
     expected_type=list[str],
     instruction="You are a professional software engineer, and your main task is to "
-                "proposing incremental development plans and code guidance",
+    "proposing incremental development plans and code guidance",
     example=[
         "`calculator.py` should be extended to include methods for subtraction, multiplication, and division. Error handling should be implemented for division to prevent division by zero.",
         "New endpoints for subtraction, multiplication, and division should be added to `main.py`.",
@@ -80,9 +78,8 @@ def divide_numbers():
     return jsonify({'result': result}), 200
 if __name__ == '__main__':
     app.run()
-```"""
+```""",
 )
-
 
 CODE_GUIDE_CONTEXT = """
 ### NOTICE
@@ -198,16 +195,10 @@ class Calculator:
         return num1 + num2
 """
 
-
-GUIDE_NODES = [
-    GUIDELINE,
-    INCREMENTAL_CHANGE
-]
+GUIDE_NODES = [GUIDELINE, INCREMENTAL_CHANGE]
 
 WRITE_CODE_GUIDE_NODE = ActionNode.from_children("WriteCodeGuide", GUIDE_NODES)
-# 1. 对最后的全部代码进行review一次，或者测试
-# 2. 将user requirement也作为write code的输入
-# 3. 对前置的action进行重新设计
+
 
 class WriteCodeGuide(Action):
     name: str = "WriteCodeGuide"
