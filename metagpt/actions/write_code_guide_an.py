@@ -85,7 +85,7 @@ if __name__ == '__main__':
 
 
 CODE_GUIDE_CONTEXT = """
-NOTICE
+### NOTICE
 Role: You are a professional software engineer, and your main task is to write code Guideline and code craft with triple quote, based on the following attentions and context. Output format carefully referenced "Format example".
 1. Determine the scope of responsibilities of each file and what classes and methods need to be implemented.
 2. Import all referenced classes.
@@ -94,10 +94,13 @@ Role: You are a professional software engineer, and your main task is to write c
 5. Ensure there are no potential bugs.
 6. Confirm that the entire project conforms to the tasks proposed by the user.
 7. Examine the code closely to find and fix errors, and confirm that the logic is sound to ensure smooth user interaction while meeting all specified requirements.
-8. Attention: Legacy Code may be more or less files than Tasks List in Tasks. However, only code guidance and Incremental Change are written for the files in Tasks List.
+8. Attention: Code files in the task list may have a different number of files compared to legacy code files. This requires integrating legacy code files that do not appear in the task list into the code files of the task list. Therefore, when writing code guidance and incremental changes for the code files in the task list, also include how to seamlessly merge and adjust legacy code files.
 
 ### Requirement
 {requirement}
+
+### Prd
+{prd}
 
 ### Design
 {design}
@@ -159,8 +162,8 @@ ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenc
 5. CAREFULLY CHECK THAT YOU DONT MISS ANY NECESSARY CLASS/FUNCTION IN THIS FILE.
 6. Before using a external variable/module, make sure you import it first.
 7. Write out EVERY CODE DETAIL, DON'T LEAVE TODO.
-8. Attention1: Implement the functions required by the current file scope of responsibility. 
-9. Attention2: Make modifications and additions to the legacy code in accordance with the provided guidelines and API. Ensure that the complete code is implemented without any omissions. 
+8. When Task List code files do not include Legacy Code files, you need to seamlessly merge and adjust Legacy Code files that do not appear in the Task List into the code files of the task list being written based on the guideline.
+9. Attention: Make modifications and additions to the legacy code in accordance with the provided guidelines and API. Ensure that the complete code is implemented without any omissions. 
 """
 
 CODE_GUIDE_CONTEXT_EXAMPLE = """
@@ -202,7 +205,9 @@ GUIDE_NODES = [
 ]
 
 WRITE_CODE_GUIDE_NODE = ActionNode.from_children("WriteCodeGuide", GUIDE_NODES)
-
+# 1. 对最后的全部代码进行review一次，或者测试
+# 2. 将user requirement也作为write code的输入
+# 3. 对前置的action进行重新设计
 
 class WriteCodeGuide(Action):
     name: str = "WriteCodeGuide"

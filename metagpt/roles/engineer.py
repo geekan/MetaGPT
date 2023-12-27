@@ -34,7 +34,7 @@ from metagpt.const import (
     CODE_SUMMARIES_FILE_REPO,
     CODE_SUMMARIES_PDF_FILE_REPO,
     SYSTEM_DESIGN_FILE_REPO,
-    TASK_FILE_REPO,
+    TASK_FILE_REPO, PRDS_FILE_REPO,
 )
 from metagpt.logs import logger
 from metagpt.roles import Role
@@ -313,13 +313,19 @@ class Engineer(Role):
         logger.info("Writing code guideline..")
 
         requirement = str(self._rc.memory.get_by_role("Human")[0])
-        task_file_repo = CONFIG.git_repo.new_file_repository(TASK_FILE_REPO)
+        prd_file_repo = CONFIG.git_repo.new_file_repository(PRDS_FILE_REPO)
         design_file_repo = CONFIG.git_repo.new_file_repository(SYSTEM_DESIGN_FILE_REPO)
-        tasks = await task_file_repo.get_all()[0]
-        design = await design_file_repo.get_all()[0]
+        task_file_repo = CONFIG.git_repo.new_file_repository(TASK_FILE_REPO)
+        prd = await prd_file_repo.get_all()
+        prd = "\n".join([doc.content for doc in prd])
+        design = await design_file_repo.get_all()
+        design = "\n".join([doc.content for doc in design])
+        tasks = await task_file_repo.get_all()
+        tasks = "\n".join([doc.content for doc in tasks])
         old_codes = await self.get_old_codes()
 
-        context = CODE_GUIDE_CONTEXT.format(requirement=requirement, tasks=tasks, design=design, code=old_codes)
+        context = CODE_GUIDE_CONTEXT.format(requirement=requirement, prd=prd, tasks=tasks, design=design,
+                                            code=old_codes)
         node = await WriteCodeGuide().run(context=context)
         guideline = node.instruct_content.json(ensure_ascii=False)
         return guideline
@@ -329,5 +335,5 @@ class Engineer(Role):
         CONFIG.old_workspace = CONFIG.git_repo.workdir / os.path.basename(CONFIG.project_path)
         old_file_repo = CONFIG.git_repo.new_file_repository(relative_path=CONFIG.old_workspace)
         old_codes = await old_file_repo.get_all()
-        codes = [f"----- \n```{code.content}```" for code in old_codes]
+        codes = [f"----- {code.filename}\n```{code.content}```" for code in old_codes]
         return "\n".join(codes)
