@@ -7,19 +7,17 @@
 @Modified By: mashenquan, 2023-11-1. In accordance with Chapter 2.2.1 and 2.2.2 of RFC 116, utilize the new message
         distribution feature for message filtering.
 """
-from typing import Any, Type, Union
+from typing import Any, Callable, Union
 
 from pydantic import Field
 from semantic_kernel import Kernel
 from semantic_kernel.planning import SequentialPlanner
 from semantic_kernel.planning.action_planner.action_planner import ActionPlanner
-from semantic_kernel.planning.basic_planner import BasicPlanner
+from semantic_kernel.planning.basic_planner import BasicPlanner, Plan
 
 from metagpt.actions import UserRequirement
 from metagpt.actions.execute_task import ExecuteTask
-from metagpt.llm import LLM
 from metagpt.logs import logger
-from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.utils.make_sk_kernel import make_sk_kernel
@@ -41,13 +39,13 @@ class SkAgent(Role):
     goal: str = "Execute task based on passed in task description"
     constraints: str = ""
 
-    plan: Any = None
+    plan: Plan = None
     planner_cls: Any = None
     planner: Union[BasicPlanner, SequentialPlanner, ActionPlanner] = None
-    llm: BaseGPTAPI = Field(default_factory=LLM)
+
     kernel: Kernel = Field(default_factory=Kernel)
-    import_semantic_skill_from_directory: Type[Kernel.import_semantic_skill_from_directory] = None
-    import_skill: Type[Kernel.import_skill] = None
+    import_semantic_skill_from_directory: Callable = None
+    import_skill: Callable = None
 
     def __init__(self, **data: Any) -> None:
         """Initializes the Engineer role with given attributes."""

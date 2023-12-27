@@ -34,9 +34,9 @@ class TutorialAssistant(Role):
     constraints: str = "Strictly follow Markdown's syntax, with neat and standardized layout"
     language: str = "Chinese"
 
-    topic = ""
-    main_title = ""
-    total_content = ""
+    topic: str = ""
+    main_title: str = ""
+    total_content: str = ""
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
