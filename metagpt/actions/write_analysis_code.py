@@ -118,7 +118,13 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
             schema_module = schema_module or 'udf'
             self.available_tools.update({schema_module: schema_path})
         else:
-            yml_files = schema_path.glob("*.yml")
+            if isinstance(schema_path, list):
+                yml_files = schema_path
+            elif isinstance(schema_path, Path) and schema_path.is_file():
+                yml_files = [schema_path]
+            else:
+                yml_files = schema_path.glob("*.yml")
+
             for yml_file in yml_files:
                 module = yml_file.stem
                 with open(yml_file, "r", encoding="utf-8") as f:
