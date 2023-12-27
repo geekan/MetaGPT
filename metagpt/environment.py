@@ -57,6 +57,7 @@ class Environment(BaseModel):
     @model_validator(mode="after")
     def init_roles(self):
         self.add_roles(self.roles.values())
+        return self
 
     def serialize(self, stg_path: Path):
         roles_path = stg_path.joinpath("roles.json")

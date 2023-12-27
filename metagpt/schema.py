@@ -195,7 +195,7 @@ class Message(BaseModel):
 
     def dump(self) -> str:
         """Convert the object to json string"""
-        return self.model_dump_json(exclude_none=True)
+        return self.model_dump_json(exclude_none=True, warnings=False)
 
     @staticmethod
     @handle_exception(exception_type=JSONDecodeError, default_return=None)
@@ -249,15 +249,6 @@ class MessageQueue(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     _queue: Queue = PrivateAttr(default_factory=Queue)
-
-    # _private_attributes = {"_queue": Queue()}
-
-    # def __init__(self, **kwargs: Any):
-    #     for key in self._private_attributes.keys():
-    #         if key in kwargs:
-    #             object.__setattr__(self, key, kwargs[key])
-    #         else:
-    #             object.__setattr__(self, key, Queue())
 
     def pop(self) -> Message | None:
         """Pop one message from the queue."""

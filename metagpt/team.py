@@ -71,9 +71,8 @@ class Team(BaseModel):
 
         # recover environment
         environment = Environment.deserialize(stg_path=stg_path.joinpath("environment"))
-        # team_info.update({"env": environment})
+        team_info.update({"env": environment})
         team = Team(**team_info)
-        team.env = environment
         return team
 
     def hire(self, roles: list[Role]):
