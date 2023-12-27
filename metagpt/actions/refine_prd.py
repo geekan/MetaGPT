@@ -1,6 +1,7 @@
-from typing import List, Union
+from typing import List
 
-from metagpt.actions import Refine, ActionOutput, SearchAndSummarize
+from metagpt.actions import SearchAndSummarize
+from metagpt.actions.refine import Refine
 from metagpt.config import CONFIG
 from metagpt.logs import logger
 from metagpt.utils.get_template import get_template
@@ -73,7 +74,6 @@ INCREMENT_OUTPUT_MAPPING = {
 
 
 class RefinePRD(Refine):
-
     def __init__(self, name="RefinePRD", context=None, llm=None):
         super().__init__(name, context, llm)
 
@@ -87,8 +87,7 @@ class RefinePRD(Refine):
 
         prompt_template, format_example = get_template(increment_template, format)
         prompt = prompt_template.format(
-            context=context, legacy=legacy, search_information=info,
-            format_example=format_example
+            context=context, legacy=legacy, search_information=info, format_example=format_example
         )
         logger.debug(prompt)
         prd = await self._aask_v1(prompt, "prd", INCREMENT_OUTPUT_MAPPING, format=format)

@@ -123,7 +123,7 @@ class WriteCode(Action):
         else:
             code_context = await self.get_codes(coding_context.task_doc, exclude=self.context.filename)
 
-        if guideline:   # guide write code 也有两种方式，进行尝试
+        if guideline:  # guide write code 也有两种方式，进行尝试
             prompt = WRITE_CODE_INCREMENT_TEMPLATE.format(
                 guideline=guideline,
                 design=coding_context.design_doc.content if coding_context.design_doc else "",

@@ -7,7 +7,6 @@ from typing import List, Union
 
 from metagpt.actions import Action, ActionOutput
 from metagpt.config import CONFIG
-from metagpt.const import WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.utils.common import CodeParser
 from metagpt.utils.get_template import get_template
@@ -133,7 +132,7 @@ OUTPUT_MAPPING = {
     "Python package name": (str, ...),
     # "File list": (List[str], ...),
     "Data structures and interface definitions": (str, ...),
-    "Program call flow": (str, ...)
+    "Program call flow": (str, ...),
 }
 
 
@@ -158,7 +157,7 @@ class RefineDesign(Action):
         original_workspace = workspace
         index = 1
         while workspace.exists():
-            ws_name_match = re.match(r'^(.*)_([\d]+)$', original_workspace.name)
+            ws_name_match = re.match(r"^(.*)_([\d]+)$", original_workspace.name)
             if ws_name_match:
                 base_name, existing_index = ws_name_match.groups()
                 index = int(existing_index)
@@ -192,7 +191,7 @@ class RefineDesign(Action):
         logger.info(f"Saving System Designs to {system_design_file}")
         system_design_file.write_text((json_to_markdown(system_design.instruct_content.dict())))
 
-    async def _save(self, context, system_design):
+    async def _save(self, context, system_design, WORKSPACE_ROOT=None):
         if isinstance(system_design, ActionOutput):
             ws_name = system_design.instruct_content.dict()["Python package name"]
         else:

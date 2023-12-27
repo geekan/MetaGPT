@@ -28,13 +28,14 @@ from typing import Set
 from metagpt.actions import Action, WriteCode, WriteCodeReview, WriteTasks
 from metagpt.actions.fix_bug import FixBug
 from metagpt.actions.summarize_code import SummarizeCode
-from metagpt.actions.write_code_guide_an import CODE_GUIDE_CONTEXT, WRITE_CODE_GUIDE_NODE, WriteCodeGuide
+from metagpt.actions.write_code_guide_an import CODE_GUIDE_CONTEXT, WriteCodeGuide
 from metagpt.config import CONFIG
 from metagpt.const import (
     CODE_SUMMARIES_FILE_REPO,
     CODE_SUMMARIES_PDF_FILE_REPO,
+    PRDS_FILE_REPO,
     SYSTEM_DESIGN_FILE_REPO,
-    TASK_FILE_REPO, PRDS_FILE_REPO,
+    TASK_FILE_REPO,
 )
 from metagpt.logs import logger
 from metagpt.roles import Role
@@ -220,7 +221,7 @@ class Engineer(Role):
 
     @staticmethod
     async def _new_coding_context(
-            filename, src_file_repo, task_file_repo, design_file_repo, dependency
+        filename, src_file_repo, task_file_repo, design_file_repo, dependency
     ) -> CodingContext:
         old_code_doc = await src_file_repo.get(filename)
         if not old_code_doc:
@@ -324,8 +325,9 @@ class Engineer(Role):
         tasks = "\n".join([doc.content for doc in tasks])
         old_codes = await self.get_old_codes()
 
-        context = CODE_GUIDE_CONTEXT.format(requirement=requirement, prd=prd, tasks=tasks, design=design,
-                                            code=old_codes)
+        context = CODE_GUIDE_CONTEXT.format(
+            requirement=requirement, prd=prd, tasks=tasks, design=design, code=old_codes
+        )
         node = await WriteCodeGuide().run(context=context)
         guideline = node.instruct_content.json(ensure_ascii=False)
         return guideline

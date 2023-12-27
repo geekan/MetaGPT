@@ -132,9 +132,7 @@ class RefineTasks(Action):
 
     async def run(self, context, legacy, format=CONFIG.prompt_format):
         prompt_template, format_example = get_template(templates, format)
-        prompt = prompt_template.format(context=context,
-                                        legacy=legacy,
-                                        format_example=format_example)
+        prompt = prompt_template.format(context=context, legacy=legacy, format_example=format_example)
         rsp = await self._aask_v1(prompt, "task", OUTPUT_MAPPING, format=format)
         self._save(context, rsp)
         return rsp
