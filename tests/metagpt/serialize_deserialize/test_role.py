@@ -26,39 +26,39 @@ from tests.metagpt.serialize_deserialize.test_serdeser_base import (
 
 def test_roles():
     role_a = RoleA()
-    assert len(role_a._rc.watch) == 1
+    assert len(role_a.rc.watch) == 1
     role_b = RoleB()
-    assert len(role_a._rc.watch) == 1
-    assert len(role_b._rc.watch) == 1
+    assert len(role_a.rc.watch) == 1
+    assert len(role_b.rc.watch) == 1
 
 
 def test_role_serialize():
     role = Role()
-    ser_role_dict = role.model_dump(by_alias=True)
+    ser_role_dict = role.model_dump()
     assert "name" in ser_role_dict
-    assert "_states" in ser_role_dict
-    assert "_actions" in ser_role_dict
+    assert "states" in ser_role_dict
+    assert "actions" in ser_role_dict
 
 
 def test_engineer_serialize():
     role = Engineer()
-    ser_role_dict = role.model_dump(by_alias=True)
+    ser_role_dict = role.model_dump()
     assert "name" in ser_role_dict
-    assert "_states" in ser_role_dict
-    assert "_actions" in ser_role_dict
+    assert "states" in ser_role_dict
+    assert "actions" in ser_role_dict
 
 
 @pytest.mark.asyncio
 async def test_engineer_deserialize():
     role = Engineer(use_code_review=True)
-    ser_role_dict = role.model_dump(by_alias=True)
+    ser_role_dict = role.model_dump()
 
     new_role = Engineer(**ser_role_dict)
     assert new_role.name == "Alex"
     assert new_role.use_code_review is True
-    assert len(new_role._actions) == 1
-    assert isinstance(new_role._actions[0], WriteCode)
-    # await new_role._actions[0].run(context="write a cli snake game", filename="test_code")
+    assert len(new_role.actions) == 1
+    assert isinstance(new_role.actions[0], WriteCode)
+    # await new_role.actions[0].run(context="write a cli snake game", filename="test_code")
 
 
 def test_role_serdeser_save():
@@ -87,10 +87,10 @@ async def test_role_serdeser_interrupt():
         logger.error(f"Exception in `role_a.run`, detail: {format_trackback_info()}")
         role_c.serialize(stg_path)
 
-    assert role_c._rc.memory.count() == 1
+    assert role_c.rc.memory.count() == 1
 
     new_role_a: Role = Role.deserialize(stg_path)
-    assert new_role_a._rc.state == 1
+    assert new_role_a.rc.state == 1
 
     with pytest.raises(Exception):
         await new_role_a.run(with_message=Message(content="demo", cause_by=UserRequirement))

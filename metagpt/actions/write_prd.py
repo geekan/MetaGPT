@@ -17,8 +17,6 @@ import json
 from pathlib import Path
 from typing import Optional
 
-from pydantic import Field
-
 from metagpt.actions import Action, ActionOutput
 from metagpt.actions.action_node import ActionNode
 from metagpt.actions.fix_bug import FixBug
@@ -36,9 +34,7 @@ from metagpt.const import (
     PRDS_FILE_REPO,
     REQUIREMENT_FILENAME,
 )
-from metagpt.llm import LLM
 from metagpt.logs import logger
-from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.schema import BugFixContext, Document, Documents, Message
 from metagpt.utils.common import CodeParser
 from metagpt.utils.file_repository import FileRepository
@@ -67,7 +63,6 @@ NEW_REQ_TEMPLATE = """
 class WritePRD(Action):
     name: str = ""
     content: Optional[str] = None
-    llm: BaseGPTAPI = Field(default_factory=LLM)
 
     async def run(self, with_messages, schema=CONFIG.prompt_schema, *args, **kwargs) -> ActionOutput | Message:
         # Determine which requirement documents need to be rewritten: Use LLM to assess whether new requirements are
@@ -79,7 +74,7 @@ class WritePRD(Action):
             await docs_file_repo.save(filename=REQUIREMENT_FILENAME, content="")
             bug_fix = BugFixContext(filename=BUGFIX_FILENAME)
             return Message(
-                content=bug_fix.json(),
+                content=bug_fix.model_dump_json(),
                 instruct_content=bug_fix,
                 role="",
                 cause_by=FixBug,
@@ -111,7 +106,7 @@ class WritePRD(Action):
         # Once all files under 'docs/prds/' have been compared with the newly added requirements, trigger the
         # 'publish' message to transition the workflow to the next stage. This design allows room for global
         # optimization in subsequent steps.
-        return ActionOutput(content=change_files.json(), instruct_content=change_files)
+        return ActionOutput(content=change_files.model_dump_json(), instruct_content=change_files)
 
     async def _run_new_requirement(self, requirements, schema=CONFIG.prompt_schema) -> ActionOutput:
         # sas = SearchAndSummarize()
@@ -137,7 +132,7 @@ class WritePRD(Action):
             CONFIG.project_name = Path(CONFIG.project_path).name
         prompt = NEW_REQ_TEMPLATE.format(requirements=new_requirement_doc.content, old_prd=prd_doc.content)
         node = await WRITE_PRD_NODE.fill(context=prompt, llm=self.llm, schema=schema)
-        prd_doc.content = node.instruct_content.json(ensure_ascii=False)
+        prd_doc.content = node.instruct_content.model_dump_json()
         await self._rename_workspace(node)
         return prd_doc
 
@@ -149,7 +144,7 @@ class WritePRD(Action):
             new_prd_doc = Document(
                 root_path=PRDS_FILE_REPO,
                 filename=FileRepository.new_filename() + ".json",
-                content=prd.instruct_content.json(ensure_ascii=False),
+                content=prd.instruct_content.model_dump_json(),
             )
         elif await self._is_relative(requirement_doc, prd_doc):
             new_prd_doc = await self._merge(requirement_doc, prd_doc)

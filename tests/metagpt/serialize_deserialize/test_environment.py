@@ -22,6 +22,7 @@ def test_env_serialize():
     env = Environment()
     ser_env_dict = env.model_dump()
     assert "roles" in ser_env_dict
+    assert len(ser_env_dict["roles"]) == 0
 
 
 def test_env_deserialize():
@@ -53,10 +54,10 @@ def test_environment_serdeser():
     new_env: Environment = Environment(**ser_data)
     assert len(new_env.roles) == 1
 
-    assert list(new_env.roles.values())[0]._states == list(environment.roles.values())[0]._states
-    assert list(new_env.roles.values())[0]._actions == list(environment.roles.values())[0]._actions
-    assert isinstance(list(environment.roles.values())[0]._actions[0], ActionOK)
-    assert type(list(new_env.roles.values())[0]._actions[0]) == ActionOK
+    assert list(new_env.roles.values())[0].states == list(environment.roles.values())[0].states
+    assert list(new_env.roles.values())[0].actions == list(environment.roles.values())[0].actions
+    assert isinstance(list(environment.roles.values())[0].actions[0], ActionOK)
+    assert type(list(new_env.roles.values())[0].actions[0]) == ActionOK
 
 
 def test_environment_serdeser_v2():
@@ -69,8 +70,8 @@ def test_environment_serdeser_v2():
     new_env: Environment = Environment(**ser_data)
     role = new_env.get_role(pm.profile)
     assert isinstance(role, ProjectManager)
-    assert isinstance(role._actions[0], WriteTasks)
-    assert isinstance(list(new_env.roles.values())[0]._actions[0], WriteTasks)
+    assert isinstance(role.actions[0], WriteTasks)
+    assert isinstance(list(new_env.roles.values())[0].actions[0], WriteTasks)
 
 
 def test_environment_serdeser_save():
@@ -85,4 +86,4 @@ def test_environment_serdeser_save():
 
     new_env: Environment = Environment.deserialize(stg_path)
     assert len(new_env.roles) == 1
-    assert type(list(new_env.roles.values())[0]._actions[0]) == ActionOK
+    assert type(list(new_env.roles.values())[0].actions[0]) == ActionOK

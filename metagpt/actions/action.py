@@ -26,7 +26,7 @@ action_subclass_registry = {}
 
 
 class Action(BaseModel):
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+    model_config = ConfigDict(arbitrary_types_allowed=True, exclude=["llm"])
 
     name: str = ""
     llm: BaseGPTAPI = Field(default_factory=LLM, exclude=True)
@@ -43,25 +43,19 @@ class Action(BaseModel):
         self.node = ActionNode(key=self.name, expected_type=str, instruction=instruction, example="", schema="raw")
         return self
 
-    def __init__(self, **kwargs: Any):
-        super().__init__(**kwargs)
+    def __init__(self, **data: Any):
+        super().__init__(**data)
 
         # deserialize child classes dynamically for inherited `action`
         object.__setattr__(self, "builtin_class_name", self.__class__.__name__)
-        self.__fields__["builtin_class_name"].default = self.__class__.__name__
+        self.model_fields["builtin_class_name"].default = self.__class__.__name__
 
-        if "instruction" in kwargs:
-            self.__init_with_instruction(kwargs["instruction"])
+        if "instruction" in data:
+            self.__init_with_instruction(data["instruction"])
 
     def __init_subclass__(cls, **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)
         action_subclass_registry[cls.__name__] = cls
-
-    def dict(self, *args, **kwargs) -> dict[str, Any]:
-        obj_dict = super().model_dump(*args, **kwargs)
-        if "llm" in obj_dict:
-            obj_dict.pop("llm")
-        return obj_dict
 
     def set_prefix(self, prefix):
         """Set prefix for later usage"""

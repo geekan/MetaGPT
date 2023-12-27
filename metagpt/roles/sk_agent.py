@@ -7,7 +7,7 @@
 @Modified By: mashenquan, 2023-11-1. In accordance with Chapter 2.2.1 and 2.2.2 of RFC 116, utilize the new message
         distribution feature for message filtering.
 """
-from typing import Any, Type
+from typing import Any, Type, Union
 
 from pydantic import Field
 from semantic_kernel import Kernel
@@ -43,15 +43,15 @@ class SkAgent(Role):
 
     plan: Any = None
     planner_cls: Any = None
-    planner: Any = None
+    planner: Union[BasicPlanner, SequentialPlanner, ActionPlanner] = None
     llm: BaseGPTAPI = Field(default_factory=LLM)
     kernel: Kernel = Field(default_factory=Kernel)
     import_semantic_skill_from_directory: Type[Kernel.import_semantic_skill_from_directory] = None
     import_skill: Type[Kernel.import_skill] = None
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, **data: Any) -> None:
         """Initializes the Engineer role with given attributes."""
-        super().__init__(**kwargs)
+        super().__init__(**data)
         self._init_actions([ExecuteTask()])
         self._watch([UserRequirement])
         self.kernel = make_sk_kernel()
@@ -71,10 +71,10 @@ class SkAgent(Role):
         self._set_state(0)
         # how funny the interface is inconsistent
         if isinstance(self.planner, BasicPlanner):
-            self.plan = await self.planner.create_plan_async(self._rc.important_memory[-1].content, self.kernel)
+            self.plan = await self.planner.create_plan_async(self.rc.important_memory[-1].content, self.kernel)
             logger.info(self.plan.generated_plan)
         elif any(isinstance(self.planner, cls) for cls in [SequentialPlanner, ActionPlanner]):
-            self.plan = await self.planner.create_plan_async(self._rc.important_memory[-1].content)
+            self.plan = await self.planner.create_plan_async(self.rc.important_memory[-1].content)
 
     async def _act(self) -> Message:
         # how funny the interface is inconsistent
@@ -85,6 +85,6 @@ class SkAgent(Role):
             result = (await self.plan.invoke_async()).result
         logger.info(result)
 
-        msg = Message(content=result, role=self.profile, cause_by=self._rc.todo)
-        self._rc.memory.add(msg)
+        msg = Message(content=result, role=self.profile, cause_by=self.rc.todo)
+        self.rc.memory.add(msg)
         return msg

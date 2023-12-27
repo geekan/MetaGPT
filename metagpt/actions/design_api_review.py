@@ -8,17 +8,12 @@
 
 from typing import Optional
 
-from pydantic import Field
-
 from metagpt.actions.action import Action
-from metagpt.llm import LLM
-from metagpt.provider.base_gpt_api import BaseGPTAPI
 
 
 class DesignReview(Action):
     name: str = "DesignReview"
     context: Optional[str] = None
-    llm: BaseGPTAPI = Field(default_factory=LLM)
 
     async def run(self, prd, api_design):
         prompt = (

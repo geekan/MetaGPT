@@ -42,7 +42,6 @@ class InvoiceOCR(Action):
 
     name: str = "InvoiceOCR"
     context: Optional[str] = None
-    llm: BaseGPTAPI = Field(default_factory=LLM)
 
     @staticmethod
     async def _check_file_type(file_path: Path) -> str:

@@ -10,15 +10,15 @@ from metagpt.llm import LLM
 
 def test_action_serialize():
     action = Action()
-    ser_action_dict = action.dict()
+    ser_action_dict = action.model_dump()
     assert "name" in ser_action_dict
-    # assert "llm" not in ser_action_dict  # not export
+    assert "llm" not in ser_action_dict  # not export
 
 
 @pytest.mark.asyncio
 async def test_action_deserialize():
     action = Action()
-    serialized_data = action.dict()
+    serialized_data = action.model_dump()
 
     new_action = Action(**serialized_data)
 

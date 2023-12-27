@@ -27,7 +27,7 @@ class WriteDirectory(Action):
     """
 
     name: str = "WriteDirectory"
-    llm: BaseGPTAPI = Field(default_factory=LLM)
+
     language: str = "Chinese"
 
     async def run(self, topic: str, *args, **kwargs) -> Dict:

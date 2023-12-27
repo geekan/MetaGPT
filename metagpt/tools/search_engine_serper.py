@@ -9,7 +9,7 @@ import json
 from typing import Any, Dict, Optional, Tuple
 
 import aiohttp
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 from metagpt.config import CONFIG
 
@@ -19,7 +19,6 @@ class SerperWrapper(BaseModel):
     payload: dict = Field(default={"page": 1, "num": 10})
     serper_api_key: Optional[str] = Field(default=None, validate_default=True)
     aiosession: Optional[aiohttp.ClientSession] = None
-    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     @field_validator("serper_api_key", mode="before")
     @classmethod

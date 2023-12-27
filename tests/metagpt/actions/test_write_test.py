@@ -29,7 +29,7 @@ async def test_write_test():
     write_test = WriteTest(context=context)
 
     context = await write_test.run()
-    logger.info(context.json())
+    logger.info(context.model_dump_json())
 
     # We cannot exactly predict the generated test cases, but we can check if it is a string and if it is not empty
     assert isinstance(context.test_doc.content, str)

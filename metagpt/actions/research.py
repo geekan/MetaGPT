@@ -82,8 +82,8 @@ class CollectLinks(Action):
 
     name: str = "CollectLinks"
     context: Optional[str] = None
-    llm: BaseGPTAPI = Field(default_factory=LLM)
     desc: str = "Collect links from a search engine."
+
     search_engine: SearchEngine = Field(default_factory=SearchEngine)
     rank_func: Union[Callable[[list[str]], None], None] = None
 

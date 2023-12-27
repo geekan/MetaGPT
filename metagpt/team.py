@@ -10,6 +10,7 @@
 
 import warnings
 from pathlib import Path
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -40,12 +41,12 @@ class Team(BaseModel):
     investment: float = Field(default=10.0)
     idea: str = Field(default="")
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        if "roles" in kwargs:
-            self.hire(kwargs["roles"])
-        if "env_desc" in kwargs:
-            self.env.desc = kwargs["env_desc"]
+    def __init__(self, **data: Any):
+        super(Team, self).__init__(**data)
+        if "roles" in data:
+            self.hire(data["roles"])
+        if "env_desc" in data:
+            self.env.desc = data["env_desc"]
 
     def serialize(self, stg_path: Path = None):
         stg_path = SERDESER_PATH.joinpath("team") if stg_path is None else stg_path
@@ -54,10 +55,6 @@ class Team(BaseModel):
         write_json_file(team_info_path, self.model_dump(exclude={"env": True}))
 
         self.env.serialize(stg_path.joinpath("environment"))  # save environment alone
-
-    @classmethod
-    def recover(cls, stg_path: Path) -> "Team":
-        return cls.deserialize(stg_path)
 
     @classmethod
     def deserialize(cls, stg_path: Path) -> "Team":
@@ -74,9 +71,9 @@ class Team(BaseModel):
 
         # recover environment
         environment = Environment.deserialize(stg_path=stg_path.joinpath("environment"))
-        team_info.update({"env": environment})
-
+        # team_info.update({"env": environment})
         team = Team(**team_info)
+        team.env = environment
         return team
 
     def hire(self, roles: list[Role]):
@@ -120,7 +117,7 @@ class Team(BaseModel):
         return self.run_project(idea=idea, send_to=send_to)
 
     def _save(self):
-        logger.info(self.json(ensure_ascii=False))
+        logger.info(self.model_dump_json())
 
     @serialize_decorator
     async def run(self, n_round=3, idea="", send_to="", auto_archive=True):

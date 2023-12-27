@@ -125,7 +125,7 @@ def test_create_model_class():
 def test_create_model_class_with_mapping():
     t = ActionNode.create_model_class("test_class_1", WRITE_TASKS_OUTPUT_MAPPING)
     t1 = t(**t_dict)
-    value = t1.dict()["Task list"]
+    value = t1.model_dump()["Task list"]
     assert value == ["game.py", "app.py", "static/css/styles.css", "static/js/script.js", "templates/index.html"]
 
 

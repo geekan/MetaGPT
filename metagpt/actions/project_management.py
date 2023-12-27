@@ -13,8 +13,6 @@
 import json
 from typing import Optional
 
-from pydantic import Field
-
 from metagpt.actions import ActionOutput
 from metagpt.actions.action import Action
 from metagpt.actions.project_management_an import PM_NODE
@@ -25,9 +23,7 @@ from metagpt.const import (
     TASK_FILE_REPO,
     TASK_PDF_FILE_REPO,
 )
-from metagpt.llm import LLM
 from metagpt.logs import logger
-from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.schema import Document, Documents
 from metagpt.utils.file_repository import FileRepository
 
@@ -43,7 +39,6 @@ NEW_REQ_TEMPLATE = """
 class WriteTasks(Action):
     name: str = "CreateTasks"
     context: Optional[str] = None
-    llm: BaseGPTAPI = Field(default_factory=LLM)
 
     async def run(self, with_messages, schema=CONFIG.prompt_schema):
         system_design_file_repo = CONFIG.git_repo.new_file_repository(SYSTEM_DESIGN_FILE_REPO)
@@ -73,7 +68,7 @@ class WriteTasks(Action):
             logger.info("Nothing has changed.")
         # Wait until all files under `docs/tasks/` are processed before sending the publish_message, leaving room for
         # global optimization in subsequent steps.
-        return ActionOutput(content=change_files.json(), instruct_content=change_files)
+        return ActionOutput(content=change_files.model_dump_json(), instruct_content=change_files)
 
     async def _update_tasks(self, filename, system_design_file_repo, tasks_file_repo):
         system_design_doc = await system_design_file_repo.get(filename)
@@ -83,7 +78,7 @@ class WriteTasks(Action):
         else:
             rsp = await self._run_new_tasks(context=system_design_doc.content)
             task_doc = Document(
-                root_path=TASK_FILE_REPO, filename=filename, content=rsp.instruct_content.json(ensure_ascii=False)
+                root_path=TASK_FILE_REPO, filename=filename, content=rsp.instruct_content.model_dump_json()
             )
         await tasks_file_repo.save(
             filename=filename, content=task_doc.content, dependencies={system_design_doc.root_relative_path}
@@ -102,7 +97,7 @@ class WriteTasks(Action):
     async def _merge(self, system_design_doc, task_doc, schema=CONFIG.prompt_schema) -> Document:
         context = NEW_REQ_TEMPLATE.format(context=system_design_doc.content, old_tasks=task_doc.content)
         node = await PM_NODE.fill(context, self.llm, schema)
-        task_doc.content = node.instruct_content.json(ensure_ascii=False)
+        task_doc.content = node.instruct_content.model_dump_json()
         return task_doc
 
     @staticmethod

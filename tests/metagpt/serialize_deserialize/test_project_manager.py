@@ -13,8 +13,8 @@ def test_project_manager_serialize():
     role = ProjectManager()
     ser_role_dict = role.model_dump(by_alias=True)
     assert "name" in ser_role_dict
-    assert "_states" in ser_role_dict
-    assert "_actions" in ser_role_dict
+    assert "states" in ser_role_dict
+    assert "actions" in ser_role_dict
 
 
 @pytest.mark.asyncio
@@ -24,7 +24,7 @@ async def test_project_manager_deserialize():
 
     new_role = ProjectManager(**ser_role_dict)
     assert new_role.name == "Eve"
-    assert len(new_role._actions) == 1
-    assert isinstance(new_role._actions[0], Action)
-    assert isinstance(new_role._actions[0], WriteTasks)
-    # await new_role._actions[0].run(context="write a cli snake game")
+    assert len(new_role.actions) == 1
+    assert isinstance(new_role.actions[0], Action)
+    assert isinstance(new_role.actions[0], WriteTasks)
+    # await new_role.actions[0].run(context="write a cli snake game")

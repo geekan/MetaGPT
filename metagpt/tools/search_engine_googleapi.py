@@ -25,11 +25,12 @@ except ImportError:
 
 
 class GoogleAPIWrapper(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     google_api_key: Optional[str] = Field(default=None, validate_default=True)
     google_cse_id: Optional[str] = Field(default=None, validate_default=True)
     loop: Optional[asyncio.AbstractEventLoop] = None
     executor: Optional[futures.Executor] = None
-    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     @field_validator("google_api_key", mode="before")
     @classmethod

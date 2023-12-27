@@ -59,12 +59,12 @@ class Debator(Role):
     async def _observe(self) -> int:
         await super()._observe()
         # accept messages sent (from opponent) to self, disregard own messages from the last round
-        self._rc.news = [msg for msg in self._rc.news if msg.send_to == {self.name}]
-        return len(self._rc.news)
+        self.rc.news = [msg for msg in self.rc.news if msg.send_to == {self.name}]
+        return len(self.rc.news)
 
     async def _act(self) -> Message:
-        logger.info(f"{self._setting}: to do {self._rc.todo}({self._rc.todo.name})")
-        todo = self._rc.todo  # An instance of SpeakAloud
+        logger.info(f"{self._setting}: to do {self.rc.todo}({self.rc.todo.name})")
+        todo = self.rc.todo  # An instance of SpeakAloud
 
         memories = self.get_memories()
         context = "\n".join(f"{msg.sent_from}: {msg.content}" for msg in memories)
@@ -79,7 +79,7 @@ class Debator(Role):
             sent_from=self.name,
             send_to=self.opponent_name,
         )
-        self._rc.memory.add(msg)
+        self.rc.memory.add(msg)
 
         return msg
 

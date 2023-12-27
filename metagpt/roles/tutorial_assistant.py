@@ -71,9 +71,9 @@ class TutorialAssistant(Role):
         Returns:
             A message containing the result of the action.
         """
-        todo = self._rc.todo
+        todo = self.rc.todo
         if type(todo) is WriteDirectory:
-            msg = self._rc.memory.get(k=1)[0]
+            msg = self.rc.memory.get(k=1)[0]
             self.topic = msg.content
             resp = await todo.run(topic=self.topic)
             logger.info(resp)

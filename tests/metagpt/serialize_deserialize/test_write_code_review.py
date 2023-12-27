@@ -22,7 +22,7 @@ def div(a: int, b: int = 0):
     )
 
     action = WriteCodeReview(context=context)
-    serialized_data = action.dict()
+    serialized_data = action.model_dump()
     assert serialized_data["name"] == "WriteCodeReview"
 
     new_action = WriteCodeReview(**serialized_data)

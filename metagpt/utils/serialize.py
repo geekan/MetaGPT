@@ -65,7 +65,7 @@ def serialize_message(message: "Message"):
         schema = ic.model_json_schema()
         mapping = actionoutout_schema_to_mapping(schema)
 
-        message_cp.instruct_content = {"class": schema["title"], "mapping": mapping, "value": ic.dict()}
+        message_cp.instruct_content = {"class": schema["title"], "mapping": mapping, "value": ic.model_dump()}
     msg_ser = pickle.dumps(message_cp)
 
     return msg_ser

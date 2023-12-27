@@ -27,7 +27,7 @@ from typing import Any, Callable, List, Tuple, Union, get_args, get_origin
 
 import aiofiles
 import loguru
-from pydantic.json import pydantic_encoder
+from pydantic_core import to_jsonable_python
 from tenacity import RetryCallState, _utils
 
 from metagpt.const import MESSAGE_ROUTE_TO_ALL
@@ -472,7 +472,7 @@ def write_json_file(json_file: str, data: list, encoding=None):
         folder_path.mkdir(parents=True, exist_ok=True)
 
     with open(json_file, "w", encoding=encoding) as fout:
-        json.dump(data, fout, ensure_ascii=False, indent=4, default=pydantic_encoder)
+        json.dump(data, fout, ensure_ascii=False, indent=4, default=to_jsonable_python)
 
 
 def import_class(class_name: str, module_name: str) -> type:
@@ -512,7 +512,7 @@ def role_raise_decorator(func):
         except KeyboardInterrupt as kbi:
             logger.error(f"KeyboardInterrupt: {kbi} occurs, start to serialize the project")
             if self.latest_observed_msg:
-                self._rc.memory.delete(self.latest_observed_msg)
+                self.rc.memory.delete(self.latest_observed_msg)
             # raise again to make it captured outside
             raise Exception(format_trackback_info(limit=None))
         except Exception:
@@ -522,7 +522,7 @@ def role_raise_decorator(func):
                     "we delete the newest role communication message in the role's memory."
                 )
                 # remove role newest observed msg to make it observed again
-                self._rc.memory.delete(self.latest_observed_msg)
+                self.rc.memory.delete(self.latest_observed_msg)
             # raise again to make it captured outside
             raise Exception(format_trackback_info(limit=None))
 

@@ -13,9 +13,9 @@
 """
 import asyncio
 from pathlib import Path
-from typing import Iterable, Set
+from typing import Iterable, Set, Union
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from metagpt.config import CONFIG
 from metagpt.logs import logger
@@ -32,26 +32,31 @@ class Environment(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     desc: str = Field(default="")  # 环境描述
-    roles: dict[str, Role] = Field(default_factory=dict)
-    members: dict[Role, Set] = Field(default_factory=dict)
+    roles: dict[str, Role] = Field(default_factory=dict, validate_default=True)
+    members: dict[Role, Set] = Field(default_factory=dict, exclude=True)
     history: str = ""  # For debug
 
-    def __init__(self, **kwargs):
-        roles = []
-        for role_key, role in kwargs.get("roles", {}).items():
-            current_role = kwargs["roles"][role_key]
-            if isinstance(current_role, dict):
-                item_class_name = current_role.get("builtin_class_name", None)
-                for name, subclass in role_subclass_registry.items():
-                    registery_class_name = subclass.__fields__["builtin_class_name"].default
-                    if item_class_name == registery_class_name:
-                        current_role = subclass(**current_role)
-                        break
-                kwargs["roles"][role_key] = current_role
-                roles.append(current_role)
-        super().__init__(**kwargs)
+    @field_validator("roles", mode="before")
+    @classmethod
+    def check_roles(cls, roles: dict[str, Union[Role, dict]]) -> dict[str, Role]:
+        new_roles = dict()
+        for role_key, role in roles.items():
+            if isinstance(role, dict):
+                item_class_name = role.get("builtin_class_name", None)
+                if item_class_name:
+                    for name, subclass in role_subclass_registry.items():
+                        registery_class_name = subclass.model_fields["builtin_class_name"].default
+                        if item_class_name == registery_class_name:
+                            new_role = subclass(**role)
+                            break
+                    new_roles[role_key] = new_role
+                else:
+                    new_roles[role_key] = role
+        return new_roles
 
-        self.add_roles(roles)  # add_roles again to init the Role.set_env
+    @model_validator(mode="after")
+    def init_roles(self):
+        self.add_roles(self.roles.values())
 
     def serialize(self, stg_path: Path):
         roles_path = stg_path.joinpath("roles.json")
