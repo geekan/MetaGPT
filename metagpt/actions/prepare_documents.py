@@ -32,8 +32,7 @@ class PrepareDocuments(Action):
 
     def _init_repo(self):
         """Initialize the Git environment."""
-        path = CONFIG.project_path
-        if not path:
+        if not CONFIG.project_path:
             name = CONFIG.project_name or FileRepository.new_filename()
             path = Path(CONFIG.workspace_path) / name
         else:

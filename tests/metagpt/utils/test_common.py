@@ -9,6 +9,7 @@
 import importlib
 import os
 import platform
+import uuid
 from pathlib import Path
 from typing import Any, Set
 
@@ -25,6 +26,8 @@ from metagpt.utils.common import (
     OutputParser,
     any_to_str,
     any_to_str_set,
+    aread,
+    awrite,
     check_cmd_exists,
     concat_namespace,
     import_class_inst,
@@ -169,6 +172,14 @@ class TestGetProjectRoot:
     @pytest.mark.asyncio
     async def test_read_file_block(self):
         assert await read_file_block(filename=__file__, lineno=6, end_lineno=6) == "@File    : test_common.py\n"
+
+    @pytest.mark.asyncio
+    async def test_read_write(self):
+        pathname = Path(__file__).parent / uuid.uuid4().hex / "test.tmp"
+        await awrite(pathname, "ABC")
+        data = await aread(pathname)
+        assert data == "ABC"
+        pathname.unlink(missing_ok=True)
 
 
 if __name__ == "__main__":

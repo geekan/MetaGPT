@@ -4,9 +4,8 @@
 import json
 from pathlib import Path
 
-import aiofiles
-
 from metagpt.provider.openai_api import OpenAILLM as GPTAPI
+from metagpt.utils.common import awrite
 
 ICL_SAMPLE = """Interface definition:
 ```text
@@ -255,20 +254,14 @@ class UTGenerator:
 
         return doc
 
-    async def _store(self, data, base, folder, fname):
-        """Store data in a file."""
-        file_path = self.get_file_path(Path(base) / folder, fname)
-        async with aiofiles.open(file_path, mode="w", encoding="utf-8") as file:
-            await file.write(data)
-
     async def ask_gpt_and_save(self, question: str, tag: str, fname: str):
         """Generate questions and store both questions and answers"""
         messages = [self.icl_sample, question]
         result = await self.gpt_msgs_to_code(messages=messages)
 
-        await self._store(question, self.questions_path, tag, f"{fname}.txt")
+        await awrite(Path(self.questions_path) / tag / f"{fname}.txt", question)
         data = result.get("code", "") if result else ""
-        await self._store(data, self.ut_py_path, tag, f"{fname}.py")
+        await awrite(Path(self.ut_py_path) / tag / f"{fname}.py", data)
 
     async def _generate_ut(self, tag, paths):
         """Process the structure under a data path
@@ -291,15 +284,3 @@ class UTGenerator:
             result = await GPTAPI().aask_code(messages=messages)
 
         return result
-
-    def get_file_path(self, base: Path, fname: str):
-        """Save different file paths
-
-        Args:
-            base (str): Path
-            fname (str): File name
-        """
-        path = Path(base)
-        path.mkdir(parents=True, exist_ok=True)
-        file_path = path / fname
-        return str(file_path)

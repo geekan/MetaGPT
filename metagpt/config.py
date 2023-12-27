@@ -110,17 +110,21 @@ class Config(metaclass=Singleton):
 
         if provider is LLMProviderEnum.GEMINI and not require_python_version(req_version=(3, 10)):
             warnings.warn("Use Gemini requires Python >= 3.10")
-        model_mappings = {
-            LLMProviderEnum.OPENAI: self.OPENAI_API_MODEL,
-            LLMProviderEnum.AZURE_OPENAI: self.DEPLOYMENT_NAME,
-        }
-        model_name = model_mappings.get(provider)
+        model_name = self.get_model_name(provider=provider)
         if model_name:
             logger.info(f"{provider} Model: {model_name}")
         if provider:
             logger.info(f"API: {provider}")
             return provider
         raise NotConfiguredException("You should config a LLM configuration first")
+
+    def get_model_name(self, provider=None) -> str:
+        provider = provider or self.get_default_llm_provider_enum()
+        model_mappings = {
+            LLMProviderEnum.OPENAI: self.OPENAI_API_MODEL,
+            LLMProviderEnum.AZURE_OPENAI: self.DEPLOYMENT_NAME,
+        }
+        return model_mappings.get(provider, "")
 
     @staticmethod
     def _is_valid_llm_key(k: str) -> bool:

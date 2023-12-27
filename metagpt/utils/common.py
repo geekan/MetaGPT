@@ -537,6 +537,14 @@ async def aread(file_path: str) -> str:
     return content
 
 
+async def awrite(filename: str | Path, data: str):
+    """Write file asynchronously."""
+    pathname = Path(filename)
+    pathname.parent.mkdir(parents=True, exist_ok=True)
+    async with aiofiles.open(str(pathname), mode="w", encoding="utf-8") as writer:
+        await writer.write(data)
+
+
 async def read_file_block(filename: str | Path, lineno: int, end_lineno: int):
     if not Path(filename).exists():
         return ""
