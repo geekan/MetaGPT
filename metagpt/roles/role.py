@@ -18,7 +18,8 @@ from metagpt.actions import Action, ActionOutput
 from metagpt.llm import LLM, HumanProvider
 from metagpt.logs import logger
 from metagpt.memory import Memory, LongTermMemory
-from metagpt.schema import Message
+from metagpt.schema import Message, Task
+from metagpt.plan.planner import Planner
 
 PREFIX_TEMPLATE = """You are a {profile}, named {name}, your goal is {goal}, and the constraint is {constraints}. """
 
@@ -79,6 +80,7 @@ class RoleContext(BaseModel):
     env: 'Environment' = Field(default=None)
     memory: Memory = Field(default_factory=Memory)
     long_term_memory: LongTermMemory = Field(default_factory=LongTermMemory)
+    working_memory: Memory = Field(default_factory=Memory)
     state: int = Field(default=-1) # -1 indicates initial or termination state where todo is None
     todo: Action = Field(default=None)
     watch: set[Type[Action]] = Field(default_factory=set)
@@ -115,6 +117,7 @@ class Role:
         self._actions = []
         self._role_id = str(self._setting)
         self._rc = RoleContext()
+        self.planner = None
 
     def _reset(self):
         self._states = []
@@ -134,7 +137,7 @@ class Role:
             self._actions.append(i)
             self._states.append(f"{idx}. {action}")
 
-    def _set_react_mode(self, react_mode: str, max_react_loop: int = 1):
+    def _set_react_mode(self, react_mode: str, max_react_loop: int = 1, auto_run: bool = True):
         """Set strategy of the Role reacting to observed Message. Variation lies in how
         this Role elects action to perform during the _think stage, especially if it is capable of multiple Actions.
 
@@ -154,6 +157,8 @@ class Role:
         self._rc.react_mode = react_mode
         if react_mode == RoleReactMode.REACT:
             self._rc.max_react_loop = max_react_loop
+        elif react_mode == RoleReactMode.PLAN_AND_ACT:
+            self.planner = Planner(goal=self._setting.goal, working_memory=self._rc.working_memory, auto_run=auto_run)
 
     def _watch(self, actions: Iterable[Type[Action]]):
         """Listen to the corresponding behaviors"""
@@ -274,8 +279,55 @@ class Role:
 
     async def _plan_and_act(self) -> Message:
         """first plan, then execute an action sequence, i.e. _think (of a plan) -> _act -> _act -> ... Use llm to come up with the plan dynamically."""
-        # TODO: to be implemented
-        return Message("")
+        
+        ### Common Procedure in both single- and multi-agent setting ###
+        # create initial plan and update until confirmation
+        await self.planner.update_plan()
+        
+        while self.planner.current_task:
+            task = self.planner.current_task
+            logger.info(f"ready to take on task {task}")
+            
+            # take on current task
+            task_copy_with_result = await self._act_on_task(task)
+            
+            # ask for acceptance, users can other refuse and change tasks in the plan
+            review, task_result_confirmed = await self.planner.ask_review(task_copy_with_result)
+            
+            if task_result_confirmed:
+                # tick off this task and record progress
+                await self.planner.confirm_task(task, task_copy_with_result, review)
+            
+            elif "redo" in review:
+                # Ask the Role to redo this task with help of review feedback,
+                # useful when the code run is successful but the procedure or result is not what we want
+                continue
+            
+            else:
+                # update plan according to user's feedback and to take on changed tasks
+                await self.planner.update_plan(review)
+        
+        completed_plan_memory = self.planner.get_useful_memories()  # completed plan as a outcome
+
+        rsp = completed_plan_memory[0]
+
+        self._rc.memory.add(rsp)  # add to persistent memory
+
+        return rsp
+    
+    async def _act_on_task(self, current_task: Task) -> Task:
+        """Taking specific action to handle one task in plan
+
+        Args:
+            current_task (Task): current task to take on
+
+        Raises:
+            NotImplementedError: Specific Role must implement this method if expected to use planner
+
+        Returns:
+            Task: A copy of the current task with result from actions
+        """
+        raise NotImplementedError
 
     async def react(self) -> Message:
         """Entry to one of three strategies by which Role reacts to the observed Message"""
