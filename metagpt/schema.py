@@ -23,7 +23,7 @@ from abc import ABC
 from asyncio import Queue, QueueEmpty, wait_for
 from json import JSONDecodeError
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Type, TypeVar, Union
+from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, Union
 
 from pydantic import (
     BaseModel,
@@ -33,6 +33,7 @@ from pydantic import (
     field_serializer,
     field_validator,
 )
+from pydantic_core import core_schema
 
 from metagpt.config import CONFIG
 from metagpt.const import (
@@ -51,6 +52,64 @@ from metagpt.utils.serialize import (
     actionoutput_mapping_to_str,
     actionoutput_str_to_mapping,
 )
+
+
+class SerDeserMixin(BaseModel):
+    """SereDeserMixin for subclass' ser&deser"""
+
+    __is_polymorphic_base = False
+    __subclasses_map__ = {}
+
+    @classmethod
+    def __get_pydantic_core_schema__(
+        cls, source: type["SerDeserMixin"], handler: Callable[[Any], core_schema.CoreSchema]
+    ) -> core_schema.CoreSchema:
+        schema = handler(source)
+        og_schema_ref = schema["ref"]
+        schema["ref"] += ":mixin"
+
+        return core_schema.no_info_before_validator_function(
+            cls.__deserialize_with_real_type__,
+            schema=schema,
+            ref=og_schema_ref,
+            serialization=core_schema.wrap_serializer_function_ser_schema(cls.__serialize_add_class_type__),
+        )
+
+    @classmethod
+    def __serialize_add_class_type__(
+        cls,
+        value,
+        handler: core_schema.SerializerFunctionWrapHandler,
+    ) -> Any:
+        ret = handler(value)
+        if not len(cls.__subclasses__()):
+            # only subclass add `__module_class_name`
+            ret["__module_class_name"] = f"{cls.__module__}.{cls.__qualname__}"
+        return ret
+
+    @classmethod
+    def __deserialize_with_real_type__(cls, value: Any):
+        if not isinstance(value, dict):
+            return value
+
+        if not cls.__is_polymorphic_base or (len(cls.__subclasses__()) and "__module_class_name" not in value):
+            # add right condition to init BaseClass like Action()
+            return value
+        module_class_name = value.get("__module_class_name", None)
+        if module_class_name is None:
+            raise ValueError("Missing field: __module_class_name")
+
+        class_type = cls.__subclasses_map__.get(module_class_name, None)
+
+        if class_type is None:
+            raise TypeError("Trying to instantiate {module_class_name} which not defined yet.")
+
+        return class_type(**value)
+
+    def __init_subclass__(cls, is_polymorphic_base: bool = False, **kwargs):
+        cls.__is_polymorphic_base = is_polymorphic_base
+        cls.__subclasses_map__[f"{cls.__module__}.{cls.__qualname__}"] = cls
+        super().__init_subclass__(**kwargs)
 
 
 class SimpleMessage(BaseModel):

@@ -16,7 +16,7 @@ from metagpt.roles.role import Role, RoleReactMode
 serdeser_path = Path(__file__).absolute().parent.joinpath("..", "..", "data", "serdeser_storage")
 
 
-class TestICMessage(BaseModel):
+class MockICMessage(BaseModel):
     content: str = "test_ic"
 
 
@@ -28,7 +28,7 @@ class MockMessage(BaseModel):
 
 
 class ActionPass(Action):
-    name: str = Field(default="ActionPass")
+    name: str = "ActionPass"
 
     async def run(self, messages: list["Message"]) -> ActionOutput:
         await asyncio.sleep(5)  # sleep to make other roles can watch the executed Message
@@ -40,7 +40,7 @@ class ActionPass(Action):
 
 
 class ActionOK(Action):
-    name: str = Field(default="ActionOK")
+    name: str = "ActionOK"
 
     async def run(self, messages: list["Message"]) -> str:
         await asyncio.sleep(5)
@@ -48,10 +48,15 @@ class ActionOK(Action):
 
 
 class ActionRaise(Action):
-    name: str = Field(default="ActionRaise")
+    name: str = "ActionRaise"
 
     async def run(self, messages: list["Message"]) -> str:
         raise RuntimeError("parse error in ActionRaise")
+
+
+class ActionOKV2(Action):
+    name: str = "ActionOKV2"
+    extra_field: str = "ActionOKV2 Extra Info"
 
 
 class RoleA(Role):

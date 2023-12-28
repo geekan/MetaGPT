@@ -7,8 +7,8 @@ from metagpt.actions.write_code import WriteCode
 from metagpt.schema import Document, Documents, Message
 from metagpt.utils.common import any_to_str
 from tests.metagpt.serialize_deserialize.test_serdeser_base import (
+    MockICMessage,
     MockMessage,
-    TestICMessage,
 )
 
 
@@ -28,10 +28,10 @@ def test_message_serdeser():
     assert new_message.instruct_content != ic_obj(**out_data)  # TODO find why `!=`
     assert new_message.instruct_content.model_dump() == ic_obj(**out_data).model_dump()
 
-    message = Message(content="test_ic", instruct_content=TestICMessage())
+    message = Message(content="test_ic", instruct_content=MockICMessage())
     ser_data = message.model_dump()
     new_message = Message(**ser_data)
-    assert new_message.instruct_content != TestICMessage()  # TODO
+    assert new_message.instruct_content != MockICMessage()  # TODO
 
     message = Message(content="test_documents", instruct_content=Documents(docs={"doc1": Document(content="test doc")}))
     ser_data = message.model_dump()

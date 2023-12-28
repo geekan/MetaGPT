@@ -6,6 +6,7 @@
 import shutil
 
 import pytest
+from pydantic import BaseModel, SerializeAsAny
 
 from metagpt.actions import WriteCode
 from metagpt.actions.add_requirement import UserRequirement
@@ -35,6 +36,20 @@ def test_roles():
 
     role_d = RoleD(actions=[ActionOK()])
     assert len(role_d.actions) == 1
+
+
+def test_role_subclasses():
+    """test subclasses of role with same fields in ser&deser"""
+
+    class RoleSubClasses(BaseModel):
+        roles: list[SerializeAsAny[Role]] = []
+
+    role_subcls = RoleSubClasses(roles=[RoleA(), RoleB()])
+    role_subcls_dict = role_subcls.model_dump()
+
+    new_role_subcls = RoleSubClasses(**role_subcls_dict)
+    assert isinstance(new_role_subcls.roles[0], RoleA)
+    assert isinstance(new_role_subcls.roles[1], RoleB)
 
 
 def test_role_serialize():

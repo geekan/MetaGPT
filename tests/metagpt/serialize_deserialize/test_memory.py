@@ -35,6 +35,9 @@ def test_memory_serdeser():
     assert new_memory.storage[-1].cause_by == any_to_str(WriteDesign)
     assert new_msg2.role == "Boss"
 
+    memory = Memory(storage=[msg1, msg2], index={msg1.cause_by: [msg1], msg2.cause_by: [msg2]})
+    assert memory.count() == 2
+
 
 def test_memory_serdeser_save():
     msg1 = Message(role="User", content="write a 2048 game", cause_by=UserRequirement)

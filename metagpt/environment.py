@@ -13,13 +13,13 @@
 """
 import asyncio
 from pathlib import Path
-from typing import Iterable, Set, Union
+from typing import Iterable, Set
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, SerializeAsAny, model_validator
 
 from metagpt.config import CONFIG
 from metagpt.logs import logger
-from metagpt.roles.role import Role, role_subclass_registry
+from metagpt.roles.role import Role
 from metagpt.schema import Message
 from metagpt.utils.common import is_subscribed, read_json_file, write_json_file
 
@@ -32,27 +32,9 @@ class Environment(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     desc: str = Field(default="")  # 环境描述
-    roles: dict[str, Role] = Field(default_factory=dict, validate_default=True)
+    roles: dict[str, SerializeAsAny[Role]] = Field(default_factory=dict, validate_default=True)
     members: dict[Role, Set] = Field(default_factory=dict, exclude=True)
     history: str = ""  # For debug
-
-    @field_validator("roles", mode="before")
-    @classmethod
-    def check_roles(cls, roles: dict[str, Union[Role, dict]]) -> dict[str, Role]:
-        new_roles = dict()
-        for role_key, role in roles.items():
-            if isinstance(role, dict):
-                item_class_name = role.get("builtin_class_name", None)
-                if item_class_name:
-                    for name, subclass in role_subclass_registry.items():
-                        registery_class_name = subclass.model_fields["builtin_class_name"].default
-                        if item_class_name == registery_class_name:
-                            new_role = subclass(**role)
-                            break
-                    new_roles[role_key] = new_role
-                else:
-                    new_roles[role_key] = role
-        return new_roles
 
     @model_validator(mode="after")
     def init_roles(self):

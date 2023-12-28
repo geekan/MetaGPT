@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from typing import Any, Optional, Union
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import ConfigDict, Field
 
 from metagpt.actions.action_node import ActionNode
 from metagpt.llm import LLM
@@ -19,13 +19,12 @@ from metagpt.schema import (
     CodeSummarizeContext,
     CodingContext,
     RunCodeContext,
+    SerDeserMixin,
     TestingContext,
 )
 
-action_subclass_registry = {}
 
-
-class Action(BaseModel):
+class Action(SerDeserMixin, is_polymorphic_base=True):
     model_config = ConfigDict(arbitrary_types_allowed=True, exclude=["llm"])
 
     name: str = ""
@@ -35,9 +34,6 @@ class Action(BaseModel):
     desc: str = ""  # for skill manager
     node: ActionNode = Field(default=None, exclude=True)
 
-    # builtin variables
-    builtin_class_name: str = ""
-
     def __init_with_instruction(self, instruction: str):
         """Initialize action with instruction"""
         self.node = ActionNode(key=self.name, expected_type=str, instruction=instruction, example="", schema="raw")
@@ -46,16 +42,8 @@ class Action(BaseModel):
     def __init__(self, **data: Any):
         super().__init__(**data)
 
-        # deserialize child classes dynamically for inherited `action`
-        object.__setattr__(self, "builtin_class_name", self.__class__.__name__)
-        self.model_fields["builtin_class_name"].default = self.__class__.__name__
-
         if "instruction" in data:
             self.__init_with_instruction(data["instruction"])
-
-    def __init_subclass__(cls, **kwargs: Any) -> None:
-        super().__init_subclass__(**kwargs)
-        action_subclass_registry[cls.__name__] = cls
 
     def set_prefix(self, prefix):
         """Set prefix for later usage"""

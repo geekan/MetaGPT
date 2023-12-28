@@ -13,6 +13,11 @@ def test_action_serialize():
     ser_action_dict = action.model_dump()
     assert "name" in ser_action_dict
     assert "llm" not in ser_action_dict  # not export
+    assert "__module_class_name" not in ser_action_dict
+
+    action = Action(name="test")
+    ser_action_dict = action.model_dump()
+    assert "test" in ser_action_dict["name"]
 
 
 @pytest.mark.asyncio

@@ -24,12 +24,11 @@ from __future__ import annotations
 
 from enum import Enum
 from pathlib import Path
-from typing import Any, Iterable, Optional, Set, Type, Union
+from typing import Any, Iterable, Optional, Set, Type
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, SerializeAsAny, model_validator
 
 from metagpt.actions import Action, ActionOutput
-from metagpt.actions.action import action_subclass_registry
 from metagpt.actions.action_node import ActionNode
 from metagpt.actions.add_requirement import UserRequirement
 from metagpt.const import SERDESER_PATH
@@ -37,7 +36,7 @@ from metagpt.llm import LLM, HumanProvider
 from metagpt.logs import logger
 from metagpt.memory import Memory
 from metagpt.provider.base_gpt_api import BaseGPTAPI
-from metagpt.schema import Message, MessageQueue
+from metagpt.schema import Message, MessageQueue, SerDeserMixin
 from metagpt.utils.common import (
     any_to_name,
     any_to_str,
@@ -127,10 +126,7 @@ class RoleContext(BaseModel):
         return self.memory.get()
 
 
-role_subclass_registry = {}
-
-
-class Role(BaseModel):
+class Role(SerDeserMixin, is_polymorphic_base=True):
     """Role/Agent"""
 
     model_config = ConfigDict(arbitrary_types_allowed=True, exclude=["llm"])
@@ -147,33 +143,15 @@ class Role(BaseModel):
     )  # Each role has its own LLM, use different system message
     role_id: str = ""
     states: list[str] = []
-    actions: list[Action] = Field(default=[], validate_default=True)
+    actions: list[SerializeAsAny[Action]] = Field(default=[], validate_default=True)
     rc: RoleContext = Field(default_factory=RoleContext)
     subscription: set[str] = set()
 
     # builtin variables
     recovered: bool = False  # to tag if a recovered role
     latest_observed_msg: Optional[Message] = None  # record the latest observed message when interrupted
-    builtin_class_name: str = ""
 
     __hash__ = object.__hash__  # support Role as hashable type in `Environment.members`
-
-    @field_validator("actions", mode="before")
-    @classmethod
-    def check_actions(cls, actions: list[Union[dict, Action]]) -> list[Action]:
-        new_actions = []
-        for action in actions:
-            new_action = action
-            if isinstance(action, dict):
-                item_class_name = action.get("builtin_class_name", None)
-                if item_class_name:
-                    for name, subclass in action_subclass_registry.items():
-                        registery_class_name = subclass.model_fields["builtin_class_name"].default
-                        if item_class_name == registery_class_name:
-                            new_action = subclass(**action)
-                            break
-            new_actions.append(new_action)
-        return new_actions
 
     @model_validator(mode="after")
     def check_subscription(self) -> set:
@@ -191,20 +169,11 @@ class Role(BaseModel):
         super().__init__(**data)
 
         self.llm.system_prompt = self._get_prefix()
-
-        # deserialize child classes dynamically for inherited `role`
-        object.__setattr__(self, "builtin_class_name", self.__class__.__name__)
-        self.model_fields["builtin_class_name"].default = self.__class__.__name__
-
         self._watch(data.get("watch") or [UserRequirement])
 
-    def __init_subclass__(cls, **kwargs: Any) -> None:
-        super().__init_subclass__(**kwargs)
-        role_subclass_registry[cls.__name__] = cls
-
     def _reset(self):
-        object.__setattr__(self, "states", [])
-        object.__setattr__(self, "actions", [])
+        self.states = []
+        self.actions = []
 
     @property
     def _setting(self):
