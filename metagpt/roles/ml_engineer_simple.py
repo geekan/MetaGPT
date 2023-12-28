@@ -10,7 +10,7 @@ from metagpt.schema import Message
 from metagpt.memory import Memory
 from metagpt.logs import logger
 from metagpt.actions.write_analysis_code import WriteCodeByGenerate
-from metagpt.actions.ml_da_action import AskReview, ReviewConst
+from metagpt.actions.ask_review import AskReview, ReviewConst
 from metagpt.actions.execute_code import ExecutePyCode
 from metagpt.roles.kaggle_manager import DownloadData
 from metagpt.utils.save_code import save_code_file

@@ -81,6 +81,7 @@ class Task(BaseModel):
     code_steps: str = ""
     code: str = ""
     result: str = ""
+    is_success: bool = False
     is_finished: bool = False
 
 
@@ -169,6 +170,7 @@ class Plan(BaseModel):
             task = self.task_map[task_id]
             task.code = ""
             task.result = ""
+            task.is_success = False
             task.is_finished = False
 
     def replace_task(self, new_task: Task):
@@ -181,18 +183,18 @@ class Plan(BaseModel):
         Returns:
             None
         """
-        if new_task.task_id in self.task_map:
-            # Replace the task in the task map and the task list
-            self.task_map[new_task.task_id] = new_task
-            for i, task in enumerate(self.tasks):
-                if task.task_id == new_task.task_id:
-                    self.tasks[i] = new_task
-                    break
+        assert new_task.task_id in self.task_map
+        # Replace the task in the task map and the task list
+        self.task_map[new_task.task_id] = new_task
+        for i, task in enumerate(self.tasks):
+            if task.task_id == new_task.task_id:
+                self.tasks[i] = new_task
+                break
 
-            # Reset dependent tasks
-            for task in self.tasks:
-                if new_task.task_id in task.dependent_task_ids:
-                    self.reset_task(task.task_id)
+        # Reset dependent tasks
+        for task in self.tasks:
+            if new_task.task_id in task.dependent_task_ids:
+                self.reset_task(task.task_id)
 
     def append_task(self, new_task: Task):
         """

@@ -46,7 +46,7 @@ def save_history(role: Role, save_dir: str = ""):
     # overwrite exist trajectory
     save_path.mkdir(parents=True, exist_ok=True)
     
-    plan = role.plan.dict()
+    plan = role.planner.plan.dict()
     
     with open(save_path / "plan.json", "w", encoding="utf-8") as plan_file:
         json.dump(plan, plan_file, indent=4, ensure_ascii=False)

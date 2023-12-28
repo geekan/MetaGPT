@@ -277,7 +277,7 @@ class MakeTools(WriteCodeByGenerate):
         saved_path.write_text(tool_code, encoding='utf-8')
 
     @retry(stop=stop_after_attempt(3), wait=wait_fixed(1))
-    async def run(self, code: str | List[dict], code_desc: str = None, **kwargs) -> str:
+    async def run(self, code: Union[str, List[dict]], code_desc: str = None, **kwargs) -> str:
         # 拼接code prompt
         code_prompt = f"The following code is about {code_desc}, convert it to be a General Function, {code}"
         if not self.context:
