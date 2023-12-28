@@ -12,7 +12,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from metagpt.const import TEST_DATA_PATH, DATA_PATH
+from metagpt.const import DATA_PATH, TEST_DATA_PATH
 from metagpt.roles.invoice_ocr_assistant import InvoiceOCRAssistant, InvoicePath
 from metagpt.schema import Message
 
