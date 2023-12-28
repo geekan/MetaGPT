@@ -63,9 +63,9 @@ async def test_react():
         assert role._rc.watch == {any_to_str(UserRequirement)}
         assert role.name == seed.name
         assert role.profile == seed.profile
-        assert role._setting.goal == seed.goal
-        assert role._setting.constraints == seed.constraints
-        assert role._setting.desc == seed.desc
+        assert role.goal == seed.goal
+        assert role.constraints == seed.constraints
+        assert role.desc == seed.desc
         assert role.is_idle
         env = Environment()
         env.add_role(role)
