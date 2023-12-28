@@ -143,7 +143,7 @@ class Config(metaclass=Singleton):
         if not self._get("DISABLE_LLM_PROVIDER_CHECK"):
             _ = self.get_default_llm_provider_enum()
 
-        # self.openai_base_url = self._get("OPENAI_BASE_URL")
+        self.openai_base_url = self._get("OPENAI_BASE_URL")
         self.openai_proxy = self._get("OPENAI_PROXY") or self.global_proxy
         self.openai_api_type = self._get("OPENAI_API_TYPE")
         self.openai_api_version = self._get("OPENAI_API_VERSION")

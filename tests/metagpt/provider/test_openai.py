@@ -86,31 +86,25 @@ class TestOpenAI:
     def test_make_client_kwargs_without_proxy(self, config):
         instance = OpenAILLM()
         instance.config = config
-        kwargs, async_kwargs = instance._make_client_kwargs()
+        kwargs = instance._make_client_kwargs()
         assert kwargs == {"api_key": "test_key", "base_url": "test_url"}
-        assert async_kwargs == {"api_key": "test_key", "base_url": "test_url"}
         assert "http_client" not in kwargs
-        assert "http_client" not in async_kwargs
 
     def test_make_client_kwargs_without_proxy_azure(self, config_azure):
         instance = OpenAILLM()
         instance.config = config_azure
-        kwargs, async_kwargs = instance._make_client_kwargs()
+        kwargs = instance._make_client_kwargs()
         assert kwargs == {"api_key": "test_key", "base_url": "test_url"}
-        assert async_kwargs == {"api_key": "test_key", "base_url": "test_url"}
         assert "http_client" not in kwargs
-        assert "http_client" not in async_kwargs
 
     def test_make_client_kwargs_with_proxy(self, config_proxy):
         instance = OpenAILLM()
         instance.config = config_proxy
-        kwargs, async_kwargs = instance._make_client_kwargs()
+        kwargs = instance._make_client_kwargs()
         assert "http_client" in kwargs
-        assert "http_client" in async_kwargs
 
     def test_make_client_kwargs_with_proxy_azure(self, config_azure_proxy):
         instance = OpenAILLM()
         instance.config = config_azure_proxy
-        kwargs, async_kwargs = instance._make_client_kwargs()
+        kwargs = instance._make_client_kwargs()
         assert "http_client" in kwargs
-        assert "http_client" in async_kwargs
