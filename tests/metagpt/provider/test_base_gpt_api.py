@@ -3,7 +3,7 @@
 """
 @Time    : 2023/5/7 17:40
 @Author  : alexanderwu
-@File    : test_base_gpt_api.py
+@File    : test_base_llm.py
 """
 
 import pytest
@@ -27,7 +27,7 @@ prompt_msg = "who are you"
 resp_content = default_chat_resp["choices"][0]["message"]["content"]
 
 
-class MockBaseGPTAPI(BaseLLM):
+class MockBaseLLM(BaseLLM):
     def completion(self, messages: list[dict], timeout=3):
         return default_chat_resp
 
@@ -41,12 +41,12 @@ class MockBaseGPTAPI(BaseLLM):
         return default_chat_resp
 
 
-def test_base_gpt_api():
+def test_base_llm():
     message = Message(role="user", content="hello")
     assert "role" in message.to_dict()
     assert "user" in str(message)
 
-    base_gpt_api = MockBaseGPTAPI()
+    base_llm = MockBaseLLM()
 
     openai_funccall_resp = {
         "choices": [
@@ -70,37 +70,37 @@ def test_base_gpt_api():
             }
         ]
     }
-    func: dict = base_gpt_api.get_choice_function(openai_funccall_resp)
+    func: dict = base_llm.get_choice_function(openai_funccall_resp)
     assert func == {
         "name": "execute",
         "arguments": '{\n  "language": "python",\n  "code": "print(\'Hello, World!\')"\n}',
     }
 
-    func_args: dict = base_gpt_api.get_choice_function_arguments(openai_funccall_resp)
+    func_args: dict = base_llm.get_choice_function_arguments(openai_funccall_resp)
     assert func_args == {"language": "python", "code": "print('Hello, World!')"}
 
-    choice_text = base_gpt_api.get_choice_text(openai_funccall_resp)
+    choice_text = base_llm.get_choice_text(openai_funccall_resp)
     assert choice_text == openai_funccall_resp["choices"][0]["message"]["content"]
 
-    # resp = base_gpt_api.ask(prompt_msg)
+    # resp = base_llm.ask(prompt_msg)
     # assert resp == resp_content
 
-    # resp = base_gpt_api.ask_batch([prompt_msg])
+    # resp = base_llm.ask_batch([prompt_msg])
     # assert resp == resp_content
 
-    # resp = base_gpt_api.ask_code([prompt_msg])
+    # resp = base_llm.ask_code([prompt_msg])
     # assert resp == resp_content
 
 
 @pytest.mark.asyncio
-async def test_async_base_gpt_api():
-    base_gpt_api = MockBaseGPTAPI()
+async def test_async_base_llm():
+    base_llm = MockBaseLLM()
 
-    resp = await base_gpt_api.aask(prompt_msg)
+    resp = await base_llm.aask(prompt_msg)
     assert resp == resp_content
 
-    resp = await base_gpt_api.aask_batch([prompt_msg])
+    resp = await base_llm.aask_batch([prompt_msg])
     assert resp == resp_content
 
-    resp = await base_gpt_api.aask_code([prompt_msg])
+    resp = await base_llm.aask_code([prompt_msg])
     assert resp == resp_content
