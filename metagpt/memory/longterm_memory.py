@@ -7,7 +7,7 @@
 
 from typing import Optional
 
-from pydantic import Field
+from pydantic import ConfigDict, Field
 
 from metagpt.logs import logger
 from metagpt.memory import Memory
@@ -22,12 +22,11 @@ class LongTermMemory(Memory):
     - update memory when it changed
     """
 
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     memory_storage: MemoryStorage = Field(default_factory=MemoryStorage)
     rc: Optional["RoleContext"] = None
     msg_from_recover: bool = False
-
-    class Config:
-        arbitrary_types_allowed = True
 
     def recover_memory(self, role_id: str, rc: "RoleContext"):
         messages = self.memory_storage.recover_memory(role_id)

@@ -6,6 +6,7 @@
 """
 
 import asyncio
+import re
 
 from pydantic import BaseModel
 
@@ -41,20 +42,20 @@ class Researcher(Role):
             logger.warning(f"The language `{self.language}` has not been tested, it may not work.")
 
     async def _think(self) -> bool:
-        if self._rc.todo is None:
+        if self.rc.todo is None:
             self._set_state(0)
             return True
 
-        if self._rc.state + 1 < len(self._states):
-            self._set_state(self._rc.state + 1)
+        if self.rc.state + 1 < len(self.states):
+            self._set_state(self.rc.state + 1)
         else:
-            self._rc.todo = None
+            self.rc.todo = None
             return False
 
     async def _act(self) -> Message:
-        logger.info(f"{self._setting}: to do {self._rc.todo}({self._rc.todo.name})")
-        todo = self._rc.todo
-        msg = self._rc.memory.get(k=1)[0]
+        logger.info(f"{self._setting}: to do {self.rc.todo}({self.rc.todo.name})")
+        todo = self.rc.todo
+        msg = self.rc.memory.get(k=1)[0]
         if isinstance(msg.instruct_content, Report):
             instruct_content = msg.instruct_content
             topic = instruct_content.topic
@@ -78,14 +79,14 @@ class Researcher(Role):
         else:
             summaries = instruct_content.summaries
             summary_text = "\n---\n".join(f"url: {url}\nsummary: {summary}" for (url, summary) in summaries)
-            content = await self._rc.todo.run(topic, summary_text, system_text=research_system_text)
+            content = await self.rc.todo.run(topic, summary_text, system_text=research_system_text)
             ret = Message(
                 content="",
                 instruct_content=Report(topic=topic, content=content),
                 role=self.profile,
-                cause_by=self._rc.todo,
+                cause_by=self.rc.todo,
             )
-        self._rc.memory.add(ret)
+        self.rc.memory.add(ret)
         return ret
 
     def research_system_text(self, topic, current_task: Action) -> str:
@@ -107,9 +108,11 @@ class Researcher(Role):
         return msg
 
     def write_report(self, topic: str, content: str):
+        filename = re.sub(r'[\\/:"*?<>|]+', " ", topic)
+        filename = filename.replace("\n", "")
         if not RESEARCH_PATH.exists():
             RESEARCH_PATH.mkdir(parents=True)
-        filepath = RESEARCH_PATH / f"{topic}.md"
+        filepath = RESEARCH_PATH / f"{filename}.md"
         filepath.write_text(content)
 
 

@@ -54,8 +54,8 @@ pip3 install -e .     # or pip3 install metagpt  # for stable version
 
 # Step 3: setup your OPENAI_API_KEY, or make sure it existed in the env
 mkdir ~/.metagpt
-cp config/config.yaml ~/.metagpt/key.yaml
-vim ~/.metagpt/key.yaml
+cp config/config.yaml ~/.metagpt/config.yaml
+vim ~/.metagpt/config.yaml
 
 # Step 4: run metagpt cli
 metagpt "Create a 2048 game in python"

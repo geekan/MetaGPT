@@ -65,22 +65,20 @@ class Assistant(Role):
             prompt += f"If the text explicitly want you to {desc}, return `[SKILL]: {name}` brief and clear. For instance: [SKILL]: {name}\n"
         prompt += 'Otherwise, return `[TALK]: {talk}` brief and clear. For instance: if {talk} is "xxxx" return [TALK]: xxxx\n\n'
         prompt += f"Now what specific action is explicitly mentioned in the text: {last_talk}\n"
-        rsp = await self._llm.aask(prompt, [])
+        rsp = await self.llm.aask(prompt, [])
         logger.info(f"THINK: {prompt}\n, THINK RESULT: {rsp}\n")
         return await self._plan(rsp, last_talk=last_talk)
 
     async def act(self) -> Message:
-        result = await self._rc.todo.run()
+        result = await self.rc.todo.run()
         if not result:
             return None
         if isinstance(result, str):
-            msg = Message(content=result, role="assistant", cause_by=self._rc.todo)
+            msg = Message(content=result, role="assistant", cause_by=self.rc.todo)
         elif isinstance(result, Message):
             msg = result
         else:
-            msg = Message(
-                content=result.content, instruct_content=result.instruct_content, cause_by=type(self._rc.todo)
-            )
+            msg = Message(content=result.content, instruct_content=result.instruct_content, cause_by=type(self.rc.todo))
         self.memory.add_answer(msg)
         return msg
 
@@ -99,8 +97,8 @@ class Assistant(Role):
     async def talk_handler(self, text, **kwargs) -> bool:
         history = self.memory.history_text
         text = kwargs.get("last_talk") or text
-        self._rc.todo = TalkAction(
-            context=text, knowledge=self.memory.get_knowledge(), history_summary=history, llm=self._llm, **kwargs
+        self.rc.todo = TalkAction(
+            context=text, knowledge=self.memory.get_knowledge(), history_summary=history, llm=self.llm, **kwargs
         )
         return True
 
@@ -110,13 +108,11 @@ class Assistant(Role):
         if not skill:
             logger.info(f"skill not found: {text}")
             return await self.talk_handler(text=last_talk, **kwargs)
-        action = ArgumentsParingAction(skill=skill, llm=self._llm, ask=last_talk, **kwargs)
+        action = ArgumentsParingAction(skill=skill, llm=self.llm, ask=last_talk, **kwargs)
         await action.run(**kwargs)
         if action.args is None:
             return await self.talk_handler(text=last_talk, **kwargs)
-        self._rc.todo = SkillAction(
-            skill=skill, args=action.args, llm=self._llm, name=skill.name, desc=skill.description
-        )
+        self.rc.todo = SkillAction(skill=skill, args=action.args, llm=self.llm, name=skill.name, desc=skill.description)
         return True
 
     async def refine_memory(self) -> str:
@@ -125,16 +121,16 @@ class Assistant(Role):
             return None
         if not self.memory.is_history_available:
             return last_talk
-        history_summary = await self.memory.summarize(max_words=800, keep_language=True, llm=self._llm)
-        if last_talk and await self.memory.is_related(text1=last_talk, text2=history_summary, llm=self._llm):
+        history_summary = await self.memory.summarize(max_words=800, keep_language=True, llm=self.llm)
+        if last_talk and await self.memory.is_related(text1=last_talk, text2=history_summary, llm=self.llm):
             # Merge relevant content.
-            merged = await self.memory.rewrite(sentence=last_talk, context=history_summary, llm=self._llm)
+            merged = await self.memory.rewrite(sentence=last_talk, context=history_summary, llm=self.llm)
             return f"{merged} {last_talk}"
 
         return last_talk
 
     def get_memory(self) -> str:
-        return self.memory.json()
+        return self.memory.model_dump_json()
 
     def load_memory(self, jsn):
         try:

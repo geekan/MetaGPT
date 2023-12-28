@@ -72,6 +72,7 @@ class Config(metaclass=Singleton):
         self.inc = False
         self.reqa_file = ""
         self.max_auto_summarize_code = 0
+        self.git_reinit = False
 
         self._init_with_config_files_and_env(yaml_file)
         # The agent needs to be billed per user, so billing information cannot be destroyed when the session ends.
@@ -146,7 +147,7 @@ class Config(metaclass=Singleton):
         if not self._get("DISABLE_LLM_PROVIDER_CHECK"):
             _ = self.get_default_llm_provider_enum()
 
-        # self.openai_base_url = self._get("OPENAI_BASE_URL")
+        self.openai_base_url = self._get("OPENAI_BASE_URL")
         self.openai_proxy = self._get("OPENAI_PROXY") or self.global_proxy
         self.openai_api_type = self._get("OPENAI_API_TYPE")
         self.openai_api_version = self._get("OPENAI_API_VERSION")

@@ -50,7 +50,7 @@ class RebuildClassView(Action):
 
         # try:
         #     node = await REBUILD_CLASS_VIEW_NODE.fill(context=f"```{code_type}\n{src_code}\n```", llm=self.llm, to=format)
-        #     class_view = node.instruct_content.dict()["Class View"]
+        #     class_view = node.instruct_content.model_dump()["Class View"]
         # except Exception as e:
         #     class_view = RepoParser.rebuild_class_view(src_code, code_type)
         # await graph_db.insert(subject=concat_namespace(filename, class_name), predicate=GraphKeyword.HAS_CLASS_VIEW, object_=class_view)

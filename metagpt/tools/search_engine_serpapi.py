@@ -8,13 +8,15 @@
 from typing import Any, Dict, Optional, Tuple
 
 import aiohttp
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from metagpt.config import CONFIG
 
 
 class SerpAPIWrapper(BaseModel):
-    search_engine: Any  #: :meta private:
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    search_engine: Any = None  #: :meta private:
     params: dict = Field(
         default={
             "engine": "google",
@@ -23,13 +25,11 @@ class SerpAPIWrapper(BaseModel):
             "hl": "en",
         }
     )
-    serpapi_api_key: Optional[str] = None
+    # should add `validate_default=True` to check with default value
+    serpapi_api_key: Optional[str] = Field(default=None, validate_default=True)
     aiosession: Optional[aiohttp.ClientSession] = None
 
-    class Config:
-        arbitrary_types_allowed = True
-
-    @validator("serpapi_api_key", always=True)
+    @field_validator("serpapi_api_key", mode="before")
     @classmethod
     def check_serpapi_api_key(cls, val: str):
         val = val or CONFIG.serpapi_api_key

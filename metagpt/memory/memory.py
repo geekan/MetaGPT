@@ -8,9 +8,9 @@
 """
 from collections import defaultdict
 from pathlib import Path
-from typing import Iterable, Set
+from typing import DefaultDict, Iterable, Set
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, SerializeAsAny
 
 from metagpt.const import IGNORED_MESSAGE_ID
 from metagpt.schema import Message
@@ -25,23 +25,14 @@ from metagpt.utils.common import (
 class Memory(BaseModel):
     """The most basic memory: super-memory"""
 
-    storage: list[Message] = []
-    index: dict[str, list[Message]] = Field(default_factory=defaultdict(list))
+    storage: list[SerializeAsAny[Message]] = []
+    index: DefaultDict[str, list[SerializeAsAny[Message]]] = Field(default_factory=lambda: defaultdict(list))
     ignore_id: bool = False
-
-    def __init__(self, **kwargs):
-        index = kwargs.get("index", {})
-        new_index = defaultdict(list)
-        for action_str, value in index.items():
-            new_index[action_str] = [Message(**item_dict) for item_dict in value]
-        kwargs["index"] = new_index
-        super(Memory, self).__init__(**kwargs)
-        self.index = new_index
 
     def serialize(self, stg_path: Path):
         """stg_path = ./storage/team/environment/ or ./storage/team/environment/roles/{role_class}_{role_name}/"""
         memory_path = stg_path.joinpath("memory.json")
-        storage = self.dict()
+        storage = self.model_dump()
         write_json_file(memory_path, storage)
 
     @classmethod

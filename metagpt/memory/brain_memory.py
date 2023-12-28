@@ -73,7 +73,7 @@ class BrainMemory(BaseModel):
         redis = Redis()
         if not redis.is_valid or not redis_key:
             return False
-        v = self.json(ensure_ascii=False)
+        v = self.model_dump_json()
         if self.cacheable:
             await redis.set(key=redis_key, data=v, timeout_sec=timeout_sec)
             logger.debug(f"REDIS SET {redis_key} {v}")
@@ -99,6 +99,7 @@ class BrainMemory(BaseModel):
         if msg.id:
             if self.to_int(msg.id, 0) <= self.to_int(self.last_history_id, -1):
                 return
+
         self.history.append(msg)
         self.last_history_id = str(msg.id)
         self.is_dirty = True
@@ -156,7 +157,7 @@ class BrainMemory(BaseModel):
                 if left == 0:
                     break
                 m.content = m.content[0:left]
-                msgs.append(m.dict())
+                msgs.append(m.model_dump())
                 break
             msgs.append(m)
             total_length += delta

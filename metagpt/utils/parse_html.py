@@ -5,7 +5,7 @@ from typing import Generator, Optional
 from urllib.parse import urljoin, urlparse
 
 from bs4 import BeautifulSoup
-from pydantic import BaseModel
+from pydantic import BaseModel, PrivateAttr
 
 
 class WebPage(BaseModel):
@@ -13,11 +13,8 @@ class WebPage(BaseModel):
     html: str
     url: str
 
-    class Config:
-        underscore_attrs_are_private = True
-
-    _soup: Optional[BeautifulSoup] = None
-    _title: Optional[str] = None
+    _soup: Optional[BeautifulSoup] = PrivateAttr(default=None)
+    _title: Optional[str] = PrivateAttr(default=None)
 
     @property
     def soup(self) -> BeautifulSoup:

@@ -12,15 +12,15 @@ from metagpt.schema import Message
 
 def test_action_serialize():
     action = WritePRD()
-    ser_action_dict = action.dict()
+    ser_action_dict = action.model_dump()
     assert "name" in ser_action_dict
-    # assert "llm" in ser_action_dict  # not export
+    assert "llm" not in ser_action_dict  # not export
 
 
 @pytest.mark.asyncio
 async def test_action_deserialize():
     action = WritePRD()
-    serialized_data = action.dict()
+    serialized_data = action.model_dump()
     new_action = WritePRD(**serialized_data)
     assert new_action.name == ""
     assert new_action.llm == LLM()

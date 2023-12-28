@@ -10,8 +10,8 @@
     consolidated within the `_observe` function.
     2. Standardize the message filtering for string label matching. Role objects can access the message labels
     they've subscribed to through the `subscribed_tags` property.
-    3. Move the message receive buffer from the global variable `self._rc.env.memory` to the role's private variable
-    `self._rc.msg_buffer` for easier message identification and asynchronous appending of messages.
+    3. Move the message receive buffer from the global variable `self.rc.env.memory` to the role's private variable
+    `self.rc.msg_buffer` for easier message identification and asynchronous appending of messages.
     4. Standardize the way messages are passed: `publish_message` sends messages out, while `put_message` places
     messages into the Role object's private message receive buffer. There are no other message transmit methods.
     5. Standardize the parameters for the `run` function: the `test_message` parameter is used for testing purposes
@@ -24,12 +24,11 @@ from __future__ import annotations
 
 from enum import Enum
 from pathlib import Path
-from typing import Any, Iterable, Set, Type
+from typing import Any, Iterable, Optional, Set, Type
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field, SerializeAsAny, model_validator
 
 from metagpt.actions import Action, ActionOutput
-from metagpt.actions.action import action_subclass_registry
 from metagpt.actions.action_node import ActionNode
 from metagpt.actions.add_requirement import UserRequirement
 from metagpt.const import SERDESER_PATH
@@ -37,7 +36,7 @@ from metagpt.llm import LLM, HumanProvider
 from metagpt.logs import logger
 from metagpt.memory import Memory
 from metagpt.provider.base_llm import BaseLLM
-from metagpt.schema import Message, MessageQueue
+from metagpt.schema import Message, MessageQueue, SerializationMixin
 from metagpt.utils.common import (
     any_to_name,
     any_to_str,
@@ -92,8 +91,10 @@ class RoleReactMode(str, Enum):
 class RoleContext(BaseModel):
     """Role Runtime Context"""
 
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     # # env exclude=True to avoid `RecursionError: maximum recursion depth exceeded in comparison`
-    env: "Environment" = Field(default=None, exclude=True)
+    env: "Environment" = Field(default=None, exclude=True)  # # avoid circular import
     # TODO judge if ser&deser
     msg_buffer: MessageQueue = Field(
         default_factory=MessageQueue, exclude=True
@@ -108,9 +109,6 @@ class RoleContext(BaseModel):
         RoleReactMode.REACT
     )  # see `Role._set_react_mode` for definitions of the following two attributes
     max_react_loop: int = 1
-
-    class Config:
-        arbitrary_types_allowed = True
 
     def check(self, role_id: str):
         # if hasattr(CONFIG, "long_term_memory") and CONFIG.long_term_memory:
@@ -128,11 +126,10 @@ class RoleContext(BaseModel):
         return self.memory.get()
 
 
-role_subclass_registry = {}
-
-
-class Role(BaseModel):
+class Role(SerializationMixin, is_polymorphic_base=True):
     """Role/Agent"""
+
+    model_config = ConfigDict(arbitrary_types_allowed=True, exclude=["llm"])
 
     name: str = ""
     profile: str = ""
@@ -141,84 +138,40 @@ class Role(BaseModel):
     desc: str = ""
     is_human: bool = False
 
-    _llm: BaseLLM = Field(default_factory=LLM)  # Each role has its own LLM, use different system message
-    _role_id: str = ""
-    _states: list[str] = []
-    _actions: list[Action] = []
-    _rc: RoleContext = Field(default_factory=RoleContext)
+    llm: BaseLLM = Field(default_factory=LLM, exclude=True)  # Each role has its own LLM, use different system message
+    role_id: str = ""
+    states: list[str] = []
+    actions: list[SerializeAsAny[Action]] = Field(default=[], validate_default=True)
+    rc: RoleContext = Field(default_factory=RoleContext)
     subscription: set[str] = set()
 
     # builtin variables
     recovered: bool = False  # to tag if a recovered role
-    latest_observed_msg: Message = None  # record the latest observed message when interrupted
-    builtin_class_name: str = ""
-
-    _private_attributes = {
-        "_llm": None,
-        "_role_id": _role_id,
-        "_states": [],
-        "_actions": [],
-        "_rc": RoleContext(),
-        "_subscription": set(),
-    }
+    latest_observed_msg: Optional[Message] = None  # record the latest observed message when interrupted
 
     __hash__ = object.__hash__  # support Role as hashable type in `Environment.members`
 
-    class Config:
-        arbitrary_types_allowed = True
-        exclude = ["_llm"]
+    @model_validator(mode="after")
+    def check_subscription(self) -> set:
+        if not self.subscription:
+            self.subscription = {any_to_str(self), self.name} if self.name else {any_to_str(self)}
+        return self
 
-    def __init__(self, **kwargs: Any):
-        for index in range(len(kwargs.get("_actions", []))):
-            current_action = kwargs["_actions"][index]
-            if isinstance(current_action, dict):
-                item_class_name = current_action.get("builtin_class_name", None)
-                for name, subclass in action_subclass_registry.items():
-                    registery_class_name = subclass.__fields__["builtin_class_name"].default
-                    if item_class_name == registery_class_name:
-                        current_action = subclass(**current_action)
-                        break
-                kwargs["_actions"][index] = current_action
+    def __init__(self, **data: Any):
+        # --- avoid PydanticUndefinedAnnotation name 'Environment' is not defined #
+        from metagpt.environment import Environment
 
-        super().__init__(**kwargs)
+        Environment
+        # ------
+        Role.model_rebuild()
+        super().__init__(**data)
 
-        # 关于私有变量的初始化  https://github.com/pydantic/pydantic/issues/655
-        self._private_attributes["_llm"] = LLM() if not self.is_human else HumanProvider()
-        self._private_attributes["_role_id"] = str(self._setting)
-        self.subscription = {any_to_str(self), self.name} if self.name else {any_to_str(self)}
-
-        for key in self._private_attributes.keys():
-            if key in kwargs:
-                object.__setattr__(self, key, kwargs[key])
-                if key == "_rc":
-                    _rc = RoleContext(**kwargs["_rc"])
-                    object.__setattr__(self, "_rc", _rc)
-            else:
-                if key == "_rc":
-                    # # Warning, if use self._private_attributes["_rc"],
-                    # # self._rc will be a shared object between roles, so init one or reset it inside `_reset`
-                    object.__setattr__(self, key, RoleContext())
-                else:
-                    object.__setattr__(self, key, self._private_attributes[key])
-
-        self._llm.system_prompt = self._get_prefix()
-
-        # deserialize child classes dynamically for inherited `role`
-        object.__setattr__(self, "builtin_class_name", self.__class__.__name__)
-        self.__fields__["builtin_class_name"].default = self.__class__.__name__
-
-        if "actions" in kwargs:
-            self._init_actions(kwargs["actions"])
-
-        self._watch(kwargs.get("watch") or [UserRequirement])
-
-    def __init_subclass__(cls, **kwargs: Any) -> None:
-        super().__init_subclass__(**kwargs)
-        role_subclass_registry[cls.__name__] = cls
+        self.llm.system_prompt = self._get_prefix()
+        self._watch(data.get("watch") or [UserRequirement])
 
     def _reset(self):
-        object.__setattr__(self, "_states", [])
-        object.__setattr__(self, "_actions", [])
+        self.states = []
+        self.actions = []
 
     @property
     def _setting(self):
@@ -231,12 +184,12 @@ class Role(BaseModel):
             else stg_path
         )
 
-        role_info = self.dict(exclude={"_rc": {"memory": True, "msg_buffer": True}, "_llm": True})
+        role_info = self.model_dump(exclude={"rc": {"memory": True, "msg_buffer": True}, "llm": True})
         role_info.update({"role_class": self.__class__.__name__, "module_name": self.__module__})
         role_info_path = stg_path.joinpath("role_info.json")
         write_json_file(role_info_path, role_info)
 
-        self._rc.memory.serialize(stg_path)  # serialize role's memory alone
+        self.rc.memory.serialize(stg_path)  # serialize role's memory alone
 
     @classmethod
     def deserialize(cls, stg_path: Path) -> "Role":
@@ -260,13 +213,13 @@ class Role(BaseModel):
         action.set_prefix(self._get_prefix())
 
     def refresh_system_message(self):
-        self._llm.system_prompt = self._get_prefix()
+        self.llm.system_prompt = self._get_prefix()
 
     def set_recovered(self, recovered: bool = False):
         self.recovered = recovered
 
     def set_memory(self, memory: Memory):
-        self._rc.memory = memory
+        self.rc.memory = memory
 
     def init_actions(self, actions):
         self._init_actions(actions)
@@ -276,7 +229,7 @@ class Role(BaseModel):
         for idx, action in enumerate(actions):
             if not isinstance(action, Action):
                 ## 默认初始化
-                i = action(name="", llm=self._llm)
+                i = action(name="", llm=self.llm)
             else:
                 if self.is_human and not isinstance(action.llm, HumanProvider):
                     logger.warning(
@@ -285,10 +238,9 @@ class Role(BaseModel):
                         f"try passing in Action classes instead of initialized instances"
                     )
                 i = action
-            # i.set_env(self._rc.env)
             self._init_action_system_message(i)
-            self._actions.append(i)
-            self._states.append(f"{idx}. {action}")
+            self.actions.append(i)
+            self.states.append(f"{idx}. {action}")
 
     def _set_react_mode(self, react_mode: str, max_react_loop: int = 1):
         """Set strategy of the Role reacting to observed Message. Variation lies in how
@@ -307,20 +259,20 @@ class Role(BaseModel):
                                   Defaults to 1, i.e. _think -> _act (-> return result and end)
         """
         assert react_mode in RoleReactMode.values(), f"react_mode must be one of {RoleReactMode.values()}"
-        self._rc.react_mode = react_mode
+        self.rc.react_mode = react_mode
         if react_mode == RoleReactMode.REACT:
-            self._rc.max_react_loop = max_react_loop
+            self.rc.max_react_loop = max_react_loop
 
     def _watch(self, actions: Iterable[Type[Action]] | Iterable[Action]):
         """Watch Actions of interest. Role will select Messages caused by these Actions from its personal message
         buffer during _observe.
         """
-        self._rc.watch = {any_to_str(t) for t in actions}
+        self.rc.watch = {any_to_str(t) for t in actions}
         # check RoleContext after adding watch actions
-        self._rc.check(self._role_id)
+        self.rc.check(self.role_id)
 
     def is_watch(self, caused_by: str):
-        return caused_by in self._rc.watch
+        return caused_by in self.rc.watch
 
     def subscribe(self, tags: Set[str]):
         """Used to receive Messages with certain tags from the environment. Message will be put into personal message
@@ -328,19 +280,19 @@ class Role(BaseModel):
         or profile.
         """
         self.subscription = tags
-        if self._rc.env:  # According to the routing feature plan in Chapter 2.2.3.2 of RFC 113
-            self._rc.env.set_subscription(self, self.subscription)
+        if self.rc.env:  # According to the routing feature plan in Chapter 2.2.3.2 of RFC 113
+            self.rc.env.set_subscription(self, self.subscription)
 
     def _set_state(self, state: int):
         """Update the current state."""
-        self._rc.state = state
-        logger.debug(f"actions={self._actions}, state={state}")
-        self._rc.todo = self._actions[self._rc.state] if state >= 0 else None
+        self.rc.state = state
+        logger.debug(f"actions={self.actions}, state={state}")
+        self.rc.todo = self.actions[self.rc.state] if state >= 0 else None
 
     def set_env(self, env: "Environment"):
         """Set the environment in which the role works. The role can talk to the environment and can also receive
         messages by observing."""
-        self._rc.env = env
+        self.rc.env = env
         if env:
             env.set_subscription(self, self.subscription)
             self.refresh_system_message()  # add env message to system message
@@ -348,7 +300,7 @@ class Role(BaseModel):
     @property
     def action_count(self):
         """Return number of action"""
-        return len(self._actions)
+        return len(self.actions)
 
     def _get_prefix(self):
         """Get the role prefix"""
@@ -360,38 +312,38 @@ class Role(BaseModel):
         if self.constraints:
             prefix += CONSTRAINT_TEMPLATE.format(**{"constraints": self.constraints})
 
-        if self._rc.env and self._rc.env.desc:
-            other_role_names = ", ".join(self._rc.env.role_names())
-            env_desc = f"You are in {self._rc.env.desc} with roles({other_role_names})."
+        if self.rc.env and self.rc.env.desc:
+            other_role_names = ", ".join(self.rc.env.role_names())
+            env_desc = f"You are in {self.rc.env.desc} with roles({other_role_names})."
             prefix += env_desc
         return prefix
 
     async def _think(self) -> bool:
         """Consider what to do and decide on the next course of action. Return false if nothing can be done."""
-        if len(self._actions) == 1:
+        if len(self.actions) == 1:
             # If there is only one action, then only this one can be performed
             self._set_state(0)
 
             return True
 
-        if self.recovered and self._rc.state >= 0:
-            self._set_state(self._rc.state)  # action to run from recovered state
+        if self.recovered and self.rc.state >= 0:
+            self._set_state(self.rc.state)  # action to run from recovered state
             self.set_recovered(False)  # avoid max_react_loop out of work
             return True
 
         prompt = self._get_prefix()
         prompt += STATE_TEMPLATE.format(
-            history=self._rc.history,
-            states="\n".join(self._states),
-            n_states=len(self._states) - 1,
-            previous_state=self._rc.state,
+            history=self.rc.history,
+            states="\n".join(self.states),
+            n_states=len(self.states) - 1,
+            previous_state=self.rc.state,
         )
 
-        next_state = await self._llm.aask(prompt)
+        next_state = await self.llm.aask(prompt)
         next_state = extract_state_value_from_output(next_state)
         logger.debug(f"{prompt=}")
 
-        if (not next_state.isdigit() and next_state != "-1") or int(next_state) not in range(-1, len(self._states)):
+        if (not next_state.isdigit() and next_state != "-1") or int(next_state) not in range(-1, len(self.states)):
             logger.warning(f"Invalid answer of state, {next_state=}, will be set to -1")
             next_state = -1
         else:
@@ -402,21 +354,21 @@ class Role(BaseModel):
         return True
 
     async def _act(self) -> Message:
-        logger.info(f"{self._setting}: to do {self._rc.todo}({self._rc.todo.name})")
-        response = await self._rc.todo.run(self._rc.history)
+        logger.info(f"{self._setting}: to do {self.rc.todo}({self.rc.todo.name})")
+        response = await self.rc.todo.run(self.rc.history)
         if isinstance(response, (ActionOutput, ActionNode)):
             msg = Message(
                 content=response.content,
                 instruct_content=response.instruct_content,
                 role=self._setting,
-                cause_by=self._rc.todo,
+                cause_by=self.rc.todo,
                 sent_from=self,
             )
         elif isinstance(response, Message):
             msg = response
         else:
-            msg = Message(content=response, role=self.profile, cause_by=self._rc.todo, sent_from=self)
-        self._rc.memory.add(msg)
+            msg = Message(content=response, role=self.profile, cause_by=self.rc.todo, sent_from=self)
+        self.rc.memory.add(msg)
 
         return msg
 
@@ -426,7 +378,7 @@ class Role(BaseModel):
         observed_pure = [msg.dict(exclude={"id": True}) for msg in observed]
         existed_pure = [msg.dict(exclude={"id": True}) for msg in existed]
         for idx, new in enumerate(observed_pure):
-            if (new["cause_by"] in self._rc.watch or self.name in new["send_to"]) and new not in existed_pure:
+            if (new["cause_by"] in self.rc.watch or self.name in new["send_to"]) and new not in existed_pure:
                 news.append(observed[idx])
         return news
 
@@ -437,59 +389,59 @@ class Role(BaseModel):
         if self.recovered:
             news = [self.latest_observed_msg] if self.latest_observed_msg else []
         if not news:
-            news = self._rc.msg_buffer.pop_all()
+            news = self.rc.msg_buffer.pop_all()
         # Store the read messages in your own memory to prevent duplicate processing.
-        old_messages = [] if ignore_memory else self._rc.memory.get()
-        self._rc.memory.add_batch(news)
+        old_messages = [] if ignore_memory else self.rc.memory.get()
+        self.rc.memory.add_batch(news)
         # Filter out messages of interest.
-        self._rc.news = [n for n in news if n.cause_by in self._rc.watch and n not in old_messages]
-        self.latest_observed_msg = self._rc.news[-1] if self._rc.news else None  # record the latest observed msg
+        self.rc.news = [n for n in news if n.cause_by in self.rc.watch and n not in old_messages]
+        self.latest_observed_msg = self.rc.news[-1] if self.rc.news else None  # record the latest observed msg
 
         # Design Rules:
         # If you need to further categorize Message objects, you can do so using the Message.set_meta function.
         # msg_buffer is a receiving buffer, avoid adding message data and operations to msg_buffer.
-        news_text = [f"{i.role}: {i.content[:20]}..." for i in self._rc.news]
+        news_text = [f"{i.role}: {i.content[:20]}..." for i in self.rc.news]
         if news_text:
             logger.debug(f"{self._setting} observed: {news_text}")
-        return len(self._rc.news)
+        return len(self.rc.news)
 
     # async def _observe(self, ignore_memory=False) -> int:
     #     """Prepare new messages for processing from the message buffer and other sources."""
     #     # Read unprocessed messages from the msg buffer.
-    #     news = self._rc.msg_buffer.pop_all()
+    #     news = self.rc.msg_buffer.pop_all()
     #     if self.recovered:
     #         news = [self.latest_observed_msg] if self.latest_observed_msg else []
     #     else:
     #         self.latest_observed_msg = news[-1] if len(news) > 0 else None  # record the latest observed msg
     #
     #     # Store the read messages in your own memory to prevent duplicate processing.
-    #     old_messages = [] if ignore_memory else self._rc.memory.get()
-    #     self._rc.memory.add_batch(news)
+    #     old_messages = [] if ignore_memory else self.rc.memory.get()
+    #     self.rc.memory.add_batch(news)
     #     # Filter out messages of interest.
-    #     self._rc.news = self._find_news(news, old_messages)
+    #     self.rc.news = self._find_news(news, old_messages)
     #
     #     # Design Rules:
     #     # If you need to further categorize Message objects, you can do so using the Message.set_meta function.
     #     # msg_buffer is a receiving buffer, avoid adding message data and operations to msg_buffer.
-    #     news_text = [f"{i.role}: {i.content[:20]}..." for i in self._rc.news]
+    #     news_text = [f"{i.role}: {i.content[:20]}..." for i in self.rc.news]
     #     if news_text:
     #         logger.debug(f"{self._setting} observed: {news_text}")
-    #     return len(self._rc.news)
+    #     return len(self.rc.news)
 
     def publish_message(self, msg):
         """If the role belongs to env, then the role's messages will be broadcast to env"""
         if not msg:
             return
-        if not self._rc.env:
+        if not self.rc.env:
             # If env does not exist, do not publish the message
             return
-        self._rc.env.publish_message(msg)
+        self.rc.env.publish_message(msg)
 
     def put_message(self, message):
         """Place the message into the Role object's private message buffer."""
         if not message:
             return
-        self._rc.msg_buffer.push(message)
+        self.rc.msg_buffer.push(message)
 
     async def _react(self) -> Message:
         """Think first, then act, until the Role _think it is time to stop and requires no more todo.
@@ -498,22 +450,22 @@ class Role(BaseModel):
         """
         actions_taken = 0
         rsp = Message(content="No actions taken yet")  # will be overwritten after Role _act
-        while actions_taken < self._rc.max_react_loop:
+        while actions_taken < self.rc.max_react_loop:
             # think
             await self._think()
-            if self._rc.todo is None:
+            if self.rc.todo is None:
                 break
             # act
-            logger.debug(f"{self._setting}: {self._rc.state=}, will do {self._rc.todo}")
+            logger.debug(f"{self._setting}: {self.rc.state=}, will do {self.rc.todo}")
             rsp = await self._act()  # 这个rsp是否需要publish_message？
             actions_taken += 1
         return rsp  # return output from the last action
 
     async def _act_by_order(self) -> Message:
         """switch action each time by order defined in _init_actions, i.e. _act (Action1) -> _act (Action2) -> ..."""
-        start_idx = self._rc.state if self._rc.state >= 0 else 0  # action to run from recovered state
-        rsp = Message(content="No actions taken yet")  # return default message if _actions=[]
-        for i in range(start_idx, len(self._states)):
+        start_idx = self.rc.state if self.rc.state >= 0 else 0  # action to run from recovered state
+        rsp = Message(content="No actions taken yet")  # return default message if actions=[]
+        for i in range(start_idx, len(self.states)):
             self._set_state(i)
             rsp = await self._act()
         return rsp  # return output from the last action
@@ -525,18 +477,18 @@ class Role(BaseModel):
 
     async def react(self) -> Message:
         """Entry to one of three strategies by which Role reacts to the observed Message"""
-        if self._rc.react_mode == RoleReactMode.REACT:
+        if self.rc.react_mode == RoleReactMode.REACT:
             rsp = await self._react()
-        elif self._rc.react_mode == RoleReactMode.BY_ORDER:
+        elif self.rc.react_mode == RoleReactMode.BY_ORDER:
             rsp = await self._act_by_order()
-        elif self._rc.react_mode == RoleReactMode.PLAN_AND_ACT:
+        elif self.rc.react_mode == RoleReactMode.PLAN_AND_ACT:
             rsp = await self._plan_and_act()
         self._set_state(state=-1)  # current reaction is complete, reset state to -1 and todo back to None
         return rsp
 
     def get_memories(self, k=0) -> list[Message]:
         """A wrapper to return the most recent k memories of this role, return all when k=0"""
-        return self._rc.memory.get(k=k)
+        return self.rc.memory.get(k=k)
 
     @role_raise_decorator
     async def run(self, with_message=None) -> Message | None:
@@ -561,7 +513,7 @@ class Role(BaseModel):
         rsp = await self.react()
 
         # Reset the next action to be taken.
-        self._rc.todo = None
+        self.rc.todo = None
         # Send the response message to the Environment object to have it relay the message to the subscribers.
         self.publish_message(rsp)
         return rsp
@@ -569,12 +521,12 @@ class Role(BaseModel):
     @property
     def is_idle(self) -> bool:
         """If true, all actions have been executed."""
-        return not self._rc.news and not self._rc.todo and self._rc.msg_buffer.empty()
+        return not self.rc.news and not self.rc.todo and self.rc.msg_buffer.empty()
 
     async def think(self) -> Action:
         """The exported `think` function"""
         await self._think()
-        return self._rc.todo
+        return self.rc.todo
 
     async def act(self) -> ActionOutput:
         """The exported `act` function"""
@@ -584,6 +536,6 @@ class Role(BaseModel):
     @property
     def todo(self) -> str:
         """AgentStore uses this attribute to display to the user what actions the current role should take."""
-        if self._actions:
-            return any_to_name(self._actions[0])
+        if self.actions:
+            return any_to_name(self.actions[0])
         return ""

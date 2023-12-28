@@ -14,13 +14,13 @@ from metagpt.schema import RunCodeContext
 
 @pytest.mark.asyncio
 async def test_run_text():
-    result, errs = await RunCode.run_text("result = 1 + 1")
-    assert result == 2
-    assert errs == ""
+    out, err = await RunCode.run_text("result = 1 + 1")
+    assert out == 2
+    assert err == ""
 
-    result, errs = await RunCode.run_text("result = 1 / 0")
-    assert result == ""
-    assert "ZeroDivisionError" in errs
+    out, err = await RunCode.run_text("result = 1 / 0")
+    assert out == ""
+    assert "division by zero" in err
 
 
 @pytest.mark.asyncio

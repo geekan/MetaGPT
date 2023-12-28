@@ -32,11 +32,11 @@ async def test_write_code():
     context = CodingContext(
         filename="task_filename.py", design_doc=Document(content="设计一个名为'add'的函数，该函数接受两个整数作为输入，并返回它们的和。")
     )
-    doc = Document(content=context.json())
+    doc = Document(content=context.model_dump_json())
     write_code = WriteCode(context=doc)
 
     code = await write_code.run()
-    logger.info(code.json())
+    logger.info(code.model_dump_json())
 
     # 我们不能精确地预测生成的代码，但我们可以检查某些关键字
     assert "def add" in code.code_doc.content

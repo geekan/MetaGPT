@@ -5,6 +5,7 @@
 @Author  : mashenquan
 @File    : test_brain_memory.py
 """
+
 import pytest
 
 from metagpt.config import LLMProviderEnum
