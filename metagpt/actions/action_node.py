@@ -348,17 +348,3 @@ class ActionNode:
             cls = self.create_children_class()
             self.instruct_content = cls(**tmp)
             return self
-
-
-def action_node_example():
-    node = ActionNode(key="key-0", expected_type=str, instruction="instruction-a", example="example-b")
-
-    logger.info(node.compile(context="123", schema="raw", mode="auto"))
-    logger.info(node.compile(context="123", schema="json", mode="auto"))
-    logger.info(node.compile(context="123", schema="markdown", mode="auto"))
-    logger.info(node.to_dict())
-    logger.info(node)
-
-
-if __name__ == "__main__":
-    action_node_example()
