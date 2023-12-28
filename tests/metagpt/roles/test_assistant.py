@@ -36,7 +36,7 @@ async def test_run():
                     {
                         "content": "who is tulin",
                         "role": "user",
-                        "id": 1,
+                        "id": "1",
                     },
                     {"content": "The one who eaten a poison apple.", "role": "assistant"},
                 ],
@@ -53,7 +53,7 @@ async def test_run():
                     {
                         "content": "can you draw me an picture?",
                         "role": "user",
-                        "id": 1,
+                        "id": "1",
                     },
                     {"content": "Yes, of course. What do you want me to draw", "role": "assistant"},
                 ],
