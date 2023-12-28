@@ -36,9 +36,12 @@ async def test_zhipuai_acompletion(mocker):
     assert resp["code"] == 200
     assert "chatglm-turbo" in resp["data"]["choices"][0]["content"]
 
+
 def test_zhipuai_proxy(mocker):
     import openai
+
     from metagpt.config import CONFIG
-    CONFIG.openai_proxy = 'http://127.0.0.1:8080'
+
+    CONFIG.openai_proxy = "http://127.0.0.1:8080"
     _ = ZhiPuAIGPTAPI()
     assert openai.proxy == CONFIG.openai_proxy
