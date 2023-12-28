@@ -48,10 +48,9 @@ class OpenLLMGPTAPI(OpenAILLM):
         self._init_client()
         self.model = self.config.open_llm_api_model  # `self.model` should after `_make_client` to rewrite it
 
-    def _make_client_kwargs(self) -> (dict, dict):
+    def _make_client_kwargs(self) -> dict:
         kwargs = dict(api_key="sk-xxx", base_url=self.config.open_llm_api_base)
-        async_kwargs = kwargs.copy()
-        return kwargs, async_kwargs
+        return kwargs
 
     def _calc_usage(self, messages: list[dict], rsp: str) -> CompletionUsage:
         usage = CompletionUsage(prompt_tokens=0, completion_tokens=0, total_tokens=0)
