@@ -1,7 +1,7 @@
 aiohttp==3.8.4
 #azure_storage==0.37.0
 channels==4.0.0
-chromadb==0.4.21
+# chromadb
 # Django==4.1.5
 # docx==0.2.4
 #faiss==1.5.3

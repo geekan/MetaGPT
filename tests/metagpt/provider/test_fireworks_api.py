@@ -23,7 +23,12 @@ default_resp = ChatCompletion(
     object="chat.completion",
     created=1703300855,
     choices=[
-        Choice(finish_reason="stop", index=0, message=ChatCompletionMessage(role="assistant", content=resp_content))
+        Choice(
+            finish_reason="stop",
+            logprobs=None,
+            index=0,
+            message=ChatCompletionMessage(role="assistant", content=resp_content),
+        )
     ],
     usage=CompletionUsage(completion_tokens=110, prompt_tokens=92, total_tokens=202),
 )
