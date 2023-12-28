@@ -14,9 +14,9 @@ def test_skill_manager():
     manager = SkillManager()
     logger.info(manager._store)
 
-    write_prd = WritePRD("WritePRD")
+    write_prd = WritePRD()
     write_prd.desc = "基于老板或其他人的需求进行PRD的撰写，包括用户故事、需求分解等"
-    write_test = WriteTest("WriteTest")
+    write_test = WriteTest()
     write_test.desc = "进行测试用例的撰写"
     manager.add_skill(write_prd)
     manager.add_skill(write_test)
