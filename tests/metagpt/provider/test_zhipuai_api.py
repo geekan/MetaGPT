@@ -53,6 +53,7 @@ async def test_zhipuai_acompletion(mocker):
     assert resp == resp_content
 
 
+
 def test_zhipuai_proxy(mocker):
     import openai
 
