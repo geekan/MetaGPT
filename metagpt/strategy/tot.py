@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 
 from metagpt.llm import LLM
 from metagpt.logs import logger
-from metagpt.provider.base_gpt_api import BaseGPTAPI
+from metagpt.provider.base_llm import BaseLLM
 from metagpt.strategy.base import ThoughtNode, ThoughtTree
 from metagpt.strategy.tot_schema import MethodSelect, Strategy, ThoughtSolverConfig
 from metagpt.utils.common import CodeParser
@@ -30,7 +30,7 @@ Output a list of jsons following the format:
 
 class ThoughtSolverBase(BaseModel):
     thought_tree: str = ""
-    llm: BaseGPTAPI = Field(default_factory=LLM, exclude=True)
+    llm: BaseLLM = Field(default_factory=LLM, exclude=True)
     config: ThoughtSolverConfig = Field(default_factory=ThoughtSolverConfig)
 
     def __init__(self, **kwargs: Any):

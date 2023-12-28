@@ -58,7 +58,7 @@ class GeminiGPTAPI(BaseLLM):
         genai.configure(api_key=config.gemini_api_key)
 
     def _user_msg(self, msg: str) -> dict[str, str]:
-        # Not to change BaseGPTAPI default functions but update with Gemini's conversation format.
+        # Not to change BaseLLM default functions but update with Gemini's conversation format.
         # You should follow the format.
         return {"role": "user", "parts": [msg]}
 
