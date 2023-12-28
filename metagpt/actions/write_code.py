@@ -163,14 +163,13 @@ class WriteCode(Action):
         code_filenames = m.get("Task list", [])
         codes = []
         src_file_repo = CONFIG.git_repo.new_file_repository(relative_path=CONFIG.src_workspace)
-        old_file_repo = CONFIG.git_repo.new_file_repository(relative_path=CONFIG.old_workspace)
-
-        src_files = src_file_repo.all_files
-        old_files = old_file_repo.all_files
-        union_files_list = list(set(src_files) | set(old_files))
 
         if mode == "guide":
             # 从两个repo中取code，并结合在一起
+            src_files = src_file_repo.all_files
+            old_file_repo = CONFIG.git_repo.new_file_repository(relative_path=CONFIG.old_workspace)
+            old_files = old_file_repo.all_files
+            union_files_list = list(set(src_files) | set(old_files))
             for filename in union_files_list:
                 if filename == exclude:
                     if filename in old_files:
@@ -181,10 +180,11 @@ class WriteCode(Action):
                 else:
                     doc = await src_file_repo.get(filename=filename)  # 使用先前生成的代码
                     if not doc:
-                        if filename in old_files:
-                            doc = await old_file_repo.get(filename=filename)  # 使用原始代码
-                        else:
-                            continue
+                        # if filename in old_files:
+                        #     doc = await old_file_repo.get(filename=filename)  # 使用原始代码
+                        # else:
+                        #     continue
+                        continue  # 跳过
                 codes.append(f"----- {filename}\n```{doc.content}```")
 
         else:

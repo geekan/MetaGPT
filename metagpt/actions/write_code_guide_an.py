@@ -18,8 +18,7 @@ from metagpt.schema import Document
 GUIDELINE = ActionNode(
     key="Code Guideline",
     expected_type=list[str],
-    instruction="You are a professional software engineer, and your main task is to "
-    "proposing incremental development plans and code guidance",
+    instruction="crafting comprehensive incremental development plans and providing detailed code guidance",
     example=[
         "`calculator.py` should be extended to include methods for subtraction, multiplication, and division. Error handling should be implemented for division to prevent division by zero.",
         "New endpoints for subtraction, multiplication, and division should be added to `main.py`.",
@@ -83,7 +82,7 @@ if __name__ == '__main__':
 
 CODE_GUIDE_CONTEXT = """
 ### NOTICE
-Role: You are a professional software engineer, and your main task is to write code Guideline and code craft with triple quote, based on the following attentions and context. Output format carefully referenced "Format example".
+Role: You are a professional software engineer, and your main task is to craft comprehensive incremental development plans and provide detailed code guidance with triple quote, based on the following attentions and context. Output format carefully referenced "Format example".
 1. Determine the scope of responsibilities of each file and what classes and methods need to be implemented.
 2. Import all referenced classes.
 3. Implement all methods. 
@@ -159,8 +158,7 @@ ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenc
 5. CAREFULLY CHECK THAT YOU DONT MISS ANY NECESSARY CLASS/FUNCTION IN THIS FILE.
 6. Before using a external variable/module, make sure you import it first.
 7. Write out EVERY CODE DETAIL, DON'T LEAVE TODO.
-8. When Task List code files do not include Legacy Code files, you need to seamlessly merge and adjust Legacy Code files that do not appear in the Task List into the code files of the task list being written based on the guideline.
-9. Attention: Make modifications and additions to the legacy code in accordance with the provided guidelines and API. Ensure that the complete code is implemented without any omissions. 
+8. Attention: Make modifications and additions to the legacy code in accordance with the provided guidelines and API. Ensure that the complete code is implemented without any omissions. 
 """
 
 CODE_GUIDE_CONTEXT_EXAMPLE = """
