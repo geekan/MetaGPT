@@ -72,6 +72,7 @@ class Config(metaclass=Singleton):
         self.inc = False
         self.reqa_file = ""
         self.max_auto_summarize_code = 0
+        self.git_reinit = False
 
         self._init_with_config_files_and_env(yaml_file)
         # The agent needs to be billed per user, so billing information cannot be destroyed when the session ends.

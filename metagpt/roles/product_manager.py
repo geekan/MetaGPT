@@ -40,10 +40,11 @@ class ProductManager(Role):
 
     async def _think(self) -> bool:
         """Decide what to do"""
-        if CONFIG.git_repo:
+        if CONFIG.git_repo and not CONFIG.git_reinit:
             self._set_state(1)
         else:
             self._set_state(0)
+            CONFIG.git_reinit = False
             self.todo_action = any_to_name(WritePRD)
         return bool(self._rc.todo)
 

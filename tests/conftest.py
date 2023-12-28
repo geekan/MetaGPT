@@ -89,6 +89,7 @@ def loguru_caplog(caplog):
 @pytest.fixture(scope="session", autouse=True)
 def setup_and_teardown_git_repo(request):
     CONFIG.git_repo = GitRepository(local_path=DEFAULT_WORKSPACE_ROOT / "unittest")
+    CONFIG.git_reinit = True
 
     # Destroy git repo at the end of the test session.
     def fin():
