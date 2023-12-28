@@ -24,9 +24,10 @@ async def test_empty_team():
 
 
 def test_startup():
-    args = ["Make a 2048 game"]
+    args = ["Make a cli snake game"]
     result = runner.invoke(app, args)
     logger.info(result)
+    logger.info(result.output)
 
 
 if __name__ == "__main__":
