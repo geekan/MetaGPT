@@ -76,6 +76,7 @@ async def test_action_node_one_layer():
     assert "key-a" in markdown_template
 
     assert node_dict["key-a"] == "instruction-b"
+    assert "key-a" in repr(node)
 
 
 @pytest.mark.asyncio
@@ -116,10 +117,27 @@ WRITE_TASKS_OUTPUT_MAPPING = {
     "Anything UNCLEAR": (str, ...),
 }
 
+WRITE_TASKS_OUTPUT_MAPPING_MISSING = {
+    "Required Python third-party packages": (str, ...),
+}
+
 
 def test_create_model_class():
     test_class = ActionNode.create_model_class("test_class", WRITE_TASKS_OUTPUT_MAPPING)
     assert test_class.__name__ == "test_class"
+
+    output = test_class(**t_dict)
+    print(output.schema())
+    assert output.schema()["title"] == "test_class"
+    assert output.schema()["type"] == "object"
+    assert output.schema()["properties"]["Full API spec"]
+
+
+def test_create_model_class_missing():
+    test_class = ActionNode.create_model_class("test_class", WRITE_TASKS_OUTPUT_MAPPING_MISSING)
+    assert test_class.__name__ == "test_class"
+
+    _ = test_class(**t_dict)  # 这里应该要挂掉
 
 
 def test_create_model_class_with_mapping():
