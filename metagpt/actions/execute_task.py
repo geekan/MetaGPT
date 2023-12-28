@@ -17,7 +17,7 @@ from metagpt.schema import Message
 class ExecuteTask(Action):
     name: str = "ExecuteTask"
     context: list[Message] = []
-    llm: BaseLLM = Field(default_factory=LLM)
+    llm: BaseLLM = Field(default_factory=LLM, exclude=True)
 
     async def run(self, *args, **kwargs):
         pass

@@ -52,7 +52,7 @@ Now you should start rewriting the code:
 class DebugError(Action):
     name: str = "DebugError"
     context: RunCodeContext = Field(default_factory=RunCodeContext)
-    llm: BaseLLM = Field(default_factory=LLM)
+    llm: BaseLLM = Field(default_factory=LLM, exclude=True)
 
     async def run(self, *args, **kwargs) -> str:
         output_doc = await FileRepository.get_file(

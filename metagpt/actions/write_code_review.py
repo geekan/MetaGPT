@@ -123,7 +123,7 @@ REWRITE_CODE_TEMPLATE = """
 class WriteCodeReview(Action):
     name: str = "WriteCodeReview"
     context: CodingContext = Field(default_factory=CodingContext)
-    llm: BaseLLM = Field(default_factory=LLM)
+    llm: BaseLLM = Field(default_factory=LLM, exclude=True)
 
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     async def write_code_review_and_rewrite(self, context_prompt, cr_prompt, filename):

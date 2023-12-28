@@ -44,7 +44,7 @@ NEW_REQ_TEMPLATE = """
 class WriteDesign(Action):
     name: str = ""
     context: Optional[str] = None
-    llm: BaseLLM = Field(default_factory=LLM)
+    llm: BaseLLM = Field(default_factory=LLM, exclude=True)
     desc: str = (
         "Based on the PRD, think about the system design, and design the corresponding APIs, "
         "data structures, library tables, processes, and paths. Please provide your design, feedback "

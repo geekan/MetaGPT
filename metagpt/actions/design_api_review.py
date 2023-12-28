@@ -18,7 +18,7 @@ from metagpt.provider.base_llm import BaseLLM
 class DesignReview(Action):
     name: str = "DesignReview"
     context: Optional[str] = None
-    llm: BaseLLM = Field(default_factory=LLM)
+    llm: BaseLLM = Field(default_factory=LLM, exclude=True)
 
     async def run(self, prd, api_design):
         prompt = (

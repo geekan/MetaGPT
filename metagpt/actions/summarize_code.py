@@ -95,7 +95,7 @@ flowchart TB
 class SummarizeCode(Action):
     name: str = "SummarizeCode"
     context: CodeSummarizeContext = Field(default_factory=CodeSummarizeContext)
-    llm: BaseLLM = Field(default_factory=LLM)
+    llm: BaseLLM = Field(default_factory=LLM, exclude=True)
 
     @retry(stop=stop_after_attempt(2), wait=wait_random_exponential(min=1, max=60))
     async def summarize_code(self, prompt):

@@ -45,7 +45,7 @@ you should correctly import the necessary classes based on these file locations!
 class WriteTest(Action):
     name: str = "WriteTest"
     context: Optional[TestingContext] = None
-    llm: BaseLLM = Field(default_factory=LLM)
+    llm: BaseLLM = Field(default_factory=LLM, exclude=True)
 
     async def write_code(self, prompt):
         code_rsp = await self._aask(prompt)

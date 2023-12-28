@@ -20,7 +20,7 @@ class WriteTeachingPlanPart(Action):
     """Write Teaching Plan Part"""
 
     context: Optional[str] = None
-    llm: BaseLLM = Field(default_factory=LLM)
+    llm: BaseLLM = Field(default_factory=LLM, exclude=True)
     topic: str = ""
     language: str = "Chinese"
     rsp: Optional[str] = None

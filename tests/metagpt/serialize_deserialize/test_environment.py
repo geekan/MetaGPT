@@ -13,6 +13,7 @@ from metagpt.schema import Message
 from metagpt.utils.common import any_to_str
 from tests.metagpt.serialize_deserialize.test_serdeser_base import (
     ActionOK,
+    ActionRaise,
     RoleC,
     serdeser_path,
 )
@@ -55,9 +56,9 @@ def test_environment_serdeser():
     assert len(new_env.roles) == 1
 
     assert list(new_env.roles.values())[0].states == list(environment.roles.values())[0].states
-    assert list(new_env.roles.values())[0].actions == list(environment.roles.values())[0].actions
     assert isinstance(list(environment.roles.values())[0].actions[0], ActionOK)
     assert type(list(new_env.roles.values())[0].actions[0]) == ActionOK
+    assert type(list(new_env.roles.values())[0].actions[1]) == ActionRaise
 
 
 def test_environment_serdeser_v2():

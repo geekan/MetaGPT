@@ -27,7 +27,7 @@ class WriteDirectory(Action):
     """
 
     name: str = "WriteDirectory"
-    llm: BaseLLM = Field(default_factory=LLM)
+    llm: BaseLLM = Field(default_factory=LLM, exclude=True)
     language: str = "Chinese"
 
     async def run(self, topic: str, *args, **kwargs) -> Dict:

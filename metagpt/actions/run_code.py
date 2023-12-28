@@ -79,7 +79,7 @@ standard errors:
 class RunCode(Action):
     name: str = "RunCode"
     context: RunCodeContext = Field(default_factory=RunCodeContext)
-    llm: BaseLLM = Field(default_factory=LLM)
+    llm: BaseLLM = Field(default_factory=LLM, exclude=True)
 
     @classmethod
     @handle_exception

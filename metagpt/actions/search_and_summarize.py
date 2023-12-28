@@ -109,7 +109,7 @@ You are a member of a professional butler team and will provide helpful suggesti
 class SearchAndSummarize(Action):
     name: str = ""
     content: Optional[str] = None
-    llm: BaseLLM = Field(default_factory=LLM)
+    llm: BaseLLM = Field(default_factory=LLM, exclude=True)
     config: None = Field(default_factory=Config)
     engine: Optional[SearchEngineType] = CONFIG.search_engine
     search_func: Optional[Any] = None

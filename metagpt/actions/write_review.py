@@ -38,7 +38,7 @@ class WriteReview(Action):
     """Write a review for the given context."""
 
     name: str = "WriteReview"
-    llm: BaseLLM = Field(default_factory=LLM)
+    llm: BaseLLM = Field(default_factory=LLM, exclude=True)
 
     async def run(self, context):
         return await WRITE_REVIEW_NODE.fill(context=context, llm=self.llm, schema="json")

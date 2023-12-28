@@ -28,7 +28,7 @@ class PrepareDocuments(Action):
 
     name: str = "PrepareDocuments"
     context: Optional[str] = None
-    llm: BaseLLM = Field(default_factory=LLM)
+    llm: BaseLLM = Field(default_factory=LLM, exclude=True)
 
     def _init_repo(self):
         """Initialize the Git environment."""

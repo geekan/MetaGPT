@@ -163,7 +163,7 @@ class WriteDocstring(Action):
 
     desc: str = "Write docstring for code."
     context: Optional[str] = None
-    llm: BaseLLM = Field(default_factory=LLM)
+    llm: BaseLLM = Field(default_factory=LLM, exclude=True)
 
     async def run(
         self,

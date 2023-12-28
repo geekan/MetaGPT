@@ -5,7 +5,6 @@
 import pytest
 
 from metagpt.actions import WriteDesign, WriteTasks
-from metagpt.llm import LLM
 
 
 def test_write_design_serialize():
@@ -28,7 +27,6 @@ async def test_write_design_deserialize():
     serialized_data = action.model_dump()
     new_action = WriteDesign(**serialized_data)
     assert new_action.name == ""
-    assert new_action.llm == LLM()
     await new_action.run(with_messages="write a cli snake game")
 
 
@@ -38,5 +36,4 @@ async def test_write_task_deserialize():
     serialized_data = action.model_dump()
     new_action = WriteTasks(**serialized_data)
     assert new_action.name == "CreateTasks"
-    assert new_action.llm == LLM()
     await new_action.run(with_messages="write a cli snake game")

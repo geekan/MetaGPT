@@ -68,7 +68,7 @@ NEW_REQ_TEMPLATE = """
 class WritePRD(Action):
     name: str = ""
     content: Optional[str] = None
-    llm: BaseLLM = Field(default_factory=LLM)
+    llm: BaseLLM = Field(default_factory=LLM, exclude=True)
 
     async def run(self, with_messages, schema=CONFIG.prompt_schema, *args, **kwargs) -> ActionOutput | Message:
         # Determine which requirement documents need to be rewritten: Use LLM to assess whether new requirements are

@@ -43,7 +43,7 @@ NEW_REQ_TEMPLATE = """
 class WriteTasks(Action):
     name: str = "CreateTasks"
     context: Optional[str] = None
-    llm: BaseLLM = Field(default_factory=LLM)
+    llm: BaseLLM = Field(default_factory=LLM, exclude=True)
 
     async def run(self, with_messages, schema=CONFIG.prompt_schema):
         system_design_file_repo = CONFIG.git_repo.new_file_repository(SYSTEM_DESIGN_FILE_REPO)
