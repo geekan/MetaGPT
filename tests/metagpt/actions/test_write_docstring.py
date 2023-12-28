@@ -30,3 +30,13 @@ class Person:
 async def test_write_docstring(style: str, part: str):
     ret = await WriteDocstring().run(code, style=style)
     assert part in ret
+
+
+@pytest.mark.asyncio
+async def test_write():
+    code = await WriteDocstring.write_docstring(__file__)
+    assert code
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-s"])

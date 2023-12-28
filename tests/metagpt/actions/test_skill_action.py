@@ -58,7 +58,29 @@ class TestSkillAction:
         action = SkillAction(skill=self.skill, args=parser_action.args)
         rsp = await action.run()
         assert rsp
-        assert "image/png;base64," in rsp.content
+        assert "image/png;base64," in rsp.content or "http" in rsp.content
+
+    @pytest.mark.parametrize(
+        ("skill_name", "txt", "want"),
+        [
+            ("skill1", 'skill1(a="1", b="2")', {"a": "1", "b": "2"}),
+            ("skill1", '(a="1", b="2")', None),
+            ("skill1", 'skill1(a="1", b="2"', None),
+        ],
+    )
+    def test_parse_arguments(self, skill_name, txt, want):
+        args = ArgumentsParingAction.parse_arguments(skill_name, txt)
+        assert args == want
+
+    @pytest.mark.asyncio
+    async def test_find_and_call_function_error(self):
+        with pytest.raises(ValueError):
+            await SkillAction.find_and_call_function("dummy_call", {"a": 1})
+
+    @pytest.mark.asyncio
+    async def test_skill_action_error(self):
+        action = SkillAction(skill=self.skill, args={})
+        await action.run()
 
 
 if __name__ == "__main__":

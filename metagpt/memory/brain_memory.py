@@ -55,9 +55,9 @@ class BrainMemory(BaseModel):
         return "\n".join(texts)
 
     @staticmethod
-    async def loads(redis_key: str, redis_conf: Dict = None) -> "BrainMemory":
-        redis = Redis(conf=redis_conf)
-        if not redis.is_valid() or not redis_key:
+    async def loads(redis_key: str) -> "BrainMemory":
+        redis = Redis()
+        if not redis.is_valid or not redis_key:
             return BrainMemory()
         v = await redis.get(key=redis_key)
         logger.debug(f"REDIS GET {redis_key} {v}")
@@ -67,11 +67,11 @@ class BrainMemory(BaseModel):
             return bm
         return BrainMemory()
 
-    async def dumps(self, redis_key: str, timeout_sec: int = 30 * 60, redis_conf: Dict = None):
+    async def dumps(self, redis_key: str, timeout_sec: int = 30 * 60):
         if not self.is_dirty:
             return
-        redis = Redis(conf=redis_conf)
-        if not redis.is_valid() or not redis_key:
+        redis = Redis()
+        if not redis.is_valid or not redis_key:
             return False
         v = self.model_dump_json()
         if self.cacheable:
@@ -86,26 +86,27 @@ class BrainMemory(BaseModel):
     async def set_history_summary(self, history_summary, redis_key, redis_conf):
         if self.historical_summary == history_summary:
             if self.is_dirty:
-                await self.dumps(redis_key=redis_key, redis_conf=redis_conf)
+                await self.dumps(redis_key=redis_key)
                 self.is_dirty = False
             return
 
         self.historical_summary = history_summary
         self.history = []
-        await self.dumps(redis_key=redis_key, redis_conf=redis_conf)
+        await self.dumps(redis_key=redis_key)
         self.is_dirty = False
 
     def add_history(self, msg: Message):
         if msg.id:
             if self.to_int(msg.id, 0) <= self.to_int(self.last_history_id, -1):
                 return
-        self.history.append(msg.model_dump())
+
+        self.history.append(msg)
         self.last_history_id = str(msg.id)
         self.is_dirty = True
 
     def exists(self, text) -> bool:
         for m in reversed(self.history):
-            if m.get("content") == text:
+            if m.content == text:
                 return True
         return False
 
@@ -163,7 +164,7 @@ class BrainMemory(BaseModel):
         msgs.reverse()
         self.history = msgs
         self.is_dirty = True
-        await self.dumps(redis_key=CONFIG.REDIS_KEY, redis_conf=CONFIG.REDIS_CONF)
+        await self.dumps(redis_key=CONFIG.REDIS_KEY)
         self.is_dirty = False
 
         return BrainMemory.to_metagpt_history_format(self.history)
@@ -217,7 +218,7 @@ class BrainMemory(BaseModel):
         return await self._openai_rewrite(sentence=sentence, context=context, llm=llm)
 
     @staticmethod
-    async def _metagpt_rewrite(sentence: str):
+    async def _metagpt_rewrite(sentence: str, **kwargs):
         return sentence
 
     @staticmethod

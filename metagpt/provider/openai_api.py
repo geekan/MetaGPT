@@ -69,7 +69,7 @@ class OpenAILLM(BaseLLM):
         self.aclient = AsyncOpenAI(**kwargs)
 
     def _make_client_kwargs(self) -> dict:
-        kwargs = {"api_key": self.config.OPENAI_API_KEY, "base_url": self.config.OPENAI_BASE_URL}
+        kwargs = {"api_key": self.config.openai_api_key, "base_url": self.config.openai_base_url}
 
         # to use proxy, openai v1 needs http_client
         if proxy_params := self._get_proxy_params():
@@ -81,8 +81,8 @@ class OpenAILLM(BaseLLM):
         params = {}
         if self.config.openai_proxy:
             params = {"proxies": self.config.openai_proxy}
-            if self.config.OPENAI_BASE_URL:
-                params["base_url"] = self.config.OPENAI_BASE_URL
+            if self.config.openai_base_url:
+                params["base_url"] = self.config.openai_base_url
 
         return params
 

@@ -6,6 +6,7 @@
 """
 
 import asyncio
+import re
 
 from pydantic import BaseModel
 
@@ -107,9 +108,11 @@ class Researcher(Role):
         return msg
 
     def write_report(self, topic: str, content: str):
+        filename = re.sub(r'[\\/:"*?<>|]+', " ", topic)
+        filename = filename.replace("\n", "")
         if not RESEARCH_PATH.exists():
             RESEARCH_PATH.mkdir(parents=True)
-        filepath = RESEARCH_PATH / f"{topic}.md"
+        filepath = RESEARCH_PATH / f"{filename}.md"
         filepath.write_text(content)
 
 

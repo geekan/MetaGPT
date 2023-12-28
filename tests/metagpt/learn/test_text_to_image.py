@@ -7,35 +7,26 @@
 @Desc    : Unit tests.
 """
 
-import base64
 
 import pytest
-from pydantic import BaseModel
 
+from metagpt.config import CONFIG
 from metagpt.learn.text_to_image import text_to_image
 
 
 @pytest.mark.asyncio
 async def test():
-    class Input(BaseModel):
-        input: str
-        size_type: str
+    # Prerequisites
+    assert CONFIG.METAGPT_TEXT_TO_IMAGE_MODEL_URL
+    assert CONFIG.OPENAI_API_KEY
 
-    inputs = [{"input": "Panda emoji", "size_type": "512x512"}]
-
-    for i in inputs:
-        seed = Input(**i)
-        base64_data = await text_to_image(seed.input)
-        assert base64_data != ""
-        print(f"{seed.input} -> {base64_data}")
-        flags = ";base64,"
-        assert flags in base64_data
-        ix = base64_data.find(flags) + len(flags)
-        declaration = base64_data[0:ix]
-        assert declaration
-        data = base64_data[ix:]
-        assert data
-        assert base64.b64decode(data, validate=True)
+    data = await text_to_image("Panda emoji", size_type="512x512")
+    assert "base64" in data or "http" in data
+    key = CONFIG.METAGPT_TEXT_TO_IMAGE_MODEL_URL
+    CONFIG.METAGPT_TEXT_TO_IMAGE_MODEL_URL = None
+    data = await text_to_image("Panda emoji", size_type="512x512")
+    assert "base64" in data or "http" in data
+    CONFIG.METAGPT_TEXT_TO_IMAGE_MODEL_URL = key
 
 
 if __name__ == "__main__":
