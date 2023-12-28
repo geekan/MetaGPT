@@ -131,13 +131,11 @@ class OutputParser:
             try:
                 content = cls.parse_code(text=content)
             except Exception:
-                pass
-
-            # 尝试解析list
-            try:
-                content = cls.parse_file_list(text=content)
-            except Exception:
-                pass
+                # 尝试解析list
+                try:
+                    content = cls.parse_file_list(text=content)
+                except Exception:
+                    pass
             parsed_data[block] = content
         return parsed_data
 
