@@ -57,10 +57,10 @@ async def mock_llm_achat_completion_stream(self, messgaes: list[dict]) -> str:
 
 @pytest.mark.asyncio
 async def test_fireworks_acompletion(mocker):
-    mocker.patch("metagpt.provider.fireworks_api.FireWorksGPTAPI.acompletion", mock_llm_acompletion)
-    mocker.patch("metagpt.provider.fireworks_api.FireWorksGPTAPI._achat_completion", mock_llm_acompletion)
+    mocker.patch("metagpt.provider.fireworks_api.FireworksLLM.acompletion", mock_llm_acompletion)
+    mocker.patch("metagpt.provider.fireworks_api.FireworksLLM._achat_completion", mock_llm_acompletion)
     mocker.patch(
-        "metagpt.provider.fireworks_api.FireWorksGPTAPI._achat_completion_stream", mock_llm_achat_completion_stream
+        "metagpt.provider.fireworks_api.FireworksLLM._achat_completion_stream", mock_llm_achat_completion_stream
     )
     fireworks_gpt = FireworksLLM()
 
