@@ -33,10 +33,7 @@ async def test_invoice_ocr(invoice_path: Path):
 @pytest.mark.parametrize(
     ("invoice_path", "expected_result"),
     [
-        (
-            Path("invoices/invoice-1.pdf"),
-            {"收款人": "小明", "城市": "深圳", "总费用/元": 412.00, "开票日期": "2023年02月03日"}
-        ),
+        (Path("invoices/invoice-1.pdf"), {"收款人": "小明", "城市": "深圳", "总费用/元": 412.00, "开票日期": "2023年02月03日"}),
     ],
 )
 async def test_generate_table(invoice_path: Path, expected_result: dict):
