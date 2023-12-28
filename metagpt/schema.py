@@ -23,9 +23,17 @@ from abc import ABC
 from asyncio import Queue, QueueEmpty, wait_for
 from json import JSONDecodeError
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Type, TypeVar
+from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, Union
 
-from pydantic import BaseModel, Field
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    PrivateAttr,
+    field_serializer,
+    field_validator,
+)
+from pydantic_core import core_schema
 
 from metagpt.config import CONFIG
 from metagpt.const import (
@@ -44,6 +52,64 @@ from metagpt.utils.serialize import (
     actionoutput_mapping_to_str,
     actionoutput_str_to_mapping,
 )
+
+
+class SerDeserMixin(BaseModel):
+    """SereDeserMixin for subclass' ser&deser"""
+
+    __is_polymorphic_base = False
+    __subclasses_map__ = {}
+
+    @classmethod
+    def __get_pydantic_core_schema__(
+        cls, source: type["SerDeserMixin"], handler: Callable[[Any], core_schema.CoreSchema]
+    ) -> core_schema.CoreSchema:
+        schema = handler(source)
+        og_schema_ref = schema["ref"]
+        schema["ref"] += ":mixin"
+
+        return core_schema.no_info_before_validator_function(
+            cls.__deserialize_with_real_type__,
+            schema=schema,
+            ref=og_schema_ref,
+            serialization=core_schema.wrap_serializer_function_ser_schema(cls.__serialize_add_class_type__),
+        )
+
+    @classmethod
+    def __serialize_add_class_type__(
+        cls,
+        value,
+        handler: core_schema.SerializerFunctionWrapHandler,
+    ) -> Any:
+        ret = handler(value)
+        if not len(cls.__subclasses__()):
+            # only subclass add `__module_class_name`
+            ret["__module_class_name"] = f"{cls.__module__}.{cls.__qualname__}"
+        return ret
+
+    @classmethod
+    def __deserialize_with_real_type__(cls, value: Any):
+        if not isinstance(value, dict):
+            return value
+
+        if not cls.__is_polymorphic_base or (len(cls.__subclasses__()) and "__module_class_name" not in value):
+            # add right condition to init BaseClass like Action()
+            return value
+        module_class_name = value.get("__module_class_name", None)
+        if module_class_name is None:
+            raise ValueError("Missing field: __module_class_name")
+
+        class_type = cls.__subclasses_map__.get(module_class_name, None)
+
+        if class_type is None:
+            raise TypeError("Trying to instantiate {module_class_name} which not defined yet.")
+
+        return class_type(**value)
+
+    def __init_subclass__(cls, is_polymorphic_base: bool = False, **kwargs):
+        cls.__is_polymorphic_base = is_polymorphic_base
+        cls.__subclasses_map__[f"{cls.__module__}.{cls.__qualname__}"] = cls
+        super().__init_subclass__(**kwargs)
 
 
 class SimpleMessage(BaseModel):
@@ -102,33 +168,64 @@ class Documents(BaseModel):
 class Message(BaseModel):
     """list[<role>: <content>]"""
 
-    id: str  # According to Section 2.2.3.1.1 of RFC 135
+    id: str = Field(default="", validate_default=True)  # According to Section 2.2.3.1.1 of RFC 135
     content: str
-    instruct_content: BaseModel = None
+    instruct_content: Optional[BaseModel] = Field(default=None, validate_default=True)
     role: str = "user"  # system / user / assistant
-    cause_by: str = ""
-    sent_from: str = ""
-    send_to: Set = Field(default_factory={MESSAGE_ROUTE_TO_ALL})
+    cause_by: str = Field(default="", validate_default=True)
+    sent_from: str = Field(default="", validate_default=True)
+    send_to: set = Field(default={MESSAGE_ROUTE_TO_ALL}, validate_default=True)
 
-    def __init__(self, content: str = "", **kwargs):
-        ic = kwargs.get("instruct_content", None)
+    @field_validator("id", mode="before")
+    @classmethod
+    def check_id(cls, id: str) -> str:
+        return id if id else uuid.uuid4().hex
+
+    @field_validator("instruct_content", mode="before")
+    @classmethod
+    def check_instruct_content(cls, ic: Any) -> BaseModel:
         if ic and not isinstance(ic, BaseModel) and "class" in ic:
             # compatible with custom-defined ActionOutput
             mapping = actionoutput_str_to_mapping(ic["mapping"])
 
             actionnode_class = import_class("ActionNode", "metagpt.actions.action_node")  # avoid circular import
             ic_obj = actionnode_class.create_model_class(class_name=ic["class"], mapping=mapping)
-            ic_new = ic_obj(**ic["value"])
-            kwargs["instruct_content"] = ic_new
+            ic = ic_obj(**ic["value"])
+        return ic
 
-        kwargs["id"] = kwargs.get("id", uuid.uuid4().hex)
-        kwargs["content"] = kwargs.get("content", content)
-        kwargs["cause_by"] = any_to_str(
-            kwargs.get("cause_by", import_class("UserRequirement", "metagpt.actions.add_requirement"))
-        )
-        kwargs["sent_from"] = any_to_str(kwargs.get("sent_from", ""))
-        kwargs["send_to"] = any_to_str_set(kwargs.get("send_to", {MESSAGE_ROUTE_TO_ALL}))
-        super(Message, self).__init__(**kwargs)
+    @field_validator("cause_by", mode="before")
+    @classmethod
+    def check_cause_by(cls, cause_by: Any) -> str:
+        return any_to_str(cause_by if cause_by else import_class("UserRequirement", "metagpt.actions.add_requirement"))
+
+    @field_validator("sent_from", mode="before")
+    @classmethod
+    def check_sent_from(cls, sent_from: Any) -> str:
+        return any_to_str(sent_from if sent_from else "")
+
+    @field_validator("send_to", mode="before")
+    @classmethod
+    def check_send_to(cls, send_to: Any) -> set:
+        return any_to_str_set(send_to if send_to else {MESSAGE_ROUTE_TO_ALL})
+
+    @field_serializer("instruct_content", mode="plain")
+    def ser_instruct_content(self, ic: BaseModel) -> Union[str, None]:
+        ic_dict = None
+        if ic:
+            # compatible with custom-defined ActionOutput
+            schema = ic.model_json_schema()
+            # `Documents` contain definitions
+            if "definitions" not in schema:
+                # TODO refine with nested BaseModel
+                mapping = actionoutout_schema_to_mapping(schema)
+                mapping = actionoutput_mapping_to_str(mapping)
+
+                ic_dict = {"class": schema["title"], "mapping": mapping, "value": ic.model_dump()}
+        return ic_dict
+
+    def __init__(self, content: str = "", **data: Any):
+        data["content"] = data.get("content", content)
+        super().__init__(**data)
 
     def __setattr__(self, key, val):
         """Override `@property.setter`, convert non-string parameters into string parameters."""
@@ -142,26 +239,10 @@ class Message(BaseModel):
             new_val = val
         super().__setattr__(key, new_val)
 
-    def dict(self, *args, **kwargs) -> "DictStrAny":
-        """overwrite the `dict` to dump dynamic pydantic model"""
-        obj_dict = super(Message, self).dict(*args, **kwargs)
-        ic = self.instruct_content
-        if ic:
-            # compatible with custom-defined ActionOutput
-            schema = ic.schema()
-            # `Documents` contain definitions
-            if "definitions" not in schema:
-                # TODO refine with nested BaseModel
-                mapping = actionoutout_schema_to_mapping(schema)
-                mapping = actionoutput_mapping_to_str(mapping)
-
-                obj_dict["instruct_content"] = {"class": schema["title"], "mapping": mapping, "value": ic.dict()}
-        return obj_dict
-
     def __str__(self):
         # prefix = '-'.join([self.role, str(self.cause_by)])
         if self.instruct_content:
-            return f"{self.role}: {self.instruct_content.dict()}"
+            return f"{self.role}: {self.instruct_content.model_dump()}"
         return f"{self.role}: {self.content}"
 
     def __repr__(self):
@@ -173,7 +254,7 @@ class Message(BaseModel):
 
     def dump(self) -> str:
         """Convert the object to json string"""
-        return self.json(exclude_none=True)
+        return self.model_dump_json(exclude_none=True, warnings=False)
 
     @staticmethod
     @handle_exception(exception_type=JSONDecodeError, default_return=None)
@@ -224,19 +305,9 @@ class AIMessage(Message):
 class MessageQueue(BaseModel):
     """Message queue which supports asynchronous updates."""
 
-    _queue: Queue = Field(default_factory=Queue)
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    _private_attributes = {"_queue": Queue()}
-
-    class Config:
-        arbitrary_types_allowed = True
-
-    def __init__(self, **kwargs: Any):
-        for key in self._private_attributes.keys():
-            if key in kwargs:
-                object.__setattr__(self, key, kwargs[key])
-            else:
-                object.__setattr__(self, key, Queue())
+    _queue: Queue = PrivateAttr(default_factory=Queue)
 
     def pop(self) -> Message | None:
         """Pop one message from the queue."""
@@ -312,28 +383,28 @@ class BaseContext(BaseModel, ABC):
 
 class CodingContext(BaseContext):
     filename: str
-    design_doc: Optional[Document]
-    task_doc: Optional[Document]
-    code_doc: Optional[Document]
+    design_doc: Optional[Document] = None
+    task_doc: Optional[Document] = None
+    code_doc: Optional[Document] = None
 
 
 class TestingContext(BaseContext):
     filename: str
     code_doc: Document
-    test_doc: Optional[Document]
+    test_doc: Optional[Document] = None
 
 
 class RunCodeContext(BaseContext):
     mode: str = "script"
-    code: Optional[str]
+    code: Optional[str] = None
     code_filename: str = ""
-    test_code: Optional[str]
+    test_code: Optional[str] = None
     test_filename: str = ""
     command: List[str] = Field(default_factory=list)
     working_directory: str = ""
     additional_python_paths: List[str] = Field(default_factory=list)
-    output_filename: Optional[str]
-    output: Optional[str]
+    output_filename: Optional[str] = None
+    output: Optional[str] = None
 
 
 class RunCodeResult(BaseContext):

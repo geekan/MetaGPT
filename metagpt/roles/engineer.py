@@ -109,7 +109,7 @@ class Engineer(Role):
             coding_context = await todo.run()
             # Code review
             if review:
-                action = WriteCodeReview(context=coding_context, llm=self._llm)
+                action = WriteCodeReview(context=coding_context, llm=self.llm)
                 self._init_action_system_message(action)
                 coding_context = await action.run()
             await src_file_repo.save(
@@ -118,9 +118,12 @@ class Engineer(Role):
                 content=coding_context.code_doc.content,
             )
             msg = Message(
-                content=coding_context.json(), instruct_content=coding_context, role=self.profile, cause_by=WriteCode
+                content=coding_context.model_dump_json(),
+                instruct_content=coding_context,
+                role=self.profile,
+                cause_by=WriteCode,
             )
-            self._rc.memory.add(msg)
+            self.rc.memory.add(msg)
 
             changed_files.add(coding_context.code_doc.filename)
         if not changed_files:
@@ -129,12 +132,12 @@ class Engineer(Role):
 
     async def _act(self) -> Message | None:
         """Determines the mode of action based on whether code review is used."""
-        if self._rc.todo is None:
+        if self.rc.todo is None:
             return None
-        if isinstance(self._rc.todo, WriteCode):
+        if isinstance(self.rc.todo, WriteCode):
             self.next_todo_action = any_to_name(SummarizeCode)
             return await self._act_write_code()
-        if isinstance(self._rc.todo, SummarizeCode):
+        if isinstance(self.rc.todo, SummarizeCode):
             self.next_todo_action = any_to_name(WriteCode)
             return await self._act_summarize()
         return None
@@ -170,7 +173,7 @@ class Engineer(Role):
                 tasks.append(todo.context.dict())
                 await code_summaries_file_repo.save(
                     filename=Path(todo.context.design_filename).name,
-                    content=todo.context.json(),
+                    content=todo.context.model_dump_json(),
                     dependencies=dependencies,
                 )
             else:
@@ -193,7 +196,7 @@ class Engineer(Role):
         )
 
     async def _is_pass(self, summary) -> (str, str):
-        rsp = await self._llm.aask(msg=IS_PASS_PROMPT.format(context=summary), stream=False)
+        rsp = await self.llm.aask(msg=IS_PASS_PROMPT.format(context=summary), stream=False)
         logger.info(rsp)
         if "YES" in rsp:
             return True, rsp
@@ -204,17 +207,17 @@ class Engineer(Role):
             CONFIG.src_workspace = CONFIG.git_repo.workdir / CONFIG.git_repo.workdir.name
         write_code_filters = any_to_str_set([WriteTasks, SummarizeCode, FixBug])
         summarize_code_filters = any_to_str_set([WriteCode, WriteCodeReview])
-        if not self._rc.news:
+        if not self.rc.news:
             return None
-        msg = self._rc.news[0]
+        msg = self.rc.news[0]
         if msg.cause_by in write_code_filters:
-            logger.debug(f"TODO WriteCode:{msg.json()}")
+            logger.debug(f"TODO WriteCode:{msg.model_dump_json()}")
             await self._new_code_actions(bug_fix=msg.cause_by == any_to_str(FixBug))
-            return self._rc.todo
+            return self.rc.todo
         if msg.cause_by in summarize_code_filters and msg.sent_from == any_to_str(self):
-            logger.debug(f"TODO SummarizeCode:{msg.json()}")
+            logger.debug(f"TODO SummarizeCode:{msg.model_dump_json()}")
             await self._new_summarize_actions()
-            return self._rc.todo
+            return self.rc.todo
         return None
 
     @staticmethod
@@ -241,7 +244,9 @@ class Engineer(Role):
         context = await Engineer._new_coding_context(
             filename, src_file_repo, task_file_repo, design_file_repo, dependency
         )
-        coding_doc = Document(root_path=str(src_file_repo.root_path), filename=filename, content=context.json())
+        coding_doc = Document(
+            root_path=str(src_file_repo.root_path), filename=filename, content=context.model_dump_json()
+        )
         return coding_doc
 
     async def _new_code_actions(self, bug_fix=False):
@@ -266,15 +271,15 @@ class Engineer(Role):
                     filename=task_filename, design_doc=design_doc, task_doc=task_doc, code_doc=old_code_doc
                 )
                 coding_doc = Document(
-                    root_path=str(src_file_repo.root_path), filename=task_filename, content=context.json()
+                    root_path=str(src_file_repo.root_path), filename=task_filename, content=context.model_dump_json()
                 )
                 if task_filename in changed_files.docs:
                     logger.warning(
-                        f"Log to expose potential conflicts: {coding_doc.json()} & "
-                        f"{changed_files.docs[task_filename].json()}"
+                        f"Log to expose potential conflicts: {coding_doc.model_dump_json()} & "
+                        f"{changed_files.docs[task_filename].model_dump_json()}"
                     )
                 changed_files.docs[task_filename] = coding_doc
-        self.code_todos = [WriteCode(context=i, llm=self._llm) for i in changed_files.docs.values()]
+        self.code_todos = [WriteCode(context=i, llm=self.llm) for i in changed_files.docs.values()]
         # Code directly modified by the user.
         dependency = await CONFIG.git_repo.get_dependency()
         for filename in changed_src_files:
@@ -288,10 +293,10 @@ class Engineer(Role):
                 dependency=dependency,
             )
             changed_files.docs[filename] = coding_doc
-            self.code_todos.append(WriteCode(context=coding_doc, llm=self._llm))
+            self.code_todos.append(WriteCode(context=coding_doc, llm=self.llm))
 
         if self.code_todos:
-            self._rc.todo = self.code_todos[0]
+            self.rc.todo = self.code_todos[0]
 
     async def _new_summarize_actions(self):
         src_file_repo = CONFIG.git_repo.new_file_repository(CONFIG.src_workspace)
@@ -304,9 +309,9 @@ class Engineer(Role):
             summarizations[ctx].append(filename)
         for ctx, filenames in summarizations.items():
             ctx.codes_filenames = filenames
-            self.summarize_todos.append(SummarizeCode(context=ctx, llm=self._llm))
+            self.summarize_todos.append(SummarizeCode(context=ctx, llm=self.llm))
         if self.summarize_todos:
-            self._rc.todo = self.summarize_todos[0]
+            self.rc.todo = self.summarize_todos[0]
 
     @property
     def todo(self) -> str:

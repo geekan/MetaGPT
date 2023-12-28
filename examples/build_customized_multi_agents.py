@@ -22,7 +22,7 @@ def parse_code(rsp):
 
 
 class SimpleWriteCode(Action):
-    PROMPT_TEMPLATE = """
+    PROMPT_TEMPLATE: str = """
     Write a python function that can {instruction}.
     Return ```python your_code_here ``` with NO other texts,
     your code:
@@ -50,7 +50,7 @@ class SimpleCoder(Role):
 
 
 class SimpleWriteTest(Action):
-    PROMPT_TEMPLATE = """
+    PROMPT_TEMPLATE: str = """
     Context: {context}
     Write {k} unit tests using pytest for the given function, assuming you have imported it.
     Return ```python your_code_here ``` with NO other texts,
@@ -80,8 +80,8 @@ class SimpleTester(Role):
         self._watch([SimpleWriteCode, SimpleWriteReview])  # feel free to try this too
 
     async def _act(self) -> Message:
-        logger.info(f"{self._setting}: to do {self._rc.todo}({self._rc.todo.name})")
-        todo = self._rc.todo
+        logger.info(f"{self._setting}: to do {self.rc.todo}({self.rc.todo.name})")
+        todo = self.rc.todo
 
         # context = self.get_memories(k=1)[0].content # use the most recent memory as context
         context = self.get_memories()  # use all memories as context
@@ -93,7 +93,7 @@ class SimpleTester(Role):
 
 
 class SimpleWriteReview(Action):
-    PROMPT_TEMPLATE = """
+    PROMPT_TEMPLATE: str = """
     Context: {context}
     Review the test cases and provide one critical comments:
     """

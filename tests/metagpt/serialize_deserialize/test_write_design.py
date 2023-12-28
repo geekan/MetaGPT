@@ -10,22 +10,22 @@ from metagpt.llm import LLM
 
 def test_write_design_serialize():
     action = WriteDesign()
-    ser_action_dict = action.dict()
+    ser_action_dict = action.model_dump()
     assert "name" in ser_action_dict
-    # assert "llm" in ser_action_dict  # not export
+    assert "llm" not in ser_action_dict  # not export
 
 
 def test_write_task_serialize():
     action = WriteTasks()
-    ser_action_dict = action.dict()
+    ser_action_dict = action.model_dump()
     assert "name" in ser_action_dict
-    # assert "llm" in ser_action_dict  # not export
+    assert "llm" not in ser_action_dict  # not export
 
 
 @pytest.mark.asyncio
 async def test_write_design_deserialize():
     action = WriteDesign()
-    serialized_data = action.dict()
+    serialized_data = action.model_dump()
     new_action = WriteDesign(**serialized_data)
     assert new_action.name == ""
     assert new_action.llm == LLM()
@@ -35,7 +35,7 @@ async def test_write_design_deserialize():
 @pytest.mark.asyncio
 async def test_write_task_deserialize():
     action = WriteTasks()
-    serialized_data = action.dict()
+    serialized_data = action.model_dump()
     new_action = WriteTasks(**serialized_data)
     assert new_action.name == "CreateTasks"
     assert new_action.llm == LLM()

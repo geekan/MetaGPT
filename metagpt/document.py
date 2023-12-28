@@ -17,7 +17,7 @@ from langchain.document_loaders import (
     UnstructuredWordDocumentLoader,
 )
 from langchain.text_splitter import CharacterTextSplitter
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from tqdm import tqdm
 
 from metagpt.config import CONFIG
@@ -117,12 +117,11 @@ class IndexableDocument(Document):
     Advanced document handling: For vector databases or search engines.
     """
 
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     data: Union[pd.DataFrame, list]
     content_col: Optional[str] = Field(default="")
     meta_col: Optional[str] = Field(default="")
-
-    class Config:
-        arbitrary_types_allowed = True
 
     @classmethod
     def from_path(cls, data_path: Path, content_col="content", meta_col="metadata"):

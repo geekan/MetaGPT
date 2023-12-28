@@ -34,9 +34,9 @@ class TutorialAssistant(Role):
     constraints: str = "Strictly follow Markdown's syntax, with neat and standardized layout"
     language: str = "Chinese"
 
-    topic = ""
-    main_title = ""
-    total_content = ""
+    topic: str = ""
+    main_title: str = ""
+    total_content: str = ""
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -71,9 +71,9 @@ class TutorialAssistant(Role):
         Returns:
             A message containing the result of the action.
         """
-        todo = self._rc.todo
+        todo = self.rc.todo
         if type(todo) is WriteDirectory:
-            msg = self._rc.memory.get(k=1)[0]
+            msg = self.rc.memory.get(k=1)[0]
             self.topic = msg.content
             resp = await todo.run(topic=self.topic)
             logger.info(resp)

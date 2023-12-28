@@ -25,7 +25,7 @@ def test_memory_serdeser():
 
     memory = Memory()
     memory.add_batch([msg1, msg2])
-    ser_data = memory.dict()
+    ser_data = memory.model_dump()
 
     new_memory = Memory(**ser_data)
     assert new_memory.count() == 2
@@ -34,6 +34,9 @@ def test_memory_serdeser():
     assert isinstance(new_memory.storage[-1], BaseModel)
     assert new_memory.storage[-1].cause_by == any_to_str(WriteDesign)
     assert new_msg2.role == "Boss"
+
+    memory = Memory(storage=[msg1, msg2], index={msg1.cause_by: [msg1], msg2.cause_by: [msg2]})
+    assert memory.count() == 2
 
 
 def test_memory_serdeser_save():

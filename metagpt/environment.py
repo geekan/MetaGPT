@@ -15,11 +15,11 @@ import asyncio
 from pathlib import Path
 from typing import Iterable, Set
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field, SerializeAsAny, model_validator
 
 from metagpt.config import CONFIG
 from metagpt.logs import logger
-from metagpt.roles.role import Role, role_subclass_registry
+from metagpt.roles.role import Role
 from metagpt.schema import Message
 from metagpt.utils.common import is_subscribed, read_json_file, write_json_file
 
@@ -29,30 +29,17 @@ class Environment(BaseModel):
     Environment, hosting a batch of roles, roles can publish messages to the environment, and can be observed by other roles
     """
 
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     desc: str = Field(default="")  # 环境描述
-    roles: dict[str, Role] = Field(default_factory=dict)
-    members: dict[Role, Set] = Field(default_factory=dict)
+    roles: dict[str, SerializeAsAny[Role]] = Field(default_factory=dict, validate_default=True)
+    members: dict[Role, Set] = Field(default_factory=dict, exclude=True)
     history: str = ""  # For debug
 
-    class Config:
-        arbitrary_types_allowed = True
-
-    def __init__(self, **kwargs):
-        roles = []
-        for role_key, role in kwargs.get("roles", {}).items():
-            current_role = kwargs["roles"][role_key]
-            if isinstance(current_role, dict):
-                item_class_name = current_role.get("builtin_class_name", None)
-                for name, subclass in role_subclass_registry.items():
-                    registery_class_name = subclass.__fields__["builtin_class_name"].default
-                    if item_class_name == registery_class_name:
-                        current_role = subclass(**current_role)
-                        break
-                kwargs["roles"][role_key] = current_role
-                roles.append(current_role)
-        super().__init__(**kwargs)
-
-        self.add_roles(roles)  # add_roles again to init the Role.set_env
+    @model_validator(mode="after")
+    def init_roles(self):
+        self.add_roles(self.roles.values())
+        return self
 
     def serialize(self, stg_path: Path):
         roles_path = stg_path.joinpath("roles.json")
