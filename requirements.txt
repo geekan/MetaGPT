@@ -1,13 +1,13 @@
 aiohttp==3.8.4
 #azure_storage==0.37.0
 channels==4.0.0
-# chromadb==0.3.22
+chromadb==0.4.21
 # Django==4.1.5
 # docx==0.2.4
 #faiss==1.5.3
 faiss_cpu==1.7.4
 fire==0.4.0
-typer
+typer==0.9.0
 # godot==0.1.1
 # google_api_python_client==2.93.0  # Used by search_engine.py
 lancedb==0.4.0

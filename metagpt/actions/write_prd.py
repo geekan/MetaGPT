@@ -66,7 +66,7 @@ NEW_REQ_TEMPLATE = """
 
 
 class WritePRD(Action):
-    name: str = ""
+    name: str = "WritePRD"
     content: Optional[str] = None
     llm: BaseLLM = Field(default_factory=LLM)
 
