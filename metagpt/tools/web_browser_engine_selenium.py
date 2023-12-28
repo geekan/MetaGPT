@@ -118,12 +118,3 @@ def _gen_get_driver_func(browser_type, *args, executable_path=None):
         return WebDriver(options=deepcopy(options), service=Service(executable_path=executable_path))
 
     return _get_driver
-
-
-if __name__ == "__main__":
-    import fire
-
-    async def main(url: str, *urls: str, browser_type: str = "chrome", **kwargs):
-        return await SeleniumWrapper(browser_type=browser_type, **kwargs).run(url, *urls)
-
-    fire.Fire(main)

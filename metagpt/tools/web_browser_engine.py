@@ -6,7 +6,7 @@
 from __future__ import annotations
 
 import importlib
-from typing import Any, Callable, Coroutine, Literal, overload
+from typing import Any, Callable, Coroutine, overload
 
 from metagpt.config import CONFIG
 from metagpt.tools import WebBrowserEngineType
@@ -46,12 +46,3 @@ class WebBrowserEngine:
 
     async def run(self, url: str, *urls: str) -> WebPage | list[WebPage]:
         return await self.run_func(url, *urls)
-
-
-if __name__ == "__main__":
-    import fire
-
-    async def main(url: str, *urls: str, engine_type: Literal["playwright", "selenium"] = "playwright", **kwargs):
-        return await WebBrowserEngine(engine=WebBrowserEngineType(engine_type), **kwargs).run(url, *urls)
-
-    fire.Fire(main)

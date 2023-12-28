@@ -41,7 +41,7 @@ async def test_run():
                     {"content": "The one who eaten a poison apple.", "role": "assistant"},
                 ],
                 "knowledge": [{"content": "tulin is a scientist."}],
-                "last_talk": "what's apple?",
+                "last_talk": "Do you have a poison apple?",
             },
             "language": "English",
             "agent_description": "chatterbox",

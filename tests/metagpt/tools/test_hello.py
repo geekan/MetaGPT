@@ -12,11 +12,16 @@ from pathlib import Path
 import pytest
 import requests
 
+from metagpt.config import CONFIG
+
 
 @pytest.mark.asyncio
 async def test_hello():
-    script_pathname = Path(__file__).parent / "../../../metagpt/tools/hello.py"
-    process = subprocess.Popen(["python", str(script_pathname)])
+    workdir = Path(__file__).parent.parent.parent.parent
+    script_pathname = workdir / "metagpt/tools/hello.py"
+    env = CONFIG.new_environ()
+    env["PYTHONPATH"] = str(workdir) + ":" + env.get("PYTHONPATH", "")
+    process = subprocess.Popen(["python", str(script_pathname)], cwd=workdir, env=env)
     await asyncio.sleep(5)
 
     url = "http://localhost:8082/openapi/greeting/dave"

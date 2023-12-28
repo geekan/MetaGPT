@@ -17,7 +17,6 @@ from git.repo import Repo
 from git.repo.fun import is_git_dir
 from gitignore_parser import parse_gitignore
 
-from metagpt.const import DEFAULT_WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.utils.dependency_file import DependencyFile
 from metagpt.utils.file_repository import FileRepository
@@ -271,20 +270,3 @@ class GitRepository:
                 continue
             files.append(filename)
         return files
-
-
-if __name__ == "__main__":
-    path = DEFAULT_WORKSPACE_ROOT / "git"
-    path.mkdir(exist_ok=True, parents=True)
-
-    repo = GitRepository()
-    repo.open(path, auto_init=True)
-    repo.filter_gitignore(filenames=["snake_game/snake_game/__pycache__", "snake_game/snake_game/game.py"])
-
-    changes = repo.changed_files
-    print(changes)
-    repo.add_change(changes)
-    print(repo.status)
-    repo.commit("test")
-    print(repo.status)
-    repo.delete_repository()

@@ -81,10 +81,11 @@ class FileRepository:
         :return: List of changed dependency filenames or paths.
         """
         dependencies = await self.get_dependency(filename=filename)
-        changed_files = self.changed_files
+        changed_files = set(self.changed_files.keys())
         changed_dependent_files = set()
         for df in dependencies:
-            if df in changed_files.keys():
+            rdf = Path(df).relative_to(self._relative_path)
+            if str(rdf) in changed_files:
                 changed_dependent_files.add(df)
         return changed_dependent_files
 

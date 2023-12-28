@@ -32,11 +32,11 @@ class PrepareDocuments(Action):
 
     def _init_repo(self):
         """Initialize the Git environment."""
-        path = CONFIG.project_path
-        if not path:
+        if not CONFIG.project_path:
             name = CONFIG.project_name or FileRepository.new_filename()
             path = Path(CONFIG.workspace_path) / name
-
+        else:
+            path = Path(CONFIG.project_path)
         if path.exists() and not CONFIG.inc:
             shutil.rmtree(path)
         CONFIG.git_repo = GitRepository(local_path=path, auto_init=True)

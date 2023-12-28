@@ -136,8 +136,7 @@ class S3:
         pathname = path / object_name
         try:
             async with aiofiles.open(str(pathname), mode="wb") as file:
-                if format == BASE64_FORMAT:
-                    data = base64.b64decode(data)
+                data = base64.b64decode(data) if format == BASE64_FORMAT else data.encode(encoding="utf-8")
                 await file.write(data)
 
             bucket = CONFIG.S3_BUCKET
