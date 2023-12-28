@@ -195,10 +195,7 @@ class ActionNode:
     def tagging(self, text, schema, tag="") -> str:
         if not tag:
             return text
-        if schema == "json":
-            return f"[{tag}]\n" + text + f"\n[/{tag}]"
-        else:  # markdown
-            return f"[{tag}]\n" + text + f"\n[/{tag}]"
+        return f"[{tag}]\n{text}\n[/{tag}]"
 
     def _compile_f(self, schema, mode, tag, format_func, kv_sep) -> str:
         nodes = self.to_dict(format_func=format_func, mode=mode)
@@ -230,7 +227,7 @@ class ActionNode:
             schema="markdown": 编译context, example(markdown), instruction(markdown), constraint, action
         """
         if schema == "raw":
-            return context + "\n\n## Actions\n" + LANGUAGE_CONSTRAINT + "\n" + self.instruction
+            return f"{context}\n\n## Actions\n{LANGUAGE_CONSTRAINT}\n{self.instruction}"
 
         # FIXME: json instruction会带来格式问题，如："Project name": "web_2048  # 项目名称使用下划线",
         # compile example暂时不支持markdown
