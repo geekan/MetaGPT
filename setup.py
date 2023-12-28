@@ -28,7 +28,6 @@ extras_require = {
     "selenium": ["selenium>4", "webdriver_manager", "beautifulsoup4"],
     "search-google": ["google-api-python-client==2.94.0"],
     "search-ddg": ["duckduckgo-search==3.8.5"],
-    "pyppeteer": ["pyppeteer>=1.0.2"],
     "ocr": ["paddlepaddle==2.4.2", "paddleocr>=2.0.1", "tabulate==0.9.0"],
     "test": ["pytest", "pytest-cov", "pytest-asyncio", "pytest-mock"],
 }
@@ -42,6 +41,9 @@ extras_require["test"] = [
     "pytest-html",
 ]
 
+extras_require["pyppeteer"] = [
+    "pyppeteer>=1.0.2"
+]  # pyppeteer is unmaintained and there are conflicts with dependencies
 extras_require["dev"] = (["pylint~=3.0.3", "black~=23.3.0", "isort~=5.12.0", "pre-commit~=3.6.0"],)
 
 
