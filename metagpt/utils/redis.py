@@ -63,5 +63,5 @@ class Redis:
         self._client = None
 
     @property
-    def is_valid(self):
-        return bool(self._client)
+    def is_valid(self) -> bool:
+        return self._client is not None

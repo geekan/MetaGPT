@@ -1,6 +1,21 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+@Time    : 2023/12/28
+@Author  : mashenquan
+@File    : test_research.py
+"""
+
 import pytest
 
-from metagpt.actions import research
+from metagpt.actions import CollectLinks, research
+
+
+@pytest.mark.asyncio
+async def test_action():
+    action = CollectLinks()
+    result = await action.run(topic="baidu")
+    assert result
 
 
 @pytest.mark.asyncio
@@ -103,3 +118,7 @@ async def mock_collect_links_llm_ask(self, prompt: str, system_msgs):
         return "[1,2]"
 
     return ""
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-s"])

@@ -130,7 +130,8 @@ class CollectLinks(Action):
                 if len(remove) == 0:
                     break
 
-        prompt = reduce_message_length(gen_msg(), self.llm.model, system_text, CONFIG.max_tokens_rsp)
+        model_name = CONFIG.get_model_name(CONFIG.get_default_llm_provider_enum())
+        prompt = reduce_message_length(gen_msg(), model_name, system_text, CONFIG.max_tokens_rsp)
         logger.debug(prompt)
         queries = await self._aask(prompt, [system_text])
         try:

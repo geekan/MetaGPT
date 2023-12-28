@@ -6,40 +6,33 @@
 @File    : test_text_to_speech.py
 @Desc    : Unit tests.
 """
-import asyncio
-import base64
 
-from pydantic import BaseModel
+import pytest
 
+from metagpt.config import CONFIG
 from metagpt.learn.text_to_speech import text_to_speech
 
 
-async def mock_text_to_speech():
-    class Input(BaseModel):
-        input: str
+@pytest.mark.asyncio
+async def test_text_to_speech():
+    # Prerequisites
+    assert CONFIG.IFLYTEK_APP_ID
+    assert CONFIG.IFLYTEK_API_KEY
+    assert CONFIG.IFLYTEK_API_SECRET
+    assert CONFIG.AZURE_TTS_SUBSCRIPTION_KEY and CONFIG.AZURE_TTS_SUBSCRIPTION_KEY != "YOUR_API_KEY"
+    assert CONFIG.AZURE_TTS_REGION
 
-    inputs = [{"input": "Panda emoji"}]
+    # test azure
+    data = await text_to_speech("panda emoji")
+    assert "base64" in data or "http" in data
 
-    for i in inputs:
-        seed = Input(**i)
-        base64_data = await text_to_speech(seed.input)
-        assert base64_data != ""
-        print(f"{seed.input} -> {base64_data}")
-        flags = ";base64,"
-        assert flags in base64_data
-        ix = base64_data.find(flags) + len(flags)
-        declaration = base64_data[0:ix]
-        assert declaration
-        data = base64_data[ix:]
-        assert data
-        assert base64.b64decode(data, validate=True)
-
-
-def test_suite():
-    loop = asyncio.get_event_loop()
-    task = loop.create_task(mock_text_to_speech())
-    loop.run_until_complete(task)
+    # test iflytek
+    key = CONFIG.AZURE_TTS_SUBSCRIPTION_KEY
+    CONFIG.AZURE_TTS_SUBSCRIPTION_KEY = ""
+    data = await text_to_speech("panda emoji")
+    assert "base64" in data or "http" in data
+    CONFIG.AZURE_TTS_SUBSCRIPTION_KEY = key
 
 
 if __name__ == "__main__":
-    test_suite()
+    pytest.main([__file__, "-s"])
