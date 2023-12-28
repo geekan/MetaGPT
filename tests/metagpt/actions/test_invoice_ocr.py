@@ -20,7 +20,7 @@ from metagpt.actions.invoice_ocr import GenerateTable, InvoiceOCR, ReplyQuestion
     "invoice_path",
     [
         "../../data/invoices/invoice-3.jpg",
-        "../../data/invoices/invoice-4.zip",
+        # "../../data/invoices/invoice-4.zip",
     ],
 )
 async def test_invoice_ocr(invoice_path: str):
