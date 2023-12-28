@@ -68,9 +68,6 @@ class ZhiPuAILLM(BaseLLM):
             except Exception as e:
                 logger.error(f"zhipuai updats costs failed! exp: {e}")
 
-    def close(self):
-        pass
-
     def get_choice_text(self, resp: dict) -> str:
         """get the first text of choice from llm response"""
         assist_msg = resp.get("data", {}).get("choices", [{"role": "error"}])[-1]

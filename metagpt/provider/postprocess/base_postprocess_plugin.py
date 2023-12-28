@@ -12,8 +12,8 @@ from metagpt.utils.repair_llm_raw_output import (
 )
 
 
-class BasePostPrecessPlugin(object):
-    model = None  # the plugin of the `model`, use to judge in `llm_postprecess`
+class BasePostProcessPlugin(object):
+    model = None  # the plugin of the `model`, use to judge in `llm_postprocess`
 
     def run_repair_llm_output(self, output: str, schema: dict, req_key: str = "[/CONTENT]") -> Union[dict, list]:
         """

@@ -31,7 +31,6 @@ class OpenLLMCostManager(CostManager):
             f"Max budget: ${CONFIG.max_budget:.3f} | reference "
             f"prompt_tokens: {prompt_tokens}, completion_tokens: {completion_tokens}"
         )
-        CONFIG.total_cost = self.total_cost
 
 
 @register_provider(LLMProviderEnum.OPEN_LLM)

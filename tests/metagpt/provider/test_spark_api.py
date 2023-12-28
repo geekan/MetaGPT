@@ -4,24 +4,31 @@
 
 import pytest
 
-from metagpt.provider.spark_api import SparkLLM
+from metagpt.config import CONFIG
+from metagpt.provider.spark_api import GetMessageFromWeb, SparkLLM
+
+CONFIG.spark_appid = "xxx"
+CONFIG.spark_api_secret = "xxx"
+CONFIG.spark_api_key = "xxx"
+CONFIG.domain = "xxxxxx"
+CONFIG.spark_url = "xxxx"
 
 prompt_msg = "who are you"
 resp_content = "I'm Spark"
 
 
-def mock_llm_completion(self, messages: list[dict], timeout: int = 60) -> str:
-    return resp_content
+def test_get_msg_from_web():
+    get_msg_from_web = GetMessageFromWeb(text=prompt_msg)
+    assert get_msg_from_web.gen_params()["parameter"]["chat"]["domain"] == "xxxxxx"
 
 
-async def mock_llm_acompletion(self, messgaes: list[dict], stream: bool = False, timeout: int = 60) -> str:
+def mock_spark_get_msg_from_web_run(self) -> str:
     return resp_content
 
 
 @pytest.mark.asyncio
 async def test_spark_acompletion(mocker):
-    mocker.patch("metagpt.provider.spark_api.SparkLLM.acompletion", mock_llm_acompletion)
-    mocker.patch("metagpt.provider.spark_api.SparkLLM.acompletion_text", mock_llm_acompletion)
+    mocker.patch("metagpt.provider.spark_api.GetMessageFromWeb.run", mock_spark_get_msg_from_web_run)
     spark_gpt = SparkLLM()
 
     resp = await spark_gpt.acompletion([])

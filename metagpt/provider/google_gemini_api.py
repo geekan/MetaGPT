@@ -79,9 +79,6 @@ class GeminiLLM(BaseLLM):
             except Exception as e:
                 logger.error(f"google gemini updats costs failed! exp: {e}")
 
-    def close(self):
-        pass
-
     def get_choice_text(self, resp: GenerateContentResponse) -> str:
         return resp.text
 

@@ -17,7 +17,7 @@ from tenacity import retry, stop_after_attempt, wait_random_exponential
 from metagpt.config import CONFIG
 from metagpt.llm import BaseLLM
 from metagpt.logs import logger
-from metagpt.provider.postprecess.llm_output_postprecess import llm_output_postprecess
+from metagpt.provider.postprocess.llm_output_postprocess import llm_output_postprocess
 from metagpt.utils.common import OutputParser, general_after_log
 
 TAG = "CONTENT"
@@ -275,7 +275,7 @@ class ActionNode:
         output_class = self.create_model_class(output_class_name, output_data_mapping)
 
         if schema == "json":
-            parsed_data = llm_output_postprecess(
+            parsed_data = llm_output_postprocess(
                 output=content, schema=output_class.model_json_schema(), req_key=f"[/{TAG}]"
             )
         else:  # using markdown parser
