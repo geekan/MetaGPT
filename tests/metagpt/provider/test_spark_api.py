@@ -20,8 +20,8 @@ async def mock_llm_acompletion(self, messgaes: list[dict], stream: bool = False,
 
 @pytest.mark.asyncio
 async def test_spark_acompletion(mocker):
-    mocker.patch("metagpt.provider.spark_api.SparkGPTAPI.acompletion", mock_llm_acompletion)
-    mocker.patch("metagpt.provider.spark_api.SparkGPTAPI.acompletion_text", mock_llm_acompletion)
+    mocker.patch("metagpt.provider.spark_api.SparkLLM.acompletion", mock_llm_acompletion)
+    mocker.patch("metagpt.provider.spark_api.SparkLLM.acompletion_text", mock_llm_acompletion)
     spark_gpt = SparkLLM()
 
     resp = await spark_gpt.acompletion([])

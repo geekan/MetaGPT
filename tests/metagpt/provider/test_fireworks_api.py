@@ -15,6 +15,9 @@ from metagpt.provider.fireworks_api import (
     FireworksCostManager,
     FireworksLLM,
 )
+from metagpt.config import CONFIG
+
+CONFIG.fireworks_api_key = "xxx"
 
 resp_content = "I'm fireworks"
 default_resp = ChatCompletion(
@@ -23,7 +26,7 @@ default_resp = ChatCompletion(
     object="chat.completion",
     created=1703300855,
     choices=[
-        Choice(finish_reason="stop", index=0, message=ChatCompletionMessage(role="assistant", content=resp_content))
+        Choice(finish_reason="stop", index=0, message=ChatCompletionMessage(role="assistant", content=resp_content), logprobs=None)
     ],
     usage=CompletionUsage(completion_tokens=110, prompt_tokens=92, total_tokens=202),
 )
@@ -57,10 +60,10 @@ async def mock_llm_achat_completion_stream(self, messgaes: list[dict]) -> str:
 
 @pytest.mark.asyncio
 async def test_fireworks_acompletion(mocker):
-    mocker.patch("metagpt.provider.fireworks_api.FireWorksGPTAPI.acompletion", mock_llm_acompletion)
-    mocker.patch("metagpt.provider.fireworks_api.FireWorksGPTAPI._achat_completion", mock_llm_acompletion)
+    mocker.patch("metagpt.provider.fireworks_api.FireworksLLM.acompletion", mock_llm_acompletion)
+    mocker.patch("metagpt.provider.fireworks_api.FireworksLLM._achat_completion", mock_llm_acompletion)
     mocker.patch(
-        "metagpt.provider.fireworks_api.FireWorksGPTAPI._achat_completion_stream", mock_llm_achat_completion_stream
+        "metagpt.provider.fireworks_api.FireworksLLM._achat_completion_stream", mock_llm_achat_completion_stream
     )
     fireworks_gpt = FireworksLLM()
 

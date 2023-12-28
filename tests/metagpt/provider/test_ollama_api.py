@@ -30,9 +30,9 @@ async def mock_llm_achat_completion_stream(self, messgaes: list[dict]) -> str:
 
 @pytest.mark.asyncio
 async def test_gemini_acompletion(mocker):
-    mocker.patch("metagpt.provider.ollama_api.OllamaGPTAPI.acompletion", mock_llm_acompletion)
-    mocker.patch("metagpt.provider.ollama_api.OllamaGPTAPI._achat_completion", mock_llm_acompletion)
-    mocker.patch("metagpt.provider.ollama_api.OllamaGPTAPI._achat_completion_stream", mock_llm_achat_completion_stream)
+    mocker.patch("metagpt.provider.ollama_api.OllamaLLM.acompletion", mock_llm_acompletion)
+    mocker.patch("metagpt.provider.ollama_api.OllamaLLM._achat_completion", mock_llm_acompletion)
+    mocker.patch("metagpt.provider.ollama_api.OllamaLLM._achat_completion_stream", mock_llm_achat_completion_stream)
     ollama_gpt = OllamaLLM()
 
     resp = await ollama_gpt.acompletion(messages)

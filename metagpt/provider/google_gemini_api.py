@@ -42,7 +42,7 @@ class GeminiGenerativeModel(GenerativeModel):
 
 
 @register_provider(LLMProviderEnum.GEMINI)
-class GeminiGPTAPI(BaseLLM):
+class GeminiLLM(BaseLLM):
     """
     Refs to `https://ai.google.dev/tutorials/python_quickstart`
     """

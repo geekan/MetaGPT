@@ -7,7 +7,7 @@ from dataclasses import dataclass
 
 import pytest
 
-from metagpt.provider.google_gemini_api import GeminiGPTAPI
+from metagpt.provider.google_gemini_api import GeminiLLM
 
 
 @dataclass
@@ -37,12 +37,12 @@ async def mock_llm_achat_completion_stream(self, messgaes: list[dict]) -> str:
 
 @pytest.mark.asyncio
 async def test_gemini_acompletion(mocker):
-    mocker.patch("metagpt.provider.google_gemini_api.GeminiGPTAPI.acompletion", mock_llm_acompletion)
-    mocker.patch("metagpt.provider.google_gemini_api.GeminiGPTAPI._achat_completion", mock_llm_acompletion)
+    mocker.patch("metagpt.provider.google_gemini_api.GeminiLLM.acompletion", mock_llm_acompletion)
+    mocker.patch("metagpt.provider.google_gemini_api.GeminiLLM._achat_completion", mock_llm_acompletion)
     mocker.patch(
-        "metagpt.provider.google_gemini_api.GeminiGPTAPI._achat_completion_stream", mock_llm_achat_completion_stream
+        "metagpt.provider.google_gemini_api.GeminiLLM._achat_completion_stream", mock_llm_achat_completion_stream
     )
-    gemini_gpt = GeminiGPTAPI()
+    gemini_gpt = GeminiLLM()
 
     resp = await gemini_gpt.acompletion(messages)
     assert resp.text == default_resp.text

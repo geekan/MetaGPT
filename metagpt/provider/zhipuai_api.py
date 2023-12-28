@@ -5,6 +5,7 @@
 import json
 from enum import Enum
 
+import openai
 import zhipuai
 from requests import ConnectionError
 from tenacity import (
@@ -31,7 +32,7 @@ class ZhiPuEvent(Enum):
 
 
 @register_provider(LLMProviderEnum.ZHIPUAI)
-class ZhiPuAIGPTAPI(BaseLLM):
+class ZhiPuAILLM(BaseLLM):
     """
     Refs to `https://open.bigmodel.cn/dev/api#chatglm_turbo`
     From now, there is only one model named `chatglm_turbo`

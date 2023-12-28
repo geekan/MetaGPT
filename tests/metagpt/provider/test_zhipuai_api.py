@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# @Desc   : the unittest of ZhiPuAIGPTAPI
+# @Desc   : the unittest of ZhiPuAILLM
 
 import pytest
 
 from metagpt.config import CONFIG
-from metagpt.provider.zhipuai_api import ZhiPuAIGPTAPI
+from metagpt.provider.zhipuai_api import ZhiPuAILLM
 
 CONFIG.zhipuai_api_key = "xxx"
 
@@ -30,12 +30,12 @@ async def mock_llm_achat_completion_stream(self, messgaes: list[dict]) -> str:
 
 @pytest.mark.asyncio
 async def test_zhipuai_acompletion(mocker):
-    mocker.patch("metagpt.provider.zhipuai_api.ZhiPuAIGPTAPI.acompletion", mock_llm_acompletion)
-    mocker.patch("metagpt.provider.zhipuai_api.ZhiPuAIGPTAPI._achat_completion", mock_llm_acompletion)
+    mocker.patch("metagpt.provider.zhipuai_api.ZhiPuAILLM.acompletion", mock_llm_acompletion)
+    mocker.patch("metagpt.provider.zhipuai_api.ZhiPuAILLM._achat_completion", mock_llm_acompletion)
     mocker.patch(
-        "metagpt.provider.zhipuai_api.ZhiPuAIGPTAPI._achat_completion_stream", mock_llm_achat_completion_stream
+        "metagpt.provider.zhipuai_api.ZhiPuAILLM._achat_completion_stream", mock_llm_achat_completion_stream
     )
-    zhipu_gpt = ZhiPuAIGPTAPI()
+    zhipu_gpt = ZhiPuAILLM()
 
     resp = await zhipu_gpt.acompletion(messages)
     assert resp["data"]["choices"][0]["content"] == resp_content
@@ -59,5 +59,5 @@ def test_zhipuai_proxy(mocker):
     from metagpt.config import CONFIG
 
     CONFIG.openai_proxy = "http://127.0.0.1:8080"
-    _ = ZhiPuAIGPTAPI()
+    _ = ZhiPuAILLM()
     assert openai.proxy == CONFIG.openai_proxy

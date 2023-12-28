@@ -17,7 +17,7 @@ from pydantic import BaseModel, Field
 from metagpt.config import CONFIG
 from metagpt.const import DEFAULT_LANGUAGE, DEFAULT_MAX_TOKENS, DEFAULT_TOKEN_SIZE
 from metagpt.logs import logger
-from metagpt.provider import MetaGPTAPI
+from metagpt.provider import MetaGPTLLM
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.schema import Message, SimpleMessage
 from metagpt.utils.redis import Redis
@@ -122,7 +122,7 @@ class BrainMemory(BaseModel):
         return v
 
     async def summarize(self, llm, max_words=200, keep_language: bool = False, limit: int = -1, **kwargs):
-        if isinstance(llm, MetaGPTAPI):
+        if isinstance(llm, MetaGPTLLM):
             return await self._metagpt_summarize(max_words=max_words)
 
         self.llm = llm
@@ -175,7 +175,7 @@ class BrainMemory(BaseModel):
 
     async def get_title(self, llm, max_words=5, **kwargs) -> str:
         """Generate text title"""
-        if isinstance(llm, MetaGPTAPI):
+        if isinstance(llm, MetaGPTLLM):
             return self.history[0].content if self.history else "New"
 
         summary = await self.summarize(llm=llm, max_words=500)
@@ -190,7 +190,7 @@ class BrainMemory(BaseModel):
         return response
 
     async def is_related(self, text1, text2, llm):
-        if isinstance(llm, MetaGPTAPI):
+        if isinstance(llm, MetaGPTLLM):
             return await self._metagpt_is_related(text1=text1, text2=text2, llm=llm)
         return await self._openai_is_related(text1=text1, text2=text2, llm=llm)
 
@@ -212,7 +212,7 @@ class BrainMemory(BaseModel):
         return result
 
     async def rewrite(self, sentence: str, context: str, llm):
-        if isinstance(llm, MetaGPTAPI):
+        if isinstance(llm, MetaGPTLLM):
             return await self._metagpt_rewrite(sentence=sentence, context=context, llm=llm)
         return await self._openai_rewrite(sentence=sentence, context=context, llm=llm)
 

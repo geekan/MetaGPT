@@ -35,7 +35,7 @@ class OpenLLMCostManager(CostManager):
 
 
 @register_provider(LLMProviderEnum.OPEN_LLM)
-class OpenLLMGPTAPI(OpenAILLM):
+class OpenLLM(OpenAILLM):
     def __init__(self):
         self.config: Config = CONFIG
         self.__init_openllm()
