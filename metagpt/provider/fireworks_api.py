@@ -85,10 +85,9 @@ class FireworksLLM(OpenAILLM):
         self._init_client()
         self.model = self.config.fireworks_api_model  # `self.model` should after `_make_client` to rewrite it
 
-    def _make_client_kwargs(self) -> (dict, dict):
+    def _make_client_kwargs(self) -> dict:
         kwargs = dict(api_key=self.config.fireworks_api_key, base_url=self.config.fireworks_api_base)
-        async_kwargs = kwargs.copy()
-        return kwargs, async_kwargs
+        return kwargs
 
     def _update_costs(self, usage: CompletionUsage):
         if self.config.calc_usage and usage:
