@@ -10,12 +10,12 @@ from openai.types.chat.chat_completion import (
 )
 from openai.types.completion_usage import CompletionUsage
 
+from metagpt.config import CONFIG
 from metagpt.provider.fireworks_api import (
     MODEL_GRADE_TOKEN_COSTS,
     FireworksCostManager,
     FireworksLLM,
 )
-from metagpt.config import CONFIG
 
 CONFIG.fireworks_api_key = "xxx"
 
@@ -26,7 +26,12 @@ default_resp = ChatCompletion(
     object="chat.completion",
     created=1703300855,
     choices=[
-        Choice(finish_reason="stop", index=0, message=ChatCompletionMessage(role="assistant", content=resp_content), logprobs=None)
+        Choice(
+            finish_reason="stop",
+            index=0,
+            message=ChatCompletionMessage(role="assistant", content=resp_content),
+            logprobs=None,
+        )
     ],
     usage=CompletionUsage(completion_tokens=110, prompt_tokens=92, total_tokens=202),
 )

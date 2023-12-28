@@ -32,9 +32,7 @@ async def mock_llm_achat_completion_stream(self, messgaes: list[dict]) -> str:
 async def test_zhipuai_acompletion(mocker):
     mocker.patch("metagpt.provider.zhipuai_api.ZhiPuAILLM.acompletion", mock_llm_acompletion)
     mocker.patch("metagpt.provider.zhipuai_api.ZhiPuAILLM._achat_completion", mock_llm_acompletion)
-    mocker.patch(
-        "metagpt.provider.zhipuai_api.ZhiPuAILLM._achat_completion_stream", mock_llm_achat_completion_stream
-    )
+    mocker.patch("metagpt.provider.zhipuai_api.ZhiPuAILLM._achat_completion_stream", mock_llm_achat_completion_stream)
     zhipu_gpt = ZhiPuAILLM()
 
     resp = await zhipu_gpt.acompletion(messages)
