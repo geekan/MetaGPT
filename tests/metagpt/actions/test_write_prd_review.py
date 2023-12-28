@@ -23,10 +23,14 @@ async def test_write_prd_review():
     Timeline: The feature should be ready for testing in 1.5 months.
     """
 
-    write_prd_review = WritePRDReview("write_prd_review")
+    write_prd_review = WritePRDReview(name="write_prd_review")
 
     prd_review = await write_prd_review.run(prd)
 
     # We cannot exactly predict the generated PRD review, but we can check if it is a string and if it is not empty
     assert isinstance(prd_review, str)
     assert len(prd_review) > 0
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-s"])

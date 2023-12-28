@@ -47,7 +47,8 @@ class TestGetProjectRoot:
 
     def test_get_project_root(self):
         project_root = get_metagpt_root()
-        assert project_root.name == "MetaGPT"
+        src_path = project_root / "metagpt"
+        assert src_path.exists()
 
     def test_get_root_exception(self):
         self.change_etc_dir()

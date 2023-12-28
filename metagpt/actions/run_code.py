@@ -82,11 +82,13 @@ class RunCode(Action):
     llm: BaseLLM = Field(default_factory=LLM, exclude=True)
 
     @classmethod
-    @handle_exception
     async def run_text(cls, code) -> Tuple[str, str]:
-        # We will document_store the result in this dictionary
-        namespace = {}
-        exec(code, namespace)
+        try:
+            # We will document_store the result in this dictionary
+            namespace = {}
+            exec(code, namespace)
+        except Exception as e:
+            return "", str(e)
         return namespace.get("result", ""), ""
 
     @classmethod

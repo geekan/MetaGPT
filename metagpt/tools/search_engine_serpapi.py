@@ -43,7 +43,8 @@ class SerpAPIWrapper(BaseModel):
 
     async def run(self, query, max_results: int = 8, as_string: bool = True, **kwargs: Any) -> str:
         """Run query through SerpAPI and parse result async."""
-        return self._process_response(await self.results(query, max_results), as_string=as_string)
+        result = await self.results(query, max_results)
+        return self._process_response(result, as_string=as_string)
 
     async def results(self, query: str, max_results: int) -> dict:
         """Use aiohttp to run query through SerpAPI and return the results async."""

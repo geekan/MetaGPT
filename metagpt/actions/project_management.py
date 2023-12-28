@@ -123,9 +123,3 @@ class WriteTasks(Action):
     @staticmethod
     async def _save_pdf(task_doc):
         await FileRepository.save_as(doc=task_doc, with_suffix=".md", relative_path=TASK_PDF_FILE_REPO)
-
-
-class AssignTasks(Action):
-    async def run(self, *args, **kwargs):
-        # Here you should implement the actual action
-        pass

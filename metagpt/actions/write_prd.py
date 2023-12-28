@@ -66,7 +66,7 @@ NEW_REQ_TEMPLATE = """
 
 
 class WritePRD(Action):
-    name: str = ""
+    name: str = "WritePRD"
     content: Optional[str] = None
     llm: BaseLLM = Field(default_factory=LLM, exclude=True)
 
@@ -181,18 +181,13 @@ class WritePRD(Action):
 
     @staticmethod
     async def _rename_workspace(prd):
-        if CONFIG.project_path:  # Updating on the old version has already been specified if it's valid. According to
-            # Section 2.2.3.10 of RFC 135
-            if not CONFIG.project_name:
-                CONFIG.project_name = Path(CONFIG.project_path).name
-                return
-
         if not CONFIG.project_name:
             if isinstance(prd, (ActionOutput, ActionNode)):
                 ws_name = prd.instruct_content.model_dump()["Project Name"]
             else:
                 ws_name = CodeParser.parse_str(block="Project Name", text=prd)
-            CONFIG.project_name = ws_name
+            if ws_name:
+                CONFIG.project_name = ws_name
         CONFIG.git_repo.rename_root(CONFIG.project_name)
 
     async def _is_bugfix(self, context) -> bool:

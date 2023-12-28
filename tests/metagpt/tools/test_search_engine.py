@@ -7,6 +7,8 @@
 """
 from __future__ import annotations
 
+from typing import Callable
+
 import pytest
 
 from metagpt.config import CONFIG
@@ -25,7 +27,7 @@ class MockSearchEnine:
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    ("search_engine_typpe", "run_func", "max_results", "as_string"),
+    ("search_engine_type", "run_func", "max_results", "as_string"),
     [
         (SearchEngineType.SERPAPI_GOOGLE, None, 8, True),
         (SearchEngineType.SERPAPI_GOOGLE, None, 4, False),
@@ -39,23 +41,18 @@ class MockSearchEnine:
         (SearchEngineType.CUSTOM_ENGINE, MockSearchEnine().run, 6, False),
     ],
 )
-async def test_search_engine(
-    search_engine_typpe,
-    run_func,
-    max_results,
-    as_string,
-):
+async def test_search_engine(search_engine_type, run_func: Callable, max_results: int, as_string: bool):
     # Prerequisites
-    if search_engine_typpe is SearchEngineType.SERPAPI_GOOGLE:
+    if search_engine_type is SearchEngineType.SERPAPI_GOOGLE:
         assert CONFIG.SERPAPI_API_KEY and CONFIG.SERPAPI_API_KEY != "YOUR_API_KEY"
-    elif search_engine_typpe is SearchEngineType.DIRECT_GOOGLE:
+    elif search_engine_type is SearchEngineType.DIRECT_GOOGLE:
         assert CONFIG.GOOGLE_API_KEY and CONFIG.GOOGLE_API_KEY != "YOUR_API_KEY"
         assert CONFIG.GOOGLE_CSE_ID and CONFIG.GOOGLE_CSE_ID != "YOUR_CSE_ID"
-    elif search_engine_typpe is SearchEngineType.SERPER_GOOGLE:
+    elif search_engine_type is SearchEngineType.SERPER_GOOGLE:
         assert CONFIG.SERPER_API_KEY and CONFIG.SERPER_API_KEY != "YOUR_API_KEY"
 
-    search_engine = SearchEngine(search_engine_typpe, run_func)
-    rsp = await search_engine.run("metagpt", max_results=max_results, as_string=as_string)
+    search_engine = SearchEngine(search_engine_type, run_func)
+    rsp = await search_engine.run("metagpt", max_results, as_string)
     logger.info(rsp)
     if as_string:
         assert isinstance(rsp, str)

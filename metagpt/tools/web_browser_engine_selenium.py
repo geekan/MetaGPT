@@ -14,6 +14,8 @@ from typing import Literal
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
+from webdriver_manager.core.download_manager import WDMDownloadManager
+from webdriver_manager.core.http import WDMHttpClient
 
 from metagpt.config import CONFIG
 from metagpt.utils.parse_html import WebPage
@@ -93,6 +95,13 @@ _webdriver_manager_types = {
 }
 
 
+class WDMHttpProxyClient(WDMHttpClient):
+    def get(self, url, **kwargs):
+        if "proxies" not in kwargs and CONFIG.global_proxy:
+            kwargs["proxies"] = {"all_proxy": CONFIG.global_proxy}
+        return super().get(url, **kwargs)
+
+
 def _gen_get_driver_func(browser_type, *args, executable_path=None):
     WebDriver = getattr(importlib.import_module(f"selenium.webdriver.{browser_type}.webdriver"), "WebDriver")
     Service = getattr(importlib.import_module(f"selenium.webdriver.{browser_type}.service"), "Service")
@@ -101,7 +110,7 @@ def _gen_get_driver_func(browser_type, *args, executable_path=None):
     if not executable_path:
         module_name, type_name = _webdriver_manager_types[browser_type]
         DriverManager = getattr(importlib.import_module(module_name), type_name)
-        driver_manager = DriverManager()
+        driver_manager = DriverManager(download_manager=WDMDownloadManager(http_client=WDMHttpProxyClient()))
         # driver_manager.driver_cache.find_driver(driver_manager.driver))
         executable_path = driver_manager.install()
 

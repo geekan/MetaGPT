@@ -39,6 +39,8 @@ class PrepareDocuments(Action):
             path = Path(CONFIG.project_path)
         if path.exists() and not CONFIG.inc:
             shutil.rmtree(path)
+        CONFIG.project_path = path
+        CONFIG.project_name = path.name
         CONFIG.git_repo = GitRepository(local_path=path, auto_init=True)
 
     async def run(self, with_messages, **kwargs):

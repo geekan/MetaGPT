@@ -6,12 +6,24 @@
 @File    : test_write_code.py
 @Modifiled By: mashenquan, 2023-12-6. According to RFC 135
 """
+
+from pathlib import Path
+
 import pytest
 
 from metagpt.actions.write_code import WriteCode
+from metagpt.config import CONFIG
+from metagpt.const import (
+    CODE_SUMMARIES_FILE_REPO,
+    SYSTEM_DESIGN_FILE_REPO,
+    TASK_FILE_REPO,
+    TEST_OUTPUTS_FILE_REPO,
+)
 from metagpt.logs import logger
 from metagpt.provider.openai_api import OpenAILLM as LLM
 from metagpt.schema import CodingContext, Document
+from metagpt.utils.common import aread
+from metagpt.utils.file_repository import FileRepository
 from tests.metagpt.actions.mock_markdown import TASKS_2, WRITE_CODE_PROMPT_SAMPLE
 
 
@@ -37,3 +49,47 @@ async def test_write_code_directly():
     llm = LLM()
     rsp = await llm.aask(prompt)
     logger.info(rsp)
+
+
+@pytest.mark.asyncio
+async def test_write_code_deps():
+    # Prerequisites
+    CONFIG.src_workspace = CONFIG.git_repo.workdir / "snake1/snake1"
+    demo_path = Path(__file__).parent / "../../data/demo_project"
+    await FileRepository.save_file(
+        filename="test_game.py.json",
+        content=await aread(str(demo_path / "test_game.py.json")),
+        relative_path=TEST_OUTPUTS_FILE_REPO,
+    )
+    await FileRepository.save_file(
+        filename="20231221155954.json",
+        content=await aread(str(demo_path / "code_summaries.json")),
+        relative_path=CODE_SUMMARIES_FILE_REPO,
+    )
+    await FileRepository.save_file(
+        filename="20231221155954.json",
+        content=await aread(str(demo_path / "system_design.json")),
+        relative_path=SYSTEM_DESIGN_FILE_REPO,
+    )
+    await FileRepository.save_file(
+        filename="20231221155954.json", content=await aread(str(demo_path / "tasks.json")), relative_path=TASK_FILE_REPO
+    )
+    await FileRepository.save_file(
+        filename="main.py", content='if __name__ == "__main__":\nmain()', relative_path=CONFIG.src_workspace
+    )
+    context = CodingContext(
+        filename="game.py",
+        design_doc=await FileRepository.get_file(filename="20231221155954.json", relative_path=SYSTEM_DESIGN_FILE_REPO),
+        task_doc=await FileRepository.get_file(filename="20231221155954.json", relative_path=TASK_FILE_REPO),
+        code_doc=Document(filename="game.py", content="", root_path="snake1"),
+    )
+    coding_doc = Document(root_path="snake1", filename="game.py", content=context.json())
+
+    action = WriteCode(context=coding_doc)
+    rsp = await action.run()
+    assert rsp
+    assert rsp.code_doc.content
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-s"])
