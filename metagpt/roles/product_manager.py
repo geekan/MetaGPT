@@ -46,7 +46,7 @@ class ProductManager(Role):
             self._set_state(0)
             CONFIG.git_reinit = False
             self.todo_action = any_to_name(WritePRD)
-        return bool(self._rc.todo)
+        return bool(self.rc.todo)
 
     async def _observe(self, ignore_memory=False) -> int:
         return await super()._observe(ignore_memory=True)

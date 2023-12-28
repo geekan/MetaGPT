@@ -33,6 +33,15 @@ class MockRole(Role):
         self._init_actions([MockAction()])
 
 
+def test_basic():
+    mock_role = MockRole()
+    assert mock_role.subscription == {"tests.metagpt.test_role.MockRole"}
+    assert mock_role.rc.watch == {"metagpt.actions.add_requirement.UserRequirement"}
+
+    mock_role = MockRole(name="mock_role")
+    assert mock_role.subscription == {"tests.metagpt.test_role.MockRole", "mock_role"}
+
+
 @pytest.mark.asyncio
 async def test_react():
     class Input(BaseModel):
@@ -60,7 +69,7 @@ async def test_react():
             name=seed.name, profile=seed.profile, goal=seed.goal, constraints=seed.constraints, desc=seed.desc
         )
         role.subscribe({seed.subscription})
-        assert role._rc.watch == {any_to_str(UserRequirement)}
+        assert role.rc.watch == {any_to_str(UserRequirement)}
         assert role.name == seed.name
         assert role.profile == seed.profile
         assert role.goal == seed.goal

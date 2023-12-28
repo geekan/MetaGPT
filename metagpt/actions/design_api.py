@@ -79,7 +79,7 @@ class WriteDesign(Action):
             logger.info("Nothing has changed.")
         # Wait until all files under `docs/system_designs/` are processed before sending the publish message,
         # leaving room for global optimization in subsequent steps.
-        return ActionOutput(content=changed_files.json(), instruct_content=changed_files)
+        return ActionOutput(content=changed_files.model_dump_json(), instruct_content=changed_files)
 
     async def _new_system_design(self, context, schema=CONFIG.prompt_schema):
         node = await DESIGN_API_NODE.fill(context=context, llm=self.llm, schema=schema)
@@ -88,7 +88,7 @@ class WriteDesign(Action):
     async def _merge(self, prd_doc, system_design_doc, schema=CONFIG.prompt_schema):
         context = NEW_REQ_TEMPLATE.format(old_design=system_design_doc.content, context=prd_doc.content)
         node = await DESIGN_API_NODE.fill(context=context, llm=self.llm, schema=schema)
-        system_design_doc.content = node.instruct_content.json(ensure_ascii=False)
+        system_design_doc.content = node.instruct_content.model_dump_json()
         return system_design_doc
 
     async def _update_system_design(self, filename, prds_file_repo, system_design_file_repo) -> Document:
@@ -99,7 +99,7 @@ class WriteDesign(Action):
             doc = Document(
                 root_path=SYSTEM_DESIGN_FILE_REPO,
                 filename=filename,
-                content=system_design.instruct_content.json(ensure_ascii=False),
+                content=system_design.instruct_content.model_dump_json(),
             )
         else:
             doc = await self._merge(prd_doc=prd, system_design_doc=old_system_design_doc)

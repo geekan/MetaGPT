@@ -28,16 +28,16 @@
 #         bm = BrainMemory()
 #         for h in v.history:
 #             msg = Message(content=h)
-#             bm.history.append(msg.dict())
+#             bm.history.append(msg.model_dump())
 #         for h in v.solution:
 #             msg = Message(content=h)
-#             bm.solution.append(msg.dict())
+#             bm.solution.append(msg.model_dump())
 #         for h in v.knowledge:
 #             msg = Message(content=h)
-#             bm.knowledge.append(msg.dict())
+#             bm.knowledge.append(msg.model_dump())
 #         for h in v.stack:
 #             msg = Message(content=h)
-#             bm.stack.append(msg.dict())
+#             bm.stack.append(msg.model_dump())
 #         s = bm.json()
 #         m = json.loads(s)
 #         bm = BrainMemory(**m)

@@ -73,7 +73,7 @@ class WriteTasks(Action):
             logger.info("Nothing has changed.")
         # Wait until all files under `docs/tasks/` are processed before sending the publish_message, leaving room for
         # global optimization in subsequent steps.
-        return ActionOutput(content=change_files.json(), instruct_content=change_files)
+        return ActionOutput(content=change_files.model_dump_json(), instruct_content=change_files)
 
     async def _update_tasks(self, filename, system_design_file_repo, tasks_file_repo):
         system_design_doc = await system_design_file_repo.get(filename)
@@ -83,7 +83,7 @@ class WriteTasks(Action):
         else:
             rsp = await self._run_new_tasks(context=system_design_doc.content)
             task_doc = Document(
-                root_path=TASK_FILE_REPO, filename=filename, content=rsp.instruct_content.json(ensure_ascii=False)
+                root_path=TASK_FILE_REPO, filename=filename, content=rsp.instruct_content.model_dump_json()
             )
         await tasks_file_repo.save(
             filename=filename, content=task_doc.content, dependencies={system_design_doc.root_relative_path}
@@ -102,7 +102,7 @@ class WriteTasks(Action):
     async def _merge(self, system_design_doc, task_doc, schema=CONFIG.prompt_schema) -> Document:
         context = NEW_REQ_TEMPLATE.format(context=system_design_doc.content, old_tasks=task_doc.content)
         node = await PM_NODE.fill(context, self.llm, schema)
-        task_doc.content = node.instruct_content.json(ensure_ascii=False)
+        task_doc.content = node.instruct_content.model_dump_json()
         return task_doc
 
     @staticmethod

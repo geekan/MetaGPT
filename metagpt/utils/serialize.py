@@ -62,10 +62,10 @@ def serialize_message(message: "Message"):
     ic = message_cp.instruct_content
     if ic:
         # model create by pydantic create_model like `pydantic.main.prd`, can't pickle.dump directly
-        schema = ic.schema()
+        schema = ic.model_json_schema()
         mapping = actionoutout_schema_to_mapping(schema)
 
-        message_cp.instruct_content = {"class": schema["title"], "mapping": mapping, "value": ic.dict()}
+        message_cp.instruct_content = {"class": schema["title"], "mapping": mapping, "value": ic.model_dump()}
     msg_ser = pickle.dumps(message_cp)
 
     return msg_ser

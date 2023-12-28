@@ -4,7 +4,7 @@
 @Time    : 2023/6/5 01:44
 @Author  : alexanderwu
 @File    : skill_manager.py
-@Modified By: mashenquan, 2023/8/20. Remove useless `_llm`
+@Modified By: mashenquan, 2023/8/20. Remove useless `llm`
 """
 from metagpt.actions import Action
 from metagpt.const import PROMPT_PATH

@@ -9,7 +9,7 @@ from typing import Optional
 from urllib.parse import urlparse
 
 import httplib2
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from metagpt.config import CONFIG
 from metagpt.logs import logger
@@ -25,15 +25,14 @@ except ImportError:
 
 
 class GoogleAPIWrapper(BaseModel):
-    google_api_key: Optional[str] = None
-    google_cse_id: Optional[str] = None
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    google_api_key: Optional[str] = Field(default=None, validate_default=True)
+    google_cse_id: Optional[str] = Field(default=None, validate_default=True)
     loop: Optional[asyncio.AbstractEventLoop] = None
     executor: Optional[futures.Executor] = None
 
-    class Config:
-        arbitrary_types_allowed = True
-
-    @validator("google_api_key", always=True)
+    @field_validator("google_api_key", mode="before")
     @classmethod
     def check_google_api_key(cls, val: str):
         val = val or CONFIG.google_api_key
@@ -45,7 +44,7 @@ class GoogleAPIWrapper(BaseModel):
             )
         return val
 
-    @validator("google_cse_id", always=True)
+    @field_validator("google_cse_id", mode="before")
     @classmethod
     def check_google_cse_id(cls, val: str):
         val = val or CONFIG.google_cse_id

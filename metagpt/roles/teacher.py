@@ -42,34 +42,34 @@ class Teacher(Role):
 
     async def _think(self) -> bool:
         """Everything will be done part by part."""
-        if not self._actions:
-            if not self._rc.news or self._rc.news[0].cause_by != any_to_str(UserRequirement):
+        if not self.actions:
+            if not self.rc.news or self.rc.news[0].cause_by != any_to_str(UserRequirement):
                 raise ValueError("Lesson content invalid.")
             actions = []
             print(TeachingPlanBlock.TOPICS)
             for topic in TeachingPlanBlock.TOPICS:
-                act = WriteTeachingPlanPart(context=self._rc.news[0].content, topic=topic, llm=self._llm)
+                act = WriteTeachingPlanPart(context=self.rc.news[0].content, topic=topic, llm=self.llm)
                 actions.append(act)
             self._init_actions(actions)
 
-        if self._rc.todo is None:
+        if self.rc.todo is None:
             self._set_state(0)
             return True
 
-        if self._rc.state + 1 < len(self._states):
-            self._set_state(self._rc.state + 1)
+        if self.rc.state + 1 < len(self.states):
+            self._set_state(self.rc.state + 1)
             return True
 
-        self._rc.todo = None
+        self.rc.todo = None
         return False
 
     async def _react(self) -> Message:
         ret = Message(content="")
         while True:
             await self._think()
-            if self._rc.todo is None:
+            if self.rc.todo is None:
                 break
-            logger.debug(f"{self._setting}: {self._rc.state=}, will do {self._rc.todo}")
+            logger.debug(f"{self._setting}: {self.rc.state=}, will do {self.rc.todo}")
             msg = await self._act()
             if ret.content != "":
                 ret.content += "\n\n\n"
@@ -104,7 +104,7 @@ class Teacher(Role):
     def course_title(self):
         """Return course title of teaching plan"""
         default_title = "teaching_plan"
-        for act in self._actions:
+        for act in self.actions:
             if act.topic != TeachingPlanBlock.COURSE_TITLE:
                 continue
             if act.rsp is None:
