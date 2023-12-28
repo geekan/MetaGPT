@@ -1,16 +1,27 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# @Desc   : 
+# @Desc   :
 
-import pytest
 import os
-import requests
-import aiohttp
-from typing import Iterator, Tuple, Union, Generator, AsyncGenerator
+from typing import AsyncGenerator, Generator, Iterator, Tuple, Union
 
+import aiohttp
+import pytest
+import requests
 from openai import OpenAIError
-from metagpt.provider.general_api_base import ApiType, log_debug, log_info, log_warn, OpenAIResponse, \
-    _requests_proxies_arg, _aiohttp_proxies_arg, _make_session, parse_stream_helper, parse_stream, APIRequestor
+
+from metagpt.provider.general_api_base import (
+    APIRequestor,
+    ApiType,
+    OpenAIResponse,
+    _make_session,
+    _requests_proxies_arg,
+    log_debug,
+    log_info,
+    log_warn,
+    parse_stream,
+    parse_stream_helper,
+)
 
 
 def test_basic():
@@ -60,13 +71,15 @@ def test_parse_stream():
 api_requestor = APIRequestor(base_url="http://www.baidu.com")
 
 
-def mock_interpret_response(self, result: requests.Response, stream: bool
-    ) -> Tuple[Union[bytes, Iterator[Generator]], bytes]:
+def mock_interpret_response(
+    self, result: requests.Response, stream: bool
+) -> Tuple[Union[bytes, Iterator[Generator]], bytes]:
     return b"baidu", False
 
 
-async def mock_interpret_async_response(self, result: aiohttp.ClientResponse, stream: bool
-    ) -> Tuple[Union[OpenAIResponse, AsyncGenerator[OpenAIResponse, None]], bool]:
+async def mock_interpret_async_response(
+    self, result: aiohttp.ClientResponse, stream: bool
+) -> Tuple[Union[OpenAIResponse, AsyncGenerator[OpenAIResponse, None]], bool]:
     return b"baidu", True
 
 
@@ -79,6 +92,8 @@ def test_api_requestor(mocker):
 
 @pytest.mark.asyncio
 async def test_async_api_requestor(mocker):
-    mocker.patch("metagpt.provider.general_api_base.APIRequestor._interpret_async_response", mock_interpret_async_response)
+    mocker.patch(
+        "metagpt.provider.general_api_base.APIRequestor._interpret_async_response", mock_interpret_async_response
+    )
     resp, _, _ = await api_requestor.arequest(method="get", url="/s?wd=baidu")
     resp, _, _ = await api_requestor.arequest(method="post", url="/s?wd=baidu")

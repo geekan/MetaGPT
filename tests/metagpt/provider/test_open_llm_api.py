@@ -1,15 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# @Desc   : 
+# @Desc   :
 
 import pytest
-
 from openai.types.chat.chat_completion import (
     ChatCompletion,
     ChatCompletionMessage,
     Choice,
 )
-from openai.types.chat.chat_completion_chunk import ChatCompletionChunk, ChoiceDelta, Choice as AChoice
+from openai.types.chat.chat_completion_chunk import ChatCompletionChunk
+from openai.types.chat.chat_completion_chunk import Choice as AChoice
+from openai.types.chat.chat_completion_chunk import ChoiceDelta
 from openai.types.completion_usage import CompletionUsage
 
 from metagpt.config import CONFIG
@@ -32,7 +33,7 @@ default_resp = ChatCompletion(
             message=ChatCompletionMessage(role="assistant", content=resp_content),
             logprobs=None,
         )
-    ]
+    ],
 )
 
 default_resp_chunk = ChatCompletionChunk(
@@ -42,26 +43,25 @@ default_resp_chunk = ChatCompletionChunk(
     created=default_resp.created,
     choices=[
         AChoice(
-            delta=ChoiceDelta(
-                content=resp_content,
-                role="assistant"
-            ),
+            delta=ChoiceDelta(content=resp_content, role="assistant"),
             finish_reason="stop",
             index=0,
             logprobs=None,
         )
-    ]
+    ],
 )
 
 prompt_msg = "who are you"
 messages = [{"role": "user", "content": prompt_msg}]
 
 
-async def mock_openai_acompletions_create(self, stream: bool=False, **kwargs) -> ChatCompletionChunk:
+async def mock_openai_acompletions_create(self, stream: bool = False, **kwargs) -> ChatCompletionChunk:
     if stream:
+
         class Iterator(object):
             async def __aiter__(self):
                 yield default_resp_chunk
+
         return Iterator()
     else:
         return default_resp
@@ -75,7 +75,9 @@ async def test_openllm_acompletion(mocker):
     openllm_gpt.model = "llama-v2-13b-chat"
 
     openllm_gpt._update_costs(usage=CompletionUsage(prompt_tokens=100, completion_tokens=100, total_tokens=200))
-    assert openllm_gpt.get_costs() == Costs(total_prompt_tokens=100, total_completion_tokens=100, total_cost=0, total_budget=0)
+    assert openllm_gpt.get_costs() == Costs(
+        total_prompt_tokens=100, total_completion_tokens=100, total_cost=0, total_budget=0
+    )
 
     resp = await openllm_gpt.acompletion(messages)
     assert resp.choices[0].message.content in resp_content
