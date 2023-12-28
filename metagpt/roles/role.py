@@ -36,7 +36,7 @@ from metagpt.llm import LLM, HumanProvider
 from metagpt.logs import logger
 from metagpt.memory import Memory
 from metagpt.provider.base_llm import BaseLLM
-from metagpt.schema import Message, MessageQueue, SerDeserMixin
+from metagpt.schema import Message, MessageQueue, SerializationMixin
 from metagpt.utils.common import (
     any_to_name,
     any_to_str,
@@ -126,7 +126,7 @@ class RoleContext(BaseModel):
         return self.memory.get()
 
 
-class Role(SerDeserMixin, is_polymorphic_base=True):
+class Role(SerializationMixin, is_polymorphic_base=True):
     """Role/Agent"""
 
     model_config = ConfigDict(arbitrary_types_allowed=True, exclude=["llm"])

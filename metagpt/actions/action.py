@@ -19,12 +19,12 @@ from metagpt.schema import (
     CodeSummarizeContext,
     CodingContext,
     RunCodeContext,
-    SerDeserMixin,
+    SerializationMixin,
     TestingContext,
 )
 
 
-class Action(SerDeserMixin, is_polymorphic_base=True):
+class Action(SerializationMixin, is_polymorphic_base=True):
     model_config = ConfigDict(arbitrary_types_allowed=True, exclude=["llm"])
 
     name: str = ""

@@ -54,7 +54,7 @@ from metagpt.utils.serialize import (
 )
 
 
-class SerDeserMixin(BaseModel):
+class SerializationMixin(BaseModel):
     """SereDeserMixin for subclass' ser&deser"""
 
     __is_polymorphic_base = False
@@ -62,7 +62,7 @@ class SerDeserMixin(BaseModel):
 
     @classmethod
     def __get_pydantic_core_schema__(
-        cls, source: type["SerDeserMixin"], handler: Callable[[Any], core_schema.CoreSchema]
+        cls, source: type["SerializationMixin"], handler: Callable[[Any], core_schema.CoreSchema]
     ) -> core_schema.CoreSchema:
         schema = handler(source)
         og_schema_ref = schema["ref"]
