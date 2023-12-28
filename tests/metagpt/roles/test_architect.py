@@ -16,6 +16,7 @@ from tests.metagpt.roles.mock import MockMessages
 
 @pytest.mark.asyncio
 async def test_architect():
+    # FIXME: make git as env? Or should we support
     role = Architect()
     role.put_message(MockMessages.req)
     rsp = await role.run(MockMessages.prd)
