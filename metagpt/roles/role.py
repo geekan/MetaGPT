@@ -394,7 +394,9 @@ class Role(SerializationMixin, is_polymorphic_base=True):
         old_messages = [] if ignore_memory else self.rc.memory.get()
         self.rc.memory.add_batch(news)
         # Filter out messages of interest.
-        self.rc.news = [n for n in news if n.cause_by in self.rc.watch and n not in old_messages]
+        self.rc.news = [
+            n for n in news if (n.cause_by in self.rc.watch or self.name in n.send_to) and n not in old_messages
+        ]
         self.latest_observed_msg = self.rc.news[-1] if self.rc.news else None  # record the latest observed msg
 
         # Design Rules:
