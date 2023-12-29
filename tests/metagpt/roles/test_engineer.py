@@ -12,12 +12,7 @@ import pytest
 from metagpt.logs import logger
 from metagpt.roles.engineer import Engineer
 from metagpt.utils.common import CodeParser
-from tests.metagpt.roles.mock import (
-    STRS_FOR_PARSING,
-    TASKS,
-    TASKS_TOMATO_CLOCK,
-    MockMessages,
-)
+from tests.metagpt.roles.mock import STRS_FOR_PARSING, TASKS, MockMessages
 
 
 @pytest.mark.asyncio
@@ -62,13 +57,10 @@ target_list = [
 
 
 def test_parse_file_list():
-    tasks = CodeParser.parse_file_list("任务列表", TASKS)
+    tasks = CodeParser.parse_file_list("Task list", TASKS)
     logger.info(tasks)
     assert isinstance(tasks, list)
     assert target_list == tasks
-
-    file_list = CodeParser.parse_file_list("Task list", TASKS_TOMATO_CLOCK, lang="python")
-    logger.info(file_list)
 
 
 target_code = """task_list = [
@@ -88,7 +80,7 @@ target_code = """task_list = [
 
 
 def test_parse_code():
-    code = CodeParser.parse_code("任务列表", TASKS, lang="python")
+    code = CodeParser.parse_code("Task list", TASKS, lang="python")
     logger.info(code)
     assert isinstance(code, str)
     assert target_code == code
