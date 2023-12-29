@@ -89,9 +89,6 @@ class WriteTasks(Action):
 
     async def _run_new_tasks(self, context, schema=CONFIG.prompt_schema):
         node = await PM_NODE.fill(context, self.llm, schema)
-        # prompt_template, format_example = get_template(templates, format)
-        # prompt = prompt_template.format(context=context, format_example=format_example)
-        # rsp = await self._aask_v1(prompt, "task", OUTPUT_MAPPING, format=format)
         return node
 
     async def _merge(self, system_design_doc, task_doc, schema=CONFIG.prompt_schema) -> Document:
