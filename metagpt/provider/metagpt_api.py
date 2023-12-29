@@ -11,6 +11,6 @@ from metagpt.provider.llm_provider_registry import register_provider
 
 
 @register_provider(LLMProviderEnum.METAGPT)
-class MetaGPTAPI(OpenAILLM):
+class MetaGPTLLM(OpenAILLM):
     def __init__(self):
         super().__init__()

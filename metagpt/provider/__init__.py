@@ -7,21 +7,21 @@
 """
 
 from metagpt.provider.fireworks_api import FireworksLLM
-from metagpt.provider.google_gemini_api import GeminiGPTAPI
+from metagpt.provider.google_gemini_api import GeminiLLM
 from metagpt.provider.ollama_api import OllamaLLM
-from metagpt.provider.open_llm_api import OpenLLMGPTAPI
+from metagpt.provider.open_llm_api import OpenLLM
 from metagpt.provider.openai_api import OpenAILLM
-from metagpt.provider.zhipuai_api import ZhiPuAIGPTAPI
+from metagpt.provider.zhipuai_api import ZhiPuAILLM
 from metagpt.provider.azure_openai_api import AzureOpenAILLM
-from metagpt.provider.metagpt_api import MetaGPTAPI
+from metagpt.provider.metagpt_api import MetaGPTLLM
 
 __all__ = [
     "FireworksLLM",
-    "GeminiGPTAPI",
-    "OpenLLMGPTAPI",
+    "GeminiLLM",
+    "OpenLLM",
     "OpenAILLM",
-    "ZhiPuAIGPTAPI",
+    "ZhiPuAILLM",
     "AzureOpenAILLM",
-    "MetaGPTAPI",
+    "MetaGPTLLM",
     "OllamaLLM",
 ]

@@ -100,7 +100,7 @@ def log_info(message, **params):
 def log_warn(message, **params):
     msg = logfmt(dict(message=message, **params))
     print(msg, file=sys.stderr)
-    logger.warn(msg)
+    logger.warning(msg)
 
 
 def logfmt(props):

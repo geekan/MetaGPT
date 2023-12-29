@@ -6,7 +6,6 @@
 import pytest
 
 from metagpt.actions import WriteCode
-from metagpt.llm import LLM
 from metagpt.schema import CodingContext, Document
 
 
@@ -28,5 +27,4 @@ async def test_write_code_deserialize():
     new_action = WriteCode(**serialized_data)
 
     assert new_action.name == "WriteCode"
-    assert new_action.llm == LLM()
     await action.run()

@@ -7,20 +7,15 @@
 """
 from typing import Optional
 
-from pydantic import Field
-
 from metagpt.actions import Action
 from metagpt.config import CONFIG
-from metagpt.llm import LLM
 from metagpt.logs import logger
-from metagpt.provider.base_llm import BaseLLM
 
 
 class WriteTeachingPlanPart(Action):
     """Write Teaching Plan Part"""
 
     context: Optional[str] = None
-    llm: BaseLLM = Field(default_factory=LLM)
     topic: str = ""
     language: str = "Chinese"
     rsp: Optional[str] = None

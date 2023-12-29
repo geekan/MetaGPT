@@ -8,13 +8,22 @@ from openai.types.chat.chat_completion import (
     ChatCompletionMessage,
     Choice,
 )
+from openai.types.chat.chat_completion_chunk import ChatCompletionChunk
+from openai.types.chat.chat_completion_chunk import Choice as AChoice
+from openai.types.chat.chat_completion_chunk import ChoiceDelta
 from openai.types.completion_usage import CompletionUsage
 
+from metagpt.config import CONFIG
 from metagpt.provider.fireworks_api import (
     MODEL_GRADE_TOKEN_COSTS,
     FireworksCostManager,
     FireworksLLM,
 )
+from metagpt.utils.cost_manager import Costs
+
+CONFIG.fireworks_api_key = "xxx"
+CONFIG.max_budget = 10
+CONFIG.calc_usage = True
 
 resp_content = "I'm fireworks"
 default_resp = ChatCompletion(
@@ -25,12 +34,28 @@ default_resp = ChatCompletion(
     choices=[
         Choice(
             finish_reason="stop",
-            logprobs=None,
             index=0,
             message=ChatCompletionMessage(role="assistant", content=resp_content),
+            logprobs=None,
         )
     ],
     usage=CompletionUsage(completion_tokens=110, prompt_tokens=92, total_tokens=202),
+)
+
+default_resp_chunk = ChatCompletionChunk(
+    id=default_resp.id,
+    model=default_resp.model,
+    object="chat.completion.chunk",
+    created=default_resp.created,
+    choices=[
+        AChoice(
+            delta=ChoiceDelta(content=resp_content, role="assistant"),
+            finish_reason="stop",
+            index=0,
+            logprobs=None,
+        )
+    ],
+    usage=dict(default_resp.usage),
 )
 
 prompt_msg = "who are you"
@@ -47,29 +72,37 @@ def test_fireworks_costmanager():
     assert MODEL_GRADE_TOKEN_COSTS["80"] == cost_manager.model_grade_token_costs("xxx-80b-chat")
     assert MODEL_GRADE_TOKEN_COSTS["mixtral-8x7b"] == cost_manager.model_grade_token_costs("mixtral-8x7b-chat")
 
-
-def mock_llm_completion(self, messages: list[dict], timeout: int = 60) -> ChatCompletion:
-    return default_resp
-
-
-async def mock_llm_acompletion(self, messgaes: list[dict], stream: bool = False, timeout: int = 60) -> ChatCompletion:
-    return default_resp
+    cost_manager.update_cost(prompt_tokens=500000, completion_tokens=500000, model="llama-v2-13b-chat")
+    assert cost_manager.total_cost == 0.5
 
 
-async def mock_llm_achat_completion_stream(self, messgaes: list[dict]) -> str:
-    return default_resp.choices[0].message.content
+async def mock_openai_acompletions_create(self, stream: bool = False, **kwargs) -> ChatCompletionChunk:
+    if stream:
+
+        class Iterator(object):
+            async def __aiter__(self):
+                yield default_resp_chunk
+
+        return Iterator()
+    else:
+        return default_resp
 
 
 @pytest.mark.asyncio
 async def test_fireworks_acompletion(mocker):
-    mocker.patch("metagpt.provider.fireworks_api.FireworksLLM.acompletion", mock_llm_acompletion)
-    mocker.patch("metagpt.provider.fireworks_api.FireworksLLM._achat_completion", mock_llm_acompletion)
-    mocker.patch(
-        "metagpt.provider.fireworks_api.FireworksLLM._achat_completion_stream", mock_llm_achat_completion_stream
-    )
-    fireworks_gpt = FireworksLLM()
+    mocker.patch("openai.resources.chat.completions.AsyncCompletions.create", mock_openai_acompletions_create)
 
-    resp = await fireworks_gpt.acompletion(messages, stream=False)
+    fireworks_gpt = FireworksLLM()
+    fireworks_gpt.model = "llama-v2-13b-chat"
+
+    fireworks_gpt._update_costs(
+        usage=CompletionUsage(prompt_tokens=500000, completion_tokens=500000, total_tokens=1000000)
+    )
+    assert fireworks_gpt.get_costs() == Costs(
+        total_prompt_tokens=500000, total_completion_tokens=500000, total_cost=0.5, total_budget=0
+    )
+
+    resp = await fireworks_gpt.acompletion(messages)
     assert resp.choices[0].message.content in resp_content
 
     resp = await fireworks_gpt.aask(prompt_msg, stream=False)

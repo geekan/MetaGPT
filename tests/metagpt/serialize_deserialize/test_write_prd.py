@@ -6,7 +6,6 @@
 import pytest
 
 from metagpt.actions import WritePRD
-from metagpt.llm import LLM
 from metagpt.schema import Message
 
 
@@ -22,7 +21,6 @@ async def test_action_deserialize():
     action = WritePRD()
     serialized_data = action.model_dump()
     new_action = WritePRD(**serialized_data)
-    assert new_action.name == ""
-    assert new_action.llm == LLM()
+    assert new_action.name == "WritePRD"
     action_output = await new_action.run(with_messages=Message(content="write a cli snake game"))
     assert len(action_output.content) > 0

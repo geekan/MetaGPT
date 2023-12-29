@@ -174,7 +174,7 @@ class Message(BaseModel):
     role: str = "user"  # system / user / assistant
     cause_by: str = Field(default="", validate_default=True)
     sent_from: str = Field(default="", validate_default=True)
-    send_to: set = Field(default={MESSAGE_ROUTE_TO_ALL}, validate_default=True)
+    send_to: set[str] = Field(default={MESSAGE_ROUTE_TO_ALL}, validate_default=True)
 
     @field_validator("id", mode="before")
     @classmethod

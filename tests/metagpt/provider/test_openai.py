@@ -2,8 +2,13 @@ from unittest.mock import Mock
 
 import pytest
 
+from metagpt.config import CONFIG
 from metagpt.provider.openai_api import OpenAILLM
 from metagpt.schema import UserMessage
+
+CONFIG.openai_proxy = None
+
+print("openai_api_key ", CONFIG.openai_api_key)
 
 
 @pytest.mark.asyncio

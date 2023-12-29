@@ -1,20 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/12/28
-@Author  : mashenquan
-@File    : test_azure_openai.py
-"""
-from metagpt.config import CONFIG, LLMProviderEnum
-from metagpt.llm import LLM
+# @Desc   :
 
 
-def test_llm():
-    # Prerequisites
-    assert CONFIG.DEPLOYMENT_NAME and CONFIG.DEPLOYMENT_NAME != "YOUR_DEPLOYMENT_NAME"
-    assert CONFIG.OPENAI_API_KEY and CONFIG.OPENAI_API_KEY != "YOUR_AZURE_API_KEY"
-    assert CONFIG.OPENAI_API_VERSION
-    assert CONFIG.OPENAI_BASE_URL
+from metagpt.config import CONFIG
+from metagpt.provider.azure_openai_api import AzureOpenAILLM
 
-    llm = LLM(provider=LLMProviderEnum.AZURE_OPENAI)
-    assert llm
+CONFIG.OPENAI_API_VERSION = "xx"
+CONFIG.openai_proxy = "http://127.0.0.1:80"  # fake value
+
+
+def test_azure_openai_api():
+    _ = AzureOpenAILLM()

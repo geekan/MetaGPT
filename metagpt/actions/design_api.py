@@ -13,8 +13,6 @@ import json
 from pathlib import Path
 from typing import Optional
 
-from pydantic import Field
-
 from metagpt.actions import Action, ActionOutput
 from metagpt.actions.design_api_an import DESIGN_API_NODE
 from metagpt.config import CONFIG
@@ -25,9 +23,7 @@ from metagpt.const import (
     SYSTEM_DESIGN_FILE_REPO,
     SYSTEM_DESIGN_PDF_FILE_REPO,
 )
-from metagpt.llm import LLM
 from metagpt.logs import logger
-from metagpt.provider.base_llm import BaseLLM
 from metagpt.schema import Document, Documents, Message
 from metagpt.utils.file_repository import FileRepository
 from metagpt.utils.mermaid import mermaid_to_file
@@ -44,7 +40,6 @@ NEW_REQ_TEMPLATE = """
 class WriteDesign(Action):
     name: str = ""
     context: Optional[str] = None
-    llm: BaseLLM = Field(default_factory=LLM)
     desc: str = (
         "Based on the PRD, think about the system design, and design the corresponding APIs, "
         "data structures, library tables, processes, and paths. Please provide your design, feedback "

@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 # @Desc   : the unittest of ollama api
 
+import json
+from typing import Any, Tuple
+
 import pytest
 
 from metagpt.config import CONFIG
@@ -14,25 +17,33 @@ resp_content = "I'm ollama"
 default_resp = {"message": {"role": "assistant", "content": resp_content}}
 
 CONFIG.ollama_api_base = "http://xxx"
+CONFIG.max_budget = 10
 
 
-def mock_llm_completion(self, messages: list[dict], timeout: int = 60) -> dict:
-    return default_resp
+async def mock_ollama_arequest(self, stream: bool = False, **kwargs) -> Tuple[Any, Any, bool]:
+    if stream:
 
+        class Iterator(object):
+            events = [
+                b'{"message": {"role": "assistant", "content": "I\'m ollama"}, "done": false}',
+                b'{"prompt_eval_count": 20, "eval_count": 20, "done": true}',
+            ]
 
-async def mock_llm_acompletion(self, messgaes: list[dict], stream: bool = False, timeout: int = 60) -> dict:
-    return default_resp
+            async def __aiter__(self):
+                for event in self.events:
+                    yield event
 
-
-async def mock_llm_achat_completion_stream(self, messgaes: list[dict]) -> str:
-    return resp_content
+        return Iterator(), None, None
+    else:
+        raw_default_resp = default_resp.copy()
+        raw_default_resp.update({"prompt_eval_count": 20, "eval_count": 20})
+        return json.dumps(raw_default_resp).encode(), None, None
 
 
 @pytest.mark.asyncio
 async def test_gemini_acompletion(mocker):
-    mocker.patch("metagpt.provider.ollama_api.OllamaGPTAPI.acompletion", mock_llm_acompletion)
-    mocker.patch("metagpt.provider.ollama_api.OllamaGPTAPI._achat_completion", mock_llm_acompletion)
-    mocker.patch("metagpt.provider.ollama_api.OllamaGPTAPI._achat_completion_stream", mock_llm_achat_completion_stream)
+    mocker.patch("metagpt.provider.general_api_requestor.GeneralAPIRequestor.arequest", mock_ollama_arequest)
+
     ollama_gpt = OllamaLLM()
 
     resp = await ollama_gpt.acompletion(messages)

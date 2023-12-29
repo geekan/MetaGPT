@@ -24,7 +24,7 @@ def test_idea_message():
     role_id = "UTUser1(Product Manager)"
     message = Message(role="User", content=idea, cause_by=UserRequirement)
 
-    shutil.rmtree(Path(DATA_PATH / f"role_mem/{role_id}/"))
+    shutil.rmtree(Path(DATA_PATH / f"role_mem/{role_id}/"), ignore_errors=True)
 
     memory_storage: MemoryStorage = MemoryStorage()
     messages = memory_storage.recover_memory(role_id)
@@ -58,7 +58,7 @@ def test_actionout_message():
         content=content, instruct_content=ic_obj(**out_data), role="user", cause_by=WritePRD
     )  # WritePRD as test action
 
-    shutil.rmtree(Path(DATA_PATH / f"role_mem/{role_id}/"))
+    shutil.rmtree(Path(DATA_PATH / f"role_mem/{role_id}/"), ignore_errors=True)
 
     memory_storage: MemoryStorage = MemoryStorage()
     messages = memory_storage.recover_memory(role_id)

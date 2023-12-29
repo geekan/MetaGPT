@@ -33,7 +33,7 @@ class ZhiPuModelAPI(ModelAPI):
                 zhipu_api_url: https://open.bigmodel.cn/api/paas/v3/model-api/{model}/{invoke_method}
         """
         arr = zhipu_api_url.split("/api/")
-        # ("https://open.bigmodel.cn/api/" , "/paas/v3/model-api/chatglm_turbo/invoke")
+        # ("https://open.bigmodel.cn/api" , "/paas/v3/model-api/chatglm_turbo/invoke")
         return f"{arr[0]}/api", f"/{arr[1]}"
 
     @classmethod

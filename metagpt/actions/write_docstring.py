@@ -27,11 +27,7 @@ import ast
 from pathlib import Path
 from typing import Literal, Optional
 
-from pydantic import Field
-
 from metagpt.actions.action import Action
-from metagpt.llm import LLM
-from metagpt.provider.base_llm import BaseLLM
 from metagpt.utils.common import OutputParser, aread, awrite
 from metagpt.utils.pycst import merge_docstring
 
@@ -166,7 +162,6 @@ class WriteDocstring(Action):
 
     desc: str = "Write docstring for code."
     context: Optional[str] = None
-    llm: BaseLLM = Field(default_factory=LLM)
 
     async def run(
         self,

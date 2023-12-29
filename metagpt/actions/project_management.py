@@ -13,8 +13,6 @@
 import json
 from typing import Optional
 
-from pydantic import Field
-
 from metagpt.actions import ActionOutput
 from metagpt.actions.action import Action
 from metagpt.actions.project_management_an import PM_NODE
@@ -25,9 +23,7 @@ from metagpt.const import (
     TASK_FILE_REPO,
     TASK_PDF_FILE_REPO,
 )
-from metagpt.llm import LLM
 from metagpt.logs import logger
-from metagpt.provider.base_llm import BaseLLM
 from metagpt.schema import Document, Documents
 from metagpt.utils.file_repository import FileRepository
 
@@ -43,7 +39,6 @@ NEW_REQ_TEMPLATE = """
 class WriteTasks(Action):
     name: str = "CreateTasks"
     context: Optional[str] = None
-    llm: BaseLLM = Field(default_factory=LLM)
 
     async def run(self, with_messages, schema=CONFIG.prompt_schema):
         system_design_file_repo = CONFIG.git_repo.new_file_repository(SYSTEM_DESIGN_FILE_REPO)
