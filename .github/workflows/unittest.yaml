@@ -1,0 +1,47 @@
+name: Python application test
+
+on:
+  pull_request:
+    branches:
+      - '**'
+  push: 
+    branches: 
+      - '**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # python-version: ['3.9', '3.10', '3.11']
+        python-version: ['3.9']
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e.
+        npm install -g @mermaid-js/mermaid-cli
+        playwright install --with-deps chromium
+    - name: Test with pytest
+      run: |
+        pip install pytest pytest-asyncio pytest-cov pytest-html
+        export OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" OPENAI_API_MODEL="gpt-3.5-turbo-1106"
+        export PYPPETEER_EXECUTABLE_PATH="/usr/bin/chromium"
+        pytest tests/ --doctest-modules --junitxml=junit/test-results-${{ matrix.python-version }}.xml --cov=./metagpt/ --cov-report=xml:cov.xml --cov-report=html:htmlcov
+        coverage report -m
+    - name: Upload pytest test results
+      uses: actions/upload-artifact@v3
+      with:
+        name: pytest-results-${{ matrix.python-version }}
+        path: |
+          ./junit/test-results-${{ matrix.python-version }}.xml
+          ./htmlcov/
+        retention-days: 3
+      if: ${{ always() }}
+      
