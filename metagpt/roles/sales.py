@@ -8,6 +8,8 @@
 
 from typing import Optional
 
+from pydantic import Field
+
 from metagpt.actions import SearchAndSummarize, UserRequirement
 from metagpt.document_store.base_store import BaseStore
 from metagpt.roles import Role
@@ -25,7 +27,7 @@ class Sales(Role):
         "delivered with the professionalism and courtesy expected of a seasoned sales guide."
     )
 
-    store: Optional[BaseStore] = None
+    store: Optional[BaseStore] = Field(default=None, exclude=True)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
