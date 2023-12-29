@@ -24,7 +24,8 @@ from metagpt.utils.common import any_to_str
 class MockAction(Action):
     async def run(self, messages, *args, **kwargs):
         assert messages
-        return ActionOutput(content=messages[-1].content, instruct_content=messages[-1])
+        # TODO to check instruct_content as Message
+        return ActionOutput(content=messages[-1].content, instruct_content=messages[-1].instruct_content)
 
 
 class MockRole(Role):
