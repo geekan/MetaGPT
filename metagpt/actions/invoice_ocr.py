@@ -42,7 +42,6 @@ class InvoiceOCR(Action):
 
     name: str = "InvoiceOCR"
     context: Optional[str] = None
-    llm: BaseLLM = Field(default_factory=LLM, exclude=True)
 
     @staticmethod
     async def _check_file_type(file_path: Path) -> str:

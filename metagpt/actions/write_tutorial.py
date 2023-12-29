@@ -9,12 +9,8 @@
 
 from typing import Dict
 
-from pydantic import Field
-
 from metagpt.actions import Action
-from metagpt.llm import LLM
 from metagpt.prompts.tutorial_assistant import CONTENT_PROMPT, DIRECTORY_PROMPT
-from metagpt.provider.base_llm import BaseLLM
 from metagpt.utils.common import OutputParser
 
 
@@ -27,7 +23,6 @@ class WriteDirectory(Action):
     """
 
     name: str = "WriteDirectory"
-    llm: BaseLLM = Field(default_factory=LLM, exclude=True)
     language: str = "Chinese"
 
     async def run(self, topic: str, *args, **kwargs) -> Dict:
@@ -54,7 +49,6 @@ class WriteContent(Action):
     """
 
     name: str = "WriteContent"
-    llm: BaseLLM = Field(default_factory=LLM)
     directory: dict = dict()
     language: str = "Chinese"
 

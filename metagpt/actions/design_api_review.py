@@ -8,17 +8,12 @@
 
 from typing import Optional
 
-from pydantic import Field
-
 from metagpt.actions.action import Action
-from metagpt.llm import LLM
-from metagpt.provider.base_llm import BaseLLM
 
 
 class DesignReview(Action):
     name: str = "DesignReview"
     context: Optional[str] = None
-    llm: BaseLLM = Field(default_factory=LLM, exclude=True)
 
     async def run(self, prd, api_design):
         prompt = (
