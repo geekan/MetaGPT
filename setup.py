@@ -29,7 +29,6 @@ extras_require = {
     "search-google": ["google-api-python-client==2.94.0"],
     "search-ddg": ["duckduckgo-search~=4.1.1"],
     "ocr": ["paddlepaddle==2.4.2", "paddleocr>=2.0.1", "tabulate==0.9.0"],
-    "test": ["pytest", "pytest-cov", "pytest-asyncio", "pytest-mock"],
 }
 
 extras_require["test"] = [
@@ -39,6 +38,12 @@ extras_require["test"] = [
     "pytest-cov",
     "pytest-mock",
     "pytest-html",
+    "connexion[uvicorn]~=3.0.5",
+    "azure-cognitiveservices-speech~=1.31.0",
+    "aioboto3~=11.3.0",
+    "chromadb==0.3.23",
+    "gradio==3.0.0",
+    "grpcio-status==1.48.2",
 ]
 
 extras_require["pyppeteer"] = [
