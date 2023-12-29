@@ -53,7 +53,8 @@ async def test_dependency_file():
 
     file1 = DependencyFile(workdir=Path(__file__).parent)
     assert file1.exists
-    assert await file1.get("a/b.txt") == set()
+    assert await file1.get("a/b.txt", persist=False) == set()
+    assert await file1.get("a/b.txt") == {"c/e.txt", "d.txt"}
     await file1.load()
     assert await file1.get("a/b.txt") == {"c/e.txt", "d.txt"}
     file1.delete_file()

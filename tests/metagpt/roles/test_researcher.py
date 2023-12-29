@@ -48,3 +48,7 @@ def test_write_report(mocker):
             content = "# Research Report"
             researcher.Researcher().write_report(topic, content)
             assert (researcher.RESEARCH_PATH / f"{i+1}. metagpt.md").read_text().startswith("# Research Report")
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-s"])

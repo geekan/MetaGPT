@@ -47,10 +47,10 @@ class WriteDesign(Action):
     )
 
     async def run(self, with_messages: Message, schema: str = CONFIG.prompt_schema):
-        # Use `git diff` to identify which PRD documents have been modified in the `docs/prds` directory.
+        # Use `git status` to identify which PRD documents have been modified in the `docs/prds` directory.
         prds_file_repo = CONFIG.git_repo.new_file_repository(PRDS_FILE_REPO)
         changed_prds = prds_file_repo.changed_files
-        # Use `git diff` to identify which design documents in the `docs/system_designs` directory have undergone
+        # Use `git status` to identify which design documents in the `docs/system_designs` directory have undergone
         # changes.
         system_design_file_repo = CONFIG.git_repo.new_file_repository(SYSTEM_DESIGN_FILE_REPO)
         changed_system_designs = system_design_file_repo.changed_files
