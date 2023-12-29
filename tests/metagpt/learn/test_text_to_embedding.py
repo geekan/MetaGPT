@@ -7,30 +7,20 @@
 @Desc    : Unit tests.
 """
 
-import asyncio
+import pytest
 
-from pydantic import BaseModel
-
+from metagpt.config import CONFIG
 from metagpt.learn.text_to_embedding import text_to_embedding
 
 
-async def mock_text_to_embedding():
-    class Input(BaseModel):
-        input: str
+@pytest.mark.asyncio
+async def test_text_to_embedding():
+    # Prerequisites
+    assert CONFIG.OPENAI_API_KEY
 
-    inputs = [{"input": "Panda emoji"}]
-
-    for i in inputs:
-        seed = Input(**i)
-        v = await text_to_embedding(seed.input)
-        assert len(v.data) > 0
-
-
-def test_suite():
-    loop = asyncio.get_event_loop()
-    task = loop.create_task(mock_text_to_embedding())
-    loop.run_until_complete(task)
+    v = await text_to_embedding(text="Panda emoji")
+    assert len(v.data) > 0
 
 
 if __name__ == "__main__":
-    test_suite()
+    pytest.main([__file__, "-s"])

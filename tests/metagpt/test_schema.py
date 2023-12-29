@@ -10,10 +10,20 @@
 
 import json
 
+import pytest
+
 from metagpt.actions import Action
 from metagpt.actions.action_node import ActionNode
 from metagpt.actions.write_code import WriteCode
-from metagpt.schema import AIMessage, Message, SystemMessage, UserMessage
+from metagpt.config import CONFIG
+from metagpt.schema import (
+    AIMessage,
+    Document,
+    Message,
+    MessageQueue,
+    SystemMessage,
+    UserMessage,
+)
 from metagpt.utils.common import any_to_str
 
 
@@ -95,3 +105,32 @@ def test_message_serdeser():
     new_message = Message(**message_dict)
     assert new_message.instruct_content is None
     assert new_message.cause_by == "metagpt.actions.add_requirement.UserRequirement"
+    assert not Message.load("{")
+
+
+def test_document():
+    doc = Document(root_path="a", filename="b", content="c")
+    meta_doc = doc.get_meta()
+    assert doc.root_path == meta_doc.root_path
+    assert doc.filename == meta_doc.filename
+    assert meta_doc.content == ""
+
+    assert doc.full_path == str(CONFIG.git_repo.workdir / doc.root_path / doc.filename)
+
+
+@pytest.mark.asyncio
+async def test_message_queue():
+    mq = MessageQueue()
+    mq.push(Message(content="1"))
+    mq.push(Message(content="2中文测试aaa"))
+    msg = mq.pop()
+    assert msg.content == "1"
+
+    val = await mq.dump()
+    assert val
+    new_mq = MessageQueue.load(val)
+    assert new_mq.pop_all() == mq.pop_all()
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-s"])

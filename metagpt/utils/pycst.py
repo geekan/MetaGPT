@@ -49,6 +49,14 @@ def get_docstring_statement(body: DocstringNode) -> cst.SimpleStatementLine:
     return statement
 
 
+def has_decorator(node: DocstringNode, name: str) -> bool:
+    return hasattr(node, "decorators") and any(
+        (hasattr(i.decorator, "value") and i.decorator.value == name)
+        or (hasattr(i.decorator, "func") and hasattr(i.decorator.func, "value") and i.decorator.func.value == name)
+        for i in node.decorators
+    )
+
+
 class DocstringCollector(cst.CSTVisitor):
     """A visitor class for collecting docstrings from a CST.
 
@@ -82,7 +90,7 @@ class DocstringCollector(cst.CSTVisitor):
     def _leave(self, node: DocstringNode) -> None:
         key = tuple(self.stack)
         self.stack.pop()
-        if hasattr(node, "decorators") and any(i.decorator.value == "overload" for i in node.decorators):
+        if has_decorator(node, "overload"):
             return
 
         statement = get_docstring_statement(node)
@@ -127,9 +135,7 @@ class DocstringTransformer(cst.CSTTransformer):
         key = tuple(self.stack)
         self.stack.pop()
 
-        if hasattr(updated_node, "decorators") and any(
-            (i.decorator.value == "overload") for i in updated_node.decorators
-        ):
+        if has_decorator(updated_node, "overload"):
             return updated_node
 
         statement = self.docstrings.get(key)

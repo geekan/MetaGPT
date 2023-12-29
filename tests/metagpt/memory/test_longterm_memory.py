@@ -7,6 +7,8 @@
 
 import os
 
+import pytest
+
 from metagpt.actions import UserRequirement
 from metagpt.config import CONFIG
 from metagpt.memory.longterm_memory import LongTermMemory
@@ -63,3 +65,7 @@ def test_ltm_search():
     assert len(news) == 1
 
     ltm_new.clear()
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-s"])

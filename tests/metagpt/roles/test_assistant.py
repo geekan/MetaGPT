@@ -6,6 +6,7 @@
 @File    : test_asssistant.py
 @Desc    : Used by AgentStore.
 """
+
 import pytest
 from pydantic import BaseModel
 
@@ -90,10 +91,42 @@ async def test_run():
             assert msg
             assert msg.cause_by == seed.cause_by
             assert msg.content
-            # # Retrieve user terminal input.
-            # logger.info("Enter prompt")
-            # talk = input("You: ")
-            # await role.talk(talk)
+
+
+@pytest.mark.parametrize(
+    "memory",
+    [
+        {
+            "history": [
+                {
+                    "content": "can you draw me an picture?",
+                    "role": "user",
+                    "id": "1",
+                },
+                {"content": "Yes, of course. What do you want me to draw", "role": "assistant"},
+            ],
+            "knowledge": [{"content": "tulin is a scientist."}],
+            "last_talk": "Draw me an apple.",
+        }
+    ],
+)
+@pytest.mark.asyncio
+async def test_memory(memory):
+    role = Assistant()
+    role.load_memory(memory)
+
+    val = role.get_memory()
+    assert val
+
+    await role.talk("draw apple")
+
+    agent_skills = CONFIG.agent_skills
+    CONFIG.agent_skills = []
+    try:
+        await role.think()
+    finally:
+        CONFIG.agent_skills = agent_skills
+    assert isinstance(role.rc.todo, TalkAction)
 
 
 if __name__ == "__main__":

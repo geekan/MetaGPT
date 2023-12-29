@@ -160,6 +160,7 @@ tmp
 metagpt/roles/idea_agent.py
 .aider*
 *.bak
+*.bk
 
 # output folder
 output
@@ -168,3 +169,5 @@ tmp.png
 tests/metagpt/utils/file_repo_git
 *.tmp
 *.png
+htmlcov
+htmlcov.*
