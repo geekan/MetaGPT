@@ -1,12 +1,7 @@
 name: Python application test
 
 on:
-  pull_request:
-    branches:
-      - '**'
-  push: 
-    branches: 
-      - '**'
+  workflow_dispatch:
 
 jobs:
   build:
