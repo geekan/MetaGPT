@@ -157,7 +157,7 @@ class BrainMemory(BaseModel):
                 if left == 0:
                     break
                 m.content = m.content[0:left]
-                msgs.append(m.model_dump())
+                msgs.append(m)
                 break
             msgs.append(m)
             total_length += delta
@@ -171,8 +171,8 @@ class BrainMemory(BaseModel):
 
     @staticmethod
     def to_metagpt_history_format(history) -> str:
-        mmsg = [SimpleMessage(role=m.role, content=m.content) for m in history]
-        return json.dumps(mmsg)
+        mmsg = [SimpleMessage(role=m.role, content=m.content).model_dump() for m in history]
+        return json.dumps(mmsg, ensure_ascii=False)
 
     async def get_title(self, llm, max_words=5, **kwargs) -> str:
         """Generate text title"""

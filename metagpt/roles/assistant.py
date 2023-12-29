@@ -132,8 +132,8 @@ class Assistant(Role):
     def get_memory(self) -> str:
         return self.memory.model_dump_json()
 
-    def load_memory(self, jsn):
+    def load_memory(self, m):
         try:
-            self.memory = BrainMemory(**jsn)
+            self.memory = BrainMemory(**m)
         except Exception as e:
             logger.exception(f"load error:{e}, data:{jsn}")

@@ -528,18 +528,18 @@ def role_raise_decorator(func):
 
 
 @handle_exception
-async def aread(file_path: str) -> str:
+async def aread(filename: str | Path, encoding=None) -> str:
     """Read file asynchronously."""
-    async with aiofiles.open(str(file_path), mode="r") as reader:
+    async with aiofiles.open(str(filename), mode="r", encoding=encoding) as reader:
         content = await reader.read()
     return content
 
 
-async def awrite(filename: str | Path, data: str):
+async def awrite(filename: str | Path, data: str, encoding=None):
     """Write file asynchronously."""
     pathname = Path(filename)
     pathname.parent.mkdir(parents=True, exist_ok=True)
-    async with aiofiles.open(str(pathname), mode="w", encoding="utf-8") as writer:
+    async with aiofiles.open(str(pathname), mode="w", encoding=encoding) as writer:
         await writer.write(data)
 
 

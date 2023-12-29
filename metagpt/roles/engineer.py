@@ -235,7 +235,9 @@ class Engineer(Role):
                 task_doc = await task_file_repo.get(i.name)
             elif str(i.parent) == SYSTEM_DESIGN_FILE_REPO:
                 design_doc = await design_file_repo.get(i.name)
-        # FIXME: design doc没有加载进来，是None
+        if not task_doc or not design_doc:
+            logger.error(f'Detected source code "{filename}" from an unknown origin.')
+            raise ValueError(f'Detected source code "{filename}" from an unknown origin.')
         context = CodingContext(filename=filename, design_doc=design_doc, task_doc=task_doc, code_doc=old_code_doc)
         return context
 

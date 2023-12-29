@@ -343,16 +343,21 @@ class MessageQueue(BaseModel):
             return "[]"
 
         lst = []
+        msgs = []
         try:
             while True:
                 item = await wait_for(self._queue.get(), timeout=1.0)
                 if item is None:
                     break
-                lst.append(item.dict(exclude_none=True))
+                msgs.append(item)
+                lst.append(item.dump())
                 self._queue.task_done()
         except asyncio.TimeoutError:
             logger.debug("Queue is empty, exiting...")
-        return json.dumps(lst)
+        finally:
+            for m in msgs:
+                self._queue.put_nowait(m)
+        return json.dumps(lst, ensure_ascii=False)
 
     @staticmethod
     def load(data) -> "MessageQueue":
@@ -361,7 +366,7 @@ class MessageQueue(BaseModel):
         try:
             lst = json.loads(data)
             for i in lst:
-                msg = Message(**i)
+                msg = Message.load(i)
                 queue.push(msg)
         except JSONDecodeError as e:
             logger.warning(f"JSON load failed: {data}, error:{e}")

@@ -24,9 +24,11 @@ async def test():
     assert "base64" in data or "http" in data
     key = CONFIG.METAGPT_TEXT_TO_IMAGE_MODEL_URL
     CONFIG.METAGPT_TEXT_TO_IMAGE_MODEL_URL = None
-    data = await text_to_image("Panda emoji", size_type="512x512")
-    assert "base64" in data or "http" in data
-    CONFIG.METAGPT_TEXT_TO_IMAGE_MODEL_URL = key
+    try:
+        data = await text_to_image("Panda emoji", size_type="512x512")
+        assert "base64" in data or "http" in data
+    finally:
+        CONFIG.METAGPT_TEXT_TO_IMAGE_MODEL_URL = key
 
 
 if __name__ == "__main__":

@@ -58,6 +58,9 @@ async def test_memory_llm(llm):
     res = await memory.rewrite(sentence="apple Lily eating", context="", llm=llm)
     assert "Lily" in res
 
+    res = await memory.summarize(llm=llm)
+    assert res
+
     res = await memory.get_title(llm=llm)
     assert res
     assert "Lily" in res

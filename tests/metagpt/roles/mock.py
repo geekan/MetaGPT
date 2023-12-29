@@ -5,6 +5,8 @@
 @Author  : alexanderwu
 @File    : mock_markdown.py
 """
+import json
+
 from metagpt.actions import UserRequirement, WriteDesign, WritePRD, WriteTasks
 from metagpt.schema import Message
 
@@ -151,6 +153,32 @@ sequenceDiagram
 ```
 """
 
+JSON_TASKS = {
+    "Logic Analysis": """
+    在这个项目中，所有的模块都依赖于“SearchEngine”类，这是主入口，其他的模块（Index、Ranking和Summary）都通过它交互。另外，"Index"类又依赖于"KnowledgeBase"类，因为它需要从知识库中获取数据。
+
+- "main.py"包含"Main"类，是程序的入口点，它调用"SearchEngine"进行搜索操作，所以在其他任何模块之前，"SearchEngine"必须首先被定义。
+- "search.py"定义了"SearchEngine"类，它依赖于"Index"、"Ranking"和"Summary"，因此，这些模块需要在"search.py"之前定义。
+- "index.py"定义了"Index"类，它从"knowledge_base.py"获取数据来创建索引，所以"knowledge_base.py"需要在"index.py"之前定义。
+- "ranking.py"和"summary.py"相对独立，只需确保在"search.py"之前定义。
+- "knowledge_base.py"是独立的模块，可以优先开发。
+- "interface.py"、"user_feedback.py"、"security.py"、"testing.py"和"monitoring.py"看起来像是功能辅助模块，可以在主要功能模块开发完成后并行开发。
+    """,
+    "Task list": [
+        "smart_search_engine/knowledge_base.py",
+        "smart_search_engine/index.py",
+        "smart_search_engine/ranking.py",
+        "smart_search_engine/summary.py",
+        "smart_search_engine/search.py",
+        "smart_search_engine/main.py",
+        "smart_search_engine/interface.py",
+        "smart_search_engine/user_feedback.py",
+        "smart_search_engine/security.py",
+        "smart_search_engine/testing.py",
+        "smart_search_engine/monitoring.py",
+    ],
+}
+
 
 TASKS = """## Logic Analysis
 
@@ -256,3 +284,4 @@ class MockMessages:
     prd = Message(role="Product Manager", content=PRD, cause_by=WritePRD)
     system_design = Message(role="Architect", content=SYSTEM_DESIGN, cause_by=WriteDesign)
     tasks = Message(role="Project Manager", content=TASKS, cause_by=WriteTasks)
+    json_tasks = Message(role="Project Manager", content=json.dumps(JSON_TASKS), cause_by=WriteTasks)
