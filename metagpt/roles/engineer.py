@@ -80,7 +80,6 @@ class Engineer(Role):
     )
     n_borg: int = 1
     use_code_review: bool = False
-    use_code_guide: bool = True
     code_todos: list = []
     summarize_todos = []
 
@@ -138,7 +137,7 @@ class Engineer(Role):
         return None
 
     async def _act_write_code(self):
-        if self.use_code_guide:
+        if CONFIG.inc:
             code_guideline = await self._write_code_guideline()
             changed_files = await self._act_sp_with_cr(review=self.use_code_review, guideline=code_guideline)
         else:

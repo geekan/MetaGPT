@@ -18,10 +18,10 @@ from metagpt.schema import Document
 GUIDELINE = ActionNode(
     key="Code Guideline",
     expected_type=list[str],
-    instruction="crafting comprehensive incremental development plans and providing detailed code guidance",
+    instruction="Developing comprehensive and incremental software development plans while providing detailed code guidance.",
     example=[
-        "`calculator.py` should be extended to include methods for subtraction, multiplication, and division. Error handling should be implemented for division to prevent division by zero.",
-        "New endpoints for subtraction, multiplication, and division should be added to `main.py`.",
+        "Enhance the functionality of `calculator.py` by extending it to incorporate methods for subtraction, multiplication, and division. Implement robust error handling for the division operation to mitigate potential issues related to division by zero.",
+        "Integrate new API endpoints for subtraction, multiplication, and division into the existing codebase of `main.py`. Ensure seamless integration with the overall application architecture and maintain consistency with coding standards.",
     ],
 )
 
@@ -155,10 +155,11 @@ ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenc
 2. COMPLETE CODE: Your code will be part of the entire project, so please implement complete, reliable, reusable code snippets.
 3. Set default value: If there is any setting, ALWAYS SET A DEFAULT VALUE, ALWAYS USE STRONG TYPE AND EXPLICIT VARIABLE. AVOID circular import.
 4. Follow design: YOU MUST FOLLOW "Data structures and interfaces". DONT CHANGE ANY DESIGN. Do not use public member functions that do not exist in your design.
-5. CAREFULLY CHECK THAT YOU DONT MISS ANY NECESSARY CLASS/FUNCTION IN THIS FILE.
-6. Before using a external variable/module, make sure you import it first.
-7. Write out EVERY CODE DETAIL, DON'T LEAVE TODO.
-8. Attention: Make modifications and additions to the legacy code in accordance with the provided guidelines and API. Ensure that the complete code is implemented without any omissions. 
+5. Follow Guideline: If Legacy Code files contain {filename}, you are required to follow the Guideline to merge the Incremental Change into the Legacy {filename} file when rewriting {filename} file. 
+6. CAREFULLY CHECK THAT YOU DONT MISS ANY NECESSARY CLASS/FUNCTION IN THIS FILE.
+7. Before using a external variable/module, make sure you import it first.
+8. Write out EVERY CODE DETAIL, DON'T LEAVE TODO.
+9. Attention: Implement the functionality required within the current file's scope, reusing existing code whenever possible. For instance, main.py achieves its purpose by instantiating an already implemented class, rather than manually implementing a class in main.py.
 """
 
 CODE_GUIDE_CONTEXT_EXAMPLE = """

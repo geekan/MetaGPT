@@ -123,7 +123,7 @@ class WriteCode(Action):
         else:
             code_context = await self.get_codes(coding_context.task_doc, exclude=self.context.filename)
 
-        if guideline:  # guide write code 也有两种方式，进行尝试
+        if guideline:
             prompt = WRITE_CODE_INCREMENT_TEMPLATE.format(
                 guideline=guideline,
                 design=coding_context.design_doc.content if coding_context.design_doc else "",
@@ -165,17 +165,17 @@ class WriteCode(Action):
         src_file_repo = CONFIG.git_repo.new_file_repository(relative_path=CONFIG.src_workspace)
 
         if mode == "guide":
-            # 从两个repo中取code，并结合在一起
             src_files = src_file_repo.all_files
             old_file_repo = CONFIG.git_repo.new_file_repository(relative_path=CONFIG.old_workspace)
             old_files = old_file_repo.all_files
             union_files_list = list(set(src_files) | set(old_files))
             for filename in union_files_list:
                 if filename == exclude:
-                    if filename in old_files:
+                    if filename in old_files and filename != "main.py":
                         doc = await old_file_repo.get(filename=filename)  # 使用原始代码
                     else:
                         continue
+                    codes.append(f"----- Legacy {filename}\n```{doc.content}```")
 
                 else:
                     doc = await src_file_repo.get(filename=filename)  # 使用先前生成的代码
@@ -185,7 +185,7 @@ class WriteCode(Action):
                         # else:
                         #     continue
                         continue  # 跳过
-                codes.append(f"----- {filename}\n```{doc.content}```")
+                    codes.append(f"----- {filename}\n```{doc.content}```")
 
         else:
             for filename in code_filenames:
