@@ -27,7 +27,7 @@ extras_require = {
     "playwright": ["playwright>=1.26", "beautifulsoup4"],
     "selenium": ["selenium>4", "webdriver_manager", "beautifulsoup4"],
     "search-google": ["google-api-python-client==2.94.0"],
-    "search-ddg": ["duckduckgo-search==3.8.5"],
+    "search-ddg": ["duckduckgo-search~=4.1.1"],
     "ocr": ["paddlepaddle==2.4.2", "paddleocr>=2.0.1", "tabulate==0.9.0"],
     "test": ["pytest", "pytest-cov", "pytest-asyncio", "pytest-mock"],
 }
