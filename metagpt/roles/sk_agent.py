@@ -41,13 +41,13 @@ class SkAgent(Role):
     goal: str = "Execute task based on passed in task description"
     constraints: str = ""
 
-    plan: Plan = None
+    plan: Plan = Field(default=None, exclude=True)
     planner_cls: Any = None
     planner: Union[BasicPlanner, SequentialPlanner, ActionPlanner] = None
     llm: BaseLLM = Field(default_factory=LLM)
     kernel: Kernel = Field(default_factory=Kernel)
-    import_semantic_skill_from_directory: Callable = None
-    import_skill: Callable = None
+    import_semantic_skill_from_directory: Callable = Field(default=None, exclude=True)
+    import_skill: Callable = Field(default=None, exclude=True)
 
     def __init__(self, **data: Any) -> None:
         """Initializes the Engineer role with given attributes."""
