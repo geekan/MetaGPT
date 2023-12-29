@@ -95,4 +95,4 @@ class SearchEngine:
         Returns:
             The search results as a string or a list of dictionaries.
         """
-        return await self.run_func(query, max_results, as_string)
+        return await self.run_func(query, max_results=max_results, as_string=as_string)
