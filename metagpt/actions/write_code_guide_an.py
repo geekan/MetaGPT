@@ -28,8 +28,8 @@ GUIDELINE = ActionNode(
 INCREMENTAL_CHANGE = ActionNode(
     key="Incremental Change",
     expected_type=str,
-    instruction="Write Incremental Change by making a code draft that how to implement incremental development based on the context and Code Guideline.",
-    example="""1. Extend `Calculator` class in `calculator.py` with new methods for subtraction, multiplication, and division.
+    instruction="Write Incremental Change by making a code draft that how to implement incremental development including detailed steps based on the context.",
+    example="""- calculator.py: Enhance the functionality of `calculator.py` by extending it to incorporate methods for subtraction, multiplication, and division. Implement robust error handling for the division operation to mitigate potential issues related to division by zero.
 ```python
 ## calculator.py
 class Calculator:
@@ -43,7 +43,8 @@ class Calculator:
             raise ValueError('Cannot divide by zero')
         return num1 / num2
 ```
-2. Implement new endpoints in `main.py` for the subtraction, multiplication, and division methods.
+
+- main.py: Integrate new API endpoints for subtraction, multiplication, and division into the existing codebase of `main.py`. Ensure seamless integration with the overall application architecture and maintain consistency with coding standards.
 ```python
 ## main.py
 from flask import Flask, request, jsonify
@@ -95,9 +96,6 @@ Role: You are a professional software engineer, and your main task is to craft c
 ### Requirement
 {requirement}
 
-### Prd
-{prd}
-
 ### Design
 {design}
 
@@ -110,12 +108,13 @@ Role: You are a professional software engineer, and your main task is to craft c
 
 WRITE_CODE_INCREMENT_TEMPLATE = """
 NOTICE
-Role: You are a professional engineer; The main goal is to complete incremental development by combining Legacy Code and Guideline to rewrite the complete code.
-Language: Please use the same language as the user requirement, but the title and code should be still in English. For example, if the user speaks Chinese, the specific text of your answer should also be in Chinese.
-ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenced "Format example".
+Role: You are a professional engineer; The main goal is to complete incremental development by combining legacy code and Incremental Change, ensuring the integration of new features.
 
 # Context
-## Guideline
+## New Requirement
+{requirement}
+
+## Incremental Change
 {guideline}
 
 ## Design
@@ -148,18 +147,17 @@ ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenc
 ...
 ```
 
-# Instruction: Based on the context, follow "Format example", write code.
-
-## Rewrite Complete Code: Only Write one file {filename}, Write code using triple quotes, based on the following attentions and context.
+# Instruction: Based on the context, follow "Format example", write or rewrite code.
+## Write/Rewrite Code: Only write one file {filename}, write or rewrite complete code using triple quotes based on the following attentions and context.
+### Important Attention: If Legacy Code files contain "{filename} to be rewritten", you are required to merge the Incremental Change into the {filename} file and retain any content unrelated to incremental development to maintain clarity and coherence, when rewriting "{filename} to be rewritten".
 1. Only One file: do your best to implement THIS ONLY ONE FILE.
 2. COMPLETE CODE: Your code will be part of the entire project, so please implement complete, reliable, reusable code snippets.
 3. Set default value: If there is any setting, ALWAYS SET A DEFAULT VALUE, ALWAYS USE STRONG TYPE AND EXPLICIT VARIABLE. AVOID circular import.
 4. Follow design: YOU MUST FOLLOW "Data structures and interfaces". DONT CHANGE ANY DESIGN. Do not use public member functions that do not exist in your design.
-5. Follow Guideline: If Legacy Code files contain {filename}, you are required to follow the Guideline to merge the Incremental Change into the Legacy {filename} file when rewriting {filename} file. 
+5. Merge Incremental Change: If there is any Incremental Change, you must merge it into the code file.
 6. CAREFULLY CHECK THAT YOU DONT MISS ANY NECESSARY CLASS/FUNCTION IN THIS FILE.
 7. Before using a external variable/module, make sure you import it first.
 8. Write out EVERY CODE DETAIL, DON'T LEAVE TODO.
-9. Attention: Implement the functionality required within the current file's scope, reusing existing code whenever possible. For instance, main.py achieves its purpose by instantiating an already implemented class, rather than manually implementing a class in main.py.
 """
 
 CODE_GUIDE_CONTEXT_EXAMPLE = """
@@ -194,7 +192,7 @@ class Calculator:
         return num1 + num2
 """
 
-GUIDE_NODES = [GUIDELINE, INCREMENTAL_CHANGE]
+GUIDE_NODES = [INCREMENTAL_CHANGE]
 
 WRITE_CODE_GUIDE_NODE = ActionNode.from_children("WriteCodeGuide", GUIDE_NODES)
 

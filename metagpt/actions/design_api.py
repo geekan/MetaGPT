@@ -16,7 +16,7 @@ from typing import Optional
 from pydantic import Field
 
 from metagpt.actions import Action, ActionOutput
-from metagpt.actions.design_api_an import DESIGN_API_NODE
+from metagpt.actions.design_api_an import DESIGN_API_NODE, REFINE_DESIGN_NODES
 from metagpt.config import CONFIG
 from metagpt.const import (
     DATA_API_DESIGN_FILE_REPO,
@@ -87,7 +87,7 @@ class WriteDesign(Action):
 
     async def _merge(self, prd_doc, system_design_doc, schema=CONFIG.prompt_schema):
         context = NEW_REQ_TEMPLATE.format(old_design=system_design_doc.content, context=prd_doc.content)
-        node = await DESIGN_API_NODE.fill(context=context, llm=self.llm, schema=schema)
+        node = await REFINE_DESIGN_NODES.fill(context=context, llm=self.llm, schema=schema)
         system_design_doc.content = node.instruct_content.json(ensure_ascii=False)
         return system_design_doc
 

@@ -120,6 +120,44 @@ MMC1 = """classDiagram
     SearchEngine --> Summary
     Index --> KnowledgeBase"""
 
+MMC1_INC_AND_REFINE = """classDiagram
+    class Main {
+        -SearchEngine search_engine
+        +main() str
+        +newMethod() str  # Incremental change
+    }
+    class SearchEngine {
+        -Index index
+        -Ranking ranking
+        -Summary summary
+        +search(query: str) str
+        +newMethod() str  # Incremental change
+    }
+    class Index {
+        -KnowledgeBase knowledge_base
+        +create_index(data: dict)
+        +query_index(query: str) list
+        +newMethod() list  # Incremental change
+    }
+    class Ranking {
+        +rank_results(results: list) list
+        +newMethod() list  # Incremental change
+    }
+    class Summary {
+        +summarize_results(results: list) str
+        +newMethod() str  # Incremental change
+    }
+    class KnowledgeBase {
+        +update(data: dict)
+        +fetch_data(query: str) dict
+        +newMethod()  # Incremental change
+    }
+    Main --> SearchEngine
+    SearchEngine --> Index
+    SearchEngine --> Ranking
+    SearchEngine --> Summary
+    Index --> KnowledgeBase"""
+
 MMC2 = """sequenceDiagram
     participant M as Main
     participant SE as SearchEngine

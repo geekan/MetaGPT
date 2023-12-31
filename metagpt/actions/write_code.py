@@ -27,6 +27,7 @@ from metagpt.const import (
     BUGFIX_FILENAME,
     CODE_SUMMARIES_FILE_REPO,
     DOCS_FILE_REPO,
+    REQUIREMENT_FILENAME,
     TASK_FILE_REPO,
     TEST_OUTPUTS_FILE_REPO,
 )
@@ -115,6 +116,8 @@ class WriteCode(Action):
             test_detail = RunCodeResult.loads(test_doc.content)
             logs = test_detail.stderr
 
+        docs_file_repo = CONFIG.git_repo.new_file_repository(relative_path=DOCS_FILE_REPO)
+        requirement_doc = await docs_file_repo.get(filename=REQUIREMENT_FILENAME)
         guideline = kwargs.get("guideline", "")
         if bug_feedback:
             code_context = coding_context.code_doc.content
@@ -125,6 +128,7 @@ class WriteCode(Action):
 
         if guideline:
             prompt = WRITE_CODE_INCREMENT_TEMPLATE.format(
+                requirement=requirement_doc.content if requirement_doc else "",
                 guideline=guideline,
                 design=coding_context.design_doc.content if coding_context.design_doc else "",
                 tasks=coding_context.task_doc.content if coding_context.task_doc else "",
@@ -175,7 +179,7 @@ class WriteCode(Action):
                         doc = await old_file_repo.get(filename=filename)  # 使用原始代码
                     else:
                         continue
-                    codes.append(f"----- Legacy {filename}\n```{doc.content}```")
+                    codes.insert(0, f"-----Now, {filename} need to be rewritten\n```{doc.content}```\n=====")
 
                 else:
                     doc = await src_file_repo.get(filename=filename)  # 使用先前生成的代码
