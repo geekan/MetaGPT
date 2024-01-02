@@ -94,6 +94,10 @@ class Context:
 
     @property
     def llm_api(self):
+        # 1. 初始化llm，带有缓存结果
+        # 2. 如果缓存query，那么直接返回缓存结果
+        # 3. 如果没有缓存query，那么调用llm_api，返回结果
+        # 4. 如果有缓存query，那么更新缓存结果
         return self._llm_api
 
 

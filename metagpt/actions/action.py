@@ -8,9 +8,9 @@
 
 from __future__ import annotations
 
-from typing import Any, Optional, Union
+from typing import Optional, Union
 
-from pydantic import ConfigDict, Field
+from pydantic import ConfigDict, Field, model_validator
 
 from metagpt.actions.action_node import ActionNode
 from metagpt.llm import LLM
@@ -34,16 +34,19 @@ class Action(SerializationMixin, is_polymorphic_base=True):
     desc: str = ""  # for skill manager
     node: ActionNode = Field(default=None, exclude=True)
 
-    def __init_with_instruction(self, instruction: str):
-        """Initialize action with instruction"""
-        self.node = ActionNode(key=self.name, expected_type=str, instruction=instruction, example="", schema="raw")
-        return self
+    @model_validator(mode="before")
+    def set_name_if_empty(cls, values):
+        if "name" not in values or not values["name"]:
+            values["name"] = cls.__name__
+        return values
 
-    def __init__(self, **data: Any):
-        super().__init__(**data)
-
-        if "instruction" in data:
-            self.__init_with_instruction(data["instruction"])
+    @model_validator(mode="before")
+    def _init_with_instruction(cls, values):
+        if "instruction" in values:
+            name = values["name"]
+            i = values["instruction"]
+            values["node"] = ActionNode(key=name, expected_type=str, instruction=i, example="", schema="raw")
+        return values
 
     def set_prefix(self, prefix):
         """Set prefix for later usage"""

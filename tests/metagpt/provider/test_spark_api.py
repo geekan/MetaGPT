@@ -17,9 +17,22 @@ prompt_msg = "who are you"
 resp_content = "I'm Spark"
 
 
-def test_get_msg_from_web():
+class MockWebSocketApp(object):
+    def __init__(self, ws_url, on_message=None, on_error=None, on_close=None, on_open=None):
+        pass
+
+    def run_forever(self, sslopt=None):
+        pass
+
+
+def test_get_msg_from_web(mocker):
+    mocker.patch("websocket.WebSocketApp", MockWebSocketApp)
+
     get_msg_from_web = GetMessageFromWeb(text=prompt_msg)
     assert get_msg_from_web.gen_params()["parameter"]["chat"]["domain"] == "xxxxxx"
+
+    ret = get_msg_from_web.run()
+    assert ret == ""
 
 
 def mock_spark_get_msg_from_web_run(self) -> str:
@@ -29,6 +42,7 @@ def mock_spark_get_msg_from_web_run(self) -> str:
 @pytest.mark.asyncio
 async def test_spark_acompletion(mocker):
     mocker.patch("metagpt.provider.spark_api.GetMessageFromWeb.run", mock_spark_get_msg_from_web_run)
+
     spark_gpt = SparkLLM()
 
     resp = await spark_gpt.acompletion([])

@@ -28,6 +28,6 @@ async def test_action_deserialize():
 
     new_action = Action(**serialized_data)
 
-    assert new_action.name == ""
+    assert new_action.name == "Action"
     assert isinstance(new_action.llm, type(LLM()))
     assert len(await new_action._aask("who are you")) > 0

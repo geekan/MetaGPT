@@ -16,8 +16,10 @@ from metagpt.actions import Action
 from metagpt.actions.action_node import ActionNode
 from metagpt.actions.write_code import WriteCode
 from metagpt.config import CONFIG
+from metagpt.const import SYSTEM_DESIGN_FILE_REPO, TASK_FILE_REPO
 from metagpt.schema import (
     AIMessage,
+    CodeSummarizeContext,
     Document,
     Message,
     MessageQueue,
@@ -61,6 +63,8 @@ def test_message():
     assert m.role == "b"
     assert m.send_to == {"c"}
     assert m.cause_by == "c"
+    m.sent_from = "e"
+    assert m.sent_from == "e"
 
     m.cause_by = "Message"
     assert m.cause_by == "Message"
@@ -121,6 +125,8 @@ def test_document():
 @pytest.mark.asyncio
 async def test_message_queue():
     mq = MessageQueue()
+    val = await mq.dump()
+    assert val == "[]"
     mq.push(Message(content="1"))
     mq.push(Message(content="2中文测试aaa"))
     msg = mq.pop()
@@ -130,6 +136,24 @@ async def test_message_queue():
     assert val
     new_mq = MessageQueue.load(val)
     assert new_mq.pop_all() == mq.pop_all()
+
+
+@pytest.mark.parametrize(
+    ("file_list", "want"),
+    [
+        (
+            [f"{SYSTEM_DESIGN_FILE_REPO}/a.txt", f"{TASK_FILE_REPO}/b.txt"],
+            CodeSummarizeContext(
+                design_filename=f"{SYSTEM_DESIGN_FILE_REPO}/a.txt", task_filename=f"{TASK_FILE_REPO}/b.txt"
+            ),
+        )
+    ],
+)
+def test_CodeSummarizeContext(file_list, want):
+    ctx = CodeSummarizeContext.loads(file_list)
+    assert ctx == want
+    m = {ctx: ctx}
+    assert want in m
 
 
 if __name__ == "__main__":

@@ -14,7 +14,6 @@ from langchain.vectorstores import FAISS
 from langchain_core.embeddings import Embeddings
 
 from metagpt.config import CONFIG
-from metagpt.const import DATA_PATH
 from metagpt.document import IndexableDocument
 from metagpt.document_store.base_store import LocalStore
 from metagpt.logs import logger
@@ -76,10 +75,3 @@ class FaissStore(LocalStore):
     def delete(self, *args, **kwargs):
         """Currently, langchain does not provide a delete interface."""
         raise NotImplementedError
-
-
-if __name__ == "__main__":
-    faiss_store = FaissStore(DATA_PATH / "qcs/qcs_4w.json")
-    logger.info(faiss_store.search("Oily Skin Facial Cleanser"))
-    faiss_store.add([f"Oily Skin Facial Cleanser-{i}" for i in range(3)])
-    logger.info(faiss_store.search("Oily Skin Facial Cleanser"))

@@ -27,6 +27,19 @@ async def test_redis():
     assert await conn.get("test") == b"test"
     await conn.close()
 
+    # Mock session env
+    old_options = CONFIG.options.copy()
+    new_options = old_options.copy()
+    new_options["REDIS_HOST"] = "YOUR_REDIS_HOST"
+    CONFIG.set_context(new_options)
+    try:
+        conn = Redis()
+        await conn.set("test", "test", timeout_sec=0)
+        assert not await conn.get("test") == b"test"
+        await conn.close()
+    finally:
+        CONFIG.set_context(old_options)
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-s"])

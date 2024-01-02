@@ -18,7 +18,7 @@ from metagpt.config import CONFIG
 @pytest.mark.asyncio
 async def test_hello():
     workdir = Path(__file__).parent.parent.parent.parent
-    script_pathname = workdir / "metagpt/tools/hello.py"
+    script_pathname = workdir / "metagpt/tools/openapi_v3_hello.py"
     env = CONFIG.new_environ()
     env["PYTHONPATH"] = str(workdir) + ":" + env.get("PYTHONPATH", "")
     process = subprocess.Popen(["python", str(script_pathname)], cwd=workdir, env=env)

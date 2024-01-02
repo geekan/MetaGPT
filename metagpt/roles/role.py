@@ -152,7 +152,7 @@ class Role(SerializationMixin, is_polymorphic_base=True):
     __hash__ = object.__hash__  # support Role as hashable type in `Environment.members`
 
     @model_validator(mode="after")
-    def check_subscription(self) -> set:
+    def check_subscription(self):
         if not self.subscription:
             self.subscription = {any_to_str(self), self.name} if self.name else {any_to_str(self)}
         return self
@@ -372,16 +372,6 @@ class Role(SerializationMixin, is_polymorphic_base=True):
 
         return msg
 
-    def _find_news(self, observed: list[Message], existed: list[Message]) -> list[Message]:
-        news = []
-        # Warning, remove `id` here to make it work for recover
-        observed_pure = [msg.dict(exclude={"id": True}) for msg in observed]
-        existed_pure = [msg.dict(exclude={"id": True}) for msg in existed]
-        for idx, new in enumerate(observed_pure):
-            if (new["cause_by"] in self.rc.watch or self.name in new["send_to"]) and new not in existed_pure:
-                news.append(observed[idx])
-        return news
-
     async def _observe(self, ignore_memory=False) -> int:
         """Prepare new messages for processing from the message buffer and other sources."""
         # Read unprocessed messages from the msg buffer.
@@ -406,29 +396,6 @@ class Role(SerializationMixin, is_polymorphic_base=True):
         if news_text:
             logger.debug(f"{self._setting} observed: {news_text}")
         return len(self.rc.news)
-
-    # async def _observe(self, ignore_memory=False) -> int:
-    #     """Prepare new messages for processing from the message buffer and other sources."""
-    #     # Read unprocessed messages from the msg buffer.
-    #     news = self.rc.msg_buffer.pop_all()
-    #     if self.recovered:
-    #         news = [self.latest_observed_msg] if self.latest_observed_msg else []
-    #     else:
-    #         self.latest_observed_msg = news[-1] if len(news) > 0 else None  # record the latest observed msg
-    #
-    #     # Store the read messages in your own memory to prevent duplicate processing.
-    #     old_messages = [] if ignore_memory else self.rc.memory.get()
-    #     self.rc.memory.add_batch(news)
-    #     # Filter out messages of interest.
-    #     self.rc.news = self._find_news(news, old_messages)
-    #
-    #     # Design Rules:
-    #     # If you need to further categorize Message objects, you can do so using the Message.set_meta function.
-    #     # msg_buffer is a receiving buffer, avoid adding message data and operations to msg_buffer.
-    #     news_text = [f"{i.role}: {i.content[:20]}..." for i in self.rc.news]
-    #     if news_text:
-    #         logger.debug(f"{self._setting} observed: {news_text}")
-    #     return len(self.rc.news)
 
     def publish_message(self, msg):
         """If the role belongs to env, then the role's messages will be broadcast to env"""
