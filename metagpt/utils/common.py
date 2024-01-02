@@ -23,7 +23,7 @@ import sys
 import traceback
 import typing
 from pathlib import Path
-from typing import Any, Callable, List, Tuple, Union, get_args, get_origin
+from typing import Any, List, Tuple, Union, get_args, get_origin
 
 import aiofiles
 import loguru
@@ -365,14 +365,14 @@ def get_class_name(cls) -> str:
     return f"{cls.__module__}.{cls.__name__}"
 
 
-def any_to_str(val: str | Callable) -> str:
+def any_to_str(val: Any) -> str:
     """Return the class name or the class name of the object, or 'val' if it's a string type."""
     if isinstance(val, str):
         return val
-    if not callable(val):
+    elif not callable(val):
         return get_class_name(type(val))
-
-    return get_class_name(val)
+    else:
+        return get_class_name(val)
 
 
 def any_to_str_set(val) -> set:
