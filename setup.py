@@ -38,10 +38,11 @@ extras_require["test"] = [
     "pytest-cov",
     "pytest-mock",
     "pytest-html",
+    "pytest-xdist",
     "connexion[uvicorn]~=3.0.5",
     "azure-cognitiveservices-speech~=1.31.0",
     "aioboto3~=11.3.0",
-    "chromadb==0.3.23",
+    "chromadb==0.4.14",
     "gradio==3.0.0",
     "grpcio-status==1.48.2",
 ]
