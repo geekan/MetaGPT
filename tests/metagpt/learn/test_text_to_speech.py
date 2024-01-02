@@ -27,13 +27,16 @@ async def test_text_to_speech():
     assert "base64" in data or "http" in data
 
     # test iflytek
-    key = CONFIG.AZURE_TTS_SUBSCRIPTION_KEY
-    CONFIG.AZURE_TTS_SUBSCRIPTION_KEY = ""
+    ## Mock session env
+    old_options = CONFIG.options.copy()
+    new_options = old_options.copy()
+    new_options["AZURE_TTS_SUBSCRIPTION_KEY"] = ""
+    CONFIG.set_context(new_options)
     try:
         data = await text_to_speech("panda emoji")
         assert "base64" in data or "http" in data
     finally:
-        CONFIG.AZURE_TTS_SUBSCRIPTION_KEY = key
+        CONFIG.set_context(old_options)
 
 
 if __name__ == "__main__":

@@ -41,15 +41,18 @@ async def test_s3():
     res = await conn.cache(data, ".bak", "script")
     assert "http" in res
 
-    key = CONFIG.S3_ACCESS_KEY
-    CONFIG.S3_ACCESS_KEY = "YOUR_S3_ACCESS_KEY"
-    conn = S3()
-    assert not conn.is_valid
+    # Mock session env
+    old_options = CONFIG.options.copy()
+    new_options = old_options.copy()
+    new_options["S3_ACCESS_KEY"] = "YOUR_S3_ACCESS_KEY"
+    CONFIG.set_context(new_options)
     try:
+        conn = S3()
+        assert not conn.is_valid
         res = await conn.cache("ABC", ".bak", "script")
         assert not res
     finally:
-        CONFIG.S3_ACCESS_KEY = key
+        CONFIG.set_context(old_options)
 
 
 if __name__ == "__main__":

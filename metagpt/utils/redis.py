@@ -23,15 +23,7 @@ class Redis:
     async def _connect(self, force=False):
         if self._client and not force:
             return True
-        is_ready = (
-            CONFIG.REDIS_HOST
-            and CONFIG.REDIS_HOST != "YOUR_REDIS_HOST"
-            and CONFIG.REDIS_PORT
-            and CONFIG.REDIS_PORT != "YOUR_REDIS_PORT"
-            and CONFIG.REDIS_DB is not None
-            and CONFIG.REDIS_PASSWORD is not None
-        )
-        if not is_ready:
+        if not self.is_configured:
             return False
 
         try:
@@ -74,3 +66,14 @@ class Redis:
     @property
     def is_valid(self) -> bool:
         return self._client is not None
+
+    @property
+    def is_configured(self) -> bool:
+        return bool(
+            CONFIG.REDIS_HOST
+            and CONFIG.REDIS_HOST != "YOUR_REDIS_HOST"
+            and CONFIG.REDIS_PORT
+            and CONFIG.REDIS_PORT != "YOUR_REDIS_PORT"
+            and CONFIG.REDIS_DB is not None
+            and CONFIG.REDIS_PASSWORD is not None
+        )

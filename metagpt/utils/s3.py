@@ -154,16 +154,17 @@ class S3:
 
     @property
     def is_valid(self):
-        is_invalid = (
-            not CONFIG.S3_ACCESS_KEY
-            or CONFIG.S3_ACCESS_KEY == "YOUR_S3_ACCESS_KEY"
-            or not CONFIG.S3_SECRET_KEY
-            or CONFIG.S3_SECRET_KEY == "YOUR_S3_SECRET_KEY"
-            or not CONFIG.S3_ENDPOINT_URL
-            or CONFIG.S3_ENDPOINT_URL == "YOUR_S3_ENDPOINT_URL"
-            or not CONFIG.S3_BUCKET
-            or CONFIG.S3_BUCKET == "YOUR_S3_BUCKET"
+        return self.is_configured
+
+    @property
+    def is_configured(self) -> bool:
+        return bool(
+            CONFIG.S3_ACCESS_KEY
+            and CONFIG.S3_ACCESS_KEY != "YOUR_S3_ACCESS_KEY"
+            and CONFIG.S3_SECRET_KEY
+            and CONFIG.S3_SECRET_KEY != "YOUR_S3_SECRET_KEY"
+            and CONFIG.S3_ENDPOINT_URL
+            and CONFIG.S3_ENDPOINT_URL != "YOUR_S3_ENDPOINT_URL"
+            and CONFIG.S3_BUCKET
+            and CONFIG.S3_BUCKET != "YOUR_S3_BUCKET"
         )
-        if is_invalid:
-            logger.info("S3 is invalid")
-        return not is_invalid
