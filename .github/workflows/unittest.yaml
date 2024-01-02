@@ -24,6 +24,8 @@ jobs:
       run: |
         echo "${{ secrets.METAGPT_KEY_YAML }}" | base64 -d > config/key.yaml
         pytest tests/ --doctest-modules --junitxml=junit/test-results-${{ matrix.python-version }}.xml --cov=./metagpt/ --cov-report=xml:cov.xml --cov-report=html:htmlcov --durations=20
+    - name: Show coverage report
+      run: |
         coverage report -m
     - name: Upload pytest test results
       uses: actions/upload-artifact@v3
@@ -32,6 +34,7 @@ jobs:
         path: |
           ./junit/test-results-${{ matrix.python-version }}.xml
           ./htmlcov/
+          ./tests/data/rsp_cache_new.json
         retention-days: 3
       if: ${{ always() }}
       
