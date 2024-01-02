@@ -20,8 +20,6 @@ from langchain.text_splitter import CharacterTextSplitter
 from pydantic import BaseModel, ConfigDict, Field
 from tqdm import tqdm
 
-from metagpt.config import CONFIG
-from metagpt.logs import logger
 from metagpt.repo_parser import RepoParser
 
 
@@ -213,7 +211,7 @@ class Repo(BaseModel):
             self.assets[path] = doc
         return doc
 
-    def set(self, content: str, filename: str):
+    def set(self, filename: str, content: str):
         """Set a document and persist it to disk."""
         path = self._path(filename)
         doc = self._set(content, path)
@@ -232,24 +230,3 @@ class Repo(BaseModel):
         n_chars = sum(sum(len(j.content) for j in i.values()) for i in [self.docs, self.codes, self.assets])
         symbols = RepoParser(base_directory=self.path).generate_symbols()
         return RepoMetadata(name=self.name, n_docs=n_docs, n_chars=n_chars, symbols=symbols)
-
-
-def set_existing_repo(path=CONFIG.workspace_path / "t1"):
-    repo1 = Repo.from_path(path)
-    repo1.set("wtf content", "doc/wtf_file.md")
-    repo1.set("wtf code", "code/wtf_file.py")
-    logger.info(repo1)  # check doc
-
-
-def load_existing_repo(path=CONFIG.workspace_path / "web_tetris"):
-    repo = Repo.from_path(path)
-    logger.info(repo)
-    logger.info(repo.eda())
-
-
-def main():
-    load_existing_repo()
-
-
-if __name__ == "__main__":
-    main()
