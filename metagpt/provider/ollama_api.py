@@ -30,9 +30,9 @@ class OllamaCostManager(CostManager):
         """
         self.total_prompt_tokens += prompt_tokens
         self.total_completion_tokens += completion_tokens
-
+        max_budget = CONFIG.max_budget if CONFIG.max_budget else CONFIG.cost_manager.max_budget
         logger.info(
-            f"Max budget: ${CONFIG.max_budget:.3f} | "
+            f"Max budget: ${max_budget:.3f} | "
             f"prompt_tokens: {prompt_tokens}, completion_tokens: {completion_tokens}"
         )
         CONFIG.total_cost = self.total_cost
