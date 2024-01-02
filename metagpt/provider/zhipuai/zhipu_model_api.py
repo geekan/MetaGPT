@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 # @Desc   : zhipu model api to support sync & async for invoke & sse_invoke
 
+import json
+
 import zhipuai
 from zhipuai.model_api.api import InvokeType, ModelAPI
 from zhipuai.utils.http_client import headers as zhipuai_default_headers
@@ -51,7 +53,6 @@ class ZhiPuModelAPI(ModelAPI):
             params=kwargs,
             request_timeout=zhipuai.api_timeout_seconds,
         )
-
         return result
 
     @classmethod
@@ -61,6 +62,8 @@ class ZhiPuModelAPI(ModelAPI):
         resp = await cls.arequest(
             invoke_type=InvokeType.SYNC, stream=False, method="post", headers=headers, kwargs=kwargs
         )
+        resp = resp.decode("utf-8")
+        resp = json.loads(resp)
         return resp
 
     @classmethod
