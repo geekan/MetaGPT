@@ -16,7 +16,9 @@ from metagpt.llm import LLM
 
 @pytest.mark.asyncio
 async def test_rebuild():
-    action = RebuildClassView(name="RedBean", context=Path(__file__).parent.parent, llm=LLM())
+    action = RebuildClassView(
+        name="RedBean", context=str(Path(__file__).parent.parent.parent.parent / "metagpt"), llm=LLM()
+    )
     await action.run()
 
 

@@ -126,3 +126,8 @@ LLM_API_TIMEOUT = 300
 
 # Message id
 IGNORED_MESSAGE_ID = "0"
+
+# Class Relationship
+GENERALIZATION = "Generalize"
+COMPOSITION = "Composite"
+AGGREGATION = "Aggregate"
