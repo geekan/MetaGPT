@@ -23,7 +23,7 @@ import sys
 import traceback
 import typing
 from pathlib import Path
-from typing import Any, List, Tuple, Union, get_args, get_origin
+from typing import Any, List, Tuple, Union
 
 import aiofiles
 import loguru
@@ -147,19 +147,7 @@ class OutputParser:
         if extracted_content:
             return extracted_content.group(1).strip()
         else:
-            return "No content found between [CONTENT] and [/CONTENT] tags."
-
-    @staticmethod
-    def is_supported_list_type(i):
-        origin = get_origin(i)
-        if origin is not List:
-            return False
-
-        args = get_args(i)
-        if args == (str,) or args == (Tuple[str, str],) or args == (List[str],):
-            return True
-
-        return False
+            raise ValueError(f"Could not find content between [{tag}] and [/{tag}]")
 
     @classmethod
     def parse_data_with_mapping(cls, data, mapping):
