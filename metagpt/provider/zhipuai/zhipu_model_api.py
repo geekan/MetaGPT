@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # @Desc   : zhipu model api to support sync & async for invoke & sse_invoke
 
+import json
 import zhipuai
 from zhipuai.model_api.api import InvokeType, ModelAPI
 from zhipuai.utils.http_client import headers as zhipuai_default_headers
@@ -14,13 +15,13 @@ class ZhiPuModelAPI(ModelAPI):
     @classmethod
     def get_header(cls) -> dict:
         token = cls._generate_token()
-        zhipuai_default_headers.update({"Authorization": token})
+        zhipuai_default_headers.update({"Authorization": token.decode()})
         return zhipuai_default_headers
 
     @classmethod
     def get_sse_header(cls) -> dict:
         token = cls._generate_token()
-        headers = {"Authorization": token}
+        headers = {"Authorization": token.decode()}
         return headers
 
     @classmethod
@@ -61,7 +62,7 @@ class ZhiPuModelAPI(ModelAPI):
         resp = await cls.arequest(
             invoke_type=InvokeType.SYNC, stream=False, method="post", headers=headers, kwargs=kwargs
         )
-        return resp
+        return json.loads(resp.decode("utf-8"))
 
     @classmethod
     async def asse_invoke(cls, **kwargs) -> AsyncSSEClient:
