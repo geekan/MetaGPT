@@ -101,6 +101,7 @@ class Document(BaseModel):
             raise ValueError("File path is not set.")
 
         self.path.parent.mkdir(parents=True, exist_ok=True)
+        # TODO: excel, csv, json, etc.
         self.path.write_text(self.content, encoding="utf-8")
 
     def persist(self):
@@ -126,10 +127,12 @@ class IndexableDocument(Document):
         if not data_path.exists():
             raise FileNotFoundError(f"File {data_path} not found.")
         data = read_data(data_path)
-        content = data_path.read_text()
         if isinstance(data, pd.DataFrame):
             validate_cols(content_col, data)
-        return cls(data=data, content=content, content_col=content_col, meta_col=meta_col)
+            return cls(data=data, content=str(data), content_col=content_col, meta_col=meta_col)
+        else:
+            content = data_path.read_text()
+            return cls(data=data, content=content, content_col=content_col, meta_col=meta_col)
 
     def _get_docs_and_metadatas_by_df(self) -> (list, list):
         df = self.data
