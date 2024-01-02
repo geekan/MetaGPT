@@ -120,7 +120,7 @@ MMC1 = """classDiagram
     SearchEngine --> Summary
     Index --> KnowledgeBase"""
 
-MMC1_INC_AND_REFINE = """classDiagram
+MMC1_REFINE = """classDiagram
     class Main {
         -SearchEngine search_engine
         +main() str
@@ -176,7 +176,7 @@ MMC2 = """sequenceDiagram
     S-->>SE: return summary
     SE-->>M: return summary"""
 
-MMC2_INC = """sequenceDiagram
+MMC2_REFINE = """sequenceDiagram
     participant M as Main
     participant SE as SearchEngine
     participant I as Index
