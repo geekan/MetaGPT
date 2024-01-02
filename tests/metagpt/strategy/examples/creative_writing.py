@@ -3,14 +3,18 @@
 # @Author  : stellahong (stellahong@fuzhi.ai)
 # @Desc    :
 import re
+from typing import Dict
 
-from metagpt.strategy.prompt_templates.creative_writing import cot_prompt, vote_prompt
 from metagpt.strategy.tot import TreeofThought
 from metagpt.strategy.tot_schema import (
     BaseEvaluator,
     BaseParser,
     Strategy,
     ThoughtSolverConfig,
+)
+from tests.metagpt.strategy.prompt_templates.creative_writing import (
+    cot_prompt,
+    vote_prompt,
 )
 
 
@@ -31,8 +35,8 @@ class TextGenParser(BaseParser):
 
 
 class TextGenEvaluator(BaseEvaluator):
-    value_map = {"impossible": 0.001, "likely": 1, "sure": 20}  # TODO: ad hoc
-    status_map = {val: key for key, val in value_map.items()}
+    value_map: Dict[str, float] = {"impossible": 0.001, "likely": 1, "sure": 20}  # TODO: ad hoc
+    status_map: Dict = {val: key for key, val in value_map.items()}
 
     def __call__(self, evaluation: str, **kwargs) -> float:
         try:
@@ -59,7 +63,7 @@ class TextGenEvaluator(BaseEvaluator):
         return status
 
 
-if __name__ == "__main__":
+def test_creative_writing():
     import asyncio
 
     initial_prompt = """It isn't difficult to do a handstand if you just stand on your hands. It caught him off guard that space smelled of seared steak. When she didn’t like a guy who was trying to pick her up, she started using sign language. Each person who knows you has a different perception of who you are."""
