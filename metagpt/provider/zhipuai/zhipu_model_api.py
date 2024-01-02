@@ -3,6 +3,7 @@
 # @Desc   : zhipu model api to support sync & async for invoke & sse_invoke
 
 import json
+
 import zhipuai
 from zhipuai.model_api.api import InvokeType, ModelAPI
 from zhipuai.utils.http_client import headers as zhipuai_default_headers
