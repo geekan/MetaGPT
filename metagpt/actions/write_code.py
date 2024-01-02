@@ -179,7 +179,7 @@ class WriteCode(Action):
                         doc = await old_file_repo.get(filename=filename)  # 使用原始代码
                     else:
                         continue
-                    codes.insert(0, f"-----Now, {filename} need to be rewritten\n```{doc.content}```\n=====")
+                    codes.insert(0, f"-----Now, {filename} to be rewritten\n```{doc.content}```\n=====")
 
                 else:
                     doc = await src_file_repo.get(filename=filename)  # 使用先前生成的代码
