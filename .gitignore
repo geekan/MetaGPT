@@ -172,3 +172,5 @@ tests/metagpt/utils/file_repo_git
 htmlcov
 htmlcov.*
 *.dot
+*.pkl
+

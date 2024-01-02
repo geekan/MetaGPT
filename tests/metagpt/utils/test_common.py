@@ -91,6 +91,10 @@ class TestGetProjectRoot:
                 x=(TutorialAssistant, RunCode(), "a"),
                 want={"metagpt.roles.tutorial_assistant.TutorialAssistant", "metagpt.actions.run_code.RunCode", "a"},
             ),
+            Input(
+                x={"a": TutorialAssistant, "b": RunCode(), "c": "a"},
+                want={"a", "metagpt.roles.tutorial_assistant.TutorialAssistant", "metagpt.actions.run_code.RunCode"},
+            ),
         ]
         for i in inputs:
             v = any_to_str_set(i.x)

@@ -152,7 +152,7 @@ class Role(SerializationMixin, is_polymorphic_base=True):
     __hash__ = object.__hash__  # support Role as hashable type in `Environment.members`
 
     @model_validator(mode="after")
-    def check_subscription(self) -> set:
+    def check_subscription(self):
         if not self.subscription:
             self.subscription = {any_to_str(self), self.name} if self.name else {any_to_str(self)}
         return self

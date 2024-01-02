@@ -11,7 +11,7 @@ NOTE: You should use typing.List instead of list to do type annotation. Because 
 import json
 from typing import Any, Dict, List, Optional, Tuple, Type
 
-from pydantic import BaseModel, create_model, field_validator, model_validator
+from pydantic import BaseModel, create_model, model_validator
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.config import CONFIG
@@ -135,26 +135,21 @@ class ActionNode:
     @classmethod
     def create_model_class(cls, class_name: str, mapping: Dict[str, Tuple[Type, Any]]):
         """基于pydantic v1的模型动态生成，用来检验结果类型正确性"""
-        new_class = create_model(class_name, **mapping)
 
-        @field_validator("*", mode="before")
-        @classmethod
-        def check_name(v, field):
-            if field.name not in mapping.keys():
-                raise ValueError(f"Unrecognized block: {field.name}")
-            return v
-
-        @model_validator(mode="before")
-        @classmethod
-        def check_missing_fields(values):
+        def check_fields(cls, values):
             required_fields = set(mapping.keys())
             missing_fields = required_fields - set(values.keys())
             if missing_fields:
                 raise ValueError(f"Missing fields: {missing_fields}")
+
+            unrecognized_fields = set(values.keys()) - required_fields
+            if unrecognized_fields:
+                logger.warning(f"Unrecognized fields: {unrecognized_fields}")
             return values
 
-        new_class.__validator_check_name = classmethod(check_name)
-        new_class.__root_validator_check_missing_fields = classmethod(check_missing_fields)
+        validators = {"check_missing_fields_validator": model_validator(mode="before")(check_fields)}
+
+        new_class = create_model(class_name, __validators__=validators, **mapping)
         return new_class
 
     def create_children_class(self, exclude=None):
