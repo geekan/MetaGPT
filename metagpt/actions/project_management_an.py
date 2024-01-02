@@ -35,18 +35,20 @@ LOGIC_ANALYSIS = ActionNode(
     ],
 )
 
-INC_LOGIC_ANALYSIS = ActionNode(
-    key="Increment Logic Analysis",
+INCREMENTAL_LOGIC_ANALYSIS = ActionNode(
+    key="Incremental Logic Analysis",
     expected_type=List[List[str]],
-    instruction="Provide a list of files with the classes/methods/functions to be implemented or modified incrementally. Include thorough dependency analysis, consider potential impacts on existing code, and document necessary imports.",
+    instruction="Provide a list of files with the classes/methods/functions to be implemented or modified "
+    "incrementally. Include thorough dependency analysis, consider potential impacts on existing code, and document"
+    " necessary imports.",
     example=[
         ["new_feature.py", "Introduces NewFeature class and related functions"],
         ["utils.py", "Modifies existing utility functions to support incremental changes"],
     ],
 )
 
-REFINE_LOGIC_ANALYSIS = ActionNode(
-    key="Logic Analysis",
+REFINED_LOGIC_ANALYSIS = ActionNode(
+    key="Refined Logic Analysis",
     expected_type=List[List[str]],
     instruction="Review and refine the logic analysis by merging the Legacy Content and Incremental Content. "
     "Provide a comprehensive list of files with classes/methods/functions to be implemented or modified incrementally. "
@@ -67,7 +69,7 @@ TASK_LIST = ActionNode(
     example=["game.py", "main.py"],
 )
 
-INC_TASK_LIST = ActionNode(
+INCREMENTAL_TASK_LIST = ActionNode(
     key="Incremental Task list",
     expected_type=List[str],
     instruction="Break down the incremental development tasks into a prioritized list of filenames."
@@ -76,8 +78,8 @@ INC_TASK_LIST = ActionNode(
     example=["new_feature.py", "utils.py", "main.py"],
 )
 
-REFINE_TASK_LIST = ActionNode(
-    key="Task list",
+REFINED_TASK_LIST = ActionNode(
+    key="Refined Task list",
     expected_type=List[str],
     instruction="Review and refine the combined task list after the merger of Legacy Content and Incremental Content. "
     "Ensure that tasks are organized in a logical and prioritized order, considering dependencies for a streamlined and"
@@ -100,20 +102,20 @@ SHARED_KNOWLEDGE = ActionNode(
     example="`game.py` contains functions shared across the project.",
 )
 
-INC_SHARED_KNOWLEDGE = ActionNode(
-    key="Increment Shared Knowledge",
+INCREMENTAL_SHARED_KNOWLEDGE = ActionNode(
+    key="Incremental Shared Knowledge",
     expected_type=str,
     instruction="Document any new shared knowledge generated during incremental development. This includes common "
     "utility functions, configuration variables, or any information vital for team collaboration.",
     example="`new_module.py` introduces shared utility functions for improved code reusability.",
 )
 
-REFINE_SHARED_KNOWLEDGE = ActionNode(
-    key="Shared Knowledge",
+REFINED_SHARED_KNOWLEDGE = ActionNode(
+    key="Refined Shared Knowledge",
     expected_type=str,
-    instruction="Update and expand shared knowledge to reflect any new elements introduced during incremental development. "
-    "This includes common utility functions, configuration variables, or any information vital for team collaboration."
-    "Retain any content unrelated to incremental development for coherence and clarity.",
+    instruction="Update and expand shared knowledge to reflect any new elements introduced during incremental "
+    "development. This includes common utility functions, configuration variables, or any information vital for team "
+    "collaboration. Retain any content unrelated to incremental development for coherence and clarity.",
     example="`new_module.py` enhances shared utility functions for improved code reusability and collaboration.",
 )
 
@@ -140,13 +142,14 @@ REFINE_PM_CONTEXT = """
 Role: You are a professional Project Manager tasked with overseeing incremental development.
 Based on New Requirements, refine the project context to account for incremental development. Ensure the context offers a comprehensive overview of the project's evolving scope, covering both legacy content and incremental content. Retain any content unrelated to incremental development.
 
-### New Requirements
+# Context
+## New Requirements
 {requirements}
 
-### Legacy Content
+## Legacy Content
 {old_tasks}
 
-### Increment Content
+## Increment Content
 {tasks_increment}
 """
 
@@ -160,21 +163,21 @@ NODES = [
     ANYTHING_UNCLEAR_PM,
 ]
 
-INC_NODES = [INC_LOGIC_ANALYSIS, INC_TASK_LIST, INC_SHARED_KNOWLEDGE]
+INC_NODES = [INCREMENTAL_LOGIC_ANALYSIS, INCREMENTAL_TASK_LIST, INCREMENTAL_SHARED_KNOWLEDGE]
 
 REFINE_NODES = [
     REQUIRED_PYTHON_PACKAGES,
     REQUIRED_OTHER_LANGUAGE_PACKAGES,
-    REFINE_LOGIC_ANALYSIS,
-    REFINE_TASK_LIST,
+    REFINED_LOGIC_ANALYSIS,
+    REFINED_TASK_LIST,
     FULL_API_SPEC,
-    REFINE_SHARED_KNOWLEDGE,
+    REFINED_SHARED_KNOWLEDGE,
     ANYTHING_UNCLEAR_PM,
 ]
 
 PM_NODE = ActionNode.from_children("PM_NODE", NODES)
-INC_PM_NODES = ActionNode.from_children("Incremental_PM_NODES", INC_NODES)
-REFINE_PM_NODES = ActionNode.from_children("Refine_PM_NODES", REFINE_NODES)
+INCREMENTAL_PM_NODES = ActionNode.from_children("Incremental_PM_NODES", INC_NODES)
+REFINED_PM_NODES = ActionNode.from_children("Refined_PM_NODES", REFINE_NODES)
 
 
 def main():

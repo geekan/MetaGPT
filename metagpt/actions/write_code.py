@@ -21,7 +21,7 @@ from pydantic import Field
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.actions.action import Action
-from metagpt.actions.write_code_guide_an import WRITE_CODE_INCREMENT_TEMPLATE
+from metagpt.actions.write_code_guideline_an import REFINED_TEMPLATE
 from metagpt.config import CONFIG
 from metagpt.const import (
     BUGFIX_FILENAME,
@@ -127,7 +127,7 @@ class WriteCode(Action):
             code_context = await self.get_codes(coding_context.task_doc, exclude=self.context.filename)
 
         if guideline:
-            prompt = WRITE_CODE_INCREMENT_TEMPLATE.format(
+            prompt = REFINED_TEMPLATE.format(
                 requirement=requirement_doc.content if requirement_doc else "",
                 guideline=guideline,
                 design=coding_context.design_doc.content if coding_context.design_doc else "",
@@ -164,7 +164,7 @@ class WriteCode(Action):
         if not task_doc.content:
             task_doc.content = FileRepository.get_file(filename=task_doc.filename, relative_path=TASK_FILE_REPO)
         m = json.loads(task_doc.content)
-        code_filenames = m.get("Task list", [])
+        code_filenames = m.get("Task list", []) if mode == "normal" else m.get("Refined Task list", [])
         codes = []
         src_file_repo = CONFIG.git_repo.new_file_repository(relative_path=CONFIG.src_workspace)
 

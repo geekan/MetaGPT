@@ -7,18 +7,13 @@
 """
 import asyncio
 
-from pydantic import Field
-
 from metagpt.actions.action import Action
 from metagpt.actions.action_node import ActionNode
-from metagpt.llm import LLM
-from metagpt.provider.base_gpt_api import BaseGPTAPI
-from metagpt.schema import Document
 
 GUIDELINE = ActionNode(
-    key="Code Guideline",
+    key="Guideline",
     expected_type=list[str],
-    instruction="Developing comprehensive and incremental software development plans while providing detailed code guidance.",
+    instruction="Developing comprehensive and incremental development plans while providing detailed code guideline.",
     example=[
         "Enhance the functionality of `calculator.py` by extending it to incorporate methods for subtraction, multiplication, and division. Implement robust error handling for the division operation to mitigate potential issues related to division by zero.",
         "Integrate new API endpoints for subtraction, multiplication, and division into the existing codebase of `main.py`. Ensure seamless integration with the overall application architecture and maintain consistency with coding standards.",
@@ -28,7 +23,8 @@ GUIDELINE = ActionNode(
 INCREMENTAL_CHANGE = ActionNode(
     key="Incremental Change",
     expected_type=str,
-    instruction="Write Incremental Change by making a code draft that how to implement incremental development including detailed steps based on the context.",
+    instruction="Write Incremental Change by making a code draft that how to implement incremental development "
+    "including detailed steps based on the context.",
     example="""- calculator.py: Enhance the functionality of `calculator.py` by extending it to incorporate methods for subtraction, multiplication, and division. Implement robust error handling for the division operation to mitigate potential issues related to division by zero.
 ```python
 ## calculator.py
@@ -81,8 +77,8 @@ if __name__ == '__main__':
 ```""",
 )
 
-CODE_GUIDE_CONTEXT = """
-### NOTICE
+CODE_GUIDELINE_CONTEXT = """
+NOTICE
 Role: You are a professional software engineer, and your main task is to craft comprehensive incremental development plans and provide detailed code guidance with triple quote, based on the following attentions and context. Output format carefully referenced "Format example".
 1. Determine the scope of responsibilities of each file and what classes and methods need to be implemented.
 2. Import all referenced classes.
@@ -93,20 +89,21 @@ Role: You are a professional software engineer, and your main task is to craft c
 7. Examine the code closely to find and fix errors, and confirm that the logic is sound to ensure smooth user interaction while meeting all specified requirements.
 8. Attention: Code files in the task list may have a different number of files compared to legacy code files. This requires integrating legacy code files that do not appear in the task list into the code files of the task list. Therefore, when writing code guidance and incremental changes for the code files in the task list, also include how to seamlessly merge and adjust legacy code files.
 
-### Requirement
+# Context
+## Requirement
 {requirement}
 
-### Design
+## Design
 {design}
 
-### Tasks
+## Tasks
 {tasks}
 
-### Legacy Code
+## Legacy Code
 {code}
 """
 
-WRITE_CODE_INCREMENT_TEMPLATE = """
+REFINED_TEMPLATE = """
 NOTICE
 Role: You are a professional engineer; The main goal is to complete incremental development by combining legacy code and Incremental Change, ensuring the integration of new features.
 
@@ -161,7 +158,7 @@ Role: You are a professional engineer; The main goal is to complete incremental 
 """
 
 CODE_GUIDE_CONTEXT_EXAMPLE = """
-### Legacy Code
+# Legacy Code
 ## main.py
 
 from flask import Flask, request, jsonify
@@ -194,21 +191,17 @@ class Calculator:
 
 GUIDE_NODES = [INCREMENTAL_CHANGE]
 
-WRITE_CODE_GUIDE_NODE = ActionNode.from_children("WriteCodeGuide", GUIDE_NODES)
+WRITE_CODE_GUIDELINE_NODE = ActionNode.from_children("WriteCodeGuideline", GUIDE_NODES)
 
 
-class WriteCodeGuide(Action):
-    name: str = "WriteCodeGuide"
-    context: Document = Field(default_factory=Document)
-    llm: BaseGPTAPI = Field(default_factory=LLM)
-
+class WriteCodeGuideline(Action):
     async def run(self, context):
-        return await WRITE_CODE_GUIDE_NODE.fill(context=context, llm=self.llm, schema="json")
+        return await WRITE_CODE_GUIDELINE_NODE.fill(context=context, llm=self.llm, schema="json")
 
 
 def main():
-    action = WriteCodeGuide()
-    return asyncio.run(action.run(CODE_GUIDE_CONTEXT))
+    action = WriteCodeGuideline()
+    return asyncio.run(action.run(CODE_GUIDELINE_CONTEXT))
 
 
 if __name__ == "__main__":

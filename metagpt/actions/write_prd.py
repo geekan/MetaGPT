@@ -24,7 +24,7 @@ from metagpt.actions.action_node import ActionNode
 from metagpt.actions.fix_bug import FixBug
 from metagpt.actions.write_prd_an import (
     REFINE_PRD_NODE,
-    REFINE_PRD_SIMPLE_CONTEXT,
+    REFINE_PRD_TEMPLATE,
     WP_IS_RELATIVE_NODE,
     WP_ISSUE_TYPE_NODE,
     WRITE_PRD_NODE,
@@ -139,7 +139,7 @@ class WritePRD(Action):
             CONFIG.project_name = Path(CONFIG.project_path).name
 
         project_name = CONFIG.project_name if CONFIG.project_name else ""
-        prompt = REFINE_PRD_SIMPLE_CONTEXT.format(
+        prompt = REFINE_PRD_TEMPLATE.format(
             requirements=new_requirement_doc.content,
             old_prd=prd_doc.content,
             project_name=project_name,

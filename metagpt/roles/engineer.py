@@ -28,7 +28,10 @@ from typing import Set
 from metagpt.actions import Action, WriteCode, WriteCodeReview, WriteTasks
 from metagpt.actions.fix_bug import FixBug
 from metagpt.actions.summarize_code import SummarizeCode
-from metagpt.actions.write_code_guide_an import CODE_GUIDE_CONTEXT, WriteCodeGuide
+from metagpt.actions.write_code_guideline_an import (
+    CODE_GUIDELINE_CONTEXT,
+    WriteCodeGuideline,
+)
 from metagpt.config import CONFIG
 from metagpt.const import (
     CODE_SUMMARIES_FILE_REPO,
@@ -91,7 +94,7 @@ class Engineer(Role):
     @staticmethod
     def _parse_tasks(task_msg: Document) -> list[str]:
         m = json.loads(task_msg.content)
-        return m.get("Task list")
+        return m.get("Task list") or m.get("Refined Task list")
 
     async def _act_sp_with_cr(self, review=False, guideline="") -> Set[str]:
         changed_files = set()
@@ -323,8 +326,8 @@ class Engineer(Role):
         tasks = "\n".join([doc.content for doc in tasks])
         old_codes = await self.get_old_codes()
 
-        context = CODE_GUIDE_CONTEXT.format(requirement=requirement, tasks=tasks, design=design, code=old_codes)
-        node = await WriteCodeGuide().run(context=context)
+        context = CODE_GUIDELINE_CONTEXT.format(requirement=requirement, tasks=tasks, design=design, code=old_codes)
+        node = await WriteCodeGuideline().run(context=context)
         guideline = node.instruct_content.json(ensure_ascii=False)
         return guideline
 

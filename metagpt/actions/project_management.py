@@ -17,7 +17,7 @@ from pydantic import Field
 
 from metagpt.actions import ActionOutput
 from metagpt.actions.action import Action
-from metagpt.actions.project_management_an import PM_NODE, REFINE_PM_NODES
+from metagpt.actions.project_management_an import PM_NODE, REFINED_PM_NODES
 from metagpt.config import CONFIG
 from metagpt.const import (
     PACKAGE_REQUIREMENTS_FILENAME,
@@ -101,7 +101,7 @@ class WriteTasks(Action):
 
     async def _merge(self, system_design_doc, task_doc, schema=CONFIG.prompt_schema) -> Document:
         context = NEW_REQ_TEMPLATE.format(context=system_design_doc.content, old_tasks=task_doc.content)
-        node = await REFINE_PM_NODES.fill(context, self.llm, schema)
+        node = await REFINED_PM_NODES.fill(context, self.llm, schema)
         task_doc.content = node.instruct_content.json(ensure_ascii=False)
         return task_doc
 
