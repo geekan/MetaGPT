@@ -41,17 +41,15 @@ async def test_s3():
     res = await conn.cache(data, ".bak", "script")
     assert "http" in res
 
-
-@pytest.mark.asyncio
-async def test_s3_no_error():
+    key = CONFIG.S3_ACCESS_KEY
+    CONFIG.S3_ACCESS_KEY = "YOUR_S3_ACCESS_KEY"
     conn = S3()
-    key = conn.auth_config["aws_secret_access_key"]
-    conn.auth_config["aws_secret_access_key"] = ""
+    assert not conn.is_valid
     try:
         res = await conn.cache("ABC", ".bak", "script")
         assert not res
     finally:
-        conn.auth_config["aws_secret_access_key"] = key
+        CONFIG.S3_ACCESS_KEY = key
 
 
 if __name__ == "__main__":

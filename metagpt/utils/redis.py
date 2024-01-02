@@ -5,6 +5,7 @@
 @Author  : mashenquan
 @File    : redis.py
 """
+from __future__ import annotations
 
 import traceback
 from datetime import timedelta
@@ -22,7 +23,15 @@ class Redis:
     async def _connect(self, force=False):
         if self._client and not force:
             return True
-        if not CONFIG.REDIS_HOST or not CONFIG.REDIS_PORT or CONFIG.REDIS_DB is None or CONFIG.REDIS_PASSWORD is None:
+        is_ready = (
+            CONFIG.REDIS_HOST
+            and CONFIG.REDIS_HOST != "YOUR_REDIS_HOST"
+            and CONFIG.REDIS_PORT
+            and CONFIG.REDIS_PORT != "YOUR_REDIS_PORT"
+            and CONFIG.REDIS_DB is not None
+            and CONFIG.REDIS_PASSWORD is not None
+        )
+        if not is_ready:
             return False
 
         try:
@@ -37,7 +46,7 @@ class Redis:
             logger.warning(f"Redis initialization has failed:{e}")
         return False
 
-    async def get(self, key: str) -> bytes:
+    async def get(self, key: str) -> bytes | None:
         if not await self._connect() or not key:
             return None
         try:
