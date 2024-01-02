@@ -130,7 +130,7 @@ def test_parse_with_markdown_mapping():
         "Requirement Pool": (List[Tuple[str, str]], ...),
         "Anything UNCLEAR": (str, ...),
     }
-    t_text1 = """[CONTENT]## Original Requirements:
+    t_text_with_content_tag = """[CONTENT]## Original Requirements:
 
 The user wants to create a web-based version of the game "Fly Bird".
 
@@ -199,7 +199,10 @@ The product should be a web-based version of the game "Fly Bird" that is engagin
 
 There are no unclear points.
 [/CONTENT]"""
-    d = OutputParser.parse_data_with_mapping(t_text1, OUTPUT_MAPPING)
+    t_text_raw = t_text_with_content_tag.replace("[CONTENT]", "").replace("[/CONTENT]", "")
+    d = OutputParser.parse_data_with_mapping(t_text_with_content_tag, OUTPUT_MAPPING)
+
     import json
 
     print(json.dumps(d))
+    assert d["Original Requirements"] == t_text_raw.split("## Original Requirements:")[1].split("##")[0].strip()
