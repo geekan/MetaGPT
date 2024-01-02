@@ -8,8 +8,6 @@ from metagpt.schema import UserMessage
 
 CONFIG.openai_proxy = None
 
-print("openai_api_key ", CONFIG.openai_api_key)
-
 
 @pytest.mark.asyncio
 async def test_aask_code():

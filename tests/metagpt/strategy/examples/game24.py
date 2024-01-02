@@ -3,8 +3,8 @@
 # @Author  : stellahong (stellahong@fuzhi.ai)
 # @Desc    :
 import re
+from typing import Dict
 
-from metagpt.strategy.prompt_templates.game24 import propose_prompt, value_prompt
 from metagpt.strategy.tot import TreeofThought
 from metagpt.strategy.tot_schema import (
     BaseEvaluator,
@@ -12,6 +12,7 @@ from metagpt.strategy.tot_schema import (
     Strategy,
     ThoughtSolverConfig,
 )
+from tests.metagpt.strategy.prompt_templates.game24 import propose_prompt, value_prompt
 
 
 class Game24Parser(BaseParser):
@@ -31,8 +32,8 @@ class Game24Parser(BaseParser):
 
 
 class Game24Evaluator(BaseEvaluator):
-    value_map = {"impossible": 0.001, "likely": 1, "sure": 20}  # TODO: ad hoc
-    status_map = {val: key for key, val in value_map.items()}
+    value_map: Dict[str, float] = {"impossible": 0.001, "likely": 1, "sure": 20}  # TODO: ad hoc
+    status_map: Dict = {val: key for key, val in value_map.items()}
 
     def __call__(self, evaluation: str, **kwargs) -> float:
         try:
@@ -51,7 +52,7 @@ class Game24Evaluator(BaseEvaluator):
         return status
 
 
-if __name__ == "__main__":
+def test_game24():
     import asyncio
 
     initial_prompt = """4 5 6 10"""

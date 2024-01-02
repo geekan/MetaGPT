@@ -5,7 +5,7 @@
 import asyncio
 from typing import Any, List
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from metagpt.llm import LLM
 from metagpt.logs import logger
@@ -29,6 +29,8 @@ Output a list of jsons following the format:
 
 
 class ThoughtSolverBase(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     thought_tree: str = ""
     llm: BaseLLM = Field(default_factory=LLM, exclude=True)
     config: ThoughtSolverConfig = Field(default_factory=ThoughtSolverConfig)

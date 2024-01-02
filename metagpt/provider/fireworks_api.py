@@ -64,8 +64,9 @@ class FireworksCostManager(CostManager):
         token_costs = self.model_grade_token_costs(model)
         cost = (prompt_tokens * token_costs["prompt"] + completion_tokens * token_costs["completion"]) / 1000000
         self.total_cost += cost
+        max_budget = CONFIG.max_budget if CONFIG.max_budget else CONFIG.cost_manager.max_budget
         logger.info(
-            f"Total running cost: ${self.total_cost:.4f} | Max budget: ${CONFIG.max_budget:.3f} | "
+            f"Total running cost: ${self.total_cost:.4f} | Max budget: ${max_budget:.3f} | "
             f"Current cost: ${cost:.4f}, prompt_tokens: {prompt_tokens}, completion_tokens: {completion_tokens}"
         )
         CONFIG.total_cost = self.total_cost

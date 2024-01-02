@@ -38,12 +38,11 @@ class ZhiPuAILLM(BaseLLM):
     From now, there is only one model named `chatglm_turbo`
     """
 
-    use_system_prompt: bool = False  # zhipuai has no system prompt when use api
-
     def __init__(self):
         self.__init_zhipuai(CONFIG)
         self.llm = ZhiPuModelAPI
         self.model = "chatglm_turbo"  # so far only one model, just use it
+        self.use_system_prompt: bool = False  # zhipuai has no system prompt when use api
 
     def __init_zhipuai(self, config: CONFIG):
         assert config.zhipuai_api_key
@@ -101,7 +100,6 @@ class ZhiPuAILLM(BaseLLM):
             elif event.event == ZhiPuEvent.ERROR.value or event.event == ZhiPuEvent.INTERRUPTED.value:
                 content = event.data
                 logger.error(f"event error: {content}", end="")
-                collected_content.append([content])
             elif event.event == ZhiPuEvent.FINISH.value:
                 """
                 event.meta
