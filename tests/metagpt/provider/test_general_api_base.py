@@ -14,11 +14,14 @@ from metagpt.provider.general_api_base import (
     APIRequestor,
     ApiType,
     OpenAIResponse,
+    _aiohttp_proxies_arg,
+    _build_api_url,
     _make_session,
     _requests_proxies_arg,
     log_debug,
     log_info,
     log_warn,
+    logfmt,
     parse_stream,
     parse_stream_helper,
 )
@@ -35,6 +38,10 @@ def test_basic():
     log_debug("debug")
     log_warn("warn")
     log_info("info")
+
+    logfmt({"k1": b"v1", "k2": 1, "k3": "a b"})
+
+    _build_api_url(url="http://www.baidu.com/s?wd=", query="baidu")
 
 
 def test_openai_response():
@@ -53,10 +60,17 @@ def test_proxy():
     assert _requests_proxies_arg(proxy=proxy) == {"http": proxy, "https": proxy}
     proxy_dict = {"http": proxy}
     assert _requests_proxies_arg(proxy=proxy_dict) == proxy_dict
+    assert _aiohttp_proxies_arg(proxy_dict) == proxy
     proxy_dict = {"https": proxy}
     assert _requests_proxies_arg(proxy=proxy_dict) == proxy_dict
+    assert _aiohttp_proxies_arg(proxy_dict) == proxy
 
     assert _make_session() is not None
+
+    assert _aiohttp_proxies_arg(None) is None
+    assert _aiohttp_proxies_arg("test") == "test"
+    with pytest.raises(ValueError):
+        _aiohttp_proxies_arg(-1)
 
 
 def test_parse_stream():
@@ -81,6 +95,29 @@ async def mock_interpret_async_response(
     self, result: aiohttp.ClientResponse, stream: bool
 ) -> Tuple[Union[OpenAIResponse, AsyncGenerator[OpenAIResponse, None]], bool]:
     return b"baidu", True
+
+
+def test_requestor_headers():
+    # validate_headers
+    headers = api_requestor._validate_headers(None)
+    assert not headers
+    with pytest.raises(Exception):
+        api_requestor._validate_headers(-1)
+    with pytest.raises(Exception):
+        api_requestor._validate_headers({1: 2})
+    with pytest.raises(Exception):
+        api_requestor._validate_headers({"test": 1})
+    supplied_headers = {"test": "test"}
+    assert api_requestor._validate_headers(supplied_headers) == supplied_headers
+
+    api_requestor.organization = "test"
+    api_requestor.api_version = "test123"
+    api_requestor.api_type = ApiType.OPEN_AI
+    request_id = "test123"
+    headers = api_requestor.request_headers(method="post", extra={}, request_id=request_id)
+    assert headers["LLM-Organization"] == api_requestor.organization
+    assert headers["LLM-Version"] == api_requestor.api_version
+    assert headers["X-Request-Id"] == request_id
 
 
 def test_api_requestor(mocker):

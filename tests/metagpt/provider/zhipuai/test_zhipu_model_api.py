@@ -14,7 +14,7 @@ from metagpt.provider.zhipuai.zhipu_model_api import ZhiPuModelAPI
 api_key = "xxx.xxx"
 zhipuai.api_key = api_key
 
-default_resp = {"result": "test response"}
+default_resp = b'{"result": "test response"}'
 
 
 async def mock_requestor_arequest(self, **kwargs) -> Tuple[Any, Any, str]:
@@ -39,3 +39,6 @@ async def test_zhipu_model_api(mocker):
         InvokeType.SYNC, stream=False, method="get", headers={}, kwargs={"model": "chatglm_turbo"}
     )
     assert result == default_resp
+
+    result = await ZhiPuModelAPI.ainvoke()
+    assert result["result"] == "test response"
