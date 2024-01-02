@@ -8,6 +8,7 @@
 from typing import List, Tuple
 
 import pytest
+from pydantic import ValidationError
 
 from metagpt.actions import Action
 from metagpt.actions.action_node import ActionNode
@@ -113,6 +114,10 @@ t_dict = {
     "Anything UNCLEAR": "We need clarification on how the high score should be stored. Should it persist across sessions (stored in a database or a file) or should it reset every time the game is restarted? Also, should the game speed increase as the snake grows, or should it remain constant throughout the game?",
 }
 
+t_dict_min = {
+    "Required Python third-party packages": '"""\nflask==1.1.2\npygame==2.0.1\n"""\n',
+}
+
 WRITE_TASKS_OUTPUT_MAPPING = {
     "Required Python third-party packages": (str, ...),
     "Required Other language third-party packages": (str, ...),
@@ -139,11 +144,19 @@ def test_create_model_class():
     assert output.schema()["properties"]["Full API spec"]
 
 
-def test_create_model_class_missing():
+def test_create_model_class_with_fields_unrecognized():
     test_class = ActionNode.create_model_class("test_class", WRITE_TASKS_OUTPUT_MAPPING_MISSING)
     assert test_class.__name__ == "test_class"
 
-    _ = test_class(**t_dict)  # 这里应该要挂掉
+    _ = test_class(**t_dict)  # just warning
+
+
+def test_create_model_class_with_fields_missing():
+    test_class = ActionNode.create_model_class("test_class", WRITE_TASKS_OUTPUT_MAPPING)
+    assert test_class.__name__ == "test_class"
+
+    with pytest.raises(ValidationError):
+        _ = test_class(**t_dict_min)
 
 
 def test_create_model_class_with_mapping():
