@@ -10,15 +10,17 @@
     functionality is to be consolidated into the `Environment` class.
 """
 import uuid
+from unittest.mock import MagicMock
 
 import pytest
 from pydantic import BaseModel
 
 from metagpt.actions import Action, ActionOutput, UserRequirement
 from metagpt.environment import Environment
+from metagpt.provider.base_llm import BaseLLM
 from metagpt.roles import Role
 from metagpt.schema import Message
-from metagpt.utils.common import any_to_str
+from metagpt.utils.common import any_to_name, any_to_str
 
 
 class MockAction(Action):
@@ -96,7 +98,7 @@ async def test_react():
 
 
 @pytest.mark.asyncio
-async def test_msg_to():
+async def test_send_to():
     m = Message(content="a", send_to=["a", MockRole, Message])
     assert m.send_to == {"a", any_to_str(MockRole), any_to_str(Message)}
 
@@ -105,6 +107,51 @@ async def test_msg_to():
 
     m = Message(content="a", send_to=("a", MockRole, Message))
     assert m.send_to == {"a", any_to_str(MockRole), any_to_str(Message)}
+
+
+def test_init_action():
+    role = Role()
+    role.init_actions([MockAction, MockAction])
+    assert role.action_count == 2
+
+
+@pytest.mark.asyncio
+async def test_recover():
+    # Mock LLM actions
+    mock_llm = MagicMock(spec=BaseLLM)
+    mock_llm.aask.side_effect = ["1"]
+
+    role = Role()
+    assert role.is_watch(any_to_str(UserRequirement))
+    role.put_message(None)
+    role.publish_message(None)
+
+    role.llm = mock_llm
+    role.init_actions([MockAction, MockAction])
+    role.recovered = True
+    role.latest_observed_msg = Message(content="recover_test")
+    role.rc.state = 0
+    assert role.todo == any_to_name(MockAction)
+
+    rsp = await role.run()
+    assert rsp.cause_by == any_to_str(MockAction)
+
+
+@pytest.mark.asyncio
+async def test_think_act():
+    # Mock LLM actions
+    mock_llm = MagicMock(spec=BaseLLM)
+    mock_llm.aask.side_effect = ["ok"]
+
+    role = Role()
+    role.init_actions([MockAction])
+    await role.think()
+    role.rc.memory.add(Message("run"))
+    assert len(role.get_memories()) == 1
+    rsp = await role.act()
+    assert rsp
+    assert isinstance(rsp, ActionOutput)
+    assert rsp.content == "run"
 
 
 if __name__ == "__main__":

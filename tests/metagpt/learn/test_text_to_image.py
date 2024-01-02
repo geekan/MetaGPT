@@ -15,20 +15,24 @@ from metagpt.learn.text_to_image import text_to_image
 
 
 @pytest.mark.asyncio
-async def test():
+async def test_metagpt_llm():
     # Prerequisites
     assert CONFIG.METAGPT_TEXT_TO_IMAGE_MODEL_URL
     assert CONFIG.OPENAI_API_KEY
 
     data = await text_to_image("Panda emoji", size_type="512x512")
     assert "base64" in data or "http" in data
-    key = CONFIG.METAGPT_TEXT_TO_IMAGE_MODEL_URL
-    CONFIG.METAGPT_TEXT_TO_IMAGE_MODEL_URL = None
+
+    # Mock session env
+    old_options = CONFIG.options.copy()
+    new_options = old_options.copy()
+    new_options["METAGPT_TEXT_TO_IMAGE_MODEL_URL"] = None
+    CONFIG.set_context(new_options)
     try:
         data = await text_to_image("Panda emoji", size_type="512x512")
         assert "base64" in data or "http" in data
     finally:
-        CONFIG.METAGPT_TEXT_TO_IMAGE_MODEL_URL = key
+        CONFIG.set_context(old_options)
 
 
 if __name__ == "__main__":
