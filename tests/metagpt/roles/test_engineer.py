@@ -30,6 +30,7 @@ from tests.metagpt.roles.mock import STRS_FOR_PARSING, TASKS, MockMessages
 
 
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("llm_mock")
 async def test_engineer():
     # Prerequisites
     rqno = "20231221155954.json"
@@ -113,6 +114,7 @@ def test_todo():
 
 
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("llm_mock")
 async def test_new_coding_context():
     # Prerequisites
     demo_path = Path(__file__).parent / "../../data/demo_project"

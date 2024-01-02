@@ -69,6 +69,7 @@ def test_engineer_serialize():
 
 
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("llm_mock")
 async def test_engineer_deserialize():
     role = Engineer(use_code_review=True)
     ser_role_dict = role.model_dump()
@@ -96,6 +97,7 @@ def test_role_serdeser_save():
 
 
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("llm_mock")
 async def test_role_serdeser_interrupt():
     role_c = RoleC()
     shutil.rmtree(SERDESER_PATH.joinpath("team"), ignore_errors=True)

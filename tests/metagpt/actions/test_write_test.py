@@ -13,6 +13,7 @@ from metagpt.schema import Document, TestingContext
 
 
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("llm_mock")
 async def test_write_test():
     code = """
     import random
@@ -39,6 +40,7 @@ async def test_write_test():
 
 
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("llm_mock")
 async def test_write_code_invalid_code(mocker):
     # Mock the _aask method to return an invalid code string
     mocker.patch.object(WriteTest, "_aask", return_value="Invalid Code String")

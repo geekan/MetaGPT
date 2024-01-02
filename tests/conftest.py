@@ -56,11 +56,11 @@ class MockLLM(OpenAILLM):
         if msg not in self.rsp_cache:
             # Call the original unmocked method
             rsp = await self.original_aask(msg, system_msgs, format_msgs, timeout, stream)
-            logger.info(f"added '{rsp[:10]}' ... to response cache")
+            logger.info(f"Added '{rsp[:20]}' ... to response cache")
             self.rsp_cache[msg] = rsp
             return rsp
         else:
-            logger.info("use response cache")
+            logger.info("Use response cache")
             return self.rsp_cache[msg]
 
 
