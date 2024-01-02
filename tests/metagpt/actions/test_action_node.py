@@ -21,35 +21,35 @@ from metagpt.team import Team
 
 @pytest.mark.asyncio
 async def test_debate_two_roles():
-    action1 = Action(name="BidenSay", instruction="Express opinions and argue vigorously, and strive to gain votes")
-    action2 = Action(name="TrumpSay", instruction="Express opinions and argue vigorously, and strive to gain votes")
+    action1 = Action(name="AlexSay", instruction="Express your opinion with emotion and don't repeat it")
+    action2 = Action(name="BobSay", instruction="Express your opinion with emotion and don't repeat it")
     biden = Role(
-        name="Biden", profile="Democratic candidate", goal="Win the election", actions=[action1], watch=[action2]
+        name="Alex", profile="Democratic candidate", goal="Win the election", actions=[action1], watch=[action2]
     )
     trump = Role(
-        name="Trump", profile="Republican candidate", goal="Win the election", actions=[action2], watch=[action1]
+        name="Bob", profile="Republican candidate", goal="Win the election", actions=[action2], watch=[action1]
     )
     env = Environment(desc="US election live broadcast")
     team = Team(investment=10.0, env=env, roles=[biden, trump])
 
-    history = await team.run(idea="Topic: climate change. Under 80 words per message.", send_to="Biden", n_round=3)
-    assert "Biden" in history
+    history = await team.run(idea="Topic: climate change. Under 80 words per message.", send_to="Alex", n_round=3)
+    assert "Alex" in history
 
 
 @pytest.mark.asyncio
 async def test_debate_one_role_in_env():
-    action = Action(name="Debate", instruction="Express opinions and argue vigorously, and strive to gain votes")
-    biden = Role(name="Biden", profile="Democratic candidate", goal="Win the election", actions=[action])
+    action = Action(name="Debate", instruction="Express your opinion with emotion and don't repeat it")
+    biden = Role(name="Alex", profile="Democratic candidate", goal="Win the election", actions=[action])
     env = Environment(desc="US election live broadcast")
     team = Team(investment=10.0, env=env, roles=[biden])
-    history = await team.run(idea="Topic: climate change. Under 80 words per message.", send_to="Biden", n_round=3)
-    assert "Biden" in history
+    history = await team.run(idea="Topic: climate change. Under 80 words per message.", send_to="Alex", n_round=3)
+    assert "Alex" in history
 
 
 @pytest.mark.asyncio
 async def test_debate_one_role():
-    action = Action(name="Debate", instruction="Express opinions and argue vigorously, and strive to gain votes")
-    biden = Role(name="Biden", profile="Democratic candidate", goal="Win the election", actions=[action])
+    action = Action(name="Debate", instruction="Express your opinion with emotion and don't repeat it")
+    biden = Role(name="Alex", profile="Democratic candidate", goal="Win the election", actions=[action])
     msg: Message = await biden.run("Topic: climate change. Under 80 words per message.")
 
     assert len(msg.content) > 10
