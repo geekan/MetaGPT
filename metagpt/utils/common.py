@@ -408,7 +408,7 @@ def concat_namespace(*args) -> str:
 
 
 def split_namespace(ns_class_name: str) -> List[str]:
-    pass
+    return ns_class_name.split(":")
 
 
 def general_after_log(i: "loguru.Logger", sec_format: str = "%0.3f") -> typing.Callable[["RetryCallState"], None]:

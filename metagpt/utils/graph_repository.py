@@ -13,6 +13,7 @@ from typing import List
 
 from pydantic import BaseModel
 
+from metagpt.logs import logger
 from metagpt.repo_parser import ClassInfo, ClassRelationship, RepoFileInfo
 from metagpt.utils.common import concat_namespace
 
@@ -162,6 +163,8 @@ class GraphRepository(ABC):
                     subject=concat_namespace(c.package, vn), predicate=GraphKeyword.HAS_TYPE_DESC, object_=vt
                 )
             for fn, desc in c.methods.items():
+                if "</I>" in desc and "<I>" not in desc:
+                    logger.error(desc)
                 # class -> function
                 await graph_db.insert(
                     subject=c.package,

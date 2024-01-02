@@ -155,7 +155,8 @@ class RepoParser(BaseModel):
             else:
                 raise NotImplementedError(f"Not implement:{val}")
             return code_block
-        raise NotImplementedError(f"Not implement code block:{node.lineno}, {node.end_lineno}, {any_to_str(node)}")
+        logger.warning(f"Unsupported code block:{node.lineno}, {node.end_lineno}, {any_to_str(node)}")
+        return None
 
     @staticmethod
     def _parse_expr(node) -> List:
@@ -193,7 +194,7 @@ class RepoParser(BaseModel):
                     tokens.append(v)
             return tokens
         except Exception as e:
-            logger.warning(e)
+            logger.warning(f"Unsupported if: {n}, err:{e}")
         return tokens
 
     @staticmethod
@@ -220,8 +221,7 @@ class RepoParser(BaseModel):
                 raise NotImplementedError(f"Not implement:{node}")
             return func(node)
         except Exception as e:
-            logger.warning(e)
-            raise e
+            logger.warning(f"Unsupported variable:{node}, err:{e}")
 
     @staticmethod
     def _parse_assign(node):
@@ -274,7 +274,7 @@ class RepoParser(BaseModel):
             class_views.append(class_info)
         return class_views
 
-    async def _parse_class_relationships(self, class_view_pathname) -> List[ClassRelationShip]:
+    async def _parse_class_relationships(self, class_view_pathname) -> List[ClassRelationship]:
         relationship_views = []
         if not class_view_pathname.exists():
             return relationship_views
@@ -365,7 +365,7 @@ class RepoParser(BaseModel):
     @staticmethod
     def _repair_namespaces(
         class_views: List[ClassInfo], relationship_views: List[ClassRelationship], path: str | Path
-    ) -> (List[ClassInfo], List[ClassRelationShip]):
+    ) -> (List[ClassInfo], List[ClassRelationship]):
         if not class_views:
             return []
         c = class_views[0]
