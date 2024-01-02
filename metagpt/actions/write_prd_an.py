@@ -172,10 +172,8 @@ ANYTHING_UNCLEAR = ActionNode(
 ISSUE_TYPE = ActionNode(
     key="issue_type",
     expected_type=str,
-    instruction="Answer BUG/REFINE/OVERHAUL. If it is a bugfix, answer BUG;"
-    "if it is a minor improvement, answer REFINE;"
-    "if it is a major overhaul, answer OVERHAUL that most likely not answer in most cases.",
-    example="REFINE",
+    instruction="Answer BUG/REQUIREMENT. If it is a bugfix, answer BUG, otherwise answer Requirement",
+    example="BUG",
 )
 
 IS_RELATIVE = ActionNode(

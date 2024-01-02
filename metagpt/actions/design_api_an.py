@@ -9,7 +9,7 @@ from typing import List
 
 from metagpt.actions.action_node import ActionNode
 from metagpt.logs import logger
-from metagpt.utils.mermaid import MMC1, MMC1_INC_AND_REFINE, MMC2
+from metagpt.utils.mermaid import MMC1, MMC1_INC_AND_REFINE, MMC2, MMC2_INC
 
 IMPLEMENTATION_APPROACH = ActionNode(
     key="Implementation approach",
@@ -35,7 +35,6 @@ REFINE_IMPLEMENTATION_APPROACH = ActionNode(
     example="We will refine ...",
 )
 
-
 PROJECT_NAME = ActionNode(
     key="Project name", expected_type=str, instruction="The project name with underline", example="game_2048"
 )
@@ -51,7 +50,8 @@ REFINE_FILE_LIST = ActionNode(
     key="File List",
     expected_type=List[str],
     instruction="Update and expand the original file list, including only relative paths. "
-    "Ensure that the refined file list reflects the evolving structure of the project due to incremental development.",
+    "Ensure that the refined file list reflects the evolving structure of the project due to incremental development."
+    "Only output filename!Do not include comments in the list.",
     example=["main.py", "game.py", "utils.py", "new_feature.py"],
 )
 
@@ -91,6 +91,15 @@ PROGRAM_CALL_FLOW = ActionNode(
     instruction="Use sequenceDiagram code syntax, COMPLETE and VERY DETAILED, using CLASSES AND API DEFINED ABOVE "
     "accurately, covering the CRUD AND INIT of each object, SYNTAX MUST BE CORRECT.",
     example=MMC2,
+)
+
+REFINE_PROGRAM_CALL_FLOW = ActionNode(
+    key="Program call flow",
+    expected_type=str,
+    instruction="Extend the existing sequenceDiagram code syntax with detailed information, accurately covering the"
+    "CRUD and initialization of each object. Ensure correct syntax usage and reflect the incremental changes introduced"
+    "in the classes and API defined above.Retain content unrelated to incremental development for coherence and clarity",
+    example=MMC2_INC,
 )
 
 ANYTHING_UNCLEAR = ActionNode(
@@ -134,14 +143,14 @@ NODES = [
     ANYTHING_UNCLEAR,
 ]
 
-INC_NODES = [INC_IMPLEMENTATION_APPROACH, INC_DATA_STRUCTURES_AND_INTERFACES]
+INC_NODES = [INC_IMPLEMENTATION_APPROACH, INC_DATA_STRUCTURES_AND_INTERFACES, REFINE_PROGRAM_CALL_FLOW]
 
 REFINE_NODES = [
     REFINE_IMPLEMENTATION_APPROACH,
     # PROJECT_NAME,
     REFINE_FILE_LIST,
     REFINE_DATA_STRUCTURES_AND_INTERFACES,
-    PROGRAM_CALL_FLOW,
+    REFINE_PROGRAM_CALL_FLOW,
     ANYTHING_UNCLEAR,
 ]
 
