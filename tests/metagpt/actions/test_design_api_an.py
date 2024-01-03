@@ -92,7 +92,9 @@ CONTEXT = """
 """
 
 
-llm = OpenAIGPTAPI()
+@pytest.fixture()
+def llm():
+    return OpenAIGPTAPI()
 
 
 @pytest.mark.asyncio

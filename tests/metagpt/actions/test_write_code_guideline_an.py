@@ -7,7 +7,7 @@
 """
 import pytest
 
-from metagpt.actions import WriteCode
+from metagpt.actions.write_code import WriteCode
 from metagpt.actions.write_code_guideline_an import (
     CODE_GUIDELINE_CONTEXT,
     CODE_GUIDELINE_SCRIPT_EXAMPLE,
@@ -15,7 +15,6 @@ from metagpt.actions.write_code_guideline_an import (
     REFINED_CODE_TEMPLATE,
     WriteCodeGuideline,
 )
-from metagpt.provider import OpenAIGPTAPI
 
 REQUIREMENT_EXAMPLE = """Add subtraction, multiplication and division operations to the calculator.
 The current calculator can only perform basic addition operations, and it is necessary to introduce subtraction, multiplication, division operation into the calculator
@@ -79,8 +78,6 @@ INCREMENTAL_CHANGE_EXAMPLE = """
     "Incremental Change": "- operations.py: Implement the Operations class with a method to perform the requested arithmetic operation. This class will be used by the Calculator class to execute the operations.\n```python\n## operations.py\nclass Operations:\n    @staticmethod\n    def perform_operation(operation: str, number1: float, number2: float) -> float:\n        if operation == 'add':\n            return number1 + number2\n        elif operation == 'subtract':\n            return number1 - number2\n        elif operation == 'multiply':\n            return number1 * number2\n        elif operation == 'divide':\n            if number2 == 0:\n                raise ValueError('Cannot divide by zero')\n            return number1 / number2\n        else:\n            raise ValueError('Invalid operation')\n```\n\n- calculator.py: Extend the Calculator class to include methods for subtraction, multiplication, and division. These methods will utilize the Operations class to perform the actual calculations.\n```python\n## calculator.py\nfrom operations import Operations\nclass Calculator:\n    ...\n    def subtract(self, number1: float, number2: float) -> float:\n        return Operations.perform_operation('subtract', number1, number2)\n\n    def multiply(self, number1: float, number2: float) -> float:\n        return Operations.perform_operation('multiply', number1, number2)\n\n    def divide(self, number1: float, number2: float) -> float:\n        return Operations.perform_operation('divide', number1, number2)\n```\n\n- interface.py: Update the Interface class to include buttons for subtraction, multiplication, and division, and link them to the corresponding methods in the Calculator class. Also, handle the display of errors such as division by zero.\n```python\n## interface.py\nimport tkinter as tk\nfrom tkinter import messagebox\nfrom calculator import Calculator\n...\nclass Interface:\n    ...\n    def create_widgets(self):\n        ...\n        self.subtract_button = tk.Button(self.root, text='-', command=self.subtract, font=('Arial', 18))\n        self.subtract_button.grid(row=3, column=0, sticky='nsew')\n\n        self.multiply_button = tk.Button(self.root, text='*', command=self.multiply, font=('Arial', 18))\n        self.multiply_button.grid(row=3, column=1, sticky='nsew')\n\n        self.divide_button = tk.Button(self.root, text='/', command=self.divide, font=('Arial', 18))\n        self.divide_button.grid(row=3, column=2, sticky='nsew')\n        ...\n\n    def subtract(self):\n        number1, number2 = self.get_input()\n        if number1 is not None and number2 is not None:\n            result = self.calculator.subtract(number1, number2)\n            self.display_result(result)\n\n    def multiply(self):\n        number1, number2 = self.get_input()\n        if number1 is not None and number2 is not None:\n            result = self.calculator.multiply(number1, number2)\n            self.display_result(result)\n\n    def divide(self):\n        number1, number2 = self.get_input()\n        if number1 is not None and number2 is not None:\n            try:\n                result = self.calculator.divide(number1, number2)\n            except ValueError as e:\n                self.show_error(str(e))\n                return\n            self.display_result(result)\n```\n\n- main.py: No changes needed in main.py as it serves as the entry point and will run the updated Interface class.\n```python\n## main.py\nfrom interface import Interface\n...\n```\n\nNote: Ensure that the new operations buttons in the Interface class are properly arranged and that the grid layout is adjusted accordingly. Also, make sure to import the messagebox module from tkinter for error handling."
 }
 """
-
-llm = OpenAIGPTAPI()
 
 
 @pytest.mark.asyncio

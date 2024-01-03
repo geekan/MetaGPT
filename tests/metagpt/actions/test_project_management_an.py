@@ -131,11 +131,14 @@ CONTEXT = """
 }
 """
 
-llm = OpenAIGPTAPI()
+
+@pytest.fixture()
+def llm():
+    return OpenAIGPTAPI()
 
 
 @pytest.mark.asyncio
-async def test_project_management_an():
+async def test_project_management_an(llm):
     node = await REFINED_PM_NODES.fill(CONTEXT, llm)
     assert node.instruct_content
     assert "Refined Logic Analysis" in node.instruct_content.json(ensure_ascii=False)
