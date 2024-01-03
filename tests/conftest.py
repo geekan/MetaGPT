@@ -86,7 +86,8 @@ def loguru_caplog(caplog):
 
 
 # init & dispose git repo
-@pytest.fixture(scope="session", autouse=True)
+# @pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="session")
 def setup_and_teardown_git_repo(request):
     CONFIG.git_repo = GitRepository(local_path=DEFAULT_WORKSPACE_ROOT / "unittest")
 

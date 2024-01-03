@@ -120,7 +120,7 @@ INC_DESIGN_CONTEXT = """
 {prd_increment}
 """
 
-REFINE_DESIGN_CONTEXT = """
+MERGE_DESIGN_CONTEXT = """
 Role: You are a professional Architect tasked with overseeing incremental development. 
 Based on new requirements, review and refine the system design. Integrate existing architecture with incremental design changes, ensuring the refined design encompasses all architectural elements, enhancements, and adjustments. Retain content unrelated to incremental development needs for coherence and clarity.
 
@@ -148,7 +148,6 @@ INC_NODES = [INCREMENTAL_IMPLEMENTATION_APPROACH, INCREMENTAL_DATA_STRUCTURES_AN
 
 REFINE_NODES = [
     REFINED_IMPLEMENTATION_APPROACH,
-    # PROJECT_NAME,
     FILE_LIST,
     REFINED_DATA_STRUCTURES_AND_INTERFACES,
     REFINED_PROGRAM_CALL_FLOW,
@@ -161,7 +160,9 @@ REFINED_DESIGN_NODES = ActionNode.from_children("Refined_Design_API", REFINE_NOD
 
 
 def main():
-    prompt = REFINED_DESIGN_NODES.compile(context="...")
+    prompt = DESIGN_API_NODE.compile(context="")
+    logger.info(prompt)
+    prompt = REFINED_DESIGN_NODES.compile(context="")
     logger.info(prompt)
 
 

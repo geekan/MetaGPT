@@ -138,7 +138,7 @@ INC_PM_CONTEXT = """
 {design_increment}
 """
 
-REFINE_PM_CONTEXT = """
+MERGE_PM_CONTEXT = """
 Role: You are a professional Project Manager tasked with overseeing incremental development.
 Based on New Requirements, refine the project context to account for incremental development. Ensure the context offers a comprehensive overview of the project's evolving scope, covering both legacy content and incremental content. Retain any content unrelated to incremental development.
 
@@ -182,6 +182,8 @@ REFINED_PM_NODES = ActionNode.from_children("Refined_PM_NODES", REFINE_NODES)
 
 def main():
     prompt = PM_NODE.compile(context="")
+    logger.info(prompt)
+    prompt = REFINED_PM_NODES.compile(context="")
     logger.info(prompt)
 
 

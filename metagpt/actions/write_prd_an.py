@@ -141,6 +141,15 @@ INCREMENTAL_REQUIREMENT_ANALYSIS = ActionNode(
     example=["Require add/update/modify ..."],
 )
 
+REFINED_REQUIREMENT_ANALYSIS = ActionNode(
+    key="Refined Requirement Analysis",
+    expected_type=List[str],
+    instruction="Review and refine the existing requirement analysis to align with the evolving needs of the project "
+    "due to incremental development. Ensure the analysis comprehensively covers the new features and enhancements "
+    "required for the refined project scope.",
+    example=["Require add/update/modify ..."],
+)
+
 REQUIREMENT_POOL = ActionNode(
     key="Requirement Pool",
     expected_type=List[List[str]],
@@ -151,7 +160,7 @@ REQUIREMENT_POOL = ActionNode(
 REFINED_REQUIREMENT_POOL = ActionNode(
     key="Refined Requirement Pool",
     expected_type=List[List[str]],
-    instruction="List no less than 7 requirements with their priority (P0, P1, P2). "
+    instruction="List no less than 5 requirements with their priority (P0, P1, P2). "
     "Cover both legacy content and incremental content. Retain any content unrelated to incremental development",
     example=[["P0", "The main code ..."], ["P0", "The game algorithm ..."]],
 )
@@ -189,7 +198,7 @@ REASON = ActionNode(
 )
 
 
-REFINE_PRD_CONTEXT = """
+INCREMENTAL_PRD_CONTEXT = """
 Role: You are a professional Product Manager tasked with overseeing incremental development. 
 Based on New Requirements, output a New PRD that seamlessly integrates both the Legacy Content and the Incremental Content. Ensure the resulting document captures the complete scope of features, enhancements, and retain content unrelated to incremental development needs for coherence and clarity.
 
@@ -243,7 +252,7 @@ REFINE_NODES = [
     REFINED_USER_STORIES,
     COMPETITIVE_ANALYSIS,
     COMPETITIVE_QUADRANT_CHART,
-    INCREMENTAL_REQUIREMENT_ANALYSIS,
+    REFINED_REQUIREMENT_ANALYSIS,
     REFINED_REQUIREMENT_POOL,
     UI_DESIGN_DRAFT,
     ANYTHING_UNCLEAR,
@@ -259,8 +268,9 @@ WP_IS_RELATIVE_NODE = ActionNode.from_children("WP_IS_RELATIVE", [IS_RELATIVE, R
 
 
 def main():
-    # prompt = WRITE_PRD_NODE.compile(context="")
-    prompt = INCREMENTAL_PRD_NODE.compile(context=REFINE_PRD_CONTEXT)
+    prompt = WRITE_PRD_NODE.compile(context="")
+    logger.info(prompt)
+    prompt = REFINE_PRD_NODE.compile(context="")
     logger.info(prompt)
 
 
