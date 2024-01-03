@@ -5,13 +5,13 @@ Write a coherent passage of 4 short paragraphs. The end sentence of each paragra
 cot_prompt = """
 Write a coherent passage of 4 short paragraphs. The end sentence of each paragraph must be: {input}
 
-Make a plan then write. Your output should be of the following format:
+Make a plan then write. Your output should be like:
 
 Plan:
-Your plan here.
+<Your plan here with json format>
 
 Passage:
-Your passage here.
+<Your passage here with json format>
 """
 
 

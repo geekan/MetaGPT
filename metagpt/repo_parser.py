@@ -12,13 +12,11 @@ import json
 import re
 import subprocess
 from pathlib import Path
-from pprint import pformat
 from typing import Dict, List, Optional
 
 import pandas as pd
 from pydantic import BaseModel, Field
 
-from metagpt.config import CONFIG
 from metagpt.const import AGGREGATION, COMPOSITION, GENERALIZATION
 from metagpt.logs import logger
 from metagpt.utils.common import any_to_str, aread
@@ -99,16 +97,16 @@ class RepoParser(BaseModel):
 
     def generate_json_structure(self, output_path):
         """Generate a JSON file documenting the repository structure."""
-        files_classes = self.generate_symbols()
+        files_classes = [i.model_dump() for i in self.generate_symbols()]
         output_path.write_text(json.dumps(files_classes, indent=4))
 
     def generate_dataframe_structure(self, output_path):
         """Generate a DataFrame documenting the repository structure and save as CSV."""
-        files_classes = self.generate_symbols()
+        files_classes = [i.model_dump() for i in self.generate_symbols()]
         df = pd.DataFrame(files_classes)
         df.to_csv(output_path, index=False)
 
-    def generate_structure(self, output_path=None, mode="json"):
+    def generate_structure(self, output_path=None, mode="json") -> Path:
         """Generate the structure of the repository as a specified format."""
         output_file = self.base_directory / f"{self.base_directory.name}-structure.{mode}"
         output_path = Path(output_path) if output_path else output_file
@@ -117,6 +115,7 @@ class RepoParser(BaseModel):
             self.generate_json_structure(output_path)
         elif mode == "csv":
             self.generate_dataframe_structure(output_path)
+        return output_path
 
     @staticmethod
     def node_to_str(node) -> CodeBlockInfo | None:
@@ -420,18 +419,3 @@ class RepoParser(BaseModel):
 
 def is_func(node):
     return isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
-
-
-def main():
-    repo_parser = RepoParser(base_directory=CONFIG.workspace_path / "web_2048")
-    symbols = repo_parser.generate_symbols()
-    logger.info(pformat(symbols))
-
-
-def error():
-    """raise Exception and logs it"""
-    RepoParser._parse_file(Path("test.py"))
-
-
-if __name__ == "__main__":
-    main()

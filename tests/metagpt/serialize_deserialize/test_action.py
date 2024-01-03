@@ -21,12 +21,13 @@ def test_action_serialize():
 
 
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("llm_mock")
 async def test_action_deserialize():
     action = Action()
     serialized_data = action.model_dump()
 
     new_action = Action(**serialized_data)
 
-    assert new_action.name == ""
+    assert new_action.name == "Action"
     assert isinstance(new_action.llm, type(LLM()))
     assert len(await new_action._aask("who are you")) > 0

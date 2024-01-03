@@ -20,6 +20,7 @@ context = """
 
 
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("llm_mock")
 async def test_generate_questions():
     action = GenerateQuestions()
     rsp = await action.run(context)

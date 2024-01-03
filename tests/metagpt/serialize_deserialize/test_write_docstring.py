@@ -29,6 +29,7 @@ class Person:
     ],
     ids=["google", "numpy", "sphinx"],
 )
+@pytest.mark.usefixtures("llm_mock")
 async def test_action_deserialize(style: str, part: str):
     action = WriteDocstring()
     serialized_data = action.model_dump()
@@ -38,7 +39,7 @@ async def test_action_deserialize(style: str, part: str):
 
     new_action = WriteDocstring(**serialized_data)
 
-    assert not new_action.name
+    assert new_action.name == "WriteDocstring"
     assert new_action.desc == "Write docstring for code."
     ret = await new_action.run(code, style=style)
     assert part in ret

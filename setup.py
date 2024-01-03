@@ -39,6 +39,7 @@ extras_require["test"] = [
     "pytest-mock",
     "pytest-html",
     "pytest-xdist",
+    "pytest-timeout",
     "connexion[uvicorn]~=3.0.5",
     "azure-cognitiveservices-speech~=1.31.0",
     "aioboto3~=11.3.0",

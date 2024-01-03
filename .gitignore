@@ -52,6 +52,7 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 cover/
+unittest.txt
 
 # Translations
 *.mo
@@ -173,4 +174,6 @@ htmlcov
 htmlcov.*
 *.dot
 *.pkl
+*-structure.csv
+*-structure.json
 

@@ -42,6 +42,7 @@ CONTEXT = """
 
 
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("llm_mock")
 async def test_action_deserialize():
     action = WriteReview()
     serialized_data = action.model_dump()

@@ -22,18 +22,20 @@ def test_write_task_serialize():
 
 
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("llm_mock")
 async def test_write_design_deserialize():
     action = WriteDesign()
     serialized_data = action.model_dump()
     new_action = WriteDesign(**serialized_data)
-    assert new_action.name == ""
+    assert new_action.name == "WriteDesign"
     await new_action.run(with_messages="write a cli snake game")
 
 
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("llm_mock")
 async def test_write_task_deserialize():
     action = WriteTasks()
     serialized_data = action.model_dump()
     new_action = WriteTasks(**serialized_data)
-    assert new_action.name == "CreateTasks"
+    assert new_action.name == "WriteTasks"
     await new_action.run(with_messages="write a cli snake game")

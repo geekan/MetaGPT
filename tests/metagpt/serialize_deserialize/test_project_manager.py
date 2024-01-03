@@ -18,6 +18,7 @@ def test_project_manager_serialize():
 
 
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("llm_mock")
 async def test_project_manager_deserialize():
     role = ProjectManager()
     ser_role_dict = role.model_dump(by_alias=True)
