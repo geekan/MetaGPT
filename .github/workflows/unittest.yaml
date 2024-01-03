@@ -27,6 +27,9 @@ jobs:
     - name: Show coverage report
       run: |
         coverage report -m
+    - name: Show failed tests and overall summary
+      run: |
+        grep -E "FAILED tests|[0-9]+ passed," unittest.txt
     - name: Upload pytest test results
       uses: actions/upload-artifact@v3
       with:
