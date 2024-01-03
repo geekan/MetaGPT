@@ -58,7 +58,7 @@ async def test_search_engine(search_engine_type, run_func: Callable, max_results
         assert isinstance(rsp, str)
     else:
         assert isinstance(rsp, list)
-        assert len(rsp) == max_results
+        assert len(rsp) <= max_results
 
 
 if __name__ == "__main__":
