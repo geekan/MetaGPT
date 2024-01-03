@@ -332,7 +332,7 @@ class Engineer(Role):
     async def _write_code_guideline(self):
         logger.info("Writing code guideline..")
 
-        requirement = str(self._rc.memory.get_by_role("Human")[0])
+        requirement = str(self.rc.memory.get_by_role("Human")[0])
         # prd_file_repo = CONFIG.git_repo.new_file_repository(PRDS_FILE_REPO)
         design_file_repo = CONFIG.git_repo.new_file_repository(SYSTEM_DESIGN_FILE_REPO)
         task_file_repo = CONFIG.git_repo.new_file_repository(TASK_FILE_REPO)
