@@ -23,14 +23,14 @@ jobs:
     - name: Test with pytest
       run: |
         echo "${{ secrets.METAGPT_KEY_YAML }}" | base64 -d > config/key.yaml
-        pytest tests/ --doctest-modules --junitxml=junit/test-results-${{ matrix.python-version }}.xml --cov=./metagpt/ --cov-report=xml:cov.xml --cov-report=html:htmlcov --durations=20
+        pytest tests/ --doctest-modules --cov=./metagpt/ --cov-report=xml:cov.xml --cov-report=html:htmlcov --durations=20 | tee unittest.txt
         coverage report -m
     - name: Upload pytest test results
       uses: actions/upload-artifact@v3
       with:
         name: pytest-results-${{ matrix.python-version }}
         path: |
-          ./junit/test-results-${{ matrix.python-version }}.xml
+          ./unittest.txt
           ./htmlcov/
         retention-days: 3
       if: ${{ always() }}
