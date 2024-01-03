@@ -100,3 +100,7 @@ async def test_subscription_run_error(loguru_caplog):
     logs = "".join(loguru_caplog.messages)
     assert "run error" in logs
     assert "has completed" in logs
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-s"])

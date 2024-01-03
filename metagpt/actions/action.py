@@ -8,61 +8,45 @@
 
 from __future__ import annotations
 
-from typing import Any, Optional, Union
+from typing import Optional, Union
 
-from pydantic import BaseModel, Field
+from pydantic import ConfigDict, Field, model_validator
 
 from metagpt.actions.action_node import ActionNode
 from metagpt.llm import LLM
-from metagpt.provider.base_gpt_api import BaseGPTAPI
+from metagpt.provider.base_llm import BaseLLM
 from metagpt.schema import (
     CodeSummarizeContext,
     CodingContext,
     RunCodeContext,
+    SerializationMixin,
     TestingContext,
 )
 
-action_subclass_registry = {}
 
+class Action(SerializationMixin, is_polymorphic_base=True):
+    model_config = ConfigDict(arbitrary_types_allowed=True, exclude=["llm"])
 
-class Action(BaseModel):
     name: str = ""
-    llm: BaseGPTAPI = Field(default_factory=LLM, exclude=True)
+    llm: BaseLLM = Field(default_factory=LLM, exclude=True)
     context: Union[dict, CodingContext, CodeSummarizeContext, TestingContext, RunCodeContext, str, None] = ""
-    prefix = ""  # aask*时会加上prefix，作为system_message
-    desc = ""  # for skill manager
+    prefix: str = ""  # aask*时会加上prefix，作为system_message
+    desc: str = ""  # for skill manager
     node: ActionNode = Field(default=None, exclude=True)
 
-    # builtin variables
-    builtin_class_name: str = ""
+    @model_validator(mode="before")
+    def set_name_if_empty(cls, values):
+        if "name" not in values or not values["name"]:
+            values["name"] = cls.__name__
+        return values
 
-    class Config:
-        arbitrary_types_allowed = True
-
-    def __init_with_instruction(self, instruction: str):
-        """Initialize action with instruction"""
-        self.node = ActionNode(key=self.name, expected_type=str, instruction=instruction, example="", schema="raw")
-        return self
-
-    def __init__(self, **kwargs: Any):
-        super().__init__(**kwargs)
-
-        # deserialize child classes dynamically for inherited `action`
-        object.__setattr__(self, "builtin_class_name", self.__class__.__name__)
-        self.__fields__["builtin_class_name"].default = self.__class__.__name__
-
-        if "instruction" in kwargs:
-            self.__init_with_instruction(kwargs["instruction"])
-
-    def __init_subclass__(cls, **kwargs: Any) -> None:
-        super().__init_subclass__(**kwargs)
-        action_subclass_registry[cls.__name__] = cls
-
-    def dict(self, *args, **kwargs) -> "DictStrAny":
-        obj_dict = super().dict(*args, **kwargs)
-        if "llm" in obj_dict:
-            obj_dict.pop("llm")
-        return obj_dict
+    @model_validator(mode="before")
+    def _init_with_instruction(cls, values):
+        if "instruction" in values:
+            name = values["name"]
+            i = values["instruction"]
+            values["node"] = ActionNode(key=name, expected_type=str, instruction=i, example="", schema="raw")
+        return values
 
     def set_prefix(self, prefix):
         """Set prefix for later usage"""

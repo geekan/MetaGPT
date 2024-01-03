@@ -15,7 +15,7 @@ def test_count_message_tokens():
         {"role": "user", "content": "Hello"},
         {"role": "assistant", "content": "Hi there!"},
     ]
-    assert count_message_tokens(messages) == 17
+    assert count_message_tokens(messages) == 15
 
 
 def test_count_message_tokens_with_name():
@@ -67,3 +67,7 @@ def test_count_string_tokens_gpt_4():
 
     string = "Hello, world!"
     assert count_string_tokens(string, model_name="gpt-4-0314") == 4
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-s"])

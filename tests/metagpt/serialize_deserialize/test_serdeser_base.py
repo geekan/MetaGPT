@@ -4,6 +4,7 @@
 
 import asyncio
 from pathlib import Path
+from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -15,15 +16,19 @@ from metagpt.roles.role import Role, RoleReactMode
 serdeser_path = Path(__file__).absolute().parent.joinpath("..", "..", "data", "serdeser_storage")
 
 
+class MockICMessage(BaseModel):
+    content: str = "test_ic"
+
+
 class MockMessage(BaseModel):
     """to test normal dict without postprocess"""
 
     content: str = ""
-    instruct_content: BaseModel = Field(default=None)
+    instruct_content: Optional[BaseModel] = Field(default=None)
 
 
 class ActionPass(Action):
-    name: str = Field(default="ActionPass")
+    name: str = "ActionPass"
 
     async def run(self, messages: list["Message"]) -> ActionOutput:
         await asyncio.sleep(5)  # sleep to make other roles can watch the executed Message
@@ -35,7 +40,7 @@ class ActionPass(Action):
 
 
 class ActionOK(Action):
-    name: str = Field(default="ActionOK")
+    name: str = "ActionOK"
 
     async def run(self, messages: list["Message"]) -> str:
         await asyncio.sleep(5)
@@ -43,10 +48,15 @@ class ActionOK(Action):
 
 
 class ActionRaise(Action):
-    name: str = Field(default="ActionRaise")
+    name: str = "ActionRaise"
 
     async def run(self, messages: list["Message"]) -> str:
         raise RuntimeError("parse error in ActionRaise")
+
+
+class ActionOKV2(Action):
+    name: str = "ActionOKV2"
+    extra_field: str = "ActionOKV2 Extra Info"
 
 
 class RoleA(Role):
@@ -71,7 +81,7 @@ class RoleB(Role):
         super(RoleB, self).__init__(**kwargs)
         self._init_actions([ActionOK, ActionRaise])
         self._watch([ActionPass])
-        self._rc.react_mode = RoleReactMode.BY_ORDER
+        self.rc.react_mode = RoleReactMode.BY_ORDER
 
 
 class RoleC(Role):
@@ -84,4 +94,12 @@ class RoleC(Role):
         super(RoleC, self).__init__(**kwargs)
         self._init_actions([ActionOK, ActionRaise])
         self._watch([UserRequirement])
-        self._rc.react_mode = RoleReactMode.BY_ORDER
+        self.rc.react_mode = RoleReactMode.BY_ORDER
+        self.rc.memory.ignore_id = True
+
+
+class RoleD(Role):
+    name: str = Field(default="RoleD")
+    profile: str = Field(default="Role D")
+    goal: str = "RoleD's goal"
+    constraints: str = "RoleD's constraints"

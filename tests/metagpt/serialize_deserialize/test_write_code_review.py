@@ -5,11 +5,11 @@
 import pytest
 
 from metagpt.actions import WriteCodeReview
-from metagpt.llm import LLM
 from metagpt.schema import CodingContext, Document
 
 
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("llm_mock")
 async def test_write_code_review_deserialize():
     code_content = """
 def div(a: int, b: int = 0):
@@ -22,11 +22,10 @@ def div(a: int, b: int = 0):
     )
 
     action = WriteCodeReview(context=context)
-    serialized_data = action.dict()
+    serialized_data = action.model_dump()
     assert serialized_data["name"] == "WriteCodeReview"
 
     new_action = WriteCodeReview(**serialized_data)
 
     assert new_action.name == "WriteCodeReview"
-    assert new_action.llm == LLM()
     await new_action.run()

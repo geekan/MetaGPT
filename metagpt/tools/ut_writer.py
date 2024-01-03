@@ -4,7 +4,8 @@
 import json
 from pathlib import Path
 
-from metagpt.provider.openai_api import OpenAIGPTAPI as GPTAPI
+from metagpt.provider.openai_api import OpenAILLM as GPTAPI
+from metagpt.utils.common import awrite
 
 ICL_SAMPLE = """Interface definition:
 ```text
@@ -174,6 +175,9 @@ class UTGenerator:
             return doc
 
         for name, prop in node.items():
+            if not isinstance(prop, dict):
+                doc += f'{"	" * level}{self._para_to_str(node)}\n'
+                break
             doc += f'{"	" * level}{self.para_to_str(name, prop, prop_object_required)}\n'
             doc += dive_into_object(prop)
             if prop["type"] == "array":
@@ -202,12 +206,12 @@ class UTGenerator:
 
         return tags
 
-    def generate_ut(self, include_tags) -> bool:
+    async def generate_ut(self, include_tags) -> bool:
         """Generate test case files"""
         tags = self.get_tags_mapping()
         for tag, paths in tags.items():
             if include_tags is None or tag in include_tags:
-                self._generate_ut(tag, paths)
+                await self._generate_ut(tag, paths)
         return True
 
     def build_api_doc(self, node: dict, path: str, method: str) -> str:
@@ -250,21 +254,16 @@ class UTGenerator:
 
         return doc
 
-    def _store(self, data, base, folder, fname):
-        """Store data in a file."""
-        file_path = self.get_file_path(Path(base) / folder, fname)
-        with open(file_path, "w", encoding="utf-8") as file:
-            file.write(data)
-
-    def ask_gpt_and_save(self, question: str, tag: str, fname: str):
+    async def ask_gpt_and_save(self, question: str, tag: str, fname: str):
         """Generate questions and store both questions and answers"""
         messages = [self.icl_sample, question]
-        result = self.gpt_msgs_to_code(messages=messages)
+        result = await self.gpt_msgs_to_code(messages=messages)
 
-        self._store(question, self.questions_path, tag, f"{fname}.txt")
-        self._store(result, self.ut_py_path, tag, f"{fname}.py")
+        await awrite(Path(self.questions_path) / tag / f"{fname}.txt", question)
+        data = result.get("code", "") if result else ""
+        await awrite(Path(self.ut_py_path) / tag / f"{fname}.py", data)
 
-    def _generate_ut(self, tag, paths):
+    async def _generate_ut(self, tag, paths):
         """Process the structure under a data path
 
         Args:
@@ -276,24 +275,12 @@ class UTGenerator:
                 summary = node["summary"]
                 question = self.template_prefix
                 question += self.build_api_doc(node, path, method)
-                self.ask_gpt_and_save(question, tag, summary)
+                await self.ask_gpt_and_save(question, tag, summary)
 
-    def gpt_msgs_to_code(self, messages: list) -> str:
+    async def gpt_msgs_to_code(self, messages: list) -> str:
         """Choose based on different calling methods"""
         result = ""
         if self.chatgpt_method == "API":
-            result = GPTAPI().ask_code(msgs=messages)
+            result = await GPTAPI().aask_code(messages=messages)
 
         return result
-
-    def get_file_path(self, base: Path, fname: str):
-        """Save different file paths
-
-        Args:
-            base (str): Path
-            fname (str): File name
-        """
-        path = Path(base)
-        path.mkdir(parents=True, exist_ok=True)
-        file_path = path / fname
-        return str(file_path)

@@ -11,13 +11,9 @@ import shutil
 from pathlib import Path
 from typing import Optional
 
-from pydantic import Field
-
 from metagpt.actions import Action, ActionOutput
 from metagpt.config import CONFIG
 from metagpt.const import DOCS_FILE_REPO, REQUIREMENT_FILENAME
-from metagpt.llm import LLM
-from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.schema import Document
 from metagpt.utils.file_repository import FileRepository
 from metagpt.utils.git_repository import GitRepository
@@ -28,17 +24,18 @@ class PrepareDocuments(Action):
 
     name: str = "PrepareDocuments"
     context: Optional[str] = None
-    llm: BaseGPTAPI = Field(default_factory=LLM)
 
     def _init_repo(self):
         """Initialize the Git environment."""
-        path = CONFIG.project_path
-        if not path:
+        if not CONFIG.project_path:
             name = CONFIG.project_name or FileRepository.new_filename()
             path = Path(CONFIG.workspace_path) / name
-
+        else:
+            path = Path(CONFIG.project_path)
         if path.exists() and not CONFIG.inc:
             shutil.rmtree(path)
+        CONFIG.project_path = path
+        CONFIG.project_name = path.name
         CONFIG.git_repo = GitRepository(local_path=path, auto_init=True)
 
     async def run(self, with_messages, **kwargs):

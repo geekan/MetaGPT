@@ -2,22 +2,31 @@
 # -*- coding: utf-8 -*-
 """
 @Desc   : unittest of `metagpt/memory/longterm_memory.py`
+@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
 """
+
+import os
+
+import pytest
 
 from metagpt.actions import UserRequirement
 from metagpt.config import CONFIG
-from metagpt.memory import LongTermMemory
+from metagpt.memory.longterm_memory import LongTermMemory
 from metagpt.roles.role import RoleContext
 from metagpt.schema import Message
 
 
 def test_ltm_search():
     assert hasattr(CONFIG, "long_term_memory") is True
-    openai_api_key = CONFIG.openai_api_key
-    assert len(openai_api_key) > 20
+    os.environ.setdefault("OPENAI_API_KEY", CONFIG.openai_api_key)
+    assert len(CONFIG.openai_api_key) > 20
 
     role_id = "UTUserLtm(Product Manager)"
-    rc = RoleContext(watch=[UserRequirement])
+    from metagpt.environment import Environment
+
+    Environment
+    RoleContext.model_rebuild()
+    rc = RoleContext(watch={"metagpt.actions.add_requirement.UserRequirement"})
     ltm = LongTermMemory()
     ltm.recover_memory(role_id, rc)
 
@@ -28,6 +37,7 @@ def test_ltm_search():
     ltm.add(message)
 
     sim_idea = "Write a game of cli snake"
+
     sim_message = Message(role="User", content=sim_idea, cause_by=UserRequirement)
     news = ltm.find_news([sim_message])
     assert len(news) == 0
@@ -55,3 +65,7 @@ def test_ltm_search():
     assert len(news) == 1
 
     ltm_new.clear()
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-s"])

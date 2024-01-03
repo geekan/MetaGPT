@@ -10,4 +10,4 @@ def test_team():
     company = Team()
     company.hire([ProjectManager()])
 
-    assert len(company.environment.roles) == 1
+    assert len(company.env.roles) == 1

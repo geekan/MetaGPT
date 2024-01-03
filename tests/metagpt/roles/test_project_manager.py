@@ -13,7 +13,8 @@ from tests.metagpt.roles.mock import MockMessages
 
 
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("llm_mock")
 async def test_project_manager():
     project_manager = ProjectManager()
-    rsp = await project_manager.handle(MockMessages.system_design)
+    rsp = await project_manager.run(MockMessages.system_design)
     logger.info(rsp)
