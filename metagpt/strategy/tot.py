@@ -5,7 +5,7 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Any, List
+from typing import Any, List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -33,7 +33,7 @@ Output a list of jsons following the format:
 class ThoughtSolverBase(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    thought_tree: ThoughtTree | None = None
+    thought_tree: Optional[ThoughtTree] = Field(default=None)
     llm: BaseLLM = Field(default_factory=LLM, exclude=True)
     config: ThoughtSolverConfig = Field(default_factory=ThoughtSolverConfig)
 
