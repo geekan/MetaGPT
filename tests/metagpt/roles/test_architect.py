@@ -22,6 +22,7 @@ from tests.metagpt.roles.mock import MockMessages
 
 
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("llm_mock")
 async def test_architect():
     # Prerequisites
     filename = uuid.uuid4().hex + ".json"

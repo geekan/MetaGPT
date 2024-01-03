@@ -21,6 +21,7 @@ from metagpt.utils.common import any_to_str
 
 
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("llm_mock")
 async def test_run():
     CONFIG.language = "Chinese"
 
