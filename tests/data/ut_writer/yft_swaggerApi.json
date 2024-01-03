@@ -1,0 +1,1022 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "ACT 后台",
+        "version": "last"
+    },
+    "basePath": "/",
+    "tags": [
+        {
+            "name": "公共分类",
+            "description": "公共分类"
+        },
+        {
+            "name": "数据EDA",
+            "description": "DRPC:cls:Eda; "
+        },
+        {
+            "name": "数据标签",
+            "description": null
+        },
+        {
+            "name": "数据连接",
+            "description": null
+        },
+        {
+            "name": "项目管理",
+            "description": null
+        },
+        {
+            "name": "作业",
+            "description": null
+        }
+    ],
+    "schemes": [
+        "http"
+    ],
+    "paths": {
+        "/v1/websocket/event": {
+            "post": {
+                "tags": [
+                    "公共分类"
+                ],
+                "summary": "创建 websocket 资源更新事件",
+                "description": "",
+                "consumes": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "name": "root",
+                        "in": "body",
+                        "schema": {
+                            "$schema": "http://json-schema.org/draft-04/schema#",
+                            "type": "object",
+                            "properties": {
+                                "event": {
+                                    "type": "string",
+                                    "title": "事件名，资源维护者自定义，示例： create，update,delete"
+                                },
+                                "resource_type": {
+                                    "type": "string",
+                                    "title": "资源类型名"
+                                },
+                                "project_key": {
+                                    "type": "string",
+                                    "title": "project_key"
+                                },
+                                "data": {
+                                    "type": "object",
+                                    "properties": {
+                                        "resource_status": {
+                                            "type": "string",
+                                            "title": "资源当前状态"
+                                        }
+                                    },
+                                    "required": [],
+                                    "title": "自行约定填充，以下为示例"
+                                }
+                            },
+                            "required": [
+                                "resource_type",
+                                "project_key",
+                                "data"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "type": "object",
+                            "title": "title",
+                            "properties": {}
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/projects/{project_key}/jobs/{job_id}/models/{model_key}": {
+            "get": {
+                "tags": [
+                    "作业"
+                ],
+                "summary": "获取 model 详情(job专用-后续开放给sdk)",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "project_key",
+                        "in": "path",
+                        "description": "",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "job_id",
+                        "in": "path",
+                        "description": "",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "model_key",
+                        "in": "path",
+                        "description": "",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "$schema": "http://json-schema.org/draft-04/schema#",
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number",
+                                    "description": "0成功，非0失败"
+                                },
+                                "msg": {
+                                    "type": "string",
+                                    "description": "如果失败，这里有错误信息"
+                                },
+                                "data": {
+                                    "type": "object",
+                                    "properties": {
+                                        "project_key": {
+                                            "type": "string",
+                                            "description": "project key"
+                                        },
+                                        "name": {
+                                            "type": "string",
+                                            "description": "用户可修改的name"
+                                        },
+                                        "model": {
+                                            "type": "object",
+                                            "properties": {
+                                                "type": {
+                                                    "type": "string",
+                                                    "description": "dataset type"
+                                                },
+                                                "managed": {
+                                                    "type": "boolean",
+                                                    "description": "为false时是第一类dataset，数据不可删除"
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "description": "用户可修改的name"
+                                                },
+                                                "project_key": {
+                                                    "type": "string",
+                                                    "description": "project key"
+                                                },
+                                                "format_type": {
+                                                    "type": "string",
+                                                    "description": "文件类型的dataset才有这项。“csv”"
+                                                },
+                                                "flow_options": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "virtualizable": {
+                                                            "type": "boolean",
+                                                            "description": "高级设置里的参数。缺省false"
+                                                        },
+                                                        "rebuild_behavior": {
+                                                            "type": "string",
+                                                            "description": "高级设置里的参数。缺省NORMAL"
+                                                        },
+                                                        "cross_project_build_behavior": {
+                                                            "type": "string",
+                                                            "description": "高级设置里的参数。缺省DEFAULT"
+                                                        }
+                                                    },
+                                                    "description": "创建dataset时的高级设置",
+                                                    "required": [
+                                                        "virtualizable",
+                                                        "rebuild_behavior",
+                                                        "cross_project_build_behavior"
+                                                    ]
+                                                },
+                                                "format_params": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "style": {
+                                                            "type": "string"
+                                                        },
+                                                        "charset": {
+                                                            "type": "string"
+                                                        },
+                                                        "separator": {
+                                                            "type": "string"
+                                                        },
+                                                        "quote_char": {
+                                                            "type": "string"
+                                                        },
+                                                        "escape_char": {
+                                                            "type": "string"
+                                                        },
+                                                        "date_serialization_format": {
+                                                            "type": "string"
+                                                        },
+                                                        "array_map_format": {
+                                                            "type": "string"
+                                                        },
+                                                        "hive_separators": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "skip_rows_before_header": {
+                                                            "type": "number"
+                                                        },
+                                                        "parse_header_row": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "skip_rows_after_header": {
+                                                            "type": "number"
+                                                        },
+                                                        "probable_number_of_records": {
+                                                            "type": "number"
+                                                        },
+                                                        "normalize_booleans": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "normalize_doubles": {
+                                                            "type": "boolean"
+                                                        }
+                                                    },
+                                                    "description": "文件类型的dataset才有"
+                                                },
+                                                "tags": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    },
+                                                    "description": "标签tags"
+                                                },
+                                                "params": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "connection": {
+                                                            "type": "string",
+                                                            "description": "connection id,到db查其他参数"
+                                                        },
+                                                        "path": {
+                                                            "type": "string",
+                                                            "description": "文件类connection才有这项"
+                                                        },
+                                                        "table": {
+                                                            "type": "string",
+                                                            "description": "db表名，DB类connection才有这项"
+                                                        },
+                                                        "mode": {
+                                                            "type": "string",
+                                                            "description": "存储类型，比如“table\",DB类connection才有这项"
+                                                        },
+                                                        "bucket": {
+                                                            "type": "string",
+                                                            "description": "S3类型的connection才有这项"
+                                                        },
+                                                        "key_name": {
+                                                            "type": "string",
+                                                            "description": "redis才有，key name"
+                                                        },
+                                                        "key_type": {
+                                                            "type": "string",
+                                                            "description": "redis才有，key type"
+                                                        },
+                                                        "collection": {
+                                                            "type": "string",
+                                                            "description": "非关系型数据库才有，collection name"
+                                                        },
+                                                        "index": {
+                                                            "type": "string",
+                                                            "description": "索引类型的才有这项"
+                                                        },
+                                                        "not_ready_if_empty": {
+                                                            "type": "boolean",
+                                                            "description": "数据非空才认为是data ready"
+                                                        },
+                                                        "files_selection_rules": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "mode": {
+                                                                    "type": "string"
+                                                                },
+                                                                "exclude_rules": {
+                                                                    "type": "array",
+                                                                    "items": {
+                                                                        "type": "string"
+                                                                    }
+                                                                },
+                                                                "include_rules": {
+                                                                    "type": "array",
+                                                                    "items": {
+                                                                        "type": "string"
+                                                                    }
+                                                                },
+                                                                "explicit_files": {
+                                                                    "type": "array",
+                                                                    "items": {
+                                                                        "type": "string"
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    "description": "必有这项，但不同类型的dataset里面的key有差别",
+                                                    "required": [
+                                                        "connection"
+                                                    ]
+                                                },
+                                                "schema": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "columns": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "name": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "type": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "origin_type": {
+                                                                        "type": "string"
+                                                                    }
+                                                                },
+                                                                "required": [
+                                                                    "name",
+                                                                    "type",
+                                                                    "origin_type"
+                                                                ]
+                                                            }
+                                                        },
+                                                        "user_modified": {
+                                                            "type": "boolean"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "columns"
+                                                    ],
+                                                    "description": "columns信息在这里"
+                                                },
+                                                "custom_fields": {
+                                                    "type": "object",
+                                                    "properties": {},
+                                                    "description": "自定义fields"
+                                                },
+                                                "last_build": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "project_key": {
+                                                            "type": "string",
+                                                            "description": "project key"
+                                                        },
+                                                        "id": {
+                                                            "type": "string",
+                                                            "description": "activity id"
+                                                        },
+                                                        "job_id": {
+                                                            "type": "string",
+                                                            "description": "job id"
+                                                        },
+                                                        "job_project_key": {
+                                                            "type": "string"
+                                                        },
+                                                        "build_start_time": {
+                                                            "type": "number",
+                                                            "description": "构建开始时间"
+                                                        },
+                                                        "build_end_time": {
+                                                            "type": "number",
+                                                            "description": "构建结束时间"
+                                                        },
+                                                        "build_success": {
+                                                            "type": "string",
+                                                            "description": "success或failed"
+                                                        }
+                                                    },
+                                                    "description": "最后一次构建的信息",
+                                                    "required": [
+                                                        "project_key",
+                                                        "job_id",
+                                                        "build_start_time",
+                                                        "build_end_time",
+                                                        "build_success"
+                                                    ]
+                                                },
+                                                "object_key": {
+                                                    "type": "string",
+                                                    "description": "dataset_key，后台用的id，用户不可见不可改"
+                                                },
+                                                "cache": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "s3_path": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "description": "下载缓存数据链接",
+                                                    "required": [
+                                                        "s3_path"
+                                                    ]
+                                                }
+                                            },
+                                            "description": "model信息",
+                                            "required": [
+                                                "type",
+                                                "managed",
+                                                "name",
+                                                "project_key",
+                                                "tags",
+                                                "params",
+                                                "schema",
+                                                "object_key",
+                                                "flow_options"
+                                            ]
+                                        },
+                                        "status": {
+                                            "type": "object",
+                                            "properties": {
+                                                "size": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "total_value": {
+                                                            "type": "number",
+                                                            "description": "占多少字节磁盘"
+                                                        },
+                                                        "last_computed": {
+                                                            "type": "number"
+                                                        },
+                                                        "first_computed": {
+                                                            "type": "number"
+                                                        },
+                                                        "has_data": {
+                                                            "type": "boolean",
+                                                            "description": "是否有数据，这个影响前端的图标显示"
+                                                        },
+                                                        "incomplete": {
+                                                            "type": "boolean"
+                                                        }
+                                                    },
+                                                    "description": "数据大小信息",
+                                                    "required": [
+                                                        "has_data"
+                                                    ]
+                                                },
+                                                "records": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "total_value": {
+                                                            "type": "number"
+                                                        },
+                                                        "last_computed": {
+                                                            "type": "number"
+                                                        },
+                                                        "first_computed": {
+                                                            "type": "number"
+                                                        },
+                                                        "has_data": {
+                                                            "type": "boolean",
+                                                            "description": "是否有数据，这个影响前端的图标显示"
+                                                        },
+                                                        "incomplete": {
+                                                            "type": "boolean"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "has_data"
+                                                    ]
+                                                },
+                                                "partitions_last_compute": {
+                                                    "type": "number"
+                                                },
+                                                "partitions": {
+                                                    "type": "number"
+                                                }
+                                            },
+                                            "description": "数据状态"
+                                        },
+                                        "buildable": {
+                                            "type": "boolean",
+                                            "description": "有recipe时为true"
+                                        },
+                                        "headers": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "dataset_schema": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "name": {
+                                                                "type": "string",
+                                                                "title": "字段名称"
+                                                            },
+                                                            "type": {
+                                                                "type": "string",
+                                                                "title": "字段类型"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "name",
+                                                            "type"
+                                                        ]
+                                                    },
+                                                    "normal_rate": {
+                                                        "type": "object",
+                                                        "properties": {},
+                                                        "title": "缺失值统计信息"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "dataset_schema",
+                                                    "normal_rate"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "description": "data信息",
+                                    "required": [
+                                        "project_key",
+                                        "name",
+                                        "model",
+                                        "headers"
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "code",
+                                "msg",
+                                "data"
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/projects/{project_key}/jobs/{job_id}/folders/{folder_key}": {
+            "get": {
+                "tags": [
+                    "作业"
+                ],
+                "summary": "获取managed folder详情（job专用)",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "project_key",
+                        "in": "path",
+                        "description": "",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "job_id",
+                        "in": "path",
+                        "description": "",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "folder_key",
+                        "in": "path",
+                        "description": "",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "schema": {
+                            "$schema": "http://json-schema.org/draft-04/schema#",
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "number",
+                                    "description": "0成功，非0失败"
+                                },
+                                "msg": {
+                                    "type": "string",
+                                    "description": "失败时这里有错误信息"
+                                },
+                                "data": {
+                                    "type": "object",
+                                    "properties": {
+                                        "project_key": {
+                                            "type": "string",
+                                            "description": "project key"
+                                        },
+                                        "folder": {
+                                            "type": "object",
+                                            "properties": {
+                                                "project_key": {
+                                                    "type": "string",
+                                                    "description": "project key"
+                                                },
+                                                "object_key": {
+                                                    "type": "string",
+                                                    "description": "object key"
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "description": "用户可编辑的那个name"
+                                                },
+                                                "type": {
+                                                    "type": "string",
+                                                    "description": "folder类型，与connection有关"
+                                                },
+                                                "params": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "connection": {
+                                                            "type": "string",
+                                                            "description": "connection id"
+                                                        },
+                                                        "path": {
+                                                            "type": "string",
+                                                            "description": "文件夹内容存放的相对路径"
+                                                        },
+                                                        "not_ready_if_empty": {
+                                                            "type": "boolean",
+                                                            "description": "reserved"
+                                                        },
+                                                        "files_selection_rules": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "mode": {
+                                                                    "type": "string",
+                                                                    "description": "ALL"
+                                                                },
+                                                                "exclude_rules": {
+                                                                    "type": "array",
+                                                                    "items": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "description": "排除规则"
+                                                                },
+                                                                "include_rules": {
+                                                                    "type": "array",
+                                                                    "items": {
+                                                                        "type": "string"
+                                                                    }
+                                                                },
+                                                                "explicit_files": {
+                                                                    "type": "array",
+                                                                    "items": {
+                                                                        "type": "string"
+                                                                    }
+                                                                }
+                                                            },
+                                                            "description": "文件过滤规则"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "connection",
+                                                        "path"
+                                                    ],
+                                                    "description": "数据读写相关配置在这里"
+                                                },
+                                                "flow_options": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "virtualizable": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "rebuild_behavior": {
+                                                            "type": "string",
+                                                            "description": "构建方式"
+                                                        },
+                                                        "cross_project_build_behavior": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "virtualizable",
+                                                        "rebuild_behavior"
+                                                    ],
+                                                    "description": "flow参数"
+                                                },
+                                                "metrics": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "probes": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "type": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "enabled": {
+                                                                        "type": "boolean"
+                                                                    },
+                                                                    "compute_on_build_mode": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "meta": {
+                                                                        "type": "object",
+                                                                        "properties": {
+                                                                            "name": {
+                                                                                "type": "string"
+                                                                            },
+                                                                            "level": {
+                                                                                "type": "number"
+                                                                            }
+                                                                        }
+                                                                    },
+                                                                    "configuration": {
+                                                                        "type": "object",
+                                                                        "properties": {}
+                                                                    }
+                                                                }
+                                                            }
+                                                        },
+                                                        "engine_config": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "pad_runs_with_metrics": {
+                                                                    "type": "boolean"
+                                                                },
+                                                                "hive": {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "active": {
+                                                                            "type": "boolean"
+                                                                        },
+                                                                        "extra_conf": {
+                                                                            "type": "array",
+                                                                            "items": {
+                                                                                "type": "string"
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                },
+                                                                "basic": {
+                                                                    "type": "object",
+                                                                    "properties": {}
+                                                                },
+                                                                "dss": {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "active": {
+                                                                            "type": "boolean"
+                                                                        },
+                                                                        "selection": {
+                                                                            "type": "object",
+                                                                            "properties": {
+                                                                                "use_mem_table": {
+                                                                                    "type": "boolean"
+                                                                                },
+                                                                                "filter": {
+                                                                                    "type": "object",
+                                                                                    "properties": {
+                                                                                        "distinct": {
+                                                                                            "type": "boolean"
+                                                                                        },
+                                                                                        "enabled": {
+                                                                                            "type": "boolean"
+                                                                                        }
+                                                                                    }
+                                                                                },
+                                                                                "partition_selection_method": {
+                                                                                    "type": "string"
+                                                                                },
+                                                                                "latest_partitions_n": {
+                                                                                    "type": "number"
+                                                                                },
+                                                                                "ordering": {
+                                                                                    "type": "object",
+                                                                                    "properties": {
+                                                                                        "enabled": {
+                                                                                            "type": "boolean"
+                                                                                        },
+                                                                                        "rules": {
+                                                                                            "type": "array",
+                                                                                            "items": {
+                                                                                                "type": "string"
+                                                                                            }
+                                                                                        }
+                                                                                    }
+                                                                                },
+                                                                                "sampling_method": {
+                                                                                    "type": "string"
+                                                                                },
+                                                                                "max_records": {
+                                                                                    "type": "number"
+                                                                                },
+                                                                                "target_ratio": {
+                                                                                    "type": "number"
+                                                                                },
+                                                                                "within_first_n": {
+                                                                                    "type": "number"
+                                                                                },
+                                                                                "max_read_uncompressed_bytes": {
+                                                                                    "type": "number"
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                },
+                                                                "sql": {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "active": {
+                                                                            "type": "boolean"
+                                                                        }
+                                                                    }
+                                                                },
+                                                                "impala": {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "active": {
+                                                                            "type": "boolean"
+                                                                        }
+                                                                    }
+                                                                },
+                                                                "spark": {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "active": {
+                                                                            "type": "boolean"
+                                                                        },
+                                                                        "extra_conf": {
+                                                                            "type": "array",
+                                                                            "items": {
+                                                                                "type": "string"
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                },
+                                                                "python": {
+                                                                    "type": "object",
+                                                                    "properties": {}
+                                                                }
+                                                            }
+                                                        },
+                                                        "displayed_state": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "partition": {
+                                                                    "type": "string"
+                                                                },
+                                                                "columns": {
+                                                                    "type": "array",
+                                                                    "items": {
+                                                                        "type": "string"
+                                                                    }
+                                                                },
+                                                                "metrics": {
+                                                                    "type": "array",
+                                                                    "items": {
+                                                                        "type": "string"
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                "checks": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "run_on_build": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "checks": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "displayed_state": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "partition": {
+                                                                    "type": "string"
+                                                                },
+                                                                "checks": {
+                                                                    "type": "array",
+                                                                    "items": {
+                                                                        "type": "string"
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                "version_tag": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "version_number": {
+                                                            "type": "number"
+                                                        },
+                                                        "last_modified_by": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "login": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "required": [
+                                                                "login"
+                                                            ]
+                                                        },
+                                                        "last_modified_on": {
+                                                            "type": "number",
+                                                            "description": "修改时间unix time ms"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "version_number",
+                                                        "last_modified_on",
+                                                        "last_modified_by"
+                                                    ],
+                                                    "description": "配置版本信息"
+                                                },
+                                                "creation_tag": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "version_number": {
+                                                            "type": "number",
+                                                            "description": "1"
+                                                        },
+                                                        "last_modified_by": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "login": {
+                                                                    "type": "string"
+                                                                }
+                                                            }
+                                                        },
+                                                        "last_modified_on": {
+                                                            "type": "number",
+                                                            "description": "创建时间unix time ms"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "version_number",
+                                                        "last_modified_by",
+                                                        "last_modified_on"
+                                                    ],
+                                                    "description": "配置创建时间"
+                                                },
+                                                "tags": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    },
+                                                    "description": "文件夹标签"
+                                                },
+                                                "custom_fields": {
+                                                    "type": "object",
+                                                    "properties": {}
+                                                },
+                                                "checklists": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "checklists": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "string"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            "description": "folder配置在这里",
+                                            "required": [
+                                                "project_key",
+                                                "object_key",
+                                                "name",
+                                                "type",
+                                                "params",
+                                                "flow_options",
+                                                "version_tag",
+                                                "creation_tag"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "project_key",
+                                        "folder"
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "code",
+                                "msg",
+                                "data"
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

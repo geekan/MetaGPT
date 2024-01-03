@@ -69,7 +69,7 @@ class QaEngineer(Role):
                 )
             logger.info(f"Writing {test_doc.filename}..")
             context = TestingContext(filename=test_doc.filename, test_doc=test_doc, code_doc=code_doc)
-            context = await WriteTest(context=context, llm=self._llm).run()
+            context = await WriteTest(context=context, llm=self.llm).run()
             await tests_file_repo.save(
                 filename=context.test_doc.filename,
                 content=context.test_doc.content,
@@ -86,7 +86,7 @@ class QaEngineer(Role):
             )
             self.publish_message(
                 Message(
-                    content=run_code_context.json(),
+                    content=run_code_context.model_dump_json(),
                     role=self.profile,
                     cause_by=WriteTest,
                     sent_from=self,
@@ -106,11 +106,11 @@ class QaEngineer(Role):
             return
         run_code_context.code = src_doc.content
         run_code_context.test_code = test_doc.content
-        result = await RunCode(context=run_code_context, llm=self._llm).run()
+        result = await RunCode(context=run_code_context, llm=self.llm).run()
         run_code_context.output_filename = run_code_context.test_filename + ".json"
         await CONFIG.git_repo.new_file_repository(TEST_OUTPUTS_FILE_REPO).save(
             filename=run_code_context.output_filename,
-            content=result.json(),
+            content=result.model_dump_json(),
             dependencies={src_doc.root_relative_path, test_doc.root_relative_path},
         )
         run_code_context.code = None
@@ -120,7 +120,7 @@ class QaEngineer(Role):
         mappings = {"Engineer": "Alex", "QaEngineer": "Edward"}
         self.publish_message(
             Message(
-                content=run_code_context.json(),
+                content=run_code_context.model_dump_json(),
                 role=self.profile,
                 cause_by=RunCode,
                 sent_from=self,
@@ -130,14 +130,14 @@ class QaEngineer(Role):
 
     async def _debug_error(self, msg):
         run_code_context = RunCodeContext.loads(msg.content)
-        code = await DebugError(context=run_code_context, llm=self._llm).run()
+        code = await DebugError(context=run_code_context, llm=self.llm).run()
         await FileRepository.save_file(
             filename=run_code_context.test_filename, content=code, relative_path=TEST_CODES_FILE_REPO
         )
         run_code_context.output = None
         self.publish_message(
             Message(
-                content=run_code_context.json(),
+                content=run_code_context.model_dump_json(),
                 role=self.profile,
                 cause_by=DebugError,
                 sent_from=self,
@@ -159,7 +159,7 @@ class QaEngineer(Role):
         code_filters = any_to_str_set({SummarizeCode})
         test_filters = any_to_str_set({WriteTest, DebugError})
         run_filters = any_to_str_set({RunCode})
-        for msg in self._rc.news:
+        for msg in self.rc.news:
             # Decide what to do based on observed msg type, currently defined by human,
             # might potentially be moved to _think, that is, let the agent decides for itself
             if msg.cause_by in code_filters:

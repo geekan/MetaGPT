@@ -17,11 +17,9 @@ from langchain.document_loaders import (
     UnstructuredWordDocumentLoader,
 )
 from langchain.text_splitter import CharacterTextSplitter
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from tqdm import tqdm
 
-from metagpt.config import CONFIG
-from metagpt.logs import logger
 from metagpt.repo_parser import RepoParser
 
 
@@ -103,6 +101,7 @@ class Document(BaseModel):
             raise ValueError("File path is not set.")
 
         self.path.parent.mkdir(parents=True, exist_ok=True)
+        # TODO: excel, csv, json, etc.
         self.path.write_text(self.content, encoding="utf-8")
 
     def persist(self):
@@ -117,22 +116,23 @@ class IndexableDocument(Document):
     Advanced document handling: For vector databases or search engines.
     """
 
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     data: Union[pd.DataFrame, list]
     content_col: Optional[str] = Field(default="")
     meta_col: Optional[str] = Field(default="")
-
-    class Config:
-        arbitrary_types_allowed = True
 
     @classmethod
     def from_path(cls, data_path: Path, content_col="content", meta_col="metadata"):
         if not data_path.exists():
             raise FileNotFoundError(f"File {data_path} not found.")
         data = read_data(data_path)
-        content = data_path.read_text()
         if isinstance(data, pd.DataFrame):
             validate_cols(content_col, data)
-        return cls(data=data, content=content, content_col=content_col, meta_col=meta_col)
+            return cls(data=data, content=str(data), content_col=content_col, meta_col=meta_col)
+        else:
+            content = data_path.read_text()
+            return cls(data=data, content=content, content_col=content_col, meta_col=meta_col)
 
     def _get_docs_and_metadatas_by_df(self) -> (list, list):
         df = self.data
@@ -214,7 +214,7 @@ class Repo(BaseModel):
             self.assets[path] = doc
         return doc
 
-    def set(self, content: str, filename: str):
+    def set(self, filename: str, content: str):
         """Set a document and persist it to disk."""
         path = self._path(filename)
         doc = self._set(content, path)
@@ -233,24 +233,3 @@ class Repo(BaseModel):
         n_chars = sum(sum(len(j.content) for j in i.values()) for i in [self.docs, self.codes, self.assets])
         symbols = RepoParser(base_directory=self.path).generate_symbols()
         return RepoMetadata(name=self.name, n_docs=n_docs, n_chars=n_chars, symbols=symbols)
-
-
-def set_existing_repo(path=CONFIG.workspace_path / "t1"):
-    repo1 = Repo.from_path(path)
-    repo1.set("wtf content", "doc/wtf_file.md")
-    repo1.set("wtf code", "code/wtf_file.py")
-    logger.info(repo1)  # check doc
-
-
-def load_existing_repo(path=CONFIG.workspace_path / "web_tetris"):
-    repo = Repo.from_path(path)
-    logger.info(repo)
-    logger.info(repo.eda())
-
-
-def main():
-    load_existing_repo()
-
-
-if __name__ == "__main__":
-    main()

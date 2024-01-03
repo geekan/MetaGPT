@@ -1,0 +1,43 @@
+name: Python application test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # python-version: ['3.9', '3.10', '3.11']
+        python-version: ['3.9']
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        sh tests/scripts/run_install_deps.sh
+    - name: Test with pytest
+      run: |
+        echo "${{ secrets.METAGPT_KEY_YAML }}" | base64 -d > config/key.yaml
+        pytest tests/ --doctest-modules --cov=./metagpt/ --cov-report=xml:cov.xml --cov-report=html:htmlcov --durations=20 | tee unittest.txt
+    - name: Show coverage report
+      run: |
+        coverage report -m
+    - name: Show failed tests and overall summary
+      run: |
+        grep -E "FAILED tests|[0-9]+ passed," unittest.txt
+    - name: Upload pytest test results
+      uses: actions/upload-artifact@v3
+      with:
+        name: pytest-results-${{ matrix.python-version }}
+        path: |
+          ./unittest.txt
+          ./htmlcov/
+          ./tests/data/rsp_cache_new.json
+        retention-days: 3
+      if: ${{ always() }}
+      

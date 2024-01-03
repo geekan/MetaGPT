@@ -1,6 +1,21 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+@Time    : 2023/12/28
+@Author  : mashenquan
+@File    : test_research.py
+"""
+
 import pytest
 
-from metagpt.actions import research
+from metagpt.actions import CollectLinks, research
+
+
+@pytest.mark.asyncio
+async def test_action():
+    action = CollectLinks()
+    result = await action.run(topic="baidu")
+    assert result
 
 
 @pytest.mark.asyncio
@@ -17,7 +32,7 @@ async def test_collect_links(mocker):
         elif "sort the remaining search results" in prompt:
             return "[1,2]"
 
-    mocker.patch("metagpt.provider.base_gpt_api.BaseGPTAPI.aask", mock_llm_ask)
+    mocker.patch("metagpt.provider.base_llm.BaseLLM.aask", mock_llm_ask)
     resp = await research.CollectLinks().run("The application of MetaGPT")
     for i in ["MetaGPT use cases", "The roadmap of MetaGPT", "The function of MetaGPT", "What llm MetaGPT support"]:
         assert i in resp
@@ -36,7 +51,7 @@ async def test_collect_links_with_rank_func(mocker):
         rank_after.append(results)
         return results
 
-    mocker.patch("metagpt.provider.base_gpt_api.BaseGPTAPI.aask", mock_collect_links_llm_ask)
+    mocker.patch("metagpt.provider.base_llm.BaseLLM.aask", mock_collect_links_llm_ask)
     resp = await research.CollectLinks(rank_func=rank_func).run("The application of MetaGPT")
     for x, y, z in zip(rank_before, rank_after, resp.values()):
         assert x[::-1] == y
@@ -48,7 +63,7 @@ async def test_web_browse_and_summarize(mocker):
     async def mock_llm_ask(*args, **kwargs):
         return "metagpt"
 
-    mocker.patch("metagpt.provider.base_gpt_api.BaseGPTAPI.aask", mock_llm_ask)
+    mocker.patch("metagpt.provider.base_llm.BaseLLM.aask", mock_llm_ask)
     url = "https://github.com/geekan/MetaGPT"
     url2 = "https://github.com/trending"
     query = "What's new in metagpt"
@@ -64,7 +79,7 @@ async def test_web_browse_and_summarize(mocker):
     async def mock_llm_ask(*args, **kwargs):
         return "Not relevant."
 
-    mocker.patch("metagpt.provider.base_gpt_api.BaseGPTAPI.aask", mock_llm_ask)
+    mocker.patch("metagpt.provider.base_llm.BaseLLM.aask", mock_llm_ask)
     resp = await research.WebBrowseAndSummarize().run(url, query=query)
 
     assert len(resp) == 1
@@ -81,7 +96,7 @@ async def test_conduct_research(mocker):
         data = f"# Research Report\n## Introduction\n{args} {kwargs}"
         return data
 
-    mocker.patch("metagpt.provider.base_gpt_api.BaseGPTAPI.aask", mock_llm_ask)
+    mocker.patch("metagpt.provider.base_llm.BaseLLM.aask", mock_llm_ask)
     content = (
         "MetaGPT takes a one line requirement as input and "
         "outputs user stories / competitive analysis / requirements / data structures / APIs / documents, etc."
@@ -103,3 +118,7 @@ async def mock_collect_links_llm_ask(self, prompt: str, system_msgs):
         return "[1,2]"
 
     return ""
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-s"])

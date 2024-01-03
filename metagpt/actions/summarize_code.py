@@ -13,7 +13,6 @@ from tenacity import retry, stop_after_attempt, wait_random_exponential
 from metagpt.actions.action import Action
 from metagpt.config import CONFIG
 from metagpt.const import SYSTEM_DESIGN_FILE_REPO, TASK_FILE_REPO
-from metagpt.llm import LLM, BaseGPTAPI
 from metagpt.logs import logger
 from metagpt.schema import CodeSummarizeContext
 from metagpt.utils.file_repository import FileRepository
@@ -91,10 +90,10 @@ flowchart TB
 """
 
 
+# TOTEST
 class SummarizeCode(Action):
     name: str = "SummarizeCode"
     context: CodeSummarizeContext = Field(default_factory=CodeSummarizeContext)
-    llm: BaseGPTAPI = Field(default_factory=LLM)
 
     @retry(stop=stop_after_attempt(2), wait=wait_random_exponential(min=1, max=60))
     async def summarize_code(self, prompt):

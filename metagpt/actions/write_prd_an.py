@@ -42,7 +42,7 @@ REFINED_REQUIREMENTS = ActionNode(
 PROJECT_NAME = ActionNode(
     key="Project Name",
     expected_type=str,
-    instruction="Name the project using snake case style, like 'game_2048' or 'simple_crm'.",
+    instruction="According to the content of \"Original Requirements,\" name the project using snake case style , like 'game_2048' or 'simple_crm.",
     example="game_2048",
 )
 

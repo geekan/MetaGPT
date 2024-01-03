@@ -15,7 +15,6 @@ from enum import Enum
 from typing import (
     AsyncGenerator,
     AsyncIterator,
-    Callable,
     Dict,
     Iterator,
     Optional,
@@ -47,8 +46,7 @@ MAX_CONNECTION_RETRIES = 2
 # Has one attribute per thread, 'session'.
 _thread_context = threading.local()
 
-LLM_LOG = os.environ.get("LLM_LOG")
-LLM_LOG = "debug"
+LLM_LOG = os.environ.get("LLM_LOG", "debug")
 
 
 class ApiType(Enum):
@@ -101,7 +99,7 @@ def log_info(message, **params):
 def log_warn(message, **params):
     msg = logfmt(dict(message=message, **params))
     print(msg, file=sys.stderr)
-    logger.warn(msg)
+    logger.warning(msg)
 
 
 def logfmt(props):
@@ -240,54 +238,6 @@ class APIRequestor:
         self.api_type = ApiType.from_str(api_type) if api_type else ApiType.from_str("openai")
         self.api_version = api_version or openai.api_version
         self.organization = organization or openai.organization
-
-    def _check_polling_response(self, response: OpenAIResponse, predicate: Callable[[OpenAIResponse], bool]):
-        if not predicate(response):
-            return
-        error_data = response.data["error"]
-        message = error_data.get("message", "Operation failed")
-        code = error_data.get("code")
-        raise openai.APIError(message=message, body=dict(code=code))
-
-    def _poll(
-        self, method, url, until, failed, params=None, headers=None, interval=None, delay=None
-    ) -> Tuple[Iterator[OpenAIResponse], bool, str]:
-        if delay:
-            time.sleep(delay)
-
-        response, b, api_key = self.request(method, url, params, headers)
-        self._check_polling_response(response, failed)
-        start_time = time.time()
-        while not until(response):
-            if time.time() - start_time > TIMEOUT_SECS:
-                raise openai.APITimeoutError("Operation polling timed out.")
-
-            time.sleep(interval or response.retry_after or 10)
-            response, b, api_key = self.request(method, url, params, headers)
-            self._check_polling_response(response, failed)
-
-        response.data = response.data["result"]
-        return response, b, api_key
-
-    async def _apoll(
-        self, method, url, until, failed, params=None, headers=None, interval=None, delay=None
-    ) -> Tuple[Iterator[OpenAIResponse], bool, str]:
-        if delay:
-            await asyncio.sleep(delay)
-
-        response, b, api_key = await self.arequest(method, url, params, headers)
-        self._check_polling_response(response, failed)
-        start_time = time.time()
-        while not until(response):
-            if time.time() - start_time > TIMEOUT_SECS:
-                raise openai.APITimeoutError("Operation polling timed out.")
-
-            await asyncio.sleep(interval or response.retry_after or 10)
-            response, b, api_key = await self.arequest(method, url, params, headers)
-            self._check_polling_response(response, failed)
-
-        response.data = response.data["result"]
-        return response, b, api_key
 
     @overload
     def request(
@@ -469,55 +419,6 @@ class APIRequestor:
         else:
             await ctx.__aexit__(None, None, None)
             return resp, got_stream, self.api_key
-
-    def handle_error_response(self, rbody, rcode, resp, rheaders, stream_error=False):
-        try:
-            error_data = resp["error"]
-        except (KeyError, TypeError):
-            raise openai.APIError(
-                "Invalid response object from API: %r (HTTP response code " "was %d)" % (rbody, rcode)
-            )
-
-        if "internal_message" in error_data:
-            error_data["message"] += "\n\n" + error_data["internal_message"]
-
-        log_info(
-            "LLM API error received",
-            error_code=error_data.get("code"),
-            error_type=error_data.get("type"),
-            error_message=error_data.get("message"),
-            error_param=error_data.get("param"),
-            stream_error=stream_error,
-        )
-
-        # Rate limits were previously coded as 400's with code 'rate_limit'
-        if rcode == 429:
-            return openai.RateLimitError(f"{error_data.get('message')} {rbody} {rcode} {resp} {rheaders}", body=rbody)
-        elif rcode in [400, 404, 415]:
-            return openai.BadRequestError(
-                message=f'{error_data.get("message")}, {error_data.get("param")}, {error_data.get("code")} {rbody} {rcode} {resp} {rheaders}',
-                body=rbody,
-            )
-        elif rcode == 401:
-            return openai.AuthenticationError(
-                f"{error_data.get('message')} {rbody} {rcode} {resp} {rheaders}", body=rbody
-            )
-        elif rcode == 403:
-            return openai.PermissionDeniedError(
-                f"{error_data.get('message')} {rbody} {rcode} {resp} {rheaders}", body=rbody
-            )
-        elif rcode == 409:
-            return openai.ConflictError(f"{error_data.get('message')} {rbody} {rcode} {resp} {rheaders}", body=rbody)
-        elif stream_error:
-            # TODO: we will soon attach status codes to stream errors
-            parts = [error_data.get("message"), "(Error occurred while streaming.)"]
-            message = " ".join([p for p in parts if p is not None])
-            return openai.APIError(f"{message} {rbody} {rcode} {resp} {rheaders}", body=rbody)
-        else:
-            return openai.APIError(
-                f"{error_data.get('message')} {rbody} {rcode} {resp} {rheaders}",
-                body=rbody,
-            )
 
     def request_headers(self, method: str, extra, request_id: Optional[str]) -> Dict[str, str]:
         user_agent = "LLM/v1 PythonBindings/%s" % (version.VERSION,)

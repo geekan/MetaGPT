@@ -1,7 +1,7 @@
 import asyncio
 from typing import AsyncGenerator, Awaitable, Callable
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from metagpt.logs import logger
 from metagpt.roles import Role
@@ -33,10 +33,9 @@ class SubscriptionRunner(BaseModel):
         >>> asyncio.run(main())
     """
 
-    tasks: dict[Role, asyncio.Task] = Field(default_factory=dict)
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    class Config:
-        arbitrary_types_allowed = True
+    tasks: dict[Role, asyncio.Task] = Field(default_factory=dict)
 
     async def subscribe(
         self,

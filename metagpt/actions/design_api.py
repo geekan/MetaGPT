@@ -13,8 +13,6 @@ import json
 from pathlib import Path
 from typing import Optional
 
-from pydantic import Field
-
 from metagpt.actions import Action, ActionOutput
 from metagpt.actions.design_api_an import DESIGN_API_NODE, REFINED_DESIGN_NODES
 from metagpt.config import CONFIG
@@ -25,9 +23,7 @@ from metagpt.const import (
     SYSTEM_DESIGN_FILE_REPO,
     SYSTEM_DESIGN_PDF_FILE_REPO,
 )
-from metagpt.llm import LLM
 from metagpt.logs import logger
-from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.schema import Document, Documents, Message
 from metagpt.utils.file_repository import FileRepository
 from metagpt.utils.mermaid import mermaid_to_file
@@ -44,7 +40,6 @@ NEW_REQ_TEMPLATE = """
 class WriteDesign(Action):
     name: str = ""
     context: Optional[str] = None
-    llm: BaseGPTAPI = Field(default_factory=LLM)
     desc: str = (
         "Based on the PRD, think about the system design, and design the corresponding APIs, "
         "data structures, library tables, processes, and paths. Please provide your design, feedback "
@@ -52,10 +47,10 @@ class WriteDesign(Action):
     )
 
     async def run(self, with_messages: Message, schema: str = CONFIG.prompt_schema):
-        # Use `git diff` to identify which PRD documents have been modified in the `docs/prds` directory.
+        # Use `git status` to identify which PRD documents have been modified in the `docs/prds` directory.
         prds_file_repo = CONFIG.git_repo.new_file_repository(PRDS_FILE_REPO)
         changed_prds = prds_file_repo.changed_files
-        # Use `git diff` to identify which design documents in the `docs/system_designs` directory have undergone
+        # Use `git status` to identify which design documents in the `docs/system_designs` directory have undergone
         # changes.
         system_design_file_repo = CONFIG.git_repo.new_file_repository(SYSTEM_DESIGN_FILE_REPO)
         changed_system_designs = system_design_file_repo.changed_files
@@ -79,7 +74,7 @@ class WriteDesign(Action):
             logger.info("Nothing has changed.")
         # Wait until all files under `docs/system_designs/` are processed before sending the publish message,
         # leaving room for global optimization in subsequent steps.
-        return ActionOutput(content=changed_files.json(), instruct_content=changed_files)
+        return ActionOutput(content=changed_files.model_dump_json(), instruct_content=changed_files)
 
     async def _new_system_design(self, context, schema=CONFIG.prompt_schema):
         node = await DESIGN_API_NODE.fill(context=context, llm=self.llm, schema=schema)
@@ -88,7 +83,7 @@ class WriteDesign(Action):
     async def _merge(self, prd_doc, system_design_doc, schema=CONFIG.prompt_schema):
         context = NEW_REQ_TEMPLATE.format(old_design=system_design_doc.content, context=prd_doc.content)
         node = await REFINED_DESIGN_NODES.fill(context=context, llm=self.llm, schema=schema)
-        system_design_doc.content = node.instruct_content.json(ensure_ascii=False)
+        system_design_doc.content = node.instruct_content.model_dump_json()
         return system_design_doc
 
     async def _update_system_design(self, filename, prds_file_repo, system_design_file_repo) -> Document:
@@ -99,7 +94,7 @@ class WriteDesign(Action):
             doc = Document(
                 root_path=SYSTEM_DESIGN_FILE_REPO,
                 filename=filename,
-                content=system_design.instruct_content.json(ensure_ascii=False),
+                content=system_design.instruct_content.model_dump_json(),
             )
         else:
             doc = await self._merge(prd_doc=prd, system_design_doc=old_system_design_doc)

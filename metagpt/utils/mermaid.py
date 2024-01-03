@@ -10,7 +10,6 @@ import os
 from pathlib import Path
 
 from metagpt.config import CONFIG
-from metagpt.const import METAGPT_ROOT
 from metagpt.logs import logger
 from metagpt.utils.common import check_cmd_exists
 
@@ -88,7 +87,8 @@ async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, 
     return 0
 
 
-MMC1 = """classDiagram
+MMC1 = """
+classDiagram
     class Main {
         -SearchEngine search_engine
         +main() str
@@ -118,9 +118,11 @@ MMC1 = """classDiagram
     SearchEngine --> Index
     SearchEngine --> Ranking
     SearchEngine --> Summary
-    Index --> KnowledgeBase"""
+    Index --> KnowledgeBase
+"""
 
-MMC1_REFINE = """classDiagram
+MMC1_REFINE = """
+classDiagram
     class Main {
         -SearchEngine search_engine
         +main() str
@@ -156,9 +158,11 @@ MMC1_REFINE = """classDiagram
     SearchEngine --> Index
     SearchEngine --> Ranking
     SearchEngine --> Summary
-    Index --> KnowledgeBase"""
+    Index --> KnowledgeBase
+"""
 
-MMC2 = """sequenceDiagram
+MMC2 = """
+sequenceDiagram
     participant M as Main
     participant SE as SearchEngine
     participant I as Index
@@ -174,9 +178,11 @@ MMC2 = """sequenceDiagram
     R-->>SE: return ranked_results
     SE->>S: summarize_results(ranked_results)
     S-->>SE: return summary
-    SE-->>M: return summary"""
+    SE-->>M: return summary
+"""
 
-MMC2_REFINE = """sequenceDiagram
+MMC2_REFINE = """
+sequenceDiagram
     participant M as Main
     participant SE as SearchEngine
     participant I as Index
@@ -201,10 +207,5 @@ MMC2_REFINE = """sequenceDiagram
     R-->>SE: newMethod()  # Incremental change
     SE->>S: newMethod()   # Incremental change
     S-->>SE: newMethod()  # Incremental change
-    SE-->>M: newMethod()  # Incremental change"""
-
-if __name__ == "__main__":
-    loop = asyncio.new_event_loop()
-    result = loop.run_until_complete(mermaid_to_file(MMC1, METAGPT_ROOT / f"{CONFIG.mermaid_engine}/1"))
-    result = loop.run_until_complete(mermaid_to_file(MMC2, METAGPT_ROOT / f"{CONFIG.mermaid_engine}/1"))
-    loop.close()
+    SE-->>M: newMethod()  # Incremental change
+"""

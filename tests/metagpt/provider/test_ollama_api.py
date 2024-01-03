@@ -2,32 +2,61 @@
 # -*- coding: utf-8 -*-
 # @Desc   : the unittest of ollama api
 
+import json
+from typing import Any, Tuple
+
 import pytest
 
-from metagpt.provider.ollama_api import OllamaGPTAPI
+from metagpt.config import CONFIG
+from metagpt.provider.ollama_api import OllamaLLM
 
-messages = [{"role": "user", "content": "who are you"}]
+prompt_msg = "who are you"
+messages = [{"role": "user", "content": prompt_msg}]
 
+resp_content = "I'm ollama"
+default_resp = {"message": {"role": "assistant", "content": resp_content}}
 
-default_resp = {"message": {"role": "assisant", "content": "I'm ollama"}}
-
-
-def mock_llm_ask(self, messages: list[dict]) -> dict:
-    return default_resp
-
-
-def test_gemini_completion(mocker):
-    mocker.patch("metagpt.provider.ollama_api.OllamaGPTAPI.completion", mock_llm_ask)
-    resp = OllamaGPTAPI().completion(messages)
-    assert resp["message"]["content"] == default_resp["message"]["content"]
+CONFIG.ollama_api_base = "http://xxx"
+CONFIG.max_budget = 10
 
 
-async def mock_llm_aask(self, messgaes: list[dict]) -> dict:
-    return default_resp
+async def mock_ollama_arequest(self, stream: bool = False, **kwargs) -> Tuple[Any, Any, bool]:
+    if stream:
+
+        class Iterator(object):
+            events = [
+                b'{"message": {"role": "assistant", "content": "I\'m ollama"}, "done": false}',
+                b'{"prompt_eval_count": 20, "eval_count": 20, "done": true}',
+            ]
+
+            async def __aiter__(self):
+                for event in self.events:
+                    yield event
+
+        return Iterator(), None, None
+    else:
+        raw_default_resp = default_resp.copy()
+        raw_default_resp.update({"prompt_eval_count": 20, "eval_count": 20})
+        return json.dumps(raw_default_resp).encode(), None, None
 
 
 @pytest.mark.asyncio
 async def test_gemini_acompletion(mocker):
-    mocker.patch("metagpt.provider.ollama_api.OllamaGPTAPI.acompletion", mock_llm_aask)
-    resp = await OllamaGPTAPI().acompletion(messages)
+    mocker.patch("metagpt.provider.general_api_requestor.GeneralAPIRequestor.arequest", mock_ollama_arequest)
+
+    ollama_gpt = OllamaLLM()
+
+    resp = await ollama_gpt.acompletion(messages)
     assert resp["message"]["content"] == default_resp["message"]["content"]
+
+    resp = await ollama_gpt.aask(prompt_msg, stream=False)
+    assert resp == resp_content
+
+    resp = await ollama_gpt.acompletion_text(messages, stream=False)
+    assert resp == resp_content
+
+    resp = await ollama_gpt.acompletion_text(messages, stream=True)
+    assert resp == resp_content
+
+    resp = await ollama_gpt.aask(prompt_msg)
+    assert resp == resp_content

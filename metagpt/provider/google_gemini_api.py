@@ -21,9 +21,9 @@ from tenacity import (
 
 from metagpt.config import CONFIG, LLMProviderEnum
 from metagpt.logs import log_llm_stream, logger
-from metagpt.provider.base_gpt_api import BaseGPTAPI
+from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.llm_provider_registry import register_provider
-from metagpt.provider.openai_api import CostManager, log_and_reraise
+from metagpt.provider.openai_api import log_and_reraise
 
 
 class GeminiGenerativeModel(GenerativeModel):
@@ -42,7 +42,7 @@ class GeminiGenerativeModel(GenerativeModel):
 
 
 @register_provider(LLMProviderEnum.GEMINI)
-class GeminiGPTAPI(BaseGPTAPI):
+class GeminiLLM(BaseLLM):
     """
     Refs to `https://ai.google.dev/tutorials/python_quickstart`
     """
@@ -53,13 +53,12 @@ class GeminiGPTAPI(BaseGPTAPI):
         self.__init_gemini(CONFIG)
         self.model = "gemini-pro"  # so far only one model
         self.llm = GeminiGenerativeModel(model_name=self.model)
-        self._cost_manager = CostManager()
 
     def __init_gemini(self, config: CONFIG):
         genai.configure(api_key=config.gemini_api_key)
 
     def _user_msg(self, msg: str) -> dict[str, str]:
-        # Not to change BaseGPTAPI default functions but update with Gemini's conversation format.
+        # Not to change BaseLLM default functions but update with Gemini's conversation format.
         # You should follow the format.
         return {"role": "user", "parts": [msg]}
 
@@ -76,7 +75,7 @@ class GeminiGPTAPI(BaseGPTAPI):
             try:
                 prompt_tokens = int(usage.get("prompt_tokens", 0))
                 completion_tokens = int(usage.get("completion_tokens", 0))
-                self._cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
+                CONFIG.cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
             except Exception as e:
                 logger.error(f"google gemini updats costs failed! exp: {e}")
 
@@ -134,7 +133,7 @@ class GeminiGPTAPI(BaseGPTAPI):
         retry=retry_if_exception_type(ConnectionError),
         retry_error_callback=log_and_reraise,
     )
-    async def acompletion_text(self, messages: list[dict], stream=False) -> str:
+    async def acompletion_text(self, messages: list[dict], stream=False, timeout: int = 3) -> str:
         """response in async with stream or non-stream mode"""
         if stream:
             return await self._achat_completion_stream(messages)

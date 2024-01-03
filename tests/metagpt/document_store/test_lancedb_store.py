@@ -7,12 +7,9 @@
 """
 import random
 
-import pytest
-
 from metagpt.document_store.lancedb_store import LanceStore
 
 
-@pytest
 def test_lance_store():
     # This simply establishes the connection to the database, so we can drop the table if it exists
     store = LanceStore("test")

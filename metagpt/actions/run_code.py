@@ -22,7 +22,6 @@ from pydantic import Field
 
 from metagpt.actions.action import Action
 from metagpt.config import CONFIG
-from metagpt.llm import LLM, BaseGPTAPI
 from metagpt.logs import logger
 from metagpt.schema import RunCodeContext, RunCodeResult
 from metagpt.utils.exceptions import handle_exception
@@ -79,14 +78,15 @@ standard errors:
 class RunCode(Action):
     name: str = "RunCode"
     context: RunCodeContext = Field(default_factory=RunCodeContext)
-    llm: BaseGPTAPI = Field(default_factory=LLM)
 
     @classmethod
-    @handle_exception
     async def run_text(cls, code) -> Tuple[str, str]:
-        # We will document_store the result in this dictionary
-        namespace = {}
-        exec(code, namespace)
+        try:
+            # We will document_store the result in this dictionary
+            namespace = {}
+            exec(code, namespace)
+        except Exception as e:
+            return "", str(e)
         return namespace.get("result", ""), ""
 
     @classmethod

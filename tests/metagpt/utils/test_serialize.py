@@ -4,7 +4,7 @@
 @Desc   : the unittest of serialize
 """
 
-from typing import List, Tuple
+from typing import List
 
 from metagpt.actions import WritePRD
 from metagpt.actions.action_node import ActionNode
@@ -27,7 +27,7 @@ def test_actionoutout_schema_to_mapping():
         "properties": {"field": {"title": "field", "type": "array", "items": {"type": "string"}}},
     }
     mapping = actionoutout_schema_to_mapping(schema)
-    assert mapping["field"] == (List[str], ...)
+    assert mapping["field"] == (list[str], ...)
 
     schema = {
         "title": "test",
@@ -46,7 +46,7 @@ def test_actionoutout_schema_to_mapping():
         },
     }
     mapping = actionoutout_schema_to_mapping(schema)
-    assert mapping["field"] == (List[Tuple[str, str]], ...)
+    assert mapping["field"] == (list[list[str]], ...)
 
     assert True, True
 
