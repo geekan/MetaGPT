@@ -2,13 +2,14 @@
 # @Date    : 12/25/2023 9:16 PM
 # @Author  : stellahong (stellahong@fuzhi.ai)
 # @Desc    :
+from abc import ABC
 from typing import List
 
 from anytree import Node, RenderTree
 from pydantic import BaseModel
 
 
-class BaseParser(BaseModel):
+class BaseParser(BaseModel, ABC):
     def __call__(self, *args, **kwargs):
         raise NotImplementedError
 
@@ -22,7 +23,7 @@ class BaseParser(BaseModel):
         raise NotImplementedError
 
 
-class BaseEvaluator(BaseModel):
+class BaseEvaluator(BaseModel, ABC):
     def __call__(self, *args, **kwargs):
         raise NotImplementedError
 
