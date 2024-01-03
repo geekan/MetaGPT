@@ -173,3 +173,5 @@ tests/metagpt/utils/file_repo_git
 htmlcov
 htmlcov.*
 *.pkl
+*-structure.csv
+*-structure.json
