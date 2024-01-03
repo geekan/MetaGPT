@@ -167,3 +167,41 @@ def setup_and_teardown_git_repo(request):
 @pytest.fixture(scope="session", autouse=True)
 def init_config():
     Config()
+
+
+@pytest.fixture
+def aiohttp_mocker(mocker):
+    class MockAioResponse:
+        async def json(self, *args, **kwargs):
+            return self._json
+
+        def set_json(self, json):
+            self._json = json
+
+    response = MockAioResponse()
+
+    class MockCTXMng:
+        async def __aenter__(self):
+            return response
+
+        async def __aexit__(self, *args, **kwargs):
+            pass
+
+        def __await__(self):
+            yield
+            return response
+
+    def mock_request(self, method, url, **kwargs):
+        return MockCTXMng()
+
+    def wrap(method):
+        def run(self, url, **kwargs):
+            return mock_request(self, method, url, **kwargs)
+
+        return run
+
+    mocker.patch("aiohttp.ClientSession.request", mock_request)
+    for i in ["get", "post", "delete", "patch"]:
+        mocker.patch(f"aiohttp.ClientSession.{i}", wrap(i))
+
+    yield response
