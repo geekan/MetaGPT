@@ -71,7 +71,7 @@ def test_creative_writing():
     parser = TextGenParser()
     evaluator = TextGenEvaluator()
 
-    config = ThoughtSolverConfig(n_generate_sample=3, parser=parser, evaluator=evaluator)
+    config = ThoughtSolverConfig(max_step=2, n_generate_sample=1, n_select_sample=1, parser=parser, evaluator=evaluator)
 
     tot_base = TreeofThought(strategy=Strategy.BFS, config=config)
     asyncio.run(tot_base.solve(init_prompt=initial_prompt))

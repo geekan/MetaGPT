@@ -17,7 +17,7 @@ from metagpt.strategy.tot_schema import MethodSelect, Strategy, ThoughtSolverCon
 from metagpt.utils.common import CodeParser
 
 OUTPUT_FORMAT = """
-Output a list of jsons following the format:
+Each output should be strictly a list of nodes, in json format, like this:
 ```json
     [
         {
