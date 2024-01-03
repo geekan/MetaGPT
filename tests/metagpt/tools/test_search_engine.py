@@ -7,14 +7,19 @@
 """
 from __future__ import annotations
 
+import json
+from pathlib import Path
 from typing import Callable
 
 import pytest
 
+import tests.data.search
 from metagpt.config import CONFIG
 from metagpt.logs import logger
 from metagpt.tools import SearchEngineType
 from metagpt.tools.search_engine import SearchEngine
+
+search_cache_path = Path(tests.data.search.__path__[0])
 
 
 class MockSearchEnine:
@@ -41,16 +46,23 @@ class MockSearchEnine:
         (SearchEngineType.CUSTOM_ENGINE, MockSearchEnine().run, 6, False),
     ],
 )
-async def test_search_engine(search_engine_type, run_func: Callable, max_results: int, as_string: bool):
+async def test_search_engine(search_engine_type, run_func: Callable, max_results: int, as_string: bool, aiohttp_mocker):
     # Prerequisites
+    cache_json_path = None
     if search_engine_type is SearchEngineType.SERPAPI_GOOGLE:
         assert CONFIG.SERPAPI_API_KEY and CONFIG.SERPAPI_API_KEY != "YOUR_API_KEY"
+        cache_json_path = search_cache_path / f"serpapi-metagpt-{max_results}.json"
     elif search_engine_type is SearchEngineType.DIRECT_GOOGLE:
         assert CONFIG.GOOGLE_API_KEY and CONFIG.GOOGLE_API_KEY != "YOUR_API_KEY"
         assert CONFIG.GOOGLE_CSE_ID and CONFIG.GOOGLE_CSE_ID != "YOUR_CSE_ID"
     elif search_engine_type is SearchEngineType.SERPER_GOOGLE:
         assert CONFIG.SERPER_API_KEY and CONFIG.SERPER_API_KEY != "YOUR_API_KEY"
+        cache_json_path = search_cache_path / f"serper-metagpt-{max_results}.json"
 
+    if cache_json_path:
+        with open(cache_json_path) as f:
+            data = json.load(f)
+            aiohttp_mocker.set_json(data)
     search_engine = SearchEngine(search_engine_type, run_func)
     rsp = await search_engine.run("metagpt", max_results, as_string)
     logger.info(rsp)
