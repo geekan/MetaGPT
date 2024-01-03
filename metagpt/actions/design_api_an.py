@@ -138,7 +138,7 @@ Based on new requirements, review and refine the system design. Integrate existi
 NODES = [
     IMPLEMENTATION_APPROACH,
     # PROJECT_NAME,
-    REFINED_FILE_LIST,
+    FILE_LIST,
     DATA_STRUCTURES_AND_INTERFACES,
     PROGRAM_CALL_FLOW,
     ANYTHING_UNCLEAR,

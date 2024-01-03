@@ -190,7 +190,7 @@ class GitRepository:
         return self._dependency
 
     def rename_root(self, new_dir_name):
-        """Rename the root directory of the Git repository.
+        """Rename/Copy the root directory of the Git repository.
 
         :param new_dir_name: The new name for the root directory.
         """
@@ -201,10 +201,15 @@ class GitRepository:
             logger.info(f"Delete directory {str(new_path)}")
             shutil.rmtree(new_path)
         try:
-            shutil.move(src=str(self.workdir), dst=str(new_path))
+            shutil.copytree(src=str(self.workdir), dst=str(new_path))
         except Exception as e:
-            logger.warning(f"Move {str(self.workdir)} to {str(new_path)} error: {e}")
-        logger.info(f"Rename directory {str(self.workdir)} to {str(new_path)}")
+            logger.warning(f"Copy {str(self.workdir)} to {str(new_path)} error: {e}")
+        logger.info(f"Copy directory {str(self.workdir)} to {str(new_path)}")
+        # try:
+        #     shutil.move(src=str(self.workdir), dst=str(new_path))
+        # except Exception as e:
+        #     logger.warning(f"Move {str(self.workdir)} to {str(new_path)} error: {e}")
+        # logger.info(f"Rename directory {str(self.workdir)} to {str(new_path)}")
         self._repository = Repo(new_path)
         self._gitignore_rules = parse_gitignore(full_path=str(new_path / ".gitignore"))
 
