@@ -3,14 +3,13 @@
 """
 @Time    : 2024/01/03
 @Author  : mannaandpoem
-@File    : test_write_code_guideline_an.py.py
+@File    : test_write_code_guideline_an.py
 """
 import pytest
 
 from metagpt.actions.write_code import WriteCode
 from metagpt.actions.write_code_guideline_an import (
     CODE_GUIDELINE_CONTEXT,
-    CODE_GUIDELINE_SCRIPT_EXAMPLE,
     REFINE_CODE_SCRIPT_EXAMPLE,
     REFINED_CODE_TEMPLATE,
     WriteCodeGuideline,
@@ -72,6 +71,119 @@ TASKS_EXAMPLE = """
   "Anything UNCLEAR": "The requirement for a history feature is mentioned but not prioritized. It is unclear whether this should be implemented now or in the future. Additionally, there is no specification on the limit to the size of the numbers or the number of operations that can be performed in sequence. These aspects will need clarification for complete implementation."
 }
 """
+
+CODE_GUIDELINE_SCRIPT_EXAMPLE = """
+----- calculator.py
+```## calculator.py
+
+class Calculator:
+    def __init__(self):
+        self.result = 0.0  # Default value for the result
+
+    def add(self, number1: float, number2: float) -> float:
+        '''
+        Adds two numbers and returns the result.
+
+        Args:
+            number1 (float): The first number to add.
+            number2 (float): The second number to add.
+
+        Returns:
+            float: The sum of number1 and number2.
+        '''
+        self.result = number1 + number2
+        return self.result
+
+    def clear(self) -> None:
+        '''
+        Clears the result to its default value.
+        '''
+        self.result = 0.0
+```
+
+---- interface.py
+```## interface.py
+import tkinter as tk
+from calculator import Calculator
+
+class Interface:
+    def __init__(self):
+        self.calculator = Calculator()
+        self.root = tk.Tk()
+        self.root.title("Calculator")
+        self.create_widgets()
+
+    def create_widgets(self):
+        self.result_var = tk.StringVar()
+        self.result_display = tk.Entry(self.root, textvariable=self.result_var, state='readonly', justify='right', font=('Arial', 24))
+        self.result_display.grid(row=0, column=0, columnspan=4, sticky='nsew')
+
+        self.entry_number1 = tk.Entry(self.root, justify='right', font=('Arial', 18))
+        self.entry_number1.grid(row=1, column=0, columnspan=2, sticky='nsew')
+
+        self.entry_number2 = tk.Entry(self.root, justify='right', font=('Arial', 18))
+        self.entry_number2.grid(row=1, column=2, columnspan=2, sticky='nsew')
+
+        self.add_button = tk.Button(self.root, text='+', command=self.add, font=('Arial', 18))
+        self.add_button.grid(row=2, column=0, sticky='nsew')
+
+        self.clear_button = tk.Button(self.root, text='C', command=self.clear, font=('Arial', 18))
+        self.clear_button.grid(row=2, column=1, sticky='nsew')
+
+        self.quit_button = tk.Button(self.root, text='Quit', command=self.root.quit, font=('Arial', 18))
+        self.quit_button.grid(row=2, column=2, columnspan=2, sticky='nsew')
+
+        self.root.grid_rowconfigure(1, weight=1)
+        self.root.grid_columnconfigure(0, weight=1)
+
+    def start(self):
+        self.root.mainloop()
+
+    def display_result(self, result: float):
+        self.result_var.set(str(result))
+
+    def get_input(self):
+        try:
+            number1 = float(self.entry_number1.get())
+            number2 = float(self.entry_number2.get())
+            return number1, number2
+        except ValueError:
+            self.show_error("Invalid input! Please enter valid numbers.")
+            return None, None
+
+    def add(self):
+        number1, number2 = self.get_input()
+        if number1 is not None and number2 is not None:
+            result = self.calculator.add(number1, number2)
+            self.display_result(result)
+
+    def clear(self):
+        self.entry_number1.delete(0, tk.END)
+        self.entry_number2.delete(0, tk.END)
+        self.result_var.set("")
+
+    def show_error(self, message: str):
+        tk.messagebox.showerror("Error", message)
+
+# This code is meant to be used as a module and not as a standalone script.
+# The Interface class will be instantiated and started by the main.py file.
+```
+
+---- main.py
+```## main.py
+from interface import Interface
+
+
+class CalculatorApp:
+    @staticmethod
+    def main():
+        interface = Interface()
+        interface.start()
+
+
+if __name__ == "__main__":
+    CalculatorApp.main()
+```"""
 
 INCREMENTAL_CHANGE_EXAMPLE = """
 {

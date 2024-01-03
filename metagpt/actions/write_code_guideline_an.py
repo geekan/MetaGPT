@@ -3,7 +3,7 @@
 """
 @Time    : 2023/12/26
 @Author  : mannaandpoem
-@File    : write_code_guide_an.py
+@File    : write_code_guideline_an.py
 """
 import asyncio
 
@@ -78,19 +78,7 @@ if __name__ == '__main__':
 )
 
 CODE_GUIDELINE_CONTEXT = """
-NOTICE
-Role: You are a professional software engineer, and your main task is to craft comprehensive incremental development plans and provide detailed code guidance with triple quote, based on the following attentions and context. Output format carefully referenced "Format example".
-1. Determine the scope of responsibilities of each file and what classes and methods need to be implemented.
-2. Import all referenced classes.
-3. Implement all methods. 
-4. Add necessary explanation to all methods. 
-5. Ensure there are no potential bugs.
-6. Confirm that the entire project conforms to the tasks proposed by the user.
-7. Examine the code closely to find and fix errors, and confirm that the logic is sound to ensure smooth user interaction while meeting all specified requirements.
-8. Attention: Code files in the task list may have a different number of files compared to legacy code files. This requires integrating legacy code files that do not appear in the task list into the code files of the task list. Therefore, when writing code guidance and incremental changes for the code files in the task list, also include how to seamlessly merge and adjust legacy code files.
-
-# Context
-## Requirement
+## New Requirements
 {requirement}
 
 ## Design
@@ -104,19 +92,7 @@ Role: You are a professional software engineer, and your main task is to craft c
 """
 
 CODE_GUIDELINE_CONTEXT_EXAMPLE = """
-NOTICE
-Role: You are a professional software engineer, and your main task is to craft comprehensive incremental development plans and provide detailed code guidance with triple quote, based on the following attentions and context. Output format carefully referenced "Format example".
-1. Determine the scope of responsibilities of each file and what classes and methods need to be implemented.
-2. Import all referenced classes.
-3. Implement all methods. 
-4. Add necessary explanation to all methods. 
-5. Ensure there are no potential bugs.
-6. Confirm that the entire project conforms to the tasks proposed by the user.
-7. Examine the code closely to find and fix errors, and confirm that the logic is sound to ensure smooth user interaction while meeting all specified requirements.
-8. Attention: Code files in the task list may have a different number of files compared to legacy code files. This requires integrating legacy code files that do not appear in the task list into the code files of the task list. Therefore, when writing code guidance and incremental changes for the code files in the task list, also include how to seamlessly merge and adjust legacy code files.
-
-# Context
-## Requirement
+## New Requirements
 Add subtraction, multiplication and division operations to the calculator.
 The current calculator can only perform basic addition operations, and it is necessary to introduce subtraction, multiplication, division operation into the calculator
 
@@ -172,10 +148,6 @@ The current calculator can only perform basic addition operations, and it is nec
 }
 
 ## Legacy Code
-{code}
-"""
-
-CODE_GUIDELINE_SCRIPT_EXAMPLE = """
 ----- calculator.py
 ```## calculator.py
 
@@ -381,9 +353,6 @@ class Interface:
 
     def show_error(self, message: str):
         tk.messagebox.showerror("Error", message)
-
-# This code is meant to be used as a module and not as a standalone script.
-# The Interface class will be instantiated and started by the main.py file.
 ```
 """
 
@@ -448,12 +417,14 @@ WRITE_CODE_GUIDELINE_NODE = ActionNode.from_children("WriteCodeGuideline", GUIDE
 
 class WriteCodeGuideline(Action):
     async def run(self, context):
+        self.llm.system_prompt = "You are a professional software engineer, your primary responsibility is to "
+        "meticulously craft comprehensive incremental development plans and deliver detailed Incremental Change"
         return await WRITE_CODE_GUIDELINE_NODE.fill(context=context, llm=self.llm, schema="json")
 
 
 async def main():
     write_code_guideline = WriteCodeGuideline()
-    node = await write_code_guideline.run(CODE_GUIDELINE_CONTEXT_EXAMPLE.format(code=CODE_GUIDELINE_SCRIPT_EXAMPLE))
+    node = await write_code_guideline.run(CODE_GUIDELINE_CONTEXT_EXAMPLE)
     guideline = node.instruct_content.json(ensure_ascii=False)
     print(guideline)
 
