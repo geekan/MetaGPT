@@ -18,7 +18,7 @@ class SerpAPIWrapper(BaseModel):
 
     search_engine: Any = None  #: :meta private:
     params: dict = Field(
-        default={
+        default_factory=lambda: {
             "engine": "google",
             "google_domain": "google.com",
             "gl": "us",
