@@ -3,7 +3,7 @@
 """
 @Time    : 2024/01/03
 @Author  : mannaandpoem
-@File    : test_write_prd_an.py.py
+@File    : test_write_prd_an.py
 """
 import pytest
 
