@@ -117,9 +117,22 @@ class Engineer(Role):
                 action = WriteCodeReview(context=coding_context, llm=self.llm)
                 self._init_action_system_message(action)
                 coding_context = await action.run()
+
+            # Get dependencies
+            if guideline:
+                dependencies = {
+                    coding_context.design_doc.root_relative_path,
+                    coding_context.task_doc.root_relative_path,
+                    "code_guideline.json",
+                }
+            else:
+                dependencies = {
+                    coding_context.design_doc.root_relative_path,
+                    coding_context.task_doc.root_relative_path,
+                }
             await src_file_repo.save(
                 coding_context.filename,
-                dependencies={coding_context.design_doc.root_relative_path, coding_context.task_doc.root_relative_path},
+                dependencies=dependencies,
                 content=coding_context.code_doc.content,
             )
             msg = Message(
@@ -347,6 +360,10 @@ class Engineer(Role):
         context = CODE_GUIDELINE_CONTEXT.format(requirement=requirement, tasks=tasks, design=design, code=old_codes)
         node = await WriteCodeGuideline().run(context=context)
         guideline = node.instruct_content.model_dump_json()
+
+        await CONFIG.git_repo.new_file_repository(CONFIG.git_repo.workdir).save(
+            filename="code_guideline.json", content=guideline
+        )
         return guideline
 
     @staticmethod
