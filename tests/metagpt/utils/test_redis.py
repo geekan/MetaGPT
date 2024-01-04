@@ -6,20 +6,34 @@
 @File    : test_redis.py
 """
 
+import mock
 import pytest
 
 from metagpt.config import CONFIG
 from metagpt.utils.redis import Redis
 
 
+async def async_mock_from_url(*args, **kwargs):
+    mock_client = mock.AsyncMock()
+    mock_client.set.return_value = None
+    mock_client.get.side_effect = [b"test", b""]
+    return mock_client
+
+
 @pytest.mark.asyncio
-async def test_redis():
+@mock.patch("aioredis.from_url", return_value=async_mock_from_url())
+async def test_redis(mock_from_url):
+    # Mock
+    # mock_client = mock.AsyncMock()
+    # mock_client.set.return_value=None
+    # mock_client.get.side_effect = [b'test', b'']
+    # mock_from_url.return_value = mock_client
+
     # Prerequisites
-    assert CONFIG.REDIS_HOST and CONFIG.REDIS_HOST != "YOUR_REDIS_HOST"
-    assert CONFIG.REDIS_PORT and CONFIG.REDIS_PORT != "YOUR_REDIS_PORT"
-    # assert CONFIG.REDIS_USER
-    assert CONFIG.REDIS_PASSWORD is not None and CONFIG.REDIS_PASSWORD != "YOUR_REDIS_PASSWORD"
-    assert CONFIG.REDIS_DB is not None and CONFIG.REDIS_DB != "YOUR_REDIS_DB_INDEX, str, 0-based"
+    CONFIG.REDIS_HOST = "MOCK_REDIS_HOST"
+    CONFIG.REDIS_PORT = "MOCK_REDIS_PORT"
+    CONFIG.REDIS_PASSWORD = "MOCK_REDIS_PASSWORD"
+    CONFIG.REDIS_DB = 0
 
     conn = Redis()
     assert not conn.is_valid

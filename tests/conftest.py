@@ -11,6 +11,7 @@ import json
 import logging
 import os
 import re
+import uuid
 
 import pytest
 
@@ -123,9 +124,9 @@ def loguru_caplog(caplog):
 
 
 # init & dispose git repo
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="function", autouse=True)
 def setup_and_teardown_git_repo(request):
-    CONFIG.git_repo = GitRepository(local_path=DEFAULT_WORKSPACE_ROOT / "unittest")
+    CONFIG.git_repo = GitRepository(local_path=DEFAULT_WORKSPACE_ROOT / f"unittest/{uuid.uuid4().hex}")
     CONFIG.git_reinit = True
 
     # Destroy git repo at the end of the test session.

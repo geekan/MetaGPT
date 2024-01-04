@@ -36,6 +36,7 @@ from metagpt.utils.common import (
     read_file_block,
     read_json_file,
     require_python_version,
+    split_namespace,
 )
 
 
@@ -162,6 +163,23 @@ class TestGetProjectRoot:
         assert concat_namespace("a", "b", "c") == "a:b:c"
         assert concat_namespace("a", "b", "c", "e") == "a:b:c:e"
         assert concat_namespace("a", "b", "c", "e", "f") == "a:b:c:e:f"
+
+    @pytest.mark.parametrize(
+        ("val", "want"),
+        [
+            (
+                "tests/metagpt/test_role.py:test_react:Input:subscription",
+                ["tests/metagpt/test_role.py", "test_react", "Input", "subscription"],
+            ),
+            (
+                "tests/metagpt/test_role.py:test_react:Input:goal",
+                ["tests/metagpt/test_role.py", "test_react", "Input", "goal"],
+            ),
+        ],
+    )
+    def test_split_namespace(self, val, want):
+        res = split_namespace(val)
+        assert res == want
 
     def test_read_json_file(self):
         assert read_json_file(str(Path(__file__).parent / "../../data/ut_writer/yft_swaggerApi.json"), encoding="utf-8")
