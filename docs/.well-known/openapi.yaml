@@ -11,7 +11,7 @@ paths:
     post:
       summary: Generate greeting
       description: Generates a greeting message.
-      operationId: hello.post_greeting
+      operationId: openapi_v3_hello.post_greeting
       responses:
         200:
           description: greeting response
