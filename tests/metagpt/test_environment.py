@@ -45,7 +45,7 @@ def test_get_roles(env: Environment):
 
 
 @pytest.mark.asyncio
-async def test_publish_and_process_message(env: Environment):
+async def test_publish_and_process_message(env: Environment, new_filename):
     if CONFIG.git_repo:
         CONFIG.git_repo.delete_repository()
         CONFIG.git_repo = None

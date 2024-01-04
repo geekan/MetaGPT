@@ -65,24 +65,26 @@ class MockLLM(OpenAILLM):
         timeout=3,
         stream=True,
     ) -> str:
-        if msg not in self.rsp_cache:
+        msg_key = msg  # used to identify it a message has been called before
+        if system_msgs:
+            joined_system_msg = "#MSG_SEP#".join(system_msgs) + "#SYSTEM_MSG_END#"
+            msg_key = joined_system_msg + msg_key
+        if msg_key not in self.rsp_cache:
             # Call the original unmocked method
             rsp = await self.original_aask(msg, system_msgs, format_msgs, timeout, stream)
-            logger.info(f"Added '{rsp[:20]} ...' to response cache")
-            self.rsp_candidates.append({msg: rsp})
-            return rsp
         else:
             logger.warning("Use response cache")
-            return self.rsp_cache[msg]
+            rsp = self.rsp_cache[msg_key]
+        self.rsp_candidates.append({msg_key: rsp})
+        return rsp
 
     async def aask_batch(self, msgs: list, timeout=3) -> str:
-        joined_msgs = "#MSG_SEP#".join([msg if isinstance(msg, str) else msg.content for msg in msgs])
-        if joined_msgs not in self.rsp_cache:
+        msg_key = "#MSG_SEP#".join([msg if isinstance(msg, str) else msg.content for msg in msgs])
+        if msg_key not in self.rsp_cache:
             # Call the original unmocked method
             rsp = await self.original_aask_batch(msgs, timeout)
-            logger.info(f"Added '{joined_msgs[:20]} ...' to response cache")
-            self.rsp_candidates.append({joined_msgs: rsp})
-            return rsp
         else:
             logger.warning("Use response cache")
-            return self.rsp_cache[joined_msgs]
+            rsp = self.rsp_cache[msg_key]
+        self.rsp_candidates.append({msg_key: rsp})
+        return rsp

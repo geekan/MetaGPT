@@ -37,7 +37,7 @@ jobs:
         path: |
           ./unittest.txt
           ./htmlcov/
-          ./tests/data/rsp_cache.json
+          ./tests/data/rsp_cache_new.json
         retention-days: 3
       if: ${{ always() }}
       

@@ -22,12 +22,14 @@ from metagpt.logs import logger
 from metagpt.utils.git_repository import GitRepository
 from tests.mock.mock_llm import MockLLM
 
+RSP_CACHE_NEW = {}  # used globally for producing new and useful only response cache
+
 
 @pytest.fixture(scope="session")
 def rsp_cache():
     # model_version = CONFIG.openai_api_model
     rsp_cache_file_path = TEST_DATA_PATH / "rsp_cache.json"  # read repo-provided
-    # new_rsp_cache_file_path = TEST_DATA_PATH / "rsp_cache_new.json"  # exporting a new copy
+    new_rsp_cache_file_path = TEST_DATA_PATH / "rsp_cache_new.json"  # exporting a new copy
     if os.path.exists(rsp_cache_file_path):
         with open(rsp_cache_file_path, "r") as f1:
             rsp_cache_json = json.load(f1)
@@ -36,6 +38,8 @@ def rsp_cache():
     yield rsp_cache_json
     with open(rsp_cache_file_path, "w") as f2:
         json.dump(rsp_cache_json, f2, indent=4, ensure_ascii=False)
+    with open(new_rsp_cache_file_path, "w") as f2:
+        json.dump(RSP_CACHE_NEW, f2, indent=4, ensure_ascii=False)
 
 
 # Hook to capture the test result
@@ -57,7 +61,12 @@ def llm_mock(rsp_cache, mocker, request):
     if hasattr(request.node, "test_outcome") and request.node.test_outcome.passed:
         if llm.rsp_candidates:
             for rsp_candidate in llm.rsp_candidates:
-                llm.rsp_cache.update(rsp_candidate)
+                cand_key = list(rsp_candidate.keys())[0]
+                cand_value = list(rsp_candidate.values())[0]
+                if cand_key not in llm.rsp_cache:
+                    logger.info(f"Added '{cand_key[:100]} ... -> {cand_value[:20]} ...' to response cache")
+                    llm.rsp_cache.update(rsp_candidate)
+                RSP_CACHE_NEW.update(rsp_candidate)
 
 
 class Context:
@@ -140,6 +149,12 @@ def setup_and_teardown_git_repo(request):
 @pytest.fixture(scope="session", autouse=True)
 def init_config():
     Config()
+
+
+@pytest.fixture(scope="function")
+def new_filename(mocker):
+    mocker.patch("metagpt.utils.file_repository.FileRepository.new_filename", lambda: "20240101")
+    yield mocker
 
 
 @pytest.fixture
