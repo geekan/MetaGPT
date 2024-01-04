@@ -49,8 +49,3 @@ class ProductManager(Role):
 
     async def _observe(self, ignore_memory=False) -> int:
         return await super()._observe(ignore_memory=True)
-
-    @property
-    def todo(self) -> str:
-        """AgentStore uses this attribute to display to the user what actions the current role should take."""
-        return self.todo_action

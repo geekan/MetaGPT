@@ -16,7 +16,6 @@ from typing import Dict, List, Set
 
 import aiofiles
 
-from metagpt.config import CONFIG
 from metagpt.logs import logger
 from metagpt.schema import Document
 from metagpt.utils.common import aread
@@ -201,8 +200,7 @@ class FileRepository:
         await self.save(filename=str(filename), content=json_to_markdown(m), dependencies=dependencies)
         logger.debug(f"File Saved: {str(filename)}")
 
-    @staticmethod
-    async def get_file(filename: Path | str, relative_path: Path | str = ".") -> Document | None:
+    async def get_file(self, filename: Path | str, relative_path: Path | str = ".") -> Document | None:
         """Retrieve a specific file from the file repository.
 
         :param filename: The name or path of the file to retrieve.
@@ -212,11 +210,10 @@ class FileRepository:
         :return: The document representing the file, or None if not found.
         :rtype: Document or None
         """
-        file_repo = CONFIG.git_repo.new_file_repository(relative_path=relative_path)
+        file_repo = self._git_repo.new_file_repository(relative_path=relative_path)
         return await file_repo.get(filename=filename)
 
-    @staticmethod
-    async def get_all_files(relative_path: Path | str = ".") -> List[Document]:
+    async def get_all_files(self, relative_path: Path | str = ".") -> List[Document]:
         """Retrieve all files from the file repository.
 
         :param relative_path: The relative path within the file repository.
@@ -224,11 +221,12 @@ class FileRepository:
         :return: A list of documents representing all files in the repository.
         :rtype: List[Document]
         """
-        file_repo = CONFIG.git_repo.new_file_repository(relative_path=relative_path)
+        file_repo = self._git_repo.new_file_repository(relative_path=relative_path)
         return await file_repo.get_all()
 
-    @staticmethod
-    async def save_file(filename: Path | str, content, dependencies: List[str] = None, relative_path: Path | str = "."):
+    async def save_file(
+        self, filename: Path | str, content, dependencies: List[str] = None, relative_path: Path | str = "."
+    ):
         """Save a file to the file repository.
 
         :param filename: The name or path of the file to save.
@@ -239,12 +237,11 @@ class FileRepository:
         :param relative_path: The relative path within the file repository.
         :type relative_path: Path or str, optional
         """
-        file_repo = CONFIG.git_repo.new_file_repository(relative_path=relative_path)
+        file_repo = self._git_repo.new_file_repository(relative_path=relative_path)
         return await file_repo.save(filename=filename, content=content, dependencies=dependencies)
 
-    @staticmethod
     async def save_as(
-        doc: Document, with_suffix: str = None, dependencies: List[str] = None, relative_path: Path | str = "."
+        self, doc: Document, with_suffix: str = None, dependencies: List[str] = None, relative_path: Path | str = "."
     ):
         """Save a Document instance with optional modifications.
 
@@ -262,7 +259,7 @@ class FileRepository:
         :return: A boolean indicating whether the save operation was successful.
         :rtype: bool
         """
-        file_repo = CONFIG.git_repo.new_file_repository(relative_path=relative_path)
+        file_repo = self._git_repo.new_file_repository(relative_path=relative_path)
         return await file_repo.save_doc(doc=doc, with_suffix=with_suffix, dependencies=dependencies)
 
     async def delete(self, filename: Path | str):
@@ -282,7 +279,6 @@ class FileRepository:
         await dependency_file.update(filename=pathname, dependencies=None)
         logger.info(f"remove dependency key: {str(pathname)}")
 
-    @staticmethod
-    async def delete_file(filename: Path | str, relative_path: Path | str = "."):
-        file_repo = CONFIG.git_repo.new_file_repository(relative_path=relative_path)
+    async def delete_file(self, filename: Path | str, relative_path: Path | str = "."):
+        file_repo = self._git_repo.new_file_repository(relative_path=relative_path)
         await file_repo.delete(filename=filename)

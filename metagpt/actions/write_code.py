@@ -95,14 +95,14 @@ class WriteCode(Action):
         return code
 
     async def run(self, *args, **kwargs) -> CodingContext:
-        bug_feedback = await FileRepository.get_file(filename=BUGFIX_FILENAME, relative_path=DOCS_FILE_REPO)
+        bug_feedback = await self.file_repo.get_file(filename=BUGFIX_FILENAME, relative_path=DOCS_FILE_REPO)
         coding_context = CodingContext.loads(self.context.content)
-        test_doc = await FileRepository.get_file(
+        test_doc = await self.file_repo.get_file(
             filename="test_" + coding_context.filename + ".json", relative_path=TEST_OUTPUTS_FILE_REPO
         )
         summary_doc = None
         if coding_context.design_doc and coding_context.design_doc.filename:
-            summary_doc = await FileRepository.get_file(
+            summary_doc = await self.file_repo.get_file(
                 filename=coding_context.design_doc.filename, relative_path=CODE_SUMMARIES_FILE_REPO
             )
         logs = ""

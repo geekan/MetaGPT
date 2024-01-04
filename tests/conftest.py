@@ -15,8 +15,9 @@ from typing import Optional
 
 import pytest
 
-from metagpt.config import CONFIG, Config
+from metagpt.config2 import config
 from metagpt.const import DEFAULT_WORKSPACE_ROOT, TEST_DATA_PATH
+from metagpt.context import context
 from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.provider.openai_api import OpenAILLM
@@ -53,6 +54,7 @@ class MockLLM(OpenAILLM):
         timeout=3,
         stream=True,
     ) -> str:
+        logger.debug(f"MockLLM.aask: {msg}")
         if msg not in self.rsp_cache:
             # Call the original unmocked method
             rsp = await self.original_aask(msg, system_msgs, format_msgs, timeout, stream)
@@ -81,7 +83,8 @@ def rsp_cache():
 
 @pytest.fixture(scope="function")
 def llm_mock(rsp_cache, mocker):
-    llm = MockLLM()
+    llm = MockLLM(config.get_llm_config())
+    llm.cost_manager = context.cost_manager
     llm.rsp_cache = rsp_cache
     mocker.patch("metagpt.provider.base_llm.BaseLLM.aask", llm.aask)
     yield mocker
@@ -90,7 +93,7 @@ def llm_mock(rsp_cache, mocker):
 class Context:
     def __init__(self):
         self._llm_ui = None
-        self._llm_api = LLM(provider=CONFIG.get_default_llm_provider_enum())
+        self._llm_api = LLM()
 
     @property
     def llm_api(self):
@@ -153,12 +156,12 @@ def loguru_caplog(caplog):
 # init & dispose git repo
 @pytest.fixture(scope="session", autouse=True)
 def setup_and_teardown_git_repo(request):
-    CONFIG.git_repo = GitRepository(local_path=DEFAULT_WORKSPACE_ROOT / "unittest")
-    CONFIG.git_reinit = True
+    context.git_repo = GitRepository(local_path=DEFAULT_WORKSPACE_ROOT / "unittest")
+    context.config.git_reinit = True
 
     # Destroy git repo at the end of the test session.
     def fin():
-        CONFIG.git_repo.delete_repository()
+        context.git_repo.delete_repository()
 
     # Register the function for destroying the environment.
     request.addfinalizer(fin)
@@ -166,4 +169,4 @@ def setup_and_teardown_git_repo(request):
 
 @pytest.fixture(scope="session", autouse=True)
 def init_config():
-    Config()
+    pass

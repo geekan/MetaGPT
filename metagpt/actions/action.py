@@ -23,6 +23,7 @@ from metagpt.schema import (
     SerializationMixin,
     TestingContext,
 )
+from metagpt.utils.file_repository import FileRepository
 
 
 class Action(SerializationMixin, is_polymorphic_base=True):
@@ -39,6 +40,10 @@ class Action(SerializationMixin, is_polymorphic_base=True):
     @property
     def git_repo(self):
         return self.g_context.git_repo
+
+    @property
+    def file_repo(self):
+        return FileRepository(self.g_context.git_repo)
 
     @property
     def src_workspace(self):

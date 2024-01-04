@@ -47,7 +47,7 @@ class PrepareDocuments(Action):
 
         # Write the newly added requirements from the main parameter idea to `docs/requirement.txt`.
         doc = Document(root_path=DOCS_FILE_REPO, filename=REQUIREMENT_FILENAME, content=with_messages[0].content)
-        await FileRepository.save_file(filename=REQUIREMENT_FILENAME, content=doc.content, relative_path=DOCS_FILE_REPO)
+        await self.file_repo.save_file(filename=REQUIREMENT_FILENAME, content=doc.content, relative_path=DOCS_FILE_REPO)
 
         # Send a Message notification to the WritePRD action, instructing it to process requirements using
         # `docs/requirement.txt` and `docs/prds/`.

@@ -25,6 +25,6 @@ async def test_prepare_documents():
 
     await PrepareDocuments(g_context=context).run(with_messages=[msg])
     assert context.git_repo
-    doc = await FileRepository.get_file(filename=REQUIREMENT_FILENAME, relative_path=DOCS_FILE_REPO)
+    doc = await FileRepository(context.git_repo).get_file(filename=REQUIREMENT_FILENAME, relative_path=DOCS_FILE_REPO)
     assert doc
     assert doc.content == msg.content
