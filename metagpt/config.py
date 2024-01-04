@@ -63,6 +63,7 @@ class Config(metaclass=Singleton):
     home_yaml_file = Path.home() / ".metagpt/config.yaml"
     key_yaml_file = METAGPT_ROOT / "config/key.yaml"
     default_yaml_file = METAGPT_ROOT / "config/config.yaml"
+    multi_llm_yaml_file = METAGPT_ROOT / "config/multi_llm_config.yaml"
 
     def __init__(self, yaml_file=default_yaml_file, cost_data=""):
         global_options = OPTIONS.get()
@@ -201,6 +202,7 @@ class Config(metaclass=Singleton):
         self._ensure_workspace_exists()
         self.max_auto_summarize_code = self.max_auto_summarize_code or self._get("MAX_AUTO_SUMMARIZE_CODE", 1)
         self.timeout = int(self._get("TIMEOUT", 3))
+        self.model_list = self._get("MODEL_LIST")
 
     def update_via_cli(self, project_path, project_name, inc, reqa_file, max_auto_summarize_code):
         """update config via cli"""
@@ -223,7 +225,7 @@ class Config(metaclass=Singleton):
         """Load from config/key.yaml, config/config.yaml, and env in decreasing order of priority"""
         configs = dict(os.environ)
 
-        for _yaml_file in [yaml_file, self.key_yaml_file, self.home_yaml_file]:
+        for _yaml_file in [yaml_file, self.key_yaml_file, self.home_yaml_file,self.multi_llm_yaml_file]:
             if not _yaml_file.exists():
                 continue
 

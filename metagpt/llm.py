@@ -12,6 +12,7 @@ from metagpt.config import CONFIG, LLMProviderEnum
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.human_provider import HumanProvider
 from metagpt.provider.llm_provider_registry import LLM_REGISTRY
+from metagpt.logs import logger
 
 _ = HumanProvider()  # Avoid pre-commit error
 
@@ -20,5 +21,6 @@ def LLM(provider: Optional[LLMProviderEnum] = None) -> BaseLLM:
     """get the default llm provider"""
     if provider is None:
         provider = CONFIG.get_default_llm_provider_enum()
-
+    else:
+        logger.info(f"API: {provider}")
     return LLM_REGISTRY.get_provider(provider)
