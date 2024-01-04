@@ -17,7 +17,6 @@ def test_action_serialize():
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("llm_mock")
 async def test_action_deserialize():
     action = WritePRD()
     serialized_data = action.model_dump()

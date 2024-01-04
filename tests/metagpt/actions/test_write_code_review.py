@@ -12,7 +12,6 @@ from metagpt.schema import CodingContext, Document
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("llm_mock")
 async def test_write_code_review(capfd):
     code = """
 def add(a, b):

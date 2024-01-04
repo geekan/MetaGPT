@@ -17,7 +17,6 @@ def test_architect_serialize():
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("llm_mock")
 async def test_architect_deserialize():
     role = Architect()
     ser_role_dict = role.model_dump(by_alias=True)

@@ -15,7 +15,6 @@ from metagpt.roles.tutorial_assistant import TutorialAssistant
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(("language", "topic"), [("Chinese", "Write a tutorial about pip")])
-@pytest.mark.usefixtures("llm_mock")
 async def test_tutorial_assistant(language: str, topic: str):
     role = TutorialAssistant(language=language)
     msg = await role.run(topic)

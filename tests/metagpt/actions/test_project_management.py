@@ -18,7 +18,6 @@ from tests.metagpt.actions.mock_json import DESIGN, PRD
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("llm_mock")
 async def test_design_api():
     await FileRepository.save_file("1.txt", content=str(PRD), relative_path=PRDS_FILE_REPO)
     await FileRepository.save_file("1.txt", content=str(DESIGN), relative_path=SYSTEM_DESIGN_FILE_REPO)

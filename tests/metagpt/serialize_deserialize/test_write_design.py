@@ -22,7 +22,6 @@ def test_write_task_serialize():
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("llm_mock")
 async def test_write_design_deserialize():
     action = WriteDesign()
     serialized_data = action.model_dump()
@@ -32,7 +31,6 @@ async def test_write_design_deserialize():
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("llm_mock")
 async def test_write_task_deserialize():
     action = WriteTasks()
     serialized_data = action.model_dump()

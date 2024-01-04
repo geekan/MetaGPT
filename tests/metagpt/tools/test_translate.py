@@ -14,7 +14,6 @@ from metagpt.tools.translator import Translator
 
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("llm_api")
-@pytest.mark.usefixtures("llm_mock")
 async def test_translate(llm_api):
     poetries = [
         ("Let life be beautiful like summer flowers", "花"),

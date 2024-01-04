@@ -46,7 +46,6 @@ CONTEXT = """
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("llm_mock")
 async def test_write_review():
     write_review = WriteReview()
     review = await write_review.run(CONTEXT)
