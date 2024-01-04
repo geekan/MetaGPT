@@ -179,11 +179,11 @@ def check_or_create_base_tag(project_path):
     has_base_tag = os.system(check_base_tag_cmd) == 0
 
     if has_base_tag:
-        logger.info("base tag exists")
+        logger.info("Base tag exists")
         # Switch to the 'base' branch if it exists
         switch_to_base_branch_cmd = "git checkout base"
         if os.system(switch_to_base_branch_cmd) == 0:
-            logger.info("switched to base branch")
+            logger.info("Switched to base branch")
         else:
             logger.debug("Failed to switch to base branch.")
     else:
