@@ -14,6 +14,8 @@
 @Modified By: mashenquan, 2023-12-5. Enhance the workflow to navigate to WriteCode or QaEngineer based on the results
     of SummarizeCode.
 """
+
+
 from metagpt.actions import DebugError, RunCode, WriteTest
 from metagpt.actions.summarize_code import SummarizeCode
 from metagpt.config import CONFIG
@@ -30,21 +32,23 @@ from metagpt.utils.file_repository import FileRepository
 
 
 class QaEngineer(Role):
-    def __init__(
-        self,
-        name="Edward",
-        profile="QaEngineer",
-        goal="Write comprehensive and robust tests to ensure codes will work as expected without bugs",
-        constraints="The test code you write should conform to code standard like PEP8, be modular, easy to read and maintain",
-        test_round_allowed=5,
-    ):
-        super().__init__(name, profile, goal, constraints)
-        self._init_actions(
-            [WriteTest]
-        )  # FIXME: a bit hack here, only init one action to circumvent _think() logic, will overwrite _think() in future updates
+    name: str = "Edward"
+    profile: str = "QaEngineer"
+    goal: str = "Write comprehensive and robust tests to ensure codes will work as expected without bugs"
+    constraints: str = (
+        "The test code you write should conform to code standard like PEP8, be modular, " "easy to read and maintain"
+    )
+    test_round_allowed: int = 5
+    test_round: int = 0
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        # FIXME: a bit hack here, only init one action to circumvent _think() logic,
+        #  will overwrite _think() in future updates
+        self._init_actions([WriteTest])
         self._watch([SummarizeCode, WriteTest, RunCode, DebugError])
         self.test_round = 0
-        self.test_round_allowed = test_round_allowed
 
     async def _write_test(self, message: Message) -> None:
         src_file_repo = CONFIG.git_repo.new_file_repository(CONFIG.src_workspace)
@@ -111,7 +115,8 @@ class QaEngineer(Role):
         )
         run_code_context.code = None
         run_code_context.test_code = None
-        recipient = parse_recipient(result.summary)  # the recipient might be Engineer or myself
+        # the recipient might be Engineer or myself
+        recipient = parse_recipient(result.summary)
         mappings = {"Engineer": "Alex", "QaEngineer": "Edward"}
         self.publish_message(
             Message(
@@ -178,4 +183,4 @@ class QaEngineer(Role):
     async def _observe(self, ignore_memory=False) -> int:
         # This role has events that trigger and execute themselves based on conditions, and cannot rely on the
         # content of memory to activate.
-        return await super(QaEngineer, self)._observe(ignore_memory=True)
+        return await super()._observe(ignore_memory=True)

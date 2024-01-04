@@ -7,12 +7,13 @@
 @File    : test_invoice_ocr_assistant.py
 """
 
+import json
 from pathlib import Path
 
 import pandas as pd
 import pytest
 
-from metagpt.roles.invoice_ocr_assistant import InvoiceOCRAssistant
+from metagpt.roles.invoice_ocr_assistant import InvoiceOCRAssistant, InvoicePath
 from metagpt.schema import Message
 
 
@@ -55,8 +56,8 @@ async def test_invoice_ocr_assistant(
 ):
     invoice_path = Path.cwd() / invoice_path
     role = InvoiceOCRAssistant()
-    await role.run(Message(content=query, instruct_content={"file_path": invoice_path}))
+    await role.run(Message(content=query, instruct_content=InvoicePath(file_path=invoice_path)))
     invoice_table_path = Path.cwd() / invoice_table_path
     df = pd.read_excel(invoice_table_path)
     dict_result = df.to_dict(orient="records")
-    assert dict_result == expected_result
+    assert json.dumps(dict_result) == json.dumps(expected_result)

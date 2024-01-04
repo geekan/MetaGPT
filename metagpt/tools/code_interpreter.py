@@ -46,7 +46,6 @@ class OpenCodeInterpreter(object):
         interpreter.auto_run = auto_run
         interpreter.model = CONFIG.openai_api_model or "gpt-3.5-turbo"
         interpreter.api_key = CONFIG.openai_api_key
-        # interpreter.api_base = CONFIG.openai_api_base
         self.interpreter = interpreter
 
     def chat(self, query: str, reset: bool = True):

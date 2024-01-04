@@ -55,10 +55,13 @@ DATA_PATH = METAGPT_ROOT / "data"
 RESEARCH_PATH = DATA_PATH / "research"
 TUTORIAL_PATH = DATA_PATH / "tutorial_docx"
 INVOICE_OCR_TABLE_PATH = DATA_PATH / "invoice_table"
+
 UT_PATH = DATA_PATH / "ut"
 SWAGGER_PATH = UT_PATH / "files/api/"
 UT_PY_PATH = UT_PATH / "files/ut/"
 API_QUESTIONS_PATH = UT_PATH / "files/question/"
+
+SERDESER_PATH = DEFAULT_WORKSPACE_ROOT / "storage"  # TODO to store `storage` under the individual generated project
 
 TMP = METAGPT_ROOT / "tmp"
 
@@ -99,3 +102,5 @@ CODE_SUMMARIES_FILE_REPO = "docs/code_summaries"
 CODE_SUMMARIES_PDF_FILE_REPO = "resources/code_summaries"
 
 YAPI_URL = "http://yapi.deepwisdomai.com/"
+
+LLM_API_TIMEOUT = 300

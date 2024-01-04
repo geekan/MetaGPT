@@ -5,26 +5,28 @@
 @Author  : alexanderwu
 @File    : project_management_an.py
 """
+from typing import List
+
 from metagpt.actions.action_node import ActionNode
 from metagpt.logs import logger
 
 REQUIRED_PYTHON_PACKAGES = ActionNode(
     key="Required Python packages",
-    expected_type=list[str],
+    expected_type=List[str],
     instruction="Provide required Python packages in requirements.txt format.",
     example=["flask==1.1.2", "bcrypt==3.2.0"],
 )
 
 REQUIRED_OTHER_LANGUAGE_PACKAGES = ActionNode(
     key="Required Other language third-party packages",
-    expected_type=list[str],
+    expected_type=List[str],
     instruction="List down the required packages for languages other than Python.",
     example=["No third-party dependencies required"],
 )
 
 LOGIC_ANALYSIS = ActionNode(
     key="Logic Analysis",
-    expected_type=list[list[str]],
+    expected_type=List[List[str]],
     instruction="Provide a list of files with the classes/methods/functions to be implemented, "
     "including dependency analysis and imports.",
     example=[
@@ -35,7 +37,7 @@ LOGIC_ANALYSIS = ActionNode(
 
 TASK_LIST = ActionNode(
     key="Task list",
-    expected_type=list[str],
+    expected_type=List[str],
     instruction="Break down the tasks into a list of filenames, prioritized by dependency order.",
     example=["game.py", "main.py"],
 )
@@ -44,7 +46,7 @@ FULL_API_SPEC = ActionNode(
     key="Full API spec",
     expected_type=str,
     instruction="Describe all APIs using OpenAPI 3.0 spec that may be used by both frontend and backend. If front-end "
-                "and back-end communication is not required, leave it blank.",
+    "and back-end communication is not required, leave it blank.",
     example="openapi: 3.0.0 ...",
 )
 

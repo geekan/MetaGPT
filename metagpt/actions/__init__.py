@@ -13,7 +13,6 @@ from metagpt.actions.add_requirement import UserRequirement
 from metagpt.actions.debug_error import DebugError
 from metagpt.actions.design_api import WriteDesign
 from metagpt.actions.design_api_review import DesignReview
-from metagpt.actions.design_filenames import DesignFilenames
 from metagpt.actions.project_management import AssignTasks, WriteTasks
 from metagpt.actions.research import CollectLinks, WebBrowseAndSummarize, ConductResearch
 from metagpt.actions.run_code import RunCode
@@ -33,7 +32,6 @@ class ActionType(Enum):
     WRITE_PRD_REVIEW = WritePRDReview
     WRITE_DESIGN = WriteDesign
     DESIGN_REVIEW = DesignReview
-    DESIGN_FILENAMES = DesignFilenames
     WRTIE_CODE = WriteCode
     WRITE_CODE_REVIEW = WriteCodeReview
     WRITE_TEST = WriteTest

@@ -7,10 +7,11 @@
 @Modified By: mashenquan, 2023/11/27. Add `PrepareDocuments` action according to Section 2.2.3.5.1 of RFC 135.
 """
 
+
 from metagpt.actions import UserRequirement, WritePRD
 from metagpt.actions.prepare_documents import PrepareDocuments
 from metagpt.config import CONFIG
-from metagpt.roles import Role
+from metagpt.roles.role import Role
 
 
 class ProductManager(Role):
@@ -24,23 +25,13 @@ class ProductManager(Role):
         constraints (str): Constraints or limitations for the product manager.
     """
 
-    def __init__(
-        self,
-        name: str = "Alice",
-        profile: str = "Product Manager",
-        goal: str = "efficiently create a successful product",
-        constraints: str = "use same language as user requirement",
-    ) -> None:
-        """
-        Initializes the ProductManager role with given attributes.
+    name: str = "Alice"
+    profile: str = "Product Manager"
+    goal: str = "efficiently create a successful product that meets market demands and user expectations"
+    constraints: str = "utilize the same language as the user requirements for seamless communication"
 
-        Args:
-            name (str): Name of the product manager.
-            profile (str): Role profile.
-            goal (str): Goal of the product manager.
-            constraints (str): Constraints or limitations for the product manager.
-        """
-        super().__init__(name, profile, goal, constraints)
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
 
         self._init_actions([PrepareDocuments, WritePRD])
         self._watch([UserRequirement, PrepareDocuments])
@@ -54,4 +45,4 @@ class ProductManager(Role):
         return self._rc.todo
 
     async def _observe(self, ignore_memory=False) -> int:
-        return await super(ProductManager, self)._observe(ignore_memory=True)
+        return await super()._observe(ignore_memory=True)

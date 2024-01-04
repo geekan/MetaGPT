@@ -9,8 +9,12 @@
 
 from typing import Dict
 
+from pydantic import Field
+
 from metagpt.actions import Action
+from metagpt.llm import LLM
 from metagpt.prompts.tutorial_assistant import CONTENT_PROMPT, DIRECTORY_PROMPT
+from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.utils.common import OutputParser
 
 
@@ -22,9 +26,9 @@ class WriteDirectory(Action):
         language: The language to output, default is "Chinese".
     """
 
-    def __init__(self, name: str = "", language: str = "Chinese", *args, **kwargs):
-        super().__init__(name, *args, **kwargs)
-        self.language = language
+    name: str = "WriteDirectory"
+    llm: BaseGPTAPI = Field(default_factory=LLM)
+    language: str = "Chinese"
 
     async def run(self, topic: str, *args, **kwargs) -> Dict:
         """Execute the action to generate a tutorial directory according to the topic.
@@ -49,10 +53,10 @@ class WriteContent(Action):
         language: The language to output, default is "Chinese".
     """
 
-    def __init__(self, name: str = "", directory: str = "", language: str = "Chinese", *args, **kwargs):
-        super().__init__(name, *args, **kwargs)
-        self.language = language
-        self.directory = directory
+    name: str = "WriteContent"
+    llm: BaseGPTAPI = Field(default_factory=LLM)
+    directory: dict = dict()
+    language: str = "Chinese"
 
     async def run(self, topic: str, *args, **kwargs) -> str:
         """Execute the action to write document content according to the directory and topic.

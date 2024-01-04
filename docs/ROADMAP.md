@@ -21,7 +21,7 @@ To reach version v0.5, approximately 70% of the following tasks need to be compl
    3. ~~Support human confirmation and modification during the process~~ (v0.3.0) New: Support human confirmation and modification with fewer constrainsts and a more user-friendly interface
    4. Support process caching: Consider carefully whether to add server caching mechanism
    5. ~~Resolve occasional failure to follow instruction under current prompts, causing code parsing errors, through stricter system prompts~~ (v0.4.0, with function call)
-   6. Write documentation, describing the current features and usage at all levels (ongoing, continuously adding contents to [documentation site](https://docs.deepwisdom.ai/guide/get_started/introduction.html))
+   6. Write documentation, describing the current features and usage at all levels (ongoing, continuously adding contents to [documentation site](https://docs.deepwisdom.ai/main/en/guide/get_started/introduction.html))
    7. ~~Support Docker~~
 2. Features
    1. Support a more standard and stable parser (need to analyze the format that the current LLM is better at)
@@ -30,10 +30,10 @@ To reach version v0.5, approximately 70% of the following tasks need to be compl
    4. Complete the design and implementation of module breakdown
    5. Support various modes of memory: clearly distinguish between long-term and short-term memory
    6. Perfect the test role, and carry out necessary interactions with humans
-   7. Allowing natural communication between roles (expected v0.5.0)
+   7. ~~Allowing natural communication between roles~~ (v0.5.0)
    8. Implement SkillManager and the process of incremental Skill learning (experimentation done with game agents)
    9. Automatically get RPM and configure it by calling the corresponding openai page, so that each key does not need to be manually configured
-   10. IMPORTANT: Support incremental development (expected v0.5.0)
+   10. ~~IMPORTANT: Support incremental development~~ (v0.5.0)
 3. Strategies
    1. Support ReAct strategy (experimentation done with game agents)
    2. Support CoT strategy (experimentation done with game agents)
@@ -45,8 +45,8 @@ To reach version v0.5, approximately 70% of the following tasks need to be compl
    2. Implementation: Knowledge search, supporting 10+ data formats
    3. Implementation: Data EDA (expected v0.6.0)
    4. Implementation: Review
-   5. Implementation: Add Document (expected v0.5.0)
-   6. Implementation: Delete Document (expected v0.5.0)
+   5. ~~Implementation~~: Add Document (v0.5.0)
+   6. ~~Implementation~~: Delete Document (v0.5.0)
    7. Implementation: Self-training
    8. ~~Implementation: DebugError~~ (v0.2.1)
    9. Implementation: Generate reliable unit tests based on YAPI

@@ -30,15 +30,15 @@ with open(path.join(here, "requirements.txt"), encoding="utf-8") as f:
 
 setup(
     name="metagpt",
-    version="0.5.0",
-    description="The Multi-Role Meta Programming Framework",
+    version="0.5.2",
+    description="The Multi-Agent Framework",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/geekan/MetaGPT",
     author="Alexander Wu",
     author_email="alexanderwu@deepwisdom.ai",
     license="MIT",
-    keywords="metagpt multi-role multi-agent programming gpt llm metaprogramming",
+    keywords="metagpt multi-agent multi-role programming gpt llm metaprogramming",
     packages=find_packages(exclude=["contrib", "docs", "examples", "tests*"]),
     python_requires=">=3.9",
     install_requires=requirements,
@@ -48,6 +48,7 @@ setup(
         "search-google": ["google-api-python-client==2.94.0"],
         "search-ddg": ["duckduckgo-search==3.8.5"],
         "pyppeteer": ["pyppeteer>=1.0.2"],
+        "ocr": ["paddlepaddle==2.4.2", "paddleocr>=2.0.1", "tabulate==0.9.0"],
     },
     cmdclass={
         "install_mermaid": InstallMermaidCLI,

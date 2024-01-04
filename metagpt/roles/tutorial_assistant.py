@@ -12,7 +12,7 @@ from typing import Dict
 from metagpt.actions.write_tutorial import WriteContent, WriteDirectory
 from metagpt.const import TUTORIAL_PATH
 from metagpt.logs import logger
-from metagpt.roles import Role
+from metagpt.roles.role import Role, RoleReactMode
 from metagpt.schema import Message
 from metagpt.utils.file import File
 
@@ -28,31 +28,20 @@ class TutorialAssistant(Role):
         language: The language in which the tutorial documents will be generated.
     """
 
-    def __init__(
-        self,
-        name: str = "Stitch",
-        profile: str = "Tutorial Assistant",
-        goal: str = "Generate tutorial documents",
-        constraints: str = "Strictly follow Markdown's syntax, with neat and standardized layout",
-        language: str = "Chinese",
-    ):
-        super().__init__(name, profile, goal, constraints)
-        self._init_actions([WriteDirectory(language=language)])
-        self.topic = ""
-        self.main_title = ""
-        self.total_content = ""
-        self.language = language
+    name: str = "Stitch"
+    profile: str = "Tutorial Assistant"
+    goal: str = "Generate tutorial documents"
+    constraints: str = "Strictly follow Markdown's syntax, with neat and standardized layout"
+    language: str = "Chinese"
 
-    async def _think(self) -> None:
-        """Determine the next action to be taken by the role."""
-        if self._rc.todo is None:
-            self._set_state(0)
-            return
+    topic = ""
+    main_title = ""
+    total_content = ""
 
-        if self._rc.state + 1 < len(self._states):
-            self._set_state(self._rc.state + 1)
-        else:
-            self._rc.todo = None
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._init_actions([WriteDirectory(language=self.language)])
+        self._set_react_mode(react_mode=RoleReactMode.BY_ORDER.value)
 
     async def _handle_directory(self, titles: Dict) -> Message:
         """Handle the directories for the tutorial document.
@@ -75,8 +64,6 @@ class TutorialAssistant(Role):
             for second_dir in first_dir[key]:
                 directory += f"  - {second_dir}\n"
         self._init_actions(actions)
-        self._rc.todo = None
-        return Message(content=directory)
 
     async def _act(self) -> Message:
         """Perform an action as determined by the role.
@@ -90,7 +77,8 @@ class TutorialAssistant(Role):
             self.topic = msg.content
             resp = await todo.run(topic=self.topic)
             logger.info(resp)
-            return await self._handle_directory(resp)
+            await self._handle_directory(resp)
+            return await super().react()
         resp = await todo.run(topic=self.topic)
         logger.info(resp)
         if self.total_content != "":
@@ -98,17 +86,8 @@ class TutorialAssistant(Role):
         self.total_content += resp
         return Message(content=resp, role=self.profile)
 
-    async def _react(self) -> Message:
-        """Execute the assistant's think and actions.
-
-        Returns:
-            A message containing the final result of the assistant's actions.
-        """
-        while True:
-            await self._think()
-            if self._rc.todo is None:
-                break
-            msg = await self._act()
+    async def react(self) -> Message:
+        msg = await super().react()
         root_path = TUTORIAL_PATH / datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         await File.write(root_path, f"{self.main_title}.md", self.total_content.encode("utf-8"))
         return msg

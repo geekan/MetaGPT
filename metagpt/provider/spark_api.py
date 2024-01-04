@@ -19,11 +19,13 @@ from wsgiref.handlers import format_date_time
 
 import websocket  # 使用websocket_client
 
-from metagpt.config import CONFIG
+from metagpt.config import CONFIG, LLMProviderEnum
 from metagpt.logs import logger
 from metagpt.provider.base_gpt_api import BaseGPTAPI
+from metagpt.provider.llm_provider_registry import register_provider
 
 
+@register_provider(LLMProviderEnum.SPARK)
 class SparkAPI(BaseGPTAPI):
     def __init__(self):
         logger.warning("当前方法无法支持异步运行。当你使用acompletion时，并不能并行访问。")

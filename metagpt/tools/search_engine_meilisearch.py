@@ -11,6 +11,8 @@ from typing import List
 import meilisearch
 from meilisearch.index import Index
 
+from metagpt.utils.exceptions import handle_exception
+
 
 class DataSource:
     def __init__(self, name: str, url: str):
@@ -34,11 +36,7 @@ class MeilisearchEngine:
         index.add_documents(documents)
         self.set_index(index)
 
+    @handle_exception(exception_type=Exception, default_return=[])
     def search(self, query):
-        try:
-            search_results = self._index.search(query)
-            return search_results["hits"]
-        except Exception as e:
-            # Handle MeiliSearch API errors
-            print(f"MeiliSearch API error: {e}")
-            return []
+        search_results = self._index.search(query)
+        return search_results["hits"]

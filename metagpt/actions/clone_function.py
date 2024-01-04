@@ -1,8 +1,12 @@
 import traceback
 from pathlib import Path
 
+from pydantic import Field
+
 from metagpt.actions.write_code import WriteCode
+from metagpt.llm import LLM
 from metagpt.logs import logger
+from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.schema import Message
 from metagpt.utils.highlight import highlight
 
@@ -27,8 +31,9 @@ def run(*args) -> pd.DataFrame:
 
 
 class CloneFunction(WriteCode):
-    def __init__(self, name="CloneFunction", context: list[Message] = None, llm=None):
-        super().__init__(name, context, llm)
+    name: str = "CloneFunction"
+    context: list[Message] = []
+    llm: BaseGPTAPI = Field(default_factory=LLM)
 
     def _save(self, code_path, code):
         if isinstance(code_path, str):

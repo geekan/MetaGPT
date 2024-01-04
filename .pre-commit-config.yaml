@@ -2,7 +2,7 @@ default_stages: [ commit ]
 
 # Install
 # 1. pip install pre-commit
-# 2. pre-commit install(the first time you download the repo, it will be cached for future use)
+# 2. pre-commit install
 repos:
   - repo: https://github.com/pycqa/isort
     rev: 5.11.5

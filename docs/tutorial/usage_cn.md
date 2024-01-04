@@ -13,7 +13,7 @@ cp config/config.yaml config/key.yaml
 | 变量名                              | config/key.yaml                           | env                                             |
 | ----------------------------------- | ----------------------------------------- | ----------------------------------------------- |
 | OPENAI_API_KEY # 用您自己的密钥替换 | OPENAI_API_KEY: "sk-..."                  | export OPENAI_API_KEY="sk-..."                  |
-| OPENAI_API_BASE # 可选              | OPENAI_API_BASE: "https://<YOUR_SITE>/v1" | export OPENAI_API_BASE="https://<YOUR_SITE>/v1" |
+| OPENAI_BASE_URL # 可选              | OPENAI_BASE_URL: "https://<YOUR_SITE>/v1" | export OPENAI_BASE_URL="https://<YOUR_SITE>/v1" |
 
 ### 示例：启动一个创业公司
 

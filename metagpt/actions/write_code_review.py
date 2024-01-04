@@ -8,12 +8,15 @@
         WriteCode object, rather than passing them in when calling the run function.
 """
 
+from pydantic import Field
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.actions import WriteCode
 from metagpt.actions.action import Action
 from metagpt.config import CONFIG
+from metagpt.llm import LLM
 from metagpt.logs import logger
+from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.schema import CodingContext
 from metagpt.utils.common import CodeParser
 
@@ -32,13 +35,12 @@ ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenc
 ```
 """
 
-
 EXAMPLE_AND_INSTRUCTION = """
 
 {format_example}
 
 
-# Instruction: Based on the actual code situation, follow one of the "Format example".
+# Instruction: Based on the actual code situation, follow one of the "Format example". Return only 1 file under review.
 
 ## Code Review: Ordered List. Based on the "Code to be Reviewed", provide key, clear, concise, and specific answer. If any answer is no, explain how to fix it step by step.
 1. Is the code implemented as per the requirements? If not, how to achieve it? Analyse it step by step.
@@ -119,8 +121,9 @@ REWRITE_CODE_TEMPLATE = """
 
 
 class WriteCodeReview(Action):
-    def __init__(self, name="WriteCodeReview", context=None, llm=None):
-        super().__init__(name, context, llm)
+    name: str = "WriteCodeReview"
+    context: CodingContext = Field(default_factory=CodingContext)
+    llm: BaseGPTAPI = Field(default_factory=LLM)
 
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     async def write_code_review_and_rewrite(self, context_prompt, cr_prompt, filename):
@@ -154,11 +157,16 @@ class WriteCodeReview(Action):
                 code=iterative_code,
                 filename=self.context.code_doc.filename,
             )
-            cr_prompt = EXAMPLE_AND_INSTRUCTION.format(format_example=format_example, )
-            logger.info(
-                f"Code review and rewrite {self.context.code_doc.filename}: {i+1}/{k} | {len(iterative_code)=}, {len(self.context.code_doc.content)=}"
+            cr_prompt = EXAMPLE_AND_INSTRUCTION.format(
+                format_example=format_example,
             )
-            result, rewrited_code = await self.write_code_review_and_rewrite(context_prompt, cr_prompt, self.context.code_doc.filename)
+            logger.info(
+                f"Code review and rewrite {self.context.code_doc.filename}: {i + 1}/{k} | {len(iterative_code)=}, "
+                f"{len(self.context.code_doc.content)=}"
+            )
+            result, rewrited_code = await self.write_code_review_and_rewrite(
+                context_prompt, cr_prompt, self.context.code_doc.filename
+            )
             if "LBTM" in result:
                 iterative_code = rewrited_code
             elif "LGTM" in result:
