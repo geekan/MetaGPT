@@ -15,6 +15,7 @@ OPENAI_API_MODEL: "gpt-4-1106-preview"
 MAX_TOKENS: 4096
 RPM: 10
 TIMEOUT: 60 # Timeout for llm invocation
+#DEFAULT_PROVIDER: openai
 
 #### if Spark
 #SPARK_APPID : "YOUR_APPID"
