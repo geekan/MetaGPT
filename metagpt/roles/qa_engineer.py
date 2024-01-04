@@ -112,7 +112,7 @@ class QaEngineer(Role):
             return
         run_code_context.code = src_doc.content
         run_code_context.test_code = test_doc.content
-        result = await RunCode(context=run_code_context, llm=self.llm).run()
+        result = await RunCode(context=run_code_context, g_context=self.context, llm=self.llm).run()
         run_code_context.output_filename = run_code_context.test_filename + ".json"
         await self.context.git_repo.new_file_repository(TEST_OUTPUTS_FILE_REPO).save(
             filename=run_code_context.output_filename,

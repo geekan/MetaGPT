@@ -137,11 +137,13 @@ class WriteCode(Action):
         coding_context.code_doc.content = code
         return coding_context
 
-    async def get_codes(self, task_doc, exclude, git_repo, src_workspace) -> str:
+    @staticmethod
+    async def get_codes(task_doc, exclude, git_repo, src_workspace) -> str:
         if not task_doc:
             return ""
         if not task_doc.content:
-            task_doc.content = self.file_repo.get_file(filename=task_doc.filename, relative_path=TASK_FILE_REPO)
+            file_repo = git_repo.new_file_repository()
+            task_doc.content = file_repo.get_file(filename=task_doc.filename, relative_path=TASK_FILE_REPO)
         m = json.loads(task_doc.content)
         code_filenames = m.get("Task list", [])
         codes = []
