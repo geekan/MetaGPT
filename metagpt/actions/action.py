@@ -22,17 +22,31 @@ from metagpt.schema import (
     SerializationMixin,
     TestingContext,
 )
+from metagpt.config import CONFIG,LLMProviderEnum
+from metagpt.logs import logger
 
 
 class Action(SerializationMixin, is_polymorphic_base=True):
     model_config = ConfigDict(arbitrary_types_allowed=True, exclude=["llm"])
 
     name: str = ""
-    llm: BaseLLM = Field(default_factory=LLM, exclude=True)
+    llm: BaseLLM = Field(default_factory=None, exclude=True)
     context: Union[dict, CodingContext, CodeSummarizeContext, TestingContext, RunCodeContext, str, None] = ""
     prefix: str = ""  # aask*时会加上prefix，作为system_message
     desc: str = ""  # for skill manager
     node: ActionNode = Field(default=None, exclude=True)
+
+    @model_validator(mode="before")
+    def select_llm(cls, values):
+        llm_type = CONFIG._get(cls.__name__)
+        logger.info(f"Action : {cls.__name__} will use configuration as follow")
+
+        if llm_type:
+            values['llm'] = LLM(LLMProviderEnum(llm_type))
+        else:
+            values['llm'] = LLM()
+
+        return values
 
     @model_validator(mode="before")
     def set_name_if_empty(cls, values):

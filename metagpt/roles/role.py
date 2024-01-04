@@ -46,6 +46,7 @@ from metagpt.utils.common import (
     write_json_file,
 )
 from metagpt.utils.repair_llm_raw_output import extract_state_value_from_output
+from metagpt.config import CONFIG,LLMProviderEnum
 
 PREFIX_TEMPLATE = """You are a {profile}, named {name}, your goal is {goal}. """
 CONSTRAINT_TEMPLATE = "the constraint is {constraints}. "
@@ -138,7 +139,7 @@ class Role(SerializationMixin, is_polymorphic_base=True):
     desc: str = ""
     is_human: bool = False
 
-    llm: BaseLLM = Field(default_factory=LLM, exclude=True)  # Each role has its own LLM, use different system message
+    llm: BaseLLM = Field(default_factory=None, exclude=True)  # Each role has its own LLM, use different system message
     role_id: str = ""
     states: list[str] = []
     actions: list[SerializeAsAny[Action]] = Field(default=[], validate_default=True)
@@ -150,6 +151,18 @@ class Role(SerializationMixin, is_polymorphic_base=True):
     latest_observed_msg: Optional[Message] = None  # record the latest observed message when interrupted
 
     __hash__ = object.__hash__  # support Role as hashable type in `Environment.members`
+
+    @model_validator(mode="before")
+    def select_llm(cls,values):
+        llm_type = CONFIG._get(cls.__name__)
+        logger.info(f"Role : {llm_type} will use configuration as follow")
+
+        if llm_type:
+            values['llm'] = LLM(LLMProviderEnum(llm_type))
+        else:
+            values['llm'] = LLM()
+
+        return values
 
     @model_validator(mode="after")
     def check_subscription(self):

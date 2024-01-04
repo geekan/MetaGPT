@@ -16,6 +16,11 @@ from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.config import CONFIG
 from metagpt.llm import BaseLLM
+from metagpt.llm import BaseLLM
+from metagpt.provider.openai_api import OpenAILLM
+from metagpt.provider.open_llm_api import OpenLLM
+from metagpt.provider.zhipuai_api import ZhiPuAILLM
+from metagpt.provider.google_gemini_api import GeminiLLM
 from metagpt.logs import logger
 from metagpt.provider.postprocess.llm_output_postprocess import llm_output_postprocess
 from metagpt.utils.common import OutputParser, general_after_log
@@ -294,6 +299,21 @@ class ActionNode:
     def set_context(self, context):
         self.set_recursive("context", context)
 
+    def init_llm(self):
+        """Initial llm configuration for different actions when use multi-llm"""
+
+        if isinstance(self.llm,OpenLLM):
+            self.llm._OpenLLM__init_openllm()
+        elif isinstance(self.llm,OpenAILLM):
+            self.llm._init_openai()
+            self.llm._init_client()
+        elif isinstance(self.llm,ZhiPuAILLM):
+            self.llm.__init_zhipuai()
+        elif isinstance(self.llm,GeminiLLM):
+            self.llm.__init_gemini()
+        else:
+            return
+
     async def simple_fill(self, schema, mode, timeout=CONFIG.timeout, exclude=None):
         prompt = self.compile(context=self.context, schema=schema, mode=mode, exclude=exclude)
 
@@ -331,6 +351,7 @@ class ActionNode:
         """
         self.set_llm(llm)
         self.set_context(context)
+        self.init_llm()
         if self.schema:
             schema = self.schema
 

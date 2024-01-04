@@ -1,0 +1,16 @@
+#Provide LLM
+#Currently support openllm,anthropic,spark,zhipu,fireworks,open_llm,gemini,metagpt,azure_openai,ollama
+#Customize the LLM used by the role
+ProductManager:  open_llm
+Architect:  open_llm
+ProjectManager:  open_llm
+Engineer:  open_llm
+#
+####Customizing the LLM used by Action
+WritePRD:   openai
+WriteDesign:  open_llm
+WriteTasks:  open_llm
+WriteCode:  open_llm
+WriteCodeReview:  open_llm
+
+
