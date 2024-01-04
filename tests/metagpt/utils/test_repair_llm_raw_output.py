@@ -66,7 +66,6 @@ def test_repair_special_character_missing():
     target_output = '[CONTENT] {"a": "b"} [/CONTENT]'
 
     output = repair_llm_raw_output(output=raw_output, req_keys=["[/CONTENT]"])
-    print("output\n", output)
     assert output == target_output
 
 
