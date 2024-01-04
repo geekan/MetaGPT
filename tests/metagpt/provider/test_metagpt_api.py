@@ -5,10 +5,10 @@
 @Author  : mashenquan
 @File    : test_metagpt_api.py
 """
-from metagpt.config import LLMProviderEnum
+from metagpt.configs.llm_config import LLMType
 from metagpt.llm import LLM
 
 
 def test_llm():
-    llm = LLM(provider=LLMProviderEnum.METAGPT)
+    llm = LLM(provider=LLMType.METAGPT)
     assert llm

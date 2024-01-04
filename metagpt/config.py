@@ -11,13 +11,13 @@ import json
 import os
 import warnings
 from copy import deepcopy
-from enum import Enum
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
 import yaml
 
+from metagpt.configs.llm_config import LLMType
 from metagpt.const import DEFAULT_WORKSPACE_ROOT, METAGPT_ROOT, OPTIONS
 from metagpt.logs import logger
 from metagpt.tools import SearchEngineType, WebBrowserEngineType
@@ -36,19 +36,6 @@ class NotConfiguredException(Exception):
     def __init__(self, message="The required configuration is not set"):
         self.message = message
         super().__init__(self.message)
-
-
-class LLMProviderEnum(Enum):
-    OPENAI = "openai"
-    ANTHROPIC = "anthropic"
-    SPARK = "spark"
-    ZHIPUAI = "zhipuai"
-    FIREWORKS = "fireworks"
-    OPEN_LLM = "open_llm"
-    GEMINI = "gemini"
-    METAGPT = "metagpt"
-    AZURE_OPENAI = "azure_openai"
-    OLLAMA = "ollama"
 
 
 class Config(metaclass=Singleton):
@@ -81,27 +68,25 @@ class Config(metaclass=Singleton):
         global_options.update(OPTIONS.get())
         logger.debug("Config loading done.")
 
-    def get_default_llm_provider_enum(self) -> LLMProviderEnum:
+    def get_default_llm_provider_enum(self) -> LLMType:
         """Get first valid LLM provider enum"""
         mappings = {
-            LLMProviderEnum.OPENAI: bool(
+            LLMType.OPENAI: bool(
                 self._is_valid_llm_key(self.OPENAI_API_KEY) and not self.OPENAI_API_TYPE and self.OPENAI_API_MODEL
             ),
-            LLMProviderEnum.ANTHROPIC: self._is_valid_llm_key(self.ANTHROPIC_API_KEY),
-            LLMProviderEnum.ZHIPUAI: self._is_valid_llm_key(self.ZHIPUAI_API_KEY),
-            LLMProviderEnum.FIREWORKS: self._is_valid_llm_key(self.FIREWORKS_API_KEY),
-            LLMProviderEnum.OPEN_LLM: self._is_valid_llm_key(self.OPEN_LLM_API_BASE),
-            LLMProviderEnum.GEMINI: self._is_valid_llm_key(self.GEMINI_API_KEY),
-            LLMProviderEnum.METAGPT: bool(
-                self._is_valid_llm_key(self.OPENAI_API_KEY) and self.OPENAI_API_TYPE == "metagpt"
-            ),
-            LLMProviderEnum.AZURE_OPENAI: bool(
+            LLMType.ANTHROPIC: self._is_valid_llm_key(self.ANTHROPIC_API_KEY),
+            LLMType.ZHIPUAI: self._is_valid_llm_key(self.ZHIPUAI_API_KEY),
+            LLMType.FIREWORKS: self._is_valid_llm_key(self.FIREWORKS_API_KEY),
+            LLMType.OPEN_LLM: self._is_valid_llm_key(self.OPEN_LLM_API_BASE),
+            LLMType.GEMINI: self._is_valid_llm_key(self.GEMINI_API_KEY),
+            LLMType.METAGPT: bool(self._is_valid_llm_key(self.OPENAI_API_KEY) and self.OPENAI_API_TYPE == "metagpt"),
+            LLMType.AZURE_OPENAI: bool(
                 self._is_valid_llm_key(self.OPENAI_API_KEY)
                 and self.OPENAI_API_TYPE == "azure"
                 and self.DEPLOYMENT_NAME
                 and self.OPENAI_API_VERSION
             ),
-            LLMProviderEnum.OLLAMA: self._is_valid_llm_key(self.OLLAMA_API_BASE),
+            LLMType.OLLAMA: self._is_valid_llm_key(self.OLLAMA_API_BASE),
         }
         provider = None
         for k, v in mappings.items():
@@ -109,7 +94,7 @@ class Config(metaclass=Singleton):
                 provider = k
                 break
 
-        if provider is LLMProviderEnum.GEMINI and not require_python_version(req_version=(3, 10)):
+        if provider is LLMType.GEMINI and not require_python_version(req_version=(3, 10)):
             warnings.warn("Use Gemini requires Python >= 3.10")
         model_name = self.get_model_name(provider=provider)
         if model_name:
@@ -122,8 +107,8 @@ class Config(metaclass=Singleton):
     def get_model_name(self, provider=None) -> str:
         provider = provider or self.get_default_llm_provider_enum()
         model_mappings = {
-            LLMProviderEnum.OPENAI: self.OPENAI_API_MODEL,
-            LLMProviderEnum.AZURE_OPENAI: self.DEPLOYMENT_NAME,
+            LLMType.OPENAI: self.OPENAI_API_MODEL,
+            LLMType.AZURE_OPENAI: self.DEPLOYMENT_NAME,
         }
         return model_mappings.get(provider, "")
 
@@ -166,6 +151,7 @@ class Config(metaclass=Singleton):
         self.fireworks_api_model = self._get("FIREWORKS_API_MODEL")
 
         self.claude_api_key = self._get("ANTHROPIC_API_KEY")
+
         self.serpapi_api_key = self._get("SERPAPI_API_KEY")
         self.serper_api_key = self._get("SERPER_API_KEY")
         self.google_api_key = self._get("GOOGLE_API_KEY")
@@ -200,7 +186,7 @@ class Config(metaclass=Singleton):
             self.workspace_path = self.workspace_path / workspace_uid
         self._ensure_workspace_exists()
         self.max_auto_summarize_code = self.max_auto_summarize_code or self._get("MAX_AUTO_SUMMARIZE_CODE", 1)
-        self.timeout = int(self._get("TIMEOUT", 3))
+        self.timeout = int(self._get("TIMEOUT", 60))
 
     def update_via_cli(self, project_path, project_name, inc, reqa_file, max_auto_summarize_code):
         """update config via cli"""

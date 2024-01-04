@@ -15,10 +15,9 @@
     of SummarizeCode.
 """
 
-
 from metagpt.actions import DebugError, RunCode, WriteTest
 from metagpt.actions.summarize_code import SummarizeCode
-from metagpt.config import CONFIG
+from metagpt.config2 import Config
 from metagpt.const import (
     MESSAGE_ROUTE_TO_NONE,
     TEST_CODES_FILE_REPO,
@@ -50,13 +49,17 @@ class QaEngineer(Role):
         self._watch([SummarizeCode, WriteTest, RunCode, DebugError])
         self.test_round = 0
 
+    @property
+    def config(self) -> Config:
+        return self.context.config
+
     async def _write_test(self, message: Message) -> None:
-        src_file_repo = CONFIG.git_repo.new_file_repository(CONFIG.src_workspace)
+        src_file_repo = self.context.git_repo.new_file_repository(self.context.src_workspace)
         changed_files = set(src_file_repo.changed_files.keys())
         # Unit tests only.
-        if CONFIG.reqa_file and CONFIG.reqa_file not in changed_files:
-            changed_files.add(CONFIG.reqa_file)
-        tests_file_repo = CONFIG.git_repo.new_file_repository(TEST_CODES_FILE_REPO)
+        if self.config.reqa_file and self.config.reqa_file not in changed_files:
+            changed_files.add(self.config.reqa_file)
+        tests_file_repo = self.context.git_repo.new_file_repository(TEST_CODES_FILE_REPO)
         for filename in changed_files:
             # write tests
             if not filename or "test" in filename:
@@ -69,7 +72,7 @@ class QaEngineer(Role):
                 )
             logger.info(f"Writing {test_doc.filename}..")
             context = TestingContext(filename=test_doc.filename, test_doc=test_doc, code_doc=code_doc)
-            context = await WriteTest(context=context, llm=self.llm).run()
+            context = await WriteTest(context=context, _context=self.context, llm=self.llm).run()
             await tests_file_repo.save(
                 filename=context.test_doc.filename,
                 content=context.test_doc.content,
@@ -81,8 +84,8 @@ class QaEngineer(Role):
                 command=["python", context.test_doc.root_relative_path],
                 code_filename=context.code_doc.filename,
                 test_filename=context.test_doc.filename,
-                working_directory=str(CONFIG.git_repo.workdir),
-                additional_python_paths=[str(CONFIG.src_workspace)],
+                working_directory=str(self.context.git_repo.workdir),
+                additional_python_paths=[str(self.context.src_workspace)],
             )
             self.publish_message(
                 Message(
@@ -98,17 +101,21 @@ class QaEngineer(Role):
 
     async def _run_code(self, msg):
         run_code_context = RunCodeContext.loads(msg.content)
-        src_doc = await CONFIG.git_repo.new_file_repository(CONFIG.src_workspace).get(run_code_context.code_filename)
+        src_doc = await self.context.git_repo.new_file_repository(self.context.src_workspace).get(
+            run_code_context.code_filename
+        )
         if not src_doc:
             return
-        test_doc = await CONFIG.git_repo.new_file_repository(TEST_CODES_FILE_REPO).get(run_code_context.test_filename)
+        test_doc = await self.context.git_repo.new_file_repository(TEST_CODES_FILE_REPO).get(
+            run_code_context.test_filename
+        )
         if not test_doc:
             return
         run_code_context.code = src_doc.content
         run_code_context.test_code = test_doc.content
         result = await RunCode(context=run_code_context, llm=self.llm).run()
         run_code_context.output_filename = run_code_context.test_filename + ".json"
-        await CONFIG.git_repo.new_file_repository(TEST_OUTPUTS_FILE_REPO).save(
+        await self.context.git_repo.new_file_repository(TEST_OUTPUTS_FILE_REPO).save(
             filename=run_code_context.output_filename,
             content=result.model_dump_json(),
             dependencies={src_doc.root_relative_path, test_doc.root_relative_path},

@@ -13,7 +13,6 @@ from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.actions import WriteCode
 from metagpt.actions.action import Action
-from metagpt.config import CONFIG
 from metagpt.logs import logger
 from metagpt.schema import CodingContext
 from metagpt.utils.common import CodeParser
@@ -137,11 +136,16 @@ class WriteCodeReview(Action):
 
     async def run(self, *args, **kwargs) -> CodingContext:
         iterative_code = self.context.code_doc.content
-        k = CONFIG.code_review_k_times or 1
+        k = self._context.config.code_review_k_times or 1
         for i in range(k):
             format_example = FORMAT_EXAMPLE.format(filename=self.context.code_doc.filename)
             task_content = self.context.task_doc.content if self.context.task_doc else ""
-            code_context = await WriteCode.get_codes(self.context.task_doc, exclude=self.context.filename)
+            code_context = await WriteCode.get_codes(
+                self.context.task_doc,
+                exclude=self.context.filename,
+                git_repo=self._context.git_repo,
+                src_workspace=self.src_workspace,
+            )
             context = "\n".join(
                 [
                     "## System Design\n" + str(self.context.design_doc) + "\n",

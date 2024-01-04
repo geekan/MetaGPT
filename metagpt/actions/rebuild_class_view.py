@@ -10,7 +10,6 @@ import re
 from pathlib import Path
 
 from metagpt.actions import Action
-from metagpt.config import CONFIG
 from metagpt.const import CLASS_VIEW_FILE_REPO, GRAPH_REPO_FILE_REPO
 from metagpt.repo_parser import RepoParser
 from metagpt.utils.di_graph_repository import DiGraphRepository
@@ -21,8 +20,8 @@ class RebuildClassView(Action):
     def __init__(self, name="", context=None, llm=None):
         super().__init__(name=name, context=context, llm=llm)
 
-    async def run(self, with_messages=None, format=CONFIG.prompt_schema):
-        graph_repo_pathname = CONFIG.git_repo.workdir / GRAPH_REPO_FILE_REPO / CONFIG.git_repo.workdir.name
+    async def run(self, with_messages=None):
+        graph_repo_pathname = self.git_repo.workdir / GRAPH_REPO_FILE_REPO / self.git_repo.workdir.name
         graph_db = await DiGraphRepository.load_from(str(graph_repo_pathname.with_suffix(".json")))
         repo_parser = RepoParser(base_directory=self.context)
         class_views = await repo_parser.rebuild_class_views(path=Path(self.context))  # use pylint
@@ -57,7 +56,7 @@ class RebuildClassView(Action):
         # logger.info(f"{concat_namespace(filename, class_name)} {GraphKeyword.HAS_CLASS_VIEW} {class_view}")
 
     async def _save(self, graph_db):
-        class_view_file_repo = CONFIG.git_repo.new_file_repository(relative_path=CLASS_VIEW_FILE_REPO)
+        class_view_file_repo = self.git_repo.new_file_repository(relative_path=CLASS_VIEW_FILE_REPO)
         dataset = await graph_db.select(predicate=GraphKeyword.HAS_CLASS_VIEW)
         all_class_view = []
         for spo in dataset:

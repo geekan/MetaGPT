@@ -1,0 +1,4 @@
+llm:
+  gpt3t:
+    api_key: "YOUR_API_KEY"
+    model: "gpt-3.5-turbo-1106"

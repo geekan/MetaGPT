@@ -21,7 +21,6 @@ from typing import Tuple
 from pydantic import Field
 
 from metagpt.actions.action import Action
-from metagpt.config import CONFIG
 from metagpt.logs import logger
 from metagpt.schema import RunCodeContext, RunCodeResult
 from metagpt.utils.exceptions import handle_exception
@@ -89,13 +88,12 @@ class RunCode(Action):
             return "", str(e)
         return namespace.get("result", ""), ""
 
-    @classmethod
-    async def run_script(cls, working_directory, additional_python_paths=[], command=[]) -> Tuple[str, str]:
+    async def run_script(self, working_directory, additional_python_paths=[], command=[]) -> Tuple[str, str]:
         working_directory = str(working_directory)
         additional_python_paths = [str(path) for path in additional_python_paths]
 
         # Copy the current environment variables
-        env = CONFIG.new_environ()
+        env = self._context.new_environ()
 
         # Modify the PYTHONPATH environment variable
         additional_python_paths = [working_directory] + additional_python_paths

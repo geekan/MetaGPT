@@ -11,7 +11,6 @@ from pydantic import Field
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.actions.action import Action
-from metagpt.config import CONFIG
 from metagpt.const import SYSTEM_DESIGN_FILE_REPO, TASK_FILE_REPO
 from metagpt.logs import logger
 from metagpt.schema import CodeSummarizeContext
@@ -105,7 +104,7 @@ class SummarizeCode(Action):
         design_doc = await FileRepository.get_file(filename=design_pathname.name, relative_path=SYSTEM_DESIGN_FILE_REPO)
         task_pathname = Path(self.context.task_filename)
         task_doc = await FileRepository.get_file(filename=task_pathname.name, relative_path=TASK_FILE_REPO)
-        src_file_repo = CONFIG.git_repo.new_file_repository(relative_path=CONFIG.src_workspace)
+        src_file_repo = self.git_repo.new_file_repository(relative_path=self._context.src_workspace)
         code_blocks = []
         for filename in self.context.codes_filenames:
             code_doc = await src_file_repo.get(filename)

@@ -35,7 +35,6 @@ from pydantic import (
 )
 from pydantic_core import core_schema
 
-from metagpt.config import CONFIG
 from metagpt.const import (
     MESSAGE_ROUTE_CAUSE_BY,
     MESSAGE_ROUTE_FROM,
@@ -150,12 +149,6 @@ class Document(BaseModel):
         :return: relative path from root of git repository.
         """
         return os.path.join(self.root_path, self.filename)
-
-    @property
-    def full_path(self):
-        if not CONFIG.git_repo:
-            return None
-        return str(CONFIG.git_repo.workdir / self.root_path / self.filename)
 
     def __str__(self):
         return self.content

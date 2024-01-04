@@ -80,3 +80,20 @@ class CostManager(BaseModel):
     def get_costs(self) -> Costs:
         """Get all costs"""
         return Costs(self.total_prompt_tokens, self.total_completion_tokens, self.total_cost, self.total_budget)
+
+
+class TokenCostManager(CostManager):
+    """open llm model is self-host, it's free and without cost"""
+
+    def update_cost(self, prompt_tokens, completion_tokens, model):
+        """
+        Update the total cost, prompt tokens, and completion tokens.
+
+        Args:
+        prompt_tokens (int): The number of tokens used in the prompt.
+        completion_tokens (int): The number of tokens used in the completion.
+        model (str): The model used for the API call.
+        """
+        self.total_prompt_tokens += prompt_tokens
+        self.total_completion_tokens += completion_tokens
+        logger.info(f"prompt_tokens: {prompt_tokens}, completion_tokens: {completion_tokens}")

@@ -32,7 +32,7 @@ async def test_azure_tts():
                 “Writing a binary file in Python is similar to writing a regular text file, but you'll work with bytes instead of strings.”
             </mstts:express-as>
         """
-    path = CONFIG.workspace_path / "tts"
+    path = CONFIG.path / "tts"
     path.mkdir(exist_ok=True, parents=True)
     filename = path / "girl.wav"
     filename.unlink(missing_ok=True)

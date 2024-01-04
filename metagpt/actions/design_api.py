@@ -15,7 +15,6 @@ from typing import Optional
 
 from metagpt.actions import Action, ActionOutput
 from metagpt.actions.design_api_an import DESIGN_API_NODE
-from metagpt.config import CONFIG
 from metagpt.const import (
     DATA_API_DESIGN_FILE_REPO,
     PRDS_FILE_REPO,
@@ -46,13 +45,13 @@ class WriteDesign(Action):
         "clearly and in detail."
     )
 
-    async def run(self, with_messages: Message, schema: str = CONFIG.prompt_schema):
+    async def run(self, with_messages: Message, schema: str = None):
         # Use `git status` to identify which PRD documents have been modified in the `docs/prds` directory.
-        prds_file_repo = CONFIG.git_repo.new_file_repository(PRDS_FILE_REPO)
+        prds_file_repo = self.git_repo.new_file_repository(PRDS_FILE_REPO)
         changed_prds = prds_file_repo.changed_files
         # Use `git status` to identify which design documents in the `docs/system_designs` directory have undergone
         # changes.
-        system_design_file_repo = CONFIG.git_repo.new_file_repository(SYSTEM_DESIGN_FILE_REPO)
+        system_design_file_repo = self.git_repo.new_file_repository(SYSTEM_DESIGN_FILE_REPO)
         changed_system_designs = system_design_file_repo.changed_files
 
         # For those PRDs and design documents that have undergone changes, regenerate the design content.
@@ -76,11 +75,11 @@ class WriteDesign(Action):
         # leaving room for global optimization in subsequent steps.
         return ActionOutput(content=changed_files.model_dump_json(), instruct_content=changed_files)
 
-    async def _new_system_design(self, context, schema=CONFIG.prompt_schema):
+    async def _new_system_design(self, context, schema=None):
         node = await DESIGN_API_NODE.fill(context=context, llm=self.llm, schema=schema)
         return node
 
-    async def _merge(self, prd_doc, system_design_doc, schema=CONFIG.prompt_schema):
+    async def _merge(self, prd_doc, system_design_doc, schema=None):
         context = NEW_REQ_TEMPLATE.format(old_design=system_design_doc.content, context=prd_doc.content)
         node = await DESIGN_API_NODE.fill(context=context, llm=self.llm, schema=schema)
         system_design_doc.content = node.instruct_content.model_dump_json()
@@ -106,23 +105,21 @@ class WriteDesign(Action):
         await self._save_pdf(doc)
         return doc
 
-    @staticmethod
-    async def _save_data_api_design(design_doc):
+    async def _save_data_api_design(self, design_doc):
         m = json.loads(design_doc.content)
         data_api_design = m.get("Data structures and interfaces")
         if not data_api_design:
             return
-        pathname = CONFIG.git_repo.workdir / DATA_API_DESIGN_FILE_REPO / Path(design_doc.filename).with_suffix("")
+        pathname = self.git_repo.workdir / DATA_API_DESIGN_FILE_REPO / Path(design_doc.filename).with_suffix("")
         await WriteDesign._save_mermaid_file(data_api_design, pathname)
         logger.info(f"Save class view to {str(pathname)}")
 
-    @staticmethod
-    async def _save_seq_flow(design_doc):
+    async def _save_seq_flow(self, design_doc):
         m = json.loads(design_doc.content)
         seq_flow = m.get("Program call flow")
         if not seq_flow:
             return
-        pathname = CONFIG.git_repo.workdir / Path(SEQ_FLOW_FILE_REPO) / Path(design_doc.filename).with_suffix("")
+        pathname = self.git_repo.workdir / Path(SEQ_FLOW_FILE_REPO) / Path(design_doc.filename).with_suffix("")
         await WriteDesign._save_mermaid_file(seq_flow, pathname)
         logger.info(f"Saving sequence flow to {str(pathname)}")
 

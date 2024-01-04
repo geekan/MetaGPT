@@ -8,14 +8,29 @@
 """
 import json
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, Union
+
+from openai import AsyncOpenAI
+
+from metagpt.configs.llm_config import LLMConfig
+from metagpt.schema import Message
+from metagpt.utils.cost_manager import CostManager
 
 
 class BaseLLM(ABC):
     """LLM API abstract class, requiring all inheritors to provide a series of standard capabilities"""
 
+    config: LLMConfig
     use_system_prompt: bool = True
     system_prompt = "You are a helpful assistant."
+
+    # OpenAI / Azure / Others
+    aclient: Optional[Union[AsyncOpenAI]] = None
+    cost_manager: Optional[CostManager] = None
+
+    @abstractmethod
+    def __init__(self, config: LLMConfig = None):
+        pass
 
     def _user_msg(self, msg: str) -> dict[str, str]:
         return {"role": "user", "content": msg}
@@ -63,10 +78,9 @@ class BaseLLM(ABC):
             context.append(self._assistant_msg(rsp_text))
         return self._extract_assistant_rsp(context)
 
-    async def aask_code(self, msgs: list[str], timeout=3) -> str:
+    async def aask_code(self, messages: Union[str, Message, list[dict]], timeout=3) -> dict:
         """FIXME: No code segment filtering has been done here, and all results are actually displayed"""
-        rsp_text = await self.aask_batch(msgs, timeout=timeout)
-        return rsp_text
+        raise NotImplementedError
 
     @abstractmethod
     async def acompletion(self, messages: list[dict], timeout=3):

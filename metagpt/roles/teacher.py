@@ -15,7 +15,6 @@ import aiofiles
 
 from metagpt.actions import UserRequirement
 from metagpt.actions.write_teaching_plan import TeachingPlanBlock, WriteTeachingPlanPart
-from metagpt.config import CONFIG
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
@@ -81,7 +80,7 @@ class Teacher(Role):
     async def save(self, content):
         """Save teaching plan"""
         filename = Teacher.new_file_name(self.course_title)
-        pathname = CONFIG.workspace_path / "teaching_plan"
+        pathname = self.config.workspace.path / "teaching_plan"
         pathname.mkdir(exist_ok=True)
         pathname = pathname / filename
         try:

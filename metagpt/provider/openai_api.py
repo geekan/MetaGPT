@@ -10,7 +10,7 @@
 """
 
 import json
-from typing import AsyncIterator, Union
+from typing import AsyncIterator, Optional, Union
 
 from openai import APIConnectionError, AsyncOpenAI, AsyncStream
 from openai._base_client import AsyncHttpxClientWrapper
@@ -24,13 +24,13 @@ from tenacity import (
     wait_random_exponential,
 )
 
-from metagpt.config import CONFIG, Config, LLMProviderEnum
+from metagpt.configs.llm_config import LLMConfig, LLMType
 from metagpt.logs import log_llm_stream, logger
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.constant import GENERAL_FUNCTION_SCHEMA, GENERAL_TOOL_CHOICE
 from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.schema import Message
-from metagpt.utils.cost_manager import Costs
+from metagpt.utils.cost_manager import CostManager, Costs
 from metagpt.utils.exceptions import handle_exception
 from metagpt.utils.token_counter import (
     count_message_tokens,
@@ -50,18 +50,19 @@ See FAQ 5.8
     raise retry_state.outcome.exception()
 
 
-@register_provider(LLMProviderEnum.OPENAI)
+@register_provider(LLMType.OPENAI)
 class OpenAILLM(BaseLLM):
     """Check https://platform.openai.com/examples for examples"""
 
-    def __init__(self):
-        self.config: Config = CONFIG
-        self._init_openai()
+    def __init__(self, config: LLMConfig = None):
+        self.config = config
+        self._init_model()
         self._init_client()
         self.auto_max_tokens = False
+        self.cost_manager: Optional[CostManager] = None
 
-    def _init_openai(self):
-        self.model = self.config.OPENAI_API_MODEL  # Used in _calc_usage & _cons_kwargs
+    def _init_model(self):
+        self.model = self.config.model  # Used in _calc_usage & _cons_kwargs
 
     def _init_client(self):
         """https://github.com/openai/openai-python#async-usage"""
@@ -69,7 +70,7 @@ class OpenAILLM(BaseLLM):
         self.aclient = AsyncOpenAI(**kwargs)
 
     def _make_client_kwargs(self) -> dict:
-        kwargs = {"api_key": self.config.openai_api_key, "base_url": self.config.openai_base_url}
+        kwargs = {"api_key": self.config.api_key, "base_url": self.config.base_url}
 
         # to use proxy, openai v1 needs http_client
         if proxy_params := self._get_proxy_params():
@@ -79,10 +80,10 @@ class OpenAILLM(BaseLLM):
 
     def _get_proxy_params(self) -> dict:
         params = {}
-        if self.config.openai_proxy:
-            params = {"proxies": self.config.openai_proxy}
-            if self.config.openai_base_url:
-                params["base_url"] = self.config.openai_base_url
+        if self.config.proxy:
+            params = {"proxies": self.config.proxy}
+            if self.config.base_url:
+                params["base_url"] = self.config.base_url
 
         return params
 
@@ -103,7 +104,7 @@ class OpenAILLM(BaseLLM):
             "stop": None,
             "temperature": 0.3,
             "model": self.model,
-            "timeout": max(CONFIG.timeout, timeout),
+            "timeout": max(self.config.timeout, timeout),
         }
         if extra_kwargs:
             kwargs.update(extra_kwargs)
@@ -205,7 +206,7 @@ class OpenAILLM(BaseLLM):
 
     def _calc_usage(self, messages: list[dict], rsp: str) -> CompletionUsage:
         usage = CompletionUsage(prompt_tokens=0, completion_tokens=0, total_tokens=0)
-        if not CONFIG.calc_usage:
+        if not self.config.calc_usage:
             return usage
 
         try:
@@ -218,16 +219,16 @@ class OpenAILLM(BaseLLM):
 
     @handle_exception
     def _update_costs(self, usage: CompletionUsage):
-        if CONFIG.calc_usage and usage:
-            CONFIG.cost_manager.update_cost(usage.prompt_tokens, usage.completion_tokens, self.model)
+        if self.config.calc_usage and usage:
+            self.cost_manager.update_cost(usage.prompt_tokens, usage.completion_tokens, self.model)
 
     def get_costs(self) -> Costs:
-        return CONFIG.cost_manager.get_costs()
+        return self.cost_manager.get_costs()
 
     def _get_max_tokens(self, messages: list[dict]):
         if not self.auto_max_tokens:
-            return CONFIG.max_tokens_rsp
-        return get_max_completion_tokens(messages, self.model, CONFIG.max_tokens_rsp)
+            return self.config.max_token
+        return get_max_completion_tokens(messages, self.model, self.config.max_tokens)
 
     @handle_exception
     async def amoderation(self, content: Union[str, list[str]]):

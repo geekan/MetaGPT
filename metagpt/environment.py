@@ -17,7 +17,7 @@ from typing import Iterable, Set
 
 from pydantic import BaseModel, ConfigDict, Field, SerializeAsAny, model_validator
 
-from metagpt.config import CONFIG
+from metagpt.context import Context
 from metagpt.logs import logger
 from metagpt.roles.role import Role
 from metagpt.schema import Message
@@ -35,6 +35,7 @@ class Environment(BaseModel):
     roles: dict[str, SerializeAsAny[Role]] = Field(default_factory=dict, validate_default=True)
     members: dict[Role, Set] = Field(default_factory=dict, exclude=True)
     history: str = ""  # For debug
+    context: Context = Field(default_factory=Context, exclude=True)
 
     @model_validator(mode="after")
     def init_roles(self):
@@ -85,6 +86,7 @@ class Environment(BaseModel):
         """
         self.roles[role.profile] = role
         role.set_env(self)
+        role.context = self.context
 
     def add_roles(self, roles: Iterable[Role]):
         """增加一批在当前环境的角色
@@ -95,6 +97,7 @@ class Environment(BaseModel):
 
         for role in roles:  # setup system message with roles
             role.set_env(self)
+            role.context = self.context
 
     def publish_message(self, message: Message, peekable: bool = True) -> bool:
         """
@@ -162,7 +165,6 @@ class Environment(BaseModel):
         """Set the labels for message to be consumed by the object"""
         self.members[obj] = tags
 
-    @staticmethod
-    def archive(auto_archive=True):
-        if auto_archive and CONFIG.git_repo:
-            CONFIG.git_repo.archive()
+    def archive(self, auto_archive=True):
+        if auto_archive and self.context.git_repo:
+            self.context.git_repo.archive()

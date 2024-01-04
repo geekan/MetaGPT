@@ -77,7 +77,7 @@ class SDEngine:
         return self.payload
 
     def _save(self, imgs, save_name=""):
-        save_dir = CONFIG.workspace_path / SD_OUTPUT_FILE_REPO
+        save_dir = CONFIG.path / SD_OUTPUT_FILE_REPO
         if not save_dir.exists():
             save_dir.mkdir(parents=True, exist_ok=True)
         batch_decode_base64_to_image(imgs, str(save_dir), save_name=save_name)

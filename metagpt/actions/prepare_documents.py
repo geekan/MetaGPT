@@ -12,7 +12,6 @@ from pathlib import Path
 from typing import Optional
 
 from metagpt.actions import Action, ActionOutput
-from metagpt.config import CONFIG
 from metagpt.const import DOCS_FILE_REPO, REQUIREMENT_FILENAME
 from metagpt.schema import Document
 from metagpt.utils.file_repository import FileRepository
@@ -25,18 +24,22 @@ class PrepareDocuments(Action):
     name: str = "PrepareDocuments"
     context: Optional[str] = None
 
+    @property
+    def config(self):
+        return self._context.config
+
     def _init_repo(self):
         """Initialize the Git environment."""
-        if not CONFIG.project_path:
-            name = CONFIG.project_name or FileRepository.new_filename()
-            path = Path(CONFIG.workspace_path) / name
+        if not self.config.project_path:
+            name = self.config.project_name or FileRepository.new_filename()
+            path = Path(self.config.workspace.path) / name
         else:
-            path = Path(CONFIG.project_path)
-        if path.exists() and not CONFIG.inc:
+            path = Path(self.config.project_path)
+        if path.exists() and not self.config.inc:
             shutil.rmtree(path)
-        CONFIG.project_path = path
-        CONFIG.project_name = path.name
-        CONFIG.git_repo = GitRepository(local_path=path, auto_init=True)
+        self.config.project_path = path
+        self.config.project_name = path.name
+        self._context.git_repo = GitRepository(local_path=path, auto_init=True)
 
     async def run(self, with_messages, **kwargs):
         """Create and initialize the workspace folder, initialize the Git environment."""

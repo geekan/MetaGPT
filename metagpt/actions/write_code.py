@@ -21,7 +21,6 @@ from pydantic import Field
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.actions.action import Action
-from metagpt.config import CONFIG
 from metagpt.const import (
     BUGFIX_FILENAME,
     CODE_SUMMARIES_FILE_REPO,
@@ -114,7 +113,12 @@ class WriteCode(Action):
         if bug_feedback:
             code_context = coding_context.code_doc.content
         else:
-            code_context = await self.get_codes(coding_context.task_doc, exclude=self.context.filename)
+            code_context = await self.get_codes(
+                coding_context.task_doc,
+                exclude=self.context.filename,
+                git_repo=self.git_repo,
+                src_workspace=self._context.src_workspace,
+            )
 
         prompt = PROMPT_TEMPLATE.format(
             design=coding_context.design_doc.content if coding_context.design_doc else "",
@@ -129,13 +133,13 @@ class WriteCode(Action):
         code = await self.write_code(prompt)
         if not coding_context.code_doc:
             # avoid root_path pydantic ValidationError if use WriteCode alone
-            root_path = CONFIG.src_workspace if CONFIG.src_workspace else ""
+            root_path = self._context.src_workspace if self._context.src_workspace else ""
             coding_context.code_doc = Document(filename=coding_context.filename, root_path=root_path)
         coding_context.code_doc.content = code
         return coding_context
 
     @staticmethod
-    async def get_codes(task_doc, exclude) -> str:
+    async def get_codes(task_doc, exclude, git_repo, src_workspace) -> str:
         if not task_doc:
             return ""
         if not task_doc.content:
@@ -143,7 +147,7 @@ class WriteCode(Action):
         m = json.loads(task_doc.content)
         code_filenames = m.get("Task list", [])
         codes = []
-        src_file_repo = CONFIG.git_repo.new_file_repository(relative_path=CONFIG.src_workspace)
+        src_file_repo = git_repo.new_file_repository(relative_path=src_workspace)
         for filename in code_filenames:
             if filename == exclude:
                 continue

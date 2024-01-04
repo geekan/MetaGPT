@@ -5,7 +5,7 @@ from pathlib import Path
 
 import typer
 
-from metagpt.config import CONFIG
+from metagpt.config2 import config
 
 app = typer.Typer(add_completion=False)
 
@@ -44,7 +44,7 @@ def startup(
     )
     from metagpt.team import Team
 
-    CONFIG.update_via_cli(project_path, project_name, inc, reqa_file, max_auto_summarize_code)
+    config.update_via_cli(project_path, project_name, inc, reqa_file, max_auto_summarize_code)
 
     if not recover_path:
         company = Team()

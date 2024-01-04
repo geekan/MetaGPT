@@ -14,7 +14,6 @@ from typing import Any, Dict, List, Optional, Tuple, Type
 from pydantic import BaseModel, create_model, model_validator
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
-from metagpt.config import CONFIG
 from metagpt.llm import BaseLLM
 from metagpt.logs import logger
 from metagpt.provider.postprocess.llm_output_postprocess import llm_output_postprocess
@@ -262,7 +261,7 @@ class ActionNode:
         output_data_mapping: dict,
         system_msgs: Optional[list[str]] = None,
         schema="markdown",  # compatible to original format
-        timeout=CONFIG.timeout,
+        timeout=None,
     ) -> (str, BaseModel):
         """Use ActionOutput to wrap the output of aask"""
         content = await self.llm.aask(prompt, system_msgs, timeout=timeout)
@@ -294,7 +293,7 @@ class ActionNode:
     def set_context(self, context):
         self.set_recursive("context", context)
 
-    async def simple_fill(self, schema, mode, timeout=CONFIG.timeout, exclude=None):
+    async def simple_fill(self, schema, mode, timeout=None, exclude=None):
         prompt = self.compile(context=self.context, schema=schema, mode=mode, exclude=exclude)
 
         if schema != "raw":
@@ -309,7 +308,7 @@ class ActionNode:
 
         return self
 
-    async def fill(self, context, llm, schema="json", mode="auto", strgy="simple", timeout=CONFIG.timeout, exclude=[]):
+    async def fill(self, context, llm, schema="json", mode="auto", strgy="simple", timeout=None, exclude=[]):
         """Fill the node(s) with mode.
 
         :param context: Everything we should know when filling node.

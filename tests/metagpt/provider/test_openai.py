@@ -2,18 +2,18 @@ from unittest.mock import Mock
 
 import pytest
 
-from metagpt.config import CONFIG
-from metagpt.provider.openai_api import OpenAILLM
+from metagpt.llm import LLM
+from metagpt.logs import logger
 from metagpt.schema import UserMessage
-
-CONFIG.openai_proxy = None
 
 
 @pytest.mark.asyncio
 async def test_aask_code():
-    llm = OpenAILLM()
+    llm = LLM(name="gpt3t")
     msg = [{"role": "user", "content": "Write a python hello world code."}]
     rsp = await llm.aask_code(msg)  # -> {'language': 'python', 'code': "print('Hello, World!')"}
+
+    logger.info(rsp)
     assert "language" in rsp
     assert "code" in rsp
     assert len(rsp["code"]) > 0
@@ -21,7 +21,7 @@ async def test_aask_code():
 
 @pytest.mark.asyncio
 async def test_aask_code_str():
-    llm = OpenAILLM()
+    llm = LLM(name="gpt3t")
     msg = "Write a python hello world code."
     rsp = await llm.aask_code(msg)  # -> {'language': 'python', 'code': "print('Hello, World!')"}
     assert "language" in rsp
@@ -30,8 +30,8 @@ async def test_aask_code_str():
 
 
 @pytest.mark.asyncio
-async def test_aask_code_Message():
-    llm = OpenAILLM()
+async def test_aask_code_message():
+    llm = LLM(name="gpt3t")
     msg = UserMessage("Write a python hello world code.")
     rsp = await llm.aask_code(msg)  # -> {'language': 'python', 'code': "print('Hello, World!')"}
     assert "language" in rsp

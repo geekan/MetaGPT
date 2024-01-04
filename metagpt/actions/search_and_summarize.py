@@ -11,7 +11,7 @@ import pydantic
 from pydantic import Field, model_validator
 
 from metagpt.actions import Action
-from metagpt.config import CONFIG, Config
+from metagpt.config import Config
 from metagpt.logs import logger
 from metagpt.schema import Message
 from metagpt.tools import SearchEngineType
@@ -103,12 +103,11 @@ You are a member of a professional butler team and will provide helpful suggesti
 """
 
 
-# TOTEST
 class SearchAndSummarize(Action):
     name: str = ""
     content: Optional[str] = None
     config: None = Field(default_factory=Config)
-    engine: Optional[SearchEngineType] = CONFIG.search_engine
+    engine: Optional[SearchEngineType] = None
     search_func: Optional[Any] = None
     search_engine: SearchEngine = None
     result: str = ""

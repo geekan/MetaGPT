@@ -32,9 +32,11 @@ from metagpt.actions import Action, ActionOutput
 from metagpt.actions.action_node import ActionNode
 from metagpt.actions.add_requirement import UserRequirement
 from metagpt.const import SERDESER_PATH
-from metagpt.llm import LLM, HumanProvider
+from metagpt.context import Context
+from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.memory import Memory
+from metagpt.provider import HumanProvider
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.schema import Message, MessageQueue, SerializationMixin
 from metagpt.utils.common import (
@@ -148,8 +150,45 @@ class Role(SerializationMixin, is_polymorphic_base=True):
     # builtin variables
     recovered: bool = False  # to tag if a recovered role
     latest_observed_msg: Optional[Message] = None  # record the latest observed message when interrupted
+    context: Optional[Context] = Field(default=None, exclude=True)
 
     __hash__ = object.__hash__  # support Role as hashable type in `Environment.members`
+
+    @property
+    def config(self):
+        return self.context.config
+
+    @property
+    def git_repo(self):
+        return self.context.git_repo
+
+    @git_repo.setter
+    def git_repo(self, value):
+        self.context.git_repo = value
+
+    @property
+    def src_workspace(self):
+        return self.context.src_workspace
+
+    @src_workspace.setter
+    def src_workspace(self, value):
+        self.context.src_workspace = value
+
+    @property
+    def prompt_schema(self):
+        return self.context.config.prompt_schema
+
+    @property
+    def project_name(self):
+        return self.context.config.project_name
+
+    @project_name.setter
+    def project_name(self, value):
+        self.context.config.project_name = value
+
+    @property
+    def project_path(self):
+        return self.context.config.project_path
 
     @model_validator(mode="after")
     def check_subscription(self):

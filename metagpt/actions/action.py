@@ -13,6 +13,7 @@ from typing import Optional, Union
 from pydantic import ConfigDict, Field, model_validator
 
 from metagpt.actions.action_node import ActionNode
+from metagpt.context import Context
 from metagpt.llm import LLM
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.schema import (
@@ -33,14 +34,41 @@ class Action(SerializationMixin, is_polymorphic_base=True):
     prefix: str = ""  # aask*时会加上prefix，作为system_message
     desc: str = ""  # for skill manager
     node: ActionNode = Field(default=None, exclude=True)
+    _context: Optional[Context] = Field(default=None, exclude=True)
+
+    @property
+    def git_repo(self):
+        return self._context.git_repo
+
+    @property
+    def src_workspace(self):
+        return self._context.src_workspace
+
+    @property
+    def prompt_schema(self):
+        return self._context.config.prompt_schema
+
+    @property
+    def project_name(self):
+        return self._context.config.project_name
+
+    @project_name.setter
+    def project_name(self, value):
+        self._context.config.project_name = value
+
+    @property
+    def project_path(self):
+        return self._context.config.project_path
 
     @model_validator(mode="before")
+    @classmethod
     def set_name_if_empty(cls, values):
         if "name" not in values or not values["name"]:
             values["name"] = cls.__name__
         return values
 
     @model_validator(mode="before")
+    @classmethod
     def _init_with_instruction(cls, values):
         if "instruction" in values:
             name = values["name"]

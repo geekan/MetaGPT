@@ -16,7 +16,6 @@ from typing import Optional
 from metagpt.actions import ActionOutput
 from metagpt.actions.action import Action
 from metagpt.actions.project_management_an import PM_NODE
-from metagpt.config import CONFIG
 from metagpt.const import (
     PACKAGE_REQUIREMENTS_FILENAME,
     SYSTEM_DESIGN_FILE_REPO,
@@ -40,11 +39,15 @@ class WriteTasks(Action):
     name: str = "CreateTasks"
     context: Optional[str] = None
 
-    async def run(self, with_messages, schema=CONFIG.prompt_schema):
-        system_design_file_repo = CONFIG.git_repo.new_file_repository(SYSTEM_DESIGN_FILE_REPO)
+    @property
+    def prompt_schema(self):
+        return self._context.config.prompt_schema
+
+    async def run(self, with_messages, schema=None):
+        system_design_file_repo = self.git_repo.new_file_repository(SYSTEM_DESIGN_FILE_REPO)
         changed_system_designs = system_design_file_repo.changed_files
 
-        tasks_file_repo = CONFIG.git_repo.new_file_repository(TASK_FILE_REPO)
+        tasks_file_repo = self.git_repo.new_file_repository(TASK_FILE_REPO)
         changed_tasks = tasks_file_repo.changed_files
         change_files = Documents()
         # Rewrite the system designs that have undergone changes based on the git head diff under
@@ -87,21 +90,20 @@ class WriteTasks(Action):
         await self._save_pdf(task_doc=task_doc)
         return task_doc
 
-    async def _run_new_tasks(self, context, schema=CONFIG.prompt_schema):
-        node = await PM_NODE.fill(context, self.llm, schema)
+    async def _run_new_tasks(self, context):
+        node = await PM_NODE.fill(context, self.llm, schema=self.prompt_schema)
         return node
 
-    async def _merge(self, system_design_doc, task_doc, schema=CONFIG.prompt_schema) -> Document:
+    async def _merge(self, system_design_doc, task_doc) -> Document:
         context = NEW_REQ_TEMPLATE.format(context=system_design_doc.content, old_tasks=task_doc.content)
-        node = await PM_NODE.fill(context, self.llm, schema)
+        node = await PM_NODE.fill(context, self.llm, schema=self.prompt_schema)
         task_doc.content = node.instruct_content.model_dump_json()
         return task_doc
 
-    @staticmethod
-    async def _update_requirements(doc):
+    async def _update_requirements(self, doc):
         m = json.loads(doc.content)
         packages = set(m.get("Required Python third-party packages", set()))
-        file_repo = CONFIG.git_repo.new_file_repository()
+        file_repo = self.git_repo.new_file_repository()
         requirement_doc = await file_repo.get(filename=PACKAGE_REQUIREMENTS_FILENAME)
         if not requirement_doc:
             requirement_doc = Document(filename=PACKAGE_REQUIREMENTS_FILENAME, root_path=".", content="")

@@ -75,6 +75,7 @@ class WriteTeachingPlanPart(Action):
         if "{" not in value:
             return value
 
+        # FIXME: 从Context中获取参数
         merged_opts = CONFIG.options or {}
         try:
             return value.format(**merged_opts)

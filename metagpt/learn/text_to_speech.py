@@ -48,7 +48,7 @@ async def text_to_speech(
         audio_declaration = "data:audio/wav;base64,"
         base64_data = await oas3_azsure_tts(text, lang, voice, style, role, subscription_key, region)
         s3 = S3()
-        url = await s3.cache(data=base64_data, file_ext=".wav", format=BASE64_FORMAT) if s3.is_valid else ""
+        url = await s3.cache(data=base64_data, file_ext=".wav", format=BASE64_FORMAT)
         if url:
             return f"[{text}]({url})"
         return audio_declaration + base64_data if base64_data else base64_data
@@ -60,7 +60,7 @@ async def text_to_speech(
             text=text, app_id=iflytek_app_id, api_key=iflytek_api_key, api_secret=iflytek_api_secret
         )
         s3 = S3()
-        url = await s3.cache(data=base64_data, file_ext=".mp3", format=BASE64_FORMAT) if s3.is_valid else ""
+        url = await s3.cache(data=base64_data, file_ext=".mp3", format=BASE64_FORMAT)
         if url:
             return f"[{text}]({url})"
         return audio_declaration + base64_data if base64_data else base64_data

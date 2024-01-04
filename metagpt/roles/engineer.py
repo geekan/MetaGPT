@@ -27,7 +27,6 @@ from typing import Set
 from metagpt.actions import Action, WriteCode, WriteCodeReview, WriteTasks
 from metagpt.actions.fix_bug import FixBug
 from metagpt.actions.summarize_code import SummarizeCode
-from metagpt.config import CONFIG
 from metagpt.const import (
     CODE_SUMMARIES_FILE_REPO,
     CODE_SUMMARIES_PDF_FILE_REPO,
@@ -80,6 +79,7 @@ class Engineer(Role):
     code_todos: list = []
     summarize_todos: list = []
     next_todo_action: str = ""
+    n_summarize: int = 0
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
@@ -97,7 +97,7 @@ class Engineer(Role):
 
     async def _act_sp_with_cr(self, review=False) -> Set[str]:
         changed_files = set()
-        src_file_repo = CONFIG.git_repo.new_file_repository(CONFIG.src_workspace)
+        src_file_repo = self.git_repo.new_file_repository(self.src_workspace)
         for todo in self.code_todos:
             """
             # Select essential information from the historical data to reduce the length of the prompt (summarized from human experience):
@@ -153,10 +153,10 @@ class Engineer(Role):
         )
 
     async def _act_summarize(self):
-        code_summaries_file_repo = CONFIG.git_repo.new_file_repository(CODE_SUMMARIES_FILE_REPO)
-        code_summaries_pdf_file_repo = CONFIG.git_repo.new_file_repository(CODE_SUMMARIES_PDF_FILE_REPO)
+        code_summaries_file_repo = self.git_repo.new_file_repository(CODE_SUMMARIES_FILE_REPO)
+        code_summaries_pdf_file_repo = self.git_repo.new_file_repository(CODE_SUMMARIES_PDF_FILE_REPO)
         tasks = []
-        src_relative_path = CONFIG.src_workspace.relative_to(CONFIG.git_repo.workdir)
+        src_relative_path = self.src_workspace.relative_to(self.git_repo.workdir)
         for todo in self.summarize_todos:
             summary = await todo.run()
             summary_filename = Path(todo.context.design_filename).with_suffix(".md").name
@@ -179,8 +179,8 @@ class Engineer(Role):
             else:
                 await code_summaries_file_repo.delete(filename=Path(todo.context.design_filename).name)
 
-        logger.info(f"--max-auto-summarize-code={CONFIG.max_auto_summarize_code}")
-        if not tasks or CONFIG.max_auto_summarize_code == 0:
+        logger.info(f"--max-auto-summarize-code={self.config.max_auto_summarize_code}")
+        if not tasks or self.config.max_auto_summarize_code == 0:
             return Message(
                 content="",
                 role=self.profile,
@@ -190,7 +190,7 @@ class Engineer(Role):
             )
         # The maximum number of times the 'SummarizeCode' action is automatically invoked, with -1 indicating unlimited.
         # This parameter is used for debugging the workflow.
-        CONFIG.max_auto_summarize_code -= 1 if CONFIG.max_auto_summarize_code > 0 else 0
+        self.n_summarize += 1 if self.config.max_auto_summarize_code > self.n_summarize else 0
         return Message(
             content=json.dumps(tasks), role=self.profile, cause_by=SummarizeCode, send_to=self, sent_from=self
         )
@@ -203,8 +203,8 @@ class Engineer(Role):
         return False, rsp
 
     async def _think(self) -> Action | None:
-        if not CONFIG.src_workspace:
-            CONFIG.src_workspace = CONFIG.git_repo.workdir / CONFIG.git_repo.workdir.name
+        if not self.src_workspace:
+            self.src_workspace = self.git_repo.workdir / self.git_repo.workdir.name
         write_code_filters = any_to_str_set([WriteTasks, SummarizeCode, FixBug])
         summarize_code_filters = any_to_str_set([WriteCode, WriteCodeReview])
         if not self.rc.news:
@@ -253,11 +253,11 @@ class Engineer(Role):
 
     async def _new_code_actions(self, bug_fix=False):
         # Prepare file repos
-        src_file_repo = CONFIG.git_repo.new_file_repository(CONFIG.src_workspace)
+        src_file_repo = self.git_repo.new_file_repository(self.src_workspace)
         changed_src_files = src_file_repo.all_files if bug_fix else src_file_repo.changed_files
-        task_file_repo = CONFIG.git_repo.new_file_repository(TASK_FILE_REPO)
+        task_file_repo = self.git_repo.new_file_repository(TASK_FILE_REPO)
         changed_task_files = task_file_repo.changed_files
-        design_file_repo = CONFIG.git_repo.new_file_repository(SYSTEM_DESIGN_FILE_REPO)
+        design_file_repo = self.git_repo.new_file_repository(SYSTEM_DESIGN_FILE_REPO)
 
         changed_files = Documents()
         # Recode caused by upstream changes.
@@ -283,7 +283,7 @@ class Engineer(Role):
                 changed_files.docs[task_filename] = coding_doc
         self.code_todos = [WriteCode(context=i, llm=self.llm) for i in changed_files.docs.values()]
         # Code directly modified by the user.
-        dependency = await CONFIG.git_repo.get_dependency()
+        dependency = await self.git_repo.get_dependency()
         for filename in changed_src_files:
             if filename in changed_files.docs:
                 continue
@@ -301,7 +301,7 @@ class Engineer(Role):
             self.rc.todo = self.code_todos[0]
 
     async def _new_summarize_actions(self):
-        src_file_repo = CONFIG.git_repo.new_file_repository(CONFIG.src_workspace)
+        src_file_repo = self.git_repo.new_file_repository(self.src_workspace)
         src_files = src_file_repo.all_files
         # Generate a SummarizeCode action for each pair of (system_design_doc, task_doc).
         summarizations = defaultdict(list)

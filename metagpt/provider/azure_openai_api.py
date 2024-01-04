@@ -13,12 +13,12 @@
 from openai import AsyncAzureOpenAI
 from openai._base_client import AsyncHttpxClientWrapper
 
-from metagpt.config import LLMProviderEnum
+from metagpt.configs.llm_config import LLMType
 from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.provider.openai_api import OpenAILLM
 
 
-@register_provider(LLMProviderEnum.AZURE_OPENAI)
+@register_provider(LLMType.AZURE_OPENAI)
 class AzureOpenAILLM(OpenAILLM):
     """
     Check https://platform.openai.com/examples for examples
