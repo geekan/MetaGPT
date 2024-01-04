@@ -122,31 +122,31 @@ class RateLimiter:
                     logger.error(f"Connection to api.openai.com failed:{error}.Setting rpm to default parameter.")
                     return default_rpm
 
-            except Exception as exp:
-                logger.error(f"Connection to api.openai.com failed, error type:{type(exp).__name__}, error message:{str(exp)}.Setting rpm to default parameter.")
-                return default_rpm
+            # except Exception as exp:
+            #     logger.error(f"Connection to api.openai.com failed, error type:{type(exp).__name__}, error message:{str(exp)}.Setting rpm to default parameter.")
+            #     return default_rpm
 
-                async with aiohttp.ClientSession() as session:
-                    async with session.get(
-                                        "https://api.openai.com/dashboard/rate_limits",
-                                        headers={"Authorization": f"Bearer {session_key}"},
-                                        timeout=10,
-                                        proxy=openai.proxy
-                    ) as response:
-                        if response.status == 200:
-                            response_content = json.loads(await response.text())
-                            if CONFIG.openai_api_model not in response_content:
-                                raise ValueError("Get rpm from api.openai.com error. \
-                                                 You have entered a model name that is not supported by OpenAI, or the input is incorrect. \
-                                                 Please enter the correct name in the configuration file. \
-                                                 Setting rpm to default parameter.")
+            #     async with aiohttp.ClientSession() as session:
+            #         async with session.get(
+            #                             "https://api.openai.com/dashboard/rate_limits",
+            #                             headers={"Authorization": f"Bearer {session_key}"},
+            #                             timeout=10,
+            #                             proxy=openai.proxy
+            #         ) as response:
+            #             if response.status == 200:
+            #                 response_content = json.loads(await response.text())
+            #                 if CONFIG.openai_api_model not in response_content:
+            #                     raise ValueError("Get rpm from api.openai.com error. \
+            #                                      You have entered a model name that is not supported by OpenAI, or the input is incorrect. \
+            #                                      Please enter the correct name in the configuration file. \
+            #                                      Setting rpm to default parameter.")
                             
-                            limit_dict = response_content[CONFIG.openai_api_model]
-                            return limit_dict["max_requests_per_1_minute"]
-                        else:
-                            error = json.loads(await response.text())["error"]
-                            logger.error(f"Connection to api.openai.com failed:{error}.Setting rpm to default parameter.")
-                            return default_rpm
+            #                 limit_dict = response_content[CONFIG.openai_api_model]
+            #                 return limit_dict["max_requests_per_1_minute"]
+            #             else:
+            #                 error = json.loads(await response.text())["error"]
+            #                 logger.error(f"Connection to api.openai.com failed:{error}.Setting rpm to default parameter.")
+            #                 return default_rpm
 
             except Exception as exp:
                 logger.error(f"Connection to api.openai.com failed, error type:{type(exp).__name__}, error message:{str(exp)}.Setting rpm to default parameter.")
