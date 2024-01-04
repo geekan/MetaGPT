@@ -11,11 +11,15 @@ NOTE: You should use typing.List instead of list to do type annotation. Because 
 import json
 from typing import Any, Dict, List, Optional, Tuple, Type
 
-from pydantic import BaseModel, create_model, model_validator
+from pydantic import BaseModel, create_model, field_validator, model_validator
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.config import CONFIG
 from metagpt.llm import BaseLLM
+from metagpt.provider.openai_api import OpenAILLM
+from metagpt.provider.open_llm_api import OpenLLM
+from metagpt.provider.zhipuai_api import ZhiPuAILLM
+from metagpt.provider.google_gemini_api import GeminiLLM
 from metagpt.logs import logger
 from metagpt.provider.postprocess.llm_output_postprocess import llm_output_postprocess
 from metagpt.utils.common import OutputParser, general_after_log
@@ -135,21 +139,26 @@ class ActionNode:
     @classmethod
     def create_model_class(cls, class_name: str, mapping: Dict[str, Tuple[Type, Any]]):
         """基于pydantic v1的模型动态生成，用来检验结果类型正确性"""
+        new_class = create_model(class_name, **mapping)
 
-        def check_fields(cls, values):
+        @field_validator("*", mode="before")
+        @classmethod
+        def check_name(v, field):
+            if field.name not in mapping.keys():
+                raise ValueError(f"Unrecognized block: {field.name}")
+            return v
+
+        @model_validator(mode="before")
+        @classmethod
+        def check_missing_fields(values):
             required_fields = set(mapping.keys())
             missing_fields = required_fields - set(values.keys())
             if missing_fields:
                 raise ValueError(f"Missing fields: {missing_fields}")
-
-            unrecognized_fields = set(values.keys()) - required_fields
-            if unrecognized_fields:
-                logger.warning(f"Unrecognized fields: {unrecognized_fields}")
             return values
 
-        validators = {"check_missing_fields_validator": model_validator(mode="before")(check_fields)}
-
-        new_class = create_model(class_name, __validators__=validators, **mapping)
+        new_class.__validator_check_name = classmethod(check_name)
+        new_class.__root_validator_check_missing_fields = classmethod(check_missing_fields)
         return new_class
 
     def create_children_class(self, exclude=None):
@@ -288,6 +297,21 @@ class ActionNode:
         for _, i in self.children.items():
             i.set_recursive(name, value)
 
+    def init_llm(self):
+        """Initial llm configuration for different actions when use multi-llm"""
+
+        if isinstance(self.llm,OpenLLM):
+            self.llm._OpenLLM__init_openllm()
+        elif isinstance(self.llm,OpenAILLM):
+            self.llm._init_openai()
+            self.llm._init_client()
+        elif isinstance(self.llm,ZhiPuAILLM):
+            self.llm.__init_zhipuai()
+        elif isinstance(self.llm,GeminiLLM):
+            self.llm.__init_gemini()
+        else:
+            return
+
     def set_llm(self, llm):
         self.set_recursive("llm", llm)
 
@@ -331,6 +355,7 @@ class ActionNode:
         """
         self.set_llm(llm)
         self.set_context(context)
+        self.init_llm()
         if self.schema:
             schema = self.schema
 
