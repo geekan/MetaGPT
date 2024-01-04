@@ -24,7 +24,10 @@ from metagpt.utils.git_repository import GitRepository
 
 
 class MockLLM(OpenAILLM):
-    rsp_cache: dict = {}
+    def __init__(self):
+        super().__init__()
+        self.rsp_cache: dict = {}
+        self.rsp_candidates: list[dict] = []  # a test can have multiple calls with the same llm, thus a list
 
     async def original_aask(
         self,
@@ -45,6 +48,16 @@ class MockLLM(OpenAILLM):
         rsp = await self.acompletion_text(message, stream=stream, timeout=timeout)
         return rsp
 
+    async def original_aask_batch(self, msgs: list, timeout=3) -> str:
+        """A copy of metagpt.provider.base_llm.BaseLLM.aask_batch, we can't use super().aask because it will be mocked"""
+        context = []
+        for msg in msgs:
+            umsg = self._user_msg(msg)
+            context.append(umsg)
+            rsp_text = await self.acompletion_text(context, timeout=timeout)
+            context.append(self._assistant_msg(rsp_text))
+        return self._extract_assistant_rsp(context)
+
     async def aask(
         self,
         msg: str,
@@ -56,35 +69,61 @@ class MockLLM(OpenAILLM):
         if msg not in self.rsp_cache:
             # Call the original unmocked method
             rsp = await self.original_aask(msg, system_msgs, format_msgs, timeout, stream)
-            logger.info(f"Added '{rsp[:20]}' ... to response cache")
-            self.rsp_cache[msg] = rsp
+            logger.info(f"Added '{rsp[:20]} ...' to response cache")
+            self.rsp_candidates.append({msg: rsp})
             return rsp
         else:
-            logger.info("Use response cache")
+            logger.warning("Use response cache")
             return self.rsp_cache[msg]
+
+    async def aask_batch(self, msgs: list, timeout=3) -> str:
+        joined_msgs = "#MSG_SEP#".join([msg if isinstance(msg, str) else msg.content for msg in msgs])
+        if joined_msgs not in self.rsp_cache:
+            # Call the original unmocked method
+            rsp = await self.original_aask_batch(msgs, timeout)
+            logger.info(f"Added '{joined_msgs[:20]} ...' to response cache")
+            self.rsp_candidates.append({joined_msgs: rsp})
+            return rsp
+        else:
+            logger.warning("Use response cache")
+            return self.rsp_cache[joined_msgs]
 
 
 @pytest.fixture(scope="session")
 def rsp_cache():
     # model_version = CONFIG.openai_api_model
     rsp_cache_file_path = TEST_DATA_PATH / "rsp_cache.json"  # read repo-provided
-    new_rsp_cache_file_path = TEST_DATA_PATH / "rsp_cache_new.json"  # exporting a new copy
+    # new_rsp_cache_file_path = TEST_DATA_PATH / "rsp_cache_new.json"  # exporting a new copy
     if os.path.exists(rsp_cache_file_path):
         with open(rsp_cache_file_path, "r") as f1:
             rsp_cache_json = json.load(f1)
     else:
         rsp_cache_json = {}
     yield rsp_cache_json
-    with open(new_rsp_cache_file_path, "w") as f2:
+    with open(rsp_cache_file_path, "w") as f2:
         json.dump(rsp_cache_json, f2, indent=4, ensure_ascii=False)
 
 
-@pytest.fixture(scope="function")
-def llm_mock(rsp_cache, mocker):
+# Hook to capture the test result
+@pytest.hookimpl(tryfirst=True, hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    outcome = yield
+    rep = outcome.get_result()
+    if rep.when == "call":
+        item.test_outcome = rep
+
+
+@pytest.fixture(scope="function", autouse=True)
+def llm_mock(rsp_cache, mocker, request):
     llm = MockLLM()
     llm.rsp_cache = rsp_cache
     mocker.patch("metagpt.provider.base_llm.BaseLLM.aask", llm.aask)
+    mocker.patch("metagpt.provider.base_llm.BaseLLM.aask_batch", llm.aask_batch)
     yield mocker
+    if hasattr(request.node, "test_outcome") and request.node.test_outcome.passed:
+        if llm.rsp_candidates:
+            for rsp_candidate in llm.rsp_candidates:
+                llm.rsp_cache.update(rsp_candidate)
 
 
 class Context:
