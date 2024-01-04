@@ -31,7 +31,6 @@ from metagpt.const import (
 from metagpt.logs import logger
 from metagpt.schema import CodingContext, Document, RunCodeResult
 from metagpt.utils.common import CodeParser
-from metagpt.utils.file_repository import FileRepository
 
 PROMPT_TEMPLATE = """
 NOTICE
@@ -138,12 +137,11 @@ class WriteCode(Action):
         coding_context.code_doc.content = code
         return coding_context
 
-    @staticmethod
-    async def get_codes(task_doc, exclude, git_repo, src_workspace) -> str:
+    async def get_codes(self, task_doc, exclude, git_repo, src_workspace) -> str:
         if not task_doc:
             return ""
         if not task_doc.content:
-            task_doc.content = FileRepository.get_file(filename=task_doc.filename, relative_path=TASK_FILE_REPO)
+            task_doc.content = self.file_repo.get_file(filename=task_doc.filename, relative_path=TASK_FILE_REPO)
         m = json.loads(task_doc.content)
         code_filenames = m.get("Task list", [])
         codes = []

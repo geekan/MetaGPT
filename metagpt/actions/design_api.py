@@ -24,7 +24,6 @@ from metagpt.const import (
 )
 from metagpt.logs import logger
 from metagpt.schema import Document, Documents, Message
-from metagpt.utils.file_repository import FileRepository
 from metagpt.utils.mermaid import mermaid_to_file
 
 NEW_REQ_TEMPLATE = """
@@ -75,13 +74,13 @@ class WriteDesign(Action):
         # leaving room for global optimization in subsequent steps.
         return ActionOutput(content=changed_files.model_dump_json(), instruct_content=changed_files)
 
-    async def _new_system_design(self, context, schema=None):
-        node = await DESIGN_API_NODE.fill(context=context, llm=self.llm, schema=schema)
+    async def _new_system_design(self, context):
+        node = await DESIGN_API_NODE.fill(context=context, llm=self.llm)
         return node
 
-    async def _merge(self, prd_doc, system_design_doc, schema=None):
+    async def _merge(self, prd_doc, system_design_doc):
         context = NEW_REQ_TEMPLATE.format(old_design=system_design_doc.content, context=prd_doc.content)
-        node = await DESIGN_API_NODE.fill(context=context, llm=self.llm, schema=schema)
+        node = await DESIGN_API_NODE.fill(context=context, llm=self.llm)
         system_design_doc.content = node.instruct_content.model_dump_json()
         return system_design_doc
 
@@ -123,9 +122,8 @@ class WriteDesign(Action):
         await WriteDesign._save_mermaid_file(seq_flow, pathname)
         logger.info(f"Saving sequence flow to {str(pathname)}")
 
-    @staticmethod
-    async def _save_pdf(design_doc):
-        await FileRepository.save_as(doc=design_doc, with_suffix=".md", relative_path=SYSTEM_DESIGN_PDF_FILE_REPO)
+    async def _save_pdf(self, design_doc):
+        await self.file_repo.save_as(doc=design_doc, with_suffix=".md", relative_path=SYSTEM_DESIGN_PDF_FILE_REPO)
 
     @staticmethod
     async def _save_mermaid_file(data: str, pathname: Path):

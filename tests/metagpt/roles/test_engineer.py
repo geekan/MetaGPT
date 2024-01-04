@@ -20,11 +20,11 @@ from metagpt.const import (
     SYSTEM_DESIGN_FILE_REPO,
     TASK_FILE_REPO,
 )
+from metagpt.context import context
 from metagpt.logs import logger
 from metagpt.roles.engineer import Engineer
 from metagpt.schema import CodingContext, Message
 from metagpt.utils.common import CodeParser, any_to_name, any_to_str, aread, awrite
-from metagpt.utils.file_repository import FileRepository
 from metagpt.utils.git_repository import ChangeType
 from tests.metagpt.roles.mock import STRS_FOR_PARSING, TASKS, MockMessages
 
@@ -34,12 +34,12 @@ from tests.metagpt.roles.mock import STRS_FOR_PARSING, TASKS, MockMessages
 async def test_engineer():
     # Prerequisites
     rqno = "20231221155954.json"
-    await FileRepository.save_file(REQUIREMENT_FILENAME, content=MockMessages.req.content)
-    await FileRepository.save_file(rqno, relative_path=PRDS_FILE_REPO, content=MockMessages.prd.content)
-    await FileRepository.save_file(
+    await context.file_repo.save_file(REQUIREMENT_FILENAME, content=MockMessages.req.content)
+    await context.file_repo.save_file(rqno, relative_path=PRDS_FILE_REPO, content=MockMessages.prd.content)
+    await context.file_repo.save_file(
         rqno, relative_path=SYSTEM_DESIGN_FILE_REPO, content=MockMessages.system_design.content
     )
-    await FileRepository.save_file(rqno, relative_path=TASK_FILE_REPO, content=MockMessages.json_tasks.content)
+    await context.file_repo.save_file(rqno, relative_path=TASK_FILE_REPO, content=MockMessages.json_tasks.content)
 
     engineer = Engineer()
     rsp = await engineer.run(Message(content="", cause_by=WriteTasks))

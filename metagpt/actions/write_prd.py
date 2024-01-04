@@ -166,9 +166,8 @@ class WritePRD(Action):
             pathname.parent.mkdir(parents=True, exist_ok=True)
         await mermaid_to_file(quadrant_chart, pathname)
 
-    @staticmethod
-    async def _save_pdf(prd_doc):
-        await FileRepository.save_as(doc=prd_doc, with_suffix=".md", relative_path=PRD_PDF_FILE_REPO)
+    async def _save_pdf(self, prd_doc):
+        await self.file_repo.save_as(doc=prd_doc, with_suffix=".md", relative_path=PRD_PDF_FILE_REPO)
 
     async def _rename_workspace(self, prd):
         if not self.project_name:

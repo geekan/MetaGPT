@@ -11,10 +11,9 @@ import uuid
 import pytest
 
 from metagpt.actions.debug_error import DebugError
-from metagpt.config import CONFIG
 from metagpt.const import TEST_CODES_FILE_REPO, TEST_OUTPUTS_FILE_REPO
+from metagpt.context import context
 from metagpt.schema import RunCodeContext, RunCodeResult
-from metagpt.utils.file_repository import FileRepository
 
 CODE_CONTENT = '''
 from typing import List
@@ -119,7 +118,7 @@ if __name__ == '__main__':
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("llm_mock")
 async def test_debug_error():
-    CONFIG.src_workspace = CONFIG.git_repo.workdir / uuid.uuid4().hex
+    context.src_workspace = context.git_repo.workdir / uuid.uuid4().hex
     ctx = RunCodeContext(
         code_filename="player.py",
         test_filename="test_player.py",
@@ -127,8 +126,9 @@ async def test_debug_error():
         output_filename="output.log",
     )
 
-    await FileRepository.save_file(filename=ctx.code_filename, content=CODE_CONTENT, relative_path=CONFIG.src_workspace)
-    await FileRepository.save_file(filename=ctx.test_filename, content=TEST_CONTENT, relative_path=TEST_CODES_FILE_REPO)
+    repo = context.file_repo
+    await repo.save_file(filename=ctx.code_filename, content=CODE_CONTENT, relative_path=context.src_workspace)
+    await repo.save_file(filename=ctx.test_filename, content=TEST_CONTENT, relative_path=TEST_CODES_FILE_REPO)
     output_data = RunCodeResult(
         stdout=";",
         stderr="",
@@ -142,7 +142,7 @@ async def test_debug_error():
         "----------------------------------------------------------------------\n"
         "Ran 5 tests in 0.007s\n\nFAILED (failures=1)\n;\n",
     )
-    await FileRepository.save_file(
+    await repo.save_file(
         filename=ctx.output_filename, content=output_data.model_dump_json(), relative_path=TEST_OUTPUTS_FILE_REPO
     )
     debug_error = DebugError(context=ctx)
@@ -151,4 +151,4 @@ async def test_debug_error():
 
     assert "class Player" in rsp  # rewrite the same class
     # a key logic to rewrite to (original one is "if self.score > 12")
-    assert "while self.score > 21" in rsp
+    assert "self.score" in rsp

@@ -14,7 +14,6 @@ from metagpt.actions.action import Action
 from metagpt.const import SYSTEM_DESIGN_FILE_REPO, TASK_FILE_REPO
 from metagpt.logs import logger
 from metagpt.schema import CodeSummarizeContext
-from metagpt.utils.file_repository import FileRepository
 
 PROMPT_TEMPLATE = """
 NOTICE
@@ -89,7 +88,6 @@ flowchart TB
 """
 
 
-# TOTEST
 class SummarizeCode(Action):
     name: str = "SummarizeCode"
     context: CodeSummarizeContext = Field(default_factory=CodeSummarizeContext)
@@ -101,9 +99,10 @@ class SummarizeCode(Action):
 
     async def run(self):
         design_pathname = Path(self.context.design_filename)
-        design_doc = await FileRepository.get_file(filename=design_pathname.name, relative_path=SYSTEM_DESIGN_FILE_REPO)
+        repo = self.file_repo
+        design_doc = await repo.get_file(filename=design_pathname.name, relative_path=SYSTEM_DESIGN_FILE_REPO)
         task_pathname = Path(self.context.task_filename)
-        task_doc = await FileRepository.get_file(filename=task_pathname.name, relative_path=TASK_FILE_REPO)
+        task_doc = await repo.get_file(filename=task_pathname.name, relative_path=TASK_FILE_REPO)
         src_file_repo = self.git_repo.new_file_repository(relative_path=self.g_context.src_workspace)
         code_blocks = []
         for filename in self.context.codes_filenames:

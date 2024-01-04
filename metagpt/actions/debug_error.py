@@ -9,17 +9,14 @@
         2. According to Section 2.2.3.1 of RFC 135, replace file data in the message with the file name.
 """
 import re
-from typing import Optional
 
 from pydantic import Field
 
 from metagpt.actions.action import Action
 from metagpt.const import TEST_CODES_FILE_REPO, TEST_OUTPUTS_FILE_REPO
-from metagpt.context import Context
 from metagpt.logs import logger
 from metagpt.schema import RunCodeContext, RunCodeResult
 from metagpt.utils.common import CodeParser
-from metagpt.utils.file_repository import FileRepository
 
 PROMPT_TEMPLATE = """
 NOTICE
@@ -51,10 +48,9 @@ Now you should start rewriting the code:
 
 class DebugError(Action):
     context: RunCodeContext = Field(default_factory=RunCodeContext)
-    g_context: Optional[Context] = None
 
     async def run(self, *args, **kwargs) -> str:
-        output_doc = await FileRepository.get_file(
+        output_doc = await self.file_repo.get_file(
             filename=self.context.output_filename, relative_path=TEST_OUTPUTS_FILE_REPO
         )
         if not output_doc:
@@ -66,12 +62,12 @@ class DebugError(Action):
             return ""
 
         logger.info(f"Debug and rewrite {self.context.test_filename}")
-        code_doc = await FileRepository.get_file(
+        code_doc = await self.file_repo.get_file(
             filename=self.context.code_filename, relative_path=self.g_context.src_workspace
         )
         if not code_doc:
             return ""
-        test_doc = await FileRepository.get_file(
+        test_doc = await self.file_repo.get_file(
             filename=self.context.test_filename, relative_path=TEST_CODES_FILE_REPO
         )
         if not test_doc:

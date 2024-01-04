@@ -24,7 +24,6 @@ from metagpt.const import (
 )
 from metagpt.logs import logger
 from metagpt.schema import Document, Documents
-from metagpt.utils.file_repository import FileRepository
 
 NEW_REQ_TEMPLATE = """
 ### Legacy Content
@@ -39,11 +38,7 @@ class WriteTasks(Action):
     name: str = "CreateTasks"
     context: Optional[str] = None
 
-    @property
-    def prompt_schema(self):
-        return self.g_context.config.prompt_schema
-
-    async def run(self, with_messages, schema=None):
+    async def run(self, with_messages):
         system_design_file_repo = self.git_repo.new_file_repository(SYSTEM_DESIGN_FILE_REPO)
         changed_system_designs = system_design_file_repo.changed_files
 
@@ -114,6 +109,5 @@ class WriteTasks(Action):
             packages.add(pkg)
         await file_repo.save(PACKAGE_REQUIREMENTS_FILENAME, content="\n".join(packages))
 
-    @staticmethod
-    async def _save_pdf(task_doc):
-        await FileRepository.save_as(doc=task_doc, with_suffix=".md", relative_path=TASK_PDF_FILE_REPO)
+    async def _save_pdf(self, task_doc):
+        await self.file_repo.save_as(doc=task_doc, with_suffix=".md", relative_path=TASK_PDF_FILE_REPO)

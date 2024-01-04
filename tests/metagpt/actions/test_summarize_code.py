@@ -11,9 +11,9 @@ import pytest
 from metagpt.actions.summarize_code import SummarizeCode
 from metagpt.config import CONFIG
 from metagpt.const import SYSTEM_DESIGN_FILE_REPO, TASK_FILE_REPO
+from metagpt.context import context
 from metagpt.logs import logger
 from metagpt.schema import CodeSummarizeContext
-from metagpt.utils.file_repository import FileRepository
 
 DESIGN_CONTENT = """
 {"Implementation approach": "To develop this snake game, we will use the Python language and choose the Pygame library. Pygame is an open-source Python module collection specifically designed for writing video games. It provides functionalities such as displaying images and playing sounds, making it suitable for creating intuitive and responsive user interfaces. We will ensure efficient game logic to prevent any delays during gameplay. The scoring system will be simple, with the snake gaining points for each food it eats. We will use Pygame's event handling system to implement pause and resume functionality, as well as high-score tracking. The difficulty will increase by speeding up the snake's movement. In the initial version, we will focus on single-player mode and consider adding multiplayer mode and customizable skins in future updates. Based on the new requirement, we will also add a moving obstacle that appears randomly. If the snake eats this obstacle, the game will end. If the snake does not eat the obstacle, it will disappear after 5 seconds. For this, we need to add mechanisms for obstacle generation, movement, and disappearance in the game logic.", "Project_name": "snake_game", "File list": ["main.py", "game.py", "snake.py", "food.py", "obstacle.py", "scoreboard.py", "constants.py", "assets/styles.css", "assets/index.html"], "Data structures and interfaces": "```mermaid\n    classDiagram\n        class Game{\n            +int score\n            +int speed\n            +bool game_over\n            +bool paused\n            +Snake snake\n            +Food food\n            +Obstacle obstacle\n            +Scoreboard scoreboard\n            +start_game() void\n            +pause_game() void\n            +resume_game() void\n            +end_game() void\n            +increase_difficulty() void\n            +update() void\n            +render() void\n            Game()\n        }\n        class Snake{\n            +list body_parts\n            +str direction\n            +bool grow\n            +move() void\n            +grow() void\n            +check_collision() bool\n            Snake()\n        }\n        class Food{\n            +tuple position\n            +spawn() void\n            Food()\n        }\n        class Obstacle{\n            +tuple position\n            +int lifetime\n            +bool active\n            +spawn() void\n            +move() void\n            +check_collision() bool\n            +disappear() void\n            Obstacle()\n        }\n        class Scoreboard{\n            +int high_score\n            +update_score(int) void\n            +reset_score() void\n            +load_high_score() void\n            +save_high_score() void\n            Scoreboard()\n        }\n        class Constants{\n        }\n        Game \"1\" -- \"1\" Snake: has\n        Game \"1\" -- \"1\" Food: has\n        Game \"1\" -- \"1\" Obstacle: has\n        Game \"1\" -- \"1\" Scoreboard: has\n    ```", "Program call flow": "```sequenceDiagram\n    participant M as Main\n    participant G as Game\n    participant S as Snake\n    participant F as Food\n    participant O as Obstacle\n    participant SB as Scoreboard\n    M->>G: start_game()\n    loop game loop\n        G->>S: move()\n        G->>S: check_collision()\n        G->>F: spawn()\n        G->>O: spawn()\n        G->>O: move()\n        G->>O: check_collision()\n        G->>O: disappear()\n        G->>SB: update_score(score)\n        G->>G: update()\n        G->>G: render()\n        alt if paused\n            M->>G: pause_game()\n            M->>G: resume_game()\n        end\n        alt if game_over\n            G->>M: end_game()\n        end\n    end\n```", "Anything UNCLEAR": "There is no need for further clarification as the requirements are already clear."}
@@ -179,15 +179,15 @@ class Snake:
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("llm_mock")
 async def test_summarize_code():
-    CONFIG.src_workspace = CONFIG.git_repo.workdir / "src"
-    await FileRepository.save_file(filename="1.json", relative_path=SYSTEM_DESIGN_FILE_REPO, content=DESIGN_CONTENT)
-    await FileRepository.save_file(filename="1.json", relative_path=TASK_FILE_REPO, content=TASK_CONTENT)
-    await FileRepository.save_file(filename="food.py", relative_path=CONFIG.src_workspace, content=FOOD_PY)
-    await FileRepository.save_file(filename="game.py", relative_path=CONFIG.src_workspace, content=GAME_PY)
-    await FileRepository.save_file(filename="main.py", relative_path=CONFIG.src_workspace, content=MAIN_PY)
-    await FileRepository.save_file(filename="snake.py", relative_path=CONFIG.src_workspace, content=SNAKE_PY)
+    context.src_workspace = context.git_repo.workdir / "src"
+    await context.file_repo.save_file(filename="1.json", relative_path=SYSTEM_DESIGN_FILE_REPO, content=DESIGN_CONTENT)
+    await context.file_repo.save_file(filename="1.json", relative_path=TASK_FILE_REPO, content=TASK_CONTENT)
+    await context.file_repo.save_file(filename="food.py", relative_path=CONFIG.src_workspace, content=FOOD_PY)
+    await context.file_repo.save_file(filename="game.py", relative_path=CONFIG.src_workspace, content=GAME_PY)
+    await context.file_repo.save_file(filename="main.py", relative_path=CONFIG.src_workspace, content=MAIN_PY)
+    await context.file_repo.save_file(filename="snake.py", relative_path=CONFIG.src_workspace, content=SNAKE_PY)
 
-    src_file_repo = CONFIG.git_repo.new_file_repository(relative_path=CONFIG.src_workspace)
+    src_file_repo = context.git_repo.new_file_repository(relative_path=CONFIG.src_workspace)
     all_files = src_file_repo.all_files
     ctx = CodeSummarizeContext(design_filename="1.json", task_filename="1.json", codes_filenames=all_files)
     action = SummarizeCode(context=ctx)

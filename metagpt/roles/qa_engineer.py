@@ -27,7 +27,6 @@ from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Document, Message, RunCodeContext, TestingContext
 from metagpt.utils.common import any_to_str_set, parse_recipient
-from metagpt.utils.file_repository import FileRepository
 
 
 class QaEngineer(Role):
@@ -138,7 +137,7 @@ class QaEngineer(Role):
     async def _debug_error(self, msg):
         run_code_context = RunCodeContext.loads(msg.content)
         code = await DebugError(context=run_code_context, g_context=self.context, llm=self.llm).run()
-        await FileRepository.save_file(
+        await self.context.file_repo.save_file(
             filename=run_code_context.test_filename, content=code, relative_path=TEST_CODES_FILE_REPO
         )
         run_code_context.output = None

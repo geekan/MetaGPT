@@ -12,7 +12,6 @@ from metagpt.actions.prepare_documents import PrepareDocuments
 from metagpt.const import DOCS_FILE_REPO, REQUIREMENT_FILENAME
 from metagpt.context import context
 from metagpt.schema import Message
-from metagpt.utils.file_repository import FileRepository
 
 
 @pytest.mark.asyncio
@@ -25,6 +24,6 @@ async def test_prepare_documents():
 
     await PrepareDocuments(g_context=context).run(with_messages=[msg])
     assert context.git_repo
-    doc = await FileRepository(context.git_repo).get_file(filename=REQUIREMENT_FILENAME, relative_path=DOCS_FILE_REPO)
+    doc = await context.file_repo.get_file(filename=REQUIREMENT_FILENAME, relative_path=DOCS_FILE_REPO)
     assert doc
     assert doc.content == msg.content

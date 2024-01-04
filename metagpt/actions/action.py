@@ -12,6 +12,7 @@ from typing import Optional, Union
 
 from pydantic import ConfigDict, Field, model_validator
 
+import metagpt
 from metagpt.actions.action_node import ActionNode
 from metagpt.context import Context
 from metagpt.llm import LLM
@@ -35,7 +36,7 @@ class Action(SerializationMixin, is_polymorphic_base=True):
     prefix: str = ""  # aask*时会加上prefix，作为system_message
     desc: str = ""  # for skill manager
     node: ActionNode = Field(default=None, exclude=True)
-    g_context: Optional[Context] = Field(default=None, exclude=True)
+    g_context: Optional[Context] = Field(default=metagpt.context.context, exclude=True)
 
     @property
     def git_repo(self):

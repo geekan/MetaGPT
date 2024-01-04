@@ -32,7 +32,7 @@ from metagpt.actions import Action, ActionOutput
 from metagpt.actions.action_node import ActionNode
 from metagpt.actions.add_requirement import UserRequirement
 from metagpt.const import SERDESER_PATH
-from metagpt.context import Context
+from metagpt.context import Context, context
 from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.memory import Memory
@@ -150,7 +150,7 @@ class Role(SerializationMixin, is_polymorphic_base=True):
     # builtin variables
     recovered: bool = False  # to tag if a recovered role
     latest_observed_msg: Optional[Message] = None  # record the latest observed message when interrupted
-    context: Optional[Context] = Field(default=None, exclude=True)
+    context: Optional[Context] = Field(default=context, exclude=True)
 
     __hash__ = object.__hash__  # support Role as hashable type in `Environment.members`
 
