@@ -46,6 +46,7 @@ extras_require["test"] = [
     "chromadb==0.4.14",
     "gradio==3.0.0",
     "grpcio-status==1.48.2",
+    "mock==5.1.0",
 ]
 
 extras_require["pyppeteer"] = [
