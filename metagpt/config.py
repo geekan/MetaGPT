@@ -202,7 +202,6 @@ class Config(metaclass=Singleton):
         self._ensure_workspace_exists()
         self.max_auto_summarize_code = self.max_auto_summarize_code or self._get("MAX_AUTO_SUMMARIZE_CODE", 1)
         self.timeout = int(self._get("TIMEOUT", 3))
-        self.model_list = self._get("MODEL_LIST")
 
     def update_via_cli(self, project_path, project_name, inc, reqa_file, max_auto_summarize_code):
         """update config via cli"""
