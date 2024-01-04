@@ -48,7 +48,6 @@ from metagpt.utils.common import (
 from metagpt.utils.repair_llm_raw_output import extract_state_value_from_output
 from metagpt.config import CONFIG,LLMProviderEnum
 
-
 PREFIX_TEMPLATE = """You are a {profile}, named {name}, your goal is {goal}. """
 CONSTRAINT_TEMPLATE = "the constraint is {constraints}. "
 
