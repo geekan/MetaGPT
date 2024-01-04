@@ -8,12 +8,13 @@
 ## The official OPENAI_BASE_URL is https://api.openai.com/v1
 ## If the official OPENAI_BASE_URL is not available, we recommend using the [openai-forward](https://github.com/beidongjiedeguang/openai-forward).
 ## Or, you can configure OPENAI_PROXY to access official OPENAI_BASE_URL.
-OPENAI_BASE_URL: "https://api.openai.com/v1"
+OPENAI_BASE_URL: "https://api.openai-forward.com/v1"
 #OPENAI_PROXY: "http://127.0.0.1:8118"
 #OPENAI_API_KEY: "YOUR_API_KEY"  # set the value to sk-xxx if you host the openai interface for open llm model
-OPENAI_API_MODEL: "gpt-4-1106-preview"
-MAX_TOKENS: 4096
-RPM: 10
+OPENAI_API_KEY: "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"
+OPENAI_API_MODEL: "gpt-3.5-turbo-1106"
+MAX_TOKENS: 1500
+RPM: 3
 LLM_TYPE: OpenAI  # Except for these three major models – OpenAI, MetaGPT LLM, and Azure – other large models can be distinguished based on the validity of the key.
 TIMEOUT: 60 # Timeout for llm invocation
 
@@ -42,8 +43,8 @@ TIMEOUT: 60 # Timeout for llm invocation
 # GEMINI_API_KEY: "YOUR_API_KEY"
 
 #### if use self-host open llm model with openai-compatible interface
-#OPEN_LLM_API_BASE: "http://127.0.0.1:8000/v1"
-#OPEN_LLM_API_MODEL: "llama2-13b"
+OPEN_LLM_API_BASE: "http://106.75.10.65:17865/v1"
+OPEN_LLM_API_MODEL: "llama2-13b"
 #
 ##### if use Fireworks api
 #FIREWORKS_API_KEY: "YOUR_API_KEY"
@@ -141,4 +142,4 @@ TIMEOUT: 60 # Timeout for llm invocation
 #REDIS_PASSWORD: "YOUR_REDIS_PASSWORD"
 #REDIS_DB: "YOUR_REDIS_DB_INDEX, str, 0-based"
 
-# DISABLE_LLM_PROVIDER_CHECK: false
+DISABLE_LLM_PROVIDER_CHECK: true
