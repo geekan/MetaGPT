@@ -11,10 +11,11 @@ NOTE: You should use typing.List instead of list to do type annotation. Because 
 import json
 from typing import Any, Dict, List, Optional, Tuple, Type
 
-from pydantic import BaseModel, create_model, field_validator, model_validator
+from pydantic import BaseModel, create_model, model_validator
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.config import CONFIG
+from metagpt.llm import BaseLLM
 from metagpt.llm import BaseLLM
 from metagpt.provider.openai_api import OpenAILLM
 from metagpt.provider.open_llm_api import OpenLLM
@@ -139,26 +140,21 @@ class ActionNode:
     @classmethod
     def create_model_class(cls, class_name: str, mapping: Dict[str, Tuple[Type, Any]]):
         """基于pydantic v1的模型动态生成，用来检验结果类型正确性"""
-        new_class = create_model(class_name, **mapping)
 
-        @field_validator("*", mode="before")
-        @classmethod
-        def check_name(v, field):
-            if field.name not in mapping.keys():
-                raise ValueError(f"Unrecognized block: {field.name}")
-            return v
-
-        @model_validator(mode="before")
-        @classmethod
-        def check_missing_fields(values):
+        def check_fields(cls, values):
             required_fields = set(mapping.keys())
             missing_fields = required_fields - set(values.keys())
             if missing_fields:
                 raise ValueError(f"Missing fields: {missing_fields}")
+
+            unrecognized_fields = set(values.keys()) - required_fields
+            if unrecognized_fields:
+                logger.warning(f"Unrecognized fields: {unrecognized_fields}")
             return values
 
-        new_class.__validator_check_name = classmethod(check_name)
-        new_class.__root_validator_check_missing_fields = classmethod(check_missing_fields)
+        validators = {"check_missing_fields_validator": model_validator(mode="before")(check_fields)}
+
+        new_class = create_model(class_name, __validators__=validators, **mapping)
         return new_class
 
     def create_children_class(self, exclude=None):
@@ -297,6 +293,12 @@ class ActionNode:
         for _, i in self.children.items():
             i.set_recursive(name, value)
 
+    def set_llm(self, llm):
+        self.set_recursive("llm", llm)
+
+    def set_context(self, context):
+        self.set_recursive("context", context)
+
     def init_llm(self):
         """Initial llm configuration for different actions when use multi-llm"""
 
@@ -311,12 +313,6 @@ class ActionNode:
             self.llm.__init_gemini()
         else:
             return
-
-    def set_llm(self, llm):
-        self.set_recursive("llm", llm)
-
-    def set_context(self, context):
-        self.set_recursive("context", context)
 
     async def simple_fill(self, schema, mode, timeout=CONFIG.timeout, exclude=None):
         prompt = self.compile(context=self.context, schema=schema, mode=mode, exclude=exclude)
