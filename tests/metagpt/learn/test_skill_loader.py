@@ -6,6 +6,8 @@
 @File    : test_skill_loader.py
 @Desc    : Unit tests.
 """
+from pathlib import Path
+
 import pytest
 
 from metagpt.config import CONFIG
@@ -23,7 +25,8 @@ async def test_suite():
         {"id": 6, "name": "knowledge", "type": "builtin", "config": {}, "enabled": True},
         {"id": 6, "name": "web_search", "type": "builtin", "config": {}, "enabled": True},
     ]
-    loader = await SkillsDeclaration.load()
+    pathname = Path(__file__).parent / "../../../docs/.well-known/skills.yaml"
+    loader = await SkillsDeclaration.load(skill_yaml_file_name=pathname)
     skills = loader.get_skill_list()
     assert skills
     assert len(skills) >= 3
