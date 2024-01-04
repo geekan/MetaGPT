@@ -8,7 +8,7 @@
 import pytest
 
 from metagpt.actions.write_prd_an import REFINE_PRD_NODE
-from metagpt.provider import OpenAIGPTAPI
+from metagpt.llm import LLM
 
 CONTEXT = """
 ### New Project Name
@@ -78,11 +78,11 @@ Please change the game's score target from 2048 to 4096, and change the interfac
 
 @pytest.fixture()
 def llm():
-    return OpenAIGPTAPI()
+    return LLM()
 
 
 @pytest.mark.asyncio
 async def test_write_prd_an(llm):
     node = await REFINE_PRD_NODE.fill(CONTEXT, llm)
     assert node.instruct_content
-    assert "Refined Requirement Pool" in node.instruct_content.json(ensure_ascii=False)
+    assert "Refined Requirement Pool" in node.instruct_content.model_dump_json()

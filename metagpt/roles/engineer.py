@@ -346,7 +346,7 @@ class Engineer(Role):
 
         context = CODE_GUIDELINE_CONTEXT.format(requirement=requirement, tasks=tasks, design=design, code=old_codes)
         node = await WriteCodeGuideline().run(context=context)
-        guideline = node.instruct_content.json(ensure_ascii=False)
+        guideline = node.instruct_content.model_dump_json()
         return guideline
 
     @staticmethod

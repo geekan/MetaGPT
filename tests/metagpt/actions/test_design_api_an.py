@@ -8,7 +8,7 @@
 import pytest
 
 from metagpt.actions.design_api_an import REFINED_DESIGN_NODES
-from metagpt.provider import OpenAIGPTAPI
+from metagpt.llm import LLM
 
 CONTEXT = """
 ### Legacy Content
@@ -94,11 +94,11 @@ CONTEXT = """
 
 @pytest.fixture()
 def llm():
-    return OpenAIGPTAPI()
+    return LLM()
 
 
 @pytest.mark.asyncio
 async def test_write_design_an():
     node = await REFINED_DESIGN_NODES.fill(CONTEXT, llm)
     assert node.instruct_content
-    assert "Refined Data Structures and Interfaces" in node.instruct_content.json(ensure_ascii=False)
+    assert "Refined Data Structures and Interfaces" in node.instruct_content.model_dump_json()

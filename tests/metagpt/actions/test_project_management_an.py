@@ -8,7 +8,7 @@
 import pytest
 
 from metagpt.actions.project_management_an import REFINED_PM_NODES
-from metagpt.provider import OpenAIGPTAPI
+from metagpt.llm import LLM
 
 CONTEXT = """
 ### Legacy Content
@@ -134,11 +134,11 @@ CONTEXT = """
 
 @pytest.fixture()
 def llm():
-    return OpenAIGPTAPI()
+    return LLM()
 
 
 @pytest.mark.asyncio
 async def test_project_management_an(llm):
     node = await REFINED_PM_NODES.fill(CONTEXT, llm)
     assert node.instruct_content
-    assert "Refined Logic Analysis" in node.instruct_content.json(ensure_ascii=False)
+    assert "Refined Logic Analysis" in node.instruct_content.model_dump_json()

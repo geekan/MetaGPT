@@ -200,7 +200,7 @@ async def test_write_code_guideline_an():
     )
     node = await write_code_guideline.run(context=context)
     assert node.instruct_content
-    assert "Incremental Change" in node.instruct_content.json(ensure_ascii=False)
+    assert "Incremental Change" in node.instruct_content.model_dump_json()
 
 
 @pytest.mark.asyncio

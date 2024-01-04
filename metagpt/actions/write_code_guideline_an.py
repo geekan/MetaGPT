@@ -425,7 +425,7 @@ class WriteCodeGuideline(Action):
 async def main():
     write_code_guideline = WriteCodeGuideline()
     node = await write_code_guideline.run(CODE_GUIDELINE_CONTEXT_EXAMPLE)
-    guideline = node.instruct_content.json(ensure_ascii=False)
+    guideline = node.instruct_content.model_dump_json()
     print(guideline)
 
 

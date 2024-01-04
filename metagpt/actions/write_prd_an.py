@@ -214,7 +214,7 @@ Based on New Requirements, output a New PRD that seamlessly integrates both the 
 """
 
 REFINE_PRD_TEMPLATE = """
-### New Project Name
+### Project Name
 {project_name}
 
 ### New Requirements
