@@ -14,6 +14,7 @@ OPENAI_BASE_URL: "https://api.openai.com/v1"
 OPENAI_API_MODEL: "gpt-4-1106-preview"
 MAX_TOKENS: 4096
 RPM: 10
+LLM_TYPE: OpenAI  # Except for these three major models – OpenAI, MetaGPT LLM, and Azure – other large models can be distinguished based on the validity of the key.
 TIMEOUT: 60 # Timeout for llm invocation
 
 #### if Spark
@@ -106,7 +107,7 @@ TIMEOUT: 60 # Timeout for llm invocation
 # MODEL_FOR_RESEARCHER_SUMMARY: gpt-3.5-turbo
 # MODEL_FOR_RESEARCHER_REPORT: gpt-3.5-turbo-16k
 
-### choose the engine for mermaid conversion,
+### choose the engine for mermaid conversion, 
 # default is nodejs, you can change it to playwright,pyppeteer or ink
 # MERMAID_ENGINE: nodejs
 
