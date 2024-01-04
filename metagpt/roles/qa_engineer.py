@@ -72,7 +72,7 @@ class QaEngineer(Role):
                 )
             logger.info(f"Writing {test_doc.filename}..")
             context = TestingContext(filename=test_doc.filename, test_doc=test_doc, code_doc=code_doc)
-            context = await WriteTest(context=context, _context=self.context, llm=self.llm).run()
+            context = await WriteTest(context=context, g_context=self.context, llm=self.llm).run()
             await tests_file_repo.save(
                 filename=context.test_doc.filename,
                 content=context.test_doc.content,
@@ -137,7 +137,7 @@ class QaEngineer(Role):
 
     async def _debug_error(self, msg):
         run_code_context = RunCodeContext.loads(msg.content)
-        code = await DebugError(context=run_code_context, llm=self.llm).run()
+        code = await DebugError(context=run_code_context, g_context=self.context, llm=self.llm).run()
         await FileRepository.save_file(
             filename=run_code_context.test_filename, content=code, relative_path=TEST_CODES_FILE_REPO
         )

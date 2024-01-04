@@ -9,7 +9,7 @@
 
 import pytest
 
-from metagpt.provider.openai_api import OpenAILLM as LLM
+from metagpt.llm import LLM
 
 
 @pytest.fixture()
@@ -20,6 +20,12 @@ def llm():
 @pytest.mark.asyncio
 async def test_llm_aask(llm):
     rsp = await llm.aask("hello world", stream=False)
+    assert len(rsp) > 0
+
+
+@pytest.mark.asyncio
+async def test_llm_aask_stream(llm):
+    rsp = await llm.aask("hello world", stream=True)
     assert len(rsp) > 0
 
 

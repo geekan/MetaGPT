@@ -87,7 +87,7 @@ class InvoiceOCRAssistant(Role):
             else:
                 self._init_actions([GenerateTable])
 
-            self.rc.todo = None
+            self.set_todo(None)
             content = INVOICE_OCR_SUCCESS
             resp = OCRResults(ocr_result=json.dumps(resp))
             msg = Message(content=content, instruct_content=resp)

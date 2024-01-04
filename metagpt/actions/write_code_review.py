@@ -136,14 +136,14 @@ class WriteCodeReview(Action):
 
     async def run(self, *args, **kwargs) -> CodingContext:
         iterative_code = self.context.code_doc.content
-        k = self._context.config.code_review_k_times or 1
+        k = self.g_context.config.code_review_k_times or 1
         for i in range(k):
             format_example = FORMAT_EXAMPLE.format(filename=self.context.code_doc.filename)
             task_content = self.context.task_doc.content if self.context.task_doc else ""
             code_context = await WriteCode.get_codes(
                 self.context.task_doc,
                 exclude=self.context.filename,
-                git_repo=self._context.git_repo,
+                git_repo=self.g_context.git_repo,
                 src_workspace=self.src_workspace,
             )
             context = "\n".join(

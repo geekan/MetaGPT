@@ -49,7 +49,7 @@ class Researcher(Role):
         if self.rc.state + 1 < len(self.states):
             self._set_state(self.rc.state + 1)
         else:
-            self.rc.todo = None
+            self.set_todo(None)
             return False
 
     async def _act(self) -> Message:

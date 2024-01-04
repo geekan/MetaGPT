@@ -41,7 +41,7 @@ class WriteTasks(Action):
 
     @property
     def prompt_schema(self):
-        return self._context.config.prompt_schema
+        return self.g_context.config.prompt_schema
 
     async def run(self, with_messages, schema=None):
         system_design_file_repo = self.git_repo.new_file_repository(SYSTEM_DESIGN_FILE_REPO)

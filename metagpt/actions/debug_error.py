@@ -51,7 +51,7 @@ Now you should start rewriting the code:
 
 class DebugError(Action):
     context: RunCodeContext = Field(default_factory=RunCodeContext)
-    _context: Optional[Context] = None
+    g_context: Optional[Context] = None
 
     async def run(self, *args, **kwargs) -> str:
         output_doc = await FileRepository.get_file(
@@ -67,7 +67,7 @@ class DebugError(Action):
 
         logger.info(f"Debug and rewrite {self.context.test_filename}")
         code_doc = await FileRepository.get_file(
-            filename=self.context.code_filename, relative_path=self._context.src_workspace
+            filename=self.context.code_filename, relative_path=self.g_context.src_workspace
         )
         if not code_doc:
             return ""

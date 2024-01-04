@@ -34,31 +34,31 @@ class Action(SerializationMixin, is_polymorphic_base=True):
     prefix: str = ""  # aask*时会加上prefix，作为system_message
     desc: str = ""  # for skill manager
     node: ActionNode = Field(default=None, exclude=True)
-    _context: Optional[Context] = Field(default=None, exclude=True)
+    g_context: Optional[Context] = Field(default=None, exclude=True)
 
     @property
     def git_repo(self):
-        return self._context.git_repo
+        return self.g_context.git_repo
 
     @property
     def src_workspace(self):
-        return self._context.src_workspace
+        return self.g_context.src_workspace
 
     @property
     def prompt_schema(self):
-        return self._context.config.prompt_schema
+        return self.g_context.config.prompt_schema
 
     @property
     def project_name(self):
-        return self._context.config.project_name
+        return self.g_context.config.project_name
 
     @project_name.setter
     def project_name(self, value):
-        self._context.config.project_name = value
+        self.g_context.config.project_name = value
 
     @property
     def project_path(self):
-        return self._context.config.project_path
+        return self.g_context.config.project_path
 
     @model_validator(mode="before")
     @classmethod

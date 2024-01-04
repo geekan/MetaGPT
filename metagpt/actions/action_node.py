@@ -261,7 +261,7 @@ class ActionNode:
         output_data_mapping: dict,
         system_msgs: Optional[list[str]] = None,
         schema="markdown",  # compatible to original format
-        timeout=None,
+        timeout=3,
     ) -> (str, BaseModel):
         """Use ActionOutput to wrap the output of aask"""
         content = await self.llm.aask(prompt, system_msgs, timeout=timeout)
@@ -293,7 +293,7 @@ class ActionNode:
     def set_context(self, context):
         self.set_recursive("context", context)
 
-    async def simple_fill(self, schema, mode, timeout=None, exclude=None):
+    async def simple_fill(self, schema, mode, timeout=3, exclude=None):
         prompt = self.compile(context=self.context, schema=schema, mode=mode, exclude=exclude)
 
         if schema != "raw":
@@ -308,7 +308,7 @@ class ActionNode:
 
         return self
 
-    async def fill(self, context, llm, schema="json", mode="auto", strgy="simple", timeout=None, exclude=[]):
+    async def fill(self, context, llm, schema="json", mode="auto", strgy="simple", timeout=3, exclude=[]):
         """Fill the node(s) with mode.
 
         :param context: Everything we should know when filling node.

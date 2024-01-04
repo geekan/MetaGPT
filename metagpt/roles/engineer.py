@@ -281,7 +281,9 @@ class Engineer(Role):
                         f"{changed_files.docs[task_filename].model_dump_json()}"
                     )
                 changed_files.docs[task_filename] = coding_doc
-        self.code_todos = [WriteCode(context=i, llm=self.llm) for i in changed_files.docs.values()]
+        self.code_todos = [
+            WriteCode(context=i, g_context=self.context, llm=self.llm) for i in changed_files.docs.values()
+        ]
         # Code directly modified by the user.
         dependency = await self.git_repo.get_dependency()
         for filename in changed_src_files:
@@ -295,10 +297,10 @@ class Engineer(Role):
                 dependency=dependency,
             )
             changed_files.docs[filename] = coding_doc
-            self.code_todos.append(WriteCode(context=coding_doc, llm=self.llm))
+            self.code_todos.append(WriteCode(context=coding_doc, g_context=self.context, llm=self.llm))
 
         if self.code_todos:
-            self.rc.todo = self.code_todos[0]
+            self.set_todo(self.code_todos[0])
 
     async def _new_summarize_actions(self):
         src_file_repo = self.git_repo.new_file_repository(self.src_workspace)
@@ -313,7 +315,7 @@ class Engineer(Role):
             ctx.codes_filenames = filenames
             self.summarize_todos.append(SummarizeCode(context=ctx, llm=self.llm))
         if self.summarize_todos:
-            self.rc.todo = self.summarize_todos[0]
+            self.set_todo(self.summarize_todos[0])
 
     @property
     def todo(self) -> str:

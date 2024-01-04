@@ -59,7 +59,7 @@ class Teacher(Role):
             self._set_state(self.rc.state + 1)
             return True
 
-        self.rc.todo = None
+        self.set_todo(None)
         return False
 
     async def _react(self) -> Message:

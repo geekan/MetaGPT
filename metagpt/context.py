@@ -9,8 +9,6 @@ import os
 from pathlib import Path
 from typing import Dict, Optional
 
-from pydantic import BaseModel
-
 from metagpt.config2 import Config
 from metagpt.const import OPTIONS
 from metagpt.provider.base_llm import BaseLLM
@@ -19,7 +17,7 @@ from metagpt.utils.cost_manager import CostManager
 from metagpt.utils.git_repository import GitRepository
 
 
-class Context(BaseModel):
+class Context:
     kwargs: Dict = {}
     config: Config = Config.default()
     git_repo: Optional[GitRepository] = None

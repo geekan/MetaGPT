@@ -93,7 +93,7 @@ class RunCode(Action):
         additional_python_paths = [str(path) for path in additional_python_paths]
 
         # Copy the current environment variables
-        env = self._context.new_environ()
+        env = self.g_context.new_environ()
 
         # Modify the PYTHONPATH environment variable
         additional_python_paths = [working_directory] + additional_python_paths

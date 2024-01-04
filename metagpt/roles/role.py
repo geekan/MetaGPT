@@ -155,6 +155,15 @@ class Role(SerializationMixin, is_polymorphic_base=True):
     __hash__ = object.__hash__  # support Role as hashable type in `Environment.members`
 
     @property
+    def todo(self) -> Action:
+        return self.rc.todo
+
+    def set_todo(self, value: Optional[Action]):
+        if value:
+            value.g_context = self.context
+        self.rc.todo = value
+
+    @property
     def config(self):
         return self.context.config
 
@@ -326,7 +335,7 @@ class Role(SerializationMixin, is_polymorphic_base=True):
         """Update the current state."""
         self.rc.state = state
         logger.debug(f"actions={self.actions}, state={state}")
-        self.rc.todo = self.actions[self.rc.state] if state >= 0 else None
+        self.set_todo(self.actions[self.rc.state] if state >= 0 else None)
 
     def set_env(self, env: "Environment"):
         """Set the environment in which the role works. The role can talk to the environment and can also receive
@@ -521,7 +530,7 @@ class Role(SerializationMixin, is_polymorphic_base=True):
         rsp = await self.react()
 
         # Reset the next action to be taken.
-        self.rc.todo = None
+        self.set_todo(None)
         # Send the response message to the Environment object to have it relay the message to the subscribers.
         self.publish_message(rsp)
         return rsp
@@ -542,8 +551,9 @@ class Role(SerializationMixin, is_polymorphic_base=True):
         return ActionOutput(content=msg.content, instruct_content=msg.instruct_content)
 
     @property
-    def todo(self) -> str:
+    def first_action(self) -> str:
         """AgentStore uses this attribute to display to the user what actions the current role should take."""
+        # FIXME: this is a hack, we should not use the first action to represent the todo
         if self.actions:
             return any_to_name(self.actions[0])
         return ""

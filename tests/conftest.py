@@ -104,9 +104,9 @@ class Context:
 @pytest.fixture(scope="package")
 def llm_api():
     logger.info("Setting up the test")
-    _context = Context()
+    g_context = Context()
 
-    yield _context.llm_api
+    yield g_context.llm_api
 
     logger.info("Tearing down the test")
 

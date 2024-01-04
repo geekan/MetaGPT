@@ -97,8 +97,10 @@ class Assistant(Role):
     async def talk_handler(self, text, **kwargs) -> bool:
         history = self.memory.history_text
         text = kwargs.get("last_talk") or text
-        self.rc.todo = TalkAction(
-            context=text, knowledge=self.memory.get_knowledge(), history_summary=history, llm=self.llm, **kwargs
+        self.set_todo(
+            TalkAction(
+                context=text, knowledge=self.memory.get_knowledge(), history_summary=history, llm=self.llm, **kwargs
+            )
         )
         return True
 
@@ -112,7 +114,7 @@ class Assistant(Role):
         await action.run(**kwargs)
         if action.args is None:
             return await self.talk_handler(text=last_talk, **kwargs)
-        self.rc.todo = SkillAction(skill=skill, args=action.args, llm=self.llm, name=skill.name, desc=skill.description)
+        self.set_todo(SkillAction(skill=skill, args=action.args, llm=self.llm, name=skill.name, desc=skill.description))
         return True
 
     async def refine_memory(self) -> str:
