@@ -1,0 +1,350 @@
+{
+    "search_metadata": {
+        "id": "65952b400ead410fae1f548f",
+        "status": "Success",
+        "json_endpoint": "https://serpapi.com/searches/f3454e001dacdae1/65952b400ead410fae1f548f.json",
+        "created_at": "2024-01-03 09:39:12 UTC",
+        "processed_at": "2024-01-03 09:39:12 UTC",
+        "google_url": "https://www.google.com/search?q=metagpt&oq=metagpt&hl=en&gl=us&num=8&sourceid=chrome&ie=UTF-8",
+        "raw_html_file": "https://serpapi.com/searches/f3454e001dacdae1/65952b400ead410fae1f548f.html",
+        "total_time_taken": 1.78
+    },
+    "search_parameters": {
+        "engine": "google",
+        "q": "metagpt",
+        "google_domain": "google.com",
+        "hl": "en",
+        "gl": "us",
+        "num": "8",
+        "device": "desktop"
+    },
+    "search_information": {
+        "query_displayed": "metagpt",
+        "total_results": 110000,
+        "time_taken_displayed": 0.3,
+        "menu_items": [
+            {
+                "position": 1,
+                "title": "News",
+                "link": "https://www.google.com/search?num=8&sca_esv=4bcb71572bca9257&sca_upv=1&hl=en&gl=us&q=metagpt&tbm=nws&source=lnms&sa=X&ved=2ahUKEwjh-qqa9sCDAxV4fTABHZ8gClUQ0pQJegQIDRAB",
+                "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google&gl=us&google_domain=google.com&hl=en&num=8&q=metagpt&tbm=nws"
+            },
+            {
+                "position": 2,
+                "title": "Images",
+                "link": "https://www.google.com/search?num=8&sca_esv=4bcb71572bca9257&sca_upv=1&hl=en&gl=us&q=metagpt&tbm=isch&source=lnms&sa=X&ved=2ahUKEwjh-qqa9sCDAxV4fTABHZ8gClUQ0pQJegQIDBAB",
+                "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google_images&gl=us&google_domain=google.com&hl=en&q=metagpt"
+            },
+            {
+                "position": 3,
+                "title": "Perspectives",
+                "link": "https://www.google.com/search?num=8&sca_esv=4bcb71572bca9257&sca_upv=1&hl=en&gl=us&q=metagpt&uds=AMIYvT-LYN0C-KgfpAf4hDGmHUqYzPt2YD2Sjup6GzZxffnKpRHzrkDtH-YMw_l16Rw3319fYKZIWOgxIizOkCn4WaiWmK--Gd_KWgcdk2AGw9K3og-5w2Q&udm=4&sa=X&ved=2ahUKEwjh-qqa9sCDAxV4fTABHZ8gClUQs6gLegQICxAB",
+                "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google&gl=us&google_domain=google.com&hl=en&num=8&q=metagpt"
+            },
+            {
+                "position": 4,
+                "title": "Download",
+                "link": "https://www.google.com/search?num=8&sca_esv=4bcb71572bca9257&sca_upv=1&hl=en&gl=us&q=MetaGPT+download&uds=AMIYvT-5zq-IxPfUvCGLrNgPl7Seu8ODWYIoXhisgEvQZV3Y8pl5TzJLGfCHEIw7og1p8xJsV4GDoO9mlugZYdQpedp8elSjLy5ABJfq6NUCY0MAtXsFqu8&sa=X&ved=2ahUKEwjh-qqa9sCDAxV4fTABHZ8gClUQxKsJegQIChAB&ictx=0",
+                "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google&gl=us&google_domain=google.com&hl=en&num=8&q=MetaGPT+download"
+            },
+            {
+                "position": 5,
+                "title": "Videos",
+                "link": "https://www.google.com/search?num=8&sca_esv=4bcb71572bca9257&sca_upv=1&hl=en&gl=us&q=metagpt&tbm=vid&source=lnms&sa=X&ved=2ahUKEwjh-qqa9sCDAxV4fTABHZ8gClUQ0pQJegQINxAB",
+                "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google_videos&gl=us&google_domain=google.com&hl=en&num=8&q=metagpt"
+            },
+            {
+                "position": 6,
+                "title": "Shopping",
+                "link": "https://www.google.com/search?num=8&sca_esv=4bcb71572bca9257&sca_upv=1&hl=en&gl=us&q=metagpt&tbm=shop&source=lnms",
+                "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google_shopping&gl=us&google_domain=google.com&hl=en&num=8&q=metagpt"
+            },
+            {
+                "position": 7,
+                "title": "Review",
+                "link": "https://www.google.com/search?num=8&sca_esv=4bcb71572bca9257&sca_upv=1&hl=en&gl=us&q=MetaGPT+review&uds=AMIYvT9VP83904q4-J94lPXwCEnwL3j5QAtL1fmmW1S1R5RgwRLmxvuFVQ7OcN0dFbrjXQkUwlZlHOt9GNXyfomxI6gDvZxA6gokeHbKUq_anMgIkmFv3IY&sa=X&ved=2ahUKEwjh-qqa9sCDAxV4fTABHZ8gClUQxKsJegQIOhAB&ictx=0",
+                "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google&gl=us&google_domain=google.com&hl=en&num=8&q=MetaGPT+review"
+            },
+            {
+                "position": 8,
+                "title": "Online",
+                "link": "https://www.google.com/search?num=8&sca_esv=4bcb71572bca9257&sca_upv=1&hl=en&gl=us&q=MetaGPT+online&uds=AMIYvT8Ap1YYLsvgKVUJMi_v4l0FNZz9UYjvpQyVx07CgVk-hay-mNemgcUIz5ipc8mmv44wplpB3umGIvKSQMEgsHCY8aTWe6FLDtUjGT9hv-pihBT6dYw&sa=X&ved=2ahUKEwjh-qqa9sCDAxV4fTABHZ8gClUQxKsJegQIOxAB&ictx=0",
+                "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google&gl=us&google_domain=google.com&hl=en&num=8&q=MetaGPT+online"
+            },
+            {
+                "position": 9,
+                "title": "App",
+                "link": "https://www.google.com/search?num=8&sca_esv=4bcb71572bca9257&sca_upv=1&hl=en&gl=us&q=Metagpt+app&uds=AMIYvT_YL6Iqd-0G_f_v9e2v-JybHFZesGv-WkSjqZQUhGvjb7qTf3NoIkE_8qY5quBbzv_GSlurBfqWahyxbnyVMX5mlfpqn-U3E-KHZ3PAJcM8mO6MflU&sa=X&ved=2ahUKEwjh-qqa9sCDAxV4fTABHZ8gClUQxKsJegQIORAB&ictx=0",
+                "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google&gl=us&google_domain=google.com&hl=en&num=8&q=Metagpt+app"
+            }
+        ],
+        "organic_results_state": "Results for exact spelling"
+    },
+    "inline_videos": [
+        {
+            "position": 1,
+            "title": "How To Install MetaGPT - Build A Startup With One Prompt!!",
+            "link": "https://www.youtube.com/watch?v=uT75J_KG_aY",
+            "thumbnail": "https://serpapi.com/searches/65952b400ead410fae1f548f/images/a0db2f9f70f02dd11e3d3d4154df9fd65b46b2fbf4804f7038c9ce99c8efea1c.jpeg",
+            "channel": "Matthew Berman",
+            "duration": "6:36",
+            "platform": "YouTube",
+            "date": "Aug 14, 2023"
+        },
+        {
+            "position": 2,
+            "title": "MetaGPT HUGE Update: Autonomous AI Agents with ...",
+            "link": "https://www.youtube.com/watch?v=Xyws6iI-eH8",
+            "thumbnail": "https://serpapi.com/searches/65952b400ead410fae1f548f/images/a0db2f9f70f02dd1d578e6031265d66299cf6aecd327454cdf67b92808f3dd86.jpeg",
+            "channel": "WorldofAI",
+            "duration": "11:38",
+            "platform": "YouTube",
+            "date": "1 week ago"
+        },
+        {
+            "position": 3,
+            "title": "\ud83d\ude80 MetaGPT Setup: Launch a Startup with One \u270d\ufe0f Prompt!",
+            "link": "https://www.youtube.com/watch?v=nqZlTV_L6Ao",
+            "thumbnail": "https://serpapi.com/searches/65952b400ead410fae1f548f/images/a0db2f9f70f02dd1c5666bd22292fdc357357dac89294aabb55ebea0a40ce322.jpeg",
+            "channel": "Prompt Engineering",
+            "duration": "14:15",
+            "platform": "YouTube",
+            "date": "Sep 4, 2023",
+            "key_moments": [
+                {
+                    "time": "00:00",
+                    "title": "Intro",
+                    "link": "https://www.youtube.com/watch?v=nqZlTV_L6Ao&t=0",
+                    "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQW-YKGXQDHplRpEDgL5Q-HlJ8HggTw_ghp_KWPh8xUcQ&s"
+                },
+                {
+                    "time": "00:12",
+                    "title": "What is MetaGPT",
+                    "link": "https://www.youtube.com/watch?v=nqZlTV_L6Ao&t=12",
+                    "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRJ4RRAXOG6yvGPYqkuj5cMoiyYdAN6g7E3VU04SA3P7w&s"
+                },
+                {
+                    "time": "01:06",
+                    "title": "Setup",
+                    "link": "https://www.youtube.com/watch?v=nqZlTV_L6Ao&t=66",
+                    "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTDlJBrAtfBkC8zI9wY4dOqVIaNFbjcYSZr4M1ZnD7RSw&s"
+                },
+                {
+                    "time": "05:23",
+                    "title": "Changing configuration",
+                    "link": "https://www.youtube.com/watch?v=nqZlTV_L6Ao&t=323",
+                    "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT8MbsIRVXJy__UE4ba0FoCTMGfrykasHm3UGvSzMQAtQ&s"
+                },
+                {
+                    "time": "06:35",
+                    "title": "How to Run",
+                    "link": "https://www.youtube.com/watch?v=nqZlTV_L6Ao&t=395",
+                    "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRuX6mOUVQVRzvnkOPYNcDpcazRC1QGeHhZh-Az9btUNA&s"
+                },
+                {
+                    "time": "09:02",
+                    "title": "What outputs to expect",
+                    "link": "https://www.youtube.com/watch?v=nqZlTV_L6Ao&t=542",
+                    "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTFnNqvPfGrPnKJTJ1iOHGSNp6sVR5jn0Zy5N2JSGfeEQ&s"
+                },
+                {
+                    "time": "10:45",
+                    "title": "Generated Design Documents",
+                    "link": "https://www.youtube.com/watch?v=nqZlTV_L6Ao&t=645",
+                    "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSN3I0gxudI4Mew93w_tw34HmWREz5XX8ArebReM3Y2_g&s"
+                },
+                {
+                    "time": "12:25",
+                    "title": "Run the created code base",
+                    "link": "https://www.youtube.com/watch?v=nqZlTV_L6Ao&t=745",
+                    "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQLBx5bgKZ2Gqsu-PsIXuvtM0SBmHvBCndmKtresgqFCg&s"
+                }
+            ]
+        }
+    ],
+    "organic_results": [
+        {
+            "position": 1,
+            "title": "geekan/MetaGPT: \ud83c\udf1f The Multi-Agent Framework",
+            "link": "https://github.com/geekan/MetaGPT",
+            "redirect_link": "https://www.google.comhttps://github.com/geekan/MetaGPT",
+            "displayed_link": "https://github.com \u203a geekan \u203a MetaGPT",
+            "favicon": "https://serpapi.com/searches/65952b400ead410fae1f548f/images/f37f87ccfb08b6fc2fe7e2076c022e7690f9b18357b8e5feb75a30ffbaaabfb1.png",
+            "snippet": "MetaGPT takes a one line requirement as input and outputs user stories / competitive analysis / requirements / data structures / APIs / documents, etc.",
+            "snippet_highlighted_words": [
+                "MetaGPT"
+            ],
+            "sitelinks": {
+                "inline": [
+                    {
+                        "title": "Roadmap",
+                        "link": "https://github.com/geekan/MetaGPT/blob/main/docs/ROADMAP.md"
+                    },
+                    {
+                        "title": "README.md",
+                        "link": "https://github.com/geekan/MetaGPT/blob/main/README.md"
+                    },
+                    {
+                        "title": "Issues",
+                        "link": "https://github.com/geekan/MetaGPT/issues"
+                    },
+                    {
+                        "title": "Actions",
+                        "link": "https://github.com/geekan/MetaGPT/actions"
+                    }
+                ]
+            },
+            "source": "GitHub"
+        },
+        {
+            "position": 2,
+            "title": "MetaGPT: Meta Programming for A Multi-Agent ...",
+            "link": "https://arxiv.org/abs/2308.00352",
+            "redirect_link": "https://www.google.comhttps://arxiv.org/abs/2308.00352",
+            "displayed_link": "https://arxiv.org \u203a cs",
+            "favicon": "https://serpapi.com/searches/65952b400ead410fae1f548f/images/f37f87ccfb08b6fc2fe7e2076c022e76592372342f3f5dd76573e051b50f1bce.png",
+            "author": "by S Hong",
+            "cited_by": "Cited by 53",
+            "extracted_cited_by": 53,
+            "date": "2023",
+            "snippet": "Abstract:Remarkable progress has been made on automated problem solving through societies of agents based on large language models (LLMs).",
+            "source": "arXiv"
+        },
+        {
+            "position": 3,
+            "title": "MetaGPT: a Multi-Agent Framework to Automate Your ...",
+            "link": "https://medium.datadriveninvestor.com/metagpt-a-multi-agent-framework-to-automate-your-software-company-4b6ae747cc36",
+            "redirect_link": "https://www.google.comhttps://medium.datadriveninvestor.com/metagpt-a-multi-agent-framework-to-automate-your-software-company-4b6ae747cc36",
+            "displayed_link": "https://medium.datadriveninvestor.com \u203a metagpt-a-...",
+            "favicon": "https://serpapi.com/searches/65952b400ead410fae1f548f/images/f37f87ccfb08b6fc2fe7e2076c022e76e8319069677ee18a99026fb1e05709cf.png",
+            "snippet": "MetaGPT is about to reach 10000 stars on Github. It's a Multi-Agent Framework that can behave as an engineer, product manager, architect, project managers.",
+            "snippet_highlighted_words": [
+                "MetaGPT"
+            ],
+            "source": "DataDrivenInvestor"
+        },
+        {
+            "position": 4,
+            "title": "MetaGPT: Complete Guide to the Best AI Agent Available ...",
+            "link": "https://www.unite.ai/metagpt-complete-guide-to-the-best-ai-agent-available-right-now/",
+            "redirect_link": "https://www.google.comhttps://www.unite.ai/metagpt-complete-guide-to-the-best-ai-agent-available-right-now/",
+            "displayed_link": "https://www.unite.ai \u203a metagpt-complete-guide-to-the-...",
+            "favicon": "https://serpapi.com/searches/65952b400ead410fae1f548f/images/f37f87ccfb08b6fc2fe7e2076c022e76334a7b2eeab09f16973a82a209ee6339.png",
+            "date": "Sep 11, 2023",
+            "snippet": "Discover why MetaGPT outperforms AutoGPT, BabyAgi, and other AI agents in complex coding tasks. Our in-depth article guides you through the ...",
+            "snippet_highlighted_words": [
+                "MetaGPT"
+            ],
+            "source": "Unite.AI"
+        },
+        {
+            "position": 5,
+            "title": "MetaGPT AI technology page - Lablab.ai",
+            "link": "https://lablab.ai/tech/metagpt",
+            "redirect_link": "https://www.google.comhttps://lablab.ai/tech/metagpt",
+            "displayed_link": "https://lablab.ai \u203a tech \u203a metagpt",
+            "favicon": "https://serpapi.com/searches/65952b400ead410fae1f548f/images/f37f87ccfb08b6fc2fe7e2076c022e766a141f2bf05b1ab902f83ed00f4148a4.png",
+            "snippet": "MetaGPT: Collaborative AI for Complex Tasks. MetaGPT is a groundbreaking AI technology, designed to transform the landscape of software development.",
+            "snippet_highlighted_words": [
+                "MetaGPT",
+                "MetaGPT"
+            ],
+            "source": "lablab.ai"
+        },
+        {
+            "position": 6,
+            "title": "MetaGPT | Discover AI use cases",
+            "link": "https://gpt3demo.com/apps/metagpt",
+            "redirect_link": "https://www.google.comhttps://gpt3demo.com/apps/metagpt",
+            "displayed_link": "https://gpt3demo.com \u203a apps \u203a metagpt",
+            "favicon": "https://serpapi.com/searches/65952b400ead410fae1f548f/images/f37f87ccfb08b6fc2fe7e2076c022e76142721493557b5d95328dafb62b6b43a.jpeg",
+            "snippet": "Assign different roles to GPTs to form a collaborative software entity for complex tasks. MetaGPT takes a one-line requirement as input and outputs user ...",
+            "snippet_highlighted_words": [
+                "MetaGPT"
+            ],
+            "source": "GPT-3 Demo"
+        },
+        {
+            "position": 7,
+            "title": "Meet MetaGPT: The ChatGPT-Powered AI Assistant That ...",
+            "link": "https://www.kdnuggets.com/meet-metagpt-the-chatgptpowered-ai-assistant-that-turns-text-into-web-apps",
+            "redirect_link": "https://www.google.comhttps://www.kdnuggets.com/meet-metagpt-the-chatgptpowered-ai-assistant-that-turns-text-into-web-apps",
+            "displayed_link": "https://www.kdnuggets.com \u203a meet-metagpt-the-chatg...",
+            "favicon": "https://serpapi.com/searches/65952b400ead410fae1f548f/images/f37f87ccfb08b6fc2fe7e2076c022e767b0d4a705b7ad21b521b16648b390fe8.png",
+            "date": "Sep 8, 2023",
+            "snippet": "This revolutionary AI tool lets you create no-code web applications in just seconds!",
+            "source": "KDnuggets"
+        }
+    ],
+    "related_searches": [
+        {
+            "block_position": 1,
+            "query": "metagpt online",
+            "link": "https://www.google.com/search?num=8&sca_esv=4bcb71572bca9257&sca_upv=1&hl=en&gl=us&q=MetaGPT+online&sa=X&ved=2ahUKEwjh-qqa9sCDAxV4fTABHZ8gClUQ1QJ6BAglEAE",
+            "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google&gl=us&google_domain=google.com&hl=en&num=8&q=MetaGPT+online"
+        },
+        {
+            "block_position": 1,
+            "query": "metagpt paper",
+            "link": "https://www.google.com/search?num=8&sca_esv=4bcb71572bca9257&sca_upv=1&hl=en&gl=us&q=MetaGPT+paper&sa=X&ved=2ahUKEwjh-qqa9sCDAxV4fTABHZ8gClUQ1QJ6BAgoEAE",
+            "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google&gl=us&google_domain=google.com&hl=en&num=8&q=MetaGPT+paper"
+        },
+        {
+            "block_position": 1,
+            "query": "Metagpt review",
+            "link": "https://www.google.com/search?num=8&sca_esv=4bcb71572bca9257&sca_upv=1&hl=en&gl=us&q=Metagpt+review&sa=X&ved=2ahUKEwjh-qqa9sCDAxV4fTABHZ8gClUQ1QJ6BAgrEAE",
+            "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google&gl=us&google_domain=google.com&hl=en&num=8&q=Metagpt+review"
+        },
+        {
+            "block_position": 1,
+            "query": "Metagpt download",
+            "link": "https://www.google.com/search?num=8&sca_esv=4bcb71572bca9257&sca_upv=1&hl=en&gl=us&q=Metagpt+download&sa=X&ved=2ahUKEwjh-qqa9sCDAxV4fTABHZ8gClUQ1QJ6BAgpEAE",
+            "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google&gl=us&google_domain=google.com&hl=en&num=8&q=Metagpt+download"
+        },
+        {
+            "block_position": 1,
+            "query": "metagpt ai",
+            "link": "https://www.google.com/search?num=8&sca_esv=4bcb71572bca9257&sca_upv=1&hl=en&gl=us&q=MetaGPT+AI&sa=X&ved=2ahUKEwjh-qqa9sCDAxV4fTABHZ8gClUQ1QJ6BAgeEAE",
+            "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google&gl=us&google_domain=google.com&hl=en&num=8&q=MetaGPT+AI"
+        },
+        {
+            "block_position": 1,
+            "query": "metagpt github",
+            "link": "https://www.google.com/search?num=8&sca_esv=4bcb71572bca9257&sca_upv=1&hl=en&gl=us&q=Metagpt+github&sa=X&ved=2ahUKEwjh-qqa9sCDAxV4fTABHZ8gClUQ1QJ6BAgfEAE",
+            "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google&gl=us&google_domain=google.com&hl=en&num=8&q=Metagpt+github"
+        },
+        {
+            "block_position": 1,
+            "query": "metagpt reddit",
+            "link": "https://www.google.com/search?num=8&sca_esv=4bcb71572bca9257&sca_upv=1&hl=en&gl=us&q=MetaGPT+Reddit&sa=X&ved=2ahUKEwjh-qqa9sCDAxV4fTABHZ8gClUQ1QJ6BAgnEAE",
+            "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google&gl=us&google_domain=google.com&hl=en&num=8&q=MetaGPT+Reddit"
+        },
+        {
+            "block_position": 1,
+            "query": "how to use metagpt",
+            "link": "https://www.google.com/search?num=8&sca_esv=4bcb71572bca9257&sca_upv=1&hl=en&gl=us&q=How+to+use+MetaGPT&sa=X&ved=2ahUKEwjh-qqa9sCDAxV4fTABHZ8gClUQ1QJ6BAgqEAE",
+            "serpapi_link": "https://serpapi.com/search.json?device=desktop&engine=google&gl=us&google_domain=google.com&hl=en&num=8&q=How+to+use+MetaGPT"
+        }
+    ],
+    "pagination": {
+        "current": 1,
+        "next": "https://www.google.com/search?q=metagpt&oq=metagpt&hl=en&gl=us&num=8&start=8&sourceid=chrome&ie=UTF-8",
+        "other_pages": {
+            "2": "https://www.google.com/search?q=metagpt&oq=metagpt&hl=en&gl=us&num=8&start=8&sourceid=chrome&ie=UTF-8",
+            "3": "https://www.google.com/search?q=metagpt&oq=metagpt&hl=en&gl=us&num=8&start=16&sourceid=chrome&ie=UTF-8",
+            "4": "https://www.google.com/search?q=metagpt&oq=metagpt&hl=en&gl=us&num=8&start=24&sourceid=chrome&ie=UTF-8",
+            "5": "https://www.google.com/search?q=metagpt&oq=metagpt&hl=en&gl=us&num=8&start=32&sourceid=chrome&ie=UTF-8"
+        }
+    },
+    "serpapi_pagination": {
+        "current": 1,
+        "next_link": "https://serpapi.com/search.json?device=desktop&engine=google&gl=us&google_domain=google.com&hl=en&num=8&q=metagpt&start=8",
+        "next": "https://serpapi.com/search.json?device=desktop&engine=google&gl=us&google_domain=google.com&hl=en&num=8&q=metagpt&start=8",
+        "other_pages": {
+            "2": "https://serpapi.com/search.json?device=desktop&engine=google&gl=us&google_domain=google.com&hl=en&num=8&q=metagpt&start=8",
+            "3": "https://serpapi.com/search.json?device=desktop&engine=google&gl=us&google_domain=google.com&hl=en&num=8&q=metagpt&start=16",
+            "4": "https://serpapi.com/search.json?device=desktop&engine=google&gl=us&google_domain=google.com&hl=en&num=8&q=metagpt&start=24",
+            "5": "https://serpapi.com/search.json?device=desktop&engine=google&gl=us&google_domain=google.com&hl=en&num=8&q=metagpt&start=32"
+        }
+    }
+}

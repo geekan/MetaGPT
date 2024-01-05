@@ -117,6 +117,7 @@ if __name__ == '__main__':
 
 
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("llm_mock")
 async def test_debug_error():
     CONFIG.src_workspace = CONFIG.git_repo.workdir / uuid.uuid4().hex
     ctx = RunCodeContext(
@@ -142,7 +143,7 @@ async def test_debug_error():
         "Ran 5 tests in 0.007s\n\nFAILED (failures=1)\n;\n",
     )
     await FileRepository.save_file(
-        filename=ctx.output_filename, content=output_data.json(), relative_path=TEST_OUTPUTS_FILE_REPO
+        filename=ctx.output_filename, content=output_data.model_dump_json(), relative_path=TEST_OUTPUTS_FILE_REPO
     )
     debug_error = DebugError(context=ctx)
 

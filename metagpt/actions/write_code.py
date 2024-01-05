@@ -29,9 +29,7 @@ from metagpt.const import (
     TASK_FILE_REPO,
     TEST_OUTPUTS_FILE_REPO,
 )
-from metagpt.llm import LLM
 from metagpt.logs import logger
-from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.schema import CodingContext, Document, RunCodeResult
 from metagpt.utils.common import CodeParser
 from metagpt.utils.file_repository import FileRepository
@@ -90,7 +88,6 @@ ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenc
 class WriteCode(Action):
     name: str = "WriteCode"
     context: Document = Field(default_factory=Document)
-    llm: BaseGPTAPI = Field(default_factory=LLM)
 
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     async def write_code(self, prompt) -> str:
@@ -133,7 +130,7 @@ class WriteCode(Action):
         if not coding_context.code_doc:
             # avoid root_path pydantic ValidationError if use WriteCode alone
             root_path = CONFIG.src_workspace if CONFIG.src_workspace else ""
-            coding_context.code_doc = Document(filename=coding_context.filename, root_path=root_path)
+            coding_context.code_doc = Document(filename=coding_context.filename, root_path=str(root_path))
         coding_context.code_doc.content = code
         return coding_context
 

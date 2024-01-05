@@ -17,7 +17,7 @@ MULTI_ACTION_AGENT_CODE_EXAMPLE = EXAMPLE_CODE_FILE.read_text()
 
 
 class CreateAgent(Action):
-    PROMPT_TEMPLATE = """
+    PROMPT_TEMPLATE: str = """
     ### BACKGROUND
     You are using an agent framework called metagpt to write agents capable of different actions,
     the usage of metagpt can be illustrated by the following example:
@@ -64,9 +64,9 @@ class AgentCreator(Role):
         self._init_actions([CreateAgent])
 
     async def _act(self) -> Message:
-        logger.info(f"{self._setting}: to do {self._rc.todo}({self._rc.todo.name})")
-        todo = self._rc.todo
-        msg = self._rc.memory.get()[-1]
+        logger.info(f"{self._setting}: to do {self.rc.todo}({self.rc.todo.name})")
+        todo = self.rc.todo
+        msg = self.rc.memory.get()[-1]
 
         instruction = msg.content
         code_text = await CreateAgent().run(example=self.agent_template, instruction=instruction)

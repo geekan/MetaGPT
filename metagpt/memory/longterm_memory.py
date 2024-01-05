@@ -2,15 +2,17 @@
 # -*- coding: utf-8 -*-
 """
 @Desc   : the implement of Long-term memory
+@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
 """
 
 from typing import Optional
 
-from pydantic import Field
+from pydantic import ConfigDict, Field
 
 from metagpt.logs import logger
 from metagpt.memory import Memory
 from metagpt.memory.memory_storage import MemoryStorage
+from metagpt.roles.role import RoleContext
 from metagpt.schema import Message
 
 
@@ -21,14 +23,13 @@ class LongTermMemory(Memory):
     - update memory when it changed
     """
 
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     memory_storage: MemoryStorage = Field(default_factory=MemoryStorage)
-    rc: Optional["RoleContext"] = None
+    rc: Optional[RoleContext] = None
     msg_from_recover: bool = False
 
-    class Config:
-        arbitrary_types_allowed = True
-
-    def recover_memory(self, role_id: str, rc: "RoleContext"):
+    def recover_memory(self, role_id: str, rc: RoleContext):
         messages = self.memory_storage.recover_memory(role_id)
         self.rc = rc
         if not self.memory_storage.is_initialized:

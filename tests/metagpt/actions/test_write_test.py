@@ -13,6 +13,7 @@ from metagpt.schema import Document, TestingContext
 
 
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("llm_mock")
 async def test_write_test():
     code = """
     import random
@@ -29,7 +30,7 @@ async def test_write_test():
     write_test = WriteTest(context=context)
 
     context = await write_test.run()
-    logger.info(context.json())
+    logger.info(context.model_dump_json())
 
     # We cannot exactly predict the generated test cases, but we can check if it is a string and if it is not empty
     assert isinstance(context.test_doc.content, str)
@@ -39,6 +40,7 @@ async def test_write_test():
 
 
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("llm_mock")
 async def test_write_code_invalid_code(mocker):
     # Mock the _aask method to return an invalid code string
     mocker.patch.object(WriteTest, "_aask", return_value="Invalid Code String")
@@ -51,3 +53,7 @@ async def test_write_code_invalid_code(mocker):
 
     # Assert that the returned code is the same as the invalid code string
     assert code == "Invalid Code String"
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-s"])

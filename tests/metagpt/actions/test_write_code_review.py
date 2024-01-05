@@ -8,11 +8,11 @@
 import pytest
 
 from metagpt.actions.write_code_review import WriteCodeReview
-from metagpt.document import Document
-from metagpt.schema import CodingContext
+from metagpt.schema import CodingContext, Document
 
 
 @pytest.mark.asyncio
+@pytest.mark.usefixtures("llm_mock")
 async def test_write_code_review(capfd):
     code = """
 def add(a, b):

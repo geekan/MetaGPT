@@ -23,11 +23,11 @@ import sys
 import traceback
 import typing
 from pathlib import Path
-from typing import Any, List, Tuple, Union, get_args, get_origin
+from typing import Any, List, Tuple, Union
 
 import aiofiles
 import loguru
-from pydantic.json import pydantic_encoder
+from pydantic_core import to_jsonable_python
 from tenacity import RetryCallState, _utils
 
 from metagpt.const import MESSAGE_ROUTE_TO_ALL
@@ -48,10 +48,10 @@ def check_cmd_exists(command) -> int:
     return result
 
 
-def require_python_version(req_version: tuple[int]) -> bool:
+def require_python_version(req_version: Tuple) -> bool:
     if not (2 <= len(req_version) <= 3):
         raise ValueError("req_version should be (3, 9) or (3, 10, 13)")
-    return True if sys.version_info > req_version else False
+    return bool(sys.version_info > req_version)
 
 
 class OutputParser:
@@ -131,13 +131,11 @@ class OutputParser:
             try:
                 content = cls.parse_code(text=content)
             except Exception:
-                pass
-
-            # 尝试解析list
-            try:
-                content = cls.parse_file_list(text=content)
-            except Exception:
-                pass
+                # 尝试解析list
+                try:
+                    content = cls.parse_file_list(text=content)
+                except Exception:
+                    pass
             parsed_data[block] = content
         return parsed_data
 
@@ -149,19 +147,7 @@ class OutputParser:
         if extracted_content:
             return extracted_content.group(1).strip()
         else:
-            return "No content found between [CONTENT] and [/CONTENT] tags."
-
-    @staticmethod
-    def is_supported_list_type(i):
-        origin = get_origin(i)
-        if origin is not List:
-            return False
-
-        args = get_args(i)
-        if args == (str,) or args == (Tuple[str, str],) or args == (List[str],):
-            return True
-
-        return False
+            raise ValueError(f"Could not find content between [{tag}] and [/{tag}]")
 
     @classmethod
     def parse_data_with_mapping(cls, data, mapping):
@@ -367,14 +353,14 @@ def get_class_name(cls) -> str:
     return f"{cls.__module__}.{cls.__name__}"
 
 
-def any_to_str(val: str | typing.Callable) -> str:
+def any_to_str(val: Any) -> str:
     """Return the class name or the class name of the object, or 'val' if it's a string type."""
     if isinstance(val, str):
         return val
-    if not callable(val):
+    elif not callable(val):
         return get_class_name(type(val))
-
-    return get_class_name(val)
+    else:
+        return get_class_name(val)
 
 
 def any_to_str_set(val) -> set:
@@ -404,6 +390,25 @@ def is_subscribed(message: "Message", tags: set):
         if i in message.send_to:
             return True
     return False
+
+
+def any_to_name(val):
+    """
+    Convert a value to its name by extracting the last part of the dotted path.
+
+    :param val: The value to convert.
+
+    :return: The name of the value.
+    """
+    return any_to_str(val).split(".")[-1]
+
+
+def concat_namespace(*args) -> str:
+    return ":".join(str(value) for value in args)
+
+
+def split_namespace(ns_class_name: str) -> List[str]:
+    return ns_class_name.split(":")
 
 
 def general_after_log(i: "loguru.Logger", sec_format: str = "%0.3f") -> typing.Callable[["RetryCallState"], None]:
@@ -439,7 +444,7 @@ def general_after_log(i: "loguru.Logger", sec_format: str = "%0.3f") -> typing.C
     return log_it
 
 
-def read_json_file(json_file: str, encoding=None) -> list[Any]:
+def read_json_file(json_file: str, encoding="utf-8") -> list[Any]:
     if not Path(json_file).exists():
         raise FileNotFoundError(f"json_file: {json_file} not exist, return []")
 
@@ -457,7 +462,7 @@ def write_json_file(json_file: str, data: list, encoding=None):
         folder_path.mkdir(parents=True, exist_ok=True)
 
     with open(json_file, "w", encoding=encoding) as fout:
-        json.dump(data, fout, ensure_ascii=False, indent=4, default=pydantic_encoder)
+        json.dump(data, fout, ensure_ascii=False, indent=4, default=to_jsonable_python)
 
 
 def import_class(class_name: str, module_name: str) -> type:
@@ -497,7 +502,7 @@ def role_raise_decorator(func):
         except KeyboardInterrupt as kbi:
             logger.error(f"KeyboardInterrupt: {kbi} occurs, start to serialize the project")
             if self.latest_observed_msg:
-                self._rc.memory.delete(self.latest_observed_msg)
+                self.rc.memory.delete(self.latest_observed_msg)
             # raise again to make it captured outside
             raise Exception(format_trackback_info(limit=None))
         except Exception:
@@ -507,7 +512,7 @@ def role_raise_decorator(func):
                     "we delete the newest role communication message in the role's memory."
                 )
                 # remove role newest observed msg to make it observed again
-                self._rc.memory.delete(self.latest_observed_msg)
+                self.rc.memory.delete(self.latest_observed_msg)
             # raise again to make it captured outside
             raise Exception(format_trackback_info(limit=None))
 
@@ -515,8 +520,33 @@ def role_raise_decorator(func):
 
 
 @handle_exception
-async def aread(file_path: str) -> str:
+async def aread(filename: str | Path, encoding=None) -> str:
     """Read file asynchronously."""
-    async with aiofiles.open(str(file_path), mode="r") as reader:
+    async with aiofiles.open(str(filename), mode="r", encoding=encoding) as reader:
         content = await reader.read()
     return content
+
+
+async def awrite(filename: str | Path, data: str, encoding=None):
+    """Write file asynchronously."""
+    pathname = Path(filename)
+    pathname.parent.mkdir(parents=True, exist_ok=True)
+    async with aiofiles.open(str(pathname), mode="w", encoding=encoding) as writer:
+        await writer.write(data)
+
+
+async def read_file_block(filename: str | Path, lineno: int, end_lineno: int):
+    if not Path(filename).exists():
+        return ""
+    lines = []
+    async with aiofiles.open(str(filename), mode="r") as reader:
+        ix = 0
+        while ix < end_lineno:
+            ix += 1
+            line = await reader.readline()
+            if ix < lineno:
+                continue
+            if ix > end_lineno:
+                break
+            lines.append(line)
+    return "".join(lines)

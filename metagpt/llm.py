@@ -9,14 +9,14 @@
 from typing import Optional
 
 from metagpt.config import CONFIG, LLMProviderEnum
-from metagpt.provider.base_gpt_api import BaseGPTAPI
+from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.human_provider import HumanProvider
 from metagpt.provider.llm_provider_registry import LLM_REGISTRY
 
 _ = HumanProvider()  # Avoid pre-commit error
 
 
-def LLM(provider: Optional[LLMProviderEnum] = None) -> BaseGPTAPI:
+def LLM(provider: Optional[LLMProviderEnum] = None) -> BaseLLM:
     """get the default llm provider"""
     if provider is None:
         provider = CONFIG.get_default_llm_provider_enum()

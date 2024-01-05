@@ -2,20 +2,22 @@
 # @Date    : 12/23/2023 4:51 PM
 # @Author  : stellahong (stellahong@fuzhi.ai)
 # @Desc    :
-import asyncio
-from typing import Any, List
+from __future__ import annotations
 
-from pydantic import BaseModel, Field
+import asyncio
+from typing import Any, List, Optional
+
+from pydantic import BaseModel, ConfigDict, Field
 
 from metagpt.llm import LLM
 from metagpt.logs import logger
-from metagpt.provider.base_gpt_api import BaseGPTAPI
+from metagpt.provider.base_llm import BaseLLM
 from metagpt.strategy.base import ThoughtNode, ThoughtTree
 from metagpt.strategy.tot_schema import MethodSelect, Strategy, ThoughtSolverConfig
 from metagpt.utils.common import CodeParser
 
 OUTPUT_FORMAT = """
-Output a list of jsons following the format:
+Each output should be strictly a list of nodes, in json format, like this:
 ```json
     [
         {
@@ -29,8 +31,10 @@ Output a list of jsons following the format:
 
 
 class ThoughtSolverBase(BaseModel):
-    thought_tree: str = ""
-    llm: BaseGPTAPI = Field(default_factory=LLM, exclude=True)
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    thought_tree: Optional[ThoughtTree] = Field(default=None)
+    llm: BaseLLM = Field(default_factory=LLM, exclude=True)
     config: ThoughtSolverConfig = Field(default_factory=ThoughtSolverConfig)
 
     def __init__(self, **kwargs: Any):
@@ -58,7 +62,7 @@ class ThoughtSolverBase(BaseModel):
             current_state=current_state, **{"n_generate_sample": self.config.n_generate_sample}
         )
         rsp = await self.llm.aask(msg=state_prompt + "\n" + OUTPUT_FORMAT)
-        thoughts = CodeParser.parse_code(block=None, text=rsp)
+        thoughts = CodeParser.parse_code(block="", text=rsp)
         thoughts = eval(thoughts)
         # fixme 避免不跟随，生成过多nodes
         # valid_thoughts = [_node for idx, _node in enumerate(thoughts) if idx < self.n_generate_sample]
@@ -95,15 +99,16 @@ class ThoughtSolverBase(BaseModel):
         Returns:
             List[ThoughtNode]: List of selected nodes.
         """
-        # selection
+        # nodes to be selected
+        nodes = []
         if self.config.method_select == MethodSelect.SAMPLE:
             raise NotImplementedError
         elif self.config.method_select == MethodSelect.GREEDY:
-            select_nodes = sorted(thought_nodes, key=lambda x: x.value, reverse=True)[: self.config.n_select_sample]
+            nodes = sorted(thought_nodes, key=lambda x: x.value, reverse=True)[: self.config.n_select_sample]
         for node in thought_nodes:
-            if node not in select_nodes:
+            if node not in nodes:
                 node.parent = None  # 从树中删除节点
-        return select_nodes
+        return nodes
 
     def update_solution(self):
         """

@@ -48,10 +48,12 @@ def get_metagpt_root():
 
 # METAGPT PROJECT ROOT AND VARS
 
-METAGPT_ROOT = get_metagpt_root()
+METAGPT_ROOT = get_metagpt_root()  # Dependent on METAGPT_PROJECT_ROOT
 DEFAULT_WORKSPACE_ROOT = METAGPT_ROOT / "workspace"
 
+EXAMPLE_PATH = METAGPT_ROOT / "examples"
 DATA_PATH = METAGPT_ROOT / "data"
+TEST_DATA_PATH = METAGPT_ROOT / "tests/data"
 RESEARCH_PATH = DATA_PATH / "research"
 TUTORIAL_PATH = DATA_PATH / "tutorial_docx"
 INVOICE_OCR_TABLE_PATH = DATA_PATH / "invoice_table"
@@ -100,7 +102,32 @@ TEST_CODES_FILE_REPO = "tests"
 TEST_OUTPUTS_FILE_REPO = "test_outputs"
 CODE_SUMMARIES_FILE_REPO = "docs/code_summaries"
 CODE_SUMMARIES_PDF_FILE_REPO = "resources/code_summaries"
+RESOURCES_FILE_REPO = "resources"
+SD_OUTPUT_FILE_REPO = "resources/SD_Output"
+GRAPH_REPO_FILE_REPO = "docs/graph_repo"
+CLASS_VIEW_FILE_REPO = "docs/class_views"
 
 YAPI_URL = "http://yapi.deepwisdomai.com/"
 
+DEFAULT_LANGUAGE = "English"
+DEFAULT_MAX_TOKENS = 1500
+COMMAND_TOKENS = 500
+BRAIN_MEMORY = "BRAIN_MEMORY"
+SKILL_PATH = "SKILL_PATH"
+SERPER_API_KEY = "SERPER_API_KEY"
+DEFAULT_TOKEN_SIZE = 500
+
+# format
+BASE64_FORMAT = "base64"
+
+# REDIS
+REDIS_KEY = "REDIS_KEY"
 LLM_API_TIMEOUT = 300
+
+# Message id
+IGNORED_MESSAGE_ID = "0"
+
+# Class Relationship
+GENERALIZATION = "Generalize"
+COMPOSITION = "Composite"
+AGGREGATION = "Aggregate"

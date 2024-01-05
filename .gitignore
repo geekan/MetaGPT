@@ -52,6 +52,7 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 cover/
+unittest.txt
 
 # Translations
 *.mo
@@ -159,3 +160,20 @@ workspace/*
 tmp
 metagpt/roles/idea_agent.py
 .aider*
+*.bak
+*.bk
+
+# output folder
+output
+tmp.png
+.dependencies.json
+tests/metagpt/utils/file_repo_git
+*.tmp
+*.png
+htmlcov
+htmlcov.*
+*.dot
+*.pkl
+*-structure.csv
+*-structure.json
+

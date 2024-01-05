@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-@Time    : 2023/7/21 11:15
-@Author  : Leo Xiao
-@File    : anthropic_api.py
+@File    : spark_api.py
 """
 import _thread as thread
 import base64
@@ -13,7 +11,6 @@ import hmac
 import json
 import ssl
 from time import mktime
-from typing import Optional
 from urllib.parse import urlencode, urlparse
 from wsgiref.handlers import format_date_time
 
@@ -21,44 +18,26 @@ import websocket  # 使用websocket_client
 
 from metagpt.config import CONFIG, LLMProviderEnum
 from metagpt.logs import logger
-from metagpt.provider.base_gpt_api import BaseGPTAPI
+from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.llm_provider_registry import register_provider
 
 
 @register_provider(LLMProviderEnum.SPARK)
-class SparkAPI(BaseGPTAPI):
+class SparkLLM(BaseLLM):
     def __init__(self):
         logger.warning("当前方法无法支持异步运行。当你使用acompletion时，并不能并行访问。")
-
-    def ask(self, msg: str) -> str:
-        message = [self._default_system_msg(), self._user_msg(msg)]
-        rsp = self.completion(message)
-        return rsp
-
-    async def aask(self, msg: str, system_msgs: Optional[list[str]] = None) -> str:
-        if system_msgs:
-            message = self._system_msgs(system_msgs) + [self._user_msg(msg)]
-        else:
-            message = [self._default_system_msg(), self._user_msg(msg)]
-        rsp = await self.acompletion(message)
-        logger.debug(message)
-        return rsp
 
     def get_choice_text(self, rsp: dict) -> str:
         return rsp["payload"]["choices"]["text"][-1]["content"]
 
-    async def acompletion_text(self, messages: list[dict], stream=False) -> str:
+    async def acompletion_text(self, messages: list[dict], stream=False, timeout: int = 3) -> str:
         # 不支持
         logger.error("该功能禁用。")
         w = GetMessageFromWeb(messages)
         return w.run()
 
-    async def acompletion(self, messages: list[dict]):
+    async def acompletion(self, messages: list[dict], timeout=3):
         # 不支持异步
-        w = GetMessageFromWeb(messages)
-        return w.run()
-
-    def completion(self, messages: list[dict]):
         w = GetMessageFromWeb(messages)
         return w.run()
 

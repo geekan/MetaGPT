@@ -69,8 +69,8 @@ class InvoiceOCRAssistant(Role):
         Returns:
             A message containing the result of the action.
         """
-        msg = self._rc.memory.get(k=1)[0]
-        todo = self._rc.todo
+        msg = self.rc.memory.get(k=1)[0]
+        todo = self.rc.todo
         if isinstance(todo, InvoiceOCR):
             self.origin_query = msg.content
             invoice_path: InvoicePath = msg.instruct_content
@@ -87,11 +87,11 @@ class InvoiceOCRAssistant(Role):
             else:
                 self._init_actions([GenerateTable])
 
-            self._rc.todo = None
+            self.rc.todo = None
             content = INVOICE_OCR_SUCCESS
             resp = OCRResults(ocr_result=json.dumps(resp))
             msg = Message(content=content, instruct_content=resp)
-            self._rc.memory.add(msg)
+            self.rc.memory.add(msg)
             return await super().react()
         elif isinstance(todo, GenerateTable):
             ocr_results: OCRResults = msg.instruct_content
@@ -108,5 +108,5 @@ class InvoiceOCRAssistant(Role):
             resp = ReplyData(content=resp)
 
         msg = Message(content=content, instruct_content=resp)
-        self._rc.memory.add(msg)
+        self.rc.memory.add(msg)
         return msg

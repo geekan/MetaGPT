@@ -8,13 +8,11 @@
 from typing import Any, Optional
 
 import pydantic
-from pydantic import Field, root_validator
+from pydantic import Field, model_validator
 
 from metagpt.actions import Action
 from metagpt.config import CONFIG, Config
-from metagpt.llm import LLM
 from metagpt.logs import logger
-from metagpt.provider.base_gpt_api import BaseGPTAPI
 from metagpt.schema import Message
 from metagpt.tools import SearchEngineType
 from metagpt.tools.search_engine import SearchEngine
@@ -105,18 +103,18 @@ You are a member of a professional butler team and will provide helpful suggesti
 """
 
 
+# TOTEST
 class SearchAndSummarize(Action):
     name: str = ""
     content: Optional[str] = None
-    llm: BaseGPTAPI = Field(default_factory=LLM)
     config: None = Field(default_factory=Config)
     engine: Optional[SearchEngineType] = CONFIG.search_engine
     search_func: Optional[Any] = None
     search_engine: SearchEngine = None
+    result: str = ""
 
-    result = ""
-
-    @root_validator
+    @model_validator(mode="before")
+    @classmethod
     def validate_engine_and_run_func(cls, values):
         engine = values.get("engine")
         search_func = values.get("search_func")

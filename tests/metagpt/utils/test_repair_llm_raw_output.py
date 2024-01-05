@@ -2,20 +2,18 @@
 # -*- coding: utf-8 -*-
 # @Desc   : unittest of repair_llm_raw_output
 
-
 from metagpt.config import CONFIG
-from metagpt.utils.repair_llm_raw_output import (
-    RepairType,
-    extract_content_from_output,
-    repair_invalid_json,
-    repair_llm_raw_output,
-    retry_parse_json_text,
-)
 
+"""
+CONFIG.repair_llm_output should be True before retry_parse_json_text imported.
+so we move `from ... impot ...` into each `test_xx` to avoid `Module level import not at top of file` format warning.
+"""
 CONFIG.repair_llm_output = True
 
 
 def test_repair_case_sensitivity():
+    from metagpt.utils.repair_llm_raw_output import repair_llm_raw_output
+
     raw_output = """{
     "Original requirements": "Write a 2048 game",
     "search Information": "",
@@ -36,6 +34,8 @@ def test_repair_case_sensitivity():
 
 
 def test_repair_special_character_missing():
+    from metagpt.utils.repair_llm_raw_output import repair_llm_raw_output
+
     raw_output = """[CONTENT]
     "Anything UNCLEAR": "No unclear requirements or information."
 [CONTENT]"""
@@ -66,11 +66,12 @@ def test_repair_special_character_missing():
     target_output = '[CONTENT] {"a": "b"} [/CONTENT]'
 
     output = repair_llm_raw_output(output=raw_output, req_keys=["[/CONTENT]"])
-    print("output\n", output)
     assert output == target_output
 
 
 def test_required_key_pair_missing():
+    from metagpt.utils.repair_llm_raw_output import repair_llm_raw_output
+
     raw_output = '[CONTENT] {"a": "b"}'
     target_output = '[CONTENT] {"a": "b"}\n[/CONTENT]'
 
@@ -107,6 +108,8 @@ xxx
 
 
 def test_repair_json_format():
+    from metagpt.utils.repair_llm_raw_output import RepairType, repair_llm_raw_output
+
     raw_output = "{ xxx }]"
     target_output = "{ xxx }"
 
@@ -127,6 +130,8 @@ def test_repair_json_format():
 
 
 def test_repair_invalid_json():
+    from metagpt.utils.repair_llm_raw_output import repair_invalid_json
+
     raw_output = """{
     "key": "value"
     },
@@ -169,6 +174,8 @@ value
 
 
 def test_retry_parse_json_text():
+    from metagpt.utils.repair_llm_raw_output import retry_parse_json_text
+
     invalid_json_text = """{
 "Original Requirements": "Create a 2048 game",
 "Competitive Quadrant Chart": "quadrantChart\n\ttitle Reach and engagement of campaigns\n\t\tx-axis"
@@ -205,6 +212,7 @@ def test_extract_content_from_output():
         xxx [CONTENT] xxx [CONTENT] xxxx [/CONTENT]
         xxx [CONTENT] xxxx [/CONTENT] xxx [CONTENT][/CONTENT] xxx [CONTENT][/CONTENT]   # target pair is the last one
     """
+    from metagpt.utils.repair_llm_raw_output import extract_content_from_output
 
     output = (
         'Sure! Here is the properly formatted JSON output based on the given context:\n\n[CONTENT]\n{\n"'

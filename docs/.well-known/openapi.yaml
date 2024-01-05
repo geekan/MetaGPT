@@ -1,0 +1,35 @@
+openapi: "3.0.0"
+
+info:
+  title: Hello World
+  version: "1.0"
+servers:
+  - url: /openapi
+
+paths:
+  /greeting/{name}:
+    post:
+      summary: Generate greeting
+      description: Generates a greeting message.
+      operationId: openapi_v3_hello.post_greeting
+      responses:
+        200:
+          description: greeting response
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "hello dave!"
+      parameters:
+        - name: name
+          in: path
+          description: Name of the person to greet.
+          required: true
+          schema:
+            type: string
+            example: "dave"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object

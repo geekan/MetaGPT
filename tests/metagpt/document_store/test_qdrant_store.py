@@ -29,7 +29,7 @@ points = [
 ]
 
 
-def test_milvus_store():
+def test_qdrant_store():
     qdrant_connection = QdrantConnection(memory=True)
     vectors_config = VectorParams(size=2, distance=Distance.COSINE)
     qdrant_store = QdrantStore(qdrant_connection)
@@ -43,13 +43,13 @@ def test_milvus_store():
     results = qdrant_store.search("Book", query=[1.0, 1.0])
     assert results[0]["id"] == 2
     assert results[0]["score"] == 0.999106722578389
-    assert results[1]["score"] == 7
+    assert results[1]["id"] == 7
     assert results[1]["score"] == 0.9961650411397226
     results = qdrant_store.search("Book", query=[1.0, 1.0], return_vector=True)
     assert results[0]["id"] == 2
     assert results[0]["score"] == 0.999106722578389
     assert results[0]["vector"] == [0.7363563179969788, 0.6765939593315125]
-    assert results[1]["score"] == 7
+    assert results[1]["id"] == 7
     assert results[1]["score"] == 0.9961650411397226
     assert results[1]["vector"] == [0.7662628889083862, 0.6425272226333618]
     results = qdrant_store.search(

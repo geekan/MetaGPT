@@ -11,7 +11,7 @@ from metagpt.actions import Action
 from metagpt.config import CONFIG
 from metagpt.llm import LLM
 from metagpt.logs import logger
-from metagpt.provider.base_gpt_api import BaseGPTAPI
+from metagpt.provider.base_llm import BaseLLM
 from metagpt.tools.search_engine import SearchEngine
 from metagpt.tools.web_browser_engine import WebBrowserEngine, WebBrowserEngineType
 from metagpt.utils.common import OutputParser
@@ -82,8 +82,8 @@ class CollectLinks(Action):
 
     name: str = "CollectLinks"
     context: Optional[str] = None
-    llm: BaseGPTAPI = Field(default_factory=LLM)
     desc: str = "Collect links from a search engine."
+
     search_engine: SearchEngine = Field(default_factory=SearchEngine)
     rank_func: Optional[Callable[[list[str]], None]] = None
 
@@ -129,7 +129,8 @@ class CollectLinks(Action):
                 if len(remove) == 0:
                     break
 
-        prompt = reduce_message_length(gen_msg(), self.llm.model, system_text, CONFIG.max_tokens_rsp)
+        model_name = CONFIG.get_model_name(CONFIG.get_default_llm_provider_enum())
+        prompt = reduce_message_length(gen_msg(), model_name, system_text, CONFIG.max_tokens_rsp)
         logger.debug(prompt)
         queries = await self._aask(prompt, [system_text])
         try:
@@ -177,7 +178,7 @@ class WebBrowseAndSummarize(Action):
 
     name: str = "WebBrowseAndSummarize"
     context: Optional[str] = None
-    llm: BaseGPTAPI = Field(default_factory=LLM)
+    llm: BaseLLM = Field(default_factory=LLM)
     desc: str = "Explore the web and provide summaries of articles and webpages."
     browse_func: Union[Callable[[list[str]], None], None] = None
     web_browser_engine: Optional[WebBrowserEngine] = None
@@ -248,7 +249,7 @@ class ConductResearch(Action):
 
     name: str = "ConductResearch"
     context: Optional[str] = None
-    llm: BaseGPTAPI = Field(default_factory=LLM)
+    llm: BaseLLM = Field(default_factory=LLM)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

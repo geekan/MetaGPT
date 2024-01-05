@@ -21,15 +21,14 @@ Example:
 This script uses the 'fire' library to create a command-line interface. It generates docstrings for the given Python code using
 the specified docstring style and adds them to the code.
 """
+from __future__ import annotations
+
 import ast
+from pathlib import Path
 from typing import Literal, Optional
 
-from pydantic import Field
-
 from metagpt.actions.action import Action
-from metagpt.llm import LLM
-from metagpt.provider.base_gpt_api import BaseGPTAPI
-from metagpt.utils.common import OutputParser
+from metagpt.utils.common import OutputParser, aread, awrite
 from metagpt.utils.pycst import merge_docstring
 
 PYTHON_DOCSTRING_SYSTEM = """### Requirements
@@ -163,7 +162,6 @@ class WriteDocstring(Action):
 
     desc: str = "Write docstring for code."
     context: Optional[str] = None
-    llm: BaseGPTAPI = Field(default_factory=LLM)
 
     async def run(
         self,
@@ -187,6 +185,16 @@ class WriteDocstring(Action):
         documented_code = OutputParser.parse_python_code(documented_code)
         return merge_docstring(code, documented_code)
 
+    @staticmethod
+    async def write_docstring(
+        filename: str | Path, overwrite: bool = False, style: Literal["google", "numpy", "sphinx"] = "google"
+    ) -> str:
+        data = await aread(str(filename))
+        code = await WriteDocstring().run(data, style=style)
+        if overwrite:
+            await awrite(filename, code)
+        return code
+
 
 def _simplify_python_code(code: str) -> None:
     """Simplifies the given Python code by removing expressions and the last if statement.
@@ -207,13 +215,4 @@ def _simplify_python_code(code: str) -> None:
 if __name__ == "__main__":
     import fire
 
-    async def run(filename: str, overwrite: bool = False, style: Literal["google", "numpy", "sphinx"] = "google"):
-        with open(filename) as f:
-            code = f.read()
-        code = await WriteDocstring().run(code, style=style)
-        if overwrite:
-            with open(filename, "w") as f:
-                f.write(code)
-        return code
-
-    fire.Fire(run)
+    fire.Fire(WriteDocstring.write_docstring)

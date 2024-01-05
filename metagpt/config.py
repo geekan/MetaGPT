@@ -6,12 +6,15 @@ Provide configuration, singleton
         1. According to Section 2.2.3.11 of RFC 135, add git repository support.
         2. Add the parameter `src_workspace` for the old version project path.
 """
+import datetime
+import json
 import os
 import warnings
 from copy import deepcopy
 from enum import Enum
 from pathlib import Path
 from typing import Any
+from uuid import uuid4
 
 import yaml
 
@@ -19,6 +22,7 @@ from metagpt.const import DEFAULT_WORKSPACE_ROOT, METAGPT_ROOT, OPTIONS
 from metagpt.logs import logger
 from metagpt.tools import SearchEngineType, WebBrowserEngineType
 from metagpt.utils.common import require_python_version
+from metagpt.utils.cost_manager import CostManager
 from metagpt.utils.singleton import Singleton
 
 
@@ -42,6 +46,8 @@ class LLMProviderEnum(Enum):
     FIREWORKS = "fireworks"
     OPEN_LLM = "open_llm"
     GEMINI = "gemini"
+    METAGPT = "metagpt"
+    AZURE_OPENAI = "azure_openai"
     OLLAMA = "ollama"
 
 
@@ -58,7 +64,7 @@ class Config(metaclass=Singleton):
     key_yaml_file = METAGPT_ROOT / "config/key.yaml"
     default_yaml_file = METAGPT_ROOT / "config/config.yaml"
 
-    def __init__(self, yaml_file=default_yaml_file):
+    def __init__(self, yaml_file=default_yaml_file, cost_data=""):
         global_options = OPTIONS.get()
         # cli paras
         self.project_path = ""
@@ -66,34 +72,64 @@ class Config(metaclass=Singleton):
         self.inc = False
         self.reqa_file = ""
         self.max_auto_summarize_code = 0
+        self.git_reinit = False
 
         self._init_with_config_files_and_env(yaml_file)
+        # The agent needs to be billed per user, so billing information cannot be destroyed when the session ends.
+        self.cost_manager = CostManager(**json.loads(cost_data)) if cost_data else CostManager()
         self._update()
         global_options.update(OPTIONS.get())
         logger.debug("Config loading done.")
 
     def get_default_llm_provider_enum(self) -> LLMProviderEnum:
-        for k, v in [
-            (self.openai_api_key, LLMProviderEnum.OPENAI),
-            (self.anthropic_api_key, LLMProviderEnum.ANTHROPIC),
-            (self.zhipuai_api_key, LLMProviderEnum.ZHIPUAI),
-            (self.fireworks_api_key, LLMProviderEnum.FIREWORKS),
-            (self.open_llm_api_base, LLMProviderEnum.OPEN_LLM),
-            (self.gemini_api_key, LLMProviderEnum.GEMINI),
-            (self.ollama_api_base, LLMProviderEnum.OLLAMA),  # reuse logic. but not a key
-        ]:
-            if self._is_valid_llm_key(k):
-                # logger.debug(f"Use LLMProvider: {v.value}")
-                if v == LLMProviderEnum.GEMINI and not require_python_version(req_version=(3, 10)):
-                    warnings.warn("Use Gemini requires Python >= 3.10")
-                if self.openai_api_key and self.openai_api_model:
-                    logger.info(f"OpenAI API Model: {self.openai_api_model}")
-                return v
+        """Get first valid LLM provider enum"""
+        mappings = {
+            LLMProviderEnum.OPENAI: bool(
+                self._is_valid_llm_key(self.OPENAI_API_KEY) and not self.OPENAI_API_TYPE and self.OPENAI_API_MODEL
+            ),
+            LLMProviderEnum.ANTHROPIC: self._is_valid_llm_key(self.ANTHROPIC_API_KEY),
+            LLMProviderEnum.ZHIPUAI: self._is_valid_llm_key(self.ZHIPUAI_API_KEY),
+            LLMProviderEnum.FIREWORKS: self._is_valid_llm_key(self.FIREWORKS_API_KEY),
+            LLMProviderEnum.OPEN_LLM: self._is_valid_llm_key(self.OPEN_LLM_API_BASE),
+            LLMProviderEnum.GEMINI: self._is_valid_llm_key(self.GEMINI_API_KEY),
+            LLMProviderEnum.METAGPT: bool(
+                self._is_valid_llm_key(self.OPENAI_API_KEY) and self.OPENAI_API_TYPE == "metagpt"
+            ),
+            LLMProviderEnum.AZURE_OPENAI: bool(
+                self._is_valid_llm_key(self.OPENAI_API_KEY)
+                and self.OPENAI_API_TYPE == "azure"
+                and self.DEPLOYMENT_NAME
+                and self.OPENAI_API_VERSION
+            ),
+            LLMProviderEnum.OLLAMA: self._is_valid_llm_key(self.OLLAMA_API_BASE),
+        }
+        provider = None
+        for k, v in mappings.items():
+            if v:
+                provider = k
+                break
+
+        if provider is LLMProviderEnum.GEMINI and not require_python_version(req_version=(3, 10)):
+            warnings.warn("Use Gemini requires Python >= 3.10")
+        model_name = self.get_model_name(provider=provider)
+        if model_name:
+            logger.info(f"{provider} Model: {model_name}")
+        if provider:
+            logger.info(f"API: {provider}")
+            return provider
         raise NotConfiguredException("You should config a LLM configuration first")
+
+    def get_model_name(self, provider=None) -> str:
+        provider = provider or self.get_default_llm_provider_enum()
+        model_mappings = {
+            LLMProviderEnum.OPENAI: self.OPENAI_API_MODEL,
+            LLMProviderEnum.AZURE_OPENAI: self.DEPLOYMENT_NAME,
+        }
+        return model_mappings.get(provider, "")
 
     @staticmethod
     def _is_valid_llm_key(k: str) -> bool:
-        return k and k != "YOUR_API_KEY"
+        return bool(k and k != "YOUR_API_KEY")
 
     def _update(self):
         self.global_proxy = self._get("GLOBAL_PROXY")
@@ -143,8 +179,7 @@ class Config(metaclass=Singleton):
         self.long_term_memory = self._get("LONG_TERM_MEMORY", False)
         if self.long_term_memory:
             logger.warning("LONG_TERM_MEMORY is True")
-        self.max_budget = self._get("MAX_BUDGET", 10.0)
-        self.total_cost = 0.0
+        self.cost_manager.max_budget = self._get("MAX_BUDGET", 10.0)
         self.code_review_k_times = 2
 
         self.puppeteer_config = self._get("PUPPETEER_CONFIG", "")
@@ -155,10 +190,18 @@ class Config(metaclass=Singleton):
         self.mermaid_engine = self._get("MERMAID_ENGINE", "nodejs")
         self.pyppeteer_executable_path = self._get("PYPPETEER_EXECUTABLE_PATH", "")
 
+        workspace_uid = (
+            self._get("WORKSPACE_UID") or f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}-{uuid4().hex[-8:]}"
+        )
         self.repair_llm_output = self._get("REPAIR_LLM_OUTPUT", False)
         self.prompt_schema = self._get("PROMPT_FORMAT", "json")
         self.workspace_path = Path(self._get("WORKSPACE_PATH", DEFAULT_WORKSPACE_ROOT))
+        val = self._get("WORKSPACE_PATH_WITH_UID")
+        if val and val.lower() == "true":  # for agent
+            self.workspace_path = self.workspace_path / workspace_uid
         self._ensure_workspace_exists()
+        self.max_auto_summarize_code = self.max_auto_summarize_code or self._get("MAX_AUTO_SUMMARIZE_CODE", 1)
+        self.timeout = int(self._get("TIMEOUT", 3))
 
     def update_via_cli(self, project_path, project_name, inc, reqa_file, max_auto_summarize_code):
         """update config via cli"""
@@ -199,7 +242,8 @@ class Config(metaclass=Singleton):
         return i.get(*args, **kwargs)
 
     def get(self, key, *args, **kwargs):
-        """Search for a value in config/key.yaml, config/config.yaml, and env; raise an error if not found"""
+        """Retrieve values from config/key.yaml, config/config.yaml, and environment variables.
+        Throw an error if not found."""
         value = self._get(key, *args, **kwargs)
         if value is None:
             raise ValueError(f"Key '{key}' not found in environment variables or in the YAML file")

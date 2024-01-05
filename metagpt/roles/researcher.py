@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """
+@Modified By: mashenquan, 2023/8/22. A definition has been provided for the return value of _think: returning false indicates that further reasoning cannot continue.
 @Modified By: mashenquan, 2023-11-1. According to Chapter 2.2.1 and 2.2.2 of RFC 116, change the data type of
         the `cause_by` value in the `Message` to a string to support the new message distribution feature.
 """
@@ -40,10 +41,21 @@ class Researcher(Role):
         if self.language not in ("en-us", "zh-cn"):
             logger.warning(f"The language `{self.language}` has not been tested, it may not work.")
 
+    async def _think(self) -> bool:
+        if self.rc.todo is None:
+            self._set_state(0)
+            return True
+
+        if self.rc.state + 1 < len(self.states):
+            self._set_state(self.rc.state + 1)
+        else:
+            self.rc.todo = None
+            return False
+
     async def _act(self) -> Message:
-        logger.info(f"{self._setting}: to do {self._rc.todo}({self._rc.todo.name})")
-        todo = self._rc.todo
-        msg = self._rc.memory.get(k=1)[0]
+        logger.info(f"{self._setting}: to do {self.rc.todo}({self.rc.todo.name})")
+        todo = self.rc.todo
+        msg = self.rc.memory.get(k=1)[0]
         if isinstance(msg.instruct_content, Report):
             instruct_content = msg.instruct_content
             topic = instruct_content.topic
@@ -67,14 +79,14 @@ class Researcher(Role):
         else:
             summaries = instruct_content.summaries
             summary_text = "\n---\n".join(f"url: {url}\nsummary: {summary}" for (url, summary) in summaries)
-            content = await self._rc.todo.run(topic, summary_text, system_text=research_system_text)
+            content = await self.rc.todo.run(topic, summary_text, system_text=research_system_text)
             ret = Message(
                 content="",
                 instruct_content=Report(topic=topic, content=content),
                 role=self.profile,
-                cause_by=self._rc.todo,
+                cause_by=self.rc.todo,
             )
-        self._rc.memory.add(ret)
+        self.rc.memory.add(ret)
         return ret
 
     def research_system_text(self, topic, current_task: Action) -> str:
