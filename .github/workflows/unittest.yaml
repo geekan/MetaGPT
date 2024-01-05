@@ -2,10 +2,21 @@ name: Python application test
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches:
+      - 'main'
+      - 'dev'
+      - '*-release'
+  push: 
+    branches: 
+      - 'main'
+      - 'dev'
+      - '*-release'
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: unittest
     strategy:
       matrix:
         # python-version: ['3.9', '3.10', '3.11']
@@ -30,6 +41,11 @@ jobs:
     - name: Show failed tests and overall summary
       run: |
         grep -E "FAILED tests|[0-9]+ passed," unittest.txt
+        failed_count=$(grep "FAILED" unittest.txt | wc -l)
+        if [[ "$failed_count" -gt 0 ]]; then
+          echo "$failed_count failed lines found! Task failed."
+          exit 1
+        fi
     - name: Upload pytest test results
       uses: actions/upload-artifact@v3
       with:
@@ -40,4 +56,5 @@ jobs:
           ./tests/data/rsp_cache_new.json
         retention-days: 3
       if: ${{ always() }}
+
       
