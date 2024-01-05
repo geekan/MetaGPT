@@ -2,11 +2,7 @@ name: Python application test
 
 on:
   workflow_dispatch:
-  pull_request:
-    branches:
-      - 'main'
-      - 'dev'
-      - '*-release'
+  pull_request_target:
   push: 
     branches: 
       - 'main'
@@ -56,5 +52,3 @@ jobs:
           ./tests/data/rsp_cache_new.json
         retention-days: 3
       if: ${{ always() }}
-
-      
