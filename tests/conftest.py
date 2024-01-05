@@ -23,8 +23,9 @@ from metagpt.utils.git_repository import GitRepository
 from tests.mock.mock_llm import MockLLM
 
 RSP_CACHE_NEW = {}  # used globally for producing new and useful only response cache
-ALLOW_OPENAI_API_CALL = os.environ.get("ALLOW_OPENAI_API_CALL", False)
-ALLOW_OPENAI_API_CALL = True
+ALLOW_OPENAI_API_CALL = os.environ.get(
+    "ALLOW_OPENAI_API_CALL", True
+)  # NOTE: should change to default False once mock is complete
 
 
 @pytest.fixture(scope="session")
@@ -155,6 +156,7 @@ def init_config():
 
 @pytest.fixture(scope="function")
 def new_filename(mocker):
+    # NOTE: Mock new filename to make reproducible llm aask, should consider changing after implementing requirement segmentation
     mocker.patch("metagpt.utils.file_repository.FileRepository.new_filename", lambda: "20240101")
     yield mocker
 
