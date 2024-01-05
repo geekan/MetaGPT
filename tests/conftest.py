@@ -112,7 +112,7 @@ def llm_api():
     logger.info("Tearing down the test")
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def proxy():
     pattern = re.compile(
         rb"(?P<method>[a-zA-Z]+) (?P<uri>(\w+://)?(?P<host>[^\s\'\"<>\[\]{}|/:]+)(:(?P<port>\d+))?[^\s\'\"<>\[\]{}|]*) "
@@ -136,8 +136,11 @@ def proxy():
             remote_writer.write(data)
         await asyncio.gather(pipe(reader, remote_writer), pipe(remote_reader, writer))
 
-    server = asyncio.get_event_loop().run_until_complete(asyncio.start_server(handle_client, "127.0.0.1", 0))
-    return "http://{}:{}".format(*server.sockets[0].getsockname())
+    async def proxy_func():
+        server = await asyncio.start_server(handle_client, "127.0.0.1", 0)
+        return server, "http://{}:{}".format(*server.sockets[0].getsockname())
+
+    return proxy_func()
 
 
 # see https://github.com/Delgan/loguru/issues/59#issuecomment-466591978
