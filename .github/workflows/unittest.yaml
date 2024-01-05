@@ -2,16 +2,10 @@ name: Python application test
 
 on:
   workflow_dispatch:
-  pull_request:
-    branches:
-      - 'main'
-      - 'dev'
-      - '*-release'
-  push: 
-    branches: 
-      - 'main'
-      - 'dev'
-      - '*-release'
+  workflow_run:
+    workflows: ["Pre-commit checks"]
+    types:
+      - completed
 
 jobs:
   build:
