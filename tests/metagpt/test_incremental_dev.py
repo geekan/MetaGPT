@@ -28,6 +28,7 @@ def test_refined_simple_calculator():
         project_path,
     ]
     result = runner.invoke(app, args)
+    os.system("git tag refine")
     logger.info(result)
     logger.info(result.output)
 
@@ -43,6 +44,7 @@ def test_refined_number_guessing_game():
         project_path,
     ]
     result = runner.invoke(app, args)
+    os.system("git tag refine")
     logger.info(result)
     logger.info(result.output)
 
@@ -56,8 +58,10 @@ def test_refined_dice_simulator_1():
         "--inc",
         "--project-path",
         project_path,
+        "--no-code-review",
     ]
     result = runner.invoke(app, args)
+    os.system("git tag refine_1")
     logger.info(result)
     logger.info(result.output)
 
@@ -71,8 +75,10 @@ def test_refined_dice_simulator_2():
         "--inc",
         "--project-path",
         project_path,
+        "--no-code-review",
     ]
     result = runner.invoke(app, args)
+    os.system("git tag refine_2")
     logger.info(result)
     logger.info(result.output)
 
@@ -86,8 +92,10 @@ def test_refined_dice_simulator_3():
         "--inc",
         "--project-path",
         project_path,
+        "--no-code-review",
     ]
     result = runner.invoke(app, args)
+    os.system("git tag refine_3")
     logger.info(result)
     logger.info(result.output)
 
@@ -103,6 +111,7 @@ def test_refined_pygame_2048_1():
         project_path,
     ]
     result = runner.invoke(app, args)
+    os.system("git tag refine_1")
     logger.info(result)
     logger.info(result.output)
 
@@ -118,6 +127,7 @@ def test_refined_pygame_2048_2():
         project_path,
     ]
     result = runner.invoke(app, args)
+    os.system("git tag refine_2")
     logger.info(result)
     logger.info(result.output)
 
@@ -133,6 +143,7 @@ def test_refined_pygame_2048_3():
         project_path,
     ]
     result = runner.invoke(app, args)
+    os.system("git tag refine_3")
     logger.info(result)
     logger.info(result.output)
 
@@ -148,6 +159,7 @@ def test_refined_word_cloud_1():
         project_path,
     ]
     result = runner.invoke(app, args)
+    os.system("git tag refine_1")
     logger.info(result)
     logger.info(result.output)
 
@@ -163,6 +175,7 @@ def test_refined_word_cloud_2():
         project_path,
     ]
     result = runner.invoke(app, args)
+    os.system("git tag refine_2")
     logger.info(result)
     logger.info(result.output)
 
@@ -182,31 +195,36 @@ def check_or_create_base_tag(project_path):
         logger.info("Base tag exists")
         # Switch to the 'base' branch if it exists
         switch_to_base_branch_cmd = "git checkout base"
-        if os.system(switch_to_base_branch_cmd) == 0:
+        try:
+            os.system(switch_to_base_branch_cmd)
             logger.info("Switched to base branch")
-        else:
-            logger.debug("Failed to switch to base branch.")
+        except Exception as e:
+            logger.info("Failed to switch to base branch")
+            raise e
+
     else:
         logger.info("Base tag doesn't exist.")
         # Add and commit the current code if 'base' tag doesn't exist
         add_cmd = "git add ."
         commit_cmd = 'git commit -m "Initial commit"'
-        add_and_commit_success = os.system(add_cmd) == 0 & os.system(commit_cmd) == 0
-
-        if add_and_commit_success:
+        try:
+            os.system(add_cmd)
+            os.system(commit_cmd)
             logger.info("Added and committed all files with the message 'Initial commit'.")
-        else:
-            logger.debug("Failed to add and commit all files.")
+        except Exception as e:
+            logger.info("Failed to add and commit all files.")
+            raise e
 
         # Add 'base' tag
         add_base_tag_cmd = "git tag base"
 
         # Check if the 'git tag' command was successful
-        tag_cmd_success = os.system(add_base_tag_cmd) == 0
-        if tag_cmd_success:
-            logger.info("Successfully added 'base' tag.")
-        else:
-            logger.debug("Failed to add 'base' tag.")
+        try:
+            os.system(add_base_tag_cmd)
+            logger.info("Added 'base' tag.")
+        except Exception as e:
+            logger.info("Failed to add 'base' tag.")
+            raise e
 
 
 if __name__ == "__main__":
