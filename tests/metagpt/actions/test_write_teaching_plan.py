@@ -16,7 +16,6 @@ from metagpt.actions.write_teaching_plan import WriteTeachingPlanPart
     ("topic", "context"),
     [("Title", "Lesson 1: Learn to draw an apple."), ("Teaching Content", "Lesson 1: Learn to draw an apple.")],
 )
-@pytest.mark.usefixtures("llm_mock")
 async def test_write_teaching_plan_part(topic, context):
     action = WriteTeachingPlanPart(topic=topic, context=context)
     rsp = await action.run()

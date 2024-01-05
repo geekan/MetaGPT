@@ -17,7 +17,6 @@ def test_write_design_serialize():
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("llm_mock")
 async def test_write_code_deserialize():
     context = CodingContext(
         filename="test_code.py", design_doc=Document(content="write add function to calculate two numbers")

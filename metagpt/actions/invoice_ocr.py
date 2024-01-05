@@ -88,6 +88,8 @@ class InvoiceOCR(Action):
     async def _ocr(invoice_file_path: Path):
         ocr = PaddleOCR(use_angle_cls=True, lang="ch", page_num=1)
         ocr_result = ocr.ocr(str(invoice_file_path), cls=True)
+        for result in ocr_result[0]:
+            result[1] = (result[1][0], round(result[1][1], 2))  # round long confidence scores to reduce token costs
         return ocr_result
 
     async def run(self, file_path: Path, *args, **kwargs) -> list:

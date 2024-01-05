@@ -12,7 +12,6 @@ from metagpt.logs import logger
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("llm_mock")
 async def test_prepare_interview():
     action = PrepareInterview()
     rsp = await action.run("I just graduated and hope to find a job as a Python engineer")

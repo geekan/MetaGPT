@@ -13,8 +13,7 @@ from tests.metagpt.roles.mock import MockMessages
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("llm_mock")
-async def test_product_manager():
+async def test_product_manager(new_filename):
     product_manager = ProductManager()
     rsp = await product_manager.run(MockMessages.req)
     logger.info(rsp)

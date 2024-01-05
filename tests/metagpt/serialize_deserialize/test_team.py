@@ -109,7 +109,6 @@ async def test_team_recover_save():
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("llm_mock")
 async def test_team_recover_multi_roles_save():
     idea = "write a snake game"
     stg_path = SERDESER_PATH.joinpath("team")

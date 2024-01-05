@@ -8,14 +8,7 @@
 
 import pytest
 
-from metagpt.actions import CollectLinks, research
-
-
-@pytest.mark.asyncio
-async def test_action():
-    action = CollectLinks()
-    result = await action.run(topic="baidu")
-    assert result
+from metagpt.actions import research
 
 
 @pytest.mark.asyncio

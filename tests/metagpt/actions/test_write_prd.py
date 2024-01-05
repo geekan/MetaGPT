@@ -18,8 +18,7 @@ from metagpt.utils.file_repository import FileRepository
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("llm_mock")
-async def test_write_prd():
+async def test_write_prd(new_filename):
     product_manager = ProductManager()
     requirements = "开发一个基于大语言模型与私有知识库的搜索引擎，希望可以基于大语言模型进行搜索总结"
     await FileRepository.save_file(filename=REQUIREMENT_FILENAME, content=requirements, relative_path=DOCS_FILE_REPO)

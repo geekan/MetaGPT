@@ -11,7 +11,6 @@ from metagpt.actions.write_prd_review import WritePRDReview
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("llm_mock")
 async def test_write_prd_review():
     prd = """
     Introduction: This is a new feature for our product.
