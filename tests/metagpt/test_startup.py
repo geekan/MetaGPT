@@ -16,14 +16,14 @@ runner = CliRunner()
 
 
 @pytest.mark.asyncio
-async def test_empty_team():
+async def test_empty_team(new_filename):
     # FIXME: we're now using "metagpt" cli, so the entrance should be replaced instead.
     company = Team()
     history = await company.run(idea="Build a simple search system. I will upload my files later.")
     logger.info(history)
 
 
-def test_startup():
+def test_startup(new_filename):
     args = ["Make a cli snake game"]
     result = runner.invoke(app, args)
     logger.info(result)

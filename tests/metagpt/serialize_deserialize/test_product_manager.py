@@ -10,8 +10,7 @@ from metagpt.schema import Message
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("llm_mock")
-async def test_product_manager_deserialize():
+async def test_product_manager_deserialize(new_filename):
     role = ProductManager()
     ser_role_dict = role.model_dump(by_alias=True)
     new_role = ProductManager(**ser_role_dict)

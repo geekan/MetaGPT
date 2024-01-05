@@ -17,7 +17,6 @@ from tests.metagpt.actions.mock_markdown import PRD_SAMPLE
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("llm_mock")
 async def test_design_api():
     inputs = ["我们需要一个音乐播放器，它应该有播放、暂停、上一曲、下一曲等功能。", PRD_SAMPLE]
     for prd in inputs:

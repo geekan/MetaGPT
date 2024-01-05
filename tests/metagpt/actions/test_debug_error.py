@@ -117,7 +117,6 @@ if __name__ == '__main__':
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("llm_mock")
 async def test_debug_error():
     CONFIG.src_workspace = CONFIG.git_repo.workdir / uuid.uuid4().hex
     ctx = RunCodeContext(
