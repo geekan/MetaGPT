@@ -34,5 +34,5 @@ class YamlModelWithoutDefault(YamlModel):
     @classmethod
     def check_not_default_config(cls, values):
         if any(["YOUR" in v for v in values]):
-            raise ValueError("Please set your S3 config in config.yaml")
+            raise ValueError("Please set your config in config.yaml")
         return values
