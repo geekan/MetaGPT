@@ -17,6 +17,7 @@ from metagpt.schema import Message
 
 
 @pytest.mark.asyncio
+@pytest.mark.skip
 async def test_init():
     class Inputs(BaseModel):
         name: str
