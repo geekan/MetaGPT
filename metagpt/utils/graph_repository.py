@@ -135,12 +135,12 @@ class GraphRepository(ABC):
     @staticmethod
     async def update_graph_db_with_class_views(graph_db: "GraphRepository", class_views: List[ClassInfo]):
         for c in class_views:
-            filename, class_name = c.package.split(":", 1)
+            filename, _ = c.package.split(":", 1)
             await graph_db.insert(subject=filename, predicate=GraphKeyword.IS, object_=GraphKeyword.SOURCE_CODE)
             file_types = {".py": "python", ".js": "javascript"}
             file_type = file_types.get(Path(filename).suffix, GraphKeyword.NULL)
             await graph_db.insert(subject=filename, predicate=GraphKeyword.IS, object_=file_type)
-            await graph_db.insert(subject=filename, predicate=GraphKeyword.HAS_CLASS, object_=class_name)
+            await graph_db.insert(subject=filename, predicate=GraphKeyword.HAS_CLASS, object_=c.package)
             await graph_db.insert(
                 subject=c.package,
                 predicate=GraphKeyword.IS,
