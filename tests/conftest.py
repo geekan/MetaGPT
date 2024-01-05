@@ -23,6 +23,8 @@ from metagpt.utils.git_repository import GitRepository
 from tests.mock.mock_llm import MockLLM
 
 RSP_CACHE_NEW = {}  # used globally for producing new and useful only response cache
+ALLOW_OPENAI_API_CALL = os.environ.get("ALLOW_OPENAI_API_CALL", False)
+ALLOW_OPENAI_API_CALL = True
 
 
 @pytest.fixture(scope="session")
@@ -53,7 +55,7 @@ def pytest_runtest_makereport(item, call):
 
 @pytest.fixture(scope="function", autouse=True)
 def llm_mock(rsp_cache, mocker, request):
-    llm = MockLLM()
+    llm = MockLLM(allow_open_api_call=ALLOW_OPENAI_API_CALL)
     llm.rsp_cache = rsp_cache
     mocker.patch("metagpt.provider.base_llm.BaseLLM.aask", llm.aask)
     mocker.patch("metagpt.provider.base_llm.BaseLLM.aask_batch", llm.aask_batch)
