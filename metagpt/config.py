@@ -80,7 +80,7 @@ class Config(metaclass=Singleton):
             LLMType.OPEN_LLM: self._is_valid_llm_key(self.OPEN_LLM_API_BASE),
             LLMType.GEMINI: self._is_valid_llm_key(self.GEMINI_API_KEY),
             LLMType.METAGPT: bool(self._is_valid_llm_key(self.OPENAI_API_KEY) and self.OPENAI_API_TYPE == "metagpt"),
-            LLMType.AZURE_OPENAI: bool(
+            LLMType.AZURE: bool(
                 self._is_valid_llm_key(self.OPENAI_API_KEY)
                 and self.OPENAI_API_TYPE == "azure"
                 and self.DEPLOYMENT_NAME
@@ -108,7 +108,7 @@ class Config(metaclass=Singleton):
         provider = provider or self.get_default_llm_provider_enum()
         model_mappings = {
             LLMType.OPENAI: self.OPENAI_API_MODEL,
-            LLMType.AZURE_OPENAI: self.DEPLOYMENT_NAME,
+            LLMType.AZURE: self.DEPLOYMENT_NAME,
         }
         return model_mappings.get(provider, "")
 

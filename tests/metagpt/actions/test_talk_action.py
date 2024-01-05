@@ -9,7 +9,7 @@
 import pytest
 
 from metagpt.actions.talk_action import TalkAction
-from metagpt.config import CONFIG
+from metagpt.context import Context
 from metagpt.schema import Message
 
 
@@ -36,8 +36,9 @@ from metagpt.schema import Message
 @pytest.mark.usefixtures("llm_mock")
 async def test_prompt(agent_description, language, context, knowledge, history_summary):
     # Prerequisites
-    CONFIG.agent_description = agent_description
-    CONFIG.language = language
+    g_context = Context()
+    g_context.kwargs["agent_description"] = agent_description
+    g_context.kwargs["language"] = language
 
     action = TalkAction(context=context, knowledge=knowledge, history_summary=history_summary)
     assert "{" not in action.prompt

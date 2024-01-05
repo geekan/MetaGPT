@@ -64,6 +64,7 @@ class Config(CLIParams, YamlModel):
     llm_for_researcher_summary: str = "gpt3"
     llm_for_researcher_report: str = "gpt3"
     METAGPT_TEXT_TO_IMAGE_MODEL_URL: str = ""
+    language: str = "English"
 
     @classmethod
     def default(cls):
@@ -103,14 +104,24 @@ class Config(CLIParams, YamlModel):
             raise ValueError(f"LLM {name} not found in config")
         return self.llm[name]
 
-    def get_openai_llm(self, name: Optional[str] = None) -> LLMConfig:
+    def get_llm_configs_by_type(self, llm_type: LLMType) -> List[LLMConfig]:
+        """Get LLM instance by type"""
+        return [v for k, v in self.llm.items() if v.api_type == llm_type]
+
+    def get_llm_config_by_type(self, llm_type: LLMType) -> Optional[LLMConfig]:
+        """Get LLM instance by type"""
+        llm = self.get_llm_configs_by_type(llm_type)
+        if llm:
+            return llm[0]
+        return None
+
+    def get_openai_llm(self) -> Optional[LLMConfig]:
         """Get OpenAI LLMConfig by name. If no OpenAI, raise Exception"""
-        if name is None:
-            # Use the first OpenAI LLM as default
-            name = [k for k, v in self.llm.items() if v.api_type == LLMType.OPENAI][0]
-        if name not in self.llm:
-            raise ValueError(f"OpenAI LLM {name} not found in config")
-        return self.llm[name]
+        return self.get_llm_config_by_type(LLMType.OPENAI)
+
+    def get_azure_llm(self) -> Optional[LLMConfig]:
+        """Get Azure LLMConfig by name. If no Azure, raise Exception"""
+        return self.get_llm_config_by_type(LLMType.AZURE)
 
 
 def merge_dict(dicts: Iterable[Dict]) -> Dict:

@@ -22,7 +22,7 @@ class LLMType(Enum):
     OPEN_LLM = "open_llm"
     GEMINI = "gemini"
     METAGPT = "metagpt"
-    AZURE_OPENAI = "azure"
+    AZURE = "azure"
     OLLAMA = "ollama"
 
 
