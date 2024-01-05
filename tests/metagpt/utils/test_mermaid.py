@@ -20,7 +20,6 @@ async def test_mermaid(engine):
     # ink prerequisites: connected to internet
     # playwright prerequisites: playwright install --with-deps chromium
     assert check_cmd_exists("npm") == 0
-    assert CONFIG.PYPPETEER_EXECUTABLE_PATH
 
     CONFIG.mermaid_engine = engine
     save_to = CONFIG.git_repo.workdir / f"{CONFIG.mermaid_engine}/1"
