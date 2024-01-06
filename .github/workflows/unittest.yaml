@@ -26,6 +26,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
+        echo "unittest" && echo "${{ secrets.METAGPT_KEY_YAML }}"
         sh tests/scripts/run_install_deps.sh
     - name: Test with pytest
       run: |
