@@ -47,6 +47,7 @@ extras_require["test"] = [
     "gradio==3.0.0",
     "grpcio-status==1.48.2",
     "mock==5.1.0",
+    "pylint==3.0.3",
 ]
 
 extras_require["pyppeteer"] = [
