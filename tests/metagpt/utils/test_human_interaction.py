@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 # @Desc   : unittest of human_interaction
 
-import pytest
-
 from pydantic import BaseModel
 
 from metagpt.utils.human_interaction import HumanInteraction
@@ -14,10 +12,7 @@ class InstructContent(BaseModel):
     test_field2: list[str] = []
 
 
-data_mapping = {
-    "test_field1": (str, ...),
-    "test_field2": (list[str], ...)
-}
+data_mapping = {"test_field1": (str, ...), "test_field2": (list[str], ...)}
 
 human_interaction = HumanInteraction()
 
@@ -34,16 +29,13 @@ def test_input_num(mocker):
 
 
 def test_check_input_type():
-    ret, _ = human_interaction.check_input_type(input_str="test string",
-                                                req_type=str)
+    ret, _ = human_interaction.check_input_type(input_str="test string", req_type=str)
     assert ret
 
-    ret, _ = human_interaction.check_input_type(input_str='["test string"]',
-                                                req_type=list[str])
+    ret, _ = human_interaction.check_input_type(input_str='["test string"]', req_type=list[str])
     assert ret
 
-    ret, _ = human_interaction.check_input_type(input_str='{"key", "value"}',
-                                                req_type=list[str])
+    ret, _ = human_interaction.check_input_type(input_str='{"key", "value"}', req_type=list[str])
     assert not ret
 
 
@@ -57,7 +49,7 @@ def mock_input(*args, **kwargs):
     global_index += 1
     if global_index == 3:
         raise EOFError()
-    val = arr[global_index-1]
+    val = arr[global_index - 1]
     return val
 
 
