@@ -9,10 +9,8 @@ import pytest
 from google.ai import generativelanguage as glm
 from google.generativeai.types import content_types
 
-from metagpt.config import CONFIG
 from metagpt.provider.google_gemini_api import GeminiLLM
-
-CONFIG.gemini_api_key = "xx"
+from tests.metagpt.provider.mock_llm_config import mock_llm_config
 
 
 @dataclass
@@ -62,7 +60,7 @@ async def test_gemini_acompletion(mocker):
         mock_gemini_generate_content_async,
     )
 
-    gemini_gpt = GeminiLLM()
+    gemini_gpt = GeminiLLM(mock_llm_config)
 
     assert gemini_gpt._user_msg(prompt_msg) == {"role": "user", "parts": [prompt_msg]}
     assert gemini_gpt._assistant_msg(prompt_msg) == {"role": "model", "parts": [prompt_msg]}

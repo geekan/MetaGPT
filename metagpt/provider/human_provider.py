@@ -15,7 +15,7 @@ class HumanProvider(BaseLLM):
     This enables replacing LLM anywhere in the framework with a human, thus introducing human interaction
     """
 
-    def __init__(self, config: LLMConfig = None):
+    def __init__(self, config: LLMConfig):
         pass
 
     def ask(self, msg: str, timeout=3) -> str:

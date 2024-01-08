@@ -11,4 +11,13 @@ from metagpt.configs.llm_config import LLMConfig
 mock_llm_config = LLMConfig(
     llm_type="mock",
     api_key="mock_api_key",
+    base_url="mock_base_url",
+)
+
+
+mock_llm_config_proxy = LLMConfig(
+    llm_type="mock",
+    api_key="mock_api_key",
+    base_url="mock_base_url",
+    proxy="http://localhost:8080",
 )

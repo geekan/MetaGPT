@@ -13,7 +13,7 @@ from metagpt.configs.llm_config import LLMConfig
 
 
 class Claude2:
-    def __init__(self, config: LLMConfig = None):
+    def __init__(self, config: LLMConfig):
         self.config = config
 
     def ask(self, prompt: str) -> str:

@@ -29,7 +29,7 @@ class BaseLLM(ABC):
     cost_manager: Optional[CostManager] = None
 
     @abstractmethod
-    def __init__(self, config: LLMConfig = None):
+    def __init__(self, config: LLMConfig):
         pass
 
     def _user_msg(self, msg: str) -> dict[str, str]:

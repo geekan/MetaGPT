@@ -29,16 +29,17 @@ class OllamaLLM(BaseLLM):
     Refs to `https://github.com/jmorganca/ollama/blob/main/docs/api.md#generate-a-chat-completion`
     """
 
-    def __init__(self, config: LLMConfig = None):
+    def __init__(self, config: LLMConfig):
         self.__init_ollama(config)
-        self.client = GeneralAPIRequestor(base_url=config.api_base)
+        self.client = GeneralAPIRequestor(base_url=config.base_url)
+        self.config = config
         self.suffix_url = "/chat"
         self.http_method = "post"
         self.use_system_prompt = False
         self._cost_manager = TokenCostManager()
 
     def __init_ollama(self, config: LLMConfig):
-        assert config.api_base
+        assert config.base_url, "ollama base url is required!"
         self.model = config.model
 
     def _const_kwargs(self, messages: list[dict], stream: bool = False) -> dict:

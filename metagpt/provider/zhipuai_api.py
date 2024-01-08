@@ -38,7 +38,7 @@ class ZhiPuAILLM(BaseLLM):
     From now, there is only one model named `chatglm_turbo`
     """
 
-    def __init__(self, config: LLMConfig = None):
+    def __init__(self, config: LLMConfig):
         self.__init_zhipuai(config)
         self.llm = ZhiPuModelAPI
         self.model = "chatglm_turbo"  # so far only one model, just use it

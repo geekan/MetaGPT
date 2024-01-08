@@ -47,10 +47,11 @@ class GeminiLLM(BaseLLM):
     Refs to `https://ai.google.dev/tutorials/python_quickstart`
     """
 
-    def __init__(self, config: LLMConfig = None):
+    def __init__(self, config: LLMConfig):
         self.use_system_prompt = False  # google gemini has no system prompt when use api
 
         self.__init_gemini(config)
+        self.config = config
         self.model = "gemini-pro"  # so far only one model
         self.llm = GeminiGenerativeModel(model_name=self.model)
 

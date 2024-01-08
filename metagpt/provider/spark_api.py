@@ -24,7 +24,7 @@ from metagpt.provider.llm_provider_registry import register_provider
 
 @register_provider(LLMType.SPARK)
 class SparkLLM(BaseLLM):
-    def __init__(self, config: LLMConfig = None):
+    def __init__(self, config: LLMConfig):
         self.config = config
         logger.warning("当前方法无法支持异步运行。当你使用acompletion时，并不能并行访问。")
 

@@ -72,7 +72,7 @@ class FireworksCostManager(CostManager):
 
 @register_provider(LLMType.FIREWORKS)
 class FireworksLLM(OpenAILLM):
-    def __init__(self, config: LLMConfig = None):
+    def __init__(self, config: LLMConfig):
         super().__init__(config=config)
         self.auto_max_tokens = False
         self.cost_manager = FireworksCostManager()

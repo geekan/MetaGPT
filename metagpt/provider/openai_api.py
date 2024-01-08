@@ -54,7 +54,7 @@ See FAQ 5.8
 class OpenAILLM(BaseLLM):
     """Check https://platform.openai.com/examples for examples"""
 
-    def __init__(self, config: LLMConfig = None):
+    def __init__(self, config: LLMConfig):
         self.config = config
         self._init_model()
         self._init_client()
