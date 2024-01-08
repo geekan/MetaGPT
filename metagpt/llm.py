@@ -8,10 +8,11 @@
 
 from typing import Optional
 
+from metagpt.configs.llm_config import LLMType
 from metagpt.context import context
 from metagpt.provider.base_llm import BaseLLM
 
 
-def LLM(name: Optional[str] = None) -> BaseLLM:
+def LLM(name: Optional[str] = None, provider: LLMType = LLMType.OPENAI) -> BaseLLM:
     """get the default llm provider if name is None"""
-    return context.llm(name)
+    return context.llm(name=name, provider=provider)

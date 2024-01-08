@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Optional
 
 from metagpt.config2 import Config
+from metagpt.configs.llm_config import LLMType
 from metagpt.const import OPTIONS
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.llm_provider_registry import get_llm
@@ -61,9 +62,21 @@ class Context:
         env.update({k: v for k, v in i.items() if isinstance(v, str)})
         return env
 
-    def llm(self, name: Optional[str] = None) -> BaseLLM:
+    def llm(self, name: Optional[str] = None, provider: LLMType = LLMType.OPENAI) -> BaseLLM:
         """Return a LLM instance"""
-        llm = get_llm(self.config.get_llm_config(name))
+        if provider:
+            llm_configs = self.config.get_llm_configs_by_type(provider)
+            if name:
+                llm_configs = [c for c in llm_configs if c.name == name]
+
+            if len(llm_configs) == 0:
+                raise ValueError(f"Cannot find llm config with name {name} and provider {provider}")
+            # return the first one if name is None, or return the only one
+            llm_config = llm_configs[0]
+        else:
+            llm_config = self.config.get_llm_config(name)
+
+        llm = get_llm(llm_config)
         if llm.cost_manager is None:
             llm.cost_manager = self.cost_manager
         return llm

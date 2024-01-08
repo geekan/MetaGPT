@@ -29,7 +29,7 @@ class BrainMemory(BaseModel):
     historical_summary: str = ""
     last_history_id: str = ""
     is_dirty: bool = False
-    last_talk: str = None
+    last_talk: Optional[str] = None
     cacheable: bool = True
     llm: Optional[BaseLLM] = Field(default=None, exclude=True)
 

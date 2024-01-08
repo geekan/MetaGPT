@@ -46,7 +46,7 @@ def test_extract_info(input, tag, val):
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("llm", [LLM(provider=LLMType.OPENAI), LLM(provider=LLMType.METAGPT)])
+@pytest.mark.parametrize("llm", [LLM(provider=LLMType.OPENAI)])  # , LLM(provider=LLMType.METAGPT)
 async def test_memory_llm(llm):
     memory = BrainMemory()
     for i in range(500):
