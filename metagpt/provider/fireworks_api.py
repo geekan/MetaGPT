@@ -78,7 +78,7 @@ class FireworksLLM(OpenAILLM):
         self.cost_manager = FireworksCostManager()
 
     def _make_client_kwargs(self) -> dict:
-        kwargs = dict(api_key=self.config.fireworks_api_key, base_url=self.config.fireworks_api_base)
+        kwargs = dict(api_key=self.config.api_key, base_url=self.config.base_url)
         return kwargs
 
     def _update_costs(self, usage: CompletionUsage):

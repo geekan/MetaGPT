@@ -17,6 +17,8 @@ class YamlModel(BaseModel):
 
     @classmethod
     def read_yaml(cls, file_path: Path) -> Dict:
+        if not file_path.exists():
+            return {}
         with open(file_path, "r") as file:
             return yaml.safe_load(file)
 
