@@ -552,7 +552,8 @@ class ActionNode:
 
         include_keys = list(review_comments.keys())
 
-        # generate revise content
+        # generate revise content, two-steps
+        # step1, find the needed revise keys from review comments to makeup prompt template
         nodes_output = self._makeup_nodes_output_with_comment(review_comments)
         keys = self.keys()
         exclude_keys = list(set(keys).difference(include_keys))
@@ -566,6 +567,7 @@ class ActionNode:
             constraint=FORMAT_CONSTRAINT,
         )
 
+        # step2, use `_aask_v1` to get revise structure result
         output_mapping = self.get_mapping(mode="auto", exclude=exclude_keys)
         output_class_name = f"{self.key}_AN_REVISE"
         content, scontent = await self._aask_v1(
