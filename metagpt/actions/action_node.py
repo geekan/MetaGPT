@@ -28,8 +28,9 @@ class ReviewMode(Enum):
 
 
 class ReviseMode(Enum):
-    HUMAN = "human"
-    AUTO = "auto"
+    HUMAN = "human"  # human revise
+    HUMAN_REVIEW = "human_review"  # human-review and auto-revise
+    AUTO = "auto"  # auto-review and auto-revise
 
 
 TAG = "CONTENT"
@@ -539,10 +540,16 @@ class ActionNode:
                 nodes_output[key] = {"value": value, "comment": review_comments[key]}
         return nodes_output
 
-    async def auto_revise(self, template: str = REVISE_TEMPLATE) -> dict[str, str]:
+    async def auto_revise(
+        self, revise_mode: ReviseMode = ReviseMode.AUTO, template: str = REVISE_TEMPLATE
+    ) -> dict[str, str]:
         """revise the value of incorrect keys"""
         # generate review comments
-        review_comments: dict = await self.auto_review()
+        if revise_mode == ReviseMode.AUTO:
+            review_comments: dict = await self.auto_review()
+        elif revise_mode == ReviseMode.HUMAN_REVIEW:
+            review_comments: dict = await self.human_review()
+
         include_keys = list(review_comments.keys())
 
         # generate revise content
@@ -574,7 +581,7 @@ class ActionNode:
         if revise_mode == ReviseMode.HUMAN:
             revise_contents = await self.human_revise()
         else:
-            revise_contents = await self.auto_revise()
+            revise_contents = await self.auto_revise(revise_mode)
 
         return revise_contents
 
