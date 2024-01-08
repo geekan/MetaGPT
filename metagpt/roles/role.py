@@ -23,7 +23,6 @@
 from __future__ import annotations
 
 from enum import Enum
-from pathlib import Path
 from typing import Any, Iterable, Optional, Set, Type
 
 from pydantic import BaseModel, ConfigDict, Field, SerializeAsAny, model_validator
@@ -31,7 +30,6 @@ from pydantic import BaseModel, ConfigDict, Field, SerializeAsAny, model_validat
 from metagpt.actions import Action, ActionOutput
 from metagpt.actions.action_node import ActionNode
 from metagpt.actions.add_requirement import UserRequirement
-from metagpt.const import SERDESER_PATH
 from metagpt.context import Context, context
 from metagpt.llm import LLM
 from metagpt.logs import logger
@@ -39,14 +37,7 @@ from metagpt.memory import Memory
 from metagpt.provider import HumanProvider
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.schema import Message, MessageQueue, SerializationMixin
-from metagpt.utils.common import (
-    any_to_name,
-    any_to_str,
-    import_class,
-    read_json_file,
-    role_raise_decorator,
-    write_json_file,
-)
+from metagpt.utils.common import any_to_name, any_to_str, role_raise_decorator
 from metagpt.utils.repair_llm_raw_output import extract_state_value_from_output
 
 PREFIX_TEMPLATE = """You are a {profile}, named {name}, your goal is {goal}. """
@@ -128,7 +119,7 @@ class RoleContext(BaseModel):
         return self.memory.get()
 
 
-class Role(SerializationMixin, is_polymorphic_base=True):
+class Role(SerializationMixin):
     """Role/Agent"""
 
     model_config = ConfigDict(arbitrary_types_allowed=True, exclude=["llm"])
@@ -217,6 +208,9 @@ class Role(SerializationMixin, is_polymorphic_base=True):
         self.llm.system_prompt = self._get_prefix()
         self._watch(data.get("watch") or [UserRequirement])
 
+        if self.latest_observed_msg:
+            self.recovered = True
+
     def _reset(self):
         self.states = []
         self.actions = []
@@ -225,46 +219,11 @@ class Role(SerializationMixin, is_polymorphic_base=True):
     def _setting(self):
         return f"{self.name}({self.profile})"
 
-    def serialize(self, stg_path: Path = None):
-        stg_path = (
-            SERDESER_PATH.joinpath(f"team/environment/roles/{self.__class__.__name__}_{self.name}")
-            if stg_path is None
-            else stg_path
-        )
-
-        role_info = self.model_dump(exclude={"rc": {"memory": True, "msg_buffer": True}, "llm": True})
-        role_info.update({"role_class": self.__class__.__name__, "module_name": self.__module__})
-        role_info_path = stg_path.joinpath("role_info.json")
-        write_json_file(role_info_path, role_info)
-
-        self.rc.memory.serialize(stg_path)  # serialize role's memory alone
-
-    @classmethod
-    def deserialize(cls, stg_path: Path) -> "Role":
-        """stg_path = ./storage/team/environment/roles/{role_class}_{role_name}"""
-        role_info_path = stg_path.joinpath("role_info.json")
-        role_info = read_json_file(role_info_path)
-
-        role_class_str = role_info.pop("role_class")
-        module_name = role_info.pop("module_name")
-        role_class = import_class(class_name=role_class_str, module_name=module_name)
-
-        role = role_class(**role_info)  # initiate particular Role
-        role.set_recovered(True)  # set True to make a tag
-
-        role_memory = Memory.deserialize(stg_path)
-        role.set_memory(role_memory)
-
-        return role
-
     def _init_action_system_message(self, action: Action):
         action.set_prefix(self._get_prefix())
 
     def refresh_system_message(self):
         self.llm.system_prompt = self._get_prefix()
-
-    def set_recovered(self, recovered: bool = False):
-        self.recovered = recovered
 
     def set_memory(self, memory: Memory):
         self.rc.memory = memory
@@ -376,7 +335,7 @@ class Role(SerializationMixin, is_polymorphic_base=True):
 
         if self.recovered and self.rc.state >= 0:
             self._set_state(self.rc.state)  # action to run from recovered state
-            self.set_recovered(False)  # avoid max_react_loop out of work
+            self.recovered = False  # avoid max_react_loop out of work
             return True
 
         prompt = self._get_prefix()

@@ -4,13 +4,14 @@
 # @Desc    :
 
 import shutil
+from pathlib import Path
 
 import pytest
 
-from metagpt.const import SERDESER_PATH
 from metagpt.logs import logger
 from metagpt.roles import Architect, ProductManager, ProjectManager
 from metagpt.team import Team
+from metagpt.utils.common import write_json_file
 from tests.metagpt.serialize_deserialize.test_serdeser_base import (
     ActionOK,
     RoleA,
@@ -45,9 +46,16 @@ def test_team_deserialize():
     assert new_company.env.get_role(arch.profile) is not None
 
 
-def test_team_serdeser_save():
-    company = Team()
+def mock_team_serialize(self, stg_path: Path = serdeser_path.joinpath("team")):
+    team_info_path = stg_path.joinpath("team.json")
 
+    write_json_file(team_info_path, self.model_dump())
+
+
+def test_team_serdeser_save(mocker):
+    mocker.patch("metagpt.team.Team.serialize", mock_team_serialize)
+
+    company = Team()
     company.hire([RoleC()])
 
     stg_path = serdeser_path.joinpath("team")
@@ -61,9 +69,11 @@ def test_team_serdeser_save():
 
 
 @pytest.mark.asyncio
-async def test_team_recover():
+async def test_team_recover(mocker):
+    mocker.patch("metagpt.team.Team.serialize", mock_team_serialize)
+
     idea = "write a snake game"
-    stg_path = SERDESER_PATH.joinpath("team")
+    stg_path = serdeser_path.joinpath("team")
     shutil.rmtree(stg_path, ignore_errors=True)
 
     company = Team()
@@ -75,9 +85,9 @@ async def test_team_recover():
     ser_data = company.model_dump()
     new_company = Team(**ser_data)
 
-    new_company.env.get_role(role_c.profile)
-    # assert new_role_c.rc.memory == role_c.rc.memory  # TODO
-    # assert new_role_c.rc.env != role_c.rc.env  # TODO
+    new_role_c = new_company.env.get_role(role_c.profile)
+    assert new_role_c.rc.memory == role_c.rc.memory
+    assert new_role_c.rc.env != role_c.rc.env
     assert type(list(new_company.env.roles.values())[0].actions[0]) == ActionOK
 
     new_company.run_project(idea)
@@ -85,9 +95,11 @@ async def test_team_recover():
 
 
 @pytest.mark.asyncio
-async def test_team_recover_save():
+async def test_team_recover_save(mocker):
+    mocker.patch("metagpt.team.Team.serialize", mock_team_serialize)
+
     idea = "write a 2048 web game"
-    stg_path = SERDESER_PATH.joinpath("team")
+    stg_path = serdeser_path.joinpath("team")
     shutil.rmtree(stg_path, ignore_errors=True)
 
     company = Team()
@@ -98,8 +110,8 @@ async def test_team_recover_save():
 
     new_company = Team.deserialize(stg_path)
     new_role_c = new_company.env.get_role(role_c.profile)
-    # assert new_role_c.rc.memory == role_c.rc.memory
-    # assert new_role_c.rc.env != role_c.rc.env
+    assert new_role_c.rc.memory == role_c.rc.memory
+    assert new_role_c.rc.env != role_c.rc.env
     assert new_role_c.recovered != role_c.recovered  # here cause previous ut is `!=`
     assert new_role_c.rc.todo != role_c.rc.todo  # serialize exclude `rc.todo`
     assert new_role_c.rc.news != role_c.rc.news  # serialize exclude `rc.news`
@@ -109,9 +121,11 @@ async def test_team_recover_save():
 
 
 @pytest.mark.asyncio
-async def test_team_recover_multi_roles_save():
+async def test_team_recover_multi_roles_save(mocker):
+    mocker.patch("metagpt.team.Team.serialize", mock_team_serialize)
+
     idea = "write a snake game"
-    stg_path = SERDESER_PATH.joinpath("team")
+    stg_path = serdeser_path.joinpath("team")
     shutil.rmtree(stg_path, ignore_errors=True)
 
     role_a = RoleA()

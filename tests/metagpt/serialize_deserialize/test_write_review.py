@@ -42,7 +42,7 @@ CONTEXT = """
 
 
 @pytest.mark.asyncio
-async def test_action_deserialize():
+async def test_action_serdeser():
     action = WriteReview()
     serialized_data = action.model_dump()
     assert serialized_data["name"] == "WriteReview"

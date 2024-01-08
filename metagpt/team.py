@@ -49,28 +49,21 @@ class Team(BaseModel):
 
     def serialize(self, stg_path: Path = None):
         stg_path = SERDESER_PATH.joinpath("team") if stg_path is None else stg_path
+        team_info_path = stg_path.joinpath("team.json")
 
-        team_info_path = stg_path.joinpath("team_info.json")
-        write_json_file(team_info_path, self.model_dump(exclude={"env": True}))
-
-        self.env.serialize(stg_path.joinpath("environment"))  # save environment alone
+        write_json_file(team_info_path, self.model_dump())
 
     @classmethod
     def deserialize(cls, stg_path: Path) -> "Team":
         """stg_path = ./storage/team"""
         # recover team_info
-        team_info_path = stg_path.joinpath("team_info.json")
+        team_info_path = stg_path.joinpath("team.json")
         if not team_info_path.exists():
             raise FileNotFoundError(
-                "recover storage meta file `team_info.json` not exist, "
-                "not to recover and please start a new project."
+                "recover storage meta file `team.json` not exist, " "not to recover and please start a new project."
             )
 
         team_info: dict = read_json_file(team_info_path)
-
-        # recover environment
-        environment = Environment.deserialize(stg_path=stg_path.joinpath("environment"))
-        team_info.update({"env": environment})
         team = Team(**team_info)
         return team
 

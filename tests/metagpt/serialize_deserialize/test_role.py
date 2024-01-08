@@ -10,13 +10,12 @@ from pydantic import BaseModel, SerializeAsAny
 
 from metagpt.actions import WriteCode
 from metagpt.actions.add_requirement import UserRequirement
-from metagpt.const import SERDESER_PATH
 from metagpt.logs import logger
 from metagpt.roles.engineer import Engineer
 from metagpt.roles.product_manager import ProductManager
 from metagpt.roles.role import Role
 from metagpt.schema import Message
-from metagpt.utils.common import format_trackback_info
+from metagpt.utils.common import format_trackback_info, read_json_file, write_json_file
 from tests.metagpt.serialize_deserialize.test_serdeser_base import (
     ActionOK,
     RoleA,
@@ -60,37 +59,31 @@ def test_role_serialize():
     assert "actions" in ser_role_dict
 
 
-def test_engineer_serialize():
+def test_engineer_serdeser():
     role = Engineer()
     ser_role_dict = role.model_dump()
     assert "name" in ser_role_dict
     assert "states" in ser_role_dict
     assert "actions" in ser_role_dict
 
-
-@pytest.mark.asyncio
-async def test_engineer_deserialize():
-    role = Engineer(use_code_review=True)
-    ser_role_dict = role.model_dump()
-
     new_role = Engineer(**ser_role_dict)
     assert new_role.name == "Alex"
-    assert new_role.use_code_review is True
+    assert new_role.use_code_review is False
     assert len(new_role.actions) == 1
     assert isinstance(new_role.actions[0], WriteCode)
-    # await new_role.actions[0].run(context="write a cli snake game", filename="test_code")
 
 
 def test_role_serdeser_save():
-    stg_path_prefix = serdeser_path.joinpath("team", "environment", "roles")
     shutil.rmtree(serdeser_path.joinpath("team"), ignore_errors=True)
 
     pm = ProductManager()
-    role_tag = f"{pm.__class__.__name__}_{pm.name}"
-    stg_path = stg_path_prefix.joinpath(role_tag)
-    pm.serialize(stg_path)
 
-    new_pm = Role.deserialize(stg_path)
+    stg_path = serdeser_path.joinpath("team", "environment", "roles", f"{pm.__class__.__name__}_{pm.name}")
+    role_path = stg_path.joinpath("role.json")
+    write_json_file(role_path, pm.model_dump())
+
+    role_dict = read_json_file(role_path)
+    new_pm = ProductManager(**role_dict)
     assert new_pm.name == pm.name
     assert len(new_pm.get_memories(1)) == 0
 
@@ -98,22 +91,24 @@ def test_role_serdeser_save():
 @pytest.mark.asyncio
 async def test_role_serdeser_interrupt():
     role_c = RoleC()
-    shutil.rmtree(SERDESER_PATH.joinpath("team"), ignore_errors=True)
+    shutil.rmtree(serdeser_path.joinpath("team"), ignore_errors=True)
 
-    stg_path = SERDESER_PATH.joinpath("team", "environment", "roles", f"{role_c.__class__.__name__}_{role_c.name}")
+    stg_path = serdeser_path.joinpath("team", "environment", "roles", f"{role_c.__class__.__name__}_{role_c.name}")
+    role_path = stg_path.joinpath("role.json")
     try:
         await role_c.run(with_message=Message(content="demo", cause_by=UserRequirement))
     except Exception:
-        logger.error(f"Exception in `role_a.run`, detail: {format_trackback_info()}")
-        role_c.serialize(stg_path)
+        logger.error(f"Exception in `role_c.run`, detail: {format_trackback_info()}")
+        write_json_file(role_path, role_c.model_dump())
 
     assert role_c.rc.memory.count() == 1
 
-    new_role_a: Role = Role.deserialize(stg_path)
-    assert new_role_a.rc.state == 1
+    role_dict = read_json_file(role_path)
+    new_role_c: Role = RoleC(**role_dict)
+    assert new_role_c.rc.state == 1
 
     with pytest.raises(Exception):
-        await new_role_a.run(with_message=Message(content="demo", cause_by=UserRequirement))
+        await new_role_c.run(with_message=Message(content="demo", cause_by=UserRequirement))
 
 
 if __name__ == "__main__":

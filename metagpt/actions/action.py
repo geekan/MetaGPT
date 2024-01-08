@@ -27,7 +27,7 @@ from metagpt.schema import (
 from metagpt.utils.file_repository import FileRepository
 
 
-class Action(SerializationMixin, is_polymorphic_base=True):
+class Action(SerializationMixin):
     model_config = ConfigDict(arbitrary_types_allowed=True, exclude=["llm"])
 
     name: str = ""
