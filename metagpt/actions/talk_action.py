@@ -22,10 +22,11 @@ class TalkAction(Action):
 
     @property
     def agent_description(self):
-        return self.g_context.kwargs["agent_description"]
+        return self.g_context.kwargs.agent_description
 
+    @property
     def language(self):
-        return self.g_context.kwargs["language"] or config.language
+        return self.g_context.kwargs.language or config.language
 
     @property
     def prompt(self):
@@ -41,7 +42,7 @@ class TalkAction(Action):
         prompt += (
             "If the information is insufficient, you can search in the historical conversation or knowledge above.\n"
         )
-        language = self.language()
+        language = self.language
         prompt += (
             f"Answer the following questions strictly in {language}, and the answers must follow the Markdown format.\n "
             f"{self.context}"
@@ -55,7 +56,7 @@ class TalkAction(Action):
             "{role}": self.agent_description or "",
             "{history}": self.history_summary or "",
             "{knowledge}": self.knowledge or "",
-            "{language}": self.language(),
+            "{language}": self.language,
             "{ask}": self.context,
         }
         prompt = TalkActionPrompt.FORMATION_LOOSE
@@ -73,7 +74,7 @@ class TalkAction(Action):
 
     @property
     def aask_args(self):
-        language = self.language()
+        language = self.language
         system_msgs = [
             f"You are {self.agent_description}.",
             "Your responses should align with the role-play agreement, "
