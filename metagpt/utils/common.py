@@ -381,12 +381,12 @@ def any_to_str_set(val) -> set:
     return res
 
 
-def is_subscribed(message: "Message", tags: set):
+def is_send_to(message: "Message", addresses: set):
     """Return whether it's consumer"""
     if MESSAGE_ROUTE_TO_ALL in message.send_to:
         return True
 
-    for i in tags:
+    for i in addresses:
         if i in message.send_to:
             return True
     return False

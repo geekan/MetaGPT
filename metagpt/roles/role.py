@@ -145,7 +145,7 @@ class Role(SerializationMixin, is_polymorphic_base=True):
     states: list[str] = []
     actions: list[SerializeAsAny[Action]] = Field(default=[], validate_default=True)
     rc: RoleContext = Field(default_factory=RoleContext)
-    subscription: set[str] = set()
+    addresses: set[str] = set()
 
     # builtin variables
     recovered: bool = False  # to tag if a recovered role
@@ -200,9 +200,9 @@ class Role(SerializationMixin, is_polymorphic_base=True):
         return self.context.config.project_path
 
     @model_validator(mode="after")
-    def check_subscription(self):
-        if not self.subscription:
-            self.subscription = {any_to_str(self), self.name} if self.name else {any_to_str(self)}
+    def check_addresses(self):
+        if not self.addresses:
+            self.addresses = {any_to_str(self), self.name} if self.name else {any_to_str(self)}
         return self
 
     def __init__(self, **data: Any):
@@ -322,14 +322,14 @@ class Role(SerializationMixin, is_polymorphic_base=True):
     def is_watch(self, caused_by: str):
         return caused_by in self.rc.watch
 
-    def subscribe(self, tags: Set[str]):
+    def set_addresses(self, addresses: Set[str]):
         """Used to receive Messages with certain tags from the environment. Message will be put into personal message
         buffer to be further processed in _observe. By default, a Role subscribes Messages with a tag of its own name
         or profile.
         """
-        self.subscription = tags
+        self.addresses = addresses
         if self.rc.env:  # According to the routing feature plan in Chapter 2.2.3.2 of RFC 113
-            self.rc.env.set_subscription(self, self.subscription)
+            self.rc.env.set_addresses(self, self.addresses)
 
     def _set_state(self, state: int):
         """Update the current state."""
@@ -342,7 +342,7 @@ class Role(SerializationMixin, is_polymorphic_base=True):
         messages by observing."""
         self.rc.env = env
         if env:
-            env.set_subscription(self, self.subscription)
+            env.set_addresses(self, self.addresses)
             self.refresh_system_message()  # add env message to system message
 
     @property

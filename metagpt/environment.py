@@ -21,7 +21,7 @@ from metagpt.context import Context
 from metagpt.logs import logger
 from metagpt.roles.role import Role
 from metagpt.schema import Message
-from metagpt.utils.common import is_subscribed, read_json_file, write_json_file
+from metagpt.utils.common import is_send_to, read_json_file, write_json_file
 
 
 class Environment(BaseModel):
@@ -111,8 +111,8 @@ class Environment(BaseModel):
         logger.debug(f"publish_message: {message.dump()}")
         found = False
         # According to the routing feature plan in Chapter 2.2.3.2 of RFC 113
-        for role, subscription in self.members.items():
-            if is_subscribed(message, subscription):
+        for role, addrs in self.member_addrs.items():
+            if is_send_to(message, addrs):
                 role.put_message(message)
                 found = True
         if not found:
@@ -157,13 +157,13 @@ class Environment(BaseModel):
                 return False
         return True
 
-    def get_subscription(self, obj):
-        """Get the labels for messages to be consumed by the object."""
-        return self.members.get(obj, {})
+    def get_addresses(self, obj):
+        """Get the addresses of the object."""
+        return self.member_addrs.get(obj, {})
 
-    def set_subscription(self, obj, tags):
-        """Set the labels for message to be consumed by the object"""
-        self.members[obj] = tags
+    def set_addresses(self, obj, addresses):
+        """Set the addresses of the object"""
+        self.member_addrs[obj] = addresses
 
     def archive(self, auto_archive=True):
         if auto_archive and self.context.git_repo:
