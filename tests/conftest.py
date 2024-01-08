@@ -23,9 +23,9 @@ from metagpt.utils.git_repository import GitRepository
 from tests.mock.mock_llm import MockLLM
 
 RSP_CACHE_NEW = {}  # used globally for producing new and useful only response cache
-ALLOW_OPENAI_API_CALL = os.environ.get(
-    "ALLOW_OPENAI_API_CALL", True
-)  # NOTE: should change to default False once mock is complete
+ALLOW_OPENAI_API_CALL = int(
+    os.environ.get("ALLOW_OPENAI_API_CALL", 1)
+)  # NOTE: should change to default 0 (False) once mock is complete
 
 
 @pytest.fixture(scope="session")
