@@ -12,6 +12,9 @@ mock_llm_config = LLMConfig(
     llm_type="mock",
     api_key="mock_api_key",
     base_url="mock_base_url",
+    app_id="mock_app_id",
+    api_secret="mock_api_secret",
+    domain="mock_domain",
 )
 
 
@@ -27,6 +30,14 @@ mock_llm_config_azure = LLMConfig(
     llm_type="azure",
     api_version="2023-09-01-preview",
     api_key="mock_api_key",
+    base_url="mock_base_url",
+    proxy="http://localhost:8080",
+)
+
+
+mock_llm_config_zhipu = LLMConfig(
+    llm_type="zhipu",
+    api_key="mock_api_key.zhipu",
     base_url="mock_base_url",
     proxy="http://localhost:8080",
 )

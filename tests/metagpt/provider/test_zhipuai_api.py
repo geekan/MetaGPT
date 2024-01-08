@@ -6,7 +6,7 @@ import pytest
 from zhipuai.utils.sse_client import Event
 
 from metagpt.provider.zhipuai_api import ZhiPuAILLM
-from tests.metagpt.provider.mock_llm_config import mock_llm_config
+from tests.metagpt.provider.mock_llm_config import mock_llm_config_zhipu
 
 prompt_msg = "who are you"
 messages = [{"role": "user", "content": prompt_msg}]
@@ -63,7 +63,7 @@ async def test_zhipuai_acompletion(mocker):
     mocker.patch("metagpt.provider.zhipuai.zhipu_model_api.ZhiPuModelAPI.ainvoke", mock_zhipuai_ainvoke)
     mocker.patch("metagpt.provider.zhipuai.zhipu_model_api.ZhiPuModelAPI.asse_invoke", mock_zhipuai_asse_invoke)
 
-    zhipu_gpt = ZhiPuAILLM(mock_llm_config)
+    zhipu_gpt = ZhiPuAILLM(mock_llm_config_zhipu)
 
     resp = await zhipu_gpt.acompletion(messages)
     assert resp["data"]["choices"][0]["content"] == resp_content
@@ -83,5 +83,5 @@ async def test_zhipuai_acompletion(mocker):
 
 def test_zhipuai_proxy():
     # CONFIG.openai_proxy = "http://127.0.0.1:8080"
-    _ = ZhiPuAILLM()
+    _ = ZhiPuAILLM(mock_llm_config_zhipu)
     # assert openai.proxy == CONFIG.openai_proxy

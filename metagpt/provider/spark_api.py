@@ -33,7 +33,7 @@ class SparkLLM(BaseLLM):
 
     async def acompletion_text(self, messages: list[dict], stream=False, timeout: int = 3) -> str:
         # 不支持
-        logger.error("该功能禁用。")
+        logger.warning("当前方法无法支持异步运行。当你使用acompletion时，并不能并行访问。")
         w = GetMessageFromWeb(messages, self.config)
         return w.run()
 
@@ -90,7 +90,7 @@ class GetMessageFromWeb:
             # 此处打印出建立连接时候的url,参考本demo的时候可取消上方打印的注释，比对相同参数时生成的url与自己代码生成的url是否一致
             return url
 
-    def __init__(self, text, config):
+    def __init__(self, text, config: LLMConfig):
         self.text = text
         self.ret = ""
         self.spark_appid = config.app_id

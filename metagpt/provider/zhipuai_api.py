@@ -43,6 +43,7 @@ class ZhiPuAILLM(BaseLLM):
         self.llm = ZhiPuModelAPI
         self.model = "chatglm_turbo"  # so far only one model, just use it
         self.use_system_prompt: bool = False  # zhipuai has no system prompt when use api
+        self.config = config
 
     def __init_zhipuai(self, config: LLMConfig):
         assert config.api_key

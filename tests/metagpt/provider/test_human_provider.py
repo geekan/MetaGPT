@@ -5,6 +5,7 @@
 import pytest
 
 from metagpt.provider.human_provider import HumanProvider
+from tests.metagpt.provider.mock_llm_config import mock_llm_config
 
 resp_content = "test"
 resp_exit = "exit"
@@ -13,7 +14,7 @@ resp_exit = "exit"
 @pytest.mark.asyncio
 async def test_async_human_provider(mocker):
     mocker.patch("builtins.input", lambda _: resp_content)
-    human_provider = HumanProvider()
+    human_provider = HumanProvider(mock_llm_config)
 
     resp = human_provider.ask(resp_content)
     assert resp == resp_content

@@ -4,7 +4,6 @@
 
 import pytest
 
-from metagpt.config2 import config
 from metagpt.provider.spark_api import GetMessageFromWeb, SparkLLM
 from tests.metagpt.provider.mock_llm_config import mock_llm_config
 
@@ -23,8 +22,8 @@ class MockWebSocketApp(object):
 def test_get_msg_from_web(mocker):
     mocker.patch("websocket.WebSocketApp", MockWebSocketApp)
 
-    get_msg_from_web = GetMessageFromWeb(prompt_msg, config)
-    assert get_msg_from_web.gen_params()["parameter"]["chat"]["domain"] == "xxxxxx"
+    get_msg_from_web = GetMessageFromWeb(prompt_msg, mock_llm_config)
+    assert get_msg_from_web.gen_params()["parameter"]["chat"]["domain"] == "mock_domain"
 
     ret = get_msg_from_web.run()
     assert ret == ""
