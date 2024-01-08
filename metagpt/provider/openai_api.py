@@ -135,6 +135,7 @@ class OpenAILLM(BaseLLM):
             async for i in resp:
                 log_llm_stream(i)
                 collected_messages.append(i)
+            log_llm_stream("\n")
 
             full_reply_content = "".join(collected_messages)
             usage = self._calc_usage(messages, full_reply_content)

@@ -137,6 +137,8 @@ class FileRepository:
         files = self._git_repo.changed_files
         relative_files = {}
         for p, ct in files.items():
+            if ct.value == "D":  # deleted
+                continue
             try:
                 rf = Path(p).relative_to(self._relative_path)
             except ValueError:

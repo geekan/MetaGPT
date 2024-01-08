@@ -16,7 +16,6 @@ from metagpt.schema import Message
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("llm_mock")
 async def test_design_api():
     inputs = ["我们需要一个音乐播放器，它应该有播放、暂停、上一曲、下一曲等功能。"]  # PRD_SAMPLE
     repo = context.file_repo

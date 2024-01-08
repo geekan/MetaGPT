@@ -120,6 +120,7 @@ class GeminiLLM(BaseLLM):
             content = chunk.text
             log_llm_stream(content)
             collected_content.append(content)
+        log_llm_stream("\n")
 
         full_content = "".join(collected_content)
         usage = await self.aget_usage(messages, full_content)

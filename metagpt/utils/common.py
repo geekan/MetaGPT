@@ -407,6 +407,10 @@ def concat_namespace(*args) -> str:
     return ":".join(str(value) for value in args)
 
 
+def split_namespace(ns_class_name: str) -> List[str]:
+    return ns_class_name.split(":")
+
+
 def general_after_log(i: "loguru.Logger", sec_format: str = "%0.3f") -> typing.Callable[["RetryCallState"], None]:
     """
     Generates a logging function to be used after a call is retried.
@@ -546,3 +550,20 @@ async def read_file_block(filename: str | Path, lineno: int, end_lineno: int):
                 break
             lines.append(line)
     return "".join(lines)
+
+
+def list_files(root: str | Path) -> List[Path]:
+    files = []
+    try:
+        directory_path = Path(root)
+        if not directory_path.exists():
+            return []
+        for file_path in directory_path.iterdir():
+            if file_path.is_file():
+                files.append(file_path)
+            else:
+                subfolder_files = list_files(root=file_path)
+                files.extend(subfolder_files)
+    except Exception as e:
+        logger.error(f"Error: {e}")
+    return files

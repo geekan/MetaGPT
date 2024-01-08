@@ -12,9 +12,9 @@ import json
 from pathlib import Path
 from typing import List
 
-import aiofiles
 import networkx
 
+from metagpt.utils.common import aread, awrite
 from metagpt.utils.graph_repository import SPO, GraphRepository
 
 
@@ -55,12 +55,10 @@ class DiGraphRepository(GraphRepository):
         if not path.exists():
             path.mkdir(parents=True, exist_ok=True)
         pathname = Path(path) / self.name
-        async with aiofiles.open(str(pathname.with_suffix(".json")), mode="w", encoding="utf-8") as writer:
-            await writer.write(data)
+        await awrite(filename=pathname.with_suffix(".json"), data=data, encoding="utf-8")
 
     async def load(self, pathname: str | Path):
-        async with aiofiles.open(str(pathname), mode="r", encoding="utf-8") as reader:
-            data = await reader.read(-1)
+        data = await aread(filename=pathname, encoding="utf-8")
         m = json.loads(data)
         self._repo = networkx.node_link_graph(m)
 

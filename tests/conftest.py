@@ -11,59 +11,21 @@ import json
 import logging
 import os
 import re
-from typing import Optional
+import uuid
 
 import pytest
 
-from metagpt.config2 import config
 from metagpt.const import DEFAULT_WORKSPACE_ROOT, TEST_DATA_PATH
 from metagpt.context import context
 from metagpt.llm import LLM
 from metagpt.logs import logger
-from metagpt.provider.openai_api import OpenAILLM
 from metagpt.utils.git_repository import GitRepository
+from tests.mock.mock_llm import MockLLM
 
-
-class MockLLM(OpenAILLM):
-    rsp_cache: dict = {}
-
-    async def original_aask(
-        self,
-        msg: str,
-        system_msgs: Optional[list[str]] = None,
-        format_msgs: Optional[list[dict[str, str]]] = None,
-        timeout=3,
-        stream=True,
-    ):
-        """A copy of metagpt.provider.base_llm.BaseLLM.aask, we can't use super().aask because it will be mocked"""
-        if system_msgs:
-            message = self._system_msgs(system_msgs)
-        else:
-            message = [self._default_system_msg()] if self.use_system_prompt else []
-        if format_msgs:
-            message.extend(format_msgs)
-        message.append(self._user_msg(msg))
-        rsp = await self.acompletion_text(message, stream=stream, timeout=timeout)
-        return rsp
-
-    async def aask(
-        self,
-        msg: str,
-        system_msgs: Optional[list[str]] = None,
-        format_msgs: Optional[list[dict[str, str]]] = None,
-        timeout=3,
-        stream=True,
-    ) -> str:
-        logger.debug(f"MockLLM.aask: {msg}")
-        if msg not in self.rsp_cache:
-            # Call the original unmocked method
-            rsp = await self.original_aask(msg, system_msgs, format_msgs, timeout, stream)
-            logger.info(f"Added '{rsp[:20]}' ... to response cache")
-            self.rsp_cache[msg] = rsp
-            return rsp
-        else:
-            logger.info("Use response cache")
-            return self.rsp_cache[msg]
+RSP_CACHE_NEW = {}  # used globally for producing new and useful only response cache
+ALLOW_OPENAI_API_CALL = int(
+    os.environ.get("ALLOW_OPENAI_API_CALL", 1)
+)  # NOTE: should change to default 0 (False) once mock is complete
 
 
 @pytest.fixture(scope="session")
@@ -77,17 +39,37 @@ def rsp_cache():
     else:
         rsp_cache_json = {}
     yield rsp_cache_json
-    with open(new_rsp_cache_file_path, "w") as f2:
+    with open(rsp_cache_file_path, "w") as f2:
         json.dump(rsp_cache_json, f2, indent=4, ensure_ascii=False)
+    with open(new_rsp_cache_file_path, "w") as f2:
+        json.dump(RSP_CACHE_NEW, f2, indent=4, ensure_ascii=False)
 
 
-@pytest.fixture(scope="function")
-def llm_mock(rsp_cache, mocker):
-    llm = MockLLM(config.get_llm_config())
-    llm.cost_manager = context.cost_manager
+# Hook to capture the test result
+@pytest.hookimpl(tryfirst=True, hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    outcome = yield
+    rep = outcome.get_result()
+    if rep.when == "call":
+        item.test_outcome = rep
+
+
+@pytest.fixture(scope="function", autouse=True)
+def llm_mock(rsp_cache, mocker, request):
+    llm = MockLLM(allow_open_api_call=ALLOW_OPENAI_API_CALL)
     llm.rsp_cache = rsp_cache
     mocker.patch("metagpt.provider.base_llm.BaseLLM.aask", llm.aask)
+    mocker.patch("metagpt.provider.base_llm.BaseLLM.aask_batch", llm.aask_batch)
     yield mocker
+    if hasattr(request.node, "test_outcome") and request.node.test_outcome.passed:
+        if llm.rsp_candidates:
+            for rsp_candidate in llm.rsp_candidates:
+                cand_key = list(rsp_candidate.keys())[0]
+                cand_value = list(rsp_candidate.values())[0]
+                if cand_key not in llm.rsp_cache:
+                    logger.info(f"Added '{cand_key[:100]} ... -> {cand_value[:20]} ...' to response cache")
+                    llm.rsp_cache.update(rsp_candidate)
+                RSP_CACHE_NEW.update(rsp_candidate)
 
 
 class Context:
@@ -114,7 +96,7 @@ def llm_api():
     logger.info("Tearing down the test")
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def proxy():
     pattern = re.compile(
         rb"(?P<method>[a-zA-Z]+) (?P<uri>(\w+://)?(?P<host>[^\s\'\"<>\[\]{}|/:]+)(:(?P<port>\d+))?[^\s\'\"<>\[\]{}|]*) "
@@ -138,8 +120,11 @@ def proxy():
             remote_writer.write(data)
         await asyncio.gather(pipe(reader, remote_writer), pipe(remote_reader, writer))
 
-    server = asyncio.get_event_loop().run_until_complete(asyncio.start_server(handle_client, "127.0.0.1", 0))
-    return "http://{}:{}".format(*server.sockets[0].getsockname())
+    async def proxy_func():
+        server = await asyncio.start_server(handle_client, "127.0.0.1", 0)
+        return server, "http://{}:{}".format(*server.sockets[0].getsockname())
+
+    return proxy_func()
 
 
 # see https://github.com/Delgan/loguru/issues/59#issuecomment-466591978
@@ -154,9 +139,9 @@ def loguru_caplog(caplog):
 
 
 # init & dispose git repo
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="function", autouse=True)
 def setup_and_teardown_git_repo(request):
-    context.git_repo = GitRepository(local_path=DEFAULT_WORKSPACE_ROOT / "unittest")
+    context.git_repo = GitRepository(local_path=DEFAULT_WORKSPACE_ROOT / f"unittest/{uuid.uuid4().hex}")
     context.config.git_reinit = True
 
     # Destroy git repo at the end of the test session.
@@ -170,3 +155,48 @@ def setup_and_teardown_git_repo(request):
 @pytest.fixture(scope="session", autouse=True)
 def init_config():
     pass
+
+
+@pytest.fixture(scope="function")
+def new_filename(mocker):
+    # NOTE: Mock new filename to make reproducible llm aask, should consider changing after implementing requirement segmentation
+    mocker.patch("metagpt.utils.file_repository.FileRepository.new_filename", lambda: "20240101")
+    yield mocker
+
+
+@pytest.fixture
+def aiohttp_mocker(mocker):
+    class MockAioResponse:
+        async def json(self, *args, **kwargs):
+            return self._json
+
+        def set_json(self, json):
+            self._json = json
+
+    response = MockAioResponse()
+
+    class MockCTXMng:
+        async def __aenter__(self):
+            return response
+
+        async def __aexit__(self, *args, **kwargs):
+            pass
+
+        def __await__(self):
+            yield
+            return response
+
+    def mock_request(self, method, url, **kwargs):
+        return MockCTXMng()
+
+    def wrap(method):
+        def run(self, url, **kwargs):
+            return mock_request(self, method, url, **kwargs)
+
+        return run
+
+    mocker.patch("aiohttp.ClientSession.request", mock_request)
+    for i in ["get", "post", "delete", "patch"]:
+        mocker.patch(f"aiohttp.ClientSession.{i}", wrap(i))
+
+    yield response

@@ -133,7 +133,7 @@ class WriteCode(Action):
         if not coding_context.code_doc:
             # avoid root_path pydantic ValidationError if use WriteCode alone
             root_path = self.g_context.src_workspace if self.g_context.src_workspace else ""
-            coding_context.code_doc = Document(filename=coding_context.filename, root_path=root_path)
+            coding_context.code_doc = Document(filename=coding_context.filename, root_path=str(root_path))
         coding_context.code_doc.content = code
         return coding_context
 

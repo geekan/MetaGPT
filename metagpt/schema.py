@@ -444,3 +444,63 @@ class CodeSummarizeContext(BaseModel):
 
 class BugFixContext(BaseContext):
     filename: str = ""
+
+
+# mermaid class view
+class ClassMeta(BaseModel):
+    name: str = ""
+    abstraction: bool = False
+    static: bool = False
+    visibility: str = ""
+
+
+class ClassAttribute(ClassMeta):
+    value_type: str = ""
+    default_value: str = ""
+
+    def get_mermaid(self, align=1) -> str:
+        content = "".join(["\t" for i in range(align)]) + self.visibility
+        if self.value_type:
+            content += self.value_type + " "
+        content += self.name
+        if self.default_value:
+            content += "="
+            if self.value_type not in ["str", "string", "String"]:
+                content += self.default_value
+            else:
+                content += '"' + self.default_value.replace('"', "") + '"'
+        if self.abstraction:
+            content += "*"
+        if self.static:
+            content += "$"
+        return content
+
+
+class ClassMethod(ClassMeta):
+    args: List[ClassAttribute] = Field(default_factory=list)
+    return_type: str = ""
+
+    def get_mermaid(self, align=1) -> str:
+        content = "".join(["\t" for i in range(align)]) + self.visibility
+        content += self.name + "(" + ",".join([v.get_mermaid(align=0) for v in self.args]) + ")"
+        if self.return_type:
+            content += ":" + self.return_type
+        if self.abstraction:
+            content += "*"
+        if self.static:
+            content += "$"
+        return content
+
+
+class ClassView(ClassMeta):
+    attributes: List[ClassAttribute] = Field(default_factory=list)
+    methods: List[ClassMethod] = Field(default_factory=list)
+
+    def get_mermaid(self, align=1) -> str:
+        content = "".join(["\t" for i in range(align)]) + "class " + self.name + "{\n"
+        for v in self.attributes:
+            content += v.get_mermaid(align=align + 1) + "\n"
+        for v in self.methods:
+            content += v.get_mermaid(align=align + 1) + "\n"
+        content += "".join(["\t" for i in range(align)]) + "}\n"
+        return content

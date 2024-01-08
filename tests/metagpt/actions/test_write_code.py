@@ -27,7 +27,6 @@ from tests.metagpt.actions.mock_markdown import TASKS_2, WRITE_CODE_PROMPT_SAMPL
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("llm_mock")
 async def test_write_code():
     ccontext = CodingContext(
         filename="task_filename.py", design_doc=Document(content="设计一个名为'add'的函数，该函数接受两个整数作为输入，并返回它们的和。")
@@ -44,7 +43,6 @@ async def test_write_code():
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("llm_mock")
 async def test_write_code_directly():
     prompt = WRITE_CODE_PROMPT_SAMPLE + "\n" + TASKS_2[0]
     llm = LLM()
@@ -53,7 +51,6 @@ async def test_write_code_directly():
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("llm_mock")
 async def test_write_code_deps():
     # Prerequisites
     context.src_workspace = context.git_repo.workdir / "snake1/snake1"

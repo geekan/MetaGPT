@@ -18,6 +18,9 @@ from metagpt.actions.write_code import WriteCode
 from metagpt.const import SYSTEM_DESIGN_FILE_REPO, TASK_FILE_REPO
 from metagpt.schema import (
     AIMessage,
+    ClassAttribute,
+    ClassMethod,
+    ClassView,
     CodeSummarizeContext,
     Document,
     Message,
@@ -151,6 +154,31 @@ def test_CodeSummarizeContext(file_list, want):
     assert ctx == want
     m = {ctx: ctx}
     assert want in m
+
+
+def test_class_view():
+    attr_a = ClassAttribute(name="a", value_type="int", default_value="0", visibility="+", abstraction=True)
+    assert attr_a.get_mermaid(align=1) == "\t+int a=0*"
+    attr_b = ClassAttribute(name="b", value_type="str", default_value="0", visibility="#", static=True)
+    assert attr_b.get_mermaid(align=0) == '#str b="0"$'
+    class_view = ClassView(name="A")
+    class_view.attributes = [attr_a, attr_b]
+
+    method_a = ClassMethod(name="run", visibility="+", abstraction=True)
+    assert method_a.get_mermaid(align=1) == "\t+run()*"
+    method_b = ClassMethod(
+        name="_test",
+        visibility="#",
+        static=True,
+        args=[ClassAttribute(name="a", value_type="str"), ClassAttribute(name="b", value_type="int")],
+        return_type="str",
+    )
+    assert method_b.get_mermaid(align=0) == "#_test(str a,int b):str$"
+    class_view.methods = [method_a, method_b]
+    assert (
+        class_view.get_mermaid(align=0)
+        == 'class A{\n\t+int a=0*\n\t#str b="0"$\n\t+run()*\n\t#_test(str a,int b):str$\n}\n'
+    )
 
 
 if __name__ == "__main__":

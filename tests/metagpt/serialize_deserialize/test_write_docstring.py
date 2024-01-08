@@ -29,7 +29,6 @@ class Person:
     ],
     ids=["google", "numpy", "sphinx"],
 )
-@pytest.mark.usefixtures("llm_mock")
 async def test_action_deserialize(style: str, part: str):
     action = WriteDocstring()
     serialized_data = action.model_dump()

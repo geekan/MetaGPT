@@ -8,21 +8,25 @@
 """
 import pytest
 
-from metagpt.actions import UserRequirement
+from metagpt.actions import UserRequirement, WritePRD
 from metagpt.const import DOCS_FILE_REPO, PRDS_FILE_REPO, REQUIREMENT_FILENAME
 from metagpt.context import context
 from metagpt.logs import logger
 from metagpt.roles.product_manager import ProductManager
+from metagpt.roles.role import RoleReactMode
 from metagpt.schema import Message
+from metagpt.utils.common import any_to_str
+from metagpt.utils.file_repository import FileRepository
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("llm_mock")
-async def test_write_prd():
+async def test_write_prd(new_filename):
     product_manager = ProductManager()
     requirements = "开发一个基于大语言模型与私有知识库的搜索引擎，希望可以基于大语言模型进行搜索总结"
-    await context.file_repo.save_file(filename=REQUIREMENT_FILENAME, content=requirements, relative_path=DOCS_FILE_REPO)
+    await FileRepository.save_file(filename=REQUIREMENT_FILENAME, content=requirements, relative_path=DOCS_FILE_REPO)
+    product_manager.rc.react_mode = RoleReactMode.BY_ORDER
     prd = await product_manager.run(Message(content=requirements, cause_by=UserRequirement))
+    assert prd.cause_by == any_to_str(WritePRD)
     logger.info(requirements)
     logger.info(prd)
 
@@ -30,3 +34,7 @@ async def test_write_prd():
     assert prd is not None
     assert prd.content != ""
     assert context.git_repo.new_file_repository(relative_path=PRDS_FILE_REPO).changed_files
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-s"])

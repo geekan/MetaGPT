@@ -33,7 +33,6 @@ from metagpt.schema import Message
         ),
     ],
 )
-@pytest.mark.usefixtures("llm_mock")
 async def test_prompt(agent_description, language, context, knowledge, history_summary):
     # Prerequisites
     g_context = Context()

@@ -177,7 +177,6 @@ class Snake:
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("llm_mock")
 async def test_summarize_code():
     context.src_workspace = context.git_repo.workdir / "src"
     await context.file_repo.save_file(filename="1.json", relative_path=SYSTEM_DESIGN_FILE_REPO, content=DESIGN_CONTENT)

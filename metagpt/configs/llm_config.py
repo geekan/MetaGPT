@@ -25,6 +25,9 @@ class LLMType(Enum):
     AZURE = "azure"
     OLLAMA = "ollama"
 
+    def __missing__(self, key):
+        return self.OPENAI
+
 
 class LLMConfig(YamlModel):
     """Config for LLM

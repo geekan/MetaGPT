@@ -118,6 +118,7 @@ class ZhiPuAILLM(BaseLLM):
                 usage = meta.get("usage")
             else:
                 print(f"zhipuapi else event: {event.data}", end="")
+        log_llm_stream("\n")
 
         self._update_costs(usage)
         full_content = "".join(collected_content)

@@ -59,11 +59,12 @@ class WriteTest(Action):
             self.context.test_doc = Document(
                 filename="test_" + self.context.code_doc.filename, root_path=TEST_CODES_FILE_REPO
             )
+        fake_root = "/data"
         prompt = PROMPT_TEMPLATE.format(
             code_to_test=self.context.code_doc.content,
             test_file_name=self.context.test_doc.filename,
-            source_file_path=self.context.code_doc.root_relative_path,
-            workspace=self.git_repo.workdir,
+            source_file_path=fake_root + "/" + self.context.code_doc.root_relative_path,
+            workspace=fake_root,
         )
         self.context.test_doc.content = await self.write_code(prompt)
         return self.context

@@ -26,6 +26,7 @@ async def test_scrape_web_page(browser_type, use_proxy, url, urls, proxy, capfd)
     global_proxy = CONFIG.global_proxy
     try:
         if use_proxy:
+            server, proxy = await proxy
             CONFIG.global_proxy = proxy
         browser = web_browser_engine_selenium.SeleniumWrapper(browser_type=browser_type)
         result = await browser.run(url)
@@ -38,6 +39,7 @@ async def test_scrape_web_page(browser_type, use_proxy, url, urls, proxy, capfd)
             assert len(results) == len(urls) + 1
             assert all(("MetaGPT" in i.inner_text) for i in results)
         if use_proxy:
+            server.close()
             assert "Proxy:" in capfd.readouterr().out
     finally:
         CONFIG.global_proxy = global_proxy

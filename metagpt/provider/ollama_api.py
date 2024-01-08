@@ -104,6 +104,7 @@ class OllamaLLM(BaseLLM):
             else:
                 # stream finished
                 usage = self.get_usage(chunk)
+        log_llm_stream("\n")
 
         self._update_costs(usage)
         full_content = "".join(collected_content)

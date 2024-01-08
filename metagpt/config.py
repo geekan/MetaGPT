@@ -93,6 +93,11 @@ class Config(metaclass=Singleton):
             if v:
                 provider = k
                 break
+        if provider is None:
+            if self.DEFAULT_PROVIDER:
+                provider = LLMType(self.DEFAULT_PROVIDER)
+            else:
+                raise NotConfiguredException("You should config a LLM configuration first")
 
         if provider is LLMType.GEMINI and not require_python_version(req_version=(3, 10)):
             warnings.warn("Use Gemini requires Python >= 3.10")
@@ -102,7 +107,6 @@ class Config(metaclass=Singleton):
         if provider:
             logger.info(f"API: {provider}")
             return provider
-        raise NotConfiguredException("You should config a LLM configuration first")
 
     def get_model_name(self, provider=None) -> str:
         provider = provider or self.get_default_llm_provider_enum()

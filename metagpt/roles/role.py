@@ -466,7 +466,7 @@ class Role(SerializationMixin, is_polymorphic_base=True):
         Use llm to select actions in _think dynamically
         """
         actions_taken = 0
-        rsp = Message(content="No actions taken yet")  # will be overwritten after Role _act
+        rsp = Message(content="No actions taken yet", cause_by=Action)  # will be overwritten after Role _act
         while actions_taken < self.rc.max_react_loop:
             # think
             await self._think()
