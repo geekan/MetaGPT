@@ -11,14 +11,12 @@
 
 import re
 
-import aiofiles
-
 from metagpt.actions import UserRequirement
 from metagpt.actions.write_teaching_plan import TeachingPlanBlock, WriteTeachingPlanPart
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
-from metagpt.utils.common import any_to_str
+from metagpt.utils.common import any_to_str, awrite
 
 
 class Teacher(Role):
@@ -83,11 +81,7 @@ class Teacher(Role):
         pathname = self.config.workspace.path / "teaching_plan"
         pathname.mkdir(exist_ok=True)
         pathname = pathname / filename
-        try:
-            async with aiofiles.open(str(pathname), mode="w", encoding="utf-8") as writer:
-                await writer.write(content)
-        except Exception as e:
-            logger.error(f"Save failed：{e}")
+        await awrite(pathname, content)
         logger.info(f"Save to:{pathname}")
 
     @staticmethod
