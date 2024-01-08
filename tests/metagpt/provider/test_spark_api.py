@@ -6,6 +6,7 @@ import pytest
 
 from metagpt.config2 import config
 from metagpt.provider.spark_api import GetMessageFromWeb, SparkLLM
+from tests.metagpt.provider.mock_llm_config import mock_llm_config
 
 prompt_msg = "who are you"
 resp_content = "I'm Spark"
@@ -37,7 +38,7 @@ def mock_spark_get_msg_from_web_run(self) -> str:
 async def test_spark_acompletion(mocker):
     mocker.patch("metagpt.provider.spark_api.GetMessageFromWeb.run", mock_spark_get_msg_from_web_run)
 
-    spark_gpt = SparkLLM()
+    spark_gpt = SparkLLM(mock_llm_config)
 
     resp = await spark_gpt.acompletion([])
     assert resp == resp_content

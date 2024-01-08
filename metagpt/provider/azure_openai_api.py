@@ -28,13 +28,13 @@ class AzureOpenAILLM(OpenAILLM):
         kwargs = self._make_client_kwargs()
         # https://learn.microsoft.com/zh-cn/azure/ai-services/openai/how-to/migration?tabs=python-new%2Cdalle-fix
         self.aclient = AsyncAzureOpenAI(**kwargs)
-        self.model = self.config.DEPLOYMENT_NAME  # Used in _calc_usage & _cons_kwargs
+        self.model = self.config.model  # Used in _calc_usage & _cons_kwargs
 
     def _make_client_kwargs(self) -> dict:
         kwargs = dict(
-            api_key=self.config.OPENAI_API_KEY,
-            api_version=self.config.OPENAI_API_VERSION,
-            azure_endpoint=self.config.OPENAI_BASE_URL,
+            api_key=self.config.api_key,
+            api_version=self.config.api_version,
+            azure_endpoint=self.config.base_url,
         )
 
         # to use proxy, openai v1 needs http_client

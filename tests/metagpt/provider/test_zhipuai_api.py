@@ -5,10 +5,8 @@
 import pytest
 from zhipuai.utils.sse_client import Event
 
-from metagpt.config import CONFIG
 from metagpt.provider.zhipuai_api import ZhiPuAILLM
-
-CONFIG.zhipuai_api_key = "xxx.xxx"
+from tests.metagpt.provider.mock_llm_config import mock_llm_config
 
 prompt_msg = "who are you"
 messages = [{"role": "user", "content": prompt_msg}]
@@ -65,7 +63,7 @@ async def test_zhipuai_acompletion(mocker):
     mocker.patch("metagpt.provider.zhipuai.zhipu_model_api.ZhiPuModelAPI.ainvoke", mock_zhipuai_ainvoke)
     mocker.patch("metagpt.provider.zhipuai.zhipu_model_api.ZhiPuModelAPI.asse_invoke", mock_zhipuai_asse_invoke)
 
-    zhipu_gpt = ZhiPuAILLM()
+    zhipu_gpt = ZhiPuAILLM(mock_llm_config)
 
     resp = await zhipu_gpt.acompletion(messages)
     assert resp["data"]["choices"][0]["content"] == resp_content

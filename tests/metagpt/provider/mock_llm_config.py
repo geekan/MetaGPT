@@ -21,3 +21,12 @@ mock_llm_config_proxy = LLMConfig(
     base_url="mock_base_url",
     proxy="http://localhost:8080",
 )
+
+
+mock_llm_config_azure = LLMConfig(
+    llm_type="azure",
+    api_version="2023-09-01-preview",
+    api_key="mock_api_key",
+    base_url="mock_base_url",
+    proxy="http://localhost:8080",
+)
