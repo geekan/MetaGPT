@@ -32,7 +32,7 @@ def test_memory():
     messages = memory.get_by_action(UserRequirement)
     assert len(messages) == 2
 
-    messages = memory.get_by_actions([UserRequirement])
+    messages = memory.get_by_actions({UserRequirement})
     assert len(messages) == 2
 
     messages = memory.try_remember("test message")
