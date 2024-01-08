@@ -6,6 +6,7 @@
 @File    : test_skill_action.py
 @Desc    : Unit tests.
 """
+
 import pytest
 
 from metagpt.actions.skill_action import ArgumentsParingAction, SkillAction
@@ -47,7 +48,11 @@ class TestSkillAction:
         assert args.get("size_type") == "512x512"
 
     @pytest.mark.asyncio
-    async def test_parser_action(self):
+    async def test_parser_action(self, mocker):
+        # mock
+        mock_text_2_image = mocker.patch("metagpt.learn.text_to_image")
+        mock_text_2_image.return_value = "https://mock.com/xxx"
+
         parser_action = ArgumentsParingAction(skill=self.skill, ask="Draw an apple")
         rsp = await parser_action.run()
         assert rsp
@@ -80,7 +85,8 @@ class TestSkillAction:
     @pytest.mark.asyncio
     async def test_skill_action_error(self):
         action = SkillAction(skill=self.skill, args={})
-        await action.run()
+        rsp = await action.run()
+        assert "Error" in rsp.content
 
 
 if __name__ == "__main__":
