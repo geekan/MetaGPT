@@ -24,7 +24,7 @@ async def test_text_to_image(mocker):
     mocker.patch.object(OpenAIText2Image, "text_2_image", return_value=b"mock OpenAIText2Image")
     mocker.patch.object(S3, "cache", return_value="http://mock/s3")
 
-    config = Config()
+    config = Config.default()
     assert config.METAGPT_TEXT_TO_IMAGE_MODEL_URL
 
     data = await text_to_image("Panda emoji", size_type="512x512", model_url=config.METAGPT_TEXT_TO_IMAGE_MODEL_URL)

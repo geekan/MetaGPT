@@ -5,13 +5,12 @@
 @Author  : mashenquan
 @File    : test_teacher.py
 """
-import os
 from typing import Dict, Optional
 
 import pytest
 from pydantic import BaseModel
 
-from metagpt.config import CONFIG, Config
+from metagpt.context import context
 from metagpt.roles.teacher import Teacher
 from metagpt.schema import Message
 
@@ -61,15 +60,8 @@ async def test_init():
         },
     ]
 
-    env = os.environ.copy()
     for i in inputs:
         seed = Inputs(**i)
-        os.environ.clear()
-        os.environ.update(env)
-        CONFIG = Config()
-        CONFIG.set_context(seed.kwargs)
-        print(CONFIG.options)
-        assert bool("language" in seed.kwargs) == bool("language" in CONFIG.options)
 
         teacher = Teacher(
             name=seed.name,
@@ -105,7 +97,8 @@ async def test_new_file_name():
 
 @pytest.mark.asyncio
 async def test_run():
-    CONFIG.set_context({"language": "Chinese", "teaching_language": "English"})
+    context.kwargs.language = "Chinese"
+    context.kwargs.teaching_language = "English"
     lesson = """
     UNIT 1 Making New Friends
     TOPIC 1 Welcome to China!

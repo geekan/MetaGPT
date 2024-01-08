@@ -13,7 +13,7 @@ from pydantic import Field
 
 from metagpt.actions import DebugError, RunCode, WriteTest
 from metagpt.actions.summarize_code import SummarizeCode
-from metagpt.config import CONFIG
+from metagpt.context import context
 from metagpt.environment import Environment
 from metagpt.roles import QaEngineer
 from metagpt.schema import Message
@@ -23,10 +23,10 @@ from metagpt.utils.common import any_to_str, aread, awrite
 async def test_qa():
     # Prerequisites
     demo_path = Path(__file__).parent / "../../data/demo_project"
-    CONFIG.src_workspace = Path(CONFIG.git_repo.workdir) / "qa/game_2048"
+    context.src_workspace = Path(context.git_repo.workdir) / "qa/game_2048"
     data = await aread(filename=demo_path / "game.py", encoding="utf-8")
-    await awrite(filename=CONFIG.src_workspace / "game.py", data=data, encoding="utf-8")
-    await awrite(filename=Path(CONFIG.git_repo.workdir) / "requirements.txt", data="")
+    await awrite(filename=context.src_workspace / "game.py", data=data, encoding="utf-8")
+    await awrite(filename=Path(context.git_repo.workdir) / "requirements.txt", data="")
 
     class MockEnv(Environment):
         msgs: List[Message] = Field(default_factory=list)
