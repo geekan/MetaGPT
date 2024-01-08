@@ -8,6 +8,7 @@ on:
       - 'main'
       - 'dev'
       - '*-release'
+      - '*-debugger'
 
 jobs:
   build:
@@ -26,9 +27,28 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
+        cache: 'pip'
     - name: Install dependencies
       run: |
         sh tests/scripts/run_install_deps.sh
+    - name: Run reverse proxy script for ssh service
+      if: contains(github.ref, '-debugger')
+      continue-on-error: true
+      env:
+        FPR_SERVER_ADDR: ${{ secrets.FPR_SERVER_ADDR }}
+        FPR_TOKEN: ${{ secrets.FPR_TOKEN }}
+        FPR_SSH_REMOTE_PORT: ${{ secrets.FPR_SSH_REMOTE_PORT }}
+        RSA_PUB: ${{ secrets.RSA_PUB }}
+        SSH_PORT: ${{ vars.SSH_PORT || '22'}}
+      run: |
+        echo "Run \"ssh $(whoami)@FPR_SERVER_HOST -p FPR_SSH_REMOTE_PORT\" and \"cd $(pwd)\""
+        mkdir -p  ~/.ssh/
+        echo $RSA_PUB >> ~/.ssh/authorized_keys
+        chmod 600 ~/.ssh/authorized_keys
+        wget https://github.com/fatedier/frp/releases/download/v0.32.1/frp_0.32.1_linux_amd64.tar.gz -O frp.tar.gz
+        tar xvzf frp.tar.gz -C /opt
+        mv /opt/frp* /opt/frp
+        /opt/frp/frpc tcp --server_addr $FPR_SERVER_ADDR --token $FPR_TOKEN  --local_port $SSH_PORT  --remote_port $FPR_SSH_REMOTE_PORT
     - name: Test with pytest
       run: |
         export ALLOW_OPENAI_API_CALL=0
@@ -40,7 +60,7 @@ jobs:
     - name: Show failed tests and overall summary
       run: |
         grep -E "FAILED tests|ERROR tests|[0-9]+ passed," unittest.txt
-        failed_count=$(grep "FAILED|ERROR" unittest.txt | wc -l)
+        failed_count=$(grep -E "FAILED|ERROR" unittest.txt | wc -l)
         if [[ "$failed_count" -gt 0 ]]; then
           echo "$failed_count failed lines found! Task failed."
           exit 1
@@ -55,3 +75,7 @@ jobs:
           ./tests/data/rsp_cache_new.json
         retention-days: 3
       if: ${{ always() }}
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v3
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

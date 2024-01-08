@@ -12,10 +12,18 @@ import pytest
 
 from metagpt.config2 import Config
 from metagpt.learn.text_to_image import text_to_image
+from metagpt.tools.metagpt_text_to_image import MetaGPTText2Image
+from metagpt.tools.openai_text_to_image import OpenAIText2Image
+from metagpt.utils.s3 import S3
 
 
 @pytest.mark.asyncio
-async def test_metagpt_text_to_image():
+async def test_text_to_image(mocker):
+    # mock
+    mocker.patch.object(MetaGPTText2Image, "text_2_image", return_value=b"mock MetaGPTText2Image")
+    mocker.patch.object(OpenAIText2Image, "text_2_image", return_value=b"mock OpenAIText2Image")
+    mocker.patch.object(S3, "cache", return_value="http://mock/s3")
+
     config = Config()
     assert config.METAGPT_TEXT_TO_IMAGE_MODEL_URL
 

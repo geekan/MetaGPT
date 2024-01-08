@@ -284,4 +284,6 @@ class MockMessages:
     prd = Message(role="Product Manager", content=PRD, cause_by=WritePRD)
     system_design = Message(role="Architect", content=SYSTEM_DESIGN, cause_by=WriteDesign)
     tasks = Message(role="Project Manager", content=TASKS, cause_by=WriteTasks)
-    json_tasks = Message(role="Project Manager", content=json.dumps(JSON_TASKS), cause_by=WriteTasks)
+    json_tasks = Message(
+        role="Project Manager", content=json.dumps(JSON_TASKS, ensure_ascii=False), cause_by=WriteTasks
+    )
