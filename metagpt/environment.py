@@ -33,7 +33,7 @@ class Environment(BaseModel):
 
     desc: str = Field(default="")  # 环境描述
     roles: dict[str, SerializeAsAny[Role]] = Field(default_factory=dict, validate_default=True)
-    members: dict[Role, Set] = Field(default_factory=dict, exclude=True)
+    member_addrs: dict[Role, Set] = Field(default_factory=dict, exclude=True)
     history: str = ""  # For debug
     context: Context = Field(default_factory=Context, exclude=True)
 
@@ -51,7 +51,7 @@ class Environment(BaseModel):
                     "role_class": role.__class__.__name__,
                     "module_name": role.__module__,
                     "role_name": role.name,
-                    "role_sub_tags": list(self.members.get(role)),
+                    "role_sub_tags": list(self.member_addrs.get(role)),
                 }
             )
             role.serialize(stg_path=stg_path.joinpath(f"roles/{role.__class__.__name__}_{role.name}"))
