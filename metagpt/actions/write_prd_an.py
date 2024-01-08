@@ -31,6 +31,14 @@ ORIGINAL_REQUIREMENTS = ActionNode(
     example="Create a 2048 game",
 )
 
+REFINED_REQUIREMENTS = ActionNode(
+    key="Refined Requirements",
+    expected_type=str,
+    instruction="Update and expand the original user's requirements to reflect the evolving needs of the project."
+    "Retain any content unrelated to incremental development",
+    example="Create a 2048 game with a new feature that ...",
+)
+
 PROJECT_NAME = ActionNode(
     key="Project Name",
     expected_type=str,
@@ -45,6 +53,19 @@ PRODUCT_GOALS = ActionNode(
     example=["Create an engaging user experience", "Improve accessibility, be responsive", "More beautiful UI"],
 )
 
+REFINED_PRODUCT_GOALS = ActionNode(
+    key="Refined Product Goals",
+    expected_type=List[str],
+    instruction="Update and expand the original product goals to reflect the evolving needs due to incremental "
+    "development.Ensure that the refined goals align with the current project direction and contribute to its success."
+    "Retain any content unrelated to incremental development",
+    example=[
+        "Enhance user engagement through new features",
+        "Optimize performance for scalability",
+        "Integrate innovative UI enhancements",
+    ],
+)
+
 USER_STORIES = ActionNode(
     key="User Stories",
     expected_type=List[str],
@@ -55,6 +76,21 @@ USER_STORIES = ActionNode(
         "As a player, I want to get restart button when I lose",
         "As a player, I want to see beautiful UI that make me feel good",
         "As a player, I want to play game via mobile phone",
+    ],
+)
+
+REFINED_USER_STORIES = ActionNode(
+    key="Refined User Stories",
+    expected_type=List[str],
+    instruction="Update and expand the original scenario-based user stories to reflect the evolving needs due to "
+    "incremental development, no less than 5. Ensure that the refined user stories capture incremental features and "
+    "improvements. Retain any content unrelated to incremental development",
+    example=[
+        "As a player, I want to choose difficulty levels to challenge my skills",
+        "As a player, I want a visually appealing score display after each game for a better gaming experience",
+        "As a player, I want a convenient restart button displayed when I lose to quickly start a new game",
+        "As a player, I want an enhanced and aesthetically pleasing UI to elevate the overall gaming experience",
+        "As a player, I want the ability to play the game seamlessly on my mobile phone for on-the-go entertainment",
     ],
 )
 
@@ -97,10 +133,35 @@ REQUIREMENT_ANALYSIS = ActionNode(
     example="",
 )
 
+INCREMENTAL_REQUIREMENT_ANALYSIS = ActionNode(
+    key="Incremental Requirement Analysis",
+    expected_type=List[str],
+    instruction="Propose the comprehensive incremental development requirement analysis on new features and enhanced "
+    "features for New Requirements.",
+    example=["Require add/update/modify ..."],
+)
+
+REFINED_REQUIREMENT_ANALYSIS = ActionNode(
+    key="Refined Requirement Analysis",
+    expected_type=List[str],
+    instruction="Review and refine the existing requirement analysis to align with the evolving needs of the project "
+    "due to incremental development. Ensure the analysis comprehensively covers the new features and enhancements "
+    "required for the refined project scope.",
+    example=["Require add/update/modify ..."],
+)
+
 REQUIREMENT_POOL = ActionNode(
     key="Requirement Pool",
     expected_type=List[List[str]],
     instruction="List down the top-5 requirements with their priority (P0, P1, P2).",
+    example=[["P0", "The main code ..."], ["P0", "The game algorithm ..."]],
+)
+
+REFINED_REQUIREMENT_POOL = ActionNode(
+    key="Refined Requirement Pool",
+    expected_type=List[List[str]],
+    instruction="List no less than 5 requirements with their priority (P0, P1, P2). "
+    "Cover both legacy content and incremental content. Retain any content unrelated to incremental development",
     example=[["P0", "The main code ..."], ["P0", "The game algorithm ..."]],
 )
 
@@ -137,6 +198,36 @@ REASON = ActionNode(
 )
 
 
+INCREMENTAL_PRD_CONTEXT = """
+Role: You are a professional Product Manager tasked with overseeing incremental development. 
+Based on New Requirements, output a New PRD that seamlessly integrates both the Legacy Content and the Incremental Content. Ensure the resulting document captures the complete scope of features, enhancements, and retain content unrelated to incremental development needs for coherence and clarity.
+
+# Context
+## New Requirements
+{requirements}
+
+## Legacy Content
+{old_prd}
+
+## PRD Incremental Content
+{prd_increment}
+"""
+
+REFINE_PRD_TEMPLATE = """
+### Project Name
+{project_name}
+
+### New Requirements
+{requirements}
+
+### Legacy Content
+{old_prd}
+
+### Search Information
+-
+"""
+
+
 NODES = [
     LANGUAGE,
     PROGRAMMING_LANGUAGE,
@@ -152,13 +243,34 @@ NODES = [
     ANYTHING_UNCLEAR,
 ]
 
+REFINE_NODES = [
+    LANGUAGE,
+    PROGRAMMING_LANGUAGE,
+    REFINED_REQUIREMENTS,
+    PROJECT_NAME,
+    REFINED_PRODUCT_GOALS,
+    REFINED_USER_STORIES,
+    COMPETITIVE_ANALYSIS,
+    COMPETITIVE_QUADRANT_CHART,
+    REFINED_REQUIREMENT_ANALYSIS,
+    REFINED_REQUIREMENT_POOL,
+    UI_DESIGN_DRAFT,
+    ANYTHING_UNCLEAR,
+]
+
+INCREMENT_PRD_NODES = [INCREMENTAL_REQUIREMENT_ANALYSIS, REQUIREMENT_POOL]
+
 WRITE_PRD_NODE = ActionNode.from_children("WritePRD", NODES)
+REFINE_PRD_NODE = ActionNode.from_children("RefinePRD", REFINE_NODES)
+INCREMENTAL_PRD_NODE = ActionNode.from_children("IncrementalPRD", INCREMENT_PRD_NODES)
 WP_ISSUE_TYPE_NODE = ActionNode.from_children("WP_ISSUE_TYPE", [ISSUE_TYPE, REASON])
 WP_IS_RELATIVE_NODE = ActionNode.from_children("WP_IS_RELATIVE", [IS_RELATIVE, REASON])
 
 
 def main():
     prompt = WRITE_PRD_NODE.compile(context="")
+    logger.info(prompt)
+    prompt = REFINE_PRD_NODE.compile(context="")
     logger.info(prompt)
 
 

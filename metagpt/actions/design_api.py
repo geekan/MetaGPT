@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Optional
 
 from metagpt.actions import Action, ActionOutput
-from metagpt.actions.design_api_an import DESIGN_API_NODE
+from metagpt.actions.design_api_an import DESIGN_API_NODE, REFINED_DESIGN_NODES
 from metagpt.config import CONFIG
 from metagpt.const import (
     DATA_API_DESIGN_FILE_REPO,
@@ -82,7 +82,7 @@ class WriteDesign(Action):
 
     async def _merge(self, prd_doc, system_design_doc, schema=CONFIG.prompt_schema):
         context = NEW_REQ_TEMPLATE.format(old_design=system_design_doc.content, context=prd_doc.content)
-        node = await DESIGN_API_NODE.fill(context=context, llm=self.llm, schema=schema)
+        node = await REFINED_DESIGN_NODES.fill(context=context, llm=self.llm, schema=schema)
         system_design_doc.content = node.instruct_content.model_dump_json()
         return system_design_doc
 
@@ -109,7 +109,7 @@ class WriteDesign(Action):
     @staticmethod
     async def _save_data_api_design(design_doc):
         m = json.loads(design_doc.content)
-        data_api_design = m.get("Data structures and interfaces")
+        data_api_design = m.get("Data structures and interfaces") or m.get("Refined Data structures and interfaces")
         if not data_api_design:
             return
         pathname = CONFIG.git_repo.workdir / DATA_API_DESIGN_FILE_REPO / Path(design_doc.filename).with_suffix("")
@@ -119,7 +119,7 @@ class WriteDesign(Action):
     @staticmethod
     async def _save_seq_flow(design_doc):
         m = json.loads(design_doc.content)
-        seq_flow = m.get("Program call flow")
+        seq_flow = m.get("Program call flow") or m.get("Refined Program call flow")
         if not seq_flow:
             return
         pathname = CONFIG.git_repo.workdir / Path(SEQ_FLOW_FILE_REPO) / Path(design_doc.filename).with_suffix("")

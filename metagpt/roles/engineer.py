@@ -20,6 +20,7 @@
 from __future__ import annotations
 
 import json
+import os
 from collections import defaultdict
 from pathlib import Path
 from typing import Set
@@ -27,6 +28,10 @@ from typing import Set
 from metagpt.actions import Action, WriteCode, WriteCodeReview, WriteTasks
 from metagpt.actions.fix_bug import FixBug
 from metagpt.actions.summarize_code import SummarizeCode
+from metagpt.actions.write_code_guideline_an import (
+    CODE_GUIDELINE_CONTEXT,
+    WriteCodeGuideline,
+)
 from metagpt.config import CONFIG
 from metagpt.const import (
     CODE_SUMMARIES_FILE_REPO,
@@ -93,9 +98,9 @@ class Engineer(Role):
     @staticmethod
     def _parse_tasks(task_msg: Document) -> list[str]:
         m = json.loads(task_msg.content)
-        return m.get("Task list")
+        return m.get("Task list") or m.get("Refined Task list")
 
-    async def _act_sp_with_cr(self, review=False) -> Set[str]:
+    async def _act_sp_with_cr(self, review=False, guideline="") -> Set[str]:
         changed_files = set()
         src_file_repo = CONFIG.git_repo.new_file_repository(CONFIG.src_workspace)
         for todo in self.code_todos:
@@ -106,15 +111,28 @@ class Engineer(Role):
             3. Do we need other codes (currently needed)?
             TODO: The goal is not to need it. After clear task decomposition, based on the design idea, you should be able to write a single file without needing other codes. If you can't, it means you need a clearer definition. This is the key to writing longer code.
             """
-            coding_context = await todo.run()
+            coding_context = await todo.run(guideline=guideline)
             # Code review
             if review:
                 action = WriteCodeReview(context=coding_context, llm=self.llm)
                 self._init_action_system_message(action)
                 coding_context = await action.run()
+
+            # Get dependencies
+            if guideline:
+                dependencies = {
+                    coding_context.design_doc.root_relative_path,
+                    coding_context.task_doc.root_relative_path,
+                    "code_guideline.json",
+                }
+            else:
+                dependencies = {
+                    coding_context.design_doc.root_relative_path,
+                    coding_context.task_doc.root_relative_path,
+                }
             await src_file_repo.save(
                 coding_context.filename,
-                dependencies={coding_context.design_doc.root_relative_path, coding_context.task_doc.root_relative_path},
+                dependencies=dependencies,
                 content=coding_context.code_doc.content,
             )
             msg = Message(
@@ -143,7 +161,11 @@ class Engineer(Role):
         return None
 
     async def _act_write_code(self):
-        changed_files = await self._act_sp_with_cr(review=self.use_code_review)
+        if CONFIG.inc:
+            code_guideline = await self._write_code_guideline()
+            changed_files = await self._act_sp_with_cr(review=self.use_code_review, guideline=code_guideline)
+        else:
+            changed_files = await self._act_sp_with_cr(review=self.use_code_review)
         return Message(
             content="\n".join(changed_files),
             role=self.profile,
@@ -319,3 +341,35 @@ class Engineer(Role):
     def todo(self) -> str:
         """AgentStore uses this attribute to display to the user what actions the current role should take."""
         return self.next_todo_action
+
+    async def _write_code_guideline(self):
+        logger.info("Writing code guideline..")
+
+        requirement = str(self.rc.memory.get_by_role("Human")[0])
+        # prd_file_repo = CONFIG.git_repo.new_file_repository(PRDS_FILE_REPO)
+        design_file_repo = CONFIG.git_repo.new_file_repository(SYSTEM_DESIGN_FILE_REPO)
+        task_file_repo = CONFIG.git_repo.new_file_repository(TASK_FILE_REPO)
+        # prd = await prd_file_repo.get_all()
+        # prd = "\n".join([doc.content for doc in prd])
+        design = await design_file_repo.get_all()
+        design = "\n".join([doc.content for doc in design])
+        tasks = await task_file_repo.get_all()
+        tasks = "\n".join([doc.content for doc in tasks])
+        old_codes = await self.get_old_codes()
+
+        context = CODE_GUIDELINE_CONTEXT.format(requirement=requirement, tasks=tasks, design=design, code=old_codes)
+        node = await WriteCodeGuideline().run(context=context)
+        guideline = node.instruct_content.model_dump_json()
+
+        await CONFIG.git_repo.new_file_repository(CONFIG.git_repo.workdir).save(
+            filename="code_guideline.json", content=guideline
+        )
+        return guideline
+
+    @staticmethod
+    async def get_old_codes() -> str:
+        CONFIG.old_workspace = CONFIG.git_repo.workdir / os.path.basename(CONFIG.project_path)
+        old_file_repo = CONFIG.git_repo.new_file_repository(relative_path=CONFIG.old_workspace)
+        old_codes = await old_file_repo.get_all()
+        codes = [f"----- {code.filename}\n```{code.content}```" for code in old_codes]
+        return "\n".join(codes)

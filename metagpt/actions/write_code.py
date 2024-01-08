@@ -21,11 +21,13 @@ from pydantic import Field
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.actions.action import Action
+from metagpt.actions.write_code_guideline_an import REFINED_CODE_TEMPLATE
 from metagpt.config import CONFIG
 from metagpt.const import (
     BUGFIX_FILENAME,
     CODE_SUMMARIES_FILE_REPO,
     DOCS_FILE_REPO,
+    REQUIREMENT_FILENAME,
     TASK_FILE_REPO,
     TEST_OUTPUTS_FILE_REPO,
 )
@@ -111,20 +113,38 @@ class WriteCode(Action):
             test_detail = RunCodeResult.loads(test_doc.content)
             logs = test_detail.stderr
 
+        docs_file_repo = CONFIG.git_repo.new_file_repository(relative_path=DOCS_FILE_REPO)
+        requirement_doc = await docs_file_repo.get(filename=REQUIREMENT_FILENAME)
+        guideline = kwargs.get("guideline", "")
         if bug_feedback:
             code_context = coding_context.code_doc.content
+        elif guideline:
+            code_context = await self.get_codes(coding_context.task_doc, exclude=self.context.filename, mode="guide")
         else:
             code_context = await self.get_codes(coding_context.task_doc, exclude=self.context.filename)
 
-        prompt = PROMPT_TEMPLATE.format(
-            design=coding_context.design_doc.content if coding_context.design_doc else "",
-            tasks=coding_context.task_doc.content if coding_context.task_doc else "",
-            code=code_context,
-            logs=logs,
-            feedback=bug_feedback.content if bug_feedback else "",
-            filename=self.context.filename,
-            summary_log=summary_doc.content if summary_doc else "",
-        )
+        if guideline:
+            prompt = REFINED_CODE_TEMPLATE.format(
+                requirement=requirement_doc.content if requirement_doc else "",
+                guideline=guideline,
+                design=coding_context.design_doc.content if coding_context.design_doc else "",
+                tasks=coding_context.task_doc.content if coding_context.task_doc else "",
+                code=code_context,
+                logs=logs,
+                feedback=bug_feedback.content if bug_feedback else "",
+                filename=self.context.filename,
+                summary_log=summary_doc.content if summary_doc else "",
+            )
+        else:
+            prompt = PROMPT_TEMPLATE.format(
+                design=coding_context.design_doc.content if coding_context.design_doc else "",
+                tasks=coding_context.task_doc.content if coding_context.task_doc else "",
+                code=code_context,
+                logs=logs,
+                feedback=bug_feedback.content if bug_feedback else "",
+                filename=self.context.filename,
+                summary_log=summary_doc.content if summary_doc else "",
+            )
         logger.info(f"Writing {coding_context.filename}..")
         code = await self.write_code(prompt)
         if not coding_context.code_doc:
@@ -135,20 +155,46 @@ class WriteCode(Action):
         return coding_context
 
     @staticmethod
-    async def get_codes(task_doc, exclude) -> str:
+    async def get_codes(task_doc, exclude, mode="normal") -> str:
         if not task_doc:
             return ""
         if not task_doc.content:
             task_doc.content = FileRepository.get_file(filename=task_doc.filename, relative_path=TASK_FILE_REPO)
         m = json.loads(task_doc.content)
-        code_filenames = m.get("Task list", [])
+        code_filenames = m.get("Task list", []) if mode == "normal" else m.get("Refined Task list", [])
         codes = []
         src_file_repo = CONFIG.git_repo.new_file_repository(relative_path=CONFIG.src_workspace)
-        for filename in code_filenames:
-            if filename == exclude:
-                continue
-            doc = await src_file_repo.get(filename=filename)
-            if not doc:
-                continue
-            codes.append(f"----- {filename}\n" + doc.content)
+
+        if mode == "guide":
+            src_files = src_file_repo.all_files
+            old_file_repo = CONFIG.git_repo.new_file_repository(relative_path=CONFIG.old_workspace)
+            old_files = old_file_repo.all_files
+            union_files_list = list(set(src_files) | set(old_files))
+            for filename in union_files_list:
+                if filename == exclude:
+                    if filename in old_files and filename != "main.py":
+                        doc = await old_file_repo.get(filename=filename)  # 使用原始代码
+                    else:
+                        continue
+                    codes.insert(0, f"-----Now, {filename} to be rewritten\n```{doc.content}```\n=====")
+
+                else:
+                    doc = await src_file_repo.get(filename=filename)  # 使用先前生成的代码
+                    if not doc:
+                        # if filename in old_files:
+                        #     doc = await old_file_repo.get(filename=filename)  # 使用原始代码
+                        # else:
+                        #     continue
+                        continue  # 跳过
+                    codes.append(f"----- {filename}\n```{doc.content}```")
+
+        else:
+            for filename in code_filenames:
+                if filename == exclude:
+                    continue
+                doc = await src_file_repo.get(filename=filename)
+                if not doc:
+                    continue
+                codes.append(f"----- {filename}\n```{doc.content}```")
+
         return "\n".join(codes)
