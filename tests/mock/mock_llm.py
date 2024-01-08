@@ -1,13 +1,13 @@
 from typing import Optional
 
+from metagpt.config2 import config
 from metagpt.logs import log_llm_stream, logger
 from metagpt.provider.openai_api import OpenAILLM
-from tests.metagpt.provider.mock_llm_config import mock_llm_config
 
 
 class MockLLM(OpenAILLM):
     def __init__(self, allow_open_api_call):
-        super().__init__(mock_llm_config)
+        super().__init__(config.get_openai_llm())
         self.allow_open_api_call = allow_open_api_call
         self.rsp_cache: dict = {}
         self.rsp_candidates: list[dict] = []  # a test can have multiple calls with the same llm, thus a list

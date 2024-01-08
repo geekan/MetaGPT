@@ -18,6 +18,8 @@ from metagpt.utils.git_repository import GitRepository
 
 
 class AttrDict:
+    """A dict-like object that allows access to keys as attributes."""
+
     def __init__(self, d=None):
         if d is None:
             d = {}
@@ -37,7 +39,7 @@ class AttrDict:
 
 
 class Context:
-    kwargs: AttrDict = {}
+    kwargs: AttrDict = AttrDict()
     config: Config = Config.default()
     git_repo: Optional[GitRepository] = None
     src_workspace: Optional[Path] = None
@@ -72,5 +74,9 @@ context = Context()
 
 
 if __name__ == "__main__":
-    print(context.model_dump_json(indent=4))
-    print(context.config.get_openai_llm())
+    # print(context.model_dump_json(indent=4))
+    # print(context.config.get_openai_llm())
+    ad = AttrDict({"name": "John", "age": 30})
+
+    print(ad.name)  # Output: John
+    print(ad.height)  # Output: None (因为height不存在)

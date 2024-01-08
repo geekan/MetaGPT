@@ -31,7 +31,7 @@ class BrainMemory(BaseModel):
     is_dirty: bool = False
     last_talk: str = None
     cacheable: bool = True
-    llm: Optional[BaseLLM] = None
+    llm: Optional[BaseLLM] = Field(default=None, exclude=True)
 
     class Config:
         arbitrary_types_allowed = True
@@ -56,8 +56,8 @@ class BrainMemory(BaseModel):
 
     @staticmethod
     async def loads(redis_key: str) -> "BrainMemory":
-        redis = Redis()
-        if not redis.is_valid or not redis_key:
+        redis = Redis(config.redis)
+        if not redis_key:
             return BrainMemory()
         v = await redis.get(key=redis_key)
         logger.debug(f"REDIS GET {redis_key} {v}")
@@ -70,8 +70,8 @@ class BrainMemory(BaseModel):
     async def dumps(self, redis_key: str, timeout_sec: int = 30 * 60):
         if not self.is_dirty:
             return
-        redis = Redis()
-        if not redis.is_valid or not redis_key:
+        redis = Redis(config.redis)
+        if not redis_key:
             return False
         v = self.model_dump_json()
         if self.cacheable:
@@ -140,7 +140,7 @@ class BrainMemory(BaseModel):
             return text
         summary = await self._summarize(text=text, max_words=max_words, keep_language=keep_language, limit=limit)
         if summary:
-            await self.set_history_summary(history_summary=summary, redis_key=config.redis.key)
+            await self.set_history_summary(history_summary=summary, redis_key=config.redis_key)
             return summary
         raise ValueError(f"text too long:{text_length}")
 

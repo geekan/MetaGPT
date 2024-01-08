@@ -65,6 +65,7 @@ class Config(CLIParams, YamlModel):
     llm_for_researcher_report: str = "gpt3"
     METAGPT_TEXT_TO_IMAGE_MODEL_URL: str = ""
     language: str = "English"
+    redis_key: str = "placeholder"
 
     @classmethod
     def default(cls):
