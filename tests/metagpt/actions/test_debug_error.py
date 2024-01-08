@@ -149,5 +149,16 @@ async def test_debug_error():
     rsp = await debug_error.run()
 
     assert "class Player" in rsp  # rewrite the same class
-    # a key logic to rewrite to (original one is "if self.score > 12")
+    # Problematic code:
+    # ```
+    # if self.score > 21 and any(card.rank == 'A' for card in self.hand):
+    #     self.score -= 10
+    # ```
+    # Should rewrite to (used "gpt-3.5-turbo-1106"):
+    # ```
+    # ace_count = sum(1 for card in self.hand if card.rank == 'A')
+    # while self.score > 21 and ace_count > 0:
+    #     self.score -= 10
+    #     ace_count -= 1
+    # ```
     assert "while self.score > 21" in rsp
