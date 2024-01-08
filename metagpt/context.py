@@ -7,7 +7,7 @@
 """
 import os
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Optional
 
 from metagpt.config2 import Config
 from metagpt.const import OPTIONS
@@ -17,8 +17,27 @@ from metagpt.utils.cost_manager import CostManager
 from metagpt.utils.git_repository import GitRepository
 
 
+class AttrDict:
+    def __init__(self, d=None):
+        if d is None:
+            d = {}
+        self.__dict__["_dict"] = d
+
+    def __getattr__(self, key):
+        return self._dict.get(key, None)
+
+    def __setattr__(self, key, value):
+        self._dict[key] = value
+
+    def __delattr__(self, key):
+        if key in self._dict:
+            del self._dict[key]
+        else:
+            raise AttributeError(f"No such attribute: {key}")
+
+
 class Context:
-    kwargs: Dict = {}
+    kwargs: AttrDict = {}
     config: Config = Config.default()
     git_repo: Optional[GitRepository] = None
     src_workspace: Optional[Path] = None

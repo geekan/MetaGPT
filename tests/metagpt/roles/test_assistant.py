@@ -12,7 +12,7 @@ from pydantic import BaseModel
 
 from metagpt.actions.skill_action import SkillAction
 from metagpt.actions.talk_action import TalkAction
-from metagpt.config import CONFIG
+from metagpt.context import context
 from metagpt.memory.brain_memory import BrainMemory
 from metagpt.roles.assistant import Assistant
 from metagpt.schema import Message
@@ -21,7 +21,7 @@ from metagpt.utils.common import any_to_str
 
 @pytest.mark.asyncio
 async def test_run():
-    CONFIG.language = "Chinese"
+    context.kwargs.language = "Chinese"
 
     class Input(BaseModel):
         memory: BrainMemory
@@ -65,7 +65,7 @@ async def test_run():
             "cause_by": any_to_str(SkillAction),
         },
     ]
-    CONFIG.agent_skills = [
+    context.kwargs.agent_skills = [
         {"id": 1, "name": "text_to_speech", "type": "builtin", "config": {}, "enabled": True},
         {"id": 2, "name": "text_to_image", "type": "builtin", "config": {}, "enabled": True},
         {"id": 3, "name": "ai_call", "type": "builtin", "config": {}, "enabled": True},
@@ -77,8 +77,8 @@ async def test_run():
 
     for i in inputs:
         seed = Input(**i)
-        CONFIG.language = seed.language
-        CONFIG.agent_description = seed.agent_description
+        context.kwargs.language = seed.language
+        context.kwargs.agent_description = seed.agent_description
         role = Assistant(language="Chinese")
         role.memory = seed.memory  # Restore historical conversation content.
         while True:
@@ -118,13 +118,7 @@ async def test_memory(memory):
     assert val
 
     await role.talk("draw apple")
-
-    agent_skills = CONFIG.agent_skills
-    CONFIG.agent_skills = []
-    try:
-        await role.think()
-    finally:
-        CONFIG.agent_skills = agent_skills
+    await role.think()
     assert isinstance(role.rc.todo, TalkAction)
 
 
