@@ -204,7 +204,8 @@ class Engineer(Role):
 
     async def _think(self) -> Action | None:
         if not CONFIG.src_workspace:
-            CONFIG.src_workspace = CONFIG.git_repo.workdir / CONFIG.git_repo.workdir.name
+            project_name = CONFIG.project_name or CONFIG.git_repo.workdir.name
+            CONFIG.src_workspace = CONFIG.git_repo.workdir / project_name
         write_code_filters = any_to_str_set([WriteTasks, SummarizeCode, FixBug])
         summarize_code_filters = any_to_str_set([WriteCode, WriteCodeReview])
         if not self.rc.news:
