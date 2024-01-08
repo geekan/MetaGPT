@@ -9,7 +9,7 @@ from metagpt.schema import CodingContext, Document
 
 
 @pytest.mark.asyncio
-async def test_write_code_review_deserialize():
+async def test_write_code_review_serdeser():
     code_content = """
 def div(a: int, b: int = 0):
     return a / b

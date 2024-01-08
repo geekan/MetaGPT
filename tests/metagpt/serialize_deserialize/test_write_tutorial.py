@@ -9,7 +9,7 @@ from metagpt.actions.write_tutorial import WriteContent, WriteDirectory
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(("language", "topic"), [("English", "Write a tutorial about Python")])
-async def test_write_directory_deserialize(language: str, topic: str):
+async def test_write_directory_serdeser(language: str, topic: str):
     action = WriteDirectory()
     serialized_data = action.model_dump()
     assert serialized_data["name"] == "WriteDirectory"
@@ -30,7 +30,7 @@ async def test_write_directory_deserialize(language: str, topic: str):
     ("language", "topic", "directory"),
     [("English", "Write a tutorial about Python", {"Introduction": ["What is Python?", "Why learn Python?"]})],
 )
-async def test_write_content_deserialize(language: str, topic: str, directory: Dict):
+async def test_write_content_serdeser(language: str, topic: str, directory: Dict):
     action = WriteContent(language=language, directory=directory)
     serialized_data = action.model_dump()
     assert serialized_data["name"] == "WriteContent"
