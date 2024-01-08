@@ -20,6 +20,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
       with:
