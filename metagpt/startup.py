@@ -70,6 +70,9 @@ def startup(
         company = Team.deserialize(stg_path=stg_path)
         idea = company.idea  # use original idea
 
+    if False:
+        print("abc")
+
     company.invest(investment)
     company.run_project(idea)
     asyncio.run(company.run(n_round=n_round))
