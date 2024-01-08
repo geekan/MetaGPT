@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import asyncio
+import shutil
 from pathlib import Path
 
 import typer
 
 from metagpt.config2 import config
+from metagpt.const import METAGPT_ROOT
 
 app = typer.Typer(add_completion=False)
 
@@ -64,9 +66,9 @@ def generate_repo(
     asyncio.run(company.run(n_round=n_round))
 
 
-@app.command()
+@app.command("", help="Start a new project.")
 def startup(
-    idea: str = typer.Argument(..., help="Your innovative idea, such as 'Create a 2048 game.'"),
+    idea: str = typer.Argument(None, help="Your innovative idea, such as 'Create a 2048 game.'"),
     investment: float = typer.Option(default=3.0, help="Dollar amount to invest in the AI company."),
     n_round: int = typer.Option(default=5, help="Number of rounds for the simulation."),
     code_review: bool = typer.Option(default=True, help="Whether to use code review."),
@@ -87,8 +89,17 @@ def startup(
         "unlimited. This parameter is used for debugging the workflow.",
     ),
     recover_path: str = typer.Option(default=None, help="recover the project from existing serialized storage"),
+    init_config: bool = typer.Option(default=False, help="Initialize the configuration file for MetaGPT."),
 ):
     """Run a startup. Be a boss."""
+    if init_config:
+        copy_config_to()
+        return
+
+    if idea is None:
+        typer.echo("Missing argument 'IDEA'. Run 'metagpt --help' for more information.")
+        raise typer.Exit()
+
     return generate_repo(
         idea,
         investment,
@@ -103,6 +114,24 @@ def startup(
         max_auto_summarize_code,
         recover_path,
     )
+
+
+def copy_config_to(config_path=METAGPT_ROOT / "config" / "config2.yaml"):
+    """Initialize the configuration file for MetaGPT."""
+    target_path = Path.home() / ".metagpt" / "config2.yaml"
+
+    # 创建目标目录（如果不存在）
+    target_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # 如果目标文件已经存在，则重命名为 .bak
+    if target_path.exists():
+        backup_path = target_path.with_suffix(".bak")
+        target_path.rename(backup_path)
+        print(f"Existing configuration file backed up at {backup_path}")
+
+    # 复制文件
+    shutil.copy(str(config_path), target_path)
+    print(f"Configuration file initialized at {target_path}")
 
 
 if __name__ == "__main__":
