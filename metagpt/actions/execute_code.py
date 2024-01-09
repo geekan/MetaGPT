@@ -55,7 +55,6 @@ class ExecutePyCode(ExecuteCode, Action):
         llm=None,
         nb=None,
         timeout: int = 600,
-        max_tries: int = 3
     ):
         super().__init__(name, context, llm)
         if nb is None:
@@ -63,7 +62,6 @@ class ExecutePyCode(ExecuteCode, Action):
         else:
             self.nb = nb
         self.timeout = timeout
-        self.max_tries = max_tries
         self.nb_client = NotebookClient(self.nb, timeout=self.timeout)
         self.console = Console()
         self.interaction = "ipython" if self.is_ipython() else "terminal"
@@ -195,22 +193,15 @@ class ExecutePyCode(ExecuteCode, Action):
             # add code to the notebook
             self.add_code_cell(code=code)
 
-            tries = 0
-            success = False
-            outputs = ""
-            while tries < self.max_tries and not success:
-                # build code executor
-                await self.build()
-                # run code
-                cell_index = len(self.nb.cells) - 1
-                success, error_message = await self.run_cell(self.nb.cells[-1], cell_index)
+            # build code executor
+            await self.build()
 
-                if success:
-                    outputs = self.parse_outputs(self.nb.cells[-1].outputs)
-                else:
-                    tries += 1
+            # run code
+            cell_index = len(self.nb.cells) - 1
+            success, error_message = await self.run_cell(self.nb.cells[-1], cell_index)
 
             if success:
+                outputs = self.parse_outputs(self.nb.cells[-1].outputs)
                 return truncate(remove_escape_and_color_codes(outputs)), True
             else:
                 return error_message, False
