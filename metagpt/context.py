@@ -43,11 +43,14 @@ class AttrDict(BaseModel):
 
 
 class LLMMixin:
+    """Mixin class for LLM"""
+
     config: Optional[Config] = None
     llm_config: Optional[LLMConfig] = None
     _llm_instance: Optional[BaseLLM] = None
 
     def use_llm(self, name: Optional[str] = None, provider: LLMType = LLMType.OPENAI):
+        """Use a LLM provider"""
         # 更新LLM配置
         self.llm_config = self.config.get_llm_config(name, provider)
         # 重置LLM实例
@@ -55,7 +58,9 @@ class LLMMixin:
 
     @property
     def llm(self) -> BaseLLM:
-        # 实例化LLM，如果尚未实例化
+        """Return the LLM instance"""
+        if not self.llm_config:
+            self.use_llm()
         if not self._llm_instance and self.llm_config:
             self._llm_instance = create_llm_instance(self.llm_config)
         return self._llm_instance

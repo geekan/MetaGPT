@@ -8,6 +8,7 @@
 
 from metagpt.config2 import Config, config
 from metagpt.configs.llm_config import LLMType
+from tests.metagpt.provider.mock_llm_config import mock_llm_config
 
 
 def test_config_1():
@@ -19,3 +20,9 @@ def test_config_1():
 
 def test_config_2():
     assert config == Config.default()
+
+
+def test_config_from_dict():
+    cfg = Config(llm={"default": mock_llm_config})
+    assert cfg
+    assert cfg.llm["default"].api_key == "mock_api_key"
