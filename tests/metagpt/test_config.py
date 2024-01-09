@@ -38,13 +38,9 @@ class WTFMixin(BaseModel):
     c: str = "c"
     d: str = "d"
 
-    def __init__(self, **data):
-        super().__init__(**data)
-
 
 class ModelY(WTFMixin, ModelX):
-    def __init__(self, **data):
-        super().__init__(**data)
+    pass
 
 
 def test_config_mixin_1():
