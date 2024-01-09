@@ -103,5 +103,23 @@ class Context(LLMMixin, BaseModel):
     #     return llm
 
 
+class ContextMixin:
+    """Mixin class for configurable objects"""
+
+    _context: Optional[Context] = None
+
+    def __init__(self, context: Optional[Context] = None):
+        self._context = context
+
+    def set_context(self, context: Optional[Context] = None):
+        """Set parent context"""
+        self._context = context
+
+    @property
+    def context(self):
+        """Get config"""
+        return self._context
+
+
 # Global context, not in Env
 context = Context()
