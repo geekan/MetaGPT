@@ -6,16 +6,16 @@ from metagpt.actions.ask_review import ReviewConst
 from metagpt.actions.write_analysis_code import WriteCodeByGenerate
 from metagpt.logs import logger
 from metagpt.roles import Role
-from metagpt.schema import Message, Task
+from metagpt.schema import Message, Task, TaskResult
 from metagpt.utils.save_code import save_code_file
 
 
 class CodeInterpreter(Role):
     def __init__(
-        self, name="Charlie", profile="CodeInterpreter", goal="", auto_run=False,
+        self, name="Charlie", profile="CodeInterpreter", goal="", auto_run=False, use_tools=False,
     ):
         super().__init__(name=name, profile=profile, goal=goal)
-        self._set_react_mode(react_mode="plan_and_act", auto_run=auto_run)
+        self._set_react_mode(react_mode="plan_and_act", auto_run=auto_run, use_tools=use_tools)
         self.execute_code = ExecutePyCode()
 
     @property
@@ -32,13 +32,10 @@ class CodeInterpreter(Role):
 
         return rsp
     
-    async def _act_on_task(self, current_task) -> Task:
-        code, result, success = await self._write_and_exec_code()
-        task_copy_with_result = current_task.copy(
-            update={"code": code, "result": result, "is_success": success},
-            deep=True
-        )
-        return task_copy_with_result
+    async def _act_on_task(self, current_task: Task) -> TaskResult:
+        code, result, is_success = await self._write_and_exec_code()
+        task_result = TaskResult(code=code, result=result, is_success=is_success)
+        return task_result
 
     async def _write_and_exec_code(self, max_retry: int = 3):
         

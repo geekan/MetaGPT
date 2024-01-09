@@ -10,7 +10,7 @@ from copy import deepcopy
 import traceback
 
 from metagpt.actions import Action
-from metagpt.prompts.ml_engineer import ASSIGN_TASK_TYPE_PROMPT, ASSIGN_TASK_TYPE
+from metagpt.prompts.ml_engineer import ASSIGN_TASK_TYPE_PROMPT, ASSIGN_TASK_TYPE_CONFIG
 from metagpt.schema import Message, Task, Plan
 from metagpt.utils.common import CodeParser, create_func_config
 from metagpt.logs import logger
@@ -50,7 +50,7 @@ class WritePlan(Action):
             [f"Task {task['task_id']}: {task['instruction']}" for task in tasks]
         )
         prompt = ASSIGN_TASK_TYPE_PROMPT.format(task_list=task_list)
-        tool_config = create_func_config(ASSIGN_TASK_TYPE)
+        tool_config = create_func_config(ASSIGN_TASK_TYPE_CONFIG)
         rsp = await self.llm.aask_code(prompt, **tool_config)
         task_type_list = rsp["task_type"]
         for task, task_type in zip(tasks, task_type_list):

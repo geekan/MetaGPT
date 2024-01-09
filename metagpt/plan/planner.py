@@ -2,7 +2,7 @@ import json
 
 from metagpt.logs import logger
 from metagpt.memory import Memory
-from metagpt.schema import Message, Plan, Task
+from metagpt.schema import Message, Plan, Task, TaskResult
 from metagpt.actions.ask_review import AskReview, ReviewConst
 from metagpt.actions.write_plan import WritePlan, update_plan_from_rsp, precheck_update_plan_from_rsp
 
@@ -20,9 +20,10 @@ STRUCTURAL_CONTEXT = """
 
 
 class Planner:
-    def __init__(self, goal: str, working_memory: Memory, auto_run: bool = False):
+    def __init__(self, goal: str, working_memory: Memory, auto_run: bool = False, use_tools: bool = False):
         self.plan = Plan(goal=goal)
         self.auto_run = auto_run
+        self.use_tools = use_tools
 
         # memory for working on each task, discarded each time a task is done
         self.working_memory = working_memory
@@ -35,7 +36,7 @@ class Planner:
     def current_task_id(self):
         return self.plan.current_task_id
 
-    async def ask_review(self, task_to_review: Task = None, auto_run: bool = None, trigger: str = ReviewConst.TASK_REVIEW_TRIGGER):
+    async def ask_review(self, task_result: TaskResult = None, auto_run: bool = None, trigger: str = ReviewConst.TASK_REVIEW_TRIGGER):
         """
         Ask to review the task result, reviewer needs to provide confirmation or request change.
         If human confirms the task result, then we deem the task completed, regardless of whether the code run succeeds;
@@ -48,12 +49,11 @@ class Planner:
             if not confirmed:
                 self.working_memory.add(Message(content=review, role="user", cause_by=AskReview))
             return review, confirmed
-        confirmed = task_to_review.is_success if task_to_review else True
+        confirmed = task_result.is_success if task_result else True
         return "", confirmed
     
-    async def confirm_task(self, task, updated_task, review):
-        assert updated_task.task_id == task.task_id
-        self.plan.replace_task(updated_task)
+    async def confirm_task(self, task: Task, task_result: TaskResult, review: str):
+        self.plan.update_task_result(task=task, task_result=task_result)
         self.plan.finish_current_task()
         self.working_memory.clear()
         
@@ -63,13 +63,11 @@ class Planner:
             self.working_memory.add(Message(content=review, role="user", cause_by=AskReview))
             await self.update_plan(review)
     
-    async def update_plan(self, review: str = "", max_tasks: int = 3, max_retries: int = 3, **kwargs):
+    async def update_plan(self, max_tasks: int = 3, max_retries: int = 3):
         plan_confirmed = False
         while not plan_confirmed:
             context = self.get_useful_memories()
-            rsp = await WritePlan().run(
-                context, max_tasks=max_tasks, **kwargs
-            )
+            rsp = await WritePlan().run(context, max_tasks=max_tasks, use_tools=self.use_tools)
             self.working_memory.add(
                 Message(content=rsp, role="assistant", cause_by=WritePlan)
             )
@@ -85,10 +83,10 @@ class Planner:
             
             _, plan_confirmed = await self.ask_review(trigger=ReviewConst.TASK_REVIEW_TRIGGER)
         
-        update_plan_from_rsp(rsp, self.plan)
+        update_plan_from_rsp(rsp=rsp, current_plan=self.plan)
         
         self.working_memory.clear()
-    
+
     def get_useful_memories(self, task_exclude_field=None) -> list[Message]:
         """find useful memories only to reduce context length and improve performance"""
         # TODO dataset description , code steps

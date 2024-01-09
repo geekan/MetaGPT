@@ -23,7 +23,7 @@ async def run_code_interpreter(role_class, requirement, auto_run, use_tools, use
     """
 
     if role_class == "ci":
-        role = CodeInterpreter(goal=requirement, auto_run=auto_run)
+        role = CodeInterpreter(goal=requirement, auto_run=auto_run, use_tools=use_tools)
     else:
         role = MLEngineer(
             goal=requirement, auto_run=auto_run, use_tools=use_tools, use_code_steps=use_code_steps,
@@ -62,17 +62,12 @@ if __name__ == "__main__":
     # requirement = f"This is a house price dataset, your goal is to predict the sale price of a property based on its features. The target column is SalePrice. Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. Report RMSE between the logarithm of the predicted value and the logarithm of the observed sales price on the eval data. Train data path: '{data_path}/split_train.csv', eval data path: '{data_path}/split_eval.csv'."
     
     save_dir = ""
-    # save_dir = DATA_PATH / "output" / "2023-12-14_20-40-34"
 
-    role_class = "ci"
-    # role_class = "mle"
+    # role_class = "ci"
+    role_class = "mle"
     auto_run = True
-    # auto_run = False
-    # use_tools = True
-    use_tools = False
-    # make_udfs = True
+    use_tools = True
     make_udfs = False
-    # use_udfs = True
     use_udfs = False
 
     async def main(

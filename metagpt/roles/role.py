@@ -18,7 +18,7 @@ from metagpt.actions import Action, ActionOutput
 from metagpt.llm import LLM, HumanProvider
 from metagpt.logs import logger
 from metagpt.memory import Memory, LongTermMemory
-from metagpt.schema import Message, Task
+from metagpt.schema import Message, Task, TaskResult
 from metagpt.plan.planner import Planner
 
 PREFIX_TEMPLATE = """You are a {profile}, named {name}, your goal is {goal}, and the constraint is {constraints}. """
@@ -137,7 +137,7 @@ class Role:
             self._actions.append(i)
             self._states.append(f"{idx}. {action}")
 
-    def _set_react_mode(self, react_mode: str, max_react_loop: int = 1, auto_run: bool = True):
+    def _set_react_mode(self, react_mode: str, max_react_loop: int = 1, auto_run: bool = True, use_tools: bool = False):
         """Set strategy of the Role reacting to observed Message. Variation lies in how
         this Role elects action to perform during the _think stage, especially if it is capable of multiple Actions.
 
@@ -158,7 +158,7 @@ class Role:
         if react_mode == RoleReactMode.REACT:
             self._rc.max_react_loop = max_react_loop
         elif react_mode == RoleReactMode.PLAN_AND_ACT:
-            self.planner = Planner(goal=self._setting.goal, working_memory=self._rc.working_memory, auto_run=auto_run)
+            self.planner = Planner(goal=self._setting.goal, working_memory=self._rc.working_memory, auto_run=auto_run, use_tools=use_tools)
 
     def _watch(self, actions: Iterable[Type[Action]]):
         """Listen to the corresponding behaviors"""
@@ -285,18 +285,19 @@ class Role:
         await self.planner.update_plan()
         
         while self.planner.current_task:
+
             task = self.planner.current_task
             logger.info(f"ready to take on task {task}")
             
             # take on current task
-            task_copy_with_result = await self._act_on_task(task)
+            task_result = await self._act_on_task(task)
             
             # ask for acceptance, users can other refuse and change tasks in the plan
-            review, task_result_confirmed = await self.planner.ask_review(task_copy_with_result)
+            review, task_result_confirmed = await self.planner.ask_review(task_result)
             
             if task_result_confirmed:
                 # tick off this task and record progress
-                await self.planner.confirm_task(task, task_copy_with_result, review)
+                await self.planner.confirm_task(task, task_result, review)
             
             elif "redo" in review:
                 # Ask the Role to redo this task with help of review feedback,
@@ -315,7 +316,7 @@ class Role:
 
         return rsp
     
-    async def _act_on_task(self, current_task: Task) -> Task:
+    async def _act_on_task(self, current_task: Task) -> TaskResult:
         """Taking specific action to handle one task in plan
 
         Args:
@@ -325,7 +326,7 @@ class Role:
             NotImplementedError: Specific Role must implement this method if expected to use planner
 
         Returns:
-            Task: A copy of the current task with result from actions
+            TaskResult: Result from the actions
         """
         raise NotImplementedError
 

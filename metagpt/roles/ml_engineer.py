@@ -20,7 +20,7 @@ class MLEngineer(CodeInterpreter):
         self, name="Mark", profile="MLEngineer", goal="", auto_run=False, use_tools=False, use_code_steps=False,
         make_udfs=False, use_udfs=False
     ):
-        super().__init__(name=name, profile=profile, goal=goal, auto_run=auto_run)
+        super().__init__(name=name, profile=profile, goal=goal, auto_run=auto_run, use_tools=use_tools)
         self._watch([DownloadData, SubmitResult])
 
         self.use_tools = use_tools
