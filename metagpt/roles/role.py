@@ -166,6 +166,9 @@ class Role(SerializationMixin, is_polymorphic_base=True):
         Role.model_rebuild()
         super().__init__(**data)
 
+        if self.is_human:
+            self.llm = HumanProvider()
+
         self.llm.system_prompt = self._get_prefix()
         self._watch(data.get("watch") or [UserRequirement])
 
