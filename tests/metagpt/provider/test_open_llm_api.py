@@ -13,13 +13,9 @@ from openai.types.chat.chat_completion_chunk import Choice as AChoice
 from openai.types.chat.chat_completion_chunk import ChoiceDelta
 from openai.types.completion_usage import CompletionUsage
 
-from metagpt.config import CONFIG
 from metagpt.provider.open_llm_api import OpenLLM
 from metagpt.utils.cost_manager import Costs
 from tests.metagpt.provider.mock_llm_config import mock_llm_config
-
-CONFIG.max_budget = 10
-CONFIG.calc_usage = True
 
 resp_content = "I'm llama2"
 default_resp = ChatCompletion(

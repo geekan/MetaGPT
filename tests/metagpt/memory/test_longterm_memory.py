@@ -10,17 +10,15 @@ import os
 import pytest
 
 from metagpt.actions import UserRequirement
-from metagpt.config import CONFIG
+from metagpt.config2 import config
 from metagpt.memory.longterm_memory import LongTermMemory
 from metagpt.roles.role import RoleContext
 from metagpt.schema import Message
 
+os.environ.setdefault("OPENAI_API_KEY", config.get_openai_llm().api_key)
+
 
 def test_ltm_search():
-    assert hasattr(CONFIG, "long_term_memory") is True
-    os.environ.setdefault("OPENAI_API_KEY", CONFIG.openai_api_key)
-    assert len(CONFIG.openai_api_key) > 20
-
     role_id = "UTUserLtm(Product Manager)"
     from metagpt.environment import Environment
 
