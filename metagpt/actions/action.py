@@ -10,10 +10,11 @@ from __future__ import annotations
 
 from typing import Optional, Union
 
-from pydantic import ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 import metagpt
 from metagpt.actions.action_node import ActionNode
+from metagpt.config2 import ConfigMixin
 from metagpt.context import Context
 from metagpt.llm import LLM
 from metagpt.provider.base_llm import BaseLLM
@@ -27,7 +28,7 @@ from metagpt.schema import (
 from metagpt.utils.file_repository import FileRepository
 
 
-class Action(SerializationMixin):
+class Action(SerializationMixin, ConfigMixin, BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True, exclude=["llm"])
 
     name: str = ""
