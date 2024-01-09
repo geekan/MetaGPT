@@ -9,7 +9,7 @@ import os
 from pathlib import Path
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 
 from metagpt.config2 import Config
 from metagpt.configs.llm_config import LLMConfig, LLMType
@@ -42,30 +42,26 @@ class AttrDict(BaseModel):
             raise AttributeError(f"No such attribute: {key}")
 
 
-class LLMMixin(BaseModel):
+class LLMInstance:
     """Mixin class for LLM"""
 
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-
     # _config: Optional[Config] = None
-    llm_config: Optional[LLMConfig] = Field(default=None, exclude=True)
-    llm_instance: Optional[BaseLLM] = Field(default=None, exclude=True)
+    _llm_config: Optional[LLMConfig] = None
+    _llm_instance: Optional[BaseLLM] = None
 
-    def use_llm(self, name: Optional[str] = None, provider: LLMType = LLMType.OPENAI):
+    def __init__(self, config: Config, name: Optional[str] = None, provider: LLMType = LLMType.OPENAI):
         """Use a LLM provider"""
         # 更新LLM配置
-        self.llm_config = self.config.get_llm_config(name, provider)
+        self._llm_config = config.get_llm_config(name, provider)
         # 重置LLM实例
-        self.llm_instance = None
+        self._llm_instance = None
 
     @property
-    def llm(self) -> BaseLLM:
+    def instance(self) -> BaseLLM:
         """Return the LLM instance"""
-        if not self.llm_config:
-            self.use_llm()
-        if not self.llm_instance and self.llm_config:
-            self.llm_instance = create_llm_instance(self.llm_config)
-        return self.llm_instance
+        if not self._llm_instance and self._llm_config:
+            self._llm_instance = create_llm_instance(self._llm_config)
+        return self._llm_instance
 
 
 class Context(BaseModel):
@@ -78,6 +74,7 @@ class Context(BaseModel):
     git_repo: Optional[GitRepository] = None
     src_workspace: Optional[Path] = None
     cost_manager: CostManager = CostManager()
+    _llm: Optional[LLMInstance] = None
 
     @property
     def file_repo(self):
@@ -97,30 +94,10 @@ class Context(BaseModel):
 
     def llm(self, name: Optional[str] = None, provider: LLMType = LLMType.OPENAI) -> BaseLLM:
         """Return a LLM instance"""
-        llm_config = self.config.get_llm_config(name, provider)
-
-        llm = create_llm_instance(llm_config)
+        llm = LLMInstance(self.config, name, provider).instance
         if llm.cost_manager is None:
             llm.cost_manager = self.cost_manager
         return llm
-
-
-class ContextMixin:
-    """Mixin class for configurable objects: Priority: more specific < parent"""
-
-    _context: Optional[Context] = None
-
-    def __init__(self, context: Optional[Context] = None):
-        self._context = context
-
-    def set_context(self, context: Optional[Context] = None):
-        """Set parent context"""
-        self._context = context
-
-    @property
-    def context(self):
-        """Get config"""
-        return self._context
 
 
 # Global context, not in Env
