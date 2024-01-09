@@ -12,10 +12,10 @@ from typing import Optional
 from pydantic import BaseModel, ConfigDict
 
 from metagpt.config2 import Config
-from metagpt.configs.llm_config import LLMType
+from metagpt.configs.llm_config import LLMConfig, LLMType
 from metagpt.const import OPTIONS
 from metagpt.provider.base_llm import BaseLLM
-from metagpt.provider.llm_provider_registry import get_llm
+from metagpt.provider.llm_provider_registry import create_llm_instance
 from metagpt.utils.cost_manager import CostManager
 from metagpt.utils.git_repository import GitRepository
 
@@ -42,7 +42,26 @@ class AttrDict(BaseModel):
             raise AttributeError(f"No such attribute: {key}")
 
 
-class Context(BaseModel):
+class LLMMixin:
+    config: Optional[Config] = None
+    llm_config: Optional[LLMConfig] = None
+    _llm_instance: Optional[BaseLLM] = None
+
+    def use_llm(self, name: Optional[str] = None, provider: LLMType = LLMType.OPENAI):
+        # 更新LLM配置
+        self.llm_config = self.config.get_llm_config(name, provider)
+        # 重置LLM实例
+        self._llm_instance = None
+
+    @property
+    def llm(self) -> BaseLLM:
+        # 实例化LLM，如果尚未实例化
+        if not self._llm_instance and self.llm_config:
+            self._llm_instance = create_llm_instance(self.llm_config)
+        return self._llm_instance
+
+
+class Context(LLMMixin, BaseModel):
     """Env context for MetaGPT"""
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -69,24 +88,14 @@ class Context(BaseModel):
         env.update({k: v for k, v in i.items() if isinstance(v, str)})
         return env
 
-    def llm(self, name: Optional[str] = None, provider: LLMType = LLMType.OPENAI) -> BaseLLM:
-        """Return a LLM instance"""
-        if provider:
-            llm_configs = self.config.get_llm_configs_by_type(provider)
-            if name:
-                llm_configs = [c for c in llm_configs if c.name == name]
-
-            if len(llm_configs) == 0:
-                raise ValueError(f"Cannot find llm config with name {name} and provider {provider}")
-            # return the first one if name is None, or return the only one
-            llm_config = llm_configs[0]
-        else:
-            llm_config = self.config.get_llm_config(name)
-
-        llm = get_llm(llm_config)
-        if llm.cost_manager is None:
-            llm.cost_manager = self.cost_manager
-        return llm
+    # def llm(self, name: Optional[str] = None, provider: LLMType = LLMType.OPENAI) -> BaseLLM:
+    #     """Return a LLM instance"""
+    #     llm_config = self.config.get_llm_config(name, provider)
+    #
+    #     llm = create_llm_instance(llm_config)
+    #     if llm.cost_manager is None:
+    #         llm.cost_manager = self.cost_manager
+    #     return llm
 
 
 # Global context, not in Env

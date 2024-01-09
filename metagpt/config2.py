@@ -101,7 +101,7 @@ class Config(CLIParams, YamlModel):
         self.reqa_file = reqa_file
         self.max_auto_summarize_code = max_auto_summarize_code
 
-    def get_llm_config(self, name: Optional[str] = None) -> LLMConfig:
+    def _get_llm_config(self, name: Optional[str] = None) -> LLMConfig:
         """Get LLM instance by name"""
         if name is None:
             # Use the first LLM as default
@@ -121,6 +121,21 @@ class Config(CLIParams, YamlModel):
             return llm[0]
         return None
 
+    def get_llm_config(self, name: Optional[str] = None, provider: LLMType = LLMType.OPENAI) -> LLMConfig:
+        """Return a LLMConfig instance"""
+        if provider:
+            llm_configs = self.get_llm_configs_by_type(provider)
+            if name:
+                llm_configs = [c for c in llm_configs if c.name == name]
+
+            if len(llm_configs) == 0:
+                raise ValueError(f"Cannot find llm config with name {name} and provider {provider}")
+            # return the first one if name is None, or return the only one
+            llm_config = llm_configs[0]
+        else:
+            llm_config = self._get_llm_config(name)
+        return llm_config
+
     def get_openai_llm(self) -> Optional[LLMConfig]:
         """Get OpenAI LLMConfig by name. If no OpenAI, raise Exception"""
         return self.get_llm_config_by_type(LLMType.OPENAI)
@@ -138,10 +153,12 @@ def merge_dict(dicts: Iterable[Dict]) -> Dict:
     return result
 
 
-class ConfigurableMixin:
+class ConfigMixin:
     """Mixin class for configurable objects"""
 
-    def __init__(self, config=None):
+    _config: Optional[Config] = None
+
+    def __init__(self, config: Optional[Config] = None):
         self._config = config
 
     def try_set_parent_config(self, parent_config):

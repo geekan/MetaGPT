@@ -31,7 +31,7 @@ def register_provider(key):
     return decorator
 
 
-def get_llm(config: LLMConfig) -> BaseLLM:
+def create_llm_instance(config: LLMConfig) -> BaseLLM:
     """get the default llm provider"""
     return LLM_REGISTRY.get_provider(config.api_type)(config)
 
