@@ -182,12 +182,16 @@ class Message(BaseModel):
     @field_validator("instruct_content", mode="before")
     @classmethod
     def check_instruct_content(cls, ic: Any) -> BaseModel:
-        if ic and not isinstance(ic, BaseModel) and "class" in ic:
-            # compatible with custom-defined ActionOutput
-            mapping = actionoutput_str_to_mapping(ic["mapping"])
-
-            actionnode_class = import_class("ActionNode", "metagpt.actions.action_node")  # avoid circular import
-            ic_obj = actionnode_class.create_model_class(class_name=ic["class"], mapping=mapping)
+        if ic and isinstance(ic, dict) and "class" in ic:
+            if "mapping" in ic:
+                # compatible with custom-defined ActionOutput
+                mapping = actionoutput_str_to_mapping(ic["mapping"])
+                actionnode_class = import_class("ActionNode", "metagpt.actions.action_node")  # avoid circular import
+                ic_obj = actionnode_class.create_model_class(class_name=ic["class"], mapping=mapping)
+            elif "module" in ic:
+                ic_obj = import_class(ic["class"], ic["module"])
+            else:
+                raise KeyError("missing required key to init Message.instruct_content from dict")
             ic = ic_obj(**ic["value"])
         return ic
 
@@ -212,13 +216,16 @@ class Message(BaseModel):
         if ic:
             # compatible with custom-defined ActionOutput
             schema = ic.model_json_schema()
-            # `Documents` contain definitions
-            if "definitions" not in schema:
-                # TODO refine with nested BaseModel
+            ic_type = str(type(ic))
+            if "<class 'metagpt.actions.action_node" in ic_type:
+                # instruct_content from AutoNode.create_model_class, for now, it's single level structure.
                 mapping = actionoutout_schema_to_mapping(schema)
                 mapping = actionoutput_mapping_to_str(mapping)
 
                 ic_dict = {"class": schema["title"], "mapping": mapping, "value": ic.model_dump()}
+            else:
+                # due to instruct_content can be assigned by subclasses of BaseModel
+                ic_dict = {"class": schema["title"], "module": ic.__module__, "value": ic.model_dump()}
         return ic_dict
 
     def __init__(self, content: str = "", **data: Any):
