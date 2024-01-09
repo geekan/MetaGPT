@@ -112,7 +112,7 @@ async def test_send_to():
 def test_init_action():
     role = Role()
     role.add_actions([MockAction, MockAction])
-    assert role.action_count == 2
+    assert len(role.actions) == 2
 
 
 @pytest.mark.asyncio

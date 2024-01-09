@@ -158,6 +158,7 @@ class Role(SerializationMixin, ConfigMixin, BaseModel):
 
     @staticmethod
     def pydantic_rebuild_model():
+        """Rebuild model to avoid `RecursionError: maximum recursion depth exceeded in comparison`"""
         from metagpt.environment import Environment
 
         Environment
@@ -165,9 +166,11 @@ class Role(SerializationMixin, ConfigMixin, BaseModel):
 
     @property
     def todo(self) -> Action:
+        """Get action to do"""
         return self.rc.todo
 
     def set_todo(self, value: Optional[Action]):
+        """Set action to do and update context"""
         if value:
             value.g_context = self.context
         self.rc.todo = value
@@ -181,6 +184,7 @@ class Role(SerializationMixin, ConfigMixin, BaseModel):
 
     @property
     def git_repo(self):
+        """Git repo"""
         return self.context.git_repo
 
     @git_repo.setter
@@ -189,6 +193,7 @@ class Role(SerializationMixin, ConfigMixin, BaseModel):
 
     @property
     def src_workspace(self):
+        """Source workspace under git repo"""
         return self.context.src_workspace
 
     @src_workspace.setter
@@ -197,6 +202,7 @@ class Role(SerializationMixin, ConfigMixin, BaseModel):
 
     @property
     def prompt_schema(self):
+        """Prompt schema: json/markdown"""
         return self.config.prompt_schema
 
     @property
@@ -307,11 +313,6 @@ class Role(SerializationMixin, ConfigMixin, BaseModel):
         if env:
             env.set_addresses(self, self.addresses)
             self.llm.system_prompt = self._get_prefix()
-
-    @property
-    def action_count(self):
-        """Return number of action"""
-        return len(self.actions)
 
     def _get_prefix(self):
         """Get the role prefix"""
