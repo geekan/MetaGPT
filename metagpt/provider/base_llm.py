@@ -27,6 +27,7 @@ class BaseLLM(ABC):
     # OpenAI / Azure / Others
     aclient: Optional[Union[AsyncOpenAI]] = None
     cost_manager: Optional[CostManager] = None
+    model: Optional[str] = None
 
     @abstractmethod
     def __init__(self, config: LLMConfig):
