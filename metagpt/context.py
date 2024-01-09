@@ -9,6 +9,8 @@ import os
 from pathlib import Path
 from typing import Optional
 
+from pydantic import BaseModel, ConfigDict
+
 from metagpt.config2 import Config
 from metagpt.configs.llm_config import LLMType
 from metagpt.const import OPTIONS
@@ -18,28 +20,33 @@ from metagpt.utils.cost_manager import CostManager
 from metagpt.utils.git_repository import GitRepository
 
 
-class AttrDict:
-    """A dict-like object that allows access to keys as attributes."""
+class AttrDict(BaseModel):
+    """A dict-like object that allows access to keys as attributes, compatible with Pydantic."""
 
-    def __init__(self, d=None):
-        if d is None:
-            d = {}
-        self.__dict__["_dict"] = d
+    model_config = ConfigDict(extra="allow")
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.__dict__.update(kwargs)
 
     def __getattr__(self, key):
-        return self._dict.get(key, None)
+        return self.__dict__.get(key, None)
 
     def __setattr__(self, key, value):
-        self._dict[key] = value
+        self.__dict__[key] = value
 
     def __delattr__(self, key):
-        if key in self._dict:
-            del self._dict[key]
+        if key in self.__dict__:
+            del self.__dict__[key]
         else:
             raise AttributeError(f"No such attribute: {key}")
 
 
-class Context:
+class Context(BaseModel):
+    """Env context for MetaGPT"""
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     kwargs: AttrDict = AttrDict()
     config: Config = Config.default()
     git_repo: Optional[GitRepository] = None
@@ -82,14 +89,5 @@ class Context:
         return llm
 
 
-# Global context
+# Global context, not in Env
 context = Context()
-
-
-if __name__ == "__main__":
-    # print(context.model_dump_json(indent=4))
-    # print(context.config.get_openai_llm())
-    ad = AttrDict({"name": "John", "age": 30})
-
-    print(ad.name)  # Output: John
-    print(ad.height)  # Output: None (因为height不存在)
