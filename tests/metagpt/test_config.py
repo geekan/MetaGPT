@@ -29,27 +29,56 @@ def test_config_from_dict():
     assert cfg.llm["default"].api_key == "mock_api_key"
 
 
-class NewModel(ConfigMixin, BaseModel):
+class ModelX(ConfigMixin, BaseModel):
     a: str = "a"
     b: str = "b"
 
 
+class WTFMixin(BaseModel):
+    c: str = "c"
+    d: str = "d"
+
+    def __init__(self, **data):
+        super().__init__(**data)
+
+
+class ModelY(WTFMixin, ModelX):
+    def __init__(self, **data):
+        super().__init__(**data)
+
+
 def test_config_mixin_1():
-    new_model = NewModel()
+    new_model = ModelX()
     assert new_model.a == "a"
     assert new_model.b == "b"
-    assert new_model._config == new_model.config
-    assert new_model._config is None
 
 
 def test_config_mixin_2():
     i = Config(llm={"default": mock_llm_config})
     j = Config(llm={"new": mock_llm_config})
-    obj = NewModel(config=i)
+    obj = ModelX(config=i)
     assert obj.config == i
-    assert obj._config == i
     assert obj.config.llm["default"] == mock_llm_config
 
-    obj.try_set_parent_config(j)
+    obj.set_config(j)
     # obj already has a config, so it will not be set
     assert obj.config == i
+
+
+def test_config_mixin_3():
+    """Test config mixin with multiple inheritance"""
+    i = Config(llm={"default": mock_llm_config})
+    j = Config(llm={"new": mock_llm_config})
+    obj = ModelY(config=i)
+    assert obj.config == i
+    assert obj.config.llm["default"] == mock_llm_config
+
+    obj.set_config(j)
+    # obj already has a config, so it will not be set
+    assert obj.config == i
+    assert obj.config.llm["default"] == mock_llm_config
+
+    assert obj.a == "a"
+    assert obj.b == "b"
+    assert obj.c == "c"
+    assert obj.d == "d"

@@ -156,21 +156,21 @@ def merge_dict(dicts: Iterable[Dict]) -> Dict:
 class ConfigMixin(BaseModel):
     """Mixin class for configurable objects"""
 
-    _config: Optional[Config] = None
+    config: Optional[Config] = None
 
-    def __init__(self, config: Optional[Config] = None):
-        super().__init__()
-        self._config = config
+    def __init__(self, config: Optional[Config] = None, **kwargs):
+        """Initialize with config"""
+        super().__init__(**kwargs)
+        self.set_config(config)
 
-    def try_set_parent_config(self, parent_config):
+    def set(self, k, v, override=False):
         """Try to set parent config if not set"""
-        if self._config is None:
-            self._config = parent_config
+        if override or not self.__dict__.get(k):
+            self.__dict__[k] = v
 
-    @property
-    def config(self):
-        """Get config"""
-        return self._config
+    def set_config(self, config: Config, override=False):
+        """Set config"""
+        self.set("config", config, override)
 
 
 config = Config.default()
