@@ -12,7 +12,6 @@
     functionality is to be consolidated into the `Environment` class.
 """
 import asyncio
-from pathlib import Path
 from typing import Iterable, Set
 
 from pydantic import BaseModel, ConfigDict, Field, SerializeAsAny, model_validator
@@ -21,7 +20,7 @@ from metagpt.context import Context
 from metagpt.logs import logger
 from metagpt.roles.role import Role
 from metagpt.schema import Message
-from metagpt.utils.common import is_send_to, read_json_file, write_json_file
+from metagpt.utils.common import is_send_to
 
 
 class Environment(BaseModel):
@@ -41,44 +40,6 @@ class Environment(BaseModel):
     def init_roles(self):
         self.add_roles(self.roles.values())
         return self
-
-    def serialize(self, stg_path: Path):
-        roles_path = stg_path.joinpath("roles.json")
-        roles_info = []
-        for role_key, role in self.roles.items():
-            roles_info.append(
-                {
-                    "role_class": role.__class__.__name__,
-                    "module_name": role.__module__,
-                    "role_name": role.name,
-                    "role_sub_tags": list(self.member_addrs.get(role)),
-                }
-            )
-            role.serialize(stg_path=stg_path.joinpath(f"roles/{role.__class__.__name__}_{role.name}"))
-        write_json_file(roles_path, roles_info)
-
-        history_path = stg_path.joinpath("history.json")
-        write_json_file(history_path, {"content": self.history})
-
-    @classmethod
-    def deserialize(cls, stg_path: Path) -> "Environment":
-        """stg_path: ./storage/team/environment/"""
-        roles_path = stg_path.joinpath("roles.json")
-        roles_info = read_json_file(roles_path)
-        roles = []
-        for role_info in roles_info:
-            # role stored in ./environment/roles/{role_class}_{role_name}
-            role_path = stg_path.joinpath(f"roles/{role_info.get('role_class')}_{role_info.get('role_name')}")
-            role = Role.deserialize(role_path)
-            roles.append(role)
-
-        history = read_json_file(stg_path.joinpath("history.json"))
-        history = history.get("content")
-
-        environment = Environment(**{"history": history})
-        environment.add_roles(roles)
-
-        return environment
 
     def add_role(self, role: Role):
         """增加一个在当前环境的角色

@@ -16,14 +16,14 @@ from metagpt.roles.role import Role, RoleReactMode
 serdeser_path = Path(__file__).absolute().parent.joinpath("..", "..", "data", "serdeser_storage")
 
 
-class MockICMessage(BaseModel):
-    content: str = "test_ic"
-
-
 class MockMessage(BaseModel):
+    content: str = "test_msg"
+
+
+class MockICMessage(BaseModel):
     """to test normal dict without postprocess"""
 
-    content: str = ""
+    content: str = "test_ic_msg"
     instruct_content: Optional[BaseModel] = Field(default=None)
 
 

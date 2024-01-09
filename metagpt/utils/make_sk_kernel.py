@@ -18,12 +18,12 @@ from metagpt.config2 import config
 
 def make_sk_kernel():
     kernel = sk.Kernel()
-    if llm := config.get_openai_llm():
+    if llm := config.get_azure_llm():
         kernel.add_chat_service(
             "chat_completion",
             AzureChatCompletion(llm.model, llm.base_url, llm.api_key),
         )
-    else:
+    elif llm := config.get_openai_llm():
         kernel.add_chat_service(
             "chat_completion",
             OpenAIChatCompletion(llm.model, llm.api_key),

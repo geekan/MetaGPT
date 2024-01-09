@@ -10,7 +10,7 @@ from metagpt.schema import Message
 
 
 @pytest.mark.asyncio
-async def test_product_manager_deserialize(new_filename):
+async def test_product_manager_serdeser(new_filename):
     role = ProductManager()
     ser_role_dict = role.model_dump(by_alias=True)
     new_role = ProductManager(**ser_role_dict)

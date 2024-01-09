@@ -29,7 +29,7 @@ class Person:
     ],
     ids=["google", "numpy", "sphinx"],
 )
-async def test_action_deserialize(style: str, part: str):
+async def test_action_serdeser(style: str, part: str):
     action = WriteDocstring()
     serialized_data = action.model_dump()
 

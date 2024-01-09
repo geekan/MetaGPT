@@ -7,33 +7,25 @@ import pytest
 from metagpt.actions import WriteDesign, WriteTasks
 
 
-def test_write_design_serialize():
-    action = WriteDesign()
-    ser_action_dict = action.model_dump()
-    assert "name" in ser_action_dict
-    assert "llm" not in ser_action_dict  # not export
-
-
-def test_write_task_serialize():
-    action = WriteTasks()
-    ser_action_dict = action.model_dump()
-    assert "name" in ser_action_dict
-    assert "llm" not in ser_action_dict  # not export
-
-
 @pytest.mark.asyncio
-async def test_write_design_deserialize():
+async def test_write_design_serialize():
     action = WriteDesign()
-    serialized_data = action.model_dump()
-    new_action = WriteDesign(**serialized_data)
+    ser_action_dict = action.model_dump()
+    assert "name" in ser_action_dict
+    assert "llm" not in ser_action_dict  # not export
+
+    new_action = WriteDesign(**ser_action_dict)
     assert new_action.name == "WriteDesign"
     await new_action.run(with_messages="write a cli snake game")
 
 
 @pytest.mark.asyncio
-async def test_write_task_deserialize():
+async def test_write_task_serialize():
     action = WriteTasks()
-    serialized_data = action.model_dump()
-    new_action = WriteTasks(**serialized_data)
+    ser_action_dict = action.model_dump()
+    assert "name" in ser_action_dict
+    assert "llm" not in ser_action_dict  # not export
+
+    new_action = WriteTasks(**ser_action_dict)
     assert new_action.name == "WriteTasks"
     await new_action.run(with_messages="write a cli snake game")
