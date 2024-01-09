@@ -23,7 +23,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any, Iterable, Optional, Set, Type
+from typing import Any, Iterable, Optional, Set, Type, Union
 
 from pydantic import BaseModel, ConfigDict, Field, SerializeAsAny, model_validator
 
@@ -222,20 +222,18 @@ class Role(SerializationMixin):
     def _init_action_system_message(self, action: Action):
         action.set_prefix(self._get_prefix())
 
-    def refresh_system_message(self):
-        self.llm.system_prompt = self._get_prefix()
+    def add_action(self, action: Action):
+        """Add action to the role."""
+        self.add_actions([action])
 
-    def set_memory(self, memory: Memory):
-        self.rc.memory = memory
+    def add_actions(self, actions: list[Union[Action, Type[Action]]]):
+        """Add actions to the role.
 
-    def init_actions(self, actions):
-        self._init_actions(actions)
-
-    def _init_actions(self, actions):
-        self._reset()
-        for idx, action in enumerate(actions):
+        Args:
+            actions: list of Action classes or instances
+        """
+        for action in actions:
             if not isinstance(action, Action):
-                ## 默认初始化
                 i = action(name="", llm=self.llm)
             else:
                 if self.is_human and not isinstance(action.llm, HumanProvider):
@@ -247,7 +245,7 @@ class Role(SerializationMixin):
                 i = action
             self._init_action_system_message(i)
             self.actions.append(i)
-            self.states.append(f"{idx}. {action}")
+            self.states.append(f"{len(self.actions)}. {action}")
 
     def _set_react_mode(self, react_mode: str, max_react_loop: int = 1):
         """Set strategy of the Role reacting to observed Message. Variation lies in how
@@ -302,7 +300,7 @@ class Role(SerializationMixin):
         self.rc.env = env
         if env:
             env.set_addresses(self, self.addresses)
-            self.refresh_system_message()  # add env message to system message
+            self.llm.system_prompt = self._get_prefix()
 
     @property
     def action_count(self):

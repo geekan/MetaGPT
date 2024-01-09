@@ -47,7 +47,7 @@ class Teacher(Role):
             for topic in TeachingPlanBlock.TOPICS:
                 act = WriteTeachingPlanPart(context=self.rc.news[0].content, topic=topic, llm=self.llm)
                 actions.append(act)
-            self._init_actions(actions)
+            self.add_actions(actions)
 
         if self.rc.todo is None:
             self._set_state(0)

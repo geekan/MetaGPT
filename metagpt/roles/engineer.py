@@ -84,7 +84,7 @@ class Engineer(Role):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 
-        self._init_actions([WriteCode])
+        self.add_actions([WriteCode])
         self._watch([WriteTasks, SummarizeCode, WriteCode, WriteCodeReview, FixBug])
         self.code_todos = []
         self.summarize_todos = []

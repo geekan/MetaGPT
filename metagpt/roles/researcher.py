@@ -34,7 +34,7 @@ class Researcher(Role):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self._init_actions(
+        self.add_actions(
             [CollectLinks(name=self.name), WebBrowseAndSummarize(name=self.name), ConductResearch(name=self.name)]
         )
         self._set_react_mode(react_mode=RoleReactMode.BY_ORDER.value)
