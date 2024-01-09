@@ -15,7 +15,7 @@ from metagpt.logs import logger
 class WriteTeachingPlanPart(Action):
     """Write Teaching Plan Part"""
 
-    context: Optional[str] = None
+    i_context: Optional[str] = None
     topic: str = ""
     language: str = "Chinese"
     rsp: Optional[str] = None

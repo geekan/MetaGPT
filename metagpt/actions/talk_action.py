@@ -15,18 +15,18 @@ from metagpt.schema import Message
 
 
 class TalkAction(Action):
-    context: str
+    i_context: str
     history_summary: str = ""
     knowledge: str = ""
     rsp: Optional[Message] = None
 
     @property
     def agent_description(self):
-        return self.g_context.kwargs.agent_description
+        return self.context.kwargs.agent_description
 
     @property
     def language(self):
-        return self.g_context.kwargs.language or config.language
+        return self.context.kwargs.language or config.language
 
     @property
     def prompt(self):

@@ -7,8 +7,9 @@
 """
 from pydantic import BaseModel
 
-from metagpt.config2 import Config, ConfigMixin, config
+from metagpt.config2 import Config, config
 from metagpt.configs.llm_config import LLMType
+from metagpt.context import ContextMixin
 from tests.metagpt.provider.mock_llm_config import mock_llm_config
 
 
@@ -29,7 +30,7 @@ def test_config_from_dict():
     assert cfg.llm["default"].api_key == "mock_api_key"
 
 
-class ModelX(ConfigMixin, BaseModel):
+class ModelX(ContextMixin, BaseModel):
     a: str = "a"
     b: str = "b"
 

@@ -41,7 +41,7 @@ class RebuildSequenceView(Action):
 
     async def _rebuild_sequence_view(self, entry, graph_db):
         filename = entry.subject.split(":", 1)[0]
-        src_filename = RebuildSequenceView._get_full_filename(root=self.context, pathname=filename)
+        src_filename = RebuildSequenceView._get_full_filename(root=self.i_context, pathname=filename)
         content = await aread(filename=src_filename, encoding="utf-8")
         content = f"```python\n{content}\n```\n\n---\nTranslate the code above into Mermaid Sequence Diagram."
         data = await self.llm.aask(

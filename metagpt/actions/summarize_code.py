@@ -90,7 +90,7 @@ flowchart TB
 
 class SummarizeCode(Action):
     name: str = "SummarizeCode"
-    context: CodeSummarizeContext = Field(default_factory=CodeSummarizeContext)
+    i_context: CodeSummarizeContext = Field(default_factory=CodeSummarizeContext)
 
     @retry(stop=stop_after_attempt(2), wait=wait_random_exponential(min=1, max=60))
     async def summarize_code(self, prompt):
@@ -103,7 +103,7 @@ class SummarizeCode(Action):
         design_doc = await repo.get_file(filename=design_pathname.name, relative_path=SYSTEM_DESIGN_FILE_REPO)
         task_pathname = Path(self.context.task_filename)
         task_doc = await repo.get_file(filename=task_pathname.name, relative_path=TASK_FILE_REPO)
-        src_file_repo = self.git_repo.new_file_repository(relative_path=self.g_context.src_workspace)
+        src_file_repo = self.git_repo.new_file_repository(relative_path=self.context.src_workspace)
         code_blocks = []
         for filename in self.context.codes_filenames:
             code_doc = await src_file_repo.get(filename)

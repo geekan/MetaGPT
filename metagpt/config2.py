@@ -153,25 +153,4 @@ def merge_dict(dicts: Iterable[Dict]) -> Dict:
     return result
 
 
-class ConfigMixin(BaseModel):
-    """Mixin class for configurable objects"""
-
-    # Env/Role/Action will use this config as private config, or use self.context.config as public config
-    _config: Optional[Config] = None
-
-    def __init__(self, config: Optional[Config] = None, **kwargs):
-        """Initialize with config"""
-        super().__init__(**kwargs)
-        self.set_config(config)
-
-    def set(self, k, v, override=False):
-        """Set attribute"""
-        if override or not self.__dict__.get(k):
-            self.__dict__[k] = v
-
-    def set_config(self, config: Config, override=False):
-        """Set config"""
-        self.set("_config", config, override)
-
-
 config = Config.default()

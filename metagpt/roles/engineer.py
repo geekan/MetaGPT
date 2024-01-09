@@ -159,9 +159,9 @@ class Engineer(Role):
         src_relative_path = self.src_workspace.relative_to(self.git_repo.workdir)
         for todo in self.summarize_todos:
             summary = await todo.run()
-            summary_filename = Path(todo.context.design_filename).with_suffix(".md").name
-            dependencies = {todo.context.design_filename, todo.context.task_filename}
-            for filename in todo.context.codes_filenames:
+            summary_filename = Path(todo.i_context.design_filename).with_suffix(".md").name
+            dependencies = {todo.i_context.design_filename, todo.i_context.task_filename}
+            for filename in todo.i_context.codes_filenames:
                 rpath = src_relative_path / filename
                 dependencies.add(str(rpath))
             await code_summaries_pdf_file_repo.save(
@@ -169,15 +169,15 @@ class Engineer(Role):
             )
             is_pass, reason = await self._is_pass(summary)
             if not is_pass:
-                todo.context.reason = reason
-                tasks.append(todo.context.dict())
+                todo.i_context.reason = reason
+                tasks.append(todo.i_context.dict())
                 await code_summaries_file_repo.save(
-                    filename=Path(todo.context.design_filename).name,
-                    content=todo.context.model_dump_json(),
+                    filename=Path(todo.i_context.design_filename).name,
+                    content=todo.i_context.model_dump_json(),
                     dependencies=dependencies,
                 )
             else:
-                await code_summaries_file_repo.delete(filename=Path(todo.context.design_filename).name)
+                await code_summaries_file_repo.delete(filename=Path(todo.i_context.design_filename).name)
 
         logger.info(f"--max-auto-summarize-code={self.config.max_auto_summarize_code}")
         if not tasks or self.config.max_auto_summarize_code == 0:

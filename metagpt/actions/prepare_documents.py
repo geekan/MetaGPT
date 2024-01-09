@@ -22,11 +22,11 @@ class PrepareDocuments(Action):
     """PrepareDocuments Action: initialize project folder and add new requirements to docs/requirements.txt."""
 
     name: str = "PrepareDocuments"
-    context: Optional[str] = None
+    i_context: Optional[str] = None
 
     @property
     def config(self):
-        return self.g_context.config
+        return self.context.config
 
     def _init_repo(self):
         """Initialize the Git environment."""
@@ -39,7 +39,7 @@ class PrepareDocuments(Action):
             shutil.rmtree(path)
         self.config.project_path = path
         self.config.project_name = path.name
-        self.g_context.git_repo = GitRepository(local_path=path, auto_init=True)
+        self.context.git_repo = GitRepository(local_path=path, auto_init=True)
 
     async def run(self, with_messages, **kwargs):
         """Create and initialize the workspace folder, initialize the Git environment."""
