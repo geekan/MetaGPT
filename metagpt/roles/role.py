@@ -30,6 +30,7 @@ from pydantic import BaseModel, ConfigDict, Field, SerializeAsAny, model_validat
 from metagpt.actions import Action, ActionOutput
 from metagpt.actions.action_node import ActionNode
 from metagpt.actions.add_requirement import UserRequirement
+from metagpt.config2 import ConfigMixin
 from metagpt.context import Context, context
 from metagpt.llm import LLM
 from metagpt.logs import logger
@@ -119,7 +120,7 @@ class RoleContext(BaseModel):
         return self.memory.get()
 
 
-class Role(SerializationMixin):
+class Role(SerializationMixin, ConfigMixin, BaseModel):
     """Role/Agent"""
 
     model_config = ConfigDict(arbitrary_types_allowed=True, exclude=["llm"])
