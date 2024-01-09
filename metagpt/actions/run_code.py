@@ -76,7 +76,7 @@ standard errors:
 
 class RunCode(Action):
     name: str = "RunCode"
-    context: RunCodeContext = Field(default_factory=RunCodeContext)
+    i_context: RunCodeContext = Field(default_factory=RunCodeContext)
 
     @classmethod
     async def run_text(cls, code) -> Tuple[str, str]:
@@ -93,7 +93,7 @@ class RunCode(Action):
         additional_python_paths = [str(path) for path in additional_python_paths]
 
         # Copy the current environment variables
-        env = self.g_context.new_environ()
+        env = self.context.new_environ()
 
         # Modify the PYTHONPATH environment variable
         additional_python_paths = [working_directory] + additional_python_paths

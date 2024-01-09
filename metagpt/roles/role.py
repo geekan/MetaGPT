@@ -30,8 +30,7 @@ from pydantic import BaseModel, ConfigDict, Field, SerializeAsAny, model_validat
 from metagpt.actions import Action, ActionOutput
 from metagpt.actions.action_node import ActionNode
 from metagpt.actions.add_requirement import UserRequirement
-from metagpt.config2 import ConfigMixin
-from metagpt.context import Context, context
+from metagpt.context import ContextMixin
 from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.memory import Memory
@@ -120,7 +119,7 @@ class RoleContext(BaseModel):
         return self.memory.get()
 
 
-class Role(SerializationMixin, ConfigMixin, BaseModel):
+class Role(SerializationMixin, ContextMixin, BaseModel):
     """Role/Agent"""
 
     model_config = ConfigDict(arbitrary_types_allowed=True, exclude=["llm"])
@@ -142,7 +141,7 @@ class Role(SerializationMixin, ConfigMixin, BaseModel):
     # builtin variables
     recovered: bool = False  # to tag if a recovered role
     latest_observed_msg: Optional[Message] = None  # record the latest observed message when interrupted
-    context: Optional[Context] = Field(default=context, exclude=True)
+    # context: Optional[Context] = Field(default=context, exclude=True)
 
     __hash__ = object.__hash__  # support Role as hashable type in `Environment.members`
 
@@ -172,15 +171,8 @@ class Role(SerializationMixin, ConfigMixin, BaseModel):
     def set_todo(self, value: Optional[Action]):
         """Set action to do and update context"""
         if value:
-            value.g_context = self.context
+            value.context = self.context
         self.rc.todo = value
-
-    @property
-    def config(self):
-        """Role config: role config > context config"""
-        if self._config:
-            return self._config
-        return self.context.config
 
     @property
     def git_repo(self):

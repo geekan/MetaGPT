@@ -32,13 +32,13 @@ class RebuildClassView(Action):
     async def run(self, with_messages=None, format=CONFIG.prompt_schema):
         graph_repo_pathname = CONFIG.git_repo.workdir / GRAPH_REPO_FILE_REPO / CONFIG.git_repo.workdir.name
         graph_db = await DiGraphRepository.load_from(str(graph_repo_pathname.with_suffix(".json")))
-        repo_parser = RepoParser(base_directory=Path(self.context))
+        repo_parser = RepoParser(base_directory=Path(self.i_context))
         # use pylint
-        class_views, relationship_views, package_root = await repo_parser.rebuild_class_views(path=Path(self.context))
+        class_views, relationship_views, package_root = await repo_parser.rebuild_class_views(path=Path(self.i_context))
         await GraphRepository.update_graph_db_with_class_views(graph_db, class_views)
         await GraphRepository.update_graph_db_with_class_relationship_views(graph_db, relationship_views)
         # use ast
-        direction, diff_path = self._diff_path(path_root=Path(self.context).resolve(), package_root=package_root)
+        direction, diff_path = self._diff_path(path_root=Path(self.i_context).resolve(), package_root=package_root)
         symbols = repo_parser.generate_symbols()
         for file_info in symbols:
             # Align to the same root directory in accordance with `class_views`.

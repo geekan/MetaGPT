@@ -161,7 +161,7 @@ class WriteDocstring(Action):
     """
 
     desc: str = "Write docstring for code."
-    context: Optional[str] = None
+    i_context: Optional[str] = None
 
     async def run(
         self,

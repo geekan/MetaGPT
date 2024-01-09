@@ -36,7 +36,7 @@ NEW_REQ_TEMPLATE = """
 
 class WriteTasks(Action):
     name: str = "CreateTasks"
-    context: Optional[str] = None
+    i_context: Optional[str] = None
 
     async def run(self, with_messages):
         system_design_file_repo = self.git_repo.new_file_repository(SYSTEM_DESIGN_FILE_REPO)

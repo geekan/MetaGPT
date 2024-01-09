@@ -100,5 +100,57 @@ class Context(BaseModel):
         return llm
 
 
+class ContextMixin(BaseModel):
+    """Mixin class for context and config"""
+
+    # Env/Role/Action will use this context as private context, or use self.context as public context
+    _context: Optional[Context] = None
+    # Env/Role/Action will use this config as private config, or use self.context.config as public config
+    _config: Optional[Config] = None
+
+    def __init__(self, context: Optional[Context] = None, config: Optional[Config] = None, **kwargs):
+        """Initialize with config"""
+        super().__init__(**kwargs)
+        self.set_context(context)
+        self.set_config(config)
+
+    def set(self, k, v, override=False):
+        """Set attribute"""
+        if override or not self.__dict__.get(k):
+            self.__dict__[k] = v
+
+    def set_context(self, context: Context, override=True):
+        """Set context"""
+        self.set("_context", context, override)
+
+    def set_config(self, config: Config, override=False):
+        """Set config"""
+        self.set("_config", config, override)
+
+    @property
+    def config(self):
+        """Role config: role config > context config"""
+        if self._config:
+            return self._config
+        return self.context.config
+
+    @config.setter
+    def config(self, config: Config):
+        """Set config"""
+        self.set_config(config)
+
+    @property
+    def context(self):
+        """Role context: role context > context"""
+        if self._context:
+            return self._context
+        return context
+
+    @context.setter
+    def context(self, context: Context):
+        """Set context"""
+        self.set_context(context)
+
+
 # Global context, not in Env
 context = Context()

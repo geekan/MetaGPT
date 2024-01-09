@@ -85,7 +85,7 @@ ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenc
 
 class WriteCode(Action):
     name: str = "WriteCode"
-    context: Document = Field(default_factory=Document)
+    i_context: Document = Field(default_factory=Document)
 
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     async def write_code(self, prompt) -> str:
@@ -116,7 +116,7 @@ class WriteCode(Action):
                 coding_context.task_doc,
                 exclude=self.context.filename,
                 git_repo=self.git_repo,
-                src_workspace=self.g_context.src_workspace,
+                src_workspace=self.context.src_workspace,
             )
 
         prompt = PROMPT_TEMPLATE.format(
@@ -132,7 +132,7 @@ class WriteCode(Action):
         code = await self.write_code(prompt)
         if not coding_context.code_doc:
             # avoid root_path pydantic ValidationError if use WriteCode alone
-            root_path = self.g_context.src_workspace if self.g_context.src_workspace else ""
+            root_path = self.context.src_workspace if self.context.src_workspace else ""
             coding_context.code_doc = Document(filename=coding_context.filename, root_path=str(root_path))
         coding_context.code_doc.content = code
         return coding_context

@@ -12,10 +12,8 @@ from typing import Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-import metagpt
 from metagpt.actions.action_node import ActionNode
-from metagpt.config2 import ConfigMixin
-from metagpt.context import Context
+from metagpt.context import ContextMixin
 from metagpt.llm import LLM
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.schema import (
@@ -28,44 +26,43 @@ from metagpt.schema import (
 from metagpt.utils.file_repository import FileRepository
 
 
-class Action(SerializationMixin, ConfigMixin, BaseModel):
+class Action(SerializationMixin, ContextMixin, BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True, exclude=["llm"])
 
     name: str = ""
     llm: BaseLLM = Field(default_factory=LLM, exclude=True)
-    context: Union[dict, CodingContext, CodeSummarizeContext, TestingContext, RunCodeContext, str, None] = ""
+    i_context: Union[dict, CodingContext, CodeSummarizeContext, TestingContext, RunCodeContext, str, None] = ""
     prefix: str = ""  # aask*时会加上prefix，作为system_message
     desc: str = ""  # for skill manager
     node: ActionNode = Field(default=None, exclude=True)
-    g_context: Optional[Context] = Field(default=metagpt.context.context, exclude=True)
 
     @property
     def git_repo(self):
-        return self.g_context.git_repo
+        return self.context.git_repo
 
     @property
     def file_repo(self):
-        return FileRepository(self.g_context.git_repo)
+        return FileRepository(self.context.git_repo)
 
     @property
     def src_workspace(self):
-        return self.g_context.src_workspace
+        return self.context.src_workspace
 
     @property
     def prompt_schema(self):
-        return self.g_context.config.prompt_schema
+        return self.config.prompt_schema
 
     @property
     def project_name(self):
-        return self.g_context.config.project_name
+        return self.config.project_name
 
     @project_name.setter
     def project_name(self, value):
-        self.g_context.config.project_name = value
+        self.config.project_name = value
 
     @property
     def project_path(self):
-        return self.g_context.config.project_path
+        return self.config.project_path
 
     @model_validator(mode="before")
     @classmethod

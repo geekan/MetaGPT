@@ -8,10 +8,9 @@
 from typing import Any, Optional
 
 import pydantic
-from pydantic import Field, model_validator
+from pydantic import model_validator
 
 from metagpt.actions import Action
-from metagpt.config import Config
 from metagpt.logs import logger
 from metagpt.schema import Message
 from metagpt.tools import SearchEngineType
@@ -106,28 +105,22 @@ You are a member of a professional butler team and will provide helpful suggesti
 class SearchAndSummarize(Action):
     name: str = ""
     content: Optional[str] = None
-    config: None = Field(default_factory=Config)
     engine: Optional[SearchEngineType] = None
     search_func: Optional[Any] = None
     search_engine: SearchEngine = None
     result: str = ""
 
-    @model_validator(mode="before")
-    @classmethod
-    def validate_engine_and_run_func(cls, values):
-        engine = values.get("engine")
-        search_func = values.get("search_func")
-        config = Config()
-
-        if engine is None:
-            engine = config.search_engine
+    @model_validator(mode="after")
+    def validate_engine_and_run_func(self):
+        if self.engine is None:
+            self.engine = self.config.search_engine
         try:
-            search_engine = SearchEngine(engine=engine, run_func=search_func)
+            search_engine = SearchEngine(engine=self.engine, run_func=self.search_func)
         except pydantic.ValidationError:
             search_engine = None
 
-        values["search_engine"] = search_engine
-        return values
+        self.search_engine = search_engine
+        return self
 
     async def run(self, context: list[Message], system_text=SEARCH_AND_SUMMARIZE_SYSTEM) -> str:
         if self.search_engine is None:

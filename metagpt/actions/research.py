@@ -81,7 +81,7 @@ class CollectLinks(Action):
     """Action class to collect links from a search engine."""
 
     name: str = "CollectLinks"
-    context: Optional[str] = None
+    i_context: Optional[str] = None
     desc: str = "Collect links from a search engine."
 
     search_engine: SearchEngine = Field(default_factory=SearchEngine)
@@ -177,7 +177,7 @@ class WebBrowseAndSummarize(Action):
     """Action class to explore the web and provide summaries of articles and webpages."""
 
     name: str = "WebBrowseAndSummarize"
-    context: Optional[str] = None
+    i_context: Optional[str] = None
     llm: BaseLLM = Field(default_factory=LLM)
     desc: str = "Explore the web and provide summaries of articles and webpages."
     browse_func: Union[Callable[[list[str]], None], None] = None
@@ -248,7 +248,7 @@ class ConductResearch(Action):
     """Action class to conduct research and generate a research report."""
 
     name: str = "ConductResearch"
-    context: Optional[str] = None
+    i_context: Optional[str] = None
     llm: BaseLLM = Field(default_factory=LLM)
 
     def __init__(self, **kwargs):

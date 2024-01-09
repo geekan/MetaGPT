@@ -41,7 +41,7 @@ class InvoiceOCR(Action):
     """
 
     name: str = "InvoiceOCR"
-    context: Optional[str] = None
+    i_context: Optional[str] = None
 
     @staticmethod
     async def _check_file_type(file_path: Path) -> str:
@@ -132,7 +132,7 @@ class GenerateTable(Action):
     """
 
     name: str = "GenerateTable"
-    context: Optional[str] = None
+    i_context: Optional[str] = None
     llm: BaseLLM = Field(default_factory=LLM)
     language: str = "ch"
 
@@ -177,7 +177,7 @@ class ReplyQuestion(Action):
     """
 
     name: str = "ReplyQuestion"
-    context: Optional[str] = None
+    i_context: Optional[str] = None
     llm: BaseLLM = Field(default_factory=LLM)
     language: str = "ch"
 

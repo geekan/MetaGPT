@@ -133,8 +133,8 @@ class Config(metaclass=Singleton):
         self.ollama_api_base = self._get("OLLAMA_API_BASE")
         self.ollama_api_model = self._get("OLLAMA_API_MODEL")
 
-        if not self._get("DISABLE_LLM_PROVIDER_CHECK"):
-            _ = self.get_default_llm_provider_enum()
+        # if not self._get("DISABLE_LLM_PROVIDER_CHECK"):
+        #     _ = self.get_default_llm_provider_enum()
 
         self.openai_base_url = self._get("OPENAI_BASE_URL")
         self.openai_proxy = self._get("OPENAI_PROXY") or self.global_proxy
