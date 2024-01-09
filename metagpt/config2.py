@@ -3,7 +3,7 @@
 """
 @Time    : 2024/1/4 01:25
 @Author  : alexanderwu
-@File    : llm_factory.py
+@File    : config2.py
 """
 import os
 from pathlib import Path
@@ -23,6 +23,8 @@ from metagpt.utils.yaml_model import YamlModel
 
 
 class CLIParams(BaseModel):
+    """CLI parameters"""
+
     project_path: str = ""
     project_name: str = ""
     inc: bool = False
@@ -32,12 +34,15 @@ class CLIParams(BaseModel):
 
     @model_validator(mode="after")
     def check_project_path(self):
+        """Check project_path and project_name"""
         if self.project_path:
             self.inc = True
             self.project_name = self.project_name or Path(self.project_path).name
 
 
 class Config(CLIParams, YamlModel):
+    """Configurations for MetaGPT"""
+
     # Key Parameters
     llm: Dict[str, LLMConfig] = Field(default_factory=Dict)
 
@@ -131,6 +136,23 @@ def merge_dict(dicts: Iterable[Dict]) -> Dict:
     for dictionary in dicts:
         result.update(dictionary)
     return result
+
+
+class ConfigurableMixin:
+    """Mixin class for configurable objects"""
+
+    def __init__(self, config=None):
+        self._config = config
+
+    def try_set_parent_config(self, parent_config):
+        """Try to set parent config if not set"""
+        if self._config is None:
+            self._config = parent_config
+
+    @property
+    def config(self):
+        """Get config"""
+        return self._config
 
 
 config = Config.default()
