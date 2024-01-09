@@ -34,7 +34,7 @@ class NewModel(ConfigMixin, BaseModel):
     b: str = "b"
 
 
-def test_config_mixin():
+def test_config_mixin_1():
     new_model = NewModel()
     assert new_model.a == "a"
     assert new_model.b == "b"
@@ -44,7 +44,12 @@ def test_config_mixin():
 
 def test_config_mixin_2():
     i = Config(llm={"default": mock_llm_config})
-    new_model = NewModel(config=i)
-    assert new_model.config == i
-    assert new_model._config == i
-    assert new_model.config.llm["default"] == mock_llm_config
+    j = Config(llm={"new": mock_llm_config})
+    obj = NewModel(config=i)
+    assert obj.config == i
+    assert obj._config == i
+    assert obj.config.llm["default"] == mock_llm_config
+
+    obj.try_set_parent_config(j)
+    # obj already has a config, so it will not be set
+    assert obj.config == i
