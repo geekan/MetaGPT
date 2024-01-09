@@ -15,4 +15,5 @@ from metagpt.provider.base_llm import BaseLLM
 
 def LLM(name: Optional[str] = None, provider: LLMType = LLMType.OPENAI) -> BaseLLM:
     """get the default llm provider if name is None"""
+    # context.use_llm(name=name, provider=provider)
     return context.llm(name=name, provider=provider)
