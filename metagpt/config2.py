@@ -153,12 +153,13 @@ def merge_dict(dicts: Iterable[Dict]) -> Dict:
     return result
 
 
-class ConfigMixin:
+class ConfigMixin(BaseModel):
     """Mixin class for configurable objects"""
 
     _config: Optional[Config] = None
 
     def __init__(self, config: Optional[Config] = None):
+        super().__init__()
         self._config = config
 
     def try_set_parent_config(self, parent_config):
