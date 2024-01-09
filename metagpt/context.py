@@ -104,7 +104,7 @@ class Context(LLMMixin, BaseModel):
 
 
 class ContextMixin:
-    """Mixin class for configurable objects"""
+    """Mixin class for configurable objects: Priority: more specific < parent"""
 
     _context: Optional[Context] = None
 

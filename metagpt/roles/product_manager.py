@@ -33,7 +33,7 @@ class ProductManager(Role):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 
-        self._init_actions([PrepareDocuments, WritePRD])
+        self.add_actions([PrepareDocuments, WritePRD])
         self._watch([UserRequirement, PrepareDocuments])
         self.todo_action = any_to_name(PrepareDocuments)
 

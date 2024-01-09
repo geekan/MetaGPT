@@ -52,7 +52,7 @@ class SkAgent(Role):
     def __init__(self, **data: Any) -> None:
         """Initializes the Engineer role with given attributes."""
         super().__init__(**data)
-        self._init_actions([ExecuteTask()])
+        self.add_actions([ExecuteTask()])
         self._watch([UserRequirement])
         self.kernel = make_sk_kernel()
 
