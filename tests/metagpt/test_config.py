@@ -53,12 +53,12 @@ def test_config_mixin_2():
     i = Config(llm={"default": mock_llm_config})
     j = Config(llm={"new": mock_llm_config})
     obj = ModelX(config=i)
-    assert obj.config == i
-    assert obj.config.llm["default"] == mock_llm_config
+    assert obj._config == i
+    assert obj._config.llm["default"] == mock_llm_config
 
     obj.set_config(j)
     # obj already has a config, so it will not be set
-    assert obj.config == i
+    assert obj._config == i
 
 
 def test_config_mixin_3():
@@ -66,13 +66,13 @@ def test_config_mixin_3():
     i = Config(llm={"default": mock_llm_config})
     j = Config(llm={"new": mock_llm_config})
     obj = ModelY(config=i)
-    assert obj.config == i
-    assert obj.config.llm["default"] == mock_llm_config
+    assert obj._config == i
+    assert obj._config.llm["default"] == mock_llm_config
 
     obj.set_config(j)
     # obj already has a config, so it will not be set
-    assert obj.config == i
-    assert obj.config.llm["default"] == mock_llm_config
+    assert obj._config == i
+    assert obj._config.llm["default"] == mock_llm_config
 
     assert obj.a == "a"
     assert obj.b == "b"
