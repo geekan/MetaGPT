@@ -189,6 +189,7 @@ class Message(BaseModel):
                 actionnode_class = import_class("ActionNode", "metagpt.actions.action_node")  # avoid circular import
                 ic_obj = actionnode_class.create_model_class(class_name=ic["class"], mapping=mapping)
             elif "module" in ic:
+                # subclasses of BaseModel
                 ic_obj = import_class(ic["class"], ic["module"])
             else:
                 raise KeyError("missing required key to init Message.instruct_content from dict")
