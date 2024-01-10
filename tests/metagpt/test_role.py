@@ -33,7 +33,7 @@ class MockAction(Action):
 class MockRole(Role):
     def __init__(self, name="", profile="", goal="", constraints="", desc=""):
         super().__init__(name=name, profile=profile, goal=goal, constraints=constraints, desc=desc)
-        self.add_actions([MockAction()])
+        self.set_actions([MockAction()])
 
 
 def test_basic():
@@ -111,7 +111,7 @@ async def test_send_to():
 
 def test_init_action():
     role = Role()
-    role.add_actions([MockAction, MockAction])
+    role.set_actions([MockAction, MockAction])
     assert len(role.actions) == 2
 
 
@@ -127,7 +127,7 @@ async def test_recover():
     role.publish_message(None)
 
     role.llm = mock_llm
-    role.add_actions([MockAction, MockAction])
+    role.set_actions([MockAction, MockAction])
     role.recovered = True
     role.latest_observed_msg = Message(content="recover_test")
     role.rc.state = 0
@@ -144,7 +144,7 @@ async def test_think_act():
     mock_llm.aask.side_effect = ["ok"]
 
     role = Role()
-    role.add_actions([MockAction])
+    role.set_actions([MockAction])
     await role.think()
     role.rc.memory.add(Message("run"))
     assert len(role.get_memories()) == 1

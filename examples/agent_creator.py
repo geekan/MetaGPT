@@ -61,7 +61,7 @@ class AgentCreator(Role):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.add_actions([CreateAgent])
+        self.set_actions([CreateAgent])
 
     async def _act(self) -> Message:
         logger.info(f"{self._setting}: to do {self.rc.todo}({self.rc.todo.name})")

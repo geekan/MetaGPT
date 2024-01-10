@@ -222,16 +222,17 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
     def _init_action_system_message(self, action: Action):
         action.set_prefix(self._get_prefix())
 
-    def add_action(self, action: Action):
+    def set_action(self, action: Action):
         """Add action to the role."""
-        self.add_actions([action])
+        self.set_actions([action])
 
-    def add_actions(self, actions: list[Union[Action, Type[Action]]]):
+    def set_actions(self, actions: list[Union[Action, Type[Action]]]):
         """Add actions to the role.
 
         Args:
             actions: list of Action classes or instances
         """
+        self._reset()
         for action in actions:
             if not isinstance(action, Action):
                 i = action(name="", llm=self.llm)
