@@ -18,7 +18,7 @@ from metagpt.const import (
     TASK_FILE_REPO,
     TEST_OUTPUTS_FILE_REPO,
 )
-from metagpt.context import context
+from metagpt.context import CONTEXT
 from metagpt.logs import logger
 from metagpt.provider.openai_api import OpenAILLM as LLM
 from metagpt.schema import CodingContext, Document
@@ -53,35 +53,35 @@ async def test_write_code_directly():
 @pytest.mark.asyncio
 async def test_write_code_deps():
     # Prerequisites
-    context.src_workspace = context.git_repo.workdir / "snake1/snake1"
+    CONTEXT.src_workspace = CONTEXT.git_repo.workdir / "snake1/snake1"
     demo_path = Path(__file__).parent / "../../data/demo_project"
-    await context.file_repo.save_file(
+    await CONTEXT.file_repo.save_file(
         filename="test_game.py.json",
         content=await aread(str(demo_path / "test_game.py.json")),
         relative_path=TEST_OUTPUTS_FILE_REPO,
     )
-    await context.file_repo.save_file(
+    await CONTEXT.file_repo.save_file(
         filename="20231221155954.json",
         content=await aread(str(demo_path / "code_summaries.json")),
         relative_path=CODE_SUMMARIES_FILE_REPO,
     )
-    await context.file_repo.save_file(
+    await CONTEXT.file_repo.save_file(
         filename="20231221155954.json",
         content=await aread(str(demo_path / "system_design.json")),
         relative_path=SYSTEM_DESIGN_FILE_REPO,
     )
-    await context.file_repo.save_file(
+    await CONTEXT.file_repo.save_file(
         filename="20231221155954.json", content=await aread(str(demo_path / "tasks.json")), relative_path=TASK_FILE_REPO
     )
-    await context.file_repo.save_file(
-        filename="main.py", content='if __name__ == "__main__":\nmain()', relative_path=context.src_workspace
+    await CONTEXT.file_repo.save_file(
+        filename="main.py", content='if __name__ == "__main__":\nmain()', relative_path=CONTEXT.src_workspace
     )
     ccontext = CodingContext(
         filename="game.py",
-        design_doc=await context.file_repo.get_file(
+        design_doc=await CONTEXT.file_repo.get_file(
             filename="20231221155954.json", relative_path=SYSTEM_DESIGN_FILE_REPO
         ),
-        task_doc=await context.file_repo.get_file(filename="20231221155954.json", relative_path=TASK_FILE_REPO),
+        task_doc=await CONTEXT.file_repo.get_file(filename="20231221155954.json", relative_path=TASK_FILE_REPO),
         code_doc=Document(filename="game.py", content="", root_path="snake1"),
     )
     coding_doc = Document(root_path="snake1", filename="game.py", content=ccontext.json())

@@ -6,7 +6,7 @@
 @File    : test_context.py
 """
 from metagpt.configs.llm_config import LLMType
-from metagpt.context import AttrDict, Context, context
+from metagpt.context import CONTEXT, AttrDict, Context
 
 
 def test_attr_dict_1():
@@ -52,11 +52,11 @@ def test_context_1():
 
 
 def test_context_2():
-    llm = context.config.get_openai_llm()
+    llm = CONTEXT.config.get_openai_llm()
     assert llm is not None
     assert llm.api_type == LLMType.OPENAI
 
-    kwargs = context.kwargs
+    kwargs = CONTEXT.kwargs
     assert kwargs is not None
 
     kwargs.test_key = "test_value"

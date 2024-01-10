@@ -144,7 +144,7 @@ class ContextMixin(BaseModel):
         """Role context: role context > context"""
         if self._context:
             return self._context
-        return context
+        return CONTEXT
 
     @context.setter
     def context(self, context: Context):
@@ -153,4 +153,4 @@ class ContextMixin(BaseModel):
 
 
 # Global context, not in Env
-context = Context()
+CONTEXT = Context()

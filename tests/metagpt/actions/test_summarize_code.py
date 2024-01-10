@@ -11,7 +11,7 @@ import pytest
 from metagpt.actions.summarize_code import SummarizeCode
 from metagpt.config import CONFIG
 from metagpt.const import SYSTEM_DESIGN_FILE_REPO, TASK_FILE_REPO
-from metagpt.context import context
+from metagpt.context import CONTEXT
 from metagpt.logs import logger
 from metagpt.schema import CodeSummarizeContext
 
@@ -178,15 +178,15 @@ class Snake:
 
 @pytest.mark.asyncio
 async def test_summarize_code():
-    context.src_workspace = context.git_repo.workdir / "src"
-    await context.file_repo.save_file(filename="1.json", relative_path=SYSTEM_DESIGN_FILE_REPO, content=DESIGN_CONTENT)
-    await context.file_repo.save_file(filename="1.json", relative_path=TASK_FILE_REPO, content=TASK_CONTENT)
-    await context.file_repo.save_file(filename="food.py", relative_path=CONFIG.src_workspace, content=FOOD_PY)
-    await context.file_repo.save_file(filename="game.py", relative_path=CONFIG.src_workspace, content=GAME_PY)
-    await context.file_repo.save_file(filename="main.py", relative_path=CONFIG.src_workspace, content=MAIN_PY)
-    await context.file_repo.save_file(filename="snake.py", relative_path=CONFIG.src_workspace, content=SNAKE_PY)
+    CONTEXT.src_workspace = CONTEXT.git_repo.workdir / "src"
+    await CONTEXT.file_repo.save_file(filename="1.json", relative_path=SYSTEM_DESIGN_FILE_REPO, content=DESIGN_CONTENT)
+    await CONTEXT.file_repo.save_file(filename="1.json", relative_path=TASK_FILE_REPO, content=TASK_CONTENT)
+    await CONTEXT.file_repo.save_file(filename="food.py", relative_path=CONFIG.src_workspace, content=FOOD_PY)
+    await CONTEXT.file_repo.save_file(filename="game.py", relative_path=CONFIG.src_workspace, content=GAME_PY)
+    await CONTEXT.file_repo.save_file(filename="main.py", relative_path=CONFIG.src_workspace, content=MAIN_PY)
+    await CONTEXT.file_repo.save_file(filename="snake.py", relative_path=CONFIG.src_workspace, content=SNAKE_PY)
 
-    src_file_repo = context.git_repo.new_file_repository(relative_path=CONFIG.src_workspace)
+    src_file_repo = CONTEXT.git_repo.new_file_repository(relative_path=CONFIG.src_workspace)
     all_files = src_file_repo.all_files
     ctx = CodeSummarizeContext(design_filename="1.json", task_filename="1.json", codes_filenames=all_files)
     action = SummarizeCode(context=ctx)

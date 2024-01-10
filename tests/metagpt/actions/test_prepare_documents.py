@@ -10,7 +10,7 @@ import pytest
 
 from metagpt.actions.prepare_documents import PrepareDocuments
 from metagpt.const import DOCS_FILE_REPO, REQUIREMENT_FILENAME
-from metagpt.context import context
+from metagpt.context import CONTEXT
 from metagpt.schema import Message
 
 
@@ -18,12 +18,12 @@ from metagpt.schema import Message
 async def test_prepare_documents():
     msg = Message(content="New user requirements balabala...")
 
-    if context.git_repo:
-        context.git_repo.delete_repository()
-        context.git_repo = None
+    if CONTEXT.git_repo:
+        CONTEXT.git_repo.delete_repository()
+        CONTEXT.git_repo = None
 
-    await PrepareDocuments(g_context=context).run(with_messages=[msg])
-    assert context.git_repo
-    doc = await context.file_repo.get_file(filename=REQUIREMENT_FILENAME, relative_path=DOCS_FILE_REPO)
+    await PrepareDocuments(g_context=CONTEXT).run(with_messages=[msg])
+    assert CONTEXT.git_repo
+    doc = await CONTEXT.file_repo.get_file(filename=REQUIREMENT_FILENAME, relative_path=DOCS_FILE_REPO)
     assert doc
     assert doc.content == msg.content

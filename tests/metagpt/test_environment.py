@@ -13,7 +13,7 @@ from pathlib import Path
 import pytest
 
 from metagpt.actions import UserRequirement
-from metagpt.context import context
+from metagpt.context import CONTEXT
 from metagpt.environment import Environment
 from metagpt.logs import logger
 from metagpt.roles import Architect, ProductManager, Role
@@ -46,9 +46,9 @@ def test_get_roles(env: Environment):
 
 @pytest.mark.asyncio
 async def test_publish_and_process_message(env: Environment):
-    if context.git_repo:
-        context.git_repo.delete_repository()
-        context.git_repo = None
+    if CONTEXT.git_repo:
+        CONTEXT.git_repo.delete_repository()
+        CONTEXT.git_repo = None
 
     product_manager = ProductManager(name="Alice", profile="Product Manager", goal="做AI Native产品", constraints="资源有限")
     architect = Architect(

@@ -10,7 +10,7 @@ from typing import Dict, Optional
 import pytest
 from pydantic import BaseModel
 
-from metagpt.context import context
+from metagpt.context import CONTEXT
 from metagpt.roles.teacher import Teacher
 from metagpt.schema import Message
 
@@ -97,8 +97,8 @@ async def test_new_file_name():
 
 @pytest.mark.asyncio
 async def test_run():
-    context.kwargs.language = "Chinese"
-    context.kwargs.teaching_language = "English"
+    CONTEXT.kwargs.language = "Chinese"
+    CONTEXT.kwargs.teaching_language = "English"
     lesson = """
     UNIT 1 Making New Friends
     TOPIC 1 Welcome to China!
