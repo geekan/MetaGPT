@@ -9,7 +9,7 @@ import typer
 from metagpt.config2 import config
 from metagpt.const import METAGPT_ROOT
 
-app = typer.Typer(add_completion=False)
+app = typer.Typer(add_completion=False, pretty_exceptions_show_locals=False)
 
 
 def generate_repo(
