@@ -61,7 +61,7 @@ Please assign a task type to each task in the list below from the given categori
 - **other**: Any tasks that do not fit into the previous categories, such as visualization, summarizing findings, etc.
 """
 
-ASSIGN_TASK_TYPE = {
+ASSIGN_TASK_TYPE_CONFIG = {
     "name": "assign_task_type",
     "description": "Assign task type to each task by order.",
     "parameters": {
@@ -309,14 +309,3 @@ ML_MODULE_MAP = {
     "feature_engineering": "metagpt.tools.functions.libs.feature_engineering",
     "udf": "metagpt.tools.functions.libs.udf",
 }
-
-STRUCTURAL_CONTEXT = """
-## User Requirement
-{user_requirement}
-## Data Description
-{data_desc}
-## Current Plan
-{tasks}
-## Current Task
-{current_task}
-"""

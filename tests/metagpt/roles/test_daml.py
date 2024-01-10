@@ -2,8 +2,14 @@ import pytest
 from tqdm import tqdm
 
 from metagpt.logs import logger
-from metagpt.roles.ml_engineer import MLEngineer
+from metagpt.schema import Plan
+from metagpt.roles.ml_engineer import MLEngineer, ExecutePyCode
 
+def reset(role):
+    """Restart role with the same goal."""
+    role.working_memory.clear()
+    role.planner.plan = Plan(goal=role.planner.plan.goal)
+    role.execute_code = ExecutePyCode()
 
 async def make_use_tools(requirement: str, auto_run: bool = True):
     """make and use tools for requirement."""
@@ -15,7 +21,7 @@ async def make_use_tools(requirement: str, auto_run: bool = True):
     role.use_udfs = False
     await role.run(requirement)
     # use udfs
-    role.reset()
+    reset(role)
     role.make_udfs = False
     role.use_udfs = True
     role.use_code_steps = False

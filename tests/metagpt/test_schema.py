@@ -141,7 +141,8 @@ class TestPlan:
         task = Task(task_id="1", instruction="First Task")
         plan.add_tasks([task])
         new_task = Task(task_id="2", instruction="New Task")
-        plan.replace_task(new_task)  # Task with ID 2 does not exist in plan
+        with pytest.raises(AssertionError):
+            plan.replace_task(new_task)  # Task with ID 2 does not exist in plan
         assert "1" in plan.task_map
         assert "2" not in plan.task_map
     

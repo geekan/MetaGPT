@@ -81,7 +81,16 @@ class Task(BaseModel):
     code_steps: str = ""
     code: str = ""
     result: str = ""
+    is_success: bool = False
     is_finished: bool = False
+
+
+class TaskResult(BaseModel):
+    """Result of taking a task, with result and is_success required to be filled"""
+    code_steps: str = ""
+    code: str = ""
+    result: str
+    is_success: bool
 
 
 class Plan(BaseModel):
@@ -169,6 +178,7 @@ class Plan(BaseModel):
             task = self.task_map[task_id]
             task.code = ""
             task.result = ""
+            task.is_success = False
             task.is_finished = False
 
     def replace_task(self, new_task: Task):
@@ -181,18 +191,18 @@ class Plan(BaseModel):
         Returns:
             None
         """
-        if new_task.task_id in self.task_map:
-            # Replace the task in the task map and the task list
-            self.task_map[new_task.task_id] = new_task
-            for i, task in enumerate(self.tasks):
-                if task.task_id == new_task.task_id:
-                    self.tasks[i] = new_task
-                    break
+        assert new_task.task_id in self.task_map
+        # Replace the task in the task map and the task list
+        self.task_map[new_task.task_id] = new_task
+        for i, task in enumerate(self.tasks):
+            if task.task_id == new_task.task_id:
+                self.tasks[i] = new_task
+                break
 
-            # Reset dependent tasks
-            for task in self.tasks:
-                if new_task.task_id in task.dependent_task_ids:
-                    self.reset_task(task.task_id)
+        # Reset dependent tasks
+        for task in self.tasks:
+            if new_task.task_id in task.dependent_task_ids:
+                self.reset_task(task.task_id)
 
     def append_task(self, new_task: Task):
         """
@@ -213,6 +223,12 @@ class Plan(BaseModel):
         self.tasks.append(new_task)
         self.task_map[new_task.task_id] = new_task
         self._update_current_task()
+    
+    def update_task_result(self, task: Task, task_result: TaskResult):
+        task.code_steps = task_result.code_steps
+        task.code = task_result.code
+        task.result = task_result.result
+        task.is_success = task_result.is_success
 
     def has_task_id(self, task_id: str) -> bool:
         return task_id in self.task_map

@@ -10,7 +10,8 @@ from metagpt.config import CONFIG
 from metagpt.const import WORKSPACE_ROOT
 from metagpt.roles import Role
 from metagpt.actions import Action, BossRequirement
-from metagpt.actions.ml_da_action import AskReview, SummarizeAnalysis
+from metagpt.actions.ask_review import AskReview
+from metagpt.actions.ml_da_action import SummarizeAnalysis
 from metagpt.schema import Message, Task, Plan
 from metagpt.logs import logger
 from metagpt.utils.common import CodeParser
