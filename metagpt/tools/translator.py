@@ -6,7 +6,7 @@
 @File    : translator.py
 """
 
-prompt = '''
+prompt = """
 # 指令
 接下来，作为一位拥有20年翻译经验的翻译专家，当我给出英文句子或段落时，你将提供通顺且具有可读性的{LANG}翻译。注意以下要求：
 1. 确保翻译结果流畅且易于理解
@@ -17,11 +17,10 @@ prompt = '''
 {ORIGINAL}
 
 # 译文
-'''
+"""
 
 
 class Translator:
-
     @classmethod
-    def translate_prompt(cls, original, lang='中文'):
+    def translate_prompt(cls, original, lang="中文"):
         return prompt.format(LANG=lang, ORIGINAL=original)

@@ -16,19 +16,22 @@ Options:
                                 Default: 'google'
 
 Example:
-    python3 -m metagpt.actions.write_docstring startup.py --overwrite False --style=numpy
+    python3 -m metagpt.actions.write_docstring ./metagpt/startup.py --overwrite False --style=numpy
 
 This script uses the 'fire' library to create a command-line interface. It generates docstrings for the given Python code using
 the specified docstring style and adds them to the code.
 """
+from __future__ import annotations
+
 import ast
-from typing import Literal
+from pathlib import Path
+from typing import Literal, Optional
 
 from metagpt.actions.action import Action
-from metagpt.utils.common import OutputParser
+from metagpt.utils.common import OutputParser, aread, awrite
 from metagpt.utils.pycst import merge_docstring
 
-PYTHON_DOCSTRING_SYSTEM = '''### Requirements
+PYTHON_DOCSTRING_SYSTEM = """### Requirements
 1. Add docstrings to the given code following the {style} style.
 2. Replace the function body with an Ellipsis object(...) to reduce output.
 3. If the types are already annotated, there is no need to include them in the docstring.
@@ -48,7 +51,7 @@ class ExampleError(Exception):
 ```python
 {example}
 ```
-'''
+"""
 
 # https://www.sphinx-doc.org/en/master/usage/extensions/napoleon.html
 
@@ -157,12 +160,12 @@ class WriteDocstring(Action):
         desc: A string describing the action.
     """
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.desc = "Write docstring for code."
+    desc: str = "Write docstring for code."
+    context: Optional[str] = None
 
     async def run(
-        self, code: str,
+        self,
+        code: str,
         system_text: str = PYTHON_DOCSTRING_SYSTEM,
         style: Literal["google", "numpy", "sphinx"] = "google",
     ) -> str:
@@ -181,6 +184,16 @@ class WriteDocstring(Action):
         documented_code = await self._aask(f"```python\n{simplified_code}\n```", [system_text])
         documented_code = OutputParser.parse_python_code(documented_code)
         return merge_docstring(code, documented_code)
+
+    @staticmethod
+    async def write_docstring(
+        filename: str | Path, overwrite: bool = False, style: Literal["google", "numpy", "sphinx"] = "google"
+    ) -> str:
+        data = await aread(str(filename))
+        code = await WriteDocstring().run(data, style=style)
+        if overwrite:
+            await awrite(filename, code)
+        return code
 
 
 def _simplify_python_code(code: str) -> None:
@@ -202,13 +215,4 @@ def _simplify_python_code(code: str) -> None:
 if __name__ == "__main__":
     import fire
 
-    async def run(filename: str, overwrite: bool = False, style: Literal["google", "numpy", "sphinx"] = "google"):
-        with open(filename) as f:
-            code = f.read()
-        code = await WriteDocstring().run(code, style=style)
-        if overwrite:
-            with open(filename, "w") as f:
-                f.write(code)
-        return code
-
-    fire.Fire(run)
+    fire.Fire(WriteDocstring.write_docstring)

@@ -10,7 +10,7 @@
 from typing import Dict
 
 from metagpt.actions import Action
-from metagpt.prompts.tutorial_assistant import DIRECTORY_PROMPT, CONTENT_PROMPT
+from metagpt.prompts.tutorial_assistant import CONTENT_PROMPT, DIRECTORY_PROMPT
 from metagpt.utils.common import OutputParser
 
 
@@ -22,9 +22,8 @@ class WriteDirectory(Action):
         language: The language to output, default is "Chinese".
     """
 
-    def __init__(self, name: str = "", language: str = "Chinese", *args, **kwargs):
-        super().__init__(name, *args, **kwargs)
-        self.language = language
+    name: str = "WriteDirectory"
+    language: str = "Chinese"
 
     async def run(self, topic: str, *args, **kwargs) -> Dict:
         """Execute the action to generate a tutorial directory according to the topic.
@@ -49,10 +48,9 @@ class WriteContent(Action):
         language: The language to output, default is "Chinese".
     """
 
-    def __init__(self, name: str = "", directory: str = "", language: str = "Chinese", *args, **kwargs):
-        super().__init__(name, *args, **kwargs)
-        self.language = language
-        self.directory = directory
+    name: str = "WriteContent"
+    directory: dict = dict()
+    language: str = "Chinese"
 
     async def run(self, topic: str, *args, **kwargs) -> str:
         """Execute the action to write document content according to the directory and topic.
@@ -65,4 +63,3 @@ class WriteContent(Action):
         """
         prompt = CONTENT_PROMPT.format(topic=topic, language=self.language, directory=self.directory)
         return await self._aask(prompt=prompt)
-

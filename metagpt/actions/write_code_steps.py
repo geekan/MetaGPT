@@ -1,9 +1,7 @@
-
 import json
-from typing import Dict, List, Union
 
 from metagpt.actions import Action
-from metagpt.schema import Message, Task, Plan
+from metagpt.schema import Plan
 from metagpt.utils.common import CodeParser
 
 # CODE_STEPS_PROMPT_TEMPLATE = """
@@ -79,7 +77,6 @@ STRUCTURAL_CONTEXT = """
 
 
 class WriteCodeSteps(Action):
-
     async def run(self, plan: Plan) -> str:
         """Run of a task guide writing action, used in ml engineer
 
@@ -91,9 +88,7 @@ class WriteCodeSteps(Action):
         """
 
         context = self.get_context(plan)
-        code_steps_prompt = CODE_STEPS_PROMPT_TEMPLATE.replace(
-            "{context}", context
-        )
+        code_steps_prompt = CODE_STEPS_PROMPT_TEMPLATE.replace("{context}", context)
         code_steps = await self._aask(code_steps_prompt)
         code_steps = CodeParser.parse_code(block=None, text=code_steps)
         return code_steps
@@ -102,19 +97,16 @@ class WriteCodeSteps(Action):
         user_requirement = plan.goal
         # select_task_keys = ['task_id', 'instruction', 'is_finished', 'code']
         # select_task_keys = ['task_id','instruction']
-        
+
         def process_task(task):
             task_dict = task.dict()
             # ptask = {k: task_dict[k] for k in task_dict if k in select_task_keys }
             ptask = f"task_id_{task_dict['task_id']}:{task_dict['instruction']}"
             return ptask
-        
-        
-        tasks = json.dumps(
-            [process_task(task) for task in plan.tasks], indent=4, ensure_ascii=False
-        )
-        
-        code_lists = [task.code for task in plan.tasks if task.is_finished==True]
+
+        tasks = json.dumps([process_task(task) for task in plan.tasks], indent=4, ensure_ascii=False)
+
+        code_lists = [task.code for task in plan.tasks if task.is_finished == True]
         codes = "\n\n".join(code_lists)
         current_task = json.dumps(process_task(plan.current_task)) if plan.current_task else {}
         context = STRUCTURAL_CONTEXT.format(

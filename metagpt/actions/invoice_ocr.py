@@ -10,16 +10,23 @@
 
 import os
 import zipfile
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+from typing import Optional
 
 import pandas as pd
 from paddleocr import PaddleOCR
+from pydantic import Field
 
 from metagpt.actions import Action
 from metagpt.const import INVOICE_OCR_TABLE_PATH
+from metagpt.llm import LLM
 from metagpt.logs import logger
-from metagpt.prompts.invoice_ocr import EXTRACT_OCR_MAIN_INFO_PROMPT, REPLY_OCR_QUESTION_PROMPT
+from metagpt.prompts.invoice_ocr import (
+    EXTRACT_OCR_MAIN_INFO_PROMPT,
+    REPLY_OCR_QUESTION_PROMPT,
+)
+from metagpt.provider.base_llm import BaseLLM
 from metagpt.utils.common import OutputParser
 from metagpt.utils.file import File
 
@@ -33,8 +40,8 @@ class InvoiceOCR(Action):
 
     """
 
-    def __init__(self, name: str = "", *args, **kwargs):
-        super().__init__(name, *args, **kwargs)
+    name: str = "InvoiceOCR"
+    context: Optional[str] = None
 
     @staticmethod
     async def _check_file_type(file_path: Path) -> str:
@@ -81,6 +88,8 @@ class InvoiceOCR(Action):
     async def _ocr(invoice_file_path: Path):
         ocr = PaddleOCR(use_angle_cls=True, lang="ch", page_num=1)
         ocr_result = ocr.ocr(str(invoice_file_path), cls=True)
+        for result in ocr_result[0]:
+            result[1] = (result[1][0], round(result[1][1], 2))  # round long confidence scores to reduce token costs
         return ocr_result
 
     async def run(self, file_path: Path, *args, **kwargs) -> list:
@@ -122,9 +131,10 @@ class GenerateTable(Action):
 
     """
 
-    def __init__(self, name: str = "", language: str = "ch", *args, **kwargs):
-        super().__init__(name, *args, **kwargs)
-        self.language = language
+    name: str = "GenerateTable"
+    context: Optional[str] = None
+    llm: BaseLLM = Field(default_factory=LLM)
+    language: str = "ch"
 
     async def run(self, ocr_results: list, filename: str, *args, **kwargs) -> dict[str, str]:
         """Processes OCR results, extracts invoice information, generates a table, and saves it as an Excel file.
@@ -166,9 +176,10 @@ class ReplyQuestion(Action):
 
     """
 
-    def __init__(self, name: str = "", language: str = "ch", *args, **kwargs):
-        super().__init__(name, *args, **kwargs)
-        self.language = language
+    name: str = "ReplyQuestion"
+    context: Optional[str] = None
+    llm: BaseLLM = Field(default_factory=LLM)
+    language: str = "ch"
 
     async def run(self, query: str, ocr_result: list, *args, **kwargs) -> str:
         """Reply to questions based on ocr results.
@@ -183,4 +194,3 @@ class ReplyQuestion(Action):
         prompt = REPLY_OCR_QUESTION_PROMPT.format(query=query, ocr_result=ocr_result, language=self.language)
         resp = await self._aask(prompt=prompt)
         return resp
-

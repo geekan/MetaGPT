@@ -2,24 +2,25 @@
 # -*- coding: utf-8 -*-
 # @Desc   : zhipuai LLM from https://open.bigmodel.cn/dev/api#sdk
 
-from enum import Enum
 import json
+from enum import Enum
+
+import openai
+import zhipuai
+from requests import ConnectionError
 from tenacity import (
     after_log,
     retry,
     retry_if_exception_type,
     stop_after_attempt,
-    wait_fixed,
+    wait_random_exponential,
 )
-from requests import ConnectionError
 
-import openai
-import zhipuai
-
-from metagpt.config import CONFIG
-from metagpt.logs import logger
-from metagpt.provider.base_gpt_api import BaseGPTAPI
-from metagpt.provider.openai_api import CostManager, log_and_reraise
+from metagpt.config import CONFIG, LLMProviderEnum
+from metagpt.logs import log_llm_stream, logger
+from metagpt.provider.base_llm import BaseLLM
+from metagpt.provider.llm_provider_registry import register_provider
+from metagpt.provider.openai_api import log_and_reraise
 from metagpt.provider.zhipuai.zhipu_model_api import ZhiPuModelAPI
 
 
@@ -30,65 +31,64 @@ class ZhiPuEvent(Enum):
     FINISH = "finish"
 
 
-class ZhiPuAIGPTAPI(BaseGPTAPI):
+@register_provider(LLMProviderEnum.ZHIPUAI)
+class ZhiPuAILLM(BaseLLM):
     """
     Refs to `https://open.bigmodel.cn/dev/api#chatglm_turbo`
     From now, there is only one model named `chatglm_turbo`
     """
 
-    use_system_prompt: bool = False  # zhipuai has no system prompt when use api
-
     def __init__(self):
         self.__init_zhipuai(CONFIG)
         self.llm = ZhiPuModelAPI
         self.model = "chatglm_turbo"  # so far only one model, just use it
-        self._cost_manager = CostManager()
+        self.use_system_prompt: bool = False  # zhipuai has no system prompt when use api
 
     def __init_zhipuai(self, config: CONFIG):
         assert config.zhipuai_api_key
         zhipuai.api_key = config.zhipuai_api_key
-        openai.api_key = zhipuai.api_key  # due to use openai sdk, set the api_key but it will't be used.
+        # due to use openai sdk, set the api_key but it will't be used.
+        # openai.api_key = zhipuai.api_key  # due to use openai sdk, set the api_key but it will't be used.
+        if config.openai_proxy:
+            # FIXME: openai v1.x sdk has no proxy support
+            openai.proxy = config.openai_proxy
 
     def _const_kwargs(self, messages: list[dict]) -> dict:
-        kwargs = {
-            "model": self.model,
-            "prompt": messages,
-            "temperature": 0.3
-        }
+        kwargs = {"model": self.model, "prompt": messages, "temperature": 0.3}
         return kwargs
 
     def _update_costs(self, usage: dict):
-        """ update each request's token cost """
+        """update each request's token cost"""
         if CONFIG.calc_usage:
             try:
                 prompt_tokens = int(usage.get("prompt_tokens", 0))
                 completion_tokens = int(usage.get("completion_tokens", 0))
-                self._cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
+                CONFIG.cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
             except Exception as e:
-                logger.error("zhipuai updats costs failed!", e)
+                logger.error(f"zhipuai updats costs failed! exp: {e}")
 
     def get_choice_text(self, resp: dict) -> str:
-        """ get the first text of choice from llm response """
+        """get the first text of choice from llm response"""
         assist_msg = resp.get("data", {}).get("choices", [{"role": "error"}])[-1]
         assert assist_msg["role"] == "assistant"
         return assist_msg.get("content")
 
-    def completion(self, messages: list[dict]) -> dict:
+    def completion(self, messages: list[dict], timeout=3) -> dict:
         resp = self.llm.invoke(**self._const_kwargs(messages))
         usage = resp.get("data").get("usage")
         self._update_costs(usage)
         return resp
 
-    async def _achat_completion(self, messages: list[dict]) -> dict:
+    async def _achat_completion(self, messages: list[dict], timeout=3) -> dict:
         resp = await self.llm.ainvoke(**self._const_kwargs(messages))
         usage = resp.get("data").get("usage")
         self._update_costs(usage)
         return resp
 
-    async def acompletion(self, messages: list[dict]) -> dict:
-        return await self._achat_completion(messages)
+    async def acompletion(self, messages: list[dict], timeout=3) -> dict:
+        return await self._achat_completion(messages, timeout=timeout)
 
-    async def _achat_completion_stream(self, messages: list[dict]) -> str:
+    async def _achat_completion_stream(self, messages: list[dict], timeout=3) -> str:
         response = await self.llm.asse_invoke(**self._const_kwargs(messages))
         collected_content = []
         usage = {}
@@ -96,11 +96,10 @@ class ZhiPuAIGPTAPI(BaseGPTAPI):
             if event.event == ZhiPuEvent.ADD.value:
                 content = event.data
                 collected_content.append(content)
-                print(content, end="")
+                log_llm_stream(content)
             elif event.event == ZhiPuEvent.ERROR.value or event.event == ZhiPuEvent.INTERRUPTED.value:
                 content = event.data
                 logger.error(f"event error: {content}", end="")
-                collected_content.append([content])
             elif event.event == ZhiPuEvent.FINISH.value:
                 """
                 event.meta
@@ -119,6 +118,7 @@ class ZhiPuAIGPTAPI(BaseGPTAPI):
                 usage = meta.get("usage")
             else:
                 print(f"zhipuapi else event: {event.data}", end="")
+        log_llm_stream("\n")
 
         self._update_costs(usage)
         full_content = "".join(collected_content)
@@ -126,13 +126,13 @@ class ZhiPuAIGPTAPI(BaseGPTAPI):
 
     @retry(
         stop=stop_after_attempt(3),
-        wait=wait_fixed(1),
+        wait=wait_random_exponential(min=1, max=60),
         after=after_log(logger, logger.level("WARNING").name),
         retry=retry_if_exception_type(ConnectionError),
-        retry_error_callback=log_and_reraise
+        retry_error_callback=log_and_reraise,
     )
-    async def acompletion_text(self, messages: list[dict], stream=False) -> str:
-        """ response in async with stream or non-stream mode """
+    async def acompletion_text(self, messages: list[dict], stream=False, timeout=3) -> str:
+        """response in async with stream or non-stream mode"""
         if stream:
             return await self._achat_completion_stream(messages)
         resp = await self._achat_completion(messages)

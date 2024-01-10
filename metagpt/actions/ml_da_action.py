@@ -1,26 +1,18 @@
 import json
-from typing import Dict, List, Union
 
 from metagpt.actions import Action
-from metagpt.schema import Message, Plan
-from metagpt.utils.common import CodeParser, remove_comments, create_func_config
-from metagpt.logs import logger
-from metagpt.prompts.ml_engineer import (
-    UPDATE_DATA_COLUMNS,
-    PRINT_DATA_COLUMNS
-)
+from metagpt.prompts.ml_engineer import PRINT_DATA_COLUMNS, UPDATE_DATA_COLUMNS
+from metagpt.schema import Plan
+from metagpt.utils.common import CodeParser, create_func_config, remove_comments
 
 
 class SummarizeAnalysis(Action):
-    PROMPT_TEMPLATE = """
+    PROMPT_TEMPLATE: str = """
     # Context
     {context}
     # Summary
     Output a 30-word summary on analysis tool and modeling algorithms you have used, and the corresponding result. Make sure to announce the complete path to your test prediction file. Your summary:
     """
-
-    def __init__(self, name: str = "", context=None, llm=None) -> str:
-        super().__init__(name, context, llm)
 
     async def run(self, conmpleted_plan: Plan) -> str:
         tasks = json.dumps(
@@ -34,7 +26,7 @@ class SummarizeAnalysis(Action):
 
 
 class Reflect(Action):
-    PROMPT_TEMPLATE = """
+    PROMPT_TEMPLATE: str = """
     # Context
     __context__
     # Latest User Requirement
@@ -50,7 +42,7 @@ class Reflect(Action):
     }
     ```
     """
-    REWRITE_PLAN_INSTRUCTION = """Take this reflection for rewriting plan, modify the current plan in place, make reference to your specific instruction, think about you should
+    REWRITE_PLAN_INSTRUCTION: str = """Take this reflection for rewriting plan, modify the current plan in place, make reference to your specific instruction, think about you should
     change which task, add or delete what tasks in the plan. Only make necessary changes, keep reusable tasks unchanged, output the COMPLETE new plan starting from the first task. Your plan should have no more than 5 tasks."""
 
     async def run(self, context: str, user_requirement: str = "") -> str:

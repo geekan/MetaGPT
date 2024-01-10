@@ -1,6 +1,5 @@
-import pytest
+from metagpt.actions.write_plan import Plan, Task, precheck_update_plan_from_rsp
 
-from metagpt.actions.write_plan import WritePlan, precheck_update_plan_from_rsp, Plan, Task
 
 def test_precheck_update_plan_from_rsp():
     plan = Plan(goal="")
@@ -10,6 +9,6 @@ def test_precheck_update_plan_from_rsp():
     assert success
     assert len(plan.tasks) == 1 and plan.tasks[0].task_id == "1"  # precheck should not change the original one
 
-    invalid_rsp = 'wrong'
+    invalid_rsp = "wrong"
     success, _ = precheck_update_plan_from_rsp(invalid_rsp, plan)
     assert not success

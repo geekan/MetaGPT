@@ -4,20 +4,19 @@
 @Author  :   orange-crow
 @File    :   plan.py
 """
-from typing import List, Dict, Tuple
 import json
 from copy import deepcopy
-import traceback
+from typing import Dict, List, Tuple
 
 from metagpt.actions import Action
-from metagpt.prompts.ml_engineer import ASSIGN_TASK_TYPE_PROMPT, ASSIGN_TASK_TYPE_CONFIG
-from metagpt.schema import Message, Task, Plan
-from metagpt.utils.common import CodeParser, create_func_config
 from metagpt.logs import logger
+from metagpt.prompts.ml_engineer import ASSIGN_TASK_TYPE_CONFIG, ASSIGN_TASK_TYPE_PROMPT
+from metagpt.schema import Message, Plan, Task
+from metagpt.utils.common import CodeParser, create_func_config
 
 
 class WritePlan(Action):
-    PROMPT_TEMPLATE = """
+    PROMPT_TEMPLATE: str = """
     # Context:
     __context__
     # Task:
@@ -46,9 +45,7 @@ class WritePlan(Action):
         Returns:
             List[Dict]: tasks with task type assigned
         """
-        task_list = "\n".join(
-            [f"Task {task['task_id']}: {task['instruction']}" for task in tasks]
-        )
+        task_list = "\n".join([f"Task {task['task_id']}: {task['instruction']}" for task in tasks])
         prompt = ASSIGN_TASK_TYPE_PROMPT.format(task_list=task_list)
         tool_config = create_func_config(ASSIGN_TASK_TYPE_CONFIG)
         rsp = await self.llm.aask_code(prompt, **tool_config)
@@ -57,9 +54,7 @@ class WritePlan(Action):
             task["task_type"] = task_type
         return json.dumps(tasks)
 
-    async def run(
-        self, context: List[Message], max_tasks: int = 5, use_tools: bool = False
-    ) -> str:
+    async def run(self, context: List[Message], max_tasks: int = 5, use_tools: bool = False) -> str:
         prompt = (
             self.PROMPT_TEMPLATE.replace("__context__", "\n".join([str(ct) for ct in context]))
             # .replace("__current_plan__", current_plan)
@@ -71,10 +66,12 @@ class WritePlan(Action):
             rsp = await self.assign_task_type(json.loads(rsp))
         return rsp
 
+
 def rsp_to_tasks(rsp: str) -> List[Task]:
     rsp = json.loads(rsp)
     tasks = [Task(**task_config) for task_config in rsp]
     return tasks
+
 
 def update_plan_from_rsp(rsp: str, current_plan: Plan):
     tasks = rsp_to_tasks(rsp)
@@ -96,6 +93,7 @@ def update_plan_from_rsp(rsp: str, current_plan: Plan):
     else:
         # add tasks in general
         current_plan.add_tasks(tasks)
+
 
 def precheck_update_plan_from_rsp(rsp: str, current_plan: Plan) -> Tuple[bool, str]:
     temp_plan = deepcopy(current_plan)

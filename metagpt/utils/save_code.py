@@ -2,12 +2,13 @@
 # @Date    : 12/12/2023 4:14 PM
 # @Author  : stellahong (stellahong@fuzhi.ai)
 # @Desc    :
-import os
 import json
+import os
 
 import nbformat
 
 from metagpt.const import DATA_PATH
+
 
 def save_code_file(name: str, code_context: str, file_format: str = "py") -> None:
     """
@@ -36,10 +37,6 @@ def save_code_file(name: str, code_context: str, file_format: str = "py") -> Non
         with open(file_path, "w", encoding="utf-8") as fp:
             json.dump(data, fp, indent=2)
     elif file_format == "ipynb":
-         nbformat.write(code_context, file_path)
+        nbformat.write(code_context, file_path)
     else:
         raise ValueError("Unsupported file format. Please choose 'py', 'json', or 'ipynb'.")
-
-
-
-

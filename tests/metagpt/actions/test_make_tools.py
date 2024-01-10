@@ -8,7 +8,7 @@ from metagpt.logs import logger
 @pytest.mark.asyncio
 async def test_make_tools():
     code = "import yfinance as yf\n\n# Collect Alibaba stock data\nalibaba = yf.Ticker('BABA')\ndata = alibaba.history(period='1d', start='2022-01-01', end='2022-12-31')\nprint(data.head())"
-    msgs = [{'role': 'assistant', 'content': code}]
+    msgs = [{"role": "assistant", "content": code}]
     mt = MakeTools()
     tool_code = await mt.run(msgs)
     logger.debug(tool_code)
@@ -21,10 +21,10 @@ async def test_make_tools():
 
 @pytest.mark.asyncio
 async def test_make_tools2():
-    code = '''import pandas as pd\npath = "./tests/data/test.csv"\ndf = pd.read_csv(path)\ndata = df.copy()\n
+    code = """import pandas as pd\npath = "./tests/data/test.csv"\ndf = pd.read_csv(path)\ndata = df.copy()\n
     data['started_at'] = data['started_at'].apply(lambda r: pd.to_datetime(r))\n
-    data['ended_at'] = data['ended_at'].apply(lambda r: pd.to_datetime(r))\ndata.head()'''
-    msgs = [{'role': 'assistant', 'content': code}]
+    data['ended_at'] = data['ended_at'].apply(lambda r: pd.to_datetime(r))\ndata.head()"""
+    msgs = [{"role": "assistant", "content": code}]
     mt = MakeTools()
     tool_code = await mt.run(msgs)
     logger.debug(tool_code)
@@ -37,11 +37,11 @@ async def test_make_tools2():
 
 @pytest.mark.asyncio
 async def test_make_tools3():
-    code = '''import pandas as pd\npath = "./tests/data/test.csv"\ndf = pd.read_csv(path)\ndata = df.copy()\n
+    code = """import pandas as pd\npath = "./tests/data/test.csv"\ndf = pd.read_csv(path)\ndata = df.copy()\n
     data['started_at'] = data['started_at'].apply(lambda r: pd.to_datetime(r))\n
     data['ended_at'] = data['ended_at'].apply(lambda r: pd.to_datetime(r))\n
-    data['duration_hour'] = (data['ended_at'] - data['started_at']).dt.seconds/3600\ndata.head()'''
-    msgs = [{'role': 'assistant', 'content': code}]
+    data['duration_hour'] = (data['ended_at'] - data['started_at']).dt.seconds/3600\ndata.head()"""
+    msgs = [{"role": "assistant", "content": code}]
     mt = MakeTools()
     tool_code = await mt.run(msgs)
     logger.debug(tool_code)

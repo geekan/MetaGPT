@@ -1,14 +1,20 @@
 #!/usr/bin/env python
+"""
+@Modified By: mashenquan, 2023/8/22. A definition has been provided for the return value of _think: returning false indicates that further reasoning cannot continue.
+@Modified By: mashenquan, 2023-11-1. According to Chapter 2.2.1 and 2.2.2 of RFC 116, change the data type of
+        the `cause_by` value in the `Message` to a string to support the new message distribution feature.
+"""
 
 import asyncio
+import re
 
 from pydantic import BaseModel
 
-from metagpt.actions import CollectLinks, ConductResearch, WebBrowseAndSummarize
+from metagpt.actions import Action, CollectLinks, ConductResearch, WebBrowseAndSummarize
 from metagpt.actions.research import get_research_system_text
 from metagpt.const import RESEARCH_PATH
 from metagpt.logs import logger
-from metagpt.roles import Role
+from metagpt.roles.role import Role, RoleReactMode
 from metagpt.schema import Message
 
 
@@ -20,49 +26,80 @@ class Report(BaseModel):
 
 
 class Researcher(Role):
-    def __init__(
-        self,
-        name: str = "David",
-        profile: str = "Researcher",
-        goal: str = "Gather information and conduct research",
-        constraints: str = "Ensure accuracy and relevance of information",
-        language: str = "en-us",
-        **kwargs,
-    ):
-        super().__init__(name, profile, goal, constraints, **kwargs)
-        self._init_actions([CollectLinks(name), WebBrowseAndSummarize(name), ConductResearch(name)])
-        self._set_react_mode(react_mode="by_order")
-        self.language = language
-        if language not in ("en-us", "zh-cn"):
-            logger.warning(f"The language `{language}` has not been tested, it may not work.")
+    name: str = "David"
+    profile: str = "Researcher"
+    goal: str = "Gather information and conduct research"
+    constraints: str = "Ensure accuracy and relevance of information"
+    language: str = "en-us"
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._init_actions(
+            [CollectLinks(name=self.name), WebBrowseAndSummarize(name=self.name), ConductResearch(name=self.name)]
+        )
+        self._set_react_mode(react_mode=RoleReactMode.BY_ORDER.value)
+        if self.language not in ("en-us", "zh-cn"):
+            logger.warning(f"The language `{self.language}` has not been tested, it may not work.")
+
+    async def _think(self) -> bool:
+        if self.rc.todo is None:
+            self._set_state(0)
+            return True
+
+        if self.rc.state + 1 < len(self.states):
+            self._set_state(self.rc.state + 1)
+        else:
+            self.rc.todo = None
+            return False
 
     async def _act(self) -> Message:
-        logger.info(f"{self._setting}: ready to {self._rc.todo}")
-        todo = self._rc.todo
-        msg = self._rc.memory.get(k=1)[0]
+        logger.info(f"{self._setting}: to do {self.rc.todo}({self.rc.todo.name})")
+        todo = self.rc.todo
+        msg = self.rc.memory.get(k=1)[0]
         if isinstance(msg.instruct_content, Report):
             instruct_content = msg.instruct_content
             topic = instruct_content.topic
         else:
             topic = msg.content
 
-        research_system_text = get_research_system_text(topic, self.language)
+        research_system_text = self.research_system_text(topic, todo)
         if isinstance(todo, CollectLinks):
             links = await todo.run(topic, 4, 4)
-            ret = Message("", Report(topic=topic, links=links), role=self.profile, cause_by=type(todo))
+            ret = Message(
+                content="", instruct_content=Report(topic=topic, links=links), role=self.profile, cause_by=todo
+            )
         elif isinstance(todo, WebBrowseAndSummarize):
             links = instruct_content.links
             todos = (todo.run(*url, query=query, system_text=research_system_text) for (query, url) in links.items())
             summaries = await asyncio.gather(*todos)
             summaries = list((url, summary) for i in summaries for (url, summary) in i.items() if summary)
-            ret = Message("", Report(topic=topic, summaries=summaries), role=self.profile, cause_by=type(todo))
+            ret = Message(
+                content="", instruct_content=Report(topic=topic, summaries=summaries), role=self.profile, cause_by=todo
+            )
         else:
             summaries = instruct_content.summaries
             summary_text = "\n---\n".join(f"url: {url}\nsummary: {summary}" for (url, summary) in summaries)
-            content = await self._rc.todo.run(topic, summary_text, system_text=research_system_text)
-            ret = Message("", Report(topic=topic, content=content), role=self.profile, cause_by=type(self._rc.todo))
-        self._rc.memory.add(ret)
+            content = await self.rc.todo.run(topic, summary_text, system_text=research_system_text)
+            ret = Message(
+                content="",
+                instruct_content=Report(topic=topic, content=content),
+                role=self.profile,
+                cause_by=self.rc.todo,
+            )
+        self.rc.memory.add(ret)
         return ret
+
+    def research_system_text(self, topic, current_task: Action) -> str:
+        """BACKWARD compatible
+        This allows sub-class able to define its own system prompt based on topic.
+        return the previous implementation to have backward compatible
+        Args:
+            topic:
+            language:
+
+        Returns: str
+        """
+        return get_research_system_text(topic, self.language)
 
     async def react(self) -> Message:
         msg = await super().react()
@@ -71,9 +108,11 @@ class Researcher(Role):
         return msg
 
     def write_report(self, topic: str, content: str):
+        filename = re.sub(r'[\\/:"*?<>|]+', " ", topic)
+        filename = filename.replace("\n", "")
         if not RESEARCH_PATH.exists():
             RESEARCH_PATH.mkdir(parents=True)
-        filepath = RESEARCH_PATH / f"{topic}.md"
+        filepath = RESEARCH_PATH / f"{filename}.md"
         filepath.write_text(content)
 
 
@@ -81,7 +120,7 @@ if __name__ == "__main__":
     import fire
 
     async def main(topic: str, language="en-us"):
-        role = Researcher(topic, language=language)
+        role = Researcher(language=language)
         await role.run(topic)
 
     fire.Fire(main)

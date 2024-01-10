@@ -13,9 +13,9 @@ from tests.metagpt.roles.mock import MockMessages
 
 
 @pytest.mark.asyncio
-async def test_product_manager():
+async def test_product_manager(new_filename):
     product_manager = ProductManager()
-    rsp = await product_manager.handle(MockMessages.req)
+    rsp = await product_manager.run(MockMessages.req)
     logger.info(rsp)
     assert len(rsp.content) > 0
-    assert "Product Goals" in rsp.content
+    assert rsp.content == MockMessages.req.content

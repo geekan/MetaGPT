@@ -10,7 +10,7 @@ For instance, if the context is:
 from typing import Optional
 from abc import ABC
 from metagpt.llm import LLM # Large language model, similar to GPT
-n
+
 class Action(ABC):
     def __init__(self, name='', context=None, llm: LLM = LLM()):
         self.name = name

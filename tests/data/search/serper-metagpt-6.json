@@ -1,0 +1,102 @@
+[
+    {
+        "searchParameters": {
+            "q": "metagpt",
+            "num": 8,
+            "page": 1,
+            "type": "search",
+            "engine": "google"
+        },
+        "organic": [
+            {
+                "title": "geekan/MetaGPT: The Multi-Agent Framework: Given one line Requirement, return PRD, Design, Tasks, Repo - GitHub",
+                "link": "https://github.com/geekan/MetaGPT",
+                "snippet": "MetaGPT takes a one line requirement as input and outputs user stories / competitive analysis / requirements / data structures / APIs / documents, etc.",
+                "sitelinks": [
+                    {
+                        "title": "README.md",
+                        "link": "https://github.com/geekan/MetaGPT/blob/main/README.md"
+                    },
+                    {
+                        "title": "Roadmap",
+                        "link": "https://github.com/geekan/MetaGPT/blob/main/docs/ROADMAP.md"
+                    },
+                    {
+                        "title": "Issues",
+                        "link": "https://github.com/geekan/MetaGPT/issues"
+                    },
+                    {
+                        "title": "Actions",
+                        "link": "https://github.com/geekan/MetaGPT/actions"
+                    }
+                ],
+                "position": 1
+            },
+            {
+                "title": "MetaGPT: Meta Programming for A Multi-Agent Collaborative Framework - arXiv",
+                "link": "https://arxiv.org/abs/2308.00352",
+                "snippet": "Abstract:Remarkable progress has been made on automated problem solving through societies of agents based on large language models (LLMs).",
+                "date": "Aug 1, 2023",
+                "position": 2
+            },
+            {
+                "title": "How To Install MetaGPT - Build A Startup With One Prompt!! - YouTube",
+                "link": "https://youtube.com/watch?v=uT75J_KG_aY",
+                "snippet": "In this video, we review MetaGPT, a new project that aims ...",
+                "date": "Aug 14, 2023",
+                "attributes": {
+                    "Duration": "6:36",
+                    "Posted": "Aug 14, 2023"
+                },
+                "imageUrl": "https://i.ytimg.com/vi/uT75J_KG_aY/default.jpg?sqp=-oaymwEECHgQQw&rs=AMzJL3lfWRsXgckPQztWhHaRKYqxffksoA",
+                "position": 3
+            },
+            {
+                "title": "Meet MetaGPT: The ChatGPT-Powered AI Assistant That Turns Text Into Web Apps",
+                "link": "https://www.kdnuggets.com/meet-metagpt-the-chatgptpowered-ai-assistant-that-turns-text-into-web-apps",
+                "snippet": "This revolutionary AI tool lets you create no-code web applications in just seconds!",
+                "date": "Sep 8, 2023",
+                "position": 4
+            },
+            {
+                "title": "MetaGPT: Complete Guide to the Best AI Agent Available Right Now - Unite.AI",
+                "link": "https://www.unite.ai/metagpt-complete-guide-to-the-best-ai-agent-available-right-now/",
+                "snippet": "Discover why MetaGPT outperforms AutoGPT, BabyAgi, and other AI agents in complex coding tasks. Our in-depth article guides you through the ...",
+                "date": "Sep 11, 2023",
+                "position": 5
+            },
+            {
+                "title": "MetaGPT | Discover AI use cases - GPT-3 Demo",
+                "link": "https://gpt3demo.com/apps/metagpt",
+                "snippet": "Assign different roles to GPTs to form a collaborative software entity for complex tasks. MetaGPT takes a one-line requirement as input and outputs user ...",
+                "position": 6
+            }
+        ],
+        "relatedSearches": [
+            {
+                "query": "How to use MetaGPT"
+            },
+            {
+                "query": "MetaGPT Reddit"
+            },
+            {
+                "query": "Metagpt arXiv"
+            },
+            {
+                "query": "MetaGPT youtube"
+            },
+            {
+                "query": "MetaGPT example"
+            },
+            {
+                "query": "Metagpt huggingface"
+            },
+            {
+                "query": "metagpt: meta programming for multi-agent collaborative framework"
+            },
+            {
+                "query": "MetaGPT alternative"
+            }
+        ]
+    }
+]

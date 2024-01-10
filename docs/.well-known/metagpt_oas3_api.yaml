@@ -1,0 +1,338 @@
+openapi: "3.0.0"
+
+info:
+  title: "MetaGPT Export OpenAPIs"
+  version: "1.0"
+servers:
+  - url: "/oas3"
+    variables:
+      port:
+        default: '8080'
+        description: HTTP service port
+
+paths:
+  /tts/azsure:
+    x-prerequisite:
+      configurations:
+        AZURE_TTS_SUBSCRIPTION_KEY:
+          type: string
+          description: "For more details, check out: [Azure Text-to_Speech](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts)"
+        AZURE_TTS_REGION:
+          type: string
+          description: "For more details, check out: [Azure Text-to_Speech](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts)"
+      required:
+        allOf:
+          - AZURE_TTS_SUBSCRIPTION_KEY
+          - AZURE_TTS_REGION
+    post:
+      summary: "Convert Text to Base64-encoded .wav File Stream"
+      description: "For more details, check out: [Azure Text-to_Speech](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts)"
+      operationId: azure_tts.oas3_azsure_tts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - text
+              properties:
+                text:
+                  type: string
+                  description: Text to convert
+                lang:
+                  type: string
+                  description: The language code or locale, e.g., en-US (English - United States)
+                  default: "zh-CN"
+                voice:
+                  type: string
+                  description: "Voice style, see: [Azure Text-to_Speech](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts), [Voice Gallery](https://speech.microsoft.com/portal/voicegallery)"
+                  default: "zh-CN-XiaomoNeural"
+                style:
+                  type: string
+                  description: "Speaking style to express different emotions. For more details, checkout: [Azure Text-to_Speech](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts)"
+                  default: "affectionate"
+                role:
+                  type: string
+                  description: "Role to specify age and gender. For more details, checkout: [Azure Text-to_Speech](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts)"
+                  default: "Girl"
+                subscription_key:
+                  type: string
+                  description: "Key used to access Azure AI service API, see: [Azure Portal](https://portal.azure.com/) > `Resource Management` > `Keys and Endpoint`"
+                  default: ""
+                region:
+                  type: string
+                  description: "Location (or region) of your resource, see: [Azure Portal](https://portal.azure.com/) > `Resource Management` > `Keys and Endpoint`"
+                  default: ""
+      responses:
+        '200':
+          description: "Base64-encoded .wav file data if successful, otherwise an empty string."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  wav_data:
+                    type: string
+                    format: base64
+        '400':
+          description: "Bad Request"
+        '500':
+          description: "Internal Server Error"
+
+  /tts/iflytek:
+    x-prerequisite:
+      configurations:
+        IFLYTEK_APP_ID:
+          type: string
+          description: "Application ID is used to access your iFlyTek service API, see: `https://console.xfyun.cn/services/tts`"
+        IFLYTEK_API_KEY:
+          type: string
+          description: "WebAPI argument, see: `https://console.xfyun.cn/services/tts`"
+        IFLYTEK_API_SECRET:
+          type: string
+          description: "WebAPI argument, see: `https://console.xfyun.cn/services/tts`"
+      required:
+        allOf:
+          - IFLYTEK_APP_ID
+          - IFLYTEK_API_KEY
+          - IFLYTEK_API_SECRET
+    post:
+      summary: "Convert Text to Base64-encoded .mp3 File Stream"
+      description: "For more details, check out: [iFlyTek](https://console.xfyun.cn/services/tts)"
+      operationId: iflytek_tts.oas3_iflytek_tts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - text
+              properties:
+                text:
+                  type: string
+                  description: Text to convert
+                voice:
+                  type: string
+                  description: "Voice style, see: [iFlyTek Text-to_Speech](https://www.xfyun.cn/doc/tts/online_tts/API.html#%E6%8E%A5%E5%8F%A3%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B)"
+                  default: "xiaoyan"
+                app_id:
+                  type: string
+                  description: "Application ID is used to access your iFlyTek service API, see: `https://console.xfyun.cn/services/tts`"
+                  default: ""
+                api_key:
+                  type: string
+                  description: "WebAPI argument, see: `https://console.xfyun.cn/services/tts`"
+                  default: ""
+                api_secret:
+                  type: string
+                  description: "WebAPI argument, see: `https://console.xfyun.cn/services/tts`"
+                  default: ""
+      responses:
+        '200':
+          description: "Base64-encoded .mp3 file data if successful, otherwise an empty string."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  wav_data:
+                    type: string
+                    format: base64
+        '400':
+          description: "Bad Request"
+        '500':
+          description: "Internal Server Error"
+
+
+  /txt2img/openai:
+    x-prerequisite:
+      configurations:
+        OPENAI_API_KEY:
+          type: string
+          description: "OpenAI API key, For more details, checkout: `https://platform.openai.com/account/api-keys`"
+      required:
+        allOf:
+          - OPENAI_API_KEY
+    post:
+      summary: "Convert Text to Base64-encoded Image Data Stream"
+      operationId: openai_text_to_image.oas3_openai_text_to_image
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                text:
+                  type: string
+                  description: "The text used for image conversion."
+                size_type:
+                  type: string
+                  enum: ["256x256", "512x512", "1024x1024"]
+                  default: "1024x1024"
+                  description: "Size of the generated image."
+                openai_api_key:
+                  type: string
+                  default: ""
+                  description: "OpenAI API key, For more details, checkout: `https://platform.openai.com/account/api-keys`"
+      responses:
+        '200':
+          description: "Base64-encoded image data."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  image_data:
+                    type: string
+                    format: base64
+        '400':
+          description: "Bad Request"
+        '500':
+          description: "Internal Server Error"
+  /txt2embedding/openai:
+    x-prerequisite:
+      configurations:
+        OPENAI_API_KEY:
+          type: string
+          description: "OpenAI API key, For more details, checkout: `https://platform.openai.com/account/api-keys`"
+      required:
+        allOf:
+          - OPENAI_API_KEY
+    post:
+      summary: Text to embedding
+      operationId: openai_text_to_embedding.oas3_openai_text_to_embedding
+      description: Retrieve an embedding for the provided text using the OpenAI API.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                input:
+                  type: string
+                  description: The text used for embedding.
+                model:
+                  type: string
+                  description: "ID of the model to use. For more details, checkout: [models](https://api.openai.com/v1/models)"
+                  enum:
+                    - text-embedding-ada-002
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResultEmbedding"
+        "4XX":
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "5XX":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /txt2image/metagpt:
+    x-prerequisite:
+      configurations:
+        METAGPT_TEXT_TO_IMAGE_MODEL_URL:
+          type: string
+          description: "Model url."
+      required:
+        allOf:
+          - METAGPT_TEXT_TO_IMAGE_MODEL_URL
+    post:
+      summary: "Text to Image"
+      description: "Generate an image from the provided text using the MetaGPT Text-to-Image API."
+      operationId: metagpt_text_to_image.oas3_metagpt_text_to_image
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - text
+              properties:
+                text:
+                  type: string
+                  description: "The text used for image conversion."
+                size_type:
+                  type: string
+                  enum: ["512x512", "512x768"]
+                  default: "512x512"
+                  description: "Size of the generated image."
+                model_url:
+                  type: string
+                  description: "Model reset API URL for text-to-image."
+                  default: ""
+      responses:
+        '200':
+          description: "Base64-encoded image data."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  image_data:
+                    type: string
+                    format: base64
+        '400':
+          description: "Bad Request"
+        '500':
+          description: "Internal Server Error"
+
+components:
+  schemas:
+    Embedding:
+      type: object
+      description: Represents an embedding vector returned by the embedding endpoint.
+      properties:
+        object:
+          type: string
+          example: embedding
+        embedding:
+          type: array
+          items:
+            type: number
+          example: [0.0023064255, -0.009327292, ...]
+        index:
+          type: integer
+          example: 0
+    Usage:
+      type: object
+      properties:
+        prompt_tokens:
+          type: integer
+          example: 8
+        total_tokens:
+          type: integer
+          example: 8
+    ResultEmbedding:
+      type: object
+      properties:
+        object:
+          type: string
+          example: result_embedding
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Embedding"
+        model:
+          type: string
+          example: text-embedding-ada-002
+        usage:
+          $ref: "#/components/schemas/Usage"
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: An error occurred

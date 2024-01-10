@@ -4,13 +4,15 @@
 @Time    : 2023/7/4 10:53
 @Author  : alexanderwu alitrack
 @File    : mermaid.py
+@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
 """
 import asyncio
 import os
 from pathlib import Path
 
+import aiofiles
+
 from metagpt.config import CONFIG
-from metagpt.const import PROJECT_ROOT
 from metagpt.logs import logger
 from metagpt.utils.common import check_cmd_exists
 
@@ -29,7 +31,9 @@ async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, 
     if dir_name and not os.path.exists(dir_name):
         os.makedirs(dir_name)
     tmp = Path(f"{output_file_without_suffix}.mmd")
-    tmp.write_text(mermaid_code, encoding="utf-8")
+    async with aiofiles.open(tmp, "w", encoding="utf-8") as f:
+        await f.write(mermaid_code)
+    # tmp.write_text(mermaid_code, encoding="utf-8")
 
     engine = CONFIG.mermaid_engine.lower()
     if engine == "nodejs":
@@ -69,7 +73,7 @@ async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, 
             if stdout:
                 logger.info(stdout.decode())
             if stderr:
-                logger.error(stderr.decode())
+                logger.warning(stderr.decode())
     else:
         if engine == "playwright":
             from metagpt.utils.mmdc_playwright import mermaid_to_file
@@ -88,7 +92,8 @@ async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, 
     return 0
 
 
-MMC1 = """classDiagram
+MMC1 = """
+classDiagram
     class Main {
         -SearchEngine search_engine
         +main() str
@@ -118,9 +123,11 @@ MMC1 = """classDiagram
     SearchEngine --> Index
     SearchEngine --> Ranking
     SearchEngine --> Summary
-    Index --> KnowledgeBase"""
+    Index --> KnowledgeBase
+"""
 
-MMC2 = """sequenceDiagram
+MMC2 = """
+sequenceDiagram
     participant M as Main
     participant SE as SearchEngine
     participant I as Index
@@ -136,11 +143,5 @@ MMC2 = """sequenceDiagram
     R-->>SE: return ranked_results
     SE->>S: summarize_results(ranked_results)
     S-->>SE: return summary
-    SE-->>M: return summary"""
-
-
-if __name__ == "__main__":
-    loop = asyncio.new_event_loop()
-    result = loop.run_until_complete(mermaid_to_file(MMC1, PROJECT_ROOT / f"{CONFIG.mermaid_engine}/1"))
-    result = loop.run_until_complete(mermaid_to_file(MMC2, PROJECT_ROOT / f"{CONFIG.mermaid_engine}/1"))
-    loop.close()
+    SE-->>M: return summary
+"""

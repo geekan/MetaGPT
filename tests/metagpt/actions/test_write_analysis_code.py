@@ -1,10 +1,11 @@
 import asyncio
+
 import pytest
 
-from metagpt.actions.write_analysis_code import WriteCodeByGenerate, WriteCodeWithTools
 from metagpt.actions.execute_code import ExecutePyCode
-from metagpt.schema import Message, Plan, Task
+from metagpt.actions.write_analysis_code import WriteCodeByGenerate, WriteCodeWithTools
 from metagpt.logs import logger
+from metagpt.schema import Message, Plan, Task
 
 
 @pytest.mark.asyncio
@@ -15,9 +16,9 @@ async def test_write_code_by_list_plan():
     plan = ["随机生成一个pandas DataFrame时间序列", "绘制这个时间序列的直方图", "求均值"]
     for task in plan:
         print(f"\n任务: {task}\n\n")
-        messages.append(Message(task, role='assistant'))
+        messages.append(Message(task, role="assistant"))
         code = await write_code.run(messages)
-        messages.append(Message(code, role='assistant'))
+        messages.append(Message(code, role="assistant"))
         assert len(code) > 0
         output = await execute_code.run(code)
         print(f"\n[Output]: 任务{task}的执行结果是: \n{output}\n")
@@ -48,11 +49,11 @@ async def test_write_code_with_tools():
     messages = []
     task_map = {
         "1": Task(
-                task_id="1",
-                instruction="随机生成一个pandas DataFrame数据集",
-                task_type="other",
-                dependent_task_ids=[],
-                code="""
+            task_id="1",
+            instruction="随机生成一个pandas DataFrame数据集",
+            task_type="other",
+            dependent_task_ids=[],
+            code="""
                 import pandas as pd
                 df = pd.DataFrame({
                     'a': [1, 2, 3, 4, 5],
@@ -61,18 +62,18 @@ async def test_write_code_with_tools():
                     'd': [1, 2, 3, 4, 5]
                 })
                 """,
-                is_finished=True,
-            ),
+            is_finished=True,
+        ),
         "2": Task(
-                task_id="2",
-                instruction="对数据集进行数据清洗",
-                task_type="data_preprocess",
-                dependent_task_ids=["1"],
-                code_steps="""
+            task_id="2",
+            instruction="对数据集进行数据清洗",
+            task_type="data_preprocess",
+            dependent_task_ids=["1"],
+            code_steps="""
                 {"Step 1": "对数据集进行去重",
                 "Step 2": "对数据集进行缺失值处理"}
-                """
-            ),
+                """,
+        ),
     }
     plan = Plan(
         goal="构造数据集并进行数据清洗",
@@ -89,7 +90,6 @@ async def test_write_code_with_tools():
 
 @pytest.mark.asyncio
 async def test_write_code_to_correct_error():
-
     structural_context = """
     ## User Requirement
     read a dataset test.csv and print its head
@@ -136,7 +136,8 @@ async def test_write_code_to_correct_error():
     ]
     new_code = await WriteCodeByGenerate().run(context=context)
     print(new_code)
-    assert "read_csv" in new_code # should correct read_excel to read_csv
+    assert "read_csv" in new_code  # should correct read_excel to read_csv
+
 
 @pytest.mark.asyncio
 async def test_write_code_reuse_code_simple():
@@ -174,7 +175,8 @@ async def test_write_code_reuse_code_simple():
     ]
     code = await WriteCodeByGenerate().run(context=context)
     print(code)
-    assert "pandas" not in code and "read_csv" not in code # should reuse import and read statement from previous one
+    assert "pandas" not in code and "read_csv" not in code  # should reuse import and read statement from previous one
+
 
 @pytest.mark.asyncio
 async def test_write_code_reuse_code_long():
@@ -227,8 +229,9 @@ async def test_write_code_reuse_code_long():
     trials = [WriteCodeByGenerate().run(context=context, temperature=0.0) for _ in range(trials_num)]
     trial_results = await asyncio.gather(*trials)
     print(*trial_results, sep="\n\n***\n\n")
-    success = ["load_iris" not in result and "iris_data" in result \
-        for result in trial_results]  # should reuse iris_data from previous tasks
+    success = [
+        "load_iris" not in result and "iris_data" in result for result in trial_results
+    ]  # should reuse iris_data from previous tasks
     success_rate = sum(success) / trials_num
     logger.info(f"success rate: {success_rate :.2f}")
     assert success_rate >= 0.8
@@ -299,8 +302,9 @@ async def test_write_code_reuse_code_long_for_wine():
     trials = [WriteCodeByGenerate().run(context=context, temperature=0.0) for _ in range(trials_num)]
     trial_results = await asyncio.gather(*trials)
     print(*trial_results, sep="\n\n***\n\n")
-    success = ["load_wine" not in result and "wine_data" in result\
-        for result in trial_results]  # should reuse iris_data from previous tasks
+    success = [
+        "load_wine" not in result and "wine_data" in result for result in trial_results
+    ]  # should reuse iris_data from previous tasks
     success_rate = sum(success) / trials_num
     logger.info(f"success rate: {success_rate :.2f}")
     assert success_rate >= 0.8

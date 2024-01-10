@@ -37,16 +37,24 @@ def get_docstring_statement(body: DocstringNode) -> cst.SimpleStatementLine:
 
     if not isinstance(expr, cst.Expr):
         return None
-    
+
     val = expr.value
     if not isinstance(val, (cst.SimpleString, cst.ConcatenatedString)):
         return None
-    
-    evaluated_value = val.evaluated_value    
+
+    evaluated_value = val.evaluated_value
     if isinstance(evaluated_value, bytes):
         return None
 
     return statement
+
+
+def has_decorator(node: DocstringNode, name: str) -> bool:
+    return hasattr(node, "decorators") and any(
+        (hasattr(i.decorator, "value") and i.decorator.value == name)
+        or (hasattr(i.decorator, "func") and hasattr(i.decorator.func, "value") and i.decorator.func.value == name)
+        for i in node.decorators
+    )
 
 
 class DocstringCollector(cst.CSTVisitor):
@@ -56,6 +64,7 @@ class DocstringCollector(cst.CSTVisitor):
         stack: A list to keep track of the current path in the CST.
         docstrings: A dictionary mapping paths in the CST to their corresponding docstrings.
     """
+
     def __init__(self):
         self.stack: list[str] = []
         self.docstrings: dict[tuple[str, ...], cst.SimpleStatementLine] = {}
@@ -81,7 +90,7 @@ class DocstringCollector(cst.CSTVisitor):
     def _leave(self, node: DocstringNode) -> None:
         key = tuple(self.stack)
         self.stack.pop()
-        if hasattr(node, "decorators") and any(i.decorator.value == "overload" for i in node.decorators):
+        if has_decorator(node, "overload"):
             return
 
         statement = get_docstring_statement(node)
@@ -96,6 +105,7 @@ class DocstringTransformer(cst.CSTTransformer):
         stack: A list to keep track of the current path in the CST.
         docstrings: A dictionary mapping paths in the CST to their corresponding docstrings.
     """
+
     def __init__(
         self,
         docstrings: dict[tuple[str, ...], cst.SimpleStatementLine],
@@ -125,7 +135,7 @@ class DocstringTransformer(cst.CSTTransformer):
         key = tuple(self.stack)
         self.stack.pop()
 
-        if hasattr(updated_node, "decorators") and any((i.decorator.value == "overload") for i in updated_node.decorators):
+        if has_decorator(updated_node, "overload"):
             return updated_node
 
         statement = self.docstrings.get(key)

@@ -22,3 +22,8 @@ class WebBrowserEngineType(Enum):
     PLAYWRIGHT = "playwright"
     SELENIUM = "selenium"
     CUSTOM = "custom"
+
+    @classmethod
+    def __missing__(cls, key):
+        """Default type conversion"""
+        return cls.CUSTOM

@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import asyncio
 
 import fire
 
 from metagpt.roles.kaggle_manager import KaggleManager
 from metagpt.roles.ml_engineer import MLEngineer
 from metagpt.team import Team
+
 
 async def main(
     # competition: str,
@@ -21,7 +21,7 @@ async def main(
         "Training set is train.csv.\nTest set is test.csv. We also include gender_submission.csv, a set of predictions that assume all and only female passengers survive, as an example of what a submission file should look like.",
         # "Run EDA on the train dataset, train a model to predict survival (20% as validation) and save it, predict the test set using saved model, save the test result according to format",
         # "generate a random prediction, replace the Survived column of gender_submission.csv, and save the prediction to a new submission file",
-        "Score as high as possible for the provided dataset, save the test prediction to a csv with two columns PassengerId and Survived"
+        "Score as high as possible for the provided dataset, save the test prediction to a csv with two columns PassengerId and Survived",
     )
 
     team = Team()
@@ -36,5 +36,6 @@ async def main(
     team.start_project(requirement)
     await team.run(n_round=n_round)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     fire.Fire(main)
