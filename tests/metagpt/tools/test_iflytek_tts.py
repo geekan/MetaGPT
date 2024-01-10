@@ -7,22 +7,22 @@
 """
 import pytest
 
-from metagpt.config import CONFIG
+from metagpt.config2 import config
 from metagpt.tools.iflytek_tts import oas3_iflytek_tts
 
 
 @pytest.mark.asyncio
 async def test_tts():
     # Prerequisites
-    assert CONFIG.IFLYTEK_APP_ID
-    assert CONFIG.IFLYTEK_API_KEY
-    assert CONFIG.IFLYTEK_API_SECRET
+    assert config.IFLYTEK_APP_ID
+    assert config.IFLYTEK_API_KEY
+    assert config.IFLYTEK_API_SECRET
 
     result = await oas3_iflytek_tts(
         text="你好，hello",
-        app_id=CONFIG.IFLYTEK_APP_ID,
-        api_key=CONFIG.IFLYTEK_API_KEY,
-        api_secret=CONFIG.IFLYTEK_API_SECRET,
+        app_id=config.IFLYTEK_APP_ID,
+        api_key=config.IFLYTEK_API_KEY,
+        api_secret=config.IFLYTEK_API_SECRET,
     )
     assert result
 

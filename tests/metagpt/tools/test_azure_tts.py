@@ -11,7 +11,6 @@
 import pytest
 from azure.cognitiveservices.speech import ResultReason
 
-from metagpt.config import CONFIG
 from metagpt.config2 import config
 from metagpt.tools.azure_tts import AzureTTS
 
@@ -19,8 +18,8 @@ from metagpt.tools.azure_tts import AzureTTS
 @pytest.mark.asyncio
 async def test_azure_tts():
     # Prerequisites
-    assert CONFIG.AZURE_TTS_SUBSCRIPTION_KEY and CONFIG.AZURE_TTS_SUBSCRIPTION_KEY != "YOUR_API_KEY"
-    assert CONFIG.AZURE_TTS_REGION
+    assert config.AZURE_TTS_SUBSCRIPTION_KEY and config.AZURE_TTS_SUBSCRIPTION_KEY != "YOUR_API_KEY"
+    assert config.AZURE_TTS_REGION
 
     azure_tts = AzureTTS(subscription_key="", region="")
     text = """

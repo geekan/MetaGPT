@@ -110,7 +110,7 @@ class WriteDesign(Action):
         if not data_api_design:
             return
         pathname = self.git_repo.workdir / DATA_API_DESIGN_FILE_REPO / Path(design_doc.filename).with_suffix("")
-        await WriteDesign._save_mermaid_file(data_api_design, pathname)
+        await self._save_mermaid_file(data_api_design, pathname)
         logger.info(f"Save class view to {str(pathname)}")
 
     async def _save_seq_flow(self, design_doc):
@@ -119,13 +119,12 @@ class WriteDesign(Action):
         if not seq_flow:
             return
         pathname = self.git_repo.workdir / Path(SEQ_FLOW_FILE_REPO) / Path(design_doc.filename).with_suffix("")
-        await WriteDesign._save_mermaid_file(seq_flow, pathname)
+        await self._save_mermaid_file(seq_flow, pathname)
         logger.info(f"Saving sequence flow to {str(pathname)}")
 
     async def _save_pdf(self, design_doc):
         await self.file_repo.save_as(doc=design_doc, with_suffix=".md", relative_path=SYSTEM_DESIGN_PDF_FILE_REPO)
 
-    @staticmethod
-    async def _save_mermaid_file(data: str, pathname: Path):
+    async def _save_mermaid_file(self, data: str, pathname: Path):
         pathname.parent.mkdir(parents=True, exist_ok=True)
-        await mermaid_to_file(data, pathname)
+        await mermaid_to_file(self.config.mermaid_engine, data, pathname)
