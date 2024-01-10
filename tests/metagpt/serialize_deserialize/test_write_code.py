@@ -22,7 +22,7 @@ async def test_write_code_serdeser():
         filename="test_code.py", design_doc=Document(content="write add function to calculate two numbers")
     )
     doc = Document(content=context.model_dump_json())
-    action = WriteCode(context=doc)
+    action = WriteCode(i_context=doc)
     serialized_data = action.model_dump()
     new_action = WriteCode(**serialized_data)
 

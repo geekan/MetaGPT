@@ -27,7 +27,9 @@ async def test_text_to_image(mocker):
     config = Config.default()
     assert config.METAGPT_TEXT_TO_IMAGE_MODEL_URL
 
-    data = await text_to_image("Panda emoji", size_type="512x512", model_url=config.METAGPT_TEXT_TO_IMAGE_MODEL_URL)
+    data = await text_to_image(
+        "Panda emoji", size_type="512x512", model_url=config.METAGPT_TEXT_TO_IMAGE_MODEL_URL, config=config
+    )
     assert "base64" in data or "http" in data
 
 

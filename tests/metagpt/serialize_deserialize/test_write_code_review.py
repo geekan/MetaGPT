@@ -20,7 +20,7 @@ def div(a: int, b: int = 0):
         code_doc=Document(content=code_content),
     )
 
-    action = WriteCodeReview(context=context)
+    action = WriteCodeReview(i_context=context)
     serialized_data = action.model_dump()
     assert serialized_data["name"] == "WriteCodeReview"
 

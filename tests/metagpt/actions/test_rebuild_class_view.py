@@ -12,13 +12,14 @@ import pytest
 
 from metagpt.actions.rebuild_class_view import RebuildClassView
 from metagpt.const import GRAPH_REPO_FILE_REPO
+from metagpt.context import CONTEXT
 from metagpt.llm import LLM
 
 
 @pytest.mark.asyncio
 async def test_rebuild():
     action = RebuildClassView(
-        name="RedBean", context=str(Path(__file__).parent.parent.parent.parent / "metagpt"), llm=LLM()
+        name="RedBean", i_context=str(Path(__file__).parent.parent.parent.parent / "metagpt"), llm=LLM()
     )
     await action.run()
     graph_file_repo = CONTEXT.git_repo.new_file_repository(relative_path=GRAPH_REPO_FILE_REPO)

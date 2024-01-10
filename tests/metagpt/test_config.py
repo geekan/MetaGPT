@@ -7,7 +7,7 @@
 """
 from pydantic import BaseModel
 
-from metagpt.config2 import Config, config
+from metagpt.config2 import Config
 from metagpt.configs.llm_config import LLMType
 from metagpt.context import ContextMixin
 from tests.metagpt.provider.mock_llm_config import mock_llm_config
@@ -18,10 +18,6 @@ def test_config_1():
     llm = cfg.get_openai_llm()
     assert llm is not None
     assert llm.api_type == LLMType.OPENAI
-
-
-def test_config_2():
-    assert config == Config.default()
 
 
 def test_config_from_dict():

@@ -21,7 +21,7 @@ def add(a, b):
         filename="math.py", design_doc=Document(content="编写一个从a加b的函数，返回a+b"), code_doc=Document(content=code)
     )
 
-    context = await WriteCodeReview(context=context).run()
+    context = await WriteCodeReview(i_context=context).run()
 
     # 我们不能精确地预测生成的代码评审，但我们可以检查返回的是否为字符串
     assert isinstance(context.code_doc.content, str)

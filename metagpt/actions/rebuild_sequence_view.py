@@ -12,7 +12,9 @@ from pathlib import Path
 from typing import List
 
 from metagpt.actions import Action
+from metagpt.config2 import config
 from metagpt.const import GRAPH_REPO_FILE_REPO
+from metagpt.context import CONTEXT
 from metagpt.logs import logger
 from metagpt.utils.common import aread, list_files
 from metagpt.utils.di_graph_repository import DiGraphRepository

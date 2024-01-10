@@ -9,7 +9,7 @@
 import pytest
 
 from metagpt.actions.talk_action import TalkAction
-from metagpt.context import Context
+from metagpt.context import CONTEXT
 from metagpt.schema import Message
 
 
@@ -35,11 +35,10 @@ from metagpt.schema import Message
 )
 async def test_prompt(agent_description, language, context, knowledge, history_summary):
     # Prerequisites
-    g_context = Context()
-    g_context.kwargs["agent_description"] = agent_description
-    g_context.kwargs["language"] = language
+    CONTEXT.kwargs.agent_description = agent_description
+    CONTEXT.kwargs.language = language
 
-    action = TalkAction(context=context, knowledge=knowledge, history_summary=history_summary)
+    action = TalkAction(i_context=context, knowledge=knowledge, history_summary=history_summary)
     assert "{" not in action.prompt
     assert "{" not in action.prompt_gpt4
 

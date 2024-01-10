@@ -17,7 +17,7 @@ from metagpt.actions.write_teaching_plan import WriteTeachingPlanPart
     [("Title", "Lesson 1: Learn to draw an apple."), ("Teaching Content", "Lesson 1: Learn to draw an apple.")],
 )
 async def test_write_teaching_plan_part(topic, context):
-    action = WriteTeachingPlanPart(topic=topic, context=context)
+    action = WriteTeachingPlanPart(topic=topic, i_context=context)
     rsp = await action.run()
     assert rsp
 
