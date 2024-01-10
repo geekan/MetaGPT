@@ -141,7 +141,6 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
     # builtin variables
     recovered: bool = False  # to tag if a recovered role
     latest_observed_msg: Optional[Message] = None  # record the latest observed message when interrupted
-    # context: Optional[Context] = Field(default=context, exclude=True)
 
     __hash__ = object.__hash__  # support Role as hashable type in `Environment.members`
 
