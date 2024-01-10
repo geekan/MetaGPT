@@ -4,10 +4,7 @@ from pydantic import Field
 
 from metagpt.actions.ask_review import ReviewConst
 from metagpt.actions.execute_code import ExecutePyCode
-from metagpt.actions.write_analysis_code import (
-    WriteCodeByGenerate,
-    WriteCodeWithTools,
-)
+from metagpt.actions.write_analysis_code import WriteCodeByGenerate, WriteCodeWithTools
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.roles.tool_maker import ToolMaker

@@ -1,9 +1,7 @@
 from pydantic import Field
 
 from metagpt.actions.execute_code import ExecutePyCode
-from metagpt.actions.write_analysis_code import (
-    MakeTools,
-)
+from metagpt.actions.write_analysis_code import MakeTools
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.utils.common import remove_comments

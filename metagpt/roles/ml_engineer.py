@@ -19,27 +19,8 @@ class MLEngineer(CodeInterpreter):
     debug_context: list = []
     latest_code: str = ""
 
-    def __init__(
-        self,
-        name="Mark",
-        profile="MLEngineer",
-        goal="",
-        auto_run=False,
-        use_tools=False,
-        use_code_steps=False,
-        make_udfs=False,
-        use_udfs=False,
-    ):
-        super().__init__(
-            name=name,
-            profile=profile,
-            goal=goal,
-            auto_run=auto_run,
-            use_tools=use_tools,
-            use_code_steps=use_code_steps,
-            make_udfs=make_udfs,
-            use_udfs=use_udfs,
-        )
+    def __init__(self, name="Mark", profile="MLEngineer", **kwargs):
+        super().__init__(name=name, profile=profile, **kwargs)
         # self._watch([DownloadData, SubmitResult])  # in multi-agent settings
 
     async def _plan_and_act(self):
@@ -76,7 +57,6 @@ class MLEngineer(CodeInterpreter):
             return await super()._write_code()
 
         code_execution_count = sum([msg.cause_by == any_to_str(ExecutePyCode) for msg in self.working_memory.get()])
-        print("*" * 10, code_execution_count)
 
         if code_execution_count > 0:
             logger.warning("We got a bug code, now start to debug...")
