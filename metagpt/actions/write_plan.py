@@ -16,7 +16,7 @@ from metagpt.utils.common import CodeParser, create_func_config
 
 
 class WritePlan(Action):
-    PROMPT_TEMPLATE = """
+    PROMPT_TEMPLATE: str = """
     # Context:
     __context__
     # Task:

@@ -10,7 +10,7 @@ from metagpt.actions.write_analysis_code import (
     WriteCodeWithTools,
 )
 from metagpt.actions.write_code_steps import WriteCodeSteps
-from metagpt.const import PROJECT_ROOT
+from metagpt.const import METAGPT_ROOT
 from metagpt.logs import logger
 from metagpt.roles.code_interpreter import CodeInterpreter
 from metagpt.roles.kaggle_manager import DownloadData, SubmitResult
@@ -20,6 +20,13 @@ from metagpt.utils.common import remove_comments
 
 
 class MLEngineer(CodeInterpreter):
+    auto_run: bool = False
+    use_tools: bool = False
+    use_code_steps: bool = False
+    make_udfs: bool = False  # whether to save user-defined functions
+    use_udfs: bool = False
+    data_desc: dict = {}
+
     def __init__(
         self,
         name="Mark",
@@ -32,13 +39,12 @@ class MLEngineer(CodeInterpreter):
         use_udfs=False,
     ):
         super().__init__(name=name, profile=profile, goal=goal, auto_run=auto_run, use_tools=use_tools)
-        self._watch([DownloadData, SubmitResult])
-
+        self.auto_run = auto_run
         self.use_tools = use_tools
         self.use_code_steps = use_code_steps
-        self.make_udfs = make_udfs  # user-defined functions
+        self.make_udfs = make_udfs
         self.use_udfs = use_udfs
-        self.data_desc = {}
+        # self._watch([DownloadData, SubmitResult])  # in multi-agent settings
 
     async def _plan_and_act(self):
         ### Actions in a multi-agent multi-turn setting, a new attempt on the data ###
@@ -60,7 +66,7 @@ class MLEngineer(CodeInterpreter):
         ### summarize analysis ###
         summary = await SummarizeAnalysis().run(self.planner.plan)
         rsp = Message(content=summary, cause_by=SummarizeAnalysis)
-        self._rc.memory.add(rsp)
+        self.rc.memory.add(rsp)
 
         return rsp
 
@@ -108,7 +114,7 @@ class MLEngineer(CodeInterpreter):
                     self.planner.current_task.task_type = "udf"
                     schema_path = UDFS_YAML
                 else:
-                    schema_path = PROJECT_ROOT / "metagpt/tools/functions/schemas"
+                    schema_path = METAGPT_ROOT / "metagpt/tools/functions/schemas"
                 tool_context, code = await WriteCodeWithTools(schema_path=schema_path).run(
                     context=context,
                     plan=self.planner.plan,

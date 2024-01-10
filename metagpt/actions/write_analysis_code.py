@@ -28,7 +28,7 @@ from metagpt.utils.common import create_func_config, remove_comments
 
 
 class BaseWriteAnalysisCode(Action):
-    DEFAULT_SYSTEM_MSG = """You are Code Interpreter, a world-class programmer that can complete any goal by executing code. Strictly follow the plan and generate code step by step. Each step of the code will be executed on the user's machine, and the user will provide the code execution results to you.**Notice: The code for the next step depends on the code for the previous step. Must reuse variables in the lastest other code directly, dont creat it again, it is very import for you. Use !pip install in a standalone block to install missing packages.Usually the libraries you need are already installed.Dont check if packages already imported.**"""  # prompt reference: https://github.com/KillianLucas/open-interpreter/blob/v0.1.4/interpreter/system_message.txt
+    DEFAULT_SYSTEM_MSG: str = """You are Code Interpreter, a world-class programmer that can complete any goal by executing code. Strictly follow the plan and generate code step by step. Each step of the code will be executed on the user's machine, and the user will provide the code execution results to you.**Notice: The code for the next step depends on the code for the previous step. Must reuse variables in the lastest other code directly, dont creat it again, it is very import for you. Use !pip install in a standalone block to install missing packages.Usually the libraries you need are already installed.Dont check if packages already imported.**"""  # prompt reference: https://github.com/KillianLucas/open-interpreter/blob/v0.1.4/interpreter/system_message.txt
     # REUSE_CODE_INSTRUCTION = """ATTENTION: DONT include codes from previous tasks in your current code block, include new codes only, DONT repeat codes!"""
 
     def process_msg(self, prompt: Union[str, List[Dict], Message, List[Message]], system_msg: str = None):
@@ -76,9 +76,6 @@ class BaseWriteAnalysisCode(Action):
 class WriteCodeByGenerate(BaseWriteAnalysisCode):
     """Write code fully by generation"""
 
-    def __init__(self, name: str = "", context=None, llm=None) -> str:
-        super().__init__(name, context, llm)
-
     async def run(
         self,
         context: [List[Message]],
@@ -95,12 +92,14 @@ class WriteCodeByGenerate(BaseWriteAnalysisCode):
 class WriteCodeWithTools(BaseWriteAnalysisCode):
     """Write code with help of local available tools. Choose tools first, then generate code to use the tools"""
 
-    def __init__(self, name: str = "", context=None, llm=None, schema_path=None):
-        super().__init__(name, context, llm)
-        self.schema_path = schema_path
-        self.available_tools = {}
+    schema_path: str = ""
+    available_tools: dict = {}
 
-        if self.schema_path is not None:
+    def __init__(self, schema_path="", **kwargs):
+        super().__init__(**kwargs)
+        self.schema_path = schema_path
+
+        if schema_path:
             self._load_tools(schema_path)
 
     def _load_tools(self, schema_path, schema_module=None):
@@ -223,7 +222,7 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
 
 
 class MakeTools(WriteCodeByGenerate):
-    DEFAULT_SYSTEM_MSG = """Convert any codes provied for you to a very General Function Code startswith `def`.\n
+    DEFAULT_SYSTEM_MSG: str = """Convert any codes provied for you to a very General Function Code startswith `def`.\n
     **Notice:
     1. Your code must contain a general function start with `def`.
     2. Refactor your code to get the most efficient implementation for large input data in the shortest amount of time.

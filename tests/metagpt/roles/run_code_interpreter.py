@@ -1,6 +1,7 @@
 import fire
 
 from metagpt.actions.execute_code import ExecutePyCode
+from metagpt.const import DATA_PATH
 from metagpt.logs import logger
 from metagpt.roles.code_interpreter import CodeInterpreter
 from metagpt.roles.ml_engineer import MLEngineer
@@ -53,10 +54,10 @@ async def run_code_interpreter(
 
 
 if __name__ == "__main__":
-    requirement = "Run data analysis on sklearn Iris dataset, include a plot"
+    # requirement = "Run data analysis on sklearn Iris dataset, include a plot"
     # requirement = "Run data analysis on sklearn Wine recognition dataset, include a plot, and train a model to predict wine class (20% as validation), and show validation accuracy"
-    # data_path = f"{DATA_PATH}/titanic"
-    # requirement = f"This is a titanic passenger survival dataset, your goal is to predict passenger survival outcome. The target column is Survived. Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. Report accuracy on the eval data. Train data path: '{data_path}/split_train.csv', eval data path: '{data_path}/split_eval.csv'."
+    data_path = f"{DATA_PATH}/titanic"
+    requirement = f"This is a titanic passenger survival dataset, your goal is to predict passenger survival outcome. The target column is Survived. Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. Report accuracy on the eval data. Train data path: '{data_path}/split_train.csv', eval data path: '{data_path}/split_eval.csv'."
     # data_path = f"{DATA_PATH}/icr-identify-age-related-conditions"
     # requirement = f"This is a medical dataset with over fifty anonymized health characteristics linked to three age-related conditions. Your goal is to predict whether a subject has or has not been diagnosed with one of these conditions.The target column is Class. Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. Report f1 score on the eval data. Train data path: {data_path}/split_train.csv, eval data path: {data_path}/split_eval.csv."
     # data_path = f"{DATA_PATH}/santander-customer-transaction-prediction"

@@ -1,8 +1,4 @@
-from metagpt.actions.write_plan import (
-    Plan,
-    Task,
-    precheck_update_plan_from_rsp,
-)
+from metagpt.actions.write_plan import Plan, Task, precheck_update_plan_from_rsp
 
 
 def test_precheck_update_plan_from_rsp():

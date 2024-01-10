@@ -337,7 +337,7 @@ class Plan(BaseModel):
     context: str = ""
     tasks: list[Task] = []
     task_map: dict[str, Task] = {}
-    current_task_id = ""
+    current_task_id: str = ""
 
     def _topological_sort(self, tasks: list[Task]):
         task_map = {task.task_id: task for task in tasks}

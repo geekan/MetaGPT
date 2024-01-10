@@ -5,10 +5,9 @@ import subprocess
 import fire
 import pandas as pd
 
-from metagpt.actions import Action, BossRequirement
+from metagpt.actions import Action, UserRequirement
 from metagpt.actions.ml_da_action import SummarizeAnalysis
 from metagpt.config import CONFIG
-from metagpt.const import WORKSPACE_ROOT
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
@@ -31,7 +30,7 @@ def run_command(cmd):
 
 class DownloadData(Action):
     async def run(self, competition, data_desc="") -> str:
-        data_path = WORKSPACE_ROOT / competition
+        data_path = CONFIG.workspace_path / competition
 
         output = run_command(f"kaggle competitions list --search {competition}")
         assert output != "No competitions found", "You must provide the correct competition name"
@@ -41,7 +40,7 @@ class DownloadData(Action):
         if not os.path.exists(data_path):
             # if True:
             # run_command(f"rm -r {data_path / '*'}")
-            run_command(f"unzip -o {WORKSPACE_ROOT / '*.zip'} -d {data_path}")  # FIXME: not safe
+            run_command(f"unzip -o {CONFIG.workspace_path / '*.zip'} -d {data_path}")  # FIXME: not safe
 
         file_list = run_command(f"ls {data_path}")
 
@@ -55,7 +54,7 @@ class DownloadData(Action):
 
 
 class SubmitResult(Action):
-    PROMPT_TEMPLATE = """
+    PROMPT_TEMPLATE: str = """
     # Summary
     __summary__
     # Your task
@@ -78,7 +77,7 @@ class SubmitResult(Action):
     async def run(self, competition, submit_message="") -> str:
         submit_file_path = await self._parse_submit_file_path(submit_message)
 
-        data_path = WORKSPACE_ROOT / competition
+        data_path = CONFIG.workspace_path / competition
         submit_message = submit_message.replace("'", "")
 
         run_command(f"kaggle competitions submit {competition} -f {submit_file_path} -m '{submit_message}'")
@@ -108,20 +107,20 @@ class KaggleManager(Role):
     def __init__(self, name="ABC", profile="KaggleManager", goal="", competition="titanic", data_desc=""):
         super().__init__(name=name, profile=profile, goal=goal)
         self._init_actions([DownloadData, SubmitResult])
-        self._watch([BossRequirement, SummarizeAnalysis])
+        self._watch([UserRequirement, SummarizeAnalysis])
         self.competition = competition
         self.data_desc = data_desc  # currently passed in, later can be scrapped down from web by another Role
 
     async def _think(self):
         observed = self.get_memories()[-1].cause_by
-        if observed == BossRequirement:
+        if observed == UserRequirement:
             self._set_state(0)  # DownloadData, get competition of interest from human, download datasets
         elif observed == SummarizeAnalysis:
             self._set_state(1)  # SubmitResult, get prediction from MLEngineer and submit it to Kaggle
 
     async def _act(self):
-        todo = self._rc.todo
-        logger.info(f"{self._setting}: ready to {self._rc.todo}")
+        todo = self.rc.todo
+        logger.info(f"{self._setting}: ready to {self.rc.todo}")
 
         if isinstance(todo, DownloadData):
             rsp = await todo.run(self.competition, self.data_desc)
@@ -148,7 +147,7 @@ if __name__ == "__main__":
 
     async def main(requirement: str = requirement):
         role = KaggleManager(competition=competition, data_desc=data_desc)
-        # await role.run(Message(content="", cause_by=BossRequirement))
+        # await role.run(Message(content="", cause_by=UserRequirement))
         await role.run(Message(content=summary, cause_by=SummarizeAnalysis))
 
     fire.Fire(main)

@@ -146,6 +146,7 @@ class Role(SerializationMixin, is_polymorphic_base=True):
     actions: list[SerializeAsAny[Action]] = Field(default=[], validate_default=True)
     rc: RoleContext = Field(default_factory=RoleContext)
     subscription: set[str] = set()
+    planner: Planner = None
 
     # builtin variables
     recovered: bool = False  # to tag if a recovered role
@@ -173,7 +174,6 @@ class Role(SerializationMixin, is_polymorphic_base=True):
 
         self.llm.system_prompt = self._get_prefix()
         self._watch(data.get("watch") or [UserRequirement])
-        self.planner = None
 
     def _reset(self):
         self.states = []
@@ -270,7 +270,7 @@ class Role(SerializationMixin, is_polymorphic_base=True):
             self.rc.max_react_loop = max_react_loop
         elif react_mode == RoleReactMode.PLAN_AND_ACT:
             self.planner = Planner(
-                goal=self._setting.goal, working_memory=self.rc.working_memory, auto_run=auto_run, use_tools=use_tools
+                goal=self.goal, working_memory=self.rc.working_memory, auto_run=auto_run, use_tools=use_tools
             )
 
     def _watch(self, actions: Iterable[Type[Action]] | Iterable[Action]):

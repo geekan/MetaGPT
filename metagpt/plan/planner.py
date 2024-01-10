@@ -1,5 +1,7 @@
 import json
 
+from pydantic import BaseModel, Field
+
 from metagpt.actions.ask_review import AskReview, ReviewConst
 from metagpt.actions.write_plan import (
     WritePlan,
@@ -22,14 +24,17 @@ STRUCTURAL_CONTEXT = """
 """
 
 
-class Planner:
-    def __init__(self, goal: str, working_memory: Memory, auto_run: bool = False, use_tools: bool = False):
-        self.plan = Plan(goal=goal)
-        self.auto_run = auto_run
-        self.use_tools = use_tools
+class Planner(BaseModel):
+    plan: Plan
+    working_memory: Memory = Field(
+        default_factory=Memory
+    )  # memory for working on each task, discarded each time a task is done
+    auto_run: bool = False
+    use_tools: bool = False
 
-        # memory for working on each task, discarded each time a task is done
-        self.working_memory = working_memory
+    def __init__(self, goal: str, **kwargs):
+        plan = Plan(goal=goal)
+        super().__init__(plan=plan, **kwargs)
 
     @property
     def current_task(self):

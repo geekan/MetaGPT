@@ -30,7 +30,7 @@ class AskReview(Action):
         )
 
         logger.info("most recent context:")
-        latest_action = context[-1].cause_by.__name__ if context[-1].cause_by else ""
+        latest_action = context[-1].cause_by if context[-1].cause_by else ""
         review_instruction = (
             ReviewConst.TASK_REVIEW_INSTRUCTION
             if trigger == ReviewConst.TASK_REVIEW_TRIGGER

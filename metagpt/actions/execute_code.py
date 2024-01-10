@@ -8,7 +8,7 @@ import re
 import traceback
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Dict, List, Tuple, Union
+from typing import Any, Dict, List, Tuple, Union
 
 import nbformat
 from nbclient import NotebookClient
@@ -48,23 +48,25 @@ class ExecuteCode(ABC):
 class ExecutePyCode(ExecuteCode, Action):
     """execute code, return result to llm, and display it."""
 
+    nb: Any
+    nb_client: Any
+    console: Console
+    interaction: str
+    timeout: int = 600
+
     def __init__(
         self,
-        name: str = "python_executor",
-        context=None,
-        llm=None,
         nb=None,
-        timeout: int = 600,
+        timeout=600,
     ):
-        super().__init__(name, context, llm)
-        if nb is None:
-            self.nb = nbformat.v4.new_notebook()
-        else:
-            self.nb = nb
-        self.timeout = timeout
-        self.nb_client = NotebookClient(self.nb, timeout=self.timeout)
-        self.console = Console()
-        self.interaction = "ipython" if self.is_ipython() else "terminal"
+        nb = nb or nbformat.v4.new_notebook()
+        super().__init__(
+            nb=nb,
+            nb_client=NotebookClient(nb, timeout=timeout),
+            timeout=timeout,
+            console=Console(),
+            interaction=("ipython" if self.is_ipython() else "terminal"),
+        )
 
     async def build(self):
         if self.nb_client.kc is None or not await self.nb_client.kc.is_alive():

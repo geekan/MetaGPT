@@ -95,7 +95,7 @@ class MLEngineerSimple(Role):
                     counter = 0  # redo the task again with help of human suggestions
 
             completed_plan_memory = self.get_useful_memories()  # completed plan as a outcome
-            self._rc.memory.add(completed_plan_memory[0])  # add to persistent memory
+            self.rc.memory.add(completed_plan_memory[0])  # add to persistent memory
             prompt = JUDGE_PROMPT_TEMPLATE.format(user_requirement=self.goal, context=completed_plan_memory)
             rsp = await self._llm.aask(prompt)
             self.working_memory.add(Message(content=rsp, role="system"))

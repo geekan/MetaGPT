@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from pydantic import Field
+
 from metagpt.actions.ask_review import ReviewConst
 from metagpt.actions.execute_code import ExecutePyCode
 from metagpt.actions.write_analysis_code import WriteCodeByGenerate
@@ -10,6 +12,8 @@ from metagpt.utils.save_code import save_code_file
 
 
 class CodeInterpreter(Role):
+    execute_code: ExecutePyCode = Field(default_factory=ExecutePyCode, exclude=True)
+
     def __init__(
         self,
         name="Charlie",
@@ -20,11 +24,10 @@ class CodeInterpreter(Role):
     ):
         super().__init__(name=name, profile=profile, goal=goal)
         self._set_react_mode(react_mode="plan_and_act", auto_run=auto_run, use_tools=use_tools)
-        self.execute_code = ExecutePyCode()
 
     @property
     def working_memory(self):
-        return self._rc.working_memory
+        return self.rc.working_memory
 
     async def _plan_and_act(self):
         rsp = await super()._plan_and_act()

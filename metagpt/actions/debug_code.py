@@ -1,4 +1,4 @@
-from typing import Any, List, Optional
+from typing import List
 
 from metagpt.actions.write_analysis_code import BaseWriteAnalysisCode
 from metagpt.logs import logger
@@ -82,11 +82,6 @@ def messages_to_str(messages: List[Message]) -> str:
 
 class DebugCode(BaseWriteAnalysisCode):
     name: str = "debugcode"
-    context: Optional[str] = None
-    llm: None
-
-    def __init__(self, **kwargs: Any):
-        super().__init__(**kwargs)
 
     async def run_reflection(
         self,
