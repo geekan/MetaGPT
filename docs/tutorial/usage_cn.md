@@ -13,14 +13,14 @@ cp config/config.yaml config/key.yaml
 | 变量名                              | config/key.yaml                           | env                                             |
 | ----------------------------------- | ----------------------------------------- | ----------------------------------------------- |
 | OPENAI_API_KEY # 用您自己的密钥替换 | OPENAI_API_KEY: "sk-..."                  | export OPENAI_API_KEY="sk-..."                  |
-| OPENAI_API_BASE # 可选              | OPENAI_API_BASE: "https://<YOUR_SITE>/v1" | export OPENAI_API_BASE="https://<YOUR_SITE>/v1" |
+| OPENAI_BASE_URL # 可选              | OPENAI_BASE_URL: "https://<YOUR_SITE>/v1" | export OPENAI_BASE_URL="https://<YOUR_SITE>/v1" |
 
 ### 示例：启动一个创业公司
 
 ```shell
-python startup.py "写一个命令行贪吃蛇"
+metagpt "写一个命令行贪吃蛇"
 # 开启code review模式会花费更多的金钱, 但是会提升代码质量和成功率
-python startup.py "写一个命令行贪吃蛇" --code_review True
+metagpt "写一个命令行贪吃蛇" --code_review
 ```
 
 运行脚本后，您可以在 `workspace/` 目录中找到您的新项目。
@@ -29,17 +29,17 @@ python startup.py "写一个命令行贪吃蛇" --code_review True
 可以在阐述需求时说明想要使用的平台或工具。
 例如：
 ```shell
-python startup.py "写一个基于pygame的命令行贪吃蛇"
+metagpt "写一个基于pygame的命令行贪吃蛇"
 ```
 
 ### 使用
 
 ```
 名称
-    startup.py - 我们是一家AI软件创业公司。通过投资我们，您将赋能一个充满无限可能的未来。
+    metagpt - 我们是一家AI软件创业公司。通过投资我们，您将赋能一个充满无限可能的未来。
 
 概要
-    startup.py IDEA <flags>
+    metagpt IDEA <flags>
 
 描述
     我们是一家AI软件创业公司。通过投资我们，您将赋能一个充满无限可能的未来。

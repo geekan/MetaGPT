@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-@Time    : 2023/7/21 11:15
-@Author  : Leo Xiao
-@File    : anthropic_api.py
+@File    : spark_api.py
 """
 import _thread as thread
 import base64
@@ -13,52 +11,33 @@ import hmac
 import json
 import ssl
 from time import mktime
-from typing import Optional
-from urllib.parse import urlencode
-from urllib.parse import urlparse
+from urllib.parse import urlencode, urlparse
 from wsgiref.handlers import format_date_time
 
 import websocket  # 使用websocket_client
 
-from metagpt.config import CONFIG
+from metagpt.config import CONFIG, LLMProviderEnum
 from metagpt.logs import logger
-from metagpt.provider.base_gpt_api import BaseGPTAPI
+from metagpt.provider.base_llm import BaseLLM
+from metagpt.provider.llm_provider_registry import register_provider
 
 
-class SparkAPI(BaseGPTAPI):
-
+@register_provider(LLMProviderEnum.SPARK)
+class SparkLLM(BaseLLM):
     def __init__(self):
-        logger.warning('当前方法无法支持异步运行。当你使用acompletion时，并不能并行访问。')
-
-    def ask(self, msg: str) -> str:
-        message = [self._default_system_msg(), self._user_msg(msg)]
-        rsp = self.completion(message)
-        return rsp
-
-    async def aask(self, msg: str, system_msgs: Optional[list[str]] = None) -> str:
-        if system_msgs:
-            message = self._system_msgs(system_msgs) + [self._user_msg(msg)]
-        else:
-            message = [self._default_system_msg(), self._user_msg(msg)]
-        rsp = await self.acompletion(message)
-        logger.debug(message)
-        return rsp
+        logger.warning("当前方法无法支持异步运行。当你使用acompletion时，并不能并行访问。")
 
     def get_choice_text(self, rsp: dict) -> str:
         return rsp["payload"]["choices"]["text"][-1]["content"]
 
-    async def acompletion_text(self, messages: list[dict], stream=False) -> str:
+    async def acompletion_text(self, messages: list[dict], stream=False, timeout: int = 3) -> str:
         # 不支持
-        logger.error('该功能禁用。')
+        logger.error("该功能禁用。")
         w = GetMessageFromWeb(messages)
         return w.run()
 
-    async def acompletion(self, messages: list[dict]):
+    async def acompletion(self, messages: list[dict], timeout=3):
         # 不支持异步
-        w = GetMessageFromWeb(messages)
-        return w.run()
-
-    def completion(self, messages: list[dict]):
         w = GetMessageFromWeb(messages)
         return w.run()
 
@@ -93,29 +72,26 @@ class GetMessageFromWeb:
             signature_origin += "GET " + self.path + " HTTP/1.1"
 
             # 进行hmac-sha256进行加密
-            signature_sha = hmac.new(self.api_secret.encode('utf-8'), signature_origin.encode('utf-8'),
-                                     digestmod=hashlib.sha256).digest()
+            signature_sha = hmac.new(
+                self.api_secret.encode("utf-8"), signature_origin.encode("utf-8"), digestmod=hashlib.sha256
+            ).digest()
 
-            signature_sha_base64 = base64.b64encode(signature_sha).decode(encoding='utf-8')
+            signature_sha_base64 = base64.b64encode(signature_sha).decode(encoding="utf-8")
 
             authorization_origin = f'api_key="{self.api_key}", algorithm="hmac-sha256", headers="host date request-line", signature="{signature_sha_base64}"'
 
-            authorization = base64.b64encode(authorization_origin.encode('utf-8')).decode(encoding='utf-8')
+            authorization = base64.b64encode(authorization_origin.encode("utf-8")).decode(encoding="utf-8")
 
             # 将请求的鉴权参数组合为字典
-            v = {
-                "authorization": authorization,
-                "date": date,
-                "host": self.host
-            }
+            v = {"authorization": authorization, "date": date, "host": self.host}
             # 拼接鉴权参数，生成url
-            url = self.spark_url + '?' + urlencode(v)
+            url = self.spark_url + "?" + urlencode(v)
             # 此处打印出建立连接时候的url,参考本demo的时候可取消上方打印的注释，比对相同参数时生成的url与自己代码生成的url是否一致
             return url
 
     def __init__(self, text):
         self.text = text
-        self.ret = ''
+        self.ret = ""
         self.spark_appid = CONFIG.spark_appid
         self.spark_api_secret = CONFIG.spark_api_secret
         self.spark_api_key = CONFIG.spark_api_key
@@ -124,15 +100,15 @@ class GetMessageFromWeb:
 
     def on_message(self, ws, message):
         data = json.loads(message)
-        code = data['header']['code']
+        code = data["header"]["code"]
 
         if code != 0:
             ws.close()  # 请求错误，则关闭socket
-            logger.critical(f'回答获取失败，响应信息反序列化之后为： {data}')
+            logger.critical(f"回答获取失败，响应信息反序列化之后为： {data}")
             return
         else:
             choices = data["payload"]["choices"]
-            seq = choices["seq"]  # 服务端是流式返回，seq为返回的数据序号
+            # seq = choices["seq"]  # 服务端是流式返回，seq为返回的数据序号
             status = choices["status"]  # 服务端是流式返回，status用于判断信息是否传送完毕
             content = choices["text"][0]["content"]  # 本次接收到的回答文本
             self.ret += content
@@ -142,7 +118,7 @@ class GetMessageFromWeb:
     # 收到websocket错误的处理
     def on_error(self, ws, error):
         # on_message方法处理接收到的信息，出现任何错误，都会调用这个方法
-        logger.critical(f'通讯连接出错，【错误提示: {error}】')
+        logger.critical(f"通讯连接出错，【错误提示: {error}】")
 
     # 收到websocket关闭的处理
     def on_close(self, ws, one, two):
@@ -150,17 +126,12 @@ class GetMessageFromWeb:
 
     # 处理请求数据
     def gen_params(self):
-
         data = {
-            "header": {
-                "app_id": self.spark_appid,
-                "uid": "1234"
-            },
+            "header": {"app_id": self.spark_appid, "uid": "1234"},
             "parameter": {
                 "chat": {
                     # domain为必传参数
                     "domain": self.domain,
-
                     # 以下为可微调，非必传参数
                     # 注意：官方建议，temperature和top_k修改一个即可
                     "max_tokens": 2048,  # 默认2048，模型回答的tokens的最大长度，即允许它输出文本的最长字数
@@ -168,11 +139,7 @@ class GetMessageFromWeb:
                     "top_k": 4,  # 取值为[1，6],默认为4。从k个候选中随机选择一个（非等概率）
                 }
             },
-            "payload": {
-                "message": {
-                    "text": self.text
-                }
-            }
+            "payload": {"message": {"text": self.text}},
         }
         return data
 
@@ -189,17 +156,12 @@ class GetMessageFromWeb:
         return self._run(self.text)
 
     def _run(self, text_list):
-
-        ws_param = self.WsParam(
-            self.spark_appid,
-            self.spark_api_key,
-            self.spark_api_secret,
-            self.spark_url,
-            text_list)
+        ws_param = self.WsParam(self.spark_appid, self.spark_api_key, self.spark_api_secret, self.spark_url, text_list)
         ws_url = ws_param.create_url()
 
         websocket.enableTrace(False)  # 默认禁用 WebSocket 的跟踪功能
-        ws = websocket.WebSocketApp(ws_url, on_message=self.on_message, on_error=self.on_error, on_close=self.on_close,
-                                    on_open=self.on_open)
+        ws = websocket.WebSocketApp(
+            ws_url, on_message=self.on_message, on_error=self.on_error, on_close=self.on_close, on_open=self.on_open
+        )
         ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
         return self.ret

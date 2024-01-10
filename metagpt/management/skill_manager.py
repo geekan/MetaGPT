@@ -4,11 +4,11 @@
 @Time    : 2023/6/5 01:44
 @Author  : alexanderwu
 @File    : skill_manager.py
+@Modified By: mashenquan, 2023/8/20. Remove useless `llm`
 """
 from metagpt.actions import Action
 from metagpt.const import PROMPT_PATH
 from metagpt.document_store.chromadb_store import ChromaStore
-from metagpt.llm import LLM
 from metagpt.logs import logger
 
 Skill = Action
@@ -18,9 +18,8 @@ class SkillManager:
     """Used to manage all skills"""
 
     def __init__(self):
-        self._llm = LLM()
-        self._store = ChromaStore('skill_manager')
-        self._skills: dict[str: Skill] = {}
+        self._store = ChromaStore("skill_manager")
+        self._skills: dict[str:Skill] = {}
 
     def add_skill(self, skill: Skill):
         """
@@ -29,7 +28,7 @@ class SkillManager:
         :return:
         """
         self._skills[skill.name] = skill
-        self._store.add(skill.desc, {}, skill.name)
+        self._store.add(skill.desc, {"name": skill.name, "desc": skill.desc}, skill.name)
 
     def del_skill(self, skill_name: str):
         """
@@ -54,7 +53,7 @@ class SkillManager:
         :param desc: Skill description
         :return: Multiple skills
         """
-        return self._store.search(desc, n_results=n_results)['ids'][0]
+        return self._store.search(desc, n_results=n_results)["ids"][0]
 
     def retrieve_skill_scored(self, desc: str, n_results: int = 2) -> dict:
         """
@@ -75,6 +74,6 @@ class SkillManager:
         logger.info(text)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     manager = SkillManager()
     manager.generate_skill_desc(Action())

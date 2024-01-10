@@ -3,14 +3,15 @@
 from __future__ import annotations
 
 import asyncio
-import json
-from typing import Callable
+from typing import Callable, Optional, Union
 
-from pydantic import parse_obj_as
+from pydantic import Field, parse_obj_as
 
 from metagpt.actions import Action
 from metagpt.config import CONFIG
+from metagpt.llm import LLM
 from metagpt.logs import logger
+from metagpt.provider.base_llm import BaseLLM
 from metagpt.tools.search_engine import SearchEngine
 from metagpt.tools.web_browser_engine import WebBrowserEngine, WebBrowserEngineType
 from metagpt.utils.common import OutputParser
@@ -49,7 +50,7 @@ based on the link credibility. If two results have equal credibility, prioritize
 ranked results' indices in JSON format, like [0, 1, 3, 4, ...], without including other words.
 """
 
-WEB_BROWSE_AND_SUMMARIZE_PROMPT = '''### Requirements
+WEB_BROWSE_AND_SUMMARIZE_PROMPT = """### Requirements
 1. Utilize the text in the "Reference Information" section to respond to the question "{query}".
 2. If the question cannot be directly answered using the text, but the text is related to the research topic, please provide \
 a comprehensive summary of the text.
@@ -58,10 +59,10 @@ a comprehensive summary of the text.
 
 ### Reference Information
 {content}
-'''
+"""
 
 
-CONDUCT_RESEARCH_PROMPT = '''### Reference Information
+CONDUCT_RESEARCH_PROMPT = """### Reference Information
 {content}
 
 ### Requirements
@@ -73,22 +74,18 @@ above. The report must meet the following requirements:
 - Present data and findings in an intuitive manner, utilizing feature comparative tables, if applicable.
 - The report should have a minimum word count of 2,000 and be formatted with Markdown syntax following APA style guidelines.
 - Include all source URLs in APA format at the end of the report.
-'''
+"""
 
 
 class CollectLinks(Action):
     """Action class to collect links from a search engine."""
-    def __init__(
-        self,
-        name: str = "",
-        *args,
-        rank_func: Callable[[list[str]], None] | None = None,
-        **kwargs,
-    ):
-        super().__init__(name, *args, **kwargs)
-        self.desc = "Collect links from a search engine."
-        self.search_engine = SearchEngine()
-        self.rank_func = rank_func
+
+    name: str = "CollectLinks"
+    context: Optional[str] = None
+    desc: str = "Collect links from a search engine."
+
+    search_engine: SearchEngine = Field(default_factory=SearchEngine)
+    rank_func: Optional[Callable[[list[str]], None]] = None
 
     async def run(
         self,
@@ -114,20 +111,26 @@ class CollectLinks(Action):
             keywords = OutputParser.extract_struct(keywords, list)
             keywords = parse_obj_as(list[str], keywords)
         except Exception as e:
-            logger.exception(f"fail to get keywords related to the research topic \"{topic}\" for {e}")
+            logger.exception(f"fail to get keywords related to the research topic '{topic}' for {e}")
             keywords = [topic]
         results = await asyncio.gather(*(self.search_engine.run(i, as_string=False) for i in keywords))
 
         def gen_msg():
             while True:
-                search_results = "\n".join(f"#### Keyword: {i}\n Search Result: {j}\n" for (i, j) in zip(keywords, results))
-                prompt = SUMMARIZE_SEARCH_PROMPT.format(decomposition_nums=decomposition_nums, search_results=search_results)
+                search_results = "\n".join(
+                    f"#### Keyword: {i}\n Search Result: {j}\n" for (i, j) in zip(keywords, results)
+                )
+                prompt = SUMMARIZE_SEARCH_PROMPT.format(
+                    decomposition_nums=decomposition_nums, search_results=search_results
+                )
                 yield prompt
                 remove = max(results, key=len)
                 remove.pop()
                 if len(remove) == 0:
                     break
-        prompt = reduce_message_length(gen_msg(), self.llm.model, system_text, CONFIG.max_tokens_rsp)
+
+        model_name = CONFIG.get_model_name(CONFIG.get_default_llm_provider_enum())
+        prompt = reduce_message_length(gen_msg(), model_name, system_text, CONFIG.max_tokens_rsp)
         logger.debug(prompt)
         queries = await self._aask(prompt, [system_text])
         try:
@@ -172,20 +175,23 @@ class CollectLinks(Action):
 
 class WebBrowseAndSummarize(Action):
     """Action class to explore the web and provide summaries of articles and webpages."""
-    def __init__(
-        self,
-        *args,
-        browse_func: Callable[[list[str]], None] | None = None,
-        **kwargs,
-    ):
-        super().__init__(*args, **kwargs)
+
+    name: str = "WebBrowseAndSummarize"
+    context: Optional[str] = None
+    llm: BaseLLM = Field(default_factory=LLM)
+    desc: str = "Explore the web and provide summaries of articles and webpages."
+    browse_func: Union[Callable[[list[str]], None], None] = None
+    web_browser_engine: Optional[WebBrowserEngine] = None
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         if CONFIG.model_for_researcher_summary:
             self.llm.model = CONFIG.model_for_researcher_summary
+
         self.web_browser_engine = WebBrowserEngine(
-            engine=WebBrowserEngineType.CUSTOM if browse_func else None,
-            run_func=browse_func,
+            engine=WebBrowserEngineType.CUSTOM if self.browse_func else None,
+            run_func=self.browse_func,
         )
-        self.desc = "Explore the web and provide summaries of articles and webpages."
 
     async def run(
         self,
@@ -214,7 +220,9 @@ class WebBrowseAndSummarize(Action):
         for u, content in zip([url, *urls], contents):
             content = content.inner_text
             chunk_summaries = []
-            for prompt in generate_prompt_chunk(content, prompt_template, self.llm.model, system_text, CONFIG.max_tokens_rsp):
+            for prompt in generate_prompt_chunk(
+                content, prompt_template, self.llm.model, system_text, CONFIG.max_tokens_rsp
+            ):
                 logger.debug(prompt)
                 summary = await self._aask(prompt, [system_text])
                 if summary == "Not relevant.":
@@ -238,8 +246,13 @@ class WebBrowseAndSummarize(Action):
 
 class ConductResearch(Action):
     """Action class to conduct research and generate a research report."""
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+
+    name: str = "ConductResearch"
+    context: Optional[str] = None
+    llm: BaseLLM = Field(default_factory=LLM)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         if CONFIG.model_for_researcher_report:
             self.llm.model = CONFIG.model_for_researcher_report
 

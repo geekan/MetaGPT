@@ -18,17 +18,15 @@ from metagpt.config import CONFIG
 
 def make_sk_kernel():
     kernel = sk.Kernel()
-    if CONFIG.openai_api_type == "azure":
+    if CONFIG.OPENAI_API_TYPE == "azure":
         kernel.add_chat_service(
             "chat_completion",
-            AzureChatCompletion(CONFIG.deployment_name, CONFIG.openai_api_base, CONFIG.openai_api_key),
+            AzureChatCompletion(CONFIG.DEPLOYMENT_NAME, CONFIG.OPENAI_BASE_URL, CONFIG.OPENAI_API_KEY),
         )
     else:
         kernel.add_chat_service(
             "chat_completion",
-            OpenAIChatCompletion(
-                CONFIG.openai_api_model, CONFIG.openai_api_key, org_id=None, endpoint=CONFIG.openai_api_base
-            ),
+            OpenAIChatCompletion(CONFIG.OPENAI_API_MODEL, CONFIG.OPENAI_API_KEY),
         )
 
     return kernel

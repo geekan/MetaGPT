@@ -13,7 +13,7 @@ from semantic_kernel.planning import SequentialPlanner
 # from semantic_kernel.planning import SequentialPlanner
 from semantic_kernel.planning.action_planner.action_planner import ActionPlanner
 
-from metagpt.actions import BossRequirement
+from metagpt.actions import UserRequirement
 from metagpt.const import SKILL_DIRECTORY
 from metagpt.roles.sk_agent import SkAgent
 from metagpt.schema import Message
@@ -39,7 +39,7 @@ async def basic_planner_example():
     role.import_semantic_skill_from_directory(SKILL_DIRECTORY, "WriterSkill")
     role.import_skill(TextSkill(), "TextSkill")
     # using BasicPlanner
-    await role.run(Message(content=task, cause_by=BossRequirement))
+    await role.run(Message(content=task, cause_by=UserRequirement))
 
 
 async def sequential_planner_example():
@@ -53,7 +53,7 @@ async def sequential_planner_example():
     role.import_semantic_skill_from_directory(SKILL_DIRECTORY, "WriterSkill")
     role.import_skill(TextSkill(), "TextSkill")
     # using BasicPlanner
-    await role.run(Message(content=task, cause_by=BossRequirement))
+    await role.run(Message(content=task, cause_by=UserRequirement))
 
 
 async def basic_planner_web_search_example():
@@ -64,7 +64,7 @@ async def basic_planner_web_search_example():
     role.import_skill(SkSearchEngine(), "WebSearchSkill")
     # role.import_semantic_skill_from_directory(skills_directory, "QASkill")
 
-    await role.run(Message(content=task, cause_by=BossRequirement))
+    await role.run(Message(content=task, cause_by=UserRequirement))
 
 
 async def action_planner_example():
@@ -75,7 +75,7 @@ async def action_planner_example():
     role.import_skill(TimeSkill(), "time")
     role.import_skill(TextSkill(), "text")
     task = "What is the sum of 110 and 990?"
-    await role.run(Message(content=task, cause_by=BossRequirement))  # it will choose mathskill.Add
+    await role.run(Message(content=task, cause_by=UserRequirement))  # it will choose mathskill.Add
 
 
 if __name__ == "__main__":

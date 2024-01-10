@@ -25,7 +25,7 @@ def py_make_scanner(context):
         except IndexError:
             raise StopIteration(idx) from None
 
-        if nextchar == '"' or nextchar == "'":
+        if nextchar in ("'", '"'):
             if idx + 2 < len(string) and string[idx + 1] == nextchar and string[idx + 2] == nextchar:
                 # Handle the case where the next two characters are the same as nextchar
                 return parse_string(string, idx + 3, strict, delimiter=nextchar * 3)  # triple quote

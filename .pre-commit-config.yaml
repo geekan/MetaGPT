@@ -1,8 +1,9 @@
 default_stages: [ commit ]
 
 # Install
-# 1. pip install pre-commit
-# 2. pre-commit install(the first time you download the repo, it will be cached for future use)
+# 1. pip install metagpt[dev]
+# 2. pre-commit install
+# 3. pre-commit run --all-files  # make sure all files are clean
 repos:
   - repo: https://github.com/pycqa/isort
     rev: 5.11.5
@@ -19,6 +20,7 @@ repos:
     rev: v0.0.284
     hooks:
       - id: ruff
+        args: [ --fix ]
 
   - repo: https://github.com/psf/black
     rev: 23.3.0

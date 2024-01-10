@@ -6,6 +6,7 @@
 @File    : test_custom_decoder.py
 """
 
+import pytest
 
 from metagpt.utils.custom_decoder import CustomDecoder
 
@@ -37,6 +38,46 @@ def test_parse_single_quote():
     parsed_data = decoder.decode(input_data)
     assert 'a"\n    b' in parsed_data
 
+    input_data = """{
+    'a': "
+    b
+"
+}
+"""
+    with pytest.raises(Exception):
+        parsed_data = decoder.decode(input_data)
+
+    input_data = """{
+    'a': '
+    b
+'
+}
+"""
+    with pytest.raises(Exception):
+        parsed_data = decoder.decode(input_data)
+
+
+def test_parse_double_quote():
+    decoder = CustomDecoder(strict=False)
+
+    input_data = """{
+    "a": "
+    b
+"
+}
+"""
+    parsed_data = decoder.decode(input_data)
+    assert parsed_data["a"] == "\n    b\n"
+
+    input_data = """{
+    "a": '
+    b
+'
+}
+"""
+    parsed_data = decoder.decode(input_data)
+    assert parsed_data["a"] == "\n    b\n"
+
 
 def test_parse_triple_double_quote():
     # Create a custom JSON decoder
@@ -51,6 +92,10 @@ def test_parse_triple_double_quote():
     input_data = '{"""a""":"""b"""}'
     # Parse the JSON using the custom decoder
 
+    parsed_data = decoder.decode(input_data)
+    assert parsed_data["a"] == "b"
+
+    input_data = "{\"\"\"a\"\"\": '''b'''}"
     parsed_data = decoder.decode(input_data)
     assert parsed_data["a"] == "b"
 

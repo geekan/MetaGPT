@@ -5,11 +5,12 @@
 @Author  : alexanderwu
 @File    : sales.py
 """
+from typing import Optional
+
+from pydantic import Field
+
+from metagpt.document_store.base_store import BaseStore
 from metagpt.roles import Sales
-
-# from metagpt.actions import SearchAndSummarize
-# from metagpt.tools import SearchEngineType
-
 
 DESC = """
 ## Principles (all things must not bypass the principles)
@@ -24,12 +25,7 @@ DESC = """
 
 
 class CustomerService(Sales):
-    def __init__(
-            self,
-            name="Xiaomei",
-            profile="Human customer service",
-            desc=DESC,
-            store=None
-    ):
-        super().__init__(name, profile, desc=desc, store=store)
-        
+    name: str = "Xiaomei"
+    profile: str = "Human customer service"
+    desc: str = DESC
+    store: Optional[BaseStore] = Field(default=None, exclude=True)
