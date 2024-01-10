@@ -2,15 +2,15 @@
 # @Date    : 12/12/2023 4:17 PM
 # @Author  : stellahong (stellahong@fuzhi.ai)
 # @Desc    :
-import pytest
-import os
 import json
+import os
+
 import nbformat
+import pytest
 
-from metagpt.actions.write_analysis_code import WriteCodeByGenerate
 from metagpt.actions.execute_code import ExecutePyCode
-
-from metagpt.utils.save_code import save_code_file, DATA_PATH
+from metagpt.actions.write_analysis_code import WriteCodeByGenerate
+from metagpt.utils.save_code import DATA_PATH, save_code_file
 
 
 def test_save_code_file_python():
@@ -36,12 +36,9 @@ def test_save_code_file_json():
     assert data["code"] == "print('Hello, JSON!')", "JSON content does not match"
 
 
-
 @pytest.mark.asyncio
 async def test_save_code_file_notebook():
-    code = await WriteCodeByGenerate().run(
-        context="basic python, hello world", plan="", code_steps="", temperature=0.0
-    )
+    code = await WriteCodeByGenerate().run(context="basic python, hello world", plan="", code_steps="", temperature=0.0)
     executor = ExecutePyCode()
     await executor.run(code)
     # Save as a Notebook file

@@ -1,15 +1,16 @@
 import fire
 
 from metagpt.actions.execute_code import ExecutePyCode
-from metagpt.const import DATA_PATH
 from metagpt.logs import logger
 from metagpt.roles.code_interpreter import CodeInterpreter
 from metagpt.roles.ml_engineer import MLEngineer
 from metagpt.schema import Plan
-from metagpt.utils.recovery_util import save_history, load_history
+from metagpt.utils.recovery_util import load_history, save_history
 
 
-async def run_code_interpreter(role_class, requirement, auto_run, use_tools, use_code_steps, make_udfs, use_udfs, save_dir):
+async def run_code_interpreter(
+    role_class, requirement, auto_run, use_tools, use_code_steps, make_udfs, use_udfs, save_dir
+):
     """
     The main function to run the MLEngineer with optional history loading.
 
@@ -26,26 +27,28 @@ async def run_code_interpreter(role_class, requirement, auto_run, use_tools, use
         role = CodeInterpreter(goal=requirement, auto_run=auto_run, use_tools=use_tools)
     else:
         role = MLEngineer(
-            goal=requirement, auto_run=auto_run, use_tools=use_tools, use_code_steps=use_code_steps,
-            make_udfs=make_udfs, use_udfs=use_udfs
+            goal=requirement,
+            auto_run=auto_run,
+            use_tools=use_tools,
+            use_code_steps=use_code_steps,
+            make_udfs=make_udfs,
+            use_udfs=use_udfs,
         )
-    
+
     if save_dir:
         logger.info("Resuming from history trajectory")
         plan, nb = load_history(save_dir)
         role.planner.plan = Plan(**plan)
         role.execute_code = ExecutePyCode(nb)
-    
+
     else:
         logger.info("Run from scratch")
-        
-    
+
     try:
         await role.run(requirement)
     except Exception as e:
-        
         save_path = save_history(role, save_dir)
-        
+
         logger.exception(f"An error occurred: {e}, save trajectory here: {save_path}")
 
 
@@ -60,7 +63,7 @@ if __name__ == "__main__":
     # requirement = f"This is a customers financial dataset. Your goal is to predict which customers will make a specific transaction in the future. The target column is target. Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. Report AUC Score on the eval data. Train data path: '{data_path}/split_train.csv', eval data path: '{data_path}/split_eval.csv' ."
     # data_path = f"{DATA_PATH}/house-prices-advanced-regression-techniques"
     # requirement = f"This is a house price dataset, your goal is to predict the sale price of a property based on its features. The target column is SalePrice. Perform data analysis, data preprocessing, feature engineering, and modeling to predict the target. Report RMSE between the logarithm of the predicted value and the logarithm of the observed sales price on the eval data. Train data path: '{data_path}/split_train.csv', eval data path: '{data_path}/split_eval.csv'."
-    
+
     save_dir = ""
 
     # role_class = "ci"
@@ -71,10 +74,17 @@ if __name__ == "__main__":
     use_udfs = False
 
     async def main(
-        role_class: str = role_class, requirement: str = requirement, auto_run: bool = auto_run,
-        use_tools: bool = use_tools, use_code_steps: bool = False, make_udfs: bool = make_udfs, use_udfs: bool = use_udfs,
-        save_dir: str = save_dir
+        role_class: str = role_class,
+        requirement: str = requirement,
+        auto_run: bool = auto_run,
+        use_tools: bool = use_tools,
+        use_code_steps: bool = False,
+        make_udfs: bool = make_udfs,
+        use_udfs: bool = use_udfs,
+        save_dir: str = save_dir,
     ):
-        await run_code_interpreter(role_class, requirement, auto_run, use_tools, use_code_steps, make_udfs, use_udfs, save_dir)
+        await run_code_interpreter(
+            role_class, requirement, auto_run, use_tools, use_code_steps, make_udfs, use_udfs, save_dir
+        )
 
     fire.Fire(main)
