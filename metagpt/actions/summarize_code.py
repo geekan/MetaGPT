@@ -98,14 +98,14 @@ class SummarizeCode(Action):
         return code_rsp
 
     async def run(self):
-        design_pathname = Path(self.context.design_filename)
+        design_pathname = Path(self.i_context.design_filename)
         repo = self.file_repo
         design_doc = await repo.get_file(filename=design_pathname.name, relative_path=SYSTEM_DESIGN_FILE_REPO)
-        task_pathname = Path(self.context.task_filename)
+        task_pathname = Path(self.i_context.task_filename)
         task_doc = await repo.get_file(filename=task_pathname.name, relative_path=TASK_FILE_REPO)
         src_file_repo = self.git_repo.new_file_repository(relative_path=self.context.src_workspace)
         code_blocks = []
-        for filename in self.context.codes_filenames:
+        for filename in self.i_context.codes_filenames:
             code_doc = await src_file_repo.get(filename)
             code_block = f"```python\n{code_doc.content}\n```\n-----"
             code_blocks.append(code_block)

@@ -51,7 +51,7 @@ class DebugError(Action):
 
     async def run(self, *args, **kwargs) -> str:
         output_doc = await self.file_repo.get_file(
-            filename=self.context.output_filename, relative_path=TEST_OUTPUTS_FILE_REPO
+            filename=self.i_context.output_filename, relative_path=TEST_OUTPUTS_FILE_REPO
         )
         if not output_doc:
             return ""
@@ -61,14 +61,14 @@ class DebugError(Action):
         if matches:
             return ""
 
-        logger.info(f"Debug and rewrite {self.context.test_filename}")
+        logger.info(f"Debug and rewrite {self.i_context.test_filename}")
         code_doc = await self.file_repo.get_file(
-            filename=self.context.code_filename, relative_path=self.context.src_workspace
+            filename=self.i_context.code_filename, relative_path=self.i_context.src_workspace
         )
         if not code_doc:
             return ""
         test_doc = await self.file_repo.get_file(
-            filename=self.context.test_filename, relative_path=TEST_CODES_FILE_REPO
+            filename=self.i_context.test_filename, relative_path=TEST_CODES_FILE_REPO
         )
         if not test_doc:
             return ""

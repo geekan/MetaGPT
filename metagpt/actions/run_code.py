@@ -117,25 +117,25 @@ class RunCode(Action):
         return stdout.decode("utf-8"), stderr.decode("utf-8")
 
     async def run(self, *args, **kwargs) -> RunCodeResult:
-        logger.info(f"Running {' '.join(self.context.command)}")
-        if self.context.mode == "script":
+        logger.info(f"Running {' '.join(self.i_context.command)}")
+        if self.i_context.mode == "script":
             outs, errs = await self.run_script(
-                command=self.context.command,
-                working_directory=self.context.working_directory,
-                additional_python_paths=self.context.additional_python_paths,
+                command=self.i_context.command,
+                working_directory=self.i_context.working_directory,
+                additional_python_paths=self.i_context.additional_python_paths,
             )
-        elif self.context.mode == "text":
-            outs, errs = await self.run_text(code=self.context.code)
+        elif self.i_context.mode == "text":
+            outs, errs = await self.run_text(code=self.i_context.code)
 
         logger.info(f"{outs=}")
         logger.info(f"{errs=}")
 
         context = CONTEXT.format(
-            code=self.context.code,
-            code_file_name=self.context.code_filename,
-            test_code=self.context.test_code,
-            test_file_name=self.context.test_filename,
-            command=" ".join(self.context.command),
+            code=self.i_context.code,
+            code_file_name=self.i_context.code_filename,
+            test_code=self.i_context.test_code,
+            test_file_name=self.i_context.test_filename,
+            command=" ".join(self.i_context.command),
             outs=outs[:500],  # outs might be long but they are not important, truncate them to avoid token overflow
             errs=errs[:10000],  # truncate errors to avoid token overflow
         )
