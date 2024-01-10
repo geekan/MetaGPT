@@ -164,7 +164,7 @@ class WritePRD(Action):
         pathname = self.git_repo.workdir / Path(COMPETITIVE_ANALYSIS_FILE_REPO) / Path(prd_doc.filename).with_suffix("")
         if not pathname.parent.exists():
             pathname.parent.mkdir(parents=True, exist_ok=True)
-        await mermaid_to_file(quadrant_chart, pathname)
+        await mermaid_to_file(self.config.mermaid_engine, quadrant_chart, pathname)
 
     async def _save_pdf(self, prd_doc):
         await self.file_repo.save_as(doc=prd_doc, with_suffix=".md", relative_path=PRD_PDF_FILE_REPO)
