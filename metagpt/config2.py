@@ -74,6 +74,12 @@ class Config(CLIParams, YamlModel):
     mmdc: str = "mmdc"
     puppeteer_config: str = ""
     pyppeteer_executable_path: str = ""
+    IFLYTEK_APP_ID: str = ""
+    IFLYTEK_APP_SECRET: str = ""
+    IFLYTEK_APP_KEY: str = ""
+    AZURE_TTS_SUBSCRIPTION_KEY: str = ""
+    AZURE_TTS_REGION: str = ""
+    mermaid_engine: str = "nodejs"
 
     @classmethod
     def default(cls):

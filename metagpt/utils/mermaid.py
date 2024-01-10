@@ -17,7 +17,7 @@ from metagpt.logs import logger
 from metagpt.utils.common import check_cmd_exists
 
 
-async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, height=2048) -> int:
+async def mermaid_to_file(engine, mermaid_code, output_file_without_suffix, width=2048, height=2048) -> int:
     """suffix: png/svg/pdf
 
     :param mermaid_code: mermaid code
@@ -35,7 +35,6 @@ async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, 
         await f.write(mermaid_code)
     # tmp.write_text(mermaid_code, encoding="utf-8")
 
-    engine = config.mermaid["default"].engine
     if engine == "nodejs":
         if check_cmd_exists(config.mmdc) != 0:
             logger.warning(

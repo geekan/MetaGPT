@@ -8,7 +8,6 @@ from typing import Callable, Optional, Union
 from pydantic import Field, parse_obj_as
 
 from metagpt.actions import Action
-from metagpt.config import CONFIG
 from metagpt.config2 import config
 from metagpt.logs import logger
 from metagpt.tools.search_engine import SearchEngine
@@ -216,9 +215,7 @@ class WebBrowseAndSummarize(Action):
         for u, content in zip([url, *urls], contents):
             content = content.inner_text
             chunk_summaries = []
-            for prompt in generate_prompt_chunk(
-                content, prompt_template, self.llm.model, system_text, CONFIG.max_tokens_rsp
-            ):
+            for prompt in generate_prompt_chunk(content, prompt_template, self.llm.model, system_text, 4096):
                 logger.debug(prompt)
                 summary = await self._aask(prompt, [system_text])
                 if summary == "Not relevant.":
