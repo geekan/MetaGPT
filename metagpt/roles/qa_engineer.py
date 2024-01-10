@@ -71,7 +71,7 @@ class QaEngineer(Role):
                 )
             logger.info(f"Writing {test_doc.filename}..")
             context = TestingContext(filename=test_doc.filename, test_doc=test_doc, code_doc=code_doc)
-            context = await WriteTest(context=context, g_context=self.context, llm=self.llm).run()
+            context = await WriteTest(i_context=context, context=self.context, llm=self.llm).run()
             await tests_file_repo.save(
                 filename=context.test_doc.filename,
                 content=context.test_doc.content,
@@ -112,7 +112,7 @@ class QaEngineer(Role):
             return
         run_code_context.code = src_doc.content
         run_code_context.test_code = test_doc.content
-        result = await RunCode(context=run_code_context, g_context=self.context, llm=self.llm).run()
+        result = await RunCode(i_context=run_code_context, context=self.context, llm=self.llm).run()
         run_code_context.output_filename = run_code_context.test_filename + ".json"
         await self.context.git_repo.new_file_repository(TEST_OUTPUTS_FILE_REPO).save(
             filename=run_code_context.output_filename,
@@ -136,7 +136,7 @@ class QaEngineer(Role):
 
     async def _debug_error(self, msg):
         run_code_context = RunCodeContext.loads(msg.content)
-        code = await DebugError(context=run_code_context, g_context=self.context, llm=self.llm).run()
+        code = await DebugError(i_context=run_code_context, context=self.context, llm=self.llm).run()
         await self.context.file_repo.save_file(
             filename=run_code_context.test_filename, content=code, relative_path=TEST_CODES_FILE_REPO
         )

@@ -45,7 +45,7 @@ class Teacher(Role):
             actions = []
             print(TeachingPlanBlock.TOPICS)
             for topic in TeachingPlanBlock.TOPICS:
-                act = WriteTeachingPlanPart(context=self.rc.news[0].content, topic=topic, llm=self.llm)
+                act = WriteTeachingPlanPart(i_context=self.rc.news[0].content, topic=topic, llm=self.llm)
                 actions.append(act)
             self.add_actions(actions)
 

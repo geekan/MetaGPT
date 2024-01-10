@@ -165,6 +165,7 @@ class ContextMixin(BaseModel):
     @property
     def llm(self) -> BaseLLM:
         """Role llm: role llm > context llm"""
+        # logger.info(f"class:{self.__class__.__name__}, llm: {self._llm}, llm_config: {self._llm_config}")
         if self._llm_config and not self._llm:
             self._llm = self.context.llm(self._llm_config.name, self._llm_config.provider)
         return self._llm or self.context.llm()
