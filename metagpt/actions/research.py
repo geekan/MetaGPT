@@ -9,6 +9,7 @@ from pydantic import Field, parse_obj_as
 
 from metagpt.actions import Action
 from metagpt.config import CONFIG
+from metagpt.config2 import config
 from metagpt.logs import logger
 from metagpt.tools.search_engine import SearchEngine
 from metagpt.tools.web_browser_engine import WebBrowserEngine, WebBrowserEngineType
@@ -127,8 +128,8 @@ class CollectLinks(Action):
                 if len(remove) == 0:
                     break
 
-        model_name = CONFIG.get_model_name(CONFIG.get_default_llm_provider_enum())
-        prompt = reduce_message_length(gen_msg(), model_name, system_text, CONFIG.max_tokens_rsp)
+        model_name = config.get_openai_llm().model
+        prompt = reduce_message_length(gen_msg(), model_name, system_text, 4096)
         logger.debug(prompt)
         queries = await self._aask(prompt, [system_text])
         try:
@@ -182,8 +183,6 @@ class WebBrowseAndSummarize(Action):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        if CONFIG.model_for_researcher_summary:
-            self.llm.model = CONFIG.model_for_researcher_summary
 
         self.web_browser_engine = WebBrowserEngine(
             engine=WebBrowserEngineType.CUSTOM if self.browse_func else None,
@@ -246,8 +245,6 @@ class ConductResearch(Action):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        if CONFIG.model_for_researcher_report:
-            self.llm.model = CONFIG.model_for_researcher_report
 
     async def run(
         self,

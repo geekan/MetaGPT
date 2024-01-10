@@ -12,7 +12,6 @@ from pathlib import Path
 from typing import List
 
 from metagpt.actions import Action
-from metagpt.config import CONFIG
 from metagpt.const import GRAPH_REPO_FILE_REPO
 from metagpt.logs import logger
 from metagpt.utils.common import aread, list_files
@@ -21,8 +20,8 @@ from metagpt.utils.graph_repository import GraphKeyword
 
 
 class RebuildSequenceView(Action):
-    async def run(self, with_messages=None, format=CONFIG.prompt_schema):
-        graph_repo_pathname = CONFIG.git_repo.workdir / GRAPH_REPO_FILE_REPO / CONFIG.git_repo.workdir.name
+    async def run(self, with_messages=None, format=config.prompt_schema):
+        graph_repo_pathname = CONTEXT.git_repo.workdir / GRAPH_REPO_FILE_REPO / CONTEXT.git_repo.workdir.name
         graph_db = await DiGraphRepository.load_from(str(graph_repo_pathname.with_suffix(".json")))
         entries = await RebuildSequenceView._search_main_entry(graph_db)
         for entry in entries:

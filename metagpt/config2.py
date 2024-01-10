@@ -71,6 +71,9 @@ class Config(CLIParams, YamlModel):
     METAGPT_TEXT_TO_IMAGE_MODEL_URL: str = ""
     language: str = "English"
     redis_key: str = "placeholder"
+    mmdc: str = "mmdc"
+    puppeteer_config: str = ""
+    pyppeteer_executable_path: str = ""
 
     @classmethod
     def default(cls):

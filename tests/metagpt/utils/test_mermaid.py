@@ -9,6 +9,7 @@
 import pytest
 
 from metagpt.config import CONFIG
+from metagpt.context import CONTEXT
 from metagpt.utils.common import check_cmd_exists
 from metagpt.utils.mermaid import MMC1, mermaid_to_file
 
@@ -22,7 +23,7 @@ async def test_mermaid(engine):
     assert check_cmd_exists("npm") == 0
 
     CONFIG.mermaid_engine = engine
-    save_to = CONFIG.git_repo.workdir / f"{CONFIG.mermaid_engine}/1"
+    save_to = CONTEXT.git_repo.workdir / f"{CONFIG.mermaid_engine}/1"
     await mermaid_to_file(MMC1, save_to)
 
     # ink does not support pdf

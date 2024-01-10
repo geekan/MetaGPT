@@ -10,7 +10,7 @@ from typing import Any, Dict, Optional, Tuple
 import aiohttp
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from metagpt.config import CONFIG
+from metagpt.config2 import config
 
 
 class SerpAPIWrapper(BaseModel):
@@ -32,7 +32,7 @@ class SerpAPIWrapper(BaseModel):
     @field_validator("serpapi_api_key", mode="before")
     @classmethod
     def check_serpapi_api_key(cls, val: str):
-        val = val or CONFIG.serpapi_api_key
+        val = val or config.search["serpapi"].api_key
         if not val:
             raise ValueError(
                 "To use, make sure you provide the serpapi_api_key when constructing an object. Alternatively, "

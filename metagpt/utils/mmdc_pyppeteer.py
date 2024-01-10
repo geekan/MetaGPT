@@ -10,7 +10,7 @@ from urllib.parse import urljoin
 
 from pyppeteer import launch
 
-from metagpt.config import CONFIG
+from metagpt.config2 import config
 from metagpt.logs import logger
 
 
@@ -30,10 +30,10 @@ async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, 
     suffixes = ["png", "svg", "pdf"]
     __dirname = os.path.dirname(os.path.abspath(__file__))
 
-    if CONFIG.pyppeteer_executable_path:
+    if config.pyppeteer_executable_path:
         browser = await launch(
             headless=True,
-            executablePath=CONFIG.pyppeteer_executable_path,
+            executablePath=config.pyppeteer_executable_path,
             args=["--disable-extensions", "--no-sandbox"],
         )
     else:

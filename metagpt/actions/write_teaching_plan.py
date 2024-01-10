@@ -8,7 +8,7 @@
 from typing import Optional
 
 from metagpt.actions import Action
-from metagpt.config import CONFIG
+from metagpt.context import CONTEXT
 from metagpt.logs import logger
 
 
@@ -76,7 +76,7 @@ class WriteTeachingPlanPart(Action):
             return value
 
         # FIXME: 从Context中获取参数，而非从options
-        merged_opts = CONFIG.options or {}
+        merged_opts = CONTEXT.options or {}
         try:
             return value.format(**merged_opts)
         except KeyError as e:

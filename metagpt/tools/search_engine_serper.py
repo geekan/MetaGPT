@@ -11,7 +11,7 @@ from typing import Any, Dict, Optional, Tuple
 import aiohttp
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from metagpt.config import CONFIG
+from metagpt.config2 import config
 
 
 class SerperWrapper(BaseModel):
@@ -25,7 +25,7 @@ class SerperWrapper(BaseModel):
     @field_validator("serper_api_key", mode="before")
     @classmethod
     def check_serper_api_key(cls, val: str):
-        val = val or CONFIG.serper_api_key
+        val = val or config.search["serper"].api_key
         if not val:
             raise ValueError(
                 "To use, make sure you provide the serper_api_key when constructing an object. Alternatively, "

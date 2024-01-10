@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*-
 # @Desc   : unittest of repair_llm_raw_output
 
-from metagpt.config import CONFIG
+from metagpt.config2 import config
 
 """
 CONFIG.repair_llm_output should be True before retry_parse_json_text imported.
 so we move `from ... impot ...` into each `test_xx` to avoid `Module level import not at top of file` format warning.
 """
-CONFIG.repair_llm_output = True
+config.repair_llm_output = True
 
 
 def test_repair_case_sensitivity():
