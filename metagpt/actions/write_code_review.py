@@ -135,20 +135,20 @@ class WriteCodeReview(Action):
         return result, code
 
     async def run(self, *args, **kwargs) -> CodingContext:
-        iterative_code = self.context.code_doc.content
+        iterative_code = self.i_context.code_doc.content
         k = self.context.config.code_review_k_times or 1
         for i in range(k):
-            format_example = FORMAT_EXAMPLE.format(filename=self.context.code_doc.filename)
-            task_content = self.context.task_doc.content if self.context.task_doc else ""
+            format_example = FORMAT_EXAMPLE.format(filename=self.i_context.code_doc.filename)
+            task_content = self.i_context.task_doc.content if self.i_context.task_doc else ""
             code_context = await WriteCode.get_codes(
-                self.context.task_doc,
-                exclude=self.context.filename,
+                self.i_context.task_doc,
+                exclude=self.i_context.filename,
                 git_repo=self.context.git_repo,
                 src_workspace=self.src_workspace,
             )
             context = "\n".join(
                 [
-                    "## System Design\n" + str(self.context.design_doc) + "\n",
+                    "## System Design\n" + str(self.i_context.design_doc) + "\n",
                     "## Tasks\n" + task_content + "\n",
                     "## Code Files\n" + code_context + "\n",
                 ]
@@ -156,25 +156,25 @@ class WriteCodeReview(Action):
             context_prompt = PROMPT_TEMPLATE.format(
                 context=context,
                 code=iterative_code,
-                filename=self.context.code_doc.filename,
+                filename=self.i_context.code_doc.filename,
             )
             cr_prompt = EXAMPLE_AND_INSTRUCTION.format(
                 format_example=format_example,
             )
             logger.info(
-                f"Code review and rewrite {self.context.code_doc.filename}: {i + 1}/{k} | {len(iterative_code)=}, "
-                f"{len(self.context.code_doc.content)=}"
+                f"Code review and rewrite {self.i_context.code_doc.filename}: {i + 1}/{k} | {len(iterative_code)=}, "
+                f"{len(self.i_context.code_doc.content)=}"
             )
             result, rewrited_code = await self.write_code_review_and_rewrite(
-                context_prompt, cr_prompt, self.context.code_doc.filename
+                context_prompt, cr_prompt, self.i_context.code_doc.filename
             )
             if "LBTM" in result:
                 iterative_code = rewrited_code
             elif "LGTM" in result:
-                self.context.code_doc.content = iterative_code
-                return self.context
+                self.i_context.code_doc.content = iterative_code
+                return self.i_context
         # code_rsp = await self._aask_v1(prompt, "code_rsp", OUTPUT_MAPPING)
         # self._save(context, filename, code)
         # 如果rewrited_code是None（原code perfect），那么直接返回code
-        self.context.code_doc.content = iterative_code
-        return self.context
+        self.i_context.code_doc.content = iterative_code
+        return self.i_context

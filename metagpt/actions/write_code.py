@@ -114,7 +114,7 @@ class WriteCode(Action):
         else:
             code_context = await self.get_codes(
                 coding_context.task_doc,
-                exclude=self.context.filename,
+                exclude=self.i_context.filename,
                 git_repo=self.git_repo,
                 src_workspace=self.context.src_workspace,
             )
@@ -125,14 +125,14 @@ class WriteCode(Action):
             code=code_context,
             logs=logs,
             feedback=bug_feedback.content if bug_feedback else "",
-            filename=self.context.filename,
+            filename=self.i_context.filename,
             summary_log=summary_doc.content if summary_doc else "",
         )
         logger.info(f"Writing {coding_context.filename}..")
         code = await self.write_code(prompt)
         if not coding_context.code_doc:
             # avoid root_path pydantic ValidationError if use WriteCode alone
-            root_path = self.context.src_workspace if self.context.src_workspace else ""
+            root_path = self.i_context.src_workspace if self.i_context.src_workspace else ""
             coding_context.code_doc = Document(filename=coding_context.filename, root_path=str(root_path))
         coding_context.code_doc.content = code
         return coding_context
