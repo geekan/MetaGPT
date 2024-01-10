@@ -73,7 +73,7 @@ class Action(SerializationMixin, ContextMixin, BaseModel):
     def _init_with_instruction(cls, values):
         if "instruction" in values:
             name = values["name"]
-            i = values["instruction"]
+            i = values.pop("instruction")
             values["node"] = ActionNode(key=name, expected_type=str, instruction=i, example="", schema="raw")
         return values
 
