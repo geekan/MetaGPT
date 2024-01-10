@@ -15,6 +15,7 @@ from typing import Any, Dict, List, Optional, Tuple, Type, Union
 from pydantic import BaseModel, create_model, model_validator
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
+from metagpt.actions.action_outcls_registry import register_action_outcls
 from metagpt.llm import BaseLLM
 from metagpt.logs import logger
 from metagpt.provider.postprocess.llm_output_postprocess import llm_output_postprocess
@@ -201,6 +202,7 @@ class ActionNode:
         return {} if exclude and self.key in exclude else self.get_self_mapping()
 
     @classmethod
+    @register_action_outcls
     def create_model_class(cls, class_name: str, mapping: Dict[str, Tuple[Type, Any]]):
         """基于pydantic v1的模型动态生成，用来检验结果类型正确性"""
 

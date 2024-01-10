@@ -31,15 +31,17 @@ def test_message_serdeser_from_create_model():
     assert new_message.cause_by == any_to_str(WriteCode)
     assert new_message.cause_by in [any_to_str(WriteCode)]
 
-    assert new_message.instruct_content != ic_obj(**out_data)  # TODO find why `!=`
-    assert new_message.instruct_content != ic_inst
+    assert new_message.instruct_content == ic_obj(**out_data)
+    assert new_message.instruct_content == ic_inst
     assert new_message.instruct_content.model_dump() == ic_obj(**out_data).model_dump()
+    assert new_message == message
 
     mock_msg = MockMessage()
     message = Message(content="test_ic", instruct_content=mock_msg)
     ser_data = message.model_dump()
     new_message = Message(**ser_data)
     assert new_message.instruct_content == mock_msg
+    assert new_message == message
 
 
 def test_message_without_postprocess():
@@ -54,6 +56,7 @@ def test_message_without_postprocess():
     ser_data["instruct_content"] = None
     new_message = MockICMessage(**ser_data)
     assert new_message.instruct_content != ic_obj(**out_data)
+    assert new_message != message
 
 
 def test_message_serdeser_from_basecontext():
@@ -83,6 +86,7 @@ def test_message_serdeser_from_basecontext():
     new_code_ctxt_msg = Message(**ser_data)
     assert new_code_ctxt_msg.instruct_content == code_ctxt
     assert new_code_ctxt_msg.instruct_content.code_doc.filename == "game.py"
+    assert new_code_ctxt_msg == code_ctxt_msg
 
     testing_ctxt = TestingContext(
         filename="test.py",
@@ -94,3 +98,4 @@ def test_message_serdeser_from_basecontext():
     new_testing_ctxt_msg = Message(**ser_data)
     assert new_testing_ctxt_msg.instruct_content == testing_ctxt
     assert new_testing_ctxt_msg.instruct_content.test_doc.filename == "test.py"
+    assert new_testing_ctxt_msg == testing_ctxt_msg
