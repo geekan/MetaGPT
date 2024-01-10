@@ -1,9 +1,9 @@
-from typing import Dict, List, Union, Tuple, Optional, Any
+from typing import Any, List, Optional
 
-from metagpt.logs import logger
-from metagpt.schema import Message, Plan
-from metagpt.utils.common import CodeParser, create_func_config
 from metagpt.actions.write_analysis_code import BaseWriteAnalysisCode
+from metagpt.logs import logger
+from metagpt.schema import Message
+from metagpt.utils.common import create_func_config
 
 DEBUG_REFLECTION_EXAMPLE = '''
 Example 1:
@@ -113,9 +113,7 @@ class DebugCode(BaseWriteAnalysisCode):
 
         # msg = messages_to_str(info)
         # resp = await self.llm.aask(msg=msg)
-        resp = await self.llm.aask_code(
-            messages=info, **create_func_config(CODE_REFLECTION)
-        )
+        resp = await self.llm.aask_code(messages=info, **create_func_config(CODE_REFLECTION))
         logger.info(f"reflection is {resp}")
         return resp
 

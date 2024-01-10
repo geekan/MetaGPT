@@ -2,14 +2,16 @@
 # @Date    : 12/20/2023 11:07 AM
 # @Author  : stellahong (stellahong@fuzhi.ai)
 # @Desc    :
-import nbformat
-from pathlib import Path
 import json
 from datetime import datetime
+from pathlib import Path
 
-from metagpt.roles.role import Role
+import nbformat
+
 from metagpt.const import DATA_PATH
+from metagpt.roles.role import Role
 from metagpt.utils.save_code import save_code_file
+
 
 def load_history(save_dir: str = ""):
     """
@@ -21,7 +23,7 @@ def load_history(save_dir: str = ""):
     Returns:
         Tuple: A tuple containing the loaded plan and notebook.
     """
-    
+
     plan_path = Path(save_dir) / "plan.json"
     nb_path = Path(save_dir) / "history_nb" / "code.ipynb"
     plan = json.load(open(plan_path, "r", encoding="utf-8"))
@@ -40,16 +42,16 @@ def save_history(role: Role, save_dir: str = ""):
     Returns:
         Path: The path to the saved history directory.
     """
-    record_time = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+    record_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     save_path = DATA_PATH / "output" / f"{record_time}"
-    
+
     # overwrite exist trajectory
     save_path.mkdir(parents=True, exist_ok=True)
-    
+
     plan = role.planner.plan.dict()
-    
+
     with open(save_path / "plan.json", "w", encoding="utf-8") as plan_file:
         json.dump(plan, plan_file, indent=4, ensure_ascii=False)
-    
+
     save_code_file(name=Path(record_time) / "history_nb", code_context=role.execute_code.nb, file_format="ipynb")
     return save_path

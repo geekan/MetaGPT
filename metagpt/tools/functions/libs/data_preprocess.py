@@ -3,19 +3,26 @@ import json
 import numpy as np
 import pandas as pd
 from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import LabelEncoder
-from sklearn.preprocessing import MaxAbsScaler
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.preprocessing import OrdinalEncoder
-from sklearn.preprocessing import RobustScaler
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import (
+    LabelEncoder,
+    MaxAbsScaler,
+    MinMaxScaler,
+    OneHotEncoder,
+    OrdinalEncoder,
+    RobustScaler,
+    StandardScaler,
+)
 
 from metagpt.tools.functions.libs.base import MLProcess
 
 
 class FillMissingValue(MLProcess):
-    def __init__(self, features: list, strategy: str = 'mean', fill_value=None,):
+    def __init__(
+        self,
+        features: list,
+        strategy: str = "mean",
+        fill_value=None,
+    ):
         self.features = features
         self.strategy = strategy
         self.fill_value = fill_value
@@ -35,7 +42,10 @@ class FillMissingValue(MLProcess):
 
 
 class MinMaxScale(MLProcess):
-    def __init__(self, features: list,):
+    def __init__(
+        self,
+        features: list,
+    ):
         self.features = features
         self.mms = None
 
@@ -49,7 +59,10 @@ class MinMaxScale(MLProcess):
 
 
 class StandardScale(MLProcess):
-    def __init__(self, features: list,):
+    def __init__(
+        self,
+        features: list,
+    ):
         self.features = features
         self.ss = None
 
@@ -63,7 +76,10 @@ class StandardScale(MLProcess):
 
 
 class MaxAbsScale(MLProcess):
-    def __init__(self, features: list,):
+    def __init__(
+        self,
+        features: list,
+    ):
         self.features = features
         self.mas = None
 
@@ -77,7 +93,10 @@ class MaxAbsScale(MLProcess):
 
 
 class RobustScale(MLProcess):
-    def __init__(self, features: list,):
+    def __init__(
+        self,
+        features: list,
+    ):
         self.features = features
         self.rs = None
 
@@ -91,7 +110,10 @@ class RobustScale(MLProcess):
 
 
 class OrdinalEncode(MLProcess):
-    def __init__(self, features: list,):
+    def __init__(
+        self,
+        features: list,
+    ):
         self.features = features
         self.oe = None
 
@@ -105,7 +127,10 @@ class OrdinalEncode(MLProcess):
 
 
 class OneHotEncode(MLProcess):
-    def __init__(self, features: list,):
+    def __init__(
+        self,
+        features: list,
+    ):
         self.features = features
         self.ohe = None
 
@@ -123,7 +148,10 @@ class OneHotEncode(MLProcess):
 
 
 class LabelEncode(MLProcess):
-    def __init__(self, features: list,):
+    def __init__(
+        self,
+        features: list,
+    ):
         self.features = features
         self.le_encoders = []
 
@@ -131,7 +159,7 @@ class LabelEncode(MLProcess):
         if len(self.features) == 0:
             return
         for col in self.features:
-            le = LabelEncoder().fit(df[col].astype(str).unique().tolist() + ['unknown'])
+            le = LabelEncoder().fit(df[col].astype(str).unique().tolist() + ["unknown"])
             self.le_encoders.append(le)
 
     def transform(self, df: pd.DataFrame):
@@ -141,7 +169,7 @@ class LabelEncode(MLProcess):
             data_list = df[self.features[i]].astype(str).tolist()
             for unique_item in np.unique(df[self.features[i]].astype(str)):
                 if unique_item not in self.le_encoders[i].classes_:
-                    data_list = ['unknown' if x == unique_item else x for x in data_list]
+                    data_list = ["unknown" if x == unique_item else x for x in data_list]
             df[self.features[i]] = self.le_encoders[i].transform(data_list)
         return df
 
@@ -165,5 +193,5 @@ def get_column_info(df: pd.DataFrame) -> dict:
             column_info["Others"].append(col)
 
     if len(json.dumps(column_info)) > 2000:
-        column_info['Numeric'] = column_info['Numeric'][0:5] + ['Too many cols, omission here...']
+        column_info["Numeric"] = column_info["Numeric"][0:5] + ["Too many cols, omission here..."]
     return column_info

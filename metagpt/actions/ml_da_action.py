@@ -1,14 +1,9 @@
 import json
-from typing import Dict, List, Union
 
 from metagpt.actions import Action
-from metagpt.schema import Message, Plan
-from metagpt.utils.common import CodeParser, remove_comments, create_func_config
-from metagpt.logs import logger
-from metagpt.prompts.ml_engineer import (
-    UPDATE_DATA_COLUMNS,
-    PRINT_DATA_COLUMNS
-)
+from metagpt.prompts.ml_engineer import PRINT_DATA_COLUMNS, UPDATE_DATA_COLUMNS
+from metagpt.schema import Plan
+from metagpt.utils.common import CodeParser, create_func_config, remove_comments
 
 
 class SummarizeAnalysis(Action):

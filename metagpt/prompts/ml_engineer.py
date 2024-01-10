@@ -259,7 +259,7 @@ for col in num_cols:
 - Always copy the DataFrame before processing it and use the copy to process.
 - The output code should contain all steps implemented correctly in 'Code Steps'.
 """
-#- If 'Code Steps' contains step done in 'Done Tasks', such as reading data, don't repeat it.
+# - If 'Code Steps' contains step done in 'Done Tasks', such as reading data, don't repeat it.
 
 DATA_PREPROCESS_PROMPT = """
 The current task is about data preprocessing, please note the following:

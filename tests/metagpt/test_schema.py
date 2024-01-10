@@ -26,10 +26,11 @@ from metagpt.schema import (
     Document,
     Message,
     MessageQueue,
+    Plan,
     SystemMessage,
+    Task,
     UserMessage,
 )
-from metagpt.schema import Task, Plan
 from metagpt.utils.common import any_to_str
 
 
@@ -53,7 +54,7 @@ class TestPlan:
         tasks = [
             Task(task_id="1", dependent_task_ids=["2", "3"], instruction="Third"),
             Task(task_id="2", instruction="First"),
-            Task(task_id="3", dependent_task_ids=["2"], instruction="Second")
+            Task(task_id="3", dependent_task_ids=["2"], instruction="Second"),
         ]  # 2 -> 3 -> 1
         plan.add_tasks(tasks)
 
@@ -65,7 +66,7 @@ class TestPlan:
         tasks = [
             Task(task_id="1", dependent_task_ids=["2", "3"], instruction="Third"),
             Task(task_id="2", instruction="First"),
-            Task(task_id="3", dependent_task_ids=["2"], instruction="Second", is_finished=True)
+            Task(task_id="3", dependent_task_ids=["2"], instruction="Second", is_finished=True),
         ]  # 2 -> 3 -> 1
         plan.add_tasks(tasks)
 
@@ -81,7 +82,7 @@ class TestPlan:
         tasks = [
             Task(task_id="1", dependent_task_ids=["2", "3"], instruction="Third"),
             Task(task_id="2", instruction="First"),
-            Task(task_id="3", dependent_task_ids=["2"], instruction="Second")
+            Task(task_id="3", dependent_task_ids=["2"], instruction="Second"),
         ]  # 2 -> 3 -> 1
         plan.add_tasks(tasks)
         plan.finish_current_task()  # finish 2
@@ -90,19 +91,21 @@ class TestPlan:
         new_tasks = [
             Task(task_id="4", dependent_task_ids=["3"], instruction="Third"),
             Task(task_id="2", instruction="First"),
-            Task(task_id="3", dependent_task_ids=["2"], instruction="Second")
+            Task(task_id="3", dependent_task_ids=["2"], instruction="Second"),
         ]  # 2 -> 3 -> 4, so the common prefix is 2 -> 3, and these two should be obtained from the existing tasks
         plan.add_tasks(new_tasks)
 
         assert [task.task_id for task in plan.tasks] == ["2", "3", "4"]
-        assert plan.tasks[0].is_finished and plan.tasks[1].is_finished  # "2" and "3" should be the original finished one
+        assert (
+            plan.tasks[0].is_finished and plan.tasks[1].is_finished
+        )  # "2" and "3" should be the original finished one
         assert plan.current_task_id == "4"
 
     def test_current_task(self):
         plan = Plan(goal="")
         tasks = [
             Task(task_id="1", dependent_task_ids=["2"], instruction="Second"),
-            Task(task_id="2", instruction="First")
+            Task(task_id="2", instruction="First"),
         ]
         plan.add_tasks(tasks)
         assert plan.current_task.task_id == "2"
@@ -111,7 +114,7 @@ class TestPlan:
         plan = Plan(goal="")
         tasks = [
             Task(task_id="1", instruction="First"),
-            Task(task_id="2", dependent_task_ids=["1"], instruction="Second")
+            Task(task_id="2", dependent_task_ids=["1"], instruction="Second"),
         ]
         plan.add_tasks(tasks)
         plan.finish_current_task()
@@ -121,7 +124,7 @@ class TestPlan:
         plan = Plan(goal="")
         tasks = [
             Task(task_id="1", instruction="First"),
-            Task(task_id="2", dependent_task_ids=["1"], instruction="Second")
+            Task(task_id="2", dependent_task_ids=["1"], instruction="Second"),
         ]
         plan.add_tasks(tasks)
         plan.finish_current_task()
@@ -149,8 +152,10 @@ class TestPlan:
 
     def test_replace_task_with_dependents(self):
         plan = Plan(goal="")
-        tasks = [Task(task_id="1", instruction="First Task", finished=True),
-                 Task(task_id="2", instruction="Second Task", dependent_task_ids=["1"], finished=True)]
+        tasks = [
+            Task(task_id="1", instruction="First Task", finished=True),
+            Task(task_id="2", instruction="Second Task", dependent_task_ids=["1"], finished=True),
+        ]
         plan.add_tasks(tasks)
         new_task = Task(task_id="1", instruction="Updated First Task")
         plan.replace_task(new_task)
@@ -168,7 +173,7 @@ class TestPlan:
             plan.replace_task(new_task)  # Task with ID 2 does not exist in plan
         assert "1" in plan.task_map
         assert "2" not in plan.task_map
-    
+
     def test_append_task_with_valid_dependencies(self):
         plan = Plan(goal="Test")
         existing_task = [Task(task_id="1")]
@@ -183,7 +188,7 @@ class TestPlan:
         plan = Plan(goal="Test")
         with pytest.raises(AssertionError):
             plan.append_task(new_task)
-    
+
     def test_append_task_without_dependencies(self):
         plan = Plan(goal="Test")
         existing_task = [Task(task_id="1")]

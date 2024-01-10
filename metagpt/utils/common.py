@@ -361,6 +361,7 @@ def create_func_config(func_schema: dict) -> dict:
 def remove_comments(code_str):
     """Remove comments from code."""
     pattern = r"(\".*?\"|\'.*?\')|(\#.*?$)"
+
     def replace_func(match):
         if match.group(2) is not None:
             return ""

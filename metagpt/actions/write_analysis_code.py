@@ -4,25 +4,24 @@
 @Author  :   orange-crow
 @File    :   write_code_v2.py
 """
-from typing import Dict, List, Union, Tuple
-from tenacity import retry, stop_after_attempt, wait_fixed
-from pathlib import Path
 import re
-import json
+from pathlib import Path
+from typing import Dict, List, Tuple, Union
 
 import yaml
+from tenacity import retry, stop_after_attempt, wait_fixed
 
 from metagpt.actions import Action
 from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.prompts.ml_engineer import (
-    TOOL_RECOMMENDATION_PROMPT,
-    SELECT_FUNCTION_TOOLS,
     CODE_GENERATOR_WITH_TOOLS,
-    TOOL_USAGE_PROMPT,
-    ML_SPECIFIC_PROMPT,
-    ML_MODULE_MAP,
     GENERATE_CODE_PROMPT,
+    ML_MODULE_MAP,
+    ML_SPECIFIC_PROMPT,
+    SELECT_FUNCTION_TOOLS,
+    TOOL_RECOMMENDATION_PROMPT,
+    TOOL_USAGE_PROMPT,
 )
 from metagpt.schema import Message, Plan
 from metagpt.utils.common import create_func_config, remove_comments
@@ -52,24 +51,16 @@ class BaseWriteAnalysisCode(Action):
                     messages.append(p.content["code"])
 
         # 添加默认的提示词
-        if (
-            default_system_msg not in messages[0]["content"]
-            and messages[0]["role"] != "system"
-        ):
+        if default_system_msg not in messages[0]["content"] and messages[0]["role"] != "system":
             messages.insert(0, {"role": "system", "content": default_system_msg})
-        elif (
-            default_system_msg not in messages[0]["content"]
-            and messages[0]["role"] == "system"
-        ):
+        elif default_system_msg not in messages[0]["content"] and messages[0]["role"] == "system":
             messages[0] = {
                 "role": "system",
                 "content": messages[0]["content"] + default_system_msg,
             }
         return messages
 
-    async def run(
-            self, context: List[Message], plan: Plan = None, code_steps: str = ""
-    ) -> str:
+    async def run(self, context: List[Message], plan: Plan = None, code_steps: str = "") -> str:
         """Run of a code writing action, used in data analysis or modeling
 
         Args:
@@ -115,7 +106,7 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
     def _load_tools(self, schema_path, schema_module=None):
         """Load tools from yaml file"""
         if isinstance(schema_path, dict):
-            schema_module = schema_module or 'udf'
+            schema_module = schema_module or "udf"
             self.available_tools.update({schema_module: schema_path})
         else:
             if isinstance(schema_path, list):
@@ -197,9 +188,7 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
             available_tools = {k: v["description"] for k, v in available_tools.items()}
 
             recommend_tools = await self._tool_recommendation(
-                plan.current_task.instruction,
-                code_steps,
-                available_tools
+                plan.current_task.instruction, code_steps, available_tools
             )
             tool_catalog = self._parse_recommend_tools(task_type, recommend_tools)
             logger.info(f"Recommended tools: \n{recommend_tools}")
@@ -216,8 +205,7 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
                 module_name=module_name,
                 tool_catalog=tool_catalog,
             )
-            
-            
+
         else:
             prompt = GENERATE_CODE_PROMPT.format(
                 user_requirement=plan.goal,
@@ -245,7 +233,7 @@ class MakeTools(WriteCodeByGenerate):
     5. Only use the imported packages**
     """
 
-    def __init__(self, name: str = '', context: list[Message] = None, llm: LLM = None, workspace: str = None):
+    def __init__(self, name: str = "", context: list[Message] = None, llm: LLM = None, workspace: str = None):
         """
         :param str name: name, defaults to ''
         :param list[Message] context: context, defaults to None
@@ -254,12 +242,12 @@ class MakeTools(WriteCodeByGenerate):
         """
         super().__init__(name, context, llm)
         self.workspace = workspace or str(Path(__file__).parents[1].joinpath("./tools/functions/libs/udf"))
-        self.file_suffix: str = '.py'
+        self.file_suffix: str = ".py"
         self.context = []
 
     def parse_function_name(self, function_code: str) -> str:
         # 定义正则表达式模式
-        pattern = r'\bdef\s+([a-zA-Z_]\w*)\s*\('
+        pattern = r"\bdef\s+([a-zA-Z_]\w*)\s*\("
         # 在代码中搜索匹配的模式
         match = re.search(pattern, function_code)
         # 如果找到匹配项，则返回匹配的函数名；否则返回None
@@ -272,9 +260,9 @@ class MakeTools(WriteCodeByGenerate):
         func_name = self.parse_function_name(tool_code)
         if func_name is None:
             raise ValueError(f"No function name found in {tool_code}")
-        saved_path = Path(self.workspace).joinpath(func_name+self.file_suffix)
+        saved_path = Path(self.workspace).joinpath(func_name + self.file_suffix)
         logger.info(f"Saved tool_code {func_name} in {str(saved_path)}.")
-        saved_path.write_text(tool_code, encoding='utf-8')
+        saved_path.write_text(tool_code, encoding="utf-8")
 
     @retry(stop=stop_after_attempt(3), wait=wait_fixed(1))
     async def run(self, code: Union[str, List[dict]], code_desc: str = None, **kwargs) -> str:
@@ -287,27 +275,31 @@ class MakeTools(WriteCodeByGenerate):
         logger.info(f"\n\nAsk to Make tools:\n{'-'*60}\n {self.context[-1]}")
 
         # 更新kwargs
-        if 'code' in kwargs:
-            kwargs.pop('code')
-        if 'code_desc' in kwargs:
-            kwargs.pop('code_desc')
+        if "code" in kwargs:
+            kwargs.pop("code")
+        if "code_desc" in kwargs:
+            kwargs.pop("code_desc")
 
         max_tries, current_try = 3, 0
         while True:
             tool_code = await self.llm.aask_code(self.context, **kwargs)
-            func_name = self.parse_function_name(tool_code['code'])
+            func_name = self.parse_function_name(tool_code["code"])
             current_try += 1
             # make tools failed, add error message to context.
             if not func_name:
                 logger.info(f"\n\nTools Respond\n{'-'*60}\n: {tool_code}")
                 logger.error(f"No function name found in code, we will retry make tools.\n{tool_code['code']}\n")
-                self.context.append({'role': 'user', 'content': 'We need a general function in above code,but not found function.'})
+                self.context.append(
+                    {"role": "user", "content": "We need a general function in above code,but not found function."}
+                )
             # end make tools
             if func_name is not None or current_try >= max_tries:
                 if current_try >= max_tries:
-                    logger.error(f"We have tried the maximum number of attempts {max_tries}\
-                    and still have not created tools successfully, we will skip it.")
+                    logger.error(
+                        f"We have tried the maximum number of attempts {max_tries}\
+                    and still have not created tools successfully, we will skip it."
+                    )
                 break
         logger.info(f"\n\nTools Respond\n{'-'*60}\n: {tool_code}")
-        self.save(tool_code['code'])
+        self.save(tool_code["code"])
         return tool_code["code"]

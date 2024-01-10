@@ -1,8 +1,8 @@
 from typing import List
 
 from metagpt.actions import Action
-from metagpt.schema import Message, Plan
 from metagpt.logs import logger
+from metagpt.schema import Message, Plan
 
 
 class ReviewConst:
@@ -23,17 +23,10 @@ class ReviewConst:
 
 
 class AskReview(Action):
-    async def run(
-        self, context: List[Message], plan: Plan = None, trigger: str = "task"
-    ):
+    async def run(self, context: List[Message], plan: Plan = None, trigger: str = "task"):
         logger.info("Current overall plan:")
         logger.info(
-            "\n".join(
-                [
-                    f"{task.task_id}: {task.instruction}, is_finished: {task.is_finished}"
-                    for task in plan.tasks
-                ]
-            )
+            "\n".join([f"{task.task_id}: {task.instruction}, is_finished: {task.is_finished}" for task in plan.tasks])
         )
 
         logger.info("most recent context:")

@@ -4,23 +4,23 @@
 @Author  :   orange-crow
 @File    :   code_executor.py
 """
+import re
+import traceback
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Dict, List, Tuple, Union
-import traceback
-import re
 
 import nbformat
 from nbclient import NotebookClient
-from nbclient.exceptions import DeadKernelError, CellTimeoutError
+from nbclient.exceptions import CellTimeoutError, DeadKernelError
 from nbformat import NotebookNode
 from nbformat.v4 import new_code_cell, new_output
 from rich.console import Console
 from rich.syntax import Syntax
 
 from metagpt.actions import Action
-from metagpt.schema import Message
 from metagpt.logs import logger
+from metagpt.schema import Message
 
 
 class ExecuteCode(ABC):
@@ -113,7 +113,9 @@ class ExecutePyCode(ExecuteCode, Action):
                 if "image/png" in output["data"]:
                     self.show_bytes_figure(output["data"]["image/png"], self.interaction)
                 else:
-                    logger.info(f"{i}th output['data'] from nbclient outputs dont have image/png, continue next output ...")
+                    logger.info(
+                        f"{i}th output['data'] from nbclient outputs dont have image/png, continue next output ..."
+                    )
             elif output["output_type"] == "execute_result":
                 parsed_output += output["data"]["text/plain"]
         return parsed_output
@@ -148,7 +150,7 @@ class ExecutePyCode(ExecuteCode, Action):
             return False
 
     def _process_code(self, code: Union[str, Dict, Message], language: str = None) -> Tuple:
-        language = language or 'python'
+        language = language or "python"
         if isinstance(code, str) and Path(code).suffix in (".py", ".txt"):
             code = Path(code).read_text(encoding="utf-8")
             return code, language
@@ -158,11 +160,11 @@ class ExecutePyCode(ExecuteCode, Action):
         if isinstance(code, dict):
             assert "code" in code
             if "language" not in code:
-                code['language'] = 'python'
+                code["language"] = "python"
             code, language = code["code"], code["language"]
         elif isinstance(code, Message):
             if isinstance(code.content, dict) and "language" not in code.content:
-                code.content["language"] = 'python'
+                code.content["language"] = "python"
                 code, language = code.content["code"], code.content["language"]
             elif isinstance(code.content, str):
                 code, language = code.content, language
@@ -181,7 +183,7 @@ class ExecutePyCode(ExecuteCode, Action):
         except DeadKernelError:
             await self.reset()
             return False, "DeadKernelError"
-        except Exception as e:
+        except Exception:
             return False, f"{traceback.format_exc()}"
 
     async def run(self, code: Union[str, Dict, Message], language: str = "python") -> Tuple[str, bool]:
@@ -224,6 +226,6 @@ def truncate(result: str, keep_len: int = 2000) -> str:
 
 def remove_escape_and_color_codes(input_str):
     # 使用正则表达式去除转义字符和颜色代码
-    pattern = re.compile(r'\x1b\[[0-9;]*[mK]')
-    result = pattern.sub('', input_str)
+    pattern = re.compile(r"\x1b\[[0-9;]*[mK]")
+    result = pattern.sub("", input_str)
     return result

@@ -1,18 +1,17 @@
 import re
-from typing import List
-import json
 from datetime import datetime
+from typing import List
 
 import fire
 
-from metagpt.roles import Role
-from metagpt.schema import Message
-from metagpt.memory import Memory
-from metagpt.logs import logger
-from metagpt.actions.write_analysis_code import WriteCodeByGenerate
 from metagpt.actions.ask_review import AskReview, ReviewConst
 from metagpt.actions.execute_code import ExecutePyCode
+from metagpt.actions.write_analysis_code import WriteCodeByGenerate
+from metagpt.logs import logger
+from metagpt.memory import Memory
+from metagpt.roles import Role
 from metagpt.roles.kaggle_manager import DownloadData
+from metagpt.schema import Message
 from metagpt.utils.save_code import save_code_file
 
 STRUCTURAL_CONTEXT_SIMPLE = """
@@ -40,9 +39,7 @@ Next Steps:
 
 
 class MLEngineerSimple(Role):
-    def __init__(
-            self, name="ABC", profile="MLEngineerSimple", goal="", auto_run: bool = False
-    ):
+    def __init__(self, name="ABC", profile="MLEngineerSimple", goal="", auto_run: bool = False):
         super().__init__(name=name, profile=profile, goal=goal)
         self._set_react_mode(react_mode="react")
         self._watch([DownloadData])
@@ -78,19 +75,13 @@ class MLEngineerSimple(Role):
             context = self.get_useful_memories()
             print(f"memories数量：{len(context)}")
             # print("===\n" +str(context) + "\n===")
-            code = await WriteCodeByGenerate().run(
-                context=context, temperature=0.0
-            )
+            code = await WriteCodeByGenerate().run(context=context, temperature=0.0)
             cause_by = WriteCodeByGenerate
-            self.working_memory.add(
-                Message(content=code, role="assistant", cause_by=cause_by)
-            )
+            self.working_memory.add(Message(content=code, role="assistant", cause_by=cause_by))
 
             result, success = await self.execute_code.run(code)
             print(result)
-            self.working_memory.add(
-                Message(content=result, role="user", cause_by=ExecutePyCode)
-            )
+            self.working_memory.add(Message(content=result, role="user", cause_by=ExecutePyCode))
 
             if "!pip" in code:
                 success = False
@@ -107,12 +98,10 @@ class MLEngineerSimple(Role):
             self._rc.memory.add(completed_plan_memory[0])  # add to persistent memory
             prompt = JUDGE_PROMPT_TEMPLATE.format(user_requirement=self.goal, context=completed_plan_memory)
             rsp = await self._llm.aask(prompt)
-            self.working_memory.add(
-                Message(content=rsp, role="system")
-            )
+            self.working_memory.add(Message(content=rsp, role="system"))
 
-            matches = re.findall(r'\b(True|False)\b', rsp)
-            state = False if 'False' in matches else True
+            matches = re.findall(r"\b(True|False)\b", rsp)
+            state = False if "False" in matches else True
 
     async def _ask_review(self, auto_run: bool = None, trigger: str = ReviewConst.TASK_REVIEW_TRIGGER):
         auto_run = auto_run or self.auto_run
@@ -127,9 +116,7 @@ class MLEngineerSimple(Role):
     def get_useful_memories(self) -> List[Message]:
         """find useful memories only to reduce context length and improve performance"""
         user_requirement = self.goal
-        context = STRUCTURAL_CONTEXT_SIMPLE.format(
-            user_requirement=user_requirement, data_desc=self.data_desc
-        )
+        context = STRUCTURAL_CONTEXT_SIMPLE.format(user_requirement=user_requirement, data_desc=self.data_desc)
         context_msg = [Message(content=context, role="user")]
 
         return context_msg + self.get_working_memories(6)

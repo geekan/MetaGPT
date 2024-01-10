@@ -308,12 +308,12 @@ class AIMessage(Message):
     """
 
     def __init__(self, content: str):
-        super().__init__(content, 'assistant')
+        super().__init__(content, "assistant")
 
 
 class Task(BaseModel):
     task_id: str = ""
-    dependent_task_ids: list[str] = [] # Tasks prerequisite to this Task
+    dependent_task_ids: list[str] = []  # Tasks prerequisite to this Task
     instruction: str = ""
     task_type: str = ""
     code_steps: str = ""
@@ -325,6 +325,7 @@ class Task(BaseModel):
 
 class TaskResult(BaseModel):
     """Result of taking a task, with result and is_success required to be filled"""
+
     code_steps: str = ""
     code: str = ""
     result: str
@@ -360,12 +361,12 @@ class Plan(BaseModel):
     def add_tasks(self, tasks: list[Task]):
         """
         Integrates new tasks into the existing plan, ensuring dependency order is maintained.
-        
+
         This method performs two primary functions based on the current state of the task list:
-        1. If there are no existing tasks, it topologically sorts the provided tasks to ensure 
+        1. If there are no existing tasks, it topologically sorts the provided tasks to ensure
         correct execution order based on dependencies, and sets these as the current tasks.
-        2. If there are existing tasks, it merges the new tasks with the existing ones. It maintains 
-        any common prefix of tasks (based on task_id and instruction) and appends the remainder 
+        2. If there are existing tasks, it merges the new tasks with the existing ones. It maintains
+        any common prefix of tasks (based on task_id and instruction) and appends the remainder
         of the new tasks. The current task is updated to the first unfinished task in this merged list.
 
         Args:
@@ -395,13 +396,13 @@ class Plan(BaseModel):
             # Combine the common prefix with the remainder of the new tasks
             final_tasks = self.tasks[:prefix_length] + new_tasks[prefix_length:]
             self.tasks = final_tasks
-        
+
         # Update current_task_id to the first unfinished task in the merged list
         self._update_current_task()
 
         # Update the task map for quick access to tasks by ID
         self.task_map = {task.task_id: task for task in self.tasks}
-    
+
     def reset_task(self, task_id: str):
         """
         Clear code and result of the task based on task_id, and set the task as unfinished.
@@ -448,20 +449,21 @@ class Plan(BaseModel):
 
         Args:
             new_task (Task): The new task to be appended to the existing task sequence
-        
+
         Returns:
             None
         """
         assert not self.has_task_id(new_task.task_id), "Task already in current plan, use replace_task instead"
 
-        assert all([self.has_task_id(dep_id) for dep_id in new_task.dependent_task_ids]), \
-            "New task has unknown dependencies"
+        assert all(
+            [self.has_task_id(dep_id) for dep_id in new_task.dependent_task_ids]
+        ), "New task has unknown dependencies"
 
         # Existing tasks do not depend on the new task, it's fine to put it to the end of the sorted task sequence
         self.tasks.append(new_task)
         self.task_map[new_task.task_id] = new_task
         self._update_current_task()
-    
+
     def update_task_result(self, task: Task, task_result: TaskResult):
         task.code_steps = task_result.code_steps
         task.code = task_result.code
@@ -478,7 +480,7 @@ class Plan(BaseModel):
                 current_task_id = task.task_id
                 break
         self.current_task_id = current_task_id  # all tasks finished
-    
+
     @property
     def current_task(self) -> Task:
         """Find current task to execute
@@ -489,8 +491,7 @@ class Plan(BaseModel):
         return self.task_map.get(self.current_task_id, None)
 
     def finish_current_task(self):
-        """Finish current task, set Task.is_finished=True, set current task to next task
-        """
+        """Finish current task, set Task.is_finished=True, set current task to next task"""
         if self.current_task_id:
             self.current_task.is_finished = True
             self._update_current_task()  # set to next task
