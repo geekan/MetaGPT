@@ -42,28 +42,6 @@ class AttrDict(BaseModel):
             raise AttributeError(f"No such attribute: {key}")
 
 
-class LLMInstance:
-    """Mixin class for LLM"""
-
-    # _config: Optional[Config] = None
-    _llm_config: Optional[LLMConfig] = None
-    _llm_instance: Optional[BaseLLM] = None
-
-    def __init__(self, config: Config, name: Optional[str] = None, provider: LLMType = LLMType.OPENAI):
-        """Use a LLM provider"""
-        # 更新LLM配置
-        self._llm_config = config.get_llm_config(name, provider)
-        # 重置LLM实例
-        self._llm_instance = None
-
-    @property
-    def instance(self) -> BaseLLM:
-        """Return the LLM instance"""
-        if not self._llm_instance and self._llm_config:
-            self._llm_instance = create_llm_instance(self._llm_config)
-        return self._llm_instance
-
-
 class Context(BaseModel):
     """Env context for MetaGPT"""
 
@@ -74,7 +52,8 @@ class Context(BaseModel):
     git_repo: Optional[GitRepository] = None
     src_workspace: Optional[Path] = None
     cost_manager: CostManager = CostManager()
-    _llm: Optional[LLMInstance] = None
+
+    _llm: Optional[BaseLLM] = None
 
     @property
     def file_repo(self):
@@ -92,12 +71,19 @@ class Context(BaseModel):
         env.update({k: v for k, v in i.items() if isinstance(v, str)})
         return env
 
+    # def use_llm(self, name: Optional[str] = None, provider: LLMType = LLMType.OPENAI) -> BaseLLM:
+    #     """Use a LLM instance"""
+    #     self._llm_config = self.config.get_llm_config(name, provider)
+    #     self._llm = None
+    #     return self._llm
+
     def llm(self, name: Optional[str] = None, provider: LLMType = LLMType.OPENAI) -> BaseLLM:
-        """Return a LLM instance"""
-        llm = LLMInstance(self.config, name, provider).instance
-        if llm.cost_manager is None:
-            llm.cost_manager = self.cost_manager
-        return llm
+        """Return a LLM instance, fixme: support multiple llm instances"""
+        if self._llm is None:
+            self._llm = create_llm_instance(self.config.get_llm_config(name, provider))
+            if self._llm.cost_manager is None:
+                self._llm.cost_manager = self.cost_manager
+        return self._llm
 
 
 class ContextMixin(BaseModel):
@@ -108,11 +94,22 @@ class ContextMixin(BaseModel):
     # Env/Role/Action will use this config as private config, or use self.context.config as public config
     _config: Optional[Config] = None
 
-    def __init__(self, context: Optional[Context] = None, config: Optional[Config] = None, **kwargs):
+    # Env/Role/Action will use this llm as private llm, or use self.context._llm instance
+    _llm_config: Optional[LLMConfig] = None
+    _llm: Optional[BaseLLM] = None
+
+    def __init__(
+        self,
+        context: Optional[Context] = None,
+        config: Optional[Config] = None,
+        llm: Optional[BaseLLM] = None,
+        **kwargs,
+    ):
         """Initialize with config"""
         super().__init__(**kwargs)
         self.set_context(context)
         self.set_config(config)
+        self.set_llm(llm)
 
     def set(self, k, v, override=False):
         """Set attribute"""
@@ -127,29 +124,55 @@ class ContextMixin(BaseModel):
         """Set config"""
         self.set("_config", config, override)
 
+    def set_llm_config(self, llm_config: LLMConfig, override=False):
+        """Set llm config"""
+        self.set("_llm_config", llm_config, override)
+
+    def set_llm(self, llm: BaseLLM, override=False):
+        """Set llm"""
+        self.set("_llm", llm, override)
+
+    def use_llm(self, name: Optional[str] = None, provider: LLMType = LLMType.OPENAI) -> BaseLLM:
+        """Use a LLM instance"""
+        self._llm_config = self.config.get_llm_config(name, provider)
+        self._llm = None
+        return self.llm
+
     @property
-    def config(self):
+    def config(self) -> Config:
         """Role config: role config > context config"""
         if self._config:
             return self._config
         return self.context.config
 
     @config.setter
-    def config(self, config: Config):
+    def config(self, config: Config) -> None:
         """Set config"""
         self.set_config(config)
 
     @property
-    def context(self):
+    def context(self) -> Context:
         """Role context: role context > context"""
         if self._context:
             return self._context
         return CONTEXT
 
     @context.setter
-    def context(self, context: Context):
+    def context(self, context: Context) -> None:
         """Set context"""
         self.set_context(context)
+
+    @property
+    def llm(self) -> BaseLLM:
+        """Role llm: role llm > context llm"""
+        if self._llm_config and not self._llm:
+            self._llm = self.context.llm(self._llm_config.name, self._llm_config.provider)
+        return self._llm or self.context.llm()
+
+    @llm.setter
+    def llm(self, llm: BaseLLM) -> None:
+        """Set llm"""
+        self._llm = llm
 
 
 # Global context, not in Env

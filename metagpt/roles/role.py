@@ -31,11 +31,9 @@ from metagpt.actions import Action, ActionOutput
 from metagpt.actions.action_node import ActionNode
 from metagpt.actions.add_requirement import UserRequirement
 from metagpt.context import ContextMixin
-from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.memory import Memory
 from metagpt.provider import HumanProvider
-from metagpt.provider.base_llm import BaseLLM
 from metagpt.schema import Message, MessageQueue, SerializationMixin
 from metagpt.utils.common import any_to_name, any_to_str, role_raise_decorator
 from metagpt.utils.repair_llm_raw_output import extract_state_value_from_output
@@ -131,7 +129,6 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
     desc: str = ""
     is_human: bool = False
 
-    llm: BaseLLM = Field(default_factory=LLM, exclude=True)  # Each role has its own LLM, use different system message
     role_id: str = ""
     states: list[str] = []
     actions: list[SerializeAsAny[Action]] = Field(default=[], validate_default=True)

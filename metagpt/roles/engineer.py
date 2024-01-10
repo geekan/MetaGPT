@@ -109,7 +109,7 @@ class Engineer(Role):
             coding_context = await todo.run()
             # Code review
             if review:
-                action = WriteCodeReview(context=coding_context, g_context=self.context, llm=self.llm)
+                action = WriteCodeReview(context=coding_context, _context=self.context, llm=self.llm)
                 self._init_action_system_message(action)
                 coding_context = await action.run()
             await src_file_repo.save(

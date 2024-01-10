@@ -79,3 +79,6 @@ def test_config_mixin_3():
     assert obj.b == "b"
     assert obj.c == "c"
     assert obj.d == "d"
+
+    print(obj.__dict__.keys())
+    assert "_config" in obj.__dict__.keys()
