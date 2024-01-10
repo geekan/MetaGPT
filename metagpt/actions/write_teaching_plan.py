@@ -35,7 +35,7 @@ class WriteTeachingPlanPart(Action):
             formation=TeachingPlanBlock.FORMATION,
             role=self.prefix,
             statements="\n".join(statements),
-            lesson=self.context,
+            lesson=self.i_context,
             topic=self.topic,
             language=self.language,
         )
