@@ -25,7 +25,7 @@ async def run_code_interpreter(
     """
 
     if role_class == "ci":
-        role = CodeInterpreter(goal=requirement, auto_run=auto_run, use_tools=use_tools)
+        role = CodeInterpreter(goal=requirement, auto_run=auto_run, use_tools=use_tools, make_udfs=make_udfs)
     else:
         role = MLEngineer(
             goal=requirement,

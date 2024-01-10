@@ -198,6 +198,24 @@ model.fit(train, y_train)
 """
 
 TOOL_USAGE_PROMPT = """
+# Instruction
+Write complete code for 'Current Task'. And avoid duplicating code from finished tasks, such as repeated import of packages, reading data, etc.
+Specifically, {special_prompt}
+
+# Capabilities
+- You can utilize pre-defined tools in any code lines from 'Available Tools' in the form of Python Class.
+- You can freely combine the use of any other public packages, like sklearn, numpy, pandas, etc..
+
+# Available Tools (can be empty):
+Each Class tool is described in JSON format. When you call a tool, import the tool from `{module_name}` first.
+{tool_catalog}
+
+# Constraints:
+- Ensure the output new code is executable in the same Jupyter notebook with previous tasks code have been executed.
+- Always prioritize using pre-defined tools for the same functionality.
+"""
+
+ML_TOOL_USAGE_PROMPT = """
 # Background
 As a data scientist, you need to help user to achieve their goal [{user_requirement}] step-by-step in an continuous Jupyter notebook.
 
@@ -297,14 +315,14 @@ The current task is about evaluating a model, please note the following:
 - Use trained model from previous task result directly, do not mock or reload model yourself.
 """
 
-ML_SPECIFIC_PROMPT = {
+TASK_SPECIFIC_PROMPT = {
     "data_preprocess": DATA_PREPROCESS_PROMPT,
     "feature_engineering": FEATURE_ENGINEERING_PROMPT,
     "model_train": MODEL_TRAIN_PROMPT,
     "model_evaluate": MODEL_EVALUATE_PROMPT,
 }
 
-ML_MODULE_MAP = {
+TASK_MODULE_MAP = {
     "data_preprocess": "metagpt.tools.functions.libs.data_preprocess",
     "feature_engineering": "metagpt.tools.functions.libs.feature_engineering",
     "udf": "metagpt.tools.functions.libs.udf",

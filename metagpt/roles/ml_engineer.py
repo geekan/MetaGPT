@@ -1,31 +1,23 @@
-import json
-
 from metagpt.actions.ask_review import ReviewConst
 from metagpt.actions.debug_code import DebugCode
 from metagpt.actions.execute_code import ExecutePyCode
 from metagpt.actions.ml_da_action import Reflect, SummarizeAnalysis, UpdateDataColumns
-from metagpt.actions.write_analysis_code import (
-    MakeTools,
-    WriteCodeByGenerate,
-    WriteCodeWithTools,
-)
+from metagpt.actions.write_analysis_code import WriteCodeWithToolsML
 from metagpt.actions.write_code_steps import WriteCodeSteps
-from metagpt.const import METAGPT_ROOT
 from metagpt.logs import logger
 from metagpt.roles.code_interpreter import CodeInterpreter
 from metagpt.roles.kaggle_manager import DownloadData, SubmitResult
 from metagpt.schema import Message
-from metagpt.tools.functions.libs.udf import UDFS_YAML
-from metagpt.utils.common import remove_comments
+from metagpt.utils.common import any_to_str
 
 
 class MLEngineer(CodeInterpreter):
     auto_run: bool = False
-    use_tools: bool = False
     use_code_steps: bool = False
-    make_udfs: bool = False  # whether to save user-defined functions
     use_udfs: bool = False
     data_desc: dict = {}
+    debug_context: list = []
+    latest_code: str = ""
 
     def __init__(
         self,
@@ -38,27 +30,21 @@ class MLEngineer(CodeInterpreter):
         make_udfs=False,
         use_udfs=False,
     ):
-        super().__init__(name=name, profile=profile, goal=goal, auto_run=auto_run, use_tools=use_tools)
-        self.auto_run = auto_run
-        self.use_tools = use_tools
-        self.use_code_steps = use_code_steps
-        self.make_udfs = make_udfs
-        self.use_udfs = use_udfs
+        super().__init__(
+            name=name,
+            profile=profile,
+            goal=goal,
+            auto_run=auto_run,
+            use_tools=use_tools,
+            use_code_steps=use_code_steps,
+            make_udfs=make_udfs,
+            use_udfs=use_udfs,
+        )
         # self._watch([DownloadData, SubmitResult])  # in multi-agent settings
 
     async def _plan_and_act(self):
-        ### Actions in a multi-agent multi-turn setting, a new attempt on the data ###
-        memories = self.get_memories()
-        if memories:
-            latest_event = memories[-1].cause_by
-            if latest_event == DownloadData:
-                self.planner.plan.context = memories[-1].content
-            elif latest_event == SubmitResult:
-                # self reflect on previous plan outcomes and think about how to improve the plan, add to working  memory
-                await self._reflect()
-
-                # get feedback for improvement from human, add to working memory
-                await self.planner.ask_review(trigger=ReviewConst.TASK_REVIEW_TRIGGER)
+        ### a new attempt on the data, relevant in a multi-agent multi-turn setting ###
+        await self._prepare_data_context()
 
         ### general plan process ###
         await super()._plan_and_act()
@@ -75,84 +61,47 @@ class MLEngineer(CodeInterpreter):
             await WriteCodeSteps().run(self.planner.plan) if self.use_code_steps else ""
         )
 
-        counter = 0
-        success = False
-        debug_context = []
-
-        while not success and counter < max_retry:
-            context = self.planner.get_useful_memories()
-
-            if counter > 0 and (self.use_tools or self.use_udfs):
-                logger.warning("We got a bug code, now start to debug...")
-                code = await DebugCode().run(
-                    plan=self.planner.current_task.instruction,
-                    code=code,
-                    runtime_result=self.working_memory.get(),
-                    context=debug_context,
-                )
-                logger.info(f"new code \n{code}")
-                cause_by = DebugCode
-
-            elif (not self.use_tools and not self.use_udfs) or (
-                self.planner.current_task.task_type == "other" and not self.use_udfs
-            ):
-                logger.info("Write code with pure generation")
-                code = await WriteCodeByGenerate().run(context=context, plan=self.planner.plan, temperature=0.0)
-                debug_context = [self.planner.get_useful_memories(task_exclude_field={"result", "code_steps"})[0]]
-                cause_by = WriteCodeByGenerate
-
-            else:
-                logger.info("Write code with tools")
-                if self.use_udfs:
-                    # use user-defined function tools.
-                    logger.warning("Writing code with user-defined function tools by WriteCodeWithTools.")
-                    logger.info(
-                        f"Local user defined function as following:\
-                        \n{json.dumps(list(UDFS_YAML.keys()), indent=2, ensure_ascii=False)}"
-                    )
-                    # set task_type to `udf`
-                    self.planner.current_task.task_type = "udf"
-                    schema_path = UDFS_YAML
-                else:
-                    schema_path = METAGPT_ROOT / "metagpt/tools/functions/schemas"
-                tool_context, code = await WriteCodeWithTools(schema_path=schema_path).run(
-                    context=context,
-                    plan=self.planner.plan,
-                    column_info=self.data_desc.get("column_info", ""),
-                )
-                debug_context = tool_context
-                cause_by = WriteCodeWithTools
-
-            self.working_memory.add(Message(content=code, role="assistant", cause_by=cause_by))
-
-            result, success = await self.execute_code.run(code)
-            print(result)
-            # make tools for successful code and long code.
-            if success and self.make_udfs and len(remove_comments(code).split("\n")) > 4:
-                logger.info("Execute code successfully. Now start to make tools ...")
-                await self.make_tools(code=code)
-            self.working_memory.add(Message(content=result, role="user", cause_by=ExecutePyCode))
-
-            if "!pip" in code:
-                success = False
-
-            counter += 1
-
-            if not success and counter >= max_retry:
-                logger.info("coding failed!")
-                review, _ = await self.planner.ask_review(auto_run=False, trigger=ReviewConst.CODE_REVIEW_TRIGGER)
-                if ReviewConst.CHANGE_WORD[0] in review:
-                    counter = 0  # redo the task again with help of human suggestions
+        code, result, success = await super()._write_and_exec_code(max_retry=max_retry)
 
         if success:
-            if (
-                self.use_tools and self.planner.current_task.task_type not in ["model_train", "model_evaluate"]
-            ) or self.use_udfs:
+            if self.use_tools and self.planner.current_task.task_type in ["data_preprocess", "feature_engineering"]:
                 update_success, new_code = await self._update_data_columns()
                 if update_success:
                     code = code + "\n\n" + new_code
 
         return code, result, success
+
+    async def _write_code(self):
+        if not self.use_tools:
+            return await super()._write_code()
+
+        code_execution_count = sum([msg.cause_by == any_to_str(ExecutePyCode) for msg in self.working_memory.get()])
+        print("*" * 10, code_execution_count)
+
+        if code_execution_count > 0:
+            logger.warning("We got a bug code, now start to debug...")
+            code = await DebugCode().run(
+                plan=self.planner.current_task.instruction,
+                code=self.latest_code,
+                runtime_result=self.working_memory.get(),
+                context=self.debug_context,
+            )
+            logger.info(f"new code \n{code}")
+            cause_by = DebugCode
+
+        else:
+            logger.info("Write code with tools")
+            tool_context, code = await WriteCodeWithToolsML().run(
+                context=[],  # context assembled inside the Action
+                plan=self.planner.plan,
+                column_info=self.data_desc.get("column_info", ""),
+            )
+            self.debug_context = tool_context
+            cause_by = WriteCodeWithToolsML
+
+        self.latest_code = code
+
+        return code, cause_by
 
     async def _update_data_columns(self):
         logger.info("Check columns in updated data")
@@ -166,6 +115,19 @@ class MLEngineer(CodeInterpreter):
                 self.data_desc["column_info"] = result
         return success, code
 
+    async def _prepare_data_context(self):
+        memories = self.get_memories()
+        if memories:
+            latest_event = memories[-1].cause_by
+            if latest_event == DownloadData:
+                self.planner.plan.context = memories[-1].content
+            elif latest_event == SubmitResult:
+                # self reflect on previous plan outcomes and think about how to improve the plan, add to working  memory
+                await self._reflect()
+
+                # get feedback for improvement from human, add to working memory
+                await self.planner.ask_review(trigger=ReviewConst.TASK_REVIEW_TRIGGER)
+
     async def _reflect(self):
         context = self.get_memories()
         context = "\n".join([str(msg) for msg in context])
@@ -173,38 +135,3 @@ class MLEngineer(CodeInterpreter):
         reflection = await Reflect().run(context=context)
         self.working_memory.add(Message(content=reflection, role="assistant"))
         self.working_memory.add(Message(content=Reflect.REWRITE_PLAN_INSTRUCTION, role="user"))
-
-    async def make_tools(self, code: str):
-        """Make user-defined functions(udfs, aka tools) for pure generation code.
-
-        Args:
-            code (str): pure generation code by class WriteCodeByGenerate.
-        """
-        logger.warning(
-            f"Making tools for task_id {self.planner.current_task_id}: \
-            `{self.planner.current_task.instruction}` \n code: \n {code}"
-        )
-        make_tools = MakeTools()
-        make_tool_retries, make_tool_current_retry = 3, 0
-        while True:
-            # start make tools
-            tool_code = await make_tools.run(code, self.planner.current_task.instruction)
-            make_tool_current_retry += 1
-
-            # check tool_code by execute_code
-            logger.info(f"Checking task_id {self.planner.current_task_id} tool code by executor...")
-            execute_result, execute_success = await self.execute_code.run(tool_code)
-            if not execute_success:
-                logger.error(f"Tool code faild to execute, \n{execute_result}\n.We will try to fix it ...")
-            # end make tools
-            if execute_success or make_tool_current_retry >= make_tool_retries:
-                if make_tool_current_retry >= make_tool_retries:
-                    logger.error(
-                        f"We have tried the maximum number of attempts {make_tool_retries}\
-                        and still have not created tools for task_id {self.planner.current_task_id} successfully,\
-                            we will skip it."
-                    )
-                break
-        # save successful tool code in udf
-        if execute_success:
-            make_tools.save(tool_code)

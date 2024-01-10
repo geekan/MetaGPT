@@ -4,14 +4,20 @@ from pydantic import Field
 
 from metagpt.actions.ask_review import ReviewConst
 from metagpt.actions.execute_code import ExecutePyCode
-from metagpt.actions.write_analysis_code import WriteCodeByGenerate
+from metagpt.actions.write_analysis_code import (
+    WriteCodeByGenerate,
+    WriteCodeWithTools,
+)
 from metagpt.logs import logger
 from metagpt.roles import Role
+from metagpt.roles.tool_maker import ToolMaker
 from metagpt.schema import Message, Task, TaskResult
 from metagpt.utils.save_code import save_code_file
 
 
 class CodeInterpreter(Role):
+    use_tools: bool = False
+    make_udfs: bool = False  # whether to save user-defined functions
     execute_code: ExecutePyCode = Field(default_factory=ExecutePyCode, exclude=True)
 
     def __init__(
@@ -21,8 +27,10 @@ class CodeInterpreter(Role):
         goal="",
         auto_run=False,
         use_tools=False,
+        make_udfs=False,
+        **kwargs,
     ):
-        super().__init__(name=name, profile=profile, goal=goal)
+        super().__init__(name=name, profile=profile, goal=goal, use_tools=use_tools, make_udfs=make_udfs, **kwargs)
         self._set_react_mode(react_mode="plan_and_act", auto_run=auto_run, use_tools=use_tools)
 
     @property
@@ -36,6 +44,10 @@ class CodeInterpreter(Role):
         project_record = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         save_code_file(name=project_record, code_context=self.execute_code.nb, file_format="ipynb")
 
+        # make tools out of workable codes for future use
+        if self.make_udfs:
+            await self.make_tools()
+
         return rsp
 
     async def _act_on_task(self, current_task: Task) -> TaskResult:
@@ -48,20 +60,18 @@ class CodeInterpreter(Role):
         success = False
 
         while not success and counter < max_retry:
-            context = self.planner.get_useful_memories()
-
-            logger.info("Write code with pure generation")
-
-            code = await WriteCodeByGenerate().run(context=context, plan=self.planner.plan, temperature=0.0)
-            cause_by = WriteCodeByGenerate
+            ### write code ###
+            code, cause_by = await self._write_code()
 
             self.working_memory.add(Message(content=code, role="assistant", cause_by=cause_by))
 
+            ### execute code ###
             result, success = await self.execute_code.run(code)
             print(result)
 
             self.working_memory.add(Message(content=result, role="user", cause_by=ExecutePyCode))
 
+            ### process execution result ###
             if "!pip" in code:
                 success = False
 
@@ -74,3 +84,19 @@ class CodeInterpreter(Role):
                     counter = 0  # redo the task again with help of human suggestions
 
         return code, result, success
+
+    async def _write_code(self):
+        todo = WriteCodeByGenerate() if not self.use_tools else WriteCodeWithTools()
+        logger.info(f"ready to {todo.name}")
+
+        context = self.planner.get_useful_memories()
+        code = await todo.run(context=context, plan=self.planner.plan, temperature=0.0)
+
+        return code, todo
+
+    async def make_tools(self):
+        """Make user-defined functions(udfs, aka tools) for pure generation code."""
+        logger.info("Plan completed. Now start to make tools ...")
+        tool_maker = ToolMaker()
+        for task in self.planner.plan.get_finished_tasks():
+            await tool_maker.make_tool(task.code, task.instruction, task.task_id)
