@@ -88,3 +88,12 @@ def test_truncate():
     assert truncate(output) == output
     output = "hello world"
     assert truncate(output, 5) == "Truncated to show only the last 5 characters\nworld"
+
+
+@pytest.mark.asyncio
+async def test_run_with_timeout():
+    pi = ExecutePyCode(timeout=1)
+    code = "import time; time.sleep(2)"
+    message, success = await pi.run(code)
+    assert not success
+    assert message == "TimeoutError"
