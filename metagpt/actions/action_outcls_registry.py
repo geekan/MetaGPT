@@ -5,7 +5,6 @@
 
 from functools import wraps
 
-
 action_outcls_registry = dict()
 
 
@@ -14,6 +13,7 @@ def register_action_outcls(func):
     Due to `create_model` return different Class even they have same class name and mapping.
     In order to do a comparison, use outcls_id to identify same Class with same class name and field definition
     """
+
     @wraps(func)
     def decorater(*args, **kwargs):
         """

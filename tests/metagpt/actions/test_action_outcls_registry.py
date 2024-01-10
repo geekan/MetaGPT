@@ -3,6 +3,7 @@
 # @Desc   : unittest of action_outcls_registry
 
 from typing import List
+
 from metagpt.actions.action_node import ActionNode
 
 
@@ -18,10 +19,9 @@ def test_action_outcls_registry():
     outinst1 = outcls1(**out_data)
     assert outinst1 == outinst
 
-    outcls2 = ActionNode(key="",
-                         expected_type=str,
-                         instruction="",
-                         example="").create_model_class(class_name, out_mapping)
+    outcls2 = ActionNode(key="", expected_type=str, instruction="", example="").create_model_class(
+        class_name, out_mapping
+    )
     outinst2 = outcls2(**out_data)
     assert outinst2 == outinst
 
