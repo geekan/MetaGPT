@@ -120,7 +120,7 @@ class RoleContext(BaseModel):
 class Role(SerializationMixin, ContextMixin, BaseModel):
     """Role/Agent"""
 
-    model_config = ConfigDict(arbitrary_types_allowed=True, exclude=["llm"])
+    model_config = ConfigDict(arbitrary_types_allowed=True, extra="ignore")
 
     name: str = ""
     profile: str = ""
