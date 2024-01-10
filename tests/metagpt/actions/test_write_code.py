@@ -19,8 +19,8 @@ from metagpt.const import (
     TEST_OUTPUTS_FILE_REPO,
 )
 from metagpt.context import CONTEXT
+from metagpt.llm import LLM
 from metagpt.logs import logger
-from metagpt.provider.openai_api import OpenAILLM as LLM
 from metagpt.schema import CodingContext, Document
 from metagpt.utils.common import aread
 from tests.metagpt.actions.mock_markdown import TASKS_2, WRITE_CODE_PROMPT_SAMPLE
@@ -32,7 +32,7 @@ async def test_write_code():
         filename="task_filename.py", design_doc=Document(content="设计一个名为'add'的函数，该函数接受两个整数作为输入，并返回它们的和。")
     )
     doc = Document(content=ccontext.model_dump_json())
-    write_code = WriteCode(context=doc)
+    write_code = WriteCode(i_context=doc)
 
     code = await write_code.run()
     logger.info(code.model_dump_json())
@@ -86,7 +86,7 @@ async def test_write_code_deps():
     )
     coding_doc = Document(root_path="snake1", filename="game.py", content=ccontext.json())
 
-    action = WriteCode(context=coding_doc)
+    action = WriteCode(i_context=coding_doc)
     rsp = await action.run()
     assert rsp
     assert rsp.code_doc.content

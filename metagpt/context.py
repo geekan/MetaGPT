@@ -77,13 +77,21 @@ class Context(BaseModel):
     #     self._llm = None
     #     return self._llm
 
-    def llm(self, name: Optional[str] = None, provider: LLMType = LLMType.OPENAI) -> BaseLLM:
+    def llm(self, name: Optional[str] = None, provider: LLMType = None) -> BaseLLM:
         """Return a LLM instance, fixme: support cache"""
         # if self._llm is None:
         self._llm = create_llm_instance(self.config.get_llm_config(name, provider))
         if self._llm.cost_manager is None:
             self._llm.cost_manager = self.cost_manager
         return self._llm
+
+    def llm_with_cost_manager_from_llm_config(self, llm_config: LLMConfig) -> BaseLLM:
+        """Return a LLM instance, fixme: support cache"""
+        # if self._llm is None:
+        llm = create_llm_instance(llm_config)
+        if llm.cost_manager is None:
+            llm.cost_manager = self.cost_manager
+        return llm
 
 
 class ContextMixin(BaseModel):
@@ -132,7 +140,7 @@ class ContextMixin(BaseModel):
         """Set llm"""
         self.set("_llm", llm, override)
 
-    def use_llm(self, name: Optional[str] = None, provider: LLMType = LLMType.OPENAI) -> BaseLLM:
+    def use_llm(self, name: Optional[str] = None, provider: LLMType = None) -> BaseLLM:
         """Use a LLM instance"""
         self._llm_config = self.config.get_llm_config(name, provider)
         self._llm = None
@@ -165,9 +173,9 @@ class ContextMixin(BaseModel):
     @property
     def llm(self) -> BaseLLM:
         """Role llm: role llm > context llm"""
-        # print(f"class:{self.__class__.__name__}({self.name}), llm: {self._llm}, llm_config: {self._llm_config}")
+        print(f"class:{self.__class__.__name__}({self.name}), llm: {self._llm}, llm_config: {self._llm_config}")
         if self._llm_config and not self._llm:
-            self._llm = self.context.llm(self._llm_config.name, self._llm_config.provider)
+            self._llm = self.context.llm_with_cost_manager_from_llm_config(self._llm_config)
         return self._llm or self.context.llm()
 
     @llm.setter

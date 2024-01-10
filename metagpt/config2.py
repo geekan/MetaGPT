@@ -121,12 +121,10 @@ class Config(CLIParams, YamlModel):
             return llm[0]
         return None
 
-    def get_llm_config(self, name: Optional[str] = None, provider: LLMType = LLMType.OPENAI) -> LLMConfig:
+    def get_llm_config(self, name: Optional[str] = None, provider: LLMType = None) -> LLMConfig:
         """Return a LLMConfig instance"""
         if provider:
             llm_configs = self.get_llm_configs_by_type(provider)
-            if name:
-                llm_configs = [c for c in llm_configs if c.name == name]
 
             if len(llm_configs) == 0:
                 raise ValueError(f"Cannot find llm config with name {name} and provider {provider}")
