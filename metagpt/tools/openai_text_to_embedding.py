@@ -13,7 +13,7 @@ import aiohttp
 import requests
 from pydantic import BaseModel, Field
 
-from metagpt.config import CONFIG
+from metagpt.config2 import config
 from metagpt.logs import logger
 
 
@@ -47,7 +47,8 @@ class OpenAIText2Embedding:
         """
         :param openai_api_key: OpenAI API key, For more details, checkout: `https://platform.openai.com/account/api-keys`
         """
-        self.openai_api_key = openai_api_key or CONFIG.OPENAI_API_KEY
+        self.openai_llm = config.get_openai_llm()
+        self.openai_api_key = openai_api_key or self.openai_llm.api_key
 
     async def text_2_embedding(self, text, model="text-embedding-ada-002"):
         """Text to embedding
@@ -57,7 +58,7 @@ class OpenAIText2Embedding:
         :return: A json object of :class:`ResultEmbedding` class if successful, otherwise `{}`.
         """
 
-        proxies = {"proxy": CONFIG.openai_proxy} if CONFIG.openai_proxy else {}
+        proxies = {"proxy": self.openai_llm.proxy} if self.openai_llm.proxy else {}
         headers = {"Content-Type": "application/json", "Authorization": f"Bearer {self.openai_api_key}"}
         data = {"input": text, "model": model}
         url = "https://api.openai.com/v1/embeddings"
@@ -83,5 +84,5 @@ async def oas3_openai_text_to_embedding(text, model="text-embedding-ada-002", op
     if not text:
         return ""
     if not openai_api_key:
-        openai_api_key = CONFIG.OPENAI_API_KEY
+        openai_api_key = config.get_openai_llm().api_key
     return await OpenAIText2Embedding(openai_api_key).text_2_embedding(text, model=model)

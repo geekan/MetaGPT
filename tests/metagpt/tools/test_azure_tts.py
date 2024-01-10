@@ -12,6 +12,7 @@ import pytest
 from azure.cognitiveservices.speech import ResultReason
 
 from metagpt.config import CONFIG
+from metagpt.config2 import config
 from metagpt.tools.azure_tts import AzureTTS
 
 
@@ -32,7 +33,7 @@ async def test_azure_tts():
                 “Writing a binary file in Python is similar to writing a regular text file, but you'll work with bytes instead of strings.”
             </mstts:express-as>
         """
-    path = CONFIG.path / "tts"
+    path = config.workspace.path / "tts"
     path.mkdir(exist_ok=True, parents=True)
     filename = path / "girl.wav"
     filename.unlink(missing_ok=True)

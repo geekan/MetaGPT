@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from metagpt.config import CONFIG
+from metagpt.config2 import config
 from metagpt.const import API_QUESTIONS_PATH, UT_PY_PATH
 from metagpt.tools.ut_writer import YFT_PROMPT_PREFIX, UTGenerator
 
@@ -20,9 +20,7 @@ class TestUTWriter:
         # Prerequisites
         swagger_file = Path(__file__).parent / "../../data/ut_writer/yft_swaggerApi.json"
         assert swagger_file.exists()
-        assert CONFIG.OPENAI_API_KEY and CONFIG.OPENAI_API_KEY != "YOUR_API_KEY"
-        assert not CONFIG.OPENAI_API_TYPE
-        assert CONFIG.OPENAI_API_MODEL
+        assert config.get_openai_llm()
 
         tags = ["测试", "作业"]
         # 这里在文件中手动加入了两个测试标签的API

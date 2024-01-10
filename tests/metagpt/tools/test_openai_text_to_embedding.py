@@ -8,16 +8,14 @@
 
 import pytest
 
-from metagpt.config import CONFIG
+from metagpt.config2 import config
 from metagpt.tools.openai_text_to_embedding import oas3_openai_text_to_embedding
 
 
 @pytest.mark.asyncio
 async def test_embedding():
     # Prerequisites
-    assert CONFIG.OPENAI_API_KEY and CONFIG.OPENAI_API_KEY != "YOUR_API_KEY"
-    assert not CONFIG.OPENAI_API_TYPE
-    assert CONFIG.OPENAI_API_MODEL
+    assert config.get_openai_llm()
 
     result = await oas3_openai_text_to_embedding("Panda emoji")
     assert result

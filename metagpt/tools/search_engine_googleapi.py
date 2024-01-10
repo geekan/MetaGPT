@@ -11,7 +11,7 @@ from urllib.parse import urlparse
 import httplib2
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from metagpt.config import CONFIG
+from metagpt.config2 import config
 from metagpt.logs import logger
 
 try:
@@ -35,7 +35,7 @@ class GoogleAPIWrapper(BaseModel):
     @field_validator("google_api_key", mode="before")
     @classmethod
     def check_google_api_key(cls, val: str):
-        val = val or CONFIG.google_api_key
+        val = val or config.search["google"].api_key
         if not val:
             raise ValueError(
                 "To use, make sure you provide the google_api_key when constructing an object. Alternatively, "
@@ -47,7 +47,7 @@ class GoogleAPIWrapper(BaseModel):
     @field_validator("google_cse_id", mode="before")
     @classmethod
     def check_google_cse_id(cls, val: str):
-        val = val or CONFIG.google_cse_id
+        val = val or config.search["google"].cse_id
         if not val:
             raise ValueError(
                 "To use, make sure you provide the google_cse_id when constructing an object. Alternatively, "
@@ -59,8 +59,8 @@ class GoogleAPIWrapper(BaseModel):
     @property
     def google_api_client(self):
         build_kwargs = {"developerKey": self.google_api_key}
-        if CONFIG.global_proxy:
-            parse_result = urlparse(CONFIG.global_proxy)
+        if config.proxy:
+            parse_result = urlparse(config.proxy)
             proxy_type = parse_result.scheme
             if proxy_type == "https":
                 proxy_type = "http"

@@ -7,6 +7,8 @@ import json
 from concurrent import futures
 from typing import Literal, overload
 
+from metagpt.config2 import config
+
 try:
     from duckduckgo_search import DDGS
 except ImportError:
@@ -14,8 +16,6 @@ except ImportError:
         "To use this module, you should have the `duckduckgo_search` Python package installed. "
         "You can install it by running the command: `pip install -e.[search-ddg]`"
     )
-
-from metagpt.config import CONFIG
 
 
 class DDGAPIWrapper:
@@ -31,8 +31,8 @@ class DDGAPIWrapper:
         executor: futures.Executor | None = None,
     ):
         kwargs = {}
-        if CONFIG.global_proxy:
-            kwargs["proxies"] = CONFIG.global_proxy
+        if config.proxy:
+            kwargs["proxies"] = config.proxy
         self.loop = loop
         self.executor = executor
         self.ddgs = DDGS(**kwargs)

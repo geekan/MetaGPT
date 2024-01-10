@@ -8,7 +8,7 @@
 
 import pytest
 
-from metagpt.config import CONFIG
+from metagpt.config2 import config
 from metagpt.tools.openai_text_to_image import (
     OpenAIText2Image,
     oas3_openai_text_to_image,
@@ -18,9 +18,7 @@ from metagpt.tools.openai_text_to_image import (
 @pytest.mark.asyncio
 async def test_draw():
     # Prerequisites
-    assert CONFIG.OPENAI_API_KEY and CONFIG.OPENAI_API_KEY != "YOUR_API_KEY"
-    assert not CONFIG.OPENAI_API_TYPE
-    assert CONFIG.OPENAI_API_MODEL
+    assert config.get_openai_llm()
 
     binary_data = await oas3_openai_text_to_image("Panda emoji")
     assert binary_data

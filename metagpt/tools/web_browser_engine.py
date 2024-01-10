@@ -8,7 +8,6 @@ from __future__ import annotations
 import importlib
 from typing import Any, Callable, Coroutine, overload
 
-from metagpt.config import CONFIG
 from metagpt.tools import WebBrowserEngineType
 from metagpt.utils.parse_html import WebPage
 
@@ -19,7 +18,6 @@ class WebBrowserEngine:
         engine: WebBrowserEngineType | None = None,
         run_func: Callable[..., Coroutine[Any, Any, WebPage | list[WebPage]]] | None = None,
     ):
-        engine = engine or CONFIG.web_browser_engine
         if engine is None:
             raise NotImplementedError
 

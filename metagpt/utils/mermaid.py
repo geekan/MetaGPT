@@ -12,7 +12,7 @@ from pathlib import Path
 
 import aiofiles
 
-from metagpt.config import CONFIG
+from metagpt.config2 import config
 from metagpt.logs import logger
 from metagpt.utils.common import check_cmd_exists
 
@@ -35,9 +35,9 @@ async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, 
         await f.write(mermaid_code)
     # tmp.write_text(mermaid_code, encoding="utf-8")
 
-    engine = CONFIG.mermaid_engine.lower()
+    engine = config.mermaid["default"].engine
     if engine == "nodejs":
-        if check_cmd_exists(CONFIG.mmdc) != 0:
+        if check_cmd_exists(config.mmdc) != 0:
             logger.warning(
                 "RUN `npm install -g @mermaid-js/mermaid-cli` to install mmdc,"
                 "or consider changing MERMAID_ENGINE to `playwright`, `pyppeteer`, or `ink`."
@@ -49,11 +49,11 @@ async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, 
             # Call the `mmdc` command to convert the Mermaid code to a PNG
             logger.info(f"Generating {output_file}..")
 
-            if CONFIG.puppeteer_config:
+            if config.puppeteer_config:
                 commands = [
-                    CONFIG.mmdc,
+                    config.mmdc,
                     "-p",
-                    CONFIG.puppeteer_config,
+                    config.puppeteer_config,
                     "-i",
                     str(tmp),
                     "-o",
@@ -64,7 +64,7 @@ async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, 
                     str(height),
                 ]
             else:
-                commands = [CONFIG.mmdc, "-i", str(tmp), "-o", output_file, "-w", str(width), "-H", str(height)]
+                commands = [config.mmdc, "-i", str(tmp), "-o", output_file, "-w", str(width), "-H", str(height)]
             process = await asyncio.create_subprocess_shell(
                 " ".join(commands), stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
             )

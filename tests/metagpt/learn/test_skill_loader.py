@@ -10,13 +10,13 @@ from pathlib import Path
 
 import pytest
 
-from metagpt.config import CONFIG
+from metagpt.context import CONTEXT
 from metagpt.learn.skill_loader import SkillsDeclaration
 
 
 @pytest.mark.asyncio
 async def test_suite():
-    CONFIG.agent_skills = [
+    CONTEXT.kwargs.agent_skills = [
         {"id": 1, "name": "text_to_speech", "type": "builtin", "config": {}, "enabled": True},
         {"id": 2, "name": "text_to_image", "type": "builtin", "config": {}, "enabled": True},
         {"id": 3, "name": "ai_call", "type": "builtin", "config": {}, "enabled": True},

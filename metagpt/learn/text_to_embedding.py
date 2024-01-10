@@ -7,7 +7,6 @@
 @Desc    : Text-to-Embedding skill, which provides text-to-embedding functionality.
 """
 
-from metagpt.config import CONFIG
 from metagpt.tools.openai_text_to_embedding import oas3_openai_text_to_embedding
 
 
@@ -19,6 +18,4 @@ async def text_to_embedding(text, model="text-embedding-ada-002", openai_api_key
     :param openai_api_key: OpenAI API key, For more details, checkout: `https://platform.openai.com/account/api-keys`
     :return: A json object of :class:`ResultEmbedding` class if successful, otherwise `{}`.
     """
-    if CONFIG.OPENAI_API_KEY or openai_api_key:
-        return await oas3_openai_text_to_embedding(text, model=model, openai_api_key=openai_api_key)
-    raise EnvironmentError
+    return await oas3_openai_text_to_embedding(text, model=model, openai_api_key=openai_api_key)

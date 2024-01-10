@@ -13,7 +13,7 @@ import aiofiles
 import yaml
 from pydantic import BaseModel, Field
 
-from metagpt.config import CONFIG
+from metagpt.context import CONTEXT
 
 
 class Example(BaseModel):
@@ -80,7 +80,7 @@ class SkillsDeclaration(BaseModel):
             return {}
 
         # List of skills that the agent chooses to activate.
-        agent_skills = CONFIG.agent_skills
+        agent_skills = CONTEXT.kwargs.agent_skills
         if not agent_skills:
             return {}
 
