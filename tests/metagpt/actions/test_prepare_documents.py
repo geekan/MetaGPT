@@ -22,7 +22,7 @@ async def test_prepare_documents():
         CONTEXT.git_repo.delete_repository()
         CONTEXT.git_repo = None
 
-    await PrepareDocuments(g_context=CONTEXT).run(with_messages=[msg])
+    await PrepareDocuments(context=CONTEXT).run(with_messages=[msg])
     assert CONTEXT.git_repo
     doc = await CONTEXT.file_repo.get_file(filename=REQUIREMENT_FILENAME, relative_path=DOCS_FILE_REPO)
     assert doc

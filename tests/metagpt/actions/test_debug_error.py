@@ -144,7 +144,7 @@ async def test_debug_error():
     await repo.save_file(
         filename=ctx.output_filename, content=output_data.model_dump_json(), relative_path=TEST_OUTPUTS_FILE_REPO
     )
-    debug_error = DebugError(context=ctx)
+    debug_error = DebugError(i_context=ctx)
 
     rsp = await debug_error.run()
 

@@ -26,12 +26,12 @@ async def test_run_text():
 @pytest.mark.asyncio
 async def test_run_script():
     # Successful command
-    out, err = await RunCode.run_script(".", command=["echo", "Hello World"])
+    out, err = await RunCode().run_script(".", command=["echo", "Hello World"])
     assert out.strip() == "Hello World"
     assert err == ""
 
     # Unsuccessful command
-    out, err = await RunCode.run_script(".", command=["python", "-c", "print(1/0)"])
+    out, err = await RunCode().run_script(".", command=["python", "-c", "print(1/0)"])
     assert "ZeroDivisionError" in err
 
 
@@ -61,5 +61,5 @@ async def test_run():
         ),
     ]
     for ctx, result in inputs:
-        rsp = await RunCode(context=ctx).run()
+        rsp = await RunCode(i_context=ctx).run()
         assert result in rsp.summary

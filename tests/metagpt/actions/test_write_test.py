@@ -26,7 +26,7 @@ async def test_write_test():
             self.position = (random.randint(1, max_y - 1), random.randint(1, max_x - 1))
     """
     context = TestingContext(filename="food.py", code_doc=Document(filename="food.py", content=code))
-    write_test = WriteTest(context=context)
+    write_test = WriteTest(i_context=context)
 
     context = await write_test.run()
     logger.info(context.model_dump_json())

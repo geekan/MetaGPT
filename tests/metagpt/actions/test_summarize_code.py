@@ -188,7 +188,7 @@ async def test_summarize_code():
     src_file_repo = CONTEXT.git_repo.new_file_repository(relative_path=CONTEXT.src_workspace)
     all_files = src_file_repo.all_files
     ctx = CodeSummarizeContext(design_filename="1.json", task_filename="1.json", codes_filenames=all_files)
-    action = SummarizeCode(context=ctx)
+    action = SummarizeCode(i_context=ctx)
     rsp = await action.run()
     assert rsp
     logger.info(rsp)
