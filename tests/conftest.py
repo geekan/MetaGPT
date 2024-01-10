@@ -16,7 +16,7 @@ import uuid
 import pytest
 
 from metagpt.const import DEFAULT_WORKSPACE_ROOT, TEST_DATA_PATH
-from metagpt.context import context
+from metagpt.context import CONTEXT
 from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.utils.git_repository import GitRepository
@@ -141,12 +141,12 @@ def loguru_caplog(caplog):
 # init & dispose git repo
 @pytest.fixture(scope="function", autouse=True)
 def setup_and_teardown_git_repo(request):
-    context.git_repo = GitRepository(local_path=DEFAULT_WORKSPACE_ROOT / f"unittest/{uuid.uuid4().hex}")
-    context.config.git_reinit = True
+    CONTEXT.git_repo = GitRepository(local_path=DEFAULT_WORKSPACE_ROOT / f"unittest/{uuid.uuid4().hex}")
+    CONTEXT.config.git_reinit = True
 
     # Destroy git repo at the end of the test session.
     def fin():
-        context.git_repo.delete_repository()
+        CONTEXT.git_repo.delete_repository()
 
     # Register the function for destroying the environment.
     request.addfinalizer(fin)

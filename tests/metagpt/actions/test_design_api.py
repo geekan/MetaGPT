@@ -10,7 +10,7 @@ import pytest
 
 from metagpt.actions.design_api import WriteDesign
 from metagpt.const import PRDS_FILE_REPO
-from metagpt.context import context
+from metagpt.context import CONTEXT
 from metagpt.logs import logger
 from metagpt.schema import Message
 
@@ -18,7 +18,7 @@ from metagpt.schema import Message
 @pytest.mark.asyncio
 async def test_design_api():
     inputs = ["我们需要一个音乐播放器，它应该有播放、暂停、上一曲、下一曲等功能。"]  # PRD_SAMPLE
-    repo = context.file_repo
+    repo = CONTEXT.file_repo
     for prd in inputs:
         await repo.save_file("new_prd.txt", content=prd, relative_path=PRDS_FILE_REPO)
 

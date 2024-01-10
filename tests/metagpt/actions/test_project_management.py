@@ -10,7 +10,7 @@ import pytest
 
 from metagpt.actions.project_management import WriteTasks
 from metagpt.const import PRDS_FILE_REPO, SYSTEM_DESIGN_FILE_REPO
-from metagpt.context import context
+from metagpt.context import CONTEXT
 from metagpt.logs import logger
 from metagpt.schema import Message
 from tests.metagpt.actions.mock_json import DESIGN, PRD
@@ -18,9 +18,9 @@ from tests.metagpt.actions.mock_json import DESIGN, PRD
 
 @pytest.mark.asyncio
 async def test_design_api():
-    await context.file_repo.save_file("1.txt", content=str(PRD), relative_path=PRDS_FILE_REPO)
-    await context.file_repo.save_file("1.txt", content=str(DESIGN), relative_path=SYSTEM_DESIGN_FILE_REPO)
-    logger.info(context.git_repo)
+    await CONTEXT.file_repo.save_file("1.txt", content=str(PRD), relative_path=PRDS_FILE_REPO)
+    await CONTEXT.file_repo.save_file("1.txt", content=str(DESIGN), relative_path=SYSTEM_DESIGN_FILE_REPO)
+    logger.info(CONTEXT.git_repo)
 
     action = WriteTasks()
 

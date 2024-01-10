@@ -12,7 +12,7 @@ import pytest
 
 from metagpt.actions.debug_error import DebugError
 from metagpt.const import TEST_CODES_FILE_REPO, TEST_OUTPUTS_FILE_REPO
-from metagpt.context import context
+from metagpt.context import CONTEXT
 from metagpt.schema import RunCodeContext, RunCodeResult
 
 CODE_CONTENT = '''
@@ -117,7 +117,7 @@ if __name__ == '__main__':
 
 @pytest.mark.asyncio
 async def test_debug_error():
-    context.src_workspace = context.git_repo.workdir / uuid.uuid4().hex
+    CONTEXT.src_workspace = CONTEXT.git_repo.workdir / uuid.uuid4().hex
     ctx = RunCodeContext(
         code_filename="player.py",
         test_filename="test_player.py",
@@ -125,8 +125,8 @@ async def test_debug_error():
         output_filename="output.log",
     )
 
-    repo = context.file_repo
-    await repo.save_file(filename=ctx.code_filename, content=CODE_CONTENT, relative_path=context.src_workspace)
+    repo = CONTEXT.file_repo
+    await repo.save_file(filename=ctx.code_filename, content=CODE_CONTENT, relative_path=CONTEXT.src_workspace)
     await repo.save_file(filename=ctx.test_filename, content=TEST_CONTENT, relative_path=TEST_CODES_FILE_REPO)
     output_data = RunCodeResult(
         stdout=";",

@@ -19,7 +19,7 @@ from metagpt.const import (
     SYSTEM_DESIGN_FILE_REPO,
     TASK_FILE_REPO,
 )
-from metagpt.context import context
+from metagpt.context import CONTEXT
 from metagpt.logs import logger
 from metagpt.roles.engineer import Engineer
 from metagpt.schema import CodingContext, Message
@@ -32,19 +32,19 @@ from tests.metagpt.roles.mock import STRS_FOR_PARSING, TASKS, MockMessages
 async def test_engineer():
     # Prerequisites
     rqno = "20231221155954.json"
-    await context.file_repo.save_file(REQUIREMENT_FILENAME, content=MockMessages.req.content)
-    await context.file_repo.save_file(rqno, relative_path=PRDS_FILE_REPO, content=MockMessages.prd.content)
-    await context.file_repo.save_file(
+    await CONTEXT.file_repo.save_file(REQUIREMENT_FILENAME, content=MockMessages.req.content)
+    await CONTEXT.file_repo.save_file(rqno, relative_path=PRDS_FILE_REPO, content=MockMessages.prd.content)
+    await CONTEXT.file_repo.save_file(
         rqno, relative_path=SYSTEM_DESIGN_FILE_REPO, content=MockMessages.system_design.content
     )
-    await context.file_repo.save_file(rqno, relative_path=TASK_FILE_REPO, content=MockMessages.json_tasks.content)
+    await CONTEXT.file_repo.save_file(rqno, relative_path=TASK_FILE_REPO, content=MockMessages.json_tasks.content)
 
     engineer = Engineer()
     rsp = await engineer.run(Message(content="", cause_by=WriteTasks))
 
     logger.info(rsp)
     assert rsp.cause_by == any_to_str(WriteCode)
-    src_file_repo = context.git_repo.new_file_repository(context.src_workspace)
+    src_file_repo = CONTEXT.git_repo.new_file_repository(CONTEXT.src_workspace)
     assert src_file_repo.changed_files
 
 
@@ -116,19 +116,19 @@ async def test_new_coding_context():
     # Prerequisites
     demo_path = Path(__file__).parent / "../../data/demo_project"
     deps = json.loads(await aread(demo_path / "dependencies.json"))
-    dependency = await context.git_repo.get_dependency()
+    dependency = await CONTEXT.git_repo.get_dependency()
     for k, v in deps.items():
         await dependency.update(k, set(v))
     data = await aread(demo_path / "system_design.json")
     rqno = "20231221155954.json"
-    await awrite(context.git_repo.workdir / SYSTEM_DESIGN_FILE_REPO / rqno, data)
+    await awrite(CONTEXT.git_repo.workdir / SYSTEM_DESIGN_FILE_REPO / rqno, data)
     data = await aread(demo_path / "tasks.json")
-    await awrite(context.git_repo.workdir / TASK_FILE_REPO / rqno, data)
+    await awrite(CONTEXT.git_repo.workdir / TASK_FILE_REPO / rqno, data)
 
-    context.src_workspace = Path(context.git_repo.workdir) / "game_2048"
-    src_file_repo = context.git_repo.new_file_repository(relative_path=context.src_workspace)
-    task_file_repo = context.git_repo.new_file_repository(relative_path=TASK_FILE_REPO)
-    design_file_repo = context.git_repo.new_file_repository(relative_path=SYSTEM_DESIGN_FILE_REPO)
+    CONTEXT.src_workspace = Path(CONTEXT.git_repo.workdir) / "game_2048"
+    src_file_repo = CONTEXT.git_repo.new_file_repository(relative_path=CONTEXT.src_workspace)
+    task_file_repo = CONTEXT.git_repo.new_file_repository(relative_path=TASK_FILE_REPO)
+    design_file_repo = CONTEXT.git_repo.new_file_repository(relative_path=SYSTEM_DESIGN_FILE_REPO)
 
     filename = "game.py"
     ctx_doc = await Engineer._new_coding_doc(
@@ -149,8 +149,8 @@ async def test_new_coding_context():
     assert ctx.task_doc.content
     assert ctx.code_doc
 
-    context.git_repo.add_change({f"{TASK_FILE_REPO}/{rqno}": ChangeType.UNTRACTED})
-    context.git_repo.commit("mock env")
+    CONTEXT.git_repo.add_change({f"{TASK_FILE_REPO}/{rqno}": ChangeType.UNTRACTED})
+    CONTEXT.git_repo.commit("mock env")
     await src_file_repo.save(filename=filename, content="content")
     role = Engineer()
     assert not role.code_todos

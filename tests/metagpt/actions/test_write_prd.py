@@ -10,7 +10,7 @@ import pytest
 
 from metagpt.actions import UserRequirement, WritePRD
 from metagpt.const import DOCS_FILE_REPO, PRDS_FILE_REPO, REQUIREMENT_FILENAME
-from metagpt.context import context
+from metagpt.context import CONTEXT
 from metagpt.logs import logger
 from metagpt.roles.product_manager import ProductManager
 from metagpt.roles.role import RoleReactMode
@@ -33,7 +33,7 @@ async def test_write_prd(new_filename):
     # Assert the prd is not None or empty
     assert prd is not None
     assert prd.content != ""
-    assert context.git_repo.new_file_repository(relative_path=PRDS_FILE_REPO).changed_files
+    assert CONTEXT.git_repo.new_file_repository(relative_path=PRDS_FILE_REPO).changed_files
 
 
 if __name__ == "__main__":

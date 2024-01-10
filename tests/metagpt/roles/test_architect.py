@@ -13,7 +13,7 @@ import pytest
 
 from metagpt.actions import WriteDesign, WritePRD
 from metagpt.const import PRDS_FILE_REPO
-from metagpt.context import context
+from metagpt.context import CONTEXT
 from metagpt.logs import logger
 from metagpt.roles import Architect
 from metagpt.schema import Message
@@ -25,7 +25,7 @@ from tests.metagpt.roles.mock import MockMessages
 async def test_architect():
     # Prerequisites
     filename = uuid.uuid4().hex + ".json"
-    await awrite(context.git_repo.workdir / PRDS_FILE_REPO / filename, data=MockMessages.prd.content)
+    await awrite(CONTEXT.git_repo.workdir / PRDS_FILE_REPO / filename, data=MockMessages.prd.content)
 
     role = Architect()
     rsp = await role.run(with_message=Message(content="", cause_by=WritePRD))
