@@ -109,7 +109,7 @@ class Engineer(Role):
             coding_context = await todo.run()
             # Code review
             if review:
-                action = WriteCodeReview(context=coding_context, _context=self.context, llm=self.llm)
+                action = WriteCodeReview(i_context=coding_context, context=self.context, llm=self.llm)
                 self._init_action_system_message(action)
                 coding_context = await action.run()
             await src_file_repo.save(
@@ -282,7 +282,7 @@ class Engineer(Role):
                     )
                 changed_files.docs[task_filename] = coding_doc
         self.code_todos = [
-            WriteCode(context=i, g_context=self.context, llm=self.llm) for i in changed_files.docs.values()
+            WriteCode(i_context=i, context=self.context, llm=self.llm) for i in changed_files.docs.values()
         ]
         # Code directly modified by the user.
         dependency = await self.git_repo.get_dependency()
@@ -297,7 +297,7 @@ class Engineer(Role):
                 dependency=dependency,
             )
             changed_files.docs[filename] = coding_doc
-            self.code_todos.append(WriteCode(context=coding_doc, g_context=self.context, llm=self.llm))
+            self.code_todos.append(WriteCode(i_context=coding_doc, context=self.context, llm=self.llm))
 
         if self.code_todos:
             self.set_todo(self.code_todos[0])
@@ -313,7 +313,7 @@ class Engineer(Role):
             summarizations[ctx].append(filename)
         for ctx, filenames in summarizations.items():
             ctx.codes_filenames = filenames
-            self.summarize_todos.append(SummarizeCode(context=ctx, llm=self.llm))
+            self.summarize_todos.append(SummarizeCode(i_context=ctx, llm=self.llm))
         if self.summarize_todos:
             self.set_todo(self.summarize_todos[0])
 
