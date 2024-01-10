@@ -14,8 +14,6 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from metagpt.actions.action_node import ActionNode
 from metagpt.context import ContextMixin
-from metagpt.llm import LLM
-from metagpt.provider.base_llm import BaseLLM
 from metagpt.schema import (
     CodeSummarizeContext,
     CodingContext,
@@ -30,7 +28,6 @@ class Action(SerializationMixin, ContextMixin, BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True, exclude=["llm"])
 
     name: str = ""
-    llm: BaseLLM = Field(default_factory=LLM, exclude=True)
     i_context: Union[dict, CodingContext, CodeSummarizeContext, TestingContext, RunCodeContext, str, None] = ""
     prefix: str = ""  # aask*时会加上prefix，作为system_message
     desc: str = ""  # for skill manager

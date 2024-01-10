@@ -133,7 +133,6 @@ class GenerateTable(Action):
 
     name: str = "GenerateTable"
     i_context: Optional[str] = None
-    llm: BaseLLM = Field(default_factory=LLM)
     language: str = "ch"
 
     async def run(self, ocr_results: list, filename: str, *args, **kwargs) -> dict[str, str]:

@@ -66,7 +66,5 @@ def test_context_2():
 def test_context_3():
     ctx = Context()
     ctx.use_llm(provider=LLMType.OPENAI)
-    assert ctx.llm_config is not None
-    assert ctx.llm_config.api_type == LLMType.OPENAI
-    assert ctx.llm is not None
-    assert "gpt" in ctx.llm.model
+    assert ctx.llm() is not None
+    assert "gpt" in ctx.llm().model

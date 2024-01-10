@@ -16,9 +16,6 @@ from metagpt.provider.base_llm import BaseLLM
 
 class OpenAIText2Image:
     def __init__(self, llm: BaseLLM):
-        """
-        :param openai_api_key: OpenAI API key, For more details, checkout: `https://platform.openai.com/account/api-keys`
-        """
         self.llm = llm
 
     async def text_2_image(self, text, size_type="1024x1024"):

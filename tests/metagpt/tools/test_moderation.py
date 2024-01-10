@@ -9,6 +9,7 @@
 import pytest
 
 from metagpt.config import CONFIG
+from metagpt.context import CONTEXT
 from metagpt.tools.moderation import Moderation
 
 
@@ -27,7 +28,7 @@ async def test_amoderation(content):
     assert not CONFIG.OPENAI_API_TYPE
     assert CONFIG.OPENAI_API_MODEL
 
-    moderation = Moderation()
+    moderation = Moderation(CONTEXT.llm())
     results = await moderation.amoderation(content=content)
     assert isinstance(results, list)
     assert len(results) == len(content)

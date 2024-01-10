@@ -178,7 +178,6 @@ class WebBrowseAndSummarize(Action):
 
     name: str = "WebBrowseAndSummarize"
     i_context: Optional[str] = None
-    llm: BaseLLM = Field(default_factory=LLM)
     desc: str = "Explore the web and provide summaries of articles and webpages."
     browse_func: Union[Callable[[list[str]], None], None] = None
     web_browser_engine: Optional[WebBrowserEngine] = None
