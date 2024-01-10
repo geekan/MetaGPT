@@ -178,7 +178,7 @@ class WebBrowseAndSummarize(Action):
     i_context: Optional[str] = None
     desc: str = "Explore the web and provide summaries of articles and webpages."
     browse_func: Union[Callable[[list[str]], None], None] = None
-    web_browser_engine: Optional[WebBrowserEngine] = None
+    web_browser_engine: Optional[WebBrowserEngine] = WebBrowserEngineType.PLAYWRIGHT
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

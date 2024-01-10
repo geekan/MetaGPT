@@ -63,7 +63,7 @@ class DebugError(Action):
 
         logger.info(f"Debug and rewrite {self.i_context.test_filename}")
         code_doc = await self.file_repo.get_file(
-            filename=self.i_context.code_filename, relative_path=self.i_context.src_workspace
+            filename=self.i_context.code_filename, relative_path=self.context.src_workspace
         )
         if not code_doc:
             return ""

@@ -62,7 +62,7 @@ async def test_react():
             "goal": "Test",
             "constraints": "constraints",
             "desc": "desc",
-            "subscription": "start",
+            "address": "start",
         }
     ]
 
@@ -93,8 +93,8 @@ async def test_react():
             await env.run()
         assert role.is_idle
         tag = uuid.uuid4().hex
-        role.subscribe({tag})
-        assert env.get_subscription(role) == {tag}
+        role.set_addresses({tag})
+        assert env.get_addresses(role) == {tag}
 
 
 @pytest.mark.asyncio
@@ -131,7 +131,7 @@ async def test_recover():
     role.recovered = True
     role.latest_observed_msg = Message(content="recover_test")
     role.rc.state = 0
-    assert role.todo == any_to_name(MockAction)
+    assert role.first_action == any_to_name(MockAction)
 
     rsp = await role.run()
     assert rsp.cause_by == any_to_str(MockAction)

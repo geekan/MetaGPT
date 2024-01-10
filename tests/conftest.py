@@ -146,7 +146,8 @@ def setup_and_teardown_git_repo(request):
 
     # Destroy git repo at the end of the test session.
     def fin():
-        CONTEXT.git_repo.delete_repository()
+        if CONTEXT.git_repo:
+            CONTEXT.git_repo.delete_repository()
 
     # Register the function for destroying the environment.
     request.addfinalizer(fin)
