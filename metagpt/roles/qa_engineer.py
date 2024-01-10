@@ -17,7 +17,6 @@
 
 from metagpt.actions import DebugError, RunCode, WriteTest
 from metagpt.actions.summarize_code import SummarizeCode
-from metagpt.config2 import Config
 from metagpt.const import (
     MESSAGE_ROUTE_TO_NONE,
     TEST_CODES_FILE_REPO,
@@ -47,10 +46,6 @@ class QaEngineer(Role):
         self.set_actions([WriteTest])
         self._watch([SummarizeCode, WriteTest, RunCode, DebugError])
         self.test_round = 0
-
-    @property
-    def config(self) -> Config:
-        return self.context.config
 
     async def _write_test(self, message: Message) -> None:
         src_file_repo = self.context.git_repo.new_file_repository(self.context.src_workspace)

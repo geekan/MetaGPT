@@ -15,7 +15,7 @@ from metagpt.utils.parse_html import WebPage
 class WebBrowserEngine:
     def __init__(
         self,
-        engine: WebBrowserEngineType | None = None,
+        engine: WebBrowserEngineType | None = WebBrowserEngineType.PLAYWRIGHT,
         run_func: Callable[..., Coroutine[Any, Any, WebPage | list[WebPage]]] | None = None,
     ):
         if engine is None:

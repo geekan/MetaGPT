@@ -43,7 +43,7 @@ class ProductManager(Role):
             self._set_state(1)
         else:
             self._set_state(0)
-            self.context.config.git_reinit = False
+            self.config.git_reinit = False
             self.todo_action = any_to_name(WritePRD)
         return bool(self.rc.todo)
 

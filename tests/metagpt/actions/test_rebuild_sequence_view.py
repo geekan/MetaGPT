@@ -14,7 +14,6 @@ from metagpt.const import GRAPH_REPO_FILE_REPO
 from metagpt.context import CONTEXT
 from metagpt.llm import LLM
 from metagpt.utils.common import aread
-from metagpt.utils.file_repository import FileRepository
 from metagpt.utils.git_repository import ChangeType
 
 
@@ -23,7 +22,8 @@ async def test_rebuild():
     # Mock
     data = await aread(filename=Path(__file__).parent / "../../data/graph_db/networkx.json")
     graph_db_filename = Path(CONTEXT.git_repo.workdir.name).with_suffix(".json")
-    await FileRepository.save_file(
+    repo = CONTEXT.file_repo
+    await repo.save_file(
         filename=str(graph_db_filename),
         relative_path=GRAPH_REPO_FILE_REPO,
         content=data,

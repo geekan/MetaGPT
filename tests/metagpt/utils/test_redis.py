@@ -22,7 +22,7 @@ async def async_mock_from_url(*args, **kwargs):
 
 @pytest.mark.asyncio
 @mock.patch("aioredis.from_url", return_value=async_mock_from_url())
-async def test_redis():
+async def test_redis(i):
     redis = Config.default().redis
 
     conn = Redis(redis)

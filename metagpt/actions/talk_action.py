@@ -45,7 +45,7 @@ class TalkAction(Action):
         language = self.language
         prompt += (
             f"Answer the following questions strictly in {language}, and the answers must follow the Markdown format.\n "
-            f"{self.context}"
+            f"{self.i_context}"
         )
         logger.debug(f"PROMPT: {prompt}")
         return prompt
@@ -57,7 +57,7 @@ class TalkAction(Action):
             "{history}": self.history_summary or "",
             "{knowledge}": self.knowledge or "",
             "{language}": self.language,
-            "{ask}": self.context,
+            "{ask}": self.i_context,
         }
         prompt = TalkActionPrompt.FORMATION_LOOSE
         for k, v in kvs.items():
@@ -88,7 +88,7 @@ class TalkAction(Action):
             format_msgs.append({"role": "assistant", "content": self.knowledge})
         if self.history_summary:
             format_msgs.append({"role": "assistant", "content": self.history_summary})
-        return self.context, format_msgs, system_msgs
+        return self.i_context, format_msgs, system_msgs
 
     async def run(self, with_message=None, **kwargs) -> Message:
         msg, format_msgs, system_msgs = self.aask_args

@@ -42,7 +42,7 @@ class SearchEngine:
 
     def __init__(
         self,
-        engine: Optional[SearchEngineType] = None,
+        engine: Optional[SearchEngineType] = SearchEngineType.SERPER_GOOGLE,
         run_func: Callable[[str, int, bool], Coroutine[None, None, Union[str, list[str]]]] = None,
     ):
         if engine == SearchEngineType.SERPAPI_GOOGLE:

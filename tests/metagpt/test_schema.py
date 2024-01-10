@@ -102,7 +102,7 @@ def test_message_serdeser():
     new_message = Message.model_validate(message_dict)
     assert new_message.content == message.content
     assert new_message.instruct_content.model_dump() == message.instruct_content.model_dump()
-    assert new_message.instruct_content != message.instruct_content  # TODO
+    assert new_message.instruct_content == message.instruct_content  # TODO
     assert new_message.cause_by == message.cause_by
     assert new_message.instruct_content.field3 == out_data["field3"]
 
