@@ -78,11 +78,11 @@ class Context(BaseModel):
     #     return self._llm
 
     def llm(self, name: Optional[str] = None, provider: LLMType = LLMType.OPENAI) -> BaseLLM:
-        """Return a LLM instance, fixme: support multiple llm instances"""
-        if self._llm is None:
-            self._llm = create_llm_instance(self.config.get_llm_config(name, provider))
-            if self._llm.cost_manager is None:
-                self._llm.cost_manager = self.cost_manager
+        """Return a LLM instance, fixme: support cache"""
+        # if self._llm is None:
+        self._llm = create_llm_instance(self.config.get_llm_config(name, provider))
+        if self._llm.cost_manager is None:
+            self._llm.cost_manager = self.cost_manager
         return self._llm
 
 

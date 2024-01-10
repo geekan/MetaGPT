@@ -9,9 +9,7 @@ from pydantic import Field, parse_obj_as
 
 from metagpt.actions import Action
 from metagpt.config import CONFIG
-from metagpt.llm import LLM
 from metagpt.logs import logger
-from metagpt.provider.base_llm import BaseLLM
 from metagpt.tools.search_engine import SearchEngine
 from metagpt.tools.web_browser_engine import WebBrowserEngine, WebBrowserEngineType
 from metagpt.utils.common import OutputParser
@@ -245,10 +243,6 @@ class WebBrowseAndSummarize(Action):
 
 class ConductResearch(Action):
     """Action class to conduct research and generate a research report."""
-
-    name: str = "ConductResearch"
-    i_context: Optional[str] = None
-    llm: BaseLLM = Field(default_factory=LLM)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
