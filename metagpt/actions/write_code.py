@@ -132,7 +132,7 @@ class WriteCode(Action):
         code = await self.write_code(prompt)
         if not coding_context.code_doc:
             # avoid root_path pydantic ValidationError if use WriteCode alone
-            root_path = self.i_context.src_workspace if self.i_context.src_workspace else ""
+            root_path = self.context.src_workspace if self.context.src_workspace else ""
             coding_context.code_doc = Document(filename=coding_context.filename, root_path=str(root_path))
         coding_context.code_doc.content = code
         return coding_context
