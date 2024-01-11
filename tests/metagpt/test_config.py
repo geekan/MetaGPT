@@ -66,13 +66,13 @@ def test_config_mixin_3():
     i = Config(llm=mock_llm_config)
     j = Config(llm=mock_llm_config_proxy)
     obj = ModelY(config=i)
-    assert obj.private_config == i
-    assert obj.private_config.llm == mock_llm_config
+    assert obj.config == i
+    assert obj.config.llm == mock_llm_config
 
     obj.set_config(j)
     # obj already has a config, so it will not be set
-    assert obj.private_config == i
-    assert obj.private_config.llm == mock_llm_config
+    assert obj.config == i
+    assert obj.config.llm == mock_llm_config
 
     assert obj.a == "a"
     assert obj.b == "b"
@@ -80,4 +80,4 @@ def test_config_mixin_3():
     assert obj.d == "d"
 
     print(obj.__dict__.keys())
-    assert "_config" in obj.__dict__.keys()
+    assert "private_config" in obj.__dict__.keys()
