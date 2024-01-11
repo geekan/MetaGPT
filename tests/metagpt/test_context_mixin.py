@@ -79,7 +79,7 @@ def test_config_mixin_4_multi_inheritance_override_config():
     assert obj.config.llm == mock_llm_config
 
     obj.set_config(j, override=True)
-    # obj already has a config, so it will not be set
+    # override obj.config
     assert obj.config == j
     assert obj.config.llm == mock_llm_config_zhipu
 
