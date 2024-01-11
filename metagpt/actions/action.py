@@ -13,7 +13,7 @@ from typing import Optional, Union
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from metagpt.actions.action_node import ActionNode
-from metagpt.context import ContextMixin
+from metagpt.context_mixin import ContextMixin
 from metagpt.schema import (
     CodeSummarizeContext,
     CodingContext,

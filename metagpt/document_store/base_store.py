@@ -29,7 +29,6 @@ class LocalStore(BaseStore, ABC):
     def __init__(self, raw_data_path: Path, cache_dir: Path = None):
         if not raw_data_path:
             raise FileNotFoundError
-        self.config = Config()
         self.raw_data_path = raw_data_path
         self.fname = self.raw_data_path.stem
         if not cache_dir:
