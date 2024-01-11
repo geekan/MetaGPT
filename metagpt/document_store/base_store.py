@@ -8,8 +8,6 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
 
-from metagpt.config import Config
-
 
 class BaseStore(ABC):
     """FIXME: consider add_index, set_index and think about granularity."""
