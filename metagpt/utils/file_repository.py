@@ -45,7 +45,7 @@ class FileRepository:
         # Initializing
         self.workdir.mkdir(parents=True, exist_ok=True)
 
-    async def save(self, filename: Path | str, content, dependencies: List[str] = None):
+    async def save(self, filename: Path | str, content, dependencies: List[str] = None) -> Document:
         """Save content to a file and update its dependencies.
 
         :param filename: The filename or path within the repository.
@@ -62,6 +62,8 @@ class FileRepository:
             dependency_file = await self._git_repo.get_dependency()
             await dependency_file.update(pathname, set(dependencies))
             logger.info(f"update dependency: {str(pathname)}:{dependencies}")
+
+        return Document(root_path=str(self._relative_path), filename=filename, content=content)
 
     async def get_dependency(self, filename: Path | str) -> Set[str]:
         """Get the dependencies of a file.
