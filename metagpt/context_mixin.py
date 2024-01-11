@@ -47,15 +47,15 @@ class ContextMixin(BaseModel):
 
     def set_context(self, context: Context, override=True):
         """Set context"""
-        self.set("_context", context, override)
+        self.set("private_context", context, override)
 
     def set_config(self, config: Config, override=False):
         """Set config"""
-        self.set("_config", config, override)
+        self.set("private_config", config, override)
 
     def set_llm(self, llm: BaseLLM, override=False):
         """Set llm"""
-        self.set("_llm", llm, override)
+        self.set("private_llm", llm, override)
 
     @property
     def config(self) -> Config:

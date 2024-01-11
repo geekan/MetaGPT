@@ -53,12 +53,12 @@ def test_config_mixin_2():
     i = Config(llm=mock_llm_config)
     j = Config(llm=mock_llm_config_proxy)
     obj = ModelX(config=i)
-    assert obj.private_config == i
-    assert obj.private_config.llm == mock_llm_config
+    assert obj.config == i
+    assert obj.config.llm == mock_llm_config
 
     obj.set_config(j)
     # obj already has a config, so it will not be set
-    assert obj.private_config == i
+    assert obj.config == i
 
 
 def test_config_mixin_3():
