@@ -17,7 +17,7 @@
 
 from metagpt.actions import DebugError, RunCode, WriteTest
 from metagpt.actions.summarize_code import SummarizeCode
-from metagpt.const import MESSAGE_ROUTE_TO_NONE, TEST_CODES_FILE_REPO
+from metagpt.const import MESSAGE_ROUTE_TO_NONE
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Document, Message, RunCodeContext, TestingContext
@@ -123,9 +123,7 @@ class QaEngineer(Role):
     async def _debug_error(self, msg):
         run_code_context = RunCodeContext.loads(msg.content)
         code = await DebugError(i_context=run_code_context, context=self.context, llm=self.llm).run()
-        await self.project_repo.tests.save(
-            filename=run_code_context.test_filename, content=code, relative_path=TEST_CODES_FILE_REPO
-        )
+        await self.project_repo.tests.save(filename=run_code_context.test_filename, content=code)
         run_code_context.output = None
         self.publish_message(
             Message(
