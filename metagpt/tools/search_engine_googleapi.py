@@ -35,7 +35,7 @@ class GoogleAPIWrapper(BaseModel):
     @field_validator("google_api_key", mode="before")
     @classmethod
     def check_google_api_key(cls, val: str):
-        val = val or config.search["google"].api_key
+        val = val or config.search.api_key
         if not val:
             raise ValueError(
                 "To use, make sure you provide the google_api_key when constructing an object. Alternatively, "
@@ -47,7 +47,7 @@ class GoogleAPIWrapper(BaseModel):
     @field_validator("google_cse_id", mode="before")
     @classmethod
     def check_google_cse_id(cls, val: str):
-        val = val or config.search["google"].cse_id
+        val = val or config.search.cse_id
         if not val:
             raise ValueError(
                 "To use, make sure you provide the google_cse_id when constructing an object. Alternatively, "

@@ -12,7 +12,7 @@ from tests.metagpt.provider.mock_llm_config import (
 
 @pytest.mark.asyncio
 async def test_aask_code():
-    llm = LLM(name="gpt3t")
+    llm = LLM()
     msg = [{"role": "user", "content": "Write a python hello world code."}]
     rsp = await llm.aask_code(msg)  # -> {'language': 'python', 'code': "print('Hello, World!')"}
 
@@ -24,7 +24,7 @@ async def test_aask_code():
 
 @pytest.mark.asyncio
 async def test_aask_code_str():
-    llm = LLM(name="gpt3t")
+    llm = LLM()
     msg = "Write a python hello world code."
     rsp = await llm.aask_code(msg)  # -> {'language': 'python', 'code': "print('Hello, World!')"}
     assert "language" in rsp
@@ -34,7 +34,7 @@ async def test_aask_code_str():
 
 @pytest.mark.asyncio
 async def test_aask_code_message():
-    llm = LLM(name="gpt3t")
+    llm = LLM()
     msg = UserMessage("Write a python hello world code.")
     rsp = await llm.aask_code(msg)  # -> {'language': 'python', 'code': "print('Hello, World!')"}
     assert "language" in rsp

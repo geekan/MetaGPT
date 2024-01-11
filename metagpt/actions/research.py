@@ -184,7 +184,7 @@ class WebBrowseAndSummarize(Action):
         super().__init__(**kwargs)
 
         self.web_browser_engine = WebBrowserEngine(
-            engine=WebBrowserEngineType.CUSTOM if self.browse_func else None,
+            engine=WebBrowserEngineType.CUSTOM if self.browse_func else WebBrowserEngineType.PLAYWRIGHT,
             run_func=self.browse_func,
         )
 

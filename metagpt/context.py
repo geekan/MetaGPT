@@ -12,7 +12,7 @@ from typing import Optional
 from pydantic import BaseModel, ConfigDict
 
 from metagpt.config2 import Config
-from metagpt.configs.llm_config import LLMConfig, LLMType
+from metagpt.configs.llm_config import LLMConfig
 from metagpt.const import OPTIONS
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.llm_provider_registry import create_llm_instance
@@ -77,10 +77,10 @@ class Context(BaseModel):
     #     self._llm = None
     #     return self._llm
 
-    def llm(self, name: Optional[str] = None, provider: LLMType = None) -> BaseLLM:
+    def llm(self) -> BaseLLM:
         """Return a LLM instance, fixme: support cache"""
         # if self._llm is None:
-        self._llm = create_llm_instance(self.config.get_llm_config(name, provider))
+        self._llm = create_llm_instance(self.config.llm)
         if self._llm.cost_manager is None:
             self._llm.cost_manager = self.cost_manager
         return self._llm
@@ -139,12 +139,6 @@ class ContextMixin(BaseModel):
     def set_llm(self, llm: BaseLLM, override=False):
         """Set llm"""
         self.set("_llm", llm, override)
-
-    def use_llm(self, name: Optional[str] = None, provider: LLMType = None) -> BaseLLM:
-        """Use a LLM instance"""
-        self._llm_config = self.config.get_llm_config(name, provider)
-        self._llm = None
-        return self.llm
 
     @property
     def config(self) -> Config:

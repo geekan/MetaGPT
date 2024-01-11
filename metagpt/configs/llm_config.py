@@ -40,6 +40,7 @@ class LLMConfig(YamlModel):
     api_type: LLMType = LLMType.OPENAI
     base_url: str = "https://api.openai.com/v1"
     api_version: Optional[str] = None
+
     model: Optional[str] = None  # also stands for DEPLOYMENT_NAME
 
     # For Spark(Xunfei), maybe remove later

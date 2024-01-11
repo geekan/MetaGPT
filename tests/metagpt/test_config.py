@@ -10,7 +10,10 @@ from pydantic import BaseModel
 from metagpt.config2 import Config
 from metagpt.configs.llm_config import LLMType
 from metagpt.context import ContextMixin
-from tests.metagpt.provider.mock_llm_config import mock_llm_config
+from tests.metagpt.provider.mock_llm_config import (
+    mock_llm_config,
+    mock_llm_config_proxy,
+)
 
 
 def test_config_1():
@@ -21,9 +24,9 @@ def test_config_1():
 
 
 def test_config_from_dict():
-    cfg = Config(llm={"default": mock_llm_config})
+    cfg = Config(llm=mock_llm_config)
     assert cfg
-    assert cfg.llm["default"].api_key == "mock_api_key"
+    assert cfg.llm.api_key == "mock_api_key"
 
 
 class ModelX(ContextMixin, BaseModel):
@@ -47,11 +50,11 @@ def test_config_mixin_1():
 
 
 def test_config_mixin_2():
-    i = Config(llm={"default": mock_llm_config})
-    j = Config(llm={"new": mock_llm_config})
+    i = Config(llm=mock_llm_config)
+    j = Config(llm=mock_llm_config_proxy)
     obj = ModelX(config=i)
     assert obj._config == i
-    assert obj._config.llm["default"] == mock_llm_config
+    assert obj._config.llm == mock_llm_config
 
     obj.set_config(j)
     # obj already has a config, so it will not be set
@@ -60,16 +63,16 @@ def test_config_mixin_2():
 
 def test_config_mixin_3():
     """Test config mixin with multiple inheritance"""
-    i = Config(llm={"default": mock_llm_config})
-    j = Config(llm={"new": mock_llm_config})
+    i = Config(llm=mock_llm_config)
+    j = Config(llm=mock_llm_config_proxy)
     obj = ModelY(config=i)
     assert obj._config == i
-    assert obj._config.llm["default"] == mock_llm_config
+    assert obj._config.llm == mock_llm_config
 
     obj.set_config(j)
     # obj already has a config, so it will not be set
     assert obj._config == i
-    assert obj._config.llm["default"] == mock_llm_config
+    assert obj._config.llm == mock_llm_config
 
     assert obj.a == "a"
     assert obj.b == "b"

@@ -49,13 +49,14 @@ class MockSearchEnine:
 async def test_search_engine(search_engine_type, run_func: Callable, max_results: int, as_string: bool, aiohttp_mocker):
     # Prerequisites
     cache_json_path = None
+    # FIXME: 不能使用全局的config，而是要自己实例化对应的config
     if search_engine_type is SearchEngineType.SERPAPI_GOOGLE:
-        assert config.search["serpapi"]
+        assert config.search
         cache_json_path = search_cache_path / f"serpapi-metagpt-{max_results}.json"
     elif search_engine_type is SearchEngineType.DIRECT_GOOGLE:
-        assert config.search["google"]
+        assert config.search
     elif search_engine_type is SearchEngineType.SERPER_GOOGLE:
-        assert config.search["serper"]
+        assert config.search
         cache_json_path = search_cache_path / f"serper-metagpt-{max_results}.json"
 
     if cache_json_path:
