@@ -220,10 +220,12 @@ class OpenAILLM(BaseLLM):
 
     @handle_exception
     def _update_costs(self, usage: CompletionUsage):
-        if self.config.calc_usage and usage:
+        if self.config.calc_usage and usage and self.cost_manager:
             self.cost_manager.update_cost(usage.prompt_tokens, usage.completion_tokens, self.model)
 
     def get_costs(self) -> Costs:
+        if not self.cost_manager:
+            return Costs()
         return self.cost_manager.get_costs()
 
     def _get_max_tokens(self, messages: list[dict]):

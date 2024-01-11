@@ -57,6 +57,8 @@ class ContextMixin(BaseModel):
     def set_config(self, config: Config, override=False):
         """Set config"""
         self.set("private_config", config, override)
+        if config is not None:
+            _ = self.llm  # init llm
 
     def set_llm(self, llm: BaseLLM, override=False):
         """Set llm"""
