@@ -24,6 +24,7 @@ async def test_project_repo():
 
     pr = ProjectRepo(root=str(root))
     assert pr.git_repo.workdir == root
+    assert pr.workdir == pr.git_repo.workdir
 
     await pr.save(filename=REQUIREMENT_FILENAME, content=REQUIREMENT_FILENAME)
     doc = await pr.get(filename=REQUIREMENT_FILENAME)
@@ -50,6 +51,11 @@ async def test_project_repo():
     assert pr.changed_files
     assert pr.docs.prd.changed_files
     assert not pr.tests.changed_files
+
+    with pytest.raises(ValueError):
+        pr.srcs
+    assert pr.with_src_path("test_src").srcs.root_path == Path("test_src")
+    assert pr.src_relative_path == Path("test_src")
 
     pr.git_repo.delete_repository()
 
