@@ -9,7 +9,7 @@ from pydantic import BaseModel
 
 from metagpt.config2 import Config
 from metagpt.configs.llm_config import LLMType
-from metagpt.context import ContextMixin
+from metagpt.context_mixin import ContextMixin
 from tests.metagpt.provider.mock_llm_config import (
     mock_llm_config,
     mock_llm_config_proxy,
@@ -53,12 +53,12 @@ def test_config_mixin_2():
     i = Config(llm=mock_llm_config)
     j = Config(llm=mock_llm_config_proxy)
     obj = ModelX(config=i)
-    assert obj._config == i
-    assert obj._config.llm == mock_llm_config
+    assert obj.private_config == i
+    assert obj.private_config.llm == mock_llm_config
 
     obj.set_config(j)
     # obj already has a config, so it will not be set
-    assert obj._config == i
+    assert obj.private_config == i
 
 
 def test_config_mixin_3():
@@ -66,13 +66,13 @@ def test_config_mixin_3():
     i = Config(llm=mock_llm_config)
     j = Config(llm=mock_llm_config_proxy)
     obj = ModelY(config=i)
-    assert obj._config == i
-    assert obj._config.llm == mock_llm_config
+    assert obj.private_config == i
+    assert obj.private_config.llm == mock_llm_config
 
     obj.set_config(j)
     # obj already has a config, so it will not be set
-    assert obj._config == i
-    assert obj._config.llm == mock_llm_config
+    assert obj.private_config == i
+    assert obj.private_config.llm == mock_llm_config
 
     assert obj.a == "a"
     assert obj.b == "b"

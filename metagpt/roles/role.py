@@ -30,7 +30,7 @@ from pydantic import BaseModel, ConfigDict, Field, SerializeAsAny, model_validat
 from metagpt.actions import Action, ActionOutput
 from metagpt.actions.action_node import ActionNode
 from metagpt.actions.add_requirement import UserRequirement
-from metagpt.context import ContextMixin
+from metagpt.context_mixin import ContextMixin
 from metagpt.logs import logger
 from metagpt.memory import Memory
 from metagpt.provider import HumanProvider
