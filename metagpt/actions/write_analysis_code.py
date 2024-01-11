@@ -12,7 +12,7 @@ import yaml
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 from metagpt.actions import Action
-from metagpt.const import METAGPT_ROOT
+from metagpt.const import METAGPT_ROOT, TOOL_SCHEMA_PATH
 from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.prompts.ml_engineer import (
@@ -93,7 +93,7 @@ class WriteCodeByGenerate(BaseWriteAnalysisCode):
 class WriteCodeWithTools(BaseWriteAnalysisCode):
     """Write code with help of local available tools. Choose tools first, then generate code to use the tools"""
 
-    schema_path: Union[Path, str] = METAGPT_ROOT / "metagpt/tools/functions/schemas"
+    schema_path: Union[Path, str] = TOOL_SCHEMA_PATH
     available_tools: dict = {}
 
     def __init__(self, **kwargs):

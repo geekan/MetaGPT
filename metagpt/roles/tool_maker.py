@@ -1,5 +1,6 @@
 from pydantic import Field
 
+from metagpt.actions.ask_review import AskReview
 from metagpt.actions.execute_code import ExecutePyCode
 from metagpt.actions.write_analysis_code import MakeTools
 from metagpt.logs import logger
@@ -10,7 +11,7 @@ from metagpt.utils.common import remove_comments
 class ToolMaker(Role):
     execute_code: ExecutePyCode = Field(default_factory=ExecutePyCode, exclude=True)
 
-    async def make_tool(self, code: str, instruction: str, task_id: str = ""):
+    async def make_tool(self, code: str, instruction: str, task_id: str = "", auto_run=True):
         if len(remove_comments(code).split("\n")) < 5:  # no need to consider trivial codes with fewer than 5 lines
             return
 
@@ -41,4 +42,12 @@ class ToolMaker(Role):
                 break
         # save successful tool code in udf
         if execute_success:
-            make_tools.save(tool_code)
+            _, confirmed = await self.ask_review(auto_run=auto_run)
+            if confirmed:
+                make_tools.save(tool_code)
+    
+    async def ask_review(self, auto_run: bool = True):
+        if not auto_run:
+            review, confirmed = await AskReview().run()
+            return review, confirmed
+        return "", True

@@ -12,7 +12,6 @@ from metagpt.utils.common import any_to_str
 
 
 class MLEngineer(CodeInterpreter):
-    auto_run: bool = False
     use_code_steps: bool = False
     use_udfs: bool = False
     data_desc: dict = {}
