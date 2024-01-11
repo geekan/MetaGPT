@@ -34,14 +34,14 @@ def rsp_cache():
     rsp_cache_file_path = TEST_DATA_PATH / "rsp_cache.json"  # read repo-provided
     new_rsp_cache_file_path = TEST_DATA_PATH / "rsp_cache_new.json"  # exporting a new copy
     if os.path.exists(rsp_cache_file_path):
-        with open(rsp_cache_file_path, "r") as f1:
+        with open(rsp_cache_file_path, "r", encoding="utf-8") as f1:
             rsp_cache_json = json.load(f1)
     else:
         rsp_cache_json = {}
     yield rsp_cache_json
-    with open(rsp_cache_file_path, "w") as f2:
+    with open(rsp_cache_file_path, "w", encoding="utf-8") as f2:
         json.dump(rsp_cache_json, f2, indent=4, ensure_ascii=False)
-    with open(new_rsp_cache_file_path, "w") as f2:
+    with open(new_rsp_cache_file_path, "w", encoding="utf-8") as f2:
         json.dump(RSP_CACHE_NEW, f2, indent=4, ensure_ascii=False)
 
 
@@ -139,7 +139,7 @@ def loguru_caplog(caplog):
 
 
 # init & dispose git repo
-@pytest.fixture(scope="function", autouse=True)
+@pytest.fixture(scope="function", autouse=False)
 def setup_and_teardown_git_repo(request):
     CONFIG.git_repo = GitRepository(local_path=DEFAULT_WORKSPACE_ROOT / f"unittest/{uuid.uuid4().hex}")
     CONFIG.git_reinit = True
