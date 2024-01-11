@@ -155,6 +155,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         if self.is_human:
             self.llm = HumanProvider(None)
 
+        self._check_actions()
         self.llm.system_prompt = self._get_prefix()
         self._watch(data.get("watch") or [UserRequirement])
 
@@ -229,14 +230,16 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
     def _setting(self):
         return f"{self.name}({self.profile})"
 
-    @model_validator(mode="after")
     def _check_actions(self):
         """Check actions and set llm and prefix for each action."""
         self.set_actions(self.actions)
         return self
 
     def _init_action(self, action: Action):
-        action.set_llm(self.llm, override=False)
+        if not action.private_config:
+            action.set_llm(self.llm, override=True)
+        else:
+            action.set_llm(self.llm, override=False)
         action.set_prefix(self._get_prefix())
 
     def set_action(self, action: Action):

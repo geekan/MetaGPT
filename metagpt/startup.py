@@ -7,7 +7,7 @@ from pathlib import Path
 import typer
 
 from metagpt.config2 import config
-from metagpt.const import METAGPT_ROOT
+from metagpt.const import CONFIG_ROOT, METAGPT_ROOT
 
 app = typer.Typer(add_completion=False, pretty_exceptions_show_locals=False)
 
@@ -118,7 +118,7 @@ def startup(
 
 def copy_config_to(config_path=METAGPT_ROOT / "config" / "config2.yaml"):
     """Initialize the configuration file for MetaGPT."""
-    target_path = Path.home() / ".metagpt" / "config2.yaml"
+    target_path = CONFIG_ROOT / "config2.yaml"
 
     # 创建目标目录（如果不存在）
     target_path.parent.mkdir(parents=True, exist_ok=True)
