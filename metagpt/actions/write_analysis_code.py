@@ -180,6 +180,9 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
         code_context = [remove_comments(task.code) for task in finished_tasks]
         code_context = "\n\n".join(code_context)
 
+        tool_catalog = {}
+        module_name = ""
+
         if len(available_tools) > 0:
             available_tools = {k: v["description"] for k, v in available_tools.items()}
 
@@ -190,10 +193,6 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
             logger.info(f"Recommended tools: \n{recommend_tools}")
 
             module_name = TASK_MODULE_MAP[task_type]
-
-        else:
-            tool_catalog = {}
-            module_name = ""
 
         tools_instruction = TOOL_USAGE_PROMPT.format(
             special_prompt=special_prompt, module_name=module_name, tool_catalog=tool_catalog
