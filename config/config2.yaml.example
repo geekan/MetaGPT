@@ -1,32 +1,19 @@
 llm:
-  gpt3t:
-    base_url: "YOUR_BASE_URL"
-    api_key: "YOUR_API_KEY"
-    model: "gpt-3.5-turbo-1106"  # or gpt-4-1106-preview
-  azure-gpt3t:
-    api_type: "azure"
-    base_url: "YOUR_BASE_URL"
-    api_key: "YOUR_API_KEY"
-    model: "gpt35turbo"
-
-search:
-  serpapi:
-    api_type: "serpapi"
-    api_key: "YOUR_API_KEY"
-  google:
-    api_type: "google"
-    api_key: "YOUR_API_KEY"
-    cse_id: "YOUR_CSE_ID"
-  serper:
-    api_type: "serper"
-    api_key: "YOUR_API_KEY"
-
-mermaid:
-  pyppeteer:
-    engine: "pyppeteer"
-    path: "/Applications/Google Chrome.app"
+  api_type: "openai"
+  base_url: "YOUR_BASE_URL"
+  api_key: "YOUR_API_KEY"
+  model: "gpt-3.5-turbo-1106"  # or gpt-4-1106-preview
 
 proxy: "YOUR_PROXY"
+
+search:
+  api_type: "google"
+  api_key: "YOUR_API_KEY"
+  cse_id: "YOUR_CSE_ID"
+
+mermaid:
+  engine: "pyppeteer"
+  path: "/Applications/Google Chrome.app"
 
 redis:
   host: "YOUR_HOST"
@@ -36,7 +23,7 @@ redis:
 
 s3:
   access_key: "YOUR_ACCESS_KEY"
-  secret_key: "YOUR_SECRET_KEY
+  secret_key: "YOUR_SECRET_KEY"
   endpoint: "YOUR_ENDPOINT"
   secure: false
   bucket: "test"
