@@ -191,7 +191,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
 
     @property
     def project_repo(self) -> ProjectRepo:
-        project_repo = ProjectRepo(git_repo=self.context.git_repo)
+        project_repo = ProjectRepo(self.context.git_repo)
         return project_repo.with_src_path(self.context.src_workspace) if self.context.src_workspace else project_repo
 
     @property

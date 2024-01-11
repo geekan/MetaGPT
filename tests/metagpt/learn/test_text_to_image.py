@@ -6,9 +6,11 @@
 @File    : test_text_to_image.py
 @Desc    : Unit tests.
 """
+import base64
 
-
+import openai
 import pytest
+from pydantic import BaseModel
 
 from metagpt.config2 import Config
 from metagpt.learn.text_to_image import text_to_image
@@ -34,7 +36,23 @@ async def test_text_to_image(mocker):
 
 
 @pytest.mark.asyncio
-async def test_openai_text_to_image():
+async def test_openai_text_to_image(mocker):
+    # mocker
+    mock_url = mocker.Mock()
+    mock_url.url.return_value = "http://mock.com/0.png"
+
+    class _MockData(BaseModel):
+        data: list
+
+    mock_data = _MockData(data=[mock_url])
+    mocker.patch.object(openai.resources.images.AsyncImages, "generate", return_value=mock_data)
+    mock_post = mocker.patch("aiohttp.ClientSession.get")
+    mock_response = mocker.AsyncMock()
+    mock_response.status = 200
+    mock_response.read.return_value = base64.b64encode(b"success")
+    mock_post.return_value.__aenter__.return_value = mock_response
+    mocker.patch.object(S3, "cache", return_value="http://mock.s3.com/0.png")
+
     config = Config.default()
     assert config.get_openai_llm()
 

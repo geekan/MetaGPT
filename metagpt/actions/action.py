@@ -35,7 +35,7 @@ class Action(SerializationMixin, ContextMixin, BaseModel):
 
     @property
     def project_repo(self):
-        return ProjectRepo(git_repo=self.context.git_repo)
+        return ProjectRepo(self.context.git_repo)
 
     @property
     def prompt_schema(self):

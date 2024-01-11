@@ -56,10 +56,6 @@ class Context(BaseModel):
     _llm: Optional[BaseLLM] = None
 
     @property
-    def file_repo(self):
-        return self.git_repo.new_file_repository()
-
-    @property
     def options(self):
         """Return all key-values"""
         return OPTIONS.get()

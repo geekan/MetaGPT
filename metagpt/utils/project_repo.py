@@ -78,12 +78,14 @@ class ResourceFileRepositories(FileRepository):
 
 
 class ProjectRepo(FileRepository):
-    def __init__(self, root: str | Path = None, git_repo: GitRepository = None):
-        if not root and not git_repo:
-            raise ValueError("Invalid root and git_repo")
-        git_repo_ = git_repo or GitRepository(local_path=Path(root))
+    def __init__(self, root: str | Path | GitRepository):
+        if isinstance(root, str) or isinstance(root, Path):
+            git_repo_ = GitRepository(local_path=Path(root))
+        elif isinstance(root, GitRepository):
+            git_repo_ = root
+        else:
+            raise ValueError("Invalid root")
         super().__init__(git_repo=git_repo_, relative_path=Path("."))
-
         self._git_repo = git_repo_
         self.docs = DocFileRepositories(self._git_repo)
         self.resources = ResourceFileRepositories(self._git_repo)

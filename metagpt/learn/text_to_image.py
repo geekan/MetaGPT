@@ -30,8 +30,8 @@ async def text_to_image(text, size_type: str = "512x512", model_url="", config: 
 
     if model_url:
         binary_data = await oas3_metagpt_text_to_image(text, size_type, model_url)
-    elif oai_llm := config.get_openai_llm():
-        binary_data = await oas3_openai_text_to_image(text, size_type, LLM(oai_llm))
+    elif config.get_openai_llm():
+        binary_data = await oas3_openai_text_to_image(text, size_type, LLM())
     else:
         raise ValueError("Missing necessary parameters.")
     base64_data = base64.b64encode(binary_data).decode("utf-8")
