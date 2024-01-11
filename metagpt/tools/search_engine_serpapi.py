@@ -32,7 +32,7 @@ class SerpAPIWrapper(BaseModel):
     @field_validator("serpapi_api_key", mode="before")
     @classmethod
     def check_serpapi_api_key(cls, val: str):
-        val = val or config.search["serpapi"].api_key
+        val = val or config.search.api_key
         if not val:
             raise ValueError(
                 "To use, make sure you provide the serpapi_api_key when constructing an object. Alternatively, "

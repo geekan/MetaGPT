@@ -28,12 +28,10 @@ class PlaywrightWrapper:
 
     def __init__(
         self,
-        browser_type: Literal["chromium", "firefox", "webkit"] | None = None,
+        browser_type: Literal["chromium", "firefox", "webkit"] | None = "chromium",
         launch_kwargs: dict | None = None,
         **kwargs,
     ) -> None:
-        if browser_type is None:
-            browser_type = config.browser["playwright"].driver
         self.browser_type = browser_type
         launch_kwargs = launch_kwargs or {}
         if config.proxy and "proxy" not in launch_kwargs:

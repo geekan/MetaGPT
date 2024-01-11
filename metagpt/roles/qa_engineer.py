@@ -62,7 +62,9 @@ class QaEngineer(Role):
             logger.info(f"Writing {test_doc.filename}..")
             context = TestingContext(filename=test_doc.filename, test_doc=test_doc, code_doc=code_doc)
             context = await WriteTest(i_context=context, context=self.context, llm=self.llm).run()
-            await self.project_repo.tests.save_doc(doc=test_doc, dependencies={context.code_doc.root_relative_path})
+            await self.project_repo.tests.save_doc(
+                doc=context.test_doc, dependencies={context.code_doc.root_relative_path}
+            )
 
             # prepare context for run tests in next round
             run_code_context = RunCodeContext(

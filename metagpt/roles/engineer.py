@@ -162,6 +162,7 @@ class Engineer(Role):
             if not is_pass:
                 todo.i_context.reason = reason
                 tasks.append(todo.i_context.dict())
+
                 await self.project_repo.docs.code_summary.save(
                     filename=Path(todo.i_context.design_filename).name,
                     content=todo.i_context.model_dump_json(),

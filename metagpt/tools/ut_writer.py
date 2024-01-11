@@ -282,6 +282,6 @@ class UTGenerator:
         """Choose based on different calling methods"""
         result = ""
         if self.chatgpt_method == "API":
-            result = await GPTAPI(config.get_llm_config()).aask_code(messages=messages)
+            result = await GPTAPI(config.get_openai_llm()).aask_code(messages=messages)
 
         return result

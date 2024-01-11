@@ -9,7 +9,7 @@ import os
 from pathlib import Path
 from typing import Dict, Iterable, List, Literal, Optional
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, model_validator
 
 from metagpt.configs.browser_config import BrowserConfig
 from metagpt.configs.llm_config import LLMConfig, LLMType
@@ -44,15 +44,15 @@ class Config(CLIParams, YamlModel):
     """Configurations for MetaGPT"""
 
     # Key Parameters
-    llm: Dict[str, LLMConfig] = Field(default_factory=Dict)
+    llm: LLMConfig
 
     # Global Proxy. Will be used if llm.proxy is not set
     proxy: str = ""
 
     # Tool Parameters
-    search: Dict[str, SearchConfig] = {}
-    browser: Dict[str, BrowserConfig] = {"default": BrowserConfig()}
-    mermaid: Dict[str, MermaidConfig] = {"default": MermaidConfig()}
+    search: Optional[SearchConfig] = None
+    browser: BrowserConfig = BrowserConfig()
+    mermaid: MermaidConfig = MermaidConfig()
 
     # Storage Parameters
     s3: Optional[S3Config] = None
@@ -110,46 +110,17 @@ class Config(CLIParams, YamlModel):
         self.reqa_file = reqa_file
         self.max_auto_summarize_code = max_auto_summarize_code
 
-    def _get_llm_config(self, name: Optional[str] = None) -> LLMConfig:
-        """Get LLM instance by name"""
-        if name is None:
-            # Use the first LLM as default
-            name = list(self.llm.keys())[0]
-        if name not in self.llm:
-            raise ValueError(f"LLM {name} not found in config")
-        return self.llm[name]
-
-    def get_llm_configs_by_type(self, llm_type: LLMType) -> List[LLMConfig]:
-        """Get LLM instance by type"""
-        return [v for k, v in self.llm.items() if v.api_type == llm_type]
-
-    def get_llm_config_by_type(self, llm_type: LLMType) -> Optional[LLMConfig]:
-        """Get LLM instance by type"""
-        llm = self.get_llm_configs_by_type(llm_type)
-        if llm:
-            return llm[0]
-        return None
-
-    def get_llm_config(self, name: Optional[str] = None, provider: LLMType = None) -> LLMConfig:
-        """Return a LLMConfig instance"""
-        if provider:
-            llm_configs = self.get_llm_configs_by_type(provider)
-
-            if len(llm_configs) == 0:
-                raise ValueError(f"Cannot find llm config with name {name} and provider {provider}")
-            # return the first one if name is None, or return the only one
-            llm_config = llm_configs[0]
-        else:
-            llm_config = self._get_llm_config(name)
-        return llm_config
-
     def get_openai_llm(self) -> Optional[LLMConfig]:
         """Get OpenAI LLMConfig by name. If no OpenAI, raise Exception"""
-        return self.get_llm_config_by_type(LLMType.OPENAI)
+        if self.llm.api_type == LLMType.OPENAI:
+            return self.llm
+        return None
 
     def get_azure_llm(self) -> Optional[LLMConfig]:
         """Get Azure LLMConfig by name. If no Azure, raise Exception"""
-        return self.get_llm_config_by_type(LLMType.AZURE)
+        if self.llm.api_type == LLMType.AZURE:
+            return self.llm
+        return None
 
 
 def merge_dict(dicts: Iterable[Dict]) -> Dict:
