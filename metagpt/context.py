@@ -103,7 +103,6 @@ class ContextMixin(BaseModel):
     _config: Optional[Config] = None
 
     # Env/Role/Action will use this llm as private llm, or use self.context._llm instance
-    _llm_config: Optional[LLMConfig] = None
     _llm: Optional[BaseLLM] = None
 
     def __init__(
@@ -131,10 +130,6 @@ class ContextMixin(BaseModel):
     def set_config(self, config: Config, override=False):
         """Set config"""
         self.set("_config", config, override)
-
-    def set_llm_config(self, llm_config: LLMConfig, override=False):
-        """Set llm config"""
-        self.set("_llm_config", llm_config, override)
 
     def set_llm(self, llm: BaseLLM, override=False):
         """Set llm"""
@@ -166,11 +161,11 @@ class ContextMixin(BaseModel):
 
     @property
     def llm(self) -> BaseLLM:
-        """Role llm: role llm > context llm"""
+        """Role llm: if not existed, init from role.config"""
         # print(f"class:{self.__class__.__name__}({self.name}), llm: {self._llm}, llm_config: {self._llm_config}")
-        if self._llm_config and not self._llm:
-            self._llm = self.context.llm_with_cost_manager_from_llm_config(self._llm_config)
-        return self._llm or self.context.llm()
+        if not self._llm:
+            self._llm = self.context.llm_with_cost_manager_from_llm_config(self.config.llm)
+        return self._llm
 
     @llm.setter
     def llm(self, llm: BaseLLM) -> None:
