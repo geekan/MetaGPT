@@ -39,5 +39,6 @@ mock_llm_config_zhipu = LLMConfig(
     llm_type="zhipu",
     api_key="mock_api_key.zhipu",
     base_url="mock_base_url",
+    model="mock_zhipu_model",
     proxy="http://localhost:8080",
 )
