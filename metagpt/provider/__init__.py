@@ -15,6 +15,7 @@ from metagpt.provider.zhipuai_api import ZhiPuAILLM
 from metagpt.provider.azure_openai_api import AzureOpenAILLM
 from metagpt.provider.metagpt_api import MetaGPTLLM
 from metagpt.provider.human_provider import HumanProvider
+from metagpt.provider.spark_api import SparkLLM
 
 __all__ = [
     "FireworksLLM",
@@ -26,4 +27,5 @@ __all__ = [
     "MetaGPTLLM",
     "OllamaLLM",
     "HumanProvider",
+    "SparkLLM",
 ]
