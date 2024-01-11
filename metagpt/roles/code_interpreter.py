@@ -28,7 +28,9 @@ class CodeInterpreter(Role):
         make_udfs=False,
         **kwargs,
     ):
-        super().__init__(name=name, profile=profile, goal=goal, auto_run=auto_run, use_tools=use_tools, make_udfs=make_udfs, **kwargs)
+        super().__init__(
+            name=name, profile=profile, goal=goal, auto_run=auto_run, use_tools=use_tools, make_udfs=make_udfs, **kwargs
+        )
         self._set_react_mode(react_mode="plan_and_act", auto_run=auto_run, use_tools=use_tools)
 
     @property
@@ -97,4 +99,6 @@ class CodeInterpreter(Role):
         logger.info("Plan completed. Now start to make tools ...")
         tool_maker = ToolMaker()
         for task in self.planner.plan.get_finished_tasks():
-            await tool_maker.make_tool(code=task.code, instruction=task.instruction, task_id=task.task_id, auto_run=self.auto_run)
+            await tool_maker.make_tool(
+                code=task.code, instruction=task.instruction, task_id=task.task_id, auto_run=self.auto_run
+            )

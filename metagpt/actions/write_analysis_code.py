@@ -12,7 +12,7 @@ import yaml
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 from metagpt.actions import Action
-from metagpt.const import METAGPT_ROOT, TOOL_SCHEMA_PATH
+from metagpt.const import TOOL_SCHEMA_PATH
 from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.prompts.ml_engineer import (

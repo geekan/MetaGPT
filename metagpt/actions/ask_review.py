@@ -27,7 +27,9 @@ class AskReview(Action):
         if plan:
             logger.info("Current overall plan:")
             logger.info(
-                "\n".join([f"{task.task_id}: {task.instruction}, is_finished: {task.is_finished}" for task in plan.tasks])
+                "\n".join(
+                    [f"{task.task_id}: {task.instruction}, is_finished: {task.is_finished}" for task in plan.tasks]
+                )
             )
 
         logger.info("most recent context:")
