@@ -146,7 +146,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         super().__init__(**data)
 
         if self.is_human:
-            self.llm = HumanProvider()
+            self.llm = HumanProvider(None)
 
         self.llm.system_prompt = self._get_prefix()
         self._watch(data.get("watch") or [UserRequirement])
@@ -222,7 +222,8 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
     def _setting(self):
         return f"{self.name}({self.profile})"
 
-    def _init_action_system_message(self, action: Action):
+    def _init_action(self, action: Action):
+        action.set_llm(self.llm, override=False)
         action.set_prefix(self._get_prefix())
 
     def set_action(self, action: Action):
@@ -238,7 +239,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         self._reset()
         for action in actions:
             if not isinstance(action, Action):
-                i = action(name="", llm=self.llm)
+                i = action()
             else:
                 if self.is_human and not isinstance(action.llm, HumanProvider):
                     logger.warning(
@@ -247,7 +248,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
                         f"try passing in Action classes instead of initialized instances"
                     )
                 i = action
-            self._init_action_system_message(i)
+            self._init_action(i)
             self.actions.append(i)
             self.states.append(f"{len(self.actions)}. {action}")
 

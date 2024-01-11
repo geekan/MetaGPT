@@ -5,10 +5,15 @@
 @Author  : alexanderwu
 @File    : test_context_mixin.py
 """
+import pytest
 from pydantic import BaseModel
 
+from metagpt.actions import Action
 from metagpt.config2 import Config
 from metagpt.context_mixin import ContextMixin
+from metagpt.environment import Environment
+from metagpt.roles import Role
+from metagpt.team import Team
 from tests.metagpt.provider.mock_llm_config import (
     mock_llm_config,
     mock_llm_config_proxy,
@@ -91,3 +96,27 @@ def test_config_mixin_4_multi_inheritance_override_config():
     print(obj.__dict__.keys())
     assert "private_config" in obj.__dict__.keys()
     assert obj.llm.model == "mock_zhipu_model"
+
+
+@pytest.mark.asyncio
+async def test_debate_two_roles():
+    config = Config.default()
+    config.llm.model = "gpt-4-1106-preview"
+    action1 = Action(config=config, name="AlexSay", instruction="Say your opinion with emotion and don't repeat it")
+    action2 = Action(name="BobSay", instruction="Say your opinion with emotion and don't repeat it")
+    biden = Role(
+        name="Alex", profile="Democratic candidate", goal="Win the election", actions=[action1], watch=[action2]
+    )
+    trump = Role(
+        name="Bob", profile="Republican candidate", goal="Win the election", actions=[action2], watch=[action1]
+    )
+    env = Environment(desc="US election live broadcast")
+    team = Team(investment=10.0, env=env, roles=[biden, trump])
+
+    print(action1.llm.system_prompt)
+    print(action2.llm.system_prompt)
+    print(biden.llm.system_prompt)
+    print(trump.llm.system_prompt)
+
+    history = await team.run(idea="Topic: climate change. Under 80 words per message.", send_to="Alex", n_round=3)
+    assert "Alex" in history

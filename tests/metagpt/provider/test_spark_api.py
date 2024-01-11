@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # @Desc   : the unittest of spark api
+from pathlib import Path
 
 import pytest
 
+from metagpt.config2 import Config
 from metagpt.provider.spark_api import GetMessageFromWeb, SparkLLM
 from tests.metagpt.provider.mock_llm_config import mock_llm_config
 
@@ -31,6 +33,14 @@ def test_get_msg_from_web(mocker):
 
 def mock_spark_get_msg_from_web_run(self) -> str:
     return resp_content
+
+
+@pytest.mark.asyncio
+async def test_spark_aask():
+    llm = SparkLLM(Config.model_validate_yaml(Path.home() / ".metagpt" / "spark.yaml").llm)
+
+    resp = await llm.aask("Hello!")
+    print(resp)
 
 
 @pytest.mark.asyncio
