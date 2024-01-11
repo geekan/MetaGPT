@@ -199,10 +199,17 @@ class GitRepository:
         if new_path.exists():
             logger.info(f"Delete directory {str(new_path)}")
             shutil.rmtree(new_path)
+        if new_path.exists():  # Recheck for windows os
+            logger.warning(f"Failed to delete directory {str(new_path)}")
+            return
         try:
             shutil.move(src=str(self.workdir), dst=str(new_path))
         except Exception as e:
             logger.warning(f"Move {str(self.workdir)} to {str(new_path)} error: {e}")
+        finally:
+            if not new_path.exists():  # Recheck for windows os
+                logger.warning(f"Failed to move {str(self.workdir)} to {str(new_path)}")
+                return
         logger.info(f"Rename directory {str(self.workdir)} to {str(new_path)}")
         self._repository = Repo(new_path)
         self._gitignore_rules = parse_gitignore(full_path=str(new_path / ".gitignore"))

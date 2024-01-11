@@ -29,9 +29,6 @@ from metagpt.actions.write_prd_an import (
 from metagpt.const import (
     BUGFIX_FILENAME,
     COMPETITIVE_ANALYSIS_FILE_REPO,
-    DOCS_FILE_REPO,
-    PRD_PDF_FILE_REPO,
-    PRDS_FILE_REPO,
     REQUIREMENT_FILENAME,
 )
 from metagpt.logs import logger
@@ -67,11 +64,10 @@ class WritePRD(Action):
     async def run(self, with_messages, *args, **kwargs) -> ActionOutput | Message:
         # Determine which requirement documents need to be rewritten: Use LLM to assess whether new requirements are
         # related to the PRD. If they are related, rewrite the PRD.
-        docs_file_repo = self.git_repo.new_file_repository(relative_path=DOCS_FILE_REPO)
-        requirement_doc = await docs_file_repo.get(filename=REQUIREMENT_FILENAME)
+        requirement_doc = await self.project_repo.docs.get(filename=REQUIREMENT_FILENAME)
         if requirement_doc and await self._is_bugfix(requirement_doc.content):
-            await docs_file_repo.save(filename=BUGFIX_FILENAME, content=requirement_doc.content)
-            await docs_file_repo.save(filename=REQUIREMENT_FILENAME, content="")
+            await self.project_repo.docs.save(filename=BUGFIX_FILENAME, content=requirement_doc.content)
+            await self.project_repo.docs.save(filename=REQUIREMENT_FILENAME, content="")
             bug_fix = BugFixContext(filename=BUGFIX_FILENAME)
             return Message(
                 content=bug_fix.model_dump_json(),
@@ -82,24 +78,19 @@ class WritePRD(Action):
                 send_to="Alex",  # the name of Engineer
             )
         else:
-            await docs_file_repo.delete(filename=BUGFIX_FILENAME)
+            await self.project_repo.docs.delete(filename=BUGFIX_FILENAME)
 
-        prds_file_repo = self.git_repo.new_file_repository(PRDS_FILE_REPO)
-        prd_docs = await prds_file_repo.get_all()
+        prd_docs = await self.project_repo.docs.prd.get_all()
         change_files = Documents()
         for prd_doc in prd_docs:
-            prd_doc = await self._update_prd(
-                requirement_doc=requirement_doc, prd_doc=prd_doc, prds_file_repo=prds_file_repo, *args, **kwargs
-            )
+            prd_doc = await self._update_prd(requirement_doc=requirement_doc, prd_doc=prd_doc, *args, **kwargs)
             if not prd_doc:
                 continue
             change_files.docs[prd_doc.filename] = prd_doc
             logger.info(f"rewrite prd: {prd_doc.filename}")
         # If there is no existing PRD, generate one using 'docs/requirement.txt'.
         if not change_files.docs:
-            prd_doc = await self._update_prd(
-                requirement_doc=requirement_doc, prd_doc=None, prds_file_repo=prds_file_repo, *args, **kwargs
-            )
+            prd_doc = await self._update_prd(requirement_doc=requirement_doc, *args, **kwargs)
             if prd_doc:
                 change_files.docs[prd_doc.filename] = prd_doc
                 logger.debug(f"new prd: {prd_doc.filename}")
@@ -109,13 +100,6 @@ class WritePRD(Action):
         return ActionOutput(content=change_files.model_dump_json(), instruct_content=change_files)
 
     async def _run_new_requirement(self, requirements) -> ActionOutput:
-        # sas = SearchAndSummarize()
-        # # rsp = await sas.run(context=requirements, system_text=SEARCH_AND_SUMMARIZE_SYSTEM_EN_US)
-        # rsp = ""
-        # info = f"### Search Results\n{sas.result}\n\n### Search Summary\n{rsp}"
-        # if sas.result:
-        #     logger.info(sas.result)
-        #     logger.info(rsp)
         project_name = self.project_name
         context = CONTEXT_TEMPLATE.format(requirements=requirements, project_name=project_name)
         exclude = [PROJECT_NAME.key] if project_name else []
@@ -137,23 +121,21 @@ class WritePRD(Action):
         await self._rename_workspace(node)
         return prd_doc
 
-    async def _update_prd(self, requirement_doc, prd_doc, prds_file_repo, *args, **kwargs) -> Document | None:
+    async def _update_prd(self, requirement_doc, prd_doc=None, *args, **kwargs) -> Document | None:
         if not prd_doc:
             prd = await self._run_new_requirement(
                 requirements=[requirement_doc.content if requirement_doc else ""], *args, **kwargs
             )
-            new_prd_doc = Document(
-                root_path=PRDS_FILE_REPO,
-                filename=FileRepository.new_filename() + ".json",
-                content=prd.instruct_content.model_dump_json(),
+            new_prd_doc = await self.project_repo.docs.prd.save(
+                filename=FileRepository.new_filename() + ".json", content=prd.instruct_content.model_dump_json()
             )
         elif await self._is_relative(requirement_doc, prd_doc):
             new_prd_doc = await self._merge(requirement_doc, prd_doc)
+            self.project_repo.docs.prd.save_doc(doc=new_prd_doc)
         else:
             return None
-        await prds_file_repo.save(filename=new_prd_doc.filename, content=new_prd_doc.content)
         await self._save_competitive_analysis(new_prd_doc)
-        await self._save_pdf(new_prd_doc)
+        await self.project_repo.resources.prd.save_pdf(doc=new_prd_doc)
         return new_prd_doc
 
     async def _save_competitive_analysis(self, prd_doc):
@@ -161,13 +143,12 @@ class WritePRD(Action):
         quadrant_chart = m.get("Competitive Quadrant Chart")
         if not quadrant_chart:
             return
-        pathname = self.git_repo.workdir / Path(COMPETITIVE_ANALYSIS_FILE_REPO) / Path(prd_doc.filename).with_suffix("")
+        pathname = (
+            self.project_repo.workdir / Path(COMPETITIVE_ANALYSIS_FILE_REPO) / Path(prd_doc.filename).with_suffix("")
+        )
         if not pathname.parent.exists():
             pathname.parent.mkdir(parents=True, exist_ok=True)
         await mermaid_to_file(self.config.mermaid_engine, quadrant_chart, pathname)
-
-    async def _save_pdf(self, prd_doc):
-        await self.file_repo.save_as(doc=prd_doc, with_suffix=".md", relative_path=PRD_PDF_FILE_REPO)
 
     async def _rename_workspace(self, prd):
         if not self.project_name:
@@ -177,11 +158,14 @@ class WritePRD(Action):
                 ws_name = CodeParser.parse_str(block="Project Name", text=prd)
             if ws_name:
                 self.project_name = ws_name
-        self.git_repo.rename_root(self.project_name)
+        self.project_repo.git_repo.rename_root(self.project_name)
 
     async def _is_bugfix(self, context) -> bool:
-        src_workspace_path = self.git_repo.workdir / self.git_repo.workdir.name
-        code_files = self.git_repo.get_files(relative_path=src_workspace_path)
+        git_workdir = self.project_repo.git_repo.workdir
+        src_workdir = git_workdir / git_workdir.name
+        if not src_workdir.exists():
+            return False
+        code_files = self.project_repo.with_src_path(path=git_workdir / git_workdir.name).srcs.all_files
         if not code_files:
             return False
         node = await WP_ISSUE_TYPE_NODE.fill(context, self.llm)

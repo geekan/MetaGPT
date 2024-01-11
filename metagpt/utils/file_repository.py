@@ -183,10 +183,20 @@ class FileRepository:
         """
         current_time = datetime.now().strftime("%Y%m%d%H%M%S")
         return current_time
-        # guid_suffix = str(uuid.uuid4())[:8]
-        # return f"{current_time}x{guid_suffix}"
 
-    async def save_doc(self, doc: Document, with_suffix: str = None, dependencies: List[str] = None):
+    async def save_doc(self, doc: Document, dependencies: List[str] = None):
+        """Save content to a file and update its dependencies.
+
+        :param doc: The Document instance to be saved.
+        :type doc: Document
+        :param dependencies: A list of dependencies for the saved file.
+        :type dependencies: List[str], optional
+        """
+
+        await self.save(filename=doc.filename, content=doc.content, dependencies=dependencies)
+        logger.debug(f"File Saved: {str(doc.filename)}")
+
+    async def save_pdf(self, doc: Document, with_suffix: str = ".md", dependencies: List[str] = None):
         """Save a Document instance as a PDF file.
 
         This method converts the content of the Document instance to Markdown,

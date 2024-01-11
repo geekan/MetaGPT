@@ -36,6 +36,7 @@ from metagpt.memory import Memory
 from metagpt.provider import HumanProvider
 from metagpt.schema import Message, MessageQueue, SerializationMixin
 from metagpt.utils.common import any_to_name, any_to_str, role_raise_decorator
+from metagpt.utils.project_repo import ProjectRepo
 from metagpt.utils.repair_llm_raw_output import extract_state_value_from_output
 
 PREFIX_TEMPLATE = """You are a {profile}, named {name}, your goal is {goal}. """
@@ -187,6 +188,11 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
     @src_workspace.setter
     def src_workspace(self, value):
         self.context.src_workspace = value
+
+    @property
+    def project_repo(self) -> ProjectRepo:
+        project_repo = ProjectRepo(git_repo=self.context.git_repo)
+        return project_repo.with_src_path(self.context.src_workspace) if self.context.src_workspace else project_repo
 
     @property
     def prompt_schema(self):
@@ -427,7 +433,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
                 break
             # act
             logger.debug(f"{self._setting}: {self.rc.state=}, will do {self.rc.todo}")
-            rsp = await self._act()  # 这个rsp是否需要publish_message？
+            rsp = await self._act()
             actions_taken += 1
         return rsp  # return output from the last action
 

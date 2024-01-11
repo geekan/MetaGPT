@@ -17,9 +17,11 @@ from metagpt.const import (
     CODE_SUMMARIES_PDF_FILE_REPO,
     COMPETITIVE_ANALYSIS_FILE_REPO,
     DATA_API_DESIGN_FILE_REPO,
+    DOCS_FILE_REPO,
     GRAPH_REPO_FILE_REPO,
     PRD_PDF_FILE_REPO,
     PRDS_FILE_REPO,
+    RESOURCES_FILE_REPO,
     SD_OUTPUT_FILE_REPO,
     SEQ_FLOW_FILE_REPO,
     SYSTEM_DESIGN_FILE_REPO,
@@ -33,7 +35,7 @@ from metagpt.utils.file_repository import FileRepository
 from metagpt.utils.git_repository import GitRepository
 
 
-class DocFileRepositories:
+class DocFileRepositories(FileRepository):
     prd: FileRepository
     system_design: FileRepository
     task: FileRepository
@@ -42,6 +44,8 @@ class DocFileRepositories:
     class_view: FileRepository
 
     def __init__(self, git_repo):
+        super().__init__(git_repo=git_repo, relative_path=DOCS_FILE_REPO)
+
         self.prd = git_repo.new_file_repository(relative_path=PRDS_FILE_REPO)
         self.system_design = git_repo.new_file_repository(relative_path=SYSTEM_DESIGN_FILE_REPO)
         self.task = git_repo.new_file_repository(relative_path=TASK_FILE_REPO)
@@ -50,7 +54,7 @@ class DocFileRepositories:
         self.class_view = git_repo.new_file_repository(relative_path=CLASS_VIEW_FILE_REPO)
 
 
-class ResourceFileRepositories:
+class ResourceFileRepositories(FileRepository):
     competitive_analysis: FileRepository
     data_api_design: FileRepository
     seq_flow: FileRepository
@@ -61,6 +65,8 @@ class ResourceFileRepositories:
     sd_output: FileRepository
 
     def __init__(self, git_repo):
+        super().__init__(git_repo=git_repo, relative_path=RESOURCES_FILE_REPO)
+
         self.competitive_analysis = git_repo.new_file_repository(relative_path=COMPETITIVE_ANALYSIS_FILE_REPO)
         self.data_api_design = git_repo.new_file_repository(relative_path=DATA_API_DESIGN_FILE_REPO)
         self.seq_flow = git_repo.new_file_repository(relative_path=SEQ_FLOW_FILE_REPO)
@@ -72,16 +78,40 @@ class ResourceFileRepositories:
 
 
 class ProjectRepo(FileRepository):
-    def __init__(self, root: str | Path):
-        git_repo = GitRepository(local_path=Path(root))
-        super().__init__(git_repo=git_repo, relative_path=Path("."))
+    def __init__(self, root: str | Path = None, git_repo: GitRepository = None):
+        if not root and not git_repo:
+            raise ValueError("Invalid root and git_repo")
+        git_repo_ = git_repo or GitRepository(local_path=Path(root))
+        super().__init__(git_repo=git_repo_, relative_path=Path("."))
 
-        self._git_repo = git_repo
+        self._git_repo = git_repo_
         self.docs = DocFileRepositories(self._git_repo)
         self.resources = ResourceFileRepositories(self._git_repo)
         self.tests = self._git_repo.new_file_repository(relative_path=TEST_CODES_FILE_REPO)
         self.test_outputs = self._git_repo.new_file_repository(relative_path=TEST_OUTPUTS_FILE_REPO)
+        self._srcs_path = None
 
     @property
-    def git_repo(self):
+    def git_repo(self) -> GitRepository:
         return self._git_repo
+
+    @property
+    def workdir(self) -> Path:
+        return Path(self.git_repo.workdir)
+
+    @property
+    def srcs(self) -> FileRepository:
+        if not self._srcs_path:
+            raise ValueError("Call with_srcs first.")
+        return self._git_repo.new_file_repository(self._srcs_path)
+
+    def with_src_path(self, path: str | Path) -> ProjectRepo:
+        try:
+            self._srcs_path = Path(path).relative_to(self.workdir)
+        except ValueError:
+            self._srcs_path = Path(path)
+        return self
+
+    @property
+    def src_relative_path(self) -> Path | None:
+        return self._srcs_path
