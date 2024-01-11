@@ -25,7 +25,7 @@ from metagpt.utils.project_repo import ProjectRepo
 
 
 class Action(SerializationMixin, ContextMixin, BaseModel):
-    model_config = ConfigDict(arbitrary_types_allowed=True, exclude=["llm"])
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     name: str = ""
     i_context: Union[dict, CodingContext, CodeSummarizeContext, TestingContext, RunCodeContext, str, None] = ""

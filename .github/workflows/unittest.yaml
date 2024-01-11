@@ -1,13 +1,10 @@
-name: Python application test
+name: Unit Tests
 
 on:
   workflow_dispatch:
   pull_request_target:
   push: 
-    branches: 
-      - 'main'
-      - 'dev'
-      - '*-release'
+    branches:
       - '*-debugger'
 
 jobs:
@@ -79,3 +76,4 @@ jobs:
       uses: codecov/codecov-action@v3
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      if: ${{ always() }}

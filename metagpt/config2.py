@@ -18,7 +18,7 @@ from metagpt.configs.redis_config import RedisConfig
 from metagpt.configs.s3_config import S3Config
 from metagpt.configs.search_config import SearchConfig
 from metagpt.configs.workspace_config import WorkspaceConfig
-from metagpt.const import METAGPT_ROOT
+from metagpt.const import CONFIG_ROOT, METAGPT_ROOT
 from metagpt.utils.yaml_model import YamlModel
 
 
@@ -80,6 +80,11 @@ class Config(CLIParams, YamlModel):
     AZURE_TTS_SUBSCRIPTION_KEY: str = ""
     AZURE_TTS_REGION: str = ""
     mermaid_engine: str = "nodejs"
+
+    @classmethod
+    def from_home(cls, path):
+        """Load config from ~/.metagpt/config.yaml"""
+        return Config.model_validate_yaml(CONFIG_ROOT / path)
 
     @classmethod
     def default(cls):

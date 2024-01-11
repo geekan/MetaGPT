@@ -104,7 +104,7 @@ class Engineer(Role):
             # Code review
             if review:
                 action = WriteCodeReview(i_context=coding_context, context=self.context, llm=self.llm)
-                self._init_action_system_message(action)
+                self._init_action(action)
                 coding_context = await action.run()
             await self.project_repo.srcs.save(
                 filename=coding_context.filename,

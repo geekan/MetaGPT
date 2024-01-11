@@ -26,14 +26,14 @@ from metagpt.provider.llm_provider_registry import register_provider
 class SparkLLM(BaseLLM):
     def __init__(self, config: LLMConfig):
         self.config = config
-        logger.warning("当前方法无法支持异步运行。当你使用acompletion时，并不能并行访问。")
+        logger.warning("SparkLLM：当前方法无法支持异步运行。当你使用acompletion时，并不能并行访问。")
 
     def get_choice_text(self, rsp: dict) -> str:
         return rsp["payload"]["choices"]["text"][-1]["content"]
 
     async def acompletion_text(self, messages: list[dict], stream=False, timeout: int = 3) -> str:
         # 不支持
-        logger.warning("当前方法无法支持异步运行。当你使用acompletion时，并不能并行访问。")
+        # logger.warning("当前方法无法支持异步运行。当你使用acompletion时，并不能并行访问。")
         w = GetMessageFromWeb(messages, self.config)
         return w.run()
 

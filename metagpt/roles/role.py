@@ -132,6 +132,13 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
 
     role_id: str = ""
     states: list[str] = []
+
+    # scenarios to set action system_prompt:
+    #   1. `__init__` while using Role(actions=[...])
+    #   2. add action to role while using `role.set_action(action)`
+    #   3. set_todo while using `role.set_todo(action)`
+    #   4. when role.system_prompt is being updated (e.g. by `role.system_prompt = "..."`)
+    # Additional, if llm is not set, we will use role's llm
     actions: list[SerializeAsAny[Action]] = Field(default=[], validate_default=True)
     rc: RoleContext = Field(default_factory=RoleContext)
     addresses: set[str] = set()
@@ -146,6 +153,10 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         self.pydantic_rebuild_model()
         super().__init__(**data)
 
+        if self.is_human:
+            self.llm = HumanProvider(None)
+
+        self._check_actions()
         self.llm.system_prompt = self._get_prefix()
         self._watch(data.get("watch") or [UserRequirement])
 
@@ -225,7 +236,16 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
     def _setting(self):
         return f"{self.name}({self.profile})"
 
-    def _init_action_system_message(self, action: Action):
+    def _check_actions(self):
+        """Check actions and set llm and prefix for each action."""
+        self.set_actions(self.actions)
+        return self
+
+    def _init_action(self, action: Action):
+        if not action.private_config:
+            action.set_llm(self.llm, override=True)
+        else:
+            action.set_llm(self.llm, override=False)
         action.set_prefix(self._get_prefix())
 
     def set_action(self, action: Action):
@@ -241,7 +261,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         self._reset()
         for action in actions:
             if not isinstance(action, Action):
-                i = action(name="", llm=self.llm)
+                i = action()
             else:
                 if self.is_human and not isinstance(action.llm, HumanProvider):
                     logger.warning(
@@ -250,7 +270,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
                         f"try passing in Action classes instead of initialized instances"
                     )
                 i = action
-            self._init_action_system_message(i)
+            self._init_action(i)
             self.actions.append(i)
             self.states.append(f"{len(self.actions)}. {action}")
 
@@ -308,6 +328,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         if env:
             env.set_addresses(self, self.addresses)
             self.llm.system_prompt = self._get_prefix()
+            self.set_actions(self.actions)  # reset actions to update llm and prefix
 
     def _get_prefix(self):
         """Get the role prefix"""
@@ -320,7 +341,8 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
             prefix += CONSTRAINT_TEMPLATE.format(**{"constraints": self.constraints})
 
         if self.rc.env and self.rc.env.desc:
-            other_role_names = ", ".join(self.rc.env.role_names())
+            all_roles = self.rc.env.role_names()
+            other_role_names = ", ".join([r for r in all_roles if r != self.name])
             env_desc = f"You are in {self.rc.env.desc} with roles({other_role_names})."
             prefix += env_desc
         return prefix
@@ -480,7 +502,6 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
             if not msg.cause_by:
                 msg.cause_by = UserRequirement
             self.put_message(msg)
-
         if not await self._observe():
             # If there is no new information, suspend and wait
             logger.debug(f"{self._setting}: no news. waiting.")

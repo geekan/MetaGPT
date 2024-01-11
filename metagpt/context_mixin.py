@@ -19,6 +19,11 @@ class ContextMixin(BaseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
+    # Pydantic has bug on _private_attr when using inheritance, so we use private_* instead
+    # - https://github.com/pydantic/pydantic/issues/7142
+    # - https://github.com/pydantic/pydantic/issues/7083
+    # - https://github.com/pydantic/pydantic/issues/7091
+
     # Env/Role/Action will use this context as private context, or use self.context as public context
     private_context: Optional[Context] = Field(default=None, exclude=True)
     # Env/Role/Action will use this config as private config, or use self.context.config as public config
@@ -52,6 +57,8 @@ class ContextMixin(BaseModel):
     def set_config(self, config: Config, override=False):
         """Set config"""
         self.set("private_config", config, override)
+        if config is not None:
+            _ = self.llm  # init llm
 
     def set_llm(self, llm: BaseLLM, override=False):
         """Set llm"""
