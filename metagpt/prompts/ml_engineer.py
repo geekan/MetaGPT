@@ -58,6 +58,7 @@ Please assign a task type to each task in the list below from the given categori
 - **data_preprocess**: Only for changing value inplace.
 - **model_train**: Only for training model.
 - **model_evaluate**: Only for evaluating model.
+- **stable_diffusion**: Related to text2image, image2image using stable diffusion model.
 - **other**: Any tasks that do not fit into the previous categories, such as visualization, summarizing findings, etc.
 """
 
@@ -326,4 +327,5 @@ TASK_MODULE_MAP = {
     "data_preprocess": "metagpt.tools.functions.libs.data_preprocess",
     "feature_engineering": "metagpt.tools.functions.libs.feature_engineering",
     "udf": "metagpt.tools.functions.libs.udf",
+    "stable_diffusion": "metagpt.tools.sd_engine",
 }
