@@ -145,6 +145,9 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         self.pydantic_rebuild_model()
         super().__init__(**data)
 
+        if self.is_human:
+            self.llm = HumanProvider()
+
         self.llm.system_prompt = self._get_prefix()
         self._watch(data.get("watch") or [UserRequirement])
 
