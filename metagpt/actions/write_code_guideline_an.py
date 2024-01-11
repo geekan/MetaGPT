@@ -10,76 +10,106 @@ import asyncio
 from metagpt.actions.action import Action
 from metagpt.actions.action_node import ActionNode
 
-GUIDELINE = ActionNode(
-    key="Guideline",
-    expected_type=list[str],
-    instruction="Developing comprehensive and incremental development plans while providing detailed code guideline.",
-    example=[
-        "Enhance the functionality of `calculator.py` by extending it to incorporate methods for subtraction, multiplication, and division. Implement robust error handling for the division operation to mitigate potential issues related to division by zero.",
-        "Integrate new API endpoints for subtraction, multiplication, and division into the existing codebase of `main.py`. Ensure seamless integration with the overall application architecture and maintain consistency with coding standards.",
-    ],
-)
-
-INCREMENTAL_CHANGE = ActionNode(
-    key="Incremental Change",
+GUIDELINES_AND_INCREMENTAL_CHANGE = ActionNode(
+    key="Guidelines and Incremental Change",
     expected_type=str,
-    instruction="Write Incremental Change by making a code draft that how to implement incremental development "
-    "including detailed steps based on the context.",
-    example="""- calculator.py: Enhance the functionality of `calculator.py` by extending it to incorporate methods for subtraction, multiplication, and division. Implement robust error handling for the division operation to mitigate potential issues related to division by zero.
+    instruction="Developing comprehensive and step-by-step incremental development guideline, and Write Incremental "
+    "Change by making a code draft that how to implement incremental development including detailed steps based on the "
+    "context. Note: Track incremental changes using mark of '+' or '-' for add/modify/delete code",
+    example="""
+1. Guideline for calculator.py: Enhance the functionality of `calculator.py` by extending it to incorporate methods for subtraction, multiplication, and division. Additionally, implement robust error handling for the division operation to mitigate potential issues related to division by zero. 
 ```python
-## calculator.py
 class Calculator:
-    ...
-    def subtract_numbers(self, num1: int, num2: int) -> int:
-        return num1 - num2
-    def multiply_numbers(self, num1: int, num2: int) -> int:
-        return num1 * num2
-    def divide_numbers(self, num1: int, num2: int) -> float:
-        if num2 == 0:
-            raise ValueError('Cannot divide by zero')
-        return num1 / num2
+         self.result = number1 + number2
+         return self.result
+
+-    def sub(self, number1, number2) -> float:
++    def subtract(self, number1: float, number2: float) -> float:
++        '''
++        Subtracts the second number from the first and returns the result.
++
++        Args:
++            number1 (float): The number to be subtracted from.
++            number2 (float): The number to subtract.
++
++        Returns:
++            float: The difference of number1 and number2.
++        '''
++        self.result = number1 - number2
++        return self.result
++
+    def multiply(self, number1: float, number2: float) -> float:
+-        pass
++        '''
++        Multiplies two numbers and returns the result.
++
++        Args:
++            number1 (float): The first number to multiply.
++            number2 (float): The second number to multiply.
++
++        Returns:
++            float: The product of number1 and number2.
++        '''
++        self.result = number1 * number2
++        return self.result
++
+    def divide(self, number1: float, number2: float) -> float:
+-        pass
++        '''
++            ValueError: If the second number is zero.
++        '''
++        if number2 == 0:
++            raise ValueError('Cannot divide by zero')
++        self.result = number1 / number2
++        return self.result
++
+-    def reset_result(self):
++    def clear(self):
++        if self.result != 0.0:
++            print("Result is not zero, clearing...")
++        else:
++            print("Result is already zero, no need to clear.")
++
+         self.result = 0.0
 ```
 
-- main.py: Integrate new API endpoints for subtraction, multiplication, and division into the existing codebase of `main.py`. Ensure seamless integration with the overall application architecture and maintain consistency with coding standards.
+2. Guideline for main.py: Integrate new API endpoints for subtraction, multiplication, and division into the existing codebase of `main.py`. Then, ensure seamless integration with the overall application architecture and maintain consistency with coding standards.
 ```python
-## main.py
-from flask import Flask, request, jsonify
-from calculator import Calculator
-app = Flask(__name__)
-calculator = Calculator()
-...
-@app.route('/subtract_numbers', methods=['POST'])
-def subtract_numbers():
-    data = request.get_json()
-    num1 = data.get('num1', 0)
-    num2 = data.get('num2', 0)
-    result = calculator.subtract_numbers(num1, num2)
-    return jsonify({'result': result}), 200
-@app.route('/multiply_numbers', methods=['POST'])
-def multiply_numbers():
-    data = request.get_json()
-    num1 = data.get('num1', 0)
-    num2 = data.get('num2', 0)
-    result = calculator.multiply_numbers(num1, num2)
-    return jsonify({'result': result}), 200
-@app.route('/divide_numbers', methods=['POST'])
-def divide_numbers():
-    data = request.get_json()
-    num1 = data.get('num1', 1)
-    num2 = data.get('num2', 1)
-    try:
-        result = calculator.divide_numbers(num1, num2)
-    except ValueError as e:
-        return jsonify({'error': str(e)}), 400
-    return jsonify({'result': result}), 200
-if __name__ == '__main__':
-    app.run()
+def add_numbers():
+     result = calculator.add_numbers(num1, num2)
+     return jsonify({'result': result}), 200
+
+-# TODO: Implement subtraction, multiplication, and division operations
++@app.route('/subtract_numbers', methods=['POST'])
++def subtract_numbers():
++    data = request.get_json()
++    num1 = data.get('num1', 0)
++    num2 = data.get('num2', 0)
++    result = calculator.subtract_numbers(num1, num2)
++    return jsonify({'result': result}), 200
++
++@app.route('/multiply_numbers', methods=['POST'])
++def multiply_numbers():
++    data = request.get_json()
++    num1 = data.get('num1', 0)
++    num2 = data.get('num2', 0)
++    try:
++        result = calculator.divide_numbers(num1, num2)
++    except ValueError as e:
++        return jsonify({'error': str(e)}), 400
++    return jsonify({'result': result}), 200
++
+ if __name__ == '__main__':
+     app.run()
 ```""",
 )
 
 CODE_GUIDELINE_CONTEXT = """
 ## New Requirements
 {requirement}
+
+## PRD
+{prd}
 
 ## Design
 {design}
@@ -403,22 +433,20 @@ Role: You are a professional engineer; The main goal is to complete incremental 
 2. COMPLETE CODE: Your code will be part of the entire project, so please implement complete, reliable, reusable code snippets.
 3. Set default value: If there is any setting, ALWAYS SET A DEFAULT VALUE, ALWAYS USE STRONG TYPE AND EXPLICIT VARIABLE. AVOID circular import.
 4. Follow design: YOU MUST FOLLOW "Data structures and interfaces". DONT CHANGE ANY DESIGN. Do not use public member functions that do not exist in your design.
-5. Merge Incremental Change: If there is any Incremental Change, you must merge it into the code file.
+5. Follow Guidelines and Incremental Change: If there is any Incremental Change, you must merge it into the code file according to the guidelines.
 6. CAREFULLY CHECK THAT YOU DONT MISS ANY NECESSARY CLASS/FUNCTION IN THIS FILE.
 7. Before using a external variable/module, make sure you import it first.
 8. Write out EVERY CODE DETAIL, DON'T LEAVE TODO.
 9. Attention: If Legacy Code files contain "{filename} to be rewritten", you are required to merge the Incremental Change into the {filename} file when rewriting "{filename} to be rewritten".
 """
 
-GUIDE_NODES = [INCREMENTAL_CHANGE]
-
-WRITE_CODE_GUIDELINE_NODE = ActionNode.from_children("WriteCodeGuideline", GUIDE_NODES)
+WRITE_CODE_GUIDELINE_NODE = ActionNode.from_children("WriteCodeGuideline", [GUIDELINES_AND_INCREMENTAL_CHANGE])
 
 
 class WriteCodeGuideline(Action):
     async def run(self, context):
         self.llm.system_prompt = "You are a professional software engineer, your primary responsibility is to "
-        "meticulously craft comprehensive incremental development plans and deliver detailed Incremental Change"
+        "meticulously craft comprehensive incremental development guidelines and deliver detailed Incremental Change"
         return await WRITE_CODE_GUIDELINE_NODE.fill(context=context, llm=self.llm, schema="json")
 
 
