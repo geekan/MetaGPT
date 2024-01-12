@@ -4,7 +4,6 @@
 @Time    : 2023/7/4 10:53
 @Author  : alexanderwu alitrack
 @File    : mermaid.py
-@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
 """
 import asyncio
 import os

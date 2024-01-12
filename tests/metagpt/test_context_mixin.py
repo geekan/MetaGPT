@@ -125,4 +125,3 @@ async def test_config_priority():
     assert a3.llm.model == "gpt-3.5-turbo-1106"
 
     # history = await team.run(idea="Topic: climate change. Under 80 words per message.", send_to="a1", n_round=3)
-    # assert "Alex" in history

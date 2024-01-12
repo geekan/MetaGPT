@@ -30,7 +30,6 @@ ALLOW_OPENAI_API_CALL = int(
 
 @pytest.fixture(scope="session")
 def rsp_cache():
-    # model_version = CONFIG.openai_api_model
     rsp_cache_file_path = TEST_DATA_PATH / "rsp_cache.json"  # read repo-provided
     new_rsp_cache_file_path = TEST_DATA_PATH / "rsp_cache_new.json"  # exporting a new copy
     if os.path.exists(rsp_cache_file_path):

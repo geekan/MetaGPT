@@ -3,8 +3,6 @@
 @Time    : 2023/5/5 23:08
 @Author  : alexanderwu
 @File    : openai.py
-@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for isolation;
-            Change cost control from global to company level.
 @Modified By: mashenquan, 2023/11/21. Fix bug: ReadTimeout.
 @Modified By: mashenquan, 2023/12/1. Fix bug: Unclosed connection caused by openai 0.x.
 """

@@ -4,8 +4,6 @@
 @Time    : 2023/5/12 00:47
 @Author  : alexanderwu
 @File    : test_environment.py
-@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
-
 """
 
 from pathlib import Path

@@ -3,7 +3,7 @@
 # @Desc   : unittest of Role
 import pytest
 
-from metagpt.llm import HumanProvider
+from metagpt.provider.human_provider import HumanProvider
 from metagpt.roles.role import Role
 
 
