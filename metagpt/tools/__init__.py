@@ -17,6 +17,7 @@ from metagpt.prompts.tool_type import (
     FEATURE_ENGINEERING_PROMPT,
     MODEL_TRAIN_PROMPT,
     MODEL_EVALUATE_PROMPT,
+    VISION_PROMPT
 )
 
 
@@ -70,6 +71,12 @@ TOOL_TYPE_MAPPINGS = {
         module="",
         desc="Only for evaluating model.",
         usage_prompt=MODEL_EVALUATE_PROMPT,
+    ),
+    "vision": ToolType(
+        name="vision",
+        module=str(TOOL_LIBS_PATH / "vision"),
+        desc="Only for converting image into webpage code.",
+        usage_prompt=VISION_PROMPT,
     ),
     "other": ToolType(
         name="other",
