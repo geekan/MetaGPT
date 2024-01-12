@@ -23,10 +23,10 @@ class YamlModel(BaseModel):
             return yaml.safe_load(file)
 
     @classmethod
-    def model_validate_yaml(cls, file_path: Path) -> "YamlModel":
+    def from_yaml_file(cls, file_path: Path) -> "YamlModel":
         return cls(**cls.read_yaml(file_path))
 
-    def model_dump_yaml(self, file_path: Path) -> None:
+    def to_yaml_file(self, file_path: Path) -> None:
         with open(file_path, "w") as file:
             yaml.dump(self.model_dump(), file)
 
