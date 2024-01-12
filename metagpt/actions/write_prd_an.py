@@ -160,7 +160,7 @@ REQUIREMENT_POOL = ActionNode(
 REFINED_REQUIREMENT_POOL = ActionNode(
     key="Refined Requirement Pool",
     expected_type=List[List[str]],
-    instruction="List no less than 5 requirements with their priority (P0, P1, P2). "
+    instruction="List no less than 5 requirements with their priority (P0, P1, P2) from high to low. "
     "Cover both legacy content and incremental content. Retain any content unrelated to incremental development",
     example=[["P0", "The main code ..."], ["P0", "The game algorithm ..."]],
 )

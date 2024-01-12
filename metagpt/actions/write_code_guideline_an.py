@@ -15,7 +15,8 @@ GUIDELINES_AND_INCREMENTAL_CHANGE = ActionNode(
     expected_type=str,
     instruction="Developing comprehensive and step-by-step incremental development guideline, and Write Incremental "
     "Change by making a code draft that how to implement incremental development including detailed steps based on the "
-    "context. Note: Track incremental changes using mark of '+' or '-' for add/modify/delete code",
+    "context. Note: Track incremental changes using mark of '+' or '-' for add/modify/delete code, and conforms to the "
+    "output format of git diff",
     example="""
 1. Guideline for calculator.py: Enhance the functionality of `calculator.py` by extending it to incorporate methods for subtraction, multiplication, and division. Additionally, implement robust error handling for the division operation to mitigate potential issues related to division by zero. 
 ```python
@@ -105,11 +106,11 @@ def add_numbers():
 )
 
 CODE_GUIDELINE_CONTEXT = """
-## New Requirements
-{requirement}
+## User New Requirements
+{user_requirement}
 
-## PRD
-{prd}
+## Product Requirement Pool
+{product_requirement_pool}
 
 ## Design
 {design}
@@ -388,13 +389,16 @@ class Interface:
 
 REFINED_CODE_TEMPLATE = """
 NOTICE
-Role: You are a professional engineer; The main goal is to complete incremental development by combining legacy code and Incremental Change, ensuring the integration of new features.
+Role: You are a professional engineer; The main goal is to complete incremental development by combining legacy code and Guidelines and Incremental Change, ensuring the integration of new features.
 
 # Context
-## New Requirement
-{requirement}
+## User New Requirements
+{user_requirement}
 
-## Incremental Change
+## Product Requirement Pool
+{product_requirement_pool}
+
+## Guidelines and Incremental Change
 {guideline}
 
 ## Design

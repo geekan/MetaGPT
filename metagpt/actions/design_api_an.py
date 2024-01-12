@@ -49,9 +49,8 @@ FILE_LIST = ActionNode(
 REFINED_FILE_LIST = ActionNode(
     key="Refined File List",
     expected_type=List[str],
-    instruction="Update and expand the original file list, including only relative paths. "
-    "Ensure that the refined file list reflects the evolving structure of the project due to incremental development."
-    "Only output filename! Do not include comments in the list.",
+    instruction="Update and expand the original file list including only relative paths, up to 2 files can be added."
+    "Ensure that the refined file list reflects the evolving structure of the project due to incremental development.",
     example=["main.py", "game.py", "new_feature.py"],
 )
 
@@ -148,7 +147,7 @@ INC_NODES = [INCREMENTAL_IMPLEMENTATION_APPROACH, INCREMENTAL_DATA_STRUCTURES_AN
 
 REFINE_NODES = [
     REFINED_IMPLEMENTATION_APPROACH,
-    FILE_LIST,
+    REFINED_FILE_LIST,
     REFINED_DATA_STRUCTURES_AND_INTERFACES,
     REFINED_PROGRAM_CALL_FLOW,
     ANYTHING_UNCLEAR,

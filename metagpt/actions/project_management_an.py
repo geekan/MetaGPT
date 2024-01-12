@@ -75,16 +75,16 @@ INCREMENTAL_TASK_LIST = ActionNode(
     instruction="Break down the incremental development tasks into a prioritized list of filenames."
     "Organize the tasks based on dependency order, ensuring a systematic and efficient implementation."
     "Only output filename! Do not include comments in the list ",
-    example=["new_feature.py", "utils.py", "main.py"],
+    example=["new_feature.py", "main.py"],
 )
 
 REFINED_TASK_LIST = ActionNode(
     key="Refined Task list",
     expected_type=List[str],
-    instruction="Review and refine the combined task list after the merger of Legacy Content and Incremental Content. "
+    instruction="Review and refine the combined task list after the merger of Legacy Content and Incremental Content, and consistent with Refined File List."
     "Ensure that tasks are organized in a logical and prioritized order, considering dependencies for a streamlined and"
-    " efficient development process. Only output filename! Do not include comments in the list",
-    example=["game.py", "utils.py", "new_feature.py", "main.py"],
+    " efficient development process. ",
+    example=["new_feature.py", "utils", "game.py", "main.py"],
 )
 
 FULL_API_SPEC = ActionNode(

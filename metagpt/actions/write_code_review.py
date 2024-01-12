@@ -7,6 +7,7 @@
 @Modified By: mashenquan, 2023/11/27. Following the think-act principle, solidify the task parameters when creating the
         WriteCode object, rather than passing them in when calling the run function.
 """
+import json
 
 from pydantic import Field
 from tenacity import retry, stop_after_attempt, wait_random_exponential
@@ -14,6 +15,7 @@ from tenacity import retry, stop_after_attempt, wait_random_exponential
 from metagpt.actions import WriteCode
 from metagpt.actions.action import Action
 from metagpt.config import CONFIG
+from metagpt.const import DOCS_FILE_REPO, PRDS_FILE_REPO, REQUIREMENT_FILENAME
 from metagpt.logs import logger
 from metagpt.schema import CodingContext
 from metagpt.utils.common import CodeParser
@@ -138,17 +140,41 @@ class WriteCodeReview(Action):
     async def run(self, *args, **kwargs) -> CodingContext:
         iterative_code = self.context.code_doc.content
         k = CONFIG.code_review_k_times or 1
+        guideline = kwargs.get("guideline")
+        mode = "guide" if guideline else "normal"
         for i in range(k):
             format_example = FORMAT_EXAMPLE.format(filename=self.context.code_doc.filename)
             task_content = self.context.task_doc.content if self.context.task_doc else ""
-            code_context = await WriteCode.get_codes(self.context.task_doc, exclude=self.context.filename)
-            context = "\n".join(
-                [
-                    "## System Design\n" + str(self.context.design_doc) + "\n",
-                    "## Tasks\n" + task_content + "\n",
-                    "## Code Files\n" + code_context + "\n",
-                ]
-            )
+            code_context = await WriteCode.get_codes(self.context.task_doc, exclude=self.context.filename, mode=mode)
+
+            if not guideline:
+                context = "\n".join(
+                    [
+                        "## System Design\n" + str(self.context.design_doc) + "\n",
+                        "## Tasks\n" + task_content + "\n",
+                        "## Code Files\n" + code_context + "\n",
+                    ]
+                )
+            else:
+                docs_file_repo = CONFIG.git_repo.new_file_repository(relative_path=DOCS_FILE_REPO)
+                requirement_doc = await docs_file_repo.get(filename=REQUIREMENT_FILENAME)
+                user_requirement = requirement_doc.content if requirement_doc else ""
+                prd_file_repo = CONFIG.git_repo.new_file_repository(PRDS_FILE_REPO)
+                prd = await prd_file_repo.get_all()
+                prd_json = json.loads("\n".join([doc.content for doc in prd]))
+                product_requirement_pool = prd_json.get("Requirement Pool", prd_json.get("Refined Requirement Pool"))
+
+                context = "\n".join(
+                    [
+                        "## User New Requirements\n" + str(user_requirement) + "\n",
+                        "## Product Requirement Pool\n" + str(product_requirement_pool) + "\n",
+                        "## Guidelines and Incremental Change\n" + guideline + "\n",
+                        "## System Design\n" + str(self.context.design_doc) + "\n",
+                        "## Tasks\n" + task_content + "\n",
+                        "## Code Files\n" + code_context + "\n",
+                    ]
+                )
+
             context_prompt = PROMPT_TEMPLATE.format(
                 context=context,
                 code=iterative_code,

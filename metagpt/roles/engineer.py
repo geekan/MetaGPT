@@ -117,7 +117,7 @@ class Engineer(Role):
             if review:
                 action = WriteCodeReview(context=coding_context, llm=self.llm)
                 self._init_action_system_message(action)
-                coding_context = await action.run()
+                coding_context = await action.run(guideline=guideline)
 
             # Get dependencies
             if guideline:
@@ -346,12 +346,14 @@ class Engineer(Role):
     async def _write_code_guideline(self):
         logger.info("Writing code guideline..")
 
-        requirement = str(self.rc.memory.get_by_role("Human")[0])
+        user_requirement = str(self.rc.memory.get_by_role("Human")[0])
         prd_file_repo = CONFIG.git_repo.new_file_repository(PRDS_FILE_REPO)
         design_file_repo = CONFIG.git_repo.new_file_repository(SYSTEM_DESIGN_FILE_REPO)
         task_file_repo = CONFIG.git_repo.new_file_repository(TASK_FILE_REPO)
         prd = await prd_file_repo.get_all()
-        prd = "\n".join([doc.content for doc in prd])
+        prd_json = json.loads("\n".join([doc.content for doc in prd]))
+        product_requirement_pool = prd_json.get("Requirement Pool", prd_json.get("Refined Requirement Pool"))
+
         design = await design_file_repo.get_all()
         design = "\n".join([doc.content for doc in design])
         tasks = await task_file_repo.get_all()
@@ -359,7 +361,11 @@ class Engineer(Role):
         old_codes = await self.get_old_codes()
 
         context = CODE_GUIDELINE_CONTEXT.format(
-            requirement=requirement, prd=prd, tasks=tasks, design=design, code=old_codes
+            user_requirement=user_requirement,
+            product_requirement_pool=str(product_requirement_pool),
+            tasks=tasks,
+            design=design,
+            code=old_codes,
         )
         node = await WriteCodeGuideline().run(context=context)
         guideline = node.instruct_content.model_dump_json()
