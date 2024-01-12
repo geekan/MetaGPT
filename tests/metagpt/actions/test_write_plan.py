@@ -1,4 +1,12 @@
-from metagpt.actions.write_plan import Plan, Task, precheck_update_plan_from_rsp
+import pytest
+
+from metagpt.actions.write_plan import (
+    Plan,
+    Task,
+    WritePlan,
+    precheck_update_plan_from_rsp,
+)
+from metagpt.schema import Message
 
 
 def test_precheck_update_plan_from_rsp():
@@ -12,3 +20,12 @@ def test_precheck_update_plan_from_rsp():
     invalid_rsp = "wrong"
     success, _ = precheck_update_plan_from_rsp(invalid_rsp, plan)
     assert not success
+
+
+@pytest.mark.asyncio
+async def test_write_plan():
+    rsp = await WritePlan().run(context=[Message("run analysis on sklearn iris dataset", role="user")])
+
+    assert "task_id" in rsp
+    assert "instruction" in rsp
+    assert "json" not in rsp  # the output should be the content inside ```json ```
