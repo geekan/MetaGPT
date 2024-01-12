@@ -20,13 +20,15 @@ from metagpt.prompts.ml_engineer import (
     GENERATE_CODE_PROMPT,
     ML_TOOL_USAGE_PROMPT,
     SELECT_FUNCTION_TOOLS,
-    TASK_MODULE_MAP,
-    TASK_SPECIFIC_PROMPT,
     TOOL_RECOMMENDATION_PROMPT,
     TOOL_USAGE_PROMPT,
 )
 from metagpt.schema import Message, Plan
+from metagpt.tools import TOOL_TYPE_MAPPINGS
 from metagpt.utils.common import create_func_config, remove_comments
+
+TOOL_TYPE_MODULE = {k: v.module for k, v in TOOL_TYPE_MAPPINGS.items()}
+TOOL_TYPE_USAGE_PROMPT = {k: v.usage_prompt for k, v in TOOL_TYPE_MAPPINGS.items()}
 
 
 class BaseWriteAnalysisCode(Action):
@@ -171,9 +173,11 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
         plan: Plan = None,
         **kwargs,
     ) -> str:
-        task_type = plan.current_task.task_type
-        available_tools = self.available_tools.get(task_type, {})
-        special_prompt = TASK_SPECIFIC_PROMPT.get(task_type, "")
+        tool_type = (
+            plan.current_task.task_type
+        )  # find tool type from task type through exact match, can extend to retrieval in the future
+        available_tools = self.available_tools.get(tool_type, {})
+        special_prompt = TOOL_TYPE_USAGE_PROMPT.get(tool_type, "")
         code_steps = plan.current_task.code_steps
 
         finished_tasks = plan.get_finished_tasks()
@@ -189,10 +193,10 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
             recommend_tools = await self._tool_recommendation(
                 plan.current_task.instruction, code_steps, available_tools
             )
-            tool_catalog = self._parse_recommend_tools(task_type, recommend_tools)
+            tool_catalog = self._parse_recommend_tools(tool_type, recommend_tools)
             logger.info(f"Recommended tools: \n{recommend_tools}")
 
-            module_name = TASK_MODULE_MAP[task_type]
+            module_name = TOOL_TYPE_MODULE[tool_type]
 
         tools_instruction = TOOL_USAGE_PROMPT.format(
             special_prompt=special_prompt, module_name=module_name, tool_catalog=tool_catalog
@@ -215,9 +219,9 @@ class WriteCodeWithToolsML(WriteCodeWithTools):
         column_info: str = "",
         **kwargs,
     ) -> Tuple[List[Message], str]:
-        task_type = plan.current_task.task_type
-        available_tools = self.available_tools.get(task_type, {})
-        special_prompt = TASK_SPECIFIC_PROMPT.get(task_type, "")
+        tool_type = plan.current_task.task_type
+        available_tools = self.available_tools.get(tool_type, {})
+        special_prompt = TOOL_TYPE_USAGE_PROMPT.get(tool_type, "")
         code_steps = plan.current_task.code_steps
 
         finished_tasks = plan.get_finished_tasks()
@@ -230,10 +234,10 @@ class WriteCodeWithToolsML(WriteCodeWithTools):
             recommend_tools = await self._tool_recommendation(
                 plan.current_task.instruction, code_steps, available_tools
             )
-            tool_catalog = self._parse_recommend_tools(task_type, recommend_tools)
+            tool_catalog = self._parse_recommend_tools(tool_type, recommend_tools)
             logger.info(f"Recommended tools: \n{recommend_tools}")
 
-            module_name = TASK_MODULE_MAP[task_type]
+            module_name = TOOL_TYPE_MODULE[tool_type]
 
             prompt = ML_TOOL_USAGE_PROMPT.format(
                 user_requirement=plan.goal,

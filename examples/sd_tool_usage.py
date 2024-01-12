@@ -13,7 +13,9 @@ async def main(requirement: str = ""):
 
 
 if __name__ == "__main__":
-    sd_url = 'http://106.75.10.65:19094'
-    requirement = f"I want to generate an image of a beautiful girl using the stable diffusion text2image tool, sd_url={sd_url}"
-    
+    sd_url = "http://106.75.10.65:19094"
+    requirement = (
+        f"I want to generate an image of a beautiful girl using the stable diffusion text2image tool, sd_url={sd_url}"
+    )
+
     asyncio.run(main(requirement))
