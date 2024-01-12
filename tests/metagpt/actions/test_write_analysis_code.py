@@ -90,7 +90,7 @@ async def test_write_code_with_tools():
         user_requirement=requirement,
         context=plan.context,
         tasks=list(task_map.values()),
-        current_task=plan.current_task.json(),
+        current_task=plan.current_task.model_dump_json(),
     )
     context_msg = [Message(content=context, role="user")]
 

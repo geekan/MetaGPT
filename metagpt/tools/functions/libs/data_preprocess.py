@@ -37,8 +37,9 @@ class FillMissingValue(MLProcess):
     def transform(self, df: pd.DataFrame):
         if len(self.features) == 0:
             return df
-        df[self.features] = self.si.transform(df[self.features])
-        return df
+        new_df = df.copy()
+        new_df[self.features] = self.si.transform(new_df[self.features])
+        return new_df
 
 
 class MinMaxScale(MLProcess):
@@ -54,8 +55,9 @@ class MinMaxScale(MLProcess):
         self.mms.fit(df[self.features])
 
     def transform(self, df: pd.DataFrame):
-        df[self.features] = self.mms.transform(df[self.features])
-        return df
+        new_df = df.copy()
+        new_df[self.features] = self.mms.transform(new_df[self.features])
+        return new_df
 
 
 class StandardScale(MLProcess):
@@ -71,8 +73,9 @@ class StandardScale(MLProcess):
         self.ss.fit(df[self.features])
 
     def transform(self, df: pd.DataFrame):
-        df[self.features] = self.ss.transform(df[self.features])
-        return df
+        new_df = df.copy()
+        new_df[self.features] = self.ss.transform(new_df[self.features])
+        return new_df
 
 
 class MaxAbsScale(MLProcess):
@@ -88,8 +91,9 @@ class MaxAbsScale(MLProcess):
         self.mas.fit(df[self.features])
 
     def transform(self, df: pd.DataFrame):
-        df[self.features] = self.mas.transform(df[self.features])
-        return df
+        new_df = df.copy()
+        new_df[self.features] = self.mas.transform(new_df[self.features])
+        return new_df
 
 
 class RobustScale(MLProcess):
@@ -105,8 +109,9 @@ class RobustScale(MLProcess):
         self.rs.fit(df[self.features])
 
     def transform(self, df: pd.DataFrame):
-        df[self.features] = self.rs.transform(df[self.features])
-        return df
+        new_df = df.copy()
+        new_df[self.features] = self.rs.transform(new_df[self.features])
+        return new_df
 
 
 class OrdinalEncode(MLProcess):
@@ -122,8 +127,9 @@ class OrdinalEncode(MLProcess):
         self.oe.fit(df[self.features])
 
     def transform(self, df: pd.DataFrame):
-        df[self.features] = self.oe.transform(df[self.features])
-        return df
+        new_df = df.copy()
+        new_df[self.features] = self.oe.transform(new_df[self.features])
+        return new_df
 
 
 class OneHotEncode(MLProcess):
@@ -142,9 +148,9 @@ class OneHotEncode(MLProcess):
         ts_data = self.ohe.transform(df[self.features])
         new_columns = self.ohe.get_feature_names_out(self.features)
         ts_data = pd.DataFrame(ts_data, columns=new_columns, index=df.index)
-        df.drop(self.features, axis=1, inplace=True)
-        df = pd.concat([df, ts_data], axis=1)
-        return df
+        new_df = df.drop(self.features, axis=1)
+        new_df = pd.concat([new_df, ts_data], axis=1)
+        return new_df
 
 
 class LabelEncode(MLProcess):
@@ -165,13 +171,14 @@ class LabelEncode(MLProcess):
     def transform(self, df: pd.DataFrame):
         if len(self.features) == 0:
             return df
+        new_df = df.copy()
         for i in range(len(self.features)):
             data_list = df[self.features[i]].astype(str).tolist()
             for unique_item in np.unique(df[self.features[i]].astype(str)):
                 if unique_item not in self.le_encoders[i].classes_:
                     data_list = ["unknown" if x == unique_item else x for x in data_list]
-            df[self.features[i]] = self.le_encoders[i].transform(data_list)
-        return df
+            new_df[self.features[i]] = self.le_encoders[i].transform(data_list)
+        return new_df
 
 
 def get_column_info(df: pd.DataFrame) -> dict:
