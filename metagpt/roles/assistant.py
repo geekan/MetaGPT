@@ -65,7 +65,7 @@ class Assistant(Role):
             prompt += f"If the text explicitly want you to {desc}, return `[SKILL]: {name}` brief and clear. For instance: [SKILL]: {name}\n"
         prompt += 'Otherwise, return `[TALK]: {talk}` brief and clear. For instance: if {talk} is "xxxx" return [TALK]: xxxx\n\n'
         prompt += f"Now what specific action is explicitly mentioned in the text: {last_talk}\n"
-        rsp = await self.llm.aask(prompt, [])
+        rsp = await self.llm.aask(prompt, ["You are an action classifier"])
         logger.info(f"THINK: {prompt}\n, THINK RESULT: {rsp}\n")
         return await self._plan(rsp, last_talk=last_talk)
 
@@ -98,9 +98,7 @@ class Assistant(Role):
         history = self.memory.history_text
         text = kwargs.get("last_talk") or text
         self.set_todo(
-            TalkAction(
-                context=text, knowledge=self.memory.get_knowledge(), history_summary=history, llm=self.llm, **kwargs
-            )
+            TalkAction(i_context=text, knowledge=self.memory.get_knowledge(), history_summary=history, llm=self.llm)
         )
         return True
 
@@ -110,7 +108,7 @@ class Assistant(Role):
         if not skill:
             logger.info(f"skill not found: {text}")
             return await self.talk_handler(text=last_talk, **kwargs)
-        action = ArgumentsParingAction(skill=skill, llm=self.llm, ask=last_talk, **kwargs)
+        action = ArgumentsParingAction(skill=skill, llm=self.llm, ask=last_talk)
         await action.run(**kwargs)
         if action.args is None:
             return await self.talk_handler(text=last_talk, **kwargs)

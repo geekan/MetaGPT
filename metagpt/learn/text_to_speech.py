@@ -6,8 +6,8 @@
 @File    : text_to_speech.py
 @Desc    : Text-to-Speech skill, which provides text-to-speech functionality
 """
-
-from metagpt.config2 import config
+import metagpt.config2
+from metagpt.config2 import Config
 from metagpt.const import BASE64_FORMAT
 from metagpt.tools.azure_tts import oas3_azsure_tts
 from metagpt.tools.iflytek_tts import oas3_iflytek_tts
@@ -20,12 +20,7 @@ async def text_to_speech(
     voice="zh-CN-XiaomoNeural",
     style="affectionate",
     role="Girl",
-    subscription_key="",
-    region="",
-    iflytek_app_id="",
-    iflytek_api_key="",
-    iflytek_api_secret="",
-    **kwargs,
+    config: Config = metagpt.config2.config,
 ):
     """Text to speech
     For more details, check out:`https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts`
@@ -44,6 +39,8 @@ async def text_to_speech(
 
     """
 
+    subscription_key = config.AZURE_TTS_SUBSCRIPTION_KEY
+    region = config.AZURE_TTS_REGION
     if subscription_key and region:
         audio_declaration = "data:audio/wav;base64,"
         base64_data = await oas3_azsure_tts(text, lang, voice, style, role, subscription_key, region)
@@ -52,6 +49,10 @@ async def text_to_speech(
         if url:
             return f"[{text}]({url})"
         return audio_declaration + base64_data if base64_data else base64_data
+
+    iflytek_app_id = config.IFLYTEK_APP_ID
+    iflytek_api_key = config.IFLYTEK_API_KEY
+    iflytek_api_secret = config.IFLYTEK_API_SECRET
     if iflytek_app_id and iflytek_api_key and iflytek_api_secret:
         audio_declaration = "data:audio/mp3;base64,"
         base64_data = await oas3_iflytek_tts(

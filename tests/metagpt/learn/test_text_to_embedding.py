@@ -28,10 +28,10 @@ async def test_text_to_embedding(mocker):
     type(config.get_openai_llm()).proxy = mocker.PropertyMock(return_value="http://mock.proxy")
 
     # Prerequisites
-    assert config.get_openai_llm()
+    assert config.get_openai_llm().api_key
     assert config.get_openai_llm().proxy
 
-    v = await text_to_embedding(text="Panda emoji")
+    v = await text_to_embedding(text="Panda emoji", config=config)
     assert len(v.data) > 0
 
 

@@ -39,10 +39,10 @@ async def test_draw(mocker):
     mocker.patch.object(S3, "cache", return_value="http://mock.s3.com/0.png")
 
     # Prerequisites
-    assert config.get_openai_llm()
-    assert config.get_openai_llm().proxy
+    llm_config = config.get_openai_llm()
+    assert llm_config
 
-    binary_data = await oas3_openai_text_to_image("Panda emoji", llm=LLM())
+    binary_data = await oas3_openai_text_to_image("Panda emoji", llm=LLM(llm_config=llm_config))
     assert binary_data
 
 

@@ -8,7 +8,6 @@
 from typing import Optional
 
 from metagpt.actions import Action
-from metagpt.context import CONTEXT
 from metagpt.logs import logger
 
 
@@ -24,7 +23,7 @@ class WriteTeachingPlanPart(Action):
         statement_patterns = TeachingPlanBlock.TOPIC_STATEMENTS.get(self.topic, [])
         statements = []
         for p in statement_patterns:
-            s = self.format_value(p)
+            s = self.format_value(p, options=self.context.options)
             statements.append(s)
         formatter = (
             TeachingPlanBlock.PROMPT_TITLE_TEMPLATE
@@ -68,21 +67,20 @@ class WriteTeachingPlanPart(Action):
         return self.topic
 
     @staticmethod
-    def format_value(value):
+    def format_value(value, options):
         """Fill parameters inside `value` with `options`."""
         if not isinstance(value, str):
             return value
         if "{" not in value:
             return value
 
-        # FIXME: 从Context中获取参数，而非从options
-        merged_opts = CONTEXT.options or {}
+        opts = {k: v for k, v in options.items() if v is not None}
         try:
-            return value.format(**merged_opts)
+            return value.format(**opts)
         except KeyError as e:
             logger.warning(f"Parameter is missing:{e}")
 
-        for k, v in merged_opts.items():
+        for k, v in opts.items():
             value = value.replace("{" + f"{k}" + "}", str(v))
         return value
 

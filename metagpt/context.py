@@ -7,13 +7,12 @@
 """
 import os
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 from pydantic import BaseModel, ConfigDict
 
 from metagpt.config2 import Config
 from metagpt.configs.llm_config import LLMConfig
-from metagpt.const import OPTIONS
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.llm_provider_registry import create_llm_instance
 from metagpt.utils.cost_manager import CostManager
@@ -41,6 +40,16 @@ class AttrDict(BaseModel):
         else:
             raise AttributeError(f"No such attribute: {key}")
 
+    def set(self, key, val: Any):
+        self.__dict__[key] = val
+
+    def get(self, key, default: Any = None):
+        return self.__dict__.get(key, default)
+
+    def remove(self, key):
+        if key in self.__dict__:
+            self.__delattr__(key)
+
 
 class Context(BaseModel):
     """Env context for MetaGPT"""
@@ -58,7 +67,10 @@ class Context(BaseModel):
     @property
     def options(self):
         """Return all key-values"""
-        return OPTIONS.get()
+        opts = self.config.model_dump()
+        for k, v in self.kwargs:
+            opts[k] = v  # None value is allowed to override and disable the value from config.
+        return opts
 
     def new_environ(self):
         """Return a new os.environ object"""

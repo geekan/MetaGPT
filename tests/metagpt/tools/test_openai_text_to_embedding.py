@@ -27,10 +27,13 @@ async def test_embedding(mocker):
     type(config.get_openai_llm()).proxy = mocker.PropertyMock(return_value="http://mock.proxy")
 
     # Prerequisites
-    assert config.get_openai_llm()
-    assert config.get_openai_llm().proxy
+    llm_config = config.get_openai_llm()
+    assert llm_config
+    assert llm_config.proxy
 
-    result = await oas3_openai_text_to_embedding("Panda emoji")
+    result = await oas3_openai_text_to_embedding(
+        "Panda emoji", openai_api_key=llm_config.api_key, proxy=llm_config.proxy
+    )
     assert result
     assert result.model
     assert len(result.data) > 0
