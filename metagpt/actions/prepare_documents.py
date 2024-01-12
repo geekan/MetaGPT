@@ -12,8 +12,7 @@ from pathlib import Path
 from typing import Optional
 
 from metagpt.actions import Action, ActionOutput
-from metagpt.const import DOCS_FILE_REPO, REQUIREMENT_FILENAME
-from metagpt.schema import Document
+from metagpt.const import REQUIREMENT_FILENAME
 from metagpt.utils.file_repository import FileRepository
 from metagpt.utils.git_repository import GitRepository
 
@@ -38,7 +37,6 @@ class PrepareDocuments(Action):
         if path.exists() and not self.config.inc:
             shutil.rmtree(path)
         self.config.project_path = path
-        self.config.project_name = path.name
         self.context.git_repo = GitRepository(local_path=path, auto_init=True)
 
     async def run(self, with_messages, **kwargs):
@@ -46,9 +44,7 @@ class PrepareDocuments(Action):
         self._init_repo()
 
         # Write the newly added requirements from the main parameter idea to `docs/requirement.txt`.
-        doc = Document(root_path=DOCS_FILE_REPO, filename=REQUIREMENT_FILENAME, content=with_messages[0].content)
-        await self.file_repo.save_file(filename=REQUIREMENT_FILENAME, content=doc.content, relative_path=DOCS_FILE_REPO)
-
+        doc = await self.project_repo.docs.save(filename=REQUIREMENT_FILENAME, content=with_messages[0].content)
         # Send a Message notification to the WritePRD action, instructing it to process requirements using
         # `docs/requirement.txt` and `docs/prds/`.
         return ActionOutput(content=doc.content, instruct_content=doc)

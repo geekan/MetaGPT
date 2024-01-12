@@ -21,7 +21,7 @@ from metagpt.schema import (
     SerializationMixin,
     TestingContext,
 )
-from metagpt.utils.file_repository import FileRepository
+from metagpt.utils.project_repo import ProjectRepo
 
 
 class Action(SerializationMixin, ContextMixin, BaseModel):
@@ -34,16 +34,8 @@ class Action(SerializationMixin, ContextMixin, BaseModel):
     node: ActionNode = Field(default=None, exclude=True)
 
     @property
-    def git_repo(self):
-        return self.context.git_repo
-
-    @property
-    def file_repo(self):
-        return FileRepository(self.context.git_repo)
-
-    @property
-    def src_workspace(self):
-        return self.context.src_workspace
+    def project_repo(self):
+        return ProjectRepo(self.context.git_repo)
 
     @property
     def prompt_schema(self):

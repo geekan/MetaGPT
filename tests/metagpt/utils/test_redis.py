@@ -8,7 +8,6 @@
 from unittest.mock import AsyncMock
 
 import pytest
-from pytest_mock import mocker
 
 from metagpt.config2 import Config
 from metagpt.utils.redis import Redis
@@ -22,7 +21,7 @@ async def async_mock_from_url(*args, **kwargs):
 
 
 @pytest.mark.asyncio
-async def test_redis(i):
+async def test_redis(mocker):
     redis = Config.default().redis
     mocker.patch("aioredis.from_url", return_value=async_mock_from_url())
 

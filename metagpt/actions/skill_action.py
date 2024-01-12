@@ -29,9 +29,7 @@ class ArgumentsParingAction(Action):
 
     @property
     def prompt(self):
-        prompt = "You are a function parser. You can convert spoken words into function parameters.\n"
-        prompt += "\n---\n"
-        prompt += f"{self.skill.name} function parameters description:\n"
+        prompt = f"{self.skill.name} function parameters description:\n"
         for k, v in self.skill.arguments.items():
             prompt += f"parameter `{k}`: {v}\n"
         prompt += "\n---\n"
@@ -49,7 +47,10 @@ class ArgumentsParingAction(Action):
 
     async def run(self, with_message=None, **kwargs) -> Message:
         prompt = self.prompt
-        rsp = await self.llm.aask(msg=prompt, system_msgs=[])
+        rsp = await self.llm.aask(
+            msg=prompt,
+            system_msgs=["You are a function parser.", "You can convert spoken words into function parameters."],
+        )
         logger.debug(f"SKILL:{prompt}\n, RESULT:{rsp}")
         self.args = ArgumentsParingAction.parse_arguments(skill_name=self.skill.name, txt=rsp)
         self.rsp = Message(content=rsp, role="assistant", instruct_content=self.args, cause_by=self)
