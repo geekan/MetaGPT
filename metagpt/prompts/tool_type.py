@@ -1,3 +1,4 @@
+# Prompt for using tools of "data_preprocess" type
 DATA_PREPROCESS_PROMPT = """
 The current task is about data preprocessing, please note the following:
 - Monitor data types per column, applying appropriate methods.
@@ -9,6 +10,7 @@ The current task is about data preprocessing, please note the following:
 - Each step do data preprocessing to train, must do same for test separately at the same time.
 """
 
+# Prompt for using tools of "feature_engineering" type
 FEATURE_ENGINEERING_PROMPT = """
 The current task is about feature engineering. when performing it, please adhere to the following principles:
 - Generate as diverse features as possible to improve the model's performance step-by-step. 
@@ -20,6 +22,7 @@ The current task is about feature engineering. when performing it, please adhere
 - Use the data from previous task result if exist, do not mock or reload data yourself.
 """
 
+# Prompt for using tools of "model_train" type
 MODEL_TRAIN_PROMPT = """
 The current task is about training a model, please ensure high performance:
 - Keep in mind that your user prioritizes results and is highly focused on model performance. So, when needed, feel free to use models of any complexity to improve effectiveness, such as lightGBM, XGBoost, CatBoost, etc.
@@ -28,6 +31,7 @@ The current task is about training a model, please ensure high performance:
 - Set suitable hyperparameters for the model, make metrics as high as possible.
 """
 
+# Prompt for using tools of "model_evaluate" type
 MODEL_EVALUATE_PROMPT = """
 The current task is about evaluating a model, please note the following:
 - Ensure that the evaluated data is same processed as the training data. If not, remember use object in 'Done Tasks' to transform the data.
