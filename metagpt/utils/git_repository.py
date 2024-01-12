@@ -107,7 +107,10 @@ class GitRepository:
     def delete_repository(self):
         """Delete the entire repository directory."""
         if self.is_valid:
-            shutil.rmtree(self._repository.working_dir)
+            try:
+                shutil.rmtree(self._repository.working_dir)
+            except Exception as e:
+                logger.exception(f"Failed delete git repo:{self.workdir}, error:{e}")
 
     @property
     def changed_files(self) -> Dict[str, str]:
