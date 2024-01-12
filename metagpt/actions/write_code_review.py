@@ -161,7 +161,7 @@ class WriteCodeReview(Action):
                 user_requirement = requirement_doc.content if requirement_doc else ""
                 prd_file_repo = CONFIG.git_repo.new_file_repository(PRDS_FILE_REPO)
                 prd = await prd_file_repo.get_all()
-                prd_json = json.loads("\n".join([doc.content for doc in prd]))
+                prd_json = json.loads(prd[0].content)
                 product_requirement_pool = prd_json.get("Requirement Pool", prd_json.get("Refined Requirement Pool"))
 
                 context = "\n".join(

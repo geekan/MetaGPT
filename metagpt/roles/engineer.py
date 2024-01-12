@@ -350,10 +350,10 @@ class Engineer(Role):
         prd_file_repo = CONFIG.git_repo.new_file_repository(PRDS_FILE_REPO)
         design_file_repo = CONFIG.git_repo.new_file_repository(SYSTEM_DESIGN_FILE_REPO)
         task_file_repo = CONFIG.git_repo.new_file_repository(TASK_FILE_REPO)
-        prd = await prd_file_repo.get_all()
-        prd_json = json.loads("\n".join([doc.content for doc in prd]))
-        product_requirement_pool = prd_json.get("Requirement Pool", prd_json.get("Refined Requirement Pool"))
 
+        prd = await prd_file_repo.get_all()
+        prd_json = json.loads(prd[0].content)
+        product_requirement_pool = prd_json.get("Requirement Pool", prd_json.get("Refined Requirement Pool"))
         design = await design_file_repo.get_all()
         design = "\n".join([doc.content for doc in design])
         tasks = await task_file_repo.get_all()

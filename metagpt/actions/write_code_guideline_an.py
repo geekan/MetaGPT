@@ -395,9 +395,6 @@ Role: You are a professional engineer; The main goal is to complete incremental 
 ## User New Requirements
 {user_requirement}
 
-## Product Requirement Pool
-{product_requirement_pool}
-
 ## Guidelines and Incremental Change
 {guideline}
 
