@@ -9,7 +9,6 @@ SDEngine:
           sd_url:
             type: str
             description: "URL of the stable diffusion service."
-
     simple_run_t2i:
       description: "Run the stable diffusion API for multiple prompts, calling the stable diffusion API to generate images."
       parameters:
@@ -22,6 +21,16 @@ SDEngine:
             description: "Save generated images automatically."
         required:
           - prompts
+    run_t2i:
+      type: async function
+      description: "Run the stable diffusion API for multiple prompts, calling the stable diffusion API to generate images."
+      parameters:
+        properties:
+          payloads:
+            type: list
+            description: "List of payload, each payload is a dictionary of input parameters for the stable diffusion API."
+        required:
+          - payloads
     construct_payload:
       description: "Modify and set the API parameters for image generation."
       parameters:
