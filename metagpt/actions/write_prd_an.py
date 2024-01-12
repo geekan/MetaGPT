@@ -34,8 +34,7 @@ ORIGINAL_REQUIREMENTS = ActionNode(
 REFINED_REQUIREMENTS = ActionNode(
     key="Refined Requirements",
     expected_type=str,
-    instruction="Update and expand the original user's requirements to reflect the evolving needs of the project."
-    "Retain any content unrelated to incremental development",
+    instruction="Place the New user's requirements here.",
     example="Create a 2048 game with a new feature that ...",
 )
 
@@ -57,8 +56,7 @@ REFINED_PRODUCT_GOALS = ActionNode(
     key="Refined Product Goals",
     expected_type=List[str],
     instruction="Update and expand the original product goals to reflect the evolving needs due to incremental "
-    "development.Ensure that the refined goals align with the current project direction and contribute to its success."
-    "Retain any content unrelated to incremental development",
+    "development.Ensure that the refined goals align with the current project direction and contribute to its success.",
     example=[
         "Enhance user engagement through new features",
         "Optimize performance for scalability",
@@ -83,8 +81,7 @@ REFINED_USER_STORIES = ActionNode(
     key="Refined User Stories",
     expected_type=List[str],
     instruction="Update and expand the original scenario-based user stories to reflect the evolving needs due to "
-    "incremental development, no less than 5. Ensure that the refined user stories capture incremental features and "
-    "improvements. Retain any content unrelated to incremental development",
+    "incremental development. Ensure that the refined user stories capture incremental features and improvements. ",
     example=[
         "As a player, I want to choose difficulty levels to challenge my skills",
         "As a player, I want a visually appealing score display after each game for a better gaming experience",
@@ -160,8 +157,8 @@ REQUIREMENT_POOL = ActionNode(
 REFINED_REQUIREMENT_POOL = ActionNode(
     key="Refined Requirement Pool",
     expected_type=List[List[str]],
-    instruction="List no less than 5 requirements with their priority (P0, P1, P2) from high to low. "
-    "Cover both legacy content and incremental content. Retain any content unrelated to incremental development",
+    instruction="List down the top 5 to 7 requirements with their priority (P0, P1, P2). "
+    "Cover both legacy content and incremental content. Retain content unrelated to incremental development",
     example=[["P0", "The main code ..."], ["P0", "The game algorithm ..."]],
 )
 

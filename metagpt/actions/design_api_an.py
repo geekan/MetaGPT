@@ -22,7 +22,7 @@ INCREMENTAL_IMPLEMENTATION_APPROACH = ActionNode(
     key="Incremental Implementation approach",
     expected_type=str,
     instruction="Analyze the challenging aspects of the requirements and select a suitable open-source framework. "
-    "Outline the incremental steps involved in the implementation process with a list of detailed strategies.",
+    "Outline the incremental steps involved in the implementation process with the detailed strategies.",
     example="we will ...",
 )
 
@@ -30,8 +30,8 @@ REFINED_IMPLEMENTATION_APPROACH = ActionNode(
     key="Refined Implementation Approach",
     expected_type=str,
     instruction="Update and extend the original implementation approach to reflect the evolving challenges and "
-    "requirements due to incremental development. Provide detailed strategies for incremental steps in the "
-    "implementation process. Retain any content unrelated to incremental development for coherence and clarity.",
+    "requirements due to incremental development. Outline the steps involved in the implementation process with the "
+    "detailed strategies.",
     example="We will refine ...",
 )
 
@@ -49,8 +49,8 @@ FILE_LIST = ActionNode(
 REFINED_FILE_LIST = ActionNode(
     key="Refined File List",
     expected_type=List[str],
-    instruction="Update and expand the original file list including only relative paths, up to 2 files can be added."
-    "Ensure that the refined file list reflects the evolving structure of the project due to incremental development.",
+    instruction="Update and expand the original file list including only relative paths. Up to 2 files can be added."
+    "Ensure that the refined file list reflects the evolving structure of the project.",
     example=["main.py", "game.py", "new_feature.py"],
 )
 
@@ -78,9 +78,8 @@ REFINED_DATA_STRUCTURES_AND_INTERFACES = ActionNode(
     expected_type=str,
     instruction="Update and extend the existing mermaid classDiagram code syntax to incorporate new classes, "
     "methods (including __init__), and functions with precise type annotations. Delineate additional "
-    "relationships between classes, ensuring clarity and adherence to PEP8 standards. Further enhance the "
-    "detail in data structures for a comprehensive API design that seamlessly integrates with the evolving structure."
-    "Retain any content unrelated to incremental development for coherence and clarity.",
+    "relationships between classes, ensuring clarity and adherence to PEP8 standards."
+    "Retain content that is not related to incremental development but important for consistency and clarity.",
     example=MMC1_REFINE,
 )
 
@@ -97,7 +96,8 @@ REFINED_PROGRAM_CALL_FLOW = ActionNode(
     expected_type=str,
     instruction="Extend the existing sequenceDiagram code syntax with detailed information, accurately covering the"
     "CRUD and initialization of each object. Ensure correct syntax usage and reflect the incremental changes introduced"
-    "in the classes and API defined above.Retain content unrelated to incremental development for coherence and clarity",
+    "in the classes and API defined above. "
+    "Retain content that is not related to incremental development but important for consistency and clarity.",
     example=MMC2_REFINE,
 )
 

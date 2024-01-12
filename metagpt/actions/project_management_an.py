@@ -52,8 +52,7 @@ REFINED_LOGIC_ANALYSIS = ActionNode(
     expected_type=List[List[str]],
     instruction="Review and refine the logic analysis by merging the Legacy Content and Incremental Content. "
     "Provide a comprehensive list of files with classes/methods/functions to be implemented or modified incrementally. "
-    "Include thorough dependency analysis, consider potential impacts on existing code, and document necessary imports."
-    "Retain any content unrelated to incremental development for coherence and clarity.",
+    "Include thorough dependency analysis, consider potential impacts on existing code, and document necessary imports.",
     example=[
         ["game.py", "Contains Game class and ... functions"],
         ["main.py", "Contains main function, from game import Game"],
@@ -81,9 +80,9 @@ INCREMENTAL_TASK_LIST = ActionNode(
 REFINED_TASK_LIST = ActionNode(
     key="Refined Task list",
     expected_type=List[str],
-    instruction="Review and refine the combined task list after the merger of Legacy Content and Incremental Content, and consistent with Refined File List."
-    "Ensure that tasks are organized in a logical and prioritized order, considering dependencies for a streamlined and"
-    " efficient development process. ",
+    instruction="Review and refine the combined task list after the merger of Legacy Content and Incremental Content, "
+    "and consistent with Refined File List. Ensure that tasks are organized in a logical and prioritized order, "
+    "considering dependencies for a streamlined and efficient development process. ",
     example=["new_feature.py", "utils", "game.py", "main.py"],
 )
 
@@ -113,9 +112,9 @@ INCREMENTAL_SHARED_KNOWLEDGE = ActionNode(
 REFINED_SHARED_KNOWLEDGE = ActionNode(
     key="Refined Shared Knowledge",
     expected_type=str,
-    instruction="Update and expand shared knowledge to reflect any new elements introduced during incremental "
-    "development. This includes common utility functions, configuration variables, or any information vital for team "
-    "collaboration. Retain any content unrelated to incremental development for coherence and clarity.",
+    instruction="Update and expand shared knowledge to reflect any new elements introduced. This includes common "
+    "utility functions, configuration variables for team collaboration. Retain content that is not related to "
+    "incremental development but important for consistency and clarity.",
     example="`new_module.py` enhances shared utility functions for improved code reusability and collaboration.",
 )
 

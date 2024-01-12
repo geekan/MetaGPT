@@ -35,6 +35,7 @@ def test_refined_simple_calculator():
         assert False
     else:
         tag = subprocess.run(["git", "describe", "--tags"], capture_output=True, text=True).stdout.strip()
+        # After running, there will be new commit
         if tag == "base":
             assert False
         else:
@@ -257,6 +258,87 @@ def test_refined_pygame_2048_3():
             assert True
             try:
                 subprocess.run(["git", "tag", "refine_3"], check=True)
+            except subprocess.CalledProcessError as e:
+                raise e
+
+
+def test_refined_snake_game_1():
+    project_path = f"{DATA_PATH}/snake_game"
+    check_or_create_base_tag(project_path)
+
+    args = [
+        "Incremental Idea Gradually increase the speed of the snake as the game progresses. In the current version of the game, the snake’s speed remains constant throughout the gameplay. Implement a feature where the snake’s speed gradually increases over time, making the game more challenging and intense as the player progresses.",
+        "--inc",
+        "--project-path",
+        project_path,
+    ]
+    result = runner.invoke(app, args)
+    logger.info(result)
+    logger.info(result.output)
+    if "Aborting" in result.output:
+        assert False
+    else:
+        tag = subprocess.run(["git", "describe", "--tags"], capture_output=True, text=True).stdout.strip()
+        if tag == "base":
+            assert False
+        else:
+            assert True
+            try:
+                subprocess.run(["git", "tag", "refine_1"], check=True)
+            except subprocess.CalledProcessError as e:
+                raise e
+
+
+def test_refined_snake_game_2():
+    project_path = f"{DATA_PATH}/snake_game"
+    check_or_create_base_tag(project_path)
+
+    args = [
+        "Introduce power-ups and obstacles to the game. The current version of the game only involves eating food and growing the snake. Add new elements such as power-ups that can enhance the snake’s speed or make it invincible for a short duration. At the same time, introduce obstacles like walls or enemies that the snake must avoid or overcome to continue growing.",
+        "--inc",
+        "--project-path",
+        project_path,
+    ]
+    result = runner.invoke(app, args)
+    logger.info(result)
+    logger.info(result.output)
+    if "Aborting" in result.output:
+        assert False
+    else:
+        tag = subprocess.run(["git", "describe", "--tags"], capture_output=True, text=True).stdout.strip()
+        if tag == "base":
+            assert False
+        else:
+            assert True
+            try:
+                subprocess.run(["git", "tag", "refine_2"], check=True)
+            except subprocess.CalledProcessError as e:
+                raise e
+
+
+def test_refined_gomoku():
+    project_path = f"{DATA_PATH}/Gomoku"
+    check_or_create_base_tag(project_path)
+
+    args = [
+        "Add an AI opponent with fixed difficulty levels. Currently, the game only allows players to compete against themselves. Implement an AI algorithm that can playing with player. This will provide a more engaging and challenging experience for players.",
+        "--inc",
+        "--project-path",
+        project_path,
+    ]
+    result = runner.invoke(app, args)
+    logger.info(result)
+    logger.info(result.output)
+    if "Aborting" in result.output:
+        assert False
+    else:
+        tag = subprocess.run(["git", "describe", "--tags"], capture_output=True, text=True).stdout.strip()
+        if tag == "base":
+            assert False
+        else:
+            assert True
+            try:
+                subprocess.run(["git", "tag", "refine"], check=True)
             except subprocess.CalledProcessError as e:
                 raise e
 

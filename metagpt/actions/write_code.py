@@ -174,13 +174,15 @@ class WriteCode(Action):
             for filename in union_files_list:
                 if filename == exclude:
                     if filename in old_files and filename != "main.py":
-                        doc = await old_file_repo.get(filename=filename)  # 使用原始代码
+                        # Use legacy code
+                        doc = await old_file_repo.get(filename=filename)
                     else:
                         continue
                     codes.insert(0, f"-----Now, {filename} to be rewritten\n```{doc.content}```\n=====")
 
                 else:
-                    doc = await src_file_repo.get(filename=filename)  # 使用先前生成的代码
+                    # Use new code
+                    doc = await src_file_repo.get(filename=filename)
                     if not doc:
                         continue
                     codes.append(f"----- {filename}\n```{doc.content}```")
