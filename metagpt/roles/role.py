@@ -102,7 +102,7 @@ class RoleContext(BaseModel):
     max_react_loop: int = 1
 
     def check(self, role_id: str):
-        # if hasattr(CONFIG, "long_term_memory") and CONFIG.long_term_memory:
+        # if hasattr(CONFIG, "enable_longterm_memory") and CONFIG.enable_longterm_memory:
         #     self.long_term_memory.recover_memory(role_id, self)
         #     self.memory = self.long_term_memory  # use memory to act as long_term_memory for unify operation
         pass

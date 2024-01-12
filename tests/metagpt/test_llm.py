@@ -4,7 +4,6 @@
 @Time    : 2023/5/11 14:45
 @Author  : alexanderwu
 @File    : test_llm.py
-@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
 """
 
 import pytest

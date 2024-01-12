@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 @Desc   : unittest of `metagpt/memory/longterm_memory.py`
-@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
 """
 
 import os

@@ -82,6 +82,7 @@ async def test_zhipuai_acompletion(mocker):
 
 
 def test_zhipuai_proxy():
-    # CONFIG.openai_proxy = "http://127.0.0.1:8080"
+    # it seems like zhipuai would be inflected by the proxy of openai, maybe it's a bug
+    # but someone may want to use openai.proxy, so we keep this test case
+    # assert openai.proxy == config.llm.proxy
     _ = ZhiPuAILLM(mock_llm_config_zhipu)
-    # assert openai.proxy == CONFIG.openai_proxy

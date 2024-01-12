@@ -8,7 +8,6 @@
 from typing import List
 
 from metagpt.actions.action_node import ActionNode
-from metagpt.logs import logger
 
 LANGUAGE = ActionNode(
     key="Language",
@@ -34,7 +33,8 @@ ORIGINAL_REQUIREMENTS = ActionNode(
 PROJECT_NAME = ActionNode(
     key="Project Name",
     expected_type=str,
-    instruction="According to the content of \"Original Requirements,\" name the project using snake case style , like 'game_2048' or 'simple_crm.",
+    instruction='According to the content of "Original Requirements," name the project using snake case style , '
+    "like 'game_2048' or 'simple_crm.",
     example="game_2048",
 )
 
@@ -155,12 +155,3 @@ NODES = [
 WRITE_PRD_NODE = ActionNode.from_children("WritePRD", NODES)
 WP_ISSUE_TYPE_NODE = ActionNode.from_children("WP_ISSUE_TYPE", [ISSUE_TYPE, REASON])
 WP_IS_RELATIVE_NODE = ActionNode.from_children("WP_IS_RELATIVE", [IS_RELATIVE, REASON])
-
-
-def main():
-    prompt = WRITE_PRD_NODE.compile(context="")
-    logger.info(prompt)
-
-
-if __name__ == "__main__":
-    main()

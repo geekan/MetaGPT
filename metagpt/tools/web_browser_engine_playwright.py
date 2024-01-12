@@ -1,7 +1,5 @@
 #!/usr/bin/env python
-"""
-@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
-"""
+# -*- coding: utf-8 -*-
 
 from __future__ import annotations
 
