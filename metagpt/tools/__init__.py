@@ -10,7 +10,7 @@ from enum import Enum
 
 from pydantic import BaseModel
 
-from metagpt.const import TOOL_SCHEMA_PATH
+from metagpt.const import TOOL_LIBS_PATH
 from metagpt.prompts.tool_type import (
     DATA_PREPROCESS_PROMPT,
     FEATURE_ENGINEERING_PROMPT,
@@ -48,13 +48,13 @@ class ToolType(BaseModel):
 TOOL_TYPE_MAPPINGS = {
     "data_preprocess": ToolType(
         name="data_preprocess",
-        module=str(TOOL_SCHEMA_PATH / "data_preprocess"),
+        module=str(TOOL_LIBS_PATH / "data_preprocess"),
         desc="Only for changing value inplace.",
         usage_prompt=DATA_PREPROCESS_PROMPT,
     ),
     "feature_engineering": ToolType(
         name="feature_engineering",
-        module=str(TOOL_SCHEMA_PATH / "feature_engineering"),
+        module=str(TOOL_LIBS_PATH / "feature_engineering"),
         desc="Only for creating new columns for input data.",
         usage_prompt=FEATURE_ENGINEERING_PROMPT,
     ),
