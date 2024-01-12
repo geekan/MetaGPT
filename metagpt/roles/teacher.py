@@ -31,11 +31,11 @@ class Teacher(Role):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.name = WriteTeachingPlanPart.format_value(self.name, self.context.options)
-        self.profile = WriteTeachingPlanPart.format_value(self.profile, self.context.options)
-        self.goal = WriteTeachingPlanPart.format_value(self.goal, self.context.options)
-        self.constraints = WriteTeachingPlanPart.format_value(self.constraints, self.context.options)
-        self.desc = WriteTeachingPlanPart.format_value(self.desc, self.context.options)
+        self.name = WriteTeachingPlanPart.format_value(self.name, self.context)
+        self.profile = WriteTeachingPlanPart.format_value(self.profile, self.context)
+        self.goal = WriteTeachingPlanPart.format_value(self.goal, self.context)
+        self.constraints = WriteTeachingPlanPart.format_value(self.constraints, self.context)
+        self.desc = WriteTeachingPlanPart.format_value(self.desc, self.context)
 
     async def _think(self) -> bool:
         """Everything will be done part by part."""

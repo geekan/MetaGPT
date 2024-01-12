@@ -64,14 +64,6 @@ class Context(BaseModel):
 
     _llm: Optional[BaseLLM] = None
 
-    @property
-    def options(self):
-        """Return all key-values"""
-        opts = self.config.model_dump()
-        for k, v in self.kwargs:
-            opts[k] = v  # None value is allowed to override and disable the value from config.
-        return opts
-
     def new_environ(self):
         """Return a new os.environ object"""
         env = os.environ.copy()
