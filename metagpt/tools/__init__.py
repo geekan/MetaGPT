@@ -8,17 +8,6 @@
 
 from enum import Enum
 
-from pydantic import BaseModel
-
-from metagpt.const import TOOL_LIBS_PATH
-from metagpt.prompts.tool_type import (
-    DATA_PREPROCESS_PROMPT,
-    FEATURE_ENGINEERING_PROMPT,
-    MODEL_TRAIN_PROMPT,
-    MODEL_EVALUATE_PROMPT,
-    VISION_PROMPT,
-)
-
 
 class SearchEngineType(Enum):
     SERPAPI_GOOGLE = "serpapi"

@@ -14,8 +14,13 @@ from sklearn.preprocessing import (
 )
 
 from metagpt.tools.functions.libs.base import MLProcess
+from metagpt.tools.tool_registry import register_tool
+from metagpt.tools.tool_schema import ToolTypeEnum
+
+TOOL_TYPE = ToolTypeEnum.DATA_PREPROCESS.value
 
 
+@register_tool(tool_type_name=TOOL_TYPE)
 class FillMissingValue(MLProcess):
     def __init__(
         self,
@@ -42,6 +47,7 @@ class FillMissingValue(MLProcess):
         return new_df
 
 
+@register_tool(tool_type_name=TOOL_TYPE)
 class MinMaxScale(MLProcess):
     def __init__(
         self,
@@ -60,6 +66,7 @@ class MinMaxScale(MLProcess):
         return new_df
 
 
+@register_tool(tool_type_name=TOOL_TYPE)
 class StandardScale(MLProcess):
     def __init__(
         self,
@@ -78,6 +85,7 @@ class StandardScale(MLProcess):
         return new_df
 
 
+@register_tool(tool_type_name=TOOL_TYPE)
 class MaxAbsScale(MLProcess):
     def __init__(
         self,
@@ -96,6 +104,7 @@ class MaxAbsScale(MLProcess):
         return new_df
 
 
+@register_tool(tool_type_name=TOOL_TYPE)
 class RobustScale(MLProcess):
     def __init__(
         self,
@@ -114,6 +123,7 @@ class RobustScale(MLProcess):
         return new_df
 
 
+@register_tool(tool_type_name=TOOL_TYPE)
 class OrdinalEncode(MLProcess):
     def __init__(
         self,
@@ -132,6 +142,7 @@ class OrdinalEncode(MLProcess):
         return new_df
 
 
+@register_tool(tool_type_name=TOOL_TYPE)
 class OneHotEncode(MLProcess):
     def __init__(
         self,
@@ -153,6 +164,7 @@ class OneHotEncode(MLProcess):
         return new_df
 
 
+@register_tool(tool_type_name=TOOL_TYPE)
 class LabelEncode(MLProcess):
     def __init__(
         self,
@@ -181,6 +193,7 @@ class LabelEncode(MLProcess):
         return new_df
 
 
+@register_tool(tool_type_name=TOOL_TYPE)
 def get_column_info(df: pd.DataFrame) -> dict:
     column_info = {
         "Category": [],

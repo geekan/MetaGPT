@@ -6,7 +6,7 @@
 # @Desc    : Feature Engineering Tools
 import itertools
 
-import lightgbm as lgb
+# import lightgbm as lgb
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
@@ -16,8 +16,13 @@ from sklearn.model_selection import KFold
 from sklearn.preprocessing import KBinsDiscretizer, PolynomialFeatures
 
 from metagpt.tools.functions.libs.base import MLProcess
+from metagpt.tools.tool_registry import register_tool
+from metagpt.tools.tool_schema import ToolTypeEnum
+
+TOOL_TYPE = ToolTypeEnum.FEATURE_ENGINEERING.value
 
 
+@register_tool(tool_type_name=TOOL_TYPE)
 class PolynomialExpansion(MLProcess):
     def __init__(self, cols: list, degree: int = 2, label_col: str = None):
         self.cols = cols
@@ -48,6 +53,7 @@ class PolynomialExpansion(MLProcess):
         return new_df
 
 
+@register_tool(tool_type_name=TOOL_TYPE)
 class CatCount(MLProcess):
     def __init__(self, col: str):
         self.col = col
@@ -62,6 +68,7 @@ class CatCount(MLProcess):
         return new_df
 
 
+@register_tool(tool_type_name=TOOL_TYPE)
 class TargetMeanEncoder(MLProcess):
     def __init__(self, col: str, label: str):
         self.col = col
@@ -77,6 +84,7 @@ class TargetMeanEncoder(MLProcess):
         return new_df
 
 
+@register_tool(tool_type_name=TOOL_TYPE)
 class KFoldTargetMeanEncoder(MLProcess):
     def __init__(self, col: str, label: str, n_splits: int = 5, random_state: int = 2021):
         self.col = col
@@ -103,6 +111,7 @@ class KFoldTargetMeanEncoder(MLProcess):
         return new_df
 
 
+@register_tool(tool_type_name=TOOL_TYPE)
 class CatCross(MLProcess):
     def __init__(self, cols: list, max_cat_num: int = 100):
         self.cols = cols
@@ -138,6 +147,7 @@ class CatCross(MLProcess):
         return new_df
 
 
+@register_tool(tool_type_name=TOOL_TYPE)
 class GroupStat(MLProcess):
     def __init__(self, group_col: str, agg_col: str, agg_funcs: list):
         self.group_col = group_col
@@ -157,6 +167,7 @@ class GroupStat(MLProcess):
         return new_df
 
 
+@register_tool(tool_type_name=TOOL_TYPE)
 class SplitBins(MLProcess):
     def __init__(self, cols: list, strategy: str = "quantile"):
         self.cols = cols
@@ -173,6 +184,7 @@ class SplitBins(MLProcess):
         return new_df
 
 
+@register_tool(tool_type_name=TOOL_TYPE)
 class ExtractTimeComps(MLProcess):
     def __init__(self, time_col: str, time_comps: list):
         self.time_col = time_col
@@ -201,6 +213,7 @@ class ExtractTimeComps(MLProcess):
         return new_df
 
 
+@register_tool(tool_type_name=TOOL_TYPE)
 class GeneralSelection(MLProcess):
     def __init__(self, label_col: str):
         self.label_col = label_col
@@ -228,6 +241,7 @@ class GeneralSelection(MLProcess):
         return new_df
 
 
+# skip for now because lgb is needed
 class TreeBasedSelection(MLProcess):
     def __init__(self, label_col: str, task_type: str):
         self.label_col = label_col
@@ -270,6 +284,7 @@ class TreeBasedSelection(MLProcess):
         return new_df
 
 
+@register_tool(tool_type_name=TOOL_TYPE)
 class VarianceBasedSelection(MLProcess):
     def __init__(self, label_col: str, threshold: float = 0):
         self.label_col = label_col

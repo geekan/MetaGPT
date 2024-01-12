@@ -12,7 +12,7 @@ from metagpt.actions import Action
 from metagpt.logs import logger
 from metagpt.prompts.ml_engineer import ASSIGN_TASK_TYPE_CONFIG, ASSIGN_TASK_TYPE_PROMPT
 from metagpt.schema import Message, Plan, Task
-from metagpt.tools import TOOL_TYPE_MAPPINGS
+from metagpt.tools import TOOL_REGISTRY
 from metagpt.utils.common import CodeParser, create_func_config
 
 
@@ -47,13 +47,16 @@ class WritePlan(Action):
             List[Dict]: tasks with task type assigned
         """
         task_list = "\n".join([f"Task {task['task_id']}: {task['instruction']}" for task in tasks])
-        task_type_desc = "\n".join([f"- **{item.name}**: {item.desc}" for item in TOOL_TYPE_MAPPINGS.values()])
+        task_type_desc = "\n".join(
+            [f"- **{tool_type.name}**: {tool_type.desc}" for tool_type in TOOL_REGISTRY.get_tool_types().values()]
+        )  # task type are binded with tool type now, should be improved in the future
         prompt = ASSIGN_TASK_TYPE_PROMPT.format(
             task_list=task_list, task_type_desc=task_type_desc
         )  # task types are set to be the same as tool types, for now
         tool_config = create_func_config(ASSIGN_TASK_TYPE_CONFIG)
         rsp = await self.llm.aask_code(prompt, **tool_config)
         task_type_list = rsp["task_type"]
+        print(f"assigned task types: {task_type_list}")
         for task, task_type in zip(tasks, task_type_list):
             task["task_type"] = task_type
         return json.dumps(tasks)

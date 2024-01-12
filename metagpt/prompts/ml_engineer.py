@@ -203,7 +203,7 @@ Specifically, {special_prompt}
 - You can freely combine the use of any other public packages, like sklearn, numpy, pandas, etc..
 
 # Available Tools (can be empty):
-Each Class tool is described in JSON format. When you call a tool, import the tool from `{module_name}` first.
+Each Class tool is described in JSON format. When you call a tool, import the tool first.
 {tool_catalog}
 
 # Constraints:
