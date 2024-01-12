@@ -223,7 +223,7 @@ class OpenAILLM(BaseLLM):
 
     def get_costs(self) -> Costs:
         if not self.cost_manager:
-            return Costs()
+            return Costs(0, 0, 0, 0)
         return self.cost_manager.get_costs()
 
     def _get_max_tokens(self, messages: list[dict]):
