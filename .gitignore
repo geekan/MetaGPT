@@ -177,13 +177,3 @@ htmlcov.*
 *.pkl
 *-structure.csv
 *-structure.json
-
-/Titanic/2023_12_07_11_44_319a116fff/LLM_inout_pair/*.json
-/ICR/2023_12_06_14_14_26e593d09f/LLM_inout_pair/*.json
-/ICR/5cd9acb669c443fabe763e8f1ade5e86/workspace/*.txt
-/ICR/5cd9acb669c443fabe763e8f1ade5e86/workspace/*.csv
-/Titanic/9530b3c5550a4366ae92e5af6a74e6c3/workspace/*.csv
-/Titanic/9530b3c5550a4366ae92e5af6a74e6c3/workspace/*.txt
-/metagpt/roles/catboost_info/*.tsv
-/metagpt/roles/catboost_info/*.json
-/Titanic/9530b3c5550a4366ae92e5af6a74e6c3/workspace/*.md
