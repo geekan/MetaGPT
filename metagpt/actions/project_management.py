@@ -100,7 +100,7 @@ class WriteTasks(Action):
     @staticmethod
     async def _update_requirements(doc):
         m = json.loads(doc.content)
-        packages = set(m.get("Required Python third-party packages", set()))
+        packages = set(m.get("Required Python packages", set()))
         file_repo = CONFIG.git_repo.new_file_repository()
         requirement_doc = await file_repo.get(filename=PACKAGE_REQUIREMENTS_FILENAME)
         if not requirement_doc:
