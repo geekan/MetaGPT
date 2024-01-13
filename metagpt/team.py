@@ -83,6 +83,7 @@ class Team(BaseModel):
         """Invest company. raise NoMoneyException when exceed max_budget."""
         self.investment = investment
         CONFIG.max_budget = investment
+        CONFIG.cost_manager.max_budget = investment
         logger.info(f"Investment: ${investment}.")
 
     @staticmethod
