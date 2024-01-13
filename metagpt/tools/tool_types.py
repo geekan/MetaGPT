@@ -1,10 +1,10 @@
 from metagpt.prompts.tool_type import (
     DATA_PREPROCESS_PROMPT,
     FEATURE_ENGINEERING_PROMPT,
-    MODEL_TRAIN_PROMPT,
     MODEL_EVALUATE_PROMPT,
+    MODEL_TRAIN_PROMPT,
 )
-from metagpt.tools.tool_schema import ToolTypeEnum, ToolType
+from metagpt.tools.tool_data_type import ToolType, ToolTypeEnum
 from metagpt.tools.tool_registry import register_tool_type
 
 
@@ -37,7 +37,12 @@ class ModelEvaluate(ToolType):
 
 
 @register_tool_type
+class StableDiffusion(ToolType):
+    name: str = ToolTypeEnum.STABLE_DIFFUSION.value
+    desc: str = "Related to text2image, image2image using stable diffusion model."
+
+
+@register_tool_type
 class Other(ToolType):
     name: str = ToolTypeEnum.OTHER.value
     desc: str = "Any tools not in the defined categories"
-    usage_prompt: str = ""

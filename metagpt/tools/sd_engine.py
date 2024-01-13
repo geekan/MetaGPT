@@ -16,6 +16,8 @@ from PIL import Image, PngImagePlugin
 from metagpt.config import CONFIG
 from metagpt.const import SD_OUTPUT_FILE_REPO
 from metagpt.logs import logger
+from metagpt.tools.tool_data_type import ToolTypeEnum
+from metagpt.tools.tool_registry import register_tool
 
 payload = {
     "prompt": "",
@@ -51,6 +53,7 @@ payload = {
 default_negative_prompt = "(easynegative:0.8),black, dark,Low resolution"
 
 
+@register_tool(tool_type_name=ToolTypeEnum.STABLE_DIFFUSION)
 class SDEngine:
     def __init__(self, sd_url=""):
         # Initialize the SDEngine with configuration

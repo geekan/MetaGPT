@@ -14,8 +14,8 @@ from sklearn.preprocessing import (
 )
 
 from metagpt.tools.functions.libs.base import MLProcess
+from metagpt.tools.tool_data_type import ToolTypeEnum
 from metagpt.tools.tool_registry import register_tool
-from metagpt.tools.tool_schema import ToolTypeEnum
 
 TOOL_TYPE = ToolTypeEnum.DATA_PREPROCESS.value
 

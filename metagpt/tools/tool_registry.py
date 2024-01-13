@@ -5,28 +5,27 @@
 @Author  : garylin2099
 @File    : tool_registry.py
 """
-import os
-from collections import defaultdict
 import inspect
+import os
 import re
+from collections import defaultdict
 
 import yaml
 
-from metagpt.tools.tool_schema import ToolType, ToolSchema, Tool
-from metagpt.logs import logger
 from metagpt.const import TOOL_SCHEMA_PATH
+from metagpt.logs import logger
+from metagpt.tools.tool_data_type import Tool, ToolSchema, ToolType
 
 
 class ToolRegistry:
     def __init__(self):
         self.tools = {}
         self.tool_types = {}
-        self.tools_by_types = defaultdict(
-            dict
-        )  # two-layer k-v, {tool_type_name: {tool_name: {...}, ...}, ...}
+        self.tools_by_types = defaultdict(dict)  # two-layer k-v, {tool_type_name: {tool_name: {...}, ...}, ...}
 
     def register_tool_type(self, tool_type: ToolType):
         self.tool_types[tool_type.name] = tool_type
+        logger.info(f"{tool_type.name} registered")
 
     def register_tool(
         self,
@@ -55,7 +54,7 @@ class ToolRegistry:
         schema["tool_path"] = tool_path  # corresponding code file path of the tool
         try:
             ToolSchema(**schema)  # validation
-        except Exception as e:
+        except Exception:
             pass
             # logger.warning(
             #     f"{tool_name} schema not conforms to required format, but will be used anyway. Mismatch: {e}"
@@ -67,19 +66,19 @@ class ToolRegistry:
 
     def has_tool(self, key):
         return key in self.tools
-    
+
     def get_tool(self, key):
         return self.tools.get(key)
-    
+
     def get_tools_by_type(self, key):
         return self.tools_by_types.get(key)
-    
+
     def has_tool_type(self, key):
         return key in self.tool_types
 
     def get_tool_type(self, key):
         return self.tool_types.get(key)
-    
+
     def get_tool_types(self):
         return self.tool_types
 
@@ -99,7 +98,7 @@ def register_tool(tool_name="", tool_type_name="other", schema_path=None):
 
     def decorator(cls, tool_name=tool_name):
         tool_name = tool_name or cls.__name__
-        
+
         # Get the file path where the function / class is defined and the source code
         file_path = inspect.getfile(cls)
         if "metagpt" in file_path:
@@ -119,9 +118,7 @@ def register_tool(tool_name="", tool_type_name="other", schema_path=None):
 
 
 def make_schema(tool_code, path):
-    os.makedirs(
-        os.path.dirname(path), exist_ok=True
-    )  # Create the necessary directories
+    os.makedirs(os.path.dirname(path), exist_ok=True)  # Create the necessary directories
     schema = {}  # an empty schema for now
     with open(path, "w", encoding="utf-8") as f:
         yaml.dump(schema, f)
