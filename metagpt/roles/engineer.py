@@ -347,22 +347,26 @@ class Engineer(Role):
         logger.info("Writing code guideline..")
 
         user_requirement = str(self.rc.memory.get_by_role("Human")[0])
-        prd_file_repo = CONFIG.git_repo.new_file_repository(PRDS_FILE_REPO)
-        design_file_repo = CONFIG.git_repo.new_file_repository(SYSTEM_DESIGN_FILE_REPO)
-        task_file_repo = CONFIG.git_repo.new_file_repository(TASK_FILE_REPO)
+        contents = []
+        prd = await CONFIG.git_repo.new_file_repository(PRDS_FILE_REPO).get_all()
+        for doc in prd:
+            prd_json = json.loads(doc.content)
+            product_requirement_pool = prd_json.get("Requirement Pool", prd_json.get("Refined Requirement Pool"))
+            contents.append(str(product_requirement_pool))
 
-        prd = await prd_file_repo.get_all()
-        prd_json = json.loads(prd[0].content)
-        product_requirement_pool = prd_json.get("Requirement Pool", prd_json.get("Refined Requirement Pool"))
-        design = await design_file_repo.get_all()
+        product_requirement_pools = "\n".join(contents)
+
+        design = await CONFIG.git_repo.new_file_repository(SYSTEM_DESIGN_FILE_REPO).get_all()
         design = "\n".join([doc.content for doc in design])
-        tasks = await task_file_repo.get_all()
+
+        tasks = await CONFIG.git_repo.new_file_repository(TASK_FILE_REPO).get_all()
         tasks = "\n".join([doc.content for doc in tasks])
+
         old_codes = await self.get_old_codes()
 
         context = CODE_GUIDELINE_CONTEXT.format(
             user_requirement=user_requirement,
-            product_requirement_pool=str(product_requirement_pool),
+            product_requirement_pools=product_requirement_pools,
             tasks=tasks,
             design=design,
             code=old_codes,

@@ -159,15 +159,21 @@ class WriteCodeReview(Action):
                 docs_file_repo = CONFIG.git_repo.new_file_repository(relative_path=DOCS_FILE_REPO)
                 requirement_doc = await docs_file_repo.get(filename=REQUIREMENT_FILENAME)
                 user_requirement = requirement_doc.content if requirement_doc else ""
-                prd_file_repo = CONFIG.git_repo.new_file_repository(PRDS_FILE_REPO)
-                prd = await prd_file_repo.get_all()
-                prd_json = json.loads(prd[0].content)
-                product_requirement_pool = prd_json.get("Requirement Pool", prd_json.get("Refined Requirement Pool"))
+                prd = await CONFIG.git_repo.new_file_repository(PRDS_FILE_REPO).get_all()
+
+                contents = []
+                for doc in prd:
+                    prd_json = json.loads(doc.content)
+                    product_requirement_pool = prd_json.get(
+                        "Requirement Pool", prd_json.get("Refined Requirement Pool")
+                    )
+                    contents.append(str(product_requirement_pool))
+                product_requirement_pools = "\n".join(contents)
 
                 context = "\n".join(
                     [
                         "## User New Requirements\n" + str(user_requirement) + "\n",
-                        "## Product Requirement Pool\n" + str(product_requirement_pool) + "\n",
+                        "## Product Requirement Pool\n" + product_requirement_pools + "\n",
                         "## Guidelines and Incremental Change\n" + guideline + "\n",
                         "## System Design\n" + str(self.context.design_doc) + "\n",
                         "## Tasks\n" + task_content + "\n",

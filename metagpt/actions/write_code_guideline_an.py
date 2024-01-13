@@ -110,7 +110,7 @@ CODE_GUIDELINE_CONTEXT = """
 {user_requirement}
 
 ## Product Requirement Pool
-{product_requirement_pool}
+{product_requirement_pools}
 
 ## Design
 {design}
