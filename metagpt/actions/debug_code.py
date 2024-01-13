@@ -104,7 +104,6 @@ class DebugCode(BaseWriteAnalysisCode):
         logger.info(f"reflection is {resp}")
         return resp
 
-
     async def run(
         self,
         context: List[Message] = None,

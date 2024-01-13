@@ -8,13 +8,13 @@ import pytest
 from metagpt.actions.debug_code import DebugCode, messages_to_str
 from metagpt.schema import Message
 
-ErrorStr = '''Tested passed:
+ErrorStr = """Tested passed:
 
 Tests failed:
 assert sort_array([1, 5, 2, 3, 4]) == [1, 2, 3, 4, 5] # output: [1, 2, 4, 3, 5]
-'''
+"""
 
-CODE = '''
+CODE = """
 def sort_array(arr):
     # Helper function to count the number of ones in the binary representation
     def count_ones(n):
@@ -27,7 +27,7 @@ def sort_array(arr):
     
     return sorted_arr
 ```
-'''
+"""
 
 DebugContext = '''Solve the problem in Python:
 def sort_array(arr):
@@ -42,12 +42,15 @@ def sort_array(arr):
     >>> sort_array([1, 0, 2, 3, 4]) [0, 1, 2, 3, 4]
     """
 '''
+
+
 @pytest.mark.asyncio
 async def test_debug_code():
     debug_context = Message(content=DebugContext)
     new_code = await DebugCode().run(context=debug_context, code=CODE, runtime_result=ErrorStr)
     assert "def sort_array(arr)" in new_code
-    
+
+
 def test_messages_to_str():
     debug_context = Message(content=DebugContext)
     msg_str = messages_to_str([debug_context])
