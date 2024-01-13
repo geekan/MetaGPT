@@ -9,15 +9,12 @@
 @Modified By: mashenquan, 2023-11-27. Defines file repository paths according to Section 2.2.3.4 of RFC 135.
 @Modified By: mashenquan, 2023/12/5. Add directories for code summarization..
 """
-import contextvars
 import os
 from pathlib import Path
 
 from loguru import logger
 
 import metagpt
-
-OPTIONS = contextvars.ContextVar("OPTIONS", default={})
 
 
 def get_metagpt_package_root():
@@ -71,11 +68,9 @@ SOURCE_ROOT = METAGPT_ROOT / "metagpt"
 PROMPT_PATH = SOURCE_ROOT / "prompts"
 SKILL_DIRECTORY = SOURCE_ROOT / "skills"
 
-
 # REAL CONSTS
 
 MEM_TTL = 24 * 30 * 3600
-
 
 MESSAGE_ROUTE_FROM = "sent_from"
 MESSAGE_ROUTE_TO = "send_to"

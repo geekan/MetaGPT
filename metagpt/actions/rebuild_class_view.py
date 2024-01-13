@@ -20,7 +20,6 @@ from metagpt.const import (
     GENERALIZATION,
     GRAPH_REPO_FILE_REPO,
 )
-from metagpt.context import CONTEXT
 from metagpt.logs import logger
 from metagpt.repo_parser import RepoParser
 from metagpt.schema import ClassAttribute, ClassMethod, ClassView
@@ -31,7 +30,7 @@ from metagpt.utils.graph_repository import GraphKeyword, GraphRepository
 
 class RebuildClassView(Action):
     async def run(self, with_messages=None, format=config.prompt_schema):
-        graph_repo_pathname = CONTEXT.git_repo.workdir / GRAPH_REPO_FILE_REPO / CONTEXT.git_repo.workdir.name
+        graph_repo_pathname = self.context.git_repo.workdir / GRAPH_REPO_FILE_REPO / self.context.git_repo.workdir.name
         graph_db = await DiGraphRepository.load_from(str(graph_repo_pathname.with_suffix(".json")))
         repo_parser = RepoParser(base_directory=Path(self.i_context))
         # use pylint
@@ -49,9 +48,9 @@ class RebuildClassView(Action):
         await graph_db.save()
 
     async def _create_mermaid_class_views(self, graph_db):
-        path = Path(CONTEXT.git_repo.workdir) / DATA_API_DESIGN_FILE_REPO
+        path = Path(self.context.git_repo.workdir) / DATA_API_DESIGN_FILE_REPO
         path.mkdir(parents=True, exist_ok=True)
-        pathname = path / CONTEXT.git_repo.workdir.name
+        pathname = path / self.context.git_repo.workdir.name
         async with aiofiles.open(str(pathname.with_suffix(".mmd")), mode="w", encoding="utf-8") as writer:
             content = "classDiagram\n"
             logger.debug(content)
