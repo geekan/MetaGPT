@@ -88,7 +88,7 @@ class Team(BaseModel):
 
     @staticmethod
     def _check_balance():
-        if CONFIG.cost_manager.total_cost > CONFIG.cost_manager.max_budget:
+        if CONFIG.cost_manager.total_cost >= CONFIG.cost_manager.max_budget:
             raise NoMoneyException(
                 CONFIG.cost_manager.total_cost, f"Insufficient funds: {CONFIG.cost_manager.max_budget}"
             )
