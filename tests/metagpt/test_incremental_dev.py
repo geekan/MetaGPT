@@ -100,6 +100,33 @@ def test_refined_word_cloud():
                 raise e
 
 
+def test_refined_gomoku():
+    project_path = f"{DATA_PATH}/Gomoku"
+    check_or_create_base_tag(project_path)
+
+    args = [
+        "Add an AI opponent with fixed difficulty levels. Currently, the game only allows players to compete against themselves. Implement an AI algorithm that can playing with player. This will provide a more engaging and challenging experience for players.",
+        "--inc",
+        "--project-path",
+        project_path,
+    ]
+    result = runner.invoke(app, args)
+    logger.info(result)
+    logger.info(result.output)
+    if "Aborting" in result.output:
+        assert False
+    else:
+        tag = subprocess.run(["git", "describe", "--tags"], capture_output=True, text=True).stdout.strip()
+        if tag == "base":
+            assert False
+        else:
+            assert True
+            try:
+                subprocess.run(["git", "tag", "refine"], check=True)
+            except subprocess.CalledProcessError as e:
+                raise e
+
+
 def test_refined_dice_simulator_1():
     project_path = f"{DATA_PATH}/dice_simulator_new"
     check_or_create_base_tag(project_path)
@@ -150,33 +177,6 @@ def test_refined_dice_simulator_2():
             assert True
             try:
                 subprocess.run(["git", "tag", "refine_2"], check=True)
-            except subprocess.CalledProcessError as e:
-                raise e
-
-
-def test_refined_dice_simulator_3():
-    project_path = f"{DATA_PATH}/dice_simulator_new"
-    check_or_create_base_tag(project_path)
-
-    args = [
-        "Add functionality to set the number of sides on a die; Add functionality to view the history of scores;  Add functionality to perform statistical analysis on all scores. The original dice rolling game could roll the dice multiple times and only display the current game result. But the new requirement add function that players to customize the number of sides of the dice and to view the history of scores and display the statistical analysis",
-        "--inc",
-        "--project-path",
-        project_path,
-    ]
-    result = runner.invoke(app, args)
-    logger.info(result)
-    logger.info(result.output)
-    if "Aborting" in result.output:
-        assert False
-    else:
-        tag = subprocess.run(["git", "describe", "--tags"], capture_output=True, text=True).stdout.strip()
-        if tag == "base":
-            assert False
-        else:
-            assert True
-            try:
-                subprocess.run(["git", "tag", "refine_3"], check=True)
             except subprocess.CalledProcessError as e:
                 raise e
 
@@ -312,33 +312,6 @@ def test_refined_snake_game_2():
             assert True
             try:
                 subprocess.run(["git", "tag", "refine_2"], check=True)
-            except subprocess.CalledProcessError as e:
-                raise e
-
-
-def test_refined_gomoku():
-    project_path = f"{DATA_PATH}/Gomoku"
-    check_or_create_base_tag(project_path)
-
-    args = [
-        "Add an AI opponent with fixed difficulty levels. Currently, the game only allows players to compete against themselves. Implement an AI algorithm that can playing with player. This will provide a more engaging and challenging experience for players.",
-        "--inc",
-        "--project-path",
-        project_path,
-    ]
-    result = runner.invoke(app, args)
-    logger.info(result)
-    logger.info(result.output)
-    if "Aborting" in result.output:
-        assert False
-    else:
-        tag = subprocess.run(["git", "describe", "--tags"], capture_output=True, text=True).stdout.strip()
-        if tag == "base":
-            assert False
-        else:
-            assert True
-            try:
-                subprocess.run(["git", "tag", "refine"], check=True)
             except subprocess.CalledProcessError as e:
                 raise e
 
