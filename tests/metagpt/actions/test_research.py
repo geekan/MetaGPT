@@ -9,10 +9,12 @@
 import pytest
 
 from metagpt.actions import research
+from metagpt.tools import SearchEngineType
+from metagpt.tools.search_engine import SearchEngine
 
 
 @pytest.mark.asyncio
-async def test_collect_links(mocker):
+async def test_collect_links(mocker, search_engine_mocker):
     async def mock_llm_ask(self, prompt: str, system_msgs):
         if "Please provide up to 2 necessary keywords" in prompt:
             return '["metagpt", "llm"]'
@@ -26,13 +28,15 @@ async def test_collect_links(mocker):
             return "[1,2]"
 
     mocker.patch("metagpt.provider.base_llm.BaseLLM.aask", mock_llm_ask)
-    resp = await research.CollectLinks().run("The application of MetaGPT")
+    resp = await research.CollectLinks(search_engine=SearchEngine(SearchEngineType.DUCK_DUCK_GO)).run(
+        "The application of MetaGPT"
+    )
     for i in ["MetaGPT use cases", "The roadmap of MetaGPT", "The function of MetaGPT", "What llm MetaGPT support"]:
         assert i in resp
 
 
 @pytest.mark.asyncio
-async def test_collect_links_with_rank_func(mocker):
+async def test_collect_links_with_rank_func(mocker, search_engine_mocker):
     rank_before = []
     rank_after = []
     url_per_query = 4
@@ -45,7 +49,9 @@ async def test_collect_links_with_rank_func(mocker):
         return results
 
     mocker.patch("metagpt.provider.base_llm.BaseLLM.aask", mock_collect_links_llm_ask)
-    resp = await research.CollectLinks(rank_func=rank_func).run("The application of MetaGPT")
+    resp = await research.CollectLinks(
+        search_engine=SearchEngine(SearchEngineType.DUCK_DUCK_GO), rank_func=rank_func
+    ).run("The application of MetaGPT")
     for x, y, z in zip(rank_before, rank_after, resp.values()):
         assert x[::-1] == y
         assert [i["link"] for i in y] == z

@@ -4,7 +4,10 @@ from tempfile import TemporaryDirectory
 
 import pytest
 
+from metagpt.actions.research import CollectLinks
 from metagpt.roles import researcher
+from metagpt.tools import SearchEngineType
+from metagpt.tools.search_engine import SearchEngine
 
 
 async def mock_llm_ask(self, prompt: str, system_msgs):
@@ -25,12 +28,16 @@ async def mock_llm_ask(self, prompt: str, system_msgs):
 
 
 @pytest.mark.asyncio
-async def test_researcher(mocker):
+async def test_researcher(mocker, search_engine_mocker):
     with TemporaryDirectory() as dirname:
         topic = "dataiku vs. datarobot"
         mocker.patch("metagpt.provider.base_llm.BaseLLM.aask", mock_llm_ask)
         researcher.RESEARCH_PATH = Path(dirname)
-        await researcher.Researcher().run(topic)
+        role = researcher.Researcher()
+        for i in role.actions:
+            if isinstance(i, CollectLinks):
+                i.search_engine = SearchEngine(SearchEngineType.DUCK_DUCK_GO)
+        await role.run(topic)
         assert (researcher.RESEARCH_PATH / f"{topic}.md").read_text().startswith("# Research Report")
 
 

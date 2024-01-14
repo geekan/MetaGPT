@@ -7,19 +7,14 @@
 """
 from __future__ import annotations
 
-import json
-from pathlib import Path
 from typing import Callable
 
 import pytest
 
-import tests.data.search
 from metagpt.config2 import config
 from metagpt.logs import logger
 from metagpt.tools import SearchEngineType
 from metagpt.tools.search_engine import SearchEngine
-
-search_cache_path = Path(tests.data.search.__path__[0])
 
 
 class MockSearchEnine:
@@ -46,24 +41,28 @@ class MockSearchEnine:
         (SearchEngineType.CUSTOM_ENGINE, MockSearchEnine().run, 6, False),
     ],
 )
-async def test_search_engine(search_engine_type, run_func: Callable, max_results: int, as_string: bool, aiohttp_mocker):
+async def test_search_engine(
+    search_engine_type,
+    run_func: Callable,
+    max_results: int,
+    as_string: bool,
+    search_engine_mocker,
+):
     # Prerequisites
-    cache_json_path = None
-    # FIXME: 不能使用全局的config，而是要自己实例化对应的config
+    search_engine_config = {}
+
     if search_engine_type is SearchEngineType.SERPAPI_GOOGLE:
         assert config.search
-        cache_json_path = search_cache_path / f"serpapi-metagpt-{max_results}.json"
+        search_engine_config["serpapi_api_key"] = "mock-serpapi-key"
     elif search_engine_type is SearchEngineType.DIRECT_GOOGLE:
         assert config.search
+        search_engine_config["google_api_key"] = "mock-google-key"
+        search_engine_config["google_cse_id"] = "mock-google-cse"
     elif search_engine_type is SearchEngineType.SERPER_GOOGLE:
         assert config.search
-        cache_json_path = search_cache_path / f"serper-metagpt-{max_results}.json"
+        search_engine_config["serper_api_key"] = "mock-serper-key"
 
-    if cache_json_path:
-        with open(cache_json_path) as f:
-            data = json.load(f)
-            aiohttp_mocker.set_json(data)
-    search_engine = SearchEngine(search_engine_type, run_func)
+    search_engine = SearchEngine(search_engine_type, run_func, **search_engine_config)
     rsp = await search_engine.run("metagpt", max_results, as_string)
     logger.info(rsp)
     if as_string:

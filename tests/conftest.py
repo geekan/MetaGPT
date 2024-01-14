@@ -12,6 +12,7 @@ import logging
 import os
 import re
 import uuid
+from typing import Callable
 
 import pytest
 
@@ -20,6 +21,9 @@ from metagpt.context import CONTEXT
 from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.utils.git_repository import GitRepository
+from tests.mock.mock_aiohttp import MockAioResponse
+from tests.mock.mock_curl_cffi import MockCurlCffiResponse
+from tests.mock.mock_httplib2 import MockHttplib2Response
 from tests.mock.mock_llm import MockLLM
 
 RSP_CACHE_NEW = {}  # used globally for producing new and useful only response cache
@@ -164,39 +168,63 @@ def new_filename(mocker):
     yield mocker
 
 
+@pytest.fixture(scope="session")
+def search_rsp_cache():
+    rsp_cache_file_path = TEST_DATA_PATH / "search_rsp_cache.json"  # read repo-provided
+    if os.path.exists(rsp_cache_file_path):
+        with open(rsp_cache_file_path, "r") as f1:
+            rsp_cache_json = json.load(f1)
+    else:
+        rsp_cache_json = {}
+    yield rsp_cache_json
+    with open(rsp_cache_file_path, "w") as f2:
+        json.dump(rsp_cache_json, f2, indent=4, ensure_ascii=False)
+
+
 @pytest.fixture
 def aiohttp_mocker(mocker):
-    class MockAioResponse:
-        async def json(self, *args, **kwargs):
-            return self._json
-
-        def set_json(self, json):
-            self._json = json
-
-    response = MockAioResponse()
-
-    class MockCTXMng:
-        async def __aenter__(self):
-            return response
-
-        async def __aexit__(self, *args, **kwargs):
-            pass
-
-        def __await__(self):
-            yield
-            return response
-
-    def mock_request(self, method, url, **kwargs):
-        return MockCTXMng()
+    MockResponse = type("MockResponse", (MockAioResponse,), {})
 
     def wrap(method):
         def run(self, url, **kwargs):
-            return mock_request(self, method, url, **kwargs)
+            return MockResponse(self, method, url, **kwargs)
 
         return run
 
-    mocker.patch("aiohttp.ClientSession.request", mock_request)
+    mocker.patch("aiohttp.ClientSession.request", MockResponse)
     for i in ["get", "post", "delete", "patch"]:
         mocker.patch(f"aiohttp.ClientSession.{i}", wrap(i))
+    yield MockResponse
 
-    yield response
+
+@pytest.fixture
+def curl_cffi_mocker(mocker):
+    MockResponse = type("MockResponse", (MockCurlCffiResponse,), {})
+
+    def request(self, *args, **kwargs):
+        return MockResponse(self, *args, **kwargs)
+
+    mocker.patch("curl_cffi.requests.Session.request", request)
+    yield MockResponse
+
+
+@pytest.fixture
+def httplib2_mocker(mocker):
+    MockResponse = type("MockResponse", (MockHttplib2Response,), {})
+
+    def request(self, *args, **kwargs):
+        return MockResponse(self, *args, **kwargs)
+
+    mocker.patch("httplib2.Http.request", request)
+    yield MockResponse
+
+
+@pytest.fixture
+def search_engine_mocker(aiohttp_mocker, curl_cffi_mocker, httplib2_mocker, search_rsp_cache):
+    # aiohttp_mocker: serpapi/serper
+    # httplib2_mocker: google
+    # curl_cffi_mocker: ddg
+    check_funcs: dict[tuple[str, str], Callable[[dict], str]] = {}
+    aiohttp_mocker.rsp_cache = httplib2_mocker.rsp_cache = curl_cffi_mocker.rsp_cache = search_rsp_cache
+    aiohttp_mocker.check_funcs = httplib2_mocker.check_funcs = curl_cffi_mocker.check_funcs = check_funcs
+    yield check_funcs
