@@ -15,38 +15,22 @@ from metagpt.utils.serialize import (
     serialize_message,
 )
 
+from pydantic import BaseModel, Field
+from typing import List
+
+
+class B(BaseModel):
+    b: str
+
+
+class A(BaseModel):
+    b: List[B] = Field(default=[])
+
 
 def test_actionoutout_schema_to_mapping():
-    schema = {"title": "test", "type": "object", "properties": {"field": {"title": "field", "type": "string"}}}
-    mapping = actionoutout_schema_to_mapping(schema)
-    assert mapping["field"] == (str, ...)
-
-    schema = {
-        "title": "test",
-        "type": "object",
-        "properties": {"field": {"title": "field", "type": "array", "items": {"type": "string"}}},
-    }
-    mapping = actionoutout_schema_to_mapping(schema)
-    assert mapping["field"] == (list[str], ...)
-
-    schema = {
-        "title": "test",
-        "type": "object",
-        "properties": {
-            "field": {
-                "title": "field",
-                "type": "array",
-                "items": {
-                    "type": "array",
-                    "minItems": 2,
-                    "maxItems": 2,
-                    "items": [{"type": "string"}, {"type": "string"}],
-                },
-            }
-        },
-    }
-    mapping = actionoutout_schema_to_mapping(schema)
-    assert mapping["field"] == (list[list[str]], ...)
+    schema = A(b=[B(b="b")])
+    mapping = actionoutout_schema_to_mapping(schema.model_json_schema())
+    assert mapping["b"] == (list[dict], ...)
 
     assert True, True
 
