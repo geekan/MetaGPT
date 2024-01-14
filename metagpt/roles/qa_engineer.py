@@ -120,7 +120,7 @@ class QaEngineer(Role):
             )
         )
 
-    async def _debug_error(self, msg):
+    async def _debug_error(self, msg: Message):
         run_code_context = RunCodeContext.loads(msg.content)
         code = await DebugError(i_context=run_code_context, context=self.context, llm=self.llm).run()
         await self.project_repo.tests.save(filename=run_code_context.test_filename, content=code)

@@ -8,8 +8,9 @@
 """
 from enum import Enum
 from pathlib import Path
-from typing import Optional, Union
+from typing import Any, List, Optional, Tuple, Union
 
+import langchain_core.documents
 import pandas as pd
 from langchain.document_loaders import (
     TextLoader,
@@ -28,8 +29,9 @@ def validate_cols(content_col: str, df: pd.DataFrame):
         raise ValueError("Content column not found in DataFrame.")
 
 
-def read_data(data_path: Path):
+def read_data(data_path: Path) -> Union[pd.DataFrame, List[langchain_core.documents.Document]]:
     suffix = data_path.suffix
+    data: Optional[Union[pd.DataFrame, List[langchain_core.documents.Document]]] = None
     if ".xlsx" == suffix:
         data = pd.read_excel(data_path)
     elif ".csv" == suffix:
@@ -47,7 +49,7 @@ def read_data(data_path: Path):
         data = UnstructuredPDFLoader(str(data_path), mode="elements").load()
     else:
         raise NotImplementedError("File format not supported.")
-    return data
+    return [] if data is None else data
 
 
 class DocumentStatus(Enum):
@@ -64,7 +66,7 @@ class Document(BaseModel):
     Document: Handles operations related to document files.
     """
 
-    path: Path = Field(default=None)
+    path: Optional[Path] = Field(default=None)
     name: str = Field(default="")
     content: str = Field(default="")
 
@@ -118,23 +120,23 @@ class IndexableDocument(Document):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    data: Union[pd.DataFrame, list]
+    data: Union[pd.DataFrame, List[Any]]
     content_col: Optional[str] = Field(default="")
     meta_col: Optional[str] = Field(default="")
 
     @classmethod
-    def from_path(cls, data_path: Path, content_col="content", meta_col="metadata"):
-        if not data_path.exists():
-            raise FileNotFoundError(f"File {data_path} not found.")
-        data = read_data(data_path)
+    def from_path(cls, path: Path, content_col="content", meta_col="metadata"):
+        if not path.exists():
+            raise FileNotFoundError(f"File {path} not found.")
+        data = read_data(path)
         if isinstance(data, pd.DataFrame):
             validate_cols(content_col, data)
             return cls(data=data, content=str(data), content_col=content_col, meta_col=meta_col)
         else:
-            content = data_path.read_text()
+            content = path.read_text()
             return cls(data=data, content=content, content_col=content_col, meta_col=meta_col)
 
-    def _get_docs_and_metadatas_by_df(self) -> (list, list):
+    def _get_docs_and_metadatas_by_df(self) -> Tuple[List[Any], List[Any]]:
         df = self.data
         docs = []
         metadatas = []
@@ -146,13 +148,14 @@ class IndexableDocument(Document):
                 metadatas.append({})
         return docs, metadatas
 
-    def _get_docs_and_metadatas_by_langchain(self) -> (list, list):
+    def _get_docs_and_metadatas_by_langchain(self) -> Tuple[List[Any], List[Any]]:
+        assert isinstance(self.data, list)
         data = self.data
         docs = [i.page_content for i in data]
         metadatas = [i.metadata for i in data]
         return docs, metadatas
 
-    def get_docs_and_metadatas(self) -> (list, list):
+    def get_docs_and_metadatas(self) -> Tuple[List[Any], List[Any]]:
         if isinstance(self.data, pd.DataFrame):
             return self._get_docs_and_metadatas_by_df()
         elif isinstance(self.data, list):

@@ -76,8 +76,8 @@ class RoleReactMode(str, Enum):
     PLAN_AND_ACT = "plan_and_act"
 
     @classmethod
-    def values(cls):
-        return [item.value for item in cls]
+    def values(cls) -> List[str]:
+        return [str(item.value) for item in cls]
 
 
 class RoleContext(BaseModel):
@@ -94,9 +94,9 @@ class RoleContext(BaseModel):
     memory: Memory = Field(default_factory=Memory)
     # long_term_memory: LongTermMemory = Field(default_factory=LongTermMemory)
     state: int = Field(default=-1)  # -1 indicates initial or termination state where todo is None
-    todo: Action = Field(default=None, exclude=True)
-    watch: set[str] = Field(default_factory=set)
-    news: list[Type[Message]] = Field(default=[], exclude=True)  # TODO not used
+    todo: Optional[Action] = Field(default=None, exclude=True)
+    watch: Set[str] = Field(default_factory=set)
+    news: List[Message] = Field(default=[], exclude=True)  # TODO not used
     react_mode: RoleReactMode = (
         RoleReactMode.REACT
     )  # see `Role._set_react_mode` for definitions of the following two attributes
@@ -109,12 +109,12 @@ class RoleContext(BaseModel):
         pass
 
     @property
-    def important_memory(self) -> list[Message]:
+    def important_memory(self) -> List[Message]:
         """Retrieve information corresponding to the attention action."""
         return self.memory.get_by_actions(self.watch)
 
     @property
-    def history(self) -> list[Message]:
+    def history(self) -> List[Message]:
         return self.memory.get()
 
 
@@ -139,9 +139,9 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
     #   3. set_todo while using `role.set_todo(action)`
     #   4. when role.system_prompt is being updated (e.g. by `role.system_prompt = "..."`)
     # Additional, if llm is not set, we will use role's llm
-    actions: list[SerializeAsAny[Action]] = Field(default=[], validate_default=True)
+    actions: List[SerializeAsAny[Action]] = Field(default=[], validate_default=True)
     rc: RoleContext = Field(default_factory=RoleContext)
-    addresses: set[str] = set()
+    subscription: Set[str] = set()
 
     # builtin variables
     recovered: bool = False  # to tag if a recovered role
@@ -291,7 +291,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
                                   Defaults to 1, i.e. _think -> _act (-> return result and end)
         """
         assert react_mode in RoleReactMode.values(), f"react_mode must be one of {RoleReactMode.values()}"
-        self.rc.react_mode = react_mode
+        self.rc.react_mode = RoleReactMode(react_mode)
         if react_mode == RoleReactMode.REACT:
             self.rc.max_react_loop = max_react_loop
 
@@ -520,7 +520,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         """If true, all actions have been executed."""
         return not self.rc.news and not self.rc.todo and self.rc.msg_buffer.empty()
 
-    async def think(self) -> Action:
+    async def think(self) -> Optional[Action]:
         """The exported `think` function"""
         await self._think()
         return self.rc.todo

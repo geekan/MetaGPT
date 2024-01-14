@@ -12,7 +12,7 @@
     functionality is to be consolidated into the `Environment` class.
 """
 import asyncio
-from typing import Iterable, Set
+from typing import Iterable, List, Optional, Set
 
 from pydantic import BaseModel, ConfigDict, Field, SerializeAsAny, model_validator
 
@@ -49,7 +49,7 @@ class Environment(BaseModel):
         role.set_env(self)
         role.context = self.context
 
-    def add_roles(self, roles: Iterable[Role]):
+    def add_roles(self, roles: Iterable[Role]) -> None:
         """增加一批在当前环境的角色
         Add a batch of characters in the current environment
         """
@@ -82,7 +82,7 @@ class Environment(BaseModel):
 
         return True
 
-    async def run(self, k=1):
+    async def run(self, k: int = 1) -> None:
         """处理一次所有信息的运行
         Process all Role runs at once
         """
@@ -101,31 +101,31 @@ class Environment(BaseModel):
         """
         return self.roles
 
-    def get_role(self, name: str) -> Role:
+    def get_role(self, name: str) -> Optional[Role]:
         """获得环境内的指定角色
         get all the environment roles
         """
         return self.roles.get(name, None)
 
-    def role_names(self) -> list[str]:
+    def role_names(self) -> List[str]:
         return [i.name for i in self.roles.values()]
 
     @property
-    def is_idle(self):
+    def is_idle(self) -> bool:
         """If true, all actions have been executed."""
         for r in self.roles.values():
             if not r.is_idle:
                 return False
         return True
 
-    def get_addresses(self, obj):
+    def get_addresses(self, obj: Role) -> Set:
         """Get the addresses of the object."""
-        return self.member_addrs.get(obj, {})
+        return self.member_addrs.get(obj, set())
 
-    def set_addresses(self, obj, addresses):
+    def set_addresses(self, obj, addresses: Set) -> None:
         """Set the addresses of the object"""
         self.member_addrs[obj] = addresses
 
-    def archive(self, auto_archive=True):
+    def archive(self, auto_archive: bool = True) -> None:
         if auto_archive and self.context.git_repo:
             self.context.git_repo.archive()

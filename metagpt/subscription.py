@@ -60,7 +60,8 @@ class SubscriptionRunner(BaseModel):
         async def _start_role():
             async for msg in trigger:
                 resp = await role.run(msg)
-                await callback(resp)
+                if resp:
+                    await callback(resp)
 
         self.tasks[role] = loop.create_task(_start_role(), name=f"Subscription-{role}")
 
@@ -85,9 +86,10 @@ class SubscriptionRunner(BaseModel):
         while True:
             for role, task in self.tasks.items():
                 if task.done():
-                    if task.exception():
+                    task_exception = task.exception()
+                    if task_exception:
                         if raise_exception:
-                            raise task.exception()
+                            raise task_exception
                         logger.opt(exception=task.exception()).error(f"Task {task.get_name()} run error")
                     else:
                         logger.warning(

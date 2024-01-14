@@ -6,13 +6,15 @@
 @File    : action_output
 """
 
+from typing import Optional
+
 from pydantic import BaseModel
 
 
 class ActionOutput:
     content: str
-    instruct_content: BaseModel
+    instruct_content: Optional[BaseModel]
 
-    def __init__(self, content: str, instruct_content: BaseModel):
+    def __init__(self, content: str, instruct_content: Optional[BaseModel]):
         self.content = content
         self.instruct_content = instruct_content

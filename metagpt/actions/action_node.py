@@ -127,7 +127,7 @@ class ActionNode:
     # Action Context
     context: str  # all the context, including all necessary info
     llm: BaseLLM  # LLM with aask interface
-    children: dict[str, "ActionNode"]
+    children: Dict[str, "ActionNode"]
 
     # Action Input
     key: str  # Product Requirement / File list / Code
@@ -147,7 +147,7 @@ class ActionNode:
         instruction: str,
         example: Any,
         content: str = "",
-        children: dict[str, "ActionNode"] = None,
+        children: Optional[Dict[str, "ActionNode"]] = None,
         schema: str = "",
     ):
         self.key = key
@@ -222,12 +222,12 @@ class ActionNode:
         new_class = create_model(class_name, __validators__=validators, **mapping)
         return new_class
 
-    def create_class(self, mode: str = "auto", class_name: str = None, exclude=None):
+    def create_class(self, mode: str = "auto", class_name: Optional[str] = None, exclude: Optional[Any] = None) -> Any:
         class_name = class_name if class_name else f"{self.key}_AN"
         mapping = self.get_mapping(mode=mode, exclude=exclude)
         return self.create_model_class(class_name, mapping)
 
-    def create_children_class(self, exclude=None):
+    def create_children_class(self, exclude: Optional[Any] = None) -> Any:
         """使用object内有的字段直接生成model_class"""
         class_name = f"{self.key}_AN"
         mapping = self.get_children_mapping(exclude=exclude)
@@ -261,14 +261,14 @@ class ActionNode:
 
         return node_dict
 
-    def update_instruct_content(self, incre_data: dict[str, Any]):
+    def update_instruct_content(self, incre_data: Dict[str, Any]):
         assert self.instruct_content
         origin_sc_dict = self.instruct_content.model_dump()
         origin_sc_dict.update(incre_data)
         output_class = self.create_class()
         self.instruct_content = output_class(**origin_sc_dict)
 
-    def keys(self, mode: str = "auto") -> list:
+    def keys(self, mode: str = "auto") -> List[str]:
         if mode == "children" or (mode == "auto" and self.children):
             keys = []
         else:
@@ -280,7 +280,7 @@ class ActionNode:
             keys.append(child_node.key)
         return keys
 
-    def compile_to(self, i: Dict, schema, kv_sep) -> str:
+    def compile_to(self, i: Dict[Any, Any], schema: str, kv_sep: str) -> str:
         if schema == "json":
             return json.dumps(i, indent=4)
         elif schema == "markdown":
@@ -288,7 +288,7 @@ class ActionNode:
         else:
             return str(i)
 
-    def tagging(self, text, schema, tag="") -> str:
+    def tagging(self, text: str, schema: str, tag: str = "") -> str:
         if not tag:
             return text
         if schema == "json":
@@ -296,17 +296,23 @@ class ActionNode:
         else:  # markdown
             return f"[{tag}]\n" + text + f"\n[/{tag}]"
 
-    def _compile_f(self, schema, mode, tag, format_func, kv_sep, exclude=None) -> str:
+    def _compile_f(
+        self, schema: str, mode: str, tag: str, format_func: Optional[Any], kv_sep: str, exclude: Optional[Any] = None
+    ) -> str:
         nodes = self.to_dict(format_func=format_func, mode=mode, exclude=exclude)
         text = self.compile_to(nodes, schema, kv_sep)
         return self.tagging(text, schema, tag)
 
-    def compile_instruction(self, schema="markdown", mode="children", tag="", exclude=None) -> str:
+    def compile_instruction(
+        self, schema: str = "markdown", mode: str = "children", tag: str = "", exclude: Optional[Any] = None
+    ) -> str:
         """compile to raw/json/markdown template with all/root/children nodes"""
         format_func = lambda i: f"{i.expected_type}  # {i.instruction}"
         return self._compile_f(schema, mode, tag, format_func, kv_sep=": ", exclude=exclude)
 
-    def compile_example(self, schema="json", mode="children", tag="", exclude=None) -> str:
+    def compile_example(
+        self, schema: str = "json", mode: str = "children", tag: str = "", exclude: Optional[Any] = None
+    ) -> str:
         """compile to raw/json/markdown examples with all/root/children nodes"""
 
         # 这里不能使用f-string，因为转译为str后再json.dumps会额外加上引号，无法作为有效的example
@@ -353,11 +359,11 @@ class ActionNode:
         self,
         prompt: str,
         output_class_name: str,
-        output_data_mapping: dict,
-        system_msgs: Optional[list[str]] = None,
+        output_data_mapping: Dict[Any, Any],
+        system_msgs: Optional[List[str]] = None,
         schema="markdown",  # compatible to original format
         timeout=3,
-    ) -> (str, BaseModel):
+    ) -> Tuple[str, BaseModel]:
         """Use ActionOutput to wrap the output of aask"""
         content = await self.llm.aask(prompt, system_msgs, timeout=timeout)
         logger.debug(f"llm raw output:\n{content}")
@@ -442,14 +448,14 @@ class ActionNode:
             self.instruct_content = cls(**tmp)
             return self
 
-    async def human_review(self) -> dict[str, str]:
+    async def human_review(self) -> Dict[str, str]:
         review_comments = HumanInteraction().interact_with_instruct_content(
             instruct_content=self.instruct_content, interact_type="review"
         )
 
         return review_comments
 
-    def _makeup_nodes_output_with_req(self) -> dict[str, str]:
+    def _makeup_nodes_output_with_req(self) -> Dict[str, Any]:
         instruct_content_dict = self.instruct_content.model_dump()
         nodes_output = {}
         for key, value in instruct_content_dict.items():
@@ -457,7 +463,7 @@ class ActionNode:
             nodes_output[key] = {"value": value, "requirement": child.instruction if child else self.instruction}
         return nodes_output
 
-    async def auto_review(self, template: str = REVIEW_TEMPLATE) -> dict[str, str]:
+    async def auto_review(self, template: str = REVIEW_TEMPLATE) -> Dict[str, str]:
         """use key's output value and its instruction to review the modification comment"""
         nodes_output = self._makeup_nodes_output_with_req()
         """nodes_output format:
@@ -526,7 +532,7 @@ class ActionNode:
 
         return review_comments
 
-    async def human_revise(self) -> dict[str, str]:
+    async def human_revise(self) -> Dict[str, str]:
         review_contents = HumanInteraction().interact_with_instruct_content(
             instruct_content=self.instruct_content, mapping=self.get_mapping(mode="auto"), interact_type="revise"
         )
@@ -534,7 +540,7 @@ class ActionNode:
         self.update_instruct_content(review_contents)
         return review_contents
 
-    def _makeup_nodes_output_with_comment(self, review_comments: dict[str, str]) -> dict[str, str]:
+    def _makeup_nodes_output_with_comment(self, review_comments: Dict[str, str]) -> Dict[str, Any]:
         instruct_content_dict = self.instruct_content.model_dump()
         nodes_output = {}
         for key, value in instruct_content_dict.items():
@@ -544,13 +550,14 @@ class ActionNode:
 
     async def auto_revise(
         self, revise_mode: ReviseMode = ReviseMode.AUTO, template: str = REVISE_TEMPLATE
-    ) -> dict[str, str]:
+    ) -> Dict[str, str]:
         """revise the value of incorrect keys"""
+        review_comments: Dict[str, str] = {}
         # generate review comments
         if revise_mode == ReviseMode.AUTO:
-            review_comments: dict = await self.auto_review()
+            review_comments = await self.auto_review()
         elif revise_mode == ReviseMode.HUMAN_REVIEW:
-            review_comments: dict = await self.human_review()
+            review_comments = await self.human_review()
 
         include_keys = list(review_comments.keys())
 
@@ -581,7 +588,7 @@ class ActionNode:
         self.update_instruct_content(sc_dict)
         return sc_dict
 
-    async def simple_revise(self, revise_mode: ReviseMode = ReviseMode.AUTO) -> dict[str, str]:
+    async def simple_revise(self, revise_mode: ReviseMode = ReviseMode.AUTO) -> Dict[str, str]:
         if revise_mode == ReviseMode.HUMAN:
             revise_contents = await self.human_revise()
         else:
@@ -589,7 +596,7 @@ class ActionNode:
 
         return revise_contents
 
-    async def revise(self, strgy: str = "simple", revise_mode: ReviseMode = ReviseMode.AUTO) -> dict[str, str]:
+    async def revise(self, strgy: str = "simple", revise_mode: ReviseMode = ReviseMode.AUTO) -> Dict[str, str]:
         """revise the content of ActionNode and update the instruct_content
 
         :param strgy: simple/complex

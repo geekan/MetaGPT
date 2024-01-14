@@ -23,7 +23,7 @@ import sys
 import traceback
 import typing
 from pathlib import Path
-from typing import Any, List, Tuple, Union
+from typing import Any, Dict, List, Tuple, Union
 
 import aiofiles
 import loguru
@@ -35,7 +35,7 @@ from metagpt.logs import logger
 from metagpt.utils.exceptions import handle_exception
 
 
-def check_cmd_exists(command) -> int:
+def check_cmd_exists(command: str) -> int:
     """检查命令是否存在
     :param command: 待检查的命令
     :return: 如果命令存在，返回0，如果不存在，返回非0
@@ -44,8 +44,7 @@ def check_cmd_exists(command) -> int:
         check_command = "where " + command
     else:
         check_command = "command -v " + command + ' >/dev/null 2>&1 || { echo >&2 "no mermaid"; exit 1; }'
-    result = os.system(check_command)
-    return result
+    return os.system(check_command)
 
 
 def require_python_version(req_version: Tuple) -> bool:
@@ -56,7 +55,7 @@ def require_python_version(req_version: Tuple) -> bool:
 
 class OutputParser:
     @classmethod
-    def parse_blocks(cls, text: str):
+    def parse_blocks(cls, text: str) -> Dict[str, str]:
         # 首先根据"##"将文本分割成不同的block
         blocks = text.split("##")
 
@@ -77,7 +76,7 @@ class OutputParser:
         return block_dict
 
     @classmethod
-    def parse_code(cls, text: str, lang: str = "") -> str:
+    def parse_code(cls, text: str, lang: str = "") -> str | Any:
         pattern = rf"```{lang}.*?\s+(.*?)```"
         match = re.search(pattern, text, re.DOTALL)
         if match:
@@ -87,13 +86,13 @@ class OutputParser:
         return code
 
     @classmethod
-    def parse_str(cls, text: str):
+    def parse_str(cls, text: str) -> str:
         text = text.split("=")[-1]
         text = text.strip().strip("'").strip('"')
         return text
 
     @classmethod
-    def parse_file_list(cls, text: str) -> list[str]:
+    def parse_file_list(cls, text: str) -> List[str]:
         # Regular expression pattern to find the tasks list.
         pattern = r"\s*(.*=.*)?(\[.*\])"
 
@@ -123,20 +122,20 @@ class OutputParser:
         raise ValueError("Invalid python code")
 
     @classmethod
-    def parse_data(cls, data):
+    def parse_data(cls, data: str) -> Dict[str, Any]:
         block_dict = cls.parse_blocks(data)
         parsed_data = {}
-        for block, content in block_dict.items():
+        for key, value in block_dict.items():
             # 尝试去除code标记
             try:
-                content = cls.parse_code(text=content)
+                content = cls.parse_code(text=value)
             except Exception:
                 # 尝试解析list
                 try:
-                    content = cls.parse_file_list(text=content)
+                    content = cls.parse_file_list(text=value)
                 except Exception:
                     pass
-            parsed_data[block] = content
+            parsed_data[key] = content
         return parsed_data
 
     @staticmethod
@@ -183,7 +182,7 @@ class OutputParser:
         return parsed_data
 
     @classmethod
-    def extract_struct(cls, text: str, data_type: Union[type(list), type(dict)]) -> Union[list, dict]:
+    def extract_struct(cls, text: str, data_type: Union[type[list], type[dict]]) -> Union[List, Dict]:
         """Extracts and parses a specified type of structure (dictionary or list) from the given text.
         The text only contains a list or dictionary, which may have nested structures.
 
@@ -381,7 +380,7 @@ def any_to_str_set(val) -> set:
     return res
 
 
-def is_send_to(message: "Message", addresses: set):
+def is_subscribed(message: "Message", addresses: Set) -> bool:
     """Return whether it's consumer"""
     if MESSAGE_ROUTE_TO_ALL in message.send_to:
         return True
@@ -392,7 +391,7 @@ def is_send_to(message: "Message", addresses: set):
     return False
 
 
-def any_to_name(val):
+def any_to_name(val: Any) -> str:
     """
     Convert a value to its name by extracting the last part of the dotted path.
 
@@ -438,13 +437,13 @@ def general_after_log(i: "loguru.Logger", sec_format: str = "%0.3f") -> typing.C
         i.error(
             f"Finished call to '{fn_name}' after {sec_format % retry_state.seconds_since_start}(s), "
             f"this was the {_utils.to_ordinal(retry_state.attempt_number)} time calling it. "
-            f"exp: {retry_state.outcome.exception()}"
+            f"exp: {retry_state.outcome.exception() if retry_state.outcome else None}"
         )
 
     return log_it
 
 
-def read_json_file(json_file: str, encoding="utf-8") -> list[Any]:
+def read_json_file(json_file: Union[str, Path], encoding="utf-8") -> Any:
     if not Path(json_file).exists():
         raise FileNotFoundError(f"json_file: {json_file} not exist, return []")
 
@@ -456,7 +455,7 @@ def read_json_file(json_file: str, encoding="utf-8") -> list[Any]:
     return data
 
 
-def write_json_file(json_file: str, data: list, encoding=None):
+def write_json_file(json_file: Union[str, Path], data: Any, encoding=None):
     folder_path = Path(json_file).parent
     if not folder_path.exists():
         folder_path.mkdir(parents=True, exist_ok=True)

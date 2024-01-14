@@ -23,7 +23,7 @@ from abc import ABC
 from asyncio import Queue, QueueEmpty, wait_for
 from json import JSONDecodeError
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Type, TypeVar, Union
+from typing import Any, Dict, List, Optional, Type, TypeVar
 
 from pydantic import (
     BaseModel,
@@ -67,7 +67,7 @@ class SerializationMixin(BaseModel, extra="forbid"):
     """
 
     __is_polymorphic_base = False
-    __subclasses_map__ = {}
+    __subclasses_map__: Dict[Any, Any] = {}
 
     @model_serializer(mode="wrap")
     def __serialize_with_class_type__(self, default_serializer) -> Any:
@@ -212,7 +212,7 @@ class Message(BaseModel):
         return any_to_str_set(send_to if send_to else {MESSAGE_ROUTE_TO_ALL})
 
     @field_serializer("instruct_content", mode="plain")
-    def ser_instruct_content(self, ic: BaseModel) -> Union[str, None]:
+    def ser_instruct_content(self, ic: BaseModel) -> Optional[Dict[str, Any]]:
         ic_dict = None
         if ic:
             # compatible with custom-defined ActionOutput
@@ -264,7 +264,7 @@ class Message(BaseModel):
 
     @staticmethod
     @handle_exception(exception_type=JSONDecodeError, default_return=None)
-    def load(val):
+    def load(val: str | bytes | bytearray) -> Optional[Message]:
         """Convert the json string to object."""
 
         try:
@@ -277,7 +277,7 @@ class Message(BaseModel):
                 msg.id = id
             return msg
         except JSONDecodeError as err:
-            logger.error(f"parse json failed: {val}, error:{err}")
+            logger.error(f"parse json failed: {str(val)}, error:{err}")
         return None
 
 
@@ -366,16 +366,17 @@ class MessageQueue(BaseModel):
         return json.dumps(lst, ensure_ascii=False)
 
     @staticmethod
-    def load(data) -> "MessageQueue":
+    def load(data: str | bytes | bytearray) -> "MessageQueue":
         """Convert the json string to the `MessageQueue` object."""
         queue = MessageQueue()
         try:
             lst = json.loads(data)
             for i in lst:
                 msg = Message.load(i)
-                queue.push(msg)
+                if msg:
+                    queue.push(msg)
         except JSONDecodeError as e:
-            logger.warning(f"JSON load failed: {data}, error:{e}")
+            logger.warning(f"JSON load failed: {str(data)}, error:{e}")
 
         return queue
 
@@ -502,9 +503,9 @@ class ClassView(ClassMeta):
 
     def get_mermaid(self, align=1) -> str:
         content = "".join(["\t" for i in range(align)]) + "class " + self.name + "{\n"
-        for v in self.attributes:
-            content += v.get_mermaid(align=align + 1) + "\n"
-        for v in self.methods:
-            content += v.get_mermaid(align=align + 1) + "\n"
+        for a in self.attributes:
+            content += a.get_mermaid(align=align + 1) + "\n"
+        for m in self.methods:
+            content += m.get_mermaid(align=align + 1) + "\n"
         content += "".join(["\t" for i in range(align)]) + "}\n"
         return content

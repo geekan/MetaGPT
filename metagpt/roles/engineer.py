@@ -22,7 +22,7 @@ from __future__ import annotations
 import json
 from collections import defaultdict
 from pathlib import Path
-from typing import Set
+from typing import List, Optional, Set, Tuple
 
 from metagpt.actions import Action, WriteCode, WriteCodeReview, WriteTasks
 from metagpt.actions.fix_bug import FixBug
@@ -86,7 +86,7 @@ class Engineer(Role):
         self.next_todo_action = any_to_name(WriteCode)
 
     @staticmethod
-    def _parse_tasks(task_msg: Document) -> list[str]:
+    def _parse_tasks(task_msg: Document) -> List[str]:
         m = json.loads(task_msg.content)
         return m.get("Task list")
 
@@ -124,7 +124,7 @@ class Engineer(Role):
             logger.info("Nothing has changed.")
         return changed_files
 
-    async def _act(self) -> Message | None:
+    async def _act(self) -> Optional[Message]:
         """Determines the mode of action based on whether code review is used."""
         if self.rc.todo is None:
             return None
@@ -136,7 +136,7 @@ class Engineer(Role):
             return await self._act_summarize()
         return None
 
-    async def _act_write_code(self):
+    async def _act_write_code(self) -> Message:
         changed_files = await self._act_sp_with_cr(review=self.use_code_review)
         return Message(
             content="\n".join(changed_files),
@@ -146,7 +146,7 @@ class Engineer(Role):
             sent_from=self,
         )
 
-    async def _act_summarize(self):
+    async def _act_summarize(self) -> Message:
         tasks = []
         for todo in self.summarize_todos:
             summary = await todo.run()
@@ -187,14 +187,14 @@ class Engineer(Role):
             content=json.dumps(tasks), role=self.profile, cause_by=SummarizeCode, send_to=self, sent_from=self
         )
 
-    async def _is_pass(self, summary) -> (str, str):
+    async def _is_pass(self, summary) -> Tuple[bool, str]:
         rsp = await self.llm.aask(msg=IS_PASS_PROMPT.format(context=summary), stream=False)
         logger.info(rsp)
         if "YES" in rsp:
             return True, rsp
         return False, rsp
 
-    async def _think(self) -> Action | None:
+    async def _think(self) -> Optional[Action]:
         if not self.src_workspace:
             self.src_workspace = self.git_repo.workdir / self.git_repo.workdir.name
         write_code_filters = any_to_str_set([WriteTasks, SummarizeCode, FixBug])
@@ -215,7 +215,7 @@ class Engineer(Role):
     async def _new_coding_context(self, filename, dependency) -> CodingContext:
         old_code_doc = await self.project_repo.srcs.get(filename)
         if not old_code_doc:
-            old_code_doc = Document(root_path=str(self.project_repo.src_relative_path), filename=filename, content="")
+            old_code_doc = Document(root_path=str(src_file_repo.root_path), filename=filename, content="")
         dependencies = {Path(i) for i in await dependency.get(old_code_doc.root_relative_path)}
         task_doc = None
         design_doc = None

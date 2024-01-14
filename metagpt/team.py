@@ -10,7 +10,7 @@
 
 import warnings
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -47,7 +47,7 @@ class Team(BaseModel):
         if "env_desc" in data:
             self.env.desc = data["env_desc"]
 
-    def serialize(self, stg_path: Path = None):
+    def serialize(self, stg_path: Optional[Path] = None):
         stg_path = SERDESER_PATH.joinpath("team") if stg_path is None else stg_path
         team_info_path = stg_path.joinpath("team.json")
 

@@ -11,7 +11,7 @@ from __future__ import annotations
 import shutil
 from enum import Enum
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Optional, Union
 
 from git.repo import Repo
 from git.repo.fun import is_git_dir
@@ -124,7 +124,7 @@ class GitRepository:
         return files
 
     @staticmethod
-    def is_git_dir(local_path):
+    def is_git_dir(local_path: Path) -> bool:
         """Check if the specified directory is a Git repository.
 
         :param local_path: The local path to check.
@@ -136,7 +136,7 @@ class GitRepository:
         return False
 
     @property
-    def is_valid(self):
+    def is_valid(self) -> bool:
         """Check if the Git repository is valid (exists and is initialized).
 
         :return: True if the repository is valid, False otherwise.
@@ -151,7 +151,7 @@ class GitRepository:
         return self._repository.git.status()
 
     @property
-    def workdir(self) -> Path | None:
+    def workdir(self) -> Optional[Path]:
         """Return the path to the working directory of the Git repository.
 
         :return: The path to the working directory or None if the repository is not valid.
@@ -177,9 +177,10 @@ class GitRepository:
         """
         path = Path(relative_path)
         try:
-            path = path.relative_to(self.workdir)
+            if self.workdir:
+                path = path.relative_to(self.workdir)
         except ValueError:
-            path = relative_path
+            path = Path(relative_path)
         return FileRepository(git_repo=self, relative_path=Path(path))
 
     async def get_dependency(self) -> DependencyFile:
@@ -187,7 +188,7 @@ class GitRepository:
 
         :return: An instance of DependencyFile.
         """
-        if not self._dependency:
+        if not self._dependency and self.workdir:
             self._dependency = DependencyFile(workdir=self.workdir)
         return self._dependency
 
@@ -217,7 +218,12 @@ class GitRepository:
         self._repository = Repo(new_path)
         self._gitignore_rules = parse_gitignore(full_path=str(new_path / ".gitignore"))
 
-    def get_files(self, relative_path: Path | str, root_relative_path: Path | str = None, filter_ignored=True) -> List:
+    def get_files(
+        self,
+        relative_path: Path | str,
+        root_relative_path: Optional[Union[Path, str]] = None,
+        filter_ignored: bool = True,
+    ) -> List:
         """
         Retrieve a list of files in the specified relative path.
 
@@ -239,6 +245,7 @@ class GitRepository:
 
         if not root_relative_path:
             root_relative_path = Path(self.workdir) / relative_path
+
         files = []
         try:
             directory_path = Path(self.workdir) / relative_path
