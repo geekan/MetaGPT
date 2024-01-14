@@ -13,17 +13,17 @@ cp config/config.yaml config/key.yaml
 | Variable Name                              | config/key.yaml                           | env                                             |
 | ------------------------------------------ | ----------------------------------------- | ----------------------------------------------- |
 | OPENAI_API_KEY # Replace with your own key | OPENAI_API_KEY: "sk-..."                  | export OPENAI_API_KEY="sk-..."                  |
-| OPENAI_API_BASE # Optional                 | OPENAI_API_BASE: "https://<YOUR_SITE>/v1" | export OPENAI_API_BASE="https://<YOUR_SITE>/v1" |
+| OPENAI_BASE_URL # Optional                 | OPENAI_BASE_URL: "https://<YOUR_SITE>/v1" | export OPENAI_BASE_URL="https://<YOUR_SITE>/v1" |
 
 ### Initiating a startup
 
 ```shell
 # Run the script
-python startup.py "Write a cli snake game"
+metagpt "Write a cli snake game"
 # Do not hire an engineer to implement the project
-python startup.py "Write a cli snake game" --implement False
+metagpt "Write a cli snake game" --no-implement
 # Hire an engineer and perform code reviews
-python startup.py "Write a cli snake game" --code_review True
+metagpt "Write a cli snake game" --code_review
 ```
 
 After running the script, you can find your new project in the `workspace/` directory.
@@ -33,17 +33,17 @@ After running the script, you can find your new project in the `workspace/` dire
 You can tell which platform or tool you want to use when stating your requirements.
 
 ```shell
-python startup.py "Write a cli snake game based on pygame"
+metagpt "Write a cli snake game based on pygame"
 ```
 
 ### Usage
 
 ```
 NAME
-    startup.py - We are a software startup comprised of AI. By investing in us, you are empowering a future filled with limitless possibilities.
+    metagpt - We are a software startup comprised of AI. By investing in us, you are empowering a future filled with limitless possibilities.
 
 SYNOPSIS
-    startup.py IDEA <flags>
+    metagpt IDEA <flags>
 
 DESCRIPTION
     We are a software startup comprised of AI. By investing in us, you are empowering a future filled with limitless possibilities.

@@ -5,13 +5,15 @@
 @Author  : femto Zheng
 @File    : execute_task.py
 """
+
+
 from metagpt.actions import Action
 from metagpt.schema import Message
 
 
 class ExecuteTask(Action):
-    def __init__(self, name="ExecuteTask", context: list[Message] = None, llm=None):
-        super().__init__(name, context, llm)
+    name: str = "ExecuteTask"
+    context: list[Message] = []
 
-    def run(self, *args, **kwargs):
+    async def run(self, *args, **kwargs):
         pass

@@ -41,7 +41,7 @@ https://github.com/geekan/MetaGPT/assets/34952977/34345016-5d13-489d-b9f9-b82ace
 
 ## 例（GPT-4 で完全生成）
 
-例えば、`python startup.py "Toutiao のような RecSys をデザインする"`と入力すると、多くの出力が得られます
+例えば、`metagpt "Toutiao のような RecSys をデザインする"`と入力すると、多くの出力が得られます
 
 ![Jinri Toutiao Recsys データと API デザイン](resources/workspace/content_rec_sys/resources/data_api_design.png)
 
@@ -60,16 +60,16 @@ https://github.com/geekan/MetaGPT/assets/34952977/34345016-5d13-489d-b9f9-b82ace
 
 ```bash
 # ステップ 1: Python 3.9+ がシステムにインストールされていることを確認してください。これを確認するには:
-python --version
+python3 --version
 
 # ステップ 2: リポジトリをローカルマシンにクローンし、インストールする。
 git clone https://github.com/geekan/MetaGPT.git
 cd MetaGPT
 pip install -e.
 
-# ステップ 3: startup.py を実行する
+# ステップ 3: metagpt を実行する
 # config.yaml を key.yaml にコピーし、独自の OPENAI_API_KEY を設定します
-python3 startup.py "Write a cli snake game"
+metagpt "Write a cli snake game"
 
 # ステップ 4 [オプション]: 実行中に PRD ファイルなどのアーティファクトを保存する場合は、ステップ 3 の前にこのステップを実行できます。デフォルトでは、フレームワークには互換性があり、この手順を実行しなくてもプロセス全体を完了できます。
 # NPM がシステムにインストールされていることを確認してください。次に mermaid-js をインストールします。(お使いのコンピューターに npm がない場合は、Node.js 公式サイトで Node.js https://nodejs.org/ をインストールしてください。）
@@ -178,7 +178,7 @@ docker run --rm \
     -v /opt/metagpt/config/key.yaml:/app/metagpt/config/key.yaml \
     -v /opt/metagpt/workspace:/app/metagpt/workspace \
     metagpt/metagpt:latest \
-    python startup.py "Write a cli snake game"
+    metagpt "Write a cli snake game"
 
 # コンテナを起動し、その中でコマンドを実行することもできます
 docker run --name metagpt -d \
@@ -188,7 +188,7 @@ docker run --name metagpt -d \
     metagpt/metagpt:latest
 
 docker exec -it metagpt /bin/bash
-$ python startup.py "Write a cli snake game"
+$ metagpt "Write a cli snake game"
 ```
 
 コマンド `docker run ...` は以下のことを行います:
@@ -196,7 +196,7 @@ $ python startup.py "Write a cli snake game"
 - 特権モードで実行し、ブラウザの実行権限を得る
 - ホスト設定ファイル `/opt/metagpt/config/key.yaml` をコンテナ `/app/metagpt/config/key.yaml` にマップします
 - ホストディレクトリ `/opt/metagpt/workspace` をコンテナディレクトリ `/app/metagpt/workspace` にマップするs
-- デモコマンド `python startup.py "Write a cli snake game"` を実行する
+- デモコマンド `metagpt "Write a cli snake game"` を実行する
 
 ### 自分でイメージをビルドする
 
@@ -219,17 +219,17 @@ cp config/config.yaml config/key.yaml
 | 変数名                                  | config/key.yaml                           | env                                             |
 | --------------------------------------- | ----------------------------------------- | ----------------------------------------------- |
 | OPENAI_API_KEY # 自分のキーに置き換える | OPENAI_API_KEY: "sk-..."                  | export OPENAI_API_KEY="sk-..."                  |
-| OPENAI_API_BASE # オプション            | OPENAI_API_BASE: "https://<YOUR_SITE>/v1" | export OPENAI_API_BASE="https://<YOUR_SITE>/v1" |
+| OPENAI_BASE_URL # オプション            | OPENAI_BASE_URL: "https://<YOUR_SITE>/v1" | export OPENAI_BASE_URL="https://<YOUR_SITE>/v1" |
 
 ## チュートリアル: スタートアップの開始
 
 ```shell
 # スクリプトの実行
-python startup.py "Write a cli snake game"
+metagpt "Write a cli snake game"
 # プロジェクトの実施にエンジニアを雇わないこと
-python startup.py "Write a cli snake game" --implement False
+metagpt "Write a cli snake game" --no-implement
 # エンジニアを雇い、コードレビューを行う
-python startup.py "Write a cli snake game" --code_review True
+metagpt "Write a cli snake game" --code_review
 ```
 
 スクリプトを実行すると、`workspace/` ディレクトリに新しいプロジェクトが見つかります。
@@ -239,17 +239,17 @@ python startup.py "Write a cli snake game" --code_review True
 要件を述べるときに、どのプラットフォームまたはツールを使用するかを指定できます。
 
 ```shell
-python startup.py "pygame をベースとした cli ヘビゲームを書く"
+metagpt "pygame をベースとした cli ヘビゲームを書く"
 ```
 
 ### 使用方法
 
 ```
 会社名
-    startup.py - 私たちは AI で構成されたソフトウェア・スタートアップです。私たちに投資することは、無限の可能性に満ちた未来に力を与えることです。
+    metagpt - 私たちは AI で構成されたソフトウェア・スタートアップです。私たちに投資することは、無限の可能性に満ちた未来に力を与えることです。
 
 シノプシス
-    startup.py IDEA <flags>
+    metagpt IDEA <flags>
 
 説明
     私たちは AI で構成されたソフトウェア・スタートアップです。私たちに投資することは、無限の可能性に満ちた未来に力を与えることです。
@@ -317,7 +317,7 @@ Hugging Face Space で試す
 
 このプロジェクトに関するご質問やご意見がございましたら、お気軽にお問い合わせください。皆様のご意見をお待ちしております！
 
-- **Email:** alexanderwu@fuzhi.ai
+- **Email:** alexanderwu@deepwisdom.ai
 - **GitHub Issues:** 技術的なお問い合わせについては、[GitHub リポジトリ](https://github.com/geekan/metagpt/issues) に新しい issue を作成することもできます。
 
 ご質問には 2-3 営業日以内に回答いたします。

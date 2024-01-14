@@ -52,6 +52,7 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 cover/
+unittest.txt
 
 # Translations
 *.mo
@@ -59,6 +60,7 @@ cover/
 
 # Django stuff:
 *.log
+logs
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
@@ -143,24 +145,35 @@ cython_debug/
 allure-report
 allure-results
 
-# idea
+# idea / vscode / macos
 .idea
 .DS_Store
 .vscode
 
-log.txt
-docs/scripts/set_env.sh
 key.yaml
-output.json
 data
-data/output_add.json
 data.ms
 examples/nb/
 .chroma
 *~$*
 workspace/*
-*.mmd
 tmp
-output.wav
 metagpt/roles/idea_agent.py
 .aider*
+*.bak
+*.bk
+
+# output folder
+output
+tmp.png
+.dependencies.json
+tests/metagpt/utils/file_repo_git
+*.tmp
+*.png
+htmlcov
+htmlcov.*
+*.dot
+*.pkl
+*-structure.csv
+*-structure.json
+

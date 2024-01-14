@@ -1,0 +1,30 @@
+name: Pre-commit checks
+
+on:
+  pull_request:
+    branches:
+      - '**'
+  push: 
+    branches: 
+      - '**'
+          
+jobs:
+  pre-commit-check:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Source Code
+      uses: actions/checkout@v2
+
+    - name: Setup Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9.17'
+        
+    - name: Install pre-commit
+      run: pip install pre-commit
+      
+    - name: Initialize pre-commit
+      run: pre-commit install
+      
+    - name: Run pre-commit hooks
+      run: pre-commit run --all-files

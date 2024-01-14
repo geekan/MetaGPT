@@ -15,5 +15,5 @@ async def main():
     await Searcher().run("What are some good sun protection products?")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     asyncio.run(main())

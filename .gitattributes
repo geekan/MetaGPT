@@ -1,2 +1,29 @@
+# HTML code is incorrectly calculated into statistics, so ignore them
 *.html linguist-detectable=false
 
+# Auto detect text files and perform LF normalization
+* text=auto eol=lf
+
+# Ensure shell scripts use LF (Linux style) line endings on Windows
+*.sh text eol=lf
+
+# Treat specific binary files as binary and prevent line ending conversion
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+
+# Preserve original line endings for specific document files
+*.doc text eol=crlf
+*.docx text eol=crlf
+*.pdf binary
+
+# Ensure source code and script files use LF line endings
+*.py text eol=lf
+*.js text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+
+# Specify custom diff driver for specific file types
+*.md diff=markdown
+*.json diff=json

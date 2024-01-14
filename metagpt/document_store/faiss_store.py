@@ -6,50 +6,45 @@
 @File    : faiss_store.py
 """
 import asyncio
-import pickle
 from pathlib import Path
 from typing import Optional
 
-import faiss
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
+from langchain_core.embeddings import Embeddings
 
-from metagpt.const import DATA_PATH
+from metagpt.config import CONFIG
+from metagpt.document import IndexableDocument
 from metagpt.document_store.base_store import LocalStore
-from metagpt.document_store.document import Document
 from metagpt.logs import logger
 
 
 class FaissStore(LocalStore):
-    def __init__(self, raw_data: Path, cache_dir=None, meta_col="source", content_col="output"):
+    def __init__(
+        self, raw_data: Path, cache_dir=None, meta_col="source", content_col="output", embedding: Embeddings = None
+    ):
         self.meta_col = meta_col
         self.content_col = content_col
+        self.embedding = embedding or OpenAIEmbeddings(
+            openai_api_key=CONFIG.openai_api_key, openai_api_base=CONFIG.openai_base_url
+        )
         super().__init__(raw_data, cache_dir)
 
     def _load(self) -> Optional["FaissStore"]:
-        index_file, store_file = self._get_index_and_store_fname()
+        index_file, store_file = self._get_index_and_store_fname(index_ext=".faiss")  # langchain FAISS using .faiss
+
         if not (index_file.exists() and store_file.exists()):
             logger.info("Missing at least one of index_file/store_file, load failed and return None")
             return None
-        index = faiss.read_index(str(index_file))
-        with open(str(store_file), "rb") as f:
-            store = pickle.load(f)
-        store.index = index
-        return store
+
+        return FAISS.load_local(self.raw_data_path.parent, self.embedding, self.fname)
 
     def _write(self, docs, metadatas):
-        store = FAISS.from_texts(docs, OpenAIEmbeddings(openai_api_version="2020-11-07"), metadatas=metadatas)
+        store = FAISS.from_texts(docs, self.embedding, metadatas=metadatas)
         return store
 
     def persist(self):
-        index_file, store_file = self._get_index_and_store_fname()
-        store = self.store
-        index = self.store.index
-        faiss.write_index(store.index, str(index_file))
-        store.index = None
-        with open(store_file, "wb") as f:
-            pickle.dump(store, f)
-        store.index = index
+        self.store.save_local(self.raw_data_path.parent, self.fname)
 
     def search(self, query, expand_cols=False, sep="\n", *args, k=5, **kwargs):
         rsp = self.store.similarity_search(query, k=k, **kwargs)
@@ -64,9 +59,9 @@ class FaissStore(LocalStore):
 
     def write(self):
         """Initialize the index and library based on the Document (JSON / XLSX, etc.) file provided by the user."""
-        if not self.raw_data.exists():
+        if not self.raw_data_path.exists():
             raise FileNotFoundError
-        doc = Document(self.raw_data, self.content_col, self.meta_col)
+        doc = IndexableDocument.from_path(self.raw_data_path, self.content_col, self.meta_col)
         docs, metadatas = doc.get_docs_and_metadatas()
 
         self.store = self._write(docs, metadatas)
@@ -80,10 +75,3 @@ class FaissStore(LocalStore):
     def delete(self, *args, **kwargs):
         """Currently, langchain does not provide a delete interface."""
         raise NotImplementedError
-
-
-if __name__ == "__main__":
-    faiss_store = FaissStore(DATA_PATH / "qcs/qcs_4w.json")
-    logger.info(faiss_store.search("Oily Skin Facial Cleanser"))
-    faiss_store.add([f"Oily Skin Facial Cleanser-{i}" for i in range(3)])
-    logger.info(faiss_store.search("Oily Skin Facial Cleanser"))

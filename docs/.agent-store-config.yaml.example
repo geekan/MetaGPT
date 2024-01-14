@@ -1,0 +1,9 @@
+role:
+  name: Teacher  # Referenced the `Teacher` in `metagpt/roles/teacher.py`.
+  module: metagpt.roles.teacher  # Referenced `metagpt/roles/teacher.py`.
+  skills:  # Refer to the skill `name` of the published skill in `docs/.well-known/skills.yaml`.
+    - name: text_to_speech
+      description: Text-to-speech
+    - name: text_to_image
+      description: Create a drawing based on the text.
+

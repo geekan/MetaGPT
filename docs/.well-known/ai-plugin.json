@@ -1,0 +1,18 @@
+{
+  "schema_version": "v1",
+  "name_for_model": "text processing tools",
+  "name_for_human": "MetaGPT Text Plugin",
+  "description_for_model": "Plugins for text processing, including text-to-speech, text-to-image, text-to-embedding, text summarization, text-to-code, vector similarity calculation, web content crawling, and more.",
+  "description_for_human": "Plugins for text processing, including text-to-speech, text-to-image, text-to-embedding, text summarization, text-to-code, vector similarity calculation, web content crawling, and more.",
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://github.com/iorisa/MetaGPT/blob/feature/assistant_role/.well-known/metagpt_oas3_api.yaml",
+    "has_user_authentication": false
+  },
+  "logo_url": "https://github.com/geekan/MetaGPT/blob/main/docs/resources/MetaGPT-logo.png",
+  "contact_email": "mashenquan@fuzhi.cn",
+  "legal_info_url": "https://github.com/geekan/MetaGPT/blob/main/docs/README_CN.md"
+}

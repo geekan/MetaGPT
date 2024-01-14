@@ -47,9 +47,9 @@ git clone https://github.com/geekan/MetaGPT.git
 cd MetaGPT
 pip3 install -e.  # 或者 pip3 install metagpt  # 安装稳定版本
 
-# 第 3 步：执行startup.py
+# 第 3 步：执行metagpt
 # 拷贝config.yaml为key.yaml，并设置你自己的OPENAI_API_KEY
-python3 startup.py "Write a cli snake game"
+metagpt "Write a cli snake game"
 
 # 第 4 步【可选的】：如果你想在执行过程中保存像象限图、系统设计、序列流程等图表这些产物，可以在第3步前执行该步骤。默认的，框架做了兼容，在不执行该步的情况下，也可以完整跑完整个流程。
 # 如果执行，确保您的系统上安装了 NPM。并使用npm安装mermaid-js
@@ -75,10 +75,10 @@ docker run --rm \
     -v /opt/metagpt/config/key.yaml:/app/metagpt/config/key.yaml \
     -v /opt/metagpt/workspace:/app/metagpt/workspace \
     metagpt/metagpt:latest \
-    python startup.py "Write a cli snake game"
+    metagpt "Write a cli snake game"
 ```
 
-详细的安装请安装 [docker_install](https://docs.deepwisdom.ai/zhcn/guide/get_started/installation.html#%E4%BD%BF%E7%94%A8docker%E5%AE%89%E8%A3%85)
+详细的安装请安装 [docker_install](https://docs.deepwisdom.ai/main/zh/guide/get_started/installation.html#%E4%BD%BF%E7%94%A8docker%E5%AE%89%E8%A3%85)
 
 ### 快速开始的演示视频
 - 在 [MetaGPT Huggingface Space](https://huggingface.co/spaces/deepwisdom/MetaGPT) 上进行体验
@@ -88,19 +88,19 @@ docker run --rm \
 https://github.com/geekan/MetaGPT/assets/34952977/34345016-5d13-489d-b9f9-b82ace413419
 
 ## 教程
-- 🗒 [在线文档](https://docs.deepwisdom.ai/zhcn/)
-- 💻 [如何使用](https://docs.deepwisdom.ai/zhcn/guide/get_started/quickstart.html)  
-- 🔎 [MetaGPT的能力及应用场景](https://docs.deepwisdom.ai/zhcn/guide/get_started/introduction.html)
+- 🗒 [在线文档](https://docs.deepwisdom.ai/main/zh/)
+- 💻 [如何使用](https://docs.deepwisdom.ai/main/zh/guide/get_started/quickstart.html)  
+- 🔎 [MetaGPT的能力及应用场景](https://docs.deepwisdom.ai/main/zh/guide/get_started/introduction.html)
 - 🛠 如何构建你自己的智能体？
-  - [MetaGPT的使用和开发教程 | 智能体入门](https://docs.deepwisdom.ai/zhcn/guide/tutorials/agent_101.html)
-  - [MetaGPT的使用和开发教程 | 多智能体入门](https://docs.deepwisdom.ai/zhcn/guide/tutorials/multi_agent_101.html)
+  - [MetaGPT的使用和开发教程 | 智能体入门](https://docs.deepwisdom.ai/main/zh/guide/tutorials/agent_101.html)
+  - [MetaGPT的使用和开发教程 | 多智能体入门](https://docs.deepwisdom.ai/main/zh/guide/tutorials/multi_agent_101.html)
 - 🧑‍💻 贡献
   - [开发路线图](ROADMAP.md)
 - 🔖 示例
-  - [辩论](https://docs.deepwisdom.ai/zhcn/guide/use_cases/multi_agent/debate.html)
-  - [调研员](https://docs.deepwisdom.ai/zhcn/guide/use_cases/agent/researcher.html)
-  - [票据助手](https://docs.deepwisdom.ai/zhcn/guide/use_cases/agent/receipt_assistant.html)
-- ❓ [常见问题解答](https://docs.deepwisdom.ai/zhcn/guide/faq.html)
+  - [辩论](https://docs.deepwisdom.ai/main/zh/guide/use_cases/multi_agent/debate.html)
+  - [调研员](https://docs.deepwisdom.ai/main/zh/guide/use_cases/agent/researcher.html)
+  - [票据助手](https://docs.deepwisdom.ai/main/zh/guide/use_cases/agent/receipt_assistant.html)
+- ❓ [常见问题解答](https://docs.deepwisdom.ai/main/zh/guide/faq.html)
 
 ## 支持
 
@@ -114,7 +114,7 @@ https://github.com/geekan/MetaGPT/assets/34952977/34345016-5d13-489d-b9f9-b82ace
 
 如果您对这个项目有任何问题或反馈，欢迎联系我们。我们非常欢迎您的建议！
 
-- **邮箱：** alexanderwu@fuzhi.ai
+- **邮箱：** alexanderwu@deepwisdom.ai
 - **GitHub 问题：** 对于更技术性的问题，您也可以在我们的 [GitHub 仓库](https://github.com/geekan/metagpt/issues) 中创建一个新的问题。
 
 我们会在2-3个工作日内回复所有问题。

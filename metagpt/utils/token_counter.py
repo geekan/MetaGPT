@@ -7,6 +7,7 @@
 ref1: https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb
 ref2: https://github.com/Significant-Gravitas/Auto-GPT/blob/master/autogpt/llm/token_counter.py
 ref3: https://github.com/hwchase17/langchain/blob/master/langchain/chat_models/openai.py
+ref4: https://ai.google.dev/models/gemini
 """
 import tiktoken
 
@@ -16,13 +17,18 @@ TOKEN_COSTS = {
     "gpt-3.5-turbo-0613": {"prompt": 0.0015, "completion": 0.002},
     "gpt-3.5-turbo-16k": {"prompt": 0.003, "completion": 0.004},
     "gpt-3.5-turbo-16k-0613": {"prompt": 0.003, "completion": 0.004},
+    "gpt-35-turbo": {"prompt": 0.0015, "completion": 0.002},
+    "gpt-35-turbo-16k": {"prompt": 0.003, "completion": 0.004},
+    "gpt-3.5-turbo-1106": {"prompt": 0.001, "completion": 0.002},
     "gpt-4-0314": {"prompt": 0.03, "completion": 0.06},
     "gpt-4": {"prompt": 0.03, "completion": 0.06},
     "gpt-4-32k": {"prompt": 0.06, "completion": 0.12},
     "gpt-4-32k-0314": {"prompt": 0.06, "completion": 0.12},
     "gpt-4-0613": {"prompt": 0.06, "completion": 0.12},
+    "gpt-4-1106-preview": {"prompt": 0.01, "completion": 0.03},
     "text-embedding-ada-002": {"prompt": 0.0004, "completion": 0.0},
-    "chatglm_turbo": {"prompt": 0.0, "completion": 0.00069}  # 32k version, prompt + completion tokens=0.005￥/k-tokens
+    "chatglm_turbo": {"prompt": 0.0, "completion": 0.00069},  # 32k version, prompt + completion tokens=0.005￥/k-tokens
+    "gemini-pro": {"prompt": 0.00025, "completion": 0.0005},
 }
 
 
@@ -32,13 +38,18 @@ TOKEN_MAX = {
     "gpt-3.5-turbo-0613": 4096,
     "gpt-3.5-turbo-16k": 16384,
     "gpt-3.5-turbo-16k-0613": 16384,
+    "gpt-35-turbo": 4096,
+    "gpt-35-turbo-16k": 16384,
+    "gpt-3.5-turbo-1106": 16384,
     "gpt-4-0314": 8192,
     "gpt-4": 8192,
     "gpt-4-32k": 32768,
     "gpt-4-32k-0314": 32768,
     "gpt-4-0613": 8192,
+    "gpt-4-1106-preview": 128000,
     "text-embedding-ada-002": 8192,
-    "chatglm_turbo": 32768
+    "chatglm_turbo": 32768,
+    "gemini-pro": 32768,
 }
 
 
@@ -52,22 +63,34 @@ def count_message_tokens(messages, model="gpt-3.5-turbo-0613"):
     if model in {
         "gpt-3.5-turbo-0613",
         "gpt-3.5-turbo-16k-0613",
+        "gpt-35-turbo",
+        "gpt-35-turbo-16k",
+        "gpt-3.5-turbo-16k",
+        "gpt-3.5-turbo-1106",
         "gpt-4-0314",
         "gpt-4-32k-0314",
         "gpt-4-0613",
         "gpt-4-32k-0613",
+        "gpt-4-1106-preview",
     }:
-        tokens_per_message = 3
+        tokens_per_message = 3  # # every reply is primed with <|start|>assistant<|message|>
         tokens_per_name = 1
     elif model == "gpt-3.5-turbo-0301":
         tokens_per_message = 4  # every message follows <|start|>{role/name}\n{content}<|end|>\n
         tokens_per_name = -1  # if there's a name, the role is omitted
-    elif "gpt-3.5-turbo" in model:
+    elif "gpt-3.5-turbo" == model:
         print("Warning: gpt-3.5-turbo may update over time. Returning num tokens assuming gpt-3.5-turbo-0613.")
         return count_message_tokens(messages, model="gpt-3.5-turbo-0613")
-    elif "gpt-4" in model:
+    elif "gpt-4" == model:
         print("Warning: gpt-4 may update over time. Returning num tokens assuming gpt-4-0613.")
         return count_message_tokens(messages, model="gpt-4-0613")
+    elif "open-llm-model" == model:
+        """
+        For self-hosted open_llm api, they include lots of different models. The message tokens calculation is
+        inaccurate. It's a reference result.
+        """
+        tokens_per_message = 0  # ignore conversation message template prefix
+        tokens_per_name = 0
     else:
         raise NotImplementedError(
             f"num_tokens_from_messages() is not implemented for model {model}. "
@@ -96,7 +119,11 @@ def count_string_tokens(string: str, model_name: str) -> int:
     Returns:
         int: The number of tokens in the text string.
     """
-    encoding = tiktoken.encoding_for_model(model_name)
+    try:
+        encoding = tiktoken.encoding_for_model(model_name)
+    except KeyError:
+        print("Warning: model not found. Using cl100k_base encoding.")
+        encoding = tiktoken.get_encoding("cl100k_base")
     return len(encoding.encode(string))
 
 

@@ -13,12 +13,12 @@ async def test_subscription_run():
 
     async def trigger():
         while True:
-            yield Message("the latest news about OpenAI")
+            yield Message(content="the latest news about OpenAI")
             await asyncio.sleep(3600 * 24)
 
     class MockRole(Role):
         async def run(self, message=None):
-            return Message("")
+            return Message(content="")
 
     async def callback(message):
         nonlocal callback_done
@@ -61,11 +61,11 @@ async def test_subscription_run():
 async def test_subscription_run_error(loguru_caplog):
     async def trigger1():
         while True:
-            yield Message("the latest news about OpenAI")
+            yield Message(content="the latest news about OpenAI")
             await asyncio.sleep(3600 * 24)
 
     async def trigger2():
-        yield Message("the latest news about OpenAI")
+        yield Message(content="the latest news about OpenAI")
 
     class MockRole1(Role):
         async def run(self, message=None):
@@ -73,7 +73,7 @@ async def test_subscription_run_error(loguru_caplog):
 
     class MockRole2(Role):
         async def run(self, message=None):
-            return Message("")
+            return Message(content="")
 
     async def callback(msg: Message):
         print(msg)
@@ -100,3 +100,7 @@ async def test_subscription_run_error(loguru_caplog):
     logs = "".join(loguru_caplog.messages)
     assert "run error" in logs
     assert "has completed" in logs
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-s"])

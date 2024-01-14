@@ -5,36 +5,56 @@
 @Author  : alexanderwu
 @File    : action.py
 """
-import re
-from abc import ABC
-from typing import Optional
 
-from tenacity import retry, stop_after_attempt, wait_random_exponential
+from __future__ import annotations
 
-from metagpt.actions.action_output import ActionOutput
+from typing import Optional, Union
+
+from pydantic import ConfigDict, Field, model_validator
+
+from metagpt.actions.action_node import ActionNode
 from metagpt.llm import LLM
-from metagpt.logs import logger
-from metagpt.utils.common import OutputParser
-from metagpt.utils.custom_decoder import CustomDecoder
+from metagpt.provider.base_llm import BaseLLM
+from metagpt.schema import (
+    CodeSummarizeContext,
+    CodingContext,
+    RunCodeContext,
+    SerializationMixin,
+    TestingContext,
+)
 
 
-class Action(ABC):
-    def __init__(self, name: str = "", context=None, llm: LLM = None):
-        self.name: str = name
-        if llm is None:
-            llm = LLM()
-        self.llm = llm
-        self.context = context
-        self.prefix = ""
-        self.profile = ""
-        self.desc = ""
-        self.content = ""
-        self.instruct_content = None
+class Action(SerializationMixin, is_polymorphic_base=True):
+    model_config = ConfigDict(arbitrary_types_allowed=True, exclude=["llm"])
 
-    def set_prefix(self, prefix, profile):
+    name: str = ""
+    llm: BaseLLM = Field(default_factory=LLM, exclude=True)
+    context: Union[dict, CodingContext, CodeSummarizeContext, TestingContext, RunCodeContext, str, None] = ""
+    prefix: str = ""  # aask*时会加上prefix，作为system_message
+    desc: str = ""  # for skill manager
+    node: ActionNode = Field(default=None, exclude=True)
+
+    @model_validator(mode="before")
+    def set_name_if_empty(cls, values):
+        if "name" not in values or not values["name"]:
+            values["name"] = cls.__name__
+        return values
+
+    @model_validator(mode="before")
+    def _init_with_instruction(cls, values):
+        if "instruction" in values:
+            name = values["name"]
+            i = values["instruction"]
+            values["node"] = ActionNode(key=name, expected_type=str, instruction=i, example="", schema="raw")
+        return values
+
+    def set_prefix(self, prefix):
         """Set prefix for later usage"""
         self.prefix = prefix
-        self.profile = profile
+        self.llm.system_prompt = prefix
+        if self.node:
+            self.node.llm = self.llm
+        return self
 
     def __str__(self):
         return self.__class__.__name__
@@ -44,46 +64,17 @@ class Action(ABC):
 
     async def _aask(self, prompt: str, system_msgs: Optional[list[str]] = None) -> str:
         """Append default prefix"""
-        if not system_msgs:
-            system_msgs = []
-        system_msgs.append(self.prefix)
         return await self.llm.aask(prompt, system_msgs)
 
-    @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
-    async def _aask_v1(
-        self,
-        prompt: str,
-        output_class_name: str,
-        output_data_mapping: dict,
-        system_msgs: Optional[list[str]] = None,
-        format="markdown",  # compatible to original format
-    ) -> ActionOutput:
-        """Append default prefix"""
-        if not system_msgs:
-            system_msgs = []
-        system_msgs.append(self.prefix)
-        content = await self.llm.aask(prompt, system_msgs)
-        logger.debug(content)
-        output_class = ActionOutput.create_model_class(output_class_name, output_data_mapping)
-
-        if format == "json":
-            pattern = r"\[CONTENT\](\s*\{.*?\}\s*)\[/CONTENT\]"
-            matches = re.findall(pattern, content, re.DOTALL)
-
-            for match in matches:
-                if match:
-                    content = match
-                    break
-
-            parsed_data = CustomDecoder(strict=False).decode(content)
-
-        else:  # using markdown parser
-            parsed_data = OutputParser.parse_data_with_mapping(content, output_data_mapping)
-
-        logger.debug(parsed_data)
-        instruct_content = output_class(**parsed_data)
-        return ActionOutput(content, instruct_content)
+    async def _run_action_node(self, *args, **kwargs):
+        """Run action node"""
+        msgs = args[0]
+        context = "## History Messages\n"
+        context += "\n".join([f"{idx}: {i}" for idx, i in enumerate(reversed(msgs))])
+        return await self.node.fill(context=context, llm=self.llm)
 
     async def run(self, *args, **kwargs):
         """Run action"""
+        if self.node:
+            return await self._run_action_node(*args, **kwargs)
         raise NotImplementedError("The run method should be implemented in a subclass.")

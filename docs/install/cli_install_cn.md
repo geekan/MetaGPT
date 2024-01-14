@@ -15,7 +15,7 @@ npm --version
 sudo npm install -g @mermaid-js/mermaid-cli
 
 # 第 2 步：确保您的系统上安装了 Python 3.9+。您可以使用以下命令进行检查：
-python --version
+python3 --version
 
 # 第 3 步：克隆仓库到您的本地机器，并进行安装。
 git clone https://github.com/geekan/MetaGPT.git

@@ -11,6 +11,8 @@ from typing import List
 import meilisearch
 from meilisearch.index import Index
 
+from metagpt.utils.exceptions import handle_exception
+
 
 class DataSource:
     def __init__(self, name: str, url: str):
@@ -29,16 +31,12 @@ class MeilisearchEngine:
     def add_documents(self, data_source: DataSource, documents: List[dict]):
         index_name = f"{data_source.name}_index"
         if index_name not in self.client.get_indexes():
-            self.client.create_index(uid=index_name, options={'primaryKey': 'id'})
+            self.client.create_index(uid=index_name, options={"primaryKey": "id"})
         index = self.client.get_index(index_name)
         index.add_documents(documents)
         self.set_index(index)
 
+    @handle_exception(exception_type=Exception, default_return=[])
     def search(self, query):
-        try:
-            search_results = self._index.search(query)
-            return search_results['hits']
-        except Exception as e:
-            # Handle MeiliSearch API errors
-            print(f"MeiliSearch API error: {e}")
-            return []
+        search_results = self._index.search(query)
+        return search_results["hits"]

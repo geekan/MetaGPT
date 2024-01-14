@@ -5,30 +5,38 @@
 @Author  : alexanderwu
 @File    : sales.py
 """
-from metagpt.actions import SearchAndSummarize
+
+from typing import Optional
+
+from pydantic import Field
+
+from metagpt.actions import SearchAndSummarize, UserRequirement
+from metagpt.document_store.base_store import BaseStore
 from metagpt.roles import Role
 from metagpt.tools import SearchEngineType
 
 
 class Sales(Role):
-    def __init__(
-        self,
-        name="Xiaomei",
-        profile="Retail sales guide",
-        desc="I am a sales guide in retail. My name is Xiaomei. I will answer some customer questions next, and I "
-        "will answer questions only based on the information in the knowledge base."
-        "If I feel that you can't get the answer from the reference material, then I will directly reply that"
-        " I don't know, and I won't tell you that this is from the knowledge base,"
-        "but pretend to be what I know. Note that each of my replies will be replied in the tone of a "
-        "professional guide",
-        store=None,
-    ):
-        super().__init__(name, profile, desc=desc)
-        self._set_store(store)
+    name: str = "John Smith"
+    profile: str = "Retail Sales Guide"
+    desc: str = (
+        "As a Retail Sales Guide, my name is John Smith. I specialize in addressing customer inquiries with "
+        "expertise and precision. My responses are based solely on the information available in our knowledge"
+        " base. In instances where your query extends beyond this scope, I'll honestly indicate my inability "
+        "to provide an answer, rather than speculate or assume. Please note, each of my replies will be "
+        "delivered with the professionalism and courtesy expected of a seasoned sales guide."
+    )
+
+    store: Optional[BaseStore] = Field(default=None, exclude=True)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._set_store(self.store)
 
     def _set_store(self, store):
         if store:
-            action = SearchAndSummarize("", engine=SearchEngineType.CUSTOM_ENGINE, search_func=store.asearch)
+            action = SearchAndSummarize(name="", engine=SearchEngineType.CUSTOM_ENGINE, search_func=store.asearch)
         else:
             action = SearchAndSummarize()
         self._init_actions([action])
+        self._watch([UserRequirement])
