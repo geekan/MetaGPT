@@ -88,8 +88,14 @@ class WriteCodeByGenerate(BaseWriteAnalysisCode):
     ) -> str:
         # context.append(Message(content=self.REUSE_CODE_INSTRUCTION, role="user"))
         prompt = self.process_msg(context, system_msg)
+        is_only_code = kwargs.pop("only_code", True)
+
         code_content = await self.llm.aask_code(prompt, **kwargs)
-        return code_content["code"]
+        if is_only_code:
+            return code_content["code"]
+        else:
+            return code_content
+
 
 
 class WriteCodeWithTools(BaseWriteAnalysisCode):
