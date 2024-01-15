@@ -19,4 +19,4 @@ async def test_action_serdeser(new_filename):
     new_action = WritePRD(**ser_action_dict)
     assert new_action.name == "WritePRD"
     with pytest.raises(FileNotFoundError):
-        action_output = await new_action.run(with_messages=Message(content="write a cli snake game"))
+        await new_action.run(with_messages=Message(content="write a cli snake game"))
