@@ -227,7 +227,7 @@ class ExecutePyCode(ExecuteCode, Action):
             return code, True
 
 
-def truncate(result: str, keep_len: int = 2000, is_success: bool = True) -> str | bool:
+def truncate(result: str, keep_len: int = 2000, is_success: bool = True):
     desc = f"Executed code {'successfully' if is_success else 'failed, please reflect the cause of bug and then debug'}"
     if is_success:
         desc += f"Truncated to show only {keep_len} characters\n"
