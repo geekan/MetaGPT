@@ -86,7 +86,7 @@ Compare the key's value of nodes_output and the corresponding requirements one b
 {constraint}
 
 ## action
-Follow format example's json format, generate output and make sure it follows the format example.
+Follow format example's {prompt_schema} format, generate output and make sure it follows the format example.
 """
 
 REVISE_TEMPLATE = """
@@ -108,7 +108,7 @@ change the nodes_output key's value to meet its comment and no need to add extra
 {constraint}
 
 ## action
-Follow format example's json format, generate output and make sure it follows the format example.
+Follow format example's {prompt_schema} format, generate output and make sure it follows the format example.
 """
 
 
@@ -469,7 +469,8 @@ class ActionNode:
             return dict()
 
         prompt = template.format(
-            nodes_output=json.dumps(nodes_output, ensure_ascii=False), tag=TAG, constraint=FORMAT_CONSTRAINT
+            nodes_output=json.dumps(nodes_output, ensure_ascii=False), tag=TAG, constraint=FORMAT_CONSTRAINT,
+            prompt_schema="json"
         )
 
         content = await self.llm.aask(prompt)
@@ -567,6 +568,7 @@ class ActionNode:
             example=example,
             instruction=instruction,
             constraint=FORMAT_CONSTRAINT,
+            prompt_schema="json"
         )
 
         # step2, use `_aask_v1` to get revise structure result
