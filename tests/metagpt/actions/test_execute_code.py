@@ -96,4 +96,4 @@ async def test_run_with_timeout():
     code = "import time; time.sleep(2)"
     message, success = await pi.run(code)
     assert not success
-    assert message == "TimeoutError"
+    assert message.startswith("Cell execution timed out")
