@@ -60,7 +60,6 @@ class MLEngineer(CodeInterpreter):
         if code_execution_count > 0:
             logger.warning("We got a bug code, now start to debug...")
             code = await DebugCode().run(
-                plan=self.planner.current_task.instruction,
                 code=self.latest_code,
                 runtime_result=self.working_memory.get(),
                 context=self.debug_context,

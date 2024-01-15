@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # @Time    : 2023/11/17 10:33
 # @Author  : lidanyang
-# @File    : feature_engineering.py
+# @File    : test_feature_engineering.py
 # @Desc    : Feature Engineering Tools
 import itertools
 
@@ -43,9 +43,9 @@ class PolynomialExpansion(MLProcess):
         ts_data = self.poly.transform(df[self.cols].fillna(0))
         column_name = self.poly.get_feature_names_out(self.cols)
         ts_data = pd.DataFrame(ts_data, index=df.index, columns=column_name)
-        df.drop(self.cols, axis=1, inplace=True)
-        df = pd.concat([df, ts_data], axis=1)
-        return df
+        new_df = df.drop(self.cols, axis=1)
+        new_df = pd.concat([new_df, ts_data], axis=1)
+        return new_df
 
 
 class CatCount(MLProcess):
@@ -57,8 +57,9 @@ class CatCount(MLProcess):
         self.encoder_dict = df[self.col].value_counts().to_dict()
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        df[f"{self.col}_cnt"] = df[self.col].map(self.encoder_dict)
-        return df
+        new_df = df.copy()
+        new_df[f"{self.col}_cnt"] = new_df[self.col].map(self.encoder_dict)
+        return new_df
 
 
 class TargetMeanEncoder(MLProcess):
@@ -71,8 +72,9 @@ class TargetMeanEncoder(MLProcess):
         self.encoder_dict = df.groupby(self.col)[self.label].mean().to_dict()
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        df[f"{self.col}_target_mean"] = df[self.col].map(self.encoder_dict)
-        return df
+        new_df = df.copy()
+        new_df[f"{self.col}_target_mean"] = new_df[self.col].map(self.encoder_dict)
+        return new_df
 
 
 class KFoldTargetMeanEncoder(MLProcess):
@@ -96,8 +98,9 @@ class KFoldTargetMeanEncoder(MLProcess):
         self.encoder_dict = tmp.groupby(self.col)[col_name].mean().to_dict()
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        df[f"{self.col}_kf_target_mean"] = df[self.col].map(self.encoder_dict)
-        return df
+        new_df = df.copy()
+        new_df[f"{self.col}_kf_target_mean"] = new_df[self.col].map(self.encoder_dict)
+        return new_df
 
 
 class CatCross(MLProcess):
@@ -124,14 +127,15 @@ class CatCross(MLProcess):
         self.combs_map = dict(res)
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
+        new_df = df.copy()
         for comb in self.combs:
             new_col = f"{comb[0]}_{comb[1]}"
             _map = self.combs_map[new_col]
-            df[new_col] = pd.Series(zip(df[comb[0]], df[comb[1]])).map(_map)
+            new_df[new_col] = pd.Series(zip(new_df[comb[0]], new_df[comb[1]])).map(_map)
             # set the unknown value to a new number
-            df[new_col].fillna(max(_map.values()) + 1, inplace=True)
-            df[new_col] = df[new_col].astype(int)
-        return df
+            new_df[new_col].fillna(max(_map.values()) + 1, inplace=True)
+            new_df[new_col] = new_df[new_col].astype(int)
+        return new_df
 
 
 class GroupStat(MLProcess):
@@ -149,12 +153,12 @@ class GroupStat(MLProcess):
         self.group_df = group_df
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        df = df.merge(self.group_df, on=self.group_col, how="left")
-        return df
+        new_df = df.merge(self.group_df, on=self.group_col, how="left")
+        return new_df
 
 
 class SplitBins(MLProcess):
-    def __init__(self, cols: str, strategy: str = "quantile"):
+    def __init__(self, cols: list, strategy: str = "quantile"):
         self.cols = cols
         self.strategy = strategy
         self.encoder = None
@@ -164,8 +168,9 @@ class SplitBins(MLProcess):
         self.encoder.fit(df[self.cols].fillna(0))
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        df[self.cols] = self.encoder.transform(df[self.cols].fillna(0))
-        return df
+        new_df = df.copy()
+        new_df[self.cols] = self.encoder.transform(new_df[self.cols].fillna(0))
+        return new_df
 
 
 class ExtractTimeComps(MLProcess):
@@ -192,91 +197,8 @@ class ExtractTimeComps(MLProcess):
             time_comps_df["dayofweek"] = time_s.dt.dayofweek + 1
         if "is_weekend" in self.time_comps:
             time_comps_df["is_weekend"] = time_s.dt.dayofweek.isin([5, 6]).astype(int)
-        df = pd.concat([df, time_comps_df], axis=1)
-        return df
-
-
-# @registry.register("feature_engineering", FeShiftByTime)
-# def fe_shift_by_time(df, time_col, group_col, shift_col, periods, freq):
-#     df[time_col] = pd.to_datetime(df[time_col])
-#
-#     def shift_datetime(date, offset, unit):
-#         if unit in ["year", "y", "Y"]:
-#             return date + relativedelta(years=offset)
-#         elif unit in ["month", "m", "M"]:
-#             return date + relativedelta(months=offset)
-#         elif unit in ["day", "d", "D"]:
-#             return date + relativedelta(days=offset)
-#         elif unit in ["week", "w", "W"]:
-#             return date + relativedelta(weeks=offset)
-#         elif unit in ["hour", "h", "H"]:
-#             return date + relativedelta(hours=offset)
-#         else:
-#             return date
-#
-#     def shift_by_time_on_key(
-#         inner_df, time_col, group_col, shift_col, offset, unit, col_name
-#     ):
-#         inner_df = inner_df.drop_duplicates()
-#         inner_df[time_col] = inner_df[time_col].map(
-#             lambda x: shift_datetime(x, offset, unit)
-#         )
-#         inner_df = inner_df.groupby([time_col, group_col], as_index=False)[
-#             shift_col
-#         ].mean()
-#         inner_df.rename(columns={shift_col: col_name}, inplace=True)
-#         return inner_df
-#
-#     shift_df = df[[time_col, group_col, shift_col]].copy()
-#     for period in periods:
-#         new_col_name = f"{group_col}_{shift_col}_lag_{period}_{freq}"
-#         tmp = shift_by_time_on_key(
-#             shift_df, time_col, group_col, shift_col, period, freq, new_col_name
-#         )
-#         df = df.merge(tmp, on=[time_col, group_col], how="left")
-#
-#     return df
-#
-#
-# @registry.register("feature_engineering", FeRollingByTime)
-# def fe_rolling_by_time(df, time_col, group_col, rolling_col, periods, freq, agg_funcs):
-#     df[time_col] = pd.to_datetime(df[time_col])
-#
-#     def rolling_by_time_on_key(inner_df, offset, unit, agg_func, col_name):
-#         time_freq = {
-#             "Y": [365 * offset, "D"],
-#             "M": [30 * offset, "D"],
-#             "D": [offset, "D"],
-#             "W": [7 * offset, "D"],
-#             "H": [offset, "h"],
-#         }
-#
-#         if agg_func not in ["mean", "std", "max", "min", "median", "sum", "count"]:
-#             raise ValueError(f"Invalid agg function: {agg_func}")
-#
-#         rolling_feat = inner_df.rolling(
-#             f"{time_freq[unit][0]}{time_freq[unit][1]}", closed="left"
-#         )
-#         rolling_feat = getattr(rolling_feat, agg_func)()
-#         depth = df.columns.nlevels
-#         rolling_feat = rolling_feat.stack(list(range(depth)))
-#         rolling_feat.name = col_name
-#         return rolling_feat
-#
-#     rolling_df = df[[time_col, group_col, rolling_col]].copy()
-#     for period in periods:
-#         for func in agg_funcs:
-#             new_col_name = f"{group_col}_{rolling_col}_rolling_{period}_{freq}_{func}"
-#             tmp = pd.pivot_table(
-#                 rolling_df,
-#                 index=time_col,
-#                 values=rolling_col,
-#                 columns=group_col,
-#             )
-#             tmp = rolling_by_time_on_key(tmp, period, freq, func, new_col_name)
-#             df = df.merge(tmp, on=[time_col, group_col], how="left")
-#
-#     return df
+        new_df = pd.concat([df, time_comps_df], axis=1)
+        return new_df
 
 
 class GeneralSelection(MLProcess):
@@ -302,8 +224,8 @@ class GeneralSelection(MLProcess):
         self.feats = feats
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        df = df[self.feats + [self.label_col]]
-        return df
+        new_df = df[self.feats + [self.label_col]]
+        return new_df
 
 
 class TreeBasedSelection(MLProcess):
@@ -344,8 +266,8 @@ class TreeBasedSelection(MLProcess):
         self.feats.append(self.label_col)
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        df = df[self.feats]
-        return df
+        new_df = df[self.feats]
+        return new_df
 
 
 class VarianceBasedSelection(MLProcess):
@@ -364,5 +286,5 @@ class VarianceBasedSelection(MLProcess):
         self.feats.append(self.label_col)
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        df = df[self.feats]
-        return df
+        new_df = df[self.feats]
+        return new_df

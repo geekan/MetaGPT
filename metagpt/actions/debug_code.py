@@ -85,20 +85,14 @@ class DebugCode(BaseWriteAnalysisCode):
 
     async def run_reflection(
         self,
-        # goal,
-        # finished_code,
-        # finished_code_result,
         context: List[Message],
         code,
         runtime_result,
     ) -> dict:
         info = []
-        # finished_code_and_result = finished_code + "\n [finished results]\n\n" + finished_code_result
         reflection_prompt = REFLECTION_PROMPT.format(
             debug_example=DEBUG_REFLECTION_EXAMPLE,
             context=context,
-            # goal=goal,
-            # finished_code=finished_code_and_result,
             code=code,
             runtime_result=runtime_result,
         )
@@ -106,33 +100,13 @@ class DebugCode(BaseWriteAnalysisCode):
         info.append(Message(role="system", content=system_prompt))
         info.append(Message(role="user", content=reflection_prompt))
 
-        # msg = messages_to_str(info)
-        # resp = await self.llm.aask(msg=msg)
         resp = await self.llm.aask_code(messages=info, **create_func_config(CODE_REFLECTION))
         logger.info(f"reflection is {resp}")
         return resp
 
-    # async def rewrite_code(self, reflection: str = "", context: List[Message] = None) -> str:
-    #     """
-    #     根据reflection重写代码
-    #     """
-    #     info = context
-    #     # info.append(Message(role="assistant", content=f"[code context]:{code_context}"
-    #     #                                               f"finished code are executable, and you should based on the code to continue your current code debug and improvement"
-    #     #                                               f"[reflection]: \n {reflection}"))
-    #     info.append(Message(role="assistant", content=f"[reflection]: \n {reflection}"))
-    #     info.append(Message(role="user", content=f"[improved impl]:\n Return in Python block"))
-    #     msg = messages_to_str(info)
-    #     resp = await self.llm.aask(msg=msg)
-    #     improv_code = CodeParser.parse_code(block=None, text=resp)
-    #     return improv_code
-
     async def run(
         self,
         context: List[Message] = None,
-        plan: str = "",
-        # finished_code: str = "",
-        # finished_code_result: str = "",
         code: str = "",
         runtime_result: str = "",
     ) -> str:
@@ -140,14 +114,10 @@ class DebugCode(BaseWriteAnalysisCode):
         根据当前运行代码和报错信息进行reflection和纠错
         """
         reflection = await self.run_reflection(
-            # plan,
-            # finished_code=finished_code,
-            # finished_code_result=finished_code_result,
             code=code,
             context=context,
             runtime_result=runtime_result,
         )
         # 根据reflection结果重写代码
-        # improv_code = await self.rewrite_code(reflection, context=context)
         improv_code = reflection["improved_impl"]
         return improv_code

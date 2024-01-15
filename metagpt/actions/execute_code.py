@@ -4,6 +4,7 @@
 @Author  :   orange-crow
 @File    :   code_executor.py
 """
+import asyncio
 import re
 import traceback
 from abc import ABC, abstractmethod
@@ -81,6 +82,9 @@ class ExecutePyCode(ExecuteCode, Action):
     async def reset(self):
         """reset NotebookClient"""
         await self.terminate()
+
+        # sleep 1s to wait for the kernel to be cleaned up completely
+        await asyncio.sleep(1)
         await self.build()
         self.nb_client = NotebookClient(self.nb, timeout=self.timeout)
 
@@ -181,7 +185,11 @@ class ExecutePyCode(ExecuteCode, Action):
             await self.nb_client.async_execute_cell(cell, cell_index)
             return True, ""
         except CellTimeoutError:
-            return False, "TimeoutError"
+            assert self.nb_client.km is not None
+            await self.nb_client.km.interrupt_kernel()
+            await asyncio.sleep(1)
+            error_msg = "Cell execution timed out: Execution exceeded the time limit and was stopped; consider optimizing your code for better performance."
+            return False, error_msg
         except DeadKernelError:
             await self.reset()
             return False, "DeadKernelError"

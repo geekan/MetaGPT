@@ -6,7 +6,6 @@
 @File    : __init__.py
 """
 
-
 from enum import Enum
 
 from pydantic import BaseModel
@@ -71,6 +70,12 @@ TOOL_TYPE_MAPPINGS = {
         module="",
         desc="Only for evaluating model.",
         usage_prompt=MODEL_EVALUATE_PROMPT,
+    ),
+    "stable_diffusion": ToolType(
+        name="stable_diffusion",
+        module="metagpt.tools.sd_engine",
+        desc="Related to text2image, image2image using stable diffusion model.",
+        usage_prompt="",
     ),
     "vision": ToolType(
         name="vision",

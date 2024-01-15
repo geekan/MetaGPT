@@ -9,7 +9,7 @@ from metagpt.roles.code_interpreter import CodeInterpreter
 
 
 async def main():
-    prompt = """This is a URL of webpage: https://cn.bing.com/
+    prompt = """This is a URL of webpage: 'https://www.baidu.com/' .
 Firstly, utilize Selenium and WebDriver for rendering. 
 Secondly, convert image to a webpage including HTML, CSS and JS in one go. 
 Finally, save webpage in a text file. 
