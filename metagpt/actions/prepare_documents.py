@@ -15,6 +15,7 @@ from metagpt.actions import Action, ActionOutput
 from metagpt.const import REQUIREMENT_FILENAME
 from metagpt.utils.file_repository import FileRepository
 from metagpt.utils.git_repository import GitRepository
+from metagpt.utils.project_repo import ProjectRepo
 
 
 class PrepareDocuments(Action):
@@ -38,13 +39,14 @@ class PrepareDocuments(Action):
             shutil.rmtree(path)
         self.config.project_path = path
         self.context.git_repo = GitRepository(local_path=path, auto_init=True)
+        self.context.repo = ProjectRepo(self.context.git_repo)
 
     async def run(self, with_messages, **kwargs):
         """Create and initialize the workspace folder, initialize the Git environment."""
         self._init_repo()
 
         # Write the newly added requirements from the main parameter idea to `docs/requirement.txt`.
-        doc = await self.project_repo.docs.save(filename=REQUIREMENT_FILENAME, content=with_messages[0].content)
+        doc = await self.repo.docs.save(filename=REQUIREMENT_FILENAME, content=with_messages[0].content)
         # Send a Message notification to the WritePRD action, instructing it to process requirements using
         # `docs/requirement.txt` and `docs/prds/`.
         return ActionOutput(content=doc.content, instruct_content=doc)

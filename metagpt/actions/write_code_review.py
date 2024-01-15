@@ -143,7 +143,7 @@ class WriteCodeReview(Action):
             code_context = await WriteCode.get_codes(
                 self.i_context.task_doc,
                 exclude=self.i_context.filename,
-                project_repo=self.project_repo.with_src_path(self.context.src_workspace),
+                project_repo=self.repo.with_src_path(self.context.src_workspace),
             )
             context = "\n".join(
                 [

@@ -23,7 +23,7 @@ from abc import ABC
 from asyncio import Queue, QueueEmpty, wait_for
 from json import JSONDecodeError
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Type, TypeVar, Union
+from typing import Any, Dict, Iterable, List, Optional, Type, TypeVar, Union
 
 from pydantic import (
     BaseModel,
@@ -161,6 +161,26 @@ class Documents(BaseModel):
     """
 
     docs: Dict[str, Document] = Field(default_factory=dict)
+
+    @classmethod
+    def from_iterable(cls, documents: Iterable[Document]) -> Documents:
+        """Create a Documents instance from a list of Document instances.
+
+        :param documents: A list of Document instances.
+        :return: A Documents instance.
+        """
+
+        docs = {doc.filename: doc for doc in documents}
+        return Documents(docs=docs)
+
+    def to_action_output(self) -> "ActionOutput":
+        """Convert to action output string.
+
+        :return: A string representing action output.
+        """
+        from metagpt.actions.action_output import ActionOutput
+
+        return ActionOutput(content=self.model_dump_json(), instruct_content=self)
 
 
 class Message(BaseModel):

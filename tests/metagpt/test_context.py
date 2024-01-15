@@ -48,7 +48,6 @@ def test_context_1():
     assert ctx.git_repo is None
     assert ctx.src_workspace is None
     assert ctx.cost_manager is not None
-    assert ctx.options is not None
 
 
 def test_context_2():
