@@ -26,7 +26,7 @@ async def test_text_to_embedding(mocker):
     data = await aread(Path(__file__).parent / "../../data/openai/embedding.json")
     mock_response.json.return_value = json.loads(data)
     mock_post.return_value.__aenter__.return_value = mock_response
-    type(config.get_openai_llm()).proxy = mocker.PropertyMock(return_value="http://mock.proxy")
+    config.get_openai_llm().proxy = mocker.PropertyMock(return_value="http://mock.proxy")
 
     # Prerequisites
     assert config.get_openai_llm().api_key
