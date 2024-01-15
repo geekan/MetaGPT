@@ -6,9 +6,13 @@
 @File    : base_llm.py
 @Desc    : mashenquan, 2023/8/22. + try catch
 """
+import re
 import json
 from abc import ABC, abstractmethod
 from typing import Optional
+
+from metagpt.logs import logger
+from metagpt.utils.common import CodeParser
 
 
 class BaseLLM(ABC):
@@ -118,6 +122,30 @@ class BaseLLM(ABC):
         """
         return rsp.get("choices")[0]["message"]["tool_calls"][0]["function"]
 
+    def _parse_arguments(self, arguments: str) -> dict:
+        """parse arguments in openai function call"""
+        if 'langugae' not in arguments and 'code' not in arguments:
+            logger.warning(f"Not found `code`, `language`, We assume it is pure code:\n {arguments}\n. ")
+            return {'language': 'python', 'code': arguments}
+
+        # 匹配language
+        language_pattern = re.compile(r'[\"\']?language[\"\']?\s*:\s*["\']([^"\']+?)["\']', re.DOTALL)
+        language_match = language_pattern.search(arguments)
+        language_value = language_match.group(1) if language_match else None
+
+        # 匹配code
+        code_pattern = r'(["\']{3}|["])([\s\S]*?)\1'
+        try:
+            code_value = re.findall(code_pattern, arguments)[-1][-1]
+        except Exception as e:
+            logger.error(f"{e}, when re.findall({code_pattern}, {arguments})")
+            code_value = None
+
+        if code_value is None:
+            raise ValueError(f"Parse code error for {arguments}")
+        # arguments只有code的情况
+        return {'language': language_value, 'code': code_value}
+
     def get_choice_function_arguments(self, rsp: dict) -> dict:
         """Required to provide the first function arguments of choice.
 
@@ -125,7 +153,25 @@ class BaseLLM(ABC):
         :return dict: return the first function arguments of choice, for example,
             {'language': 'python', 'code': "print('Hello, World!')"}
         """
-        return json.loads(self.get_choice_function(rsp)["arguments"], strict=False)
+        try:
+            arguments: str = self.get_choice_function(rsp)["arguments"]
+            return json.loads(arguments, strict=False)
+        except json.decoder.JSONDecodeError as e:
+            logger.debug(f"Got JSONDecodeError for {arguments}, we will use RegExp to parse code, \n {e}")
+            return self._parse_arguments(arguments)
+        except KeyError as e:
+            if 'tool_calls' in e.args:
+                txt_rsp = self.get_choice_text(rsp)
+                # find code
+                code = CodeParser.parse_code(None, txt_rsp, lang='python')
+                if code != txt_rsp:
+                    return {'language': 'python', 'code': code}
+                # no code
+                return {'language': 'markdown', 'code': txt_rsp}
+            raise e
+        except Exception as e:
+            logger.error(f"Got error `{e}` for parsing\n {rsp}\n")
+            return {}
 
     def messages_to_prompt(self, messages: list[dict]):
         """[{"role": "user", "content": msg}] to user: <msg> etc."""
