@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from metagpt.config2 import config
+from metagpt.config2 import Config
 from metagpt.tools.openai_text_to_embedding import oas3_openai_text_to_embedding
 from metagpt.utils.common import aread
 
@@ -18,6 +18,7 @@ from metagpt.utils.common import aread
 @pytest.mark.asyncio
 async def test_embedding(mocker):
     # mock
+    config = Config.default()
     mock_post = mocker.patch("aiohttp.ClientSession.post")
     mock_response = mocker.AsyncMock()
     mock_response.status = 200

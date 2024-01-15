@@ -57,7 +57,8 @@ class TestOpenAI:
     def test_make_client_kwargs_without_proxy(self):
         instance = OpenAILLM(mock_llm_config)
         kwargs = instance._make_client_kwargs()
-        assert kwargs == {"api_key": "mock_api_key", "base_url": "mock_base_url"}
+        assert kwargs["api_key"] == "mock_api_key"
+        assert kwargs["base_url"] == "mock_base_url"
         assert "http_client" not in kwargs
 
     def test_make_client_kwargs_with_proxy(self):
