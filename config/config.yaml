@@ -86,6 +86,20 @@ TIMEOUT: 60 # Timeout for llm invocation
 #AZURE_TTS_SUBSCRIPTION_KEY: "YOUR_API_KEY"
 #AZURE_TTS_REGION: "eastus"
 
+#### for OPENAI VISION
+
+OPENAI_VISION_URL: "https://openai-forward.metadl.com/v1"
+OPENAI_VISION_KEY: "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"
+OPENAI_VISION_MODEL: "gpt-4-vision-preview"
+VISION_MAX_TOKENS: 4096
+
+#### for AZURE VISION
+
+#AZURE_VISION_URL: "YOUR_AZURE_ENDPOINT"
+#AZURE_VISION_KEY: "YOUR_API_KEY"
+#AZURE_VISION_REGION: "YOUR_VISION_REGION_NAME"
+#VISION_MAX_TOKENS: 4096
+
 #### for Stable Diffusion
 ## Use SD service, based on https://github.com/AUTOMATIC1111/stable-diffusion-webui
 #SD_URL: "YOUR_SD_URL"
