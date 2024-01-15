@@ -3,7 +3,7 @@ import pandas as pd
 import pytest
 from sklearn.datasets import fetch_california_housing, load_breast_cancer, load_iris
 
-from metagpt.tools.functions.libs.feature_engineering import (
+from metagpt.tools.libs.feature_engineering import (
     CatCount,
     CatCross,
     ExtractTimeComps,
@@ -147,6 +147,7 @@ def test_general_selection(mock_dataset):
     assert "cat2" not in transformed.columns
 
 
+@pytest.mark.skip  # skip because TreeBasedSelection needs lgb as dependency
 def test_tree_based_selection(mock_dataset):
     # regression
     data = load_sklearn_data("housing")

@@ -8,7 +8,7 @@
 
 from enum import Enum
 from metagpt.tools import tool_types  # this registers all tool types
-from metagpt.tools.functions import libs  # this registers all tools
+from metagpt.tools import libs  # this registers all tools
 from metagpt.tools.tool_registry import TOOL_REGISTRY
 
 _ = tool_types  # Avoid pre-commit error

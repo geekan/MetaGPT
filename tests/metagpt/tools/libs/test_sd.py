@@ -4,7 +4,7 @@
 # @Desc    :
 import pytest
 
-from metagpt.tools.sd_engine import SDEngine
+from metagpt.tools.libs.sd_engine import SDEngine
 
 
 def test_sd_tools():

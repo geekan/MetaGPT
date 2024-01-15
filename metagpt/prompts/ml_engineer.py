@@ -15,7 +15,7 @@ Keep dataset column information updated before model train.
 # Task
 Update and print the dataset's column information only if the train or test data has changed. Use the following code:
 ```python
-from metagpt.tools.functions.libs.data_preprocess import get_column_info
+from metagpt.tools.libs.data_preprocess import get_column_info
 
 column_info = get_column_info(df)
 print("column_info")
@@ -248,7 +248,7 @@ when current task is "do data preprocess, like fill missing value, handle outlie
 ```python
 # Step 1: fill missing value
 # Tools used: ['FillMissingValue']
-from metagpt.tools.functions.libs.data_preprocess import FillMissingValue
+from metagpt.tools.libs.data_preprocess import FillMissingValue
 
 train_processed = train.copy()
 test_processed = test.copy()

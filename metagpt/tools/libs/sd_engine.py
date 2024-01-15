@@ -53,7 +53,7 @@ payload = {
 default_negative_prompt = "(easynegative:0.8),black, dark,Low resolution"
 
 
-@register_tool(tool_type_name=ToolTypeEnum.STABLE_DIFFUSION)
+@register_tool(tool_type_name=ToolTypeEnum.STABLE_DIFFUSION.value)
 class SDEngine:
     def __init__(self, sd_url=""):
         # Initialize the SDEngine with configuration

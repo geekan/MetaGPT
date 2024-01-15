@@ -130,7 +130,7 @@ MetaGPT Community - The position of Chief Evangelist rotates on a monthly basis.
         1.  HTML Layout： Outputs the HTML code for the page.
         1.  CSS Styles (styles.css)： Outputs the CSS code for the page.
 
-    1.  Currently, the SD skill is a tool invoked by UIDesign. It instantiates the SDEngine, with specific code found in metagpt/tools/sd_engine.
+    1.  Currently, the SD skill is a tool invoked by UIDesign. It instantiates the SDEngine, with specific code found in metagpt/tools/libs/sd_engine.py.
 
     1.  Configuration instructions for SD Skills: The SD interface is currently deployed based on *https://github.com/AUTOMATIC1111/stable-diffusion-webui* **For environmental configurations and model downloads, please refer to the aforementioned GitHub repository. To initiate the SD service that supports API calls, run the command specified in cmd with the parameter nowebui, i.e.,
 

@@ -13,11 +13,22 @@ from sklearn.preprocessing import (
     StandardScaler,
 )
 
-from metagpt.tools.functions.libs.base import MLProcess
 from metagpt.tools.tool_data_type import ToolTypeEnum
 from metagpt.tools.tool_registry import register_tool
 
 TOOL_TYPE = ToolTypeEnum.DATA_PREPROCESS.value
+
+
+class MLProcess(object):
+    def fit(self, df):
+        raise NotImplementedError
+
+    def transform(self, df):
+        raise NotImplementedError
+
+    def fit_transform(self, df):
+        self.fit(df)
+        return self.transform(df)
 
 
 @register_tool(tool_type_name=TOOL_TYPE)

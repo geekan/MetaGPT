@@ -3,7 +3,7 @@ import json
 import yaml
 
 from metagpt.logs import logger
-from metagpt.tools.functions.libs.udf import UDFS, UDFS_YAML, docstring_to_yaml
+from metagpt.tools.libs.udf import UDFS, UDFS_YAML, docstring_to_yaml
 
 
 def test_udfs():

@@ -15,7 +15,7 @@ from sklearn.feature_selection import VarianceThreshold
 from sklearn.model_selection import KFold
 from sklearn.preprocessing import KBinsDiscretizer, PolynomialFeatures
 
-from metagpt.tools.functions.libs.base import MLProcess
+from metagpt.tools.libs.data_preprocess import MLProcess
 from metagpt.tools.tool_data_type import ToolTypeEnum
 from metagpt.tools.tool_registry import register_tool
 

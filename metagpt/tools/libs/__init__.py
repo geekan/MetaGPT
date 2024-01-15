@@ -4,7 +4,7 @@
 # @Author  : lidanyang
 # @File    : __init__.py
 # @Desc    :
-from metagpt.tools.functions.libs import (
+from metagpt.tools.libs import (
     data_preprocess,
     feature_engineering,
 )

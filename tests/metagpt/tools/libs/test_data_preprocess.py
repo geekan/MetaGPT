@@ -5,7 +5,7 @@ import numpy.testing as npt
 import pandas as pd
 import pytest
 
-from metagpt.tools.functions.libs.data_preprocess import (
+from metagpt.tools.libs.data_preprocess import (
     FillMissingValue,
     LabelEncode,
     MaxAbsScale,
