@@ -11,8 +11,8 @@ import base64
 
 from metagpt.config import CONFIG
 
-OPENAI_API_BASE = CONFIG.OPENAI_VISION_URL
-API_KEY = CONFIG.OPENAI_VISION_KEY
+OPENAI_API_BASE = CONFIG.OPENAI_BASE_URL
+API_KEY = CONFIG.OPENAI_API_KEY
 MODEL = CONFIG.OPENAI_VISION_MODEL
 MAX_TOKENS = CONFIG.VISION_MAX_TOKENS
 
@@ -77,6 +77,7 @@ class Vision:
 
 
 if __name__ == "__main__":
+    image_path = "image.png"
     vision = Vision()
-    rsp = vision.generate_web_pages(image_path="./img.png")
+    rsp = vision.generate_web_pages(image_path=image_path)
     print(rsp)
