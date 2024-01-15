@@ -36,7 +36,6 @@ from pydantic import (
     model_validator,
 )
 
-from metagpt.actions.action_output import ActionOutput
 from metagpt.const import (
     MESSAGE_ROUTE_CAUSE_BY,
     MESSAGE_ROUTE_FROM,
@@ -174,11 +173,12 @@ class Documents(BaseModel):
         docs = {doc.filename: doc for doc in documents}
         return Documents(docs=docs)
 
-    def to_action_output(self) -> ActionOutput:
+    def to_action_output(self) -> "ActionOutput":
         """Convert to action output string.
 
         :return: A string representing action output.
         """
+        from metagpt.actions.action_output import ActionOutput
 
         return ActionOutput(content=self.model_dump_json(), instruct_content=self)
 
