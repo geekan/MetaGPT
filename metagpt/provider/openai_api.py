@@ -154,7 +154,30 @@ class OpenAILLM(BaseLLM):
 
         return self._cons_kwargs(messages=messages, timeout=timeout, **kwargs)
 
+    def _process_message(self, messages: Union[str, Message, list[dict], list[Message], list[str]]) -> list[dict]:
+        """convert messages to list[dict]."""
+        # 全部转成list
+        if not isinstance(messages, list):
+            messages = [messages]
+
+        # 转成list[dict]
+        processed_messages = []
+        for msg in messages:
+            if isinstance(msg, str):
+                processed_messages.append({"role": "user", "content": msg})
+            elif isinstance(msg, dict):
+                assert set(msg.keys()) == set(['role', 'content'])
+                processed_messages.append(msg)
+            elif isinstance(msg, Message):
+                processed_messages.append(msg.to_dict())
+            else:
+                raise ValueError(
+                    f"Only support message type are: str, Message, dict, but got {type(messages).__name__}!"
+                )
+        return processed_messages
+
     async def _achat_completion_function(self, messages: list[dict], timeout=3, **chat_configs) -> ChatCompletion:
+        messages = self._process_message(messages)
         kwargs = self._func_configs(messages=messages, timeout=timeout, **chat_configs)
         rsp: ChatCompletion = await self.aclient.chat.completions.create(**kwargs)
         self._update_costs(rsp.usage)
