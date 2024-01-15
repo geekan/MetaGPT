@@ -36,7 +36,8 @@ class QaEngineer(Role):
     profile: str = "QaEngineer"
     goal: str = "Write comprehensive and robust tests to ensure codes will work as expected without bugs"
     constraints: str = (
-        "The test code you write should conform to code standard like PEP8, be modular, " "easy to read and maintain"
+        "The test code you write should conform to code standard like PEP8, be modular, easy to read and maintain."
+        "Use same language as user requirement"
     )
     test_round_allowed: int = 5
     test_round: int = 0
