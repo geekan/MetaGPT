@@ -13,9 +13,6 @@ async def scrape_web(url, *urls):
 
     Returns:
         (dict): The inner text content and html structure of the web page, key are : 'inner_text', 'html'.
-
-    Raises:
-        Any exceptions that may occur during the Playwright operation.
     """
     # Create a PlaywrightWrapper instance for the Chromium browser
     web = await PlaywrightWrapper("chromium").run(url, *urls)
