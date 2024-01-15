@@ -35,6 +35,8 @@ class Action(SerializationMixin, ContextMixin, BaseModel):
 
     @property
     def repo(self) -> ProjectRepo:
+        if not self.context.repo:
+            self.context.repo = ProjectRepo(self.context.git_repo)
         return self.context.repo
 
     @property
