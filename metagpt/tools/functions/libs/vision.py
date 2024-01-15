@@ -5,6 +5,8 @@
 @Author  : mannaandpoem
 @File    : vision.py
 """
+from pathlib import Path
+
 import requests
 
 import base64
@@ -34,8 +36,9 @@ Now, please generate the corresponding webpage code including HTML, CSS and Java
 class Vision:
     def __init__(self):
         self.api_key = API_KEY
+        self.api_base = OPENAI_API_BASE
         self.model = MODEL
-        self.max_tokens = 4096
+        self.max_tokens = MAX_TOKENS
 
     def analyze_layout(self, image_path):
         return self.get_result(image_path, ANALYZE_LAYOUT_PROMPT)
@@ -43,7 +46,8 @@ class Vision:
     def generate_web_pages(self, image_path):
         layout = self.analyze_layout(image_path)
         prompt = GENERATE_PROMPT + "\n\n # Context\n The layout information of the sketch image is: \n" + layout
-        return self.get_result(image_path, prompt)
+        result = self.get_result(image_path, prompt)
+        return result
 
     def get_result(self, image_path, prompt):
         base64_image = self.encode_image(image_path)
@@ -67,17 +71,59 @@ class Vision:
             ],
             "max_tokens": self.max_tokens,
         }
-        response = requests.post(f"{OPENAI_API_BASE}/chat/completions", headers=headers, json=payload)
-        return response.json()["choices"][0]["message"]["content"]
+        response = requests.post(f"{self.api_base}/chat/completions", headers=headers, json=payload)
+
+        if response.status_code != 200:
+            raise ValueError(f"Request failed with status {response.status_code}, {response.text}")
+        else:
+            return response.json()["choices"][0]["message"]["content"]
 
     @staticmethod
     def encode_image(image_path):
         with open(image_path, "rb") as image_file:
             return base64.b64encode(image_file.read()).decode('utf-8')
 
+    @staticmethod
+    def save_webpages(image_path, webpages) -> Path:
+        # 在当前目录下创建一个名为webpages的文件夹，用于存储html、css和js文件
+        webpages_path = Path(image_path).parent / "webpages"
+        webpages_path.mkdir(exist_ok=True)
 
-if __name__ == "__main__":
-    image_path = "image.png"
-    vision = Vision()
-    rsp = vision.generate_web_pages(image_path=image_path)
-    print(rsp)
+        try:
+            index_path = webpages_path / "index.html"
+            index = webpages.split("```html")[1].split("```")[0]
+        except IndexError:
+            raise ValueError("No html code found in the result, please check your image and try again.")
+
+        try:
+            if "styles.css" in index:
+                style_path = webpages_path / "styles.css"
+            elif "style.css" in index:
+                style_path = webpages_path / "style.css"
+            else:
+                style_path = None
+            style = webpages.split("```css")[1].split("```")[0] if style_path else ""
+
+            if "scripts.js" in index:
+                js_path = webpages_path / "scripts.js"
+            elif "script.js" in index:
+                js_path = webpages_path / "script.js"
+            else:
+                js_path = None
+            js = webpages.split("```javascript")[1].split("```")[0] if js_path else ""
+        except IndexError:
+            raise ValueError("No css or js code found in the result, please check your image and try again.")
+
+        try:
+            with open(index_path, "w") as f:
+                f.write(index)
+            if style_path:
+                with open(style_path, "w") as f:
+                    f.write(style)
+            if js_path:
+                with open(js_path, "w") as f:
+                    f.write(js)
+        except FileNotFoundError as e:
+            raise FileNotFoundError(f"Cannot save the webpages to {str(webpages_path)}") from e
+
+        return webpages_path
