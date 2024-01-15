@@ -78,7 +78,7 @@ TOOL_TYPE_MAPPINGS = {
     ),
     "scrape_web": ToolType(
         name="scrape_web",
-        module="metagpt.tools.scrape_web",
+        module=str(TOOL_LIBS_PATH / "scrape_web"),
         desc="Scrape data from web page.",
         usage_prompt="",
     ),
