@@ -212,26 +212,40 @@ class ExecutePyCode(ExecuteCode, Action):
             cell_index = len(self.nb.cells) - 1
             success, error_message = await self.run_cell(self.nb.cells[-1], cell_index)
 
-            if success:
-                outputs = self.parse_outputs(self.nb.cells[-1].outputs)
-                return truncate(remove_escape_and_color_codes(outputs)), True
-            else:
-                return error_message, False
+            if not success:
+                return truncate(remove_escape_and_color_codes(error_message), is_success=success)
+
+            # code success
+            outputs = self.parse_outputs(self.nb.cells[-1].outputs)
+            return truncate(remove_escape_and_color_codes(outputs), is_success=success)
         else:
             # TODO: markdown
             raise NotImplementedError(f"Not support this code type : {language}, Only support code!")
 
 
-def truncate(result: str, keep_len: int = 2000) -> str:
-    desc = f"Truncated to show only the last {keep_len} characters\n"
+def truncate(result: str, keep_len: int = 2000, is_success: bool = True) -> str | bool:
+    desc = f"Executed code {'successfully' if is_success else 'failed, please reflect the cause of bug and then debug'}"
+    if is_success:
+        desc += f"Truncated to show only {keep_len} characters\n"
+    else:
+        desc += "Show complete information for you."
+
     if result.startswith(desc):
         result = result[len(desc) :]
 
     if len(result) > keep_len:
-        result = result[-keep_len:]
-        return desc + result
+        result = result[-keep_len:] if not is_success else result
+        if not result:
+            result = 'No output about your code. Only when importing packages it is normal case. Recap and go ahead.'
+            return result, False
 
-    return result
+        if result.strip().startswith("<coroutine object"):
+            result = "Executed code failed, you need use key word 'await' to run a async code."
+            return result, False
+
+        return desc + result[:keep_len+500], is_success
+
+    return result, is_success
 
 
 def remove_escape_and_color_codes(input_str):
