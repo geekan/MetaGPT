@@ -232,7 +232,7 @@ class Message(BaseModel):
         return any_to_str_set(send_to if send_to else {MESSAGE_ROUTE_TO_ALL})
 
     @field_serializer("instruct_content", mode="plain")
-    def ser_instruct_content(self, ic: BaseModel) -> Union[str, None]:
+    def ser_instruct_content(self, ic: BaseModel) -> Union[dict, None]:
         ic_dict = None
         if ic:
             # compatible with custom-defined ActionOutput
