@@ -53,7 +53,6 @@ async def test_text_to_speech():
     assert 200 == resp.response.status_code
 
 
-
 class TestOpenAI:
     def test_make_client_kwargs_without_proxy(self):
         instance = OpenAILLM(mock_llm_config)
