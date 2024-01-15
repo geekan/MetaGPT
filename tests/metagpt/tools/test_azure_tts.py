@@ -7,21 +7,31 @@
 @Modified By: mashenquan, 2023-8-9, add more text formatting options
 @Modified By: mashenquan, 2023-8-17, move to `tools` folder.
 """
+from pathlib import Path
 
 import pytest
-from azure.cognitiveservices.speech import ResultReason
+from azure.cognitiveservices.speech import ResultReason, SpeechSynthesizer
 
 from metagpt.config2 import config
 from metagpt.tools.azure_tts import AzureTTS
 
 
 @pytest.mark.asyncio
-async def test_azure_tts():
+async def test_azure_tts(mocker):
+    # mock
+    mock_result = mocker.Mock()
+    mock_result.audio_data = b"mock audio data"
+    mock_result.reason = ResultReason.SynthesizingAudioCompleted
+    mock_data = mocker.Mock()
+    mock_data.get.return_value = mock_result
+    mocker.patch.object(SpeechSynthesizer, "speak_ssml_async", return_value=mock_data)
+    mocker.patch.object(Path, "exists", return_value=True)
+
     # Prerequisites
     assert config.AZURE_TTS_SUBSCRIPTION_KEY and config.AZURE_TTS_SUBSCRIPTION_KEY != "YOUR_API_KEY"
     assert config.AZURE_TTS_REGION
 
-    azure_tts = AzureTTS(subscription_key="", region="")
+    azure_tts = AzureTTS(subscription_key=config.AZURE_TTS_SUBSCRIPTION_KEY, region=config.AZURE_TTS_REGION)
     text = """
         女儿看见父亲走了进来，问道：
             <mstts:express-as role="YoungAdultFemale" style="calm">

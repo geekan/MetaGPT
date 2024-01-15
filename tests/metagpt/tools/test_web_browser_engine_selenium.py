@@ -25,8 +25,8 @@ async def test_scrape_web_page(browser_type, use_proxy, url, urls, proxy, capfd)
     global_proxy = config.proxy
     try:
         if use_proxy:
-            server, proxy = await proxy
-            config.proxy = proxy
+            server, proxy_url = await proxy()
+            config.proxy = proxy_url
         browser = web_browser_engine_selenium.SeleniumWrapper(browser_type=browser_type)
         result = await browser.run(url)
         assert isinstance(result, WebPage)

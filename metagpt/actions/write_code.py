@@ -21,13 +21,7 @@ from pydantic import Field
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.actions.action import Action
-from metagpt.const import (
-    BUGFIX_FILENAME,
-    CODE_SUMMARIES_FILE_REPO,
-    DOCS_FILE_REPO,
-    TASK_FILE_REPO,
-    TEST_OUTPUTS_FILE_REPO,
-)
+from metagpt.const import BUGFIX_FILENAME
 from metagpt.logs import logger
 from metagpt.schema import CodingContext, Document, RunCodeResult
 from metagpt.utils.common import CodeParser
@@ -94,16 +88,12 @@ class WriteCode(Action):
         return code
 
     async def run(self, *args, **kwargs) -> CodingContext:
-        bug_feedback = await self.file_repo.get_file(filename=BUGFIX_FILENAME, relative_path=DOCS_FILE_REPO)
+        bug_feedback = await self.project_repo.docs.get(filename=BUGFIX_FILENAME)
         coding_context = CodingContext.loads(self.i_context.content)
-        test_doc = await self.file_repo.get_file(
-            filename="test_" + coding_context.filename + ".json", relative_path=TEST_OUTPUTS_FILE_REPO
-        )
+        test_doc = await self.project_repo.test_outputs.get(filename="test_" + coding_context.filename + ".json")
         summary_doc = None
         if coding_context.design_doc and coding_context.design_doc.filename:
-            summary_doc = await self.file_repo.get_file(
-                filename=coding_context.design_doc.filename, relative_path=CODE_SUMMARIES_FILE_REPO
-            )
+            summary_doc = await self.project_repo.docs.code_summary.get(filename=coding_context.design_doc.filename)
         logs = ""
         if test_doc:
             test_detail = RunCodeResult.loads(test_doc.content)
@@ -115,8 +105,7 @@ class WriteCode(Action):
             code_context = await self.get_codes(
                 coding_context.task_doc,
                 exclude=self.i_context.filename,
-                git_repo=self.git_repo,
-                src_workspace=self.context.src_workspace,
+                project_repo=self.project_repo.with_src_path(self.context.src_workspace),
             )
 
         prompt = PROMPT_TEMPLATE.format(
@@ -138,16 +127,15 @@ class WriteCode(Action):
         return coding_context
 
     @staticmethod
-    async def get_codes(task_doc, exclude, git_repo, src_workspace) -> str:
+    async def get_codes(task_doc, exclude, project_repo) -> str:
         if not task_doc:
             return ""
         if not task_doc.content:
-            file_repo = git_repo.new_file_repository()
-            task_doc.content = file_repo.get_file(filename=task_doc.filename, relative_path=TASK_FILE_REPO)
+            task_doc = project_repo.docs.task.get(filename=task_doc.filename)
         m = json.loads(task_doc.content)
         code_filenames = m.get("Task list", [])
         codes = []
-        src_file_repo = git_repo.new_file_repository(relative_path=src_workspace)
+        src_file_repo = project_repo.srcs
         for filename in code_filenames:
             if filename == exclude:
                 continue

@@ -12,26 +12,24 @@ from pathlib import Path
 import pytest
 
 from metagpt.actions.write_code import WriteCode
-from metagpt.const import (
-    CODE_SUMMARIES_FILE_REPO,
-    SYSTEM_DESIGN_FILE_REPO,
-    TASK_FILE_REPO,
-    TEST_OUTPUTS_FILE_REPO,
-)
 from metagpt.context import CONTEXT
 from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.schema import CodingContext, Document
 from metagpt.utils.common import aread
+from metagpt.utils.project_repo import ProjectRepo
 from tests.metagpt.actions.mock_markdown import TASKS_2, WRITE_CODE_PROMPT_SAMPLE
 
 
 @pytest.mark.asyncio
 async def test_write_code():
-    ccontext = CodingContext(
+    # Prerequisites
+    CONTEXT.src_workspace = CONTEXT.git_repo.workdir / "writecode"
+
+    coding_ctx = CodingContext(
         filename="task_filename.py", design_doc=Document(content="设计一个名为'add'的函数，该函数接受两个整数作为输入，并返回它们的和。")
     )
-    doc = Document(content=ccontext.model_dump_json())
+    doc = Document(content=coding_ctx.model_dump_json())
     write_code = WriteCode(i_context=doc)
 
     code = await write_code.run()
@@ -55,33 +53,28 @@ async def test_write_code_deps():
     # Prerequisites
     CONTEXT.src_workspace = CONTEXT.git_repo.workdir / "snake1/snake1"
     demo_path = Path(__file__).parent / "../../data/demo_project"
-    await CONTEXT.file_repo.save_file(
-        filename="test_game.py.json",
-        content=await aread(str(demo_path / "test_game.py.json")),
-        relative_path=TEST_OUTPUTS_FILE_REPO,
+    project_repo = ProjectRepo(CONTEXT.git_repo)
+    await project_repo.test_outputs.save(
+        filename="test_game.py.json", content=await aread(str(demo_path / "test_game.py.json"))
     )
-    await CONTEXT.file_repo.save_file(
+    await project_repo.docs.code_summary.save(
         filename="20231221155954.json",
         content=await aread(str(demo_path / "code_summaries.json")),
-        relative_path=CODE_SUMMARIES_FILE_REPO,
     )
-    await CONTEXT.file_repo.save_file(
+    await project_repo.docs.system_design.save(
         filename="20231221155954.json",
         content=await aread(str(demo_path / "system_design.json")),
-        relative_path=SYSTEM_DESIGN_FILE_REPO,
     )
-    await CONTEXT.file_repo.save_file(
-        filename="20231221155954.json", content=await aread(str(demo_path / "tasks.json")), relative_path=TASK_FILE_REPO
+    await project_repo.docs.task.save(
+        filename="20231221155954.json", content=await aread(str(demo_path / "tasks.json"))
     )
-    await CONTEXT.file_repo.save_file(
-        filename="main.py", content='if __name__ == "__main__":\nmain()', relative_path=CONTEXT.src_workspace
+    await project_repo.with_src_path(CONTEXT.src_workspace).srcs.save(
+        filename="main.py", content='if __name__ == "__main__":\nmain()'
     )
     ccontext = CodingContext(
         filename="game.py",
-        design_doc=await CONTEXT.file_repo.get_file(
-            filename="20231221155954.json", relative_path=SYSTEM_DESIGN_FILE_REPO
-        ),
-        task_doc=await CONTEXT.file_repo.get_file(filename="20231221155954.json", relative_path=TASK_FILE_REPO),
+        design_doc=await project_repo.docs.system_design.get(filename="20231221155954.json"),
+        task_doc=await project_repo.docs.task.get(filename="20231221155954.json"),
         code_doc=Document(filename="game.py", content="", root_path="snake1"),
     )
     coding_doc = Document(root_path="snake1", filename="game.py", content=ccontext.json())

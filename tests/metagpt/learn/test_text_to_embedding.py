@@ -6,19 +6,32 @@
 @File    : test_text_to_embedding.py
 @Desc    : Unit tests.
 """
+import json
+from pathlib import Path
 
 import pytest
 
 from metagpt.config2 import config
 from metagpt.learn.text_to_embedding import text_to_embedding
+from metagpt.utils.common import aread
 
 
 @pytest.mark.asyncio
-async def test_text_to_embedding():
-    # Prerequisites
-    assert config.get_openai_llm()
+async def test_text_to_embedding(mocker):
+    # mock
+    mock_post = mocker.patch("aiohttp.ClientSession.post")
+    mock_response = mocker.AsyncMock()
+    mock_response.status = 200
+    data = await aread(Path(__file__).parent / "../../data/openai/embedding.json")
+    mock_response.json.return_value = json.loads(data)
+    mock_post.return_value.__aenter__.return_value = mock_response
+    type(config.get_openai_llm()).proxy = mocker.PropertyMock(return_value="http://mock.proxy")
 
-    v = await text_to_embedding(text="Panda emoji")
+    # Prerequisites
+    assert config.get_openai_llm().api_key
+    assert config.get_openai_llm().proxy
+
+    v = await text_to_embedding(text="Panda emoji", config=config)
     assert len(v.data) > 0
 
 

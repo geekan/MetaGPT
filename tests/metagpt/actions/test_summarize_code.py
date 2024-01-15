@@ -9,10 +9,10 @@
 import pytest
 
 from metagpt.actions.summarize_code import SummarizeCode
-from metagpt.const import SYSTEM_DESIGN_FILE_REPO, TASK_FILE_REPO
 from metagpt.context import CONTEXT
 from metagpt.logs import logger
 from metagpt.schema import CodeSummarizeContext
+from metagpt.utils.project_repo import ProjectRepo
 
 DESIGN_CONTENT = """
 {"Implementation approach": "To develop this snake game, we will use the Python language and choose the Pygame library. Pygame is an open-source Python module collection specifically designed for writing video games. It provides functionalities such as displaying images and playing sounds, making it suitable for creating intuitive and responsive user interfaces. We will ensure efficient game logic to prevent any delays during gameplay. The scoring system will be simple, with the snake gaining points for each food it eats. We will use Pygame's event handling system to implement pause and resume functionality, as well as high-score tracking. The difficulty will increase by speeding up the snake's movement. In the initial version, we will focus on single-player mode and consider adding multiplayer mode and customizable skins in future updates. Based on the new requirement, we will also add a moving obstacle that appears randomly. If the snake eats this obstacle, the game will end. If the snake does not eat the obstacle, it will disappear after 5 seconds. For this, we need to add mechanisms for obstacle generation, movement, and disappearance in the game logic.", "Project_name": "snake_game", "File list": ["main.py", "game.py", "snake.py", "food.py", "obstacle.py", "scoreboard.py", "constants.py", "assets/styles.css", "assets/index.html"], "Data structures and interfaces": "```mermaid\n    classDiagram\n        class Game{\n            +int score\n            +int speed\n            +bool game_over\n            +bool paused\n            +Snake snake\n            +Food food\n            +Obstacle obstacle\n            +Scoreboard scoreboard\n            +start_game() void\n            +pause_game() void\n            +resume_game() void\n            +end_game() void\n            +increase_difficulty() void\n            +update() void\n            +render() void\n            Game()\n        }\n        class Snake{\n            +list body_parts\n            +str direction\n            +bool grow\n            +move() void\n            +grow() void\n            +check_collision() bool\n            Snake()\n        }\n        class Food{\n            +tuple position\n            +spawn() void\n            Food()\n        }\n        class Obstacle{\n            +tuple position\n            +int lifetime\n            +bool active\n            +spawn() void\n            +move() void\n            +check_collision() bool\n            +disappear() void\n            Obstacle()\n        }\n        class Scoreboard{\n            +int high_score\n            +update_score(int) void\n            +reset_score() void\n            +load_high_score() void\n            +save_high_score() void\n            Scoreboard()\n        }\n        class Constants{\n        }\n        Game \"1\" -- \"1\" Snake: has\n        Game \"1\" -- \"1\" Food: has\n        Game \"1\" -- \"1\" Obstacle: has\n        Game \"1\" -- \"1\" Scoreboard: has\n    ```", "Program call flow": "```sequenceDiagram\n    participant M as Main\n    participant G as Game\n    participant S as Snake\n    participant F as Food\n    participant O as Obstacle\n    participant SB as Scoreboard\n    M->>G: start_game()\n    loop game loop\n        G->>S: move()\n        G->>S: check_collision()\n        G->>F: spawn()\n        G->>O: spawn()\n        G->>O: move()\n        G->>O: check_collision()\n        G->>O: disappear()\n        G->>SB: update_score(score)\n        G->>G: update()\n        G->>G: render()\n        alt if paused\n            M->>G: pause_game()\n            M->>G: resume_game()\n        end\n        alt if game_over\n            G->>M: end_game()\n        end\n    end\n```", "Anything UNCLEAR": "There is no need for further clarification as the requirements are already clear."}
@@ -178,17 +178,22 @@ class Snake:
 @pytest.mark.asyncio
 async def test_summarize_code():
     CONTEXT.src_workspace = CONTEXT.git_repo.workdir / "src"
-    await CONTEXT.file_repo.save_file(filename="1.json", relative_path=SYSTEM_DESIGN_FILE_REPO, content=DESIGN_CONTENT)
-    await CONTEXT.file_repo.save_file(filename="1.json", relative_path=TASK_FILE_REPO, content=TASK_CONTENT)
-    await CONTEXT.file_repo.save_file(filename="food.py", relative_path=CONTEXT.src_workspace, content=FOOD_PY)
-    await CONTEXT.file_repo.save_file(filename="game.py", relative_path=CONTEXT.src_workspace, content=GAME_PY)
-    await CONTEXT.file_repo.save_file(filename="main.py", relative_path=CONTEXT.src_workspace, content=MAIN_PY)
-    await CONTEXT.file_repo.save_file(filename="snake.py", relative_path=CONTEXT.src_workspace, content=SNAKE_PY)
+    project_repo = ProjectRepo(CONTEXT.git_repo)
+    await project_repo.docs.system_design.save(filename="1.json", content=DESIGN_CONTENT)
+    await project_repo.docs.task.save(filename="1.json", content=TASK_CONTENT)
+    await project_repo.with_src_path(CONTEXT.src_workspace).srcs.save(filename="food.py", content=FOOD_PY)
+    assert project_repo.srcs.workdir == CONTEXT.src_workspace
+    await project_repo.srcs.save(filename="game.py", content=GAME_PY)
+    await project_repo.srcs.save(filename="main.py", content=MAIN_PY)
+    await project_repo.srcs.save(filename="snake.py", content=SNAKE_PY)
 
-    src_file_repo = CONTEXT.git_repo.new_file_repository(relative_path=CONTEXT.src_workspace)
-    all_files = src_file_repo.all_files
+    all_files = project_repo.srcs.all_files
     ctx = CodeSummarizeContext(design_filename="1.json", task_filename="1.json", codes_filenames=all_files)
     action = SummarizeCode(i_context=ctx)
     rsp = await action.run()
     assert rsp
     logger.info(rsp)
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-s"])

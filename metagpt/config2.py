@@ -84,7 +84,7 @@ class Config(CLIParams, YamlModel):
     @classmethod
     def from_home(cls, path):
         """Load config from ~/.metagpt/config.yaml"""
-        return Config.model_validate_yaml(CONFIG_ROOT / path)
+        return Config.from_yaml_file(CONFIG_ROOT / path)
 
     @classmethod
     def default(cls):

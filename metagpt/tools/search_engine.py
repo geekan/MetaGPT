@@ -44,19 +44,20 @@ class SearchEngine:
         self,
         engine: Optional[SearchEngineType] = SearchEngineType.SERPER_GOOGLE,
         run_func: Callable[[str, int, bool], Coroutine[None, None, Union[str, list[str]]]] = None,
+        **kwargs,
     ):
         if engine == SearchEngineType.SERPAPI_GOOGLE:
             module = "metagpt.tools.search_engine_serpapi"
-            run_func = importlib.import_module(module).SerpAPIWrapper().run
+            run_func = importlib.import_module(module).SerpAPIWrapper(**kwargs).run
         elif engine == SearchEngineType.SERPER_GOOGLE:
             module = "metagpt.tools.search_engine_serper"
-            run_func = importlib.import_module(module).SerperWrapper().run
+            run_func = importlib.import_module(module).SerperWrapper(**kwargs).run
         elif engine == SearchEngineType.DIRECT_GOOGLE:
             module = "metagpt.tools.search_engine_googleapi"
-            run_func = importlib.import_module(module).GoogleAPIWrapper().run
+            run_func = importlib.import_module(module).GoogleAPIWrapper(**kwargs).run
         elif engine == SearchEngineType.DUCK_DUCK_GO:
             module = "metagpt.tools.search_engine_ddg"
-            run_func = importlib.import_module(module).DDGAPIWrapper().run
+            run_func = importlib.import_module(module).DDGAPIWrapper(**kwargs).run
         elif engine == SearchEngineType.CUSTOM_ENGINE:
             pass  # run_func = run_func
         else:

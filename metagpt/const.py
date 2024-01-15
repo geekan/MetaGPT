@@ -9,15 +9,12 @@
 @Modified By: mashenquan, 2023-11-27. Defines file repository paths according to Section 2.2.3.4 of RFC 135.
 @Modified By: mashenquan, 2023/12/5. Add directories for code summarization..
 """
-import contextvars
 import os
 from pathlib import Path
 
 from loguru import logger
 
 import metagpt
-
-OPTIONS = contextvars.ContextVar("OPTIONS", default={})
 
 
 def get_metagpt_package_root():
@@ -71,11 +68,9 @@ SOURCE_ROOT = METAGPT_ROOT / "metagpt"
 PROMPT_PATH = SOURCE_ROOT / "prompts"
 SKILL_DIRECTORY = SOURCE_ROOT / "skills"
 
-
 # REAL CONSTS
 
 MEM_TTL = 24 * 30 * 3600
-
 
 MESSAGE_ROUTE_FROM = "sent_from"
 MESSAGE_ROUTE_TO = "send_to"
@@ -89,23 +84,23 @@ BUGFIX_FILENAME = "bugfix.txt"
 PACKAGE_REQUIREMENTS_FILENAME = "requirements.txt"
 
 DOCS_FILE_REPO = "docs"
-PRDS_FILE_REPO = "docs/prds"
+PRDS_FILE_REPO = "docs/prd"
 SYSTEM_DESIGN_FILE_REPO = "docs/system_design"
-TASK_FILE_REPO = "docs/tasks"
+TASK_FILE_REPO = "docs/task"
 COMPETITIVE_ANALYSIS_FILE_REPO = "resources/competitive_analysis"
 DATA_API_DESIGN_FILE_REPO = "resources/data_api_design"
 SEQ_FLOW_FILE_REPO = "resources/seq_flow"
 SYSTEM_DESIGN_PDF_FILE_REPO = "resources/system_design"
 PRD_PDF_FILE_REPO = "resources/prd"
-TASK_PDF_FILE_REPO = "resources/api_spec_and_tasks"
+TASK_PDF_FILE_REPO = "resources/api_spec_and_task"
 TEST_CODES_FILE_REPO = "tests"
 TEST_OUTPUTS_FILE_REPO = "test_outputs"
-CODE_SUMMARIES_FILE_REPO = "docs/code_summaries"
-CODE_SUMMARIES_PDF_FILE_REPO = "resources/code_summaries"
+CODE_SUMMARIES_FILE_REPO = "docs/code_summary"
+CODE_SUMMARIES_PDF_FILE_REPO = "resources/code_summary"
 RESOURCES_FILE_REPO = "resources"
-SD_OUTPUT_FILE_REPO = "resources/SD_Output"
+SD_OUTPUT_FILE_REPO = "resources/sd_output"
 GRAPH_REPO_FILE_REPO = "docs/graph_repo"
-CLASS_VIEW_FILE_REPO = "docs/class_views"
+CLASS_VIEW_FILE_REPO = "docs/class_view"
 
 YAPI_URL = "http://yapi.deepwisdomai.com/"
 

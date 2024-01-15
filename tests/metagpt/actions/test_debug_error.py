@@ -11,9 +11,9 @@ import uuid
 import pytest
 
 from metagpt.actions.debug_error import DebugError
-from metagpt.const import TEST_CODES_FILE_REPO, TEST_OUTPUTS_FILE_REPO
 from metagpt.context import CONTEXT
 from metagpt.schema import RunCodeContext, RunCodeResult
+from metagpt.utils.project_repo import ProjectRepo
 
 CODE_CONTENT = '''
 from typing import List
@@ -118,6 +118,7 @@ if __name__ == '__main__':
 @pytest.mark.asyncio
 async def test_debug_error():
     CONTEXT.src_workspace = CONTEXT.git_repo.workdir / uuid.uuid4().hex
+    project_repo = ProjectRepo(CONTEXT.git_repo)
     ctx = RunCodeContext(
         code_filename="player.py",
         test_filename="test_player.py",
@@ -125,9 +126,8 @@ async def test_debug_error():
         output_filename="output.log",
     )
 
-    repo = CONTEXT.file_repo
-    await repo.save_file(filename=ctx.code_filename, content=CODE_CONTENT, relative_path=CONTEXT.src_workspace)
-    await repo.save_file(filename=ctx.test_filename, content=TEST_CONTENT, relative_path=TEST_CODES_FILE_REPO)
+    await project_repo.with_src_path(CONTEXT.src_workspace).srcs.save(filename=ctx.code_filename, content=CODE_CONTENT)
+    await project_repo.tests.save(filename=ctx.test_filename, content=TEST_CONTENT)
     output_data = RunCodeResult(
         stdout=";",
         stderr="",
@@ -141,9 +141,7 @@ async def test_debug_error():
         "----------------------------------------------------------------------\n"
         "Ran 5 tests in 0.007s\n\nFAILED (failures=1)\n;\n",
     )
-    await repo.save_file(
-        filename=ctx.output_filename, content=output_data.model_dump_json(), relative_path=TEST_OUTPUTS_FILE_REPO
-    )
+    await project_repo.test_outputs.save(filename=ctx.output_filename, content=output_data.model_dump_json())
     debug_error = DebugError(i_context=ctx)
 
     rsp = await debug_error.run()
