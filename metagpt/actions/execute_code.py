@@ -15,7 +15,7 @@ import nbformat
 from nbclient import NotebookClient
 from nbclient.exceptions import CellTimeoutError, DeadKernelError
 from nbformat import NotebookNode
-from nbformat.v4 import new_code_cell, new_output
+from nbformat.v4 import new_code_cell, new_output, new_markdown_cell
 from rich.console import Console
 from rich.syntax import Syntax
 
@@ -90,6 +90,9 @@ class ExecutePyCode(ExecuteCode, Action):
 
     def add_code_cell(self, code):
         self.nb.cells.append(new_code_cell(source=code))
+
+    def add_markdown_cell(self, markdown):
+        self.nb.cells.append(new_markdown_cell(source=markdown))
 
     def _display(self, code, language: str = "python"):
         if language == "python":
@@ -219,8 +222,9 @@ class ExecutePyCode(ExecuteCode, Action):
             outputs = self.parse_outputs(self.nb.cells[-1].outputs)
             return truncate(remove_escape_and_color_codes(outputs), is_success=success)
         else:
-            # TODO: markdown
-            raise NotImplementedError(f"Not support this code type : {language}, Only support code!")
+            # markdown
+            self.add_markdown_cell(code)
+            return code, True
 
 
 def truncate(result: str, keep_len: int = 2000, is_success: bool = True) -> str | bool:
