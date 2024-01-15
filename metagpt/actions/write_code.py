@@ -88,12 +88,12 @@ class WriteCode(Action):
         return code
 
     async def run(self, *args, **kwargs) -> CodingContext:
-        bug_feedback = await self.project_repo.docs.get(filename=BUGFIX_FILENAME)
+        bug_feedback = await self.repo.docs.get(filename=BUGFIX_FILENAME)
         coding_context = CodingContext.loads(self.i_context.content)
-        test_doc = await self.project_repo.test_outputs.get(filename="test_" + coding_context.filename + ".json")
+        test_doc = await self.repo.test_outputs.get(filename="test_" + coding_context.filename + ".json")
         summary_doc = None
         if coding_context.design_doc and coding_context.design_doc.filename:
-            summary_doc = await self.project_repo.docs.code_summary.get(filename=coding_context.design_doc.filename)
+            summary_doc = await self.repo.docs.code_summary.get(filename=coding_context.design_doc.filename)
         logs = ""
         if test_doc:
             test_detail = RunCodeResult.loads(test_doc.content)
@@ -105,7 +105,7 @@ class WriteCode(Action):
             code_context = await self.get_codes(
                 coding_context.task_doc,
                 exclude=self.i_context.filename,
-                project_repo=self.project_repo.with_src_path(self.context.src_workspace),
+                project_repo=self.repo.with_src_path(self.context.src_workspace),
             )
 
         prompt = PROMPT_TEMPLATE.format(

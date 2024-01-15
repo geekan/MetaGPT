@@ -34,8 +34,8 @@ class Action(SerializationMixin, ContextMixin, BaseModel):
     node: ActionNode = Field(default=None, exclude=True)
 
     @property
-    def project_repo(self):
-        return ProjectRepo(self.context.git_repo)
+    def repo(self) -> ProjectRepo:
+        return self.context.repo
 
     @property
     def prompt_schema(self):

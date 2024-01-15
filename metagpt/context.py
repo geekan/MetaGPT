@@ -17,6 +17,7 @@ from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.llm_provider_registry import create_llm_instance
 from metagpt.utils.cost_manager import CostManager
 from metagpt.utils.git_repository import GitRepository
+from metagpt.utils.project_repo import ProjectRepo
 
 
 class AttrDict(BaseModel):
@@ -58,6 +59,8 @@ class Context(BaseModel):
 
     kwargs: AttrDict = AttrDict()
     config: Config = Config.default()
+
+    repo: Optional[ProjectRepo] = None
     git_repo: Optional[GitRepository] = None
     src_workspace: Optional[Path] = None
     cost_manager: CostManager = CostManager()

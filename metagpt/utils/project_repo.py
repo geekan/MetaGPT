@@ -21,6 +21,7 @@ from metagpt.const import (
     GRAPH_REPO_FILE_REPO,
     PRD_PDF_FILE_REPO,
     PRDS_FILE_REPO,
+    REQUIREMENT_FILENAME,
     RESOURCES_FILE_REPO,
     SD_OUTPUT_FILE_REPO,
     SEQ_FLOW_FILE_REPO,
@@ -94,6 +95,10 @@ class ProjectRepo(FileRepository):
         self._srcs_path = None
 
     @property
+    async def requirement(self):
+        return await self.docs.get(filename=REQUIREMENT_FILENAME)
+
+    @property
     def git_repo(self) -> GitRepository:
         return self._git_repo
 
@@ -106,6 +111,15 @@ class ProjectRepo(FileRepository):
         if not self._srcs_path:
             raise ValueError("Call with_srcs first.")
         return self._git_repo.new_file_repository(self._srcs_path)
+
+    def code_files_exists(self) -> bool:
+        git_workdir = self.git_repo.workdir
+        src_workdir = git_workdir / git_workdir.name
+        if not src_workdir.exists():
+            return False
+        code_files = self.with_src_path(path=git_workdir / git_workdir.name).srcs.all_files
+        if not code_files:
+            return False
 
     def with_src_path(self, path: str | Path) -> ProjectRepo:
         try:
