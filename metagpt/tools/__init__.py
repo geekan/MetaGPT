@@ -76,6 +76,12 @@ TOOL_TYPE_MAPPINGS = {
         desc="Related to text2image, image2image using stable diffusion model.",
         usage_prompt="",
     ),
+    "scrape_web": ToolType(
+        name="scrape_web",
+        module="metagpt.tools.scrape_web",
+        desc="Scrape data from web page.",
+        usage_prompt="",
+    ),
     "other": ToolType(
         name="other",
         module="",
