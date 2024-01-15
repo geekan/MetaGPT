@@ -469,8 +469,10 @@ class ActionNode:
             return dict()
 
         prompt = template.format(
-            nodes_output=json.dumps(nodes_output, ensure_ascii=False), tag=TAG, constraint=FORMAT_CONSTRAINT,
-            prompt_schema="json"
+            nodes_output=json.dumps(nodes_output, ensure_ascii=False),
+            tag=TAG,
+            constraint=FORMAT_CONSTRAINT,
+            prompt_schema="json",
         )
 
         content = await self.llm.aask(prompt)
@@ -568,7 +570,7 @@ class ActionNode:
             example=example,
             instruction=instruction,
             constraint=FORMAT_CONSTRAINT,
-            prompt_schema="json"
+            prompt_schema="json",
         )
 
         # step2, use `_aask_v1` to get revise structure result
