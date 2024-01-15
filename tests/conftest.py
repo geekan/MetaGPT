@@ -127,7 +127,7 @@ def proxy():
         server = await asyncio.start_server(handle_client, "127.0.0.1", 0)
         return server, "http://{}:{}".format(*server.sockets[0].getsockname())
 
-    return proxy_func()
+    return proxy_func
 
 
 # see https://github.com/Delgan/loguru/issues/59#issuecomment-466591978
