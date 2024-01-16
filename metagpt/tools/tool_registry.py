@@ -25,7 +25,7 @@ class ToolRegistry:
 
     def register_tool_type(self, tool_type: ToolType):
         self.tool_types[tool_type.name] = tool_type
-        logger.info(f"{tool_type.name} registered")
+        logger.info(f"tool type {tool_type.name} registered")
 
     def register_tool(
         self,
@@ -51,16 +51,16 @@ class ToolRegistry:
 
         with open(schema_path, "r", encoding="utf-8") as f:
             schema_dict = yaml.safe_load(f)
-            schema = schema_dict.get(tool_name) or dict(schema_dict.values())
-        schema["tool_path"] = tool_path  # corresponding code file path of the tool
+            schemas = schema_dict.get(tool_name) or dict(schema_dict.values())
+        schemas["tool_path"] = tool_path  # corresponding code file path of the tool
         try:
-            ToolSchema(**schema)  # validation
+            ToolSchema(**schemas)  # validation
         except Exception:
             pass
             # logger.warning(
             #     f"{tool_name} schema not conforms to required format, but will be used anyway. Mismatch: {e}"
             # )
-        tool = Tool(name=tool_name, path=tool_path, schema=schema, code=tool_code)
+        tool = Tool(name=tool_name, path=tool_path, schemas=schemas, code=tool_code)
         self.tools[tool_name] = tool
         self.tools_by_types[tool_type_name][tool_name] = tool
         logger.info(f"{tool_name} registered")

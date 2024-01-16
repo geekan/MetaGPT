@@ -110,7 +110,7 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
             if TOOL_REGISTRY.has_tool(tool_name):
                 valid_tools.append(TOOL_REGISTRY.get_tool(tool_name))
 
-        tool_catalog = {tool.name: tool.schema for tool in valid_tools}
+        tool_catalog = {tool.name: tool.schemas for tool in valid_tools}
         return tool_catalog
 
     async def _tool_recommendation(
@@ -158,7 +158,7 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
         tool_catalog = {}
 
         if available_tools:
-            available_tools = {tool_name: tool.schema["description"] for tool_name, tool in available_tools.items()}
+            available_tools = {tool_name: tool.schemas["description"] for tool_name, tool in available_tools.items()}
 
             recommend_tools = await self._tool_recommendation(
                 plan.current_task.instruction, code_steps, available_tools
@@ -199,7 +199,7 @@ class WriteCodeWithToolsML(WriteCodeWithTools):
         code_context = "\n\n".join(code_context)
 
         if available_tools:
-            available_tools = {tool_name: tool.schema["description"] for tool_name, tool in available_tools.items()}
+            available_tools = {tool_name: tool.schemas["description"] for tool_name, tool in available_tools.items()}
 
             recommend_tools = await self._tool_recommendation(
                 plan.current_task.instruction, code_steps, available_tools

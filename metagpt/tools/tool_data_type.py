@@ -29,5 +29,5 @@ class ToolSchema(BaseModel):
 class Tool(BaseModel):
     name: str
     path: str
-    schema: dict = {}
+    schemas: dict = {}
     code: str = ""
