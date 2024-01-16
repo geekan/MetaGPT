@@ -19,7 +19,10 @@ from nbformat.v4 import new_code_cell, new_output, new_markdown_cell
 from rich.console import Console
 from rich.syntax import Syntax
 from rich.markdown import Markdown
-
+from rich.panel import Panel
+from rich.box import MINIMAL
+from rich.live import Live
+from rich.console import Group
 
 from metagpt.actions import Action
 from metagpt.logs import logger
@@ -101,8 +104,7 @@ class ExecutePyCode(ExecuteCode, Action):
             code = Syntax(code, "python", theme="paraiso-dark", line_numbers=True)
             self.console.print(code)
         elif language == "markdown":
-            code = Markdown(code, inline_code_theme="paraiso-dark")
-            self.console.print(code)
+            _display_markdown(code)
         else:
             raise ValueError(f"Only support for python, markdown, but got {language}")
 
@@ -265,3 +267,31 @@ def remove_escape_and_color_codes(input_str):
     pattern = re.compile(r"\x1b\[[0-9;]*[mK]")
     result = pattern.sub("", input_str)
     return result
+
+
+def _display_markdown(content: str):
+    # 使用正则表达式逐个匹配代码块
+    matches = re.finditer(r'```(.+?)```', content, re.DOTALL)
+    start_index = 0
+    content_panels = []
+    # 逐个打印匹配到的文本和代码
+    for match in matches:
+        text_content = content[start_index:match.start()].strip()
+        code_content = match.group(0).strip()[3:-3]           # Remove triple backticks
+
+        if text_content:
+            content_panels.append(Panel(Markdown(text_content), box=MINIMAL))
+
+        if code_content:
+            content_panels.append(Panel(Markdown(f"```{code_content}"), box=MINIMAL))
+        start_index = match.end()
+
+    # 打印剩余文本（如果有）
+    remaining_text = content[start_index:].strip()
+    if remaining_text:
+        content_panels.append(Panel(Markdown(remaining_text), box=MINIMAL))
+
+    # 在Live模式中显示所有Panel
+    with Live(auto_refresh=False, console=Console(), vertical_overflow="visible") as live:
+        live.update(Group(*content_panels))
+        live.refresh()
