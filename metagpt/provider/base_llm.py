@@ -13,6 +13,7 @@ from typing import Optional, Union
 from openai import AsyncOpenAI
 
 from metagpt.configs.llm_config import LLMConfig
+from metagpt.logs import logger
 from metagpt.schema import Message
 from metagpt.utils.cost_manager import CostManager
 
@@ -65,6 +66,7 @@ class BaseLLM(ABC):
         if format_msgs:
             message.extend(format_msgs)
         message.append(self._user_msg(msg))
+        logger.debug(message)
         rsp = await self.acompletion_text(message, stream=stream, timeout=timeout)
         return rsp
 
