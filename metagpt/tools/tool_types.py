@@ -1,4 +1,4 @@
-from metagpt.prompts.tool_type import (
+from metagpt.prompts.tool_types import (
     DATA_PREPROCESS_PROMPT,
     FEATURE_ENGINEERING_PROMPT,
     MODEL_EVALUATE_PROMPT,
