@@ -34,12 +34,7 @@
 <p align="center">Software Company Multi-Role Schematic (Gradually Implementing)</p>
 
 ## News
-🚀 Jan 16: Congratulations! Our paper has been accepted by ICLR 2024 for oral presentation! More details about our paper are [here](https://openreview.net/forum?id=VtmBAGCN7o). Note: The overall acceptance rate is around 31% (similar to last year). The fraction of papers accepted for spotlights is 5% and the fraction of papers accepted for oral is 1.2%.
-
-<p align="center">
-   <img src="docs/resources/ICLR.jpg" width = 60% height=60%>
-</p>
-
+🚀 Jan 16: Congratulations! Our paper has been accepted by ICLR 2024 for oral presentation! More details are [here](https://openreview.net/forum?id=VtmBAGCN7o). Note: The overall acceptance rate is around 31% (similar to last year). The fraction of papers accepted for oral is 1.2%.
 
 
 🚀 Jan 03: Here comes [v0.6.0](https://github.com/geekan/MetaGPT/releases/tag/v0.6.0)! In this version, we added serialization and deserialization of important objects and enabled breakpoint recovery. We upgraded OpenAI package to v1.6.0 and supported Gemini, ZhipuAI, Ollama, OpenLLM, etc. Moreover, we provided extremely simple examples where you need only 7 lines to implement a general election [debate](https://github.com/geekan/MetaGPT/blob/main/examples/debate_simple.py). Check out more details [here](https://github.com/geekan/MetaGPT/releases/tag/v0.6.0)!
