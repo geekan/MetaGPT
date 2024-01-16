@@ -63,7 +63,7 @@ class FileRepository:
             await dependency_file.update(pathname, set(dependencies))
             logger.info(f"update dependency: {str(pathname)}:{dependencies}")
 
-        return Document(root_path=str(self._relative_path), filename=filename, content=content)
+        return Document(root_path=str(self._relative_path), filename=str(filename), content=content)
 
     async def get_dependency(self, filename: Path | str) -> Set[str]:
         """Get the dependencies of a file.

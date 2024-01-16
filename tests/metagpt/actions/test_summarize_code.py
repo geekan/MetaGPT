@@ -6,12 +6,17 @@
 @File    : test_summarize_code.py
 @Modifiled By: mashenquan, 2023-12-6. Unit test for summarize_code.py
 """
+import shutil
+import uuid
+from pathlib import Path
+
 import pytest
 
 from metagpt.actions.summarize_code import SummarizeCode
-from metagpt.context import CONTEXT
+from metagpt.context import Context
 from metagpt.logs import logger
 from metagpt.schema import CodeSummarizeContext
+from metagpt.utils.git_repository import GitRepository
 from metagpt.utils.project_repo import ProjectRepo
 
 DESIGN_CONTENT = """
@@ -177,22 +182,34 @@ class Snake:
 
 @pytest.mark.asyncio
 async def test_summarize_code():
-    CONTEXT.src_workspace = CONTEXT.git_repo.workdir / "src"
-    project_repo = ProjectRepo(CONTEXT.git_repo)
-    await project_repo.docs.system_design.save(filename="1.json", content=DESIGN_CONTENT)
-    await project_repo.docs.task.save(filename="1.json", content=TASK_CONTENT)
-    await project_repo.with_src_path(CONTEXT.src_workspace).srcs.save(filename="food.py", content=FOOD_PY)
-    assert project_repo.srcs.workdir == CONTEXT.src_workspace
-    await project_repo.srcs.save(filename="game.py", content=GAME_PY)
-    await project_repo.srcs.save(filename="main.py", content=MAIN_PY)
-    await project_repo.srcs.save(filename="snake.py", content=SNAKE_PY)
+    git_dir = Path(__file__).parent / f"unittest/{uuid.uuid4().hex}"
+    git_dir.mkdir(parents=True, exist_ok=True)
 
-    all_files = project_repo.srcs.all_files
-    ctx = CodeSummarizeContext(design_filename="1.json", task_filename="1.json", codes_filenames=all_files)
-    action = SummarizeCode(i_context=ctx)
-    rsp = await action.run()
-    assert rsp
-    logger.info(rsp)
+    try:
+        context = Context()
+        context.git_repo = GitRepository(local_path=git_dir)
+        context.src_workspace = context.git_repo.workdir / "src"
+        project_repo = ProjectRepo(context.git_repo)
+        await project_repo.docs.system_design.save(filename="1.json", content=DESIGN_CONTENT)
+        await project_repo.docs.task.save(filename="1.json", content=TASK_CONTENT)
+        await project_repo.with_src_path(context.src_workspace).srcs.save(filename="food.py", content=FOOD_PY)
+        assert project_repo.srcs.workdir == context.src_workspace
+        await project_repo.srcs.save(filename="game.py", content=GAME_PY)
+        await project_repo.srcs.save(filename="main.py", content=MAIN_PY)
+        await project_repo.srcs.save(filename="snake.py", content=SNAKE_PY)
+
+        all_files = project_repo.srcs.all_files
+        summarization_context = CodeSummarizeContext(
+            design_filename="1.json", task_filename="1.json", codes_filenames=all_files
+        )
+        action = SummarizeCode(context=context, i_context=summarization_context)
+        rsp = await action.run()
+        assert rsp
+        logger.info(rsp)
+    except Exception as e:
+        assert not e
+    finally:
+        shutil.rmtree(git_dir)
 
 
 if __name__ == "__main__":
