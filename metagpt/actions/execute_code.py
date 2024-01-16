@@ -18,6 +18,8 @@ from nbformat import NotebookNode
 from nbformat.v4 import new_code_cell, new_output, new_markdown_cell
 from rich.console import Console
 from rich.syntax import Syntax
+from rich.markdown import Markdown
+
 
 from metagpt.actions import Action
 from metagpt.logs import logger
@@ -97,8 +99,12 @@ class ExecutePyCode(ExecuteCode, Action):
     def _display(self, code, language: str = "python"):
         if language == "python":
             code = Syntax(code, "python", theme="paraiso-dark", line_numbers=True)
-            self.console.print("\n")
             self.console.print(code)
+        elif language == "markdown":
+            code = Markdown(code, inline_code_theme="paraiso-dark")
+            self.console.print(code)
+        else:
+            raise ValueError(f"Only support for python, markdown, but got {language}")
 
     def add_output_to_cell(self, cell, output):
         if "outputs" not in cell:
@@ -221,10 +227,12 @@ class ExecutePyCode(ExecuteCode, Action):
             # code success
             outputs = self.parse_outputs(self.nb.cells[-1].outputs)
             return truncate(remove_escape_and_color_codes(outputs), is_success=success)
-        else:
+        elif language == 'markdown':
             # markdown
             self.add_markdown_cell(code)
             return code, True
+        else:
+            raise ValueError(f"Only support for language: python, markdown, but got {language}, ")
 
 
 def truncate(result: str, keep_len: int = 2000, is_success: bool = True):
