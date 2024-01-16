@@ -101,4 +101,7 @@ def llm():
 async def test_write_design_an():
     node = await REFINED_DESIGN_NODES.fill(CONTEXT, llm)
     assert node.instruct_content
+    assert "Refined Implementation Approach" in node.instruct_content.model_dump_json()
+    assert "Refined File List" in node.instruct_content.model_dump_json()
     assert "Refined Data Structures and Interfaces" in node.instruct_content.model_dump_json()
+    assert "Refined Program call flow" in node.instruct_content.model_dump_json()

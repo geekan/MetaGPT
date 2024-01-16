@@ -157,6 +157,24 @@ class WriteCode(Action):
 
     @staticmethod
     async def get_codes(task_doc, exclude, mode="normal") -> str:
+        """
+        Get code snippets based on different modes.
+
+        Attributes:
+            task_doc (Document): Document object of the task file.
+            exclude (str): Specifies the filename to be excluded from the code snippets.
+            mode (str): Specifies the mode, either "normal" or "guide" (default is "normal").
+
+        Returns:
+            str: Code snippets.
+
+        Description:
+        If mode is set to "normal", it returns code snippets for the regular coding phase,
+        i.e., all the code generated before writing the current file.
+
+        If mode is set to "guide", it returns code snippets for incremental development,
+        building upon the existing code in the "normal" mode and adding code for the current file's older versions.
+        """
         if not task_doc:
             return ""
         if not task_doc.content:
@@ -173,6 +191,8 @@ class WriteCode(Action):
             union_files_list = list(set(src_files) | set(old_files))
             for filename in union_files_list:
                 if filename == exclude:
+                    # Exclude unnecessary code to maintain a clean and focused main.py file, ensuring only relevant and
+                    # essential functionality is included for the project’s requirements
                     if filename in old_files and filename != "main.py":
                         # Use legacy code
                         doc = await old_file_repo.get(filename=filename)

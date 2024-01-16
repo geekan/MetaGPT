@@ -18,14 +18,6 @@ IMPLEMENTATION_APPROACH = ActionNode(
     example="We will ...",
 )
 
-INCREMENTAL_IMPLEMENTATION_APPROACH = ActionNode(
-    key="Incremental Implementation approach",
-    expected_type=str,
-    instruction="Analyze the challenging aspects of the requirements and select a suitable open-source framework. "
-    "Outline the incremental steps involved in the implementation process with the detailed strategies.",
-    example="we will ...",
-)
-
 REFINED_IMPLEMENTATION_APPROACH = ActionNode(
     key="Refined Implementation Approach",
     expected_type=str,
@@ -63,16 +55,6 @@ DATA_STRUCTURES_AND_INTERFACES = ActionNode(
     example=MMC1,
 )
 
-INCREMENTAL_DATA_STRUCTURES_AND_INTERFACES = ActionNode(
-    key="Incremental Data structures and interfaces",
-    expected_type=str,
-    instruction="Extend the existing mermaid classDiagram code syntax to incorporate new classes, "
-    "methods (including __init__), and functions with precise type annotations. Clearly delineate additional "
-    "relationships between classes, maintaining adherence to PEP8 standards. Enhance the level of detail in data "
-    "structures, ensuring a comprehensive API design that seamlessly integrates with the existing structure.",
-    example=MMC1_REFINE,
-)
-
 REFINED_DATA_STRUCTURES_AND_INTERFACES = ActionNode(
     key="Refined Data Structures and Interfaces",
     expected_type=str,
@@ -108,32 +90,6 @@ ANYTHING_UNCLEAR = ActionNode(
     example="Clarification needed on third-party API integration, ...",
 )
 
-INC_DESIGN_CONTEXT = """
-## Legacy Content
-{old_design}
-
-## New Requirements
-{requirements}
-
-## PRD Increment Content
-{prd_increment}
-"""
-
-MERGE_DESIGN_CONTEXT = """
-Role: You are a professional Architect tasked with overseeing incremental development. 
-Based on new requirements, review and refine the system design. Integrate existing architecture with incremental design changes, ensuring the refined design encompasses all architectural elements, enhancements, and adjustments. Retain content unrelated to incremental development needs for coherence and clarity.
-
-# Context
-## New Requirements
-{requirements}
-
-## Legacy Content
-{old_design}
-
-## Design Increment Content
-{design_increment}
-"""
-
 NODES = [
     IMPLEMENTATION_APPROACH,
     # PROJECT_NAME,
@@ -142,8 +98,6 @@ NODES = [
     PROGRAM_CALL_FLOW,
     ANYTHING_UNCLEAR,
 ]
-
-INC_NODES = [INCREMENTAL_IMPLEMENTATION_APPROACH, INCREMENTAL_DATA_STRUCTURES_AND_INTERFACES, REFINED_PROGRAM_CALL_FLOW]
 
 REFINE_NODES = [
     REFINED_IMPLEMENTATION_APPROACH,
@@ -154,7 +108,6 @@ REFINE_NODES = [
 ]
 
 DESIGN_API_NODE = ActionNode.from_children("DesignAPI", NODES)
-INCREMENTAL_DESIGN_NODES = ActionNode.from_children("Incremental_Design_API", INC_NODES)
 REFINED_DESIGN_NODES = ActionNode.from_children("Refined_Design_API", REFINE_NODES)
 
 

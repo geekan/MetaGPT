@@ -85,4 +85,8 @@ def llm():
 async def test_write_prd_an(llm):
     node = await REFINE_PRD_NODE.fill(CONTEXT, llm)
     assert node.instruct_content
+    assert "Refined Requirements" in node.instruct_content.model_dump_json()
+    assert "Refined Product Goals" in node.instruct_content.model_dump_json()
+    assert "Refined User Stories" in node.instruct_content.model_dump_json()
+    assert "Refined Requirement Analysis" in node.instruct_content.model_dump_json()
     assert "Refined Requirement Pool" in node.instruct_content.model_dump_json()

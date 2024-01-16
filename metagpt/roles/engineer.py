@@ -119,18 +119,9 @@ class Engineer(Role):
                 self._init_action_system_message(action)
                 coding_context = await action.run(guideline=guideline)
 
-            # Get dependencies
+            dependencies = {coding_context.design_doc.root_relative_path, coding_context.task_doc.root_relative_path}
             if guideline:
-                dependencies = {
-                    coding_context.design_doc.root_relative_path,
-                    coding_context.task_doc.root_relative_path,
-                    "code_guideline.json",
-                }
-            else:
-                dependencies = {
-                    coding_context.design_doc.root_relative_path,
-                    coding_context.task_doc.root_relative_path,
-                }
+                dependencies.add("code_guideline.json")
             await src_file_repo.save(
                 coding_context.filename,
                 dependencies=dependencies,
@@ -344,6 +335,7 @@ class Engineer(Role):
         return self.next_todo_action
 
     async def _write_code_guideline(self):
+        """Write some guidelines that guides subsequent WriteCode and WriteCodeReview"""
         logger.info("Writing code guideline..")
 
         user_requirement = str(self.rc.memory.get_by_role("Human")[0])

@@ -9,6 +9,7 @@ import asyncio
 
 from metagpt.actions.action import Action
 from metagpt.actions.action_node import ActionNode
+from metagpt.logs import logger
 
 GUIDELINES_AND_INCREMENTAL_CHANGE = ActionNode(
     key="Guidelines and Incremental Change",
@@ -455,7 +456,7 @@ async def main():
     write_code_guideline = WriteCodeGuideline()
     node = await write_code_guideline.run(CODE_GUIDELINE_CONTEXT_EXAMPLE)
     guideline = node.instruct_content.model_dump_json()
-    print(guideline)
+    logger.info(guideline)
 
 
 if __name__ == "__main__":

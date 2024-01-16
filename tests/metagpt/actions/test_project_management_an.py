@@ -141,4 +141,8 @@ def llm():
 async def test_project_management_an(llm):
     node = await REFINED_PM_NODES.fill(CONTEXT, llm)
     assert node.instruct_content
+    assert "Required Python Packages" in node.instruct_content.model_dump_json()
+    assert "Required Other Language Packages" in node.instruct_content.model_dump_json()
     assert "Refined Logic Analysis" in node.instruct_content.model_dump_json()
+    assert "Refined Task List" in node.instruct_content.model_dump_json()
+    assert "Refined Shared Knowledge" in node.instruct_content.model_dump_json()

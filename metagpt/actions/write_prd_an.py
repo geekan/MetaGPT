@@ -130,14 +130,6 @@ REQUIREMENT_ANALYSIS = ActionNode(
     example="",
 )
 
-INCREMENTAL_REQUIREMENT_ANALYSIS = ActionNode(
-    key="Incremental Requirement Analysis",
-    expected_type=List[str],
-    instruction="Propose the comprehensive incremental development requirement analysis on new features and enhanced "
-    "features for New Requirements.",
-    example=["Require add/update/modify ..."],
-)
-
 REFINED_REQUIREMENT_ANALYSIS = ActionNode(
     key="Refined Requirement Analysis",
     expected_type=List[str],
@@ -194,22 +186,6 @@ REASON = ActionNode(
     key="reason", expected_type=str, instruction="Explain the reasoning process from question to answer", example="..."
 )
 
-
-INCREMENTAL_PRD_CONTEXT = """
-Role: You are a professional Product Manager tasked with overseeing incremental development. 
-Based on New Requirements, output a New PRD that seamlessly integrates both the Legacy Content and the Incremental Content. Ensure the resulting document captures the complete scope of features, enhancements, and retain content unrelated to incremental development needs for coherence and clarity.
-
-# Context
-## New Requirements
-{requirements}
-
-## Legacy Content
-{old_prd}
-
-## PRD Incremental Content
-{prd_increment}
-"""
-
 REFINE_PRD_TEMPLATE = """
 ### Project Name
 {project_name}
@@ -255,11 +231,8 @@ REFINE_NODES = [
     ANYTHING_UNCLEAR,
 ]
 
-INCREMENT_PRD_NODES = [INCREMENTAL_REQUIREMENT_ANALYSIS, REQUIREMENT_POOL]
-
 WRITE_PRD_NODE = ActionNode.from_children("WritePRD", NODES)
 REFINE_PRD_NODE = ActionNode.from_children("RefinePRD", REFINE_NODES)
-INCREMENTAL_PRD_NODE = ActionNode.from_children("IncrementalPRD", INCREMENT_PRD_NODES)
 WP_ISSUE_TYPE_NODE = ActionNode.from_children("WP_ISSUE_TYPE", [ISSUE_TYPE, REASON])
 WP_IS_RELATIVE_NODE = ActionNode.from_children("WP_IS_RELATIVE", [IS_RELATIVE, REASON])
 
