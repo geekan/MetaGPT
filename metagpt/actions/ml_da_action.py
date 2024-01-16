@@ -63,4 +63,4 @@ class UpdateDataColumns(Action):
         prompt = UPDATE_DATA_COLUMNS.format(history_code=code_context)
         tool_config = create_func_config(PRINT_DATA_COLUMNS)
         rsp = await self.llm.aask_code(prompt, **tool_config)
-        return rsp
+        return rsp["code"]

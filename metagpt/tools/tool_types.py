@@ -9,6 +9,12 @@ from metagpt.tools.tool_registry import register_tool_type
 
 
 @register_tool_type
+class EDA(ToolType):
+    name: str = ToolTypeEnum.EDA.value
+    desc: str = "Useful for performing exploratory data analysis"
+
+
+@register_tool_type
 class DataPreprocess(ToolType):
     name: str = ToolTypeEnum.DATA_PREPROCESS.value
     desc: str = "Only for changing value inplace."

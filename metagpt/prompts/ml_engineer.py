@@ -134,16 +134,12 @@ PRINT_DATA_COLUMNS = {
     "parameters": {
         "type": "object",
         "properties": {
-            "is_update": {
-                "type": "boolean",
-                "description": "Whether need to update the column info.",
-            },
             "code": {
                 "type": "string",
                 "description": "The code to be added to a new cell in jupyter.",
             },
         },
-        "required": ["is_update", "code"],
+        "required": ["code"],
     },
 }
 
@@ -240,7 +236,7 @@ Strictly follow steps below when you writing code if it's convenient.
 - You can freely combine the use of any other public packages, like sklearn, numpy, pandas, etc..
 
 # Available Tools:
-Each Class tool is described in JSON format. When you call a tool, import the tool from `{module_name}` first.
+Each Class tool is described in JSON format. When you call a tool, import the tool from its path first.
 {tool_catalog}
 
 # Output Example:

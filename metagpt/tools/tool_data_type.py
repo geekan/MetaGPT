@@ -4,6 +4,7 @@ from pydantic import BaseModel
 
 
 class ToolTypeEnum(Enum):
+    EDA = "eda"
     DATA_PREPROCESS = "data_preprocess"
     FEATURE_ENGINEERING = "feature_engineering"
     MODEL_TRAIN = "model_train"

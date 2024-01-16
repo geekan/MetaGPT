@@ -155,10 +155,6 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
         )
         code_steps = plan.current_task.code_steps
 
-        finished_tasks = plan.get_finished_tasks()
-        code_context = [remove_comments(task.code) for task in finished_tasks]
-        code_context = "\n\n".join(code_context)
-
         tool_catalog = {}
 
         if available_tools:
@@ -189,25 +185,27 @@ class WriteCodeWithToolsML(WriteCodeWithTools):
         column_info: str = "",
         **kwargs,
     ) -> Tuple[List[Message], str]:
-        tool_type = plan.current_task.task_type
-        available_tools = self.available_tools.get(tool_type, {})
-        special_prompt = TOOL_TYPE_USAGE_PROMPT.get(tool_type, "")
+        tool_type = (
+            plan.current_task.task_type
+        )  # find tool type from task type through exact match, can extend to retrieval in the future
+        available_tools = TOOL_REGISTRY.get_tools_by_type(tool_type)
+        special_prompt = (
+            TOOL_REGISTRY.get_tool_type(tool_type).usage_prompt if TOOL_REGISTRY.has_tool_type(tool_type) else ""
+        )
         code_steps = plan.current_task.code_steps
 
         finished_tasks = plan.get_finished_tasks()
         code_context = [remove_comments(task.code) for task in finished_tasks]
         code_context = "\n\n".join(code_context)
 
-        if len(available_tools) > 0:
-            available_tools = {k: v["description"] for k, v in available_tools.items()}
+        if available_tools:
+            available_tools = {tool_name: tool.schema["description"] for tool_name, tool in available_tools.items()}
 
             recommend_tools = await self._tool_recommendation(
                 plan.current_task.instruction, code_steps, available_tools
             )
-            tool_catalog = self._parse_recommend_tools(tool_type, recommend_tools)
+            tool_catalog = self._parse_recommend_tools(recommend_tools)
             logger.info(f"Recommended tools: \n{recommend_tools}")
-
-            module_name = TOOL_TYPE_MODULE[tool_type]
 
             prompt = ML_TOOL_USAGE_PROMPT.format(
                 user_requirement=plan.goal,
@@ -216,7 +214,6 @@ class WriteCodeWithToolsML(WriteCodeWithTools):
                 column_info=column_info,
                 special_prompt=special_prompt,
                 code_steps=code_steps,
-                module_name=module_name,
                 tool_catalog=tool_catalog,
             )
 
