@@ -61,7 +61,7 @@ Follow instructions of nodes, generate output and make sure it follows the forma
 
 REVIEW_TEMPLATE = """
 ## context
-Compare the keys of nodes_output and the corresponding requirements one by one. If a key that does not match the requirement is found, provide the comment content on how to modify it. No output is required for matching keys.
+Compare the key's value of nodes_output and the corresponding requirements one by one. If a key's value that does not match the requirement is found, provide the comment content on how to modify it. No output is required for matching keys.
 
 ### nodes_output
 {nodes_output}
@@ -86,7 +86,7 @@ Compare the keys of nodes_output and the corresponding requirements one by one. 
 {constraint}
 
 ## action
-generate output and make sure it follows the format example.
+Follow format example's {prompt_schema} format, generate output and make sure it follows the format example.
 """
 
 REVISE_TEMPLATE = """
@@ -108,7 +108,7 @@ change the nodes_output key's value to meet its comment and no need to add extra
 {constraint}
 
 ## action
-generate output and make sure it follows the format example.
+Follow format example's {prompt_schema} format, generate output and make sure it follows the format example.
 """
 
 
@@ -469,7 +469,10 @@ class ActionNode:
             return dict()
 
         prompt = template.format(
-            nodes_output=json.dumps(nodes_output, ensure_ascii=False, indent=4), tag=TAG, constraint=FORMAT_CONSTRAINT
+            nodes_output=json.dumps(nodes_output, ensure_ascii=False),
+            tag=TAG,
+            constraint=FORMAT_CONSTRAINT,
+            prompt_schema="json",
         )
 
         content = await self.llm.aask(prompt)
@@ -563,10 +566,11 @@ class ActionNode:
         instruction = self.compile_instruction(schema="markdown", mode="auto", exclude=exclude_keys)
 
         prompt = template.format(
-            nodes_output=json.dumps(nodes_output, ensure_ascii=False, indent=4),
+            nodes_output=json.dumps(nodes_output, ensure_ascii=False),
             example=example,
             instruction=instruction,
             constraint=FORMAT_CONSTRAINT,
+            prompt_schema="json",
         )
 
         # step2, use `_aask_v1` to get revise structure result

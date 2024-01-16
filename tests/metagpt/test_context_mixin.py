@@ -95,7 +95,7 @@ def test_config_mixin_4_multi_inheritance_override_config():
 
     print(obj.__dict__.keys())
     assert "private_config" in obj.__dict__.keys()
-    assert obj.llm.model == "mock_zhipu_model"
+    assert obj.config.llm.model == "mock_zhipu_model"
 
 
 @pytest.mark.asyncio

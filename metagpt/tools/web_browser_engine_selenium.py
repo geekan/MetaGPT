@@ -33,7 +33,7 @@ class SeleniumWrapper:
 
     def __init__(
         self,
-        browser_type: Literal["chrome", "firefox", "edge", "ie"] | None = None,
+        browser_type: Literal["chrome", "firefox", "edge", "ie"] = "chrome",
         launch_kwargs: dict | None = None,
         *,
         loop: asyncio.AbstractEventLoop | None = None,

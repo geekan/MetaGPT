@@ -10,8 +10,9 @@
 
 from pydantic import Field
 
-from metagpt.actions import ActionOutput, SearchAndSummarize
+from metagpt.actions import SearchAndSummarize
 from metagpt.actions.action_node import ActionNode
+from metagpt.actions.action_output import ActionOutput
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
