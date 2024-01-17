@@ -7,7 +7,6 @@
 @Modified By: mashenquan, 2023/11/27. Following the think-act principle, solidify the task parameters when creating the
         WriteCode object, rather than passing them in when calling the run function.
 """
-import json
 
 from pydantic import Field
 from tenacity import retry, stop_after_attempt, wait_random_exponential
@@ -15,7 +14,7 @@ from tenacity import retry, stop_after_attempt, wait_random_exponential
 from metagpt.actions import WriteCode
 from metagpt.actions.action import Action
 from metagpt.config import CONFIG
-from metagpt.const import DOCS_FILE_REPO, PRDS_FILE_REPO, REQUIREMENT_FILENAME
+from metagpt.const import DOCS_FILE_REPO, REQUIREMENT_FILENAME
 from metagpt.logs import logger
 from metagpt.schema import CodingContext
 from metagpt.utils.common import CodeParser
@@ -139,7 +138,8 @@ class WriteCodeReview(Action):
 
     async def run(self, *args, **kwargs) -> CodingContext:
         iterative_code = self.context.code_doc.content
-        k = CONFIG.code_review_k_times or 1
+        # k = CONFIG.code_review_k_times or 1
+        k = 1
         guideline = kwargs.get("guideline")
         mode = "guide" if guideline else "normal"
         for i in range(k):
@@ -156,24 +156,14 @@ class WriteCodeReview(Action):
                     ]
                 )
             else:
-                docs_file_repo = CONFIG.git_repo.new_file_repository(relative_path=DOCS_FILE_REPO)
-                requirement_doc = await docs_file_repo.get(filename=REQUIREMENT_FILENAME)
+                requirement_doc = await CONFIG.git_repo.new_file_repository(relative_path=DOCS_FILE_REPO).get(
+                    filename=REQUIREMENT_FILENAME
+                )
                 user_requirement = requirement_doc.content if requirement_doc else ""
-                prd = await CONFIG.git_repo.new_file_repository(PRDS_FILE_REPO).get_all()
-
-                contents = []
-                for doc in prd:
-                    prd_json = json.loads(doc.content)
-                    product_requirement_pool = prd_json.get(
-                        "Requirement Pool", prd_json.get("Refined Requirement Pool")
-                    )
-                    contents.append(str(product_requirement_pool))
-                product_requirement_pools = "\n".join(contents)
 
                 context = "\n".join(
                     [
                         "## User New Requirements\n" + str(user_requirement) + "\n",
-                        "## Product Requirement Pool\n" + product_requirement_pools + "\n",
                         "## Guidelines and Incremental Change\n" + guideline + "\n",
                         "## System Design\n" + str(self.context.design_doc) + "\n",
                         "## Tasks\n" + task_content + "\n",
