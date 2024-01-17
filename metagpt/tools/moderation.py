@@ -11,8 +11,8 @@ from metagpt.llm import LLM
 
 
 class Moderation:
-    def __init__(self):
-        self.llm = LLM()
+    def __init__(self, llm=None):
+        self.llm = llm or LLM()
 
     def handle_moderation_results(self, results):
         resp = []

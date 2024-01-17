@@ -494,6 +494,7 @@ class Role(SerializationMixin, is_polymorphic_base=True):
 
     async def think(self) -> Action:
         """The exported `think` function"""
+        await self._observe()
         await self._think()
         return self.rc.todo
 
