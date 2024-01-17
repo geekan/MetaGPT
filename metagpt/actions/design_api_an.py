@@ -39,7 +39,7 @@ FILE_LIST = ActionNode(
 )
 
 REFINED_FILE_LIST = ActionNode(
-    key="Refined File List",
+    key="Refined File list",
     expected_type=List[str],
     instruction="Update and expand the original file list including only relative paths. Up to 2 files can be added."
     "Ensure that the refined file list reflects the evolving structure of the project.",
@@ -56,7 +56,7 @@ DATA_STRUCTURES_AND_INTERFACES = ActionNode(
 )
 
 REFINED_DATA_STRUCTURES_AND_INTERFACES = ActionNode(
-    key="Refined Data Structures and Interfaces",
+    key="Refined Data structures and interfaces",
     expected_type=str,
     instruction="Update and extend the existing mermaid classDiagram code syntax to incorporate new classes, "
     "methods (including __init__), and functions with precise type annotations. Delineate additional "
@@ -108,7 +108,7 @@ REFINE_NODES = [
 ]
 
 DESIGN_API_NODE = ActionNode.from_children("DesignAPI", NODES)
-REFINED_DESIGN_NODES = ActionNode.from_children("Refined_Design_API", REFINE_NODES)
+REFINED_DESIGN_NODES = ActionNode.from_children("RefinedDesignAPI", REFINE_NODES)
 
 
 def main():

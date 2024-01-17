@@ -26,6 +26,7 @@ from pathlib import Path
 from typing import Set
 
 from metagpt.actions import Action, WriteCode, WriteCodeReview, WriteTasks
+from metagpt.actions.action_node import dict_to_markdown
 from metagpt.actions.fix_bug import FixBug
 from metagpt.actions.summarize_code import SummarizeCode
 from metagpt.actions.write_code_guideline_an import (
@@ -34,6 +35,7 @@ from metagpt.actions.write_code_guideline_an import (
 )
 from metagpt.config import CONFIG
 from metagpt.const import (
+    CODE_GUIDELINE_PDF_FILE_REPO,
     CODE_SUMMARIES_FILE_REPO,
     CODE_SUMMARIES_PDF_FILE_REPO,
     PRDS_FILE_REPO,
@@ -101,7 +103,7 @@ class Engineer(Role):
         m = json.loads(task_msg.content)
         return m.get("Task list") or m.get("Refined Task list")
 
-    async def _act_sp_with_cr(self, review=False, guideline="") -> Set[str]:
+    async def _act_sp_with_cr(self, review=False, guideline=Document()) -> Set[str]:
         changed_files = set()
         src_file_repo = CONFIG.git_repo.new_file_repository(CONFIG.src_workspace)
         for todo in self.code_todos:
@@ -112,16 +114,16 @@ class Engineer(Role):
             3. Do we need other codes (currently needed)?
             TODO: The goal is not to need it. After clear task decomposition, based on the design idea, you should be able to write a single file without needing other codes. If you can't, it means you need a clearer definition. This is the key to writing longer code.
             """
-            coding_context = await todo.run(guideline=guideline)
+            coding_context = await todo.run(guideline=guideline.content)
             # Code review
             if review:
                 action = WriteCodeReview(context=coding_context, llm=self.llm)
                 self._init_action_system_message(action)
-                coding_context = await action.run(guideline=guideline)
+                coding_context = await action.run(guideline=guideline.content)
 
             dependencies = {coding_context.design_doc.root_relative_path, coding_context.task_doc.root_relative_path}
-            if guideline:
-                dependencies.add("code_guideline.json")
+            if guideline.content:
+                dependencies.add(guideline.root_relative_path)
             await src_file_repo.save(
                 coding_context.filename,
                 dependencies=dependencies,
@@ -364,12 +366,11 @@ class Engineer(Role):
             code=old_codes,
         )
         node = await WriteCodeGuideline().run(context=context)
-        guideline = node.instruct_content.model_dump_json()
+        guideline = node.instruct_content.model_dump()
+        await WriteCodeGuideline.save(guideline)
+        guideline = dict_to_markdown(guideline)
 
-        await CONFIG.git_repo.new_file_repository(CONFIG.git_repo.workdir).save(
-            filename="code_guideline.json", content=guideline
-        )
-        return guideline
+        return Document(root_path=CODE_GUIDELINE_PDF_FILE_REPO, filename="code_guideline.md", content=guideline)
 
     @staticmethod
     async def get_old_codes() -> str:
