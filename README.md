@@ -34,7 +34,7 @@
 <p align="center">Software Company Multi-Role Schematic (Gradually Implementing)</p>
 
 ## News
-🚀 Jan 16: Our paper: [MetaGPT: Meta Programming for A Multi-Agent Collaborative Framework](https://openreview.net/pdf?id=VtmBAGCN7o) has been accepted by ICLR 2024 for oral presentation! More details are [here](https://openreview.net/forum?id=VtmBAGCN7o).
+🚀 Jan 16: Our paper: [MetaGPT: Meta Programming for A Multi-Agent Collaborative Framework](https://arxiv.org/abs/2308.00352) has been accepted by ICLR 2024 for oral presentation! More details are [here](https://openreview.net/forum?id=VtmBAGCN7o).
 
 
 🚀 Jan 03: Here comes [v0.6.0](https://github.com/geekan/MetaGPT/releases/tag/v0.6.0)! In this version, we added serialization and deserialization of important objects and enabled breakpoint recovery. We upgraded OpenAI package to v1.6.0 and supported Gemini, ZhipuAI, Ollama, OpenLLM, etc. Moreover, we provided extremely simple examples where you need only 7 lines to implement a general election [debate](https://github.com/geekan/MetaGPT/blob/main/examples/debate_simple.py). Check out more details [here](https://github.com/geekan/MetaGPT/releases/tag/v0.6.0)!
