@@ -524,6 +524,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
 
     async def think(self) -> Action:
         """The exported `think` function"""
+        await self._observe()
         await self._think()
         return self.rc.todo
 
@@ -533,9 +534,14 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         return ActionOutput(content=msg.content, instruct_content=msg.instruct_content)
 
     @property
-    def first_action(self) -> str:
-        """AgentStore uses this attribute to display to the user what actions the current role should take."""
-        # FIXME: this is a hack, we should not use the first action to represent the todo
+    def action_description(self) -> str:
+        """
+        AgentStore uses this attribute to display to the user what actions the current role should take.
+        """
+        if self.rc.todo:
+            if self.rc.todo.desc:
+                return self.rc.todo.desc
+            return any_to_name(self.rc.todo)
         if self.actions:
             return any_to_name(self.actions[0])
         return ""
