@@ -86,6 +86,11 @@ TIMEOUT: 60 # Timeout for llm invocation
 #AZURE_TTS_SUBSCRIPTION_KEY: "YOUR_API_KEY"
 #AZURE_TTS_REGION: "eastus"
 
+#### for OPENAI VISION
+
+#OPENAI_VISION_MODEL: "YOUR_VISION_MODEL_NAME"
+#VISION_MAX_TOKENS: 4096
+
 #### for Stable Diffusion
 ## Use SD service, based on https://github.com/AUTOMATIC1111/stable-diffusion-webui
 #SD_URL: "YOUR_SD_URL"
