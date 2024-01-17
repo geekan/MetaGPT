@@ -201,7 +201,10 @@ class GitRepository:
         new_path = self.workdir.parent / new_dir_name
         if new_path.exists():
             logger.info(f"Delete directory {str(new_path)}")
-            shutil.rmtree(new_path)
+            try:
+                shutil.rmtree(new_path)
+            except Exception as e:
+                logger.warning(f"rm {str(new_path)} error: {e}")
         if new_path.exists():  # Recheck for windows os
             logger.warning(f"Failed to delete directory {str(new_path)}")
             return

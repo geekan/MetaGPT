@@ -13,8 +13,8 @@ def test_role_desc():
     assert role.desc == "Best Seller"
 
 
-def test_role_human():
-    role = Role(is_human=True)
+def test_role_human(context):
+    role = Role(is_human=True, context=context)
     assert isinstance(role.llm, HumanProvider)
 
 

@@ -8,20 +8,19 @@
 
 import pytest
 
-from metagpt.context import CONTEXT
 from metagpt.utils.common import check_cmd_exists
 from metagpt.utils.mermaid import MMC1, mermaid_to_file
 
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("engine", ["nodejs", "ink"])  # TODO: playwright and pyppeteer
-async def test_mermaid(engine):
+async def test_mermaid(engine, context):
     # nodejs prerequisites: npm install -g @mermaid-js/mermaid-cli
     # ink prerequisites: connected to internet
     # playwright prerequisites: playwright install --with-deps chromium
     assert check_cmd_exists("npm") == 0
 
-    save_to = CONTEXT.git_repo.workdir / f"{engine}/1"
+    save_to = context.git_repo.workdir / f"{engine}/1"
     await mermaid_to_file(engine, MMC1, save_to)
 
     # ink does not support pdf

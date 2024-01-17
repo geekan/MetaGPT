@@ -12,7 +12,6 @@ from pydantic import BaseModel
 
 from metagpt.actions.skill_action import SkillAction
 from metagpt.actions.talk_action import TalkAction
-from metagpt.context import CONTEXT
 from metagpt.memory.brain_memory import BrainMemory
 from metagpt.roles.assistant import Assistant
 from metagpt.schema import Message
@@ -20,11 +19,11 @@ from metagpt.utils.common import any_to_str
 
 
 @pytest.mark.asyncio
-async def test_run(mocker):
+async def test_run(mocker, context):
     # mock
     mocker.patch("metagpt.learn.text_to_image", return_value="http://mock.com/1.png")
 
-    CONTEXT.kwargs.language = "Chinese"
+    context.kwargs.language = "Chinese"
 
     class Input(BaseModel):
         memory: BrainMemory
@@ -80,7 +79,7 @@ async def test_run(mocker):
 
     for i in inputs:
         seed = Input(**i)
-        role = Assistant(language="Chinese")
+        role = Assistant(language="Chinese", context=context)
         role.context.kwargs.language = seed.language
         role.context.kwargs.agent_description = seed.agent_description
         role.context.kwargs.agent_skills = agent_skills
@@ -115,8 +114,8 @@ async def test_run(mocker):
     ],
 )
 @pytest.mark.asyncio
-async def test_memory(memory):
-    role = Assistant()
+async def test_memory(memory, context):
+    role = Assistant(context=context)
     role.context.kwargs.agent_skills = []
     role.load_memory(memory)
 

@@ -47,7 +47,7 @@ WRITE ONLY ONE WORD, Engineer OR QaEngineer OR NoOne, IN THIS SECTION.
 You should fill in necessary instruction, status, send to, and finally return all content between the --- segment line.
 """
 
-CONTEXT = """
+TEMPLATE_CONTEXT = """
 ## Development Code File Name
 {code_file_name}
 ## Development Code
@@ -130,7 +130,7 @@ class RunCode(Action):
         logger.info(f"{outs=}")
         logger.info(f"{errs=}")
 
-        context = CONTEXT.format(
+        context = TEMPLATE_CONTEXT.format(
             code=self.i_context.code,
             code_file_name=self.i_context.code_filename,
             test_code=self.i_context.test_code,

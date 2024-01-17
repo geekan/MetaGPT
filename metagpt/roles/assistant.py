@@ -48,7 +48,8 @@ class Assistant(Role):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.constraints = self.constraints.format(language=kwargs.get("language") or CONTEXT.kwargs.language)
+        language = kwargs.get("language") or self.context.kwargs.language or CONTEXT.kwargs.language
+        self.constraints = self.constraints.format(language=language)
 
     async def think(self) -> bool:
         """Everything will be done part by part."""
@@ -56,11 +57,11 @@ class Assistant(Role):
         if not last_talk:
             return False
         if not self.skills:
-            skill_path = Path(CONTEXT.kwargs.SKILL_PATH) if CONTEXT.kwargs.SKILL_PATH else None
+            skill_path = Path(self.context.kwargs.SKILL_PATH) if self.context.kwargs.SKILL_PATH else None
             self.skills = await SkillsDeclaration.load(skill_yaml_file_name=skill_path)
 
         prompt = ""
-        skills = self.skills.get_skill_list()
+        skills = self.skills.get_skill_list(context=self.context)
         for desc, name in skills.items():
             prompt += f"If the text explicitly want you to {desc}, return `[SKILL]: {name}` brief and clear. For instance: [SKILL]: {name}\n"
         prompt += 'Otherwise, return `[TALK]: {talk}` brief and clear. For instance: if {talk} is "xxxx" return [TALK]: xxxx\n\n'

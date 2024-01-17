@@ -13,7 +13,7 @@ from metagpt.utils.common import any_to_str, read_json_file, write_json_file
 from tests.metagpt.serialize_deserialize.test_serdeser_base import serdeser_path
 
 
-def test_memory_serdeser():
+def test_memory_serdeser(context):
     msg1 = Message(role="Boss", content="write a snake game", cause_by=UserRequirement)
 
     out_mapping = {"field2": (list[str], ...)}
@@ -39,7 +39,7 @@ def test_memory_serdeser():
     assert memory.count() == 2
 
 
-def test_memory_serdeser_save():
+def test_memory_serdeser_save(context):
     msg1 = Message(role="User", content="write a 2048 game", cause_by=UserRequirement)
 
     out_mapping = {"field1": (list[str], ...)}
