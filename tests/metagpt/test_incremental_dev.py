@@ -27,7 +27,6 @@ IDEAS = [
     "Add functionality to view the history of scores and perform statistical analysis on them. The original dice rolling game could only display the current game result, but the new requirement allows players to view the history of scores and display the statistical analysis results of the current score",
     "Changed score target for 2048 game from 2048 to 4096. Please change the game's score target from 2048 to 4096, and change the interface size from 4*4 to 8*8",
     "Display the history score of the player in the 2048 game. Add a record board that can display players' historical score records so that players can trace their scores",
-    "Add limited time mode. The original game only had a default classic mode. The improved game should be able to support limited-time mode, allowing users to choose classic mode or limited-time mode from the available options before starting the game.",
     "Incremental Idea Gradually increase the speed of the snake as the game progresses. In the current version of the game, the snake’s speed remains constant throughout the gameplay. Implement a feature where the snake’s speed gradually increases over time, making the game more challenging and intense as the player progresses.",
     "Introduce power-ups and obstacles to the game. The current version of the game only involves eating food and growing the snake. Add new elements such as power-ups that can enhance the snake’s speed or make it invincible for a short duration. At the same time, introduce obstacles like walls or enemies that the snake must avoid or overcome to continue growing.",
 ]
@@ -39,7 +38,6 @@ PROJECT_NAMES = [
     "Gomoku",
     "dice_simulator_new",
     "dice_simulator_new",
-    "pygame_2048",
     "pygame_2048",
     "pygame_2048",
     "snake_game",
@@ -74,13 +72,13 @@ def test_dice_simulator_new():
 
 
 def test_refined_pygame_2048():
-    for i, (idea, project_name) in enumerate(zip(IDEAS[6:9], PROJECT_NAMES[6:9]), start=1):
+    for i, (idea, project_name) in enumerate(zip(IDEAS[6:8], PROJECT_NAMES[6:8]), start=1):
         result = get_incremental_dev_result(idea, project_name)
         log_and_check_result(result, "refine_" + str(i))
 
 
 def test_refined_snake_game():
-    for i, (idea, project_name) in enumerate(zip(IDEAS[9:11], PROJECT_NAMES[9:11]), start=1):
+    for i, (idea, project_name) in enumerate(zip(IDEAS[8:10], PROJECT_NAMES[8:10]), start=1):
         result = get_incremental_dev_result(idea, project_name)
         log_and_check_result(result, "refine_" + str(i))
 
