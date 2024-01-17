@@ -144,6 +144,7 @@ class Config(metaclass=Singleton):
         self.openai_api_key = self._get("OPENAI_API_KEY")
         self.anthropic_api_key = self._get("ANTHROPIC_API_KEY")
         self.zhipuai_api_key = self._get("ZHIPUAI_API_KEY")
+        self.zhipuai_api_model = self._get("ZHIPUAI_API_MODEL")
         self.open_llm_api_base = self._get("OPEN_LLM_API_BASE")
         self.open_llm_api_model = self._get("OPEN_LLM_API_MODEL")
         self.fireworks_api_key = self._get("FIREWORKS_API_KEY")
