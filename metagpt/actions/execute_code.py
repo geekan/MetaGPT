@@ -104,7 +104,7 @@ class ExecutePyCode(ExecuteCode, Action):
             code = Syntax(code, "python", theme="paraiso-dark", line_numbers=True)
             self.console.print(code)
         elif language == "markdown":
-            _display_markdown(code)
+            display_markdown(code)
         else:
             raise ValueError(f"Only support for python, markdown, but got {language}")
 
@@ -269,7 +269,7 @@ def remove_escape_and_color_codes(input_str):
     return result
 
 
-def _display_markdown(content: str):
+def display_markdown(content: str):
     # 使用正则表达式逐个匹配代码块
     matches = re.finditer(r'```(.+?)```', content, re.DOTALL)
     start_index = 0
