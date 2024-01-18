@@ -11,6 +11,7 @@ class ToolTypeEnum(Enum):
     MODEL_EVALUATE = "model_evaluate"
     STABLE_DIFFUSION = "stable_diffusion"
     IMAGE2WEBPAGE = "image2webpage"
+    WEBSCRAPING = "web_scraping"
     OTHER = "other"
 
     def __missing__(self, key):

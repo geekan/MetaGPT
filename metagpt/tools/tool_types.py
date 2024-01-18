@@ -12,7 +12,7 @@ from metagpt.tools.tool_registry import register_tool_type
 @register_tool_type
 class EDA(ToolType):
     name: str = ToolTypeEnum.EDA.value
-    desc: str = "Useful for performing exploratory data analysis"
+    desc: str = "For performing exploratory data analysis"
 
 
 @register_tool_type
@@ -54,6 +54,12 @@ class Image2Webpage(ToolType):
     name: str = ToolTypeEnum.IMAGE2WEBPAGE.value
     desc: str = "For converting image into webpage code."
     usage_prompt: str = IMAGE2WEBPAGE_PROMPT
+
+
+@register_tool_type
+class WebScraping(ToolType):
+    name: str = ToolTypeEnum.WEBSCRAPING.value
+    desc: str = "For scraping data from web pages."
 
 
 @register_tool_type
