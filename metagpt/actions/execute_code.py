@@ -15,9 +15,14 @@ import nbformat
 from nbclient import NotebookClient
 from nbclient.exceptions import CellTimeoutError, DeadKernelError
 from nbformat import NotebookNode
-from nbformat.v4 import new_code_cell, new_output
+from nbformat.v4 import new_code_cell, new_output, new_markdown_cell
 from rich.console import Console
 from rich.syntax import Syntax
+from rich.markdown import Markdown
+from rich.panel import Panel
+from rich.box import MINIMAL
+from rich.live import Live
+from rich.console import Group
 
 from metagpt.actions import Action
 from metagpt.logs import logger
@@ -91,11 +96,17 @@ class ExecutePyCode(ExecuteCode, Action):
     def add_code_cell(self, code):
         self.nb.cells.append(new_code_cell(source=code))
 
+    def add_markdown_cell(self, markdown):
+        self.nb.cells.append(new_markdown_cell(source=markdown))
+
     def _display(self, code, language: str = "python"):
         if language == "python":
             code = Syntax(code, "python", theme="paraiso-dark", line_numbers=True)
-            self.console.print("\n")
             self.console.print(code)
+        elif language == "markdown":
+            display_markdown(code)
+        else:
+            raise ValueError(f"Only support for python, markdown, but got {language}")
 
     def add_output_to_cell(self, cell, output):
         if "outputs" not in cell:
@@ -212,26 +223,43 @@ class ExecutePyCode(ExecuteCode, Action):
             cell_index = len(self.nb.cells) - 1
             success, error_message = await self.run_cell(self.nb.cells[-1], cell_index)
 
-            if success:
-                outputs = self.parse_outputs(self.nb.cells[-1].outputs)
-                return truncate(remove_escape_and_color_codes(outputs)), True
-            else:
-                return error_message, False
+            if not success:
+                return truncate(remove_escape_and_color_codes(error_message), is_success=success)
+
+            # code success
+            outputs = self.parse_outputs(self.nb.cells[-1].outputs)
+            return truncate(remove_escape_and_color_codes(outputs), is_success=success)
+        elif language == 'markdown':
+            # markdown
+            self.add_markdown_cell(code)
+            return code, True
         else:
-            # TODO: markdown
-            raise NotImplementedError(f"Not support this code type : {language}, Only support code!")
+            raise ValueError(f"Only support for language: python, markdown, but got {language}, ")
 
 
-def truncate(result: str, keep_len: int = 2000) -> str:
-    desc = f"Truncated to show only the last {keep_len} characters\n"
+def truncate(result: str, keep_len: int = 2000, is_success: bool = True):
+    desc = f"Executed code {'successfully' if is_success else 'failed, please reflect the cause of bug and then debug'}"
+    if is_success:
+        desc += f"Truncated to show only {keep_len} characters\n"
+    else:
+        desc += "Show complete information for you."
+
     if result.startswith(desc):
         result = result[len(desc) :]
 
     if len(result) > keep_len:
-        result = result[-keep_len:]
-        return desc + result
+        result = result[-keep_len:] if not is_success else result
+        if not result:
+            result = 'No output about your code. Only when importing packages it is normal case. Recap and go ahead.'
+            return result, False
 
-    return result
+        if result.strip().startswith("<coroutine object"):
+            result = "Executed code failed, you need use key word 'await' to run a async code."
+            return result, False
+
+        return desc + result[:keep_len+500], is_success
+
+    return result, is_success
 
 
 def remove_escape_and_color_codes(input_str):
@@ -239,3 +267,31 @@ def remove_escape_and_color_codes(input_str):
     pattern = re.compile(r"\x1b\[[0-9;]*[mK]")
     result = pattern.sub("", input_str)
     return result
+
+
+def display_markdown(content: str):
+    # 使用正则表达式逐个匹配代码块
+    matches = re.finditer(r'```(.+?)```', content, re.DOTALL)
+    start_index = 0
+    content_panels = []
+    # 逐个打印匹配到的文本和代码
+    for match in matches:
+        text_content = content[start_index:match.start()].strip()
+        code_content = match.group(0).strip()[3:-3]           # Remove triple backticks
+
+        if text_content:
+            content_panels.append(Panel(Markdown(text_content), box=MINIMAL))
+
+        if code_content:
+            content_panels.append(Panel(Markdown(f"```{code_content}"), box=MINIMAL))
+        start_index = match.end()
+
+    # 打印剩余文本（如果有）
+    remaining_text = content[start_index:].strip()
+    if remaining_text:
+        content_panels.append(Panel(Markdown(remaining_text), box=MINIMAL))
+
+    # 在Live模式中显示所有Panel
+    with Live(auto_refresh=False, console=Console(), vertical_overflow="visible") as live:
+        live.update(Group(*content_panels))
+        live.refresh()

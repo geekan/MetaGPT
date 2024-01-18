@@ -75,7 +75,7 @@ class MLEngineerSimple(Role):
             context = self.get_useful_memories()
             print(f"memories数量：{len(context)}")
             # print("===\n" +str(context) + "\n===")
-            code = await WriteCodeByGenerate().run(context=context, temperature=0.0)
+            code = await WriteCodeByGenerate().run(context=context, temperature=0.0, only_code=True)
             cause_by = WriteCodeByGenerate
             self.working_memory.add(Message(content=code, role="assistant", cause_by=cause_by))
 
