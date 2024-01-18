@@ -14,7 +14,7 @@ from metagpt.tools.search_engine import SearchEngine
 
 
 @pytest.mark.asyncio
-async def test_collect_links(mocker, search_engine_mocker):
+async def test_collect_links(mocker, search_engine_mocker, context):
     async def mock_llm_ask(self, prompt: str, system_msgs):
         if "Please provide up to 2 necessary keywords" in prompt:
             return '["metagpt", "llm"]'
@@ -28,7 +28,7 @@ async def test_collect_links(mocker, search_engine_mocker):
             return "[1,2]"
 
     mocker.patch("metagpt.provider.base_llm.BaseLLM.aask", mock_llm_ask)
-    resp = await research.CollectLinks(search_engine=SearchEngine(SearchEngineType.DUCK_DUCK_GO)).run(
+    resp = await research.CollectLinks(search_engine=SearchEngine(SearchEngineType.DUCK_DUCK_GO), context=context).run(
         "The application of MetaGPT"
     )
     for i in ["MetaGPT use cases", "The roadmap of MetaGPT", "The function of MetaGPT", "What llm MetaGPT support"]:
@@ -36,7 +36,7 @@ async def test_collect_links(mocker, search_engine_mocker):
 
 
 @pytest.mark.asyncio
-async def test_collect_links_with_rank_func(mocker, search_engine_mocker):
+async def test_collect_links_with_rank_func(mocker, search_engine_mocker, context):
     rank_before = []
     rank_after = []
     url_per_query = 4
@@ -50,7 +50,7 @@ async def test_collect_links_with_rank_func(mocker, search_engine_mocker):
 
     mocker.patch("metagpt.provider.base_llm.BaseLLM.aask", mock_collect_links_llm_ask)
     resp = await research.CollectLinks(
-        search_engine=SearchEngine(SearchEngineType.DUCK_DUCK_GO), rank_func=rank_func
+        search_engine=SearchEngine(SearchEngineType.DUCK_DUCK_GO), rank_func=rank_func, context=context
     ).run("The application of MetaGPT")
     for x, y, z in zip(rank_before, rank_after, resp.values()):
         assert x[::-1] == y
@@ -58,7 +58,7 @@ async def test_collect_links_with_rank_func(mocker, search_engine_mocker):
 
 
 @pytest.mark.asyncio
-async def test_web_browse_and_summarize(mocker):
+async def test_web_browse_and_summarize(mocker, context):
     async def mock_llm_ask(*args, **kwargs):
         return "metagpt"
 
@@ -66,20 +66,20 @@ async def test_web_browse_and_summarize(mocker):
     url = "https://github.com/geekan/MetaGPT"
     url2 = "https://github.com/trending"
     query = "What's new in metagpt"
-    resp = await research.WebBrowseAndSummarize().run(url, query=query)
+    resp = await research.WebBrowseAndSummarize(context=context).run(url, query=query)
 
     assert len(resp) == 1
     assert url in resp
     assert resp[url] == "metagpt"
 
-    resp = await research.WebBrowseAndSummarize().run(url, url2, query=query)
+    resp = await research.WebBrowseAndSummarize(context=context).run(url, url2, query=query)
     assert len(resp) == 2
 
     async def mock_llm_ask(*args, **kwargs):
         return "Not relevant."
 
     mocker.patch("metagpt.provider.base_llm.BaseLLM.aask", mock_llm_ask)
-    resp = await research.WebBrowseAndSummarize().run(url, query=query)
+    resp = await research.WebBrowseAndSummarize(context=context).run(url, query=query)
 
     assert len(resp) == 1
     assert url in resp
@@ -87,7 +87,7 @@ async def test_web_browse_and_summarize(mocker):
 
 
 @pytest.mark.asyncio
-async def test_conduct_research(mocker):
+async def test_conduct_research(mocker, context):
     data = None
 
     async def mock_llm_ask(*args, **kwargs):
@@ -101,7 +101,7 @@ async def test_conduct_research(mocker):
         "outputs user stories / competitive analysis / requirements / data structures / APIs / documents, etc."
     )
 
-    resp = await research.ConductResearch().run("The application of MetaGPT", content)
+    resp = await research.ConductResearch(context=context).run("The application of MetaGPT", content)
     assert resp == data
 
 

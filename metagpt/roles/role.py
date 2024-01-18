@@ -261,7 +261,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         self._reset()
         for action in actions:
             if not isinstance(action, Action):
-                i = action()
+                i = action(context=self.context)
             else:
                 if self.is_human and not isinstance(action.llm, HumanProvider):
                     logger.warning(

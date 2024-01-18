@@ -17,10 +17,11 @@ from typing import Callable
 import pytest
 
 from metagpt.const import DEFAULT_WORKSPACE_ROOT, TEST_DATA_PATH
-from metagpt.context import CONTEXT
+from metagpt.context import Context as MetagptContext
 from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.utils.git_repository import GitRepository
+from metagpt.utils.project_repo import ProjectRepo
 from tests.mock.mock_aiohttp import MockAioResponse
 from tests.mock.mock_curl_cffi import MockCurlCffiResponse
 from tests.mock.mock_httplib2 import MockHttplib2Response
@@ -141,19 +142,20 @@ def loguru_caplog(caplog):
     yield caplog
 
 
-# init & dispose git repo
-@pytest.fixture(scope="function", autouse=True)
-def setup_and_teardown_git_repo(request):
-    CONTEXT.git_repo = GitRepository(local_path=DEFAULT_WORKSPACE_ROOT / f"unittest/{uuid.uuid4().hex}")
-    CONTEXT.config.git_reinit = True
+@pytest.fixture(scope="function")
+def context(request):
+    ctx = MetagptContext()
+    ctx.git_repo = GitRepository(local_path=DEFAULT_WORKSPACE_ROOT / f"unittest/{uuid.uuid4().hex}")
+    ctx.repo = ProjectRepo(ctx.git_repo)
 
     # Destroy git repo at the end of the test session.
     def fin():
-        if CONTEXT.git_repo:
-            CONTEXT.git_repo.delete_repository()
+        if ctx.git_repo:
+            ctx.git_repo.delete_repository()
 
     # Register the function for destroying the environment.
     request.addfinalizer(fin)
+    return ctx
 
 
 @pytest.fixture(scope="session", autouse=True)

@@ -27,8 +27,8 @@ class Person:
     ],
     ids=["google", "numpy", "sphinx"],
 )
-async def test_write_docstring(style: str, part: str):
-    ret = await WriteDocstring().run(code, style=style)
+async def test_write_docstring(style: str, part: str, context):
+    ret = await WriteDocstring(context=context).run(code, style=style)
     assert part in ret
 
 

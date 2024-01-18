@@ -26,7 +26,7 @@ from tests.metagpt.serialize_deserialize.test_serdeser_base import (
 )
 
 
-def test_roles():
+def test_roles(context):
     role_a = RoleA()
     assert len(role_a.rc.watch) == 1
     role_b = RoleB()
@@ -37,7 +37,7 @@ def test_roles():
     assert len(role_d.actions) == 1
 
 
-def test_role_subclasses():
+def test_role_subclasses(context):
     """test subclasses of role with same fields in ser&deser"""
 
     class RoleSubClasses(BaseModel):
@@ -51,7 +51,7 @@ def test_role_subclasses():
     assert isinstance(new_role_subcls.roles[1], RoleB)
 
 
-def test_role_serialize():
+def test_role_serialize(context):
     role = Role()
     ser_role_dict = role.model_dump()
     assert "name" in ser_role_dict
@@ -59,7 +59,7 @@ def test_role_serialize():
     assert "actions" in ser_role_dict
 
 
-def test_engineer_serdeser():
+def test_engineer_serdeser(context):
     role = Engineer()
     ser_role_dict = role.model_dump()
     assert "name" in ser_role_dict
@@ -73,7 +73,7 @@ def test_engineer_serdeser():
     assert isinstance(new_role.actions[0], WriteCode)
 
 
-def test_role_serdeser_save():
+def test_role_serdeser_save(context):
     shutil.rmtree(serdeser_path.joinpath("team"), ignore_errors=True)
 
     pm = ProductManager()
@@ -89,7 +89,7 @@ def test_role_serdeser_save():
 
 
 @pytest.mark.asyncio
-async def test_role_serdeser_interrupt():
+async def test_role_serdeser_interrupt(context):
     role_c = RoleC()
     shutil.rmtree(serdeser_path.joinpath("team"), ignore_errors=True)
 

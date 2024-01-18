@@ -84,7 +84,7 @@ class FireworksLLM(OpenAILLM):
     def _update_costs(self, usage: CompletionUsage):
         if self.config.calc_usage and usage:
             try:
-                # use FireworksCostManager not CONTEXT.cost_manager
+                # use FireworksCostManager not context.cost_manager
                 self.cost_manager.update_cost(usage.prompt_tokens, usage.completion_tokens, self.model)
             except Exception as e:
                 logger.error(f"updating costs failed!, exp: {e}")
