@@ -12,7 +12,6 @@ from typing import Literal
 
 from playwright.async_api import async_playwright
 
-from metagpt.config import CONFIG
 from metagpt.logs import logger
 from metagpt.utils.parse_html import WebPage
 
@@ -32,6 +31,8 @@ class PlaywrightWrapper:
         launch_kwargs: dict | None = None,
         **kwargs,
     ) -> None:
+        from metagpt.config import CONFIG
+
         if browser_type is None:
             browser_type = CONFIG.playwright_browser_type
         self.browser_type = browser_type

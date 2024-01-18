@@ -5,6 +5,7 @@ from pydantic import Field
 from metagpt.actions.ask_review import ReviewConst
 from metagpt.actions.execute_code import ExecutePyCode
 from metagpt.actions.write_analysis_code import WriteCodeByGenerate, WriteCodeWithTools
+from metagpt.actions.write_code_steps import WriteCodeSteps
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.roles.tool_maker import ToolMaker
@@ -16,6 +17,7 @@ class CodeInterpreter(Role):
     auto_run: bool = True
     use_tools: bool = False
     make_udfs: bool = False  # whether to save user-defined functions
+    use_code_steps: bool = False
     execute_code: ExecutePyCode = Field(default_factory=ExecutePyCode, exclude=True)
 
     def __init__(
@@ -52,10 +54,14 @@ class CodeInterpreter(Role):
 
     async def _act_on_task(self, current_task: Task) -> TaskResult:
         code, result, is_success = await self._write_and_exec_code()
-        task_result = TaskResult(code=code['code'], result=result, is_success=is_success)
+        task_result = TaskResult(code=code, result=result, is_success=is_success)
         return task_result
 
     async def _write_and_exec_code(self, max_retry: int = 3):
+        self.planner.current_task.code_steps = (
+            await WriteCodeSteps().run(self.planner.plan) if self.use_code_steps else ""
+        )
+
         counter = 0
         success = False
 
@@ -63,7 +69,7 @@ class CodeInterpreter(Role):
             ### write code ###
             code, cause_by = await self._write_code()
 
-            self.working_memory.add(Message(content=code['code'], role="assistant", cause_by=cause_by))
+            self.working_memory.add(Message(content=code["code"], role="assistant", cause_by=cause_by))
 
             ### execute code ###
             result, success = await self.execute_code.run(**code)
@@ -72,7 +78,7 @@ class CodeInterpreter(Role):
             self.working_memory.add(Message(content=result, role="user", cause_by=ExecutePyCode))
 
             ### process execution result ###
-            if "!pip" in code:
+            if "!pip" in code["code"]:
                 success = False
 
             counter += 1
@@ -83,17 +89,15 @@ class CodeInterpreter(Role):
                 if ReviewConst.CHANGE_WORD[0] in review:
                     counter = 0  # redo the task again with help of human suggestions
 
-        return code, result, success
+        return code["code"], result, success
 
     async def _write_code(self):
         todo = WriteCodeByGenerate() if not self.use_tools else WriteCodeWithTools()
         logger.info(f"ready to {todo.name}")
 
         context = self.planner.get_useful_memories()
+        # print(*context, sep="\n***\n")
         code = await todo.run(context=context, plan=self.planner.plan, temperature=0.0)
-        # 暂时在这里转换 WriteCodeWithTools 的输出
-        if isinstance(code, str):
-            code = {'code': code, 'language': 'python'}
 
         return code, todo
 

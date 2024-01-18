@@ -119,5 +119,4 @@ class DebugCode(BaseWriteAnalysisCode):
             runtime_result=runtime_result,
         )
         # 根据reflection结果重写代码
-        improv_code = reflection["improved_impl"]
-        return improv_code
+        return {"code": reflection["improved_impl"]}

@@ -15,7 +15,7 @@ Keep dataset column information updated before model train.
 # Task
 Update and print the dataset's column information only if the train or test data has changed. Use the following code:
 ```python
-from metagpt.tools.functions.libs.data_preprocess import get_column_info
+from metagpt.tools.libs.data_preprocess import get_column_info
 
 column_info = get_column_info(df)
 print("column_info")
@@ -134,16 +134,12 @@ PRINT_DATA_COLUMNS = {
     "parameters": {
         "type": "object",
         "properties": {
-            "is_update": {
-                "type": "boolean",
-                "description": "Whether need to update the column info.",
-            },
             "code": {
                 "type": "string",
                 "description": "The code to be added to a new cell in jupyter.",
             },
         },
-        "required": ["is_update", "code"],
+        "required": ["code"],
     },
 }
 
@@ -203,7 +199,7 @@ Specifically, {special_prompt}
 - You can freely combine the use of any other public packages, like sklearn, numpy, pandas, etc..
 
 # Available Tools (can be empty):
-Each Class tool is described in JSON format. When you call a tool, import the tool from `{module_name}` first.
+Each Class tool is described in JSON format. When you call a tool, import the tool first.
 {tool_catalog}
 
 # Constraints:
@@ -240,7 +236,7 @@ Strictly follow steps below when you writing code if it's convenient.
 - You can freely combine the use of any other public packages, like sklearn, numpy, pandas, etc..
 
 # Available Tools:
-Each Class tool is described in JSON format. When you call a tool, import the tool from `{module_name}` first.
+Each Class tool is described in JSON format. When you call a tool, import the tool from its path first.
 {tool_catalog}
 
 # Output Example:
@@ -248,7 +244,7 @@ when current task is "do data preprocess, like fill missing value, handle outlie
 ```python
 # Step 1: fill missing value
 # Tools used: ['FillMissingValue']
-from metagpt.tools.functions.libs.data_preprocess import FillMissingValue
+from metagpt.tools.libs.data_preprocess import FillMissingValue
 
 train_processed = train.copy()
 test_processed = test.copy()
