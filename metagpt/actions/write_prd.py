@@ -21,6 +21,7 @@ from metagpt.actions import Action, ActionOutput
 from metagpt.actions.action_node import ActionNode
 from metagpt.actions.fix_bug import FixBug
 from metagpt.actions.write_prd_an import (
+    COMPETITIVE_QUADRANT_CHART,
     PROJECT_NAME,
     REFINE_PRD_NODE,
     REFINE_PRD_TEMPLATE,
@@ -166,7 +167,7 @@ class WritePRD(Action):
     @staticmethod
     async def _save_competitive_analysis(prd_doc):
         m = json.loads(prd_doc.content)
-        quadrant_chart = m.get("Competitive Quadrant Chart")
+        quadrant_chart = m.get(COMPETITIVE_QUADRANT_CHART.key)
         if not quadrant_chart:
             return
         pathname = (
