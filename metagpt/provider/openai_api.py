@@ -239,3 +239,7 @@ class OpenAILLM(BaseLLM):
     async def atext_to_speech(self, **kwargs):
         """text to speech"""
         return await self.aclient.audio.speech.create(**kwargs)
+
+    async def aspeech_to_text(self, **kwargs):
+        """speech to text"""
+        return await self.aclient.audio.transcriptions.create(**kwargs)
