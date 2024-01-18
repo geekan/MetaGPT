@@ -44,6 +44,8 @@
 
 🔥 Nov 8: MetaGPT is selected into [Open100: Top 100 Open Source achievements](https://www.benchcouncil.org/evaluation/opencs/annual.html).
 
+🔥 Sep 1: MetaGPT clinched the top spot for the **17th time** in GitHub's Trending Monthly for August 2023.
+
 ## Install
 
 ### Pip installation
