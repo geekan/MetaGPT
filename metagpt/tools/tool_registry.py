@@ -21,7 +21,7 @@ class ToolRegistry:
     def __init__(self):
         self.tools = {}
         self.tool_types = {}
-        self.tools_by_types = defaultdict(dict)  # two-layer k-v, {tool_type_name: {tool_name: {...}, ...}, ...}
+        self.tools_by_types = defaultdict(dict)  # two-layer k-v, {tool_type: {tool_name: {...}, ...}, ...}
 
     def register_tool_type(self, tool_type: ToolType):
         self.tool_types[tool_type.name] = tool_type
@@ -33,13 +33,13 @@ class ToolRegistry:
         tool_path,
         schema_path=None,
         tool_code="",
-        tool_type_name="other",
+        tool_type="other",
         make_schema_if_not_exists=False,
     ):
         if self.has_tool(tool_name):
             return
 
-        schema_path = schema_path or TOOL_SCHEMA_PATH / tool_type_name / f"{tool_name}.yml"
+        schema_path = schema_path or TOOL_SCHEMA_PATH / tool_type / f"{tool_name}.yml"
 
         if not os.path.exists(schema_path):
             if make_schema_if_not_exists:
@@ -62,7 +62,7 @@ class ToolRegistry:
             # )
         tool = Tool(name=tool_name, path=tool_path, schemas=schemas, code=tool_code)
         self.tools[tool_name] = tool
-        self.tools_by_types[tool_type_name][tool_name] = tool
+        self.tools_by_types[tool_type][tool_name] = tool
         logger.info(f"{tool_name} registered")
 
     def has_tool(self, key):
@@ -94,7 +94,7 @@ def register_tool_type(cls):
     return cls
 
 
-def register_tool(tool_name="", tool_type_name="other", schema_path=None):
+def register_tool(tool_name="", tool_type="other", schema_path=None):
     """register a tool to registry"""
 
     def decorator(cls, tool_name=tool_name):
@@ -111,7 +111,7 @@ def register_tool(tool_name="", tool_type_name="other", schema_path=None):
             tool_path=file_path,
             schema_path=schema_path,
             tool_code=source_code,
-            tool_type_name=tool_type_name,
+            tool_type=tool_type,
         )
         return cls
 

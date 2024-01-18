@@ -7,7 +7,8 @@
 from metagpt.tools.libs import (
     data_preprocess,
     feature_engineering,
+    sd_engine,
+    gpt_v_generator,
 )
 
-_ = data_preprocess  # Avoid pre-commit error
-_ = feature_engineering  # Avoid pre-commit error
+_, _, _, _ = data_preprocess, feature_engineering, sd_engine, gpt_v_generator  # Avoid pre-commit error

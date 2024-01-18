@@ -1,4 +1,4 @@
-Vision:
+GPTvGenerator:
   type: class
   description: "Class for generating web pages at once."
   methods:

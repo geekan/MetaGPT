@@ -1,6 +1,7 @@
 from metagpt.prompts.tool_types import (
     DATA_PREPROCESS_PROMPT,
     FEATURE_ENGINEERING_PROMPT,
+    IMAGE2WEBPAGE_PROMPT,
     MODEL_EVALUATE_PROMPT,
     MODEL_TRAIN_PROMPT,
 )
@@ -46,6 +47,13 @@ class ModelEvaluate(ToolType):
 class StableDiffusion(ToolType):
     name: str = ToolTypeEnum.STABLE_DIFFUSION.value
     desc: str = "Related to text2image, image2image using stable diffusion model."
+
+
+@register_tool_type
+class Image2Webpage(ToolType):
+    name: str = ToolTypeEnum.IMAGE2WEBPAGE.value
+    desc: str = "For converting image into webpage code."
+    usage_prompt: str = IMAGE2WEBPAGE_PROMPT
 
 
 @register_tool_type

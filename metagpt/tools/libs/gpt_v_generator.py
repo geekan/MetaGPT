@@ -5,18 +5,13 @@
 @Author  : mannaandpoem
 @File    : vision.py
 """
+import base64
 from pathlib import Path
 
 import requests
 
-import base64
-
-from metagpt.config import CONFIG
-
-OPENAI_API_BASE = CONFIG.OPENAI_BASE_URL
-API_KEY = CONFIG.OPENAI_API_KEY
-MODEL = CONFIG.OPENAI_VISION_MODEL
-MAX_TOKENS = CONFIG.VISION_MAX_TOKENS
+from metagpt.tools.tool_data_type import ToolTypeEnum
+from metagpt.tools.tool_registry import register_tool
 
 ANALYZE_LAYOUT_PROMPT = """You are now a UI/UX, please generate layout information for this image:
 
@@ -33,8 +28,15 @@ As the design pays tribute to large companies, sometimes it is normal for some c
 Now, please generate the corresponding webpage code including HTML, CSS and JavaScript:"""
 
 
-class Vision:
+@register_tool(tool_type=ToolTypeEnum.IMAGE2WEBPAGE.value)
+class GPTvGenerator:
     def __init__(self):
+        from metagpt.config import CONFIG
+
+        OPENAI_API_BASE = CONFIG.OPENAI_BASE_URL
+        API_KEY = CONFIG.OPENAI_API_KEY
+        MODEL = CONFIG.OPENAI_VISION_MODEL
+        MAX_TOKENS = CONFIG.VISION_MAX_TOKENS
         self.api_key = API_KEY
         self.api_base = OPENAI_API_BASE
         self.model = MODEL
@@ -51,10 +53,7 @@ class Vision:
 
     def get_result(self, image_path, prompt):
         base64_image = self.encode_image(image_path)
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.api_key}"
-        }
+        headers = {"Content-Type": "application/json", "Authorization": f"Bearer {self.api_key}"}
         payload = {
             "model": self.model,
             "messages": [
@@ -62,11 +61,8 @@ class Vision:
                     "role": "user",
                     "content": [
                         {"type": "text", "text": prompt},
-                        {
-                            "type": "image_url",
-                            "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}
-                        }
-                    ]
+                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}},
+                    ],
                 }
             ],
             "max_tokens": self.max_tokens,
@@ -81,7 +77,7 @@ class Vision:
     @staticmethod
     def encode_image(image_path):
         with open(image_path, "rb") as image_file:
-            return base64.b64encode(image_file.read()).decode('utf-8')
+            return base64.b64encode(image_file.read()).decode("utf-8")
 
     @staticmethod
     def save_webpages(image_path, webpages) -> Path:

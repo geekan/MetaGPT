@@ -11,9 +11,7 @@ from metagpt.tools import tool_types  # this registers all tool types
 from metagpt.tools import libs  # this registers all tools
 from metagpt.tools.tool_registry import TOOL_REGISTRY
 
-_ = tool_types  # Avoid pre-commit error
-_ = libs  # Avoid pre-commit error
-_ = TOOL_REGISTRY  # Avoid pre-commit error
+_, _, _ = tool_types, libs, TOOL_REGISTRY  # Avoid pre-commit error
 
 
 class SearchEngineType(Enum):

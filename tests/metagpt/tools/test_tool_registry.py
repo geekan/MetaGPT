@@ -88,7 +88,7 @@ def test_get_tools_by_type(tool_registry, schema_yaml):
     tool_type = ToolType(name=tool_type_name, desc="test")
     tool_registry.register_tool_type(tool_type)
 
-    tool_registry.register_tool(tool_name, tool_path, tool_type_name=tool_type_name)
+    tool_registry.register_tool(tool_name, tool_path, tool_type=tool_type_name)
 
     tools_by_type = tool_registry.get_tools_by_type(tool_type_name)
     assert tools_by_type is not None

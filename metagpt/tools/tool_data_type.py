@@ -10,6 +10,7 @@ class ToolTypeEnum(Enum):
     MODEL_TRAIN = "model_train"
     MODEL_EVALUATE = "model_evaluate"
     STABLE_DIFFUSION = "stable_diffusion"
+    IMAGE2WEBPAGE = "image2webpage"
     OTHER = "other"
 
     def __missing__(self, key):

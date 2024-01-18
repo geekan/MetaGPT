@@ -13,7 +13,6 @@ import requests
 from aiohttp import ClientSession
 from PIL import Image, PngImagePlugin
 
-from metagpt.config import CONFIG
 from metagpt.const import SD_OUTPUT_FILE_REPO
 from metagpt.logs import logger
 from metagpt.tools.tool_data_type import ToolTypeEnum
@@ -53,9 +52,11 @@ payload = {
 default_negative_prompt = "(easynegative:0.8),black, dark,Low resolution"
 
 
-@register_tool(tool_type_name=ToolTypeEnum.STABLE_DIFFUSION.value)
+@register_tool(tool_type=ToolTypeEnum.STABLE_DIFFUSION.value)
 class SDEngine:
     def __init__(self, sd_url=""):
+        from metagpt.config import CONFIG
+
         # Initialize the SDEngine with configuration
         self.sd_url = sd_url if sd_url else CONFIG.get("SD_URL")
         self.sd_t2i_url = f"{self.sd_url}{CONFIG.get('SD_T2I_API')}"
