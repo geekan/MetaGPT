@@ -33,6 +33,7 @@ class GraphKeyword:
     HAS_CLASS_FUNCTION = "has_class_function"
     HAS_CLASS_PROPERTY = "has_class_property"
     HAS_CLASS = "has_class"
+    HAS_CLASS_DESC = "has_class_desc"
     HAS_PAGE_INFO = "has_page_info"
     HAS_CLASS_VIEW = "has_class_view"
     HAS_SEQUENCE_VIEW = "has_sequence_view"
@@ -56,15 +57,15 @@ class GraphRepository(ABC):
         pass
 
     @abstractmethod
-    async def upsert(self, subject: str, predicate: str, object_: str):
-        pass
-
-    @abstractmethod
-    async def update(self, subject: str, predicate: str, object_: str):
-        pass
-
-    @abstractmethod
     async def select(self, subject: str = None, predicate: str = None, object_: str = None) -> List[SPO]:
+        pass
+
+    @abstractmethod
+    async def delete(self, subject: str = None, predicate: str = None, object_: str = None) -> int:
+        pass
+
+    @abstractmethod
+    async def save(self):
         pass
 
     @property

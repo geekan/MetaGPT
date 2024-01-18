@@ -408,7 +408,7 @@ def concat_namespace(*args) -> str:
 
 
 def split_namespace(ns_class_name: str) -> List[str]:
-    return ns_class_name.split(":")
+    return ns_class_name.split(":", maxsplit=1)
 
 
 def general_after_log(i: "loguru.Logger", sec_format: str = "%0.3f") -> typing.Callable[["RetryCallState"], None]:
@@ -567,3 +567,8 @@ def list_files(root: str | Path) -> List[Path]:
     except Exception as e:
         logger.error(f"Error: {e}")
     return files
+
+
+def parse_json_code_block(markdown_text: str) -> List[str]:
+    json_blocks = re.findall(r"```json(.*?)```", markdown_text, re.DOTALL)
+    return [v.strip() for v in json_blocks]

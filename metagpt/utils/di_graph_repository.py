@@ -26,12 +26,6 @@ class DiGraphRepository(GraphRepository):
     async def insert(self, subject: str, predicate: str, object_: str):
         self._repo.add_edge(subject, object_, predicate=predicate)
 
-    async def upsert(self, subject: str, predicate: str, object_: str):
-        pass
-
-    async def update(self, subject: str, predicate: str, object_: str):
-        pass
-
     async def select(self, subject: str = None, predicate: str = None, object_: str = None) -> List[SPO]:
         result = []
         for s, o, p in self._repo.edges(data="predicate"):
@@ -43,6 +37,14 @@ class DiGraphRepository(GraphRepository):
                 continue
             result.append(SPO(subject=s, predicate=p, object_=o))
         return result
+
+    async def delete(self, subject: str = None, predicate: str = None, object_: str = None) -> int:
+        rows = await self.select(subject=subject, predicate=predicate, object_=object_)
+        if not rows:
+            return 0
+        for r in rows:
+            self._repo.remove_edge(r.subject, r.object_)
+        return len(rows)
 
     def json(self) -> str:
         m = networkx.node_link_data(self._repo)
