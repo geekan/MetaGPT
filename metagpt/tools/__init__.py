@@ -16,7 +16,7 @@ from metagpt.prompts.tool_type import (
     FEATURE_ENGINEERING_PROMPT,
     MODEL_TRAIN_PROMPT,
     MODEL_EVALUATE_PROMPT,
-    VISION_PROMPT
+    VISION_PROMPT,
 )
 
 
@@ -81,7 +81,8 @@ TOOL_TYPE_MAPPINGS = {
         name="scrape_web",
         module="metagpt.tools.functions.libs.scrape_web.scrape_web",
         desc="Scrape data from web page.",
-        usage_prompt=""）,
+        usage_prompt="",
+    ),
     "vision": ToolType(
         name="vision",
         module=str(TOOL_LIBS_PATH / "vision"),
