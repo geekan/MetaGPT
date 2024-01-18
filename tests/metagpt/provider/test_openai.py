@@ -49,7 +49,7 @@ async def test_text_to_speech():
     resp = await llm.atext_to_speech(
         model="tts-1",
         voice="alloy",
-        input="人生说起来长，但知道一个岁月回头看，许多事件仅是仓促的。一段一段拼凑一起，合成了人生。苦难当头时，当下不免觉得是折磨；回头看，也不够是一段短短的人生旅程。",
+        input="人生说起来长，但直到一个岁月回头看，许多事件仅是仓促的。一段一段拼凑一起，合成了人生。苦难当头时，当下不免觉得是折磨；回头看，也不够是一段短短的人生旅程。",
     )
     assert 200 == resp.response.status_code
 
