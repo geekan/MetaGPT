@@ -15,11 +15,7 @@ from typing import Optional
 
 from metagpt.actions import ActionOutput
 from metagpt.actions.action import Action
-from metagpt.actions.project_management_an import (
-    PM_NODE,
-    REFINED_PM_NODES,
-    REQUIRED_PYTHON_PACKAGES,
-)
+from metagpt.actions.project_management_an import PM_NODE, REFINED_PM_NODES
 from metagpt.config import CONFIG
 from metagpt.const import (
     PACKAGE_REQUIREMENTS_FILENAME,
@@ -104,7 +100,7 @@ class WriteTasks(Action):
     @staticmethod
     async def _update_requirements(doc):
         m = json.loads(doc.content)
-        packages = set(m.get(REQUIRED_PYTHON_PACKAGES.key, set()))
+        packages = set(m.get("Required Python packages", set()))
         file_repo = CONFIG.git_repo.new_file_repository()
         requirement_doc = await file_repo.get(filename=PACKAGE_REQUIREMENTS_FILENAME)
         if not requirement_doc:
