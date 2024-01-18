@@ -63,6 +63,8 @@ class QaEngineer(Role):
             if not filename or "test" in filename:
                 continue
             code_doc = await src_file_repo.get(filename)
+            if not code_doc:
+                continue
             test_doc = await tests_file_repo.get("test_" + code_doc.filename)
             if not test_doc:
                 test_doc = Document(
