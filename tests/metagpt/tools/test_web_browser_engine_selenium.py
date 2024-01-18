@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import browsers
 import pytest
 
 from metagpt.config2 import config
@@ -12,9 +13,27 @@ from metagpt.utils.parse_html import WebPage
 @pytest.mark.parametrize(
     "browser_type, use_proxy, url, urls",
     [
-        ("chrome", True, "https://deepwisdom.ai", ("https://deepwisdom.ai",)),
-        ("firefox", False, "https://deepwisdom.ai", ("https://deepwisdom.ai",)),
-        ("edge", False, "https://deepwisdom.ai", ("https://deepwisdom.ai",)),
+        pytest.param(
+            "chrome",
+            True,
+            "https://deepwisdom.ai",
+            ("https://deepwisdom.ai",),
+            marks=pytest.mark.skipif(not browsers.get("chrome"), reason="chrome browser not found"),
+        ),
+        pytest.param(
+            "firefox",
+            False,
+            "https://deepwisdom.ai",
+            ("https://deepwisdom.ai",),
+            marks=pytest.mark.skipif(not browsers.get("firefox"), reason="firefox browser not found"),
+        ),
+        pytest.param(
+            "edge",
+            False,
+            "https://deepwisdom.ai",
+            ("https://deepwisdom.ai",),
+            marks=pytest.mark.skipif(not browsers.get("msedge"), reason="edge browser not found"),
+        ),
     ],
     ids=["chrome-normal", "firefox-normal", "edge-normal"],
 )
