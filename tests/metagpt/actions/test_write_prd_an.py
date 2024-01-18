@@ -6,6 +6,7 @@
 @File    : test_write_prd_an.py
 """
 import pytest
+from openai._models import BaseModel
 
 from metagpt.actions.action_node import ActionNode
 from metagpt.actions.write_prd_an import REFINE_PRD_NODE, REFINE_PRD_TEMPLATE
@@ -22,20 +23,26 @@ def llm():
     return LLM()
 
 
+def mock_refined_prd_json():
+    return REFINED_PRD_JSON
+
+
 @pytest.mark.asyncio
 async def test_write_prd_an(mocker):
     root = ActionNode.from_children("RefinePRD", [ActionNode(key="", expected_type=str, instruction="", example="")])
-    root.instruct_content = REFINED_PRD_JSON
-
+    root.instruct_content = BaseModel()
+    root.instruct_content.model_dump = mock_refined_prd_json
     mocker.patch("metagpt.actions.write_prd_an.REFINE_PRD_NODE.fill", return_value=root)
+
     prompt = REFINE_PRD_TEMPLATE.format(
         requirements=NEW_REQUIREMENT_SAMPLE,
         old_prd=PRD_SAMPLE,
         project_name="",
     )
     node = await REFINE_PRD_NODE.fill(prompt, llm)
-    assert "Refined Requirements" in node.instruct_content
-    assert "Refined Product Goals" in node.instruct_content
-    assert "Refined User Stories" in node.instruct_content
-    assert "Refined Requirement Analysis" in node.instruct_content
-    assert "Refined Requirement Pool" in node.instruct_content
+
+    assert "Refined Requirements" in node.instruct_content.model_dump()
+    assert "Refined Product Goals" in node.instruct_content.model_dump()
+    assert "Refined User Stories" in node.instruct_content.model_dump()
+    assert "Refined Requirement Analysis" in node.instruct_content.model_dump()
+    assert "Refined Requirement Pool" in node.instruct_content.model_dump()

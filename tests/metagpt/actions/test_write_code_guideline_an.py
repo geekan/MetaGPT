@@ -6,6 +6,7 @@
 @File    : test_write_code_guideline_an.py
 """
 import pytest
+from openai._models import BaseModel
 
 from metagpt.actions.action_node import ActionNode
 from metagpt.actions.write_code import WriteCode
@@ -28,12 +29,17 @@ from tests.data.incremental_dev_project.mock import (
 )
 
 
+def mock_guidelines_and_incremental_change():
+    return GUIDELINES_AND_INCREMENTAL_CHANGE_SAMPLE
+
+
 @pytest.mark.asyncio
 async def test_write_code_guideline_an(mocker):
     root = ActionNode.from_children(
         "WriteCodeGuideline", [ActionNode(key="", expected_type=str, instruction="", example="")]
     )
-    root.instruct_content = GUIDELINES_AND_INCREMENTAL_CHANGE_SAMPLE
+    root.instruct_content = BaseModel()
+    root.instruct_content.model_dump = mock_guidelines_and_incremental_change
     mocker.patch("metagpt.actions.write_code_guideline_an.WriteCodeGuideline.run", return_value=root)
 
     write_code_guideline = WriteCodeGuideline()
@@ -45,7 +51,8 @@ async def test_write_code_guideline_an(mocker):
         code=OLD_CODE_SAMPLE,
     )
     node = await write_code_guideline.run(context=context)
-    assert "Guidelines and Incremental Change" in node.instruct_content
+
+    assert "Guidelines and Incremental Change" in node.instruct_content.model_dump()
 
 
 @pytest.mark.asyncio
