@@ -37,3 +37,9 @@ The current task is about evaluating a model, please note the following:
 - Ensure that the evaluated data is same processed as the training data. If not, remember use object in 'Done Tasks' to transform the data.
 - Use trained model from previous task result directly, do not mock or reload model yourself.
 """
+
+# Prompt for using tools of "vision" type
+VISION_PROMPT = """
+The current task is about converting image into webpage code. please note the following:
+- Single-Step Code Generation: Execute the entire code generation process in a single step, encompassing HTML, CSS, and JavaScript. Avoid fragmenting the code generation into multiple separate steps to maintain consistency and simplify the development workflow.
+"""
