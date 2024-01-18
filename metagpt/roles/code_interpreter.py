@@ -54,7 +54,7 @@ class CodeInterpreter(Role):
 
     async def _act_on_task(self, current_task: Task) -> TaskResult:
         code, result, is_success = await self._write_and_exec_code()
-        task_result = TaskResult(code=code['code'], result=result, is_success=is_success)
+        task_result = TaskResult(code=code, result=result, is_success=is_success)
         return task_result
 
     async def _write_and_exec_code(self, max_retry: int = 3):
@@ -69,7 +69,7 @@ class CodeInterpreter(Role):
             ### write code ###
             code, cause_by = await self._write_code()
 
-            self.working_memory.add(Message(content=code['code'], role="assistant", cause_by=cause_by))
+            self.working_memory.add(Message(content=code["code"], role="assistant", cause_by=cause_by))
 
             ### execute code ###
             result, success = await self.execute_code.run(**code)
@@ -78,7 +78,7 @@ class CodeInterpreter(Role):
             self.working_memory.add(Message(content=result, role="user", cause_by=ExecutePyCode))
 
             ### process execution result ###
-            if "!pip" in code:
+            if "!pip" in code["code"]:
                 success = False
 
             counter += 1
@@ -89,7 +89,7 @@ class CodeInterpreter(Role):
                 if ReviewConst.CHANGE_WORD[0] in review:
                     counter = 0  # redo the task again with help of human suggestions
 
-        return code, result, success
+        return code["code"], result, success
 
     async def _write_code(self):
         todo = WriteCodeByGenerate() if not self.use_tools else WriteCodeWithTools()
@@ -98,9 +98,6 @@ class CodeInterpreter(Role):
         context = self.planner.get_useful_memories()
         # print(*context, sep="\n***\n")
         code = await todo.run(context=context, plan=self.planner.plan, temperature=0.0)
-        # 暂时在这里转换 WriteCodeWithTools 的输出
-        if isinstance(code, str):
-            code = {'code': code, 'language': 'python'}
 
         return code, todo
 

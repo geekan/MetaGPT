@@ -59,7 +59,7 @@ class BaseWriteAnalysisCode(Action):
             }
         return messages
 
-    async def run(self, context: List[Message], plan: Plan = None) -> str:
+    async def run(self, context: List[Message], plan: Plan = None) -> dict:
         """Run of a code writing action, used in data analysis or modeling
 
         Args:
@@ -67,7 +67,7 @@ class BaseWriteAnalysisCode(Action):
             plan (Plan, optional): Overall plan. Defaults to None.
 
         Returns:
-            str: The code string.
+            dict: code result in the format of {"code": "print('hello world')", "language": "python"}
         """
 
 
@@ -174,7 +174,7 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
 
         tool_config = create_func_config(CODE_GENERATOR_WITH_TOOLS)
         rsp = await self.llm.aask_code(prompt, **tool_config)
-        return rsp["code"]
+        return rsp
 
 
 class WriteCodeWithToolsML(WriteCodeWithTools):
@@ -230,7 +230,7 @@ class WriteCodeWithToolsML(WriteCodeWithTools):
         tool_config = create_func_config(CODE_GENERATOR_WITH_TOOLS)
         rsp = await self.llm.aask_code(prompt, **tool_config)
         context = [Message(content=prompt, role="user")]
-        return context, rsp["code"]
+        return context, rsp
 
 
 class MakeTools(WriteCodeByGenerate):

@@ -46,7 +46,7 @@ class MLEngineer(CodeInterpreter):
             logger.info(f"new code \n{code}")
             cause_by = DebugCode
 
-        self.latest_code = code
+        self.latest_code = code["code"]
 
         return code, cause_by
 
@@ -61,6 +61,6 @@ class MLEngineer(CodeInterpreter):
         logger.info("Check columns in updated data")
         code = await UpdateDataColumns().run(self.planner.plan)
         success = False
-        result, success = await self.execute_code.run(code)
+        result, success = await self.execute_code.run(**code)
         print(result)
         return result if success else ""
