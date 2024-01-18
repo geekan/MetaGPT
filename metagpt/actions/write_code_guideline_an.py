@@ -187,20 +187,15 @@ class WriteCodeGuideline(Action):
         return await WRITE_CODE_GUIDELINE_NODE.fill(context=context, llm=self.llm, schema="json")
 
     @staticmethod
-    async def save(guideline):
-        await WriteCodeGuideline.save_json(guideline)
-        await WriteCodeGuideline.save_md(guideline)
-
-    @staticmethod
-    async def save_json(guideline):
-        filename = "code_guideline.json"
+    async def save_json(guideline, filename="code_guideline.json"):
         await CONFIG.git_repo.new_file_repository(CODE_GUIDELINE_FILE_REPO).save(
             filename=filename, content=str(guideline)
         )
 
     @staticmethod
-    async def save_md(guideline):
-        filename = "code_guideline.md"
+    async def save_md(guideline, filename="code_guideline.md"):
+        guideline_md = dict_to_markdown(guideline)
         await CONFIG.git_repo.new_file_repository(CODE_GUIDELINE_PDF_FILE_REPO).save(
-            filename=filename, content=dict_to_markdown(guideline)
+            filename=filename, content=guideline_md
         )
+        return guideline_md

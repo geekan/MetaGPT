@@ -26,7 +26,6 @@ from pathlib import Path
 from typing import Set
 
 from metagpt.actions import Action, WriteCode, WriteCodeReview, WriteTasks
-from metagpt.actions.action_node import dict_to_markdown
 from metagpt.actions.fix_bug import FixBug
 from metagpt.actions.summarize_code import SummarizeCode
 from metagpt.actions.write_code_guideline_an import (
@@ -367,10 +366,10 @@ class Engineer(Role):
         )
         node = await WriteCodeGuideline().run(context=context)
         guideline = node.instruct_content.model_dump()
-        await WriteCodeGuideline.save(guideline)
-        guideline = dict_to_markdown(guideline)
+        await WriteCodeGuideline.save_json(guideline)
+        guideline_md = await WriteCodeGuideline.save_md(guideline)
 
-        return Document(root_path=CODE_GUIDELINE_PDF_FILE_REPO, filename="code_guideline.md", content=guideline)
+        return Document(root_path=CODE_GUIDELINE_PDF_FILE_REPO, filename="code_guideline.md", content=guideline_md)
 
     @staticmethod
     async def get_old_codes() -> str:
