@@ -65,6 +65,8 @@ class QaEngineer(Role):
             code_doc = await src_file_repo.get(filename)
             if not code_doc:
                 continue
+            if not code_doc.filename.endswith(".py"):
+                continue
             test_doc = await tests_file_repo.get("test_" + code_doc.filename)
             if not test_doc:
                 test_doc = Document(
