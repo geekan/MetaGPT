@@ -51,7 +51,7 @@ class ToolRegistry:
 
         with open(schema_path, "r", encoding="utf-8") as f:
             schema_dict = yaml.safe_load(f)
-            schemas = schema_dict.get(tool_name) or dict(schema_dict.values())
+            schemas = schema_dict.get(tool_name) or list(schema_dict.values())[0]
         schemas["tool_path"] = tool_path  # corresponding code file path of the tool
         try:
             ToolSchema(**schemas)  # validation
