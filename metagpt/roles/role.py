@@ -102,12 +102,6 @@ class RoleContext(BaseModel):
     )  # see `Role._set_react_mode` for definitions of the following two attributes
     max_react_loop: int = 1
 
-    def check(self, role_id: str):
-        # if hasattr(CONFIG, "enable_longterm_memory") and CONFIG.enable_longterm_memory:
-        #     self.long_term_memory.recover_memory(role_id, self)
-        #     self.memory = self.long_term_memory  # use memory to act as long_term_memory for unify operation
-        pass
-
     @property
     def important_memory(self) -> list[Message]:
         """Retrieve information corresponding to the attention action."""
@@ -300,8 +294,6 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         buffer during _observe.
         """
         self.rc.watch = {any_to_str(t) for t in actions}
-        # check RoleContext after adding watch actions
-        self.rc.check(self.role_id)
 
     def is_watch(self, caused_by: str):
         return caused_by in self.rc.watch

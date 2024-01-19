@@ -25,7 +25,7 @@ async def test_search_json():
 
 @pytest.mark.asyncio
 async def test_search_xlsx():
-    store = FaissStore(EXAMPLE_PATH / "example.xlsx")
+    store = FaissStore(EXAMPLE_PATH / "example.xlsx", meta_col="Answer", content_col="Question")
     role = Sales(profile="Sales", store=store)
     query = "Which facial cleanser is good for oily skin?"
     result = await role.run(query)
@@ -36,5 +36,5 @@ async def test_search_xlsx():
 async def test_write():
     store = FaissStore(EXAMPLE_PATH / "example.xlsx", meta_col="Answer", content_col="Question")
     _faiss_store = store.write()
-    assert _faiss_store.docstore
-    assert _faiss_store.index
+    assert _faiss_store.storage_context.docstore
+    assert _faiss_store.storage_context.vector_store.client

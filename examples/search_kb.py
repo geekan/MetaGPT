@@ -6,7 +6,7 @@
 """
 import asyncio
 
-from langchain.embeddings import OpenAIEmbeddings
+from llama_index.embeddings import OpenAIEmbedding
 
 from metagpt.config2 import config
 from metagpt.const import DATA_PATH, EXAMPLE_PATH
@@ -17,7 +17,7 @@ from metagpt.roles import Sales
 
 def get_store():
     llm = config.get_openai_llm()
-    embedding = OpenAIEmbeddings(openai_api_key=llm.api_key, openai_api_base=llm.base_url)
+    embedding = OpenAIEmbedding(api_key=llm.api_key, api_base=llm.base_url)
     return FaissStore(DATA_PATH / "example.json", embedding=embedding)
 
 
