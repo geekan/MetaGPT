@@ -29,8 +29,8 @@ from metagpt.const import (
     BUGFIX_FILENAME,
     CODE_SUMMARIES_FILE_REPO,
     DOCS_FILE_REPO,
+    PLAN_FILE_REPO,
     PLAN_FILENAME,
-    PLAN_PDF_FILE_REPO,
     REQUIREMENT_FILENAME,
     TASK_FILE_REPO,
     TEST_OUTPUTS_FILE_REPO,
@@ -107,7 +107,7 @@ class WriteCode(Action):
         test_doc = await FileRepository.get_file(
             filename="test_" + coding_context.filename + ".json", relative_path=TEST_OUTPUTS_FILE_REPO
         )
-        plan_doc = await FileRepository.get_file(filename=PLAN_FILENAME, relative_path=PLAN_PDF_FILE_REPO)
+        plan_doc = await FileRepository.get_file(filename=PLAN_FILENAME, relative_path=PLAN_FILE_REPO)
         plan = plan_doc.content if plan_doc else ""
         requirement_doc = await FileRepository.get_file(filename=REQUIREMENT_FILENAME, relative_path=DOCS_FILE_REPO)
         summary_doc = None

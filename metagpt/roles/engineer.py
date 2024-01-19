@@ -37,7 +37,7 @@ from metagpt.const import (
     CODE_SUMMARIES_PDF_FILE_REPO,
     PLAN_FILE_REPO,
     PLAN_FILENAME,
-    PLAN_PDF_FILE_REPO,
+    PRDS_FILE_REPO,
     SYSTEM_DESIGN_FILE_REPO,
     TASK_FILE_REPO,
 )
@@ -123,7 +123,7 @@ class Engineer(Role):
 
             dependencies = {coding_context.design_doc.root_relative_path, coding_context.task_doc.root_relative_path}
             if mode == "plan":
-                dependencies.add(os.path.join(PLAN_PDF_FILE_REPO, PLAN_FILENAME))
+                dependencies.add(os.path.join(PLAN_FILE_REPO, PLAN_FILENAME))
             await src_file_repo.save(
                 coding_context.filename,
                 dependencies=dependencies,
@@ -340,7 +340,7 @@ class Engineer(Role):
 
         user_requirement = str(self.rc.memory.get_by_role("Human")[0])
         pool_contents = []
-        prd = await FileRepository.get_all_files(relative_path=PLAN_PDF_FILE_REPO)
+        prd = await FileRepository.get_all_files(relative_path=PRDS_FILE_REPO)
         for doc in prd:
             prd_json = json.loads(doc.content)
             product_requirement_pool = prd_json.get(REFINED_REQUIREMENT_POOL.key) or prd_json.get(REQUIREMENT_POOL.key)

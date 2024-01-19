@@ -16,8 +16,8 @@ from metagpt.actions.action import Action
 from metagpt.config import CONFIG
 from metagpt.const import (
     DOCS_FILE_REPO,
+    PLAN_FILE_REPO,
     PLAN_FILENAME,
-    PLAN_PDF_FILE_REPO,
     REQUIREMENT_FILENAME,
 )
 from metagpt.logs import logger
@@ -145,7 +145,7 @@ class WriteCodeReview(Action):
     async def run(self, *args, **kwargs) -> CodingContext:
         iterative_code = self.context.code_doc.content
         k = CONFIG.code_review_k_times or 1
-        plan_doc = await FileRepository.get_file(filename=PLAN_FILENAME, relative_path=PLAN_PDF_FILE_REPO)
+        plan_doc = await FileRepository.get_file(filename=PLAN_FILENAME, relative_path=PLAN_FILE_REPO)
         plan = plan_doc.content if plan_doc else ""
         mode = "plan" if plan else "normal"
 
