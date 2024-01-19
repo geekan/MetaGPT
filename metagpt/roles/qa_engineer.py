@@ -29,7 +29,8 @@ class QaEngineer(Role):
     profile: str = "QaEngineer"
     goal: str = "Write comprehensive and robust tests to ensure codes will work as expected without bugs"
     constraints: str = (
-        "The test code you write should conform to code standard like PEP8, be modular, " "easy to read and maintain"
+        "The test code you write should conform to code standard like PEP8, be modular, easy to read and maintain."
+        "Use same language as user requirement"
     )
     test_round_allowed: int = 5
     test_round: int = 0
@@ -54,6 +55,8 @@ class QaEngineer(Role):
             if not filename or "test" in filename:
                 continue
             code_doc = await src_file_repo.get(filename)
+            if not code_doc:
+                continue
             test_doc = await self.project_repo.tests.get("test_" + code_doc.filename)
             if not test_doc:
                 test_doc = Document(

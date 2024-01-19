@@ -34,10 +34,19 @@
 <p align="center">Software Company Multi-Role Schematic (Gradually Implementing)</p>
 
 ## News
-🚀 Jan 03: Here comes [v0.6.0](https://github.com/geekan/MetaGPT/releases/tag/v0.6.0)! In this version, we added serialization and deserialization of important objects and enabled breakpoint recovery. We upgraded OpenAI package to v1.6.0 and supported Gemini, ZhipuAI, Ollama, OpenLLM, etc. Moreover, we provided extremely simple examples where you need only 7 lines to implement a general election [debate](https://github.com/geekan/MetaGPT/blob/main/examples/debate_simple.py). Check out more details [here](https://github.com/geekan/MetaGPT/releases/tag/v0.6.0)!
+🚀 Jan. 16, 2024: [MetaGPT paper](https://arxiv.org/abs/2308.00352) accepted for oral presentation **(top 1.2%)** at ICLR 2024, **ranking #1** in the LLM-based Agent category.
 
+🚀 Jan. 03, 2024: [v0.6.0](https://github.com/geekan/MetaGPT/releases/tag/v0.6.0) released, new features include serialization, upgraded OpenAI package and supported multiple LLM etc.
 
-🚀 Dec 15: [v0.5.0](https://github.com/geekan/MetaGPT/releases/tag/v0.5.0) is released! We introduced **incremental development**, facilitating agents to build up larger projects on top of their previous efforts or existing codebase. We also launched a whole collection of important features, including **multilingual support** (experimental), multiple **programming languages support** (experimental), **incremental development** (experimental), CLI support, pip support, enhanced code review, documentation mechanism, and optimized messaging mechanism!
+🚀 Dec. 15, 2023: [v0.5.0](https://github.com/geekan/MetaGPT/releases/tag/v0.5.0) released, introducing **incremental development**, **multilingual**, **multiple programming languages**, etc.
+
+🔥 Nov. 08, 2023: MetaGPT is selected into [Open100: Top 100 Open Source achievements](https://www.benchcouncil.org/evaluation/opencs/annual.html).
+
+🔥 Sep. 01, 2023: MetaGPT tops GitHub Trending Monthly for the **17th time** in August 2023.
+
+🌟 Jun. 30, 2023: MetaGPT is now open source.
+
+🌟 Apr. 24, 2023: First line of MetaGPT code committed.
 
 ## Install
 

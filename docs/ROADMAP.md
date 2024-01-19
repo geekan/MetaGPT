@@ -76,9 +76,8 @@ Enable MetaGPT to self-evolve, accomplishing self-training, fine-tuning, optimiz
    2. ~~Support Azure asynchronous API~~
    3. Support streaming version of all APIs
    4. ~~Make gpt-3.5-turbo available (HARD)~~
-   5. Support 
 10. Other
     1. ~~Clean up existing unused code~~
-    2. Unify all code styles and establish contribution standards
+    2. ~~Unify all code styles and establish contribution standards~~
     3. ~~Multi-language support~~
     4. ~~Multi-programming-language support~~

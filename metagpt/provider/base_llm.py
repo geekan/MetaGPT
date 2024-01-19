@@ -106,6 +106,10 @@ class BaseLLM(ABC):
         """Required to provide the first text of choice"""
         return rsp.get("choices")[0]["message"]["content"]
 
+    def get_choice_delta_text(self, rsp: dict) -> str:
+        """Required to provide the first text of stream choice"""
+        return rsp.get("choices")[0]["delta"]["content"]
+
     def get_choice_function(self, rsp: dict) -> dict:
         """Required to provide the first function of choice
         :param dict rsp: OpenAI chat.comletion respond JSON, Note "message" must include "tool_calls",
