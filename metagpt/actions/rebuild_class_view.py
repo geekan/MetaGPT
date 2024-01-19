@@ -72,7 +72,7 @@ class RebuildClassView(Action):
                 if content:
                     logger.debug(content)
                     await writer.write(content)
-                    relationship_distinct += distinct
+                    relationship_distinct.update(distinct)
         logger.info(f"classes: {len(class_distinct)}, relationship: {len(relationship_distinct)}")
 
     async def _create_mermaid_class(self, ns_class_name) -> str:
