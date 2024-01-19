@@ -14,10 +14,16 @@ from tenacity import retry, stop_after_attempt, wait_random_exponential
 from metagpt.actions import WriteCode
 from metagpt.actions.action import Action
 from metagpt.config import CONFIG
-from metagpt.const import DOCS_FILE_REPO, REQUIREMENT_FILENAME
+from metagpt.const import (
+    DOCS_FILE_REPO,
+    PLAN_FILENAME,
+    PLAN_PDF_FILE_REPO,
+    REQUIREMENT_FILENAME,
+)
 from metagpt.logs import logger
 from metagpt.schema import CodingContext
 from metagpt.utils.common import CodeParser
+from metagpt.utils.file_repository import FileRepository
 
 PROMPT_TEMPLATE = """
 # System
@@ -138,16 +144,17 @@ class WriteCodeReview(Action):
 
     async def run(self, *args, **kwargs) -> CodingContext:
         iterative_code = self.context.code_doc.content
-        # k = CONFIG.code_review_k_times or 1
-        k = 1
-        guideline = kwargs.get("guideline")
-        mode = "guide" if guideline else "normal"
+        k = CONFIG.code_review_k_times or 1
+        plan_doc = await FileRepository.get_file(filename=PLAN_FILENAME, relative_path=PLAN_PDF_FILE_REPO)
+        plan = plan_doc.content if plan_doc else ""
+        mode = "plan" if plan else "normal"
+
         for i in range(k):
             format_example = FORMAT_EXAMPLE.format(filename=self.context.code_doc.filename)
             task_content = self.context.task_doc.content if self.context.task_doc else ""
             code_context = await WriteCode.get_codes(self.context.task_doc, exclude=self.context.filename, mode=mode)
 
-            if not guideline:
+            if not plan:
                 context = "\n".join(
                     [
                         "## System Design\n" + str(self.context.design_doc) + "\n",
@@ -156,15 +163,15 @@ class WriteCodeReview(Action):
                     ]
                 )
             else:
-                requirement_doc = await CONFIG.git_repo.new_file_repository(relative_path=DOCS_FILE_REPO).get(
-                    filename=REQUIREMENT_FILENAME
+                requirement_doc = await FileRepository.get_file(
+                    filename=REQUIREMENT_FILENAME, relative_path=DOCS_FILE_REPO
                 )
                 user_requirement = requirement_doc.content if requirement_doc else ""
 
                 context = "\n".join(
                     [
-                        "## User New Requirements\n" + str(user_requirement) + "\n",
-                        "## Guidelines and Incremental Change\n" + guideline + "\n",
+                        "## User New Requirements\n" + user_requirement + "\n",
+                        "## Plan\n" + plan + "\n",
                         "## System Design\n" + str(self.context.design_doc) + "\n",
                         "## Tasks\n" + task_content + "\n",
                         "## Code Files\n" + code_context + "\n",

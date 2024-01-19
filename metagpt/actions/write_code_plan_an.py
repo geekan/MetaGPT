@@ -3,23 +3,21 @@
 """
 @Time    : 2023/12/26
 @Author  : mannaandpoem
-@File    : write_code_guideline_an.py
+@File    : write_code_plan_an.py
 """
 
 from metagpt.actions.action import Action
-from metagpt.actions.action_node import ActionNode, dict_to_markdown
-from metagpt.config import CONFIG
-from metagpt.const import CODE_GUIDELINE_FILE_REPO, CODE_GUIDELINE_PDF_FILE_REPO
+from metagpt.actions.action_node import ActionNode
 
-GUIDELINES_AND_INCREMENTAL_CHANGE = ActionNode(
-    key="Guidelines and Incremental Change",
+Plan = ActionNode(
+    key="Plan",
     expected_type=str,
-    instruction="Developing comprehensive and step-by-step incremental development guideline, and Write Incremental "
+    instruction="Developing comprehensive and step-by-step incremental development plan, and write Incremental "
     "Change by making a code draft that how to implement incremental development including detailed steps based on the "
     "context. Note: Track incremental changes using mark of '+' or '-' for add/modify/delete code, and conforms to the "
     "output format of git diff",
     example="""
-1. Guideline for calculator.py: Enhance the functionality of `calculator.py` by extending it to incorporate methods for subtraction, multiplication, and division. Additionally, implement robust error handling for the division operation to mitigate potential issues related to division by zero. 
+1. Plan for calculator.py: Enhance the functionality of `calculator.py` by extending it to incorporate methods for subtraction, multiplication, and division. Additionally, implement robust error handling for the division operation to mitigate potential issues related to division by zero. 
 ```python
 class Calculator:
          self.result = number1 + number2
@@ -75,7 +73,7 @@ class Calculator:
          self.result = 0.0
 ```
 
-2. Guideline for main.py: Integrate new API endpoints for subtraction, multiplication, and division into the existing codebase of `main.py`. Then, ensure seamless integration with the overall application architecture and maintain consistency with coding standards.
+2. Plan for main.py: Integrate new API endpoints for subtraction, multiplication, and division into the existing codebase of `main.py`. Then, ensure seamless integration with the overall application architecture and maintain consistency with coding standards.
 ```python
 def add_numbers():
      result = calculator.add_numbers(num1, num2)
@@ -106,7 +104,7 @@ def add_numbers():
 ```""",
 )
 
-CODE_GUIDELINE_CONTEXT = """
+CODE_PLAN_CONTEXT = """
 ## User New Requirements
 {user_requirement}
 
@@ -125,14 +123,14 @@ CODE_GUIDELINE_CONTEXT = """
 
 REFINED_CODE_TEMPLATE = """
 NOTICE
-Role: You are a professional engineer; The main goal is to complete incremental development by combining legacy code and Guidelines and Incremental Change, ensuring the integration of new features.
+Role: You are a professional engineer; The main goal is to complete incremental development by combining legacy code and plan and Incremental Change, ensuring the integration of new features.
 
 # Context
 ## User New Requirements
 {user_requirement}
 
-## Guidelines and Incremental Change
-{guideline}
+## Plan
+{plan}
 
 ## Design
 {design}
@@ -170,32 +168,18 @@ Role: You are a professional engineer; The main goal is to complete incremental 
 2. COMPLETE CODE: Your code will be part of the entire project, so please implement complete, reliable, reusable code snippets.
 3. Set default value: If there is any setting, ALWAYS SET A DEFAULT VALUE, ALWAYS USE STRONG TYPE AND EXPLICIT VARIABLE. AVOID circular import.
 4. Follow design: YOU MUST FOLLOW "Data structures and interfaces". DONT CHANGE ANY DESIGN. Do not use public member functions that do not exist in your design.
-5. Follow Guidelines and Incremental Change: If there is any Incremental Change or Legacy Code files contain "{filename} to be rewritten", you must merge it into the code file according to the guidelines.
+5. Follow plan and Incremental Change: If there is any Incremental Change or Legacy Code files contain "{filename} to be rewritten", you must merge it into the code file according to the plan.
 6. CAREFULLY CHECK THAT YOU DONT MISS ANY NECESSARY CLASS/FUNCTION IN THIS FILE.
 7. Before using a external variable/module, make sure you import it first.
 8. Write out EVERY CODE DETAIL, DON'T LEAVE TODO.
 9. Attention: Retain content that is not related to incremental development but important for consistency and clarity.".
 """
 
-WRITE_CODE_GUIDELINE_NODE = ActionNode.from_children("WriteCodeGuideline", [GUIDELINES_AND_INCREMENTAL_CHANGE])
+WRITE_CODE_PLAN_NODE = ActionNode.from_children("WriteCodePlan", [Plan])
 
 
-class WriteCodeGuideline(Action):
+class WriteCodePlan(Action):
     async def run(self, context):
         self.llm.system_prompt = "You are a professional software engineer, your primary responsibility is to "
-        "meticulously craft comprehensive incremental development guidelines and deliver detailed Incremental Change"
-        return await WRITE_CODE_GUIDELINE_NODE.fill(context=context, llm=self.llm, schema="json")
-
-    @staticmethod
-    async def save_json(guideline, filename="code_guideline.json"):
-        await CONFIG.git_repo.new_file_repository(CODE_GUIDELINE_FILE_REPO).save(
-            filename=filename, content=str(guideline)
-        )
-
-    @staticmethod
-    async def save_md(guideline, filename="code_guideline.md"):
-        guideline_md = dict_to_markdown(guideline)
-        await CONFIG.git_repo.new_file_repository(CODE_GUIDELINE_PDF_FILE_REPO).save(
-            filename=filename, content=guideline_md
-        )
-        return guideline_md
+        "meticulously craft comprehensive incremental development plan and deliver detailed Incremental Change"
+        return await WRITE_CODE_PLAN_NODE.fill(context=context, llm=self.llm, schema="json")

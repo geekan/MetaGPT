@@ -118,7 +118,7 @@ REFINE_NODES = [
 ]
 
 PM_NODE = ActionNode.from_children("PM_NODE", NODES)
-REFINED_PM_NODES = ActionNode.from_children("Refined_PM_NODES", REFINE_NODES)
+REFINED_PM_NODES = ActionNode.from_children("REFINED_PM_NODES", REFINE_NODES)
 
 
 def main():

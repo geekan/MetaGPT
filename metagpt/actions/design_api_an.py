@@ -9,7 +9,7 @@ from typing import List
 
 from metagpt.actions.action_node import ActionNode
 from metagpt.logs import logger
-from metagpt.utils.mermaid import MMC1, MMC1_REFINE, MMC2, MMC2_REFINE
+from metagpt.utils.mermaid import MMC1, MMC2
 
 IMPLEMENTATION_APPROACH = ActionNode(
     key="Implementation approach",
@@ -62,7 +62,7 @@ REFINED_DATA_STRUCTURES_AND_INTERFACES = ActionNode(
     "methods (including __init__), and functions with precise type annotations. Delineate additional "
     "relationships between classes, ensuring clarity and adherence to PEP8 standards."
     "Retain content that is not related to incremental development but important for consistency and clarity.",
-    example=MMC1_REFINE,
+    example=MMC1,
 )
 
 PROGRAM_CALL_FLOW = ActionNode(
@@ -80,7 +80,7 @@ REFINED_PROGRAM_CALL_FLOW = ActionNode(
     "CRUD and initialization of each object. Ensure correct syntax usage and reflect the incremental changes introduced"
     "in the classes and API defined above. "
     "Retain content that is not related to incremental development but important for consistency and clarity.",
-    example=MMC2_REFINE,
+    example=MMC2,
 )
 
 ANYTHING_UNCLEAR = ActionNode(

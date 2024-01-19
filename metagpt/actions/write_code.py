@@ -16,18 +16,21 @@
 """
 
 import json
+from typing import Literal
 
 from pydantic import Field
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.actions.action import Action
 from metagpt.actions.project_management_an import REFINED_TASK_LIST, TASK_LIST
-from metagpt.actions.write_code_guideline_an import REFINED_CODE_TEMPLATE
+from metagpt.actions.write_code_plan_an import REFINED_CODE_TEMPLATE
 from metagpt.config import CONFIG
 from metagpt.const import (
     BUGFIX_FILENAME,
     CODE_SUMMARIES_FILE_REPO,
     DOCS_FILE_REPO,
+    PLAN_FILENAME,
+    PLAN_PDF_FILE_REPO,
     REQUIREMENT_FILENAME,
     TASK_FILE_REPO,
     TEST_OUTPUTS_FILE_REPO,
@@ -104,6 +107,9 @@ class WriteCode(Action):
         test_doc = await FileRepository.get_file(
             filename="test_" + coding_context.filename + ".json", relative_path=TEST_OUTPUTS_FILE_REPO
         )
+        plan_doc = await FileRepository.get_file(filename=PLAN_FILENAME, relative_path=PLAN_PDF_FILE_REPO)
+        plan = plan_doc.content if plan_doc else ""
+        requirement_doc = await FileRepository.get_file(filename=REQUIREMENT_FILENAME, relative_path=DOCS_FILE_REPO)
         summary_doc = None
         if coding_context.design_doc and coding_context.design_doc.filename:
             summary_doc = await FileRepository.get_file(
@@ -114,21 +120,17 @@ class WriteCode(Action):
             test_detail = RunCodeResult.loads(test_doc.content)
             logs = test_detail.stderr
 
-        docs_file_repo = CONFIG.git_repo.new_file_repository(relative_path=DOCS_FILE_REPO)
-        requirement_doc = await docs_file_repo.get(filename=REQUIREMENT_FILENAME)
-
-        guideline = kwargs.get("guideline", "")
         if bug_feedback:
             code_context = coding_context.code_doc.content
-        elif guideline:
-            code_context = await self.get_codes(coding_context.task_doc, exclude=self.context.filename, mode="guide")
+        elif plan:
+            code_context = await self.get_codes(coding_context.task_doc, exclude=self.context.filename, mode="plan")
         else:
             code_context = await self.get_codes(coding_context.task_doc, exclude=self.context.filename)
 
-        if guideline:
+        if plan:
             prompt = REFINED_CODE_TEMPLATE.format(
                 user_requirement=requirement_doc.content if requirement_doc else "",
-                guideline=guideline,
+                plan=plan,
                 design=coding_context.design_doc.content if coding_context.design_doc else "",
                 tasks=coding_context.task_doc.content if coding_context.task_doc else "",
                 code=code_context,
@@ -157,14 +159,14 @@ class WriteCode(Action):
         return coding_context
 
     @staticmethod
-    async def get_codes(task_doc, exclude, mode="normal") -> str:
+    async def get_codes(task_doc: Document, exclude: str, mode: Literal["normal", "plan"] = "normal") -> str:
         """
         Get code snippets based on different modes.
 
         Attributes:
             task_doc (Document): Document object of the task file.
             exclude (str): Specifies the filename to be excluded from the code snippets.
-            mode (str): Specifies the mode, either "normal" or "guide" (default is "normal").
+            mode (str): Specifies the mode, either "normal" or "plan" (default is "normal").
 
         Returns:
             str: Code snippets.
@@ -173,7 +175,7 @@ class WriteCode(Action):
         If mode is set to "normal", it returns code snippets for the regular coding phase,
         i.e., all the code generated before writing the current file.
 
-        If mode is set to "guide", it returns code snippets for incremental development,
+        If mode is set to "plan", it returns code snippets for incremental development,
         building upon the existing code in the "normal" mode and adding code for the current file's older versions.
         """
         if not task_doc:
@@ -185,31 +187,36 @@ class WriteCode(Action):
         codes = []
         src_file_repo = CONFIG.git_repo.new_file_repository(relative_path=CONFIG.src_workspace)
 
-        if mode == "guide":
+        if mode == "plan":
             src_files = src_file_repo.all_files
             old_file_repo = CONFIG.git_repo.new_file_repository(relative_path=CONFIG.old_workspace)
             old_files = old_file_repo.all_files
+            # Get the union of the files in the src and old workspaces
             union_files_list = list(set(src_files) | set(old_files))
             for filename in union_files_list:
+                # Exclude the current file from the all code snippets to get the context code snippets for generating
                 if filename == exclude:
+                    # If the file is in the old workspace, use the legacy code
                     # Exclude unnecessary code to maintain a clean and focused main.py file, ensuring only relevant and
                     # essential functionality is included for the project’s requirements
                     if filename in old_files and filename != "main.py":
                         # Use legacy code
                         doc = await old_file_repo.get(filename=filename)
+                    # If the file is in the src workspace, skip it
                     else:
                         continue
                     codes.insert(0, f"-----Now, {filename} to be rewritten\n```{doc.content}```\n=====")
-
+                # The context code snippets are generated from the src workspace
                 else:
-                    # Use new code
                     doc = await src_file_repo.get(filename=filename)
+                    # If the file does not exist in the src workspace, skip it
                     if not doc:
                         continue
                     codes.append(f"----- {filename}\n```{doc.content}```")
 
-        else:
+        elif mode == "normal":
             for filename in code_filenames:
+                # Exclude the current file to get the context code snippets for generating the current file
                 if filename == exclude:
                     continue
                 doc = await src_file_repo.get(filename=filename)

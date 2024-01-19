@@ -105,7 +105,7 @@ def log_and_check_result(result, tag_name="refine"):
 
 def get_incremental_dev_result(idea, project_name, use_review=True):
     project_path = TEST_DATA_PATH / "incremental_dev_project" / project_name
-    if not os.path.exists(project_path):
+    if project_path.exists():
         raise Exception(f"Project {project_name} not exists")
     check_or_create_base_tag(project_path)
     args = [idea, "--inc", "--project-path", project_path]

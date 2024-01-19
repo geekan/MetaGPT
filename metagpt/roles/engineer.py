@@ -23,21 +23,21 @@ import json
 import os
 from collections import defaultdict
 from pathlib import Path
-from typing import Set
+from typing import Literal, Set
 
 from metagpt.actions import Action, WriteCode, WriteCodeReview, WriteTasks
 from metagpt.actions.fix_bug import FixBug
+from metagpt.actions.project_management_an import REFINED_TASK_LIST, TASK_LIST
 from metagpt.actions.summarize_code import SummarizeCode
-from metagpt.actions.write_code_guideline_an import (
-    CODE_GUIDELINE_CONTEXT,
-    WriteCodeGuideline,
-)
+from metagpt.actions.write_code_plan_an import CODE_PLAN_CONTEXT, WriteCodePlan
+from metagpt.actions.write_prd_an import REFINED_REQUIREMENT_POOL, REQUIREMENT_POOL
 from metagpt.config import CONFIG
 from metagpt.const import (
-    CODE_GUIDELINE_PDF_FILE_REPO,
     CODE_SUMMARIES_FILE_REPO,
     CODE_SUMMARIES_PDF_FILE_REPO,
-    PRDS_FILE_REPO,
+    PLAN_FILE_REPO,
+    PLAN_FILENAME,
+    PLAN_PDF_FILE_REPO,
     SYSTEM_DESIGN_FILE_REPO,
     TASK_FILE_REPO,
 )
@@ -51,6 +51,7 @@ from metagpt.schema import (
     Message,
 )
 from metagpt.utils.common import any_to_name, any_to_str, any_to_str_set
+from metagpt.utils.file_repository import FileRepository
 
 IS_PASS_PROMPT = """
 {context}
@@ -100,9 +101,9 @@ class Engineer(Role):
     @staticmethod
     def _parse_tasks(task_msg: Document) -> list[str]:
         m = json.loads(task_msg.content)
-        return m.get("Task list") or m.get("Refined Task list")
+        return m.get(TASK_LIST.key) or m.get(REFINED_TASK_LIST.key)
 
-    async def _act_sp_with_cr(self, review=False, guideline=Document()) -> Set[str]:
+    async def _act_sp_with_cr(self, review=False, mode: Literal["normal", "plan"] = "normal") -> Set[str]:
         changed_files = set()
         src_file_repo = CONFIG.git_repo.new_file_repository(CONFIG.src_workspace)
         for todo in self.code_todos:
@@ -113,16 +114,16 @@ class Engineer(Role):
             3. Do we need other codes (currently needed)?
             TODO: The goal is not to need it. After clear task decomposition, based on the design idea, you should be able to write a single file without needing other codes. If you can't, it means you need a clearer definition. This is the key to writing longer code.
             """
-            coding_context = await todo.run(guideline=guideline.content)
+            coding_context = await todo.run()
             # Code review
             if review:
                 action = WriteCodeReview(context=coding_context, llm=self.llm)
                 self._init_action_system_message(action)
-                coding_context = await action.run(guideline=guideline.content)
+                coding_context = await action.run()
 
             dependencies = {coding_context.design_doc.root_relative_path, coding_context.task_doc.root_relative_path}
-            if guideline.content:
-                dependencies.add(guideline.root_relative_path)
+            if mode == "plan":
+                dependencies.add(os.path.join(PLAN_PDF_FILE_REPO, PLAN_FILENAME))
             await src_file_repo.save(
                 coding_context.filename,
                 dependencies=dependencies,
@@ -155,10 +156,8 @@ class Engineer(Role):
 
     async def _act_write_code(self):
         if CONFIG.inc:
-            code_guideline = await self._write_code_guideline()
-            changed_files = await self._act_sp_with_cr(review=self.use_code_review, guideline=code_guideline)
-        else:
-            changed_files = await self._act_sp_with_cr(review=self.use_code_review)
+            await self._write_code_plan()
+        changed_files = await self._act_sp_with_cr(review=self.use_code_review)
         return Message(
             content="\n".join(changed_files),
             role=self.profile,
@@ -335,41 +334,38 @@ class Engineer(Role):
         """AgentStore uses this attribute to display to the user what actions the current role should take."""
         return self.next_todo_action
 
-    async def _write_code_guideline(self):
-        """Write some guidelines that guides subsequent WriteCode and WriteCodeReview"""
-        logger.info("Writing code guideline..")
+    async def _write_code_plan(self):
+        """Write code plan that guides subsequent WriteCode and WriteCodeReview"""
+        logger.info("Writing code plan..")
 
         user_requirement = str(self.rc.memory.get_by_role("Human")[0])
-        contents = []
-        prd = await CONFIG.git_repo.new_file_repository(PRDS_FILE_REPO).get_all()
+        pool_contents = []
+        prd = await FileRepository.get_all_files(relative_path=PLAN_PDF_FILE_REPO)
         for doc in prd:
             prd_json = json.loads(doc.content)
-            product_requirement_pool = prd_json.get("Requirement Pool", prd_json.get("Refined Requirement Pool"))
-            contents.append(str(product_requirement_pool))
+            product_requirement_pool = prd_json.get(REFINED_REQUIREMENT_POOL.key) or prd_json.get(REQUIREMENT_POOL.key)
+            pool_contents.append(str(product_requirement_pool))
 
-        product_requirement_pools = "\n".join(contents)
+        product_requirement_pools = "\n".join(pool_contents)
 
-        design = await CONFIG.git_repo.new_file_repository(SYSTEM_DESIGN_FILE_REPO).get_all()
+        design = await FileRepository.get_all_files(relative_path=SYSTEM_DESIGN_FILE_REPO)
         design = "\n".join([doc.content for doc in design])
 
-        tasks = await CONFIG.git_repo.new_file_repository(TASK_FILE_REPO).get_all()
+        tasks = await FileRepository.get_all_files(relative_path=TASK_FILE_REPO)
         tasks = "\n".join([doc.content for doc in tasks])
 
         old_codes = await self.get_old_codes()
 
-        context = CODE_GUIDELINE_CONTEXT.format(
+        context = CODE_PLAN_CONTEXT.format(
             user_requirement=user_requirement,
             product_requirement_pools=product_requirement_pools,
             tasks=tasks,
             design=design,
             code=old_codes,
         )
-        node = await WriteCodeGuideline().run(context=context)
-        guideline = node.instruct_content.model_dump()
-        await WriteCodeGuideline.save_json(guideline)
-        guideline_md = await WriteCodeGuideline.save_md(guideline)
-
-        return Document(root_path=CODE_GUIDELINE_PDF_FILE_REPO, filename="code_guideline.md", content=guideline_md)
+        node = await WriteCodePlan().run(context=context)
+        plan = node.instruct_content.model_dump_json()
+        CONFIG.git_repo.new_file_repository(PLAN_FILE_REPO).save(filename=PLAN_FILENAME, content=plan)
 
     @staticmethod
     async def get_old_codes() -> str:

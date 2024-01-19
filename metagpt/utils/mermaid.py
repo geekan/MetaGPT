@@ -121,46 +121,6 @@ classDiagram
     Index --> KnowledgeBase
 """
 
-MMC1_REFINE = """
-classDiagram
-    class Main {
-        -SearchEngine search_engine
-        +main() str
-        +newMethod() str  # Incremental change
-    }
-    class SearchEngine {
-        -Index index
-        -Ranking ranking
-        -Summary summary
-        +search(query: str) str
-        +newMethod() str  # Incremental change
-    }
-    class Index {
-        -KnowledgeBase knowledge_base
-        +create_index(data: dict)
-        +query_index(query: str) list
-        +newMethod() list  # Incremental change
-    }
-    class Ranking {
-        +rank_results(results: list) list
-        +newMethod() list  # Incremental change
-    }
-    class Summary {
-        +summarize_results(results: list) str
-        +newMethod() str  # Incremental change
-    }
-    class KnowledgeBase {
-        +update(data: dict)
-        +fetch_data(query: str) dict
-        +newMethod()  # Incremental change
-    }
-    Main --> SearchEngine
-    SearchEngine --> Index
-    SearchEngine --> Ranking
-    SearchEngine --> Summary
-    Index --> KnowledgeBase
-"""
-
 MMC2 = """
 sequenceDiagram
     participant M as Main
@@ -179,33 +139,4 @@ sequenceDiagram
     SE->>S: summarize_results(ranked_results)
     S-->>SE: return summary
     SE-->>M: return summary
-"""
-
-MMC2_REFINE = """
-sequenceDiagram
-    participant M as Main
-    participant SE as SearchEngine
-    participant I as Index
-    participant R as Ranking
-    participant S as Summary
-    participant KB as KnowledgeBase
-    M->>SE: search(query)
-    SE->>I: query_index(query)
-    I->>KB: fetch_data(query)
-    KB-->>I: return data
-    I-->>SE: return results
-    SE->>R: rank_results(results)
-    R-->>SE: return ranked_results
-    SE->>S: summarize_results(ranked_results)
-    S-->>SE: return summary
-    SE-->>M: return summary
-    M->>SE: newMethod()  # Incremental change
-    SE->>I: newMethod()   # Incremental change
-    I->>KB: newMethod()   # Incremental change
-    KB-->>I: newMethod()  # Incremental change
-    SE->>R: newMethod()   # Incremental change
-    R-->>SE: newMethod()  # Incremental change
-    SE->>S: newMethod()   # Incremental change
-    S-->>SE: newMethod()  # Incremental change
-    SE-->>M: newMethod()  # Incremental change
 """
