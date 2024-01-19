@@ -125,6 +125,7 @@ class Engineer(Role):
                 coding_context = await action.run()
 
             dependencies = {coding_context.design_doc.root_relative_path, coding_context.task_doc.root_relative_path}
+            # TODO: Add code plan and change file to context when _think
             if mode == "guide":
                 dependencies.add(os.path.join(CODE_PLAN_AND_CHANGE_FILE_REPO, CODE_PLAN_AND_CHANGE_FILENAME))
             await src_file_repo.save(
@@ -161,8 +162,6 @@ class Engineer(Role):
         return None
 
     async def _act_write_code(self):
-        if CONFIG.inc:
-            await self._write_code_plan_and_change()
         changed_files = await self._act_sp_with_cr(review=self.use_code_review)
         return Message(
             content="\n".join(changed_files),
@@ -376,10 +375,12 @@ class Engineer(Role):
 
     async def _new_code_plan_and_change_action(self):
         """Create a WriteCodePlanAndChange action for subsequent to-do actions."""
+        # FIXME: The following code is not robust enough
         requirement_doc = await FileRepository.get_file(filename=REQUIREMENT_FILENAME, relative_path=DOCS_FILE_REPO)
         prd_docs = await FileRepository.get_all_files(relative_path=PRDS_FILE_REPO)
         design_docs = await FileRepository.get_all_files(relative_path=SYSTEM_DESIGN_FILE_REPO)
-        tasks_docs = await FileRepository.get_all_files(relative_path=TASK_FILE_REPO)
+        tasks_file_repo = CONFIG.git_repo.new_file_repository(TASK_FILE_REPO)
+        tasks_docs = await tasks_file_repo.get_all()
         code_plan_and_change_context = CodePlanAndChangeContext(
             requirement_doc=requirement_doc,
             prd_docs=prd_docs,
