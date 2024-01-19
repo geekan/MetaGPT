@@ -217,7 +217,7 @@ class OpenAILLM(BaseLLM):
         if code_value is None:
             raise ValueError(f"Parse code error for {arguments}")
         # arguments只有code的情况
-        return {"language": language_value, "code": code_value}
+        return {"language": language_value or "python", "code": code_value}
 
     @handle_exception
     def get_choice_function_arguments(self, rsp: ChatCompletion) -> dict:
@@ -241,7 +241,7 @@ class OpenAILLM(BaseLLM):
                     f"Got JSONDecodeError for {message.tool_calls[0].function.arguments},\
                     we will use RegExp to parse code, \n {e}"
                 )
-                return {"language": "python", "code": self._parse_arguments(message.tool_calls[0].function.arguments)}
+                return self._parse_arguments(message.tool_calls[0].function.arguments)
         elif message.tool_calls is None and message.content is not None:
             # reponse is message
             return {"language": "markdown", "code": self.get_choice_text(rsp)}
