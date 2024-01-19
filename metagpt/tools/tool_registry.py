@@ -14,6 +14,7 @@ import yaml
 
 from metagpt.const import TOOL_SCHEMA_PATH
 from metagpt.logs import logger
+from metagpt.tools.tool_convert import convert_code_to_tool_schema
 from metagpt.tools.tool_data_type import Tool, ToolSchema, ToolType
 
 
@@ -34,7 +35,9 @@ class ToolRegistry:
         schema_path=None,
         tool_code="",
         tool_type="other",
-        make_schema_if_not_exists=False,
+        tool_source_object=None,
+        include_functions=[],
+        make_schema_if_not_exists=True,
     ):
         if self.has_tool(tool_name):
             return
@@ -44,14 +47,16 @@ class ToolRegistry:
         if not os.path.exists(schema_path):
             if make_schema_if_not_exists:
                 logger.warning(f"no schema found, will make schema at {schema_path}")
-                make_schema(tool_code, schema_path)
+                schema_dict = make_schema(tool_source_object, include_functions, schema_path)
             else:
                 logger.warning(f"no schema found at assumed schema_path {schema_path}, skip registering {tool_name}")
                 return
-
-        with open(schema_path, "r", encoding="utf-8") as f:
-            schema_dict = yaml.safe_load(f)
-            schemas = schema_dict.get(tool_name) or list(schema_dict.values())[0]
+        else:
+            with open(schema_path, "r", encoding="utf-8") as f:
+                schema_dict = yaml.safe_load(f)
+        if not schema_dict:
+            return
+        schemas = schema_dict.get(tool_name) or list(schema_dict.values())[0]
         schemas["tool_path"] = tool_path  # corresponding code file path of the tool
         try:
             ToolSchema(**schemas)  # validation
@@ -94,7 +99,7 @@ def register_tool_type(cls):
     return cls
 
 
-def register_tool(tool_name="", tool_type="other", schema_path=None):
+def register_tool(tool_name="", tool_type="other", schema_path=None, **kwargs):
     """register a tool to registry"""
 
     def decorator(cls, tool_name=tool_name):
@@ -112,15 +117,27 @@ def register_tool(tool_name="", tool_type="other", schema_path=None):
             schema_path=schema_path,
             tool_code=source_code,
             tool_type=tool_type,
+            tool_source_object=cls,
+            **kwargs,
         )
         return cls
 
     return decorator
 
 
-def make_schema(tool_code, path):
+def make_schema(tool_source_object, include, path):
     os.makedirs(os.path.dirname(path), exist_ok=True)  # Create the necessary directories
-    schema = {}  # an empty schema for now
-    with open(path, "w", encoding="utf-8") as f:
-        yaml.dump(schema, f)
-    return path
+    try:
+        schema = convert_code_to_tool_schema(tool_source_object, include=include)
+        with open(path, "w", encoding="utf-8") as f:
+            yaml.dump(schema, f, sort_keys=False)
+        # import json
+        # with open(str(path).replace("yml", "json"), "w", encoding="utf-8") as f:
+        #     json.dump(schema, f, ensure_ascii=False, indent=4)
+        logger.info(f"schema made at {path}")
+    except Exception as e:
+        schema = {}
+        logger.error("Fail to make schema")
+        print(e)
+
+    return schema

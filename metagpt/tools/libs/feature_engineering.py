@@ -184,7 +184,7 @@ class SplitBins(MLProcess):
         return new_df
 
 
-@register_tool(tool_type=TOOL_TYPE)
+# @register_tool(tool_type=TOOL_TYPE)
 class ExtractTimeComps(MLProcess):
     def __init__(self, time_col: str, time_comps: list):
         self.time_col = time_col
@@ -242,6 +242,7 @@ class GeneralSelection(MLProcess):
 
 
 # skip for now because lgb is needed
+# @register_tool(tool_type=TOOL_TYPE)
 class TreeBasedSelection(MLProcess):
     def __init__(self, label_col: str, task_type: str):
         self.label_col = label_col
