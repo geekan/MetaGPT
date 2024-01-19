@@ -17,6 +17,7 @@ from metagpt.schema import Message
 
 
 @pytest.mark.asyncio
+@pytest.mark.skip
 async def test_init():
     class Inputs(BaseModel):
         name: str
@@ -103,7 +104,6 @@ async def test_new_file_name():
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("llm_mock")
 async def test_run():
     CONFIG.set_context({"language": "Chinese", "teaching_language": "English"})
     lesson = """

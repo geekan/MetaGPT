@@ -43,7 +43,9 @@ class BaseLLM(ABC):
         if system_msgs:
             message = self._system_msgs(system_msgs)
         else:
-            message = [self._default_system_msg()] if self.use_system_prompt else []
+            message = [self._default_system_msg()]
+        if not self.use_system_prompt:
+            message = []
         if format_msgs:
             message.extend(format_msgs)
         message.append(self._user_msg(msg))
@@ -86,6 +88,10 @@ class BaseLLM(ABC):
     def get_choice_text(self, rsp: dict) -> str:
         """Required to provide the first text of choice"""
         return rsp.get("choices")[0]["message"]["content"]
+
+    def get_choice_delta_text(self, rsp: dict) -> str:
+        """Required to provide the first text of stream choice"""
+        return rsp.get("choices")[0]["delta"]["content"]
 
     def get_choice_function(self, rsp: dict) -> dict:
         """Required to provide the first function of choice

@@ -46,6 +46,8 @@ extras_require["test"] = [
     "chromadb==0.4.14",
     "gradio==3.0.0",
     "grpcio-status==1.48.2",
+    "mock==5.1.0",
+    "pylint==3.0.3",
 ]
 
 extras_require["pyppeteer"] = [
@@ -56,7 +58,7 @@ extras_require["dev"] = (["pylint~=3.0.3", "black~=23.3.0", "isort~=5.12.0", "pr
 
 setup(
     name="metagpt",
-    version="0.5.2",
+    version="0.6.0",
     description="The Multi-Agent Framework",
     long_description=long_description,
     long_description_content_type="text/markdown",

@@ -14,8 +14,8 @@ OPENAI_BASE_URL: "https://api.openai.com/v1"
 OPENAI_API_MODEL: "gpt-4-1106-preview"
 MAX_TOKENS: 4096
 RPM: 10
-LLM_TYPE: OpenAI  # Except for these three major models – OpenAI, MetaGPT LLM, and Azure – other large models can be distinguished based on the validity of the key.
 TIMEOUT: 60 # Timeout for llm invocation
+#DEFAULT_PROVIDER: openai
 
 #### if Spark
 #SPARK_APPID : "YOUR_APPID"
@@ -36,6 +36,7 @@ TIMEOUT: 60 # Timeout for llm invocation
 
 #### if zhipuai from `https://open.bigmodel.cn`. You can set here or export API_KEY="YOUR_API_KEY"
 # ZHIPUAI_API_KEY: "YOUR_API_KEY"
+# ZHIPUAI_API_MODEL: "glm-4"
 
 #### if Google Gemini from `https://ai.google.dev/` and API_KEY from `https://makersuite.google.com/app/apikey`.
 #### You can set here or export GOOGLE_API_KEY="YOUR_API_KEY"

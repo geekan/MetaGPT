@@ -5,6 +5,8 @@
 @Author  : mashenquan
 @File    : test_metagpt_text_to_image.py
 """
+import base64
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -13,7 +15,14 @@ from metagpt.tools.metagpt_text_to_image import oas3_metagpt_text_to_image
 
 
 @pytest.mark.asyncio
-async def test_draw():
+async def test_draw(mocker):
+    # mock
+    mock_post = mocker.patch("aiohttp.ClientSession.post")
+    mock_response = AsyncMock()
+    mock_response.status = 200
+    mock_response.json.return_value = {"images": [base64.b64encode(b"success")], "parameters": {"size": 1110}}
+    mock_post.return_value.__aenter__.return_value = mock_response
+
     # Prerequisites
     assert CONFIG.METAGPT_TEXT_TO_IMAGE_MODEL_URL
 

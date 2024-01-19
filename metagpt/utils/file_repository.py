@@ -55,6 +55,7 @@ class FileRepository:
         """
         pathname = self.workdir / filename
         pathname.parent.mkdir(parents=True, exist_ok=True)
+        content = content if content else ""  # avoid `argument must be str, not None` to make it continue
         async with aiofiles.open(str(pathname), mode="w") as writer:
             await writer.write(content)
         logger.info(f"save to: {str(pathname)}")
@@ -138,6 +139,8 @@ class FileRepository:
         files = self._git_repo.changed_files
         relative_files = {}
         for p, ct in files.items():
+            if ct.value == "D":  # deleted
+                continue
             try:
                 rf = Path(p).relative_to(self._relative_path)
             except ValueError:

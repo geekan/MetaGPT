@@ -12,14 +12,14 @@ import json
 import re
 import subprocess
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
-import aiofiles
 import pandas as pd
 from pydantic import BaseModel, Field
 
+from metagpt.const import AGGREGATION, COMPOSITION, GENERALIZATION
 from metagpt.logs import logger
-from metagpt.utils.common import any_to_str
+from metagpt.utils.common import any_to_str, aread
 from metagpt.utils.exceptions import handle_exception
 
 
@@ -46,6 +46,13 @@ class ClassInfo(BaseModel):
     methods: Dict[str, str] = Field(default_factory=dict)
 
 
+class ClassRelationship(BaseModel):
+    src: str = ""
+    dest: str = ""
+    relationship: str = ""
+    label: Optional[str] = None
+
+
 class RepoParser(BaseModel):
     base_directory: Path = Field(default=None)
 
@@ -60,7 +67,8 @@ class RepoParser(BaseModel):
         file_info = RepoFileInfo(file=str(file_path.relative_to(self.base_directory)))
         for node in tree:
             info = RepoParser.node_to_str(node)
-            file_info.page_info.append(info)
+            if info:
+                file_info.page_info.append(info)
             if isinstance(node, ast.ClassDef):
                 class_methods = [m.name for m in node.body if is_func(m)]
                 file_info.classes.append({"name": node.name, "methods": class_methods})
@@ -110,7 +118,9 @@ class RepoParser(BaseModel):
         return output_path
 
     @staticmethod
-    def node_to_str(node) -> (int, int, str, str | Tuple):
+    def node_to_str(node) -> CodeBlockInfo | None:
+        if isinstance(node, ast.Try):
+            return None
         if any_to_str(node) == any_to_str(ast.Expr):
             return CodeBlockInfo(
                 lineno=node.lineno,
@@ -129,6 +139,7 @@ class RepoParser(BaseModel):
             },
             any_to_str(ast.If): RepoParser._parse_if,
             any_to_str(ast.AsyncFunctionDef): lambda x: x.name,
+            any_to_str(ast.AnnAssign): lambda x: RepoParser._parse_variable(x.target),
         }
         func = mappings.get(any_to_str(node))
         if func:
@@ -143,7 +154,8 @@ class RepoParser(BaseModel):
             else:
                 raise NotImplementedError(f"Not implement:{val}")
             return code_block
-        raise NotImplementedError(f"Not implement code block:{node.lineno}, {node.end_lineno}, {any_to_str(node)}")
+        logger.warning(f"Unsupported code block:{node.lineno}, {node.end_lineno}, {any_to_str(node)}")
+        return None
 
     @staticmethod
     def _parse_expr(node) -> List:
@@ -164,22 +176,51 @@ class RepoParser(BaseModel):
 
     @staticmethod
     def _parse_if(n):
-        tokens = [RepoParser._parse_variable(n.test.left)]
-        for item in n.test.comparators:
-            tokens.append(RepoParser._parse_variable(item))
+        tokens = []
+        try:
+            if isinstance(n.test, ast.BoolOp):
+                tokens = []
+                for v in n.test.values:
+                    tokens.extend(RepoParser._parse_if_compare(v))
+                return tokens
+            if isinstance(n.test, ast.Compare):
+                v = RepoParser._parse_variable(n.test.left)
+                if v:
+                    tokens.append(v)
+            for item in n.test.comparators:
+                v = RepoParser._parse_variable(item)
+                if v:
+                    tokens.append(v)
+            return tokens
+        except Exception as e:
+            logger.warning(f"Unsupported if: {n}, err:{e}")
         return tokens
 
     @staticmethod
+    def _parse_if_compare(n):
+        if hasattr(n, "left"):
+            return RepoParser._parse_variable(n.left)
+        else:
+            return []
+
+    @staticmethod
     def _parse_variable(node):
-        funcs = {
-            any_to_str(ast.Constant): lambda x: x.value,
-            any_to_str(ast.Name): lambda x: x.id,
-            any_to_str(ast.Attribute): lambda x: f"{x.value.id}.{x.attr}",
-        }
-        func = funcs.get(any_to_str(node))
-        if not func:
-            raise NotImplementedError(f"Not implement:{node}")
-        return func(node)
+        try:
+            funcs = {
+                any_to_str(ast.Constant): lambda x: x.value,
+                any_to_str(ast.Name): lambda x: x.id,
+                any_to_str(ast.Attribute): lambda x: f"{x.value.id}.{x.attr}"
+                if hasattr(x.value, "id")
+                else f"{x.attr}",
+                any_to_str(ast.Call): lambda x: RepoParser._parse_variable(x.func),
+                any_to_str(ast.Tuple): lambda x: "",
+            }
+            func = funcs.get(any_to_str(node))
+            if not func:
+                raise NotImplementedError(f"Not implement:{node}")
+            return func(node)
+        except Exception as e:
+            logger.warning(f"Unsupported variable:{node}, err:{e}")
 
     @staticmethod
     def _parse_assign(node):
@@ -197,18 +238,21 @@ class RepoParser(BaseModel):
             raise ValueError(f"{result}")
         class_view_pathname = path / "classes.dot"
         class_views = await self._parse_classes(class_view_pathname)
+        relationship_views = await self._parse_class_relationships(class_view_pathname)
         packages_pathname = path / "packages.dot"
-        class_views = RepoParser._repair_namespaces(class_views=class_views, path=path)
+        class_views, relationship_views, package_root = RepoParser._repair_namespaces(
+            class_views=class_views, relationship_views=relationship_views, path=path
+        )
         class_view_pathname.unlink(missing_ok=True)
         packages_pathname.unlink(missing_ok=True)
-        return class_views
+        return class_views, relationship_views, package_root
 
     async def _parse_classes(self, class_view_pathname):
         class_views = []
         if not class_view_pathname.exists():
             return class_views
-        async with aiofiles.open(str(class_view_pathname), mode="r") as reader:
-            lines = await reader.readlines()
+        data = await aread(filename=class_view_pathname, encoding="utf-8")
+        lines = data.split("\n")
         for line in lines:
             package_name, info = RepoParser._split_class_line(line)
             if not package_name:
@@ -229,6 +273,19 @@ class RepoParser(BaseModel):
             class_views.append(class_info)
         return class_views
 
+    async def _parse_class_relationships(self, class_view_pathname) -> List[ClassRelationship]:
+        relationship_views = []
+        if not class_view_pathname.exists():
+            return relationship_views
+        data = await aread(filename=class_view_pathname, encoding="utf-8")
+        lines = data.split("\n")
+        for line in lines:
+            relationship = RepoParser._split_relationship_line(line)
+            if not relationship:
+                continue
+            relationship_views.append(relationship)
+        return relationship_views
+
     @staticmethod
     def _split_class_line(line):
         part_splitor = '" ['
@@ -246,6 +303,40 @@ class RepoParser(BaseModel):
         info = left[bix + len(begin_flag) : eix]
         info = re.sub(r"<br[^>]*>", "\n", info)
         return class_name, info
+
+    @staticmethod
+    def _split_relationship_line(line):
+        splitters = [" -> ", " [", "];"]
+        idxs = []
+        for tag in splitters:
+            if tag not in line:
+                return None
+            idxs.append(line.find(tag))
+        ret = ClassRelationship()
+        ret.src = line[0 : idxs[0]].strip('"')
+        ret.dest = line[idxs[0] + len(splitters[0]) : idxs[1]].strip('"')
+        properties = line[idxs[1] + len(splitters[1]) : idxs[2]].strip(" ")
+        mappings = {
+            'arrowhead="empty"': GENERALIZATION,
+            'arrowhead="diamond"': COMPOSITION,
+            'arrowhead="odiamond"': AGGREGATION,
+        }
+        for k, v in mappings.items():
+            if k in properties:
+                ret.relationship = v
+                if v != GENERALIZATION:
+                    ret.label = RepoParser._get_label(properties)
+                break
+        return ret
+
+    @staticmethod
+    def _get_label(line):
+        tag = 'label="'
+        if tag not in line:
+            return ""
+        ix = line.find(tag)
+        eix = line.find('"', ix + len(tag))
+        return line[ix + len(tag) : eix]
 
     @staticmethod
     def _create_path_mapping(path: str | Path) -> Dict[str, str]:
@@ -271,9 +362,11 @@ class RepoParser(BaseModel):
         return mappings
 
     @staticmethod
-    def _repair_namespaces(class_views: List[ClassInfo], path: str | Path) -> List[ClassInfo]:
+    def _repair_namespaces(
+        class_views: List[ClassInfo], relationship_views: List[ClassRelationship], path: str | Path
+    ) -> (List[ClassInfo], List[ClassRelationship], str):
         if not class_views:
-            return []
+            return [], [], ""
         c = class_views[0]
         full_key = str(path).lstrip("/").replace("/", ".")
         root_namespace = RepoParser._find_root(full_key, c.package)
@@ -290,7 +383,12 @@ class RepoParser(BaseModel):
 
         for c in class_views:
             c.package = RepoParser._repair_ns(c.package, new_mappings)
-        return class_views
+        for i in range(len(relationship_views)):
+            v = relationship_views[i]
+            v.src = RepoParser._repair_ns(v.src, new_mappings)
+            v.dest = RepoParser._repair_ns(v.dest, new_mappings)
+            relationship_views[i] = v
+        return class_views, relationship_views, root_path
 
     @staticmethod
     def _repair_ns(package, mappings):

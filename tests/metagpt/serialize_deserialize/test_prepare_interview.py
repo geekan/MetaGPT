@@ -8,7 +8,6 @@ from metagpt.actions.prepare_interview import PrepareInterview
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("llm_mock")
 async def test_action_deserialize():
     action = PrepareInterview()
     serialized_data = action.model_dump()

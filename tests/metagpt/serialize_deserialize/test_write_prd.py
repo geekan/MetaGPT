@@ -9,7 +9,7 @@ from metagpt.actions import WritePRD
 from metagpt.schema import Message
 
 
-def test_action_serialize():
+def test_action_serialize(new_filename):
     action = WritePRD()
     ser_action_dict = action.model_dump()
     assert "name" in ser_action_dict
@@ -17,8 +17,7 @@ def test_action_serialize():
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("llm_mock")
-async def test_action_deserialize():
+async def test_action_deserialize(new_filename):
     action = WritePRD()
     serialized_data = action.model_dump()
     new_action = WritePRD(**serialized_data)

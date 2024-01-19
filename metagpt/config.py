@@ -50,6 +50,9 @@ class LLMProviderEnum(Enum):
     AZURE_OPENAI = "azure_openai"
     OLLAMA = "ollama"
 
+    def __missing__(self, key):
+        return self.OPENAI
+
 
 class Config(metaclass=Singleton):
     """
@@ -108,6 +111,11 @@ class Config(metaclass=Singleton):
             if v:
                 provider = k
                 break
+        if provider is None:
+            if self.DEFAULT_PROVIDER:
+                provider = LLMProviderEnum(self.DEFAULT_PROVIDER)
+            else:
+                raise NotConfiguredException("You should config a LLM configuration first")
 
         if provider is LLMProviderEnum.GEMINI and not require_python_version(req_version=(3, 10)):
             warnings.warn("Use Gemini requires Python >= 3.10")
@@ -117,7 +125,6 @@ class Config(metaclass=Singleton):
         if provider:
             logger.info(f"API: {provider}")
             return provider
-        raise NotConfiguredException("You should config a LLM configuration first")
 
     def get_model_name(self, provider=None) -> str:
         provider = provider or self.get_default_llm_provider_enum()
@@ -137,6 +144,7 @@ class Config(metaclass=Singleton):
         self.openai_api_key = self._get("OPENAI_API_KEY")
         self.anthropic_api_key = self._get("ANTHROPIC_API_KEY")
         self.zhipuai_api_key = self._get("ZHIPUAI_API_KEY")
+        self.zhipuai_api_model = self._get("ZHIPUAI_API_MODEL")
         self.open_llm_api_base = self._get("OPEN_LLM_API_BASE")
         self.open_llm_api_model = self._get("OPEN_LLM_API_MODEL")
         self.fireworks_api_key = self._get("FIREWORKS_API_KEY")

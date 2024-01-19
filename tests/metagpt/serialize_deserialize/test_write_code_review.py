@@ -9,7 +9,6 @@ from metagpt.schema import CodingContext, Document
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("llm_mock")
 async def test_write_code_review_deserialize():
     code_content = """
 def div(a: int, b: int = 0):

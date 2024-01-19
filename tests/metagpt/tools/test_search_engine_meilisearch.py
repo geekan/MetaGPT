@@ -29,6 +29,7 @@ def search_engine_server():
     meilisearch_process.wait()
 
 
+@pytest.mark.skip
 def test_meilisearch(search_engine_server):
     # Prerequisites
     # https://www.meilisearch.com/docs/learn/getting_started/installation

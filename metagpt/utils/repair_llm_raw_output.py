@@ -120,6 +120,15 @@ def repair_json_format(output: str) -> str:
     elif output.startswith("{") and output.endswith("]"):
         output = output[:-1] + "}"
 
+    # remove `#` in output json str, usually appeared in `glm-4`
+    arr = output.split("\n")
+    new_arr = []
+    for line in arr:
+        idx = line.find("#")
+        if idx >= 0:
+            line = line[:idx]
+        new_arr.append(line)
+    output = "\n".join(new_arr)
     return output
 
 
@@ -168,15 +177,17 @@ def repair_invalid_json(output: str, error: str) -> str:
         example 1. json.decoder.JSONDecodeError: Expecting ',' delimiter: line 154 column 1 (char 2765)
         example 2. xxx.JSONDecodeError: Expecting property name enclosed in double quotes: line 14 column 1 (char 266)
     """
-    pattern = r"line ([0-9]+)"
+    pattern = r"line ([0-9]+) column ([0-9]+)"
 
     matches = re.findall(pattern, error, re.DOTALL)
     if len(matches) > 0:
-        line_no = int(matches[0]) - 1
+        line_no = int(matches[0][0]) - 1
+        col_no = int(matches[0][1]) - 1
 
         # due to CustomDecoder can handle `"": ''` or `'': ""`, so convert `"""` -> `"`, `'''` -> `'`
         output = output.replace('"""', '"').replace("'''", '"')
         arr = output.split("\n")
+        rline = arr[line_no]  # raw line
         line = arr[line_no].strip()
         # different general problems
         if line.endswith("],"):
@@ -187,9 +198,12 @@ def repair_invalid_json(output: str, error: str) -> str:
             new_line = line.replace("}", "")
         elif line.endswith("},") and output.endswith("},"):
             new_line = line[:-1]
-        elif '",' not in line and "," not in line:
+        elif (rline[col_no] in ["'", '"']) and (line.startswith('"') or line.startswith("'")) and "," not in line:
+            # problem, `"""` or `'''` without `,`
+            new_line = f",{line}"
+        elif '",' not in line and "," not in line and '"' not in line:
             new_line = f'{line}",'
-        elif "," not in line:
+        elif not line.endswith(","):
             # problem, miss char `,` at the end.
             new_line = f"{line},"
         elif "," in line and len(line) == 1:

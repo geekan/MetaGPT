@@ -13,7 +13,6 @@ from pydantic import BaseModel
 from metagpt.actions.skill_action import SkillAction
 from metagpt.actions.talk_action import TalkAction
 from metagpt.config import CONFIG
-from metagpt.logs import logger
 from metagpt.memory.brain_memory import BrainMemory
 from metagpt.roles.assistant import Assistant
 from metagpt.schema import Message
@@ -21,7 +20,6 @@ from metagpt.utils.common import any_to_str
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("llm_mock")
 async def test_run():
     CONFIG.language = "Chinese"
 
@@ -88,7 +86,7 @@ async def test_run():
             if not has_action:
                 break
             msg: Message = await role.act()
-            logger.info(msg)
+            # logger.info(msg)
             assert msg
             assert msg.cause_by == seed.cause_by
             assert msg.content

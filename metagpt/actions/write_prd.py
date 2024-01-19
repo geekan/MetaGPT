@@ -14,6 +14,7 @@
 from __future__ import annotations
 
 import json
+import uuid
 from pathlib import Path
 from typing import Optional
 
@@ -120,7 +121,7 @@ class WritePRD(Action):
         # if sas.result:
         #     logger.info(sas.result)
         #     logger.info(rsp)
-        project_name = CONFIG.project_name if CONFIG.project_name else ""
+        project_name = CONFIG.project_name or ""
         context = CONTEXT_TEMPLATE.format(requirements=requirements, project_name=project_name)
         exclude = [PROJECT_NAME.key] if project_name else []
         node = await WRITE_PRD_NODE.fill(context=context, llm=self.llm, exclude=exclude)  # schema=schema
@@ -190,6 +191,8 @@ class WritePRD(Action):
                 ws_name = CodeParser.parse_str(block="Project Name", text=prd)
             if ws_name:
                 CONFIG.project_name = ws_name
+        if not CONFIG.project_name:  # The LLM failed to provide a project name, and the user didn't provide one either.
+            CONFIG.project_name = "app" + uuid.uuid4().hex[:16]
         CONFIG.git_repo.rename_root(CONFIG.project_name)
 
     async def _is_bugfix(self, context) -> bool:
