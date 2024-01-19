@@ -5,9 +5,14 @@
 @Author  : mannaandpoem
 @File    : write_code_plan_and_change_an.py
 """
+import os
+
+from pydantic import Field
 
 from metagpt.actions.action import Action
 from metagpt.actions.action_node import ActionNode
+from metagpt.config import CONFIG
+from metagpt.schema import CodePlanAndChangeContext
 
 CODE_PLAN_AND_CHANGE = ActionNode(
     key="Code Plan And Change",
@@ -106,10 +111,10 @@ def add_numbers():
 
 CODE_PLAN_AND_CHANGE_CONTEXT = """
 ## User New Requirements
-{user_requirement}
+{requirement}
 
-## Product Requirement Pool
-{product_requirement_pools}
+## PRD
+{prd}
 
 ## Design
 {design}
@@ -179,7 +184,26 @@ WRITE_CODE_PLAN_AND_CHANGE_NODE = ActionNode.from_children("WriteCodePlanAndChan
 
 
 class WriteCodePlanAndChange(Action):
-    async def run(self, context):
+    name: str = "WriteCodePlanAndChange"
+    context: CodePlanAndChangeContext = Field(default_factory=CodePlanAndChangeContext)
+
+    async def run(self, *args, **kwargs):
         self.llm.system_prompt = "You are a professional software engineer, your primary responsibility is to "
         "meticulously craft comprehensive incremental development plan and deliver detailed incremental change"
+        requirement = self.context.requirement_doc.content
+        prd = "\n".join([doc.content for doc in self.context.prd_docs])
+        design = "\n".join([doc.content for doc in self.context.design_docs])
+        tasks = "\n".join([doc.content for doc in self.context.task_docs])
+        code_text = self.get_old_codes()
+        context = CODE_PLAN_AND_CHANGE_CONTEXT.format(
+            requirement=requirement, prd=prd, design=design, tasks=tasks, code=code_text
+        )
         return await WRITE_CODE_PLAN_AND_CHANGE_NODE.fill(context=context, llm=self.llm, schema="json")
+
+    @staticmethod
+    async def get_old_codes() -> str:
+        CONFIG.old_workspace = CONFIG.git_repo.workdir / os.path.basename(CONFIG.project_path)
+        old_file_repo = CONFIG.git_repo.new_file_repository(relative_path=CONFIG.old_workspace)
+        old_codes = await old_file_repo.get_all()
+        codes = [f"----- {code.filename}\n```{code.content}```" for code in old_codes]
+        return "\n".join(codes)

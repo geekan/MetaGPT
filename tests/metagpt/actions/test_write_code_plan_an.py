@@ -15,7 +15,6 @@ from metagpt.actions.write_code_plan_and_change_an import (
     REFINED_TEMPLATE,
     WriteCodePlanAndChange,
 )
-from metagpt.actions.write_prd_an import REQUIREMENT_POOL
 from tests.data.incremental_dev_project.mock import (
     CODE_PLAN_AND_CHANGE_SAMPLE,
     DESIGN_SAMPLE,
@@ -45,8 +44,8 @@ async def test_write_code_plan_an(mocker):
 
     write_code_plan = WriteCodePlanAndChange()
     context = CODE_PLAN_AND_CHANGE_CONTEXT.format(
-        user_requirement=NEW_REQUIREMENT_SAMPLE,
-        product_requirement_pools=REFINED_PRD_JSON.get(REQUIREMENT_POOL.key),
+        requirement=NEW_REQUIREMENT_SAMPLE,
+        PRD=REFINED_PRD_JSON,
         design=REFINED_DESIGN_JSON,
         tasks=REFINED_TASKS_JSON,
         code=OLD_CODE_SAMPLE,
