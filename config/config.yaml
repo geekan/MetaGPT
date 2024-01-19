@@ -4,6 +4,9 @@
 #### Project Path Setting
 # WORKSPACE_PATH: "Path for placing output files"
 
+### Default LLM Provider Setting
+DEFAULT_PROVIDER: openai
+
 #### if OpenAI
 ## The official OPENAI_BASE_URL is https://api.openai.com/v1
 ## If the official OPENAI_BASE_URL is not available, we recommend using the [openai-forward](https://github.com/beidongjiedeguang/openai-forward).
@@ -15,7 +18,6 @@ OPENAI_API_MODEL: "gpt-4-1106-preview"
 MAX_TOKENS: 4096
 RPM: 10
 TIMEOUT: 60 # Timeout for llm invocation
-#DEFAULT_PROVIDER: openai
 
 #### if Spark
 #SPARK_APPID : "YOUR_APPID"
