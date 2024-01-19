@@ -10,7 +10,7 @@ from openai._models import BaseModel
 
 from metagpt.actions.action_node import ActionNode, dict_to_markdown
 from metagpt.actions.project_management import NEW_REQ_TEMPLATE
-from metagpt.actions.project_management_an import REFINED_PM_NODES
+from metagpt.actions.project_management_an import REFINED_PM_NODE
 from metagpt.llm import LLM
 from tests.data.incremental_dev_project.mock import (
     REFINED_DESIGN_JSON,
@@ -38,7 +38,7 @@ async def test_project_management_an(mocker):
     mocker.patch("metagpt.actions.project_management_an.REFINED_PM_NODES.fill", return_value=root)
 
     prompt = NEW_REQ_TEMPLATE.format(old_tasks=TASKS_SAMPLE, context=dict_to_markdown(REFINED_DESIGN_JSON))
-    node = await REFINED_PM_NODES.fill(prompt, llm)
+    node = await REFINED_PM_NODE.fill(prompt, llm)
 
     assert "Refined Logic Analysis" in node.instruct_content.model_dump()
     assert "Refined Task list" in node.instruct_content.model_dump()

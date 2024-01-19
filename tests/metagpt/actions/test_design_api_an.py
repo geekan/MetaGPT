@@ -10,7 +10,7 @@ from openai._models import BaseModel
 
 from metagpt.actions.action_node import ActionNode, dict_to_markdown
 from metagpt.actions.design_api import NEW_REQ_TEMPLATE
-from metagpt.actions.design_api_an import REFINED_DESIGN_NODES
+from metagpt.actions.design_api_an import REFINED_DESIGN_NODE
 from metagpt.llm import LLM
 from tests.data.incremental_dev_project.mock import (
     DESIGN_SAMPLE,
@@ -38,7 +38,7 @@ async def test_write_design_an(mocker):
     mocker.patch("metagpt.actions.design_api_an.REFINED_DESIGN_NODES.fill", return_value=root)
 
     prompt = NEW_REQ_TEMPLATE.format(old_design=DESIGN_SAMPLE, context=dict_to_markdown(REFINED_PRD_JSON))
-    node = await REFINED_DESIGN_NODES.fill(prompt, llm)
+    node = await REFINED_DESIGN_NODE.fill(prompt, llm)
 
     assert "Refined Implementation Approach" in node.instruct_content.model_dump()
     assert "Refined File list" in node.instruct_content.model_dump()

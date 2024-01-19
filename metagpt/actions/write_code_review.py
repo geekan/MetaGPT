@@ -15,9 +15,9 @@ from metagpt.actions import WriteCode
 from metagpt.actions.action import Action
 from metagpt.config import CONFIG
 from metagpt.const import (
+    CODE_PLAN_AND_CHANGE_FILE_REPO,
+    CODE_PLAN_AND_CHANGE_FILENAME,
     DOCS_FILE_REPO,
-    PLAN_FILE_REPO,
-    PLAN_FILENAME,
     REQUIREMENT_FILENAME,
 )
 from metagpt.logs import logger
@@ -145,16 +145,18 @@ class WriteCodeReview(Action):
     async def run(self, *args, **kwargs) -> CodingContext:
         iterative_code = self.context.code_doc.content
         k = CONFIG.code_review_k_times or 1
-        plan_doc = await FileRepository.get_file(filename=PLAN_FILENAME, relative_path=PLAN_FILE_REPO)
-        plan = plan_doc.content if plan_doc else ""
-        mode = "plan" if plan else "normal"
+        code_plan_and_change_doc = await FileRepository.get_file(
+            filename=CODE_PLAN_AND_CHANGE_FILENAME, relative_path=CODE_PLAN_AND_CHANGE_FILE_REPO
+        )
+        code_plan_and_change = code_plan_and_change_doc.content if code_plan_and_change_doc else ""
+        mode = "guide" if code_plan_and_change else "normal"
 
         for i in range(k):
             format_example = FORMAT_EXAMPLE.format(filename=self.context.code_doc.filename)
             task_content = self.context.task_doc.content if self.context.task_doc else ""
             code_context = await WriteCode.get_codes(self.context.task_doc, exclude=self.context.filename, mode=mode)
 
-            if not plan:
+            if not code_plan_and_change:
                 context = "\n".join(
                     [
                         "## System Design\n" + str(self.context.design_doc) + "\n",
@@ -171,7 +173,7 @@ class WriteCodeReview(Action):
                 context = "\n".join(
                     [
                         "## User New Requirements\n" + user_requirement + "\n",
-                        "## Plan\n" + plan + "\n",
+                        "## Code Plan And Change\n" + code_plan_and_change + "\n",
                         "## System Design\n" + str(self.context.design_doc) + "\n",
                         "## Tasks\n" + task_content + "\n",
                         "## Code Files\n" + code_context + "\n",

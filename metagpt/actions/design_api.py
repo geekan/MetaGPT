@@ -19,7 +19,7 @@ from metagpt.actions.design_api_an import (
     DESIGN_API_NODE,
     PROGRAM_CALL_FLOW,
     REFINED_DATA_STRUCTURES_AND_INTERFACES,
-    REFINED_DESIGN_NODES,
+    REFINED_DESIGN_NODE,
     REFINED_PROGRAM_CALL_FLOW,
 )
 from metagpt.config import CONFIG
@@ -89,7 +89,7 @@ class WriteDesign(Action):
 
     async def _merge(self, prd_doc, system_design_doc, schema=CONFIG.prompt_schema):
         context = NEW_REQ_TEMPLATE.format(old_design=system_design_doc.content, context=prd_doc.content)
-        node = await REFINED_DESIGN_NODES.fill(context=context, llm=self.llm, schema=schema)
+        node = await REFINED_DESIGN_NODE.fill(context=context, llm=self.llm, schema=schema)
         system_design_doc.content = node.instruct_content.model_dump_json()
         return system_design_doc
 

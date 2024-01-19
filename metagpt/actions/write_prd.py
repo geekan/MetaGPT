@@ -23,8 +23,8 @@ from metagpt.actions.fix_bug import FixBug
 from metagpt.actions.write_prd_an import (
     COMPETITIVE_QUADRANT_CHART,
     PROJECT_NAME,
-    REFINE_PRD_NODE,
-    REFINE_PRD_TEMPLATE,
+    REFINED_PRD_NODE,
+    REFINED_TEMPLATE,
     WP_IS_RELATIVE_NODE,
     WP_ISSUE_TYPE_NODE,
     WRITE_PRD_NODE,
@@ -135,12 +135,12 @@ class WritePRD(Action):
     async def _merge(self, new_requirement_doc, prd_doc, schema=CONFIG.prompt_schema) -> Document:
         if not CONFIG.project_name:
             CONFIG.project_name = Path(CONFIG.project_path).name
-        prompt = REFINE_PRD_TEMPLATE.format(
+        prompt = REFINED_TEMPLATE.format(
             requirements=new_requirement_doc.content,
             old_prd=prd_doc.content,
             project_name=CONFIG.project_name,
         )
-        node = await REFINE_PRD_NODE.fill(context=prompt, llm=self.llm, schema=schema)
+        node = await REFINED_PRD_NODE.fill(context=prompt, llm=self.llm, schema=schema)
         prd_doc.content = node.instruct_content.model_dump_json()
         await self._rename_workspace(node)
         return prd_doc

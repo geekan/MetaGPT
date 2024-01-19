@@ -10,16 +10,17 @@ from openai._models import BaseModel
 
 from metagpt.actions.action_node import ActionNode
 from metagpt.actions.write_code import WriteCode
-from metagpt.actions.write_code_plan_an import (
-    CODE_PLAN_CONTEXT,
-    REFINED_CODE_TEMPLATE,
-    WriteCodePlan,
+from metagpt.actions.write_code_plan_and_change_an import (
+    CODE_PLAN_AND_CHANGE_CONTEXT,
+    REFINED_TEMPLATE,
+    WriteCodePlanAndChange,
 )
+from metagpt.actions.write_prd_an import REQUIREMENT_POOL
 from tests.data.incremental_dev_project.mock import (
+    CODE_PLAN_AND_CHANGE_SAMPLE,
     DESIGN_SAMPLE,
     NEW_REQUIREMENT_SAMPLE,
     OLD_CODE_SAMPLE,
-    PLAN_SAMPLE,
     REFINED_CODE_INPUT_SAMPLE,
     REFINED_CODE_SAMPLE,
     REFINED_DESIGN_JSON,
@@ -29,23 +30,23 @@ from tests.data.incremental_dev_project.mock import (
 )
 
 
-def mock_plan():
-    return PLAN_SAMPLE
+def mock_code_plan_and_change():
+    return CODE_PLAN_AND_CHANGE_SAMPLE
 
 
 @pytest.mark.asyncio
 async def test_write_code_plan_an(mocker):
     root = ActionNode.from_children(
-        "WriteCodePlan", [ActionNode(key="", expected_type=str, instruction="", example="")]
+        "WriteCodePlanAndChange", [ActionNode(key="", expected_type=str, instruction="", example="")]
     )
     root.instruct_content = BaseModel()
-    root.instruct_content.model_dump = mock_plan
-    mocker.patch("metagpt.actions.write_code_plan_an.WriteCodePlan.run", return_value=root)
+    root.instruct_content.model_dump = mock_code_plan_and_change
+    mocker.patch("metagpt.actions.write_code_plan_an.WriteCodePlanAndChange.run", return_value=root)
 
-    write_code_plan = WriteCodePlan()
-    context = CODE_PLAN_CONTEXT.format(
+    write_code_plan = WriteCodePlanAndChange()
+    context = CODE_PLAN_AND_CHANGE_CONTEXT.format(
         user_requirement=NEW_REQUIREMENT_SAMPLE,
-        product_requirement_pools=REFINED_PRD_JSON.get("Refined Requirement Pool", ""),
+        product_requirement_pools=REFINED_PRD_JSON.get(REQUIREMENT_POOL.key),
         design=REFINED_DESIGN_JSON,
         tasks=REFINED_TASKS_JSON,
         code=OLD_CODE_SAMPLE,
@@ -57,10 +58,10 @@ async def test_write_code_plan_an(mocker):
 
 @pytest.mark.asyncio
 async def test_refine_code(mocker):
-    mocker.patch("metagpt.actions.write_code.WriteCode.write_code", return_value=REFINED_CODE_SAMPLE)
-    prompt = REFINED_CODE_TEMPLATE.format(
+    mocker.patch("metagpt.actions.write_code.WriteCodePlanAndChange.write_code", return_value=REFINED_CODE_SAMPLE)
+    prompt = REFINED_TEMPLATE.format(
         user_requirement=NEW_REQUIREMENT_SAMPLE,
-        plan=PLAN_SAMPLE,
+        code_plan_and_change=CODE_PLAN_AND_CHANGE_SAMPLE,
         design=DESIGN_SAMPLE,
         tasks=TASKS_SAMPLE,
         code=REFINED_CODE_INPUT_SAMPLE,

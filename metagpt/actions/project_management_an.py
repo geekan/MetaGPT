@@ -107,7 +107,7 @@ NODES = [
     ANYTHING_UNCLEAR_PM,
 ]
 
-REFINE_NODES = [
+REFINED_NODES = [
     REQUIRED_PYTHON_PACKAGES,
     REQUIRED_OTHER_LANGUAGE_PACKAGES,
     REFINED_LOGIC_ANALYSIS,
@@ -118,13 +118,13 @@ REFINE_NODES = [
 ]
 
 PM_NODE = ActionNode.from_children("PM_NODE", NODES)
-REFINED_PM_NODES = ActionNode.from_children("REFINED_PM_NODES", REFINE_NODES)
+REFINED_PM_NODE = ActionNode.from_children("REFINED_PM_NODE", REFINED_NODES)
 
 
 def main():
     prompt = PM_NODE.compile(context="")
     logger.info(prompt)
-    prompt = REFINED_PM_NODES.compile(context="")
+    prompt = REFINED_PM_NODE.compile(context="")
     logger.info(prompt)
 
 

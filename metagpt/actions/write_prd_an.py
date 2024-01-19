@@ -186,7 +186,7 @@ REASON = ActionNode(
     key="reason", expected_type=str, instruction="Explain the reasoning process from question to answer", example="..."
 )
 
-REFINE_PRD_TEMPLATE = """
+REFINED_TEMPLATE = """
 ### Project Name
 {project_name}
 
@@ -216,7 +216,7 @@ NODES = [
     ANYTHING_UNCLEAR,
 ]
 
-REFINE_NODES = [
+REFINED_NODES = [
     LANGUAGE,
     PROGRAMMING_LANGUAGE,
     REFINED_REQUIREMENTS,
@@ -232,7 +232,7 @@ REFINE_NODES = [
 ]
 
 WRITE_PRD_NODE = ActionNode.from_children("WritePRD", NODES)
-REFINE_PRD_NODE = ActionNode.from_children("RefinePRD", REFINE_NODES)
+REFINED_PRD_NODE = ActionNode.from_children("RefinedPRD", REFINED_NODES)
 WP_ISSUE_TYPE_NODE = ActionNode.from_children("WP_ISSUE_TYPE", [ISSUE_TYPE, REASON])
 WP_IS_RELATIVE_NODE = ActionNode.from_children("WP_IS_RELATIVE", [IS_RELATIVE, REASON])
 
@@ -240,7 +240,7 @@ WP_IS_RELATIVE_NODE = ActionNode.from_children("WP_IS_RELATIVE", [IS_RELATIVE, R
 def main():
     prompt = WRITE_PRD_NODE.compile(context="")
     logger.info(prompt)
-    prompt = REFINE_PRD_NODE.compile(context="")
+    prompt = REFINED_PRD_NODE.compile(context="")
     logger.info(prompt)
 
 

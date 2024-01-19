@@ -9,7 +9,7 @@ import pytest
 from openai._models import BaseModel
 
 from metagpt.actions.action_node import ActionNode
-from metagpt.actions.write_prd_an import REFINE_PRD_NODE, REFINE_PRD_TEMPLATE
+from metagpt.actions.write_prd_an import REFINED_PRD_NODE, REFINED_TEMPLATE
 from metagpt.llm import LLM
 from tests.data.incremental_dev_project.mock import (
     NEW_REQUIREMENT_SAMPLE,
@@ -34,12 +34,12 @@ async def test_write_prd_an(mocker):
     root.instruct_content.model_dump = mock_refined_prd_json
     mocker.patch("metagpt.actions.write_prd_an.REFINE_PRD_NODE.fill", return_value=root)
 
-    prompt = REFINE_PRD_TEMPLATE.format(
+    prompt = REFINED_TEMPLATE.format(
         requirements=NEW_REQUIREMENT_SAMPLE,
         old_prd=PRD_SAMPLE,
         project_name="",
     )
-    node = await REFINE_PRD_NODE.fill(prompt, llm)
+    node = await REFINED_PRD_NODE.fill(prompt, llm)
 
     assert "Refined Requirements" in node.instruct_content.model_dump()
     assert "Refined Product Goals" in node.instruct_content.model_dump()

@@ -99,7 +99,7 @@ NODES = [
     ANYTHING_UNCLEAR,
 ]
 
-REFINE_NODES = [
+REFINED_NODES = [
     REFINED_IMPLEMENTATION_APPROACH,
     REFINED_FILE_LIST,
     REFINED_DATA_STRUCTURES_AND_INTERFACES,
@@ -108,13 +108,13 @@ REFINE_NODES = [
 ]
 
 DESIGN_API_NODE = ActionNode.from_children("DesignAPI", NODES)
-REFINED_DESIGN_NODES = ActionNode.from_children("RefinedDesignAPI", REFINE_NODES)
+REFINED_DESIGN_NODE = ActionNode.from_children("RefinedDesignAPI", REFINED_NODES)
 
 
 def main():
     prompt = DESIGN_API_NODE.compile(context="")
     logger.info(prompt)
-    prompt = REFINED_DESIGN_NODES.compile(context="")
+    prompt = REFINED_DESIGN_NODE.compile(context="")
     logger.info(prompt)
 
 

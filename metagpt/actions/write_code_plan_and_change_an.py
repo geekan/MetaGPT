@@ -3,14 +3,14 @@
 """
 @Time    : 2023/12/26
 @Author  : mannaandpoem
-@File    : write_code_plan_an.py
+@File    : write_code_plan_and_change_an.py
 """
 
 from metagpt.actions.action import Action
 from metagpt.actions.action_node import ActionNode
 
-Plan = ActionNode(
-    key="Plan",
+CODE_PLAN_AND_CHANGE = ActionNode(
+    key="Code Plan And Change",
     expected_type=str,
     instruction="Developing comprehensive and step-by-step incremental development plan, and write Incremental "
     "Change by making a code draft that how to implement incremental development including detailed steps based on the "
@@ -104,7 +104,7 @@ def add_numbers():
 ```""",
 )
 
-CODE_PLAN_CONTEXT = """
+CODE_PLAN_AND_CHANGE_CONTEXT = """
 ## User New Requirements
 {user_requirement}
 
@@ -121,7 +121,7 @@ CODE_PLAN_CONTEXT = """
 {code}
 """
 
-REFINED_CODE_TEMPLATE = """
+REFINED_TEMPLATE = """
 NOTICE
 Role: You are a professional engineer; The main goal is to complete incremental development by combining legacy code and plan and Incremental Change, ensuring the integration of new features.
 
@@ -129,8 +129,8 @@ Role: You are a professional engineer; The main goal is to complete incremental 
 ## User New Requirements
 {user_requirement}
 
-## Plan
-{plan}
+## Code Plan And Change
+{code_plan_and_change}
 
 ## Design
 {design}
@@ -168,18 +168,18 @@ Role: You are a professional engineer; The main goal is to complete incremental 
 2. COMPLETE CODE: Your code will be part of the entire project, so please implement complete, reliable, reusable code snippets.
 3. Set default value: If there is any setting, ALWAYS SET A DEFAULT VALUE, ALWAYS USE STRONG TYPE AND EXPLICIT VARIABLE. AVOID circular import.
 4. Follow design: YOU MUST FOLLOW "Data structures and interfaces". DONT CHANGE ANY DESIGN. Do not use public member functions that do not exist in your design.
-5. Follow plan and Incremental Change: If there is any Incremental Change or Legacy Code files contain "{filename} to be rewritten", you must merge it into the code file according to the plan.
+5. Follow Code Plan And Change: If there is any Incremental Change or Legacy Code files contain "{filename} to be rewritten", you must merge it into the code file according to the plan.
 6. CAREFULLY CHECK THAT YOU DONT MISS ANY NECESSARY CLASS/FUNCTION IN THIS FILE.
 7. Before using a external variable/module, make sure you import it first.
 8. Write out EVERY CODE DETAIL, DON'T LEAVE TODO.
 9. Attention: Retain content that is not related to incremental development but important for consistency and clarity.".
 """
 
-WRITE_CODE_PLAN_NODE = ActionNode.from_children("WriteCodePlan", [Plan])
+WRITE_CODE_PLAN_AND_CHANGE_NODE = ActionNode.from_children("WriteCodePlanAndChange", [CODE_PLAN_AND_CHANGE])
 
 
-class WriteCodePlan(Action):
+class WriteCodePlanAndChange(Action):
     async def run(self, context):
         self.llm.system_prompt = "You are a professional software engineer, your primary responsibility is to "
-        "meticulously craft comprehensive incremental development plan and deliver detailed Incremental Change"
-        return await WRITE_CODE_PLAN_NODE.fill(context=context, llm=self.llm, schema="json")
+        "meticulously craft comprehensive incremental development plan and deliver detailed incremental change"
+        return await WRITE_CODE_PLAN_AND_CHANGE_NODE.fill(context=context, llm=self.llm, schema="json")
