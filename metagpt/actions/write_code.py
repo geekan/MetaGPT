@@ -125,7 +125,9 @@ class WriteCode(Action):
         if bug_feedback:
             code_context = coding_context.code_doc.content
         elif code_plan_and_change:
-            code_context = await self.get_codes(coding_context.task_doc, exclude=self.context.filename, mode="guide")
+            code_context = await self.get_codes(
+                coding_context.task_doc, exclude=self.context.filename, mode="incremental"
+            )
         else:
             code_context = await self.get_codes(coding_context.task_doc, exclude=self.context.filename)
 
@@ -161,14 +163,14 @@ class WriteCode(Action):
         return coding_context
 
     @staticmethod
-    async def get_codes(task_doc: Document, exclude: str, mode: Literal["normal", "guide"] = "normal") -> str:
+    async def get_codes(task_doc: Document, exclude: str, mode: Literal["normal", "incremental"] = "normal") -> str:
         """
         Get code snippets based on different modes.
 
         Attributes:
             task_doc (Document): Document object of the task file.
             exclude (str): Specifies the filename to be excluded from the code snippets.
-            mode (str): Specifies the mode, either "normal" or "guide" (default is "normal").
+            mode (str): Specifies the mode, either "normal" or "incremental" (default is "normal").
 
         Returns:
             str: Code snippets.
@@ -177,7 +179,7 @@ class WriteCode(Action):
         If mode is set to "normal", it returns code snippets for the regular coding phase,
         i.e., all the code generated before writing the current file.
 
-        If mode is set to "guide", it returns code snippets for generating the code plan and change,
+        If mode is set to "incremental", it returns code snippets for generating the code plan and change,
         building upon the existing code in the "normal" mode and adding code for the current file's older versions.
         """
         if not task_doc:
@@ -189,7 +191,7 @@ class WriteCode(Action):
         codes = []
         src_file_repo = CONFIG.git_repo.new_file_repository(relative_path=CONFIG.src_workspace)
 
-        if mode == "guide":
+        if mode == "incremental":
             src_files = src_file_repo.all_files
             old_file_repo = CONFIG.git_repo.new_file_repository(relative_path=CONFIG.old_workspace)
             old_files = old_file_repo.all_files

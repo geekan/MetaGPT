@@ -106,7 +106,7 @@ class Engineer(Role):
         m = json.loads(task_msg.content)
         return m.get(TASK_LIST.key) or m.get(REFINED_TASK_LIST.key)
 
-    async def _act_sp_with_cr(self, review=False, mode: Literal["normal", "guide"] = "normal") -> Set[str]:
+    async def _act_sp_with_cr(self, review=False, mode: Literal["normal", "incremental"] = "normal") -> Set[str]:
         changed_files = set()
         src_file_repo = CONFIG.git_repo.new_file_repository(CONFIG.src_workspace)
         for todo in self.code_todos:
@@ -126,7 +126,7 @@ class Engineer(Role):
 
             dependencies = {coding_context.design_doc.root_relative_path, coding_context.task_doc.root_relative_path}
             # TODO: Add code plan and change file to context when _think
-            if mode == "guide":
+            if mode == "incremental":
                 dependencies.add(os.path.join(CODE_PLAN_AND_CHANGE_FILE_REPO, CODE_PLAN_AND_CHANGE_FILENAME))
             await src_file_repo.save(
                 coding_context.filename,

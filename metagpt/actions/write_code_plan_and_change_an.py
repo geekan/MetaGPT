@@ -194,7 +194,7 @@ class WriteCodePlanAndChange(Action):
         prd = "\n".join([doc.content for doc in self.context.prd_docs])
         design = "\n".join([doc.content for doc in self.context.design_docs])
         tasks = "\n".join([doc.content for doc in self.context.task_docs])
-        code_text = self.get_old_codes()
+        code_text = await self.get_old_codes()
         context = CODE_PLAN_AND_CHANGE_CONTEXT.format(
             requirement=requirement, prd=prd, design=design, tasks=tasks, code=code_text
         )

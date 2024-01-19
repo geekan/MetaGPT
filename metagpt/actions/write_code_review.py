@@ -149,7 +149,7 @@ class WriteCodeReview(Action):
             filename=CODE_PLAN_AND_CHANGE_FILENAME, relative_path=CODE_PLAN_AND_CHANGE_FILE_REPO
         )
         code_plan_and_change = code_plan_and_change_doc.content if code_plan_and_change_doc else ""
-        mode = "guide" if code_plan_and_change else "normal"
+        mode = "incremental" if code_plan_and_change else "normal"
 
         for i in range(k):
             format_example = FORMAT_EXAMPLE.format(filename=self.context.code_doc.filename)
