@@ -222,12 +222,12 @@ class Engineer(Role):
 
         node = await self.rc.todo.run()
         code_plan_and_change = node.instruct_content.model_dump_json()
-
+        # FIXME: define a load function
         dependencies = {
-            self.rc.todo.context.requirement_filename,
-            self.rc.todo.context.prd_filename,
-            self.rc.todo.context.design_filename,
-            self.rc.todo.context.task_filename,
+            self.rc.todo.context.requirement_doc.filename,
+            self.rc.todo.context.prd_docs[0].filename,
+            self.rc.todo.context.design_docs[0].filename,
+            self.rc.todo.context.tasks_docs[0].filename,
         }
 
         code_plan_and_change_filename = os.path.join(CODE_PLAN_AND_CHANGE_FILE_REPO, CODE_PLAN_AND_CHANGE_FILENAME)
