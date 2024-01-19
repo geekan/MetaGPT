@@ -5,10 +5,8 @@
 """
 
 from pathlib import Path
-from typing import Optional
 
-from langchain.vectorstores.faiss import FAISS
-from langchain_core.embeddings import Embeddings
+from llama_index.embeddings import BaseEmbedding
 
 from metagpt.const import DATA_PATH, MEM_TTL
 from metagpt.document_store.faiss_store import FaissStore
@@ -23,28 +21,16 @@ class MemoryStorage(FaissStore):
     The memory storage with Faiss as ANN search engine
     """
 
-    def __init__(self, mem_ttl: int = MEM_TTL, embedding: Embeddings = None):
+    def __init__(self, mem_ttl: int = MEM_TTL, embedding: BaseEmbedding = None):
         self.role_id: str = None
         self.role_mem_path: str = None
         self.mem_ttl: int = mem_ttl  # later use
         self.threshold: float = 0.1  # experience value. TODO The threshold to filter similar memories
         self._initialized: bool = False
 
-        self.embedding = embedding or get_embedding()
-        self.store: FAISS = None  # Faiss engine
-
     @property
     def is_initialized(self) -> bool:
         return self._initialized
-
-    def _load(self) -> Optional["FaissStore"]:
-        index_file, store_file = self._get_index_and_store_fname(index_ext=".faiss")  # langchain FAISS using .faiss
-
-        if not (index_file.exists() and store_file.exists()):
-            logger.info("Missing at least one of index_file/store_file, load failed and return None")
-            return None
-
-        return FAISS.load_local(self.role_mem_path, self.embedding, self.role_id)
 
     def recover_memory(self, role_id: str) -> list[Message]:
         self.role_id = role_id
@@ -69,6 +55,7 @@ class MemoryStorage(FaissStore):
             return None, None
         index_fpath = Path(self.role_mem_path / f"{self.role_id}{index_ext}")
         storage_fpath = Path(self.role_mem_path / f"{self.role_id}{pkl_ext}")
+        self.cache_dir = Path(self.role_mem_path).joinpath(self.role_id)
         return index_fpath, storage_fpath
 
     def persist(self):

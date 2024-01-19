@@ -1,4 +1,4 @@
-aiohttp==3.8.4
+aiohttp==3.8.6
 #azure_storage==0.37.0
 channels==4.0.0
 # chromadb
@@ -11,12 +11,11 @@ typer==0.9.0
 # godot==0.1.1
 # google_api_python_client==2.93.0  # Used by search_engine.py
 lancedb==0.4.0
-langchain==0.1.8
-sqlalchemy==2.0.0  # along with langchain
+llama-index==0.9.31
 loguru==0.6.0
 meilisearch==0.21.0
-numpy>=1.24.3,<1.25.0
-openai==1.6.0
+numpy==1.24.3
+openai==1.6.1
 openpyxl
 beautifulsoup4==4.12.2
 pandas==2.0.3

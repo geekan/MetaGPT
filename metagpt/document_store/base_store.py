@@ -39,8 +39,8 @@ class LocalStore(BaseStore, ABC):
             self.store = self.write()
 
     def _get_index_and_store_fname(self, index_ext=".index", pkl_ext=".pkl"):
-        index_file = self.cache_dir / f"{self.fname}{index_ext}"
-        store_file = self.cache_dir / f"{self.fname}{pkl_ext}"
+        index_file = self.cache_dir / "default__vector_store.json"
+        store_file = self.cache_dir / "docstore.json"
         return index_file, store_file
 
     @abstractmethod

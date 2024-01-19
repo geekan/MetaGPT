@@ -154,6 +154,11 @@ key.yaml
 data
 data.ms
 examples/nb/
+examples/default__vector_store.json
+examples/docstore.json
+examples/graph_store.json
+examples/image__vector_store.json
+examples/index_store.json
 .chroma
 *~$*
 workspace/*
@@ -168,6 +173,7 @@ output
 tmp.png
 .dependencies.json
 tests/metagpt/utils/file_repo_git
+tests/data/rsp_cache.json
 *.tmp
 *.png
 htmlcov
