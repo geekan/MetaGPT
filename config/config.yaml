@@ -5,6 +5,7 @@
 # WORKSPACE_PATH: "Path for placing output files"
 
 ### Default LLM Provider Setting
+## Optional LLM: openai, azure_openai, gemini, spark, zhipuai, fireworks, open_llm, ollama, anthropic, metagpt
 DEFAULT_PROVIDER: openai
 
 #### if OpenAI
