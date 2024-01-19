@@ -3,7 +3,7 @@
 """
 @Time    : 2024/01/03
 @Author  : mannaandpoem
-@File    : test_write_code_plan_an.py
+@File    : test_write_code_plan_and_change_an.py
 """
 import pytest
 from openai._models import BaseModel
@@ -11,20 +11,16 @@ from openai._models import BaseModel
 from metagpt.actions.action_node import ActionNode
 from metagpt.actions.write_code import WriteCode
 from metagpt.actions.write_code_plan_and_change_an import (
-    CODE_PLAN_AND_CHANGE_CONTEXT,
     REFINED_TEMPLATE,
     WriteCodePlanAndChange,
 )
+from metagpt.schema import CodePlanAndChangeContext, Document
 from tests.data.incremental_dev_project.mock import (
     CODE_PLAN_AND_CHANGE_SAMPLE,
     DESIGN_SAMPLE,
     NEW_REQUIREMENT_SAMPLE,
-    OLD_CODE_SAMPLE,
     REFINED_CODE_INPUT_SAMPLE,
     REFINED_CODE_SAMPLE,
-    REFINED_DESIGN_JSON,
-    REFINED_PRD_JSON,
-    REFINED_TASKS_JSON,
     TASKS_SAMPLE,
 )
 
@@ -34,23 +30,25 @@ def mock_code_plan_and_change():
 
 
 @pytest.mark.asyncio
-async def test_write_code_plan_an(mocker):
+async def test_write_code_plan_and_change_an(mocker):
     root = ActionNode.from_children(
         "WriteCodePlanAndChange", [ActionNode(key="", expected_type=str, instruction="", example="")]
     )
     root.instruct_content = BaseModel()
     root.instruct_content.model_dump = mock_code_plan_and_change
-    mocker.patch("metagpt.actions.write_code_plan_an.WriteCodePlanAndChange.run", return_value=root)
+    mocker.patch("metagpt.actions.write_code_plan_and_change_an.WriteCodePlanAndChange.run", return_value=root)
 
-    write_code_plan = WriteCodePlanAndChange()
-    context = CODE_PLAN_AND_CHANGE_CONTEXT.format(
-        requirement=NEW_REQUIREMENT_SAMPLE,
-        PRD=REFINED_PRD_JSON,
-        design=REFINED_DESIGN_JSON,
-        tasks=REFINED_TASKS_JSON,
-        code=OLD_CODE_SAMPLE,
+    requirement_doc = Document()
+    prd_docs = [Document()]
+    design_docs = [Document()]
+    tasks_docs = [Document()]
+    code_plan_and_change_context = CodePlanAndChangeContext(
+        requirement_doc=requirement_doc,
+        prd_docs=prd_docs,
+        design_docs=design_docs,
+        tasks_docs=tasks_docs,
     )
-    node = await write_code_plan.run(context=context)
+    node = await WriteCodePlanAndChange(context=code_plan_and_change_context).run()
 
     assert "Plan" in node.instruct_content.model_dump()
 

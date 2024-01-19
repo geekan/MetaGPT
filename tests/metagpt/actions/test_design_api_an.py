@@ -35,7 +35,7 @@ async def test_write_design_an(mocker):
     )
     root.instruct_content = BaseModel()
     root.instruct_content.model_dump = mock_refined_design_json
-    mocker.patch("metagpt.actions.design_api_an.REFINED_DESIGN_NODES.fill", return_value=root)
+    mocker.patch("metagpt.actions.design_api_an.REFINED_DESIGN_NODE.fill", return_value=root)
 
     prompt = NEW_REQ_TEMPLATE.format(old_design=DESIGN_SAMPLE, context=dict_to_markdown(REFINED_PRD_JSON))
     node = await REFINED_DESIGN_NODE.fill(prompt, llm)

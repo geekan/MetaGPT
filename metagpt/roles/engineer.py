@@ -379,8 +379,8 @@ class Engineer(Role):
         requirement_doc = await FileRepository.get_file(filename=REQUIREMENT_FILENAME, relative_path=DOCS_FILE_REPO)
         prd_docs = await FileRepository.get_all_files(relative_path=PRDS_FILE_REPO)
         design_docs = await FileRepository.get_all_files(relative_path=SYSTEM_DESIGN_FILE_REPO)
-        tasks_file_repo = CONFIG.git_repo.new_file_repository(TASK_FILE_REPO)
-        tasks_docs = await tasks_file_repo.get_all()
+        tasks_docs = await FileRepository.get_all_files(relative_path=TASK_FILE_REPO)
+
         code_plan_and_change_context = CodePlanAndChangeContext(
             requirement_doc=requirement_doc,
             prd_docs=prd_docs,
