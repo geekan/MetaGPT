@@ -14,9 +14,16 @@ from tenacity import retry, stop_after_attempt, wait_random_exponential
 from metagpt.actions import WriteCode
 from metagpt.actions.action import Action
 from metagpt.config import CONFIG
+from metagpt.const import (
+    CODE_PLAN_AND_CHANGE_FILE_REPO,
+    CODE_PLAN_AND_CHANGE_FILENAME,
+    DOCS_FILE_REPO,
+    REQUIREMENT_FILENAME,
+)
 from metagpt.logs import logger
 from metagpt.schema import CodingContext
 from metagpt.utils.common import CodeParser
+from metagpt.utils.file_repository import FileRepository
 
 PROMPT_TEMPLATE = """
 # System
@@ -138,17 +145,41 @@ class WriteCodeReview(Action):
     async def run(self, *args, **kwargs) -> CodingContext:
         iterative_code = self.context.code_doc.content
         k = CONFIG.code_review_k_times or 1
+        code_plan_and_change_doc = await FileRepository.get_file(
+            filename=CODE_PLAN_AND_CHANGE_FILENAME, relative_path=CODE_PLAN_AND_CHANGE_FILE_REPO
+        )
+        code_plan_and_change = code_plan_and_change_doc.content if code_plan_and_change_doc else ""
+        mode = "incremental" if code_plan_and_change else "normal"
+
         for i in range(k):
             format_example = FORMAT_EXAMPLE.format(filename=self.context.code_doc.filename)
             task_content = self.context.task_doc.content if self.context.task_doc else ""
-            code_context = await WriteCode.get_codes(self.context.task_doc, exclude=self.context.filename)
-            context = "\n".join(
-                [
-                    "## System Design\n" + str(self.context.design_doc) + "\n",
-                    "## Tasks\n" + task_content + "\n",
-                    "## Code Files\n" + code_context + "\n",
-                ]
-            )
+            code_context = await WriteCode.get_codes(self.context.task_doc, exclude=self.context.filename, mode=mode)
+
+            if not code_plan_and_change:
+                context = "\n".join(
+                    [
+                        "## System Design\n" + str(self.context.design_doc) + "\n",
+                        "## Tasks\n" + task_content + "\n",
+                        "## Code Files\n" + code_context + "\n",
+                    ]
+                )
+            else:
+                requirement_doc = await FileRepository.get_file(
+                    filename=REQUIREMENT_FILENAME, relative_path=DOCS_FILE_REPO
+                )
+                user_requirement = requirement_doc.content if requirement_doc else ""
+
+                context = "\n".join(
+                    [
+                        "## User New Requirements\n" + user_requirement + "\n",
+                        "## Code Plan And Change\n" + code_plan_and_change + "\n",
+                        "## System Design\n" + str(self.context.design_doc) + "\n",
+                        "## Tasks\n" + task_content + "\n",
+                        "## Code Files\n" + code_context + "\n",
+                    ]
+                )
+
             context_prompt = PROMPT_TEMPLATE.format(
                 context=context,
                 code=iterative_code,

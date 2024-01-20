@@ -15,7 +15,7 @@ from typing import Optional
 
 from metagpt.actions import ActionOutput
 from metagpt.actions.action import Action
-from metagpt.actions.project_management_an import PM_NODE
+from metagpt.actions.project_management_an import PM_NODE, REFINED_PM_NODE
 from metagpt.config import CONFIG
 from metagpt.const import (
     PACKAGE_REQUIREMENTS_FILENAME,
@@ -93,7 +93,7 @@ class WriteTasks(Action):
 
     async def _merge(self, system_design_doc, task_doc, schema=CONFIG.prompt_schema) -> Document:
         context = NEW_REQ_TEMPLATE.format(context=system_design_doc.content, old_tasks=task_doc.content)
-        node = await PM_NODE.fill(context, self.llm, schema)
+        node = await REFINED_PM_NODE.fill(context, self.llm, schema)
         task_doc.content = node.instruct_content.model_dump_json()
         return task_doc
 

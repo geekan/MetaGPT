@@ -4,13 +4,10 @@
 @Time    : 2023/7/4 10:53
 @Author  : alexanderwu alitrack
 @File    : mermaid.py
-@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
 """
 import asyncio
 import os
 from pathlib import Path
-
-import aiofiles
 
 from metagpt.config import CONFIG
 from metagpt.logs import logger
@@ -31,9 +28,7 @@ async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, 
     if dir_name and not os.path.exists(dir_name):
         os.makedirs(dir_name)
     tmp = Path(f"{output_file_without_suffix}.mmd")
-    async with aiofiles.open(tmp, "w", encoding="utf-8") as f:
-        await f.write(mermaid_code)
-    # tmp.write_text(mermaid_code, encoding="utf-8")
+    tmp.write_text(mermaid_code, encoding="utf-8")
 
     engine = CONFIG.mermaid_engine.lower()
     if engine == "nodejs":

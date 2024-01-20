@@ -453,6 +453,14 @@ class BugFixContext(BaseContext):
     filename: str = ""
 
 
+class CodePlanAndChangeContext(BaseContext):
+    filename: str = ""
+    requirement_doc: Document
+    prd_docs: List[Document]
+    design_docs: List[Document]
+    tasks_docs: List[Document]
+
+
 # mermaid class view
 class ClassMeta(BaseModel):
     name: str = ""
