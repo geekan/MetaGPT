@@ -54,6 +54,7 @@ class FileRepository:
         """
         pathname = self.workdir / filename
         pathname.parent.mkdir(parents=True, exist_ok=True)
+        content = content if content else ""  # avoid `argument must be str, not None` to make it continue
         async with aiofiles.open(str(pathname), mode="w") as writer:
             await writer.write(content)
         logger.info(f"save to: {str(pathname)}")

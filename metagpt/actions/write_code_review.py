@@ -160,9 +160,11 @@ class WriteCodeReview(Action):
             cr_prompt = EXAMPLE_AND_INSTRUCTION.format(
                 format_example=format_example,
             )
+            len1 = len(iterative_code) if iterative_code else 0
+            len2 = len(self.context.code_doc.content) if self.context.code_doc.content else 0
             logger.info(
-                f"Code review and rewrite {self.i_context.code_doc.filename}: {i + 1}/{k} | {len(iterative_code)=}, "
-                f"{len(self.i_context.code_doc.content)=}"
+                f"Code review and rewrite {self.i_context.code_doc.filename}: {i + 1}/{k} | len(iterative_code)={len1}, "
+                f"len(self.i_context.code_doc.content)={len2}"
             )
             result, rewrited_code = await self.write_code_review_and_rewrite(
                 context_prompt, cr_prompt, self.i_context.code_doc.filename

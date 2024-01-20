@@ -83,7 +83,7 @@ class Team(BaseModel):
         logger.info(f"Investment: ${investment}.")
 
     def _check_balance(self):
-        if self.cost_manager.total_cost > self.cost_manager.max_budget:
+        if self.cost_manager.total_cost >= self.cost_manager.max_budget:
             raise NoMoneyException(self.cost_manager.total_cost, f"Insufficient funds: {self.cost_manager.max_budget}")
 
     def run_project(self, idea, send_to: str = ""):
