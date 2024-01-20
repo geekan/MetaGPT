@@ -98,4 +98,4 @@ def test_get_tools_by_type(tool_registry, schema_yaml):
 # Test case for when the tool type does not exist
 def test_get_tools_by_nonexistent_type(tool_registry):
     tools_by_type = tool_registry.get_tools_by_type("NonexistentType")
-    assert tools_by_type is None
+    assert not tools_by_type

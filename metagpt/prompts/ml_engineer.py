@@ -161,7 +161,7 @@ Latest data info after previous tasks:
 
 # Task
 Write complete code for 'Current Task'. And avoid duplicating code from 'Done Tasks', such as repeated import of packages, reading data, etc.
-Specifically, {special_prompt}
+Specifically, {tool_type_usage_prompt}
 
 # Code Steps:
 Strictly follow steps below when you writing code if it's convenient.
@@ -192,7 +192,7 @@ model.fit(train, y_train)
 TOOL_USAGE_PROMPT = """
 # Instruction
 Write complete code for 'Current Task'. And avoid duplicating code from finished tasks, such as repeated import of packages, reading data, etc.
-Specifically, {special_prompt}
+Specifically, {tool_type_usage_prompt}
 
 # Capabilities
 - You can utilize pre-defined tools in any code lines from 'Available Tools' in the form of Python Class.
@@ -200,7 +200,7 @@ Specifically, {special_prompt}
 
 # Available Tools (can be empty):
 Each Class tool is described in JSON format. When you call a tool, import the tool first.
-{tool_catalog}
+{tool_schemas}
 
 # Constraints:
 - Ensure the output new code is executable in the same Jupyter notebook with previous tasks code have been executed.
@@ -225,7 +225,7 @@ Latest data info after previous tasks:
 
 # Task
 Write complete code for 'Current Task'. And avoid duplicating code from 'Done Tasks', such as repeated import of packages, reading data, etc.
-Specifically, {special_prompt}
+Specifically, {tool_type_usage_prompt}
 
 # Code Steps:
 Strictly follow steps below when you writing code if it's convenient.
@@ -237,7 +237,7 @@ Strictly follow steps below when you writing code if it's convenient.
 
 # Available Tools:
 Each Class tool is described in JSON format. When you call a tool, import the tool from its path first.
-{tool_catalog}
+{tool_schemas}
 
 # Output Example:
 when current task is "do data preprocess, like fill missing value, handle outliers, etc.", and their are two steps in 'Code Steps', the code be like:

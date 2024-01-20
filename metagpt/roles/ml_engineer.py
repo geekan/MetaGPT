@@ -27,7 +27,7 @@ class MLEngineer(CodeInterpreter):
             column_info = await self._update_data_columns()
 
             logger.info("Write code with tools")
-            tool_context, code = await WriteCodeWithToolsML().run(
+            tool_context, code = await WriteCodeWithToolsML(selected_tools=self.tools).run(
                 context=[],  # context assembled inside the Action
                 plan=self.planner.plan,
                 column_info=column_info,
