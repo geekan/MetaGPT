@@ -297,6 +297,6 @@ class Engineer(Role):
             self.set_todo(self.summarize_todos[0])
 
     @property
-    def todo(self) -> str:
+    def action_description(self) -> str:
         """AgentStore uses this attribute to display to the user what actions the current role should take."""
         return self.next_todo_action
