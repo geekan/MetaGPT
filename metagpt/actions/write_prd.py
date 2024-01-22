@@ -20,7 +20,9 @@ from metagpt.actions import Action, ActionOutput
 from metagpt.actions.action_node import ActionNode
 from metagpt.actions.fix_bug import FixBug
 from metagpt.actions.write_prd_an import (
+    COMPETITIVE_QUADRANT_CHART,
     PROJECT_NAME,
+    REFINED_PRD_NODE,
     WP_IS_RELATIVE_NODE,
     WP_ISSUE_TYPE_NODE,
     WRITE_PRD_NODE,
@@ -138,7 +140,7 @@ class WritePRD(Action):
         if not self.project_name:
             self.project_name = Path(self.project_path).name
         prompt = NEW_REQ_TEMPLATE.format(requirements=req.content, old_prd=related_doc.content)
-        node = await WRITE_PRD_NODE.fill(context=prompt, llm=self.llm, schema=self.prompt_schema)
+        node = await REFINED_PRD_NODE.fill(context=prompt, llm=self.llm, schema=self.prompt_schema)
         related_doc.content = node.instruct_content.model_dump_json()
         await self._rename_workspace(node)
         return related_doc
@@ -152,7 +154,7 @@ class WritePRD(Action):
 
     async def _save_competitive_analysis(self, prd_doc: Document):
         m = json.loads(prd_doc.content)
-        quadrant_chart = m.get("Competitive Quadrant Chart")
+        quadrant_chart = m.get(COMPETITIVE_QUADRANT_CHART.key)
         if not quadrant_chart:
             return
         pathname = self.repo.workdir / COMPETITIVE_ANALYSIS_FILE_REPO / Path(prd_doc.filename).stem
