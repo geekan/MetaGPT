@@ -95,7 +95,3 @@ class Context(BaseModel):
         if llm.cost_manager is None:
             llm.cost_manager = self.cost_manager
         return llm
-
-
-# Global context, not in Env
-CONTEXT = Context()

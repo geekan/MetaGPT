@@ -99,7 +99,7 @@ def test_parse_code():
 
 def test_todo():
     role = Engineer()
-    assert role.todo == any_to_name(WriteCode)
+    assert role.action_description == any_to_name(WriteCode)
 
 
 @pytest.mark.asyncio

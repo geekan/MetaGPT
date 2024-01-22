@@ -144,3 +144,7 @@ async def test_team_recover_multi_roles_save(mocker, context):
     assert new_company.env.get_role(role_b.profile).rc.state == 1
 
     await new_company.run(n_round=4)
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-s"])
