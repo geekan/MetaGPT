@@ -8,14 +8,14 @@
 """
 
 from abc import ABC, abstractmethod
+from collections import defaultdict
 from pathlib import Path
 from typing import List
 
 from pydantic import BaseModel
 
-from metagpt.logs import logger
-from metagpt.repo_parser import ClassInfo, ClassRelationship, RepoFileInfo
-from metagpt.utils.common import concat_namespace
+from metagpt.repo_parser import DotClassInfo, DotClassRelationship, RepoFileInfo
+from metagpt.utils.common import concat_namespace, split_namespace
 
 
 class GraphKeyword:
@@ -28,17 +28,17 @@ class GraphKeyword:
     SOURCE_CODE = "source_code"
     NULL = "<null>"
     GLOBAL_VARIABLE = "global_variable"
-    CLASS_FUNCTION = "class_function"
+    CLASS_METHOD = "class_method"
     CLASS_PROPERTY = "class_property"
-    HAS_CLASS_FUNCTION = "has_class_function"
+    HAS_CLASS_METHOD = "has_class_method"
     HAS_CLASS_PROPERTY = "has_class_property"
     HAS_CLASS = "has_class"
-    HAS_CLASS_DESC = "has_class_desc"
+    HAS_DETAIL = "has_detail"
     HAS_PAGE_INFO = "has_page_info"
     HAS_CLASS_VIEW = "has_class_view"
     HAS_SEQUENCE_VIEW = "has_sequence_view"
-    HAS_ARGS_DESC = "has_args_desc"
-    HAS_TYPE_DESC = "has_type_desc"
+    IS_COMPOSITE_OF = "is_composite_of"
+    IS_AGGREGATE_OF = "is_aggregate_of"
 
 
 class SPO(BaseModel):
@@ -96,13 +96,13 @@ class GraphRepository(ABC):
             for fn in methods:
                 await graph_db.insert(
                     subject=concat_namespace(file_info.file, class_name),
-                    predicate=GraphKeyword.HAS_CLASS_FUNCTION,
+                    predicate=GraphKeyword.HAS_CLASS_METHOD,
                     object_=concat_namespace(file_info.file, class_name, fn),
                 )
                 await graph_db.insert(
                     subject=concat_namespace(file_info.file, class_name, fn),
                     predicate=GraphKeyword.IS,
-                    object_=GraphKeyword.CLASS_FUNCTION,
+                    object_=GraphKeyword.CLASS_METHOD,
                 )
         for f in file_info.functions:
             # file -> function
@@ -134,7 +134,7 @@ class GraphRepository(ABC):
                 )
 
     @staticmethod
-    async def update_graph_db_with_class_views(graph_db: "GraphRepository", class_views: List[ClassInfo]):
+    async def update_graph_db_with_class_views(graph_db: "GraphRepository", class_views: List[DotClassInfo]):
         for c in class_views:
             filename, _ = c.package.split(":", 1)
             await graph_db.insert(subject=filename, predicate=GraphKeyword.IS, object_=GraphKeyword.SOURCE_CODE)
@@ -147,6 +147,7 @@ class GraphRepository(ABC):
                 predicate=GraphKeyword.IS,
                 object_=GraphKeyword.CLASS,
             )
+            await graph_db.insert(subject=c.package, predicate=GraphKeyword.HAS_DETAIL, object_=c.model_dump_json())
             for vn, vt in c.attributes.items():
                 # class -> property
                 await graph_db.insert(
@@ -161,32 +162,40 @@ class GraphRepository(ABC):
                     object_=GraphKeyword.CLASS_PROPERTY,
                 )
                 await graph_db.insert(
-                    subject=concat_namespace(c.package, vn), predicate=GraphKeyword.HAS_TYPE_DESC, object_=vt
+                    subject=concat_namespace(c.package, vn),
+                    predicate=GraphKeyword.HAS_DETAIL,
+                    object_=vt.model_dump_json(),
                 )
-            for fn, desc in c.methods.items():
-                if "</I>" in desc and "<I>" not in desc:
-                    logger.error(desc)
+            for fn, ft in c.methods.items():
                 # class -> function
                 await graph_db.insert(
                     subject=c.package,
-                    predicate=GraphKeyword.HAS_CLASS_FUNCTION,
+                    predicate=GraphKeyword.HAS_CLASS_METHOD,
                     object_=concat_namespace(c.package, fn),
                 )
                 # function detail
                 await graph_db.insert(
                     subject=concat_namespace(c.package, fn),
                     predicate=GraphKeyword.IS,
-                    object_=GraphKeyword.CLASS_FUNCTION,
+                    object_=GraphKeyword.CLASS_METHOD,
                 )
                 await graph_db.insert(
                     subject=concat_namespace(c.package, fn),
-                    predicate=GraphKeyword.HAS_ARGS_DESC,
-                    object_=desc,
+                    predicate=GraphKeyword.HAS_DETAIL,
+                    object_=ft.model_dump_json(),
+                )
+            for i in c.compositions:
+                await graph_db.insert(
+                    subject=c.package, predicate=GraphKeyword.IS_COMPOSITE_OF, object_=concat_namespace("?", i)
+                )
+            for i in c.aggregations:
+                await graph_db.insert(
+                    subject=c.package, predicate=GraphKeyword.IS_AGGREGATE_OF, object_=concat_namespace("?", i)
                 )
 
     @staticmethod
     async def update_graph_db_with_class_relationship_views(
-        graph_db: "GraphRepository", relationship_views: List[ClassRelationship]
+        graph_db: "GraphRepository", relationship_views: List[DotClassRelationship]
     ):
         for r in relationship_views:
             await graph_db.insert(
@@ -199,3 +208,23 @@ class GraphRepository(ABC):
                 predicate=GraphKeyword.IS + r.relationship + GraphKeyword.ON,
                 object_=concat_namespace(r.dest, r.label),
             )
+
+    @staticmethod
+    async def rebuild_composition_relationship(graph_db: "GraphRepository"):
+        classes = await graph_db.select(predicate=GraphKeyword.IS, object_=GraphKeyword.CLASS)
+        mapping = defaultdict(list)
+        for c in classes:
+            _, name = split_namespace(c.subject)
+            mapping[name].append(c.subject)
+
+        rows = await graph_db.select(predicate=GraphKeyword.IS_COMPOSITE_OF)
+        for r in rows:
+            ns, class_ = split_namespace(r.object_)
+            if ns != "?":
+                continue
+            val = mapping[class_]
+            if len(val) != 1:
+                continue
+            ns_name = val[0]
+            await graph_db.delete(subject=r.subject, predicate=r.predicate, object_=r.object_)
+            await graph_db.insert(subject=r.subject, predicate=r.predicate, object_=ns_name)

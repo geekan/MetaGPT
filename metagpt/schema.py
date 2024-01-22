@@ -471,44 +471,54 @@ class BugFixContext(BaseContext):
 
 
 # mermaid class view
-class ClassMeta(BaseModel):
+class UMLClassMeta(BaseModel):
     name: str = ""
-    abstraction: bool = False
-    static: bool = False
     visibility: str = ""
 
+    @staticmethod
+    def name_to_visibility(name: str) -> str:
+        if name == "__init__":
+            return "+"
+        if name.startswith("__"):
+            return "-"
+        elif name.startswith("_"):
+            return "#"
+        return "+"
 
-class ClassAttribute(ClassMeta):
+
+class UMLClassAttribute(UMLClassMeta):
     value_type: str = ""
     default_value: str = ""
 
     def get_mermaid(self, align=1) -> str:
         content = "".join(["\t" for i in range(align)]) + self.visibility
         if self.value_type:
-            content += self.value_type + " "
-        content += self.name
+            content += self.value_type.replace(" ", "") + " "
+        name = self.name.split(":", 1)[1] if ":" in self.name else self.name
+        content += name
         if self.default_value:
             content += "="
             if self.value_type not in ["str", "string", "String"]:
                 content += self.default_value
             else:
                 content += '"' + self.default_value.replace('"', "") + '"'
-        if self.abstraction:
-            content += "*"
-        if self.static:
-            content += "$"
+        # if self.abstraction:
+        #     content += "*"
+        # if self.static:
+        #     content += "$"
         return content
 
 
-class ClassMethod(ClassMeta):
-    args: List[ClassAttribute] = Field(default_factory=list)
+class UMLClassMethod(UMLClassMeta):
+    args: List[UMLClassAttribute] = Field(default_factory=list)
     return_type: str = ""
 
     def get_mermaid(self, align=1) -> str:
         content = "".join(["\t" for i in range(align)]) + self.visibility
-        content += self.name + "(" + ",".join([v.get_mermaid(align=0) for v in self.args]) + ")"
+        name = self.name.split(":", 1)[1] if ":" in self.name else self.name
+        content += name + "(" + ",".join([v.get_mermaid(align=0) for v in self.args]) + ")"
         if self.return_type:
-            content += ":" + self.return_type
+            content += " " + self.return_type.replace(" ", "")
         if self.abstraction:
             content += "*"
         if self.static:
@@ -516,9 +526,9 @@ class ClassMethod(ClassMeta):
         return content
 
 
-class ClassView(ClassMeta):
-    attributes: List[ClassAttribute] = Field(default_factory=list)
-    methods: List[ClassMethod] = Field(default_factory=list)
+class UMLClassView(UMLClassMeta):
+    attributes: List[UMLClassAttribute] = Field(default_factory=list)
+    methods: List[UMLClassMethod] = Field(default_factory=list)
 
     def get_mermaid(self, align=1) -> str:
         content = "".join(["\t" for i in range(align)]) + "class " + self.name + "{\n"

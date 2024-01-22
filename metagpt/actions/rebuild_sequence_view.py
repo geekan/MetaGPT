@@ -11,14 +11,14 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.actions import Action
 from metagpt.config2 import config
-from metagpt.const import AGGREGATION, COMPOSITION, GENERALIZATION, GRAPH_REPO_FILE_REPO
+from metagpt.const import AGGREGATION, GENERALIZATION, GRAPH_REPO_FILE_REPO
 from metagpt.logs import logger
 from metagpt.schema import ClassView
 from metagpt.utils.common import aread, general_after_log, list_files, split_namespace
@@ -62,13 +62,21 @@ class RebuildSequenceView(Action):
         merged_class_views = set()
         while True:
             participants = RebuildSequenceView.parse_participant(sequence_view)
-            class_views = await self._get_class_views(participants)
+            class_views, class_compositions = await self._get_class_views(participants)
+            for compositions in class_compositions.values():
+                for c in compositions:
+                    ns, _ = split_namespace(c.object_)
+                    if ns == "?":
+                        continue
+                    await self._parse_class_description(c.object_)
             diff = set()
             for cv in class_views:
                 if cv.subject in merged_class_views:
                     continue
                 await self._parse_class_description(cv.subject)
-                sequence_view = await self._merge_sequence_view(sequence_view, cv.subject)
+                sequence_view = await self._merge_sequence_view(
+                    sequence_view, cv.subject, class_compositions.get(cv.subject, [])
+                )
                 diff.add(cv.subject)
                 merged_class_views.add(cv.subject)
 
@@ -162,7 +170,7 @@ class RebuildSequenceView(Action):
         stop=stop_after_attempt(6),
         after=general_after_log(logger),
     )
-    async def _merge_sequence_view(self, sequence_view, ns_class_name) -> str:
+    async def _merge_sequence_view(self, sequence_view, ns_class_name, compositions) -> str:
         class_view_part = "```mermaid\n"
         # add class
         class_view_part += await self._class_view_to_mermaid(ns_class_name)
@@ -177,14 +185,10 @@ class RebuildSequenceView(Action):
             class_view_part += f"\n\t{me} *-- {name}"
             class_view_part += await self._class_view_to_mermaid(ns_aggr_name)
         # add composition relationship
-        rows = await self.graph_db.select(
-            subject=ns_class_name, predicate=GraphKeyword.IS + COMPOSITION + GraphKeyword.OF
-        )
-        compositions = [r.object_ for r in rows]
-        for ns_comp_name in compositions:
-            _, name = split_namespace(ns_comp_name)
+        for c in compositions:
+            _, name = split_namespace(c.object_)
             class_view_part += f"\n\t{me} *-- {name}"
-            class_view_part += await self._class_view_to_mermaid(ns_comp_name)
+            class_view_part += await self._class_view_to_mermaid(c.object_)
 
         class_view_part += "\n```"
 
@@ -198,7 +202,7 @@ class RebuildSequenceView(Action):
             system_msgs=[
                 "You are a tool to merge Mermaid class view information into the Mermaid sequence view.",
                 'Append as much information as possible from the "Mermaid Class View" to the sequence diagram.',
-                'Return a markdown JSON format with a "sequence_diagram" key containing the merged Mermaid sequence view, a "reason" key explaining what information have been merged and why.',
+                'Return a markdown JSON format with a "sequence_diagram" key containing the merged Mermaid sequence view, a "reason" key explaining in detail what information have been merged and why.',
             ],
         )
 
@@ -225,7 +229,7 @@ class RebuildSequenceView(Action):
         matches = re.findall(pattern, mermaid_sequence_diagram)
         return matches
 
-    async def _get_class_views(self, class_names) -> List[SPO]:
+    async def _get_class_views(self, class_names) -> (List[SPO], Dict[str, List[SPO]]):
         rows = await self.graph_db.select(predicate=GraphKeyword.IS, object_=GraphKeyword.CLASS)
 
         ns_class_names = {}
@@ -235,12 +239,15 @@ class RebuildSequenceView(Action):
                 ns_class_names[r.subject] = class_name
 
         class_views = []
+        class_compositions = {}
         for ns_name in ns_class_names.keys():
             views = await self.graph_db.select(subject=ns_name, predicate=GraphKeyword.HAS_CLASS_VIEW)
             if not views:
                 continue
             class_views += views
-        return class_views
+            compositions = await self.graph_db.select(subject=ns_name, predicate=GraphKeyword.IS_COMPOSITE_OF)
+            class_compositions[ns_name] = compositions
+        return class_views, class_compositions
 
     @staticmethod
     def _desc_to_note(json_str) -> List[str]:
@@ -249,8 +256,10 @@ class RebuildSequenceView(Action):
         m = json.loads(json_str)
         return [s.replace('"', '\\"').replace("\n", "\\n") for s in m.values()]
 
-    async def _class_view_to_mermaid(self, ns_class_name):
+    async def _class_view_to_mermaid(self, ns_class_name) -> str:
         class_view_rows = await self.graph_db.select(subject=ns_class_name, predicate=GraphKeyword.HAS_CLASS_VIEW)
+        if not class_view_rows:
+            return ""
         result = ClassView.model_validate_json(class_view_rows[0].object_).get_mermaid() if class_view_rows else ""
         _, name = split_namespace(ns_class_name)
         class_desc_rows = await self.graph_db.select(subject=ns_class_name, predicate=GraphKeyword.HAS_CLASS_DESC)

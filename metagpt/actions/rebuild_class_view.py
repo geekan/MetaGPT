@@ -6,7 +6,7 @@
 @File    : rebuild_class_view.py
 @Desc    : Rebuild class view info
 """
-import re
+
 from pathlib import Path
 from typing import Optional
 
@@ -22,9 +22,9 @@ from metagpt.const import (
     GRAPH_REPO_FILE_REPO,
 )
 from metagpt.logs import logger
-from metagpt.repo_parser import RepoParser
-from metagpt.schema import ClassAttribute, ClassMethod, ClassView
-from metagpt.utils.common import split_namespace
+from metagpt.repo_parser import DotClassInfo, RepoParser
+from metagpt.schema import UMLClassAttribute, UMLClassMethod, UMLClassView
+from metagpt.utils.common import concat_namespace, split_namespace
 from metagpt.utils.di_graph_repository import DiGraphRepository
 from metagpt.utils.graph_repository import GraphKeyword, GraphRepository
 
@@ -40,6 +40,7 @@ class RebuildClassView(Action):
         class_views, relationship_views, package_root = await repo_parser.rebuild_class_views(path=Path(self.i_context))
         await GraphRepository.update_graph_db_with_class_views(self.graph_db, class_views)
         await GraphRepository.update_graph_db_with_class_relationship_views(self.graph_db, relationship_views)
+        await GraphRepository.rebuild_composition_relationship(self.graph_db)
         # use ast
         direction, diff_path = self._diff_path(path_root=Path(self.i_context).resolve(), package_root=package_root)
         symbols = repo_parser.generate_symbols()
@@ -81,24 +82,40 @@ class RebuildClassView(Action):
             # Ignore sub-class
             return ""
 
-        class_view = ClassView(name=fields[1])
-        rows = await self.graph_db.select(subject=ns_class_name)
-        for r in rows:
-            name = split_namespace(r.object_)[-1]
-            name, visibility, abstraction = RebuildClassView._parse_name(name=name, language="python")
-            if r.predicate == GraphKeyword.HAS_CLASS_PROPERTY:
-                var_type = await self._parse_variable_type(r.object_)
-                attribute = ClassAttribute(
-                    name=name, visibility=visibility, abstraction=bool(abstraction), value_type=var_type
-                )
-                class_view.attributes.append(attribute)
-            elif r.predicate == GraphKeyword.HAS_CLASS_FUNCTION:
-                method = ClassMethod(name=name, visibility=visibility, abstraction=bool(abstraction))
-                await self._parse_function_args(method, r.object_)
-                class_view.methods.append(method)
+        rows = await self.graph_db.select(subject=ns_class_name, predicate=GraphKeyword.HAS_DETAIL)
+        if not rows:
+            return ""
+        dot_class_info = DotClassInfo.model_validate_json(rows[0].object_)
+        visibility = UMLClassView.name_to_visibility(dot_class_info.name)
+        class_view = UMLClassView(name=dot_class_info.name, visibility=visibility)
+        for i in dot_class_info.attributes.values():
+            visibility = UMLClassAttribute.name_to_visibility(i.name)
+            attr = UMLClassAttribute(name=i.name, visibility=visibility, value_type=i.type_, default_value=i.default_)
+            class_view.attributes.append(attr)
+        for i in dot_class_info.methods.values():
+            visibility = UMLClassMethod.name_to_visibility(i.name)
+            method = UMLClassMethod(name=i.name, visibility=visibility, return_type=i.return_args.type_)
+            for j in i.args:
+                arg = UMLClassAttribute(name=j.name, value_type=j.type_, default_value=j.default_)
+                method.args.append(arg)
 
-        # update graph db
+        # update uml view
         await self.graph_db.insert(ns_class_name, GraphKeyword.HAS_CLASS_VIEW, class_view.model_dump_json())
+        # update uml isCompositeOf
+        for c in dot_class_info.compositions:
+            await self.graph_db.insert(
+                subject=ns_class_name,
+                predicate=GraphKeyword.IS + COMPOSITION + GraphKeyword.OF,
+                object_=concat_namespace("?", c),
+            )
+
+        # update uml isAggregateOf
+        for a in dot_class_info.aggregations:
+            await self.graph_db.insert(
+                subject=ns_class_name,
+                predicate=GraphKeyword.IS + AGGREGATION + GraphKeyword.OF,
+                object_=concat_namespace("?", a),
+            )
 
         content = class_view.get_mermaid(align=1)
         logger.debug(content)
@@ -131,78 +148,6 @@ class RebuildClassView(Action):
                 content += f"\t{link}\n"
 
         return content, distinct
-
-    @staticmethod
-    def _parse_name(name: str, language="python"):
-        pattern = re.compile(r"<I>(.*?)</I>")
-        result = re.search(pattern, name)
-
-        abstraction = ""
-        if result:
-            name = result.group(1)
-            abstraction = "*"
-        if name.startswith("__"):
-            visibility = "-"
-        elif name.startswith("_"):
-            visibility = "#"
-        else:
-            visibility = "+"
-        return name, visibility, abstraction
-
-    async def _parse_variable_type(self, ns_name) -> str:
-        rows = await self.graph_db.select(subject=ns_name, predicate=GraphKeyword.HAS_TYPE_DESC)
-        if not rows:
-            return ""
-        vals = rows[0].object_.replace("'", "").split(":")
-        if len(vals) == 1:
-            return ""
-        val = vals[-1].strip()
-        return "" if val == "NoneType" else val + " "
-
-    async def _parse_function_args(self, method: ClassMethod, ns_name: str):
-        rows = await self.graph_db.select(subject=ns_name, predicate=GraphKeyword.HAS_ARGS_DESC)
-        if not rows:
-            return
-        info = rows[0].object_.replace("'", "")
-
-        fs_tag = "("
-        ix = info.find(fs_tag)
-        fe_tag = "):"
-        eix = info.rfind(fe_tag)
-        if eix < 0:
-            fe_tag = ")"
-            eix = info.rfind(fe_tag)
-        args_info = info[ix + len(fs_tag) : eix].strip()
-        method.return_type = info[eix + len(fe_tag) :].strip()
-        if method.return_type == "None":
-            method.return_type = ""
-        if "(" in method.return_type:
-            method.return_type = method.return_type.replace("(", "Tuple[").replace(")", "]")
-
-        # parse args
-        if not args_info:
-            return
-        splitter_ixs = []
-        cost = 0
-        for i in range(len(args_info)):
-            if args_info[i] == "[":
-                cost += 1
-            elif args_info[i] == "]":
-                cost -= 1
-            if args_info[i] == "," and cost == 0:
-                splitter_ixs.append(i)
-        splitter_ixs.append(len(args_info))
-        args = []
-        ix = 0
-        for eix in splitter_ixs:
-            args.append(args_info[ix:eix])
-            ix = eix + 1
-        for arg in args:
-            parts = arg.strip().split(":")
-            if len(parts) == 1:
-                method.args.append(ClassAttribute(name=parts[0].strip()))
-                continue
-            method.args.append(ClassAttribute(name=parts[0].strip(), value_type=parts[-1].strip()))
 
     @staticmethod
     def _diff_path(path_root: Path, package_root: Path) -> (str, str):

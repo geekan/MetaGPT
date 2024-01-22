@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 import pandas as pd
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from metagpt.const import AGGREGATION, COMPOSITION, GENERALIZATION
 from metagpt.logs import logger
@@ -39,18 +39,229 @@ class CodeBlockInfo(BaseModel):
     properties: Dict = Field(default_factory=dict)
 
 
-class ClassInfo(BaseModel):
+class DotClassAttribute(BaseModel):
+    name: str = ""
+    type_: str = ""
+    default_: str = ""
+    description: str
+    compositions: List[str] = Field(default_factory=list)
+
+    @classmethod
+    def parse(cls, v: str) -> "DotClassAttribute":
+        val = ""
+        meet_colon = False
+        meet_equals = False
+        for c in v:
+            if c == ":":
+                meet_colon = True
+            elif c == "=":
+                meet_equals = True
+                if not meet_colon:
+                    val += ":"
+                    meet_colon = True
+            val += c
+        if not meet_colon:
+            val += ":"
+        if not meet_equals:
+            val += "="
+
+        cix = val.find(":")
+        eix = val.rfind("=")
+        name = val[0:cix].strip()
+        type_ = val[cix + 1 : eix]
+        default_ = val[eix + 1 :].strip()
+
+        type_ = cls.remove_white_spaces(type_)  # remove white space
+        if type_ == "NoneType":
+            type_ = ""
+        if "Literal[" in type_:
+            pre_l, literal, post_l = cls._split_literal(type_)
+            composition_val = pre_l + "Literal" + post_l  # replace Literal[...] with Literal
+            type_ = pre_l + literal + post_l
+        else:
+            type_ = re.sub(r"['\"]", "", type_)  # remove '"
+            composition_val = type_
+
+        if default_ == "None":
+            default_ = ""
+        compositions = cls.parse_compositions(composition_val)
+        return cls(name=name, type_=type_, default_=default_, description=v, compositions=compositions)
+
+    @staticmethod
+    def remove_white_spaces(v: str):
+        return re.sub(r"(?<!['\"])\s|(?<=['\"])\s", "", v)
+
+    @staticmethod
+    def parse_compositions(types_part) -> List[str]:
+        if not types_part:
+            return []
+        modified_string = re.sub(r"[\[\],]", "|", types_part)
+        types = modified_string.split("|")
+        filters = {
+            "str",
+            "frozenset",
+            "set",
+            "int",
+            "float",
+            "complex",
+            "bool",
+            "dict",
+            "list",
+            "Union",
+            "Dict",
+            "Set",
+            "Tuple",
+            "NoneType",
+            "None",
+            "Any",
+            "Optional",
+            "Iterator",
+            "Literal",
+            "List",
+        }
+        result = set()
+        for t in types:
+            t = t.strip()
+            if t and t not in filters:
+                result.add(t)
+        return list(result)
+
+    @staticmethod
+    def _split_literal(v):
+        tag = "Literal["
+        bix = v.find(tag)
+        eix = len(v) - 1
+        counter = 1
+        for i in range(bix + len(tag), len(v) - 1):
+            c = v[i]
+            if c == "[":
+                counter += 1
+                continue
+            if c == "]":
+                counter -= 1
+                if counter > 0:
+                    continue
+                eix = i
+                break
+        pre_l = v[0:bix]
+        post_l = v[eix + 1 :]
+        pre_l = re.sub(r"['\"]", "", pre_l)  # remove '"
+        pos_l = re.sub(r"['\"]", "", post_l)  # remove '"
+
+        return pre_l, v[bix : eix + 1], pos_l
+
+    @field_validator("compositions", mode="after")
+    @classmethod
+    def sort(cls, lst: List) -> List:
+        lst.sort()
+        return lst
+
+
+class DotClassInfo(BaseModel):
     name: str
     package: Optional[str] = None
-    attributes: Dict[str, str] = Field(default_factory=dict)
-    methods: Dict[str, str] = Field(default_factory=dict)
+    attributes: Dict[str, DotClassAttribute] = Field(default_factory=dict)
+    methods: Dict[str, DotClassMethod] = Field(default_factory=dict)
+    compositions: List[str] = Field(default_factory=list)
+    aggregations: List[str] = Field(default_factory=list)
+
+    @field_validator("compositions", "aggregations", mode="after")
+    @classmethod
+    def sort(cls, lst: List) -> List:
+        lst.sort()
+        return lst
 
 
-class ClassRelationship(BaseModel):
+class DotClassRelationship(BaseModel):
     src: str = ""
     dest: str = ""
     relationship: str = ""
     label: Optional[str] = None
+
+
+class DotReturn(BaseModel):
+    type_: str = ""
+    description: str
+    compositions: List[str] = Field(default_factory=list)
+
+    @classmethod
+    def parse(cls, v: str) -> "DotReturn" | None:
+        if not v:
+            return DotReturn(description=v)
+        type_ = DotClassAttribute.remove_white_spaces(v)
+        compositions = DotClassAttribute.parse_compositions(type_)
+        return cls(type_=type_, description=v, compositions=compositions)
+
+    @field_validator("compositions", mode="after")
+    @classmethod
+    def sort(cls, lst: List) -> List:
+        lst.sort()
+        return lst
+
+
+class DotClassMethod(BaseModel):
+    name: str
+    args: List[DotClassAttribute] = Field(default_factory=list)
+    return_args: Optional[DotReturn] = None
+    description: str
+    aggregations: List[str] = Field(default_factory=list)
+
+    @classmethod
+    def parse(cls, v: str) -> "DotClassMethod":
+        bix = v.find("(")
+        eix = v.rfind(")")
+        rix = v.rfind(":")
+        if rix < 0 or rix < eix:
+            rix = eix
+        name_part = v[0:bix].strip()
+        args_part = v[bix + 1 : eix].strip()
+        return_args_part = v[rix + 1 :].strip()
+
+        name = cls._parse_name(name_part)
+        args = cls._parse_args(args_part)
+        return_args = DotReturn.parse(return_args_part)
+        aggregations = set()
+        for i in args:
+            aggregations.update(set(i.compositions))
+        aggregations.update(set(return_args.compositions))
+
+        return cls(name=name, args=args, description=v, return_args=return_args, aggregations=list(aggregations))
+
+    @staticmethod
+    def _parse_name(v: str) -> str:
+        tags = [">", "</"]
+        if tags[0] in v:
+            bix = v.find(tags[0]) + len(tags[0])
+            eix = v.rfind(tags[1])
+            return v[bix:eix].strip()
+        return v.strip()
+
+    @staticmethod
+    def _parse_args(v: str) -> List[DotClassAttribute]:
+        if not v:
+            return []
+        parts = []
+        bix = 0
+        counter = 0
+        for i in range(0, len(v)):
+            c = v[i]
+            if c == "[":
+                counter += 1
+                continue
+            elif c == "]":
+                counter -= 1
+                continue
+            elif c == "," and counter == 0:
+                parts.append(v[bix:i].strip())
+                bix = i + 1
+        parts.append(v[bix:].strip())
+
+        attrs = []
+        for p in parts:
+            if p:
+                attr = DotClassAttribute.parse(p)
+                attrs.append(attr)
+        return attrs
 
 
 class RepoParser(BaseModel):
@@ -258,22 +469,28 @@ class RepoParser(BaseModel):
             if not package_name:
                 continue
             class_name, members, functions = re.split(r"(?<!\\)\|", info)
-            class_info = ClassInfo(name=class_name)
+            class_info = DotClassInfo(name=class_name)
             class_info.package = package_name
             for m in members.split("\n"):
                 if not m:
                     continue
-                member_name = m.split(":", 1)[0].strip() if ":" in m else m.strip()
-                class_info.attributes[member_name] = m
+                attr = DotClassAttribute.parse(m)
+                class_info.attributes[attr.name] = attr
+                for i in attr.compositions:
+                    if i not in class_info.compositions:
+                        class_info.compositions.append(i)
             for f in functions.split("\n"):
                 if not f:
                     continue
-                function_name, _ = f.split("(", 1)
-                class_info.methods[function_name] = f
+                method = DotClassMethod.parse(f)
+                class_info.methods[method.name] = method
+                for i in method.aggregations:
+                    if i not in class_info.compositions and i not in class_info.aggregations:
+                        class_info.aggregations.append(i)
             class_views.append(class_info)
         return class_views
 
-    async def _parse_class_relationships(self, class_view_pathname) -> List[ClassRelationship]:
+    async def _parse_class_relationships(self, class_view_pathname) -> List[DotClassRelationship]:
         relationship_views = []
         if not class_view_pathname.exists():
             return relationship_views
@@ -312,7 +529,7 @@ class RepoParser(BaseModel):
             if tag not in line:
                 return None
             idxs.append(line.find(tag))
-        ret = ClassRelationship()
+        ret = DotClassRelationship()
         ret.src = line[0 : idxs[0]].strip('"')
         ret.dest = line[idxs[0] + len(splitters[0]) : idxs[1]].strip('"')
         properties = line[idxs[1] + len(splitters[1]) : idxs[2]].strip(" ")
@@ -363,8 +580,8 @@ class RepoParser(BaseModel):
 
     @staticmethod
     def _repair_namespaces(
-        class_views: List[ClassInfo], relationship_views: List[ClassRelationship], path: str | Path
-    ) -> (List[ClassInfo], List[ClassRelationship], str):
+        class_views: List[DotClassInfo], relationship_views: List[DotClassRelationship], path: str | Path
+    ) -> (List[DotClassInfo], List[DotClassRelationship], str):
         if not class_views:
             return [], [], ""
         c = class_views[0]
