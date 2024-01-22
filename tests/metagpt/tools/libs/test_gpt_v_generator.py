@@ -3,7 +3,7 @@
 """
 @Time    : 2024/01/15
 @Author  : mannaandpoem
-@File    : test_vision.py
+@File    : test_gpt_v_generator.py
 """
 import pytest
 
@@ -17,14 +17,14 @@ def mock_webpages(mocker):
 <link rel="stylesheet" href="styles.css(">\n</html>\n```\n
 ```css\n.class { ... }\n```\n
 ```javascript\nfunction() { ... }\n```\n"""
-    mocker.patch("metagpt.tools.libs.gpt_v_generator.GPTvGenerator.generate_web_pages", return_value=mock_data)
+    mocker.patch("metagpt.tools.libs.gpt_v_generator.GPTvGenerator.generate_webpages", return_value=mock_data)
     return mocker
 
 
 def test_vision_generate_webpages(mock_webpages):
     image_path = "image.png"
     generator = GPTvGenerator()
-    rsp = generator.generate_web_pages(image_path=image_path)
+    rsp = generator.generate_webpages(image_path=image_path)
     logs.logger.info(rsp)
     assert "html" in rsp
     assert "css" in rsp
@@ -34,7 +34,7 @@ def test_vision_generate_webpages(mock_webpages):
 def test_save_webpages(mock_webpages):
     image_path = "image.png"
     generator = GPTvGenerator()
-    webpages = generator.generate_web_pages(image_path)
+    webpages = generator.generate_webpages(image_path)
     webpages_dir = generator.save_webpages(image_path=image_path, webpages=webpages)
     logs.logger.info(webpages_dir)
     assert webpages_dir.exists()

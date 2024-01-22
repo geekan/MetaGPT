@@ -1,12 +1,12 @@
 GPTvGenerator:
   type: class
-  description: "Class for generating web pages at once."
+  description: "Class for generating webpages at once."
   methods:
     __init__:
       description: "Initialize Vision class with default values."
 
-    generate_web_pages:
-      description: "Generate web pages including all code(HTML, CSS and JavaScript) in one go based on the image."
+    generate_webpages:
+      description: "Generate webpages including all code(HTML, CSS and JavaScript) in one go based on the image."
       parameters:
         properties:
           image_path:

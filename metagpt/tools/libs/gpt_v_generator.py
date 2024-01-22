@@ -3,13 +3,15 @@
 """
 @Time    : 2024/01/12
 @Author  : mannaandpoem
-@File    : vision.py
+@File    : gpt_v_generator.py
 """
 import base64
+import os
 from pathlib import Path
 
 import requests
 
+from metagpt.const import DEFAULT_WORKSPACE_ROOT
 from metagpt.tools.tool_data_type import ToolTypeEnum
 from metagpt.tools.tool_registry import register_tool
 
@@ -45,7 +47,7 @@ class GPTvGenerator:
     def analyze_layout(self, image_path):
         return self.get_result(image_path, ANALYZE_LAYOUT_PROMPT)
 
-    def generate_web_pages(self, image_path):
+    def generate_webpages(self, image_path):
         layout = self.analyze_layout(image_path)
         prompt = GENERATE_PROMPT + "\n\n # Context\n The layout information of the sketch image is: \n" + layout
         result = self.get_result(image_path, prompt)
@@ -81,15 +83,16 @@ class GPTvGenerator:
 
     @staticmethod
     def save_webpages(image_path, webpages) -> Path:
-        # 在当前目录下创建一个名为webpages的文件夹，用于存储html、css和js文件
-        webpages_path = Path(image_path).parent / "webpages"
-        webpages_path.mkdir(exist_ok=True)
+        # 在workspace目录下，创建一个名为下webpages的文件夹，用于存储html、css和js文件
+        webpages_path = DEFAULT_WORKSPACE_ROOT / "webpages" / Path(image_path).stem
+        os.makedirs(webpages_path, exist_ok=True)
+
+        index_path = webpages_path / "index.html"
 
         try:
-            index_path = webpages_path / "index.html"
             index = webpages.split("```html")[1].split("```")[0]
         except IndexError:
-            raise ValueError("No html code found in the result, please check your image and try again.")
+            index = "No html code found in the result, please check your image and try again." + "\n" + webpages
 
         try:
             if "styles.css" in index:
@@ -111,13 +114,13 @@ class GPTvGenerator:
             raise ValueError("No css or js code found in the result, please check your image and try again.")
 
         try:
-            with open(index_path, "w") as f:
+            with open(index_path, "w", encoding="utf-8") as f:
                 f.write(index)
             if style_path:
-                with open(style_path, "w") as f:
+                with open(style_path, "w", encoding="utf-8") as f:
                     f.write(style)
             if js_path:
-                with open(js_path, "w") as f:
+                with open(js_path, "w", encoding="utf-8") as f:
                     f.write(js)
         except FileNotFoundError as e:
             raise FileNotFoundError(f"Cannot save the webpages to {str(webpages_path)}") from e

@@ -42,4 +42,5 @@ The current task is about evaluating a model, please note the following:
 IMAGE2WEBPAGE_PROMPT = """
 The current task is about converting image into webpage code. please note the following:
 - Single-Step Code Generation: Execute the entire code generation process in a single step, encompassing HTML, CSS, and JavaScript. Avoid fragmenting the code generation into multiple separate steps to maintain consistency and simplify the development workflow.
+- Save webpages: Be sure to use the save method provided.
 """
