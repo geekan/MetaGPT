@@ -523,20 +523,29 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         return not self.rc.news and not self.rc.todo and self.rc.msg_buffer.empty()
 
     async def think(self) -> Action:
-        """The exported `think` function"""
-        await self._observe()
+        """
+        Export SDK API, used by AgentStore RPC.
+        The exported `think` function
+        """
+        await self._observe()  # For compatibility with the old version of the Agent.
         await self._think()
         return self.rc.todo
 
     async def act(self) -> ActionOutput:
-        """The exported `act` function"""
+        """
+        Export SDK API, used by AgentStore RPC.
+        The exported `act` function
+        """
         msg = await self._act()
         return ActionOutput(content=msg.content, instruct_content=msg.instruct_content)
 
     @property
     def action_description(self) -> str:
         """
+        Export SDK API, used by AgentStore RPC and Agent.
         AgentStore uses this attribute to display to the user what actions the current role should take.
+        `Role` provides the default property, and this property should be overridden by children classes if necessary,
+        as demonstrated by the `Engineer` class.
         """
         if self.rc.todo:
             if self.rc.todo.desc:
