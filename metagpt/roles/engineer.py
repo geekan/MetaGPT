@@ -364,6 +364,6 @@ class Engineer(Role):
         self.rc.todo = WriteCodePlanAndChange(i_context=code_plan_and_change_context, llm=self.llm)
 
     @property
-    def todo(self) -> str:
+    def action_description(self) -> str:
         """AgentStore uses this attribute to display to the user what actions the current role should take."""
         return self.next_todo_action
