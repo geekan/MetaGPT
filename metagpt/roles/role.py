@@ -524,7 +524,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
 
     async def think(self) -> Action:
         """
-        Export SDK API, used by AgentStore RPC.
+        Export SDK API, used by AgentStore RPC and Agent.
         The exported `think` function
         """
         await self._observe()  # For compatibility with the old version of the Agent.
@@ -533,7 +533,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
 
     async def act(self) -> ActionOutput:
         """
-        Export SDK API, used by AgentStore RPC.
+        Export SDK API, used by AgentStore RPC and Agent.
         The exported `act` function
         """
         msg = await self._act()
@@ -542,7 +542,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
     @property
     def action_description(self) -> str:
         """
-        Export SDK API, used by AgentStore RPC.
+        Export SDK API, used by AgentStore RPC and Agent.
         AgentStore uses this attribute to display to the user what actions the current role should take.
         """
         if self.rc.todo:
