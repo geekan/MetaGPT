@@ -204,7 +204,7 @@ class OpenAILLM(BaseLLM):
         # 匹配language
         language_pattern = re.compile(r'[\"\']?language[\"\']?\s*:\s*["\']([^"\']+?)["\']', re.DOTALL)
         language_match = language_pattern.search(arguments)
-        language_value = language_match.group(1) if language_match else None
+        language_value = language_match.group(1) if language_match else "python"
 
         # 匹配code
         code_pattern = r'(["\'`]{3}|["\'`])([\s\S]*?)\1'
@@ -217,7 +217,7 @@ class OpenAILLM(BaseLLM):
         if code_value is None:
             raise ValueError(f"Parse code error for {arguments}")
         # arguments只有code的情况
-        return {"language": language_value or "python", "code": code_value}
+        return {"language": language_value, "code": code_value}
 
     @handle_exception
     def get_choice_function_arguments(self, rsp: ChatCompletion) -> dict:
