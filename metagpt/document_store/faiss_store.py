@@ -37,11 +37,7 @@ class FaissStore(LocalStore):
         return FAISS.load_local(self.raw_data_path.parent, self.embedding, self.fname)
 
     def _write(self, docs, metadatas):
-        try:
-            store = FAISS.from_texts(docs, self.embedding, metadatas=metadatas)
-        except Exception as e:
-            logger.error(f"Failed to write. error: {e}")
-            raise e
+        store = FAISS.from_texts(docs, self.embedding, metadatas=metadatas)
         return store
 
     def persist(self):
