@@ -44,7 +44,7 @@ def docstring_to_schema(docstring: str):
     # variable_pattern = re.compile(r"(\w+)\s*\((.*?)\):\s*(.*)")
     variable_pattern = re.compile(
         r"(\w+)\s*\((.*?)\):\s*(.*?)(?=\n\s*\w+\s*\(|\Z)", re.DOTALL
-    )  # (?=\n\w+\s*\(|\Z) isb to assert that what follows is either the start of the next parameter (indicated by a newline, some word characters, and an opening parenthesis) or the end of the string (\Z).
+    )  # (?=\n\w+\s*\(|\Z) is to assert that what follows is either the start of the next parameter (indicated by a newline, some word characters, and an opening parenthesis) or the end of the string (\Z).
 
     params = variable_pattern.findall(_args)
     parameter_schema = {"properties": {}, "required": []}

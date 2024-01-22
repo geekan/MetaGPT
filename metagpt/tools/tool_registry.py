@@ -137,8 +137,7 @@ def make_schema(tool_source_object, include, path):
         logger.info(f"schema made at {path}")
     except Exception as e:
         schema = {}
-        logger.error("Fail to make schema")
-        print(e)
+        logger.error(f"Fail to make schema: {e}")
 
     return schema
 
