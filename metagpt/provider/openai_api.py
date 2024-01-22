@@ -237,9 +237,13 @@ class OpenAILLM(BaseLLM):
             try:
                 return json.loads(message.tool_calls[0].function.arguments, strict=False)
             except json.decoder.JSONDecodeError as e:
-                logger.debug(
-                    f"Got JSONDecodeError for {message.tool_calls[0].function.arguments},\
-                    we will use RegExp to parse code, \n {e}"
+                logger.warning(
+                    "\n".join(
+                        [
+                            (f"Got JSONDecodeError for \n{'--'*40} \n{message.tool_calls[0].function.arguments}"),
+                            (f"{'--'*40}\nwe will use RegExp to parse code. JSONDecodeError is: {e}"),
+                        ]
+                    )
                 )
                 return self._parse_arguments(message.tool_calls[0].function.arguments)
         elif message.tool_calls is None and message.content is not None:
