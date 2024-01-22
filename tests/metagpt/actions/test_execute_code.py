@@ -1,7 +1,6 @@
 import pytest
 
 from metagpt.actions.execute_code import ExecutePyCode, truncate
-from metagpt.schema import Message
 
 
 @pytest.mark.asyncio
@@ -10,9 +9,6 @@ async def test_code_running():
     output = await pi.run("print('hello world!')")
     assert output[1] is True
     output = await pi.run({"code": "print('hello world!')", "language": "python"})
-    assert output[1] is True
-    code_msg = Message("print('hello world!')")
-    output = await pi.run(code_msg)
     assert output[1] is True
 
 
@@ -67,6 +63,15 @@ def test_truncate():
     output, is_success = truncate("hello world", 5, False)
     assert "Truncated to show only last 5 characters\nworld" in output
     assert not is_success
+    # 异步
+    output, is_success = truncate("<coroutine object", 5, True)
+    assert not is_success
+    assert "await" in output
+    # 重复的desc
+    result = "Executed code successfully. Truncated to show only first 5 characters\nhello"
+    output, is_success = truncate(result, 5, True)
+    assert is_success
+    assert output == result
 
 
 @pytest.mark.asyncio
@@ -87,3 +92,30 @@ async def test_run_code_text():
     message, success = await pi.run(code="# This is a code!", language="markdown")
     assert success
     assert message == "# This is a code!"
+    mix_text = "# Title!\n ```python\n print('This is a code!')```"
+    message, success = await pi.run(code=mix_text, language="markdown")
+    assert success
+    assert message == mix_text
+
+
+@pytest.mark.asyncio
+async def test_terminate():
+    pi = ExecutePyCode()
+    await pi.run(code='print("This is a code!")', language="python")
+    is_kernel_alive = await pi.nb_client.km.is_alive()
+    assert is_kernel_alive
+    await pi.terminate()
+    import time
+
+    time.sleep(2)
+    assert pi.nb_client.km is None
+
+
+@pytest.mark.asyncio
+async def test_reset():
+    pi = ExecutePyCode()
+    await pi.run(code='print("This is a code!")', language="python")
+    is_kernel_alive = await pi.nb_client.km.is_alive()
+    assert is_kernel_alive
+    await pi.reset()
+    assert pi.nb_client.km is None
