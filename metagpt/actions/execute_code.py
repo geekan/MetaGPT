@@ -165,7 +165,7 @@ class ExecutePyCode(ExecuteCode, Action):
             # 如果在Python脚本中运行，__file__ 变量存在
             return False
 
-    def _process_code(self, code: Union[str, Dict, Message], language: str = None) -> Tuple:
+    def _process_code(self, code: Union[str, Dict], language: str = None) -> Tuple:
         language = language or "python"
         if isinstance(code, str) and Path(code).suffix in (".py", ".txt"):
             code = Path(code).read_text(encoding="utf-8")
@@ -173,20 +173,10 @@ class ExecutePyCode(ExecuteCode, Action):
 
         if isinstance(code, str):
             return code, language
+
         if isinstance(code, dict):
             assert "code" in code
-            if "language" not in code:
-                code["language"] = "python"
-            code, language = code["code"], code["language"]
-        elif isinstance(code, Message):
-            if isinstance(code.content, dict) and "language" not in code.content:
-                code.content["language"] = "python"
-                code, language = code.content["code"], code.content["language"]
-            elif isinstance(code.content, str):
-                code, language = code.content, language
-        else:
-            raise ValueError(f"Not support code type {type(code).__name__}.")
-
+            code = code["code"]
         return code, language
 
     async def run_cell(self, cell: NotebookNode, cell_index: int) -> Tuple[bool, str]:
