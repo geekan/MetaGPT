@@ -22,10 +22,10 @@ class DocstringParser(BaseModel):
         """
 
     def parse_returns(self) -> list[Tuple[str, str]]:
-        """Parse and return the return information from the docstring.
+        """Parse and return the output information from the docstring.
 
         Returns:
-            list[Tuple[str, str, str]]: A list of output info. Each info is a tuple of (return type, return description)
+            list[Tuple[str, str]]: A list of output info. Each info is a tuple of (return type, return description)
         """
 
     @staticmethod
