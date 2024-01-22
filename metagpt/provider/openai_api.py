@@ -204,7 +204,7 @@ class OpenAILLM(BaseLLM):
         # 匹配language
         language_pattern = re.compile(r'[\"\']?language[\"\']?\s*:\s*["\']([^"\']+?)["\']', re.DOTALL)
         language_match = language_pattern.search(arguments)
-        language_value = language_match.group(1) if language_match else None
+        language_value = language_match.group(1) if language_match else "python"
 
         # 匹配code
         code_pattern = r'(["\'`]{3}|["\'`])([\s\S]*?)\1'
@@ -241,7 +241,7 @@ class OpenAILLM(BaseLLM):
                     f"Got JSONDecodeError for {message.tool_calls[0].function.arguments},\
                     we will use RegExp to parse code, \n {e}"
                 )
-                return {"language": "python", "code": self._parse_arguments(message.tool_calls[0].function.arguments)}
+                return self._parse_arguments(message.tool_calls[0].function.arguments)
         elif message.tool_calls is None and message.content is not None:
             # reponse is message
             return {"language": "markdown", "code": self.get_choice_text(rsp)}
