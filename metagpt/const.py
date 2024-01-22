@@ -126,3 +126,6 @@ IGNORED_MESSAGE_ID = "0"
 GENERALIZATION = "Generalize"
 COMPOSITION = "Composite"
 AGGREGATION = "Aggregate"
+
+# Others
+ADB_EXEC_FAIL = "FAILED"
