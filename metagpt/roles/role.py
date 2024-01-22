@@ -544,6 +544,8 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         """
         Export SDK API, used by AgentStore RPC and Agent.
         AgentStore uses this attribute to display to the user what actions the current role should take.
+        `Role` provides the default property, and this property should be overridden by children classes if necessary,
+        as demonstrated by the `Engineer` class.
         """
         if self.rc.todo:
             if self.rc.todo.desc:
