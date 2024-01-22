@@ -237,8 +237,10 @@ class ExecutePyCode(ExecuteCode, Action):
 
 
 def truncate(result: str, keep_len: int = 2000, is_success: bool = True):
-    """执行失败的代码, 展示result后keep_len个字符; 执行成功的代码, 展示result前keep_len个字符。"""
+    """对于超出keep_len个字符的result: 执行失败的代码, 展示result后keep_len个字符; 执行成功的代码, 展示result前keep_len个字符。"""
     desc = f"Executed code {'successfully. ' if is_success else 'failed, please reflect the cause of bug and then debug. '}"
+    is_same_desc = False
+
     if is_success:
         desc += f"Truncated to show only first {keep_len} characters\n"
     else:
@@ -246,20 +248,17 @@ def truncate(result: str, keep_len: int = 2000, is_success: bool = True):
 
     if result.startswith(desc):
         result = result[len(desc) :]
+        is_same_desc = True
+
+    if result.strip().startswith("<coroutine object"):
+        result = "Executed code failed, you need use key word 'await' to run a async code."
+        return result, False
 
     if len(result) > keep_len:
         result = result[-keep_len:] if not is_success else result[:keep_len]
-        if not result:
-            result = "No output about your code. Only when importing packages it is normal case. Recap and go ahead."
-            return result, False
+        return desc + result, is_success
 
-        if result.strip().startswith("<coroutine object"):
-            result = "Executed code failed, you need use key word 'await' to run a async code."
-            return result, False
-
-        return desc + result[:keep_len], is_success
-
-    return result, is_success
+    return result if not is_same_desc else desc + result, is_success
 
 
 def remove_escape_and_color_codes(input_str):
