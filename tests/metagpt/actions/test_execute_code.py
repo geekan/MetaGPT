@@ -1,7 +1,6 @@
 import pytest
 
 from metagpt.actions.execute_code import ExecutePyCode, truncate
-from metagpt.schema import Message
 
 
 @pytest.mark.asyncio
@@ -10,9 +9,6 @@ async def test_code_running():
     output = await pi.run("print('hello world!')")
     assert output[1] is True
     output = await pi.run({"code": "print('hello world!')", "language": "python"})
-    assert output[1] is True
-    code_msg = Message("print('hello world!')")
-    output = await pi.run(code_msg)
     assert output[1] is True
 
 
@@ -52,42 +48,30 @@ async def test_plotting_code():
 
     # 显示图形
     plt.show()
+    plt.close()
     """
-    output = await pi.run(code)
-    assert output[1] is True
-
-
-@pytest.mark.asyncio
-async def test_plotting_bug():
-    code = """
-    import matplotlib.pyplot as plt
-    import seaborn as sns
-    import pandas as pd
-    from sklearn.datasets import load_iris
-    # Load the Iris dataset
-    iris_data = load_iris()
-    # Convert the loaded Iris dataset into a DataFrame for easier manipulation
-    iris_df = pd.DataFrame(iris_data['data'], columns=iris_data['feature_names'])
-    # Add a column for the target
-    iris_df['species'] = pd.Categorical.from_codes(iris_data['target'], iris_data['target_names'])
-    # Set the style of seaborn
-    sns.set(style='whitegrid')
-    # Create a pairplot of the iris dataset
-    plt.figure(figsize=(10, 8))
-    pairplot = sns.pairplot(iris_df, hue='species')
-    # Show the plot
-    plt.show()
-    """
-    pi = ExecutePyCode()
     output = await pi.run(code)
     assert output[1] is True
 
 
 def test_truncate():
-    output = "hello world"
-    assert truncate(output) == output
-    output = "hello world"
-    assert truncate(output, 5) == "Truncated to show only the last 5 characters\nworld"
+    # 代码执行成功
+    output, is_success = truncate("hello world", 5, True)
+    assert "Truncated to show only first 5 characters\nhello" in output
+    assert is_success
+    # 代码执行失败
+    output, is_success = truncate("hello world", 5, False)
+    assert "Truncated to show only last 5 characters\nworld" in output
+    assert not is_success
+    # 异步
+    output, is_success = truncate("<coroutine object", 5, True)
+    assert not is_success
+    assert "await" in output
+    # 重复的desc
+    result = "Executed code successfully. Truncated to show only first 5 characters\nhello"
+    output, is_success = truncate(result, 5, True)
+    assert is_success
+    assert output == result
 
 
 @pytest.mark.asyncio
@@ -97,3 +81,41 @@ async def test_run_with_timeout():
     message, success = await pi.run(code)
     assert not success
     assert message.startswith("Cell execution timed out")
+
+
+@pytest.mark.asyncio
+async def test_run_code_text():
+    pi = ExecutePyCode()
+    message, success = await pi.run(code='print("This is a code!")', language="python")
+    assert success
+    assert message == "This is a code!\n"
+    message, success = await pi.run(code="# This is a code!", language="markdown")
+    assert success
+    assert message == "# This is a code!"
+    mix_text = "# Title!\n ```python\n print('This is a code!')```"
+    message, success = await pi.run(code=mix_text, language="markdown")
+    assert success
+    assert message == mix_text
+
+
+@pytest.mark.asyncio
+async def test_terminate():
+    pi = ExecutePyCode()
+    await pi.run(code='print("This is a code!")', language="python")
+    is_kernel_alive = await pi.nb_client.km.is_alive()
+    assert is_kernel_alive
+    await pi.terminate()
+    import time
+
+    time.sleep(2)
+    assert pi.nb_client.km is None
+
+
+@pytest.mark.asyncio
+async def test_reset():
+    pi = ExecutePyCode()
+    await pi.run(code='print("This is a code!")', language="python")
+    is_kernel_alive = await pi.nb_client.km.is_alive()
+    assert is_kernel_alive
+    await pi.reset()
+    assert pi.nb_client.km is None

@@ -15,14 +15,13 @@ import nbformat
 from nbclient import NotebookClient
 from nbclient.exceptions import CellTimeoutError, DeadKernelError
 from nbformat import NotebookNode
-from nbformat.v4 import new_code_cell, new_output, new_markdown_cell
-from rich.console import Console
-from rich.syntax import Syntax
+from nbformat.v4 import new_code_cell, new_markdown_cell, new_output
+from rich.box import MINIMAL
+from rich.console import Console, Group
+from rich.live import Live
 from rich.markdown import Markdown
 from rich.panel import Panel
-from rich.box import MINIMAL
-from rich.live import Live
-from rich.console import Group
+from rich.syntax import Syntax
 
 from metagpt.actions import Action
 from metagpt.logs import logger
@@ -166,7 +165,7 @@ class ExecutePyCode(ExecuteCode, Action):
             # 如果在Python脚本中运行，__file__ 变量存在
             return False
 
-    def _process_code(self, code: Union[str, Dict, Message], language: str = None) -> Tuple:
+    def _process_code(self, code: Union[str, Dict], language: str = None) -> Tuple:
         language = language or "python"
         if isinstance(code, str) and Path(code).suffix in (".py", ".txt"):
             code = Path(code).read_text(encoding="utf-8")
@@ -174,20 +173,10 @@ class ExecutePyCode(ExecuteCode, Action):
 
         if isinstance(code, str):
             return code, language
+
         if isinstance(code, dict):
             assert "code" in code
-            if "language" not in code:
-                code["language"] = "python"
-            code, language = code["code"], code["language"]
-        elif isinstance(code, Message):
-            if isinstance(code.content, dict) and "language" not in code.content:
-                code.content["language"] = "python"
-                code, language = code.content["code"], code.content["language"]
-            elif isinstance(code.content, str):
-                code, language = code.content, language
-        else:
-            raise ValueError(f"Not support code type {type(code).__name__}.")
-
+            code = code["code"]
         return code, language
 
     async def run_cell(self, cell: NotebookNode, cell_index: int) -> Tuple[bool, str]:
@@ -229,7 +218,7 @@ class ExecutePyCode(ExecuteCode, Action):
             # code success
             outputs = self.parse_outputs(self.nb.cells[-1].outputs)
             return truncate(remove_escape_and_color_codes(outputs), is_success=success)
-        elif language == 'markdown':
+        elif language == "markdown":
             # markdown
             self.add_markdown_cell(code)
             return code, True
@@ -238,28 +227,28 @@ class ExecutePyCode(ExecuteCode, Action):
 
 
 def truncate(result: str, keep_len: int = 2000, is_success: bool = True):
-    desc = f"Executed code {'successfully' if is_success else 'failed, please reflect the cause of bug and then debug'}"
+    """对于超出keep_len个字符的result: 执行失败的代码, 展示result后keep_len个字符; 执行成功的代码, 展示result前keep_len个字符。"""
+    desc = f"Executed code {'successfully. ' if is_success else 'failed, please reflect the cause of bug and then debug. '}"
+    is_same_desc = False
+
     if is_success:
-        desc += f"Truncated to show only {keep_len} characters\n"
+        desc += f"Truncated to show only first {keep_len} characters\n"
     else:
-        desc += "Show complete information for you."
+        desc += f"Truncated to show only last {keep_len} characters\n"
 
     if result.startswith(desc):
         result = result[len(desc) :]
+        is_same_desc = True
+
+    if result.strip().startswith("<coroutine object"):
+        result = "Executed code failed, you need use key word 'await' to run a async code."
+        return result, False
 
     if len(result) > keep_len:
-        result = result[-keep_len:] if not is_success else result
-        if not result:
-            result = 'No output about your code. Only when importing packages it is normal case. Recap and go ahead.'
-            return result, False
+        result = result[-keep_len:] if not is_success else result[:keep_len]
+        return desc + result, is_success
 
-        if result.strip().startswith("<coroutine object"):
-            result = "Executed code failed, you need use key word 'await' to run a async code."
-            return result, False
-
-        return desc + result[:keep_len+500], is_success
-
-    return result, is_success
+    return result if not is_same_desc else desc + result, is_success
 
 
 def remove_escape_and_color_codes(input_str):
@@ -271,13 +260,13 @@ def remove_escape_and_color_codes(input_str):
 
 def display_markdown(content: str):
     # 使用正则表达式逐个匹配代码块
-    matches = re.finditer(r'```(.+?)```', content, re.DOTALL)
+    matches = re.finditer(r"```(.+?)```", content, re.DOTALL)
     start_index = 0
     content_panels = []
     # 逐个打印匹配到的文本和代码
     for match in matches:
-        text_content = content[start_index:match.start()].strip()
-        code_content = match.group(0).strip()[3:-3]           # Remove triple backticks
+        text_content = content[start_index : match.start()].strip()
+        code_content = match.group(0).strip()[3:-3]  # Remove triple backticks
 
         if text_content:
             content_panels.append(Panel(Markdown(text_content), box=MINIMAL))
