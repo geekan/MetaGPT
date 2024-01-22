@@ -66,11 +66,17 @@ class TestOpenAI:
     @pytest.fixture
     def tool_calls_rsp(self):
         function_rsps = [
-            Function(arguments='{\n"language": "python",\n"code": "print(\'hello world\')"', name="execute"),
-            Function(arguments='{\n"language": "python",\n"code": ```print("hello world")```', name="execute"),
-            Function(arguments='{\n"language": "python",\n"code": \'print("hello world")\'', name="execute"),
-            Function(arguments='{\n"language": \'python\',\n"code": "print(\'hello world\')"', name="execute"),
+            Function(arguments='{\n"language": "python",\n"code": "print(\'hello world\')"}', name="execute"),
+            Function(arguments='{\n"language": "python",\n"code": \'print("hello world")\'}', name="execute"),
+            Function(arguments='{\n"language": \'python\',\n"code": "print(\'hello world\')"}', name="execute"),
+            Function(arguments='{\n"language": "python",\n"code": "print(\'hello world\')"}', name="execute"),
+            Function(arguments='{\n"language": "python",\n"code": ```print("hello world")```}', name="execute"),
+            Function(arguments='{\n"language": "python",\n"code": """print("hello world")"""}', name="execute"),
             Function(arguments='\nprint("hello world")\\n', name="execute"),
+            # only `{` in arguments
+            Function(arguments='{\n"language": "python",\n"code": "print(\'hello world\')"', name="execute"),
+            # no `{`, `}` in arguments
+            Function(arguments='\n"language": "python",\n"code": "print(\'hello world\')"', name="execute"),
         ]
         tool_calls = [
             ChatCompletionMessageToolCall(type="function", id=f"call_{i}", function=f)
