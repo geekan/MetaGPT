@@ -174,5 +174,6 @@ htmlcov
 htmlcov.*
 *.dot
 *.pkl
+*.faiss
 *-structure.csv
 *-structure.json
