@@ -19,6 +19,7 @@ class CodeInterpreter(Role):
     make_udfs: bool = False  # whether to save user-defined functions
     use_code_steps: bool = False
     execute_code: ExecutePyCode = Field(default_factory=ExecutePyCode, exclude=True)
+    tools: list[str] = []
 
     def __init__(
         self,
@@ -27,13 +28,20 @@ class CodeInterpreter(Role):
         goal="",
         auto_run=True,
         use_tools=False,
-        make_udfs=False,
+        tools=[],
         **kwargs,
     ):
         super().__init__(
-            name=name, profile=profile, goal=goal, auto_run=auto_run, use_tools=use_tools, make_udfs=make_udfs, **kwargs
+            name=name, profile=profile, goal=goal, auto_run=auto_run, use_tools=use_tools, tools=tools, **kwargs
         )
         self._set_react_mode(react_mode="plan_and_act", auto_run=auto_run, use_tools=use_tools)
+        if use_tools and tools:
+            from metagpt.tools.tool_registry import (
+                validate_tool_names,  # import upon use
+            )
+
+            self.tools = validate_tool_names(tools)
+            logger.info(f"will only use {self.tools} as tools")
 
     @property
     def working_memory(self):
@@ -92,7 +100,7 @@ class CodeInterpreter(Role):
         return code["code"], result, success
 
     async def _write_code(self):
-        todo = WriteCodeByGenerate() if not self.use_tools else WriteCodeWithTools()
+        todo = WriteCodeByGenerate() if not self.use_tools else WriteCodeWithTools(selected_tools=self.tools)
         logger.info(f"ready to {todo.name}")
 
         context = self.planner.get_useful_memories()

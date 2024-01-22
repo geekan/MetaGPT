@@ -22,7 +22,8 @@ from metagpt.prompts.ml_engineer import (
     TOOL_USAGE_PROMPT,
 )
 from metagpt.schema import Message, Plan
-from metagpt.tools.tool_registry import TOOL_REGISTRY
+from metagpt.tools import TOOL_REGISTRY
+from metagpt.tools.tool_registry import validate_tool_names
 from metagpt.utils.common import create_func_config, remove_comments
 
 
@@ -90,30 +91,29 @@ class WriteCodeByGenerate(BaseWriteAnalysisCode):
 class WriteCodeWithTools(BaseWriteAnalysisCode):
     """Write code with help of local available tools. Choose tools first, then generate code to use the tools"""
 
-    available_tools: dict = {}
+    # selected tools to choose from, listed by their names. En empty list means selection from all tools.
+    selected_tools: list[str] = []
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-    def _parse_recommend_tools(self, recommend_tools: list) -> dict:
+    def _get_tools_by_type(self, tool_type: str) -> dict:
         """
-        Parses and validates a list of recommended tools, and retrieves their schema from registry.
+        Retreive tools by tool type from registry, but filtered by pre-selected tool list
 
         Args:
-            recommend_tools (list): A list of recommended tools.
+            tool_type (str): Tool type to retrieve from the registry
 
         Returns:
-            dict: A dict of valid tool schemas.
+            dict: A dict of tool name to Tool object, representing available tools under the type
         """
-        valid_tools = []
-        for tool_name in recommend_tools:
-            if TOOL_REGISTRY.has_tool(tool_name):
-                valid_tools.append(TOOL_REGISTRY.get_tool(tool_name))
+        candidate_tools = TOOL_REGISTRY.get_tools_by_type(tool_type)
+        if self.selected_tools:
+            candidate_tools = {
+                tool_name: candidate_tools[tool_name]
+                for tool_name in self.selected_tools
+                if tool_name in candidate_tools
+            }
+        return candidate_tools
 
-        tool_catalog = {tool.name: tool.schemas for tool in valid_tools}
-        return tool_catalog
-
-    async def _tool_recommendation(
+    async def _recommend_tool(
         self,
         task: str,
         code_steps: str,
@@ -128,7 +128,7 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
             available_tools (dict): the available tools description
 
         Returns:
-            list: recommended tools for the specified task
+            dict: schemas of recommended tools for the specified task
         """
         prompt = TOOL_RECOMMENDATION_PROMPT.format(
             current_task=task,
@@ -138,42 +138,62 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
         tool_config = create_func_config(SELECT_FUNCTION_TOOLS)
         rsp = await self.llm.aask_code(prompt, **tool_config)
         recommend_tools = rsp["recommend_tools"]
-        return recommend_tools
+        logger.info(f"Recommended tools: \n{recommend_tools}")
+
+        # Parses and validates the  recommended tools, for LLM might hallucinate and recommend non-existing tools
+        valid_tools = validate_tool_names(recommend_tools, return_tool_object=True)
+
+        tool_schemas = {tool.name: tool.schemas for tool in valid_tools}
+
+        return tool_schemas
+
+    async def _prepare_tools(self, plan: Plan) -> Tuple[dict, str]:
+        """Prepare tool schemas and usage instructions according to current task
+
+        Args:
+            plan (Plan): The overall plan containing task information.
+
+        Returns:
+            Tuple[dict, str]: A tool schemas ({tool_name: tool_schema_dict}) and a usage prompt for the type of tools selected
+        """
+        # find tool type from task type through exact match, can extend to retrieval in the future
+        tool_type = plan.current_task.task_type
+
+        # prepare tool-type-specific instruction
+        tool_type_usage_prompt = (
+            TOOL_REGISTRY.get_tool_type(tool_type).usage_prompt if TOOL_REGISTRY.has_tool_type(tool_type) else ""
+        )
+
+        # prepare schemas of available tools
+        tool_schemas = {}
+        available_tools = self._get_tools_by_type(tool_type)
+        if available_tools:
+            available_tools = {tool_name: tool.schemas["description"] for tool_name, tool in available_tools.items()}
+            code_steps = plan.current_task.code_steps
+            tool_schemas = await self._recommend_tool(plan.current_task.instruction, code_steps, available_tools)
+
+        return tool_schemas, tool_type_usage_prompt
 
     async def run(
         self,
         context: List[Message],
-        plan: Plan = None,
+        plan: Plan,
         **kwargs,
     ) -> str:
-        tool_type = (
-            plan.current_task.task_type
-        )  # find tool type from task type through exact match, can extend to retrieval in the future
-        available_tools = TOOL_REGISTRY.get_tools_by_type(tool_type)
-        special_prompt = (
-            TOOL_REGISTRY.get_tool_type(tool_type).usage_prompt if TOOL_REGISTRY.has_tool_type(tool_type) else ""
+        # prepare tool schemas and tool-type-specific instruction
+        tool_schemas, tool_type_usage_prompt = await self._prepare_tools(plan=plan)
+
+        # form a complete tool usage instruction and include it as a message in context
+        tools_instruction = TOOL_USAGE_PROMPT.format(
+            tool_schemas=tool_schemas, tool_type_usage_prompt=tool_type_usage_prompt
         )
-        code_steps = plan.current_task.code_steps
-
-        tool_catalog = {}
-
-        if available_tools:
-            available_tools = {tool_name: tool.schemas["description"] for tool_name, tool in available_tools.items()}
-
-            recommend_tools = await self._tool_recommendation(
-                plan.current_task.instruction, code_steps, available_tools
-            )
-            tool_catalog = self._parse_recommend_tools(recommend_tools)
-            logger.info(f"Recommended tools: \n{recommend_tools}")
-
-        tools_instruction = TOOL_USAGE_PROMPT.format(special_prompt=special_prompt, tool_catalog=tool_catalog)
-
         context.append(Message(content=tools_instruction, role="user"))
 
+        # prepare prompt & LLM call
         prompt = self.process_msg(context)
-
         tool_config = create_func_config(CODE_GENERATOR_WITH_TOOLS)
         rsp = await self.llm.aask_code(prompt, **tool_config)
+
         return rsp
 
 
@@ -185,36 +205,25 @@ class WriteCodeWithToolsML(WriteCodeWithTools):
         column_info: str = "",
         **kwargs,
     ) -> Tuple[List[Message], str]:
-        tool_type = (
-            plan.current_task.task_type
-        )  # find tool type from task type through exact match, can extend to retrieval in the future
-        available_tools = TOOL_REGISTRY.get_tools_by_type(tool_type)
-        special_prompt = (
-            TOOL_REGISTRY.get_tool_type(tool_type).usage_prompt if TOOL_REGISTRY.has_tool_type(tool_type) else ""
-        )
-        code_steps = plan.current_task.code_steps
+        # prepare tool schemas and tool-type-specific instruction
+        tool_schemas, tool_type_usage_prompt = await self._prepare_tools(plan=plan)
 
+        # ML-specific variables to be used in prompt
+        code_steps = plan.current_task.code_steps
         finished_tasks = plan.get_finished_tasks()
         code_context = [remove_comments(task.code) for task in finished_tasks]
         code_context = "\n\n".join(code_context)
 
-        if available_tools:
-            available_tools = {tool_name: tool.schemas["description"] for tool_name, tool in available_tools.items()}
-
-            recommend_tools = await self._tool_recommendation(
-                plan.current_task.instruction, code_steps, available_tools
-            )
-            tool_catalog = self._parse_recommend_tools(recommend_tools)
-            logger.info(f"Recommended tools: \n{recommend_tools}")
-
+        # prepare prompt depending on tool availability & LLM call
+        if tool_schemas:
             prompt = ML_TOOL_USAGE_PROMPT.format(
                 user_requirement=plan.goal,
                 history_code=code_context,
                 current_task=plan.current_task.instruction,
                 column_info=column_info,
-                special_prompt=special_prompt,
+                tool_type_usage_prompt=tool_type_usage_prompt,
                 code_steps=code_steps,
-                tool_catalog=tool_catalog,
+                tool_schemas=tool_schemas,
             )
 
         else:
@@ -223,13 +232,15 @@ class WriteCodeWithToolsML(WriteCodeWithTools):
                 history_code=code_context,
                 current_task=plan.current_task.instruction,
                 column_info=column_info,
-                special_prompt=special_prompt,
+                tool_type_usage_prompt=tool_type_usage_prompt,
                 code_steps=code_steps,
             )
-
         tool_config = create_func_config(CODE_GENERATOR_WITH_TOOLS)
         rsp = await self.llm.aask_code(prompt, **tool_config)
+
+        # Extra output to be used for potential debugging
         context = [Message(content=prompt, role="user")]
+
         return context, rsp
 
 

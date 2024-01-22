@@ -477,7 +477,7 @@ class Role(SerializationMixin, is_polymorphic_base=True):
 
             else:
                 # update plan according to user's feedback and to take on changed tasks
-                await self.planner.update_plan(review)
+                await self.planner.update_plan()
 
         completed_plan_memory = self.planner.get_useful_memories()  # completed plan as a outcome
 
