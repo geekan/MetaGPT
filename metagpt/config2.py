@@ -38,6 +38,7 @@ class CLIParams(BaseModel):
         if self.project_path:
             self.inc = True
             self.project_name = self.project_name or Path(self.project_path).name
+        return self
 
 
 class Config(CLIParams, YamlModel):

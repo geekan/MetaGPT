@@ -22,7 +22,6 @@ from pydantic import Field
 
 from metagpt.actions.skill_action import ArgumentsParingAction, SkillAction
 from metagpt.actions.talk_action import TalkAction
-from metagpt.context import CONTEXT
 from metagpt.learn.skill_loader import SkillsDeclaration
 from metagpt.logs import logger
 from metagpt.memory.brain_memory import BrainMemory
@@ -48,7 +47,7 @@ class Assistant(Role):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        language = kwargs.get("language") or self.context.kwargs.language or CONTEXT.kwargs.language
+        language = kwargs.get("language") or self.context.kwargs.language
         self.constraints = self.constraints.format(language=language)
 
     async def think(self) -> bool:
