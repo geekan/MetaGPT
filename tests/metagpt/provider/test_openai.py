@@ -95,6 +95,10 @@ class TestOpenAI:
                 ChatCompletionMessage(
                     content='"""python\nprint(\'hello world\')"""', role="assistant", tool_calls=None
                 ),
+                ChatCompletionMessage(
+                    content="'''python\nprint(\"hello world\")'''", role="assistant", tool_calls=None
+                ),
+                ChatCompletionMessage(content="```python\nprint('hello world')```", role="assistant", tool_calls=None),
             ]
         )
         choices = [
