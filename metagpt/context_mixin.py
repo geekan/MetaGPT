@@ -10,7 +10,7 @@ from typing import Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 from metagpt.config2 import Config
-from metagpt.context import CONTEXT, Context
+from metagpt.context import Context
 from metagpt.provider.base_llm import BaseLLM
 
 
@@ -34,7 +34,7 @@ class ContextMixin(BaseModel):
 
     def __init__(
         self,
-        context: Optional[Context] = CONTEXT,
+        context: Optional[Context] = None,
         config: Optional[Config] = None,
         llm: Optional[BaseLLM] = None,
         **kwargs,
@@ -81,7 +81,7 @@ class ContextMixin(BaseModel):
         """Role context: role context > context"""
         if self.private_context:
             return self.private_context
-        return CONTEXT
+        return Context()
 
     @context.setter
     def context(self, context: Context) -> None:

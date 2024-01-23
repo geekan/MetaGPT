@@ -8,6 +8,7 @@ import typer
 
 from metagpt.config2 import config
 from metagpt.const import CONFIG_ROOT, METAGPT_ROOT
+from metagpt.context import Context
 
 app = typer.Typer(add_completion=False, pretty_exceptions_show_locals=False)
 
@@ -37,9 +38,10 @@ def generate_repo(
     from metagpt.team import Team
 
     config.update_via_cli(project_path, project_name, inc, reqa_file, max_auto_summarize_code)
+    ctx = Context(config=config)
 
     if not recover_path:
-        company = Team()
+        company = Team(context=ctx)
         company.hire(
             [
                 ProductManager(),
@@ -58,7 +60,7 @@ def generate_repo(
         if not stg_path.exists() or not str(stg_path).endswith("team"):
             raise FileNotFoundError(f"{recover_path} not exists or not endswith `team`")
 
-        company = Team.deserialize(stg_path=stg_path)
+        company = Team.deserialize(stg_path=stg_path, context=ctx)
         idea = company.idea
 
     company.invest(investment)
