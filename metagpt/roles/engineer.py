@@ -210,18 +210,16 @@ class Engineer(Role):
         node = await self.rc.todo.run()
         code_plan_and_change = node.instruct_content.model_dump_json()
         dependencies = {
-            self.rc.todo.i_context.requirement_doc.filename,
-            self.rc.todo.i_context.prd_docs[0].filename,
-            self.rc.todo.i_context.design_docs[0].filename,
-            self.rc.todo.i_context.tasks_docs[0].filename,
+            REQUIREMENT_FILENAME,
+            self.rc.todo.i_context.prd_filename,
+            self.rc.todo.i_context.design_filename,
+            self.rc.todo.i_context.task_filename,
         }
-
-        code_plan_and_change_filename = os.path.join(CODE_PLAN_AND_CHANGE_FILE_REPO, CODE_PLAN_AND_CHANGE_FILENAME)
         await self.project_repo.resources.code_plan_and_change.save(
-            filename=code_plan_and_change_filename, content=code_plan_and_change, dependencies=dependencies
+            filename=self.rc.todo.i_context.filename, content=code_plan_and_change, dependencies=dependencies
         )
         await self.project_repo.docs.code_plan_and_change.save(
-            filename=Path(code_plan_and_change_filename).with_suffix(".md").name,
+            filename=Path(self.rc.todo.i_context.filename).with_suffix(".md").name,
             content=node.content,
             dependencies=dependencies,
         )
@@ -350,18 +348,10 @@ class Engineer(Role):
 
     async def _new_code_plan_and_change_action(self):
         """Create a WriteCodePlanAndChange action for subsequent to-do actions."""
-        requirement_doc = await self.project_repo.docs.requirement.get(REQUIREMENT_FILENAME)
-        prd_docs = await self.project_repo.docs.prd.get_all()
-        design_docs = await self.project_repo.docs.system_design.get_all()
-        task_docs = await self.project_repo.docs.task.get_all()
-
-        code_plan_and_change_context = CodePlanAndChangeContext(
-            requirement_doc=requirement_doc,
-            prd_docs=prd_docs,
-            design_docs=design_docs,
-            task_docs=task_docs,
-        )
-        self.rc.todo = WriteCodePlanAndChange(i_context=code_plan_and_change_context, llm=self.llm)
+        files = self.project_repo.all_files
+        requirement = str(self.rc.memory.get_by_role("Human")[0])
+        code_plan_and_change_ctx = CodePlanAndChangeContext.loads(files, requirement=requirement)
+        self.rc.todo = WriteCodePlanAndChange(i_context=code_plan_and_change_ctx, context=self.context, llm=self.llm)
 
     @property
     def action_description(self) -> str:

@@ -147,7 +147,7 @@ class WritePRD(Action):
 
     async def _update_prd(self, req: Document, prd_doc: Document) -> Document:
         new_prd_doc: Document = await self._merge(req, prd_doc)
-        self.repo.docs.prd.save_doc(doc=new_prd_doc)
+        await self.repo.docs.prd.save_doc(doc=new_prd_doc)
         await self._save_competitive_analysis(new_prd_doc)
         await self.repo.resources.prd.save_pdf(doc=new_prd_doc)
         return new_prd_doc

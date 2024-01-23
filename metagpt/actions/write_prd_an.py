@@ -33,7 +33,7 @@ ORIGINAL_REQUIREMENTS = ActionNode(
 REFINED_REQUIREMENTS = ActionNode(
     key="Refined Requirements",
     expected_type=str,
-    instruction="Place the New user's requirements here.",
+    instruction="Place the New user's original requirements here.",
     example="Create a 2048 game with a new feature that ...",
 )
 

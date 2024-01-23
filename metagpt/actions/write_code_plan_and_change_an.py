@@ -118,8 +118,8 @@ CODE_PLAN_AND_CHANGE_CONTEXT = """
 ## Design
 {design}
 
-## Tasks
-{tasks}
+## Task
+{task}
 
 ## Legacy Code
 {code}
@@ -139,8 +139,8 @@ Role: You are a professional engineer; The main goal is to complete incremental 
 ## Design
 {design}
 
-## Tasks
-{tasks}
+## Task
+{task}
 
 ## Legacy Code
 ```Code
@@ -189,13 +189,16 @@ class WriteCodePlanAndChange(Action):
     async def run(self, *args, **kwargs):
         self.llm.system_prompt = "You are a professional software engineer, your primary responsibility is to "
         "meticulously craft comprehensive incremental development plan and deliver detailed incremental change"
-        requirement = self.i_context.requirement_doc.content
-        prd = "\n".join([doc.content for doc in self.i_context.prd_docs])
-        design = "\n".join([doc.content for doc in self.i_context.design_docs])
-        tasks = "\n".join([doc.content for doc in self.i_context.tasks_docs])
+        prd_doc = await self.repo.docs.prd.get(filename=self.i_context.prd_filename)
+        design_doc = await self.repo.docs.system_design.get(filename=self.i_context.design_filename)
+        task_doc = await self.repo.docs.task.get(filename=self.i_context.task_filename)
         code_text = await self.get_old_codes()
         context = CODE_PLAN_AND_CHANGE_CONTEXT.format(
-            requirement=requirement, prd=prd, design=design, tasks=tasks, code=code_text
+            requirement=self.i_context.requirement,
+            prd=prd_doc.content,
+            design=design_doc.content,
+            task=task_doc.content,
+            code=code_text,
         )
         return await WRITE_CODE_PLAN_AND_CHANGE_NODE.fill(context=context, llm=self.llm, schema="json")
 
