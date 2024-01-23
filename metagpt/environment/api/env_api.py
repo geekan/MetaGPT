@@ -18,19 +18,28 @@ class EnvAPIAbstract(BaseModel):
 class EnvAPIRegistry(BaseModel):
     """the registry to store environment w&r api/interface"""
 
-    registry: dict[str, Callable] = Field(default=dict(), include=False)
+    registry: dict[str, Callable] = Field(default=dict(), exclude=True)
 
     def get(self, api_name: str):
         return self.registry.get(api_name)
 
+    def __getitem__(self, api_name: str) -> Callable:
+        return self.get(api_name)
+
+    def __setitem__(self, api_name: str, func: Callable):
+        self.registry[api_name] = func
+
+    def __len__(self):
+        return len(self.registry)
+
 
 class WriteAPIRegistry(EnvAPIRegistry):
-    """just as a new class name"""
+    """just as a explicit class name"""
 
     pass
 
 
 class ReadAPIRegistry(EnvAPIRegistry):
-    """just as a new class name"""
+    """just as a explicit class name"""
 
     pass

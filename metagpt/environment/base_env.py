@@ -3,11 +3,15 @@
 # @Desc   : base env of executing environment
 
 from enum import Enum
-from typing import Union
+from typing import Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from metagpt.env.api.env_api import EnvAPIAbstract, ReadAPIRegistry, WriteAPIRegistry
+from metagpt.environment.api.env_api import (
+    EnvAPIAbstract,
+    ReadAPIRegistry,
+    WriteAPIRegistry,
+)
 from metagpt.schema import Message
 
 
@@ -23,7 +27,7 @@ def mark_as_readable(func):
     """mark functionn as a readable one in ExtEnv, it observes something from ExtEnv"""
 
     def wrapper(self: ExtEnv, *args, **kwargs):
-        api_name = str(func)  # TODO
+        api_name = func.__name__
         self.read_api_registry[api_name] = func
         return func(self, *args, **kwargs)
 
@@ -31,10 +35,10 @@ def mark_as_readable(func):
 
 
 def mark_as_writeable(func):
-    """mark functionn as a writeable one in ExtEnv, it do something to ExtEnv"""
+    """mark functionn as a writeable one in ExtEnv, it does something to ExtEnv"""
 
     def wrapper(self: ExtEnv, *args, **kwargs):
-        api_name = str(func)  # TODO
+        api_name = func.__name__
         self.write_api_registry[api_name] = func
         return func(self, *args, **kwargs)
 
@@ -44,8 +48,8 @@ def mark_as_writeable(func):
 class ExtEnv(BaseModel):
     """External Env to intergate actual game environment"""
 
-    write_api_registry: WriteAPIRegistry = Field(default_factory=WriteAPIRegistry, include=False)
-    read_api_registry: ReadAPIRegistry = Field(default_factory=ReadAPIRegistry, include=False)
+    write_api_registry: WriteAPIRegistry = Field(default_factory=WriteAPIRegistry, exclude=True)
+    read_api_registry: ReadAPIRegistry = Field(default_factory=ReadAPIRegistry, exclude=True)
 
 
 class Env(ExtEnv):
@@ -53,10 +57,19 @@ class Env(ExtEnv):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
+    def _check_api_exist(self, rw_api: Optional[str] = None):
+        if not rw_api:
+            raise ValueError(f"{rw_api} not exists")
+
     def observe(self, env_action: Union[str, EnvAPIAbstract]):
-        api_name = env_action.api_name if isinstance(env_action, EnvAPIAbstract) else env_action
-        read_api = self.read_api_registry.get(api_name)
-        res = read_api(*env_action.args, **env_action.kwargs)
+        if isinstance(env_action, str):
+            read_api = self.read_api_registry.get(api_name=env_action)
+            self._check_api_exist(read_api)
+            res = read_api(self)
+        elif isinstance(env_action, EnvAPIAbstract):
+            read_api = self.read_api_registry.get(api_name=env_action.api_name)
+            self._check_api_exist(read_api)
+            res = read_api(self, *env_action.args, **env_action.kwargs)
         return res
 
     def step(self, env_action: Union[str, Message, EnvAPIAbstract, list[EnvAPIAbstract]]):
@@ -65,7 +78,8 @@ class Env(ExtEnv):
             self.publish_message(env_action)
         elif isinstance(env_action, EnvAPIAbstract):
             write_api = self.write_api_registry.get(env_action.api_name)
-            res = write_api(*env_action.args, **env_action.kwargs)
+            self._check_api_exist(write_api)
+            res = write_api(self, *env_action.args, **env_action.kwargs)
 
         return res
 

@@ -6,7 +6,7 @@ from enum import Enum
 
 from pydantic import Field
 
-from metagpt.env.base_env import ExtEnv, mark_as_readable, mark_as_writeable
+from metagpt.environment.base_env import ExtEnv, mark_as_readable, mark_as_writeable
 
 
 class RoleState(Enum):

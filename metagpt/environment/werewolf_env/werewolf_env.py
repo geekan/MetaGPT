@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # @Desc   : MG Werewolf Env
 
-from metagpt.env.werewolf_env.werewolf_ext_env import WerewolfExtEnv
+from metagpt.environment.werewolf_env.werewolf_ext_env import WerewolfExtEnv
 
 
 class WerewolfEnv(WerewolfExtEnv):
