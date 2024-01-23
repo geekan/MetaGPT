@@ -251,7 +251,7 @@ class OpenAILLM(BaseLLM):
             # reponse is code, fix openai tools_call respond bug.
             code_formats = ("```", '"""', "'''")
             if message.content.startswith(code_formats) and message.content.endswith(code_formats):
-                code = CodeParser.parse_code(None, message.content, start_ends=r'["\'`]{3}')
+                code = CodeParser.parse_code(None, message.content)
                 return {"language": "python", "code": code}
             # reponse is message
             return {"language": "markdown", "code": self.get_choice_text(rsp)}
