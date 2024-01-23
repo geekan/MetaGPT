@@ -139,6 +139,7 @@ class TestOpenAI:
             assert "code" in code
             assert "language" in code
             assert "hello world" in code["code"]
+            logger.info(f'code is : {code["code"]}')
 
             if "Completed a python code for hello world!" == code["code"]:
                 code["language"] == "markdown"

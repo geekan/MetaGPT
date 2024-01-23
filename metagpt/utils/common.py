@@ -264,10 +264,10 @@ class CodeParser:
         return block_dict
 
     @classmethod
-    def parse_code(cls, block: str, text: str, lang: str = "") -> str:
+    def parse_code(cls, block: str, text: str, lang: str = "", start_ends: str = "```") -> str:
         if block:
             text = cls.parse_block(block, text)
-        pattern = rf"```{lang}.*?\s+(.*?)```"
+        pattern = rf"{start_ends}{lang}.*?\s+(.*?){start_ends}"
         match = re.search(pattern, text, re.DOTALL)
         if match:
             code = match.group(1)
