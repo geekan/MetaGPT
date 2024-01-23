@@ -248,7 +248,8 @@ class OpenAILLM(BaseLLM):
                 )
                 return self._parse_arguments(message.tool_calls[0].function.arguments)
         elif message.tool_calls is None and message.content is not None:
-            # reponse is code, fix openai tools_call respond bug.
+            # reponse is code, fix openai tools_call respond bug,
+            # The response content is `code``, but it appears in the content instead of the arguments.
             code_formats = ("```", '"""', "'''")
             if message.content.startswith(code_formats) and message.content.endswith(code_formats):
                 code = CodeParser.parse_code(None, message.content)
