@@ -1,3 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# @Desc   :
+# @Desc   : MG Gym Env
+
+
+class GymEnv:
+    pass
