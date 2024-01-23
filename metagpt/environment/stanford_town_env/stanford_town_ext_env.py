@@ -2,39 +2,44 @@
 # -*- coding: utf-8 -*-
 # @Desc   : The StanfordTown external environment to interate with the web interface
 
+import math
 from pathlib import Path
 from typing import Optional, Tuple
 
-from pydantic import Field, model_validator
+from pydantic import ConfigDict, Field, model_validator
 
-from metagpt.env.base_env import ExtEnv, mark_as_readable, mark_as_writeable
-from metagpt.utils.common import read_json_file
+from metagpt.environment.base_env import ExtEnv, mark_as_readable, mark_as_writeable
+from metagpt.utils.common import read_csv_to_list, read_json_file
 
 
 class StanfordTownExtEnv(ExtEnv):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     maze_asset_path: Optional[Path] = Field(default=None, description="the path to store maze assets")
-    maze_width: int = Field(default=140)
-    meze_height: int = Field(default=100)
+    maze_width: int = Field(default=140, description="maze map width")
+    maze_height: int = Field(default=100, description="maze map height")
     sq_tile_size: int = Field(default=32, description="the pixel height/width of a tile")
     special_constraint: str = Field(
         default="", description="a string description of any relevant special constraints " "the world might have"
     )
-    titles: list[list[dict]] = Field(default=[])
-    address_tiles: dict[set] = Field(default={})
+    tiles: list[list[dict]] = Field(default=[])
+    address_tiles: dict[str, set] = Field(default=dict())
     collision_maze: list[list] = Field(default=[])
 
     @model_validator(mode="before")
     @classmethod
-    def _init_maze(cls, values: dict):
-        maze_asset_path = values.get("maze_asset_path")
+    def _init_maze(cls, values):
+        maze_asset_path = values["maze_asset_path"]
         assert maze_asset_path
         maze_asset_path = Path(maze_asset_path)
 
         maze_matrix_path = maze_asset_path.joinpath("matrix")
         meta_info = read_json_file(maze_matrix_path.joinpath("maze_meta_info.json"))
 
-        values["maze_width"] = int(meta_info["maze_width"])
-        values["meze_height"] = int(meta_info["meze_height"])
+        maze_width = int(meta_info["maze_width"])
+        maze_height = int(meta_info["maze_height"])
+        values["maze_width"] = maze_width
+        values["maze_height"] = maze_height
         values["sq_tile_size"] = int(meta_info["sq_tile_size"])
         values["special_constraint"] = meta_info["special_constraint"]
 
@@ -101,8 +106,8 @@ class StanfordTownExtEnv(ExtEnv):
         arena_maze = []
         game_object_maze = []
         spawning_location_maze = []
-        for i in range(0, len(collision_maze_raw), meta_info["maze_width"]):
-            tw = meta_info["maze_width"]
+        for i in range(0, len(collision_maze_raw), maze_width):
+            tw = maze_width
             collision_maze += [collision_maze_raw[i : i + tw]]
             sector_maze += [sector_maze_raw[i : i + tw]]
             arena_maze += [arena_maze_raw[i : i + tw]]
