@@ -4,12 +4,12 @@
 
 import subprocess
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 from pydantic import Field
 
 from metagpt.const import ADB_EXEC_FAIL
-from metagpt.env.base_env import ExtEnv, mark_as_readable, mark_as_writeable
+from metagpt.environment.base_env import ExtEnv, mark_as_readable, mark_as_writeable
 
 
 class AndroidExtEnv(ExtEnv):
@@ -18,6 +18,13 @@ class AndroidExtEnv(ExtEnv):
     xml_dir: Optional[Path] = Field(default=None)
     width: int = Field(default=720, description="device screen width")
     height: int = Field(default=1080, description="device screen height")
+
+    def __init__(self, **data: Any):
+        super().__init__(**data)
+        if data.get("device_id"):
+            (width, height) = self.device_shape
+            self.width = data.get("width", width)
+            self.height = data.get("height", height)
 
     @property
     def adb_prefix_si(self):
@@ -47,7 +54,7 @@ class AndroidExtEnv(ExtEnv):
         shape = (0, 0)
         shape_res = self.execute_adb_with_cmd(adb_cmd)
         if shape_res != ADB_EXEC_FAIL:
-            shape = map(int, shape_res.split(": ")[1].split("x"))
+            shape = tuple(map(int, shape_res.split(": ")[1].split("x")))
         return shape
 
     def list_devices(self):
@@ -66,13 +73,13 @@ class AndroidExtEnv(ExtEnv):
         local_save_dir: local dir to store image from virtual machine
         """
         assert self.screenshot_dir
-        ss_remote_path = str(Path(self.screenshot_dir.joinpath(f"{ss_name}.png")))
+        ss_remote_path = str(Path(self.screenshot_dir).joinpath(f"{ss_name}.png"))
         ss_cmd = f"{self.adb_prefix_shell} screencap -p {ss_remote_path}"
         ss_res = self.execute_adb_with_cmd(ss_cmd)
 
         res = ADB_EXEC_FAIL
         if ss_res != ADB_EXEC_FAIL:
-            ss_local_path = str(Path(local_save_dir.joinpath(f"{ss_name}.png")))
+            ss_local_path = str(Path(local_save_dir).joinpath(f"{ss_name}.png"))
             pull_cmd = f"{self.adb_prefix} pull {ss_remote_path} {ss_local_path}"
             pull_res = self.execute_adb_with_cmd(pull_cmd)
             if pull_res != ADB_EXEC_FAIL:
@@ -87,7 +94,7 @@ class AndroidExtEnv(ExtEnv):
 
         res = ADB_EXEC_FAIL
         if xml_res != ADB_EXEC_FAIL:
-            xml_local_path = str(Path(local_save_dir.joinpath(f"{xml_name}.xml")))
+            xml_local_path = str(Path(local_save_dir).joinpath(f"{xml_name}.xml"))
             pull_cmd = f"{self.adb_prefix} pull {xml_remote_path} {xml_local_path}"
             pull_res = self.execute_adb_with_cmd(pull_cmd)
             if pull_res != ADB_EXEC_FAIL:
@@ -138,7 +145,7 @@ class AndroidExtEnv(ExtEnv):
         else:
             return ADB_EXEC_FAIL
 
-        duration = 100 if quick else 400
+        duration = 100 if if_quick else 400
         adb_cmd = f"{self.adb_prefix_si} swipe {x} {y} {x + offset[0]} {y + offset[1]} {duration}"
         swipe_res = self.execute_adb_with_cmd(adb_cmd)
         return swipe_res
