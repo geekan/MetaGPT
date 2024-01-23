@@ -31,6 +31,7 @@ from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.constant import GENERAL_FUNCTION_SCHEMA
 from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.schema import Message
+from metagpt.utils.common import CodeParser
 from metagpt.utils.cost_manager import Costs
 from metagpt.utils.exceptions import handle_exception
 from metagpt.utils.token_counter import (
@@ -247,6 +248,11 @@ class OpenAILLM(BaseLLM):
                 )
                 return self._parse_arguments(message.tool_calls[0].function.arguments)
         elif message.tool_calls is None and message.content is not None:
+            # reponse is code, fix openai tools_call respond bug.
+            code_formats = ("```", '"""', "'''")
+            if message.content.startswith(code_formats) and message.content.endswith(code_formats):
+                code = CodeParser.parse_code(None, message.content)
+                return {"language": "python", "code": code}
             # reponse is message
             return {"language": "markdown", "code": self.get_choice_text(rsp)}
         else:
