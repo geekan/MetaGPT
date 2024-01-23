@@ -87,6 +87,20 @@ class TestOpenAI:
         messages.append(
             ChatCompletionMessage(content="Completed a python code for hello world!", role="assistant", tool_calls=None)
         )
+        # 添加 openai tool calls respond bug, code 出现在ChatCompletionMessage.content中
+        messages.extend(
+            [
+                ChatCompletionMessage(content="```python\nprint('hello world')```", role="assistant", tool_calls=None),
+                ChatCompletionMessage(content="'''python\nprint('hello world')'''", role="assistant", tool_calls=None),
+                ChatCompletionMessage(
+                    content='"""python\nprint(\'hello world\')"""', role="assistant", tool_calls=None
+                ),
+                ChatCompletionMessage(
+                    content="'''python\nprint(\"hello world\")'''", role="assistant", tool_calls=None
+                ),
+                ChatCompletionMessage(content="```python\nprint('hello world')```", role="assistant", tool_calls=None),
+            ]
+        )
         choices = [
             Choice(finish_reason="tool_calls", logprobs=None, index=i, message=msg) for i, msg in enumerate(messages)
         ]
@@ -129,6 +143,7 @@ class TestOpenAI:
             assert "code" in code
             assert "language" in code
             assert "hello world" in code["code"]
+            logger.info(f'code is : {code["code"]}')
 
             if "Completed a python code for hello world!" == code["code"]:
                 code["language"] == "markdown"
