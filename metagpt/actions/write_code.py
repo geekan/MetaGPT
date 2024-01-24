@@ -162,7 +162,7 @@ class WriteCode(Action):
             task_doc (Document): Document object of the task file.
             exclude (str): The file to be generated. Specifies the filename to be excluded from the code snippets.
             project_repo (ProjectRepo): ProjectRepo object of the project.
-            use_inc (bool): Whether is the incremental development scenario. Defaults to False.
+            use_inc (bool): Indicates whether the scenario involves incremental development. Defaults to False.
 
         Returns:
             str: Codes for generating the exclude file.
