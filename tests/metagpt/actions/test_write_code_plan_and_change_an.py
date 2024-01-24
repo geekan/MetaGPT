@@ -14,7 +14,7 @@ from metagpt.actions.write_code_plan_and_change_an import (
     REFINED_TEMPLATE,
     WriteCodePlanAndChange,
 )
-from metagpt.schema import CodePlanAndChangeContext, Document
+from metagpt.schema import CodePlanAndChangeContext
 from tests.data.incremental_dev_project.mock import (
     CODE_PLAN_AND_CHANGE_SAMPLE,
     DESIGN_SAMPLE,
@@ -38,19 +38,19 @@ async def test_write_code_plan_and_change_an(mocker):
     root.instruct_content.model_dump = mock_code_plan_and_change
     mocker.patch("metagpt.actions.write_code_plan_and_change_an.WriteCodePlanAndChange.run", return_value=root)
 
-    requirement_doc = Document()
-    prd_docs = [Document()]
-    design_docs = [Document()]
-    tasks_docs = [Document()]
+    requirement = "New requirement"
+    prd_filename = "prd.md"
+    design_filename = "design.md"
+    task_filename = "task.md"
     code_plan_and_change_context = CodePlanAndChangeContext(
-        requirement_doc=requirement_doc,
-        prd_docs=prd_docs,
-        design_docs=design_docs,
-        tasks_docs=tasks_docs,
+        requirement=requirement,
+        prd_filename=prd_filename,
+        design_filename=design_filename,
+        task_filename=task_filename,
     )
-    node = await WriteCodePlanAndChange(context=code_plan_and_change_context).run()
+    node = await WriteCodePlanAndChange(i_context=code_plan_and_change_context).run()
 
-    assert "Plan" in node.instruct_content.model_dump()
+    assert "Code Plan And Change" in node.instruct_content.model_dump()
 
 
 @pytest.mark.asyncio
@@ -68,5 +68,4 @@ async def test_refine_code(mocker):
         summary_log="",
     )
     code = await WriteCode().write_code(prompt=prompt)
-    assert code
     assert "def" in code

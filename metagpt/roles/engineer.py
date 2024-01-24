@@ -215,10 +215,10 @@ class Engineer(Role):
             self.rc.todo.i_context.design_filename,
             self.rc.todo.i_context.task_filename,
         }
-        await self.project_repo.resources.code_plan_and_change.save(
+        await self.project_repo.docs.code_plan_and_change.save(
             filename=self.rc.todo.i_context.filename, content=code_plan_and_change, dependencies=dependencies
         )
-        await self.project_repo.docs.code_plan_and_change.save(
+        await self.project_repo.resources.code_plan_and_change.save(
             filename=Path(self.rc.todo.i_context.filename).with_suffix(".md").name,
             content=node.content,
             dependencies=dependencies,
@@ -349,7 +349,8 @@ class Engineer(Role):
     async def _new_code_plan_and_change_action(self):
         """Create a WriteCodePlanAndChange action for subsequent to-do actions."""
         files = self.project_repo.all_files
-        requirement = str(self.rc.memory.get_by_role("Human")[0])
+        requirement_doc = await self.project_repo.docs.get(REQUIREMENT_FILENAME)
+        requirement = requirement_doc.content if requirement_doc else ""
         code_plan_and_change_ctx = CodePlanAndChangeContext.loads(files, requirement=requirement)
         self.rc.todo = WriteCodePlanAndChange(i_context=code_plan_and_change_ctx, context=self.context, llm=self.llm)
 

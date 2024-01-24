@@ -108,7 +108,7 @@ def get_incremental_dev_result(idea, project_name, use_review=True):
     if project_path.exists():
         raise Exception(f"Project {project_name} not exists")
     check_or_create_base_tag(project_path)
-    args = [idea, "--inc", "--project-path", project_path]
+    args = [idea, "--inc", "--project-path", project_path, "--n-round", "20"]
     if not use_review:
         args.append("--no-code-review")
     result = runner.invoke(app, args)

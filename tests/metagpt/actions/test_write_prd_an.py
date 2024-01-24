@@ -38,7 +38,6 @@ async def test_write_prd_an(mocker):
     prompt = NEW_REQ_TEMPLATE.format(
         requirements=NEW_REQUIREMENT_SAMPLE,
         old_prd=PRD_SAMPLE,
-        project_name="",
     )
     node = await REFINED_PRD_NODE.fill(prompt, llm)
 

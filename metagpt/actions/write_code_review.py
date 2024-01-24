@@ -137,7 +137,8 @@ class WriteCodeReview(Action):
 
     async def run(self, *args, **kwargs) -> CodingContext:
         iterative_code = self.i_context.code_doc.content
-        k = self.context.config.code_review_k_times or 1
+        # k = self.context.config.code_review_k_times or 1
+        k = 1
         code_plan_and_change_doc = await self.repo.get(filename=CODE_PLAN_AND_CHANGE_FILENAME)
         code_plan_and_change = code_plan_and_change_doc.content if code_plan_and_change_doc else ""
         mode = "incremental" if code_plan_and_change else "normal"
@@ -154,20 +155,18 @@ class WriteCodeReview(Action):
             if not code_plan_and_change:
                 context = "\n".join(
                     [
-                        "## System Design\n" + str(self.context.design_doc) + "\n",
+                        "## System Design\n" + str(self.i_context.design_doc) + "\n",
                         "## Tasks\n" + task_content + "\n",
                         "## Code Files\n" + code_context + "\n",
                     ]
                 )
             else:
-                requirement_doc = await self.repo.get(filename=REQUIREMENT_FILENAME)
-                user_requirement = requirement_doc.content if requirement_doc else ""
-
+                requirement_doc = await self.repo.docs.get(filename=REQUIREMENT_FILENAME)
                 context = "\n".join(
                     [
-                        "## User New Requirements\n" + user_requirement + "\n",
+                        "## User New Requirements\n" + str(requirement_doc) + "\n",
                         "## Code Plan And Change\n" + code_plan_and_change + "\n",
-                        "## System Design\n" + str(self.context.design_doc) + "\n",
+                        "## System Design\n" + str(self.i_context.design_doc) + "\n",
                         "## Tasks\n" + task_content + "\n",
                         "## Code Files\n" + code_context + "\n",
                     ]

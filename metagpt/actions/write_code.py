@@ -101,7 +101,7 @@ class WriteCode(Action):
         test_doc = await self.repo.test_outputs.get(filename="test_" + coding_context.filename + ".json")
         code_plan_and_change_doc = await self.repo.docs.code_plan_and_change.get(filename=CODE_PLAN_AND_CHANGE_FILENAME)
         code_plan_and_change = code_plan_and_change_doc.content if code_plan_and_change_doc else ""
-        requirement_doc = await self.repo.docs.requirement.get(filename=REQUIREMENT_FILENAME)
+        requirement_doc = await self.repo.docs.get(filename=REQUIREMENT_FILENAME)
         summary_doc = None
         if coding_context.design_doc and coding_context.design_doc.filename:
             summary_doc = await self.repo.docs.code_summary.get(filename=coding_context.design_doc.filename)
