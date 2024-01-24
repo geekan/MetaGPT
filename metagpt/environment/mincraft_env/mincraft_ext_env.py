@@ -5,7 +5,7 @@
 from typing import Optional
 
 import requests
-from pydantic import Field, model_validator
+from pydantic import Field, model_validator, ConfigDict
 
 from metagpt.const import (
     MC_CKPT_DIR,
@@ -20,6 +20,8 @@ from metagpt.logs import logger
 
 
 class MincraftExtEnv(ExtEnv):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     mc_port: Optional[int] = Field(default=None)
     server_host: str = Field(default="http://127.0.0.1")
     server_port: str = Field(default=3000)
