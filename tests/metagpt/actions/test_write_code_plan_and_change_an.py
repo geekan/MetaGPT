@@ -55,7 +55,7 @@ async def test_write_code_plan_and_change_an(mocker):
 
 @pytest.mark.asyncio
 async def test_refine_code(mocker):
-    mocker.patch("metagpt.actions.write_code.WriteCodePlanAndChange.write_code", return_value=REFINED_CODE_SAMPLE)
+    mocker.patch.object(WriteCode, "_aask", return_value=REFINED_CODE_SAMPLE)
     prompt = REFINED_TEMPLATE.format(
         user_requirement=NEW_REQUIREMENT_SAMPLE,
         code_plan_and_change=CODE_PLAN_AND_CHANGE_SAMPLE,
