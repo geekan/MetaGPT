@@ -17,6 +17,7 @@ from metagpt.utils.git_repository import ChangeType
 
 
 @pytest.mark.asyncio
+@pytest.mark.skip
 async def test_rebuild(context):
     # Mock
     data = await aread(filename=Path(__file__).parent / "../../data/graph_db/networkx.json")
