@@ -14,7 +14,14 @@ from pathlib import Path
 from typing import Optional
 
 from metagpt.actions import Action, ActionOutput
-from metagpt.actions.design_api_an import DESIGN_API_NODE
+from metagpt.actions.design_api_an import (
+    DATA_STRUCTURES_AND_INTERFACES,
+    DESIGN_API_NODE,
+    PROGRAM_CALL_FLOW,
+    REFINED_DATA_STRUCTURES_AND_INTERFACES,
+    REFINED_DESIGN_NODE,
+    REFINED_PROGRAM_CALL_FLOW,
+)
 from metagpt.const import DATA_API_DESIGN_FILE_REPO, SEQ_FLOW_FILE_REPO
 from metagpt.logs import logger
 from metagpt.schema import Document, Documents, Message
@@ -68,7 +75,7 @@ class WriteDesign(Action):
 
     async def _merge(self, prd_doc, system_design_doc):
         context = NEW_REQ_TEMPLATE.format(old_design=system_design_doc.content, context=prd_doc.content)
-        node = await DESIGN_API_NODE.fill(context=context, llm=self.llm)
+        node = await REFINED_DESIGN_NODE.fill(context=context, llm=self.llm)
         system_design_doc.content = node.instruct_content.model_dump_json()
         return system_design_doc
 
@@ -92,7 +99,7 @@ class WriteDesign(Action):
 
     async def _save_data_api_design(self, design_doc):
         m = json.loads(design_doc.content)
-        data_api_design = m.get("Data structures and interfaces")
+        data_api_design = m.get(DATA_STRUCTURES_AND_INTERFACES.key) or m.get(REFINED_DATA_STRUCTURES_AND_INTERFACES.key)
         if not data_api_design:
             return
         pathname = self.repo.workdir / DATA_API_DESIGN_FILE_REPO / Path(design_doc.filename).with_suffix("")
@@ -101,7 +108,7 @@ class WriteDesign(Action):
 
     async def _save_seq_flow(self, design_doc):
         m = json.loads(design_doc.content)
-        seq_flow = m.get("Program call flow")
+        seq_flow = m.get(PROGRAM_CALL_FLOW.key) or m.get(REFINED_PROGRAM_CALL_FLOW.key)
         if not seq_flow:
             return
         pathname = self.repo.workdir / Path(SEQ_FLOW_FILE_REPO) / Path(design_doc.filename).with_suffix("")
