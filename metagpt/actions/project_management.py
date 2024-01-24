@@ -22,7 +22,7 @@ from metagpt.schema import Document, Documents
 
 NEW_REQ_TEMPLATE = """
 ### Legacy Content
-{old_tasks}
+{old_task}
 
 ### New Requirements
 {context}
@@ -77,7 +77,7 @@ class WriteTasks(Action):
         return node
 
     async def _merge(self, system_design_doc, task_doc) -> Document:
-        context = NEW_REQ_TEMPLATE.format(context=system_design_doc.content, old_tasks=task_doc.content)
+        context = NEW_REQ_TEMPLATE.format(context=system_design_doc.content, old_task=task_doc.content)
         node = await REFINED_PM_NODE.fill(context, self.llm, schema=self.prompt_schema)
         task_doc.content = node.instruct_content.model_dump_json()
         return task_doc

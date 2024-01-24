@@ -60,7 +60,7 @@ async def test_refine_code(mocker):
         user_requirement=NEW_REQUIREMENT_SAMPLE,
         code_plan_and_change=CODE_PLAN_AND_CHANGE_SAMPLE,
         design=DESIGN_SAMPLE,
-        tasks=TASKS_SAMPLE,
+        task=TASKS_SAMPLE,
         code=REFINED_CODE_INPUT_SAMPLE,
         logs="",
         feedback="",

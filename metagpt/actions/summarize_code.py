@@ -110,7 +110,7 @@ class SummarizeCode(Action):
         format_example = FORMAT_EXAMPLE
         prompt = PROMPT_TEMPLATE.format(
             system_design=design_doc.content,
-            tasks=task_doc.content,
+            task=task_doc.content,
             code_blocks="\n".join(code_blocks),
             format_example=format_example,
         )

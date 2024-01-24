@@ -153,7 +153,7 @@ class WriteCodeReview(Action):
                 context = "\n".join(
                     [
                         "## System Design\n" + str(self.i_context.design_doc) + "\n",
-                        "## Tasks\n" + task_content + "\n",
+                        "## Task\n" + task_content + "\n",
                         "## Code Files\n" + code_context + "\n",
                     ]
                 )
@@ -165,7 +165,7 @@ class WriteCodeReview(Action):
                         "## User New Requirements\n" + str(requirement_doc) + "\n",
                         "## Code Plan And Change\n" + str(code_plan_and_change_doc) + "\n",
                         "## System Design\n" + str(self.i_context.design_doc) + "\n",
-                        "## Tasks\n" + task_content + "\n",
+                        "## Task\n" + task_content + "\n",
                         "## Code Files\n" + code_context + "\n",
                     ]
                 )
