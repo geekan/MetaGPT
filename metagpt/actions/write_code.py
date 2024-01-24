@@ -156,16 +156,16 @@ class WriteCode(Action):
     @staticmethod
     async def get_codes(task_doc: Document, exclude: str, project_repo: ProjectRepo, use_inc: bool = False) -> str:
         """
-        Get code snippets that meet the requirements in various scenarios.
+        Get codes for generating the exclude file in various scenarios.
 
         Attributes:
             task_doc (Document): Document object of the task file.
-            exclude (str): Specifies the filename to be excluded from the code snippets.
+            exclude (str): The file to be generated. Specifies the filename to be excluded from the code snippets.
             project_repo (ProjectRepo): ProjectRepo object of the project.
-            use_inc (bool): Specifies whether is incremental development.
+            use_inc (bool): Whether is the incremental development scenario. Defaults to False.
 
         Returns:
-            str: Code snippets.
+            str: Codes for generating the exclude file.
         """
         if not task_doc:
             return ""
@@ -176,27 +176,28 @@ class WriteCode(Action):
         codes = []
         src_file_repo = project_repo.srcs
 
+        # Incremental development scenario
         if use_inc:
             src_files = src_file_repo.all_files
-            # Get the old workspace that are created by the previous WriteCodePlanAndChange action
+            # Get the old workspace contained the old codes and old workspace are created in previous CodePlanAndChange
             old_file_repo = project_repo.git_repo.new_file_repository(relative_path=project_repo.old_workspace)
             old_files = old_file_repo.all_files
             # Get the union of the files in the src and old workspaces
             union_files_list = list(set(src_files) | set(old_files))
             for filename in union_files_list:
-                # Exclude the current file from the all code snippets to get the context code snippets for generating
+                # Exclude the current file from the all code snippets
                 if filename == exclude:
-                    # If the file is in the old workspace, use the legacy code
+                    # If the file is in the old workspace, use the old code
                     # Exclude unnecessary code to maintain a clean and focused main.py file, ensuring only relevant and
                     # essential functionality is included for the project’s requirements
                     if filename in old_files and filename != "main.py":
-                        # Use legacy code
+                        # Use old code
                         doc = await old_file_repo.get(filename=filename)
                     # If the file is in the src workspace, skip it
                     else:
                         continue
                     codes.insert(0, f"-----Now, {filename} to be rewritten\n```{doc.content}```\n=====")
-                # The context code snippets are generated from the src workspace
+                # The code snippets are generated from the src workspace
                 else:
                     doc = await src_file_repo.get(filename=filename)
                     # If the file does not exist in the src workspace, skip it
@@ -204,9 +205,10 @@ class WriteCode(Action):
                         continue
                     codes.append(f"----- {filename}\n```{doc.content}```")
 
+        # Normal scenario
         else:
             for filename in code_filenames:
-                # Exclude the current file to get the context code snippets for generating the current file
+                # Exclude the current file to get the code snippets for generating the current file
                 if filename == exclude:
                     continue
                 doc = await src_file_repo.get(filename=filename)
