@@ -43,7 +43,7 @@ ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenc
 ## Design
 {design}
 
-## Tasks
+## Task
 {task}
 
 ## Legacy Code

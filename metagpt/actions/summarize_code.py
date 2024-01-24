@@ -26,7 +26,7 @@ ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenc
 {system_design}
 ```
 -----
-# Tasks
+# Task
 ```text
 {task}
 ```
