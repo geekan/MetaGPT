@@ -114,7 +114,7 @@ class WriteCode(Action):
             code_context = coding_context.code_doc.content
         elif code_plan_and_change:
             code_context = await self.get_codes(
-                coding_context.task_doc, exclude=self.context.filename, project_repo=self.repo, mode="incremental"
+                coding_context.task_doc, exclude=self.i_context.filename, project_repo=self.repo, mode="incremental"
             )
         else:
             code_context = await self.get_codes(
@@ -128,17 +128,17 @@ class WriteCode(Action):
                 user_requirement=requirement_doc.content if requirement_doc else "",
                 code_plan_and_change=code_plan_and_change,
                 design=coding_context.design_doc.content if coding_context.design_doc else "",
-                tasks=coding_context.task_doc.content if coding_context.task_doc else "",
+                task=coding_context.task_doc.content if coding_context.task_doc else "",
                 code=code_context,
                 logs=logs,
                 feedback=bug_feedback.content if bug_feedback else "",
-                filename=self.context.filename,
+                filename=self.i_context.filename,
                 summary_log=summary_doc.content if summary_doc else "",
             )
         else:
             prompt = PROMPT_TEMPLATE.format(
                 design=coding_context.design_doc.content if coding_context.design_doc else "",
-                tasks=coding_context.task_doc.content if coding_context.task_doc else "",
+                task=coding_context.task_doc.content if coding_context.task_doc else "",
                 code=code_context,
                 logs=logs,
                 feedback=bug_feedback.content if bug_feedback else "",
