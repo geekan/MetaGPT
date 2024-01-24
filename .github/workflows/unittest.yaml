@@ -50,7 +50,7 @@ jobs:
       run: |
         export ALLOW_OPENAI_API_CALL=0
         echo "${{ secrets.METAGPT_KEY_YAML }}" | base64 -d > config/key.yaml
-        echo "${{ secrets.METAGPT_CONFIG2_YAML }}" | base64 -d > ~/.metagpt/config2.yaml
+        mkdir -p ~/.metagpt && echo "${{ secrets.METAGPT_CONFIG2_YAML }}" | base64 -d > ~/.metagpt/config2.yaml
         pytest tests/ --doctest-modules --cov=./metagpt/ --cov-report=xml:cov.xml --cov-report=html:htmlcov --durations=20 | tee unittest.txt
     - name: Show coverage report
       run: |
