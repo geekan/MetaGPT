@@ -19,4 +19,4 @@ async def scrape_web_playwright(url, *urls):
     web = await PlaywrightWrapper("chromium").run(url, *urls)
 
     # Return the inner text content of the web page
-    return {"inner_text": web.inner_text, "html": web.html}
+    return {"inner_text": web.inner_text.strip(), "html": web.html.strip()}
