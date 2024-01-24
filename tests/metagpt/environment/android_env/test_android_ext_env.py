@@ -16,7 +16,7 @@ def mock_device_shape_invalid(self, adb_cmd: str) -> str:
 
 
 def mock_list_devices(self, adb_cmd: str) -> str:
-    return "devices\nPixel5"
+    return "devices\nemulator-5554"
 
 
 def mock_get_screenshot(self, adb_cmd: str) -> str:
@@ -32,7 +32,7 @@ def mock_write_read_operation(self, adb_cmd: str) -> str:
 
 
 def test_android_ext_env(mocker):
-    device_id = "Pixel5"
+    device_id = "emulator-5554"
     mocker.patch(
         "metagpt.environment.android_env.android_ext_env.AndroidExtEnv.execute_adb_with_cmd", mock_device_shape
     )
