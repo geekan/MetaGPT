@@ -44,7 +44,7 @@ ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenc
 {design}
 
 ## Tasks
-{tasks}
+{task}
 
 ## Legacy Code
 ```Code

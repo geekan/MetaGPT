@@ -28,7 +28,7 @@ ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenc
 -----
 # Tasks
 ```text
-{tasks}
+{task}
 ```
 -----
 {code_blocks}
