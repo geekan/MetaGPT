@@ -156,16 +156,16 @@ class WriteCode(Action):
     @staticmethod
     async def get_codes(task_doc: Document, exclude: str, project_repo: ProjectRepo, use_inc: bool = False) -> str:
         """
-        Get code snippets that meet the requirements in various scenarios.
+        Get codes for generating the current file in various scenarios.
 
         Attributes:
             task_doc (Document): Document object of the task file.
-            exclude (str): Specifies the filename to be excluded from the code snippets.
+            exclude (str): The file to be generated. Specifies the filename to be excluded from the code snippets.
             project_repo (ProjectRepo): ProjectRepo object of the project.
-            use_inc (bool): Specifies whether is incremental development.
+            use_inc (bool): Whether is the incremental development scenario. Defaults to False.
 
         Returns:
-            str: Code snippets.
+            str: Code snippets for generating the current file.
         """
         if not task_doc:
             return ""
