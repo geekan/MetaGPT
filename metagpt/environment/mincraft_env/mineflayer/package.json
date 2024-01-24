@@ -1,0 +1,38 @@
+{
+    "name": "voyager",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "body-parser": "^1.20.2",
+        "express": "^4.18.2",
+        "magic-string": "^0.30.0",
+        "minecraft-data": "^3.31.0",
+        "minecrafthawkeye": "^1.3.6",
+        "mineflayer": "^4.8.1",
+        "mineflayer-collectblock": "file:mineflayer-collectblock",
+        "mineflayer-pathfinder": "^2.4.2",
+        "mineflayer-pvp": "^1.3.2",
+        "mineflayer-tool": "^1.2.0",
+        "mocha": "^10.2.0",
+        "prismarine-biome": "^1.3.0",
+        "prismarine-block": "=1.16.3",
+        "prismarine-entity": "^2.2.0",
+        "prismarine-item": "^1.12.1",
+        "prismarine-nbt": "^2.2.1",
+        "prismarine-recipe": "^1.3.1",
+        "prismarine-viewer": "^1.24.0",
+        "typescript": "^4.9.5",
+        "vec3": "^0.1.8",
+        "graceful-fs": "^4.2.11"
+    },
+    "devDependencies": {
+        "prettier": "2.8.5"
+    }
+}
