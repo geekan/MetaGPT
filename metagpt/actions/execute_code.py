@@ -123,7 +123,10 @@ class ExecutePyCode(ExecuteCode, Action):
             return parsed_output
 
         for i, output in enumerate(outputs):
-            if output["output_type"] == "stream":
+            if output["output_type"] == "stream" and not any(
+                tag in output["text"]
+                for tag in ["| INFO     | metagpt", "| ERROR    | metagpt", "| WARNING  | metagpt"]
+            ):
                 parsed_output += output["text"]
             elif output["output_type"] == "display_data":
                 if "image/png" in output["data"]:
