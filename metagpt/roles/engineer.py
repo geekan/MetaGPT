@@ -292,7 +292,7 @@ class Engineer(Role):
             summarizations[ctx].append(filename)
         for ctx, filenames in summarizations.items():
             ctx.codes_filenames = filenames
-            self.summarize_todos.append(SummarizeCode(i_context=ctx, llm=self.llm))
+            self.summarize_todos.append(SummarizeCode(i_context=ctx, context=self.context, llm=self.llm))
         if self.summarize_todos:
             self.set_todo(self.summarize_todos[0])
 
