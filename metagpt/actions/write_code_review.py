@@ -137,11 +137,8 @@ class WriteCodeReview(Action):
 
     async def run(self, *args, **kwargs) -> CodingContext:
         iterative_code = self.i_context.code_doc.content
-        # k = self.context.config.code_review_k_times or 1
-        k = 1
-        code_plan_and_change_doc = await self.repo.get(filename=CODE_PLAN_AND_CHANGE_FILENAME)
-        code_plan_and_change = code_plan_and_change_doc.content if code_plan_and_change_doc else ""
-        mode = "incremental" if code_plan_and_change else "normal"
+        k = self.context.config.code_review_k_times or 1
+
         for i in range(k):
             format_example = FORMAT_EXAMPLE.format(filename=self.i_context.code_doc.filename)
             task_content = self.i_context.task_doc.content if self.i_context.task_doc else ""
@@ -149,10 +146,10 @@ class WriteCodeReview(Action):
                 self.i_context.task_doc,
                 exclude=self.i_context.filename,
                 project_repo=self.repo.with_src_path(self.context.src_workspace),
-                mode=mode,
+                use_inc=self.config.inc,
             )
 
-            if not code_plan_and_change:
+            if not self.config.inc:
                 context = "\n".join(
                     [
                         "## System Design\n" + str(self.i_context.design_doc) + "\n",
@@ -162,10 +159,11 @@ class WriteCodeReview(Action):
                 )
             else:
                 requirement_doc = await self.repo.docs.get(filename=REQUIREMENT_FILENAME)
+                code_plan_and_change_doc = await self.repo.get(filename=CODE_PLAN_AND_CHANGE_FILENAME)
                 context = "\n".join(
                     [
                         "## User New Requirements\n" + str(requirement_doc) + "\n",
-                        "## Code Plan And Change\n" + code_plan_and_change + "\n",
+                        "## Code Plan And Change\n" + str(code_plan_and_change_doc) + "\n",
                         "## System Design\n" + str(self.i_context.design_doc) + "\n",
                         "## Tasks\n" + task_content + "\n",
                         "## Code Files\n" + code_context + "\n",

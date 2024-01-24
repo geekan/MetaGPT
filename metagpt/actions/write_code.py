@@ -16,7 +16,6 @@
 """
 
 import json
-from typing import Literal
 
 from pydantic import Field
 from tenacity import retry, stop_after_attempt, wait_random_exponential
@@ -114,7 +113,7 @@ class WriteCode(Action):
             code_context = coding_context.code_doc.content
         elif code_plan_and_change:
             code_context = await self.get_codes(
-                coding_context.task_doc, exclude=self.i_context.filename, project_repo=self.repo, mode="incremental"
+                coding_context.task_doc, exclude=self.i_context.filename, project_repo=self.repo, use_inc=True
             )
         else:
             code_context = await self.get_codes(
@@ -155,39 +154,31 @@ class WriteCode(Action):
         return coding_context
 
     @staticmethod
-    async def get_codes(
-        task_doc: Document, exclude: str, project_repo: ProjectRepo, mode: Literal["normal", "incremental"] = "normal"
-    ) -> str:
+    async def get_codes(task_doc: Document, exclude: str, project_repo: ProjectRepo, use_inc: bool = False) -> str:
         """
-        Get code snippets based on different modes.
+        Get code snippets that meet the requirements in various scenarios.
 
         Attributes:
             task_doc (Document): Document object of the task file.
             exclude (str): Specifies the filename to be excluded from the code snippets.
             project_repo (ProjectRepo): ProjectRepo object of the project.
-            mode (str): Specifies the mode, either "normal" or "incremental" (default is "normal").
+            use_inc (bool): Specifies whether is incremental development.
 
         Returns:
             str: Code snippets.
-
-        Description:
-        If mode is set to "normal", it returns code snippets for the regular coding phase,
-        i.e., all the code generated before writing the current file.
-
-        If mode is set to "incremental", it returns code snippets for generating the code plan and change,
-        building upon the existing code in the "normal" mode and adding code for the current file's older versions.
         """
         if not task_doc:
             return ""
         if not task_doc.content:
             task_doc = project_repo.docs.task.get(filename=task_doc.filename)
         m = json.loads(task_doc.content)
-        code_filenames = m.get(TASK_LIST.key, []) if mode == "normal" else m.get(REFINED_TASK_LIST.key, [])
+        code_filenames = m.get(TASK_LIST.key, []) if use_inc else m.get(REFINED_TASK_LIST.key, [])
         codes = []
         src_file_repo = project_repo.srcs
 
-        if mode == "incremental":
+        if use_inc:
             src_files = src_file_repo.all_files
+            # Get the old workspace that are created by the previous WriteCodePlanAndChange action
             old_file_repo = project_repo.git_repo.new_file_repository(relative_path=project_repo.old_workspace)
             old_files = old_file_repo.all_files
             # Get the union of the files in the src and old workspaces
@@ -213,7 +204,7 @@ class WriteCode(Action):
                         continue
                     codes.append(f"----- {filename}\n```{doc.content}```")
 
-        elif mode == "normal":
+        else:
             for filename in code_filenames:
                 # Exclude the current file to get the context code snippets for generating the current file
                 if filename == exclude:
@@ -222,4 +213,5 @@ class WriteCode(Action):
                 if not doc:
                     continue
                 codes.append(f"----- {filename}\n```{doc.content}```")
+
         return "\n".join(codes)

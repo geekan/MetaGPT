@@ -23,7 +23,7 @@ import json
 import os
 from collections import defaultdict
 from pathlib import Path
-from typing import Literal, Set
+from typing import Set
 
 from metagpt.actions import Action, WriteCode, WriteCodeReview, WriteTasks
 from metagpt.actions.fix_bug import FixBug
@@ -100,7 +100,7 @@ class Engineer(Role):
         m = json.loads(task_msg.content)
         return m.get(TASK_LIST.key) or m.get(REFINED_TASK_LIST.key)
 
-    async def _act_sp_with_cr(self, review=False, mode: Literal["normal", "incremental"] = "normal") -> Set[str]:
+    async def _act_sp_with_cr(self, review=False) -> Set[str]:
         changed_files = set()
         for todo in self.code_todos:
             """
@@ -118,7 +118,7 @@ class Engineer(Role):
                 coding_context = await action.run()
 
             dependencies = {coding_context.design_doc.root_relative_path, coding_context.task_doc.root_relative_path}
-            if mode == "incremental":
+            if self.config.inc:
                 dependencies.add(os.path.join(CODE_PLAN_AND_CHANGE_FILE_REPO, CODE_PLAN_AND_CHANGE_FILENAME))
             await self.project_repo.srcs.save(
                 filename=coding_context.filename,
