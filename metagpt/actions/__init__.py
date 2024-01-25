@@ -24,7 +24,6 @@ from metagpt.actions.write_prd_review import WritePRDReview
 from metagpt.actions.write_test import WriteTest
 from metagpt.actions.execute_code import ExecutePyCode
 from metagpt.actions.write_analysis_code import WriteCodeByGenerate
-from metagpt.actions.write_plan import WritePlan
 
 
 class ActionType(Enum):
@@ -47,7 +46,6 @@ class ActionType(Enum):
     CONDUCT_RESEARCH = ConductResearch
     EXECUTE_PYCODE = ExecutePyCode
     WRITE_CODE_BY_GENERATE = WriteCodeByGenerate
-    WRITE_PLAN = WritePlan
 
 
 __all__ = [

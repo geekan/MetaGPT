@@ -25,16 +25,13 @@ async def run_code_interpreter(
     """
 
     if role_class == "ci":
-        role = CodeInterpreter(
-            goal=requirement, auto_run=auto_run, use_tools=use_tools, make_udfs=make_udfs, tools=tools
-        )
+        role = CodeInterpreter(goal=requirement, auto_run=auto_run, use_tools=use_tools, tools=tools)
     else:
         role = MLEngineer(
             goal=requirement,
             auto_run=auto_run,
             use_tools=use_tools,
             use_code_steps=use_code_steps,
-            make_udfs=make_udfs,
             tools=tools,
         )
 
@@ -69,8 +66,8 @@ if __name__ == "__main__":
 
     save_dir = ""
 
-    # role_class = "ci"
-    role_class = "mle"
+    role_class = "ci"
+    # role_class = "mle"
     auto_run = True
     use_tools = True
     make_udfs = False

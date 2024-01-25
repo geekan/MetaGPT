@@ -37,7 +37,7 @@ from metagpt.logs import logger
 from metagpt.memory import Memory
 from metagpt.plan.planner import Planner
 from metagpt.provider.base_llm import BaseLLM
-from metagpt.schema import Message, MessageQueue, SerializationMixin, Task, TaskResult
+from metagpt.schema import Message, MessageQueue, SerializationMixin
 from metagpt.utils.common import (
     any_to_name,
     any_to_str,
@@ -146,6 +146,7 @@ class Role(SerializationMixin, is_polymorphic_base=True):
     actions: list[SerializeAsAny[Action]] = Field(default=[], validate_default=True)
     rc: RoleContext = Field(default_factory=RoleContext)
     subscription: set[str] = set()
+    use_plan: bool = False
     planner: Planner = None
 
     # builtin variables
@@ -248,7 +249,7 @@ class Role(SerializationMixin, is_polymorphic_base=True):
             self.actions.append(i)
             self.states.append(f"{idx}. {action}")
 
-    def _set_react_mode(self, react_mode: str, max_react_loop: int = 1, auto_run: bool = True, use_tools: bool = False):
+    def _set_react_mode(self, react_mode: str, max_react_loop: int = 1):
         """Set strategy of the Role reacting to observed Message. Variation lies in how
         this Role elects action to perform during the _think stage, especially if it is capable of multiple Actions.
 
@@ -268,10 +269,17 @@ class Role(SerializationMixin, is_polymorphic_base=True):
         self.rc.react_mode = react_mode
         if react_mode == RoleReactMode.REACT:
             self.rc.max_react_loop = max_react_loop
-        elif react_mode == RoleReactMode.PLAN_AND_ACT:
-            self.planner = Planner(
-                goal=self.goal, working_memory=self.rc.working_memory, auto_run=auto_run, use_tools=use_tools
-            )
+
+    def set_planner(self, actions: list[dict], auto_run: bool = True, use_tools: bool = False):
+        assert self.use_plan
+        self.rc.max_react_loop = 100  # a large number meaning no restriction
+        self.planner = Planner(
+            goal=self.goal,
+            working_memory=self.rc.working_memory,
+            auto_run=auto_run,
+            use_tools=use_tools,
+            actions=actions,
+        )
 
     def _watch(self, actions: Iterable[Type[Action]] | Iterable[Action]):
         """Watch Actions of interest. Role will select Messages caused by these Actions from its personal message
@@ -330,6 +338,15 @@ class Role(SerializationMixin, is_polymorphic_base=True):
 
     async def _think(self) -> bool:
         """Consider what to do and decide on the next course of action. Return false if nothing can be done."""
+        if self.use_plan:
+            # 撰写plan
+            if not self.planner.plan.tasks:
+                await self.planner.update_plan()
+
+            self.rc.todo = self.planner.current_action
+
+            return self.rc.todo is not None
+
         if len(self.actions) == 1:
             # If there is only one action, then only this one can be performed
             self._set_state(0)
@@ -365,7 +382,10 @@ class Role(SerializationMixin, is_polymorphic_base=True):
 
     async def _act(self) -> Message:
         logger.info(f"{self._setting}: to do {self.rc.todo}({self.rc.todo.name})")
-        response = await self.rc.todo.run(self.rc.history)
+        if self.use_plan:
+            response = await self.planner.run_current_action()
+        else:
+            response = await self.rc.todo.run(self.rc.history)
         if isinstance(response, (ActionOutput, ActionNode)):
             msg = Message(
                 content=response.content,
@@ -449,66 +469,12 @@ class Role(SerializationMixin, is_polymorphic_base=True):
             rsp = await self._act()
         return rsp  # return output from the last action
 
-    async def _plan_and_act(self) -> Message:
-        """first plan, then execute an action sequence, i.e. _think (of a plan) -> _act -> _act -> ... Use llm to come up with the plan dynamically."""
-
-        ### Common Procedure in both single- and multi-agent setting ###
-        # create initial plan and update until confirmation
-        await self.planner.update_plan()
-
-        while self.planner.current_task:
-            task = self.planner.current_task
-            logger.info(f"ready to take on task {task}")
-
-            # take on current task
-            task_result = await self._act_on_task(task)
-
-            # ask for acceptance, users can other refuse and change tasks in the plan
-            review, task_result_confirmed = await self.planner.ask_review(task_result)
-
-            if task_result_confirmed:
-                # tick off this task and record progress
-                await self.planner.confirm_task(task, task_result, review)
-
-            elif "redo" in review:
-                # Ask the Role to redo this task with help of review feedback,
-                # useful when the code run is successful but the procedure or result is not what we want
-                continue
-
-            else:
-                # update plan according to user's feedback and to take on changed tasks
-                await self.planner.update_plan()
-
-        completed_plan_memory = self.planner.get_useful_memories()  # completed plan as a outcome
-
-        rsp = completed_plan_memory[0]
-
-        self.rc.memory.add(rsp)  # add to persistent memory
-
-        return rsp
-
-    async def _act_on_task(self, current_task: Task) -> TaskResult:
-        """Taking specific action to handle one task in plan
-
-        Args:
-            current_task (Task): current task to take on
-
-        Raises:
-            NotImplementedError: Specific Role must implement this method if expected to use planner
-
-        Returns:
-            TaskResult: Result from the actions
-        """
-        raise NotImplementedError
-
     async def react(self) -> Message:
         """Entry to one of three strategies by which Role reacts to the observed Message"""
         if self.rc.react_mode == RoleReactMode.REACT:
             rsp = await self._react()
         elif self.rc.react_mode == RoleReactMode.BY_ORDER:
             rsp = await self._act_by_order()
-        elif self.rc.react_mode == RoleReactMode.PLAN_AND_ACT:
-            rsp = await self._plan_and_act()
         self._set_state(state=-1)  # current reaction is complete, reset state to -1 and todo back to None
         return rsp
 
