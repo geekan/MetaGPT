@@ -127,6 +127,12 @@ class Config(CLIParams, YamlModel):
         self.reqa_file = reqa_file
         self.max_auto_summarize_code = max_auto_summarize_code
 
+    def set_other(self, other: dict):
+        self.other = other
+
+    def get_other(self, key: str):
+        return self.other.get(key)
+
     def get_openai_llm(self) -> Optional[LLMConfig]:
         """Get OpenAI LLMConfig by name. If no OpenAI, raise Exception"""
         if self.llm.api_type == LLMType.OPENAI:
