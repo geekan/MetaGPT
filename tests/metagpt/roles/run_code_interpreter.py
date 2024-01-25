@@ -9,9 +9,7 @@ from metagpt.schema import Plan
 from metagpt.utils.recovery_util import load_history, save_history
 
 
-async def run_code_interpreter(
-    role_class, requirement, auto_run, use_tools, use_code_steps, make_udfs, use_udfs, save_dir, tools
-):
+async def run_code_interpreter(role_class, requirement, auto_run, use_tools, use_code_steps, save_dir, tools):
     """
     The main function to run the MLEngineer with optional history loading.
 
@@ -47,9 +45,9 @@ async def run_code_interpreter(
     try:
         await role.run(requirement)
     except Exception as e:
-        save_path = save_history(role, save_dir)
-
         logger.exception(f"An error occurred: {e}, save trajectory here: {save_path}")
+
+    save_history(role, save_dir)
 
 
 if __name__ == "__main__":
@@ -81,13 +79,9 @@ if __name__ == "__main__":
         auto_run: bool = auto_run,
         use_tools: bool = use_tools,
         use_code_steps: bool = False,
-        make_udfs: bool = make_udfs,
-        use_udfs: bool = use_udfs,
         save_dir: str = save_dir,
         tools=tools,
     ):
-        await run_code_interpreter(
-            role_class, requirement, auto_run, use_tools, use_code_steps, make_udfs, use_udfs, save_dir, tools
-        )
+        await run_code_interpreter(role_class, requirement, auto_run, use_tools, use_code_steps, save_dir, tools)
 
     fire.Fire(main)
