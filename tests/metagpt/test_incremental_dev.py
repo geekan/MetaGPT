@@ -105,8 +105,16 @@ def log_and_check_result(result, tag_name="refine"):
 
 def get_incremental_dev_result(idea, project_name, use_review=True):
     project_path = TEST_DATA_PATH / "incremental_dev_project" / project_name
-    if project_path.exists():
-        raise Exception(f"Project {project_name} not exists")
+    # Check if the project path exists
+    if not project_path.exists():
+        # If the project does not exist, extract the project file
+        try:
+            # Use the tar command to extract the .zip file
+            subprocess.run(["tar", "-xf", f"{project_path}.zip", "-C", str(project_path.parent)], check=True)
+        except subprocess.CalledProcessError as e:
+            # If the extraction fails, throw an exception
+            raise Exception(f"Failed to unzip project {project_name}. Error: {e}")
+
     check_or_create_base_tag(project_path)
     args = [idea, "--inc", "--project-path", project_path, "--n-round", "20"]
     if not use_review:
@@ -146,14 +154,18 @@ def check_or_create_base_tag(project_path):
         logger.info("Base tag doesn't exist.")
         # Add and commit the current code if 'base' tag doesn't exist
         add_cmd = ["git", "add", "."]
-        commit_cmd = ["git", "commit", "-m", "Initial commit"]
         try:
             subprocess.run(add_cmd, check=True)
+            logger.info("Files added successfully.")
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Failed to add files: {e}")
+
+        commit_cmd = ["git", "commit", "-m", "Initial commit"]
+        try:
             subprocess.run(commit_cmd, check=True)
-            logger.info("Added and committed all files with the message 'Initial commit'.")
-        except Exception as e:
-            logger.error("Failed to add and commit all files.")
-            raise e
+            logger.info("Committed all files with the message 'Initial commit'.")
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Failed to commit: {e.stderr}")
 
         # Add 'base' tag
         add_base_tag_cmd = ["git", "tag", "base"]
