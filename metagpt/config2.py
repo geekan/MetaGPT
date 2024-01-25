@@ -80,6 +80,7 @@ class Config(CLIParams, YamlModel):
     AZURE_TTS_SUBSCRIPTION_KEY: str = ""
     AZURE_TTS_REGION: str = ""
     mermaid_engine: str = "nodejs"
+    other: dict = dict()  # other dict
 
     @classmethod
     def from_home(cls, path):
@@ -117,6 +118,12 @@ class Config(CLIParams, YamlModel):
         self.inc = inc
         self.reqa_file = reqa_file
         self.max_auto_summarize_code = max_auto_summarize_code
+
+    def set_other(self, other: dict):
+        self.other = other
+
+    def get_other(self, key: str):
+        return self.other.get(key)
 
     def get_openai_llm(self) -> Optional[LLMConfig]:
         """Get OpenAI LLMConfig by name. If no OpenAI, raise Exception"""
