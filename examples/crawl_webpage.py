@@ -2,7 +2,7 @@
 """
 @Date    :   2024/01/24 15:11:27
 @Author  :   orange-crow
-@File    :   crawle_webpage.py
+@File    :   crawl_webpage.py
 """
 
 from metagpt.roles.code_interpreter import CodeInterpreter
