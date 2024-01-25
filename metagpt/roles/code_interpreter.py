@@ -79,7 +79,11 @@ class CodeInterpreter(Role):
                 if ReviewConst.CHANGE_WORD[0] in review:
                     counter = 0  # redo the task again with help of human suggestions
 
-        return code["code"] if code.get("language") != "markdown" else "", result, success
+        py_code = (
+            code["code"] if code.get("language") != "markdown" else ""
+        )  # use python code as final code; for markdown, return the rendered result instead of the code itself
+
+        return py_code, result, success
 
     async def _write_code(self):
         todo = WriteCodeByGenerate() if not self.use_tools else WriteCodeWithTools(selected_tools=self.tools)
