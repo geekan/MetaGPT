@@ -25,7 +25,7 @@ The current task is about feature engineering. when performing it, please adhere
 # Prompt for using tools of "model_train" type
 MODEL_TRAIN_PROMPT = """
 The current task is about training a model, please ensure high performance:
-- Keep in mind that your user prioritizes results and is highly focused on model performance. So, when needed, feel free to use models of any complexity to improve effectiveness, such as lightGBM, XGBoost, CatBoost, etc.
+- Keep in mind that your user prioritizes results and is highly focused on model performance. So, when needed, feel free to use models of any complexity to improve effectiveness, such as XGBoost, CatBoost, etc.
 - If non-numeric columns exist, perform label encode together with all steps.
 - Use the data from previous task result directly, do not mock or reload data yourself.
 - Set suitable hyperparameters for the model, make metrics as high as possible.
