@@ -46,7 +46,7 @@ class WriteDesign(Action):
     )
 
     async def run(self, with_messages: Message, schema: str = None):
-        # Use `git status` to identify which PRD documents have been modified in the `docs/prds` directory.
+        # Use `git status` to identify which PRD documents have been modified in the `docs/prd` directory.
         changed_prds = self.repo.docs.prd.changed_files
         # Use `git status` to identify which design documents in the `docs/system_designs` directory have undergone
         # changes.
