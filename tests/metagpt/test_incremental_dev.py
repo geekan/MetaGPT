@@ -113,7 +113,7 @@ def get_incremental_dev_result(idea, project_name, use_review=True):
             subprocess.run(["tar", "-xf", f"{project_path}.zip", "-C", str(project_path.parent)], check=True)
         except subprocess.CalledProcessError as e:
             # If the extraction fails, throw an exception
-            raise Exception(f"Failed to unzip project {project_name}. Error: {e}")
+            raise Exception(f"Failed to extract project {project_name}. Error: {e}")
 
     check_or_create_base_tag(project_path)
     args = [idea, "--inc", "--project-path", project_path, "--n-round", "20"]
