@@ -79,7 +79,10 @@ def count_message_tokens(messages, model="gpt-3.5-turbo-0613"):
         "gpt-4-32k-0314",
         "gpt-4-0613",
         "gpt-4-32k-0613",
+        "gpt-4-turbo-preview",
+        "gpt-4-0125-preview",
         "gpt-4-1106-preview",
+        "gpt-4-1106-vision-preview",
     }:
         tokens_per_message = 3  # # every reply is primed with <|start|>assistant<|message|>
         tokens_per_name = 1
