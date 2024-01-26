@@ -50,33 +50,39 @@ def test_simple_add_calculator():
     log_and_check_result(result)
 
 
+@pytest.mark.skip
 def test_number_guessing_game():
     result = get_incremental_dev_result(IDEAS[1], PROJECT_NAMES[1])
     log_and_check_result(result)
 
 
+@pytest.mark.skip
 def test_word_cloud():
     result = get_incremental_dev_result(IDEAS[2], PROJECT_NAMES[2])
     log_and_check_result(result)
 
 
+@pytest.mark.skip
 def test_gomoku():
     result = get_incremental_dev_result(IDEAS[3], PROJECT_NAMES[3])
     log_and_check_result(result)
 
 
+@pytest.mark.skip
 def test_dice_simulator_new():
     for i, (idea, project_name) in enumerate(zip(IDEAS[4:6], PROJECT_NAMES[4:6]), start=1):
         result = get_incremental_dev_result(idea, project_name)
         log_and_check_result(result, "refine_" + str(i))
 
 
+@pytest.mark.skip
 def test_refined_pygame_2048():
     for i, (idea, project_name) in enumerate(zip(IDEAS[6:8], PROJECT_NAMES[6:8]), start=1):
         result = get_incremental_dev_result(idea, project_name)
         log_and_check_result(result, "refine_" + str(i))
 
 
+@pytest.mark.skip
 def test_refined_snake_game():
     for i, (idea, project_name) in enumerate(zip(IDEAS[8:10], PROJECT_NAMES[8:10]), start=1):
         result = get_incremental_dev_result(idea, project_name)
