@@ -178,7 +178,7 @@ class Engineer(Role):
             is_pass, reason = await self._is_pass(summary)
             if not is_pass:
                 todo.i_context.reason = reason
-                tasks.append(todo.i_context.dict())
+                tasks.append(todo.i_context.model_dump())
 
                 await self.project_repo.docs.code_summary.save(
                     filename=Path(todo.i_context.design_filename).name,
