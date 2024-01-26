@@ -121,7 +121,7 @@ class DotClassAttribute(BaseModel):
         }
         result = set()
         for t in types:
-            t = t.strip()
+            t = re.sub(r"['\"]", "", t.strip())
             if t and t not in filters:
                 result.add(t)
         return list(result)

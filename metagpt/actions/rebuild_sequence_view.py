@@ -267,7 +267,7 @@ class RebuildSequenceView(Action):
         for r in rows:
             _, name = split_namespace(r.subject)
             if name == class_name:
-                participants.append(name)
+                participants.append(r)
         if len(participants) == 0:
             await self.graph_db.insert(
                 subject=entry.subject, predicate=GraphKeyword.HAS_PARTICIPANT, object_=concat_namespace("?", class_name)
@@ -303,6 +303,10 @@ class RebuildSequenceView(Action):
         block = "## Source Code\n```python\n"
         block += await self._get_source_code(participant.subject)
         block += "\n```\n"
+        prompt_blocks.append(block)
+        block = "## Legacy Sequence View\n"
+        rows = await self.graph_db.select(subject=entry.subject, predicate=GraphKeyword.HAS_SEQUENCE_VIEW)
+        block += rows[0].object_
         prompt_blocks.append(block)
         prompt = "\n---\n".join(prompt_blocks)
 
