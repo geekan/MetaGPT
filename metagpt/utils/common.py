@@ -23,6 +23,7 @@ import re
 import sys
 import traceback
 import typing
+import base64
 from pathlib import Path
 from typing import Any, List, Tuple, Union
 
@@ -591,3 +592,8 @@ def list_files(root: str | Path) -> List[Path]:
     except Exception as e:
         logger.error(f"Error: {e}")
     return files
+
+
+def encode_image(image_path: Path, encoding: str = "utf-8") -> str:
+    with open(str(image_path), "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode(encoding)
