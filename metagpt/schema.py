@@ -45,6 +45,7 @@ from metagpt.const import (
     TASK_FILE_REPO,
 )
 from metagpt.logs import logger
+from metagpt.repo_parser import DotClassInfo
 from metagpt.utils.common import any_to_str, any_to_str_set, import_class
 from metagpt.utils.exceptions import handle_exception
 from metagpt.utils.serialize import (
@@ -538,3 +539,19 @@ class UMLClassView(UMLClassMeta):
             content += v.get_mermaid(align=align + 1) + "\n"
         content += "".join(["\t" for i in range(align)]) + "}\n"
         return content
+
+    @classmethod
+    def load_dot_class_info(cls, dot_class_info: DotClassInfo) -> UMLClassView:
+        visibility = UMLClassView.name_to_visibility(dot_class_info.name)
+        class_view = cls(name=dot_class_info.name, visibility=visibility)
+        for i in dot_class_info.attributes.values():
+            visibility = UMLClassAttribute.name_to_visibility(i.name)
+            attr = UMLClassAttribute(name=i.name, visibility=visibility, value_type=i.type_, default_value=i.default_)
+            class_view.attributes.append(attr)
+        for i in dot_class_info.methods.values():
+            visibility = UMLClassMethod.name_to_visibility(i.name)
+            method = UMLClassMethod(name=i.name, visibility=visibility, return_type=i.return_args.type_)
+            for j in i.args:
+                arg = UMLClassAttribute(name=j.name, value_type=j.type_, default_value=j.default_)
+                method.args.append(arg)
+        return class_view

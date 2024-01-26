@@ -23,7 +23,7 @@ from metagpt.const import (
 )
 from metagpt.logs import logger
 from metagpt.repo_parser import DotClassInfo, RepoParser
-from metagpt.schema import UMLClassAttribute, UMLClassMethod, UMLClassView
+from metagpt.schema import UMLClassView
 from metagpt.utils.common import concat_namespace, split_namespace
 from metagpt.utils.di_graph_repository import DiGraphRepository
 from metagpt.utils.graph_repository import GraphKeyword, GraphRepository
@@ -86,18 +86,7 @@ class RebuildClassView(Action):
         if not rows:
             return ""
         dot_class_info = DotClassInfo.model_validate_json(rows[0].object_)
-        visibility = UMLClassView.name_to_visibility(dot_class_info.name)
-        class_view = UMLClassView(name=dot_class_info.name, visibility=visibility)
-        for i in dot_class_info.attributes.values():
-            visibility = UMLClassAttribute.name_to_visibility(i.name)
-            attr = UMLClassAttribute(name=i.name, visibility=visibility, value_type=i.type_, default_value=i.default_)
-            class_view.attributes.append(attr)
-        for i in dot_class_info.methods.values():
-            visibility = UMLClassMethod.name_to_visibility(i.name)
-            method = UMLClassMethod(name=i.name, visibility=visibility, return_type=i.return_args.type_)
-            for j in i.args:
-                arg = UMLClassAttribute(name=j.name, value_type=j.type_, default_value=j.default_)
-                method.args.append(arg)
+        class_view = UMLClassView.load_dot_class_info(dot_class_info)
 
         # update uml view
         await self.graph_db.insert(ns_class_name, GraphKeyword.HAS_CLASS_VIEW, class_view.model_dump_json())

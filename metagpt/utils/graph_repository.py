@@ -37,8 +37,10 @@ class GraphKeyword:
     HAS_PAGE_INFO = "has_page_info"
     HAS_CLASS_VIEW = "has_class_view"
     HAS_SEQUENCE_VIEW = "has_sequence_view"
+    HAS_CLASS_USE_CASE = "has_class_use_case"
     IS_COMPOSITE_OF = "is_composite_of"
     IS_AGGREGATE_OF = "is_aggregate_of"
+    HAS_PARTICIPANT = "has_participant"
 
 
 class SPO(BaseModel):
