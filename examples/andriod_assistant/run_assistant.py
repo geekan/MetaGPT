@@ -16,6 +16,7 @@ app = typer.Typer(add_completion=False, pretty_exceptions_show_locals=False)
 
 @app.command("", help="Run a Android Assistant")
 def startup(
+    task_desc: str = typer.Argument(help="the task description you want the android assistant to learn or act"),
     n_round: int = typer.Option(default=20, help="The max round to do an app operation task."),
     stage: str = typer.Option(default="learn", help="stage: learn / act"),
     mode: str = typer.Option(default="auto", help="mode: auto / manual , when state=learn"),
@@ -49,7 +50,7 @@ def startup(
     team = Team(env=AndroidEnv())
     team.hire([AndroidAssistant])
     team.invest(investment)
-    company.run_project(idea="")  # no need idea, just a mock
+    company.run_project(idea=task_desc)
 
     asyncio.run(team.run(n_round=n_round))
 
