@@ -5,11 +5,10 @@
 @Author  : alexanderwu
 @File    : test_action_node.py
 """
+from pathlib import Path
 from typing import List, Tuple
 
 import pytest
-import base64
-from pathlib import Path
 from pydantic import ValidationError
 
 from metagpt.actions import Action
@@ -247,10 +246,7 @@ def test_create_model_class_with_mapping():
 @pytest.mark.asyncio
 async def test_action_node_with_image():
     invoice = ActionNode(
-        key="invoice",
-        expected_type=bool,
-        instruction="if it's a invoice file, return True else False",
-        example="False"
+        key="invoice", expected_type=bool, instruction="if it's a invoice file, return True else False", example="False"
     )
 
     invoice_path = Path(__file__).parent.joinpath("..", "..", "data", "invoices", "invoice-2.png")

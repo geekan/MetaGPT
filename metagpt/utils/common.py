@@ -12,6 +12,7 @@
 from __future__ import annotations
 
 import ast
+import base64
 import contextlib
 import csv
 import importlib
@@ -23,7 +24,6 @@ import re
 import sys
 import traceback
 import typing
-import base64
 from pathlib import Path
 from typing import Any, List, Tuple, Union
 

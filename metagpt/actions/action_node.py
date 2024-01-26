@@ -395,7 +395,9 @@ class ActionNode:
         if schema != "raw":
             mapping = self.get_mapping(mode, exclude=exclude)
             class_name = f"{self.key}_AN"
-            content, scontent = await self._aask_v1(prompt, class_name, mapping, images=images, schema=schema, timeout=timeout)
+            content, scontent = await self._aask_v1(
+                prompt, class_name, mapping, images=images, schema=schema, timeout=timeout
+            )
             self.content = content
             self.instruct_content = scontent
         else:
@@ -404,7 +406,17 @@ class ActionNode:
 
         return self
 
-    async def fill(self, context, llm, schema="json", mode="auto", strgy="simple", images: Optional[Union[str, list[str]]] = None, timeout=3, exclude=[]):
+    async def fill(
+        self,
+        context,
+        llm,
+        schema="json",
+        mode="auto",
+        strgy="simple",
+        images: Optional[Union[str, list[str]]] = None,
+        timeout=3,
+        exclude=[],
+    ):
         """Fill the node(s) with mode.
 
         :param context: Everything we should know when filling node.
