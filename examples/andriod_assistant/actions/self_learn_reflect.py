@@ -7,7 +7,7 @@ from pathlib import Path
 from examples.andriod_assistant.prompts.assistant_prompt import (
     screenshot_parse_self_explore_reflect_template,
 )
-from examples.andriod_assistant.utils.schema import AndroidElement
+from examples.andriod_assistant.utils.schema import AndroidElement, ActionOp, SwipeOp
 from examples.andriod_assistant.utils.utils import draw_bbox_multi
 from metagpt.actions.action import Action
 from metagpt.environment.android_env.android_env import AndroidEnv
@@ -27,7 +27,7 @@ class SelfLearnReflect(Action):
         env: AndroidEnv,
         elem_list: list[AndroidElement],
         act_name: str,
-        swipe_dir: str,
+        swipe_orient: str,
         ui_area: int,
     ):
         if act_name == "text":
@@ -47,15 +47,15 @@ class SelfLearnReflect(Action):
         encode_image(task_dir.joinpath(f"{round_count}_after_labeled.png"))
 
         reflect_template = screenshot_parse_self_explore_reflect_template
-        if act_name == "tap":
+        if act_name == ActionOp.TAP.value:
             action = "tapping"
-        elif act_name == "long_press":
+        elif act_name == ActionOp.LONG_PRESS.value:
             action = "long pressing"
-        elif act_name == "swipe":
+        elif act_name == ActionOp.SWIPE.value:
             action = "swiping"
-            if swipe_dir == "up" or swipe_dir == "down":
+            if swipe_orient == SwipeOp.UP.value or swipe_orient == SwipeOp.DOWN.value:
                 action = "v_swipe"
-            elif swipe_dir == "left" or swipe_dir == "right":
+            elif swipe_orient == SwipeOp.LEFT.value or swipe_orient == SwipeOp.RIGHT.value:
                 action = "h_swipe"
 
         reflect_template.format(action=action, ui_element=str(ui_area), task_desc=task_desc, last_act=last_act)

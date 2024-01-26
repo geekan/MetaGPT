@@ -59,9 +59,9 @@ class SelfLearn(Action):
             if not close:
                 elem_list.append(elem)
         draw_bbox_multi(screenshot_path, task_dir.joinpath(f"{round_count}_before_labeled.png"), elem_list)
-        encode_image(task_dir.joinpath(f"{round_count}_before_labeled.png"))
+        img_base64 = encode_image(task_dir.joinpath(f"{round_count}_before_labeled.png"))
 
         self_explore_template = screenshot_parse_self_explore_template
         context = self_explore_template.format(task_description=task_desc, last_act=last_act)
 
-        await SCREENSHOT_PARSE_NODE.fill(context=context, llm=self.llm)
+        node = await SCREENSHOT_PARSE_NODE.fill(context=context, llm=self.llm, images=[img_base64])

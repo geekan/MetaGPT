@@ -2,17 +2,19 @@
 # -*- coding: utf-8 -*-
 # @Desc   :
 
-from pydantic import Field, BaseModel
+from typing import Union
 from xml.etree.ElementTree import Element, iterparse
 import cv2
 from pathlib import Path
 import pyshine as ps
-import base64
+import re
 
 from metagpt.config2 import config
 from metagpt.logs import logger
 
 from examples.andriod_assistant.utils.schema import AndroidElement
+from examples.andriod_assistant.utils.schema import BaseOpParam, BaseGridOpParam, GridOp, ActionOp, TapOp, TapGridOp, \
+    LongPressOp, LongPressGridOp, SwipeOp, SwipeGridOp, TextOp, ParamExtState
 
 
 def get_id_from_element(elem: Element) -> str:
@@ -134,7 +136,7 @@ def draw_grid(img_path: Path, output_path: Path) -> tuple[int, int]:
     return rows, cols
 
 
-def area_to_xy(width: int, height: int, cols: int, rows: int, area: int, subarea: str) -> tuple[int, int]:
+def area_to_xy(area: int, subarea: str, width: int, height: int, rows: int, cols: int) -> tuple[int, int]:
     area -= 1
     row, col = area // cols, area % cols
     x_0, y_0 = col * (width // cols), row * (height // rows)
@@ -157,3 +159,78 @@ def area_to_xy(width: int, height: int, cols: int, rows: int, area: int, subarea
     else:
         x, y = x_0 + (width // cols) // 2, y_0 + (height // rows) // 2
     return x, y
+
+
+def elem_bbox_to_xy(bbox: tuple[tuple[int, int]]) -> tuple[int, int]:
+    tl, br = bbox
+    x, y = (tl[0] + br[0]) // 2, (tl[1] + br[1]) // 2
+    return x, y
+
+
+def screenshot_parse_extract(parsed_json: dict, grid_on: bool = False) -> Union[BaseOpParam, BaseGridOpParam, GridOp]:
+    act = parsed_json.get("Action")
+    last_act = parsed_json.get("Summary")
+    act_name = act.split("(")[0]
+
+    if ParamExtState.FINISH.value.upper() in act:
+        return BaseOpParam(param_state=ParamExtState.FINISH)
+
+    if grid_on:
+        return screenshot_parse_extract_with_grid(act_name, act, last_act)
+    else:
+        return screenshot_parse_extract_without_grid(act_name, act, last_act)
+
+
+def op_params_clean(params: list[str]) -> list[Union[int, str]]:
+    param_values = []
+    for param_value in params:
+        if '"' in param_value or "'" in param_value:  # remove `"`
+            param_values.append(param_value.strip()[1:-1])
+        else:
+            param_values.append(int(param_value))
+    return param_values
+
+
+def screenshot_parse_extract_without_grid(act_name: str, act: str, last_act: str) -> Union[BaseOpParam, GridOp]:
+    if act_name == ActionOp.TAP.value:
+        area = int(re.findall(r"tap\((.*?)\)", act)[0])
+        op = TapOp(act_name=act_name, area=area, last_act=last_act)
+    elif act_name == ActionOp.TEXT.value:
+        input_str = re.findall(r"text\((.*?)\)", act)[0][1:-1]
+        op = TextOp(act_name=act_name, input_str=input_str, last_act=last_act)
+    elif act_name == ActionOp.LONG_PRESS.value:
+        area = int(re.findall(r"long_press\((.*?)\)", act)[0])
+        op = LongPressOp(act_name=act_name, area=area, last_act=last_act)
+    elif act_name == ActionOp.SWIPE.value:
+        params = re.findall(r"swipe\((.*?)\)", act)[0].split(",")
+        params = op_params_clean(params)  # area, swipe_orient, dist
+        op = SwipeOp(act_name=act_name, area=params[0], swipe_orient=params[1], dist=params[2], last_act=last_act)
+    elif act_name == ActionOp.GRID.value:
+        op = GridOp(act_name=act_name)
+    else:
+        op = BaseOpParam(param_state=ParamExtState.FAIL)
+    return op
+
+
+def screenshot_parse_extract_with_grid(act_name: str, act: str, last_act: str) -> Union[BaseGridOpParam, GridOp]:
+    if act_name == ActionOp.TAP.value:
+        params = re.findall(r"tap\((.*?)\)", act)[0].split(",")
+        params = op_params_clean(params)
+        op = TapGridOp(act_name=act_name, area=params[0], subarea=params[1], last_act=last_act)
+    elif act_name == ActionOp.LONG_PRESS.value:
+        params = re.findall(r"long_press\((.*?)\)", act)[0].split(",")
+        params = op_params_clean(params)
+        op = LongPressGridOp(act_name=act_name, area=params[0], subarea=params[1], last_act=last_act)
+    elif act_name == ActionOp.SWIPE.value:
+        params = re.findall(r"swipe\((.*?)\)", act)[0].split(",")
+        params = op_params_clean(params)
+        op = SwipeGridOp(act_name=act_name,
+                         start_area=params[0],
+                         start_subarea=params[1],
+                         end_area=params[2],
+                         end_subarea=params[3])
+    elif act_name == ActionOp.GRID.value:
+        op = GridOp(act_name=act_name)
+    else:
+        op = BaseGridOpParam(param_state=ParamExtState.FAIL)
+    return op
