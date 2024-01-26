@@ -24,6 +24,8 @@ TAG = "CONTENT"
 
 LANGUAGE_CONSTRAINT = "Language: Please use the same language as Human INPUT."
 FORMAT_CONSTRAINT = f"Format: output wrapped inside [{TAG}][/{TAG}] like format example, nothing else."
+# Delete comments in json
+# If you don't want JSONDecodeError to occur, you can add Delete comments in json after FORMAT_CONSTRAINT
 
 
 SIMPLE_TEMPLATE = """

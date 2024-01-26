@@ -120,13 +120,21 @@ def repair_json_format(output: str) -> str:
     elif output.startswith("{") and output.endswith("]"):
         output = output[:-1] + "}"
 
-    # remove `#` in output json str, usually appeared in `glm-4`
+    # remove comments in output json str, after json value content, maybe start with #, maybe start with //
     arr = output.split("\n")
     new_arr = []
     for line in arr:
-        idx = line.find("#")
-        if idx >= 0:
-            line = line[:idx]
+        # look for # or // comments and make sure they are not inside the string value
+        comment_index = -1
+        for match in re.finditer(r"(\".*?\"|\'.*?\')|(#|//)", line):
+            if match.group(1):  # if the string value
+                continue
+            if match.group(2):  # if comments
+                comment_index = match.start(2)
+                break
+        # if comments, then delete them
+        if comment_index != -1:
+            line = line[:comment_index].rstrip()
         new_arr.append(line)
     output = "\n".join(new_arr)
     return output
@@ -198,6 +206,21 @@ def repair_invalid_json(output: str, error: str) -> str:
             new_line = line.replace("}", "")
         elif line.endswith("},") and output.endswith("},"):
             new_line = line[:-1]
+        # remove comments in output json str, after json value content, maybe start with #, maybe start with //
+        elif rline[col_no] == "#" or rline[col_no] == "/":
+            new_line = rline[:col_no]
+            for i in range(line_no + 1, len(arr)):
+                # look for # or // comments and make sure they are not inside the string value
+                comment_index = -1
+                for match in re.finditer(r"(\".*?\"|\'.*?\')|(#|//)", line):
+                    if match.group(1):  # if the string value
+                        continue
+                    if match.group(2):  # if comments
+                        comment_index = match.start(2)
+                        break
+                # if comments, then delete them
+                if comment_index != -1:
+                    arr[i] = arr[i][:comment_index].rstrip()
         elif (rline[col_no] in ["'", '"']) and (line.startswith('"') or line.startswith("'")) and "," not in line:
             # problem, `"""` or `'''` without `,`
             new_line = f",{line}"
