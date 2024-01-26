@@ -24,7 +24,12 @@ import platform
 import re
 import sys
 import traceback
+<<<<<<< HEAD
 from io import BytesIO
+=======
+import typing
+import base64
+>>>>>>> 9cbc3466 (add gpt4-v)
 from pathlib import Path
 from typing import Any, Callable, List, Literal, Tuple, Union
 from urllib.parse import quote, unquote
@@ -744,6 +749,7 @@ def list_files(root: str | Path) -> List[Path]:
     return files
 
 
+<<<<<<< HEAD
 def parse_json_code_block(markdown_text: str) -> List[str]:
     json_blocks = re.findall(r"```json(.*?)```", markdown_text, re.DOTALL)
     return [v.strip() for v in json_blocks]
@@ -861,3 +867,8 @@ def get_markdown_codeblock_type(filename: str) -> str:
         "application/sql": "sql",
     }
     return mappings.get(mime_type, "text")
+=======
+def encode_image(image_path: Path, encoding: str = "utf-8") -> str:
+    with open(str(image_path), "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode(encoding)
+>>>>>>> 9cbc3466 (add gpt4-v)

@@ -6,9 +6,11 @@
 @File    : llm_hello_world.py
 """
 import asyncio
+from pathlib import Path
 
 from metagpt.llm import LLM
 from metagpt.logs import logger
+from metagpt.utils.common import encode_image
 
 
 async def main():
@@ -37,6 +39,17 @@ async def main():
     # check completion if exist to test llm complete functions
     if hasattr(llm, "completion"):
         logger.info(llm.completion(hello_msg))
+
+    # check llm-vision capacity if it supports
+    invoice_path = Path(__file__).parent.joinpath("..", "tests", "data", "invoices", "invoice-2.png")
+    img_base64 = encode_image(invoice_path)
+    try:
+        res = await llm.aask(msg="if this is a invoice, just return True else return False",
+                             images=[img_base64])
+        assert "true" in res.lower()
+    except Exception as exp:
+        pass
+
 
 
 if __name__ == "__main__":
