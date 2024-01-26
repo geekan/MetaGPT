@@ -60,25 +60,12 @@ class BaseLLM(ABC):
         """
         if isinstance(images, str):
             images = [images]
-<<<<<<< HEAD
         content = [{"type": "text", "text": msg}]
-=======
-        content = [
-            {"type": "text", "text": msg}
-        ]
->>>>>>> 9cbc3466 (add gpt4-v)
         for image in images:
             # image url or image base64
             url = image if image.startswith("http") else f"data:image/jpeg;base64,{image}"
             # it can with multiple-image inputs
-<<<<<<< HEAD
             content.append({"type": "image_url", "image_url": url})
-=======
-            content.append({
-                "type": "image_url",
-                "image_url": url
-            })
->>>>>>> 9cbc3466 (add gpt4-v)
         return {"role": "user", "content": content}
 
     def _assistant_msg(self, msg: str) -> dict[str, str]:
@@ -144,11 +131,7 @@ class BaseLLM(ABC):
         system_msgs: Optional[list[str]] = None,
         format_msgs: Optional[list[dict[str, str]]] = None,
         images: Optional[Union[str, list[str]]] = None,
-<<<<<<< HEAD
         timeout=USE_CONFIG_TIMEOUT,
-=======
-        timeout=3,
->>>>>>> 9cbc3466 (add gpt4-v)
         stream=True,
     ) -> str:
         if system_msgs:
@@ -159,14 +142,10 @@ class BaseLLM(ABC):
             message = []
         if format_msgs:
             message.extend(format_msgs)
-<<<<<<< HEAD
         if isinstance(msg, str):
             message.append(self._user_msg(msg, images=images))
         else:
             message.extend(msg)
-=======
-        message.append(self._user_msg(msg, images=images))
->>>>>>> 9cbc3466 (add gpt4-v)
         logger.debug(message)
         rsp = await self.acompletion_text(message, stream=stream, timeout=self.get_timeout(timeout))
         return rsp
