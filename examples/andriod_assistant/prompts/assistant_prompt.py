@@ -165,4 +165,3 @@ Decision: SUCCESS
 Thought: <explain why you think the action successfully moved the task forward>
 Documentation: <describe the function of the UI element>
 """
-
