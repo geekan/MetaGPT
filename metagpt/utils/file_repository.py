@@ -101,21 +101,28 @@ class FileRepository:
         path_name = self.workdir / filename
         if not path_name.exists():
             return None
+        if not path_name.is_file():
+            return None
         doc.content = await aread(path_name)
         return doc
 
-    async def get_all(self) -> List[Document]:
+    async def get_all(self, filter_ignored=True) -> List[Document]:
         """Get the content of all files in the repository.
 
         :return: List of Document instances representing files.
         """
         docs = []
-        for root, dirs, files in os.walk(str(self.workdir)):
-            for file in files:
-                file_path = Path(root) / file
-                relative_path = file_path.relative_to(self.workdir)
-                doc = await self.get(relative_path)
+        if filter_ignored:
+            for f in self.all_files:
+                doc = await self.get(f)
                 docs.append(doc)
+        else:
+            for root, dirs, files in os.walk(str(self.workdir)):
+                for file in files:
+                    file_path = Path(root) / file
+                    relative_path = file_path.relative_to(self.workdir)
+                    doc = await self.get(relative_path)
+                    docs.append(doc)
         return docs
 
     @property

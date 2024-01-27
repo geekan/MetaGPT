@@ -109,6 +109,7 @@ async def test_config_priority():
     if not home_dir.exists():
         assert gpt4t is None
     gpt35 = Config.default()
+    gpt35.llm.model = "gpt-3.5-turbo-1106"
     gpt4 = Config.default()
     gpt4.llm.model = "gpt-4-0613"
 

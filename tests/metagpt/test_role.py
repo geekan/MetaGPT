@@ -131,7 +131,7 @@ async def test_recover():
     role.recovered = True
     role.latest_observed_msg = Message(content="recover_test")
     role.rc.state = 0
-    assert role.first_action == any_to_name(MockAction)
+    assert role.action_description == any_to_name(MockAction)
 
     rsp = await role.run()
     assert rsp.cause_by == any_to_str(MockAction)
