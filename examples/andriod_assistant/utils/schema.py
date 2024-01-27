@@ -12,6 +12,7 @@ class ActionOp(Enum):
     TEXT = "text"
     SWIPE = "swipe"
     GRID = "grid"
+    STOP = "stop"
 
 
 class SwipeOp(Enum):
