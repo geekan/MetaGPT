@@ -137,11 +137,10 @@ def repair_json_format(output: str) -> str:
     elif output.startswith("{") and output.endswith("]"):
         output = output[:-1] + "}"
 
-    # remove comments in output json str, after json value content, maybe start with #, maybe start with //
+    # remove comments in output json string
     arr = output.split("\n")
     new_arr = []
     for line in arr:
-        # look for # or // comments and make sure they are not inside the string value
         new_line = remove_comments_from_line(line)
         new_arr.append(new_line)
     output = "\n".join(new_arr)
@@ -214,12 +213,6 @@ def repair_invalid_json(output: str, error: str) -> str:
             new_line = line.replace("}", "")
         elif line.endswith("},") and output.endswith("},"):
             new_line = line[:-1]
-        # remove comments in output json str, after json value content, maybe start with #, maybe start with //
-        elif rline[col_no] == "#" or rline[col_no] == "/":
-            new_line = rline[:col_no]
-            # check the next line and remove the comments
-            for i in range(line_no + 1, len(arr)):
-                arr[i] = remove_comments_from_line(arr[i])
         elif (rline[col_no] in ["'", '"']) and (line.startswith('"') or line.startswith("'")) and "," not in line:
             # problem, `"""` or `'''` without `,`
             new_line = f",{line}"
