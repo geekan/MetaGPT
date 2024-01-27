@@ -105,6 +105,23 @@ def repair_required_key_pair_missing(output: str, req_key: str = "[/CONTENT]") -
     return output
 
 
+def remove_comments_from_line(line):
+    """
+    Remove comments from a single line of string.
+    Comments are assumed to start with '#' or '//' and are not inside string values.
+    """
+    comment_index = -1
+    for match in re.finditer(r"(\".*?\"|\'.*?\')|(#|//)", line):
+        if match.group(1):  # if the string value
+            continue
+        if match.group(2):  # if comments
+            comment_index = match.start(2)
+            break
+    if comment_index != -1:  # if comments, then delete them
+        return line[:comment_index].rstrip()
+    return line
+
+
 def repair_json_format(output: str) -> str:
     """
     fix extra `[` or `}` in the end
@@ -125,17 +142,8 @@ def repair_json_format(output: str) -> str:
     new_arr = []
     for line in arr:
         # look for # or // comments and make sure they are not inside the string value
-        comment_index = -1
-        for match in re.finditer(r"(\".*?\"|\'.*?\')|(#|//)", line):
-            if match.group(1):  # if the string value
-                continue
-            if match.group(2):  # if comments
-                comment_index = match.start(2)
-                break
-        # if comments, then delete them
-        if comment_index != -1:
-            line = line[:comment_index].rstrip()
-        new_arr.append(line)
+        new_line = remove_comments_from_line(line)
+        new_arr.append(new_line)
     output = "\n".join(new_arr)
     return output
 
@@ -209,18 +217,9 @@ def repair_invalid_json(output: str, error: str) -> str:
         # remove comments in output json str, after json value content, maybe start with #, maybe start with //
         elif rline[col_no] == "#" or rline[col_no] == "/":
             new_line = rline[:col_no]
+            # check the next line and remove the comments
             for i in range(line_no + 1, len(arr)):
-                # look for # or // comments and make sure they are not inside the string value
-                comment_index = -1
-                for match in re.finditer(r"(\".*?\"|\'.*?\')|(#|//)", line):
-                    if match.group(1):  # if the string value
-                        continue
-                    if match.group(2):  # if comments
-                        comment_index = match.start(2)
-                        break
-                # if comments, then delete them
-                if comment_index != -1:
-                    arr[i] = arr[i][:comment_index].rstrip()
+                arr[i] = remove_comments_from_line(arr[i])
         elif (rline[col_no] in ["'", '"']) and (line.startswith('"') or line.startswith("'")) and "," not in line:
             # problem, `"""` or `'''` without `,`
             new_line = f",{line}"
