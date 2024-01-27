@@ -104,7 +104,7 @@ class ScreenshotParse(Action):
                 return
         elif isinstance(op_param, SwipeOp):
             x, y = elem_bbox_to_xy(elem_list[op_param.area - 1].bbox)
-            res = env.step(EnvAPIAbstract("user_swipe", kwargs={"x": x, "y": y, "dir": op_param.swipe_orient, "dist": op_param.dist}))
+            res = env.step(EnvAPIAbstract("user_swipe", kwargs={"x": x, "y": y, "orient": op_param.swipe_orient, "dist": op_param.dist}))
             if res == ADB_EXEC_FAIL:
                 # TODO
                 return
