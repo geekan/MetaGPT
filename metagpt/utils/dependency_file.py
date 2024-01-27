@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Set
 
@@ -36,7 +37,9 @@ class DependencyFile:
         """Load dependencies from the file asynchronously."""
         if not self._filename.exists():
             return
-        self._dependencies = json.loads(await aread(self._filename))
+        json_data = await aread(self._filename)
+        json_data = re.sub(r"\\+", "/", json_data)  # Compatible with windows path
+        self._dependencies = json.loads(json_data)
 
     @handle_exception
     async def save(self):
@@ -60,17 +63,20 @@ class DependencyFile:
             key = Path(filename).relative_to(root)
         except ValueError:
             key = filename
-
+        skey = re.sub(r"\\+", "/", str(key))  # Compatible with windows path
         if dependencies:
             relative_paths = []
             for i in dependencies:
                 try:
-                    relative_paths.append(str(Path(i).relative_to(root)))
+                    s = str(Path(i).relative_to(root))
                 except ValueError:
-                    relative_paths.append(str(i))
-            self._dependencies[str(key)] = relative_paths
-        elif str(key) in self._dependencies:
-            del self._dependencies[str(key)]
+                    s = str(i)
+                s = re.sub(r"\\+", "/", s)  # Compatible with windows path
+                relative_paths.append(s)
+
+            self._dependencies[skey] = relative_paths
+        elif skey in self._dependencies:
+            del self._dependencies[skey]
 
         if persist:
             await self.save()

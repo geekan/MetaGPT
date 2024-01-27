@@ -37,10 +37,12 @@ from pydantic import (
 )
 
 from metagpt.const import (
+    CODE_PLAN_AND_CHANGE_FILENAME,
     MESSAGE_ROUTE_CAUSE_BY,
     MESSAGE_ROUTE_FROM,
     MESSAGE_ROUTE_TO,
     MESSAGE_ROUTE_TO_ALL,
+    PRDS_FILE_REPO,
     SYSTEM_DESIGN_FILE_REPO,
     TASK_FILE_REPO,
 )
@@ -469,6 +471,30 @@ class CodeSummarizeContext(BaseModel):
 
 class BugFixContext(BaseContext):
     filename: str = ""
+
+
+class CodePlanAndChangeContext(BaseModel):
+    filename: str = CODE_PLAN_AND_CHANGE_FILENAME
+    requirement: str = ""
+    prd_filename: str = ""
+    design_filename: str = ""
+    task_filename: str = ""
+
+    @staticmethod
+    def loads(filenames: List, **kwargs) -> CodePlanAndChangeContext:
+        ctx = CodePlanAndChangeContext(requirement=kwargs.get("requirement", ""))
+        for filename in filenames:
+            filename = Path(filename)
+            if filename.is_relative_to(PRDS_FILE_REPO):
+                ctx.prd_filename = filename.name
+                continue
+            if filename.is_relative_to(SYSTEM_DESIGN_FILE_REPO):
+                ctx.design_filename = filename.name
+                continue
+            if filename.is_relative_to(TASK_FILE_REPO):
+                ctx.task_filename = filename.name
+                continue
+        return ctx
 
 
 # mermaid class view
