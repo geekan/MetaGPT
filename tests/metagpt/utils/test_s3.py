@@ -13,6 +13,7 @@ import aiofiles
 import pytest
 
 from metagpt.config2 import Config
+from metagpt.configs.s3_config import S3Config
 from metagpt.utils.common import aread
 from metagpt.utils.s3 import S3
 
@@ -30,6 +31,14 @@ async def test_s3(mocker):
     mock_client.__aenter__.return_value = mock_client
     mock_client.__aexit__.return_value = None
     mocker.patch.object(aioboto3.Session, "client", return_value=mock_client)
+    mock_config = mocker.Mock()
+    mock_config.s3 = S3Config(
+        access_key="mock_access_key",
+        secret_key="mock_secret_key",
+        endpoint="http://mock.endpoint",
+        bucket="mock_bucket",
+    )
+    mocker.patch.object(Config, "default", return_value=mock_config)
 
     # Prerequisites
     s3 = Config.default().s3
