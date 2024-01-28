@@ -14,7 +14,7 @@ from metagpt.logs import logger
 
 from examples.andriod_assistant.utils.schema import AndroidElement
 from examples.andriod_assistant.utils.schema import BaseOpParam, BaseGridOpParam, GridOp, ActionOp, TapOp, TapGridOp, \
-    LongPressOp, LongPressGridOp, SwipeOp, SwipeGridOp, TextOp, ParamExtState
+    LongPressOp, LongPressGridOp, SwipeOp, SwipeGridOp, TextOp, ParamExtState, ReflectOp, Decision
 
 
 def get_id_from_element(elem: Element) -> str:
@@ -165,6 +165,17 @@ def elem_bbox_to_xy(bbox: tuple[tuple[int, int]]) -> tuple[int, int]:
     tl, br = bbox
     x, y = (tl[0] + br[0]) // 2, (tl[1] + br[1]) // 2
     return x, y
+
+
+def reflect_parse_extarct(parsed_json: dict) -> ReflectOp:
+    decision = parsed_json.get("Decision")
+    if decision not in Decision.values():
+        op = ReflectOp(param_state=ParamExtState.FAIL)
+    else:
+        op = ReflectOp(decision=parsed_json.get("Decision"),
+                       thought=parsed_json.get("Thought"),
+                       documentation=parsed_json.get("Documentation"))
+    return op
 
 
 def screenshot_parse_extract(parsed_json: dict, grid_on: bool = False) -> Union[BaseOpParam, BaseGridOpParam, GridOp]:
