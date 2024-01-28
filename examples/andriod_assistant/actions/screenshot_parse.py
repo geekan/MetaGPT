@@ -11,7 +11,8 @@ from examples.andriod_assistant.prompts.assistant_prompt import (
 from examples.andriod_assistant.utils.schema import OpLogItem, ParamExtState, GridOp, TapOp, TapGridOp, \
     LongPressOp, LongPressGridOp, SwipeOp, SwipeGridOp, TextOp, AndroidElement
 from examples.andriod_assistant.actions.screenshot_parse_an import SCREENSHOT_PARSE_NODE
-from examples.andriod_assistant.utils.utils import draw_bbox_multi, traverse_xml_tree, area_to_xy, screenshot_parse_extract, elem_bbox_to_xy
+from examples.andriod_assistant.utils.utils import draw_bbox_multi, traverse_xml_tree, area_to_xy, \
+    screenshot_parse_extract, elem_bbox_to_xy
 from metagpt.actions.action import Action
 from metagpt.config2 import config
 from metagpt.environment.android_env.android_env import AndroidEnv

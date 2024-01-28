@@ -10,8 +10,10 @@ from examples.andriod_assistant.actions.self_learn_reflect_an import SELF_LEARN_
 from examples.andriod_assistant.prompts.assistant_prompt import (
     screenshot_parse_self_explore_template, screenshot_parse_self_explore_reflect_template as reflect_template
 )
-from examples.andriod_assistant.utils.schema import AndroidElement, OpLogItem, ReflectLogItem, ParamExtState, TapOp, TextOp, SwipeOp, LongPressOp, ActionOp, Decision, DocContent
-from examples.andriod_assistant.utils.utils import draw_bbox_multi, traverse_xml_tree, screenshot_parse_extract, elem_bbox_to_xy, reflect_parse_extarct
+from examples.andriod_assistant.utils.schema import AndroidElement, OpLogItem, ReflectLogItem, ParamExtState, TapOp, \
+    TextOp, SwipeOp, LongPressOp, ActionOp, Decision, DocContent
+from examples.andriod_assistant.utils.utils import draw_bbox_multi, traverse_xml_tree, screenshot_parse_extract, \
+    elem_bbox_to_xy, reflect_parse_extarct
 from metagpt.actions.action import Action
 from metagpt.config2 import config
 from metagpt.environment.android_env.android_env import AndroidEnv
