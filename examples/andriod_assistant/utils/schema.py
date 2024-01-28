@@ -22,6 +22,17 @@ class SwipeOp(Enum):
     RIGHT = "right"
 
 
+class Decision(Enum):
+    BACK = "BACK"
+    INEFFECTIVE = "INEFFECTIVE"
+    CONTINUE = "CONTINUE"
+    SUCCESS = "SUCCESS"
+
+    @classmethod
+    def values(cls):
+        return [item.value for item in cls]
+
+
 class AndroidElement(BaseModel):
     """UI Element"""
     uid: str = Field(default="")
@@ -115,3 +126,10 @@ class SwipeGridOp(BaseGridOpParam):
     end_subarea: str = Field(default="")
 
 # end =================== define different Action Op and its params =============
+
+
+class ReflectOp(BaseModel):
+    decision: str = ""
+    thought: str = ""
+    documentation: str = ""
+    param_state: ParamExtState = ParamExtState.SUCCESS

@@ -145,6 +145,7 @@ should continue to interact with other elements on the screen. Notice that if yo
 changed between the two screenshots, then they are not identical. Your output should be in the following format:
 Decision: INEFFECTIVE
 Thought: <explain why you made this decision>
+Documentation: <None>
 3. CONTINUE
 If you find the action changed something on the screen but does not reflect the action description above and did not 
 move the given task forward, you should continue to interact with other elements on the screen. At the same time, 

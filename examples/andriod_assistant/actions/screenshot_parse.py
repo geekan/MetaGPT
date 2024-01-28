@@ -8,7 +8,7 @@ from examples.andriod_assistant.prompts.assistant_prompt import (
     screenshot_parse_template,
     screenshot_parse_with_grid_template,
 )
-from examples.andriod_assistant.utils.schema import OpLogItem, ActionOp, ParamExtState, GridOp, ActionOp, TapOp, TapGridOp, \
+from examples.andriod_assistant.utils.schema import OpLogItem, ParamExtState, GridOp, TapOp, TapGridOp, \
     LongPressOp, LongPressGridOp, SwipeOp, SwipeGridOp, TextOp, AndroidElement
 from examples.andriod_assistant.actions.screenshot_parse_an import SCREENSHOT_PARSE_NODE
 from examples.andriod_assistant.utils.utils import draw_bbox_multi, traverse_xml_tree, area_to_xy, screenshot_parse_extract, elem_bbox_to_xy
