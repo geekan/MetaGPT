@@ -3,13 +3,14 @@
 # @Desc   : LIKE scripts/task_executor.py in stage=act
 
 from pathlib import Path
+import ast
 
 from examples.andriod_assistant.prompts.assistant_prompt import (
     screenshot_parse_template,
     screenshot_parse_with_grid_template,
 )
-from examples.andriod_assistant.utils.schema import OpLogItem, ParamExtState, GridOp, TapOp, TapGridOp, \
-    LongPressOp, LongPressGridOp, SwipeOp, SwipeGridOp, TextOp, AndroidElement
+from examples.andriod_assistant.utils.schema import OpLogItem, RunState, GridOp, TapOp, TapGridOp, \
+    LongPressOp, LongPressGridOp, SwipeOp, SwipeGridOp, TextOp, AndroidElement, AndroidActionOutput
 from examples.andriod_assistant.actions.screenshot_parse_an import SCREENSHOT_PARSE_NODE
 from examples.andriod_assistant.utils.utils import draw_bbox_multi, traverse_xml_tree, area_to_xy, \
     screenshot_parse_extract, elem_bbox_to_xy
@@ -24,8 +25,38 @@ from metagpt.const import ADB_EXEC_FAIL
 class ScreenshotParse(Action):
     name: str = "ScreenshotParse"
 
+    def _makeup_ui_document(self, elem_list: list[AndroidElement], docs_idr: Path, use_exist_doc: bool = True) -> str:
+        if not use_exist_doc:
+            return ""
+
+        ui_doc = """
+You also have access to the following documentations that describes the functionalities of UI 
+elements you can interact on the screen. These docs are crucial for you to determine the target of your 
+next action. You should always prioritize these documented elements for interaction:"""
+        for i, elem in enumerate(elem_list):
+            doc_path = docs_idr.joinpath(f"{elem.uid}.txt")
+            if not doc_path.exists():
+                continue
+            ui_doc += f"Documentation of UI element labeled with the numeric tag '{i + 1}':\n"
+            doc_content = ast.literal_eval(open(doc_path, "r").read())
+            if doc_content["tap"]:
+                ui_doc += f"This UI element is clickable. {doc_content['tap']}\n\n"
+            if doc_content["text"]:
+                ui_doc += f"This UI element can receive text input. The text input is used for the following " \
+                          f"purposes: {doc_content['text']}\n\n"
+            if doc_content["long_press"]:
+                ui_doc += f"This UI element is long clickable. {doc_content['long_press']}\n\n"
+            if doc_content["v_swipe"]:
+                ui_doc += f"This element can be swiped directly without tapping. You can swipe vertically on " \
+                          f"this UI element. {doc_content['v_swipe']}\n\n"
+            if doc_content["h_swipe"]:
+                ui_doc += f"This element can be swiped directly without tapping. You can swipe horizontally on " \
+                          f"this UI element. {doc_content['h_swipe']}\n\n"
+        return ui_doc
+
+
     async def run(
-        self, round_count: int, task_desc: str, last_act: str, task_dir: Path, env: AndroidEnv, grid_on: bool = False
+        self, round_count: int, task_desc: str, last_act: str, task_dir: Path, docs_dir: Path, grid_on: bool, env: AndroidEnv
     ):
         screenshot_path: Path = env.step(
             EnvAPIAbstract(
@@ -36,8 +67,7 @@ class ScreenshotParse(Action):
             EnvAPIAbstract(api_name="get_xml", kwargs={"xml_name": f"{round_count}", "local_save_dir": task_dir})
         )
         if not screenshot_path.exists() or not xml_path.exists():
-            # TODO exit
-            return
+            return AndroidActionOutput(action_state=RunState.FAIL)
 
         clickable_list = []
         focusable_list = []
@@ -64,51 +94,41 @@ class ScreenshotParse(Action):
 
         parse_template = screenshot_parse_with_grid_template if grid_on else screenshot_parse_template
 
-        # makeup `ui_doc`
-        # TODO
-        ui_doc = ""
-
+        ui_doc = self._makeup_ui_document(elem_list, docs_dir)
         context = parse_template.format(ui_document=ui_doc, task_description=task_desc, last_act=last_act)
         node = await SCREENSHOT_PARSE_NODE.fill(context=context, llm=self.llm, images=[img_base64])
 
         if "error" in node.content:
-            # TODO
-            return
+            return AndroidActionOutput(action_state=RunState.FAIL)
 
         prompt = node.compile(context=context, schema="json", mode="auto")
         log_item = OpLogItem(step=round_count, prompt=prompt, image=screenshot_labeled_path, response=node.content)
 
         op_param = screenshot_parse_extract(node.instruct_content.model_dump(), grid_on)
-        if op_param.param_state == ParamExtState.FINISH:
-            # TODO
-            return
-        if op_param.param_state == ParamExtState.FAIL:
-            # TODO
-            return
+        if op_param.param_state == RunState.FINISH:
+            return AndroidActionOutput(action_state=RunState.FINISH)
+        if op_param.param_state == RunState.FAIL:
+            return AndroidActionOutput(action_state=RunState.FAIL)
 
         if isinstance(op_param, TapOp):
             x, y = elem_bbox_to_xy(elem_list[op_param.area - 1].bbox)
             res = env.step(EnvAPIAbstract("system_tap", kwargs={"x": x, "y": y}))
             if res == ADB_EXEC_FAIL:
-                # TODO
-                return
+                return AndroidActionOutput(action_state=RunState.FAIL)
         elif isinstance(op_param, TextOp):
             res = env.step(EnvAPIAbstract("user_input", kwargs={"input_txt": op_param.input_str}))
             if res == ADB_EXEC_FAIL:
-                # TODO
-                return
+                return AndroidActionOutput(action_state=RunState.FAIL)
         elif isinstance(op_param, LongPressOp):
             x, y = elem_bbox_to_xy(elem_list[op_param.area - 1].bbox)
             res = env.step(EnvAPIAbstract("user_longpress", kwargs={"x": x, "y": y}))
             if res == ADB_EXEC_FAIL:
-                # TODO
-                return
+                return AndroidActionOutput(action_state=RunState.FAIL)
         elif isinstance(op_param, SwipeOp):
             x, y = elem_bbox_to_xy(elem_list[op_param.area - 1].bbox)
             res = env.step(EnvAPIAbstract("user_swipe", kwargs={"x": x, "y": y, "orient": op_param.swipe_orient, "dist": op_param.dist}))
             if res == ADB_EXEC_FAIL:
-                # TODO
-                return
+                return AndroidActionOutput(action_state=RunState.FAIL)
         elif isinstance(op_param, GridOp):
             grid_on = True
         elif isinstance(op_param, TapGridOp) or isinstance(op_param, LongPressGridOp):
@@ -116,21 +136,20 @@ class ScreenshotParse(Action):
             if isinstance(op_param, TapGridOp):
                 res = env.step(EnvAPIAbstract("system_tap", kwargs={"x": x, "y": y}))
                 if res == ADB_EXEC_FAIL:
-                    # TODO
-                    return
+                    return AndroidActionOutput(action_state=RunState.FAIL)
             else:
                 # LongPressGridOp
                 res = env.step(EnvAPIAbstract("user_longpress", kwargs={"x": x, "y": y}))
                 if res == ADB_EXEC_FAIL:
-                    # TODO
-                    return
+                    return AndroidActionOutput(action_state=RunState.FAIL)
         elif isinstance(op_param, SwipeGridOp):
             start_x, start_y = area_to_xy(op_param.start_area, op_param.start_subarea)
             end_x, end_y = area_to_xy(op_param.end_area, op_param.end_subarea)
             res = env.step(EnvAPIAbstract("user_swipe_to", kwargs={"start": (start_x, start_y), "end": (end_x, end_y)}))
             if res == ADB_EXEC_FAIL:
-                # TODO
-                return
+                return AndroidActionOutput(action_state=RunState.FAIL)
 
         if op_param.act_name != "grid":
-            grid_on = True  # TODO overwrite it
+            grid_on = True
+
+        return AndroidActionOutput(data={"grid_on": grid_on})

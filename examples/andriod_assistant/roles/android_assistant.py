@@ -10,7 +10,7 @@ from examples.andriod_assistant.actions.manual_record import ManualRecord
 from examples.andriod_assistant.actions.parse_record import ParseRecord
 from examples.andriod_assistant.actions.screenshot_parse import ScreenshotParse
 from examples.andriod_assistant.actions.self_learn_and_reflect import SelfLearnAndReflect
-from examples.andriod_assistant.actions.self_learn_reflect import SelfLearnReflect
+from examples.andriod_assistant.utils.schema import RunState
 from metagpt.actions.add_requirement import UserRequirement
 from metagpt.config2 import config
 from metagpt.logs import logger
@@ -27,6 +27,8 @@ class AndroidAssistant(Role):
     round_count: int = 0
     last_act: str = ""
     task_dir: Optional[Path] = Field(default=None)
+    docs_dir: Optional[Path] = Field(default=None)
+    grid_on: bool = Field(default=False)
 
     def __init__(self, **data):
         super().__init__(**data)
@@ -41,8 +43,8 @@ class AndroidAssistant(Role):
             # Remember, only run each action only one time, no need to run n_round.
             self.set_actions([ManualRecord, ParseRecord])
         elif config.get_other("stage") == "learn" and config.get_other("mode") == "auto":
-            # choose SelfLearnAndReflect / SelfLearnReflect to run
-            self.set_actions([SelfLearnAndReflect, SelfLearnReflect])
+            # choose SelfLearnAndReflect to run
+            self.set_actions([SelfLearnAndReflect])
         elif config.get_other("stage") == "act":
             # choose ScreenshotParse to run
             self.set_actions([ScreenshotParse])
@@ -52,12 +54,36 @@ class AndroidAssistant(Role):
         self.round_count += 1
         super().react()
 
-    async def _think(self) -> bool:
-        """Firstly, we decide the state with user config, further, we can do it automatically, like if it's new app,
-        run the learn first and then do the act stage or learn it during the action.
-        """
-        pass
-
     async def _act(self) -> Message:
         logger.info(f"{self._setting}: to do {self.rc.todo}({self.rc.todo.name})")
         todo = self.rc.todo
+        send_to = ""
+        if isinstance(todo, ManualRecord):
+            resp = await todo.run()
+        elif isinstance(todo, ParseRecord):
+            resp = await todo.run()
+        elif isinstance(todo, SelfLearnAndReflect):
+            resp = await todo.run(round_count=self.round_count,
+                                  task_desc=self.task_desc,
+                                  last_act=self.last_act,
+                                  task_dir=self.task_dir,
+                                  docs_dir=self.docs_dir,
+                                  env=self.rc.env)
+            if resp.action_state == RunState.SUCCESS:
+                self.last_act = resp.data.get("last_act")
+                send_to = self.name
+
+        elif isinstance(todo, ScreenshotParse):
+            resp = await todo.run(round_count=self.round_count,
+                                  task_desc=self.task_desc,
+                                  last_act=self.last_act,
+                                  task_dir=self.task_dir,
+                                  grid_on=self.grid_on,
+                                  env=self.rc.env)
+            if resp.action_state == RunState.SUCCESS:
+                self.grid_on = resp.data.get("grid_on")
+                send_to = self.name
+
+        msg = Message(f"RoundCount: {self.round_count}", send_to=send_to)
+        self.rc.memory.add(msg)
+        return msg

@@ -6,7 +6,7 @@ import os
 import time
 from pathlib import Path
 
-from examples.andriod_assistant.utils.schema import OpLogItem, ActionOp, ParamExtState, GridOp, ActionOp, TapOp, \
+from examples.andriod_assistant.utils.schema import OpLogItem, ActionOp, RunState, GridOp, ActionOp, TapOp, \
     TapGridOp, \
     LongPressOp, LongPressGridOp, SwipeOp, SwipeGridOp, TextOp, AndroidElement
 from examples.andriod_assistant.utils.utils import draw_bbox_multi, traverse_xml_tree

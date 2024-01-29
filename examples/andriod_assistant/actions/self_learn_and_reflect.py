@@ -10,8 +10,8 @@ from examples.andriod_assistant.actions.self_learn_reflect_an import SELF_LEARN_
 from examples.andriod_assistant.prompts.assistant_prompt import (
     screenshot_parse_self_explore_template, screenshot_parse_self_explore_reflect_template as reflect_template
 )
-from examples.andriod_assistant.utils.schema import AndroidElement, OpLogItem, ReflectLogItem, ParamExtState, TapOp, \
-    TextOp, SwipeOp, LongPressOp, ActionOp, Decision, DocContent
+from examples.andriod_assistant.utils.schema import AndroidElement, OpLogItem, ReflectLogItem, RunState, TapOp, \
+    TextOp, SwipeOp, LongPressOp, ActionOp, Decision, DocContent, AndroidActionOutput
 from examples.andriod_assistant.utils.utils import draw_bbox_multi, traverse_xml_tree, screenshot_parse_extract, \
     elem_bbox_to_xy, reflect_parse_extarct
 from metagpt.actions.action import Action
@@ -35,11 +35,12 @@ class SelfLearnAndReflect(Action):
     act_name: str = ""
     ui_area: int = -1
 
-    async def run(self, round_count: int, task_desc: str, last_act: str, task_dir: Path, docs_dir: Path, env: AndroidEnv):
-        self.run_self_learn(round_count, task_desc, last_act, task_dir, env)
-        self.run_reflect(round_count, task_desc, last_act, task_dir, docs_dir, env)
+    async def run(self, round_count: int, task_desc: str, last_act: str, task_dir: Path, docs_dir: Path, env: AndroidEnv) -> AndroidActionOutput:
+        resp = self.run_self_learn(round_count, task_desc, last_act, task_dir, env)
+        resp = self.run_reflect(round_count, task_desc, last_act, task_dir, docs_dir, env)
+        return resp
 
-    async def run_self_learn(self, round_count: int, task_desc: str, last_act: str, task_dir: Path, env: AndroidEnv):
+    async def run_self_learn(self, round_count: int, task_desc: str, last_act: str, task_dir: Path, env: AndroidEnv) -> AndroidActionOutput:
         screenshot_path: Path = env.step(
             EnvAPIAbstract(
                 api_name="get_screenshot", kwargs={"ss_name": f"{round_count}_before", "local_save_dir": task_dir}
@@ -49,8 +50,7 @@ class SelfLearnAndReflect(Action):
             EnvAPIAbstract(api_name="get_xml", kwargs={"xml_name": f"{round_count}", "local_save_dir": task_dir})
         )
         if not screenshot_path.exists() or not xml_path.exists():
-            # TODO exit
-            return
+            return AndroidActionOutput(action_state=RunState.FAIL)
 
         clickable_list = []
         focusable_list = []
@@ -87,58 +87,51 @@ class SelfLearnAndReflect(Action):
 
         node = await SCREENSHOT_PARSE_NODE.fill(context=context, llm=self.llm, images=[img_base64])
         if "error" in node.content:
-            # TODO
-            return
+            return AndroidActionOutput(action_state=RunState.FAIL)
         prompt = node.compile(context=context, schema="json", mode="auto")
         log_item = OpLogItem(step=round_count, prompt=prompt, image=screenshot_before_labeled_path, response=node.content)
         op_param = screenshot_parse_extract(node.instruct_content.model_dump(), grid_on=False)
-        if op_param.param_state == ParamExtState.FINISH:
-            # TODO
-            return
-        if op_param.param_state == ParamExtState.FAIL:
-            # TODO
-            return
+        if op_param.param_state == RunState.FINISH:
+            return AndroidActionOutput(action_state=RunState.FINISH)
+        if op_param.param_state == RunState.FAIL:
+            return AndroidActionOutput(action_state=RunState.FAIL)
 
         if isinstance(op_param, TapOp):
             self.ui_area = op_param.area
             x, y = elem_bbox_to_xy(elem_list[op_param.area - 1].bbox)
             res = env.step(EnvAPIAbstract("system_tap", kwargs={"x": x, "y": y}))
             if res == ADB_EXEC_FAIL:
-                # TODO
-                return
+                return AndroidActionOutput(action_state=RunState.FAIL)
         elif isinstance(op_param, TextOp):
             res = env.step(EnvAPIAbstract("user_input", kwargs={"input_txt": op_param.input_str}))
             if res == ADB_EXEC_FAIL:
-                # TODO
-                return
+                return AndroidActionOutput(action_state=RunState.FAIL)
         elif isinstance(op_param, LongPressOp):
             self.ui_area = op_param.area
             x, y = elem_bbox_to_xy(elem_list[op_param.area - 1].bbox)
             res = env.step(EnvAPIAbstract("user_longpress", kwargs={"x": x, "y": y}))
             if res == ADB_EXEC_FAIL:
-                # TODO
-                return
+                return AndroidActionOutput(action_state=RunState.FAIL)
         elif isinstance(op_param, SwipeOp):
             self.ui_area = op_param.area
             self.swipe_orient = op_param.swipe_orient
             x, y = elem_bbox_to_xy(elem_list[op_param.area - 1].bbox)
             res = env.step(EnvAPIAbstract("user_swipe", kwargs={"x": x, "y": y, "orient": op_param.swipe_orient, "dist": op_param.dist}))
             if res == ADB_EXEC_FAIL:
-                # TODO
-                return
+                return AndroidActionOutput(action_state=RunState.FAIL)
 
         self.elem_list = elem_list
         self.act_name = op_param.act_name
+        return AndroidActionOutput()
 
-    async def run_reflect(self, round_count: int, task_desc: str, last_act: str, task_dir: Path, docs_dir: Path, env: AndroidEnv):
+    async def run_reflect(self, round_count: int, task_desc: str, last_act: str, task_dir: Path, docs_dir: Path, env: AndroidEnv) -> AndroidActionOutput:
         screenshot_path: Path = env.step(
             EnvAPIAbstract(
                 api_name="get_screenshot", kwargs={"ss_name": f"{round_count}_after", "local_save_dir": task_dir}
             )
         )
         if not screenshot_path.exists():
-            # TODO
-            return
+            return AndroidActionOutput(action_state=RunState.FAIL)
 
         screenshot_after_labeled_path = task_dir.joinpath(f"{round_count}_after_labeled.png")
         draw_bbox_multi(screenshot_path, screenshot_after_labeled_path, elem_list=self.elem_list)
@@ -158,20 +151,17 @@ class SelfLearnAndReflect(Action):
         node = await SELF_LEARN_REFLECT_NODE.fill(context=context, llm=self.llm, images=[self.screenshot_before_base64, img_base64])
 
         if "error" in node.content:
-            # TODO
-            return
+            return AndroidActionOutput(action_state=RunState.FAIL)
 
         prompt = node.compile(context=context, schema="json", mode="auto")
         log_item = ReflectLogItem(step=round_count, prompt=prompt, image_before=self.screenshot_before_path,
                                   image_after=screenshot_after_labeled_path, response=node.content)
 
         op_param = reflect_parse_extarct(node.instruct_content.model_dump())
-        if op_param.param_state == ParamExtState.FINISH:
-            # TODO
-            return
-        if op_param.param_state == ParamExtState.FAIL:
-            # TODO
-            return
+        if op_param.param_state == RunState.FINISH:
+            return AndroidActionOutput(action_state=RunState.FINISH)
+        if op_param.param_state == RunState.FAIL:
+            return AndroidActionOutput(action_state=RunState.FAIL)
 
         resource_id = self.elem_list[int(self.ui_area) -1].uid
         if op_param.decision == Decision.INEFFECTIVE.value:
@@ -184,17 +174,17 @@ class SelfLearnAndReflect(Action):
                 if op_param.decision == Decision.BACK.value:
                     res = env.step(EnvAPIAbstract("system_back"))
                     if res == ADB_EXEC_FAIL:
-                        # TODO
-                        return
+                        return AndroidActionOutput(action_state=RunState.FAIL)
             doc = op_param.documentation
             doc_path = docs_dir.joinpath(f"{resource_id}.txt")
             if doc_path.exists():
                 doc_content = ast.literal_eval(open(doc_path).read())
                 if doc_content[self.act_name]:
                     logger.info(f"Documentation for the element {resource_id} already exists.")
-                    # TODO
-                    return
+                    return AndroidActionOutput(action_state=RunState.FAIL)
             else:
                 doc_content = DocContent()
                 setattr(doc_content, self.act_name, doc)
             doc_path.write_text(str(doc_content))
+
+        return AndroidActionOutput(data={"last_act": last_act})
