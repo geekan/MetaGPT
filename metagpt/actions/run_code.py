@@ -16,6 +16,7 @@
             class.
 """
 import subprocess
+from pathlib import Path
 from typing import Tuple
 
 from pydantic import Field
@@ -150,11 +151,23 @@ class RunCode(Action):
         return subprocess.run(cmd, check=check, cwd=cwd, env=env)
 
     @staticmethod
-    def _install_dependencies(working_directory, env):
+    def _install_requirements(working_directory, env):
+        file_path = Path(working_directory) / "requirements.txt"
+        if not file_path.exists():
+            return
+        if file_path.stat().st_size == 0:
+            return
         install_command = ["python", "-m", "pip", "install", "-r", "requirements.txt"]
         logger.info(" ".join(install_command))
         RunCode._install_via_subprocess(install_command, check=True, cwd=working_directory, env=env)
 
+    @staticmethod
+    def _install_pytest(working_directory, env):
         install_pytest_command = ["python", "-m", "pip", "install", "pytest"]
         logger.info(" ".join(install_pytest_command))
         RunCode._install_via_subprocess(install_pytest_command, check=True, cwd=working_directory, env=env)
+
+    @staticmethod
+    def _install_dependencies(working_directory, env):
+        RunCode._install_requirements(working_directory, env)
+        RunCode._install_pytest(working_directory, env)
