@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # @Desc   : android assistant to learn from app operations and operate apps
-
+import time
 from typing import Optional
 from pathlib import Path
 from pydantic import Field
+from datetime import datetime
 
 from examples.andriod_assistant.actions.manual_record import ManualRecord
 from examples.andriod_assistant.actions.parse_record import ParseRecord
@@ -35,6 +36,10 @@ class AndroidAssistant(Role):
 
         self._watch([UserRequirement])
 
+        app_name = config.get_other("app_name", "demo")
+        data_dir = Path(__file__).parent.joinpath("..", "output")
+        cur_datetime = datetime.fromtimestamp(int(time.time())).strftime("%Y-%m-%d_%H-%M-%S")
+
         """Firstly, we decide the state with user config, further, we can do it automatically, like if it's new app,
         run the learn first and then do the act stage or learn it during the action.
         """
@@ -42,13 +47,28 @@ class AndroidAssistant(Role):
             # choose ManualRecord and then run ParseRecord
             # Remember, only run each action only one time, no need to run n_round.
             self.set_actions([ManualRecord, ParseRecord])
+            self.task_dir = data_dir.joinpath(app_name, f"manual_learn_{cur_datetime}")
+            self.docs_dir = data_dir.joinpath(f"manual_docs")
         elif config.get_other("stage") == "learn" and config.get_other("mode") == "auto":
             # choose SelfLearnAndReflect to run
             self.set_actions([SelfLearnAndReflect])
+            self.task_dir = data_dir.joinpath(app_name, f"auto_learn_{cur_datetime}")
+            self.docs_dir = data_dir.joinpath(f"auto_docs")
         elif config.get_other("stage") == "act":
             # choose ScreenshotParse to run
             self.set_actions([ScreenshotParse])
+            self.task_dir = data_dir.joinpath(app_name, f"act_{cur_datetime}")
+            if config.get_other("mode") == "manual":
+                self.docs_dir = data_dir.joinpath(f"manual_docs")
+            else:
+                self.docs_dir = data_dir.joinpath(f"auto_docs")
+        self._check_dir()
+
         self._set_react_mode(RoleReactMode.BY_ORDER)
+
+    def _check_dir(self):
+        self.task_dir.mkdir(exist_ok=True)
+        self.docs_dir.mkdir(exist_ok=True)
 
     async def react(self) -> Message:
         self.round_count += 1
