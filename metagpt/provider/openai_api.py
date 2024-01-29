@@ -138,7 +138,7 @@ class OpenAILLM(BaseLLM):
             full_reply_content = "".join(collected_messages)
             usage = self._calc_usage(messages, full_reply_content)
             self._update_costs(usage)
-            return full_reply_content
+            return ""  # Already returned through the stream.
 
         rsp = await self._achat_completion(messages, timeout=timeout)
         return self.get_choice_text(rsp)
