@@ -20,6 +20,7 @@ def startup(
     n_round: int = typer.Option(default=20, help="The max round to do an app operation task."),
     stage: str = typer.Option(default="learn", help="stage: learn / act"),
     mode: str = typer.Option(default="auto", help="mode: auto / manual , when state=learn"),
+    app_name: str = typer.Option(default="demo", help="the name of app you want to run"),
     investment: float = typer.Option(default=5.0, help="Dollar amount to invest in the AI company."),
     refine_doc: bool = typer.Option(
         default=False, help="Refine existing operation docs based on the latest observation if True."
@@ -40,6 +41,7 @@ def startup(
         {
             "stage": stage,
             "mode": mode,
+            "app_name": app_name,
             "refine_doc": refine_doc,
             "min_dist": min_dist,
             "android_screenshot_dir": android_screenshot_dir,
