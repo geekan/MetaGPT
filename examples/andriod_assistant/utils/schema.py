@@ -66,8 +66,8 @@ class DocContent(BaseModel):
 
 
 # start =================== define different Action Op and its params =============
-class ParamExtState(Enum):
-    """Op params extract state"""
+class RunState(Enum):
+    """run state"""
     SUCCESS = "success"
     FINISH = "finish"
     FAIL = "fail"
@@ -76,7 +76,7 @@ class ParamExtState(Enum):
 class BaseOpParam(BaseModel):
     act_name: str = Field(default="", validate_default=True)
     last_act: str = Field(default="")
-    param_state: ParamExtState = Field(default=ParamExtState.SUCCESS, description="return state when extract params")
+    param_state: RunState = Field(default=RunState.SUCCESS, description="return state when extract params")
 
 
 class TapOp(BaseOpParam):
@@ -132,4 +132,9 @@ class ReflectOp(BaseModel):
     decision: str = ""
     thought: str = ""
     documentation: str = ""
-    param_state: ParamExtState = ParamExtState.SUCCESS
+    param_state: RunState = RunState.SUCCESS
+
+
+class AndroidActionOutput(BaseModel):
+    data: dict = Field(default=dict())
+    action_state: RunState = Field(default=RunState.SUCCESS)

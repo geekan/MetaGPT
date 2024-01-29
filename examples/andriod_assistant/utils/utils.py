@@ -14,7 +14,7 @@ from metagpt.logs import logger
 
 from examples.andriod_assistant.utils.schema import AndroidElement
 from examples.andriod_assistant.utils.schema import BaseOpParam, BaseGridOpParam, GridOp, ActionOp, TapOp, TapGridOp, \
-    LongPressOp, LongPressGridOp, SwipeOp, SwipeGridOp, TextOp, ParamExtState, ReflectOp, Decision
+    LongPressOp, LongPressGridOp, SwipeOp, SwipeGridOp, TextOp, RunState, ReflectOp, Decision
 
 
 def get_id_from_element(elem: Element) -> str:
@@ -170,7 +170,7 @@ def elem_bbox_to_xy(bbox: tuple[tuple[int, int]]) -> tuple[int, int]:
 def reflect_parse_extarct(parsed_json: dict) -> ReflectOp:
     decision = parsed_json.get("Decision")
     if decision not in Decision.values():
-        op = ReflectOp(param_state=ParamExtState.FAIL)
+        op = ReflectOp(param_state=RunState.FAIL)
     else:
         op = ReflectOp(decision=parsed_json.get("Decision"),
                        thought=parsed_json.get("Thought"),
@@ -183,8 +183,8 @@ def screenshot_parse_extract(parsed_json: dict, grid_on: bool = False) -> Union[
     last_act = parsed_json.get("Summary")
     act_name = act.split("(")[0]
 
-    if ParamExtState.FINISH.value.upper() in act:
-        return BaseOpParam(param_state=ParamExtState.FINISH)
+    if RunState.FINISH.value.upper() in act:
+        return BaseOpParam(param_state=RunState.FINISH)
 
     if grid_on:
         return screenshot_parse_extract_with_grid(act_name, act, last_act)
@@ -219,7 +219,7 @@ def screenshot_parse_extract_without_grid(act_name: str, act: str, last_act: str
     elif act_name == ActionOp.GRID.value:
         op = GridOp(act_name=act_name)
     else:
-        op = BaseOpParam(param_state=ParamExtState.FAIL)
+        op = BaseOpParam(param_state=RunState.FAIL)
     return op
 
 
@@ -243,5 +243,5 @@ def screenshot_parse_extract_with_grid(act_name: str, act: str, last_act: str) -
     elif act_name == ActionOp.GRID.value:
         op = GridOp(act_name=act_name)
     else:
-        op = BaseGridOpParam(param_state=ParamExtState.FAIL)
+        op = BaseGridOpParam(param_state=RunState.FAIL)
     return op
