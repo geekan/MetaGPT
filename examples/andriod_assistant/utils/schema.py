@@ -11,6 +11,8 @@ class ActionOp(Enum):
     LONG_PRESS = "long_press"
     TEXT = "text"
     SWIPE = "swipe"
+    VERTICAL_SWIPE = "v_swipe"
+    HORIZONTAL_SWIPE = "h_swipe"
     GRID = "grid"
     STOP = "stop"
 
@@ -50,6 +52,15 @@ class OpLogItem(BaseModel):
 
 class ReflectLogItem(BaseModel):
     """log content for self-learn-reflect"""
+    step: int = Field(default=0)
+    prompt: str = Field(default="")
+    image_before: str = Field(default="")
+    image_after: str = Field(default="")
+    response: str = Field(default="")
+
+
+class RecordLogItem(BaseModel):
+    """log content for record parse, same as ReflectLogItem"""
     step: int = Field(default=0)
     prompt: str = Field(default="")
     image_before: str = Field(default="")
@@ -124,6 +135,7 @@ class SwipeGridOp(BaseGridOpParam):
     start_subarea: str = Field(default="")
     end_area: int = Field(default=-1)
     end_subarea: str = Field(default="")
+
 
 # end =================== define different Action Op and its params =============
 

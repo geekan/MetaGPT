@@ -24,8 +24,7 @@ class ManualRecord(Action):
     name: str = "ManualRecord"
 
     async def run(
-            self, demo_name: str, task_desc: str, task_dir: Path, env: AndroidEnv,
-            grid_on: bool = False
+            self, demo_name: str, task_dir: Path, env: AndroidEnv
     ):
 
         # Question 这里是将通过ADB获取的东西存到本地的路径的吧
@@ -41,10 +40,10 @@ class ManualRecord(Action):
             # TODO exit
             return
         step = 0
-        # Question 直接使用 OS 构建路径合适吗？
-        record_path = os.path.join(task_dir, "record.txt")
+        record_path = Path(task_dir) / "record.txt"
         record_file = open(record_path, "w")
         while True:
+            # TODO Parse Record Step 是否可以从这个函数中获取，进行参数的传递 ？
             step += 1
             clickable_list = []
             focusable_list = []
