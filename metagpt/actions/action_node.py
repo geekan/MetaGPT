@@ -461,6 +461,7 @@ class ActionNode:
             self.instruct_content = scontent
         else:
             self.content = await self.llm.aask(prompt)
+            logger.info(self.content)
             self.instruct_content = None
 
         return self
@@ -476,6 +477,7 @@ class ActionNode:
         timeout=USE_CONFIG_TIMEOUT,
         exclude=[],
     ):
+        logger.info("进入fill")
         """Fill the node(s) with mode.
 
         :param context: Everything we should know when filling node.
