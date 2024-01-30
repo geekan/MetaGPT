@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from metagpt.rag import SimpleEngine
+from metagpt.rag.engines import SimpleEngine
 
 
 class TestSimpleEngineFromDocs:
