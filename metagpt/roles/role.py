@@ -452,10 +452,11 @@ class Role(SerializationMixin, is_polymorphic_base=True):
     async def _plan_and_act(self) -> Message:
         """first plan, then execute an action sequence, i.e. _think (of a plan) -> _act -> _act -> ... Use llm to come up with the plan dynamically."""
 
-        ### Common Procedure in both single- and multi-agent setting ###
-        # create initial plan and update until confirmation
-        await self.planner.update_plan()
+        # create initial plan and update it until confirmation
+        goal = self.rc.memory.get()[-1].content  # retreive latest user requirement
+        await self.planner.update_plan(goal=goal)
 
+        # take on tasks until all finished
         while self.planner.current_task:
             task = self.planner.current_task
             logger.info(f"ready to take on task {task}")
@@ -463,25 +464,10 @@ class Role(SerializationMixin, is_polymorphic_base=True):
             # take on current task
             task_result = await self._act_on_task(task)
 
-            # ask for acceptance, users can other refuse and change tasks in the plan
-            review, task_result_confirmed = await self.planner.ask_review(task_result)
+            # process the result, such as reviewing, confirming, plan updating
+            await self.planner.process_task_result(task_result)
 
-            if task_result_confirmed:
-                # tick off this task and record progress
-                await self.planner.confirm_task(task, task_result, review)
-
-            elif "redo" in review:
-                # Ask the Role to redo this task with help of review feedback,
-                # useful when the code run is successful but the procedure or result is not what we want
-                continue
-
-            else:
-                # update plan according to user's feedback and to take on changed tasks
-                await self.planner.update_plan()
-
-        completed_plan_memory = self.planner.get_useful_memories()  # completed plan as a outcome
-
-        rsp = completed_plan_memory[0]
+        rsp = self.planner.get_useful_memories()[0]  # return the completed plan as a response
 
         self.rc.memory.add(rsp)  # add to persistent memory
 
