@@ -5,12 +5,11 @@
 @File    : metagpt_api.py
 @Desc    : MetaGPT LLM provider.
 """
-from metagpt.config import LLMProviderEnum
+from metagpt.configs.llm_config import LLMType
 from metagpt.provider import OpenAILLM
 from metagpt.provider.llm_provider_registry import register_provider
 
 
-@register_provider(LLMProviderEnum.METAGPT)
+@register_provider(LLMType.METAGPT)
 class MetaGPTLLM(OpenAILLM):
-    def __init__(self):
-        super().__init__()
+    pass

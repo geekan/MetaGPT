@@ -7,12 +7,12 @@
 """
 from typing import Union
 
-from metagpt.llm import LLM
+from metagpt.provider.base_llm import BaseLLM
 
 
 class Moderation:
-    def __init__(self):
-        self.llm = LLM()
+    def __init__(self, llm: BaseLLM):
+        self.llm = llm
 
     def handle_moderation_results(self, results):
         resp = []

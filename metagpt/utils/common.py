@@ -29,7 +29,7 @@ from typing import Any, List, Tuple, Union
 import aiofiles
 import loguru
 from pydantic_core import to_jsonable_python
-from tenacity import RetryCallState, _utils
+from tenacity import RetryCallState, RetryError, _utils
 
 from metagpt.const import MESSAGE_ROUTE_TO_ALL
 from metagpt.logs import logger
@@ -407,12 +407,12 @@ def any_to_str_set(val) -> set:
     return res
 
 
-def is_subscribed(message: "Message", tags: set):
+def is_send_to(message: "Message", addresses: set):
     """Return whether it's consumer"""
     if MESSAGE_ROUTE_TO_ALL in message.send_to:
         return True
 
-    for i in tags:
+    for i in addresses:
         if i in message.send_to:
             return True
     return False
@@ -531,7 +531,7 @@ def role_raise_decorator(func):
                 self.rc.memory.delete(self.latest_observed_msg)
             # raise again to make it captured outside
             raise Exception(format_trackback_info(limit=None))
-        except Exception:
+        except Exception as e:
             if self.latest_observed_msg:
                 logger.warning(
                     "There is a exception in role's execution, in order to resume, "
@@ -540,6 +540,12 @@ def role_raise_decorator(func):
                 # remove role newest observed msg to make it observed again
                 self.rc.memory.delete(self.latest_observed_msg)
             # raise again to make it captured outside
+            if isinstance(e, RetryError):
+                last_error = e.last_attempt._exception
+                name = any_to_str(last_error)
+                if re.match(r"^openai\.", name) or re.match(r"^httpx\.", name):
+                    raise last_error
+
             raise Exception(format_trackback_info(limit=None))
 
     return wrapper

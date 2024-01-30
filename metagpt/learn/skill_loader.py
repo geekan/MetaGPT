@@ -13,7 +13,7 @@ import aiofiles
 import yaml
 from pydantic import BaseModel, Field
 
-from metagpt.config import CONFIG
+from metagpt.context import Context
 
 
 class Example(BaseModel):
@@ -73,14 +73,15 @@ class SkillsDeclaration(BaseModel):
         skill_data = yaml.safe_load(data)
         return SkillsDeclaration(**skill_data)
 
-    def get_skill_list(self, entity_name: str = "Assistant") -> Dict:
+    def get_skill_list(self, entity_name: str = "Assistant", context: Context = None) -> Dict:
         """Return the skill name based on the skill description."""
         entity = self.entities.get(entity_name)
         if not entity:
             return {}
 
         # List of skills that the agent chooses to activate.
-        agent_skills = CONFIG.agent_skills
+        ctx = context or Context()
+        agent_skills = ctx.kwargs.agent_skills
         if not agent_skills:
             return {}
 

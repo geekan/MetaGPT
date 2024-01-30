@@ -1,18 +1,18 @@
 import json
 from typing import Optional, Union
 
-from metagpt.config import CONFIG
+from metagpt.config2 import config
 from metagpt.logs import log_llm_stream, logger
 from metagpt.provider.azure_openai_api import AzureOpenAILLM
 from metagpt.provider.openai_api import OpenAILLM
 from metagpt.schema import Message
 
-OriginalLLM = OpenAILLM if not CONFIG.openai_api_type else AzureOpenAILLM
+OriginalLLM = OpenAILLM if not config.openai_api_type else AzureOpenAILLM
 
 
 class MockLLM(OriginalLLM):
     def __init__(self, allow_open_api_call):
-        super().__init__()
+        super().__init__(config.get_openai_llm())
         self.allow_open_api_call = allow_open_api_call
         self.rsp_cache: dict = {}
         self.rsp_candidates: list[dict] = []  # a test can have multiple calls with the same llm, thus a list
@@ -47,7 +47,9 @@ class MockLLM(OriginalLLM):
         if system_msgs:
             message = self._system_msgs(system_msgs)
         else:
-            message = [self._default_system_msg()] if self.use_system_prompt else []
+            message = [self._default_system_msg()]
+        if not self.use_system_prompt:
+            message = []
         if format_msgs:
             message.extend(format_msgs)
         message.append(self._user_msg(msg))

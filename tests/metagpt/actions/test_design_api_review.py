@@ -11,7 +11,7 @@ from metagpt.actions.design_api_review import DesignReview
 
 
 @pytest.mark.asyncio
-async def test_design_api_review():
+async def test_design_api_review(context):
     prd = "我们需要一个音乐播放器，它应该有播放、暂停、上一曲、下一曲等功能。"
     api_design = """
 数据结构:
@@ -26,7 +26,7 @@ API列表:
 """
     _ = "API设计看起来非常合理，满足了PRD中的所有需求。"
 
-    design_api_review = DesignReview()
+    design_api_review = DesignReview(context=context)
 
     result = await design_api_review.run(prd, api_design)
 

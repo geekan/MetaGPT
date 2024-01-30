@@ -13,7 +13,7 @@ class SubscriptionRunner(BaseModel):
 
     Example:
         >>> import asyncio
-        >>> from metagpt.subscription import SubscriptionRunner
+        >>> from metagpt.address import SubscriptionRunner
         >>> from metagpt.roles import Searcher
         >>> from metagpt.schema import Message
 

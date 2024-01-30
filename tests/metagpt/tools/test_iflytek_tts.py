@@ -7,22 +7,32 @@
 """
 import pytest
 
-from metagpt.config import CONFIG
-from metagpt.tools.iflytek_tts import oas3_iflytek_tts
+from metagpt.config2 import Config
+from metagpt.tools.iflytek_tts import IFlyTekTTS, oas3_iflytek_tts
 
 
 @pytest.mark.asyncio
-async def test_tts():
+async def test_iflytek_tts(mocker):
+    # mock
+    config = Config.default()
+    config.AZURE_TTS_SUBSCRIPTION_KEY = None
+    config.AZURE_TTS_REGION = None
+    mocker.patch.object(IFlyTekTTS, "synthesize_speech", return_value=None)
+    mock_data = mocker.AsyncMock()
+    mock_data.read.return_value = b"mock iflytek"
+    mock_reader = mocker.patch("aiofiles.open")
+    mock_reader.return_value.__aenter__.return_value = mock_data
+
     # Prerequisites
-    assert CONFIG.IFLYTEK_APP_ID
-    assert CONFIG.IFLYTEK_API_KEY
-    assert CONFIG.IFLYTEK_API_SECRET
+    assert config.IFLYTEK_APP_ID
+    assert config.IFLYTEK_API_KEY
+    assert config.IFLYTEK_API_SECRET
 
     result = await oas3_iflytek_tts(
         text="你好，hello",
-        app_id=CONFIG.IFLYTEK_APP_ID,
-        api_key=CONFIG.IFLYTEK_API_KEY,
-        api_secret=CONFIG.IFLYTEK_API_SECRET,
+        app_id=config.IFLYTEK_APP_ID,
+        api_key=config.IFLYTEK_API_KEY,
+        api_secret=config.IFLYTEK_API_SECRET,
     )
     assert result
 

@@ -10,8 +10,9 @@
 
 from pydantic import Field
 
-from metagpt.actions import ActionOutput, SearchAndSummarize
+from metagpt.actions import SearchAndSummarize
 from metagpt.actions.action_node import ActionNode
+from metagpt.actions.action_output import ActionOutput
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message
@@ -48,12 +49,12 @@ class Searcher(Role):
             engine (SearchEngineType): The type of search engine to use.
         """
         super().__init__(**kwargs)
-        self._init_actions([SearchAndSummarize(engine=self.engine)])
+        self.set_actions([SearchAndSummarize(engine=self.engine)])
 
     def set_search_func(self, search_func):
         """Sets a custom search function for the searcher."""
         action = SearchAndSummarize(name="", engine=SearchEngineType.CUSTOM_ENGINE, search_func=search_func)
-        self._init_actions([action])
+        self.set_actions([action])
 
     async def _act_sp(self) -> Message:
         """Performs the search action in a single process."""

@@ -13,7 +13,7 @@ from metagpt.schema import Message
 
 class ExecuteTask(Action):
     name: str = "ExecuteTask"
-    context: list[Message] = []
+    i_context: list[Message] = []
 
     async def run(self, *args, **kwargs):
         pass

@@ -13,7 +13,6 @@ import aiohttp
 import requests
 from pydantic import BaseModel, Field
 
-from metagpt.config import CONFIG
 from metagpt.logs import logger
 
 
@@ -43,11 +42,12 @@ class ResultEmbedding(BaseModel):
 
 
 class OpenAIText2Embedding:
-    def __init__(self, openai_api_key):
+    def __init__(self, api_key: str, proxy: str):
         """
         :param openai_api_key: OpenAI API key, For more details, checkout: `https://platform.openai.com/account/api-keys`
         """
-        self.openai_api_key = openai_api_key or CONFIG.OPENAI_API_KEY
+        self.api_key = api_key
+        self.proxy = proxy
 
     async def text_2_embedding(self, text, model="text-embedding-ada-002"):
         """Text to embedding
@@ -57,8 +57,8 @@ class OpenAIText2Embedding:
         :return: A json object of :class:`ResultEmbedding` class if successful, otherwise `{}`.
         """
 
-        proxies = {"proxy": CONFIG.openai_proxy} if CONFIG.openai_proxy else {}
-        headers = {"Content-Type": "application/json", "Authorization": f"Bearer {self.openai_api_key}"}
+        proxies = {"proxy": self.proxy} if self.proxy else {}
+        headers = {"Content-Type": "application/json", "Authorization": f"Bearer {self.api_key}"}
         data = {"input": text, "model": model}
         url = "https://api.openai.com/v1/embeddings"
         try:
@@ -72,16 +72,14 @@ class OpenAIText2Embedding:
 
 
 # Export
-async def oas3_openai_text_to_embedding(text, model="text-embedding-ada-002", openai_api_key=""):
+async def oas3_openai_text_to_embedding(text, openai_api_key: str, model="text-embedding-ada-002", proxy: str = ""):
     """Text to embedding
 
     :param text: The text used for embedding.
     :param model: One of ['text-embedding-ada-002'], ID of the model to use. For more details, checkout: `https://api.openai.com/v1/models`.
-    :param openai_api_key: OpenAI API key, For more details, checkout: `https://platform.openai.com/account/api-keys`
+    :param config: OpenAI config with API key, For more details, checkout: `https://platform.openai.com/account/api-keys`
     :return: A json object of :class:`ResultEmbedding` class if successful, otherwise `{}`.
     """
     if not text:
         return ""
-    if not openai_api_key:
-        openai_api_key = CONFIG.OPENAI_API_KEY
-    return await OpenAIText2Embedding(openai_api_key).text_2_embedding(text, model=model)
+    return await OpenAIText2Embedding(api_key=openai_api_key, proxy=proxy).text_2_embedding(text, model=model)

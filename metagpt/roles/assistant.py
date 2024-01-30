@@ -22,7 +22,6 @@ from pydantic import Field
 
 from metagpt.actions.skill_action import ArgumentsParingAction, SkillAction
 from metagpt.actions.talk_action import TalkAction
-from metagpt.config import CONFIG
 from metagpt.learn.skill_loader import SkillsDeclaration
 from metagpt.logs import logger
 from metagpt.memory.brain_memory import BrainMemory
@@ -48,7 +47,8 @@ class Assistant(Role):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.constraints = self.constraints.format(language=kwargs.get("language") or CONFIG.language or "Chinese")
+        language = kwargs.get("language") or self.context.kwargs.language
+        self.constraints = self.constraints.format(language=language)
 
     async def think(self) -> bool:
         """Everything will be done part by part."""
@@ -56,16 +56,16 @@ class Assistant(Role):
         if not last_talk:
             return False
         if not self.skills:
-            skill_path = Path(CONFIG.SKILL_PATH) if CONFIG.SKILL_PATH else None
+            skill_path = Path(self.context.kwargs.SKILL_PATH) if self.context.kwargs.SKILL_PATH else None
             self.skills = await SkillsDeclaration.load(skill_yaml_file_name=skill_path)
 
         prompt = ""
-        skills = self.skills.get_skill_list()
+        skills = self.skills.get_skill_list(context=self.context)
         for desc, name in skills.items():
             prompt += f"If the text explicitly want you to {desc}, return `[SKILL]: {name}` brief and clear. For instance: [SKILL]: {name}\n"
         prompt += 'Otherwise, return `[TALK]: {talk}` brief and clear. For instance: if {talk} is "xxxx" return [TALK]: xxxx\n\n'
         prompt += f"Now what specific action is explicitly mentioned in the text: {last_talk}\n"
-        rsp = await self.llm.aask(prompt, [])
+        rsp = await self.llm.aask(prompt, ["You are an action classifier"])
         logger.info(f"THINK: {prompt}\n, THINK RESULT: {rsp}\n")
         return await self._plan(rsp, last_talk=last_talk)
 
@@ -97,8 +97,8 @@ class Assistant(Role):
     async def talk_handler(self, text, **kwargs) -> bool:
         history = self.memory.history_text
         text = kwargs.get("last_talk") or text
-        self.rc.todo = TalkAction(
-            context=text, knowledge=self.memory.get_knowledge(), history_summary=history, llm=self.llm, **kwargs
+        self.set_todo(
+            TalkAction(i_context=text, knowledge=self.memory.get_knowledge(), history_summary=history, llm=self.llm)
         )
         return True
 
@@ -108,11 +108,11 @@ class Assistant(Role):
         if not skill:
             logger.info(f"skill not found: {text}")
             return await self.talk_handler(text=last_talk, **kwargs)
-        action = ArgumentsParingAction(skill=skill, llm=self.llm, ask=last_talk, **kwargs)
+        action = ArgumentsParingAction(skill=skill, llm=self.llm, ask=last_talk)
         await action.run(**kwargs)
         if action.args is None:
             return await self.talk_handler(text=last_talk, **kwargs)
-        self.rc.todo = SkillAction(skill=skill, args=action.args, llm=self.llm, name=skill.name, desc=skill.description)
+        self.set_todo(SkillAction(skill=skill, args=action.args, llm=self.llm, name=skill.name, desc=skill.description))
         return True
 
     async def refine_memory(self) -> str:

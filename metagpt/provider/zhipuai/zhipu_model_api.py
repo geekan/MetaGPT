@@ -4,46 +4,27 @@
 
 import json
 
-import zhipuai
-from zhipuai.model_api.api import InvokeType, ModelAPI
-from zhipuai.utils.http_client import headers as zhipuai_default_headers
+from zhipuai import ZhipuAI
+from zhipuai.core._http_client import ZHIPUAI_DEFAULT_TIMEOUT
 
 from metagpt.provider.general_api_requestor import GeneralAPIRequestor
 from metagpt.provider.zhipuai.async_sse_client import AsyncSSEClient
 
 
-class ZhiPuModelAPI(ModelAPI):
-    @classmethod
-    def get_header(cls) -> dict:
-        token = cls._generate_token()
-        zhipuai_default_headers.update({"Authorization": token})
-        return zhipuai_default_headers
-
-    @classmethod
-    def get_sse_header(cls) -> dict:
-        token = cls._generate_token()
-        headers = {"Authorization": token}
-        return headers
-
-    @classmethod
-    def split_zhipu_api_url(cls, invoke_type: InvokeType, kwargs):
+class ZhiPuModelAPI(ZhipuAI):
+    def split_zhipu_api_url(self):
         # use this method to prevent zhipu api upgrading to different version.
         # and follow the GeneralAPIRequestor implemented based on openai sdk
-        zhipu_api_url = cls._build_api_url(kwargs, invoke_type)
-        """
-            example:
-                zhipu_api_url: https://open.bigmodel.cn/api/paas/v3/model-api/{model}/{invoke_method}
-        """
+        zhipu_api_url = "https://open.bigmodel.cn/api/paas/v4/chat/completions"
         arr = zhipu_api_url.split("/api/")
-        # ("https://open.bigmodel.cn/api" , "/paas/v3/model-api/chatglm_turbo/invoke")
+        # ("https://open.bigmodel.cn/api" , "/paas/v4/chat/completions")
         return f"{arr[0]}/api", f"/{arr[1]}"
 
-    @classmethod
-    async def arequest(cls, invoke_type: InvokeType, stream: bool, method: str, headers: dict, kwargs):
+    async def arequest(self, stream: bool, method: str, headers: dict, kwargs):
         # TODO to make the async request to be more generic for models in http mode.
         assert method in ["post", "get"]
 
-        base_url, url = cls.split_zhipu_api_url(invoke_type, kwargs)
+        base_url, url = self.split_zhipu_api_url()
         requester = GeneralAPIRequestor(base_url=base_url)
         result, _, api_key = await requester.arequest(
             method=method,
@@ -51,25 +32,23 @@ class ZhiPuModelAPI(ModelAPI):
             headers=headers,
             stream=stream,
             params=kwargs,
-            request_timeout=zhipuai.api_timeout_seconds,
+            request_timeout=ZHIPUAI_DEFAULT_TIMEOUT.read,
         )
         return result
 
-    @classmethod
-    async def ainvoke(cls, **kwargs) -> dict:
+    async def acreate(self, **kwargs) -> dict:
         """async invoke different from raw method `async_invoke` which get the final result by task_id"""
-        headers = cls.get_header()
-        resp = await cls.arequest(
-            invoke_type=InvokeType.SYNC, stream=False, method="post", headers=headers, kwargs=kwargs
-        )
+        headers = self._default_headers
+        resp = await self.arequest(stream=False, method="post", headers=headers, kwargs=kwargs)
         resp = resp.decode("utf-8")
         resp = json.loads(resp)
+        if "error" in resp:
+            raise RuntimeError(
+                f"Request failed, msg: {resp}, please ref to `https://open.bigmodel.cn/dev/api#error-code-v3`"
+            )
         return resp
 
-    @classmethod
-    async def asse_invoke(cls, **kwargs) -> AsyncSSEClient:
+    async def acreate_stream(self, **kwargs) -> AsyncSSEClient:
         """async sse_invoke"""
-        headers = cls.get_sse_header()
-        return AsyncSSEClient(
-            await cls.arequest(invoke_type=InvokeType.SSE, stream=True, method="post", headers=headers, kwargs=kwargs)
-        )
+        headers = self._default_headers
+        return AsyncSSEClient(await self.arequest(stream=True, method="post", headers=headers, kwargs=kwargs))

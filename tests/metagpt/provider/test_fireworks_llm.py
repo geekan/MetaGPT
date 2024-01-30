@@ -13,17 +13,13 @@ from openai.types.chat.chat_completion_chunk import Choice as AChoice
 from openai.types.chat.chat_completion_chunk import ChoiceDelta
 from openai.types.completion_usage import CompletionUsage
 
-from metagpt.config import CONFIG
 from metagpt.provider.fireworks_api import (
     MODEL_GRADE_TOKEN_COSTS,
     FireworksCostManager,
     FireworksLLM,
 )
 from metagpt.utils.cost_manager import Costs
-
-CONFIG.fireworks_api_key = "xxx"
-CONFIG.max_budget = 10
-CONFIG.calc_usage = True
+from tests.metagpt.provider.mock_llm_config import mock_llm_config
 
 resp_content = "I'm fireworks"
 default_resp = ChatCompletion(
@@ -92,7 +88,7 @@ async def mock_openai_acompletions_create(self, stream: bool = False, **kwargs) 
 async def test_fireworks_acompletion(mocker):
     mocker.patch("openai.resources.chat.completions.AsyncCompletions.create", mock_openai_acompletions_create)
 
-    fireworks_gpt = FireworksLLM()
+    fireworks_gpt = FireworksLLM(mock_llm_config)
     fireworks_gpt.model = "llama-v2-13b-chat"
 
     fireworks_gpt._update_costs(

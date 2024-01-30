@@ -60,7 +60,7 @@ class InvoiceOCRAssistant(Role):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self._init_actions([InvoiceOCR])
+        self.set_actions([InvoiceOCR])
         self._set_react_mode(react_mode=RoleReactMode.BY_ORDER.value)
 
     async def _act(self) -> Message:
@@ -82,12 +82,12 @@ class InvoiceOCRAssistant(Role):
             resp = await todo.run(file_path)
             if len(resp) == 1:
                 # Single file support for questioning based on OCR recognition results
-                self._init_actions([GenerateTable, ReplyQuestion])
+                self.set_actions([GenerateTable, ReplyQuestion])
                 self.orc_data = resp[0]
             else:
-                self._init_actions([GenerateTable])
+                self.set_actions([GenerateTable])
 
-            self.rc.todo = None
+            self.set_todo(None)
             content = INVOICE_OCR_SUCCESS
             resp = OCRResults(ocr_result=json.dumps(resp))
             msg = Message(content=content, instruct_content=resp)

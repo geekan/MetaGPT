@@ -11,7 +11,7 @@ import pytest
 from pydantic import ValidationError
 
 from metagpt.actions import Action
-from metagpt.actions.action_node import ActionNode
+from metagpt.actions.action_node import ActionNode, ReviewMode, ReviseMode
 from metagpt.environment import Environment
 from metagpt.llm import LLM
 from metagpt.roles import Role
@@ -23,14 +23,12 @@ from metagpt.team import Team
 async def test_debate_two_roles():
     action1 = Action(name="AlexSay", instruction="Express your opinion with emotion and don't repeat it")
     action2 = Action(name="BobSay", instruction="Express your opinion with emotion and don't repeat it")
-    biden = Role(
+    alex = Role(
         name="Alex", profile="Democratic candidate", goal="Win the election", actions=[action1], watch=[action2]
     )
-    trump = Role(
-        name="Bob", profile="Republican candidate", goal="Win the election", actions=[action2], watch=[action1]
-    )
+    bob = Role(name="Bob", profile="Republican candidate", goal="Win the election", actions=[action2], watch=[action1])
     env = Environment(desc="US election live broadcast")
-    team = Team(investment=10.0, env=env, roles=[biden, trump])
+    team = Team(investment=10.0, env=env, roles=[alex, bob])
 
     history = await team.run(idea="Topic: climate change. Under 80 words per message.", send_to="Alex", n_round=3)
     assert "Alex" in history
@@ -39,9 +37,9 @@ async def test_debate_two_roles():
 @pytest.mark.asyncio
 async def test_debate_one_role_in_env():
     action = Action(name="Debate", instruction="Express your opinion with emotion and don't repeat it")
-    biden = Role(name="Alex", profile="Democratic candidate", goal="Win the election", actions=[action])
+    alex = Role(name="Alex", profile="Democratic candidate", goal="Win the election", actions=[action])
     env = Environment(desc="US election live broadcast")
-    team = Team(investment=10.0, env=env, roles=[biden])
+    team = Team(investment=10.0, env=env, roles=[alex])
     history = await team.run(idea="Topic: climate change. Under 80 words per message.", send_to="Alex", n_round=3)
     assert "Alex" in history
 
@@ -49,8 +47,8 @@ async def test_debate_one_role_in_env():
 @pytest.mark.asyncio
 async def test_debate_one_role():
     action = Action(name="Debate", instruction="Express your opinion with emotion and don't repeat it")
-    biden = Role(name="Alex", profile="Democratic candidate", goal="Win the election", actions=[action])
-    msg: Message = await biden.run("Topic: climate change. Under 80 words per message.")
+    alex = Role(name="Alex", profile="Democratic candidate", goal="Win the election", actions=[action])
+    msg: Message = await alex.run("Topic: climate change. Under 80 words per message.")
 
     assert len(msg.content) > 10
     assert msg.sent_from == "metagpt.roles.role.Role"
@@ -98,6 +96,83 @@ async def test_action_node_two_layer():
     assert "579" in answer2.content
 
 
+@pytest.mark.asyncio
+async def test_action_node_review():
+    key = "Project Name"
+    node_a = ActionNode(
+        key=key,
+        expected_type=str,
+        instruction='According to the content of "Original Requirements," name the project using snake case style '
+        "with underline, like 'game_2048' or 'simple_crm.",
+        example="game_2048",
+    )
+
+    with pytest.raises(RuntimeError):
+        _ = await node_a.review()
+
+    _ = await node_a.fill(context=None, llm=LLM())
+    setattr(node_a.instruct_content, key, "game snake")  # wrong content to review
+
+    review_comments = await node_a.review(review_mode=ReviewMode.AUTO)
+    assert len(review_comments) == 1
+    assert list(review_comments.keys())[0] == key
+
+    review_comments = await node_a.review(strgy="complex", review_mode=ReviewMode.AUTO)
+    assert len(review_comments) == 0
+
+    node = ActionNode.from_children(key="WritePRD", nodes=[node_a])
+    with pytest.raises(RuntimeError):
+        _ = await node.review()
+
+    _ = await node.fill(context=None, llm=LLM())
+
+    review_comments = await node.review(review_mode=ReviewMode.AUTO)
+    assert len(review_comments) == 1
+    assert list(review_comments.keys())[0] == key
+
+    review_comments = await node.review(strgy="complex", review_mode=ReviewMode.AUTO)
+    assert len(review_comments) == 1
+    assert list(review_comments.keys())[0] == key
+
+
+@pytest.mark.asyncio
+async def test_action_node_revise():
+    key = "Project Name"
+    node_a = ActionNode(
+        key=key,
+        expected_type=str,
+        instruction='According to the content of "Original Requirements," name the project using snake case style '
+        "with underline, like 'game_2048' or 'simple_crm.",
+        example="game_2048",
+    )
+
+    with pytest.raises(RuntimeError):
+        _ = await node_a.review()
+
+    _ = await node_a.fill(context=None, llm=LLM())
+    setattr(node_a.instruct_content, key, "game snake")  # wrong content to revise
+    revise_contents = await node_a.revise(revise_mode=ReviseMode.AUTO)
+    assert len(revise_contents) == 1
+    assert "game_snake" in getattr(node_a.instruct_content, key)
+
+    revise_contents = await node_a.revise(strgy="complex", revise_mode=ReviseMode.AUTO)
+    assert len(revise_contents) == 0
+
+    node = ActionNode.from_children(key="WritePRD", nodes=[node_a])
+    with pytest.raises(RuntimeError):
+        _ = await node.revise()
+
+    _ = await node.fill(context=None, llm=LLM())
+    setattr(node.instruct_content, key, "game snake")
+    revise_contents = await node.revise(revise_mode=ReviseMode.AUTO)
+    assert len(revise_contents) == 1
+    assert "game_snake" in getattr(node.instruct_content, key)
+
+    revise_contents = await node.revise(strgy="complex", revise_mode=ReviseMode.AUTO)
+    assert len(revise_contents) == 1
+    assert "game_snake" in getattr(node.instruct_content, key)
+
+
 t_dict = {
     "Required Python third-party packages": '"""\nflask==1.1.2\npygame==2.0.1\n"""\n',
     "Required Other language third-party packages": '"""\nNo third-party packages required for other languages.\n"""\n',
@@ -138,10 +213,10 @@ def test_create_model_class():
     assert test_class.__name__ == "test_class"
 
     output = test_class(**t_dict)
-    print(output.schema())
-    assert output.schema()["title"] == "test_class"
-    assert output.schema()["type"] == "object"
-    assert output.schema()["properties"]["Full API spec"]
+    print(output.model_json_schema())
+    assert output.model_json_schema()["title"] == "test_class"
+    assert output.model_json_schema()["type"] == "object"
+    assert output.model_json_schema()["properties"]["Full API spec"]
 
 
 def test_create_model_class_with_fields_unrecognized():

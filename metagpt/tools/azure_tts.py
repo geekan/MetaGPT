@@ -13,7 +13,6 @@ from uuid import uuid4
 import aiofiles
 from azure.cognitiveservices.speech import AudioConfig, SpeechConfig, SpeechSynthesizer
 
-from metagpt.config import CONFIG
 from metagpt.logs import logger
 
 
@@ -25,8 +24,8 @@ class AzureTTS:
         :param subscription_key: key is used to access your Azure AI service API, see: `https://portal.azure.com/` > `Resource Management` > `Keys and Endpoint`
         :param region: This is the location (or region) of your resource. You may need to use this field when making calls to this API.
         """
-        self.subscription_key = subscription_key if subscription_key else CONFIG.AZURE_TTS_SUBSCRIPTION_KEY
-        self.region = region if region else CONFIG.AZURE_TTS_REGION
+        self.subscription_key = subscription_key
+        self.region = region
 
     # 参数参考：https://learn.microsoft.com/zh-cn/azure/cognitive-services/speech-service/language-support?tabs=tts#voice-styles-and-roles
     async def synthesize_speech(self, lang, voice, text, output_file):
@@ -83,10 +82,6 @@ async def oas3_azsure_tts(text, lang="", voice="", style="", role="", subscripti
         role = "Girl"
     if not style:
         style = "affectionate"
-    if not subscription_key:
-        subscription_key = CONFIG.AZURE_TTS_SUBSCRIPTION_KEY
-    if not region:
-        region = CONFIG.AZURE_TTS_REGION
 
     xml_value = AzureTTS.role_style_text(role=role, style=style, text=text)
     tts = AzureTTS(subscription_key=subscription_key, region=region)

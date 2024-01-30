@@ -17,9 +17,7 @@ from semantic_kernel.planning.basic_planner import BasicPlanner, Plan
 
 from metagpt.actions import UserRequirement
 from metagpt.actions.execute_task import ExecuteTask
-from metagpt.llm import LLM
 from metagpt.logs import logger
-from metagpt.provider.base_llm import BaseLLM
 from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.utils.make_sk_kernel import make_sk_kernel
@@ -44,7 +42,6 @@ class SkAgent(Role):
     plan: Plan = Field(default=None, exclude=True)
     planner_cls: Any = None
     planner: Union[BasicPlanner, SequentialPlanner, ActionPlanner] = None
-    llm: BaseLLM = Field(default_factory=LLM)
     kernel: Kernel = Field(default_factory=Kernel)
     import_semantic_skill_from_directory: Callable = Field(default=None, exclude=True)
     import_skill: Callable = Field(default=None, exclude=True)
@@ -52,7 +49,7 @@ class SkAgent(Role):
     def __init__(self, **data: Any) -> None:
         """Initializes the Engineer role with given attributes."""
         super().__init__(**data)
-        self._init_actions([ExecuteTask()])
+        self.set_actions([ExecuteTask()])
         self._watch([UserRequirement])
         self.kernel = make_sk_kernel()
 

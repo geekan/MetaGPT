@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import List
 
 from metagpt.actions import Action
-from metagpt.config import CONFIG
+from metagpt.config2 import config
 from metagpt.const import GRAPH_REPO_FILE_REPO
 from metagpt.logs import logger
 from metagpt.utils.common import aread, list_files
@@ -21,8 +21,8 @@ from metagpt.utils.graph_repository import GraphKeyword
 
 
 class RebuildSequenceView(Action):
-    async def run(self, with_messages=None, format=CONFIG.prompt_schema):
-        graph_repo_pathname = CONFIG.git_repo.workdir / GRAPH_REPO_FILE_REPO / CONFIG.git_repo.workdir.name
+    async def run(self, with_messages=None, format=config.prompt_schema):
+        graph_repo_pathname = self.context.git_repo.workdir / GRAPH_REPO_FILE_REPO / self.context.git_repo.workdir.name
         graph_db = await DiGraphRepository.load_from(str(graph_repo_pathname.with_suffix(".json")))
         entries = await RebuildSequenceView._search_main_entry(graph_db)
         for entry in entries:
@@ -41,7 +41,9 @@ class RebuildSequenceView(Action):
 
     async def _rebuild_sequence_view(self, entry, graph_db):
         filename = entry.subject.split(":", 1)[0]
-        src_filename = RebuildSequenceView._get_full_filename(root=self.context, pathname=filename)
+        src_filename = RebuildSequenceView._get_full_filename(root=self.i_context, pathname=filename)
+        if not src_filename:
+            return
         content = await aread(filename=src_filename, encoding="utf-8")
         content = f"```python\n{content}\n```\n\n---\nTranslate the code above into Mermaid Sequence Diagram."
         data = await self.llm.aask(

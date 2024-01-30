@@ -10,13 +10,12 @@ from pathlib import Path
 
 import pytest
 
-from metagpt.config import CONFIG
 from metagpt.learn.skill_loader import SkillsDeclaration
 
 
 @pytest.mark.asyncio
-async def test_suite():
-    CONFIG.agent_skills = [
+async def test_suite(context):
+    context.kwargs.agent_skills = [
         {"id": 1, "name": "text_to_speech", "type": "builtin", "config": {}, "enabled": True},
         {"id": 2, "name": "text_to_image", "type": "builtin", "config": {}, "enabled": True},
         {"id": 3, "name": "ai_call", "type": "builtin", "config": {}, "enabled": True},
@@ -27,7 +26,7 @@ async def test_suite():
     ]
     pathname = Path(__file__).parent / "../../../docs/.well-known/skills.yaml"
     loader = await SkillsDeclaration.load(skill_yaml_file_name=pathname)
-    skills = loader.get_skill_list()
+    skills = loader.get_skill_list(context=context)
     assert skills
     assert len(skills) >= 3
     for desc, name in skills.items():

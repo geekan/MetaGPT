@@ -13,7 +13,7 @@ from metagpt.actions.action import Action
 
 class DesignReview(Action):
     name: str = "DesignReview"
-    context: Optional[str] = None
+    i_context: Optional[str] = None
 
     async def run(self, prd, api_design):
         prompt = (
