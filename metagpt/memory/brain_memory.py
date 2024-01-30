@@ -23,6 +23,19 @@ from metagpt.utils.redis import Redis
 
 
 class BrainMemory(BaseModel):
+    """A model for storing and managing brain memory for chat interactions.
+
+    Attributes:
+        history: A list of messages that represent the chat history.
+        knowledge: A list of messages that represent the knowledge base.
+        historical_summary: A string that summarizes the historical chat interactions.
+        last_history_id: The ID of the last message in the history.
+        is_dirty: A flag indicating whether the memory has been modified.
+        last_talk: The last message that was talked about.
+        cacheable: A flag indicating whether the memory can be cached.
+        llm: An optional instance of BaseLLM for language model operations.
+    """
+
     history: List[Message] = Field(default_factory=list)
     knowledge: List[Message] = Field(default_factory=list)
     historical_summary: str = ""
@@ -36,25 +49,44 @@ class BrainMemory(BaseModel):
         arbitrary_types_allowed = True
 
     def add_talk(self, msg: Message):
-        """
-        Add message from user.
+        """Add a user message to the chat history.
+
+        Args:
+            msg: The message from the user to be added.
         """
         msg.role = "user"
         self.add_history(msg)
         self.is_dirty = True
 
     def add_answer(self, msg: Message):
-        """Add message from LLM"""
+        """Add an assistant message to the chat history.
+
+        Args:
+            msg: The message from the assistant to be added.
+        """
         msg.role = "assistant"
         self.add_history(msg)
         self.is_dirty = True
 
     def get_knowledge(self) -> str:
+        """Retrieve the knowledge base as a single string.
+
+        Returns:
+            A string that concatenates all knowledge messages.
+        """
         texts = [m.content for m in self.knowledge]
         return "\n".join(texts)
 
     @staticmethod
     async def loads(redis_key: str) -> "BrainMemory":
+        """Load a BrainMemory instance from Redis.
+
+        Args:
+            redis_key: The Redis key where the BrainMemory is stored.
+
+        Returns:
+            An instance of BrainMemory.
+        """
         redis = Redis(config.redis)
         if not redis_key:
             return BrainMemory()
@@ -67,6 +99,12 @@ class BrainMemory(BaseModel):
         return BrainMemory()
 
     async def dumps(self, redis_key: str, timeout_sec: int = 30 * 60):
+        """Dump the BrainMemory instance to Redis.
+
+        Args:
+            redis_key: The Redis key where the BrainMemory should be stored.
+            timeout_sec: The expiration time in seconds for the Redis key.
+        """
         if not self.is_dirty:
             return
         redis = Redis(config.redis)
@@ -80,9 +118,25 @@ class BrainMemory(BaseModel):
 
     @staticmethod
     def to_redis_key(prefix: str, user_id: str, chat_id: str):
+        """Generate a Redis key for storing BrainMemory.
+
+        Args:
+            prefix: The prefix for the Redis key.
+            user_id: The user ID to be included in the Redis key.
+            chat_id: The chat ID to be included in the Redis key.
+
+        Returns:
+            A string representing the Redis key.
+        """
         return f"{prefix}:{user_id}:{chat_id}"
 
     async def set_history_summary(self, history_summary, redis_key):
+        """Set the summary of the chat history and update Redis if necessary.
+
+        Args:
+            history_summary: The summary of the chat history.
+            redis_key: The Redis key where the BrainMemory should be stored.
+        """
         if self.historical_summary == history_summary:
             if self.is_dirty:
                 await self.dumps(redis_key=redis_key)
@@ -95,6 +149,11 @@ class BrainMemory(BaseModel):
         self.is_dirty = False
 
     def add_history(self, msg: Message):
+        """Add a message to the chat history.
+
+        Args:
+            msg: The message to be added to the history.
+        """
         if msg.id:
             if self.to_int(msg.id, 0) <= self.to_int(self.last_history_id, -1):
                 return
@@ -104,6 +163,14 @@ class BrainMemory(BaseModel):
         self.is_dirty = True
 
     def exists(self, text) -> bool:
+        """Check if a given text exists in the chat history.
+
+        Args:
+            text: The text to check for existence.
+
+        Returns:
+            True if the text exists in the history, False otherwise.
+        """
         for m in reversed(self.history):
             if m.content == text:
                 return True
@@ -111,17 +178,42 @@ class BrainMemory(BaseModel):
 
     @staticmethod
     def to_int(v, default_value):
+        """Convert a value to an integer, with a default if conversion fails.
+
+        Args:
+            v: The value to convert.
+            default_value: The default value to return if conversion fails.
+
+        Returns:
+            The converted integer or the default value.
+        """
         try:
             return int(v)
         except:
             return default_value
 
     def pop_last_talk(self):
+        """Pop and return the last talked message.
+
+        Returns:
+            The last talked message.
+        """
         v = self.last_talk
         self.last_talk = None
         return v
 
     async def summarize(self, llm, max_words=200, keep_language: bool = False, limit: int = -1, **kwargs):
+        """Summarize the chat history.
+
+        Args:
+            llm: The language model to use for summarization.
+            max_words: The maximum number of words in the summary.
+            keep_language: Whether to keep the original language of the content.
+            limit: An optional limit on the length of the text to summarize.
+
+        Returns:
+            A summary of the chat history.
+        """
         if isinstance(llm, MetaGPTLLM):
             return await self._metagpt_summarize(max_words=max_words)
 
@@ -174,7 +266,15 @@ class BrainMemory(BaseModel):
         return json.dumps(mmsg, ensure_ascii=False)
 
     async def get_title(self, llm, max_words=5, **kwargs) -> str:
-        """Generate text title"""
+        """Generate a title for the chat history.
+
+        Args:
+            llm: The language model to use for generating the title.
+            max_words: The maximum number of words in the title.
+
+        Returns:
+            A title for the chat history.
+        """
         if isinstance(llm, MetaGPTLLM):
             return self.history[0].content if self.history else "New"
 
@@ -190,6 +290,16 @@ class BrainMemory(BaseModel):
         return response
 
     async def is_related(self, text1, text2, llm):
+        """Check if two texts are related using a language model.
+
+        Args:
+            text1: The first text to compare.
+            text2: The second text to compare.
+            llm: The language model to use for the comparison.
+
+        Returns:
+            True if the texts are related, False otherwise.
+        """
         if isinstance(llm, MetaGPTLLM):
             return await self._metagpt_is_related(text1=text1, text2=text2, llm=llm)
         return await self._openai_is_related(text1=text1, text2=text2, llm=llm)
@@ -212,6 +322,16 @@ class BrainMemory(BaseModel):
         return result
 
     async def rewrite(self, sentence: str, context: str, llm):
+        """Rewrite a sentence given a context using a language model.
+
+        Args:
+            sentence: The sentence to rewrite.
+            context: The context for the rewrite.
+            llm: The language model to use for the rewrite.
+
+        Returns:
+            The rewritten sentence.
+        """
         if isinstance(llm, MetaGPTLLM):
             return await self._metagpt_rewrite(sentence=sentence, context=context, llm=llm)
         return await self._openai_rewrite(sentence=sentence, context=context, llm=llm)
@@ -232,6 +352,15 @@ class BrainMemory(BaseModel):
 
     @staticmethod
     def extract_info(input_string, pattern=r"\[([A-Z]+)\]:\s*(.+)"):
+        """Extract information from a string based on a given pattern.
+
+        Args:
+            input_string: The string to extract information from.
+            pattern: The regex pattern to use for extraction.
+
+        Returns:
+            A tuple containing the extracted information.
+        """
         match = re.match(pattern, input_string)
         if match:
             return match.group(1), match.group(2)
@@ -240,10 +369,20 @@ class BrainMemory(BaseModel):
 
     @property
     def is_history_available(self):
+        """Check if there is any chat history available.
+
+        Returns:
+            True if there is chat history or a historical summary, False otherwise.
+        """
         return bool(self.history or self.historical_summary)
 
     @property
     def history_text(self):
+        """Get the chat history as a single text string.
+
+        Returns:
+            The chat history concatenated into a single string.
+        """
         if len(self.history) == 0 and not self.historical_summary:
             return ""
         texts = [self.historical_summary] if self.historical_summary else []
@@ -259,6 +398,17 @@ class BrainMemory(BaseModel):
         return "\n".join(texts)
 
     async def _summarize(self, text: str, max_words=200, keep_language: bool = False, limit: int = -1) -> str:
+        """Internal method to generate a summary of a given text.
+
+        Args:
+            text: The text to summarize.
+            max_words: The maximum number of words in the summary.
+            keep_language: Whether to keep the original language of the content.
+            limit: An optional limit on the length of the text to summarize.
+
+        Returns:
+            A summary of the given text.
+        """
         max_token_count = DEFAULT_MAX_TOKENS
         max_count = 100
         text_length = len(text)
@@ -289,7 +439,16 @@ class BrainMemory(BaseModel):
         return summary
 
     async def _get_summary(self, text: str, max_words=20, keep_language: bool = False):
-        """Generate text summary"""
+        """Internal method to generate a summary of a given text using a language model.
+
+        Args:
+            text: The text to summarize.
+            max_words: The maximum number of words in the summary.
+            keep_language: Whether to keep the original language of the content.
+
+        Returns:
+            A summary of the given text.
+        """
         if len(text) < max_words:
             return text
         if keep_language:
@@ -304,7 +463,15 @@ class BrainMemory(BaseModel):
 
     @staticmethod
     def split_texts(text: str, window_size) -> List[str]:
-        """Splitting long text into sliding windows text"""
+        """Split a long text into smaller texts based on a window size.
+
+        Args:
+            text: The text to split.
+            window_size: The size of each text window.
+
+        Returns:
+            A list of smaller texts.
+        """
         if window_size <= 0:
             window_size = DEFAULT_TOKEN_SIZE
         total_len = len(text)

@@ -28,9 +28,18 @@ from metagpt.utils.common import (
 
 
 class Team(BaseModel):
-    """
-    Team: Possesses one or more roles (agents), SOP (Standard Operating Procedures), and a env for instant messaging,
-    dedicated to env any multi-agent activity, such as collaboratively writing executable code.
+    """Team: Possesses one or more roles (agents), SOP (Standard Operating Procedures), and an environment for instant messaging,
+    dedicated to any multi-agent activity, such as collaboratively writing executable code.
+
+    Args:
+        context: The context in which the team operates.
+        **data: Arbitrary keyword arguments.
+
+    Attributes:
+        model_config: Configuration dictionary allowing arbitrary types.
+        env: Optional environment for the team's operations.
+        investment: Initial investment amount for the team.
+        idea: The idea or project the team is working on.
     """
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -52,6 +61,11 @@ class Team(BaseModel):
             self.env.desc = data["env_desc"]
 
     def serialize(self, stg_path: Path = None):
+        """Serializes the team information to a specified storage path.
+
+        Args:
+            stg_path: The storage path where team information will be saved. If None, uses default path.
+        """
         stg_path = SERDESER_PATH.joinpath("team") if stg_path is None else stg_path
         team_info_path = stg_path.joinpath("team.json")
 
@@ -59,7 +73,18 @@ class Team(BaseModel):
 
     @classmethod
     def deserialize(cls, stg_path: Path, context: Context = None) -> "Team":
-        """stg_path = ./storage/team"""
+        """Deserializes the team information from a specified storage path.
+
+        Args:
+            stg_path: The storage path where team information is saved.
+            context: The context in which the team operates.
+
+        Returns:
+            An instance of `Team` loaded from the storage path.
+
+        Raises:
+            FileNotFoundError: If the `team.json` file does not exist at the specified path.
+        """
         # recover team_info
         team_info_path = stg_path.joinpath("team.json")
         if not team_info_path.exists():
@@ -73,16 +98,31 @@ class Team(BaseModel):
         return team
 
     def hire(self, roles: list[Role]):
-        """Hire roles to cooperate"""
+        """Hires roles to cooperate with the team.
+
+        Args:
+            roles: A list of roles (agents) to be added to the team.
+        """
         self.env.add_roles(roles)
 
     @property
     def cost_manager(self):
-        """Get cost manager"""
+        """Gets the cost manager associated with the team.
+
+        Returns:
+            The cost manager of the team.
+        """
         return self.env.context.cost_manager
 
     def invest(self, investment: float):
-        """Invest company. raise NoMoneyException when exceed max_budget."""
+        """Invests in the team. Raises NoMoneyException when the investment exceeds the max budget.
+
+        Args:
+            investment: The amount to invest in the team.
+
+        Raises:
+            NoMoneyException: If the investment exceeds the max budget.
+        """
         self.investment = investment
         self.cost_manager.max_budget = investment
         logger.info(f"Investment: ${investment}.")
@@ -92,7 +132,12 @@ class Team(BaseModel):
             raise NoMoneyException(self.cost_manager.total_cost, f"Insufficient funds: {self.cost_manager.max_budget}")
 
     def run_project(self, idea, send_to: str = ""):
-        """Run a project from publishing user requirement."""
+        """Runs a project by publishing a user requirement.
+
+        Args:
+            idea: The idea or project to be run.
+            send_to: The recipient of the message. If empty, sends to all.
+        """
         self.idea = idea
 
         # Human requirement.
@@ -102,9 +147,14 @@ class Team(BaseModel):
         )
 
     def start_project(self, idea, send_to: str = ""):
-        """
-        Deprecated: This method will be removed in the future.
-        Please use the `run_project` method instead.
+        """Deprecated: This method will be removed in the future. Use the `run_project` method instead.
+
+        Args:
+            idea: The idea or project to be started.
+            send_to: The recipient of the message. If empty, sends to all.
+
+        Deprecated:
+            This method is deprecated and will be removed in the future. Use the `run_project` method instead.
         """
         warnings.warn(
             "The 'start_project' method is deprecated and will be removed in the future. "
@@ -119,7 +169,17 @@ class Team(BaseModel):
 
     @serialize_decorator
     async def run(self, n_round=3, idea="", send_to="", auto_archive=True):
-        """Run company until target round or no money"""
+        """Runs the team until the target round or until there's no money left.
+
+        Args:
+            n_round: The number of rounds to run the team for.
+            idea: The idea or project to be run.
+            send_to: The recipient of the message. If empty, sends to all.
+            auto_archive: Whether to automatically archive the environment's history.
+
+        Returns:
+            The history of the environment after running.
+        """
         if idea:
             self.run_project(idea=idea, send_to=send_to)
 

@@ -14,7 +14,18 @@ from metagpt.provider.base_llm import BaseLLM
 
 
 class ContextMixin(BaseModel):
-    """Mixin class for context and config"""
+    """Mixin class for context and config.
+
+    This class is designed to be a mixin for handling context, configuration, and language model (LLM) instances
+    within a larger application structure. It provides methods to set and retrieve these components, ensuring
+    that they are appropriately initialized and accessible throughout the application.
+
+    Attributes:
+        model_config: A dictionary allowing arbitrary types, intended for model configuration.
+        private_context: An optional Context instance, not included in the model's serialization.
+        private_config: An optional Config instance, not included in the model's serialization.
+        private_llm: An optional BaseLLM instance, not included in the model's serialization.
+    """
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -38,58 +49,105 @@ class ContextMixin(BaseModel):
         llm: Optional[BaseLLM] = None,
         **kwargs,
     ):
-        """Initialize with config"""
+        """Initialize the mixin with optional context, config, and llm instances.
+
+        Args:
+            context: An optional Context instance to initialize with.
+            config: An optional Config instance to initialize with.
+            llm: An optional BaseLLM instance to initialize with.
+        """
         super().__init__(**kwargs)
         self.set_context(context)
         self.set_config(config)
         self.set_llm(llm)
 
     def set(self, k, v, override=False):
-        """Set attribute"""
+        """Set an attribute on the instance.
+
+        Args:
+            k: The attribute name to set.
+            v: The value to set the attribute to.
+            override: If True, the attribute will be set even if it already exists.
+        """
         if override or not self.__dict__.get(k):
             self.__dict__[k] = v
 
     def set_context(self, context: Context, override=True):
-        """Set context"""
+        """Set the context attribute.
+
+        Args:
+            context: The Context instance to set.
+            override: If True, the context will be set even if it already exists.
+        """
         self.set("private_context", context, override)
 
     def set_config(self, config: Config, override=False):
-        """Set config"""
+        """Set the config attribute.
+
+        Args:
+            config: The Config instance to set.
+            override: If True, the config will be set even if it already exists.
+        """
         self.set("private_config", config, override)
         if config is not None:
             _ = self.llm  # init llm
 
     def set_llm(self, llm: BaseLLM, override=False):
-        """Set llm"""
+        """Set the llm (language model) attribute.
+
+        Args:
+            llm: The BaseLLM instance to set.
+            override: If True, the llm will be set even if it already exists.
+        """
         self.set("private_llm", llm, override)
 
     @property
     def config(self) -> Config:
-        """Role config: role config > context config"""
+        """Set the config instance.
+
+        Args:
+            config: The Config instance to set.
+        """
         if self.private_config:
             return self.private_config
         return self.context.config
 
     @config.setter
     def config(self, config: Config) -> None:
-        """Set config"""
+        """Set the config instance.
+
+        Args:
+            config: The Config instance to set.
+        """
         self.set_config(config)
 
     @property
     def context(self) -> Context:
-        """Role context: role context > context"""
+        """Set the context instance.
+
+        Args:
+            context: The Context instance to set.
+        """
         if self.private_context:
             return self.private_context
         return Context()
 
     @context.setter
     def context(self, context: Context) -> None:
-        """Set context"""
+        """Set the context instance.
+
+        Args:
+            context: The Context instance to set.
+        """
         self.set_context(context)
 
     @property
     def llm(self) -> BaseLLM:
-        """Role llm: if not existed, init from role.config"""
+        """Set the language model (LLM) instance.
+
+        Args:
+            llm: The BaseLLM instance to set.
+        """
         # print(f"class:{self.__class__.__name__}({self.name}), llm: {self._llm}, llm_config: {self._llm_config}")
         if not self.private_llm:
             self.private_llm = self.context.llm_with_cost_manager_from_llm_config(self.config.llm)
@@ -97,5 +155,9 @@ class ContextMixin(BaseModel):
 
     @llm.setter
     def llm(self, llm: BaseLLM) -> None:
-        """Set llm"""
+        """Set the language model (LLM) instance.
+
+        Args:
+            llm: The BaseLLM instance to set.
+        """
         self.private_llm = llm

@@ -28,10 +28,32 @@ NEW_REQ_TEMPLATE = """
 
 
 class WriteTasks(Action):
+    """Handles the creation and updating of tasks based on system design changes.
+
+    This class extends the Action class to implement the functionality for creating and updating tasks
+    based on changes in system designs. It checks for changed files in the system design and task directories,
+    merges new requirements with existing tasks if necessary, and updates the tasks accordingly.
+
+    Attributes:
+        name: A string indicating the name of the action.
+        i_context: An optional string that provides additional context for the action.
+    """
+
     name: str = "CreateTasks"
     i_context: Optional[str] = None
 
     async def run(self, with_messages):
+        """Executes the action to create or update tasks.
+
+        This method checks for changed system design and task files, updates tasks based on the changes,
+        and saves the updated tasks. If there are no changes, it logs a message indicating so.
+
+        Args:
+            with_messages: A flag indicating whether to include messages in the output.
+
+        Returns:
+            An ActionOutput object containing the updated tasks and any instructions.
+        """
         changed_system_designs = self.repo.docs.system_design.changed_files
         changed_tasks = self.repo.docs.task.changed_files
         change_files = Documents()
@@ -55,6 +77,17 @@ class WriteTasks(Action):
         return ActionOutput(content=change_files.model_dump_json(), instruct_content=change_files)
 
     async def _update_tasks(self, filename):
+        """Updates tasks based on a given filename.
+
+        This method retrieves the system design and task documents based on the filename, merges new requirements
+        with existing tasks if necessary, and saves the updated task document.
+
+        Args:
+            filename: The name of the file to update tasks for.
+
+        Returns:
+            The updated task document.
+        """
         system_design_doc = await self.repo.docs.system_design.get(filename)
         task_doc = await self.repo.docs.task.get(filename)
         if task_doc:
@@ -71,16 +104,46 @@ class WriteTasks(Action):
         return task_doc
 
     async def _run_new_tasks(self, context):
+        """Generates new tasks based on the given context.
+
+        This method uses the PM_NODE to fill in the context for new tasks and returns the generated node.
+
+        Args:
+            context: The context for generating new tasks.
+
+        Returns:
+            The generated node with new tasks.
+        """
         node = await PM_NODE.fill(context, self.llm, schema=self.prompt_schema)
         return node
 
     async def _merge(self, system_design_doc, task_doc) -> Document:
+        """Merges new requirements with existing tasks.
+
+        This method formats the new requirements and existing tasks into a context, uses the REFINED_PM_NODE
+        to fill in the context, and updates the task document with the merged content.
+
+        Args:
+            system_design_doc: The system design document containing new requirements.
+            task_doc: The existing task document to merge with.
+
+        Returns:
+            The updated task document with merged content.
+        """
         context = NEW_REQ_TEMPLATE.format(context=system_design_doc.content, old_task=task_doc.content)
         node = await REFINED_PM_NODE.fill(context, self.llm, schema=self.prompt_schema)
         task_doc.content = node.instruct_content.model_dump_json()
         return task_doc
 
     async def _update_requirements(self, doc):
+        """Updates the requirements document based on the given task document.
+
+        This method extracts required Python packages from the task document, updates the requirements document
+        with these packages, and saves the updated requirements document.
+
+        Args:
+            doc: The task document to extract requirements from.
+        """
         m = json.loads(doc.content)
         packages = set(m.get("Required Python packages", set()))
         requirement_doc = await self.repo.get(filename=PACKAGE_REQUIREMENTS_FILENAME)

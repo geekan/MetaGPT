@@ -102,6 +102,20 @@ You are a member of a professional butler team and will provide helpful suggesti
 
 
 class SearchAndSummarize(Action):
+    """Implements the search and summarize functionality for a given query.
+
+    This class utilizes a search engine to fetch relevant information based on the user's query,
+    and then summarizes the information to generate a concise and informative response.
+
+    Attributes:
+        name: A string representing the name of the action.
+        content: An optional string representing additional content or context for the action.
+        engine: An optional SearchEngineType indicating the type of search engine to use.
+        search_func: An optional callable representing the search function to be used.
+        search_engine: A SearchEngine object used to perform the search operation.
+        result: A string representing the result of the search and summarize operation.
+    """
+
     name: str = ""
     content: Optional[str] = None
     engine: Optional[SearchEngineType] = None
@@ -111,6 +125,15 @@ class SearchAndSummarize(Action):
 
     @model_validator(mode="after")
     def validate_engine_and_run_func(self):
+        """Validates the search engine configuration and initializes the search engine.
+
+        This method checks if the search engine is configured. If not, it attempts to configure
+        it using the provided search function. If the configuration is invalid, it sets the
+        search engine to None.
+
+        Returns:
+            The instance of SearchAndSummarize with the search engine configured.
+        """
         if self.engine is None:
             self.engine = self.config.search_engine
         try:
@@ -122,6 +145,18 @@ class SearchAndSummarize(Action):
         return self
 
     async def run(self, context: list[Message], system_text=SEARCH_AND_SUMMARIZE_SYSTEM) -> str:
+        """Executes the search and summarize action based on the provided context.
+
+        This method performs a search based on the latest query in the context, summarizes the
+        information, and generates a response.
+
+        Args:
+            context: A list of Message objects representing the dialogue history.
+            system_text: A string template used for generating the system prompt for summarization.
+
+        Returns:
+            A string representing the summarized response to the query.
+        """
         if self.search_engine is None:
             logger.warning("Configure one of SERPAPI_API_KEY, SERPER_API_KEY, GOOGLE_API_KEY to unlock full feature")
             return ""

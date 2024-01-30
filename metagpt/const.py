@@ -17,7 +17,14 @@ import metagpt
 
 
 def get_metagpt_package_root():
-    """Get the root directory of the installed package."""
+    """Get the root directory of the installed package.
+
+    This function attempts to find the root directory of the metagpt package by looking for specific markers.
+    If none of the markers are found, it defaults to the current working directory.
+
+    Returns:
+        A Path object representing the root directory of the metagpt package.
+    """
     package_root = Path(metagpt.__file__).parent.parent
     for i in (".git", ".project_root", ".gitignore"):
         if (package_root / i).exists():
@@ -30,7 +37,14 @@ def get_metagpt_package_root():
 
 
 def get_metagpt_root():
-    """Get the project root directory."""
+    """Get the project root directory.
+
+    This function attempts to find the project root by checking an environment variable. If the environment
+    variable is not set, it falls back to using the package root as determined by `get_metagpt_package_root`.
+
+    Returns:
+        A Path object representing the root directory of the metagpt project.
+    """
     # Check if a project root is specified in the environment variable
     project_root_env = os.getenv("METAGPT_PROJECT_ROOT")
     if project_root_env:

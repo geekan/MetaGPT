@@ -23,11 +23,25 @@ from metagpt.repo_parser import RepoParser
 
 
 def validate_cols(content_col: str, df: pd.DataFrame):
+    """Validates if the specified content column exists in the DataFrame.
+
+    Args:
+        content_col: The name of the content column to validate.
+        df: The DataFrame to check for the content column.
+    """
     if content_col not in df.columns:
         raise ValueError("Content column not found in DataFrame.")
 
 
 def read_data(data_path: Path):
+    """Reads data from a specified path and returns it in an appropriate format.
+
+    Args:
+        data_path: The path to the data file.
+
+    Returns:
+        Data loaded from the file, in the format of a pandas DataFrame, list, or other depending on the file type.
+    """
     suffix = data_path.suffix
     if ".xlsx" == suffix:
         data = pd.read_excel(data_path)
@@ -60,7 +74,15 @@ class DocumentStatus(Enum):
 
 class Document(BaseModel):
     """
-    Document: Handles operations related to document files.
+    Handles operations related to document files.
+
+    Attributes:
+        path: The file path of the document.
+        name: The name of the document.
+        content: The content of the document.
+        author: The author of the document.
+        status: The status of the document.
+        reviews: A list of reviews associated with the document.
     """
 
     path: Path = Field(default=None)
@@ -74,9 +96,7 @@ class Document(BaseModel):
 
     @classmethod
     def from_path(cls, path: Path):
-        """
-        Create a Document instance from a file path.
-        """
+        """Create a Document instance from a file path."""
         if not path.exists():
             raise FileNotFoundError(f"File {path} not found.")
         content = path.read_text()
@@ -84,15 +104,11 @@ class Document(BaseModel):
 
     @classmethod
     def from_text(cls, text: str, path: Optional[Path] = None):
-        """
-        Create a Document from a text string.
-        """
+        """Create a Document from a text string."""
         return cls(content=text, path=path)
 
     def to_path(self, path: Optional[Path] = None):
-        """
-        Save content to the specified file path.
-        """
+        """Save content to the specified file path."""
         if path is not None:
             self.path = path
 
@@ -104,15 +120,19 @@ class Document(BaseModel):
         self.path.write_text(self.content, encoding="utf-8")
 
     def persist(self):
-        """
-        Persist document to disk.
-        """
+        """Persist document to disk."""
         return self.to_path()
 
 
 class IndexableDocument(Document):
     """
     Advanced document handling: For vector databases or search engines.
+
+    Attributes:
+        model_config: Configuration for the document model.
+        data: The data of the document, can be a DataFrame or list.
+        content_col: Optional name of the column containing the document content.
+        meta_col: Optional name of the column containing metadata.
     """
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -123,6 +143,7 @@ class IndexableDocument(Document):
 
     @classmethod
     def from_path(cls, data_path: Path, content_col="content", meta_col="metadata"):
+        """Create an IndexableDocument instance from a file path."""
         if not data_path.exists():
             raise FileNotFoundError(f"File {data_path} not found.")
         data = read_data(data_path)
@@ -134,6 +155,7 @@ class IndexableDocument(Document):
             return cls(data=data, content=content, content_col=content_col, meta_col=meta_col)
 
     def _get_docs_and_metadatas_by_df(self) -> (list, list):
+        """Extracts documents and metadata from a DataFrame."""
         df = self.data
         docs = []
         metadatas = []
@@ -146,12 +168,14 @@ class IndexableDocument(Document):
         return docs, metadatas
 
     def _get_docs_and_metadatas_by_langchain(self) -> (list, list):
+        """Extracts documents and metadata from a list of langchain data."""
         data = self.data
         docs = [i.page_content for i in data]
         metadatas = [i.metadata for i in data]
         return docs, metadatas
 
     def get_docs_and_metadatas(self) -> (list, list):
+        """Extracts documents and metadata from the document's data."""
         if isinstance(self.data, pd.DataFrame):
             return self._get_docs_and_metadatas_by_df()
         elif isinstance(self.data, list):
@@ -168,6 +192,17 @@ class RepoMetadata(BaseModel):
 
 
 class Repo(BaseModel):
+    """
+    Represents a repository containing documents, code, and assets.
+
+    Attributes:
+        name: The name of the repository.
+        docs: A dictionary of document paths to Document objects.
+        codes: A dictionary of code file paths to Document objects.
+        assets: A dictionary of asset file paths to Document objects.
+        path: The file path of the repository.
+    """
+
     # Name of this repo.
     name: str = Field(default="")
     # metadata: RepoMetadata = Field(default=RepoMetadata)
@@ -225,9 +260,11 @@ class Repo(BaseModel):
         return self.docs.get(path) or self.codes.get(path) or self.assets.get(path)
 
     def get_text_documents(self) -> list[Document]:
+        """Returns a list of all text documents and code files."""
         return list(self.docs.values()) + list(self.codes.values())
 
     def eda(self) -> RepoMetadata:
+        """Performs exploratory data analysis on the repository."""
         n_docs = sum(len(i) for i in [self.docs, self.codes, self.assets])
         n_chars = sum(sum(len(j.content) for j in i.values()) for i in [self.docs, self.codes, self.assets])
         symbols = RepoParser(base_directory=self.path).generate_symbols()

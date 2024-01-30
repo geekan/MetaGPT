@@ -57,7 +57,7 @@ NEW_REQ_TEMPLATE = """
 
 
 class WritePRD(Action):
-    """WritePRD deal with the following situations:
+    """WritePRD deals with the following situations:
     1. Bugfix: If the requirement is a bugfix, the bugfix document will be generated.
     2. New requirement: If the requirement is a new requirement, the PRD document will be generated.
     3. Requirement update: If the requirement is an update, the PRD document will be updated.
@@ -85,6 +85,7 @@ class WritePRD(Action):
             return await self._handle_new_requirement(req)
 
     async def _handle_bugfix(self, req: Document) -> Message:
+        """Handle the bugfix requirement."""
         # ... bugfix logic ...
         await self.repo.docs.save(filename=BUGFIX_FILENAME, content=req.content)
         await self.repo.docs.save(filename=REQUIREMENT_FILENAME, content="")
@@ -99,7 +100,7 @@ class WritePRD(Action):
         )
 
     async def _handle_new_requirement(self, req: Document) -> ActionOutput:
-        """handle new requirement"""
+        """Handle new requirement."""
         project_name = self.project_name
         context = CONTEXT_TEMPLATE.format(requirements=req, project_name=project_name)
         exclude = [PROJECT_NAME.key] if project_name else []
@@ -113,28 +114,32 @@ class WritePRD(Action):
         return Documents.from_iterable(documents=[new_prd_doc]).to_action_output()
 
     async def _handle_requirement_update(self, req: Document, related_docs: list[Document]) -> ActionOutput:
+        """Handle requirement update."""
         # ... requirement update logic ...
         for doc in related_docs:
             await self._update_prd(req, doc)
         return Documents.from_iterable(documents=related_docs).to_action_output()
 
     async def _is_bugfix(self, context: str) -> bool:
+        """Check if the requirement is a bugfix."""
         if not self.repo.code_files_exists():
             return False
         node = await WP_ISSUE_TYPE_NODE.fill(context, self.llm)
         return node.get("issue_type") == "BUG"
 
     async def get_related_docs(self, req: Document, docs: list[Document]) -> list[Document]:
-        """get the related documents"""
+        """Get the related documents."""
         # refine: use gather to speed up
         return [i for i in docs if await self._is_related(req, i)]
 
     async def _is_related(self, req: Document, old_prd: Document) -> bool:
+        """Check if the document is related to the requirement."""
         context = NEW_REQ_TEMPLATE.format(old_prd=old_prd.content, requirements=req.content)
         node = await WP_IS_RELATIVE_NODE.fill(context, self.llm)
         return node.get("is_relative") == "YES"
 
     async def _merge(self, req: Document, related_doc: Document) -> Document:
+        """Merge the requirement with the related document."""
         if not self.project_name:
             self.project_name = Path(self.project_path).name
         prompt = NEW_REQ_TEMPLATE.format(requirements=req.content, old_prd=related_doc.content)
@@ -144,6 +149,7 @@ class WritePRD(Action):
         return related_doc
 
     async def _update_prd(self, req: Document, prd_doc: Document) -> Document:
+        """Update the PRD document with the new requirement."""
         new_prd_doc: Document = await self._merge(req, prd_doc)
         await self.repo.docs.prd.save_doc(doc=new_prd_doc)
         await self._save_competitive_analysis(new_prd_doc)
@@ -151,6 +157,7 @@ class WritePRD(Action):
         return new_prd_doc
 
     async def _save_competitive_analysis(self, prd_doc: Document):
+        """Save the competitive analysis."""
         m = json.loads(prd_doc.content)
         quadrant_chart = m.get(COMPETITIVE_QUADRANT_CHART.key)
         if not quadrant_chart:
@@ -160,6 +167,7 @@ class WritePRD(Action):
         await mermaid_to_file(self.config.mermaid_engine, quadrant_chart, pathname)
 
     async def _rename_workspace(self, prd):
+        """Rename the workspace based on the project name."""
         if not self.project_name:
             if isinstance(prd, (ActionOutput, ActionNode)):
                 ws_name = prd.instruct_content.model_dump()["Project Name"]

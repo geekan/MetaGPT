@@ -18,7 +18,16 @@ from metagpt.utils.cost_manager import CostManager
 
 
 class BaseLLM(ABC):
-    """LLM API abstract class, requiring all inheritors to provide a series of standard capabilities"""
+    """LLM API abstract class, requiring all inheritors to provide a series of standard capabilities.
+
+    Attributes:
+        config: Configuration for the LLM.
+        use_system_prompt: A boolean indicating if the system prompt should be used.
+        system_prompt: The default system prompt.
+        aclient: An optional asynchronous client for making API calls.
+        cost_manager: An optional CostManager instance for managing API call costs.
+        model: An optional model name string.
+    """
 
     config: LLMConfig
     use_system_prompt: bool = True
@@ -31,6 +40,11 @@ class BaseLLM(ABC):
 
     @abstractmethod
     def __init__(self, config: LLMConfig):
+        """Initializes the BaseLLM with a given configuration.
+
+        Args:
+            config: The configuration for the LLM.
+        """
         pass
 
     def _user_msg(self, msg: str) -> dict[str, str]:
@@ -56,6 +70,18 @@ class BaseLLM(ABC):
         timeout=3,
         stream=True,
     ) -> str:
+        """Asynchronously asks a question and returns the response.
+
+        Args:
+            msg: The message to ask.
+            system_msgs: Optional list of system messages to prepend.
+            format_msgs: Optional list of formatted messages to include.
+            timeout: The timeout for the request.
+            stream: Whether to stream the response.
+
+        Returns:
+            The response as a string.
+        """
         if system_msgs:
             message = self._system_msgs(system_msgs)
         else:
@@ -73,7 +99,15 @@ class BaseLLM(ABC):
         return "\n".join([i["content"] for i in context if i["role"] == "assistant"])
 
     async def aask_batch(self, msgs: list, timeout=3) -> str:
-        """Sequential questioning"""
+        """Sequentially asks a list of questions and returns the concatenated assistant responses.
+
+        Args:
+            msgs: A list of messages to ask.
+            timeout: The timeout for each request.
+
+        Returns:
+            A string containing the concatenated responses from the assistant.
+        """
         context = []
         for msg in msgs:
             umsg = self._user_msg(msg)
@@ -83,68 +117,82 @@ class BaseLLM(ABC):
         return self._extract_assistant_rsp(context)
 
     async def aask_code(self, messages: Union[str, Message, list[dict]], timeout=3) -> dict:
-        """FIXME: No code segment filtering has been done here, and all results are actually displayed"""
+        """Asks for code related to the given messages and returns the response.
+
+        Args:
+            messages: The messages to base the code request on.
+            timeout: The timeout for the request.
+
+        Returns:
+            The response as a dictionary.
+
+        Raises:
+            NotImplementedError: If the method is not implemented.
+        """
         raise NotImplementedError
 
     @abstractmethod
     async def acompletion(self, messages: list[dict], timeout=3):
-        """Asynchronous version of completion
-        All GPTAPIs are required to provide the standard OpenAI completion interface
-        [
-            {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": "hello, show me python hello world code"},
-            # {"role": "assistant", "content": ...}, # If there is an answer in the history, also include it
-        ]
+        """Asynchronous version of completion, requiring implementation in inheritors.
+
+        Args:
+            messages: A list of message dictionaries to process.
+            timeout: The timeout for the request.
         """
 
     @abstractmethod
     async def acompletion_text(self, messages: list[dict], stream=False, timeout=3) -> str:
-        """Asynchronous version of completion. Return str. Support stream-print"""
+        """Asynchronously completes the given messages and returns the text response.
+
+        Args:
+            messages: A list of message dictionaries to complete.
+            stream: Whether to stream the response.
+            timeout: The timeout for the request.
+
+        Returns:
+            The text response as a string.
+        """
 
     def get_choice_text(self, rsp: dict) -> str:
-        """Required to provide the first text of choice"""
+        """Extracts and returns the first text of choice from the response.
+
+        Args:
+            rsp: The response dictionary.
+
+        Returns:
+            The first text of choice.
+        """
         return rsp.get("choices")[0]["message"]["content"]
 
     def get_choice_delta_text(self, rsp: dict) -> str:
-        """Required to provide the first text of stream choice"""
+        """Extracts and returns the first text of stream choice from the response.
+
+        Args:
+            rsp: The response dictionary.
+
+        Returns:
+            The first text of stream choice.
+        """
         return rsp.get("choices")[0]["delta"]["content"]
 
     def get_choice_function(self, rsp: dict) -> dict:
-        """Required to provide the first function of choice
-        :param dict rsp: OpenAI chat.comletion respond JSON, Note "message" must include "tool_calls",
-            and "tool_calls" must include "function", for example:
-            {...
-                "choices": [
-                    {
-                    "index": 0,
-                    "message": {
-                        "role": "assistant",
-                        "content": null,
-                        "tool_calls": [
-                        {
-                            "id": "call_Y5r6Ddr2Qc2ZrqgfwzPX5l72",
-                            "type": "function",
-                            "function": {
-                            "name": "execute",
-                            "arguments": "{\n  \"language\": \"python\",\n  \"code\": \"print('Hello, World!')\"\n}"
-                            }
-                        }
-                        ]
-                    },
-                    "finish_reason": "stop"
-                    }
-                ],
-                ...}
-        :return dict: return first function of choice, for exmaple,
-            {'name': 'execute', 'arguments': '{\n  "language": "python",\n  "code": "print(\'Hello, World!\')"\n}'}
+        """Extracts and returns the first function of choice from the response.
+
+        Args:
+            rsp: The response dictionary.
+
+        Returns:
+            The first function of choice as a dictionary.
         """
         return rsp.get("choices")[0]["message"]["tool_calls"][0]["function"]
 
     def get_choice_function_arguments(self, rsp: dict) -> dict:
-        """Required to provide the first function arguments of choice.
+        """Extracts and returns the first function arguments of choice from the response.
 
-        :param dict rsp: same as in self.get_choice_function(rsp)
-        :return dict: return the first function arguments of choice, for example,
-            {'language': 'python', 'code': "print('Hello, World!')"}
+        Args:
+            rsp: The response dictionary.
+
+        Returns:
+            The first function arguments of choice as a dictionary.
         """
         return json.loads(self.get_choice_function(rsp)["arguments"])

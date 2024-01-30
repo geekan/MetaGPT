@@ -12,7 +12,16 @@ from metagpt.logs import logger
 
 
 class WriteTeachingPlanPart(Action):
-    """Write Teaching Plan Part"""
+    """Write Teaching Plan Part
+
+    This class is responsible for generating a part of the teaching plan based on the given topic and language.
+
+    Attributes:
+        i_context (Optional[str]): The context of the teaching plan part, if any.
+        topic (str): The topic of the teaching plan part to generate.
+        language (str): The language in which the teaching plan part should be written. Defaults to 'Chinese'.
+        rsp (Optional[str]): The generated response for the teaching plan part.
+    """
 
     i_context: Optional[str] = None
     topic: str = ""
@@ -20,6 +29,15 @@ class WriteTeachingPlanPart(Action):
     rsp: Optional[str] = None
 
     async def run(self, with_message=None, **kwargs):
+        """Asynchronously generates a teaching plan part based on the topic and language.
+
+        Args:
+            with_message: An optional message to include in the generation request.
+            **kwargs: Additional keyword arguments.
+
+        Returns:
+            The generated teaching plan part as a string.
+        """
         statement_patterns = TeachingPlanBlock.TOPIC_STATEMENTS.get(self.topic, [])
         statements = []
         for p in statement_patterns:
@@ -46,6 +64,11 @@ class WriteTeachingPlanPart(Action):
         return self.rsp
 
     def _set_result(self, rsp):
+        """Processes the raw response to extract the relevant teaching plan part.
+
+        Args:
+            rsp: The raw response string to process.
+        """
         if TeachingPlanBlock.DATA_BEGIN_TAG in rsp:
             ix = rsp.index(TeachingPlanBlock.DATA_BEGIN_TAG)
             rsp = rsp[ix + len(TeachingPlanBlock.DATA_BEGIN_TAG) :]
@@ -59,16 +82,24 @@ class WriteTeachingPlanPart(Action):
             self.rsp = "# " + self.rsp
 
     def __str__(self):
-        """Return `topic` value when str()"""
+        """Returns the topic value when the object is converted to a string."""
         return self.topic
 
     def __repr__(self):
-        """Show `topic` value when debug"""
+        """Returns the topic value for debugging purposes."""
         return self.topic
 
     @staticmethod
     def format_value(value, context: Context):
-        """Fill parameters inside `value` with `options`."""
+        """Fills parameters inside `value` with options from the given context.
+
+        Args:
+            value: The string value to format.
+            context: The context providing options for formatting.
+
+        Returns:
+            The formatted string with parameters filled from the context.
+        """
         if not isinstance(value, str):
             return value
         if "{" not in value:
@@ -89,6 +120,12 @@ class WriteTeachingPlanPart(Action):
 
 
 class TeachingPlanBlock:
+    """Defines constants and templates for generating teaching plan parts.
+
+    This class holds the formation description, topic lists, statement templates, and other constants used
+    in generating different parts of a teaching plan.
+    """
+
     FORMATION = (
         '"Capacity and role" defines the role you are currently playing;\n'
         '\t"[LESSON_BEGIN]" and "[LESSON_END]" tags enclose the content of textbook;\n'

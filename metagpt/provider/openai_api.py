@@ -123,7 +123,7 @@ class OpenAILLM(BaseLLM):
         retry_error_callback=log_and_reraise,
     )
     async def acompletion_text(self, messages: list[dict], stream=False, timeout=3) -> str:
-        """when streaming, print each token in place."""
+        """When streaming, print each token in place."""
         if stream:
             resp = self._achat_completion_stream(messages, timeout=timeout)
 
@@ -159,7 +159,7 @@ class OpenAILLM(BaseLLM):
         return rsp
 
     def _process_message(self, messages: Union[str, Message, list[dict], list[Message], list[str]]) -> list[dict]:
-        """convert messages to list[dict]."""
+        """Convert messages to list[dict]."""
         if isinstance(messages, list):
             messages = [Message(content=msg) if isinstance(msg, str) else msg for msg in messages]
             return [msg if isinstance(msg, dict) else msg.to_dict() for msg in messages]
@@ -235,9 +235,9 @@ class OpenAILLM(BaseLLM):
         return await self.aclient.moderations.create(input=content)
 
     async def atext_to_speech(self, **kwargs):
-        """text to speech"""
+        """Text to speech."""
         return await self.aclient.audio.speech.create(**kwargs)
 
     async def aspeech_to_text(self, **kwargs):
-        """speech to text"""
+        """Speech to text."""
         return await self.aclient.audio.transcriptions.create(**kwargs)

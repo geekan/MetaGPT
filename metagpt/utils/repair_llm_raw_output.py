@@ -22,9 +22,14 @@ class RepairType(Enum):
 
 
 def repair_case_sensitivity(output: str, req_key: str) -> str:
-    """
-    usually, req_key is the key name of expected json or markdown content, it won't appear in the value part.
-    fix target string `"Shared Knowledge": ""` but `"Shared knowledge": ""` actually
+    """Repairs case sensitivity issues in the output string based on the required key.
+
+    Args:
+        output: The output string to be repaired.
+        req_key: The required key to match in the output string.
+
+    Returns:
+        The repaired output string with case sensitivity issues fixed.
     """
     if req_key in output:
         return output
@@ -42,10 +47,14 @@ def repair_case_sensitivity(output: str, req_key: str) -> str:
 
 
 def repair_special_character_missing(output: str, req_key: str = "[/CONTENT]") -> str:
-    """
-    fix
-        1. target string `[CONTENT] xx [CONTENT] xxx [CONTENT]` lacks `/` in the last `[CONTENT]`
-        2. target string `xx [CONTENT] xxx [CONTENT] xxxx` lacks `/` in the last `[CONTENT]`
+    """Repairs missing special characters in the output string based on the required key.
+
+    Args:
+        output: The output string to be repaired.
+        req_key: The required key to match in the output string, defaults to '[/CONTENT]'.
+
+    Returns:
+        The repaired output string with missing special characters fixed.
     """
     sc_arr = ["/"]
 
@@ -65,11 +74,14 @@ def repair_special_character_missing(output: str, req_key: str = "[/CONTENT]") -
 
 
 def repair_required_key_pair_missing(output: str, req_key: str = "[/CONTENT]") -> str:
-    """
-    implement the req_key pair in the begin or end of the content
-        req_key format
-            1. `[req_key]`, and its pair `[/req_key]`
-            2. `[/req_key]`, and its pair `[req_key]`
+    """Repairs missing required key pairs in the output string based on the required key.
+
+    Args:
+        output: The output string to be repaired.
+        req_key: The required key to match in the output string, defaults to '[/CONTENT]'.
+
+    Returns:
+        The repaired output string with required key pairs fixed.
     """
     sc = "/"  # special char
     if req_key.startswith("[") and req_key.endswith("]"):
@@ -106,8 +118,13 @@ def repair_required_key_pair_missing(output: str, req_key: str = "[/CONTENT]") -
 
 
 def repair_json_format(output: str) -> str:
-    """
-    fix extra `[` or `}` in the end
+    """Repairs JSON format issues in the output string.
+
+    Args:
+        output: The output string to be repaired.
+
+    Returns:
+        The repaired output string with JSON format issues fixed.
     """
     output = output.strip()
 
@@ -133,6 +150,16 @@ def repair_json_format(output: str) -> str:
 
 
 def _repair_llm_raw_output(output: str, req_key: str, repair_type: RepairType = None) -> str:
+    """Internal function to repair LLM raw output based on the specified repair type.
+
+    Args:
+        output: The raw output string from the LLM.
+        req_key: The required key to match in the output string.
+        repair_type: The type of repair to apply. If None, applies all repairs except JSON format.
+
+    Returns:
+        The repaired output string.
+    """
     repair_types = [repair_type] if repair_type else [item for item in RepairType if item not in [RepairType.JSON]]
     for repair_type in repair_types:
         if repair_type == RepairType.CS:
@@ -147,19 +174,15 @@ def _repair_llm_raw_output(output: str, req_key: str, repair_type: RepairType = 
 
 
 def repair_llm_raw_output(output: str, req_keys: list[str], repair_type: RepairType = None) -> str:
-    """
-    in open-source llm model, it usually can't follow the instruction well, the output may be incomplete,
-    so here we try to repair it and use all repair methods by default.
-    typical case
-        1. case sensitivity
-            target: "Original Requirements"
-            output: "Original requirements"
-        2. special character missing
-            target: [/CONTENT]
-            output: [CONTENT]
-        3. json format
-            target: { xxx }
-            output: { xxx }]
+    """Repairs LLM raw output for common issues based on the specified repair type and required keys.
+
+    Args:
+        output: The raw output string from the LLM.
+        req_keys: A list of required keys to match in the output string.
+        repair_type: The type of repair to apply. If None, applies all repairs by default.
+
+    Returns:
+        The repaired output string.
     """
     if not config.repair_llm_output:
         return output
@@ -171,11 +194,14 @@ def repair_llm_raw_output(output: str, req_keys: list[str], repair_type: RepairT
 
 
 def repair_invalid_json(output: str, error: str) -> str:
-    """
-    repair the situation like there are extra chars like
-    error examples
-        example 1. json.decoder.JSONDecodeError: Expecting ',' delimiter: line 154 column 1 (char 2765)
-        example 2. xxx.JSONDecodeError: Expecting property name enclosed in double quotes: line 14 column 1 (char 266)
+    """Repairs invalid JSON in the output string based on the error message.
+
+    Args:
+        output: The output string containing invalid JSON.
+        error: The error message indicating the nature of the JSON issue.
+
+    Returns:
+        The repaired output string with invalid JSON fixed.
     """
     pattern = r"line ([0-9]+) column ([0-9]+)"
 
@@ -221,6 +247,15 @@ def repair_invalid_json(output: str, error: str) -> str:
 
 
 def run_after_exp_and_passon_next_retry(logger: "loguru.Logger") -> Callable[["RetryCallState"], None]:
+    """Generates a function to run after an exception and pass on the next retry attempt.
+
+    Args:
+        logger: The logger object to log warnings and information.
+
+    Returns:
+        A function that takes a RetryCallState object and processes it for the next retry attempt.
+    """
+
     def run_and_passon(retry_state: RetryCallState) -> None:
         """
         RetryCallState example
@@ -263,13 +298,13 @@ def run_after_exp_and_passon_next_retry(logger: "loguru.Logger") -> Callable[["R
     after=run_after_exp_and_passon_next_retry(logger),
 )
 def retry_parse_json_text(output: str) -> Union[list, dict]:
-    """
-    repair the json-text situation like there are extra chars like [']', '}']
+    """Attempts to parse JSON text from the output string, retrying on failure if configured.
 
-    Warning
-        if CONFIG.repair_llm_output is False, retry _aask_v1 {x=3} times, and the retry_parse_json_text's retry not work
-        if CONFIG.repair_llm_output is True, the _aask_v1 and the retry_parse_json_text will loop for {x=3*3} times.
-            it's a two-layer retry cycle
+    Args:
+        output: The output string containing JSON text to be parsed.
+
+    Returns:
+        The parsed data as a list or dictionary.
     """
     # logger.debug(f"output to json decode:\n{output}")
 
@@ -280,7 +315,15 @@ def retry_parse_json_text(output: str) -> Union[list, dict]:
 
 
 def extract_content_from_output(content: str, right_key: str = "[/CONTENT]"):
-    """extract xxx from [CONTENT](xxx)[/CONTENT] using regex pattern"""
+    """Extracts content from the output string based on the specified right key.
+
+    Args:
+        content: The output string from which to extract content.
+        right_key: The right key indicating the end of the content to extract, defaults to '[/CONTENT]'.
+
+    Returns:
+        The extracted content string.
+    """
 
     def re_extract_content(cont: str, pattern: str) -> str:
         matches = re.findall(pattern, cont, re.DOTALL)
@@ -313,12 +356,13 @@ def extract_content_from_output(content: str, right_key: str = "[/CONTENT]"):
 
 
 def extract_state_value_from_output(content: str) -> str:
-    """
-    For openai models, they will always return state number. But for open llm models, the instruction result maybe a
-    long text contain target number, so here add a extraction to improve success rate.
+    """Extracts a state value from the output string.
 
     Args:
-        content (str): llm's output from `Role._think`
+        content: The output string from which to extract the state value.
+
+    Returns:
+        The extracted state value as a string.
     """
     content = content.strip()  # deal the output cases like " 0", "0\n" and so on.
     pattern = r"([0-9])"  # TODO find the number using a more proper method not just extract from content using pattern

@@ -18,7 +18,15 @@ from metagpt.utils.common import any_to_str, awrite
 
 class Teacher(Role):
     """Support configurable teacher roles,
-    with native and teaching languages being replaceable through configurations."""
+    with native and teaching languages being replaceable through configurations.
+
+    Attributes:
+        name: The name of the teacher.
+        profile: The profile description of the teacher.
+        goal: The goal of the teacher.
+        constraints: The constraints under which the teacher operates.
+        desc: Additional description of the teacher.
+    """
 
     name: str = "Lily"
     profile: str = "{teaching_language} Teacher"
@@ -35,7 +43,14 @@ class Teacher(Role):
         self.desc = WriteTeachingPlanPart.format_value(self.desc, self.context)
 
     async def _think(self) -> bool:
-        """Everything will be done part by part."""
+        """Everything will be done part by part.
+
+        Raises:
+            ValueError: If the lesson content is invalid.
+
+        Returns:
+            A boolean indicating if the thinking process was successful.
+        """
         if not self.actions:
             if not self.rc.news or self.rc.news[0].cause_by != any_to_str(UserRequirement):
                 raise ValueError("Lesson content invalid.")
@@ -58,6 +73,11 @@ class Teacher(Role):
         return False
 
     async def _react(self) -> Message:
+        """React based on the current state and perform necessary actions.
+
+        Returns:
+            A message object containing the result of the reaction.
+        """
         ret = Message(content="")
         while True:
             await self._think()
@@ -73,7 +93,11 @@ class Teacher(Role):
         return ret
 
     async def save(self, content):
-        """Save teaching plan"""
+        """Save teaching plan.
+
+        Args:
+            content: The content to be saved.
+        """
         filename = Teacher.new_file_name(self.course_title)
         pathname = self.config.workspace.path / "teaching_plan"
         pathname.mkdir(exist_ok=True)
@@ -83,7 +107,15 @@ class Teacher(Role):
 
     @staticmethod
     def new_file_name(lesson_title, ext=".md"):
-        """Create a related file name based on `lesson_title` and `ext`."""
+        """Create a related file name based on `lesson_title` and `ext`.
+
+        Args:
+            lesson_title: The title of the lesson.
+            ext: The file extension.
+
+        Returns:
+            A sanitized file name.
+        """
         # Define the special characters that need to be replaced.
         illegal_chars = r'[#@$%!*&\\/:*?"<>|\n\t \']'
         # Replace the special characters with underscores.
@@ -92,7 +124,11 @@ class Teacher(Role):
 
     @property
     def course_title(self):
-        """Return course title of teaching plan"""
+        """Return course title of teaching plan.
+
+        Returns:
+            The course title of the teaching plan.
+        """
         default_title = "teaching_plan"
         for act in self.actions:
             if act.topic != TeachingPlanBlock.COURSE_TITLE:

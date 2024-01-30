@@ -16,6 +16,19 @@ from metagpt.tools import SearchEngineType
 
 
 class Sales(Role):
+    """Represents a Sales role with specific attributes and behaviors.
+
+    This class extends the Role class, specializing it for the context of retail sales. It includes
+    attributes for the salesperson's name, profile, and description, as well as the ability to interact
+    with a knowledge base store for retrieving information.
+
+    Attributes:
+        name: A string representing the salesperson's name.
+        profile: A string representing the salesperson's profile.
+        desc: A detailed string describing the salesperson's role and approach to customer service.
+        store: An optional BaseStore object representing the knowledge base store.
+    """
+
     name: str = "John Smith"
     profile: str = "Retail Sales Guide"
     desc: str = (
@@ -29,10 +42,23 @@ class Sales(Role):
     store: Optional[BaseStore] = Field(default=None, exclude=True)
 
     def __init__(self, **kwargs):
+        """Initializes the Sales role with the given attributes.
+
+        Args:
+            **kwargs: Variable length keyword arguments.
+        """
         super().__init__(**kwargs)
         self._set_store(self.store)
 
     def _set_store(self, store):
+        """Sets the knowledge base store and configures the search action.
+
+        If a store is provided, it configures the search action to use a custom search engine
+        with the store's asynchronous search function. Otherwise, it uses the default search action.
+
+        Args:
+            store: An optional BaseStore object to be used as the knowledge base store.
+        """
         if store:
             action = SearchAndSummarize(name="", engine=SearchEngineType.CUSTOM_ENGINE, search_func=store.asearch)
         else:

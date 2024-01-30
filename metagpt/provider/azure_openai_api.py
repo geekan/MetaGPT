@@ -16,17 +16,28 @@ from metagpt.provider.openai_api import OpenAILLM
 
 @register_provider(LLMType.AZURE)
 class AzureOpenAILLM(OpenAILLM):
-    """
-    Check https://platform.openai.com/examples for examples
+    """Azure OpenAI Language Model integration.
+
+    This class provides methods to initialize and configure the Azure OpenAI client
+    for interacting with the OpenAI API.
+
+    Check https://platform.openai.com/examples for examples.
     """
 
     def _init_client(self):
+        """Initializes the Azure OpenAI client with the necessary configuration."""
         kwargs = self._make_client_kwargs()
         # https://learn.microsoft.com/zh-cn/azure/ai-services/openai/how-to/migration?tabs=python-new%2Cdalle-fix
         self.aclient = AsyncAzureOpenAI(**kwargs)
         self.model = self.config.model  # Used in _calc_usage & _cons_kwargs
 
     def _make_client_kwargs(self) -> dict:
+        """Constructs the keyword arguments required for the Azure OpenAI client.
+
+        Returns:
+            A dictionary of keyword arguments including API key, API version, base URL,
+            and optionally, proxy parameters.
+        """
         kwargs = dict(
             api_key=self.config.api_key,
             api_version=self.config.api_version,

@@ -18,8 +18,19 @@ from metagpt.utils.serialize import deserialize_message, serialize_message
 
 
 class MemoryStorage(FaissStore):
-    """
-    The memory storage with Faiss as ANN search engine
+    """Memory storage with Faiss as ANN search engine.
+
+    This class provides functionalities to store, retrieve, and manage messages in memory using
+    Faiss as an Approximate Nearest Neighbors (ANN) search engine.
+
+    Attributes:
+        role_id (str): Unique identifier for the role.
+        role_mem_path (str): Path to the memory storage directory.
+        mem_ttl (int): Time to live for the memory in seconds.
+        threshold (float): Threshold for considering similarity.
+        _initialized (bool): Indicates if the memory storage is initialized.
+        embedding (Embeddings): Embedding model used for generating embeddings.
+        store (FAISS): Faiss store instance for ANN search.
     """
 
     def __init__(self, mem_ttl: int = MEM_TTL, embedding: Embeddings = None):
@@ -34,9 +45,19 @@ class MemoryStorage(FaissStore):
 
     @property
     def is_initialized(self) -> bool:
+        """Checks if the memory storage is initialized.
+
+        Returns:
+            bool: True if initialized, False otherwise.
+        """
         return self._initialized
 
     def _load(self) -> Optional["FaissStore"]:
+        """Loads the Faiss store from local storage.
+
+        Returns:
+            Optional[FaissStore]: Loaded Faiss store, or None if loading fails.
+        """
         index_file, store_file = self._get_index_and_store_fname(index_ext=".faiss")  # langchain FAISS using .faiss
 
         if not (index_file.exists() and store_file.exists()):
@@ -46,6 +67,14 @@ class MemoryStorage(FaissStore):
         return FAISS.load_local(self.role_mem_path, self.embedding, self.role_id)
 
     def recover_memory(self, role_id: str) -> list[Message]:
+        """Recovers memory for a given role.
+
+        Args:
+            role_id (str): Unique identifier for the role.
+
+        Returns:
+            list[Message]: List of messages recovered from memory.
+        """
         self.role_id = role_id
         self.role_mem_path = Path(DATA_PATH / f"role_mem/{self.role_id}/")
         self.role_mem_path.mkdir(parents=True, exist_ok=True)
@@ -63,6 +92,15 @@ class MemoryStorage(FaissStore):
         return messages
 
     def _get_index_and_store_fname(self, index_ext=".index", pkl_ext=".pkl"):
+        """Generates filenames for the index and storage files.
+
+        Args:
+            index_ext (str): Extension for the index file.
+            pkl_ext (str): Extension for the storage file.
+
+        Returns:
+            Tuple[Path, Path]: Paths to the index and storage files.
+        """
         if not self.role_mem_path:
             logger.error(f"You should call {self.__class__.__name__}.recover_memory fist when using LongTermMemory")
             return None, None
@@ -71,11 +109,19 @@ class MemoryStorage(FaissStore):
         return index_fpath, storage_fpath
 
     def persist(self):
+        """Persists the current state of the memory storage to local storage."""
         self.store.save_local(self.role_mem_path, self.role_id)
         logger.debug(f"Agent {self.role_id} persist memory into local")
 
     def add(self, message: Message) -> bool:
-        """add message into memory storage"""
+        """Adds a message to the memory storage.
+
+        Args:
+            message (Message): Message to be added.
+
+        Returns:
+            bool: True if the message was successfully added, False otherwise.
+        """
         docs = [message.content]
         metadatas = [{"message_ser": serialize_message(message)}]
         if not self.store:
@@ -88,7 +134,15 @@ class MemoryStorage(FaissStore):
         logger.info(f"Agent {self.role_id}'s memory_storage add a message")
 
     def search_dissimilar(self, message: Message, k=4) -> list[Message]:
-        """search for dissimilar messages"""
+        """Searches for dissimilar messages in the memory storage.
+
+        Args:
+            message (Message): Message to compare against.
+            k (int): Number of dissimilar messages to retrieve.
+
+        Returns:
+            list[Message]: List of dissimilar messages.
+        """
         if not self.store:
             return []
 
@@ -106,6 +160,7 @@ class MemoryStorage(FaissStore):
         return filtered_resp
 
     def clean(self):
+        """Cleans up the memory storage by removing the index and storage files."""
         index_fpath, storage_fpath = self._get_index_and_store_fname()
         if index_fpath and index_fpath.exists():
             index_fpath.unlink(missing_ok=True)

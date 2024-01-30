@@ -29,7 +29,25 @@ def generate_repo(
     max_auto_summarize_code,
     recover_path,
 ) -> ProjectRepo:
-    """Run the startup logic. Can be called from CLI or other Python scripts."""
+    """Run the startup logic. Can be called from CLI or other Python scripts.
+
+    Args:
+        idea: Your innovative idea.
+        investment: Dollar amount to invest in the AI company.
+        n_round: Number of rounds for the simulation.
+        code_review: Whether to use code review.
+        run_tests: Whether to enable QA for adding & running tests.
+        implement: Enable or disable code implementation.
+        project_name: Unique project name.
+        inc: Incremental mode. Use it to coop with existing repo.
+        project_path: Specify the directory path of the old version project.
+        reqa_file: Specify the source file name for rewriting the quality assurance code.
+        max_auto_summarize_code: The maximum number of times the 'SummarizeCode' action is invoked.
+        recover_path: Recover the project from existing serialized storage.
+
+    Returns:
+        An instance of ProjectRepo representing the generated repository.
+    """
     from metagpt.roles import (
         Architect,
         Engineer,
@@ -97,7 +115,23 @@ def startup(
     recover_path: str = typer.Option(default=None, help="recover the project from existing serialized storage"),
     init_config: bool = typer.Option(default=False, help="Initialize the configuration file for MetaGPT."),
 ):
-    """Run a startup. Be a boss."""
+    """Run a startup. Be a boss.
+
+    Args:
+        idea: Your innovative idea, such as 'Create a 2048 game.'
+        investment: Dollar amount to invest in the AI company.
+        n_round: Number of rounds for the simulation.
+        code_review: Whether to use code review.
+        run_tests: Whether to enable QA for adding & running tests.
+        implement: Enable or disable code implementation.
+        project_name: Unique project name, such as 'game_2048'.
+        inc: Incremental mode. Use it to coop with existing repo.
+        project_path: Specify the directory path of the old version project.
+        reqa_file: Specify the source file name for rewriting the quality assurance code.
+        max_auto_summarize_code: The maximum number of times the 'SummarizeCode' action is invoked.
+        recover_path: Recover the project from existing serialized storage.
+        init_config: Initialize the configuration file for MetaGPT.
+    """
     if init_config:
         copy_config_to()
         return
@@ -123,7 +157,11 @@ def startup(
 
 
 def copy_config_to(config_path=METAGPT_ROOT / "config" / "config2.yaml"):
-    """Initialize the configuration file for MetaGPT."""
+    """Initialize the configuration file for MetaGPT.
+
+    Args:
+        config_path: The path to the default configuration file.
+    """
     target_path = CONFIG_ROOT / "config2.yaml"
 
     # 创建目标目录（如果不存在）

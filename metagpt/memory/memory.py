@@ -16,14 +16,24 @@ from metagpt.utils.common import any_to_str, any_to_str_set
 
 
 class Memory(BaseModel):
-    """The most basic memory: super-memory"""
+    """The most basic memory: super-memory.
+
+    Attributes:
+        storage: A list of messages stored in memory.
+        index: A default dictionary mapping message causes to lists of messages.
+        ignore_id: A boolean indicating whether to ignore the message ID.
+    """
 
     storage: list[SerializeAsAny[Message]] = []
     index: DefaultDict[str, list[SerializeAsAny[Message]]] = Field(default_factory=lambda: defaultdict(list))
     ignore_id: bool = False
 
     def add(self, message: Message):
-        """Add a new message to storage, while updating the index"""
+        """Add a new message to storage, while updating the index.
+
+        Args:
+            message: The message to be added.
+        """
         if self.ignore_id:
             message.id = IGNORED_MESSAGE_ID
         if message in self.storage:
@@ -33,19 +43,42 @@ class Memory(BaseModel):
             self.index[message.cause_by].append(message)
 
     def add_batch(self, messages: Iterable[Message]):
+        """Add a batch of messages to storage.
+
+        Args:
+            messages: An iterable of messages to be added.
+        """
         for message in messages:
             self.add(message)
 
     def get_by_role(self, role: str) -> list[Message]:
-        """Return all messages of a specified role"""
+        """Return all messages of a specified role.
+
+        Args:
+            role: The role to filter messages by.
+
+        Returns:
+            A list of messages with the specified role.
+        """
         return [message for message in self.storage if message.role == role]
 
     def get_by_content(self, content: str) -> list[Message]:
-        """Return all messages containing a specified content"""
+        """Return all messages containing a specified content.
+
+        Args:
+            content: The content to filter messages by.
+
+        Returns:
+            A list of messages containing the specified content.
+        """
         return [message for message in self.storage if content in message.content]
 
     def delete_newest(self) -> "Message":
-        """delete the newest message from the storage"""
+        """Delete the newest message from the storage.
+
+        Returns:
+            The deleted message, or None if storage is empty.
+        """
         if len(self.storage) > 0:
             newest_msg = self.storage.pop()
             if newest_msg.cause_by and newest_msg in self.index[newest_msg.cause_by]:
@@ -55,7 +88,11 @@ class Memory(BaseModel):
         return newest_msg
 
     def delete(self, message: Message):
-        """Delete the specified message from storage, while updating the index"""
+        """Delete the specified message from storage, while updating the index.
+
+        Args:
+            message: The message to be deleted.
+        """
         if self.ignore_id:
             message.id = IGNORED_MESSAGE_ID
         self.storage.remove(message)
@@ -63,24 +100,50 @@ class Memory(BaseModel):
             self.index[message.cause_by].remove(message)
 
     def clear(self):
-        """Clear storage and index"""
+        """Clear storage and index."""
         self.storage = []
         self.index = defaultdict(list)
 
     def count(self) -> int:
-        """Return the number of messages in storage"""
+        """Return the number of messages in storage.
+
+        Returns:
+            The number of messages in storage.
+        """
         return len(self.storage)
 
     def try_remember(self, keyword: str) -> list[Message]:
-        """Try to recall all messages containing a specified keyword"""
+        """Try to recall all messages containing a specified keyword.
+
+        Args:
+            keyword: The keyword to filter messages by.
+
+        Returns:
+            A list of messages containing the specified keyword.
+        """
         return [message for message in self.storage if keyword in message.content]
 
     def get(self, k=0) -> list[Message]:
-        """Return the most recent k memories, return all when k=0"""
+        """Return the most recent k memories, return all when k=0.
+
+        Args:
+            k: The number of recent memories to return. Returns all if k=0.
+
+        Returns:
+            A list of the most recent k memories.
+        """
         return self.storage[-k:]
 
     def find_news(self, observed: list[Message], k=0) -> list[Message]:
-        """find news (previously unseen messages) from the the most recent k memories, from all memories when k=0"""
+        """Find news (previously unseen messages) from the most recent k memories, from all memories when k=0.
+
+        Args:
+            observed: A list of messages to check against the memory.
+            k: The number of recent memories to consider. Considers all if k=0.
+
+        Returns:
+            A list of news (previously unseen messages).
+        """
         already_observed = self.get(k)
         news: list[Message] = []
         for i in observed:
@@ -90,12 +153,26 @@ class Memory(BaseModel):
         return news
 
     def get_by_action(self, action) -> list[Message]:
-        """Return all messages triggered by a specified Action"""
+        """Return all messages triggered by a specified Action.
+
+        Args:
+            action: The action to filter messages by.
+
+        Returns:
+            A list of messages triggered by the specified action.
+        """
         index = any_to_str(action)
         return self.index[index]
 
     def get_by_actions(self, actions: Set) -> list[Message]:
-        """Return all messages triggered by specified Actions"""
+        """Return all messages triggered by specified Actions.
+
+        Args:
+            actions: A set of actions to filter messages by.
+
+        Returns:
+            A list of messages triggered by the specified actions.
+        """
         rsp = []
         indices = any_to_str_set(actions)
         for action in indices:

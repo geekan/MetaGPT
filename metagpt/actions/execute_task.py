@@ -10,6 +10,13 @@ from metagpt.schema import Message
 
 
 class ExecuteTask(Action):
+    """ExecuteTask is an action for executing tasks.
+
+    Attributes:
+        name: The name of the action.
+        i_context: The initial context provided as a list of messages.
+    """
+
     name: str = "ExecuteTask"
     i_context: list[Message] = []
 

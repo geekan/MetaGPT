@@ -33,7 +33,17 @@ class MessageType(Enum):
 
 
 class Assistant(Role):
-    """Assistant for solving common issues."""
+    """Assistant for solving common issues.
+
+    Attributes:
+        name: The name of the assistant.
+        profile: A brief description of the assistant.
+        goal: The goal of the assistant.
+        constraints: Constraints that the assistant operates under.
+        desc: Additional description of the assistant.
+        memory: The memory component of the assistant.
+        skills: The skills available to the assistant.
+    """
 
     name: str = "Lily"
     profile: str = "An assistant"
@@ -49,7 +59,11 @@ class Assistant(Role):
         self.constraints = self.constraints.format(language=language)
 
     async def think(self) -> bool:
-        """Everything will be done part by part."""
+        """Processes the last interaction and decides on the next action.
+
+        Returns:
+            A boolean indicating if a valid action was determined.
+        """
         last_talk = await self.refine_memory()
         if not last_talk:
             return False
@@ -68,6 +82,11 @@ class Assistant(Role):
         return await self._plan(rsp, last_talk=last_talk)
 
     async def act(self) -> Message:
+        """Executes the determined action and returns a message.
+
+        Returns:
+            A message object containing the result of the action.
+        """
         result = await self.rc.todo.run()
         if not result:
             return None
@@ -81,9 +100,22 @@ class Assistant(Role):
         return msg
 
     async def talk(self, text):
+        """Stores a talk action in the assistant's memory.
+
+        Args:
+            text: The text to be stored.
+        """
         self.memory.add_talk(Message(content=text))
 
     async def _plan(self, rsp: str, **kwargs) -> bool:
+        """Determines the appropriate handler based on the response and executes it.
+
+        Args:
+            rsp: The response string to plan actions for.
+
+        Returns:
+            A boolean indicating if the action was successfully planned and executed.
+        """
         skill, text = BrainMemory.extract_info(input_string=rsp)
         handlers = {
             MessageType.Talk.value: self.talk_handler,
@@ -93,6 +125,14 @@ class Assistant(Role):
         return await handler(text, **kwargs)
 
     async def talk_handler(self, text, **kwargs) -> bool:
+        """Handles talk actions.
+
+        Args:
+            text: The text to be processed in the talk action.
+
+        Returns:
+            A boolean indicating if the talk action was successfully handled.
+        """
         history = self.memory.history_text
         text = kwargs.get("last_talk") or text
         self.set_todo(
@@ -101,6 +141,14 @@ class Assistant(Role):
         return True
 
     async def skill_handler(self, text, **kwargs) -> bool:
+        """Handles skill actions.
+
+        Args:
+            text: The text to determine the skill action for.
+
+        Returns:
+            A boolean indicating if the skill action was successfully handled.
+        """
         last_talk = kwargs.get("last_talk")
         skill = self.skills.get_skill(text)
         if not skill:
@@ -114,6 +162,11 @@ class Assistant(Role):
         return True
 
     async def refine_memory(self) -> str:
+        """Refines the assistant's memory by summarizing and rewriting if necessary.
+
+        Returns:
+            A string representing the refined memory or None if no refinement was possible.
+        """
         last_talk = self.memory.pop_last_talk()
         if last_talk is None:  # No user feedback, unsure if past conversation is finished.
             return None
@@ -128,9 +181,19 @@ class Assistant(Role):
         return last_talk
 
     def get_memory(self) -> str:
+        """Dumps the assistant's memory model to a JSON string.
+
+        Returns:
+            A JSON string representation of the assistant's memory.
+        """
         return self.memory.model_dump_json()
 
     def load_memory(self, m):
+        """Loads the assistant's memory from a given object.
+
+        Args:
+            m: The memory object to load.
+        """
         try:
             self.memory = BrainMemory(**m)
         except Exception as e:

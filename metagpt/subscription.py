@@ -77,10 +77,10 @@ class SubscriptionRunner(BaseModel):
         """Runs all subscribed tasks and handles their completion or exception.
 
         Args:
-            raise_exception: _description_. Defaults to True.
+            raise_exception: Whether to raise an exception if a task encounters an error. Defaults to True.
 
         Raises:
-            task.exception: _description_
+            task.exception: Raises the exception encountered by a task if raise_exception is True.
         """
         while True:
             for role, task in self.tasks.items():

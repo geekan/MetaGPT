@@ -22,6 +22,17 @@ class PlaywrightWrapper:
     the required browsers are also installed. You can install playwright by running the command
     `pip install metagpt[playwright]` and download the necessary browser binaries by running the
     command `playwright install` for the first time.
+
+    Args:
+        browser_type: The type of browser to use. Can be 'chromium', 'firefox', or 'webkit'.
+        launch_kwargs: Additional keyword arguments to pass to the browser launch method.
+        **kwargs: Additional keyword arguments.
+
+    Attributes:
+        browser_type: The type of browser to use.
+        launch_kwargs: Additional keyword arguments for browser launch.
+        _context_kwargs: Context keyword arguments.
+        _has_run_precheck: Flag to indicate if the precheck has been run.
     """
 
     def __init__(
@@ -44,6 +55,15 @@ class PlaywrightWrapper:
         self._has_run_precheck = False
 
     async def run(self, url: str, *urls: str) -> WebPage | list[WebPage]:
+        """Runs the Playwright browser and scrapes content from the given URLs.
+
+        Args:
+            url: The primary URL to scrape.
+            *urls: Additional URLs to scrape.
+
+        Returns:
+            A WebPage object or a list of WebPage objects containing the scraped content.
+        """
         async with async_playwright() as ap:
             browser_type = getattr(ap, self.browser_type)
             await self._run_precheck(browser_type)
@@ -55,6 +75,15 @@ class PlaywrightWrapper:
             return await _scrape(browser, url)
 
     async def _scrape(self, browser, url):
+        """Internal method to scrape content from a single URL.
+
+        Args:
+            browser: The browser instance to use for scraping.
+            url: The URL to scrape.
+
+        Returns:
+            A WebPage object containing the scraped content.
+        """
         context = await browser.new_context(**self._context_kwargs)
         page = await context.new_page()
         async with page:
@@ -69,6 +98,11 @@ class PlaywrightWrapper:
             return WebPage(inner_text=inner_text, html=html, url=url)
 
     async def _run_precheck(self, browser_type):
+        """Performs a precheck to ensure that the necessary browser binaries are installed.
+
+        Args:
+            browser_type: The type of browser to check.
+        """
         if self._has_run_precheck:
             return
 
@@ -103,6 +137,12 @@ def _get_install_lock():
 
 
 async def _install_browsers(*browsers, **kwargs) -> None:
+    """Installs the specified browsers using Playwright.
+
+    Args:
+        *browsers: The browsers to install.
+        **kwargs: Additional keyword arguments.
+    """
     async with _get_install_lock():
         browsers = [i for i in browsers if i not in _install_cache]
         if not browsers:
@@ -129,6 +169,12 @@ async def _install_browsers(*browsers, **kwargs) -> None:
 
 
 async def _log_stream(sr, log_func):
+    """Logs output from a subprocess stream.
+
+    Args:
+        sr: The stream reader object.
+        log_func: The logging function to use.
+    """
     while True:
         line = await sr.readline()
         if not line:

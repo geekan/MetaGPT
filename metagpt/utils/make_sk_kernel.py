@@ -16,6 +16,14 @@ from metagpt.config2 import config
 
 
 def make_sk_kernel():
+    """Creates and configures a semantic kernel instance with chat completion services.
+
+    This function initializes a semantic kernel and configures it with either AzureChatCompletion or OpenAIChatCompletion
+    service based on the configuration provided. It prioritizes Azure LLM configuration over OpenAI LLM configuration.
+
+    Returns:
+        An instance of sk.Kernel configured with a chat completion service.
+    """
     kernel = sk.Kernel()
     if llm := config.get_azure_llm():
         kernel.add_chat_service(

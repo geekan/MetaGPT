@@ -83,16 +83,50 @@ ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenc
 
 
 class WriteCode(Action):
+    """Handles the process of writing code based on provided context and requirements.
+
+    This class is responsible for generating code snippets based on a given set of requirements,
+    design documents, and task descriptions. It utilizes retries for code generation attempts
+    and logs the process for debugging purposes.
+
+    Attributes:
+        name: A string representing the name of the action.
+        i_context: A Document object representing the initial context for code writing.
+    """
+
     name: str = "WriteCode"
     i_context: Document = Field(default_factory=Document)
 
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     async def write_code(self, prompt) -> str:
+        """Generates code based on a given prompt.
+
+        This method attempts to generate code by sending a prompt to an asynchronous code
+        generation API and parsing the response.
+
+        Args:
+            prompt: A string containing the prompt for code generation.
+
+        Returns:
+            A string containing the generated code.
+        """
         code_rsp = await self._aask(prompt)
         code = CodeParser.parse_code(block="", text=code_rsp)
         return code
 
     async def run(self, *args, **kwargs) -> CodingContext:
+        """Executes the code writing process based on the initial context and updates the coding context.
+
+        This method orchestrates the process of fetching necessary documents, generating prompts,
+        writing code, and updating the coding context with the generated code.
+
+        Args:
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
+
+        Returns:
+            An updated CodingContext object reflecting the generated code.
+        """
         bug_feedback = await self.repo.docs.get(filename=BUGFIX_FILENAME)
         coding_context = CodingContext.loads(self.i_context.content)
         test_doc = await self.repo.test_outputs.get(filename="test_" + coding_context.filename + ".json")
@@ -153,17 +187,19 @@ class WriteCode(Action):
 
     @staticmethod
     async def get_codes(task_doc: Document, exclude: str, project_repo: ProjectRepo, use_inc: bool = False) -> str:
-        """
-        Get codes for generating the exclude file in various scenarios.
+        """Generates code snippets excluding a specified file from the project repository.
 
-        Attributes:
-            task_doc (Document): Document object of the task file.
-            exclude (str): The file to be generated. Specifies the filename to be excluded from the code snippets.
-            project_repo (ProjectRepo): ProjectRepo object of the project.
-            use_inc (bool): Indicates whether the scenario involves incremental development. Defaults to False.
+        This method is used to generate code snippets for all relevant files in a project,
+        excluding a specified file. It supports scenarios involving incremental development.
+
+        Args:
+            task_doc: A Document object representing the task file.
+            exclude: A string specifying the filename to exclude from the code snippets.
+            project_repo: A ProjectRepo object representing the project repository.
+            use_inc: A boolean indicating if the scenario involves incremental development. Defaults to False.
 
         Returns:
-            str: Codes for generating the exclude file.
+            A string containing code snippets for the project, excluding the specified file.
         """
         if not task_doc:
             return ""

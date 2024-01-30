@@ -22,7 +22,20 @@ def handle_exception(
     exception_msg: str = "",
     default_return: Any = None,
 ) -> Callable[..., ReturnType]:
-    """handle exception, return default value"""
+    """Decorates a function to handle exceptions with a unified approach.
+
+    This decorator can be applied to both synchronous and asynchronous functions.
+    It logs the exception and returns a default value if an exception of the specified type is caught.
+
+    Args:
+        _func: The function to decorate. Defaults to None.
+        exception_type: The type of exception to catch. Can be a tuple of exceptions. Defaults to Exception.
+        exception_msg: Additional message to log on exception. Defaults to an empty string.
+        default_return: The value to return if an exception is caught. Defaults to None.
+
+    Returns:
+        A callable that wraps the original function, providing exception handling.
+    """
 
     def decorator(func: Callable[..., ReturnType]) -> Callable[..., ReturnType]:
         @functools.wraps(func)

@@ -24,6 +24,18 @@ DESC = """
 
 
 class CustomerService(Sales):
+    """Customer service role model inheriting from Sales.
+
+    This class represents a human customer service representative with specific guidelines
+    on how to interact with customers and handle their requests or complaints.
+
+    Attributes:
+        name: The name of the customer service representative.
+        profile: A brief description of the role.
+        desc: Detailed description and principles guiding the customer service process.
+        store: An optional attribute that can link to a BaseStore object for accessing or storing data.
+    """
+
     name: str = "Xiaomei"
     profile: str = "Human customer service"
     desc: str = DESC

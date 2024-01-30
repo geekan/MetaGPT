@@ -45,6 +45,14 @@ Now you should start rewriting the code:
 
 
 class DebugError(Action):
+    """Handles the debugging process for errors found in code execution.
+
+    This class extends the Action class to implement a specific action that deals with debugging errors in code. It uses the context of the code execution, including the source code, test code, and execution logs, to generate a prompt for fixing the errors. The response to the prompt is then parsed to extract the corrected code.
+
+    Attributes:
+        i_context: The context of the code execution, including necessary metadata and content.
+    """
+
     i_context: RunCodeContext = Field(default_factory=RunCodeContext)
 
     async def run(self, *args, **kwargs) -> str:

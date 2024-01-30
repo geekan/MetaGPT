@@ -87,15 +87,42 @@ flowchart TB
 
 
 class SummarizeCode(Action):
+    """Summarize code from given design and task documents, and code files.
+
+    This class uses retries with exponential backoff for the summarization process.
+
+    Attributes:
+        name: A string name of the action.
+        i_context: A context object containing information about the design and task documents, and code filenames.
+    """
+
     name: str = "SummarizeCode"
     i_context: CodeSummarizeContext = Field(default_factory=CodeSummarizeContext)
 
     @retry(stop=stop_after_attempt(2), wait=wait_random_exponential(min=1, max=60))
     async def summarize_code(self, prompt):
+        """Summarize code based on a given prompt.
+
+        This method retries on failure with exponential backoff.
+
+        Args:
+            prompt: A string prompt used for code summarization.
+
+        Returns:
+            The summarized code response.
+        """
         code_rsp = await self._aask(prompt)
         return code_rsp
 
     async def run(self):
+        """Run the code summarization process.
+
+        This method orchestrates the retrieval of system design, task documents, and code files,
+        constructs a prompt, and performs code summarization.
+
+        Returns:
+            The summarized code response.
+        """
         design_pathname = Path(self.i_context.design_filename)
         design_doc = await self.repo.docs.system_design.get(filename=design_pathname.name)
         task_pathname = Path(self.i_context.task_filename)

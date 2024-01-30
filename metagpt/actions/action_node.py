@@ -114,6 +114,17 @@ Follow format example's {prompt_schema} format, generate output and make sure it
 
 
 def dict_to_markdown(d, prefix="- ", kv_sep="\n", postfix="\n"):
+    """Converts a dictionary to a markdown string.
+
+    Args:
+        d: The dictionary to convert.
+        prefix: The prefix to add before each key-value pair.
+        kv_sep: The separator between key and value.
+        postfix: The postfix to add after each key-value pair.
+
+    Returns:
+        A markdown formatted string representing the dictionary.
+    """
     markdown_str = ""
     for key, value in d.items():
         markdown_str += f"{prefix}{key}{kv_sep}{value}{postfix}"
@@ -121,7 +132,20 @@ def dict_to_markdown(d, prefix="- ", kv_sep="\n", postfix="\n"):
 
 
 class ActionNode:
-    """ActionNode is a tree of nodes."""
+    """Represents a node in an action tree structure.
+
+    Attributes:
+        schema (str): A string representing the schema of the node.
+        context (str): A string representing the context of the node.
+        llm (BaseLLM): An instance of BaseLLM representing the language model.
+        children (dict[str, 'ActionNode']): A dictionary of child nodes.
+        key (str): A string representing the key of the node.
+        expected_type (Type): The expected type of the node's value.
+        instruction (str): A string representing the instruction for the node.
+        example (Any): An example value for the node.
+        content (str): A string representing the content of the node.
+        instruct_content (BaseModel): An instance of BaseModel representing the structured content of the node.
+    """
 
     schema: str  # raw/json/markdown, default: ""
 
@@ -151,6 +175,17 @@ class ActionNode:
         children: dict[str, "ActionNode"] = None,
         schema: str = "",
     ):
+        """Initializes an ActionNode object.
+
+        Args:
+            key (str): The key of the node.
+            expected_type (Type): The expected type of the node's value.
+            instruction (str): The instruction for the node.
+            example (Any): An example value for the node.
+            content (str, optional): The content of the node. Defaults to an empty string.
+            children (dict[str, 'ActionNode'], optional): A dictionary of child nodes. Defaults to None.
+            schema (str, optional): The schema of the node. Defaults to an empty string.
+        """
         self.key = key
         self.expected_type = expected_type
         self.instruction = instruction
@@ -169,31 +204,69 @@ class ActionNode:
         return self.__str__()
 
     def add_child(self, node: "ActionNode"):
-        """增加子ActionNode"""
+        """Adds a child node to the current node.
+
+        Args:
+            node (ActionNode): The child node to be added.
+        """
         self.children[node.key] = node
 
     def get_child(self, key: str) -> Union["ActionNode", None]:
+        """Retrieves a child node by its key.
+
+        Args:
+            key (str): The key of the child node to retrieve.
+
+        Returns:
+            Union[ActionNode, None]: The retrieved child node if found, otherwise None.
+        """
         return self.children.get(key, None)
 
     def add_children(self, nodes: List["ActionNode"]):
-        """批量增加子ActionNode"""
+        """Adds multiple child nodes to the current node.
+
+        Args:
+            nodes (List[ActionNode]): A list of child nodes to be added.
+        """
         for node in nodes:
             self.add_child(node)
 
     @classmethod
     def from_children(cls, key, nodes: List["ActionNode"]):
-        """直接从一系列的子nodes初始化"""
+        """Creates an ActionNode instance from a list of child nodes.
+
+        Args:
+            key: The key for the new ActionNode instance.
+            nodes (List[ActionNode]): A list of child nodes.
+
+        Returns:
+            ActionNode: The newly created ActionNode instance.
+        """
         obj = cls(key, str, "", "")
         obj.add_children(nodes)
         return obj
 
     def get_children_mapping_old(self, exclude=None) -> Dict[str, Tuple[Type, Any]]:
-        """获得子ActionNode的字典，以key索引"""
+        """Retrieves a mapping of child nodes excluding specified keys.
+
+        Args:
+            exclude (optional): A list of keys to exclude from the mapping.
+
+        Returns:
+            Dict[str, Tuple[Type, Any]]: A dictionary mapping keys to their expected types and example values, excluding specified keys.
+        """
         exclude = exclude or []
         return {k: (v.expected_type, ...) for k, v in self.children.items() if k not in exclude}
 
     def get_children_mapping(self, exclude=None) -> Dict[str, Tuple[Type, Any]]:
-        """获得子ActionNode的字典，以key索引，支持多级结构"""
+        """Retrieves a mapping of child nodes, supporting nested structures, excluding specified keys.
+
+        Args:
+            exclude (optional): A list of keys to exclude from the mapping.
+
+        Returns:
+            Dict[str, Tuple[Type, Any]]: A dictionary mapping keys to their expected types and example values, supporting nested structures and excluding specified keys.
+        """
         exclude = exclude or []
         mapping = {}
 
@@ -209,11 +282,23 @@ class ActionNode:
         return mapping
 
     def get_self_mapping(self) -> Dict[str, Tuple[Type, Any]]:
-        """get self key: type mapping"""
+        """Retrieves a mapping of the current node's key to its type.
+
+        Returns:
+            Dict[str, Tuple[Type, Any]]: A dictionary mapping the current node's key to its expected type and example value.
+        """
         return {self.key: (self.expected_type, ...)}
 
     def get_mapping(self, mode="children", exclude=None) -> Dict[str, Tuple[Type, Any]]:
-        """get key: type mapping under mode"""
+        """Retrieves a mapping of keys to types based on the specified mode.
+
+        Args:
+            mode (str, optional): The mode for retrieving the mapping. Defaults to 'children'.
+            exclude (optional): A list of keys to exclude from the mapping.
+
+        Returns:
+            Dict[str, Tuple[Type, Any]]: A dictionary mapping keys to their expected types and example values based on the specified mode.
+        """
         if mode == "children" or (mode == "auto" and self.children):
             return self.get_children_mapping(exclude=exclude)
         return {} if exclude and self.key in exclude else self.get_self_mapping()
@@ -221,7 +306,15 @@ class ActionNode:
     @classmethod
     @register_action_outcls
     def create_model_class(cls, class_name: str, mapping: Dict[str, Tuple[Type, Any]]):
-        """基于pydantic v1的模型动态生成，用来检验结果类型正确性"""
+        """Dynamically creates a Pydantic model class for validating result types.
+
+        Args:
+            class_name (str): The name for the new model class.
+            mapping (Dict[str, Tuple[Type, Any]]): A dictionary mapping field names to their types and default values.
+
+        Returns:
+            Type[BaseModel]: The newly created Pydantic model class.
+        """
 
         def check_fields(cls, values):
             required_fields = set(mapping.keys())
@@ -240,18 +333,44 @@ class ActionNode:
         return new_class
 
     def create_class(self, mode: str = "auto", class_name: str = None, exclude=None):
+        """Creates a Pydantic model class based on the current node and its children.
+
+        Args:
+            mode (str, optional): The mode for creating the class. Defaults to 'auto'.
+            class_name (str, optional): The name for the new model class. If not provided, a name is generated.
+            exclude (optional): A list of keys to exclude from the class.
+
+        Returns:
+            Type[BaseModel]: The newly created Pydantic model class.
+        """
         class_name = class_name if class_name else f"{self.key}_AN"
         mapping = self.get_mapping(mode=mode, exclude=exclude)
         return self.create_model_class(class_name, mapping)
 
     def create_children_class(self, exclude=None):
-        """使用object内有的字段直接生成model_class"""
+        """Creates a Pydantic model class based on the children of the current node.
+
+        Args:
+            exclude (optional): A list of keys to exclude from the class.
+
+        Returns:
+            Type[BaseModel]: The newly created Pydantic model class based on the children.
+        """
         class_name = f"{self.key}_AN"
         mapping = self.get_children_mapping(exclude=exclude)
         return self.create_model_class(class_name, mapping)
 
     def to_dict(self, format_func=None, mode="auto", exclude=None) -> Dict:
-        """将当前节点与子节点都按照node: format的格式组织成字典"""
+        """Converts the current node and its children to a dictionary.
+
+        Args:
+            format_func (optional): A function to format the node values. If not provided, a default formatting is used.
+            mode (str, optional): The mode for converting to a dictionary. Defaults to 'auto'.
+            exclude (optional): A list of keys to exclude from the dictionary.
+
+        Returns:
+            Dict: The dictionary representation of the current node and its children.
+        """
 
         # 如果没有提供格式化函数，使用默认的格式化方式
         if format_func is None:
@@ -279,6 +398,11 @@ class ActionNode:
         return node_dict
 
     def update_instruct_content(self, incre_data: dict[str, Any]):
+        """Updates the instruct_content attribute with incremental data.
+
+        Args:
+            incre_data (dict[str, Any]): The incremental data to update the instruct_content with.
+        """
         assert self.instruct_content
         origin_sc_dict = self.instruct_content.model_dump()
         origin_sc_dict.update(incre_data)
@@ -286,6 +410,14 @@ class ActionNode:
         self.instruct_content = output_class(**origin_sc_dict)
 
     def keys(self, mode: str = "auto") -> list:
+        """Retrieves a list of keys based on the specified mode.
+
+        Args:
+            mode (str, optional): The mode for retrieving the keys. Defaults to 'auto'.
+
+        Returns:
+            list: A list of keys based on the specified mode.
+        """
         if mode == "children" or (mode == "auto" and self.children):
             keys = []
         else:
@@ -298,6 +430,16 @@ class ActionNode:
         return keys
 
     def compile_to(self, i: Dict, schema, kv_sep) -> str:
+        """Compiles input data to the specified schema format.
+
+        Args:
+            i (Dict): The input data to compile.
+            schema: The schema to compile the data into.
+            kv_sep: The key-value separator to use in the compiled output.
+
+        Returns:
+            str: The compiled data in the specified schema format.
+        """
         if schema == "json":
             return json.dumps(i, indent=4)
         elif schema == "markdown":
@@ -306,6 +448,16 @@ class ActionNode:
             return str(i)
 
     def tagging(self, text, schema, tag="") -> str:
+        """Wraps text with specified tags based on the schema.
+
+        Args:
+            text: The text to wrap.
+            schema: The schema to use for wrapping.
+            tag (str, optional): The tag to wrap the text with. Defaults to an empty string.
+
+        Returns:
+            str: The text wrapped with the specified tag based on the schema.
+        """
         if not tag:
             return text
         if schema == "json":
@@ -314,17 +466,50 @@ class ActionNode:
             return f"[{tag}]\n" + text + f"\n[/{tag}]"
 
     def _compile_f(self, schema, mode, tag, format_func, kv_sep, exclude=None) -> str:
+        """Compiles node data to the specified format.
+
+        Args:
+            schema: The schema to compile the data into.
+            mode: The mode for compiling the data.
+            tag: The tag to use in the compiled output.
+            format_func: The function to format the node values.
+            kv_sep: The key-value separator to use in the compiled output.
+            exclude (optional): A list of keys to exclude from the compilation.
+
+        Returns:
+            str: The compiled node data in the specified format.
+        """
         nodes = self.to_dict(format_func=format_func, mode=mode, exclude=exclude)
         text = self.compile_to(nodes, schema, kv_sep)
         return self.tagging(text, schema, tag)
 
     def compile_instruction(self, schema="markdown", mode="children", tag="", exclude=None) -> str:
-        """compile to raw/json/markdown template with all/root/children nodes"""
+        """Compiles instructions to the specified format.
+
+        Args:
+            schema (str, optional): The schema to compile the instructions into. Defaults to 'markdown'.
+            mode (str, optional): The mode for compiling the instructions. Defaults to 'children'.
+            tag (str, optional): The tag to use in the compiled instructions. Defaults to an empty string.
+            exclude (optional): A list of keys to exclude from the compilation.
+
+        Returns:
+            str: The compiled instructions in the specified format.
+        """
         format_func = lambda i: f"{i.expected_type}  # {i.instruction}"
         return self._compile_f(schema, mode, tag, format_func, kv_sep=": ", exclude=exclude)
 
     def compile_example(self, schema="json", mode="children", tag="", exclude=None) -> str:
-        """compile to raw/json/markdown examples with all/root/children nodes"""
+        """Compiles examples to the specified format.
+
+        Args:
+            schema (str, optional): The schema to compile the examples into. Defaults to 'json'.
+            mode (str, optional): The mode for compiling the examples. Defaults to 'children'.
+            tag (str, optional): The tag to use in the compiled examples. Defaults to an empty string.
+            exclude (optional): A list of keys to exclude from the compilation.
+
+        Returns:
+            str: The compiled examples in the specified format.
+        """
 
         # 这里不能使用f-string，因为转译为str后再json.dumps会额外加上引号，无法作为有效的example
         # 错误示例："File list": "['main.py', 'const.py', 'game.py']", 注意这里值不是list，而是str
@@ -332,15 +517,17 @@ class ActionNode:
         return self._compile_f(schema, mode, tag, format_func, kv_sep="\n", exclude=exclude)
 
     def compile(self, context, schema="json", mode="children", template=SIMPLE_TEMPLATE, exclude=[]) -> str:
-        """
-        mode: all/root/children
-            mode="children": 编译所有子节点为一个统一模板，包括instruction与example
-            mode="all": NotImplemented
-            mode="root": NotImplemented
-        schmea: raw/json/markdown
-            schema="raw": 不编译，context, lang_constaint, instruction
-            schema="json"：编译context, example(json), instruction(markdown), constraint, action
-            schema="markdown": 编译context, example(markdown), instruction(markdown), constraint, action
+        """Compiles the node data to a complete template.
+
+        Args:
+            context: The context to include in the compiled output.
+            schema (str, optional): The schema to compile the data into. Defaults to 'json'.
+            mode (str, optional): The mode for compiling the data. Defaults to 'children'.
+            template: The template to use for the compiled output.
+            exclude (list, optional): A list of keys to exclude from the compilation.
+
+        Returns:
+            str: The compiled node data in the specified template.
         """
         if schema == "raw":
             return context + "\n\n## Actions\n" + LANGUAGE_CONSTRAINT + "\n" + self.instruction
@@ -375,7 +562,19 @@ class ActionNode:
         schema="markdown",  # compatible to original format
         timeout=3,
     ) -> (str, BaseModel):
-        """Use ActionOutput to wrap the output of aask"""
+        """Asynchronously asks a question and returns the processed output.
+
+        Args:
+            prompt (str): The prompt to ask.
+            output_class_name (str): The name of the output class for processing the response.
+            output_data_mapping (dict): The mapping of the output data.
+            system_msgs (Optional[list[str]], optional): System messages to include in the request. Defaults to None.
+            schema (str, optional): The schema of the output. Defaults to 'markdown'.
+            timeout (int, optional): The timeout for the request. Defaults to 3.
+
+        Returns:
+            Tuple[str, BaseModel]: The raw content and the processed output as an instance of the output class.
+        """
         content = await self.llm.aask(prompt, system_msgs, timeout=timeout)
         logger.debug(f"llm raw output:\n{content}")
         output_class = self.create_model_class(output_class_name, output_data_mapping)
@@ -392,20 +591,55 @@ class ActionNode:
         return content, instruct_content
 
     def get(self, key):
+        """Retrieves the value of the specified key from instruct_content.
+
+        Args:
+            key: The key of the value to retrieve.
+
+        Returns:
+            The value of the specified key from instruct_content.
+        """
         return self.instruct_content.model_dump()[key]
 
     def set_recursive(self, name, value):
+        """Recursively sets the specified attribute to the given value for the node and its children.
+
+        Args:
+            name: The name of the attribute to set.
+            value: The value to set the attribute to.
+        """
         setattr(self, name, value)
         for _, i in self.children.items():
             i.set_recursive(name, value)
 
     def set_llm(self, llm):
+        """Sets the llm attribute for the node and its children.
+
+        Args:
+            llm: The llm instance to set.
+        """
         self.set_recursive("llm", llm)
 
     def set_context(self, context):
+        """Sets the context attribute for the node and its children.
+
+        Args:
+            context: The context to set.
+        """
         self.set_recursive("context", context)
 
     async def simple_fill(self, schema, mode, timeout=3, exclude=None):
+        """Fills the node data using a simple strategy.
+
+        Args:
+            schema: The schema to use for filling the data.
+            mode: The mode for filling the data.
+            timeout (int, optional): The timeout for the request. Defaults to 3.
+            exclude (optional): A list of keys to exclude from the filling process.
+
+        Returns:
+            The current node after filling the data.
+        """
         prompt = self.compile(context=self.context, schema=schema, mode=mode, exclude=exclude)
 
         if schema != "raw":
@@ -421,24 +655,27 @@ class ActionNode:
         return self
 
     async def fill(self, context, llm, schema="json", mode="auto", strgy="simple", timeout=3, exclude=[]):
-        """Fill the node(s) with mode.
+        """Fills the node data based on the specified parameters.
 
-        :param context: Everything we should know when filling node.
-        :param llm: Large Language Model with pre-defined system message.
-        :param schema: json/markdown, determine example and output format.
-         - raw: free form text
-         - json: it's easy to open source LLM with json format
-         - markdown: when generating code, markdown is always better
-        :param mode: auto/children/root
-         - auto: automated fill children's nodes and gather outputs, if no children, fill itself
-         - children: fill children's nodes and gather outputs
-         - root: fill root's node and gather output
-        :param strgy: simple/complex
-         - simple: run only once
-         - complex: run each node
-        :param timeout: Timeout for llm invocation.
-        :param exclude: The keys of ActionNode to exclude.
-        :return: self
+        Args:
+            context: The context to use for filling the data.
+            llm: The llm instance to use for filling the data.
+            schema (str, optional): The schema to use for filling the data. Defaults to 'json'.
+                - raw: free form text
+                - json: it's easy to open source LLM with json format
+                - markdown: when generating code, markdown is always better
+            mode (str, optional): The mode for filling the data. Defaults to 'auto'.
+                - auto: automated fill children's nodes and gather outputs, if no children, fill itself
+                - children: fill children's nodes and gather outputs
+                - root: fill root's node and gather output
+            strgy (str, optional): The strategy to use for filling the data. Defaults to 'simple'.
+                - simple: run only once
+                - complex: run each node
+            timeout (int, optional): The timeout for the request. Defaults to 3.
+            exclude (list, optional): A list of keys to exclude from the filling process.
+
+        Returns:
+            The current node after filling the data.
         """
         self.set_llm(llm)
         self.set_context(context)
@@ -460,6 +697,11 @@ class ActionNode:
             return self
 
     async def human_review(self) -> dict[str, str]:
+        """Performs a human review of the node data.
+
+        Returns:
+            dict[str, str]: The review comments.
+        """
         review_comments = HumanInteraction().interact_with_instruct_content(
             instruct_content=self.instruct_content, interact_type="review"
         )
@@ -467,6 +709,11 @@ class ActionNode:
         return review_comments
 
     def _makeup_nodes_output_with_req(self) -> dict[str, str]:
+        """Creates a dictionary of node outputs with their requirements.
+
+        Returns:
+            dict[str, str]: A dictionary of node outputs with their requirements.
+        """
         instruct_content_dict = self.instruct_content.model_dump()
         nodes_output = {}
         for key, value in instruct_content_dict.items():
@@ -475,7 +722,14 @@ class ActionNode:
         return nodes_output
 
     async def auto_review(self, template: str = REVIEW_TEMPLATE) -> dict[str, str]:
-        """use key's output value and its instruction to review the modification comment"""
+        """Automatically reviews the node data based on its requirements.
+
+        Args:
+            template (str): The template to use for the review.
+
+        Returns:
+            dict[str, str]: The review comments.
+        """
         nodes_output = self._makeup_nodes_output_with_req()
         """nodes_output format:
         {
@@ -513,6 +767,14 @@ class ActionNode:
         return instruct_content.model_dump()
 
     async def simple_review(self, review_mode: ReviewMode = ReviewMode.AUTO):
+        """Performs a simple review of the node data.
+
+        Args:
+            review_mode (ReviewMode): The mode for the review.
+
+        Returns:
+            The review comments.
+        """
         # generate review comments
         if review_mode == ReviewMode.HUMAN:
             review_comments = await self.human_review()
@@ -524,11 +786,16 @@ class ActionNode:
         return review_comments
 
     async def review(self, strgy: str = "simple", review_mode: ReviewMode = ReviewMode.AUTO):
-        """only give the review comment of each exist and mismatch key
+        """Reviews the node data based on the specified strategy and mode.
 
-        :param strgy: simple/complex
-         - simple: run only once
-         - complex: run each node
+        Args:
+            strgy (str): The strategy for the review.
+                - simple: run only once
+                - complex: run each node
+            review_mode (ReviewMode): The mode for the review.
+
+        Returns:
+            The review comments.
         """
         if not hasattr(self, "llm"):
             raise RuntimeError("use `review` after `fill`")
@@ -547,6 +814,11 @@ class ActionNode:
         return review_comments
 
     async def human_revise(self) -> dict[str, str]:
+        """Performs a human revision of the node data.
+
+        Returns:
+            dict[str, str]: The revised contents.
+        """
         review_contents = HumanInteraction().interact_with_instruct_content(
             instruct_content=self.instruct_content, mapping=self.get_mapping(mode="auto"), interact_type="revise"
         )
@@ -555,6 +827,14 @@ class ActionNode:
         return review_contents
 
     def _makeup_nodes_output_with_comment(self, review_comments: dict[str, str]) -> dict[str, str]:
+        """Creates a dictionary of node outputs with their review comments.
+
+        Args:
+            review_comments (dict[str, str]): The review comments.
+
+        Returns:
+            dict[str, str]: A dictionary of node outputs with their review comments.
+        """
         instruct_content_dict = self.instruct_content.model_dump()
         nodes_output = {}
         for key, value in instruct_content_dict.items():
@@ -565,7 +845,15 @@ class ActionNode:
     async def auto_revise(
         self, revise_mode: ReviseMode = ReviseMode.AUTO, template: str = REVISE_TEMPLATE
     ) -> dict[str, str]:
-        """revise the value of incorrect keys"""
+        """Automatically revises the node data based on review comments.
+
+        Args:
+            revise_mode (ReviseMode): The mode for the revision.
+            template (str): The template to use for the revision.
+
+        Returns:
+            dict[str, str]: The revised contents.
+        """
         # generate review comments
         if revise_mode == ReviseMode.AUTO:
             review_comments: dict = await self.auto_review()
@@ -603,6 +891,14 @@ class ActionNode:
         return sc_dict
 
     async def simple_revise(self, revise_mode: ReviseMode = ReviseMode.AUTO) -> dict[str, str]:
+        """Performs a simple revision of the node data.
+
+        Args:
+            revise_mode (ReviseMode): The mode for the revision.
+
+        Returns:
+            dict[str, str]: The revised contents.
+        """
         if revise_mode == ReviseMode.HUMAN:
             revise_contents = await self.human_revise()
         else:
@@ -611,11 +907,14 @@ class ActionNode:
         return revise_contents
 
     async def revise(self, strgy: str = "simple", revise_mode: ReviseMode = ReviseMode.AUTO) -> dict[str, str]:
-        """revise the content of ActionNode and update the instruct_content
+        """Revises the node data based on the specified strategy and mode.
 
-        :param strgy: simple/complex
-         - simple: run only once
-         - complex: run each node
+        Args:
+            strgy (str): The strategy for the revision.
+            revise_mode (ReviseMode): The mode for the revision.
+
+        Returns:
+            dict[str, str]: The revised contents.
         """
         if not hasattr(self, "llm"):
             raise RuntimeError("use `revise` after `fill`")
@@ -636,11 +935,11 @@ class ActionNode:
 
     @classmethod
     def from_pydantic(cls, model: Type[BaseModel], key: str = None):
-        """
-        Creates an ActionNode tree from a Pydantic model.
+        """Creates an ActionNode tree from a Pydantic model.
 
         Args:
-            model (Type[BaseModel]): The Pydantic model to convert.
+            model (Type[BaseModel]): The Pydantic model to create the tree from.
+            key (str, optional): The key for the root node. If not provided, the model's name is used.
 
         Returns:
             ActionNode: The root node of the created ActionNode tree.
@@ -668,10 +967,25 @@ class ActionNode:
 
 
 class ToolUse(BaseModel):
+    """Represents the use of a tool in a task.
+
+    Attributes:
+        tool_name: The name of the tool.
+    """
+
     tool_name: str = Field(default="a", description="tool name", examples=[])
 
 
 class Task(BaseModel):
+    """Represents a task in a list of tasks.
+
+    Attributes:
+        task_id: The ID of the task.
+        name: The name of the task.
+        dependent_task_ids: A list of IDs for tasks that this task depends on.
+        tool: An instance of ToolUse representing the tool used in the task.
+    """
+
     task_id: int = Field(default="1", description="task id", examples=[1, 2, 3])
     name: str = Field(default="Get data from ...", description="task name", examples=[])
     dependent_task_ids: List[int] = Field(default=[], description="dependent task ids", examples=[1, 2, 3])
@@ -679,6 +993,12 @@ class Task(BaseModel):
 
 
 class Tasks(BaseModel):
+    """Represents a collection of tasks.
+
+    Attributes:
+        tasks: A list of Task instances.
+    """
+
     tasks: List[Task] = Field(default=[], description="tasks", examples=[])
 
 

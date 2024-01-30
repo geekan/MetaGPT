@@ -13,6 +13,18 @@ from metagpt.config2 import config
 
 
 class SerpAPIWrapper(BaseModel):
+    """A wrapper for SerpAPI searches.
+
+    This class provides methods to perform searches using SerpAPI and process the results.
+
+    Attributes:
+        model_config: Configuration dictionary allowing arbitrary types.
+        search_engine: The search engine to use. Defaults to None.
+        params: Default parameters for the search engine.
+        serpapi_api_key: The API key for SerpAPI. If not provided, it tries to fetch from config.
+        aiosession: An optional aiohttp.ClientSession for making requests.
+    """
+
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     search_engine: Any = None  #: :meta private:
@@ -31,6 +43,17 @@ class SerpAPIWrapper(BaseModel):
     @field_validator("serpapi_api_key", mode="before")
     @classmethod
     def check_serpapi_api_key(cls, val: str):
+        """Validates the SerpAPI API key.
+
+        Args:
+            val: The API key to validate.
+
+        Returns:
+            The validated API key.
+
+        Raises:
+            ValueError: If the API key is not provided and not found in the environment.
+        """
         val = val or config.search.api_key
         if not val:
             raise ValueError(

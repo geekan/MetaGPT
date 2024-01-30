@@ -38,6 +38,18 @@ from metagpt.utils.git_repository import GitRepository
 
 
 class DocFileRepositories(FileRepository):
+    """Represents repositories for documentation files within a project.
+
+    Attributes:
+        prd: A FileRepository for Product Requirement Documents.
+        system_design: A FileRepository for system design documents.
+        task: A FileRepository for task documents.
+        code_summary: A FileRepository for code summary documents.
+        graph_repo: A FileRepository for graph repository documents.
+        class_view: A FileRepository for class view documents.
+        code_plan_and_change: A FileRepository for code plan and change documents.
+    """
+
     prd: FileRepository
     system_design: FileRepository
     task: FileRepository
@@ -59,6 +71,20 @@ class DocFileRepositories(FileRepository):
 
 
 class ResourceFileRepositories(FileRepository):
+    """Represents repositories for resource files within a project.
+
+    Attributes:
+        competitive_analysis: A FileRepository for competitive analysis documents.
+        data_api_design: A FileRepository for data API design documents.
+        seq_flow: A FileRepository for sequence flow documents.
+        system_design: A FileRepository for system design PDF documents.
+        prd: A FileRepository for Product Requirement Document PDFs.
+        api_spec_and_task: A FileRepository for API specification and task PDFs.
+        code_summary: A FileRepository for code summary PDF documents.
+        sd_output: A FileRepository for system design output files.
+        code_plan_and_change: A FileRepository for code plan and change PDF documents.
+    """
+
     competitive_analysis: FileRepository
     data_api_design: FileRepository
     seq_flow: FileRepository
@@ -84,6 +110,21 @@ class ResourceFileRepositories(FileRepository):
 
 
 class ProjectRepo(FileRepository):
+    """Represents the main project repository, including documentation, resources, and tests.
+
+    Attributes:
+        docs: A DocFileRepositories instance for accessing documentation files.
+        resources: A ResourceFileRepositories instance for accessing resource files.
+        tests: A FileRepository for test code files.
+        test_outputs: A FileRepository for test output files.
+        git_repo: The underlying GitRepository instance.
+        workdir: The working directory of the git repository.
+        srcs: A FileRepository for source code files, initialized by calling `with_src_path`.
+
+    Raises:
+        ValueError: If an invalid root is provided or if `srcs` is accessed before `with_src_path` is called.
+    """
+
     def __init__(self, root: str | Path | GitRepository):
         if isinstance(root, str) or isinstance(root, Path):
             git_repo_ = GitRepository(local_path=Path(root))

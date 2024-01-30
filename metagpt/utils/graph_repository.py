@@ -17,6 +17,8 @@ from metagpt.utils.common import concat_namespace
 
 
 class GraphKeyword:
+    """Defines constants used as predicates and objects in graph database operations."""
+
     IS = "is"
     OF = "Of"
     ON = "On"
@@ -39,38 +41,104 @@ class GraphKeyword:
 
 
 class SPO(BaseModel):
+    """Represents a simple Subject-Predicate-Object model for graph database entries.
+
+    Attributes:
+        subject: The subject of the statement.
+        predicate: The predicate of the statement, describing the relationship between subject and object.
+        object_: The object of the statement.
+    """
+
     subject: str
     predicate: str
     object_: str
 
 
 class GraphRepository(ABC):
+    """Abstract base class for a graph repository.
+
+    This class provides the interface for graph database operations.
+
+    Attributes:
+        name: The name of the repository.
+
+    Methods:
+        insert: Asynchronously inserts a new triple into the graph database.
+        upsert: Asynchronously inserts a new triple, or updates it if it already exists.
+        update: Asynchronously updates an existing triple in the graph database.
+        select: Asynchronously selects triples from the graph database based on given criteria.
+    """
+
     def __init__(self, name: str, **kwargs):
+        """Initializes a new instance of the GraphRepository class.
+
+        Args:
+            name: The name of the repository.
+            **kwargs: Additional keyword arguments.
+        """
         self._repo_name = name
         self._kwargs = kwargs
 
     @abstractmethod
     async def insert(self, subject: str, predicate: str, object_: str):
+        """Asynchronously inserts a new triple into the graph database.
+
+        Args:
+            subject: The subject of the triple.
+            predicate: The predicate of the triple.
+            object_: The object of the triple.
+        """
         pass
 
     @abstractmethod
     async def upsert(self, subject: str, predicate: str, object_: str):
+        """Asynchronously inserts a new triple, or updates it if it already exists.
+
+        Args:
+            subject: The subject of the triple.
+            predicate: The predicate of the triple.
+            object_: The object of the triple.
+        """
         pass
 
     @abstractmethod
     async def update(self, subject: str, predicate: str, object_: str):
+        """Asynchronously updates an existing triple in the graph database.
+
+        Args:
+            subject: The subject of the triple.
+            predicate: The predicate of the triple.
+            object_: The object of the triple.
+        """
         pass
 
     @abstractmethod
     async def select(self, subject: str = None, predicate: str = None, object_: str = None) -> List[SPO]:
+        """Asynchronously selects triples from the graph database based on given criteria.
+
+        Args:
+            subject: The subject of the triple. If None, any subject is matched.
+            predicate: The predicate of the triple. If None, any predicate is matched.
+            object_: The object of the triple. If None, any object is matched.
+
+        Returns:
+            A list of SPO objects matching the criteria.
+        """
         pass
 
     @property
     def name(self) -> str:
+        """The name of the repository."""
         return self._repo_name
 
     @staticmethod
     async def update_graph_db_with_file_info(graph_db: "GraphRepository", file_info: RepoFileInfo):
+        """Updates the graph database with information extracted from a file.
+
+        Args:
+            graph_db: The graph database repository to update.
+            file_info: The information about the file to update the database with.
+        """
         await graph_db.insert(subject=file_info.file, predicate=GraphKeyword.IS, object_=GraphKeyword.SOURCE_CODE)
         file_types = {".py": "python", ".js": "javascript"}
         file_type = file_types.get(Path(file_info.file).suffix, GraphKeyword.NULL)
@@ -132,6 +200,12 @@ class GraphRepository(ABC):
 
     @staticmethod
     async def update_graph_db_with_class_views(graph_db: "GraphRepository", class_views: List[ClassInfo]):
+        """Updates the graph database with class views.
+
+        Args:
+            graph_db: The graph database repository to update.
+            class_views: A list of class views to update the database with.
+        """
         for c in class_views:
             filename, _ = c.package.split(":", 1)
             await graph_db.insert(subject=filename, predicate=GraphKeyword.IS, object_=GraphKeyword.SOURCE_CODE)
@@ -185,6 +259,12 @@ class GraphRepository(ABC):
     async def update_graph_db_with_class_relationship_views(
         graph_db: "GraphRepository", relationship_views: List[ClassRelationship]
     ):
+        """Updates the graph database with class relationship views.
+
+        Args:
+            graph_db: The graph database repository to update.
+            relationship_views: A list of class relationship views to update the database with.
+        """
         for r in relationship_views:
             await graph_db.insert(
                 subject=r.src, predicate=GraphKeyword.IS + r.relationship + GraphKeyword.OF, object_=r.dest

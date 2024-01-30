@@ -23,9 +23,7 @@ from metagpt.utils.common import is_send_to
 
 
 class Environment(BaseModel):
-    """环境，承载一批角色，角色可以向环境发布消息，可以被其他角色观察到
-    Environment, hosting a batch of roles, roles can publish messages to the environment, and can be observed by other roles
-    """
+    """Environment, hosting a batch of roles, roles can publish messages to the environment, and can be observed by other roles."""
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -41,17 +39,13 @@ class Environment(BaseModel):
         return self
 
     def add_role(self, role: Role):
-        """增加一个在当前环境的角色
-        Add a role in the current environment
-        """
+        """Add a role in the current environment."""
         self.roles[role.profile] = role
         role.set_env(self)
         role.context = self.context
 
     def add_roles(self, roles: Iterable[Role]):
-        """增加一批在当前环境的角色
-        Add a batch of characters in the current environment
-        """
+        """Add a batch of characters in the current environment."""
         for role in roles:
             self.roles[role.profile] = role
 
@@ -60,8 +54,8 @@ class Environment(BaseModel):
             role.context = self.context
 
     def publish_message(self, message: Message, peekable: bool = True) -> bool:
-        """
-        Distribute the message to the recipients.
+        """Distribute the message to the recipients.
+
         In accordance with the Message routing structure design in Chapter 2.2.1 of RFC 116, as already planned
         in RFC 113 for the entire system, the routing information in the Message is only responsible for
         specifying the message recipient, without concern for where the message recipient is located. How to
@@ -82,9 +76,7 @@ class Environment(BaseModel):
         return True
 
     async def run(self, k=1):
-        """处理一次所有信息的运行
-        Process all Role runs at once
-        """
+        """Process all Role runs at once."""
         for _ in range(k):
             futures = []
             for role in self.roles.values():
@@ -95,18 +87,15 @@ class Environment(BaseModel):
             logger.debug(f"is idle: {self.is_idle}")
 
     def get_roles(self) -> dict[str, Role]:
-        """获得环境内的所有角色
-        Process all Role runs at once
-        """
+        """Process all Role runs at once."""
         return self.roles
 
     def get_role(self, name: str) -> Role:
-        """获得环境内的指定角色
-        get all the environment roles
-        """
+        """Get all the environment roles."""
         return self.roles.get(name, None)
 
     def role_names(self) -> list[str]:
+        """Get the names of all roles in the environment."""
         return [i.name for i in self.roles.values()]
 
     @property
@@ -122,9 +111,10 @@ class Environment(BaseModel):
         return self.member_addrs.get(obj, {})
 
     def set_addresses(self, obj, addresses):
-        """Set the addresses of the object"""
+        """Set the addresses of the object."""
         self.member_addrs[obj] = addresses
 
     def archive(self, auto_archive=True):
+        """Archive the environment's state if auto_archive is True and a git repository is associated."""
         if auto_archive and self.context.git_repo:
             self.context.git_repo.archive()

@@ -18,7 +18,12 @@ from metagpt.utils.project_repo import ProjectRepo
 
 
 class PrepareDocuments(Action):
-    """PrepareDocuments Action: initialize project folder and add new requirements to docs/requirements.txt."""
+    """PrepareDocuments Action: initialize project folder and add new requirements to docs/requirements.txt.
+
+    Attributes:
+        name: A string indicating the name of the action.
+        i_context: An optional string representing the context.
+    """
 
     name: str = "PrepareDocuments"
     i_context: Optional[str] = None
@@ -28,7 +33,11 @@ class PrepareDocuments(Action):
         return self.context.config
 
     def _init_repo(self):
-        """Initialize the Git environment."""
+        """Initialize the Git environment.
+
+        This method initializes the Git repository for the project. It checks if the project path is specified,
+        creates a new path if necessary, and initializes a new Git repository at the specified location.
+        """
         if not self.config.project_path:
             name = self.config.project_name or FileRepository.new_filename()
             path = Path(self.config.workspace.path) / name
@@ -41,7 +50,15 @@ class PrepareDocuments(Action):
         self.context.repo = ProjectRepo(self.context.git_repo)
 
     async def run(self, with_messages, **kwargs):
-        """Create and initialize the workspace folder, initialize the Git environment."""
+        """Create and initialize the workspace folder, initialize the Git environment.
+
+        Args:
+            with_messages: Messages to be processed.
+            **kwargs: Arbitrary keyword arguments.
+
+        Returns:
+            An instance of ActionOutput containing the content of the document and the instruct content.
+        """
         self._init_repo()
 
         # Write the newly added requirements from the main parameter idea to `docs/requirement.txt`.

@@ -13,15 +13,25 @@ from metagpt.provider.base_llm import BaseLLM
 
 
 class OpenAIText2Image:
+    """A class for converting text to image using OpenAI's API."""
+
     def __init__(self, llm: BaseLLM):
+        """Initializes the OpenAIText2Image with a BaseLLM instance.
+
+        Args:
+            llm: An instance of BaseLLM.
+        """
         self.llm = llm
 
     async def text_2_image(self, text, size_type="1024x1024"):
-        """Text to image
+        """Converts text to image.
 
-        :param text: The text used for image conversion.
-        :param size_type: One of ['256x256', '512x512', '1024x1024']
-        :return: The image data is returned in Base64 encoding.
+        Args:
+            text: The text used for image conversion.
+            size_type: One of ['256x256', '512x512', '1024x1024'].
+
+        Returns:
+            The image data is returned in Base64 encoding.
         """
         try:
             result = await self.llm.aclient.images.generate(prompt=text, n=1, size=size_type)
@@ -34,10 +44,13 @@ class OpenAIText2Image:
 
     @staticmethod
     async def get_image_data(url):
-        """Fetch image data from a URL and encode it as Base64
+        """Fetches image data from a URL and encodes it as Base64.
 
-        :param url: Image url
-        :return: Base64-encoded image data.
+        Args:
+            url: Image URL.
+
+        Returns:
+            Base64-encoded image data.
         """
         try:
             async with aiohttp.ClientSession() as session:
@@ -53,12 +66,15 @@ class OpenAIText2Image:
 
 # Export
 async def oas3_openai_text_to_image(text, size_type: str = "1024x1024", llm: BaseLLM = None):
-    """Text to image
+    """Converts text to image using OpenAI's API.
 
-    :param text: The text used for image conversion.
-    :param size_type: One of ['256x256', '512x512', '1024x1024']
-    :param llm: LLM instance
-    :return: The image data is returned in Base64 encoding.
+    Args:
+        text: The text used for image conversion.
+        size_type: One of ['256x256', '512x512', '1024x1024'].
+        llm: An instance of BaseLLM.
+
+    Returns:
+        The image data is returned in Base64 encoding.
     """
     if not text:
         return ""

@@ -8,10 +8,29 @@ from typing import Any, Iterator
 
 
 class AsyncSSEClient(object):
+    """Asynchronous Server-Sent Events (SSE) client.
+
+    This class provides an asynchronous iterator over server-sent events.
+
+    Args:
+        event_source: An iterator that yields bytes representing server-sent events.
+
+    Attributes:
+        _event_source: Stores the iterator that yields server-sent events.
+    """
+
     def __init__(self, event_source: Iterator[Any]):
         self._event_source = event_source
 
     async def stream(self) -> dict:
+        """Asynchronously streams data from the server-sent events.
+
+        Yields:
+            A dictionary representing a single server-sent event.
+
+        Raises:
+            RuntimeError: If the event source is a bytes object indicating a request failure.
+        """
         if isinstance(self._event_source, bytes):
             raise RuntimeError(
                 f"Request failed, msg: {self._event_source.decode('utf-8')}, please ref to `https://open.bigmodel.cn/dev/api#error-code-v3`"

@@ -28,7 +28,22 @@ from metagpt.utils.graph_repository import GraphKeyword, GraphRepository
 
 
 class RebuildClassView(Action):
+    """Handles the rebuilding of class views from a repository.
+
+    This class is responsible for parsing the repository to extract class views, relationships, and package structures,
+    and then updating the graph database with this information. It also generates Mermaid diagrams for the class views.
+
+    Attributes:
+        context: The context containing the Git repository information.
+    """
+
     async def run(self, with_messages=None, format=config.prompt_schema):
+        """Runs the rebuild process for class views.
+
+        Args:
+            with_messages: Optional; Specifies if messages should be included in the process.
+            format: The format to use for prompts. Defaults to the configuration's prompt schema.
+        """
         graph_repo_pathname = self.context.git_repo.workdir / GRAPH_REPO_FILE_REPO / self.context.git_repo.workdir.name
         graph_db = await DiGraphRepository.load_from(str(graph_repo_pathname.with_suffix(".json")))
         repo_parser = RepoParser(base_directory=Path(self.i_context))
@@ -47,6 +62,11 @@ class RebuildClassView(Action):
         await graph_db.save()
 
     async def _create_mermaid_class_views(self, graph_db):
+        """Creates Mermaid diagrams for class views.
+
+        Args:
+            graph_db: The graph database instance where class views are stored.
+        """
         path = Path(self.context.git_repo.workdir) / DATA_API_DESIGN_FILE_REPO
         path.mkdir(parents=True, exist_ok=True)
         pathname = path / self.context.git_repo.workdir.name
@@ -65,6 +85,14 @@ class RebuildClassView(Action):
 
     @staticmethod
     async def _create_mermaid_class(ns_class_name, graph_db, file_writer, distinct):
+        """Creates a Mermaid diagram for a single class.
+
+        Args:
+            ns_class_name: The namespaced class name.
+            graph_db: The graph database instance.
+            file_writer: The file writer to write the Mermaid diagram.
+            distinct: A set to keep track of distinct class names.
+        """
         fields = split_namespace(ns_class_name)
         if len(fields) > 2:
             # Ignore sub-class
@@ -96,6 +124,14 @@ class RebuildClassView(Action):
 
     @staticmethod
     async def _create_mermaid_relationship(ns_class_name, graph_db, file_writer, distinct):
+        """Creates Mermaid diagrams for relationships between classes.
+
+        Args:
+            ns_class_name: The namespaced class name.
+            graph_db: The graph database instance.
+            file_writer: The file writer to write the Mermaid diagram.
+            distinct: A set to keep track of distinct relationships.
+        """
         s_fields = split_namespace(ns_class_name)
         if len(s_fields) > 2:
             # Ignore sub-class
@@ -126,6 +162,15 @@ class RebuildClassView(Action):
 
     @staticmethod
     def _parse_name(name: str, language="python"):
+        """Parses a name to extract visibility and abstraction information.
+
+        Args:
+            name: The name to parse.
+            language: The programming language. Defaults to 'python'.
+
+        Returns:
+            A tuple containing the parsed name, visibility, and abstraction information.
+        """
         pattern = re.compile(r"<I>(.*?)<\/I>")
         result = re.search(pattern, name)
 
@@ -143,6 +188,15 @@ class RebuildClassView(Action):
 
     @staticmethod
     async def _parse_variable_type(ns_name, graph_db) -> str:
+        """Parses the type of a variable.
+
+        Args:
+            ns_name: The namespaced name of the variable.
+            graph_db: The graph database instance.
+
+        Returns:
+            The type of the variable as a string.
+        """
         rows = await graph_db.select(subject=ns_name, predicate=GraphKeyword.HAS_TYPE_DESC)
         if not rows:
             return ""
@@ -154,6 +208,13 @@ class RebuildClassView(Action):
 
     @staticmethod
     async def _parse_function_args(method: ClassMethod, ns_name: str, graph_db: GraphRepository):
+        """Parses the arguments of a function.
+
+        Args:
+            method: The class method to which the arguments belong.
+            ns_name: The namespaced name of the function.
+            graph_db: The graph database instance.
+        """
         rows = await graph_db.select(subject=ns_name, predicate=GraphKeyword.HAS_ARGS_DESC)
         if not rows:
             return
@@ -200,6 +261,15 @@ class RebuildClassView(Action):
 
     @staticmethod
     def _diff_path(path_root: Path, package_root: Path) -> (str, str):
+        """Determines the difference in paths between the root and package root.
+
+        Args:
+            path_root: The root path.
+            package_root: The package root path.
+
+        Returns:
+            A tuple containing the direction of the difference and the difference path.
+        """
         if len(str(path_root)) > len(str(package_root)):
             return "+", str(path_root.relative_to(package_root))
         if len(str(path_root)) < len(str(package_root)):
@@ -208,6 +278,16 @@ class RebuildClassView(Action):
 
     @staticmethod
     def _align_root(path: str, direction: str, diff_path: str):
+        """Aligns the given path according to the direction and difference path.
+
+        Args:
+            path: The original path.
+            direction: The direction of the difference ('+', '-', '=').
+            diff_path: The difference path.
+
+        Returns:
+            The aligned path.
+        """
         if direction == "=":
             return path
         if direction == "+":

@@ -21,6 +21,17 @@ from metagpt.schema import Message
 
 # TOTEST
 class ArgumentsParingAction(Action):
+    """Action for parsing arguments from a natural language description.
+
+    This action takes a natural language description of what the user wants to do and converts it into function parameters.
+
+    Attributes:
+        skill: The skill associated with the action.
+        ask: The natural language description of the task.
+        rsp: The response message, if any.
+        args: The parsed arguments from the description.
+    """
+
     skill: Skill
     ask: str
     rsp: Optional[Message] = None
@@ -45,6 +56,15 @@ class ArgumentsParingAction(Action):
         return prompt
 
     async def run(self, with_message=None, **kwargs) -> Message:
+        """Executes the action by parsing arguments from the natural language description.
+
+        Args:
+            with_message: Additional message to include in the execution, if any.
+            **kwargs: Additional keyword arguments.
+
+        Returns:
+            A Message object containing the response and parsed arguments.
+        """
         prompt = self.prompt
         rsp = await self.llm.aask(
             msg=prompt,
@@ -57,6 +77,15 @@ class ArgumentsParingAction(Action):
 
     @staticmethod
     def parse_arguments(skill_name, txt) -> dict:
+        """Parses arguments from a text string based on the skill name.
+
+        Args:
+            skill_name: The name of the skill for which arguments are being parsed.
+            txt: The text containing the arguments.
+
+        Returns:
+            A dictionary of parsed arguments.
+        """
         prefix = skill_name + "("
         if prefix not in txt:
             logger.error(f"{skill_name} not in {txt}")
@@ -79,12 +108,30 @@ class ArgumentsParingAction(Action):
 
 
 class SkillAction(Action):
+    """Action for executing a skill with given arguments.
+
+    This action takes a skill and arguments, executes the skill, and returns the result.
+
+    Attributes:
+        skill: The skill to be executed.
+        args: The arguments to pass to the skill.
+        rsp: The response message, if any.
+    """
+
     skill: Skill
     args: Dict
     rsp: Optional[Message] = None
 
     async def run(self, with_message=None, **kwargs) -> Message:
-        """Run action"""
+        """Executes the skill with the provided arguments.
+
+        Args:
+            with_message: Additional message to include in the execution, if any.
+            **kwargs: Additional keyword arguments.
+
+        Returns:
+            A Message object containing the result of the skill execution.
+        """
         options = deepcopy(kwargs)
         if self.args:
             for k in self.args.keys():
@@ -100,6 +147,19 @@ class SkillAction(Action):
 
     @staticmethod
     async def find_and_call_function(function_name, args, **kwargs) -> str:
+        """Finds and calls a function by name with the given arguments.
+
+        Args:
+            function_name: The name of the function to call.
+            args: The arguments to pass to the function.
+            **kwargs: Additional keyword arguments.
+
+        Returns:
+            The result of the function call as a string.
+
+        Raises:
+            ValueError: If the function cannot be found.
+        """
         try:
             module = importlib.import_module("metagpt.learn")
             function = getattr(module, function_name)

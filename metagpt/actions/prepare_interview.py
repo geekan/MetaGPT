@@ -18,7 +18,25 @@ Attention: Provide as markdown block as the format above, at least 10 questions.
 
 
 class PrepareInterview(Action):
+    """Prepares an interview by generating a list of questions.
+
+    This class is responsible for preparing an interview by generating a list of questions
+    based on the resume of the interviewee. It utilizes an ActionNode to define the requirements
+    and format for the questions.
+
+    Attributes:
+        name: A string indicating the name of the action.
+    """
+
     name: str = "PrepareInterview"
 
     async def run(self, context):
+        """Generates a list of interview questions based on the interviewee's resume.
+
+        Args:
+            context: The context containing the interviewee's resume.
+
+        Returns:
+            A list of formatted interview questions.
+        """
         return await QUESTIONS.fill(context=context, llm=self.llm)

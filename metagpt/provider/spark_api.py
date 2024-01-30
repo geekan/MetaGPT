@@ -23,6 +23,14 @@ from metagpt.provider.llm_provider_registry import register_provider
 
 @register_provider(LLMType.SPARK)
 class SparkLLM(BaseLLM):
+    """Represents the Spark Large Language Model (LLM) provider.
+
+    This class is responsible for interacting with Spark's LLM service.
+
+    Attributes:
+        config: A configuration object containing settings for the LLM.
+    """
+
     def __init__(self, config: LLMConfig):
         self.config = config
         logger.warning("SparkLLM：当前方法无法支持异步运行。当你使用acompletion时，并不能并行访问。")
@@ -43,11 +51,26 @@ class SparkLLM(BaseLLM):
 
 
 class GetMessageFromWeb:
+    """Handles communication with the Spark LLM web service.
+
+    This class is responsible for sending messages to the Spark LLM service and receiving responses.
+
+    Attributes:
+        text: The input text to be processed by the LLM.
+        config: A configuration object containing settings for the LLM.
+    """
+
     class WsParam:
-        """
-        该类适合讯飞星火大部分接口的调用。
-        输入 app_id, api_key, api_secret, spark_url以初始化，
-        create_url方法返回接口url
+        """Encapsulates the parameters required for WebSocket communication with Spark LLM service.
+
+        This class generates the URL and headers needed to establish a WebSocket connection.
+
+        Attributes:
+            app_id: The application ID for authentication.
+            api_key: The API key for authentication.
+            api_secret: The API secret for authentication.
+            spark_url: The base URL of the Spark LLM service.
+            message: The message to be sent to the LLM service.
         """
 
         # 初始化

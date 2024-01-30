@@ -12,7 +12,17 @@ from metagpt.provider.zhipuai.async_sse_client import AsyncSSEClient
 
 
 class ZhiPuModelAPI(ZhipuAI):
+    """API wrapper for ZhiPu Model.
+
+    This class provides methods to interact with ZhiPu Model API.
+    """
+
     def split_zhipu_api_url(self):
+        """Splits the ZhiPu API URL into base URL and endpoint.
+
+        Returns:
+            A tuple containing the base URL and the endpoint.
+        """
         # use this method to prevent zhipu api upgrading to different version.
         # and follow the GeneralAPIRequestor implemented based on openai sdk
         zhipu_api_url = "https://open.bigmodel.cn/api/paas/v4/chat/completions"
@@ -21,6 +31,17 @@ class ZhiPuModelAPI(ZhipuAI):
         return f"{arr[0]}/api", f"/{arr[1]}"
 
     async def arequest(self, stream: bool, method: str, headers: dict, kwargs):
+        """Asynchronously sends a request to the ZhiPu API.
+
+        Args:
+            stream: Whether to stream the response.
+            method: The HTTP method to use ('post' or 'get').
+            headers: The headers to send with the request.
+            kwargs: Additional keyword arguments to send with the request.
+
+        Returns:
+            The result of the API request.
+        """
         # TODO to make the async request to be more generic for models in http mode.
         assert method in ["post", "get"]
 
@@ -37,7 +58,19 @@ class ZhiPuModelAPI(ZhipuAI):
         return result
 
     async def acreate(self, **kwargs) -> dict:
-        """async invoke different from raw method `async_invoke` which get the final result by task_id"""
+        """Asynchronously invokes the ZhiPu API and returns the result.
+
+        This method differs from `async_invoke` by directly returning the result without using a task ID.
+
+        Args:
+            **kwargs: Keyword arguments to send with the request.
+
+        Returns:
+            A dictionary containing the response from the API.
+
+        Raises:
+            RuntimeError: If the request fails.
+        """
         headers = self._default_headers
         resp = await self.arequest(stream=False, method="post", headers=headers, kwargs=kwargs)
         resp = resp.decode("utf-8")
@@ -49,6 +82,13 @@ class ZhiPuModelAPI(ZhipuAI):
         return resp
 
     async def acreate_stream(self, **kwargs) -> AsyncSSEClient:
-        """async sse_invoke"""
+        """Asynchronously invokes the ZhiPu API and returns a streaming client.
+
+        Args:
+            **kwargs: Keyword arguments to send with the request.
+
+        Returns:
+            An instance of AsyncSSEClient for streaming responses.
+        """
         headers = self._default_headers
         return AsyncSSEClient(await self.arequest(stream=True, method="post", headers=headers, kwargs=kwargs))

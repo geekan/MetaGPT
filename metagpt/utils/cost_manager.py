@@ -33,9 +33,9 @@ class CostManager(BaseModel):
         Update the total cost, prompt tokens, and completion tokens.
 
         Args:
-        prompt_tokens (int): The number of tokens used in the prompt.
-        completion_tokens (int): The number of tokens used in the completion.
-        model (str): The model used for the API call.
+            prompt_tokens (int): The number of tokens used in the prompt.
+            completion_tokens (int): The number of tokens used in the completion.
+            model (str): The model used for the API call.
         """
         self.total_prompt_tokens += prompt_tokens
         self.total_completion_tokens += completion_tokens
@@ -53,7 +53,7 @@ class CostManager(BaseModel):
         Get the total number of prompt tokens.
 
         Returns:
-        int: The total number of prompt tokens.
+            int: The total number of prompt tokens.
         """
         return self.total_prompt_tokens
 
@@ -62,7 +62,7 @@ class CostManager(BaseModel):
         Get the total number of completion tokens.
 
         Returns:
-        int: The total number of completion tokens.
+            int: The total number of completion tokens.
         """
         return self.total_completion_tokens
 
@@ -71,7 +71,7 @@ class CostManager(BaseModel):
         Get the total cost of API calls.
 
         Returns:
-        float: The total cost of API calls.
+            float: The total cost of API calls.
         """
         return self.total_cost
 
@@ -88,9 +88,9 @@ class TokenCostManager(CostManager):
         Update the total cost, prompt tokens, and completion tokens.
 
         Args:
-        prompt_tokens (int): The number of tokens used in the prompt.
-        completion_tokens (int): The number of tokens used in the completion.
-        model (str): The model used for the API call.
+            prompt_tokens (int): The number of tokens used in the prompt.
+            completion_tokens (int): The number of tokens used in the completion.
+            model (str): The model used for the API call.
         """
         self.total_prompt_tokens += prompt_tokens
         self.total_completion_tokens += completion_tokens

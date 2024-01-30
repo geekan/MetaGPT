@@ -22,6 +22,11 @@ class DDGAPIWrapper:
     """Wrapper around duckduckgo_search API.
 
     To use this module, you should have the `duckduckgo_search` Python package installed.
+
+    Attributes:
+        loop: The asyncio event loop to use for asynchronous operations.
+        executor: The executor in which to run blocking operations.
+        ddgs: An instance of the DDGS class from duckduckgo_search package.
     """
 
     def __init__(
@@ -63,7 +68,9 @@ class DDGAPIWrapper:
         max_results: int = 8,
         as_string: bool = True,
     ) -> str | list[dict]:
-        """Return the results of a Google search using the official Google API
+        """Return the results of a DuckDuckGo search.
+
+        This method supports both synchronous and asynchronous execution. It can return the search results either as a formatted string or as a list of dictionaries containing detailed information about each search result.
 
         Args:
             query: The search query.

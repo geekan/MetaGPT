@@ -12,9 +12,26 @@ from metagpt.utils.common import import_class
 
 
 class HumanInteraction(object):
+    """A class to handle human interactions through the console.
+
+    This class provides methods to input multi-line text, check the type of the input,
+    and interact with structured content based on user input.
+
+    Attributes:
+        stop_list: A tuple containing strings that signal the end of an interaction.
+    """
+
     stop_list = ("q", "quit", "exit")
 
     def multilines_input(self, prompt: str = "Enter: ") -> str:
+        """Takes multi-line input from the user until an EOF signal is received.
+
+        Args:
+            prompt: A string to display before waiting for input.
+
+        Returns:
+            A string containing all the lines of input concatenated together.
+        """
         logger.warning("Enter your content, use Ctrl-D or Ctrl-Z ( windows ) to save it.")
         logger.info(f"{prompt}\n")
         lines = []
@@ -27,6 +44,15 @@ class HumanInteraction(object):
         return "".join(lines)
 
     def check_input_type(self, input_str: str, req_type: Type) -> Tuple[bool, Any]:
+        """Checks if the input string can be converted to a specified type.
+
+        Args:
+            input_str: The input string to check.
+            req_type: The required type to which the input should be converted.
+
+        Returns:
+            A tuple containing a boolean indicating success or failure, and the converted input or None.
+        """
         check_ret = True
         if req_type == str:
             # required_type = str, just return True
@@ -47,6 +73,15 @@ class HumanInteraction(object):
         return check_ret, data
 
     def input_until_valid(self, prompt: str, req_type: Type) -> Any:
+        """Repeatedly prompts the user for input until it can be converted to the required type.
+
+        Args:
+            prompt: A string to display before waiting for input.
+            req_type: The required type to which the input should be converted.
+
+        Returns:
+            The user input converted to the required type.
+        """
         # check the input with req_type until it's ok
         while True:
             input_content = self.multilines_input(prompt)
@@ -58,6 +93,14 @@ class HumanInteraction(object):
         return structure_content
 
     def input_num_until_valid(self, num_max: int) -> int:
+        """Prompts the user for a number until a valid number is entered or a stop signal is received.
+
+        Args:
+            num_max: The maximum valid number (exclusive).
+
+        Returns:
+            The valid number entered by the user, or a stop signal string.
+        """
         while True:
             input_num = input("Enter the num of the interaction key: ")
             input_num = input_num.strip()
@@ -73,6 +116,16 @@ class HumanInteraction(object):
     def interact_with_instruct_content(
         self, instruct_content: BaseModel, mapping: dict = dict(), interact_type: str = "review"
     ) -> dict[str, Any]:
+        """Facilitates interaction with structured content based on user input.
+
+        Args:
+            instruct_content: A Pydantic BaseModel instance containing the structured content.
+            mapping: A dictionary mapping field names to their required types.
+            interact_type: The type of interaction, either 'review' or 'revise'.
+
+        Returns:
+            A dictionary containing the fields interacted with and their new content.
+        """
         assert interact_type in ["review", "revise"]
         assert instruct_content
         instruct_content_dict = instruct_content.model_dump()

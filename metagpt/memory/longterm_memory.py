@@ -15,10 +15,15 @@ from metagpt.schema import Message
 
 
 class LongTermMemory(Memory):
-    """
-    The Long-term memory for Roles
-    - recover memory when it staruped
-    - update memory when it changed
+    """The Long-term memory for Roles.
+
+    This class is responsible for managing the long-term memory of roles, including recovery and update of memory.
+
+    Attributes:
+        model_config: Configuration dictionary allowing arbitrary types.
+        memory_storage: Storage for memory, defaults to a new MemoryStorage instance.
+        rc: Optional RoleContext instance, default is None.
+        msg_from_recover: Boolean indicating if the message is from recovery, default is False.
     """
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -28,6 +33,12 @@ class LongTermMemory(Memory):
     msg_from_recover: bool = False
 
     def recover_memory(self, role_id: str, rc: RoleContext):
+        """Recover memory for a given role.
+
+        Args:
+            role_id: The identifier of the role.
+            rc: The RoleContext instance.
+        """
         messages = self.memory_storage.recover_memory(role_id)
         self.rc = rc
         if not self.memory_storage.is_initialized:
@@ -41,6 +52,11 @@ class LongTermMemory(Memory):
         self.msg_from_recover = False
 
     def add(self, message: Message):
+        """Add a message to the memory.
+
+        Args:
+            message: The message to be added.
+        """
         super().add(message)
         for action in self.rc.watch:
             if message.cause_by == action and not self.msg_from_recover:
@@ -49,10 +65,14 @@ class LongTermMemory(Memory):
                 self.memory_storage.add(message)
 
     def find_news(self, observed: list[Message], k=0) -> list[Message]:
-        """
-        find news (previously unseen messages) from the the most recent k memories, from all memories when k=0
-            1. find the short-term memory(stm) news
-            2. furthermore, filter out similar messages based on ltm(long-term memory), get the final news
+        """Find news (previously unseen messages) from the most recent k memories.
+
+        Args:
+            observed: A list of observed messages.
+            k: The number of recent memories to consider, defaults to 0 which means all memories.
+
+        Returns:
+            A list of previously unseen messages.
         """
         stm_news = super().find_news(observed, k=k)  # shot-term memory news
         if not self.memory_storage.is_initialized:
@@ -68,9 +88,15 @@ class LongTermMemory(Memory):
         return ltm_news[-k:]
 
     def delete(self, message: Message):
+        """Delete a message from the memory.
+
+        Args:
+            message: The message to be deleted.
+        """
         super().delete(message)
         # TODO delete message in memory_storage
 
     def clear(self):
+        """Clear the memory."""
         super().clear()
         self.memory_storage.clean()

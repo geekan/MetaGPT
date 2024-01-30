@@ -10,7 +10,13 @@ from metagpt.utils.yaml_model import YamlModel
 
 
 class MermaidConfig(YamlModel):
-    """Config for Mermaid"""
+    """Config for Mermaid.
+
+    Attributes:
+        engine: Engine to be used. Options are 'nodejs', 'ink', 'playwright', 'pyppeteer'.
+        path: Path for the configuration.
+        puppeteer_config: Configuration for Puppeteer.
+    """
 
     engine: Literal["nodejs", "ink", "playwright", "pyppeteer"] = "nodejs"
     path: str = ""

@@ -25,6 +25,19 @@ except ImportError:
 
 
 class GoogleAPIWrapper(BaseModel):
+    """A wrapper class for Google API interactions.
+
+    This class provides a simplified interface to interact with Google's Custom Search Engine API.
+    It allows for executing search queries and processing the results.
+
+    Attributes:
+        model_config: Configuration for the Pydantic model allowing arbitrary types.
+        google_api_key: Optional API key for accessing Google's API. If not provided, it attempts to use a default from the configuration.
+        google_cse_id: Optional Custom Search Engine ID. If not provided, it attempts to use a default from the configuration.
+        loop: Optional event loop. If not provided, the default asyncio event loop is used.
+        executor: Optional executor for running blocking tasks. If not provided, the default executor is used.
+    """
+
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     google_api_key: Optional[str] = Field(default=None, validate_default=True)
@@ -35,6 +48,19 @@ class GoogleAPIWrapper(BaseModel):
     @field_validator("google_api_key", mode="before")
     @classmethod
     def check_google_api_key(cls, val: str):
+        """Validates and possibly retrieves the Google API key.
+
+        This method checks if the provided API key is valid. If not provided, it attempts to retrieve the key from the configuration.
+
+        Args:
+            val: The provided Google API key.
+
+        Returns:
+            The validated or retrieved Google API key.
+
+        Raises:
+            ValueError: If no valid Google API key is provided or found in the configuration.
+        """
         val = val or config.search.api_key
         if not val:
             raise ValueError(
@@ -47,6 +73,19 @@ class GoogleAPIWrapper(BaseModel):
     @field_validator("google_cse_id", mode="before")
     @classmethod
     def check_google_cse_id(cls, val: str):
+        """Validates and possibly retrieves the Google Custom Search Engine ID.
+
+        This method checks if the provided CSE ID is valid. If not provided, it attempts to retrieve the ID from the configuration.
+
+        Args:
+            val: The provided Google Custom Search Engine ID.
+
+        Returns:
+            The validated or retrieved Google Custom Search Engine ID.
+
+        Raises:
+            ValueError: If no valid Google CSE ID is provided or found in the configuration.
+        """
         val = val or config.search.cse_id
         if not val:
             raise ValueError(
@@ -58,6 +97,13 @@ class GoogleAPIWrapper(BaseModel):
 
     @property
     def google_api_client(self):
+        """Creates and returns a Google API client for the Custom Search Engine.
+
+        This property checks for proxy settings in the configuration and applies them if present.
+
+        Returns:
+            A Google API client for the Custom Search Engine.
+        """
         build_kwargs = {"developerKey": self.google_api_key}
         if config.proxy:
             parse_result = urlparse(config.proxy)

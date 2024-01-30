@@ -117,11 +117,38 @@ REWRITE_CODE_TEMPLATE = """
 
 
 class WriteCodeReview(Action):
+    """Handles the process of writing code reviews and potentially rewriting code based on the review.
+
+    This class is responsible for generating prompts for code review, parsing the results, and if necessary,
+    generating prompts for rewriting the code based on the review feedback. It utilizes retries with exponential
+    backoff for the review process and supports iterative review and rewrite cycles.
+
+    Attributes:
+        name: A string name of the action.
+        i_context: An instance of CodingContext, providing the initial context for the code review.
+    """
+
     name: str = "WriteCodeReview"
     i_context: CodingContext = Field(default_factory=CodingContext)
 
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     async def write_code_review_and_rewrite(self, context_prompt, cr_prompt, filename):
+        """Performs the code review and, if necessary, the code rewrite process.
+
+        This method first generates a code review based on the provided prompts. If the review suggests that
+        changes are needed (i.e., does not return "LGTM"), it then generates a prompt for rewriting the code
+        and processes the response.
+
+        Args:
+            context_prompt: The prompt providing the context for the code review, including system design,
+                            task description, and existing code files.
+            cr_prompt: The prompt providing specific instructions for the code review, including format examples
+                       and actions to be taken based on the review results.
+            filename: The name of the file being reviewed and potentially rewritten.
+
+        Returns:
+            A tuple containing the code review result and, if applicable, the rewritten code.
+        """
         cr_rsp = await self._aask(context_prompt + cr_prompt)
         result = CodeParser.parse_block("Code Review Result", cr_rsp)
         if "LGTM" in result:
@@ -134,6 +161,15 @@ class WriteCodeReview(Action):
         return result, code
 
     async def run(self, *args, **kwargs) -> CodingContext:
+        """Executes the code review and rewrite process, potentially iteratively.
+
+        This method orchestrates the entire process of code review and rewriting. It prepares the necessary
+        prompts, executes the review and rewrite as needed, and updates the coding context with the final
+        code. It supports multiple iterations of review and rewrite based on configuration.
+
+        Returns:
+            The updated CodingContext instance with the final code after review and potential rewrites.
+        """
         iterative_code = self.i_context.code_doc.content
         k = self.context.config.code_review_k_times or 1
 

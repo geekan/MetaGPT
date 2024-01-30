@@ -36,10 +36,33 @@ you should correctly import the necessary classes based on these file locations!
 
 
 class WriteTest(Action):
+    """Defines an action to write test code based on a given prompt and context.
+
+    This action generates test code by parsing a given prompt that includes specific instructions
+    and the code to be tested. It utilizes a code parser to ensure the generated test code is
+    syntactically correct and logs errors if parsing fails.
+
+    Attributes:
+        name: A string representing the name of the action.
+        i_context: An optional TestingContext instance that holds information about the testing environment and the code document to be tested.
+    """
+
     name: str = "WriteTest"
     i_context: Optional[TestingContext] = None
 
     async def write_code(self, prompt):
+        """Asynchronously generates test code based on the given prompt.
+
+        This method sends the prompt to an asynchronous ask function and attempts to parse the
+        response into valid code using a CodeParser. If parsing fails, it logs an error and returns
+        the raw response.
+
+        Args:
+            prompt: A string containing the prompt with instructions and code to be tested.
+
+        Returns:
+            A string containing the generated test code.
+        """
         code_rsp = await self._aask(prompt)
 
         try:
@@ -53,6 +76,19 @@ class WriteTest(Action):
         return code
 
     async def run(self, *args, **kwargs) -> TestingContext:
+        """Executes the action to generate and set test code for the testing context.
+
+        This method prepares a prompt using a template and the current testing context, then
+        generates test code by calling write_code with the prepared prompt. The generated test code
+        is then set as the content of the test document in the testing context.
+
+        Args:
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
+
+        Returns:
+            The updated TestingContext instance with the generated test code set.
+        """
         if not self.i_context.test_doc:
             self.i_context.test_doc = Document(
                 filename="test_" + self.i_context.code_doc.filename, root_path=TEST_CODES_FILE_REPO

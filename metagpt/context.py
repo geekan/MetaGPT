@@ -52,7 +52,18 @@ class AttrDict(BaseModel):
 
 
 class Context(BaseModel):
-    """Env context for MetaGPT"""
+    """Env context for MetaGPT.
+
+    Attributes:
+        model_config: Configuration dictionary allowing arbitrary types.
+        kwargs: Additional keyword arguments stored as an AttrDict.
+        config: General configuration for the context.
+        repo: Optional project repository.
+        git_repo: Optional Git repository.
+        src_workspace: Optional source workspace path.
+        cost_manager: Manager for tracking and managing costs.
+        _llm: Optional instance of a language model.
+    """
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -67,7 +78,11 @@ class Context(BaseModel):
     _llm: Optional[BaseLLM] = None
 
     def new_environ(self):
-        """Return a new os.environ object"""
+        """Return a new os.environ object.
+
+        Returns:
+            A copy of the current environment variables.
+        """
         env = os.environ.copy()
         # i = self.options
         # env.update({k: v for k, v in i.items() if isinstance(v, str)})
@@ -80,7 +95,11 @@ class Context(BaseModel):
     #     return self._llm
 
     def llm(self) -> BaseLLM:
-        """Return a LLM instance, fixme: support cache"""
+        """Return a LLM instance, fixme: support cache.
+
+        Returns:
+            An instance of BaseLLM with cost manager set if not already.
+        """
         # if self._llm is None:
         self._llm = create_llm_instance(self.config.llm)
         if self._llm.cost_manager is None:
@@ -88,7 +107,14 @@ class Context(BaseModel):
         return self._llm
 
     def llm_with_cost_manager_from_llm_config(self, llm_config: LLMConfig) -> BaseLLM:
-        """Return a LLM instance, fixme: support cache"""
+        """Return a LLM instance, fixme: support cache.
+
+        Args:
+            llm_config: Configuration for the LLM instance.
+
+        Returns:
+            An instance of BaseLLM with cost manager set if not already.
+        """
         # if self._llm is None:
         llm = create_llm_instance(llm_config)
         if llm.cost_manager is None:

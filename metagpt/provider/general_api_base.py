@@ -50,12 +50,31 @@ LLM_LOG = os.environ.get("LLM_LOG", "debug")
 
 
 class ApiType(Enum):
+    """Defines the types of APIs supported.
+
+    Attributes:
+        AZURE: Represents Azure API.
+        OPEN_AI: Represents OpenAI API.
+        AZURE_AD: Represents Azure AD API.
+    """
+
     AZURE = 1
     OPEN_AI = 2
     AZURE_AD = 3
 
     @staticmethod
     def from_str(label):
+        """Converts a string label to an ApiType enum.
+
+        Args:
+            label: A string representing the API type.
+
+        Returns:
+            An instance of ApiType corresponding to the label.
+
+        Raises:
+            openai.OpenAIError: If the label does not match any supported API types.
+        """
         if label.lower() == "azure":
             return ApiType.AZURE
         elif label.lower() in ("azure_ad", "azuread"):
@@ -76,6 +95,11 @@ api_key_to_header = (
 
 
 def _console_log_level():
+    """Determines the console log level based on the LLM_LOG environment variable.
+
+    Returns:
+        The log level as a string if set to 'debug' or 'info', otherwise None.
+    """
     if LLM_LOG in ["debug", "info"]:
         return LLM_LOG
     else:
@@ -83,6 +107,12 @@ def _console_log_level():
 
 
 def log_debug(message, **params):
+    """Logs a debug message.
+
+    Args:
+        message: The message to log.
+        **params: Additional parameters to log.
+    """
     msg = logfmt(dict(message=message, **params))
     if _console_log_level() == "debug":
         print(msg, file=sys.stderr)
@@ -90,6 +120,12 @@ def log_debug(message, **params):
 
 
 def log_info(message, **params):
+    """Logs an informational message.
+
+    Args:
+        message: The message to log.
+        **params: Additional parameters to log.
+    """
     msg = logfmt(dict(message=message, **params))
     if _console_log_level() in ["debug", "info"]:
         print(msg, file=sys.stderr)
@@ -97,12 +133,27 @@ def log_info(message, **params):
 
 
 def log_warn(message, **params):
+    """Logs a warning message.
+
+    Args:
+        message: The message to log.
+        **params: Additional parameters to log.
+    """
     msg = logfmt(dict(message=message, **params))
     print(msg, file=sys.stderr)
     logger.warning(msg)
 
 
 def logfmt(props):
+    """Formats log properties into a string.
+
+    Args:
+        props: A dictionary of properties to log.
+
+    Returns:
+        A formatted string representing the log properties.
+    """
+
     def fmt(key, val):
         # Handle case where val is a bytes or bytesarray
         if hasattr(val, "decode"):
@@ -121,16 +172,33 @@ def logfmt(props):
 
 
 class OpenAIResponse:
+    """Represents a response from the OpenAI API.
+
+    Attributes:
+        data: The response data.
+        _headers: The response headers.
+    """
+
     def __init__(self, data, headers):
         self._headers = headers
         self.data = data
 
     @property
     def request_id(self) -> Optional[str]:
+        """The request ID from the response headers.
+
+        Returns:
+            The request ID if present, otherwise None.
+        """
         return self._headers.get("request-id")
 
     @property
     def retry_after(self) -> Optional[int]:
+        """The retry-after value from the response headers.
+
+        Returns:
+            The retry-after value as an integer if present, otherwise None.
+        """
         try:
             return int(self._headers.get("retry-after"))
         except TypeError:
@@ -138,19 +206,43 @@ class OpenAIResponse:
 
     @property
     def operation_location(self) -> Optional[str]:
+        """The operation location from the response headers.
+
+        Returns:
+            The operation location if present, otherwise None.
+        """
         return self._headers.get("operation-location")
 
     @property
     def organization(self) -> Optional[str]:
+        """The organization from the response headers.
+
+        Returns:
+            The organization if present, otherwise None.
+        """
         return self._headers.get("LLM-Organization")
 
     @property
     def response_ms(self) -> Optional[int]:
+        """The response time in milliseconds from the response headers.
+
+        Returns:
+            The response time in milliseconds if present, otherwise None.
+        """
         h = self._headers.get("Openai-Processing-Ms")
         return None if h is None else round(float(h))
 
 
 def _build_api_url(url, query):
+    """Builds a complete API URL with the given query parameters.
+
+    Args:
+        url: The base URL.
+        query: The query parameters to append.
+
+    Returns:
+        The complete URL with query parameters.
+    """
     scheme, netloc, path, base_query, fragment = urlsplit(url)
 
     if base_query:
@@ -160,7 +252,14 @@ def _build_api_url(url, query):
 
 
 def _requests_proxies_arg(proxy) -> Optional[Dict[str, str]]:
-    """Returns a value suitable for the 'proxies' argument to 'requests.request."""
+    """Prepares the proxies argument for requests library.
+
+    Args:
+        proxy: The proxy configuration.
+
+    Returns:
+        A dictionary suitable for the 'proxies' argument in 'requests.request'.
+    """
     if proxy is None:
         return None
     elif isinstance(proxy, str):
@@ -174,7 +273,14 @@ def _requests_proxies_arg(proxy) -> Optional[Dict[str, str]]:
 
 
 def _aiohttp_proxies_arg(proxy) -> Optional[str]:
-    """Returns a value suitable for the 'proxies' argument to 'aiohttp.ClientSession.request."""
+    """Prepares the proxies argument for aiohttp library.
+
+    Args:
+        proxy: The proxy configuration.
+
+    Returns:
+        A string suitable for the 'proxies' argument in 'aiohttp.ClientSession.request'.
+    """
     if proxy is None:
         return None
     elif isinstance(proxy, str):
@@ -188,6 +294,11 @@ def _aiohttp_proxies_arg(proxy) -> Optional[str]:
 
 
 def _make_session() -> requests.Session:
+    """Creates a new requests session with retries configuration.
+
+    Returns:
+        A configured requests.Session object.
+    """
     s = requests.Session()
     s.mount(
         "https://",
@@ -197,6 +308,14 @@ def _make_session() -> requests.Session:
 
 
 def parse_stream_helper(line: bytes) -> Optional[str]:
+    """Helper function to parse a line from a streaming response.
+
+    Args:
+        line: A line from the response as bytes.
+
+    Returns:
+        The parsed line as a string, or None if the line should be ignored.
+    """
     if line:
         if line.strip() == b"data: [DONE]":
             # return here will cause GeneratorExit exception in urllib3
@@ -211,6 +330,14 @@ def parse_stream_helper(line: bytes) -> Optional[str]:
 
 
 def parse_stream(rbody: Iterator[bytes]) -> Iterator[str]:
+    """Parses a streaming response body.
+
+    Args:
+        rbody: An iterator over the response body as bytes.
+
+    Returns:
+        An iterator over the parsed lines as strings.
+    """
     for line in rbody:
         _line = parse_stream_helper(line)
         if _line is not None:
@@ -218,6 +345,14 @@ def parse_stream(rbody: Iterator[bytes]) -> Iterator[str]:
 
 
 async def parse_stream_async(rbody: aiohttp.StreamReader):
+    """Asynchronously parses a streaming response body.
+
+    Args:
+        rbody: An aiohttp.StreamReader object for the response body.
+
+    Yields:
+        Parsed lines as strings.
+    """
     async for line in rbody:
         _line = parse_stream_helper(line)
         if _line is not None:
@@ -225,6 +360,16 @@ async def parse_stream_async(rbody: aiohttp.StreamReader):
 
 
 class APIRequestor:
+    """Handles making HTTP requests to the API.
+
+    Attributes:
+        base_url: The base URL for the API.
+        api_key: The API key to use for authentication.
+        api_type: The type of API being accessed.
+        api_version: The version of the API to use.
+        organization: The organization ID for the request.
+    """
+
     def __init__(
         self,
         key=None,
@@ -421,6 +566,16 @@ class APIRequestor:
             return resp, got_stream, self.api_key
 
     def request_headers(self, method: str, extra, request_id: Optional[str]) -> Dict[str, str]:
+        """Generates the headers for an API request.
+
+        Args:
+            method: The HTTP method of the request.
+            extra: Additional headers to include.
+            request_id: An optional request ID for tracking.
+
+        Returns:
+            A dictionary of headers for the request.
+        """
         user_agent = "LLM/v1 PythonBindings/%s" % (version.VERSION,)
 
         uname_without_node = " ".join(v for k, v in platform.uname()._asdict().items() if k != "node")
@@ -453,6 +608,17 @@ class APIRequestor:
         return headers
 
     def _validate_headers(self, supplied_headers: Optional[Dict[str, str]]) -> Dict[str, str]:
+        """Validates and prepares custom headers for the request.
+
+        Args:
+            supplied_headers: The custom headers provided for the request.
+
+        Returns:
+            A dictionary of validated headers.
+
+        Raises:
+            TypeError: If the headers are not in the correct format.
+        """
         headers: Dict[str, str] = {}
         if supplied_headers is None:
             return headers
@@ -481,6 +647,19 @@ class APIRequestor:
         files,
         request_id: Optional[str],
     ) -> Tuple[str, Dict[str, str], Optional[bytes]]:
+        """Prepares the components for a raw HTTP request.
+
+        Args:
+            url: The URL path for the request.
+            supplied_headers: Custom headers for the request.
+            method: The HTTP method of the request.
+            params: The parameters for the request.
+            files: Files to be uploaded with the request.
+            request_id: An optional request ID for tracking.
+
+        Returns:
+            A tuple containing the absolute URL, headers, and data for the request.
+        """
         abs_url = "%s%s" % (self.base_url, url)
         headers = self._validate_headers(supplied_headers)
 
@@ -520,6 +699,21 @@ class APIRequestor:
         request_id: Optional[str] = None,
         request_timeout: Optional[Union[float, Tuple[float, float]]] = None,
     ) -> requests.Response:
+        """Makes a raw HTTP request.
+
+        Args:
+            method: The HTTP method of the request.
+            url: The URL path for the request.
+            params: The parameters for the request.
+            supplied_headers: Custom headers for the request.
+            files: Files to be uploaded with the request.
+            stream: Whether to stream the response.
+            request_id: An optional request ID for tracking.
+            request_timeout: The timeout for the request.
+
+        Returns:
+            The raw HTTP response.
+        """
         abs_url, headers, data = self._prepare_request_raw(url, supplied_headers, method, params, files, request_id)
 
         if not hasattr(_thread_context, "session"):
@@ -565,6 +759,21 @@ class APIRequestor:
         request_id: Optional[str] = None,
         request_timeout: Optional[Union[float, Tuple[float, float]]] = None,
     ) -> aiohttp.ClientResponse:
+        """Asynchronously makes a raw HTTP request.
+
+        Args:
+            method: The HTTP method of the request.
+            url: The URL path for the request.
+            session: The aiohttp.ClientSession to use for the request.
+            params: The parameters for the request.
+            supplied_headers: Custom headers for the request.
+            files: Files to be uploaded with the request.
+            request_id: An optional request ID for tracking.
+            request_timeout: The timeout for the request.
+
+        Returns:
+            The raw aiohttp.ClientResponse.
+        """
         abs_url, headers, data = self._prepare_request_raw(url, supplied_headers, method, params, files, request_id)
 
         if isinstance(request_timeout, tuple):
@@ -618,5 +827,10 @@ class APIRequestor:
 
 @asynccontextmanager
 async def aiohttp_session() -> AsyncIterator[aiohttp.ClientSession]:
+    """Provides an asynchronous context manager for an aiohttp.ClientSession.
+
+    Yields:
+        An instance of aiohttp.ClientSession.
+    """
     async with aiohttp.ClientSession() as session:
         yield session

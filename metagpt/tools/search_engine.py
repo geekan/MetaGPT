@@ -13,7 +13,13 @@ from metagpt.tools import SearchEngineType
 
 
 class SkSearchEngine:
+    """Class for handling search engine operations.
+
+    This class is designed to search results from Google. Useful when you need to find short and succinct answers about a specific topic.
+    """
+
     def __init__(self):
+        """Initializes the search engine."""
         self.search_engine = SearchEngine()
 
     @sk_function(
@@ -23,6 +29,14 @@ class SkSearchEngine:
         input_description="search",
     )
     async def run(self, query: str) -> str:
+        """Performs an asynchronous search operation.
+
+        Args:
+            query: The search query.
+
+        Returns:
+            The search result as a string.
+        """
         result = await self.search_engine.run(query)
         return result
 
@@ -30,13 +44,15 @@ class SkSearchEngine:
 class SearchEngine:
     """Class representing a search engine.
 
+    This class is responsible for performing searches using various search engine backends.
+
     Args:
-        engine: The search engine type. Defaults to the search engine specified in the config.
+        engine: The search engine type. Defaults to SERPER_GOOGLE.
         run_func: The function to run the search. Defaults to None.
 
     Attributes:
-        run_func: The function to run the search.
         engine: The search engine type.
+        run_func: The function to run the search.
     """
 
     def __init__(
@@ -83,7 +99,7 @@ class SearchEngine:
         ...
 
     async def run(self, query: str, max_results: int = 8, as_string: bool = True) -> Union[str, list[dict[str, str]]]:
-        """Run a search query.
+        """Run a search query asynchronously.
 
         Args:
             query: The search query.

@@ -22,7 +22,16 @@ from metagpt.utils.yaml_model import YamlModel
 
 
 class CLIParams(BaseModel):
-    """CLI parameters"""
+    """CLI parameters for MetaGPT.
+
+    Attributes:
+        project_path: The path to the project.
+        project_name: The name of the project.
+        inc: A boolean indicating if incremental mode is enabled.
+        reqa_file: The path to the requirements file.
+        max_auto_summarize_code: The maximum length for auto-summarized code.
+        git_reinit: A boolean indicating if git should be reinitialized.
+    """
 
     project_path: str = ""
     project_name: str = ""
@@ -33,7 +42,7 @@ class CLIParams(BaseModel):
 
     @model_validator(mode="after")
     def check_project_path(self):
-        """Check project_path and project_name"""
+        """Check project_path and project_name, enabling incremental mode if a project path is provided."""
         if self.project_path:
             self.inc = True
             self.project_name = self.project_name or Path(self.project_path).name
@@ -41,7 +50,38 @@ class CLIParams(BaseModel):
 
 
 class Config(CLIParams, YamlModel):
-    """Configurations for MetaGPT"""
+    """Configurations for MetaGPT including various components and settings.
+
+    Inherits CLI parameters and adds configurations for LLM, proxy, search, browser, mermaid, s3, redis, and more.
+
+    Attributes:
+        llm: Configuration for the language model.
+        proxy: Proxy settings.
+        search: Configuration for search functionality.
+        browser: Browser configuration.
+        mermaid: Configuration for Mermaid diagrams.
+        s3: Configuration for S3 storage.
+        redis: Configuration for Redis.
+        repair_llm_output: Whether to repair LLM output.
+        prompt_schema: The schema format for prompts.
+        workspace: Workspace configuration.
+        enable_longterm_memory: Whether to enable long-term memory.
+        code_review_k_times: The number of times to review code.
+        llm_for_researcher_summary: LLM used for researcher summary.
+        llm_for_researcher_report: LLM used for researcher report.
+        METAGPT_TEXT_TO_IMAGE_MODEL_URL: URL for the text-to-image model.
+        language: The language setting.
+        redis_key: The Redis key.
+        mmdc: The Mermaid CLI.
+        puppeteer_config: Configuration for Puppeteer.
+        pyppeteer_executable_path: Executable path for Pyppeteer.
+        IFLYTEK_APP_ID: App ID for iFlyTek.
+        IFLYTEK_API_SECRET: API secret for iFlyTek.
+        IFLYTEK_API_KEY: API key for iFlyTek.
+        AZURE_TTS_SUBSCRIPTION_KEY: Subscription key for Azure TTS.
+        AZURE_TTS_REGION: Region for Azure TTS.
+        mermaid_engine: Engine used for Mermaid diagrams.
+    """
 
     # Key Parameters
     llm: LLMConfig
@@ -91,10 +131,7 @@ class Config(CLIParams, YamlModel):
 
     @classmethod
     def default(cls):
-        """Load default config
-        - Priority: env < default_config_paths
-        - Inside default_config_paths, the latter one overwrites the former one
-        """
+        """Load default config with priority: env < default_config_paths. The latter config overwrites the former."""
         default_config_paths: List[Path] = [
             METAGPT_ROOT / "config/config2.yaml",
             Path.home() / ".metagpt/config2.yaml",
@@ -106,7 +143,7 @@ class Config(CLIParams, YamlModel):
         return Config(**final)
 
     def update_via_cli(self, project_path, project_name, inc, reqa_file, max_auto_summarize_code):
-        """update config via cli"""
+        """Update configuration via CLI parameters."""
 
         # Use in the PrepareDocuments action according to Section 2.2.3.5.1 of RFC 135.
         if project_path:
@@ -119,20 +156,27 @@ class Config(CLIParams, YamlModel):
         self.max_auto_summarize_code = max_auto_summarize_code
 
     def get_openai_llm(self) -> Optional[LLMConfig]:
-        """Get OpenAI LLMConfig by name. If no OpenAI, raise Exception"""
+        """Get OpenAI LLMConfig by name. If no OpenAI, raise Exception."""
         if self.llm.api_type == LLMType.OPENAI:
             return self.llm
         return None
 
     def get_azure_llm(self) -> Optional[LLMConfig]:
-        """Get Azure LLMConfig by name. If no Azure, raise Exception"""
+        """Get Azure LLMConfig by name. If no Azure, raise Exception."""
         if self.llm.api_type == LLMType.AZURE:
             return self.llm
         return None
 
 
 def merge_dict(dicts: Iterable[Dict]) -> Dict:
-    """Merge multiple dicts into one, with the latter dict overwriting the former"""
+    """Merge multiple dicts into one, with the latter dict overwriting the former.
+
+    Args:
+        dicts: An iterable of dictionaries to merge.
+
+    Returns:
+        A single dictionary with the merged contents of the input dictionaries.
+    """
     result = {}
     for dictionary in dicts:
         result.update(dictionary)

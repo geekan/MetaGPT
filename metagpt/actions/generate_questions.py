@@ -16,7 +16,11 @@ QUESTIONS = ActionNode(
 
 class GenerateQuestions(Action):
     """This class allows LLM to further mine noteworthy details based on specific "##TOPIC"(discussion topic) and
-    "##RECORD" (discussion records), thereby deepening the discussion."""
+    "##RECORD" (discussion records), thereby deepening the discussion.
+
+    Attributes:
+        name: A string representing the name of the action.
+    """
 
     name: str = "GenerateQuestions"
 

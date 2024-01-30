@@ -30,7 +30,14 @@ WRITE_REVIEW_NODE = ActionNode.from_children("WRITE_REVIEW_NODE", [REVIEW, LGTM]
 
 
 class WriteReview(Action):
-    """Write a review for the given context."""
+    """Write a review for the given context.
+
+    This class inherits from Action and is responsible for writing a review based on the given context.
+    It utilizes predefined action nodes to structure the review process.
+
+    Attributes:
+        name: A string representing the name of the action.
+    """
 
     name: str = "WriteReview"
 

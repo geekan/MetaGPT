@@ -9,19 +9,48 @@ from metagpt.provider.base_llm import BaseLLM
 
 
 class LLMProviderRegistry:
+    """Registry for LLM providers.
+
+    This class is used to register and retrieve LLM providers based on a key.
+
+    Attributes:
+        providers: A dictionary to store provider classes with their corresponding keys.
+    """
+
     def __init__(self):
+        """Initializes the LLMProviderRegistry with an empty providers dictionary."""
         self.providers = {}
 
     def register(self, key, provider_cls):
+        """Registers a provider class with a specific key.
+
+        Args:
+            key: The key associated with the provider class.
+            provider_cls: The provider class to be registered.
+        """
         self.providers[key] = provider_cls
 
     def get_provider(self, enum: LLMType):
-        """get provider instance according to the enum"""
+        """Retrieves a provider instance according to the enum.
+
+        Args:
+            enum: The LLMType enum to retrieve the provider for.
+
+        Returns:
+            An instance of the provider associated with the given enum.
+        """
         return self.providers[enum]
 
 
 def register_provider(key):
-    """register provider to registry"""
+    """Decorator to register a provider class to the LLMProviderRegistry.
+
+    Args:
+        key: The key to register the provider class with.
+
+    Returns:
+        The decorator function.
+    """
 
     def decorator(cls):
         LLM_REGISTRY.register(key, cls)
@@ -31,7 +60,14 @@ def register_provider(key):
 
 
 def create_llm_instance(config: LLMConfig) -> BaseLLM:
-    """get the default llm provider"""
+    """Creates an instance of the default LLM provider based on the given configuration.
+
+    Args:
+        config: The LLMConfig object containing the configuration for the LLM instance.
+
+    Returns:
+        An instance of the BaseLLM provider.
+    """
     return LLM_REGISTRY.get_provider(config.api_type)(config)
 
 

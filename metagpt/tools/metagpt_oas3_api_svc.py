@@ -22,7 +22,12 @@ import connexion
 
 
 def oas_http_svc():
-    """Start the OAS 3.0 OpenAPI HTTP service"""
+    """Start the OAS 3.0 OpenAPI HTTP service.
+
+    This function initializes and runs the OpenAPI HTTP service using Connexion.
+    It serves the OpenAPI UI at http://localhost:8080/oas3/ui/ and loads API specifications
+    from the 'docs/.well-known' directory relative to the project root.
+    """
     print("http://localhost:8080/oas3/ui/")
     specification_dir = Path(__file__).parent.parent.parent / "docs/.well-known"
     app = connexion.AsyncApp(__name__, specification_dir=str(specification_dir))

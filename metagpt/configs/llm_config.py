@@ -13,6 +13,21 @@ from metagpt.utils.yaml_model import YamlModel
 
 
 class LLMType(Enum):
+    """Defines the types of Language Learning Models (LLM) supported.
+
+    Attributes:
+        OPENAI: Represents the OpenAI's models.
+        ANTHROPIC: Represents the Anthropic's models.
+        SPARK: Represents the Spark's models.
+        ZHIPUAI: Represents the ZhipuAI's models.
+        FIREWORKS: Represents the Fireworks' models.
+        OPEN_LLM: Represents other open-source LLMs.
+        GEMINI: Represents the Gemini's models.
+        METAGPT: Represents the MetaGPT's models.
+        AZURE: Represents the Azure's models.
+        OLLAMA: Represents the Ollama's models.
+    """
+
     OPENAI = "openai"
     ANTHROPIC = "anthropic"
     SPARK = "spark"
@@ -25,14 +40,47 @@ class LLMType(Enum):
     OLLAMA = "ollama"
 
     def __missing__(self, key):
+        """Provides a default value for missing keys.
+
+        Args:
+            key: The missing key.
+
+        Returns:
+            The default value for missing keys, which is OPENAI.
+        """
         return self.OPENAI
 
 
 class LLMConfig(YamlModel):
-    """Config for LLM
+    """Configuration for Language Learning Models (LLM).
 
-    OpenAI: https://github.com/openai/openai-python/blob/main/src/openai/resources/chat/completions.py#L681
-    Optional Fields in pydantic: https://docs.pydantic.dev/latest/migration/#required-optional-and-nullable-fields
+    This configuration includes various parameters for connecting to and using different LLMs.
+
+    Attributes:
+        api_key: The API key for accessing the LLM.
+        api_type: The type of LLM to use, defaults to OPENAI.
+        base_url: The base URL for the LLM API, defaults to OpenAI's URL.
+        api_version: Optional version of the API.
+        model: Optional model name to use.
+        app_id: Optional application ID.
+        api_secret: Optional API secret.
+        domain: Optional domain for the LLM.
+        max_token: Maximum number of tokens to generate, defaults to 4096.
+        temperature: Sampling temperature, defaults to 0.0.
+        top_p: Nucleus sampling parameter, defaults to 1.0.
+        top_k: Top-k sampling parameter, defaults to 0.
+        repetition_penalty: Penalty for repetition, defaults to 1.0.
+        stop: Optional stopping criteria.
+        presence_penalty: Penalty for presence, defaults to 0.0.
+        frequency_penalty: Penalty for frequency, defaults to 0.0.
+        best_of: Optional parameter for generating multiple outputs and choosing the best.
+        n: Optional number of completions to generate.
+        stream: Whether to stream the results, defaults to False.
+        logprobs: Optional parameter to return log probabilities.
+        top_logprobs: Optional parameter to return top log probabilities.
+        timeout: Timeout for API requests, defaults to 60 seconds.
+        proxy: Optional proxy to use for API requests.
+        calc_usage: Whether to calculate usage, defaults to True.
     """
 
     api_key: str
@@ -72,6 +120,17 @@ class LLMConfig(YamlModel):
     @field_validator("api_key")
     @classmethod
     def check_llm_key(cls, v):
+        """Validates the API key.
+
+        Args:
+            v: The API key value to validate.
+
+        Raises:
+            ValueError: If the API key is not set correctly.
+
+        Returns:
+            The validated API key.
+        """
         if v in ["", None, "YOUR_API_KEY"]:
             raise ValueError("Please set your API key in config.yaml")
         return v

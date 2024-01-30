@@ -69,17 +69,20 @@ ROLE_TEMPLATE = """Your response should be based on the previous conversation hi
 
 
 class RoleReactMode(str, Enum):
+    """Defines modes for how a role reacts in a given context."""
+
     REACT = "react"
     BY_ORDER = "by_order"
     PLAN_AND_ACT = "plan_and_act"
 
     @classmethod
     def values(cls):
+        """List all values of the enum."""
         return [item.value for item in cls]
 
 
 class RoleContext(BaseModel):
-    """Role Runtime Context"""
+    """Role Runtime Context, holding the state and behavior of a role."""
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -117,7 +120,7 @@ class RoleContext(BaseModel):
 
 
 class Role(SerializationMixin, ContextMixin, BaseModel):
-    """Role/Agent"""
+    """Represents a role or agent with specific behaviors and interactions in an environment."""
 
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="ignore")
 
@@ -163,7 +166,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
 
     @staticmethod
     def pydantic_rebuild_model():
-        """Rebuild model to avoid `RecursionError: maximum recursion depth exceeded in comparison`"""
+        """Rebuild model to avoid `RecursionError: maximum recursion depth exceeded in comparison`."""
         from metagpt.environment import Environment
 
         Environment
@@ -171,67 +174,76 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
 
     @property
     def todo(self) -> Action:
-        """Get action to do"""
+        """Get action to do."""
         return self.rc.todo
 
     def set_todo(self, value: Optional[Action]):
-        """Set action to do and update context"""
+        """Set action to do and update context."""
         if value:
             value.context = self.context
         self.rc.todo = value
 
     @property
     def git_repo(self):
-        """Git repo"""
+        """Git repo."""
         return self.context.git_repo
 
     @git_repo.setter
     def git_repo(self, value):
+        """Git repo."""
         self.context.git_repo = value
 
     @property
     def src_workspace(self):
-        """Source workspace under git repo"""
+        """Source workspace under git repo."""
         return self.context.src_workspace
 
     @src_workspace.setter
     def src_workspace(self, value):
+        """Source workspace under git repo."""
         self.context.src_workspace = value
 
     @property
     def project_repo(self) -> ProjectRepo:
+        """Get project repository."""
         project_repo = ProjectRepo(self.context.git_repo)
         return project_repo.with_src_path(self.context.src_workspace) if self.context.src_workspace else project_repo
 
     @property
     def prompt_schema(self):
-        """Prompt schema: json/markdown"""
+        """Prompt schema: json/markdown."""
         return self.config.prompt_schema
 
     @property
     def project_name(self):
+        """Get project name."""
         return self.config.project_name
 
     @project_name.setter
     def project_name(self, value):
+        """Get project name."""
         self.config.project_name = value
 
     @property
     def project_path(self):
+        """Get project path."""
         return self.config.project_path
 
     @model_validator(mode="after")
     def check_addresses(self):
+        """Validate addresses after model initialization."""
         if not self.addresses:
             self.addresses = {any_to_str(self), self.name} if self.name else {any_to_str(self)}
         return self
 
     def _reset(self):
+        """Reset states and actions."""
         self.states = []
         self.actions = []
 
     @property
     def _setting(self):
+        """Setting description."""
         return f"{self.name}({self.profile})"
 
     def _check_actions(self):
@@ -240,6 +252,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         return self
 
     def _init_action(self, action: Action):
+        """Initialize an action with LLM and prefix."""
         if not action.private_config:
             action.set_llm(self.llm, override=True)
         else:
@@ -251,11 +264,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         self.set_actions([action])
 
     def set_actions(self, actions: list[Union[Action, Type[Action]]]):
-        """Add actions to the role.
-
-        Args:
-            actions: list of Action classes or instances
-        """
+        """Add actions to the role."""
         self._reset()
         for action in actions:
             if not isinstance(action, Action):
@@ -273,42 +282,24 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
             self.states.append(f"{len(self.actions)}. {action}")
 
     def _set_react_mode(self, react_mode: str, max_react_loop: int = 1):
-        """Set strategy of the Role reacting to observed Message. Variation lies in how
-        this Role elects action to perform during the _think stage, especially if it is capable of multiple Actions.
-
-        Args:
-            react_mode (str): Mode for choosing action during the _think stage, can be one of:
-                        "react": standard think-act loop in the ReAct paper, alternating thinking and acting to solve the task, i.e. _think -> _act -> _think -> _act -> ...
-                                 Use llm to select actions in _think dynamically;
-                        "by_order": switch action each time by order defined in _init_actions, i.e. _act (Action1) -> _act (Action2) -> ...;
-                        "plan_and_act": first plan, then execute an action sequence, i.e. _think (of a plan) -> _act -> _act -> ...
-                                        Use llm to come up with the plan dynamically.
-                        Defaults to "react".
-            max_react_loop (int): Maximum react cycles to execute, used to prevent the agent from reacting forever.
-                                  Take effect only when react_mode is react, in which we use llm to choose actions, including termination.
-                                  Defaults to 1, i.e. _think -> _act (-> return result and end)
-        """
+        """Set strategy of the Role reacting to observed Message."""
         assert react_mode in RoleReactMode.values(), f"react_mode must be one of {RoleReactMode.values()}"
         self.rc.react_mode = react_mode
         if react_mode == RoleReactMode.REACT:
             self.rc.max_react_loop = max_react_loop
 
     def _watch(self, actions: Iterable[Type[Action]] | Iterable[Action]):
-        """Watch Actions of interest. Role will select Messages caused by these Actions from its personal message
-        buffer during _observe.
-        """
+        """Watch Actions of interest."""
         self.rc.watch = {any_to_str(t) for t in actions}
         # check RoleContext after adding watch actions
         self.rc.check(self.role_id)
 
     def is_watch(self, caused_by: str):
+        """Check if the action is being watched."""
         return caused_by in self.rc.watch
 
     def set_addresses(self, addresses: Set[str]):
-        """Used to receive Messages with certain tags from the environment. Message will be put into personal message
-        buffer to be further processed in _observe. By default, a Role subscribes Messages with a tag of its own name
-        or profile.
-        """
+        """Used to receive Messages with certain tags from the environment."""
         self.addresses = addresses
         if self.rc.env:  # According to the routing feature plan in Chapter 2.2.3.2 of RFC 113
             self.rc.env.set_addresses(self, self.addresses)
@@ -320,8 +311,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         self.set_todo(self.actions[self.rc.state] if state >= 0 else None)
 
     def set_env(self, env: "Environment"):
-        """Set the environment in which the role works. The role can talk to the environment and can also receive
-        messages by observing."""
+        """Set the environment in which the role works."""
         self.rc.env = env
         if env:
             env.set_addresses(self, self.addresses)
@@ -329,7 +319,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
             self.set_actions(self.actions)  # reset actions to update llm and prefix
 
     def _get_prefix(self):
-        """Get the role prefix"""
+        """Get the role prefix."""
         if self.desc:
             return self.desc
 
@@ -346,7 +336,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         return prefix
 
     async def _think(self) -> bool:
-        """Consider what to do and decide on the next course of action. Return false if nothing can be done."""
+        """Consider what to do and decide on the next course of action."""
         if len(self.actions) == 1:
             # If there is only one action, then only this one can be performed
             self._set_state(0)
@@ -381,6 +371,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         return True
 
     async def _act(self) -> Message:
+        """Perform the action decided upon in _think."""
         logger.info(f"{self._setting}: to do {self.rc.todo}({self.rc.todo.name})")
         response = await self.rc.todo.run(self.rc.history)
         if isinstance(response, (ActionOutput, ActionNode)):
@@ -425,7 +416,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         return len(self.rc.news)
 
     def publish_message(self, msg):
-        """If the role belongs to env, then the role's messages will be broadcast to env"""
+        """If the role belongs to env, then the role's messages will be broadcast to env."""
         if not msg:
             return
         if not self.rc.env:
@@ -440,10 +431,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         self.rc.msg_buffer.push(message)
 
     async def _react(self) -> Message:
-        """Think first, then act, until the Role _think it is time to stop and requires no more todo.
-        This is the standard think-act loop in the ReAct paper, which alternates thinking and acting in task solving, i.e. _think -> _act -> _think -> _act -> ...
-        Use llm to select actions in _think dynamically
-        """
+        """Think first, then act, until the Role _think it is time to stop."""
         actions_taken = 0
         rsp = Message(content="No actions taken yet", cause_by=Action)  # will be overwritten after Role _act
         while actions_taken < self.rc.max_react_loop:
@@ -458,7 +446,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         return rsp  # return output from the last action
 
     async def _act_by_order(self) -> Message:
-        """switch action each time by order defined in _init_actions, i.e. _act (Action1) -> _act (Action2) -> ..."""
+        """Switch action each time by order defined in _init_actions."""
         start_idx = self.rc.state if self.rc.state >= 0 else 0  # action to run from recovered state
         rsp = Message(content="No actions taken yet")  # return default message if actions=[]
         for i in range(start_idx, len(self.states)):
@@ -467,12 +455,12 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         return rsp  # return output from the last action
 
     async def _plan_and_act(self) -> Message:
-        """first plan, then execute an action sequence, i.e. _think (of a plan) -> _act -> _act -> ... Use llm to come up with the plan dynamically."""
+        """First plan, then execute an action sequence."""
         # TODO: to be implemented
         return Message(content="")
 
     async def react(self) -> Message:
-        """Entry to one of three strategies by which Role reacts to the observed Message"""
+        """Entry to one of three strategies by which Role reacts to the observed Message."""
         if self.rc.react_mode == RoleReactMode.REACT:
             rsp = await self._react()
         elif self.rc.react_mode == RoleReactMode.BY_ORDER:
@@ -485,12 +473,12 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         return rsp
 
     def get_memories(self, k=0) -> list[Message]:
-        """A wrapper to return the most recent k memories of this role, return all when k=0"""
+        """A wrapper to return the most recent k memories of this role."""
         return self.rc.memory.get(k=k)
 
     @role_raise_decorator
     async def run(self, with_message=None) -> Message | None:
-        """Observe, and think and act based on the results of the observation"""
+        """Observe, and think and act based on the results of the observation."""
         if with_message:
             msg = None
             if isinstance(with_message, str):
@@ -521,30 +509,19 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         return not self.rc.news and not self.rc.todo and self.rc.msg_buffer.empty()
 
     async def think(self) -> Action:
-        """
-        Export SDK API, used by AgentStore RPC.
-        The exported `think` function
-        """
+        """Export SDK API, used by AgentStore RPC."""
         await self._observe()  # For compatibility with the old version of the Agent.
         await self._think()
         return self.rc.todo
 
     async def act(self) -> ActionOutput:
-        """
-        Export SDK API, used by AgentStore RPC.
-        The exported `act` function
-        """
+        """Export SDK API, used by AgentStore RPC."""
         msg = await self._act()
         return ActionOutput(content=msg.content, instruct_content=msg.instruct_content)
 
     @property
     def action_description(self) -> str:
-        """
-        Export SDK API, used by AgentStore RPC and Agent.
-        AgentStore uses this attribute to display to the user what actions the current role should take.
-        `Role` provides the default property, and this property should be overridden by children classes if necessary,
-        as demonstrated by the `Engineer` class.
-        """
+        """Export SDK API, used by AgentStore RPC and Agent."""
         if self.rc.todo:
             if self.rc.todo.desc:
                 return self.rc.todo.desc

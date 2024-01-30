@@ -16,7 +16,13 @@ from metagpt.logs import logger
 
 
 class Embedding(BaseModel):
-    """Represents an embedding vector returned by embedding endpoint."""
+    """Represents an embedding vector returned by embedding endpoint.
+
+    Attributes:
+        object: A string representing the type of the object.
+        embedding: A list of floats representing the embedding vector.
+        index: An integer representing the index of the embedding.
+    """
 
     object: str  # The object type, which is always "embedding".
     embedding: List[
@@ -26,11 +32,27 @@ class Embedding(BaseModel):
 
 
 class Usage(BaseModel):
+    """Represents the usage information of the embedding process.
+
+    Attributes:
+        prompt_tokens: The number of tokens used in the prompt.
+        total_tokens: The total number of tokens used.
+    """
+
     prompt_tokens: int = 0
     total_tokens: int = 0
 
 
 class ResultEmbedding(BaseModel):
+    """Represents the result of the embedding process.
+
+    Attributes:
+        object_: A string representing the type of the object. Alias for 'object'.
+        data: A list of Embedding objects.
+        model: The model used for generating embeddings.
+        usage: A Usage object representing the usage information.
+    """
+
     class Config:
         alias = {"object_": "object"}
 
@@ -41,19 +63,27 @@ class ResultEmbedding(BaseModel):
 
 
 class OpenAIText2Embedding:
+    """Handles the conversion of text to embedding using OpenAI's API."""
+
     def __init__(self, api_key: str, proxy: str):
-        """
-        :param openai_api_key: OpenAI API key, For more details, checkout: `https://platform.openai.com/account/api-keys`
+        """Initializes the OpenAIText2Embedding with API key and proxy.
+
+        Args:
+            api_key: The API key for OpenAI.
+            proxy: The proxy address to use for the requests.
         """
         self.api_key = api_key
         self.proxy = proxy
 
     async def text_2_embedding(self, text, model="text-embedding-ada-002"):
-        """Text to embedding
+        """Converts text to embedding using the specified model.
 
-        :param text: The text used for embedding.
-        :param model: One of ['text-embedding-ada-002'], ID of the model to use. For more details, checkout: `https://api.openai.com/v1/models`.
-        :return: A json object of :class:`ResultEmbedding` class if successful, otherwise `{}`.
+        Args:
+            text: The text to convert to embedding.
+            model: The model ID to use for embedding. Defaults to 'text-embedding-ada-002'.
+
+        Returns:
+            A ResultEmbedding object with the embedding result.
         """
 
         proxies = {"proxy": self.proxy} if self.proxy else {}
@@ -72,12 +102,16 @@ class OpenAIText2Embedding:
 
 # Export
 async def oas3_openai_text_to_embedding(text, openai_api_key: str, model="text-embedding-ada-002", proxy: str = ""):
-    """Text to embedding
+    """Converts text to embedding using OpenAI's API.
 
-    :param text: The text used for embedding.
-    :param model: One of ['text-embedding-ada-002'], ID of the model to use. For more details, checkout: `https://api.openai.com/v1/models`.
-    :param config: OpenAI config with API key, For more details, checkout: `https://platform.openai.com/account/api-keys`
-    :return: A json object of :class:`ResultEmbedding` class if successful, otherwise `{}`.
+    Args:
+        text: The text to convert to embedding.
+        openai_api_key: The API key for OpenAI.
+        model: The model ID to use for embedding. Defaults to 'text-embedding-ada-002'.
+        proxy: The proxy address to use for the requests.
+
+    Returns:
+        A ResultEmbedding object with the embedding result if successful, otherwise an empty string.
     """
     if not text:
         return ""

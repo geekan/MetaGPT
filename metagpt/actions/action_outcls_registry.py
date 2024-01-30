@@ -9,9 +9,16 @@ action_outcls_registry = dict()
 
 
 def register_action_outcls(func):
-    """
-    Due to `create_model` return different Class even they have same class name and mapping.
-    In order to do a comparison, use outcls_id to identify same Class with same class name and field definition
+    """Decorator to register output classes for actions.
+
+    This decorator is used to handle the dynamic creation of classes by `create_model` function. It ensures that
+    classes with the same name and field definitions are identified uniquely using an `outcls_id`.
+
+    Args:
+        func: The function to be decorated.
+
+    Returns:
+        The decorated function which ensures unique identification of dynamically created classes.
     """
 
     @wraps(func)

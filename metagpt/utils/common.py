@@ -36,8 +36,12 @@ from metagpt.utils.exceptions import handle_exception
 
 def check_cmd_exists(command) -> int:
     """检查命令是否存在
-    :param command: 待检查的命令
-    :return: 如果命令存在，返回0，如果不存在，返回非0
+
+    Args:
+        command: 待检查的命令
+
+    Returns:
+        如果命令存在，返回0，如果不存在，返回非0
     """
     if platform.system().lower() == "windows":
         check_command = "where " + command
@@ -48,14 +52,35 @@ def check_cmd_exists(command) -> int:
 
 
 def require_python_version(req_version: Tuple) -> bool:
+    """Check if the current Python version meets the required version.
+
+    Args:
+        req_version: A tuple specifying the required version, e.g., (3, 9) or (3, 10, 13).
+
+    Returns:
+        True if the current Python version is greater than the required version, False otherwise.
+
+    Raises:
+        ValueError: If the req_version does not have 2 or 3 elements.
+    """
     if not (2 <= len(req_version) <= 3):
         raise ValueError("req_version should be (3, 9) or (3, 10, 13)")
     return bool(sys.version_info > req_version)
 
 
 class OutputParser:
+    """A class for parsing various types of content from text."""
+
     @classmethod
     def parse_blocks(cls, text: str):
+        """Parse blocks of text separated by '##' into a dictionary.
+
+        Args:
+            text: A string containing blocks of text to be parsed.
+
+        Returns:
+            A dictionary where each key is the block title and the value is the block content.
+        """
         # 首先根据"##"将文本分割成不同的block
         blocks = text.split("##")
 
@@ -77,6 +102,18 @@ class OutputParser:
 
     @classmethod
     def parse_code(cls, text: str, lang: str = "") -> str:
+        """Extract code snippets from the given text based on the specified language.
+
+        Args:
+            text: The text containing code snippets.
+            lang: The programming language of the code snippets. If empty, extracts any code snippet.
+
+        Returns:
+            The extracted code snippet.
+
+        Raises:
+            Exception: If no code snippet is found.
+        """
         pattern = rf"```{lang}.*?\s+(.*?)```"
         match = re.search(pattern, text, re.DOTALL)
         if match:
@@ -87,12 +124,31 @@ class OutputParser:
 
     @classmethod
     def parse_str(cls, text: str):
+        """Extract a string value from the given text.
+
+        Args:
+            text: The text containing a string value.
+
+        Returns:
+            The extracted string value.
+        """
         text = text.split("=")[-1]
         text = text.strip().strip("'").strip('"')
         return text
 
     @classmethod
     def parse_file_list(cls, text: str) -> list[str]:
+        """Extract a list of file names or paths from the given text.
+
+        Args:
+            text: The text containing the list of files.
+
+        Returns:
+            A list of file names or paths.
+
+        Raises:
+            Exception: If the list cannot be extracted.
+        """
         # Regular expression pattern to find the tasks list.
         pattern = r"\s*(.*=.*)?(\[.*\])"
 
@@ -109,6 +165,17 @@ class OutputParser:
 
     @staticmethod
     def parse_python_code(text: str) -> str:
+        """Extract and validate Python code from the given text.
+
+        Args:
+            text: The text containing Python code.
+
+        Returns:
+            The extracted Python code.
+
+        Raises:
+            ValueError: If the code is invalid or cannot be extracted.
+        """
         for pattern in (r"(.*?```python.*?\s+)?(?P<code>.*)(```.*?)", r"(.*?```python.*?\s+)?(?P<code>.*)"):
             match = re.search(pattern, text, re.DOTALL)
             if not match:
@@ -123,6 +190,14 @@ class OutputParser:
 
     @classmethod
     def parse_data(cls, data):
+        """Parse data from the given text using various parsing methods.
+
+        Args:
+            data: The text containing data to be parsed.
+
+        Returns:
+            A dictionary with parsed data.
+        """
         block_dict = cls.parse_blocks(data)
         parsed_data = {}
         for block, content in block_dict.items():
@@ -140,6 +215,18 @@ class OutputParser:
 
     @staticmethod
     def extract_content(text, tag="CONTENT"):
+        """Extract content enclosed within specified tags from the given text.
+
+        Args:
+            text: The text containing the content to be extracted.
+            tag: The tag used to enclose the content.
+
+        Returns:
+            The extracted content.
+
+        Raises:
+            ValueError: If the content cannot be found between the specified tags.
+        """
         # Use regular expression to extract content between [CONTENT] and [/CONTENT]
         extracted_content = re.search(rf"\[{tag}\](.*?)\[/{tag}\]", text, re.DOTALL)
 
@@ -150,6 +237,15 @@ class OutputParser:
 
     @classmethod
     def parse_data_with_mapping(cls, data, mapping):
+        """Parse data from the given text using a specified mapping for content types.
+
+        Args:
+            data: The text containing data to be parsed.
+            mapping: A dictionary mapping block titles to their expected content types.
+
+        Returns:
+            A dictionary with parsed data based on the provided mapping.
+        """
         if "[CONTENT]" in data:
             data = cls.extract_content(text=data)
         block_dict = cls.parse_blocks(data)
@@ -184,7 +280,6 @@ class OutputParser:
     @classmethod
     def extract_struct(cls, text: str, data_type: Union[type(list), type(dict)]) -> Union[list, dict]:
         """Extracts and parses a specified type of structure (dictionary or list) from the given text.
-        The text only contains a list or dictionary, which may have nested structures.
 
         Args:
             text: The text containing the structure (dictionary or list).
@@ -231,8 +326,19 @@ class OutputParser:
 
 
 class CodeParser:
+    """A class for parsing code and related elements from text."""
+
     @classmethod
     def parse_block(cls, block: str, text: str) -> str:
+        """Parse a specific block from the given text.
+
+        Args:
+            block: The title of the block to be parsed.
+            text: The text containing the block.
+
+        Returns:
+            The content of the specified block.
+        """
         blocks = cls.parse_blocks(text)
         for k, v in blocks.items():
             if block in k:
@@ -241,6 +347,14 @@ class CodeParser:
 
     @classmethod
     def parse_blocks(cls, text: str):
+        """Parse blocks of text separated by '##' into a dictionary.
+
+        Args:
+            text: A string containing blocks of text to be parsed.
+
+        Returns:
+            A dictionary where each key is the block title and the value is the block content.
+        """
         # 首先根据"##"将文本分割成不同的block
         blocks = text.split("##")
 
@@ -264,6 +378,19 @@ class CodeParser:
 
     @classmethod
     def parse_code(cls, block: str, text: str, lang: str = "") -> str:
+        """Extract code snippets from a specific block of the given text based on the specified language.
+
+        Args:
+            block: The title of the block containing the code snippet.
+            text: The text containing the block.
+            lang: The programming language of the code snippets. If empty, extracts any code snippet.
+
+        Returns:
+            The extracted code snippet.
+
+        Raises:
+            Exception: If no code snippet is found.
+        """
         if block:
             text = cls.parse_block(block, text)
         pattern = rf"```{lang}.*?\s+(.*?)```"
@@ -279,6 +406,16 @@ class CodeParser:
 
     @classmethod
     def parse_str(cls, block: str, text: str, lang: str = ""):
+        """Extract a string value from a specific block of the given text.
+
+        Args:
+            block: The title of the block containing the string value.
+            text: The text containing the block.
+            lang: The programming language of the code snippets. If empty, extracts any code snippet.
+
+        Returns:
+            The extracted string value.
+        """
         code = cls.parse_code(block, text, lang)
         code = code.split("=")[-1]
         code = code.strip().strip("'").strip('"')
@@ -286,6 +423,19 @@ class CodeParser:
 
     @classmethod
     def parse_file_list(cls, block: str, text: str, lang: str = "") -> list[str]:
+        """Extract a list of file names or paths from a specific block of the given text.
+
+        Args:
+            block: The title of the block containing the list of files.
+            text: The text containing the block.
+            lang: The programming language of the code snippets. If empty, extracts any code snippet.
+
+        Returns:
+            A list of file names or paths.
+
+        Raises:
+            Exception: If the list cannot be extracted.
+        """
         # Regular expression pattern to find the tasks list.
         code = cls.parse_code(block, text, lang)
         # print(code)
@@ -307,17 +457,32 @@ class NoMoneyException(Exception):
     """Raised when the operation cannot be completed due to insufficient funds"""
 
     def __init__(self, amount, message="Insufficient funds"):
+        """Initialize the exception with the amount required and an optional message.
+
+        Args:
+            amount: The amount required that caused the exception.
+            message: An optional message describing the exception. Defaults to 'Insufficient funds'.
+        """
         self.amount = amount
         self.message = message
         super().__init__(self.message)
 
     def __str__(self):
+        """Return a string representation of the exception.
+
+        Returns:
+            A string indicating the message and the amount required.
+        """
         return f"{self.message} -> Amount required: {self.amount}"
 
 
 def print_members(module, indent=0):
     """
-    https://stackoverflow.com/questions/1796180/how-can-i-get-a-list-of-all-classes-within-current-module-in-python
+    Print the members of a module with optional indentation for nested members.
+
+    Args:
+        module: The module whose members are to be printed.
+        indent: The indentation level for nested members. Defaults to 0.
     """
     prefix = " " * indent
     for name, obj in inspect.getmembers(module):
@@ -335,6 +500,14 @@ def print_members(module, indent=0):
 
 
 def parse_recipient(text):
+    """Parse the recipient from the given text.
+
+    Args:
+        text: The text containing the recipient information.
+
+    Returns:
+        The parsed recipient if found, otherwise an empty string.
+    """
     # FIXME: use ActionNode instead.
     pattern = r"## Send To:\s*([A-Za-z]+)\s*?"  # hard code for now
     recipient = re.search(pattern, text)
@@ -348,12 +521,26 @@ def parse_recipient(text):
 
 
 def get_class_name(cls) -> str:
-    """Return class name"""
+    """Return the fully qualified class name.
+
+    Args:
+        cls: The class object.
+
+    Returns:
+        The fully qualified class name as a string.
+    """
     return f"{cls.__module__}.{cls.__name__}"
 
 
 def any_to_str(val: Any) -> str:
-    """Return the class name or the class name of the object, or 'val' if it's a string type."""
+    """Return the class name or the class name of the object, or 'val' if it's a string type.
+
+    Args:
+        val: The value to convert to a string.
+
+    Returns:
+        The string representation of the value.
+    """
     if isinstance(val, str):
         return val
     elif not callable(val):
@@ -363,7 +550,14 @@ def any_to_str(val: Any) -> str:
 
 
 def any_to_str_set(val) -> set:
-    """Convert any type to string set."""
+    """Convert any type to a set of strings.
+
+    Args:
+        val: The value to convert.
+
+    Returns:
+        A set of strings representing the input value.
+    """
     res = set()
 
     # Check if the value is iterable, but not a string (since strings are technically iterable)
@@ -381,7 +575,15 @@ def any_to_str_set(val) -> set:
 
 
 def is_send_to(message: "Message", addresses: set):
-    """Return whether it's consumer"""
+    """Determine if a message should be sent to the specified addresses.
+
+    Args:
+        message: The message object.
+        addresses: A set of addresses to check against the message's send_to attribute.
+
+    Returns:
+        True if the message should be sent to the specified addresses, False otherwise.
+    """
     if MESSAGE_ROUTE_TO_ALL in message.send_to:
         return True
 
@@ -395,18 +597,36 @@ def any_to_name(val):
     """
     Convert a value to its name by extracting the last part of the dotted path.
 
-    :param val: The value to convert.
+    Args:
+        val: The value to convert.
 
-    :return: The name of the value.
+    Returns:
+        The name of the value.
     """
     return any_to_str(val).split(".")[-1]
 
 
 def concat_namespace(*args) -> str:
+    """Concatenate multiple values into a namespace string.
+
+    Args:
+        *args: The values to concatenate.
+
+    Returns:
+        A string representing the concatenated namespace.
+    """
     return ":".join(str(value) for value in args)
 
 
 def split_namespace(ns_class_name: str) -> List[str]:
+    """Split a namespace string into its components.
+
+    Args:
+        ns_class_name: The namespace string to split.
+
+    Returns:
+        A list of strings representing the components of the namespace.
+    """
     return ns_class_name.split(":")
 
 
@@ -414,15 +634,14 @@ def general_after_log(i: "loguru.Logger", sec_format: str = "%0.3f") -> typing.C
     """
     Generates a logging function to be used after a call is retried.
 
-    This generated function logs an error message with the outcome of the retried function call. It includes
-    the name of the function, the time taken for the call in seconds (formatted according to `sec_format`),
-    the number of attempts made, and the exception raised, if any.
+    Args:
+        i: A Logger instance from the loguru library used to log the error message.
+        sec_format: A string format specifier for how to format the number of seconds since the start of the call.
+                    Defaults to three decimal places.
 
-    :param i: A Logger instance from the loguru library used to log the error message.
-    :param sec_format: A string format specifier for how to format the number of seconds since the start of the call.
-                       Defaults to three decimal places.
-    :return: A callable that accepts a RetryCallState object and returns None. This callable logs the details
-             of the retried call.
+    Returns:
+        A callable that accepts a RetryCallState object and returns None. This callable logs the details
+        of the retried call.
     """
 
     def log_it(retry_state: "RetryCallState") -> None:
@@ -444,6 +663,19 @@ def general_after_log(i: "loguru.Logger", sec_format: str = "%0.3f") -> typing.C
 
 
 def read_json_file(json_file: str, encoding="utf-8") -> list[Any]:
+    """Read data from a JSON file.
+
+    Args:
+        json_file: The path to the JSON file.
+        encoding: The encoding of the JSON file. Defaults to 'utf-8'.
+
+    Returns:
+        The data read from the JSON file.
+
+    Raises:
+        FileNotFoundError: If the JSON file does not exist.
+        ValueError: If reading the JSON file fails.
+    """
     if not Path(json_file).exists():
         raise FileNotFoundError(f"json_file: {json_file} not exist, return []")
 
@@ -456,6 +688,13 @@ def read_json_file(json_file: str, encoding="utf-8") -> list[Any]:
 
 
 def write_json_file(json_file: str, data: list, encoding=None):
+    """Write data to a JSON file.
+
+    Args:
+        json_file: The path to the JSON file where data will be written.
+        data: The data to write to the JSON file.
+        encoding: The encoding of the JSON file. If None, defaults to system encoding.
+    """
     folder_path = Path(json_file).parent
     if not folder_path.exists():
         folder_path.mkdir(parents=True, exist_ok=True)
@@ -465,22 +704,59 @@ def write_json_file(json_file: str, data: list, encoding=None):
 
 
 def import_class(class_name: str, module_name: str) -> type:
+    """Import a class from a specified module.
+
+    Args:
+        class_name: The name of the class to import.
+        module_name: The name of the module where the class is defined.
+
+    Returns:
+        The imported class type.
+    """
     module = importlib.import_module(module_name)
     a_class = getattr(module, class_name)
     return a_class
 
 
 def import_class_inst(class_name: str, module_name: str, *args, **kwargs) -> object:
+    """Create an instance of a class from a specified module.
+
+    Args:
+        class_name: The name of the class to instantiate.
+        module_name: The name of the module where the class is defined.
+        *args: Positional arguments to pass to the class constructor.
+        **kwargs: Keyword arguments to pass to the class constructor.
+
+    Returns:
+        An instance of the specified class.
+    """
     a_class = import_class(class_name, module_name)
     class_inst = a_class(*args, **kwargs)
     return class_inst
 
 
 def format_trackback_info(limit: int = 2):
+    """Format the traceback information for logging or displaying.
+
+    Args:
+        limit: The number of stack trace entries to include. Defaults to 2.
+
+    Returns:
+        A formatted string containing the traceback information.
+    """
     return traceback.format_exc(limit=limit)
 
 
 def serialize_decorator(func):
+    """Decorator to serialize the state of an object upon an exception.
+
+    Args:
+        func: The function to decorate.
+
+    Returns:
+        The wrapped function with serialization on exception.
+    """
+
     async def wrapper(self, *args, **kwargs):
         try:
             result = await func(self, *args, **kwargs)
@@ -495,6 +771,15 @@ def serialize_decorator(func):
 
 
 def role_raise_decorator(func):
+    """Decorator to handle exceptions in a role's execution and serialize the project state.
+
+    Args:
+        func: The function to decorate.
+
+    Returns:
+        The wrapped function with exception handling and serialization.
+    """
+
     async def wrapper(self, *args, **kwargs):
         try:
             return await func(self, *args, **kwargs)
@@ -526,14 +811,28 @@ def role_raise_decorator(func):
 
 @handle_exception
 async def aread(filename: str | Path, encoding=None) -> str:
-    """Read file asynchronously."""
+    """Read file asynchronously.
+
+    Args:
+        filename: The path to the file to read.
+        encoding: The encoding of the file. If None, defaults to system encoding.
+
+    Returns:
+        The content of the file.
+    """
     async with aiofiles.open(str(filename), mode="r", encoding=encoding) as reader:
         content = await reader.read()
     return content
 
 
 async def awrite(filename: str | Path, data: str, encoding=None):
-    """Write file asynchronously."""
+    """Write data to a file asynchronously.
+
+    Args:
+        filename: The path to the file where data will be written.
+        data: The data to write to the file.
+        encoding: The encoding of the file. If None, defaults to system encoding.
+    """
     pathname = Path(filename)
     pathname.parent.mkdir(parents=True, exist_ok=True)
     async with aiofiles.open(str(pathname), mode="w", encoding=encoding) as writer:
@@ -541,6 +840,16 @@ async def awrite(filename: str | Path, data: str, encoding=None):
 
 
 async def read_file_block(filename: str | Path, lineno: int, end_lineno: int):
+    """Read a block of lines from a file asynchronously.
+
+    Args:
+        filename: The path to the file to read.
+        lineno: The starting line number to read from.
+        end_lineno: The ending line number to read to.
+
+    Returns:
+        The content of the specified block of lines from the file.
+    """
     if not Path(filename).exists():
         return ""
     lines = []
@@ -558,6 +867,14 @@ async def read_file_block(filename: str | Path, lineno: int, end_lineno: int):
 
 
 def list_files(root: str | Path) -> List[Path]:
+    """List all files in a directory and its subdirectories.
+
+    Args:
+        root: The root directory to list files from.
+
+    Returns:
+        A list of paths to the files found.
+    """
     files = []
     try:
         directory_path = Path(root)

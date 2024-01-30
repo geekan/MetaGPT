@@ -8,8 +8,13 @@ import abc
 
 
 class Singleton(abc.ABCMeta, type):
-    """
-    Singleton metaclass for ensuring only one instance of a class.
+    """Singleton metaclass for ensuring only one instance of a class.
+
+    This metaclass can be used to create singleton classes, ensuring that only
+    one instance of the class exists throughout the application.
+
+    Attributes:
+        _instances: A dictionary holding the instances of the singleton classes.
     """
 
     _instances = {}

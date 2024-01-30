@@ -5,6 +5,22 @@ from pygments.lexers import PythonLexer, SqlLexer
 
 
 def highlight(code: str, language: str = "python", formatter: str = "terminal"):
+    """Syntax highlights the given code.
+
+    This function uses Pygments to highlight code in either Python or SQL syntax
+    and outputs it using either terminal or HTML formatting.
+
+    Args:
+        code: The source code to be highlighted.
+        language: The programming language of the code ('python' or 'sql').
+        formatter: The output format ('terminal' or 'html').
+
+    Returns:
+        The syntax-highlighted code as a string.
+
+    Raises:
+        ValueError: If an unsupported language or formatter is specified.
+    """
     # 指定要高亮的语言
     if language.lower() == "python":
         lexer = PythonLexer()

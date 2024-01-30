@@ -23,6 +23,16 @@ from metagpt.utils.exceptions import handle_exception
 
 
 class RepoFileInfo(BaseModel):
+    """Represents the information of a repository file including classes, functions, and globals.
+
+    Attributes:
+        file: The path of the file.
+        classes: A list of classes found in the file.
+        functions: A list of functions found in the file.
+        globals: A list of global variables found in the file.
+        page_info: Additional page information.
+    """
+
     file: str
     classes: List = Field(default_factory=list)
     functions: List = Field(default_factory=list)
@@ -31,6 +41,16 @@ class RepoFileInfo(BaseModel):
 
 
 class CodeBlockInfo(BaseModel):
+    """Represents the information of a code block within a file.
+
+    Attributes:
+        lineno: The starting line number of the code block.
+        end_lineno: The ending line number of the code block.
+        type_name: The type name of the code block.
+        tokens: A list of tokens found in the code block.
+        properties: A dictionary of properties related to the code block.
+    """
+
     lineno: int
     end_lineno: int
     type_name: str
@@ -39,6 +59,15 @@ class CodeBlockInfo(BaseModel):
 
 
 class ClassInfo(BaseModel):
+    """Represents the information of a class including its attributes and methods.
+
+    Attributes:
+        name: The name of the class.
+        package: The package where the class is located.
+        attributes: A dictionary of attributes of the class.
+        methods: A dictionary of methods of the class.
+    """
+
     name: str
     package: Optional[str] = None
     attributes: Dict[str, str] = Field(default_factory=dict)
@@ -46,6 +75,15 @@ class ClassInfo(BaseModel):
 
 
 class ClassRelationship(BaseModel):
+    """Represents the relationship between two classes.
+
+    Attributes:
+        src: The source class of the relationship.
+        dest: The destination class of the relationship.
+        relationship: The type of relationship (e.g., aggregation, composition).
+        label: An optional label for the relationship.
+    """
+
     src: str = ""
     dest: str = ""
     relationship: str = ""
@@ -53,6 +91,12 @@ class ClassRelationship(BaseModel):
 
 
 class RepoParser(BaseModel):
+    """Parses repository files to extract information about classes, functions, and relationships.
+
+    Attributes:
+        base_directory: The base directory of the repository to parse.
+    """
+
     base_directory: Path = Field(default=None)
 
     @classmethod
@@ -80,6 +124,7 @@ class RepoParser(BaseModel):
         return file_info
 
     def generate_symbols(self) -> List[RepoFileInfo]:
+        """Generate symbols for all files in the repository."""
         files_classes = []
         directory = self.base_directory
 
@@ -118,6 +163,7 @@ class RepoParser(BaseModel):
 
     @staticmethod
     def node_to_str(node) -> CodeBlockInfo | None:
+        """Convert a node to a string representation."""
         if isinstance(node, ast.Try):
             return None
         if any_to_str(node) == any_to_str(ast.Expr):
@@ -158,6 +204,7 @@ class RepoParser(BaseModel):
 
     @staticmethod
     def _parse_expr(node) -> List:
+        """Parse an expression node."""
         funcs = {
             any_to_str(ast.Constant): lambda x: [any_to_str(x.value), RepoParser._parse_variable(x.value)],
             any_to_str(ast.Call): lambda x: [any_to_str(x.value), RepoParser._parse_variable(x.value.func)],
@@ -169,12 +216,14 @@ class RepoParser(BaseModel):
 
     @staticmethod
     def _parse_name(n):
+        """Parse a name node."""
         if n.asname:
             return f"{n.name} as {n.asname}"
         return n.name
 
     @staticmethod
     def _parse_if(n):
+        """Parse an if statement."""
         tokens = []
         try:
             if isinstance(n.test, ast.BoolOp):
@@ -197,6 +246,7 @@ class RepoParser(BaseModel):
 
     @staticmethod
     def _parse_if_compare(n):
+        """Parse an if comparison."""
         if hasattr(n, "left"):
             return RepoParser._parse_variable(n.left)
         else:
@@ -204,6 +254,7 @@ class RepoParser(BaseModel):
 
     @staticmethod
     def _parse_variable(node):
+        """Parse a variable node."""
         try:
             funcs = {
                 any_to_str(ast.Constant): lambda x: x.value,
@@ -223,9 +274,11 @@ class RepoParser(BaseModel):
 
     @staticmethod
     def _parse_assign(node):
+        """Parse an assignment."""
         return [RepoParser._parse_variable(t) for t in node.targets]
 
     async def rebuild_class_views(self, path: str | Path = None):
+        """Rebuild class views for the specified path."""
         if not path:
             path = self.base_directory
         path = Path(path)
@@ -247,6 +300,7 @@ class RepoParser(BaseModel):
         return class_views, relationship_views, package_root
 
     async def _parse_classes(self, class_view_pathname):
+        """Parse class definitions from a class view file."""
         class_views = []
         if not class_view_pathname.exists():
             return class_views
@@ -273,6 +327,7 @@ class RepoParser(BaseModel):
         return class_views
 
     async def _parse_class_relationships(self, class_view_pathname) -> List[ClassRelationship]:
+        """Parse class relationships from a class view file."""
         relationship_views = []
         if not class_view_pathname.exists():
             return relationship_views
@@ -287,6 +342,7 @@ class RepoParser(BaseModel):
 
     @staticmethod
     def _split_class_line(line):
+        """Split a class line into components."""
         part_splitor = '" ['
         if part_splitor not in line:
             return None, None
@@ -305,6 +361,7 @@ class RepoParser(BaseModel):
 
     @staticmethod
     def _split_relationship_line(line):
+        """Split a relationship line into components."""
         splitters = [" -> ", " [", "];"]
         idxs = []
         for tag in splitters:
@@ -330,6 +387,7 @@ class RepoParser(BaseModel):
 
     @staticmethod
     def _get_label(line):
+        """Get the label from a line."""
         tag = 'label="'
         if tag not in line:
             return ""
@@ -339,6 +397,7 @@ class RepoParser(BaseModel):
 
     @staticmethod
     def _create_path_mapping(path: str | Path) -> Dict[str, str]:
+        """Create a mapping of paths."""
         mappings = {
             str(path).replace("/", "."): str(path),
         }
@@ -364,6 +423,7 @@ class RepoParser(BaseModel):
     def _repair_namespaces(
         class_views: List[ClassInfo], relationship_views: List[ClassRelationship], path: str | Path
     ) -> (List[ClassInfo], List[ClassRelationship], str):
+        """Repair namespaces for class views and relationship views."""
         if not class_views:
             return [], [], ""
         c = class_views[0]
@@ -391,6 +451,7 @@ class RepoParser(BaseModel):
 
     @staticmethod
     def _repair_ns(package, mappings):
+        """Repair a namespace using the provided mappings."""
         file_ns = package
         while file_ns != "":
             if file_ns not in mappings:
@@ -404,6 +465,7 @@ class RepoParser(BaseModel):
 
     @staticmethod
     def _find_root(full_key, package) -> str:
+        """Find the root of the package."""
         left = full_key
         while left != "":
             if left in package:
@@ -417,4 +479,5 @@ class RepoParser(BaseModel):
 
 
 def is_func(node):
+    """Check if a node represents a function definition."""
     return isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
