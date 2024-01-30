@@ -77,8 +77,8 @@ class WriteCodeByGenerate(BaseWriteAnalysisCode):
     ) -> dict:
         # context.append(Message(content=self.REUSE_CODE_INSTRUCTION, role="user"))
         prompt = self.process_msg(context, system_msg)
-        code_content = await self.llm.aask_code(prompt, **kwargs)
-        return code_content
+        rsp = await self.llm.aask_code(prompt, **kwargs)
+        return rsp
 
 
 class WriteCodeWithTools(BaseWriteAnalysisCode):
