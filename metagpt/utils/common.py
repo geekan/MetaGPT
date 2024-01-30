@@ -12,7 +12,9 @@
 from __future__ import annotations
 
 import ast
+import base64
 import contextlib
+import csv
 import importlib
 import inspect
 import json
@@ -465,6 +467,29 @@ def write_json_file(json_file: str, data: list, encoding=None):
         json.dump(data, fout, ensure_ascii=False, indent=4, default=to_jsonable_python)
 
 
+def read_csv_to_list(curr_file: str, header=False, strip_trail=True):
+    """
+    Reads in a csv file to a list of list. If header is True, it returns a
+    tuple with (header row, all rows)
+    ARGS:
+      curr_file: path to the current csv file.
+    RETURNS:
+      List of list where the component lists are the rows of the file.
+    """
+    logger.debug(f"start read csv: {curr_file}")
+    analysis_list = []
+    with open(curr_file) as f_analysis_file:
+        data_reader = csv.reader(f_analysis_file, delimiter=",")
+        for count, row in enumerate(data_reader):
+            if strip_trail:
+                row = [i.strip() for i in row]
+            analysis_list += [row]
+    if not header:
+        return analysis_list
+    else:
+        return analysis_list[0], analysis_list[1:]
+
+
 def import_class(class_name: str, module_name: str) -> type:
     module = importlib.import_module(module_name)
     a_class = getattr(module, class_name)
@@ -573,3 +598,8 @@ def list_files(root: str | Path) -> List[Path]:
     except Exception as e:
         logger.error(f"Error: {e}")
     return files
+
+
+def encode_image(image_path: Path, encoding: str = "utf-8") -> str:
+    with open(str(image_path), "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode(encoding)

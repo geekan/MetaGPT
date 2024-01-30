@@ -99,7 +99,7 @@ class OpenAILLM(BaseLLM):
             "messages": messages,
             "max_tokens": self._get_max_tokens(messages),
             "n": 1,
-            "stop": None,
+            # "stop": None,  # default it's None and gpt4-v can't have this one
             "temperature": 0.3,
             "model": self.model,
             "timeout": max(self.config.timeout, timeout),
