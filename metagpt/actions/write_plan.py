@@ -10,7 +10,10 @@ from typing import Dict, List, Tuple
 
 from metagpt.actions import Action
 from metagpt.logs import logger
-from metagpt.prompts.ml_engineer import ASSIGN_TASK_TYPE_CONFIG, ASSIGN_TASK_TYPE_PROMPT
+from metagpt.prompts.write_analysis_code import (
+    ASSIGN_TASK_TYPE_CONFIG,
+    ASSIGN_TASK_TYPE_PROMPT,
+)
 from metagpt.schema import Message, Plan, Task
 from metagpt.tools import TOOL_REGISTRY
 from metagpt.utils.common import CodeParser, create_func_config

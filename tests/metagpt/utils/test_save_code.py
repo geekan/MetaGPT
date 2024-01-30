@@ -9,7 +9,6 @@ import nbformat
 import pytest
 
 from metagpt.actions.execute_code import ExecutePyCode
-from metagpt.actions.write_analysis_code import WriteCodeByGenerate
 from metagpt.utils.save_code import DATA_PATH, save_code_file
 
 
@@ -17,11 +16,6 @@ def test_save_code_file_python():
     save_code_file("example", "print('Hello, World!')")
     file_path = DATA_PATH / "output" / "example" / "code.py"
     assert os.path.exists(file_path), f"File does not exist: {file_path}"
-
-
-def test_save_code_file_python():
-    save_code_file("example", "print('Hello, World!')")
-    file_path = DATA_PATH / "output" / "example" / "code.py"
     with open(file_path, "r", encoding="utf-8") as fp:
         content = fp.read()
     assert "print('Hello, World!')" in content, "File content does not match"
@@ -38,7 +32,7 @@ def test_save_code_file_json():
 
 @pytest.mark.asyncio
 async def test_save_code_file_notebook():
-    code = await WriteCodeByGenerate().run(context="basic python, hello world", plan="", code_steps="", temperature=0.0)
+    code = "print('Hello, World!')"
     executor = ExecutePyCode()
     await executor.run(code)
     # Save as a Notebook file

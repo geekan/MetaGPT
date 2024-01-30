@@ -3,7 +3,6 @@ from pydantic import Field
 from metagpt.actions.ask_review import ReviewConst
 from metagpt.actions.execute_code import ExecutePyCode
 from metagpt.actions.write_analysis_code import WriteCodeByGenerate, WriteCodeWithTools
-from metagpt.actions.write_code_steps import WriteCodeSteps
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message, Task, TaskResult
@@ -12,7 +11,6 @@ from metagpt.schema import Message, Task, TaskResult
 class CodeInterpreter(Role):
     auto_run: bool = True
     use_tools: bool = False
-    use_code_steps: bool = False
     execute_code: ExecutePyCode = Field(default_factory=ExecutePyCode, exclude=True)
     tools: list[str] = []
 
@@ -48,10 +46,6 @@ class CodeInterpreter(Role):
         return task_result
 
     async def _write_and_exec_code(self, max_retry: int = 3):
-        self.planner.current_task.code_steps = (
-            await WriteCodeSteps().run(self.planner.plan) if self.use_code_steps else ""
-        )
-
         counter = 0
         success = False
 
