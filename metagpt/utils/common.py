@@ -26,7 +26,7 @@ import traceback
 import typing
 from io import BytesIO
 from pathlib import Path
-from typing import Any, List, Tuple, Union, Callable
+from typing import Any, Callable, List, Tuple, Union
 
 import aiofiles
 import loguru
@@ -612,13 +612,8 @@ def load_mc_skills_code(skill_names: list[str] = None, skills_dir: Path = None) 
     if not skills_dir:
         skills_dir = Path(__file__).parent.absolute()
     if skill_names is None:
-        skill_names = [
-            skill[:-3] for skill in os.listdir(f"{skills_dir}") if skill.endswith(".js")
-        ]
-    skills = [
-        skills_dir.joinpath(f"{skill_name}.js").read_text()
-        for skill_name in skill_names
-    ]
+        skill_names = [skill[:-3] for skill in os.listdir(f"{skills_dir}") if skill.endswith(".js")]
+    skills = [skills_dir.joinpath(f"{skill_name}.js").read_text() for skill_name in skill_names]
     return skills
 
 

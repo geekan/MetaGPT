@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 # @Desc   : base env of executing environment
 
+import asyncio
 from enum import Enum
 from typing import Iterable, Optional, Set, Union
-import asyncio
 
 from pydantic import BaseModel, ConfigDict, Field, SerializeAsAny, model_validator
 
@@ -17,7 +17,7 @@ from metagpt.environment.api.env_api import (
 from metagpt.logs import logger
 from metagpt.roles.role import Role
 from metagpt.schema import Message
-from metagpt.utils.common import is_send_to, is_coroutine_func
+from metagpt.utils.common import is_coroutine_func, is_send_to
 
 
 class EnvType(Enum):
