@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/25 17:21
-@Author  : alexanderwu
-@File    : sales.py
-"""
+# @Time    : 2023/5/25 17:21
+# @Author  : alexanderwu
+# @File    : sales.py
+
 from typing import Optional
 
 from pydantic import Field

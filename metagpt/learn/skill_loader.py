@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/8/18
-@Author  : mashenquan
-@File    : skill_loader.py
-@Desc    : Skill YAML Configuration Loader.
-"""
+# @Time    : 2023/8/18
+# @Author  : mashenquan
+# @File    : skill_loader.py
+# @Desc    : Skill YAML Configuration Loader.
+
 from pathlib import Path
 from typing import Dict, List, Optional
 

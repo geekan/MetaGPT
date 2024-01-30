@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/18 23:51
-@Author  : alexanderwu
-@File    : mock_markdown.py
-"""
+# @Time    : 2023/5/18 23:51
+# @Author  : alexanderwu
+# @File    : mock_markdown.py
+
 
 PRD_SAMPLE = """## Original Requirements
 The original requirement is to create a game similar to the classic text-based adventure game, Zork.

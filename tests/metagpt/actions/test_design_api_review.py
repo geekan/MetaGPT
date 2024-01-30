@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/11 19:31
-@Author  : alexanderwu
-@File    : test_design_api_review.py
-"""
+# @Time    : 2023/5/11 19:31
+# @Author  : alexanderwu
+# @File    : test_design_api_review.py
+
 import pytest
 
 from metagpt.actions.design_api_review import DesignReview

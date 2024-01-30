@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/12/24 20:32
-@Author  : alexanderwu
-@File    : mock_json.py
-"""
+# @Time    : 2023/12/24 20:32
+# @Author  : alexanderwu
+# @File    : mock_json.py
+
 
 PRD = {
     "Language": "zh_cn",

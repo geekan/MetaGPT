@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/8/27
-@Author  : mashenquan
-@File    : test_brain_memory.py
-"""
+# @Time    : 2023/8/27
+# @Author  : mashenquan
+# @File    : test_brain_memory.py
+
 
 import pytest
 

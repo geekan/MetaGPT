@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@File    : spark_api.py
-"""
+# @File    : spark_api.py
+
 import _thread as thread
 import base64
 import datetime

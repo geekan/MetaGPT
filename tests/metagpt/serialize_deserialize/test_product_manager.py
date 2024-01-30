@@ -2,6 +2,7 @@
 # @Date    : 11/26/2023 2:07 PM
 # @Author  : stellahong (stellahong@fuzhi.ai)
 # @Desc    :
+
 import pytest
 
 from metagpt.actions.action import Action

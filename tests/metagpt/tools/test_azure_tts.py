@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/7/1 22:50
-@Author  : alexanderwu
-@File    : test_azure_tts.py
-@Modified By: mashenquan, 2023-8-9, add more text formatting options
-@Modified By: mashenquan, 2023-8-17, move to `tools` folder.
-"""
+# @Time    : 2023/7/1 22:50
+# @Author  : alexanderwu
+# @File    : test_azure_tts.py
+# @Modified By: mashenquan, 2023-8-9, add more text formatting options
+# @Modified By: mashenquan, 2023-8-17, move to `tools` folder.
+
 from pathlib import Path
 
 import pytest

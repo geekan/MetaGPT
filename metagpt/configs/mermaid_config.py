@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2024/1/4 19:07
-@Author  : alexanderwu
-@File    : mermaid_config.py
-"""
+# @Time    : 2024/1/4 19:07
+# @Author  : alexanderwu
+# @File    : mermaid_config.py
+
 from typing import Literal
 
 from metagpt.utils.yaml_model import YamlModel

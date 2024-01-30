@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/4/29 15:45
-@Author  : alexanderwu
-@File    : read_document.py
-"""
+# @Time    : 2023/4/29 15:45
+# @Author  : alexanderwu
+# @File    : read_document.py
+
 
 import docx
 

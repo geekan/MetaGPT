@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/5 23:08
-@Author  : alexanderwu
-@File    : openai.py
-@Modified By: mashenquan, 2023/11/21. Fix bug: ReadTimeout.
-@Modified By: mashenquan, 2023/12/1. Fix bug: Unclosed connection caused by openai 0.x.
-"""
+# @Time    : 2023/5/5 23:08
+# @Author  : alexanderwu
+# @File    : openai.py
+# @Modified By: mashenquan, 2023/11/21. Fix bug: ReadTimeout.
+# @Modified By: mashenquan, 2023/12/1. Fix bug: Unclosed connection caused by openai 0.x.
 
 import json
 from typing import AsyncIterator, Optional, Union

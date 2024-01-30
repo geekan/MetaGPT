@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2024/1/4 10:18
-@Author  : alexanderwu
-@File    : YamlModel.py
-"""
+# @Time    : 2024/1/4 10:18
+# @Author  : alexanderwu
+# @File    : YamlModel.py
+
 from pathlib import Path
 from typing import Dict, Optional
 

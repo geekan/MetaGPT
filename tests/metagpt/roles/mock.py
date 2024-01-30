@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/12 13:05
-@Author  : alexanderwu
-@File    : mock_markdown.py
-"""
+# @Time    : 2023/5/12 13:05
+# @Author  : alexanderwu
+# @File    : mock_markdown.py
+
 import json
 
 from metagpt.actions import UserRequirement, WriteDesign, WritePRD, WriteTasks

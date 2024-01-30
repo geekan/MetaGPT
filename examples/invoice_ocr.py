@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 # _*_ coding: utf-8 _*_
 
-"""
-@Time    : 2023/9/21 21:40:57
-@Author  : Stitch-z
-@File    : invoice_ocr.py
-"""
+# @Time    : 2023/9/21 21:40:57
+# @Author  : Stitch-z
+# @File    : invoice_ocr.py
+
 
 import asyncio
 from pathlib import Path

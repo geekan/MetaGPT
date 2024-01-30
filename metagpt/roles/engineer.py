@@ -1,21 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/11 14:43
-@Author  : alexanderwu
-@File    : engineer.py
-@Modified By: mashenquan, 2023-11-1. In accordance with Chapter 2.2.1 and 2.2.2 of RFC 116:
-    1. Modify the data type of the `cause_by` value in the `Message` to a string, and utilize the new message
-        distribution feature for message filtering.
-    2. Consolidate message reception and processing logic within `_observe`.
-    3. Fix bug: Add logic for handling asynchronous message processing when messages are not ready.
-    4. Supplemented the external transmission of internal messages.
-@Modified By: mashenquan, 2023-11-27.
-    1. According to Section 2.2.3.1 of RFC 135, replace file data in the message with the file name.
-    2. According to the design in Section 2.2.3.5.5 of RFC 135, add incremental iteration functionality.
-@Modified By: mashenquan, 2023-12-5. Enhance the workflow to navigate to WriteCode or QaEngineer based on the results
-    of SummarizeCode.
-"""
+# @Time    : 2023/5/11 14:43
+# @Author  : alexanderwu
+# @File    : engineer.py
+# @Modified By: mashenquan, 2023-11-1. In accordance with Chapter 2.2.1 and 2.2.2 of RFC 116:
+#     1. Modify the data type of the `cause_by` value in the `Message` to a string, and utilize the new message
+#         distribution feature for message filtering.
+#     2. Consolidate message reception and processing logic within `_observe`.
+#     3. Fix bug: Add logic for handling asynchronous message processing when messages are not ready.
+#     4. Supplemented the external transmission of internal messages.
+# @Modified By: mashenquan, 2023-11-27.
+#     1. According to Section 2.2.3.1 of RFC 135, replace file data in the message with the file name.
+#     2. According to the design in Section 2.2.3.5.5 of RFC 135, add incremental iteration functionality.
+# @Modified By: mashenquan, 2023-12-5. Enhance the workflow to navigate to WriteCode or QaEngineer based on the results
+#     of SummarizeCode.
 
 from __future__ import annotations
 

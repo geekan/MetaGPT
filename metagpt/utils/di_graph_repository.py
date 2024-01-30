@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/12/19
-@Author  : mashenquan
-@File    : di_graph_repository.py
-@Desc    : Graph repository based on DiGraph
-"""
+# @Time    : 2023/12/19
+# @Author  : mashenquan
+# @File    : di_graph_repository.py
+# @Desc    : Graph repository based on DiGraph
+
 from __future__ import annotations
 
 import json

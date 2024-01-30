@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/8/17
-@Author  : mashenquan
-@File    : text_to_speech.py
-@Desc    : Text-to-Speech skill, which provides text-to-speech functionality
-"""
+# @Time    : 2023/8/17
+# @Author  : mashenquan
+# @File    : text_to_speech.py
+# @Desc    : Text-to-Speech skill, which provides text-to-speech functionality
+
 import metagpt.config2
 from metagpt.config2 import Config
 from metagpt.const import BASE64_FORMAT

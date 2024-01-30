@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/9/4 16:12
-@Author  : alitrack
-@File    : mermaid.py
-"""
+# @Time    : 2023/9/4 16:12
+# @Author  : alitrack
+# @File    : mermaid.py
+
 import base64
 
 from aiohttp import ClientError, ClientSession

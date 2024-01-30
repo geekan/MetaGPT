@@ -1,17 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/8 22:12
-@Author  : alexanderwu
-@File    : schema.py
-@Modified By: mashenquan, 2023-10-31. According to Chapter 2.2.1 of RFC 116:
-        Replanned the distribution of responsibilities and functional positioning of `Message` class attributes.
-@Modified By: mashenquan, 2023/11/22.
-        1. Add `Document` and `Documents` for `FileRepository` in Section 2.2.3.4 of RFC 135.
-        2. Encapsulate the common key-values set to pydantic structures to standardize and unify parameter passing
-        between actions.
-        3. Add `id` to `Message` according to Section 2.2.3.1.1 of RFC 135.
-"""
+# @Time    : 2023/5/8 22:12
+# @Author  : alexanderwu
+# @File    : schema.py
+# @Modified By: mashenquan, 2023-10-31. According to Chapter 2.2.1 of RFC 116:
+#         Replanned the distribution of responsibilities and functional positioning of `Message` class attributes.
+# @Modified By: mashenquan, 2023/11/22.
+#         1. Add `Document` and `Documents` for `FileRepository` in Section 2.2.3.4 of RFC 135.
+#         2. Encapsulate the common key-values set to pydantic structures to standardize and unify parameter passing
+#         between actions.
+#         3. Add `id` to `Message` according to Section 2.2.3.1.1 of RFC 135.
 
 from __future__ import annotations
 

@@ -2,6 +2,7 @@
 # @Date    : 12/25/2023 9:14 PM
 # @Author  : stellahong (stellahong@fuzhi.ai)
 # @Desc    :
+
 from enum import Enum
 
 from pydantic import BaseModel, Field

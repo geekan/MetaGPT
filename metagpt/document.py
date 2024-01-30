@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/6/8 14:03
-@Author  : alexanderwu
-@File    : document.py
-@Desc    : Classes and Operations Related to Files in the File System.
-"""
+# @Time    : 2023/6/8 14:03
+# @Author  : alexanderwu
+# @File    : document.py
+# @Desc    : Classes and Operations Related to Files in the File System.
+
 from enum import Enum
 from pathlib import Path
 from typing import Optional, Union

@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/20 10:40
-@Author  : alexanderwu
-@File    : test_schema.py
-@Modified By: mashenquan, 2023-11-1. In line with Chapter 2.2.1 and 2.2.2 of RFC 116, introduce unit tests for
-            the utilization of the new feature of `Message` class.
-"""
+# @Time    : 2023/5/20 10:40
+# @Author  : alexanderwu
+# @File    : test_schema.py
+# @Modified By: mashenquan, 2023-11-1. In line with Chapter 2.2.1 and 2.2.2 of RFC 116, introduce unit tests for
+#             the utilization of the new feature of `Message` class.
+
 
 import json
 

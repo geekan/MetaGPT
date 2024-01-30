@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/8/18
-@Author  : mashenquan
-@File    : openai_text_to_embedding.py
-@Desc    : OpenAI Text-to-Embedding OAS3 api, which provides text-to-embedding functionality.
-            For more details, checkout: `https://platform.openai.com/docs/api-reference/embeddings/object`
-"""
+# @Time    : 2023/8/18
+# @Author  : mashenquan
+# @File    : openai_text_to_embedding.py
+# @Desc    : OpenAI Text-to-Embedding OAS3 api, which provides text-to-embedding functionality.
+#             For more details, checkout: `https://platform.openai.com/docs/api-reference/embeddings/object`
+
 from typing import List
 
 import aiohttp

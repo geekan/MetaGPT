@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/23 18:27
-@Author  : alexanderwu
-@File    : search_engine_serpapi.py
-"""
+# @Time    : 2023/5/23 18:27
+# @Author  : alexanderwu
+# @File    : search_engine_serpapi.py
+
 from typing import Any, Dict, Optional, Tuple
 
 import aiohttp

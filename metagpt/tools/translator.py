@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/4/29 15:36
-@Author  : alexanderwu
-@File    : translator.py
-"""
+# @Time    : 2023/4/29 15:36
+# @Author  : alexanderwu
+# @File    : translator.py
+
 
 prompt = """
 # 指令

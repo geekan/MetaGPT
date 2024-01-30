@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/12/26
-@Author  : mannaandpoem
-@File    : write_code_plan_and_change_an.py
-"""
+# @Time    : 2023/12/26
+# @Author  : mannaandpoem
+# @File    : write_code_plan_and_change_an.py
+
 import os
 
 from pydantic import Field

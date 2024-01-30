@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/6/6 00:41
-@Author  : alexanderwu
-@File    : test_chromadb_store.py
-"""
+# @Time    : 2023/6/6 00:41
+# @Author  : alexanderwu
+# @File    : test_chromadb_store.py
+
 from metagpt.document_store.chromadb_store import ChromaStore
 
 

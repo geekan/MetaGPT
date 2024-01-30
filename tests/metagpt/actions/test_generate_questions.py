@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/9/13 00:26
-@Author  : fisherdeng
-@File    : test_generate_questions.py
-"""
+# @Time    : 2023/9/13 00:26
+# @Author  : fisherdeng
+# @File    : test_generate_questions.py
+
 import pytest
 
 from metagpt.actions.generate_questions import GenerateQuestions

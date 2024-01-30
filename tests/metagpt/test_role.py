@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/11 14:44
-@Author  : alexanderwu
-@File    : test_role.py
-@Modified By: mashenquan, 2023-11-1. In line with Chapter 2.2.1 and 2.2.2 of RFC 116, introduce unit tests for
-            the utilization of the new message distribution feature in message handling.
-@Modified By: mashenquan, 2023-11-4. According to the routing feature plan in Chapter 2.2.3.2 of RFC 113, the routing
-    functionality is to be consolidated into the `Environment` class.
-"""
+# @Time    : 2023/5/11 14:44
+# @Author  : alexanderwu
+# @File    : test_role.py
+# @Modified By: mashenquan, 2023-11-1. In line with Chapter 2.2.1 and 2.2.2 of RFC 116, introduce unit tests for
+#             the utilization of the new message distribution feature in message handling.
+# @Modified By: mashenquan, 2023-11-4. According to the routing feature plan in Chapter 2.2.3.2 of RFC 113, the routing
+#     functionality is to be consolidated into the `Environment` class.
+
 import uuid
 from unittest.mock import MagicMock
 

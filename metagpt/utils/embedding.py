@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2024/1/4 20:58
-@Author  : alexanderwu
-@File    : embedding.py
-"""
+# @Time    : 2024/1/4 20:58
+# @Author  : alexanderwu
+# @File    : embedding.py
+
 from langchain_community.embeddings import OpenAIEmbeddings
 
 from metagpt.config2 import config

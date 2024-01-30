@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/5 23:04
-@Author  : alexanderwu
-@File    : base_llm.py
-@Desc    : mashenquan, 2023/8/22. + try catch
-"""
+# @Time    : 2023/5/5 23:04
+# @Author  : alexanderwu
+# @File    : base_llm.py
+# @Desc    : mashenquan, 2023/8/22. + try catch
+
 import json
 from abc import ABC, abstractmethod
 from typing import Optional, Union

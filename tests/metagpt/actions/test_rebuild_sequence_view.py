@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2024/1/4
-@Author  : mashenquan
-@File    : test_rebuild_sequence_view.py
-"""
+# @Time    : 2024/1/4
+# @Author  : mashenquan
+# @File    : test_rebuild_sequence_view.py
+
 from pathlib import Path
 
 import pytest

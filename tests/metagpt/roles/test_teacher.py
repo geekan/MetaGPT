@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/7/27 13:25
-@Author  : mashenquan
-@File    : test_teacher.py
-"""
+# @Time    : 2023/7/27 13:25
+# @Author  : mashenquan
+# @File    : test_teacher.py
+
 from typing import Dict, Optional
 
 import pytest

@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/11 17:46
-@Author  : mashenquan
-@File    : test_summarize_code.py
-@Modifiled By: mashenquan, 2023-12-6. Unit test for summarize_code.py
-"""
+# @Time    : 2023/5/11 17:46
+# @Author  : mashenquan
+# @File    : test_summarize_code.py
+# @Modifiled By: mashenquan, 2023-12-6. Unit test for summarize_code.py
+
 import uuid
 from pathlib import Path
 

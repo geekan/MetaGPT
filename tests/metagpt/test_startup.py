@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/15 11:40
-@Author  : alexanderwu
-@File    : test_startup.py
-"""
+# @Time    : 2023/5/15 11:40
+# @Author  : alexanderwu
+# @File    : test_startup.py
+
 import pytest
 from typer.testing import CliRunner
 

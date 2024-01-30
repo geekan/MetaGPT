@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/9/13 12:26
-@Author  : femto Zheng
-@File    : execute_task.py
-"""
+# @Time    : 2023/9/13 12:26
+# @Author  : femto Zheng
+# @File    : execute_task.py
 
 
 from metagpt.actions import Action

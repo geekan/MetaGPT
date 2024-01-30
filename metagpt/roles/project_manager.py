@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/11 15:04
-@Author  : alexanderwu
-@File    : project_manager.py
-"""
+# @Time    : 2023/5/11 15:04
+# @Author  : alexanderwu
+# @File    : project_manager.py
+
 
 from metagpt.actions import WriteTasks
 from metagpt.actions.design_api import WriteDesign

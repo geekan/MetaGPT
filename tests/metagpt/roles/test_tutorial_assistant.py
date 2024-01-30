@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 # _*_ coding: utf-8 _*_
-"""
-@Time    : 2023/9/6 23:11:27
-@Author  : Stitch-z
-@File    : test_tutorial_assistant.py
-"""
+# @Time    : 2023/9/6 23:11:27
+# @Author  : Stitch-z
+# @File    : test_tutorial_assistant.py
+
 
 import aiofiles
 import pytest

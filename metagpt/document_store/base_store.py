@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/28 00:01
-@Author  : alexanderwu
-@File    : base_store.py
-"""
+# @Time    : 2023/5/28 00:01
+# @Author  : alexanderwu
+# @File    : base_store.py
+
 from abc import ABC, abstractmethod
 from pathlib import Path
 

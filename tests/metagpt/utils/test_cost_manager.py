@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/12/27
-@Author  : mashenquan
-@File    : test_cost_manager.py
-"""
+# @Time    : 2023/12/27
+# @Author  : mashenquan
+# @File    : test_cost_manager.py
+
 import pytest
 
 from metagpt.utils.cost_manager import CostManager

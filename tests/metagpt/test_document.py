@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2024/1/2 21:00
-@Author  : alexanderwu
-@File    : test_document.py
-"""
+# @Time    : 2024/1/2 21:00
+# @Author  : alexanderwu
+# @File    : test_document.py
+
 from metagpt.config2 import config
 from metagpt.document import Repo
 from metagpt.logs import logger

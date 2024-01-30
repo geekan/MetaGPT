@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/7/27
-@Author  : mashenquan
-@File    : write_teaching_plan.py
-"""
+# @Time    : 2023/7/27
+# @Author  : mashenquan
+# @File    : write_teaching_plan.py
+
 from typing import Optional
 
 from metagpt.actions import Action

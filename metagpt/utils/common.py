@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/4/29 16:07
-@Author  : alexanderwu
-@File    : common.py
-@Modified By: mashenquan, 2023-11-1. According to Chapter 2.2.2 of RFC 116:
-        Add generic class-to-string and object-to-string conversion functionality.
-@Modified By: mashenquan, 2023/11/27. Bug fix: `parse_recipient` failed to parse the recipient in certain GPT-3.5
-        responses.
-"""
+# @Time    : 2023/4/29 16:07
+# @Author  : alexanderwu
+# @File    : common.py
+# @Modified By: mashenquan, 2023-11-1. According to Chapter 2.2.2 of RFC 116:
+#         Add generic class-to-string and object-to-string conversion functionality.
+# @Modified By: mashenquan, 2023/11/27. Bug fix: `parse_recipient` failed to parse the recipient in certain GPT-3.5
+#         responses.
+
 from __future__ import annotations
 
 import ast

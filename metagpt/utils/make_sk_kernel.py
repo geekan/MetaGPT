@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/9/13 12:29
-@Author  : femto Zheng
-@File    : make_sk_kernel.py
-"""
+# @Time    : 2023/9/13 12:29
+# @Author  : femto Zheng
+# @File    : make_sk_kernel.py
+
 import semantic_kernel as sk
 from semantic_kernel.connectors.ai.open_ai.services.azure_chat_completion import (
     AzureChatCompletion,

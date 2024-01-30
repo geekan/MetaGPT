@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/11 17:45
-@Author  : alexanderwu
-@File    : write_prd_review.py
-"""
+# @Time    : 2023/5/11 17:45
+# @Author  : alexanderwu
+# @File    : write_prd_review.py
+
 
 from typing import Optional
 

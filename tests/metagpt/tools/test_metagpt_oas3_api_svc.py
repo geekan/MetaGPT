@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/12/26
-@Author  : mashenquan
-@File    : test_metagpt_oas3_api_svc.py
-"""
+# @Time    : 2023/12/26
+# @Author  : mashenquan
+# @File    : test_metagpt_oas3_api_svc.py
+
 import asyncio
 import subprocess
 from pathlib import Path

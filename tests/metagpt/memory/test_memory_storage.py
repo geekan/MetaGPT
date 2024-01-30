@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Desc   : the unittests of metagpt/memory/memory_storage.py
-"""
+# @Desc   : the unittests of metagpt/memory/memory_storage.py
+
 
 import os
 import shutil

@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/11/17 17:58
-@Author  : alexanderwu
-@File    : repo_parser.py
-"""
+# @Time    : 2023/11/17 17:58
+# @Author  : alexanderwu
+# @File    : repo_parser.py
+
 from __future__ import annotations
 
 import ast

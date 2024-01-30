@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/6/11 21:08
-@Author  : hezhaozhao
-@File    : test_qdrant_store.py
-"""
+# @Time    : 2023/6/11 21:08
+# @Author  : hezhaozhao
+# @File    : test_qdrant_store.py
+
 import random
 
 from qdrant_client.models import (

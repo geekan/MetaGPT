@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/9/4 16:12
-@Author  : alitrack
-@File    : mmdc_pyppeteer.py
-"""
+# @Time    : 2023/9/4 16:12
+# @Author  : alitrack
+# @File    : mmdc_pyppeteer.py
+
 import os
 from urllib.parse import urljoin
 

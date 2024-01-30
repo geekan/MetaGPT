@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/6/19 23:07
-@Author  : alexanderwu
-@File    : summarize.py
-"""
+# @Time    : 2023/6/19 23:07
+# @Author  : alexanderwu
+# @File    : summarize.py
+
 
 # From the plugin: ChatGPT - Website and YouTube Video Summaries
 # https://chrome.google.com/webstore/detail/chatgpt-%C2%BB-summarize-every/cbgecfllfhmmnknmamkejadjmnmpfjmp?hl=en&utm_source=chrome-ntp-launcher

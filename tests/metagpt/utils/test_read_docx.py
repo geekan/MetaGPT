@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/4/29 16:02
-@Author  : alexanderwu
-@File    : test_read_docx.py
-"""
+# @Time    : 2023/4/29 16:02
+# @Author  : alexanderwu
+# @File    : test_read_docx.py
+
 import pytest
 
 from metagpt.const import METAGPT_ROOT

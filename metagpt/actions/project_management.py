@@ -1,14 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/11 19:12
-@Author  : alexanderwu
-@File    : project_management.py
-@Modified By: mashenquan, 2023/11/27.
-        1. Divide the context into three components: legacy code, unit test code, and console log.
-        2. Move the document storage operations related to WritePRD from the save operation of WriteDesign.
-        3. According to the design in Section 2.2.3.5.4 of RFC 135, add incremental iteration functionality.
-"""
+# @Time    : 2023/5/11 19:12
+# @Author  : alexanderwu
+# @File    : project_management.py
+# @Modified By: mashenquan, 2023/11/27.
+#         1. Divide the context into three components: legacy code, unit test code, and console log.
+#         2. Move the document storage operations related to WritePRD from the save operation of WriteDesign.
+#         3. According to the design in Section 2.2.3.5.4 of RFC 135, add incremental iteration functionality.
 
 import json
 from typing import Optional

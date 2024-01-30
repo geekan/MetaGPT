@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2024/01/03
-@Author  : mannaandpoem
-@File    : test_incremental_dev.py
-"""
+# @Time    : 2024/01/03
+# @Author  : mannaandpoem
+# @File    : test_incremental_dev.py
+
 import os
 import subprocess
 import time

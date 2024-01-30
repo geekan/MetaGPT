@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/18 22:43
-@Author  : alexanderwu
-@File    : prompt.py
-"""
+# @Time    : 2023/5/18 22:43
+# @Author  : alexanderwu
+# @File    : prompt.py
+
 from enum import Enum
 
 PREFIX = """Answer the questions to the best of your ability. You can use the following tools:"""

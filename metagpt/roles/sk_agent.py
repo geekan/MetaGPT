@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/9/13 12:23
-@Author  : femto Zheng
-@File    : sk_agent.py
-@Modified By: mashenquan, 2023-11-1. In accordance with Chapter 2.2.1 and 2.2.2 of RFC 116, utilize the new message
-        distribution feature for message filtering.
-"""
+# @Time    : 2023/9/13 12:23
+# @Author  : femto Zheng
+# @File    : sk_agent.py
+# @Modified By: mashenquan, 2023-11-1. In accordance with Chapter 2.2.1 and 2.2.2 of RFC 116, utilize the new message
+#         distribution feature for message filtering.
+
 from typing import Any, Callable, Union
 
 from pydantic import Field

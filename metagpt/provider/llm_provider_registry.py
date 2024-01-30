@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/12/19 17:26
-@Author  : alexanderwu
-@File    : llm_provider_registry.py
-"""
+# @Time    : 2023/12/19 17:26
+# @Author  : alexanderwu
+# @File    : llm_provider_registry.py
+
 from metagpt.configs.llm_config import LLMConfig, LLMType
 from metagpt.provider.base_llm import BaseLLM
 

@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/7/4 10:53
-@Author  : alexanderwu alitrack
-@File    : mermaid.py
-"""
+# @Time    : 2023/7/4 10:53
+# @Author  : alexanderwu alitrack
+# @File    : mermaid.py
+
 import asyncio
 import os
 from pathlib import Path

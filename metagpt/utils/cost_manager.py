@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/8/28
-@Author  : mashenquan
-@File    : openai.py
-@Desc    : mashenquan, 2023/8/28. Separate the `CostManager` class to support user-level cost accounting.
-"""
+# @Time    : 2023/8/28
+# @Author  : mashenquan
+# @File    : openai.py
+# @Desc    : mashenquan, 2023/8/28. Separate the `CostManager` class to support user-level cost accounting.
 
 from typing import NamedTuple
 

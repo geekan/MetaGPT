@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/8/18
-@Author  : mashenquan
-@File    : text_to_embedding.py
-@Desc    : Text-to-Embedding skill, which provides text-to-embedding functionality.
-"""
+# @Time    : 2023/8/18
+# @Author  : mashenquan
+# @File    : text_to_embedding.py
+# @Desc    : Text-to-Embedding skill, which provides text-to-embedding functionality.
+
 import metagpt.config2
 from metagpt.config2 import Config
 from metagpt.tools.openai_text_to_embedding import oas3_openai_text_to_embedding

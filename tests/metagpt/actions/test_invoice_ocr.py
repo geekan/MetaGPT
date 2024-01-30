@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 # _*_ coding: utf-8 _*_
 
-"""
-@Time    : 2023/10/09 18:40:34
-@Author  : Stitch-z
-@File    : test_invoice_ocr.py
-"""
+# @Time    : 2023/10/09 18:40:34
+# @Author  : Stitch-z
+# @File    : test_invoice_ocr.py
+
 
 from pathlib import Path
 

@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Author  : alexanderwu
-@File    : summarize_code.py
-@Modified By: mashenquan, 2023/12/5. Archive the summarization content of issue discovery for use in WriteCode.
-"""
+# @Author  : alexanderwu
+# @File    : summarize_code.py
+# @Modified By: mashenquan, 2023/12/5. Archive the summarization content of issue discovery for use in WriteCode.
+
 from pathlib import Path
 
 from pydantic import Field

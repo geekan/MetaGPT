@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/11 16:15
-@Author  : alexanderwu
-@File    : singleton.py
-"""
+# @Time    : 2023/5/11 16:15
+# @Author  : alexanderwu
+# @File    : singleton.py
+
 import abc
 
 

@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/11 19:26
-@Author  : alexanderwu
-@File    : design_api.py
-@Modified By: mashenquan, 2023/11/27.
-            1. According to Section 2.2.3.1 of RFC 135, replace file data in the message with the file name.
-            2. According to the design in Section 2.2.3.5.3 of RFC 135, add incremental iteration functionality.
-@Modified By: mashenquan, 2023/12/5. Move the generation logic of the project name to WritePRD.
-"""
+# @Time    : 2023/5/11 19:26
+# @Author  : alexanderwu
+# @File    : design_api.py
+# @Modified By: mashenquan, 2023/11/27.
+#             1. According to Section 2.2.3.1 of RFC 135, replace file data in the message with the file name.
+#             2. According to the design in Section 2.2.3.5.3 of RFC 135, add incremental iteration functionality.
+# @Modified By: mashenquan, 2023/12/5. Move the generation logic of the project name to WritePRD.
+
 import json
 from pathlib import Path
 from typing import Optional

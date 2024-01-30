@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/24 17:54
-@Author  : alexanderwu
-@File    : test_token_counter.py
-"""
+# @Time    : 2023/5/24 17:54
+# @Author  : alexanderwu
+# @File    : test_token_counter.py
+
 import pytest
 
 from metagpt.utils.token_counter import count_message_tokens, count_string_tokens

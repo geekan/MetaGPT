@@ -1,13 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/7/27
-@Author  : mashenquan
-@File    : teacher.py
-@Desc    : Used by Agent Store
-@Modified By: mashenquan, 2023/8/22. A definition has been provided for the return value of _think: returning false indicates that further reasoning cannot continue.
-
-"""
+# @Time    : 2023/7/27
+# @Author  : mashenquan
+# @File    : teacher.py
+# @Desc    : Used by Agent Store
+# @Modified By: mashenquan, 2023/8/22. A definition has been provided for the return value of _think: returning false indicates that further reasoning cannot continue.
 
 import re
 

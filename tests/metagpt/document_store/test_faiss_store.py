@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/27 20:20
-@Author  : alexanderwu
-@File    : test_faiss_store.py
-"""
+# @Time    : 2023/5/27 20:20
+# @Author  : alexanderwu
+# @File    : test_faiss_store.py
+
 
 import pytest
 

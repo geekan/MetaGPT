@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Author  : alexanderwu
-@File    : write_review.py
-"""
+# @Author  : alexanderwu
+# @File    : write_review.py
+
 import asyncio
 from typing import List, Literal
 

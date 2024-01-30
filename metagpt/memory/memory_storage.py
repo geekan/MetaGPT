@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Desc   : the implement of memory storage
-"""
+# @Desc   : the implement of memory storage
+
 
 from pathlib import Path
 from typing import Optional

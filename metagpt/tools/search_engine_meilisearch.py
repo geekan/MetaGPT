@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/22 21:33
-@Author  : alexanderwu
-@File    : search_engine_meilisearch.py
-"""
+# @Time    : 2023/5/22 21:33
+# @Author  : alexanderwu
+# @File    : search_engine_meilisearch.py
+
 
 from typing import List
 

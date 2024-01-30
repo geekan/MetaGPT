@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Desc   : the implement of Long-term memory
-"""
+# @Desc   : the implement of Long-term memory
+
 
 from typing import Optional
 

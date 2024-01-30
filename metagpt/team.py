@@ -1,12 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/12 00:30
-@Author  : alexanderwu
-@File    : team.py
-@Modified By: mashenquan, 2023/11/27. Add an archiving operation after completing the project, as specified in
-        Section 2.2.3.3 of RFC 135.
-"""
+# @Time    : 2023/5/12 00:30
+# @Author  : alexanderwu
+# @File    : team.py
+# @Modified By: mashenquan, 2023/11/27. Add an archiving operation after completing the project, as specified in
+#         Section 2.2.3.3 of RFC 135.
 
 import warnings
 from pathlib import Path

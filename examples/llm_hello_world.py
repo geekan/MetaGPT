@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/6 14:13
-@Author  : alexanderwu
-@File    : llm_hello_world.py
-"""
+# @Time    : 2023/5/6 14:13
+# @Author  : alexanderwu
+# @File    : llm_hello_world.py
+
 import asyncio
 
 from metagpt.llm import LLM

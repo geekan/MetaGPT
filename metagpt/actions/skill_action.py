@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/8/28
-@Author  : mashenquan
-@File    : skill_action.py
-@Desc    : Call learned skill
-"""
+# @Time    : 2023/8/28
+# @Author  : mashenquan
+# @File    : skill_action.py
+# @Desc    : Call learned skill
+
 from __future__ import annotations
 
 import ast

@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/9/26 14:46
-@Author  : zhanglei
-@File    : test_moderation.py
-"""
+# @Time    : 2023/9/26 14:46
+# @Author  : zhanglei
+# @File    : test_moderation.py
+
 
 import pytest
 

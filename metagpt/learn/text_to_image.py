@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/8/18
-@Author  : mashenquan
-@File    : text_to_image.py
-@Desc    : Text-to-Image skill, which provides text-to-image functionality.
-"""
+# @Time    : 2023/8/18
+# @Author  : mashenquan
+# @File    : text_to_image.py
+# @Desc    : Text-to-Image skill, which provides text-to-image functionality.
+
 import base64
 
 import metagpt.config2

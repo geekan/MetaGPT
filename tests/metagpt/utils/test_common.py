@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/4/29 16:19
-@Author  : alexanderwu
-@File    : test_common.py
-@Modified by: mashenquan, 2023/11/21. Add unit tests.
-"""
+# @Time    : 2023/4/29 16:19
+# @Author  : alexanderwu
+# @File    : test_common.py
+# @Modified by: mashenquan, 2023/11/21. Add unit tests.
+
 import importlib
 import os
 import platform

@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/12/19
-@Author  : mashenquan
-@File    : graph_repository.py
-@Desc    : Superclass for graph repository.
-"""
+# @Time    : 2023/12/19
+# @Author  : mashenquan
+# @File    : graph_repository.py
+# @Desc    : Superclass for graph repository.
 
 from abc import ABC, abstractmethod
 from pathlib import Path

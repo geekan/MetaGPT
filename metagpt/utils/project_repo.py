@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2024/1/8
-@Author  : mashenquan
-@File    : project_repo.py
-@Desc    : Wrapper for GitRepository and FileRepository of project.
-    Implementation of Chapter 4.6 of https://deepwisdom.feishu.cn/wiki/CUK4wImd7id9WlkQBNscIe9cnqh
-"""
+# @Time    : 2024/1/8
+# @Author  : mashenquan
+# @File    : project_repo.py
+# @Desc    : Wrapper for GitRepository and FileRepository of project.
+#     Implementation of Chapter 4.6 of https://deepwisdom.feishu.cn/wiki/CUK4wImd7id9WlkQBNscIe9cnqh
+
 from __future__ import annotations
 
 from pathlib import Path

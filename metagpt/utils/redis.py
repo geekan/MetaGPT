@@ -1,10 +1,9 @@
 # !/usr/bin/python3
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/12/27
-@Author  : mashenquan
-@File    : redis.py
-"""
+# @Time    : 2023/12/27
+# @Author  : mashenquan
+# @File    : redis.py
+
 from __future__ import annotations
 
 import traceback

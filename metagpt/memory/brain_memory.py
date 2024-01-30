@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/8/18
-@Author  : mashenquan
-@File    : brain_memory.py
-@Desc    : Used by AgentStore. Used for long-term storage and automatic compression.
-@Modified By: mashenquan, 2023/9/4. + redis memory cache.
-@Modified By: mashenquan, 2023/12/25. Simplify Functionality.
-"""
+# @Time    : 2023/8/18
+# @Author  : mashenquan
+# @File    : brain_memory.py
+# @Desc    : Used by AgentStore. Used for long-term storage and automatic compression.
+# @Modified By: mashenquan, 2023/9/4. + redis memory cache.
+# @Modified By: mashenquan, 2023/12/25. Simplify Functionality.
+
 import json
 import re
 from typing import Dict, List, Optional

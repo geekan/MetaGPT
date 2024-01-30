@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/12/19
-@Author  : mashenquan
-@File    : rebuild_class_view.py
-@Desc    : Rebuild class view info
-"""
+# @Time    : 2023/12/19
+# @Author  : mashenquan
+# @File    : rebuild_class_view.py
+# @Desc    : Rebuild class view info
+
 import re
 from pathlib import Path
 

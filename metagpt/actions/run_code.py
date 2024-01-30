@@ -1,20 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/11 17:46
-@Author  : alexanderwu
-@File    : run_code.py
-@Modified By: mashenquan, 2023/11/27.
-            1. Mark the location of Console logs in the PROMPT_TEMPLATE with markdown code-block formatting to enhance
-            the understanding for the LLM.
-            2. Fix bug: Add the "install dependency" operation.
-            3. Encapsulate the input of RunCode into RunCodeContext and encapsulate the output of RunCode into
-            RunCodeResult to standardize and unify parameter passing between WriteCode, RunCode, and DebugError.
-            4. According to section 2.2.3.5.7 of RFC 135, change the method of transferring file content
-            (code files, unit test files, log files) from using the message to using the file name.
-            5. Merged the `Config` class of send18:dev branch to take over the set/get operations of the Environment
-            class.
-"""
+# @Time    : 2023/5/11 17:46
+# @Author  : alexanderwu
+# @File    : run_code.py
+# @Modified By: mashenquan, 2023/11/27.
+#             1. Mark the location of Console logs in the PROMPT_TEMPLATE with markdown code-block formatting to enhance
+#             the understanding for the LLM.
+#             2. Fix bug: Add the "install dependency" operation.
+#             3. Encapsulate the input of RunCode into RunCodeContext and encapsulate the output of RunCode into
+#             RunCodeResult to standardize and unify parameter passing between WriteCode, RunCode, and DebugError.
+#             4. According to section 2.2.3.5.7 of RFC 135, change the method of transferring file content
+#             (code files, unit test files, log files) from using the message to using the file name.
+#             5. Merged the `Config` class of send18:dev branch to take over the set/get operations of the Environment
+#             class.
+
 import subprocess
 from pathlib import Path
 from typing import Tuple

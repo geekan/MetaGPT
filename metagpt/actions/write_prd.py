@@ -1,15 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/11 17:45
-@Author  : alexanderwu
-@File    : write_prd.py
-@Modified By: mashenquan, 2023/11/27.
-            1. According to Section 2.2.3.1 of RFC 135, replace file data in the message with the file name.
-            2. According to the design in Section 2.2.3.5.2 of RFC 135, add incremental iteration functionality.
-            3. Move the document storage operations related to WritePRD from the save operation of WriteDesign.
-@Modified By: mashenquan, 2023/12/5. Move the generation logic of the project name to WritePRD.
-"""
+# @Time    : 2023/5/11 17:45
+# @Author  : alexanderwu
+# @File    : write_prd.py
+# @Modified By: mashenquan, 2023/11/27.
+#             1. According to Section 2.2.3.1 of RFC 135, replace file data in the message with the file name.
+#             2. According to the design in Section 2.2.3.5.2 of RFC 135, add incremental iteration functionality.
+#             3. Move the document storage operations related to WritePRD from the save operation of WriteDesign.
+# @Modified By: mashenquan, 2023/12/5. Move the generation logic of the project name to WritePRD.
 
 from __future__ import annotations
 

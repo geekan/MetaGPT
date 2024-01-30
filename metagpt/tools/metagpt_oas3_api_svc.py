@@ -1,16 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/8/17
-@Author  : mashenquan
-@File    : metagpt_oas3_api_svc.py
-@Desc    : MetaGPT OpenAPI Specification 3.0 REST API service
+# @Time    : 2023/8/17
+# @Author  : mashenquan
+# @File    : metagpt_oas3_api_svc.py
+"""MetaGPT OpenAPI Specification 3.0 REST API service
 
-        curl -X 'POST' \
+Example:
+
+    ```bash
+    curl -X 'POST' \
         'http://localhost:8080/openapi/greeting/dave' \
         -H 'accept: text/plain' \
         -H 'Content-Type: application/json' \
         -d '{}'
+    ```
 """
 
 from pathlib import Path

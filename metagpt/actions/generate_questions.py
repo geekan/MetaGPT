@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@File    : generate_questions.py
-"""
+# @File    : generate_questions.py
+
 from metagpt.actions import Action
 from metagpt.actions.action_node import ActionNode
 

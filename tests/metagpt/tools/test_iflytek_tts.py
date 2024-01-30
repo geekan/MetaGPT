@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/12/26
-@Author  : mashenquan
-@File    : test_iflytek_tts.py
-"""
+# @Time    : 2023/12/26
+# @Author  : mashenquan
+# @File    : test_iflytek_tts.py
+
 import pytest
 
 from metagpt.config2 import Config

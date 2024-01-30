@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/16 10:57
-@Author  : alexanderwu
-@File    : test_message.py
-@Modified By: mashenquan, 2023-11-1. Modify coding style.
-"""
+# @Time    : 2023/5/16 10:57
+# @Author  : alexanderwu
+# @File    : test_message.py
+# @Modified By: mashenquan, 2023-11-1. Modify coding style.
+
 import pytest
 
 from metagpt.schema import AIMessage, Message, SystemMessage, UserMessage

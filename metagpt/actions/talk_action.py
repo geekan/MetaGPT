@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/8/28
-@Author  : mashenquan
-@File    : talk_action.py
-@Desc    : Act as it’s a talk
-"""
+# @Time    : 2023/8/28
+# @Author  : mashenquan
+# @File    : talk_action.py
+# @Desc    : Act as it’s a talk
+
 from typing import Optional
 
 from metagpt.actions import Action

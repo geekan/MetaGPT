@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/8/18
-@Author  : mashenquan
-@File    : metagpt_text_to_image.py
-@Desc    : MetaGPT Text-to-Image OAS3 api, which provides text-to-image functionality.
-"""
+# @Time    : 2023/8/18
+# @Author  : mashenquan
+# @File    : metagpt_text_to_image.py
+# @Desc    : MetaGPT Text-to-Image OAS3 api, which provides text-to-image functionality.
+
 import base64
 from typing import Dict, List
 

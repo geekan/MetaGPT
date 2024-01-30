@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 # _*_ coding: utf-8 _*_
-"""
-@Time    : 2023/12/27
-@Author  : mashenquan
-@File    : test_s3.py
-"""
+# @Time    : 2023/12/27
+# @Author  : mashenquan
+# @File    : test_s3.py
+
 import uuid
 from pathlib import Path
 

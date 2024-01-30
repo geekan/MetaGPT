@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/27 22:18
-@Author  : alexanderwu
-@File    : test_search_engine_meilisearch.py
-"""
+# @Time    : 2023/5/27 22:18
+# @Author  : alexanderwu
+# @File    : test_search_engine_meilisearch.py
+
 import subprocess
 import time
 

@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/20 12:15
-@Author  : alexanderwu
-@File    : memory.py
-@Modified By: mashenquan, 2023-11-1. According to RFC 116: Updated the type of index key.
-"""
+# @Time    : 2023/5/20 12:15
+# @Author  : alexanderwu
+# @File    : memory.py
+# @Modified By: mashenquan, 2023-11-1. According to RFC 116: Updated the type of index key.
+
 from collections import defaultdict
 from typing import DefaultDict, Iterable, Set
 

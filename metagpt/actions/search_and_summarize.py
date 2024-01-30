@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/23 17:26
-@Author  : alexanderwu
-@File    : search_google.py
-"""
+# @Time    : 2023/5/23 17:26
+# @Author  : alexanderwu
+# @File    : search_google.py
+
 from typing import Any, Optional
 
 import pydantic

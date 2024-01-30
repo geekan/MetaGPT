@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2024/01/03
-@Author  : mannaandpoem
-@File    : test_write_prd_an.py
-"""
+# @Time    : 2024/01/03
+# @Author  : mannaandpoem
+# @File    : test_write_prd_an.py
+
 import pytest
 from openai._models import BaseModel
 

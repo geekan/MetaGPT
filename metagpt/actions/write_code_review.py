@@ -1,12 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/11 17:45
-@Author  : alexanderwu
-@File    : write_code_review.py
-@Modified By: mashenquan, 2023/11/27. Following the think-act principle, solidify the task parameters when creating the
-        WriteCode object, rather than passing them in when calling the run function.
-"""
+# @Time    : 2023/5/11 17:45
+# @Author  : alexanderwu
+# @File    : write_code_review.py
+# @Modified By: mashenquan, 2023/11/27. Following the think-act principle, solidify the task parameters when creating the
+#         WriteCode object, rather than passing them in when calling the run function.
 
 from pydantic import Field
 from tenacity import retry, stop_after_attempt, wait_random_exponential

@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/8/9 15:42
-@Author  : unkn-wn (Leon Yee)
-@File    : test_lancedb_store.py
-"""
+# @Time    : 2023/8/9 15:42
+# @Author  : unkn-wn (Leon Yee)
+# @File    : test_lancedb_store.py
+
 import random
 
 from metagpt.document_store.lancedb_store import LanceStore

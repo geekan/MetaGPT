@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/9/26 14:27
-@Author  : zhanglei
-@File    : moderation.py
-"""
+# @Time    : 2023/9/26 14:27
+# @Author  : zhanglei
+# @File    : moderation.py
+
 from typing import Union
 
 from metagpt.provider.base_llm import BaseLLM

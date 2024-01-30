@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/8/17
-@Author  : mashenquan
-@File    : openai_text_to_image.py
-@Desc    : OpenAI Text-to-Image OAS3 api, which provides text-to-image functionality.
-"""
+# @Time    : 2023/8/17
+# @Author  : mashenquan
+# @File    : openai_text_to_image.py
+# @Desc    : OpenAI Text-to-Image OAS3 api, which provides text-to-image functionality.
 
 import aiohttp
 import requests

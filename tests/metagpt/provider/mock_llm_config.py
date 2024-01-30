@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2024/1/8 17:03
-@Author  : alexanderwu
-@File    : mock_llm_config.py
-"""
+# @Time    : 2024/1/8 17:03
+# @Author  : alexanderwu
+# @File    : mock_llm_config.py
+
 
 from metagpt.configs.llm_config import LLMConfig
 
