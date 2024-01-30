@@ -1,0 +1,1 @@
+{'tap': 'Tapping this UI element will open the Contacts application.', 'text': '', 'v_swipe': '', 'h_swipe': '', 'long_press': ''}

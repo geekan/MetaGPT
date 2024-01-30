@@ -1,0 +1,1 @@
+{'tap': 'Tapping this UI element allows the user to add a new contact to their contact list.', 'text': '', 'v_swipe': '', 'h_swipe': '', 'long_press': ''}
