@@ -26,7 +26,7 @@ import traceback
 import typing
 from io import BytesIO
 from pathlib import Path
-from typing import Any, List, Tuple, Union
+from typing import Any, List, Tuple, Union, Callable
 
 import aiofiles
 import loguru
@@ -601,6 +601,25 @@ def list_files(root: str | Path) -> List[Path]:
     except Exception as e:
         logger.error(f"Error: {e}")
     return files
+
+
+def is_coroutine_func(func: Callable) -> bool:
+    return inspect.iscoroutinefunction(func)
+
+
+def load_mc_skills_code(skill_names: list[str] = None, skills_dir: Path = None) -> list[str]:
+    """load mincraft skill from js files"""
+    if not skills_dir:
+        skills_dir = Path(__file__).parent.absolute()
+    if skill_names is None:
+        skill_names = [
+            skill[:-3] for skill in os.listdir(f"{skills_dir}") if skill.endswith(".js")
+        ]
+    skills = [
+        skills_dir.joinpath(f"{skill_name}.js").read_text()
+        for skill_name in skill_names
+    ]
+    return skills
 
 
 def encode_image(image_path_or_pil: Union[Path, Image], encoding: str = "utf-8") -> str:
