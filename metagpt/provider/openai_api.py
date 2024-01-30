@@ -262,9 +262,6 @@ class OpenAILLM(BaseLLM):
         )
         imgs = []
         for item in res.data:
-            if resp_format == "url":
-                img_url_or_b64 = item.url
-            else:
-                img_url_or_b64 = item.b64_json
+            img_url_or_b64 = item.url if resp_format == "url" else item.b64_json
             imgs.append(decode_image(img_url_or_b64))
         return imgs
