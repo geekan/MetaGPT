@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # @Desc   : MG Mincraft Env
+#           refs to `voyager voyager.py`
 
 import json
 import re
