@@ -1,0 +1,10 @@
+tap(9):::android.view.ViewGroup_1067_236_android.widget.TextView_183_204_Apps_2
+tap(9):::com.android.launcher3.id_apps_list_view_com.android.launcher3.id_icon_Contacts_7
+tap(6):::com.android.contacts.id_floating_action_button_container_com.android.contacts.id_floating_action_button_addnewcontact_0
+text(4:sep:"zr"):::com.android.contacts.id_editors_android.widget.EditText_775_142_0
+tap(4):::com.android.contacts.id_editors_android.widget.EditText_775_142_0
+text(4:sep:"zr"):::com.android.contacts.id_editors_android.widget.EditText_775_142_0
+tap(6):::com.android.contacts.id_editors_android.widget.EditText_775_142_0
+text(6:sep:"+86 15231955333"):::com.android.contacts.id_editors_android.widget.EditText_775_142_0
+tap(2):::android.widget.LinearLayout_126_147_com.android.contacts.id_menu_save_Save_0
+stop

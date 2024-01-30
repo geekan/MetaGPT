@@ -1,0 +1,1 @@
+{'tap': 'Tapping this UI element saves the new contact information that has been entered into the Contacts app.', 'text': '', 'v_swipe': '', 'h_swipe': '', 'long_press': ''}
