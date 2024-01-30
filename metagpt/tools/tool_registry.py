@@ -24,9 +24,10 @@ class ToolRegistry(BaseModel):
     tool_types: dict = {}
     tools_by_types: dict = defaultdict(dict)  # two-layer k-v, {tool_type: {tool_name: {...}, ...}, ...}
 
-    def register_tool_type(self, tool_type: ToolType):
+    def register_tool_type(self, tool_type: ToolType, verbose: bool = False):
         self.tool_types[tool_type.name] = tool_type
-        logger.info(f"tool type {tool_type.name} registered")
+        if verbose:
+            logger.info(f"tool type {tool_type.name} registered")
 
     def register_tool(
         self,
@@ -38,6 +39,7 @@ class ToolRegistry(BaseModel):
         tool_source_object=None,
         include_functions=[],
         make_schema_if_not_exists=True,
+        verbose=False,
     ):
         if self.has_tool(tool_name):
             return
@@ -68,7 +70,8 @@ class ToolRegistry(BaseModel):
         tool = Tool(name=tool_name, path=tool_path, schemas=schemas, code=tool_code)
         self.tools[tool_name] = tool
         self.tools_by_types[tool_type][tool_name] = tool
-        logger.info(f"{tool_name} registered")
+        if verbose:
+            logger.info(f"{tool_name} registered")
 
     def has_tool(self, key: str) -> Tool:
         return key in self.tools
