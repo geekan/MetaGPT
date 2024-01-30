@@ -5,7 +5,7 @@
 from typing import Optional
 
 import requests
-from pydantic import Field, model_validator, ConfigDict
+from pydantic import ConfigDict, Field, model_validator
 
 from metagpt.const import (
     MC_CKPT_DIR,
