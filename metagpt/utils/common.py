@@ -619,7 +619,7 @@ def load_mc_skills_code(skill_names: list[str] = None, skills_dir: Path = None) 
 
 def encode_image(image_path_or_pil: Union[Path, Image], encoding: str = "utf-8") -> str:
     """encode image from file or PIL.Image into base64"""
-    if isinstance(image_path_or_pil, Image):
+    if isinstance(image_path_or_pil, Image.Image):
         buffer = BytesIO()
         image_path_or_pil.save(buffer, format="JPEG")
         bytes_data = buffer.getvalue()
