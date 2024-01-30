@@ -33,12 +33,12 @@ Now, please generate the corresponding webpage code including HTML, CSS and Java
 @register_tool(tool_type=ToolTypeEnum.IMAGE2WEBPAGE.value)
 class GPTvGenerator:
     def __init__(self):
-        from metagpt.config import CONFIG
+        from metagpt.config2 import config
 
-        OPENAI_API_BASE = CONFIG.OPENAI_BASE_URL
-        API_KEY = CONFIG.OPENAI_API_KEY
-        MODEL = CONFIG.OPENAI_VISION_MODEL
-        MAX_TOKENS = CONFIG.VISION_MAX_TOKENS
+        OPENAI_API_BASE = config.llm.base_url
+        API_KEY = config.llm.api_key
+        MODEL = config.OPENAI_VISION_MODEL
+        MAX_TOKENS = config.VISION_MAX_TOKENS
         self.api_key = API_KEY
         self.api_base = OPENAI_API_BASE
         self.model = MODEL

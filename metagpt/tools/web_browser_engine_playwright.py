@@ -10,7 +10,6 @@ from typing import Literal
 
 from playwright.async_api import async_playwright
 
-from metagpt.config2 import config
 from metagpt.logs import logger
 from metagpt.utils.parse_html import WebPage
 
@@ -30,6 +29,10 @@ class PlaywrightWrapper:
         launch_kwargs: dict | None = None,
         **kwargs,
     ) -> None:
+        from metagpt.config2 import (
+            config,  # avoid circular import error when importing tools"
+        )
+
         self.browser_type = browser_type
         launch_kwargs = launch_kwargs or {}
         if config.proxy and "proxy" not in launch_kwargs:

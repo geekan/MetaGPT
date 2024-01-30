@@ -55,11 +55,11 @@ default_negative_prompt = "(easynegative:0.8),black, dark,Low resolution"
 @register_tool(tool_type=ToolTypeEnum.STABLE_DIFFUSION.value)
 class SDEngine:
     def __init__(self, sd_url=""):
-        from metagpt.config import CONFIG
+        from metagpt.config2 import config
 
         # Initialize the SDEngine with configuration
-        self.sd_url = sd_url if sd_url else CONFIG.get("SD_URL")
-        self.sd_t2i_url = f"{self.sd_url}{CONFIG.get('SD_T2I_API')}"
+        self.sd_url = sd_url if sd_url else config.get("SD_URL")
+        self.sd_t2i_url = f"{self.sd_url}{config.get('SD_T2I_API')}"
         # Define default payload settings for SD API
         self.payload = payload
         logger.info(self.sd_t2i_url)
@@ -82,7 +82,7 @@ class SDEngine:
         return self.payload
 
     def save(self, imgs, save_name=""):
-        save_dir = CONFIG.workspace_path / SD_OUTPUT_FILE_REPO
+        save_dir = config.workspace_path / SD_OUTPUT_FILE_REPO
         if not save_dir.exists():
             save_dir.mkdir(parents=True, exist_ok=True)
         batch_decode_base64_to_image(imgs, str(save_dir), save_name=save_name)
