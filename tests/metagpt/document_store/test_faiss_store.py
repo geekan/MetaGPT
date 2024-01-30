@@ -16,7 +16,7 @@ from metagpt.roles import Sales
 
 @pytest.mark.asyncio
 async def test_search_json():
-    store = FaissStore(EXAMPLE_PATH / "example.json")
+    store = FaissStore(EXAMPLE_PATH / "data/example.json")
     role = Sales(profile="Sales", store=store)
     query = "Which facial cleanser is good for oily skin?"
     result = await role.run(query)
@@ -25,7 +25,7 @@ async def test_search_json():
 
 @pytest.mark.asyncio
 async def test_search_xlsx():
-    store = FaissStore(EXAMPLE_PATH / "example.xlsx", meta_col="Answer", content_col="Question")
+    store = FaissStore(EXAMPLE_PATH / "data/example.xlsx", meta_col="Answer", content_col="Question")
     role = Sales(profile="Sales", store=store)
     query = "Which facial cleanser is good for oily skin?"
     result = await role.run(query)
@@ -34,7 +34,7 @@ async def test_search_xlsx():
 
 @pytest.mark.asyncio
 async def test_write():
-    store = FaissStore(EXAMPLE_PATH / "example.xlsx", meta_col="Answer", content_col="Question")
+    store = FaissStore(EXAMPLE_PATH / "data/example.xlsx", meta_col="Answer", content_col="Question")
     _faiss_store = store.write()
     assert _faiss_store.storage_context.docstore
     assert _faiss_store.storage_context.vector_store.client

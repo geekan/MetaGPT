@@ -27,3 +27,8 @@ class WebBrowserEngineType(Enum):
     def __missing__(cls, key):
         """Default type conversion"""
         return cls.CUSTOM
+
+
+class SearchInterface:
+    async def asearch(self, *args, **kwargs):
+        ...
