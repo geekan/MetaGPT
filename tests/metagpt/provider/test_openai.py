@@ -1,4 +1,5 @@
 import pytest
+from PIL import Image
 
 from metagpt.const import TEST_DATA_PATH
 from metagpt.llm import LLM
@@ -60,6 +61,18 @@ async def test_speech_to_text():
     audio_file = open(f"{TEST_DATA_PATH}/audio/hello.mp3", "rb")
     resp = await llm.aspeech_to_text(file=audio_file, model="whisper-1")
     assert "你好" == resp.text
+
+
+@pytest.mark.asyncio
+async def test_gen_image():
+    llm = LLM()
+    model = "dall-e-3"
+    prompt = 'a logo with word "MetaGPT"'
+    images: list[Image] = await llm.gen_image(model=model, prompt=prompt)
+    assert images[0].size == (1024, 1024)
+
+    images: list[Image] = await llm.gen_image(model=model, prompt=prompt, resp_format="b64_json")
+    assert images[0].size == (1024, 1024)
 
 
 class TestOpenAI:
