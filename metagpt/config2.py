@@ -81,6 +81,8 @@ class Config(CLIParams, YamlModel):
     AZURE_TTS_SUBSCRIPTION_KEY: str = ""
     AZURE_TTS_REGION: str = ""
     mermaid_engine: str = "nodejs"
+    OPENAI_VISION_MODEL: str = "gpt-4-vision-preview"
+    VISION_MAX_TOKENS: int = 4096
 
     @classmethod
     def from_home(cls, path):
