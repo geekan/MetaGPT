@@ -60,7 +60,7 @@ class Action(SerializationMixin, ContextMixin, BaseModel):
 
     @property
     def project_name(self):
-        """Set the project name."""
+        """Get the project name."""
         return self.config.project_name
 
     @project_name.setter
