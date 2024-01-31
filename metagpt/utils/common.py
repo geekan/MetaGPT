@@ -265,19 +265,22 @@ class CodeParser:
         return block_dict
 
     @classmethod
-    def parse_code(cls, block: str, text: str, lang: str = "", start_ends: str = r'["\'`]{3}') -> str:
+    def parse_code(cls, block: str, text: str, lang: str = "") -> str:
         if block:
             text = cls.parse_block(block, text)
-        pattern = rf"{start_ends}{lang}.*?\s+(.*?){start_ends}"
-        match = re.search(pattern, text, re.DOTALL)
-        if match:
-            code = match.group(1)
-        else:
-            logger.error(f"{pattern} not match following text:")
-            logger.error(text)
-            # raise Exception
-            return text  # just assume original text is code
-        return code
+        start_ends = ["```", '"""', "'''"]
+        patterns = []
+        for start_end in start_ends:
+            pattern = rf"{start_end}{lang}.*?\s+(.*?){start_end}"
+            match = re.search(pattern, text, re.DOTALL)
+            if match:
+                code = match.group(1)
+                return code
+            patterns.append(pattern)
+        logger.error(f"{patterns} not match following text:")
+        logger.error(text)
+        # raise Exception
+        return text  # just assume original text is code
 
     @classmethod
     def parse_str(cls, block: str, text: str, lang: str = ""):
