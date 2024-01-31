@@ -302,7 +302,7 @@ class BrainMemory(BaseModel):
             return text
         system_msgs = [
             "You are a tool for summarizing and abstracting text.",
-            "Return the summarized text to less than 200 words.",
+            f"Return the summarized text to less than {max_words} words.",
         ]
         if keep_language:
             system_msgs.append("The generated summary should be in the same language as the original text.")
