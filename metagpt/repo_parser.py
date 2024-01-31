@@ -79,7 +79,7 @@ class DotClassAttribute(BaseModel):
             composition_val = pre_l + "Literal" + post_l  # replace Literal[...] with Literal
             type_ = pre_l + literal + post_l
         else:
-            type_ = re.sub(r"['\"]", "", type_)  # remove '"
+            type_ = re.sub(r"['\"]+", "", type_)  # remove '"
             composition_val = type_
 
         if default_ == "None":
@@ -95,7 +95,7 @@ class DotClassAttribute(BaseModel):
     def parse_compositions(types_part) -> List[str]:
         if not types_part:
             return []
-        modified_string = re.sub(r"[\[\],]", "|", types_part)
+        modified_string = re.sub(r"[\[\],\(\)]", "|", types_part)
         types = modified_string.split("|")
         filters = {
             "str",
@@ -121,7 +121,7 @@ class DotClassAttribute(BaseModel):
         }
         result = set()
         for t in types:
-            t = re.sub(r"['\"]", "", t.strip())
+            t = re.sub(r"['\"]+", "", t.strip())
             if t and t not in filters:
                 result.add(t)
         return list(result)

@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 import re
+from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
 
@@ -22,7 +23,9 @@ from metagpt.logs import logger
 from metagpt.repo_parser import CodeBlockInfo, DotClassInfo
 from metagpt.schema import UMLClassView
 from metagpt.utils.common import (
+    add_affix,
     aread,
+    auto_namespace,
     concat_namespace,
     general_after_log,
     list_files,
@@ -119,11 +122,22 @@ class RebuildSequenceView(Action):
             ],
         )
         sequence_view = rsp.removeprefix("```mermaid").removesuffix("```")
+        rows = await self.graph_db.select(subject=entry.subject, predicate=GraphKeyword.HAS_SEQUENCE_VIEW)
+        for r in rows:
+            await self.graph_db.delete(subject=r.subject, predicate=r.predicate, object_=r.object_)
         await self.graph_db.insert(
             subject=entry.subject, predicate=GraphKeyword.HAS_SEQUENCE_VIEW, object_=sequence_view
         )
+        await self.graph_db.insert(
+            subject=entry.subject,
+            predicate=GraphKeyword.HAS_SEQUENCE_VIEW_VER,
+            object_=concat_namespace(datetime.now().strftime("%Y%m%d%H%M%S%f")[:-3], add_affix(sequence_view)),
+        )
         for c in classes:
-            await self.graph_db.insert(subject=entry.subject, predicate=GraphKeyword.HAS_PARTICIPANT, object_=c.subject)
+            await self.graph_db.insert(
+                subject=entry.subject, predicate=GraphKeyword.HAS_PARTICIPANT, object_=auto_namespace(c.subject)
+            )
+        await self.graph_db.save()
 
     async def _merge_sequence_view(self, entry) -> bool:
         new_participant = await self._search_new_participant(entry)
@@ -198,6 +212,7 @@ class RebuildSequenceView(Action):
             await self.graph_db.insert(
                 subject=ns_class_name, predicate=GraphKeyword.HAS_CLASS_USE_CASE, object_=detail.model_dump_json()
             )
+        await self.graph_db.save()
 
     @retry(
         wait=wait_random_exponential(min=1, max=20),
@@ -211,6 +226,7 @@ class RebuildSequenceView(Action):
         use_case_markdown = await self._get_class_use_cases(ns_class_name)
         if not use_case_markdown:  # external class
             await self.graph_db.insert(subject=ns_class_name, predicate=GraphKeyword.HAS_SEQUENCE_VIEW, object_="")
+            await self.graph_db.save()
             return
         block = f"## Use Cases\n{use_case_markdown}"
         prompts_blocks.append(block)
@@ -244,6 +260,7 @@ class RebuildSequenceView(Action):
         await self.graph_db.insert(
             subject=ns_class_name, predicate=GraphKeyword.HAS_SEQUENCE_VIEW, object_=sequence_view
         )
+        await self.graph_db.save()
 
     async def _get_participants(self, ns_class_name) -> List[str]:
         participants = set()
@@ -319,7 +336,7 @@ class RebuildSequenceView(Action):
         rows = await self.graph_db.select(subject=entry.subject, predicate=GraphKeyword.HAS_PARTICIPANT)
         merged_participants = []
         for r in rows:
-            _, name = split_namespace(r.object_)
+            name = split_namespace(r.object_)[-1]
             merged_participants.append(name)
         participants = self.parse_participant(sequence_view)
         for p in participants:
@@ -337,19 +354,21 @@ class RebuildSequenceView(Action):
         rows = await self.graph_db.select(predicate=GraphKeyword.IS, object_=GraphKeyword.CLASS)
         participants = []
         for r in rows:
-            _, name = split_namespace(r.subject)
+            name = split_namespace(r.subject)[-1]
             if name == class_name:
                 participants.append(r)
         if len(participants) == 0:  # external participants
             await self.graph_db.insert(
                 subject=entry.subject, predicate=GraphKeyword.HAS_PARTICIPANT, object_=concat_namespace("?", class_name)
             )
+            await self.graph_db.save()
             return
         if len(participants) > 1:
             for r in participants:
                 await self.graph_db.insert(
-                    subject=entry.subject, predicate=GraphKeyword.HAS_PARTICIPANT, object_=r.object_
+                    subject=entry.subject, predicate=GraphKeyword.HAS_PARTICIPANT, object_=auto_namespace(r.subject)
                 )
+            await self.graph_db.save()
             return
 
         participant = participants[0]
@@ -372,9 +391,18 @@ class RebuildSequenceView(Action):
         )
 
         sequence_view = rsp.removeprefix("```mermaid").removesuffix("```")
+        rows = await self.graph_db.select(subject=entry.subject, predicate=GraphKeyword.HAS_SEQUENCE_VIEW)
+        for r in rows:
+            await self.graph_db.delete(subject=r.subject, predicate=r.predicate, object_=r.object_)
         await self.graph_db.insert(
             subject=entry.subject, predicate=GraphKeyword.HAS_SEQUENCE_VIEW, object_=sequence_view
         )
         await self.graph_db.insert(
-            subject=entry.subject, predicate=GraphKeyword.HAS_PARTICIPANT, object_=participant.subject
+            subject=entry.subject,
+            predicate=GraphKeyword.HAS_SEQUENCE_VIEW_VER,
+            object_=concat_namespace(datetime.now().strftime("%Y%m%d%H%M%S%f")[:-3], add_affix(sequence_view)),
         )
+        await self.graph_db.insert(
+            subject=entry.subject, predicate=GraphKeyword.HAS_PARTICIPANT, object_=auto_namespace(participant.subject)
+        )
+        await self.graph_db.save()

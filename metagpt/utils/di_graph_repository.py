@@ -82,3 +82,7 @@ class DiGraphRepository(GraphRepository):
     def pathname(self) -> Path:
         p = Path(self.root) / self.name
         return p.with_suffix(".json")
+
+    @property
+    def repo(self):
+        return self._repo

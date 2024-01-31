@@ -24,6 +24,7 @@ import traceback
 import typing
 from pathlib import Path
 from typing import Any, List, Tuple, Union
+from urllib.parse import quote, unquote
 
 import aiofiles
 import loguru
@@ -409,6 +410,30 @@ def concat_namespace(*args) -> str:
 
 def split_namespace(ns_class_name: str, maxsplit=1) -> List[str]:
     return ns_class_name.split(":", maxsplit=maxsplit)
+
+
+def auto_namespace(name: str) -> str:
+    if not name:
+        return "?:?"
+    v = split_namespace(name)
+    if len(v) < 2:
+        return f"?:{name}"
+    return name
+
+
+def add_affix(text, affix="brace"):
+    mappings = {
+        "brace": lambda x: "{" + x + "}",
+        "url": lambda x: quote("{" + x + "}"),
+    }
+    encoder = mappings.get(affix, lambda x: x)
+    return encoder(text)
+
+
+def remove_affix(text, affix="brace"):
+    mappings = {"brace": lambda x: x[1:-1], "url": lambda x: unquote(x)[1:-1]}
+    decoder = mappings.get(affix, lambda x: x)
+    return decoder(text)
 
 
 def general_after_log(i: "loguru.Logger", sec_format: str = "%0.3f") -> typing.Callable[["RetryCallState"], None]:

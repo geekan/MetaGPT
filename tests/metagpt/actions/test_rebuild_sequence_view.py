@@ -20,21 +20,21 @@ from metagpt.utils.graph_repository import SPO
 @pytest.mark.asyncio
 async def test_rebuild(context, mocker):
     # Mock
-    data = await aread(filename=Path(__file__).parent / "../../data/graph_db/networkx.json")
+    data = await aread(filename=Path(__file__).parent / "../../data/graph_db/networkx.class_view.json")
     graph_db_filename = Path(context.repo.workdir.name).with_suffix(".json")
     await context.repo.docs.graph_repo.save(filename=str(graph_db_filename), content=data)
     context.git_repo.add_change({f"{GRAPH_REPO_FILE_REPO}/{graph_db_filename}": ChangeType.UNTRACTED})
     context.git_repo.commit("commit1")
-    # mock_spo = SPO(
-    #     subject="metagpt/startup.py:__name__:__main__",
-    #     predicate="has_page_info",
-    #     object_='{"lineno":78,"end_lineno":79,"type_name":"ast.If","tokens":["__name__","__main__"],"properties":{}}',
-    # )
     mock_spo = SPO(
-        subject="metagpt/tools/search_engine_serpapi.py:__name__:__main__",
+        subject="metagpt/startup.py:__name__:__main__",
         predicate="has_page_info",
-        object_='{"lineno":113,"end_lineno":116,"type_name":"ast.If","tokens":["__name__","__main__"],"properties":{}}',
+        object_='{"lineno":78,"end_lineno":79,"type_name":"ast.If","tokens":["__name__","__main__"],"properties":{}}',
     )
+    # mock_spo = SPO(
+    #     subject="metagpt/tools/search_engine_serpapi.py:__name__:__main__",
+    #     predicate="has_page_info",
+    #     object_='{"lineno":113,"end_lineno":116,"type_name":"ast.If","tokens":["__name__","__main__"],"properties":{}}',
+    # )
     mocker.patch.object(RebuildSequenceView, "_search_main_entry", return_value=[mock_spo])
 
     action = RebuildSequenceView(

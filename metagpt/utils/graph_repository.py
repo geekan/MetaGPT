@@ -37,6 +37,7 @@ class GraphKeyword:
     HAS_PAGE_INFO = "has_page_info"
     HAS_CLASS_VIEW = "has_class_view"
     HAS_SEQUENCE_VIEW = "has_sequence_view"
+    HAS_SEQUENCE_VIEW_VER = "has_sequence_view_ver"
     HAS_CLASS_USE_CASE = "has_class_use_case"
     IS_COMPOSITE_OF = "is_composite_of"
     IS_AGGREGATE_OF = "is_aggregate_of"
@@ -216,7 +217,7 @@ class GraphRepository(ABC):
         classes = await graph_db.select(predicate=GraphKeyword.IS, object_=GraphKeyword.CLASS)
         mapping = defaultdict(list)
         for c in classes:
-            _, name = split_namespace(c.subject)
+            name = split_namespace(c.subject)[-1]
             mapping[name].append(c.subject)
 
         rows = await graph_db.select(predicate=GraphKeyword.IS_COMPOSITE_OF)
