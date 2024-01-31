@@ -13,7 +13,10 @@ OriginalLLM = OpenAILLM if config.llm.api_type == LLMType.OPENAI else AzureOpenA
 
 class MockLLM(OriginalLLM):
     def __init__(self, allow_open_api_call):
-        super().__init__(config.get_openai_llm())
+        original_llm_config = (
+            config.get_openai_llm() if config.llm.api_type == LLMType.OPENAI else config.get_azure_llm()
+        )
+        super().__init__(original_llm_config)
         self.allow_open_api_call = allow_open_api_call
         self.rsp_cache: dict = {}
         self.rsp_candidates: list[dict] = []  # a test can have multiple calls with the same llm, thus a list
