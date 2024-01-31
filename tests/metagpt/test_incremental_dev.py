@@ -120,6 +120,7 @@ def get_incremental_dev_result(idea, project_name, use_review=True):
                 subprocess.run(["tar", "-xf", f"{project_path}.zip", "-C", str(project_path.parent)], check=True)
             else:
                 subprocess.run(["unzip", f"{project_path}.zip", "-d", str(project_path.parent)], check=True)
+            logger.info(f"Extracted project {project_name} successfully.")
         except subprocess.CalledProcessError as e:
             # If the extraction fails, throw an exception
             raise Exception(f"Failed to extract project {project_name}. Error: {e}")
@@ -190,3 +191,5 @@ def check_or_create_base_tag(project_path):
 
 if __name__ == "__main__":
     pytest.main([__file__, "-s"])
+
+"""pytest -s tests/metagpt/test_incremental_dev.py --doctest-modules --cov=./metagpt --cov-report=html:htmlcov --durations=20"""
