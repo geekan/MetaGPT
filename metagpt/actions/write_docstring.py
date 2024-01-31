@@ -38,7 +38,7 @@ PYTHON_DOCSTRING_SYSTEM = """### Requirements
 2. Replace the function body with an Ellipsis object(...) to reduce output.
 3. If the types are already annotated, there is no need to include them in the docstring.
 4. Extract only class, function or the docstrings for the module parts from the given Python code, avoiding any other text.
-5. 不要包含中文，如果原文使用了中文请转成英文，如果原文不是google风格，也转成google风格
+
 ### Input Example
 ```python
 def function_with_pep484_type_annotations(param1: int) -> bool:
