@@ -2,24 +2,41 @@
 # -*- coding: utf-8 -*-
 # @Desc   : LIKE scripts/task_executor.py in stage=act
 
-from pathlib import Path
 import ast
+from pathlib import Path
 
+from examples.andriod_assistant.actions.screenshot_parse_an import SCREENSHOT_PARSE_NODE
 from examples.andriod_assistant.prompts.assistant_prompt import (
     screenshot_parse_template,
     screenshot_parse_with_grid_template,
 )
-from examples.andriod_assistant.utils.schema import OpLogItem, RunState, GridOp, TapOp, TapGridOp, \
-    LongPressOp, LongPressGridOp, SwipeOp, SwipeGridOp, TextOp, AndroidElement, AndroidActionOutput
-from examples.andriod_assistant.actions.screenshot_parse_an import SCREENSHOT_PARSE_NODE
-from examples.andriod_assistant.utils.utils import draw_bbox_multi, traverse_xml_tree, area_to_xy, \
-    screenshot_parse_extract, elem_bbox_to_xy
+from examples.andriod_assistant.utils.schema import (
+    AndroidActionOutput,
+    AndroidElement,
+    GridOp,
+    LongPressGridOp,
+    LongPressOp,
+    OpLogItem,
+    RunState,
+    SwipeGridOp,
+    SwipeOp,
+    TapGridOp,
+    TapOp,
+    TextOp,
+)
+from examples.andriod_assistant.utils.utils import (
+    area_to_xy,
+    draw_bbox_multi,
+    elem_bbox_to_xy,
+    screenshot_parse_extract,
+    traverse_xml_tree,
+)
 from metagpt.actions.action import Action
 from metagpt.config2 import config
+from metagpt.const import ADB_EXEC_FAIL
 from metagpt.environment.android_env.android_env import AndroidEnv
 from metagpt.environment.api.env_api import EnvAPIAbstract
 from metagpt.utils.common import encode_image
-from metagpt.const import ADB_EXEC_FAIL
 
 
 class ScreenshotParse(Action):
@@ -42,21 +59,33 @@ next action. You should always prioritize these documented elements for interact
             if doc_content["tap"]:
                 ui_doc += f"This UI element is clickable. {doc_content['tap']}\n\n"
             if doc_content["text"]:
-                ui_doc += f"This UI element can receive text input. The text input is used for the following " \
-                          f"purposes: {doc_content['text']}\n\n"
+                ui_doc += (
+                    f"This UI element can receive text input. The text input is used for the following "
+                    f"purposes: {doc_content['text']}\n\n"
+                )
             if doc_content["long_press"]:
                 ui_doc += f"This UI element is long clickable. {doc_content['long_press']}\n\n"
             if doc_content["v_swipe"]:
-                ui_doc += f"This element can be swiped directly without tapping. You can swipe vertically on " \
-                          f"this UI element. {doc_content['v_swipe']}\n\n"
+                ui_doc += (
+                    f"This element can be swiped directly without tapping. You can swipe vertically on "
+                    f"this UI element. {doc_content['v_swipe']}\n\n"
+                )
             if doc_content["h_swipe"]:
-                ui_doc += f"This element can be swiped directly without tapping. You can swipe horizontally on " \
-                          f"this UI element. {doc_content['h_swipe']}\n\n"
+                ui_doc += (
+                    f"This element can be swiped directly without tapping. You can swipe horizontally on "
+                    f"this UI element. {doc_content['h_swipe']}\n\n"
+                )
         return ui_doc
 
-
     async def run(
-        self, round_count: int, task_desc: str, last_act: str, task_dir: Path, docs_dir: Path, grid_on: bool, env: AndroidEnv
+        self,
+        round_count: int,
+        task_desc: str,
+        last_act: str,
+        task_dir: Path,
+        docs_dir: Path,
+        grid_on: bool,
+        env: AndroidEnv,
     ):
         screenshot_path: Path = env.step(
             EnvAPIAbstract(
@@ -102,7 +131,7 @@ next action. You should always prioritize these documented elements for interact
             return AndroidActionOutput(action_state=RunState.FAIL)
 
         prompt = node.compile(context=context, schema="json", mode="auto")
-        log_item = OpLogItem(step=round_count, prompt=prompt, image=screenshot_labeled_path, response=node.content)
+        OpLogItem(step=round_count, prompt=prompt, image=screenshot_labeled_path, response=node.content)
 
         op_param = screenshot_parse_extract(node.instruct_content.model_dump(), grid_on)
         if op_param.param_state == RunState.FINISH:
@@ -126,7 +155,11 @@ next action. You should always prioritize these documented elements for interact
                 return AndroidActionOutput(action_state=RunState.FAIL)
         elif isinstance(op_param, SwipeOp):
             x, y = elem_bbox_to_xy(elem_list[op_param.area - 1].bbox)
-            res = env.step(EnvAPIAbstract("user_swipe", kwargs={"x": x, "y": y, "orient": op_param.swipe_orient, "dist": op_param.dist}))
+            res = env.step(
+                EnvAPIAbstract(
+                    "user_swipe", kwargs={"x": x, "y": y, "orient": op_param.swipe_orient, "dist": op_param.dist}
+                )
+            )
             if res == ADB_EXEC_FAIL:
                 return AndroidActionOutput(action_state=RunState.FAIL)
         elif isinstance(op_param, GridOp):

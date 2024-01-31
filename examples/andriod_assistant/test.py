@@ -3,36 +3,35 @@
 # @Desc   : test case (imgs from appagent's)
 
 
-import re
 import ast
-import json
-import time
 import asyncio
+import re
 from pathlib import Path
 
+from actions.parse_record_an import RECORD_PARSE_NODE
 from prompts.operation_prompt import (
+    long_press_doc_template,
+    refine_doc_suffix,
+    swipe_doc_template,
     tap_doc_template,
     text_doc_template,
-    long_press_doc_template,
-    swipe_doc_template,
-    refine_doc_suffix
 )
 from utils.schema import ActionOp, SwipeOp
-from actions.parse_record_an import RECORD_PARSE_NODE
-from metagpt.config2 import config
-from metagpt.utils.common import encode_image
-from metagpt.logs import logger
-from metagpt.actions.action import Action
 
-TEST_BEFORE_PATH = Path(
-    "apps/demo_Contacts/labeled_screenshots/demo_Contacts_2024-01-30_21-50-19_1.png")
-TEST_AFTER_PATH = Path(
-    "apps/demo_Contacts/labeled_screenshots/demo_Contacts_2024-01-30_21-50-19_2.png")
+from metagpt.actions.action import Action
+from metagpt.config2 import config
+from metagpt.logs import logger
+from metagpt.utils.common import encode_image
+
+TEST_BEFORE_PATH = Path("apps/demo_Contacts/labeled_screenshots/demo_Contacts_2024-01-30_21-50-19_1.png")
+TEST_AFTER_PATH = Path("apps/demo_Contacts/labeled_screenshots/demo_Contacts_2024-01-30_21-50-19_2.png")
 RECORD_PATH = Path("apps/demo_Contacts/record.txt")
 TASK_DESC_PATH = Path("apps/demo_Contacts/task_desc.txt")
 DOCS_DIR = Path("storage")
 
 testaction = Action(name="test")
+
+
 # TODO test for parse record
 # 仅使用一张图像进行测试
 async def manual_test():
@@ -80,32 +79,30 @@ async def manual_test():
                     context += refine_context
                     logger.info(
                         f"Documentation for the element {resource_id} already exists. The doc will be "
-                        f"refined based on the latest demo.")
+                        f"refined based on the latest demo."
+                    )
                 else:
                     logger.info(
                         f"Documentation for the element {resource_id} already exists. Turn on DOC_REFINE "
-                        f"in the config file if needed.")
+                        f"in the config file if needed."
+                    )
         else:
-            doc_content = {
-                "tap": "",
-                "text": "",
-                "v_swipe": "",
-                "h_swipe": "",
-                "long_press": ""
-            }
+            doc_content = {"tap": "", "text": "", "v_swipe": "", "h_swipe": "", "long_press": ""}
         logger.info(f"Waiting for GPT-4V to generate documentation for the element {resource_id}")
 
-        node = await RECORD_PARSE_NODE.fill(context=context, llm=testaction.llm,
-                                      images=[img_before_base64, img_after_base64])
+        node = await RECORD_PARSE_NODE.fill(
+            context=context, llm=testaction.llm, images=[img_before_base64, img_after_base64]
+        )
 
         # log_path = task_dir.joinpath(f"log_{app_name}_{demo_name}.txt")
-        prompt = node.compile(context=context, schema="json", mode="auto")
+        node.compile(context=context, schema="json", mode="auto")
         msg = node.content
         doc_content[action_type] = msg
 
         with open(doc_path, "w") as outfile:
             outfile.write(str(doc_content))
         logger.info(f"Documentation generated and saved to {doc_path}")
+
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
