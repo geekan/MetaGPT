@@ -13,7 +13,8 @@ import requests
 from aiohttp import ClientSession
 from PIL import Image, PngImagePlugin
 
-from metagpt.const import SD_OUTPUT_FILE_REPO
+#
+from metagpt.const import SD_OUTPUT_FILE_REPO, SOURCE_ROOT
 from metagpt.logs import logger
 from metagpt.tools.tool_data_type import ToolTypeEnum
 from metagpt.tools.tool_registry import register_tool
@@ -82,7 +83,7 @@ class SDEngine:
         return self.payload
 
     def save(self, imgs, save_name=""):
-        save_dir = CONFIG.workspace_path / SD_OUTPUT_FILE_REPO
+        save_dir = SOURCE_ROOT / SD_OUTPUT_FILE_REPO
         if not save_dir.exists():
             save_dir.mkdir(parents=True, exist_ok=True)
         batch_decode_base64_to_image(imgs, str(save_dir), save_name=save_name)
@@ -113,16 +114,9 @@ class SDEngine:
 
         rsp_json = json.loads(data)
         imgs = rsp_json["images"]
+
         logger.info(f"callback rsp json is {rsp_json.keys()}")
         return imgs
-
-    async def run_i2i(self):
-        # todo: 添加图生图接口调用
-        raise NotImplementedError
-
-    async def run_sam(self):
-        # todo：添加SAM接口调用
-        raise NotImplementedError
 
 
 def decode_base64_to_image(img, save_name):
