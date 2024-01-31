@@ -144,7 +144,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
     actions: list[SerializeAsAny[Action]] = Field(default=[], validate_default=True)
     rc: RoleContext = Field(default_factory=RoleContext)
     addresses: set[str] = set()
-    planner: Planner = None
+    planner: Planner = Field(default_factory=Planner)
 
     # builtin variables
     recovered: bool = False  # to tag if a recovered role

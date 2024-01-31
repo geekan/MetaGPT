@@ -32,8 +32,8 @@ class Planner(BaseModel):
     auto_run: bool = False
     use_tools: bool = False
 
-    def __init__(self, goal: str, **kwargs):
-        plan = Plan(goal=goal)
+    def __init__(self, goal: str = "", plan: Plan = None, **kwargs):
+        plan = plan or Plan(goal=goal)
         super().__init__(plan=plan, **kwargs)
 
     @property
