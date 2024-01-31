@@ -36,6 +36,48 @@ async def test_speech_to_text():
     assert "你好" == resp.text
 
 
+@pytest.fixture
+def tool_calls_rsp():
+    function_rsps = [
+        Function(arguments='{\n"language": "python",\n"code": "print(\'hello world\')"}', name="execute"),
+        Function(arguments='{\n"language": "python",\n"code": \'print("hello world")\'}', name="execute"),
+        Function(arguments='{\n"language": \'python\',\n"code": "print(\'hello world\')"}', name="execute"),
+        Function(arguments='{\n"language": "python",\n"code": "print(\'hello world\')"}', name="execute"),
+        Function(arguments='{\n"language": "python",\n"code": ```print("hello world")```}', name="execute"),
+        Function(arguments='{\n"language": "python",\n"code": """print("hello world")"""}', name="execute"),
+        Function(arguments='\nprint("hello world")\\n', name="execute"),
+        # only `{` in arguments
+        Function(arguments='{\n"language": "python",\n"code": "print(\'hello world\')"', name="execute"),
+        # no `{`, `}` in arguments
+        Function(arguments='\n"language": "python",\n"code": "print(\'hello world\')"', name="execute"),
+    ]
+    tool_calls = [
+        ChatCompletionMessageToolCall(type="function", id=f"call_{i}", function=f) for i, f in enumerate(function_rsps)
+    ]
+    messages = [ChatCompletionMessage(content=None, role="assistant", tool_calls=[t]) for t in tool_calls]
+    # 添加一个纯文本响应
+    messages.append(
+        ChatCompletionMessage(content="Completed a python code for hello world!", role="assistant", tool_calls=None)
+    )
+    # 添加 openai tool calls respond bug, code 出现在ChatCompletionMessage.content中
+    messages.extend(
+        [
+            ChatCompletionMessage(content="```python\nprint('hello world')```", role="assistant", tool_calls=None),
+            ChatCompletionMessage(content="'''python\nprint('hello world')'''", role="assistant", tool_calls=None),
+            ChatCompletionMessage(content='"""python\nprint(\'hello world\')"""', role="assistant", tool_calls=None),
+            ChatCompletionMessage(content="'''python\nprint(\"hello world\")'''", role="assistant", tool_calls=None),
+            ChatCompletionMessage(content="```python\nprint('hello world')```", role="assistant", tool_calls=None),
+        ]
+    )
+    choices = [
+        Choice(finish_reason="tool_calls", logprobs=None, index=i, message=msg) for i, msg in enumerate(messages)
+    ]
+    return [
+        ChatCompletion(id=str(i), choices=[c], created=i, model="gpt-4", object="chat.completion")
+        for i, c in enumerate(choices)
+    ]
+
+
 class TestOpenAI:
     def test_make_client_kwargs_without_proxy(self):
         instance = OpenAILLM(mock_llm_config)
@@ -50,7 +92,7 @@ class TestOpenAI:
         assert "http_client" in kwargs
 
     def test_get_choice_function_arguments_for_aask_code(self, tool_calls_rsp):
-        instance = OpenAILLM()
+        instance = OpenAILLM(mock_llm_config_proxy)
         for i, rsp in enumerate(tool_calls_rsp):
             code = instance.get_choice_function_arguments(rsp)
             logger.info(f"\ntest get function call arguments {i}: {code}")
@@ -63,53 +105,3 @@ class TestOpenAI:
                 code["language"] == "markdown"
             else:
                 code["language"] == "python"
-
-    def test_make_client_kwargs_without_proxy_azure(self, config_azure):
-        instance = OpenAILLM()
-        instance.config = config_azure
-
-    @pytest.fixture
-    def tool_calls_rsp(self):
-        function_rsps = [
-            Function(arguments='{\n"language": "python",\n"code": "print(\'hello world\')"}', name="execute"),
-            Function(arguments='{\n"language": "python",\n"code": \'print("hello world")\'}', name="execute"),
-            Function(arguments='{\n"language": \'python\',\n"code": "print(\'hello world\')"}', name="execute"),
-            Function(arguments='{\n"language": "python",\n"code": "print(\'hello world\')"}', name="execute"),
-            Function(arguments='{\n"language": "python",\n"code": ```print("hello world")```}', name="execute"),
-            Function(arguments='{\n"language": "python",\n"code": """print("hello world")"""}', name="execute"),
-            Function(arguments='\nprint("hello world")\\n', name="execute"),
-            # only `{` in arguments
-            Function(arguments='{\n"language": "python",\n"code": "print(\'hello world\')"', name="execute"),
-            # no `{`, `}` in arguments
-            Function(arguments='\n"language": "python",\n"code": "print(\'hello world\')"', name="execute"),
-        ]
-        tool_calls = [
-            ChatCompletionMessageToolCall(type="function", id=f"call_{i}", function=f)
-            for i, f in enumerate(function_rsps)
-        ]
-        messages = [ChatCompletionMessage(content=None, role="assistant", tool_calls=[t]) for t in tool_calls]
-        # 添加一个纯文本响应
-        messages.append(
-            ChatCompletionMessage(content="Completed a python code for hello world!", role="assistant", tool_calls=None)
-        )
-        # 添加 openai tool calls respond bug, code 出现在ChatCompletionMessage.content中
-        messages.extend(
-            [
-                ChatCompletionMessage(content="```python\nprint('hello world')```", role="assistant", tool_calls=None),
-                ChatCompletionMessage(content="'''python\nprint('hello world')'''", role="assistant", tool_calls=None),
-                ChatCompletionMessage(
-                    content='"""python\nprint(\'hello world\')"""', role="assistant", tool_calls=None
-                ),
-                ChatCompletionMessage(
-                    content="'''python\nprint(\"hello world\")'''", role="assistant", tool_calls=None
-                ),
-                ChatCompletionMessage(content="```python\nprint('hello world')```", role="assistant", tool_calls=None),
-            ]
-        )
-        choices = [
-            Choice(finish_reason="tool_calls", logprobs=None, index=i, message=msg) for i, msg in enumerate(messages)
-        ]
-        return [
-            ChatCompletion(id=str(i), choices=[c], created=i, model="gpt-4", object="chat.completion")
-            for i, c in enumerate(choices)
-        ]
