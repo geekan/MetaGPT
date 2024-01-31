@@ -327,7 +327,7 @@ class AIMessage(Message):
     """
 
     def __init__(self, content: str):
-        super().__init__(content, "assistant")
+        super().__init__(content=content, role="assistant")
 
 
 class Task(BaseModel):
