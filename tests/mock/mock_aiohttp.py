@@ -39,3 +39,7 @@ class MockAioResponse:
         data = await self.response.json(*args, **kwargs)
         self.rsp_cache[self.key] = data
         return data
+
+    def raise_for_status(self):
+        if self.response:
+            self.response.raise_for_status()
