@@ -23,8 +23,11 @@ def test_precheck_update_plan_from_rsp():
 
 
 @pytest.mark.asyncio
-async def test_write_plan():
-    rsp = await WritePlan().run(context=[Message("run analysis on sklearn iris dataset", role="user")])
+@pytest.mark.parametrize("use_tools", [(False), (True)])
+async def test_write_plan(use_tools):
+    rsp = await WritePlan().run(
+        context=[Message("run analysis on sklearn iris dataset", role="user")], use_tools=use_tools
+    )
 
     assert "task_id" in rsp
     assert "instruction" in rsp
