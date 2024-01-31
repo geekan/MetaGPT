@@ -131,7 +131,6 @@ venv.bak/
 .mypy_cache/
 .dmypy.json
 dmypy.json
-metagpt/tools/functions/libs/udf/*.py
 
 # Pyre type checker
 .pyre/
