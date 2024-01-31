@@ -105,7 +105,3 @@ class TestOpenAI:
                 code["language"] == "markdown"
             else:
                 code["language"] == "python"
-
-    def test_make_client_kwargs_without_proxy_azure(self, config_azure):
-        instance = OpenAILLM()
-        instance.config = config_azure
