@@ -191,5 +191,3 @@ def check_or_create_base_tag(project_path):
 
 if __name__ == "__main__":
     pytest.main([__file__, "-s"])
-
-"""pytest -s tests/metagpt/test_incremental_dev.py --doctest-modules --cov=./metagpt --cov-report=html:htmlcov --durations=20"""
