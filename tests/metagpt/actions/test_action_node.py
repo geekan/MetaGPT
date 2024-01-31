@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import List, Tuple
 
 import pytest
-from pydantic import ValidationError
+from pydantic import BaseModel, Field, ValidationError
 
 from metagpt.actions import Action
 from metagpt.actions.action_node import ActionNode, ReviewMode, ReviseMode
@@ -253,6 +253,46 @@ async def test_action_node_with_image():
     img_base64 = encode_image(invoice_path)
     node = await invoice.fill(context="", llm=LLM(), images=[img_base64])
     assert node.instruct_content.invoice
+
+class ToolDef(BaseModel):
+    tool_name: str = Field(default="a", description="tool name", examples=[])
+    description: str = Field(default="b", description="tool description", examples=[])
+
+
+class Task(BaseModel):
+    task_id: int = Field(default=1, description="task id", examples=[1, 2, 3])
+    name: str = Field(default="Get data from ...", description="task name", examples=[])
+    dependent_task_ids: List[int] = Field(default=[], description="dependent task ids", examples=[1, 2, 3])
+    tool: ToolDef = Field(default=ToolDef(), description="tool use", examples=[])
+
+
+class Tasks(BaseModel):
+    tasks: List[Task] = Field(default=[], description="tasks", examples=[])
+
+
+def test_action_node_from_pydantic_and_print_everything():
+    node = ActionNode.from_pydantic(Task)
+    print("1. Tasks")
+    print(Task().model_dump_json(indent=4))
+    print(Tasks.model_json_schema())
+    print("2. Task")
+    print(Task.model_json_schema())
+    print("3. ActionNode")
+    print(node)
+    print("4. node.compile prompt")
+    prompt = node.compile(context="")
+    assert "tool_name" in prompt, "tool_name should be in prompt"
+    print(prompt)
+    print("5. node.get_children_mapping")
+    print(node._get_children_mapping())
+    print("6. node.create_children_class")
+    children_class = node._create_children_class()
+    print(children_class)
+    import inspect
+
+    code = inspect.getsource(Tasks)
+    print(code)
+    assert "tasks" in code, "tasks should be in code"
 
 
 if __name__ == "__main__":
