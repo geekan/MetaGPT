@@ -16,29 +16,30 @@ from wsgiref.handlers import format_date_time
 
 import websocket  # 使用websocket_client
 
-from metagpt.config import CONFIG, LLMProviderEnum
+from metagpt.configs.llm_config import LLMConfig, LLMType
 from metagpt.logs import logger
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.llm_provider_registry import register_provider
 
 
-@register_provider(LLMProviderEnum.SPARK)
+@register_provider(LLMType.SPARK)
 class SparkLLM(BaseLLM):
-    def __init__(self):
-        logger.warning("当前方法无法支持异步运行。当你使用acompletion时，并不能并行访问。")
+    def __init__(self, config: LLMConfig):
+        self.config = config
+        logger.warning("SparkLLM：当前方法无法支持异步运行。当你使用acompletion时，并不能并行访问。")
 
     def get_choice_text(self, rsp: dict) -> str:
         return rsp["payload"]["choices"]["text"][-1]["content"]
 
     async def acompletion_text(self, messages: list[dict], stream=False, timeout: int = 3) -> str:
         # 不支持
-        logger.error("该功能禁用。")
-        w = GetMessageFromWeb(messages)
+        # logger.warning("当前方法无法支持异步运行。当你使用acompletion时，并不能并行访问。")
+        w = GetMessageFromWeb(messages, self.config)
         return w.run()
 
     async def acompletion(self, messages: list[dict], timeout=3):
         # 不支持异步
-        w = GetMessageFromWeb(messages)
+        w = GetMessageFromWeb(messages, self.config)
         return w.run()
 
 
@@ -89,14 +90,14 @@ class GetMessageFromWeb:
             # 此处打印出建立连接时候的url,参考本demo的时候可取消上方打印的注释，比对相同参数时生成的url与自己代码生成的url是否一致
             return url
 
-    def __init__(self, text):
+    def __init__(self, text, config: LLMConfig):
         self.text = text
         self.ret = ""
-        self.spark_appid = CONFIG.spark_appid
-        self.spark_api_secret = CONFIG.spark_api_secret
-        self.spark_api_key = CONFIG.spark_api_key
-        self.domain = CONFIG.domain
-        self.spark_url = CONFIG.spark_url
+        self.spark_appid = config.app_id
+        self.spark_api_secret = config.api_secret
+        self.spark_api_key = config.api_key
+        self.domain = config.domain
+        self.spark_url = config.base_url
 
     def on_message(self, ws, message):
         data = json.loads(message)

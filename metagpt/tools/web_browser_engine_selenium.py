@@ -1,7 +1,5 @@
 #!/usr/bin/env python
-"""
-@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
-"""
+# -*- coding: utf-8 -*-
 
 from __future__ import annotations
 
@@ -17,7 +15,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from webdriver_manager.core.download_manager import WDMDownloadManager
 from webdriver_manager.core.http import WDMHttpClient
 
-from metagpt.config import CONFIG
+from metagpt.config2 import config
 from metagpt.utils.parse_html import WebPage
 
 
@@ -35,18 +33,16 @@ class SeleniumWrapper:
 
     def __init__(
         self,
-        browser_type: Literal["chrome", "firefox", "edge", "ie"] | None = None,
+        browser_type: Literal["chrome", "firefox", "edge", "ie"] = "chrome",
         launch_kwargs: dict | None = None,
         *,
         loop: asyncio.AbstractEventLoop | None = None,
         executor: futures.Executor | None = None,
     ) -> None:
-        if browser_type is None:
-            browser_type = CONFIG.selenium_browser_type
         self.browser_type = browser_type
         launch_kwargs = launch_kwargs or {}
-        if CONFIG.global_proxy and "proxy-server" not in launch_kwargs:
-            launch_kwargs["proxy-server"] = CONFIG.global_proxy
+        if config.proxy and "proxy-server" not in launch_kwargs:
+            launch_kwargs["proxy-server"] = config.proxy
 
         self.executable_path = launch_kwargs.pop("executable_path", None)
         self.launch_args = [f"--{k}={v}" for k, v in launch_kwargs.items()]
@@ -97,8 +93,8 @@ _webdriver_manager_types = {
 
 class WDMHttpProxyClient(WDMHttpClient):
     def get(self, url, **kwargs):
-        if "proxies" not in kwargs and CONFIG.global_proxy:
-            kwargs["proxies"] = {"all_proxy": CONFIG.global_proxy}
+        if "proxies" not in kwargs and config.proxy:
+            kwargs["proxies"] = {"all_proxy": config.proxy}
         return super().get(url, **kwargs)
 
 

@@ -1,7 +1,6 @@
 from metagpt.actions.debug_code import DebugCode
 from metagpt.actions.execute_code import ExecutePyCode
-from metagpt.actions.ml_da_action import UpdateDataColumns
-from metagpt.actions.write_analysis_code import WriteCodeWithToolsML
+from metagpt.actions.ml_action import UpdateDataColumns, WriteCodeWithToolsML
 from metagpt.logs import logger
 from metagpt.roles.code_interpreter import CodeInterpreter
 from metagpt.tools.tool_data_type import ToolTypeEnum

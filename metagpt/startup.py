@@ -1,18 +1,80 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 import asyncio
+import shutil
 from pathlib import Path
 
 import typer
 
-from metagpt.config import CONFIG
+from metagpt.config2 import config
+from metagpt.const import CONFIG_ROOT, METAGPT_ROOT
+from metagpt.context import Context
+from metagpt.utils.project_repo import ProjectRepo
 
-app = typer.Typer(add_completion=False)
+app = typer.Typer(add_completion=False, pretty_exceptions_show_locals=False)
 
 
-@app.command()
+def generate_repo(
+    idea,
+    investment,
+    n_round,
+    code_review,
+    run_tests,
+    implement,
+    project_name,
+    inc,
+    project_path,
+    reqa_file,
+    max_auto_summarize_code,
+    recover_path,
+) -> ProjectRepo:
+    """Run the startup logic. Can be called from CLI or other Python scripts."""
+    from metagpt.roles import (
+        Architect,
+        Engineer,
+        ProductManager,
+        ProjectManager,
+        QaEngineer,
+    )
+    from metagpt.team import Team
+
+    config.update_via_cli(project_path, project_name, inc, reqa_file, max_auto_summarize_code)
+    ctx = Context(config=config)
+
+    if not recover_path:
+        company = Team(context=ctx)
+        company.hire(
+            [
+                ProductManager(),
+                Architect(),
+                ProjectManager(),
+            ]
+        )
+
+        if implement or code_review:
+            company.hire([Engineer(n_borg=5, use_code_review=code_review)])
+
+        if run_tests:
+            company.hire([QaEngineer()])
+    else:
+        stg_path = Path(recover_path)
+        if not stg_path.exists() or not str(stg_path).endswith("team"):
+            raise FileNotFoundError(f"{recover_path} not exists or not endswith `team`")
+
+        company = Team.deserialize(stg_path=stg_path, context=ctx)
+        idea = company.idea
+
+    company.invest(investment)
+    company.run_project(idea)
+    asyncio.run(company.run(n_round=n_round))
+
+    return ctx.repo
+
+
+@app.command("", help="Start a new project.")
 def startup(
-    idea: str = typer.Argument(..., help="Your innovative idea, such as 'Create a 2048 game.'"),
+    idea: str = typer.Argument(None, help="Your innovative idea, such as 'Create a 2048 game.'"),
     investment: float = typer.Option(default=3.0, help="Dollar amount to invest in the AI company."),
     n_round: int = typer.Option(default=5, help="Number of rounds for the simulation."),
     code_review: bool = typer.Option(default=True, help="Whether to use code review."),
@@ -33,46 +95,49 @@ def startup(
         "unlimited. This parameter is used for debugging the workflow.",
     ),
     recover_path: str = typer.Option(default=None, help="recover the project from existing serialized storage"),
+    init_config: bool = typer.Option(default=False, help="Initialize the configuration file for MetaGPT."),
 ):
     """Run a startup. Be a boss."""
-    from metagpt.roles import (
-        Architect,
-        Engineer,
-        ProductManager,
-        ProjectManager,
-        QaEngineer,
+    if init_config:
+        copy_config_to()
+        return
+
+    if idea is None:
+        typer.echo("Missing argument 'IDEA'. Run 'metagpt --help' for more information.")
+        raise typer.Exit()
+
+    return generate_repo(
+        idea,
+        investment,
+        n_round,
+        code_review,
+        run_tests,
+        implement,
+        project_name,
+        inc,
+        project_path,
+        reqa_file,
+        max_auto_summarize_code,
+        recover_path,
     )
-    from metagpt.team import Team
 
-    CONFIG.update_via_cli(project_path, project_name, inc, reqa_file, max_auto_summarize_code)
 
-    if not recover_path:
-        company = Team()
-        company.hire(
-            [
-                ProductManager(),
-                Architect(),
-                ProjectManager(),
-            ]
-        )
+def copy_config_to(config_path=METAGPT_ROOT / "config" / "config2.yaml"):
+    """Initialize the configuration file for MetaGPT."""
+    target_path = CONFIG_ROOT / "config2.yaml"
 
-        if implement or code_review:
-            company.hire([Engineer(n_borg=5, use_code_review=code_review)])
+    # 创建目标目录（如果不存在）
+    target_path.parent.mkdir(parents=True, exist_ok=True)
 
-        if run_tests:
-            company.hire([QaEngineer()])
-    else:
-        # # stg_path = SERDESER_PATH.joinpath("team")
-        stg_path = Path(recover_path)
-        if not stg_path.exists() or not str(stg_path).endswith("team"):
-            raise FileNotFoundError(f"{recover_path} not exists or not endswith `team`")
+    # 如果目标文件已经存在，则重命名为 .bak
+    if target_path.exists():
+        backup_path = target_path.with_suffix(".bak")
+        target_path.rename(backup_path)
+        print(f"Existing configuration file backed up at {backup_path}")
 
-        company = Team.deserialize(stg_path=stg_path)
-        idea = company.idea  # use original idea
-
-    company.invest(investment)
-    company.run_project(idea)
-    asyncio.run(company.run(n_round=n_round))
+    # 复制文件
+    shutil.copy(str(config_path), target_path)
+    print(f"Configuration file initialized at {target_path}")
 
 
 if __name__ == "__main__":

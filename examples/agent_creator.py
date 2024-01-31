@@ -6,7 +6,7 @@ Author: garylin2099
 import re
 
 from metagpt.actions import Action
-from metagpt.config import CONFIG
+from metagpt.config2 import config
 from metagpt.const import METAGPT_ROOT
 from metagpt.logs import logger
 from metagpt.roles import Role
@@ -48,8 +48,8 @@ class CreateAgent(Action):
         pattern = r"```python(.*)```"
         match = re.search(pattern, rsp, re.DOTALL)
         code_text = match.group(1) if match else ""
-        CONFIG.workspace_path.mkdir(parents=True, exist_ok=True)
-        new_file = CONFIG.workspace_path / "agent_created_agent.py"
+        config.workspace.path.mkdir(parents=True, exist_ok=True)
+        new_file = config.workspace.path / "agent_created_agent.py"
         new_file.write_text(code_text)
         return code_text
 
@@ -61,7 +61,7 @@ class AgentCreator(Role):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self._init_actions([CreateAgent])
+        self.set_actions([CreateAgent])
 
     async def _act(self) -> Message:
         logger.info(f"{self._setting}: to do {self.rc.todo}({self.rc.todo.name})")

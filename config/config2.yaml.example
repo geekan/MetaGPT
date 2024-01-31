@@ -1,0 +1,42 @@
+llm:
+  api_type: "openai"
+  base_url: "YOUR_BASE_URL"
+  api_key: "YOUR_API_KEY"
+  model: "gpt-3.5-turbo-1106"  # or gpt-4-1106-preview
+
+proxy: "YOUR_PROXY"
+
+search:
+  api_type: "google"
+  api_key: "YOUR_API_KEY"
+  cse_id: "YOUR_CSE_ID"
+
+mermaid:
+  engine: "pyppeteer"
+  path: "/Applications/Google Chrome.app"
+
+redis:
+  host: "YOUR_HOST"
+  port: 32582
+  password: "YOUR_PASSWORD"
+  db: "0"
+
+s3:
+  access_key: "YOUR_ACCESS_KEY"
+  secret_key: "YOUR_SECRET_KEY"
+  endpoint: "YOUR_ENDPOINT"
+  secure: false
+  bucket: "test"
+
+
+AZURE_TTS_SUBSCRIPTION_KEY: "YOUR_SUBSCRIPTION_KEY"
+AZURE_TTS_REGION: "eastus"
+
+IFLYTEK_APP_ID: "YOUR_APP_ID"
+IFLYTEK_API_KEY: "YOUR_API_KEY"
+IFLYTEK_API_SECRET: "YOUR_API_SECRET"
+
+METAGPT_TEXT_TO_IMAGE_MODEL_URL: "YOUR_MODEL_URL"
+
+PYPPETEER_EXECUTABLE_PATH: "/Applications/Google Chrome.app"
+

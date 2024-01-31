@@ -7,17 +7,14 @@ from typing import Any, Tuple
 
 import pytest
 
-from metagpt.config import CONFIG
 from metagpt.provider.ollama_api import OllamaLLM
+from tests.metagpt.provider.mock_llm_config import mock_llm_config
 
 prompt_msg = "who are you"
 messages = [{"role": "user", "content": prompt_msg}]
 
 resp_content = "I'm ollama"
 default_resp = {"message": {"role": "assistant", "content": resp_content}}
-
-CONFIG.ollama_api_base = "http://xxx"
-CONFIG.max_budget = 10
 
 
 async def mock_ollama_arequest(self, stream: bool = False, **kwargs) -> Tuple[Any, Any, bool]:
@@ -44,7 +41,7 @@ async def mock_ollama_arequest(self, stream: bool = False, **kwargs) -> Tuple[An
 async def test_gemini_acompletion(mocker):
     mocker.patch("metagpt.provider.general_api_requestor.GeneralAPIRequestor.arequest", mock_ollama_arequest)
 
-    ollama_gpt = OllamaLLM()
+    ollama_gpt = OllamaLLM(mock_llm_config)
 
     resp = await ollama_gpt.acompletion(messages)
     assert resp["message"]["content"] == default_resp["message"]["content"]

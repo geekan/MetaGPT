@@ -8,7 +8,7 @@ import asyncio
 
 from langchain.embeddings import OpenAIEmbeddings
 
-from metagpt.config import CONFIG
+from metagpt.config2 import config
 from metagpt.const import DATA_PATH, EXAMPLE_PATH
 from metagpt.document_store import FaissStore
 from metagpt.logs import logger
@@ -16,7 +16,8 @@ from metagpt.roles import Sales
 
 
 def get_store():
-    embedding = OpenAIEmbeddings(openai_api_key=CONFIG.openai_api_key, openai_api_base=CONFIG.openai_base_url)
+    llm = config.get_openai_llm()
+    embedding = OpenAIEmbeddings(openai_api_key=llm.api_key, openai_api_base=llm.base_url)
     return FaissStore(DATA_PATH / "example.json", embedding=embedding)
 
 

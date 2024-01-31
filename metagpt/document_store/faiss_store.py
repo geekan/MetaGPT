@@ -9,14 +9,13 @@ import asyncio
 from pathlib import Path
 from typing import Optional
 
-from langchain.embeddings import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
 from langchain_core.embeddings import Embeddings
 
-from metagpt.config import CONFIG
 from metagpt.document import IndexableDocument
 from metagpt.document_store.base_store import LocalStore
 from metagpt.logs import logger
+from metagpt.utils.embedding import get_embedding
 
 
 class FaissStore(LocalStore):
@@ -25,9 +24,7 @@ class FaissStore(LocalStore):
     ):
         self.meta_col = meta_col
         self.content_col = content_col
-        self.embedding = embedding or OpenAIEmbeddings(
-            openai_api_key=CONFIG.openai_api_key, openai_api_base=CONFIG.openai_base_url
-        )
+        self.embedding = embedding or get_embedding()
         super().__init__(raw_data, cache_dir)
 
     def _load(self) -> Optional["FaissStore"]:

@@ -47,18 +47,18 @@ class TestSkillAction:
         assert args.get("size_type") == "512x512"
 
     @pytest.mark.asyncio
-    async def test_parser_action(self, mocker):
+    async def test_parser_action(self, mocker, context):
         # mock
         mocker.patch("metagpt.learn.text_to_image", return_value="https://mock.com/xxx")
 
-        parser_action = ArgumentsParingAction(skill=self.skill, ask="Draw an apple")
+        parser_action = ArgumentsParingAction(skill=self.skill, ask="Draw an apple", context=context)
         rsp = await parser_action.run()
         assert rsp
         assert parser_action.args
         assert parser_action.args.get("text") == "Draw an apple"
         assert parser_action.args.get("size_type") == "512x512"
 
-        action = SkillAction(skill=self.skill, args=parser_action.args)
+        action = SkillAction(skill=self.skill, args=parser_action.args, context=context)
         rsp = await action.run()
         assert rsp
         assert "image/png;base64," in rsp.content or "http" in rsp.content
@@ -81,8 +81,8 @@ class TestSkillAction:
             await SkillAction.find_and_call_function("dummy_call", {"a": 1})
 
     @pytest.mark.asyncio
-    async def test_skill_action_error(self):
-        action = SkillAction(skill=self.skill, args={})
+    async def test_skill_action_error(self, context):
+        action = SkillAction(skill=self.skill, args={}, context=context)
         rsp = await action.run()
         assert "Error" in rsp.content
 

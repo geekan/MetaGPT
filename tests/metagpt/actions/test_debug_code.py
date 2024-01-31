@@ -48,7 +48,7 @@ def sort_array(arr):
 async def test_debug_code():
     debug_context = Message(content=DebugContext)
     new_code = await DebugCode().run(context=debug_context, code=CODE, runtime_result=ErrorStr)
-    assert "def sort_array(arr)" in new_code
+    assert "def sort_array(arr)" in new_code["code"]
 
 
 def test_messages_to_str():

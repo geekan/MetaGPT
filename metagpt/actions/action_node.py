@@ -9,16 +9,30 @@ NOTE: You should use typing.List instead of list to do type annotation. Because 
   we can use typing to extract the type of the node, but we cannot use built-in list to extract.
 """
 import json
-from typing import Any, Dict, List, Optional, Tuple, Type
+from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple, Type, Union
 
-from pydantic import BaseModel, create_model, model_validator
+from pydantic import BaseModel, Field, create_model, model_validator
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
-from metagpt.config import CONFIG
+from metagpt.actions.action_outcls_registry import register_action_outcls
 from metagpt.llm import BaseLLM
 from metagpt.logs import logger
 from metagpt.provider.postprocess.llm_output_postprocess import llm_output_postprocess
 from metagpt.utils.common import OutputParser, general_after_log
+from metagpt.utils.human_interaction import HumanInteraction
+
+
+class ReviewMode(Enum):
+    HUMAN = "human"
+    AUTO = "auto"
+
+
+class ReviseMode(Enum):
+    HUMAN = "human"  # human revise
+    HUMAN_REVIEW = "human_review"  # human-review and auto-revise
+    AUTO = "auto"  # auto-review and auto-revise
+
 
 TAG = "CONTENT"
 
@@ -43,6 +57,58 @@ SIMPLE_TEMPLATE = """
 
 ## action
 Follow instructions of nodes, generate output and make sure it follows the format example.
+"""
+
+REVIEW_TEMPLATE = """
+## context
+Compare the key's value of nodes_output and the corresponding requirements one by one. If a key's value that does not match the requirement is found, provide the comment content on how to modify it. No output is required for matching keys.
+
+### nodes_output
+{nodes_output}
+
+-----
+
+## format example
+[{tag}]
+{{
+    "key1": "comment1",
+    "key2": "comment2",
+    "keyn": "commentn"
+}}
+[/{tag}]
+
+## nodes: "<node>: <type>  # <instruction>"
+- key1: <class \'str\'> # the first key name of mismatch key
+- key2: <class \'str\'> # the second key name of mismatch key
+- keyn: <class \'str\'> # the last key name of mismatch key
+
+## constraint
+{constraint}
+
+## action
+Follow format example's {prompt_schema} format, generate output and make sure it follows the format example.
+"""
+
+REVISE_TEMPLATE = """
+## context
+change the nodes_output key's value to meet its comment and no need to add extra comment.
+
+### nodes_output
+{nodes_output}
+
+-----
+
+## format example
+{example}
+
+## nodes: "<node>: <type>  # <instruction>"
+{instruction}
+
+## constraint
+{constraint}
+
+## action
+Follow format example's {prompt_schema} format, generate output and make sure it follows the format example.
 """
 
 
@@ -105,6 +171,9 @@ class ActionNode:
         """增加子ActionNode"""
         self.children[node.key] = node
 
+    def get_child(self, key: str) -> Union["ActionNode", None]:
+        return self.children.get(key, None)
+
     def add_children(self, nodes: List["ActionNode"]):
         """批量增加子ActionNode"""
         for node in nodes:
@@ -117,10 +186,26 @@ class ActionNode:
         obj.add_children(nodes)
         return obj
 
-    def get_children_mapping(self, exclude=None) -> Dict[str, Tuple[Type, Any]]:
+    def get_children_mapping_old(self, exclude=None) -> Dict[str, Tuple[Type, Any]]:
         """获得子ActionNode的字典，以key索引"""
         exclude = exclude or []
         return {k: (v.expected_type, ...) for k, v in self.children.items() if k not in exclude}
+
+    def get_children_mapping(self, exclude=None) -> Dict[str, Tuple[Type, Any]]:
+        """获得子ActionNode的字典，以key索引，支持多级结构"""
+        exclude = exclude or []
+        mapping = {}
+
+        def _get_mapping(node: "ActionNode", prefix: str = ""):
+            for key, child in node.children.items():
+                if key in exclude:
+                    continue
+                full_key = f"{prefix}{key}"
+                mapping[full_key] = (child.expected_type, ...)
+                _get_mapping(child, prefix=f"{full_key}.")
+
+        _get_mapping(self)
+        return mapping
 
     def get_self_mapping(self) -> Dict[str, Tuple[Type, Any]]:
         """get self key: type mapping"""
@@ -133,6 +218,7 @@ class ActionNode:
         return {} if exclude and self.key in exclude else self.get_self_mapping()
 
     @classmethod
+    @register_action_outcls
     def create_model_class(cls, class_name: str, mapping: Dict[str, Tuple[Type, Any]]):
         """基于pydantic v1的模型动态生成，用来检验结果类型正确性"""
 
@@ -151,6 +237,11 @@ class ActionNode:
 
         new_class = create_model(class_name, __validators__=validators, **mapping)
         return new_class
+
+    def create_class(self, mode: str = "auto", class_name: str = None, exclude=None):
+        class_name = class_name if class_name else f"{self.key}_AN"
+        mapping = self.get_mapping(mode=mode, exclude=exclude)
+        return self.create_model_class(class_name, mapping)
 
     def create_children_class(self, exclude=None):
         """使用object内有的字段直接生成model_class"""
@@ -185,6 +276,25 @@ class ActionNode:
             node_dict.update(child_node.to_dict(format_func))
 
         return node_dict
+
+    def update_instruct_content(self, incre_data: dict[str, Any]):
+        assert self.instruct_content
+        origin_sc_dict = self.instruct_content.model_dump()
+        origin_sc_dict.update(incre_data)
+        output_class = self.create_class()
+        self.instruct_content = output_class(**origin_sc_dict)
+
+    def keys(self, mode: str = "auto") -> list:
+        if mode == "children" or (mode == "auto" and self.children):
+            keys = []
+        else:
+            keys = [self.key]
+        if mode == "root":
+            return keys
+
+        for _, child_node in self.children.items():
+            keys.append(child_node.key)
+        return keys
 
     def compile_to(self, i: Dict, schema, kv_sep) -> str:
         if schema == "json":
@@ -262,7 +372,7 @@ class ActionNode:
         output_data_mapping: dict,
         system_msgs: Optional[list[str]] = None,
         schema="markdown",  # compatible to original format
-        timeout=CONFIG.timeout,
+        timeout=3,
     ) -> (str, BaseModel):
         """Use ActionOutput to wrap the output of aask"""
         content = await self.llm.aask(prompt, system_msgs, timeout=timeout)
@@ -294,7 +404,7 @@ class ActionNode:
     def set_context(self, context):
         self.set_recursive("context", context)
 
-    async def simple_fill(self, schema, mode, timeout=CONFIG.timeout, exclude=None):
+    async def simple_fill(self, schema, mode, timeout=3, exclude=None):
         prompt = self.compile(context=self.context, schema=schema, mode=mode, exclude=exclude)
 
         if schema != "raw":
@@ -309,7 +419,7 @@ class ActionNode:
 
         return self
 
-    async def fill(self, context, llm, schema="json", mode="auto", strgy="simple", timeout=CONFIG.timeout, exclude=[]):
+    async def fill(self, context, llm, schema="json", mode="auto", strgy="simple", timeout=3, exclude=[]):
         """Fill the node(s) with mode.
 
         :param context: Everything we should know when filling node.
@@ -343,7 +453,241 @@ class ActionNode:
                 if exclude and i.key in exclude:
                     continue
                 child = await i.simple_fill(schema=schema, mode=mode, timeout=timeout, exclude=exclude)
-                tmp.update(child.instruct_content.dict())
+                tmp.update(child.instruct_content.model_dump())
             cls = self.create_children_class()
             self.instruct_content = cls(**tmp)
             return self
+
+    async def human_review(self) -> dict[str, str]:
+        review_comments = HumanInteraction().interact_with_instruct_content(
+            instruct_content=self.instruct_content, interact_type="review"
+        )
+
+        return review_comments
+
+    def _makeup_nodes_output_with_req(self) -> dict[str, str]:
+        instruct_content_dict = self.instruct_content.model_dump()
+        nodes_output = {}
+        for key, value in instruct_content_dict.items():
+            child = self.get_child(key)
+            nodes_output[key] = {"value": value, "requirement": child.instruction if child else self.instruction}
+        return nodes_output
+
+    async def auto_review(self, template: str = REVIEW_TEMPLATE) -> dict[str, str]:
+        """use key's output value and its instruction to review the modification comment"""
+        nodes_output = self._makeup_nodes_output_with_req()
+        """nodes_output format:
+        {
+            "key": {"value": "output value", "requirement": "key instruction"}
+        }
+        """
+        if not nodes_output:
+            return dict()
+
+        prompt = template.format(
+            nodes_output=json.dumps(nodes_output, ensure_ascii=False),
+            tag=TAG,
+            constraint=FORMAT_CONSTRAINT,
+            prompt_schema="json",
+        )
+
+        content = await self.llm.aask(prompt)
+        # Extract the dict of mismatch key and its comment. Due to the mismatch keys are unknown, here use the keys
+        # of ActionNode to judge if exist in `content` and then follow the `data_mapping` method to create model class.
+        keys = self.keys()
+        include_keys = []
+        for key in keys:
+            if f'"{key}":' in content:
+                include_keys.append(key)
+        if not include_keys:
+            return dict()
+
+        exclude_keys = list(set(keys).difference(include_keys))
+        output_class_name = f"{self.key}_AN_REVIEW"
+        output_class = self.create_class(class_name=output_class_name, exclude=exclude_keys)
+        parsed_data = llm_output_postprocess(
+            output=content, schema=output_class.model_json_schema(), req_key=f"[/{TAG}]"
+        )
+        instruct_content = output_class(**parsed_data)
+        return instruct_content.model_dump()
+
+    async def simple_review(self, review_mode: ReviewMode = ReviewMode.AUTO):
+        # generate review comments
+        if review_mode == ReviewMode.HUMAN:
+            review_comments = await self.human_review()
+        else:
+            review_comments = await self.auto_review()
+
+        if not review_comments:
+            logger.warning("There are no review comments")
+        return review_comments
+
+    async def review(self, strgy: str = "simple", review_mode: ReviewMode = ReviewMode.AUTO):
+        """only give the review comment of each exist and mismatch key
+
+        :param strgy: simple/complex
+         - simple: run only once
+         - complex: run each node
+        """
+        if not hasattr(self, "llm"):
+            raise RuntimeError("use `review` after `fill`")
+        assert review_mode in ReviewMode
+        assert self.instruct_content, 'review only support with `schema != "raw"`'
+
+        if strgy == "simple":
+            review_comments = await self.simple_review(review_mode)
+        elif strgy == "complex":
+            # review each child node one-by-one
+            review_comments = {}
+            for _, child in self.children.items():
+                child_review_comment = await child.simple_review(review_mode)
+                review_comments.update(child_review_comment)
+
+        return review_comments
+
+    async def human_revise(self) -> dict[str, str]:
+        review_contents = HumanInteraction().interact_with_instruct_content(
+            instruct_content=self.instruct_content, mapping=self.get_mapping(mode="auto"), interact_type="revise"
+        )
+        # re-fill the ActionNode
+        self.update_instruct_content(review_contents)
+        return review_contents
+
+    def _makeup_nodes_output_with_comment(self, review_comments: dict[str, str]) -> dict[str, str]:
+        instruct_content_dict = self.instruct_content.model_dump()
+        nodes_output = {}
+        for key, value in instruct_content_dict.items():
+            if key in review_comments:
+                nodes_output[key] = {"value": value, "comment": review_comments[key]}
+        return nodes_output
+
+    async def auto_revise(
+        self, revise_mode: ReviseMode = ReviseMode.AUTO, template: str = REVISE_TEMPLATE
+    ) -> dict[str, str]:
+        """revise the value of incorrect keys"""
+        # generate review comments
+        if revise_mode == ReviseMode.AUTO:
+            review_comments: dict = await self.auto_review()
+        elif revise_mode == ReviseMode.HUMAN_REVIEW:
+            review_comments: dict = await self.human_review()
+
+        include_keys = list(review_comments.keys())
+
+        # generate revise content, two-steps
+        # step1, find the needed revise keys from review comments to makeup prompt template
+        nodes_output = self._makeup_nodes_output_with_comment(review_comments)
+        keys = self.keys()
+        exclude_keys = list(set(keys).difference(include_keys))
+        example = self.compile_example(schema="json", mode="auto", tag=TAG, exclude=exclude_keys)
+        instruction = self.compile_instruction(schema="markdown", mode="auto", exclude=exclude_keys)
+
+        prompt = template.format(
+            nodes_output=json.dumps(nodes_output, ensure_ascii=False),
+            example=example,
+            instruction=instruction,
+            constraint=FORMAT_CONSTRAINT,
+            prompt_schema="json",
+        )
+
+        # step2, use `_aask_v1` to get revise structure result
+        output_mapping = self.get_mapping(mode="auto", exclude=exclude_keys)
+        output_class_name = f"{self.key}_AN_REVISE"
+        content, scontent = await self._aask_v1(
+            prompt=prompt, output_class_name=output_class_name, output_data_mapping=output_mapping, schema="json"
+        )
+
+        # re-fill the ActionNode
+        sc_dict = scontent.model_dump()
+        self.update_instruct_content(sc_dict)
+        return sc_dict
+
+    async def simple_revise(self, revise_mode: ReviseMode = ReviseMode.AUTO) -> dict[str, str]:
+        if revise_mode == ReviseMode.HUMAN:
+            revise_contents = await self.human_revise()
+        else:
+            revise_contents = await self.auto_revise(revise_mode)
+
+        return revise_contents
+
+    async def revise(self, strgy: str = "simple", revise_mode: ReviseMode = ReviseMode.AUTO) -> dict[str, str]:
+        """revise the content of ActionNode and update the instruct_content
+
+        :param strgy: simple/complex
+         - simple: run only once
+         - complex: run each node
+        """
+        if not hasattr(self, "llm"):
+            raise RuntimeError("use `revise` after `fill`")
+        assert revise_mode in ReviseMode
+        assert self.instruct_content, 'revise only support with `schema != "raw"`'
+
+        if strgy == "simple":
+            revise_contents = await self.simple_revise(revise_mode)
+        elif strgy == "complex":
+            # revise each child node one-by-one
+            revise_contents = {}
+            for _, child in self.children.items():
+                child_revise_content = await child.simple_revise(revise_mode)
+                revise_contents.update(child_revise_content)
+            self.update_instruct_content(revise_contents)
+
+        return revise_contents
+
+    @classmethod
+    def from_pydantic(cls, model: Type[BaseModel], key: str = None):
+        """
+        Creates an ActionNode tree from a Pydantic model.
+
+        Args:
+            model (Type[BaseModel]): The Pydantic model to convert.
+
+        Returns:
+            ActionNode: The root node of the created ActionNode tree.
+        """
+        key = key or model.__name__
+        root_node = cls(key=model.__name__, expected_type=Type[model], instruction="", example="")
+
+        for field_name, field_model in model.model_fields.items():
+            # Extracting field details
+            expected_type = field_model.annotation
+            instruction = field_model.description or ""
+            example = field_model.default
+
+            # Check if the field is a Pydantic model itself.
+            # Use isinstance to avoid typing.List, typing.Dict, etc. (they are instances of type, not subclasses)
+            if isinstance(expected_type, type) and issubclass(expected_type, BaseModel):
+                # Recursively process the nested model
+                child_node = cls.from_pydantic(expected_type, key=field_name)
+            else:
+                child_node = cls(key=field_name, expected_type=expected_type, instruction=instruction, example=example)
+
+            root_node.add_child(child_node)
+
+        return root_node
+
+
+class ToolUse(BaseModel):
+    tool_name: str = Field(default="a", description="tool name", examples=[])
+
+
+class Task(BaseModel):
+    task_id: int = Field(default="1", description="task id", examples=[1, 2, 3])
+    name: str = Field(default="Get data from ...", description="task name", examples=[])
+    dependent_task_ids: List[int] = Field(default=[], description="dependent task ids", examples=[1, 2, 3])
+    tool: ToolUse = Field(default=ToolUse(), description="tool use", examples=[])
+
+
+class Tasks(BaseModel):
+    tasks: List[Task] = Field(default=[], description="tasks", examples=[])
+
+
+if __name__ == "__main__":
+    node = ActionNode.from_pydantic(Tasks)
+    print("Tasks")
+    print(Tasks.model_json_schema())
+    print("Task")
+    print(Task.model_json_schema())
+    print(node)
+    prompt = node.compile(context="")
+    node.create_children_class()
+    print(prompt)

@@ -9,7 +9,6 @@
 
 from metagpt.actions import UserRequirement, WritePRD
 from metagpt.actions.prepare_documents import PrepareDocuments
-from metagpt.config import CONFIG
 from metagpt.roles.role import Role
 from metagpt.utils.common import any_to_name
 
@@ -34,24 +33,19 @@ class ProductManager(Role):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 
-        self._init_actions([PrepareDocuments, WritePRD])
+        self.set_actions([PrepareDocuments, WritePRD])
         self._watch([UserRequirement, PrepareDocuments])
         self.todo_action = any_to_name(PrepareDocuments)
 
     async def _think(self) -> bool:
         """Decide what to do"""
-        if CONFIG.git_repo and not CONFIG.git_reinit:
+        if self.git_repo and not self.config.git_reinit:
             self._set_state(1)
         else:
             self._set_state(0)
-            CONFIG.git_reinit = False
+            self.config.git_reinit = False
             self.todo_action = any_to_name(WritePRD)
         return bool(self.rc.todo)
 
     async def _observe(self, ignore_memory=False) -> int:
         return await super()._observe(ignore_memory=True)
-
-    @property
-    def todo(self) -> str:
-        """AgentStore uses this attribute to display to the user what actions the current role should take."""
-        return self.todo_action

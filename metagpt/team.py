@@ -10,13 +10,13 @@
 
 import warnings
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from metagpt.actions import UserRequirement
-from metagpt.config import CONFIG
 from metagpt.const import MESSAGE_ROUTE_TO_ALL, SERDESER_PATH
+from metagpt.context import Context
 from metagpt.environment import Environment
 from metagpt.logs import logger
 from metagpt.roles import Role
@@ -37,12 +37,17 @@ class Team(BaseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    env: Environment = Field(default_factory=Environment)
+    env: Optional[Environment] = None
     investment: float = Field(default=10.0)
     idea: str = Field(default="")
 
-    def __init__(self, **data: Any):
+    def __init__(self, context: Context = None, **data: Any):
         super(Team, self).__init__(**data)
+        ctx = context or Context()
+        if not self.env:
+            self.env = Environment(context=ctx)
+        else:
+            self.env.context = ctx  # The `env` object is allocated by deserialization
         if "roles" in data:
             self.hire(data["roles"])
         if "env_desc" in data:
@@ -50,47 +55,43 @@ class Team(BaseModel):
 
     def serialize(self, stg_path: Path = None):
         stg_path = SERDESER_PATH.joinpath("team") if stg_path is None else stg_path
+        team_info_path = stg_path.joinpath("team.json")
 
-        team_info_path = stg_path.joinpath("team_info.json")
-        write_json_file(team_info_path, self.model_dump(exclude={"env": True}))
-
-        self.env.serialize(stg_path.joinpath("environment"))  # save environment alone
+        write_json_file(team_info_path, self.model_dump())
 
     @classmethod
-    def deserialize(cls, stg_path: Path) -> "Team":
+    def deserialize(cls, stg_path: Path, context: Context = None) -> "Team":
         """stg_path = ./storage/team"""
         # recover team_info
-        team_info_path = stg_path.joinpath("team_info.json")
+        team_info_path = stg_path.joinpath("team.json")
         if not team_info_path.exists():
             raise FileNotFoundError(
-                "recover storage meta file `team_info.json` not exist, "
-                "not to recover and please start a new project."
+                "recover storage meta file `team.json` not exist, " "not to recover and please start a new project."
             )
 
         team_info: dict = read_json_file(team_info_path)
-
-        # recover environment
-        environment = Environment.deserialize(stg_path=stg_path.joinpath("environment"))
-        team_info.update({"env": environment})
-        team = Team(**team_info)
+        ctx = context or Context()
+        team = Team(**team_info, context=ctx)
         return team
 
     def hire(self, roles: list[Role]):
         """Hire roles to cooperate"""
         self.env.add_roles(roles)
 
+    @property
+    def cost_manager(self):
+        """Get cost manager"""
+        return self.env.context.cost_manager
+
     def invest(self, investment: float):
         """Invest company. raise NoMoneyException when exceed max_budget."""
         self.investment = investment
-        CONFIG.max_budget = investment
+        self.cost_manager.max_budget = investment
         logger.info(f"Investment: ${investment}.")
 
-    @staticmethod
-    def _check_balance():
-        if CONFIG.cost_manager.total_cost > CONFIG.cost_manager.max_budget:
-            raise NoMoneyException(
-                CONFIG.cost_manager.total_cost, f"Insufficient funds: {CONFIG.cost_manager.max_budget}"
-            )
+    def _check_balance(self):
+        if self.cost_manager.total_cost >= self.cost_manager.max_budget:
+            raise NoMoneyException(self.cost_manager.total_cost, f"Insufficient funds: {self.cost_manager.max_budget}")
 
     def run_project(self, idea, send_to: str = ""):
         """Run a project from publishing user requirement."""

@@ -1,0 +1,34 @@
+name: Build and upload python package
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        cache: 'pip'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -e.
+        pip install setuptools wheel twine
+    - name: Set package version
+      run: |
+        export VERSION="${GITHUB_REF#refs/tags/v}"
+        sed -i "s/version=.*/version=\"${VERSION}\",/" setup.py
+    - name: Build and publish
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+      run: |
+        python setup.py bdist_wheel sdist
+        twine upload dist/*

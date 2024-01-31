@@ -1,14 +1,11 @@
 #!/usr/bin/env python
-"""
-@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
-"""
+# -*- coding: utf-8 -*-
 
 from __future__ import annotations
 
 import importlib
 from typing import Any, Callable, Coroutine, overload
 
-from metagpt.config import CONFIG
 from metagpt.tools import WebBrowserEngineType
 from metagpt.utils.parse_html import WebPage
 
@@ -16,10 +13,9 @@ from metagpt.utils.parse_html import WebPage
 class WebBrowserEngine:
     def __init__(
         self,
-        engine: WebBrowserEngineType | None = None,
+        engine: WebBrowserEngineType = WebBrowserEngineType.PLAYWRIGHT,
         run_func: Callable[..., Coroutine[Any, Any, WebPage | list[WebPage]]] | None = None,
     ):
-        engine = engine or CONFIG.web_browser_engine
         if engine is None:
             raise NotImplementedError
 

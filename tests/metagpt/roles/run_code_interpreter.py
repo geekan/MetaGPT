@@ -9,9 +9,7 @@ from metagpt.schema import Plan
 from metagpt.utils.recovery_util import load_history, save_history
 
 
-async def run_code_interpreter(
-    role_class, requirement, auto_run, use_tools, use_code_steps, make_udfs, use_udfs, save_dir, tools
-):
+async def run_code_interpreter(role_class, requirement, auto_run, use_tools, save_dir, tools):
     """
     The main function to run the MLEngineer with optional history loading.
 
@@ -25,16 +23,11 @@ async def run_code_interpreter(
     """
 
     if role_class == "ci":
-        role = CodeInterpreter(
-            goal=requirement, auto_run=auto_run, use_tools=use_tools, make_udfs=make_udfs, tools=tools
-        )
+        role = CodeInterpreter(auto_run=auto_run, use_tools=use_tools, tools=tools)
     else:
         role = MLEngineer(
-            goal=requirement,
             auto_run=auto_run,
             use_tools=use_tools,
-            use_code_steps=use_code_steps,
-            make_udfs=make_udfs,
             tools=tools,
         )
 
@@ -50,9 +43,9 @@ async def run_code_interpreter(
     try:
         await role.run(requirement)
     except Exception as e:
-        save_path = save_history(role, save_dir)
-
         logger.exception(f"An error occurred: {e}, save trajectory here: {save_path}")
+
+    save_history(role, save_dir)
 
 
 if __name__ == "__main__":
@@ -73,8 +66,6 @@ if __name__ == "__main__":
     role_class = "mle"
     auto_run = True
     use_tools = True
-    make_udfs = False
-    use_udfs = False
     tools = []
     # tools = ["FillMissingValue", "CatCross", "non_existing_test"]
 
@@ -83,14 +74,9 @@ if __name__ == "__main__":
         requirement: str = requirement,
         auto_run: bool = auto_run,
         use_tools: bool = use_tools,
-        use_code_steps: bool = False,
-        make_udfs: bool = make_udfs,
-        use_udfs: bool = use_udfs,
         save_dir: str = save_dir,
         tools=tools,
     ):
-        await run_code_interpreter(
-            role_class, requirement, auto_run, use_tools, use_code_steps, make_udfs, use_udfs, save_dir, tools
-        )
+        await run_code_interpreter(role_class, requirement, auto_run, use_tools, save_dir, tools)
 
     fire.Fire(main)

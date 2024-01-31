@@ -9,7 +9,7 @@ from typing import Callable, Union
 import regex as re
 from tenacity import RetryCallState, retry, stop_after_attempt, wait_fixed
 
-from metagpt.config import CONFIG
+from metagpt.config2 import config
 from metagpt.logs import logger
 from metagpt.utils.custom_decoder import CustomDecoder
 
@@ -120,6 +120,15 @@ def repair_json_format(output: str) -> str:
     elif output.startswith("{") and output.endswith("]"):
         output = output[:-1] + "}"
 
+    # remove `#` in output json str, usually appeared in `glm-4`
+    arr = output.split("\n")
+    new_arr = []
+    for line in arr:
+        idx = line.find("#")
+        if idx >= 0:
+            line = line[:idx]
+        new_arr.append(line)
+    output = "\n".join(new_arr)
     return output
 
 
@@ -152,7 +161,7 @@ def repair_llm_raw_output(output: str, req_keys: list[str], repair_type: RepairT
             target: { xxx }
             output: { xxx }]
     """
-    if not CONFIG.repair_llm_output:
+    if not config.repair_llm_output:
         return output
 
     # do the repairation usually for non-openai models
@@ -168,15 +177,17 @@ def repair_invalid_json(output: str, error: str) -> str:
         example 1. json.decoder.JSONDecodeError: Expecting ',' delimiter: line 154 column 1 (char 2765)
         example 2. xxx.JSONDecodeError: Expecting property name enclosed in double quotes: line 14 column 1 (char 266)
     """
-    pattern = r"line ([0-9]+)"
+    pattern = r"line ([0-9]+) column ([0-9]+)"
 
     matches = re.findall(pattern, error, re.DOTALL)
     if len(matches) > 0:
-        line_no = int(matches[0]) - 1
+        line_no = int(matches[0][0]) - 1
+        col_no = int(matches[0][1]) - 1
 
         # due to CustomDecoder can handle `"": ''` or `'': ""`, so convert `"""` -> `"`, `'''` -> `'`
         output = output.replace('"""', '"').replace("'''", '"')
         arr = output.split("\n")
+        rline = arr[line_no]  # raw line
         line = arr[line_no].strip()
         # different general problems
         if line.endswith("],"):
@@ -187,9 +198,12 @@ def repair_invalid_json(output: str, error: str) -> str:
             new_line = line.replace("}", "")
         elif line.endswith("},") and output.endswith("},"):
             new_line = line[:-1]
-        elif '",' not in line and "," not in line:
+        elif (rline[col_no] in ["'", '"']) and (line.startswith('"') or line.startswith("'")) and "," not in line:
+            # problem, `"""` or `'''` without `,`
+            new_line = f",{line}"
+        elif '",' not in line and "," not in line and '"' not in line:
             new_line = f'{line}",'
-        elif "," not in line:
+        elif not line.endswith(","):
             # problem, miss char `,` at the end.
             new_line = f"{line},"
         elif "," in line and len(line) == 1:
@@ -231,7 +245,7 @@ def run_after_exp_and_passon_next_retry(logger: "loguru.Logger") -> Callable[["R
                 func_param_output = retry_state.kwargs.get("output", "")
             exp_str = str(retry_state.outcome.exception())
 
-            fix_str = "try to fix it, " if CONFIG.repair_llm_output else ""
+            fix_str = "try to fix it, " if config.repair_llm_output else ""
             logger.warning(
                 f"parse json from content inside [CONTENT][/CONTENT] failed at retry "
                 f"{retry_state.attempt_number}, {fix_str}exp: {exp_str}"
@@ -244,7 +258,7 @@ def run_after_exp_and_passon_next_retry(logger: "loguru.Logger") -> Callable[["R
 
 
 @retry(
-    stop=stop_after_attempt(3 if CONFIG.repair_llm_output else 0),
+    stop=stop_after_attempt(3 if config.repair_llm_output else 0),
     wait=wait_fixed(1),
     after=run_after_exp_and_passon_next_retry(logger),
 )

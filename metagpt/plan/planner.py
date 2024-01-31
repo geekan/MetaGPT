@@ -32,8 +32,8 @@ class Planner(BaseModel):
     auto_run: bool = False
     use_tools: bool = False
 
-    def __init__(self, goal: str, **kwargs):
-        plan = Plan(goal=goal)
+    def __init__(self, goal: str = "", plan: Plan = None, **kwargs):
+        plan = plan or Plan(goal=goal)
         super().__init__(plan=plan, **kwargs)
 
     @property
@@ -43,6 +43,48 @@ class Planner(BaseModel):
     @property
     def current_task_id(self):
         return self.plan.current_task_id
+
+    async def update_plan(self, goal: str = "", max_tasks: int = 3, max_retries: int = 3):
+        if goal:
+            self.plan = Plan(goal=goal)
+
+        plan_confirmed = False
+        while not plan_confirmed:
+            context = self.get_useful_memories()
+            rsp = await WritePlan().run(context, max_tasks=max_tasks, use_tools=self.use_tools)
+            self.working_memory.add(Message(content=rsp, role="assistant", cause_by=WritePlan))
+
+            # precheck plan before asking reviews
+            is_plan_valid, error = precheck_update_plan_from_rsp(rsp, self.plan)
+            if not is_plan_valid and max_retries > 0:
+                error_msg = f"The generated plan is not valid with error: {error}, try regenerating, remember to generate either the whole plan or the single changed task only"
+                logger.warning(error_msg)
+                self.working_memory.add(Message(content=error_msg, role="assistant", cause_by=WritePlan))
+                max_retries -= 1
+                continue
+
+            _, plan_confirmed = await self.ask_review(trigger=ReviewConst.TASK_REVIEW_TRIGGER)
+
+        update_plan_from_rsp(rsp=rsp, current_plan=self.plan)
+
+        self.working_memory.clear()
+
+    async def process_task_result(self, task_result: TaskResult):
+        # ask for acceptance, users can other refuse and change tasks in the plan
+        review, task_result_confirmed = await self.ask_review(task_result)
+
+        if task_result_confirmed:
+            # tick off this task and record progress
+            await self.confirm_task(self.current_task, task_result, review)
+
+        elif "redo" in review:
+            # Ask the Role to redo this task with help of review feedback,
+            # useful when the code run is successful but the procedure or result is not what we want
+            pass  # simply pass, not confirming the result
+
+        else:
+            # update plan according to user's feedback and to take on changed tasks
+            await self.update_plan()
 
     async def ask_review(
         self, task_result: TaskResult = None, auto_run: bool = None, trigger: str = ReviewConst.TASK_REVIEW_TRIGGER
@@ -73,28 +115,6 @@ class Planner(BaseModel):
         if confirmed_and_more:
             self.working_memory.add(Message(content=review, role="user", cause_by=AskReview))
             await self.update_plan(review)
-
-    async def update_plan(self, max_tasks: int = 3, max_retries: int = 3):
-        plan_confirmed = False
-        while not plan_confirmed:
-            context = self.get_useful_memories()
-            rsp = await WritePlan().run(context, max_tasks=max_tasks, use_tools=self.use_tools)
-            self.working_memory.add(Message(content=rsp, role="assistant", cause_by=WritePlan))
-
-            # precheck plan before asking reviews
-            is_plan_valid, error = precheck_update_plan_from_rsp(rsp, self.plan)
-            if not is_plan_valid and max_retries > 0:
-                error_msg = f"The generated plan is not valid with error: {error}, try regenerating, remember to generate either the whole plan or the single changed task only"
-                logger.warning(error_msg)
-                self.working_memory.add(Message(content=error_msg, role="assistant", cause_by=WritePlan))
-                max_retries -= 1
-                continue
-
-            _, plan_confirmed = await self.ask_review(trigger=ReviewConst.TASK_REVIEW_TRIGGER)
-
-        update_plan_from_rsp(rsp=rsp, current_plan=self.plan)
-
-        self.working_memory.clear()
 
     def get_useful_memories(self, task_exclude_field=None) -> list[Message]:
         """find useful memories only to reduce context length and improve performance"""

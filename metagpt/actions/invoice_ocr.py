@@ -16,17 +16,14 @@ from typing import Optional
 
 import pandas as pd
 from paddleocr import PaddleOCR
-from pydantic import Field
 
 from metagpt.actions import Action
 from metagpt.const import INVOICE_OCR_TABLE_PATH
-from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.prompts.invoice_ocr import (
     EXTRACT_OCR_MAIN_INFO_PROMPT,
     REPLY_OCR_QUESTION_PROMPT,
 )
-from metagpt.provider.base_llm import BaseLLM
 from metagpt.utils.common import OutputParser
 from metagpt.utils.file import File
 
@@ -41,7 +38,7 @@ class InvoiceOCR(Action):
     """
 
     name: str = "InvoiceOCR"
-    context: Optional[str] = None
+    i_context: Optional[str] = None
 
     @staticmethod
     async def _check_file_type(file_path: Path) -> str:
@@ -132,8 +129,7 @@ class GenerateTable(Action):
     """
 
     name: str = "GenerateTable"
-    context: Optional[str] = None
-    llm: BaseLLM = Field(default_factory=LLM)
+    i_context: Optional[str] = None
     language: str = "ch"
 
     async def run(self, ocr_results: list, filename: str, *args, **kwargs) -> dict[str, str]:
@@ -176,9 +172,6 @@ class ReplyQuestion(Action):
 
     """
 
-    name: str = "ReplyQuestion"
-    context: Optional[str] = None
-    llm: BaseLLM = Field(default_factory=LLM)
     language: str = "ch"
 
     async def run(self, query: str, ocr_result: list, *args, **kwargs) -> str:

@@ -8,10 +8,8 @@ from typing import Callable, Optional, Union
 from pydantic import Field, parse_obj_as
 
 from metagpt.actions import Action
-from metagpt.config import CONFIG
-from metagpt.llm import LLM
+from metagpt.config2 import config
 from metagpt.logs import logger
-from metagpt.provider.base_llm import BaseLLM
 from metagpt.tools.search_engine import SearchEngine
 from metagpt.tools.web_browser_engine import WebBrowserEngine, WebBrowserEngineType
 from metagpt.utils.common import OutputParser
@@ -81,7 +79,7 @@ class CollectLinks(Action):
     """Action class to collect links from a search engine."""
 
     name: str = "CollectLinks"
-    context: Optional[str] = None
+    i_context: Optional[str] = None
     desc: str = "Collect links from a search engine."
 
     search_engine: SearchEngine = Field(default_factory=SearchEngine)
@@ -129,8 +127,8 @@ class CollectLinks(Action):
                 if len(remove) == 0:
                     break
 
-        model_name = CONFIG.get_model_name(CONFIG.get_default_llm_provider_enum())
-        prompt = reduce_message_length(gen_msg(), model_name, system_text, CONFIG.max_tokens_rsp)
+        model_name = config.get_openai_llm().model
+        prompt = reduce_message_length(gen_msg(), model_name, system_text, 4096)
         logger.debug(prompt)
         queries = await self._aask(prompt, [system_text])
         try:
@@ -177,19 +175,16 @@ class WebBrowseAndSummarize(Action):
     """Action class to explore the web and provide summaries of articles and webpages."""
 
     name: str = "WebBrowseAndSummarize"
-    context: Optional[str] = None
-    llm: BaseLLM = Field(default_factory=LLM)
+    i_context: Optional[str] = None
     desc: str = "Explore the web and provide summaries of articles and webpages."
     browse_func: Union[Callable[[list[str]], None], None] = None
-    web_browser_engine: Optional[WebBrowserEngine] = None
+    web_browser_engine: Optional[WebBrowserEngine] = WebBrowserEngineType.PLAYWRIGHT
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        if CONFIG.model_for_researcher_summary:
-            self.llm.model = CONFIG.model_for_researcher_summary
 
         self.web_browser_engine = WebBrowserEngine(
-            engine=WebBrowserEngineType.CUSTOM if self.browse_func else None,
+            engine=WebBrowserEngineType.CUSTOM if self.browse_func else WebBrowserEngineType.PLAYWRIGHT,
             run_func=self.browse_func,
         )
 
@@ -220,9 +215,7 @@ class WebBrowseAndSummarize(Action):
         for u, content in zip([url, *urls], contents):
             content = content.inner_text
             chunk_summaries = []
-            for prompt in generate_prompt_chunk(
-                content, prompt_template, self.llm.model, system_text, CONFIG.max_tokens_rsp
-            ):
+            for prompt in generate_prompt_chunk(content, prompt_template, self.llm.model, system_text, 4096):
                 logger.debug(prompt)
                 summary = await self._aask(prompt, [system_text])
                 if summary == "Not relevant.":
@@ -247,14 +240,8 @@ class WebBrowseAndSummarize(Action):
 class ConductResearch(Action):
     """Action class to conduct research and generate a research report."""
 
-    name: str = "ConductResearch"
-    context: Optional[str] = None
-    llm: BaseLLM = Field(default_factory=LLM)
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        if CONFIG.model_for_researcher_report:
-            self.llm.model = CONFIG.model_for_researcher_report
 
     async def run(
         self,

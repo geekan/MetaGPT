@@ -8,14 +8,31 @@
 """
 import json
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, Union
+
+from openai import AsyncOpenAI
+
+from metagpt.configs.llm_config import LLMConfig
+from metagpt.logs import logger
+from metagpt.schema import Message
+from metagpt.utils.cost_manager import CostManager
 
 
 class BaseLLM(ABC):
     """LLM API abstract class, requiring all inheritors to provide a series of standard capabilities"""
 
+    config: LLMConfig
     use_system_prompt: bool = True
     system_prompt = "You are a helpful assistant."
+
+    # OpenAI / Azure / Others
+    aclient: Optional[Union[AsyncOpenAI]] = None
+    cost_manager: Optional[CostManager] = None
+    model: Optional[str] = None
+
+    @abstractmethod
+    def __init__(self, config: LLMConfig):
+        pass
 
     def _user_msg(self, msg: str) -> dict[str, str]:
         return {"role": "user", "content": msg}
@@ -43,10 +60,13 @@ class BaseLLM(ABC):
         if system_msgs:
             message = self._system_msgs(system_msgs)
         else:
-            message = [self._default_system_msg()] if self.use_system_prompt else []
+            message = [self._default_system_msg()]
+        if not self.use_system_prompt:
+            message = []
         if format_msgs:
             message.extend(format_msgs)
         message.append(self._user_msg(msg))
+        logger.debug(message)
         rsp = await self.acompletion_text(message, stream=stream, timeout=timeout)
         return rsp
 
@@ -63,10 +83,9 @@ class BaseLLM(ABC):
             context.append(self._assistant_msg(rsp_text))
         return self._extract_assistant_rsp(context)
 
-    async def aask_code(self, msgs: list[str], timeout=3) -> str:
+    async def aask_code(self, messages: Union[str, Message, list[dict]], timeout=3) -> dict:
         """FIXME: No code segment filtering has been done here, and all results are actually displayed"""
-        rsp_text = await self.aask_batch(msgs, timeout=timeout)
-        return rsp_text
+        raise NotImplementedError
 
     @abstractmethod
     async def acompletion(self, messages: list[dict], timeout=3):
@@ -86,6 +105,10 @@ class BaseLLM(ABC):
     def get_choice_text(self, rsp: dict) -> str:
         """Required to provide the first text of choice"""
         return rsp.get("choices")[0]["message"]["content"]
+
+    def get_choice_delta_text(self, rsp: dict) -> str:
+        """Required to provide the first text of stream choice"""
+        return rsp.get("choices")[0]["delta"]["content"]
 
     def get_choice_function(self, rsp: dict) -> dict:
         """Required to provide the first function of choice

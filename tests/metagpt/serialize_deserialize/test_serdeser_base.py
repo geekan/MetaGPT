@@ -16,14 +16,14 @@ from metagpt.roles.role import Role, RoleReactMode
 serdeser_path = Path(__file__).absolute().parent.joinpath("..", "..", "data", "serdeser_storage")
 
 
-class MockICMessage(BaseModel):
-    content: str = "test_ic"
-
-
 class MockMessage(BaseModel):
+    content: str = "test_msg"
+
+
+class MockICMessage(BaseModel):
     """to test normal dict without postprocess"""
 
-    content: str = ""
+    content: str = "test_ic_msg"
     instruct_content: Optional[BaseModel] = Field(default=None)
 
 
@@ -67,7 +67,7 @@ class RoleA(Role):
 
     def __init__(self, **kwargs):
         super(RoleA, self).__init__(**kwargs)
-        self._init_actions([ActionPass])
+        self.set_actions([ActionPass])
         self._watch([UserRequirement])
 
 
@@ -79,7 +79,7 @@ class RoleB(Role):
 
     def __init__(self, **kwargs):
         super(RoleB, self).__init__(**kwargs)
-        self._init_actions([ActionOK, ActionRaise])
+        self.set_actions([ActionOK, ActionRaise])
         self._watch([ActionPass])
         self.rc.react_mode = RoleReactMode.BY_ORDER
 
@@ -92,7 +92,7 @@ class RoleC(Role):
 
     def __init__(self, **kwargs):
         super(RoleC, self).__init__(**kwargs)
-        self._init_actions([ActionOK, ActionRaise])
+        self.set_actions([ActionOK, ActionRaise])
         self._watch([UserRequirement])
         self.rc.react_mode = RoleReactMode.BY_ORDER
         self.rc.memory.ignore_id = True

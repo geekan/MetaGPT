@@ -38,5 +38,5 @@ class Sales(Role):
             action = SearchAndSummarize(name="", engine=SearchEngineType.CUSTOM_ENGINE, search_func=store.asearch)
         else:
             action = SearchAndSummarize()
-        self._init_actions([action])
+        self.set_actions([action])
         self._watch([UserRequirement])

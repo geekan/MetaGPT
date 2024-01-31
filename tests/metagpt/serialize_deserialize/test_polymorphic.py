@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # @Desc   : unittest of polymorphic conditions
+import copy
 
 from pydantic import BaseModel, ConfigDict, SerializeAsAny
 
@@ -12,6 +13,8 @@ from tests.metagpt.serialize_deserialize.test_serdeser_base import (
 
 
 class ActionSubClasses(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     actions: list[SerializeAsAny[Action]] = []
 
 
@@ -40,19 +43,21 @@ def test_no_serialize_as_any():
 
 
 def test_polymorphic():
-    _ = ActionOKV2(
+    ok_v2 = ActionOKV2(
         **{"name": "ActionOKV2", "context": "", "prefix": "", "desc": "", "extra_field": "ActionOKV2 Extra Info"}
     )
 
     action_subcls = ActionSubClasses(actions=[ActionOKV2(), ActionPass()])
     action_subcls_dict = action_subcls.model_dump()
+    action_subcls_dict2 = copy.deepcopy(action_subcls_dict)
 
     assert "__module_class_name" in action_subcls_dict["actions"][0]
 
     new_action_subcls = ActionSubClasses(**action_subcls_dict)
     assert isinstance(new_action_subcls.actions[0], ActionOKV2)
+    assert new_action_subcls.actions[0].extra_field == ok_v2.extra_field
     assert isinstance(new_action_subcls.actions[1], ActionPass)
 
-    new_action_subcls = ActionSubClasses.model_validate(action_subcls_dict)
+    new_action_subcls = ActionSubClasses.model_validate(action_subcls_dict2)
     assert isinstance(new_action_subcls.actions[0], ActionOKV2)
     assert isinstance(new_action_subcls.actions[1], ActionPass)

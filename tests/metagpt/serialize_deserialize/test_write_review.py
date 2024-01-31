@@ -5,7 +5,7 @@ import pytest
 from metagpt.actions.action_node import ActionNode
 from metagpt.actions.write_review import WriteReview
 
-CONTEXT = """
+TEMPLATE_CONTEXT = """
 {
     "Language": "zh_cn",
     "Programming Language": "Python",
@@ -42,13 +42,13 @@ CONTEXT = """
 
 
 @pytest.mark.asyncio
-async def test_action_deserialize():
-    action = WriteReview()
+async def test_action_serdeser(context):
+    action = WriteReview(context=context)
     serialized_data = action.model_dump()
     assert serialized_data["name"] == "WriteReview"
 
-    new_action = WriteReview(**serialized_data)
-    review = await new_action.run(CONTEXT)
+    new_action = WriteReview(**serialized_data, context=context)
+    review = await new_action.run(TEMPLATE_CONTEXT)
 
     assert new_action.name == "WriteReview"
     assert type(review) == ActionNode
