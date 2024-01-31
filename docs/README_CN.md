@@ -48,7 +48,7 @@ cd MetaGPT
 pip3 install -e.  # 或者 pip3 install metagpt  # 安装稳定版本
 
 # 第 3 步：执行metagpt
-# 拷贝config.yaml为key.yaml，并设置你自己的OPENAI_API_KEY
+# 拷贝config2.yaml为~/.metagpt/config2.yaml，并设置你自己的api_key
 metagpt "Write a cli snake game"
 
 # 第 4 步【可选的】：如果你想在执行过程中保存像象限图、系统设计、序列流程等图表这些产物，可以在第3步前执行该步骤。默认的，框架做了兼容，在不执行该步的情况下，也可以完整跑完整个流程。
@@ -63,16 +63,16 @@ sudo npm install -g @mermaid-js/mermaid-cli
 > 注意：在Windows中，你需要将 "/opt/metagpt" 替换为Docker具有创建权限的目录，比如"D:\Users\x\metagpt"
 
 ```bash
-# 步骤1: 下载metagpt官方镜像并准备好config.yaml
+# 步骤1: 下载metagpt官方镜像并准备好config2.yaml
 docker pull metagpt/metagpt:latest
 mkdir -p /opt/metagpt/{config,workspace}
-docker run --rm metagpt/metagpt:latest cat /app/metagpt/config/config.yaml > /opt/metagpt/config/key.yaml
-vim /opt/metagpt/config/key.yaml # 修改配置文件
+docker run --rm metagpt/metagpt:latest cat /app/metagpt/config/config2.yaml > /opt/metagpt/config/config2.yaml
+vim /opt/metagpt/config/config2.yaml # 修改配置文件
 
 # 步骤2: 使用容器运行metagpt演示
 docker run --rm \
     --privileged \
-    -v /opt/metagpt/config/key.yaml:/app/metagpt/config/key.yaml \
+    -v /opt/metagpt/config/config2.yaml:/app/metagpt/config/config2.yaml \
     -v /opt/metagpt/workspace:/app/metagpt/workspace \
     metagpt/metagpt:latest \
     metagpt "Write a cli snake game"

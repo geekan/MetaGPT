@@ -30,14 +30,14 @@ async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, 
     suffixes = ["png", "svg", "pdf"]
     __dirname = os.path.dirname(os.path.abspath(__file__))
 
-    if config.pyppeteer_executable_path:
+    if config.mermaid.pyppeteer_path:
         browser = await launch(
             headless=True,
-            executablePath=config.pyppeteer_executable_path,
+            executablePath=config.mermaid.pyppeteer_path,
             args=["--disable-extensions", "--no-sandbox"],
         )
     else:
-        logger.error("Please set the environment variable:PYPPETEER_EXECUTABLE_PATH.")
+        logger.error("Please set the var mermaid.pyppeteer_path in the config2.yaml.")
         return -1
     page = await browser.newPage()
     device_scale_factor = 1.0

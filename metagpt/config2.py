@@ -67,14 +67,9 @@ class Config(CLIParams, YamlModel):
     code_review_k_times: int = 2
 
     # Will be removed in the future
-    llm_for_researcher_summary: str = "gpt3"
-    llm_for_researcher_report: str = "gpt3"
     METAGPT_TEXT_TO_IMAGE_MODEL_URL: str = ""
     language: str = "English"
     redis_key: str = "placeholder"
-    mmdc: str = "mmdc"
-    puppeteer_config: str = ""
-    pyppeteer_executable_path: str = ""
     IFLYTEK_APP_ID: str = ""
     IFLYTEK_API_SECRET: str = ""
     IFLYTEK_API_KEY: str = ""
@@ -86,7 +81,7 @@ class Config(CLIParams, YamlModel):
 
     @classmethod
     def from_home(cls, path):
-        """Load config from ~/.metagpt/config.yaml"""
+        """Load config from ~/.metagpt/config2.yaml"""
         pathname = CONFIG_ROOT / path
         if not pathname.exists():
             return None
