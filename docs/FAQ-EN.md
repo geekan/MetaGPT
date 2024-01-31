@@ -83,10 +83,10 @@ MetaGPT Community - The position of Chief Evangelist rotates on a monthly basis.
 
 1.  PRD stuck / unable to access/ connection interrupted
 
-    1.  The official OPENAI_BASE_URL address is `https://api.openai.com/v1`
-    1.  If the official OPENAI_BASE_URL address is inaccessible in your environment (this can be verified with curl), it's recommended to configure using the reverse proxy OPENAI_BASE_URL provided by libraries such as openai-forward. For instance, `OPENAI_BASE_URL: "``https://api.openai-forward.com/v1``"`
-    1.  If the official OPENAI_BASE_URL address is inaccessible in your environment (again, verifiable via curl), another option is to configure the OPENAI_PROXY parameter. This way, you can access the official OPENAI_BASE_URL via a local proxy. If you don't need to access via a proxy, please do not enable this configuration; if accessing through a proxy is required, modify it to the correct proxy address. Note that when OPENAI_PROXY is enabled, don't set OPENAI_BASE_URL.
-    1.  Note: OpenAI's default API design ends with a v1. An example of the correct configuration is: `OPENAI_BASE_URL: "``https://api.openai.com/v1``"`
+    1.  The official openai base_url address is `https://api.openai.com/v1`
+    1.  If the official openai base_url address is inaccessible in your environment (this can be verified with curl), it's recommended to configure using the reverse proxy openai base_url provided by libraries such as openai-forward. For instance, `openai base_url: "``https://api.openai-forward.com/v1``"`
+    1.  If the official openai base_url address is inaccessible in your environment (again, verifiable via curl), another option is to configure the llm.proxy parameter. This way, you can access the official openai base_url via a local proxy. If you don't need to access via a proxy, please do not enable this configuration; if accessing through a proxy is required, modify it to the correct proxy address. Note that when llm.proxy is enabled, don't set openai base_url.
+    1.  Note: OpenAI's default API design ends with a v1. An example of the correct configuration is: `openai base_url: "``https://api.openai.com/v1``"`
 
 1.  Absolutely! How can I assist you today?
 
@@ -118,28 +118,6 @@ MetaGPT Community - The position of Chief Evangelist rotates on a monthly basis.
     1.  More than 500 lines of code: some function implementations may be left blank.
     1.  When using a database, it often gets the implementation wrong — since the SQL database initialization process is usually not in the code.
     1.  With more lines of code, there's a higher chance of false impressions, leading to calls to non-existent APIs.
-
-1.  Instructions for using SD Skills/UI Role:
-
-    1.  Currently, there is a test script located in /tests/metagpt/roles. The file ui_role provides the corresponding code implementation. For testing, you can refer to the test_ui in the same directory.
-
-    1.  The UI role takes over from the product manager role, extending the output from the 【UI Design draft】 provided by the product manager role. The UI role has implemented the UIDesign Action. Within the run of UIDesign, it processes the respective context, and based on the set template, outputs the UI. The output from the UI role includes:
-
-        1.  UI Design Description: Describes the content to be designed and the design objectives.
-        1.  Selected Elements： Describes the elements in the design that need to be illustrated.
-        1.  HTML Layout： Outputs the HTML code for the page.
-        1.  CSS Styles (styles.css)： Outputs the CSS code for the page.
-
-    1.  Currently, the SD skill is a tool invoked by UIDesign. It instantiates the SDEngine, with specific code found in metagpt/tools/sd_engine.
-
-    1.  Configuration instructions for SD Skills: The SD interface is currently deployed based on *https://github.com/AUTOMATIC1111/stable-diffusion-webui* **For environmental configurations and model downloads, please refer to the aforementioned GitHub repository. To initiate the SD service that supports API calls, run the command specified in cmd with the parameter nowebui, i.e.,
-
-        1.  > python3 webui.py --enable-insecure-extension-access --port xxx --no-gradio-queue --nowebui
-        1.      Once it runs without errors, the interface will be accessible after approximately 1 minute when the model finishes loading.
-        1.  Configure SD_URL and SD_T2I_API in the config.yaml/key.yaml files.
-        1.  ![](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/065295a67b0b4feea665d1372722d49d~tplv-k3u1fbpfcp-zoom-1.image)
-        1.      SD_URL is the deployed server/machine IP, and Port is the specified port above, defaulting to 7860.
-        1.  > SD_URL: IP:Port
 
 1.  An error occurred during installation: "Another program is using this file...egg".
 

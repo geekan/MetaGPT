@@ -36,8 +36,8 @@ pip install -e.
 - don't forget to the configuration for mmdc in config.yml
 
   ```yml
-  PUPPETEER_CONFIG: "./config/puppeteer-config.json"
-  MMDC: "./node_modules/.bin/mmdc"
+  puppeteer_config: "./config/puppeteer-config.json"
+  path: "./node_modules/.bin/mmdc"
   ```
 
 - if `pip install -e.` fails with error `[Errno 13] Permission denied: '/usr/local/lib/python3.11/dist-packages/test-easy-install-13129.write-test'`, try instead running `pip install -e. --user`
@@ -59,12 +59,13 @@ pip install -e.
     playwright install --with-deps chromium
     ```
 
-    - **modify `config.yaml`**
+    - **modify `config2.yaml`**
 
-    uncomment MERMAID_ENGINE from config.yaml and change it to `playwright`
+    uncomment mermaid.engine from config2.yaml and change it to `playwright`
 
     ```yaml
-    MERMAID_ENGINE: playwright
+    mermaid:
+      engine: playwright
     ```
 
   - pyppeteer
@@ -88,21 +89,23 @@ pip install -e.
     pyppeteer-install
     ```
 
-    - **modify `config.yaml`**
+    - **modify `config2.yaml`**
 
-    uncomment MERMAID_ENGINE from config.yaml and change it to `pyppeteer`
+    uncomment mermaid.engine from config2.yaml and change it to `pyppeteer`
 
     ```yaml
-    MERMAID_ENGINE: pyppeteer
+    mermaid:
+      engine: pyppeteer
     ```
 
   - mermaid.ink
-    - **modify `config.yaml`**
+    - **modify `config2.yaml`**
 
-    uncomment MERMAID_ENGINE from config.yaml and change it to `ink`
+    uncomment mermaid.engine from config2.yaml and change it to `ink`
 
     ```yaml
-    MERMAID_ENGINE: ink
+    mermaid:
+      engine: ink
     ```  
 
     Note: this method does not support pdf export.

@@ -36,8 +36,8 @@ pip install -e.
 - 不要忘记在config.yml中为mmdc配置配置，
 
     ```yml
-    PUPPETEER_CONFIG: "./config/puppeteer-config.json"
-    MMDC: "./node_modules/.bin/mmdc"
+    puppeteer_config: "./config/puppeteer-config.json"
+    path: "./node_modules/.bin/mmdc"
     ```
 
 - 如果`pip install -e.`失败并显示错误`[Errno 13] Permission denied: '/usr/local/lib/python3.11/dist-packages/test-easy-install-13129.write-test'`，请尝试使用`pip install -e. --user`运行。

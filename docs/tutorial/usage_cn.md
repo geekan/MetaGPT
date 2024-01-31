@@ -2,18 +2,13 @@
 
 ### 配置
 
-- 在 `config/key.yaml / config/config.yaml / env` 中配置您的 `OPENAI_API_KEY`
-- 优先级顺序：`config/key.yaml > config/config.yaml > env`
+- 在 `~/.metagpt/config2.yaml / config/config2.yaml` 中配置您的 `key`
+- 优先级顺序：`~/.metagpt/config2.yaml > config/config2.yaml`
 
 ```bash
 # 复制配置文件并进行必要的修改
-cp config/config.yaml config/key.yaml
+cp config/config2.yaml ~/.metagpt/config2.yaml
 ```
-
-| 变量名                              | config/key.yaml                           | env                                             |
-| ----------------------------------- | ----------------------------------------- | ----------------------------------------------- |
-| OPENAI_API_KEY # 用您自己的密钥替换 | OPENAI_API_KEY: "sk-..."                  | export OPENAI_API_KEY="sk-..."                  |
-| OPENAI_BASE_URL # 可选              | OPENAI_BASE_URL: "https://<YOUR_SITE>/v1" | export OPENAI_BASE_URL="https://<YOUR_SITE>/v1" |
 
 ### 示例：启动一个创业公司
 

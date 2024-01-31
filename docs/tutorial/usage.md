@@ -2,18 +2,13 @@
 
 ### Configuration
 
-- Configure your `OPENAI_API_KEY` in any of `config/key.yaml / config/config.yaml / env`
-- Priority order: `config/key.yaml > config/config.yaml > env`
+- Configure your `key` in any of `~/.metagpt/config2.yaml / config/config2.yaml`
+- Priority order: `~/.metagpt/config2.yaml > config/config2.yaml`
 
 ```bash
 # Copy the configuration file and make the necessary modifications.
-cp config/config.yaml config/key.yaml
+cp config/config2.yaml ~/.metagpt/config2.yaml
 ```
-
-| Variable Name                              | config/key.yaml                           | env                                             |
-| ------------------------------------------ | ----------------------------------------- | ----------------------------------------------- |
-| OPENAI_API_KEY # Replace with your own key | OPENAI_API_KEY: "sk-..."                  | export OPENAI_API_KEY="sk-..."                  |
-| OPENAI_BASE_URL # Optional                 | OPENAI_BASE_URL: "https://<YOUR_SITE>/v1" | export OPENAI_BASE_URL="https://<YOUR_SITE>/v1" |
 
 ### Initiating a startup
 

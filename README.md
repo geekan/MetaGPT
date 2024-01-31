@@ -67,10 +67,10 @@ git clone https://github.com/geekan/MetaGPT.git
 cd MetaGPT
 pip3 install -e .     # or pip3 install metagpt  # for stable version
 
-# Step 3: setup your OPENAI_API_KEY, or make sure it existed in the env
+# Step 3: setup your LLM key in the config2.yaml file
 mkdir ~/.metagpt
-cp config/config.yaml ~/.metagpt/config.yaml
-vim ~/.metagpt/config.yaml
+cp config/config2.yaml ~/.metagpt/config2.yaml
+vim ~/.metagpt/config2.yaml
 
 # Step 4: run metagpt cli
 metagpt "Create a 2048 game in python"
@@ -87,16 +87,16 @@ detail installation please refer to [cli_install](https://docs.deepwisdom.ai/mai
 > Note: In the Windows, you need to replace "/opt/metagpt" with a directory that Docker has permission to create, such as "D:\Users\x\metagpt"
 
 ```bash
-# Step 1: Download metagpt official image and prepare config.yaml
+# Step 1: Download metagpt official image and prepare config2.yaml
 docker pull metagpt/metagpt:latest
 mkdir -p /opt/metagpt/{config,workspace}
-docker run --rm metagpt/metagpt:latest cat /app/metagpt/config/config.yaml > /opt/metagpt/config/key.yaml
-vim /opt/metagpt/config/key.yaml # Change the config
+docker run --rm metagpt/metagpt:latest cat /app/metagpt/config/config2.yaml > /opt/metagpt/config/config2.yaml
+vim /opt/metagpt/config/config2.yaml # Change the config
 
 # Step 2: Run metagpt demo with container
 docker run --rm \
     --privileged \
-    -v /opt/metagpt/config/key.yaml:/app/metagpt/config/key.yaml \
+    -v /opt/metagpt/config/config2.yaml:/app/metagpt/config/config2.yaml \
     -v /opt/metagpt/workspace:/app/metagpt/workspace \
     metagpt/metagpt:latest \
     metagpt "Write a cli snake game"
