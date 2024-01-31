@@ -13,12 +13,12 @@ from metagpt.strategy.search_space import SearchSpace
 
 
 class BaseSolver:
-    """AbstractSolver: 用于定义一个抽象求解器，求解器中的搜索空间是 SearchSpace 实例，图是 ActionGraph 实例。"""
+    """AbstractSolver: defines the interface of a solver."""
 
     def __init__(self, graph: ActionGraph, search_space: SearchSpace, llm: BaseLLM, context):
         """
-        :param graph: ActionGraph 实例
-        :param search_space: SearchSpace 实例
+        :param graph: ActionGraph
+        :param search_space: SearchSpace
         :param llm: BaseLLM
         :param context: Context
         """
@@ -29,11 +29,11 @@ class BaseSolver:
 
     @abstractmethod
     async def solve(self):
-        """求解器的求解方法。"""
+        """abstract method to solve the problem."""
 
 
 class NaiveSolver(BaseSolver):
-    """NaiveSolver: 直接循序执行给定的 graph"""
+    """NaiveSolver: Iterate all the nodes in the graph and execute them one by one."""
 
     async def solve(self):
         self.graph.topological_sort()
@@ -43,35 +43,35 @@ class NaiveSolver(BaseSolver):
 
 
 class TOTSolver(BaseSolver):
-    """TOTSolver: 通过拓扑排序执行给定的 graph"""
+    """TOTSolver: Tree of Thought"""
 
     async def solve(self):
         raise NotImplementedError
 
 
 class CodeInterpreterSolver(BaseSolver):
-    """CodeInterpreterSolver: 通过代码解释器执行给定的 graph"""
+    """CodeInterpreterSolver: Write&Run code in the graph"""
 
     async def solve(self):
         raise NotImplementedError
 
 
 class ReActSolver(BaseSolver):
-    """ReActSolver: 通过 ReAct 执行给定的 graph"""
+    """ReActSolver: ReAct algorithm"""
 
     async def solve(self):
         raise NotImplementedError
 
 
 class IOSolver(BaseSolver):
-    """IOSolver: 通过 IO 执行给定的 graph"""
+    """IOSolver: use LLM directly to solve the problem"""
 
     async def solve(self):
         raise NotImplementedError
 
 
 class COTSolver(BaseSolver):
-    """COTSolver: 通过cot执行给定的 graph"""
+    """COTSolver: Chain of Thought"""
 
     async def solve(self):
         raise NotImplementedError
