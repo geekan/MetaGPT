@@ -48,20 +48,20 @@ class AndroidAssistant(Role):
             # Remember, only run each action only one time, no need to run n_round.
             self.set_actions([ManualRecord, ParseRecord])
             self.task_dir = data_dir.joinpath(app_name, f"manual_learn_{cur_datetime}")
-            self.docs_dir = data_dir.joinpath(f"manual_docs")
+            self.docs_dir = data_dir.joinpath(app_name, f"manual_docs")
         elif config.get_other("stage") == "learn" and config.get_other("mode") == "auto":
             # choose SelfLearnAndReflect to run
             self.set_actions([SelfLearnAndReflect])
             self.task_dir = data_dir.joinpath(app_name, f"auto_learn_{cur_datetime}")
-            self.docs_dir = data_dir.joinpath(f"auto_docs")
+            self.docs_dir = data_dir.joinpath(app_name, f"auto_docs")
         elif config.get_other("stage") == "act":
             # choose ScreenshotParse to run
             self.set_actions([ScreenshotParse])
             self.task_dir = data_dir.joinpath(app_name, f"act_{cur_datetime}")
             if config.get_other("mode") == "manual":
-                self.docs_dir = data_dir.joinpath(f"manual_docs")
+                self.docs_dir = data_dir.joinpath(app_name, f"manual_docs")
             else:
-                self.docs_dir = data_dir.joinpath(f"auto_docs")
+                self.docs_dir = data_dir.joinpath(app_name, f"auto_docs")
         self._check_dir()
 
         self._set_react_mode(RoleReactMode.BY_ORDER)
