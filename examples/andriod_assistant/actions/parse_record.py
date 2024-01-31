@@ -3,35 +3,38 @@
 # @Desc   : parse record to generate learned standard operations in stage=learn & mode=manual,
 #           LIKE scripts/document_generation.py
 
-import re
 import ast
 import json
+import re
 import time
 from pathlib import Path
 
+from examples.andriod_assistant.actions.parse_record_an import RECORD_PARSE_NODE
 from examples.andriod_assistant.prompts.operation_prompt import (
+    long_press_doc_template,
+    refine_doc_suffix,
+    swipe_doc_template,
     tap_doc_template,
     text_doc_template,
-    long_press_doc_template,
-    swipe_doc_template,
-    refine_doc_suffix
 )
-from examples.andriod_assistant.utils.schema import RecordLogItem, RunState, ActionOp, \
-    SwipeOp, AndroidActionOutput
-from examples.andriod_assistant.actions.parse_record_an import RECORD_PARSE_NODE
+from examples.andriod_assistant.utils.schema import (
+    ActionOp,
+    AndroidActionOutput,
+    RecordLogItem,
+    RunState,
+    SwipeOp,
+)
+from metagpt.actions.action import Action
 from metagpt.config2 import config
 from metagpt.environment.android_env.android_env import AndroidEnv
-from metagpt.utils.common import encode_image
 from metagpt.logs import logger
-from metagpt.actions.action import Action
+from metagpt.utils.common import encode_image
 
 
 class ParseRecord(Action):
     name: str = "ParseRecord"
 
-    async def run(
-            self, app_name: str, demo_name: str, task_dir: Path, docs_dir: Path, env: AndroidEnv
-    ):
+    async def run(self, app_name: str, demo_name: str, task_dir: Path, docs_dir: Path, env: AndroidEnv):
         doc_count = 0
         record_path = Path(task_dir) / "record.txt"
 
@@ -81,24 +84,21 @@ class ParseRecord(Action):
                             context += refine_context
                             logger.info(
                                 f"Documentation for the element {resource_id} already exists. The doc will be "
-                                f"refined based on the latest demo.")
+                                f"refined based on the latest demo."
+                            )
                         else:
                             logger.info(
                                 f"Documentation for the element {resource_id} already exists. Turn on DOC_REFINE "
-                                f"in the config file if needed.")
+                                f"in the config file if needed."
+                            )
                             continue
                 else:
-                    doc_content = {
-                        "tap": "",
-                        "text": "",
-                        "v_swipe": "",
-                        "h_swipe": "",
-                        "long_press": ""
-                    }
+                    doc_content = {"tap": "", "text": "", "v_swipe": "", "h_swipe": "", "long_press": ""}
 
                 logger.info(f"Waiting for GPT-4V to generate documentation for the element {resource_id}")
-                node = await RECORD_PARSE_NODE.fill(context=context, llm=self.llm,
-                                                    images=[img_before_base64, img_after_base64])
+                node = await RECORD_PARSE_NODE.fill(
+                    context=context, llm=self.llm, images=[img_before_base64, img_after_base64]
+                )
                 if "error" in node.content:
                     return AndroidActionOutput(action_state=RunState.FAIL)
 
@@ -108,8 +108,13 @@ class ParseRecord(Action):
                 doc_content[action_type] = msg
 
                 with open(log_path, "a") as logfile:
-                    log_item = RecordLogItem(step=step, prompt=prompt, image_before=img_before_base64,
-                                             image_after=img_after_base64, response=node.content)
+                    log_item = RecordLogItem(
+                        step=step,
+                        prompt=prompt,
+                        image_before=img_before_base64,
+                        image_after=img_after_base64,
+                        response=node.content,
+                    )
                     # TODO 修改 dumps 方式
                     logfile.write(json.dumps(log_item) + "\n")
                 with open(doc_path, "w") as outfile:

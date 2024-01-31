@@ -2,25 +2,47 @@
 # -*- coding: utf-8 -*-
 # @Desc   : LIKE scripts/self_explorer.py in stage=learn & mode=auto self_explore_task stage
 
-from pathlib import Path
 import ast
+from pathlib import Path
 
 from examples.andriod_assistant.actions.screenshot_parse_an import SCREENSHOT_PARSE_NODE
-from examples.andriod_assistant.actions.self_learn_reflect_an import SELF_LEARN_REFLECT_NODE
-from examples.andriod_assistant.prompts.assistant_prompt import (
-    screenshot_parse_self_explore_template, screenshot_parse_self_explore_reflect_template as reflect_template
+from examples.andriod_assistant.actions.self_learn_reflect_an import (
+    SELF_LEARN_REFLECT_NODE,
 )
-from examples.andriod_assistant.utils.schema import AndroidElement, OpLogItem, ReflectLogItem, RunState, TapOp, \
-    TextOp, SwipeOp, LongPressOp, ActionOp, Decision, DocContent, AndroidActionOutput
-from examples.andriod_assistant.utils.utils import draw_bbox_multi, traverse_xml_tree, screenshot_parse_extract, \
-    elem_bbox_to_xy, reflect_parse_extarct
+from examples.andriod_assistant.prompts.assistant_prompt import (
+    screenshot_parse_self_explore_reflect_template as reflect_template,
+)
+from examples.andriod_assistant.prompts.assistant_prompt import (
+    screenshot_parse_self_explore_template,
+)
+from examples.andriod_assistant.utils.schema import (
+    ActionOp,
+    AndroidActionOutput,
+    AndroidElement,
+    Decision,
+    DocContent,
+    LongPressOp,
+    OpLogItem,
+    ReflectLogItem,
+    RunState,
+    SwipeOp,
+    TapOp,
+    TextOp,
+)
+from examples.andriod_assistant.utils.utils import (
+    draw_bbox_multi,
+    elem_bbox_to_xy,
+    reflect_parse_extarct,
+    screenshot_parse_extract,
+    traverse_xml_tree,
+)
 from metagpt.actions.action import Action
 from metagpt.config2 import config
+from metagpt.const import ADB_EXEC_FAIL
 from metagpt.environment.android_env.android_env import AndroidEnv
 from metagpt.environment.api.env_api import EnvAPIAbstract
-from metagpt.utils.common import encode_image
-from metagpt.const import ADB_EXEC_FAIL
 from metagpt.logs import logger
+from metagpt.utils.common import encode_image
 
 
 class SelfLearnAndReflect(Action):
@@ -35,12 +57,16 @@ class SelfLearnAndReflect(Action):
     act_name: str = ""
     ui_area: int = -1
 
-    async def run(self, round_count: int, task_desc: str, last_act: str, task_dir: Path, docs_dir: Path, env: AndroidEnv) -> AndroidActionOutput:
+    async def run(
+        self, round_count: int, task_desc: str, last_act: str, task_dir: Path, docs_dir: Path, env: AndroidEnv
+    ) -> AndroidActionOutput:
         resp = self.run_self_learn(round_count, task_desc, last_act, task_dir, env)
         resp = self.run_reflect(round_count, task_desc, last_act, task_dir, docs_dir, env)
         return resp
 
-    async def run_self_learn(self, round_count: int, task_desc: str, last_act: str, task_dir: Path, env: AndroidEnv) -> AndroidActionOutput:
+    async def run_self_learn(
+        self, round_count: int, task_desc: str, last_act: str, task_dir: Path, env: AndroidEnv
+    ) -> AndroidActionOutput:
         screenshot_path: Path = env.step(
             EnvAPIAbstract(
                 api_name="get_screenshot", kwargs={"ss_name": f"{round_count}_before", "local_save_dir": task_dir}
@@ -89,7 +115,7 @@ class SelfLearnAndReflect(Action):
         if "error" in node.content:
             return AndroidActionOutput(action_state=RunState.FAIL)
         prompt = node.compile(context=context, schema="json", mode="auto")
-        log_item = OpLogItem(step=round_count, prompt=prompt, image=screenshot_before_labeled_path, response=node.content)
+        OpLogItem(step=round_count, prompt=prompt, image=screenshot_before_labeled_path, response=node.content)
         op_param = screenshot_parse_extract(node.instruct_content.model_dump(), grid_on=False)
         if op_param.param_state == RunState.FINISH:
             return AndroidActionOutput(action_state=RunState.FINISH)
@@ -116,7 +142,11 @@ class SelfLearnAndReflect(Action):
             self.ui_area = op_param.area
             self.swipe_orient = op_param.swipe_orient
             x, y = elem_bbox_to_xy(elem_list[op_param.area - 1].bbox)
-            res = env.step(EnvAPIAbstract("user_swipe", kwargs={"x": x, "y": y, "orient": op_param.swipe_orient, "dist": op_param.dist}))
+            res = env.step(
+                EnvAPIAbstract(
+                    "user_swipe", kwargs={"x": x, "y": y, "orient": op_param.swipe_orient, "dist": op_param.dist}
+                )
+            )
             if res == ADB_EXEC_FAIL:
                 return AndroidActionOutput(action_state=RunState.FAIL)
 
@@ -124,7 +154,9 @@ class SelfLearnAndReflect(Action):
         self.act_name = op_param.act_name
         return AndroidActionOutput()
 
-    async def run_reflect(self, round_count: int, task_desc: str, last_act: str, task_dir: Path, docs_dir: Path, env: AndroidEnv) -> AndroidActionOutput:
+    async def run_reflect(
+        self, round_count: int, task_desc: str, last_act: str, task_dir: Path, docs_dir: Path, env: AndroidEnv
+    ) -> AndroidActionOutput:
         screenshot_path: Path = env.step(
             EnvAPIAbstract(
                 api_name="get_screenshot", kwargs={"ss_name": f"{round_count}_after", "local_save_dir": task_dir}
@@ -147,15 +179,24 @@ class SelfLearnAndReflect(Action):
                 action = "v_swipe"
             elif self.swipe_orient == SwipeOp.LEFT.value or self.swipe_orient == SwipeOp.RIGHT.value:
                 action = "h_swipe"
-        context = reflect_template.format(action=action, ui_element=str(self.ui_area), task_desc=task_desc, last_act=last_act)
-        node = await SELF_LEARN_REFLECT_NODE.fill(context=context, llm=self.llm, images=[self.screenshot_before_base64, img_base64])
+        context = reflect_template.format(
+            action=action, ui_element=str(self.ui_area), task_desc=task_desc, last_act=last_act
+        )
+        node = await SELF_LEARN_REFLECT_NODE.fill(
+            context=context, llm=self.llm, images=[self.screenshot_before_base64, img_base64]
+        )
 
         if "error" in node.content:
             return AndroidActionOutput(action_state=RunState.FAIL)
 
         prompt = node.compile(context=context, schema="json", mode="auto")
-        log_item = ReflectLogItem(step=round_count, prompt=prompt, image_before=self.screenshot_before_path,
-                                  image_after=screenshot_after_labeled_path, response=node.content)
+        ReflectLogItem(
+            step=round_count,
+            prompt=prompt,
+            image_before=self.screenshot_before_path,
+            image_after=screenshot_after_labeled_path,
+            response=node.content,
+        )
 
         op_param = reflect_parse_extarct(node.instruct_content.model_dump())
         if op_param.param_state == RunState.FINISH:
@@ -163,7 +204,7 @@ class SelfLearnAndReflect(Action):
         if op_param.param_state == RunState.FAIL:
             return AndroidActionOutput(action_state=RunState.FAIL)
 
-        resource_id = self.elem_list[int(self.ui_area) -1].uid
+        resource_id = self.elem_list[int(self.ui_area) - 1].uid
         if op_param.decision == Decision.INEFFECTIVE.value:
             self.useless_list.append(resource_id)
             last_act = "NONE"  # TODO global
