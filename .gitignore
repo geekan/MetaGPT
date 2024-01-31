@@ -151,7 +151,7 @@ allure-results
 .vscode
 
 key.yaml
-data
+/data/
 data.ms
 examples/nb/
 examples/default__vector_store.json
