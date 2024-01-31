@@ -8,5 +8,5 @@ async def google_search(query: str, max_results: int = 6, **kwargs):
     :param max_results: The number of search results to retrieve
     :return: The web search results in markdown format.
     """
-    results = await SearchEngine().run(query, max_results=max_results, as_string=False)
+    results = await SearchEngine(**kwargs).run(query, max_results=max_results, as_string=False)
     return "\n".join(f"{i}. [{j['title']}]({j['link']}): {j['snippet']}" for i, j in enumerate(results, 1))
