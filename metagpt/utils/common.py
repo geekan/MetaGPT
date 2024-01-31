@@ -268,7 +268,7 @@ class CodeParser:
     def parse_code(cls, block: str, text: str, lang: str = "") -> str:
         if block:
             text = cls.parse_block(block, text)
-        start_ends = ["```", '"""', "'''"]
+        start_ends = ["```", "'''", '"""']
         patterns = []
         for start_end in start_ends:
             pattern = rf"{start_end}{lang}.*?\s+(.*?){start_end}"
