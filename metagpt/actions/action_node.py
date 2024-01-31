@@ -10,6 +10,7 @@ Note:
 """
 
 import json
+import typing
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, Type, Union
 
@@ -39,7 +40,6 @@ TAG = "CONTENT"
 
 LANGUAGE_CONSTRAINT = "Language: Please use the same language as Human INPUT."
 FORMAT_CONSTRAINT = f"Format: output wrapped inside [{TAG}][/{TAG}] like format example, nothing else."
-
 
 SIMPLE_TEMPLATE = """
 ## context
@@ -156,6 +156,8 @@ class ActionNode:
 
     # Action Input
     key: str  # Product Requirement / File list / Code
+    func: typing.Callable  # 与节点相关联的函数或LLM调用
+    params: Dict[str, Type]  # 输入参数的字典，键为参数名，值为参数类型
     expected_type: Type  # such as str / int / float etc.
     # context: str  # everything in the history.
     instruction: str  # the instructions should be followed.
@@ -164,6 +166,10 @@ class ActionNode:
     # Action Output
     content: str
     instruct_content: BaseModel
+
+    # For ActionGraph
+    prevs: List["ActionNode"]  # previous nodes
+    nexts: List["ActionNode"]  # next nodes
 
     def __init__(
         self,
@@ -193,6 +199,8 @@ class ActionNode:
         self.content = content
         self.children = children if children is not None else {}
         self.schema = schema
+        self.prevs = []
+        self.nexts = []
 
     def __str__(self):
         return (
@@ -202,6 +210,14 @@ class ActionNode:
 
     def __repr__(self):
         return self.__str__()
+
+    def add_prev(self, node: "ActionNode"):
+        """增加前置ActionNode"""
+        self.prevs.append(node)
+
+    def add_next(self, node: "ActionNode"):
+        """增加后置ActionNode"""
+        self.nexts.append(node)
 
     def add_child(self, node: "ActionNode"):
         """Adds a child node to the current node.
@@ -246,19 +262,7 @@ class ActionNode:
         obj.add_children(nodes)
         return obj
 
-    def get_children_mapping_old(self, exclude=None) -> Dict[str, Tuple[Type, Any]]:
-        """Retrieves a mapping of child nodes excluding specified keys.
-
-        Args:
-            exclude (optional): A list of keys to exclude from the mapping.
-
-        Returns:
-            Dict[str, Tuple[Type, Any]]: A dictionary mapping keys to their expected types and example values, excluding specified keys.
-        """
-        exclude = exclude or []
-        return {k: (v.expected_type, ...) for k, v in self.children.items() if k not in exclude}
-
-    def get_children_mapping(self, exclude=None) -> Dict[str, Tuple[Type, Any]]:
+    def _get_children_mapping(self, exclude=None) -> Dict[str, Any]:
         """Retrieves a mapping of child nodes, supporting nested structures, excluding specified keys.
 
         Args:
@@ -268,20 +272,22 @@ class ActionNode:
             Dict[str, Tuple[Type, Any]]: A dictionary mapping keys to their expected types and example values, supporting nested structures and excluding specified keys.
         """
         exclude = exclude or []
-        mapping = {}
 
-        def _get_mapping(node: "ActionNode", prefix: str = ""):
+        def _get_mapping(node: "ActionNode") -> Dict[str, Any]:
+            mapping = {}
             for key, child in node.children.items():
                 if key in exclude:
                     continue
-                full_key = f"{prefix}{key}"
-                mapping[full_key] = (child.expected_type, ...)
-                _get_mapping(child, prefix=f"{full_key}.")
+                # 对于嵌套的子节点，递归调用 _get_mapping
+                if child.children:
+                    mapping[key] = _get_mapping(child)
+                else:
+                    mapping[key] = (child.expected_type, Field(default=child.example, description=child.instruction))
+            return mapping
 
-        _get_mapping(self)
-        return mapping
+        return _get_mapping(self)
 
-    def get_self_mapping(self) -> Dict[str, Tuple[Type, Any]]:
+    def _get_self_mapping(self) -> Dict[str, Tuple[Type, Any]]:
         """Retrieves a mapping of the current node's key to its type.
 
         Returns:
@@ -300,8 +306,8 @@ class ActionNode:
             Dict[str, Tuple[Type, Any]]: A dictionary mapping keys to their expected types and example values based on the specified mode.
         """
         if mode == "children" or (mode == "auto" and self.children):
-            return self.get_children_mapping(exclude=exclude)
-        return {} if exclude and self.key in exclude else self.get_self_mapping()
+            return self._get_children_mapping(exclude=exclude)
+        return {} if exclude and self.key in exclude else self._get_self_mapping()
 
     @classmethod
     @register_action_outcls
@@ -329,7 +335,17 @@ class ActionNode:
 
         validators = {"check_missing_fields_validator": model_validator(mode="before")(check_fields)}
 
-        new_class = create_model(class_name, __validators__=validators, **mapping)
+        new_fields = {}
+        for field_name, field_value in mapping.items():
+            if isinstance(field_value, dict):
+                # 对于嵌套结构，递归创建模型类
+                nested_class_name = f"{class_name}_{field_name}"
+                nested_class = cls.create_model_class(nested_class_name, field_value)
+                new_fields[field_name] = (nested_class, ...)
+            else:
+                new_fields[field_name] = field_value
+
+        new_class = create_model(class_name, __validators__=validators, **new_fields)
         return new_class
 
     def create_class(self, mode: str = "auto", class_name: str = None, exclude=None):
@@ -347,7 +363,7 @@ class ActionNode:
         mapping = self.get_mapping(mode=mode, exclude=exclude)
         return self.create_model_class(class_name, mapping)
 
-    def create_children_class(self, exclude=None):
+    def _create_children_class(self, exclude=None):
         """Creates a Pydantic model class based on the children of the current node.
 
         Args:
@@ -357,7 +373,7 @@ class ActionNode:
             Type[BaseModel]: The newly created Pydantic model class based on the children.
         """
         class_name = f"{self.key}_AN"
-        mapping = self.get_children_mapping(exclude=exclude)
+        mapping = self._get_children_mapping(exclude=exclude)
         return self.create_model_class(class_name, mapping)
 
     def to_dict(self, format_func=None, mode="auto", exclude=None) -> Dict:
@@ -371,31 +387,40 @@ class ActionNode:
         Returns:
             Dict: The dictionary representation of the current node and its children.
         """
+        nodes = self._to_dict(format_func=format_func, mode=mode, exclude=exclude)
+        if not isinstance(nodes, dict):
+            nodes = {self.key: nodes}
+        return nodes
 
-        # 如果没有提供格式化函数，使用默认的格式化方式
+    def _to_dict(self, format_func=None, mode="auto", exclude=None) -> Dict:
+        """将当前节点与子节点都按照node: format的格式组织成字典"""
+
+        # 如果没有提供格式化函数，则使用默认的格式化函数
         if format_func is None:
-            format_func = lambda node: f"{node.instruction}"
+            format_func = lambda node: node.instruction
 
         # 使用提供的格式化函数来格式化当前节点的值
         formatted_value = format_func(self)
 
         # 创建当前节点的键值对
-        if mode == "children" or (mode == "auto" and self.children):
-            node_dict = {}
+        if (mode == "children" or mode == "auto") and self.children:
+            node_value = {}
         else:
-            node_dict = {self.key: formatted_value}
+            node_value = formatted_value
 
         if mode == "root":
-            return node_dict
+            return {self.key: node_value}
 
-        # 遍历子节点并递归调用 to_dict 方法
+        # 递归处理子节点
         exclude = exclude or []
-        for _, child_node in self.children.items():
-            if child_node.key in exclude:
+        for child_key, child_node in self.children.items():
+            if child_key in exclude:
                 continue
-            node_dict.update(child_node.to_dict(format_func))
+            # 递归调用 to_dict 方法并更新节点字典
+            child_dict = child_node._to_dict(format_func, mode, exclude)
+            node_value[child_key] = child_dict
 
-        return node_dict
+        return node_value
 
     def update_instruct_content(self, incre_data: dict[str, Any]):
         """Updates the instruct_content attribute with incremental data.
@@ -531,6 +556,17 @@ class ActionNode:
         """
         if schema == "raw":
             return context + "\n\n## Actions\n" + LANGUAGE_CONSTRAINT + "\n" + self.instruction
+
+        ### 直接使用 pydantic BaseModel 生成 instruction 与 example，仅限 JSON
+        # child_class = self._create_children_class()
+        # node_schema = child_class.model_json_schema()
+        # defaults = {
+        #     k: str(v)
+        #     for k, v in child_class.model_fields.items()
+        #     if k not in exclude
+        # }
+        # instruction = node_schema
+        # example = json.dumps(defaults, indent=4)
 
         # FIXME: json instruction会带来格式问题，如："Project name": "web_2048  # 项目名称使用下划线",
         # compile example暂时不支持markdown
@@ -692,7 +728,7 @@ class ActionNode:
                     continue
                 child = await i.simple_fill(schema=schema, mode=mode, timeout=timeout, exclude=exclude)
                 tmp.update(child.instruct_content.model_dump())
-            cls = self.create_children_class()
+            cls = self._create_children_class()
             self.instruct_content = cls(**tmp)
             return self
 
@@ -945,70 +981,19 @@ class ActionNode:
             ActionNode: The root node of the created ActionNode tree.
         """
         key = key or model.__name__
-        root_node = cls(key=model.__name__, expected_type=Type[model], instruction="", example="")
+        root_node = cls(key=key, expected_type=Type[model], instruction="", example="")
 
-        for field_name, field_model in model.model_fields.items():
-            # Extracting field details
-            expected_type = field_model.annotation
-            instruction = field_model.description or ""
-            example = field_model.default
+        for field_name, field_info in model.model_fields.items():
+            field_type = field_info.annotation
+            description = field_info.description
+            default = field_info.default
 
-            # Check if the field is a Pydantic model itself.
-            # Use isinstance to avoid typing.List, typing.Dict, etc. (they are instances of type, not subclasses)
-            if isinstance(expected_type, type) and issubclass(expected_type, BaseModel):
-                # Recursively process the nested model
-                child_node = cls.from_pydantic(expected_type, key=field_name)
+            # Recursively handle nested models if needed
+            if not isinstance(field_type, typing._GenericAlias) and issubclass(field_type, BaseModel):
+                child_node = cls.from_pydantic(field_type, key=field_name)
             else:
-                child_node = cls(key=field_name, expected_type=expected_type, instruction=instruction, example=example)
+                child_node = cls(key=field_name, expected_type=field_type, instruction=description, example=default)
 
             root_node.add_child(child_node)
 
         return root_node
-
-
-class ToolUse(BaseModel):
-    """Represents the use of a tool in a task.
-
-    Attributes:
-        tool_name: The name of the tool.
-    """
-
-    tool_name: str = Field(default="a", description="tool name", examples=[])
-
-
-class Task(BaseModel):
-    """Represents a task in a list of tasks.
-
-    Attributes:
-        task_id: The ID of the task.
-        name: The name of the task.
-        dependent_task_ids: A list of IDs for tasks that this task depends on.
-        tool: An instance of ToolUse representing the tool used in the task.
-    """
-
-    task_id: int = Field(default="1", description="task id", examples=[1, 2, 3])
-    name: str = Field(default="Get data from ...", description="task name", examples=[])
-    dependent_task_ids: List[int] = Field(default=[], description="dependent task ids", examples=[1, 2, 3])
-    tool: ToolUse = Field(default=ToolUse(), description="tool use", examples=[])
-
-
-class Tasks(BaseModel):
-    """Represents a collection of tasks.
-
-    Attributes:
-        tasks: A list of Task instances.
-    """
-
-    tasks: List[Task] = Field(default=[], description="tasks", examples=[])
-
-
-if __name__ == "__main__":
-    node = ActionNode.from_pydantic(Tasks)
-    print("Tasks")
-    print(Tasks.model_json_schema())
-    print("Task")
-    print(Task.model_json_schema())
-    print(node)
-    prompt = node.compile(context="")
-    node.create_children_class()
-    print(prompt)
