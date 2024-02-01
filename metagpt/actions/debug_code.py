@@ -81,9 +81,9 @@ class DebugCode(BaseWriteAnalysisCode):
 
     async def run_reflection(
         self,
-        context: List[Message],
-        code,
-        runtime_result,
+        context: list[Message],
+        code: str,
+        runtime_result: str,
     ) -> dict:
         info = []
         reflection_prompt = REFLECTION_PROMPT.format(
@@ -107,12 +107,11 @@ class DebugCode(BaseWriteAnalysisCode):
         runtime_result: str = "",
     ) -> str:
         """
-        根据当前运行代码和报错信息进行reflection和纠错
+        use reflection to debug, based on current code and the execution errors
         """
         reflection = await self.run_reflection(
             code=code,
             context=context,
             runtime_result=runtime_result,
         )
-        # 根据reflection结果重写代码
         return {"code": reflection["improved_impl"]}

@@ -67,7 +67,7 @@ class BaseWriteAnalysisCode(Action):
 
 
 class WriteCodeByGenerate(BaseWriteAnalysisCode):
-    """Write code fully by generation"""
+    """Ask LLM to generate codes purely by itself without local user-defined tools"""
 
     async def run(
         self,

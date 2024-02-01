@@ -5,6 +5,7 @@
 @File    :   code_executor.py
 """
 import asyncio
+import base64
 import re
 import traceback
 from pathlib import Path
@@ -117,8 +118,6 @@ class ExecuteNbCode(Action):
         return parsed_output
 
     def show_bytes_figure(self, image_base64: str, interaction_type: str = "ipython"):
-        import base64
-
         image_bytes = base64.b64decode(image_base64)
         if interaction_type == "ipython":
             from IPython.display import Image, display
@@ -145,8 +144,8 @@ class ExecuteNbCode(Action):
             # 如果在Python脚本中运行，__file__ 变量存在
             return False
 
-    def _process_code(self, code: Union[str, Dict], language: str = None) -> Tuple:
-        language = language or "python"
+    def _process_code(self, code: Union[str, Dict], language: str = "python") -> Tuple:
+        """handle different code response formats, support str or dict"""
         if isinstance(code, str) and Path(code).suffix in (".py", ".txt"):
             code = Path(code).read_text(encoding="utf-8")
             return code, language
