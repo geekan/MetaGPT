@@ -603,3 +603,16 @@ def list_files(root: str | Path) -> List[Path]:
 def parse_json_code_block(markdown_text: str) -> List[str]:
     json_blocks = re.findall(r"```json(.*?)```", markdown_text, re.DOTALL)
     return [v.strip() for v in json_blocks]
+
+
+def remove_white_spaces(v: str) -> str:
+    """
+    Removes white spaces from the provided string, excluding spaces within quotes.
+
+    Args:
+        v (str): The input string containing white spaces.
+
+    Returns:
+        str: The input string with white spaces removed, excluding spaces within quotes.
+    """
+    return re.sub(r"(?<!['\"])\s|(?<=['\"])\s", "", v)

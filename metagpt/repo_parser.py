@@ -23,7 +23,7 @@ from pydantic import BaseModel, Field, field_validator
 
 from metagpt.const import AGGREGATION, COMPOSITION, GENERALIZATION
 from metagpt.logs import logger
-from metagpt.utils.common import any_to_str, aread
+from metagpt.utils.common import any_to_str, aread, remove_white_spaces
 from metagpt.utils.exceptions import handle_exception
 
 
@@ -117,7 +117,7 @@ class DotClassAttribute(BaseModel):
         type_ = val[cix + 1 : eix]
         default_ = val[eix + 1 :].strip()
 
-        type_ = cls.remove_white_spaces(type_)  # remove white space
+        type_ = remove_white_spaces(type_)  # remove white space
         if type_ == "NoneType":
             type_ = ""
         if "Literal[" in type_:
@@ -132,19 +132,6 @@ class DotClassAttribute(BaseModel):
             default_ = ""
         compositions = cls.parse_compositions(composition_val)
         return cls(name=name, type_=type_, default_=default_, description=v, compositions=compositions)
-
-    @staticmethod
-    def remove_white_spaces(v: str):
-        """
-        Removes white spaces from the provided string, excluding spaces within quotes.
-
-        Args:
-            v (str): The input string containing white spaces.
-
-        Returns:
-            str: The input string with white spaces removed, excluding spaces within quotes.
-        """
-        return re.sub(r"(?<!['\"])\s|(?<=['\"])\s", "", v)
 
     @staticmethod
     def parse_compositions(types_part) -> List[str]:
@@ -320,7 +307,7 @@ class DotReturn(BaseModel):
         """
         if not v:
             return DotReturn(description=v)
-        type_ = DotClassAttribute.remove_white_spaces(v)
+        type_ = remove_white_spaces(v)
         compositions = DotClassAttribute.parse_compositions(type_)
         return cls(type_=type_, description=v, compositions=compositions)
 
