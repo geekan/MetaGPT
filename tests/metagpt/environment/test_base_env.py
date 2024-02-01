@@ -40,6 +40,10 @@ async def test_ext_env():
     assert len(env_read_api_registry) > 0
     assert len(env_write_api_registry) > 0
 
+    apis = env.get_all_available_apis(mode="read")
+    assert len(apis) > 0
+    assert len(apis["read_api"]) == 3
+
     _ = await env.step(EnvAPIAbstract(api_name="write_api", kwargs={"a": 5, "b": 10}))
     assert env.value == 15
 

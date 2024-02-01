@@ -340,6 +340,14 @@ def print_members(module, indent=0):
             print(f"{prefix}Method: {name}")
 
 
+def get_function_schema(func: Callable) -> dict[str, Union[dict, Any, str]]:
+    sig = inspect.signature(func)
+    parameters = sig.parameters
+    return_type = sig.return_annotation
+    param_schema = {name: parameter.annotation for name, parameter in parameters.items()}
+    return {"input_params": param_schema, "return_type": return_type, "func_desc": func.__doc__, "func": func}
+
+
 def parse_recipient(text):
     # FIXME: use ActionNode instead.
     pattern = r"## Send To:\s*([A-Za-z]+)\s*?"  # hard code for now

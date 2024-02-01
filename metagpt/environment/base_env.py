@@ -4,7 +4,7 @@
 
 import asyncio
 from enum import Enum
-from typing import Iterable, Optional, Set, Union
+from typing import Any, Iterable, Optional, Set, Union
 
 from pydantic import BaseModel, ConfigDict, Field, SerializeAsAny, model_validator
 
@@ -17,7 +17,7 @@ from metagpt.environment.api.env_api import (
 from metagpt.logs import logger
 from metagpt.roles.role import Role
 from metagpt.schema import Message
-from metagpt.utils.common import is_coroutine_func, is_send_to
+from metagpt.utils.common import get_function_schema, is_coroutine_func, is_send_to
 
 
 class EnvType(Enum):
@@ -34,13 +34,13 @@ env_read_api_registry = ReadAPIRegistry()
 
 def mark_as_readable(func):
     """mark functionn as a readable one in ExtEnv, it observes something from ExtEnv"""
-    env_read_api_registry[func.__name__] = func
+    env_read_api_registry[func.__name__] = get_function_schema(func)
     return func
 
 
 def mark_as_writeable(func):
     """mark functionn as a writeable one in ExtEnv, it does something to ExtEnv"""
-    env_write_api_registry[func.__name__] = func
+    env_write_api_registry[func.__name__] = get_function_schema(func)
     return func
 
 
@@ -51,17 +51,25 @@ class ExtEnv(BaseModel):
         if not rw_api:
             raise ValueError(f"{rw_api} not exists")
 
+    def get_all_available_apis(self, mode: str = "read") -> list[Any]:
+        """get available read/write apis definition"""
+        assert mode in ["read", "write"]
+        if mode == "read":
+            return env_read_api_registry.get_apis()
+        else:
+            return env_write_api_registry.get_apis()
+
     async def observe(self, env_action: Union[str, EnvAPIAbstract]):
         """get observation from particular api of ExtEnv"""
         if isinstance(env_action, str):
-            read_api = env_read_api_registry.get(api_name=env_action)
+            read_api = env_read_api_registry.get(api_name=env_action)["func"]
             self._check_api_exist(read_api)
             if is_coroutine_func(read_api):
                 res = await read_api(self)
             else:
                 res = read_api(self)
         elif isinstance(env_action, EnvAPIAbstract):
-            read_api = env_read_api_registry.get(api_name=env_action.api_name)
+            read_api = env_read_api_registry.get(api_name=env_action.api_name)["func"]
             self._check_api_exist(read_api)
             if is_coroutine_func(read_api):
                 res = await read_api(self, *env_action.args, **env_action.kwargs)
@@ -75,7 +83,7 @@ class ExtEnv(BaseModel):
         if isinstance(env_action, Message):
             self.publish_message(env_action)
         elif isinstance(env_action, EnvAPIAbstract):
-            write_api = env_write_api_registry.get(env_action.api_name)
+            write_api = env_write_api_registry.get(env_action.api_name)["func"]
             self._check_api_exist(write_api)
             if is_coroutine_func(write_api):
                 res = await write_api(self, *env_action.args, **env_action.kwargs)

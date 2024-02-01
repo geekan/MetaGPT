@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # @Desc   :  the environment api store
 
-from typing import Callable
+from typing import Any, Callable, Union
 
 from pydantic import BaseModel, Field
 
@@ -18,9 +18,11 @@ class EnvAPIAbstract(BaseModel):
 class EnvAPIRegistry(BaseModel):
     """the registry to store environment w&r api/interface"""
 
-    registry: dict[str, Callable] = Field(default=dict(), exclude=True)
+    registry: dict[str, dict[str, Union[dict, Any, str]]] = Field(default=dict(), exclude=True)
 
     def get(self, api_name: str):
+        if api_name not in self.registry:
+            raise ValueError
         return self.registry.get(api_name)
 
     def __getitem__(self, api_name: str) -> Callable:
@@ -31,6 +33,19 @@ class EnvAPIRegistry(BaseModel):
 
     def __len__(self):
         return len(self.registry)
+
+    def get_apis(self, as_str=True) -> dict[str, dict[str, Union[dict, Any, str]]]:
+        """return func schema without func instance"""
+        apis = dict()
+        for func_name, func_schema in self.registry.items():
+            new_func_schema = dict()
+            for key, value in func_schema.items():
+                if key == "func":
+                    continue
+                new_func_schema[key] = str(value) if as_str else value
+            new_func_schema = new_func_schema
+            apis[func_name] = new_func_schema
+        return apis
 
 
 class WriteAPIRegistry(EnvAPIRegistry):
