@@ -141,6 +141,32 @@ def test_repair_json_format():
     output = repair_llm_raw_output(output=raw_output, req_keys=[None], repair_type=RepairType.JSON)
     assert output == target_output
 
+    raw_output = """
+{
+    "Language": "en_us",  // define language
+    "Programming Language": "Python" # define code language
+}
+"""
+    target_output = """{
+    "Language": "en_us",  
+    "Programming Language": "Python"
+}"""
+    output = repair_llm_raw_output(output=raw_output, req_keys=[None], repair_type=RepairType.JSON)
+    assert output == target_output
+
+    raw_output = """
+    {
+        "Language": "#en_us#",  // define language
+        "Programming Language": "//Python # Code // Language//" # define code language
+    }
+    """
+    target_output = """{
+        "Language": "#en_us#",  
+        "Programming Language": "//Python # Code // Language//"
+    }"""
+    output = repair_llm_raw_output(output=raw_output, req_keys=[None], repair_type=RepairType.JSON)
+    assert output == target_output
+
 
 def test_repair_invalid_json():
     from metagpt.utils.repair_llm_raw_output import repair_invalid_json
