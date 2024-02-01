@@ -35,29 +35,20 @@
 ## 安装
 ### Pip安装
 
+> 确保您的系统安装了 Python 3.9 或更高版本。您可以通过以下命令来检查：`python --version`。
+
 ```bash
-# 第 1 步：确保您的系统上安装了 Python 3.9+。您可以使用以下命令进行检查：
-# 可以使用conda来初始化新的python环境
+# 您可以使用 conda 来初始化一个新的 python 环境
 #     conda create -n metagpt python=3.9
 #     conda activate metagpt
-python3 --version
+pip install metagpt
+metagpt --init-config  # 这将会从 config/config2.yaml 创建一个 ~/.metagpt/config2.yaml，根据您的需求修改它
 
-# 第 2 步：克隆最新仓库到您的本地机器，并进行安装。
-git clone https://github.com/geekan/MetaGPT.git
-cd MetaGPT
-pip3 install -e.  # 或者 pip3 install metagpt  # 安装稳定版本
-
-# 第 3 步：执行metagpt
-# 拷贝config2.yaml为~/.metagpt/config2.yaml，并设置你自己的api_key
-metagpt "Write a cli snake game"
-
-# 第 4 步【可选的】：如果你想在执行过程中保存像象限图、系统设计、序列流程等图表这些产物，可以在第3步前执行该步骤。默认的，框架做了兼容，在不执行该步的情况下，也可以完整跑完整个流程。
-# 如果执行，确保您的系统上安装了 NPM。并使用npm安装mermaid-js
-npm --version
-sudo npm install -g @mermaid-js/mermaid-cli
+# 使用方法: metagpt "<创建一个游戏或软件>"
+metagpt "创建一个 2048 游戏"
 ```
 
-详细的安装请安装 [cli_install](https://docs.deepwisdom.ai/guide/get_started/installation.html#install-stable-version)
+详细的安装请参考 [cli_install](https://docs.deepwisdom.ai/guide/get_started/installation.html#install-stable-version)
 
 ### Docker安装
 > 注意：在Windows中，你需要将 "/opt/metagpt" 替换为Docker具有创建权限的目录，比如"D:\Users\x\metagpt"
@@ -78,7 +69,7 @@ docker run --rm \
     metagpt "Write a cli snake game"
 ```
 
-详细的安装请安装 [docker_install](https://docs.deepwisdom.ai/main/zh/guide/get_started/installation.html#%E4%BD%BF%E7%94%A8docker%E5%AE%89%E8%A3%85)
+详细的安装请参考 [docker_install](https://docs.deepwisdom.ai/main/zh/guide/get_started/installation.html#%E4%BD%BF%E7%94%A8docker%E5%AE%89%E8%A3%85)
 
 ### 快速开始的演示视频
 - 在 [MetaGPT Huggingface Space](https://huggingface.co/spaces/deepwisdom/MetaGPT) 上进行体验

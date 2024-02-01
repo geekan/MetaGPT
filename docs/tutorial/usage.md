@@ -2,7 +2,7 @@
 
 ### Configuration
 
-- Configure your `key` in any of `~/.metagpt/config2.yaml / config/config2.yaml`
+- Configure your `api_key` in any of `~/.metagpt/config2.yaml / config/config2.yaml`
 - Priority order: `~/.metagpt/config2.yaml > config/config2.yaml`
 
 ```bash

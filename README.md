@@ -55,30 +55,17 @@
 
 ### Pip installation
 
+> Ensure that Python 3.9+ is installed on your system. You can check this by using: `python --version`.
+
 ```bash
-# Step 1: Ensure that Python 3.9+ is installed on your system. You can check this by using:
 # You can use conda to initialize a new python env
 #     conda create -n metagpt python=3.9
 #     conda activate metagpt
-python3 --version
+pip install metagpt
+metagpt --init-config  # this will create a ~/.metagpt/config2.yaml from config/config2.yaml, modify it to your own config
 
-# Step 2: Clone the repository to your local machine for latest version, and install it.
-git clone https://github.com/geekan/MetaGPT.git
-cd MetaGPT
-pip3 install -e .     # or pip3 install metagpt  # for stable version
-
-# Step 3: setup your LLM key in the config2.yaml file
-mkdir ~/.metagpt
-cp config/config2.yaml ~/.metagpt/config2.yaml
-vim ~/.metagpt/config2.yaml
-
-# Step 4: run metagpt cli
-metagpt "Create a 2048 game in python"
-
-# Step 5 [Optional]: If you want to save the artifacts like diagrams such as quadrant chart, system designs, sequence flow in the workspace, you can execute the step before Step 3. By default, the framework is compatible, and the entire process can be run completely without executing this step.
-# If executing, ensure that NPM is installed on your system. Then install mermaid-js. (If you don't have npm in your computer, please go to the Node.js official website to install Node.js https://nodejs.org/ and then you will have npm tool in your computer.)
-npm --version
-sudo npm install -g @mermaid-js/mermaid-cli
+# Usage: metagpt "<create a game or a software>"
+metagpt "Create a 2048 game"
 ```
 
 detail installation please refer to [cli_install](https://docs.deepwisdom.ai/main/en/guide/get_started/installation.html#install-stable-version)
@@ -99,7 +86,7 @@ docker run --rm \
     -v /opt/metagpt/config/config2.yaml:/app/metagpt/config/config2.yaml \
     -v /opt/metagpt/workspace:/app/metagpt/workspace \
     metagpt/metagpt:latest \
-    metagpt "Write a cli snake game"
+    metagpt "Create a 2048 game"
 ```
 
 detail installation please refer to [docker_install](https://docs.deepwisdom.ai/main/en/guide/get_started/installation.html#install-with-docker)

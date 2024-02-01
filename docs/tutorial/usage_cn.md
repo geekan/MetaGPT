@@ -2,7 +2,7 @@
 
 ### 配置
 
-- 在 `~/.metagpt/config2.yaml / config/config2.yaml` 中配置您的 `key`
+- 在 `~/.metagpt/config2.yaml / config/config2.yaml` 中配置您的 `api_key`
 - 优先级顺序：`~/.metagpt/config2.yaml > config/config2.yaml`
 
 ```bash
