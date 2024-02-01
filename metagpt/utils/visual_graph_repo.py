@@ -82,9 +82,9 @@ class VisualGraphRepo(ABC):
 
 
 class VisualDiGraphRepo(VisualGraphRepo):
-    """Implementation of VisualGraphRepo for networkx graph repository.
+    """Implementation of VisualGraphRepo for DiGraph graph repository.
 
-    This class extends VisualGraphRepo to provide specific functionality for a graph repository using networkx.
+    This class extends VisualGraphRepo to provide specific functionality for a graph repository using DiGraph.
     """
 
     @classmethod
