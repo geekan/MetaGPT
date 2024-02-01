@@ -2,18 +2,13 @@
 
 ### Configuration
 
-- Configure your `OPENAI_API_KEY` in any of `config/key.yaml / config/config.yaml / env`
-- Priority order: `config/key.yaml > config/config.yaml > env`
+- Configure your `api_key` in any of `~/.metagpt/config2.yaml / config/config2.yaml`
+- Priority order: `~/.metagpt/config2.yaml > config/config2.yaml`
 
 ```bash
 # Copy the configuration file and make the necessary modifications.
-cp config/config.yaml config/key.yaml
+cp config/config2.yaml ~/.metagpt/config2.yaml
 ```
-
-| Variable Name                              | config/key.yaml                           | env                                             |
-| ------------------------------------------ | ----------------------------------------- | ----------------------------------------------- |
-| OPENAI_API_KEY # Replace with your own key | OPENAI_API_KEY: "sk-..."                  | export OPENAI_API_KEY="sk-..."                  |
-| OPENAI_BASE_URL # Optional                 | OPENAI_BASE_URL: "https://<YOUR_SITE>/v1" | export OPENAI_BASE_URL="https://<YOUR_SITE>/v1" |
 
 ### Initiating a startup
 
@@ -39,29 +34,28 @@ metagpt "Write a cli snake game based on pygame"
 ### Usage
 
 ```
-NAME
-    metagpt - We are a software startup comprised of AI. By investing in us, you are empowering a future filled with limitless possibilities.
-
-SYNOPSIS
-    metagpt IDEA <flags>
-
-DESCRIPTION
-    We are a software startup comprised of AI. By investing in us, you are empowering a future filled with limitless possibilities.
-
-POSITIONAL ARGUMENTS
-    IDEA
-        Type: str
-        Your innovative idea, such as "Creating a snake game."
-
-FLAGS
-    --investment=INVESTMENT
-        Type: float
-        Default: 3.0
-        As an investor, you have the opportunity to contribute a certain dollar amount to this AI company.
-    --n_round=N_ROUND
-        Type: int
-        Default: 5
-
-NOTES
-    You can also use flags syntax for POSITIONAL ARGUMENTS
+ Usage: metagpt [OPTIONS] [IDEA]                                                                                                                                                                                          
+                                                                                                                                                                                                                          
+ Start a new project.                                                                                                                                                                                                     
+                                                                                                                                                                                                                          
+╭─ Arguments ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│   idea      [IDEA]  Your innovative idea, such as 'Create a 2048 game.' [default: None]                                                                                                                                │
+╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Options ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ --investment                                     FLOAT    Dollar amount to invest in the AI company. [default: 3.0]                                                                                                    │
+│ --n-round                                        INTEGER  Number of rounds for the simulation. [default: 5]                                                                                                            │
+│ --code-review                --no-code-review             Whether to use code review. [default: code-review]                                                                                                           │
+│ --run-tests                  --no-run-tests               Whether to enable QA for adding & running tests. [default: no-run-tests]                                                                                     │
+│ --implement                  --no-implement               Enable or disable code implementation. [default: implement]                                                                                                  │
+│ --project-name                                   TEXT     Unique project name, such as 'game_2048'.                                                                                                                    │
+│ --inc                        --no-inc                     Incremental mode. Use it to coop with existing repo. [default: no-inc]                                                                                       │
+│ --project-path                                   TEXT     Specify the directory path of the old version project to fulfill the incremental requirements.                                                               │
+│ --reqa-file                                      TEXT     Specify the source file name for rewriting the quality assurance code.                                                                                       │
+│ --max-auto-summarize-code                        INTEGER  The maximum number of times the 'SummarizeCode' action is automatically invoked, with -1 indicating unlimited. This parameter is used for debugging the      │
+│                                                           workflow.                                                                                                                                                    │
+│                                                           [default: 0]                                                                                                                                                 │
+│ --recover-path                                   TEXT     recover the project from existing serialized storage [default: None]                                                                                         │
+│ --init-config                --no-init-config             Initialize the configuration file for MetaGPT. [default: no-init-config]                                                                                     │
+│ --help                                                    Show this message and exit.                                                                                                                                  │
+╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```

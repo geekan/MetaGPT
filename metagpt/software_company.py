@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 import asyncio
 import shutil
 from pathlib import Path
@@ -9,24 +10,25 @@ import typer
 from metagpt.config2 import config
 from metagpt.const import CONFIG_ROOT, METAGPT_ROOT
 from metagpt.context import Context
+from metagpt.utils.project_repo import ProjectRepo
 
 app = typer.Typer(add_completion=False, pretty_exceptions_show_locals=False)
 
 
 def generate_repo(
     idea,
-    investment,
-    n_round,
-    code_review,
-    run_tests,
-    implement,
-    project_name,
-    inc,
-    project_path,
-    reqa_file,
-    max_auto_summarize_code,
-    recover_path,
-):
+    investment=3.0,
+    n_round=5,
+    code_review=True,
+    run_tests=False,
+    implement=True,
+    project_name="",
+    inc=False,
+    project_path="",
+    reqa_file="",
+    max_auto_summarize_code=0,
+    recover_path=None,
+) -> ProjectRepo:
     """Run the startup logic. Can be called from CLI or other Python scripts."""
     from metagpt.roles import (
         Architect,
@@ -66,6 +68,8 @@ def generate_repo(
     company.invest(investment)
     company.run_project(idea)
     asyncio.run(company.run(n_round=n_round))
+
+    return ctx.repo
 
 
 @app.command("", help="Start a new project.")

@@ -23,9 +23,9 @@ class TestSkillAction:
                     "type": "string",
                     "description": "OpenAI API key, For more details, checkout: `https://platform.openai.com/account/api-keys`",
                 },
-                "METAGPT_TEXT_TO_IMAGE_MODEL_URL": {"type": "string", "description": "Model url."},
+                "metagpt_tti_url": {"type": "string", "description": "Model url."},
             },
-            "required": {"oneOf": ["OPENAI_API_KEY", "METAGPT_TEXT_TO_IMAGE_MODEL_URL"]},
+            "required": {"oneOf": ["OPENAI_API_KEY", "metagpt_tti_url"]},
         },
         parameters={
             "text": Parameter(type="string", description="The text used for image conversion."),

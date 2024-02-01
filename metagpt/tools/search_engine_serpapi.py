@@ -61,9 +61,11 @@ class SerpAPIWrapper(BaseModel):
         if not self.aiosession:
             async with aiohttp.ClientSession() as session:
                 async with session.get(url, params=params) as response:
+                    response.raise_for_status()
                     res = await response.json()
         else:
             async with self.aiosession.get(url, params=params) as response:
+                response.raise_for_status()
                 res = await response.json()
 
         return res

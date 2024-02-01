@@ -117,4 +117,4 @@ class WriteDesign(Action):
 
     async def _save_mermaid_file(self, data: str, pathname: Path):
         pathname.parent.mkdir(parents=True, exist_ok=True)
-        await mermaid_to_file(self.config.mermaid_engine, data, pathname)
+        await mermaid_to_file(self.config.mermaid.engine, data, pathname)
