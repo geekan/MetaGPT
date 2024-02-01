@@ -1,6 +1,6 @@
 import pytest
 
-from metagpt.actions.execute_code import ExecutePyCode
+from metagpt.actions.execute_nb_code import ExecuteNbCode
 from metagpt.logs import logger
 from metagpt.roles.ml_engineer import MLEngineer
 from metagpt.schema import Message, Plan, Task
@@ -72,7 +72,7 @@ async def test_mle_update_data_columns(mocker):
 @pytest.mark.asyncio
 async def test_mle_debug_code(mocker):
     mle = MLEngineer(auto_run=True, use_tools=True)
-    mle.working_memory.add(Message(content=ErrorStr, cause_by=ExecutePyCode))
+    mle.working_memory.add(Message(content=ErrorStr, cause_by=ExecuteNbCode))
     mle.latest_code = CODE
     mle.debug_context = DebugContext
     code, _ = await mle._write_code()

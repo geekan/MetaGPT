@@ -3,7 +3,7 @@ from typing import List
 from metagpt.actions.write_analysis_code import BaseWriteAnalysisCode
 from metagpt.logs import logger
 from metagpt.schema import Message
-from metagpt.utils.common import create_func_config
+from metagpt.utils.common import create_func_call_config
 
 DEBUG_REFLECTION_EXAMPLE = '''
 Example 1:
@@ -100,7 +100,7 @@ class DebugCode(BaseWriteAnalysisCode):
         info.append(Message(role="system", content=system_prompt))
         info.append(Message(role="user", content=reflection_prompt))
 
-        resp = await self.llm.aask_code(messages=info, **create_func_config(CODE_REFLECTION))
+        resp = await self.llm.aask_code(messages=info, **create_func_call_config(CODE_REFLECTION))
         logger.info(f"reflection is {resp}")
         return resp
 

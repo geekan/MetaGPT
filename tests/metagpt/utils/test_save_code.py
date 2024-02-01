@@ -8,7 +8,7 @@ import os
 import nbformat
 import pytest
 
-from metagpt.actions.execute_code import ExecutePyCode
+from metagpt.actions.execute_nb_code import ExecuteNbCode
 from metagpt.utils.save_code import DATA_PATH, save_code_file
 
 
@@ -33,7 +33,7 @@ def test_save_code_file_json():
 @pytest.mark.asyncio
 async def test_save_code_file_notebook():
     code = "print('Hello, World!')"
-    executor = ExecutePyCode()
+    executor = ExecuteNbCode()
     await executor.run(code)
     # Save as a Notebook file
     save_code_file("example_nb", executor.nb, file_format="ipynb")

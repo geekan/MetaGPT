@@ -10,12 +10,13 @@ import nbformat
 
 from metagpt.const import DATA_PATH
 from metagpt.roles.role import Role
+from metagpt.utils.common import read_json_file
 from metagpt.utils.save_code import save_code_file
 
 
 def load_history(save_dir: str = ""):
     """
-    Load history from the specified save directory.
+    Load plan and code execution history from the specified save directory.
 
     Args:
         save_dir (str): The directory from which to load the history.
@@ -26,14 +27,14 @@ def load_history(save_dir: str = ""):
 
     plan_path = Path(save_dir) / "plan.json"
     nb_path = Path(save_dir) / "history_nb" / "code.ipynb"
-    plan = json.load(open(plan_path, "r", encoding="utf-8"))
+    plan = read_json_file(plan_path)
     nb = nbformat.read(open(nb_path, "r", encoding="utf-8"), as_version=nbformat.NO_CONVERT)
     return plan, nb
 
 
 def save_history(role: Role, save_dir: str = ""):
     """
-    Save history to the specified directory.
+    Save plan and code execution history to the specified directory.
 
     Args:
         role (Role): The role containing the plan and execute_code attributes.

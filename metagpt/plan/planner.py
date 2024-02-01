@@ -87,7 +87,11 @@ class Planner(BaseModel):
             await self.update_plan()
 
     async def ask_review(
-        self, task_result: TaskResult = None, auto_run: bool = None, trigger: str = ReviewConst.TASK_REVIEW_TRIGGER
+        self,
+        task_result: TaskResult = None,
+        auto_run: bool = None,
+        trigger: str = ReviewConst.TASK_REVIEW_TRIGGER,
+        review_context_len: int = 5,
     ):
         """
         Ask to review the task result, reviewer needs to provide confirmation or request change.
@@ -97,7 +101,9 @@ class Planner(BaseModel):
         auto_run = auto_run or self.auto_run
         if not auto_run:
             context = self.get_useful_memories()
-            review, confirmed = await AskReview().run(context=context[-5:], plan=self.plan, trigger=trigger)
+            review, confirmed = await AskReview().run(
+                context=context[-review_context_len:], plan=self.plan, trigger=trigger
+            )
             if not confirmed:
                 self.working_memory.add(Message(content=review, role="user", cause_by=AskReview))
             return review, confirmed
@@ -110,7 +116,7 @@ class Planner(BaseModel):
         self.working_memory.clear()
 
         confirmed_and_more = (
-            ReviewConst.CONTINUE_WORD[0] in review.lower() and review.lower() not in ReviewConst.CONTINUE_WORD[0]
+            ReviewConst.CONTINUE_WORDS[0] in review.lower() and review.lower() not in ReviewConst.CONTINUE_WORDS[0]
         )  # "confirm, ... (more content, such as changing downstream tasks)"
         if confirmed_and_more:
             self.working_memory.add(Message(content=review, role="user", cause_by=AskReview))

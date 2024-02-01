@@ -1,5 +1,5 @@
 from metagpt.actions.debug_code import DebugCode
-from metagpt.actions.execute_code import ExecutePyCode
+from metagpt.actions.execute_nb_code import ExecuteNbCode
 from metagpt.actions.ml_action import UpdateDataColumns, WriteCodeWithToolsML
 from metagpt.logs import logger
 from metagpt.roles.code_interpreter import CodeInterpreter
@@ -19,7 +19,7 @@ class MLEngineer(CodeInterpreter):
             return await super()._write_code()
 
         # In a trial and errors settings, check whether this is our first attempt to tackle the task. If there is no code execution before, then it is.
-        is_first_trial = any_to_str(ExecutePyCode) not in [msg.cause_by for msg in self.working_memory.get()]
+        is_first_trial = any_to_str(ExecuteNbCode) not in [msg.cause_by for msg in self.working_memory.get()]
 
         if is_first_trial:
             # For the first trial, write task code from scratch

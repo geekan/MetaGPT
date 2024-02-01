@@ -7,7 +7,6 @@
 import asyncio
 import re
 import traceback
-from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any, Dict, List, Tuple, Union
 
@@ -28,30 +27,8 @@ from metagpt.logs import logger
 from metagpt.schema import Message
 
 
-class ExecuteCode(ABC):
-    @abstractmethod
-    async def build(self):
-        """build code executor"""
-        ...
-
-    @abstractmethod
-    async def run(self, code: str):
-        """run code"""
-        ...
-
-    @abstractmethod
-    async def terminate(self):
-        """terminate executor"""
-        ...
-
-    @abstractmethod
-    async def reset(self):
-        """reset executor"""
-        ...
-
-
-class ExecutePyCode(ExecuteCode, Action):
-    """execute code, return result to llm, and display it."""
+class ExecuteNbCode(Action):
+    """execute notebook code block, return result to llm, and display it."""
 
     nb: Any
     nb_client: Any

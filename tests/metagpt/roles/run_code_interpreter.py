@@ -1,6 +1,6 @@
 import fire
 
-from metagpt.actions.execute_code import ExecutePyCode
+from metagpt.actions.execute_nb_code import ExecuteNbCode
 from metagpt.const import DATA_PATH
 from metagpt.logs import logger
 from metagpt.roles.code_interpreter import CodeInterpreter
@@ -35,7 +35,7 @@ async def run_code_interpreter(role_class, requirement, auto_run, use_tools, sav
         logger.info("Resuming from history trajectory")
         plan, nb = load_history(save_dir)
         role.planner.plan = Plan(**plan)
-        role.execute_code = ExecutePyCode(nb)
+        role.execute_code = ExecuteNbCode(nb)
 
     else:
         logger.info("Run from scratch")

@@ -1,7 +1,7 @@
 from pydantic import Field
 
 from metagpt.actions.ask_review import ReviewConst
-from metagpt.actions.execute_code import ExecutePyCode
+from metagpt.actions.execute_nb_code import ExecuteNbCode
 from metagpt.actions.write_analysis_code import WriteCodeByGenerate, WriteCodeWithTools
 from metagpt.logs import logger
 from metagpt.roles import Role
@@ -11,7 +11,7 @@ from metagpt.schema import Message, Task, TaskResult
 class CodeInterpreter(Role):
     auto_run: bool = True
     use_tools: bool = False
-    execute_code: ExecutePyCode = Field(default_factory=ExecutePyCode, exclude=True)
+    execute_code: ExecuteNbCode = Field(default_factory=ExecuteNbCode, exclude=True)
     tools: list[str] = []
 
     def __init__(
@@ -59,7 +59,7 @@ class CodeInterpreter(Role):
             result, success = await self.execute_code.run(**code)
             print(result)
 
-            self.working_memory.add(Message(content=result, role="user", cause_by=ExecutePyCode))
+            self.working_memory.add(Message(content=result, role="user", cause_by=ExecuteNbCode))
 
             ### process execution result ###
             if "!pip" in code["code"]:
@@ -70,7 +70,7 @@ class CodeInterpreter(Role):
             if not success and counter >= max_retry:
                 logger.info("coding failed!")
                 review, _ = await self.planner.ask_review(auto_run=False, trigger=ReviewConst.CODE_REVIEW_TRIGGER)
-                if ReviewConst.CHANGE_WORD[0] in review:
+                if ReviewConst.CHANGE_WORDS[0] in review:
                     counter = 0  # redo the task again with help of human suggestions
 
         py_code = (

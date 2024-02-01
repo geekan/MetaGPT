@@ -2,9 +2,9 @@
 """
 @Date    :   2023/11/20 13:19:39
 @Author  :   orange-crow
-@File    :   write_code_v2.py
+@File    :   write_analysis_code.py
 """
-from typing import Dict, List, Tuple, Union
+from typing import Dict, Tuple, Union
 
 from metagpt.actions import Action
 from metagpt.logs import logger
@@ -17,14 +17,14 @@ from metagpt.prompts.write_analysis_code import (
 from metagpt.schema import Message, Plan
 from metagpt.tools import TOOL_REGISTRY
 from metagpt.tools.tool_registry import validate_tool_names
-from metagpt.utils.common import create_func_config
+from metagpt.utils.common import create_func_call_config
 
 
 class BaseWriteAnalysisCode(Action):
     DEFAULT_SYSTEM_MSG: str = """You are Code Interpreter, a world-class programmer that can complete any goal by executing code. Strictly follow the plan and generate code step by step. Each step of the code will be executed on the user's machine, and the user will provide the code execution results to you.**Notice: The code for the next step depends on the code for the previous step. Must reuse variables in the lastest other code directly, dont creat it again, it is very import for you. Use !pip install in a standalone block to install missing packages.Usually the libraries you need are already installed.Dont check if packages already imported.**"""  # prompt reference: https://github.com/KillianLucas/open-interpreter/blob/v0.1.4/interpreter/system_message.txt
     # REUSE_CODE_INSTRUCTION = """ATTENTION: DONT include codes from previous tasks in your current code block, include new codes only, DONT repeat codes!"""
 
-    def process_msg(self, prompt: Union[str, List[Dict], Message, List[Message]], system_msg: str = None):
+    def process_msg(self, prompt: Union[str, list[Dict], Message, list[Message]], system_msg: str = None):
         default_system_msg = system_msg or self.DEFAULT_SYSTEM_MSG
         # 全部转成list
         if not isinstance(prompt, list):
@@ -53,16 +53,17 @@ class BaseWriteAnalysisCode(Action):
             }
         return messages
 
-    async def run(self, context: List[Message], plan: Plan = None) -> dict:
+    async def run(self, context: list[Message], plan: Plan = None) -> dict:
         """Run of a code writing action, used in data analysis or modeling
 
         Args:
-            context (List[Message]): Action output history, source action denoted by Message.cause_by
+            context (list[Message]): Action output history, source action denoted by Message.cause_by
             plan (Plan, optional): Overall plan. Defaults to None.
 
         Returns:
             dict: code result in the format of {"code": "print('hello world')", "language": "python"}
         """
+        raise NotImplementedError
 
 
 class WriteCodeByGenerate(BaseWriteAnalysisCode):
@@ -70,7 +71,7 @@ class WriteCodeByGenerate(BaseWriteAnalysisCode):
 
     async def run(
         self,
-        context: [List[Message]],
+        context: [list[Message]],
         plan: Plan = None,
         system_msg: str = None,
         **kwargs,
@@ -128,7 +129,7 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
             code_steps=code_steps,
             available_tools=available_tools,
         )
-        tool_config = create_func_config(SELECT_FUNCTION_TOOLS)
+        tool_config = create_func_call_config(SELECT_FUNCTION_TOOLS)
         rsp = await self.llm.aask_code(prompt, **tool_config)
         recommend_tools = rsp["recommend_tools"]
         logger.info(f"Recommended tools: \n{recommend_tools}")
@@ -169,7 +170,7 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
 
     async def run(
         self,
-        context: List[Message],
+        context: list[Message],
         plan: Plan,
         **kwargs,
     ) -> str:
@@ -184,7 +185,7 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
 
         # prepare prompt & LLM call
         prompt = self.process_msg(context)
-        tool_config = create_func_config(CODE_GENERATOR_WITH_TOOLS)
+        tool_config = create_func_call_config(CODE_GENERATOR_WITH_TOOLS)
         rsp = await self.llm.aask_code(prompt, **tool_config)
 
         return rsp

@@ -16,7 +16,7 @@ from metagpt.prompts.write_analysis_code import (
 )
 from metagpt.schema import Message, Plan, Task
 from metagpt.tools import TOOL_REGISTRY
-from metagpt.utils.common import CodeParser, create_func_config
+from metagpt.utils.common import CodeParser, create_func_call_config
 
 
 class WritePlan(Action):
@@ -56,7 +56,7 @@ class WritePlan(Action):
         prompt = ASSIGN_TASK_TYPE_PROMPT.format(
             task_list=task_list, task_type_desc=task_type_desc
         )  # task types are set to be the same as tool types, for now
-        tool_config = create_func_config(ASSIGN_TASK_TYPE_CONFIG)
+        tool_config = create_func_call_config(ASSIGN_TASK_TYPE_CONFIG)
         rsp = await self.llm.aask_code(prompt, **tool_config)
         task_type_list = rsp["task_type"]
         print(f"assigned task types: {task_type_list}")

@@ -2,7 +2,7 @@ import asyncio
 
 import pytest
 
-from metagpt.actions.execute_code import ExecutePyCode
+from metagpt.actions.execute_nb_code import ExecuteNbCode
 from metagpt.actions.write_analysis_code import WriteCodeByGenerate, WriteCodeWithTools
 from metagpt.logs import logger
 from metagpt.plan.planner import STRUCTURAL_CONTEXT
@@ -13,7 +13,7 @@ from metagpt.schema import Message, Plan, Task
 @pytest.mark.asyncio
 async def test_write_code_by_list_plan():
     write_code = WriteCodeByGenerate()
-    execute_code = ExecutePyCode()
+    execute_code = ExecuteNbCode()
     messages = []
     plan = ["随机生成一个pandas DataFrame时间序列", "绘制这个时间序列的直方图", "求均值"]
     for task in plan:

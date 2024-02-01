@@ -11,7 +11,7 @@ from metagpt.prompts.ml_action import (
 )
 from metagpt.prompts.write_analysis_code import CODE_GENERATOR_WITH_TOOLS
 from metagpt.schema import Message, Plan
-from metagpt.utils.common import CodeParser, create_func_config, remove_comments
+from metagpt.utils.common import CodeParser, create_func_call_config, remove_comments
 
 
 class WriteCodeWithToolsML(WriteCodeWithTools):
@@ -52,7 +52,7 @@ class WriteCodeWithToolsML(WriteCodeWithTools):
                 tool_type_usage_prompt=tool_type_usage_prompt,
                 code_steps=code_steps,
             )
-        tool_config = create_func_config(CODE_GENERATOR_WITH_TOOLS)
+        tool_config = create_func_call_config(CODE_GENERATOR_WITH_TOOLS)
         rsp = await self.llm.aask_code(prompt, **tool_config)
 
         # Extra output to be used for potential debugging
@@ -97,6 +97,6 @@ class UpdateDataColumns(Action):
         code_context = [remove_comments(task.code) for task in finished_tasks]
         code_context = "\n\n".join(code_context)
         prompt = UPDATE_DATA_COLUMNS.format(history_code=code_context)
-        tool_config = create_func_config(PRINT_DATA_COLUMNS)
+        tool_config = create_func_call_config(PRINT_DATA_COLUMNS)
         rsp = await self.llm.aask_code(prompt, **tool_config)
         return rsp
