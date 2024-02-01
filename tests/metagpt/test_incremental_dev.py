@@ -14,7 +14,7 @@ from typer.testing import CliRunner
 
 from metagpt.const import TEST_DATA_PATH
 from metagpt.logs import logger
-from metagpt.startup import app
+from metagpt.software_company import app
 
 runner = CliRunner()
 

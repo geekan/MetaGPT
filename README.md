@@ -68,6 +68,14 @@ metagpt --init-config  # this will create a ~/.metagpt/config2.yaml from config/
 metagpt "Create a 2048 game"
 ```
 
+or you can use it as library
+
+```python
+from metagpt.software_company import generate_repo, ProjectRepo
+repo: ProjectRepo = generate_repo("Create a 2048 game")  # or ProjectRepo("<path/to/your/repo>")
+print(repo)  # it will print the repo structure with files
+```
+
 detail installation please refer to [cli_install](https://docs.deepwisdom.ai/main/en/guide/get_started/installation.html#install-stable-version)
 
 ### Docker installation

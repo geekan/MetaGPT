@@ -48,6 +48,14 @@ metagpt --init-config  # 这将会从 config/config2.yaml 创建一个 ~/.metagp
 metagpt "创建一个 2048 游戏"
 ```
 
+或者您可以将其作为库使用
+
+```python
+from metagpt.software_company import generate_repo, ProjectRepo
+repo: ProjectRepo = generate_repo("创建一个 2048 游戏")  # 或 ProjectRepo("<您的仓库路径>")
+print(repo)  # 它将打印出仓库结构及其文件
+```
+
 详细的安装请参考 [cli_install](https://docs.deepwisdom.ai/guide/get_started/installation.html#install-stable-version)
 
 ### Docker安装

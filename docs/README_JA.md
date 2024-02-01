@@ -59,22 +59,22 @@ https://github.com/geekan/MetaGPT/assets/34952977/34345016-5d13-489d-b9f9-b82ace
 ### 伝統的なインストール
 
 ```bash
-# ステップ 1: Python 3.9+ がシステムにインストールされていることを確認してください。これを確認するには:
-python3 --version
+# 新しいPython環境を初期化するためにcondaを使用できます
+#     conda create -n metagpt python=3.9
+#     conda activate metagpt
+pip install metagpt
+metagpt --init-config  # これにより、config/config2.yaml から ~/.metagpt/config2.yaml が作成されます。自分の設定に合わせて変更してください
 
-# ステップ 2: リポジトリをローカルマシンにクローンし、インストールする。
-git clone https://github.com/geekan/MetaGPT.git
-cd MetaGPT
-pip install -e.
+# 使用方法：metagpt "<ゲームまたはソフトウェアを作成する>"
+metagpt "2048ゲームを作成する"
+```
 
-# ステップ 3: metagpt を実行する
-# config/config2.yaml を ~/.metagpt/config2.yaml にコピーし、独自の api_key を設定します
-metagpt "Write a cli snake game"
+また、ライブラリとして使用することもできます。
 
-# ステップ 4 [オプション]: 実行中に PRD ファイルなどのアーティファクトを保存する場合は、ステップ 3 の前にこのステップを実行できます。デフォルトでは、フレームワークには互換性があり、この手順を実行しなくてもプロセス全体を完了できます。
-# NPM がシステムにインストールされていることを確認してください。次に mermaid-js をインストールします。(お使いのコンピューターに npm がない場合は、Node.js 公式サイトで Node.js https://nodejs.org/ をインストールしてください。）
-npm --version
-sudo npm install -g @mermaid-js/mermaid-cli
+```python
+from metagpt.software_company import generate_repo, ProjectRepo
+repo: ProjectRepo = generate_repo("2048ゲームを作成する")  # または ProjectRepo("<リポジトリへのパス>")
+print(repo)  # リポジトリの構造とファイルを出力します
 ```
 
 **注:**
