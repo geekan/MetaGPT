@@ -27,7 +27,7 @@ async def text_to_image(text, size_type: str = "512x512", config: Config = metag
     """
     image_declaration = "data:image/png;base64,"
 
-    model_url = config.METAGPT_TEXT_TO_IMAGE_MODEL_URL
+    model_url = config.metagpt_tti_url
     if model_url:
         binary_data = await oas3_metagpt_text_to_image(text, size_type, model_url)
     elif config.get_openai_llm():
