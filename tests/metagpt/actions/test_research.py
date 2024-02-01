@@ -28,9 +28,9 @@ async def test_collect_links(mocker, search_engine_mocker, context):
             return "[1,2]"
 
     mocker.patch("metagpt.provider.base_llm.BaseLLM.aask", mock_llm_ask)
-    resp = await research.CollectLinks(search_engine=SearchEngine(SearchEngineType.DUCK_DUCK_GO), context=context).run(
-        "The application of MetaGPT"
-    )
+    resp = await research.CollectLinks(
+        search_engine=SearchEngine(engine=SearchEngineType.DUCK_DUCK_GO), context=context
+    ).run("The application of MetaGPT")
     for i in ["MetaGPT use cases", "The roadmap of MetaGPT", "The function of MetaGPT", "What llm MetaGPT support"]:
         assert i in resp
 
@@ -50,7 +50,9 @@ async def test_collect_links_with_rank_func(mocker, search_engine_mocker, contex
 
     mocker.patch("metagpt.provider.base_llm.BaseLLM.aask", mock_collect_links_llm_ask)
     resp = await research.CollectLinks(
-        search_engine=SearchEngine(SearchEngineType.DUCK_DUCK_GO), rank_func=rank_func, context=context
+        search_engine=SearchEngine(engine=SearchEngineType.DUCK_DUCK_GO),
+        rank_func=rank_func,
+        context=context,
     ).run("The application of MetaGPT")
     for x, y, z in zip(rank_before, rank_after, resp.values()):
         assert x[::-1] == y
