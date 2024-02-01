@@ -37,3 +37,5 @@ iflytek_api_key: "YOUR_API_KEY"
 iflytek_api_secret: "YOUR_API_SECRET"
 
 metagpt_tti_url: "YOUR_MODEL_URL"
+
+repair_llm_output: true

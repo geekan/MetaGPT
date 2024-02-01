@@ -1,7 +1,7 @@
 llm:
   base_url: "https://api.openai.com/v1"
   api_key: "sk-xxx"
-  model: "gpt-3.5-turbo-16k"
+  model: "gpt-3.5-turbo-1106"
 
 search:
   api_type: "serpapi"
@@ -24,5 +24,4 @@ iflytek_api_secret: "xxx"
 metagpt_tti_url: "http://mock.com"
 
 repair_llm_output: true
-
 
