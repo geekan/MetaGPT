@@ -39,8 +39,8 @@ async def text_to_speech(
 
     """
 
-    subscription_key = config.AZURE_TTS_SUBSCRIPTION_KEY
-    region = config.AZURE_TTS_REGION
+    subscription_key = config.azure_tts_subscription_key
+    region = config.azure_tts_region
     if subscription_key and region:
         audio_declaration = "data:audio/wav;base64,"
         base64_data = await oas3_azsure_tts(text, lang, voice, style, role, subscription_key, region)
@@ -50,9 +50,9 @@ async def text_to_speech(
             return f"[{text}]({url})"
         return audio_declaration + base64_data if base64_data else base64_data
 
-    iflytek_app_id = config.IFLYTEK_APP_ID
-    iflytek_api_key = config.IFLYTEK_API_KEY
-    iflytek_api_secret = config.IFLYTEK_API_SECRET
+    iflytek_app_id = config.iflytek_app_id
+    iflytek_api_key = config.iflytek_api_key
+    iflytek_api_secret = config.iflytek_api_secret
     if iflytek_app_id and iflytek_api_key and iflytek_api_secret:
         audio_declaration = "data:audio/mp3;base64,"
         base64_data = await oas3_iflytek_tts(
@@ -65,5 +65,5 @@ async def text_to_speech(
         return audio_declaration + base64_data if base64_data else base64_data
 
     raise ValueError(
-        "AZURE_TTS_SUBSCRIPTION_KEY, AZURE_TTS_REGION, IFLYTEK_APP_ID, IFLYTEK_API_KEY, IFLYTEK_API_SECRET error"
+        "azure_tts_subscription_key, azure_tts_region, iflytek_app_id, iflytek_api_key, iflytek_api_secret error"
     )

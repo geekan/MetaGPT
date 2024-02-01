@@ -29,11 +29,13 @@ s3:
   bucket: "test"
 
 
-AZURE_TTS_SUBSCRIPTION_KEY: "YOUR_SUBSCRIPTION_KEY"
-AZURE_TTS_REGION: "eastus"
+azure_tts_subscription_key: "YOUR_SUBSCRIPTION_KEY"
+azure_tts_region: "eastus"
 
-IFLYTEK_APP_ID: "YOUR_APP_ID"
-IFLYTEK_API_KEY: "YOUR_API_KEY"
-IFLYTEK_API_SECRET: "YOUR_API_SECRET"
+iflytek_api_id: "YOUR_APP_ID"
+iflytek_api_key: "YOUR_API_KEY"
+iflytek_api_secret: "YOUR_API_SECRET"
 
-METAGPT_TEXT_TO_IMAGE_MODEL_URL: "YOUR_MODEL_URL"
+metagpt_tti_url: "YOUR_MODEL_URL"
+
+repair_llm_output: true

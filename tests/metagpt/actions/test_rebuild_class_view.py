@@ -29,9 +29,9 @@ async def test_rebuild(context):
 @pytest.mark.parametrize(
     ("path", "direction", "diff", "want"),
     [
-        ("metagpt/startup.py", "=", ".", "metagpt/startup.py"),
-        ("metagpt/startup.py", "+", "MetaGPT", "MetaGPT/metagpt/startup.py"),
-        ("metagpt/startup.py", "-", "metagpt", "startup.py"),
+        ("metagpt/software_company.py", "=", ".", "metagpt/software_company.py"),
+        ("metagpt/software_company.py", "+", "MetaGPT", "MetaGPT/metagpt/software_company.py"),
+        ("metagpt/software_company.py", "-", "metagpt", "software_company.py"),
     ],
 )
 def test_align_path(path, direction, diff, want):

@@ -35,14 +35,10 @@ class GPTvGenerator:
     def __init__(self):
         from metagpt.config2 import config
 
-        OPENAI_API_BASE = config.llm.base_url
-        API_KEY = config.llm.api_key
-        MODEL = config.OPENAI_VISION_MODEL
-        MAX_TOKENS = config.VISION_MAX_TOKENS
-        self.api_key = API_KEY
-        self.api_base = OPENAI_API_BASE
-        self.model = MODEL
-        self.max_tokens = MAX_TOKENS
+        self.api_key = config.llm.api_key
+        self.api_base = config.llm.base_url
+        self.model = config.openai_vision_model
+        self.max_tokens = config.vision_max_tokens
 
     def analyze_layout(self, image_path):
         return self.get_result(image_path, ANALYZE_LAYOUT_PROMPT)

@@ -67,17 +67,16 @@ class Config(CLIParams, YamlModel):
     code_review_k_times: int = 2
 
     # Will be removed in the future
-    METAGPT_TEXT_TO_IMAGE_MODEL_URL: str = ""
+    metagpt_tti_url: str = ""
     language: str = "English"
     redis_key: str = "placeholder"
-    IFLYTEK_APP_ID: str = ""
-    IFLYTEK_API_SECRET: str = ""
-    IFLYTEK_API_KEY: str = ""
-    AZURE_TTS_SUBSCRIPTION_KEY: str = ""
-    AZURE_TTS_REGION: str = ""
-    mermaid_engine: str = "nodejs"
-    OPENAI_VISION_MODEL: str = "gpt-4-vision-preview"
-    VISION_MAX_TOKENS: int = 4096
+    iflytek_app_id: str = ""
+    iflytek_api_secret: str = ""
+    iflytek_api_key: str = ""
+    azure_tts_subscription_key: str = ""
+    azure_tts_region: str = ""
+    openai_vision_model: str = "gpt-4-vision-preview"
+    vision_max_tokens: int = 4096
 
     @classmethod
     def from_home(cls, path):
