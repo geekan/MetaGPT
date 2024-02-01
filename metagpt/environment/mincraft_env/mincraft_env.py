@@ -13,8 +13,8 @@ from langchain.vectorstores import Chroma
 from pydantic import ConfigDict, Field
 
 from metagpt.config2 import config as CONFIG
-from metagpt.const import MC_CKPT_DIR
 from metagpt.environment.base_env import Environment
+from metagpt.environment.mincraft_env.const import MC_CKPT_DIR
 from metagpt.environment.mincraft_env.mincraft_ext_env import MincraftExtEnv
 from metagpt.logs import logger
 from metagpt.utils.common import load_mc_skills_code, read_json_file, write_json_file

@@ -4,8 +4,8 @@
 
 from pathlib import Path
 
-from metagpt.const import ADB_EXEC_FAIL
 from metagpt.environment.android_env.android_ext_env import AndroidExtEnv
+from metagpt.environment.android_env.const import ADB_EXEC_FAIL
 
 
 def mock_device_shape(self, adb_cmd: str) -> str:

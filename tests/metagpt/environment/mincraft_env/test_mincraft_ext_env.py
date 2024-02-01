@@ -3,7 +3,7 @@
 # @Desc   : the unittest of MincraftExtEnv
 
 
-from metagpt.const import MC_CKPT_DIR
+from metagpt.environment.mincraft_env.const import MC_CKPT_DIR
 from metagpt.environment.mincraft_env.mincraft_ext_env import MincraftExtEnv
 
 

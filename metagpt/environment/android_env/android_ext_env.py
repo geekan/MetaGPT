@@ -8,7 +8,7 @@ from typing import Any, Optional
 
 from pydantic import Field
 
-from metagpt.const import ADB_EXEC_FAIL
+from metagpt.environment.android_env.const import ADB_EXEC_FAIL
 from metagpt.environment.base_env import ExtEnv, mark_as_readable, mark_as_writeable
 
 
