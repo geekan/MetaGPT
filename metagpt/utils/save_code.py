@@ -29,8 +29,7 @@ def save_code_file(name: str, code_context: str, file_format: str = "py") -> Non
     # Choose to save as a Python file or a JSON file based on the file format
     file_path = DATA_PATH / "output" / f"{name}/code.{file_format}"
     if file_format == "py":
-        with open(file_path, "w", encoding="utf-8") as fp:
-            fp.write(code_context + "\n\n")
+        file_path.write_text(code_context + "\n\n", encoding="utf-8")
     elif file_format == "json":
         # Parse the code content as JSON and save
         data = {"code": code_context}

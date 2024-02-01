@@ -111,7 +111,7 @@ class Planner(BaseModel):
         return "", confirmed
 
     async def confirm_task(self, task: Task, task_result: TaskResult, review: str):
-        self.plan.update_task_result(task=task, task_result=task_result)
+        task.update_task_result(task_result=task_result)
         self.plan.finish_current_task()
         self.working_memory.clear()
 

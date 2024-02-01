@@ -72,12 +72,8 @@ CODE_REFLECTION = {
 }
 
 
-def message_to_str(message: Message) -> str:
-    return f"{message.role}: {message.content}"
-
-
 def messages_to_str(messages: List[Message]) -> str:
-    return "\n".join([message_to_str(message) for message in messages])
+    return "\n".join([str(message) for message in messages])
 
 
 class DebugCode(BaseWriteAnalysisCode):
