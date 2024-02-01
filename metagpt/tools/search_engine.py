@@ -17,6 +17,12 @@ from metagpt.tools import SearchEngineType
 
 
 class SkSearchEngine:
+    """A search engine class for executing searches.
+
+    Attributes:
+        search_engine: The search engine instance used for executing searches.
+    """
+
     def __init__(self, **kwargs):
         self.search_engine = SearchEngine(**kwargs)
 
@@ -32,6 +38,16 @@ class SkSearchEngine:
 
 
 class SearchEngine(BaseModel):
+    """A model for configuring and executing searches with different search engines.
+
+    Attributes:
+        model_config: Configuration for the model allowing arbitrary types.
+        engine: The type of search engine to use.
+        run_func: An optional callable for running the search. If not provided, it will be determined based on the engine.
+        api_key: An optional API key for the search engine.
+        proxy: An optional proxy for the search engine requests.
+    """
+
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
 
     engine: SearchEngineType = SearchEngineType.SERPER_GOOGLE
@@ -41,6 +57,7 @@ class SearchEngine(BaseModel):
 
     @model_validator(mode="after")
     def validate_extra(self):
+        """Validates extra fields provided to the model and updates the run function accordingly."""
         data = self.model_dump(exclude={"engine"}, exclude_none=True, exclude_defaults=True)
         if self.model_extra:
             data.update(self.model_extra)
@@ -52,6 +69,11 @@ class SearchEngine(BaseModel):
         run_func: Optional[Callable[[str, int, bool], Coroutine[None, None, Union[str, list[str]]]]] = None,
         **kwargs,
     ):
+        """Processes extra configuration and updates the run function based on the search engine type.
+
+        Args:
+            run_func: An optional callable for running the search. If not provided, it will be determined based on the engine.
+        """
         if self.engine == SearchEngineType.SERPAPI_GOOGLE:
             module = "metagpt.tools.search_engine_serpapi"
             run_func = importlib.import_module(module).SerpAPIWrapper(**kwargs).run
@@ -72,6 +94,11 @@ class SearchEngine(BaseModel):
 
     @classmethod
     def from_search_config(cls, config: SearchConfig, **kwargs):
+        """Creates a SearchEngine instance from a SearchConfig.
+
+        Args:
+            config: The search configuration to use for creating the SearchEngine instance.
+        """
         data = config.model_dump(exclude={"api_type", "search_func"})
         if config.search_func is not None:
             data["run_func"] = config.search_func
@@ -82,6 +109,11 @@ class SearchEngine(BaseModel):
     def from_search_func(
         cls, search_func: Callable[[str, int, bool], Coroutine[None, None, Union[str, list[str]]]], **kwargs
     ):
+        """Creates a SearchEngine instance from a custom search function.
+
+        Args:
+            search_func: A callable that executes the search.
+        """
         return cls(engine=SearchEngineType.CUSTOM_ENGINE, run_func=search_func, **kwargs)
 
     @overload
@@ -115,6 +147,7 @@ class SearchEngine(BaseModel):
             query: The search query.
             max_results: The maximum number of results to return. Defaults to 8.
             as_string: Whether to return the results as a string or a list of dictionaries. Defaults to True.
+            ignore_errors: Whether to ignore errors during the search. Defaults to False.
 
         Returns:
             The search results as a string or a list of dictionaries.
