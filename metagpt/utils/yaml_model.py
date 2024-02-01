@@ -42,7 +42,7 @@ class YamlModelWithoutDefault(YamlModel):
     @model_validator(mode="before")
     @classmethod
     def check_not_default_config(cls, values):
-        """Check if there is any default config in config.yaml"""
+        """Check if there is any default config in config2.yaml"""
         if any(["YOUR" in v for v in values]):
-            raise ValueError("Please set your config in config.yaml")
+            raise ValueError("Please set your config in config2.yaml")
         return values
