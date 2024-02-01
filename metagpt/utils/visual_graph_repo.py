@@ -108,3 +108,10 @@ class VisualDiGraphRepo(VisualGraphRepo):
             name = name.split(".")[-1]
 
         return name
+
+    async def get_mermaid_sequence_view_versions(self) -> List[(str, str)]:
+        sequence_views = []
+        rows = await self.graph_db.select(predicate=GraphKeyword.HAS_SEQUENCE_VIEW_VER)
+        for r in rows:
+            sequence_views.append((r.subject, r.object_))
+        return sequence_views
