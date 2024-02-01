@@ -4,7 +4,7 @@
 @Time    : 2024/1/4
 @Author  : mashenquan
 @File    : rebuild_sequence_view.py
-@Desc    : Rebuild sequence view info
+@Desc    : Reconstruct sequence view information through reverse engineering.
 """
 from __future__ import annotations
 
@@ -37,7 +37,19 @@ from metagpt.utils.di_graph_repository import DiGraphRepository
 from metagpt.utils.graph_repository import SPO, GraphKeyword, GraphRepository
 
 
-class SQVUseCase(BaseModel):
+class ReverseUseCase(BaseModel):
+    """
+    Represents a reverse engineered use case.
+
+    Attributes:
+        description (str): A description of the reverse use case.
+        inputs (List[str]): List of inputs for the reverse use case.
+        outputs (List[str]): List of outputs for the reverse use case.
+        actors (List[str]): List of actors involved in the reverse use case.
+        steps (List[str]): List of steps for the reverse use case.
+        reason (str): The reason behind the reverse use case.
+    """
+
     description: str
     inputs: List[str]
     outputs: List[str]
@@ -46,16 +58,42 @@ class SQVUseCase(BaseModel):
     reason: str
 
 
-class SQVUseCaseDetails(BaseModel):
+class ReverseUseCaseDetails(BaseModel):
+    """
+    Represents details of a reverse engineered use case.
+
+    Attributes:
+        description (str): A description of the reverse use case details.
+        use_cases (List[ReverseUseCase]): List of reverse use cases.
+        relationship (List[str]): List of relationships associated with the reverse use case details.
+    """
+
     description: str
-    use_cases: List[SQVUseCase]
+    use_cases: List[ReverseUseCase]
     relationship: List[str]
 
 
 class RebuildSequenceView(Action):
+    """
+    Represents an action to reconstruct sequence view through reverse engineering.
+
+    Attributes:
+        graph_db (Optional[GraphRepository]): An optional instance of GraphRepository for graph database operations.
+    """
+
     graph_db: Optional[GraphRepository] = None
 
     async def run(self, with_messages=None, format=config.prompt_schema):
+        """
+        Implementation of `Action`'s `run` method.
+
+        Args:
+            with_messages (Optional[Type]): An optional argument specifying messages to react to.
+            format (str): The format for the prompt schema.
+
+        Returns:
+            None
+        """
         graph_repo_pathname = self.context.git_repo.workdir / GRAPH_REPO_FILE_REPO / self.context.git_repo.workdir.name
         self.graph_db = await DiGraphRepository.load_from(str(graph_repo_pathname.with_suffix(".json")))
         entries = await self._search_main_entry()
@@ -65,12 +103,22 @@ class RebuildSequenceView(Action):
                 pass
         await self.graph_db.save()
 
-    # @retry(
-    #     wait=wait_random_exponential(min=1, max=20),
-    #     stop=stop_after_attempt(6),
-    #     after=general_after_log(logger),
-    # )
-    async def _rebuild_main_sequence_view(self, entry):
+    @retry(
+        wait=wait_random_exponential(min=1, max=20),
+        stop=stop_after_attempt(6),
+        after=general_after_log(logger),
+    )
+    async def _rebuild_main_sequence_view(self, entry: SPO):
+        """
+        Reconstruct the sequence diagram for the __main__ entry of the source code through reverse engineering.
+
+        Args:
+            entry (SPO): The SPO (Subject, Predicate, Object) object in the graph database that is related to the
+                subject `__name__:__main__`.
+
+        Returns:
+            None
+        """
         filename = entry.subject.split(":", 1)[0]
         rows = await self.graph_db.select(predicate=GraphKeyword.IS, object_=GraphKeyword.CLASS)
         classes = []
@@ -139,7 +187,16 @@ class RebuildSequenceView(Action):
             )
         await self.graph_db.save()
 
-    async def _merge_sequence_view(self, entry) -> bool:
+    async def _merge_sequence_view(self, entry: SPO) -> bool:
+        """
+        Augments additional information to the provided SPO (Subject, Predicate, Object) entry in the sequence diagram.
+
+        Args:
+            entry (SPO): The SPO object representing the relationship in the graph database.
+
+        Returns:
+            bool: True if additional information has been augmented, otherwise False.
+        """
         new_participant = await self._search_new_participant(entry)
         if not new_participant:
             return False
@@ -148,6 +205,12 @@ class RebuildSequenceView(Action):
         return True
 
     async def _search_main_entry(self) -> List:
+        """
+        Asynchronously searches for the SPO object that is related to `__name__:__main__`.
+
+        Returns:
+            List: A list containing information about the main entry in the sequence diagram.
+        """
         rows = await self.graph_db.select(predicate=GraphKeyword.HAS_PAGE_INFO)
         tag = "__name__:__main__"
         entries = []
@@ -161,7 +224,16 @@ class RebuildSequenceView(Action):
         stop=stop_after_attempt(6),
         after=general_after_log(logger),
     )
-    async def _rebuild_use_case(self, ns_class_name):
+    async def _rebuild_use_case(self, ns_class_name: str):
+        """
+        Asynchronously reconstructs the use case for the provided namespace-prefixed class name.
+
+        Args:
+            ns_class_name (str): The namespace-prefixed class name for which the use case is to be reconstructed.
+
+        Returns:
+            None
+        """
         rows = await self.graph_db.select(subject=ns_class_name, predicate=GraphKeyword.HAS_CLASS_USE_CASE)
         if rows:
             return
@@ -195,20 +267,25 @@ class RebuildSequenceView(Action):
             system_msgs=[
                 "You are a python code to UML 2.0 Use Case translator.",
                 'The generated UML 2.0 Use Case must include the roles or entities listed in "Participants".',
-                'The functional descriptions of Actors and Use Cases in the generated UML 2.0 Use Case must not conflict with the information in "Mermaid Class Views".',
-                # 'Only steps that involve input, output, and interactive operations with the external system at the same time can be considered as independent use cases.',
-                # "Only steps that involve input, output, and interactive operations with the external system at the same time can be considered as independent use cases, steps that do not meet any one condition should be incorporated into other use cases.",
-                'The section under `if __name__ == "__main__":` of "Source Code" contains information about external system interactions with the internal system.',
+                "The functional descriptions of Actors and Use Cases in the generated UML 2.0 Use Case must not "
+                'conflict with the information in "Mermaid Class Views".',
+                'The section under `if __name__ == "__main__":` of "Source Code" contains information about external '
+                "system interactions with the internal system.",
                 "Return a markdown JSON object with:\n"
                 '- a "description" key to explain what the whole source code want to do;\n'
-                '- a "use_cases" key list all use cases, each use case in the list should including a `description` key describes about what the use case to do, a `inputs` key lists the input names of the use case from external sources, a `outputs` key lists the output names of the use case to external sources, a `actors` key lists the participant actors of the use case, a `steps` key lists the steps about how the use case works step by step, a `reason` key explaining under what circumstances would the external system execute this use case.\n'
+                '- a "use_cases" key list all use cases, each use case in the list should including a `description` '
+                "key describes about what the use case to do, a `inputs` key lists the input names of the use case "
+                "from external sources, a `outputs` key lists the output names of the use case to external sources, "
+                "a `actors` key lists the participant actors of the use case, a `steps` key lists the steps about how "
+                "the use case works step by step, a `reason` key explaining under what circumstances would the "
+                "external system execute this use case.\n"
                 '- a "relationship" key lists all the descriptions of relationship among these use cases.\n',
             ],
         )
 
         code_blocks = parse_json_code_block(rsp)
         for block in code_blocks:
-            detail = SQVUseCaseDetails.model_validate_json(block)
+            detail = ReverseUseCaseDetails.model_validate_json(block)
             await self.graph_db.insert(
                 subject=ns_class_name, predicate=GraphKeyword.HAS_CLASS_USE_CASE, object_=detail.model_dump_json()
             )
@@ -219,7 +296,16 @@ class RebuildSequenceView(Action):
         stop=stop_after_attempt(6),
         after=general_after_log(logger),
     )
-    async def _rebuild_sequence_view(self, ns_class_name):
+    async def _rebuild_sequence_view(self, ns_class_name: str):
+        """
+        Asynchronously reconstructs the sequence diagram for the provided namespace-prefixed class name.
+
+        Args:
+            ns_class_name (str): The namespace-prefixed class name for which the sequence diagram is to be reconstructed.
+
+        Returns:
+            None
+        """
         await self._rebuild_use_case(ns_class_name)
 
         prompts_blocks = []
@@ -262,7 +348,17 @@ class RebuildSequenceView(Action):
         )
         await self.graph_db.save()
 
-    async def _get_participants(self, ns_class_name) -> List[str]:
+    async def _get_participants(self, ns_class_name: str) -> List[str]:
+        """
+        Asynchronously returns the participants list of the sequence diagram for the provided namespace-prefixed SPO
+        object.
+
+        Args:
+            ns_class_name (str): The namespace-prefixed class name for which to retrieve the participants list.
+
+        Returns:
+            List[str]: A list of participants in the sequence diagram.
+        """
         participants = set()
         detail = await self._get_class_detail(ns_class_name)
         if not detail:
@@ -271,11 +367,20 @@ class RebuildSequenceView(Action):
         participants.update(set(detail.aggregations))
         return list(participants)
 
-    async def _get_class_use_cases(self, ns_class_name) -> str:
+    async def _get_class_use_cases(self, ns_class_name: str) -> str:
+        """
+        Asynchronously assembles the context about the use case information of the namespace-prefixed SPO object.
+
+        Args:
+            ns_class_name (str): The namespace-prefixed class name for which to retrieve use case information.
+
+        Returns:
+            str: A string containing the assembled context about the use case information.
+        """
         block = ""
         rows = await self.graph_db.select(subject=ns_class_name, predicate=GraphKeyword.HAS_CLASS_USE_CASE)
         for i, r in enumerate(rows):
-            detail = SQVUseCaseDetails.model_validate_json(r.object_)
+            detail = ReverseUseCaseDetails.model_validate_json(r.object_)
             block += f"\n### {i + 1}. {detail.description}"
             for j, use_case in enumerate(detail.use_cases):
                 block += f"\n#### {i + 1}.{j + 1}. {use_case.description}\n"
@@ -286,21 +391,50 @@ class RebuildSequenceView(Action):
             block += "\n#### Use Case Relationship\n" + "\n".join([f"- {s}" for s in detail.relationship])
         return block + "\n"
 
-    async def _get_class_detail(self, ns_class_name) -> DotClassInfo | None:
+    async def _get_class_detail(self, ns_class_name: str) -> DotClassInfo | None:
+        """
+        Asynchronously retrieves the dot format class details of the namespace-prefixed SPO object.
+
+        Args:
+            ns_class_name (str): The namespace-prefixed class name for which to retrieve class details.
+
+        Returns:
+            Union[DotClassInfo, None]: A DotClassInfo object representing the dot format class details,
+                                       or None if the details are not available.
+        """
         rows = await self.graph_db.select(subject=ns_class_name, predicate=GraphKeyword.HAS_DETAIL)
         if not rows:
             return None
         dot_class_info = DotClassInfo.model_validate_json(rows[0].object_)
         return dot_class_info
 
-    async def _get_uml_class_view(self, ns_class_name) -> UMLClassView | None:
+    async def _get_uml_class_view(self, ns_class_name: str) -> UMLClassView | None:
+        """
+        Asynchronously retrieves the UML 2.0 format class details of the namespace-prefixed SPO object.
+
+        Args:
+            ns_class_name (str): The namespace-prefixed class name for which to retrieve UML class details.
+
+        Returns:
+            Union[UMLClassView, None]: A UMLClassView object representing the UML 2.0 format class details,
+                                       or None if the details are not available.
+        """
         rows = await self.graph_db.select(subject=ns_class_name, predicate=GraphKeyword.HAS_CLASS_VIEW)
         if not rows:
             return None
         class_view = UMLClassView.model_validate_json(rows[0].object_)
         return class_view
 
-    async def _get_source_code(self, ns_class_name) -> str:
+    async def _get_source_code(self, ns_class_name: str) -> str:
+        """
+        Asynchronously retrieves the source code of the namespace-prefixed SPO object.
+
+        Args:
+            ns_class_name (str): The namespace-prefixed class name for which to retrieve the source code.
+
+        Returns:
+            str: A string containing the source code of the specified namespace-prefixed class.
+        """
         rows = await self.graph_db.select(subject=ns_class_name, predicate=GraphKeyword.HAS_PAGE_INFO)
         filename = split_namespace(ns_class_name=ns_class_name)[0]
         if not rows:
@@ -315,6 +449,16 @@ class RebuildSequenceView(Action):
 
     @staticmethod
     def _get_full_filename(root: str | Path, pathname: str | Path) -> Path | None:
+        """
+        Convert package name to the full path of the module.
+
+        Args:
+            root (Union[str, Path]): The root path or string representing the package.
+            pathname (Union[str, Path]): The pathname or string representing the module.
+
+        Returns:
+            Union[Path, None]: The full path of the module, or None if the path cannot be determined.
+        """
         files = list_files(root=root)
         postfix = "/" + str(pathname)
         for i in files:
@@ -324,11 +468,30 @@ class RebuildSequenceView(Action):
 
     @staticmethod
     def parse_participant(mermaid_sequence_diagram: str) -> List[str]:
+        """
+        Parses the provided Mermaid sequence diagram and returns the list of participants.
+
+        Args:
+            mermaid_sequence_diagram (str): The Mermaid sequence diagram string to be parsed.
+
+        Returns:
+            List[str]: A list of participants extracted from the sequence diagram.
+        """
         pattern = r"participant ([a-zA-Z\.0-9_]+)"
         matches = re.findall(pattern, mermaid_sequence_diagram)
+        matches = [re.sub(r"[\\/'\"]+", "", i) for i in matches]
         return matches
 
     async def _search_new_participant(self, entry: SPO) -> str | None:
+        """
+        Asynchronously retrieves a participant whose sequence diagram has not been augmented.
+
+        Args:
+            entry (SPO): The SPO object representing the relationship in the graph database.
+
+        Returns:
+            Union[str, None]: A participant whose sequence diagram has not been augmented, or None if not found.
+        """
         rows = await self.graph_db.select(subject=entry.subject, predicate=GraphKeyword.HAS_SEQUENCE_VIEW)
         if not rows:
             return None
@@ -351,6 +514,16 @@ class RebuildSequenceView(Action):
         after=general_after_log(logger),
     )
     async def _merge_participant(self, entry: SPO, class_name: str):
+        """
+        Augments the sequence diagram of `class_name` to the sequence diagram of `entry`.
+
+        Args:
+            entry (SPO): The SPO object representing the base sequence diagram.
+            class_name (str): The class name whose sequence diagram is to be augmented.
+
+        Returns:
+            None
+        """
         rows = await self.graph_db.select(predicate=GraphKeyword.IS, object_=GraphKeyword.CLASS)
         participants = []
         for r in rows:

@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
+Build a symbols repository from source code.
+
+This script is designed to create a symbols repository from the provided source code.
+
 @Time    : 2023/11/17 17:58
 @Author  : alexanderwu
 @File    : repo_parser.py
@@ -24,6 +28,17 @@ from metagpt.utils.exceptions import handle_exception
 
 
 class RepoFileInfo(BaseModel):
+    """
+    Repository data element that represents information about a file.
+
+    Attributes:
+        file (str): The name or path of the file.
+        classes (List): A list of class names present in the file.
+        functions (List): A list of function names present in the file.
+        globals (List): A list of global variable names present in the file.
+        page_info (List): A list of page-related information associated with the file.
+    """
+
     file: str
     classes: List = Field(default_factory=list)
     functions: List = Field(default_factory=list)
@@ -32,6 +47,17 @@ class RepoFileInfo(BaseModel):
 
 
 class CodeBlockInfo(BaseModel):
+    """
+    Repository data element representing information about a code block.
+
+    Attributes:
+        lineno (int): The starting line number of the code block.
+        end_lineno (int): The ending line number of the code block.
+        type_name (str): The type or category of the code block.
+        tokens (List): A list of tokens present in the code block.
+        properties (Dict): A dictionary containing additional properties associated with the code block.
+    """
+
     lineno: int
     end_lineno: int
     type_name: str
@@ -40,6 +66,17 @@ class CodeBlockInfo(BaseModel):
 
 
 class DotClassAttribute(BaseModel):
+    """
+    Repository data element representing a class attribute in dot format.
+
+    Attributes:
+        name (str): The name of the class attribute.
+        type_ (str): The type of the class attribute.
+        default_ (str): The default value of the class attribute.
+        description (str): A description of the class attribute.
+        compositions (List[str]): A list of compositions associated with the class attribute.
+    """
+
     name: str = ""
     type_: str = ""
     default_: str = ""
@@ -48,6 +85,15 @@ class DotClassAttribute(BaseModel):
 
     @classmethod
     def parse(cls, v: str) -> "DotClassAttribute":
+        """
+        Parses dot format text and returns a DotClassAttribute object.
+
+        Args:
+            v (str): Dot format text to be parsed.
+
+        Returns:
+            DotClassAttribute: An instance of the DotClassAttribute class representing the parsed data.
+        """
         val = ""
         meet_colon = False
         meet_equals = False
@@ -89,10 +135,28 @@ class DotClassAttribute(BaseModel):
 
     @staticmethod
     def remove_white_spaces(v: str):
+        """
+        Removes white spaces from the provided string, excluding spaces within quotes.
+
+        Args:
+            v (str): The input string containing white spaces.
+
+        Returns:
+            str: The input string with white spaces removed, excluding spaces within quotes.
+        """
         return re.sub(r"(?<!['\"])\s|(?<=['\"])\s", "", v)
 
     @staticmethod
     def parse_compositions(types_part) -> List[str]:
+        """
+        Parses the type definition code block of source code and returns a list of compositions.
+
+        Args:
+            types_part: The type definition code block to be parsed.
+
+        Returns:
+            List[str]: A list of compositions extracted from the type definition code block.
+        """
         if not types_part:
             return []
         modified_string = re.sub(r"[\[\],\(\)]", "|", types_part)
@@ -128,6 +192,15 @@ class DotClassAttribute(BaseModel):
 
     @staticmethod
     def _split_literal(v):
+        """
+        Parses the literal definition code block and returns three parts: pre-part, literal-part, and post-part.
+
+        Args:
+            v: The literal definition code block to be parsed.
+
+        Returns:
+            Tuple[str, str, str]: A tuple containing the pre-part, literal-part, and post-part of the code block.
+        """
         tag = "Literal["
         bix = v.find(tag)
         eix = len(v) - 1
@@ -153,11 +226,32 @@ class DotClassAttribute(BaseModel):
     @field_validator("compositions", mode="after")
     @classmethod
     def sort(cls, lst: List) -> List:
+        """
+        Auto-sorts a list attribute after making changes.
+
+        Args:
+            lst (List): The list attribute to be sorted.
+
+        Returns:
+            List: The sorted list.
+        """
         lst.sort()
         return lst
 
 
 class DotClassInfo(BaseModel):
+    """
+    Repository data element representing information about a class in dot format.
+
+    Attributes:
+        name (str): The name of the class.
+        package (Optional[str]): The package to which the class belongs (optional).
+        attributes (Dict[str, DotClassAttribute]): A dictionary of attributes associated with the class.
+        methods (Dict[str, DotClassMethod]): A dictionary of methods associated with the class.
+        compositions (List[str]): A list of compositions associated with the class.
+        aggregations (List[str]): A list of aggregations associated with the class.
+    """
+
     name: str
     package: Optional[str] = None
     attributes: Dict[str, DotClassAttribute] = Field(default_factory=dict)
@@ -168,11 +262,30 @@ class DotClassInfo(BaseModel):
     @field_validator("compositions", "aggregations", mode="after")
     @classmethod
     def sort(cls, lst: List) -> List:
+        """
+        Auto-sorts a list attribute after making changes.
+
+        Args:
+            lst (List): The list attribute to be sorted.
+
+        Returns:
+            List: The sorted list.
+        """
         lst.sort()
         return lst
 
 
 class DotClassRelationship(BaseModel):
+    """
+    Repository data element representing a relationship between two classes in dot format.
+
+    Attributes:
+        src (str): The source class of the relationship.
+        dest (str): The destination class of the relationship.
+        relationship (str): The type or nature of the relationship.
+        label (Optional[str]): An optional label associated with the relationship.
+    """
+
     src: str = ""
     dest: str = ""
     relationship: str = ""
@@ -180,12 +293,31 @@ class DotClassRelationship(BaseModel):
 
 
 class DotReturn(BaseModel):
+    """
+    Repository data element representing a function or method return type in dot format.
+
+    Attributes:
+        type_ (str): The type of the return.
+        description (str): A description of the return type.
+        compositions (List[str]): A list of compositions associated with the return type.
+    """
+
     type_: str = ""
     description: str
     compositions: List[str] = Field(default_factory=list)
 
     @classmethod
     def parse(cls, v: str) -> "DotReturn" | None:
+        """
+        Parses the return type part of dot format text and returns a DotReturn object.
+
+        Args:
+            v (str): The dot format text containing the return type part to be parsed.
+
+        Returns:
+            DotReturn | None: An instance of the DotReturn class representing the parsed return type,
+                             or None if parsing fails.
+        """
         if not v:
             return DotReturn(description=v)
         type_ = DotClassAttribute.remove_white_spaces(v)
@@ -195,6 +327,15 @@ class DotReturn(BaseModel):
     @field_validator("compositions", mode="after")
     @classmethod
     def sort(cls, lst: List) -> List:
+        """
+        Auto-sorts a list attribute after making changes.
+
+        Args:
+            lst (List): The list attribute to be sorted.
+
+        Returns:
+            List: The sorted list.
+        """
         lst.sort()
         return lst
 
@@ -208,6 +349,15 @@ class DotClassMethod(BaseModel):
 
     @classmethod
     def parse(cls, v: str) -> "DotClassMethod":
+        """
+        Parses a dot format method text and returns a DotClassMethod object.
+
+        Args:
+            v (str): The dot format text containing method information to be parsed.
+
+        Returns:
+            DotClassMethod: An instance of the DotClassMethod class representing the parsed method.
+        """
         bix = v.find("(")
         eix = v.rfind(")")
         rix = v.rfind(":")
@@ -229,6 +379,15 @@ class DotClassMethod(BaseModel):
 
     @staticmethod
     def _parse_name(v: str) -> str:
+        """
+        Parses the dot format method name part and returns the method name.
+
+        Args:
+            v (str): The dot format text containing the method name part to be parsed.
+
+        Returns:
+            str: The parsed method name.
+        """
         tags = [">", "</"]
         if tags[0] in v:
             bix = v.find(tags[0]) + len(tags[0])
@@ -238,6 +397,15 @@ class DotClassMethod(BaseModel):
 
     @staticmethod
     def _parse_args(v: str) -> List[DotClassAttribute]:
+        """
+        Parses the dot format method arguments part and returns the parsed arguments.
+
+        Args:
+            v (str): The dot format text containing the arguments part to be parsed.
+
+        Returns:
+            str: The parsed method arguments.
+        """
         if not v:
             return []
         parts = []
@@ -265,16 +433,40 @@ class DotClassMethod(BaseModel):
 
 
 class RepoParser(BaseModel):
+    """
+    Tool to build a symbols repository from a project directory.
+
+    Attributes:
+        base_directory (Path): The base directory of the project.
+    """
+
     base_directory: Path = Field(default=None)
 
     @classmethod
     @handle_exception(exception_type=Exception, default_return=[])
     def _parse_file(cls, file_path: Path) -> list:
-        """Parse a Python file in the repository."""
+        """
+        Parses a Python file in the repository.
+
+        Args:
+            file_path (Path): The path to the Python file to be parsed.
+
+        Returns:
+            list: A list containing the parsed symbols from the file.
+        """
         return ast.parse(file_path.read_text()).body
 
     def extract_class_and_function_info(self, tree, file_path) -> RepoFileInfo:
-        """Extract class, function, and global variable information from the AST."""
+        """
+        Extracts class, function, and global variable information from the Abstract Syntax Tree (AST).
+
+        Args:
+            tree: The Abstract Syntax Tree (AST) of the Python file.
+            file_path: The path to the Python file.
+
+        Returns:
+            RepoFileInfo: A RepoFileInfo object containing the extracted information.
+        """
         file_info = RepoFileInfo(file=str(file_path.relative_to(self.base_directory)))
         for node in tree:
             info = RepoParser.node_to_str(node)
@@ -292,6 +484,12 @@ class RepoParser(BaseModel):
         return file_info
 
     def generate_symbols(self) -> List[RepoFileInfo]:
+        """
+        Builds a symbol repository from '.py' and '.js' files in the project directory.
+
+        Returns:
+            List[RepoFileInfo]: A list of RepoFileInfo objects containing the extracted information.
+        """
         files_classes = []
         directory = self.base_directory
 
@@ -306,19 +504,38 @@ class RepoParser(BaseModel):
 
         return files_classes
 
-    def generate_json_structure(self, output_path):
-        """Generate a JSON file documenting the repository structure."""
+    def generate_json_structure(self, output_path: Path):
+        """
+        Generates a JSON file documenting the repository structure.
+
+        Args:
+            output_path (Path): The path to the JSON file to be generated.
+        """
         files_classes = [i.model_dump() for i in self.generate_symbols()]
         output_path.write_text(json.dumps(files_classes, indent=4))
 
-    def generate_dataframe_structure(self, output_path):
-        """Generate a DataFrame documenting the repository structure and save as CSV."""
+    def generate_dataframe_structure(self, output_path: Path):
+        """
+        Generates a DataFrame documenting the repository structure and saves it as a CSV file.
+
+        Args:
+            output_path (Path): The path to the CSV file to be generated.
+        """
         files_classes = [i.model_dump() for i in self.generate_symbols()]
         df = pd.DataFrame(files_classes)
         df.to_csv(output_path, index=False)
 
-    def generate_structure(self, output_path=None, mode="json") -> Path:
-        """Generate the structure of the repository as a specified format."""
+    def generate_structure(self, output_path: str | Path = None, mode="json") -> Path:
+        """
+        Generates the structure of the repository in a specified format.
+
+        Args:
+            output_path (str | Path): The path to the output file or directory. Default is None.
+            mode (str): The output format mode. Options: "json" (default), "csv", etc.
+
+        Returns:
+            Path: The path to the generated output file or directory.
+        """
         output_file = self.base_directory / f"{self.base_directory.name}-structure.{mode}"
         output_path = Path(output_path) if output_path else output_file
 
@@ -330,6 +547,16 @@ class RepoParser(BaseModel):
 
     @staticmethod
     def node_to_str(node) -> CodeBlockInfo | None:
+        """
+        Parses and converts an Abstract Syntax Tree (AST) node to a CodeBlockInfo object.
+
+        Args:
+            node: The AST node to be converted.
+
+        Returns:
+            CodeBlockInfo | None: A CodeBlockInfo object representing the parsed AST node,
+                                  or None if the conversion fails.
+        """
         if isinstance(node, ast.Try):
             return None
         if any_to_str(node) == any_to_str(ast.Expr):
@@ -370,6 +597,15 @@ class RepoParser(BaseModel):
 
     @staticmethod
     def _parse_expr(node) -> List:
+        """
+        Parses an expression Abstract Syntax Tree (AST) node.
+
+        Args:
+            node: The AST node representing an expression.
+
+        Returns:
+            List: A list containing the parsed information from the expression node.
+        """
         funcs = {
             any_to_str(ast.Constant): lambda x: [any_to_str(x.value), RepoParser._parse_variable(x.value)],
             any_to_str(ast.Call): lambda x: [any_to_str(x.value), RepoParser._parse_variable(x.value.func)],
@@ -381,12 +617,30 @@ class RepoParser(BaseModel):
 
     @staticmethod
     def _parse_name(n):
+        """
+        Gets the 'name' value of an Abstract Syntax Tree (AST) node.
+
+        Args:
+            n: The AST node.
+
+        Returns:
+            The 'name' value of the AST node.
+        """
         if n.asname:
             return f"{n.name} as {n.asname}"
         return n.name
 
     @staticmethod
     def _parse_if(n):
+        """
+        Parses an 'if' statement Abstract Syntax Tree (AST) node.
+
+        Args:
+            n: The AST node representing an 'if' statement.
+
+        Returns:
+            None or Parsed information from the 'if' statement node.
+        """
         tokens = []
         try:
             if isinstance(n.test, ast.BoolOp):
@@ -409,6 +663,15 @@ class RepoParser(BaseModel):
 
     @staticmethod
     def _parse_if_compare(n):
+        """
+        Parses an 'if' condition Abstract Syntax Tree (AST) node.
+
+        Args:
+            n: The AST node representing an 'if' condition.
+
+        Returns:
+            None or Parsed information from the 'if' condition node.
+        """
         if hasattr(n, "left"):
             return RepoParser._parse_variable(n.left)
         else:
@@ -416,6 +679,15 @@ class RepoParser(BaseModel):
 
     @staticmethod
     def _parse_variable(node):
+        """
+        Parses a variable Abstract Syntax Tree (AST) node.
+
+        Args:
+            node: The AST node representing a variable.
+
+        Returns:
+            None or Parsed information from the variable node.
+        """
         try:
             funcs = {
                 any_to_str(ast.Constant): lambda x: x.value,
@@ -435,9 +707,27 @@ class RepoParser(BaseModel):
 
     @staticmethod
     def _parse_assign(node):
+        """
+        Parses an assignment Abstract Syntax Tree (AST) node.
+
+        Args:
+            node: The AST node representing an assignment.
+
+        Returns:
+            None or Parsed information from the assignment node.
+        """
         return [RepoParser._parse_variable(t) for t in node.targets]
 
     async def rebuild_class_views(self, path: str | Path = None):
+        """
+        Executes `pylint` to reconstruct the dot format class view repository file.
+
+        Args:
+            path (str | Path): The path to the target directory or file. Default is None.
+
+        Returns:
+            None
+        """
         if not path:
             path = self.base_directory
         path = Path(path)
@@ -458,7 +748,17 @@ class RepoParser(BaseModel):
         packages_pathname.unlink(missing_ok=True)
         return class_views, relationship_views, package_root
 
-    async def _parse_classes(self, class_view_pathname):
+    @staticmethod
+    async def _parse_classes(class_view_pathname: Path) -> List[DotClassInfo]:
+        """
+        Parses a dot format class view repository file.
+
+        Args:
+            class_view_pathname (Path): The path to the dot format class view repository file.
+
+        Returns:
+            List[DotClassInfo]: A list of DotClassInfo objects representing the parsed classes.
+        """
         class_views = []
         if not class_view_pathname.exists():
             return class_views
@@ -490,7 +790,17 @@ class RepoParser(BaseModel):
             class_views.append(class_info)
         return class_views
 
-    async def _parse_class_relationships(self, class_view_pathname) -> List[DotClassRelationship]:
+    @staticmethod
+    async def _parse_class_relationships(class_view_pathname: Path) -> List[DotClassRelationship]:
+        """
+        Parses a dot format class view repository file.
+
+        Args:
+            class_view_pathname (Path): The path to the dot format class view repository file.
+
+        Returns:
+            List[DotClassRelationship]: A list of DotClassRelationship objects representing the parsed class relationships.
+        """
         relationship_views = []
         if not class_view_pathname.exists():
             return relationship_views
@@ -504,7 +814,16 @@ class RepoParser(BaseModel):
         return relationship_views
 
     @staticmethod
-    def _split_class_line(line):
+    def _split_class_line(line: str) -> (str, str):
+        """
+        Parses a dot format line about class info and returns the class name part and class members part.
+
+        Args:
+            line (str): The dot format line containing class information.
+
+        Returns:
+            Tuple[str, str]: A tuple containing the class name part and class members part.
+        """
         part_splitor = '" ['
         if part_splitor not in line:
             return None, None
@@ -522,7 +841,17 @@ class RepoParser(BaseModel):
         return class_name, info
 
     @staticmethod
-    def _split_relationship_line(line):
+    def _split_relationship_line(line: str) -> str:
+        """
+        Parses a dot format line about the relationship of two classes and returns 'Generalize', 'Composite',
+        or 'Aggregate'.
+
+        Args:
+            line (str): The dot format line containing relationship information.
+
+        Returns:
+            str: The type of relationship, either 'Generalize', 'Composite', or 'Aggregate'.
+        """
         splitters = [" -> ", " [", "];"]
         idxs = []
         for tag in splitters:
@@ -547,7 +876,16 @@ class RepoParser(BaseModel):
         return ret
 
     @staticmethod
-    def _get_label(line):
+    def _get_label(line: str) -> str:
+        """
+        Parses a dot format line and returns the label information.
+
+        Args:
+            line (str): The dot format line containing label information.
+
+        Returns:
+            str: The label information parsed from the line.
+        """
         tag = 'label="'
         if tag not in line:
             return ""
@@ -557,6 +895,15 @@ class RepoParser(BaseModel):
 
     @staticmethod
     def _create_path_mapping(path: str | Path) -> Dict[str, str]:
+        """
+        Creates a mapping table between source code files' paths and module names.
+
+        Args:
+            path (str | Path): The path to the source code files or directory.
+
+        Returns:
+            Dict[str, str]: A dictionary mapping source code file paths to their corresponding module names.
+        """
         mappings = {
             str(path).replace("/", "."): str(path),
         }
@@ -582,6 +929,19 @@ class RepoParser(BaseModel):
     def _repair_namespaces(
         class_views: List[DotClassInfo], relationship_views: List[DotClassRelationship], path: str | Path
     ) -> (List[DotClassInfo], List[DotClassRelationship], str):
+        """
+        Augments namespaces to the path-prefixed classes and relationships.
+
+        Args:
+            class_views (List[DotClassInfo]): List of DotClassInfo objects representing class views.
+            relationship_views (List[DotClassRelationship]): List of DotClassRelationship objects representing
+                relationships.
+            path (str | Path): The path to the source code files or directory.
+
+        Returns:
+            Tuple[List[DotClassInfo], List[DotClassRelationship], str]: A tuple containing the augmented class views,
+            relationships, and the root path of the package.
+        """
         if not class_views:
             return [], [], ""
         c = class_views[0]
@@ -608,8 +968,19 @@ class RepoParser(BaseModel):
         return class_views, relationship_views, root_path
 
     @staticmethod
-    def _repair_ns(package, mappings):
+    def _repair_ns(package: str, mappings: Dict[str, str]) -> str:
+        """
+        Replaces the package-prefix with the namespace-prefix.
+
+        Args:
+            package (str): The package to be repaired.
+            mappings (Dict[str, str]): A dictionary mapping source code file paths to their corresponding packages.
+
+        Returns:
+            str: The repaired namespace.
+        """
         file_ns = package
+        ix = 0
         while file_ns != "":
             if file_ns not in mappings:
                 ix = file_ns.rfind(".")
@@ -621,7 +992,17 @@ class RepoParser(BaseModel):
         return ns
 
     @staticmethod
-    def _find_root(full_key, package) -> str:
+    def _find_root(full_key: str, package: str) -> str:
+        """
+        Returns the package root path based on the key, which is the full path, and the package information.
+
+        Args:
+            full_key (str): The full key representing the full path.
+            package (str): The package information.
+
+        Returns:
+            str: The package root path.
+        """
         left = full_key
         while left != "":
             if left in package:
@@ -634,5 +1015,14 @@ class RepoParser(BaseModel):
         return "." + full_key[0:ix]
 
 
-def is_func(node):
+def is_func(node) -> bool:
+    """
+    Returns True if the given node represents a function.
+
+    Args:
+        node: The Abstract Syntax Tree (AST) node.
+
+    Returns:
+        bool: True if the node represents a function, False otherwise.
+    """
     return isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))

@@ -4,11 +4,11 @@
 @Time    : 2023/12/19
 @Author  : mashenquan
 @File    : rebuild_class_view.py
-@Desc    : Rebuild class view info
+@Desc    : Reconstructs class diagram from a source code project.
 """
 
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Set, Tuple
 
 import aiofiles
 
@@ -30,9 +30,26 @@ from metagpt.utils.graph_repository import GraphKeyword, GraphRepository
 
 
 class RebuildClassView(Action):
+    """
+    Reconstructs a graph repository about class diagram from a source code project.
+
+    Attributes:
+        graph_db (Optional[GraphRepository]): The optional graph repository.
+    """
+
     graph_db: Optional[GraphRepository] = None
 
     async def run(self, with_messages=None, format=config.prompt_schema):
+        """
+        Implementation of `Action`'s `run` method.
+
+        Args:
+            with_messages (Optional[Type]): An optional argument specifying messages to react to.
+            format (str): The format for the prompt schema.
+
+        Returns:
+            None
+        """
         graph_repo_pathname = self.context.git_repo.workdir / GRAPH_REPO_FILE_REPO / self.context.git_repo.workdir.name
         self.graph_db = await DiGraphRepository.load_from(str(graph_repo_pathname.with_suffix(".json")))
         repo_parser = RepoParser(base_directory=Path(self.i_context))
@@ -52,6 +69,13 @@ class RebuildClassView(Action):
         await self.graph_db.save()
 
     async def _create_mermaid_class_views(self):
+        """Creates a Mermaid class diagram using data from the `graph_db` graph repository.
+
+        This method utilizes information stored in the graph repository to generate a Mermaid class diagram.
+
+        Returns:
+            None
+        """
         path = Path(self.context.git_repo.workdir) / DATA_API_DESIGN_FILE_REPO
         path.mkdir(parents=True, exist_ok=True)
         pathname = path / self.context.git_repo.workdir.name
@@ -77,6 +101,14 @@ class RebuildClassView(Action):
         logger.info(f"classes: {len(class_distinct)}, relationship: {len(relationship_distinct)}")
 
     async def _create_mermaid_class(self, ns_class_name) -> str:
+        """Generates a Mermaid class diagram for a specific class using data from the `graph_db` graph repository.
+
+        Args:
+            ns_class_name (str): The namespace-prefixed name of the class for which the Mermaid class diagram is to be created.
+
+        Returns:
+            str: A Mermaid code block object in markdown representing the class diagram.
+        """
         fields = split_namespace(ns_class_name)
         if len(fields) > 2:
             # Ignore sub-class
@@ -110,11 +142,19 @@ class RebuildClassView(Action):
         logger.debug(content)
         return content
 
-    async def _create_mermaid_relationship(self, ns_class_name):
+    async def _create_mermaid_relationship(self, ns_class_name: str) -> Tuple[str, Set]:
+        """Generates a Mermaid class relationship diagram for a specific class using data from the `graph_db` graph repository.
+
+        Args:
+            ns_class_name (str): The namespace-prefixed class name for which the Mermaid relationship diagram is to be created.
+
+        Returns:
+            Tuple[str, Set]: A tuple containing the relationship diagram as a string and a set of deduplication.
+        """
         s_fields = split_namespace(ns_class_name)
         if len(s_fields) > 2:
             # Ignore sub-class
-            return
+            return None, None
 
         predicates = {GraphKeyword.IS + v + GraphKeyword.OF: v for v in [GENERALIZATION, COMPOSITION, AGGREGATION]}
         mappings = {
@@ -140,6 +180,15 @@ class RebuildClassView(Action):
 
     @staticmethod
     def _diff_path(path_root: Path, package_root: Path) -> (str, str):
+        """Returns the difference between the root path and the path information represented in the package name.
+
+        Args:
+            path_root (Path): The root path.
+            package_root (Path): The package root path.
+
+        Returns:
+            Tuple[str, str]: A tuple containing the representation of the difference ("+", "-", "=") and the path detail of the differing part.
+        """
         if len(str(path_root)) > len(str(package_root)):
             return "+", str(path_root.relative_to(package_root))
         if len(str(path_root)) < len(str(package_root)):
@@ -147,7 +196,17 @@ class RebuildClassView(Action):
         return "=", "."
 
     @staticmethod
-    def _align_root(path: str, direction: str, diff_path: str):
+    def _align_root(path: str, direction: str, diff_path: str) -> str:
+        """Aligns the path to the same root represented by `diff_path`.
+
+        Args:
+            path (str): The path to be aligned.
+            direction (str): The direction of alignment ('+', '-', '=').
+            diff_path (str): The path representing the difference.
+
+        Returns:
+            str: The aligned path.
+        """
         if direction == "=":
             return path
         if direction == "+":
