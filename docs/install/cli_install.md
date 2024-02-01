@@ -33,11 +33,12 @@ pip install -e.
   npm install @mermaid-js/mermaid-cli
   ```
 
-- don't forget to the configuration for mmdc in config.yml
+- don't forget to the configuration for mmdc path in config.yml
 
   ```yml
-  puppeteer_config: "./config/puppeteer-config.json"
-  path: "./node_modules/.bin/mmdc"
+  mermaid:
+    puppeteer_config: "./config/puppeteer-config.json"
+    path: "./node_modules/.bin/mmdc"
   ```
 
 - if `pip install -e.` fails with error `[Errno 13] Permission denied: '/usr/local/lib/python3.11/dist-packages/test-easy-install-13129.write-test'`, try instead running `pip install -e. --user`
@@ -61,7 +62,7 @@ pip install -e.
 
     - **modify `config2.yaml`**
 
-    uncomment mermaid.engine from config2.yaml and change it to `playwright`
+    change mermaid.engine to `playwright`
 
     ```yaml
     mermaid:
@@ -91,7 +92,7 @@ pip install -e.
 
     - **modify `config2.yaml`**
 
-    uncomment mermaid.engine from config2.yaml and change it to `pyppeteer`
+    change mermaid.engine to `pyppeteer`
 
     ```yaml
     mermaid:
@@ -100,8 +101,8 @@ pip install -e.
 
   - mermaid.ink
     - **modify `config2.yaml`**
-
-    uncomment mermaid.engine from config2.yaml and change it to `ink`
+    
+    change mermaid.engine to `ink`
 
     ```yaml
     mermaid:
