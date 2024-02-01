@@ -6,14 +6,14 @@
 @Modified By: mashenquan, 2023/11/21. Fix bug: ReadTimeout.
 @Modified By: mashenquan, 2023/12/1. Fix bug: Unclosed connection caused by openai 0.x.
 """
-
-
 from openai import AsyncAzureOpenAI
 from openai._base_client import AsyncHttpxClientWrapper
+from openai.types import CompletionUsage
 
 from metagpt.configs.llm_config import LLMType
 from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.provider.openai_api import OpenAILLM
+from metagpt.utils.exceptions import handle_exception
 
 
 @register_provider(LLMType.AZURE)
@@ -41,3 +41,10 @@ class AzureOpenAILLM(OpenAILLM):
             kwargs["http_client"] = AsyncHttpxClientWrapper(**proxy_params)
 
         return kwargs
+
+    def _calc_usage(self, messages: list[dict], rsp: str) -> CompletionUsage:
+        return CompletionUsage(prompt_tokens=0, completion_tokens=0, total_tokens=0)
+
+    @handle_exception
+    def _update_costs(self, usage: CompletionUsage):
+        pass
