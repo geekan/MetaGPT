@@ -109,7 +109,7 @@ entities:
           required:
             oneOf:
               - OPENAI_API_KEY
-              - METAGPT_TEXT_TO_IMAGE_MODEL_URL
+              - metagpt_tti_url
         parameters:
           text:
             description: 'The text used for image conversion.'

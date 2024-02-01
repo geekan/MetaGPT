@@ -247,7 +247,7 @@ paths:
           description: "Model url."
       required:
         allOf:
-          - METAGPT_TEXT_TO_IMAGE_MODEL_URL
+          - metagpt_tti_url
     post:
       summary: "Text to Image"
       description: "Generate an image from the provided text using the MetaGPT Text-to-Image API."
