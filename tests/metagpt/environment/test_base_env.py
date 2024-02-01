@@ -18,7 +18,7 @@ class ForTestEnv(Environment):
     value: int = 0
 
     @mark_as_readable
-    def read_api_no_parms(self):
+    def read_api_no_param(self):
         return self.value
 
     @mark_as_readable
@@ -46,5 +46,5 @@ async def test_ext_env():
     with pytest.raises(ValueError):
         await env.observe("not_exist_api")
 
-    assert await env.observe("read_api_no_parms") == 15
+    assert await env.observe("read_api_no_param") == 15
     assert await env.observe(EnvAPIAbstract(api_name="read_api", kwargs={"a": 5, "b": 5})) == 10

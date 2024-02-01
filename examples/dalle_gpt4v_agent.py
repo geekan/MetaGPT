@@ -2,15 +2,7 @@
 # -*- coding: utf-8 -*-
 # @Desc   : use gpt4v to improve prompt and draw image with dall-e-3
 
-"""
-set the configuration in `config2.yaml` like below
-```
-llm:
-  base_url: "xxx"
-  api_key: "sk-xxx"
-  model: "gpt-4-vision-preview"
-```
-"""
+"""set `model: "gpt-4-vision-preview"` in `config2.yaml` first"""
 
 import asyncio
 

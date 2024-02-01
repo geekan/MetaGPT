@@ -254,6 +254,7 @@ async def test_action_node_with_image():
     node = await invoice.fill(context="", llm=LLM(), images=[img_base64])
     assert node.instruct_content.invoice
 
+
 class ToolDef(BaseModel):
     tool_name: str = Field(default="a", description="tool name", examples=[])
     description: str = Field(default="b", description="tool description", examples=[])
