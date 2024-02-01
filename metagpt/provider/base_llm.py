@@ -108,7 +108,7 @@ class BaseLLM(ABC):
 
     def get_choice_delta_text(self, rsp: dict) -> str:
         """Required to provide the first text of stream choice"""
-        return rsp.get("choices")[0]["delta"]["content"]
+        return rsp.get("choices", [{}])[0].get("delta", {}).get("content", "")
 
     def get_choice_function(self, rsp: dict) -> dict:
         """Required to provide the first function of choice

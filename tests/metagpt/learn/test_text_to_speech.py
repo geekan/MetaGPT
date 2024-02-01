@@ -20,9 +20,9 @@ from metagpt.utils.s3 import S3
 async def test_azure_text_to_speech(mocker):
     # mock
     config = Config.default()
-    config.IFLYTEK_API_KEY = None
-    config.IFLYTEK_API_SECRET = None
-    config.IFLYTEK_APP_ID = None
+    config.iflytek_api_key = None
+    config.iflytek_api_secret = None
+    config.iflytek_app_id = None
     mock_result = mocker.Mock()
     mock_result.audio_data = b"mock audio data"
     mock_result.reason = ResultReason.SynthesizingAudioCompleted
@@ -32,11 +32,11 @@ async def test_azure_text_to_speech(mocker):
     mocker.patch.object(S3, "cache", return_value="http://mock.s3.com/1.wav")
 
     # Prerequisites
-    assert not config.IFLYTEK_APP_ID
-    assert not config.IFLYTEK_API_KEY
-    assert not config.IFLYTEK_API_SECRET
-    assert config.AZURE_TTS_SUBSCRIPTION_KEY and config.AZURE_TTS_SUBSCRIPTION_KEY != "YOUR_API_KEY"
-    assert config.AZURE_TTS_REGION
+    assert not config.iflytek_app_id
+    assert not config.iflytek_api_key
+    assert not config.iflytek_api_secret
+    assert config.azure_tts_subscription_key and config.azure_tts_subscription_key != "YOUR_API_KEY"
+    assert config.azure_tts_region
 
     config.copy()
     # test azure
@@ -48,8 +48,8 @@ async def test_azure_text_to_speech(mocker):
 async def test_iflytek_text_to_speech(mocker):
     # mock
     config = Config.default()
-    config.AZURE_TTS_SUBSCRIPTION_KEY = None
-    config.AZURE_TTS_REGION = None
+    config.azure_tts_subscription_key = None
+    config.azure_tts_region = None
     mocker.patch.object(IFlyTekTTS, "synthesize_speech", return_value=None)
     mock_data = mocker.AsyncMock()
     mock_data.read.return_value = b"mock iflytek"
@@ -58,11 +58,11 @@ async def test_iflytek_text_to_speech(mocker):
     mocker.patch.object(S3, "cache", return_value="http://mock.s3.com/1.mp3")
 
     # Prerequisites
-    assert config.IFLYTEK_APP_ID
-    assert config.IFLYTEK_API_KEY
-    assert config.IFLYTEK_API_SECRET
-    assert not config.AZURE_TTS_SUBSCRIPTION_KEY or config.AZURE_TTS_SUBSCRIPTION_KEY == "YOUR_API_KEY"
-    assert not config.AZURE_TTS_REGION
+    assert config.iflytek_app_id
+    assert config.iflytek_api_key
+    assert config.iflytek_api_secret
+    assert not config.azure_tts_subscription_key or config.azure_tts_subscription_key == "YOUR_API_KEY"
+    assert not config.azure_tts_region
 
     # test azure
     data = await text_to_speech("panda emoji", config=config)

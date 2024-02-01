@@ -99,6 +99,13 @@ class ProjectRepo(FileRepository):
         self.tests = self._git_repo.new_file_repository(relative_path=TEST_CODES_FILE_REPO)
         self.test_outputs = self._git_repo.new_file_repository(relative_path=TEST_OUTPUTS_FILE_REPO)
         self._srcs_path = None
+        self.code_files_exists()
+
+    def __str__(self):
+        repo_str = f"ProjectRepo({self._git_repo.workdir})"
+        docs_str = f"Docs({self.docs.all_files})"
+        srcs_str = f"Srcs({self.srcs.all_files})"
+        return f"{repo_str}\n{docs_str}\n{srcs_str}"
 
     @property
     async def requirement(self):

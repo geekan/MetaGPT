@@ -57,24 +57,21 @@ https://github.com/geekan/MetaGPT/assets/34952977/34345016-5d13-489d-b9f9-b82ace
 - [Matthew Berman: How To Install MetaGPT - Build A Startup With One Prompt!!](https://youtu.be/uT75J_KG_aY)
 
 ### 伝統的なインストール
+> Python 3.9 以上がシステムにインストールされていることを確認してください。これは `python --version` を使ってチェックできます。  
+> 以下のようにcondaを使うことができます：`conda create -n metagpt python=3.9 && conda activate metagpt`
 
 ```bash
-# ステップ 1: Python 3.9+ がシステムにインストールされていることを確認してください。これを確認するには:
-python3 --version
+pip install metagpt
+metagpt --init-config  # ~/.metagpt/config2.yaml を作成し、自分の設定に合わせて変更してください
+metagpt "2048ゲームを作成する"  # これにより ./workspace にリポジトリが作成されます
+```
 
-# ステップ 2: リポジトリをローカルマシンにクローンし、インストールする。
-git clone https://github.com/geekan/MetaGPT.git
-cd MetaGPT
-pip install -e.
+または、ライブラリとして使用することもできます
 
-# ステップ 3: metagpt を実行する
-# config/config2.yaml を ~/.metagpt/config2.yaml にコピーし、独自の api_key を設定します
-metagpt "Write a cli snake game"
-
-# ステップ 4 [オプション]: 実行中に PRD ファイルなどのアーティファクトを保存する場合は、ステップ 3 の前にこのステップを実行できます。デフォルトでは、フレームワークには互換性があり、この手順を実行しなくてもプロセス全体を完了できます。
-# NPM がシステムにインストールされていることを確認してください。次に mermaid-js をインストールします。(お使いのコンピューターに npm がない場合は、Node.js 公式サイトで Node.js https://nodejs.org/ をインストールしてください。）
-npm --version
-sudo npm install -g @mermaid-js/mermaid-cli
+```python
+from metagpt.software_company import generate_repo, ProjectRepo
+repo: ProjectRepo = generate_repo("2048ゲームを作成する")  # または ProjectRepo("<パス>")
+print(repo)  # リポジトリの構造とファイルを出力します
 ```
 
 **注:**
