@@ -352,6 +352,7 @@ class Engineer(Role):
                 self.summarize_todos.append(new_summarize)
         if self.summarize_todos:
             self.set_todo(self.summarize_todos[0])
+            self.summarize_todos.pop(0)
 
     async def _new_code_plan_and_change_action(self):
         """Create a WriteCodePlanAndChange action for subsequent to-do actions."""
