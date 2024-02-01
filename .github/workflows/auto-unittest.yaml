@@ -2,6 +2,10 @@ name: Auto Unit Tests
 
 on:
   pull_request_target:
+  push: 
+    branches:
+      - 'main'
+      - 'dev'
 
 jobs:
   build:
