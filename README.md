@@ -55,24 +55,20 @@
 
 ### Pip installation
 
-> Ensure that Python 3.9+ is installed on your system. You can check this by using: `python --version`.
+> Ensure that Python 3.9+ is installed on your system. You can check this by using: `python --version`.  
+> You can use conda like this: `conda create -n metagpt python=3.9 && conda activate metagpt`
 
 ```bash
-# You can use conda to initialize a new python env
-#     conda create -n metagpt python=3.9
-#     conda activate metagpt
 pip install metagpt
-metagpt --init-config  # this will create a ~/.metagpt/config2.yaml from config/config2.yaml, modify it to your own config
-
-# Usage: metagpt "<create a game or a software>"
-metagpt "Create a 2048 game"
+metagpt --init-config  # create ~/.metagpt/config2.yaml, modify it to your own config
+metagpt "Create a 2048 game"  # this will create a repo in ./workspace
 ```
 
 or you can use it as library
 
 ```python
 from metagpt.software_company import generate_repo, ProjectRepo
-repo: ProjectRepo = generate_repo("Create a 2048 game")  # or ProjectRepo("<path/to/your/repo>")
+repo: ProjectRepo = generate_repo("Create a 2048 game")  # or ProjectRepo("<path>")
 print(repo)  # it will print the repo structure with files
 ```
 

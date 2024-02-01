@@ -35,24 +35,20 @@
 ## 安装
 ### Pip安装
 
-> 确保您的系统安装了 Python 3.9 或更高版本。您可以通过以下命令来检查：`python --version`。
+> 确保您的系统已安装 Python 3.9 或更高版本。您可以使用以下命令来检查：`python --version`。  
+> 您可以这样使用 conda：`conda create -n metagpt python=3.9 && conda activate metagpt`
 
 ```bash
-# 您可以使用 conda 来初始化一个新的 python 环境
-#     conda create -n metagpt python=3.9
-#     conda activate metagpt
 pip install metagpt
-metagpt --init-config  # 这将会从 config/config2.yaml 创建一个 ~/.metagpt/config2.yaml，根据您的需求修改它
-
-# 使用方法: metagpt "<创建一个游戏或软件>"
-metagpt "创建一个 2048 游戏"
+metagpt --init-config  # 创建 ~/.metagpt/config2.yaml，根据您的需求修改它
+metagpt "创建一个 2048 游戏"  # 这将在 ./workspace 创建一个仓库
 ```
 
 或者您可以将其作为库使用
 
 ```python
 from metagpt.software_company import generate_repo, ProjectRepo
-repo: ProjectRepo = generate_repo("创建一个 2048 游戏")  # 或 ProjectRepo("<您的仓库路径>")
+repo: ProjectRepo = generate_repo("创建一个 2048 游戏")  # 或 ProjectRepo("<路径>")
 print(repo)  # 它将打印出仓库结构及其文件
 ```
 

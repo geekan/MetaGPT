@@ -57,23 +57,20 @@ https://github.com/geekan/MetaGPT/assets/34952977/34345016-5d13-489d-b9f9-b82ace
 - [Matthew Berman: How To Install MetaGPT - Build A Startup With One Prompt!!](https://youtu.be/uT75J_KG_aY)
 
 ### 伝統的なインストール
+> Python 3.9 以上がシステムにインストールされていることを確認してください。これは `python --version` を使ってチェックできます。  
+> 以下のようにcondaを使うことができます：`conda create -n metagpt python=3.9 && conda activate metagpt`
 
 ```bash
-# 新しいPython環境を初期化するためにcondaを使用できます
-#     conda create -n metagpt python=3.9
-#     conda activate metagpt
 pip install metagpt
-metagpt --init-config  # これにより、config/config2.yaml から ~/.metagpt/config2.yaml が作成されます。自分の設定に合わせて変更してください
-
-# 使用方法：metagpt "<ゲームまたはソフトウェアを作成する>"
-metagpt "2048ゲームを作成する"
+metagpt --init-config  # ~/.metagpt/config2.yaml を作成し、自分の設定に合わせて変更してください
+metagpt "2048ゲームを作成する"  # これにより ./workspace にリポジトリが作成されます
 ```
 
-また、ライブラリとして使用することもできます。
+または、ライブラリとして使用することもできます
 
 ```python
 from metagpt.software_company import generate_repo, ProjectRepo
-repo: ProjectRepo = generate_repo("2048ゲームを作成する")  # または ProjectRepo("<リポジトリへのパス>")
+repo: ProjectRepo = generate_repo("2048ゲームを作成する")  # または ProjectRepo("<パス>")
 print(repo)  # リポジトリの構造とファイルを出力します
 ```
 
