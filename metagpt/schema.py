@@ -546,10 +546,10 @@ class UMLClassMethod(UMLClassMeta):
         content += name + "(" + ",".join([v.get_mermaid(align=0) for v in self.args]) + ")"
         if self.return_type:
             content += " " + self.return_type.replace(" ", "")
-        if self.abstraction:
-            content += "*"
-        if self.static:
-            content += "$"
+        # if self.abstraction:
+        #     content += "*"
+        # if self.static:
+        #     content += "$"
         return content
 
 
