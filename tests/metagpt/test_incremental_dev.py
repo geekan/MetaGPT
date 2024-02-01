@@ -19,8 +19,8 @@ from metagpt.startup import app
 runner = CliRunner()
 
 IDEAS = [
-    "Add subtraction, multiplication and division operations to the calculator. The current calculator can only perform basic addition operations, and it is necessary to introduce subtraction, multiplication, division operation into the calculator",
     "Adding graphical interface functionality to enhance the user experience in the number-guessing game. The existing number-guessing game currently relies on command-line input for numbers. The goal is to introduce a graphical interface to improve the game's usability and visual appeal",
+    "Add subtraction, multiplication and division operations to the calculator. The current calculator can only perform basic addition operations, and it is necessary to introduce subtraction, multiplication, division operation into the calculator",
     "Add a feature to remove deprecated words from the word cloud. The current word cloud generator does not support removing deprecated words. Now, The word cloud generator should support removing deprecated words. Customize deactivated words to exclude them from word cloud. Let users see all the words in the text file, and allow users to select the words they want to remove.",
     "Add an AI opponent with fixed difficulty levels. Currently, the game only allows players to compete against themselves. Implement an AI algorithm that can playing with player. This will provide a more engaging and challenging experience for players.",
     "Add functionality to view the history of scores. The original dice rolling game could only display the current game result, but the new requirement allows players to view the history of scores",
@@ -32,8 +32,8 @@ IDEAS = [
 ]
 
 PROJECT_NAMES = [
-    "simple_add_calculator",
     "number_guessing_game",
+    "simple_add_calculator",
     "word_cloud",
     "Gomoku",
     "dice_simulator_new",
@@ -45,13 +45,13 @@ PROJECT_NAMES = [
 ]
 
 
-def test_simple_add_calculator():
-    result = get_incremental_dev_result(IDEAS[0], PROJECT_NAMES[0])
+def test_number_guessing_game():
+    result = get_incremental_dev_result(IDEAS[0], PROJECT_NAMES[0], use_review=False)
     log_and_check_result(result)
 
 
 @pytest.mark.skip
-def test_number_guessing_game():
+def test_simple_add_calculator():
     result = get_incremental_dev_result(IDEAS[1], PROJECT_NAMES[1])
     log_and_check_result(result)
 

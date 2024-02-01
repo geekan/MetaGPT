@@ -23,11 +23,7 @@ from tenacity import retry, stop_after_attempt, wait_random_exponential
 from metagpt.actions.action import Action
 from metagpt.actions.project_management_an import REFINED_TASK_LIST, TASK_LIST
 from metagpt.actions.write_code_plan_and_change_an import REFINED_TEMPLATE
-from metagpt.const import (
-    BUGFIX_FILENAME,
-    CODE_PLAN_AND_CHANGE_FILENAME,
-    REQUIREMENT_FILENAME,
-)
+from metagpt.const import BUGFIX_FILENAME, REQUIREMENT_FILENAME
 from metagpt.logs import logger
 from metagpt.schema import CodingContext, Document, RunCodeResult
 from metagpt.utils.common import CodeParser
@@ -98,7 +94,7 @@ class WriteCode(Action):
         bug_feedback = await self.repo.docs.get(filename=BUGFIX_FILENAME)
         coding_context = CodingContext.loads(self.i_context.content)
         test_doc = await self.repo.test_outputs.get(filename="test_" + coding_context.filename + ".json")
-        code_plan_and_change_doc = await self.repo.docs.code_plan_and_change.get(filename=CODE_PLAN_AND_CHANGE_FILENAME)
+        code_plan_and_change_doc = coding_context.code_plan_and_change_doc
         code_plan_and_change = code_plan_and_change_doc.content if code_plan_and_change_doc else ""
         requirement_doc = await self.repo.docs.get(filename=REQUIREMENT_FILENAME)
         summary_doc = None
