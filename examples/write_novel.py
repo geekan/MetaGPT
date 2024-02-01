@@ -26,12 +26,23 @@ class Novel(BaseModel):
     conflict: str = Field(default="...", description="The conflict of the characters.")
     plot: str = Field(default="...", description="The plot of the novel.")
     ending: str = Field(default="...", description="The ending of the novel.")
-    chapter_1: str = Field(default="...", description="The content of chapter 1.")
+
+
+class Chapter(BaseModel):
+    name: str = Field(default="Chapter 1", description="The name of the chapter.")
+    content: str = Field(default="...", description="The content of the chapter. No more than 1000 words.")
 
 
 async def generate_novel():
-    instruction = "Write a novel named The Lord of the Rings. Fill the empty nodes with your own ideas."
-    return await ActionNode.from_pydantic(Novel).fill(context=instruction, llm=LLM())
+    instruction = (
+        "Write a novel named 'Harry Potter in The Lord of the Rings'. "
+        "Fill the empty nodes with your own ideas. Be creative! Use your own words!"
+    )
+    novel_node = await ActionNode.from_pydantic(Novel).fill(context=instruction, llm=LLM())
+    chap_node = await ActionNode.from_pydantic(Chapter).fill(
+        context=f"### instruction\n{instruction}\n### novel\n{novel_node.content}", llm=LLM()
+    )
+    print(chap_node.content)
 
 
 asyncio.run(generate_novel())
