@@ -39,6 +39,8 @@ class CostManager(BaseModel):
         completion_tokens (int): The number of tokens used in the completion.
         model (str): The model used for the API call.
         """
+        if prompt_tokens + completion_tokens == 0:
+            return
         self.total_prompt_tokens += prompt_tokens
         self.total_completion_tokens += completion_tokens
         cost = (
