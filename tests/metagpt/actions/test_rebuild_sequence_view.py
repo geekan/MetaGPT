@@ -32,7 +32,7 @@ async def test_rebuild(context, mocker):
     #     object_='{"lineno":78,"end_lineno":79,"type_name":"ast.If","tokens":["__name__","__main__"],"properties":{}}',
     # )
     mock_spo = SPO(
-        subject="metagpt/tools/search_engine_serpapi.py:__name__:__main__",
+        subject="metagpt/management/skill_manager.py:__name__:__main__",
         predicate="has_page_info",
         object_='{"lineno":113,"end_lineno":116,"type_name":"ast.If","tokens":["__name__","__main__"],"properties":{}}',
     )
