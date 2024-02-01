@@ -38,7 +38,7 @@ async def test_run_script(context):
 @pytest.mark.asyncio
 async def test_run(context):
     inputs = [
-        (RunCodeContext(mode="text", code_filename="a.txt", code="print('Hello, World')"), "PASS"),
+        (RunCodeContext(mode="text", code_filename="a.txt", code="result = 'helloworld'"), "PASS"),
         (
             RunCodeContext(
                 mode="script",
