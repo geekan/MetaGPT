@@ -2,12 +2,12 @@
 # @Date    : 12/12/2023 4:14 PM
 # @Author  : stellahong (stellahong@fuzhi.ai)
 # @Desc    :
-import json
 import os
 
 import nbformat
 
 from metagpt.const import DATA_PATH
+from metagpt.utils.common import write_json_file
 
 
 def save_code_file(name: str, code_context: str, file_format: str = "py") -> None:
@@ -33,8 +33,7 @@ def save_code_file(name: str, code_context: str, file_format: str = "py") -> Non
     elif file_format == "json":
         # Parse the code content as JSON and save
         data = {"code": code_context}
-        with open(file_path, "w", encoding="utf-8") as fp:
-            json.dump(data, fp, indent=2)
+        write_json_file(file_path, data, encoding="utf-8", indent=2)
     elif file_format == "ipynb":
         nbformat.write(code_context, file_path)
     else:

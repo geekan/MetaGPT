@@ -485,13 +485,13 @@ def read_json_file(json_file: str, encoding="utf-8") -> list[Any]:
     return data
 
 
-def write_json_file(json_file: str, data: list, encoding=None):
+def write_json_file(json_file: str, data: list, encoding: str = None, indent: int = 4):
     folder_path = Path(json_file).parent
     if not folder_path.exists():
         folder_path.mkdir(parents=True, exist_ok=True)
 
     with open(json_file, "w", encoding=encoding) as fout:
-        json.dump(data, fout, ensure_ascii=False, indent=4, default=to_jsonable_python)
+        json.dump(data, fout, ensure_ascii=False, indent=indent, default=to_jsonable_python)
 
 
 def import_class(class_name: str, module_name: str) -> type:
