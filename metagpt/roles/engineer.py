@@ -342,8 +342,14 @@ class Engineer(Role):
             summarizations[ctx].append(filename)
         for ctx, filenames in summarizations.items():
             ctx.codes_filenames = filenames
-            self.summarize_todos.clear()
-            self.summarize_todos.append(SummarizeCode(i_context=ctx, context=self.context, llm=self.llm))
+            new_summarize = SummarizeCode(i_context=ctx, context=self.context, llm=self.llm)
+            for i, act in enumerate(self.summarize_todos):
+                if act.i_context.task_filename == new_summarize.i_context.task_filename:
+                    self.summarize_todos[i] = new_summarize
+                    new_summarize = None
+                    break
+            if new_summarize:
+                self.summarize_todos.append(new_summarize)
         if self.summarize_todos:
             self.set_todo(self.summarize_todos[0])
 
