@@ -109,8 +109,8 @@ class SummarizeCode(Action):
             code_blocks.append(code_block)
         format_example = FORMAT_EXAMPLE
         prompt = PROMPT_TEMPLATE.format(
-            system_design=design_doc.content if design_doc else "",
-            task=task_doc.content if task_doc else "",
+            system_design=design_doc.content,
+            task=task_doc.content,
             code_blocks="\n".join(code_blocks),
             format_example=format_example,
         )

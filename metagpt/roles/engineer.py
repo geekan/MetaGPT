@@ -296,6 +296,7 @@ class Engineer(Role):
         for filename in changed_task_files:
             design_doc = await self.project_repo.docs.system_design.get(filename)
             task_doc = await self.project_repo.docs.task.get(filename)
+            code_plan_and_change_doc = await self.project_repo.docs.task.get(CODE_PLAN_AND_CHANGE_FILENAME)
             task_list = self._parse_tasks(task_doc)
             for task_filename in task_list:
                 old_code_doc = await self.project_repo.srcs.get(task_filename)
@@ -303,9 +304,18 @@ class Engineer(Role):
                     old_code_doc = Document(
                         root_path=str(self.project_repo.src_relative_path), filename=task_filename, content=""
                     )
-                context = CodingContext(
-                    filename=task_filename, design_doc=design_doc, task_doc=task_doc, code_doc=old_code_doc
-                )
+                if not code_plan_and_change_doc:
+                    context = CodingContext(
+                        filename=task_filename, design_doc=design_doc, task_doc=task_doc, code_doc=old_code_doc
+                    )
+                else:
+                    context = CodingContext(
+                        filename=task_filename,
+                        design_doc=design_doc,
+                        task_doc=task_doc,
+                        code_doc=old_code_doc,
+                        code_plan_and_change_doc=code_plan_and_change_doc,
+                    )
                 coding_doc = Document(
                     root_path=str(self.project_repo.src_relative_path),
                     filename=task_filename,

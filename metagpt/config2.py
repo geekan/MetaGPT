@@ -67,14 +67,14 @@ class Config(CLIParams, YamlModel):
     code_review_k_times: int = 2
 
     # Will be removed in the future
-    METAGPT_TEXT_TO_IMAGE_MODEL_URL: str = ""
+    metagpt_tti_url: str = ""
     language: str = "English"
     redis_key: str = "placeholder"
-    IFLYTEK_APP_ID: str = ""
-    IFLYTEK_API_SECRET: str = ""
-    IFLYTEK_API_KEY: str = ""
-    AZURE_TTS_SUBSCRIPTION_KEY: str = ""
-    AZURE_TTS_REGION: str = ""
+    iflytek_app_id: str = ""
+    iflytek_api_secret: str = ""
+    iflytek_api_key: str = ""
+    azure_tts_subscription_key: str = ""
+    azure_tts_region: str = ""
 
     @classmethod
     def from_home(cls, path):

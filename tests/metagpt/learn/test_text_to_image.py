@@ -27,7 +27,7 @@ async def test_text_to_image(mocker):
     mocker.patch.object(S3, "cache", return_value="http://mock/s3")
 
     config = Config.default()
-    assert config.METAGPT_TEXT_TO_IMAGE_MODEL_URL
+    assert config.metagpt_tti_url
 
     data = await text_to_image("Panda emoji", size_type="512x512", config=config)
     assert "base64" in data or "http" in data
@@ -52,7 +52,7 @@ async def test_openai_text_to_image(mocker):
     mocker.patch.object(S3, "cache", return_value="http://mock.s3.com/0.png")
 
     config = Config.default()
-    config.METAGPT_TEXT_TO_IMAGE_MODEL_URL = None
+    config.metagpt_tti_url = None
     assert config.get_openai_llm()
 
     data = await text_to_image("Panda emoji", size_type="512x512", config=config)

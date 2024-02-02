@@ -76,7 +76,7 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "metagpt=metagpt.startup:app",
+            "metagpt=metagpt.software_company:app",
         ],
     },
 )
