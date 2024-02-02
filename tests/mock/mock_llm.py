@@ -44,6 +44,7 @@ class MockLLM(OriginalLLM):
         msg: str,
         system_msgs: Optional[list[str]] = None,
         format_msgs: Optional[list[dict[str, str]]] = None,
+        images: Optional[Union[str, list[str]]] = None,
         timeout=3,
         stream=True,
     ):
@@ -56,7 +57,7 @@ class MockLLM(OriginalLLM):
             message = []
         if format_msgs:
             message.extend(format_msgs)
-        message.append(self._user_msg(msg))
+        message.append(self._user_msg(msg, images=images))
         rsp = await self.acompletion_text(message, stream=stream, timeout=timeout)
         return rsp
 
@@ -83,6 +84,7 @@ class MockLLM(OriginalLLM):
         msg: str,
         system_msgs: Optional[list[str]] = None,
         format_msgs: Optional[list[dict[str, str]]] = None,
+        images: Optional[Union[str, list[str]]] = None,
         timeout=3,
         stream=True,
     ) -> str:
@@ -90,7 +92,7 @@ class MockLLM(OriginalLLM):
         if system_msgs:
             joined_system_msg = "#MSG_SEP#".join(system_msgs) + "#SYSTEM_MSG_END#"
             msg_key = joined_system_msg + msg_key
-        rsp = await self._mock_rsp(msg_key, self.original_aask, msg, system_msgs, format_msgs, timeout, stream)
+        rsp = await self._mock_rsp(msg_key, self.original_aask, msg, system_msgs, format_msgs, images, timeout, stream)
         return rsp
 
     async def aask_batch(self, msgs: list, timeout=3) -> str:

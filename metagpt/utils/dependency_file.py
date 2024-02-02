@@ -60,23 +60,22 @@ class DependencyFile:
 
         root = self._filename.parent
         try:
-            key = Path(filename).relative_to(root)
+            key = Path(filename).relative_to(root).as_posix()
         except ValueError:
             key = filename
-        skey = re.sub(r"\\+", "/", str(key))  # Compatible with windows path
+        key = str(key)
         if dependencies:
             relative_paths = []
             for i in dependencies:
                 try:
-                    s = str(Path(i).relative_to(root))
+                    s = str(Path(i).relative_to(root).as_posix())
                 except ValueError:
                     s = str(i)
-                s = re.sub(r"\\+", "/", s)  # Compatible with windows path
                 relative_paths.append(s)
 
-            self._dependencies[skey] = relative_paths
-        elif skey in self._dependencies:
-            del self._dependencies[skey]
+            self._dependencies[key] = relative_paths
+        elif key in self._dependencies:
+            del self._dependencies[key]
 
         if persist:
             await self.save()
@@ -93,7 +92,7 @@ class DependencyFile:
 
         root = self._filename.parent
         try:
-            key = Path(filename).relative_to(root)
+            key = Path(filename).relative_to(root).as_posix()
         except ValueError:
             key = filename
         return set(self._dependencies.get(str(key), {}))

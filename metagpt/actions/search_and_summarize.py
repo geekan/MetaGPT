@@ -5,7 +5,7 @@
 @Author  : alexanderwu
 @File    : search_google.py
 """
-from typing import Any, Optional
+from typing import Optional
 
 import pydantic
 from pydantic import model_validator
@@ -13,7 +13,6 @@ from pydantic import model_validator
 from metagpt.actions import Action
 from metagpt.logs import logger
 from metagpt.schema import Message
-from metagpt.tools import SearchEngineType
 from metagpt.tools.search_engine import SearchEngine
 
 SEARCH_AND_SUMMARIZE_SYSTEM = """### Requirements
@@ -105,21 +104,19 @@ You are a member of a professional butler team and will provide helpful suggesti
 class SearchAndSummarize(Action):
     name: str = ""
     content: Optional[str] = None
-    engine: Optional[SearchEngineType] = None
-    search_func: Optional[Any] = None
     search_engine: SearchEngine = None
     result: str = ""
 
     @model_validator(mode="after")
-    def validate_engine_and_run_func(self):
-        if self.engine is None:
-            self.engine = self.config.search_engine
-        try:
-            search_engine = SearchEngine(engine=self.engine, run_func=self.search_func)
-        except pydantic.ValidationError:
-            search_engine = None
+    def validate_search_engine(self):
+        if self.search_engine is None:
+            try:
+                config = self.config
+                search_engine = SearchEngine.from_search_config(config.search, proxy=config.proxy)
+            except pydantic.ValidationError:
+                search_engine = None
 
-        self.search_engine = search_engine
+            self.search_engine = search_engine
         return self
 
     async def run(self, context: list[Message], system_text=SEARCH_AND_SUMMARIZE_SYSTEM) -> str:

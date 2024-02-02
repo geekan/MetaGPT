@@ -11,6 +11,10 @@ search:
   api_key: "YOUR_API_KEY"
   cse_id: "YOUR_CSE_ID"
 
+browser:
+  engine: "playwright"  # playwright/selenium
+  browser_type: "chromium"  # playwright: chromium/firefox/webkit; selenium: chrome/firefox/edge/ie
+
 mermaid:
   engine: "pyppeteer"
   path: "/Applications/Google Chrome.app"

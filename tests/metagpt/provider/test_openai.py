@@ -6,6 +6,7 @@ from openai.types.chat import (
 )
 from openai.types.chat.chat_completion import Choice
 from openai.types.chat.chat_completion_message_tool_call import Function
+from PIL import Image
 
 from metagpt.const import TEST_DATA_PATH
 from metagpt.llm import LLM
@@ -105,3 +106,15 @@ class TestOpenAI:
                 code["language"] == "markdown"
             else:
                 code["language"] == "python"
+
+
+@pytest.mark.asyncio
+async def test_gen_image():
+    llm = LLM()
+    model = "dall-e-3"
+    prompt = 'a logo with word "MetaGPT"'
+    images: list[Image] = await llm.gen_image(model=model, prompt=prompt)
+    assert images[0].size == (1024, 1024)
+
+    images: list[Image] = await llm.gen_image(model=model, prompt=prompt, resp_format="b64_json")
+    assert images[0].size == (1024, 1024)

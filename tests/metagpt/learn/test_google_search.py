@@ -16,6 +16,6 @@ async def test_google_search(search_engine_mocker):
         result = await google_search(
             seed.input,
             engine=SearchEngineType.SERPER_GOOGLE,
-            serper_api_key="mock-serper-key",
+            api_key="mock-serper-key",
         )
         assert result != ""

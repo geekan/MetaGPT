@@ -23,7 +23,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any, Iterable, Optional, Set, Type, Union
+from typing import TYPE_CHECKING, Iterable, Optional, Set, Type, Union
 
 from pydantic import BaseModel, ConfigDict, Field, SerializeAsAny, model_validator
 
@@ -39,6 +39,10 @@ from metagpt.schema import Message, MessageQueue, SerializationMixin
 from metagpt.utils.common import any_to_name, any_to_str, role_raise_decorator
 from metagpt.utils.project_repo import ProjectRepo
 from metagpt.utils.repair_llm_raw_output import extract_state_value_from_output
+
+if TYPE_CHECKING:
+    from metagpt.environment import Environment  # noqa: F401
+
 
 PREFIX_TEMPLATE = """You are a {profile}, named {name}, your goal is {goal}. """
 CONSTRAINT_TEMPLATE = "the constraint is {constraints}. "
@@ -119,11 +123,17 @@ class RoleContext(BaseModel):
     def history(self) -> list[Message]:
         return self.memory.get()
 
+    @classmethod
+    def model_rebuild(cls, **kwargs):
+        from metagpt.environment.base_env import Environment  # noqa: F401
+
+        super().model_rebuild(**kwargs)
+
 
 class Role(SerializationMixin, ContextMixin, BaseModel):
     """Role/Agent"""
 
-    model_config = ConfigDict(arbitrary_types_allowed=True, extra="ignore")
+    model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
 
     name: str = ""
     profile: str = ""
@@ -152,27 +162,23 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
 
     __hash__ = object.__hash__  # support Role as hashable type in `Environment.members`
 
-    def __init__(self, **data: Any):
-        self.pydantic_rebuild_model()
-        super().__init__(**data)
+    @model_validator(mode="after")
+    def validate_role_extra(self):
+        self._process_role_extra()
+        return self
+
+    def _process_role_extra(self):
+        kwargs = self.model_extra or {}
 
         if self.is_human:
             self.llm = HumanProvider(None)
 
         self._check_actions()
         self.llm.system_prompt = self._get_prefix()
-        self._watch(data.get("watch") or [UserRequirement])
+        self._watch(kwargs.pop("watch", [UserRequirement]))
 
         if self.latest_observed_msg:
             self.recovered = True
-
-    @staticmethod
-    def pydantic_rebuild_model():
-        """Rebuild model to avoid `RecursionError: maximum recursion depth exceeded in comparison`"""
-        from metagpt.environment import Environment
-
-        Environment
-        Role.model_rebuild()
 
     @property
     def todo(self) -> Action:
@@ -594,3 +600,6 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         if self.actions:
             return any_to_name(self.actions[0])
         return ""
+
+
+RoleContext.model_rebuild()

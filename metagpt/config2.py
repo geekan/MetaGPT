@@ -51,7 +51,7 @@ class Config(CLIParams, YamlModel):
     proxy: str = ""
 
     # Tool Parameters
-    search: Optional[SearchConfig] = None
+    search: SearchConfig = SearchConfig()
     browser: BrowserConfig = BrowserConfig()
     mermaid: MermaidConfig = MermaidConfig()
 
