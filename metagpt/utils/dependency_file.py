@@ -93,7 +93,7 @@ class DependencyFile:
 
         root = self._filename.parent
         try:
-            key = Path(filename).relative_to(root)
+            key = Path(filename).relative_to(root).as_posix()
         except ValueError:
             key = filename
         return set(self._dependencies.get(str(key), {}))
