@@ -30,9 +30,18 @@ As the design pays tribute to large companies, sometimes it is normal for some c
 Now, please generate the corresponding webpage code including HTML, CSS and JavaScript:"""
 
 
-@register_tool(tool_type=ToolTypes.IMAGE2WEBPAGE.type_name)
+@register_tool(
+    tool_type=ToolTypes.IMAGE2WEBPAGE.type_name, include_functions=["__init__", "generate_webpages", "save_webpages"]
+)
 class GPTvGenerator:
+    """Class for generating webpages at once.
+
+    This class provides methods to generate webpages including all code (HTML, CSS, and JavaScript) based on an image.
+    It utilizes a vision model to analyze the layout from an image and generate webpage codes accordingly.
+    """
+
     def __init__(self):
+        """Initialize GPTvGenerator class with default values from the configuration."""
         from metagpt.config2 import config
 
         self.api_key = config.llm.api_key
@@ -41,15 +50,42 @@ class GPTvGenerator:
         self.max_tokens = config.vision_max_tokens
 
     def analyze_layout(self, image_path):
+        """Analyze the layout of the given image and return the result.
+
+        This is a helper method to generate a layout description based on the image.
+
+        Args:
+            image_path (str): Path of the image to analyze.
+
+        Returns:
+            str: The layout analysis result.
+        """
         return self.get_result(image_path, ANALYZE_LAYOUT_PROMPT)
 
     def generate_webpages(self, image_path):
+        """Generate webpages including all code (HTML, CSS, and JavaScript) in one go based on the image.
+
+        Args:
+            image_path (str): The path of the image file.
+
+        Returns:
+            str: Generated webpages content.
+        """
         layout = self.analyze_layout(image_path)
         prompt = GENERATE_PROMPT + "\n\n # Context\n The layout information of the sketch image is: \n" + layout
         result = self.get_result(image_path, prompt)
         return result
 
     def get_result(self, image_path, prompt):
+        """Get the result from the vision model based on the given image path and prompt.
+
+        Args:
+            image_path (str): Path of the image to analyze.
+            prompt (str): Prompt to use for the analysis.
+
+        Returns:
+            str: The model's response as a string.
+        """
         base64_image = self.encode_image(image_path)
         headers = {"Content-Type": "application/json", "Authorization": f"Bearer {self.api_key}"}
         payload = {
@@ -74,11 +110,28 @@ class GPTvGenerator:
 
     @staticmethod
     def encode_image(image_path):
+        """Encode the image at the given path to a base64 string.
+
+        Args:
+            image_path (str): Path of the image to encode.
+
+        Returns:
+            str: The base64 encoded string of the image.
+        """
         with open(image_path, "rb") as image_file:
             return base64.b64encode(image_file.read()).decode("utf-8")
 
     @staticmethod
     def save_webpages(image_path, webpages) -> Path:
+        """Save webpages including all code (HTML, CSS, and JavaScript) at once.
+
+        Args:
+            image_path (str): The path of the image file.
+            webpages (str): The generated webpages content.
+
+        Returns:
+            Path: The path of the saved webpages.
+        """
         # 在workspace目录下，创建一个名为下webpages的文件夹，用于存储html、css和js文件
         webpages_path = DEFAULT_WORKSPACE_ROOT / "webpages" / Path(image_path).stem
         os.makedirs(webpages_path, exist_ok=True)

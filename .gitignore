@@ -178,3 +178,4 @@ cov.xml
 *.faiss
 *-structure.csv
 *-structure.json
+metagpt/tools/schemas
