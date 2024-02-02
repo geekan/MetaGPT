@@ -16,7 +16,7 @@ from metagpt.utils.token_counter import count_message_tokens, count_string_token
 class OpenLLM(OpenAILLM):
     def __init__(self, config: LLMConfig):
         super().__init__(config)
-        self._cost_manager = TokenCostManager()
+        self.cost_manager = TokenCostManager()
 
     def _make_client_kwargs(self) -> dict:
         kwargs = dict(api_key="sk-xxx", base_url=self.config.base_url)
@@ -35,13 +35,5 @@ class OpenLLM(OpenAILLM):
 
         return usage
 
-    def _update_costs(self, usage: CompletionUsage):
-        if self.config.calc_usage and usage:
-            try:
-                # use OpenLLMCostManager not CONFIG.cost_manager
-                self._cost_manager.update_cost(usage.prompt_tokens, usage.completion_tokens, self.model)
-            except Exception as e:
-                logger.error(f"updating costs failed!, exp: {e}")
-
     def get_costs(self) -> Costs:
-        return self._cost_manager.get_costs()
+        return self.cost_manager.get_costs()

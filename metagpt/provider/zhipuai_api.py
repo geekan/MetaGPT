@@ -3,6 +3,7 @@
 # @Desc   : zhipuai LLM from https://open.bigmodel.cn/dev/api#sdk
 
 from enum import Enum
+from typing import Optional
 
 import openai
 import zhipuai
@@ -21,6 +22,7 @@ from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.provider.openai_api import log_and_reraise
 from metagpt.provider.zhipuai.zhipu_model_api import ZhiPuModelAPI
+from metagpt.utils.cost_manager import CostManager
 
 
 class ZhiPuEvent(Enum):
@@ -41,8 +43,10 @@ class ZhiPuAILLM(BaseLLM):
         self.__init_zhipuai(config)
         self.llm = ZhiPuModelAPI
         self.model = "chatglm_turbo"  # so far only one model, just use it
+        self.pricing_plan = self.config.pricing_plan or self.model
         self.use_system_prompt: bool = False  # zhipuai has no system prompt when use api
         self.config = config
+        self.cost_manager: Optional[CostManager] = None
 
     def __init_zhipuai(self, config: LLMConfig):
         assert config.api_key
@@ -56,16 +60,6 @@ class ZhiPuAILLM(BaseLLM):
     def _const_kwargs(self, messages: list[dict], stream: bool = False) -> dict:
         kwargs = {"model": self.model, "messages": messages, "stream": stream, "temperature": 0.3}
         return kwargs
-
-    def _update_costs(self, usage: dict):
-        """update each request's token cost"""
-        if self.config.calc_usage:
-            try:
-                prompt_tokens = int(usage.get("prompt_tokens", 0))
-                completion_tokens = int(usage.get("completion_tokens", 0))
-                self.config.cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
-            except Exception as e:
-                logger.error(f"zhipuai updats costs failed! exp: {e}")
 
     def completion(self, messages: list[dict], timeout=3) -> dict:
         resp = self.llm.chat.completions.create(**self._const_kwargs(messages))

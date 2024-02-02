@@ -6,9 +6,10 @@
 @Modified By: mashenquan, 2023/11/21. Fix bug: ReadTimeout.
 @Modified By: mashenquan, 2023/12/1. Fix bug: Unclosed connection caused by openai 0.x.
 """
+from __future__ import annotations
 
 import json
-from typing import AsyncIterator, Optional, Union
+from typing import AsyncIterator, Dict, Optional, Union
 
 from openai import APIConnectionError, AsyncOpenAI, AsyncStream
 from openai._base_client import AsyncHttpxClientWrapper
@@ -61,6 +62,7 @@ class OpenAILLM(BaseLLM):
 
     def _init_model(self):
         self.model = self.config.model  # Used in _calc_usage & _cons_kwargs
+        self.pricing_plan = self.config.pricing_plan or self.model
 
     def _init_client(self):
         """https://github.com/openai/openai-python#async-usage"""
@@ -209,17 +211,23 @@ class OpenAILLM(BaseLLM):
             return usage
 
         try:
-            usage.prompt_tokens = count_message_tokens(messages, self.model)
-            usage.completion_tokens = count_string_tokens(rsp, self.model)
+            usage.prompt_tokens = count_message_tokens(messages, self.pricing_plan)
+            usage.completion_tokens = count_string_tokens(rsp, self.pricing_plan)
         except Exception as e:
             logger.error(f"usage calculation failed: {e}")
 
         return usage
 
     @handle_exception
-    def _update_costs(self, usage: CompletionUsage):
+    def _update_costs(self, usage: CompletionUsage | Dict):
         if self.config.calc_usage and usage and self.cost_manager:
-            self.cost_manager.update_cost(usage.prompt_tokens, usage.completion_tokens, self.model)
+            if isinstance(usage, Dict):
+                prompt_tokens = int(usage.get("prompt_tokens", 0))
+                completion_tokens = int(usage.get("completion_tokens", 0))
+            else:
+                prompt_tokens = usage.prompt_tokens
+                completion_tokens = usage.completion_tokens
+            self.cost_manager.update_cost(prompt_tokens, completion_tokens, self.pricing_plan)
 
     def get_costs(self) -> Costs:
         if not self.cost_manager:

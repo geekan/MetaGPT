@@ -16,12 +16,9 @@ from metagpt.utils.exceptions import handle_exception
 @register_provider(LLMType.METAGPT)
 class MetaGPTLLM(OpenAILLM):
     def _calc_usage(self, messages: list[dict], rsp: str) -> CompletionUsage:
-        usage = CompletionUsage(prompt_tokens=0, completion_tokens=0, total_tokens=0)
-
         # The current billing is based on usage frequency. If there is a future billing logic based on the
         # number of tokens, please refine the logic here accordingly.
-
-        return usage
+        return CompletionUsage(prompt_tokens=0, completion_tokens=0, total_tokens=0)
 
     @handle_exception
     def _update_costs(self, usage: CompletionUsage):

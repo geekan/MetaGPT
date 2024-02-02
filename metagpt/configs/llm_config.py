@@ -42,6 +42,7 @@ class LLMConfig(YamlModel):
     api_version: Optional[str] = None
 
     model: Optional[str] = None  # also stands for DEPLOYMENT_NAME
+    pricing_plan: Optional[str] = None  # Cost Settlement Plan Parameters.
 
     # For Spark(Xunfei), maybe remove later
     app_id: Optional[str] = None
