@@ -23,7 +23,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any, Iterable, Optional, Set, Type, Union
+from typing import Iterable, Optional, Set, Type, Union
 
 from pydantic import BaseModel, ConfigDict, Field, SerializeAsAny, model_validator
 
@@ -121,7 +121,7 @@ class RoleContext(BaseModel):
 class Role(SerializationMixin, ContextMixin, BaseModel):
     """Role/Agent"""
 
-    model_config = ConfigDict(arbitrary_types_allowed=True, extra="ignore")
+    model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
 
     name: str = ""
     profile: str = ""
@@ -149,16 +149,20 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
 
     __hash__ = object.__hash__  # support Role as hashable type in `Environment.members`
 
-    def __init__(self, **data: Any):
+    @model_validator(mode="after")
+    def validate_role_extra(self):
+        self._process_role_extra(**(self.model_extra or {}))
+        return self
+
+    def _process_role_extra(self, **kwargs):
         self.pydantic_rebuild_model()
-        super().__init__(**data)
 
         if self.is_human:
             self.llm = HumanProvider(None)
 
         self._check_actions()
         self.llm.system_prompt = self._get_prefix()
-        self._watch(data.get("watch") or [UserRequirement])
+        self._watch(kwargs.get("watch") or [UserRequirement])
 
         if self.latest_observed_msg:
             self.recovered = True
