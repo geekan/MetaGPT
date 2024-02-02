@@ -96,7 +96,8 @@ class DependencyFile:
             key = Path(filename).relative_to(root)
         except ValueError:
             key = filename
-        return set(self._dependencies.get(str(key), {}))
+        key = re.sub(r"\\+", "/", str(key))
+        return set(self._dependencies.get(key, {}))
 
     def delete_file(self):
         """Delete the dependency file."""
