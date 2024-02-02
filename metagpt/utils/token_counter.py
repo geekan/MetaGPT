@@ -35,10 +35,6 @@ TOKEN_COSTS = {
     "glm-3-turbo": {"prompt": 0.0, "completion": 0.0007},  # 128k version, prompt + completion tokens=0.005￥/k-tokens
     "glm-4": {"prompt": 0.0, "completion": 0.014},  # 128k version, prompt + completion tokens=0.1￥/k-tokens
     "gemini-pro": {"prompt": 0.00025, "completion": 0.0005},
-    "gpt-3.5-turbo-4k": {"prompt": 0.0015, "completion": 0.002},
-    "gpt-4-turbo": {"prompt": 0.01, "completion": 0.03},
-    "gpt-4-turbo-vision": {"prompt": 0.01, "completion": 0.03},
-    "gpt-4-8k": {"prompt": 0.03, "completion": 0.06},
 }
 
 TOKEN_MAX = {
