@@ -1,0 +1,44 @@
+{
+  "name": "mineflayer-collectblock",
+  "version": "1.4.1",
+  "description": "A simple utility plugin for Mineflayer that add a higher level API for collecting blocks.",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "build": "ts-standard && tsc && require-self",
+    "clean": "rm -rf lib",
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TheDudeFromCI/mineflayer-collectblock.git"
+  },
+  "keywords": [
+    "mineflayer",
+    "plugin",
+    "api",
+    "utility",
+    "helper",
+    "collect"
+  ],
+  "author": "TheDudeFromCI",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/TheDudeFromCI/mineflayer-collectblock/issues"
+  },
+  "homepage": "https://github.com/TheDudeFromCI/mineflayer-collectblock#readme",
+  "dependencies": {
+    "mineflayer": "^4.0.0",
+    "mineflayer-pathfinder": "^2.1.1",
+    "mineflayer-tool": "^1.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18.6.4",
+    "require-self": "^0.2.3",
+    "ts-standard": "^11.0.0",
+    "typescript": "^4.1.3"
+  },
+  "files": [
+    "lib/**/*"
+  ]
+}

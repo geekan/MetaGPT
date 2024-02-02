@@ -36,7 +36,7 @@ async def test_researcher(mocker, search_engine_mocker, context):
         role = researcher.Researcher(context=context)
         for i in role.actions:
             if isinstance(i, CollectLinks):
-                i.search_engine = SearchEngine(SearchEngineType.DUCK_DUCK_GO)
+                i.search_engine = SearchEngine(engine=SearchEngineType.DUCK_DUCK_GO)
         await role.run(topic)
         assert (researcher.RESEARCH_PATH / f"{topic}.md").read_text().startswith("# Research Report")
 

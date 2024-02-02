@@ -59,3 +59,4 @@ networkx~=3.2.1
 google-generativeai==0.3.2
 # playwright==1.40.0  # playwright extras require
 anytree
+Pillow
