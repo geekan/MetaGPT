@@ -1,4 +1,5 @@
 """Hybrid retriever."""
+from llama_index import ServiceContext
 from llama_index.schema import QueryType
 
 from metagpt.rag.retrievers.base import RAGRetriever
@@ -9,8 +10,9 @@ class SimpleHybridRetriever(RAGRetriever):
     SimpleHybridRetriever is a composite retriever that aggregates search results from multiple retrievers.
     """
 
-    def __init__(self, *retrievers):
+    def __init__(self, *retrievers, service_context: ServiceContext = None):
         self.retrievers: list[RAGRetriever] = retrievers
+        self.service_context = service_context
         super().__init__()
 
     async def _aretrieve(self, query: QueryType, **kwargs):
