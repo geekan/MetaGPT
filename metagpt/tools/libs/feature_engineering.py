@@ -35,7 +35,7 @@ class PolynomialExpansion(MLProcess):
         Args:
             cols (list): Columns for polynomial expansion.
             label_col (str): Label column name.
-            degree (int): The degree of the polynomial features. Defaults to 2.
+            degree (int, optional): The degree of the polynomial features. Defaults to 2.
         """
         self.cols = cols
         self.degree = degree
@@ -175,8 +175,8 @@ class KFoldTargetMeanEncoder(MLProcess):
         Args:
             col (str): Column to be k-fold mean encoded.
             label (str): Predicted label column.
-            n_splits (int): Number of splits for K-fold. Defaults to 5.
-            random_state (int): Random seed. Defaults to 2021.
+            n_splits (int, optional): Number of splits for K-fold. Defaults to 5.
+            random_state (int, optional): Random seed. Defaults to 2021.
         """
         self.col = col
         self.label = label
@@ -229,7 +229,7 @@ class CatCross(MLProcess):
 
         Args:
             cols (list): Columns to be pairwise crossed, at least 2 columns.
-            max_cat_num (int): Maximum unique categories per crossed feature. Defaults to 100.
+            max_cat_num (int, optional): Maximum unique categories per crossed feature. Defaults to 100.
         """
         self.cols = cols
         self.max_cat_num = max_cat_num
@@ -348,7 +348,7 @@ class SplitBins(MLProcess):
 
         Args:
             cols (list): Columns to be binned inplace.
-            strategy (str): Strategy used to define the widths of the bins. Enum: ['quantile', 'uniform', 'kmeans']. Defaults to 'quantile'.
+            strategy (str, optional): Strategy used to define the widths of the bins. Enum: ['quantile', 'uniform', 'kmeans']. Defaults to 'quantile'.
         """
         self.cols = cols
         self.strategy = strategy
@@ -563,7 +563,7 @@ class VarianceBasedSelection(MLProcess):
 
         Args:
             label_col (str): Label column name.
-            threshold (float): Threshold for variance. Defaults to 0.
+            threshold (float, optional): Threshold for variance. Defaults to 0.
         """
         self.label_col = label_col
         self.threshold = threshold
