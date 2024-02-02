@@ -16,10 +16,10 @@ from sklearn.model_selection import KFold
 from sklearn.preprocessing import KBinsDiscretizer, PolynomialFeatures
 
 from metagpt.tools.libs.data_preprocess import MLProcess
-from metagpt.tools.tool_data_type import ToolTypeEnum
 from metagpt.tools.tool_registry import register_tool
+from metagpt.tools.tool_types import ToolTypes
 
-TOOL_TYPE = ToolTypeEnum.FEATURE_ENGINEERING.value
+TOOL_TYPE = ToolTypes.FEATURE_ENGINEERING.type_name
 
 
 @register_tool(tool_type=TOOL_TYPE)

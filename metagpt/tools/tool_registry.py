@@ -11,12 +11,13 @@ import re
 from collections import defaultdict
 
 import yaml
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 from metagpt.const import TOOL_SCHEMA_PATH
 from metagpt.logs import logger
 from metagpt.tools.tool_convert import convert_code_to_tool_schema
 from metagpt.tools.tool_data_type import Tool, ToolSchema, ToolType
+from metagpt.tools.tool_types import ToolTypes
 
 
 class ToolRegistry(BaseModel):
@@ -24,16 +25,16 @@ class ToolRegistry(BaseModel):
     tool_types: dict = {}
     tools_by_types: dict = defaultdict(dict)  # two-layer k-v, {tool_type: {tool_name: {...}, ...}, ...}
 
-    def register_tool_type(self, tool_type: ToolType, verbose: bool = False):
-        self.tool_types[tool_type.name] = tool_type
-        if verbose:
-            logger.info(f"tool type {tool_type.name} registered")
+    @field_validator("tool_types", mode="before")
+    @classmethod
+    def init_tool_types(cls, tool_types: ToolTypes):
+        return {tool_type.type_name: tool_type.value for tool_type in tool_types}
 
     def register_tool(
         self,
         tool_name,
         tool_path,
-        schema_path=None,
+        schema_path="",
         tool_code="",
         tool_type="other",
         tool_source_object=None,
@@ -43,6 +44,16 @@ class ToolRegistry(BaseModel):
     ):
         if self.has_tool(tool_name):
             return
+
+        if tool_type not in self.tool_types:
+            # register new tool type on the fly
+            logger.warning(
+                f"{tool_type} not previously defined, will create a temporary ToolType with just a name. This ToolType is only effective during this runtime. You may consider add this ToolType with more configs permanently at metagpt.tools.tool_types"
+            )
+            temp_tool_type_obj = ToolType(name=tool_type)
+            self.tool_types[tool_type] = temp_tool_type_obj
+            if verbose:
+                logger.info(f"tool type {tool_type} registered")
 
         schema_path = schema_path or TOOL_SCHEMA_PATH / tool_type / f"{tool_name}.yml"
 
@@ -93,16 +104,10 @@ class ToolRegistry(BaseModel):
 
 
 # Registry instance
-TOOL_REGISTRY = ToolRegistry()
+TOOL_REGISTRY = ToolRegistry(tool_types=ToolTypes)
 
 
-def register_tool_type(cls):
-    """register a tool type to registry"""
-    TOOL_REGISTRY.register_tool_type(tool_type=cls())
-    return cls
-
-
-def register_tool(tool_name="", tool_type="other", schema_path=None, **kwargs):
+def register_tool(tool_name: str = "", tool_type: str = "other", schema_path: str = "", **kwargs):
     """register a tool to registry"""
 
     def decorator(cls, tool_name=tool_name):

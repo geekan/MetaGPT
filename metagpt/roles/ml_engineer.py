@@ -3,7 +3,7 @@ from metagpt.actions.execute_nb_code import ExecuteNbCode
 from metagpt.actions.ml_action import UpdateDataColumns, WriteCodeWithToolsML
 from metagpt.logs import logger
 from metagpt.roles.code_interpreter import CodeInterpreter
-from metagpt.tools.tool_data_type import ToolTypeEnum
+from metagpt.tools.tool_types import ToolTypes
 from metagpt.utils.common import any_to_str
 
 
@@ -51,9 +51,9 @@ class MLEngineer(CodeInterpreter):
     async def _update_data_columns(self):
         current_task = self.planner.plan.current_task
         if current_task.task_type not in [
-            ToolTypeEnum.DATA_PREPROCESS.value,
-            ToolTypeEnum.FEATURE_ENGINEERING.value,
-            ToolTypeEnum.MODEL_TRAIN.value,
+            ToolTypes.DATA_PREPROCESS.type_name,
+            ToolTypes.FEATURE_ENGINEERING.type_name,
+            ToolTypes.MODEL_TRAIN.type_name,
         ]:
             return ""
         logger.info("Check columns in updated data")

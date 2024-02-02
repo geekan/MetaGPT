@@ -12,8 +12,8 @@ from pathlib import Path
 import requests
 
 from metagpt.const import DEFAULT_WORKSPACE_ROOT
-from metagpt.tools.tool_data_type import ToolTypeEnum
 from metagpt.tools.tool_registry import register_tool
+from metagpt.tools.tool_types import ToolTypes
 
 ANALYZE_LAYOUT_PROMPT = """You are now a UI/UX, please generate layout information for this image:
 
@@ -30,7 +30,7 @@ As the design pays tribute to large companies, sometimes it is normal for some c
 Now, please generate the corresponding webpage code including HTML, CSS and JavaScript:"""
 
 
-@register_tool(tool_type=ToolTypeEnum.IMAGE2WEBPAGE.value)
+@register_tool(tool_type=ToolTypes.IMAGE2WEBPAGE.type_name)
 class GPTvGenerator:
     def __init__(self):
         from metagpt.config2 import config

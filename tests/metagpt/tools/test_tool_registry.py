@@ -1,12 +1,17 @@
 import pytest
 
 from metagpt.tools.tool_registry import ToolRegistry
-from metagpt.tools.tool_types import ToolType
+from metagpt.tools.tool_types import ToolTypes
 
 
 @pytest.fixture
 def tool_registry():
     return ToolRegistry()
+
+
+@pytest.fixture
+def tool_registry_full():
+    return ToolRegistry(tool_types=ToolTypes)
 
 
 @pytest.fixture
@@ -29,11 +34,12 @@ def test_initialization(tool_registry):
     assert tool_registry.tools_by_types == {}
 
 
-# Test Tool Type Registration
-def test_register_tool_type(tool_registry):
-    tool_type = ToolType(name="TestType", desc="test")
-    tool_registry.register_tool_type(tool_type)
-    assert "TestType" in tool_registry.tool_types
+# Test Initialization with tool types
+def test_initialize_with_tool_types(tool_registry_full):
+    assert isinstance(tool_registry_full, ToolRegistry)
+    assert tool_registry_full.tools == {}
+    assert tool_registry_full.tools_by_types == {}
+    assert "data_preprocess" in tool_registry_full.tool_types
 
 
 # Test Tool Registration
@@ -66,27 +72,21 @@ def test_get_tool(tool_registry, schema_yaml):
 
 
 # Similar tests for has_tool_type, get_tool_type, get_tools_by_type
-def test_has_tool_type(tool_registry):
-    tool_type = ToolType(name="TestType", desc="test")
-    tool_registry.register_tool_type(tool_type)
-    assert tool_registry.has_tool_type("TestType")
-    assert not tool_registry.has_tool_type("NonexistentType")
+def test_has_tool_type(tool_registry_full):
+    assert tool_registry_full.has_tool_type("data_preprocess")
+    assert not tool_registry_full.has_tool_type("NonexistentType")
 
 
-def test_get_tool_type(tool_registry):
-    tool_type = ToolType(name="TestType", desc="test")
-    tool_registry.register_tool_type(tool_type)
-    retrieved_type = tool_registry.get_tool_type("TestType")
+def test_get_tool_type(tool_registry_full):
+    retrieved_type = tool_registry_full.get_tool_type("data_preprocess")
     assert retrieved_type is not None
-    assert retrieved_type.name == "TestType"
+    assert retrieved_type.name == "data_preprocess"
 
 
 def test_get_tools_by_type(tool_registry, schema_yaml):
     tool_type_name = "TestType"
     tool_name = "TestTool"
     tool_path = "/path/to/tool"
-    tool_type = ToolType(name=tool_type_name, desc="test")
-    tool_registry.register_tool_type(tool_type)
 
     tool_registry.register_tool(tool_name, tool_path, tool_type=tool_type_name)
 

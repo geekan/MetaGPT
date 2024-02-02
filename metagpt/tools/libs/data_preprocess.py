@@ -13,10 +13,10 @@ from sklearn.preprocessing import (
     StandardScaler,
 )
 
-from metagpt.tools.tool_data_type import ToolTypeEnum
 from metagpt.tools.tool_registry import register_tool
+from metagpt.tools.tool_types import ToolTypes
 
-TOOL_TYPE = ToolTypeEnum.DATA_PREPROCESS.value
+TOOL_TYPE = ToolTypes.DATA_PREPROCESS.type_name
 
 
 class MLProcess(object):

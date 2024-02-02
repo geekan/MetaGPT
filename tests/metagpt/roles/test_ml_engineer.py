@@ -4,7 +4,7 @@ from metagpt.actions.execute_nb_code import ExecuteNbCode
 from metagpt.logs import logger
 from metagpt.roles.ml_engineer import MLEngineer
 from metagpt.schema import Message, Plan, Task
-from metagpt.tools.tool_data_type import ToolTypeEnum
+from metagpt.tools.tool_types import ToolTypes
 from tests.metagpt.actions.test_debug_code import CODE, DebugContext, ErrorStr
 
 
@@ -63,7 +63,7 @@ async def test_mle_update_data_columns(mocker):
     mle.planner.plan = MockPlan
 
     # manually update task type to test update
-    mle.planner.plan.current_task.task_type = ToolTypeEnum.DATA_PREPROCESS.value
+    mle.planner.plan.current_task.task_type = ToolTypes.DATA_PREPROCESS.value
 
     result = await mle._update_data_columns()
     assert result is not None
