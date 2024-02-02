@@ -7,7 +7,7 @@
 """
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from metagpt.config2 import Config
 from metagpt.context import Context
@@ -17,7 +17,7 @@ from metagpt.provider.base_llm import BaseLLM
 class ContextMixin(BaseModel):
     """Mixin class for context and config"""
 
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+    model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
 
     # Pydantic has bug on _private_attr when using inheritance, so we use private_* instead
     # - https://github.com/pydantic/pydantic/issues/7142
@@ -32,15 +32,18 @@ class ContextMixin(BaseModel):
     # Env/Role/Action will use this llm as private llm, or use self.context._llm instance
     private_llm: Optional[BaseLLM] = Field(default=None, exclude=True)
 
-    def __init__(
+    @model_validator(mode="after")
+    def validate_extra(self):
+        self._process_extra(**(self.model_extra or {}))
+        return self
+
+    def _process_extra(
         self,
         context: Optional[Context] = None,
         config: Optional[Config] = None,
         llm: Optional[BaseLLM] = None,
-        **kwargs,
     ):
-        """Initialize with config"""
-        super().__init__(**kwargs)
+        """Process the extra field"""
         self.set_context(context)
         self.set_config(config)
         self.set_llm(llm)

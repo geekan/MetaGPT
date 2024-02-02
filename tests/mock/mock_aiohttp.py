@@ -13,7 +13,8 @@ class MockAioResponse:
 
     def __init__(self, session, method, url, **kwargs) -> None:
         fn = self.check_funcs.get((method, url))
-        self.key = f"{self.name}-{method}-{url}-{fn(kwargs) if fn else json.dumps(kwargs, sort_keys=True)}"
+        _kwargs = {k: v for k, v in kwargs.items() if k != "proxy"}
+        self.key = f"{self.name}-{method}-{url}-{fn(kwargs) if fn else json.dumps(_kwargs, sort_keys=True)}"
         self.mng = self.response = None
         if self.key not in self.rsp_cache:
             self.mng = origin_request(session, method, url, **kwargs)

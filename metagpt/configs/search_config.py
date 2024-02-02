@@ -5,6 +5,8 @@
 @Author  : alexanderwu
 @File    : search_config.py
 """
+from typing import Callable, Optional
+
 from metagpt.tools import SearchEngineType
 from metagpt.utils.yaml_model import YamlModel
 
@@ -12,6 +14,7 @@ from metagpt.utils.yaml_model import YamlModel
 class SearchConfig(YamlModel):
     """Config for Search"""
 
-    api_key: str
-    api_type: SearchEngineType = SearchEngineType.SERPAPI_GOOGLE
+    api_type: SearchEngineType = SearchEngineType.DUCK_DUCK_GO
+    api_key: str = ""
     cse_id: str = ""  # for google
+    search_func: Optional[Callable] = None
