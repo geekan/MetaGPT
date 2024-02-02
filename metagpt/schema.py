@@ -419,6 +419,7 @@ class CodingContext(BaseContext):
     design_doc: Optional[Document] = None
     task_doc: Optional[Document] = None
     code_doc: Optional[Document] = None
+    code_plan_and_change_doc: Optional[Document] = None
 
 
 class TestingContext(BaseContext):

@@ -115,8 +115,11 @@ def get_incremental_dev_result(idea, project_name, use_review=True):
     if not project_path.exists():
         # If the project does not exist, extract the project file
         try:
-            # Use the tar command to extract the .zip file
-            subprocess.run(["tar", "-xf", f"{project_path}.zip", "-C", str(project_path.parent)], check=True)
+            if os.name == "nt":
+                subprocess.run(["tar", "-xf", f"{project_path}.zip", "-C", str(project_path.parent)], check=True)
+            else:
+                subprocess.run(["unzip", f"{project_path}.zip", "-d", str(project_path.parent)], check=True)
+            logger.info(f"Extracted project {project_name} successfully.")
         except subprocess.CalledProcessError as e:
             # If the extraction fails, throw an exception
             raise Exception(f"Failed to extract project {project_name}. Error: {e}")

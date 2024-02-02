@@ -292,6 +292,7 @@ class Engineer(Role):
         changed_src_files = self.project_repo.srcs.all_files if bug_fix else self.project_repo.srcs.changed_files
         changed_task_files = self.project_repo.docs.task.changed_files
         changed_files = Documents()
+        code_plan_and_change_doc = await self.project_repo.docs.task.get(CODE_PLAN_AND_CHANGE_FILENAME)
         # Recode caused by upstream changes.
         for filename in changed_task_files:
             design_doc = await self.project_repo.docs.system_design.get(filename)
@@ -303,9 +304,18 @@ class Engineer(Role):
                     old_code_doc = Document(
                         root_path=str(self.project_repo.src_relative_path), filename=task_filename, content=""
                     )
-                context = CodingContext(
-                    filename=task_filename, design_doc=design_doc, task_doc=task_doc, code_doc=old_code_doc
-                )
+                if not code_plan_and_change_doc:
+                    context = CodingContext(
+                        filename=task_filename, design_doc=design_doc, task_doc=task_doc, code_doc=old_code_doc
+                    )
+                else:
+                    context = CodingContext(
+                        filename=task_filename,
+                        design_doc=design_doc,
+                        task_doc=task_doc,
+                        code_doc=old_code_doc,
+                        code_plan_and_change_doc=code_plan_and_change_doc,
+                    )
                 coding_doc = Document(
                     root_path=str(self.project_repo.src_relative_path),
                     filename=task_filename,
