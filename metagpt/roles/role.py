@@ -151,18 +151,19 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
 
     @model_validator(mode="after")
     def validate_role_extra(self):
-        self._process_role_extra(**(self.model_extra or {}))
+        self._process_role_extra()
         return self
 
-    def _process_role_extra(self, **kwargs):
+    def _process_role_extra(self):
         self.pydantic_rebuild_model()
+        kwargs = self.model_extra or {}
 
         if self.is_human:
             self.llm = HumanProvider(None)
 
         self._check_actions()
         self.llm.system_prompt = self._get_prefix()
-        self._watch(kwargs.get("watch") or [UserRequirement])
+        self._watch(kwargs.pop("watch", [UserRequirement]))
 
         if self.latest_observed_msg:
             self.recovered = True
