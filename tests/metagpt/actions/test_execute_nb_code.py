@@ -8,8 +8,6 @@ async def test_code_running():
     executor = ExecuteNbCode()
     output, is_success = await executor.run("print('hello world!')")
     assert is_success
-    output, is_success = await executor.run({"code": "print('hello world!')", "language": "python"})
-    assert is_success
 
 
 @pytest.mark.asyncio

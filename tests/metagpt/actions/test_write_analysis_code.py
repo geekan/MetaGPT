@@ -15,16 +15,20 @@ async def test_write_code_by_list_plan():
     write_code = WriteCodeByGenerate()
     execute_code = ExecuteNbCode()
     messages = []
-    plan = ["随机生成一个pandas DataFrame时间序列", "绘制这个时间序列的直方图", "求均值"]
+    plan = ["随机生成一个pandas DataFrame时间序列", "绘制这个时间序列的直方图", "回顾已完成的任务", "求均值", "总结"]
     for task in plan:
         print(f"\n任务: {task}\n\n")
         messages.append(Message(task, role="assistant"))
         code = await write_code.run(messages)
+        if task.startswith(("回顾", "总结")):
+            assert code["language"] == "markdown"
+        else:
+            assert code["language"] == "python"
         messages.append(Message(code["code"], role="assistant"))
         assert len(code) > 0
-        output = await execute_code.run(code["code"])
+        output, _ = await execute_code.run(**code)
         print(f"\n[Output]: 任务{task}的执行结果是: \n{output}\n")
-        messages.append(output[0])
+        messages.append(output)
 
 
 @pytest.mark.asyncio
