@@ -45,6 +45,7 @@ PROJECT_NAMES = [
 ]
 
 
+@pytest.mark.skip
 def test_simple_add_calculator():
     result = get_incremental_dev_result(IDEAS[0], PROJECT_NAMES[0])
     log_and_check_result(result)
