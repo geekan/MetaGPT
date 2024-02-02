@@ -28,6 +28,7 @@ from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.constant import GENERAL_FUNCTION_SCHEMA, GENERAL_TOOL_CHOICE
 from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.schema import Message
+from metagpt.utils.common import decode_image
 from metagpt.utils.cost_manager import CostManager, Costs
 from metagpt.utils.exceptions import handle_exception
 from metagpt.utils.token_counter import (
@@ -99,7 +100,7 @@ class OpenAILLM(BaseLLM):
             "messages": messages,
             "max_tokens": self._get_max_tokens(messages),
             "n": 1,
-            "stop": None,
+            # "stop": None,  # default it's None and gpt4-v can't have this one
             "temperature": 0.3,
             "model": self.model,
             "timeout": max(self.config.timeout, timeout),
@@ -243,3 +244,24 @@ class OpenAILLM(BaseLLM):
     async def aspeech_to_text(self, **kwargs):
         """speech to text"""
         return await self.aclient.audio.transcriptions.create(**kwargs)
+
+    async def gen_image(
+        self,
+        prompt: str,
+        size: str = "1024x1024",
+        quality: str = "standard",
+        model: str = None,
+        resp_format: str = "url",
+    ) -> list["Image"]:
+        """image generate"""
+        assert resp_format in ["url", "b64_json"]
+        if not model:
+            model = self.model
+        res = await self.aclient.images.generate(
+            model=model, prompt=prompt, size=size, quality=quality, n=1, response_format=resp_format
+        )
+        imgs = []
+        for item in res.data:
+            img_url_or_b64 = item.url if resp_format == "url" else item.b64_json
+            imgs.append(decode_image(img_url_or_b64))
+        return imgs

@@ -5,6 +5,7 @@
 @Author  : alexanderwu
 @File    : test_action_node.py
 """
+from pathlib import Path
 from typing import List, Tuple
 
 import pytest
@@ -17,6 +18,7 @@ from metagpt.llm import LLM
 from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.team import Team
+from metagpt.utils.common import encode_image
 
 
 @pytest.mark.asyncio
@@ -239,6 +241,18 @@ def test_create_model_class_with_mapping():
     t1 = t(**t_dict)
     value = t1.model_dump()["Task list"]
     assert value == ["game.py", "app.py", "static/css/styles.css", "static/js/script.js", "templates/index.html"]
+
+
+@pytest.mark.asyncio
+async def test_action_node_with_image():
+    invoice = ActionNode(
+        key="invoice", expected_type=bool, instruction="if it's a invoice file, return True else False", example="False"
+    )
+
+    invoice_path = Path(__file__).parent.joinpath("..", "..", "data", "invoices", "invoice-2.png")
+    img_base64 = encode_image(invoice_path)
+    node = await invoice.fill(context="", llm=LLM(), images=[img_base64])
+    assert node.instruct_content.invoice
 
 
 class ToolDef(BaseModel):
