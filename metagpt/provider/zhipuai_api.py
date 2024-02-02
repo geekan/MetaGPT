@@ -41,11 +41,11 @@ class ZhiPuAILLM(BaseLLM):
 
     def __init__(self, config: LLMConfig):
         self.__init_zhipuai(config)
+        self.config = config
         self.llm = ZhiPuModelAPI
         self.model = "chatglm_turbo"  # so far only one model, just use it
         self.pricing_plan = self.config.pricing_plan or self.model
         self.use_system_prompt: bool = False  # zhipuai has no system prompt when use api
-        self.config = config
         self.cost_manager: Optional[CostManager] = None
 
     def __init_zhipuai(self, config: LLMConfig):

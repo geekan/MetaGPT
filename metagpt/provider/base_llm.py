@@ -6,16 +6,20 @@
 @File    : base_llm.py
 @Desc    : mashenquan, 2023/8/22. + try catch
 """
+from __future__ import annotations
+
 import json
 from abc import ABC, abstractmethod
-from typing import Optional, Union
+from typing import Dict, Optional, Union
 
 from openai import AsyncOpenAI
+from openai.types import CompletionUsage
 
 from metagpt.configs.llm_config import LLMConfig
 from metagpt.logs import logger
 from metagpt.schema import Message
 from metagpt.utils.cost_manager import CostManager
+from metagpt.utils.exceptions import handle_exception
 
 
 class BaseLLM(ABC):
@@ -29,6 +33,7 @@ class BaseLLM(ABC):
     aclient: Optional[Union[AsyncOpenAI]] = None
     cost_manager: Optional[CostManager] = None
     model: Optional[str] = None
+    pricing_plan: Optional[str] = None
 
     @abstractmethod
     def __init__(self, config: LLMConfig):
@@ -149,3 +154,30 @@ class BaseLLM(ABC):
             {'language': 'python', 'code': "print('Hello, World!')"}
         """
         return json.loads(self.get_choice_function(rsp)["arguments"])
+
+    @handle_exception
+    def _update_costs(self, usage: CompletionUsage | Dict):
+        """
+        Updates the costs based on the provided usage information.
+
+        Args:
+            usage (Union[CompletionUsage, Dict]): The usage information used to calculate and update costs.
+                It can be either an instance of CompletionUsage or a dictionary.
+
+        Returns:
+            None: This method does not return any value.
+
+        Raises:
+            ValueError: If the provided usage is not a valid format.
+
+        Example:
+            Usage example goes here, demonstrating how to call and utilize this method.
+        """
+        if self.config.calc_usage and usage and self.cost_manager:
+            if isinstance(usage, Dict):
+                prompt_tokens = int(usage.get("prompt_tokens", 0))
+                completion_tokens = int(usage.get("completion_tokens", 0))
+            else:
+                prompt_tokens = usage.prompt_tokens
+                completion_tokens = usage.completion_tokens
+            self.cost_manager.update_cost(prompt_tokens, completion_tokens, self.pricing_plan)

@@ -9,7 +9,7 @@
 from __future__ import annotations
 
 import json
-from typing import AsyncIterator, Dict, Optional, Union
+from typing import AsyncIterator, Optional, Union
 
 from openai import APIConnectionError, AsyncOpenAI, AsyncStream
 from openai._base_client import AsyncHttpxClientWrapper
@@ -217,17 +217,6 @@ class OpenAILLM(BaseLLM):
             logger.error(f"usage calculation failed: {e}")
 
         return usage
-
-    @handle_exception
-    def _update_costs(self, usage: CompletionUsage | Dict):
-        if self.config.calc_usage and usage and self.cost_manager:
-            if isinstance(usage, Dict):
-                prompt_tokens = int(usage.get("prompt_tokens", 0))
-                completion_tokens = int(usage.get("completion_tokens", 0))
-            else:
-                prompt_tokens = usage.prompt_tokens
-                completion_tokens = usage.completion_tokens
-            self.cost_manager.update_cost(prompt_tokens, completion_tokens, self.pricing_plan)
 
     def get_costs(self) -> Costs:
         if not self.cost_manager:
