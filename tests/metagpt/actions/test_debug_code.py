@@ -5,7 +5,7 @@
 
 import pytest
 
-from metagpt.actions.debug_code import DebugCode, messages_to_str
+from metagpt.actions.debug_code import DebugCode
 from metagpt.schema import Message
 
 ErrorStr = """Tested passed:
@@ -49,9 +49,3 @@ async def test_debug_code():
     debug_context = Message(content=DebugContext)
     new_code = await DebugCode().run(context=debug_context, code=CODE, runtime_result=ErrorStr)
     assert "def sort_array(arr)" in new_code["code"]
-
-
-def test_messages_to_str():
-    debug_context = Message(content=DebugContext)
-    msg_str = messages_to_str([debug_context])
-    assert "user: Solve the problem in Python" in msg_str

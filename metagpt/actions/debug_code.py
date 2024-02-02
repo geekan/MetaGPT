@@ -47,7 +47,7 @@ Here is an example for you.
 [runtime Error]
 {runtime_result}
 
-Analysis the error step by step, provide me improve method and code. Remember to follow [context] rerquirement. Don't forget write code for steps behind the error step.
+Analysis the error step by step, provide me improve method and code. Remember to follow [context] requirement. Don't forget write code for steps behind the error step.
 [reflection on previous impl]:
 xxx
 """
@@ -72,19 +72,25 @@ CODE_REFLECTION = {
 }
 
 
-def messages_to_str(messages: List[Message]) -> str:
-    return "\n".join([str(message) for message in messages])
-
-
 class DebugCode(BaseWriteAnalysisCode):
-    name: str = "debugcode"
-
-    async def run_reflection(
+    async def run(
         self,
-        context: list[Message],
-        code: str,
-        runtime_result: str,
-    ) -> dict:
+        context: List[Message] = None,
+        code: str = "",
+        runtime_result: str = "",
+    ) -> str:
+        """
+        Execute the debugging process based on the provided context, code, and runtime_result.
+
+        Args:
+            context (List[Message]): A list of Message objects representing the context.
+            code (str): The code to be debugged.
+            runtime_result (str): The result of the code execution.
+
+        Returns:
+            str: The improved implementation based on the debugging process.
+        """
+
         info = []
         reflection_prompt = REFLECTION_PROMPT.format(
             debug_example=DEBUG_REFLECTION_EXAMPLE,
@@ -96,22 +102,8 @@ class DebugCode(BaseWriteAnalysisCode):
         info.append(Message(role="system", content=system_prompt))
         info.append(Message(role="user", content=reflection_prompt))
 
-        resp = await self.llm.aask_code(messages=info, **create_func_call_config(CODE_REFLECTION))
-        logger.info(f"reflection is {resp}")
-        return resp
+        tool_config = create_func_call_config(CODE_REFLECTION)
+        reflection = await self.llm.aask_code(messages=info, **tool_config)
+        logger.info(f"reflection is {reflection}")
 
-    async def run(
-        self,
-        context: List[Message] = None,
-        code: str = "",
-        runtime_result: str = "",
-    ) -> str:
-        """
-        use reflection to debug, based on current code and the execution errors
-        """
-        reflection = await self.run_reflection(
-            code=code,
-            context=context,
-            runtime_result=runtime_result,
-        )
         return {"code": reflection["improved_impl"]}
