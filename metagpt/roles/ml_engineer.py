@@ -8,11 +8,10 @@ from metagpt.utils.common import any_to_str
 
 
 class MLEngineer(CodeInterpreter):
+    name: str = "Mark"
+    profile: str = "MLEngineer"
     debug_context: list = []
     latest_code: str = ""
-
-    def __init__(self, name="Mark", profile="MLEngineer", **kwargs):
-        super().__init__(name=name, profile=profile, **kwargs)
 
     async def _write_code(self):
         if not self.use_tools:

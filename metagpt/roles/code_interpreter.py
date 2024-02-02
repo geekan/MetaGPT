@@ -9,6 +9,8 @@ from metagpt.schema import Message, Task, TaskResult
 
 
 class CodeInterpreter(Role):
+    name: str = "Charlie"
+    profile: str = "CodeInterpreter"
     auto_run: bool = True
     use_tools: bool = False
     execute_code: ExecuteNbCode = Field(default_factory=ExecuteNbCode, exclude=True)
@@ -16,17 +18,12 @@ class CodeInterpreter(Role):
 
     def __init__(
         self,
-        name="Charlie",
-        profile="CodeInterpreter",
-        goal="",
         auto_run=True,
         use_tools=False,
         tools=[],
         **kwargs,
     ):
-        super().__init__(
-            name=name, profile=profile, goal=goal, auto_run=auto_run, use_tools=use_tools, tools=tools, **kwargs
-        )
+        super().__init__(auto_run=auto_run, use_tools=use_tools, tools=tools, **kwargs)
         self._set_react_mode(react_mode="plan_and_act", auto_run=auto_run, use_tools=use_tools)
         if use_tools and tools:
             from metagpt.tools.tool_registry import (
