@@ -4,7 +4,7 @@
 @Author  :   orange-crow
 @File    :   write_analysis_code.py
 """
-from typing import Dict, Tuple, Union
+from typing import Tuple
 
 from metagpt.actions import Action
 from metagpt.logs import logger
@@ -14,7 +14,7 @@ from metagpt.prompts.write_analysis_code import (
     TOOL_RECOMMENDATION_PROMPT,
     TOOL_USAGE_PROMPT,
 )
-from metagpt.schema import Message, Plan
+from metagpt.schema import Message, Plan, SystemMessage
 from metagpt.tools import TOOL_REGISTRY
 from metagpt.tools.tool_registry import validate_tool_names
 from metagpt.utils.common import create_func_call_config
@@ -24,34 +24,10 @@ class BaseWriteAnalysisCode(Action):
     DEFAULT_SYSTEM_MSG: str = """You are Code Interpreter, a world-class programmer that can complete any goal by executing code. Strictly follow the plan and generate code step by step. Each step of the code will be executed on the user's machine, and the user will provide the code execution results to you.**Notice: The code for the next step depends on the code for the previous step. Must reuse variables in the lastest other code directly, dont creat it again, it is very import for you. Use !pip install in a standalone block to install missing packages.Usually the libraries you need are already installed.Dont check if packages already imported.**"""  # prompt reference: https://github.com/KillianLucas/open-interpreter/blob/v0.1.4/interpreter/system_message.txt
     # REUSE_CODE_INSTRUCTION = """ATTENTION: DONT include codes from previous tasks in your current code block, include new codes only, DONT repeat codes!"""
 
-    def process_msg(self, prompt: Union[str, list[Dict], Message, list[Message]], system_msg: str = None):
-        default_system_msg = system_msg or self.DEFAULT_SYSTEM_MSG
-        # 全部转成list
-        if not isinstance(prompt, list):
-            prompt = [prompt]
-        assert isinstance(prompt, list)
-        # 转成list[dict]
-        messages = []
-        for p in prompt:
-            if isinstance(p, str):
-                messages.append({"role": "user", "content": p})
-            elif isinstance(p, dict):
-                messages.append(p)
-            elif isinstance(p, Message):
-                if isinstance(p.content, str):
-                    messages.append(p.to_dict())
-                elif isinstance(p.content, dict) and "code" in p.content:
-                    messages.append(p.content["code"])
-
-        # 添加默认的提示词
-        if default_system_msg not in messages[0]["content"] and messages[0]["role"] != "system":
-            messages.insert(0, {"role": "system", "content": default_system_msg})
-        elif default_system_msg not in messages[0]["content"] and messages[0]["role"] == "system":
-            messages[0] = {
-                "role": "system",
-                "content": messages[0]["content"] + default_system_msg,
-            }
-        return messages
+    def insert_system_message(self, context: list[Message], system_msg: str = None):
+        system_msg = system_msg or self.DEFAULT_SYSTEM_MSG
+        context.insert(0, SystemMessage(content=system_msg)) if context[0].role != "system" else None
+        return context
 
     async def run(self, context: list[Message], plan: Plan = None) -> dict:
         """Run of a code writing action, used in data analysis or modeling
@@ -69,16 +45,9 @@ class BaseWriteAnalysisCode(Action):
 class WriteCodeByGenerate(BaseWriteAnalysisCode):
     """Ask LLM to generate codes purely by itself without local user-defined tools"""
 
-    async def run(
-        self,
-        context: [list[Message]],
-        plan: Plan = None,
-        system_msg: str = None,
-        **kwargs,
-    ) -> dict:
-        # context.append(Message(content=self.REUSE_CODE_INSTRUCTION, role="user"))
-        prompt = self.process_msg(context, system_msg)
-        rsp = await self.llm.aask_code(prompt, **kwargs)
+    async def run(self, context: list[Message], plan: Plan = None, system_msg: str = None, **kwargs) -> dict:
+        messages = self.insert_system_message(context, system_msg)
+        rsp = await self.llm.aask_code(messages, **kwargs)
         return rsp
 
 
@@ -184,7 +153,7 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
         context.append(Message(content=tools_instruction, role="user"))
 
         # prepare prompt & LLM call
-        prompt = self.process_msg(context)
+        prompt = self.insert_system_message(context)
         tool_config = create_func_call_config(CODE_GENERATOR_WITH_TOOLS)
         rsp = await self.llm.aask_code(prompt, **tool_config)
 
