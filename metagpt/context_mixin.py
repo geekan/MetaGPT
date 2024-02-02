@@ -33,20 +33,16 @@ class ContextMixin(BaseModel):
     private_llm: Optional[BaseLLM] = Field(default=None, exclude=True)
 
     @model_validator(mode="after")
-    def validate_extra(self):
-        self._process_extra(**(self.model_extra or {}))
+    def validate_context_mixin_extra(self):
+        self._process_context_mixin_extra()
         return self
 
-    def _process_extra(
-        self,
-        context: Optional[Context] = None,
-        config: Optional[Config] = None,
-        llm: Optional[BaseLLM] = None,
-    ):
+    def _process_context_mixin_extra(self):
         """Process the extra field"""
-        self.set_context(context)
-        self.set_config(config)
-        self.set_llm(llm)
+        kwargs = self.model_extra or {}
+        self.set_context(kwargs.pop("context", None))
+        self.set_config(kwargs.pop("config", None))
+        self.set_llm(kwargs.pop("llm", None))
 
     def set(self, k, v, override=False):
         """Set attribute"""
