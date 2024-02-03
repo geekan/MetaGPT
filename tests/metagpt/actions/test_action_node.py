@@ -244,13 +244,19 @@ def test_create_model_class_with_mapping():
 
 
 @pytest.mark.asyncio
-async def test_action_node_with_image():
+async def test_action_node_with_image(mocker):
+    # add a mock to update model in unittest, due to the gloabl MockLLM
+    def _cons_kwargs(self, messages: list[dict], timeout=3, **extra_kwargs) -> dict:
+        kwargs = {"messages": messages, "temperature": 0.3, "model": "gpt-4-vision-preview"}
+        return kwargs
+
     invoice = ActionNode(
         key="invoice", expected_type=bool, instruction="if it's a invoice file, return True else False", example="False"
     )
 
     invoice_path = Path(__file__).parent.joinpath("..", "..", "data", "invoices", "invoice-2.png")
     img_base64 = encode_image(invoice_path)
+    mocker.patch("metagpt.provider.openai_api.OpenAILLM._cons_kwargs", _cons_kwargs)
     node = await invoice.fill(context="", llm=LLM(), images=[img_base64])
     assert node.instruct_content.invoice
 
