@@ -135,7 +135,7 @@ def test_repair_json_format():
 }
 """
     target_output = """{
-    "Language": "en_us",  
+    "Language": "en_us",
     "Programming Language": "Python"
 }"""
     output = repair_llm_raw_output(output=raw_output, req_keys=[None], repair_type=RepairType.JSON)
@@ -148,7 +148,7 @@ def test_repair_json_format():
 }
 """
     target_output = """{
-    "Language": "en_us",  
+    "Language": "en_us",
     "Programming Language": "Python"
 }"""
     output = repair_llm_raw_output(output=raw_output, req_keys=[None], repair_type=RepairType.JSON)
@@ -161,7 +161,7 @@ def test_repair_json_format():
     }
     """
     target_output = """{
-        "Language": "#en_us#",  
+        "Language": "#en_us#",
         "Programming Language": "//Python # Code // Language//"
     }"""
     output = repair_llm_raw_output(output=raw_output, req_keys=[None], repair_type=RepairType.JSON)
