@@ -103,7 +103,7 @@ class TestOpenAI:
             else:
                 code["language"] == "python"
 
-    def test_aask_code_JSONDecodeError(self, json_decode_error):
+    def test_aask_code_json_decode_error(self, json_decode_error):
         instance = OpenAILLM(mock_llm_config)
         with pytest.raises(json.decoder.JSONDecodeError) as e:
             instance.get_choice_function_arguments(json_decode_error)
