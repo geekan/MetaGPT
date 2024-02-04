@@ -45,12 +45,6 @@ class PolynomialExpansion(MLProcess):
         self.poly = PolynomialFeatures(degree=degree, include_bias=False)
 
     def fit(self, df: pd.DataFrame):
-        """
-        Fit the PolynomialExpansion model.
-
-        Args:
-            df (pd.DataFrame): The input DataFrame.
-        """
         if len(self.cols) == 0:
             return
         if len(self.cols) > 10:
@@ -61,15 +55,6 @@ class PolynomialExpansion(MLProcess):
         self.poly.fit(df[self.cols].fillna(0))
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Transform the input DataFrame with the fitted model.
-
-        Args:
-            df (pd.DataFrame): The input DataFrame.
-
-        Returns:
-            pd.DataFrame: The transformed DataFrame without duplicated columns.
-        """
         if len(self.cols) == 0:
             return df
         ts_data = self.poly.transform(df[self.cols].fillna(0))
@@ -97,24 +82,9 @@ class CatCount(MLProcess):
         self.encoder_dict = None
 
     def fit(self, df: pd.DataFrame):
-        """
-        Fit the CatCount model.
-
-        Args:
-            df (pd.DataFrame): The input DataFrame.
-        """
         self.encoder_dict = df[self.col].value_counts().to_dict()
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Transform the input DataFrame with the fitted model.
-
-        Args:
-            df (pd.DataFrame): The input DataFrame.
-
-        Returns:
-            pd.DataFrame: The transformed DataFrame.
-        """
         new_df = df.copy()
         new_df[f"{self.col}_cnt"] = new_df[self.col].map(self.encoder_dict)
         return new_df
@@ -139,24 +109,9 @@ class TargetMeanEncoder(MLProcess):
         self.encoder_dict = None
 
     def fit(self, df: pd.DataFrame):
-        """
-        Fit the TargetMeanEncoder model.
-
-        Args:
-            df (pd.DataFrame): The input DataFrame.
-        """
         self.encoder_dict = df.groupby(self.col)[self.label].mean().to_dict()
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Transform the input DataFrame with the fitted model.
-
-        Args:
-            df (pd.DataFrame): The input DataFrame.
-
-        Returns:
-            pd.DataFrame: The transformed DataFrame.
-        """
         new_df = df.copy()
         new_df[f"{self.col}_target_mean"] = new_df[self.col].map(self.encoder_dict)
         return new_df
@@ -185,12 +140,6 @@ class KFoldTargetMeanEncoder(MLProcess):
         self.encoder_dict = None
 
     def fit(self, df: pd.DataFrame):
-        """
-        Fit the KFoldTargetMeanEncoder model.
-
-        Args:
-            df (pd.DataFrame): The input DataFrame.
-        """
         tmp = df.copy()
         kf = KFold(n_splits=self.n_splits, shuffle=True, random_state=self.random_state)
 
@@ -203,15 +152,6 @@ class KFoldTargetMeanEncoder(MLProcess):
         self.encoder_dict = tmp.groupby(self.col)[col_name].mean().to_dict()
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Transform the input DataFrame with the fitted model.
-
-        Args:
-            df (pd.DataFrame): The input DataFrame.
-
-        Returns:
-            pd.DataFrame: The transformed DataFrame.
-        """
         new_df = df.copy()
         new_df[f"{self.col}_kf_target_mean"] = new_df[self.col].map(self.encoder_dict)
         return new_df
@@ -255,12 +195,6 @@ class CatCross(MLProcess):
         return new_col, comb_map
 
     def fit(self, df: pd.DataFrame):
-        """
-        Fit the CatCross model.
-
-        Args:
-            df (pd.DataFrame): The input DataFrame.
-        """
         for col in self.cols:
             if df[col].nunique() > self.max_cat_num:
                 self.cols.remove(col)
@@ -269,15 +203,6 @@ class CatCross(MLProcess):
         self.combs_map = dict(res)
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Transform the input DataFrame with the fitted model.
-
-        Args:
-            df (pd.DataFrame): The input DataFrame.
-
-        Returns:
-            pd.DataFrame: The transformed DataFrame.
-        """
         new_df = df.copy()
         for comb in self.combs:
             new_col = f"{comb[0]}_{comb[1]}"
@@ -310,12 +235,6 @@ class GroupStat(MLProcess):
         self.group_df = None
 
     def fit(self, df: pd.DataFrame):
-        """
-        Fit the GroupStat model.
-
-        Args:
-            df (pd.DataFrame): The input DataFrame.
-        """
         group_df = df.groupby(self.group_col)[self.agg_col].agg(self.agg_funcs).reset_index()
         group_df.columns = [self.group_col] + [
             f"{self.agg_col}_{agg_func}_by_{self.group_col}" for agg_func in self.agg_funcs
@@ -323,15 +242,6 @@ class GroupStat(MLProcess):
         self.group_df = group_df
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Transform the input DataFrame with the fitted model.
-
-        Args:
-            df (pd.DataFrame): The input DataFrame.
-
-        Returns:
-            pd.DataFrame: The transformed DataFrame.
-        """
         new_df = df.merge(self.group_df, on=self.group_col, how="left")
         return new_df
 
@@ -355,25 +265,10 @@ class SplitBins(MLProcess):
         self.encoder = None
 
     def fit(self, df: pd.DataFrame):
-        """
-        Fit the SplitBins model.
-
-        Args:
-            df (pd.DataFrame): The input DataFrame.
-        """
         self.encoder = KBinsDiscretizer(strategy=self.strategy, encode="ordinal")
         self.encoder.fit(df[self.cols].fillna(0))
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Transform the input DataFrame with the fitted model.
-
-        Args:
-            df (pd.DataFrame): The input DataFrame.
-
-        Returns:
-            pd.DataFrame: The transformed DataFrame.
-        """
         new_df = df.copy()
         new_df[self.cols] = self.encoder.transform(new_df[self.cols].fillna(0))
         return new_df
@@ -397,24 +292,9 @@ class ExtractTimeComps(MLProcess):
         self.time_comps = time_comps
 
     def fit(self, df: pd.DataFrame):
-        """
-        Fit the ExtractTimeComps model.
-
-        Args:
-            df (pd.DataFrame): The input DataFrame.
-        """
         pass
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Transform the input DataFrame with the fitted model.
-
-        Args:
-            df (pd.DataFrame): The input DataFrame.
-
-        Returns:
-            pd.DataFrame: The transformed DataFrame.
-        """
         time_s = pd.to_datetime(df[self.time_col], errors="coerce")
         time_comps_df = pd.DataFrame()
 
@@ -445,12 +325,6 @@ class GeneralSelection(MLProcess):
         self.feats = []
 
     def fit(self, df: pd.DataFrame):
-        """
-        Fit the GeneralSelection model.
-
-        Args:
-            df (pd.DataFrame): The input DataFrame.
-        """
         feats = [f for f in df.columns if f != self.label_col]
         for col in df.columns:
             if df[col].isnull().sum() / df.shape[0] == 1:
@@ -468,15 +342,6 @@ class GeneralSelection(MLProcess):
         self.feats = feats
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Transform the input DataFrame with the fitted model.
-
-        Args:
-            df (pd.DataFrame): The input DataFrame.
-
-        Returns:
-            pd.DataFrame: The transformed DataFrame contain label_col.
-        """
         new_df = df[self.feats + [self.label_col]]
         return new_df
 
@@ -501,12 +366,6 @@ class TreeBasedSelection(MLProcess):
         self.feats = None
 
     def fit(self, df: pd.DataFrame):
-        """
-        Fit the TreeBasedSelection model.
-
-        Args:
-            df (pd.DataFrame): The input DataFrame.
-        """
         params = {
             "boosting_type": "gbdt",
             "objective": "binary",
@@ -538,15 +397,6 @@ class TreeBasedSelection(MLProcess):
         self.feats.append(self.label_col)
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Transform the input DataFrame with the fitted model.
-
-        Args:
-            df (pd.DataFrame): The input DataFrame.
-
-        Returns:
-            pd.DataFrame: The transformed DataFrame contain label_col.
-        """
         new_df = df[self.feats]
         return new_df
 
@@ -571,12 +421,6 @@ class VarianceBasedSelection(MLProcess):
         self.selector = VarianceThreshold(threshold=self.threshold)
 
     def fit(self, df: pd.DataFrame):
-        """
-        Fit the VarianceBasedSelection model.
-
-        Args:
-            df (pd.DataFrame): The input DataFrame.
-        """
         num_cols = df.select_dtypes(include=np.number).columns.tolist()
         cols = [f for f in num_cols if f not in [self.label_col]]
 
@@ -585,14 +429,5 @@ class VarianceBasedSelection(MLProcess):
         self.feats.append(self.label_col)
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Transform the input DataFrame with the fitted model.
-
-        Args:
-            df (pd.DataFrame): The input DataFrame.
-
-        Returns:
-            pd.DataFrame: The transformed DataFrame contain label_col.
-        """
         new_df = df[self.feats]
         return new_df

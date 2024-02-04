@@ -84,15 +84,11 @@ Latest data info after previous tasks:
 Write complete code for 'Current Task'. And avoid duplicating code from 'Done Tasks', such as repeated import of packages, reading data, etc.
 Specifically, {tool_type_usage_prompt}
 
-# Code Steps:
-Strictly follow steps below when you writing code if it's convenient.
-{code_steps}
-
 # Output Example:
-when current task is "train a lightgbm model on training data", and their are two steps in 'Code Steps', the code be like:
+when current task is "train a lightgbm model on training data", the code can be like:
 ```python
 # Step 1: check data type and convert to numeric
-ojb_cols = train.select_dtypes(include='object').columns.tolist()
+obj_cols = train.select_dtypes(include='object').columns.tolist()
 
 for col in obj_cols:
     encoder = LabelEncoder()
@@ -107,7 +103,6 @@ model.fit(train, y_train)
 
 # Constraints:
 - Ensure the output new code is executable in the same Jupyter notebook with previous tasks code have been executed.
-- The output code should contain all steps implemented in 'Code Steps'.
 """
 
 ML_TOOL_USAGE_PROMPT = """
@@ -130,10 +125,6 @@ Latest data info after previous tasks:
 Write complete code for 'Current Task'. And avoid duplicating code from 'Done Tasks', such as repeated import of packages, reading data, etc.
 Specifically, {tool_type_usage_prompt}
 
-# Code Steps:
-Strictly follow steps below when you writing code if it's convenient.
-{code_steps}
-
 # Capabilities
 - You can utilize pre-defined tools in any code lines from 'Available Tools' in the form of Python Class.
 - You can freely combine the use of any other public packages, like sklearn, numpy, pandas, etc..
@@ -143,7 +134,7 @@ Each Class tool is described in JSON format. When you call a tool, import the to
 {tool_schemas}
 
 # Output Example:
-when current task is "do data preprocess, like fill missing value, handle outliers, etc.", and their are two steps in 'Code Steps', the code be like:
+when current task is "do data preprocess, like fill missing value, handle outliers, etc.", the code can be like:
 ```python
 # Step 1: fill missing value
 # Tools used: ['FillMissingValue']
@@ -170,6 +161,4 @@ for col in num_cols:
 - Ensure the output new code is executable in the same Jupyter notebook with previous tasks code have been executed.
 - Always prioritize using pre-defined tools for the same functionality.
 - Always copy the DataFrame before processing it and use the copy to process.
-- The output code should contain all steps implemented correctly in 'Code Steps'.
 """
-# - If 'Code Steps' contains step done in 'Done Tasks', such as reading data, don't repeat it.

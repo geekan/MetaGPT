@@ -25,7 +25,6 @@ class WriteCodeWithToolsML(WriteCodeWithTools):
         tool_schemas, tool_type_usage_prompt = await self._prepare_tools(plan=plan)
 
         # ML-specific variables to be used in prompt
-        code_steps = plan.current_task.code_steps
         finished_tasks = plan.get_finished_tasks()
         code_context = [remove_comments(task.code) for task in finished_tasks]
         code_context = "\n\n".join(code_context)
@@ -38,7 +37,6 @@ class WriteCodeWithToolsML(WriteCodeWithTools):
                 current_task=plan.current_task.instruction,
                 column_info=column_info,
                 tool_type_usage_prompt=tool_type_usage_prompt,
-                code_steps=code_steps,
                 tool_schemas=tool_schemas,
             )
 
@@ -49,7 +47,6 @@ class WriteCodeWithToolsML(WriteCodeWithTools):
                 current_task=plan.current_task.instruction,
                 column_info=column_info,
                 tool_type_usage_prompt=tool_type_usage_prompt,
-                code_steps=code_steps,
             )
         tool_config = create_func_call_config(CODE_GENERATOR_WITH_TOOLS)
         rsp = await self.llm.aask_code(prompt, **tool_config)

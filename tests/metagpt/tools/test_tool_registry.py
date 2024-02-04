@@ -14,18 +14,6 @@ def tool_registry_full():
     return ToolRegistry(tool_types=ToolTypes)
 
 
-@pytest.fixture
-def schema_yaml(mocker):
-    mock_yaml_content = """
-    tool_name:
-        key1: value1
-        key2: value2
-    """
-    mocker.patch("os.path.exists", return_value=True)
-    mocker.patch("builtins.open", mocker.mock_open(read_data=mock_yaml_content))
-    return mocker
-
-
 # Test Initialization
 def test_initialization(tool_registry):
     assert isinstance(tool_registry, ToolRegistry)
@@ -42,33 +30,46 @@ def test_initialize_with_tool_types(tool_registry_full):
     assert "data_preprocess" in tool_registry_full.tool_types
 
 
-# Test Tool Registration
-def test_register_tool(tool_registry, schema_yaml):
-    tool_registry.register_tool("TestTool", "/path/to/tool")
-    assert "TestTool" in tool_registry.tools
+class TestClassTool:
+    """test class"""
+
+    def test_class_fn(self):
+        """test class fn"""
+        pass
 
 
-# Test Tool Registration with Non-existing Schema
-def test_register_tool_no_schema(tool_registry, mocker):
-    mocker.patch("os.path.exists", return_value=False)
-    tool_registry.register_tool("TestTool", "/path/to/tool")
-    assert "TestTool" not in tool_registry.tools
+def test_fn():
+    """test function"""
+    pass
+
+
+# Test Tool Registration Class
+def test_register_tool_class(tool_registry):
+    tool_registry.register_tool("TestClassTool", "/path/to/tool", tool_source_object=TestClassTool)
+    assert "TestClassTool" in tool_registry.tools
+
+
+# Test Tool Registration Function
+def test_register_tool_fn(tool_registry):
+    tool_registry.register_tool("test_fn", "/path/to/tool", tool_source_object=test_fn)
+    assert "test_fn" in tool_registry.tools
 
 
 # Test Tool Existence Checks
-def test_has_tool(tool_registry, schema_yaml):
-    tool_registry.register_tool("TestTool", "/path/to/tool")
-    assert tool_registry.has_tool("TestTool")
+def test_has_tool(tool_registry):
+    tool_registry.register_tool("TestClassTool", "/path/to/tool", tool_source_object=TestClassTool)
+    assert tool_registry.has_tool("TestClassTool")
     assert not tool_registry.has_tool("NonexistentTool")
 
 
 # Test Tool Retrieval
-def test_get_tool(tool_registry, schema_yaml):
-    tool_registry.register_tool("TestTool", "/path/to/tool")
-    tool = tool_registry.get_tool("TestTool")
+def test_get_tool(tool_registry):
+    tool_registry.register_tool("TestClassTool", "/path/to/tool", tool_source_object=TestClassTool)
+    tool = tool_registry.get_tool("TestClassTool")
     assert tool is not None
-    assert tool.name == "TestTool"
+    assert tool.name == "TestClassTool"
     assert tool.path == "/path/to/tool"
+    assert "description" in tool.schemas
 
 
 # Similar tests for has_tool_type, get_tool_type, get_tools_by_type
@@ -83,12 +84,12 @@ def test_get_tool_type(tool_registry_full):
     assert retrieved_type.name == "data_preprocess"
 
 
-def test_get_tools_by_type(tool_registry, schema_yaml):
+def test_get_tools_by_type(tool_registry):
     tool_type_name = "TestType"
     tool_name = "TestTool"
     tool_path = "/path/to/tool"
 
-    tool_registry.register_tool(tool_name, tool_path, tool_type=tool_type_name)
+    tool_registry.register_tool(tool_name, tool_path, tool_type=tool_type_name, tool_source_object=TestClassTool)
 
     tools_by_type = tool_registry.get_tools_by_type(tool_type_name)
     assert tools_by_type is not None

@@ -5,7 +5,7 @@
 @File    :   crawl_webpage.py
 """
 
-from metagpt.roles.code_interpreter import CodeInterpreter
+from metagpt.roles.ci.code_interpreter import CodeInterpreter
 
 
 async def main():

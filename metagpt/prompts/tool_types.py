@@ -14,10 +14,10 @@ The current task is about data preprocessing, please note the following:
 FEATURE_ENGINEERING_PROMPT = """
 The current task is about feature engineering. when performing it, please adhere to the following principles:
 - Generate as diverse features as possible to improve the model's performance step-by-step. 
-- If potential impactful features are not included in 'Code Steps', add new steps to generate them.
+- Use available feature engineering tools if they are potential impactful.
 - Avoid creating redundant or excessively numerous features in one step.
 - Exclude ID columns from feature generation and remove them.
-- Each step do feature engineering to train, must do same for test separately at the same time.
+- Each feature engineering operation performed on the train set must also applies to the test separately at the same time.
 - Avoid using the label column to create features, except for cat encoding.
 - Use the data from previous task result if exist, do not mock or reload data yourself.
 """
