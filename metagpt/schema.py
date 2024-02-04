@@ -37,7 +37,6 @@ from pydantic import (
 )
 
 from metagpt.const import (
-    CODE_PLAN_AND_CHANGE_FILENAME,
     MESSAGE_ROUTE_CAUSE_BY,
     MESSAGE_ROUTE_FROM,
     MESSAGE_ROUTE_TO,
@@ -419,6 +418,7 @@ class CodingContext(BaseContext):
     design_doc: Optional[Document] = None
     task_doc: Optional[Document] = None
     code_doc: Optional[Document] = None
+    code_plan_and_change_doc: Optional[Document] = None
 
 
 class TestingContext(BaseContext):
@@ -473,7 +473,6 @@ class BugFixContext(BaseContext):
 
 
 class CodePlanAndChangeContext(BaseModel):
-    filename: str = CODE_PLAN_AND_CHANGE_FILENAME
     requirement: str = ""
     prd_filename: str = ""
     design_filename: str = ""
