@@ -8,7 +8,6 @@
         Add generic class-to-string and object-to-string conversion functionality.
 @Modified By: mashenquan, 2023/11/27. Bug fix: `parse_recipient` failed to parse the recipient in certain GPT-3.5
         responses.
-@Modified By: liubangbang, 2024/01/23. Update: support [```, ''', \"\"\" ] codes in CodeParser.parse_code.
 """
 from __future__ import annotations
 
@@ -268,19 +267,16 @@ class CodeParser:
     def parse_code(cls, block: str, text: str, lang: str = "") -> str:
         if block:
             text = cls.parse_block(block, text)
-        start_ends = ["```", "'''", '"""']
-        patterns = []
-        for start_end in start_ends:
-            pattern = rf"{start_end}{lang}.*?\s+(.*?){start_end}"
-            match = re.search(pattern, text, re.DOTALL)
-            if match:
-                code = match.group(1)
-                return code
-            patterns.append(pattern)
-        logger.error(f"{patterns} not match following text:")
-        logger.error(text)
-        # raise Exception
-        return text  # just assume original text is code
+        pattern = rf"```{lang}.*?\s+(.*?)```"
+        match = re.search(pattern, text, re.DOTALL)
+        if match:
+            code = match.group(1)
+        else:
+            logger.error(f"{pattern} not match following text:")
+            logger.error(text)
+            # raise Exception
+            return text  # just assume original text is code
+        return code
 
     @classmethod
     def parse_str(cls, block: str, text: str, lang: str = ""):
