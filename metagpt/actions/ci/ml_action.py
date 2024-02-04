@@ -1,14 +1,14 @@
 from typing import List, Tuple
 
 from metagpt.actions import Action
-from metagpt.actions.write_analysis_code import WriteCodeWithTools
-from metagpt.prompts.ml_action import (
+from metagpt.actions.ci.write_analysis_code import WriteCodeWithTools
+from metagpt.prompts.ci.ml_action import (
     GENERATE_CODE_PROMPT,
     ML_TOOL_USAGE_PROMPT,
     PRINT_DATA_COLUMNS,
     UPDATE_DATA_COLUMNS,
 )
-from metagpt.prompts.write_analysis_code import CODE_GENERATOR_WITH_TOOLS
+from metagpt.prompts.ci.write_analysis_code import CODE_GENERATOR_WITH_TOOLS
 from metagpt.schema import Message, Plan
 from metagpt.utils.common import create_func_call_config, remove_comments
 

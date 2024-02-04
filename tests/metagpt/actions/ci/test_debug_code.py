@@ -5,7 +5,7 @@
 
 import pytest
 
-from metagpt.actions.debug_code import DebugCode
+from metagpt.actions.ci.debug_code import DebugCode
 from metagpt.schema import Message
 
 ErrorStr = """Tested passed:

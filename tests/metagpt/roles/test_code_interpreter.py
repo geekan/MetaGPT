@@ -7,7 +7,7 @@ from metagpt.roles.code_interpreter import CodeInterpreter
 @pytest.mark.asyncio
 @pytest.mark.parametrize("auto_run", [(True), (False)])
 async def test_code_interpreter(mocker, auto_run):
-    mocker.patch("metagpt.actions.execute_nb_code.ExecuteNbCode.run", return_value=("a successful run", True))
+    mocker.patch("metagpt.actions.ci.execute_nb_code.ExecuteNbCode.run", return_value=("a successful run", True))
     mocker.patch("builtins.input", return_value="confirm")
 
     requirement = "Run data analysis on sklearn Iris dataset, include a plot"

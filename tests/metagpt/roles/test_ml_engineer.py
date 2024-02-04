@@ -1,11 +1,11 @@
 import pytest
 
-from metagpt.actions.execute_nb_code import ExecuteNbCode
+from metagpt.actions.ci.execute_nb_code import ExecuteNbCode
 from metagpt.logs import logger
 from metagpt.roles.ml_engineer import MLEngineer
 from metagpt.schema import Message, Plan, Task
 from metagpt.tools.tool_types import ToolTypes
-from tests.metagpt.actions.test_debug_code import CODE, DebugContext, ErrorStr
+from tests.metagpt.actions.ci.test_debug_code import CODE, DebugContext, ErrorStr
 
 
 def test_mle_init():

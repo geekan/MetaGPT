@@ -1,6 +1,6 @@
 from typing import List
 
-from metagpt.actions.write_analysis_code import BaseWriteAnalysisCode
+from metagpt.actions.ci.write_analysis_code import BaseWriteAnalysisCode
 from metagpt.logs import logger
 from metagpt.schema import Message
 from metagpt.utils.common import create_func_call_config

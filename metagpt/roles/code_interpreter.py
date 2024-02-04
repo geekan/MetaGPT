@@ -1,8 +1,11 @@
 from pydantic import Field
 
-from metagpt.actions.ask_review import ReviewConst
-from metagpt.actions.execute_nb_code import ExecuteNbCode
-from metagpt.actions.write_analysis_code import WriteCodeByGenerate, WriteCodeWithTools
+from metagpt.actions.ci.ask_review import ReviewConst
+from metagpt.actions.ci.execute_nb_code import ExecuteNbCode
+from metagpt.actions.ci.write_analysis_code import (
+    WriteCodeByGenerate,
+    WriteCodeWithTools,
+)
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message, Task, TaskResult

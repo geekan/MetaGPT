@@ -1,6 +1,6 @@
 import pytest
 
-from metagpt.actions.write_plan import (
+from metagpt.actions.ci.write_plan import (
     Plan,
     Task,
     WritePlan,

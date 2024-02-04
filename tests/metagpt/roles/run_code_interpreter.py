@@ -1,6 +1,6 @@
 import fire
 
-from metagpt.actions.execute_nb_code import ExecuteNbCode
+from metagpt.actions.ci.execute_nb_code import ExecuteNbCode
 from metagpt.const import DATA_PATH
 from metagpt.logs import logger
 from metagpt.roles.code_interpreter import CodeInterpreter

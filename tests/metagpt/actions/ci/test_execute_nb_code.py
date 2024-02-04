@@ -1,6 +1,6 @@
 import pytest
 
-from metagpt.actions.execute_nb_code import ExecuteNbCode, truncate
+from metagpt.actions.ci.execute_nb_code import ExecuteNbCode, truncate
 
 
 @pytest.mark.asyncio

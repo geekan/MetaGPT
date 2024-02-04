@@ -10,7 +10,7 @@ from typing import Dict, List, Tuple
 
 from metagpt.actions import Action
 from metagpt.logs import logger
-from metagpt.prompts.write_analysis_code import (
+from metagpt.prompts.ci.write_analysis_code import (
     ASSIGN_TASK_TYPE_CONFIG,
     ASSIGN_TASK_TYPE_PROMPT,
 )

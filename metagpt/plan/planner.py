@@ -2,8 +2,8 @@ import json
 
 from pydantic import BaseModel, Field
 
-from metagpt.actions.ask_review import AskReview, ReviewConst
-from metagpt.actions.write_plan import (
+from metagpt.actions.ci.ask_review import AskReview, ReviewConst
+from metagpt.actions.ci.write_plan import (
     WritePlan,
     precheck_update_plan_from_rsp,
     update_plan_from_rsp,
