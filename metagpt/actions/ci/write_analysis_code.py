@@ -79,7 +79,6 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
     async def _recommend_tool(
         self,
         task: str,
-        code_steps: str,
         available_tools: dict,
     ) -> list:
         """
@@ -87,7 +86,6 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
 
         Args:
             task (str): the task to recommend tools for
-            code_steps (str): the code steps to generate the full code for the task
             available_tools (dict): the available tools description
 
         Returns:
@@ -95,7 +93,6 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
         """
         prompt = TOOL_RECOMMENDATION_PROMPT.format(
             current_task=task,
-            code_steps=code_steps,
             available_tools=available_tools,
         )
         tool_config = create_func_call_config(SELECT_FUNCTION_TOOLS)
@@ -132,8 +129,7 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
         available_tools = self._get_tools_by_type(tool_type)
         if available_tools:
             available_tools = {tool_name: tool.schemas["description"] for tool_name, tool in available_tools.items()}
-            code_steps = plan.current_task.code_steps
-            tool_schemas = await self._recommend_tool(plan.current_task.instruction, code_steps, available_tools)
+            tool_schemas = await self._recommend_tool(plan.current_task.instruction, available_tools)
 
         return tool_schemas, tool_type_usage_prompt
 

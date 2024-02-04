@@ -30,8 +30,6 @@ TOOL_RECOMMENDATION_PROMPT = """
 
 ## Task
 Recommend up to five tools from 'Available Tools' that can help solve the 'User Requirement'. 
-This is a detailed code steps for current task. You can refer to it when recommending tools.
-{code_steps}
 
 ## Available Tools:
 {available_tools}

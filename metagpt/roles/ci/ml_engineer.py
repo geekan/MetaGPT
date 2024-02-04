@@ -2,7 +2,7 @@ from metagpt.actions.ci.debug_code import DebugCode
 from metagpt.actions.ci.execute_nb_code import ExecuteNbCode
 from metagpt.actions.ci.ml_action import UpdateDataColumns, WriteCodeWithToolsML
 from metagpt.logs import logger
-from metagpt.roles.code_interpreter import CodeInterpreter
+from metagpt.roles.ci.code_interpreter import CodeInterpreter
 from metagpt.tools.tool_types import ToolTypes
 from metagpt.utils.common import any_to_str
 

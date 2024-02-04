@@ -124,11 +124,6 @@ class Planner(BaseModel):
 
     def get_useful_memories(self, task_exclude_field=None) -> list[Message]:
         """find useful memories only to reduce context length and improve performance"""
-        # TODO dataset description , code steps
-        if task_exclude_field is None:
-            # Shorten the context as we don't need code steps after we get the codes.
-            # This doesn't affect current_task below, which should hold the code steps
-            task_exclude_field = {"code_steps"}
         user_requirement = self.plan.goal
         context = self.plan.context
         tasks = [task.dict(exclude=task_exclude_field) for task in self.plan.tasks]

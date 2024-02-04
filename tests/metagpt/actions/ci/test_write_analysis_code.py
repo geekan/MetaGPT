@@ -8,8 +8,8 @@ from metagpt.actions.ci.write_analysis_code import (
     WriteCodeWithTools,
 )
 from metagpt.logs import logger
-from metagpt.plan.planner import STRUCTURAL_CONTEXT
 from metagpt.schema import Message, Plan, Task
+from metagpt.strategy.planner import STRUCTURAL_CONTEXT
 
 
 @pytest.mark.skip
@@ -37,13 +37,12 @@ async def test_write_code_by_list_plan():
 @pytest.mark.asyncio
 async def test_tool_recommendation():
     task = "clean and preprocess the data"
-    code_steps = ""
     available_tools = {
         "FillMissingValue": "Filling missing values",
         "SplitBins": "Bin continuous data into intervals and return the bin identifier encoded as an integer value",
     }
     write_code = WriteCodeWithTools()
-    tools = await write_code._recommend_tool(task, code_steps, available_tools)
+    tools = await write_code._recommend_tool(task, available_tools)
 
     assert len(tools) == 1
     assert "FillMissingValue" in tools

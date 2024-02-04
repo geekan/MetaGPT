@@ -335,7 +335,6 @@ class Task(BaseModel):
     dependent_task_ids: list[str] = []  # Tasks prerequisite to this Task
     instruction: str = ""
     task_type: str = ""
-    code_steps: str = ""
     code: str = ""
     result: str = ""
     is_success: bool = False
@@ -348,7 +347,6 @@ class Task(BaseModel):
         self.is_finished = False
 
     def update_task_result(self, task_result: TaskResult):
-        self.code_steps = task_result.code_steps
         self.code = task_result.code
         self.result = task_result.result
         self.is_success = task_result.is_success
@@ -357,7 +355,6 @@ class Task(BaseModel):
 class TaskResult(BaseModel):
     """Result of taking a task, with result and is_success required to be filled"""
 
-    code_steps: str = ""
     code: str = ""
     result: str
     is_success: bool

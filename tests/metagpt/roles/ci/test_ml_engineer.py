@@ -2,7 +2,7 @@ import pytest
 
 from metagpt.actions.ci.execute_nb_code import ExecuteNbCode
 from metagpt.logs import logger
-from metagpt.roles.ml_engineer import MLEngineer
+from metagpt.roles.ci.ml_engineer import MLEngineer
 from metagpt.schema import Message, Plan, Task
 from metagpt.tools.tool_types import ToolTypes
 from tests.metagpt.actions.ci.test_debug_code import CODE, DebugContext, ErrorStr
@@ -22,7 +22,6 @@ MockPlan = Plan(
             dependent_task_ids=[],
             instruction="Perform exploratory data analysis on the train dataset to understand the features and target variable.",
             task_type="eda",
-            code_steps="",
             code="",
             result="",
             is_success=False,
@@ -35,7 +34,6 @@ MockPlan = Plan(
             dependent_task_ids=[],
             instruction="Perform exploratory data analysis on the train dataset to understand the features and target variable.",
             task_type="eda",
-            code_steps="",
             code="",
             result="",
             is_success=False,

@@ -1,7 +1,7 @@
 import pytest
 
 from metagpt.logs import logger
-from metagpt.roles.code_interpreter import CodeInterpreter
+from metagpt.roles.ci.code_interpreter import CodeInterpreter
 
 
 @pytest.mark.asyncio
