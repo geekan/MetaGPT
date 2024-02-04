@@ -39,7 +39,6 @@ class ToolRegistry(BaseModel):
         tool_type="other",
         tool_source_object=None,
         include_functions=[],
-        make_schema_if_not_exists=True,
         verbose=False,
     ):
         if self.has_tool(tool_name):
@@ -57,19 +56,11 @@ class ToolRegistry(BaseModel):
 
         schema_path = schema_path or TOOL_SCHEMA_PATH / tool_type / f"{tool_name}.yml"
 
-        if not os.path.exists(schema_path):
-            if make_schema_if_not_exists:
-                logger.warning(f"no schema found, will make schema at {schema_path}")
-                schema_dict = make_schema(tool_source_object, include_functions, schema_path)
-            else:
-                logger.warning(f"no schema found at assumed schema_path {schema_path}, skip registering {tool_name}")
-                return
-        else:
-            with open(schema_path, "r", encoding="utf-8") as f:
-                schema_dict = yaml.safe_load(f)
-        if not schema_dict:
+        schemas = make_schema(tool_source_object, include_functions, schema_path)
+
+        if not schemas:
             return
-        schemas = schema_dict.get(tool_name) or list(schema_dict.values())[0]
+
         schemas["tool_path"] = tool_path  # corresponding code file path of the tool
         try:
             ToolSchema(**schemas)  # validation
@@ -78,11 +69,13 @@ class ToolRegistry(BaseModel):
             # logger.warning(
             #     f"{tool_name} schema not conforms to required format, but will be used anyway. Mismatch: {e}"
             # )
+
         tool = Tool(name=tool_name, path=tool_path, schemas=schemas, code=tool_code)
         self.tools[tool_name] = tool
         self.tools_by_types[tool_type][tool_name] = tool
         if verbose:
             logger.info(f"{tool_name} registered")
+            logger.info(f"schema made at {str(schema_path)}, can be used for checking")
 
     def has_tool(self, key: str) -> Tool:
         return key in self.tools
@@ -107,12 +100,10 @@ class ToolRegistry(BaseModel):
 TOOL_REGISTRY = ToolRegistry(tool_types=ToolTypes)
 
 
-def register_tool(tool_name: str = "", tool_type: str = "other", schema_path: str = "", **kwargs):
+def register_tool(tool_type: str = "other", schema_path: str = "", **kwargs):
     """register a tool to registry"""
 
-    def decorator(cls, tool_name=tool_name):
-        tool_name = tool_name or cls.__name__
-
+    def decorator(cls):
         # Get the file path where the function / class is defined and the source code
         file_path = inspect.getfile(cls)
         if "metagpt" in file_path:
@@ -120,7 +111,7 @@ def register_tool(tool_name: str = "", tool_type: str = "other", schema_path: st
         source_code = inspect.getsource(cls)
 
         TOOL_REGISTRY.register_tool(
-            tool_name=tool_name,
+            tool_name=cls.__name__,
             tool_path=file_path,
             schema_path=schema_path,
             tool_code=source_code,
@@ -142,7 +133,6 @@ def make_schema(tool_source_object, include, path):
         # import json
         # with open(str(path).replace("yml", "json"), "w", encoding="utf-8") as f:
         #     json.dump(schema, f, ensure_ascii=False, indent=4)
-        logger.info(f"schema made at {path}")
     except Exception as e:
         schema = {}
         logger.error(f"Fail to make schema: {e}")

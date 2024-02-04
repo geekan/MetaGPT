@@ -14,7 +14,7 @@ from metagpt.utils.save_code import DATA_PATH, save_code_file
 def test_save_code_file_python():
     save_code_file("example", "print('Hello, World!')")
     file_path = DATA_PATH / "output" / "example" / "code.py"
-    assert file_path.exists, f"File does not exist: {file_path}"
+    assert file_path.exists(), f"File does not exist: {file_path}"
     content = file_path.read_text()
     assert "print('Hello, World!')" in content, "File content does not match"
 
@@ -35,7 +35,7 @@ async def test_save_code_file_notebook():
     # Save as a Notebook file
     save_code_file("example_nb", executor.nb, file_format="ipynb")
     file_path = DATA_PATH / "output" / "example_nb" / "code.ipynb"
-    assert file_path.exists, f"Notebook file does not exist: {file_path}"
+    assert file_path.exists(), f"Notebook file does not exist: {file_path}"
 
     # Additional checks specific to notebook format
     notebook = nbformat.read(file_path, as_version=4)

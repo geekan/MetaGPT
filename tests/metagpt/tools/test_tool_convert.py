@@ -17,7 +17,7 @@ def test_docstring_to_schema():
         pd.DataFrame: The transformed DataFrame.
     """
     expected = {
-        "description": " Some test desc. ",
+        "description": "Some test desc.",
         "parameters": {
             "properties": {
                 "features": {"type": "list", "description": "Columns to be processed."},
@@ -97,47 +97,45 @@ def dummy_fn(df: pd.DataFrame) -> dict:
 
 def test_convert_code_to_tool_schema_class():
     expected = {
-        "DummyClass": {
-            "type": "class",
-            "description": "Completing missing values with simple strategies.",
-            "methods": {
-                "__init__": {
-                    "description": "Initialize self. ",
-                    "parameters": {
-                        "properties": {
-                            "features": {"type": "list", "description": "Columns to be processed."},
-                            "strategy": {
-                                "type": "str",
-                                "description": "The imputation strategy, notice 'mean' and 'median' can only be used for numeric features. Enum: ['mean', 'median', 'most_frequent', 'constant']. Defaults to 'mean'.",
-                                "default": "'mean'",
-                                "enum": ["'mean'", "'median'", "'most_frequent'", "'constant'"],
-                            },
-                            "fill_value": {
-                                "type": "int",
-                                "description": "Fill_value is used to replace all occurrences of missing_values. Defaults to None.",
-                                "default": "None",
-                            },
+        "type": "class",
+        "description": "Completing missing values with simple strategies.",
+        "methods": {
+            "__init__": {
+                "description": "Initialize self.",
+                "parameters": {
+                    "properties": {
+                        "features": {"type": "list", "description": "Columns to be processed."},
+                        "strategy": {
+                            "type": "str",
+                            "description": "The imputation strategy, notice 'mean' and 'median' can only be used for numeric features. Enum: ['mean', 'median', 'most_frequent', 'constant']. Defaults to 'mean'.",
+                            "default": "'mean'",
+                            "enum": ["'mean'", "'median'", "'most_frequent'", "'constant'"],
                         },
-                        "required": ["features"],
+                        "fill_value": {
+                            "type": "int",
+                            "description": "Fill_value is used to replace all occurrences of missing_values. Defaults to None.",
+                            "default": "None",
+                        },
                     },
-                },
-                "fit": {
-                    "description": "Fit the FillMissingValue model. ",
-                    "parameters": {
-                        "properties": {"df": {"type": "pd.DataFrame", "description": "The input DataFrame."}},
-                        "required": ["df"],
-                    },
-                },
-                "transform": {
-                    "description": "Transform the input DataFrame with the fitted model. ",
-                    "parameters": {
-                        "properties": {"df": {"type": "pd.DataFrame", "description": "The input DataFrame."}},
-                        "required": ["df"],
-                    },
-                    "returns": [{"type": "pd.DataFrame", "description": "The transformed DataFrame."}],
+                    "required": ["features"],
                 },
             },
-        }
+            "fit": {
+                "description": "Fit the FillMissingValue model.",
+                "parameters": {
+                    "properties": {"df": {"type": "pd.DataFrame", "description": "The input DataFrame."}},
+                    "required": ["df"],
+                },
+            },
+            "transform": {
+                "description": "Transform the input DataFrame with the fitted model.",
+                "parameters": {
+                    "properties": {"df": {"type": "pd.DataFrame", "description": "The input DataFrame."}},
+                    "required": ["df"],
+                },
+                "returns": [{"type": "pd.DataFrame", "description": "The transformed DataFrame."}],
+            },
+        },
     }
     schema = convert_code_to_tool_schema(DummyClass)
     assert schema == expected
@@ -145,14 +143,12 @@ def test_convert_code_to_tool_schema_class():
 
 def test_convert_code_to_tool_schema_function():
     expected = {
-        "dummy_fn": {
-            "type": "function",
-            "description": "Analyzes a DataFrame and categorizes its columns based on data types. ",
-            "parameters": {
-                "properties": {"df": {"type": "pd.DataFrame", "description": "The DataFrame to be analyzed."}},
-                "required": ["df"],
-            },
-        }
+        "type": "function",
+        "description": "Analyzes a DataFrame and categorizes its columns based on data types.",
+        "parameters": {
+            "properties": {"df": {"type": "pd.DataFrame", "description": "The DataFrame to be analyzed."}},
+            "required": ["df"],
+        },
     }
     schema = convert_code_to_tool_schema(dummy_fn)
     assert schema == expected

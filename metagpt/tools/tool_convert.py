@@ -12,7 +12,8 @@ def convert_code_to_tool_schema(obj, include: list[str] = []):
         for name, method in inspect.getmembers(obj, inspect.isfunction):
             if include and name not in include:
                 continue
-            method_doc = inspect.getdoc(method)
+            # method_doc = inspect.getdoc(method)
+            method_doc = get_class_method_docstring(obj, name)
             if method_doc:
                 schema["methods"][name] = docstring_to_schema(method_doc)
 
@@ -21,8 +22,6 @@ def convert_code_to_tool_schema(obj, include: list[str] = []):
             "type": "function",
             **docstring_to_schema(docstring),
         }
-
-    schema = {obj.__name__: schema}
 
     return schema
 
@@ -70,3 +69,13 @@ def docstring_to_schema(docstring: str):
         schema["returns"] = [{"type": ret[0], "description": remove_spaces(ret[1])} for ret in returns]
 
     return schema
+
+
+def get_class_method_docstring(cls, method_name):
+    """Retrieve a method's docstring, searching the class hierarchy if necessary."""
+    for base_class in cls.__mro__:
+        if method_name in base_class.__dict__:
+            method = base_class.__dict__[method_name]
+            if method.__doc__:
+                return method.__doc__
+    return None  # No docstring found in the class hierarchy

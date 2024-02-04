@@ -19,14 +19,29 @@ from metagpt.tools.tool_types import ToolTypes
 TOOL_TYPE = ToolTypes.DATA_PREPROCESS.type_name
 
 
-class MLProcess(object):
-    def fit(self, df):
+class MLProcess:
+    def fit(self, df: pd.DataFrame):
+        """
+        Fit a model to be used in subsequent transform.
+
+        Args:
+            df (pd.DataFrame): The input DataFrame.
+        """
         raise NotImplementedError
 
-    def transform(self, df):
+    def transform(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Transform the input DataFrame with the fitted model.
+
+        Args:
+            df (pd.DataFrame): The input DataFrame.
+
+        Returns:
+            pd.DataFrame: The transformed DataFrame.
+        """
         raise NotImplementedError
 
-    def fit_transform(self, df) -> pd.DataFrame:
+    def fit_transform(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         Fit and transform the input DataFrame.
 
@@ -38,6 +53,49 @@ class MLProcess(object):
         """
         self.fit(df)
         return self.transform(df)
+
+
+class DataPreprocessTool(MLProcess):
+    """
+    Completing a data preprocessing operation.
+    """
+
+    def __init__(self, features: list):
+        """
+        Initialize self.
+
+        Args:
+            features (list): Columns to be processed.
+        """
+        self.features = features
+        self.model = None  # to be filled by specific subclass Tool
+
+    def fit(self, df: pd.DataFrame):
+        """
+        Fit a model to be used in subsequent transform.
+
+        Args:
+            df (pd.DataFrame): The input DataFrame.
+        """
+        if len(self.features) == 0:
+            return
+        self.model.fit(df[self.features])
+
+    def transform(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Transform the input DataFrame with the fitted model.
+
+        Args:
+            df (pd.DataFrame): The input DataFrame.
+
+        Returns:
+            pd.DataFrame: The transformed DataFrame.
+        """
+        if len(self.features) == 0:
+            return df
+        new_df = df.copy()
+        new_df[self.features] = self.model.transform(new_df[self.features])
+        return new_df
 
 
 @register_tool(tool_type=TOOL_TYPE)
@@ -58,282 +116,77 @@ class FillMissingValue(MLProcess):
                                         Defaults to None.
         """
         self.features = features
-        self.strategy = strategy
-        self.fill_value = fill_value
-        self.si = None
-
-    def fit(self, df: pd.DataFrame):
-        """
-        Fit the FillMissingValue model.
-
-        Args:
-            df (pd.DataFrame): The input DataFrame.
-        """
-        if len(self.features) == 0:
-            return
-        self.si = SimpleImputer(strategy=self.strategy, fill_value=self.fill_value)
-        self.si.fit(df[self.features])
-
-    def transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Transform the input DataFrame with the fitted model.
-
-        Args:
-            df (pd.DataFrame): The input DataFrame.
-
-        Returns:
-            pd.DataFrame: The transformed DataFrame.
-        """
-        if len(self.features) == 0:
-            return df
-        new_df = df.copy()
-        new_df[self.features] = self.si.transform(new_df[self.features])
-        return new_df
+        self.model = SimpleImputer(strategy=strategy, fill_value=fill_value)
 
 
 @register_tool(tool_type=TOOL_TYPE)
-class MinMaxScale(MLProcess):
+class MinMaxScale(DataPreprocessTool):
     """
     Transform features by scaling each feature to a range, which is (0, 1).
     """
 
     def __init__(self, features: list):
-        """
-        Initialize self.
-
-        Args:
-            features (list): Columns to be processed.
-        """
         self.features = features
-        self.mms = None
-
-    def fit(self, df: pd.DataFrame):
-        """
-        Fit the MinMaxScale model.
-
-        Args:
-            df (pd.DataFrame): The input DataFrame.
-        """
-        self.mms = MinMaxScaler()
-        self.mms.fit(df[self.features])
-
-    def transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Transform the input DataFrame with the fitted model.
-
-        Args:
-            df (pd.DataFrame): The input DataFrame.
-
-        Returns:
-            pd.DataFrame: The transformed DataFrame.
-        """
-        new_df = df.copy()
-        new_df[self.features] = self.mms.transform(new_df[self.features])
-        return new_df
+        self.model = MinMaxScaler()
 
 
 @register_tool(tool_type=TOOL_TYPE)
-class StandardScale(MLProcess):
+class StandardScale(DataPreprocessTool):
     """
     Standardize features by removing the mean and scaling to unit variance.
     """
 
     def __init__(self, features: list):
-        """
-        Initialize self.
-
-        Args:
-            features (list): Columns to be processed.
-        """
         self.features = features
-        self.ss = None
-
-    def fit(self, df: pd.DataFrame):
-        """
-        Fit the StandardScale model.
-
-        Args:
-            df (pd.DataFrame): The input DataFrame.
-        """
-        self.ss = StandardScaler()
-        self.ss.fit(df[self.features])
-
-    def transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Transform the input DataFrame with the fitted model.
-
-        Args:
-            df (pd.DataFrame): The input DataFrame.
-
-        Returns:
-            pd.DataFrame: The transformed DataFrame.
-        """
-        new_df = df.copy()
-        new_df[self.features] = self.ss.transform(new_df[self.features])
-        return new_df
+        self.model = StandardScaler()
 
 
 @register_tool(tool_type=TOOL_TYPE)
-class MaxAbsScale(MLProcess):
+class MaxAbsScale(DataPreprocessTool):
     """
     Scale each feature by its maximum absolute value.
     """
 
     def __init__(self, features: list):
-        """
-        Initialize self.
-
-        Args:
-            features (list): Columns to be processed.
-        """
         self.features = features
-        self.mas = None
-
-    def fit(self, df: pd.DataFrame):
-        """
-        Fit the MaxAbsScale model.
-
-        Args:
-            df (pd.DataFrame): The input DataFrame.
-        """
-        self.mas = MaxAbsScaler()
-        self.mas.fit(df[self.features])
-
-    def transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Transform the input DataFrame with the fitted model.
-
-        Args:
-            df (pd.DataFrame): The input DataFrame.
-
-        Returns:
-            pd.DataFrame: The transformed DataFrame.
-        """
-        new_df = df.copy()
-        new_df[self.features] = self.mas.transform(new_df[self.features])
-        return new_df
+        self.model = MaxAbsScaler()
 
 
 @register_tool(tool_type=TOOL_TYPE)
-class RobustScale(MLProcess):
+class RobustScale(DataPreprocessTool):
     """
     Apply the RobustScaler to scale features using statistics that are robust to outliers.
     """
 
     def __init__(self, features: list):
-        """
-        Initialize the RobustScale instance with feature names.
-
-        Args:
-            features (list): List of feature names to be scaled.
-        """
         self.features = features
-        self.rs = None
-
-    def fit(self, df: pd.DataFrame):
-        """
-        Compute the median and IQR for scaling.
-
-        Args:
-            df (pd.DataFrame): Dataframe containing the features.
-        """
-        self.rs = RobustScaler()
-        self.rs.fit(df[self.features])
-
-    def transform(self, df: pd.DataFrame):
-        """
-        Scale features using the previously computed median and IQR.
-
-        Args:
-            df (pd.DataFrame): Dataframe containing the features to be scaled.
-
-        Returns:
-            pd.DataFrame: A new dataframe with scaled features.
-        """
-        new_df = df.copy()
-        new_df[self.features] = self.rs.transform(new_df[self.features])
-        return new_df
+        self.model = RobustScaler()
 
 
 @register_tool(tool_type=TOOL_TYPE)
-class OrdinalEncode(MLProcess):
+class OrdinalEncode(DataPreprocessTool):
     """
     Encode categorical features as ordinal integers.
     """
 
     def __init__(self, features: list):
-        """
-        Initialize the OrdinalEncode instance with feature names.
-
-        Args:
-            features (list): List of categorical feature names to be encoded.
-        """
         self.features = features
-        self.oe = None
-
-    def fit(self, df: pd.DataFrame):
-        """
-        Learn the ordinal encodings for the features.
-
-        Args:
-            df (pd.DataFrame): Dataframe containing the categorical features.
-        """
-        self.oe = OrdinalEncoder()
-        self.oe.fit(df[self.features])
-
-    def transform(self, df: pd.DataFrame):
-        """
-        Convert the categorical features to ordinal integers.
-
-        Args:
-            df (pd.DataFrame): Dataframe containing the categorical features to be encoded.
-
-        Returns:
-            pd.DataFrame: A new dataframe with the encoded features.
-        """
-        new_df = df.copy()
-        new_df[self.features] = self.oe.transform(new_df[self.features])
-        return new_df
+        self.model = OrdinalEncoder()
 
 
 @register_tool(tool_type=TOOL_TYPE)
-class OneHotEncode(MLProcess):
+class OneHotEncode(DataPreprocessTool):
     """
     Apply one-hot encoding to specified categorical columns, the original columns will be dropped.
     """
 
     def __init__(self, features: list):
-        """
-        Initialize self.
-
-        Args:
-            features (list): Categorical columns to be one-hot encoded and dropped.
-        """
         self.features = features
-        self.ohe = None
-
-    def fit(self, df: pd.DataFrame):
-        """
-        Fit the OneHotEncoding model.
-
-        Args:
-            df (pd.DataFrame): The input DataFrame.
-        """
-        self.ohe = OneHotEncoder(handle_unknown="ignore", sparse=False)
-        self.ohe.fit(df[self.features])
+        self.model = OneHotEncoder(handle_unknown="ignore", sparse=False)
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Transform the input DataFrame with the fitted model.
-
-        Args:
-            df (pd.DataFrame): The input DataFrame.
-
-        Returns:
-            pd.DataFrame: The transformed DataFrame.
-        """
-        ts_data = self.ohe.transform(df[self.features])
-        new_columns = self.ohe.get_feature_names_out(self.features)
+        ts_data = self.model.transform(df[self.features])
+        new_columns = self.model.get_feature_names_out(self.features)
         ts_data = pd.DataFrame(ts_data, columns=new_columns, index=df.index)
         new_df = df.drop(self.features, axis=1)
         new_df = pd.concat([new_df, ts_data], axis=1)
@@ -341,7 +194,7 @@ class OneHotEncode(MLProcess):
 
 
 @register_tool(tool_type=TOOL_TYPE)
-class LabelEncode(MLProcess):
+class LabelEncode(DataPreprocessTool):
     """
     Apply label encoding to specified categorical columns in-place.
     """
@@ -357,12 +210,6 @@ class LabelEncode(MLProcess):
         self.le_encoders = []
 
     def fit(self, df: pd.DataFrame):
-        """
-        Fit the LabelEncode model.
-
-        Args:
-            df (pd.DataFrame): The input DataFrame.
-        """
         if len(self.features) == 0:
             return
         for col in self.features:
@@ -370,15 +217,6 @@ class LabelEncode(MLProcess):
             self.le_encoders.append(le)
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Transform the input DataFrame with the fitted model.
-
-        Args:
-            df (pd.DataFrame): The input DataFrame.
-
-        Returns:
-            pd.DataFrame: The transformed DataFrame.
-        """
         if len(self.features) == 0:
             return df
         new_df = df.copy()

@@ -7,11 +7,10 @@
 """
 
 from enum import Enum
-from metagpt.tools import tool_types  # this registers all tool types
 from metagpt.tools import libs  # this registers all tools
 from metagpt.tools.tool_registry import TOOL_REGISTRY
 
-_ = tool_types, libs, TOOL_REGISTRY  # Avoid pre-commit error
+_ = libs, TOOL_REGISTRY  # Avoid pre-commit error
 
 
 class SearchEngineType(Enum):
