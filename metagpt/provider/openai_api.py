@@ -209,14 +209,7 @@ class OpenAILLM(BaseLLM):
             and message.tool_calls[0].function.arguments is not None
         ):
             # reponse is code
-            try:
-                return json.loads(message.tool_calls[0].function.arguments, strict=False)
-            except json.decoder.JSONDecodeError as e:
-                error_msg = (
-                    f"Got JSONDecodeError for \n{'--'*40} \n{message.tool_calls[0].function.arguments}, {str(e)}"
-                )
-                logger.error(error_msg)
-                raise json.decoder.JSONDecodeError(error_msg, e.doc, e.pos)
+            return json.loads(message.tool_calls[0].function.arguments, strict=False)
         elif message.tool_calls is None and message.content is not None:
             # reponse is code, fix openai tools_call respond bug,
             # The response content is `code``, but it appears in the content instead of the arguments.
