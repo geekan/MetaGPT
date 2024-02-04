@@ -1,3 +1,5 @@
+import json
+
 import pytest
 from openai.types.chat import (
     ChatCompletion,
@@ -40,16 +42,6 @@ async def test_speech_to_text():
 def tool_calls_rsp():
     function_rsps = [
         Function(arguments='{\n"language": "python",\n"code": "print(\'hello world\')"}', name="execute"),
-        Function(arguments='{\n"language": "python",\n"code": \'print("hello world")\'}', name="execute"),
-        Function(arguments='{\n"language": \'python\',\n"code": "print(\'hello world\')"}', name="execute"),
-        Function(arguments='{\n"language": "python",\n"code": "print(\'hello world\')"}', name="execute"),
-        Function(arguments='{\n"language": "python",\n"code": ```print("hello world")```}', name="execute"),
-        Function(arguments='{\n"language": "python",\n"code": """print("hello world")"""}', name="execute"),
-        Function(arguments='\nprint("hello world")\\n', name="execute"),
-        # only `{` in arguments
-        Function(arguments='{\n"language": "python",\n"code": "print(\'hello world\')"', name="execute"),
-        # no `{`, `}` in arguments
-        Function(arguments='\n"language": "python",\n"code": "print(\'hello world\')"', name="execute"),
     ]
     tool_calls = [
         ChatCompletionMessageToolCall(type="function", id=f"call_{i}", function=f) for i, f in enumerate(function_rsps)
@@ -63,10 +55,6 @@ def tool_calls_rsp():
     messages.extend(
         [
             ChatCompletionMessage(content="```python\nprint('hello world')```", role="assistant", tool_calls=None),
-            ChatCompletionMessage(content="'''python\nprint('hello world')'''", role="assistant", tool_calls=None),
-            ChatCompletionMessage(content='"""python\nprint(\'hello world\')"""', role="assistant", tool_calls=None),
-            ChatCompletionMessage(content="'''python\nprint(\"hello world\")'''", role="assistant", tool_calls=None),
-            ChatCompletionMessage(content="```python\nprint('hello world')```", role="assistant", tool_calls=None),
         ]
     )
     choices = [
@@ -76,6 +64,15 @@ def tool_calls_rsp():
         ChatCompletion(id=str(i), choices=[c], created=i, model="gpt-4", object="chat.completion")
         for i, c in enumerate(choices)
     ]
+
+
+@pytest.fixture
+def json_decode_error():
+    function_rsp = Function(arguments='{\n"language": \'python\',\n"code": "print(\'hello world\')"}', name="execute")
+    tool_calls = [ChatCompletionMessageToolCall(type="function", id=f"call_{0}", function=function_rsp)]
+    message = ChatCompletionMessage(content=None, role="assistant", tool_calls=tool_calls)
+    choices = [Choice(finish_reason="tool_calls", logprobs=None, index=0, message=message)]
+    return ChatCompletion(id="0", choices=choices, created=0, model="gpt-4", object="chat.completion")
 
 
 class TestOpenAI:
@@ -105,3 +102,9 @@ class TestOpenAI:
                 code["language"] == "markdown"
             else:
                 code["language"] == "python"
+
+    def test_aask_code_JSONDecodeError(self, json_decode_error):
+        instance = OpenAILLM(mock_llm_config)
+        with pytest.raises(json.decoder.JSONDecodeError) as e:
+            instance.get_choice_function_arguments(json_decode_error)
+        assert "JSONDecodeError" in str(e)
