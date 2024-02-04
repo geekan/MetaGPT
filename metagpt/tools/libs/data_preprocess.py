@@ -71,26 +71,11 @@ class DataPreprocessTool(MLProcess):
         self.model = None  # to be filled by specific subclass Tool
 
     def fit(self, df: pd.DataFrame):
-        """
-        Fit a model to be used in subsequent transform.
-
-        Args:
-            df (pd.DataFrame): The input DataFrame.
-        """
         if len(self.features) == 0:
             return
         self.model.fit(df[self.features])
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Transform the input DataFrame with the fitted model.
-
-        Args:
-            df (pd.DataFrame): The input DataFrame.
-
-        Returns:
-            pd.DataFrame: The transformed DataFrame.
-        """
         if len(self.features) == 0:
             return df
         new_df = df.copy()
