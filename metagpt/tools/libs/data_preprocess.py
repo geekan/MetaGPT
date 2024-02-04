@@ -99,7 +99,7 @@ class DataPreprocessTool(MLProcess):
 
 
 @register_tool(tool_type=TOOL_TYPE)
-class FillMissingValue(MLProcess):
+class FillMissingValue(DataPreprocessTool):
     """
     Completing missing values with simple strategies.
     """
