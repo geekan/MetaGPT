@@ -4,7 +4,7 @@ import pytest
 
 from metagpt.actions.ci.execute_nb_code import ExecuteNbCode
 from metagpt.actions.ci.write_analysis_code import (
-    WriteCodeByGenerate,
+    WriteCodeWithoutTools,
     WriteCodeWithTools,
 )
 from metagpt.logs import logger
@@ -15,7 +15,7 @@ from metagpt.strategy.planner import STRUCTURAL_CONTEXT
 @pytest.mark.skip
 @pytest.mark.asyncio
 async def test_write_code_by_list_plan():
-    write_code = WriteCodeByGenerate()
+    write_code = WriteCodeWithoutTools()
     execute_code = ExecuteNbCode()
     messages = []
     plan = ["随机生成一个pandas DataFrame时间序列", "绘制这个时间序列的直方图", "回顾已完成的任务", "求均值", "总结"]
@@ -144,7 +144,7 @@ async def test_write_code_to_correct_error():
         Message(content=wrong_code, role="assistant"),
         Message(content=error, role="user"),
     ]
-    new_code = await WriteCodeByGenerate().run(context=context)
+    new_code = await WriteCodeWithoutTools().run(context=context)
     new_code = new_code["code"]
     print(new_code)
     assert "read_csv" in new_code  # should correct read_excel to read_csv
@@ -184,7 +184,7 @@ async def test_write_code_reuse_code_simple():
     context = [
         Message(content=structural_context, role="user"),
     ]
-    code = await WriteCodeByGenerate().run(context=context)
+    code = await WriteCodeWithoutTools().run(context=context)
     code = code["code"]
     print(code)
     assert "pandas" not in code and "read_csv" not in code  # should reuse import and read statement from previous one
@@ -239,7 +239,7 @@ async def test_write_code_reuse_code_long():
         Message(content=structural_context, role="user"),
     ]
     trials_num = 5
-    trials = [WriteCodeByGenerate().run(context=context, temperature=0.0) for _ in range(trials_num)]
+    trials = [WriteCodeWithoutTools().run(context=context, temperature=0.0) for _ in range(trials_num)]
     trial_results = await asyncio.gather(*trials)
     print(*trial_results, sep="\n\n***\n\n")
     success = [
@@ -313,7 +313,7 @@ async def test_write_code_reuse_code_long_for_wine():
         Message(content=structural_context, role="user"),
     ]
     trials_num = 5
-    trials = [WriteCodeByGenerate().run(context=context, temperature=0.0) for _ in range(trials_num)]
+    trials = [WriteCodeWithoutTools().run(context=context, temperature=0.0) for _ in range(trials_num)]
     trial_results = await asyncio.gather(*trials)
     print(*trial_results, sep="\n\n***\n\n")
     success = [

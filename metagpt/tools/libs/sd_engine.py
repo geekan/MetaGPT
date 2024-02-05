@@ -2,12 +2,13 @@
 # @Date    : 2023/7/19 16:28
 # @Author  : stellahong (stellahong@deepwisdom.ai)
 # @Desc    :
+from __future__ import annotations
+
 import base64
 import hashlib
 import io
 import json
 from os.path import join
-from typing import List
 
 import requests
 from aiohttp import ClientSession
@@ -135,11 +136,11 @@ class SDEngine:
             self.save(results, save_name=f"output_{save_name}")
         return results
 
-    async def run_t2i(self, payloads: List):
+    async def run_t2i(self, payloads: list):
         """Run the stable diffusion API for multiple prompts asynchronously.
 
         Args:
-            payloads (list): List of payload, each payload is a dictionary of input parameters for the stable diffusion API.
+            payloads (list): list of payload, each payload is a dictionary of input parameters for the stable diffusion API.
         """
         session = ClientSession()
         for payload_idx, payload in enumerate(payloads):

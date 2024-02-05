@@ -1,4 +1,6 @@
-from typing import List, Tuple
+from __future__ import annotations
+
+from typing import Tuple
 
 from metagpt.actions import Action
 from metagpt.actions.ci.write_analysis_code import WriteCodeWithTools
@@ -16,11 +18,11 @@ from metagpt.utils.common import create_func_call_config, remove_comments
 class WriteCodeWithToolsML(WriteCodeWithTools):
     async def run(
         self,
-        context: List[Message],
+        context: list[Message],
         plan: Plan = None,
         column_info: str = "",
         **kwargs,
-    ) -> Tuple[List[Message], str]:
+    ) -> Tuple[list[Message], str]:
         # prepare tool schemas and tool-type-specific instruction
         tool_schemas, tool_type_usage_prompt = await self._prepare_tools(plan=plan)
 

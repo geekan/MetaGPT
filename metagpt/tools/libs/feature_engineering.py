@@ -4,6 +4,8 @@
 # @Author  : lidanyang
 # @File    : feature_engineering.py
 # @Desc    : Feature Engineering Tools
+from __future__ import annotations
+
 import itertools
 
 # import lightgbm as lgb

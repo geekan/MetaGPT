@@ -4,9 +4,11 @@
 @Author  :   orange-crow
 @File    :   plan.py
 """
+from __future__ import annotations
+
 import json
 from copy import deepcopy
-from typing import Dict, List, Tuple
+from typing import Tuple
 
 from metagpt.actions import Action
 from metagpt.logs import logger
@@ -40,14 +42,14 @@ class WritePlan(Action):
     ```
     """
 
-    async def assign_task_type(self, tasks: List[Dict]) -> str:
+    async def assign_task_type(self, tasks: list[dict]) -> str:
         """Assign task type to each task in tasks
 
         Args:
-            tasks (List[Dict]): tasks to be assigned task type
+            tasks (list[dict]): tasks to be assigned task type
 
         Returns:
-            List[Dict]: tasks with task type assigned
+            list[dict]: tasks with task type assigned
         """
         task_list = "\n".join([f"Task {task['task_id']}: {task['instruction']}" for task in tasks])
         task_type_desc = "\n".join(
@@ -64,7 +66,7 @@ class WritePlan(Action):
             task["task_type"] = task_type
         return json.dumps(tasks)
 
-    async def run(self, context: List[Message], max_tasks: int = 5, use_tools: bool = False) -> str:
+    async def run(self, context: list[Message], max_tasks: int = 5, use_tools: bool = False) -> str:
         prompt = (
             self.PROMPT_TEMPLATE.replace("__context__", "\n".join([str(ct) for ct in context]))
             # .replace("__current_plan__", current_plan)
@@ -77,7 +79,7 @@ class WritePlan(Action):
         return rsp
 
 
-def rsp_to_tasks(rsp: str) -> List[Task]:
+def rsp_to_tasks(rsp: str) -> list[Task]:
     rsp = json.loads(rsp)
     tasks = [Task(**task_config) for task_config in rsp]
     return tasks

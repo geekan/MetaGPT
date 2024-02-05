@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 from pydantic import Field
 
 from metagpt.actions.ci.ask_review import ReviewConst
 from metagpt.actions.ci.execute_nb_code import ExecuteNbCode
 from metagpt.actions.ci.write_analysis_code import (
-    WriteCodeByGenerate,
+    WriteCodeWithoutTools,
     WriteCodeWithTools,
 )
 from metagpt.logs import logger
@@ -80,7 +82,7 @@ class CodeInterpreter(Role):
         return py_code, result, success
 
     async def _write_code(self):
-        todo = WriteCodeByGenerate() if not self.use_tools else WriteCodeWithTools(selected_tools=self.tools)
+        todo = WriteCodeWithoutTools() if not self.use_tools else WriteCodeWithTools(selected_tools=self.tools)
         logger.info(f"ready to {todo.name}")
 
         context = self.planner.get_useful_memories()

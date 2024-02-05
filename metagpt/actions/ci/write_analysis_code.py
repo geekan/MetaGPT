@@ -4,6 +4,8 @@
 @Author  :   orange-crow
 @File    :   write_analysis_code.py
 """
+from __future__ import annotations
+
 from typing import Tuple
 
 from metagpt.actions import Action
@@ -42,7 +44,7 @@ class BaseWriteAnalysisCode(Action):
         raise NotImplementedError
 
 
-class WriteCodeByGenerate(BaseWriteAnalysisCode):
+class WriteCodeWithoutTools(BaseWriteAnalysisCode):
     """Ask LLM to generate codes purely by itself without local user-defined tools"""
 
     async def run(self, context: list[Message], plan: Plan = None, system_msg: str = None, **kwargs) -> dict:

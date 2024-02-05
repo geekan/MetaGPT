@@ -1,4 +1,4 @@
-from typing import List
+from __future__ import annotations
 
 from metagpt.actions.ci.write_analysis_code import BaseWriteAnalysisCode
 from metagpt.logs import logger
@@ -75,7 +75,7 @@ CODE_REFLECTION = {
 class DebugCode(BaseWriteAnalysisCode):
     async def run(
         self,
-        context: List[Message] = None,
+        context: list[Message] = None,
         code: str = "",
         runtime_result: str = "",
     ) -> str:
@@ -83,7 +83,7 @@ class DebugCode(BaseWriteAnalysisCode):
         Execute the debugging process based on the provided context, code, and runtime_result.
 
         Args:
-            context (List[Message]): A list of Message objects representing the context.
+            context (list[Message]): A list of Message objects representing the context.
             code (str): The code to be debugged.
             runtime_result (str): The result of the code execution.
 

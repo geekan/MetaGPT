@@ -2,13 +2,15 @@
 """
 @Date    :   2023/11/17 14:22:15
 @Author  :   orange-crow
-@File    :   code_executor.py
+@File    :   execute_nb_code.py
 """
+from __future__ import annotations
+
 import asyncio
 import base64
 import re
 import traceback
-from typing import List, Literal, Tuple
+from typing import Literal, Tuple
 
 import nbformat
 from nbclient import NotebookClient
@@ -90,7 +92,7 @@ class ExecuteNbCode(Action):
         else:
             cell["outputs"].append(new_output(output_type="stream", name="stdout", text=str(output)))
 
-    def parse_outputs(self, outputs: List[str]) -> str:
+    def parse_outputs(self, outputs: list[str]) -> str:
         """Parses the outputs received from notebook execution."""
         assert isinstance(outputs, list)
         parsed_output = ""
