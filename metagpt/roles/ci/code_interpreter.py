@@ -64,9 +64,6 @@ class CodeInterpreter(Role):
             self.working_memory.add(Message(content=result, role="user", cause_by=ExecuteNbCode))
 
             ### process execution result ###
-            if "!pip" in code["code"]:
-                success = False
-
             counter += 1
 
             if not success and counter >= max_retry:
@@ -76,7 +73,7 @@ class CodeInterpreter(Role):
                     counter = 0  # redo the task again with help of human suggestions
 
         py_code = (
-            code["code"] if code.get("language") != "markdown" else ""
+            code["code"] if code.get("language") == "python" else ""
         )  # use python code as final code; for markdown, return the rendered result instead of the code itself
 
         return py_code, result, success

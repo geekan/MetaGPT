@@ -27,28 +27,6 @@ print(column_info)
 - Import `get_column_info` only if it's not already imported.
 """
 
-GEN_DATA_DESC_PROMPT = """
-Here is the head 5 rows of the dataset:
-{data_head}
-
-Please provide a brief one-sentence background of the dataset, and concise meaning for each column. Keep descriptions short.
-
-Output the information in a JSON format, as shown in this example:
-```json
-{
-    "data_desc": "Brief dataset background.",
-    "column_desc": {
-        "column_name1": "Abstract meaning of the first column.",
-        "column_name2": "Abstract meaning of the second column.",
-        ...
-    }
-}
-```
-
-# Constraints:
-- Don't contain specific values or examples found in the data column.
-"""
-
 PRINT_DATA_COLUMNS = {
     "name": "print_column_info",
     "description": "Print the latest column information after 'Done Tasks' code if first read or data changed.",
@@ -64,7 +42,7 @@ PRINT_DATA_COLUMNS = {
     },
 }
 
-GENERATE_CODE_PROMPT = """
+ML_COMMON_PROMPT = """
 # Background
 As a data scientist, you need to help user to achieve their goal [{user_requirement}] step-by-step in an continuous Jupyter notebook.
 
@@ -83,7 +61,9 @@ Latest data info after previous tasks:
 # Task
 Write complete code for 'Current Task'. And avoid duplicating code from 'Done Tasks', such as repeated import of packages, reading data, etc.
 Specifically, {tool_type_usage_prompt}
+"""
 
+USE_NO_TOOLS_EXAMPLE = """
 # Output Example:
 when current task is "train a lightgbm model on training data", the code can be like:
 ```python
@@ -105,26 +85,7 @@ model.fit(train, y_train)
 - Ensure the output new code is executable in the same Jupyter notebook with previous tasks code have been executed.
 """
 
-ML_TOOL_USAGE_PROMPT = """
-# Background
-As a data scientist, you need to help user to achieve their goal [{user_requirement}] step-by-step in an continuous Jupyter notebook.
-
-## Done Tasks
-```python
-{history_code}
-```end
-
-## Current Task
-{current_task}
-
-# Latest Data Info
-Latest data info after previous tasks:
-{column_info}
-
-# Task
-Write complete code for 'Current Task'. And avoid duplicating code from 'Done Tasks', such as repeated import of packages, reading data, etc.
-Specifically, {tool_type_usage_prompt}
-
+USE_TOOLS_EXAMPLE = """
 # Capabilities
 - You can utilize pre-defined tools in any code lines from 'Available Tools' in the form of Python Class.
 - You can freely combine the use of any other public packages, like sklearn, numpy, pandas, etc..
@@ -162,3 +123,6 @@ for col in num_cols:
 - Always prioritize using pre-defined tools for the same functionality.
 - Always copy the DataFrame before processing it and use the copy to process.
 """
+
+ML_GENERATE_CODE_PROMPT = ML_COMMON_PROMPT + USE_NO_TOOLS_EXAMPLE
+ML_TOOL_USAGE_PROMPT = ML_COMMON_PROMPT + USE_TOOLS_EXAMPLE

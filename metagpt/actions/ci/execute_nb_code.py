@@ -181,7 +181,13 @@ class ExecuteNbCode(Action):
 
             # code success
             outputs = self.parse_outputs(self.nb.cells[-1].outputs)
-            return truncate(remove_escape_and_color_codes(outputs), is_success=success)
+            outputs, success = truncate(remove_escape_and_color_codes(outputs), is_success=success)
+
+            if "!pip" in outputs:
+                success = False
+
+            return outputs, success
+
         elif language == "markdown":
             # add markdown content to markdown cell in a notebook.
             self.add_markdown_cell(code)

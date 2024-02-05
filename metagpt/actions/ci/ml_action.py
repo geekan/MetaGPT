@@ -5,7 +5,7 @@ from typing import Tuple
 from metagpt.actions import Action
 from metagpt.actions.ci.write_analysis_code import WriteCodeWithTools
 from metagpt.prompts.ci.ml_action import (
-    GENERATE_CODE_PROMPT,
+    ML_GENERATE_CODE_PROMPT,
     ML_TOOL_USAGE_PROMPT,
     PRINT_DATA_COLUMNS,
     UPDATE_DATA_COLUMNS,
@@ -43,7 +43,7 @@ class WriteCodeWithToolsML(WriteCodeWithTools):
             )
 
         else:
-            prompt = GENERATE_CODE_PROMPT.format(
+            prompt = ML_GENERATE_CODE_PROMPT.format(
                 user_requirement=plan.goal,
                 history_code=code_context,
                 current_task=plan.current_task.instruction,
