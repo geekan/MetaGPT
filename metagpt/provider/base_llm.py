@@ -8,7 +8,7 @@
 """
 import json
 from abc import ABC, abstractmethod
-from typing import Optional, Union
+from typing import Dict, Optional, Union
 
 from openai import AsyncOpenAI
 
@@ -73,9 +73,11 @@ class BaseLLM(ABC):
         system_msgs: Optional[list[str]] = None,
         format_msgs: Optional[list[dict[str, str]]] = None,
         images: Optional[Union[str, list[str]]] = None,
+        generate_image: bool = False,
+        image_params: Optional[Dict[str, str]] = None,
         timeout=3,
         stream=True,
-    ) -> str:
+    ) -> Optional[str, list[str]]:
         if system_msgs:
             message = self._system_msgs(system_msgs)
         else:
@@ -84,6 +86,8 @@ class BaseLLM(ABC):
             message = []
         if format_msgs:
             message.extend(format_msgs)
+        if generate_image:
+            return await self.atext2image(msg, **image_params)
         message.append(self._user_msg(msg, images=images))
         logger.debug(message)
         rsp = await self.acompletion_text(message, stream=stream, timeout=timeout)
@@ -120,6 +124,10 @@ class BaseLLM(ABC):
     @abstractmethod
     async def acompletion_text(self, messages: list[dict], stream=False, timeout=3) -> str:
         """Asynchronous version of completion. Return str. Support stream-print"""
+
+    @abstractmethod
+    async def atext2image(self, messages: str, **kwargs) -> list[str]:
+        """Asynchronous method for generating images."""
 
     def get_choice_text(self, rsp: dict) -> str:
         """Required to provide the first text of choice"""

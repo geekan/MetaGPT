@@ -161,7 +161,11 @@ class OpenAILLM(BaseLLM):
         self._update_costs(rsp.usage)
         return rsp
 
-    def _process_message(self, messages: Union[str, Message, list[dict], list[Message], list[str]]) -> list[dict]:
+    def _process_message(
+        self,
+        messages: Union[str, Message, list[dict], list[Message], list[str]],
+        images: Optional[Union[str, list[str]]] = None,
+    ) -> list[dict]:
         """convert messages to list[dict]."""
         if isinstance(messages, list):
             messages = [Message(content=msg) if isinstance(msg, str) else msg for msg in messages]
@@ -245,23 +249,22 @@ class OpenAILLM(BaseLLM):
         """speech to text"""
         return await self.aclient.audio.transcriptions.create(**kwargs)
 
-    async def gen_image(
-        self,
-        prompt: str,
-        size: str = "1024x1024",
-        quality: str = "standard",
-        model: str = None,
-        resp_format: str = "url",
-    ) -> list["Image"]:
-        """image generate"""
+    async def atext2image(self, message: str, **kwargs) -> list["Image"]:
+        """Asynchronous method for generating images."""
+        resp_format = kwargs.get("resp_format", "url")
         assert resp_format in ["url", "b64_json"]
-        if not model:
-            model = self.model
+        model = kwargs.get("model", self.model)
+        size = kwargs.get("size", "1024x1024")
+        quality = kwargs.get("quality", "standard")
         res = await self.aclient.images.generate(
-            model=model, prompt=prompt, size=size, quality=quality, n=1, response_format=resp_format
+            model=model, prompt=message, size=size, quality=quality, n=1, response_format=resp_format
         )
+        return await self.get_choice_image(res, resp_format)
+
+    @staticmethod
+    async def get_choice_image(res, resp_format):
         imgs = []
         for item in res.data:
             img_url_or_b64 = item.url if resp_format == "url" else item.b64_json
             imgs.append(decode_image(img_url_or_b64))
-        return imgs
+        return imgs[0]

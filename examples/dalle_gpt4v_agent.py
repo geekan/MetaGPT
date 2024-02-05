@@ -18,10 +18,6 @@ from metagpt.utils.common import encode_image
 class GenAndImproveImageAction(Action):
     save_image: bool = True
 
-    async def generate_image(self, prompt: str) -> Image:
-        imgs = await self.llm.gen_image(model="dall-e-3", prompt=prompt)
-        return imgs[0]
-
     async def refine_prompt(self, old_prompt: str, image: Image) -> str:
         msg = (
             f"You are a creative painter, with the given generated image and old prompt: {old_prompt}, "
@@ -43,11 +39,12 @@ class GenAndImproveImageAction(Action):
     async def run(self, messages: list[Message]) -> str:
         prompt = messages[-1].content
 
-        old_img: Image = await self.generate_image(prompt)
+        old_img: Image = await self.llm.aask(msg=prompt, generate_image=True)
+
         new_prompt = await self.refine_prompt(old_prompt=prompt, image=old_img)
         logger.info(f"original prompt: {prompt}")
         logger.info(f"refined prompt: {new_prompt}")
-        new_img: Image = await self.generate_image(new_prompt)
+        new_img: Image = await self.llm.aask(msg=new_prompt, generate_image=True)
         if self.save_image:
             old_img.save("./img_by-dall-e_old.png")
             new_img.save("./img_by-dall-e_new.png")
