@@ -10,7 +10,7 @@ from metagpt.roles.ci.code_interpreter import CodeInterpreter
 
 async def main():
     prompt = """Get data from `paperlist` table in https://papercopilot.com/statistics/iclr-statistics/iclr-2024-statistics/,
-    and save it to a csv file. paper title must include `multiagent` or `large language model`. *notice: print key data*"""
+    and save it to a csv file. paper title must include `multiagent` or `large language model`. *notice: print key variables*"""
     ci = CodeInterpreter(goal=prompt, use_tools=True)
 
     await ci.run(prompt)
