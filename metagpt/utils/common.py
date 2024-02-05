@@ -25,7 +25,7 @@ import sys
 import traceback
 import typing
 from pathlib import Path
-from typing import Any, List, Tuple, Union
+from typing import Any, List, Tuple, Union, Callable
 
 import aiofiles
 import loguru
@@ -214,7 +214,7 @@ class OutputParser:
 
         if start_index != -1 and end_index != -1:
             # Extract the structure part
-            structure_text = text[start_index : end_index + 1]
+            structure_text = text[start_index: end_index + 1]
 
             try:
                 # Attempt to convert the text to a Python data type using ast.literal_eval
@@ -335,6 +335,14 @@ def print_members(module, indent=0):
             print(f"{prefix}Function: {name}")
         elif inspect.ismethod(obj):
             print(f"{prefix}Method: {name}")
+
+
+def get_function_schema(func: Callable) -> dict[str, Union[dict, Any, str]]:
+    sig = inspect.signature(func)
+    parameters = sig.parameters
+    return_type = sig.return_annotation
+    param_schema = {name: parameter.annotation for name, parameter in parameters.items()}
+    return {"input_params": param_schema, "return_type": return_type, "func_desc": func.__doc__, "func": func}
 
 
 def parse_recipient(text):
@@ -592,6 +600,10 @@ def list_files(root: str | Path) -> List[Path]:
     except Exception as e:
         logger.error(f"Error: {e}")
     return files
+
+
+def is_coroutine_func(func: Callable) -> bool:
+    return inspect.iscoroutinefunction(func)
 
 
 def encode_image(image_path: Path, encoding: str = "utf-8") -> str:
