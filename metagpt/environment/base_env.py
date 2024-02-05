@@ -45,8 +45,9 @@ def mark_as_readable(func):
 
 
 def mark_as_writeable(func):
-    """mark functionn as a writeable one in ExtEnv, it does something to ExtEnv"""
+    """mark function as a writeable one in ExtEnv, it does something to ExtEnv"""
     env_write_api_registry[func.__name__] = get_function_schema(func)
+    return func
 
 
 class ExtEnv(BaseModel):

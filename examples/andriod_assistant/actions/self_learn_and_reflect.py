@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# !/usr/bin/env python
 # -*- coding: utf-8 -*-
 # @Desc   : LIKE scripts/self_explorer.py in stage=learn & mode=auto self_explore_task stage
 
@@ -58,21 +58,21 @@ class SelfLearnAndReflect(Action):
     ui_area: int = -1
 
     async def run(
-        self, round_count: int, task_desc: str, last_act: str, task_dir: Path, docs_dir: Path, env: AndroidEnv
+            self, round_count: int, task_desc: str, last_act: str, task_dir: Path, docs_dir: Path, env: AndroidEnv
     ) -> AndroidActionOutput:
-        resp = self.run_self_learn(round_count, task_desc, last_act, task_dir, env)
-        resp = self.run_reflect(round_count, task_desc, last_act, task_dir, docs_dir, env)
+        resp = await self.run_self_learn(round_count, task_desc, last_act, task_dir, env)
+        resp = await self.run_reflect(round_count, task_desc, last_act, task_dir, docs_dir, env)
         return resp
 
     async def run_self_learn(
-        self, round_count: int, task_desc: str, last_act: str, task_dir: Path, env: AndroidEnv
+            self, round_count: int, task_desc: str, last_act: str, task_dir: Path, env: AndroidEnv
     ) -> AndroidActionOutput:
-        screenshot_path: Path = env.step(
+        screenshot_path: Path = env.observe(
             EnvAPIAbstract(
                 api_name="get_screenshot", kwargs={"ss_name": f"{round_count}_before", "local_save_dir": task_dir}
             )
         )
-        xml_path: Path = env.step(
+        xml_path: Path = env.observe(
             EnvAPIAbstract(api_name="get_xml", kwargs={"xml_name": f"{round_count}", "local_save_dir": task_dir})
         )
         if not screenshot_path.exists() or not xml_path.exists():
@@ -80,6 +80,7 @@ class SelfLearnAndReflect(Action):
 
         clickable_list = []
         focusable_list = []
+        # TODO Tuple Bug
         traverse_xml_tree(xml_path, clickable_list, "clickable", True)
         traverse_xml_tree(xml_path, focusable_list, "focusable", True)
         elem_list = []
@@ -155,9 +156,9 @@ class SelfLearnAndReflect(Action):
         return AndroidActionOutput()
 
     async def run_reflect(
-        self, round_count: int, task_desc: str, last_act: str, task_dir: Path, docs_dir: Path, env: AndroidEnv
+            self, round_count: int, task_desc: str, last_act: str, task_dir: Path, docs_dir: Path, env: AndroidEnv
     ) -> AndroidActionOutput:
-        screenshot_path: Path = env.step(
+        screenshot_path: Path = env.observe(
             EnvAPIAbstract(
                 api_name="get_screenshot", kwargs={"ss_name": f"{round_count}_after", "local_save_dir": task_dir}
             )
