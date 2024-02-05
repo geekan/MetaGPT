@@ -1,47 +1,23 @@
+import json
+
 import pytest
+from openai.types.chat import (
+    ChatCompletion,
+    ChatCompletionMessage,
+    ChatCompletionMessageToolCall,
+)
+from openai.types.chat.chat_completion import Choice
+from openai.types.chat.chat_completion_message_tool_call import Function
 from PIL import Image
 
 from metagpt.const import TEST_DATA_PATH
 from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.provider import OpenAILLM
-from metagpt.schema import UserMessage
 from tests.metagpt.provider.mock_llm_config import (
     mock_llm_config,
     mock_llm_config_proxy,
 )
-
-
-@pytest.mark.asyncio
-async def test_aask_code():
-    llm = LLM()
-    msg = [{"role": "user", "content": "Write a python hello world code."}]
-    rsp = await llm.aask_code(msg)  # -> {'language': 'python', 'code': "print('Hello, World!')"}
-
-    logger.info(rsp)
-    assert "language" in rsp
-    assert "code" in rsp
-    assert len(rsp["code"]) > 0
-
-
-@pytest.mark.asyncio
-async def test_aask_code_str():
-    llm = LLM()
-    msg = "Write a python hello world code."
-    rsp = await llm.aask_code(msg)  # -> {'language': 'python', 'code': "print('Hello, World!')"}
-    assert "language" in rsp
-    assert "code" in rsp
-    assert len(rsp["code"]) > 0
-
-
-@pytest.mark.asyncio
-async def test_aask_code_message():
-    llm = LLM()
-    msg = UserMessage("Write a python hello world code.")
-    rsp = await llm.aask_code(msg)  # -> {'language': 'python', 'code': "print('Hello, World!')"}
-    assert "language" in rsp
-    assert "code" in rsp
-    assert len(rsp["code"]) > 0
 
 
 @pytest.mark.asyncio
@@ -63,16 +39,41 @@ async def test_speech_to_text():
     assert "你好" == resp.text
 
 
-@pytest.mark.asyncio
-async def test_gen_image():
-    llm = LLM()
-    model = "dall-e-3"
-    prompt = 'a logo with word "MetaGPT"'
-    images: list[Image] = await llm.gen_image(model=model, prompt=prompt)
-    assert images[0].size == (1024, 1024)
+@pytest.fixture
+def tool_calls_rsp():
+    function_rsps = [
+        Function(arguments='{\n"language": "python",\n"code": "print(\'hello world\')"}', name="execute"),
+    ]
+    tool_calls = [
+        ChatCompletionMessageToolCall(type="function", id=f"call_{i}", function=f) for i, f in enumerate(function_rsps)
+    ]
+    messages = [ChatCompletionMessage(content=None, role="assistant", tool_calls=[t]) for t in tool_calls]
+    # 添加一个纯文本响应
+    messages.append(
+        ChatCompletionMessage(content="Completed a python code for hello world!", role="assistant", tool_calls=None)
+    )
+    # 添加 openai tool calls respond bug, code 出现在ChatCompletionMessage.content中
+    messages.extend(
+        [
+            ChatCompletionMessage(content="```python\nprint('hello world')```", role="assistant", tool_calls=None),
+        ]
+    )
+    choices = [
+        Choice(finish_reason="tool_calls", logprobs=None, index=i, message=msg) for i, msg in enumerate(messages)
+    ]
+    return [
+        ChatCompletion(id=str(i), choices=[c], created=i, model="gpt-4", object="chat.completion")
+        for i, c in enumerate(choices)
+    ]
 
-    images: list[Image] = await llm.gen_image(model=model, prompt=prompt, resp_format="b64_json")
-    assert images[0].size == (1024, 1024)
+
+@pytest.fixture
+def json_decode_error():
+    function_rsp = Function(arguments='{\n"language": \'python\',\n"code": "print(\'hello world\')"}', name="execute")
+    tool_calls = [ChatCompletionMessageToolCall(type="function", id=f"call_{0}", function=function_rsp)]
+    message = ChatCompletionMessage(content=None, role="assistant", tool_calls=tool_calls)
+    choices = [Choice(finish_reason="tool_calls", logprobs=None, index=0, message=message)]
+    return ChatCompletion(id="0", choices=choices, created=0, model="gpt-4", object="chat.completion")
 
 
 class TestOpenAI:
@@ -87,3 +88,36 @@ class TestOpenAI:
         instance = OpenAILLM(mock_llm_config_proxy)
         kwargs = instance._make_client_kwargs()
         assert "http_client" in kwargs
+
+    def test_get_choice_function_arguments_for_aask_code(self, tool_calls_rsp):
+        instance = OpenAILLM(mock_llm_config_proxy)
+        for i, rsp in enumerate(tool_calls_rsp):
+            code = instance.get_choice_function_arguments(rsp)
+            logger.info(f"\ntest get function call arguments {i}: {code}")
+            assert "code" in code
+            assert "language" in code
+            assert "hello world" in code["code"]
+            logger.info(f'code is : {code["code"]}')
+
+            if "Completed a python code for hello world!" == code["code"]:
+                code["language"] == "markdown"
+            else:
+                code["language"] == "python"
+
+    def test_aask_code_json_decode_error(self, json_decode_error):
+        instance = OpenAILLM(mock_llm_config)
+        with pytest.raises(json.decoder.JSONDecodeError) as e:
+            instance.get_choice_function_arguments(json_decode_error)
+        assert "JSONDecodeError" in str(e)
+
+
+@pytest.mark.asyncio
+async def test_gen_image():
+    llm = LLM()
+    model = "dall-e-3"
+    prompt = 'a logo with word "MetaGPT"'
+    images: list[Image] = await llm.gen_image(model=model, prompt=prompt)
+    assert images[0].size == (1024, 1024)
+
+    images: list[Image] = await llm.gen_image(model=model, prompt=prompt, resp_format="b64_json")
+    assert images[0].size == (1024, 1024)

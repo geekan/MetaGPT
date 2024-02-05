@@ -361,6 +361,31 @@ def parse_recipient(text):
     return ""
 
 
+def create_func_call_config(func_schema: dict) -> dict:
+    """Create new function call config"""
+    tools = [{"type": "function", "function": func_schema}]
+    tool_choice = {"type": "function", "function": {"name": func_schema["name"]}}
+    return {
+        "tools": tools,
+        "tool_choice": tool_choice,
+    }
+
+
+def remove_comments(code_str: str) -> str:
+    """Remove comments from code."""
+    pattern = r"(\".*?\"|\'.*?\')|(\#.*?$)"
+
+    def replace_func(match):
+        if match.group(2) is not None:
+            return ""
+        else:
+            return match.group(1)
+
+    clean_code = re.sub(pattern, replace_func, code_str, flags=re.MULTILINE)
+    clean_code = os.linesep.join([s.rstrip() for s in clean_code.splitlines() if s.strip()])
+    return clean_code
+
+
 def get_class_name(cls) -> str:
     """Return class name"""
     return f"{cls.__module__}.{cls.__name__}"
@@ -469,13 +494,13 @@ def read_json_file(json_file: str, encoding="utf-8") -> list[Any]:
     return data
 
 
-def write_json_file(json_file: str, data: list, encoding=None):
+def write_json_file(json_file: str, data: list, encoding: str = None, indent: int = 4):
     folder_path = Path(json_file).parent
     if not folder_path.exists():
         folder_path.mkdir(parents=True, exist_ok=True)
 
     with open(json_file, "w", encoding=encoding) as fout:
-        json.dump(data, fout, ensure_ascii=False, indent=4, default=to_jsonable_python)
+        json.dump(data, fout, ensure_ascii=False, indent=indent, default=to_jsonable_python)
 
 
 def read_csv_to_list(curr_file: str, header=False, strip_trail=True):

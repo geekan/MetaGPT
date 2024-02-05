@@ -67,6 +67,8 @@ TMP = METAGPT_ROOT / "tmp"
 SOURCE_ROOT = METAGPT_ROOT / "metagpt"
 PROMPT_PATH = SOURCE_ROOT / "prompts"
 SKILL_DIRECTORY = SOURCE_ROOT / "skills"
+TOOL_SCHEMA_PATH = METAGPT_ROOT / "metagpt/tools/schemas"
+TOOL_LIBS_PATH = METAGPT_ROOT / "metagpt/tools/libs"
 
 # REAL CONSTS
 

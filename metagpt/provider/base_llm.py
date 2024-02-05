@@ -167,4 +167,12 @@ class BaseLLM(ABC):
         :return dict: return the first function arguments of choice, for example,
             {'language': 'python', 'code': "print('Hello, World!')"}
         """
-        return json.loads(self.get_choice_function(rsp)["arguments"])
+        return json.loads(self.get_choice_function(rsp)["arguments"], strict=False)
+
+    def messages_to_prompt(self, messages: list[dict]):
+        """[{"role": "user", "content": msg}] to user: <msg> etc."""
+        return "\n".join([f"{i['role']}: {i['content']}" for i in messages])
+
+    def messages_to_dict(self, messages):
+        """objects to [{"role": "user", "content": msg}] etc."""
+        return [i.to_dict() for i in messages]

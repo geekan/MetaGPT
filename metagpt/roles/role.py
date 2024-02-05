@@ -35,6 +35,7 @@ from metagpt.logs import logger
 from metagpt.memory import Memory
 from metagpt.provider import HumanProvider
 from metagpt.schema import Message, MessageQueue, SerializationMixin
+from metagpt.strategy.planner import Planner
 from metagpt.utils.common import any_to_name, any_to_str, role_raise_decorator
 from metagpt.utils.project_repo import ProjectRepo
 from metagpt.utils.repair_llm_raw_output import extract_state_value_from_output
@@ -97,6 +98,7 @@ class RoleContext(BaseModel):
     )  # Message Buffer with Asynchronous Updates
     memory: Memory = Field(default_factory=Memory)
     # long_term_memory: LongTermMemory = Field(default_factory=LongTermMemory)
+    working_memory: Memory = Field(default_factory=Memory)
     state: int = Field(default=-1)  # -1 indicates initial or termination state where todo is None
     todo: Action = Field(default=None, exclude=True)
     watch: set[str] = Field(default_factory=set)
@@ -152,6 +154,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
     actions: list[SerializeAsAny[Action]] = Field(default=[], validate_default=True)
     rc: RoleContext = Field(default_factory=RoleContext)
     addresses: set[str] = set()
+    planner: Planner = Field(default_factory=Planner)
 
     # builtin variables
     recovered: bool = False  # to tag if a recovered role
@@ -280,7 +283,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
             self.actions.append(i)
             self.states.append(f"{len(self.actions)}. {action}")
 
-    def _set_react_mode(self, react_mode: str, max_react_loop: int = 1):
+    def _set_react_mode(self, react_mode: str, max_react_loop: int = 1, auto_run: bool = True, use_tools: bool = False):
         """Set strategy of the Role reacting to observed Message. Variation lies in how
         this Role elects action to perform during the _think stage, especially if it is capable of multiple Actions.
 
@@ -300,6 +303,10 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         self.rc.react_mode = react_mode
         if react_mode == RoleReactMode.REACT:
             self.rc.max_react_loop = max_react_loop
+        elif react_mode == RoleReactMode.PLAN_AND_ACT:
+            self.planner = Planner(
+                goal=self.goal, working_memory=self.rc.working_memory, auto_run=auto_run, use_tools=use_tools
+            )
 
     def _watch(self, actions: Iterable[Type[Action]] | Iterable[Action]):
         """Watch Actions of interest. Role will select Messages caused by these Actions from its personal message
@@ -476,8 +483,41 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
 
     async def _plan_and_act(self) -> Message:
         """first plan, then execute an action sequence, i.e. _think (of a plan) -> _act -> _act -> ... Use llm to come up with the plan dynamically."""
-        # TODO: to be implemented
-        return Message(content="")
+
+        # create initial plan and update it until confirmation
+        goal = self.rc.memory.get()[-1].content  # retreive latest user requirement
+        await self.planner.update_plan(goal=goal)
+
+        # take on tasks until all finished
+        while self.planner.current_task:
+            task = self.planner.current_task
+            logger.info(f"ready to take on task {task}")
+
+            # take on current task
+            task_result = await self._act_on_task(task)
+
+            # process the result, such as reviewing, confirming, plan updating
+            await self.planner.process_task_result(task_result)
+
+        rsp = self.planner.get_useful_memories()[0]  # return the completed plan as a response
+
+        self.rc.memory.add(rsp)  # add to persistent memory
+
+        return rsp
+
+    async def _act_on_task(self, current_task: Task) -> TaskResult:
+        """Taking specific action to handle one task in plan
+
+        Args:
+            current_task (Task): current task to take on
+
+        Raises:
+            NotImplementedError: Specific Role must implement this method if expected to use planner
+
+        Returns:
+            TaskResult: Result from the actions
+        """
+        raise NotImplementedError
 
     async def react(self) -> Message:
         """Entry to one of three strategies by which Role reacts to the observed Message"""

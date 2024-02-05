@@ -1,13 +1,22 @@
+import json
 from typing import Optional, Union
 
 from metagpt.config2 import config
+from metagpt.configs.llm_config import LLMType
 from metagpt.logs import log_llm_stream, logger
+from metagpt.provider.azure_openai_api import AzureOpenAILLM
 from metagpt.provider.openai_api import OpenAILLM
+from metagpt.schema import Message
+
+OriginalLLM = OpenAILLM if config.llm.api_type == LLMType.OPENAI else AzureOpenAILLM
 
 
-class MockLLM(OpenAILLM):
+class MockLLM(OriginalLLM):
     def __init__(self, allow_open_api_call):
-        super().__init__(config.get_openai_llm())
+        original_llm_config = (
+            config.get_openai_llm() if config.llm.api_type == LLMType.OPENAI else config.get_azure_llm()
+        )
+        super().__init__(original_llm_config)
         self.allow_open_api_call = allow_open_api_call
         self.rsp_cache: dict = {}
         self.rsp_candidates: list[dict] = []  # a test can have multiple calls with the same llm, thus a list
@@ -62,6 +71,14 @@ class MockLLM(OpenAILLM):
             context.append(self._assistant_msg(rsp_text))
         return self._extract_assistant_rsp(context)
 
+    async def original_aask_code(self, messages: Union[str, Message, list[dict]], **kwargs) -> dict:
+        """
+        A copy of metagpt.provider.openai_api.OpenAILLM.aask_code, we can't use super().aask because it will be mocked.
+        Since openai_api.OpenAILLM.aask_code is different from base_llm.BaseLLM.aask_code, we use the former.
+        """
+        rsp = await self._achat_completion_function(messages, **kwargs)
+        return self.get_choice_function_arguments(rsp)
+
     async def aask(
         self,
         msg: str,
@@ -81,6 +98,12 @@ class MockLLM(OpenAILLM):
     async def aask_batch(self, msgs: list, timeout=3) -> str:
         msg_key = "#MSG_SEP#".join([msg if isinstance(msg, str) else msg.content for msg in msgs])
         rsp = await self._mock_rsp(msg_key, self.original_aask_batch, msgs, timeout)
+        return rsp
+
+    async def aask_code(self, messages: Union[str, Message, list[dict]], **kwargs) -> dict:
+        messages = self._process_message(messages)
+        msg_key = json.dumps(messages, ensure_ascii=False)
+        rsp = await self._mock_rsp(msg_key, self.original_aask_code, messages, **kwargs)
         return rsp
 
     async def _mock_rsp(self, msg_key, ask_func, *args, **kwargs):
