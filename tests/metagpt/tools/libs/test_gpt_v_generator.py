@@ -47,7 +47,7 @@ def image_path():
 
 
 @pytest.mark.asyncio
-async def test_generate_webpages_with_suffix_s(mock_webpage_filename_with_styles_and_scripts, image_path):
+async def test_generate_webpages_with_styles_and_scripts(mock_webpage_filename_with_styles_and_scripts, image_path):
     generator = GPTvGenerator()
     rsp = await generator.generate_webpages(image_path=image_path)
     logs.logger.info(rsp)
@@ -57,7 +57,7 @@ async def test_generate_webpages_with_suffix_s(mock_webpage_filename_with_styles
 
 
 @pytest.mark.asyncio
-async def test_generate_webpages_without_suffix_s(mock_webpage_filename_with_style_and_script, image_path):
+async def test_generate_webpages_with_style_and_script(mock_webpage_filename_with_style_and_script, image_path):
     generator = GPTvGenerator()
     rsp = await generator.generate_webpages(image_path=image_path)
     logs.logger.info(rsp)
@@ -67,7 +67,7 @@ async def test_generate_webpages_without_suffix_s(mock_webpage_filename_with_sty
 
 
 @pytest.mark.asyncio
-async def test_save_webpages_with_suffix_s(mock_webpage_filename_with_styles_and_scripts, image_path):
+async def test_save_webpages_with_styles_and_scripts(mock_webpage_filename_with_styles_and_scripts, image_path):
     generator = GPTvGenerator()
     webpages = await generator.generate_webpages(image_path)
     webpages_dir = generator.save_webpages(image_path=image_path, webpages=webpages)
@@ -76,7 +76,7 @@ async def test_save_webpages_with_suffix_s(mock_webpage_filename_with_styles_and
 
 
 @pytest.mark.asyncio
-async def test_save_webpages_without_suffix_s(mock_webpage_filename_with_style_and_script, image_path):
+async def test_save_webpages_with_style_and_script(mock_webpage_filename_with_style_and_script, image_path):
     generator = GPTvGenerator()
     webpages = await generator.generate_webpages(image_path)
     webpages_dir = generator.save_webpages(image_path=image_path, webpages=webpages)
