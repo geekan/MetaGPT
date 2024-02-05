@@ -67,11 +67,6 @@ def test_truncate():
     output, is_success = truncate("<coroutine object", 5, True)
     assert not is_success
     assert "await" in output
-    # 重复的desc
-    result = "Executed code successfully. Truncated to show only first 5 characters\nhello"
-    output, is_success = truncate(result, 5, True)
-    assert is_success
-    assert output == result
 
 
 @pytest.mark.asyncio

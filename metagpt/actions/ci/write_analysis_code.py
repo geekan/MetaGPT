@@ -56,7 +56,7 @@ class WriteCodeWithoutTools(BaseWriteAnalysisCode):
 class WriteCodeWithTools(BaseWriteAnalysisCode):
     """Write code with help of local available tools. Choose tools first, then generate code to use the tools"""
 
-    # selected tools to choose from, listed by their names. En empty list means selection from all tools.
+    # selected tools to choose from, listed by their names. An empty list means selection from all tools.
     selected_tools: list[str] = []
 
     def _get_tools_by_type(self, tool_type: str) -> dict:
@@ -71,18 +71,15 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
         """
         candidate_tools = TOOL_REGISTRY.get_tools_by_type(tool_type)
         if self.selected_tools:
-            candidate_tools = {
-                tool_name: candidate_tools[tool_name]
-                for tool_name in self.selected_tools
-                if tool_name in candidate_tools
-            }
+            candidate_tool_names = set(self.selected_tools) & candidate_tools.keys()
+            candidate_tools = {tool_name: candidate_tools[tool_name] for tool_name in candidate_tool_names}
         return candidate_tools
 
     async def _recommend_tool(
         self,
         task: str,
         available_tools: dict,
-    ) -> list:
+    ) -> dict:
         """
         Recommend tools for the specified task.
 

@@ -1,6 +1,6 @@
 ASSIGN_TASK_TYPE_PROMPT = """
 Please assign a task type to each task in the list below from the given categories:
-{task_list}
+{task_info}
 
 ## All Task Type:
 {task_type_desc}
