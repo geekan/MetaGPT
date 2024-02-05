@@ -16,8 +16,8 @@ from pydantic import BaseModel, field_validator
 from metagpt.const import TOOL_SCHEMA_PATH
 from metagpt.logs import logger
 from metagpt.tools.tool_convert import convert_code_to_tool_schema
-from metagpt.tools.tool_data_type import Tool, ToolSchema, ToolType
-from metagpt.tools.tool_types import ToolTypes
+from metagpt.tools.tool_data_type import Tool, ToolSchema, ToolTypeDef
+from metagpt.tools.tool_type import ToolType
 
 
 class ToolRegistry(BaseModel):
@@ -27,7 +27,7 @@ class ToolRegistry(BaseModel):
 
     @field_validator("tool_types", mode="before")
     @classmethod
-    def init_tool_types(cls, tool_types: ToolTypes):
+    def init_tool_types(cls, tool_types: ToolType):
         return {tool_type.type_name: tool_type.value for tool_type in tool_types}
 
     def register_tool(
@@ -47,9 +47,9 @@ class ToolRegistry(BaseModel):
         if tool_type not in self.tool_types:
             # register new tool type on the fly
             logger.warning(
-                f"{tool_type} not previously defined, will create a temporary ToolType with just a name. This ToolType is only effective during this runtime. You may consider add this ToolType with more configs permanently at metagpt.tools.tool_types"
+                f"{tool_type} not previously defined, will create a temporary tool type with just a name. This tool type is only effective during this runtime. You may consider add this tool type with more configs permanently at metagpt.tools.tool_type"
             )
-            temp_tool_type_obj = ToolType(name=tool_type)
+            temp_tool_type_obj = ToolTypeDef(name=tool_type)
             self.tool_types[tool_type] = temp_tool_type_obj
             if verbose:
                 logger.info(f"tool type {tool_type} registered")
@@ -97,7 +97,7 @@ class ToolRegistry(BaseModel):
 
 
 # Registry instance
-TOOL_REGISTRY = ToolRegistry(tool_types=ToolTypes)
+TOOL_REGISTRY = ToolRegistry(tool_types=ToolType)
 
 
 def register_tool(tool_type: str = "other", schema_path: str = "", **kwargs):

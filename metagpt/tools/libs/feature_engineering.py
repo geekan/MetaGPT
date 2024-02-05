@@ -17,9 +17,9 @@ from sklearn.preprocessing import KBinsDiscretizer, PolynomialFeatures
 
 from metagpt.tools.libs.data_preprocess import MLProcess
 from metagpt.tools.tool_registry import register_tool
-from metagpt.tools.tool_types import ToolTypes
+from metagpt.tools.tool_type import ToolType
 
-TOOL_TYPE = ToolTypes.FEATURE_ENGINEERING.type_name
+TOOL_TYPE = ToolType.FEATURE_ENGINEERING.type_name
 
 
 @register_tool(tool_type=TOOL_TYPE)

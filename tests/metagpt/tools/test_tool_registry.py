@@ -1,7 +1,7 @@
 import pytest
 
 from metagpt.tools.tool_registry import ToolRegistry
-from metagpt.tools.tool_types import ToolTypes
+from metagpt.tools.tool_type import ToolType
 
 
 @pytest.fixture
@@ -11,7 +11,7 @@ def tool_registry():
 
 @pytest.fixture
 def tool_registry_full():
-    return ToolRegistry(tool_types=ToolTypes)
+    return ToolRegistry(tool_types=ToolType)
 
 
 # Test Initialization

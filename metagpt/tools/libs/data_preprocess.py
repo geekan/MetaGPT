@@ -14,9 +14,9 @@ from sklearn.preprocessing import (
 )
 
 from metagpt.tools.tool_registry import register_tool
-from metagpt.tools.tool_types import ToolTypes
+from metagpt.tools.tool_type import ToolType
 
-TOOL_TYPE = ToolTypes.DATA_PREPROCESS.type_name
+TOOL_TYPE = ToolType.DATA_PREPROCESS.type_name
 
 
 class MLProcess:

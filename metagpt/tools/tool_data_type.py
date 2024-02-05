@@ -1,14 +1,14 @@
 from pydantic import BaseModel
 
 
-class ToolType(BaseModel):
+class ToolTypeDef(BaseModel):
     name: str
     desc: str = ""
     usage_prompt: str = ""
 
 
 class ToolSchema(BaseModel):
-    name: str
+    description: str
 
 
 class Tool(BaseModel):

@@ -13,7 +13,7 @@ import requests
 
 from metagpt.const import DEFAULT_WORKSPACE_ROOT
 from metagpt.tools.tool_registry import register_tool
-from metagpt.tools.tool_types import ToolTypes
+from metagpt.tools.tool_type import ToolType
 
 ANALYZE_LAYOUT_PROMPT = """You are now a UI/UX, please generate layout information for this image:
 
@@ -31,7 +31,7 @@ Now, please generate the corresponding webpage code including HTML, CSS and Java
 
 
 @register_tool(
-    tool_type=ToolTypes.IMAGE2WEBPAGE.type_name, include_functions=["__init__", "generate_webpages", "save_webpages"]
+    tool_type=ToolType.IMAGE2WEBPAGE.type_name, include_functions=["__init__", "generate_webpages", "save_webpages"]
 )
 class GPTvGenerator:
     """Class for generating webpages at once.

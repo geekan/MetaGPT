@@ -1,9 +1,9 @@
 from metagpt.tools.tool_registry import register_tool
-from metagpt.tools.tool_types import ToolTypes
+from metagpt.tools.tool_type import ToolType
 from metagpt.tools.web_browser_engine_playwright import PlaywrightWrapper
 
 
-@register_tool(tool_type=ToolTypes.WEBSCRAPING.type_name)
+@register_tool(tool_type=ToolType.WEBSCRAPING.type_name)
 async def scrape_web_playwright(url, *urls):
     """
     Scrape and save the HTML structure and inner text content of a web page using Playwright.
