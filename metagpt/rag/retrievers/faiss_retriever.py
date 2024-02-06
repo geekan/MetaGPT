@@ -1,8 +1,7 @@
-from llama_index import Document
 from llama_index.retrievers import VectorIndexRetriever
+from llama_index.schema import BaseNode
 
 
 class FAISSRetriever(VectorIndexRetriever):
-    def add_docs(self, documents: list[Document]):
-        for document in documents:
-            self._index.insert(document)
+    def add_nodes(self, nodes: list[BaseNode], **kwargs):
+        self._index.insert_nodes(nodes, **kwargs)
