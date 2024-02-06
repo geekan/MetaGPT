@@ -4,7 +4,7 @@
 
 import asyncio
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Iterable, Optional, Set, Union
+from typing import TYPE_CHECKING, Any, Dict, Iterable, Optional, Set, Union
 
 from pydantic import BaseModel, ConfigDict, Field, SerializeAsAny, model_validator
 
@@ -104,7 +104,7 @@ class Environment(ExtEnv):
 
     desc: str = Field(default="")  # 环境描述
     roles: dict[str, SerializeAsAny["Role"]] = Field(default_factory=dict, validate_default=True)
-    member_addrs: dict["Role", Set] = Field(default_factory=dict, exclude=True)
+    member_addrs: Dict["Role", Set] = Field(default_factory=dict, exclude=True)
     history: str = ""  # For debug
     context: Context = Field(default_factory=Context, exclude=True)
 
