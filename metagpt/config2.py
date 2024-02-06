@@ -75,8 +75,6 @@ class Config(CLIParams, YamlModel):
     iflytek_api_key: str = ""
     azure_tts_subscription_key: str = ""
     azure_tts_region: str = ""
-    openai_vision_model: str = "gpt-4-vision-preview"
-    vision_max_tokens: int = 4096
 
     @classmethod
     def from_home(cls, path):
