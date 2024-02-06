@@ -16,7 +16,6 @@ from typing import Dict, List, Set
 
 import aiofiles
 
-from metagpt.config import CONFIG
 from metagpt.logs import logger
 from metagpt.schema import Document
 from metagpt.utils.common import aread
@@ -46,7 +45,7 @@ class FileRepository:
         # Initializing
         self.workdir.mkdir(parents=True, exist_ok=True)
 
-    async def save(self, filename: Path | str, content, dependencies: List[str] = None):
+    async def save(self, filename: Path | str, content, dependencies: List[str] = None) -> Document:
         """Save content to a file and update its dependencies.
 
         :param filename: The filename or path within the repository.
@@ -64,6 +63,8 @@ class FileRepository:
             dependency_file = await self._git_repo.get_dependency()
             await dependency_file.update(pathname, set(dependencies))
             logger.info(f"update dependency: {str(pathname)}:{dependencies}")
+
+        return Document(root_path=str(self._relative_path), filename=str(filename), content=content)
 
     async def get_dependency(self, filename: Path | str) -> Set[str]:
         """Get the dependencies of a file.
@@ -100,21 +101,28 @@ class FileRepository:
         path_name = self.workdir / filename
         if not path_name.exists():
             return None
+        if not path_name.is_file():
+            return None
         doc.content = await aread(path_name)
         return doc
 
-    async def get_all(self) -> List[Document]:
+    async def get_all(self, filter_ignored=True) -> List[Document]:
         """Get the content of all files in the repository.
 
         :return: List of Document instances representing files.
         """
         docs = []
-        for root, dirs, files in os.walk(str(self.workdir)):
-            for file in files:
-                file_path = Path(root) / file
-                relative_path = file_path.relative_to(self.workdir)
-                doc = await self.get(relative_path)
+        if filter_ignored:
+            for f in self.all_files:
+                doc = await self.get(f)
                 docs.append(doc)
+        else:
+            for root, dirs, files in os.walk(str(self.workdir)):
+                for file in files:
+                    file_path = Path(root) / file
+                    relative_path = file_path.relative_to(self.workdir)
+                    doc = await self.get(relative_path)
+                    docs.append(doc)
         return docs
 
     @property
@@ -183,10 +191,20 @@ class FileRepository:
         """
         current_time = datetime.now().strftime("%Y%m%d%H%M%S")
         return current_time
-        # guid_suffix = str(uuid.uuid4())[:8]
-        # return f"{current_time}x{guid_suffix}"
 
-    async def save_doc(self, doc: Document, with_suffix: str = None, dependencies: List[str] = None):
+    async def save_doc(self, doc: Document, dependencies: List[str] = None):
+        """Save content to a file and update its dependencies.
+
+        :param doc: The Document instance to be saved.
+        :type doc: Document
+        :param dependencies: A list of dependencies for the saved file.
+        :type dependencies: List[str], optional
+        """
+
+        await self.save(filename=doc.filename, content=doc.content, dependencies=dependencies)
+        logger.debug(f"File Saved: {str(doc.filename)}")
+
+    async def save_pdf(self, doc: Document, with_suffix: str = ".md", dependencies: List[str] = None):
         """Save a Document instance as a PDF file.
 
         This method converts the content of the Document instance to Markdown,
@@ -204,70 +222,6 @@ class FileRepository:
         await self.save(filename=str(filename), content=json_to_markdown(m), dependencies=dependencies)
         logger.debug(f"File Saved: {str(filename)}")
 
-    @staticmethod
-    async def get_file(filename: Path | str, relative_path: Path | str = ".") -> Document | None:
-        """Retrieve a specific file from the file repository.
-
-        :param filename: The name or path of the file to retrieve.
-        :type filename: Path or str
-        :param relative_path: The relative path within the file repository.
-        :type relative_path: Path or str, optional
-        :return: The document representing the file, or None if not found.
-        :rtype: Document or None
-        """
-        file_repo = CONFIG.git_repo.new_file_repository(relative_path=relative_path)
-        return await file_repo.get(filename=filename)
-
-    @staticmethod
-    async def get_all_files(relative_path: Path | str = ".") -> List[Document]:
-        """Retrieve all files from the file repository.
-
-        :param relative_path: The relative path within the file repository.
-        :type relative_path: Path or str, optional
-        :return: A list of documents representing all files in the repository.
-        :rtype: List[Document]
-        """
-        file_repo = CONFIG.git_repo.new_file_repository(relative_path=relative_path)
-        return await file_repo.get_all()
-
-    @staticmethod
-    async def save_file(filename: Path | str, content, dependencies: List[str] = None, relative_path: Path | str = "."):
-        """Save a file to the file repository.
-
-        :param filename: The name or path of the file to save.
-        :type filename: Path or str
-        :param content: The content of the file.
-        :param dependencies: A list of dependencies for the file.
-        :type dependencies: List[str], optional
-        :param relative_path: The relative path within the file repository.
-        :type relative_path: Path or str, optional
-        """
-        file_repo = CONFIG.git_repo.new_file_repository(relative_path=relative_path)
-        return await file_repo.save(filename=filename, content=content, dependencies=dependencies)
-
-    @staticmethod
-    async def save_as(
-        doc: Document, with_suffix: str = None, dependencies: List[str] = None, relative_path: Path | str = "."
-    ):
-        """Save a Document instance with optional modifications.
-
-        This static method creates a new FileRepository, saves the Document instance
-        with optional modifications (such as a suffix), and logs the saved file.
-
-        :param doc: The Document instance to be saved.
-        :type doc: Document
-        :param with_suffix: An optional suffix to append to the saved file's name.
-        :type with_suffix: str, optional
-        :param dependencies: A list of dependencies for the saved file.
-        :type dependencies: List[str], optional
-        :param relative_path: The relative path within the file repository.
-        :type relative_path: Path or str, optional
-        :return: A boolean indicating whether the save operation was successful.
-        :rtype: bool
-        """
-        file_repo = CONFIG.git_repo.new_file_repository(relative_path=relative_path)
-        return await file_repo.save_doc(doc=doc, with_suffix=with_suffix, dependencies=dependencies)
-
     async def delete(self, filename: Path | str):
         """Delete a file from the file repository.
 
@@ -284,8 +238,3 @@ class FileRepository:
         dependency_file = await self._git_repo.get_dependency()
         await dependency_file.update(filename=pathname, dependencies=None)
         logger.info(f"remove dependency key: {str(pathname)}")
-
-    @staticmethod
-    async def delete_file(filename: Path | str, relative_path: Path | str = "."):
-        file_repo = CONFIG.git_repo.new_file_repository(relative_path=relative_path)
-        await file_repo.delete(filename=filename)

@@ -23,9 +23,9 @@ from metagpt.const import TEST_DATA_PATH
         Path("invoices/invoice-4.zip"),
     ],
 )
-async def test_invoice_ocr(invoice_path: Path):
+async def test_invoice_ocr(invoice_path: Path, context):
     invoice_path = TEST_DATA_PATH / invoice_path
-    resp = await InvoiceOCR().run(file_path=Path(invoice_path))
+    resp = await InvoiceOCR(context=context).run(file_path=Path(invoice_path))
     assert isinstance(resp, list)
 
 

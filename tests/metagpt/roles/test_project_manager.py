@@ -13,7 +13,7 @@ from tests.metagpt.roles.mock import MockMessages
 
 
 @pytest.mark.asyncio
-async def test_project_manager():
-    project_manager = ProjectManager()
+async def test_project_manager(context):
+    project_manager = ProjectManager(context=context)
     rsp = await project_manager.run(MockMessages.system_design)
     logger.info(rsp)

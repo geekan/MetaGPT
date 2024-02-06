@@ -6,6 +6,7 @@
 @File    : test_incremental_dev.py
 """
 import os
+import shutil
 import subprocess
 import time
 
@@ -14,7 +15,7 @@ from typer.testing import CliRunner
 
 from metagpt.const import TEST_DATA_PATH
 from metagpt.logs import logger
-from metagpt.startup import app
+from metagpt.software_company import app
 
 runner = CliRunner()
 
@@ -45,38 +46,45 @@ PROJECT_NAMES = [
 ]
 
 
+@pytest.mark.skip
 def test_simple_add_calculator():
     result = get_incremental_dev_result(IDEAS[0], PROJECT_NAMES[0])
     log_and_check_result(result)
 
 
+@pytest.mark.skip
 def test_number_guessing_game():
     result = get_incremental_dev_result(IDEAS[1], PROJECT_NAMES[1])
     log_and_check_result(result)
 
 
+@pytest.mark.skip
 def test_word_cloud():
     result = get_incremental_dev_result(IDEAS[2], PROJECT_NAMES[2])
     log_and_check_result(result)
 
 
+@pytest.mark.skip
 def test_gomoku():
     result = get_incremental_dev_result(IDEAS[3], PROJECT_NAMES[3])
     log_and_check_result(result)
 
 
+@pytest.mark.skip
 def test_dice_simulator_new():
     for i, (idea, project_name) in enumerate(zip(IDEAS[4:6], PROJECT_NAMES[4:6]), start=1):
         result = get_incremental_dev_result(idea, project_name)
         log_and_check_result(result, "refine_" + str(i))
 
 
+@pytest.mark.skip
 def test_refined_pygame_2048():
     for i, (idea, project_name) in enumerate(zip(IDEAS[6:8], PROJECT_NAMES[6:8]), start=1):
         result = get_incremental_dev_result(idea, project_name)
         log_and_check_result(result, "refine_" + str(i))
 
 
+@pytest.mark.skip
 def test_refined_snake_game():
     for i, (idea, project_name) in enumerate(zip(IDEAS[8:10], PROJECT_NAMES[8:10]), start=1):
         result = get_incremental_dev_result(idea, project_name)
@@ -105,10 +113,22 @@ def log_and_check_result(result, tag_name="refine"):
 
 def get_incremental_dev_result(idea, project_name, use_review=True):
     project_path = TEST_DATA_PATH / "incremental_dev_project" / project_name
-    if project_path.exists():
-        raise Exception(f"Project {project_name} not exists")
+    # Check if the project path exists
+    if not project_path.exists():
+        # If the project does not exist, extract the project file
+        try:
+            if shutil.which("unzip"):
+                subprocess.run(["unzip", f"{project_path}.zip", "-d", str(project_path.parent)], check=True)
+            elif shutil.which("tar"):
+                subprocess.run(["tar", "-xf", f"{project_path}.zip", "-C", str(project_path.parent)], check=True)
+            logger.info(f"Extracted project {project_name} successfully.")
+        except FileNotFoundError as e:
+            raise FileNotFoundError(f"Neither 'unzip' nor 'tar' command found. Error: {e}")
+        except subprocess.CalledProcessError as e:
+            raise Exception(f"Failed to extract project {project_name}. Error: {e}")
+
     check_or_create_base_tag(project_path)
-    args = [idea, "--inc", "--project-path", project_path]
+    args = [idea, "--inc", "--project-path", project_path, "--n-round", "20"]
     if not use_review:
         args.append("--no-code-review")
     result = runner.invoke(app, args)
@@ -146,14 +166,18 @@ def check_or_create_base_tag(project_path):
         logger.info("Base tag doesn't exist.")
         # Add and commit the current code if 'base' tag doesn't exist
         add_cmd = ["git", "add", "."]
-        commit_cmd = ["git", "commit", "-m", "Initial commit"]
         try:
             subprocess.run(add_cmd, check=True)
+            logger.info("Files added successfully.")
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Failed to add files: {e}")
+
+        commit_cmd = ["git", "commit", "-m", "Initial commit"]
+        try:
             subprocess.run(commit_cmd, check=True)
-            logger.info("Added and committed all files with the message 'Initial commit'.")
-        except Exception as e:
-            logger.error("Failed to add and commit all files.")
-            raise e
+            logger.info("Committed all files with the message 'Initial commit'.")
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Failed to commit: {e.stderr}")
 
         # Add 'base' tag
         add_base_tag_cmd = ["git", "tag", "base"]

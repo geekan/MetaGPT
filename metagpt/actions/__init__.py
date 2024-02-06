@@ -22,6 +22,9 @@ from metagpt.actions.write_code_review import WriteCodeReview
 from metagpt.actions.write_prd import WritePRD
 from metagpt.actions.write_prd_review import WritePRDReview
 from metagpt.actions.write_test import WriteTest
+from metagpt.actions.ci.execute_nb_code import ExecuteNbCode
+from metagpt.actions.ci.write_analysis_code import WriteCodeWithoutTools, WriteCodeWithTools
+from metagpt.actions.ci.write_plan import WritePlan
 
 
 class ActionType(Enum):
@@ -42,6 +45,10 @@ class ActionType(Enum):
     COLLECT_LINKS = CollectLinks
     WEB_BROWSE_AND_SUMMARIZE = WebBrowseAndSummarize
     CONDUCT_RESEARCH = ConductResearch
+    EXECUTE_NB_CODE = ExecuteNbCode
+    WRITE_CODE_WITHOUT_TOOLS = WriteCodeWithoutTools
+    WRITE_CODE_WITH_TOOLS = WriteCodeWithTools
+    WRITE_PLAN = WritePlan
 
 
 __all__ = [

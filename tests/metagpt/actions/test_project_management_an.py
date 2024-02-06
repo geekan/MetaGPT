@@ -37,7 +37,7 @@ async def test_project_management_an(mocker):
     root.instruct_content.model_dump = mock_refined_tasks_json
     mocker.patch("metagpt.actions.project_management_an.REFINED_PM_NODE.fill", return_value=root)
 
-    prompt = NEW_REQ_TEMPLATE.format(old_tasks=TASKS_SAMPLE, context=dict_to_markdown(REFINED_DESIGN_JSON))
+    prompt = NEW_REQ_TEMPLATE.format(old_task=TASKS_SAMPLE, context=dict_to_markdown(REFINED_DESIGN_JSON))
     node = await REFINED_PM_NODE.fill(prompt, llm)
 
     assert "Refined Logic Analysis" in node.instruct_content.model_dump()

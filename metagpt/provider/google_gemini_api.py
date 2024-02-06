@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 # @Desc   : Google Gemini LLM from https://ai.google.dev/tutorials/python_quickstart
 
+from typing import Optional, Union
+
 import google.generativeai as genai
 from google.ai import generativelanguage as glm
 from google.generativeai.generative_models import GenerativeModel
@@ -19,7 +21,7 @@ from tenacity import (
     wait_random_exponential,
 )
 
-from metagpt.config import CONFIG, LLMProviderEnum
+from metagpt.configs.llm_config import LLMConfig, LLMType
 from metagpt.logs import log_llm_stream, logger
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.llm_provider_registry import register_provider
@@ -41,23 +43,24 @@ class GeminiGenerativeModel(GenerativeModel):
         return await self._async_client.count_tokens(model=self.model_name, contents=contents)
 
 
-@register_provider(LLMProviderEnum.GEMINI)
+@register_provider(LLMType.GEMINI)
 class GeminiLLM(BaseLLM):
     """
     Refs to `https://ai.google.dev/tutorials/python_quickstart`
     """
 
-    def __init__(self):
+    def __init__(self, config: LLMConfig):
         self.use_system_prompt = False  # google gemini has no system prompt when use api
 
-        self.__init_gemini(CONFIG)
+        self.__init_gemini(config)
+        self.config = config
         self.model = "gemini-pro"  # so far only one model
         self.llm = GeminiGenerativeModel(model_name=self.model)
 
-    def __init_gemini(self, config: CONFIG):
-        genai.configure(api_key=config.gemini_api_key)
+    def __init_gemini(self, config: LLMConfig):
+        genai.configure(api_key=config.api_key)
 
-    def _user_msg(self, msg: str) -> dict[str, str]:
+    def _user_msg(self, msg: str, images: Optional[Union[str, list[str]]] = None) -> dict[str, str]:
         # Not to change BaseLLM default functions but update with Gemini's conversation format.
         # You should follow the format.
         return {"role": "user", "parts": [msg]}
@@ -71,11 +74,11 @@ class GeminiLLM(BaseLLM):
 
     def _update_costs(self, usage: dict):
         """update each request's token cost"""
-        if CONFIG.calc_usage:
+        if self.config.calc_usage:
             try:
                 prompt_tokens = int(usage.get("prompt_tokens", 0))
                 completion_tokens = int(usage.get("completion_tokens", 0))
-                CONFIG.cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
+                self.cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
             except Exception as e:
                 logger.error(f"google gemini updats costs failed! exp: {e}")
 
@@ -108,7 +111,7 @@ class GeminiLLM(BaseLLM):
         self._update_costs(usage)
         return resp
 
-    async def acompletion(self, messages: list[dict]) -> dict:
+    async def acompletion(self, messages: list[dict], timeout=3) -> dict:
         return await self._achat_completion(messages)
 
     async def _achat_completion_stream(self, messages: list[dict]) -> str:

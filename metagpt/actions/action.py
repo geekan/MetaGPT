@@ -10,41 +10,67 @@ from __future__ import annotations
 
 from typing import Optional, Union
 
-from pydantic import ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from metagpt.actions.action_node import ActionNode
-from metagpt.llm import LLM
-from metagpt.provider.base_llm import BaseLLM
+from metagpt.context_mixin import ContextMixin
 from metagpt.schema import (
+    CodePlanAndChangeContext,
     CodeSummarizeContext,
     CodingContext,
     RunCodeContext,
     SerializationMixin,
     TestingContext,
 )
+from metagpt.utils.project_repo import ProjectRepo
 
 
-class Action(SerializationMixin, is_polymorphic_base=True):
-    model_config = ConfigDict(arbitrary_types_allowed=True, exclude=["llm"])
+class Action(SerializationMixin, ContextMixin, BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     name: str = ""
-    llm: BaseLLM = Field(default_factory=LLM, exclude=True)
-    context: Union[dict, CodingContext, CodeSummarizeContext, TestingContext, RunCodeContext, str, None] = ""
+    i_context: Union[
+        dict, CodingContext, CodeSummarizeContext, TestingContext, RunCodeContext, CodePlanAndChangeContext, str, None
+    ] = ""
     prefix: str = ""  # aask*时会加上prefix，作为system_message
     desc: str = ""  # for skill manager
     node: ActionNode = Field(default=None, exclude=True)
 
+    @property
+    def repo(self) -> ProjectRepo:
+        if not self.context.repo:
+            self.context.repo = ProjectRepo(self.context.git_repo)
+        return self.context.repo
+
+    @property
+    def prompt_schema(self):
+        return self.config.prompt_schema
+
+    @property
+    def project_name(self):
+        return self.config.project_name
+
+    @project_name.setter
+    def project_name(self, value):
+        self.config.project_name = value
+
+    @property
+    def project_path(self):
+        return self.config.project_path
+
     @model_validator(mode="before")
+    @classmethod
     def set_name_if_empty(cls, values):
         if "name" not in values or not values["name"]:
             values["name"] = cls.__name__
         return values
 
     @model_validator(mode="before")
+    @classmethod
     def _init_with_instruction(cls, values):
         if "instruction" in values:
             name = values["name"]
-            i = values["instruction"]
+            i = values.pop("instruction")
             values["node"] = ActionNode(key=name, expected_type=str, instruction=i, example="", schema="raw")
         return values
 

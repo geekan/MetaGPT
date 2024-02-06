@@ -14,7 +14,7 @@ lancedb==0.4.0
 langchain==0.0.352
 loguru==0.6.0
 meilisearch==0.21.0
-numpy==1.24.3
+numpy>=1.24.3
 openai==1.6.0
 openpyxl
 beautifulsoup4==4.12.2
@@ -35,7 +35,6 @@ tqdm==4.65.0
 # webdriver_manager<3.9
 anthropic==0.8.1
 typing-inspect==0.8.0
-typing_extensions==4.9.0
 libcst==1.0.1
 qdrant-client==1.7.0
 # pytest-mock==3.11.1  # test extras require
@@ -51,6 +50,13 @@ websocket-client==1.6.2
 aiofiles==23.2.1
 gitpython==3.1.40
 zhipuai==2.0.1
+rich==13.6.0
+nbclient==0.9.0
+nbformat==5.9.2
+ipython==8.17.2
+ipykernel==6.27.0
+scikit_learn==1.3.2
+typing-extensions==4.9.0
 socksio~=1.0.0
 gitignore-parser==0.1.9
 # connexion[uvicorn]~=3.0.5 # Used by metagpt/tools/openapi_v3_hello.py
@@ -59,3 +65,5 @@ networkx~=3.2.1
 google-generativeai==0.3.2
 # playwright==1.40.0  # playwright extras require
 anytree
+ipywidgets==8.1.1
+Pillow

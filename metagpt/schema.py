@@ -23,7 +23,7 @@ from abc import ABC
 from asyncio import Queue, QueueEmpty, wait_for
 from json import JSONDecodeError
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, Union
+from typing import Any, Dict, Iterable, List, Optional, Type, TypeVar, Union
 
 from pydantic import (
     BaseModel,
@@ -32,15 +32,17 @@ from pydantic import (
     PrivateAttr,
     field_serializer,
     field_validator,
+    model_serializer,
+    model_validator,
 )
-from pydantic_core import core_schema
 
-from metagpt.config import CONFIG
 from metagpt.const import (
+    CODE_PLAN_AND_CHANGE_FILENAME,
     MESSAGE_ROUTE_CAUSE_BY,
     MESSAGE_ROUTE_FROM,
     MESSAGE_ROUTE_TO,
     MESSAGE_ROUTE_TO_ALL,
+    PRDS_FILE_REPO,
     SYSTEM_DESIGN_FILE_REPO,
     TASK_FILE_REPO,
 )
@@ -54,7 +56,7 @@ from metagpt.utils.serialize import (
 )
 
 
-class SerializationMixin(BaseModel):
+class SerializationMixin(BaseModel, extra="forbid"):
     """
     PolyMorphic subclasses Serialization / Deserialization Mixin
     - First of all, we need to know that pydantic is not designed for polymorphism.
@@ -69,49 +71,44 @@ class SerializationMixin(BaseModel):
     __is_polymorphic_base = False
     __subclasses_map__ = {}
 
-    @classmethod
-    def __get_pydantic_core_schema__(
-        cls, source: type["SerializationMixin"], handler: Callable[[Any], core_schema.CoreSchema]
-    ) -> core_schema.CoreSchema:
-        schema = handler(source)
-        og_schema_ref = schema["ref"]
-        schema["ref"] += ":mixin"
-
-        return core_schema.no_info_before_validator_function(
-            cls.__deserialize_with_real_type__,
-            schema=schema,
-            ref=og_schema_ref,
-            serialization=core_schema.wrap_serializer_function_ser_schema(cls.__serialize_add_class_type__),
-        )
-
-    @classmethod
-    def __serialize_add_class_type__(
-        cls,
-        value,
-        handler: core_schema.SerializerFunctionWrapHandler,
-    ) -> Any:
-        ret = handler(value)
-        if not len(cls.__subclasses__()):
-            # only subclass add `__module_class_name`
-            ret["__module_class_name"] = f"{cls.__module__}.{cls.__qualname__}"
+    @model_serializer(mode="wrap")
+    def __serialize_with_class_type__(self, default_serializer) -> Any:
+        # default serializer, then append the `__module_class_name` field and return
+        ret = default_serializer(self)
+        ret["__module_class_name"] = f"{self.__class__.__module__}.{self.__class__.__qualname__}"
         return ret
 
+    @model_validator(mode="wrap")
     @classmethod
-    def __deserialize_with_real_type__(cls, value: Any):
-        if not isinstance(value, dict):
-            return value
+    def __convert_to_real_type__(cls, value: Any, handler):
+        if isinstance(value, dict) is False:
+            return handler(value)
 
-        if not cls.__is_polymorphic_base or (len(cls.__subclasses__()) and "__module_class_name" not in value):
-            # add right condition to init BaseClass like Action()
-            return value
-        module_class_name = value.get("__module_class_name", None)
-        if module_class_name is None:
-            raise ValueError("Missing field: __module_class_name")
+        # it is a dict so make sure to remove the __module_class_name
+        # because we don't allow extra keywords but want to ensure
+        # e.g Cat.model_validate(cat.model_dump()) works
+        class_full_name = value.pop("__module_class_name", None)
 
-        class_type = cls.__subclasses_map__.get(module_class_name, None)
+        # if it's not the polymorphic base we construct via default handler
+        if not cls.__is_polymorphic_base:
+            if class_full_name is None:
+                return handler(value)
+            elif str(cls) == f"<class '{class_full_name}'>":
+                return handler(value)
+            else:
+                # f"Trying to instantiate {class_full_name} but this is not the polymorphic base class")
+                pass
+
+        # otherwise we lookup the correct polymorphic type and construct that
+        # instead
+        if class_full_name is None:
+            raise ValueError("Missing __module_class_name field")
+
+        class_type = cls.__subclasses_map__.get(class_full_name, None)
 
         if class_type is None:
-            raise TypeError("Trying to instantiate {module_class_name} which not defined yet.")
+            # TODO could try dynamic import
+            raise TypeError("Trying to instantiate {class_full_name}, which has not yet been defined!")
 
         return class_type(**value)
 
@@ -151,12 +148,6 @@ class Document(BaseModel):
         """
         return os.path.join(self.root_path, self.filename)
 
-    @property
-    def full_path(self):
-        if not CONFIG.git_repo:
-            return None
-        return str(CONFIG.git_repo.workdir / self.root_path / self.filename)
-
     def __str__(self):
         return self.content
 
@@ -172,6 +163,26 @@ class Documents(BaseModel):
     """
 
     docs: Dict[str, Document] = Field(default_factory=dict)
+
+    @classmethod
+    def from_iterable(cls, documents: Iterable[Document]) -> Documents:
+        """Create a Documents instance from a list of Document instances.
+
+        :param documents: A list of Document instances.
+        :return: A Documents instance.
+        """
+
+        docs = {doc.filename: doc for doc in documents}
+        return Documents(docs=docs)
+
+    def to_action_output(self) -> "ActionOutput":
+        """Convert to action output string.
+
+        :return: A string representing action output.
+        """
+        from metagpt.actions.action_output import ActionOutput
+
+        return ActionOutput(content=self.model_dump_json(), instruct_content=self)
 
 
 class Message(BaseModel):
@@ -193,12 +204,17 @@ class Message(BaseModel):
     @field_validator("instruct_content", mode="before")
     @classmethod
     def check_instruct_content(cls, ic: Any) -> BaseModel:
-        if ic and not isinstance(ic, BaseModel) and "class" in ic:
-            # compatible with custom-defined ActionOutput
-            mapping = actionoutput_str_to_mapping(ic["mapping"])
-
-            actionnode_class = import_class("ActionNode", "metagpt.actions.action_node")  # avoid circular import
-            ic_obj = actionnode_class.create_model_class(class_name=ic["class"], mapping=mapping)
+        if ic and isinstance(ic, dict) and "class" in ic:
+            if "mapping" in ic:
+                # compatible with custom-defined ActionOutput
+                mapping = actionoutput_str_to_mapping(ic["mapping"])
+                actionnode_class = import_class("ActionNode", "metagpt.actions.action_node")  # avoid circular import
+                ic_obj = actionnode_class.create_model_class(class_name=ic["class"], mapping=mapping)
+            elif "module" in ic:
+                # subclasses of BaseModel
+                ic_obj = import_class(ic["class"], ic["module"])
+            else:
+                raise KeyError("missing required key to init Message.instruct_content from dict")
             ic = ic_obj(**ic["value"])
         return ic
 
@@ -218,18 +234,21 @@ class Message(BaseModel):
         return any_to_str_set(send_to if send_to else {MESSAGE_ROUTE_TO_ALL})
 
     @field_serializer("instruct_content", mode="plain")
-    def ser_instruct_content(self, ic: BaseModel) -> Union[str, None]:
+    def ser_instruct_content(self, ic: BaseModel) -> Union[dict, None]:
         ic_dict = None
         if ic:
             # compatible with custom-defined ActionOutput
             schema = ic.model_json_schema()
-            # `Documents` contain definitions
-            if "definitions" not in schema:
-                # TODO refine with nested BaseModel
+            ic_type = str(type(ic))
+            if "<class 'metagpt.actions.action_node" in ic_type:
+                # instruct_content from AutoNode.create_model_class, for now, it's single level structure.
                 mapping = actionoutout_schema_to_mapping(schema)
                 mapping = actionoutput_mapping_to_str(mapping)
 
                 ic_dict = {"class": schema["title"], "mapping": mapping, "value": ic.model_dump()}
+            else:
+                # due to instruct_content can be assigned by subclasses of BaseModel
+                ic_dict = {"class": schema["title"], "module": ic.__module__, "value": ic.model_dump()}
         return ic_dict
 
     def __init__(self, content: str = "", **data: Any):
@@ -309,6 +328,200 @@ class AIMessage(Message):
 
     def __init__(self, content: str):
         super().__init__(content=content, role="assistant")
+
+
+class Task(BaseModel):
+    task_id: str = ""
+    dependent_task_ids: list[str] = []  # Tasks prerequisite to this Task
+    instruction: str = ""
+    task_type: str = ""
+    code: str = ""
+    result: str = ""
+    is_success: bool = False
+    is_finished: bool = False
+
+    def reset(self):
+        self.code = ""
+        self.result = ""
+        self.is_success = False
+        self.is_finished = False
+
+    def update_task_result(self, task_result: TaskResult):
+        self.code = task_result.code
+        self.result = task_result.result
+        self.is_success = task_result.is_success
+
+
+class TaskResult(BaseModel):
+    """Result of taking a task, with result and is_success required to be filled"""
+
+    code: str = ""
+    result: str
+    is_success: bool
+
+
+class Plan(BaseModel):
+    goal: str
+    context: str = ""
+    tasks: list[Task] = []
+    task_map: dict[str, Task] = {}
+    current_task_id: str = ""
+
+    def _topological_sort(self, tasks: list[Task]):
+        task_map = {task.task_id: task for task in tasks}
+        dependencies = {task.task_id: set(task.dependent_task_ids) for task in tasks}
+        sorted_tasks = []
+        visited = set()
+
+        def visit(task_id):
+            if task_id in visited:
+                return
+            visited.add(task_id)
+            for dependent_id in dependencies.get(task_id, []):
+                visit(dependent_id)
+            sorted_tasks.append(task_map[task_id])
+
+        for task in tasks:
+            visit(task.task_id)
+
+        return sorted_tasks
+
+    def add_tasks(self, tasks: list[Task]):
+        """
+        Integrates new tasks into the existing plan, ensuring dependency order is maintained.
+
+        This method performs two primary functions based on the current state of the task list:
+        1. If there are no existing tasks, it topologically sorts the provided tasks to ensure
+        correct execution order based on dependencies, and sets these as the current tasks.
+        2. If there are existing tasks, it merges the new tasks with the existing ones. It maintains
+        any common prefix of tasks (based on task_id and instruction) and appends the remainder
+        of the new tasks. The current task is updated to the first unfinished task in this merged list.
+
+        Args:
+            tasks (list[Task]): A list of tasks (may be unordered) to add to the plan.
+
+        Returns:
+            None: The method updates the internal state of the plan but does not return anything.
+        """
+        if not tasks:
+            return
+
+        # Topologically sort the new tasks to ensure correct dependency order
+        new_tasks = self._topological_sort(tasks)
+
+        if not self.tasks:
+            # If there are no existing tasks, set the new tasks as the current tasks
+            self.tasks = new_tasks
+
+        else:
+            # Find the length of the common prefix between existing and new tasks
+            prefix_length = 0
+            for old_task, new_task in zip(self.tasks, new_tasks):
+                if old_task.task_id != new_task.task_id or old_task.instruction != new_task.instruction:
+                    break
+                prefix_length += 1
+
+            # Combine the common prefix with the remainder of the new tasks
+            final_tasks = self.tasks[:prefix_length] + new_tasks[prefix_length:]
+            self.tasks = final_tasks
+
+        # Update current_task_id to the first unfinished task in the merged list
+        self._update_current_task()
+
+        # Update the task map for quick access to tasks by ID
+        self.task_map = {task.task_id: task for task in self.tasks}
+
+    def reset_task(self, task_id: str):
+        """
+        Clear code and result of the task based on task_id, and set the task as unfinished.
+
+        Args:
+            task_id (str): The ID of the task to be reset.
+
+        Returns:
+            None
+        """
+        if task_id in self.task_map:
+            task = self.task_map[task_id]
+            task.reset()
+
+    def replace_task(self, new_task: Task):
+        """
+        Replace an existing task with the new input task based on task_id, and reset all tasks depending on it.
+
+        Args:
+            new_task (Task): The new task that will replace an existing one.
+
+        Returns:
+            None
+        """
+        assert new_task.task_id in self.task_map
+        # Replace the task in the task map and the task list
+        self.task_map[new_task.task_id] = new_task
+        for i, task in enumerate(self.tasks):
+            if task.task_id == new_task.task_id:
+                self.tasks[i] = new_task
+                break
+
+        # Reset dependent tasks
+        for task in self.tasks:
+            if new_task.task_id in task.dependent_task_ids:
+                self.reset_task(task.task_id)
+
+    def append_task(self, new_task: Task):
+        """
+        Append a new task to the end of existing task sequences
+
+        Args:
+            new_task (Task): The new task to be appended to the existing task sequence
+
+        Returns:
+            None
+        """
+        assert not self.has_task_id(new_task.task_id), "Task already in current plan, use replace_task instead"
+
+        assert all(
+            [self.has_task_id(dep_id) for dep_id in new_task.dependent_task_ids]
+        ), "New task has unknown dependencies"
+
+        # Existing tasks do not depend on the new task, it's fine to put it to the end of the sorted task sequence
+        self.tasks.append(new_task)
+        self.task_map[new_task.task_id] = new_task
+        self._update_current_task()
+
+    def has_task_id(self, task_id: str) -> bool:
+        return task_id in self.task_map
+
+    def _update_current_task(self):
+        current_task_id = ""
+        for task in self.tasks:
+            if not task.is_finished:
+                current_task_id = task.task_id
+                break
+        self.current_task_id = current_task_id  # all tasks finished
+
+    @property
+    def current_task(self) -> Task:
+        """Find current task to execute
+
+        Returns:
+            Task: the current task to be executed
+        """
+        return self.task_map.get(self.current_task_id, None)
+
+    def finish_current_task(self):
+        """Finish current task, set Task.is_finished=True, set current task to next task"""
+        if self.current_task_id:
+            self.current_task.is_finished = True
+            self._update_current_task()  # set to next task
+
+    def get_finished_tasks(self) -> list[Task]:
+        """return all finished tasks in correct linearized order
+
+        Returns:
+            list[Task]: list of finished tasks
+        """
+        return [task for task in self.tasks if task.is_finished]
 
 
 class MessageQueue(BaseModel):
@@ -453,12 +666,28 @@ class BugFixContext(BaseContext):
     filename: str = ""
 
 
-class CodePlanAndChangeContext(BaseContext):
-    filename: str = ""
-    requirement_doc: Document
-    prd_docs: List[Document]
-    design_docs: List[Document]
-    tasks_docs: List[Document]
+class CodePlanAndChangeContext(BaseModel):
+    filename: str = CODE_PLAN_AND_CHANGE_FILENAME
+    requirement: str = ""
+    prd_filename: str = ""
+    design_filename: str = ""
+    task_filename: str = ""
+
+    @staticmethod
+    def loads(filenames: List, **kwargs) -> CodePlanAndChangeContext:
+        ctx = CodePlanAndChangeContext(requirement=kwargs.get("requirement", ""))
+        for filename in filenames:
+            filename = Path(filename)
+            if filename.is_relative_to(PRDS_FILE_REPO):
+                ctx.prd_filename = filename.name
+                continue
+            if filename.is_relative_to(SYSTEM_DESIGN_FILE_REPO):
+                ctx.design_filename = filename.name
+                continue
+            if filename.is_relative_to(TASK_FILE_REPO):
+                ctx.task_filename = filename.name
+                continue
+        return ctx
 
 
 # mermaid class view

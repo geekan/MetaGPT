@@ -5,28 +5,22 @@
 import pytest
 
 from metagpt.actions import Action
-from metagpt.llm import LLM
-
-
-def test_action_serialize():
-    action = Action()
-    ser_action_dict = action.model_dump()
-    assert "name" in ser_action_dict
-    assert "llm" not in ser_action_dict  # not export
-    assert "__module_class_name" not in ser_action_dict
-
-    action = Action(name="test")
-    ser_action_dict = action.model_dump()
-    assert "test" in ser_action_dict["name"]
 
 
 @pytest.mark.asyncio
-async def test_action_deserialize():
-    action = Action()
-    serialized_data = action.model_dump()
+async def test_action_serdeser(context):
+    action = Action(context=context)
+    ser_action_dict = action.model_dump()
+    assert "name" in ser_action_dict
+    assert "llm" not in ser_action_dict  # not export
+    assert "__module_class_name" in ser_action_dict
 
-    new_action = Action(**serialized_data)
+    action = Action(name="test", context=context)
+    ser_action_dict = action.model_dump()
+    assert "test" in ser_action_dict["name"]
 
-    assert new_action.name == "Action"
-    assert isinstance(new_action.llm, type(LLM()))
+    new_action = Action(**ser_action_dict, context=context)
+
+    assert new_action.name == "test"
+    assert isinstance(new_action.llm, type(context.llm()))
     assert len(await new_action._aask("who are you")) > 0

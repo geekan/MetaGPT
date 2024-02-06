@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 # @Desc   :
 
-import shutil
 
 from metagpt.actions.action_node import ActionNode
 from metagpt.actions.add_requirement import UserRequirement
@@ -10,7 +9,7 @@ from metagpt.actions.project_management import WriteTasks
 from metagpt.environment import Environment
 from metagpt.roles.project_manager import ProjectManager
 from metagpt.schema import Message
-from metagpt.utils.common import any_to_str
+from metagpt.utils.common import any_to_str, read_json_file, write_json_file
 from tests.metagpt.serialize_deserialize.test_serdeser_base import (
     ActionOK,
     ActionRaise,
@@ -19,23 +18,20 @@ from tests.metagpt.serialize_deserialize.test_serdeser_base import (
 )
 
 
-def test_env_serialize():
-    env = Environment()
+def test_env_serdeser(context):
+    env = Environment(context=context)
+    env.publish_message(message=Message(content="test env serialize"))
+
     ser_env_dict = env.model_dump()
     assert "roles" in ser_env_dict
     assert len(ser_env_dict["roles"]) == 0
 
-
-def test_env_deserialize():
-    env = Environment()
-    env.publish_message(message=Message(content="test env serialize"))
-    ser_env_dict = env.model_dump()
-    new_env = Environment(**ser_env_dict)
+    new_env = Environment(**ser_env_dict, context=context)
     assert len(new_env.roles) == 0
     assert len(new_env.history) == 25
 
 
-def test_environment_serdeser():
+def test_environment_serdeser(context):
     out_mapping = {"field1": (list[str], ...)}
     out_data = {"field1": ["field1 value1", "field1 value2"]}
     ic_obj = ActionNode.create_model_class("prd", out_mapping)
@@ -44,7 +40,7 @@ def test_environment_serdeser():
         content="prd", instruct_content=ic_obj(**out_data), role="product manager", cause_by=any_to_str(UserRequirement)
     )
 
-    environment = Environment()
+    environment = Environment(context=context)
     role_c = RoleC()
     environment.add_role(role_c)
     environment.publish_message(message)
@@ -52,7 +48,7 @@ def test_environment_serdeser():
     ser_data = environment.model_dump()
     assert ser_data["roles"]["Role C"]["name"] == "RoleC"
 
-    new_env: Environment = Environment(**ser_data)
+    new_env: Environment = Environment(**ser_data, context=context)
     assert len(new_env.roles) == 1
 
     assert list(new_env.roles.values())[0].states == list(environment.roles.values())[0].states
@@ -61,30 +57,31 @@ def test_environment_serdeser():
     assert type(list(new_env.roles.values())[0].actions[1]) == ActionRaise
 
 
-def test_environment_serdeser_v2():
-    environment = Environment()
+def test_environment_serdeser_v2(context):
+    environment = Environment(context=context)
     pm = ProjectManager()
     environment.add_role(pm)
 
     ser_data = environment.model_dump()
 
-    new_env: Environment = Environment(**ser_data)
+    new_env: Environment = Environment(**ser_data, context=context)
     role = new_env.get_role(pm.profile)
     assert isinstance(role, ProjectManager)
     assert isinstance(role.actions[0], WriteTasks)
     assert isinstance(list(new_env.roles.values())[0].actions[0], WriteTasks)
 
 
-def test_environment_serdeser_save():
-    environment = Environment()
+def test_environment_serdeser_save(context):
+    environment = Environment(context=context)
     role_c = RoleC()
 
-    shutil.rmtree(serdeser_path.joinpath("team"), ignore_errors=True)
-
     stg_path = serdeser_path.joinpath("team", "environment")
+    env_path = stg_path.joinpath("env.json")
     environment.add_role(role_c)
-    environment.serialize(stg_path)
 
-    new_env: Environment = Environment.deserialize(stg_path)
+    write_json_file(env_path, environment.model_dump())
+
+    env_dict = read_json_file(env_path)
+    new_env: Environment = Environment(**env_dict, context=context)
     assert len(new_env.roles) == 1
     assert type(list(new_env.roles.values())[0].actions[0]) == ActionOK

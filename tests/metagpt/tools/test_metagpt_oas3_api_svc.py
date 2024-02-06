@@ -12,14 +12,12 @@ from pathlib import Path
 import pytest
 import requests
 
-from metagpt.config import CONFIG
-
 
 @pytest.mark.asyncio
-async def test_oas2_svc():
+async def test_oas2_svc(context):
     workdir = Path(__file__).parent.parent.parent.parent
     script_pathname = workdir / "metagpt/tools/metagpt_oas3_api_svc.py"
-    env = CONFIG.new_environ()
+    env = context.new_environ()
     env["PYTHONPATH"] = str(workdir) + ":" + env.get("PYTHONPATH", "")
     process = subprocess.Popen(["python", str(script_pathname)], cwd=str(workdir), env=env)
     await asyncio.sleep(5)

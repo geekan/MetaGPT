@@ -8,7 +8,7 @@ from typing import Optional
 import aioboto3
 import aiofiles
 
-from metagpt.config import CONFIG
+from metagpt.config2 import S3Config
 from metagpt.const import BASE64_FORMAT
 from metagpt.logs import logger
 
@@ -16,13 +16,14 @@ from metagpt.logs import logger
 class S3:
     """A class for interacting with Amazon S3 storage."""
 
-    def __init__(self):
+    def __init__(self, config: S3Config):
         self.session = aioboto3.Session()
+        self.config = config
         self.auth_config = {
             "service_name": "s3",
-            "aws_access_key_id": CONFIG.S3_ACCESS_KEY,
-            "aws_secret_access_key": CONFIG.S3_SECRET_KEY,
-            "endpoint_url": CONFIG.S3_ENDPOINT_URL,
+            "aws_access_key_id": config.access_key,
+            "aws_secret_access_key": config.secret_key,
+            "endpoint_url": config.endpoint,
         }
 
     async def upload_file(
@@ -139,8 +140,8 @@ class S3:
                 data = base64.b64decode(data) if format == BASE64_FORMAT else data.encode(encoding="utf-8")
                 await file.write(data)
 
-            bucket = CONFIG.S3_BUCKET
-            object_pathname = CONFIG.S3_BUCKET or "system"
+            bucket = self.config.bucket
+            object_pathname = self.config.bucket or "system"
             object_pathname += f"/{object_name}"
             object_pathname = os.path.normpath(object_pathname)
             await self.upload_file(bucket=bucket, local_path=str(pathname), object_name=object_pathname)
@@ -151,20 +152,3 @@ class S3:
             logger.exception(f"{e}, stack:{traceback.format_exc()}")
             pathname.unlink(missing_ok=True)
             return None
-
-    @property
-    def is_valid(self):
-        return self.is_configured
-
-    @property
-    def is_configured(self) -> bool:
-        return bool(
-            CONFIG.S3_ACCESS_KEY
-            and CONFIG.S3_ACCESS_KEY != "YOUR_S3_ACCESS_KEY"
-            and CONFIG.S3_SECRET_KEY
-            and CONFIG.S3_SECRET_KEY != "YOUR_S3_SECRET_KEY"
-            and CONFIG.S3_ENDPOINT_URL
-            and CONFIG.S3_ENDPOINT_URL != "YOUR_S3_ENDPOINT_URL"
-            and CONFIG.S3_BUCKET
-            and CONFIG.S3_BUCKET != "YOUR_S3_BUCKET"
-        )

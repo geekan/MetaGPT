@@ -9,7 +9,7 @@ from typing import Callable, Union
 import regex as re
 from tenacity import RetryCallState, retry, stop_after_attempt, wait_fixed
 
-from metagpt.config import CONFIG
+from metagpt.config2 import config
 from metagpt.logs import logger
 from metagpt.utils.custom_decoder import CustomDecoder
 
@@ -168,7 +168,7 @@ def repair_llm_raw_output(output: str, req_keys: list[str], repair_type: RepairT
             target: { xxx }
             output: { xxx }]
     """
-    if not CONFIG.repair_llm_output:
+    if not config.repair_llm_output:
         return output
 
     # do the repairation usually for non-openai models
@@ -252,7 +252,7 @@ def run_after_exp_and_passon_next_retry(logger: "loguru.Logger") -> Callable[["R
                 func_param_output = retry_state.kwargs.get("output", "")
             exp_str = str(retry_state.outcome.exception())
 
-            fix_str = "try to fix it, " if CONFIG.repair_llm_output else ""
+            fix_str = "try to fix it, " if config.repair_llm_output else ""
             logger.warning(
                 f"parse json from content inside [CONTENT][/CONTENT] failed at retry "
                 f"{retry_state.attempt_number}, {fix_str}exp: {exp_str}"
@@ -265,7 +265,7 @@ def run_after_exp_and_passon_next_retry(logger: "loguru.Logger") -> Callable[["R
 
 
 @retry(
-    stop=stop_after_attempt(3 if CONFIG.repair_llm_output else 0),
+    stop=stop_after_attempt(3 if config.repair_llm_output else 0),
     wait=wait_fixed(1),
     after=run_after_exp_and_passon_next_retry(logger),
 )

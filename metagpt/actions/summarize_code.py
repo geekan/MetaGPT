@@ -11,11 +11,8 @@ from pydantic import Field
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.actions.action import Action
-from metagpt.config import CONFIG
-from metagpt.const import SYSTEM_DESIGN_FILE_REPO, TASK_FILE_REPO
 from metagpt.logs import logger
 from metagpt.schema import CodeSummarizeContext
-from metagpt.utils.file_repository import FileRepository
 
 PROMPT_TEMPLATE = """
 NOTICE
@@ -29,9 +26,9 @@ ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenc
 {system_design}
 ```
 -----
-# Tasks
+# Task
 ```text
-{tasks}
+{task}
 ```
 -----
 {code_blocks}
@@ -90,10 +87,9 @@ flowchart TB
 """
 
 
-# TOTEST
 class SummarizeCode(Action):
     name: str = "SummarizeCode"
-    context: CodeSummarizeContext = Field(default_factory=CodeSummarizeContext)
+    i_context: CodeSummarizeContext = Field(default_factory=CodeSummarizeContext)
 
     @retry(stop=stop_after_attempt(2), wait=wait_random_exponential(min=1, max=60))
     async def summarize_code(self, prompt):
@@ -101,20 +97,20 @@ class SummarizeCode(Action):
         return code_rsp
 
     async def run(self):
-        design_pathname = Path(self.context.design_filename)
-        design_doc = await FileRepository.get_file(filename=design_pathname.name, relative_path=SYSTEM_DESIGN_FILE_REPO)
-        task_pathname = Path(self.context.task_filename)
-        task_doc = await FileRepository.get_file(filename=task_pathname.name, relative_path=TASK_FILE_REPO)
-        src_file_repo = CONFIG.git_repo.new_file_repository(relative_path=CONFIG.src_workspace)
+        design_pathname = Path(self.i_context.design_filename)
+        design_doc = await self.repo.docs.system_design.get(filename=design_pathname.name)
+        task_pathname = Path(self.i_context.task_filename)
+        task_doc = await self.repo.docs.task.get(filename=task_pathname.name)
+        src_file_repo = self.repo.with_src_path(self.context.src_workspace).srcs
         code_blocks = []
-        for filename in self.context.codes_filenames:
+        for filename in self.i_context.codes_filenames:
             code_doc = await src_file_repo.get(filename)
             code_block = f"```python\n{code_doc.content}\n```\n-----"
             code_blocks.append(code_block)
         format_example = FORMAT_EXAMPLE
         prompt = PROMPT_TEMPLATE.format(
             system_design=design_doc.content,
-            tasks=task_doc.content,
+            task=task_doc.content,
             code_blocks="\n".join(code_blocks),
             format_example=format_example,
         )

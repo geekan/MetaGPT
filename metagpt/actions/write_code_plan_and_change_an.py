@@ -11,7 +11,6 @@ from pydantic import Field
 
 from metagpt.actions.action import Action
 from metagpt.actions.action_node import ActionNode
-from metagpt.config import CONFIG
 from metagpt.schema import CodePlanAndChangeContext
 
 CODE_PLAN_AND_CHANGE = ActionNode(
@@ -119,8 +118,8 @@ CODE_PLAN_AND_CHANGE_CONTEXT = """
 ## Design
 {design}
 
-## Tasks
-{tasks}
+## Task
+{task}
 
 ## Legacy Code
 {code}
@@ -140,8 +139,8 @@ Role: You are a professional engineer; The main goal is to complete incremental 
 ## Design
 {design}
 
-## Tasks
-{tasks}
+## Task
+{task}
 
 ## Legacy Code
 ```Code
@@ -173,11 +172,11 @@ Role: You are a professional engineer; The main goal is to complete incremental 
 2. COMPLETE CODE: Your code will be part of the entire project, so please implement complete, reliable, reusable code snippets.
 3. Set default value: If there is any setting, ALWAYS SET A DEFAULT VALUE, ALWAYS USE STRONG TYPE AND EXPLICIT VARIABLE. AVOID circular import.
 4. Follow design: YOU MUST FOLLOW "Data structures and interfaces". DONT CHANGE ANY DESIGN. Do not use public member functions that do not exist in your design.
-5. Follow Code Plan And Change: If there is any Incremental Change or Legacy Code files contain "{filename} to be rewritten", you must merge it into the code file according to the plan.
+5. Follow Code Plan And Change: If there is any Incremental Change that is marked by the git diff format using '+' and '-' for add/modify/delete code, or Legacy Code files contain "{filename} to be rewritten", you must merge it into the code file according to the plan. 
 6. CAREFULLY CHECK THAT YOU DONT MISS ANY NECESSARY CLASS/FUNCTION IN THIS FILE.
 7. Before using a external variable/module, make sure you import it first.
 8. Write out EVERY CODE DETAIL, DON'T LEAVE TODO.
-9. Attention: Retain content that is not related to incremental development but important for consistency and clarity.".
+9. Attention: Retain details that are not related to incremental development but are important for maintaining the consistency and clarity of the old code.
 """
 
 WRITE_CODE_PLAN_AND_CHANGE_NODE = ActionNode.from_children("WriteCodePlanAndChange", [CODE_PLAN_AND_CHANGE])
@@ -185,25 +184,27 @@ WRITE_CODE_PLAN_AND_CHANGE_NODE = ActionNode.from_children("WriteCodePlanAndChan
 
 class WriteCodePlanAndChange(Action):
     name: str = "WriteCodePlanAndChange"
-    context: CodePlanAndChangeContext = Field(default_factory=CodePlanAndChangeContext)
+    i_context: CodePlanAndChangeContext = Field(default_factory=CodePlanAndChangeContext)
 
     async def run(self, *args, **kwargs):
         self.llm.system_prompt = "You are a professional software engineer, your primary responsibility is to "
         "meticulously craft comprehensive incremental development plan and deliver detailed incremental change"
-        requirement = self.context.requirement_doc.content
-        prd = "\n".join([doc.content for doc in self.context.prd_docs])
-        design = "\n".join([doc.content for doc in self.context.design_docs])
-        tasks = "\n".join([doc.content for doc in self.context.tasks_docs])
+        prd_doc = await self.repo.docs.prd.get(filename=self.i_context.prd_filename)
+        design_doc = await self.repo.docs.system_design.get(filename=self.i_context.design_filename)
+        task_doc = await self.repo.docs.task.get(filename=self.i_context.task_filename)
         code_text = await self.get_old_codes()
         context = CODE_PLAN_AND_CHANGE_CONTEXT.format(
-            requirement=requirement, prd=prd, design=design, tasks=tasks, code=code_text
+            requirement=self.i_context.requirement,
+            prd=prd_doc.content,
+            design=design_doc.content,
+            task=task_doc.content,
+            code=code_text,
         )
         return await WRITE_CODE_PLAN_AND_CHANGE_NODE.fill(context=context, llm=self.llm, schema="json")
 
-    @staticmethod
-    async def get_old_codes() -> str:
-        CONFIG.old_workspace = CONFIG.git_repo.workdir / os.path.basename(CONFIG.project_path)
-        old_file_repo = CONFIG.git_repo.new_file_repository(relative_path=CONFIG.old_workspace)
+    async def get_old_codes(self) -> str:
+        self.repo.old_workspace = self.repo.git_repo.workdir / os.path.basename(self.config.project_path)
+        old_file_repo = self.repo.git_repo.new_file_repository(relative_path=self.repo.old_workspace)
         old_codes = await old_file_repo.get_all()
         codes = [f"----- {code.filename}\n```{code.content}```" for code in old_codes]
         return "\n".join(codes)

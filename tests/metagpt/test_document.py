@@ -5,7 +5,7 @@
 @Author  : alexanderwu
 @File    : test_document.py
 """
-from metagpt.config import CONFIG
+from metagpt.config2 import config
 from metagpt.document import Repo
 from metagpt.logs import logger
 
@@ -28,6 +28,6 @@ def load_existing_repo(path):
 
 
 def test_repo_set_load():
-    repo_path = CONFIG.workspace_path / "test_repo"
+    repo_path = config.workspace.path / "test_repo"
     set_existing_repo(repo_path)
     load_existing_repo(repo_path)

@@ -3,17 +3,15 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Callable, Optional, Union
+from typing import Any, Callable, Optional, Union
 
-from pydantic import Field, parse_obj_as
+from pydantic import TypeAdapter, model_validator
 
 from metagpt.actions import Action
-from metagpt.config import CONFIG
-from metagpt.llm import LLM
+from metagpt.config2 import config
 from metagpt.logs import logger
-from metagpt.provider.base_llm import BaseLLM
 from metagpt.tools.search_engine import SearchEngine
-from metagpt.tools.web_browser_engine import WebBrowserEngine, WebBrowserEngineType
+from metagpt.tools.web_browser_engine import WebBrowserEngine
 from metagpt.utils.common import OutputParser
 from metagpt.utils.text import generate_prompt_chunk, reduce_message_length
 
@@ -81,11 +79,17 @@ class CollectLinks(Action):
     """Action class to collect links from a search engine."""
 
     name: str = "CollectLinks"
-    context: Optional[str] = None
+    i_context: Optional[str] = None
     desc: str = "Collect links from a search engine."
-
-    search_engine: SearchEngine = Field(default_factory=SearchEngine)
+    search_func: Optional[Any] = None
+    search_engine: Optional[SearchEngine] = None
     rank_func: Optional[Callable[[list[str]], None]] = None
+
+    @model_validator(mode="after")
+    def validate_engine_and_run_func(self):
+        if self.search_engine is None:
+            self.search_engine = SearchEngine.from_search_config(self.config.search, proxy=self.config.proxy)
+        return self
 
     async def run(
         self,
@@ -109,7 +113,7 @@ class CollectLinks(Action):
         keywords = await self._aask(SEARCH_TOPIC_PROMPT, [system_text])
         try:
             keywords = OutputParser.extract_struct(keywords, list)
-            keywords = parse_obj_as(list[str], keywords)
+            keywords = TypeAdapter(list[str]).validate_python(keywords)
         except Exception as e:
             logger.exception(f"fail to get keywords related to the research topic '{topic}' for {e}")
             keywords = [topic]
@@ -129,13 +133,13 @@ class CollectLinks(Action):
                 if len(remove) == 0:
                     break
 
-        model_name = CONFIG.get_model_name(CONFIG.get_default_llm_provider_enum())
-        prompt = reduce_message_length(gen_msg(), model_name, system_text, CONFIG.max_tokens_rsp)
+        model_name = config.get_openai_llm().model
+        prompt = reduce_message_length(gen_msg(), model_name, system_text, 4096)
         logger.debug(prompt)
         queries = await self._aask(prompt, [system_text])
         try:
             queries = OutputParser.extract_struct(queries, list)
-            queries = parse_obj_as(list[str], queries)
+            queries = TypeAdapter(list[str]).validate_python(queries)
         except Exception as e:
             logger.exception(f"fail to break down the research question due to {e}")
             queries = keywords
@@ -177,21 +181,20 @@ class WebBrowseAndSummarize(Action):
     """Action class to explore the web and provide summaries of articles and webpages."""
 
     name: str = "WebBrowseAndSummarize"
-    context: Optional[str] = None
-    llm: BaseLLM = Field(default_factory=LLM)
+    i_context: Optional[str] = None
     desc: str = "Explore the web and provide summaries of articles and webpages."
     browse_func: Union[Callable[[list[str]], None], None] = None
     web_browser_engine: Optional[WebBrowserEngine] = None
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        if CONFIG.model_for_researcher_summary:
-            self.llm.model = CONFIG.model_for_researcher_summary
-
-        self.web_browser_engine = WebBrowserEngine(
-            engine=WebBrowserEngineType.CUSTOM if self.browse_func else None,
-            run_func=self.browse_func,
-        )
+    @model_validator(mode="after")
+    def validate_engine_and_run_func(self):
+        if self.web_browser_engine is None:
+            self.web_browser_engine = WebBrowserEngine.from_browser_config(
+                self.config.browser,
+                browse_func=self.browse_func,
+                proxy=self.config.proxy,
+            )
+        return self
 
     async def run(
         self,
@@ -220,9 +223,7 @@ class WebBrowseAndSummarize(Action):
         for u, content in zip([url, *urls], contents):
             content = content.inner_text
             chunk_summaries = []
-            for prompt in generate_prompt_chunk(
-                content, prompt_template, self.llm.model, system_text, CONFIG.max_tokens_rsp
-            ):
+            for prompt in generate_prompt_chunk(content, prompt_template, self.llm.model, system_text, 4096):
                 logger.debug(prompt)
                 summary = await self._aask(prompt, [system_text])
                 if summary == "Not relevant.":
@@ -247,14 +248,8 @@ class WebBrowseAndSummarize(Action):
 class ConductResearch(Action):
     """Action class to conduct research and generate a research report."""
 
-    name: str = "ConductResearch"
-    context: Optional[str] = None
-    llm: BaseLLM = Field(default_factory=LLM)
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        if CONFIG.model_for_researcher_report:
-            self.llm.model = CONFIG.model_for_researcher_report
 
     async def run(
         self,

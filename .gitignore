@@ -172,8 +172,10 @@ tests/metagpt/utils/file_repo_git
 *.png
 htmlcov
 htmlcov.*
+cov.xml
 *.dot
 *.pkl
+*.faiss
 *-structure.csv
 *-structure.json
-
+metagpt/tools/schemas

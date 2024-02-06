@@ -13,48 +13,34 @@ from tenacity import (
     wait_random_exponential,
 )
 
-from metagpt.config import CONFIG, LLMProviderEnum
+from metagpt.configs.llm_config import LLMConfig, LLMType
 from metagpt.const import LLM_API_TIMEOUT
 from metagpt.logs import log_llm_stream, logger
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.general_api_requestor import GeneralAPIRequestor
 from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.provider.openai_api import log_and_reraise
-from metagpt.utils.cost_manager import CostManager
+from metagpt.utils.cost_manager import TokenCostManager
 
 
-class OllamaCostManager(CostManager):
-    def update_cost(self, prompt_tokens, completion_tokens, model):
-        """
-        Update the total cost, prompt tokens, and completion tokens.
-        """
-        self.total_prompt_tokens += prompt_tokens
-        self.total_completion_tokens += completion_tokens
-        max_budget = CONFIG.max_budget if CONFIG.max_budget else CONFIG.cost_manager.max_budget
-        logger.info(
-            f"Max budget: ${max_budget:.3f} | "
-            f"prompt_tokens: {prompt_tokens}, completion_tokens: {completion_tokens}"
-        )
-        CONFIG.total_cost = self.total_cost
-
-
-@register_provider(LLMProviderEnum.OLLAMA)
+@register_provider(LLMType.OLLAMA)
 class OllamaLLM(BaseLLM):
     """
     Refs to `https://github.com/jmorganca/ollama/blob/main/docs/api.md#generate-a-chat-completion`
     """
 
-    def __init__(self):
-        self.__init_ollama(CONFIG)
-        self.client = GeneralAPIRequestor(base_url=CONFIG.ollama_api_base)
+    def __init__(self, config: LLMConfig):
+        self.__init_ollama(config)
+        self.client = GeneralAPIRequestor(base_url=config.base_url)
+        self.config = config
         self.suffix_url = "/chat"
         self.http_method = "post"
         self.use_system_prompt = False
-        self._cost_manager = OllamaCostManager()
+        self._cost_manager = TokenCostManager()
 
-    def __init_ollama(self, config: CONFIG):
-        assert config.ollama_api_base
-        self.model = config.ollama_api_model
+    def __init_ollama(self, config: LLMConfig):
+        assert config.base_url, "ollama base url is required!"
+        self.model = config.model
 
     def _const_kwargs(self, messages: list[dict], stream: bool = False) -> dict:
         kwargs = {"model": self.model, "messages": messages, "options": {"temperature": 0.3}, "stream": stream}
@@ -62,7 +48,7 @@ class OllamaLLM(BaseLLM):
 
     def _update_costs(self, usage: dict):
         """update each request's token cost"""
-        if CONFIG.calc_usage:
+        if self.config.calc_usage:
             try:
                 prompt_tokens = int(usage.get("prompt_tokens", 0))
                 completion_tokens = int(usage.get("completion_tokens", 0))

@@ -46,7 +46,7 @@ class SimpleCoder(Role):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._watch([UserRequirement])
-        self._init_actions([SimpleWriteCode])
+        self.set_actions([SimpleWriteCode])
 
 
 class SimpleWriteTest(Action):
@@ -75,7 +75,7 @@ class SimpleTester(Role):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self._init_actions([SimpleWriteTest])
+        self.set_actions([SimpleWriteTest])
         # self._watch([SimpleWriteCode])
         self._watch([SimpleWriteCode, SimpleWriteReview])  # feel free to try this too
 
@@ -114,7 +114,7 @@ class SimpleReviewer(Role):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self._init_actions([SimpleWriteReview])
+        self.set_actions([SimpleWriteReview])
         self._watch([SimpleWriteTest])
 
 

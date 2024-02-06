@@ -3,7 +3,7 @@
 # @Desc   : unittest of Role
 import pytest
 
-from metagpt.llm import HumanProvider
+from metagpt.provider.human_provider import HumanProvider
 from metagpt.roles.role import Role
 
 
@@ -13,8 +13,8 @@ def test_role_desc():
     assert role.desc == "Best Seller"
 
 
-def test_role_human():
-    role = Role(is_human=True)
+def test_role_human(context):
+    role = Role(is_human=True, context=context)
     assert isinstance(role.llm, HumanProvider)
 
 

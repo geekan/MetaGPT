@@ -5,20 +5,16 @@
 @Author  : alexanderwu
 @File    : llm.py
 """
-
 from typing import Optional
 
-from metagpt.config import CONFIG, LLMProviderEnum
+from metagpt.configs.llm_config import LLMConfig
+from metagpt.context import Context
 from metagpt.provider.base_llm import BaseLLM
-from metagpt.provider.human_provider import HumanProvider
-from metagpt.provider.llm_provider_registry import LLM_REGISTRY
-
-_ = HumanProvider()  # Avoid pre-commit error
 
 
-def LLM(provider: Optional[LLMProviderEnum] = None) -> BaseLLM:
-    """get the default llm provider"""
-    if provider is None:
-        provider = CONFIG.get_default_llm_provider_enum()
-
-    return LLM_REGISTRY.get_provider(provider)
+def LLM(llm_config: Optional[LLMConfig] = None, context: Context = None) -> BaseLLM:
+    """get the default llm provider if name is None"""
+    ctx = context or Context()
+    if llm_config is not None:
+        return ctx.llm_with_cost_manager_from_llm_config(llm_config)
+    return ctx.llm()

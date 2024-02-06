@@ -8,7 +8,6 @@
 from typing import List
 
 from metagpt.actions.action_node import ActionNode
-from metagpt.logs import logger
 
 LANGUAGE = ActionNode(
     key="Language",
@@ -34,14 +33,15 @@ ORIGINAL_REQUIREMENTS = ActionNode(
 REFINED_REQUIREMENTS = ActionNode(
     key="Refined Requirements",
     expected_type=str,
-    instruction="Place the New user's requirements here.",
+    instruction="Place the New user's original requirements here.",
     example="Create a 2048 game with a new feature that ...",
 )
 
 PROJECT_NAME = ActionNode(
     key="Project Name",
     expected_type=str,
-    instruction="According to the content of \"Original Requirements,\" name the project using snake case style , like 'game_2048' or 'simple_crm.",
+    instruction='According to the content of "Original Requirements," name the project using snake case style , '
+    "like 'game_2048' or 'simple_crm.",
     example="game_2048",
 )
 
@@ -186,20 +186,6 @@ REASON = ActionNode(
     key="reason", expected_type=str, instruction="Explain the reasoning process from question to answer", example="..."
 )
 
-REFINED_TEMPLATE = """
-### Project Name
-{project_name}
-
-### New Requirements
-{requirements}
-
-### Legacy Content
-{old_prd}
-
-### Search Information
--
-"""
-
 
 NODES = [
     LANGUAGE,
@@ -235,14 +221,3 @@ WRITE_PRD_NODE = ActionNode.from_children("WritePRD", NODES)
 REFINED_PRD_NODE = ActionNode.from_children("RefinedPRD", REFINED_NODES)
 WP_ISSUE_TYPE_NODE = ActionNode.from_children("WP_ISSUE_TYPE", [ISSUE_TYPE, REASON])
 WP_IS_RELATIVE_NODE = ActionNode.from_children("WP_IS_RELATIVE", [IS_RELATIVE, REASON])
-
-
-def main():
-    prompt = WRITE_PRD_NODE.compile(context="")
-    logger.info(prompt)
-    prompt = REFINED_PRD_NODE.compile(context="")
-    logger.info(prompt)
-
-
-if __name__ == "__main__":
-    main()

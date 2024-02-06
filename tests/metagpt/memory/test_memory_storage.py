@@ -11,12 +11,12 @@ from typing import List
 
 from metagpt.actions import UserRequirement, WritePRD
 from metagpt.actions.action_node import ActionNode
-from metagpt.config import CONFIG
+from metagpt.config2 import config
 from metagpt.const import DATA_PATH
 from metagpt.memory.memory_storage import MemoryStorage
 from metagpt.schema import Message
 
-os.environ.setdefault("OPENAI_API_KEY", CONFIG.openai_api_key)
+os.environ.setdefault("OPENAI_API_KEY", config.get_openai_llm().api_key)
 
 
 def test_idea_message():

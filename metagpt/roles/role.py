@@ -23,29 +23,26 @@
 from __future__ import annotations
 
 from enum import Enum
-from pathlib import Path
-from typing import Any, Iterable, Optional, Set, Type
+from typing import TYPE_CHECKING, Iterable, Optional, Set, Type, Union
 
 from pydantic import BaseModel, ConfigDict, Field, SerializeAsAny, model_validator
 
 from metagpt.actions import Action, ActionOutput
 from metagpt.actions.action_node import ActionNode
 from metagpt.actions.add_requirement import UserRequirement
-from metagpt.const import SERDESER_PATH
-from metagpt.llm import LLM, HumanProvider
+from metagpt.context_mixin import ContextMixin
 from metagpt.logs import logger
 from metagpt.memory import Memory
-from metagpt.provider.base_llm import BaseLLM
+from metagpt.provider import HumanProvider
 from metagpt.schema import Message, MessageQueue, SerializationMixin
-from metagpt.utils.common import (
-    any_to_name,
-    any_to_str,
-    import_class,
-    read_json_file,
-    role_raise_decorator,
-    write_json_file,
-)
+from metagpt.strategy.planner import Planner
+from metagpt.utils.common import any_to_name, any_to_str, role_raise_decorator
+from metagpt.utils.project_repo import ProjectRepo
 from metagpt.utils.repair_llm_raw_output import extract_state_value_from_output
+
+if TYPE_CHECKING:
+    from metagpt.environment import Environment  # noqa: F401
+
 
 PREFIX_TEMPLATE = """You are a {profile}, named {name}, your goal is {goal}. """
 CONSTRAINT_TEMPLATE = "the constraint is {constraints}. "
@@ -101,6 +98,7 @@ class RoleContext(BaseModel):
     )  # Message Buffer with Asynchronous Updates
     memory: Memory = Field(default_factory=Memory)
     # long_term_memory: LongTermMemory = Field(default_factory=LongTermMemory)
+    working_memory: Memory = Field(default_factory=Memory)
     state: int = Field(default=-1)  # -1 indicates initial or termination state where todo is None
     todo: Action = Field(default=None, exclude=True)
     watch: set[str] = Field(default_factory=set)
@@ -111,7 +109,7 @@ class RoleContext(BaseModel):
     max_react_loop: int = 1
 
     def check(self, role_id: str):
-        # if hasattr(CONFIG, "long_term_memory") and CONFIG.long_term_memory:
+        # if hasattr(CONFIG, "enable_longterm_memory") and CONFIG.enable_longterm_memory:
         #     self.long_term_memory.recover_memory(role_id, self)
         #     self.memory = self.long_term_memory  # use memory to act as long_term_memory for unify operation
         pass
@@ -125,11 +123,17 @@ class RoleContext(BaseModel):
     def history(self) -> list[Message]:
         return self.memory.get()
 
+    @classmethod
+    def model_rebuild(cls, **kwargs):
+        from metagpt.environment.base_env import Environment  # noqa: F401
 
-class Role(SerializationMixin, is_polymorphic_base=True):
+        super().model_rebuild(**kwargs)
+
+
+class Role(SerializationMixin, ContextMixin, BaseModel):
     """Role/Agent"""
 
-    model_config = ConfigDict(arbitrary_types_allowed=True, exclude=["llm"])
+    model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
 
     name: str = ""
     profile: str = ""
@@ -138,12 +142,19 @@ class Role(SerializationMixin, is_polymorphic_base=True):
     desc: str = ""
     is_human: bool = False
 
-    llm: BaseLLM = Field(default_factory=LLM, exclude=True)  # Each role has its own LLM, use different system message
     role_id: str = ""
     states: list[str] = []
+
+    # scenarios to set action system_prompt:
+    #   1. `__init__` while using Role(actions=[...])
+    #   2. add action to role while using `role.set_action(action)`
+    #   3. set_todo while using `role.set_todo(action)`
+    #   4. when role.system_prompt is being updated (e.g. by `role.system_prompt = "..."`)
+    # Additional, if llm is not set, we will use role's llm
     actions: list[SerializeAsAny[Action]] = Field(default=[], validate_default=True)
     rc: RoleContext = Field(default_factory=RoleContext)
-    subscription: set[str] = set()
+    addresses: set[str] = set()
+    planner: Planner = Field(default_factory=Planner)
 
     # builtin variables
     recovered: bool = False  # to tag if a recovered role
@@ -152,25 +163,79 @@ class Role(SerializationMixin, is_polymorphic_base=True):
     __hash__ = object.__hash__  # support Role as hashable type in `Environment.members`
 
     @model_validator(mode="after")
-    def check_subscription(self):
-        if not self.subscription:
-            self.subscription = {any_to_str(self), self.name} if self.name else {any_to_str(self)}
+    def validate_role_extra(self):
+        self._process_role_extra()
         return self
 
-    def __init__(self, **data: Any):
-        # --- avoid PydanticUndefinedAnnotation name 'Environment' is not defined #
-        from metagpt.environment import Environment
-
-        Environment
-        # ------
-        Role.model_rebuild()
-        super().__init__(**data)
+    def _process_role_extra(self):
+        kwargs = self.model_extra or {}
 
         if self.is_human:
-            self.llm = HumanProvider()
+            self.llm = HumanProvider(None)
 
+        self._check_actions()
         self.llm.system_prompt = self._get_prefix()
-        self._watch(data.get("watch") or [UserRequirement])
+        self._watch(kwargs.pop("watch", [UserRequirement]))
+
+        if self.latest_observed_msg:
+            self.recovered = True
+
+    @property
+    def todo(self) -> Action:
+        """Get action to do"""
+        return self.rc.todo
+
+    def set_todo(self, value: Optional[Action]):
+        """Set action to do and update context"""
+        if value:
+            value.context = self.context
+        self.rc.todo = value
+
+    @property
+    def git_repo(self):
+        """Git repo"""
+        return self.context.git_repo
+
+    @git_repo.setter
+    def git_repo(self, value):
+        self.context.git_repo = value
+
+    @property
+    def src_workspace(self):
+        """Source workspace under git repo"""
+        return self.context.src_workspace
+
+    @src_workspace.setter
+    def src_workspace(self, value):
+        self.context.src_workspace = value
+
+    @property
+    def project_repo(self) -> ProjectRepo:
+        project_repo = ProjectRepo(self.context.git_repo)
+        return project_repo.with_src_path(self.context.src_workspace) if self.context.src_workspace else project_repo
+
+    @property
+    def prompt_schema(self):
+        """Prompt schema: json/markdown"""
+        return self.config.prompt_schema
+
+    @property
+    def project_name(self):
+        return self.config.project_name
+
+    @project_name.setter
+    def project_name(self, value):
+        self.config.project_name = value
+
+    @property
+    def project_path(self):
+        return self.config.project_path
+
+    @model_validator(mode="after")
+    def check_addresses(self):
+        if not self.addresses:
+            self.addresses = {any_to_str(self), self.name} if self.name else {any_to_str(self)}
+        return self
 
     def _reset(self):
         self.states = []
@@ -180,59 +245,32 @@ class Role(SerializationMixin, is_polymorphic_base=True):
     def _setting(self):
         return f"{self.name}({self.profile})"
 
-    def serialize(self, stg_path: Path = None):
-        stg_path = (
-            SERDESER_PATH.joinpath(f"team/environment/roles/{self.__class__.__name__}_{self.name}")
-            if stg_path is None
-            else stg_path
-        )
+    def _check_actions(self):
+        """Check actions and set llm and prefix for each action."""
+        self.set_actions(self.actions)
+        return self
 
-        role_info = self.model_dump(exclude={"rc": {"memory": True, "msg_buffer": True}, "llm": True})
-        role_info.update({"role_class": self.__class__.__name__, "module_name": self.__module__})
-        role_info_path = stg_path.joinpath("role_info.json")
-        write_json_file(role_info_path, role_info)
-
-        self.rc.memory.serialize(stg_path)  # serialize role's memory alone
-
-    @classmethod
-    def deserialize(cls, stg_path: Path) -> "Role":
-        """stg_path = ./storage/team/environment/roles/{role_class}_{role_name}"""
-        role_info_path = stg_path.joinpath("role_info.json")
-        role_info = read_json_file(role_info_path)
-
-        role_class_str = role_info.pop("role_class")
-        module_name = role_info.pop("module_name")
-        role_class = import_class(class_name=role_class_str, module_name=module_name)
-
-        role = role_class(**role_info)  # initiate particular Role
-        role.set_recovered(True)  # set True to make a tag
-
-        role_memory = Memory.deserialize(stg_path)
-        role.set_memory(role_memory)
-
-        return role
-
-    def _init_action_system_message(self, action: Action):
+    def _init_action(self, action: Action):
+        if not action.private_config:
+            action.set_llm(self.llm, override=True)
+        else:
+            action.set_llm(self.llm, override=False)
         action.set_prefix(self._get_prefix())
 
-    def refresh_system_message(self):
-        self.llm.system_prompt = self._get_prefix()
+    def set_action(self, action: Action):
+        """Add action to the role."""
+        self.set_actions([action])
 
-    def set_recovered(self, recovered: bool = False):
-        self.recovered = recovered
+    def set_actions(self, actions: list[Union[Action, Type[Action]]]):
+        """Add actions to the role.
 
-    def set_memory(self, memory: Memory):
-        self.rc.memory = memory
-
-    def init_actions(self, actions):
-        self._init_actions(actions)
-
-    def _init_actions(self, actions):
+        Args:
+            actions: list of Action classes or instances
+        """
         self._reset()
-        for idx, action in enumerate(actions):
+        for action in actions:
             if not isinstance(action, Action):
-                ## 默认初始化
-                i = action(name="", llm=self.llm)
+                i = action(context=self.context)
             else:
                 if self.is_human and not isinstance(action.llm, HumanProvider):
                     logger.warning(
@@ -241,11 +279,11 @@ class Role(SerializationMixin, is_polymorphic_base=True):
                         f"try passing in Action classes instead of initialized instances"
                     )
                 i = action
-            self._init_action_system_message(i)
+            self._init_action(i)
             self.actions.append(i)
-            self.states.append(f"{idx}. {action}")
+            self.states.append(f"{len(self.actions)}. {action}")
 
-    def _set_react_mode(self, react_mode: str, max_react_loop: int = 1):
+    def _set_react_mode(self, react_mode: str, max_react_loop: int = 1, auto_run: bool = True, use_tools: bool = False):
         """Set strategy of the Role reacting to observed Message. Variation lies in how
         this Role elects action to perform during the _think stage, especially if it is capable of multiple Actions.
 
@@ -265,6 +303,10 @@ class Role(SerializationMixin, is_polymorphic_base=True):
         self.rc.react_mode = react_mode
         if react_mode == RoleReactMode.REACT:
             self.rc.max_react_loop = max_react_loop
+        elif react_mode == RoleReactMode.PLAN_AND_ACT:
+            self.planner = Planner(
+                goal=self.goal, working_memory=self.rc.working_memory, auto_run=auto_run, use_tools=use_tools
+            )
 
     def _watch(self, actions: Iterable[Type[Action]] | Iterable[Action]):
         """Watch Actions of interest. Role will select Messages caused by these Actions from its personal message
@@ -277,33 +319,29 @@ class Role(SerializationMixin, is_polymorphic_base=True):
     def is_watch(self, caused_by: str):
         return caused_by in self.rc.watch
 
-    def subscribe(self, tags: Set[str]):
+    def set_addresses(self, addresses: Set[str]):
         """Used to receive Messages with certain tags from the environment. Message will be put into personal message
         buffer to be further processed in _observe. By default, a Role subscribes Messages with a tag of its own name
         or profile.
         """
-        self.subscription = tags
+        self.addresses = addresses
         if self.rc.env:  # According to the routing feature plan in Chapter 2.2.3.2 of RFC 113
-            self.rc.env.set_subscription(self, self.subscription)
+            self.rc.env.set_addresses(self, self.addresses)
 
     def _set_state(self, state: int):
         """Update the current state."""
         self.rc.state = state
         logger.debug(f"actions={self.actions}, state={state}")
-        self.rc.todo = self.actions[self.rc.state] if state >= 0 else None
+        self.set_todo(self.actions[self.rc.state] if state >= 0 else None)
 
     def set_env(self, env: "Environment"):
         """Set the environment in which the role works. The role can talk to the environment and can also receive
         messages by observing."""
         self.rc.env = env
         if env:
-            env.set_subscription(self, self.subscription)
-            self.refresh_system_message()  # add env message to system message
-
-    @property
-    def action_count(self):
-        """Return number of action"""
-        return len(self.actions)
+            env.set_addresses(self, self.addresses)
+            self.llm.system_prompt = self._get_prefix()
+            self.set_actions(self.actions)  # reset actions to update llm and prefix
 
     def _get_prefix(self):
         """Get the role prefix"""
@@ -316,7 +354,8 @@ class Role(SerializationMixin, is_polymorphic_base=True):
             prefix += CONSTRAINT_TEMPLATE.format(**{"constraints": self.constraints})
 
         if self.rc.env and self.rc.env.desc:
-            other_role_names = ", ".join(self.rc.env.role_names())
+            all_roles = self.rc.env.role_names()
+            other_role_names = ", ".join([r for r in all_roles if r != self.name])
             env_desc = f"You are in {self.rc.env.desc} with roles({other_role_names})."
             prefix += env_desc
         return prefix
@@ -331,7 +370,7 @@ class Role(SerializationMixin, is_polymorphic_base=True):
 
         if self.recovered and self.rc.state >= 0:
             self._set_state(self.rc.state)  # action to run from recovered state
-            self.set_recovered(False)  # avoid max_react_loop out of work
+            self.recovered = False  # avoid max_react_loop out of work
             return True
 
         prompt = self._get_prefix()
@@ -429,7 +468,7 @@ class Role(SerializationMixin, is_polymorphic_base=True):
                 break
             # act
             logger.debug(f"{self._setting}: {self.rc.state=}, will do {self.rc.todo}")
-            rsp = await self._act()  # 这个rsp是否需要publish_message？
+            rsp = await self._act()
             actions_taken += 1
         return rsp  # return output from the last action
 
@@ -444,8 +483,41 @@ class Role(SerializationMixin, is_polymorphic_base=True):
 
     async def _plan_and_act(self) -> Message:
         """first plan, then execute an action sequence, i.e. _think (of a plan) -> _act -> _act -> ... Use llm to come up with the plan dynamically."""
-        # TODO: to be implemented
-        return Message(content="")
+
+        # create initial plan and update it until confirmation
+        goal = self.rc.memory.get()[-1].content  # retreive latest user requirement
+        await self.planner.update_plan(goal=goal)
+
+        # take on tasks until all finished
+        while self.planner.current_task:
+            task = self.planner.current_task
+            logger.info(f"ready to take on task {task}")
+
+            # take on current task
+            task_result = await self._act_on_task(task)
+
+            # process the result, such as reviewing, confirming, plan updating
+            await self.planner.process_task_result(task_result)
+
+        rsp = self.planner.get_useful_memories()[0]  # return the completed plan as a response
+
+        self.rc.memory.add(rsp)  # add to persistent memory
+
+        return rsp
+
+    async def _act_on_task(self, current_task: Task) -> TaskResult:
+        """Taking specific action to handle one task in plan
+
+        Args:
+            current_task (Task): current task to take on
+
+        Raises:
+            NotImplementedError: Specific Role must implement this method if expected to use planner
+
+        Returns:
+            TaskResult: Result from the actions
+        """
+        raise NotImplementedError
 
     async def react(self) -> Message:
         """Entry to one of three strategies by which Role reacts to the observed Message"""
@@ -455,6 +527,8 @@ class Role(SerializationMixin, is_polymorphic_base=True):
             rsp = await self._act_by_order()
         elif self.rc.react_mode == RoleReactMode.PLAN_AND_ACT:
             rsp = await self._plan_and_act()
+        else:
+            raise ValueError(f"Unsupported react mode: {self.rc.react_mode}")
         self._set_state(state=-1)  # current reaction is complete, reset state to -1 and todo back to None
         return rsp
 
@@ -476,7 +550,6 @@ class Role(SerializationMixin, is_polymorphic_base=True):
             if not msg.cause_by:
                 msg.cause_by = UserRequirement
             self.put_message(msg)
-
         if not await self._observe():
             # If there is no new information, suspend and wait
             logger.debug(f"{self._setting}: no news. waiting.")
@@ -485,7 +558,7 @@ class Role(SerializationMixin, is_polymorphic_base=True):
         rsp = await self.react()
 
         # Reset the next action to be taken.
-        self.rc.todo = None
+        self.set_todo(None)
         # Send the response message to the Environment object to have it relay the message to the subscribers.
         self.publish_message(rsp)
         return rsp
@@ -496,18 +569,37 @@ class Role(SerializationMixin, is_polymorphic_base=True):
         return not self.rc.news and not self.rc.todo and self.rc.msg_buffer.empty()
 
     async def think(self) -> Action:
-        """The exported `think` function"""
+        """
+        Export SDK API, used by AgentStore RPC.
+        The exported `think` function
+        """
+        await self._observe()  # For compatibility with the old version of the Agent.
         await self._think()
         return self.rc.todo
 
     async def act(self) -> ActionOutput:
-        """The exported `act` function"""
+        """
+        Export SDK API, used by AgentStore RPC.
+        The exported `act` function
+        """
         msg = await self._act()
         return ActionOutput(content=msg.content, instruct_content=msg.instruct_content)
 
     @property
-    def todo(self) -> str:
-        """AgentStore uses this attribute to display to the user what actions the current role should take."""
+    def action_description(self) -> str:
+        """
+        Export SDK API, used by AgentStore RPC and Agent.
+        AgentStore uses this attribute to display to the user what actions the current role should take.
+        `Role` provides the default property, and this property should be overridden by children classes if necessary,
+        as demonstrated by the `Engineer` class.
+        """
+        if self.rc.todo:
+            if self.rc.todo.desc:
+                return self.rc.todo.desc
+            return any_to_name(self.rc.todo)
         if self.actions:
             return any_to_name(self.actions[0])
         return ""
+
+
+RoleContext.model_rebuild()

@@ -9,12 +9,14 @@ import asyncio
 import os
 from pathlib import Path
 
-from metagpt.config import CONFIG
+import aiofiles
+
+from metagpt.config2 import config
 from metagpt.logs import logger
 from metagpt.utils.common import check_cmd_exists
 
 
-async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, height=2048) -> int:
+async def mermaid_to_file(engine, mermaid_code, output_file_without_suffix, width=2048, height=2048) -> int:
     """suffix: png/svg/pdf
 
     :param mermaid_code: mermaid code
@@ -28,14 +30,15 @@ async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, 
     if dir_name and not os.path.exists(dir_name):
         os.makedirs(dir_name)
     tmp = Path(f"{output_file_without_suffix}.mmd")
-    tmp.write_text(mermaid_code, encoding="utf-8")
+    async with aiofiles.open(tmp, "w", encoding="utf-8") as f:
+        await f.write(mermaid_code)
+    # tmp.write_text(mermaid_code, encoding="utf-8")
 
-    engine = CONFIG.mermaid_engine.lower()
     if engine == "nodejs":
-        if check_cmd_exists(CONFIG.mmdc) != 0:
+        if check_cmd_exists(config.mermaid.path) != 0:
             logger.warning(
                 "RUN `npm install -g @mermaid-js/mermaid-cli` to install mmdc,"
-                "or consider changing MERMAID_ENGINE to `playwright`, `pyppeteer`, or `ink`."
+                "or consider changing engine to `playwright`, `pyppeteer`, or `ink`."
             )
             return -1
 
@@ -44,11 +47,11 @@ async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, 
             # Call the `mmdc` command to convert the Mermaid code to a PNG
             logger.info(f"Generating {output_file}..")
 
-            if CONFIG.puppeteer_config:
+            if config.mermaid.puppeteer_config:
                 commands = [
-                    CONFIG.mmdc,
+                    config.mermaid.path,
                     "-p",
-                    CONFIG.puppeteer_config,
+                    config.mermaid.puppeteer_config,
                     "-i",
                     str(tmp),
                     "-o",
@@ -59,7 +62,7 @@ async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, 
                     str(height),
                 ]
             else:
-                commands = [CONFIG.mmdc, "-i", str(tmp), "-o", output_file, "-w", str(width), "-H", str(height)]
+                commands = [config.mermaid.path, "-i", str(tmp), "-o", output_file, "-w", str(width), "-H", str(height)]
             process = await asyncio.create_subprocess_shell(
                 " ".join(commands), stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
             )

@@ -5,6 +5,7 @@
 from enum import Enum
 
 import openai
+import zhipuai
 from requests import ConnectionError
 from tenacity import (
     after_log,
@@ -13,9 +14,8 @@ from tenacity import (
     stop_after_attempt,
     wait_random_exponential,
 )
-from zhipuai.types.chat.chat_completion import Completion
 
-from metagpt.config import CONFIG, LLMProviderEnum
+from metagpt.configs.llm_config import LLMConfig, LLMType
 from metagpt.logs import log_llm_stream, logger
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.llm_provider_registry import register_provider
@@ -30,26 +30,28 @@ class ZhiPuEvent(Enum):
     FINISH = "finish"
 
 
-@register_provider(LLMProviderEnum.ZHIPUAI)
+@register_provider(LLMType.ZHIPUAI)
 class ZhiPuAILLM(BaseLLM):
     """
     Refs to `https://open.bigmodel.cn/dev/api#chatglm_turbo`
     From now, support glm-3-turbo、glm-4, and also system_prompt.
     """
 
-    def __init__(self):
-        self.__init_zhipuai(CONFIG)
-        self.llm = ZhiPuModelAPI(api_key=self.api_key)
+    def __init__(self, config: LLMConfig):
+        self.__init_zhipuai(config)
+        self.llm = ZhiPuModelAPI
+        self.model = "chatglm_turbo"  # so far only one model, just use it
+        self.use_system_prompt: bool = False  # zhipuai has no system prompt when use api
+        self.config = config
 
-    def __init_zhipuai(self, config: CONFIG):
-        assert config.zhipuai_api_key
-        self.api_key = config.zhipuai_api_key
-        self.model = config.zhipuai_api_model  # so far, it support glm-3-turbo、glm-4
+    def __init_zhipuai(self, config: LLMConfig):
+        assert config.api_key
+        zhipuai.api_key = config.api_key
         # due to use openai sdk, set the api_key but it will't be used.
         # openai.api_key = zhipuai.api_key  # due to use openai sdk, set the api_key but it will't be used.
-        if config.openai_proxy:
+        if config.proxy:
             # FIXME: openai v1.x sdk has no proxy support
-            openai.proxy = config.openai_proxy
+            openai.proxy = config.proxy
 
     def _const_kwargs(self, messages: list[dict], stream: bool = False) -> dict:
         kwargs = {"model": self.model, "messages": messages, "stream": stream, "temperature": 0.3}
@@ -57,16 +59,16 @@ class ZhiPuAILLM(BaseLLM):
 
     def _update_costs(self, usage: dict):
         """update each request's token cost"""
-        if CONFIG.calc_usage:
+        if self.config.calc_usage:
             try:
                 prompt_tokens = int(usage.get("prompt_tokens", 0))
                 completion_tokens = int(usage.get("completion_tokens", 0))
-                CONFIG.cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
+                self.config.cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
             except Exception as e:
                 logger.error(f"zhipuai updats costs failed! exp: {e}")
 
     def completion(self, messages: list[dict], timeout=3) -> dict:
-        resp: Completion = self.llm.chat.completions.create(**self._const_kwargs(messages))
+        resp = self.llm.chat.completions.create(**self._const_kwargs(messages))
         usage = resp.usage.model_dump()
         self._update_costs(usage)
         return resp.model_dump()

@@ -9,22 +9,19 @@
 import pytest
 
 from metagpt.actions.prepare_documents import PrepareDocuments
-from metagpt.config import CONFIG
-from metagpt.const import DOCS_FILE_REPO, REQUIREMENT_FILENAME
+from metagpt.const import REQUIREMENT_FILENAME
+from metagpt.context import Context
 from metagpt.schema import Message
-from metagpt.utils.file_repository import FileRepository
 
 
 @pytest.mark.asyncio
 async def test_prepare_documents():
     msg = Message(content="New user requirements balabala...")
+    context = Context()
 
-    if CONFIG.git_repo:
-        CONFIG.git_repo.delete_repository()
-        CONFIG.git_repo = None
-
-    await PrepareDocuments().run(with_messages=[msg])
-    assert CONFIG.git_repo
-    doc = await FileRepository.get_file(filename=REQUIREMENT_FILENAME, relative_path=DOCS_FILE_REPO)
+    await PrepareDocuments(context=context).run(with_messages=[msg])
+    assert context.git_repo
+    assert context.repo
+    doc = await context.repo.docs.get(filename=REQUIREMENT_FILENAME)
     assert doc
     assert doc.content == msg.content

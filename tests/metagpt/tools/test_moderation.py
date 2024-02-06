@@ -8,7 +8,8 @@
 
 import pytest
 
-from metagpt.config import CONFIG
+from metagpt.config2 import config
+from metagpt.llm import LLM
 from metagpt.tools.moderation import Moderation
 
 
@@ -23,11 +24,9 @@ from metagpt.tools.moderation import Moderation
 )
 async def test_amoderation(content):
     # Prerequisites
-    assert CONFIG.OPENAI_API_KEY and CONFIG.OPENAI_API_KEY != "YOUR_API_KEY"
-    assert not CONFIG.OPENAI_API_TYPE
-    assert CONFIG.OPENAI_API_MODEL
+    assert config.get_openai_llm()
 
-    moderation = Moderation()
+    moderation = Moderation(LLM())
     results = await moderation.amoderation(content=content)
     assert isinstance(results, list)
     assert len(results) == len(content)

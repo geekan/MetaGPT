@@ -9,13 +9,13 @@ from metagpt.actions.write_tutorial import WriteContent, WriteDirectory
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(("language", "topic"), [("English", "Write a tutorial about Python")])
-async def test_write_directory_deserialize(language: str, topic: str):
-    action = WriteDirectory()
+async def test_write_directory_serdeser(language: str, topic: str, context):
+    action = WriteDirectory(context=context)
     serialized_data = action.model_dump()
     assert serialized_data["name"] == "WriteDirectory"
     assert serialized_data["language"] == "Chinese"
 
-    new_action = WriteDirectory(**serialized_data)
+    new_action = WriteDirectory(**serialized_data, context=context)
     ret = await new_action.run(topic=topic)
     assert isinstance(ret, dict)
     assert "title" in ret
@@ -30,12 +30,12 @@ async def test_write_directory_deserialize(language: str, topic: str):
     ("language", "topic", "directory"),
     [("English", "Write a tutorial about Python", {"Introduction": ["What is Python?", "Why learn Python?"]})],
 )
-async def test_write_content_deserialize(language: str, topic: str, directory: Dict):
-    action = WriteContent(language=language, directory=directory)
+async def test_write_content_serdeser(language: str, topic: str, directory: Dict, context):
+    action = WriteContent(language=language, directory=directory, context=context)
     serialized_data = action.model_dump()
     assert serialized_data["name"] == "WriteContent"
 
-    new_action = WriteContent(**serialized_data)
+    new_action = WriteContent(**serialized_data, context=context)
     ret = await new_action.run(topic=topic)
     assert isinstance(ret, str)
     assert list(directory.keys())[0] in ret
