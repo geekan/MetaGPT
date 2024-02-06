@@ -1,5 +1,7 @@
 """Retriever schemas"""
 
+from typing import Union
+
 from pydantic import BaseModel
 
 
@@ -21,3 +23,7 @@ class RankerConfig(BaseModel):
 
 class LLMRankerConfig(RankerConfig):
     ...
+
+
+RetrieverConfigType = Union[FAISSRetrieverConfig, BM25RetrieverConfig]
+RankerConfigType = LLMRankerConfig

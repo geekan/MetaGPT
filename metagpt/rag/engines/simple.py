@@ -1,6 +1,7 @@
 """Simple Engine."""
 
-from llama_index import ServiceContext, SimpleDirectoryReader
+
+from llama_index import ServiceContext, SimpleDirectoryReader, VectorStoreIndex
 from llama_index.embeddings.base import BaseEmbedding
 from llama_index.llms.llm import LLM
 from llama_index.query_engine import RetrieverQueryEngine
@@ -9,26 +10,23 @@ from llama_index.schema import NodeWithScore, QueryBundle, QueryType
 from metagpt.rag.llm import get_default_llm
 from metagpt.rag.rankers import get_rankers
 from metagpt.rag.retrievers import get_retriever
-from metagpt.rag.schema import RankerConfig, RetrieverConfig
+from metagpt.rag.retrievers.base import RAGRetriever
+from metagpt.rag.schema import RankerConfigType, RetrieverConfigType
 from metagpt.utils.embedding import get_embedding
 
 
 class SimpleEngine(RetrieverQueryEngine):
-    """
-    SimpleEngine is a search engine that uses a vector index for retrieving documents.
-    """
-
     @classmethod
     def from_docs(
         cls,
         input_dir: str = None,
-        input_files: list = None,
+        input_files: list[str] = None,
         llm: LLM = None,
         embed_model: BaseEmbedding = None,
         chunk_size: int = None,
         chunk_overlap: int = None,
-        retriever_configs: list[RetrieverConfig] = None,
-        ranker_configs: list[RankerConfig] = None,
+        retriever_configs: list[RetrieverConfigType] = None,
+        ranker_configs: list[RankerConfigType] = None,
     ) -> "SimpleEngine":
         """This engine is designed to be simple and straightforward
 
@@ -44,8 +42,8 @@ class SimpleEngine(RetrieverQueryEngine):
             chunk_size=chunk_size,
             chunk_overlap=chunk_overlap,
         )
-        nodes = service_context.node_parser.get_nodes_from_documents(documents)
-        retriever = get_retriever(nodes, configs=retriever_configs, service_context=service_context)
+        index = VectorStoreIndex.from_documents(documents, service_context=service_context)
+        retriever = get_retriever(index, configs=retriever_configs)
         rankers = get_rankers(configs=ranker_configs, service_context=service_context)
 
         return SimpleEngine(retriever=retriever, node_postprocessors=rankers)
@@ -58,3 +56,8 @@ class SimpleEngine(RetrieverQueryEngine):
         """Allow query to be str"""
         query_bundle = QueryBundle(query) if isinstance(query, str) else query
         return await super().aretrieve(query_bundle)
+
+    def add_docs(self, input_files: list[str]):
+        documents = SimpleDirectoryReader(input_files=input_files).load_data()
+        retriever: RAGRetriever = self.retriever
+        retriever.add_docs(documents)
