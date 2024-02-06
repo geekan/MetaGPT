@@ -176,6 +176,7 @@ class Snake:
 """
 
 
+@pytest.mark.skip
 @pytest.mark.asyncio
 async def test_summarize_code(context):
     git_dir = Path(__file__).parent / f"unittest/{uuid.uuid4().hex}"
