@@ -1,3 +1,6 @@
 llm:
-  api_key: "YOUR_API_KEY"
-  model: "gpt-4-turbo-preview"  # or gpt-3.5-turbo-1106 / gpt-4-1106-preview
+  api_type: "azure"
+  base_url: "https://deepwisdom.openai.azure.com/"
+  api_key: "02ae6058d09849c691176befeae2107c"
+  api_version: "2023-07-01-preview"
+  model: "gpt-4"
