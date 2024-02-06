@@ -95,12 +95,26 @@ def dummy_fn(df: pd.DataFrame) -> dict:
     pass
 
 
+async def dummy_async_fn(df: pd.DataFrame) -> dict:
+    """
+    A dummy async function for test
+
+    Args:
+        df (pd.DataFrame): test args.
+
+    Returns:
+        dict: test returns.
+    """
+    pass
+
+
 def test_convert_code_to_tool_schema_class():
     expected = {
         "type": "class",
         "description": "Completing missing values with simple strategies.",
         "methods": {
             "__init__": {
+                "type": "function",
                 "description": "Initialize self.",
                 "parameters": {
                     "properties": {
@@ -121,6 +135,7 @@ def test_convert_code_to_tool_schema_class():
                 },
             },
             "fit": {
+                "type": "function",
                 "description": "Fit the FillMissingValue model.",
                 "parameters": {
                     "properties": {"df": {"type": "pd.DataFrame", "description": "The input DataFrame."}},
@@ -128,6 +143,7 @@ def test_convert_code_to_tool_schema_class():
                 },
             },
             "transform": {
+                "type": "function",
                 "description": "Transform the input DataFrame with the fitted model.",
                 "parameters": {
                     "properties": {"df": {"type": "pd.DataFrame", "description": "The input DataFrame."}},
@@ -152,3 +168,8 @@ def test_convert_code_to_tool_schema_function():
     }
     schema = convert_code_to_tool_schema(dummy_fn)
     assert schema == expected
+
+
+def test_convert_code_to_tool_schema_async_function():
+    schema = convert_code_to_tool_schema(dummy_async_fn)
+    assert schema.get("type") == "async_function"
