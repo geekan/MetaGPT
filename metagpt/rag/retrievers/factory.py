@@ -1,3 +1,4 @@
+"""Retriever Factory"""
 import faiss
 from llama_index import StorageContext, VectorStoreIndex
 from llama_index.indices.base import BaseIndex
@@ -22,6 +23,7 @@ class RetrieverFactory:
         }
 
     def get_retriever(self, index: BaseIndex, configs: list[RetrieverConfigType] = None) -> RAGRetriever:
+        """Creates and returns a retriever instance based on the provided configurations."""
         if not configs:
             return self._default_retriever(index)
 

@@ -1,6 +1,6 @@
 """Hybrid retriever."""
-from llama_index import Document, ServiceContext
-from llama_index.schema import QueryType
+from llama_index import ServiceContext
+from llama_index.schema import BaseNode, QueryType
 
 from metagpt.rag.retrievers.base import RAGRetriever
 
@@ -37,6 +37,6 @@ class SimpleHybridRetriever(RAGRetriever):
                 node_ids.add(n.node.node_id)
         return result
 
-    def add_docs(self, documents: list[Document]):
+    def add_nodes(self, nodes: list[BaseNode]):
         for r in self.retrievers:
-            r.add_docs(documents)
+            r.add_nodes(nodes)

@@ -1,10 +1,17 @@
 """Simple Engine."""
 
 
+from typing import Optional
+
 from llama_index import ServiceContext, SimpleDirectoryReader, VectorStoreIndex
+from llama_index.callbacks.base import CallbackManager
+from llama_index.core.base_retriever import BaseRetriever
 from llama_index.embeddings.base import BaseEmbedding
+from llama_index.indices.base import BaseIndex
 from llama_index.llms.llm import LLM
+from llama_index.postprocessor.types import BaseNodePostprocessor
 from llama_index.query_engine import RetrieverQueryEngine
+from llama_index.response_synthesizers import BaseSynthesizer
 from llama_index.schema import NodeWithScore, QueryBundle, QueryType
 
 from metagpt.rag.llm import get_default_llm
@@ -16,6 +23,29 @@ from metagpt.utils.embedding import get_embedding
 
 
 class SimpleEngine(RetrieverQueryEngine):
+    """
+    SimpleEngine is a lightweight and easy-to-use search engine that integrates
+    document reading, embedding, indexing, retrieving, and ranking functionalities
+    into a single, straightforward workflow. It is designed to quickly set up a
+    search engine from a collection of documents.
+    """
+
+    def __init__(
+        self,
+        retriever: BaseRetriever,
+        response_synthesizer: Optional[BaseSynthesizer] = None,
+        node_postprocessors: Optional[list[BaseNodePostprocessor]] = None,
+        callback_manager: Optional[CallbackManager] = None,
+        index: Optional[BaseIndex] = None,
+    ) -> None:
+        super().__init__(
+            retriever=retriever,
+            response_synthesizer=response_synthesizer,
+            node_postprocessors=node_postprocessors,
+            callback_manager=callback_manager,
+        )
+        self.index = index
+
     @classmethod
     def from_docs(
         cls,
@@ -31,9 +61,14 @@ class SimpleEngine(RetrieverQueryEngine):
         """This engine is designed to be simple and straightforward
 
         Args:
-            input_dir (str): Path to the directory.
-            input_files (list): List of file paths to read
-                (Optional; overrides input_dir, exclude)
+            input_dir: Path to the directory.
+            input_files: List of file paths to read (Optional; overrides input_dir, exclude).
+            llm: Must supported by llama index.
+            embed_model: Must supported by llama index.
+            chunk_size: The size of text chunks (in tokens) to split documents into for embedding.
+            chunk_overlap: The number of tokens for overlapping between consecutive chunks. Helps in maintaining context continuity.
+            retriever_configs: Configuration for retrievers. If more than one config, will use SimpleHybridRetriever.
+            ranker_configs: Configuration for rankers.
         """
         documents = SimpleDirectoryReader(input_dir=input_dir, input_files=input_files).load_data()
         service_context = ServiceContext.from_defaults(
@@ -46,7 +81,7 @@ class SimpleEngine(RetrieverQueryEngine):
         retriever = get_retriever(index, configs=retriever_configs)
         rankers = get_rankers(configs=ranker_configs, service_context=service_context)
 
-        return SimpleEngine(retriever=retriever, node_postprocessors=rankers)
+        return cls(retriever=retriever, node_postprocessors=rankers, index=index)
 
     async def asearch(self, content: str, **kwargs) -> str:
         """Inplement tools.SearchInterface"""
@@ -58,6 +93,8 @@ class SimpleEngine(RetrieverQueryEngine):
         return await super().aretrieve(query_bundle)
 
     def add_docs(self, input_files: list[str]):
+        """Add docs to retriever"""
         documents = SimpleDirectoryReader(input_files=input_files).load_data()
+        nodes = self.index.service_context.node_parser.get_nodes_from_documents(documents)
         retriever: RAGRetriever = self.retriever
-        retriever.add_docs(documents)
+        retriever.add_nodes(nodes)

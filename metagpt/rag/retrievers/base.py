@@ -3,21 +3,19 @@
 
 from abc import abstractmethod
 
-from llama_index import Document
 from llama_index.retrievers import BaseRetriever
-from llama_index.schema import NodeWithScore, QueryType
+from llama_index.schema import BaseNode, NodeWithScore, QueryType
 
 
 class RAGRetriever(BaseRetriever):
-    """inherit from llama_index"""
+    """Inherit from llama_index"""
 
     @abstractmethod
     async def _aretrieve(self, query: QueryType) -> list[NodeWithScore]:
-        """retrieve nodes"""
-
-    @abstractmethod
-    def add_docs(self, documents: list[Document]) -> None:
-        """add docs"""
+        """Retrieve nodes"""
 
     def _retrieve(self, query: QueryType) -> list[NodeWithScore]:
-        """retrieve nodes"""
+        """Retrieve nodes"""
+
+    def add_nodes(self, nodes: list[BaseNode], **kwargs) -> None:
+        """To support add docs, must inplement this func"""
