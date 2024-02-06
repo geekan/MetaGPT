@@ -15,7 +15,8 @@ def convert_code_to_tool_schema(obj, include: list[str] = []):
             # method_doc = inspect.getdoc(method)
             method_doc = get_class_method_docstring(obj, name)
             if method_doc:
-                schema["methods"][name] = docstring_to_schema(method_doc)
+                function_type = "function" if not inspect.iscoroutinefunction(method) else "async_function"
+                schema["methods"][name] = {"type": function_type, **docstring_to_schema(method_doc)}
 
     elif inspect.isfunction(obj):
         schema = {
