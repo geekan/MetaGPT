@@ -72,16 +72,6 @@ class GeminiLLM(BaseLLM):
         kwargs = {"contents": messages, "generation_config": GenerationConfig(temperature=0.3), "stream": stream}
         return kwargs
 
-    def _update_costs(self, usage: dict):
-        """update each request's token cost"""
-        if self.config.calc_usage:
-            try:
-                prompt_tokens = int(usage.get("prompt_tokens", 0))
-                completion_tokens = int(usage.get("completion_tokens", 0))
-                self.cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
-            except Exception as e:
-                logger.error(f"google gemini updats costs failed! exp: {e}")
-
     def get_choice_text(self, resp: GenerateContentResponse) -> str:
         return resp.text
 

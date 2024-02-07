@@ -1,7 +1,0 @@
-llm:
-  api_type: "spark"
-  app_id: "xxx"
-  api_key: "xxx"
-  api_secret: "xxx"
-  domain: "generalv2"
-  base_url: "wss://spark-api.xf-yun.com/v3.1/chat"
