@@ -67,4 +67,3 @@ playwright>=1.26  # used at metagpt/tools/libs/web_scraping.py
 anytree
 ipywidgets==8.1.1
 Pillow
-qianfan==0.3.1
