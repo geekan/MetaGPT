@@ -17,7 +17,7 @@ from tests.metagpt.provider.req_resp_const import (
     prompt,
 )
 
-llm_name = "GPT"
+name = "GPT"
 
 
 class MockBaseLLM(BaseLLM):
@@ -25,10 +25,10 @@ class MockBaseLLM(BaseLLM):
         pass
 
     def completion(self, messages: list[dict], timeout=3):
-        return get_part_chat_completion(llm_name)
+        return get_part_chat_completion(name)
 
     async def acompletion(self, messages: list[dict], timeout=3):
-        return get_part_chat_completion(llm_name)
+        return get_part_chat_completion(name)
 
     async def acompletion_text(self, messages: list[dict], stream=False, timeout=3) -> str:
         return default_resp_cont

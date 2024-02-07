@@ -11,11 +11,12 @@ from tests.metagpt.provider.req_resp_const import (
     messages,
     prompt,
     resp_cont_tmpl,
+    llm_general_chat_funcs_test
 )
 
-llm_name = "ChatGLM-4"
-resp_cont = resp_cont_tmpl.format(name=llm_name)
-default_resp = get_part_chat_completion(llm_name)
+name = "ChatGLM-4"
+resp_cont = resp_cont_tmpl.format(name=name)
+default_resp = get_part_chat_completion(name)
 
 
 async def mock_zhipuai_acreate_stream(**kwargs):
@@ -47,22 +48,12 @@ async def test_zhipuai_acompletion(mocker):
     mocker.patch("metagpt.provider.zhipuai.zhipu_model_api.ZhiPuModelAPI.acreate", mock_zhipuai_acreate)
     mocker.patch("metagpt.provider.zhipuai.zhipu_model_api.ZhiPuModelAPI.acreate_stream", mock_zhipuai_acreate_stream)
 
-    zhipu_gpt = ZhiPuAILLM(mock_llm_config_zhipu)
+    zhipu_llm = ZhiPuAILLM(mock_llm_config_zhipu)
 
-    resp = await zhipu_gpt.acompletion(messages)
+    resp = await zhipu_llm.acompletion(messages)
     assert resp["choices"][0]["message"]["content"] == resp_cont
 
-    resp = await zhipu_gpt.aask(prompt, stream=False)
-    assert resp == resp_cont
-
-    resp = await zhipu_gpt.acompletion_text(messages, stream=False)
-    assert resp == resp_cont
-
-    resp = await zhipu_gpt.acompletion_text(messages, stream=True)
-    assert resp == resp_cont
-
-    resp = await zhipu_gpt.aask(prompt)
-    assert resp == resp_cont
+    await llm_general_chat_funcs_test(zhipu_llm, prompt, messages, resp_cont)
 
 
 def test_zhipuai_proxy():

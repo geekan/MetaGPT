@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # @Desc   : default request & response data for provider unittest
 
+from typing import Dict
 from openai.types.chat.chat_completion import (
     ChatCompletion,
     ChatCompletionMessage,
@@ -11,6 +12,9 @@ from openai.types.chat.chat_completion_chunk import ChatCompletionChunk
 from openai.types.chat.chat_completion_chunk import Choice as AChoice
 from openai.types.chat.chat_completion_chunk import ChoiceDelta
 from openai.types.completion_usage import CompletionUsage
+from qianfan.resources.typing import QfResponse, default_field
+
+from metagpt.provider.base_llm import BaseLLM
 
 prompt = "who are you?"
 messages = [{"role": "user", "content": prompt}]
@@ -20,14 +24,14 @@ default_resp_cont = resp_cont_tmpl.format(name="GPT")
 
 
 # part of whole ChatCompletion of openai like structure
-def get_part_chat_completion(llm_name: str) -> dict:
+def get_part_chat_completion(name: str) -> dict:
     part_chat_completion = {
         "choices": [
             {
                 "index": 0,
                 "message": {
                     "role": "assistant",
-                    "content": resp_cont_tmpl.format(name=llm_name),
+                    "content": resp_cont_tmpl.format(name=name),
                 },
                 "finish_reason": "stop",
             }
@@ -37,7 +41,7 @@ def get_part_chat_completion(llm_name: str) -> dict:
     return part_chat_completion
 
 
-def get_openai_chat_completion(llm_name: str) -> ChatCompletion:
+def get_openai_chat_completion(name: str) -> ChatCompletion:
     openai_chat_completion = ChatCompletion(
         id="cmpl-a6652c1bb181caae8dd19ad8",
         model="xx/xxx",
@@ -47,7 +51,7 @@ def get_openai_chat_completion(llm_name: str) -> ChatCompletion:
             Choice(
                 finish_reason="stop",
                 index=0,
-                message=ChatCompletionMessage(role="assistant", content=resp_cont_tmpl.format(name=llm_name)),
+                message=ChatCompletionMessage(role="assistant", content=resp_cont_tmpl.format(name=name)),
                 logprobs=None,
             )
         ],
@@ -56,7 +60,7 @@ def get_openai_chat_completion(llm_name: str) -> ChatCompletion:
     return openai_chat_completion
 
 
-def get_openai_chat_completion_chunk(llm_name: str, usage_as_dict: bool = False) -> ChatCompletionChunk:
+def get_openai_chat_completion_chunk(name: str, usage_as_dict: bool = False) -> ChatCompletionChunk:
     usage = CompletionUsage(completion_tokens=110, prompt_tokens=92, total_tokens=202)
     usage = usage if not usage_as_dict else usage.model_dump()
     openai_chat_completion_chunk = ChatCompletionChunk(
@@ -66,7 +70,7 @@ def get_openai_chat_completion_chunk(llm_name: str, usage_as_dict: bool = False)
         created=1703300855,
         choices=[
             AChoice(
-                delta=ChoiceDelta(role="assistant", content=resp_cont_tmpl.format(name=llm_name)),
+                delta=ChoiceDelta(role="assistant", content=resp_cont_tmpl.format(name=name)),
                 finish_reason="stop",
                 index=0,
                 logprobs=None,
@@ -76,5 +80,44 @@ def get_openai_chat_completion_chunk(llm_name: str, usage_as_dict: bool = False)
     )
     return openai_chat_completion_chunk
 
-
+# For gemini
 gemini_messages = [{"role": "user", "parts": prompt}]
+
+
+# For QianFan
+qf_jsonbody_dict = {
+    "id": "as-4v1h587fyv",
+    "object": "chat.completion",
+    "created": 1695021339,
+    "result": "",
+    "is_truncated": False,
+    "need_clear_history": False,
+    "usage": {
+        "prompt_tokens": 7,
+        "completion_tokens": 15,
+        "total_tokens": 22
+    }
+}
+
+
+def get_qianfan_response(name: str) -> QfResponse:
+    qf_jsonbody_dict["result"] = resp_cont_tmpl.format(name=name)
+    return QfResponse(
+        code=200,
+        body=qf_jsonbody_dict
+    )
+
+
+# For llm general chat functions call
+async def llm_general_chat_funcs_test(llm: BaseLLM, prompt: str, messages: list[dict], resp_cont: str):
+    resp = await llm.aask(prompt, stream=False)
+    assert resp == resp_cont
+
+    resp = await llm.aask(prompt)
+    assert resp == resp_cont
+
+    resp = await llm.acompletion_text(messages, stream=False)
+    assert resp == resp_cont
+
+    resp = await llm.acompletion_text(messages, stream=True)
+    assert resp == resp_cont

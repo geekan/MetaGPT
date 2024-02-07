@@ -5,6 +5,7 @@ import copy
 import os
 
 import qianfan
+from qianfan import ChatCompletion
 from qianfan.resources.typing import JsonBody
 from tenacity import (
     after_log,
@@ -78,7 +79,7 @@ class QianFanLLM(BaseLLM):
 
         # self deployed model on the cloud not to calculate usage, it charges resource pool rental fee
         self.calc_usage = self.config.calc_usage and self.config.endpoint is None
-        self.aclient = qianfan.ChatCompletion()
+        self.aclient: ChatCompletion = qianfan.ChatCompletion()
 
     def _const_kwargs(self, messages: list[dict], stream: bool = False) -> dict:
         kwargs = {

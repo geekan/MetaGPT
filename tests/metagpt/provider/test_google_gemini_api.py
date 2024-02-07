@@ -63,28 +63,28 @@ async def test_gemini_acompletion(mocker):
         mock_gemini_generate_content_async,
     )
 
-    gemini_gpt = GeminiLLM(mock_llm_config)
+    gemini_llm = GeminiLLM(mock_llm_config)
 
-    assert gemini_gpt._user_msg(prompt) == {"role": "user", "parts": [prompt]}
-    assert gemini_gpt._assistant_msg(prompt) == {"role": "model", "parts": [prompt]}
+    assert gemini_llm._user_msg(prompt) == {"role": "user", "parts": [prompt]}
+    assert gemini_llm._assistant_msg(prompt) == {"role": "model", "parts": [prompt]}
 
-    usage = gemini_gpt.get_usage(gemini_messages, resp_cont)
+    usage = gemini_llm.get_usage(gemini_messages, resp_cont)
     assert usage == {"prompt_tokens": 20, "completion_tokens": 20}
 
-    resp = gemini_gpt.completion(gemini_messages)
+    resp = gemini_llm.completion(gemini_messages)
     assert resp == default_resp
 
-    resp = await gemini_gpt.acompletion(gemini_messages)
+    resp = await gemini_llm.acompletion(gemini_messages)
     assert resp.text == default_resp.text
 
-    resp = await gemini_gpt.aask(prompt, stream=False)
+    resp = await gemini_llm.aask(prompt, stream=False)
     assert resp == resp_cont
 
-    resp = await gemini_gpt.acompletion_text(gemini_messages, stream=False)
+    resp = await gemini_llm.acompletion_text(gemini_messages, stream=False)
     assert resp == resp_cont
 
-    resp = await gemini_gpt.acompletion_text(gemini_messages, stream=True)
+    resp = await gemini_llm.acompletion_text(gemini_messages, stream=True)
     assert resp == resp_cont
 
-    resp = await gemini_gpt.aask(prompt)
+    resp = await gemini_llm.aask(prompt)
     assert resp == resp_cont

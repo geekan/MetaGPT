@@ -17,11 +17,11 @@ from tests.metagpt.provider.req_resp_const import (
     resp_cont_tmpl,
 )
 
-llm_name = "llama2-7b"
-resp_cont = resp_cont_tmpl.format(name=llm_name)
-default_resp = get_openai_chat_completion(llm_name)
+name = "llama2-7b"
+resp_cont = resp_cont_tmpl.format(name=name)
+default_resp = get_openai_chat_completion(name)
 
-default_resp_chunk = get_openai_chat_completion_chunk(llm_name)
+default_resp_chunk = get_openai_chat_completion_chunk(name)
 
 
 async def mock_openai_acompletions_create(self, stream: bool = False, **kwargs) -> ChatCompletionChunk:
@@ -40,26 +40,26 @@ async def mock_openai_acompletions_create(self, stream: bool = False, **kwargs) 
 async def test_openllm_acompletion(mocker):
     mocker.patch("openai.resources.chat.completions.AsyncCompletions.create", mock_openai_acompletions_create)
 
-    openllm_gpt = OpenLLM(mock_llm_config)
-    openllm_gpt.model = "llama-v2-13b-chat"
+    openllm_llm = OpenLLM(mock_llm_config)
+    openllm_llm.model = "llama-v2-13b-chat"
 
-    openllm_gpt.cost_manager = CostManager()
-    openllm_gpt._update_costs(usage=CompletionUsage(prompt_tokens=100, completion_tokens=100, total_tokens=200))
-    assert openllm_gpt.get_costs() == Costs(
+    openllm_llm.cost_manager = CostManager()
+    openllm_llm._update_costs(usage=CompletionUsage(prompt_tokens=100, completion_tokens=100, total_tokens=200))
+    assert openllm_llm.get_costs() == Costs(
         total_prompt_tokens=100, total_completion_tokens=100, total_cost=0, total_budget=0
     )
 
-    resp = await openllm_gpt.acompletion(messages)
+    resp = await openllm_llm.acompletion(messages)
     assert resp.choices[0].message.content in resp_cont
 
-    resp = await openllm_gpt.aask(prompt, stream=False)
+    resp = await openllm_llm.aask(prompt, stream=False)
     assert resp == resp_cont
 
-    resp = await openllm_gpt.acompletion_text(messages, stream=False)
+    resp = await openllm_llm.acompletion_text(messages, stream=False)
     assert resp == resp_cont
 
-    resp = await openllm_gpt.acompletion_text(messages, stream=True)
+    resp = await openllm_llm.acompletion_text(messages, stream=True)
     assert resp == resp_cont
 
-    resp = await openllm_gpt.aask(prompt)
+    resp = await openllm_llm.aask(prompt)
     assert resp == resp_cont

@@ -21,10 +21,10 @@ from tests.metagpt.provider.req_resp_const import (
     resp_cont_tmpl,
 )
 
-llm_name = "fireworks"
-resp_cont = resp_cont_tmpl.format(name=llm_name)
-default_resp = get_openai_chat_completion(llm_name)
-default_resp_chunk = get_openai_chat_completion_chunk(llm_name, usage_as_dict=True)
+name = "fireworks"
+resp_cont = resp_cont_tmpl.format(name=name)
+default_resp = get_openai_chat_completion(name)
+default_resp_chunk = get_openai_chat_completion_chunk(name, usage_as_dict=True)
 
 
 def test_fireworks_costmanager():
@@ -57,27 +57,27 @@ async def mock_openai_acompletions_create(self, stream: bool = False, **kwargs) 
 async def test_fireworks_acompletion(mocker):
     mocker.patch("openai.resources.chat.completions.AsyncCompletions.create", mock_openai_acompletions_create)
 
-    fireworks_gpt = FireworksLLM(mock_llm_config)
-    fireworks_gpt.model = "llama-v2-13b-chat"
+    fireworks_llm = FireworksLLM(mock_llm_config)
+    fireworks_llm.model = "llama-v2-13b-chat"
 
-    fireworks_gpt._update_costs(
+    fireworks_llm._update_costs(
         usage=CompletionUsage(prompt_tokens=500000, completion_tokens=500000, total_tokens=1000000)
     )
-    assert fireworks_gpt.get_costs() == Costs(
+    assert fireworks_llm.get_costs() == Costs(
         total_prompt_tokens=500000, total_completion_tokens=500000, total_cost=0.5, total_budget=0
     )
 
-    resp = await fireworks_gpt.acompletion(messages)
+    resp = await fireworks_llm.acompletion(messages)
     assert resp.choices[0].message.content in resp_cont
 
-    resp = await fireworks_gpt.aask(prompt, stream=False)
+    resp = await fireworks_llm.aask(prompt, stream=False)
     assert resp == resp_cont
 
-    resp = await fireworks_gpt.acompletion_text(messages, stream=False)
+    resp = await fireworks_llm.acompletion_text(messages, stream=False)
     assert resp == resp_cont
 
-    resp = await fireworks_gpt.acompletion_text(messages, stream=True)
+    resp = await fireworks_llm.acompletion_text(messages, stream=True)
     assert resp == resp_cont
 
-    resp = await fireworks_gpt.aask(prompt)
+    resp = await fireworks_llm.aask(prompt)
     assert resp == resp_cont

@@ -50,19 +50,19 @@ async def test_spark_aask(mocker):
 async def test_spark_acompletion(mocker):
     mocker.patch("metagpt.provider.spark_api.GetMessageFromWeb.run", mock_spark_get_msg_from_web_run)
 
-    spark_gpt = SparkLLM(mock_llm_config)
+    spark_llm = SparkLLM(mock_llm_config)
 
-    resp = await spark_gpt.acompletion([])
+    resp = await spark_llm.acompletion([])
     assert resp == resp_cont
 
-    resp = await spark_gpt.aask(prompt, stream=False)
+    resp = await spark_llm.aask(prompt, stream=False)
     assert resp == resp_cont
 
-    resp = await spark_gpt.acompletion_text([], stream=False)
+    resp = await spark_llm.acompletion_text([], stream=False)
     assert resp == resp_cont
 
-    resp = await spark_gpt.acompletion_text([], stream=True)
+    resp = await spark_llm.acompletion_text([], stream=True)
     assert resp == resp_cont
 
-    resp = await spark_gpt.aask(prompt)
+    resp = await spark_llm.aask(prompt)
     assert resp == resp_cont

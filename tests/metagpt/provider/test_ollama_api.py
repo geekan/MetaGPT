@@ -39,19 +39,19 @@ async def mock_ollama_arequest(self, stream: bool = False, **kwargs) -> Tuple[An
 async def test_gemini_acompletion(mocker):
     mocker.patch("metagpt.provider.general_api_requestor.GeneralAPIRequestor.arequest", mock_ollama_arequest)
 
-    ollama_gpt = OllamaLLM(mock_llm_config)
+    ollama_llm = OllamaLLM(mock_llm_config)
 
-    resp = await ollama_gpt.acompletion(messages)
+    resp = await ollama_llm.acompletion(messages)
     assert resp["message"]["content"] == default_resp["message"]["content"]
 
-    resp = await ollama_gpt.aask(prompt, stream=False)
+    resp = await ollama_llm.aask(prompt, stream=False)
     assert resp == resp_cont
 
-    resp = await ollama_gpt.acompletion_text(messages, stream=False)
+    resp = await ollama_llm.acompletion_text(messages, stream=False)
     assert resp == resp_cont
 
-    resp = await ollama_gpt.acompletion_text(messages, stream=True)
+    resp = await ollama_llm.acompletion_text(messages, stream=True)
     assert resp == resp_cont
 
-    resp = await ollama_gpt.aask(prompt)
+    resp = await ollama_llm.aask(prompt)
     assert resp == resp_cont
