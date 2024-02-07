@@ -10,6 +10,14 @@ from metagpt.tools.libs import (
     sd_engine,
     gpt_v_generator,
     web_scraping,
+    email_login,
 )
 
-_ = data_preprocess, feature_engineering, sd_engine, gpt_v_generator, web_scraping  # Avoid pre-commit error
+_ = (
+    data_preprocess,
+    feature_engineering,
+    sd_engine,
+    gpt_v_generator,
+    web_scraping,
+    email_login,
+)  # Avoid pre-commit error
