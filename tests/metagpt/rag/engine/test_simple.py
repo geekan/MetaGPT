@@ -2,7 +2,7 @@ import pytest
 from llama_index import VectorStoreIndex
 
 from metagpt.rag.engines import SimpleEngine
-from metagpt.rag.retrievers.base import RAGRetriever
+from metagpt.rag.retrievers.base import ModifiableRAGRetriever
 
 
 class TestSimpleEngine:
@@ -99,7 +99,7 @@ class TestSimpleEngine:
         mock_simple_directory_reader = mocker.patch("metagpt.rag.engines.simple.SimpleDirectoryReader")
         mock_simple_directory_reader.return_value.load_data.return_value = ["document1", "document2"]
 
-        mock_retriever = mocker.MagicMock(spec=RAGRetriever)
+        mock_retriever = mocker.MagicMock(spec=ModifiableRAGRetriever)
         mock_index = mocker.MagicMock(spec=VectorStoreIndex)
         mock_index.service_context.node_parser.get_nodes_from_documents = lambda x: ["node1", "node2"]
 

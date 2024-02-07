@@ -14,10 +14,9 @@ from llama_index.query_engine import RetrieverQueryEngine
 from llama_index.response_synthesizers import BaseSynthesizer
 from llama_index.schema import NodeWithScore, QueryBundle, QueryType
 
+from metagpt.rag.factory import get_rankers, get_retriever
 from metagpt.rag.llm import get_default_llm
-from metagpt.rag.rankers import get_rankers
-from metagpt.rag.retrievers import get_retriever
-from metagpt.rag.retrievers.base import RAGRetriever
+from metagpt.rag.retrievers.base import ModifiableRAGRetriever
 from metagpt.rag.schema import RankerConfigType, RetrieverConfigType
 from metagpt.utils.embedding import get_embedding
 
@@ -93,8 +92,10 @@ class SimpleEngine(RetrieverQueryEngine):
         return await super().aretrieve(query_bundle)
 
     def add_docs(self, input_files: list[str]):
-        """Add docs to retriever"""
+        """Add docs to retriever. retriever must has add_nodes func"""
+        if not isinstance(self.retriever, ModifiableRAGRetriever):
+            raise TypeError(f"must be inplement to add_docs: {type(self.retriever)}")
+
         documents = SimpleDirectoryReader(input_files=input_files).load_data()
         nodes = self.index.service_context.node_parser.get_nodes_from_documents(documents)
-        retriever: RAGRetriever = self.retriever
-        retriever.add_nodes(nodes)
+        self.retriever.add_nodes(nodes)

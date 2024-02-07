@@ -17,5 +17,16 @@ class RAGRetriever(BaseRetriever):
     def _retrieve(self, query: QueryType) -> list[NodeWithScore]:
         """Retrieve nodes"""
 
+
+class ModifiableRAGRetriever(RAGRetriever):
+    """Support modification."""
+
+    @classmethod
+    def __subclasshook__(cls, C):
+        if any("add_nodes" in B.__dict__ for B in C.__mro__):
+            return True
+        return NotImplemented
+
+    @abstractmethod
     def add_nodes(self, nodes: list[BaseNode], **kwargs) -> None:
         """To support add docs, must inplement this func"""
