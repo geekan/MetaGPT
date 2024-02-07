@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # @Desc   : default request & response data for provider unittest
 
-from typing import Dict
+
 from openai.types.chat.chat_completion import (
     ChatCompletion,
     ChatCompletionMessage,
@@ -12,7 +12,7 @@ from openai.types.chat.chat_completion_chunk import ChatCompletionChunk
 from openai.types.chat.chat_completion_chunk import Choice as AChoice
 from openai.types.chat.chat_completion_chunk import ChoiceDelta
 from openai.types.completion_usage import CompletionUsage
-from qianfan.resources.typing import QfResponse, default_field
+from qianfan.resources.typing import QfResponse
 
 from metagpt.provider.base_llm import BaseLLM
 
@@ -80,6 +80,7 @@ def get_openai_chat_completion_chunk(name: str, usage_as_dict: bool = False) -> 
     )
     return openai_chat_completion_chunk
 
+
 # For gemini
 gemini_messages = [{"role": "user", "parts": prompt}]
 
@@ -92,20 +93,13 @@ qf_jsonbody_dict = {
     "result": "",
     "is_truncated": False,
     "need_clear_history": False,
-    "usage": {
-        "prompt_tokens": 7,
-        "completion_tokens": 15,
-        "total_tokens": 22
-    }
+    "usage": {"prompt_tokens": 7, "completion_tokens": 15, "total_tokens": 22},
 }
 
 
 def get_qianfan_response(name: str) -> QfResponse:
     qf_jsonbody_dict["result"] = resp_cont_tmpl.format(name=name)
-    return QfResponse(
-        code=200,
-        body=qf_jsonbody_dict
-    )
+    return QfResponse(code=200, body=qf_jsonbody_dict)
 
 
 # For llm general chat functions call

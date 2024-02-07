@@ -8,10 +8,10 @@ from metagpt.provider.zhipuai_api import ZhiPuAILLM
 from tests.metagpt.provider.mock_llm_config import mock_llm_config_zhipu
 from tests.metagpt.provider.req_resp_const import (
     get_part_chat_completion,
+    llm_general_chat_funcs_test,
     messages,
     prompt,
     resp_cont_tmpl,
-    llm_general_chat_funcs_test
 )
 
 name = "ChatGLM-4"

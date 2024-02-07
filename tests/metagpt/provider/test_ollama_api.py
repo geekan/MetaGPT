@@ -9,7 +9,12 @@ import pytest
 
 from metagpt.provider.ollama_api import OllamaLLM
 from tests.metagpt.provider.mock_llm_config import mock_llm_config
-from tests.metagpt.provider.req_resp_const import messages, prompt, resp_cont_tmpl
+from tests.metagpt.provider.req_resp_const import (
+    llm_general_chat_funcs_test,
+    messages,
+    prompt,
+    resp_cont_tmpl,
+)
 
 resp_cont = resp_cont_tmpl.format(name="ollama")
 default_resp = {"message": {"role": "assistant", "content": resp_cont}}
@@ -47,11 +52,4 @@ async def test_gemini_acompletion(mocker):
     resp = await ollama_llm.aask(prompt, stream=False)
     assert resp == resp_cont
 
-    resp = await ollama_llm.acompletion_text(messages, stream=False)
-    assert resp == resp_cont
-
-    resp = await ollama_llm.acompletion_text(messages, stream=True)
-    assert resp == resp_cont
-
-    resp = await ollama_llm.aask(prompt)
-    assert resp == resp_cont
+    await llm_general_chat_funcs_test(ollama_llm, prompt, messages, resp_cont)

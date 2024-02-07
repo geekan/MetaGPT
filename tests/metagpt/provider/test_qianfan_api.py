@@ -2,14 +2,20 @@
 # -*- coding: utf-8 -*-
 # @Desc   : the unittest of qianfan api
 
-from typing import Dict, Union, AsyncIterator
-import pytest
+from typing import AsyncIterator, Union
 
+import pytest
 from qianfan.resources.typing import JsonBody, QfResponse
 
 from metagpt.provider.qianfan_api import QianFanLLM
 from tests.metagpt.provider.mock_llm_config import mock_llm_config_qianfan
-from tests.metagpt.provider.req_resp_const import resp_cont_tmpl, prompt, messages, llm_general_chat_funcs_test, get_qianfan_response
+from tests.metagpt.provider.req_resp_const import (
+    get_qianfan_response,
+    llm_general_chat_funcs_test,
+    messages,
+    prompt,
+    resp_cont_tmpl,
+)
 
 name = "ERNIE-Bot-turbo"
 resp_cont = resp_cont_tmpl.format(name=name)
@@ -19,12 +25,16 @@ def mock_qianfan_do(self, messages: list[dict], model: str, stream: bool = False
     return get_qianfan_response(name=name)
 
 
-async def mock_qianfan_ado(self, messages: list[dict], model: str, stream: bool = True, system: str = None) -> Union[QfResponse, AsyncIterator[QfResponse]]:
+async def mock_qianfan_ado(
+    self, messages: list[dict], model: str, stream: bool = True, system: str = None
+) -> Union[QfResponse, AsyncIterator[QfResponse]]:
     resps = [get_qianfan_response(name=name)]
     if stream:
+
         async def aresp_iterator(resps: list[JsonBody]):
             for resp in resps:
                 yield resp
+
         return aresp_iterator(resps)
     else:
         return resps[0]

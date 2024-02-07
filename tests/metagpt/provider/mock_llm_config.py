@@ -53,9 +53,4 @@ mock_llm_config_spark = LLMConfig(
     base_url="wss://spark-api.xf-yun.com/v3.1/chat",
 )
 
-mock_llm_config_qianfan = LLMConfig(
-    api_type="qianfan",
-    access_key="xxx",
-    secret_key="xxx",
-    model="ERNIE-Bot-turbo"
-)
+mock_llm_config_qianfan = LLMConfig(api_type="qianfan", access_key="xxx", secret_key="xxx", model="ERNIE-Bot-turbo")

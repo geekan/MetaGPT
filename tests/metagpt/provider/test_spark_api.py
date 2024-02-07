@@ -9,7 +9,11 @@ from tests.metagpt.provider.mock_llm_config import (
     mock_llm_config,
     mock_llm_config_spark,
 )
-from tests.metagpt.provider.req_resp_const import prompt, resp_cont_tmpl
+from tests.metagpt.provider.req_resp_const import (
+    llm_general_chat_funcs_test,
+    prompt,
+    resp_cont_tmpl,
+)
 
 resp_cont = resp_cont_tmpl.format(name="Spark")
 
@@ -55,14 +59,4 @@ async def test_spark_acompletion(mocker):
     resp = await spark_llm.acompletion([])
     assert resp == resp_cont
 
-    resp = await spark_llm.aask(prompt, stream=False)
-    assert resp == resp_cont
-
-    resp = await spark_llm.acompletion_text([], stream=False)
-    assert resp == resp_cont
-
-    resp = await spark_llm.acompletion_text([], stream=True)
-    assert resp == resp_cont
-
-    resp = await spark_llm.aask(prompt)
-    assert resp == resp_cont
+    await llm_general_chat_funcs_test(spark_llm, prompt, prompt, resp_cont)

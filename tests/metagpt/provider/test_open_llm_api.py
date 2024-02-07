@@ -12,6 +12,7 @@ from tests.metagpt.provider.mock_llm_config import mock_llm_config
 from tests.metagpt.provider.req_resp_const import (
     get_openai_chat_completion,
     get_openai_chat_completion_chunk,
+    llm_general_chat_funcs_test,
     messages,
     prompt,
     resp_cont_tmpl,
@@ -52,14 +53,4 @@ async def test_openllm_acompletion(mocker):
     resp = await openllm_llm.acompletion(messages)
     assert resp.choices[0].message.content in resp_cont
 
-    resp = await openllm_llm.aask(prompt, stream=False)
-    assert resp == resp_cont
-
-    resp = await openllm_llm.acompletion_text(messages, stream=False)
-    assert resp == resp_cont
-
-    resp = await openllm_llm.acompletion_text(messages, stream=True)
-    assert resp == resp_cont
-
-    resp = await openllm_llm.aask(prompt)
-    assert resp == resp_cont
+    await llm_general_chat_funcs_test(openllm_llm, prompt, messages, resp_cont)

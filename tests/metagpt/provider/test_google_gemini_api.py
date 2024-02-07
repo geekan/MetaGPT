@@ -13,6 +13,7 @@ from metagpt.provider.google_gemini_api import GeminiLLM
 from tests.metagpt.provider.mock_llm_config import mock_llm_config
 from tests.metagpt.provider.req_resp_const import (
     gemini_messages,
+    llm_general_chat_funcs_test,
     prompt,
     resp_cont_tmpl,
 )
@@ -77,14 +78,4 @@ async def test_gemini_acompletion(mocker):
     resp = await gemini_llm.acompletion(gemini_messages)
     assert resp.text == default_resp.text
 
-    resp = await gemini_llm.aask(prompt, stream=False)
-    assert resp == resp_cont
-
-    resp = await gemini_llm.acompletion_text(gemini_messages, stream=False)
-    assert resp == resp_cont
-
-    resp = await gemini_llm.acompletion_text(gemini_messages, stream=True)
-    assert resp == resp_cont
-
-    resp = await gemini_llm.aask(prompt)
-    assert resp == resp_cont
+    await llm_general_chat_funcs_test(gemini_llm, prompt, gemini_messages, resp_cont)
