@@ -236,7 +236,7 @@ class OpenAILLM(BaseLLM):
             usage.prompt_tokens = count_message_tokens(messages, self.model)
             usage.completion_tokens = count_string_tokens(rsp, self.model)
         except Exception as e:
-            logger.error(f"usage calculation failed: {e}")
+            logger.warning(f"usage calculation failed: {e}")
 
         return usage
 
