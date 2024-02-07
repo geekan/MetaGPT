@@ -93,7 +93,7 @@ def split_paragraph(paragraph: str, sep: str = ".,", count: int = 2) -> list[str
             continue
         ret = ["".join(j) for j in _split_by_count(sentences, count)]
         return ret
-    return _split_by_count(paragraph, count)
+    return list(_split_by_count(paragraph, count))
 
 
 def decode_unicode_escape(text: str) -> str:
