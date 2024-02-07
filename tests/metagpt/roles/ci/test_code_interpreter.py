@@ -17,3 +17,7 @@ async def test_code_interpreter(mocker, auto_run):
     rsp = await ci.run(requirement)
     logger.info(rsp)
     assert len(rsp.content) > 0
+
+    finished_tasks = ci.planner.plan.get_finished_tasks()
+    assert len(finished_tasks) > 0
+    assert len(finished_tasks[0].code) > 0  # check one task to see if code is recorded
