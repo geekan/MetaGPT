@@ -63,7 +63,7 @@ gitignore-parser==0.1.9
 websockets~=12.0
 networkx~=3.2.1
 google-generativeai==0.3.2
-# playwright==1.40.0  # playwright extras require
+playwright>=1.26  # used at metagpt/tools/libs/web_scraping.py
 anytree
 ipywidgets==8.1.1
 Pillow
