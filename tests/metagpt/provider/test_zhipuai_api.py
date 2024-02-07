@@ -17,7 +17,7 @@ default_resp = {
 }
 
 
-async def mock_zhipuai_acreate_stream(**kwargs):
+async def mock_zhipuai_acreate_stream(self, **kwargs):
     class MockResponse(object):
         async def _aread(self):
             class Iterator(object):
@@ -37,7 +37,7 @@ async def mock_zhipuai_acreate_stream(**kwargs):
     return MockResponse()
 
 
-async def mock_zhipuai_acreate(**kwargs) -> dict:
+async def mock_zhipuai_acreate(self, **kwargs) -> dict:
     return default_resp
 
 
