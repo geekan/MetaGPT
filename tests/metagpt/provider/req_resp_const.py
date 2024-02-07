@@ -3,6 +3,12 @@
 # @Desc   : default request & response data for provider unittest
 
 
+from dashscope.api_entities.dashscope_response import (
+    DashScopeAPIResponse,
+    GenerationOutput,
+    GenerationResponse,
+    GenerationUsage,
+)
 from openai.types.chat.chat_completion import (
     ChatCompletion,
     ChatCompletionMessage,
@@ -100,6 +106,28 @@ qf_jsonbody_dict = {
 def get_qianfan_response(name: str) -> QfResponse:
     qf_jsonbody_dict["result"] = resp_cont_tmpl.format(name=name)
     return QfResponse(code=200, body=qf_jsonbody_dict)
+
+
+# For DashScope
+def get_dashscope_response(name: str) -> GenerationResponse:
+    return GenerationResponse.from_api_response(
+        DashScopeAPIResponse(
+            status_code=200,
+            output=GenerationOutput(
+                **{
+                    "text": "",
+                    "finish_reason": "",
+                    "choices": [
+                        {
+                            "finish_reason": "stop",
+                            "message": {"role": "assistant", "content": resp_cont_tmpl.format(name=name)},
+                        }
+                    ],
+                }
+            ),
+            usage=GenerationUsage(**{"input_tokens": 12, "output_tokens": 98, "total_tokens": 110}),
+        )
+    )
 
 
 # For llm general chat functions call

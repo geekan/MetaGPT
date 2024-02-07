@@ -21,7 +21,7 @@ async def main():
 
     logger.info(
         await llm.aask(
-            "who are you", system_msgs=["act as a robot, answer 'I'am robot' if the question is 'who are you'"]
+            "who are you", system_msgs=["act as a robot, just answer 'I'am robot' if the question is 'who are you'"]
         )
     )
 

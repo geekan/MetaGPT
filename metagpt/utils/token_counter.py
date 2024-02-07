@@ -90,6 +90,35 @@ QianFan_EndPoint_TOKEN_COSTS = {
     "yi_34b_chat": QianFan_MODEL_TOKEN_COSTS["Yi-34B-Chat"],
 }
 
+"""
+DashScore Token price https://help.aliyun.com/zh/dashscope/developer-reference/tongyi-thousand-questions-metering-and-billing
+Different model has different detail page. Attention, some model are free for a limited time.
+"""
+DashScore_TOKEN_COSTS = {
+    "qwen-turbo": {"prompt": 0.0011, "completion": 0.0011},
+    "qwen-plus": {"prompt": 0.0028, "completion": 0.0028},
+    "qwen-max": {"prompt": 0.0, "completion": 0.0},
+    "qwen-max-1201": {"prompt": 0.0, "completion": 0.0},
+    "qwen-max-longcontext": {"prompt": 0.0, "completion": 0.0},
+    "llama2-7b-chat-v2": {"prompt": 0.0, "completion": 0.0},
+    "llama2-13b-chat-v2": {"prompt": 0.0, "completion": 0.0},
+    "qwen-72b-chat": {"prompt": 0.0, "completion": 0.0},
+    "qwen-14b-chat": {"prompt": 0.0011, "completion": 0.0011},
+    "qwen-7b-chat": {"prompt": 0.00084, "completion": 0.00084},
+    "qwen-1.8b-chat": {"prompt": 0.0, "completion": 0.0},
+    "baichuan2-13b-chat-v1": {"prompt": 0.0011, "completion": 0.0011},
+    "baichuan2-7b-chat-v1": {"prompt": 0.00084, "completion": 0.00084},
+    "baichuan-7b-v1": {"prompt": 0.0, "completion": 0.0},
+    "chatglm-6b-v2": {"prompt": 0.0011, "completion": 0.0011},
+    "chatglm3-6b": {"prompt": 0.0, "completion": 0.0},
+    "ziya-llama-13b-v1": {"prompt": 0.0, "completion": 0.0},  # no price page, judge it as free
+    "dolly-12b-v2": {"prompt": 0.0, "completion": 0.0},
+    "belle-llama-13b-2m-v1": {"prompt": 0.0, "completion": 0.0},
+    "moss-moon-003-sft-v1": {"prompt": 0.0, "completion": 0.0},
+    "chatyuan-large-v2": {"prompt": 0.0, "completion": 0.0},
+    "billa-7b-sft-v1": {"prompt": 0.0, "completion": 0.0},
+}
+
 
 TOKEN_MAX = {
     "gpt-3.5-turbo": 4096,

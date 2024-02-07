@@ -54,3 +54,5 @@ mock_llm_config_spark = LLMConfig(
 )
 
 mock_llm_config_qianfan = LLMConfig(api_type="qianfan", access_key="xxx", secret_key="xxx", model="ERNIE-Bot-turbo")
+
+mock_llm_config_dashscope = LLMConfig(api_type="dashscore", api_key="xxx", model="qwen-max")
