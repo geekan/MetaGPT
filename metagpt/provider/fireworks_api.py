@@ -16,7 +16,7 @@ from tenacity import (
 )
 
 from metagpt.configs.llm_config import LLMConfig, LLMType
-from metagpt.logs import logger
+from metagpt.logs import log_llm_stream, logger
 from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.provider.openai_api import OpenAILLM, log_and_reraise
 from metagpt.utils.cost_manager import CostManager
@@ -96,10 +96,11 @@ class FireworksLLM(OpenAILLM):
                 finish_reason = choice.finish_reason if hasattr(choice, "finish_reason") else None
                 if choice_delta.content:
                     collected_content.append(choice_delta.content)
-                    print(choice_delta.content, end="")
+                    log_llm_stream(choice_delta.content)
                 if finish_reason:
                     # fireworks api return usage when finish_reason is not None
                     usage = CompletionUsage(**chunk.usage)
+        log_llm_stream("\n")
 
         full_content = "".join(collected_content)
         self._update_costs(usage.model_dump())
