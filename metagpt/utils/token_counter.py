@@ -32,8 +32,8 @@ TOKEN_COSTS = {
     "gpt-4-vision-preview": {"prompt": 0.01, "completion": 0.03},  # TODO add extra image price calculator
     "gpt-4-1106-vision-preview": {"prompt": 0.01, "completion": 0.03},
     "text-embedding-ada-002": {"prompt": 0.0004, "completion": 0.0},
-    "glm-3-turbo": {"prompt": 0.0, "completion": 0.0007},  # 128k version, prompt + completion tokens=0.005￥/k-tokens
-    "glm-4": {"prompt": 0.0, "completion": 0.014},  # 128k version, prompt + completion tokens=0.1￥/k-tokens
+    "glm-3-turbo": {"prompt": 0.0007, "completion": 0.0007},  # 128k version, prompt + completion tokens=0.005￥/k-tokens
+    "glm-4": {"prompt": 0.014, "completion": 0.014},  # 128k version, prompt + completion tokens=0.1￥/k-tokens
     "gemini-pro": {"prompt": 0.00025, "completion": 0.0005},
 }
 
@@ -140,7 +140,8 @@ TOKEN_MAX = {
     "gpt-4-vision-preview": 128000,
     "gpt-4-1106-vision-preview": 128000,
     "text-embedding-ada-002": 8192,
-    "chatglm_turbo": 32768,
+    "glm-3-turbo": 128000,
+    "glm-4": 128000,
     "gemini-pro": 32768,
 }
 

@@ -133,7 +133,7 @@ class CollectLinks(Action):
                 if len(remove) == 0:
                     break
 
-        model_name = config.get_openai_llm().model
+        model_name = config.llm.model
         prompt = reduce_message_length(gen_msg(), model_name, system_text, 4096)
         logger.debug(prompt)
         queries = await self._aask(prompt, [system_text])
