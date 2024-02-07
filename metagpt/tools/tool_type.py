@@ -1,6 +1,7 @@
 from enum import Enum
 
 from metagpt.prompts.tool_types import (
+    EDA_PROMPT,
     DATA_PREPROCESS_PROMPT,
     FEATURE_ENGINEERING_PROMPT,
     IMAGE2WEBPAGE_PROMPT,
@@ -11,7 +12,11 @@ from metagpt.tools.tool_data_type import ToolTypeDef
 
 
 class ToolType(Enum):
-    EDA = ToolTypeDef(name="eda", desc="For performing exploratory data analysis")
+    EDA = ToolTypeDef(
+        name="eda",
+        desc="For performing exploratory data analysis",
+        usage_prompt=EDA_PROMPT,
+    )
     DATA_PREPROCESS = ToolTypeDef(
         name="data_preprocess",
         desc="Only for changing value inplace.",

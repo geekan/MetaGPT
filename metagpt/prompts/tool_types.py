@@ -1,3 +1,10 @@
+# Prompt for using tools of "eda" type
+EDA_PROMPT = """
+The current task is about exploratory data analysis, please note the following:
+- Distinguish column types with `select_dtypes` for tailored analysis and visualization, such as correlation.
+- Remember to `import numpy as np` before using Numpy functions.
+"""
+
 # Prompt for using tools of "data_preprocess" type
 DATA_PREPROCESS_PROMPT = """
 The current task is about data preprocessing, please note the following:
