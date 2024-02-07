@@ -1,5 +1,3 @@
-import json
-
 import pytest
 from openai.types.chat import (
     ChatCompletion,
