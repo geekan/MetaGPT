@@ -106,9 +106,11 @@ class TestOpenAI:
 
     def test_aask_code_json_decode_error(self, json_decode_error):
         instance = OpenAILLM(mock_llm_config)
-        with pytest.raises(json.decoder.JSONDecodeError) as e:
-            instance.get_choice_function_arguments(json_decode_error)
-        assert "JSONDecodeError" in str(e)
+        code = instance.get_choice_function_arguments(json_decode_error)
+        assert "code" in code
+        assert "language" in code
+        assert "hello world" in code["code"]
+        logger.info(f'code is : {code["code"]}')
 
 
 @pytest.mark.asyncio
