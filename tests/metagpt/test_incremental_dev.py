@@ -142,6 +142,9 @@ def check_or_create_base_tag(project_path):
     # Initialize a Git repository
     subprocess.run(["git", "init"], check=True)
 
+    # Check if the .gitignore exists. If it doesn't exist, create .gitignore and add the comment
+    subprocess.run(f"echo # Ignore these files or directories > {'.gitignore'}", shell=True)
+
     # Check if the 'base' tag exists
     check_base_tag_cmd = ["git", "show-ref", "--verify", "--quiet", "refs/tags/base"]
     if subprocess.run(check_base_tag_cmd).returncode == 0:
