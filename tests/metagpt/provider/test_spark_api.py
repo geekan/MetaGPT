@@ -4,12 +4,14 @@
 
 import pytest
 
-from metagpt.config2 import Config
 from metagpt.provider.spark_api import GetMessageFromWeb, SparkLLM
-from tests.metagpt.provider.mock_llm_config import mock_llm_config
+from tests.metagpt.provider.mock_llm_config import (
+    mock_llm_config,
+    mock_llm_config_spark,
+)
+from tests.metagpt.provider.req_resp_const import prompt, resp_cont_tmpl
 
-prompt_msg = "who are you"
-resp_content = "I'm Spark"
+resp_cont = resp_cont_tmpl.format(name="Spark")
 
 
 class MockWebSocketApp(object):
@@ -23,7 +25,7 @@ class MockWebSocketApp(object):
 def test_get_msg_from_web(mocker):
     mocker.patch("websocket.WebSocketApp", MockWebSocketApp)
 
-    get_msg_from_web = GetMessageFromWeb(prompt_msg, mock_llm_config)
+    get_msg_from_web = GetMessageFromWeb(prompt, mock_llm_config)
     assert get_msg_from_web.gen_params()["parameter"]["chat"]["domain"] == "mock_domain"
 
     ret = get_msg_from_web.run()
@@ -31,15 +33,17 @@ def test_get_msg_from_web(mocker):
 
 
 def mock_spark_get_msg_from_web_run(self) -> str:
-    return resp_content
+    return resp_cont
 
 
 @pytest.mark.asyncio
-async def test_spark_aask():
-    llm = SparkLLM(Config.from_home("spark.yaml").llm)
+async def test_spark_aask(mocker):
+    mocker.patch("metagpt.provider.spark_api.GetMessageFromWeb.run", mock_spark_get_msg_from_web_run)
+
+    llm = SparkLLM(mock_llm_config_spark)
 
     resp = await llm.aask("Hello!")
-    print(resp)
+    assert resp == resp_cont
 
 
 @pytest.mark.asyncio
@@ -49,16 +53,16 @@ async def test_spark_acompletion(mocker):
     spark_gpt = SparkLLM(mock_llm_config)
 
     resp = await spark_gpt.acompletion([])
-    assert resp == resp_content
+    assert resp == resp_cont
 
-    resp = await spark_gpt.aask(prompt_msg, stream=False)
-    assert resp == resp_content
+    resp = await spark_gpt.aask(prompt, stream=False)
+    assert resp == resp_cont
 
     resp = await spark_gpt.acompletion_text([], stream=False)
-    assert resp == resp_content
+    assert resp == resp_cont
 
     resp = await spark_gpt.acompletion_text([], stream=True)
-    assert resp == resp_content
+    assert resp == resp_cont
 
-    resp = await spark_gpt.aask(prompt_msg)
-    assert resp == resp_content
+    resp = await spark_gpt.aask(prompt)
+    assert resp == resp_cont

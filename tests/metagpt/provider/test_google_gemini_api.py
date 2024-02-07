@@ -11,6 +11,11 @@ from google.generativeai.types import content_types
 
 from metagpt.provider.google_gemini_api import GeminiLLM
 from tests.metagpt.provider.mock_llm_config import mock_llm_config
+from tests.metagpt.provider.req_resp_const import (
+    gemini_messages,
+    prompt,
+    resp_cont_tmpl,
+)
 
 
 @dataclass
@@ -18,10 +23,8 @@ class MockGeminiResponse(ABC):
     text: str
 
 
-prompt_msg = "who are you"
-messages = [{"role": "user", "parts": prompt_msg}]
-resp_content = "I'm gemini from google"
-default_resp = MockGeminiResponse(text=resp_content)
+resp_cont = resp_cont_tmpl.format(name="gemini")
+default_resp = MockGeminiResponse(text=resp_cont)
 
 
 def mock_gemini_count_tokens(self, contents: content_types.ContentsType) -> glm.CountTokensResponse:
@@ -62,26 +65,26 @@ async def test_gemini_acompletion(mocker):
 
     gemini_gpt = GeminiLLM(mock_llm_config)
 
-    assert gemini_gpt._user_msg(prompt_msg) == {"role": "user", "parts": [prompt_msg]}
-    assert gemini_gpt._assistant_msg(prompt_msg) == {"role": "model", "parts": [prompt_msg]}
+    assert gemini_gpt._user_msg(prompt) == {"role": "user", "parts": [prompt]}
+    assert gemini_gpt._assistant_msg(prompt) == {"role": "model", "parts": [prompt]}
 
-    usage = gemini_gpt.get_usage(messages, resp_content)
+    usage = gemini_gpt.get_usage(gemini_messages, resp_cont)
     assert usage == {"prompt_tokens": 20, "completion_tokens": 20}
 
-    resp = gemini_gpt.completion(messages)
+    resp = gemini_gpt.completion(gemini_messages)
     assert resp == default_resp
 
-    resp = await gemini_gpt.acompletion(messages)
+    resp = await gemini_gpt.acompletion(gemini_messages)
     assert resp.text == default_resp.text
 
-    resp = await gemini_gpt.aask(prompt_msg, stream=False)
-    assert resp == resp_content
+    resp = await gemini_gpt.aask(prompt, stream=False)
+    assert resp == resp_cont
 
-    resp = await gemini_gpt.acompletion_text(messages, stream=False)
-    assert resp == resp_content
+    resp = await gemini_gpt.acompletion_text(gemini_messages, stream=False)
+    assert resp == resp_cont
 
-    resp = await gemini_gpt.acompletion_text(messages, stream=True)
-    assert resp == resp_content
+    resp = await gemini_gpt.acompletion_text(gemini_messages, stream=True)
+    assert resp == resp_cont
 
-    resp = await gemini_gpt.aask(prompt_msg)
-    assert resp == resp_content
+    resp = await gemini_gpt.aask(prompt)
+    assert resp == resp_cont
