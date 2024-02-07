@@ -22,6 +22,10 @@ class ToolType(Enum):
         desc="Only for changing value inplace.",
         usage_prompt=DATA_PREPROCESS_PROMPT,
     )
+    EMAIL_LOGIN = ToolTypeDef(
+        name="email_login",
+        desc="For logging to an email.",
+    )
     FEATURE_ENGINEERING = ToolTypeDef(
         name="feature_engineering",
         desc="Only for creating new columns for input data.",
