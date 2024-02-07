@@ -29,6 +29,7 @@ class CostManager(BaseModel):
     total_budget: float = 0
     max_budget: float = 10.0
     total_cost: float = 0
+    token_costs: dict[str, dict[str, float]] = TOKEN_COSTS
 
     def update_cost(self, prompt_tokens, completion_tokens, model):
         """
@@ -41,8 +42,13 @@ class CostManager(BaseModel):
         """
         self.total_prompt_tokens += prompt_tokens
         self.total_completion_tokens += completion_tokens
+        if model not in TOKEN_COSTS:
+            logger.warning(f"Model {model} not found in TOKEN_COSTS.")
+            return
+
         cost = (
-            prompt_tokens * TOKEN_COSTS[model]["prompt"] + completion_tokens * TOKEN_COSTS[model]["completion"]
+            prompt_tokens * self.token_costs[model]["prompt"]
+            + completion_tokens * self.token_costs[model]["completion"]
         ) / 1000
         self.total_cost += cost
         logger.info(

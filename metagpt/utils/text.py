@@ -25,7 +25,7 @@ def reduce_message_length(
     """
     max_token = TOKEN_MAX.get(model_name, 2048) - count_string_tokens(system_text, model_name) - reserved
     for msg in msgs:
-        if count_string_tokens(msg, model_name) < max_token:
+        if count_string_tokens(msg, model_name) < max_token or model_name not in TOKEN_MAX:
             return msg
 
     raise RuntimeError("fail to reduce message length")
@@ -93,7 +93,7 @@ def split_paragraph(paragraph: str, sep: str = ".,", count: int = 2) -> list[str
             continue
         ret = ["".join(j) for j in _split_by_count(sentences, count)]
         return ret
-    return _split_by_count(paragraph, count)
+    return list(_split_by_count(paragraph, count))
 
 
 def decode_unicode_escape(text: str) -> str:

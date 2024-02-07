@@ -42,3 +42,15 @@ mock_llm_config_zhipu = LLMConfig(
     model="mock_zhipu_model",
     proxy="http://localhost:8080",
 )
+
+
+mock_llm_config_spark = LLMConfig(
+    api_type="spark",
+    app_id="xxx",
+    api_key="xxx",
+    api_secret="xxx",
+    domain="generalv2",
+    base_url="wss://spark-api.xf-yun.com/v3.1/chat",
+)
+
+mock_llm_config_qianfan = LLMConfig(api_type="qianfan", access_key="xxx", secret_key="xxx", model="ERNIE-Bot-turbo")
