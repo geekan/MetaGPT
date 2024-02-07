@@ -1,5 +1,4 @@
 import os
-from unittest.mock import Mock, patch
 
 import pytest
 
@@ -16,14 +15,13 @@ incorrect_email_password = "incorrect_password"
 
 
 @pytest.fixture
-def imap_server_setup():
-    # Use patch to mock the behavior of MailBox from the correct module path
-    with patch("metagpt.tools.libs.email_login.MailBox") as mock_mailbox:
-        # Setup for successful login
-        mock_mail_instance = Mock()
-        mock_mail_instance.login.return_value = mock_mail_instance
-        mock_mailbox.return_value = mock_mail_instance
-        yield mock_mail_instance
+def imap_server_setup(mocker):
+    # Use the mocker fixture to mock the MailBox class
+    mock_mailbox = mocker.patch("metagpt.tools.libs.email_login.MailBox")
+    mock_mail_instance = mocker.Mock()
+    mock_mail_instance.login.return_value = mock_mail_instance
+    mock_mailbox.return_value = mock_mail_instance
+    return mock_mail_instance
 
 
 def test_email_login_imap_success(imap_server_setup):

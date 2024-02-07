@@ -51,8 +51,8 @@ def email_login_imap(email_address, email_password):
     # Attempt to log in to the email account
     try:
         mailbox = MailBox(imap_server).login(email_address, email_password)
-        print("Login successful")
+        logger.info("Login successful")
         return mailbox
     except Exception as e:
-        print(f"Login failed: {e}")
+        logger.error(f"Login failed: {e}")
         return None
