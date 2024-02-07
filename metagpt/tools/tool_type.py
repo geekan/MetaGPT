@@ -1,8 +1,8 @@
 from enum import Enum
 
 from metagpt.prompts.tool_types import (
-    EDA_PROMPT,
     DATA_PREPROCESS_PROMPT,
+    EDA_PROMPT,
     FEATURE_ENGINEERING_PROMPT,
     IMAGE2WEBPAGE_PROMPT,
     MODEL_EVALUATE_PROMPT,
