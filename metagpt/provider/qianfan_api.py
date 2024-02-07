@@ -78,7 +78,7 @@ class QianFanLLM(BaseLLM):
 
         # self deployed model on the cloud not to calculate usage, it charges resource pool rental fee
         self.calc_usage = self.config.calc_usage and self.config.endpoint is None
-        self.client = qianfan.ChatCompletion()
+        self.aclient = qianfan.ChatCompletion()
 
     def _const_kwargs(self, messages: list[dict], stream: bool = False) -> dict:
         kwargs = {
@@ -110,12 +110,12 @@ class QianFanLLM(BaseLLM):
         return resp.get("result", "")
 
     def completion(self, messages: list[dict]) -> JsonBody:
-        resp = self.client.do(**self._const_kwargs(messages=messages, stream=False))
+        resp = self.aclient.do(**self._const_kwargs(messages=messages, stream=False))
         self._update_costs(resp.body.get("usage", {}))
         return resp.body
 
     async def _achat_completion(self, messages: list[dict]) -> JsonBody:
-        resp = await self.client.ado(**self._const_kwargs(messages=messages, stream=False))
+        resp = await self.aclient.ado(**self._const_kwargs(messages=messages, stream=False))
         self._update_costs(resp.body.get("usage", {}))
         return resp.body
 
@@ -123,7 +123,7 @@ class QianFanLLM(BaseLLM):
         return await self._achat_completion(messages)
 
     async def _achat_completion_stream(self, messages: list[dict]) -> str:
-        resp = await self.client.ado(**self._const_kwargs(messages=messages, stream=True))
+        resp = await self.aclient.ado(**self._const_kwargs(messages=messages, stream=True))
         collected_content = []
         usage = {}
         async for chunk in resp:
