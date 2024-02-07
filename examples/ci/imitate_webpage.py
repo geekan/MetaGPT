@@ -15,7 +15,7 @@ Firstly, utilize Selenium and WebDriver for rendering.
 Secondly, convert image to a webpage including HTML, CSS and JS in one go. 
 Finally, save webpage in a text file. 
 Note: All required dependencies and environments have been fully installed and configured."""
-    ci = CodeInterpreter(goal=prompt, use_tools=True)
+    ci = CodeInterpreter(use_tools=True)
 
     await ci.run(prompt)
 
