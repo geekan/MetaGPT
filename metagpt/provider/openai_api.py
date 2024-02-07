@@ -253,7 +253,7 @@ class OpenAILLM(BaseLLM):
     def _get_max_tokens(self, messages: list[dict]):
         if not self.auto_max_tokens:
             return self.config.max_token
-        return get_max_completion_tokens(messages, self.model, self.config.max_tokens)
+        return get_max_completion_tokens(messages, self.model, self.config.max_token)
 
     @handle_exception
     async def amoderation(self, content: Union[str, list[str]]):
