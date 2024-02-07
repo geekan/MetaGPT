@@ -4,17 +4,23 @@
 @Author  :   Tuo Zhou
 @File    :   email_summary.py
 """
+import os
 
 from metagpt.roles.ci.code_interpreter import CodeInterpreter
 
 
 async def main():
-    # For email response prompt
     email_account = "your_email_account"
-    # prompt = f"""I will give you your Outlook email account({email_account}) and password(email_password item in the environment variable). You need to find the latest email in my inbox with the sender's suffix @qq.com and reply to him "Thank you! I have received your email~"""""
-    prompt = f"""I will give you your Outlook email account({email_account}) and password(email_password item in the environment variable).
+    # your password will stay only on your device and not go to LLM api
+    os.environ["email_password"] = "your_email_password"
+
+    ### Prompt for automatic email reply, uncomment to try this too ###
+    # prompt = f"""I will give you your Outlook email account ({email_account}) and password (email_password item in the environment variable). You need to find the latest email in my inbox with the sender's suffix @gmail.com and reply "Thank you! I have received your email~"""""
+
+    ### Prompt for automatic email summary ###
+    prompt = f"""I will give you your Outlook email account ({email_account}) and password (email_password item in the environment variable).
             Firstly, Please help me fetch the latest 5 senders and full letter contents.
-            Then, summarize each of the 5 emails into one sentence(you can do this by yourself, no need import other models to do this) and output them in a markdown format."""
+            Then, summarize each of the 5 emails into one sentence (you can do this by yourself, no need to import other models to do this) and output them in a markdown format."""
 
     ci = CodeInterpreter(use_tools=True)
 
