@@ -11,7 +11,7 @@ typer==0.9.0
 # godot==0.1.1
 # google_api_python_client==2.93.0  # Used by search_engine.py
 lancedb==0.4.0
-llama-index==0.9.31
+llama-index==0.9.44
 loguru==0.6.0
 meilisearch==0.21.0
 numpy==1.24.3
