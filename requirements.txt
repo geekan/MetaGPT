@@ -67,3 +67,4 @@ google-generativeai==0.3.2
 anytree
 ipywidgets==8.1.1
 Pillow
+qianfan==0.3.1

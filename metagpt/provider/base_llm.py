@@ -67,6 +67,22 @@ class BaseLLM(ABC):
     def _default_system_msg(self):
         return self._system_msg(self.system_prompt)
 
+    def _update_costs(self, usage: dict, model: str = None, local_calc_usage: bool = True):
+        """update each request's token cost
+        Args:
+            model (str): model name or in some scenarios called endpoint
+            local_calc_usage (bool): some models don't calculate usage, it will overwrite calc_usage
+        """
+        calc_usage = self.config.calc_usage and local_calc_usage
+        model = model if model else self.model
+        if calc_usage and self.cost_manager:
+            try:
+                prompt_tokens = int(usage.get("prompt_tokens", 0))
+                completion_tokens = int(usage.get("completion_tokens", 0))
+                self.cost_manager.update_cost(prompt_tokens, completion_tokens, model)
+            except Exception as e:
+                logger.error(f"{self.__class__.__name__} updats costs failed! exp: {e}")
+
     async def aask(
         self,
         msg: str,
