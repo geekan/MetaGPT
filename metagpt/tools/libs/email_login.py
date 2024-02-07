@@ -1,6 +1,5 @@
 from imap_tools import MailBox
 
-from metagpt.logs import logger
 from metagpt.tools.tool_registry import register_tool
 from metagpt.tools.tool_type import ToolType
 
@@ -44,15 +43,8 @@ def email_login_imap(email_address, email_password):
     # Determine the correct IMAP server
     imap_server = IMAP_SERVERS.get(domain)
 
-    if not imap_server:
-        logger.error(f"IMAP server for {domain} not found.")
-        return None
+    assert imap_server, f"IMAP server for {domain} not found."
 
     # Attempt to log in to the email account
-    try:
-        mailbox = MailBox(imap_server).login(email_address, email_password)
-        logger.info("Login successful")
-        return mailbox
-    except Exception as e:
-        logger.error(f"Login failed: {e}")
-        return None
+    mailbox = MailBox(imap_server).login(email_address, email_password)
+    return mailbox
