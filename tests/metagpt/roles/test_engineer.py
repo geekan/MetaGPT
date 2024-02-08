@@ -8,44 +8,35 @@
         distribution feature for message handling.
 """
 import json
-import uuid
 from pathlib import Path
 
 import pytest
 
 from metagpt.actions import WriteCode, WriteTasks
-from metagpt.const import (
-    DEFAULT_WORKSPACE_ROOT,
-    REQUIREMENT_FILENAME,
-    SYSTEM_DESIGN_FILE_REPO,
-    TASK_FILE_REPO,
-)
-from metagpt.context import CONTEXT, Context
+from metagpt.const import REQUIREMENT_FILENAME, SYSTEM_DESIGN_FILE_REPO, TASK_FILE_REPO
 from metagpt.logs import logger
 from metagpt.roles.engineer import Engineer
 from metagpt.schema import CodingContext, Message
 from metagpt.utils.common import CodeParser, any_to_name, any_to_str, aread, awrite
-from metagpt.utils.git_repository import ChangeType, GitRepository
-from metagpt.utils.project_repo import ProjectRepo
+from metagpt.utils.git_repository import ChangeType
 from tests.metagpt.roles.mock import STRS_FOR_PARSING, TASKS, MockMessages
 
 
 @pytest.mark.asyncio
-async def test_engineer():
+async def test_engineer(context):
     # Prerequisites
     rqno = "20231221155954.json"
-    project_repo = ProjectRepo(CONTEXT.git_repo)
-    await project_repo.save(REQUIREMENT_FILENAME, content=MockMessages.req.content)
-    await project_repo.docs.prd.save(rqno, content=MockMessages.prd.content)
-    await project_repo.docs.system_design.save(rqno, content=MockMessages.system_design.content)
-    await project_repo.docs.task.save(rqno, content=MockMessages.json_tasks.content)
+    await context.repo.save(REQUIREMENT_FILENAME, content=MockMessages.req.content)
+    await context.repo.docs.prd.save(rqno, content=MockMessages.prd.content)
+    await context.repo.docs.system_design.save(rqno, content=MockMessages.system_design.content)
+    await context.repo.docs.task.save(rqno, content=MockMessages.json_tasks.content)
 
-    engineer = Engineer()
+    engineer = Engineer(context=context)
     rsp = await engineer.run(Message(content="", cause_by=WriteTasks))
 
     logger.info(rsp)
     assert rsp.cause_by == any_to_str(WriteCode)
-    assert project_repo.with_src_path(CONTEXT.src_workspace).srcs.changed_files
+    assert context.repo.with_src_path(context.src_workspace).srcs.changed_files
 
 
 def test_parse_str():
@@ -108,14 +99,12 @@ def test_parse_code():
 
 def test_todo():
     role = Engineer()
-    assert role.todo == any_to_name(WriteCode)
+    assert role.action_description == any_to_name(WriteCode)
 
 
 @pytest.mark.asyncio
-async def test_new_coding_context():
+async def test_new_coding_context(context):
     # Prerequisites
-    context = Context()
-    context.git_repo = GitRepository(local_path=DEFAULT_WORKSPACE_ROOT / f"unittest/{uuid.uuid4().hex}")
     demo_path = Path(__file__).parent / "../../data/demo_project"
     deps = json.loads(await aread(demo_path / "dependencies.json"))
     dependency = await context.git_repo.get_dependency()
@@ -123,11 +112,11 @@ async def test_new_coding_context():
         await dependency.update(k, set(v))
     data = await aread(demo_path / "system_design.json")
     rqno = "20231221155954.json"
-    await awrite(context.git_repo.workdir / SYSTEM_DESIGN_FILE_REPO / rqno, data)
+    await awrite(context.repo.workdir / SYSTEM_DESIGN_FILE_REPO / rqno, data)
     data = await aread(demo_path / "tasks.json")
-    await awrite(context.git_repo.workdir / TASK_FILE_REPO / rqno, data)
+    await awrite(context.repo.workdir / TASK_FILE_REPO / rqno, data)
 
-    context.src_workspace = Path(context.git_repo.workdir) / "game_2048"
+    context.src_workspace = Path(context.repo.workdir) / "game_2048"
 
     try:
         filename = "game.py"
@@ -149,9 +138,7 @@ async def test_new_coding_context():
 
         context.git_repo.add_change({f"{TASK_FILE_REPO}/{rqno}": ChangeType.UNTRACTED})
         context.git_repo.commit("mock env")
-        await ProjectRepo(context.git_repo).with_src_path(context.src_workspace).srcs.save(
-            filename=filename, content="content"
-        )
+        await context.repo.with_src_path(context.src_workspace).srcs.save(filename=filename, content="content")
         role = Engineer(context=context)
         assert not role.code_todos
         await role._new_code_actions()

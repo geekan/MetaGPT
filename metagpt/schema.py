@@ -23,7 +23,7 @@ from abc import ABC
 from asyncio import Queue, QueueEmpty, wait_for
 from json import JSONDecodeError
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Type, TypeVar, Union
+from typing import Any, Dict, Iterable, List, Optional, Type, TypeVar, Union
 
 from pydantic import (
     BaseModel,
@@ -37,10 +37,12 @@ from pydantic import (
 )
 
 from metagpt.const import (
+    CODE_PLAN_AND_CHANGE_FILENAME,
     MESSAGE_ROUTE_CAUSE_BY,
     MESSAGE_ROUTE_FROM,
     MESSAGE_ROUTE_TO,
     MESSAGE_ROUTE_TO_ALL,
+    PRDS_FILE_REPO,
     SYSTEM_DESIGN_FILE_REPO,
     TASK_FILE_REPO,
 )
@@ -162,6 +164,26 @@ class Documents(BaseModel):
 
     docs: Dict[str, Document] = Field(default_factory=dict)
 
+    @classmethod
+    def from_iterable(cls, documents: Iterable[Document]) -> Documents:
+        """Create a Documents instance from a list of Document instances.
+
+        :param documents: A list of Document instances.
+        :return: A Documents instance.
+        """
+
+        docs = {doc.filename: doc for doc in documents}
+        return Documents(docs=docs)
+
+    def to_action_output(self) -> "ActionOutput":
+        """Convert to action output string.
+
+        :return: A string representing action output.
+        """
+        from metagpt.actions.action_output import ActionOutput
+
+        return ActionOutput(content=self.model_dump_json(), instruct_content=self)
+
 
 class Message(BaseModel):
     """list[<role>: <content>]"""
@@ -212,7 +234,7 @@ class Message(BaseModel):
         return any_to_str_set(send_to if send_to else {MESSAGE_ROUTE_TO_ALL})
 
     @field_serializer("instruct_content", mode="plain")
-    def ser_instruct_content(self, ic: BaseModel) -> Union[str, None]:
+    def ser_instruct_content(self, ic: BaseModel) -> Union[dict, None]:
         ic_dict = None
         if ic:
             # compatible with custom-defined ActionOutput
@@ -306,6 +328,200 @@ class AIMessage(Message):
 
     def __init__(self, content: str):
         super().__init__(content=content, role="assistant")
+
+
+class Task(BaseModel):
+    task_id: str = ""
+    dependent_task_ids: list[str] = []  # Tasks prerequisite to this Task
+    instruction: str = ""
+    task_type: str = ""
+    code: str = ""
+    result: str = ""
+    is_success: bool = False
+    is_finished: bool = False
+
+    def reset(self):
+        self.code = ""
+        self.result = ""
+        self.is_success = False
+        self.is_finished = False
+
+    def update_task_result(self, task_result: TaskResult):
+        self.code = task_result.code
+        self.result = task_result.result
+        self.is_success = task_result.is_success
+
+
+class TaskResult(BaseModel):
+    """Result of taking a task, with result and is_success required to be filled"""
+
+    code: str = ""
+    result: str
+    is_success: bool
+
+
+class Plan(BaseModel):
+    goal: str
+    context: str = ""
+    tasks: list[Task] = []
+    task_map: dict[str, Task] = {}
+    current_task_id: str = ""
+
+    def _topological_sort(self, tasks: list[Task]):
+        task_map = {task.task_id: task for task in tasks}
+        dependencies = {task.task_id: set(task.dependent_task_ids) for task in tasks}
+        sorted_tasks = []
+        visited = set()
+
+        def visit(task_id):
+            if task_id in visited:
+                return
+            visited.add(task_id)
+            for dependent_id in dependencies.get(task_id, []):
+                visit(dependent_id)
+            sorted_tasks.append(task_map[task_id])
+
+        for task in tasks:
+            visit(task.task_id)
+
+        return sorted_tasks
+
+    def add_tasks(self, tasks: list[Task]):
+        """
+        Integrates new tasks into the existing plan, ensuring dependency order is maintained.
+
+        This method performs two primary functions based on the current state of the task list:
+        1. If there are no existing tasks, it topologically sorts the provided tasks to ensure
+        correct execution order based on dependencies, and sets these as the current tasks.
+        2. If there are existing tasks, it merges the new tasks with the existing ones. It maintains
+        any common prefix of tasks (based on task_id and instruction) and appends the remainder
+        of the new tasks. The current task is updated to the first unfinished task in this merged list.
+
+        Args:
+            tasks (list[Task]): A list of tasks (may be unordered) to add to the plan.
+
+        Returns:
+            None: The method updates the internal state of the plan but does not return anything.
+        """
+        if not tasks:
+            return
+
+        # Topologically sort the new tasks to ensure correct dependency order
+        new_tasks = self._topological_sort(tasks)
+
+        if not self.tasks:
+            # If there are no existing tasks, set the new tasks as the current tasks
+            self.tasks = new_tasks
+
+        else:
+            # Find the length of the common prefix between existing and new tasks
+            prefix_length = 0
+            for old_task, new_task in zip(self.tasks, new_tasks):
+                if old_task.task_id != new_task.task_id or old_task.instruction != new_task.instruction:
+                    break
+                prefix_length += 1
+
+            # Combine the common prefix with the remainder of the new tasks
+            final_tasks = self.tasks[:prefix_length] + new_tasks[prefix_length:]
+            self.tasks = final_tasks
+
+        # Update current_task_id to the first unfinished task in the merged list
+        self._update_current_task()
+
+        # Update the task map for quick access to tasks by ID
+        self.task_map = {task.task_id: task for task in self.tasks}
+
+    def reset_task(self, task_id: str):
+        """
+        Clear code and result of the task based on task_id, and set the task as unfinished.
+
+        Args:
+            task_id (str): The ID of the task to be reset.
+
+        Returns:
+            None
+        """
+        if task_id in self.task_map:
+            task = self.task_map[task_id]
+            task.reset()
+
+    def replace_task(self, new_task: Task):
+        """
+        Replace an existing task with the new input task based on task_id, and reset all tasks depending on it.
+
+        Args:
+            new_task (Task): The new task that will replace an existing one.
+
+        Returns:
+            None
+        """
+        assert new_task.task_id in self.task_map
+        # Replace the task in the task map and the task list
+        self.task_map[new_task.task_id] = new_task
+        for i, task in enumerate(self.tasks):
+            if task.task_id == new_task.task_id:
+                self.tasks[i] = new_task
+                break
+
+        # Reset dependent tasks
+        for task in self.tasks:
+            if new_task.task_id in task.dependent_task_ids:
+                self.reset_task(task.task_id)
+
+    def append_task(self, new_task: Task):
+        """
+        Append a new task to the end of existing task sequences
+
+        Args:
+            new_task (Task): The new task to be appended to the existing task sequence
+
+        Returns:
+            None
+        """
+        assert not self.has_task_id(new_task.task_id), "Task already in current plan, use replace_task instead"
+
+        assert all(
+            [self.has_task_id(dep_id) for dep_id in new_task.dependent_task_ids]
+        ), "New task has unknown dependencies"
+
+        # Existing tasks do not depend on the new task, it's fine to put it to the end of the sorted task sequence
+        self.tasks.append(new_task)
+        self.task_map[new_task.task_id] = new_task
+        self._update_current_task()
+
+    def has_task_id(self, task_id: str) -> bool:
+        return task_id in self.task_map
+
+    def _update_current_task(self):
+        current_task_id = ""
+        for task in self.tasks:
+            if not task.is_finished:
+                current_task_id = task.task_id
+                break
+        self.current_task_id = current_task_id  # all tasks finished
+
+    @property
+    def current_task(self) -> Task:
+        """Find current task to execute
+
+        Returns:
+            Task: the current task to be executed
+        """
+        return self.task_map.get(self.current_task_id, None)
+
+    def finish_current_task(self):
+        """Finish current task, set Task.is_finished=True, set current task to next task"""
+        if self.current_task_id:
+            self.current_task.is_finished = True
+            self._update_current_task()  # set to next task
+
+    def get_finished_tasks(self) -> list[Task]:
+        """return all finished tasks in correct linearized order
+
+        Returns:
+            list[Task]: list of finished tasks
+        """
+        return [task for task in self.tasks if task.is_finished]
 
 
 class MessageQueue(BaseModel):
@@ -448,6 +664,30 @@ class CodeSummarizeContext(BaseModel):
 
 class BugFixContext(BaseContext):
     filename: str = ""
+
+
+class CodePlanAndChangeContext(BaseModel):
+    filename: str = CODE_PLAN_AND_CHANGE_FILENAME
+    requirement: str = ""
+    prd_filename: str = ""
+    design_filename: str = ""
+    task_filename: str = ""
+
+    @staticmethod
+    def loads(filenames: List, **kwargs) -> CodePlanAndChangeContext:
+        ctx = CodePlanAndChangeContext(requirement=kwargs.get("requirement", ""))
+        for filename in filenames:
+            filename = Path(filename)
+            if filename.is_relative_to(PRDS_FILE_REPO):
+                ctx.prd_filename = filename.name
+                continue
+            if filename.is_relative_to(SYSTEM_DESIGN_FILE_REPO):
+                ctx.design_filename = filename.name
+                continue
+            if filename.is_relative_to(TASK_FILE_REPO):
+                ctx.task_filename = filename.name
+                continue
+        return ctx
 
 
 # mermaid class view

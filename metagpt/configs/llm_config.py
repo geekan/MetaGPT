@@ -74,5 +74,5 @@ class LLMConfig(YamlModel):
     @classmethod
     def check_llm_key(cls, v):
         if v in ["", None, "YOUR_API_KEY"]:
-            raise ValueError("Please set your API key in config.yaml")
+            raise ValueError("Please set your API key in config2.yaml")
         return v

@@ -1,8 +1,8 @@
 llm:
-  api_type: "openai"
+  api_type: "openai"  # or azure / ollama etc.
   base_url: "YOUR_BASE_URL"
   api_key: "YOUR_API_KEY"
-  model: "gpt-3.5-turbo-1106"  # or gpt-4-1106-preview
+  model: "gpt-4-turbo-preview"  # or gpt-3.5-turbo-1106 / gpt-4-1106-preview
 
 proxy: "YOUR_PROXY"
 
@@ -10,6 +10,10 @@ search:
   api_type: "google"
   api_key: "YOUR_API_KEY"
   cse_id: "YOUR_CSE_ID"
+
+browser:
+  engine: "playwright"  # playwright/selenium
+  browser_type: "chromium"  # playwright: chromium/firefox/webkit; selenium: chrome/firefox/edge/ie
 
 mermaid:
   engine: "pyppeteer"
@@ -29,14 +33,13 @@ s3:
   bucket: "test"
 
 
-AZURE_TTS_SUBSCRIPTION_KEY: "YOUR_SUBSCRIPTION_KEY"
-AZURE_TTS_REGION: "eastus"
+azure_tts_subscription_key: "YOUR_SUBSCRIPTION_KEY"
+azure_tts_region: "eastus"
 
-IFLYTEK_APP_ID: "YOUR_APP_ID"
-IFLYTEK_API_KEY: "YOUR_API_KEY"
-IFLYTEK_API_SECRET: "YOUR_API_SECRET"
+iflytek_api_id: "YOUR_APP_ID"
+iflytek_api_key: "YOUR_API_KEY"
+iflytek_api_secret: "YOUR_API_SECRET"
 
-METAGPT_TEXT_TO_IMAGE_MODEL_URL: "YOUR_MODEL_URL"
+metagpt_tti_url: "YOUR_MODEL_URL"
 
-PYPPETEER_EXECUTABLE_PATH: "/Applications/Google Chrome.app"
-
+repair_llm_output: true

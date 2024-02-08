@@ -3,13 +3,13 @@
 """
 @Time    : 2023/5/15 11:40
 @Author  : alexanderwu
-@File    : test_startup.py
+@File    : test_software_company.py
 """
 import pytest
 from typer.testing import CliRunner
 
 from metagpt.logs import logger
-from metagpt.startup import app
+from metagpt.software_company import app
 from metagpt.team import Team
 
 runner = CliRunner()
@@ -23,7 +23,7 @@ async def test_empty_team(new_filename):
     logger.info(history)
 
 
-def test_startup(new_filename):
+def test_software_company(new_filename):
     args = ["Make a cli snake game"]
     result = runner.invoke(app, args)
     logger.info(result)

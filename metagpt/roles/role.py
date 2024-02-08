@@ -23,7 +23,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any, Iterable, Optional, Set, Type, Union
+from typing import TYPE_CHECKING, Iterable, Optional, Set, Type, Union
 
 from pydantic import BaseModel, ConfigDict, Field, SerializeAsAny, model_validator
 
@@ -35,9 +35,14 @@ from metagpt.logs import logger
 from metagpt.memory import Memory
 from metagpt.provider import HumanProvider
 from metagpt.schema import Message, MessageQueue, SerializationMixin
+from metagpt.strategy.planner import Planner
 from metagpt.utils.common import any_to_name, any_to_str, role_raise_decorator
 from metagpt.utils.project_repo import ProjectRepo
 from metagpt.utils.repair_llm_raw_output import extract_state_value_from_output
+
+if TYPE_CHECKING:
+    from metagpt.environment import Environment  # noqa: F401
+
 
 PREFIX_TEMPLATE = """You are a {profile}, named {name}, your goal is {goal}. """
 CONSTRAINT_TEMPLATE = "the constraint is {constraints}. "
@@ -93,6 +98,7 @@ class RoleContext(BaseModel):
     )  # Message Buffer with Asynchronous Updates
     memory: Memory = Field(default_factory=Memory)
     # long_term_memory: LongTermMemory = Field(default_factory=LongTermMemory)
+    working_memory: Memory = Field(default_factory=Memory)
     state: int = Field(default=-1)  # -1 indicates initial or termination state where todo is None
     todo: Action = Field(default=None, exclude=True)
     watch: set[str] = Field(default_factory=set)
@@ -117,11 +123,17 @@ class RoleContext(BaseModel):
     def history(self) -> list[Message]:
         return self.memory.get()
 
+    @classmethod
+    def model_rebuild(cls, **kwargs):
+        from metagpt.environment.base_env import Environment  # noqa: F401
+
+        super().model_rebuild(**kwargs)
+
 
 class Role(SerializationMixin, ContextMixin, BaseModel):
     """Role/Agent"""
 
-    model_config = ConfigDict(arbitrary_types_allowed=True, extra="ignore")
+    model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
 
     name: str = ""
     profile: str = ""
@@ -142,6 +154,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
     actions: list[SerializeAsAny[Action]] = Field(default=[], validate_default=True)
     rc: RoleContext = Field(default_factory=RoleContext)
     addresses: set[str] = set()
+    planner: Planner = Field(default_factory=Planner)
 
     # builtin variables
     recovered: bool = False  # to tag if a recovered role
@@ -149,27 +162,23 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
 
     __hash__ = object.__hash__  # support Role as hashable type in `Environment.members`
 
-    def __init__(self, **data: Any):
-        self.pydantic_rebuild_model()
-        super().__init__(**data)
+    @model_validator(mode="after")
+    def validate_role_extra(self):
+        self._process_role_extra()
+        return self
+
+    def _process_role_extra(self):
+        kwargs = self.model_extra or {}
 
         if self.is_human:
             self.llm = HumanProvider(None)
 
         self._check_actions()
         self.llm.system_prompt = self._get_prefix()
-        self._watch(data.get("watch") or [UserRequirement])
+        self._watch(kwargs.pop("watch", [UserRequirement]))
 
         if self.latest_observed_msg:
             self.recovered = True
-
-    @staticmethod
-    def pydantic_rebuild_model():
-        """Rebuild model to avoid `RecursionError: maximum recursion depth exceeded in comparison`"""
-        from metagpt.environment import Environment
-
-        Environment
-        Role.model_rebuild()
 
     @property
     def todo(self) -> Action:
@@ -261,7 +270,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         self._reset()
         for action in actions:
             if not isinstance(action, Action):
-                i = action()
+                i = action(context=self.context)
             else:
                 if self.is_human and not isinstance(action.llm, HumanProvider):
                     logger.warning(
@@ -274,7 +283,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
             self.actions.append(i)
             self.states.append(f"{len(self.actions)}. {action}")
 
-    def _set_react_mode(self, react_mode: str, max_react_loop: int = 1):
+    def _set_react_mode(self, react_mode: str, max_react_loop: int = 1, auto_run: bool = True, use_tools: bool = False):
         """Set strategy of the Role reacting to observed Message. Variation lies in how
         this Role elects action to perform during the _think stage, especially if it is capable of multiple Actions.
 
@@ -294,6 +303,10 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         self.rc.react_mode = react_mode
         if react_mode == RoleReactMode.REACT:
             self.rc.max_react_loop = max_react_loop
+        elif react_mode == RoleReactMode.PLAN_AND_ACT:
+            self.planner = Planner(
+                goal=self.goal, working_memory=self.rc.working_memory, auto_run=auto_run, use_tools=use_tools
+            )
 
     def _watch(self, actions: Iterable[Type[Action]] | Iterable[Action]):
         """Watch Actions of interest. Role will select Messages caused by these Actions from its personal message
@@ -470,8 +483,41 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
 
     async def _plan_and_act(self) -> Message:
         """first plan, then execute an action sequence, i.e. _think (of a plan) -> _act -> _act -> ... Use llm to come up with the plan dynamically."""
-        # TODO: to be implemented
-        return Message(content="")
+
+        # create initial plan and update it until confirmation
+        goal = self.rc.memory.get()[-1].content  # retreive latest user requirement
+        await self.planner.update_plan(goal=goal)
+
+        # take on tasks until all finished
+        while self.planner.current_task:
+            task = self.planner.current_task
+            logger.info(f"ready to take on task {task}")
+
+            # take on current task
+            task_result = await self._act_on_task(task)
+
+            # process the result, such as reviewing, confirming, plan updating
+            await self.planner.process_task_result(task_result)
+
+        rsp = self.planner.get_useful_memories()[0]  # return the completed plan as a response
+
+        self.rc.memory.add(rsp)  # add to persistent memory
+
+        return rsp
+
+    async def _act_on_task(self, current_task: Task) -> TaskResult:
+        """Taking specific action to handle one task in plan
+
+        Args:
+            current_task (Task): current task to take on
+
+        Raises:
+            NotImplementedError: Specific Role must implement this method if expected to use planner
+
+        Returns:
+            TaskResult: Result from the actions
+        """
+        raise NotImplementedError
 
     async def react(self) -> Message:
         """Entry to one of three strategies by which Role reacts to the observed Message"""
@@ -481,6 +527,8 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
             rsp = await self._act_by_order()
         elif self.rc.react_mode == RoleReactMode.PLAN_AND_ACT:
             rsp = await self._plan_and_act()
+        else:
+            raise ValueError(f"Unsupported react mode: {self.rc.react_mode}")
         self._set_state(state=-1)  # current reaction is complete, reset state to -1 and todo back to None
         return rsp
 
@@ -521,19 +569,37 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         return not self.rc.news and not self.rc.todo and self.rc.msg_buffer.empty()
 
     async def think(self) -> Action:
-        """The exported `think` function"""
+        """
+        Export SDK API, used by AgentStore RPC.
+        The exported `think` function
+        """
+        await self._observe()  # For compatibility with the old version of the Agent.
         await self._think()
         return self.rc.todo
 
     async def act(self) -> ActionOutput:
-        """The exported `act` function"""
+        """
+        Export SDK API, used by AgentStore RPC.
+        The exported `act` function
+        """
         msg = await self._act()
         return ActionOutput(content=msg.content, instruct_content=msg.instruct_content)
 
     @property
-    def first_action(self) -> str:
-        """AgentStore uses this attribute to display to the user what actions the current role should take."""
-        # FIXME: this is a hack, we should not use the first action to represent the todo
+    def action_description(self) -> str:
+        """
+        Export SDK API, used by AgentStore RPC and Agent.
+        AgentStore uses this attribute to display to the user what actions the current role should take.
+        `Role` provides the default property, and this property should be overridden by children classes if necessary,
+        as demonstrated by the `Engineer` class.
+        """
+        if self.rc.todo:
+            if self.rc.todo.desc:
+                return self.rc.todo.desc
+            return any_to_name(self.rc.todo)
         if self.actions:
             return any_to_name(self.actions[0])
         return ""
+
+
+RoleContext.model_rebuild()

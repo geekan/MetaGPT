@@ -38,6 +38,7 @@ class CLIParams(BaseModel):
         if self.project_path:
             self.inc = True
             self.project_name = self.project_name or Path(self.project_path).name
+        return self
 
 
 class Config(CLIParams, YamlModel):
@@ -50,7 +51,7 @@ class Config(CLIParams, YamlModel):
     proxy: str = ""
 
     # Tool Parameters
-    search: Optional[SearchConfig] = None
+    search: SearchConfig = SearchConfig()
     browser: BrowserConfig = BrowserConfig()
     mermaid: MermaidConfig = MermaidConfig()
 
@@ -66,25 +67,22 @@ class Config(CLIParams, YamlModel):
     code_review_k_times: int = 2
 
     # Will be removed in the future
-    llm_for_researcher_summary: str = "gpt3"
-    llm_for_researcher_report: str = "gpt3"
-    METAGPT_TEXT_TO_IMAGE_MODEL_URL: str = ""
+    metagpt_tti_url: str = ""
     language: str = "English"
     redis_key: str = "placeholder"
-    mmdc: str = "mmdc"
-    puppeteer_config: str = ""
-    pyppeteer_executable_path: str = ""
-    IFLYTEK_APP_ID: str = ""
-    IFLYTEK_API_SECRET: str = ""
-    IFLYTEK_API_KEY: str = ""
-    AZURE_TTS_SUBSCRIPTION_KEY: str = ""
-    AZURE_TTS_REGION: str = ""
-    mermaid_engine: str = "nodejs"
+    iflytek_app_id: str = ""
+    iflytek_api_secret: str = ""
+    iflytek_api_key: str = ""
+    azure_tts_subscription_key: str = ""
+    azure_tts_region: str = ""
 
     @classmethod
     def from_home(cls, path):
-        """Load config from ~/.metagpt/config.yaml"""
-        return Config.from_yaml_file(CONFIG_ROOT / path)
+        """Load config from ~/.metagpt/config2.yaml"""
+        pathname = CONFIG_ROOT / path
+        if not pathname.exists():
+            return None
+        return Config.from_yaml_file(pathname)
 
     @classmethod
     def default(cls):

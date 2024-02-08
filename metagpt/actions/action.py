@@ -15,6 +15,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from metagpt.actions.action_node import ActionNode
 from metagpt.context_mixin import ContextMixin
 from metagpt.schema import (
+    CodePlanAndChangeContext,
     CodeSummarizeContext,
     CodingContext,
     RunCodeContext,
@@ -28,14 +29,18 @@ class Action(SerializationMixin, ContextMixin, BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     name: str = ""
-    i_context: Union[dict, CodingContext, CodeSummarizeContext, TestingContext, RunCodeContext, str, None] = ""
+    i_context: Union[
+        dict, CodingContext, CodeSummarizeContext, TestingContext, RunCodeContext, CodePlanAndChangeContext, str, None
+    ] = ""
     prefix: str = ""  # aask*时会加上prefix，作为system_message
     desc: str = ""  # for skill manager
     node: ActionNode = Field(default=None, exclude=True)
 
     @property
-    def project_repo(self):
-        return ProjectRepo(self.context.git_repo)
+    def repo(self) -> ProjectRepo:
+        if not self.context.repo:
+            self.context.repo = ProjectRepo(self.context.git_repo)
+        return self.context.repo
 
     @property
     def prompt_schema(self):

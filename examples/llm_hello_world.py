@@ -23,6 +23,10 @@ async def main():
     # streaming mode, much slower
     await llm.acompletion_text(hello_msg, stream=True)
 
+    # check completion if exist to test llm complete functions
+    if hasattr(llm, "completion"):
+        logger.info(llm.completion(hello_msg))
+
 
 if __name__ == "__main__":
     asyncio.run(main())

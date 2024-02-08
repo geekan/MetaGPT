@@ -13,6 +13,8 @@ from pathlib import Path
 
 from metagpt.const import (
     CLASS_VIEW_FILE_REPO,
+    CODE_PLAN_AND_CHANGE_FILE_REPO,
+    CODE_PLAN_AND_CHANGE_PDF_FILE_REPO,
     CODE_SUMMARIES_FILE_REPO,
     CODE_SUMMARIES_PDF_FILE_REPO,
     COMPETITIVE_ANALYSIS_FILE_REPO,
@@ -21,6 +23,7 @@ from metagpt.const import (
     GRAPH_REPO_FILE_REPO,
     PRD_PDF_FILE_REPO,
     PRDS_FILE_REPO,
+    REQUIREMENT_FILENAME,
     RESOURCES_FILE_REPO,
     SD_OUTPUT_FILE_REPO,
     SEQ_FLOW_FILE_REPO,
@@ -42,6 +45,7 @@ class DocFileRepositories(FileRepository):
     code_summary: FileRepository
     graph_repo: FileRepository
     class_view: FileRepository
+    code_plan_and_change: FileRepository
 
     def __init__(self, git_repo):
         super().__init__(git_repo=git_repo, relative_path=DOCS_FILE_REPO)
@@ -52,6 +56,7 @@ class DocFileRepositories(FileRepository):
         self.code_summary = git_repo.new_file_repository(relative_path=CODE_SUMMARIES_FILE_REPO)
         self.graph_repo = git_repo.new_file_repository(relative_path=GRAPH_REPO_FILE_REPO)
         self.class_view = git_repo.new_file_repository(relative_path=CLASS_VIEW_FILE_REPO)
+        self.code_plan_and_change = git_repo.new_file_repository(relative_path=CODE_PLAN_AND_CHANGE_FILE_REPO)
 
 
 class ResourceFileRepositories(FileRepository):
@@ -63,6 +68,7 @@ class ResourceFileRepositories(FileRepository):
     api_spec_and_task: FileRepository
     code_summary: FileRepository
     sd_output: FileRepository
+    code_plan_and_change: FileRepository
 
     def __init__(self, git_repo):
         super().__init__(git_repo=git_repo, relative_path=RESOURCES_FILE_REPO)
@@ -75,6 +81,7 @@ class ResourceFileRepositories(FileRepository):
         self.api_spec_and_task = git_repo.new_file_repository(relative_path=TASK_PDF_FILE_REPO)
         self.code_summary = git_repo.new_file_repository(relative_path=CODE_SUMMARIES_PDF_FILE_REPO)
         self.sd_output = git_repo.new_file_repository(relative_path=SD_OUTPUT_FILE_REPO)
+        self.code_plan_and_change = git_repo.new_file_repository(relative_path=CODE_PLAN_AND_CHANGE_PDF_FILE_REPO)
 
 
 class ProjectRepo(FileRepository):
@@ -92,6 +99,17 @@ class ProjectRepo(FileRepository):
         self.tests = self._git_repo.new_file_repository(relative_path=TEST_CODES_FILE_REPO)
         self.test_outputs = self._git_repo.new_file_repository(relative_path=TEST_OUTPUTS_FILE_REPO)
         self._srcs_path = None
+        self.code_files_exists()
+
+    def __str__(self):
+        repo_str = f"ProjectRepo({self._git_repo.workdir})"
+        docs_str = f"Docs({self.docs.all_files})"
+        srcs_str = f"Srcs({self.srcs.all_files})"
+        return f"{repo_str}\n{docs_str}\n{srcs_str}"
+
+    @property
+    async def requirement(self):
+        return await self.docs.get(filename=REQUIREMENT_FILENAME)
 
     @property
     def git_repo(self) -> GitRepository:
@@ -106,6 +124,15 @@ class ProjectRepo(FileRepository):
         if not self._srcs_path:
             raise ValueError("Call with_srcs first.")
         return self._git_repo.new_file_repository(self._srcs_path)
+
+    def code_files_exists(self) -> bool:
+        git_workdir = self.git_repo.workdir
+        src_workdir = git_workdir / git_workdir.name
+        if not src_workdir.exists():
+            return False
+        code_files = self.with_src_path(path=git_workdir / git_workdir.name).srcs.all_files
+        if not code_files:
+            return False
 
     def with_src_path(self, path: str | Path) -> ProjectRepo:
         try:

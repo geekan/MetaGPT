@@ -5,11 +5,14 @@
 @Author  : alexanderwu
 @File    : test_context_mixin.py
 """
+from pathlib import Path
+
 import pytest
 from pydantic import BaseModel
 
 from metagpt.actions import Action
 from metagpt.config2 import Config
+from metagpt.const import CONFIG_ROOT
 from metagpt.context_mixin import ContextMixin
 from metagpt.environment import Environment
 from metagpt.roles import Role
@@ -95,14 +98,18 @@ def test_config_mixin_4_multi_inheritance_override_config():
 
     print(obj.__dict__.keys())
     assert "private_config" in obj.__dict__.keys()
-    assert obj.llm.model == "mock_zhipu_model"
+    assert obj.config.llm.model == "mock_zhipu_model"
 
 
 @pytest.mark.asyncio
 async def test_config_priority():
     """If action's config is set, then its llm will be set, otherwise, it will use the role's llm"""
+    home_dir = Path.home() / CONFIG_ROOT
     gpt4t = Config.from_home("gpt-4-1106-preview.yaml")
+    if not home_dir.exists():
+        assert gpt4t is None
     gpt35 = Config.default()
+    gpt35.llm.model = "gpt-3.5-turbo-1106"
     gpt4 = Config.default()
     gpt4.llm.model = "gpt-4-0613"
 
@@ -120,7 +127,7 @@ async def test_config_priority():
     env = Environment(desc="US election live broadcast")
     Team(investment=10.0, env=env, roles=[A, B, C])
 
-    assert a1.llm.model == "gpt-4-1106-preview"
+    assert a1.llm.model == "gpt-4-1106-preview" if Path(home_dir / "gpt-4-1106-preview.yaml").exists() else "gpt-4-0613"
     assert a2.llm.model == "gpt-4-0613"
     assert a3.llm.model == "gpt-3.5-turbo-1106"
 

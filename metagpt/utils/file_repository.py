@@ -54,6 +54,7 @@ class FileRepository:
         """
         pathname = self.workdir / filename
         pathname.parent.mkdir(parents=True, exist_ok=True)
+        content = content if content else ""  # avoid `argument must be str, not None` to make it continue
         async with aiofiles.open(str(pathname), mode="w") as writer:
             await writer.write(content)
         logger.info(f"save to: {str(pathname)}")
@@ -63,7 +64,7 @@ class FileRepository:
             await dependency_file.update(pathname, set(dependencies))
             logger.info(f"update dependency: {str(pathname)}:{dependencies}")
 
-        return Document(root_path=str(self._relative_path), filename=filename, content=content)
+        return Document(root_path=str(self._relative_path), filename=str(filename), content=content)
 
     async def get_dependency(self, filename: Path | str) -> Set[str]:
         """Get the dependencies of a file.
@@ -100,21 +101,28 @@ class FileRepository:
         path_name = self.workdir / filename
         if not path_name.exists():
             return None
+        if not path_name.is_file():
+            return None
         doc.content = await aread(path_name)
         return doc
 
-    async def get_all(self) -> List[Document]:
+    async def get_all(self, filter_ignored=True) -> List[Document]:
         """Get the content of all files in the repository.
 
         :return: List of Document instances representing files.
         """
         docs = []
-        for root, dirs, files in os.walk(str(self.workdir)):
-            for file in files:
-                file_path = Path(root) / file
-                relative_path = file_path.relative_to(self.workdir)
-                doc = await self.get(relative_path)
+        if filter_ignored:
+            for f in self.all_files:
+                doc = await self.get(f)
                 docs.append(doc)
+        else:
+            for root, dirs, files in os.walk(str(self.workdir)):
+                for file in files:
+                    file_path = Path(root) / file
+                    relative_path = file_path.relative_to(self.workdir)
+                    doc = await self.get(relative_path)
+                    docs.append(doc)
         return docs
 
     @property

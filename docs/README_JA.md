@@ -57,24 +57,21 @@ https://github.com/geekan/MetaGPT/assets/34952977/34345016-5d13-489d-b9f9-b82ace
 - [Matthew Berman: How To Install MetaGPT - Build A Startup With One Prompt!!](https://youtu.be/uT75J_KG_aY)
 
 ### 伝統的なインストール
+> Python 3.9 以上がシステムにインストールされていることを確認してください。これは `python --version` を使ってチェックできます。  
+> 以下のようにcondaを使うことができます：`conda create -n metagpt python=3.9 && conda activate metagpt`
 
 ```bash
-# ステップ 1: Python 3.9+ がシステムにインストールされていることを確認してください。これを確認するには:
-python3 --version
+pip install metagpt
+metagpt --init-config  # ~/.metagpt/config2.yaml を作成し、自分の設定に合わせて変更してください
+metagpt "2048ゲームを作成する"  # これにより ./workspace にリポジトリが作成されます
+```
 
-# ステップ 2: リポジトリをローカルマシンにクローンし、インストールする。
-git clone https://github.com/geekan/MetaGPT.git
-cd MetaGPT
-pip install -e.
+または、ライブラリとして使用することもできます
 
-# ステップ 3: metagpt を実行する
-# config.yaml を key.yaml にコピーし、独自の OPENAI_API_KEY を設定します
-metagpt "Write a cli snake game"
-
-# ステップ 4 [オプション]: 実行中に PRD ファイルなどのアーティファクトを保存する場合は、ステップ 3 の前にこのステップを実行できます。デフォルトでは、フレームワークには互換性があり、この手順を実行しなくてもプロセス全体を完了できます。
-# NPM がシステムにインストールされていることを確認してください。次に mermaid-js をインストールします。(お使いのコンピューターに npm がない場合は、Node.js 公式サイトで Node.js https://nodejs.org/ をインストールしてください。）
-npm --version
-sudo npm install -g @mermaid-js/mermaid-cli
+```python
+from metagpt.software_company import generate_repo, ProjectRepo
+repo: ProjectRepo = generate_repo("2048ゲームを作成する")  # または ProjectRepo("<パス>")
+print(repo)  # リポジトリの構造とファイルを出力します
 ```
 
 **注:**
@@ -91,8 +88,8 @@ Chromium のダウンロードをスキップすることができます。
 - config.yml に mmdc のコンフィグを記述するのを忘れないこと
 
   ```yml
-  PUPPETEER_CONFIG: "./config/puppeteer-config.json"
-  MMDC: "./node_modules/.bin/mmdc"
+  puppeteer_config: "./config/puppeteer-config.json"
+  path: "./node_modules/.bin/mmdc"
   ```
 
 - もし `pip install -e.` がエラー `[Errno 13] Permission denied: '/usr/local/lib/python3.11/dist-packages/test-easy-install-13129.write-test'` で失敗したら、代わりに `pip install -e. --user` を実行してみてください
@@ -114,12 +111,13 @@ Chromium のダウンロードをスキップすることができます。
     playwright install --with-deps chromium
     ```
 
-    - **modify `config.yaml`**
+    - **modify `config2.yaml`**
 
-    config.yaml から MERMAID_ENGINE のコメントを外し、`playwright` に変更する
+    config2.yaml から mermaid.engine のコメントを外し、`playwright` に変更する
 
     ```yaml
-    MERMAID_ENGINE: playwright
+    mermaid:
+      engine: playwright
     ```
 
   - pyppeteer
@@ -143,21 +141,23 @@ Chromium のダウンロードをスキップすることができます。
     pyppeteer-install
     ```
 
-    - **`config.yaml` を修正**
+    - **`config2.yaml` を修正**
 
-    config.yaml から MERMAID_ENGINE のコメントを外し、`pyppeteer` に変更する
+    config2.yaml から mermaid.engine のコメントを外し、`pyppeteer` に変更する
 
     ```yaml
-    MERMAID_ENGINE: pyppeteer
+    mermaid:
+      engine: pyppeteer
     ```
 
   - mermaid.ink
-    - **`config.yaml` を修正**
+    - **`config2.yaml` を修正**
 
-    config.yaml から MERMAID_ENGINE のコメントを外し、`ink` に変更する
+    config2.yaml から mermaid.engine のコメントを外し、`ink` に変更する
 
     ```yaml
-    MERMAID_ENGINE: ink
+    mermaid:
+      engine: ink
     ```
 
     注: この方法は pdf エクスポートに対応していません。
@@ -166,16 +166,16 @@ Chromium のダウンロードをスキップすることができます。
 > Windowsでは、"/opt/metagpt"をDockerが作成する権限を持つディレクトリに置き換える必要があります。例えば、"D:\Users\x\metagpt"などです。
 
 ```bash
-# ステップ 1: metagpt 公式イメージをダウンロードし、config.yaml を準備する
+# ステップ 1: metagpt 公式イメージをダウンロードし、config2.yaml を準備する
 docker pull metagpt/metagpt:latest
 mkdir -p /opt/metagpt/{config,workspace}
-docker run --rm metagpt/metagpt:latest cat /app/metagpt/config/config.yaml > /opt/metagpt/config/key.yaml
-vim /opt/metagpt/config/key.yaml # 設定を変更する
+docker run --rm metagpt/metagpt:latest cat /app/metagpt/config/config2.yaml > /opt/metagpt/config/config2.yaml
+vim /opt/metagpt/config/config2.yaml # 設定を変更する
 
 # ステップ 2: コンテナで metagpt デモを実行する
 docker run --rm \
     --privileged \
-    -v /opt/metagpt/config/key.yaml:/app/metagpt/config/key.yaml \
+    -v /opt/metagpt/config/config2.yaml:/app/metagpt/config/config2.yaml \
     -v /opt/metagpt/workspace:/app/metagpt/workspace \
     metagpt/metagpt:latest \
     metagpt "Write a cli snake game"
@@ -183,7 +183,7 @@ docker run --rm \
 # コンテナを起動し、その中でコマンドを実行することもできます
 docker run --name metagpt -d \
     --privileged \
-    -v /opt/metagpt/config/key.yaml:/app/metagpt/config/key.yaml \
+    -v /opt/metagpt/config/config2.yaml:/app/metagpt/config/config2.yaml \
     -v /opt/metagpt/workspace:/app/metagpt/workspace \
     metagpt/metagpt:latest
 
@@ -194,7 +194,7 @@ $ metagpt "Write a cli snake game"
 コマンド `docker run ...` は以下のことを行います:
 
 - 特権モードで実行し、ブラウザの実行権限を得る
-- ホスト設定ファイル `/opt/metagpt/config/key.yaml` をコンテナ `/app/metagpt/config/key.yaml` にマップします
+- ホスト設定ファイル `/opt/metagpt/config/config2.yaml` をコンテナ `/app/metagpt/config/config2.yaml` にマップします
 - ホストディレクトリ `/opt/metagpt/workspace` をコンテナディレクトリ `/app/metagpt/workspace` にマップするs
 - デモコマンド `metagpt "Write a cli snake game"` を実行する
 
@@ -208,18 +208,13 @@ cd MetaGPT && docker build -t metagpt:custom .
 
 ## 設定
 
-- `OPENAI_API_KEY` を `config/key.yaml / config/config.yaml / env` のいずれかで設定します。
-- 優先順位は: `config/key.yaml > config/config.yaml > env` の順です。
+- `api_key` を `~/.metagpt/config2.yaml / config/config2.yaml` のいずれかで設定します。
+- 優先順位は: `~/.metagpt/config2.yaml > config/config2.yaml > env` の順です。
 
 ```bash
 # 設定ファイルをコピーし、必要な修正を加える。
-cp config/config.yaml config/key.yaml
+cp config/config2.yaml ~/.metagpt/config2.yaml
 ```
-
-| 変数名                                  | config/key.yaml                           | env                                             |
-| --------------------------------------- | ----------------------------------------- | ----------------------------------------------- |
-| OPENAI_API_KEY # 自分のキーに置き換える | OPENAI_API_KEY: "sk-..."                  | export OPENAI_API_KEY="sk-..."                  |
-| OPENAI_BASE_URL # オプション            | OPENAI_BASE_URL: "https://<YOUR_SITE>/v1" | export OPENAI_BASE_URL="https://<YOUR_SITE>/v1" |
 
 ## チュートリアル: スタートアップの開始
 

@@ -10,12 +10,13 @@
 
 import warnings
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from metagpt.actions import UserRequirement
 from metagpt.const import MESSAGE_ROUTE_TO_ALL, SERDESER_PATH
+from metagpt.context import Context
 from metagpt.environment import Environment
 from metagpt.logs import logger
 from metagpt.roles import Role
@@ -36,12 +37,17 @@ class Team(BaseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    env: Environment = Field(default_factory=Environment)
+    env: Optional[Environment] = None
     investment: float = Field(default=10.0)
     idea: str = Field(default="")
 
-    def __init__(self, **data: Any):
+    def __init__(self, context: Context = None, **data: Any):
         super(Team, self).__init__(**data)
+        ctx = context or Context()
+        if not self.env:
+            self.env = Environment(context=ctx)
+        else:
+            self.env.context = ctx  # The `env` object is allocated by deserialization
         if "roles" in data:
             self.hire(data["roles"])
         if "env_desc" in data:
@@ -54,7 +60,7 @@ class Team(BaseModel):
         write_json_file(team_info_path, self.model_dump())
 
     @classmethod
-    def deserialize(cls, stg_path: Path) -> "Team":
+    def deserialize(cls, stg_path: Path, context: Context = None) -> "Team":
         """stg_path = ./storage/team"""
         # recover team_info
         team_info_path = stg_path.joinpath("team.json")
@@ -64,7 +70,8 @@ class Team(BaseModel):
             )
 
         team_info: dict = read_json_file(team_info_path)
-        team = Team(**team_info)
+        ctx = context or Context()
+        team = Team(**team_info, context=ctx)
         return team
 
     def hire(self, roles: list[Role]):
@@ -83,7 +90,7 @@ class Team(BaseModel):
         logger.info(f"Investment: ${investment}.")
 
     def _check_balance(self):
-        if self.cost_manager.total_cost > self.cost_manager.max_budget:
+        if self.cost_manager.total_cost >= self.cost_manager.max_budget:
             raise NoMoneyException(self.cost_manager.total_cost, f"Insufficient funds: {self.cost_manager.max_budget}")
 
     def run_project(self, idea, send_to: str = ""):

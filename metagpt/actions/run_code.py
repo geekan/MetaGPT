@@ -16,6 +16,7 @@
             class.
 """
 import subprocess
+from pathlib import Path
 from typing import Tuple
 
 from pydantic import Field
@@ -41,13 +42,13 @@ Determine the ONE file to rewrite in order to fix the error, for example, xyz.py
 Determine if all of the code works fine, if so write PASS, else FAIL,
 WRITE ONLY ONE WORD, PASS OR FAIL, IN THIS SECTION
 ## Send To:
-Please write Engineer if the errors are due to problematic development codes, and QaEngineer to problematic test codes, and NoOne if there are no errors,
-WRITE ONLY ONE WORD, Engineer OR QaEngineer OR NoOne, IN THIS SECTION.
+Please write NoOne if there are no errors, Engineer if the errors are due to problematic development codes, else QaEngineer,
+WRITE ONLY ONE WORD, NoOne OR Engineer OR QaEngineer, IN THIS SECTION.
 ---
 You should fill in necessary instruction, status, send to, and finally return all content between the --- segment line.
 """
 
-CONTEXT = """
+TEMPLATE_CONTEXT = """
 ## Development Code File Name
 {code_file_name}
 ## Development Code
@@ -130,7 +131,7 @@ class RunCode(Action):
         logger.info(f"{outs=}")
         logger.info(f"{errs=}")
 
-        context = CONTEXT.format(
+        context = TEMPLATE_CONTEXT.format(
             code=self.i_context.code,
             code_file_name=self.i_context.code_filename,
             test_code=self.i_context.test_code,
@@ -150,11 +151,23 @@ class RunCode(Action):
         return subprocess.run(cmd, check=check, cwd=cwd, env=env)
 
     @staticmethod
-    def _install_dependencies(working_directory, env):
+    def _install_requirements(working_directory, env):
+        file_path = Path(working_directory) / "requirements.txt"
+        if not file_path.exists():
+            return
+        if file_path.stat().st_size == 0:
+            return
         install_command = ["python", "-m", "pip", "install", "-r", "requirements.txt"]
         logger.info(" ".join(install_command))
         RunCode._install_via_subprocess(install_command, check=True, cwd=working_directory, env=env)
 
+    @staticmethod
+    def _install_pytest(working_directory, env):
         install_pytest_command = ["python", "-m", "pip", "install", "pytest"]
         logger.info(" ".join(install_pytest_command))
         RunCode._install_via_subprocess(install_pytest_command, check=True, cwd=working_directory, env=env)
+
+    @staticmethod
+    def _install_dependencies(working_directory, env):
+        RunCode._install_requirements(working_directory, env)
+        RunCode._install_pytest(working_directory, env)

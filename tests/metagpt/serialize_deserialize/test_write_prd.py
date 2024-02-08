@@ -10,13 +10,13 @@ from metagpt.schema import Message
 
 
 @pytest.mark.asyncio
-async def test_action_serdeser(new_filename):
-    action = WritePRD()
+async def test_action_serdeser(new_filename, context):
+    action = WritePRD(context=context)
     ser_action_dict = action.model_dump()
     assert "name" in ser_action_dict
     assert "llm" not in ser_action_dict  # not export
 
-    new_action = WritePRD(**ser_action_dict)
+    new_action = WritePRD(**ser_action_dict, context=context)
     assert new_action.name == "WritePRD"
-    action_output = await new_action.run(with_messages=Message(content="write a cli snake game"))
-    assert len(action_output.content) > 0
+    with pytest.raises(FileNotFoundError):
+        await new_action.run(with_messages=Message(content="write a cli snake game"))

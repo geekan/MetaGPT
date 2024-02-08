@@ -41,6 +41,10 @@ class CostManager(BaseModel):
         """
         self.total_prompt_tokens += prompt_tokens
         self.total_completion_tokens += completion_tokens
+        if model not in TOKEN_COSTS:
+            logger.warning(f"Model {model} not found in TOKEN_COSTS.")
+            return
+
         cost = (
             prompt_tokens * TOKEN_COSTS[model]["prompt"] + completion_tokens * TOKEN_COSTS[model]["completion"]
         ) / 1000

@@ -1,0 +1,27 @@
+llm:
+  base_url: "https://api.openai.com/v1"
+  api_key: "sk-xxx"
+  model: "gpt-3.5-turbo-1106"
+
+search:
+  api_type: "serpapi"
+  api_key: "xxx"
+
+s3:
+  access_key: "MOCK_S3_ACCESS_KEY"
+  secret_key: "MOCK_S3_SECRET_KEY"
+  endpoint: "http://mock:9000"
+  secure: false
+  bucket: "mock"
+
+azure_tts_subscription_key: "xxx"
+azure_tts_region: "eastus"
+
+iflytek_app_id: "xxx"
+iflytek_api_key: "xxx"
+iflytek_api_secret: "xxx"
+
+metagpt_tti_url: "http://mock.com"
+
+repair_llm_output: true
+

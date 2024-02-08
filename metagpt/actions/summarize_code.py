@@ -26,9 +26,9 @@ ATTENTION: Use '##' to SPLIT SECTIONS, not '#'. Output format carefully referenc
 {system_design}
 ```
 -----
-# Tasks
+# Task
 ```text
-{tasks}
+{task}
 ```
 -----
 {code_blocks}
@@ -98,10 +98,10 @@ class SummarizeCode(Action):
 
     async def run(self):
         design_pathname = Path(self.i_context.design_filename)
-        design_doc = await self.project_repo.docs.system_design.get(filename=design_pathname.name)
+        design_doc = await self.repo.docs.system_design.get(filename=design_pathname.name)
         task_pathname = Path(self.i_context.task_filename)
-        task_doc = await self.project_repo.docs.task.get(filename=task_pathname.name)
-        src_file_repo = self.project_repo.with_src_path(self.context.src_workspace).srcs
+        task_doc = await self.repo.docs.task.get(filename=task_pathname.name)
+        src_file_repo = self.repo.with_src_path(self.context.src_workspace).srcs
         code_blocks = []
         for filename in self.i_context.codes_filenames:
             code_doc = await src_file_repo.get(filename)
@@ -110,7 +110,7 @@ class SummarizeCode(Action):
         format_example = FORMAT_EXAMPLE
         prompt = PROMPT_TEMPLATE.format(
             system_design=design_doc.content,
-            tasks=task_doc.content,
+            task=task_doc.content,
             code_blocks="\n".join(code_blocks),
             format_example=format_example,
         )

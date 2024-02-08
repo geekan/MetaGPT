@@ -14,7 +14,14 @@ from pathlib import Path
 from typing import Optional
 
 from metagpt.actions import Action, ActionOutput
-from metagpt.actions.design_api_an import DESIGN_API_NODE
+from metagpt.actions.design_api_an import (
+    DATA_STRUCTURES_AND_INTERFACES,
+    DESIGN_API_NODE,
+    PROGRAM_CALL_FLOW,
+    REFINED_DATA_STRUCTURES_AND_INTERFACES,
+    REFINED_DESIGN_NODE,
+    REFINED_PROGRAM_CALL_FLOW,
+)
 from metagpt.const import DATA_API_DESIGN_FILE_REPO, SEQ_FLOW_FILE_REPO
 from metagpt.logs import logger
 from metagpt.schema import Document, Documents, Message
@@ -39,11 +46,11 @@ class WriteDesign(Action):
     )
 
     async def run(self, with_messages: Message, schema: str = None):
-        # Use `git status` to identify which PRD documents have been modified in the `docs/prds` directory.
-        changed_prds = self.project_repo.docs.prd.changed_files
+        # Use `git status` to identify which PRD documents have been modified in the `docs/prd` directory.
+        changed_prds = self.repo.docs.prd.changed_files
         # Use `git status` to identify which design documents in the `docs/system_designs` directory have undergone
         # changes.
-        changed_system_designs = self.project_repo.docs.system_design.changed_files
+        changed_system_designs = self.repo.docs.system_design.changed_files
 
         # For those PRDs and design documents that have undergone changes, regenerate the design content.
         changed_files = Documents()
@@ -68,46 +75,46 @@ class WriteDesign(Action):
 
     async def _merge(self, prd_doc, system_design_doc):
         context = NEW_REQ_TEMPLATE.format(old_design=system_design_doc.content, context=prd_doc.content)
-        node = await DESIGN_API_NODE.fill(context=context, llm=self.llm)
+        node = await REFINED_DESIGN_NODE.fill(context=context, llm=self.llm)
         system_design_doc.content = node.instruct_content.model_dump_json()
         return system_design_doc
 
     async def _update_system_design(self, filename) -> Document:
-        prd = await self.project_repo.docs.prd.get(filename)
-        old_system_design_doc = await self.project_repo.docs.system_design.get(filename)
+        prd = await self.repo.docs.prd.get(filename)
+        old_system_design_doc = await self.repo.docs.system_design.get(filename)
         if not old_system_design_doc:
             system_design = await self._new_system_design(context=prd.content)
-            doc = await self.project_repo.docs.system_design.save(
+            doc = await self.repo.docs.system_design.save(
                 filename=filename,
                 content=system_design.instruct_content.model_dump_json(),
                 dependencies={prd.root_relative_path},
             )
         else:
             doc = await self._merge(prd_doc=prd, system_design_doc=old_system_design_doc)
-            await self.project_repo.docs.system_design.save_doc(doc=doc, dependencies={prd.root_relative_path})
+            await self.repo.docs.system_design.save_doc(doc=doc, dependencies={prd.root_relative_path})
         await self._save_data_api_design(doc)
         await self._save_seq_flow(doc)
-        await self.project_repo.resources.system_design.save_pdf(doc=doc)
+        await self.repo.resources.system_design.save_pdf(doc=doc)
         return doc
 
     async def _save_data_api_design(self, design_doc):
         m = json.loads(design_doc.content)
-        data_api_design = m.get("Data structures and interfaces")
+        data_api_design = m.get(DATA_STRUCTURES_AND_INTERFACES.key) or m.get(REFINED_DATA_STRUCTURES_AND_INTERFACES.key)
         if not data_api_design:
             return
-        pathname = self.project_repo.workdir / DATA_API_DESIGN_FILE_REPO / Path(design_doc.filename).with_suffix("")
+        pathname = self.repo.workdir / DATA_API_DESIGN_FILE_REPO / Path(design_doc.filename).with_suffix("")
         await self._save_mermaid_file(data_api_design, pathname)
         logger.info(f"Save class view to {str(pathname)}")
 
     async def _save_seq_flow(self, design_doc):
         m = json.loads(design_doc.content)
-        seq_flow = m.get("Program call flow")
+        seq_flow = m.get(PROGRAM_CALL_FLOW.key) or m.get(REFINED_PROGRAM_CALL_FLOW.key)
         if not seq_flow:
             return
-        pathname = self.project_repo.workdir / Path(SEQ_FLOW_FILE_REPO) / Path(design_doc.filename).with_suffix("")
+        pathname = self.repo.workdir / Path(SEQ_FLOW_FILE_REPO) / Path(design_doc.filename).with_suffix("")
         await self._save_mermaid_file(seq_flow, pathname)
         logger.info(f"Saving sequence flow to {str(pathname)}")
 
     async def _save_mermaid_file(self, data: str, pathname: Path):
         pathname.parent.mkdir(parents=True, exist_ok=True)
-        await mermaid_to_file(self.config.mermaid_engine, data, pathname)
+        await mermaid_to_file(self.config.mermaid.engine, data, pathname)

@@ -14,5 +14,6 @@ class MermaidConfig(YamlModel):
     """Config for Mermaid"""
 
     engine: Literal["nodejs", "ink", "playwright", "pyppeteer"] = "nodejs"
-    path: str = ""
-    puppeteer_config: str = ""  # Only for nodejs engine
+    path: str = "mmdc"  # mmdc
+    puppeteer_config: str = ""
+    pyppeteer_path: str = "/usr/bin/google-chrome-stable"

@@ -18,10 +18,11 @@ import aiohttp.web
 import pytest
 
 from metagpt.const import DEFAULT_WORKSPACE_ROOT, TEST_DATA_PATH
-from metagpt.context import CONTEXT
+from metagpt.context import Context as MetagptContext
 from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.utils.git_repository import GitRepository
+from metagpt.utils.project_repo import ProjectRepo
 from tests.mock.mock_aiohttp import MockAioResponse
 from tests.mock.mock_curl_cffi import MockCurlCffiResponse
 from tests.mock.mock_httplib2 import MockHttplib2Response
@@ -38,14 +39,14 @@ def rsp_cache():
     rsp_cache_file_path = TEST_DATA_PATH / "rsp_cache.json"  # read repo-provided
     new_rsp_cache_file_path = TEST_DATA_PATH / "rsp_cache_new.json"  # exporting a new copy
     if os.path.exists(rsp_cache_file_path):
-        with open(rsp_cache_file_path, "r") as f1:
+        with open(rsp_cache_file_path, "r", encoding="utf-8") as f1:
             rsp_cache_json = json.load(f1)
     else:
         rsp_cache_json = {}
     yield rsp_cache_json
-    with open(rsp_cache_file_path, "w") as f2:
+    with open(rsp_cache_file_path, "w", encoding="utf-8") as f2:
         json.dump(rsp_cache_json, f2, indent=4, ensure_ascii=False)
-    with open(new_rsp_cache_file_path, "w") as f2:
+    with open(new_rsp_cache_file_path, "w", encoding="utf-8") as f2:
         json.dump(RSP_CACHE_NEW, f2, indent=4, ensure_ascii=False)
 
 
@@ -64,6 +65,7 @@ def llm_mock(rsp_cache, mocker, request):
     llm.rsp_cache = rsp_cache
     mocker.patch("metagpt.provider.base_llm.BaseLLM.aask", llm.aask)
     mocker.patch("metagpt.provider.base_llm.BaseLLM.aask_batch", llm.aask_batch)
+    mocker.patch("metagpt.provider.openai_api.OpenAILLM.aask_code", llm.aask_code)
     yield mocker
     if hasattr(request.node, "test_outcome") and request.node.test_outcome.passed:
         if llm.rsp_candidates:
@@ -71,7 +73,7 @@ def llm_mock(rsp_cache, mocker, request):
                 cand_key = list(rsp_candidate.keys())[0]
                 cand_value = list(rsp_candidate.values())[0]
                 if cand_key not in llm.rsp_cache:
-                    logger.info(f"Added '{cand_key[:100]} ... -> {cand_value[:20]} ...' to response cache")
+                    logger.info(f"Added '{cand_key[:100]} ... -> {str(cand_value)[:20]} ...' to response cache")
                     llm.rsp_cache.update(rsp_candidate)
                 RSP_CACHE_NEW.update(rsp_candidate)
 
@@ -142,19 +144,20 @@ def loguru_caplog(caplog):
     yield caplog
 
 
-# init & dispose git repo
-@pytest.fixture(scope="function", autouse=True)
-def setup_and_teardown_git_repo(request):
-    CONTEXT.git_repo = GitRepository(local_path=DEFAULT_WORKSPACE_ROOT / f"unittest/{uuid.uuid4().hex}")
-    CONTEXT.config.git_reinit = True
+@pytest.fixture(scope="function")
+def context(request):
+    ctx = MetagptContext()
+    ctx.git_repo = GitRepository(local_path=DEFAULT_WORKSPACE_ROOT / f"unittest/{uuid.uuid4().hex}")
+    ctx.repo = ProjectRepo(ctx.git_repo)
 
     # Destroy git repo at the end of the test session.
     def fin():
-        if CONTEXT.git_repo:
-            CONTEXT.git_repo.delete_repository()
+        if ctx.git_repo:
+            ctx.git_repo.delete_repository()
 
     # Register the function for destroying the environment.
     request.addfinalizer(fin)
+    return ctx
 
 
 @pytest.fixture(scope="session", autouse=True)

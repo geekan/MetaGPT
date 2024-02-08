@@ -5,10 +5,11 @@
 @Author  : alexanderwu
 @File    : test_action_node.py
 """
+from pathlib import Path
 from typing import List, Tuple
 
 import pytest
-from pydantic import ValidationError
+from pydantic import BaseModel, Field, ValidationError
 
 from metagpt.actions import Action
 from metagpt.actions.action_node import ActionNode, ReviewMode, ReviseMode
@@ -17,6 +18,7 @@ from metagpt.llm import LLM
 from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.team import Team
+from metagpt.utils.common import encode_image
 
 
 @pytest.mark.asyncio
@@ -239,6 +241,65 @@ def test_create_model_class_with_mapping():
     t1 = t(**t_dict)
     value = t1.model_dump()["Task list"]
     assert value == ["game.py", "app.py", "static/css/styles.css", "static/js/script.js", "templates/index.html"]
+
+
+@pytest.mark.asyncio
+async def test_action_node_with_image(mocker):
+    # add a mock to update model in unittest, due to the gloabl MockLLM
+    def _cons_kwargs(self, messages: list[dict], timeout=3, **extra_kwargs) -> dict:
+        kwargs = {"messages": messages, "temperature": 0.3, "model": "gpt-4-vision-preview"}
+        return kwargs
+
+    invoice = ActionNode(
+        key="invoice", expected_type=bool, instruction="if it's a invoice file, return True else False", example="False"
+    )
+
+    invoice_path = Path(__file__).parent.joinpath("..", "..", "data", "invoices", "invoice-2.png")
+    img_base64 = encode_image(invoice_path)
+    mocker.patch("metagpt.provider.openai_api.OpenAILLM._cons_kwargs", _cons_kwargs)
+    node = await invoice.fill(context="", llm=LLM(), images=[img_base64])
+    assert node.instruct_content.invoice
+
+
+class ToolDef(BaseModel):
+    tool_name: str = Field(default="a", description="tool name", examples=[])
+    description: str = Field(default="b", description="tool description", examples=[])
+
+
+class Task(BaseModel):
+    task_id: int = Field(default=1, description="task id", examples=[1, 2, 3])
+    name: str = Field(default="Get data from ...", description="task name", examples=[])
+    dependent_task_ids: List[int] = Field(default=[], description="dependent task ids", examples=[1, 2, 3])
+    tool: ToolDef = Field(default=ToolDef(), description="tool use", examples=[])
+
+
+class Tasks(BaseModel):
+    tasks: List[Task] = Field(default=[], description="tasks", examples=[])
+
+
+def test_action_node_from_pydantic_and_print_everything():
+    node = ActionNode.from_pydantic(Task)
+    print("1. Tasks")
+    print(Task().model_dump_json(indent=4))
+    print(Tasks.model_json_schema())
+    print("2. Task")
+    print(Task.model_json_schema())
+    print("3. ActionNode")
+    print(node)
+    print("4. node.compile prompt")
+    prompt = node.compile(context="")
+    assert "tool_name" in prompt, "tool_name should be in prompt"
+    print(prompt)
+    print("5. node.get_children_mapping")
+    print(node._get_children_mapping())
+    print("6. node.create_children_class")
+    children_class = node._create_children_class()
+    print(children_class)
+    import inspect
+
+    code = inspect.getsource(Tasks)
+    print(code)
+    assert "tasks" in code, "tasks should be in code"
 
 
 if __name__ == "__main__":

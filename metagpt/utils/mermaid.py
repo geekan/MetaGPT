@@ -35,10 +35,10 @@ async def mermaid_to_file(engine, mermaid_code, output_file_without_suffix, widt
     # tmp.write_text(mermaid_code, encoding="utf-8")
 
     if engine == "nodejs":
-        if check_cmd_exists(config.mmdc) != 0:
+        if check_cmd_exists(config.mermaid.path) != 0:
             logger.warning(
                 "RUN `npm install -g @mermaid-js/mermaid-cli` to install mmdc,"
-                "or consider changing MERMAID_ENGINE to `playwright`, `pyppeteer`, or `ink`."
+                "or consider changing engine to `playwright`, `pyppeteer`, or `ink`."
             )
             return -1
 
@@ -47,11 +47,11 @@ async def mermaid_to_file(engine, mermaid_code, output_file_without_suffix, widt
             # Call the `mmdc` command to convert the Mermaid code to a PNG
             logger.info(f"Generating {output_file}..")
 
-            if config.puppeteer_config:
+            if config.mermaid.puppeteer_config:
                 commands = [
-                    config.mmdc,
+                    config.mermaid.path,
                     "-p",
-                    config.puppeteer_config,
+                    config.mermaid.puppeteer_config,
                     "-i",
                     str(tmp),
                     "-o",
@@ -62,7 +62,7 @@ async def mermaid_to_file(engine, mermaid_code, output_file_without_suffix, widt
                     str(height),
                 ]
             else:
-                commands = [config.mmdc, "-i", str(tmp), "-o", output_file, "-w", str(width), "-H", str(height)]
+                commands = [config.mermaid.path, "-i", str(tmp), "-o", output_file, "-w", str(width), "-H", str(height)]
             process = await asyncio.create_subprocess_shell(
                 " ".join(commands), stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
             )

@@ -14,10 +14,10 @@ entities:
         id: text_to_speech.text_to_speech
         x-prerequisite:
           configurations:
-            AZURE_TTS_SUBSCRIPTION_KEY:
+            azure_tts_subscription_key:
               type: string
               description: "For more details, check out: [Azure Text-to_Speech](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts)"
-            AZURE_TTS_REGION:
+            azure_tts_region:
               type: string
               description: "For more details, check out: [Azure Text-to_Speech](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts)"
             IFLYTEK_APP_ID:
@@ -32,12 +32,12 @@ entities:
           required:
             oneOf:
               - allOf:
-                - AZURE_TTS_SUBSCRIPTION_KEY
-                - AZURE_TTS_REGION
+                - azure_tts_subscription_key
+                - azure_tts_region
               - allOf:
-                - IFLYTEK_APP_ID
-                - IFLYTEK_API_KEY
-                - IFLYTEK_API_SECRET
+                - iflytek_app_id
+                - iflytek_api_key
+                - iflytek_api_secret
         parameters:
           text:
             description: 'The text used for voice conversion.'
@@ -103,13 +103,13 @@ entities:
             OPENAI_API_KEY:
               type: string
               description: "OpenAI API key, For more details, checkout: `https://platform.openai.com/account/api-keys`"
-            METAGPT_TEXT_TO_IMAGE_MODEL_URL:
+            metagpt_tti_url:
               type: string
               description: "Model url."
           required:
             oneOf:
               - OPENAI_API_KEY
-              - METAGPT_TEXT_TO_IMAGE_MODEL_URL
+              - metagpt_tti_url
         parameters:
           text:
             description: 'The text used for image conversion.'

@@ -12,6 +12,7 @@ from typing import Callable
 import pytest
 
 from metagpt.config2 import config
+from metagpt.configs.search_config import SearchConfig
 from metagpt.logs import logger
 from metagpt.tools import SearchEngineType
 from metagpt.tools.search_engine import SearchEngine
@@ -49,27 +50,34 @@ async def test_search_engine(
     search_engine_mocker,
 ):
     # Prerequisites
-    search_engine_config = {}
+    search_engine_config = {"engine": search_engine_type, "run_func": run_func}
 
     if search_engine_type is SearchEngineType.SERPAPI_GOOGLE:
         assert config.search
-        search_engine_config["serpapi_api_key"] = "mock-serpapi-key"
+        search_engine_config["api_key"] = "mock-serpapi-key"
     elif search_engine_type is SearchEngineType.DIRECT_GOOGLE:
         assert config.search
-        search_engine_config["google_api_key"] = "mock-google-key"
-        search_engine_config["google_cse_id"] = "mock-google-cse"
+        search_engine_config["api_key"] = "mock-google-key"
+        search_engine_config["cse_id"] = "mock-google-cse"
     elif search_engine_type is SearchEngineType.SERPER_GOOGLE:
         assert config.search
-        search_engine_config["serper_api_key"] = "mock-serper-key"
+        search_engine_config["api_key"] = "mock-serper-key"
 
-    search_engine = SearchEngine(search_engine_type, run_func, **search_engine_config)
-    rsp = await search_engine.run("metagpt", max_results, as_string)
-    logger.info(rsp)
-    if as_string:
-        assert isinstance(rsp, str)
-    else:
-        assert isinstance(rsp, list)
-        assert len(rsp) <= max_results
+    async def test(search_engine):
+        rsp = await search_engine.run("metagpt", max_results, as_string)
+        logger.info(rsp)
+        if as_string:
+            assert isinstance(rsp, str)
+        else:
+            assert isinstance(rsp, list)
+            assert len(rsp) <= max_results
+
+    await test(SearchEngine(**search_engine_config))
+    search_engine_config["api_type"] = search_engine_config.pop("engine")
+    if run_func:
+        await test(SearchEngine.from_search_func(run_func))
+        search_engine_config["search_func"] = search_engine_config.pop("run_func")
+    await test(SearchEngine.from_search_config(SearchConfig(**search_engine_config)))
 
 
 if __name__ == "__main__":
