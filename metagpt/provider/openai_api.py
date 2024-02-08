@@ -8,6 +8,7 @@
 """
 
 import json
+import re
 from typing import AsyncIterator, Optional, Union
 
 from openai import APIConnectionError, AsyncOpenAI, AsyncStream
@@ -194,6 +195,30 @@ class OpenAILLM(BaseLLM):
         rsp = await self._achat_completion_function(messages, **kwargs)
         return self.get_choice_function_arguments(rsp)
 
+    def _parse_arguments(self, arguments: str) -> dict:
+        """parse arguments in openai function call"""
+        if "langugae" not in arguments and "code" not in arguments:
+            logger.warning(f"Not found `code`, `language`, We assume it is pure code:\n {arguments}\n. ")
+            return {"language": "python", "code": arguments}
+
+        # 匹配language
+        language_pattern = re.compile(r'[\"\']?language[\"\']?\s*:\s*["\']([^"\']+?)["\']', re.DOTALL)
+        language_match = language_pattern.search(arguments)
+        language_value = language_match.group(1) if language_match else "python"
+
+        # 匹配code
+        code_pattern = r'(["\'`]{3}|["\'`])([\s\S]*?)\1'
+        try:
+            code_value = re.findall(code_pattern, arguments)[-1][-1]
+        except Exception as e:
+            logger.error(f"{e}, when re.findall({code_pattern}, {arguments})")
+            code_value = None
+
+        if code_value is None:
+            raise ValueError(f"Parse code error for {arguments}")
+        # arguments只有code的情况
+        return {"language": language_value, "code": code_value}
+
     # @handle_exception
     def get_choice_function_arguments(self, rsp: ChatCompletion) -> dict:
         """Required to provide the first function arguments of choice.
@@ -209,7 +234,14 @@ class OpenAILLM(BaseLLM):
             and message.tool_calls[0].function.arguments is not None
         ):
             # reponse is code
-            return json.loads(message.tool_calls[0].function.arguments, strict=False)
+            try:
+                return json.loads(message.tool_calls[0].function.arguments, strict=False)
+            except json.decoder.JSONDecodeError as e:
+                error_msg = (
+                    f"Got JSONDecodeError for \n{'--'*40} \n{message.tool_calls[0].function.arguments}, {str(e)}"
+                )
+                logger.error(error_msg)
+                return self._parse_arguments(message.tool_calls[0].function.arguments)
         elif message.tool_calls is None and message.content is not None:
             # reponse is code, fix openai tools_call respond bug,
             # The response content is `code``, but it appears in the content instead of the arguments.

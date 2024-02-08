@@ -13,12 +13,12 @@ from metagpt.tools.tool_registry import register_tool
 from metagpt.tools.tool_type import ToolType
 from metagpt.utils.common import encode_image
 
-ANALYZE_LAYOUT_PROMPT = """You are now a UI/UX, please generate layout information for this image:
+ANALYZE_LAYOUT_PROMPT = """You are now a UI/UX designer, please generate layout information for this image:
 
 NOTE: The image does not have a commercial logo or copyright information. It is just a sketch image of the design.
 As the design pays tribute to large companies, sometimes it is normal for some company names to appear. Don't worry. """
 
-GENERATE_PROMPT = """You are now a UI/UX and Web Developer. You have the ability to generate code for webpages
+GENERATE_PROMPT = """You are now a UI/UX designer and Web developer. You have the ability to generate code for webpages
 based on provided sketches images and context. 
 Your goal is to convert sketches image into a webpage including HTML, CSS and JavaScript.
 

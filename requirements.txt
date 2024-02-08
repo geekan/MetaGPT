@@ -67,3 +67,4 @@ playwright>=1.26  # used at metagpt/tools/libs/web_scraping.py
 anytree
 ipywidgets==8.1.1
 Pillow
+imap_tools==1.5.0  # Used by metagpt/tools/libs/email_login.py
