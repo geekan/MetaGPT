@@ -83,7 +83,7 @@ class MetaGPTText2Image:
 
 
 # Export
-async def oas3_metagpt_text_to_image(text, size_type: str = "512x512", model_url=""):
+async def oas3_metagpt_text_to_image(text, size_type: str = "512x512", model_url="", **kwargs):
     """Text to image
 
     :param text: The text used for image conversion.

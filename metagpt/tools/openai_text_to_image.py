@@ -9,17 +9,25 @@
 
 import aiohttp
 import requests
+from openai import AsyncOpenAI
 
+from metagpt.config import CONFIG
 from metagpt.llm import LLM
 from metagpt.logs import logger
 
 
 class OpenAIText2Image:
-    def __init__(self):
+    def __init__(self, api_key: str = "", **kwargs):
         """
         :param openai_api_key: OpenAI API key, For more details, checkout: `https://platform.openai.com/account/api-keys`
         """
-        self._llm = LLM()
+        if not api_key:
+            api_key = CONFIG.OPENAI_TEXT_TO_IMAGE_API_KEY
+
+        if not api_key:
+            self._client = LLM().aclient
+        else:
+            self._client = AsyncOpenAI(api_key=api_key, base_url=CONFIG.OPENAI_TEXT_TO_IMAGE_BASE_URL)
 
     async def text_2_image(self, text, size_type="1024x1024"):
         """Text to image
@@ -29,7 +37,13 @@ class OpenAIText2Image:
         :return: The image data is returned in Base64 encoding.
         """
         try:
-            result = await self._llm.aclient.images.generate(prompt=text, n=1, size=size_type)
+            params = {
+                "n": 1,
+                "size": size_type,
+            }
+            if CONFIG.OPENAI_TEXT_TO_IMAGE_API_MODEL:
+                params["model"] = CONFIG.OPENAI_TEXT_TO_IMAGE_API_MODEL
+            result = await self._client.images.generate(prompt=text, **params)
         except Exception as e:
             logger.error(f"An error occurred:{e}")
             return ""
@@ -57,7 +71,7 @@ class OpenAIText2Image:
 
 
 # Export
-async def oas3_openai_text_to_image(text, size_type: str = "1024x1024"):
+async def oas3_openai_text_to_image(text, size_type: str = "1024x1024", openai_api_key: str = "", **kwargs):
     """Text to image
 
     :param text: The text used for image conversion.
@@ -66,4 +80,5 @@ async def oas3_openai_text_to_image(text, size_type: str = "1024x1024"):
     """
     if not text:
         return ""
-    return await OpenAIText2Image().text_2_image(text, size_type=size_type)
+
+    return await OpenAIText2Image(openai_api_key).text_2_image(text, size_type=size_type)

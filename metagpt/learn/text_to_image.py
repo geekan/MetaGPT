@@ -26,9 +26,9 @@ async def text_to_image(text, size_type: str = "512x512", openai_api_key="", mod
     """
     image_declaration = "data:image/png;base64,"
     if CONFIG.METAGPT_TEXT_TO_IMAGE_MODEL_URL or model_url:
-        binary_data = await oas3_metagpt_text_to_image(text, size_type, model_url)
-    elif CONFIG.OPENAI_API_KEY or openai_api_key:
-        binary_data = await oas3_openai_text_to_image(text, size_type)
+        binary_data = await oas3_metagpt_text_to_image(text, size_type, model_url, **kwargs)
+    elif CONFIG.OPENAI_TEXT_TO_IMAGE_API_KEY or openai_api_key:
+        binary_data = await oas3_openai_text_to_image(text, size_type, openai_api_key, **kwargs)
     else:
         raise ValueError("Missing necessary parameters.")
     base64_data = base64.b64encode(binary_data).decode("utf-8")
