@@ -9,7 +9,7 @@ import pytest
 
 from metagpt.actions.write_review import WriteReview
 
-CONTEXT = """
+TEMPLATE_CONTEXT = """
 {
     "Language": "zh_cn",
     "Programming Language": "Python",
@@ -46,9 +46,8 @@ CONTEXT = """
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("llm_mock")
-async def test_write_review():
-    write_review = WriteReview()
-    review = await write_review.run(CONTEXT)
+async def test_write_review(context):
+    write_review = WriteReview(context=context)
+    review = await write_review.run(TEMPLATE_CONTEXT)
     assert review.instruct_content
     assert review.get("LGTM") in ["LGTM", "LBTM"]

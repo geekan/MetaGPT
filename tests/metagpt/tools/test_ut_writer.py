@@ -8,21 +8,66 @@
 from pathlib import Path
 
 import pytest
+from openai.resources.chat.completions import AsyncCompletions
+from openai.types import CompletionUsage
+from openai.types.chat.chat_completion import (
+    ChatCompletion,
+    ChatCompletionMessage,
+    Choice,
+)
+from openai.types.chat.chat_completion_message_tool_call import (
+    ChatCompletionMessageToolCall,
+    Function,
+)
 
-from metagpt.config import CONFIG
+from metagpt.config2 import config
 from metagpt.const import API_QUESTIONS_PATH, UT_PY_PATH
 from metagpt.tools.ut_writer import YFT_PROMPT_PREFIX, UTGenerator
 
 
 class TestUTWriter:
     @pytest.mark.asyncio
-    async def test_api_to_ut_sample(self):
+    async def test_api_to_ut_sample(self, mocker):
+        async def mock_create(*args, **kwargs):
+            return ChatCompletion(
+                id="chatcmpl-8n5fAd21w2J1IIFkI4qxWlNfM7QRC",
+                choices=[
+                    Choice(
+                        finish_reason="stop",
+                        index=0,
+                        logprobs=None,
+                        message=ChatCompletionMessage(
+                            content=None,
+                            role="assistant",
+                            function_call=None,
+                            tool_calls=[
+                                ChatCompletionMessageToolCall(
+                                    id="call_EjjmIY7GMspHu3r9mx8gPA2k",
+                                    function=Function(
+                                        arguments='{"code":"import string\\nimport random\\n\\ndef random_string'
+                                        "(length=10):\\n    return ''.join(random.choice(string.ascii_"
+                                        'lowercase) for i in range(length))"}',
+                                        name="execute",
+                                    ),
+                                    type="function",
+                                )
+                            ],
+                        ),
+                    )
+                ],
+                created=1706710532,
+                model="gpt-3.5-turbo-1106",
+                object="chat.completion",
+                system_fingerprint="fp_04f9a1eebf",
+                usage=CompletionUsage(completion_tokens=35, prompt_tokens=1982, total_tokens=2017),
+            )
+
+        mocker.patch.object(AsyncCompletions, "create", mock_create)
+
         # Prerequisites
         swagger_file = Path(__file__).parent / "../../data/ut_writer/yft_swaggerApi.json"
         assert swagger_file.exists()
-        assert CONFIG.OPENAI_API_KEY and CONFIG.OPENAI_API_KEY != "YOUR_API_KEY"
-        assert not CONFIG.OPENAI_API_TYPE
-        assert CONFIG.OPENAI_API_MODEL
+        assert config.get_openai_llm()
 
         tags = ["测试", "作业"]
         # 这里在文件中手动加入了两个测试标签的API

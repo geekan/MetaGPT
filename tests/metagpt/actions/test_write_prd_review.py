@@ -11,8 +11,7 @@ from metagpt.actions.write_prd_review import WritePRDReview
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("llm_mock")
-async def test_write_prd_review():
+async def test_write_prd_review(context):
     prd = """
     Introduction: This is a new feature for our product.
     Goals: The goal is to improve user engagement.
@@ -24,7 +23,7 @@ async def test_write_prd_review():
     Timeline: The feature should be ready for testing in 1.5 months.
     """
 
-    write_prd_review = WritePRDReview(name="write_prd_review")
+    write_prd_review = WritePRDReview(name="write_prd_review", context=context)
 
     prd_review = await write_prd_review.run(prd)
 

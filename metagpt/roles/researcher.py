@@ -34,7 +34,7 @@ class Researcher(Role):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self._init_actions(
+        self.set_actions(
             [CollectLinks(name=self.name), WebBrowseAndSummarize(name=self.name), ConductResearch(name=self.name)]
         )
         self._set_react_mode(react_mode=RoleReactMode.BY_ORDER.value)
@@ -49,7 +49,7 @@ class Researcher(Role):
         if self.rc.state + 1 < len(self.states):
             self._set_state(self.rc.state + 1)
         else:
-            self.rc.todo = None
+            self.set_todo(None)
             return False
 
     async def _act(self) -> Message:

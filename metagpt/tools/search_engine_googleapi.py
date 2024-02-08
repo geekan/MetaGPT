@@ -4,19 +4,16 @@ from __future__ import annotations
 
 import asyncio
 import json
+import warnings
 from concurrent import futures
 from typing import Optional
 from urllib.parse import urlparse
 
 import httplib2
-from pydantic import BaseModel, ConfigDict, Field, field_validator
-
-from metagpt.config import CONFIG
-from metagpt.logs import logger
+from pydantic import BaseModel, ConfigDict, model_validator
 
 try:
     from googleapiclient.discovery import build
-    from googleapiclient.errors import HttpError
 except ImportError:
     raise ImportError(
         "To use this module, you should have the `google-api-python-client` Python package installed. "
@@ -27,40 +24,41 @@ except ImportError:
 class GoogleAPIWrapper(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    google_api_key: Optional[str] = Field(default=None, validate_default=True)
-    google_cse_id: Optional[str] = Field(default=None, validate_default=True)
+    api_key: str
+    cse_id: str
     loop: Optional[asyncio.AbstractEventLoop] = None
     executor: Optional[futures.Executor] = None
+    proxy: Optional[str] = None
 
-    @field_validator("google_api_key", mode="before")
+    @model_validator(mode="before")
     @classmethod
-    def check_google_api_key(cls, val: str):
-        val = val or CONFIG.google_api_key
-        if not val:
+    def validate_google(cls, values: dict) -> dict:
+        if "google_api_key" in values:
+            values.setdefault("api_key", values["google_api_key"])
+            warnings.warn("`google_api_key` is deprecated, use `api_key` instead", DeprecationWarning, stacklevel=2)
+
+        if "api_key" not in values:
             raise ValueError(
-                "To use, make sure you provide the google_api_key when constructing an object. Alternatively, "
-                "ensure that the environment variable GOOGLE_API_KEY is set with your API key. You can obtain "
+                "To use google search engine, make sure you provide the `api_key` when constructing an object. You can obtain "
                 "an API key from https://console.cloud.google.com/apis/credentials."
             )
-        return val
 
-    @field_validator("google_cse_id", mode="before")
-    @classmethod
-    def check_google_cse_id(cls, val: str):
-        val = val or CONFIG.google_cse_id
-        if not val:
+        if "google_cse_id" in values:
+            values.setdefault("cse_id", values["google_cse_id"])
+            warnings.warn("`google_cse_id` is deprecated, use `cse_id` instead", DeprecationWarning, stacklevel=2)
+
+        if "cse_id" not in values:
             raise ValueError(
-                "To use, make sure you provide the google_cse_id when constructing an object. Alternatively, "
-                "ensure that the environment variable GOOGLE_CSE_ID is set with your API key. You can obtain "
-                "an API key from https://programmablesearchengine.google.com/controlpanel/create."
+                "To use google search engine, make sure you provide the `cse_id` when constructing an object. You can obtain "
+                "the cse_id from https://programmablesearchengine.google.com/controlpanel/create."
             )
-        return val
+        return values
 
     @property
     def google_api_client(self):
-        build_kwargs = {"developerKey": self.google_api_key}
-        if CONFIG.global_proxy:
-            parse_result = urlparse(CONFIG.global_proxy)
+        build_kwargs = {"developerKey": self.api_key}
+        if self.proxy:
+            parse_result = urlparse(self.proxy)
             proxy_type = parse_result.scheme
             if proxy_type == "https":
                 proxy_type = "http"
@@ -96,17 +94,11 @@ class GoogleAPIWrapper(BaseModel):
         """
         loop = self.loop or asyncio.get_event_loop()
         future = loop.run_in_executor(
-            self.executor, self.google_api_client.list(q=query, num=max_results, cx=self.google_cse_id).execute
+            self.executor, self.google_api_client.list(q=query, num=max_results, cx=self.cse_id).execute
         )
-        try:
-            result = await future
-            # Extract the search result items from the response
-            search_results = result.get("items", [])
-
-        except HttpError as e:
-            # Handle errors in the API call
-            logger.exception(f"fail to search {query} for {e}")
-            search_results = []
+        result = await future
+        # Extract the search result items from the response
+        search_results = result.get("items", [])
 
         focus = focus or ["snippet", "link", "title"]
         details = [{i: j for i, j in item_dict.items() if i in focus} for item_dict in search_results]

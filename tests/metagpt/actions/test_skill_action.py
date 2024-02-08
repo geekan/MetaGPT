@@ -23,9 +23,9 @@ class TestSkillAction:
                     "type": "string",
                     "description": "OpenAI API key, For more details, checkout: `https://platform.openai.com/account/api-keys`",
                 },
-                "METAGPT_TEXT_TO_IMAGE_MODEL_URL": {"type": "string", "description": "Model url."},
+                "metagpt_tti_url": {"type": "string", "description": "Model url."},
             },
-            "required": {"oneOf": ["OPENAI_API_KEY", "METAGPT_TEXT_TO_IMAGE_MODEL_URL"]},
+            "required": {"oneOf": ["OPENAI_API_KEY", "metagpt_tti_url"]},
         },
         parameters={
             "text": Parameter(type="string", description="The text used for image conversion."),
@@ -47,15 +47,18 @@ class TestSkillAction:
         assert args.get("size_type") == "512x512"
 
     @pytest.mark.asyncio
-    async def test_parser_action(self):
-        parser_action = ArgumentsParingAction(skill=self.skill, ask="Draw an apple")
+    async def test_parser_action(self, mocker, context):
+        # mock
+        mocker.patch("metagpt.learn.text_to_image", return_value="https://mock.com/xxx")
+
+        parser_action = ArgumentsParingAction(skill=self.skill, ask="Draw an apple", context=context)
         rsp = await parser_action.run()
         assert rsp
         assert parser_action.args
         assert parser_action.args.get("text") == "Draw an apple"
         assert parser_action.args.get("size_type") == "512x512"
 
-        action = SkillAction(skill=self.skill, args=parser_action.args)
+        action = SkillAction(skill=self.skill, args=parser_action.args, context=context)
         rsp = await action.run()
         assert rsp
         assert "image/png;base64," in rsp.content or "http" in rsp.content
@@ -78,9 +81,10 @@ class TestSkillAction:
             await SkillAction.find_and_call_function("dummy_call", {"a": 1})
 
     @pytest.mark.asyncio
-    async def test_skill_action_error(self):
-        action = SkillAction(skill=self.skill, args={})
-        await action.run()
+    async def test_skill_action_error(self, context):
+        action = SkillAction(skill=self.skill, args={}, context=context)
+        rsp = await action.run()
+        assert "Error" in rsp.content
 
 
 if __name__ == "__main__":

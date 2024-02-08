@@ -12,7 +12,7 @@ from pathlib import Path
 import aiofiles
 
 from metagpt.actions import Action
-from metagpt.config import CONFIG
+from metagpt.config2 import config
 from metagpt.const import (
     AGGREGATION,
     COMPOSITION,
@@ -29,23 +29,28 @@ from metagpt.utils.graph_repository import GraphKeyword, GraphRepository
 
 
 class RebuildClassView(Action):
-    async def run(self, with_messages=None, format=CONFIG.prompt_schema):
-        graph_repo_pathname = CONFIG.git_repo.workdir / GRAPH_REPO_FILE_REPO / CONFIG.git_repo.workdir.name
+    async def run(self, with_messages=None, format=config.prompt_schema):
+        graph_repo_pathname = self.context.git_repo.workdir / GRAPH_REPO_FILE_REPO / self.context.git_repo.workdir.name
         graph_db = await DiGraphRepository.load_from(str(graph_repo_pathname.with_suffix(".json")))
-        repo_parser = RepoParser(base_directory=Path(self.context))
-        class_views, relationship_views = await repo_parser.rebuild_class_views(path=Path(self.context))  # use pylint
+        repo_parser = RepoParser(base_directory=Path(self.i_context))
+        # use pylint
+        class_views, relationship_views, package_root = await repo_parser.rebuild_class_views(path=Path(self.i_context))
         await GraphRepository.update_graph_db_with_class_views(graph_db, class_views)
         await GraphRepository.update_graph_db_with_class_relationship_views(graph_db, relationship_views)
-        symbols = repo_parser.generate_symbols()  # use ast
+        # use ast
+        direction, diff_path = self._diff_path(path_root=Path(self.i_context).resolve(), package_root=package_root)
+        symbols = repo_parser.generate_symbols()
         for file_info in symbols:
+            # Align to the same root directory in accordance with `class_views`.
+            file_info.file = self._align_root(file_info.file, direction, diff_path)
             await GraphRepository.update_graph_db_with_file_info(graph_db, file_info)
         await self._create_mermaid_class_views(graph_db=graph_db)
         await graph_db.save()
 
     async def _create_mermaid_class_views(self, graph_db):
-        path = Path(CONFIG.git_repo.workdir) / DATA_API_DESIGN_FILE_REPO
+        path = Path(self.context.git_repo.workdir) / DATA_API_DESIGN_FILE_REPO
         path.mkdir(parents=True, exist_ok=True)
-        pathname = path / CONFIG.git_repo.workdir.name
+        pathname = path / self.context.git_repo.workdir.name
         async with aiofiles.open(str(pathname.with_suffix(".mmd")), mode="w", encoding="utf-8") as writer:
             content = "classDiagram\n"
             logger.debug(content)
@@ -193,3 +198,20 @@ class RebuildClassView(Action):
                 method.args.append(ClassAttribute(name=parts[0].strip()))
                 continue
             method.args.append(ClassAttribute(name=parts[0].strip(), value_type=parts[-1].strip()))
+
+    @staticmethod
+    def _diff_path(path_root: Path, package_root: Path) -> (str, str):
+        if len(str(path_root)) > len(str(package_root)):
+            return "+", str(path_root.relative_to(package_root))
+        if len(str(path_root)) < len(str(package_root)):
+            return "-", str(package_root.relative_to(path_root))
+        return "=", "."
+
+    @staticmethod
+    def _align_root(path: str, direction: str, diff_path: str):
+        if direction == "=":
+            return path
+        if direction == "+":
+            return diff_path + "/" + path
+        else:
+            return path[len(diff_path) + 1 :]

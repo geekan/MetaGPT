@@ -41,10 +41,11 @@ from metagpt.schema import Message
         ),
     ],
 )
-@pytest.mark.usefixtures("llm_mock")
-async def test_invoice_ocr_assistant(query: str, invoice_path: Path, invoice_table_path: Path, expected_result: dict):
+async def test_invoice_ocr_assistant(
+    query: str, invoice_path: Path, invoice_table_path: Path, expected_result: dict, context
+):
     invoice_path = TEST_DATA_PATH / invoice_path
-    role = InvoiceOCRAssistant()
+    role = InvoiceOCRAssistant(context=context)
     await role.run(Message(content=query, instruct_content=InvoicePath(file_path=invoice_path)))
     invoice_table_path = DATA_PATH / invoice_table_path
     df = pd.read_excel(invoice_table_path)

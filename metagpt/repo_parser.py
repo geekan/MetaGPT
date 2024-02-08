@@ -240,12 +240,12 @@ class RepoParser(BaseModel):
         class_views = await self._parse_classes(class_view_pathname)
         relationship_views = await self._parse_class_relationships(class_view_pathname)
         packages_pathname = path / "packages.dot"
-        class_views, relationship_views = RepoParser._repair_namespaces(
+        class_views, relationship_views, package_root = RepoParser._repair_namespaces(
             class_views=class_views, relationship_views=relationship_views, path=path
         )
         class_view_pathname.unlink(missing_ok=True)
         packages_pathname.unlink(missing_ok=True)
-        return class_views, relationship_views
+        return class_views, relationship_views, package_root
 
     async def _parse_classes(self, class_view_pathname):
         class_views = []
@@ -364,9 +364,9 @@ class RepoParser(BaseModel):
     @staticmethod
     def _repair_namespaces(
         class_views: List[ClassInfo], relationship_views: List[ClassRelationship], path: str | Path
-    ) -> (List[ClassInfo], List[ClassRelationship]):
+    ) -> (List[ClassInfo], List[ClassRelationship], str):
         if not class_views:
-            return []
+            return [], [], ""
         c = class_views[0]
         full_key = str(path).lstrip("/").replace("/", ".")
         root_namespace = RepoParser._find_root(full_key, c.package)
@@ -388,7 +388,7 @@ class RepoParser(BaseModel):
             v.src = RepoParser._repair_ns(v.src, new_mappings)
             v.dest = RepoParser._repair_ns(v.dest, new_mappings)
             relationship_views[i] = v
-        return class_views, relationship_views
+        return class_views, relationship_views, root_path
 
     @staticmethod
     def _repair_ns(package, mappings):

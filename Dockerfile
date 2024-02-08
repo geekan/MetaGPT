@@ -8,7 +8,7 @@ RUN apt update &&\
 
 # Install Mermaid CLI globally
 ENV CHROME_BIN="/usr/bin/chromium" \
-    PUPPETEER_CONFIG="/app/metagpt/config/puppeteer-config.json"\
+    puppeteer_config="/app/metagpt/config/puppeteer-config.json"\
     PUPPETEER_SKIP_CHROMIUM_DOWNLOAD="true"
 RUN npm install -g @mermaid-js/mermaid-cli &&\
     npm cache clean --force

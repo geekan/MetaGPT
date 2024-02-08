@@ -1,7 +1,12 @@
-name: Python application test
+name: Unit Tests
 
 on:
-  workflow_dispatch:
+  pull_request_target:
+  push: 
+    branches:
+      - 'main'
+      - 'dev'
+      - '*-release'
 
 jobs:
   build:
@@ -13,23 +18,32 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
+        cache: 'pip'
     - name: Install dependencies
       run: |
         sh tests/scripts/run_install_deps.sh
     - name: Test with pytest
       run: |
-        echo "${{ secrets.METAGPT_KEY_YAML }}" | base64 -d > config/key.yaml
+        export ALLOW_OPENAI_API_CALL=0
+        mkdir -p ~/.metagpt && cp tests/config2.yaml ~/.metagpt/config2.yaml && cp tests/spark.yaml ~/.metagpt/spark.yaml
         pytest tests/ --doctest-modules --cov=./metagpt/ --cov-report=xml:cov.xml --cov-report=html:htmlcov --durations=20 | tee unittest.txt
     - name: Show coverage report
       run: |
         coverage report -m
     - name: Show failed tests and overall summary
       run: |
-        grep -E "FAILED tests|[0-9]+ passed," unittest.txt
+        grep -E "FAILED tests|ERROR tests|[0-9]+ passed," unittest.txt
+        failed_count=$(grep -E "FAILED|ERROR" unittest.txt | wc -l)
+        if [[ "$failed_count" -gt 0 ]]; then
+          echo "$failed_count failed lines found! Task failed."
+          exit 1
+        fi
     - name: Upload pytest test results
       uses: actions/upload-artifact@v3
       with:
@@ -40,4 +54,8 @@ jobs:
           ./tests/data/rsp_cache_new.json
         retention-days: 3
       if: ${{ always() }}
-      
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v3
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      if: ${{ always() }}

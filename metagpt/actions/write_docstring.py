@@ -16,7 +16,7 @@ Options:
                                 Default: 'google'
 
 Example:
-    python3 -m metagpt.actions.write_docstring ./metagpt/startup.py --overwrite False --style=numpy
+    python3 -m metagpt.actions.write_docstring ./metagpt/software_company.py --overwrite False --style=numpy
 
 This script uses the 'fire' library to create a command-line interface. It generates docstrings for the given Python code using
 the specified docstring style and adds them to the code.
@@ -161,7 +161,7 @@ class WriteDocstring(Action):
     """
 
     desc: str = "Write docstring for code."
-    context: Optional[str] = None
+    i_context: Optional[str] = None
 
     async def run(
         self,

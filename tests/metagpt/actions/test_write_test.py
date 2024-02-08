@@ -13,8 +13,7 @@ from metagpt.schema import Document, TestingContext
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("llm_mock")
-async def test_write_test():
+async def test_write_test(context):
     code = """
     import random
     from typing import Tuple
@@ -26,8 +25,8 @@ async def test_write_test():
         def generate(self, max_y: int, max_x: int):
             self.position = (random.randint(1, max_y - 1), random.randint(1, max_x - 1))
     """
-    context = TestingContext(filename="food.py", code_doc=Document(filename="food.py", content=code))
-    write_test = WriteTest(context=context)
+    testing_context = TestingContext(filename="food.py", code_doc=Document(filename="food.py", content=code))
+    write_test = WriteTest(i_context=testing_context, context=context)
 
     context = await write_test.run()
     logger.info(context.model_dump_json())
@@ -40,13 +39,12 @@ async def test_write_test():
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("llm_mock")
-async def test_write_code_invalid_code(mocker):
+async def test_write_code_invalid_code(mocker, context):
     # Mock the _aask method to return an invalid code string
     mocker.patch.object(WriteTest, "_aask", return_value="Invalid Code String")
 
     # Create an instance of WriteTest
-    write_test = WriteTest()
+    write_test = WriteTest(context=context)
 
     # Call the write_code method
     code = await write_test.write_code("Some prompt:")

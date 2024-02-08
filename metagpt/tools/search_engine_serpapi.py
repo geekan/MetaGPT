@@ -5,18 +5,17 @@
 @Author  : alexanderwu
 @File    : search_engine_serpapi.py
 """
+import warnings
 from typing import Any, Dict, Optional, Tuple
 
 import aiohttp
-from pydantic import BaseModel, ConfigDict, Field, field_validator
-
-from metagpt.config import CONFIG
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class SerpAPIWrapper(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    search_engine: Any = None  #: :meta private:
+    api_key: str
     params: dict = Field(
         default_factory=lambda: {
             "engine": "google",
@@ -25,21 +24,22 @@ class SerpAPIWrapper(BaseModel):
             "hl": "en",
         }
     )
-    # should add `validate_default=True` to check with default value
-    serpapi_api_key: Optional[str] = Field(default=None, validate_default=True)
     aiosession: Optional[aiohttp.ClientSession] = None
+    proxy: Optional[str] = None
 
-    @field_validator("serpapi_api_key", mode="before")
+    @model_validator(mode="before")
     @classmethod
-    def check_serpapi_api_key(cls, val: str):
-        val = val or CONFIG.serpapi_api_key
-        if not val:
+    def validate_serpapi(cls, values: dict) -> dict:
+        if "serpapi_api_key" in values:
+            values.setdefault("api_key", values["serpapi_api_key"])
+            warnings.warn("`serpapi_api_key` is deprecated, use `api_key` instead", DeprecationWarning, stacklevel=2)
+
+        if "api_key" not in values:
             raise ValueError(
-                "To use, make sure you provide the serpapi_api_key when constructing an object. Alternatively, "
-                "ensure that the environment variable SERPAPI_API_KEY is set with your API key. You can obtain "
-                "an API key from https://serpapi.com/."
+                "To use serpapi search engine, make sure you provide the `api_key` when constructing an object. You can obtain"
+                " an API key from https://serpapi.com/."
             )
-        return val
+        return values
 
     async def run(self, query, max_results: int = 8, as_string: bool = True, **kwargs: Any) -> str:
         """Run query through SerpAPI and parse result async."""
@@ -60,10 +60,12 @@ class SerpAPIWrapper(BaseModel):
         url, params = construct_url_and_params()
         if not self.aiosession:
             async with aiohttp.ClientSession() as session:
-                async with session.get(url, params=params) as response:
+                async with session.get(url, params=params, proxy=self.proxy) as response:
+                    response.raise_for_status()
                     res = await response.json()
         else:
-            async with self.aiosession.get(url, params=params) as response:
+            async with self.aiosession.get(url, params=params, proxy=self.proxy) as response:
+                response.raise_for_status()
                 res = await response.json()
 
         return res
@@ -71,7 +73,7 @@ class SerpAPIWrapper(BaseModel):
     def get_params(self, query: str) -> Dict[str, str]:
         """Get parameters for SerpAPI."""
         _params = {
-            "api_key": self.serpapi_api_key,
+            "api_key": self.api_key,
             "q": query,
         }
         params = {**self.params, **_params}

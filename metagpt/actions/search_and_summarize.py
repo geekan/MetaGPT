@@ -5,16 +5,14 @@
 @Author  : alexanderwu
 @File    : search_google.py
 """
-from typing import Any, Optional
+from typing import Optional
 
 import pydantic
-from pydantic import Field, model_validator
+from pydantic import model_validator
 
 from metagpt.actions import Action
-from metagpt.config import CONFIG, Config
 from metagpt.logs import logger
 from metagpt.schema import Message
-from metagpt.tools import SearchEngineType
 from metagpt.tools.search_engine import SearchEngine
 
 SEARCH_AND_SUMMARIZE_SYSTEM = """### Requirements
@@ -103,32 +101,23 @@ You are a member of a professional butler team and will provide helpful suggesti
 """
 
 
-# TOTEST
 class SearchAndSummarize(Action):
     name: str = ""
     content: Optional[str] = None
-    config: None = Field(default_factory=Config)
-    engine: Optional[SearchEngineType] = CONFIG.search_engine
-    search_func: Optional[Any] = None
     search_engine: SearchEngine = None
     result: str = ""
 
-    @model_validator(mode="before")
-    @classmethod
-    def validate_engine_and_run_func(cls, values):
-        engine = values.get("engine")
-        search_func = values.get("search_func")
-        config = Config()
+    @model_validator(mode="after")
+    def validate_search_engine(self):
+        if self.search_engine is None:
+            try:
+                config = self.config
+                search_engine = SearchEngine.from_search_config(config.search, proxy=config.proxy)
+            except pydantic.ValidationError:
+                search_engine = None
 
-        if engine is None:
-            engine = config.search_engine
-        try:
-            search_engine = SearchEngine(engine=engine, run_func=search_func)
-        except pydantic.ValidationError:
-            search_engine = None
-
-        values["search_engine"] = search_engine
-        return values
+            self.search_engine = search_engine
+        return self
 
     async def run(self, context: list[Message], system_text=SEARCH_AND_SUMMARIZE_SYSTEM) -> str:
         if self.search_engine is None:

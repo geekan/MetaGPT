@@ -6,8 +6,8 @@
 @File    : text_to_speech.py
 @Desc    : Text-to-Speech skill, which provides text-to-speech functionality
 """
-
-from metagpt.config import CONFIG
+import metagpt.config2
+from metagpt.config2 import Config
 from metagpt.const import BASE64_FORMAT
 from metagpt.tools.azure_tts import oas3_azsure_tts
 from metagpt.tools.iflytek_tts import oas3_iflytek_tts
@@ -20,12 +20,7 @@ async def text_to_speech(
     voice="zh-CN-XiaomoNeural",
     style="affectionate",
     role="Girl",
-    subscription_key="",
-    region="",
-    iflytek_app_id="",
-    iflytek_api_key="",
-    iflytek_api_secret="",
-    **kwargs,
+    config: Config = metagpt.config2.config,
 ):
     """Text to speech
     For more details, check out:`https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts`
@@ -44,27 +39,31 @@ async def text_to_speech(
 
     """
 
-    if (CONFIG.AZURE_TTS_SUBSCRIPTION_KEY and CONFIG.AZURE_TTS_REGION) or (subscription_key and region):
+    subscription_key = config.azure_tts_subscription_key
+    region = config.azure_tts_region
+    if subscription_key and region:
         audio_declaration = "data:audio/wav;base64,"
         base64_data = await oas3_azsure_tts(text, lang, voice, style, role, subscription_key, region)
-        s3 = S3()
-        url = await s3.cache(data=base64_data, file_ext=".wav", format=BASE64_FORMAT) if s3.is_valid else ""
+        s3 = S3(config.s3)
+        url = await s3.cache(data=base64_data, file_ext=".wav", format=BASE64_FORMAT)
         if url:
             return f"[{text}]({url})"
         return audio_declaration + base64_data if base64_data else base64_data
-    if (CONFIG.IFLYTEK_APP_ID and CONFIG.IFLYTEK_API_KEY and CONFIG.IFLYTEK_API_SECRET) or (
-        iflytek_app_id and iflytek_api_key and iflytek_api_secret
-    ):
+
+    iflytek_app_id = config.iflytek_app_id
+    iflytek_api_key = config.iflytek_api_key
+    iflytek_api_secret = config.iflytek_api_secret
+    if iflytek_app_id and iflytek_api_key and iflytek_api_secret:
         audio_declaration = "data:audio/mp3;base64,"
         base64_data = await oas3_iflytek_tts(
             text=text, app_id=iflytek_app_id, api_key=iflytek_api_key, api_secret=iflytek_api_secret
         )
-        s3 = S3()
-        url = await s3.cache(data=base64_data, file_ext=".mp3", format=BASE64_FORMAT) if s3.is_valid else ""
+        s3 = S3(config.s3)
+        url = await s3.cache(data=base64_data, file_ext=".mp3", format=BASE64_FORMAT)
         if url:
             return f"[{text}]({url})"
         return audio_declaration + base64_data if base64_data else base64_data
 
     raise ValueError(
-        "AZURE_TTS_SUBSCRIPTION_KEY, AZURE_TTS_REGION, IFLYTEK_APP_ID, IFLYTEK_API_KEY, IFLYTEK_API_SECRET error"
+        "azure_tts_subscription_key, azure_tts_region, iflytek_app_id, iflytek_api_key, iflytek_api_secret error"
     )

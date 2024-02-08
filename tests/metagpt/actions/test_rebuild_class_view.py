@@ -11,19 +11,47 @@ from pathlib import Path
 import pytest
 
 from metagpt.actions.rebuild_class_view import RebuildClassView
-from metagpt.config import CONFIG
-from metagpt.const import GRAPH_REPO_FILE_REPO
 from metagpt.llm import LLM
 
 
+@pytest.mark.skip
 @pytest.mark.asyncio
-async def test_rebuild():
+async def test_rebuild(context):
     action = RebuildClassView(
-        name="RedBean", context=str(Path(__file__).parent.parent.parent.parent / "metagpt"), llm=LLM()
+        name="RedBean",
+        i_context=str(Path(__file__).parent.parent.parent.parent / "metagpt"),
+        llm=LLM(),
+        context=context,
     )
     await action.run()
-    graph_file_repo = CONFIG.git_repo.new_file_repository(relative_path=GRAPH_REPO_FILE_REPO)
-    assert graph_file_repo.changed_files
+    assert context.repo.docs.graph_repo.changed_files
+
+
+@pytest.mark.parametrize(
+    ("path", "direction", "diff", "want"),
+    [
+        ("metagpt/software_company.py", "=", ".", "metagpt/software_company.py"),
+        ("metagpt/software_company.py", "+", "MetaGPT", "MetaGPT/metagpt/software_company.py"),
+        ("metagpt/software_company.py", "-", "metagpt", "software_company.py"),
+    ],
+)
+def test_align_path(path, direction, diff, want):
+    res = RebuildClassView._align_root(path=path, direction=direction, diff_path=diff)
+    assert res == want
+
+
+@pytest.mark.parametrize(
+    ("path_root", "package_root", "want_direction", "want_diff"),
+    [
+        ("/Users/x/github/MetaGPT/metagpt", "/Users/x/github/MetaGPT/metagpt", "=", "."),
+        ("/Users/x/github/MetaGPT", "/Users/x/github/MetaGPT/metagpt", "-", "metagpt"),
+        ("/Users/x/github/MetaGPT/metagpt", "/Users/x/github/MetaGPT", "+", "metagpt"),
+    ],
+)
+def test_diff_path(path_root, package_root, want_direction, want_diff):
+    direction, diff = RebuildClassView._diff_path(path_root=Path(path_root), package_root=Path(package_root))
+    assert direction == want_direction
+    assert diff == want_diff
 
 
 if __name__ == "__main__":

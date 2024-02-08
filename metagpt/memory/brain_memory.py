@@ -14,8 +14,8 @@ from typing import Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
-from metagpt.config import CONFIG
-from metagpt.const import DEFAULT_LANGUAGE, DEFAULT_MAX_TOKENS, DEFAULT_TOKEN_SIZE
+from metagpt.config2 import config
+from metagpt.const import DEFAULT_MAX_TOKENS, DEFAULT_TOKEN_SIZE
 from metagpt.logs import logger
 from metagpt.provider import MetaGPTLLM
 from metagpt.provider.base_llm import BaseLLM
@@ -29,9 +29,9 @@ class BrainMemory(BaseModel):
     historical_summary: str = ""
     last_history_id: str = ""
     is_dirty: bool = False
-    last_talk: str = None
+    last_talk: Optional[str] = None
     cacheable: bool = True
-    llm: Optional[BaseLLM] = None
+    llm: Optional[BaseLLM] = Field(default=None, exclude=True)
 
     class Config:
         arbitrary_types_allowed = True
@@ -56,8 +56,8 @@ class BrainMemory(BaseModel):
 
     @staticmethod
     async def loads(redis_key: str) -> "BrainMemory":
-        redis = Redis()
-        if not redis.is_valid or not redis_key:
+        redis = Redis(config.redis)
+        if not redis_key:
             return BrainMemory()
         v = await redis.get(key=redis_key)
         logger.debug(f"REDIS GET {redis_key} {v}")
@@ -70,8 +70,8 @@ class BrainMemory(BaseModel):
     async def dumps(self, redis_key: str, timeout_sec: int = 30 * 60):
         if not self.is_dirty:
             return
-        redis = Redis()
-        if not redis.is_valid or not redis_key:
+        redis = Redis(config.redis)
+        if not redis_key:
             return False
         v = self.model_dump_json()
         if self.cacheable:
@@ -83,7 +83,7 @@ class BrainMemory(BaseModel):
     def to_redis_key(prefix: str, user_id: str, chat_id: str):
         return f"{prefix}:{user_id}:{chat_id}"
 
-    async def set_history_summary(self, history_summary, redis_key, redis_conf):
+    async def set_history_summary(self, history_summary, redis_key):
         if self.historical_summary == history_summary:
             if self.is_dirty:
                 await self.dumps(redis_key=redis_key)
@@ -140,7 +140,7 @@ class BrainMemory(BaseModel):
             return text
         summary = await self._summarize(text=text, max_words=max_words, keep_language=keep_language, limit=limit)
         if summary:
-            await self.set_history_summary(history_summary=summary, redis_key=CONFIG.REDIS_KEY, redis_conf=CONFIG.REDIS)
+            await self.set_history_summary(history_summary=summary, redis_key=config.redis_key)
             return summary
         raise ValueError(f"text too long:{text_length}")
 
@@ -164,7 +164,7 @@ class BrainMemory(BaseModel):
         msgs.reverse()
         self.history = msgs
         self.is_dirty = True
-        await self.dumps(redis_key=CONFIG.REDIS_KEY)
+        await self.dumps(redis_key=config.redis.key)
         self.is_dirty = False
 
         return BrainMemory.to_metagpt_history_format(self.history)
@@ -181,7 +181,7 @@ class BrainMemory(BaseModel):
 
         summary = await self.summarize(llm=llm, max_words=500)
 
-        language = CONFIG.language or DEFAULT_LANGUAGE
+        language = config.language
         command = f"Translate the above summary into a {language} title of less than {max_words} words."
         summaries = [summary, command]
         msg = "\n".join(summaries)

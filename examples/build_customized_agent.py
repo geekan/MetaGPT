@@ -57,7 +57,7 @@ class SimpleCoder(Role):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self._init_actions([SimpleWriteCode])
+        self.set_actions([SimpleWriteCode])
 
     async def _act(self) -> Message:
         logger.info(f"{self._setting}: to do {self.rc.todo}({self.rc.todo.name})")
@@ -76,7 +76,7 @@ class RunnableCoder(Role):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self._init_actions([SimpleWriteCode, SimpleRunCode])
+        self.set_actions([SimpleWriteCode, SimpleRunCode])
         self._set_react_mode(react_mode=RoleReactMode.BY_ORDER.value)
 
     async def _act(self) -> Message:

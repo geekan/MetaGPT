@@ -13,12 +13,9 @@ from openai.types.chat.chat_completion_chunk import Choice as AChoice
 from openai.types.chat.chat_completion_chunk import ChoiceDelta
 from openai.types.completion_usage import CompletionUsage
 
-from metagpt.config import CONFIG
 from metagpt.provider.open_llm_api import OpenLLM
 from metagpt.utils.cost_manager import Costs
-
-CONFIG.max_budget = 10
-CONFIG.calc_usage = True
+from tests.metagpt.provider.mock_llm_config import mock_llm_config
 
 resp_content = "I'm llama2"
 default_resp = ChatCompletion(
@@ -71,7 +68,7 @@ async def mock_openai_acompletions_create(self, stream: bool = False, **kwargs) 
 async def test_openllm_acompletion(mocker):
     mocker.patch("openai.resources.chat.completions.AsyncCompletions.create", mock_openai_acompletions_create)
 
-    openllm_gpt = OpenLLM()
+    openllm_gpt = OpenLLM(mock_llm_config)
     openllm_gpt.model = "llama-v2-13b-chat"
 
     openllm_gpt._update_costs(usage=CompletionUsage(prompt_tokens=100, completion_tokens=100, total_tokens=200))

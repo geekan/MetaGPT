@@ -10,7 +10,7 @@ import pytest
 from metagpt.actions.generate_questions import GenerateQuestions
 from metagpt.logs import logger
 
-context = """
+msg = """
 ## topic
 如何做一个生日蛋糕
 
@@ -20,10 +20,9 @@ context = """
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("llm_mock")
-async def test_generate_questions():
-    action = GenerateQuestions()
-    rsp = await action.run(context)
+async def test_generate_questions(context):
+    action = GenerateQuestions(context=context)
+    rsp = await action.run(msg)
     logger.info(f"{rsp.content=}")
 
     assert "Questions" in rsp.content

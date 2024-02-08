@@ -49,7 +49,7 @@ class Debator(Role):
 
     def __init__(self, **data: Any):
         super().__init__(**data)
-        self._init_actions([SpeakAloud])
+        self.set_actions([SpeakAloud])
         self._watch([UserRequirement, SpeakAloud])
 
     async def _observe(self) -> int:

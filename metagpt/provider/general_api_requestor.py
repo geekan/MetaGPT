@@ -60,7 +60,8 @@ class GeneralAPIRequestor(APIRequestor):
         self, result: requests.Response, stream: bool
     ) -> Tuple[Union[bytes, Iterator[Generator]], bytes]:
         """Returns the response(s) and a bool indicating whether it is a stream."""
-        if stream and "text/event-stream" in result.headers.get("Content-Type", ""):
+        content_type = result.headers.get("Content-Type", "")
+        if stream and ("text/event-stream" in content_type or "application/x-ndjson" in content_type):
             return (
                 self._interpret_response_line(line, result.status_code, result.headers, stream=True)
                 for line in parse_stream(result.iter_lines())
@@ -79,10 +80,8 @@ class GeneralAPIRequestor(APIRequestor):
     async def _interpret_async_response(
         self, result: aiohttp.ClientResponse, stream: bool
     ) -> Tuple[Union[bytes, AsyncGenerator[bytes, None]], bool]:
-        if stream and (
-            "text/event-stream" in result.headers.get("Content-Type", "")
-            or "application/x-ndjson" in result.headers.get("Content-Type", "")
-        ):
+        content_type = result.headers.get("Content-Type", "")
+        if stream and ("text/event-stream" in content_type or "application/x-ndjson" in content_type):
             # the `Content-Type` of ollama stream resp is "application/x-ndjson"
             return (
                 self._interpret_response_line(line, result.status, result.headers, stream=True)

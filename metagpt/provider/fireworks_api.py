@@ -15,7 +15,7 @@ from tenacity import (
     wait_random_exponential,
 )
 
-from metagpt.config import CONFIG, Config, LLMProviderEnum
+from metagpt.configs.llm_config import LLMConfig, LLMType
 from metagpt.logs import logger
 from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.provider.openai_api import OpenAILLM, log_and_reraise
@@ -64,44 +64,35 @@ class FireworksCostManager(CostManager):
         token_costs = self.model_grade_token_costs(model)
         cost = (prompt_tokens * token_costs["prompt"] + completion_tokens * token_costs["completion"]) / 1000000
         self.total_cost += cost
-        max_budget = CONFIG.max_budget if CONFIG.max_budget else CONFIG.cost_manager.max_budget
         logger.info(
-            f"Total running cost: ${self.total_cost:.4f} | Max budget: ${max_budget:.3f} | "
+            f"Total running cost: ${self.total_cost:.4f}"
             f"Current cost: ${cost:.4f}, prompt_tokens: {prompt_tokens}, completion_tokens: {completion_tokens}"
         )
-        CONFIG.total_cost = self.total_cost
 
 
-@register_provider(LLMProviderEnum.FIREWORKS)
+@register_provider(LLMType.FIREWORKS)
 class FireworksLLM(OpenAILLM):
-    def __init__(self):
-        self.config: Config = CONFIG
-        self.__init_fireworks()
+    def __init__(self, config: LLMConfig):
+        super().__init__(config=config)
         self.auto_max_tokens = False
-        self._cost_manager = FireworksCostManager()
-
-    def __init_fireworks(self):
-        self.is_azure = False
-        self.rpm = int(self.config.get("RPM", 10))
-        self._init_client()
-        self.model = self.config.fireworks_api_model  # `self.model` should after `_make_client` to rewrite it
+        self.cost_manager = FireworksCostManager()
 
     def _make_client_kwargs(self) -> dict:
-        kwargs = dict(api_key=self.config.fireworks_api_key, base_url=self.config.fireworks_api_base)
+        kwargs = dict(api_key=self.config.api_key, base_url=self.config.base_url)
         return kwargs
 
     def _update_costs(self, usage: CompletionUsage):
         if self.config.calc_usage and usage:
             try:
-                # use FireworksCostManager not CONFIG.cost_manager
-                self._cost_manager.update_cost(usage.prompt_tokens, usage.completion_tokens, self.model)
+                # use FireworksCostManager not context.cost_manager
+                self.cost_manager.update_cost(usage.prompt_tokens, usage.completion_tokens, self.model)
             except Exception as e:
                 logger.error(f"updating costs failed!, exp: {e}")
 
     def get_costs(self) -> Costs:
-        return self._cost_manager.get_costs()
+        return self.cost_manager.get_costs()
 
-    async def _achat_completion_stream(self, messages: list[dict]) -> str:
+    async def _achat_completion_stream(self, messages: list[dict], timeout=3) -> str:
         response: AsyncStream[ChatCompletionChunk] = await self.aclient.chat.completions.create(
             **self._cons_kwargs(messages), stream=True
         )

@@ -4,12 +4,11 @@
 @Time    : 2023/5/11 14:45
 @Author  : alexanderwu
 @File    : test_llm.py
-@Modified By: mashenquan, 2023/8/20. Remove global configuration `CONFIG`, enable configuration support for business isolation.
 """
 
 import pytest
 
-from metagpt.provider.openai_api import OpenAILLM as LLM
+from metagpt.llm import LLM
 
 
 @pytest.fixture()
@@ -20,6 +19,12 @@ def llm():
 @pytest.mark.asyncio
 async def test_llm_aask(llm):
     rsp = await llm.aask("hello world", stream=False)
+    assert len(rsp) > 0
+
+
+@pytest.mark.asyncio
+async def test_llm_aask_stream(llm):
+    rsp = await llm.aask("hello world", stream=True)
     assert len(rsp) > 0
 
 

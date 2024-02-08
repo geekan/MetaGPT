@@ -9,24 +9,22 @@ Enable MetaGPT to self-evolve, accomplishing self-training, fine-tuning, optimiz
 
 1. Become the multi-agent framework with the highest ROI.
 2. Support fully automatic implementation of medium-sized projects (around 2000 lines of code).
-3. Implement most identified tasks, reaching version 0.5.
+3. Implement most identified tasks, reaching version 1.0.
 
 ### Tasks
 
-To reach version v0.5, approximately 70% of the following tasks need to be completed.
-
 1. Usability
    1. ~~Release v0.01 pip package to try to solve issues like npm installation (though not necessarily successfully)~~ (v0.3.0)
-   2. Support for overall save and recovery of software companies
+   2. ~~Support for overall save and recovery of software companies~~ (v0.6.0)
    3. ~~Support human confirmation and modification during the process~~ (v0.3.0) New: Support human confirmation and modification with fewer constrainsts and a more user-friendly interface
    4. Support process caching: Consider carefully whether to add server caching mechanism
    5. ~~Resolve occasional failure to follow instruction under current prompts, causing code parsing errors, through stricter system prompts~~ (v0.4.0, with function call)
    6. Write documentation, describing the current features and usage at all levels (ongoing, continuously adding contents to [documentation site](https://docs.deepwisdom.ai/main/en/guide/get_started/introduction.html))
    7. ~~Support Docker~~
 2. Features
-   1. Support a more standard and stable parser (need to analyze the format that the current LLM is better at)
-   2. ~~Establish a separate output queue, differentiated from the message queue~~
-   3. Attempt to atomize all role work, but this may significantly increase token overhead
+   1. ~~Support a more standard and stable parser (need to analyze the format that the current LLM is better at)~~ (v0.5.0)
+   2. ~~Establish a separate output queue, differentiated from the message queue~~ (v0.5.0)
+   3. ~~Attempt to atomize all role work, but this may significantly increase token overhead~~ (v0.5.0)
    4. Complete the design and implementation of module breakdown
    5. Support various modes of memory: clearly distinguish between long-term and short-term memory
    6. Perfect the test role, and carry out necessary interactions with humans
@@ -43,10 +41,10 @@ To reach version v0.5, approximately 70% of the following tasks need to be compl
 4. Actions
    1. ~~Implementation: Search~~ (v0.2.1)
    2. Implementation: Knowledge search, supporting 10+ data formats
-   3. Implementation: Data EDA (expected v0.6.0)
-   4. Implementation: Review
-   5. ~~Implementation~~: Add Document (v0.5.0)
-   6. ~~Implementation~~: Delete Document (v0.5.0)
+   3. Implementation: Data EDA (expected v0.7.0)
+   4. Implementation: Review & Revise (expected v0.7.0)
+   5. ~~Implementation: Add Document~~ (v0.5.0)
+   6. ~~Implementation: Delete Document~~ (v0.5.0)
    7. Implementation: Self-training
    8. ~~Implementation: DebugError~~ (v0.2.1)
    9. Implementation: Generate reliable unit tests based on YAPI
@@ -64,15 +62,14 @@ To reach version v0.5, approximately 70% of the following tasks need to be compl
    3. ~~Support Playwright apis~~
 7. Roles
    1. Perfect the action pool/skill pool for each role
-   2. Red Book blogger
-   3. E-commerce seller
-   4. Data analyst (expected v0.6.0)
-   5. News observer
-   6. ~~Institutional researcher~~ (v0.2.1)
+   2. E-commerce seller
+   3. Data analyst (expected v0.7.0)
+   4. News observer
+   5. ~~Institutional researcher~~ (v0.2.1)
 8. Evaluation
    1. Support an evaluation on a game dataset (experimentation done with game agents)
    2. Reproduce papers, implement full skill acquisition for a single game role, achieving SOTA results (experimentation done with game agents)
-   3. Support an evaluation on a math dataset (expected v0.6.0)
+   3. Support an evaluation on a math dataset (expected v0.7.0)
    4. Reproduce papers, achieving SOTA results for current mathematical problem solving process
 9. LLM
    1. Support Claude underlying API
@@ -80,7 +77,7 @@ To reach version v0.5, approximately 70% of the following tasks need to be compl
    3. Support streaming version of all APIs
    4. ~~Make gpt-3.5-turbo available (HARD)~~
 10. Other
-    1. Clean up existing unused code
-    2. Unify all code styles and establish contribution standards
-    3. Multi-language support
-    4. Multi-programming-language support
+    1. ~~Clean up existing unused code~~
+    2. ~~Unify all code styles and establish contribution standards~~
+    3. ~~Multi-language support~~
+    4. ~~Multi-programming-language support~~

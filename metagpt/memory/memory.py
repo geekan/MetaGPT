@@ -7,19 +7,13 @@
 @Modified By: mashenquan, 2023-11-1. According to RFC 116: Updated the type of index key.
 """
 from collections import defaultdict
-from pathlib import Path
 from typing import DefaultDict, Iterable, Set
 
 from pydantic import BaseModel, Field, SerializeAsAny
 
 from metagpt.const import IGNORED_MESSAGE_ID
 from metagpt.schema import Message
-from metagpt.utils.common import (
-    any_to_str,
-    any_to_str_set,
-    read_json_file,
-    write_json_file,
-)
+from metagpt.utils.common import any_to_str, any_to_str_set
 
 
 class Memory(BaseModel):
@@ -28,22 +22,6 @@ class Memory(BaseModel):
     storage: list[SerializeAsAny[Message]] = []
     index: DefaultDict[str, list[SerializeAsAny[Message]]] = Field(default_factory=lambda: defaultdict(list))
     ignore_id: bool = False
-
-    def serialize(self, stg_path: Path):
-        """stg_path = ./storage/team/environment/ or ./storage/team/environment/roles/{role_class}_{role_name}/"""
-        memory_path = stg_path.joinpath("memory.json")
-        storage = self.model_dump()
-        write_json_file(memory_path, storage)
-
-    @classmethod
-    def deserialize(cls, stg_path: Path) -> "Memory":
-        """stg_path = ./storage/team/environment/ or ./storage/team/environment/roles/{role_class}_{role_name}/"""
-        memory_path = stg_path.joinpath("memory.json")
-
-        memory_dict = read_json_file(memory_path)
-        memory = Memory(**memory_dict)
-
-        return memory
 
     def add(self, message: Message):
         """Add a new message to storage, while updating the index"""

@@ -9,19 +9,14 @@ from metagpt.actions import WritePRD
 from metagpt.schema import Message
 
 
-def test_action_serialize():
-    action = WritePRD()
+@pytest.mark.asyncio
+async def test_action_serdeser(new_filename, context):
+    action = WritePRD(context=context)
     ser_action_dict = action.model_dump()
     assert "name" in ser_action_dict
     assert "llm" not in ser_action_dict  # not export
 
-
-@pytest.mark.asyncio
-@pytest.mark.usefixtures("llm_mock")
-async def test_action_deserialize():
-    action = WritePRD()
-    serialized_data = action.model_dump()
-    new_action = WritePRD(**serialized_data)
+    new_action = WritePRD(**ser_action_dict, context=context)
     assert new_action.name == "WritePRD"
-    action_output = await new_action.run(with_messages=Message(content="write a cli snake game"))
-    assert len(action_output.content) > 0
+    with pytest.raises(FileNotFoundError):
+        await new_action.run(with_messages=Message(content="write a cli snake game"))

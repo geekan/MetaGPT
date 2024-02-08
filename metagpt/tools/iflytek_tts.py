@@ -23,7 +23,6 @@ import aiofiles
 import websockets as websockets
 from pydantic import BaseModel
 
-from metagpt.config import CONFIG
 from metagpt.logs import logger
 
 
@@ -56,9 +55,9 @@ class IFlyTekTTS(object):
         :param api_key: WebAPI argument, see: `https://console.xfyun.cn/services/tts`
         :param api_secret: WebAPI argument, see: `https://console.xfyun.cn/services/tts`
         """
-        self.app_id = app_id or CONFIG.IFLYTEK_APP_ID
-        self.api_key = api_key or CONFIG.IFLYTEK_API_KEY
-        self.api_secret = api_secret or CONFIG.API_SECRET
+        self.app_id = app_id
+        self.api_key = api_key
+        self.api_secret = api_secret
 
     async def synthesize_speech(self, text, output_file: str, voice=DEFAULT_IFLYTEK_VOICE):
         url = self._create_url()
@@ -127,14 +126,6 @@ async def oas3_iflytek_tts(text: str, voice: str = "", app_id: str = "", api_key
     :return: Returns the Base64-encoded .mp3 file data if successful, otherwise an empty string.
 
     """
-    if not app_id:
-        app_id = CONFIG.IFLYTEK_APP_ID
-    if not api_key:
-        api_key = CONFIG.IFLYTEK_API_KEY
-    if not api_secret:
-        api_secret = CONFIG.IFLYTEK_API_SECRET
-    if not voice:
-        voice = CONFIG.IFLYTEK_VOICE or DEFAULT_IFLYTEK_VOICE
 
     filename = Path(__file__).parent / (uuid.uuid4().hex + ".mp3")
     try:

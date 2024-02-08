@@ -23,9 +23,9 @@ from metagpt.const import TEST_DATA_PATH
         Path("invoices/invoice-4.zip"),
     ],
 )
-async def test_invoice_ocr(invoice_path: Path):
+async def test_invoice_ocr(invoice_path: Path, context):
     invoice_path = TEST_DATA_PATH / invoice_path
-    resp = await InvoiceOCR().run(file_path=Path(invoice_path))
+    resp = await InvoiceOCR(context=context).run(file_path=Path(invoice_path))
     assert isinstance(resp, list)
 
 
@@ -54,7 +54,6 @@ async def test_generate_table(invoice_path: Path, expected_result: dict):
     ("invoice_path", "query", "expected_result"),
     [(Path("invoices/invoice-1.pdf"), "Invoicing date", "2023年02月03日")],
 )
-@pytest.mark.usefixtures("llm_mock")
 async def test_reply_question(invoice_path: Path, query: dict, expected_result: str):
     invoice_path = TEST_DATA_PATH / invoice_path
     ocr_result = await InvoiceOCR().run(file_path=Path(invoice_path))

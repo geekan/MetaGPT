@@ -10,16 +10,13 @@
 import aiohttp
 import requests
 
-from metagpt.llm import LLM
 from metagpt.logs import logger
+from metagpt.provider.base_llm import BaseLLM
 
 
 class OpenAIText2Image:
-    def __init__(self):
-        """
-        :param openai_api_key: OpenAI API key, For more details, checkout: `https://platform.openai.com/account/api-keys`
-        """
-        self._llm = LLM()
+    def __init__(self, llm: BaseLLM):
+        self.llm = llm
 
     async def text_2_image(self, text, size_type="1024x1024"):
         """Text to image
@@ -29,7 +26,7 @@ class OpenAIText2Image:
         :return: The image data is returned in Base64 encoding.
         """
         try:
-            result = await self._llm.aclient.images.generate(prompt=text, n=1, size=size_type)
+            result = await self.llm.aclient.images.generate(prompt=text, n=1, size=size_type)
         except Exception as e:
             logger.error(f"An error occurred:{e}")
             return ""
@@ -57,13 +54,14 @@ class OpenAIText2Image:
 
 
 # Export
-async def oas3_openai_text_to_image(text, size_type: str = "1024x1024"):
+async def oas3_openai_text_to_image(text, size_type: str = "1024x1024", llm: BaseLLM = None):
     """Text to image
 
     :param text: The text used for image conversion.
     :param size_type: One of ['256x256', '512x512', '1024x1024']
+    :param llm: LLM instance
     :return: The image data is returned in Base64 encoding.
     """
     if not text:
         return ""
-    return await OpenAIText2Image().text_2_image(text, size_type=size_type)
+    return await OpenAIText2Image(llm).text_2_image(text, size_type=size_type)
