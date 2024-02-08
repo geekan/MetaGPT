@@ -12,6 +12,8 @@
 import json
 from typing import AsyncIterator, Union
 
+import openai
+
 from openai import APIConnectionError, AsyncOpenAI, AsyncStream
 from openai._base_client import AsyncHttpxClientWrapper
 from openai.types import CompletionUsage
@@ -30,6 +32,7 @@ from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.constant import GENERAL_FUNCTION_SCHEMA, GENERAL_TOOL_CHOICE
 from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.schema import Message
+from metagpt.utils.ahttp_client import aget
 from metagpt.utils.cost_manager import Costs
 from metagpt.utils.exceptions import handle_exception
 from metagpt.utils.token_counter import (
@@ -233,3 +236,54 @@ class OpenAILLM(BaseLLM):
     async def amoderation(self, content: Union[str, list[str]]):
         """Moderate content."""
         return await self.aclient.moderations.create(input=content)
+
+    async def update_rpm(self):
+        """
+        Asynchronously updates the RPM (requests per minute) limit.
+
+        This method fetches the RPM limit from an external API and updates the rate limiting parameters.
+        It is designed to be run before making any batched API calls.
+        """
+        self.rpm = await self._aget_rpm()
+        self.interval = 1.1 * 60 / self.rpm
+        logger.info(f'Setting rpm to {self.rpm}')
+
+    async def _aget_rpm(self) -> int:
+        """
+        Asynchronously fetches the RPM (requests per minute) limit from an external API.
+
+        This is an internal method used by update_rpm to fetch the current RPM limit. It uses
+        the OPENAI_SESSION_KEY for authorization and falls back to a default RPM value in case of failure.
+
+        Returns:
+            int: The fetched or default RPM value.
+        """
+        session_key = CONFIG.openai_session_key
+        default_rpm = int(CONFIG.get("RPM", 10))
+        if len(session_key) > 0:
+            try:
+                response = await aget(
+                                      url="https://api.openai.com/dashboard/rate_limits",
+                                      headers={"Authorization": f"Bearer {session_key}"},
+                                      proxy=CONFIG.openai_proxy
+                                     )
+                response_content = json.loads(response)
+                if not "error" in response_content:
+                    if CONFIG.openai_api_model not in response_content:
+                        raise ValueError("Get rpm from api.openai.com error. \
+                                            You have entered a model name that is not supported by OpenAI, or the input is incorrect. \
+                                            Please enter the correct name in the configuration file. \
+                                            Setting rpm to default parameter.")
+                    
+                    limit_dict = response_content[CONFIG.openai_api_model]
+                    return limit_dict["max_requests_per_1_minute"]
+                else:
+                    error = response_content["error"]
+                    logger.error(f"Connection to api.openai.com failed:{error}.Setting rpm to default parameter.")
+                    return default_rpm
+
+            except Exception as exp:
+                logger.error(f"Connection to api.openai.com failed, error type:{type(exp).__name__}, error message:{str(exp)}.Setting rpm to default parameter.")
+                return default_rpm
+        else:
+            return default_rpm

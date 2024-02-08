@@ -35,9 +35,10 @@ async def aget(
     as_json: bool = False,
     encoding: str = "utf-8",
     timeout: int = DEFAULT_TIMEOUT.total,
+    proxy: str = None,
 ) -> Union[str, dict]:
     async with aiohttp.ClientSession() as session:
-        async with session.get(url=url, params=params, headers=headers, timeout=timeout) as resp:
+        async with session.get(url=url, params=params, headers=headers, timeout=timeout, proxy=proxy) as resp:
             if as_json:
                 data = await resp.json()
             else:
