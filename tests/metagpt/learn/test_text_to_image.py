@@ -26,7 +26,8 @@ async def test_text_to_image(mocker):
 
     # Prerequisites
     assert CONFIG.METAGPT_TEXT_TO_IMAGE_MODEL_URL
-    assert CONFIG.OPENAI_API_KEY
+    CONFIG.OPENAI_TEXT_TO_IMAGE_API_KEY = CONFIG.OPENAI_API_KEY
+    assert CONFIG.OPENAI_TEXT_TO_IMAGE_API_KEY
 
     data = await text_to_image("Panda emoji", size_type="512x512")
     assert "base64" in data or "http" in data
