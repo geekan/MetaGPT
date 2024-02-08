@@ -35,14 +35,14 @@ Enable MetaGPT to self-evolve, accomplishing self-training, fine-tuning, optimiz
 3. Strategies
    1. Support ReAct strategy (experimentation done with game agents)
    2. Support CoT strategy (experimentation done with game agents)
-   3. Support ToT strategy
+   3. ~~Support ToT strategy~~ (v0.6.0)
    4. Support Reflection strategy (experimentation done with game agents)
-   5. Support planning
+   5. ~~Support planning~~ (v0.7.0)
 4. Actions
    1. ~~Implementation: Search~~ (v0.2.1)
    2. Implementation: Knowledge search, supporting 10+ data formats
-   3. Implementation: Data EDA (expected v0.7.0)
-   4. Implementation: Review & Revise (expected v0.7.0)
+   3. ~~Implementation: Data EDA~~ (v0.7.0)
+   4. ~~Implementation: Review & Revise~~ (v0.7.0)
    5. ~~Implementation: Add Document~~ (v0.5.0)
    6. ~~Implementation: Delete Document~~ (v0.5.0)
    7. Implementation: Self-training
@@ -50,7 +50,7 @@ Enable MetaGPT to self-evolve, accomplishing self-training, fine-tuning, optimiz
    9. Implementation: Generate reliable unit tests based on YAPI
    10. Implementation: Self-evaluation
    11. Implementation: AI Invocation
-   12. Implementation: Learning and using third-party standard libraries
+   12. ~~Implementation: Learning and using third-party standard libraries~~ (v0.7.0)
    13. Implementation: Data collection
    14. Implementation: AI training
    15. ~~Implementation: Run code~~ (v0.2.1)
@@ -63,14 +63,14 @@ Enable MetaGPT to self-evolve, accomplishing self-training, fine-tuning, optimiz
 7. Roles
    1. Perfect the action pool/skill pool for each role
    2. E-commerce seller
-   3. Data analyst (expected v0.7.0)
+   3. ~~Data analyst~~ (v0.7.0)
    4. News observer
    5. ~~Institutional researcher~~ (v0.2.1)
 8. Evaluation
    1. Support an evaluation on a game dataset (experimentation done with game agents)
    2. Reproduce papers, implement full skill acquisition for a single game role, achieving SOTA results (experimentation done with game agents)
-   3. Support an evaluation on a math dataset (expected v0.7.0)
-   4. Reproduce papers, achieving SOTA results for current mathematical problem solving process
+   3. Support an evaluation on a math dataset (expected v0.8.0)
+   4. Reproduce papers, achieving SOTA results for current mathematical problem solving process (expected v0.8.0)
 9. LLM
    1. Support Claude underlying API
    2. ~~Support Azure asynchronous API~~
