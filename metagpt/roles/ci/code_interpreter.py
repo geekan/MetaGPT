@@ -20,15 +20,17 @@ class CodeInterpreter(Role):
     use_tools: bool = False
     execute_code: ExecuteNbCode = Field(default_factory=ExecuteNbCode, exclude=True)
     tools: list[str] = []
+    trunk_len: int = 2000
 
     def __init__(
         self,
         auto_run=True,
         use_tools=False,
         tools=[],
+        trunk_len=2000,
         **kwargs,
     ):
-        super().__init__(auto_run=auto_run, use_tools=use_tools, tools=tools, **kwargs)
+        super().__init__(auto_run=auto_run, use_tools=use_tools, tools=tools, trunk_len=trunk_len, **kwargs)
         self._set_react_mode(react_mode="plan_and_act", auto_run=auto_run, use_tools=use_tools)
         if use_tools and tools:
             from metagpt.tools.tool_registry import (
@@ -58,7 +60,7 @@ class CodeInterpreter(Role):
             self.working_memory.add(Message(content=code["code"], role="assistant", cause_by=cause_by))
 
             ### execute code ###
-            result, success = await self.execute_code.run(**code)
+            result, success = await self.execute_code.run(**code, keep_len=self.trunk_len)
             print(result)
 
             self.working_memory.add(Message(content=result, role="user", cause_by=ExecuteNbCode))

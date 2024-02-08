@@ -158,7 +158,7 @@ class ExecuteNbCode(Action):
         except Exception:
             return False, f"{traceback.format_exc()}"
 
-    async def run(self, code: str, language: Literal["python", "markdown"] = "python") -> Tuple[str, bool]:
+    async def run(self, code: str, language: Literal["python", "markdown"] = "python", keep_len=2000) -> Tuple[str, bool]:
         """
         return the output of code execution, and a success indicator (bool) of code execution.
         """
@@ -176,11 +176,11 @@ class ExecuteNbCode(Action):
             success, error_message = await self.run_cell(self.nb.cells[-1], cell_index)
 
             if not success:
-                return truncate(remove_escape_and_color_codes(error_message), is_success=success)
+                return truncate(remove_escape_and_color_codes(error_message), is_success=success, keep_len=keep_len)
 
             # code success
             outputs = self.parse_outputs(self.nb.cells[-1].outputs)
-            outputs, success = truncate(remove_escape_and_color_codes(outputs), is_success=success)
+            outputs, success = truncate(remove_escape_and_color_codes(outputs), is_success=success, keep_len=keep_len)
 
             if "!pip" in outputs:
                 success = False
