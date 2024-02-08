@@ -24,7 +24,6 @@ class LLMType(Enum):
     METAGPT = "metagpt"
     AZURE = "azure"
     OLLAMA = "ollama"
-    QIANFAN = "qianfan"  # Baidu BCE
 
     def __missing__(self, key):
         return self.OPENAI
@@ -37,17 +36,12 @@ class LLMConfig(YamlModel):
     Optional Fields in pydantic: https://docs.pydantic.dev/latest/migration/#required-optional-and-nullable-fields
     """
 
-    api_key: str = "sk-"
+    api_key: str
     api_type: LLMType = LLMType.OPENAI
     base_url: str = "https://api.openai.com/v1"
     api_version: Optional[str] = None
 
     model: Optional[str] = None  # also stands for DEPLOYMENT_NAME
-
-    # For Cloud Service Provider like Baidu/ Alibaba
-    access_key: Optional[str] = None
-    secret_key: Optional[str] = None
-    endpoint: Optional[str] = None  # for self-deployed model on the cloud
 
     # For Spark(Xunfei), maybe remove later
     app_id: Optional[str] = None
