@@ -43,6 +43,9 @@ class ActionNodeClassNode:
 
 
 class CallActionNode:
+    # node : ActionNode
+    # context_symbol: the context symbol to fill
+    # modifier_symbol: after ActionNode's fill, set_symbol to node.key + modifier_symbol --> node
     def __init__(self, node, context_symbol, modifier_symbol=None):
         self.node = node
         self.context_symbol = context_symbol
