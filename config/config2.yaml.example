@@ -3,6 +3,7 @@ llm:
   base_url: "YOUR_BASE_URL"
   api_key: "YOUR_API_KEY"
   model: "gpt-4-turbo-preview"  # or gpt-3.5-turbo-1106 / gpt-4-1106-preview
+  openai_session_key: ""  # If you want to automate the setup for RPM and MAX_TOKENS, please log in through your own browser at https://platform.openai.com/account/limits, enable developer mode, and find 'rate_limits' in the network section. If it's not found, refresh the recording using Ctrl+R. After locating 'rate_limits', find 'Authorization: sess-xxx' in the request header, where 'sess-xxx' is the session key.If you wish to manually set RPM, please set RPM and either do not set OPENAI_SESSION_KEY or set it to "".
 
 proxy: "YOUR_PROXY"
 

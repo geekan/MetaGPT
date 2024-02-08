@@ -66,7 +66,7 @@ class OpenAILLM(BaseLLM):
         self.cost_manager: Optional[CostManager] = None
 
     def _init_model(self):
-        self.model = self.config.model  # Used in _calc_usage & _cons_kwargs
+        self.model = self.config.llm.model  # Used in _calc_usage & _cons_kwargs
 
     def _init_client(self):
         """https://github.com/openai/openai-python#async-usage"""
@@ -74,7 +74,7 @@ class OpenAILLM(BaseLLM):
         self.aclient = AsyncOpenAI(**kwargs)
 
     def _make_client_kwargs(self) -> dict:
-        kwargs = {"api_key": self.config.api_key, "base_url": self.config.base_url}
+        kwargs = {"api_key": self.config.llm.api_key, "base_url": self.config.llm.base_url}
 
         # to use proxy, openai v1 needs http_client
         if proxy_params := self._get_proxy_params():
@@ -317,24 +317,24 @@ class OpenAILLM(BaseLLM):
         Returns:
             int: The fetched or default RPM value.
         """
-        session_key = self.config.openai_session_key
-        default_rpm = int(self.config.get("RPM", 10))
+        session_key = self.config.llm.openai_session_key
+        default_rpm = self.config.llm.rpm
         if len(session_key) > 0:
             try:
                 response = await aget(
                                       url="https://api.openai.com/dashboard/rate_limits",
                                       headers={"Authorization": f"Bearer {session_key}"},
-                                      proxy=self.config.openai_proxy
+                                      proxy=self.config.llm.proxy
                                      )
                 response_content = json.loads(response)
                 if not "error" in response_content:
-                    if self.config.openai_api_model not in response_content:
+                    if self.model not in response_content:
                         raise ValueError("Get rpm from api.openai.com error. \
                                             You have entered a model name that is not supported by OpenAI, or the input is incorrect. \
                                             Please enter the correct name in the configuration file. \
                                             Setting rpm to default parameter.")
                     
-                    limit_dict = response_content[self.config.openai_api_model]
+                    limit_dict = response_content[self.model]
                     return limit_dict["max_requests_per_1_minute"]
                 else:
                     error = response_content["error"]

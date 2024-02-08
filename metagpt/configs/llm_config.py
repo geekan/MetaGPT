@@ -40,6 +40,7 @@ class LLMConfig(YamlModel):
     api_type: LLMType = LLMType.OPENAI
     base_url: str = "https://api.openai.com/v1"
     api_version: Optional[str] = None
+    openai_session_key: Optional[str] = None
 
     model: Optional[str] = None  # also stands for DEPLOYMENT_NAME
 
@@ -63,6 +64,7 @@ class LLMConfig(YamlModel):
     logprobs: Optional[bool] = None  # https://cookbook.openai.com/examples/using_logprobs
     top_logprobs: Optional[int] = None
     timeout: int = 60
+    rpm: int = 10
 
     # For Network
     proxy: Optional[str] = None

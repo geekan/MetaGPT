@@ -8,13 +8,12 @@
 
 import pytest
 
-from metagpt.llm import LLM
 from metagpt.logs import logger
-
+from metagpt.provider.openai_api import OpenAILLM
+from metagpt.config2 import config
 
 @pytest.mark.asyncio
 async def test_update_rpm():
-    llm = LLM()
-
+    llm = OpenAILLM(config)
     await llm.update_rpm()
-    assert isinstance(llm.rpm, int)
+    assert isinstance(llm.rpm, float)
