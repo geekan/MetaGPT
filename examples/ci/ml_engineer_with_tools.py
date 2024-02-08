@@ -3,8 +3,8 @@ import asyncio
 from metagpt.roles.ci.ml_engineer import MLEngineer
 
 
-async def main(requirement: str, auto_run: bool = True, use_tools: bool = True):
-    role = MLEngineer(goal=requirement, auto_run=auto_run, use_tools=use_tools)
+async def main(requirement: str):
+    role = MLEngineer(auto_run=True, use_tools=True)
     await role.run(requirement)
 
 
