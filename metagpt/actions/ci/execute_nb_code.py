@@ -99,7 +99,7 @@ class ExecuteNbCode(Action):
         for i, output in enumerate(outputs):
             if output["output_type"] == "stream" and not any(
                 tag in output["text"]
-                for tag in ["| INFO     | metagpt", "| ERROR    | metagpt", "| WARNING  | metagpt"]
+                for tag in ["| INFO     | metagpt", "| ERROR    | metagpt", "| WARNING  | metagpt", "DEBUG"]
             ):
                 parsed_output += output["text"]
             elif output["output_type"] == "display_data":
