@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 # @Desc   : The werewolf game external environment to integrate with
 
-import random
 from collections import Counter
 from enum import Enum
 from typing import Callable, Optional
@@ -11,6 +10,7 @@ from pydantic import ConfigDict, Field
 
 from metagpt.environment.base_env import ExtEnv, mark_as_readable, mark_as_writeable
 from metagpt.logs import logger
+import secrets
 
 
 class RoleState(Enum):
@@ -185,9 +185,9 @@ class WerewolfExtEnv(ExtEnv):
             else:
                 role_objs.append(role_obj)
         if shuffle:
-            random.shuffle(len(role_objs))
+            secrets.SystemRandom().shuffle(len(role_objs))
         if add_human:
-            assigned_role_idx = random.randint(0, len(role_objs) - 1)
+            assigned_role_idx = secrets.SystemRandom().randint(0, len(role_objs) - 1)
             assigned_role = role_objs[assigned_role_idx]
             role_objs[assigned_role_idx] = prepare_human_player(assigned_role)  # TODO
 
