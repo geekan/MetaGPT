@@ -10,6 +10,7 @@ from pydantic import Field
 
 from metagpt.environment.android_env.const import ADB_EXEC_FAIL
 from metagpt.environment.base_env import ExtEnv, mark_as_readable, mark_as_writeable
+from security import safe_command
 
 
 class AndroidExtEnv(ExtEnv):
@@ -42,7 +43,7 @@ class AndroidExtEnv(ExtEnv):
         return f"adb -s {self.device_id} "
 
     def execute_adb_with_cmd(self, adb_cmd: str) -> str:
-        res = subprocess.run(adb_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        res = safe_command.run(subprocess.run, adb_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         exec_res = ADB_EXEC_FAIL
         if not res.returncode:
             exec_res = res.stdout.strip()
