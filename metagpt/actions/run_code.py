@@ -25,6 +25,7 @@ from metagpt.actions.action import Action
 from metagpt.logs import logger
 from metagpt.schema import RunCodeContext, RunCodeResult
 from metagpt.utils.exceptions import handle_exception
+from security import safe_command
 
 PROMPT_TEMPLATE = """
 Role: You are a senior development and qa engineer, your role is summarize the code running result.
@@ -103,8 +104,7 @@ class RunCode(Action):
         RunCode._install_dependencies(working_directory=working_directory, env=env)
 
         # Start the subprocess
-        process = subprocess.Popen(
-            command, cwd=working_directory, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env
+        process = safe_command.run(subprocess.Popen, command, cwd=working_directory, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env
         )
         logger.info(" ".join(command))
 
@@ -148,7 +148,7 @@ class RunCode(Action):
     @staticmethod
     @handle_exception(exception_type=subprocess.CalledProcessError)
     def _install_via_subprocess(cmd, check, cwd, env):
-        return subprocess.run(cmd, check=check, cwd=cwd, env=env)
+        return safe_command.run(subprocess.run, cmd, check=check, cwd=cwd, env=env)
 
     @staticmethod
     def _install_requirements(working_directory, env):

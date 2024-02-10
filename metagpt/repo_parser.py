@@ -21,6 +21,7 @@ from metagpt.const import AGGREGATION, COMPOSITION, GENERALIZATION
 from metagpt.logs import logger
 from metagpt.utils.common import any_to_str, aread
 from metagpt.utils.exceptions import handle_exception
+from security import safe_command
 
 
 class RepoFileInfo(BaseModel):
@@ -233,7 +234,7 @@ class RepoParser(BaseModel):
         if not path.exists():
             return
         command = f"pyreverse {str(path)} -o dot"
-        result = subprocess.run(command, shell=True, check=True, cwd=str(path))
+        result = safe_command.run(subprocess.run, command, shell=True, check=True, cwd=str(path))
         if result.returncode != 0:
             raise ValueError(f"{result}")
         class_view_pathname = path / "classes.dot"
