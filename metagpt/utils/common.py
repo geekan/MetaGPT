@@ -30,7 +30,6 @@ from typing import Any, Callable, List, Tuple, Union
 
 import aiofiles
 import loguru
-import requests
 from PIL import Image
 from pydantic_core import to_jsonable_python
 from tenacity import RetryCallState, RetryError, _utils
@@ -38,6 +37,7 @@ from tenacity import RetryCallState, RetryError, _utils
 from metagpt.const import MESSAGE_ROUTE_TO_ALL
 from metagpt.logs import logger
 from metagpt.utils.exceptions import handle_exception
+from security import safe_requests
 
 
 def check_cmd_exists(command) -> int:
@@ -668,7 +668,7 @@ def decode_image(img_url_or_b64: str) -> Image:
     """decode image from url or base64 into PIL.Image"""
     if img_url_or_b64.startswith("http"):
         # image http(s) url
-        resp = requests.get(img_url_or_b64)
+        resp = safe_requests.get(img_url_or_b64)
         img = Image.open(BytesIO(resp.content))
     else:
         # image b64_json
