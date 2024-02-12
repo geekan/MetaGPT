@@ -668,7 +668,7 @@ def decode_image(img_url_or_b64: str) -> Image:
     """decode image from url or base64 into PIL.Image"""
     if img_url_or_b64.startswith("http"):
         # image http(s) url
-        resp = requests.get(img_url_or_b64)
+        resp = requests.get(img_url_or_b64, timeout=60)
         img = Image.open(BytesIO(resp.content))
     else:
         # image b64_json
