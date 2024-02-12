@@ -669,6 +669,7 @@ def decode_image(img_url_or_b64: str) -> Image:
     if img_url_or_b64.startswith("http"):
         # image http(s) url
         resp = safe_requests.get(img_url_or_b64)
+
         img = Image.open(BytesIO(resp.content))
     else:
         # image b64_json
