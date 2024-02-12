@@ -481,8 +481,7 @@ class Plan(BaseModel):
         assert not self.has_task_id(new_task.task_id), "Task already in current plan, use replace_task instead"
 
         assert all(
-            [self.has_task_id(dep_id) for dep_id in new_task.dependent_task_ids]
-        ), "New task has unknown dependencies"
+            self.has_task_id(dep_id) for dep_id in new_task.dependent_task_ids), "New task has unknown dependencies"
 
         # Existing tasks do not depend on the new task, it's fine to put it to the end of the sorted task sequence
         self.tasks.append(new_task)

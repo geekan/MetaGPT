@@ -43,6 +43,6 @@ class YamlModelWithoutDefault(YamlModel):
     @classmethod
     def check_not_default_config(cls, values):
         """Check if there is any default config in config2.yaml"""
-        if any(["YOUR" in v for v in values]):
+        if any("YOUR" in v for v in values):
             raise ValueError("Please set your config in config2.yaml")
         return values
