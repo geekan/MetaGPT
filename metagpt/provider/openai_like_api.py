@@ -6,19 +6,19 @@ from openai.types import CompletionUsage
 from openai.types.chat import  ChatCompletionChunk
 from metagpt.configs.llm_config import LLMConfig, LLMType
 from openai import  AsyncStream
-from metagpt.logs import logger
+from metagpt.logs import logger,log_llm_stream
 from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.provider.openai_api import OpenAILLM
-from metagpt.utils.cost_manager import Costs, TokenCostManager
+from metagpt.utils.cost_manager import Costs, CostManager
 
 
-@register_provider(LLMType.OPENAI_LIKE)
+@register_provider([LLMType.OPENAI_LIKE,LLMType.OPENAI])
 class OpenAILIKE(OpenAILLM):
     """Used for OPENAI-like payment models, unlike OPEN_LLM with added billing functionality"""
 
     def __init__(self, config: LLMConfig):
         super().__init__(config)
-        self._cost_manager = TokenCostManager()
+        self._cost_manager = CostManager()
         self.model = config.model
 
     def _make_client_kwargs(self) -> dict:
@@ -28,7 +28,6 @@ class OpenAILIKE(OpenAILLM):
     def _update_costs(self, usage: CompletionUsage):
         if self.config.calc_usage and usage:
             try:
-                # use OpenLLMCostManager not CONFIG.cost_manager
                 self._cost_manager.update_cost(usage.prompt_tokens, usage.completion_tokens, self.model)
             except Exception as e:
                 logger.error(f"updating costs failed!, exp: {e}")
@@ -51,11 +50,12 @@ class OpenAILIKE(OpenAILLM):
                 finish_reason = choice.finish_reason if hasattr(choice, "finish_reason") else None
                 if choice_delta.content:
                     collected_content.append(choice_delta.content)
-                    print(choice_delta.content, end="")
+                    log_llm_stream(choice_delta.content)
                 if finish_reason:
-                    # fireworks api return usage when finish_reason is not None
+                    # some services return usage when finish_reason is not None
                     usage = CompletionUsage(**choice.usage)
 
+        log_llm_stream("\n")
         full_content = "".join(collected_content)
         self._update_costs(usage)
         return full_content
