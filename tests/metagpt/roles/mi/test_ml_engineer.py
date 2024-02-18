@@ -1,16 +1,16 @@
 import pytest
 
-from metagpt.actions.ci.execute_nb_code import ExecuteNbCode
+from metagpt.actions.mi.execute_nb_code import ExecuteNbCode
 from metagpt.logs import logger
-from metagpt.roles.ci.ml_engineer import MLEngineer
+from metagpt.roles.mi.ml_engineer import MLEngineer
 from metagpt.schema import Message, Plan, Task
 from metagpt.tools.tool_type import ToolType
-from tests.metagpt.actions.ci.test_debug_code import CODE, DebugContext, ErrorStr
+from tests.metagpt.actions.mi.test_debug_code import CODE, DebugContext, ErrorStr
 
 
 def test_mle_init():
-    ci = MLEngineer(goal="test", auto_run=True, use_tools=True, tools=["tool1", "tool2"])
-    assert ci.tools == []
+    mle = MLEngineer(goal="test", auto_run=True, use_tools=True, tools=["tool1", "tool2"])
+    assert mle.tools == []
 
 
 MockPlan = Plan(
