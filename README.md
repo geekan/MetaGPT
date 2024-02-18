@@ -62,7 +62,27 @@
 
 ```bash
 pip install metagpt
-metagpt --init-config  # create ~/.metagpt/config2.yaml, modify it to your own config
+# https://docs.deepwisdom.ai/main/en/guide/get_started/configuration.html
+metagpt --init-config  # it will create ~/.metagpt/config2.yaml, just modify it to your needs
+```
+
+### Configuration
+
+You can configure `~/.metagpt/config2.yaml` according to the [example](https://github.com/geekan/MetaGPT/blob/main/config/config2.example.yaml) and [doc](https://docs.deepwisdom.ai/main/en/guide/get_started/configuration.html):
+
+```yaml
+llm:
+  api_type: "openai"  # or azure / ollama / open_llm etc. Check LLMType for more options
+  model: "gpt-4-turbo-preview"  # or gpt-3.5-turbo-1106 / gpt-4-1106-preview
+  base_url: "https://api.openai.com/v1"  # or forward url / other llm url
+  api_key: "YOUR_API_KEY"
+```
+
+### Usage
+
+After installation, you can use it as CLI
+
+```bash
 metagpt "Create a 2048 game"  # this will create a repo in ./workspace
 ```
 
@@ -75,27 +95,7 @@ print(repo)  # it will print the repo structure with files
 ```
 
 detail installation please refer to [cli_install](https://docs.deepwisdom.ai/main/en/guide/get_started/installation.html#install-stable-version)
-
-### Docker installation
-> Note: In the Windows, you need to replace "/opt/metagpt" with a directory that Docker has permission to create, such as "D:\Users\x\metagpt"
-
-```bash
-# Step 1: Download metagpt official image and prepare config2.yaml
-docker pull metagpt/metagpt:latest
-mkdir -p /opt/metagpt/{config,workspace}
-docker run --rm metagpt/metagpt:latest cat /app/metagpt/config/config2.yaml > /opt/metagpt/config/config2.yaml
-vim /opt/metagpt/config/config2.yaml # Change the config
-
-# Step 2: Run metagpt demo with container
-docker run --rm \
-    --privileged \
-    -v /opt/metagpt/config/config2.yaml:/app/metagpt/config/config2.yaml \
-    -v /opt/metagpt/workspace:/app/metagpt/workspace \
-    metagpt/metagpt:latest \
-    metagpt "Create a 2048 game"
-```
-
-detail installation please refer to [docker_install](https://docs.deepwisdom.ai/main/en/guide/get_started/installation.html#install-with-docker)
+ or [docker_install](https://docs.deepwisdom.ai/main/en/guide/get_started/installation.html#install-with-docker)
 
 ### QuickStart & Demo Video
 - Try it on [MetaGPT Huggingface Space](https://huggingface.co/spaces/deepwisdom/MetaGPT)
