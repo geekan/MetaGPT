@@ -1,11 +1,11 @@
 import asyncio
 
-from metagpt.roles.ci.code_interpreter import CodeInterpreter
+from metagpt.roles.mi.interpreter import Interpreter
 
 
 async def main(requirement: str):
-    role = CodeInterpreter(auto_run=True, use_tools=False)
-    await role.run(requirement)
+    mi = Interpreter(auto_run=True, use_tools=False)
+    await mi.run(requirement)
 
 
 if __name__ == "__main__":
