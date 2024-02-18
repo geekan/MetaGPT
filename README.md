@@ -62,6 +62,7 @@
 
 ```bash
 pip install metagpt
+# configuration details: https://docs.deepwisdom.ai/main/en/guide/get_started/configuration.html
 metagpt --init-config  # it will create ~/.metagpt/config2.yaml, just modify it to your needs
 metagpt "Create a 2048 game"  # this will create a repo in ./workspace
 ```
