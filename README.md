@@ -62,7 +62,7 @@
 
 ```bash
 pip install metagpt
-metagpt --init-config  # create ~/.metagpt/config2.yaml, modify it to your own config
+metagpt --init-config  # it will create ~/.metagpt/config2.yaml, just modify it to your needs
 metagpt "Create a 2048 game"  # this will create a repo in ./workspace
 ```
 
