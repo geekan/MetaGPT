@@ -6,7 +6,7 @@
 """
 import os
 
-from metagpt.roles.ci.code_interpreter import CodeInterpreter
+from metagpt.roles.mi.interpreter import Interpreter
 
 
 async def main():
@@ -22,9 +22,9 @@ async def main():
             Firstly, Please help me fetch the latest 5 senders and full letter contents.
             Then, summarize each of the 5 emails into one sentence (you can do this by yourself, no need to import other models to do this) and output them in a markdown format."""
 
-    ci = CodeInterpreter(use_tools=True)
+    mi = Interpreter(use_tools=True)
 
-    await ci.run(prompt)
+    await mi.run(prompt)
 
 
 if __name__ == "__main__":
