@@ -68,7 +68,7 @@ metagpt --init-config  # it will create ~/.metagpt/config2.yaml, just modify it 
 
 ### Configuration
 
-You can configure `~/.metagpt/config2.yaml` according to the [example](https://github.com/geekan/MetaGPT/blob/main/config/config2.example.yaml):
+You can configure `~/.metagpt/config2.yaml` according to the [example](https://github.com/geekan/MetaGPT/blob/main/config/config2.example.yaml) and [doc](https://docs.deepwisdom.ai/main/en/guide/get_started/configuration.html):
 
 ```yaml
 llm:
@@ -77,8 +77,6 @@ llm:
   base_url: "https://api.openai.com/v1"  # or forward url / other llm url
   api_key: "YOUR_API_KEY"
 ```
-
-And you can check the [configuration doc](https://docs.deepwisdom.ai/main/en/guide/get_started/configuration.html) for more details.
 
 ### Usage
 
