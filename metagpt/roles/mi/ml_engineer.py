@@ -1,13 +1,13 @@
-from metagpt.actions.ci.debug_code import DebugCode
-from metagpt.actions.ci.execute_nb_code import ExecuteNbCode
-from metagpt.actions.ci.ml_action import UpdateDataColumns, WriteCodeWithToolsML
+from metagpt.actions.mi.debug_code import DebugCode
+from metagpt.actions.mi.execute_nb_code import ExecuteNbCode
+from metagpt.actions.mi.ml_action import UpdateDataColumns, WriteCodeWithToolsML
 from metagpt.logs import logger
-from metagpt.roles.ci.code_interpreter import CodeInterpreter
+from metagpt.roles.mi.interpreter import Interpreter
 from metagpt.tools.tool_type import ToolType
 from metagpt.utils.common import any_to_str
 
 
-class MLEngineer(CodeInterpreter):
+class MLEngineer(Interpreter):
     name: str = "Mark"
     profile: str = "MLEngineer"
     debug_context: list = []

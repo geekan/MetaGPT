@@ -5,7 +5,7 @@
 @Author  : mannaandpoem
 @File    : imitate_webpage.py
 """
-from metagpt.roles.ci.code_interpreter import CodeInterpreter
+from metagpt.roles.mi.interpreter import Interpreter
 
 
 async def main():
@@ -15,9 +15,9 @@ Firstly, utilize Selenium and WebDriver for rendering.
 Secondly, convert image to a webpage including HTML, CSS and JS in one go. 
 Finally, save webpage in a text file. 
 Note: All required dependencies and environments have been fully installed and configured."""
-    ci = CodeInterpreter(use_tools=True)
+    mi = Interpreter(use_tools=True)
 
-    await ci.run(prompt)
+    await mi.run(prompt)
 
 
 if __name__ == "__main__":

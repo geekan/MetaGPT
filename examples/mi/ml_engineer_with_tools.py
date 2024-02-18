@@ -1,6 +1,6 @@
 import asyncio
 
-from metagpt.roles.ci.ml_engineer import MLEngineer
+from metagpt.roles.mi.ml_engineer import MLEngineer
 
 
 async def main(requirement: str):
