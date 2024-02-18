@@ -56,7 +56,7 @@ REFINED_PRODUCT_GOALS = ActionNode(
     key="Refined Product Goals",
     expected_type=List[str],
     instruction="Update and expand the original product goals to reflect the evolving needs due to incremental "
-    "development.Ensure that the refined goals align with the current project direction and contribute to its success.",
+    "development. Ensure that the refined goals align with the current project direction and contribute to its success.",
     example=[
         "Enhance user engagement through new features",
         "Optimize performance for scalability",
