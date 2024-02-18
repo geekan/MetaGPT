@@ -226,22 +226,24 @@ def display_markdown(content: str):
     matches = re.finditer(r"```(.+?)```", content, re.DOTALL)
     start_index = 0
     content_panels = []
+    # 文本背景色和文字颜色设置
+    style = "black on white"
     # 逐个打印匹配到的文本和代码
     for match in matches:
         text_content = content[start_index : match.start()].strip()
         code_content = match.group(0).strip()[3:-3]  # Remove triple backticks
 
         if text_content:
-            content_panels.append(Panel(Markdown(text_content), box=MINIMAL))
+            content_panels.append(Panel(Markdown(text_content), style=style, box=MINIMAL))
 
         if code_content:
-            content_panels.append(Panel(Markdown(f"```{code_content}"), box=MINIMAL))
+            content_panels.append(Panel(Markdown(f"```{code_content}"), style=style, box=MINIMAL))
         start_index = match.end()
 
     # 打印剩余文本（如果有）
     remaining_text = content[start_index:].strip()
     if remaining_text:
-        content_panels.append(Panel(Markdown(remaining_text), box=MINIMAL))
+        content_panels.append(Panel(Markdown(remaining_text), style=style, box=MINIMAL))
 
     # 在Live模式中显示所有Panel
     with Live(auto_refresh=False, console=Console(), vertical_overflow="visible") as live:
