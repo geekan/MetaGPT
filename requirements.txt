@@ -27,7 +27,7 @@ python_docx==0.8.11
 PyYAML==6.0.1
 # sentence_transformers==2.2.2
 setuptools==65.6.3
-tenacity==8.2.2
+tenacity==8.2.3
 tiktoken==0.5.2
 tqdm==4.65.0
 #unstructured[local-inference]

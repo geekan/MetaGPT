@@ -192,6 +192,8 @@ class DashScopeLLM(BaseLLM):
         if self.config.temperature > 0:
             # different model has default temperature. only set when it"s specified.
             kwargs["temperature"] = self.config.temperature
+        if stream:
+            kwargs["incremental_output"] = True
         return kwargs
 
     def _check_response(self, resp: GenerationResponse):
