@@ -18,21 +18,21 @@ from metagpt.schema import CodePlanAndChangeContext
 DEVELOPMENT_PLAN = ActionNode(
     key="Development Plan",
     expected_type=str,
-    instruction="Develop a comprehensive and step-by-step incremental development plan, providing the essential "
-    "changes to be implemented at each step",
-    example="""To implement the new feature, we will create/change/update the methods in the calculator to support subtraction, multiplication, and division operations. Additionally, the ...
-\nHere are the steps based on the order of 'Task List' we will follow:\n
+    instruction="Develop a comprehensive and step-by-step incremental development plan, providing the detail "
+    "changes to be implemented at each step based on the order of 'Task List'",
+    example="""To implement the new feature, we will create/change/update the methods in the calculator to support subtraction, multiplication, and division operations. 
+\nSteps to be followed:\n
 1. Enhance the functionality of `calculator.py` by extending it to incorporate methods for subtraction, multiplication, and division. Also, the ...
 2. Integrate new API endpoints for subtraction, multiplication, and division into the existing codebase of `main.py`. Then, ensure ...
 3. ...""",
 )
 
-IMPLEMENT_CHANGE = ActionNode(
-    key="Implement Change",
+INCREMENTAL_CHANGE = ActionNode(
+    key="Incremental Change",
     expected_type=List[str],
     instruction="Write Incremental Change by making a code draft that how to implement incremental development "
     "including detailed steps based on the context. Note: Track incremental changes using the marks `+` and `-` to "
-    "indicate added, deleted, or modified code, and ensure compliance with the output format of `git diff`",
+    "indicate additions and deletions, and ensure compliance with the output format of `git diff`",
     example=[
         '''```diff
 --- Old/calculator.py
@@ -197,7 +197,7 @@ Role: You are a professional engineer; The main goal is to complete incremental 
 """
 
 WRITE_CODE_PLAN_AND_CHANGE_NODE = ActionNode.from_children(
-    "WriteCodePlanAndChange", [DEVELOPMENT_PLAN, IMPLEMENT_CHANGE]
+    "WriteCodePlanAndChange", [DEVELOPMENT_PLAN, INCREMENTAL_CHANGE]
 )
 
 
