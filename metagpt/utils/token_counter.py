@@ -35,9 +35,9 @@ TOKEN_COSTS = {
     "glm-3-turbo": {"prompt": 0.0, "completion": 0.0007},  # 128k version, prompt + completion tokens=0.005￥/k-tokens
     "glm-4": {"prompt": 0.0, "completion": 0.014},  # 128k version, prompt + completion tokens=0.1￥/k-tokens
     "gemini-pro": {"prompt": 0.00025, "completion": 0.0005},
-    "moonshot-v1-8k":{"prompt":0,"completion":0.012},
-    "moonshot-v1-32k":{"prompt":0,"completion":0.024},
-    "moonshot-v1-128k":{"prompt":0,"completion":0.06},
+    "moonshot-v1-8k": {"prompt": 0, "completion": 0.012}, # prompt + completion tokens=0.012￥/k-tokens
+    "moonshot-v1-32k": {"prompt": 0, "completion": 0.024},
+    "moonshot-v1-128k": {"prompt": 0, "completion": 0.06},
 }
 
 
@@ -63,9 +63,9 @@ TOKEN_MAX = {
     "text-embedding-ada-002": 8192,
     "chatglm_turbo": 32768,
     "gemini-pro": 32768,
-    "moonshot-v1-8k":8192,
-    "moonshot-v1-32k":32768,
-    "moonshot-v1-128k":128000,
+    "moonshot-v1-8k": 8192,
+    "moonshot-v1-32k": 32768,
+    "moonshot-v1-128k": 128000,
 }
 
 
