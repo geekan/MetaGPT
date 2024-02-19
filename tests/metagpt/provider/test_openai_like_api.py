@@ -6,8 +6,7 @@ from openai.types.chat.chat_completion import (
 import pytest
 
 from openai.types.completion_usage import CompletionUsage
-from metagpt.llm import LLM
-from metagpt.provider.openai_like_api import OpenAILIKE
+from metagpt.provider.openai_like_api import OpenAILIKELLM
 from tests.metagpt.provider.mock_llm_config import mock_llm_config_openailike
 
 resp_content = ' 1\n2\n3\n4\n5\n6\n7\n8\n9\n10'
@@ -31,7 +30,7 @@ hello_msg = [{"role": "user", "content": "count from 1 to 10. split by newline."
 
 @pytest.mark.asyncio
 async def test_openai_like_acompletion():
-    llm = OpenAILIKE(mock_llm_config_openailike)
+    llm = OpenAILIKELLM(mock_llm_config_openailike)
 
     resp = await llm.acompletion(hello_msg)
     assert resp.choices[0].message.content == resp_content
