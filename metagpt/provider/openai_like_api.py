@@ -12,8 +12,8 @@ from metagpt.provider.openai_api import OpenAILLM
 from metagpt.utils.cost_manager import Costs, CostManager
 
 
-@register_provider([LLMType.OPENAI_LIKE,LLMType.OPENAI])
-class OpenAILIKE(OpenAILLM):
+@register_provider([LLMType.OPENAI_LIKE,LLMType.MOONSHOT])
+class OpenAILIKELLM(OpenAILLM):
     """Used for OPENAI-like payment models, unlike OPEN_LLM with added billing functionality"""
 
     def __init__(self, config: LLMConfig):
