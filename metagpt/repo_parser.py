@@ -481,7 +481,7 @@ class RepoParser(BaseModel):
         directory = self.base_directory
 
         matching_files = []
-        extensions = ["*.py", "*.js"]
+        extensions = ["*.py"]
         for ext in extensions:
             matching_files += directory.rglob(ext)
         for path in matching_files:
@@ -596,6 +596,7 @@ class RepoParser(BaseModel):
         funcs = {
             any_to_str(ast.Constant): lambda x: [any_to_str(x.value), RepoParser._parse_variable(x.value)],
             any_to_str(ast.Call): lambda x: [any_to_str(x.value), RepoParser._parse_variable(x.value.func)],
+            any_to_str(ast.Tuple): lambda x: [any_to_str(x.value), RepoParser._parse_variable(x.value)],
         }
         func = funcs.get(any_to_str(node.value))
         if func:
@@ -639,10 +640,14 @@ class RepoParser(BaseModel):
                 v = RepoParser._parse_variable(n.test.left)
                 if v:
                     tokens.append(v)
-            for item in n.test.comparators:
-                v = RepoParser._parse_variable(item)
-                if v:
-                    tokens.append(v)
+            if isinstance(n.test, ast.Name):
+                v = RepoParser._parse_variable(n.test)
+                tokens.append(v)
+            if hasattr(n.test, "comparators"):
+                for item in n.test.comparators:
+                    v = RepoParser._parse_variable(item)
+                    if v:
+                        tokens.append(v)
             return tokens
         except Exception as e:
             logger.warning(f"Unsupported if: {n}, err:{e}")
@@ -683,7 +688,7 @@ class RepoParser(BaseModel):
                 if hasattr(x.value, "id")
                 else f"{x.attr}",
                 any_to_str(ast.Call): lambda x: RepoParser._parse_variable(x.func),
-                any_to_str(ast.Tuple): lambda x: "",
+                any_to_str(ast.Tuple): lambda x: [d.value for d in x.dims],
             }
             func = funcs.get(any_to_str(node))
             if not func:
