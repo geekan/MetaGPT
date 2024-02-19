@@ -711,9 +711,6 @@ class RepoParser(BaseModel):
 
         Args:
             path (str | Path): The path to the target directory or file. Default is None.
-
-        Returns:
-            None
         """
         if not path:
             path = self.base_directory
@@ -828,7 +825,7 @@ class RepoParser(BaseModel):
         return class_name, info
 
     @staticmethod
-    def _split_relationship_line(line: str) -> str:
+    def _split_relationship_line(line: str) -> DotClassRelationship:
         """
         Parses a dot format line about the relationship of two classes and returns 'Generalize', 'Composite',
         or 'Aggregate'.
@@ -837,7 +834,8 @@ class RepoParser(BaseModel):
             line (str): The dot format line containing relationship information.
 
         Returns:
-            str: The type of relationship, either 'Generalize', 'Composite', or 'Aggregate'.
+            DotClassRelationship: The object of relationship representing either 'Generalize', 'Composite',
+            or 'Aggregate' relationship.
         """
         splitters = [" -> ", " [", "];"]
         idxs = []

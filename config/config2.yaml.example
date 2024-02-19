@@ -4,9 +4,9 @@ llm:
   api_key: "YOUR_API_KEY"
   model: "gpt-4-turbo-preview"  # or gpt-3.5-turbo-1106 / gpt-4-1106-preview
   # Azure-exclusive pricing plan mappings：
-  # - gpt-3.5-turbo 4k: "gpt-3.5-turbo"
-  # - gpt-4-turbo: "gpt-4-1106-preview"
-  # - gpt-4-turbo-vision: "gpt-4-1106-preview"
+  # - gpt-3.5-turbo 4k: "gpt-3.5-turbo-1106"
+  # - gpt-4-turbo: "gpt-4-turbo-preview"
+  # - gpt-4-turbo-vision: "gpt-4-vision-preview"
   # - gpt-4 8k: "gpt-4"
   # See for more: https://azure.microsoft.com/en-us/pricing/details/cognitive-services/openai-service/
   # pricing_plan: "gpt-4-turbo-preview"

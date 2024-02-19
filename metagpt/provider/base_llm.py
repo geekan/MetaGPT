@@ -178,19 +178,6 @@ class BaseLLM(ABC):
     def _update_costs(self, usage: CompletionUsage | Dict):
         """
         Updates the costs based on the provided usage information.
-
-        Args:
-            usage (Union[CompletionUsage, Dict]): The usage information used to calculate and update costs.
-                It can be either an instance of CompletionUsage or a dictionary.
-
-        Returns:
-            None: This method does not return any value.
-
-        Raises:
-            ValueError: If the provided usage is not a valid format.
-
-        Example:
-            Usage example goes here, demonstrating how to call and utilize this method.
         """
         if self.config.calc_usage and usage and self.cost_manager:
             if isinstance(usage, Dict):
@@ -200,3 +187,11 @@ class BaseLLM(ABC):
                 prompt_tokens = usage.prompt_tokens
                 completion_tokens = usage.completion_tokens
             self.cost_manager.update_cost(prompt_tokens, completion_tokens, self.pricing_plan)
+
+    def messages_to_prompt(self, messages: list[dict]):
+        """[{"role": "user", "content": msg}] to user: <msg> etc."""
+        return "\n".join([f"{i['role']}: {i['content']}" for i in messages])
+
+    def messages_to_dict(self, messages):
+        """objects to [{"role": "user", "content": msg}] etc."""
+        return [i.to_dict() for i in messages]

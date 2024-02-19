@@ -90,9 +90,6 @@ class RebuildSequenceView(Action):
         Args:
             with_messages (Optional[Type]): An optional argument specifying messages to react to.
             format (str): The format for the prompt schema.
-
-        Returns:
-            None
         """
         graph_repo_pathname = self.context.git_repo.workdir / GRAPH_REPO_FILE_REPO / self.context.git_repo.workdir.name
         self.graph_db = await DiGraphRepository.load_from(str(graph_repo_pathname.with_suffix(".json")))
@@ -115,9 +112,6 @@ class RebuildSequenceView(Action):
         Args:
             entry (SPO): The SPO (Subject, Predicate, Object) object in the graph database that is related to the
                 subject `__name__:__main__`.
-
-        Returns:
-            None
         """
         filename = entry.subject.split(":", 1)[0]
         rows = await self.graph_db.select(predicate=GraphKeyword.IS, object_=GraphKeyword.CLASS)
@@ -230,9 +224,6 @@ class RebuildSequenceView(Action):
 
         Args:
             ns_class_name (str): The namespace-prefixed class name for which the use case is to be reconstructed.
-
-        Returns:
-            None
         """
         rows = await self.graph_db.select(subject=ns_class_name, predicate=GraphKeyword.HAS_CLASS_USE_CASE)
         if rows:
@@ -302,9 +293,6 @@ class RebuildSequenceView(Action):
 
         Args:
             ns_class_name (str): The namespace-prefixed class name for which the sequence diagram is to be reconstructed.
-
-        Returns:
-            None
         """
         await self._rebuild_use_case(ns_class_name)
 
@@ -458,6 +446,11 @@ class RebuildSequenceView(Action):
 
         Returns:
             Union[Path, None]: The full path of the module, or None if the path cannot be determined.
+
+        Examples:
+            If `root`(workdir) is "/User/xxx/github/MetaGPT/metagpt", and the `pathname` is
+            "metagpt/management/skill_manager.py", then the returned value will be
+            "/User/xxx/github/MetaGPT/metagpt/management/skill_manager.py"
         """
         files = list_files(root=root)
         postfix = "/" + str(pathname)
@@ -520,9 +513,6 @@ class RebuildSequenceView(Action):
         Args:
             entry (SPO): The SPO object representing the base sequence diagram.
             class_name (str): The class name whose sequence diagram is to be augmented.
-
-        Returns:
-            None
         """
         rows = await self.graph_db.select(predicate=GraphKeyword.IS, object_=GraphKeyword.CLASS)
         participants = []

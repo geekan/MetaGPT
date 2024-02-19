@@ -67,6 +67,8 @@ TMP = METAGPT_ROOT / "tmp"
 SOURCE_ROOT = METAGPT_ROOT / "metagpt"
 PROMPT_PATH = SOURCE_ROOT / "prompts"
 SKILL_DIRECTORY = SOURCE_ROOT / "skills"
+TOOL_SCHEMA_PATH = METAGPT_ROOT / "metagpt/tools/schemas"
+TOOL_LIBS_PATH = METAGPT_ROOT / "metagpt/tools/libs"
 
 # REAL CONSTS
 
@@ -82,7 +84,6 @@ MESSAGE_ROUTE_TO_NONE = "<none>"
 REQUIREMENT_FILENAME = "requirement.txt"
 BUGFIX_FILENAME = "bugfix.txt"
 PACKAGE_REQUIREMENTS_FILENAME = "requirements.txt"
-CODE_PLAN_AND_CHANGE_FILENAME = "code_plan_and_change.json"
 
 DOCS_FILE_REPO = "docs"
 PRDS_FILE_REPO = "docs/prd"

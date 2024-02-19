@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 # @Desc   : Google Gemini LLM from https://ai.google.dev/tutorials/python_quickstart
 
+from typing import Optional, Union
+
 import google.generativeai as genai
 from google.ai import generativelanguage as glm
 from google.generativeai.generative_models import GenerativeModel
@@ -59,7 +61,7 @@ class GeminiLLM(BaseLLM):
     def __init_gemini(self, config: LLMConfig):
         genai.configure(api_key=config.api_key)
 
-    def _user_msg(self, msg: str) -> dict[str, str]:
+    def _user_msg(self, msg: str, images: Optional[Union[str, list[str]]] = None) -> dict[str, str]:
         # Not to change BaseLLM default functions but update with Gemini's conversation format.
         # You should follow the format.
         return {"role": "user", "parts": [msg]}

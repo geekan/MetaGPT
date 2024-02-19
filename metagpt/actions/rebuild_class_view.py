@@ -46,9 +46,6 @@ class RebuildClassView(Action):
         Args:
             with_messages (Optional[Type]): An optional argument specifying messages to react to.
             format (str): The format for the prompt schema.
-
-        Returns:
-            None
         """
         graph_repo_pathname = self.context.git_repo.workdir / GRAPH_REPO_FILE_REPO / self.context.git_repo.workdir.name
         self.graph_db = await DiGraphRepository.load_from(str(graph_repo_pathname.with_suffix(".json")))
@@ -72,11 +69,8 @@ class RebuildClassView(Action):
         """Creates a Mermaid class diagram using data from the `graph_db` graph repository.
 
         This method utilizes information stored in the graph repository to generate a Mermaid class diagram.
-
-        Returns:
-            None
         """
-        path = Path(self.context.git_repo.workdir) / DATA_API_DESIGN_FILE_REPO
+        path = self.context.git_repo.workdir / DATA_API_DESIGN_FILE_REPO
         path.mkdir(parents=True, exist_ok=True)
         pathname = path / self.context.git_repo.workdir.name
         async with aiofiles.open(str(pathname.with_suffix(".mmd")), mode="w", encoding="utf-8") as writer:
