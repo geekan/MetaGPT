@@ -5,6 +5,7 @@
 @Author  : mashenquan
 @File    : rebuild_class_view.py
 @Desc    : Reconstructs class diagram from a source code project.
+    Implement RFC197, https://deepwisdom.feishu.cn/wiki/VyK0wfq56ivuvjklMKJcmHQknGt
 """
 
 from pathlib import Path
@@ -65,15 +66,18 @@ class RebuildClassView(Action):
         await self._create_mermaid_class_views()
         await self.graph_db.save()
 
-    async def _create_mermaid_class_views(self):
+    async def _create_mermaid_class_views(self) -> str:
         """Creates a Mermaid class diagram using data from the `graph_db` graph repository.
 
         This method utilizes information stored in the graph repository to generate a Mermaid class diagram.
+        Returns:
+            mermaid class diagram file name.
         """
         path = self.context.git_repo.workdir / DATA_API_DESIGN_FILE_REPO
         path.mkdir(parents=True, exist_ok=True)
         pathname = path / self.context.git_repo.workdir.name
-        async with aiofiles.open(str(pathname.with_suffix(".mmd")), mode="w", encoding="utf-8") as writer:
+        filename = str(pathname.with_suffix(".mmd"))
+        async with aiofiles.open(filename, mode="w", encoding="utf-8") as writer:
             content = "classDiagram\n"
             logger.debug(content)
             await writer.write(content)
@@ -93,6 +97,14 @@ class RebuildClassView(Action):
                     await writer.write(content)
                     relationship_distinct.update(distinct)
         logger.info(f"classes: {len(class_distinct)}, relationship: {len(relationship_distinct)}")
+
+        if self.i_context:
+            r_filename = Path(filename).relative_to(self.context.git_repo.workdir)
+            await self.graph_db.insert(
+                subject=self.i_context, predicate="hasMermaidClassDiagramFile", object_=str(r_filename)
+            )
+            logger.info(f"{self.i_context} hasMermaidClassDiagramFile {filename}")
+        return filename
 
     async def _create_mermaid_class(self, ns_class_name) -> str:
         """Generates a Mermaid class diagram for a specific class using data from the `graph_db` graph repository.

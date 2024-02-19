@@ -773,4 +773,6 @@ class UMLClassView(UMLClassMeta):
             for j in i.args:
                 arg = UMLClassAttribute(name=j.name, value_type=j.type_, default_value=j.default_)
                 method.args.append(arg)
+            method.return_type = i.return_args.type_
+            class_view.methods.append(method)
         return class_view

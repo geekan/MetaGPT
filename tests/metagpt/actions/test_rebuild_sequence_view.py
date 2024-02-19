@@ -40,7 +40,9 @@ async def test_rebuild(context, mocker):
 
     action = RebuildSequenceView(
         name="RedBean",
-        i_context=str(Path(__file__).parent.parent.parent.parent / "metagpt"),
+        i_context=str(
+            Path(__file__).parent.parent.parent.parent / "metagpt/management/skill_manager.py:__name__:__main__"
+        ),
         llm=LLM(),
         context=context,
     )

@@ -950,12 +950,10 @@ class RepoParser(BaseModel):
 
         for c in class_views:
             c.package = RepoParser._repair_ns(c.package, new_mappings)
-        for i in range(len(relationship_views)):
-            v = relationship_views[i]
+        for _, v in enumerate(relationship_views):
             v.src = RepoParser._repair_ns(v.src, new_mappings)
             v.dest = RepoParser._repair_ns(v.dest, new_mappings)
-            relationship_views[i] = v
-        return class_views, relationship_views, root_path
+        return class_views, relationship_views, str(path)[: len(root_path)]
 
     @staticmethod
     def _repair_ns(package: str, mappings: Dict[str, str]) -> str:

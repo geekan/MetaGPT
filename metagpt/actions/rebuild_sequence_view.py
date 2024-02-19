@@ -5,6 +5,7 @@
 @Author  : mashenquan
 @File    : rebuild_sequence_view.py
 @Desc    : Reconstruct sequence view information through reverse engineering.
+    Implement RFC197, https://deepwisdom.feishu.cn/wiki/VyK0wfq56ivuvjklMKJcmHQknGt
 """
 from __future__ import annotations
 
@@ -93,7 +94,10 @@ class RebuildSequenceView(Action):
         """
         graph_repo_pathname = self.context.git_repo.workdir / GRAPH_REPO_FILE_REPO / self.context.git_repo.workdir.name
         self.graph_db = await DiGraphRepository.load_from(str(graph_repo_pathname.with_suffix(".json")))
-        entries = await self._search_main_entry()
+        if not self.i_context:
+            entries = await self._search_main_entry()
+        else:
+            entries = [SPO(subject=self.i_context, predicate="", object_="")]
         for entry in entries:
             await self._rebuild_main_sequence_view(entry)
             while await self._merge_sequence_view(entry):
@@ -139,7 +143,7 @@ class RebuildSequenceView(Action):
         use_case_blocks = []
         for c in classes:
             use_cases = await self._get_class_use_cases(c.subject)
-            use_case_blocks.extend(use_cases)
+            use_case_blocks.append(use_cases)
         prompt_blocks = ["## Use Cases\n" + "\n".join(use_case_blocks)]
         block = "## Participants\n"
         for p in participants:
@@ -238,6 +242,15 @@ class RebuildSequenceView(Action):
         class_view = await self._get_uml_class_view(ns_class_name)
         source_code = await self._get_source_code(ns_class_name)
 
+        # prompt_blocks = [
+        #     "## Instruction\n"
+        #     "You are a python code to UML 2.0 Use Case translator.\n"
+        #     'The generated UML 2.0 Use Case must include the roles or entities listed in "Participants".\n'
+        #     "The functional descriptions of Actors and Use Cases in the generated UML 2.0 Use Case must not "
+        #     'conflict with the information in "Mermaid Class Views".\n'
+        #     'The section under `if __name__ == "__main__":` of "Source Code" contains information about external '
+        #     "system interactions with the internal system.\n"
+        # ]
         prompt_blocks = []
         block = "## Participants\n"
         for p in participants:
@@ -252,6 +265,38 @@ class RebuildSequenceView(Action):
         block += "\n```\n"
         prompt_blocks.append(block)
         prompt = "\n---\n".join(prompt_blocks)
+
+        # class _UseCase(BaseModel):
+        #     description: str = Field(default="...", description="Describes about what the use case to do")
+        #     inputs: List[str] = Field(default=["input name 1", "input name 2"],
+        #                               description="Lists the input names of the use case from external sources")
+        #     outputs: List[str] = Field(default=["output name 1", "output name 2"],
+        #                                description="Lists the output names of the use case to external sources")
+        #     actors: List[str] = Field(default=["actor name 1", "actor name 2"],
+        #                               description="Lists the participant actors of the use case")
+        #     steps: List[str] = Field(default=["Step 1", "Step 2"],
+        #                              description="Lists the steps about how the use case works step by step")
+        #     reason: str = Field(default="Because ...",
+        #                         description="Explaining under what circumstances would the external system execute this use case.")
+        #
+        #
+        # class _UseCaseList(BaseModel):
+        #     description: str = Field(default="...",
+        #                              description="A summary explains what the whole source code want to do")
+        #     use_cases: List[_UseCase] = Field(default=[
+        #         {
+        #             "description": "Describes about what the use case to do",
+        #             "inputs": ["input name 1", "input name 2"],
+        #             "outputs": ["output name 1", "output name 2"],
+        #             "actors": ["actor name 1", "actor name 2"],
+        #             "steps": ["Step 1", "Step 2"],
+        #             "reason": "Because ..."
+        #         }
+        #                                                ], description="List all use cases.")
+        #     relationship: List[str] = Field(default=["use case 1 ..."],
+        #                                     description="Lists all the descriptions of relationship among these use cases")
+
+        # rsp = await ActionNode.from_pydantic(_UseCaseList).fill(context=prompt, llm=self.llm)
 
         rsp = await self.llm.aask(
             msg=prompt,
@@ -452,6 +497,8 @@ class RebuildSequenceView(Action):
             "metagpt/management/skill_manager.py", then the returned value will be
             "/User/xxx/github/MetaGPT/metagpt/management/skill_manager.py"
         """
+        if re.match(r"^/.+", pathname):
+            return pathname
         files = list_files(root=root)
         postfix = "/" + str(pathname)
         for i in files:
