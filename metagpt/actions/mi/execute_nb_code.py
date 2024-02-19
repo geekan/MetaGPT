@@ -215,20 +215,21 @@ def truncate(result: str, keep_len: int = 2000, is_success: bool = True):
 
 
 def remove_escape_and_color_codes(input_str: str):
-    # 使用正则表达式去除转义字符和颜色代码
+    # 使用正则表达式去除jupyter notebook输出结果中的转义字符和颜色代码
+    # Use regular expressions to get rid of escape characters and color codes in jupyter notebook output.
     pattern = re.compile(r"\x1b\[[0-9;]*[mK]")
     result = pattern.sub("", input_str)
     return result
 
 
 def display_markdown(content: str):
-    # 使用正则表达式逐个匹配代码块
+    # Use regular expressions to match blocks of code one by one.
     matches = re.finditer(r"```(.+?)```", content, re.DOTALL)
     start_index = 0
     content_panels = []
-    # 文本背景色和文字颜色设置
+    # Set the text background color and text color.
     style = "black on white"
-    # 逐个打印匹配到的文本和代码
+    # Print the matching text and code one by one.
     for match in matches:
         text_content = content[start_index : match.start()].strip()
         code_content = match.group(0).strip()[3:-3]  # Remove triple backticks
@@ -240,12 +241,12 @@ def display_markdown(content: str):
             content_panels.append(Panel(Markdown(f"```{code_content}"), style=style, box=MINIMAL))
         start_index = match.end()
 
-    # 打印剩余文本（如果有）
+    # Print remaining text (if any).
     remaining_text = content[start_index:].strip()
     if remaining_text:
         content_panels.append(Panel(Markdown(remaining_text), style=style, box=MINIMAL))
 
-    # 在Live模式中显示所有Panel
+    # Display all panels in Live mode.
     with Live(auto_refresh=False, console=Console(), vertical_overflow="visible") as live:
         live.update(Group(*content_panels))
         live.refresh()
