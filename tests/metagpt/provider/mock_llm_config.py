@@ -42,3 +42,10 @@ mock_llm_config_zhipu = LLMConfig(
     model="mock_zhipu_model",
     proxy="http://localhost:8080",
 )
+
+mock_llm_config_openailike = LLMConfig(
+    api_type= "openai_like",
+    base_url= "https://api.moonshot.cn/v1",
+    api_key="mock_api_key.moonshot",
+    model="moonshot-v1-8k"
+)
