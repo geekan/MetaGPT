@@ -9,7 +9,7 @@ async def main():
     stores = "examples/mi/data/WalmartSalesForecast/stores.csv"
 
     prompt = f"""
-    # Aim
+    # Goal
     Use time series regression machine learning to make predictions for Dept sales of the stores as accurate as possible.
 
     # Datasets Available
