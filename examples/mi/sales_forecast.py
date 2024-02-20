@@ -24,7 +24,9 @@ async def main():
 
     # Notice
     - *print* key variables to get more information for next task step.
+    - Perform data analysis by plotting sales trends, holiday effects, distribution of sales across stores/departments using box/violin on the train data.
     - Make sure the DataFrame.dtypes must be int, float or bool, and drop date column.
+    - Plot scatter plots of  groud truth and predictions on test data.
     """
     # it will be better if autogloun had been installed. https://auto.gluon.ai/stable/install.html
     mi = Interpreter(use_tools=True)
