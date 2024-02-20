@@ -122,7 +122,7 @@ class Planner(BaseModel):
         )  # "confirm, ... (more content, such as changing downstream tasks)"
         if confirmed_and_more:
             self.working_memory.add(Message(content=review, role="user", cause_by=AskReview))
-            await self.update_plan(review)
+            await self.update_plan()
 
     def get_useful_memories(self, task_exclude_field=None) -> list[Message]:
         """find useful memories only to reduce context length and improve performance"""
