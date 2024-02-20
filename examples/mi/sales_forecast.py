@@ -19,7 +19,7 @@ async def main():
     - stores data: {stores}, merge on train, test data.
 
     # Metric
-    The metric of the competition is Mean Absolute Percentage Error (MAPE).
+    The metric of the competition is weighted mean absolute error (WMAE) for test data.
 
     # Notice
     - *print* key variables to get more information for next task step.
