@@ -193,7 +193,7 @@ class TestGetProjectRoot:
 
     @pytest.mark.asyncio
     async def test_read_file_block(self):
-        assert await read_file_block(filename=__file__, lineno=6, end_lineno=6) == "@File    : test_common.py\n"
+        assert await read_file_block(filename=__file__, lineno=5, end_lineno=5) == "# @File    : test_common.py\n"
 
     @pytest.mark.asyncio
     async def test_read_write(self):
