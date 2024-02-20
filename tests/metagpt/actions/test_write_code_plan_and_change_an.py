@@ -50,7 +50,8 @@ async def test_write_code_plan_and_change_an(mocker):
     )
     node = await WriteCodePlanAndChange(i_context=code_plan_and_change_context).run()
 
-    assert "Code Plan And Change" in node.instruct_content.model_dump()
+    assert "Development Plan" in node.instruct_content.model_dump()
+    assert "Incremental Change" in node.instruct_content.model_dump()
 
 
 @pytest.mark.asyncio

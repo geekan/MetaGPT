@@ -17,14 +17,13 @@ from metagpt.schema import CodePlanAndChangeContext
 
 DEVELOPMENT_PLAN = ActionNode(
     key="Development Plan",
-    expected_type=str,
+    expected_type=List[str],
     instruction="Develop a comprehensive and step-by-step incremental development plan, providing the detail "
     "changes to be implemented at each step based on the order of 'Task List'",
-    example="""To implement the new feature, we will create/change/update the methods in the calculator to support subtraction, multiplication, and division operations. 
-\nSteps to be followed:\n
-1. Enhance the functionality of `calculator.py` by extending it to incorporate methods for subtraction, multiplication, and division. Also, the ...
-2. Integrate new API endpoints for subtraction, multiplication, and division into the existing codebase of `main.py`. Then, ensure ...
-3. ...""",
+    example=[
+        "Enhance the functionality of `calculator.py` by extending it to incorporate methods for subtraction, ...",
+        "Update the existing codebase in main.py to incorporate new API endpoints for subtraction, ...",
+    ],
 )
 
 INCREMENTAL_CHANGE = ActionNode(
@@ -189,16 +188,16 @@ Role: You are a professional engineer; The main goal is to complete incremental 
 2. COMPLETE CODE: Your code will be part of the entire project, so please implement complete, reliable, reusable code snippets.
 3. Set default value: If there is any setting, ALWAYS SET A DEFAULT VALUE, ALWAYS USE STRONG TYPE AND EXPLICIT VARIABLE. AVOID circular import.
 4. Follow design: YOU MUST FOLLOW "Data structures and interfaces". DONT CHANGE ANY DESIGN. Do not use public member functions that do not exist in your design.
-5. Follow Code Plan And Change: If there is any Incremental Change that is marked by the git diff format using '+' and '-' for add/modify/delete code, or Legacy Code files contain "{filename} to be rewritten", you must merge it into the code file according to the plan. 
+5. Follow Code Plan And Change: If there is any "Incremental Change" that is marked by the git diff format with '+' and '-' symbols, or Legacy Code files contain "{filename} to be rewritten", you must merge it into the code file according to the "Development Plan". 
 6. CAREFULLY CHECK THAT YOU DONT MISS ANY NECESSARY CLASS/FUNCTION IN THIS FILE.
 7. Before using a external variable/module, make sure you import it first.
 8. Write out EVERY CODE DETAIL, DON'T LEAVE TODO.
 9. Attention: Retain details that are not related to incremental development but are important for maintaining the consistency and clarity of the old code.
 """
 
-WRITE_CODE_PLAN_AND_CHANGE_NODE = ActionNode.from_children(
-    "WriteCodePlanAndChange", [DEVELOPMENT_PLAN, INCREMENTAL_CHANGE]
-)
+CODE_PLAN_AND_CHANGE = [DEVELOPMENT_PLAN, INCREMENTAL_CHANGE]
+
+WRITE_CODE_PLAN_AND_CHANGE_NODE = ActionNode.from_children("WriteCodePlanAndChange", CODE_PLAN_AND_CHANGE)
 
 
 class WriteCodePlanAndChange(Action):
