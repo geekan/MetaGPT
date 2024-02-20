@@ -38,5 +38,6 @@ class SimpleHybridRetriever(RAGRetriever):
         return result
 
     def add_nodes(self, nodes: list[BaseNode]):
+        """Support add nodes"""
         for r in self.retrievers:
             r.add_nodes(nodes)

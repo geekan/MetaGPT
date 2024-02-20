@@ -92,7 +92,7 @@ class RAGExample:
             tool: str = "Red Bull Energy Drink"
 
             def rag_key(self) -> str:
-                return "100m Sprint"
+                return self.goal
 
         foo = Player(name="foo")
         question = f"{foo.rag_key()}"
@@ -106,7 +106,7 @@ class RAGExample:
 
         print("[Object Detail]")
         player: Player = nodes[0].metadata["obj"]
-        print(f"{player.model_dump()}")
+        print(player)
 
     @staticmethod
     def _print_title(title):

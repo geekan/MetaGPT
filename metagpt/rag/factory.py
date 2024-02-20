@@ -28,16 +28,11 @@ class BaseFactory:
     """
 
     def __init__(self, creators: dict[Any, Callable]):
-        """
-        Creators is a dictionary mapping configuration types to creator functions.
-        The first arg of Creator function should be config.
-        """
+        """Creators is a dictionary mapping configuration types to creator functions."""
         self.creators = creators
 
     def get_instances(self, configs: list[Any] = None, **kwargs) -> list[Any]:
-        if not configs:
-            return [self._default_instance(**kwargs)]
-
+        """Get instances by configs"""
         return [self._get_instance(config, **kwargs) for config in configs]
 
     def _get_instance(self, config: Any, **kwargs) -> Any:
@@ -47,13 +42,11 @@ class BaseFactory:
 
         raise ValueError(f"Unknown config: {config}")
 
-    def _default_instance(self, **kwargs) -> Any:
-        raise NotImplementedError("This method should be implemented by subclasses.")
-
 
 class RetrieverFactory(BaseFactory):
+    """Modify creators for dynamically instance implementation"""
+
     def __init__(self):
-        # Dynamically add configuration and corresponding instance implementation.
         creators = {
             FAISSRetrieverConfig: self._create_faiss_retriever,
             BM25RetrieverConfig: self._create_bm25_retriever,
@@ -61,7 +54,12 @@ class RetrieverFactory(BaseFactory):
         super().__init__(creators)
 
     def get_retriever(self, index: BaseIndex, configs: list[RetrieverConfigType] = None) -> RAGRetriever:
-        """Creates and returns a retriever instance based on the provided configurations."""
+        """Creates and returns a retriever instance based on the provided configurations.
+        If multiple retrievers, using SimpleHybridRetriever
+        """
+        if not configs:
+            return self._default_instance(index)
+
         retrievers = super().get_instances(configs, index=index)
 
         return (
@@ -73,7 +71,7 @@ class RetrieverFactory(BaseFactory):
     def _default_instance(self, index: BaseIndex) -> RAGRetriever:
         return index.as_retriever()
 
-    def _create_faiss_retriever(self, config: FAISSRetrieverConfig, index: BaseIndex, **kwargs) -> FAISSRetriever:
+    def _create_faiss_retriever(self, config: FAISSRetrieverConfig, index: BaseIndex) -> FAISSRetriever:
         vector_store = FaissVectorStore(faiss_index=faiss.IndexFlatL2(config.dimensions))
         storage_context = StorageContext.from_defaults(vector_store=vector_store)
         vector_index = VectorStoreIndex(
@@ -83,13 +81,14 @@ class RetrieverFactory(BaseFactory):
         )
         return FAISSRetriever(**config.model_dump(), index=vector_index)
 
-    def _create_bm25_retriever(self, config: BM25RetrieverConfig, index: BaseIndex, **kwargs) -> DynamicBM25Retriever:
+    def _create_bm25_retriever(self, config: BM25RetrieverConfig, index: BaseIndex) -> DynamicBM25Retriever:
         return DynamicBM25Retriever.from_defaults(**config.model_dump(), index=index)
 
 
 class RankerFactory(BaseFactory):
+    """Modify creators for dynamically instance implementation"""
+
     def __init__(self):
-        # Dynamically add configuration and corresponding instance implementation.
         creators = {
             LLMRankerConfig: self._create_llm_ranker,
         }
@@ -98,12 +97,16 @@ class RankerFactory(BaseFactory):
     def get_rankers(
         self, configs: list[RankerConfigType] = None, service_context: ServiceContext = None
     ) -> list[BaseNodePostprocessor]:
+        """Creates and returns a retriever instance based on the provided configurations."""
+        if not configs:
+            return [self._default_instance(service_context)]
+
         return super().get_instances(configs, service_context=service_context)
 
-    def _default_instance(self, service_context: ServiceContext = None) -> LLMRerank:
+    def _default_instance(self, service_context: ServiceContext) -> LLMRerank:
         return LLMRerank(top_n=LLMRankerConfig().top_n, service_context=service_context)
 
-    def _create_llm_ranker(self, config: LLMRankerConfig, service_context=None, **kwargs) -> LLMRerank:
+    def _create_llm_ranker(self, config: LLMRankerConfig, service_context: ServiceContext = None) -> LLMRerank:
         return LLMRerank(**config.model_dump(), service_context=service_context)
 
 

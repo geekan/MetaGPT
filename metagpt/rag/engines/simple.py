@@ -87,9 +87,9 @@ class SimpleEngine(RetrieverQueryEngine):
         """Inplement tools.SearchInterface"""
         return await self.aquery(content)
 
-    async def aretrieve(self, query: QueryType) -> list[NodeWithScore]:
+    async def aretrieve(self, query_bundle: QueryType) -> list[NodeWithScore]:
         """Allow query to be str"""
-        query_bundle = QueryBundle(query) if isinstance(query, str) else query
+        query_bundle = QueryBundle(query_bundle) if isinstance(query_bundle, str) else query_bundle
         return await super().aretrieve(query_bundle)
 
     def add_docs(self, input_files: list[str]):
@@ -104,7 +104,7 @@ class SimpleEngine(RetrieverQueryEngine):
         """Adds objects to the retriever, storing each object's original form in metadata for future reference."""
         self._ensure_retriever_modifiable()
 
-        nodes = [TextNode(text=obj.rag_key(), metadata={"obj": obj}) for obj in objs]
+        nodes = [TextNode(text=obj.rag_key(), metadata={"obj": obj.model_dump()}) for obj in objs]
         self.retriever.add_nodes(nodes)
 
     def _ensure_retriever_modifiable(self):

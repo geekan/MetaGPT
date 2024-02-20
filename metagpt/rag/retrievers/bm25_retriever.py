@@ -1,9 +1,13 @@
+"""BM25 retriever."""
 from llama_index.retrievers import BM25Retriever
 from llama_index.schema import BaseNode
 
 
 class DynamicBM25Retriever(BM25Retriever):
+    """BM25 retriever."""
+
     def add_nodes(self, nodes: list[BaseNode], **kwargs):
+        """Support add nodes"""
         try:
             from rank_bm25 import BM25Okapi
         except ImportError:
