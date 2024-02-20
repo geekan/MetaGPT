@@ -23,7 +23,7 @@ async def main():
 
     # Notice
     - *print* key variables to get more information for next task step.
-    - Make sure the DataFrame.dtypes can be accepted by model, such as lgbm, so data dtypes must be int, float or bool, and drop date column.
+    - Make sure the DataFrame.dtypes must be int, float or bool, and drop date column.
     """
     mi = Interpreter(use_tools=True)
 
