@@ -9,7 +9,7 @@ from openai.types.completion_usage import CompletionUsage
 from metagpt.provider.openai_like_api import OpenAILIKELLM
 from tests.metagpt.provider.mock_llm_config import mock_llm_config_openailike
 
-resp_content = ' 1\n2\n3\n4\n5\n6\n7\n8\n9\n10'
+resp_content = " 1\n2\n3\n4\n5\n6\n7\n8\n9\n10"
 default_resp = ChatCompletion(
     id='cmpl-ae9688c1d46b4ed28f6ef53e06152121',
     choices=[
@@ -38,7 +38,7 @@ async def test_openai_like_acompletion():
     resp = await llm.acompletion_text(hello_msg, stream=False)
     assert resp == resp_content
 
-    resp = await llm.acompletion_text(hello_msg,stream=True)
+    resp = await llm.acompletion_text(hello_msg, stream=True)
     assert  resp == resp_content
 
 
