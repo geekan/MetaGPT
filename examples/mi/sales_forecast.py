@@ -3,10 +3,11 @@ from metagpt.roles.mi.interpreter import Interpreter
 
 async def main():
     # data from https://www.kaggle.com/datasets/aslanahmedov/walmart-sales-forecast/data
-    train_data = "examples/mi/data/WalmartSalesForecast/new_train.csv"
-    test_data = "examples/mi/data/WalmartSalesForecast/new_test.csv"
-    features = "examples/mi/data/WalmartSalesForecast/features.csv"
-    stores = "examples/mi/data/WalmartSalesForecast/stores.csv"
+    data_dir = "examples/mi/data/WalmartSalesForecast"
+    train_data = f"{data_dir}/new_train.csv"
+    test_data = f"{data_dir}/new_test.csv"
+    features = f"{data_dir}/features.csv"
+    stores = f"{data_dir}/stores.csv"
 
     prompt = f"""
     # Goal
