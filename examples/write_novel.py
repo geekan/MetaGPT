@@ -54,7 +54,7 @@ async def generate_novel():
     chap_node = await ActionNode.from_pydantic(Chapters).fill(
         context=f"### instruction\n{instruction}\n### novel\n{novel_node.content}", llm=LLM()
     )
-    print(chap_node.content)
+    print(chap_node.instruct_content)
 
 
 asyncio.run(generate_novel())
