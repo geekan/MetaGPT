@@ -53,6 +53,7 @@ class BaseFactory:
 
 class RetrieverFactory(BaseFactory):
     def __init__(self):
+        # Dynamically add configuration and corresponding instance implementation.
         creators = {
             FAISSRetrieverConfig: self._create_faiss_retriever,
             BM25RetrieverConfig: self._create_bm25_retriever,
@@ -88,6 +89,7 @@ class RetrieverFactory(BaseFactory):
 
 class RankerFactory(BaseFactory):
     def __init__(self):
+        # Dynamically add configuration and corresponding instance implementation.
         creators = {
             LLMRankerConfig: self._create_llm_ranker,
         }

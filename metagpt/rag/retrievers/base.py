@@ -6,6 +6,8 @@ from abc import abstractmethod
 from llama_index.retrievers import BaseRetriever
 from llama_index.schema import BaseNode, NodeWithScore, QueryType
 
+from metagpt.utils.reflection import check_methods
+
 
 class RAGRetriever(BaseRetriever):
     """Inherit from llama_index"""
@@ -23,8 +25,8 @@ class ModifiableRAGRetriever(RAGRetriever):
 
     @classmethod
     def __subclasshook__(cls, C):
-        if any("add_nodes" in B.__dict__ for B in C.__mro__):
-            return True
+        if cls is ModifiableRAGRetriever:
+            return check_methods(C, "add_nodes")
         return NotImplemented
 
     @abstractmethod

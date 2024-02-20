@@ -25,5 +25,6 @@ class LLMRankerConfig(RankerConfig):
     ...
 
 
+# If add new config, it is necessary to add the corresponding instance implementation in rag.factory
 RetrieverConfigType = Union[FAISSRetrieverConfig, BM25RetrieverConfig]
 RankerConfigType = LLMRankerConfig
