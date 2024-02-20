@@ -13,6 +13,7 @@ import re
 import uuid
 from typing import Callable
 
+import aiohttp.web
 import pytest
 
 from metagpt.const import DEFAULT_WORKSPACE_ROOT, TEST_DATA_PATH
@@ -37,14 +38,14 @@ def rsp_cache():
     rsp_cache_file_path = TEST_DATA_PATH / "rsp_cache.json"  # read repo-provided
     new_rsp_cache_file_path = TEST_DATA_PATH / "rsp_cache_new.json"  # exporting a new copy
     if os.path.exists(rsp_cache_file_path):
-        with open(rsp_cache_file_path, "r") as f1:
+        with open(rsp_cache_file_path, "r", encoding="utf-8") as f1:
             rsp_cache_json = json.load(f1)
     else:
         rsp_cache_json = {}
     yield rsp_cache_json
-    with open(rsp_cache_file_path, "w") as f2:
+    with open(rsp_cache_file_path, "w", encoding="utf-8") as f2:
         json.dump(rsp_cache_json, f2, indent=4, ensure_ascii=False)
-    with open(new_rsp_cache_file_path, "w") as f2:
+    with open(new_rsp_cache_file_path, "w", encoding="utf-8") as f2:
         json.dump(RSP_CACHE_NEW, f2, indent=4, ensure_ascii=False)
 
 
@@ -63,6 +64,7 @@ def llm_mock(rsp_cache, mocker, request):
     llm.rsp_cache = rsp_cache
     mocker.patch("metagpt.provider.base_llm.BaseLLM.aask", llm.aask)
     mocker.patch("metagpt.provider.base_llm.BaseLLM.aask_batch", llm.aask_batch)
+    mocker.patch("metagpt.provider.openai_api.OpenAILLM.aask_code", llm.aask_code)
     yield mocker
     if hasattr(request.node, "test_outcome") and request.node.test_outcome.passed:
         if llm.rsp_candidates:
@@ -70,7 +72,7 @@ def llm_mock(rsp_cache, mocker, request):
                 cand_key = list(rsp_candidate.keys())[0]
                 cand_value = list(rsp_candidate.values())[0]
                 if cand_key not in llm.rsp_cache:
-                    logger.info(f"Added '{cand_key[:100]} ... -> {cand_value[:20]} ...' to response cache")
+                    logger.info(f"Added '{cand_key[:100]} ... -> {str(cand_value)[:20]} ...' to response cache")
                     llm.rsp_cache.update(rsp_candidate)
                 RSP_CACHE_NEW.update(rsp_candidate)
 
@@ -169,9 +171,8 @@ def new_filename(mocker):
     yield mocker
 
 
-@pytest.fixture(scope="session")
-def search_rsp_cache():
-    rsp_cache_file_path = TEST_DATA_PATH / "search_rsp_cache.json"  # read repo-provided
+def _rsp_cache(name):
+    rsp_cache_file_path = TEST_DATA_PATH / f"{name}.json"  # read repo-provided
     if os.path.exists(rsp_cache_file_path):
         with open(rsp_cache_file_path, "r") as f1:
             rsp_cache_json = json.load(f1)
@@ -180,6 +181,16 @@ def search_rsp_cache():
     yield rsp_cache_json
     with open(rsp_cache_file_path, "w") as f2:
         json.dump(rsp_cache_json, f2, indent=4, ensure_ascii=False)
+
+
+@pytest.fixture(scope="session")
+def search_rsp_cache():
+    yield from _rsp_cache("search_rsp_cache")
+
+
+@pytest.fixture(scope="session")
+def mermaid_rsp_cache():
+    yield from _rsp_cache("mermaid_rsp_cache")
 
 
 @pytest.fixture
@@ -228,4 +239,33 @@ def search_engine_mocker(aiohttp_mocker, curl_cffi_mocker, httplib2_mocker, sear
     check_funcs: dict[tuple[str, str], Callable[[dict], str]] = {}
     aiohttp_mocker.rsp_cache = httplib2_mocker.rsp_cache = curl_cffi_mocker.rsp_cache = search_rsp_cache
     aiohttp_mocker.check_funcs = httplib2_mocker.check_funcs = curl_cffi_mocker.check_funcs = check_funcs
+    yield check_funcs
+
+
+@pytest.fixture
+def http_server():
+    async def handler(request):
+        return aiohttp.web.Response(
+            text="""<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+            <title>MetaGPT</title></head><body><h1>MetaGPT</h1></body></html>""",
+            content_type="text/html",
+        )
+
+    async def start():
+        server = aiohttp.web.Server(handler)
+        runner = aiohttp.web.ServerRunner(server)
+        await runner.setup()
+        site = aiohttp.web.TCPSite(runner, "localhost", 0)
+        await site.start()
+        host, port = site._server.sockets[0].getsockname()
+        return site, f"http://{host}:{port}"
+
+    return start
+
+
+@pytest.fixture
+def mermaid_mocker(aiohttp_mocker, mermaid_rsp_cache):
+    check_funcs: dict[tuple[str, str], Callable[[dict], str]] = {}
+    aiohttp_mocker.rsp_cache = mermaid_rsp_cache
+    aiohttp_mocker.check_funcs = check_funcs
     yield check_funcs

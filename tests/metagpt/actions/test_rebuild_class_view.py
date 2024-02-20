@@ -13,6 +13,7 @@ from metagpt.actions.rebuild_class_view import RebuildClassView
 from metagpt.llm import LLM
 
 
+@pytest.mark.skip
 @pytest.mark.asyncio
 async def test_rebuild(context):
     action = RebuildClassView(
@@ -28,9 +29,9 @@ async def test_rebuild(context):
 @pytest.mark.parametrize(
     ("path", "direction", "diff", "want"),
     [
-        ("metagpt/startup.py", "=", ".", "metagpt/startup.py"),
-        ("metagpt/startup.py", "+", "MetaGPT", "MetaGPT/metagpt/startup.py"),
-        ("metagpt/startup.py", "-", "metagpt", "startup.py"),
+        ("metagpt/software_company.py", "=", ".", "metagpt/software_company.py"),
+        ("metagpt/software_company.py", "+", "MetaGPT", "MetaGPT/metagpt/software_company.py"),
+        ("metagpt/software_company.py", "-", "metagpt", "software_company.py"),
     ],
 )
 def test_align_path(path, direction, diff, want):

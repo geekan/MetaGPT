@@ -82,16 +82,9 @@ class GeneralAPIRequestor(APIRequestor):
     def _interpret_response(
         self, result: requests.Response, stream: bool
     ) -> Tuple[Union[bytes, Iterator[Generator]], bytes]:
-        """Interprets the response from a synchronous API request.
-
-        Args:
-            result: The response object from the requests library.
-            stream: A boolean indicating if the response is a stream.
-
-        Returns:
-            A tuple containing the interpreted response and a boolean indicating if it is a stream.
-        """
-        if stream and "text/event-stream" in result.headers.get("Content-Type", ""):
+        """Returns the response(s) and a bool indicating whether it is a stream."""
+        content_type = result.headers.get("Content-Type", "")
+        if stream and ("text/event-stream" in content_type or "application/x-ndjson" in content_type):
             return (
                 self._interpret_response_line(line, result.status_code, result.headers, stream=True)
                 for line in parse_stream(result.iter_lines())

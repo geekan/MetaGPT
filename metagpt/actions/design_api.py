@@ -178,4 +178,4 @@ class WriteDesign(Action):
             pathname: The Path object representing the file path where the mermaid file will be saved.
         """
         pathname.parent.mkdir(parents=True, exist_ok=True)
-        await mermaid_to_file(self.config.mermaid_engine, data, pathname)
+        await mermaid_to_file(self.config.mermaid.engine, data, pathname)

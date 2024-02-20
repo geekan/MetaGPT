@@ -164,7 +164,7 @@ class WritePRD(Action):
             return
         pathname = self.repo.workdir / COMPETITIVE_ANALYSIS_FILE_REPO / Path(prd_doc.filename).stem
         pathname.parent.mkdir(parents=True, exist_ok=True)
-        await mermaid_to_file(self.config.mermaid_engine, quadrant_chart, pathname)
+        await mermaid_to_file(self.config.mermaid.engine, quadrant_chart, pathname)
 
     async def _rename_workspace(self, prd):
         """Rename the workspace based on the project name."""

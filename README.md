@@ -26,6 +26,8 @@
 </p>
 
 ## News
+🚀 Feb. 08, 2024: [v0.7.0](https://github.com/geekan/MetaGPT/releases/tag/v0.7.0) released, supporting assigning different LLMs to different Roles. We also introduced [Interpreter](https://github.com/geekan/MetaGPT/blob/main/examples/mi/README.md), a powerful agent capable of solving a wide range of real-world problems.
+
 🚀 Jan. 16, 2024: Our paper [MetaGPT: Meta Programming for A Multi-Agent Collaborative Framework
 ](https://arxiv.org/abs/2308.00352) accepted for oral presentation **(top 1.2%)** at ICLR 2024, **ranking #1** in the LLM-based Agent category.
 
@@ -55,54 +57,45 @@
 
 ### Pip installation
 
+> Ensure that Python 3.9+ is installed on your system. You can check this by using: `python --version`.  
+> You can use conda like this: `conda create -n metagpt python=3.9 && conda activate metagpt`
+
 ```bash
-# Step 1: Ensure that Python 3.9+ is installed on your system. You can check this by using:
-# You can use conda to initialize a new python env
-#     conda create -n metagpt python=3.9
-#     conda activate metagpt
-python3 --version
+pip install metagpt
+# https://docs.deepwisdom.ai/main/en/guide/get_started/configuration.html
+metagpt --init-config  # it will create ~/.metagpt/config2.yaml, just modify it to your needs
+```
 
-# Step 2: Clone the repository to your local machine for latest version, and install it.
-git clone https://github.com/geekan/MetaGPT.git
-cd MetaGPT
-pip3 install -e .     # or pip3 install metagpt  # for stable version
+### Configuration
 
-# Step 3: setup your OPENAI_API_KEY, or make sure it existed in the env
-mkdir ~/.metagpt
-cp config/config.yaml ~/.metagpt/config.yaml
-vim ~/.metagpt/config.yaml
+You can configure `~/.metagpt/config2.yaml` according to the [example](https://github.com/geekan/MetaGPT/blob/main/config/config2.example.yaml) and [doc](https://docs.deepwisdom.ai/main/en/guide/get_started/configuration.html):
 
-# Step 4: run metagpt cli
-metagpt "Create a 2048 game in python"
+```yaml
+llm:
+  api_type: "openai"  # or azure / ollama / open_llm etc. Check LLMType for more options
+  model: "gpt-4-turbo-preview"  # or gpt-3.5-turbo-1106 / gpt-4-1106-preview
+  base_url: "https://api.openai.com/v1"  # or forward url / other llm url
+  api_key: "YOUR_API_KEY"
+```
 
-# Step 5 [Optional]: If you want to save the artifacts like diagrams such as quadrant chart, system designs, sequence flow in the workspace, you can execute the step before Step 3. By default, the framework is compatible, and the entire process can be run completely without executing this step.
-# If executing, ensure that NPM is installed on your system. Then install mermaid-js. (If you don't have npm in your computer, please go to the Node.js official website to install Node.js https://nodejs.org/ and then you will have npm tool in your computer.)
-npm --version
-sudo npm install -g @mermaid-js/mermaid-cli
+### Usage
+
+After installation, you can use it as CLI
+
+```bash
+metagpt "Create a 2048 game"  # this will create a repo in ./workspace
+```
+
+or you can use it as library
+
+```python
+from metagpt.software_company import generate_repo, ProjectRepo
+repo: ProjectRepo = generate_repo("Create a 2048 game")  # or ProjectRepo("<path>")
+print(repo)  # it will print the repo structure with files
 ```
 
 detail installation please refer to [cli_install](https://docs.deepwisdom.ai/main/en/guide/get_started/installation.html#install-stable-version)
-
-### Docker installation
-> Note: In the Windows, you need to replace "/opt/metagpt" with a directory that Docker has permission to create, such as "D:\Users\x\metagpt"
-
-```bash
-# Step 1: Download metagpt official image and prepare config.yaml
-docker pull metagpt/metagpt:latest
-mkdir -p /opt/metagpt/{config,workspace}
-docker run --rm metagpt/metagpt:latest cat /app/metagpt/config/config.yaml > /opt/metagpt/config/key.yaml
-vim /opt/metagpt/config/key.yaml # Change the config
-
-# Step 2: Run metagpt demo with container
-docker run --rm \
-    --privileged \
-    -v /opt/metagpt/config/key.yaml:/app/metagpt/config/key.yaml \
-    -v /opt/metagpt/workspace:/app/metagpt/workspace \
-    metagpt/metagpt:latest \
-    metagpt "Write a cli snake game"
-```
-
-detail installation please refer to [docker_install](https://docs.deepwisdom.ai/main/en/guide/get_started/installation.html#install-with-docker)
+ or [docker_install](https://docs.deepwisdom.ai/main/en/guide/get_started/installation.html#install-with-docker)
 
 ### QuickStart & Demo Video
 - Try it on [MetaGPT Huggingface Space](https://huggingface.co/spaces/deepwisdom/MetaGPT)

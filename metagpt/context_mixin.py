@@ -6,7 +6,7 @@
 
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from metagpt.config2 import Config
 from metagpt.context import Context
@@ -27,7 +27,7 @@ class ContextMixin(BaseModel):
         private_llm: An optional BaseLLM instance, not included in the model's serialization.
     """
 
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+    model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
 
     # Pydantic has bug on _private_attr when using inheritance, so we use private_* instead
     # - https://github.com/pydantic/pydantic/issues/7142
@@ -42,24 +42,17 @@ class ContextMixin(BaseModel):
     # Env/Role/Action will use this llm as private llm, or use self.context._llm instance
     private_llm: Optional[BaseLLM] = Field(default=None, exclude=True)
 
-    def __init__(
-        self,
-        context: Optional[Context] = None,
-        config: Optional[Config] = None,
-        llm: Optional[BaseLLM] = None,
-        **kwargs,
-    ):
-        """Initialize the mixin with optional context, config, and llm instances.
+    @model_validator(mode="after")
+    def validate_context_mixin_extra(self):
+        self._process_context_mixin_extra()
+        return self
 
-        Args:
-            context: An optional Context instance to initialize with.
-            config: An optional Config instance to initialize with.
-            llm: An optional BaseLLM instance to initialize with.
-        """
-        super().__init__(**kwargs)
-        self.set_context(context)
-        self.set_config(config)
-        self.set_llm(llm)
+    def _process_context_mixin_extra(self):
+        """Process the extra field"""
+        kwargs = self.model_extra or {}
+        self.set_context(kwargs.pop("context", None))
+        self.set_config(kwargs.pop("config", None))
+        self.set_llm(kwargs.pop("llm", None))
 
     def set(self, k, v, override=False):
         """Set an attribute on the instance.

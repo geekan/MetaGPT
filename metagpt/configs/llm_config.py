@@ -132,5 +132,5 @@ class LLMConfig(YamlModel):
             The validated API key.
         """
         if v in ["", None, "YOUR_API_KEY"]:
-            raise ValueError("Please set your API key in config.yaml")
+            raise ValueError("Please set your API key in config2.yaml")
         return v

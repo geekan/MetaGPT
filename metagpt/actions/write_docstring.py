@@ -9,16 +9,17 @@ Usage:
 python3 -m metagpt.actions.write_docstring <filename> [--overwrite] [--style=<docstring_style>]
 ```
 
+for example:
+
+```bash
+python3 -m metagpt.actions.write_docstring ./metagpt/startup.py --overwrite False --style=google
+```
+
 Arguments:
     filename: The path to the Python file for which you want to generate docstrings.
     overwrite: If specified, overwrite the original file with the code containing docstrings.
     style: Specify the style of the generated docstrings. Valid values: 'google', 'numpy', or 'sphinx'. Default: 'google'
 
-Example:
-
-    ```bash
-    python3 -m metagpt.actions.write_docstring ./metagpt/startup.py --overwrite False --style=google
-    ```
 
 This script uses the 'fire' library to create a command-line interface. It generates docstrings for the given Python code using
 the specified docstring style and adds them to the code.

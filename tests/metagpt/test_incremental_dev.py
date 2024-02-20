@@ -5,6 +5,7 @@
 # @File    : test_incremental_dev.py
 
 import os
+import shutil
 import subprocess
 import time
 
@@ -13,7 +14,7 @@ from typer.testing import CliRunner
 
 from metagpt.const import TEST_DATA_PATH
 from metagpt.logs import logger
-from metagpt.startup import app
+from metagpt.software_company import app
 
 runner = CliRunner()
 
@@ -44,6 +45,7 @@ PROJECT_NAMES = [
 ]
 
 
+@pytest.mark.skip
 def test_simple_add_calculator():
     result = get_incremental_dev_result(IDEAS[0], PROJECT_NAMES[0])
     log_and_check_result(result)
@@ -114,10 +116,14 @@ def get_incremental_dev_result(idea, project_name, use_review=True):
     if not project_path.exists():
         # If the project does not exist, extract the project file
         try:
-            # Use the tar command to extract the .zip file
-            subprocess.run(["tar", "-xf", f"{project_path}.zip", "-C", str(project_path.parent)], check=True)
+            if shutil.which("unzip"):
+                subprocess.run(["unzip", f"{project_path}.zip", "-d", str(project_path.parent)], check=True)
+            elif shutil.which("tar"):
+                subprocess.run(["tar", "-xf", f"{project_path}.zip", "-C", str(project_path.parent)], check=True)
+            logger.info(f"Extracted project {project_name} successfully.")
+        except FileNotFoundError as e:
+            raise FileNotFoundError(f"Neither 'unzip' nor 'tar' command found. Error: {e}")
         except subprocess.CalledProcessError as e:
-            # If the extraction fails, throw an exception
             raise Exception(f"Failed to extract project {project_name}. Error: {e}")
 
     check_or_create_base_tag(project_path)

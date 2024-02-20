@@ -3,6 +3,7 @@
 # @Time    : 2024/1/4 19:06
 # @Author  : alexanderwu
 # @File    : search_config.py
+from typing import Callable, Optional
 
 from metagpt.tools import SearchEngineType
 from metagpt.utils.yaml_model import YamlModel
@@ -17,6 +18,7 @@ class SearchConfig(YamlModel):
         cse_id: The Custom Search Engine ID, defaults to an empty string.
     """
 
-    api_key: str
-    api_type: SearchEngineType = SearchEngineType.SERPAPI_GOOGLE
+    api_type: SearchEngineType = SearchEngineType.DUCK_DUCK_GO
+    api_key: str = ""
     cse_id: str = ""  # for google
+    search_func: Optional[Callable] = None

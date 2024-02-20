@@ -594,24 +594,13 @@ class ActionNode:
         prompt: str,
         output_class_name: str,
         output_data_mapping: dict,
+        images: Optional[Union[str, list[str]]] = None,
         system_msgs: Optional[list[str]] = None,
         schema="markdown",  # compatible to original format
         timeout=3,
     ) -> (str, BaseModel):
-        """Asynchronously asks a question and returns the processed output.
-
-        Args:
-            prompt (str): The prompt to ask.
-            output_class_name (str): The name of the output class for processing the response.
-            output_data_mapping (dict): The mapping of the output data.
-            system_msgs (Optional[list[str]], optional): System messages to include in the request. Defaults to None.
-            schema (str, optional): The schema of the output. Defaults to 'markdown'.
-            timeout (int, optional): The timeout for the request. Defaults to 3.
-
-        Returns:
-            Tuple[str, BaseModel]: The raw content and the processed output as an instance of the output class.
-        """
-        content = await self.llm.aask(prompt, system_msgs, timeout=timeout)
+        """Use ActionOutput to wrap the output of aask"""
+        content = await self.llm.aask(prompt, system_msgs, images=images, timeout=timeout)
         logger.debug(f"llm raw output:\n{content}")
         output_class = self.create_model_class(output_class_name, output_data_mapping)
 
@@ -664,12 +653,13 @@ class ActionNode:
         """
         self.set_recursive("context", context)
 
-    async def simple_fill(self, schema, mode, timeout=3, exclude=None):
+    async def simple_fill(self, schema, mode, images: Optional[Union[str, list[str]]] = None, timeout=3, exclude=None):
         """Fills the node data using a simple strategy.
 
         Args:
             schema: The schema to use for filling the data.
             mode: The mode for filling the data.
+            images: the list of image url or base64 for gpt4-v.
             timeout (int, optional): The timeout for the request. Defaults to 3.
             exclude (optional): A list of keys to exclude from the filling process.
 
@@ -681,7 +671,9 @@ class ActionNode:
         if schema != "raw":
             mapping = self.get_mapping(mode, exclude=exclude)
             class_name = f"{self.key}_AN"
-            content, scontent = await self._aask_v1(prompt, class_name, mapping, schema=schema, timeout=timeout)
+            content, scontent = await self._aask_v1(
+                prompt, class_name, mapping, images=images, schema=schema, timeout=timeout
+            )
             self.content = content
             self.instruct_content = scontent
         else:
@@ -690,7 +682,17 @@ class ActionNode:
 
         return self
 
-    async def fill(self, context, llm, schema="json", mode="auto", strgy="simple", timeout=3, exclude=[]):
+    async def fill(
+        self,
+        context,
+        llm,
+        schema="json",
+        mode="auto",
+        strgy="simple",
+        images: Optional[Union[str, list[str]]] = None,
+        timeout=3,
+        exclude=[],
+    ):
         """Fills the node data based on the specified parameters.
 
         Args:
@@ -707,6 +709,7 @@ class ActionNode:
             strgy (str, optional): The strategy to use for filling the data. Defaults to 'simple'.
                 - simple: run only once
                 - complex: run each node
+            images: the list of image url or base64 for gpt4-v.
             timeout (int, optional): The timeout for the request. Defaults to 3.
             exclude (list, optional): A list of keys to exclude from the filling process.
 
@@ -719,14 +722,14 @@ class ActionNode:
             schema = self.schema
 
         if strgy == "simple":
-            return await self.simple_fill(schema=schema, mode=mode, timeout=timeout, exclude=exclude)
+            return await self.simple_fill(schema=schema, mode=mode, images=images, timeout=timeout, exclude=exclude)
         elif strgy == "complex":
             # 这里隐式假设了拥有children
             tmp = {}
             for _, i in self.children.items():
                 if exclude and i.key in exclude:
                     continue
-                child = await i.simple_fill(schema=schema, mode=mode, timeout=timeout, exclude=exclude)
+                child = await i.simple_fill(schema=schema, mode=mode, images=images, timeout=timeout, exclude=exclude)
                 tmp.update(child.instruct_content.model_dump())
             cls = self._create_children_class()
             self.instruct_content = cls(**tmp)

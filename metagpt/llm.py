@@ -23,5 +23,5 @@ def LLM(llm_config: Optional[LLMConfig] = None, context: Context = None) -> Base
     """
     ctx = context or Context()
     if llm_config is not None:
-        ctx.llm_with_cost_manager_from_llm_config(llm_config)
+        return ctx.llm_with_cost_manager_from_llm_config(llm_config)
     return ctx.llm()
