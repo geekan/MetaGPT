@@ -1,28 +1,34 @@
-"""Retriever schemas"""
+"""RAG schemas"""
 
 from typing import Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class RetrieverConfig(BaseModel):
-    similarity_top_k: int = 5
+    """Common config for retrievers."""
+
+    similarity_top_k: int = Field(default=5, description="Number of top-k similar results to return during retrieval.")
 
 
 class FAISSRetrieverConfig(RetrieverConfig):
-    dimensions: int = 1536
+    """Config for FAISS-based retrievers."""
+
+    dimensions: int = Field(default=1536, description="Dimensionality of the vectors for FAISS index construction.")
 
 
 class BM25RetrieverConfig(RetrieverConfig):
-    ...
+    """Config for BM25-based retrievers."""
 
 
 class RankerConfig(BaseModel):
+    """Common config for rankers."""
+
     top_n: int = 5
 
 
 class LLMRankerConfig(RankerConfig):
-    ...
+    """Config for LLM-based rankers."""
 
 
 # If add new config, it is necessary to add the corresponding instance implementation in rag.factory
