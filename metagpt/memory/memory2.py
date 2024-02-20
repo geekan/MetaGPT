@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 # @Desc   : memory mechanism including store/retrieval/rank
 
-from typing import Union, Optional
-from pydantic import Field, BaseModel
+from typing import Optional
+
+from pydantic import BaseModel, Field
 
 from metagpt.memory.memory_network import MemoryNetwork
 from metagpt.memory.schema import MemoryNode
@@ -11,7 +12,9 @@ from metagpt.schema import Message
 
 
 class Memory(BaseModel):
-    mem_network: Optional[MemoryNetwork] = Field(default_factory=MemoryNetwork, description="the network to store memory")
+    mem_network: Optional[MemoryNetwork] = Field(
+        default_factory=MemoryNetwork, description="the network to store memory"
+    )
 
     def add_msg(self, message: Message):
         mem_node = MemoryNode.create_mem_node_from_message(message)
