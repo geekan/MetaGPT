@@ -10,7 +10,7 @@ async def main():
 
     prompt = f"""
     # Aim
-    Make predictions for Dept sales of the stores as accurate as possible.
+    Use time series regression machine learning to make predictions for Dept sales of the stores as accurate as possible.
 
     # Datasets Available
     - train_data: {train_data}
@@ -19,12 +19,13 @@ async def main():
     - stores data: {stores}, merge on train, test data.
 
     # Metric
-    The metric of the competition is weighted mean absolute error (WMAE).
+    The metric of the competition is Mean Absolute Percentage Error (MAPE).
 
     # Notice
     - *print* key variables to get more information for next task step.
     - Make sure the DataFrame.dtypes must be int, float or bool, and drop date column.
     """
+    # it will be better if autogloun had been installed. https://auto.gluon.ai/stable/install.html
     mi = Interpreter(use_tools=True)
 
     await mi.run(prompt)
