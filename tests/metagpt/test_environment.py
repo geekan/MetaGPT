@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/12 00:47
-@Author  : alexanderwu
-@File    : test_environment.py
-"""
+# @Time    : 2023/5/12 00:47
+# @Author  : alexanderwu
+# @File    : test_environment.py
+
 
 from pathlib import Path
 

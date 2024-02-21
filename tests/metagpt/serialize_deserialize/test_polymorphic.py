@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # @Desc   : unittest of polymorphic conditions
+
 import copy
 
 from pydantic import BaseModel, ConfigDict, SerializeAsAny

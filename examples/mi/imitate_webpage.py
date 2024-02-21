@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2024/01/15
-@Author  : mannaandpoem
-@File    : imitate_webpage.py
-"""
+# @Time    : 2024/01/15
+# @Author  : mannaandpoem
+# @File    : imitate_webpage.py
 from metagpt.roles.mi.interpreter import Interpreter
 
 

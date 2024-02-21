@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/01/12 17:07
-@Author  : garylin2099
-@File    : tool_registry.py
-"""
+# @Time    : 2023/01/12 17:07
+# @Author  : garylin2099
+# @File    : tool_registry.py
 from __future__ import annotations
 
 import inspect

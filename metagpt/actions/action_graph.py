@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2024/1/30 13:52
-@Author  : alexanderwu
-@File    : action_graph.py
-"""
+# @Time    : 2024/1/30 13:52
+# @Author  : alexanderwu
+# @File    : action_graph.py
 from __future__ import annotations
 
 # from metagpt.actions.action_node import ActionNode

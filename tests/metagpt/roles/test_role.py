@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # @Desc   : unittest of Role
+
 import pytest
 
 from metagpt.provider.human_provider import HumanProvider

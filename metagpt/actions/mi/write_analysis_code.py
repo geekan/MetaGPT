@@ -1,9 +1,7 @@
 # -*- encoding: utf-8 -*-
-"""
-@Date    :   2023/11/20 13:19:39
-@Author  :   orange-crow
-@File    :   write_analysis_code.py
-"""
+# @Date    :   2023/11/20 13:19:39
+# @Author  :   orange-crow
+# @File    :   write_analysis_code.py
 from __future__ import annotations
 
 from typing import Tuple

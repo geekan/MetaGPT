@@ -1,21 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/11 14:43
-@Author  : alexanderwu
-@File    : engineer.py
-@Modified By: mashenquan, 2023-11-1. In accordance with Chapter 2.2.1 and 2.2.2 of RFC 116:
-    1. Modify the data type of the `cause_by` value in the `Message` to a string, and utilize the new message
-        distribution feature for message filtering.
-    2. Consolidate message reception and processing logic within `_observe`.
-    3. Fix bug: Add logic for handling asynchronous message processing when messages are not ready.
-    4. Supplemented the external transmission of internal messages.
-@Modified By: mashenquan, 2023-11-27.
-    1. According to Section 2.2.3.1 of RFC 135, replace file data in the message with the file name.
-    2. According to the design in Section 2.2.3.5.5 of RFC 135, add incremental iteration functionality.
-@Modified By: mashenquan, 2023-12-5. Enhance the workflow to navigate to WriteCode or QaEngineer based on the results
-    of SummarizeCode.
-"""
+# @Time    : 2023/5/11 14:43
+# @Author  : alexanderwu
+# @File    : engineer.py
+# @Modified By: mashenquan, 2023-11-1. In accordance with Chapter 2.2.1 and 2.2.2 of RFC 116:
+#     1. Modify the data type of the `cause_by` value in the `Message` to a string, and utilize the new message
+#         distribution feature for message filtering.
+#     2. Consolidate message reception and processing logic within `_observe`.
+#     3. Fix bug: Add logic for handling asynchronous message processing when messages are not ready.
+#     4. Supplemented the external transmission of internal messages.
+# @Modified By: mashenquan, 2023-11-27.
+#     1. According to Section 2.2.3.1 of RFC 135, replace file data in the message with the file name.
+#     2. According to the design in Section 2.2.3.5.5 of RFC 135, add incremental iteration functionality.
+# @Modified By: mashenquan, 2023-12-5. Enhance the workflow to navigate to WriteCode or QaEngineer based on the results
+#     of SummarizeCode.
 
 from __future__ import annotations
 
@@ -97,10 +95,26 @@ class Engineer(Role):
 
     @staticmethod
     def _parse_tasks(task_msg: Document) -> list[str]:
+        """Parse tasks from a task message document.
+
+        Args:
+            task_msg: A document containing task messages.
+
+        Returns:
+            A list of task strings extracted from the task message document.
+        """
         m = json.loads(task_msg.content)
         return m.get(TASK_LIST.key) or m.get(REFINED_TASK_LIST.key)
 
     async def _act_sp_with_cr(self, review=False) -> Set[str]:
+        """Perform actions with or without code review based on the review flag.
+
+        Args:
+            review: A boolean flag indicating whether to perform code review.
+
+        Returns:
+            A set of strings representing changed files.
+        """
         changed_files = set()
         for todo in self.code_todos:
             """
@@ -154,6 +168,7 @@ class Engineer(Role):
         return None
 
     async def _act_write_code(self):
+        """Perform the write code action and return a message with the changed files."""
         changed_files = await self._act_sp_with_cr(review=self.use_code_review)
         return Message(
             content="\n".join(changed_files),
@@ -164,6 +179,7 @@ class Engineer(Role):
         )
 
     async def _act_summarize(self):
+        """Perform the summarize code action and return a message with the summary or tasks."""
         tasks = []
         for todo in self.summarize_todos:
             summary = await todo.run()
@@ -233,6 +249,14 @@ class Engineer(Role):
         )
 
     async def _is_pass(self, summary) -> (str, str):
+        """Check if the code summary passes the review.
+
+        Args:
+            summary: The code summary to be checked.
+
+        Returns:
+            A tuple containing a boolean indicating pass or fail and a string with the reason.
+        """
         rsp = await self.llm.aask(msg=IS_PASS_PROMPT.format(context=summary), stream=False)
         logger.info(rsp)
         if "YES" in rsp:
@@ -240,6 +264,11 @@ class Engineer(Role):
         return False, rsp
 
     async def _think(self) -> Action | None:
+        """Determine the next action to take based on the current context.
+
+        Returns:
+            The next action to take, or None if no action is determined.
+        """
         if not self.src_workspace:
             self.src_workspace = self.git_repo.workdir / self.git_repo.workdir.name
         write_plan_and_change_filters = any_to_str_set([WriteTasks])
@@ -263,6 +292,15 @@ class Engineer(Role):
         return None
 
     async def _new_coding_context(self, filename, dependency) -> CodingContext:
+        """Create a new coding context for a given filename and its dependencies.
+
+        Args:
+            filename: The filename for which to create the coding context.
+            dependency: The dependencies associated with the filename.
+
+        Returns:
+            A new CodingContext object.
+        """
         old_code_doc = await self.project_repo.srcs.get(filename)
         if not old_code_doc:
             old_code_doc = Document(root_path=str(self.project_repo.src_relative_path), filename=filename, content="")
@@ -281,6 +319,15 @@ class Engineer(Role):
         return context
 
     async def _new_coding_doc(self, filename, dependency):
+        """Create a new coding document for a given filename and its dependencies.
+
+        Args:
+            filename: The filename for which to create the coding document.
+            dependency: The dependencies associated with the filename.
+
+        Returns:
+            A new Document object representing the coding document.
+        """
         context = await self._new_coding_context(filename, dependency)
         coding_doc = Document(
             root_path=str(self.project_repo.src_relative_path), filename=filename, content=context.model_dump_json()
@@ -288,6 +335,11 @@ class Engineer(Role):
         return coding_doc
 
     async def _new_code_actions(self, bug_fix=False):
+        """Create new code actions based on the current project repository state.
+
+        Args:
+            bug_fix: A boolean flag indicating whether the action is for bug fixing.
+        """
         # Prepare file repos
         changed_src_files = self.project_repo.srcs.all_files if bug_fix else self.project_repo.srcs.changed_files
         changed_task_files = self.project_repo.docs.task.changed_files
@@ -333,6 +385,7 @@ class Engineer(Role):
             self.set_todo(self.code_todos[0])
 
     async def _new_summarize_actions(self):
+        """Create new summarize actions based on the current project repository state."""
         src_files = self.project_repo.srcs.all_files
         # Generate a SummarizeCode action for each pair of (system_design_doc, task_doc).
         summarizations = defaultdict(list)

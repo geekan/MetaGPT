@@ -1,9 +1,7 @@
 # -*- encoding: utf-8 -*-
-"""
-@Date    :   2024/01/24 15:11:27
-@Author  :   orange-crow
-@File    :   crawl_webpage.py
-"""
+# @Date    :   2024/01/24 15:11:27
+# @Author  :   orange-crow
+# @File    :   crawl_webpage.py
 
 from metagpt.roles.mi.interpreter import Interpreter
 

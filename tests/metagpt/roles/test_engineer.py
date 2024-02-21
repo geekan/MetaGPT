@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/12 10:14
-@Author  : alexanderwu
-@File    : test_engineer.py
-@Modified By: mashenquan, 2023-11-1. In accordance with Chapter 2.2.1 and 2.2.2 of RFC 116, utilize the new message
-        distribution feature for message handling.
-"""
+# @Time    : 2023/5/12 10:14
+# @Author  : alexanderwu
+# @File    : test_engineer.py
+# @Modified By: mashenquan, 2023-11-1. In accordance with Chapter 2.2.1 and 2.2.2 of RFC 116, utilize the new message
+#         distribution feature for message handling.
+
 import json
 from pathlib import Path
 

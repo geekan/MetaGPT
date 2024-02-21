@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/12/26
-@Author  : mashenquan
-@File    : test_metagpt_text_to_image.py
-"""
+# @Time    : 2023/12/26
+# @Author  : mashenquan
+# @File    : test_metagpt_text_to_image.py
+
 import base64
 from unittest.mock import AsyncMock
 

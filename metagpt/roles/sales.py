@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/25 17:21
-@Author  : alexanderwu
-@File    : sales.py
-"""
+# @Time    : 2023/5/25 17:21
+# @Author  : alexanderwu
+# @File    : sales.py
+
 
 from typing import Optional
 
@@ -17,6 +16,19 @@ from metagpt.tools.search_engine import SearchEngine
 
 
 class Sales(Role):
+    """Represents a Sales role with specific attributes and behaviors.
+
+    This class extends the Role class, specializing it for the context of retail sales. It includes
+    attributes for the salesperson's name, profile, and description, as well as the ability to interact
+    with a knowledge base store for retrieving information.
+
+    Attributes:
+        name: A string representing the salesperson's name.
+        profile: A string representing the salesperson's profile.
+        desc: A detailed string describing the salesperson's role and approach to customer service.
+        store: An optional BaseStore object representing the knowledge base store.
+    """
+
     name: str = "John Smith"
     profile: str = "Retail Sales Guide"
     desc: str = (

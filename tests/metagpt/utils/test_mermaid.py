@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/12/27
-@Author  : mashenquan
-@File    : test_mermaid.py
-"""
+# @Time    : 2023/12/27
+# @Author  : mashenquan
+# @File    : test_mermaid.py
+
 
 import pytest
 

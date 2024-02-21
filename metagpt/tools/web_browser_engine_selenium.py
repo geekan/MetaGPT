@@ -29,6 +29,12 @@ class SeleniumWrapper(BaseModel):
        for that browser before running. For example, if you have Mozilla Firefox installed on your
        computer, you can set the configuration SELENIUM_BROWSER_TYPE to firefox. After that, you
        can scrape web pages using the Selenium WebBrowserEngine.
+
+    Args:
+        browser_type: Type of the browser to use. Defaults to 'chrome'.
+        launch_kwargs: Additional arguments for launching the browser. Defaults to None.
+        loop: Event loop to run asynchronous tasks. Defaults to None.
+        executor: Executor for running synchronous functions asynchronously. Defaults to None.
     """
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -55,6 +61,15 @@ class SeleniumWrapper(BaseModel):
         return self.launch_kwargs.get("executable_path")
 
     async def run(self, url: str, *urls: str) -> WebPage | list[WebPage]:
+        """Runs the Selenium scraper on the given URL or URLs.
+
+        Args:
+            url: The primary URL to scrape.
+            *urls: Additional URLs to scrape in parallel.
+
+        Returns:
+            A WebPage object if a single URL is provided, or a list of WebPage objects if multiple URLs are provided.
+        """
         await self._run_precheck()
 
         _scrape = lambda url: self.loop.run_in_executor(self.executor, self._scrape_website, url)
@@ -64,6 +79,7 @@ class SeleniumWrapper(BaseModel):
         return await _scrape(url)
 
     async def _run_precheck(self):
+        """Performs pre-checks and setups before running the scraper."""
         if self._has_run_precheck:
             return
         self.loop = self.loop or asyncio.get_event_loop()
@@ -76,6 +92,14 @@ class SeleniumWrapper(BaseModel):
         self._has_run_precheck = True
 
     def _scrape_website(self, url):
+        """Scrapes the website at the given URL.
+
+        Args:
+            url: The URL of the website to scrape.
+
+        Returns:
+            A WebPage object containing the scraped page content and HTML.
+        """
         with self._get_driver() as driver:
             try:
                 driver.get(url)
@@ -97,13 +121,24 @@ _webdriver_manager_types = {
 
 
 class WDMHttpProxyClient(WDMHttpClient):
+    """HTTP client for WebDriver Manager with proxy support."""
+
     def __init__(self, proxy: str = None):
         super().__init__()
         self.proxy = proxy
 
     def get(self, url, **kwargs):
+        """Sends a GET request.
+
+        Args:
+            url: URL for the GET request.
+            **kwargs: Optional arguments that request takes.
+
+        Returns:
+            Response object.
+        """
         if "proxies" not in kwargs and self.proxy:
-            kwargs["proxies"] = {"all_proxy": self.proxy}
+            kwargs["proxies"] = {"all": self.proxy}
         return super().get(url, **kwargs)
 
 

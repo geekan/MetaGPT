@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/8 15:29
-@Author  : alexanderwu
-@File    : sales.py
-"""
+# @Time    : 2023/5/8 15:29
+# @Author  : alexanderwu
+# @File    : sales.py
 
 
 SALES_ASSISTANT = """You are a sales assistant helping your sales agent to determine which stage of a sales conversation should the agent move to, or stay at.

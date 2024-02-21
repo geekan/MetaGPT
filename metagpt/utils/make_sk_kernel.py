@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/9/13 12:29
-@Author  : femto Zheng
-@File    : make_sk_kernel.py
-"""
+# @Time    : 2023/9/13 12:29
+# @Author  : femto Zheng
+# @File    : make_sk_kernel.py
+
 import semantic_kernel as sk
 from semantic_kernel.connectors.ai.open_ai.services.azure_chat_completion import (
     AzureChatCompletion,
@@ -17,6 +16,14 @@ from metagpt.config2 import config
 
 
 def make_sk_kernel():
+    """Creates and configures a semantic kernel instance with chat completion services.
+
+    This function initializes a semantic kernel and configures it with either AzureChatCompletion or OpenAIChatCompletion
+    service based on the configuration provided. It prioritizes Azure LLM configuration over OpenAI LLM configuration.
+
+    Returns:
+        An instance of sk.Kernel configured with a chat completion service.
+    """
     kernel = sk.Kernel()
     if llm := config.get_azure_llm():
         kernel.add_chat_service(

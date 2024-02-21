@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@File    : search_kb.py
-@Modified By: mashenquan, 2023-12-22. Delete useless codes.
-"""
+# @File    : search_kb.py
+# @Modified By: mashenquan, 2023-12-22. Delete useless codes.
+
 import asyncio
 
 from langchain.embeddings import OpenAIEmbeddings

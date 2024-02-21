@@ -1,16 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/2 16:03
-@Author  : mashenquan
-@File    : openapi_v3_hello.py
-@Desc    : Implement the OpenAPI Specification 3.0 demo and use the following command to test the HTTP service:
+# @Time    : 2023/5/2 16:03
+# @Author  : mashenquan
+# @File    : openapi_v3_hello.py
+"""Implement the OpenAPI Specification 3.0 demo and use the following command to test the HTTP service:
 
-        curl -X 'POST' \
+Example:
+
+    ```bash
+    curl -X 'POST' \
         'http://localhost:8082/openapi/greeting/dave' \
         -H 'accept: text/plain' \
         -H 'Content-Type: application/json' \
         -d '{}'
+    ```
 """
 from pathlib import Path
 

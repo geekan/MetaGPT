@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/12/20 15:01
-@Author  : alexanderwu
-@File    : test_write_review.py
-"""
+# @Time    : 2023/12/20 15:01
+# @Author  : alexanderwu
+# @File    : test_write_review.py
+
 import pytest
 
 from metagpt.actions.write_review import WriteReview

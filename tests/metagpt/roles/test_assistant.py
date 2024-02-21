@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/12/25
-@Author  : mashenquan
-@File    : test_asssistant.py
-@Desc    : Used by AgentStore.
-"""
+# @Time    : 2023/12/25
+# @Author  : mashenquan
+# @File    : test_asssistant.py
+# @Desc    : Used by AgentStore.
 
 import pytest
 from pydantic import BaseModel

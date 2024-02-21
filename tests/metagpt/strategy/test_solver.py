@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2024/1/31 13:54
-@Author  : alexanderwu
-@File    : test_solver.py
-"""
+# @Time    : 2024/1/31 13:54
+# @Author  : alexanderwu
+# @File    : test_solver.py
 import pytest
 
 from metagpt.actions.action_graph import ActionGraph

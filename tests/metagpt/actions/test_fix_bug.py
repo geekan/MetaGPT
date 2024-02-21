@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/12/25 22:38
-@Author  : alexanderwu
-@File    : test_fix_bug.py
-"""
+# @Time    : 2023/12/25 22:38
+# @Author  : alexanderwu
+# @File    : test_fix_bug.py
+
 
 import pytest
 

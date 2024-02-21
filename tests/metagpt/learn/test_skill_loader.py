@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/9/19
-@Author  : mashenquan
-@File    : test_skill_loader.py
-@Desc    : Unit tests.
-"""
+# @Time    : 2023/9/19
+# @Author  : mashenquan
+# @File    : test_skill_loader.py
+# @Desc    : Unit tests.
+
 from pathlib import Path
 
 import pytest

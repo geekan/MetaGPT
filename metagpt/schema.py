@@ -1,17 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/8 22:12
-@Author  : alexanderwu
-@File    : schema.py
-@Modified By: mashenquan, 2023-10-31. According to Chapter 2.2.1 of RFC 116:
-        Replanned the distribution of responsibilities and functional positioning of `Message` class attributes.
-@Modified By: mashenquan, 2023/11/22.
-        1. Add `Document` and `Documents` for `FileRepository` in Section 2.2.3.4 of RFC 135.
-        2. Encapsulate the common key-values set to pydantic structures to standardize and unify parameter passing
-        between actions.
-        3. Add `id` to `Message` according to Section 2.2.3.1.1 of RFC 135.
-"""
+# @Time    : 2023/5/8 22:12
+# @Author  : alexanderwu
+# @File    : schema.py
+# @Modified By: mashenquan, 2023-10-31. According to Chapter 2.2.1 of RFC 116:
+#         Replanned the distribution of responsibilities and functional positioning of `Message` class attributes.
+# @Modified By: mashenquan, 2023/11/22.
+#         1. Add `Document` and `Documents` for `FileRepository` in Section 2.2.3.4 of RFC 135.
+#         2. Encapsulate the common key-values set to pydantic structures to standardize and unify parameter passing
+#         between actions.
+#         3. Add `id` to `Message` according to Section 2.2.3.1.1 of RFC 135.
 
 from __future__ import annotations
 
@@ -58,10 +56,11 @@ from metagpt.utils.serialize import (
 
 class SerializationMixin(BaseModel, extra="forbid"):
     """
-    PolyMorphic subclasses Serialization / Deserialization Mixin
-    - First of all, we need to know that pydantic is not designed for polymorphism.
-    - If Engineer is subclass of Role, it would be serialized as Role. If we want to serialize it as Engineer, we need
-        to add `class name` to Engineer. So we need Engineer inherit SerializationMixin.
+    PolyMorphic subclasses Serialization / Deserialization Mixin.
+
+    First of all, we need to know that pydantic is not designed for polymorphism.
+    If Engineer is subclass of Role, it would be serialized as Role. If we want to serialize it as Engineer, we need
+    to add `class name` to Engineer. So we need Engineer inherit SerializationMixin.
 
     More details:
     - https://docs.pydantic.dev/latest/concepts/serialization/
@@ -156,7 +155,8 @@ class Document(BaseModel):
 
 
 class Documents(BaseModel):
-    """A class representing a collection of documents.
+    """
+    A class representing a collection of documents.
 
     Attributes:
         docs (Dict[str, Document]): A dictionary mapping document names to Document instances.
@@ -186,7 +186,18 @@ class Documents(BaseModel):
 
 
 class Message(BaseModel):
-    """list[<role>: <content>]"""
+    """
+    Represents a message in the system.
+
+    Attributes:
+        id (str): Unique identifier for the message.
+        content (str): Content of the message.
+        instruct_content (Optional[BaseModel]): Instructional content associated with the message.
+        role (str): Role of the sender.
+        cause_by (str): Cause of the message.
+        sent_from (str): Sender of the message.
+        send_to (set[str]): Recipients of the message.
+    """
 
     id: str = Field(default="", validate_default=True)  # According to Section 2.2.3.1.1 of RFC 135
     content: str
@@ -304,8 +315,8 @@ class Message(BaseModel):
 
 
 class UserMessage(Message):
-    """便于支持OpenAI的消息
-    Facilitate support for OpenAI messages
+    """
+    Represents a user message for supporting OpenAI messages.
     """
 
     def __init__(self, content: str):
@@ -313,8 +324,8 @@ class UserMessage(Message):
 
 
 class SystemMessage(Message):
-    """便于支持OpenAI的消息
-    Facilitate support for OpenAI messages
+    """
+    Represents a system message for supporting OpenAI messages.
     """
 
     def __init__(self, content: str):
@@ -322,8 +333,8 @@ class SystemMessage(Message):
 
 
 class AIMessage(Message):
-    """便于支持OpenAI的消息
-    Facilitate support for OpenAI messages
+    """
+    Represents an AI message for supporting OpenAI messages.
     """
 
     def __init__(self, content: str):
@@ -525,7 +536,9 @@ class Plan(BaseModel):
 
 
 class MessageQueue(BaseModel):
-    """Message queue which supports asynchronous updates."""
+    """
+    Message queue which supports asynchronous updates.
+    """
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -601,6 +614,10 @@ T = TypeVar("T", bound="BaseModel")
 
 
 class BaseContext(BaseModel, ABC):
+    """
+    Base context class for various contexts in the system.
+    """
+
     @classmethod
     @handle_exception
     def loads(cls: Type[T], val: str) -> Optional[T]:
@@ -609,6 +626,10 @@ class BaseContext(BaseModel, ABC):
 
 
 class CodingContext(BaseContext):
+    """
+    Context for coding activities.
+    """
+
     filename: str
     design_doc: Optional[Document] = None
     task_doc: Optional[Document] = None
@@ -616,12 +637,20 @@ class CodingContext(BaseContext):
 
 
 class TestingContext(BaseContext):
+    """
+    Context for testing activities.
+    """
+
     filename: str
     code_doc: Document
     test_doc: Optional[Document] = None
 
 
 class RunCodeContext(BaseContext):
+    """
+    Context for running code activities.
+    """
+
     mode: str = "script"
     code: Optional[str] = None
     code_filename: str = ""
@@ -635,12 +664,20 @@ class RunCodeContext(BaseContext):
 
 
 class RunCodeResult(BaseContext):
+    """
+    Represents the result of a code execution.
+    """
+
     summary: str
     stdout: str
     stderr: str
 
 
 class CodeSummarizeContext(BaseModel):
+    """
+    Context for code summarization activities.
+    """
+
     design_filename: str = ""
     task_filename: str = ""
     codes_filenames: List[str] = Field(default_factory=list)
@@ -663,10 +700,18 @@ class CodeSummarizeContext(BaseModel):
 
 
 class BugFixContext(BaseContext):
+    """
+    Context for bug fixing activities.
+    """
+
     filename: str = ""
 
 
 class CodePlanAndChangeContext(BaseModel):
+    """
+    Context for planning and changing code activities.
+    """
+
     filename: str = CODE_PLAN_AND_CHANGE_FILENAME
     requirement: str = ""
     prd_filename: str = ""
@@ -692,6 +737,10 @@ class CodePlanAndChangeContext(BaseModel):
 
 # mermaid class view
 class ClassMeta(BaseModel):
+    """
+    Metadata for a class in the system.
+    """
+
     name: str = ""
     abstraction: bool = False
     static: bool = False
@@ -699,6 +748,10 @@ class ClassMeta(BaseModel):
 
 
 class ClassAttribute(ClassMeta):
+    """
+    Represents an attribute of a class.
+    """
+
     value_type: str = ""
     default_value: str = ""
 
@@ -721,6 +774,10 @@ class ClassAttribute(ClassMeta):
 
 
 class ClassMethod(ClassMeta):
+    """
+    Represents a method of a class.
+    """
+
     args: List[ClassAttribute] = Field(default_factory=list)
     return_type: str = ""
 
@@ -737,6 +794,10 @@ class ClassMethod(ClassMeta):
 
 
 class ClassView(ClassMeta):
+    """
+    View representation of a class, including its attributes and methods.
+    """
+
     attributes: List[ClassAttribute] = Field(default_factory=list)
     methods: List[ClassMethod] = Field(default_factory=list)
 

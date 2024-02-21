@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/29 14:46
-@Author  : alexanderwu
-@File    : chromadb_store.py
-"""
+# @Time    : 2023/5/29 14:46
+# @Author  : alexanderwu
+# @File    : chromadb_store.py
+
 import chromadb
 
 

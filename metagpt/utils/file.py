@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 # _*_ coding: utf-8 _*_
-"""
-@Time    : 2023/9/4 15:40:40
-@Author  : Stitch-z
-@File    : file.py
-@Describe : General file operations.
-"""
+# @Time    : 2023/9/4 15:40:40
+# @Author  : Stitch-z
+# @File    : file.py
+# @Describe : General file operations.
+
 from pathlib import Path
 
 import aiofiles

@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/5 23:08
-@Author  : alexanderwu
-@File    : openai.py
-@Modified By: mashenquan, 2023/11/21. Fix bug: ReadTimeout.
-@Modified By: mashenquan, 2023/12/1. Fix bug: Unclosed connection caused by openai 0.x.
-"""
+# @Time    : 2023/5/5 23:08
+# @Author  : alexanderwu
+# @File    : openai.py
+# @Modified By: mashenquan, 2023/11/21. Fix bug: ReadTimeout.
+# @Modified By: mashenquan, 2023/12/1. Fix bug: Unclosed connection caused by openai 0.x.
 
 import json
 import re
@@ -127,7 +125,7 @@ class OpenAILLM(BaseLLM):
         retry_error_callback=log_and_reraise,
     )
     async def acompletion_text(self, messages: list[dict], stream=False, timeout=3) -> str:
-        """when streaming, print each token in place."""
+        """When streaming, print each token in place."""
         if stream:
             resp = self._achat_completion_stream(messages, timeout=timeout)
 
@@ -295,11 +293,11 @@ class OpenAILLM(BaseLLM):
         return await self.aclient.moderations.create(input=content)
 
     async def atext_to_speech(self, **kwargs):
-        """text to speech"""
+        """Text to speech."""
         return await self.aclient.audio.speech.create(**kwargs)
 
     async def aspeech_to_text(self, **kwargs):
-        """speech to text"""
+        """Speech to text."""
         return await self.aclient.audio.transcriptions.create(**kwargs)
 
     async def gen_image(

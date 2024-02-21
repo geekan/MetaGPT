@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/12/22
-@Author  : alexanderwu
-@File    : debate_simple.py
-"""
+# @Time    : 2023/12/22
+# @Author  : alexanderwu
+# @File    : debate_simple.py
+
 import asyncio
 
 from metagpt.actions import Action

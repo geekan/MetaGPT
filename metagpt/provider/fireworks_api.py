@@ -30,7 +30,22 @@ MODEL_GRADE_TOKEN_COSTS = {
 
 
 class FireworksCostManager(CostManager):
+    """Manages the costs associated with using different model grades for token generation.
+
+    This class extends the CostManager to specifically handle the cost calculation based on
+    the model grade and token usage for the Fireworks LLM provider.
+    """
+
     def model_grade_token_costs(self, model: str) -> dict[str, float]:
+        """Calculates the token costs based on the model grade.
+
+        Args:
+            model: The model grade as a string.
+
+        Returns:
+            A dictionary with 'prompt' and 'completion' costs.
+        """
+
         def _get_model_size(model: str) -> float:
             size = re.findall(".*-([0-9.]+)b", model)
             size = float(size[0]) if len(size) > 0 else -1
@@ -49,14 +64,12 @@ class FireworksCostManager(CostManager):
         return token_costs
 
     def update_cost(self, prompt_tokens: int, completion_tokens: int, model: str):
-        """
-        Refs to `https://app.fireworks.ai/pricing` **Developer pricing**
-        Update the total cost, prompt tokens, and completion tokens.
+        """Updates the total cost, prompt tokens, and completion tokens based on usage.
 
         Args:
-        prompt_tokens (int): The number of tokens used in the prompt.
-        completion_tokens (int): The number of tokens used in the completion.
-        model (str): The model used for the API call.
+            prompt_tokens: The number of tokens used in the prompt.
+            completion_tokens: The number of tokens used in the completion.
+            model: The model used for the API call.
         """
         self.total_prompt_tokens += prompt_tokens
         self.total_completion_tokens += completion_tokens
@@ -72,16 +85,37 @@ class FireworksCostManager(CostManager):
 
 @register_provider(LLMType.FIREWORKS)
 class FireworksLLM(OpenAILLM):
+    """Provides an interface to the Fireworks LLM, extending OpenAILLM.
+
+    This class is responsible for managing interactions with the Fireworks LLM, including
+    cost management and API calls.
+    """
+
     def __init__(self, config: LLMConfig):
+        """Initializes the FireworksLLM with a given configuration.
+
+        Args:
+            config: The configuration settings for the LLM.
+        """
         super().__init__(config=config)
         self.auto_max_tokens = False
         self.cost_manager = FireworksCostManager()
 
     def _make_client_kwargs(self) -> dict:
+        """Prepares the keyword arguments for the API client based on the configuration.
+
+        Returns:
+            A dictionary of API client keyword arguments.
+        """
         kwargs = dict(api_key=self.config.api_key, base_url=self.config.base_url)
         return kwargs
 
     def _update_costs(self, usage: CompletionUsage):
+        """Updates the cost manager with the usage information.
+
+        Args:
+            usage: The usage information from a completion operation.
+        """
         if self.config.calc_usage and usage:
             try:
                 # use FireworksCostManager not context.cost_manager
@@ -90,9 +124,23 @@ class FireworksLLM(OpenAILLM):
                 logger.error(f"updating costs failed!, exp: {e}")
 
     def get_costs(self) -> Costs:
+        """Retrieves the current costs from the cost manager.
+
+        Returns:
+            An instance of Costs containing the current cost information.
+        """
         return self.cost_manager.get_costs()
 
     async def _achat_completion_stream(self, messages: list[dict], timeout=3) -> str:
+        """Handles asynchronous chat completion stream requests.
+
+        Args:
+            messages: A list of message dictionaries to be sent.
+            timeout: The timeout value for the request.
+
+        Returns:
+            The full content collected from the stream response.
+        """
         response: AsyncStream[ChatCompletionChunk] = await self.aclient.chat.completions.create(
             **self._cons_kwargs(messages), stream=True
         )
@@ -124,7 +172,16 @@ class FireworksLLM(OpenAILLM):
         retry_error_callback=log_and_reraise,
     )
     async def acompletion_text(self, messages: list[dict], stream=False, timeout: int = 3) -> str:
-        """when streaming, print each token in place."""
+        """Performs an asynchronous completion text operation.
+
+        Args:
+            messages: A list of message dictionaries for the completion request.
+            stream: Whether to stream the response.
+            timeout: The timeout value for the request.
+
+        Returns:
+            The text result from the completion operation.
+        """
         if stream:
             return await self._achat_completion_stream(messages)
         rsp = await self._achat_completion(messages)

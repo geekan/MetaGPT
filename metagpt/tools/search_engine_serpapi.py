@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/23 18:27
-@Author  : alexanderwu
-@File    : search_engine_serpapi.py
-"""
+# @Time    : 2023/5/23 18:27
+# @Author  : alexanderwu
+# @File    : search_engine_serpapi.py
 import warnings
 from typing import Any, Dict, Optional, Tuple
 
@@ -13,6 +11,18 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class SerpAPIWrapper(BaseModel):
+    """A wrapper for SerpAPI searches.
+
+    This class provides methods to perform searches using SerpAPI and process the results.
+
+    Attributes:
+        model_config: Configuration dictionary allowing arbitrary types.
+        search_engine: The search engine to use. Defaults to None.
+        params: Default parameters for the search engine.
+        serpapi_api_key: The API key for SerpAPI. If not provided, it tries to fetch from config.
+        aiosession: An optional aiohttp.ClientSession for making requests.
+    """
+
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     api_key: str

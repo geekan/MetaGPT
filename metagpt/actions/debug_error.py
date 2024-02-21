@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/11 17:46
-@Author  : alexanderwu
-@File    : debug_error.py
-@Modified By: mashenquan, 2023/11/27.
-        1. Divide the context into three components: legacy code, unit test code, and console log.
-        2. According to Section 2.2.3.1 of RFC 135, replace file data in the message with the file name.
-"""
+# @Time    : 2023/5/11 17:46
+# @Author  : alexanderwu
+# @File    : debug_error.py
+# @Modified By: mashenquan, 2023/11/27.
+#         1. Divide the context into three components: legacy code, unit test code, and console log.
+#         2. According to Section 2.2.3.1 of RFC 135, replace file data in the message with the file name.
+
 import re
 
 from pydantic import Field
@@ -46,6 +45,14 @@ Now you should start rewriting the code:
 
 
 class DebugError(Action):
+    """Handles the debugging process for errors found in code execution.
+
+    This class extends the Action class to implement a specific action that deals with debugging errors in code. It uses the context of the code execution, including the source code, test code, and execution logs, to generate a prompt for fixing the errors. The response to the prompt is then parsed to extract the corrected code.
+
+    Attributes:
+        i_context: The context of the code execution, including necessary metadata and content.
+    """
+
     i_context: RunCodeContext = Field(default_factory=RunCodeContext)
 
     async def run(self, *args, **kwargs) -> str:

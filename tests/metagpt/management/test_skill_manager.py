@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/6/6 12:38
-@Author  : alexanderwu
-@File    : test_skill_manager.py
-"""
+# @Time    : 2023/6/6 12:38
+# @Author  : alexanderwu
+# @File    : test_skill_manager.py
+
 from metagpt.actions import WritePRD, WriteTest
 from metagpt.logs import logger
 from metagpt.management.skill_manager import SkillManager

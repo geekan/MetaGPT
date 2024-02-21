@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/11 17:46
-@Author  : alexanderwu
-@File    : test_run_code.py
-@Modifiled By: mashenquan, 2023-12-6. According to RFC 135
-"""
+# @Time    : 2023/5/11 17:46
+# @Author  : alexanderwu
+# @File    : test_run_code.py
+# @Modifiled By: mashenquan, 2023-12-6. According to RFC 135
+
 import pytest
 
 from metagpt.actions.run_code import RunCode

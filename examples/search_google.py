@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/7 18:32
-@Author  : alexanderwu
-@File    : search_google.py
-"""
+# @Time    : 2023/5/7 18:32
+# @Author  : alexanderwu
+# @File    : search_google.py
+
 
 import asyncio
 

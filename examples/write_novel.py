@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2024/2/1 12:01
-@Author  : alexanderwu
-@File    : write_novel.py
-"""
+# @Time    : 2024/2/1 12:01
+# @Author  : alexanderwu
+# @File    : write_novel.py
 import asyncio
 from typing import List
 

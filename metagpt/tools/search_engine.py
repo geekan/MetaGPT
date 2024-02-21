@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/6 20:15
-@Author  : alexanderwu
-@File    : search_engine.py
-"""
+# @Time    : 2023/5/6 20:15
+# @Author  : alexanderwu
+# @File    : search_engine.py
+
 import importlib
 from typing import Callable, Coroutine, Literal, Optional, Union, overload
 
@@ -33,6 +32,14 @@ class SkSearchEngine:
         input_description="search",
     )
     async def run(self, query: str) -> str:
+        """Performs an asynchronous search operation.
+
+        Args:
+            query: The search query.
+
+        Returns:
+            The search result as a string.
+        """
         result = await self.search_engine.run(query)
         return result
 

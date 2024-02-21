@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 # _*_ coding: utf-8 _*_
-"""
-@Time    : 2023/9/6 21:41:34
-@Author  : Stitch-z
-@File    : test_write_tutorial.py
-"""
+# @Time    : 2023/9/6 21:41:34
+# @Author  : Stitch-z
+# @File    : test_write_tutorial.py
+
 from typing import Dict
 
 import pytest

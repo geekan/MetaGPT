@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/8/17
-@Author  : mashenquan
-@File    : iflytek_tts.py
-@Desc    : iFLYTEK TTS OAS3 api, which provides text-to-speech functionality
-"""
+# @Time    : 2023/8/17
+# @Author  : mashenquan
+# @File    : iflytek_tts.py
+# @Desc    : iFLYTEK TTS OAS3 api, which provides text-to-speech functionality
+
 import base64
 import hashlib
 import hmac

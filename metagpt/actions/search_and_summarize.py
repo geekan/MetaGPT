@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/23 17:26
-@Author  : alexanderwu
-@File    : search_google.py
-"""
+# @Time    : 2023/5/23 17:26
+# @Author  : alexanderwu
+# @File    : search_google.py
 from typing import Optional
 
 import pydantic
@@ -102,6 +100,20 @@ You are a member of a professional butler team and will provide helpful suggesti
 
 
 class SearchAndSummarize(Action):
+    """Implements the search and summarize functionality for a given query.
+
+    This class utilizes a search engine to fetch relevant information based on the user's query,
+    and then summarizes the information to generate a concise and informative response.
+
+    Attributes:
+        name: A string representing the name of the action.
+        content: An optional string representing additional content or context for the action.
+        engine: An optional SearchEngineType indicating the type of search engine to use.
+        search_func: An optional callable representing the search function to be used.
+        search_engine: A SearchEngine object used to perform the search operation.
+        result: A string representing the result of the search and summarize operation.
+    """
+
     name: str = ""
     content: Optional[str] = None
     search_engine: SearchEngine = None
@@ -120,6 +132,18 @@ class SearchAndSummarize(Action):
         return self
 
     async def run(self, context: list[Message], system_text=SEARCH_AND_SUMMARIZE_SYSTEM) -> str:
+        """Executes the search and summarize action based on the provided context.
+
+        This method performs a search based on the latest query in the context, summarizes the
+        information, and generates a response.
+
+        Args:
+            context: A list of Message objects representing the dialogue history.
+            system_text: A string template used for generating the system prompt for summarization.
+
+        Returns:
+            A string representing the summarized response to the query.
+        """
         if self.search_engine is None:
             logger.warning("Configure one of SERPAPI_API_KEY, SERPER_API_KEY, GOOGLE_API_KEY to unlock full feature")
             return ""

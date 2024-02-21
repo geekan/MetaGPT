@@ -22,6 +22,19 @@ except ImportError:
 
 
 class GoogleAPIWrapper(BaseModel):
+    """A wrapper class for Google API interactions.
+
+    This class provides a simplified interface to interact with Google's Custom Search Engine API.
+    It allows for executing search queries and processing the results.
+
+    Attributes:
+        model_config: Configuration for the Pydantic model allowing arbitrary types.
+        google_api_key: Optional API key for accessing Google's API. If not provided, it attempts to use a default from the configuration.
+        google_cse_id: Optional Custom Search Engine ID. If not provided, it attempts to use a default from the configuration.
+        loop: Optional event loop. If not provided, the default asyncio event loop is used.
+        executor: Optional executor for running blocking tasks. If not provided, the default executor is used.
+    """
+
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     api_key: str

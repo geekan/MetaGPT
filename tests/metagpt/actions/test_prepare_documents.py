@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/12/6
-@Author  : mashenquan
-@File    : test_prepare_documents.py
-@Desc: Unit test for prepare_documents.py
-"""
+# @Time    : 2023/12/6
+# @Author  : mashenquan
+# @File    : test_prepare_documents.py
+# @Desc: Unit test for prepare_documents.py
+
 import pytest
 
 from metagpt.actions.prepare_documents import PrepareDocuments

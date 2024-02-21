@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/4/29 15:50
-@Author  : alexanderwu
-@File    : __init__.py
-"""
+# @Time    : 2023/4/29 15:50
+# @Author  : alexanderwu
+# @File    : __init__.py
+
 
 from metagpt.utils.read_document import read_docx
 from metagpt.utils.singleton import Singleton

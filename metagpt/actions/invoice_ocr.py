@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
 # _*_ coding: utf-8 _*_
 
-"""
-@Time    : 2023/9/21 18:10:20
-@Author  : Stitch-z
-@File    : invoice_ocr.py
-@Describe : Actions of the invoice ocr assistant.
-"""
+# @Time    : 2023/9/21 18:10:20
+# @Author  : Stitch-z
+# @File    : invoice_ocr.py
+# @Describe : Actions of the invoice ocr assistant.
 
 import os
 import zipfile

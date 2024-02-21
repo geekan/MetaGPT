@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@File    : generate_questions.py
-"""
+# @File    : generate_questions.py
+
 from metagpt.actions import Action
 from metagpt.actions.action_node import ActionNode
 
@@ -17,7 +16,11 @@ QUESTIONS = ActionNode(
 
 class GenerateQuestions(Action):
     """This class allows LLM to further mine noteworthy details based on specific "##TOPIC"(discussion topic) and
-    "##RECORD" (discussion records), thereby deepening the discussion."""
+    "##RECORD" (discussion records), thereby deepening the discussion.
+
+    Attributes:
+        name: A string representing the name of the action.
+    """
 
     name: str = "GenerateQuestions"
 

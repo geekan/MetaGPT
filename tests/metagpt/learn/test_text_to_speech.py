@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/8/18
-@Author  : mashenquan
-@File    : test_text_to_speech.py
-@Desc    : Unit tests.
-"""
+# @Time    : 2023/8/18
+# @Author  : mashenquan
+# @File    : test_text_to_speech.py
+# @Desc    : Unit tests.
 
 import pytest
 from azure.cognitiveservices.speech import ResultReason, SpeechSynthesizer

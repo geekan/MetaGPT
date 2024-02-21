@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/12/20
-@Author  : mashenquan
-@File    : test_rebuild_class_view.py
-@Desc    : Unit tests for rebuild_class_view.py
-"""
+# @Time    : 2023/12/20
+# @Author  : mashenquan
+# @File    : test_rebuild_class_view.py
+# @Desc    : Unit tests for rebuild_class_view.py
+
 from pathlib import Path
 
 import pytest

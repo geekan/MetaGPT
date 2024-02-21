@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/11 17:45
-@Author  : alexanderwu
-@File    : test_write_code.py
-@Modifiled By: mashenquan, 2023-12-6. According to RFC 135
-"""
+# @Time    : 2023/5/11 17:45
+# @Author  : alexanderwu
+# @File    : test_write_code.py
+# @Modifiled By: mashenquan, 2023-12-6. According to RFC 135
 
 from pathlib import Path
 

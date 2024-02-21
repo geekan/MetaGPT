@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/4/29 15:36
-@Author  : alexanderwu
-@File    : translator.py
-"""
+# @Time    : 2023/4/29 15:36
+# @Author  : alexanderwu
+# @File    : translator.py
+
 
 prompt = """
 # 指令
@@ -21,6 +20,23 @@ prompt = """
 
 
 class Translator:
+    """A class for translating text into different languages.
+
+    This class provides a method to format a translation prompt with specific requirements.
+
+    Attributes:
+        None.
+    """
+
     @classmethod
     def translate_prompt(cls, original, lang="中文"):
+        """Formats a translation prompt with the given original text and target language.
+
+        Args:
+            original: The original text to be translated.
+            lang: The target language for translation. Defaults to '中文' (Chinese).
+
+        Returns:
+            A formatted string containing the translation prompt.
+        """
         return prompt.format(LANG=lang, ORIGINAL=original)

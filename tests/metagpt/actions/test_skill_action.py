@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/9/19
-@Author  : mashenquan
-@File    : test_skill_action.py
-@Desc    : Unit tests.
-"""
+# @Time    : 2023/9/19
+# @Author  : mashenquan
+# @File    : test_skill_action.py
+# @Desc    : Unit tests.
+
 import pytest
 
 from metagpt.actions.skill_action import ArgumentsParingAction, SkillAction

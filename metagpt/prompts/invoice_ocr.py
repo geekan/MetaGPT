@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
 # _*_ coding: utf-8 _*_
 
-"""
-@Time    : 2023/9/21 16:30:25
-@Author  : Stitch-z
-@File    : invoice_ocr.py
-@Describe : Prompts of the invoice ocr assistant.
-"""
+# @Time    : 2023/9/21 16:30:25
+# @Author  : Stitch-z
+# @File    : invoice_ocr.py
+# @Describe : Prompts of the invoice ocr assistant.
 
 COMMON_PROMPT = "Now I will provide you with the OCR text recognition results for the invoice."
 

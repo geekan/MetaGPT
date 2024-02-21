@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2024/1/4
-@Author  : mashenquan
-@File    : rebuild_sequence_view_an.py
-"""
+# @Time    : 2024/1/4
+# @Author  : mashenquan
+# @File    : rebuild_sequence_view_an.py
+
 from metagpt.actions.action_node import ActionNode
 from metagpt.utils.mermaid import MMC2
 

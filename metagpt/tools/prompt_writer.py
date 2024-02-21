@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/2 16:03
-@Author  : alexanderwu
-@File    : prompt_writer.py
-"""
+# @Time    : 2023/5/2 16:03
+# @Author  : alexanderwu
+# @File    : prompt_writer.py
+
 from typing import Union
 
 

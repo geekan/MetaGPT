@@ -1,15 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/18 00:40
-@Author  : alexanderwu
-@File    : token_counter.py
-ref1: https://openai.com/pricing
-ref2: https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb
-ref3: https://github.com/Significant-Gravitas/Auto-GPT/blob/master/autogpt/llm/token_counter.py
-ref4: https://github.com/hwchase17/langchain/blob/master/langchain/chat_models/openai.py
-ref5: https://ai.google.dev/models/gemini
-"""
+# @Time    : 2023/5/18 00:40
+# @Author  : alexanderwu
+# @File    : token_counter.py
+# ref1: https://openai.com/pricing
+# ref2: https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb
+# ref3: https://github.com/Significant-Gravitas/Auto-GPT/blob/master/autogpt/llm/token_counter.py
+# ref4: https://github.com/hwchase17/langchain/blob/master/langchain/chat_models/openai.py
+# ref5: https://ai.google.dev/models/gemini
+
 import tiktoken
 
 TOKEN_COSTS = {

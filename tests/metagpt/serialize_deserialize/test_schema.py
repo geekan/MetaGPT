@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # @Desc   : unittest of schema ser&deser
+
 import pytest
 
 from metagpt.actions.action_node import ActionNode

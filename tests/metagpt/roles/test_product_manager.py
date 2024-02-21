@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/16 14:50
-@Author  : alexanderwu
-@File    : test_product_manager.py
-"""
+# @Time    : 2023/5/16 14:50
+# @Author  : alexanderwu
+# @File    : test_product_manager.py
+
 import json
 
 import pytest

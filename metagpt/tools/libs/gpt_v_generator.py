@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2024/01/12
-@Author  : mannaandpoem
-@File    : gpt_v_generator.py
-"""
+# @Time    : 2024/01/12
+# @Author  : mannaandpoem
+# @File    : gpt_v_generator.py
 import os
 from pathlib import Path
 

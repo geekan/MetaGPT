@@ -1,19 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/11 14:43
-@Author  : alexanderwu
-@File    : qa_engineer.py
-@Modified By: mashenquan, 2023-11-1. In accordance with Chapter 2.2.1 and 2.2.2 of RFC 116, modify the data
-        type of the `cause_by` value in the `Message` to a string, and utilize the new message filtering feature.
-@Modified By: mashenquan, 2023-11-27.
-        1. Following the think-act principle, solidify the task parameters when creating the
-        WriteTest/RunCode/DebugError object, rather than passing them in when calling the run function.
-        2. According to Section 2.2.3.5.7 of RFC 135, change the method of transferring files from using the Message
-        to using file references.
-@Modified By: mashenquan, 2023-12-5. Enhance the workflow to navigate to WriteCode or QaEngineer based on the results
-    of SummarizeCode.
-"""
+# @Time    : 2023/5/11 14:43
+# @Author  : alexanderwu
+# @File    : qa_engineer.py
+# @Modified By: mashenquan, 2023-11-1. In accordance with Chapter 2.2.1 and 2.2.2 of RFC 116, modify the data
+#         type of the `cause_by` value in the `Message` to a string, and utilize the new message filtering feature.
+# @Modified By: mashenquan, 2023-11-27.
+#         1. Following the think-act principle, solidify the task parameters when creating the
+#         WriteTest/RunCode/DebugError object, rather than passing them in when calling the run function.
+#         2. According to Section 2.2.3.5.7 of RFC 135, change the method of transferring files from using the Message
+#         to using file references.
+# @Modified By: mashenquan, 2023-12-5. Enhance the workflow to navigate to WriteCode or QaEngineer based on the results
+#     of SummarizeCode.
 
 from metagpt.actions import DebugError, RunCode, WriteTest
 from metagpt.actions.summarize_code import SummarizeCode
@@ -25,6 +23,17 @@ from metagpt.utils.common import any_to_str_set, parse_recipient
 
 
 class QaEngineer(Role):
+    """A QA Engineer role responsible for writing and managing tests.
+
+    Attributes:
+        name: The name of the QA Engineer.
+        profile: The profile type, here it is 'QaEngineer'.
+        goal: The goal of the QA Engineer, focused on writing comprehensive tests.
+        constraints: The constraints that the QA Engineer must adhere to, including code standards and language requirements.
+        test_round_allowed: The maximum number of test rounds allowed.
+        test_round: The current test round.
+    """
+
     name: str = "Edward"
     profile: str = "QaEngineer"
     goal: str = "Write comprehensive and robust tests to ensure codes will work as expected without bugs"
@@ -45,6 +54,11 @@ class QaEngineer(Role):
         self.test_round = 0
 
     async def _write_test(self, message: Message) -> None:
+        """Writes tests for the changed files in the project repository.
+
+        Args:
+            message: The message containing information about the code to test.
+        """
         src_file_repo = self.project_repo.with_src_path(self.context.src_workspace).srcs
         changed_files = set(src_file_repo.changed_files.keys())
         # Unit tests only.
@@ -92,6 +106,11 @@ class QaEngineer(Role):
         logger.info(f"Done {str(self.project_repo.tests.workdir)} generating.")
 
     async def _run_code(self, msg):
+        """Runs the code and tests, then saves the output and publishes the results.
+
+        Args:
+            msg: The message containing the context for running the code.
+        """
         run_code_context = RunCodeContext.loads(msg.content)
         src_doc = await self.project_repo.with_src_path(self.context.src_workspace).srcs.get(
             run_code_context.code_filename
@@ -126,6 +145,11 @@ class QaEngineer(Role):
         )
 
     async def _debug_error(self, msg):
+        """Attempts to debug errors in the code based on the provided message.
+
+        Args:
+            msg: The message containing the context for debugging the error.
+        """
         run_code_context = RunCodeContext.loads(msg.content)
         code = await DebugError(i_context=run_code_context, context=self.context, llm=self.llm).run()
         await self.project_repo.tests.save(filename=run_code_context.test_filename, content=code)
@@ -141,6 +165,11 @@ class QaEngineer(Role):
         )
 
     async def _act(self) -> Message:
+        """Performs the action based on the current state and messages received.
+
+        Returns:
+            A message indicating the result of the action performed.
+        """
         if self.test_round > self.test_round_allowed:
             result_msg = Message(
                 content=f"Exceeding {self.test_round_allowed} rounds of tests, skip (writing code counts as a round, too)",
@@ -176,6 +205,14 @@ class QaEngineer(Role):
         )
 
     async def _observe(self, ignore_memory=False) -> int:
+        """Observes the environment and updates the internal state accordingly.
+
+        Args:
+            ignore_memory: If True, ignores the memory in the observation process.
+
+        Returns:
+            An integer representing the observation result.
+        """
         # This role has events that trigger and execute themselves based on conditions, and cannot rely on the
         # content of memory to activate.
         return await super()._observe(ignore_memory=True)

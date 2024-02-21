@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/11 19:26
-@Author  : alexanderwu
-@File    : test_design_api.py
-@Modifiled By: mashenquan, 2023-12-6. According to RFC 135
-"""
+# @Time    : 2023/5/11 19:26
+# @Author  : alexanderwu
+# @File    : test_design_api.py
+# @Modifiled By: mashenquan, 2023-12-6. According to RFC 135
+
 import pytest
 
 from metagpt.actions.design_api import WriteDesign

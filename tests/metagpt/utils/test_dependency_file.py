@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/11/22
-@Author  : mashenquan
-@File    : test_dependency_file.py
-@Desc: Unit tests for dependency_file.py
-"""
+# @Time    : 2023/11/22
+# @Author  : mashenquan
+# @File    : test_dependency_file.py
+# @Desc: Unit tests for dependency_file.py
+
 from __future__ import annotations
 
 from pathlib import Path

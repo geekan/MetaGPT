@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2024/01/15
-@Author  : mannaandpoem
-@File    : test_gpt_v_generator.py
-"""
+# @Time    : 2024/01/15
+# @Author  : mannaandpoem
+# @File    : test_gpt_v_generator.py
 from pathlib import Path
 
 import pytest

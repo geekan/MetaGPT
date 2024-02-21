@@ -1,16 +1,22 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/4/29 15:45
-@Author  : alexanderwu
-@File    : read_document.py
-"""
+# @Time    : 2023/4/29 15:45
+# @Author  : alexanderwu
+# @File    : read_document.py
+
 
 import docx
 
 
 def read_docx(file_path: str) -> list:
-    """Open a docx file"""
+    """Open a docx file and read its paragraphs into a list.
+
+    Args:
+        file_path: The path to the docx file to be read.
+
+    Returns:
+        A list of paragraphs found in the docx file.
+    """
     doc = docx.Document(file_path)
 
     # Create an empty list to store paragraph contents

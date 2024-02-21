@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
-"""
-@Time    : 2023/7/10 17:14
-@Author  : chengmaoyu
-@File    : test_code_parser.py
-"""
+# @Time    : 2023/7/10 17:14
+# @Author  : chengmaoyu
+# @File    : test_code_parser.py
+
 
 import pytest
 

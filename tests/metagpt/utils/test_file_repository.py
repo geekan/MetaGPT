@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/11/20
-@Author  : mashenquan
-@File    : test_file_repository.py
-@Desc: Unit tests for file_repository.py
-"""
+# @Time    : 2023/11/20
+# @Author  : mashenquan
+# @File    : test_file_repository.py
+# @Desc: Unit tests for file_repository.py
+
 import shutil
 from pathlib import Path
 

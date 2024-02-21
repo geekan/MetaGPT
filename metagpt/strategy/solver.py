@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2024/1/30 17:13
-@Author  : alexanderwu
-@File    : solver.py
-"""
+# @Time    : 2024/1/30 17:13
+# @Author  : alexanderwu
+# @File    : solver.py
 from abc import abstractmethod
 
 from metagpt.actions.action_graph import ActionGraph

@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/11 14:43
-@Author  : alexanderwu
-@File    : architect.py
-"""
+# @Time    : 2023/5/11 14:43
+# @Author  : alexanderwu
+# @File    : architect.py
+
 
 from metagpt.actions import WritePRD
 from metagpt.actions.design_api import WriteDesign

@@ -55,7 +55,9 @@ class DDGAPIWrapper(BaseModel):
         max_results: int = 8,
         as_string: bool = True,
     ) -> str | list[dict]:
-        """Return the results of a Google search using the official Google API
+        """Return the results of a DuckDuckGo search.
+
+        This method supports both synchronous and asynchronous execution. It can return the search results either as a formatted string or as a list of dictionaries containing detailed information about each search result.
 
         Args:
             query: The search query.

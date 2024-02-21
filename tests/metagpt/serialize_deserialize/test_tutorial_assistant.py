@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # @Desc    :
+
 import pytest
 
 from metagpt.actions.write_tutorial import WriteDirectory

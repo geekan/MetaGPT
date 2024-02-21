@@ -10,8 +10,16 @@ from metagpt.provider.postprocess.base_postprocess_plugin import BasePostProcess
 def llm_output_postprocess(
     output: str, schema: dict, req_key: str = "[/CONTENT]", model_name: str = None
 ) -> Union[dict, str]:
-    """
-    default use BasePostProcessPlugin if there is not matched plugin.
+    """Default use BasePostProcessPlugin if there is not matched plugin.
+
+    Args:
+        output: The output from the language model.
+        schema: The schema to be used for postprocessing.
+        req_key: The request key, default is '[/CONTENT]'.
+        model_name: The name of the model used, if applicable.
+
+    Returns:
+        The postprocessed output, which can be either a dictionary or a string.
     """
     # TODO choose different model's plugin according to the model_name
     postprocess_plugin = BasePostProcessPlugin()

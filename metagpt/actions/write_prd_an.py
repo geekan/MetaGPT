@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/12/14 11:40
-@Author  : alexanderwu
-@File    : write_prd_an.py
-"""
+# @Time    : 2023/12/14 11:40
+# @Author  : alexanderwu
+# @File    : write_prd_an.py
+
 from typing import List
 
 from metagpt.actions.action_node import ActionNode

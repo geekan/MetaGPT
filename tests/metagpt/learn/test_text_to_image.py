@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/8/18
-@Author  : mashenquan
-@File    : test_text_to_image.py
-@Desc    : Unit tests.
-"""
+# @Time    : 2023/8/18
+# @Author  : mashenquan
+# @File    : test_text_to_image.py
+# @Desc    : Unit tests.
+
 import base64
 
 import openai

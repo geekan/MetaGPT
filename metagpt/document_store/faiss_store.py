@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@Time    : 2023/5/25 10:20
-@Author  : alexanderwu
-@File    : faiss_store.py
-"""
+# @Time    : 2023/5/25 10:20
+# @Author  : alexanderwu
+# @File    : faiss_store.py
+
 import asyncio
 from pathlib import Path
 from typing import Optional
