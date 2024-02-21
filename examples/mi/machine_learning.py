@@ -23,17 +23,17 @@ The metric of the competition is weighted mean absolute error (WMAE) for test da
 - *print* key variables to get more information for next task step.
 """
 
-requirements = {"wine": WINE_REQ, "sales_forecast": SALES_FORECAST_REQ}
+REQUIREMENTS = {"wine": WINE_REQ, "sales_forecast": SALES_FORECAST_REQ}
 
 
 async def main(auto_run: bool = True, use_case: str = "wine"):
     mi = Interpreter(auto_run=auto_run)
     if use_case == "wine":
-        requirement = requirements[use_case]
+        requirement = REQUIREMENTS[use_case]
     else:
         mi.use_tools = True
         assert DATA_DIR != "your/path/to/data", f"Please set DATA_DIR for the use_case: {use_case}!"
-        requirement = requirements[use_case]
+        requirement = REQUIREMENTS[use_case]
     await mi.run(requirement)
 
 
