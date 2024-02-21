@@ -138,7 +138,7 @@ class WDMHttpProxyClient(WDMHttpClient):
             Response object.
         """
         if "proxies" not in kwargs and self.proxy:
-            kwargs["proxies"] = {"all_proxy": self.proxy}
+            kwargs["proxies"] = {"all": self.proxy}
         return super().get(url, **kwargs)
 
 
