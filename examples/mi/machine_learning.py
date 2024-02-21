@@ -4,8 +4,7 @@ from metagpt.roles.mi.interpreter import Interpreter
 
 WINE_REQ = "Run data analysis on sklearn Wine recognition dataset, include a plot, and train a model to predict wine class (20% as validation), and show validation accuracy."
 
-# DATA_DIR = "your/path/to/data"
-DATA_DIR = "examples/mi/data/WalmartSalesForecast2"
+DATA_DIR = "your/path/to/data"
 # sales_forecast data from https://www.kaggle.com/datasets/aslanahmedov/walmart-sales-forecast/data
 SALES_FORECAST_REQ = f"""
 # Goal
