@@ -182,7 +182,7 @@ class ExecuteNbCode(Action):
             outputs = self.parse_outputs(self.nb.cells[-1].outputs)
             outputs, success = truncate(remove_escape_and_color_codes(outputs), is_success=success)
 
-            if "!pip" in outputs:
+            if "!pip" in code:
                 success = False
 
             return outputs, success
