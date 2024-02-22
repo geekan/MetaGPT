@@ -148,14 +148,14 @@ class ActionNode:
     nexts: List["ActionNode"]  # next nodes
 
     def __init__(
-        self,
-        key: str,
-        expected_type: Type,
-        instruction: str,
-        example: Any,
-        content: str = "",
-        children: dict[str, "ActionNode"] = None,
-        schema: str = "",
+            self,
+            key: str,
+            expected_type: Type,
+            instruction: str,
+            example: Any,
+            content: str = "",
+            children: dict[str, "ActionNode"] = None,
+            schema: str = "",
     ):
         self.key = key
         self.expected_type = expected_type
@@ -450,7 +450,6 @@ class ActionNode:
         self, schema, mode, images: Optional[Union[str, list[str]]] = None, timeout=USE_CONFIG_TIMEOUT, exclude=None
     ):
         prompt = self.compile(context=self.context, schema=schema, mode=mode, exclude=exclude)
-
         if schema != "raw":
             mapping = self.get_mapping(mode, exclude=exclude)
             class_name = f"{self.key}_AN"
@@ -621,7 +620,7 @@ class ActionNode:
         return nodes_output
 
     async def auto_revise(
-        self, revise_mode: ReviseMode = ReviseMode.AUTO, template: str = REVISE_TEMPLATE
+            self, revise_mode: ReviseMode = ReviseMode.AUTO, template: str = REVISE_TEMPLATE
     ) -> dict[str, str]:
         """revise the value of incorrect keys"""
         # generate review comments
