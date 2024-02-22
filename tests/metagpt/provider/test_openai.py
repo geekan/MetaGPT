@@ -7,7 +7,7 @@ from openai.types.chat import (
     ChatCompletionMessageToolCall,
     ChatCompletionChunk,
 )
-from openai.types.chat.chat_completion import Choice,CompletionUsage
+from openai.types.chat.chat_completion import Choice, CompletionUsage
 from openai.types.chat.chat_completion_message_tool_call import Function
 from PIL import Image
 
