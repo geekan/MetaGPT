@@ -49,7 +49,7 @@ See FAQ 5.8
     raise retry_state.outcome.exception()
 
 
-@register_provider(LLMType.OPENAI)
+@register_provider([LLMType.OPENAI, LLMType.FIREWORKS, LLMType.OPEN_LLM, LLMType.MOONSHOT])
 class OpenAILLM(BaseLLM):
     """Check https://platform.openai.com/examples for examples"""
 
@@ -90,10 +90,36 @@ class OpenAILLM(BaseLLM):
         response: AsyncStream[ChatCompletionChunk] = await self.aclient.chat.completions.create(
             **self._cons_kwargs(messages, timeout=timeout), stream=True
         )
-
+        collected_messages = []
         async for chunk in response:
             chunk_message = chunk.choices[0].delta.content or "" if chunk.choices else ""  # extract the message
-            yield chunk_message
+            finish_reason = chunk.choices[0].finish_reason if hasattr(chunk.choices[0], "finish_reason") else None
+            log_llm_stream(chunk_message)
+            collected_messages.append(chunk_message)
+
+        log_llm_stream("\n")
+        full_reply_content = "".join(collected_messages)
+        if finish_reason:
+            if hasattr(chunk, 'usage'):
+                # Some services have usage as an attribute of the chunk
+                usage = CompletionUsage(**chunk.usage)
+            elif hasattr(chunk.choices[0], 'usage'):
+                # The usage of some services is an attribute of chunk.choices[0],such as Moonshot
+                usage = CompletionUsage(**chunk.choices[0].usage)
+            else:
+                # Some services do not provide the usage attribute
+                try:
+                    # The openai service can be billed using a number of methods
+                    usage = self._calc_usage(messages, full_reply_content)
+                except:
+                    # Some Openai-like models do not require billing and only provide the ability to compute tokens.
+                    usage = CompletionUsage(prompt_tokens=0, completion_tokens=0, total_tokens=0)
+                    usage.prompt_tokens = count_message_tokens(messages, "open-llm-model")
+                    usage.completion_tokens = count_string_tokens(full_reply_content, "open-llm-model")
+                    return full_reply_content
+
+        self._update_costs(usage)
+        return full_reply_content
 
     def _cons_kwargs(self, messages: list[dict], timeout=3, **extra_kwargs) -> dict:
         kwargs = {
@@ -111,7 +137,7 @@ class OpenAILLM(BaseLLM):
 
     async def _achat_completion(self, messages: list[dict], timeout=3) -> ChatCompletion:
         kwargs = self._cons_kwargs(messages, timeout=timeout)
-        rsp: ChatCompletion = await self.aclient.chat.completions.create(**kwargs)
+        rsp: fv = await self.aclient.chat.completions.create(**kwargs)
         self._update_costs(rsp.usage)
         return rsp
 
@@ -128,18 +154,7 @@ class OpenAILLM(BaseLLM):
     async def acompletion_text(self, messages: list[dict], stream=False, timeout=3) -> str:
         """when streaming, print each token in place."""
         if stream:
-            resp = self._achat_completion_stream(messages, timeout=timeout)
-
-            collected_messages = []
-            async for i in resp:
-                log_llm_stream(i)
-                collected_messages.append(i)
-            log_llm_stream("\n")
-
-            full_reply_content = "".join(collected_messages)
-            usage = self._calc_usage(messages, full_reply_content)
-            self._update_costs(usage)
-            return full_reply_content
+            resp = await self._achat_completion_stream(messages, timeout=timeout)
 
         rsp = await self._achat_completion(messages, timeout=timeout)
         return self.get_choice_text(rsp)
