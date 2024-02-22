@@ -136,7 +136,7 @@ async def test_gen_completion():
     llm = LLM()
     message = [{"role": "user", "content": "Hello World!"}]
     resp = await llm._achat_completion(message)
-    assert resp.choices[0].finish_reason == 'stop'
+    assert resp.choices[0].finish_reason == "stop"
 
     resp = await llm._achat_completion_stream(message)
     assert len(resp) > 1
