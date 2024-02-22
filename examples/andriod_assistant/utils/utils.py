@@ -55,7 +55,9 @@ def traverse_xml_tree(xml_path: Path, elem_list: list[AndroidElement], attrib: s
                     bbox = e.bbox
                     center_ = (bbox[0][0] + bbox[1][0]) // 2, (bbox[0][1] + bbox[1][1]) // 2
                     dist = (abs(center[0] - center_[0]) ** 2 + abs(center[1] - center_[1]) ** 2) ** 0.5
-                    if dist <= config.get_other("min_dist"):
+                    # TODO Modify config to default 30. It should be modified back config after single action test
+                    # if dist <= config.get_other("min_dist"):
+                    if dist <= 30:
                         close = True
                         break
                 if not close:
@@ -67,7 +69,7 @@ def traverse_xml_tree(xml_path: Path, elem_list: list[AndroidElement], attrib: s
 
 def draw_bbox_multi(img_path: Path, output_path: Path, elem_list: list[AndroidElement], record_mode: bool = False,
                     dark_mode: bool = False):
-    imgcv = cv2.imread(img_path)
+    imgcv = cv2.imread(str(img_path))
     count = 1
     for elem in elem_list:
         try:
@@ -97,7 +99,7 @@ def draw_bbox_multi(img_path: Path, output_path: Path, elem_list: list[AndroidEl
         except Exception as e:
             logger.error(f"ERROR: An exception occurs while labeling the image\n{e}")
         count += 1
-    cv2.imwrite(output_path, imgcv)
+    cv2.imwrite(str(output_path), imgcv)
     return imgcv
 
 

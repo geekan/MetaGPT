@@ -38,7 +38,7 @@ class Decision(Enum):
 class AndroidElement(BaseModel):
     """UI Element"""
     uid: str = Field(default="")
-    bbox: tuple[tuple[int, int]] = Field(default={})
+    bbox: tuple[tuple[int, int], tuple[int, int]] = Field(default={})
     attrib: str = Field(default="")
 
 
