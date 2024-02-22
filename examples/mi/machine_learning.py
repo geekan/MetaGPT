@@ -6,20 +6,8 @@ WINE_REQ = "Run data analysis on sklearn Wine recognition dataset, include a plo
 
 DATA_DIR = "your/path/to/data"
 # sales_forecast data from https://www.kaggle.com/datasets/aslanahmedov/walmart-sales-forecast/data
-SALES_FORECAST_REQ = f"""
-# Goal
-Train a model to predict sales for each department in every store (split the last 40 weeks records as validation dataset,
-the others is train dataset), include plot sales trends, print metric and plot scatter plots of
-groud truth and predictions on validation data.
-
-# Datasets Available
-- train_data: {DATA_DIR}/train.csv
-
-# Metric
-The metric of the competition is weighted mean absolute error (WMAE) for test data.
-
-# Notice
-- *print* key variables to get more information for next task step.
+SALES_FORECAST_REQ = f"""Train a model to predict sales for each department in every store (split the last 40 weeks records as validation dataset, the others is train dataset), include plot sales trends, print metric and plot scatter plots of
+groud truth and predictions on validation data. Datasets Available is train_data: {DATA_DIR}/train.csv, The metric of the competition is weighted mean absolute error (WMAE) for test data. Notice: *print* key variables to get more information for next task step.
 """
 
 REQUIREMENTS = {"wine": WINE_REQ, "sales_forecast": SALES_FORECAST_REQ}
