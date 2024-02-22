@@ -87,7 +87,7 @@ class Context(BaseModel):
         if self._llm.cost_manager is None:
             if self.config.llm.api_type == LLMType.FIREWORKS:
                 self._llm.cost_manager = FireworksCostManager()
-            elif self.config.llm.api_type ==LLMType.OPEN_LLM:
+            elif self.config.llm.api_type == LLMType.OPEN_LLM:
                 self._llm.cost_manager = TokenCostManager()
             else:
                 self._llm.cost_manager = self.cost_manager
