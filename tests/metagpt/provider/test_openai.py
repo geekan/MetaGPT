@@ -130,3 +130,13 @@ async def test_gen_usage():
     resp = await llm._achat_completion_stream(message)
     usage = llm._calc_usage(message, resp)
     assert usage.prompt_tokens != 0 and usage.completion_tokens != 0
+
+@pytest.mark.asyncio
+async def test_gen_completion():
+    llm = LLM()
+    message = [{"role": "user", "content": "Hello World!"}]
+    resp = await llm._achat_completion(message)
+    assert resp.choices[0].finish_reason == 'stop'
+
+    resp = await llm._achat_completion_stream(message)
+    assert len(resp) > 1
