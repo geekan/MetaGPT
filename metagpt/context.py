@@ -15,7 +15,7 @@ from metagpt.config2 import Config
 from metagpt.configs.llm_config import LLMConfig
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.llm_provider_registry import create_llm_instance
-from metagpt.utils.cost_manager import CostManager
+from metagpt.utils.cost_manager import CostManager,FireworksCostManager
 from metagpt.utils.git_repository import GitRepository
 from metagpt.utils.project_repo import ProjectRepo
 
@@ -85,7 +85,11 @@ class Context(BaseModel):
         # if self._llm is None:
         self._llm = create_llm_instance(self.config.llm)
         if self._llm.cost_manager is None:
-            self._llm.cost_manager = self.cost_manager
+            if self.config.llm.api_type.value == 'fireworks':
+                self._llm.cost_manager = FireworksCostManager()
+            else:
+                self._llm.cost_manager = self.cost_manager
+
         return self._llm
 
     def llm_with_cost_manager_from_llm_config(self, llm_config: LLMConfig) -> BaseLLM:
