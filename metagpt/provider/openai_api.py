@@ -99,16 +99,16 @@ class OpenAILLM(BaseLLM):
             collected_messages.append(chunk_message)
             if finish_reason:
                 if hasattr(chunk, "usage"):
-                    # Some services have usage as an attribute of the chunk,such as Fireworks
+                    # Some services have usage as an attribute of the chunk, such as Fireworks
                     usage = CompletionUsage(**chunk.usage)
                 elif hasattr(chunk.choices[0], "usage"):
-                    # The usage of some services is an attribute of chunk.choices[0],such as Moonshot
+                    # The usage of some services is an attribute of chunk.choices[0], such as Moonshot
                     usage = CompletionUsage(**chunk.choices[0].usage)
 
         log_llm_stream("\n")
         full_reply_content = "".join(collected_messages)
         if usage is None:
-            # Some services do not provide the usage attribute,such as OpenAI or OpenLLM
+            # Some services do not provide the usage attribute, such as OpenAI or OpenLLM
             usage = self._calc_usage(messages, full_reply_content)
 
         self._update_costs(usage)
