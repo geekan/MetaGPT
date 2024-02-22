@@ -6,7 +6,7 @@
 @File    : llm_config.py
 """
 from enum import Enum
-from typing import Optional,List
+from typing import Optional
 
 from pydantic import field_validator
 
