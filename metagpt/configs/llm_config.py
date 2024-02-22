@@ -24,7 +24,6 @@ class LLMType(Enum):
     METAGPT = "metagpt"
     AZURE = "azure"
     OLLAMA = "ollama"
-    OPENAI_LIKE = "openai_like"
     MOONSHOT = "moonshot"
 
     def __missing__(self, key):
