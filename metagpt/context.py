@@ -12,10 +12,10 @@ from typing import Any, Optional
 from pydantic import BaseModel, ConfigDict
 
 from metagpt.config2 import Config
-from metagpt.configs.llm_config import LLMConfig
+from metagpt.configs.llm_config import LLMConfig, LLMType
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.llm_provider_registry import create_llm_instance
-from metagpt.utils.cost_manager import CostManager, FireworksCostManager
+from metagpt.utils.cost_manager import CostManager, FireworksCostManager, TokenCostManager
 from metagpt.utils.git_repository import GitRepository
 from metagpt.utils.project_repo import ProjectRepo
 
@@ -87,7 +87,7 @@ class Context(BaseModel):
         if self._llm.cost_manager is None:
             if self.config.llm.api_type == LLMType.FIREWORKS:
                 self._llm.cost_manager = FireworksCostManager()
-            elif self.config.llm.api_type == LLMType.OPEN_LLM:
+            elif self.config.llm.api_type ==LLMType.OPEN_LLM:
                 self._llm.cost_manager = TokenCostManager()
             else:
                 self._llm.cost_manager = self.cost_manager
