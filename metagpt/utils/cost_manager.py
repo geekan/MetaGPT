@@ -13,7 +13,7 @@ from pydantic import BaseModel
 import re
 
 from metagpt.logs import logger
-from metagpt.utils.token_counter import TOKEN_COSTS,MODEL_GRADE_TOKEN_COSTS
+from metagpt.utils.token_counter import TOKEN_COSTS, MODEL_GRADE_TOKEN_COSTS
 
 
 class Costs(NamedTuple):
