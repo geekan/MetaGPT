@@ -107,7 +107,7 @@ class OpenAILLM(BaseLLM):
 
         log_llm_stream("\n")
         full_reply_content = "".join(collected_messages)
-        if usage is None:
+        if not usage:
             # Some services do not provide the usage attribute, such as OpenAI or OpenLLM
             usage = self._calc_usage(messages, full_reply_content)
 
@@ -240,16 +240,12 @@ class OpenAILLM(BaseLLM):
         if not self.config.calc_usage:
             return usage
 
-        if isinstance(self.cost_manager, TokenCostManager):
-            # OpenLLM uses a different method to calculate Tokens
-            usage.prompt_tokens = count_message_tokens(messages, "open-llm-model")
-            usage.completion_tokens = count_string_tokens(rsp, "open-llm-model")
-        else:
-            try:
-                usage.prompt_tokens = count_message_tokens(messages, self.model)
-                usage.completion_tokens = count_string_tokens(rsp, self.model)
-            except Exception as e:
-                logger.error(f"usage calculation failed: {e}")
+        model = self.model if not isinstance(self.cost_manager, TokenCostManager) else "open-llm-model"
+        try:
+            usage.prompt_tokens = count_message_tokens(messages, model)
+            usage.completion_tokens = count_string_tokens(rsp, model)
+        except Exception as e:
+            logger.error(f"usage calculation failed: {e}")
 
         return usage
 
