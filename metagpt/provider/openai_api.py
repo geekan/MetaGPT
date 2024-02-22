@@ -241,7 +241,7 @@ class OpenAILLM(BaseLLM):
             return usage
 
         if isinstance(self.cost_manager, TokenCostManager):
-            # OPenLLM uses a different method to calculate Tokens
+            # OpenLLM uses a different method to calculate Tokens
             usage.prompt_tokens = count_message_tokens(messages, "open-llm-model")
             usage.completion_tokens = count_string_tokens(rsp, "open-llm-model")
         else:
