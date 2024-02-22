@@ -128,5 +128,5 @@ async def test_gen_usage():
     llm = LLM()
     message = [{"role": "user", "content": "hello world"}]
     resp = await llm._achat_completion_stream(message)
-    usage = llm._calc_usage(message,resp)
-    assert usage.prompt_tokens !=0 and usage.completion_tokens !=0
+    usage = llm._calc_usage(message, resp)
+    assert usage.prompt_tokens != 0 and usage.completion_tokens != 0
