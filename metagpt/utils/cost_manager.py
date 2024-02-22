@@ -13,7 +13,7 @@ from pydantic import BaseModel
 import re
 
 from metagpt.logs import logger
-from metagpt.utils.token_counter import TOKEN_COSTS, MODEL_GRADE_TOKEN_COSTS
+from metagpt.utils.token_counter import TOKEN_COSTS, FIREWORKS_GRADE_TOKEN_COSTS
 
 
 class Costs(NamedTuple):
@@ -109,15 +109,15 @@ class FireworksCostManager(CostManager):
             return size
 
         if "mixtral-8x7b" in model:
-            token_costs = MODEL_GRADE_TOKEN_COSTS["mixtral-8x7b"]
+            token_costs = FIREWORKS_GRADE_TOKEN_COSTS["mixtral-8x7b"]
         else:
             model_size = _get_model_size(model)
             if 0 < model_size <= 16:
-                token_costs = MODEL_GRADE_TOKEN_COSTS["16"]
+                token_costs = FIREWORKS_GRADE_TOKEN_COSTS["16"]
             elif 16 < model_size <= 80:
-                token_costs = MODEL_GRADE_TOKEN_COSTS["80"]
+                token_costs = FIREWORKS_GRADE_TOKEN_COSTS["80"]
             else:
-                token_costs = MODEL_GRADE_TOKEN_COSTS["-1"]
+                token_costs = FIREWORKS_GRADE_TOKEN_COSTS["-1"]
         return token_costs
 
     def update_cost(self, prompt_tokens: int, completion_tokens: int, model: str):

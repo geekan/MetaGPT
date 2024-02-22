@@ -41,7 +41,7 @@ TOKEN_COSTS = {
 }
 
 
-MODEL_GRADE_TOKEN_COSTS = {
+FIREWORKS_GRADE_TOKEN_COSTS = {
     "-1": {"prompt": 0.0, "completion": 0.0},  # abnormal condition
     "16": {"prompt": 0.2, "completion": 0.8},  # 16 means model size <= 16B; 0.2 means $0.2/1M tokens
     "80": {"prompt": 0.7, "completion": 2.8},  # 80 means 16B < model size <= 80B
