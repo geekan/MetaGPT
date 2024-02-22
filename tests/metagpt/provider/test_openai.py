@@ -121,3 +121,12 @@ async def test_gen_image():
 
     images: list[Image] = await llm.gen_image(model=model, prompt=prompt, resp_format="b64_json")
     assert images[0].size == (1024, 1024)
+
+
+@pytest.mark.asyncio
+async def test_gen_usage():
+    llm = LLM()
+    message = [{"role": "user", "content": "hello world"}]
+    resp = await llm._achat_completion_stream(message)
+    usage = llm._calc_usage(message,resp)
+    assert usage.prompt_tokens !=0 and usage.completion_tokens !=0
