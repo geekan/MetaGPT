@@ -98,5 +98,10 @@ class Context(BaseModel):
         # if self._llm is None:
         llm = create_llm_instance(llm_config)
         if llm.cost_manager is None:
-            llm.cost_manager = self.cost_manager
+            if llm_config.api_type == LLMType.FIREWORKS:
+                llm.cost_manager = FireworksCostManager()
+            elif llm_config.api_type == LLMType.OPEN_LLM:
+                llm.cost_manager = TokenCostManager()
+            else:
+                llm.cost_manager = self.cost_manager
         return llm
