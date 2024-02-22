@@ -6,7 +6,7 @@
 @File    : llm_config.py
 """
 from enum import Enum
-from typing import Optional
+from typing import Optional,List
 
 from pydantic import field_validator
 
@@ -24,6 +24,8 @@ class LLMType(Enum):
     METAGPT = "metagpt"
     AZURE = "azure"
     OLLAMA = "ollama"
+    OPENAI_LIKE = "openai_like"
+    MOONSHOT = "moonshot"
 
     def __missing__(self, key):
         return self.OPENAI
@@ -37,7 +39,8 @@ class LLMConfig(YamlModel):
     """
 
     api_key: str
-    api_type: LLMType = LLMType.OPENAI
+    #api_type: LLMType = LLMType.OPENAI
+    api_type: Optional[LLMType] = LLMType.OPENAI
     base_url: str = "https://api.openai.com/v1"
     api_version: Optional[str] = None
 
