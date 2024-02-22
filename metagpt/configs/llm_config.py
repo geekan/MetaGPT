@@ -39,8 +39,7 @@ class LLMConfig(YamlModel):
     """
 
     api_key: str
-    #api_type: LLMType = LLMType.OPENAI
-    api_type: Optional[LLMType] = LLMType.OPENAI
+    api_type: LLMType = LLMType.OPENAI
     base_url: str = "https://api.openai.com/v1"
     api_version: Optional[str] = None
 
