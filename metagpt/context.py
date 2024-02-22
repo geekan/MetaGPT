@@ -89,7 +89,6 @@ class Context(BaseModel):
                 self._llm.cost_manager = FireworksCostManager()
             else:
                 self._llm.cost_manager = self.cost_manager
-
         return self._llm
 
     def llm_with_cost_manager_from_llm_config(self, llm_config: LLMConfig) -> BaseLLM:
