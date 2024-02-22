@@ -32,9 +32,20 @@ TOKEN_COSTS = {
     "gpt-4-vision-preview": {"prompt": 0.01, "completion": 0.03},  # TODO add extra image price calculator
     "gpt-4-1106-vision-preview": {"prompt": 0.01, "completion": 0.03},
     "text-embedding-ada-002": {"prompt": 0.0004, "completion": 0.0},
-    "glm-3-turbo": {"prompt": 0.0, "completion": 0.0007},  # 128k version, prompt + completion tokens=0.005￥/k-tokens
-    "glm-4": {"prompt": 0.0, "completion": 0.014},  # 128k version, prompt + completion tokens=0.1￥/k-tokens
+    "glm-3-turbo": {"prompt": 0.0007, "completion": 0.0007},  # 128k version, prompt + completion tokens=0.005￥/k-tokens
+    "glm-4": {"prompt": 0.014, "completion": 0.014},  # 128k version, prompt + completion tokens=0.1￥/k-tokens
     "gemini-pro": {"prompt": 0.00025, "completion": 0.0005},
+    "moonshot-v1-8k": {"prompt": 0.012, "completion": 0.012}, # prompt + completion tokens=0.012￥/k-tokens
+    "moonshot-v1-32k": {"prompt": 0.024, "completion": 0.024},
+    "moonshot-v1-128k": {"prompt": 0.06, "completion": 0.06},
+}
+
+
+MODEL_GRADE_TOKEN_COSTS = {
+    "-1": {"prompt": 0.0, "completion": 0.0},  # abnormal condition
+    "16": {"prompt": 0.2, "completion": 0.8},  # 16 means model size <= 16B; 0.2 means $0.2/1M tokens
+    "80": {"prompt": 0.7, "completion": 2.8},  # 80 means 16B < model size <= 80B
+    "mixtral-8x7b": {"prompt": 0.4, "completion": 1.6},
 }
 
 
@@ -60,6 +71,9 @@ TOKEN_MAX = {
     "text-embedding-ada-002": 8192,
     "chatglm_turbo": 32768,
     "gemini-pro": 32768,
+    "moonshot-v1-8k": 8192,
+    "moonshot-v1-32k": 32768,
+    "moonshot-v1-128k": 128000,
 }
 
 
