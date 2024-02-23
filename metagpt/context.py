@@ -80,17 +80,21 @@ class Context(BaseModel):
     #     self._llm = None
     #     return self._llm
 
+    def _selece_costmanager(self, llm_config: LLMConfig) -> CostManager:
+        """Return a CostManager instance"""
+        if llm_config.llm.api_type == LLMType.FIREWORKS:
+            return FireworksCostManager()
+        elif llm_config.llm.api_type == LLMType.OPEN_LLM:
+            return TokenCostManager()
+        else:
+            return self.cost_manager
+
     def llm(self) -> BaseLLM:
         """Return a LLM instance, fixme: support cache"""
         # if self._llm is None:
         self._llm = create_llm_instance(self.config.llm)
         if self._llm.cost_manager is None:
-            if self.config.llm.api_type == LLMType.FIREWORKS:
-                self._llm.cost_manager = FireworksCostManager()
-            elif self.config.llm.api_type == LLMType.OPEN_LLM:
-                self._llm.cost_manager = TokenCostManager()
-            else:
-                self._llm.cost_manager = self.cost_manager
+            self._llm.cost_manager = self._selece_costmanager(self.config)
         return self._llm
 
     def llm_with_cost_manager_from_llm_config(self, llm_config: LLMConfig) -> BaseLLM:
@@ -98,10 +102,5 @@ class Context(BaseModel):
         # if self._llm is None:
         llm = create_llm_instance(llm_config)
         if llm.cost_manager is None:
-            if llm_config.api_type == LLMType.FIREWORKS:
-                llm.cost_manager = FireworksCostManager()
-            elif llm_config.api_type == LLMType.OPEN_LLM:
-                llm.cost_manager = TokenCostManager()
-            else:
-                llm.cost_manager = self.cost_manager
+            llm.cost_manager = self._selece_costmanager(llm_config)
         return llm
