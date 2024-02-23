@@ -84,7 +84,7 @@ class Context(BaseModel):
     #     self._llm = None
     #     return self._llm
 
-    def _selece_costmanager(self, llm_config: LLMConfig) -> CostManager:
+    def _select_costmanager(self, llm_config: LLMConfig) -> CostManager:
         """Return a CostManager instance"""
         if llm_config.llm.api_type == LLMType.FIREWORKS:
             return FireworksCostManager()
@@ -98,7 +98,7 @@ class Context(BaseModel):
         # if self._llm is None:
         self._llm = create_llm_instance(self.config.llm)
         if self._llm.cost_manager is None:
-            self._llm.cost_manager = self._selece_costmanager(self.config)
+            self._llm.cost_manager = self._select_costmanager(self.config)
         return self._llm
 
     def llm_with_cost_manager_from_llm_config(self, llm_config: LLMConfig) -> BaseLLM:
@@ -106,5 +106,5 @@ class Context(BaseModel):
         # if self._llm is None:
         llm = create_llm_instance(llm_config)
         if llm.cost_manager is None:
-            llm.cost_manager = self._selece_costmanager(llm_config)
+            llm.cost_manager = self._select_costmanager(llm_config)
         return llm
