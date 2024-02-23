@@ -6,14 +6,13 @@
 @Desc    : mashenquan, 2023/8/28. Separate the `CostManager` class to support user-level cost accounting.
 """
 
+import re
 from typing import NamedTuple
 
 from pydantic import BaseModel
 
-import re
-
 from metagpt.logs import logger
-from metagpt.utils.token_counter import TOKEN_COSTS, FIREWORKS_GRADE_TOKEN_COSTS
+from metagpt.utils.token_counter import FIREWORKS_GRADE_TOKEN_COSTS, TOKEN_COSTS
 
 
 class Costs(NamedTuple):
