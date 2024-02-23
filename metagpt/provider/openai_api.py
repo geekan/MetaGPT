@@ -8,7 +8,7 @@
 """
 
 import json
-from typing import AsyncIterator, Optional, Union
+from typing import Optional, Union
 
 from openai import APIConnectionError, AsyncOpenAI, AsyncStream
 from openai._base_client import AsyncHttpxClientWrapper
@@ -29,7 +29,7 @@ from metagpt.provider.constant import GENERAL_FUNCTION_SCHEMA
 from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.schema import Message
 from metagpt.utils.common import CodeParser, decode_image
-from metagpt.utils.cost_manager import CostManager, Costs, FireworksCostManager, TokenCostManager
+from metagpt.utils.cost_manager import CostManager, Costs, TokenCostManager
 from metagpt.utils.exceptions import handle_exception
 from metagpt.utils.token_counter import (
     count_message_tokens,
@@ -147,7 +147,7 @@ class OpenAILLM(BaseLLM):
     async def acompletion_text(self, messages: list[dict], stream=False, timeout=3) -> str:
         """when streaming, print each token in place."""
         if stream:
-            resp = await self._achat_completion_stream(messages, timeout=timeout)
+            await self._achat_completion_stream(messages, timeout=timeout)
 
         rsp = await self._achat_completion(messages, timeout=timeout)
         return self.get_choice_text(rsp)
