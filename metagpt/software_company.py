@@ -2,14 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import asyncio
-import shutil
 from pathlib import Path
 
 import typer
 
-from metagpt.config2 import config
-from metagpt.const import CONFIG_ROOT, METAGPT_ROOT
-from metagpt.context import Context
+from metagpt.const import CONFIG_ROOT
 from metagpt.utils.project_repo import ProjectRepo
 
 app = typer.Typer(add_completion=False, pretty_exceptions_show_locals=False)
@@ -30,6 +27,8 @@ def generate_repo(
     recover_path=None,
 ) -> ProjectRepo:
     """Run the startup logic. Can be called from CLI or other Python scripts."""
+    from metagpt.config2 import config
+    from metagpt.context import Context
     from metagpt.roles import (
         Architect,
         Engineer,
@@ -122,7 +121,17 @@ def startup(
     )
 
 
-def copy_config_to(config_path=METAGPT_ROOT / "config" / "config2.yaml"):
+DEFAULT_CONFIG = """# Full Example: https://github.com/geekan/MetaGPT/blob/main/config/config2.example.yaml
+# Reflected Code: https://github.com/geekan/MetaGPT/blob/main/metagpt/config2.py
+llm:
+  api_type: "openai"  # or azure / ollama / open_llm etc. Check LLMType for more options
+  model: "gpt-4-turbo-preview"  # or gpt-3.5-turbo-1106 / gpt-4-1106-preview
+  base_url: "https://api.openai.com/v1"  # or forward url / other llm url
+  api_key: "YOUR_API_KEY"
+"""
+
+
+def copy_config_to():
     """Initialize the configuration file for MetaGPT."""
     target_path = CONFIG_ROOT / "config2.yaml"
 
@@ -136,7 +145,7 @@ def copy_config_to(config_path=METAGPT_ROOT / "config" / "config2.yaml"):
         print(f"Existing configuration file backed up at {backup_path}")
 
     # 复制文件
-    shutil.copy(str(config_path), target_path)
+    target_path.write_text(DEFAULT_CONFIG, encoding="utf-8")
     print(f"Configuration file initialized at {target_path}")
 
 
