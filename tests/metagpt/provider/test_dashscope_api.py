@@ -23,14 +23,26 @@ resp_cont = resp_cont_tmpl.format(name=name)
 
 @classmethod
 def mock_dashscope_call(
-    cls, messages: list[dict], model: str, api_key: str, result_format: str, stream: bool = False
+    cls,
+    messages: list[dict],
+    model: str,
+    api_key: str,
+    result_format: str,
+    incremental_output: bool = True,
+    stream: bool = False,
 ) -> GenerationResponse:
     return get_dashscope_response(name)
 
 
 @classmethod
 async def mock_dashscope_acall(
-    cls, messages: list[dict], model: str, api_key: str, result_format: str, stream: bool = False
+    cls,
+    messages: list[dict],
+    model: str,
+    api_key: str,
+    result_format: str,
+    incremental_output: bool = True,
+    stream: bool = False,
 ) -> Union[AsyncGenerator[GenerationResponse, None], GenerationResponse]:
     resps = [get_dashscope_response(name)]
 
