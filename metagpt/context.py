@@ -15,7 +15,11 @@ from metagpt.config2 import Config
 from metagpt.configs.llm_config import LLMConfig, LLMType
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.llm_provider_registry import create_llm_instance
-from metagpt.utils.cost_manager import CostManager, FireworksCostManager, TokenCostManager
+from metagpt.utils.cost_manager import (
+    CostManager,
+    FireworksCostManager,
+    TokenCostManager,
+)
 from metagpt.utils.git_repository import GitRepository
 from metagpt.utils.project_repo import ProjectRepo
 
