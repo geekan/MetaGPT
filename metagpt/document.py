@@ -11,8 +11,9 @@ from pathlib import Path
 from typing import Optional, Union
 
 import pandas as pd
-from llama_index.node_parser import SimpleNodeParser
-from llama_index.readers import Document, PDFReader, SimpleDirectoryReader
+from llama_index.core import Document, SimpleDirectoryReader
+from llama_index.core.node_parser import SimpleNodeParser
+from llama_index.readers.file import PDFReader
 from pydantic import BaseModel, ConfigDict, Field
 from tqdm import tqdm
 

@@ -10,11 +10,11 @@ from pathlib import Path
 from typing import Any, Optional
 
 import faiss
-from llama_index import VectorStoreIndex, load_index_from_storage
-from llama_index.embeddings import BaseEmbedding
-from llama_index.schema import Document, QueryBundle, TextNode
-from llama_index.storage import StorageContext
-from llama_index.vector_stores import FaissVectorStore
+from llama_index.core import VectorStoreIndex, load_index_from_storage
+from llama_index.core.embeddings import BaseEmbedding
+from llama_index.core.schema import Document, QueryBundle, TextNode
+from llama_index.core.storage import StorageContext
+from llama_index.vector_stores.faiss import FaissVectorStore
 
 from metagpt.document import IndexableDocument
 from metagpt.document_store.base_store import LocalStore

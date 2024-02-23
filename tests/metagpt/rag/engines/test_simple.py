@@ -1,58 +1,75 @@
 import pytest
-from llama_index import VectorStoreIndex
+from llama_index.core import VectorStoreIndex
+from llama_index.core.schema import TextNode
 
 from metagpt.rag.engines import SimpleEngine
 from metagpt.rag.retrievers.base import ModifiableRAGRetriever
 
 
 class TestSimpleEngine:
-    def test_from_docs(self, mocker):
+    @pytest.fixture
+    def mock_simple_directory_reader(self, mocker):
+        return mocker.patch("metagpt.rag.engines.simple.SimpleDirectoryReader")
+
+    @pytest.fixture
+    def mock_vector_store_index(self, mocker):
+        return mocker.patch("metagpt.rag.engines.simple.VectorStoreIndex.from_documents")
+
+    @pytest.fixture
+    def mock_get_retriever(self, mocker):
+        return mocker.patch("metagpt.rag.engines.simple.get_retriever")
+
+    @pytest.fixture
+    def mock_get_rankers(self, mocker):
+        return mocker.patch("metagpt.rag.engines.simple.get_rankers")
+
+    @pytest.fixture
+    def mock_get_response_synthesizer(self, mocker):
+        return mocker.patch("metagpt.rag.engines.simple.get_response_synthesizer")
+
+    def test_from_docs(
+        self,
+        mocker,
+        mock_simple_directory_reader,
+        mock_vector_store_index,
+        mock_get_retriever,
+        mock_get_rankers,
+        mock_get_response_synthesizer,
+    ):
         # Mock
-        mock_simple_directory_reader = mocker.patch("metagpt.rag.engines.simple.SimpleDirectoryReader")
         mock_simple_directory_reader.return_value.load_data.return_value = ["document1", "document2"]
-
-        mock_service_context = mocker.patch("metagpt.rag.engines.simple.ServiceContext.from_defaults")
-        mock_service_context.return_value = "service_context"
-
-        mock_vector_store_index = mocker.patch("metagpt.rag.engines.simple.VectorStoreIndex.from_documents")
-        mock_get_retriever = mocker.patch("metagpt.rag.engines.simple.get_retriever")
-        mock_get_rankers = mocker.patch("metagpt.rag.engines.simple.get_rankers")
+        mock_get_retriever.return_value = mocker.MagicMock()
+        mock_get_rankers.return_value = [mocker.MagicMock()]
+        mock_get_response_synthesizer.return_value = mocker.MagicMock()
 
         # Setup
         input_dir = "test_dir"
         input_files = ["test_file1", "test_file2"]
+        transformations = [mocker.MagicMock()]
         embed_model = mocker.MagicMock()
         llm = mocker.MagicMock()
-        chunk_size = 100
-        chunk_overlap = 10
-        retriever_configs = mocker.MagicMock()
-        ranker_configs = mocker.MagicMock()
+        retriever_configs = [mocker.MagicMock()]
+        ranker_configs = [mocker.MagicMock()]
 
         # Execute
         engine = SimpleEngine.from_docs(
             input_dir=input_dir,
             input_files=input_files,
+            transformations=transformations,
             embed_model=embed_model,
             llm=llm,
-            chunk_size=chunk_size,
-            chunk_overlap=chunk_overlap,
             retriever_configs=retriever_configs,
             ranker_configs=ranker_configs,
         )
 
         # Assertions
         mock_simple_directory_reader.assert_called_once_with(input_dir=input_dir, input_files=input_files)
-        mock_service_context.assert_called_once_with(
-            embed_model=embed_model, chunk_size=chunk_size, chunk_overlap=chunk_overlap, llm=llm
+        mock_vector_store_index.assert_called_once()
+        mock_get_retriever.assert_called_once_with(
+            configs=retriever_configs, index=mock_vector_store_index.return_value
         )
-        mock_vector_store_index.assert_called_once_with(
-            ["document1", "document2"], service_context=mock_service_context.return_value
-        )
-        mock_get_retriever.assert_called_once_with(mock_vector_store_index.return_value, configs=retriever_configs)
-        mock_get_rankers.assert_called_once_with(
-            configs=ranker_configs, service_context=mock_service_context.return_value
-        )
-
+        mock_get_rankers.assert_called_once_with(configs=ranker_configs, llm=llm)
+        mock_get_response_synthesizer.assert_called_once_with(llm=llm)
         assert isinstance(engine, SimpleEngine)
 
     @pytest.mark.asyncio
@@ -100,8 +117,12 @@ class TestSimpleEngine:
         mock_simple_directory_reader.return_value.load_data.return_value = ["document1", "document2"]
 
         mock_retriever = mocker.MagicMock(spec=ModifiableRAGRetriever)
+
         mock_index = mocker.MagicMock(spec=VectorStoreIndex)
-        mock_index.service_context.node_parser.get_nodes_from_documents = lambda x: ["node1", "node2"]
+        mock_index._transformations = mocker.MagicMock()
+
+        mock_run_transformations = mocker.patch("metagpt.rag.engines.simple.run_transformations")
+        mock_run_transformations.return_value = ["node1", "node2"]
 
         # Setup
         engine = SimpleEngine(retriever=mock_retriever, index=mock_index)
@@ -113,3 +134,27 @@ class TestSimpleEngine:
         # Assertions
         mock_simple_directory_reader.assert_called_once_with(input_files=input_files)
         mock_retriever.add_nodes.assert_called_once_with(["node1", "node2"])
+
+    def test_add_objs(self, mocker):
+        # Mock
+        mock_retriever = mocker.MagicMock(spec=ModifiableRAGRetriever)
+
+        # Setup
+        class CustomTextNode(TextNode):
+            def rag_key(self):
+                return ""
+
+            def model_dump(self):
+                return {}
+
+        objs = [CustomTextNode(text=f"text_{i}", metadata={"obj": f"obj_{i}"}) for i in range(2)]
+        engine = SimpleEngine(retriever=mock_retriever, index=mocker.MagicMock())
+
+        # Execute
+        engine.add_objs(objs=objs)
+
+        # Assertions
+        assert mock_retriever.add_nodes.call_count == 1
+        for node in mock_retriever.add_nodes.call_args[0][0]:
+            assert isinstance(node, TextNode)
+            assert "obj" in node.metadata

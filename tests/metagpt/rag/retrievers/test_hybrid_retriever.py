@@ -1,7 +1,7 @@
 from unittest.mock import AsyncMock
 
 import pytest
-from llama_index.schema import NodeWithScore, TextNode
+from llama_index.core.schema import NodeWithScore, TextNode
 
 from metagpt.rag.retrievers import SimpleHybridRetriever
 

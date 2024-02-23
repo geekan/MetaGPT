@@ -11,7 +11,16 @@ typer==0.9.0
 # godot==0.1.1
 # google_api_python_client==2.93.0  # Used by search_engine.py
 lancedb==0.4.0
-llama-index==0.9.44
+llama-index-core==0.10.11.post1
+llama-index-embeddings-openai==0.1.5
+llama-index-llms-anthropic==0.1.3
+llama-index-llms-azure-openai==0.1.4
+llama-index-llms-gemini==0.1.4
+llama-index-llms-ollama==0.1.2
+llama-index-llms-openai==0.1.5
+llama-index-readers-file==0.1.4
+llama-index-retrievers-bm25==0.1.3
+llama-index-vector-stores-faiss==0.1.1
 loguru==0.6.0
 meilisearch==0.21.0
 numpy==1.24.3

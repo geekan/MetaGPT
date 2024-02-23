@@ -16,6 +16,8 @@ QUESTION = "What are key qualities to be a good writer?"
 
 
 class RAGExample:
+    """Show how to use RAG."""
+
     def __init__(self):
         self.engine = SimpleEngine.from_docs(
             input_files=[DOC_PATH],
@@ -84,14 +86,17 @@ class RAGExample:
         {'name': 'foo', 'goal': 'Win The Game', 'tool': 'Red Bull Energy Drink'}
         """
 
-        self._print_title("RAG Add Docs")
+        self._print_title("RAG Add Objs")
 
         class Player(BaseModel):
+            """Player"""
+
             name: str = ""
             goal: str = "Win The Game"
             tool: str = "Red Bull Energy Drink"
 
             def rag_key(self) -> str:
+                """For search"""
                 return self.goal
 
         foo = Player(name="foo")

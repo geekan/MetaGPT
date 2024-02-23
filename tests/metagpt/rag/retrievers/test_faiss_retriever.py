@@ -1,5 +1,5 @@
 import pytest
-from llama_index.schema import Node
+from llama_index.core.schema import Node
 
 from metagpt.rag.retrievers.faiss_retriever import FAISSRetriever
 

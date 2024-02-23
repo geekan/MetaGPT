@@ -1,5 +1,5 @@
 import pytest
-from llama_index.schema import Node
+from llama_index.core.schema import Node
 
 from metagpt.rag.retrievers.bm25_retriever import DynamicBM25Retriever
 
@@ -17,7 +17,7 @@ class TestDynamicBM25Retriever:
         # 模拟nodes和tokenizer参数
         mock_nodes = []
         mock_tokenizer = mocker.MagicMock()
-        self.mock_bm25okapi = mocker.patch("rank_bm25.BM25Okapi")
+        self.mock_bm25okapi = mocker.patch("rank_bm25.BM25Okapi.__init__", return_value=None)
 
         # 初始化DynamicBM25Retriever对象，并提供必需的参数
         self.retriever = DynamicBM25Retriever(nodes=mock_nodes, tokenizer=mock_tokenizer)
