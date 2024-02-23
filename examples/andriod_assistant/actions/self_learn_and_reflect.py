@@ -61,15 +61,12 @@ class SelfLearnAndReflect(Action):
             self, round_count: int, task_desc: str, last_act: str, task_dir: Path, docs_dir: Path, env: AndroidEnv
     ) -> AndroidActionOutput:
         resp = await self.run_self_learn(round_count, task_desc, last_act, task_dir, env)
-        print(resp)
         resp = await self.run_reflect(round_count, task_desc, last_act, task_dir, docs_dir, env)
-        print(resp)
         return resp
 
     async def run_self_learn(
             self, round_count: int, task_desc: str, last_act: str, task_dir: Path, env: AndroidEnv
     ) -> AndroidActionOutput:
-        logger.info('run_self_learn')
         screenshot_path: Path = env.observe(
             EnvAPIAbstract(
                 api_name="get_screenshot", kwargs={"ss_name": f"{round_count}_before", "local_save_dir": task_dir}
@@ -83,8 +80,6 @@ class SelfLearnAndReflect(Action):
 
         clickable_list = []
         focusable_list = []
-        # TODO Tuple Bug 从这里开始 Debug
-        # TODO Tuple Bug
         traverse_xml_tree(xml_path, clickable_list, "clickable", True)
         traverse_xml_tree(xml_path, focusable_list, "focusable", True)
         elem_list = []

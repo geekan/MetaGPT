@@ -101,8 +101,8 @@ class TextOp(BaseOpParam):
 class LongPressOp(BaseOpParam):
     area: int = Field(default=-1)
 
-
-class SwipeOp(BaseOpParam):
+# Modify This SwipeOp to SwipeOp_3, Need better name
+class SwipeOp_3(BaseOpParam):
     area: int = Field(default=-1)
     swipe_orient: str = Field(default="up")
     dist: str = Field(default="")

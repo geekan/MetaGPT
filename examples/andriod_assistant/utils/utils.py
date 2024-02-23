@@ -14,7 +14,7 @@ from metagpt.logs import logger
 
 from examples.andriod_assistant.utils.schema import AndroidElement
 from examples.andriod_assistant.utils.schema import BaseOpParam, BaseGridOpParam, GridOp, ActionOp, TapOp, TapGridOp, \
-    LongPressOp, LongPressGridOp, SwipeOp, SwipeGridOp, TextOp, RunState, ReflectOp, Decision
+    LongPressOp, LongPressGridOp, SwipeOp_3, SwipeGridOp, TextOp, RunState, ReflectOp, Decision
 
 
 def get_id_from_element(elem: Element) -> str:
@@ -217,7 +217,7 @@ def screenshot_parse_extract_without_grid(act_name: str, act: str, last_act: str
     elif act_name == ActionOp.SWIPE.value:
         params = re.findall(r"swipe\((.*?)\)", act)[0].split(",")
         params = op_params_clean(params)  # area, swipe_orient, dist
-        op = SwipeOp(act_name=act_name, area=params[0], swipe_orient=params[1], dist=params[2], last_act=last_act)
+        op = SwipeOp_3(act_name=act_name, area=params[0], swipe_orient=params[1], dist=params[2], last_act=last_act)
     elif act_name == ActionOp.GRID.value:
         op = GridOp(act_name=act_name)
     else:

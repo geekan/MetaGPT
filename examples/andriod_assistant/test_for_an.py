@@ -34,7 +34,17 @@ test_manual_parse = ParseRecord()
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(
+
+    # loop.run_until_complete(
+    #     test_manual_record.run(
+    #         demo_name=DEMO_NAME,
+    #         task_desc="Create a contact in Contacts App named zjy with a phone number +86 18831933368 ",
+    #         task_dir=TASK_PATH,
+    #         env=test_env_manual_learn_android
+    #     )
+    # )
+
+    test_action_list = [
         test_self_learning.run(
             round_count=20,
             task_desc="Create a contact in Contacts App named zjy with a phone number +86 18831933368 ",
@@ -42,8 +52,14 @@ if __name__ == "__main__":
             task_dir=TASK_PATH,
             docs_dir=DOC_PATH,
             env=test_env_self_learn_android
+        ),
+        test_manual_record.run(
+            demo_name=DEMO_NAME,
+            task_dir=TASK_PATH,
+            task_desc="Create a contact in Contacts App named zjy with a phone number +86 18831933368 ",
+            env=test_env_manual_learn_android
         )
-    )
+    ]
 
     # test_action_list = [
     #     test_self_learning.run(
