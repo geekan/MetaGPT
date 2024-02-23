@@ -45,7 +45,7 @@ Due to QianFan has multi price strategies, we unify `Tokens post-payment` as a s
 QianFan_MODEL_TOKEN_COSTS = {
     "ERNIE-Bot-4": {"prompt": 0.017, "completion": 0.017},
     "ERNIE-Bot-8k": {"prompt": 0.0034, "completion": 0.0067},
-    "ERNIE-Bot": {"prompt": 0.017, "completion": 0.017},
+    "ERNIE-Bot": {"prompt": 0.0017, "completion": 0.0017},
     "ERNIE-Bot-turbo": {"prompt": 0.0011, "completion": 0.0011},
     "EB-turbo-AppBuilder": {"prompt": 0.0011, "completion": 0.0011},
     "ERNIE-Speed": {"prompt": 0.00056, "completion": 0.0011},
