@@ -13,13 +13,7 @@ import aiofiles
 
 from metagpt.actions import Action
 from metagpt.config2 import config
-from metagpt.const import (
-    AGGREGATION,
-    COMPOSITION,
-    DATA_API_DESIGN_FILE_REPO,
-    GENERALIZATION,
-    GRAPH_REPO_FILE_REPO,
-)
+from metagpt.const import AGGREGATION, COMPOSITION, DATA_API_DESIGN_FILE_REPO, GENERALIZATION, GRAPH_REPO_FILE_REPO
 from metagpt.logs import logger
 from metagpt.repo_parser import RepoParser
 from metagpt.schema import ClassAttribute, ClassMethod, ClassView
@@ -167,8 +161,8 @@ class RebuildClassView(Action):
         if eix < 0:
             fe_tag = ")"
             eix = info.rfind(fe_tag)
-        args_info = info[ix + len(fs_tag) : eix].strip()
-        method.return_type = info[eix + len(fe_tag) :].strip()
+        args_info = info[ix + len(fs_tag): eix].strip()
+        method.return_type = info[eix + len(fe_tag):].strip()
         if method.return_type == "None":
             method.return_type = ""
         if "(" in method.return_type:
@@ -214,4 +208,4 @@ class RebuildClassView(Action):
         if direction == "+":
             return diff_path + "/" + path
         else:
-            return path[len(diff_path) + 1 :]
+            return path[len(diff_path) + 1:]

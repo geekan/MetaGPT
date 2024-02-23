@@ -1,0 +1,6 @@
+include README.md
+include setup.py
+include LICENSE
+include metagpt/utils/index.html
+
+recursive-include metagpt/skills *

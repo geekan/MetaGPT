@@ -9,8 +9,9 @@
 
 from metagpt.actions import UserRequirement, WritePRD
 from metagpt.actions.prepare_documents import PrepareDocuments
-from metagpt.roles.role import Role
 from metagpt.utils.common import any_to_name
+
+from .role import Role
 
 
 class ProductManager(Role):

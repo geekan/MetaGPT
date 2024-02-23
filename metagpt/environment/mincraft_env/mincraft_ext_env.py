@@ -11,13 +11,8 @@ import requests
 from pydantic import ConfigDict, Field, model_validator
 
 from metagpt.environment.base_env import ExtEnv, mark_as_writeable
-from metagpt.environment.mincraft_env.const import (
-    MC_CKPT_DIR,
-    MC_CORE_INVENTORY_ITEMS,
-    MC_CURRICULUM_OB,
-    MC_DEFAULT_WARMUP,
-    METAGPT_ROOT,
-)
+from metagpt.environment.mincraft_env.const import (MC_CKPT_DIR, MC_CORE_INVENTORY_ITEMS, MC_CURRICULUM_OB,
+                                                    MC_DEFAULT_WARMUP, METAGPT_ROOT)
 from metagpt.environment.mincraft_env.process_monitor import SubprocessMonitor
 from metagpt.logs import logger
 

@@ -41,4 +41,5 @@ MC_CURRICULUM_OB = [
     "failed_tasks",
 ]
 MC_CORE_INVENTORY_ITEMS = r".*_log|.*_planks|stick|crafting_table|furnace"
-r"|cobblestone|dirt|coal|.*_pickaxe|.*_sword|.*_axe",  # curriculum_agent: only show these items in inventory before optional_inventory_items reached in warm up
+# curriculum_agent: only show these items in inventory before optional_inventory_items reached in warm up
+r"|cobblestone|dirt|coal|.*_pickaxe|.*_sword|.*_axe",

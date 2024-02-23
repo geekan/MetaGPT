@@ -16,9 +16,10 @@ from metagpt.actions import SearchAndSummarize
 from metagpt.actions.action_node import ActionNode
 from metagpt.actions.action_output import ActionOutput
 from metagpt.logs import logger
-from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.tools.search_engine import SearchEngine
+
+from .role import Role
 
 
 class Searcher(Role):

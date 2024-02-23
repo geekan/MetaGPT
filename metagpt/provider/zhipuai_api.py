@@ -6,22 +6,17 @@ from enum import Enum
 from typing import Optional
 
 from requests import ConnectionError
-from tenacity import (
-    after_log,
-    retry,
-    retry_if_exception_type,
-    stop_after_attempt,
-    wait_random_exponential,
-)
+from tenacity import after_log, retry, retry_if_exception_type, stop_after_attempt, wait_random_exponential
 from zhipuai.types.chat.chat_completion import Completion
 
 from metagpt.configs.llm_config import LLMConfig, LLMType
 from metagpt.logs import log_llm_stream, logger
-from metagpt.provider.base_llm import BaseLLM
-from metagpt.provider.llm_provider_registry import register_provider
-from metagpt.provider.openai_api import log_and_reraise
-from metagpt.provider.zhipuai.zhipu_model_api import ZhiPuModelAPI
 from metagpt.utils.cost_manager import CostManager
+
+from .base_llm import BaseLLM
+from .llm_provider_registry import register_provider
+from .openai_api import log_and_reraise
+from .zhipuai.zhipu_model_api import ZhiPuModelAPI
 
 
 class ZhiPuEvent(Enum):

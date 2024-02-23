@@ -4,10 +4,7 @@ from pydantic import Field
 
 from metagpt.actions.mi.ask_review import ReviewConst
 from metagpt.actions.mi.execute_nb_code import ExecuteNbCode
-from metagpt.actions.mi.write_analysis_code import (
-    WriteCodeWithoutTools,
-    WriteCodeWithTools,
-)
+from metagpt.actions.mi.write_analysis_code import WriteCodeWithoutTools, WriteCodeWithTools
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message, Task, TaskResult
@@ -31,9 +28,7 @@ class Interpreter(Role):
         super().__init__(auto_run=auto_run, use_tools=use_tools, tools=tools, **kwargs)
         self._set_react_mode(react_mode="plan_and_act", auto_run=auto_run, use_tools=use_tools)
         if use_tools and tools:
-            from metagpt.tools.tool_registry import (
-                validate_tool_names,  # import upon use
-            )
+            from metagpt.tools.tool_registry import validate_tool_names  # import upon use
 
             self.tools = validate_tool_names(tools)
             logger.info(f"will only use {self.tools} as tools")

@@ -12,8 +12,9 @@ from pydantic import Field, model_validator
 
 from metagpt.actions import SearchAndSummarize, UserRequirement
 from metagpt.document_store.base_store import BaseStore
-from metagpt.roles import Role
 from metagpt.tools.search_engine import SearchEngine
+
+from .role import Role
 
 
 class Sales(Role):

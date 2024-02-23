@@ -9,11 +9,7 @@ from typing import TYPE_CHECKING, Any, Dict, Iterable, Optional, Set, Union
 from pydantic import BaseModel, ConfigDict, Field, SerializeAsAny, model_validator
 
 from metagpt.context import Context
-from metagpt.environment.api.env_api import (
-    EnvAPIAbstract,
-    ReadAPIRegistry,
-    WriteAPIRegistry,
-)
+from metagpt.environment.api.env_api import EnvAPIAbstract, ReadAPIRegistry, WriteAPIRegistry
 from metagpt.logs import logger
 from metagpt.schema import Message
 from metagpt.utils.common import get_function_schema, is_coroutine_func, is_send_to

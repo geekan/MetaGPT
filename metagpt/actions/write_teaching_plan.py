@@ -49,7 +49,7 @@ class WriteTeachingPlanPart(Action):
     def _set_result(self, rsp):
         if TeachingPlanBlock.DATA_BEGIN_TAG in rsp:
             ix = rsp.index(TeachingPlanBlock.DATA_BEGIN_TAG)
-            rsp = rsp[ix + len(TeachingPlanBlock.DATA_BEGIN_TAG) :]
+            rsp = rsp[ix + len(TeachingPlanBlock.DATA_BEGIN_TAG):]
         if TeachingPlanBlock.DATA_END_TAG in rsp:
             ix = rsp.index(TeachingPlanBlock.DATA_END_TAG)
             rsp = rsp[0:ix]

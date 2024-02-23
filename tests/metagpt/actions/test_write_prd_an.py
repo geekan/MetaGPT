@@ -12,11 +12,7 @@ from metagpt.actions.action_node import ActionNode
 from metagpt.actions.write_prd import NEW_REQ_TEMPLATE
 from metagpt.actions.write_prd_an import REFINED_PRD_NODE
 from metagpt.llm import LLM
-from tests.data.incremental_dev_project.mock import (
-    NEW_REQUIREMENT_SAMPLE,
-    PRD_SAMPLE,
-    REFINED_PRD_JSON,
-)
+from tests.data.incremental_dev_project.mock import NEW_REQUIREMENT_SAMPLE, PRD_SAMPLE, REFINED_PRD_JSON
 
 
 @pytest.fixture()

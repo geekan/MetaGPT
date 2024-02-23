@@ -67,7 +67,7 @@ class ArgumentsParingAction(Action):
             return None
         begin_ix = txt.find(prefix)
         end_ix = txt.rfind(")")
-        args_txt = txt[begin_ix + len(prefix) : end_ix]
+        args_txt = txt[begin_ix + len(prefix): end_ix]
         logger.info(args_txt)
         fake_expression = f"dict({args_txt})"
         parsed_expression = ast.parse(fake_expression, mode="eval")

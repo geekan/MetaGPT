@@ -109,11 +109,11 @@ class StanfordTownExtEnv(ExtEnv):
         spawning_location_maze = []
         for i in range(0, len(collision_maze_raw), maze_width):
             tw = maze_width
-            collision_maze += [collision_maze_raw[i : i + tw]]
-            sector_maze += [sector_maze_raw[i : i + tw]]
-            arena_maze += [arena_maze_raw[i : i + tw]]
-            game_object_maze += [game_object_maze_raw[i : i + tw]]
-            spawning_location_maze += [spawning_location_maze_raw[i : i + tw]]
+            collision_maze += [collision_maze_raw[i: i + tw]]
+            sector_maze += [sector_maze_raw[i: i + tw]]
+            arena_maze += [arena_maze_raw[i: i + tw]]
+            game_object_maze += [game_object_maze_raw[i: i + tw]]
+            spawning_location_maze += [spawning_location_maze_raw[i: i + tw]]
         values["collision_maze"] = collision_maze
 
         tiles = []

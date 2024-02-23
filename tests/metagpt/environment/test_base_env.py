@@ -5,13 +5,8 @@
 import pytest
 
 from metagpt.environment.api.env_api import EnvAPIAbstract
-from metagpt.environment.base_env import (
-    Environment,
-    env_read_api_registry,
-    env_write_api_registry,
-    mark_as_readable,
-    mark_as_writeable,
-)
+from metagpt.environment.base_env import (Environment, env_read_api_registry, env_write_api_registry, mark_as_readable,
+                                          mark_as_writeable)
 
 
 class ForTestEnv(Environment):

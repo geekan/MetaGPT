@@ -6,8 +6,9 @@
 @Desc    : MetaGPT LLM provider.
 """
 from metagpt.configs.llm_config import LLMType
-from metagpt.provider import OpenAILLM
-from metagpt.provider.llm_provider_registry import register_provider
+
+from .llm_provider_registry import register_provider
+from .openai_api import OpenAILLM
 
 
 @register_provider(LLMType.METAGPT)

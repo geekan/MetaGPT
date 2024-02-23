@@ -18,8 +18,9 @@ import websocket  # 使用websocket_client
 
 from metagpt.configs.llm_config import LLMConfig, LLMType
 from metagpt.logs import logger
-from metagpt.provider.base_llm import BaseLLM
-from metagpt.provider.llm_provider_registry import register_provider
+
+from .base_llm import BaseLLM
+from .llm_provider_registry import register_provider
 
 
 @register_provider(LLMType.SPARK)

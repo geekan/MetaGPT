@@ -3,21 +3,13 @@
 # @Desc   : the unittest of fireworks api
 
 import pytest
-from openai.types.chat.chat_completion import (
-    ChatCompletion,
-    ChatCompletionMessage,
-    Choice,
-)
+from openai.types.chat.chat_completion import ChatCompletion, ChatCompletionMessage, Choice
 from openai.types.chat.chat_completion_chunk import ChatCompletionChunk
 from openai.types.chat.chat_completion_chunk import Choice as AChoice
 from openai.types.chat.chat_completion_chunk import ChoiceDelta
 from openai.types.completion_usage import CompletionUsage
 
-from metagpt.provider.fireworks_api import (
-    MODEL_GRADE_TOKEN_COSTS,
-    FireworksCostManager,
-    FireworksLLM,
-)
+from metagpt.provider.fireworks_api import MODEL_GRADE_TOKEN_COSTS, FireworksCostManager, FireworksLLM
 from metagpt.utils.cost_manager import Costs
 from tests.metagpt.provider.mock_llm_config import mock_llm_config
 

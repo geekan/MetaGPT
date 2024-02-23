@@ -14,8 +14,9 @@ from metagpt.actions import Action, CollectLinks, ConductResearch, WebBrowseAndS
 from metagpt.actions.research import get_research_system_text
 from metagpt.const import RESEARCH_PATH
 from metagpt.logs import logger
-from metagpt.roles.role import Role, RoleReactMode
 from metagpt.schema import Message
+
+from .role import Role, RoleReactMode
 
 
 class Report(BaseModel):

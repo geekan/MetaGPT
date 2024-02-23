@@ -8,24 +8,16 @@ import google.generativeai as genai
 from google.ai import generativelanguage as glm
 from google.generativeai.generative_models import GenerativeModel
 from google.generativeai.types import content_types
-from google.generativeai.types.generation_types import (
-    AsyncGenerateContentResponse,
-    GenerateContentResponse,
-    GenerationConfig,
-)
-from tenacity import (
-    after_log,
-    retry,
-    retry_if_exception_type,
-    stop_after_attempt,
-    wait_random_exponential,
-)
+from google.generativeai.types.generation_types import (AsyncGenerateContentResponse, GenerateContentResponse,
+                                                        GenerationConfig)
+from tenacity import after_log, retry, retry_if_exception_type, stop_after_attempt, wait_random_exponential
 
 from metagpt.configs.llm_config import LLMConfig, LLMType
 from metagpt.logs import log_llm_stream, logger
-from metagpt.provider.base_llm import BaseLLM
-from metagpt.provider.llm_provider_registry import register_provider
-from metagpt.provider.openai_api import log_and_reraise
+
+from .base_llm import BaseLLM
+from .llm_provider_registry import register_provider
+from .openai_api import log_and_reraise
 
 
 class GeminiGenerativeModel(GenerativeModel):

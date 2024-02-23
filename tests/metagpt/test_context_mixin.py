@@ -17,11 +17,7 @@ from metagpt.context_mixin import ContextMixin
 from metagpt.environment import Environment
 from metagpt.roles import Role
 from metagpt.team import Team
-from tests.metagpt.provider.mock_llm_config import (
-    mock_llm_config,
-    mock_llm_config_proxy,
-    mock_llm_config_zhipu,
-)
+from tests.metagpt.provider.mock_llm_config import mock_llm_config, mock_llm_config_proxy, mock_llm_config_zhipu
 
 
 class ModelX(ContextMixin, BaseModel):

@@ -57,7 +57,7 @@ class SeleniumWrapper(BaseModel):
     async def run(self, url: str, *urls: str) -> WebPage | list[WebPage]:
         await self._run_precheck()
 
-        _scrape = lambda url: self.loop.run_in_executor(self.executor, self._scrape_website, url)
+        def _scrape(url): return self.loop.run_in_executor(self.executor, self._scrape_website, url)
 
         if urls:
             return await asyncio.gather(_scrape(url), *(_scrape(i) for i in urls))

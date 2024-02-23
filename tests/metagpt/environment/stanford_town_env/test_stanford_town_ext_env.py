@@ -4,9 +4,7 @@
 
 from pathlib import Path
 
-from metagpt.environment.stanford_town_env.stanford_town_ext_env import (
-    StanfordTownExtEnv,
-)
+from metagpt.environment.stanford_town_env.stanford_town_ext_env import StanfordTownExtEnv
 
 maze_asset_path = (
     Path(__file__).absolute().parent.joinpath("..", "..", "..", "data", "environment", "stanford_town", "the_ville")

@@ -11,11 +11,7 @@ from pathlib import Path
 from typing import Optional, Union
 
 import pandas as pd
-from langchain.document_loaders import (
-    TextLoader,
-    UnstructuredPDFLoader,
-    UnstructuredWordDocumentLoader,
-)
+from langchain.document_loaders import TextLoader, UnstructuredPDFLoader, UnstructuredWordDocumentLoader
 from langchain.text_splitter import CharacterTextSplitter
 from pydantic import BaseModel, ConfigDict, Field
 from tqdm import tqdm

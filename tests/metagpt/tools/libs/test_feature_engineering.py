@@ -3,19 +3,9 @@ import pandas as pd
 import pytest
 from sklearn.datasets import fetch_california_housing, load_breast_cancer, load_iris
 
-from metagpt.tools.libs.feature_engineering import (
-    CatCount,
-    CatCross,
-    ExtractTimeComps,
-    GeneralSelection,
-    GroupStat,
-    KFoldTargetMeanEncoder,
-    PolynomialExpansion,
-    SplitBins,
-    TargetMeanEncoder,
-    TreeBasedSelection,
-    VarianceBasedSelection,
-)
+from metagpt.tools.libs.feature_engineering import (CatCount, CatCross, ExtractTimeComps, GeneralSelection, GroupStat,
+                                                    KFoldTargetMeanEncoder, PolynomialExpansion, SplitBins,
+                                                    TargetMeanEncoder, TreeBasedSelection, VarianceBasedSelection)
 
 
 @pytest.fixture

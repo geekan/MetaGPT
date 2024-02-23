@@ -4,10 +4,7 @@
 
 
 from metagpt.provider.postprocess.llm_output_postprocess import llm_output_postprocess
-from tests.metagpt.provider.postprocess.test_base_postprocess_plugin import (
-    raw_output,
-    raw_schema,
-)
+from tests.metagpt.provider.postprocess.test_base_postprocess_plugin import raw_output, raw_schema
 
 
 def test_llm_output_postprocess():

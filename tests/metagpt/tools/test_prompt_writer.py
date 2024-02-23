@@ -9,12 +9,7 @@
 import pytest
 
 from metagpt.logs import logger
-from metagpt.tools.prompt_writer import (
-    BEAGECTemplate,
-    EnronTemplate,
-    GPTPromptGenerator,
-    WikiHowTemplate,
-)
+from metagpt.tools.prompt_writer import BEAGECTemplate, EnronTemplate, GPTPromptGenerator, WikiHowTemplate
 
 
 @pytest.mark.asyncio

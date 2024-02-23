@@ -14,14 +14,8 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from metagpt.actions.action_node import ActionNode
 from metagpt.context_mixin import ContextMixin
-from metagpt.schema import (
-    CodePlanAndChangeContext,
-    CodeSummarizeContext,
-    CodingContext,
-    RunCodeContext,
-    SerializationMixin,
-    TestingContext,
-)
+from metagpt.schema import (CodePlanAndChangeContext, CodeSummarizeContext, CodingContext, RunCodeContext,
+                            SerializationMixin, TestingContext)
 from metagpt.utils.project_repo import ProjectRepo
 
 

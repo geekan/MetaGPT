@@ -3,10 +3,7 @@ import asyncio
 import pytest
 
 from metagpt.actions.mi.execute_nb_code import ExecuteNbCode
-from metagpt.actions.mi.write_analysis_code import (
-    WriteCodeWithoutTools,
-    WriteCodeWithTools,
-)
+from metagpt.actions.mi.write_analysis_code import WriteCodeWithoutTools, WriteCodeWithTools
 from metagpt.logs import logger
 from metagpt.schema import Message, Plan, Task
 from metagpt.strategy.planner import STRUCTURAL_CONTEXT

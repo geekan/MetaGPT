@@ -21,23 +21,9 @@ from metagpt.actions import RunCode
 from metagpt.const import get_metagpt_root
 from metagpt.roles.tutorial_assistant import TutorialAssistant
 from metagpt.schema import Message
-from metagpt.utils.common import (
-    NoMoneyException,
-    OutputParser,
-    any_to_str,
-    any_to_str_set,
-    aread,
-    awrite,
-    check_cmd_exists,
-    concat_namespace,
-    import_class_inst,
-    parse_recipient,
-    print_members,
-    read_file_block,
-    read_json_file,
-    require_python_version,
-    split_namespace,
-)
+from metagpt.utils.common import (NoMoneyException, OutputParser, any_to_str, any_to_str_set, aread, awrite,
+                                  check_cmd_exists, concat_namespace, import_class_inst, parse_recipient, print_members,
+                                  read_file_block, read_json_file, require_python_version, split_namespace)
 
 
 class TestGetProjectRoot:

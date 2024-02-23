@@ -7,19 +7,14 @@ import re
 from openai import APIConnectionError, AsyncStream
 from openai.types import CompletionUsage
 from openai.types.chat import ChatCompletionChunk
-from tenacity import (
-    after_log,
-    retry,
-    retry_if_exception_type,
-    stop_after_attempt,
-    wait_random_exponential,
-)
+from tenacity import after_log, retry, retry_if_exception_type, stop_after_attempt, wait_random_exponential
 
 from metagpt.configs.llm_config import LLMConfig, LLMType
 from metagpt.logs import logger
-from metagpt.provider.llm_provider_registry import register_provider
-from metagpt.provider.openai_api import OpenAILLM, log_and_reraise
 from metagpt.utils.cost_manager import CostManager, Costs
+
+from .llm_provider_registry import register_provider
+from .openai_api import OpenAILLM, log_and_reraise
 
 MODEL_GRADE_TOKEN_COSTS = {
     "-1": {"prompt": 0.0, "completion": 0.0},  # abnormal condition

@@ -5,15 +5,8 @@ import json
 import numpy as np
 import pandas as pd
 from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import (
-    LabelEncoder,
-    MaxAbsScaler,
-    MinMaxScaler,
-    OneHotEncoder,
-    OrdinalEncoder,
-    RobustScaler,
-    StandardScaler,
-)
+from sklearn.preprocessing import (LabelEncoder, MaxAbsScaler, MinMaxScaler, OneHotEncoder, OrdinalEncoder,
+                                   RobustScaler, StandardScaler)
 
 from metagpt.tools.tool_registry import register_tool
 from metagpt.tools.tool_type import ToolType

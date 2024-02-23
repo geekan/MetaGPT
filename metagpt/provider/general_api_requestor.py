@@ -9,16 +9,17 @@ import aiohttp
 import requests
 
 from metagpt.logs import logger
-from metagpt.provider.general_api_base import APIRequestor
+
+from .general_api_base import APIRequestor
 
 
 def parse_stream_helper(line: bytes) -> Union[bytes, None]:
     if line and line.startswith(b"data:"):
         if line.startswith(b"data: "):
             # SSE event may be valid when it contain whitespace
-            line = line[len(b"data: ") :]
+            line = line[len(b"data: "):]
         else:
-            line = line[len(b"data:") :]
+            line = line[len(b"data:"):]
         if line.strip() == b"[DONE]":
             # return here will cause GeneratorExit exception in urllib3
             # and it will close http connection with TCP Reset

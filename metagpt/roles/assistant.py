@@ -25,8 +25,9 @@ from metagpt.actions.talk_action import TalkAction
 from metagpt.learn.skill_loader import SkillsDeclaration
 from metagpt.logs import logger
 from metagpt.memory.brain_memory import BrainMemory
-from metagpt.roles import Role
 from metagpt.schema import Message
+
+from .role import Role
 
 
 class MessageType(Enum):

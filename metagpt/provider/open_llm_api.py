@@ -6,10 +6,11 @@ from openai.types import CompletionUsage
 
 from metagpt.configs.llm_config import LLMConfig, LLMType
 from metagpt.logs import logger
-from metagpt.provider.llm_provider_registry import register_provider
-from metagpt.provider.openai_api import OpenAILLM
 from metagpt.utils.cost_manager import Costs, TokenCostManager
 from metagpt.utils.token_counter import count_message_tokens, count_string_tokens
+
+from .llm_provider_registry import register_provider
+from .openai_api import OpenAILLM
 
 
 @register_provider(LLMType.OPEN_LLM)

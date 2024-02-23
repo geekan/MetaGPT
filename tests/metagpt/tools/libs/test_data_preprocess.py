@@ -5,17 +5,8 @@ import numpy.testing as npt
 import pandas as pd
 import pytest
 
-from metagpt.tools.libs.data_preprocess import (
-    FillMissingValue,
-    LabelEncode,
-    MaxAbsScale,
-    MinMaxScale,
-    OneHotEncode,
-    OrdinalEncode,
-    RobustScale,
-    StandardScale,
-    get_column_info,
-)
+from metagpt.tools.libs.data_preprocess import (FillMissingValue, LabelEncode, MaxAbsScale, MinMaxScale, OneHotEncode,
+                                                OrdinalEncode, RobustScale, StandardScale, get_column_info)
 
 
 @pytest.fixture

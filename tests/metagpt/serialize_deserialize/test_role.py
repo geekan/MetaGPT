@@ -16,14 +16,7 @@ from metagpt.roles.product_manager import ProductManager
 from metagpt.roles.role import Role
 from metagpt.schema import Message
 from metagpt.utils.common import format_trackback_info, read_json_file, write_json_file
-from tests.metagpt.serialize_deserialize.test_serdeser_base import (
-    ActionOK,
-    RoleA,
-    RoleB,
-    RoleC,
-    RoleD,
-    serdeser_path,
-)
+from tests.metagpt.serialize_deserialize.test_serdeser_base import ActionOK, RoleA, RoleB, RoleC, RoleD, serdeser_path
 
 
 def test_roles(context):

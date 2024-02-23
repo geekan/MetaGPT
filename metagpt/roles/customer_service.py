@@ -10,7 +10,8 @@ from typing import Optional
 from pydantic import Field
 
 from metagpt.document_store.base_store import BaseStore
-from metagpt.roles import Sales
+
+from .sales import Sales
 
 DESC = """
 ## Principles (all things must not bypass the principles)

@@ -4,14 +4,8 @@
 # @Author  : lidanyang
 # @File    : __init__.py
 # @Desc    :
-from metagpt.tools.libs import (
-    data_preprocess,
-    feature_engineering,
-    sd_engine,
-    gpt_v_generator,
-    web_scraping,
-    email_login,
-)
+from metagpt.tools.libs import (data_preprocess, email_login, feature_engineering, gpt_v_generator, sd_engine,
+                                web_scraping)
 
 _ = (
     data_preprocess,

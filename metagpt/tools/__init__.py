@@ -7,6 +7,7 @@
 """
 
 from enum import Enum
+
 from metagpt.tools import libs  # this registers all tools
 from metagpt.tools.tool_registry import TOOL_REGISTRY
 

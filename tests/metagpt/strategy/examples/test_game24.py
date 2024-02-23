@@ -6,12 +6,7 @@ import re
 from typing import Dict
 
 from metagpt.strategy.tot import TreeofThought
-from metagpt.strategy.tot_schema import (
-    BaseEvaluator,
-    BaseParser,
-    Strategy,
-    ThoughtSolverConfig,
-)
+from metagpt.strategy.tot_schema import BaseEvaluator, BaseParser, Strategy, ThoughtSolverConfig
 from tests.metagpt.strategy.prompt_templates.game24 import propose_prompt, value_prompt
 
 

@@ -1,11 +1,6 @@
 import pytest
 
-from metagpt.utils.text import (
-    decode_unicode_escape,
-    generate_prompt_chunk,
-    reduce_message_length,
-    split_paragraph,
-)
+from metagpt.utils.text import decode_unicode_escape, generate_prompt_chunk, reduce_message_length, split_paragraph
 
 
 def _msgs():

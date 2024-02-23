@@ -29,13 +29,7 @@ def generate_repo(
     """Run the startup logic. Can be called from CLI or other Python scripts."""
     from metagpt.config2 import config
     from metagpt.context import Context
-    from metagpt.roles import (
-        Architect,
-        Engineer,
-        ProductManager,
-        ProjectManager,
-        QaEngineer,
-    )
+    from metagpt.roles import Architect, Engineer, ProductManager, ProjectManager, QaEngineer
     from metagpt.team import Team
 
     config.update_via_cli(project_path, project_name, inc, reqa_file, max_auto_summarize_code)

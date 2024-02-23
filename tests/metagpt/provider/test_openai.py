@@ -1,9 +1,5 @@
 import pytest
-from openai.types.chat import (
-    ChatCompletion,
-    ChatCompletionMessage,
-    ChatCompletionMessageToolCall,
-)
+from openai.types.chat import ChatCompletion, ChatCompletionMessage, ChatCompletionMessageToolCall
 from openai.types.chat.chat_completion import Choice
 from openai.types.chat.chat_completion_message_tool_call import Function
 from PIL import Image
@@ -12,10 +8,7 @@ from metagpt.const import TEST_DATA_PATH
 from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.provider import OpenAILLM
-from tests.metagpt.provider.mock_llm_config import (
-    mock_llm_config,
-    mock_llm_config_proxy,
-)
+from tests.metagpt.provider.mock_llm_config import mock_llm_config, mock_llm_config_proxy
 
 
 @pytest.mark.asyncio

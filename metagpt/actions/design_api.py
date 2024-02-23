@@ -14,14 +14,9 @@ from pathlib import Path
 from typing import Optional
 
 from metagpt.actions import Action, ActionOutput
-from metagpt.actions.design_api_an import (
-    DATA_STRUCTURES_AND_INTERFACES,
-    DESIGN_API_NODE,
-    PROGRAM_CALL_FLOW,
-    REFINED_DATA_STRUCTURES_AND_INTERFACES,
-    REFINED_DESIGN_NODE,
-    REFINED_PROGRAM_CALL_FLOW,
-)
+from metagpt.actions.design_api_an import (DATA_STRUCTURES_AND_INTERFACES, DESIGN_API_NODE, PROGRAM_CALL_FLOW,
+                                           REFINED_DATA_STRUCTURES_AND_INTERFACES, REFINED_DESIGN_NODE,
+                                           REFINED_PROGRAM_CALL_FLOW)
 from metagpt.const import DATA_API_DESIGN_FILE_REPO, SEQ_FLOW_FILE_REPO
 from metagpt.logs import logger
 from metagpt.schema import Document, Documents, Message

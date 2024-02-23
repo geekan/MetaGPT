@@ -179,3 +179,6 @@ cov.xml
 *-structure.csv
 *-structure.json
 metagpt/tools/schemas
+
+# venv
+venv

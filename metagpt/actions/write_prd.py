@@ -19,19 +19,9 @@ from pathlib import Path
 from metagpt.actions import Action, ActionOutput
 from metagpt.actions.action_node import ActionNode
 from metagpt.actions.fix_bug import FixBug
-from metagpt.actions.write_prd_an import (
-    COMPETITIVE_QUADRANT_CHART,
-    PROJECT_NAME,
-    REFINED_PRD_NODE,
-    WP_IS_RELATIVE_NODE,
-    WP_ISSUE_TYPE_NODE,
-    WRITE_PRD_NODE,
-)
-from metagpt.const import (
-    BUGFIX_FILENAME,
-    COMPETITIVE_ANALYSIS_FILE_REPO,
-    REQUIREMENT_FILENAME,
-)
+from metagpt.actions.write_prd_an import (COMPETITIVE_QUADRANT_CHART, PROJECT_NAME, REFINED_PRD_NODE,
+                                          WP_IS_RELATIVE_NODE, WP_ISSUE_TYPE_NODE, WRITE_PRD_NODE)
+from metagpt.const import BUGFIX_FILENAME, COMPETITIVE_ANALYSIS_FILE_REPO, REQUIREMENT_FILENAME
 from metagpt.logs import logger
 from metagpt.schema import BugFixContext, Document, Documents, Message
 from metagpt.utils.common import CodeParser

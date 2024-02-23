@@ -4,12 +4,8 @@ from typing import Tuple
 
 from metagpt.actions import Action
 from metagpt.actions.mi.write_analysis_code import WriteCodeWithTools
-from metagpt.prompts.mi.ml_action import (
-    ML_GENERATE_CODE_PROMPT,
-    ML_TOOL_USAGE_PROMPT,
-    PRINT_DATA_COLUMNS,
-    UPDATE_DATA_COLUMNS,
-)
+from metagpt.prompts.mi.ml_action import (ML_GENERATE_CODE_PROMPT, ML_TOOL_USAGE_PROMPT, PRINT_DATA_COLUMNS,
+                                          UPDATE_DATA_COLUMNS)
 from metagpt.prompts.mi.write_analysis_code import CODE_GENERATOR_WITH_TOOLS
 from metagpt.schema import Message, Plan
 from metagpt.utils.common import create_func_call_config, remove_comments

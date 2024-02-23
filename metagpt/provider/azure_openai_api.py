@@ -12,8 +12,9 @@ from openai import AsyncAzureOpenAI
 from openai._base_client import AsyncHttpxClientWrapper
 
 from metagpt.configs.llm_config import LLMType
-from metagpt.provider.llm_provider_registry import register_provider
-from metagpt.provider.openai_api import OpenAILLM
+
+from .llm_provider_registry import register_provider
+from .openai_api import OpenAILLM
 
 
 @register_provider(LLMType.AZURE)

@@ -23,11 +23,7 @@ from tenacity import retry, stop_after_attempt, wait_random_exponential
 from metagpt.actions.action import Action
 from metagpt.actions.project_management_an import REFINED_TASK_LIST, TASK_LIST
 from metagpt.actions.write_code_plan_and_change_an import REFINED_TEMPLATE
-from metagpt.const import (
-    BUGFIX_FILENAME,
-    CODE_PLAN_AND_CHANGE_FILENAME,
-    REQUIREMENT_FILENAME,
-)
+from metagpt.const import BUGFIX_FILENAME, CODE_PLAN_AND_CHANGE_FILENAME, REQUIREMENT_FILENAME
 from metagpt.logs import logger
 from metagpt.schema import CodingContext, Document, RunCodeResult
 from metagpt.utils.common import CodeParser

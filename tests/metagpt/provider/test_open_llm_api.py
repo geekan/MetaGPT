@@ -3,11 +3,7 @@
 # @Desc   :
 
 import pytest
-from openai.types.chat.chat_completion import (
-    ChatCompletion,
-    ChatCompletionMessage,
-    Choice,
-)
+from openai.types.chat.chat_completion import ChatCompletion, ChatCompletionMessage, Choice
 from openai.types.chat.chat_completion_chunk import ChatCompletionChunk
 from openai.types.chat.chat_completion_chunk import Choice as AChoice
 from openai.types.chat.chat_completion_chunk import ChoiceDelta

@@ -7,14 +7,7 @@
 """
 import random
 
-from qdrant_client.models import (
-    Distance,
-    FieldCondition,
-    Filter,
-    PointStruct,
-    Range,
-    VectorParams,
-)
+from qdrant_client.models import Distance, FieldCondition, Filter, PointStruct, Range, VectorParams
 
 from metagpt.document_store.qdrant_store import QdrantConnection, QdrantStore
 

@@ -9,12 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from metagpt.const import (
-    BUGFIX_FILENAME,
-    PACKAGE_REQUIREMENTS_FILENAME,
-    PRDS_FILE_REPO,
-    REQUIREMENT_FILENAME,
-)
+from metagpt.const import BUGFIX_FILENAME, PACKAGE_REQUIREMENTS_FILENAME, PRDS_FILE_REPO, REQUIREMENT_FILENAME
 from metagpt.utils.project_repo import ProjectRepo
 
 

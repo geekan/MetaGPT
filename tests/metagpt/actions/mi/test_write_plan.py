@@ -1,11 +1,6 @@
 import pytest
 
-from metagpt.actions.mi.write_plan import (
-    Plan,
-    Task,
-    WritePlan,
-    precheck_update_plan_from_rsp,
-)
+from metagpt.actions.mi.write_plan import Plan, Task, WritePlan, precheck_update_plan_from_rsp
 from metagpt.schema import Message
 
 

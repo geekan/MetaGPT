@@ -324,7 +324,7 @@ class BrainMemory(BaseModel):
             # window_size=3, padding_size=1：
             # [1, 2, 3], [3, 4, 5], [5, 6, 7], ....
             #   idx=2,  |  idx=5   |  idx=8  | ...
-            w = text[idx : idx + window_size]
+            w = text[idx: idx + window_size]
             windows.append(w)
             idx += data_len
 

@@ -300,7 +300,7 @@ class RepoParser(BaseModel):
             return None, None
         bix = left.find(begin_flag)
         eix = left.rfind(end_flag)
-        info = left[bix + len(begin_flag) : eix]
+        info = left[bix + len(begin_flag): eix]
         info = re.sub(r"<br[^>]*>", "\n", info)
         return class_name, info
 
@@ -313,9 +313,9 @@ class RepoParser(BaseModel):
                 return None
             idxs.append(line.find(tag))
         ret = ClassRelationship()
-        ret.src = line[0 : idxs[0]].strip('"')
-        ret.dest = line[idxs[0] + len(splitters[0]) : idxs[1]].strip('"')
-        properties = line[idxs[1] + len(splitters[1]) : idxs[2]].strip(" ")
+        ret.src = line[0: idxs[0]].strip('"')
+        ret.dest = line[idxs[0] + len(splitters[0]): idxs[1]].strip('"')
+        properties = line[idxs[1] + len(splitters[1]): idxs[2]].strip(" ")
         mappings = {
             'arrowhead="empty"': GENERALIZATION,
             'arrowhead="diamond"': COMPOSITION,
@@ -336,7 +336,7 @@ class RepoParser(BaseModel):
             return ""
         ix = line.find(tag)
         eix = line.find('"', ix + len(tag))
-        return line[ix + len(tag) : eix]
+        return line[ix + len(tag): eix]
 
     @staticmethod
     def _create_path_mapping(path: str | Path) -> Dict[str, str]:
@@ -399,7 +399,7 @@ class RepoParser(BaseModel):
                 file_ns = file_ns[0:ix]
                 continue
             break
-        internal_ns = package[ix + 1 :]
+        internal_ns = package[ix + 1:]
         ns = mappings[file_ns] + ":" + internal_ns.replace(".", ":")
         return ns
 
@@ -412,7 +412,7 @@ class RepoParser(BaseModel):
             if "." not in left:
                 break
             ix = left.find(".")
-            left = left[ix + 1 :]
+            left = left[ix + 1:]
         ix = full_key.rfind(left)
         return "." + full_key[0:ix]
 

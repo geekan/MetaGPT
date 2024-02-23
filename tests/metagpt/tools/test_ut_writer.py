@@ -10,15 +10,8 @@ from pathlib import Path
 import pytest
 from openai.resources.chat.completions import AsyncCompletions
 from openai.types import CompletionUsage
-from openai.types.chat.chat_completion import (
-    ChatCompletion,
-    ChatCompletionMessage,
-    Choice,
-)
-from openai.types.chat.chat_completion_message_tool_call import (
-    ChatCompletionMessageToolCall,
-    Function,
-)
+from openai.types.chat.chat_completion import ChatCompletion, ChatCompletionMessage, Choice
+from openai.types.chat.chat_completion_message_tool_call import ChatCompletionMessageToolCall, Function
 
 from metagpt.config2 import config
 from metagpt.const import API_QUESTIONS_PATH, UT_PY_PATH

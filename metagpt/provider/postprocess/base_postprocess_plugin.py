@@ -4,12 +4,8 @@
 
 from typing import Union
 
-from metagpt.utils.repair_llm_raw_output import (
-    RepairType,
-    extract_content_from_output,
-    repair_llm_raw_output,
-    retry_parse_json_text,
-)
+from metagpt.utils.repair_llm_raw_output import (RepairType, extract_content_from_output, repair_llm_raw_output,
+                                                 retry_parse_json_text)
 
 
 class BasePostProcessPlugin(object):

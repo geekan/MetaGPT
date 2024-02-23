@@ -12,13 +12,7 @@ from metagpt.logs import logger
 from metagpt.roles import Architect, ProductManager, ProjectManager
 from metagpt.team import Team
 from metagpt.utils.common import write_json_file
-from tests.metagpt.serialize_deserialize.test_serdeser_base import (
-    ActionOK,
-    RoleA,
-    RoleB,
-    RoleC,
-    serdeser_path,
-)
+from tests.metagpt.serialize_deserialize.test_serdeser_base import ActionOK, RoleA, RoleB, RoleC, serdeser_path
 
 
 def test_team_deserialize(context):

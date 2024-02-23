@@ -14,9 +14,10 @@ import re
 from metagpt.actions import UserRequirement
 from metagpt.actions.write_teaching_plan import TeachingPlanBlock, WriteTeachingPlanPart
 from metagpt.logs import logger
-from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.utils.common import any_to_str, awrite
+
+from .role import Role
 
 
 class Teacher(Role):

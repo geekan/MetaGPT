@@ -9,11 +9,7 @@ from typing import List
 from metagpt.actions import WritePRD
 from metagpt.actions.action_node import ActionNode
 from metagpt.schema import Message
-from metagpt.utils.serialize import (
-    actionoutout_schema_to_mapping,
-    deserialize_message,
-    serialize_message,
-)
+from metagpt.utils.serialize import actionoutout_schema_to_mapping, deserialize_message, serialize_message
 
 
 def test_actionoutout_schema_to_mapping():

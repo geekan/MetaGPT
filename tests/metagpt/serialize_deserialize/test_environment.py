@@ -10,12 +10,7 @@ from metagpt.environment import Environment
 from metagpt.roles.project_manager import ProjectManager
 from metagpt.schema import Message
 from metagpt.utils.common import any_to_str, read_json_file, write_json_file
-from tests.metagpt.serialize_deserialize.test_serdeser_base import (
-    ActionOK,
-    ActionRaise,
-    RoleC,
-    serdeser_path,
-)
+from tests.metagpt.serialize_deserialize.test_serdeser_base import ActionOK, ActionRaise, RoleC, serdeser_path
 
 
 def test_env_serdeser(context):

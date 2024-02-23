@@ -25,35 +25,16 @@ from json import JSONDecodeError
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Type, TypeVar, Union
 
-from pydantic import (
-    BaseModel,
-    ConfigDict,
-    Field,
-    PrivateAttr,
-    field_serializer,
-    field_validator,
-    model_serializer,
-    model_validator,
-)
+from pydantic import (BaseModel, ConfigDict, Field, PrivateAttr, field_serializer, field_validator, model_serializer,
+                      model_validator)
 
-from metagpt.const import (
-    CODE_PLAN_AND_CHANGE_FILENAME,
-    MESSAGE_ROUTE_CAUSE_BY,
-    MESSAGE_ROUTE_FROM,
-    MESSAGE_ROUTE_TO,
-    MESSAGE_ROUTE_TO_ALL,
-    PRDS_FILE_REPO,
-    SYSTEM_DESIGN_FILE_REPO,
-    TASK_FILE_REPO,
-)
+from metagpt.const import (CODE_PLAN_AND_CHANGE_FILENAME, MESSAGE_ROUTE_CAUSE_BY, MESSAGE_ROUTE_FROM, MESSAGE_ROUTE_TO,
+                           MESSAGE_ROUTE_TO_ALL, PRDS_FILE_REPO, SYSTEM_DESIGN_FILE_REPO, TASK_FILE_REPO)
 from metagpt.logs import logger
 from metagpt.utils.common import any_to_str, any_to_str_set, import_class
 from metagpt.utils.exceptions import handle_exception
-from metagpt.utils.serialize import (
-    actionoutout_schema_to_mapping,
-    actionoutput_mapping_to_str,
-    actionoutput_str_to_mapping,
-)
+from metagpt.utils.serialize import (actionoutout_schema_to_mapping, actionoutput_mapping_to_str,
+                                     actionoutput_str_to_mapping)
 
 
 class SerializationMixin(BaseModel, extra="forbid"):

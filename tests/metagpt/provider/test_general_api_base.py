@@ -10,21 +10,9 @@ import pytest
 import requests
 from openai import OpenAIError
 
-from metagpt.provider.general_api_base import (
-    APIRequestor,
-    ApiType,
-    OpenAIResponse,
-    _aiohttp_proxies_arg,
-    _build_api_url,
-    _make_session,
-    _requests_proxies_arg,
-    log_debug,
-    log_info,
-    log_warn,
-    logfmt,
-    parse_stream,
-    parse_stream_helper,
-)
+from metagpt.provider.general_api_base import (APIRequestor, ApiType, OpenAIResponse, _aiohttp_proxies_arg,
+                                               _build_api_url, _make_session, _requests_proxies_arg, log_debug,
+                                               log_info, log_warn, logfmt, parse_stream, parse_stream_helper)
 
 
 def test_basic():

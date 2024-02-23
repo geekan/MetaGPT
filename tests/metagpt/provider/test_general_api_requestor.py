@@ -4,11 +4,7 @@
 
 import pytest
 
-from metagpt.provider.general_api_requestor import (
-    GeneralAPIRequestor,
-    parse_stream,
-    parse_stream_helper,
-)
+from metagpt.provider.general_api_requestor import GeneralAPIRequestor, parse_stream, parse_stream_helper
 
 api_requestor = GeneralAPIRequestor(base_url="http://www.baidu.com")
 

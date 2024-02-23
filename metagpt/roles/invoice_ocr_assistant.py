@@ -16,8 +16,9 @@ from pydantic import BaseModel
 
 from metagpt.actions.invoice_ocr import GenerateTable, InvoiceOCR, ReplyQuestion
 from metagpt.prompts.invoice_ocr import INVOICE_OCR_SUCCESS
-from metagpt.roles.role import Role, RoleReactMode
 from metagpt.schema import Message
+
+from .role import Role, RoleReactMode
 
 
 class InvoicePath(BaseModel):

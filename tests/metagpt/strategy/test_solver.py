@@ -15,12 +15,7 @@ from metagpt.strategy.solver import NaiveSolver
 
 @pytest.mark.asyncio
 async def test_solver():
-    from metagpt.actions.write_prd_an import (
-        COMPETITIVE_ANALYSIS,
-        ISSUE_TYPE,
-        PRODUCT_GOALS,
-        REQUIREMENT_POOL,
-    )
+    from metagpt.actions.write_prd_an import COMPETITIVE_ANALYSIS, ISSUE_TYPE, PRODUCT_GOALS, REQUIREMENT_POOL
 
     graph = ActionGraph()
     graph.add_node(ISSUE_TYPE)

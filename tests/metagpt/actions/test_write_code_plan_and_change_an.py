@@ -10,19 +10,10 @@ from openai._models import BaseModel
 
 from metagpt.actions.action_node import ActionNode
 from metagpt.actions.write_code import WriteCode
-from metagpt.actions.write_code_plan_and_change_an import (
-    REFINED_TEMPLATE,
-    WriteCodePlanAndChange,
-)
+from metagpt.actions.write_code_plan_and_change_an import REFINED_TEMPLATE, WriteCodePlanAndChange
 from metagpt.schema import CodePlanAndChangeContext
-from tests.data.incremental_dev_project.mock import (
-    CODE_PLAN_AND_CHANGE_SAMPLE,
-    DESIGN_SAMPLE,
-    NEW_REQUIREMENT_SAMPLE,
-    REFINED_CODE_INPUT_SAMPLE,
-    REFINED_CODE_SAMPLE,
-    TASKS_SAMPLE,
-)
+from tests.data.incremental_dev_project.mock import (CODE_PLAN_AND_CHANGE_SAMPLE, DESIGN_SAMPLE, NEW_REQUIREMENT_SAMPLE,
+                                                     REFINED_CODE_INPUT_SAMPLE, REFINED_CODE_SAMPLE, TASKS_SAMPLE)
 
 
 def mock_code_plan_and_change():

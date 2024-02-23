@@ -16,20 +16,8 @@ from metagpt.actions import Action
 from metagpt.actions.action_node import ActionNode
 from metagpt.actions.write_code import WriteCode
 from metagpt.const import SYSTEM_DESIGN_FILE_REPO, TASK_FILE_REPO
-from metagpt.schema import (
-    AIMessage,
-    ClassAttribute,
-    ClassMethod,
-    ClassView,
-    CodeSummarizeContext,
-    Document,
-    Message,
-    MessageQueue,
-    Plan,
-    SystemMessage,
-    Task,
-    UserMessage,
-)
+from metagpt.schema import (AIMessage, ClassAttribute, ClassMethod, ClassView, CodeSummarizeContext, Document, Message,
+                            MessageQueue, Plan, SystemMessage, Task, UserMessage)
 from metagpt.utils.common import any_to_str
 
 

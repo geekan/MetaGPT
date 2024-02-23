@@ -12,11 +12,7 @@ from metagpt.actions.action_node import ActionNode, dict_to_markdown
 from metagpt.actions.project_management import NEW_REQ_TEMPLATE
 from metagpt.actions.project_management_an import REFINED_PM_NODE
 from metagpt.llm import LLM
-from tests.data.incremental_dev_project.mock import (
-    REFINED_DESIGN_JSON,
-    REFINED_TASKS_JSON,
-    TASKS_SAMPLE,
-)
+from tests.data.incremental_dev_project.mock import REFINED_DESIGN_JSON, REFINED_TASKS_JSON, TASKS_SAMPLE
 
 
 @pytest.fixture()

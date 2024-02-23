@@ -8,7 +8,8 @@
 
 from metagpt.actions import WriteTasks
 from metagpt.actions.design_api import WriteDesign
-from metagpt.roles.role import Role
+
+from .role import Role
 
 
 class ProjectManager(Role):

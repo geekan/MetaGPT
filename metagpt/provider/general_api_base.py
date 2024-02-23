@@ -12,16 +12,7 @@ import threading
 import time
 from contextlib import asynccontextmanager
 from enum import Enum
-from typing import (
-    AsyncGenerator,
-    AsyncIterator,
-    Dict,
-    Iterator,
-    Optional,
-    Tuple,
-    Union,
-    overload,
-)
+from typing import AsyncGenerator, AsyncIterator, Dict, Iterator, Optional, Tuple, Union, overload
 from urllib.parse import urlencode, urlsplit, urlunsplit
 
 import aiohttp
@@ -203,7 +194,7 @@ def parse_stream_helper(line: bytes) -> Optional[str]:
             # and it will close http connection with TCP Reset
             return None
         if line.startswith(b"data: "):
-            line = line[len(b"data: ") :]
+            line = line[len(b"data: "):]
             return line.decode("utf-8")
         else:
             return None

@@ -1,0 +1,133 @@
+[build-system]
+requires = ["setuptools>=42", "wheel", "build"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "metagpt"
+authors = [
+    { name = "Alexander Wu", email = "alexanderwu@deepwisdom.ai" }
+]
+license = {file = "LICENSE"}
+description = "The Multi-Agent Framework"
+dependencies = [
+    "aiohttp",
+    "channels",
+    "faiss_cpu",
+    "fire",
+    "typer",
+    "lancedb",
+    "langchain",
+    "loguru",
+    "meilisearch",
+    "numpy",
+    "openai==1.6.0",
+    "openpyxl",
+    "beautifulsoup4",
+    "pandas",
+    "pydantic",
+    "python_docx",
+    "PyYAML",
+    "setuptools",
+    "tenacity",
+    "tiktoken",
+    "tqdm",
+    "anthropic",
+    "typing-inspect",
+    "libcst",
+    "qdrant-client",
+    "ta",
+    "semantic-kernel==0.4.3.dev0",
+    "wrapt",
+    "aioredis",
+    "websocket-client",
+    "aiofiles",
+    "gitpython",
+    "zhipuai==2.0.1",
+    "rich",
+    "nbclient",
+    "nbformat",
+    "ipython",
+    "ipykernel",
+    "scikit-learn",
+    "scipy",
+    "typing-extensions",
+    "socksio",
+    "gitignore-parser",
+    "websockets",
+    "networkx~=3.2.1",
+    "google-generativeai>=0.3.2",
+    "playwright>=1.26",
+    "anytree",
+    "ipywidgets",
+    "Pillow",
+    "imap_tools"
+]
+keywords=["metagpt", "multi-agent", "multi-role", "programming", "gpt", "llm", "metaprogramming"]
+readme = "README.md"
+requires-python = ">=3.9"
+dynamic = ["version"]
+
+[project.optional-dependencies]
+selenium = ["selenium>4", "webdriver_manager", "beautifulsoup4"]
+search-google = ["google-api-python-client==2.94.0"]
+search-ddg = ["duckduckgo-search~=4.1.1"]
+ocr = ["paddlepaddle==2.4.2", "paddleocr>=2.0.1", "tabulate==0.9.0"]
+test = [
+    # from previous
+    "selenium>4", "webdriver_manager", "beautifulsoup4",
+    "google-api-python-client==2.94.0",
+    "duckduckgo-search~=4.1.1",
+    "paddlepaddle==2.4.2", "paddleocr>=2.0.1", "tabulate==0.9.0",
+
+    # original test
+    "pytest",
+    "pytest-asyncio",
+    "pytest-cov",
+    "pytest-mock",
+    "pytest-html",
+    "pytest-xdist",
+    "pytest-timeout",
+    "connexion[uvicorn]~=3.0.5",
+    "azure-cognitiveservices-speech~=1.31.0",
+    "aioboto3~=11.3.0",
+    "chromadb==0.4.14",
+    "gradio==3.0.0",
+    "grpcio-status==1.48.2",
+    "pylint==3.0.3",
+    "pybrowsers",
+]
+pyppeteer = ["pyppeteer>=1.0.2"]
+dev = ["pylint~=3.0.3", "black~=23.3.0", "isort~=5.12.0", "pre-commit~=3.6.0"]
+
+[project.urls]
+homepage = "https://www.deepwisdom.ai/"
+documentation = "https://docs.deepwisdom.ai/main/en/"
+repository = "https://github.com/geekan/MetaGPT"
+roadmap = "https://github.com/geekan/MetaGPT/blob/main/docs/ROADMAP.md"
+
+[project.scripts]
+metagpt = "metagpt.software_company:app"
+
+[tool.setuptools.dynamic]
+version = {attr = "metagpt.__version__"}
+
+[tool.ruff]
+lint.dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+lint.fixable = ["A", "B", "C", "D", "E", "F", "G", "I", "N", "Q", "S", "T", "W", "ANN", "ARG", "BLE", "COM", "DJ", "DTZ", "EM", "ERA", "EXE", "FBT", "ICN", "INP", "ISC", "NPY", "PD", "PGH", "PIE", "PL", "PT", "PTH", "PYI", "RET", "RSE", "RUF", "SIM", "SLF", "TCH", "TID", "TRY", "UP", "YTT"]
+lint.ignore = ["E501", "E712", "E722", "F821", "E731"]
+lint.select = ["E", "F"]
+lint.unfixable = []
+exclude = [".bzr", ".direnv", ".eggs", ".git", ".git-rewrite", ".hg", ".mypy_cache", ".nox", ".pants.d", ".pytype", ".ruff_cache", ".svn", ".tox", ".venv", "__pypackages__", "_build", "buck-out", "build", "dist", "node_modules", "venv"]
+line-length = 120
+target-version = "py39"
+
+[tool.autopep8]
+max-line-length = 120
+in-place = true
+recursive = true
+
+[tool.isort]
+line_length = 120
+py_version = 39
+src_paths = ["examples", "metagpt", "tests", "*.py"]

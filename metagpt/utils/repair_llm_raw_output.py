@@ -34,7 +34,7 @@ def repair_case_sensitivity(output: str, req_key: str) -> str:
     if req_key_lower in output_lower:
         # find the sub-part index, and replace it with raw req_key
         lidx = output_lower.find(req_key_lower)
-        source = output[lidx : lidx + len(req_key_lower)]
+        source = output[lidx: lidx + len(req_key_lower)]
         output = output.replace(source, req_key)
         logger.info(f"repair_case_sensitivity: {req_key}")
 

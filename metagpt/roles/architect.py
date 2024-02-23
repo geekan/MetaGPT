@@ -8,7 +8,8 @@
 
 from metagpt.actions import WritePRD
 from metagpt.actions.design_api import WriteDesign
-from metagpt.roles.role import Role
+
+from .role import Role
 
 
 class Architect(Role):

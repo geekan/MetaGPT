@@ -228,7 +228,7 @@ def display_markdown(content: str):
     content_panels = []
     # 逐个打印匹配到的文本和代码
     for match in matches:
-        text_content = content[start_index : match.start()].strip()
+        text_content = content[start_index: match.start()].strip()
         code_content = match.group(0).strip()[3:-3]  # Remove triple backticks
 
         if text_content:

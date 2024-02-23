@@ -30,24 +30,13 @@ from metagpt.actions.fix_bug import FixBug
 from metagpt.actions.project_management_an import REFINED_TASK_LIST, TASK_LIST
 from metagpt.actions.summarize_code import SummarizeCode
 from metagpt.actions.write_code_plan_and_change_an import WriteCodePlanAndChange
-from metagpt.const import (
-    CODE_PLAN_AND_CHANGE_FILE_REPO,
-    CODE_PLAN_AND_CHANGE_FILENAME,
-    REQUIREMENT_FILENAME,
-    SYSTEM_DESIGN_FILE_REPO,
-    TASK_FILE_REPO,
-)
+from metagpt.const import (CODE_PLAN_AND_CHANGE_FILE_REPO, CODE_PLAN_AND_CHANGE_FILENAME, REQUIREMENT_FILENAME,
+                           SYSTEM_DESIGN_FILE_REPO, TASK_FILE_REPO)
 from metagpt.logs import logger
-from metagpt.roles import Role
-from metagpt.schema import (
-    CodePlanAndChangeContext,
-    CodeSummarizeContext,
-    CodingContext,
-    Document,
-    Documents,
-    Message,
-)
+from metagpt.schema import CodePlanAndChangeContext, CodeSummarizeContext, CodingContext, Document, Documents, Message
 from metagpt.utils.common import any_to_name, any_to_str, any_to_str_set
+
+from .role import Role
 
 IS_PASS_PROMPT = """
 {context}

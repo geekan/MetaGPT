@@ -18,9 +18,10 @@ from semantic_kernel.planning.basic_planner import BasicPlanner, Plan
 from metagpt.actions import UserRequirement
 from metagpt.actions.execute_task import ExecuteTask
 from metagpt.logs import logger
-from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.utils.make_sk_kernel import make_sk_kernel
+
+from .role import Role
 
 
 class SkAgent(Role):

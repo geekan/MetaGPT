@@ -7,7 +7,8 @@ from typing import Optional
 
 from metagpt.configs.llm_config import LLMConfig
 from metagpt.logs import logger
-from metagpt.provider.base_llm import BaseLLM
+
+from .base_llm import BaseLLM
 
 
 class HumanProvider(BaseLLM):

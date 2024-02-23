@@ -12,10 +12,7 @@ from typing import Tuple
 
 from metagpt.actions import Action
 from metagpt.logs import logger
-from metagpt.prompts.mi.write_analysis_code import (
-    ASSIGN_TASK_TYPE_CONFIG,
-    ASSIGN_TASK_TYPE_PROMPT,
-)
+from metagpt.prompts.mi.write_analysis_code import ASSIGN_TASK_TYPE_CONFIG, ASSIGN_TASK_TYPE_PROMPT
 from metagpt.schema import Message, Plan, Task
 from metagpt.tools import TOOL_REGISTRY
 from metagpt.utils.common import CodeParser, create_func_call_config

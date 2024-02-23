@@ -5,22 +5,17 @@
 import json
 
 from requests import ConnectionError
-from tenacity import (
-    after_log,
-    retry,
-    retry_if_exception_type,
-    stop_after_attempt,
-    wait_random_exponential,
-)
+from tenacity import after_log, retry, retry_if_exception_type, stop_after_attempt, wait_random_exponential
 
 from metagpt.configs.llm_config import LLMConfig, LLMType
 from metagpt.const import LLM_API_TIMEOUT
 from metagpt.logs import log_llm_stream, logger
-from metagpt.provider.base_llm import BaseLLM
-from metagpt.provider.general_api_requestor import GeneralAPIRequestor
-from metagpt.provider.llm_provider_registry import register_provider
-from metagpt.provider.openai_api import log_and_reraise
 from metagpt.utils.cost_manager import TokenCostManager
+
+from .base_llm import BaseLLM
+from .general_api_requestor import GeneralAPIRequestor
+from .llm_provider_registry import register_provider
+from .openai_api import log_and_reraise
 
 
 @register_provider(LLMType.OLLAMA)

@@ -1,4 +1,4 @@
-## game.py
+# game.py
 
 import random
 from typing import List, Tuple

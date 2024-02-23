@@ -6,16 +6,8 @@ import re
 from typing import Dict
 
 from metagpt.strategy.tot import TreeofThought
-from metagpt.strategy.tot_schema import (
-    BaseEvaluator,
-    BaseParser,
-    Strategy,
-    ThoughtSolverConfig,
-)
-from tests.metagpt.strategy.prompt_templates.creative_writing import (
-    cot_prompt,
-    vote_prompt,
-)
+from metagpt.strategy.tot_schema import BaseEvaluator, BaseParser, Strategy, ThoughtSolverConfig
+from tests.metagpt.strategy.prompt_templates.creative_writing import cot_prompt, vote_prompt
 
 
 class TextGenParser(BaseParser):

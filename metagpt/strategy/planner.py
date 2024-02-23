@@ -5,11 +5,7 @@ import json
 from pydantic import BaseModel, Field
 
 from metagpt.actions.mi.ask_review import AskReview, ReviewConst
-from metagpt.actions.mi.write_plan import (
-    WritePlan,
-    precheck_update_plan_from_rsp,
-    update_plan_from_rsp,
-)
+from metagpt.actions.mi.write_plan import WritePlan, precheck_update_plan_from_rsp, update_plan_from_rsp
 from metagpt.logs import logger
 from metagpt.memory import Memory
 from metagpt.schema import Message, Plan, Task, TaskResult

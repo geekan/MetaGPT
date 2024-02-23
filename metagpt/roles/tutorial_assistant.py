@@ -12,9 +12,10 @@ from typing import Dict
 from metagpt.actions.write_tutorial import WriteContent, WriteDirectory
 from metagpt.const import TUTORIAL_PATH
 from metagpt.logs import logger
-from metagpt.roles.role import Role, RoleReactMode
 from metagpt.schema import Message
 from metagpt.utils.file import File
+
+from .role import Role, RoleReactMode
 
 
 class TutorialAssistant(Role):
