@@ -8,6 +8,8 @@ from openai.types.chat import (
     ChatCompletionChunk,
 )
 from openai.types.chat.chat_completion import Choice, CompletionUsage
+from openai.types.chat.chat_completion_chunk import Choice as AChoice
+from openai.types.chat.chat_completion_chunk import ChoiceDelta
 from openai.types.chat.chat_completion_message_tool_call import Function
 from PIL import Image
 
@@ -46,6 +48,23 @@ default_resp = ChatCompletion(
     usage=usage
 )
 
+default_resp_chunk = ChatCompletionChunk(
+        id = "chatcmpl-8v3oNmLAwS7AsF0POw7Ovc8tNWOVW",
+        choices=[
+            AChoice(
+                finish_reason="stop",
+                index=0,
+                logprobs=None,
+                delta=ChoiceDelta(
+                    content = resp_content,
+                    role = "assistant",
+                )
+            )
+        ],
+        created=0,
+        model="gpt-3.5",
+        object="chat.completion.chunk",
+    )
 
 @pytest.mark.asyncio
 async def test_text_to_speech():
@@ -150,36 +169,21 @@ async def test_gen_image():
     assert images[0].size == (1024, 1024)
 
 
-async def mock_openai_acompletion_stream(messages: list[dict], stream=True, timeout=3) -> ChatCompletionChunk:
-    from openai.types.chat.chat_completion_chunk import Choice,ChoiceDelta
+async def mock_openai_acompletions_create(self, stream: bool = False, **kwargs) -> ChatCompletionChunk:
+    if stream:
 
-    resp = ChatCompletionChunk(
-        id = "chatcmpl-8v3oNmLAwS7AsF0POw7Ovc8tNWOVW",
-        choices=[
-            Choice(
-                finish_reason="stop",
-                index=0,
-                logprobs=None,
-                delta=ChoiceDelta(
-                    content = resp_content,
-                    role = "assistant",
-                )
-            )
-        ],
-        created=0,
-        model="gpt-3.5",
-        object="chat.completion.chunk",
-    )
-    return resp
+        class Iterator(object):
+            async def __aiter__(self):
+                yield default_resp_chunk
 
-async def mock_openai_acompletion(messages: list[dict], stream=False, timeout=3) -> ChatCompletion:
-    return default_resp
+        return Iterator()
+    else:
+        return default_resp
+
 
 @pytest.mark.asyncio
 async def test_openai_acompletion(mocker):
-    mocker.patch("metagpt.provider.openai_api.OpenAILLM._achat_completion", mock_openai_acompletion)
-    mocker.patch("metagpt.provider.openai_api.OpenAILLM._achat_completion_stream", mock_openai_acompletion_stream)
-
+    mocker.patch("openai.resources.chat.completions.AsyncCompletions.create", mock_openai_acompletions_create)
     llm = OpenAILLM(mock_llm_config)
 
     resp = await llm._achat_completion(messages)
@@ -187,9 +191,6 @@ async def test_openai_acompletion(mocker):
     assert resp.choices[0].message.content == resp_content
     assert resp.usage == usage
 
-    resp = await llm._achat_completion_stream(messages)
-    assert resp.choices[0].finish_reason == "stop"
-    assert resp.choices[0].delta.content == resp_content
 
     resp = await llm.acompletion(messages)
     assert resp.choices[0].finish_reason == "stop"
@@ -202,6 +203,11 @@ async def test_openai_acompletion(mocker):
     resp = await llm.acompletion_text(messages, stream=True)
     assert resp == resp_content
 
+    resp = await llm.aask(prompt_msg)
+    assert resp == resp_content
+
+    resp = await llm.aask(prompt_msg, stream=False)
+    assert resp == resp_content
 
 
 
