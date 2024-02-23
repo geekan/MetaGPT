@@ -3,7 +3,7 @@ import asyncio
 
 from pydantic import BaseModel
 
-from metagpt.const import EXAMPLE_PATH
+from metagpt.const import EXAMPLE_DATA_PATH
 from metagpt.rag.engines import SimpleEngine
 from metagpt.rag.schema import (
     BM25RetrieverConfig,
@@ -11,8 +11,13 @@ from metagpt.rag.schema import (
     LLMRankerConfig,
 )
 
-DOC_PATH = EXAMPLE_PATH / "data/rag_writer.txt"
+DOC_PATH = EXAMPLE_DATA_PATH / "rag/writer.txt"
 QUESTION = "What are key qualities to be a good writer?"
+
+TRAVEL_DOC_PATH = EXAMPLE_DATA_PATH / "rag/travel.txt"
+TRAVEL_QUESTION = "What does Bojan like?"
+
+LLM_TIP = "If you not sure, just answer I don't know"
 
 
 class RAGExample:
@@ -63,8 +68,8 @@ class RAGExample:
         """
         self._print_title("RAG Add Docs")
 
-        travel_question = "What does Bojan like? If you not sure, just answer I don't know"
-        travel_filepath = EXAMPLE_PATH / "data/rag_travel.txt"
+        travel_question = f"{TRAVEL_QUESTION}{LLM_TIP}"
+        travel_filepath = TRAVEL_DOC_PATH
 
         print("[Before add docs]")
         await self.rag_pipeline(question=travel_question, print_title=False)
@@ -83,7 +88,7 @@ class RAGExample:
         0. 100m Sprin..., 10.0
 
         [Object Detail]
-        {'name': 'foo', 'goal': 'Win The Game', 'tool': 'Red Bull Energy Drink'}
+        {'name': 'Mike', 'goal': 'Win The 100-meter Sprint', 'tool': 'Red Bull Energy Drink'}
         """
 
         self._print_title("RAG Add Objs")
@@ -92,21 +97,21 @@ class RAGExample:
             """Player"""
 
             name: str = ""
-            goal: str = "Win The Game"
+            goal: str = "Win The 100-meter Sprint"
             tool: str = "Red Bull Energy Drink"
 
             def rag_key(self) -> str:
                 """For search"""
                 return self.goal
 
-        foo = Player(name="foo")
-        question = f"{foo.rag_key()}"
+        player = Player(name="Mike")
+        question = f"{player.rag_key()}{LLM_TIP}"
 
         print("[Before add objs]")
         await self._retrieve_and_print(question)
 
         print("[After add objs]")
-        self.engine.add_objs([foo])
+        self.engine.add_objs([player])
         nodes = await self._retrieve_and_print(question)
 
         print("[Object Detail]")

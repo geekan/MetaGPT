@@ -40,7 +40,7 @@ class FaissStore(LocalStore):
             return None
         vector_store = FaissVectorStore.from_persist_dir(persist_dir=self.cache_dir)
         storage_context = StorageContext.from_defaults(persist_dir=self.cache_dir, vector_store=vector_store)
-        index = load_index_from_storage(storage_context)
+        index = load_index_from_storage(storage_context, embed_model=self.embedding)
 
         return index
 
@@ -54,7 +54,9 @@ class FaissStore(LocalStore):
         # doc_store.add_documents(nodes)
         vector_store = FaissVectorStore(faiss_index=faiss.IndexFlatL2(1536))
         storage_context = StorageContext.from_defaults(vector_store=vector_store)
-        index = VectorStoreIndex.from_documents(documents=documents, storage_context=storage_context)
+        index = VectorStoreIndex.from_documents(
+            documents=documents, storage_context=storage_context, embed_model=self.embedding
+        )
 
         return index
 

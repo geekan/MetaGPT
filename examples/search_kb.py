@@ -6,23 +6,14 @@
 """
 import asyncio
 
-from llama_index.embeddings import OpenAIEmbedding
-
-from metagpt.config2 import config
-from metagpt.const import DATA_PATH, EXAMPLE_PATH
+from metagpt.const import EXAMPLE_DATA_PATH
 from metagpt.document_store import FaissStore
 from metagpt.logs import logger
 from metagpt.roles import Sales
 
 
-def get_store():
-    llm = config.get_openai_llm()
-    embedding = OpenAIEmbedding(api_key=llm.api_key, api_base=llm.base_url)
-    return FaissStore(DATA_PATH / "example.json", embedding=embedding)
-
-
 async def search():
-    store = FaissStore(EXAMPLE_PATH / "example.json")
+    store = FaissStore(EXAMPLE_DATA_PATH / "search_kb/example.json")
     role = Sales(profile="Sales", store=store)
     query = "Which facial cleanser is good for oily skin?"
     result = await role.run(query)

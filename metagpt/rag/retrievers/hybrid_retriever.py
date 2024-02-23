@@ -22,7 +22,7 @@ class SimpleHybridRetriever(RAGRetriever):
         """
         all_nodes = []
         for retriever in self.retrievers:
-            # 防止retriever可能改变query的属性
+            # Prevent retriever changing query
             query_copy = copy.deepcopy(query)
             nodes = await retriever.aretrieve(query_copy, **kwargs)
             all_nodes.extend(nodes)
