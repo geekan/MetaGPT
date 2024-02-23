@@ -3,9 +3,9 @@ import json
 import pytest
 from openai.types.chat import (
     ChatCompletion,
+    ChatCompletionChunk,
     ChatCompletionMessage,
     ChatCompletionMessageToolCall,
-    ChatCompletionChunk,
 )
 from openai.types.chat.chat_completion import Choice, CompletionUsage
 from openai.types.chat.chat_completion_chunk import Choice as AChoice
@@ -22,7 +22,6 @@ from tests.metagpt.provider.mock_llm_config import (
     mock_llm_config_proxy,
 )
 
-
 prompt_msg = "who are you"
 messages = [{"role": "user", "content": prompt_msg}]
 
@@ -30,41 +29,42 @@ resp_content = "I am a language model AI created to assist and provide informati
 usage = CompletionUsage(completion_tokens=22, prompt_tokens=10, total_tokens=32)
 
 default_resp = ChatCompletion(
-    id = "chatcmpl-8v3oNmLAwS7AsF0POw7Ovc8tNWOVW",
+    id="chatcmpl-8v3oNmLAwS7AsF0POw7Ovc8tNWOVW",
     choices=[
         Choice(
             finish_reason="stop",
             index=0,
             logprobs=None,
             message=ChatCompletionMessage(
-                content = resp_content,
-                role = "assistant",
-            )
+                content=resp_content,
+                role="assistant",
+            ),
         )
     ],
     created=0,
     model="gpt-3.5",
     object="chat.completion",
-    usage=usage
+    usage=usage,
 )
 
 default_resp_chunk = ChatCompletionChunk(
-        id = "chatcmpl-8v3oNmLAwS7AsF0POw7Ovc8tNWOVW",
-        choices=[
-            AChoice(
-                finish_reason="stop",
-                index=0,
-                logprobs=None,
-                delta=ChoiceDelta(
-                    content = resp_content,
-                    role = "assistant",
-                )
-            )
-        ],
-        created=0,
-        model="gpt-3.5",
-        object="chat.completion.chunk",
-    )
+    id="chatcmpl-8v3oNmLAwS7AsF0POw7Ovc8tNWOVW",
+    choices=[
+        AChoice(
+            finish_reason="stop",
+            index=0,
+            logprobs=None,
+            delta=ChoiceDelta(
+                content=resp_content,
+                role="assistant",
+            ),
+        )
+    ],
+    created=0,
+    model="gpt-3.5",
+    object="chat.completion.chunk",
+)
+
 
 @pytest.mark.asyncio
 async def test_text_to_speech():
@@ -191,7 +191,6 @@ async def test_openai_acompletion(mocker):
     assert resp.choices[0].message.content == resp_content
     assert resp.usage == usage
 
-
     resp = await llm.acompletion(messages)
     assert resp.choices[0].finish_reason == "stop"
     assert resp.choices[0].message.content == resp_content
@@ -208,6 +207,3 @@ async def test_openai_acompletion(mocker):
 
     resp = await llm.aask(prompt_msg, stream=False)
     assert resp == resp_content
-
-
-
