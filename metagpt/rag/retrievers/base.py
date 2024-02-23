@@ -3,8 +3,8 @@
 
 from abc import abstractmethod
 
-from llama_index.retrievers import BaseRetriever
-from llama_index.schema import BaseNode, NodeWithScore, QueryType
+from llama_index.core.retrievers import BaseRetriever
+from llama_index.core.schema import BaseNode, NodeWithScore, QueryType
 
 from metagpt.utils.reflection import check_methods
 

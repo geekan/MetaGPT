@@ -1,23 +1,20 @@
 """Hybrid retriever."""
-from llama_index import ServiceContext
-from llama_index.schema import BaseNode, QueryType
+import copy
+
+from llama_index.core.schema import BaseNode, QueryType
 
 from metagpt.rag.retrievers.base import RAGRetriever
 
 
 class SimpleHybridRetriever(RAGRetriever):
-    """
-    SimpleHybridRetriever is a composite retriever that aggregates search results from multiple retrievers.
-    """
+    """A composite retriever that aggregates search results from multiple retrievers."""
 
-    def __init__(self, *retrievers, service_context: ServiceContext = None):
+    def __init__(self, *retrievers):
         self.retrievers: list[RAGRetriever] = retrievers
-        self.service_context = service_context
         super().__init__()
 
     async def _aretrieve(self, query: QueryType, **kwargs):
-        """
-        Asynchronously retrieves and aggregates search results from all configured retrievers.
+        """Asynchronously retrieves and aggregates search results from all configured retrievers.
 
         This method queries each retriever in the `retrievers` list with the given query and
         additional keyword arguments. It then combines the results, ensuring that each node is
@@ -25,7 +22,9 @@ class SimpleHybridRetriever(RAGRetriever):
         """
         all_nodes = []
         for retriever in self.retrievers:
-            nodes = await retriever.aretrieve(query, **kwargs)
+            # 防止retriever可能改变query的属性
+            query_copy = copy.deepcopy(query)
+            nodes = await retriever.aretrieve(query_copy, **kwargs)
             all_nodes.extend(nodes)
 
         # combine all nodes

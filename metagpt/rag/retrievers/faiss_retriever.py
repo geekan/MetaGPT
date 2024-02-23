@@ -1,6 +1,6 @@
 """FAISS retriever."""
-from llama_index.retrievers import VectorIndexRetriever
-from llama_index.schema import BaseNode
+from llama_index.core.retrievers import VectorIndexRetriever
+from llama_index.core.schema import BaseNode
 
 
 class FAISSRetriever(VectorIndexRetriever):

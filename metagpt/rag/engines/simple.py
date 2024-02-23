@@ -3,22 +3,32 @@
 
 from typing import Optional
 
-from llama_index import ServiceContext, SimpleDirectoryReader, VectorStoreIndex
-from llama_index.callbacks.base import CallbackManager
-from llama_index.core.base_retriever import BaseRetriever
-from llama_index.embeddings.base import BaseEmbedding
-from llama_index.indices.base import BaseIndex
-from llama_index.llms.llm import LLM
-from llama_index.postprocessor.types import BaseNodePostprocessor
-from llama_index.query_engine import RetrieverQueryEngine
-from llama_index.response_synthesizers import BaseSynthesizer
-from llama_index.schema import NodeWithScore, QueryBundle, QueryType, TextNode
+from llama_index.core import SimpleDirectoryReader, VectorStoreIndex
+from llama_index.core.callbacks.base import CallbackManager
+from llama_index.core.embeddings import BaseEmbedding
+from llama_index.core.indices.base import BaseIndex
+from llama_index.core.ingestion.pipeline import run_transformations
+from llama_index.core.llms import LLM
+from llama_index.core.node_parser import SentenceSplitter
+from llama_index.core.postprocessor.types import BaseNodePostprocessor
+from llama_index.core.query_engine import RetrieverQueryEngine
+from llama_index.core.response_synthesizers import (
+    BaseSynthesizer,
+    get_response_synthesizer,
+)
+from llama_index.core.retrievers import BaseRetriever
+from llama_index.core.schema import (
+    NodeWithScore,
+    QueryBundle,
+    QueryType,
+    TextNode,
+    TransformComponent,
+)
 
-from metagpt.rag.factory import get_rankers, get_retriever
+from metagpt.rag.factories import get_rag_llm, get_rankers, get_retriever
 from metagpt.rag.interface import RAGObject
-from metagpt.rag.llm import get_default_llm
 from metagpt.rag.retrievers.base import ModifiableRAGRetriever
-from metagpt.rag.schema import RankerConfigType, RetrieverConfigType
+from metagpt.rag.schema import BaseRankerConfig, BaseRetrieverConfig
 from metagpt.utils.embedding import get_embedding
 
 
@@ -51,45 +61,47 @@ class SimpleEngine(RetrieverQueryEngine):
         cls,
         input_dir: str = None,
         input_files: list[str] = None,
-        llm: LLM = None,
+        transformations: Optional[list[TransformComponent]] = None,
         embed_model: BaseEmbedding = None,
-        chunk_size: int = None,
-        chunk_overlap: int = None,
-        retriever_configs: list[RetrieverConfigType] = None,
-        ranker_configs: list[RankerConfigType] = None,
+        llm: LLM = None,
+        retriever_configs: list[BaseRetrieverConfig] = None,
+        ranker_configs: list[BaseRankerConfig] = None,
     ) -> "SimpleEngine":
         """This engine is designed to be simple and straightforward
 
         Args:
             input_dir: Path to the directory.
             input_files: List of file paths to read (Optional; overrides input_dir, exclude).
-            llm: Must supported by llama index.
-            embed_model: Must supported by llama index.
-            chunk_size: The size of text chunks (in tokens) to split documents into for embedding.
-            chunk_overlap: The number of tokens for overlapping between consecutive chunks. Helps in maintaining context continuity.
+            transformations: Parse documents to nodes. Default [SentenceSplitter].
+            embed_model: Parse nodes to embedding. Must supported by llama index. Default OpenAIEmbedding.
+            llm: Must supported by llama index. Default OpenAI.
             retriever_configs: Configuration for retrievers. If more than one config, will use SimpleHybridRetriever.
             ranker_configs: Configuration for rankers.
         """
         documents = SimpleDirectoryReader(input_dir=input_dir, input_files=input_files).load_data()
-        service_context = ServiceContext.from_defaults(
-            llm=llm or get_default_llm(),
+        index = VectorStoreIndex.from_documents(
+            documents=documents,
+            transformations=transformations or [SentenceSplitter()],
             embed_model=embed_model or get_embedding(),
-            chunk_size=chunk_size,
-            chunk_overlap=chunk_overlap,
         )
-        index = VectorStoreIndex.from_documents(documents, service_context=service_context)
-        retriever = get_retriever(index, configs=retriever_configs)
-        rankers = get_rankers(configs=ranker_configs, service_context=service_context)
+        llm = llm or get_rag_llm()
+        retriever = get_retriever(configs=retriever_configs, index=index)
+        rankers = get_rankers(configs=ranker_configs, llm=llm)
 
-        return cls(retriever=retriever, node_postprocessors=rankers, index=index)
+        return cls(
+            retriever=retriever,
+            node_postprocessors=rankers,
+            response_synthesizer=get_response_synthesizer(llm=llm),
+            index=index,
+        )
 
     async def asearch(self, content: str, **kwargs) -> str:
         """Inplement tools.SearchInterface"""
         return await self.aquery(content)
 
-    async def aretrieve(self, query_bundle: QueryType) -> list[NodeWithScore]:
+    async def aretrieve(self, query: QueryType) -> list[NodeWithScore]:
         """Allow query to be str"""
-        query_bundle = QueryBundle(query_bundle) if isinstance(query_bundle, str) else query_bundle
+        query_bundle = QueryBundle(query) if isinstance(query, str) else query
         return await super().aretrieve(query_bundle)
 
     def add_docs(self, input_files: list[str]):
@@ -97,7 +109,7 @@ class SimpleEngine(RetrieverQueryEngine):
         self._ensure_retriever_modifiable()
 
         documents = SimpleDirectoryReader(input_files=input_files).load_data()
-        nodes = self.index.service_context.node_parser.get_nodes_from_documents(documents)
+        nodes = run_transformations(documents, transformations=self.index._transformations)
         self.retriever.add_nodes(nodes)
 
     def add_objs(self, objs: list[RAGObject]):

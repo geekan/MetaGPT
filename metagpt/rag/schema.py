@@ -1,36 +1,52 @@
-"""RAG schemas"""
+"""RAG schemas."""
 
-from typing import Union
+from typing import Any
 
-from pydantic import BaseModel, Field
+from llama_index.core.indices.base import BaseIndex
+from pydantic import BaseModel, ConfigDict, Field
 
 
-class RetrieverConfig(BaseModel):
-    """Common config for retrievers."""
+class BaseRetrieverConfig(BaseModel):
+    """Common config for retrievers.
 
+    If add new subconfig, it is necessary to add the corresponding instance implementation in rag.factory.
+    """
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
     similarity_top_k: int = Field(default=5, description="Number of top-k similar results to return during retrieval.")
 
 
-class FAISSRetrieverConfig(RetrieverConfig):
+class IndexRetrieverConfig(BaseRetrieverConfig):
+    """Config for Index-basd retrievers."""
+
+    index: BaseIndex = Field(default=None, description="Index for retriver")
+
+
+class FAISSRetrieverConfig(IndexRetrieverConfig):
     """Config for FAISS-based retrievers."""
 
     dimensions: int = Field(default=1536, description="Dimensionality of the vectors for FAISS index construction.")
 
 
-class BM25RetrieverConfig(RetrieverConfig):
+class BM25RetrieverConfig(IndexRetrieverConfig):
     """Config for BM25-based retrievers."""
 
 
-class RankerConfig(BaseModel):
-    """Common config for rankers."""
+class BaseRankerConfig(BaseModel):
+    """Common config for rankers.
 
-    top_n: int = 5
+    If add new subconfig, it is necessary to add the corresponding instance implementation in rag.factory.
+    """
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    top_n: int = Field(default=5, description="The number of top results to return.")
 
 
-class LLMRankerConfig(RankerConfig):
+class LLMRankerConfig(BaseRankerConfig):
     """Config for LLM-based rankers."""
 
-
-# If add new config, it is necessary to add the corresponding instance implementation in rag.factory
-RetrieverConfigType = Union[FAISSRetrieverConfig, BM25RetrieverConfig]
-RankerConfigType = LLMRankerConfig
+    llm: Any = Field(
+        default=None,
+        description="The LLM to rerank with. using Any instead of LLM, as llama_index.core.llms.LLM is pydantic.v1",
+    )
