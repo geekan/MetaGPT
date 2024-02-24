@@ -1,1 +1,0 @@
-{'tap': 'Tapping this UI element allows the user to enter a name for the new contact.', 'text': 'The UI element is used for the user to enter the name of a new contact in the Contacts app.', 'v_swipe': '', 'h_swipe': '', 'long_press': ''}

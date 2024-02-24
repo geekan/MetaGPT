@@ -33,17 +33,26 @@ from metagpt.utils.common import encode_image
 
 class ParseRecord(Action):
     name: str = "ParseRecord"
+    record_path: Path = ""
+    task_desc_path: Path = ""
+    screenshot_before_path: Path = ""
+    screenshot_after_path: Path = ""
 
     async def run(self, app_name: str, demo_name: str, task_dir: Path, docs_dir: Path, env: AndroidEnv):
+        if not docs_dir.exists():
+            docs_dir.mkdir(parents=True, exist_ok=True)
         doc_count = 0
-        record_path = Path(task_dir) / "record.txt"
+        self.record_path = Path(task_dir) / "record.txt"
+        self.task_desc_path = Path(task_dir) / "task_desc.txt"
+        self.screenshot_before_path = Path(task_dir)/"raw_screenshots"
+        self.screenshot_after_path = Path(task_dir)/"labeled_screenshots"
 
-        with open(record_path, "r") as record_file:
+        with open(self.record_path, "r") as record_file:
             record_step_count = len(record_file.readlines()) - 1
             record_file.seek(0)
             for step in range(1, record_step_count + 1):
-                img_before_base64 = encode_image(task_dir.joinpath(f"{task_dir}_{step}_labeled.png"))
-                img_after_base64 = encode_image(task_dir.joinpath(f"{task_dir}_{step + 1}_labeled.png"))
+                img_before_base64 = encode_image(self.screenshot_after_path.joinpath(f"{demo_name}_{step}_labeled.png"))
+                img_after_base64 = encode_image(self.screenshot_after_path.joinpath(f"{demo_name}_{step + 1}_labeled.png"))
                 rec = record_file.readline().strip()
                 action, resource_id = rec.split(":::")
                 action_type = action.split("(")[0]
@@ -115,13 +124,16 @@ class ParseRecord(Action):
                         image_after=img_after_base64,
                         response=node.content,
                     )
-                    # TODO 修改 dumps 方式
-                    logfile.write(json.dumps(log_item) + "\n")
+                    logfile.write(json.dumps(log_item.model_dump()) + "\n")
                 with open(doc_path, "w") as outfile:
                     outfile.write(str(doc_content))
                 doc_count += 1
                 logger.info(f"Documentation generated and saved to {doc_path}")
 
-                time.sleep(config.get_other("request_interval"))
+                # TODO MetaGPT 里面的Config 需要看一下
+                # time.sleep(config.get_other("request_interval"))
 
             logger.info(f"Documentation generation phase completed. {doc_count} docs generated.")
+
+# TODO
+# 1. LOG中记录方式有问题，需要把IMG的部分拿出去丢掉
