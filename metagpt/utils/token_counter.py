@@ -91,10 +91,10 @@ QianFan_EndPoint_TOKEN_COSTS = {
 }
 
 """
-DashScore Token price https://help.aliyun.com/zh/dashscope/developer-reference/tongyi-thousand-questions-metering-and-billing
+DashScope Token price https://help.aliyun.com/zh/dashscope/developer-reference/tongyi-thousand-questions-metering-and-billing
 Different model has different detail page. Attention, some model are free for a limited time.
 """
-DashScore_TOKEN_COSTS = {
+DashScope_TOKEN_COSTS = {
     "qwen-turbo": {"prompt": 0.0011, "completion": 0.0011},
     "qwen-plus": {"prompt": 0.0028, "completion": 0.0028},
     "qwen-max": {"prompt": 0.0, "completion": 0.0},

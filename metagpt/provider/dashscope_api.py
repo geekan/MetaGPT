@@ -37,7 +37,7 @@ from metagpt.provider.base_llm import BaseLLM, LLMConfig
 from metagpt.provider.llm_provider_registry import LLMType, register_provider
 from metagpt.provider.openai_api import log_and_reraise
 from metagpt.utils.cost_manager import CostManager
-from metagpt.utils.token_counter import DashScore_TOKEN_COSTS
+from metagpt.utils.token_counter import DashScope_TOKEN_COSTS
 
 
 def build_api_arequest(
@@ -167,7 +167,7 @@ class DashScopeLLM(BaseLLM):
     def __init_dashscope(self):
         self.model = self.config.model
         self.api_key = self.config.api_key
-        self.token_costs = DashScore_TOKEN_COSTS
+        self.token_costs = DashScope_TOKEN_COSTS
         self.aclient: AGeneration = AGeneration
 
         # check support system_message models

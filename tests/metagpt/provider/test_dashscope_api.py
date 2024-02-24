@@ -62,12 +62,12 @@ async def test_dashscope_acompletion(mocker):
     mocker.patch("dashscope.aigc.generation.Generation.call", mock_dashscope_call)
     mocker.patch("metagpt.provider.dashscope_api.AGeneration.acall", mock_dashscope_acall)
 
-    dashscore_llm = DashScopeLLM(mock_llm_config_dashscope)
+    dashscope_llm = DashScopeLLM(mock_llm_config_dashscope)
 
-    resp = dashscore_llm.completion(messages)
+    resp = dashscope_llm.completion(messages)
     assert resp.choices[0]["message"]["content"] == resp_cont
 
-    resp = await dashscore_llm.acompletion(messages)
+    resp = await dashscope_llm.acompletion(messages)
     assert resp.choices[0]["message"]["content"] == resp_cont
 
-    await llm_general_chat_funcs_test(dashscore_llm, prompt, messages, resp_cont)
+    await llm_general_chat_funcs_test(dashscope_llm, prompt, messages, resp_cont)
