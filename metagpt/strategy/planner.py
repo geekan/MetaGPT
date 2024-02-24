@@ -46,26 +46,36 @@ class Planner(BaseModel):
     def current_task_id(self):
         return self.plan.current_task_id
 
-    async def update_plan(self, goal: str = "", max_tasks: int = 3, max_retries: int = 3):
+    async def update_plan(
+        self, goal: str = "", max_tasks: int = 3, max_retries: int = 3
+    ):
         if goal:
             self.plan = Plan(goal=goal)
 
         plan_confirmed = False
         while not plan_confirmed:
             context = self.get_useful_memories()
-            rsp = await WritePlan().run(context, max_tasks=max_tasks, use_tools=self.use_tools)
-            self.working_memory.add(Message(content=rsp, role="assistant", cause_by=WritePlan))
+            rsp = await WritePlan().run(
+                context, max_tasks=max_tasks, use_tools=self.use_tools
+            )
+            self.working_memory.add(
+                Message(content=rsp, role="assistant", cause_by=WritePlan)
+            )
 
             # precheck plan before asking reviews
             is_plan_valid, error = precheck_update_plan_from_rsp(rsp, self.plan)
             if not is_plan_valid and max_retries > 0:
                 error_msg = f"The generated plan is not valid with error: {error}, try regenerating, remember to generate either the whole plan or the single changed task only"
                 logger.warning(error_msg)
-                self.working_memory.add(Message(content=error_msg, role="assistant", cause_by=WritePlan))
+                self.working_memory.add(
+                    Message(content=error_msg, role="assistant", cause_by=WritePlan)
+                )
                 max_retries -= 1
                 continue
 
-            _, plan_confirmed = await self.ask_review(trigger=ReviewConst.TASK_REVIEW_TRIGGER)
+            _, plan_confirmed = await self.ask_review(
+                trigger=ReviewConst.TASK_REVIEW_TRIGGER
+            )
 
         update_plan_from_rsp(rsp=rsp, current_plan=self.plan)
 
@@ -107,7 +117,9 @@ class Planner(BaseModel):
                 context=context[-review_context_len:], plan=self.plan, trigger=trigger
             )
             if not confirmed:
-                self.working_memory.add(Message(content=review, role="user", cause_by=AskReview))
+                self.working_memory.add(
+                    Message(content=review, role="user", cause_by=AskReview)
+                )
             return review, confirmed
         confirmed = task_result.is_success if task_result else True
         return "", confirmed
@@ -118,10 +130,13 @@ class Planner(BaseModel):
         self.working_memory.clear()
 
         confirmed_and_more = (
-            ReviewConst.CONTINUE_WORDS[0] in review.lower() and review.lower() not in ReviewConst.CONTINUE_WORDS[0]
+            ReviewConst.CONTINUE_WORDS[0] in review.lower()
+            and review.lower() not in ReviewConst.CONTINUE_WORDS[0]
         )  # "confirm, ... (more content, such as changing downstream tasks)"
         if confirmed_and_more:
-            self.working_memory.add(Message(content=review, role="user", cause_by=AskReview))
+            self.working_memory.add(
+                Message(content=review, role="user", cause_by=AskReview)
+            )
             await self.update_plan(review)
 
     def get_useful_memories(self, task_exclude_field=None) -> list[Message]:
@@ -132,7 +147,10 @@ class Planner(BaseModel):
         tasks = json.dumps(tasks, indent=4, ensure_ascii=False)
         current_task = self.plan.current_task.json() if self.plan.current_task else {}
         context = STRUCTURAL_CONTEXT.format(
-            user_requirement=user_requirement, context=context, tasks=tasks, current_task=current_task
+            user_requirement=user_requirement,
+            context=context,
+            tasks=tasks,
+            current_task=current_task,
         )
         context_msg = [Message(content=context, role="user")]
 

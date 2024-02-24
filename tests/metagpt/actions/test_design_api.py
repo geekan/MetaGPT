@@ -15,7 +15,9 @@ from metagpt.schema import Message
 
 @pytest.mark.asyncio
 async def test_design_api(context):
-    inputs = ["我们需要一个音乐播放器，它应该有播放、暂停、上一曲、下一曲等功能。"]  # PRD_SAMPLE
+    inputs = [
+        "我们需要一个音乐播放器，它应该有播放、暂停、上一曲、下一曲等功能。"
+    ]  # PRD_SAMPLE
     for prd in inputs:
         await context.repo.docs.prd.save(filename="new_prd.txt", content=prd)
 

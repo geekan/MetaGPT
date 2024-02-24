@@ -34,18 +34,24 @@ class Teacher(Role):
         self.name = WriteTeachingPlanPart.format_value(self.name, self.context)
         self.profile = WriteTeachingPlanPart.format_value(self.profile, self.context)
         self.goal = WriteTeachingPlanPart.format_value(self.goal, self.context)
-        self.constraints = WriteTeachingPlanPart.format_value(self.constraints, self.context)
+        self.constraints = WriteTeachingPlanPart.format_value(
+            self.constraints, self.context
+        )
         self.desc = WriteTeachingPlanPart.format_value(self.desc, self.context)
 
     async def _think(self) -> bool:
         """Everything will be done part by part."""
         if not self.actions:
-            if not self.rc.news or self.rc.news[0].cause_by != any_to_str(UserRequirement):
+            if not self.rc.news or self.rc.news[0].cause_by != any_to_str(
+                UserRequirement
+            ):
                 raise ValueError("Lesson content invalid.")
             actions = []
             print(TeachingPlanBlock.TOPICS)
             for topic in TeachingPlanBlock.TOPICS:
-                act = WriteTeachingPlanPart(i_context=self.rc.news[0].content, topic=topic, llm=self.llm)
+                act = WriteTeachingPlanPart(
+                    i_context=self.rc.news[0].content, topic=topic, llm=self.llm
+                )
                 actions.append(act)
             self.set_actions(actions)
 

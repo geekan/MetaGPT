@@ -32,8 +32,12 @@ class Sales(Role):
     @model_validator(mode="after")
     def validate_stroe(self):
         if self.store:
-            search_engine = SearchEngine.from_search_func(search_func=self.store.asearch, proxy=self.config.proxy)
-            action = SearchAndSummarize(search_engine=search_engine, context=self.context)
+            search_engine = SearchEngine.from_search_func(
+                search_func=self.store.asearch, proxy=self.config.proxy
+            )
+            action = SearchAndSummarize(
+                search_engine=search_engine, context=self.context
+            )
         else:
             action = SearchAndSummarize
         self.set_actions([action])

@@ -48,7 +48,11 @@ def check_cmd_exists(command) -> int:
     if platform.system().lower() == "windows":
         check_command = "where " + command
     else:
-        check_command = "command -v " + command + ' >/dev/null 2>&1 || { echo >&2 "no mermaid"; exit 1; }'
+        check_command = (
+            "command -v "
+            + command
+            + ' >/dev/null 2>&1 || { echo >&2 "no mermaid"; exit 1; }'
+        )
     result = os.system(check_command)
     return result
 
@@ -115,7 +119,10 @@ class OutputParser:
 
     @staticmethod
     def parse_python_code(text: str) -> str:
-        for pattern in (r"(.*?```python.*?\s+)?(?P<code>.*)(```.*?)", r"(.*?```python.*?\s+)?(?P<code>.*)"):
+        for pattern in (
+            r"(.*?```python.*?\s+)?(?P<code>.*)(```.*?)",
+            r"(.*?```python.*?\s+)?(?P<code>.*)",
+        ):
             match = re.search(pattern, text, re.DOTALL)
             if not match:
                 continue
@@ -171,7 +178,11 @@ class OutputParser:
                 typing = typing_define[0]
             else:
                 typing = typing_define
-            if typing == List[str] or typing == List[Tuple[str, str]] or typing == List[List[str]]:
+            if (
+                typing == List[str]
+                or typing == List[Tuple[str, str]]
+                or typing == List[List[str]]
+            ):
                 # 尝试解析list
                 try:
                     content = cls.parse_file_list(text=content)
@@ -188,7 +199,9 @@ class OutputParser:
         return parsed_data
 
     @classmethod
-    def extract_struct(cls, text: str, data_type: Union[type(list), type(dict)]) -> Union[list, dict]:
+    def extract_struct(
+        cls, text: str, data_type: Union[type(list), type(dict)]
+    ) -> Union[list, dict]:
         """Extracts and parses a specified type of structure (dictionary or list) from the given text.
         The text only contains a list or dictionary, which may have nested structures.
 
@@ -230,7 +243,9 @@ class OutputParser:
                 raise ValueError(f"The extracted structure is not a {data_type}.")
 
             except (ValueError, SyntaxError) as e:
-                raise Exception(f"Error while extracting and parsing the {data_type}: {e}")
+                raise Exception(
+                    f"Error while extracting and parsing the {data_type}: {e}"
+                )
         else:
             logger.error(f"No {data_type} found in the text.")
             return [] if data_type is list else {}
@@ -344,8 +359,15 @@ def get_function_schema(func: Callable) -> dict[str, Union[dict, Any, str]]:
     sig = inspect.signature(func)
     parameters = sig.parameters
     return_type = sig.return_annotation
-    param_schema = {name: parameter.annotation for name, parameter in parameters.items()}
-    return {"input_params": param_schema, "return_type": return_type, "func_desc": func.__doc__, "func": func}
+    param_schema = {
+        name: parameter.annotation for name, parameter in parameters.items()
+    }
+    return {
+        "input_params": param_schema,
+        "return_type": return_type,
+        "func_desc": func.__doc__,
+        "func": func,
+    }
 
 
 def parse_recipient(text):
@@ -382,7 +404,9 @@ def remove_comments(code_str: str) -> str:
             return match.group(1)
 
     clean_code = re.sub(pattern, replace_func, code_str, flags=re.MULTILINE)
-    clean_code = os.linesep.join([s.rstrip() for s in clean_code.splitlines() if s.strip()])
+    clean_code = os.linesep.join(
+        [s.rstrip() for s in clean_code.splitlines() if s.strip()]
+    )
     return clean_code
 
 
@@ -449,7 +473,9 @@ def split_namespace(ns_class_name: str) -> List[str]:
     return ns_class_name.split(":")
 
 
-def general_after_log(i: "loguru.Logger", sec_format: str = "%0.3f") -> typing.Callable[["RetryCallState"], None]:
+def general_after_log(
+    i: "loguru.Logger", sec_format: str = "%0.3f"
+) -> typing.Callable[["RetryCallState"], None]:
     """
     Generates a logging function to be used after a call is retried.
 
@@ -500,7 +526,9 @@ def write_json_file(json_file: str, data: list, encoding: str = None, indent: in
         folder_path.mkdir(parents=True, exist_ok=True)
 
     with open(json_file, "w", encoding=encoding) as fout:
-        json.dump(data, fout, ensure_ascii=False, indent=indent, default=to_jsonable_python)
+        json.dump(
+            data, fout, ensure_ascii=False, indent=indent, default=to_jsonable_python
+        )
 
 
 def read_csv_to_list(curr_file: str, header=False, strip_trail=True):
@@ -548,9 +576,13 @@ def serialize_decorator(func):
             result = await func(self, *args, **kwargs)
             return result
         except KeyboardInterrupt:
-            logger.error(f"KeyboardInterrupt occurs, start to serialize the project, exp:\n{format_trackback_info()}")
+            logger.error(
+                f"KeyboardInterrupt occurs, start to serialize the project, exp:\n{format_trackback_info()}"
+            )
         except Exception:
-            logger.error(f"Exception occurs, start to serialize the project, exp:\n{format_trackback_info()}")
+            logger.error(
+                f"Exception occurs, start to serialize the project, exp:\n{format_trackback_info()}"
+            )
         self.serialize()  # Team.serialize
 
     return wrapper
@@ -561,7 +593,9 @@ def role_raise_decorator(func):
         try:
             return await func(self, *args, **kwargs)
         except KeyboardInterrupt as kbi:
-            logger.error(f"KeyboardInterrupt: {kbi} occurs, start to serialize the project")
+            logger.error(
+                f"KeyboardInterrupt: {kbi} occurs, start to serialize the project"
+            )
             if self.latest_observed_msg:
                 self.rc.memory.delete(self.latest_observed_msg)
             # raise again to make it captured outside
@@ -640,13 +674,20 @@ def is_coroutine_func(func: Callable) -> bool:
     return inspect.iscoroutinefunction(func)
 
 
-def load_mc_skills_code(skill_names: list[str] = None, skills_dir: Path = None) -> list[str]:
+def load_mc_skills_code(
+    skill_names: list[str] = None, skills_dir: Path = None
+) -> list[str]:
     """load mincraft skill from js files"""
     if not skills_dir:
         skills_dir = Path(__file__).parent.absolute()
     if skill_names is None:
-        skill_names = [skill[:-3] for skill in os.listdir(f"{skills_dir}") if skill.endswith(".js")]
-    skills = [skills_dir.joinpath(f"{skill_name}.js").read_text() for skill_name in skill_names]
+        skill_names = [
+            skill[:-3] for skill in os.listdir(f"{skills_dir}") if skill.endswith(".js")
+        ]
+    skills = [
+        skills_dir.joinpath(f"{skill_name}.js").read_text()
+        for skill_name in skill_names
+    ]
     return skills
 
 

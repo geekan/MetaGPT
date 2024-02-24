@@ -59,7 +59,9 @@ def repair_special_character_missing(output: str, req_key: str = "[/CONTENT]") -
             # req_key with special_character usually in the tail side
             ridx = output.rfind(req_key_pure)
             output = f"{output[:ridx]}{req_key}{output[ridx + len(req_key_pure):]}"
-            logger.info(f"repair_special_character_missing: {sc} in {req_key_pure} as position {ridx}")
+            logger.info(
+                f"repair_special_character_missing: {sc} in {req_key_pure} as position {ridx}"
+            )
 
     return output
 
@@ -95,10 +97,14 @@ def repair_required_key_pair_missing(output: str, req_key: str = "[/CONTENT]") -
                 sub_output = sub_output[: idx + 1]
                 return sub_output
 
-            if output.strip().endswith("}") or (output.strip().endswith("]") and not output.strip().endswith(left_key)):
+            if output.strip().endswith("}") or (
+                output.strip().endswith("]") and not output.strip().endswith(left_key)
+            ):
                 # # avoid [req_key]xx[req_key] case to append [/req_key]
                 output = output + "\n" + right_key
-            elif judge_potential_json(output, left_key) and (not output.strip().endswith(left_key)):
+            elif judge_potential_json(output, left_key) and (
+                not output.strip().endswith(left_key)
+            ):
                 sub_content = judge_potential_json(output, left_key)
                 output = sub_content + "\n" + right_key
 
@@ -139,8 +145,14 @@ def repair_json_format(output: str) -> str:
     return output
 
 
-def _repair_llm_raw_output(output: str, req_key: str, repair_type: RepairType = None) -> str:
-    repair_types = [repair_type] if repair_type else [item for item in RepairType if item not in [RepairType.JSON]]
+def _repair_llm_raw_output(
+    output: str, req_key: str, repair_type: RepairType = None
+) -> str:
+    repair_types = (
+        [repair_type]
+        if repair_type
+        else [item for item in RepairType if item not in [RepairType.JSON]]
+    )
     for repair_type in repair_types:
         if repair_type == RepairType.CS:
             output = repair_case_sensitivity(output, req_key)
@@ -153,7 +165,9 @@ def _repair_llm_raw_output(output: str, req_key: str, repair_type: RepairType = 
     return output
 
 
-def repair_llm_raw_output(output: str, req_keys: list[str], repair_type: RepairType = None) -> str:
+def repair_llm_raw_output(
+    output: str, req_keys: list[str], repair_type: RepairType = None
+) -> str:
     """
     in open-source llm model, it usually can't follow the instruction well, the output may be incomplete,
     so here we try to repair it and use all repair methods by default.
@@ -173,7 +187,9 @@ def repair_llm_raw_output(output: str, req_keys: list[str], repair_type: RepairT
 
     # do the repairation usually for non-openai models
     for req_key in req_keys:
-        output = _repair_llm_raw_output(output=output, req_key=req_key, repair_type=repair_type)
+        output = _repair_llm_raw_output(
+            output=output, req_key=req_key, repair_type=repair_type
+        )
     return output
 
 
@@ -205,7 +221,11 @@ def repair_invalid_json(output: str, error: str) -> str:
             new_line = line.replace("}", "")
         elif line.endswith("},") and output.endswith("},"):
             new_line = line[:-1]
-        elif (rline[col_no] in ["'", '"']) and (line.startswith('"') or line.startswith("'")) and "," not in line:
+        elif (
+            (rline[col_no] in ["'", '"'])
+            and (line.startswith('"') or line.startswith("'"))
+            and "," not in line
+        ):
             # problem, `"""` or `'''` without `,`
             new_line = f",{line}"
         elif '",' not in line and "," not in line and '"' not in line:
@@ -227,7 +247,9 @@ def repair_invalid_json(output: str, error: str) -> str:
     return output
 
 
-def run_after_exp_and_passon_next_retry(logger: "loguru.Logger") -> Callable[["RetryCallState"], None]:
+def run_after_exp_and_passon_next_retry(
+    logger: "loguru.Logger",
+) -> Callable[["RetryCallState"], None]:
     def run_and_passon(retry_state: RetryCallState) -> None:
         """
         RetryCallState example

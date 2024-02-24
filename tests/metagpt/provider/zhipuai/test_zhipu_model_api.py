@@ -25,7 +25,10 @@ async def test_zhipu_model_api(mocker):
     assert url_prefix == "https://open.bigmodel.cn/api"
     assert url_suffix == "/paas/v4/chat/completions"
 
-    mocker.patch("metagpt.provider.general_api_requestor.GeneralAPIRequestor.arequest", mock_requestor_arequest)
+    mocker.patch(
+        "metagpt.provider.general_api_requestor.GeneralAPIRequestor.arequest",
+        mock_requestor_arequest,
+    )
     result = await ZhiPuModelAPI(api_key=api_key).arequest(
         stream=False, method="get", headers={}, kwargs={"model": "glm-3-turbo"}
     )

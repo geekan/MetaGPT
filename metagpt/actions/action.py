@@ -30,7 +30,14 @@ class Action(SerializationMixin, ContextMixin, BaseModel):
 
     name: str = ""
     i_context: Union[
-        dict, CodingContext, CodeSummarizeContext, TestingContext, RunCodeContext, CodePlanAndChangeContext, str, None
+        dict,
+        CodingContext,
+        CodeSummarizeContext,
+        TestingContext,
+        RunCodeContext,
+        CodePlanAndChangeContext,
+        str,
+        None,
     ] = ""
     prefix: str = ""  # aask*时会加上prefix，作为system_message
     desc: str = ""  # for skill manager
@@ -71,7 +78,9 @@ class Action(SerializationMixin, ContextMixin, BaseModel):
         if "instruction" in values:
             name = values["name"]
             i = values.pop("instruction")
-            values["node"] = ActionNode(key=name, expected_type=str, instruction=i, example="", schema="raw")
+            values["node"] = ActionNode(
+                key=name, expected_type=str, instruction=i, example="", schema="raw"
+            )
         return values
 
     def set_prefix(self, prefix):

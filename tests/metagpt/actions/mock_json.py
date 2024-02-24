@@ -11,7 +11,11 @@ PRD = {
     "Programming Language": "Python",
     "Original Requirements": "写一个简单的cli贪吃蛇",
     "Project Name": "cli_snake",
-    "Product Goals": ["创建一个简单易用的贪吃蛇游戏", "提供良好的用户体验", "支持不同难度级别"],
+    "Product Goals": [
+        "创建一个简单易用的贪吃蛇游戏",
+        "提供良好的用户体验",
+        "支持不同难度级别",
+    ],
     "User Stories": [
         "作为玩家，我希望能够选择不同的难度级别",
         "作为玩家，我希望在每局游戏结束后能够看到我的得分",
@@ -19,7 +23,11 @@ PRD = {
         "作为玩家，我希望看到简洁美观的界面",
         "作为玩家，我希望能够在手机上玩游戏",
     ],
-    "Competitive Analysis": ["贪吃蛇游戏A：界面简单，缺乏响应式特性", "贪吃蛇游戏B：美观且响应式的界面，显示最高得分", "贪吃蛇游戏C：响应式界面，显示最高得分，但有很多广告"],
+    "Competitive Analysis": [
+        "贪吃蛇游戏A：界面简单，缺乏响应式特性",
+        "贪吃蛇游戏B：美观且响应式的界面，显示最高得分",
+        "贪吃蛇游戏C：响应式界面，显示最高得分，但有很多广告",
+    ],
     "Competitive Quadrant Chart": 'quadrantChart\n    title "Reach and engagement of campaigns"\n    x-axis "Low Reach" --> "High Reach"\n    y-axis "Low Engagement" --> "High Engagement"\n    quadrant-1 "We should expand"\n    quadrant-2 "Need to promote"\n    quadrant-3 "Re-evaluate"\n    quadrant-4 "May be improved"\n    "Game A": [0.3, 0.6]\n    "Game B": [0.45, 0.23]\n    "Game C": [0.57, 0.69]\n    "Game D": [0.78, 0.34]\n    "Game E": [0.40, 0.34]\n    "Game F": [0.35, 0.78]\n    "Our Target Product": [0.5, 0.6]',
     "Requirement Analysis": "",
     "Requirement Pool": [["P0", "主要代码..."], ["P0", "游戏算法..."]],
@@ -39,7 +47,9 @@ DESIGN = {
 
 TASKS = {
     "Required Python packages": ["pygame==2.0.1"],
-    "Required Other language third-party packages": ["No third-party dependencies required"],
+    "Required Other language third-party packages": [
+        "No third-party dependencies required"
+    ],
     "Logic Analysis": [
         ["game.py", "Contains Game class and related functions for game logic"],
         ["main.py", "Contains the main function, imports Game class from game.py"],

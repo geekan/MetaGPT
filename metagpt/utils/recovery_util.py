@@ -28,7 +28,9 @@ def load_history(save_dir: str = ""):
     plan_path = Path(save_dir) / "plan.json"
     nb_path = Path(save_dir) / "history_nb" / "code.ipynb"
     plan = read_json_file(plan_path)
-    nb = nbformat.read(open(nb_path, "r", encoding="utf-8"), as_version=nbformat.NO_CONVERT)
+    nb = nbformat.read(
+        open(nb_path, "r", encoding="utf-8"), as_version=nbformat.NO_CONVERT
+    )
     return plan, nb
 
 
@@ -54,5 +56,9 @@ def save_history(role: Role, save_dir: str = ""):
     with open(save_path / "plan.json", "w", encoding="utf-8") as plan_file:
         json.dump(plan, plan_file, indent=4, ensure_ascii=False)
 
-    save_code_file(name=Path(record_time) / "history_nb", code_context=role.execute_code.nb, file_format="ipynb")
+    save_code_file(
+        name=Path(record_time) / "history_nb",
+        code_context=role.execute_code.nb,
+        file_format="ipynb",
+    )
     return save_path

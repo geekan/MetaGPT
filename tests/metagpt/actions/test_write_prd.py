@@ -23,7 +23,9 @@ async def test_write_prd(new_filename, context):
     requirements = "开发一个基于大语言模型与私有知识库的搜索引擎，希望可以基于大语言模型进行搜索总结"
     await context.repo.docs.save(filename=REQUIREMENT_FILENAME, content=requirements)
     product_manager.rc.react_mode = RoleReactMode.BY_ORDER
-    prd = await product_manager.run(Message(content=requirements, cause_by=UserRequirement))
+    prd = await product_manager.run(
+        Message(content=requirements, cause_by=UserRequirement)
+    )
     assert prd.cause_by == any_to_str(WritePRD)
     logger.info(requirements)
     logger.info(prd)

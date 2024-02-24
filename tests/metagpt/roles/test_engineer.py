@@ -28,7 +28,9 @@ async def test_engineer(context):
     rqno = "20231221155954.json"
     await context.repo.save(REQUIREMENT_FILENAME, content=MockMessages.req.content)
     await context.repo.docs.prd.save(rqno, content=MockMessages.prd.content)
-    await context.repo.docs.system_design.save(rqno, content=MockMessages.system_design.content)
+    await context.repo.docs.system_design.save(
+        rqno, content=MockMessages.system_design.content
+    )
     await context.repo.docs.task.save(rqno, content=MockMessages.json_tasks.content)
 
     engineer = Engineer(context=context)
@@ -138,7 +140,9 @@ async def test_new_coding_context(context):
 
         context.git_repo.add_change({f"{TASK_FILE_REPO}/{rqno}": ChangeType.UNTRACTED})
         context.git_repo.commit("mock env")
-        await context.repo.with_src_path(context.src_workspace).srcs.save(filename=filename, content="content")
+        await context.repo.with_src_path(context.src_workspace).srcs.save(
+            filename=filename, content="content"
+        )
         role = Engineer(context=context)
         assert not role.code_todos
         await role._new_code_actions()

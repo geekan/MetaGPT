@@ -35,10 +35,13 @@ def mock_write_read_operation(self, adb_cmd: str) -> str:
 def test_android_ext_env(mocker):
     device_id = "emulator-5554"
     mocker.patch(
-        "metagpt.environment.android_env.android_ext_env.AndroidExtEnv.execute_adb_with_cmd", mock_device_shape
+        "metagpt.environment.android_env.android_ext_env.AndroidExtEnv.execute_adb_with_cmd",
+        mock_device_shape,
     )
 
-    ext_env = AndroidExtEnv(device_id=device_id, screenshot_dir="/data2/", xml_dir="/data2/")
+    ext_env = AndroidExtEnv(
+        device_id=device_id, screenshot_dir="/data2/", xml_dir="/data2/"
+    )
     assert ext_env.adb_prefix == f"adb -s {device_id} "
     assert ext_env.adb_prefix_shell == f"adb -s {device_id} shell "
     assert ext_env.adb_prefix_si == f"adb -s {device_id} shell input "
@@ -46,25 +49,36 @@ def test_android_ext_env(mocker):
     assert ext_env.device_shape == (720, 1080)
 
     mocker.patch(
-        "metagpt.environment.android_env.android_ext_env.AndroidExtEnv.execute_adb_with_cmd", mock_device_shape_invalid
+        "metagpt.environment.android_env.android_ext_env.AndroidExtEnv.execute_adb_with_cmd",
+        mock_device_shape_invalid,
     )
     assert ext_env.device_shape == (0, 0)
 
     mocker.patch(
-        "metagpt.environment.android_env.android_ext_env.AndroidExtEnv.execute_adb_with_cmd", mock_list_devices
+        "metagpt.environment.android_env.android_ext_env.AndroidExtEnv.execute_adb_with_cmd",
+        mock_list_devices,
     )
     assert ext_env.list_devices() == [device_id]
 
     mocker.patch(
-        "metagpt.environment.android_env.android_ext_env.AndroidExtEnv.execute_adb_with_cmd", mock_get_screenshot
+        "metagpt.environment.android_env.android_ext_env.AndroidExtEnv.execute_adb_with_cmd",
+        mock_get_screenshot,
     )
-    assert ext_env.get_screenshot("screenshot_xxxx-xx-xx", "/data/") == Path("/data/screenshot_xxxx-xx-xx.png")
-
-    mocker.patch("metagpt.environment.android_env.android_ext_env.AndroidExtEnv.execute_adb_with_cmd", mock_get_xml)
-    assert ext_env.get_xml("xml_xxxx-xx-xx", "/data/") == Path("/data/xml_xxxx-xx-xx.xml")
+    assert ext_env.get_screenshot("screenshot_xxxx-xx-xx", "/data/") == Path(
+        "/data/screenshot_xxxx-xx-xx.png"
+    )
 
     mocker.patch(
-        "metagpt.environment.android_env.android_ext_env.AndroidExtEnv.execute_adb_with_cmd", mock_write_read_operation
+        "metagpt.environment.android_env.android_ext_env.AndroidExtEnv.execute_adb_with_cmd",
+        mock_get_xml,
+    )
+    assert ext_env.get_xml("xml_xxxx-xx-xx", "/data/") == Path(
+        "/data/xml_xxxx-xx-xx.xml"
+    )
+
+    mocker.patch(
+        "metagpt.environment.android_env.android_ext_env.AndroidExtEnv.execute_adb_with_cmd",
+        mock_write_read_operation,
     )
     res = "OK"
     assert ext_env.system_back() == res

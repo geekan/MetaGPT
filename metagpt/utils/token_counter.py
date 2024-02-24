@@ -29,11 +29,20 @@ TOKEN_COSTS = {
     "gpt-4-turbo-preview": {"prompt": 0.01, "completion": 0.03},
     "gpt-4-0125-preview": {"prompt": 0.01, "completion": 0.03},
     "gpt-4-1106-preview": {"prompt": 0.01, "completion": 0.03},
-    "gpt-4-vision-preview": {"prompt": 0.01, "completion": 0.03},  # TODO add extra image price calculator
+    "gpt-4-vision-preview": {
+        "prompt": 0.01,
+        "completion": 0.03,
+    },  # TODO add extra image price calculator
     "gpt-4-1106-vision-preview": {"prompt": 0.01, "completion": 0.03},
     "text-embedding-ada-002": {"prompt": 0.0004, "completion": 0.0},
-    "glm-3-turbo": {"prompt": 0.0007, "completion": 0.0007},  # 128k version, prompt + completion tokens=0.005￥/k-tokens
-    "glm-4": {"prompt": 0.014, "completion": 0.014},  # 128k version, prompt + completion tokens=0.1￥/k-tokens
+    "glm-3-turbo": {
+        "prompt": 0.0007,
+        "completion": 0.0007,
+    },  # 128k version, prompt + completion tokens=0.005￥/k-tokens
+    "glm-4": {
+        "prompt": 0.014,
+        "completion": 0.014,
+    },  # 128k version, prompt + completion tokens=0.1￥/k-tokens
     "gemini-pro": {"prompt": 0.00025, "completion": 0.0005},
 }
 
@@ -88,16 +97,24 @@ def count_message_tokens(messages, model="gpt-3.5-turbo-0613"):
         "gpt-4-vision-preview",
         "gpt-4-1106-vision-preview",
     }:
-        tokens_per_message = 3  # # every reply is primed with <|start|>assistant<|message|>
+        tokens_per_message = (
+            3  # # every reply is primed with <|start|>assistant<|message|>
+        )
         tokens_per_name = 1
     elif model == "gpt-3.5-turbo-0301":
-        tokens_per_message = 4  # every message follows <|start|>{role/name}\n{content}<|end|>\n
+        tokens_per_message = (
+            4  # every message follows <|start|>{role/name}\n{content}<|end|>\n
+        )
         tokens_per_name = -1  # if there's a name, the role is omitted
     elif "gpt-3.5-turbo" == model:
-        print("Warning: gpt-3.5-turbo may update over time. Returning num tokens assuming gpt-3.5-turbo-0613.")
+        print(
+            "Warning: gpt-3.5-turbo may update over time. Returning num tokens assuming gpt-3.5-turbo-0613."
+        )
         return count_message_tokens(messages, model="gpt-3.5-turbo-0613")
     elif "gpt-4" == model:
-        print("Warning: gpt-4 may update over time. Returning num tokens assuming gpt-4-0613.")
+        print(
+            "Warning: gpt-4 may update over time. Returning num tokens assuming gpt-4-0613."
+        )
         return count_message_tokens(messages, model="gpt-4-0613")
     elif "open-llm-model" == model:
         """

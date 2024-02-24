@@ -66,7 +66,8 @@ class Team(BaseModel):
         team_info_path = stg_path.joinpath("team.json")
         if not team_info_path.exists():
             raise FileNotFoundError(
-                "recover storage meta file `team.json` not exist, " "not to recover and please start a new project."
+                "recover storage meta file `team.json` not exist, "
+                "not to recover and please start a new project."
             )
 
         team_info: dict = read_json_file(team_info_path)
@@ -91,7 +92,10 @@ class Team(BaseModel):
 
     def _check_balance(self):
         if self.cost_manager.total_cost >= self.cost_manager.max_budget:
-            raise NoMoneyException(self.cost_manager.total_cost, f"Insufficient funds: {self.cost_manager.max_budget}")
+            raise NoMoneyException(
+                self.cost_manager.total_cost,
+                f"Insufficient funds: {self.cost_manager.max_budget}",
+            )
 
     def run_project(self, idea, send_to: str = ""):
         """Run a project from publishing user requirement."""
@@ -99,7 +103,12 @@ class Team(BaseModel):
 
         # Human requirement.
         self.env.publish_message(
-            Message(role="Human", content=idea, cause_by=UserRequirement, send_to=send_to or MESSAGE_ROUTE_TO_ALL),
+            Message(
+                role="Human",
+                content=idea,
+                cause_by=UserRequirement,
+                send_to=send_to or MESSAGE_ROUTE_TO_ALL,
+            ),
             peekable=False,
         )
 

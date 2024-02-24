@@ -211,7 +211,9 @@ class LabelEncode(DataPreprocessTool):
             data_list = df[self.features[i]].astype(str).tolist()
             for unique_item in np.unique(df[self.features[i]].astype(str)):
                 if unique_item not in self.le_encoders[i].classes_:
-                    data_list = ["unknown" if x == unique_item else x for x in data_list]
+                    data_list = [
+                        "unknown" if x == unique_item else x for x in data_list
+                    ]
             new_df[self.features[i]] = self.le_encoders[i].transform(data_list)
         return new_df
 
@@ -245,5 +247,7 @@ def get_column_info(df: pd.DataFrame) -> dict:
             column_info["Others"].append(col)
 
     if len(json.dumps(column_info)) > 2000:
-        column_info["Numeric"] = column_info["Numeric"][0:5] + ["Too many cols, omission here..."]
+        column_info["Numeric"] = column_info["Numeric"][0:5] + [
+            "Too many cols, omission here..."
+        ]
     return column_info

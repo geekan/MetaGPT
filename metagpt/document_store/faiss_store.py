@@ -20,7 +20,12 @@ from metagpt.utils.embedding import get_embedding
 
 class FaissStore(LocalStore):
     def __init__(
-        self, raw_data: Path, cache_dir=None, meta_col="source", content_col="output", embedding: Embeddings = None
+        self,
+        raw_data: Path,
+        cache_dir=None,
+        meta_col="source",
+        content_col="output",
+        embedding: Embeddings = None,
     ):
         self.meta_col = meta_col
         self.content_col = content_col
@@ -28,10 +33,14 @@ class FaissStore(LocalStore):
         super().__init__(raw_data, cache_dir)
 
     def _load(self) -> Optional["FaissStore"]:
-        index_file, store_file = self._get_index_and_store_fname(index_ext=".faiss")  # langchain FAISS using .faiss
+        index_file, store_file = self._get_index_and_store_fname(
+            index_ext=".faiss"
+        )  # langchain FAISS using .faiss
 
         if not (index_file.exists() and store_file.exists()):
-            logger.info("Missing at least one of index_file/store_file, load failed and return None")
+            logger.info(
+                "Missing at least one of index_file/store_file, load failed and return None"
+            )
             return None
 
         return FAISS.load_local(self.raw_data_path.parent, self.embedding, self.fname)
@@ -58,7 +67,9 @@ class FaissStore(LocalStore):
         """Initialize the index and library based on the Document (JSON / XLSX, etc.) file provided by the user."""
         if not self.raw_data_path.exists():
             raise FileNotFoundError
-        doc = IndexableDocument.from_path(self.raw_data_path, self.content_col, self.meta_col)
+        doc = IndexableDocument.from_path(
+            self.raw_data_path, self.content_col, self.meta_col
+        )
         docs, metadatas = doc.get_docs_and_metadatas()
 
         self.store = self._write(docs, metadatas)

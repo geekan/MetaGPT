@@ -45,7 +45,10 @@ REFINED_LOGIC_ANALYSIS = ActionNode(
         ["game.py", "Contains Game class and ... functions"],
         ["main.py", "Contains main function, from game import Game"],
         ["new_feature.py", "Introduces NewFeature class and related functions"],
-        ["utils.py", "Modifies existing utility functions to support incremental changes"],
+        [
+            "utils.py",
+            "Modifies existing utility functions to support incremental changes",
+        ],
     ],
 )
 

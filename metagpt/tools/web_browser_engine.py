@@ -29,7 +29,9 @@ class WebBrowserEngine(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
 
     engine: WebBrowserEngineType = WebBrowserEngineType.PLAYWRIGHT
-    run_func: Optional[Callable[..., Coroutine[Any, Any, Union[WebPage, list[WebPage]]]]] = None
+    run_func: Optional[
+        Callable[..., Coroutine[Any, Any, Union[WebPage, list[WebPage]]]]
+    ] = None
     proxy: Optional[str] = None
 
     @model_validator(mode="after")
@@ -43,7 +45,9 @@ class WebBrowserEngine(BaseModel):
         Returns:
             The instance itself after processing the extra data.
         """
-        data = self.model_dump(exclude={"engine"}, exclude_none=True, exclude_defaults=True)
+        data = self.model_dump(
+            exclude={"engine"}, exclude_none=True, exclude_defaults=True
+        )
         if self.model_extra:
             data.update(self.model_extra)
         self._process_extra(**data)
@@ -92,12 +96,10 @@ class WebBrowserEngine(BaseModel):
         return cls(**data, **kwargs)
 
     @overload
-    async def run(self, url: str) -> WebPage:
-        ...
+    async def run(self, url: str) -> WebPage: ...
 
     @overload
-    async def run(self, url: str, *urls: str) -> list[WebPage]:
-        ...
+    async def run(self, url: str, *urls: str) -> list[WebPage]: ...
 
     async def run(self, url: str, *urls: str) -> WebPage | list[WebPage]:
         """Runs the browser engine to load one or more web pages.

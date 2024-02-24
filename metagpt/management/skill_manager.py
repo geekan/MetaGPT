@@ -28,7 +28,9 @@ class SkillManager:
         :return:
         """
         self._skills[skill.name] = skill
-        self._store.add(skill.desc, {"name": skill.name, "desc": skill.desc}, skill.name)
+        self._store.add(
+            skill.desc, {"name": skill.name, "desc": skill.desc}, skill.name
+        )
 
     def del_skill(self, skill_name: str):
         """

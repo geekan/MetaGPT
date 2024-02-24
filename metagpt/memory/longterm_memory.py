@@ -32,10 +32,13 @@ class LongTermMemory(Memory):
         messages = self.memory_storage.recover_memory(role_id)
         self.rc = rc
         if not self.memory_storage.is_initialized:
-            logger.warning(f"It may the first time to run Agent {role_id}, the long-term memory is empty")
+            logger.warning(
+                f"It may the first time to run Agent {role_id}, the long-term memory is empty"
+            )
         else:
             logger.warning(
-                f"Agent {role_id} has existing memory storage with {len(messages)} messages " f"and has recovered them."
+                f"Agent {role_id} has existing memory storage with {len(messages)} messages "
+                f"and has recovered them."
             )
         self.msg_from_recover = True
         self.add_batch(messages)

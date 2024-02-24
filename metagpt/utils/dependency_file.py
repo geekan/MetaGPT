@@ -48,7 +48,9 @@ class DependencyFile:
         async with aiofiles.open(str(self._filename), mode="w") as writer:
             await writer.write(data)
 
-    async def update(self, filename: Path | str, dependencies: Set[Path | str], persist=True):
+    async def update(
+        self, filename: Path | str, dependencies: Set[Path | str], persist=True
+    ):
         """Update dependencies for a file asynchronously.
 
         :param filename: The filename or path.

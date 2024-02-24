@@ -11,7 +11,9 @@ from metagpt.config2 import Config
 from metagpt.tools.openai_text_to_embedding import oas3_openai_text_to_embedding
 
 
-async def text_to_embedding(text, model="text-embedding-ada-002", config: Config = metagpt.config2.config):
+async def text_to_embedding(
+    text, model="text-embedding-ada-002", config: Config = metagpt.config2.config
+):
     """Text to embedding
 
     :param text: The text used for embedding.
@@ -21,4 +23,6 @@ async def text_to_embedding(text, model="text-embedding-ada-002", config: Config
     """
     openai_api_key = config.get_openai_llm().api_key
     proxy = config.get_openai_llm().proxy
-    return await oas3_openai_text_to_embedding(text, model=model, openai_api_key=openai_api_key, proxy=proxy)
+    return await oas3_openai_text_to_embedding(
+        text, model=model, openai_api_key=openai_api_key, proxy=proxy
+    )

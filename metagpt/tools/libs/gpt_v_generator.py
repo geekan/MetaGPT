@@ -29,7 +29,8 @@ Now, please generate the corresponding webpage code including HTML, CSS and Java
 
 
 @register_tool(
-    tool_type=ToolType.IMAGE2WEBPAGE.type_name, include_functions=["__init__", "generate_webpages", "save_webpages"]
+    tool_type=ToolType.IMAGE2WEBPAGE.type_name,
+    include_functions=["__init__", "generate_webpages", "save_webpages"],
 )
 class GPTvGenerator:
     """Class for generating webpages at once.
@@ -57,7 +58,9 @@ class GPTvGenerator:
         Returns:
             str: The layout analysis result.
         """
-        return await self.llm.aask(msg=ANALYZE_LAYOUT_PROMPT, images=[encode_image(image_path)])
+        return await self.llm.aask(
+            msg=ANALYZE_LAYOUT_PROMPT, images=[encode_image(image_path)]
+        )
 
     async def generate_webpages(self, image_path: str) -> str:
         """Asynchronously generate webpages including all code (HTML, CSS, and JavaScript) in one go based on the image.
@@ -71,7 +74,11 @@ class GPTvGenerator:
         if isinstance(image_path, str):
             image_path = Path(image_path)
         layout = await self.analyze_layout(image_path)
-        prompt = GENERATE_PROMPT + "\n\n # Context\n The layout information of the sketch image is: \n" + layout
+        prompt = (
+            GENERATE_PROMPT
+            + "\n\n # Context\n The layout information of the sketch image is: \n"
+            + layout
+        )
         return await self.llm.aask(msg=prompt, images=[encode_image(image_path)])
 
     @staticmethod
@@ -107,7 +114,9 @@ class GPTvGenerator:
 
             js = webpages.split("```javascript")[1].split("```")[0] if js_path else ""
         except IndexError:
-            raise ValueError(f"No html or css or js code found in the result. \nWebpages: {webpages}")
+            raise ValueError(
+                f"No html or css or js code found in the result. \nWebpages: {webpages}"
+            )
 
         try:
             with open(index_path, "w", encoding="utf-8") as f:
@@ -119,6 +128,8 @@ class GPTvGenerator:
                 with open(js_path, "w", encoding="utf-8") as f:
                     f.write(js)
         except FileNotFoundError as e:
-            raise FileNotFoundError(f"Cannot save the webpages to {str(webpages_path)}") from e
+            raise FileNotFoundError(
+                f"Cannot save the webpages to {str(webpages_path)}"
+            ) from e
 
         return webpages_path

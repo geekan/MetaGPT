@@ -39,9 +39,7 @@ class TalkAction(Action):
             )
         prompt += f"Knowledge:\n{self.knowledge}\n\n" if self.knowledge else ""
         prompt += f"{self.history_summary}\n\n"
-        prompt += (
-            "If the information is insufficient, you can search in the historical conversation or knowledge above.\n"
-        )
+        prompt += "If the information is insufficient, you can search in the historical conversation or knowledge above.\n"
         language = self.language
         prompt += (
             f"Answer the following questions strictly in {language}, and the answers must follow the Markdown format.\n "
@@ -92,7 +90,9 @@ class TalkAction(Action):
 
     async def run(self, with_message=None, **kwargs) -> Message:
         msg, format_msgs, system_msgs = self.aask_args
-        rsp = await self.llm.aask(msg=msg, format_msgs=format_msgs, system_msgs=system_msgs)
+        rsp = await self.llm.aask(
+            msg=msg, format_msgs=format_msgs, system_msgs=system_msgs
+        )
         self.rsp = Message(content=rsp, role="assistant", cause_by=self)
         return self.rsp
 

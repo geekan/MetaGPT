@@ -8,7 +8,9 @@
 @Describe : Prompts of the invoice ocr assistant.
 """
 
-COMMON_PROMPT = "Now I will provide you with the OCR text recognition results for the invoice."
+COMMON_PROMPT = (
+    "Now I will provide you with the OCR text recognition results for the invoice."
+)
 
 EXTRACT_OCR_MAIN_INFO_PROMPT = (
     COMMON_PROMPT

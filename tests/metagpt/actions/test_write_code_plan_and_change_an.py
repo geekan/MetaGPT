@@ -32,11 +32,15 @@ def mock_code_plan_and_change():
 @pytest.mark.asyncio
 async def test_write_code_plan_and_change_an(mocker):
     root = ActionNode.from_children(
-        "WriteCodePlanAndChange", [ActionNode(key="", expected_type=str, instruction="", example="")]
+        "WriteCodePlanAndChange",
+        [ActionNode(key="", expected_type=str, instruction="", example="")],
     )
     root.instruct_content = BaseModel()
     root.instruct_content.model_dump = mock_code_plan_and_change
-    mocker.patch("metagpt.actions.write_code_plan_and_change_an.WriteCodePlanAndChange.run", return_value=root)
+    mocker.patch(
+        "metagpt.actions.write_code_plan_and_change_an.WriteCodePlanAndChange.run",
+        return_value=root,
+    )
 
     requirement = "New requirement"
     prd_filename = "prd.md"

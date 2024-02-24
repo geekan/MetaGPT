@@ -37,7 +37,9 @@ ALLOW_OPENAI_API_CALL = int(
 @pytest.fixture(scope="session")
 def rsp_cache():
     rsp_cache_file_path = TEST_DATA_PATH / "rsp_cache.json"  # read repo-provided
-    new_rsp_cache_file_path = TEST_DATA_PATH / "rsp_cache_new.json"  # exporting a new copy
+    new_rsp_cache_file_path = (
+        TEST_DATA_PATH / "rsp_cache_new.json"
+    )  # exporting a new copy
     if os.path.exists(rsp_cache_file_path):
         with open(rsp_cache_file_path, "r", encoding="utf-8") as f1:
             rsp_cache_json = json.load(f1)
@@ -73,7 +75,9 @@ def llm_mock(rsp_cache, mocker, request):
                 cand_key = list(rsp_candidate.keys())[0]
                 cand_value = list(rsp_candidate.values())[0]
                 if cand_key not in llm.rsp_cache:
-                    logger.info(f"Added '{cand_key[:100]} ... -> {str(cand_value)[:20]} ...' to response cache")
+                    logger.info(
+                        f"Added '{cand_key[:100]} ... -> {str(cand_value)[:20]} ...' to response cache"
+                    )
                     llm.rsp_cache.update(rsp_candidate)
                 RSP_CACHE_NEW.update(rsp_candidate)
 
@@ -147,7 +151,9 @@ def loguru_caplog(caplog):
 @pytest.fixture(scope="function")
 def context(request):
     ctx = MetagptContext()
-    ctx.git_repo = GitRepository(local_path=DEFAULT_WORKSPACE_ROOT / f"unittest/{uuid.uuid4().hex}")
+    ctx.git_repo = GitRepository(
+        local_path=DEFAULT_WORKSPACE_ROOT / f"unittest/{uuid.uuid4().hex}"
+    )
     ctx.repo = ProjectRepo(ctx.git_repo)
 
     # Destroy git repo at the end of the test session.
@@ -168,7 +174,9 @@ def init_config():
 @pytest.fixture(scope="function")
 def new_filename(mocker):
     # NOTE: Mock new filename to make reproducible llm aask, should consider changing after implementing requirement segmentation
-    mocker.patch("metagpt.utils.file_repository.FileRepository.new_filename", lambda: "20240101")
+    mocker.patch(
+        "metagpt.utils.file_repository.FileRepository.new_filename", lambda: "20240101"
+    )
     yield mocker
 
 
@@ -233,13 +241,19 @@ def httplib2_mocker(mocker):
 
 
 @pytest.fixture
-def search_engine_mocker(aiohttp_mocker, curl_cffi_mocker, httplib2_mocker, search_rsp_cache):
+def search_engine_mocker(
+    aiohttp_mocker, curl_cffi_mocker, httplib2_mocker, search_rsp_cache
+):
     # aiohttp_mocker: serpapi/serper
     # httplib2_mocker: google
     # curl_cffi_mocker: ddg
     check_funcs: dict[tuple[str, str], Callable[[dict], str]] = {}
-    aiohttp_mocker.rsp_cache = httplib2_mocker.rsp_cache = curl_cffi_mocker.rsp_cache = search_rsp_cache
-    aiohttp_mocker.check_funcs = httplib2_mocker.check_funcs = curl_cffi_mocker.check_funcs = check_funcs
+    aiohttp_mocker.rsp_cache = httplib2_mocker.rsp_cache = (
+        curl_cffi_mocker.rsp_cache
+    ) = search_rsp_cache
+    aiohttp_mocker.check_funcs = httplib2_mocker.check_funcs = (
+        curl_cffi_mocker.check_funcs
+    ) = check_funcs
     yield check_funcs
 
 

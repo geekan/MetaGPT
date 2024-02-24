@@ -47,7 +47,9 @@ class ThoughtSolverBase(BaseModel):
         """
         raise NotImplementedError("Subclasses must implement the solve method")
 
-    async def generate_thoughts(self, current_state="", current_node=None) -> List[ThoughtNode]:
+    async def generate_thoughts(
+        self, current_state="", current_node=None
+    ) -> List[ThoughtNode]:
         """
         Generate children thoughts based on the current state.
 
@@ -59,7 +61,8 @@ class ThoughtSolverBase(BaseModel):
             List[ThoughtNode]: List of nodes representing the generated thoughts.
         """
         state_prompt = self.config.parser.propose(
-            current_state=current_state, **{"n_generate_sample": self.config.n_generate_sample}
+            current_state=current_state,
+            **{"n_generate_sample": self.config.n_generate_sample},
         )
         rsp = await self.llm.aask(msg=state_prompt + "\n" + OUTPUT_FORMAT)
         thoughts = CodeParser.parse_code(block="", text=rsp)
@@ -104,7 +107,9 @@ class ThoughtSolverBase(BaseModel):
         if self.config.method_select == MethodSelect.SAMPLE:
             raise NotImplementedError
         elif self.config.method_select == MethodSelect.GREEDY:
-            nodes = sorted(thought_nodes, key=lambda x: x.value, reverse=True)[: self.config.n_select_sample]
+            nodes = sorted(thought_nodes, key=lambda x: x.value, reverse=True)[
+                : self.config.n_select_sample
+            ]
         for node in thought_nodes:
             if node not in nodes:
                 node.parent = None  # 从树中删除节点
@@ -118,7 +123,9 @@ class ThoughtSolverBase(BaseModel):
             - List[ThoughtNode]: List of nodes representing the best solution.
             - List[str]: List of node names forming the best solution path.
         """
-        best_node = max(self.thought_tree.all_nodes, key=lambda x: x.value, default=None)
+        best_node = max(
+            self.thought_tree.all_nodes, key=lambda x: x.value, default=None
+        )
         best_solution_path = self.thought_tree.parse_node_path(best_node)
         return [best_node], best_solution_path
 
@@ -163,16 +170,25 @@ class BFSSolver(ThoughtSolverBase):
         for node in current_nodes:
             current_state = self.config.parser(node.name)
             current_value = node.value
-            tasks.append(self.generate_and_evaluate_nodes(current_state, current_value, node))
+            tasks.append(
+                self.generate_and_evaluate_nodes(current_state, current_value, node)
+            )
 
         thought_nodes_list = await asyncio.gather(*tasks)
-        solutions = [child_node for thought_nodes in thought_nodes_list for child_node in thought_nodes]
+        solutions = [
+            child_node
+            for thought_nodes in thought_nodes_list
+            for child_node in thought_nodes
+        ]
         return solutions
 
     async def generate_and_evaluate_nodes(self, current_state, current_value, node):
         thought_nodes = await self.generate_thoughts(current_state, current_node=node)
         await asyncio.gather(
-            *(self.evaluate_node(child_node, parent_value=current_value) for child_node in thought_nodes)
+            *(
+                self.evaluate_node(child_node, parent_value=current_value)
+                for child_node in thought_nodes
+            )
         )
         return thought_nodes
 
@@ -193,7 +209,9 @@ class DFSSolver(ThoughtSolverBase):
         for step in range(self.max_steps):
             current_state = self.config.parser(node.name)
             current_value = node.value
-            thought_nodes = await self.generate_thoughts(current_state, current_node=node)
+            thought_nodes = await self.generate_thoughts(
+                current_state, current_node=node
+            )
             await self.evaluate_node(thought_nodes[0], parent_value=current_value)
             if thought_nodes[0].valid_status is False:
                 impossible_state_cnt += 1
@@ -261,7 +279,9 @@ class TreeofThought(BaseModel):
         elif strategy == Strategy.MCTS:
             self.solver = MCTSSolver(config=self.config)
         else:
-            raise NotImplementedError(f"Invalid strategy: {strategy}, only support BFS/DFS/MCTS currently!")
+            raise NotImplementedError(
+                f"Invalid strategy: {strategy}, only support BFS/DFS/MCTS currently!"
+            )
 
     async def solve(self, init_prompt=""):
         """

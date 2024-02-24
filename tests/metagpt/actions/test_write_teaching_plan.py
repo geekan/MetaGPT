@@ -14,7 +14,10 @@ from metagpt.actions.write_teaching_plan import WriteTeachingPlanPart
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     ("topic", "content"),
-    [("Title", "Lesson 1: Learn to draw an apple."), ("Teaching Content", "Lesson 1: Learn to draw an apple.")],
+    [
+        ("Title", "Lesson 1: Learn to draw an apple."),
+        ("Teaching Content", "Lesson 1: Learn to draw an apple."),
+    ],
 )
 async def test_write_teaching_plan_part(topic, content, context):
     action = WriteTeachingPlanPart(topic=topic, i_context=content, context=context)

@@ -60,7 +60,9 @@ class LLMConfig(YamlModel):
     best_of: Optional[int] = None
     n: Optional[int] = None
     stream: bool = False
-    logprobs: Optional[bool] = None  # https://cookbook.openai.com/examples/using_logprobs
+    logprobs: Optional[bool] = (
+        None  # https://cookbook.openai.com/examples/using_logprobs
+    )
     top_logprobs: Optional[int] = None
     timeout: int = 60
 

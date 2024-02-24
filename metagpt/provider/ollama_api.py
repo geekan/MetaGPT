@@ -43,7 +43,12 @@ class OllamaLLM(BaseLLM):
         self.model = config.model
 
     def _const_kwargs(self, messages: list[dict], stream: bool = False) -> dict:
-        kwargs = {"model": self.model, "messages": messages, "options": {"temperature": 0.3}, "stream": stream}
+        kwargs = {
+            "model": self.model,
+            "messages": messages,
+            "options": {"temperature": 0.3},
+            "stream": stream,
+        }
         return kwargs
 
     def _update_costs(self, usage: dict):
@@ -52,7 +57,9 @@ class OllamaLLM(BaseLLM):
             try:
                 prompt_tokens = int(usage.get("prompt_tokens", 0))
                 completion_tokens = int(usage.get("completion_tokens", 0))
-                self._cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
+                self._cost_manager.update_cost(
+                    prompt_tokens, completion_tokens, self.model
+                )
             except Exception as e:
                 logger.error(f"ollama updats costs failed! exp: {e}")
 
@@ -63,7 +70,10 @@ class OllamaLLM(BaseLLM):
         return assist_msg.get("content")
 
     def get_usage(self, resp: dict) -> dict:
-        return {"prompt_tokens": resp.get("prompt_eval_count", 0), "completion_tokens": resp.get("eval_count", 0)}
+        return {
+            "prompt_tokens": resp.get("prompt_eval_count", 0),
+            "completion_tokens": resp.get("eval_count", 0),
+        }
 
     def _decode_and_load(self, chunk: bytes, encoding: str = "utf-8") -> dict:
         chunk = chunk.decode(encoding)
@@ -118,7 +128,9 @@ class OllamaLLM(BaseLLM):
         retry=retry_if_exception_type(ConnectionError),
         retry_error_callback=log_and_reraise,
     )
-    async def acompletion_text(self, messages: list[dict], stream=False, timeout: int = 3) -> str:
+    async def acompletion_text(
+        self, messages: list[dict], stream=False, timeout: int = 3
+    ) -> str:
         """response in async with stream or non-stream mode"""
         if stream:
             return await self._achat_completion_stream(messages)

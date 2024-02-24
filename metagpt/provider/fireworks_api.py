@@ -23,7 +23,10 @@ from metagpt.utils.cost_manager import CostManager, Costs
 
 MODEL_GRADE_TOKEN_COSTS = {
     "-1": {"prompt": 0.0, "completion": 0.0},  # abnormal condition
-    "16": {"prompt": 0.2, "completion": 0.8},  # 16 means model size <= 16B; 0.2 means $0.2/1M tokens
+    "16": {
+        "prompt": 0.2,
+        "completion": 0.8,
+    },  # 16 means model size <= 16B; 0.2 means $0.2/1M tokens
     "80": {"prompt": 0.7, "completion": 2.8},  # 80 means 16B < model size <= 80B
     "mixtral-8x7b": {"prompt": 0.4, "completion": 1.6},
 }
@@ -62,7 +65,10 @@ class FireworksCostManager(CostManager):
         self.total_completion_tokens += completion_tokens
 
         token_costs = self.model_grade_token_costs(model)
-        cost = (prompt_tokens * token_costs["prompt"] + completion_tokens * token_costs["completion"]) / 1000000
+        cost = (
+            prompt_tokens * token_costs["prompt"]
+            + completion_tokens * token_costs["completion"]
+        ) / 1000000
         self.total_cost += cost
         logger.info(
             f"Total running cost: ${self.total_cost:.4f}"
@@ -85,7 +91,9 @@ class FireworksLLM(OpenAILLM):
         if self.config.calc_usage and usage:
             try:
                 # use FireworksCostManager not context.cost_manager
-                self.cost_manager.update_cost(usage.prompt_tokens, usage.completion_tokens, self.model)
+                self.cost_manager.update_cost(
+                    usage.prompt_tokens, usage.completion_tokens, self.model
+                )
             except Exception as e:
                 logger.error(f"updating costs failed!, exp: {e}")
 
@@ -93,8 +101,10 @@ class FireworksLLM(OpenAILLM):
         return self.cost_manager.get_costs()
 
     async def _achat_completion_stream(self, messages: list[dict], timeout=3) -> str:
-        response: AsyncStream[ChatCompletionChunk] = await self.aclient.chat.completions.create(
-            **self._cons_kwargs(messages), stream=True
+        response: AsyncStream[ChatCompletionChunk] = (
+            await self.aclient.chat.completions.create(
+                **self._cons_kwargs(messages), stream=True
+            )
         )
 
         collected_content = []
@@ -104,7 +114,9 @@ class FireworksLLM(OpenAILLM):
             if chunk.choices:
                 choice = chunk.choices[0]
                 choice_delta = choice.delta
-                finish_reason = choice.finish_reason if hasattr(choice, "finish_reason") else None
+                finish_reason = (
+                    choice.finish_reason if hasattr(choice, "finish_reason") else None
+                )
                 if choice_delta.content:
                     collected_content.append(choice_delta.content)
                     print(choice_delta.content, end="")
@@ -123,7 +135,9 @@ class FireworksLLM(OpenAILLM):
         retry=retry_if_exception_type(APIConnectionError),
         retry_error_callback=log_and_reraise,
     )
-    async def acompletion_text(self, messages: list[dict], stream=False, timeout: int = 3) -> str:
+    async def acompletion_text(
+        self, messages: list[dict], stream=False, timeout: int = 3
+    ) -> str:
         """when streaming, print each token in place."""
         if stream:
             return await self._achat_completion_stream(messages)

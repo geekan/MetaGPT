@@ -112,16 +112,22 @@ class SearchAndSummarize(Action):
         if self.search_engine is None:
             try:
                 config = self.config
-                search_engine = SearchEngine.from_search_config(config.search, proxy=config.proxy)
+                search_engine = SearchEngine.from_search_config(
+                    config.search, proxy=config.proxy
+                )
             except pydantic.ValidationError:
                 search_engine = None
 
             self.search_engine = search_engine
         return self
 
-    async def run(self, context: list[Message], system_text=SEARCH_AND_SUMMARIZE_SYSTEM) -> str:
+    async def run(
+        self, context: list[Message], system_text=SEARCH_AND_SUMMARIZE_SYSTEM
+    ) -> str:
         if self.search_engine is None:
-            logger.warning("Configure one of SERPAPI_API_KEY, SERPER_API_KEY, GOOGLE_API_KEY to unlock full feature")
+            logger.warning(
+                "Configure one of SERPAPI_API_KEY, SERPER_API_KEY, GOOGLE_API_KEY to unlock full feature"
+            )
             return ""
 
         query = context[-1].content

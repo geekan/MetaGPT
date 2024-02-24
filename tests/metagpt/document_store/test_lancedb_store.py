@@ -22,13 +22,20 @@ def test_lance_store():
         ids=["doc1", "doc2"],
     )
 
-    store.add(data=[random.random() for _ in range(100)], metadata={"source": "notion"}, _id="doc3")
+    store.add(
+        data=[random.random() for _ in range(100)],
+        metadata={"source": "notion"},
+        _id="doc3",
+    )
 
     result = store.search([random.random() for _ in range(100)], n_results=3)
     assert len(result) == 3
 
     store.delete("doc2")
     result = store.search(
-        [random.random() for _ in range(100)], n_results=3, where="source = 'notion'", metric="cosine"
+        [random.random() for _ in range(100)],
+        n_results=3,
+        where="source = 'notion'",
+        metric="cosine",
     )
     assert len(result) == 1

@@ -30,7 +30,9 @@ def register_action_outcls(func):
                 arr[idx] = dict(sorted(item.items()))
         outcls_id = "_".join([str(i) for i in arr])
         # eliminate typing influence
-        outcls_id = outcls_id.replace("typing.List", "list").replace("typing.Dict", "dict")
+        outcls_id = outcls_id.replace("typing.List", "list").replace(
+            "typing.Dict", "dict"
+        )
 
         if outcls_id in action_outcls_registry:
             return action_outcls_registry[outcls_id]

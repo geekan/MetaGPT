@@ -33,14 +33,24 @@ async def test_file_repo():
     assert file_repo.workdir == full_path
     assert file_repo.workdir.exists()
     await file_repo.save("a.txt", "AAA")
-    await file_repo.save("b.txt", "BBB", [str(full_path / "a.txt"), f"{file_repo_path}/c.txt"])
+    await file_repo.save(
+        "b.txt", "BBB", [str(full_path / "a.txt"), f"{file_repo_path}/c.txt"]
+    )
     doc = await file_repo.get("a.txt")
     assert "AAA" == doc.content
     doc = await file_repo.get("b.txt")
     assert "BBB" == doc.content
-    assert {f"{file_repo_path}/a.txt", f"{file_repo_path}/c.txt"} == await file_repo.get_dependency("b.txt")
-    assert {"a.txt": ChangeType.UNTRACTED, "b.txt": ChangeType.UNTRACTED} == file_repo.changed_files
-    assert {f"{file_repo_path}/a.txt"} == await file_repo.get_changed_dependency("b.txt")
+    assert {
+        f"{file_repo_path}/a.txt",
+        f"{file_repo_path}/c.txt",
+    } == await file_repo.get_dependency("b.txt")
+    assert {
+        "a.txt": ChangeType.UNTRACTED,
+        "b.txt": ChangeType.UNTRACTED,
+    } == file_repo.changed_files
+    assert {f"{file_repo_path}/a.txt"} == await file_repo.get_changed_dependency(
+        "b.txt"
+    )
     await file_repo.save("d/e.txt", "EEE")
     assert ["d/e.txt"] == file_repo.get_change_dir_files("d")
     assert set(file_repo.all_files) == {"a.txt", "b.txt", "d/e.txt"}

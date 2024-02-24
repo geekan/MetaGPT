@@ -88,7 +88,9 @@ class SubscriptionRunner(BaseModel):
                     if task.exception():
                         if raise_exception:
                             raise task.exception()
-                        logger.opt(exception=task.exception()).error(f"Task {task.get_name()} run error")
+                        logger.opt(exception=task.exception()).error(
+                            f"Task {task.get_name()} run error"
+                        )
                     else:
                         logger.warning(
                             f"Task {task.get_name()} has completed. "

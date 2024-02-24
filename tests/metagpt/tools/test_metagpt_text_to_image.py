@@ -20,7 +20,10 @@ async def test_draw(mocker):
     mock_post = mocker.patch("aiohttp.ClientSession.post")
     mock_response = AsyncMock()
     mock_response.status = 200
-    mock_response.json.return_value = {"images": [base64.b64encode(b"success")], "parameters": {"size": 1110}}
+    mock_response.json.return_value = {
+        "images": [base64.b64encode(b"success")],
+        "parameters": {"size": 1110},
+    }
     mock_post.return_value.__aenter__.return_value = mock_response
 
     # Prerequisites

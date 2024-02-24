@@ -28,12 +28,20 @@ class TestSkillAction:
             "required": {"oneOf": ["OPENAI_API_KEY", "metagpt_tti_url"]},
         },
         parameters={
-            "text": Parameter(type="string", description="The text used for image conversion."),
+            "text": Parameter(
+                type="string", description="The text used for image conversion."
+            ),
             "size_type": Parameter(type="string", description="size type"),
         },
         examples=[
-            Example(ask="Draw a girl", answer='text_to_image(text="Draw a girl", size_type="512x512")'),
-            Example(ask="Draw an apple", answer='text_to_image(text="Draw an apple", size_type="512x512")'),
+            Example(
+                ask="Draw a girl",
+                answer='text_to_image(text="Draw a girl", size_type="512x512")',
+            ),
+            Example(
+                ask="Draw an apple",
+                answer='text_to_image(text="Draw an apple", size_type="512x512")',
+            ),
         ],
         returns=Returns(type="string", format="base64"),
     )
@@ -41,7 +49,8 @@ class TestSkillAction:
     @pytest.mark.asyncio
     async def test_parser(self):
         args = ArgumentsParingAction.parse_arguments(
-            skill_name="text_to_image", txt='`text_to_image(text="Draw an apple", size_type="512x512")`'
+            skill_name="text_to_image",
+            txt='`text_to_image(text="Draw an apple", size_type="512x512")`',
         )
         assert args.get("text") == "Draw an apple"
         assert args.get("size_type") == "512x512"
@@ -51,7 +60,9 @@ class TestSkillAction:
         # mock
         mocker.patch("metagpt.learn.text_to_image", return_value="https://mock.com/xxx")
 
-        parser_action = ArgumentsParingAction(skill=self.skill, ask="Draw an apple", context=context)
+        parser_action = ArgumentsParingAction(
+            skill=self.skill, ask="Draw an apple", context=context
+        )
         rsp = await parser_action.run()
         assert rsp
         assert parser_action.args

@@ -16,7 +16,9 @@ class WritePRDReview(Action):
     i_context: Optional[str] = None
 
     prd: Optional[str] = None
-    desc: str = "Based on the PRD, conduct a PRD Review, providing clear and detailed feedback"
+    desc: str = (
+        "Based on the PRD, conduct a PRD Review, providing clear and detailed feedback"
+    )
     prd_review_prompt_template: str = """
 Given the following Product Requirement Document (PRD):
 {prd}

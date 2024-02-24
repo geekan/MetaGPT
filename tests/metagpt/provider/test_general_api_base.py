@@ -114,14 +114,19 @@ def test_requestor_headers():
     api_requestor.api_version = "test123"
     api_requestor.api_type = ApiType.OPEN_AI
     request_id = "test123"
-    headers = api_requestor.request_headers(method="post", extra={}, request_id=request_id)
+    headers = api_requestor.request_headers(
+        method="post", extra={}, request_id=request_id
+    )
     assert headers["LLM-Organization"] == api_requestor.organization
     assert headers["LLM-Version"] == api_requestor.api_version
     assert headers["X-Request-Id"] == request_id
 
 
 def test_api_requestor(mocker):
-    mocker.patch("metagpt.provider.general_api_base.APIRequestor._interpret_response", mock_interpret_response)
+    mocker.patch(
+        "metagpt.provider.general_api_base.APIRequestor._interpret_response",
+        mock_interpret_response,
+    )
     resp, _, _ = api_requestor.request(method="get", url="/s?wd=baidu")
 
     resp, _, _ = api_requestor.request(method="post", url="/s?wd=baidu")
@@ -130,7 +135,8 @@ def test_api_requestor(mocker):
 @pytest.mark.asyncio
 async def test_async_api_requestor(mocker):
     mocker.patch(
-        "metagpt.provider.general_api_base.APIRequestor._interpret_async_response", mock_interpret_async_response
+        "metagpt.provider.general_api_base.APIRequestor._interpret_async_response",
+        mock_interpret_async_response,
     )
     resp, _, _ = await api_requestor.arequest(method="get", url="/s?wd=baidu")
     resp, _, _ = await api_requestor.arequest(method="post", url="/s?wd=baidu")

@@ -24,7 +24,9 @@ async def test_qa(context):
     demo_path = Path(__file__).parent / "../../data/demo_project"
     context.src_workspace = Path(context.repo.workdir) / "qa/game_2048"
     data = await aread(filename=demo_path / "game.py", encoding="utf-8")
-    await awrite(filename=context.src_workspace / "game.py", data=data, encoding="utf-8")
+    await awrite(
+        filename=context.src_workspace / "game.py", data=data, encoding="utf-8"
+    )
     await awrite(filename=Path(context.repo.workdir) / "requirements.txt", data="")
 
     class MockEnv(Environment):

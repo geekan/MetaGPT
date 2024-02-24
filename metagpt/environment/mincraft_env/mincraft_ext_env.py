@@ -48,7 +48,13 @@ class MincraftExtEnv(ExtEnv):
             self.mineflayer = SubprocessMonitor(
                 commands=[
                     "node",
-                    METAGPT_ROOT.joinpath("metagpt", "environment", "mincraft_env", "mineflayer", "index.js"),
+                    METAGPT_ROOT.joinpath(
+                        "metagpt",
+                        "environment",
+                        "mincraft_env",
+                        "mineflayer",
+                        "index.js",
+                    ),
                     str(self.server_port),
                 ],
                 name="mineflayer",
@@ -59,7 +65,9 @@ class MincraftExtEnv(ExtEnv):
             if "optional_inventory_items" in warm_up:
                 assert MC_CORE_INVENTORY_ITEMS is not None
                 # self.core_inv_items_regex = re.compile(MC_CORE_INVENTORY_ITEMS)
-                self.warm_up["optional_inventory_items"] = warm_up["optional_inventory_items"]
+                self.warm_up["optional_inventory_items"] = warm_up[
+                    "optional_inventory_items"
+                ]
             else:
                 self.warm_up["optional_inventory_items"] = 0
             for key in MC_CURRICULUM_OB:
@@ -154,7 +162,9 @@ class MincraftExtEnv(ExtEnv):
             "code": code,
             "programs": programs,
         }
-        res = requests.post(f"{self.server}/step", json=data, timeout=self.request_timeout)
+        res = requests.post(
+            f"{self.server}/step", json=data, timeout=self.request_timeout
+        )
         if res.status_code != 200:
             raise RuntimeError("Failed to step Minecraft server")
         returned_data = res.json()

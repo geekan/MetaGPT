@@ -17,7 +17,9 @@ from metagpt.roles import Sales
 
 def get_store():
     llm = config.get_openai_llm()
-    embedding = OpenAIEmbeddings(openai_api_key=llm.api_key, openai_api_base=llm.base_url)
+    embedding = OpenAIEmbeddings(
+        openai_api_key=llm.api_key, openai_api_base=llm.base_url
+    )
     return FaissStore(DATA_PATH / "example.json", embedding=embedding)
 
 

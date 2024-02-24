@@ -20,7 +20,9 @@ class Memory(BaseModel):
     """The most basic memory: super-memory"""
 
     storage: list[SerializeAsAny[Message]] = []
-    index: DefaultDict[str, list[SerializeAsAny[Message]]] = Field(default_factory=lambda: defaultdict(list))
+    index: DefaultDict[str, list[SerializeAsAny[Message]]] = Field(
+        default_factory=lambda: defaultdict(list)
+    )
     ignore_id: bool = False
 
     def add(self, message: Message):

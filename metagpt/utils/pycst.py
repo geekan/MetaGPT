@@ -52,7 +52,11 @@ def get_docstring_statement(body: DocstringNode) -> cst.SimpleStatementLine:
 def has_decorator(node: DocstringNode, name: str) -> bool:
     return hasattr(node, "decorators") and any(
         (hasattr(i.decorator, "value") and i.decorator.value == name)
-        or (hasattr(i.decorator, "func") and hasattr(i.decorator.func, "value") and i.decorator.func.value == name)
+        or (
+            hasattr(i.decorator, "func")
+            and hasattr(i.decorator.func, "value")
+            and i.decorator.func.value == name
+        )
         for i in node.decorators
     )
 
@@ -122,16 +126,22 @@ class DocstringTransformer(cst.CSTTransformer):
     def visit_ClassDef(self, node: cst.ClassDef) -> bool | None:
         self.stack.append(node.name.value)
 
-    def leave_ClassDef(self, original_node: cst.ClassDef, updated_node: cst.ClassDef) -> cst.CSTNode:
+    def leave_ClassDef(
+        self, original_node: cst.ClassDef, updated_node: cst.ClassDef
+    ) -> cst.CSTNode:
         return self._leave(original_node, updated_node)
 
     def visit_FunctionDef(self, node: cst.FunctionDef) -> bool | None:
         self.stack.append(node.name.value)
 
-    def leave_FunctionDef(self, original_node: cst.FunctionDef, updated_node: cst.FunctionDef) -> cst.CSTNode:
+    def leave_FunctionDef(
+        self, original_node: cst.FunctionDef, updated_node: cst.FunctionDef
+    ) -> cst.CSTNode:
         return self._leave(original_node, updated_node)
 
-    def _leave(self, original_node: DocstringNode, updated_node: DocstringNode) -> DocstringNode:
+    def _leave(
+        self, original_node: DocstringNode, updated_node: DocstringNode
+    ) -> DocstringNode:
         key = tuple(self.stack)
         self.stack.pop()
 
@@ -149,11 +159,17 @@ class DocstringTransformer(cst.CSTTransformer):
             if original_statement:
                 return updated_node.with_changes(body=(statement, *body[1:]))
             else:
-                updated_node = updated_node.with_changes(body=(statement, cst.EmptyLine(), *body))
+                updated_node = updated_node.with_changes(
+                    body=(statement, cst.EmptyLine(), *body)
+                )
                 return updated_node
 
-        body = updated_node.body.body[1:] if original_statement else updated_node.body.body
-        return updated_node.with_changes(body=updated_node.body.with_changes(body=(statement, *body)))
+        body = (
+            updated_node.body.body[1:] if original_statement else updated_node.body.body
+        )
+        return updated_node.with_changes(
+            body=updated_node.body.with_changes(body=(statement, *body))
+        )
 
 
 def merge_docstring(code: str, documented_code: str) -> str:

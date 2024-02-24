@@ -30,15 +30,27 @@ from metagpt.utils.graph_repository import GraphKeyword, GraphRepository
 
 class RebuildClassView(Action):
     async def run(self, with_messages=None, format=config.prompt_schema):
-        graph_repo_pathname = self.context.git_repo.workdir / GRAPH_REPO_FILE_REPO / self.context.git_repo.workdir.name
-        graph_db = await DiGraphRepository.load_from(str(graph_repo_pathname.with_suffix(".json")))
+        graph_repo_pathname = (
+            self.context.git_repo.workdir
+            / GRAPH_REPO_FILE_REPO
+            / self.context.git_repo.workdir.name
+        )
+        graph_db = await DiGraphRepository.load_from(
+            str(graph_repo_pathname.with_suffix(".json"))
+        )
         repo_parser = RepoParser(base_directory=Path(self.i_context))
         # use pylint
-        class_views, relationship_views, package_root = await repo_parser.rebuild_class_views(path=Path(self.i_context))
+        class_views, relationship_views, package_root = (
+            await repo_parser.rebuild_class_views(path=Path(self.i_context))
+        )
         await GraphRepository.update_graph_db_with_class_views(graph_db, class_views)
-        await GraphRepository.update_graph_db_with_class_relationship_views(graph_db, relationship_views)
+        await GraphRepository.update_graph_db_with_class_relationship_views(
+            graph_db, relationship_views
+        )
         # use ast
-        direction, diff_path = self._diff_path(path_root=Path(self.i_context).resolve(), package_root=package_root)
+        direction, diff_path = self._diff_path(
+            path_root=Path(self.i_context).resolve(), package_root=package_root
+        )
         symbols = repo_parser.generate_symbols()
         for file_info in symbols:
             # Align to the same root directory in accordance with `class_views`.
@@ -51,18 +63,26 @@ class RebuildClassView(Action):
         path = Path(self.context.git_repo.workdir) / DATA_API_DESIGN_FILE_REPO
         path.mkdir(parents=True, exist_ok=True)
         pathname = path / self.context.git_repo.workdir.name
-        async with aiofiles.open(str(pathname.with_suffix(".mmd")), mode="w", encoding="utf-8") as writer:
+        async with aiofiles.open(
+            str(pathname.with_suffix(".mmd")), mode="w", encoding="utf-8"
+        ) as writer:
             content = "classDiagram\n"
             logger.debug(content)
             await writer.write(content)
             # class names
-            rows = await graph_db.select(predicate=GraphKeyword.IS, object_=GraphKeyword.CLASS)
+            rows = await graph_db.select(
+                predicate=GraphKeyword.IS, object_=GraphKeyword.CLASS
+            )
             class_distinct = set()
             relationship_distinct = set()
             for r in rows:
-                await RebuildClassView._create_mermaid_class(r.subject, graph_db, writer, class_distinct)
+                await RebuildClassView._create_mermaid_class(
+                    r.subject, graph_db, writer, class_distinct
+                )
             for r in rows:
-                await RebuildClassView._create_mermaid_relationship(r.subject, graph_db, writer, relationship_distinct)
+                await RebuildClassView._create_mermaid_relationship(
+                    r.subject, graph_db, writer, relationship_distinct
+                )
 
     @staticmethod
     async def _create_mermaid_class(ns_class_name, graph_db, file_writer, distinct):
@@ -75,20 +95,31 @@ class RebuildClassView(Action):
         rows = await graph_db.select(subject=ns_class_name)
         for r in rows:
             name = split_namespace(r.object_)[-1]
-            name, visibility, abstraction = RebuildClassView._parse_name(name=name, language="python")
+            name, visibility, abstraction = RebuildClassView._parse_name(
+                name=name, language="python"
+            )
             if r.predicate == GraphKeyword.HAS_CLASS_PROPERTY:
-                var_type = await RebuildClassView._parse_variable_type(r.object_, graph_db)
+                var_type = await RebuildClassView._parse_variable_type(
+                    r.object_, graph_db
+                )
                 attribute = ClassAttribute(
-                    name=name, visibility=visibility, abstraction=bool(abstraction), value_type=var_type
+                    name=name,
+                    visibility=visibility,
+                    abstraction=bool(abstraction),
+                    value_type=var_type,
                 )
                 class_view.attributes.append(attribute)
             elif r.predicate == GraphKeyword.HAS_CLASS_FUNCTION:
-                method = ClassMethod(name=name, visibility=visibility, abstraction=bool(abstraction))
+                method = ClassMethod(
+                    name=name, visibility=visibility, abstraction=bool(abstraction)
+                )
                 await RebuildClassView._parse_function_args(method, r.object_, graph_db)
                 class_view.methods.append(method)
 
         # update graph db
-        await graph_db.insert(ns_class_name, GraphKeyword.HAS_CLASS_VIEW, class_view.model_dump_json())
+        await graph_db.insert(
+            ns_class_name, GraphKeyword.HAS_CLASS_VIEW, class_view.model_dump_json()
+        )
 
         content = class_view.get_mermaid(align=1)
         logger.debug(content)
@@ -96,13 +127,18 @@ class RebuildClassView(Action):
         distinct.add(ns_class_name)
 
     @staticmethod
-    async def _create_mermaid_relationship(ns_class_name, graph_db, file_writer, distinct):
+    async def _create_mermaid_relationship(
+        ns_class_name, graph_db, file_writer, distinct
+    ):
         s_fields = split_namespace(ns_class_name)
         if len(s_fields) > 2:
             # Ignore sub-class
             return
 
-        predicates = {GraphKeyword.IS + v + GraphKeyword.OF: v for v in [GENERALIZATION, COMPOSITION, AGGREGATION]}
+        predicates = {
+            GraphKeyword.IS + v + GraphKeyword.OF: v
+            for v in [GENERALIZATION, COMPOSITION, AGGREGATION]
+        }
         mappings = {
             GENERALIZATION: " <|-- ",
             COMPOSITION: " *-- ",
@@ -144,7 +180,9 @@ class RebuildClassView(Action):
 
     @staticmethod
     async def _parse_variable_type(ns_name, graph_db) -> str:
-        rows = await graph_db.select(subject=ns_name, predicate=GraphKeyword.HAS_TYPE_DESC)
+        rows = await graph_db.select(
+            subject=ns_name, predicate=GraphKeyword.HAS_TYPE_DESC
+        )
         if not rows:
             return ""
         vals = rows[0].object_.replace("'", "").split(":")
@@ -154,8 +192,12 @@ class RebuildClassView(Action):
         return "" if val == "NoneType" else val + " "
 
     @staticmethod
-    async def _parse_function_args(method: ClassMethod, ns_name: str, graph_db: GraphRepository):
-        rows = await graph_db.select(subject=ns_name, predicate=GraphKeyword.HAS_ARGS_DESC)
+    async def _parse_function_args(
+        method: ClassMethod, ns_name: str, graph_db: GraphRepository
+    ):
+        rows = await graph_db.select(
+            subject=ns_name, predicate=GraphKeyword.HAS_ARGS_DESC
+        )
         if not rows:
             return
         info = rows[0].object_.replace("'", "")
@@ -172,7 +214,9 @@ class RebuildClassView(Action):
         if method.return_type == "None":
             method.return_type = ""
         if "(" in method.return_type:
-            method.return_type = method.return_type.replace("(", "Tuple[").replace(")", "]")
+            method.return_type = method.return_type.replace("(", "Tuple[").replace(
+                ")", "]"
+            )
 
         # parse args
         if not args_info:
@@ -197,7 +241,9 @@ class RebuildClassView(Action):
             if len(parts) == 1:
                 method.args.append(ClassAttribute(name=parts[0].strip()))
                 continue
-            method.args.append(ClassAttribute(name=parts[0].strip(), value_type=parts[-1].strip()))
+            method.args.append(
+                ClassAttribute(name=parts[0].strip(), value_type=parts[-1].strip())
+            )
 
     @staticmethod
     def _diff_path(path_root: Path, package_root: Path) -> (str, str):

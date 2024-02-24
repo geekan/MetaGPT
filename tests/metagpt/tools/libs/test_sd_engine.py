@@ -51,7 +51,9 @@ def test_sd_construct_payload():
 async def test_sd_asyn_t2i(mocker):
     mock_post = mocker.patch("aiohttp.ClientSession.post")
     mock_response = mocker.AsyncMock()
-    mock_response.read.return_value = json.dumps({"images": [generate_mock_image_data()]})
+    mock_response.read.return_value = json.dumps(
+        {"images": [generate_mock_image_data()]}
+    )
     mock_post.return_value.__aenter__.return_value = mock_response
 
     engine = SDEngine(sd_url="http://example_localhost:7860")

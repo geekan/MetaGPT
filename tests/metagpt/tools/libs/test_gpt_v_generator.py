@@ -47,7 +47,9 @@ def image_path():
 
 
 @pytest.mark.asyncio
-async def test_generate_webpages(mock_webpage_filename_with_styles_and_scripts, image_path):
+async def test_generate_webpages(
+    mock_webpage_filename_with_styles_and_scripts, image_path
+):
     generator = GPTvGenerator()
     rsp = await generator.generate_webpages(image_path=image_path)
     logs.logger.info(rsp)
@@ -57,7 +59,9 @@ async def test_generate_webpages(mock_webpage_filename_with_styles_and_scripts, 
 
 
 @pytest.mark.asyncio
-async def test_save_webpages_with_styles_and_scripts(mock_webpage_filename_with_styles_and_scripts, image_path):
+async def test_save_webpages_with_styles_and_scripts(
+    mock_webpage_filename_with_styles_and_scripts, image_path
+):
     generator = GPTvGenerator()
     webpages = await generator.generate_webpages(image_path)
     webpages_dir = generator.save_webpages(image_path=image_path, webpages=webpages)
@@ -66,7 +70,9 @@ async def test_save_webpages_with_styles_and_scripts(mock_webpage_filename_with_
 
 
 @pytest.mark.asyncio
-async def test_save_webpages_with_style_and_script(mock_webpage_filename_with_style_and_script, image_path):
+async def test_save_webpages_with_style_and_script(
+    mock_webpage_filename_with_style_and_script, image_path
+):
     generator = GPTvGenerator()
     webpages = await generator.generate_webpages(image_path)
     webpages_dir = generator.save_webpages(image_path=image_path, webpages=webpages)

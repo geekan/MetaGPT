@@ -35,7 +35,11 @@ class TextGenParser(BaseParser):
 
 
 class TextGenEvaluator(BaseEvaluator):
-    value_map: Dict[str, float] = {"impossible": 0.001, "likely": 1, "sure": 20}  # TODO: ad hoc
+    value_map: Dict[str, float] = {
+        "impossible": 0.001,
+        "likely": 1,
+        "sure": 20,
+    }  # TODO: ad hoc
     status_map: Dict = {val: key for key, val in value_map.items()}
 
     def __call__(self, evaluation: str, **kwargs) -> float:
@@ -71,7 +75,13 @@ def test_creative_writing():
     parser = TextGenParser()
     evaluator = TextGenEvaluator()
 
-    config = ThoughtSolverConfig(max_step=2, n_generate_sample=1, n_select_sample=1, parser=parser, evaluator=evaluator)
+    config = ThoughtSolverConfig(
+        max_step=2,
+        n_generate_sample=1,
+        n_select_sample=1,
+        parser=parser,
+        evaluator=evaluator,
+    )
 
     tot_base = TreeofThought(strategy=Strategy.BFS, config=config)
     asyncio.run(tot_base.solve(init_prompt=initial_prompt))

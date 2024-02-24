@@ -89,7 +89,9 @@ class ExecuteNbCode(Action):
         if "outputs" not in cell:
             cell["outputs"] = []
         else:
-            cell["outputs"].append(new_output(output_type="stream", name="stdout", text=str(output)))
+            cell["outputs"].append(
+                new_output(output_type="stream", name="stdout", text=str(output))
+            )
 
     def parse_outputs(self, outputs: list[str]) -> str:
         """Parses the outputs received from notebook execution."""
@@ -99,12 +101,19 @@ class ExecuteNbCode(Action):
         for i, output in enumerate(outputs):
             if output["output_type"] == "stream" and not any(
                 tag in output["text"]
-                for tag in ["| INFO     | metagpt", "| ERROR    | metagpt", "| WARNING  | metagpt", "DEBUG"]
+                for tag in [
+                    "| INFO     | metagpt",
+                    "| ERROR    | metagpt",
+                    "| WARNING  | metagpt",
+                    "DEBUG",
+                ]
             ):
                 parsed_output += output["text"]
             elif output["output_type"] == "display_data":
                 if "image/png" in output["data"]:
-                    self.show_bytes_figure(output["data"]["image/png"], self.interaction)
+                    self.show_bytes_figure(
+                        output["data"]["image/png"], self.interaction
+                    )
                 else:
                     logger.info(
                         f"{i}th output['data'] from nbclient outputs dont have image/png, continue next output ..."
@@ -113,7 +122,9 @@ class ExecuteNbCode(Action):
                 parsed_output += output["data"]["text/plain"]
         return parsed_output
 
-    def show_bytes_figure(self, image_base64: str, interaction_type: Literal["ipython", None]):
+    def show_bytes_figure(
+        self, image_base64: str, interaction_type: Literal["ipython", None]
+    ):
         image_bytes = base64.b64decode(image_base64)
         if interaction_type == "ipython":
             from IPython.display import Image, display
@@ -158,7 +169,9 @@ class ExecuteNbCode(Action):
         except Exception:
             return False, f"{traceback.format_exc()}"
 
-    async def run(self, code: str, language: Literal["python", "markdown"] = "python") -> Tuple[str, bool]:
+    async def run(
+        self, code: str, language: Literal["python", "markdown"] = "python"
+    ) -> Tuple[str, bool]:
         """
         return the output of code execution, and a success indicator (bool) of code execution.
         """
@@ -176,11 +189,15 @@ class ExecuteNbCode(Action):
             success, error_message = await self.run_cell(self.nb.cells[-1], cell_index)
 
             if not success:
-                return truncate(remove_escape_and_color_codes(error_message), is_success=success)
+                return truncate(
+                    remove_escape_and_color_codes(error_message), is_success=success
+                )
 
             # code success
             outputs = self.parse_outputs(self.nb.cells[-1].outputs)
-            outputs, success = truncate(remove_escape_and_color_codes(outputs), is_success=success)
+            outputs, success = truncate(
+                remove_escape_and_color_codes(outputs), is_success=success
+            )
 
             if "!pip" in outputs:
                 success = False
@@ -193,7 +210,9 @@ class ExecuteNbCode(Action):
             # return True, beacuse there is no execution failure for markdown cell.
             return code, True
         else:
-            raise ValueError(f"Only support for language: python, markdown, but got {language}, ")
+            raise ValueError(
+                f"Only support for language: python, markdown, but got {language}, "
+            )
 
 
 def truncate(result: str, keep_len: int = 2000, is_success: bool = True):
@@ -204,7 +223,9 @@ def truncate(result: str, keep_len: int = 2000, is_success: bool = True):
         desc = f"Executed code failed, please reflect the cause of bug and then debug. Truncated to show only last {keep_len} characters\n"
 
     if result.strip().startswith("<coroutine object"):
-        result = "Executed code failed, you need use key word 'await' to run a async code."
+        result = (
+            "Executed code failed, you need use key word 'await' to run a async code."
+        )
         return result, False
 
     if len(result) > keep_len:
@@ -244,6 +265,8 @@ def display_markdown(content: str):
         content_panels.append(Panel(Markdown(remaining_text), box=MINIMAL))
 
     # 在Live模式中显示所有Panel
-    with Live(auto_refresh=False, console=Console(), vertical_overflow="visible") as live:
+    with Live(
+        auto_refresh=False, console=Console(), vertical_overflow="visible"
+    ) as live:
         live.update(Group(*content_panels))
         live.refresh()

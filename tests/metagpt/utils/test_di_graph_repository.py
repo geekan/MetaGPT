@@ -56,7 +56,9 @@ async def test_js_parser():
         repo_parser = RepoParser(base_directory=data.path)
         symbols = repo_parser.generate_symbols()
         for s in symbols:
-            await GraphRepository.update_graph_db_with_file_info(graph_db=graph, file_info=s)
+            await GraphRepository.update_graph_db_with_file_info(
+                graph_db=graph, file_info=s
+            )
     data = graph.json()
     assert data
 
@@ -75,7 +77,9 @@ async def test_codes():
                 assert val
             except TypeError as e:
                 assert not e
-        await GraphRepository.update_graph_db_with_file_info(graph_db=graph, file_info=file_info)
+        await GraphRepository.update_graph_db_with_file_info(
+            graph_db=graph, file_info=file_info
+        )
     data = graph.json()
     assert data
     print(data)

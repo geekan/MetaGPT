@@ -23,12 +23,18 @@ from metagpt.utils.common import create_func_call_config
 
 
 class BaseWriteAnalysisCode(Action):
-    DEFAULT_SYSTEM_MSG: str = """You are Code Interpreter, a world-class programmer that can complete any goal by executing code. Strictly follow the plan and generate code step by step. Each step of the code will be executed on the user's machine, and the user will provide the code execution results to you.**Notice: The code for the next step depends on the code for the previous step. Must reuse variables in the lastest other code directly, dont creat it again, it is very import for you. Use !pip install in a standalone block to install missing packages.Usually the libraries you need are already installed.Dont check if packages already imported.**"""  # prompt reference: https://github.com/KillianLucas/open-interpreter/blob/v0.1.4/interpreter/system_message.txt
+    DEFAULT_SYSTEM_MSG: str = (
+        """You are Code Interpreter, a world-class programmer that can complete any goal by executing code. Strictly follow the plan and generate code step by step. Each step of the code will be executed on the user's machine, and the user will provide the code execution results to you.**Notice: The code for the next step depends on the code for the previous step. Must reuse variables in the lastest other code directly, dont creat it again, it is very import for you. Use !pip install in a standalone block to install missing packages.Usually the libraries you need are already installed.Dont check if packages already imported.**"""  # prompt reference: https://github.com/KillianLucas/open-interpreter/blob/v0.1.4/interpreter/system_message.txt
+    )
     # REUSE_CODE_INSTRUCTION = """ATTENTION: DONT include codes from previous tasks in your current code block, include new codes only, DONT repeat codes!"""
 
     def insert_system_message(self, context: list[Message], system_msg: str = None):
         system_msg = system_msg or self.DEFAULT_SYSTEM_MSG
-        context.insert(0, SystemMessage(content=system_msg)) if context[0].role != "system" else None
+        (
+            context.insert(0, SystemMessage(content=system_msg))
+            if context[0].role != "system"
+            else None
+        )
         return context
 
     async def run(self, context: list[Message], plan: Plan = None) -> dict:
@@ -47,7 +53,13 @@ class BaseWriteAnalysisCode(Action):
 class WriteCodeWithoutTools(BaseWriteAnalysisCode):
     """Ask LLM to generate codes purely by itself without local user-defined tools"""
 
-    async def run(self, context: list[Message], plan: Plan = None, system_msg: str = None, **kwargs) -> dict:
+    async def run(
+        self,
+        context: list[Message],
+        plan: Plan = None,
+        system_msg: str = None,
+        **kwargs,
+    ) -> dict:
         messages = self.insert_system_message(context, system_msg)
         rsp = await self.llm.aask_code(messages, **kwargs)
         return rsp
@@ -72,7 +84,10 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
         candidate_tools = TOOL_REGISTRY.get_tools_by_type(tool_type)
         if self.selected_tools:
             candidate_tool_names = set(self.selected_tools) & candidate_tools.keys()
-            candidate_tools = {tool_name: candidate_tools[tool_name] for tool_name in candidate_tool_names}
+            candidate_tools = {
+                tool_name: candidate_tools[tool_name]
+                for tool_name in candidate_tool_names
+            }
         return candidate_tools
 
     async def _recommend_tool(
@@ -120,15 +135,22 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
 
         # prepare tool-type-specific instruction
         tool_type_usage_prompt = (
-            TOOL_REGISTRY.get_tool_type(tool_type).usage_prompt if TOOL_REGISTRY.has_tool_type(tool_type) else ""
+            TOOL_REGISTRY.get_tool_type(tool_type).usage_prompt
+            if TOOL_REGISTRY.has_tool_type(tool_type)
+            else ""
         )
 
         # prepare schemas of available tools
         tool_schemas = {}
         available_tools = self._get_tools_by_type(tool_type)
         if available_tools:
-            available_tools = {tool_name: tool.schemas["description"] for tool_name, tool in available_tools.items()}
-            tool_schemas = await self._recommend_tool(plan.current_task.instruction, available_tools)
+            available_tools = {
+                tool_name: tool.schemas["description"]
+                for tool_name, tool in available_tools.items()
+            }
+            tool_schemas = await self._recommend_tool(
+                plan.current_task.instruction, available_tools
+            )
 
         return tool_schemas, tool_type_usage_prompt
 

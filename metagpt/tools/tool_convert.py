@@ -8,14 +8,20 @@ def convert_code_to_tool_schema(obj, include: list[str] = []):
     assert docstring, "no docstring found for the objects, skip registering"
 
     if inspect.isclass(obj):
-        schema = {"type": "class", "description": remove_spaces(docstring), "methods": {}}
+        schema = {
+            "type": "class",
+            "description": remove_spaces(docstring),
+            "methods": {},
+        }
         for name, method in inspect.getmembers(obj, inspect.isfunction):
             if include and name not in include:
                 continue
             # method_doc = inspect.getdoc(method)
             method_doc = get_class_method_docstring(obj, name)
             if method_doc:
-                schema["methods"][name] = function_docstring_to_schema(method, method_doc)
+                schema["methods"][name] = function_docstring_to_schema(
+                    method, method_doc
+                )
 
     elif inspect.isfunction(obj):
         schema = function_docstring_to_schema(obj, docstring)
@@ -24,7 +30,9 @@ def convert_code_to_tool_schema(obj, include: list[str] = []):
 
 
 def function_docstring_to_schema(fn_obj, docstring):
-    function_type = "function" if not inspect.iscoroutinefunction(fn_obj) else "async_function"
+    function_type = (
+        "function" if not inspect.iscoroutinefunction(fn_obj) else "async_function"
+    )
     return {"type": function_type, **docstring_to_schema(docstring)}
 
 
@@ -68,7 +76,9 @@ def docstring_to_schema(docstring: str):
         "parameters": parameter_schema,
     }
     if returns:
-        schema["returns"] = [{"type": ret[0], "description": remove_spaces(ret[1])} for ret in returns]
+        schema["returns"] = [
+            {"type": ret[0], "description": remove_spaces(ret[1])} for ret in returns
+        ]
 
     return schema
 

@@ -16,7 +16,10 @@ def test_json_to_markdown():
         "description": "Convert JSON to Markdown with headings and lists.",
         "tags": ["json", "markdown", "conversion"],
         "content": {
-            "section1": {"subsection1": "This is a subsection.", "subsection2": "Another subsection."},
+            "section1": {
+                "subsection1": "This is a subsection.",
+                "subsection2": "Another subsection.",
+            },
             "section2": "This is the second section content.",
         },
     }

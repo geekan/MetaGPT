@@ -37,7 +37,10 @@ def test_environment_serdeser(context):
     ic_obj = ActionNode.create_model_class("prd", out_mapping)
 
     message = Message(
-        content="prd", instruct_content=ic_obj(**out_data), role="product manager", cause_by=any_to_str(UserRequirement)
+        content="prd",
+        instruct_content=ic_obj(**out_data),
+        role="product manager",
+        cause_by=any_to_str(UserRequirement),
     )
 
     environment = Environment(context=context)
@@ -51,7 +54,10 @@ def test_environment_serdeser(context):
     new_env: Environment = Environment(**ser_data, context=context)
     assert len(new_env.roles) == 1
 
-    assert list(new_env.roles.values())[0].states == list(environment.roles.values())[0].states
+    assert (
+        list(new_env.roles.values())[0].states
+        == list(environment.roles.values())[0].states
+    )
     assert isinstance(list(environment.roles.values())[0].actions[0], ActionOK)
     assert type(list(new_env.roles.values())[0].actions[0]) == ActionOK
     assert type(list(new_env.roles.values())[0].actions[1]) == ActionRaise

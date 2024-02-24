@@ -22,7 +22,9 @@ CASES = [
 
 @pytest.mark.parametrize("relative_path, content_col, meta_col, threshold", CASES)
 def test_document(relative_path, content_col, meta_col, threshold):
-    doc = IndexableDocument.from_path(METAGPT_ROOT / relative_path, content_col, meta_col)
+    doc = IndexableDocument.from_path(
+        METAGPT_ROOT / relative_path, content_col, meta_col
+    )
     rsp = doc.get_docs_and_metadatas()
     assert len(rsp[0]) > threshold
     assert len(rsp[1]) > threshold

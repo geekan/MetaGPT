@@ -23,33 +23,73 @@ from metagpt.utils.common import encode_image
 
 @pytest.mark.asyncio
 async def test_debate_two_roles():
-    action1 = Action(name="AlexSay", instruction="Express your opinion with emotion and don't repeat it")
-    action2 = Action(name="BobSay", instruction="Express your opinion with emotion and don't repeat it")
-    alex = Role(
-        name="Alex", profile="Democratic candidate", goal="Win the election", actions=[action1], watch=[action2]
+    action1 = Action(
+        name="AlexSay",
+        instruction="Express your opinion with emotion and don't repeat it",
     )
-    bob = Role(name="Bob", profile="Republican candidate", goal="Win the election", actions=[action2], watch=[action1])
+    action2 = Action(
+        name="BobSay",
+        instruction="Express your opinion with emotion and don't repeat it",
+    )
+    alex = Role(
+        name="Alex",
+        profile="Democratic candidate",
+        goal="Win the election",
+        actions=[action1],
+        watch=[action2],
+    )
+    bob = Role(
+        name="Bob",
+        profile="Republican candidate",
+        goal="Win the election",
+        actions=[action2],
+        watch=[action1],
+    )
     env = Environment(desc="US election live broadcast")
     team = Team(investment=10.0, env=env, roles=[alex, bob])
 
-    history = await team.run(idea="Topic: climate change. Under 80 words per message.", send_to="Alex", n_round=3)
+    history = await team.run(
+        idea="Topic: climate change. Under 80 words per message.",
+        send_to="Alex",
+        n_round=3,
+    )
     assert "Alex" in history
 
 
 @pytest.mark.asyncio
 async def test_debate_one_role_in_env():
-    action = Action(name="Debate", instruction="Express your opinion with emotion and don't repeat it")
-    alex = Role(name="Alex", profile="Democratic candidate", goal="Win the election", actions=[action])
+    action = Action(
+        name="Debate",
+        instruction="Express your opinion with emotion and don't repeat it",
+    )
+    alex = Role(
+        name="Alex",
+        profile="Democratic candidate",
+        goal="Win the election",
+        actions=[action],
+    )
     env = Environment(desc="US election live broadcast")
     team = Team(investment=10.0, env=env, roles=[alex])
-    history = await team.run(idea="Topic: climate change. Under 80 words per message.", send_to="Alex", n_round=3)
+    history = await team.run(
+        idea="Topic: climate change. Under 80 words per message.",
+        send_to="Alex",
+        n_round=3,
+    )
     assert "Alex" in history
 
 
 @pytest.mark.asyncio
 async def test_debate_one_role():
-    action = Action(name="Debate", instruction="Express your opinion with emotion and don't repeat it")
-    alex = Role(name="Alex", profile="Democratic candidate", goal="Win the election", actions=[action])
+    action = Action(
+        name="Debate",
+        instruction="Express your opinion with emotion and don't repeat it",
+    )
+    alex = Role(
+        name="Alex",
+        profile="Democratic candidate",
+        goal="Win the election",
+        actions=[action],
+    )
     msg: Message = await alex.run("Topic: climate change. Under 80 words per message.")
 
     assert len(msg.content) > 10
@@ -58,7 +98,9 @@ async def test_debate_one_role():
 
 @pytest.mark.asyncio
 async def test_action_node_one_layer():
-    node = ActionNode(key="key-a", expected_type=str, instruction="instruction-b", example="example-c")
+    node = ActionNode(
+        key="key-a", expected_type=str, instruction="instruction-b", example="example-c"
+    )
 
     raw_template = node.compile(context="123", schema="raw", mode="auto")
     json_template = node.compile(context="123", schema="json", mode="auto")
@@ -83,18 +125,35 @@ async def test_action_node_one_layer():
 
 @pytest.mark.asyncio
 async def test_action_node_two_layer():
-    node_a = ActionNode(key="reasoning", expected_type=str, instruction="reasoning step by step", example="")
-    node_b = ActionNode(key="answer", expected_type=str, instruction="the final answer", example="")
+    node_a = ActionNode(
+        key="reasoning",
+        expected_type=str,
+        instruction="reasoning step by step",
+        example="",
+    )
+    node_b = ActionNode(
+        key="answer", expected_type=str, instruction="the final answer", example=""
+    )
 
     root = ActionNode.from_children(key="detail answer", nodes=[node_a, node_b])
     assert "reasoning" in root.children
     assert node_b in root.children.values()
 
     # FIXME: ADD MARKDOWN SUPPORT. NEED TO TUNE MARKDOWN SYMBOL FIRST.
-    answer1 = await root.fill(context="what's the answer to 123+456?", schema="json", strgy="simple", llm=LLM())
+    answer1 = await root.fill(
+        context="what's the answer to 123+456?",
+        schema="json",
+        strgy="simple",
+        llm=LLM(),
+    )
     assert "579" in answer1.content
 
-    answer2 = await root.fill(context="what's the answer to 123+456?", schema="json", strgy="complex", llm=LLM())
+    answer2 = await root.fill(
+        context="what's the answer to 123+456?",
+        schema="json",
+        strgy="complex",
+        llm=LLM(),
+    )
     assert "579" in answer2.content
 
 
@@ -180,13 +239,25 @@ t_dict = {
     "Required Other language third-party packages": '"""\nNo third-party packages required for other languages.\n"""\n',
     "Full API spec": '"""\nopenapi: 3.0.0\ninfo:\n  title: Web Snake Game API\n  version: 1.0.0\npaths:\n  /game:\n    get:\n      summary: Get the current game state\n      responses:\n        \'200\':\n          description: A JSON object of the game state\n    post:\n      summary: Send a command to the game\n      requestBody:\n        required: true\n        content:\n          application/json:\n            schema:\n              type: object\n              properties:\n                command:\n                  type: string\n      responses:\n        \'200\':\n          description: A JSON object of the updated game state\n"""\n',
     "Logic Analysis": [
-        ["app.py", "Main entry point for the Flask application. Handles HTTP requests and responses."],
+        [
+            "app.py",
+            "Main entry point for the Flask application. Handles HTTP requests and responses.",
+        ],
         ["game.py", "Contains the Game and Snake classes. Handles the game logic."],
         ["static/js/script.js", "Handles user interactions and updates the game UI."],
         ["static/css/styles.css", "Defines the styles for the game UI."],
-        ["templates/index.html", "The main page of the web application. Displays the game UI."],
+        [
+            "templates/index.html",
+            "The main page of the web application. Displays the game UI.",
+        ],
     ],
-    "Task list": ["game.py", "app.py", "static/css/styles.css", "static/js/script.js", "templates/index.html"],
+    "Task list": [
+        "game.py",
+        "app.py",
+        "static/css/styles.css",
+        "static/js/script.js",
+        "templates/index.html",
+    ],
     "Shared Knowledge": "\"\"\"\n'game.py' contains the Game and Snake classes which are responsible for the game logic. The Game class uses an instance of the Snake class.\n\n'app.py' is the main entry point for the Flask application. It creates an instance of the Game class and handles HTTP requests and responses.\n\n'static/js/script.js' is responsible for handling user interactions and updating the game UI based on the game state returned by 'app.py'.\n\n'static/css/styles.css' defines the styles for the game UI.\n\n'templates/index.html' is the main page of the web application. It displays the game UI and loads 'static/js/script.js' and 'static/css/styles.css'.\n\"\"\"\n",
     "Anything UNCLEAR": "We need clarification on how the high score should be stored. Should it persist across sessions (stored in a database or a file) or should it reset every time the game is restarted? Also, should the game speed increase as the snake grows, or should it remain constant throughout the game?",
 }
@@ -222,7 +293,9 @@ def test_create_model_class():
 
 
 def test_create_model_class_with_fields_unrecognized():
-    test_class = ActionNode.create_model_class("test_class", WRITE_TASKS_OUTPUT_MAPPING_MISSING)
+    test_class = ActionNode.create_model_class(
+        "test_class", WRITE_TASKS_OUTPUT_MAPPING_MISSING
+    )
     assert test_class.__name__ == "test_class"
 
     _ = test_class(**t_dict)  # just warning
@@ -240,21 +313,36 @@ def test_create_model_class_with_mapping():
     t = ActionNode.create_model_class("test_class_1", WRITE_TASKS_OUTPUT_MAPPING)
     t1 = t(**t_dict)
     value = t1.model_dump()["Task list"]
-    assert value == ["game.py", "app.py", "static/css/styles.css", "static/js/script.js", "templates/index.html"]
+    assert value == [
+        "game.py",
+        "app.py",
+        "static/css/styles.css",
+        "static/js/script.js",
+        "templates/index.html",
+    ]
 
 
 @pytest.mark.asyncio
 async def test_action_node_with_image(mocker):
     # add a mock to update model in unittest, due to the gloabl MockLLM
     def _cons_kwargs(self, messages: list[dict], timeout=3, **extra_kwargs) -> dict:
-        kwargs = {"messages": messages, "temperature": 0.3, "model": "gpt-4-vision-preview"}
+        kwargs = {
+            "messages": messages,
+            "temperature": 0.3,
+            "model": "gpt-4-vision-preview",
+        }
         return kwargs
 
     invoice = ActionNode(
-        key="invoice", expected_type=bool, instruction="if it's a invoice file, return True else False", example="False"
+        key="invoice",
+        expected_type=bool,
+        instruction="if it's a invoice file, return True else False",
+        example="False",
     )
 
-    invoice_path = Path(__file__).parent.joinpath("..", "..", "data", "invoices", "invoice-2.png")
+    invoice_path = Path(__file__).parent.joinpath(
+        "..", "..", "data", "invoices", "invoice-2.png"
+    )
     img_base64 = encode_image(invoice_path)
     mocker.patch("metagpt.provider.openai_api.OpenAILLM._cons_kwargs", _cons_kwargs)
     node = await invoice.fill(context="", llm=LLM(), images=[img_base64])
@@ -269,7 +357,9 @@ class ToolDef(BaseModel):
 class Task(BaseModel):
     task_id: int = Field(default=1, description="task id", examples=[1, 2, 3])
     name: str = Field(default="Get data from ...", description="task name", examples=[])
-    dependent_task_ids: List[int] = Field(default=[], description="dependent task ids", examples=[1, 2, 3])
+    dependent_task_ids: List[int] = Field(
+        default=[], description="dependent task ids", examples=[1, 2, 3]
+    )
     tool: ToolDef = Field(default=ToolDef(), description="tool use", examples=[])
 
 

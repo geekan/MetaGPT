@@ -69,14 +69,22 @@ class InvoiceOCR(Action):
         Returns:
             The path to the unzipped directory.
         """
-        file_directory = file_path.parent / "unzip_invoices" / datetime.now().strftime("%Y%m%d%H%M%S")
+        file_directory = (
+            file_path.parent
+            / "unzip_invoices"
+            / datetime.now().strftime("%Y%m%d%H%M%S")
+        )
         with zipfile.ZipFile(file_path, "r") as zip_ref:
             for zip_info in zip_ref.infolist():
                 # Use CP437 to encode the file name, and then use GBK decoding to prevent Chinese garbled code
                 relative_name = Path(zip_info.filename.encode("cp437").decode("gbk"))
                 if relative_name.suffix:
                     full_filename = file_directory / relative_name
-                    await File.write(full_filename.parent, relative_name.name, zip_ref.read(zip_info.filename))
+                    await File.write(
+                        full_filename.parent,
+                        relative_name.name,
+                        zip_ref.read(zip_info.filename),
+                    )
 
         logger.info(f"unzip_path: {file_directory}")
         return file_directory
@@ -86,7 +94,10 @@ class InvoiceOCR(Action):
         ocr = PaddleOCR(use_angle_cls=True, lang="ch", page_num=1)
         ocr_result = ocr.ocr(str(invoice_file_path), cls=True)
         for result in ocr_result[0]:
-            result[1] = (result[1][0], round(result[1][1], 2))  # round long confidence scores to reduce token costs
+            result[1] = (
+                result[1][0],
+                round(result[1][1], 2),
+            )  # round long confidence scores to reduce token costs
         return ocr_result
 
     async def run(self, file_path: Path, *args, **kwargs) -> list:
@@ -132,7 +143,9 @@ class GenerateTable(Action):
     i_context: Optional[str] = None
     language: str = "ch"
 
-    async def run(self, ocr_results: list, filename: str, *args, **kwargs) -> dict[str, str]:
+    async def run(
+        self, ocr_results: list, filename: str, *args, **kwargs
+    ) -> dict[str, str]:
         """Processes OCR results, extracts invoice information, generates a table, and saves it as an Excel file.
 
         Args:
@@ -149,7 +162,9 @@ class GenerateTable(Action):
 
         for ocr_result in ocr_results:
             # Extract invoice OCR main information
-            prompt = EXTRACT_OCR_MAIN_INFO_PROMPT.format(ocr_result=ocr_result, language=self.language)
+            prompt = EXTRACT_OCR_MAIN_INFO_PROMPT.format(
+                ocr_result=ocr_result, language=self.language
+            )
             ocr_info = await self._aask(prompt=prompt)
             invoice_data = OutputParser.extract_struct(ocr_info, dict)
             if invoice_data:
@@ -184,6 +199,8 @@ class ReplyQuestion(Action):
         Returns:
             A reply result of string type.
         """
-        prompt = REPLY_OCR_QUESTION_PROMPT.format(query=query, ocr_result=ocr_result, language=self.language)
+        prompt = REPLY_OCR_QUESTION_PROMPT.format(
+            query=query, ocr_result=ocr_result, language=self.language
+        )
         resp = await self._aask(prompt=prompt)
         return resp

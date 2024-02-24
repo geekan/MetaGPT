@@ -35,7 +35,10 @@ async def test_azure_text_to_speech(mocker):
     assert not config.iflytek_app_id
     assert not config.iflytek_api_key
     assert not config.iflytek_api_secret
-    assert config.azure_tts_subscription_key and config.azure_tts_subscription_key != "YOUR_API_KEY"
+    assert (
+        config.azure_tts_subscription_key
+        and config.azure_tts_subscription_key != "YOUR_API_KEY"
+    )
     assert config.azure_tts_region
 
     config.copy()
@@ -61,7 +64,10 @@ async def test_iflytek_text_to_speech(mocker):
     assert config.iflytek_app_id
     assert config.iflytek_api_key
     assert config.iflytek_api_secret
-    assert not config.azure_tts_subscription_key or config.azure_tts_subscription_key == "YOUR_API_KEY"
+    assert (
+        not config.azure_tts_subscription_key
+        or config.azure_tts_subscription_key == "YOUR_API_KEY"
+    )
     assert not config.azure_tts_region
 
     # test azure

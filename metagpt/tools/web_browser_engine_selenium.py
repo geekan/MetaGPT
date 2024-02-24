@@ -48,7 +48,11 @@ class SeleniumWrapper(BaseModel):
 
     @property
     def launch_args(self):
-        return [f"--{k}={v}" for k, v in self.launch_kwargs.items() if k != "executable_path"]
+        return [
+            f"--{k}={v}"
+            for k, v in self.launch_kwargs.items()
+            if k != "executable_path"
+        ]
 
     @property
     def executable_path(self):
@@ -57,7 +61,9 @@ class SeleniumWrapper(BaseModel):
     async def run(self, url: str, *urls: str) -> WebPage | list[WebPage]:
         await self._run_precheck()
 
-        _scrape = lambda url: self.loop.run_in_executor(self.executor, self._scrape_website, url)
+        _scrape = lambda url: self.loop.run_in_executor(
+            self.executor, self._scrape_website, url
+        )
 
         if urls:
             return await asyncio.gather(_scrape(url), *(_scrape(i) for i in urls))
@@ -70,7 +76,10 @@ class SeleniumWrapper(BaseModel):
         self._get_driver = await self.loop.run_in_executor(
             self.executor,
             lambda: _gen_get_driver_func(
-                self.browser_type, *self.launch_args, executable_path=self.executable_path, proxy=self.proxy
+                self.browser_type,
+                *self.launch_args,
+                executable_path=self.executable_path,
+                proxy=self.proxy,
             ),
         )
         self._has_run_precheck = True
@@ -79,7 +88,9 @@ class SeleniumWrapper(BaseModel):
         with self._get_driver() as driver:
             try:
                 driver.get(url)
-                WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
+                WebDriverWait(driver, 30).until(
+                    EC.presence_of_element_located((By.TAG_NAME, "body"))
+                )
                 inner_text = driver.execute_script("return document.body.innerText;")
                 html = driver.page_source
             except Exception as e:
@@ -108,14 +119,25 @@ class WDMHttpProxyClient(WDMHttpClient):
 
 
 def _gen_get_driver_func(browser_type, *args, executable_path=None, proxy=None):
-    WebDriver = getattr(importlib.import_module(f"selenium.webdriver.{browser_type}.webdriver"), "WebDriver")
-    Service = getattr(importlib.import_module(f"selenium.webdriver.{browser_type}.service"), "Service")
-    Options = getattr(importlib.import_module(f"selenium.webdriver.{browser_type}.options"), "Options")
+    WebDriver = getattr(
+        importlib.import_module(f"selenium.webdriver.{browser_type}.webdriver"),
+        "WebDriver",
+    )
+    Service = getattr(
+        importlib.import_module(f"selenium.webdriver.{browser_type}.service"), "Service"
+    )
+    Options = getattr(
+        importlib.import_module(f"selenium.webdriver.{browser_type}.options"), "Options"
+    )
 
     if not executable_path:
         module_name, type_name = _webdriver_manager_types[browser_type]
         DriverManager = getattr(importlib.import_module(module_name), type_name)
-        driver_manager = DriverManager(download_manager=WDMDownloadManager(http_client=WDMHttpProxyClient(proxy=proxy)))
+        driver_manager = DriverManager(
+            download_manager=WDMDownloadManager(
+                http_client=WDMHttpProxyClient(proxy=proxy)
+            )
+        )
         # driver_manager.driver_cache.find_driver(driver_manager.driver))
         executable_path = driver_manager.install()
 
@@ -124,11 +146,17 @@ def _gen_get_driver_func(browser_type, *args, executable_path=None, proxy=None):
         options.add_argument("--headless")
         options.add_argument("--enable-javascript")
         if browser_type == "chrome":
-            options.add_argument("--disable-gpu")  # This flag can help avoid renderer issue
-            options.add_argument("--disable-dev-shm-usage")  # Overcome limited resource problems
+            options.add_argument(
+                "--disable-gpu"
+            )  # This flag can help avoid renderer issue
+            options.add_argument(
+                "--disable-dev-shm-usage"
+            )  # Overcome limited resource problems
             options.add_argument("--no-sandbox")
         for i in args:
             options.add_argument(i)
-        return WebDriver(options=deepcopy(options), service=Service(executable_path=executable_path))
+        return WebDriver(
+            options=deepcopy(options), service=Service(executable_path=executable_path)
+        )
 
     return _get_driver

@@ -67,14 +67,18 @@ class WriteDesign(Action):
             logger.info("Nothing has changed.")
         # Wait until all files under `docs/system_designs/` are processed before sending the publish message,
         # leaving room for global optimization in subsequent steps.
-        return ActionOutput(content=changed_files.model_dump_json(), instruct_content=changed_files)
+        return ActionOutput(
+            content=changed_files.model_dump_json(), instruct_content=changed_files
+        )
 
     async def _new_system_design(self, context):
         node = await DESIGN_API_NODE.fill(context=context, llm=self.llm)
         return node
 
     async def _merge(self, prd_doc, system_design_doc):
-        context = NEW_REQ_TEMPLATE.format(old_design=system_design_doc.content, context=prd_doc.content)
+        context = NEW_REQ_TEMPLATE.format(
+            old_design=system_design_doc.content, context=prd_doc.content
+        )
         node = await REFINED_DESIGN_NODE.fill(context=context, llm=self.llm)
         system_design_doc.content = node.instruct_content.model_dump_json()
         return system_design_doc
@@ -90,8 +94,12 @@ class WriteDesign(Action):
                 dependencies={prd.root_relative_path},
             )
         else:
-            doc = await self._merge(prd_doc=prd, system_design_doc=old_system_design_doc)
-            await self.repo.docs.system_design.save_doc(doc=doc, dependencies={prd.root_relative_path})
+            doc = await self._merge(
+                prd_doc=prd, system_design_doc=old_system_design_doc
+            )
+            await self.repo.docs.system_design.save_doc(
+                doc=doc, dependencies={prd.root_relative_path}
+            )
         await self._save_data_api_design(doc)
         await self._save_seq_flow(doc)
         await self.repo.resources.system_design.save_pdf(doc=doc)
@@ -99,10 +107,16 @@ class WriteDesign(Action):
 
     async def _save_data_api_design(self, design_doc):
         m = json.loads(design_doc.content)
-        data_api_design = m.get(DATA_STRUCTURES_AND_INTERFACES.key) or m.get(REFINED_DATA_STRUCTURES_AND_INTERFACES.key)
+        data_api_design = m.get(DATA_STRUCTURES_AND_INTERFACES.key) or m.get(
+            REFINED_DATA_STRUCTURES_AND_INTERFACES.key
+        )
         if not data_api_design:
             return
-        pathname = self.repo.workdir / DATA_API_DESIGN_FILE_REPO / Path(design_doc.filename).with_suffix("")
+        pathname = (
+            self.repo.workdir
+            / DATA_API_DESIGN_FILE_REPO
+            / Path(design_doc.filename).with_suffix("")
+        )
         await self._save_mermaid_file(data_api_design, pathname)
         logger.info(f"Save class view to {str(pathname)}")
 
@@ -111,7 +125,11 @@ class WriteDesign(Action):
         seq_flow = m.get(PROGRAM_CALL_FLOW.key) or m.get(REFINED_PROGRAM_CALL_FLOW.key)
         if not seq_flow:
             return
-        pathname = self.repo.workdir / Path(SEQ_FLOW_FILE_REPO) / Path(design_doc.filename).with_suffix("")
+        pathname = (
+            self.repo.workdir
+            / Path(SEQ_FLOW_FILE_REPO)
+            / Path(design_doc.filename).with_suffix("")
+        )
         await self._save_mermaid_file(seq_flow, pathname)
         logger.info(f"Saving sequence flow to {str(pathname)}")
 

@@ -8,7 +8,9 @@ from metagpt.actions.write_tutorial import WriteContent, WriteDirectory
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize(("language", "topic"), [("English", "Write a tutorial about Python")])
+@pytest.mark.parametrize(
+    ("language", "topic"), [("English", "Write a tutorial about Python")]
+)
 async def test_write_directory_serdeser(language: str, topic: str, context):
     action = WriteDirectory(context=context)
     serialized_data = action.model_dump()
@@ -28,9 +30,17 @@ async def test_write_directory_serdeser(language: str, topic: str, context):
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     ("language", "topic", "directory"),
-    [("English", "Write a tutorial about Python", {"Introduction": ["What is Python?", "Why learn Python?"]})],
+    [
+        (
+            "English",
+            "Write a tutorial about Python",
+            {"Introduction": ["What is Python?", "Why learn Python?"]},
+        )
+    ],
 )
-async def test_write_content_serdeser(language: str, topic: str, directory: Dict, context):
+async def test_write_content_serdeser(
+    language: str, topic: str, directory: Dict, context
+):
     action = WriteContent(language=language, directory=directory, context=context)
     serialized_data = action.model_dump()
     assert serialized_data["name"] == "WriteContent"

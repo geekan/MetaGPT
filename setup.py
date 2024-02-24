@@ -1,4 +1,5 @@
 """Setup script for MetaGPT."""
+
 import subprocess
 from pathlib import Path
 
@@ -52,7 +53,9 @@ extras_require["test"] = [
 extras_require["pyppeteer"] = [
     "pyppeteer>=1.0.2"
 ]  # pyppeteer is unmaintained and there are conflicts with dependencies
-extras_require["dev"] = (["pylint~=3.0.3", "black~=23.3.0", "isort~=5.12.0", "pre-commit~=3.6.0"],)
+extras_require["dev"] = (
+    ["pylint~=3.0.3", "black~=23.3.0", "isort~=5.12.0", "pre-commit~=3.6.0"],
+)
 
 
 setup(

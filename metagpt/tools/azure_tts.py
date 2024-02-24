@@ -29,10 +29,14 @@ class AzureTTS:
 
     # 参数参考：https://learn.microsoft.com/zh-cn/azure/cognitive-services/speech-service/language-support?tabs=tts#voice-styles-and-roles
     async def synthesize_speech(self, lang, voice, text, output_file):
-        speech_config = SpeechConfig(subscription=self.subscription_key, region=self.region)
+        speech_config = SpeechConfig(
+            subscription=self.subscription_key, region=self.region
+        )
         speech_config.speech_synthesis_voice_name = voice
         audio_config = AudioConfig(filename=output_file)
-        synthesizer = SpeechSynthesizer(speech_config=speech_config, audio_config=audio_config)
+        synthesizer = SpeechSynthesizer(
+            speech_config=speech_config, audio_config=audio_config
+        )
 
         # More detail: https://learn.microsoft.com/en-us/azure/ai-services/speech-service/speech-synthesis-markup-voice
         ssml_string = (
@@ -45,7 +49,9 @@ class AzureTTS:
 
     @staticmethod
     def role_style_text(role, style, text):
-        return f'<mstts:express-as role="{role}" style="{style}">{text}</mstts:express-as>'
+        return (
+            f'<mstts:express-as role="{role}" style="{style}">{text}</mstts:express-as>'
+        )
 
     @staticmethod
     def role_text(role, text):
@@ -57,7 +63,9 @@ class AzureTTS:
 
 
 # Export
-async def oas3_azsure_tts(text, lang="", voice="", style="", role="", subscription_key="", region=""):
+async def oas3_azsure_tts(
+    text, lang="", voice="", style="", role="", subscription_key="", region=""
+):
     """Text to speech
     For more details, check out:`https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts`
 
@@ -85,9 +93,13 @@ async def oas3_azsure_tts(text, lang="", voice="", style="", role="", subscripti
 
     xml_value = AzureTTS.role_style_text(role=role, style=style, text=text)
     tts = AzureTTS(subscription_key=subscription_key, region=region)
-    filename = Path(__file__).resolve().parent / (str(uuid4()).replace("-", "") + ".wav")
+    filename = Path(__file__).resolve().parent / (
+        str(uuid4()).replace("-", "") + ".wav"
+    )
     try:
-        await tts.synthesize_speech(lang=lang, voice=voice, text=xml_value, output_file=str(filename))
+        await tts.synthesize_speech(
+            lang=lang, voice=voice, text=xml_value, output_file=str(filename)
+        )
         async with aiofiles.open(filename, mode="rb") as reader:
             data = await reader.read()
             base64_string = base64.b64encode(data).decode("utf-8")

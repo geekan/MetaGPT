@@ -72,21 +72,27 @@ def test_gomoku():
 
 @pytest.mark.skip
 def test_dice_simulator_new():
-    for i, (idea, project_name) in enumerate(zip(IDEAS[4:6], PROJECT_NAMES[4:6]), start=1):
+    for i, (idea, project_name) in enumerate(
+        zip(IDEAS[4:6], PROJECT_NAMES[4:6]), start=1
+    ):
         result = get_incremental_dev_result(idea, project_name)
         log_and_check_result(result, "refine_" + str(i))
 
 
 @pytest.mark.skip
 def test_refined_pygame_2048():
-    for i, (idea, project_name) in enumerate(zip(IDEAS[6:8], PROJECT_NAMES[6:8]), start=1):
+    for i, (idea, project_name) in enumerate(
+        zip(IDEAS[6:8], PROJECT_NAMES[6:8]), start=1
+    ):
         result = get_incremental_dev_result(idea, project_name)
         log_and_check_result(result, "refine_" + str(i))
 
 
 @pytest.mark.skip
 def test_refined_snake_game():
-    for i, (idea, project_name) in enumerate(zip(IDEAS[8:10], PROJECT_NAMES[8:10]), start=1):
+    for i, (idea, project_name) in enumerate(
+        zip(IDEAS[8:10], PROJECT_NAMES[8:10]), start=1
+    ):
         result = get_incremental_dev_result(idea, project_name)
         log_and_check_result(result, "refine_" + str(i))
 
@@ -98,12 +104,19 @@ def log_and_check_result(result, tag_name="refine"):
         assert False
     else:
         # After running, there will be new commit
-        cur_tag = subprocess.run(["git", "describe", "--tags"], capture_output=True, text=True).stdout.strip()
+        cur_tag = subprocess.run(
+            ["git", "describe", "--tags"], capture_output=True, text=True
+        ).stdout.strip()
         if cur_tag == "base":
             assert False
         else:
             assert True
-            if subprocess.run(["git", "show-ref", "--verify", "--quiet", f"refs/tags/{tag_name}"]).returncode == 0:
+            if (
+                subprocess.run(
+                    ["git", "show-ref", "--verify", "--quiet", f"refs/tags/{tag_name}"]
+                ).returncode
+                == 0
+            ):
                 tag_name += str(int(time.time()))
             try:
                 subprocess.run(["git", "tag", tag_name], check=True)
@@ -118,12 +131,26 @@ def get_incremental_dev_result(idea, project_name, use_review=True):
         # If the project does not exist, extract the project file
         try:
             if shutil.which("unzip"):
-                subprocess.run(["unzip", f"{project_path}.zip", "-d", str(project_path.parent)], check=True)
+                subprocess.run(
+                    ["unzip", f"{project_path}.zip", "-d", str(project_path.parent)],
+                    check=True,
+                )
             elif shutil.which("tar"):
-                subprocess.run(["tar", "-xf", f"{project_path}.zip", "-C", str(project_path.parent)], check=True)
+                subprocess.run(
+                    [
+                        "tar",
+                        "-xf",
+                        f"{project_path}.zip",
+                        "-C",
+                        str(project_path.parent),
+                    ],
+                    check=True,
+                )
             logger.info(f"Extracted project {project_name} successfully.")
         except FileNotFoundError as e:
-            raise FileNotFoundError(f"Neither 'unzip' nor 'tar' command found. Error: {e}")
+            raise FileNotFoundError(
+                f"Neither 'unzip' nor 'tar' command found. Error: {e}"
+            )
         except subprocess.CalledProcessError as e:
             raise Exception(f"Failed to extract project {project_name}. Error: {e}")
 
@@ -153,7 +180,9 @@ def check_or_create_base_tag(project_path):
         logger.info("Base tag exists")
         # Switch to the 'base' branch if it exists
         try:
-            status = subprocess.run(["git", "status", "-s"], capture_output=True, text=True).stdout.strip()
+            status = subprocess.run(
+                ["git", "status", "-s"], capture_output=True, text=True
+            ).stdout.strip()
             if status:
                 subprocess.run(["git", "clean", "-df"])
             subprocess.run(["git", "checkout", "-f", "base"], check=True)

@@ -31,7 +31,12 @@ async def test_rebuild(context):
     ("path", "direction", "diff", "want"),
     [
         ("metagpt/software_company.py", "=", ".", "metagpt/software_company.py"),
-        ("metagpt/software_company.py", "+", "MetaGPT", "MetaGPT/metagpt/software_company.py"),
+        (
+            "metagpt/software_company.py",
+            "+",
+            "MetaGPT",
+            "MetaGPT/metagpt/software_company.py",
+        ),
         ("metagpt/software_company.py", "-", "metagpt", "software_company.py"),
     ],
 )
@@ -43,13 +48,20 @@ def test_align_path(path, direction, diff, want):
 @pytest.mark.parametrize(
     ("path_root", "package_root", "want_direction", "want_diff"),
     [
-        ("/Users/x/github/MetaGPT/metagpt", "/Users/x/github/MetaGPT/metagpt", "=", "."),
+        (
+            "/Users/x/github/MetaGPT/metagpt",
+            "/Users/x/github/MetaGPT/metagpt",
+            "=",
+            ".",
+        ),
         ("/Users/x/github/MetaGPT", "/Users/x/github/MetaGPT/metagpt", "-", "metagpt"),
         ("/Users/x/github/MetaGPT/metagpt", "/Users/x/github/MetaGPT", "+", "metagpt"),
     ],
 )
 def test_diff_path(path_root, package_root, want_direction, want_diff):
-    direction, diff = RebuildClassView._diff_path(path_root=Path(path_root), package_root=Path(package_root))
+    direction, diff = RebuildClassView._diff_path(
+        path_root=Path(path_root), package_root=Path(package_root)
+    )
     assert direction == want_direction
     assert diff == want_diff
 

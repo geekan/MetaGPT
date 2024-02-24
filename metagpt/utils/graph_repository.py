@@ -64,7 +64,9 @@ class GraphRepository(ABC):
         pass
 
     @abstractmethod
-    async def select(self, subject: str = None, predicate: str = None, object_: str = None) -> List[SPO]:
+    async def select(
+        self, subject: str = None, predicate: str = None, object_: str = None
+    ) -> List[SPO]:
         pass
 
     @property
@@ -72,11 +74,19 @@ class GraphRepository(ABC):
         return self._repo_name
 
     @staticmethod
-    async def update_graph_db_with_file_info(graph_db: "GraphRepository", file_info: RepoFileInfo):
-        await graph_db.insert(subject=file_info.file, predicate=GraphKeyword.IS, object_=GraphKeyword.SOURCE_CODE)
+    async def update_graph_db_with_file_info(
+        graph_db: "GraphRepository", file_info: RepoFileInfo
+    ):
+        await graph_db.insert(
+            subject=file_info.file,
+            predicate=GraphKeyword.IS,
+            object_=GraphKeyword.SOURCE_CODE,
+        )
         file_types = {".py": "python", ".js": "javascript"}
         file_type = file_types.get(Path(file_info.file).suffix, GraphKeyword.NULL)
-        await graph_db.insert(subject=file_info.file, predicate=GraphKeyword.IS, object_=file_type)
+        await graph_db.insert(
+            subject=file_info.file, predicate=GraphKeyword.IS, object_=file_type
+        )
         for c in file_info.classes:
             class_name = c.get("name", "")
             # file -> class
@@ -106,11 +116,15 @@ class GraphRepository(ABC):
         for f in file_info.functions:
             # file -> function
             await graph_db.insert(
-                subject=file_info.file, predicate=GraphKeyword.HAS_FUNCTION, object_=concat_namespace(file_info.file, f)
+                subject=file_info.file,
+                predicate=GraphKeyword.HAS_FUNCTION,
+                object_=concat_namespace(file_info.file, f),
             )
             # function detail
             await graph_db.insert(
-                subject=concat_namespace(file_info.file, f), predicate=GraphKeyword.IS, object_=GraphKeyword.FUNCTION
+                subject=concat_namespace(file_info.file, f),
+                predicate=GraphKeyword.IS,
+                object_=GraphKeyword.FUNCTION,
             )
         for g in file_info.globals:
             await graph_db.insert(
@@ -133,14 +147,24 @@ class GraphRepository(ABC):
                 )
 
     @staticmethod
-    async def update_graph_db_with_class_views(graph_db: "GraphRepository", class_views: List[ClassInfo]):
+    async def update_graph_db_with_class_views(
+        graph_db: "GraphRepository", class_views: List[ClassInfo]
+    ):
         for c in class_views:
             filename, _ = c.package.split(":", 1)
-            await graph_db.insert(subject=filename, predicate=GraphKeyword.IS, object_=GraphKeyword.SOURCE_CODE)
+            await graph_db.insert(
+                subject=filename,
+                predicate=GraphKeyword.IS,
+                object_=GraphKeyword.SOURCE_CODE,
+            )
             file_types = {".py": "python", ".js": "javascript"}
             file_type = file_types.get(Path(filename).suffix, GraphKeyword.NULL)
-            await graph_db.insert(subject=filename, predicate=GraphKeyword.IS, object_=file_type)
-            await graph_db.insert(subject=filename, predicate=GraphKeyword.HAS_CLASS, object_=c.package)
+            await graph_db.insert(
+                subject=filename, predicate=GraphKeyword.IS, object_=file_type
+            )
+            await graph_db.insert(
+                subject=filename, predicate=GraphKeyword.HAS_CLASS, object_=c.package
+            )
             await graph_db.insert(
                 subject=c.package,
                 predicate=GraphKeyword.IS,
@@ -160,7 +184,9 @@ class GraphRepository(ABC):
                     object_=GraphKeyword.CLASS_PROPERTY,
                 )
                 await graph_db.insert(
-                    subject=concat_namespace(c.package, vn), predicate=GraphKeyword.HAS_TYPE_DESC, object_=vt
+                    subject=concat_namespace(c.package, vn),
+                    predicate=GraphKeyword.HAS_TYPE_DESC,
+                    object_=vt,
                 )
             for fn, desc in c.methods.items():
                 if "</I>" in desc and "<I>" not in desc:
@@ -189,7 +215,9 @@ class GraphRepository(ABC):
     ):
         for r in relationship_views:
             await graph_db.insert(
-                subject=r.src, predicate=GraphKeyword.IS + r.relationship + GraphKeyword.OF, object_=r.dest
+                subject=r.src,
+                predicate=GraphKeyword.IS + r.relationship + GraphKeyword.OF,
+                object_=r.dest,
             )
             if not r.label:
                 continue

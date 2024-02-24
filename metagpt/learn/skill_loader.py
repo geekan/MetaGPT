@@ -67,13 +67,17 @@ class SkillsDeclaration(BaseModel):
     @staticmethod
     async def load(skill_yaml_file_name: Path = None) -> "SkillsDeclaration":
         if not skill_yaml_file_name:
-            skill_yaml_file_name = Path(__file__).parent.parent.parent / "docs/.well-known/skills.yaml"
+            skill_yaml_file_name = (
+                Path(__file__).parent.parent.parent / "docs/.well-known/skills.yaml"
+            )
         async with aiofiles.open(str(skill_yaml_file_name), mode="r") as reader:
             data = await reader.read(-1)
         skill_data = yaml.safe_load(data)
         return SkillsDeclaration(**skill_data)
 
-    def get_skill_list(self, entity_name: str = "Assistant", context: Context = None) -> Dict:
+    def get_skill_list(
+        self, entity_name: str = "Assistant", context: Context = None
+    ) -> Dict:
         """Return the skill name based on the skill description."""
         entity = self.entities.get(entity_name)
         if not entity:

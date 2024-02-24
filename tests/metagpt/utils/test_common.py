@@ -62,8 +62,14 @@ class TestGetProjectRoot:
             want: str
 
         inputs = [
-            Input(x=TutorialAssistant, want="metagpt.roles.tutorial_assistant.TutorialAssistant"),
-            Input(x=TutorialAssistant(), want="metagpt.roles.tutorial_assistant.TutorialAssistant"),
+            Input(
+                x=TutorialAssistant,
+                want="metagpt.roles.tutorial_assistant.TutorialAssistant",
+            ),
+            Input(
+                x=TutorialAssistant(),
+                want="metagpt.roles.tutorial_assistant.TutorialAssistant",
+            ),
             Input(x=RunCode, want="metagpt.actions.run_code.RunCode"),
             Input(x=RunCode(), want="metagpt.actions.run_code.RunCode"),
             Input(x=Message, want="metagpt.schema.Message"),
@@ -82,7 +88,11 @@ class TestGetProjectRoot:
         inputs = [
             Input(
                 x=[TutorialAssistant, RunCode(), "a"],
-                want={"metagpt.roles.tutorial_assistant.TutorialAssistant", "metagpt.actions.run_code.RunCode", "a"},
+                want={
+                    "metagpt.roles.tutorial_assistant.TutorialAssistant",
+                    "metagpt.actions.run_code.RunCode",
+                    "a",
+                },
             ),
             Input(
                 x={TutorialAssistant, "a"},
@@ -90,11 +100,19 @@ class TestGetProjectRoot:
             ),
             Input(
                 x=(TutorialAssistant, RunCode(), "a"),
-                want={"metagpt.roles.tutorial_assistant.TutorialAssistant", "metagpt.actions.run_code.RunCode", "a"},
+                want={
+                    "metagpt.roles.tutorial_assistant.TutorialAssistant",
+                    "metagpt.actions.run_code.RunCode",
+                    "a",
+                },
             ),
             Input(
                 x={"a": TutorialAssistant, "b": RunCode(), "c": "a"},
-                want={"a", "metagpt.roles.tutorial_assistant.TutorialAssistant", "metagpt.actions.run_code.RunCode"},
+                want={
+                    "a",
+                    "metagpt.roles.tutorial_assistant.TutorialAssistant",
+                    "metagpt.actions.run_code.RunCode",
+                },
             ),
         ]
         for i in inputs:
@@ -120,7 +138,10 @@ class TestGetProjectRoot:
             else:
                 assert result != 0
 
-    @pytest.mark.parametrize(("filename", "want"), [("1.md", "File list"), ("2.md", "Language"), ("3.md", "# TODOs")])
+    @pytest.mark.parametrize(
+        ("filename", "want"),
+        [("1.md", "File list"), ("2.md", "Language"), ("3.md", "# TODOs")],
+    )
     @pytest.mark.asyncio
     async def test_parse_data_exception(self, filename, want):
         pathname = Path(__file__).parent.parent.parent / "data/output_parser" / filename
@@ -132,7 +153,12 @@ class TestGetProjectRoot:
         assert want in result
 
     @pytest.mark.parametrize(
-        ("ver", "want", "err"), [((1, 2, 3, 4), False, True), ((2, 3, 9), True, False), ((3, 10, 18), False, False)]
+        ("ver", "want", "err"),
+        [
+            ((1, 2, 3, 4), False, True),
+            ((2, 3, 9), True, False),
+            ((3, 10, 18), False, False),
+        ],
     )
     def test_require_python_version(self, ver, want, err):
         try:
@@ -153,7 +179,8 @@ class TestGetProjectRoot:
             assert info is None
 
     @pytest.mark.parametrize(
-        ("words", "want"), [("", ""), ("## Send To: Engineer", "Engineer"), ("Send To: \nNone", "None")]
+        ("words", "want"),
+        [("", ""), ("## Send To: Engineer", "Engineer"), ("Send To: \nNone", "None")],
     )
     def test_parse_recipient(self, words, want):
         res = parse_recipient(words)
@@ -182,7 +209,10 @@ class TestGetProjectRoot:
         assert res == want
 
     def test_read_json_file(self):
-        assert read_json_file(str(Path(__file__).parent / "../../data/ut_writer/yft_swaggerApi.json"), encoding="utf-8")
+        assert read_json_file(
+            str(Path(__file__).parent / "../../data/ut_writer/yft_swaggerApi.json"),
+            encoding="utf-8",
+        )
         with pytest.raises(FileNotFoundError):
             read_json_file("not_exists_file", encoding="utf-8")
         with pytest.raises(ValueError):
@@ -194,7 +224,10 @@ class TestGetProjectRoot:
 
     @pytest.mark.asyncio
     async def test_read_file_block(self):
-        assert await read_file_block(filename=__file__, lineno=6, end_lineno=6) == "@File    : test_common.py\n"
+        assert (
+            await read_file_block(filename=__file__, lineno=6, end_lineno=6)
+            == "@File    : test_common.py\n"
+        )
 
     @pytest.mark.asyncio
     async def test_read_write(self):

@@ -11,8 +11,16 @@ from metagpt.utils.parse_html import WebPage
 @pytest.mark.parametrize(
     "browser_type, url, urls",
     [
-        (WebBrowserEngineType.PLAYWRIGHT, "https://deepwisdom.ai", ("https://deepwisdom.ai",)),
-        (WebBrowserEngineType.SELENIUM, "https://deepwisdom.ai", ("https://deepwisdom.ai",)),
+        (
+            WebBrowserEngineType.PLAYWRIGHT,
+            "https://deepwisdom.ai",
+            ("https://deepwisdom.ai",),
+        ),
+        (
+            WebBrowserEngineType.SELENIUM,
+            "https://deepwisdom.ai",
+            ("https://deepwisdom.ai",),
+        ),
     ],
     ids=["playwright", "selenium"],
 )

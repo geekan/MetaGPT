@@ -75,7 +75,9 @@ class RepoParser(BaseModel):
             elif is_func(node):
                 file_info.functions.append(node.name)
             elif isinstance(node, (ast.Assign, ast.AnnAssign)):
-                for target in node.targets if isinstance(node, ast.Assign) else [node.target]:
+                for target in (
+                    node.targets if isinstance(node, ast.Assign) else [node.target]
+                ):
                     if isinstance(target, ast.Name):
                         file_info.globals.append(target.id)
         return file_info
@@ -108,7 +110,9 @@ class RepoParser(BaseModel):
 
     def generate_structure(self, output_path=None, mode="json") -> Path:
         """Generate the structure of the repository as a specified format."""
-        output_file = self.base_directory / f"{self.base_directory.name}-structure.{mode}"
+        output_file = (
+            self.base_directory / f"{self.base_directory.name}-structure.{mode}"
+        )
         output_path = Path(output_path) if output_path else output_file
 
         if mode == "json":
@@ -129,7 +133,9 @@ class RepoParser(BaseModel):
                 tokens=RepoParser._parse_expr(node),
             )
         mappings = {
-            any_to_str(ast.Import): lambda x: [RepoParser._parse_name(n) for n in x.names],
+            any_to_str(ast.Import): lambda x: [
+                RepoParser._parse_name(n) for n in x.names
+            ],
             any_to_str(ast.Assign): RepoParser._parse_assign,
             any_to_str(ast.ClassDef): lambda x: x.name,
             any_to_str(ast.FunctionDef): lambda x: x.name,
@@ -143,7 +149,11 @@ class RepoParser(BaseModel):
         }
         func = mappings.get(any_to_str(node))
         if func:
-            code_block = CodeBlockInfo(lineno=node.lineno, end_lineno=node.end_lineno, type_name=any_to_str(node))
+            code_block = CodeBlockInfo(
+                lineno=node.lineno,
+                end_lineno=node.end_lineno,
+                type_name=any_to_str(node),
+            )
             val = func(node)
             if isinstance(val, dict):
                 code_block.properties = val
@@ -154,14 +164,22 @@ class RepoParser(BaseModel):
             else:
                 raise NotImplementedError(f"Not implement:{val}")
             return code_block
-        logger.warning(f"Unsupported code block:{node.lineno}, {node.end_lineno}, {any_to_str(node)}")
+        logger.warning(
+            f"Unsupported code block:{node.lineno}, {node.end_lineno}, {any_to_str(node)}"
+        )
         return None
 
     @staticmethod
     def _parse_expr(node) -> List:
         funcs = {
-            any_to_str(ast.Constant): lambda x: [any_to_str(x.value), RepoParser._parse_variable(x.value)],
-            any_to_str(ast.Call): lambda x: [any_to_str(x.value), RepoParser._parse_variable(x.value.func)],
+            any_to_str(ast.Constant): lambda x: [
+                any_to_str(x.value),
+                RepoParser._parse_variable(x.value),
+            ],
+            any_to_str(ast.Call): lambda x: [
+                any_to_str(x.value),
+                RepoParser._parse_variable(x.value.func),
+            ],
         }
         func = funcs.get(any_to_str(node.value))
         if func:
@@ -209,9 +227,9 @@ class RepoParser(BaseModel):
             funcs = {
                 any_to_str(ast.Constant): lambda x: x.value,
                 any_to_str(ast.Name): lambda x: x.id,
-                any_to_str(ast.Attribute): lambda x: f"{x.value.id}.{x.attr}"
-                if hasattr(x.value, "id")
-                else f"{x.attr}",
+                any_to_str(ast.Attribute): lambda x: (
+                    f"{x.value.id}.{x.attr}" if hasattr(x.value, "id") else f"{x.attr}"
+                ),
                 any_to_str(ast.Call): lambda x: RepoParser._parse_variable(x.func),
                 any_to_str(ast.Tuple): lambda x: "",
             }
@@ -273,7 +291,9 @@ class RepoParser(BaseModel):
             class_views.append(class_info)
         return class_views
 
-    async def _parse_class_relationships(self, class_view_pathname) -> List[ClassRelationship]:
+    async def _parse_class_relationships(
+        self, class_view_pathname
+    ) -> List[ClassRelationship]:
         relationship_views = []
         if not class_view_pathname.exists():
             return relationship_views
@@ -363,7 +383,9 @@ class RepoParser(BaseModel):
 
     @staticmethod
     def _repair_namespaces(
-        class_views: List[ClassInfo], relationship_views: List[ClassRelationship], path: str | Path
+        class_views: List[ClassInfo],
+        relationship_views: List[ClassRelationship],
+        path: str | Path,
     ) -> (List[ClassInfo], List[ClassRelationship], str):
         if not class_views:
             return [], [], ""

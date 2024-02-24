@@ -31,7 +31,9 @@ class TutorialAssistant(Role):
     name: str = "Stitch"
     profile: str = "Tutorial Assistant"
     goal: str = "Generate tutorial documents"
-    constraints: str = "Strictly follow Markdown's syntax, with neat and standardized layout"
+    constraints: str = (
+        "Strictly follow Markdown's syntax, with neat and standardized layout"
+    )
     language: str = "Chinese"
 
     topic: str = ""
@@ -89,6 +91,8 @@ class TutorialAssistant(Role):
     async def react(self) -> Message:
         msg = await super().react()
         root_path = TUTORIAL_PATH / datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        await File.write(root_path, f"{self.main_title}.md", self.total_content.encode("utf-8"))
+        await File.write(
+            root_path, f"{self.main_title}.md", self.total_content.encode("utf-8")
+        )
         msg.content = str(root_path / f"{self.main_title}.md")
         return msg

@@ -38,7 +38,9 @@ class MockBaseLLM(BaseLLM):
     async def acompletion(self, messages: list[dict], timeout=3):
         return default_chat_resp
 
-    async def acompletion_text(self, messages: list[dict], stream=False, timeout=3) -> str:
+    async def acompletion_text(
+        self, messages: list[dict], stream=False, timeout=3
+    ) -> str:
         return resp_content
 
     async def close(self):

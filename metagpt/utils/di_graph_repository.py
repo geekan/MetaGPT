@@ -32,7 +32,9 @@ class DiGraphRepository(GraphRepository):
     async def update(self, subject: str, predicate: str, object_: str):
         pass
 
-    async def select(self, subject: str = None, predicate: str = None, object_: str = None) -> List[SPO]:
+    async def select(
+        self, subject: str = None, predicate: str = None, object_: str = None
+    ) -> List[SPO]:
         result = []
         for s, o, p in self._repo.edges(data="predicate"):
             if subject and subject != s:
@@ -55,7 +57,9 @@ class DiGraphRepository(GraphRepository):
         if not path.exists():
             path.mkdir(parents=True, exist_ok=True)
         pathname = Path(path) / self.name
-        await awrite(filename=pathname.with_suffix(".json"), data=data, encoding="utf-8")
+        await awrite(
+            filename=pathname.with_suffix(".json"), data=data, encoding="utf-8"
+        )
 
     async def load(self, pathname: str | Path):
         data = await aread(filename=pathname, encoding="utf-8")

@@ -51,12 +51,18 @@ class GoogleDocstringParser(DocstringParser):
     docstring: str
 
     def parse_desc(self) -> str:
-        description_match = re.search(r"^(.*?)(?:Args:|Returns:|Raises:|$)", self.docstring, re.DOTALL)
-        description = remove_spaces(description_match.group(1)) if description_match else ""
+        description_match = re.search(
+            r"^(.*?)(?:Args:|Returns:|Raises:|$)", self.docstring, re.DOTALL
+        )
+        description = (
+            remove_spaces(description_match.group(1)) if description_match else ""
+        )
         return description
 
     def parse_params(self) -> list[Tuple[str, str, str]]:
-        args_match = re.search(r"Args:\s*(.*?)(?:Returns:|Raises:|$)", self.docstring, re.DOTALL)
+        args_match = re.search(
+            r"Args:\s*(.*?)(?:Returns:|Raises:|$)", self.docstring, re.DOTALL
+        )
         _args = args_match.group(1).strip() if args_match else ""
         # variable_pattern = re.compile(r"(\w+)\s*\((.*?)\):\s*(.*)")
         variable_pattern = re.compile(
@@ -66,7 +72,9 @@ class GoogleDocstringParser(DocstringParser):
         return params
 
     def parse_returns(self) -> list[Tuple[str, str]]:
-        returns_match = re.search(r"Returns:\s*(.*?)(?:Raises:|$)", self.docstring, re.DOTALL)
+        returns_match = re.search(
+            r"Returns:\s*(.*?)(?:Raises:|$)", self.docstring, re.DOTALL
+        )
         returns = returns_match.group(1).strip() if returns_match else ""
         return_pattern = re.compile(r"^(.*)\s*:\s*(.*)$")
         returns = return_pattern.findall(returns)
@@ -84,4 +92,8 @@ class GoogleDocstringParser(DocstringParser):
     @staticmethod
     def check_and_parse_enum(param_desc: str) -> Tuple[bool, str]:
         enum_val = re.search(r"Enum: \[(.+?)\]", param_desc)
-        return (True, [e.strip() for e in enum_val.group(1).split(",")]) if enum_val else (False, [])
+        return (
+            (True, [e.strip() for e in enum_val.group(1).split(",")])
+            if enum_val
+            else (False, [])
+        )

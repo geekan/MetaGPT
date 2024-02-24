@@ -15,7 +15,9 @@ from metagpt.strategy.search_space import SearchSpace
 class BaseSolver:
     """AbstractSolver: defines the interface of a solver."""
 
-    def __init__(self, graph: ActionGraph, search_space: SearchSpace, llm: BaseLLM, context):
+    def __init__(
+        self, graph: ActionGraph, search_space: SearchSpace, llm: BaseLLM, context
+    ):
         """
         :param graph: ActionGraph
         :param search_space: SearchSpace

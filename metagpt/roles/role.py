@@ -99,7 +99,9 @@ class RoleContext(BaseModel):
     memory: Memory = Field(default_factory=Memory)
     # long_term_memory: LongTermMemory = Field(default_factory=LongTermMemory)
     working_memory: Memory = Field(default_factory=Memory)
-    state: int = Field(default=-1)  # -1 indicates initial or termination state where todo is None
+    state: int = Field(
+        default=-1
+    )  # -1 indicates initial or termination state where todo is None
     todo: Action = Field(default=None, exclude=True)
     watch: set[str] = Field(default_factory=set)
     news: list[Type[Message]] = Field(default=[], exclude=True)  # TODO not used
@@ -158,7 +160,9 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
 
     # builtin variables
     recovered: bool = False  # to tag if a recovered role
-    latest_observed_msg: Optional[Message] = None  # record the latest observed message when interrupted
+    latest_observed_msg: Optional[Message] = (
+        None  # record the latest observed message when interrupted
+    )
 
     __hash__ = object.__hash__  # support Role as hashable type in `Environment.members`
 
@@ -212,7 +216,11 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
     @property
     def project_repo(self) -> ProjectRepo:
         project_repo = ProjectRepo(self.context.git_repo)
-        return project_repo.with_src_path(self.context.src_workspace) if self.context.src_workspace else project_repo
+        return (
+            project_repo.with_src_path(self.context.src_workspace)
+            if self.context.src_workspace
+            else project_repo
+        )
 
     @property
     def prompt_schema(self):
@@ -234,7 +242,9 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
     @model_validator(mode="after")
     def check_addresses(self):
         if not self.addresses:
-            self.addresses = {any_to_str(self), self.name} if self.name else {any_to_str(self)}
+            self.addresses = (
+                {any_to_str(self), self.name} if self.name else {any_to_str(self)}
+            )
         return self
 
     def _reset(self):
@@ -283,7 +293,13 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
             self.actions.append(i)
             self.states.append(f"{len(self.actions)}. {action}")
 
-    def _set_react_mode(self, react_mode: str, max_react_loop: int = 1, auto_run: bool = True, use_tools: bool = False):
+    def _set_react_mode(
+        self,
+        react_mode: str,
+        max_react_loop: int = 1,
+        auto_run: bool = True,
+        use_tools: bool = False,
+    ):
         """Set strategy of the Role reacting to observed Message. Variation lies in how
         this Role elects action to perform during the _think stage, especially if it is capable of multiple Actions.
 
@@ -299,13 +315,18 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
                                   Take effect only when react_mode is react, in which we use llm to choose actions, including termination.
                                   Defaults to 1, i.e. _think -> _act (-> return result and end)
         """
-        assert react_mode in RoleReactMode.values(), f"react_mode must be one of {RoleReactMode.values()}"
+        assert (
+            react_mode in RoleReactMode.values()
+        ), f"react_mode must be one of {RoleReactMode.values()}"
         self.rc.react_mode = react_mode
         if react_mode == RoleReactMode.REACT:
             self.rc.max_react_loop = max_react_loop
         elif react_mode == RoleReactMode.PLAN_AND_ACT:
             self.planner = Planner(
-                goal=self.goal, working_memory=self.rc.working_memory, auto_run=auto_run, use_tools=use_tools
+                goal=self.goal,
+                working_memory=self.rc.working_memory,
+                auto_run=auto_run,
+                use_tools=use_tools,
             )
 
     def _watch(self, actions: Iterable[Type[Action]] | Iterable[Action]):
@@ -325,7 +346,9 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         or profile.
         """
         self.addresses = addresses
-        if self.rc.env:  # According to the routing feature plan in Chapter 2.2.3.2 of RFC 113
+        if (
+            self.rc.env
+        ):  # According to the routing feature plan in Chapter 2.2.3.2 of RFC 113
             self.rc.env.set_addresses(self, self.addresses)
 
     def _set_state(self, state: int):
@@ -348,7 +371,9 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         if self.desc:
             return self.desc
 
-        prefix = PREFIX_TEMPLATE.format(**{"profile": self.profile, "name": self.name, "goal": self.goal})
+        prefix = PREFIX_TEMPLATE.format(
+            **{"profile": self.profile, "name": self.name, "goal": self.goal}
+        )
 
         if self.constraints:
             prefix += CONSTRAINT_TEMPLATE.format(**{"constraints": self.constraints})
@@ -385,7 +410,9 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         next_state = extract_state_value_from_output(next_state)
         logger.debug(f"{prompt=}")
 
-        if (not next_state.isdigit() and next_state != "-1") or int(next_state) not in range(-1, len(self.states)):
+        if (not next_state.isdigit() and next_state != "-1") or int(
+            next_state
+        ) not in range(-1, len(self.states)):
             logger.warning(f"Invalid answer of state, {next_state=}, will be set to -1")
             next_state = -1
         else:
@@ -409,7 +436,12 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         elif isinstance(response, Message):
             msg = response
         else:
-            msg = Message(content=response, role=self.profile, cause_by=self.rc.todo, sent_from=self)
+            msg = Message(
+                content=response,
+                role=self.profile,
+                cause_by=self.rc.todo,
+                sent_from=self,
+            )
         self.rc.memory.add(msg)
 
         return msg
@@ -427,9 +459,14 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         self.rc.memory.add_batch(news)
         # Filter out messages of interest.
         self.rc.news = [
-            n for n in news if (n.cause_by in self.rc.watch or self.name in n.send_to) and n not in old_messages
+            n
+            for n in news
+            if (n.cause_by in self.rc.watch or self.name in n.send_to)
+            and n not in old_messages
         ]
-        self.latest_observed_msg = self.rc.news[-1] if self.rc.news else None  # record the latest observed msg
+        self.latest_observed_msg = (
+            self.rc.news[-1] if self.rc.news else None
+        )  # record the latest observed msg
 
         # Design Rules:
         # If you need to further categorize Message objects, you can do so using the Message.set_meta function.
@@ -460,7 +497,9 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
         Use llm to select actions in _think dynamically
         """
         actions_taken = 0
-        rsp = Message(content="No actions taken yet", cause_by=Action)  # will be overwritten after Role _act
+        rsp = Message(
+            content="No actions taken yet", cause_by=Action
+        )  # will be overwritten after Role _act
         while actions_taken < self.rc.max_react_loop:
             # think
             await self._think()
@@ -474,8 +513,12 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
 
     async def _act_by_order(self) -> Message:
         """switch action each time by order defined in _init_actions, i.e. _act (Action1) -> _act (Action2) -> ..."""
-        start_idx = self.rc.state if self.rc.state >= 0 else 0  # action to run from recovered state
-        rsp = Message(content="No actions taken yet")  # return default message if actions=[]
+        start_idx = (
+            self.rc.state if self.rc.state >= 0 else 0
+        )  # action to run from recovered state
+        rsp = Message(
+            content="No actions taken yet"
+        )  # return default message if actions=[]
         for i in range(start_idx, len(self.states)):
             self._set_state(i)
             rsp = await self._act()
@@ -499,7 +542,9 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
             # process the result, such as reviewing, confirming, plan updating
             await self.planner.process_task_result(task_result)
 
-        rsp = self.planner.get_useful_memories()[0]  # return the completed plan as a response
+        rsp = self.planner.get_useful_memories()[
+            0
+        ]  # return the completed plan as a response
 
         self.rc.memory.add(rsp)  # add to persistent memory
 
@@ -529,7 +574,9 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
             rsp = await self._plan_and_act()
         else:
             raise ValueError(f"Unsupported react mode: {self.rc.react_mode}")
-        self._set_state(state=-1)  # current reaction is complete, reset state to -1 and todo back to None
+        self._set_state(
+            state=-1
+        )  # current reaction is complete, reset state to -1 and todo back to None
         return rsp
 
     def get_memories(self, k=0) -> list[Message]:

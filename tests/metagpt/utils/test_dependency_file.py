@@ -26,7 +26,11 @@ async def test_dependency_file():
         want: Set[str]
 
     inputs = [
-        Input(x="a/b.txt", deps={"c/e.txt", Path(__file__).parent / "d.txt"}, want={"c/e.txt", "d.txt"}),
+        Input(
+            x="a/b.txt",
+            deps={"c/e.txt", Path(__file__).parent / "d.txt"},
+            want={"c/e.txt", "d.txt"},
+        ),
         Input(
             x=Path(__file__).parent / "x/b.txt",
             deps={"s/e.txt", Path(__file__).parent / "d.txt"},
@@ -46,7 +50,11 @@ async def test_dependency_file():
     file2 = DependencyFile(workdir=Path(__file__).parent)
     file2.delete_file()
     assert not file.exists
-    await file2.update(filename="a/b.txt", dependencies={"c/e.txt", Path(__file__).parent / "d.txt"}, persist=False)
+    await file2.update(
+        filename="a/b.txt",
+        dependencies={"c/e.txt", Path(__file__).parent / "d.txt"},
+        persist=False,
+    )
     assert not file.exists
     await file2.save()
     assert file2.exists

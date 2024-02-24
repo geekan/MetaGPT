@@ -31,13 +31,18 @@ def mock_refined_tasks_json():
 @pytest.mark.asyncio
 async def test_project_management_an(mocker):
     root = ActionNode.from_children(
-        "RefinedProjectManagement", [ActionNode(key="", expected_type=str, instruction="", example="")]
+        "RefinedProjectManagement",
+        [ActionNode(key="", expected_type=str, instruction="", example="")],
     )
     root.instruct_content = BaseModel()
     root.instruct_content.model_dump = mock_refined_tasks_json
-    mocker.patch("metagpt.actions.project_management_an.REFINED_PM_NODE.fill", return_value=root)
+    mocker.patch(
+        "metagpt.actions.project_management_an.REFINED_PM_NODE.fill", return_value=root
+    )
 
-    prompt = NEW_REQ_TEMPLATE.format(old_task=TASKS_SAMPLE, context=dict_to_markdown(REFINED_DESIGN_JSON))
+    prompt = NEW_REQ_TEMPLATE.format(
+        old_task=TASKS_SAMPLE, context=dict_to_markdown(REFINED_DESIGN_JSON)
+    )
     node = await REFINED_PM_NODE.fill(prompt, llm)
 
     assert "Refined Logic Analysis" in node.instruct_content.model_dump()

@@ -45,7 +45,9 @@ class FileRepository:
         # Initializing
         self.workdir.mkdir(parents=True, exist_ok=True)
 
-    async def save(self, filename: Path | str, content, dependencies: List[str] = None) -> Document:
+    async def save(
+        self, filename: Path | str, content, dependencies: List[str] = None
+    ) -> Document:
         """Save content to a file and update its dependencies.
 
         :param filename: The filename or path within the repository.
@@ -54,7 +56,9 @@ class FileRepository:
         """
         pathname = self.workdir / filename
         pathname.parent.mkdir(parents=True, exist_ok=True)
-        content = content if content else ""  # avoid `argument must be str, not None` to make it continue
+        content = (
+            content if content else ""
+        )  # avoid `argument must be str, not None` to make it continue
         async with aiofiles.open(str(pathname), mode="w") as writer:
             await writer.write(content)
         logger.info(f"save to: {str(pathname)}")
@@ -64,7 +68,9 @@ class FileRepository:
             await dependency_file.update(pathname, set(dependencies))
             logger.info(f"update dependency: {str(pathname)}:{dependencies}")
 
-        return Document(root_path=str(self._relative_path), filename=str(filename), content=content)
+        return Document(
+            root_path=str(self._relative_path), filename=str(filename), content=content
+        )
 
     async def get_dependency(self, filename: Path | str) -> Set[str]:
         """Get the dependencies of a file.
@@ -201,10 +207,14 @@ class FileRepository:
         :type dependencies: List[str], optional
         """
 
-        await self.save(filename=doc.filename, content=doc.content, dependencies=dependencies)
+        await self.save(
+            filename=doc.filename, content=doc.content, dependencies=dependencies
+        )
         logger.debug(f"File Saved: {str(doc.filename)}")
 
-    async def save_pdf(self, doc: Document, with_suffix: str = ".md", dependencies: List[str] = None):
+    async def save_pdf(
+        self, doc: Document, with_suffix: str = ".md", dependencies: List[str] = None
+    ):
         """Save a Document instance as a PDF file.
 
         This method converts the content of the Document instance to Markdown,
@@ -218,8 +228,16 @@ class FileRepository:
         :type dependencies: List[str], optional
         """
         m = json.loads(doc.content)
-        filename = Path(doc.filename).with_suffix(with_suffix) if with_suffix is not None else Path(doc.filename)
-        await self.save(filename=str(filename), content=json_to_markdown(m), dependencies=dependencies)
+        filename = (
+            Path(doc.filename).with_suffix(with_suffix)
+            if with_suffix is not None
+            else Path(doc.filename)
+        )
+        await self.save(
+            filename=str(filename),
+            content=json_to_markdown(m),
+            dependencies=dependencies,
+        )
         logger.debug(f"File Saved: {str(filename)}")
 
     async def delete(self, filename: Path | str):

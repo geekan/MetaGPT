@@ -79,7 +79,9 @@ class ExtEnv(BaseModel):
                 res = read_api(self, *env_action.args, **env_action.kwargs)
         return res
 
-    async def step(self, env_action: Union[str, Message, EnvAPIAbstract, list[EnvAPIAbstract]]):
+    async def step(
+        self, env_action: Union[str, Message, EnvAPIAbstract, list[EnvAPIAbstract]]
+    ):
         """execute through particular api of ExtEnv"""
         res = None
         if isinstance(env_action, Message):
@@ -103,7 +105,9 @@ class Environment(ExtEnv):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     desc: str = Field(default="")  # 环境描述
-    roles: dict[str, SerializeAsAny["Role"]] = Field(default_factory=dict, validate_default=True)
+    roles: dict[str, SerializeAsAny["Role"]] = Field(
+        default_factory=dict, validate_default=True
+    )
     member_addrs: Dict["Role", Set] = Field(default_factory=dict, exclude=True)
     history: str = ""  # For debug
     context: Context = Field(default_factory=Context, exclude=True)

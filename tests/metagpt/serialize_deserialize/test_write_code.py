@@ -20,7 +20,8 @@ def test_write_design_serdeser(context):
 async def test_write_code_serdeser(context):
     context.src_workspace = context.repo.workdir / "srcs"
     coding_context = CodingContext(
-        filename="test_code.py", design_doc=Document(content="write add function to calculate two numbers")
+        filename="test_code.py",
+        design_doc=Document(content="write add function to calculate two numbers"),
     )
     doc = Document(content=coding_context.model_dump_json())
     action = WriteCode(i_context=doc, context=context)

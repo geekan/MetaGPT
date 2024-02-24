@@ -90,7 +90,16 @@ class Engineer(Role):
         super().__init__(**kwargs)
 
         self.set_actions([WriteCode])
-        self._watch([WriteTasks, SummarizeCode, WriteCode, WriteCodeReview, FixBug, WriteCodePlanAndChange])
+        self._watch(
+            [
+                WriteTasks,
+                SummarizeCode,
+                WriteCode,
+                WriteCodeReview,
+                FixBug,
+                WriteCodePlanAndChange,
+            ]
+        )
         self.code_todos = []
         self.summarize_todos = []
         self.next_todo_action = any_to_name(WriteCode)
@@ -113,13 +122,22 @@ class Engineer(Role):
             coding_context = await todo.run()
             # Code review
             if review:
-                action = WriteCodeReview(i_context=coding_context, context=self.context, llm=self.llm)
+                action = WriteCodeReview(
+                    i_context=coding_context, context=self.context, llm=self.llm
+                )
                 self._init_action(action)
                 coding_context = await action.run()
 
-            dependencies = {coding_context.design_doc.root_relative_path, coding_context.task_doc.root_relative_path}
+            dependencies = {
+                coding_context.design_doc.root_relative_path,
+                coding_context.task_doc.root_relative_path,
+            }
             if self.config.inc:
-                dependencies.add(os.path.join(CODE_PLAN_AND_CHANGE_FILE_REPO, CODE_PLAN_AND_CHANGE_FILENAME))
+                dependencies.add(
+                    os.path.join(
+                        CODE_PLAN_AND_CHANGE_FILE_REPO, CODE_PLAN_AND_CHANGE_FILENAME
+                    )
+                )
             await self.project_repo.srcs.save(
                 filename=coding_context.filename,
                 dependencies=dependencies,
@@ -167,8 +185,13 @@ class Engineer(Role):
         tasks = []
         for todo in self.summarize_todos:
             summary = await todo.run()
-            summary_filename = Path(todo.i_context.design_filename).with_suffix(".md").name
-            dependencies = {todo.i_context.design_filename, todo.i_context.task_filename}
+            summary_filename = (
+                Path(todo.i_context.design_filename).with_suffix(".md").name
+            )
+            dependencies = {
+                todo.i_context.design_filename,
+                todo.i_context.task_filename,
+            }
             for filename in todo.i_context.codes_filenames:
                 rpath = self.project_repo.src_relative_path / filename
                 dependencies.add(str(rpath))
@@ -186,7 +209,9 @@ class Engineer(Role):
                     dependencies=dependencies,
                 )
             else:
-                await self.project_repo.docs.code_summary.delete(filename=Path(todo.i_context.design_filename).name)
+                await self.project_repo.docs.code_summary.delete(
+                    filename=Path(todo.i_context.design_filename).name
+                )
 
         logger.info(f"--max-auto-summarize-code={self.config.max_auto_summarize_code}")
         if not tasks or self.config.max_auto_summarize_code == 0:
@@ -199,9 +224,15 @@ class Engineer(Role):
             )
         # The maximum number of times the 'SummarizeCode' action is automatically invoked, with -1 indicating unlimited.
         # This parameter is used for debugging the workflow.
-        self.n_summarize += 1 if self.config.max_auto_summarize_code > self.n_summarize else 0
+        self.n_summarize += (
+            1 if self.config.max_auto_summarize_code > self.n_summarize else 0
+        )
         return Message(
-            content=json.dumps(tasks), role=self.profile, cause_by=SummarizeCode, send_to=self, sent_from=self
+            content=json.dumps(tasks),
+            role=self.profile,
+            cause_by=SummarizeCode,
+            send_to=self,
+            sent_from=self,
         )
 
     async def _act_code_plan_and_change(self):
@@ -216,7 +247,9 @@ class Engineer(Role):
             self.rc.todo.i_context.task_filename,
         }
         await self.project_repo.docs.code_plan_and_change.save(
-            filename=self.rc.todo.i_context.filename, content=code_plan_and_change, dependencies=dependencies
+            filename=self.rc.todo.i_context.filename,
+            content=code_plan_and_change,
+            dependencies=dependencies,
         )
         await self.project_repo.resources.code_plan_and_change.save(
             filename=Path(self.rc.todo.i_context.filename).with_suffix(".md").name,
@@ -233,7 +266,9 @@ class Engineer(Role):
         )
 
     async def _is_pass(self, summary) -> (str, str):
-        rsp = await self.llm.aask(msg=IS_PASS_PROMPT.format(context=summary), stream=False)
+        rsp = await self.llm.aask(
+            msg=IS_PASS_PROMPT.format(context=summary), stream=False
+        )
         logger.info(rsp)
         if "YES" in rsp:
             return True, rsp
@@ -243,7 +278,9 @@ class Engineer(Role):
         if not self.src_workspace:
             self.src_workspace = self.git_repo.workdir / self.git_repo.workdir.name
         write_plan_and_change_filters = any_to_str_set([WriteTasks])
-        write_code_filters = any_to_str_set([WriteTasks, WriteCodePlanAndChange, SummarizeCode, FixBug])
+        write_code_filters = any_to_str_set(
+            [WriteTasks, WriteCodePlanAndChange, SummarizeCode, FixBug]
+        )
         summarize_code_filters = any_to_str_set([WriteCode, WriteCodeReview])
         if not self.rc.news:
             return None
@@ -265,8 +302,14 @@ class Engineer(Role):
     async def _new_coding_context(self, filename, dependency) -> CodingContext:
         old_code_doc = await self.project_repo.srcs.get(filename)
         if not old_code_doc:
-            old_code_doc = Document(root_path=str(self.project_repo.src_relative_path), filename=filename, content="")
-        dependencies = {Path(i) for i in await dependency.get(old_code_doc.root_relative_path)}
+            old_code_doc = Document(
+                root_path=str(self.project_repo.src_relative_path),
+                filename=filename,
+                content="",
+            )
+        dependencies = {
+            Path(i) for i in await dependency.get(old_code_doc.root_relative_path)
+        }
         task_doc = None
         design_doc = None
         for i in dependencies:
@@ -276,20 +319,33 @@ class Engineer(Role):
                 design_doc = await self.project_repo.docs.system_design.get(i.name)
         if not task_doc or not design_doc:
             logger.error(f'Detected source code "{filename}" from an unknown origin.')
-            raise ValueError(f'Detected source code "{filename}" from an unknown origin.')
-        context = CodingContext(filename=filename, design_doc=design_doc, task_doc=task_doc, code_doc=old_code_doc)
+            raise ValueError(
+                f'Detected source code "{filename}" from an unknown origin.'
+            )
+        context = CodingContext(
+            filename=filename,
+            design_doc=design_doc,
+            task_doc=task_doc,
+            code_doc=old_code_doc,
+        )
         return context
 
     async def _new_coding_doc(self, filename, dependency):
         context = await self._new_coding_context(filename, dependency)
         coding_doc = Document(
-            root_path=str(self.project_repo.src_relative_path), filename=filename, content=context.model_dump_json()
+            root_path=str(self.project_repo.src_relative_path),
+            filename=filename,
+            content=context.model_dump_json(),
         )
         return coding_doc
 
     async def _new_code_actions(self, bug_fix=False):
         # Prepare file repos
-        changed_src_files = self.project_repo.srcs.all_files if bug_fix else self.project_repo.srcs.changed_files
+        changed_src_files = (
+            self.project_repo.srcs.all_files
+            if bug_fix
+            else self.project_repo.srcs.changed_files
+        )
         changed_task_files = self.project_repo.docs.task.changed_files
         changed_files = Documents()
         # Recode caused by upstream changes.
@@ -301,10 +357,15 @@ class Engineer(Role):
                 old_code_doc = await self.project_repo.srcs.get(task_filename)
                 if not old_code_doc:
                     old_code_doc = Document(
-                        root_path=str(self.project_repo.src_relative_path), filename=task_filename, content=""
+                        root_path=str(self.project_repo.src_relative_path),
+                        filename=task_filename,
+                        content="",
                     )
                 context = CodingContext(
-                    filename=task_filename, design_doc=design_doc, task_doc=task_doc, code_doc=old_code_doc
+                    filename=task_filename,
+                    design_doc=design_doc,
+                    task_doc=task_doc,
+                    code_doc=old_code_doc,
                 )
                 coding_doc = Document(
                     root_path=str(self.project_repo.src_relative_path),
@@ -318,16 +379,21 @@ class Engineer(Role):
                     )
                 changed_files.docs[task_filename] = coding_doc
         self.code_todos = [
-            WriteCode(i_context=i, context=self.context, llm=self.llm) for i in changed_files.docs.values()
+            WriteCode(i_context=i, context=self.context, llm=self.llm)
+            for i in changed_files.docs.values()
         ]
         # Code directly modified by the user.
         dependency = await self.git_repo.get_dependency()
         for filename in changed_src_files:
             if filename in changed_files.docs:
                 continue
-            coding_doc = await self._new_coding_doc(filename=filename, dependency=dependency)
+            coding_doc = await self._new_coding_doc(
+                filename=filename, dependency=dependency
+            )
             changed_files.docs[filename] = coding_doc
-            self.code_todos.append(WriteCode(i_context=coding_doc, context=self.context, llm=self.llm))
+            self.code_todos.append(
+                WriteCode(i_context=coding_doc, context=self.context, llm=self.llm)
+            )
 
         if self.code_todos:
             self.set_todo(self.code_todos[0])
@@ -337,12 +403,16 @@ class Engineer(Role):
         # Generate a SummarizeCode action for each pair of (system_design_doc, task_doc).
         summarizations = defaultdict(list)
         for filename in src_files:
-            dependencies = await self.project_repo.srcs.get_dependency(filename=filename)
+            dependencies = await self.project_repo.srcs.get_dependency(
+                filename=filename
+            )
             ctx = CodeSummarizeContext.loads(filenames=list(dependencies))
             summarizations[ctx].append(filename)
         for ctx, filenames in summarizations.items():
             ctx.codes_filenames = filenames
-            self.summarize_todos.append(SummarizeCode(i_context=ctx, context=self.context, llm=self.llm))
+            self.summarize_todos.append(
+                SummarizeCode(i_context=ctx, context=self.context, llm=self.llm)
+            )
         if self.summarize_todos:
             self.set_todo(self.summarize_todos[0])
 
@@ -351,8 +421,12 @@ class Engineer(Role):
         files = self.project_repo.all_files
         requirement_doc = await self.project_repo.docs.get(REQUIREMENT_FILENAME)
         requirement = requirement_doc.content if requirement_doc else ""
-        code_plan_and_change_ctx = CodePlanAndChangeContext.loads(files, requirement=requirement)
-        self.rc.todo = WriteCodePlanAndChange(i_context=code_plan_and_change_ctx, context=self.context, llm=self.llm)
+        code_plan_and_change_ctx = CodePlanAndChangeContext.loads(
+            files, requirement=requirement
+        )
+        self.rc.todo = WriteCodePlanAndChange(
+            i_context=code_plan_and_change_ctx, context=self.context, llm=self.llm
+        )
 
     @property
     def action_description(self) -> str:

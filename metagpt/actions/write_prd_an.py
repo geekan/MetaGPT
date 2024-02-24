@@ -49,7 +49,11 @@ PRODUCT_GOALS = ActionNode(
     key="Product Goals",
     expected_type=List[str],
     instruction="Provide up to three clear, orthogonal product goals.",
-    example=["Create an engaging user experience", "Improve accessibility, be responsive", "More beautiful UI"],
+    example=[
+        "Create an engaging user experience",
+        "Improve accessibility, be responsive",
+        "More beautiful UI",
+    ],
 )
 
 REFINED_PRODUCT_GOALS = ActionNode(
@@ -183,7 +187,10 @@ IS_RELATIVE = ActionNode(
 )
 
 REASON = ActionNode(
-    key="reason", expected_type=str, instruction="Explain the reasoning process from question to answer", example="..."
+    key="reason",
+    expected_type=str,
+    instruction="Explain the reasoning process from question to answer",
+    example="...",
 )
 
 

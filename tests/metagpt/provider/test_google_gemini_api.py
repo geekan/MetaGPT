@@ -24,11 +24,15 @@ resp_content = "I'm gemini from google"
 default_resp = MockGeminiResponse(text=resp_content)
 
 
-def mock_gemini_count_tokens(self, contents: content_types.ContentsType) -> glm.CountTokensResponse:
+def mock_gemini_count_tokens(
+    self, contents: content_types.ContentsType
+) -> glm.CountTokensResponse:
     return glm.CountTokensResponse(total_tokens=20)
 
 
-async def mock_gemini_count_tokens_async(self, contents: content_types.ContentsType) -> glm.CountTokensResponse:
+async def mock_gemini_count_tokens_async(
+    self, contents: content_types.ContentsType
+) -> glm.CountTokensResponse:
     return glm.CountTokensResponse(total_tokens=20)
 
 
@@ -36,7 +40,9 @@ def mock_gemini_generate_content(self, **kwargs) -> MockGeminiResponse:
     return default_resp
 
 
-async def mock_gemini_generate_content_async(self, stream: bool = False, **kwargs) -> MockGeminiResponse:
+async def mock_gemini_generate_content_async(
+    self, stream: bool = False, **kwargs
+) -> MockGeminiResponse:
     if stream:
 
         class Iterator(object):
@@ -50,11 +56,18 @@ async def mock_gemini_generate_content_async(self, stream: bool = False, **kwarg
 
 @pytest.mark.asyncio
 async def test_gemini_acompletion(mocker):
-    mocker.patch("metagpt.provider.google_gemini_api.GeminiGenerativeModel.count_tokens", mock_gemini_count_tokens)
     mocker.patch(
-        "metagpt.provider.google_gemini_api.GeminiGenerativeModel.count_tokens_async", mock_gemini_count_tokens_async
+        "metagpt.provider.google_gemini_api.GeminiGenerativeModel.count_tokens",
+        mock_gemini_count_tokens,
     )
-    mocker.patch("google.generativeai.generative_models.GenerativeModel.generate_content", mock_gemini_generate_content)
+    mocker.patch(
+        "metagpt.provider.google_gemini_api.GeminiGenerativeModel.count_tokens_async",
+        mock_gemini_count_tokens_async,
+    )
+    mocker.patch(
+        "google.generativeai.generative_models.GenerativeModel.generate_content",
+        mock_gemini_generate_content,
+    )
     mocker.patch(
         "google.generativeai.generative_models.GenerativeModel.generate_content_async",
         mock_gemini_generate_content_async,
@@ -63,7 +76,10 @@ async def test_gemini_acompletion(mocker):
     gemini_gpt = GeminiLLM(mock_llm_config)
 
     assert gemini_gpt._user_msg(prompt_msg) == {"role": "user", "parts": [prompt_msg]}
-    assert gemini_gpt._assistant_msg(prompt_msg) == {"role": "model", "parts": [prompt_msg]}
+    assert gemini_gpt._assistant_msg(prompt_msg) == {
+        "role": "model",
+        "parts": [prompt_msg],
+    }
 
     usage = gemini_gpt.get_usage(messages, resp_content)
     assert usage == {"prompt_tokens": 20, "completion_tokens": 20}

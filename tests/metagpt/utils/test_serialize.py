@@ -17,14 +17,20 @@ from metagpt.utils.serialize import (
 
 
 def test_actionoutout_schema_to_mapping():
-    schema = {"title": "test", "type": "object", "properties": {"field": {"title": "field", "type": "string"}}}
+    schema = {
+        "title": "test",
+        "type": "object",
+        "properties": {"field": {"title": "field", "type": "string"}},
+    }
     mapping = actionoutout_schema_to_mapping(schema)
     assert mapping["field"] == (str, ...)
 
     schema = {
         "title": "test",
         "type": "object",
-        "properties": {"field": {"title": "field", "type": "array", "items": {"type": "string"}}},
+        "properties": {
+            "field": {"title": "field", "type": "array", "items": {"type": "string"}}
+        },
     }
     mapping = actionoutout_schema_to_mapping(schema)
     assert mapping["field"] == (list[str], ...)
@@ -57,7 +63,10 @@ def test_serialize_and_deserialize_message():
     ic_obj = ActionNode.create_model_class("prd", out_mapping)
 
     message = Message(
-        content="prd demand", instruct_content=ic_obj(**out_data), role="user", cause_by=WritePRD
+        content="prd demand",
+        instruct_content=ic_obj(**out_data),
+        role="user",
+        cause_by=WritePRD,
     )  # WritePRD as test action
 
     message_ser = serialize_message(message)

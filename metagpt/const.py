@@ -36,7 +36,9 @@ def get_metagpt_root():
     project_root_env = os.getenv("METAGPT_PROJECT_ROOT")
     if project_root_env:
         project_root = Path(project_root_env)
-        logger.info(f"PROJECT_ROOT set from environment variable to {str(project_root)}")
+        logger.info(
+            f"PROJECT_ROOT set from environment variable to {str(project_root)}"
+        )
     else:
         # Fallback to package root if no environment variable is set
         project_root = get_metagpt_package_root()
@@ -60,7 +62,9 @@ SWAGGER_PATH = UT_PATH / "files/api/"
 UT_PY_PATH = UT_PATH / "files/ut/"
 API_QUESTIONS_PATH = UT_PATH / "files/question/"
 
-SERDESER_PATH = DEFAULT_WORKSPACE_ROOT / "storage"  # TODO to store `storage` under the individual generated project
+SERDESER_PATH = (
+    DEFAULT_WORKSPACE_ROOT / "storage"
+)  # TODO to store `storage` under the individual generated project
 
 TMP = METAGPT_ROOT / "tmp"
 

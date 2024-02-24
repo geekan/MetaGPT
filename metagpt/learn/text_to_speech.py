@@ -43,7 +43,9 @@ async def text_to_speech(
     region = config.azure_tts_region
     if subscription_key and region:
         audio_declaration = "data:audio/wav;base64,"
-        base64_data = await oas3_azsure_tts(text, lang, voice, style, role, subscription_key, region)
+        base64_data = await oas3_azsure_tts(
+            text, lang, voice, style, role, subscription_key, region
+        )
         s3 = S3(config.s3)
         url = await s3.cache(data=base64_data, file_ext=".wav", format=BASE64_FORMAT)
         if url:
@@ -56,7 +58,10 @@ async def text_to_speech(
     if iflytek_app_id and iflytek_api_key and iflytek_api_secret:
         audio_declaration = "data:audio/mp3;base64,"
         base64_data = await oas3_iflytek_tts(
-            text=text, app_id=iflytek_app_id, api_key=iflytek_api_key, api_secret=iflytek_api_secret
+            text=text,
+            app_id=iflytek_app_id,
+            api_key=iflytek_api_key,
+            api_secret=iflytek_api_secret,
         )
         s3 = S3(config.s3)
         url = await s3.cache(data=base64_data, file_ext=".mp3", format=BASE64_FORMAT)

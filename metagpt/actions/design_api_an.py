@@ -28,7 +28,10 @@ REFINED_IMPLEMENTATION_APPROACH = ActionNode(
 )
 
 PROJECT_NAME = ActionNode(
-    key="Project name", expected_type=str, instruction="The project name with underline", example="game_2048"
+    key="Project name",
+    expected_type=str,
+    instruction="The project name with underline",
+    example="game_2048",
 )
 
 FILE_LIST = ActionNode(

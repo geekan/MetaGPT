@@ -9,7 +9,9 @@ from tests.metagpt.actions.ci.test_debug_code import CODE, DebugContext, ErrorSt
 
 
 def test_mle_init():
-    ci = MLEngineer(goal="test", auto_run=True, use_tools=True, tools=["tool1", "tool2"])
+    ci = MLEngineer(
+        goal="test", auto_run=True, use_tools=True, tools=["tool1", "tool2"]
+    )
     assert ci.tools == []
 
 

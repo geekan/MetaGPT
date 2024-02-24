@@ -19,7 +19,9 @@ async def test_oas2_svc(context):
     script_pathname = workdir / "metagpt/tools/metagpt_oas3_api_svc.py"
     env = context.new_environ()
     env["PYTHONPATH"] = str(workdir) + ":" + env.get("PYTHONPATH", "")
-    process = subprocess.Popen(["python", str(script_pathname)], cwd=str(workdir), env=env)
+    process = subprocess.Popen(
+        ["python", str(script_pathname)], cwd=str(workdir), env=env
+    )
     await asyncio.sleep(5)
 
     try:

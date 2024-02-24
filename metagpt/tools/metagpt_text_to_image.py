@@ -36,7 +36,9 @@ class MetaGPTText2Image:
         data = {
             "prompt": text,
             "negative_prompt": "(easynegative:0.8),black, dark,Low resolution",
-            "override_settings": {"sd_model_checkpoint": "galaxytimemachinesGTM_photoV20"},
+            "override_settings": {
+                "sd_model_checkpoint": "galaxytimemachinesGTM_photoV20"
+            },
             "seed": -1,
             "batch_size": 1,
             "n_iter": 1,
@@ -70,7 +72,9 @@ class MetaGPTText2Image:
 
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.post(self.model_url, headers=headers, json=data) as response:
+                async with session.post(
+                    self.model_url, headers=headers, json=data
+                ) as response:
                     result = ImageResult(**await response.json())
             if len(result.images) == 0:
                 return 0

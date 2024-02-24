@@ -36,7 +36,11 @@ async def test_memory():
 
 @pytest.mark.parametrize(
     ("input", "tag", "val"),
-    [("[TALK]:Hello", "TALK", "Hello"), ("Hello", None, "Hello"), ("[TALK]Hello", None, "[TALK]Hello")],
+    [
+        ("[TALK]:Hello", "TALK", "Hello"),
+        ("Hello", None, "Hello"),
+        ("[TALK]Hello", None, "[TALK]Hello"),
+    ],
 )
 def test_extract_info(input, tag, val):
     t, v = BrainMemory.extract_info(input)

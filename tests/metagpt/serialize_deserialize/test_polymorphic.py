@@ -44,7 +44,13 @@ def test_no_serialize_as_any():
 
 def test_polymorphic():
     ok_v2 = ActionOKV2(
-        **{"name": "ActionOKV2", "context": "", "prefix": "", "desc": "", "extra_field": "ActionOKV2 Extra Info"}
+        **{
+            "name": "ActionOKV2",
+            "context": "",
+            "prefix": "",
+            "desc": "",
+            "extra_field": "ActionOKV2 Extra Info",
+        }
     )
 
     action_subcls = ActionSubClasses(actions=[ActionOKV2(), ActionPass()])

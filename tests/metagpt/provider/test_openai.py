@@ -40,38 +40,69 @@ async def test_speech_to_text():
 @pytest.fixture
 def tool_calls_rsp():
     function_rsps = [
-        Function(arguments='{\n"language": "python",\n"code": "print(\'hello world\')"}', name="execute"),
+        Function(
+            arguments='{\n"language": "python",\n"code": "print(\'hello world\')"}',
+            name="execute",
+        ),
     ]
     tool_calls = [
-        ChatCompletionMessageToolCall(type="function", id=f"call_{i}", function=f) for i, f in enumerate(function_rsps)
+        ChatCompletionMessageToolCall(type="function", id=f"call_{i}", function=f)
+        for i, f in enumerate(function_rsps)
     ]
-    messages = [ChatCompletionMessage(content=None, role="assistant", tool_calls=[t]) for t in tool_calls]
+    messages = [
+        ChatCompletionMessage(content=None, role="assistant", tool_calls=[t])
+        for t in tool_calls
+    ]
     # 添加一个纯文本响应
     messages.append(
-        ChatCompletionMessage(content="Completed a python code for hello world!", role="assistant", tool_calls=None)
+        ChatCompletionMessage(
+            content="Completed a python code for hello world!",
+            role="assistant",
+            tool_calls=None,
+        )
     )
     # 添加 openai tool calls respond bug, code 出现在ChatCompletionMessage.content中
     messages.extend(
         [
-            ChatCompletionMessage(content="```python\nprint('hello world')```", role="assistant", tool_calls=None),
+            ChatCompletionMessage(
+                content="```python\nprint('hello world')```",
+                role="assistant",
+                tool_calls=None,
+            ),
         ]
     )
     choices = [
-        Choice(finish_reason="tool_calls", logprobs=None, index=i, message=msg) for i, msg in enumerate(messages)
+        Choice(finish_reason="tool_calls", logprobs=None, index=i, message=msg)
+        for i, msg in enumerate(messages)
     ]
     return [
-        ChatCompletion(id=str(i), choices=[c], created=i, model="gpt-4", object="chat.completion")
+        ChatCompletion(
+            id=str(i), choices=[c], created=i, model="gpt-4", object="chat.completion"
+        )
         for i, c in enumerate(choices)
     ]
 
 
 @pytest.fixture
 def json_decode_error():
-    function_rsp = Function(arguments='{\n"language": \'python\',\n"code": "print(\'hello world\')"}', name="execute")
-    tool_calls = [ChatCompletionMessageToolCall(type="function", id=f"call_{0}", function=function_rsp)]
-    message = ChatCompletionMessage(content=None, role="assistant", tool_calls=tool_calls)
-    choices = [Choice(finish_reason="tool_calls", logprobs=None, index=0, message=message)]
-    return ChatCompletion(id="0", choices=choices, created=0, model="gpt-4", object="chat.completion")
+    function_rsp = Function(
+        arguments='{\n"language": \'python\',\n"code": "print(\'hello world\')"}',
+        name="execute",
+    )
+    tool_calls = [
+        ChatCompletionMessageToolCall(
+            type="function", id=f"call_{0}", function=function_rsp
+        )
+    ]
+    message = ChatCompletionMessage(
+        content=None, role="assistant", tool_calls=tool_calls
+    )
+    choices = [
+        Choice(finish_reason="tool_calls", logprobs=None, index=0, message=message)
+    ]
+    return ChatCompletion(
+        id="0", choices=choices, created=0, model="gpt-4", object="chat.completion"
+    )
 
 
 class TestOpenAI:
@@ -119,5 +150,7 @@ async def test_gen_image():
     images: list[Image] = await llm.gen_image(model=model, prompt=prompt)
     assert images[0].size == (1024, 1024)
 
-    images: list[Image] = await llm.gen_image(model=model, prompt=prompt, resp_format="b64_json")
+    images: list[Image] = await llm.gen_image(
+        model=model, prompt=prompt, resp_format="b64_json"
+    )
     assert images[0].size == (1024, 1024)

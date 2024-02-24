@@ -20,7 +20,10 @@ def test_memory_serdeser(context):
     out_data = {"field2": ["field2 value1", "field2 value2"]}
     ic_obj = ActionNode.create_model_class("system_design", out_mapping)
     msg2 = Message(
-        role="Architect", instruct_content=ic_obj(**out_data), content="system design content", cause_by=WriteDesign
+        role="Architect",
+        instruct_content=ic_obj(**out_data),
+        content="system design content",
+        cause_by=WriteDesign,
     )
 
     memory = Memory()
@@ -35,7 +38,9 @@ def test_memory_serdeser(context):
     assert new_memory.storage[-1].cause_by == any_to_str(WriteDesign)
     assert new_msg2.role == "Boss"
 
-    memory = Memory(storage=[msg1, msg2], index={msg1.cause_by: [msg1], msg2.cause_by: [msg2]})
+    memory = Memory(
+        storage=[msg1, msg2], index={msg1.cause_by: [msg1], msg2.cause_by: [msg2]}
+    )
     assert memory.count() == 2
 
 
@@ -46,7 +51,10 @@ def test_memory_serdeser_save(context):
     out_data = {"field1": ["field1 value1", "field1 value2"]}
     ic_obj = ActionNode.create_model_class("system_design", out_mapping)
     msg2 = Message(
-        role="Architect", instruct_content=ic_obj(**out_data), content="system design content", cause_by=WriteDesign
+        role="Architect",
+        instruct_content=ic_obj(**out_data),
+        content="system design content",
+        cause_by=WriteDesign,
     )
 
     memory = Memory()

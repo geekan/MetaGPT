@@ -20,7 +20,9 @@ human_interaction = HumanInteraction()
 def test_input_num(mocker):
     mocker.patch("builtins.input", lambda _: "quit")
 
-    interact_contents = human_interaction.interact_with_instruct_content(InstructContent(), data_mapping)
+    interact_contents = human_interaction.interact_with_instruct_content(
+        InstructContent(), data_mapping
+    )
     assert len(interact_contents) == 0
 
     mocker.patch("builtins.input", lambda _: "1")
@@ -32,10 +34,14 @@ def test_check_input_type():
     ret, _ = human_interaction.check_input_type(input_str="test string", req_type=str)
     assert ret
 
-    ret, _ = human_interaction.check_input_type(input_str='["test string"]', req_type=list[str])
+    ret, _ = human_interaction.check_input_type(
+        input_str='["test string"]', req_type=list[str]
+    )
     assert ret
 
-    ret, _ = human_interaction.check_input_type(input_str='{"key", "value"}', req_type=list[str])
+    ret, _ = human_interaction.check_input_type(
+        input_str='{"key", "value"}', req_type=list[str]
+    )
     assert not ret
 
 
@@ -55,12 +61,16 @@ def mock_input(*args, **kwargs):
 
 def test_human_interact_valid_content(mocker):
     mocker.patch("builtins.input", mock_input)
-    input_contents = HumanInteraction().interact_with_instruct_content(InstructContent(), data_mapping, "review")
+    input_contents = HumanInteraction().interact_with_instruct_content(
+        InstructContent(), data_mapping, "review"
+    )
     assert len(input_contents) == 1
     assert input_contents["test_field2"] == '["test"]'
 
     global global_index
     global_index = 0
-    input_contents = HumanInteraction().interact_with_instruct_content(InstructContent(), data_mapping, "revise")
+    input_contents = HumanInteraction().interact_with_instruct_content(
+        InstructContent(), data_mapping, "revise"
+    )
     assert len(input_contents) == 1
     assert input_contents["test_field2"] == ["test"]

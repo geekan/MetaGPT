@@ -29,7 +29,9 @@ class CodeInterpreter(Role):
         **kwargs,
     ):
         super().__init__(auto_run=auto_run, use_tools=use_tools, tools=tools, **kwargs)
-        self._set_react_mode(react_mode="plan_and_act", auto_run=auto_run, use_tools=use_tools)
+        self._set_react_mode(
+            react_mode="plan_and_act", auto_run=auto_run, use_tools=use_tools
+        )
         if use_tools and tools:
             from metagpt.tools.tool_registry import (
                 validate_tool_names,  # import upon use
@@ -55,27 +57,37 @@ class CodeInterpreter(Role):
             ### write code ###
             code, cause_by = await self._write_code()
 
-            self.working_memory.add(Message(content=code["code"], role="assistant", cause_by=cause_by))
+            self.working_memory.add(
+                Message(content=code["code"], role="assistant", cause_by=cause_by)
+            )
 
             ### execute code ###
             result, success = await self.execute_code.run(**code)
             print(result)
 
-            self.working_memory.add(Message(content=result, role="user", cause_by=ExecuteNbCode))
+            self.working_memory.add(
+                Message(content=result, role="user", cause_by=ExecuteNbCode)
+            )
 
             ### process execution result ###
             counter += 1
 
             if not success and counter >= max_retry:
                 logger.info("coding failed!")
-                review, _ = await self.planner.ask_review(auto_run=False, trigger=ReviewConst.CODE_REVIEW_TRIGGER)
+                review, _ = await self.planner.ask_review(
+                    auto_run=False, trigger=ReviewConst.CODE_REVIEW_TRIGGER
+                )
                 if ReviewConst.CHANGE_WORDS[0] in review:
                     counter = 0  # redo the task again with help of human suggestions
 
         return code["code"], result, success
 
     async def _write_code(self):
-        todo = WriteCodeWithoutTools() if not self.use_tools else WriteCodeWithTools(selected_tools=self.tools)
+        todo = (
+            WriteCodeWithoutTools()
+            if not self.use_tools
+            else WriteCodeWithTools(selected_tools=self.tools)
+        )
         logger.info(f"ready to {todo.name}")
 
         context = self.planner.get_useful_memories()

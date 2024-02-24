@@ -34,7 +34,9 @@ async def test_search_xlsx():
 
 @pytest.mark.asyncio
 async def test_write():
-    store = FaissStore(EXAMPLE_PATH / "example.xlsx", meta_col="Answer", content_col="Question")
+    store = FaissStore(
+        EXAMPLE_PATH / "example.xlsx", meta_col="Answer", content_col="Question"
+    )
     _faiss_store = store.write()
     assert _faiss_store.docstore
     assert _faiss_store.index

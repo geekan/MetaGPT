@@ -50,7 +50,9 @@ class GeneralAPIRequestor(APIRequestor):
         )
     """
 
-    def _interpret_response_line(self, rbody: bytes, rcode: int, rheaders, stream: bool) -> bytes:
+    def _interpret_response_line(
+        self, rbody: bytes, rcode: int, rheaders, stream: bool
+    ) -> bytes:
         # just do nothing to meet the APIRequestor process and return the raw data
         # due to the openai sdk will convert the data into OpenAIResponse which we don't need in general cases.
 
@@ -61,9 +63,14 @@ class GeneralAPIRequestor(APIRequestor):
     ) -> Tuple[Union[bytes, Iterator[Generator]], bytes]:
         """Returns the response(s) and a bool indicating whether it is a stream."""
         content_type = result.headers.get("Content-Type", "")
-        if stream and ("text/event-stream" in content_type or "application/x-ndjson" in content_type):
+        if stream and (
+            "text/event-stream" in content_type
+            or "application/x-ndjson" in content_type
+        ):
             return (
-                self._interpret_response_line(line, result.status_code, result.headers, stream=True)
+                self._interpret_response_line(
+                    line, result.status_code, result.headers, stream=True
+                )
                 for line in parse_stream(result.iter_lines())
             ), True
         else:
@@ -81,10 +88,15 @@ class GeneralAPIRequestor(APIRequestor):
         self, result: aiohttp.ClientResponse, stream: bool
     ) -> Tuple[Union[bytes, AsyncGenerator[bytes, None]], bool]:
         content_type = result.headers.get("Content-Type", "")
-        if stream and ("text/event-stream" in content_type or "application/x-ndjson" in content_type):
+        if stream and (
+            "text/event-stream" in content_type
+            or "application/x-ndjson" in content_type
+        ):
             # the `Content-Type` of ollama stream resp is "application/x-ndjson"
             return (
-                self._interpret_response_line(line, result.status, result.headers, stream=True)
+                self._interpret_response_line(
+                    line, result.status, result.headers, stream=True
+                )
                 async for line in result.content
             ), True
         else:

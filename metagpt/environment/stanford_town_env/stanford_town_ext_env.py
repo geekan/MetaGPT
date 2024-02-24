@@ -16,12 +16,18 @@ from metagpt.utils.common import read_csv_to_list, read_json_file
 class StanfordTownExtEnv(ExtEnv):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    maze_asset_path: Optional[Path] = Field(default=None, description="the path to store maze assets")
+    maze_asset_path: Optional[Path] = Field(
+        default=None, description="the path to store maze assets"
+    )
     maze_width: int = Field(default=140, description="maze map width")
     maze_height: int = Field(default=100, description="maze map height")
-    sq_tile_size: int = Field(default=32, description="the pixel height/width of a tile")
+    sq_tile_size: int = Field(
+        default=32, description="the pixel height/width of a tile"
+    )
     special_constraint: str = Field(
-        default="", description="a string description of any relevant special constraints " "the world might have"
+        default="",
+        description="a string description of any relevant special constraints "
+        "the world might have",
     )
     tiles: list[list[dict]] = Field(default=[])
     address_tiles: dict[str, set] = Field(default=dict())
@@ -137,7 +143,9 @@ class StanfordTownExtEnv(ExtEnv):
 
                 tile_details["spawning_location"] = ""
                 if spawning_location_maze[i][j] in slb_dict:
-                    tile_details["spawning_location"] = slb_dict[spawning_location_maze[i][j]]
+                    tile_details["spawning_location"] = slb_dict[
+                        spawning_location_maze[i][j]
+                    ]
 
                 tile_details["collision"] = False
                 if collision_maze[i][j] != "0":
@@ -155,7 +163,12 @@ class StanfordTownExtEnv(ExtEnv):
             for j in range(maze_width):
                 if tiles[i][j]["game_object"]:
                     object_name = ":".join(
-                        [tiles[i][j]["world"], tiles[i][j]["sector"], tiles[i][j]["arena"], tiles[i][j]["game_object"]]
+                        [
+                            tiles[i][j]["world"],
+                            tiles[i][j]["sector"],
+                            tiles[i][j]["arena"],
+                            tiles[i][j]["game_object"],
+                        ]
                     )
                     go_event = (object_name, None, None, None)
                     tiles[i][j]["events"].add(go_event)
@@ -199,7 +212,9 @@ class StanfordTownExtEnv(ExtEnv):
         values["address_tiles"] = address_tiles
         return values
 
-    def turn_coordinate_to_tile(self, px_coordinate: tuple[int, int]) -> tuple[int, int]:
+    def turn_coordinate_to_tile(
+        self, px_coordinate: tuple[int, int]
+    ) -> tuple[int, int]:
         """
         Turns a pixel coordinate to a tile coordinate.
         """
@@ -276,7 +291,9 @@ class StanfordTownExtEnv(ExtEnv):
         return path
 
     @mark_as_readable
-    def get_nearby_tiles(self, tile: tuple[int, int], vision_r: int) -> list[tuple[int, int]]:
+    def get_nearby_tiles(
+        self, tile: tuple[int, int], vision_r: int
+    ) -> list[tuple[int, int]]:
         """
         Given the current tile and vision_r, return a list of tiles that are
         within the radius. Note that this implementation looks at a square
@@ -321,7 +338,9 @@ class StanfordTownExtEnv(ExtEnv):
         self.tiles[pt_y][pt_x]["events"].add(event)
 
     @mark_as_writeable
-    def add_event_from_tile(self, curr_event: tuple[str], tile: tuple[int, int]) -> None:
+    def add_event_from_tile(
+        self, curr_event: tuple[str], tile: tuple[int, int]
+    ) -> None:
         """
         Add an event triple to a tile.
 
@@ -336,7 +355,9 @@ class StanfordTownExtEnv(ExtEnv):
         self.tiles[tile[1]][tile[0]]["events"].add(curr_event)
 
     @mark_as_writeable
-    def remove_event_from_tile(self, curr_event: tuple[str], tile: tuple[int, int]) -> None:
+    def remove_event_from_tile(
+        self, curr_event: tuple[str], tile: tuple[int, int]
+    ) -> None:
         """dswaq
         Remove an event triple from a tile.
 
@@ -354,7 +375,9 @@ class StanfordTownExtEnv(ExtEnv):
                 self.tiles[tile[1]][tile[0]]["events"].remove(event)
 
     @mark_as_writeable
-    def turn_event_from_tile_idle(self, curr_event: tuple[str], tile: tuple[int, int]) -> None:
+    def turn_event_from_tile_idle(
+        self, curr_event: tuple[str], tile: tuple[int, int]
+    ) -> None:
         curr_tile_ev_cp = self.tiles[tile[1]][tile[0]]["events"].copy()
         for event in curr_tile_ev_cp:
             if event == curr_event:
@@ -363,7 +386,9 @@ class StanfordTownExtEnv(ExtEnv):
                 self.tiles[tile[1]][tile[0]]["events"].add(new_event)
 
     @mark_as_writeable
-    def remove_subject_events_from_tile(self, subject: str, tile: tuple[int, int]) -> None:
+    def remove_subject_events_from_tile(
+        self, subject: str, tile: tuple[int, int]
+    ) -> None:
         """
         Remove an event triple that has the input subject from a tile.
 

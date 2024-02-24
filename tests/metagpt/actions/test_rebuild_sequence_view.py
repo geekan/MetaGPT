@@ -20,10 +20,16 @@ from metagpt.utils.git_repository import ChangeType
 @pytest.mark.skip
 async def test_rebuild(context):
     # Mock
-    data = await aread(filename=Path(__file__).parent / "../../data/graph_db/networkx.json")
+    data = await aread(
+        filename=Path(__file__).parent / "../../data/graph_db/networkx.json"
+    )
     graph_db_filename = Path(context.repo.workdir.name).with_suffix(".json")
-    await context.repo.docs.graph_repo.save(filename=str(graph_db_filename), content=data)
-    context.git_repo.add_change({f"{GRAPH_REPO_FILE_REPO}/{graph_db_filename}": ChangeType.UNTRACTED})
+    await context.repo.docs.graph_repo.save(
+        filename=str(graph_db_filename), content=data
+    )
+    context.git_repo.add_change(
+        {f"{GRAPH_REPO_FILE_REPO}/{graph_db_filename}": ChangeType.UNTRACTED}
+    )
     context.git_repo.commit("commit1")
 
     action = RebuildSequenceView(
@@ -39,7 +45,11 @@ async def test_rebuild(context):
 @pytest.mark.parametrize(
     ("root", "pathname", "want"),
     [
-        (Path(__file__).parent.parent.parent, "/".join(__file__.split("/")[-2:]), Path(__file__)),
+        (
+            Path(__file__).parent.parent.parent,
+            "/".join(__file__.split("/")[-2:]),
+            Path(__file__),
+        ),
         (Path(__file__).parent.parent.parent, "f/g.txt", None),
     ],
 )

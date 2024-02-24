@@ -14,7 +14,9 @@ from metagpt.config2 import config
 from metagpt.logs import logger
 
 
-async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, height=2048) -> int:
+async def mermaid_to_file(
+    mermaid_code, output_file_without_suffix, width=2048, height=2048
+) -> int:
     """
     Converts the given Mermaid code to various output formats and saves them to files.
 
@@ -48,7 +50,13 @@ async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, 
     page.on("console", console_message)
 
     try:
-        await page.setViewport(viewport={"width": width, "height": height, "deviceScaleFactor": device_scale_factor})
+        await page.setViewport(
+            viewport={
+                "width": width,
+                "height": height,
+                "deviceScaleFactor": device_scale_factor,
+            }
+        )
 
         mermaid_html_path = os.path.abspath(os.path.join(__dirname, "index.html"))
         mermaid_html_url = urljoin("file:", mermaid_html_path)
@@ -111,7 +119,9 @@ async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, 
                     "deviceScaleFactor": device_scale_factor,
                 }
             )
-            screenshot = await page.screenshot(clip=clip, omit_background=True, scale="device")
+            screenshot = await page.screenshot(
+                clip=clip, omit_background=True, scale="device"
+            )
             logger.info(f"Generating {output_file_without_suffix}.png..")
             with open(f"{output_file_without_suffix}.png", "wb") as f:
                 f.write(screenshot)

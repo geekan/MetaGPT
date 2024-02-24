@@ -27,7 +27,9 @@ from metagpt.utils.common import any_to_str_set, parse_recipient
 class QaEngineer(Role):
     name: str = "Edward"
     profile: str = "QaEngineer"
-    goal: str = "Write comprehensive and robust tests to ensure codes will work as expected without bugs"
+    goal: str = (
+        "Write comprehensive and robust tests to ensure codes will work as expected without bugs"
+    )
     constraints: str = (
         "The test code you write should conform to code standard like PEP8, be modular, easy to read and maintain."
         "Use same language as user requirement"
@@ -62,11 +64,17 @@ class QaEngineer(Role):
             test_doc = await self.project_repo.tests.get("test_" + code_doc.filename)
             if not test_doc:
                 test_doc = Document(
-                    root_path=str(self.project_repo.tests.root_path), filename="test_" + code_doc.filename, content=""
+                    root_path=str(self.project_repo.tests.root_path),
+                    filename="test_" + code_doc.filename,
+                    content="",
                 )
             logger.info(f"Writing {test_doc.filename}..")
-            context = TestingContext(filename=test_doc.filename, test_doc=test_doc, code_doc=code_doc)
-            context = await WriteTest(i_context=context, context=self.context, llm=self.llm).run()
+            context = TestingContext(
+                filename=test_doc.filename, test_doc=test_doc, code_doc=code_doc
+            )
+            context = await WriteTest(
+                i_context=context, context=self.context, llm=self.llm
+            ).run()
             await self.project_repo.tests.save_doc(
                 doc=context.test_doc, dependencies={context.code_doc.root_relative_path}
             )
@@ -93,9 +101,9 @@ class QaEngineer(Role):
 
     async def _run_code(self, msg):
         run_code_context = RunCodeContext.loads(msg.content)
-        src_doc = await self.project_repo.with_src_path(self.context.src_workspace).srcs.get(
-            run_code_context.code_filename
-        )
+        src_doc = await self.project_repo.with_src_path(
+            self.context.src_workspace
+        ).srcs.get(run_code_context.code_filename)
         if not src_doc:
             return
         test_doc = await self.project_repo.tests.get(run_code_context.test_filename)
@@ -103,7 +111,9 @@ class QaEngineer(Role):
             return
         run_code_context.code = src_doc.content
         run_code_context.test_code = test_doc.content
-        result = await RunCode(i_context=run_code_context, context=self.context, llm=self.llm).run()
+        result = await RunCode(
+            i_context=run_code_context, context=self.context, llm=self.llm
+        ).run()
         run_code_context.output_filename = run_code_context.test_filename + ".json"
         await self.project_repo.test_outputs.save(
             filename=run_code_context.output_filename,
@@ -127,8 +137,12 @@ class QaEngineer(Role):
 
     async def _debug_error(self, msg):
         run_code_context = RunCodeContext.loads(msg.content)
-        code = await DebugError(i_context=run_code_context, context=self.context, llm=self.llm).run()
-        await self.project_repo.tests.save(filename=run_code_context.test_filename, content=code)
+        code = await DebugError(
+            i_context=run_code_context, context=self.context, llm=self.llm
+        ).run()
+        await self.project_repo.tests.save(
+            filename=run_code_context.test_filename, content=code
+        )
         run_code_context.output = None
         self.publish_message(
             Message(

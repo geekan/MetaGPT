@@ -40,7 +40,9 @@ def read_data(data_path: Path):
         data = UnstructuredWordDocumentLoader(str(data_path), mode="elements").load()
     elif ".txt" == suffix:
         data = TextLoader(str(data_path)).load()
-        text_splitter = CharacterTextSplitter(separator="\n", chunk_size=256, chunk_overlap=0)
+        text_splitter = CharacterTextSplitter(
+            separator="\n", chunk_size=256, chunk_overlap=0
+        )
         texts = text_splitter.split_documents(data)
         data = texts
     elif ".pdf" == suffix:
@@ -129,10 +131,14 @@ class IndexableDocument(Document):
         data = read_data(data_path)
         if isinstance(data, pd.DataFrame):
             validate_cols(content_col, data)
-            return cls(data=data, content=str(data), content_col=content_col, meta_col=meta_col)
+            return cls(
+                data=data, content=str(data), content_col=content_col, meta_col=meta_col
+            )
         else:
             content = data_path.read_text()
-            return cls(data=data, content=content, content_col=content_col, meta_col=meta_col)
+            return cls(
+                data=data, content=content, content_col=content_col, meta_col=meta_col
+            )
 
     def _get_docs_and_metadatas_by_df(self) -> (list, list):
         df = self.data
@@ -158,7 +164,9 @@ class IndexableDocument(Document):
         elif isinstance(self.data, list):
             return self._get_docs_and_metadatas_by_langchain()
         else:
-            raise NotImplementedError("Data type not supported for metadata extraction.")
+            raise NotImplementedError(
+                "Data type not supported for metadata extraction."
+            )
 
 
 class RepoMetadata(BaseModel):
@@ -187,7 +195,15 @@ class Repo(BaseModel):
         repo = Repo(path=path, name=path.name)
         for file_path in path.rglob("*"):
             # FIXME: These judgments are difficult to support multiple programming languages and need to be more general
-            if file_path.is_file() and file_path.suffix in [".json", ".txt", ".md", ".py", ".js", ".css", ".html"]:
+            if file_path.is_file() and file_path.suffix in [
+                ".json",
+                ".txt",
+                ".md",
+                ".py",
+                ".js",
+                ".css",
+                ".html",
+            ]:
                 repo._set(file_path.read_text(), file_path)
         return repo
 
@@ -203,7 +219,9 @@ class Repo(BaseModel):
     def _set(self, content: str, path: Path):
         """Add a document to the appropriate category based on its file extension."""
         suffix = path.suffix
-        doc = Document(content=content, path=path, name=str(path.relative_to(self.path)))
+        doc = Document(
+            content=content, path=path, name=str(path.relative_to(self.path))
+        )
 
         # FIXME: These judgments are difficult to support multiple programming languages and need to be more general
         if suffix.lower() == ".md":
@@ -230,6 +248,11 @@ class Repo(BaseModel):
 
     def eda(self) -> RepoMetadata:
         n_docs = sum(len(i) for i in [self.docs, self.codes, self.assets])
-        n_chars = sum(sum(len(j.content) for j in i.values()) for i in [self.docs, self.codes, self.assets])
+        n_chars = sum(
+            sum(len(j.content) for j in i.values())
+            for i in [self.docs, self.codes, self.assets]
+        )
         symbols = RepoParser(base_directory=self.path).generate_symbols()
-        return RepoMetadata(name=self.name, n_docs=n_docs, n_chars=n_chars, symbols=symbols)
+        return RepoMetadata(
+            name=self.name, n_docs=n_docs, n_chars=n_chars, symbols=symbols
+        )

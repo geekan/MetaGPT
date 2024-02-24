@@ -35,11 +35,17 @@ class Researcher(Role):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.set_actions(
-            [CollectLinks(name=self.name), WebBrowseAndSummarize(name=self.name), ConductResearch(name=self.name)]
+            [
+                CollectLinks(name=self.name),
+                WebBrowseAndSummarize(name=self.name),
+                ConductResearch(name=self.name),
+            ]
         )
         self._set_react_mode(react_mode=RoleReactMode.BY_ORDER.value)
         if self.language not in ("en-us", "zh-cn"):
-            logger.warning(f"The language `{self.language}` has not been tested, it may not work.")
+            logger.warning(
+                f"The language `{self.language}` has not been tested, it may not work."
+            )
 
     async def _think(self) -> bool:
         if self.rc.todo is None:
@@ -66,20 +72,38 @@ class Researcher(Role):
         if isinstance(todo, CollectLinks):
             links = await todo.run(topic, 4, 4)
             ret = Message(
-                content="", instruct_content=Report(topic=topic, links=links), role=self.profile, cause_by=todo
+                content="",
+                instruct_content=Report(topic=topic, links=links),
+                role=self.profile,
+                cause_by=todo,
             )
         elif isinstance(todo, WebBrowseAndSummarize):
             links = instruct_content.links
-            todos = (todo.run(*url, query=query, system_text=research_system_text) for (query, url) in links.items())
+            todos = (
+                todo.run(*url, query=query, system_text=research_system_text)
+                for (query, url) in links.items()
+            )
             summaries = await asyncio.gather(*todos)
-            summaries = list((url, summary) for i in summaries for (url, summary) in i.items() if summary)
+            summaries = list(
+                (url, summary)
+                for i in summaries
+                for (url, summary) in i.items()
+                if summary
+            )
             ret = Message(
-                content="", instruct_content=Report(topic=topic, summaries=summaries), role=self.profile, cause_by=todo
+                content="",
+                instruct_content=Report(topic=topic, summaries=summaries),
+                role=self.profile,
+                cause_by=todo,
             )
         else:
             summaries = instruct_content.summaries
-            summary_text = "\n---\n".join(f"url: {url}\nsummary: {summary}" for (url, summary) in summaries)
-            content = await self.rc.todo.run(topic, summary_text, system_text=research_system_text)
+            summary_text = "\n---\n".join(
+                f"url: {url}\nsummary: {summary}" for (url, summary) in summaries
+            )
+            content = await self.rc.todo.run(
+                topic, summary_text, system_text=research_system_text
+            )
             ret = Message(
                 content="",
                 instruct_content=Report(topic=topic, content=content),

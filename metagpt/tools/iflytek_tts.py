@@ -59,12 +59,23 @@ class IFlyTekTTS(object):
         self.api_key = api_key
         self.api_secret = api_secret
 
-    async def synthesize_speech(self, text, output_file: str, voice=DEFAULT_IFLYTEK_VOICE):
+    async def synthesize_speech(
+        self, text, output_file: str, voice=DEFAULT_IFLYTEK_VOICE
+    ):
         url = self._create_url()
         data = {
             "common": {"app_id": self.app_id},
-            "business": {"aue": "lame", "sfl": 1, "auf": "audio/L16;rate=16000", "vcn": voice, "tte": "utf8"},
-            "data": {"status": 2, "text": str(base64.b64encode(text.encode("utf-8")), "UTF8")},
+            "business": {
+                "aue": "lame",
+                "sfl": 1,
+                "auf": "audio/L16;rate=16000",
+                "vcn": voice,
+                "tte": "utf8",
+            },
+            "data": {
+                "status": 2,
+                "text": str(base64.b64encode(text.encode("utf-8")), "UTF8"),
+            },
         }
         req = json.dumps(data)
         async with websockets.connect(url) as websocket:
@@ -95,17 +106,24 @@ class IFlyTekTTS(object):
         signature_origin += "GET " + "/v2/tts " + "HTTP/1.1"
         # Perform HMAC-SHA256 encryption
         signature_sha = hmac.new(
-            self.api_secret.encode("utf-8"), signature_origin.encode("utf-8"), digestmod=hashlib.sha256
+            self.api_secret.encode("utf-8"),
+            signature_origin.encode("utf-8"),
+            digestmod=hashlib.sha256,
         ).digest()
         signature_sha = base64.b64encode(signature_sha).decode(encoding="utf-8")
 
-        authorization_origin = 'api_key="%s", algorithm="%s", headers="%s", signature="%s"' % (
-            self.api_key,
-            "hmac-sha256",
-            "host date request-line",
-            signature_sha,
+        authorization_origin = (
+            'api_key="%s", algorithm="%s", headers="%s", signature="%s"'
+            % (
+                self.api_key,
+                "hmac-sha256",
+                "host date request-line",
+                signature_sha,
+            )
         )
-        authorization = base64.b64encode(authorization_origin.encode("utf-8")).decode(encoding="utf-8")
+        authorization = base64.b64encode(authorization_origin.encode("utf-8")).decode(
+            encoding="utf-8"
+        )
         # Combine the authentication parameters of the request into a dictionary.
         v = {"authorization": authorization, "date": date, "host": "ws-api.xfyun.cn"}
         # Concatenate the authentication parameters to generate the URL.
@@ -114,7 +132,13 @@ class IFlyTekTTS(object):
 
 
 # Export
-async def oas3_iflytek_tts(text: str, voice: str = "", app_id: str = "", api_key: str = "", api_secret: str = ""):
+async def oas3_iflytek_tts(
+    text: str,
+    voice: str = "",
+    app_id: str = "",
+    api_key: str = "",
+    api_secret: str = "",
+):
     """Text to speech
     For more details, check out:`https://www.xfyun.cn/doc/tts/online_tts/API.html`
 

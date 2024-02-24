@@ -18,7 +18,9 @@ async def main():
     # Google API
     # await Searcher(search_engine=SearchEngine(engine=SearchEngineType.DIRECT_GOOGLE, **kwargs)).run(question)
     # DDG API
-    await Searcher(search_engine=SearchEngine(engine=SearchEngineType.DUCK_DUCK_GO, **kwargs)).run(question)
+    await Searcher(
+        search_engine=SearchEngine(engine=SearchEngineType.DUCK_DUCK_GO, **kwargs)
+    ).run(question)
 
 
 if __name__ == "__main__":

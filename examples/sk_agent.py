@@ -75,7 +75,9 @@ async def action_planner_example():
     role.import_skill(TimeSkill(), "time")
     role.import_skill(TextSkill(), "text")
     task = "What is the sum of 110 and 990?"
-    await role.run(Message(content=task, cause_by=UserRequirement))  # it will choose mathskill.Add
+    await role.run(
+        Message(content=task, cause_by=UserRequirement)
+    )  # it will choose mathskill.Add
 
 
 if __name__ == "__main__":

@@ -26,7 +26,9 @@ class OpenAIText2Image:
         :return: The image data is returned in Base64 encoding.
         """
         try:
-            result = await self.llm.aclient.images.generate(prompt=text, n=1, size=size_type)
+            result = await self.llm.aclient.images.generate(
+                prompt=text, n=1, size=size_type
+            )
         except Exception as e:
             logger.error(f"An error occurred:{e}")
             return ""
@@ -54,7 +56,9 @@ class OpenAIText2Image:
 
 
 # Export
-async def oas3_openai_text_to_image(text, size_type: str = "1024x1024", llm: BaseLLM = None):
+async def oas3_openai_text_to_image(
+    text, size_type: str = "1024x1024", llm: BaseLLM = None
+):
     """Text to image
 
     :param text: The text used for image conversion.

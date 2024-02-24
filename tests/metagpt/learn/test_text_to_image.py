@@ -22,8 +22,12 @@ from metagpt.utils.s3 import S3
 @pytest.mark.asyncio
 async def test_text_to_image(mocker):
     # mock
-    mocker.patch.object(MetaGPTText2Image, "text_2_image", return_value=b"mock MetaGPTText2Image")
-    mocker.patch.object(OpenAIText2Image, "text_2_image", return_value=b"mock OpenAIText2Image")
+    mocker.patch.object(
+        MetaGPTText2Image, "text_2_image", return_value=b"mock MetaGPTText2Image"
+    )
+    mocker.patch.object(
+        OpenAIText2Image, "text_2_image", return_value=b"mock OpenAIText2Image"
+    )
     mocker.patch.object(S3, "cache", return_value="http://mock/s3")
 
     config = Config.default()
@@ -43,7 +47,9 @@ async def test_openai_text_to_image(mocker):
         data: list
 
     mock_data = _MockData(data=[mock_url])
-    mocker.patch.object(openai.resources.images.AsyncImages, "generate", return_value=mock_data)
+    mocker.patch.object(
+        openai.resources.images.AsyncImages, "generate", return_value=mock_data
+    )
     mock_post = mocker.patch("aiohttp.ClientSession.get")
     mock_response = mocker.AsyncMock()
     mock_response.status = 200

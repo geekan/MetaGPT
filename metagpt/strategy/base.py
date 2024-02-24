@@ -62,7 +62,9 @@ class ThoughtTree(RenderTree):
         all_nodes = [node for _, _, node in self]
         return all_nodes
 
-    def update_node(self, thought: List[dict] = [], current_node: ThoughtNode = None) -> List[ThoughtNode]:
+    def update_node(
+        self, thought: List[dict] = [], current_node: ThoughtNode = None
+    ) -> List[ThoughtNode]:
         """
         Update the tree with new thoughts.
 
@@ -76,7 +78,9 @@ class ThoughtTree(RenderTree):
         nodes = []
         for node_info in thought:
             node = ThoughtNode(
-                name=node_info["node_state_instruction"], parent=current_node, id=int(node_info["node_id"])
+                name=node_info["node_state_instruction"],
+                parent=current_node,
+                id=int(node_info["node_id"]),
             )
             nodes.append(node)
         return nodes
@@ -106,4 +110,6 @@ class ThoughtTree(RenderTree):
         """Print the updated tree."""
         print("\nUpdated Tree:")
         for pre, _, node in self:
-            print(f"{pre}{node.name}, value: {node.value}, valid_status: {node.valid_status}")
+            print(
+                f"{pre}{node.name}, value: {node.value}, valid_status: {node.valid_status}"
+            )

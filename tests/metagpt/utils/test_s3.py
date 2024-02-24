@@ -36,10 +36,14 @@ async def test_s3(mocker):
     assert s3
     conn = S3(s3)
     object_name = "unittest.bak"
-    await conn.upload_file(bucket=s3.bucket, local_path=__file__, object_name=object_name)
+    await conn.upload_file(
+        bucket=s3.bucket, local_path=__file__, object_name=object_name
+    )
     pathname = (Path(__file__).parent / uuid.uuid4().hex).with_suffix(".bak")
     pathname.unlink(missing_ok=True)
-    await conn.download_file(bucket=s3.bucket, object_name=object_name, local_path=str(pathname))
+    await conn.download_file(
+        bucket=s3.bucket, object_name=object_name, local_path=str(pathname)
+    )
     assert pathname.exists()
     url = await conn.get_object_url(bucket=s3.bucket, object_name=object_name)
     assert url

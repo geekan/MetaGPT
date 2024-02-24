@@ -61,18 +61,34 @@ messages = [{"role": "user", "content": prompt_msg}]
 def test_fireworks_costmanager():
     cost_manager = FireworksCostManager()
     assert MODEL_GRADE_TOKEN_COSTS["-1"] == cost_manager.model_grade_token_costs("test")
-    assert MODEL_GRADE_TOKEN_COSTS["-1"] == cost_manager.model_grade_token_costs("xxx-81b-chat")
-    assert MODEL_GRADE_TOKEN_COSTS["16"] == cost_manager.model_grade_token_costs("llama-v2-13b-chat")
-    assert MODEL_GRADE_TOKEN_COSTS["16"] == cost_manager.model_grade_token_costs("xxx-15.5b-chat")
-    assert MODEL_GRADE_TOKEN_COSTS["16"] == cost_manager.model_grade_token_costs("xxx-16b-chat")
-    assert MODEL_GRADE_TOKEN_COSTS["80"] == cost_manager.model_grade_token_costs("xxx-80b-chat")
-    assert MODEL_GRADE_TOKEN_COSTS["mixtral-8x7b"] == cost_manager.model_grade_token_costs("mixtral-8x7b-chat")
+    assert MODEL_GRADE_TOKEN_COSTS["-1"] == cost_manager.model_grade_token_costs(
+        "xxx-81b-chat"
+    )
+    assert MODEL_GRADE_TOKEN_COSTS["16"] == cost_manager.model_grade_token_costs(
+        "llama-v2-13b-chat"
+    )
+    assert MODEL_GRADE_TOKEN_COSTS["16"] == cost_manager.model_grade_token_costs(
+        "xxx-15.5b-chat"
+    )
+    assert MODEL_GRADE_TOKEN_COSTS["16"] == cost_manager.model_grade_token_costs(
+        "xxx-16b-chat"
+    )
+    assert MODEL_GRADE_TOKEN_COSTS["80"] == cost_manager.model_grade_token_costs(
+        "xxx-80b-chat"
+    )
+    assert MODEL_GRADE_TOKEN_COSTS[
+        "mixtral-8x7b"
+    ] == cost_manager.model_grade_token_costs("mixtral-8x7b-chat")
 
-    cost_manager.update_cost(prompt_tokens=500000, completion_tokens=500000, model="llama-v2-13b-chat")
+    cost_manager.update_cost(
+        prompt_tokens=500000, completion_tokens=500000, model="llama-v2-13b-chat"
+    )
     assert cost_manager.total_cost == 0.5
 
 
-async def mock_openai_acompletions_create(self, stream: bool = False, **kwargs) -> ChatCompletionChunk:
+async def mock_openai_acompletions_create(
+    self, stream: bool = False, **kwargs
+) -> ChatCompletionChunk:
     if stream:
 
         class Iterator(object):
@@ -86,16 +102,24 @@ async def mock_openai_acompletions_create(self, stream: bool = False, **kwargs) 
 
 @pytest.mark.asyncio
 async def test_fireworks_acompletion(mocker):
-    mocker.patch("openai.resources.chat.completions.AsyncCompletions.create", mock_openai_acompletions_create)
+    mocker.patch(
+        "openai.resources.chat.completions.AsyncCompletions.create",
+        mock_openai_acompletions_create,
+    )
 
     fireworks_gpt = FireworksLLM(mock_llm_config)
     fireworks_gpt.model = "llama-v2-13b-chat"
 
     fireworks_gpt._update_costs(
-        usage=CompletionUsage(prompt_tokens=500000, completion_tokens=500000, total_tokens=1000000)
+        usage=CompletionUsage(
+            prompt_tokens=500000, completion_tokens=500000, total_tokens=1000000
+        )
     )
     assert fireworks_gpt.get_costs() == Costs(
-        total_prompt_tokens=500000, total_completion_tokens=500000, total_cost=0.5, total_budget=0
+        total_prompt_tokens=500000,
+        total_completion_tokens=500000,
+        total_cost=0.5,
+        total_budget=0,
     )
 
     resp = await fireworks_gpt.acompletion(messages)

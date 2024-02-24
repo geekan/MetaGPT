@@ -12,7 +12,13 @@ messages = [{"role": "user", "content": prompt_msg}]
 
 resp_content = "I'm chatglm-turbo"
 default_resp = {
-    "choices": [{"finish_reason": "stop", "index": 0, "message": {"content": resp_content, "role": "assistant"}}],
+    "choices": [
+        {
+            "finish_reason": "stop",
+            "index": 0,
+            "message": {"content": resp_content, "role": "assistant"},
+        }
+    ],
     "usage": {"completion_tokens": 22, "prompt_tokens": 19, "total_tokens": 41},
 }
 
@@ -21,7 +27,16 @@ async def mock_zhipuai_acreate_stream(self, **kwargs):
     class MockResponse(object):
         async def _aread(self):
             class Iterator(object):
-                events = [{"choices": [{"index": 0, "delta": {"content": resp_content, "role": "assistant"}}]}]
+                events = [
+                    {
+                        "choices": [
+                            {
+                                "index": 0,
+                                "delta": {"content": resp_content, "role": "assistant"},
+                            }
+                        ]
+                    }
+                ]
 
                 async def __aiter__(self):
                     for event in self.events:
@@ -43,8 +58,14 @@ async def mock_zhipuai_acreate(self, **kwargs) -> dict:
 
 @pytest.mark.asyncio
 async def test_zhipuai_acompletion(mocker):
-    mocker.patch("metagpt.provider.zhipuai.zhipu_model_api.ZhiPuModelAPI.acreate", mock_zhipuai_acreate)
-    mocker.patch("metagpt.provider.zhipuai.zhipu_model_api.ZhiPuModelAPI.acreate_stream", mock_zhipuai_acreate_stream)
+    mocker.patch(
+        "metagpt.provider.zhipuai.zhipu_model_api.ZhiPuModelAPI.acreate",
+        mock_zhipuai_acreate,
+    )
+    mocker.patch(
+        "metagpt.provider.zhipuai.zhipu_model_api.ZhiPuModelAPI.acreate_stream",
+        mock_zhipuai_acreate_stream,
+    )
 
     zhipu_gpt = ZhiPuAILLM(mock_llm_config_zhipu)
 

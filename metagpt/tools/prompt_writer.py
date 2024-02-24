@@ -12,7 +12,10 @@ class GPTPromptGenerator:
     """Using LLM, given an output, request LLM to provide input (supporting instruction, chatbot, and query styles)"""
 
     def __init__(self):
-        self._generators = {i: getattr(self, f"gen_{i}_style") for i in ["instruction", "chatbot", "query"]}
+        self._generators = {
+            i: getattr(self, f"gen_{i}_style")
+            for i in ["instruction", "chatbot", "query"]
+        }
 
     def gen_instruction_style(self, example):
         """Instruction style: Given an output, request LLM to provide input"""

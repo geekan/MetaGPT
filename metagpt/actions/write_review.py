@@ -36,4 +36,6 @@ class WriteReview(Action):
     name: str = "WriteReview"
 
     async def run(self, context):
-        return await WRITE_REVIEW_NODE.fill(context=context, llm=self.llm, schema="json")
+        return await WRITE_REVIEW_NODE.fill(
+            context=context, llm=self.llm, schema="json"
+        )

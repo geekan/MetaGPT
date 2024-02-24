@@ -42,7 +42,13 @@ class AndroidExtEnv(ExtEnv):
         return f"adb -s {self.device_id} "
 
     def execute_adb_with_cmd(self, adb_cmd: str) -> str:
-        res = subprocess.run(adb_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        res = subprocess.run(
+            adb_cmd,
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
         exec_res = ADB_EXEC_FAIL
         if not res.returncode:
             exec_res = res.stdout.strip()
@@ -127,7 +133,14 @@ class AndroidExtEnv(ExtEnv):
         return press_res
 
     @mark_as_writeable
-    def user_swipe(self, x: int, y: int, orient: str = "up", dist: str = "medium", if_quick: bool = False) -> str:
+    def user_swipe(
+        self,
+        x: int,
+        y: int,
+        orient: str = "up",
+        dist: str = "medium",
+        if_quick: bool = False,
+    ) -> str:
         dist_unit = int(self.width / 10)
         if dist == "long":
             dist_unit *= 3
@@ -151,7 +164,9 @@ class AndroidExtEnv(ExtEnv):
         return swipe_res
 
     @mark_as_writeable
-    def user_swipe_to(self, start: tuple[int, int], end: tuple[int, int], duration: int = 400):
+    def user_swipe_to(
+        self, start: tuple[int, int], end: tuple[int, int], duration: int = 400
+    ):
         adb_cmd = f"{self.adb_prefix_si} swipe {start[0]} {start[1]} {end[0]} {end[1]} {duration}"
         swipe_res = self.execute_adb_with_cmd(adb_cmd)
         return swipe_res

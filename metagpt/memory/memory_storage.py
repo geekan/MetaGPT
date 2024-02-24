@@ -27,7 +27,9 @@ class MemoryStorage(FaissStore):
         self.role_id: str = None
         self.role_mem_path: str = None
         self.mem_ttl: int = mem_ttl  # later use
-        self.threshold: float = 0.1  # experience value. TODO The threshold to filter similar memories
+        self.threshold: float = (
+            0.1  # experience value. TODO The threshold to filter similar memories
+        )
         self._initialized: bool = False
 
         self.embedding = embedding or OpenAIEmbeddings()
@@ -38,10 +40,14 @@ class MemoryStorage(FaissStore):
         return self._initialized
 
     def _load(self) -> Optional["FaissStore"]:
-        index_file, store_file = self._get_index_and_store_fname(index_ext=".faiss")  # langchain FAISS using .faiss
+        index_file, store_file = self._get_index_and_store_fname(
+            index_ext=".faiss"
+        )  # langchain FAISS using .faiss
 
         if not (index_file.exists() and store_file.exists()):
-            logger.info("Missing at least one of index_file/store_file, load failed and return None")
+            logger.info(
+                "Missing at least one of index_file/store_file, load failed and return None"
+            )
             return None
 
         return FAISS.load_local(self.role_mem_path, self.embedding, self.role_id)
@@ -58,14 +64,18 @@ class MemoryStorage(FaissStore):
             pass
         else:
             for _id, document in self.store.docstore._dict.items():
-                messages.append(deserialize_message(document.metadata.get("message_ser")))
+                messages.append(
+                    deserialize_message(document.metadata.get("message_ser"))
+                )
             self._initialized = True
 
         return messages
 
     def _get_index_and_store_fname(self, index_ext=".index", pkl_ext=".pkl"):
         if not self.role_mem_path:
-            logger.error(f"You should call {self.__class__.__name__}.recover_memory fist when using LongTermMemory")
+            logger.error(
+                f"You should call {self.__class__.__name__}.recover_memory fist when using LongTermMemory"
+            )
             return None, None
         index_fpath = Path(self.role_mem_path / f"{self.role_id}{index_ext}")
         storage_fpath = Path(self.role_mem_path / f"{self.role_id}{pkl_ext}")

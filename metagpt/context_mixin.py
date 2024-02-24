@@ -92,7 +92,9 @@ class ContextMixin(BaseModel):
         """Role llm: if not existed, init from role.config"""
         # print(f"class:{self.__class__.__name__}({self.name}), llm: {self._llm}, llm_config: {self._llm_config}")
         if not self.private_llm:
-            self.private_llm = self.context.llm_with_cost_manager_from_llm_config(self.config.llm)
+            self.private_llm = self.context.llm_with_cost_manager_from_llm_config(
+                self.config.llm
+            )
         return self.private_llm
 
     @llm.setter

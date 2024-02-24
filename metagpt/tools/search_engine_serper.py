@@ -26,7 +26,11 @@ class SerperWrapper(BaseModel):
     def validate_serper(cls, values: dict) -> dict:
         if "serper_api_key" in values:
             values.setdefault("api_key", values["serper_api_key"])
-            warnings.warn("`serper_api_key` is deprecated, use `api_key` instead", DeprecationWarning, stacklevel=2)
+            warnings.warn(
+                "`serper_api_key` is deprecated, use `api_key` instead",
+                DeprecationWarning,
+                stacklevel=2,
+            )
 
         if "api_key" not in values:
             raise ValueError(
@@ -35,12 +39,19 @@ class SerperWrapper(BaseModel):
             )
         return values
 
-    async def run(self, query: str, max_results: int = 8, as_string: bool = True, **kwargs: Any) -> str:
+    async def run(
+        self, query: str, max_results: int = 8, as_string: bool = True, **kwargs: Any
+    ) -> str:
         """Run query through Serper and parse result async."""
         if isinstance(query, str):
-            return self._process_response((await self.results([query], max_results))[0], as_string=as_string)
+            return self._process_response(
+                (await self.results([query], max_results))[0], as_string=as_string
+            )
         else:
-            results = [self._process_response(res, as_string) for res in await self.results(query, max_results)]
+            results = [
+                self._process_response(res, as_string)
+                for res in await self.results(query, max_results)
+            ]
         return "\n".join(results) if as_string else results
 
     async def results(self, queries: list[str], max_results: int = 8) -> dict:
@@ -55,11 +66,15 @@ class SerperWrapper(BaseModel):
         url, payloads, headers = construct_url_and_payload_and_headers()
         if not self.aiosession:
             async with aiohttp.ClientSession() as session:
-                async with session.post(url, data=payloads, headers=headers, proxy=self.proxy) as response:
+                async with session.post(
+                    url, data=payloads, headers=headers, proxy=self.proxy
+                ) as response:
                     response.raise_for_status()
                     res = await response.json()
         else:
-            async with self.aiosession.get.post(url, data=payloads, headers=headers, proxy=self.proxy) as response:
+            async with self.aiosession.get.post(
+                url, data=payloads, headers=headers, proxy=self.proxy
+            ) as response:
                 response.raise_for_status()
                 res = await response.json()
 
@@ -95,11 +110,20 @@ class SerperWrapper(BaseModel):
             toret = res["answer_box"]["answer"]
         elif "answer_box" in res.keys() and "snippet" in res["answer_box"].keys():
             toret = res["answer_box"]["snippet"]
-        elif "answer_box" in res.keys() and "snippet_highlighted_words" in res["answer_box"].keys():
+        elif (
+            "answer_box" in res.keys()
+            and "snippet_highlighted_words" in res["answer_box"].keys()
+        ):
             toret = res["answer_box"]["snippet_highlighted_words"][0]
-        elif "sports_results" in res.keys() and "game_spotlight" in res["sports_results"].keys():
+        elif (
+            "sports_results" in res.keys()
+            and "game_spotlight" in res["sports_results"].keys()
+        ):
             toret = res["sports_results"]["game_spotlight"]
-        elif "knowledge_graph" in res.keys() and "description" in res["knowledge_graph"].keys():
+        elif (
+            "knowledge_graph" in res.keys()
+            and "description" in res["knowledge_graph"].keys()
+        ):
             toret = res["knowledge_graph"]["description"]
         elif "snippet" in res["organic"][0].keys():
             toret = res["organic"][0]["snippet"]

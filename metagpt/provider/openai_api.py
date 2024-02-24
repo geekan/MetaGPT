@@ -40,7 +40,9 @@ from metagpt.utils.token_counter import (
 
 
 def log_and_reraise(retry_state):
-    logger.error(f"Retry attempts exhausted. Last exception: {retry_state.outcome.exception()}")
+    logger.error(
+        f"Retry attempts exhausted. Last exception: {retry_state.outcome.exception()}"
+    )
     logger.warning(
         """
 Recommend going to https://deepwisdom.feishu.cn/wiki/MsGnwQBjiif9c3koSJNcYaoSnu4#part-XdatdVlhEojeAfxaaEZcMV3ZniQ
@@ -87,13 +89,19 @@ class OpenAILLM(BaseLLM):
 
         return params
 
-    async def _achat_completion_stream(self, messages: list[dict], timeout=3) -> AsyncIterator[str]:
-        response: AsyncStream[ChatCompletionChunk] = await self.aclient.chat.completions.create(
-            **self._cons_kwargs(messages, timeout=timeout), stream=True
+    async def _achat_completion_stream(
+        self, messages: list[dict], timeout=3
+    ) -> AsyncIterator[str]:
+        response: AsyncStream[ChatCompletionChunk] = (
+            await self.aclient.chat.completions.create(
+                **self._cons_kwargs(messages, timeout=timeout), stream=True
+            )
         )
 
         async for chunk in response:
-            chunk_message = chunk.choices[0].delta.content or "" if chunk.choices else ""  # extract the message
+            chunk_message = (
+                chunk.choices[0].delta.content or "" if chunk.choices else ""
+            )  # extract the message
             yield chunk_message
 
     def _cons_kwargs(self, messages: list[dict], timeout=3, **extra_kwargs) -> dict:
@@ -110,7 +118,9 @@ class OpenAILLM(BaseLLM):
             kwargs.update(extra_kwargs)
         return kwargs
 
-    async def _achat_completion(self, messages: list[dict], timeout=3) -> ChatCompletion:
+    async def _achat_completion(
+        self, messages: list[dict], timeout=3
+    ) -> ChatCompletion:
         kwargs = self._cons_kwargs(messages, timeout=timeout)
         rsp: ChatCompletion = await self.aclient.chat.completions.create(**kwargs)
         self._update_costs(rsp.usage)
@@ -126,7 +136,9 @@ class OpenAILLM(BaseLLM):
         retry=retry_if_exception_type(APIConnectionError),
         retry_error_callback=log_and_reraise,
     )
-    async def acompletion_text(self, messages: list[dict], stream=False, timeout=3) -> str:
+    async def acompletion_text(
+        self, messages: list[dict], stream=False, timeout=3
+    ) -> str:
         """when streaming, print each token in place."""
         if stream:
             resp = self._achat_completion_stream(messages, timeout=timeout)
@@ -148,12 +160,16 @@ class OpenAILLM(BaseLLM):
     def _func_configs(self, messages: list[dict], timeout=3, **kwargs) -> dict:
         """Note: Keep kwargs consistent with https://platform.openai.com/docs/api-reference/chat/create"""
         if "tools" not in kwargs:
-            configs = {"tools": [{"type": "function", "function": GENERAL_FUNCTION_SCHEMA}]}
+            configs = {
+                "tools": [{"type": "function", "function": GENERAL_FUNCTION_SCHEMA}]
+            }
             kwargs.update(configs)
 
         return self._cons_kwargs(messages=messages, timeout=timeout, **kwargs)
 
-    def _process_message(self, messages: Union[str, Message, list[dict], list[Message], list[str]]) -> list[dict]:
+    def _process_message(
+        self, messages: Union[str, Message, list[dict], list[Message], list[str]]
+    ) -> list[dict]:
         """convert messages to list[dict]."""
         # 全部转成list
         if not isinstance(messages, list):
@@ -175,7 +191,9 @@ class OpenAILLM(BaseLLM):
                 )
         return processed_messages
 
-    async def _achat_completion_function(self, messages: list[dict], timeout=3, **chat_configs) -> ChatCompletion:
+    async def _achat_completion_function(
+        self, messages: list[dict], timeout=3, **chat_configs
+    ) -> ChatCompletion:
         messages = self._process_message(messages)
         kwargs = self._func_configs(messages=messages, timeout=timeout, **chat_configs)
         rsp: ChatCompletion = await self.aclient.chat.completions.create(**kwargs)
@@ -198,11 +216,15 @@ class OpenAILLM(BaseLLM):
     def _parse_arguments(self, arguments: str) -> dict:
         """parse arguments in openai function call"""
         if "langugae" not in arguments and "code" not in arguments:
-            logger.warning(f"Not found `code`, `language`, We assume it is pure code:\n {arguments}\n. ")
+            logger.warning(
+                f"Not found `code`, `language`, We assume it is pure code:\n {arguments}\n. "
+            )
             return {"language": "python", "code": arguments}
 
         # 匹配language
-        language_pattern = re.compile(r'[\"\']?language[\"\']?\s*:\s*["\']([^"\']+?)["\']', re.DOTALL)
+        language_pattern = re.compile(
+            r'[\"\']?language[\"\']?\s*:\s*["\']([^"\']+?)["\']', re.DOTALL
+        )
         language_match = language_pattern.search(arguments)
         language_value = language_match.group(1) if language_match else "python"
 
@@ -235,18 +257,20 @@ class OpenAILLM(BaseLLM):
         ):
             # reponse is code
             try:
-                return json.loads(message.tool_calls[0].function.arguments, strict=False)
-            except json.decoder.JSONDecodeError as e:
-                error_msg = (
-                    f"Got JSONDecodeError for \n{'--'*40} \n{message.tool_calls[0].function.arguments}, {str(e)}"
+                return json.loads(
+                    message.tool_calls[0].function.arguments, strict=False
                 )
+            except json.decoder.JSONDecodeError as e:
+                error_msg = f"Got JSONDecodeError for \n{'--'*40} \n{message.tool_calls[0].function.arguments}, {str(e)}"
                 logger.error(error_msg)
                 return self._parse_arguments(message.tool_calls[0].function.arguments)
         elif message.tool_calls is None and message.content is not None:
             # reponse is code, fix openai tools_call respond bug,
             # The response content is `code``, but it appears in the content instead of the arguments.
             code_formats = "```"
-            if message.content.startswith(code_formats) and message.content.endswith(code_formats):
+            if message.content.startswith(code_formats) and message.content.endswith(
+                code_formats
+            ):
                 code = CodeParser.parse_code(None, message.content)
                 return {"language": "python", "code": code}
             # reponse is message
@@ -275,7 +299,9 @@ class OpenAILLM(BaseLLM):
     @handle_exception
     def _update_costs(self, usage: CompletionUsage):
         if self.config.calc_usage and usage and self.cost_manager:
-            self.cost_manager.update_cost(usage.prompt_tokens, usage.completion_tokens, self.model)
+            self.cost_manager.update_cost(
+                usage.prompt_tokens, usage.completion_tokens, self.model
+            )
 
     def get_costs(self) -> Costs:
         if not self.cost_manager:
@@ -287,7 +313,9 @@ class OpenAILLM(BaseLLM):
             return self.config.max_token
         # FIXME
         # https://community.openai.com/t/why-is-gpt-3-5-turbo-1106-max-tokens-limited-to-4096/494973/3
-        return min(get_max_completion_tokens(messages, self.model, self.config.max_token), 4096)
+        return min(
+            get_max_completion_tokens(messages, self.model, self.config.max_token), 4096
+        )
 
     @handle_exception
     async def amoderation(self, content: Union[str, list[str]]):
@@ -315,7 +343,12 @@ class OpenAILLM(BaseLLM):
         if not model:
             model = self.model
         res = await self.aclient.images.generate(
-            model=model, prompt=prompt, size=size, quality=quality, n=1, response_format=resp_format
+            model=model,
+            prompt=prompt,
+            size=size,
+            quality=quality,
+            n=1,
+            response_format=resp_format,
         )
         imgs = []
         for item in res.data:

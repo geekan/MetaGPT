@@ -20,7 +20,9 @@ LANG_PROMPT = "Please respond in {language}."
 RESEARCH_BASE_SYSTEM = """You are an AI critical thinker research assistant. Your sole purpose is to write well \
 written, critically acclaimed, objective and structured reports on the given text."""
 
-RESEARCH_TOPIC_SYSTEM = "You are an AI researcher assistant, and your research topic is:\n#TOPIC#\n{topic}"
+RESEARCH_TOPIC_SYSTEM = (
+    "You are an AI researcher assistant, and your research topic is:\n#TOPIC#\n{topic}"
+)
 
 SEARCH_TOPIC_PROMPT = """Please provide up to 2 necessary keywords related to your research topic for Google search. \
 Your response must be in JSON format, for example: ["keyword1", "keyword2"]."""
@@ -88,7 +90,9 @@ class CollectLinks(Action):
     @model_validator(mode="after")
     def validate_engine_and_run_func(self):
         if self.search_engine is None:
-            self.search_engine = SearchEngine.from_search_config(self.config.search, proxy=self.config.proxy)
+            self.search_engine = SearchEngine.from_search_config(
+                self.config.search, proxy=self.config.proxy
+            )
         return self
 
     async def run(
@@ -109,20 +113,27 @@ class CollectLinks(Action):
         Returns:
             A dictionary containing the search questions as keys and the collected URLs as values.
         """
-        system_text = system_text if system_text else RESEARCH_TOPIC_SYSTEM.format(topic=topic)
+        system_text = (
+            system_text if system_text else RESEARCH_TOPIC_SYSTEM.format(topic=topic)
+        )
         keywords = await self._aask(SEARCH_TOPIC_PROMPT, [system_text])
         try:
             keywords = OutputParser.extract_struct(keywords, list)
             keywords = TypeAdapter(list[str]).validate_python(keywords)
         except Exception as e:
-            logger.exception(f"fail to get keywords related to the research topic '{topic}' for {e}")
+            logger.exception(
+                f"fail to get keywords related to the research topic '{topic}' for {e}"
+            )
             keywords = [topic]
-        results = await asyncio.gather(*(self.search_engine.run(i, as_string=False) for i in keywords))
+        results = await asyncio.gather(
+            *(self.search_engine.run(i, as_string=False) for i in keywords)
+        )
 
         def gen_msg():
             while True:
                 search_results = "\n".join(
-                    f"#### Keyword: {i}\n Search Result: {j}\n" for (i, j) in zip(keywords, results)
+                    f"#### Keyword: {i}\n Search Result: {j}\n"
+                    for (i, j) in zip(keywords, results)
                 )
                 prompt = SUMMARIZE_SEARCH_PROMPT.format(
                     decomposition_nums=decomposition_nums, search_results=search_results
@@ -148,7 +159,9 @@ class CollectLinks(Action):
             ret[query] = await self._search_and_rank_urls(topic, query, url_per_query)
         return ret
 
-    async def _search_and_rank_urls(self, topic: str, query: str, num_results: int = 4) -> list[str]:
+    async def _search_and_rank_urls(
+        self, topic: str, query: str, num_results: int = 4
+    ) -> list[str]:
         """Search and rank URLs based on a query.
 
         Args:
@@ -160,9 +173,13 @@ class CollectLinks(Action):
             A list of ranked URLs.
         """
         max_results = max(num_results * 2, 6)
-        results = await self.search_engine.run(query, max_results=max_results, as_string=False)
+        results = await self.search_engine.run(
+            query, max_results=max_results, as_string=False
+        )
         _results = "\n".join(f"{i}: {j}" for i, j in zip(range(max_results), results))
-        prompt = COLLECT_AND_RANKURLS_PROMPT.format(topic=topic, query=query, results=_results)
+        prompt = COLLECT_AND_RANKURLS_PROMPT.format(
+            topic=topic, query=query, results=_results
+        )
         logger.debug(prompt)
         indices = await self._aask(prompt)
         try:
@@ -219,11 +236,15 @@ class WebBrowseAndSummarize(Action):
             contents = [contents]
 
         summaries = {}
-        prompt_template = WEB_BROWSE_AND_SUMMARIZE_PROMPT.format(query=query, content="{}")
+        prompt_template = WEB_BROWSE_AND_SUMMARIZE_PROMPT.format(
+            query=query, content="{}"
+        )
         for u, content in zip([url, *urls], contents):
             content = content.inner_text
             chunk_summaries = []
-            for prompt in generate_prompt_chunk(content, prompt_template, self.llm.model, system_text, 4096):
+            for prompt in generate_prompt_chunk(
+                content, prompt_template, self.llm.model, system_text, 4096
+            ):
                 logger.debug(prompt)
                 summary = await self._aask(prompt, [system_text])
                 if summary == "Not relevant.":
@@ -239,7 +260,9 @@ class WebBrowseAndSummarize(Action):
                 continue
 
             content = "\n".join(chunk_summaries)
-            prompt = WEB_BROWSE_AND_SUMMARIZE_PROMPT.format(query=query, content=content)
+            prompt = WEB_BROWSE_AND_SUMMARIZE_PROMPT.format(
+                query=query, content=content
+            )
             summary = await self._aask(prompt, [system_text])
             summaries[u] = summary
         return summaries
@@ -283,4 +306,9 @@ def get_research_system_text(topic: str, language: str):
     Returns:
         The system text for conducting research.
     """
-    return " ".join((RESEARCH_TOPIC_SYSTEM.format(topic=topic), LANG_PROMPT.format(language=language)))
+    return " ".join(
+        (
+            RESEARCH_TOPIC_SYSTEM.format(topic=topic),
+            LANG_PROMPT.format(language=language),
+        )
+    )

@@ -32,21 +32,65 @@ def _paragraphs(n):
     ],
 )
 def test_reduce_message_length(msgs, model_name, system_text, reserved, expected):
-    assert len(reduce_message_length(msgs, model_name, system_text, reserved)) / (len("Hello,")) / 1000 == expected
+    assert (
+        len(reduce_message_length(msgs, model_name, system_text, reserved))
+        / (len("Hello,"))
+        / 1000
+        == expected
+    )
 
 
 @pytest.mark.parametrize(
     "text, prompt_template, model_name, system_text, reserved, expected",
     [
-        (" ".join("Hello World." for _ in range(1000)), "Prompt: {}", "gpt-3.5-turbo", "System", 1500, 2),
-        (" ".join("Hello World." for _ in range(1000)), "Prompt: {}", "gpt-3.5-turbo-16k", "System", 3000, 1),
-        (" ".join("Hello World." for _ in range(4000)), "Prompt: {}", "gpt-4", "System", 2000, 2),
-        (" ".join("Hello World." for _ in range(8000)), "Prompt: {}", "gpt-4-32k", "System", 4000, 1),
-        (" ".join("Hello World" for _ in range(8000)), "Prompt: {}", "gpt-3.5-turbo", "System", 1000, 8),
+        (
+            " ".join("Hello World." for _ in range(1000)),
+            "Prompt: {}",
+            "gpt-3.5-turbo",
+            "System",
+            1500,
+            2,
+        ),
+        (
+            " ".join("Hello World." for _ in range(1000)),
+            "Prompt: {}",
+            "gpt-3.5-turbo-16k",
+            "System",
+            3000,
+            1,
+        ),
+        (
+            " ".join("Hello World." for _ in range(4000)),
+            "Prompt: {}",
+            "gpt-4",
+            "System",
+            2000,
+            2,
+        ),
+        (
+            " ".join("Hello World." for _ in range(8000)),
+            "Prompt: {}",
+            "gpt-4-32k",
+            "System",
+            4000,
+            1,
+        ),
+        (
+            " ".join("Hello World" for _ in range(8000)),
+            "Prompt: {}",
+            "gpt-3.5-turbo",
+            "System",
+            1000,
+            8,
+        ),
     ],
 )
-def test_generate_prompt_chunk(text, prompt_template, model_name, system_text, reserved, expected):
-    ret = list(generate_prompt_chunk(text, prompt_template, model_name, system_text, reserved))
+def test_generate_prompt_chunk(
+    text, prompt_template, model_name, system_text, reserved, expected
+):
+    ret = list(
+        generate_prompt_chunk(text, prompt_template, model_name, system_text, reserved)
+    )
     assert len(ret) == expected
 
 
@@ -54,8 +98,18 @@ def test_generate_prompt_chunk(text, prompt_template, model_name, system_text, r
     "paragraph, sep, count, expected",
     [
         (_paragraphs(10), ".", 2, [_paragraphs(5), f" {_paragraphs(5)}"]),
-        (_paragraphs(10), ".", 3, [_paragraphs(4), f" {_paragraphs(3)}", f" {_paragraphs(3)}"]),
-        (f"{_paragraphs(5)}\n{_paragraphs(3)}", "\n.", 2, [f"{_paragraphs(5)}\n", _paragraphs(3)]),
+        (
+            _paragraphs(10),
+            ".",
+            3,
+            [_paragraphs(4), f" {_paragraphs(3)}", f" {_paragraphs(3)}"],
+        ),
+        (
+            f"{_paragraphs(5)}\n{_paragraphs(3)}",
+            "\n.",
+            2,
+            [f"{_paragraphs(5)}\n", _paragraphs(3)],
+        ),
         ("......", ".", 2, ["...", "..."]),
         ("......", ".", 3, ["..", "..", ".."]),
         (".......", ".", 2, ["....", "..."]),

@@ -34,13 +34,19 @@ class GeminiGenerativeModel(GenerativeModel):
     Will use default GenerativeModel if it fixed.
     """
 
-    def count_tokens(self, contents: content_types.ContentsType) -> glm.CountTokensResponse:
+    def count_tokens(
+        self, contents: content_types.ContentsType
+    ) -> glm.CountTokensResponse:
         contents = content_types.to_contents(contents)
         return self._client.count_tokens(model=self.model_name, contents=contents)
 
-    async def count_tokens_async(self, contents: content_types.ContentsType) -> glm.CountTokensResponse:
+    async def count_tokens_async(
+        self, contents: content_types.ContentsType
+    ) -> glm.CountTokensResponse:
         contents = content_types.to_contents(contents)
-        return await self._async_client.count_tokens(model=self.model_name, contents=contents)
+        return await self._async_client.count_tokens(
+            model=self.model_name, contents=contents
+        )
 
 
 @register_provider(LLMType.GEMINI)
@@ -50,7 +56,9 @@ class GeminiLLM(BaseLLM):
     """
 
     def __init__(self, config: LLMConfig):
-        self.use_system_prompt = False  # google gemini has no system prompt when use api
+        self.use_system_prompt = (
+            False  # google gemini has no system prompt when use api
+        )
 
         self.__init_gemini(config)
         self.config = config
@@ -60,7 +68,9 @@ class GeminiLLM(BaseLLM):
     def __init_gemini(self, config: LLMConfig):
         genai.configure(api_key=config.api_key)
 
-    def _user_msg(self, msg: str, images: Optional[Union[str, list[str]]] = None) -> dict[str, str]:
+    def _user_msg(
+        self, msg: str, images: Optional[Union[str, list[str]]] = None
+    ) -> dict[str, str]:
         # Not to change BaseLLM default functions but update with Gemini's conversation format.
         # You should follow the format.
         return {"role": "user", "parts": [msg]}
@@ -69,7 +79,11 @@ class GeminiLLM(BaseLLM):
         return {"role": "model", "parts": [msg]}
 
     def _const_kwargs(self, messages: list[dict], stream: bool = False) -> dict:
-        kwargs = {"contents": messages, "generation_config": GenerationConfig(temperature=0.3), "stream": stream}
+        kwargs = {
+            "contents": messages,
+            "generation_config": GenerationConfig(temperature=0.3),
+            "stream": stream,
+        }
         return kwargs
 
     def _update_costs(self, usage: dict):
@@ -78,7 +92,9 @@ class GeminiLLM(BaseLLM):
             try:
                 prompt_tokens = int(usage.get("prompt_tokens", 0))
                 completion_tokens = int(usage.get("completion_tokens", 0))
-                self.cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
+                self.cost_manager.update_cost(
+                    prompt_tokens, completion_tokens, self.model
+                )
             except Exception as e:
                 logger.error(f"google gemini updats costs failed! exp: {e}")
 
@@ -87,26 +103,46 @@ class GeminiLLM(BaseLLM):
 
     def get_usage(self, messages: list[dict], resp_text: str) -> dict:
         req_text = messages[-1]["parts"][0] if messages else ""
-        prompt_resp = self.llm.count_tokens(contents={"role": "user", "parts": [{"text": req_text}]})
-        completion_resp = self.llm.count_tokens(contents={"role": "model", "parts": [{"text": resp_text}]})
-        usage = {"prompt_tokens": prompt_resp.total_tokens, "completion_tokens": completion_resp.total_tokens}
+        prompt_resp = self.llm.count_tokens(
+            contents={"role": "user", "parts": [{"text": req_text}]}
+        )
+        completion_resp = self.llm.count_tokens(
+            contents={"role": "model", "parts": [{"text": resp_text}]}
+        )
+        usage = {
+            "prompt_tokens": prompt_resp.total_tokens,
+            "completion_tokens": completion_resp.total_tokens,
+        }
         return usage
 
     async def aget_usage(self, messages: list[dict], resp_text: str) -> dict:
         req_text = messages[-1]["parts"][0] if messages else ""
-        prompt_resp = await self.llm.count_tokens_async(contents={"role": "user", "parts": [{"text": req_text}]})
-        completion_resp = await self.llm.count_tokens_async(contents={"role": "model", "parts": [{"text": resp_text}]})
-        usage = {"prompt_tokens": prompt_resp.total_tokens, "completion_tokens": completion_resp.total_tokens}
+        prompt_resp = await self.llm.count_tokens_async(
+            contents={"role": "user", "parts": [{"text": req_text}]}
+        )
+        completion_resp = await self.llm.count_tokens_async(
+            contents={"role": "model", "parts": [{"text": resp_text}]}
+        )
+        usage = {
+            "prompt_tokens": prompt_resp.total_tokens,
+            "completion_tokens": completion_resp.total_tokens,
+        }
         return usage
 
     def completion(self, messages: list[dict]) -> "GenerateContentResponse":
-        resp: GenerateContentResponse = self.llm.generate_content(**self._const_kwargs(messages))
+        resp: GenerateContentResponse = self.llm.generate_content(
+            **self._const_kwargs(messages)
+        )
         usage = self.get_usage(messages, resp.text)
         self._update_costs(usage)
         return resp
 
-    async def _achat_completion(self, messages: list[dict]) -> "AsyncGenerateContentResponse":
-        resp: AsyncGenerateContentResponse = await self.llm.generate_content_async(**self._const_kwargs(messages))
+    async def _achat_completion(
+        self, messages: list[dict]
+    ) -> "AsyncGenerateContentResponse":
+        resp: AsyncGenerateContentResponse = await self.llm.generate_content_async(
+            **self._const_kwargs(messages)
+        )
         usage = await self.aget_usage(messages, resp.text)
         self._update_costs(usage)
         return resp
@@ -137,7 +173,9 @@ class GeminiLLM(BaseLLM):
         retry=retry_if_exception_type(ConnectionError),
         retry_error_callback=log_and_reraise,
     )
-    async def acompletion_text(self, messages: list[dict], stream=False, timeout: int = 3) -> str:
+    async def acompletion_text(
+        self, messages: list[dict], stream=False, timeout: int = 3
+    ) -> str:
         """response in async with stream or non-stream mode"""
         if stream:
             return await self._achat_completion_stream(messages)

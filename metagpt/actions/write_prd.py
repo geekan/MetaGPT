@@ -105,16 +105,21 @@ class WritePRD(Action):
         project_name = self.project_name
         context = CONTEXT_TEMPLATE.format(requirements=req, project_name=project_name)
         exclude = [PROJECT_NAME.key] if project_name else []
-        node = await WRITE_PRD_NODE.fill(context=context, llm=self.llm, exclude=exclude)  # schema=schema
+        node = await WRITE_PRD_NODE.fill(
+            context=context, llm=self.llm, exclude=exclude
+        )  # schema=schema
         await self._rename_workspace(node)
         new_prd_doc = await self.repo.docs.prd.save(
-            filename=FileRepository.new_filename() + ".json", content=node.instruct_content.model_dump_json()
+            filename=FileRepository.new_filename() + ".json",
+            content=node.instruct_content.model_dump_json(),
         )
         await self._save_competitive_analysis(new_prd_doc)
         await self.repo.resources.prd.save_pdf(doc=new_prd_doc)
         return Documents.from_iterable(documents=[new_prd_doc]).to_action_output()
 
-    async def _handle_requirement_update(self, req: Document, related_docs: list[Document]) -> ActionOutput:
+    async def _handle_requirement_update(
+        self, req: Document, related_docs: list[Document]
+    ) -> ActionOutput:
         # ... requirement update logic ...
         for doc in related_docs:
             await self._update_prd(req, doc)
@@ -126,21 +131,29 @@ class WritePRD(Action):
         node = await WP_ISSUE_TYPE_NODE.fill(context, self.llm)
         return node.get("issue_type") == "BUG"
 
-    async def get_related_docs(self, req: Document, docs: list[Document]) -> list[Document]:
+    async def get_related_docs(
+        self, req: Document, docs: list[Document]
+    ) -> list[Document]:
         """get the related documents"""
         # refine: use gather to speed up
         return [i for i in docs if await self._is_related(req, i)]
 
     async def _is_related(self, req: Document, old_prd: Document) -> bool:
-        context = NEW_REQ_TEMPLATE.format(old_prd=old_prd.content, requirements=req.content)
+        context = NEW_REQ_TEMPLATE.format(
+            old_prd=old_prd.content, requirements=req.content
+        )
         node = await WP_IS_RELATIVE_NODE.fill(context, self.llm)
         return node.get("is_relative") == "YES"
 
     async def _merge(self, req: Document, related_doc: Document) -> Document:
         if not self.project_name:
             self.project_name = Path(self.project_path).name
-        prompt = NEW_REQ_TEMPLATE.format(requirements=req.content, old_prd=related_doc.content)
-        node = await REFINED_PRD_NODE.fill(context=prompt, llm=self.llm, schema=self.prompt_schema)
+        prompt = NEW_REQ_TEMPLATE.format(
+            requirements=req.content, old_prd=related_doc.content
+        )
+        node = await REFINED_PRD_NODE.fill(
+            context=prompt, llm=self.llm, schema=self.prompt_schema
+        )
         related_doc.content = node.instruct_content.model_dump_json()
         await self._rename_workspace(node)
         return related_doc
@@ -157,7 +170,11 @@ class WritePRD(Action):
         quadrant_chart = m.get(COMPETITIVE_QUADRANT_CHART.key)
         if not quadrant_chart:
             return
-        pathname = self.repo.workdir / COMPETITIVE_ANALYSIS_FILE_REPO / Path(prd_doc.filename).stem
+        pathname = (
+            self.repo.workdir
+            / COMPETITIVE_ANALYSIS_FILE_REPO
+            / Path(prd_doc.filename).stem
+        )
         pathname.parent.mkdir(parents=True, exist_ok=True)
         await mermaid_to_file(self.config.mermaid.engine, quadrant_chart, pathname)
 

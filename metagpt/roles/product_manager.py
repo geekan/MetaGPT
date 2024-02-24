@@ -26,8 +26,12 @@ class ProductManager(Role):
 
     name: str = "Alice"
     profile: str = "Product Manager"
-    goal: str = "efficiently create a successful product that meets market demands and user expectations"
-    constraints: str = "utilize the same language as the user requirements for seamless communication"
+    goal: str = (
+        "efficiently create a successful product that meets market demands and user expectations"
+    )
+    constraints: str = (
+        "utilize the same language as the user requirements for seamless communication"
+    )
     todo_action: str = ""
 
     def __init__(self, **kwargs) -> None:

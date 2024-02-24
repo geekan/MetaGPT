@@ -51,7 +51,9 @@ class InvoiceOCRAssistant(Role):
 
     name: str = "Stitch"
     profile: str = "Invoice OCR Assistant"
-    goal: str = "OCR identifies invoice files and generates invoice main information table"
+    goal: str = (
+        "OCR identifies invoice files and generates invoice main information table"
+    )
     constraints: str = ""
     language: str = "ch"
     filename: str = ""

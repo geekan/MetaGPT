@@ -36,8 +36,7 @@ class DDGAPIWrapper(BaseModel):
         max_results: int = 8,
         as_string: Literal[True] = True,
         focus: list[str] | None = None,
-    ) -> str:
-        ...
+    ) -> str: ...
 
     @overload
     def run(
@@ -46,8 +45,7 @@ class DDGAPIWrapper(BaseModel):
         max_results: int = 8,
         as_string: Literal[False] = False,
         focus: list[str] | None = None,
-    ) -> list[dict[str, str]]:
-        ...
+    ) -> list[dict[str, str]]: ...
 
     async def run(
         self,

@@ -32,10 +32,14 @@ async def test_project_repo():
     await pr.save(filename=BUGFIX_FILENAME, content=BUGFIX_FILENAME)
     doc = await pr.get(filename=BUGFIX_FILENAME)
     assert doc.content == BUGFIX_FILENAME
-    await pr.save(filename=PACKAGE_REQUIREMENTS_FILENAME, content=PACKAGE_REQUIREMENTS_FILENAME)
+    await pr.save(
+        filename=PACKAGE_REQUIREMENTS_FILENAME, content=PACKAGE_REQUIREMENTS_FILENAME
+    )
     doc = await pr.get(filename=PACKAGE_REQUIREMENTS_FILENAME)
     assert doc.content == PACKAGE_REQUIREMENTS_FILENAME
-    await pr.docs.prd.save(filename="1.prd", content="1.prd", dependencies=[REQUIREMENT_FILENAME])
+    await pr.docs.prd.save(
+        filename="1.prd", content="1.prd", dependencies=[REQUIREMENT_FILENAME]
+    )
     doc = await pr.docs.prd.get(filename="1.prd")
     assert doc.content == "1.prd"
     await pr.resources.prd.save(

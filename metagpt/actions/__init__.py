@@ -14,7 +14,11 @@ from metagpt.actions.debug_error import DebugError
 from metagpt.actions.design_api import WriteDesign
 from metagpt.actions.design_api_review import DesignReview
 from metagpt.actions.project_management import WriteTasks
-from metagpt.actions.research import CollectLinks, WebBrowseAndSummarize, ConductResearch
+from metagpt.actions.research import (
+    CollectLinks,
+    WebBrowseAndSummarize,
+    ConductResearch,
+)
 from metagpt.actions.run_code import RunCode
 from metagpt.actions.search_and_summarize import SearchAndSummarize
 from metagpt.actions.write_code import WriteCode
@@ -23,7 +27,10 @@ from metagpt.actions.write_prd import WritePRD
 from metagpt.actions.write_prd_review import WritePRDReview
 from metagpt.actions.write_test import WriteTest
 from metagpt.actions.ci.execute_nb_code import ExecuteNbCode
-from metagpt.actions.ci.write_analysis_code import WriteCodeWithoutTools, WriteCodeWithTools
+from metagpt.actions.ci.write_analysis_code import (
+    WriteCodeWithoutTools,
+    WriteCodeWithTools,
+)
 from metagpt.actions.ci.write_plan import WritePlan
 
 

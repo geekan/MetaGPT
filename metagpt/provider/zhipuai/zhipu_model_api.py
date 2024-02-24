@@ -39,7 +39,9 @@ class ZhiPuModelAPI(ZhipuAI):
     async def acreate(self, **kwargs) -> dict:
         """async invoke different from raw method `async_invoke` which get the final result by task_id"""
         headers = self._default_headers
-        resp = await self.arequest(stream=False, method="post", headers=headers, kwargs=kwargs)
+        resp = await self.arequest(
+            stream=False, method="post", headers=headers, kwargs=kwargs
+        )
         resp = resp.decode("utf-8")
         resp = json.loads(resp)
         if "error" in resp:
@@ -51,4 +53,8 @@ class ZhiPuModelAPI(ZhipuAI):
     async def acreate_stream(self, **kwargs) -> AsyncSSEClient:
         """async sse_invoke"""
         headers = self._default_headers
-        return AsyncSSEClient(await self.arequest(stream=True, method="post", headers=headers, kwargs=kwargs))
+        return AsyncSSEClient(
+            await self.arequest(
+                stream=True, method="post", headers=headers, kwargs=kwargs
+            )
+        )

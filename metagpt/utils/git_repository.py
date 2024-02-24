@@ -63,7 +63,9 @@ class GitRepository:
         local_path = Path(local_path)
         if self.is_git_dir(local_path):
             self._repository = Repo(local_path)
-            self._gitignore_rules = parse_gitignore(full_path=str(local_path / ".gitignore"))
+            self._gitignore_rules = parse_gitignore(
+                full_path=str(local_path / ".gitignore")
+            )
             return
         if not auto_init:
             return
@@ -94,7 +96,11 @@ class GitRepository:
             return
 
         for k, v in files.items():
-            self._repository.index.remove(k) if v is ChangeType.DELETED else self._repository.index.add([k])
+            (
+                self._repository.index.remove(k)
+                if v is ChangeType.DELETED
+                else self._repository.index.add([k])
+            )
 
     def commit(self, comments):
         """Commit the staged changes with the given comments.
@@ -119,7 +125,10 @@ class GitRepository:
         :return: A dictionary where keys are file paths and values are change types.
         """
         files = {i: ChangeType.UNTRACTED for i in self._repository.untracked_files}
-        changed_files = {f.a_path: ChangeType(f.change_type) for f in self._repository.index.diff(None)}
+        changed_files = {
+            f.a_path: ChangeType(f.change_type)
+            for f in self._repository.index.diff(None)
+        }
         files.update(changed_files)
         return files
 
@@ -220,7 +229,12 @@ class GitRepository:
         self._repository = Repo(new_path)
         self._gitignore_rules = parse_gitignore(full_path=str(new_path / ".gitignore"))
 
-    def get_files(self, relative_path: Path | str, root_relative_path: Path | str = None, filter_ignored=True) -> List:
+    def get_files(
+        self,
+        relative_path: Path | str,
+        root_relative_path: Path | str = None,
+        filter_ignored=True,
+    ) -> List:
         """
         Retrieve a list of files in the specified relative path.
 
@@ -253,17 +267,23 @@ class GitRepository:
                     files.append(str(rpath))
                 else:
                     subfolder_files = self.get_files(
-                        relative_path=file_path, root_relative_path=root_relative_path, filter_ignored=False
+                        relative_path=file_path,
+                        root_relative_path=root_relative_path,
+                        filter_ignored=False,
                     )
                     files.extend(subfolder_files)
         except Exception as e:
             logger.error(f"Error: {e}")
         if not filter_ignored:
             return files
-        filtered_files = self.filter_gitignore(filenames=files, root_relative_path=root_relative_path)
+        filtered_files = self.filter_gitignore(
+            filenames=files, root_relative_path=root_relative_path
+        )
         return filtered_files
 
-    def filter_gitignore(self, filenames: List[str], root_relative_path: Path | str = None) -> List[str]:
+    def filter_gitignore(
+        self, filenames: List[str], root_relative_path: Path | str = None
+    ) -> List[str]:
         """
         Filter a list of filenames based on .gitignore rules.
 

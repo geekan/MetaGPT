@@ -3,7 +3,10 @@ import re
 from json import JSONDecodeError
 from json.decoder import _decode_uXXXX
 
-NUMBER_RE = re.compile(r"(-?(?:0|[1-9]\d*))(\.\d+)?([eE][-+]?\d+)?", (re.VERBOSE | re.MULTILINE | re.DOTALL))
+NUMBER_RE = re.compile(
+    r"(-?(?:0|[1-9]\d*))(\.\d+)?([eE][-+]?\d+)?",
+    (re.VERBOSE | re.MULTILINE | re.DOTALL),
+)
 
 
 def py_make_scanner(context):
@@ -26,14 +29,27 @@ def py_make_scanner(context):
             raise StopIteration(idx) from None
 
         if nextchar in ("'", '"'):
-            if idx + 2 < len(string) and string[idx + 1] == nextchar and string[idx + 2] == nextchar:
+            if (
+                idx + 2 < len(string)
+                and string[idx + 1] == nextchar
+                and string[idx + 2] == nextchar
+            ):
                 # Handle the case where the next two characters are the same as nextchar
-                return parse_string(string, idx + 3, strict, delimiter=nextchar * 3)  # triple quote
+                return parse_string(
+                    string, idx + 3, strict, delimiter=nextchar * 3
+                )  # triple quote
             else:
                 # Handle the case where the next two characters are not the same as nextchar
                 return parse_string(string, idx + 1, strict, delimiter=nextchar)
         elif nextchar == "{":
-            return parse_object((string, idx + 1), strict, _scan_once, object_hook, object_pairs_hook, memo)
+            return parse_object(
+                (string, idx + 1),
+                strict,
+                _scan_once,
+                object_hook,
+                object_pairs_hook,
+                memo,
+            )
         elif nextchar == "[":
             return parse_array((string, idx + 1), _scan_once)
         elif nextchar == "n" and string[idx : idx + 4] == "null":
@@ -89,7 +105,14 @@ WHITESPACE_STR = " \t\n\r"
 
 
 def JSONObject(
-    s_and_end, strict, scan_once, object_hook, object_pairs_hook, memo=None, _w=WHITESPACE.match, _ws=WHITESPACE_STR
+    s_and_end,
+    strict,
+    scan_once,
+    object_hook,
+    object_pairs_hook,
+    memo=None,
+    _w=WHITESPACE.match,
+    _ws=WHITESPACE_STR,
 ):
     """Parse a JSON object from a string and return the parsed object.
 
@@ -134,7 +157,9 @@ def JSONObject(
                 pairs = object_hook(pairs)
             return pairs, end + 1
         elif nextchar != '"':
-            raise JSONDecodeError("Expecting property name enclosed in double quotes", s, end)
+            raise JSONDecodeError(
+                "Expecting property name enclosed in double quotes", s, end
+            )
     end += 1
     while True:
         if end + 1 < len(s) and s[end] == nextchar and s[end + 1] == nextchar:
@@ -182,7 +207,9 @@ def JSONObject(
         nextchar = s[end : end + 1]
         end += 1
         if nextchar != '"':
-            raise JSONDecodeError("Expecting property name enclosed in double quotes", s, end - 1)
+            raise JSONDecodeError(
+                "Expecting property name enclosed in double quotes", s, end - 1
+            )
     if object_pairs_hook is not None:
         result = object_pairs_hook(pairs)
         return result, end
@@ -192,7 +219,9 @@ def JSONObject(
     return pairs, end
 
 
-def py_scanstring(s, end, strict=True, _b=BACKSLASH, _m=STRINGCHUNK.match, delimiter='"'):
+def py_scanstring(
+    s, end, strict=True, _b=BACKSLASH, _m=STRINGCHUNK.match, delimiter='"'
+):
     """Scan the string s for a JSON string.
 
     Args:

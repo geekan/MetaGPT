@@ -19,7 +19,14 @@ async def apost(
     timeout: int = DEFAULT_TIMEOUT.total,
 ) -> Union[str, dict]:
     async with aiohttp.ClientSession() as session:
-        async with session.post(url=url, params=params, json=json, data=data, headers=headers, timeout=timeout) as resp:
+        async with session.post(
+            url=url,
+            params=params,
+            json=json,
+            data=data,
+            headers=headers,
+            timeout=timeout,
+        ) as resp:
             if as_json:
                 data = await resp.json()
             else:
@@ -44,6 +51,13 @@ async def apost_stream(
             deal_with(line)
     """
     async with aiohttp.ClientSession() as session:
-        async with session.post(url=url, params=params, json=json, data=data, headers=headers, timeout=timeout) as resp:
+        async with session.post(
+            url=url,
+            params=params,
+            json=json,
+            data=data,
+            headers=headers,
+            timeout=timeout,
+        ) as resp:
             async for line in resp.content:
                 yield line.decode(encoding)

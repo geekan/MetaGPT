@@ -179,18 +179,24 @@ Role: You are a professional engineer; The main goal is to complete incremental 
 9. Attention: Retain details that are not related to incremental development but are important for maintaining the consistency and clarity of the old code.
 """
 
-WRITE_CODE_PLAN_AND_CHANGE_NODE = ActionNode.from_children("WriteCodePlanAndChange", [CODE_PLAN_AND_CHANGE])
+WRITE_CODE_PLAN_AND_CHANGE_NODE = ActionNode.from_children(
+    "WriteCodePlanAndChange", [CODE_PLAN_AND_CHANGE]
+)
 
 
 class WriteCodePlanAndChange(Action):
     name: str = "WriteCodePlanAndChange"
-    i_context: CodePlanAndChangeContext = Field(default_factory=CodePlanAndChangeContext)
+    i_context: CodePlanAndChangeContext = Field(
+        default_factory=CodePlanAndChangeContext
+    )
 
     async def run(self, *args, **kwargs):
         self.llm.system_prompt = "You are a professional software engineer, your primary responsibility is to "
         "meticulously craft comprehensive incremental development plan and deliver detailed incremental change"
         prd_doc = await self.repo.docs.prd.get(filename=self.i_context.prd_filename)
-        design_doc = await self.repo.docs.system_design.get(filename=self.i_context.design_filename)
+        design_doc = await self.repo.docs.system_design.get(
+            filename=self.i_context.design_filename
+        )
         task_doc = await self.repo.docs.task.get(filename=self.i_context.task_filename)
         code_text = await self.get_old_codes()
         context = CODE_PLAN_AND_CHANGE_CONTEXT.format(
@@ -200,11 +206,17 @@ class WriteCodePlanAndChange(Action):
             task=task_doc.content,
             code=code_text,
         )
-        return await WRITE_CODE_PLAN_AND_CHANGE_NODE.fill(context=context, llm=self.llm, schema="json")
+        return await WRITE_CODE_PLAN_AND_CHANGE_NODE.fill(
+            context=context, llm=self.llm, schema="json"
+        )
 
     async def get_old_codes(self) -> str:
-        self.repo.old_workspace = self.repo.git_repo.workdir / os.path.basename(self.config.project_path)
-        old_file_repo = self.repo.git_repo.new_file_repository(relative_path=self.repo.old_workspace)
+        self.repo.old_workspace = self.repo.git_repo.workdir / os.path.basename(
+            self.config.project_path
+        )
+        old_file_repo = self.repo.git_repo.new_file_repository(
+            relative_path=self.repo.old_workspace
+        )
         old_codes = await old_file_repo.get_all()
         codes = [f"----- {code.filename}\n```{code.content}```" for code in old_codes]
         return "\n".join(codes)

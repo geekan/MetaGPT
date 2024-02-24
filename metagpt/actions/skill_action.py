@@ -35,7 +35,9 @@ class ArgumentsParingAction(Action):
         prompt += "\n---\n"
         prompt += "Examples:\n"
         for e in self.skill.examples:
-            prompt += f"If want you to do `{e.ask}`, return `{e.answer}` brief and clear.\n"
+            prompt += (
+                f"If want you to do `{e.ask}`, return `{e.answer}` brief and clear.\n"
+            )
         prompt += "\n---\n"
         prompt += (
             f"\nRefer to the `{self.skill.name}` function description, and fill in the function parameters according "
@@ -49,11 +51,18 @@ class ArgumentsParingAction(Action):
         prompt = self.prompt
         rsp = await self.llm.aask(
             msg=prompt,
-            system_msgs=["You are a function parser.", "You can convert spoken words into function parameters."],
+            system_msgs=[
+                "You are a function parser.",
+                "You can convert spoken words into function parameters.",
+            ],
         )
         logger.debug(f"SKILL:{prompt}\n, RESULT:{rsp}")
-        self.args = ArgumentsParingAction.parse_arguments(skill_name=self.skill.name, txt=rsp)
-        self.rsp = Message(content=rsp, role="assistant", instruct_content=self.args, cause_by=self)
+        self.args = ArgumentsParingAction.parse_arguments(
+            skill_name=self.skill.name, txt=rsp
+        )
+        self.rsp = Message(
+            content=rsp, role="assistant", instruct_content=self.args, cause_by=self
+        )
         return self.rsp
 
     @staticmethod
@@ -92,7 +101,9 @@ class SkillAction(Action):
                 if k in options:
                     options.pop(k)
         try:
-            rsp = await self.find_and_call_function(self.skill.name, args=self.args, **options)
+            rsp = await self.find_and_call_function(
+                self.skill.name, args=self.args, **options
+            )
             self.rsp = Message(content=rsp, role="assistant", cause_by=self)
         except Exception as e:
             logger.exception(f"{e}, traceback:{traceback.format_exc()}")

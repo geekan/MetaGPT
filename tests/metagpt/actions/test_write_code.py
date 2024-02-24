@@ -24,7 +24,10 @@ async def test_write_code(context):
     context.src_workspace = context.git_repo.workdir / "writecode"
 
     coding_ctx = CodingContext(
-        filename="task_filename.py", design_doc=Document(content="设计一个名为'add'的函数，该函数接受两个整数作为输入，并返回它们的和。")
+        filename="task_filename.py",
+        design_doc=Document(
+            content="设计一个名为'add'的函数，该函数接受两个整数作为输入，并返回它们的和。"
+        ),
     )
     doc = Document(content=coding_ctx.model_dump_json())
     write_code = WriteCode(i_context=doc, context=context)
@@ -51,7 +54,8 @@ async def test_write_code_deps(context):
     context.src_workspace = context.git_repo.workdir / "snake1/snake1"
     demo_path = Path(__file__).parent / "../../data/demo_project"
     await context.repo.test_outputs.save(
-        filename="test_game.py.json", content=await aread(str(demo_path / "test_game.py.json"))
+        filename="test_game.py.json",
+        content=await aread(str(demo_path / "test_game.py.json")),
     )
     await context.repo.docs.code_summary.save(
         filename="20231221155954.json",
@@ -62,18 +66,23 @@ async def test_write_code_deps(context):
         content=await aread(str(demo_path / "system_design.json")),
     )
     await context.repo.docs.task.save(
-        filename="20231221155954.json", content=await aread(str(demo_path / "tasks.json"))
+        filename="20231221155954.json",
+        content=await aread(str(demo_path / "tasks.json")),
     )
     await context.repo.with_src_path(context.src_workspace).srcs.save(
         filename="main.py", content='if __name__ == "__main__":\nmain()'
     )
     ccontext = CodingContext(
         filename="game.py",
-        design_doc=await context.repo.docs.system_design.get(filename="20231221155954.json"),
+        design_doc=await context.repo.docs.system_design.get(
+            filename="20231221155954.json"
+        ),
         task_doc=await context.repo.docs.task.get(filename="20231221155954.json"),
         code_doc=Document(filename="game.py", content="", root_path="snake1"),
     )
-    coding_doc = Document(root_path="snake1", filename="game.py", content=ccontext.json())
+    coding_doc = Document(
+        root_path="snake1", filename="game.py", content=ccontext.json()
+    )
 
     action = WriteCode(i_context=coding_doc, context=context)
     rsp = await action.run()

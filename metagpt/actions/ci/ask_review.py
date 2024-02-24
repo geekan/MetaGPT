@@ -26,13 +26,19 @@ class ReviewConst:
 
 class AskReview(Action):
     async def run(
-        self, context: list[Message] = [], plan: Plan = None, trigger: str = ReviewConst.TASK_REVIEW_TRIGGER
+        self,
+        context: list[Message] = [],
+        plan: Plan = None,
+        trigger: str = ReviewConst.TASK_REVIEW_TRIGGER,
     ) -> Tuple[str, bool]:
         if plan:
             logger.info("Current overall plan:")
             logger.info(
                 "\n".join(
-                    [f"{task.task_id}: {task.instruction}, is_finished: {task.is_finished}" for task in plan.tasks]
+                    [
+                        f"{task.task_id}: {task.instruction}, is_finished: {task.is_finished}"
+                        for task in plan.tasks
+                    ]
                 )
             )
 
@@ -57,6 +63,9 @@ class AskReview(Action):
 
         # Confirmation can be one of "confirm", "continue", "c", "yes", "y" exactly, or sentences containing "confirm".
         # One could say "confirm this task, but change the next task to ..."
-        confirmed = rsp.lower() in ReviewConst.CONTINUE_WORDS or ReviewConst.CONTINUE_WORDS[0] in rsp.lower()
+        confirmed = (
+            rsp.lower() in ReviewConst.CONTINUE_WORDS
+            or ReviewConst.CONTINUE_WORDS[0] in rsp.lower()
+        )
 
         return rsp, confirmed

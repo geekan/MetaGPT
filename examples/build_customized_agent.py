@@ -3,6 +3,7 @@ Filename: MetaGPT/examples/build_customized_agent.py
 Created Date: Tuesday, September 19th 2023, 6:52:25 pm
 Author: garylin2099
 """
+
 import asyncio
 import re
 import subprocess
@@ -45,7 +46,9 @@ class SimpleRunCode(Action):
     name: str = "SimpleRunCode"
 
     async def run(self, code_text: str):
-        result = subprocess.run(["python3", "-c", code_text], capture_output=True, text=True)
+        result = subprocess.run(
+            ["python3", "-c", code_text], capture_output=True, text=True
+        )
         code_result = result.stdout
         logger.info(f"{code_result=}")
         return code_result

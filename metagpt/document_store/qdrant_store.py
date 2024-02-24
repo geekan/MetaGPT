@@ -32,7 +32,9 @@ class QdrantStore(BaseStore):
         elif connect.url:
             self.client = QdrantClient(url=connect.url, api_key=connect.api_key)
         elif connect.host and connect.port:
-            self.client = QdrantClient(host=connect.host, port=connect.port, api_key=connect.api_key)
+            self.client = QdrantClient(
+                host=connect.host, port=connect.port, api_key=connect.api_key
+            )
         else:
             raise Exception("please check QdrantConnection.")
 
@@ -57,11 +59,15 @@ class QdrantStore(BaseStore):
         try:
             self.client.get_collection(collection_name)
             if force_recreate:
-                res = self.client.recreate_collection(collection_name, vectors_config=vectors_config, **kwargs)
+                res = self.client.recreate_collection(
+                    collection_name, vectors_config=vectors_config, **kwargs
+                )
                 return res
             return True
         except:  # noqa: E722
-            return self.client.recreate_collection(collection_name, vectors_config=vectors_config, **kwargs)
+            return self.client.recreate_collection(
+                collection_name, vectors_config=vectors_config, **kwargs
+            )
 
     def has_collection(self, collection_name: str):
         try:

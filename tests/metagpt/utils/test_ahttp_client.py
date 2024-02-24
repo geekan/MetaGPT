@@ -13,7 +13,9 @@ async def test_apost():
     assert "百度一下" in result
 
     result = await apost(
-        url="http://aider.meizu.com/app/weather/listWeather", data={"cityIds": "101240101"}, as_json=True
+        url="http://aider.meizu.com/app/weather/listWeather",
+        data={"cityIds": "101240101"},
+        as_json=True,
     )
     assert result["code"] == "200"
 
@@ -24,6 +26,9 @@ async def test_apost_stream():
     async for line in result:
         assert len(line) >= 0
 
-    result = apost_stream(url="http://aider.meizu.com/app/weather/listWeather", data={"cityIds": "101240101"})
+    result = apost_stream(
+        url="http://aider.meizu.com/app/weather/listWeather",
+        data={"cityIds": "101240101"},
+    )
     async for line in result:
         assert len(line) >= 0

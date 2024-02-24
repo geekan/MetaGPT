@@ -24,7 +24,9 @@ from tests.metagpt.roles.mock import MockMessages
 async def test_architect(context):
     # Prerequisites
     filename = uuid.uuid4().hex + ".json"
-    await awrite(context.repo.workdir / PRDS_FILE_REPO / filename, data=MockMessages.prd.content)
+    await awrite(
+        context.repo.workdir / PRDS_FILE_REPO / filename, data=MockMessages.prd.content
+    )
 
     role = Architect(context=context)
     rsp = await role.run(with_message=Message(content="", cause_by=WritePRD))

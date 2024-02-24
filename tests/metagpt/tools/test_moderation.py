@@ -18,7 +18,11 @@ from metagpt.tools.moderation import Moderation
     ("content",),
     [
         [
-            ["I will kill you", "The weather is really nice today", "I want to hit you"],
+            [
+                "I will kill you",
+                "The weather is really nice today",
+                "I want to hit you",
+            ],
         ]
     ],
 )

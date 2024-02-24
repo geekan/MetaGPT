@@ -97,13 +97,21 @@ class WriteCode(Action):
     async def run(self, *args, **kwargs) -> CodingContext:
         bug_feedback = await self.repo.docs.get(filename=BUGFIX_FILENAME)
         coding_context = CodingContext.loads(self.i_context.content)
-        test_doc = await self.repo.test_outputs.get(filename="test_" + coding_context.filename + ".json")
-        code_plan_and_change_doc = await self.repo.docs.code_plan_and_change.get(filename=CODE_PLAN_AND_CHANGE_FILENAME)
-        code_plan_and_change = code_plan_and_change_doc.content if code_plan_and_change_doc else ""
+        test_doc = await self.repo.test_outputs.get(
+            filename="test_" + coding_context.filename + ".json"
+        )
+        code_plan_and_change_doc = await self.repo.docs.code_plan_and_change.get(
+            filename=CODE_PLAN_AND_CHANGE_FILENAME
+        )
+        code_plan_and_change = (
+            code_plan_and_change_doc.content if code_plan_and_change_doc else ""
+        )
         requirement_doc = await self.repo.docs.get(filename=REQUIREMENT_FILENAME)
         summary_doc = None
         if coding_context.design_doc and coding_context.design_doc.filename:
-            summary_doc = await self.repo.docs.code_summary.get(filename=coding_context.design_doc.filename)
+            summary_doc = await self.repo.docs.code_summary.get(
+                filename=coding_context.design_doc.filename
+            )
         logs = ""
         if test_doc:
             test_detail = RunCodeResult.loads(test_doc.content)
@@ -113,7 +121,10 @@ class WriteCode(Action):
             code_context = coding_context.code_doc.content
         elif code_plan_and_change:
             code_context = await self.get_codes(
-                coding_context.task_doc, exclude=self.i_context.filename, project_repo=self.repo, use_inc=True
+                coding_context.task_doc,
+                exclude=self.i_context.filename,
+                project_repo=self.repo,
+                use_inc=True,
             )
         else:
             code_context = await self.get_codes(
@@ -126,7 +137,11 @@ class WriteCode(Action):
             prompt = REFINED_TEMPLATE.format(
                 user_requirement=requirement_doc.content if requirement_doc else "",
                 code_plan_and_change=code_plan_and_change,
-                design=coding_context.design_doc.content if coding_context.design_doc else "",
+                design=(
+                    coding_context.design_doc.content
+                    if coding_context.design_doc
+                    else ""
+                ),
                 task=coding_context.task_doc.content if coding_context.task_doc else "",
                 code=code_context,
                 logs=logs,
@@ -136,7 +151,11 @@ class WriteCode(Action):
             )
         else:
             prompt = PROMPT_TEMPLATE.format(
-                design=coding_context.design_doc.content if coding_context.design_doc else "",
+                design=(
+                    coding_context.design_doc.content
+                    if coding_context.design_doc
+                    else ""
+                ),
                 task=coding_context.task_doc.content if coding_context.task_doc else "",
                 code=code_context,
                 logs=logs,
@@ -149,12 +168,19 @@ class WriteCode(Action):
         if not coding_context.code_doc:
             # avoid root_path pydantic ValidationError if use WriteCode alone
             root_path = self.context.src_workspace if self.context.src_workspace else ""
-            coding_context.code_doc = Document(filename=coding_context.filename, root_path=str(root_path))
+            coding_context.code_doc = Document(
+                filename=coding_context.filename, root_path=str(root_path)
+            )
         coding_context.code_doc.content = code
         return coding_context
 
     @staticmethod
-    async def get_codes(task_doc: Document, exclude: str, project_repo: ProjectRepo, use_inc: bool = False) -> str:
+    async def get_codes(
+        task_doc: Document,
+        exclude: str,
+        project_repo: ProjectRepo,
+        use_inc: bool = False,
+    ) -> str:
         """
         Get codes for generating the exclude file in various scenarios.
 
@@ -172,7 +198,9 @@ class WriteCode(Action):
         if not task_doc.content:
             task_doc = project_repo.docs.task.get(filename=task_doc.filename)
         m = json.loads(task_doc.content)
-        code_filenames = m.get(TASK_LIST.key, []) if use_inc else m.get(REFINED_TASK_LIST.key, [])
+        code_filenames = (
+            m.get(TASK_LIST.key, []) if use_inc else m.get(REFINED_TASK_LIST.key, [])
+        )
         codes = []
         src_file_repo = project_repo.srcs
 
@@ -180,7 +208,9 @@ class WriteCode(Action):
         if use_inc:
             src_files = src_file_repo.all_files
             # Get the old workspace contained the old codes and old workspace are created in previous CodePlanAndChange
-            old_file_repo = project_repo.git_repo.new_file_repository(relative_path=project_repo.old_workspace)
+            old_file_repo = project_repo.git_repo.new_file_repository(
+                relative_path=project_repo.old_workspace
+            )
             old_files = old_file_repo.all_files
             # Get the union of the files in the src and old workspaces
             union_files_list = list(set(src_files) | set(old_files))
@@ -196,7 +226,10 @@ class WriteCode(Action):
                     # If the file is in the src workspace, skip it
                     else:
                         continue
-                    codes.insert(0, f"-----Now, {filename} to be rewritten\n```{doc.content}```\n=====")
+                    codes.insert(
+                        0,
+                        f"-----Now, {filename} to be rewritten\n```{doc.content}```\n=====",
+                    )
                 # The code snippets are generated from the src workspace
                 else:
                     doc = await src_file_repo.get(filename=filename)

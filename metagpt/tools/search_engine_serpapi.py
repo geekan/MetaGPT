@@ -32,7 +32,11 @@ class SerpAPIWrapper(BaseModel):
     def validate_serpapi(cls, values: dict) -> dict:
         if "serpapi_api_key" in values:
             values.setdefault("api_key", values["serpapi_api_key"])
-            warnings.warn("`serpapi_api_key` is deprecated, use `api_key` instead", DeprecationWarning, stacklevel=2)
+            warnings.warn(
+                "`serpapi_api_key` is deprecated, use `api_key` instead",
+                DeprecationWarning,
+                stacklevel=2,
+            )
 
         if "api_key" not in values:
             raise ValueError(
@@ -41,7 +45,9 @@ class SerpAPIWrapper(BaseModel):
             )
         return values
 
-    async def run(self, query, max_results: int = 8, as_string: bool = True, **kwargs: Any) -> str:
+    async def run(
+        self, query, max_results: int = 8, as_string: bool = True, **kwargs: Any
+    ) -> str:
         """Run query through SerpAPI and parse result async."""
         result = await self.results(query, max_results)
         return self._process_response(result, as_string=as_string)
@@ -60,11 +66,15 @@ class SerpAPIWrapper(BaseModel):
         url, params = construct_url_and_params()
         if not self.aiosession:
             async with aiohttp.ClientSession() as session:
-                async with session.get(url, params=params, proxy=self.proxy) as response:
+                async with session.get(
+                    url, params=params, proxy=self.proxy
+                ) as response:
                     response.raise_for_status()
                     res = await response.json()
         else:
-            async with self.aiosession.get(url, params=params, proxy=self.proxy) as response:
+            async with self.aiosession.get(
+                url, params=params, proxy=self.proxy
+            ) as response:
                 response.raise_for_status()
                 res = await response.json()
 
@@ -92,11 +102,20 @@ class SerpAPIWrapper(BaseModel):
             toret = res["answer_box"]["answer"]
         elif "answer_box" in res.keys() and "snippet" in res["answer_box"].keys():
             toret = res["answer_box"]["snippet"]
-        elif "answer_box" in res.keys() and "snippet_highlighted_words" in res["answer_box"].keys():
+        elif (
+            "answer_box" in res.keys()
+            and "snippet_highlighted_words" in res["answer_box"].keys()
+        ):
             toret = res["answer_box"]["snippet_highlighted_words"][0]
-        elif "sports_results" in res.keys() and "game_spotlight" in res["sports_results"].keys():
+        elif (
+            "sports_results" in res.keys()
+            and "game_spotlight" in res["sports_results"].keys()
+        ):
             toret = res["sports_results"]["game_spotlight"]
-        elif "knowledge_graph" in res.keys() and "description" in res["knowledge_graph"].keys():
+        elif (
+            "knowledge_graph" in res.keys()
+            and "description" in res["knowledge_graph"].keys()
+        ):
             toret = res["knowledge_graph"]["description"]
         elif "snippet" in res["organic_results"][0].keys():
             toret = res["organic_results"][0]["snippet"]

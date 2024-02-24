@@ -14,7 +14,9 @@ from playwright.async_api import async_playwright
 from metagpt.logs import logger
 
 
-async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, height=2048) -> int:
+async def mermaid_to_file(
+    mermaid_code, output_file_without_suffix, width=2048, height=2048
+) -> int:
     """
     Converts the given Mermaid code to various output formats and saves them to files.
 
@@ -56,7 +58,9 @@ async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, 
             # mermaid_config = {}
             background_color = "#ffffff"
             # my_css = ""
-            await page.evaluate(f'document.body.style.background = "{background_color}";')
+            await page.evaluate(
+                f'document.body.style.background = "{background_color}";'
+            )
 
             # metadata = await page.evaluate(
             #     """async ([definition, mermaidConfig, myCSS, backgroundColor]) => {
@@ -103,8 +107,15 @@ async def mermaid_to_file(mermaid_code, output_file_without_suffix, width=2048, 
                     };
                 }"""
                 )
-                await page.set_viewport_size({"width": clip["x"] + clip["width"], "height": clip["y"] + clip["height"]})
-                screenshot = await page.screenshot(clip=clip, omit_background=True, scale="device")
+                await page.set_viewport_size(
+                    {
+                        "width": clip["x"] + clip["width"],
+                        "height": clip["y"] + clip["height"],
+                    }
+                )
+                screenshot = await page.screenshot(
+                    clip=clip, omit_background=True, scale="device"
+                )
                 logger.info(f"Generating {output_file_without_suffix}.png..")
                 with open(f"{output_file_without_suffix}.png", "wb") as f:
                     f.write(screenshot)

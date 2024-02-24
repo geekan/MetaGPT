@@ -78,7 +78,9 @@ def test_role_serdeser_save(context):
 
     pm = ProductManager()
 
-    stg_path = serdeser_path.joinpath("team", "environment", "roles", f"{pm.__class__.__name__}_{pm.name}")
+    stg_path = serdeser_path.joinpath(
+        "team", "environment", "roles", f"{pm.__class__.__name__}_{pm.name}"
+    )
     role_path = stg_path.joinpath("role.json")
     write_json_file(role_path, pm.model_dump())
 
@@ -93,7 +95,9 @@ async def test_role_serdeser_interrupt(context):
     role_c = RoleC()
     shutil.rmtree(serdeser_path.joinpath("team"), ignore_errors=True)
 
-    stg_path = serdeser_path.joinpath("team", "environment", "roles", f"{role_c.__class__.__name__}_{role_c.name}")
+    stg_path = serdeser_path.joinpath(
+        "team", "environment", "roles", f"{role_c.__class__.__name__}_{role_c.name}"
+    )
     role_path = stg_path.joinpath("role.json")
     try:
         await role_c.run(with_message=Message(content="demo", cause_by=UserRequirement))
@@ -108,7 +112,9 @@ async def test_role_serdeser_interrupt(context):
     assert new_role_c.rc.state == 1
 
     with pytest.raises(Exception):
-        await new_role_c.run(with_message=Message(content="demo", cause_by=UserRequirement))
+        await new_role_c.run(
+            with_message=Message(content="demo", cause_by=UserRequirement)
+        )
 
 
 if __name__ == "__main__":

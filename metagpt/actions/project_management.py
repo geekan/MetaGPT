@@ -54,14 +54,20 @@ class WriteTasks(Action):
             logger.info("Nothing has changed.")
         # Wait until all files under `docs/tasks/` are processed before sending the publish_message, leaving room for
         # global optimization in subsequent steps.
-        return ActionOutput(content=change_files.model_dump_json(), instruct_content=change_files)
+        return ActionOutput(
+            content=change_files.model_dump_json(), instruct_content=change_files
+        )
 
     async def _update_tasks(self, filename):
         system_design_doc = await self.repo.docs.system_design.get(filename)
         task_doc = await self.repo.docs.task.get(filename)
         if task_doc:
-            task_doc = await self._merge(system_design_doc=system_design_doc, task_doc=task_doc)
-            await self.repo.docs.task.save_doc(doc=task_doc, dependencies={system_design_doc.root_relative_path})
+            task_doc = await self._merge(
+                system_design_doc=system_design_doc, task_doc=task_doc
+            )
+            await self.repo.docs.task.save_doc(
+                doc=task_doc, dependencies={system_design_doc.root_relative_path}
+            )
         else:
             rsp = await self._run_new_tasks(context=system_design_doc.content)
             task_doc = await self.repo.docs.task.save(
@@ -77,7 +83,9 @@ class WriteTasks(Action):
         return node
 
     async def _merge(self, system_design_doc, task_doc) -> Document:
-        context = NEW_REQ_TEMPLATE.format(context=system_design_doc.content, old_task=task_doc.content)
+        context = NEW_REQ_TEMPLATE.format(
+            context=system_design_doc.content, old_task=task_doc.content
+        )
         node = await REFINED_PM_NODE.fill(context, self.llm, schema=self.prompt_schema)
         task_doc.content = node.instruct_content.model_dump_json()
         return task_doc
@@ -87,10 +95,14 @@ class WriteTasks(Action):
         packages = set(m.get("Required Python packages", set()))
         requirement_doc = await self.repo.get(filename=PACKAGE_REQUIREMENTS_FILENAME)
         if not requirement_doc:
-            requirement_doc = Document(filename=PACKAGE_REQUIREMENTS_FILENAME, root_path=".", content="")
+            requirement_doc = Document(
+                filename=PACKAGE_REQUIREMENTS_FILENAME, root_path=".", content=""
+            )
         lines = requirement_doc.content.splitlines()
         for pkg in lines:
             if pkg == "":
                 continue
             packages.add(pkg)
-        await self.repo.save(filename=PACKAGE_REQUIREMENTS_FILENAME, content="\n".join(packages))
+        await self.repo.save(
+            filename=PACKAGE_REQUIREMENTS_FILENAME, content="\n".join(packages)
+        )

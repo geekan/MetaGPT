@@ -58,12 +58,17 @@ class OpenAIText2Embedding:
         """
 
         proxies = {"proxy": self.proxy} if self.proxy else {}
-        headers = {"Content-Type": "application/json", "Authorization": f"Bearer {self.api_key}"}
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {self.api_key}",
+        }
         data = {"input": text, "model": model}
         url = "https://api.openai.com/v1/embeddings"
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.post(url, headers=headers, json=data, **proxies) as response:
+                async with session.post(
+                    url, headers=headers, json=data, **proxies
+                ) as response:
                     data = await response.json()
                     return ResultEmbedding(**data)
         except requests.exceptions.RequestException as e:
@@ -72,7 +77,9 @@ class OpenAIText2Embedding:
 
 
 # Export
-async def oas3_openai_text_to_embedding(text, openai_api_key: str, model="text-embedding-ada-002", proxy: str = ""):
+async def oas3_openai_text_to_embedding(
+    text, openai_api_key: str, model="text-embedding-ada-002", proxy: str = ""
+):
     """Text to embedding
 
     :param text: The text used for embedding.
@@ -82,4 +89,6 @@ async def oas3_openai_text_to_embedding(text, openai_api_key: str, model="text-e
     """
     if not text:
         return ""
-    return await OpenAIText2Embedding(api_key=openai_api_key, proxy=proxy).text_2_embedding(text, model=model)
+    return await OpenAIText2Embedding(
+        api_key=openai_api_key, proxy=proxy
+    ).text_2_embedding(text, model=model)

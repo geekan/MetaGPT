@@ -13,7 +13,9 @@ resp_content = "I'm Spark"
 
 
 class MockWebSocketApp(object):
-    def __init__(self, ws_url, on_message=None, on_error=None, on_close=None, on_open=None):
+    def __init__(
+        self, ws_url, on_message=None, on_error=None, on_close=None, on_open=None
+    ):
         pass
 
     def run_forever(self, sslopt=None):
@@ -44,7 +46,10 @@ async def test_spark_aask():
 
 @pytest.mark.asyncio
 async def test_spark_acompletion(mocker):
-    mocker.patch("metagpt.provider.spark_api.GetMessageFromWeb.run", mock_spark_get_msg_from_web_run)
+    mocker.patch(
+        "metagpt.provider.spark_api.GetMessageFromWeb.run",
+        mock_spark_get_msg_from_web_run,
+    )
 
     spark_gpt = SparkLLM(mock_llm_config)
 

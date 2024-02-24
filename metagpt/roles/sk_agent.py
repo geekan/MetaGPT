@@ -61,24 +61,34 @@ class SkAgent(Role):
         else:
             raise Exception(f"Unsupported planner of type {self.planner_cls}")
 
-        self.import_semantic_skill_from_directory = self.kernel.import_semantic_skill_from_directory
+        self.import_semantic_skill_from_directory = (
+            self.kernel.import_semantic_skill_from_directory
+        )
         self.import_skill = self.kernel.import_skill
 
     async def _think(self) -> None:
         self._set_state(0)
         # how funny the interface is inconsistent
         if isinstance(self.planner, BasicPlanner):
-            self.plan = await self.planner.create_plan_async(self.rc.important_memory[-1].content, self.kernel)
+            self.plan = await self.planner.create_plan_async(
+                self.rc.important_memory[-1].content, self.kernel
+            )
             logger.info(self.plan.generated_plan)
-        elif any(isinstance(self.planner, cls) for cls in [SequentialPlanner, ActionPlanner]):
-            self.plan = await self.planner.create_plan_async(self.rc.important_memory[-1].content)
+        elif any(
+            isinstance(self.planner, cls) for cls in [SequentialPlanner, ActionPlanner]
+        ):
+            self.plan = await self.planner.create_plan_async(
+                self.rc.important_memory[-1].content
+            )
 
     async def _act(self) -> Message:
         # how funny the interface is inconsistent
         result = None
         if isinstance(self.planner, BasicPlanner):
             result = await self.planner.execute_plan_async(self.plan, self.kernel)
-        elif any(isinstance(self.planner, cls) for cls in [SequentialPlanner, ActionPlanner]):
+        elif any(
+            isinstance(self.planner, cls) for cls in [SequentialPlanner, ActionPlanner]
+        ):
             result = (await self.plan.invoke_async()).result
         logger.info(result)
 

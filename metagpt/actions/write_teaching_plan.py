@@ -77,7 +77,9 @@ class WriteTeachingPlanPart(Action):
 
         options = context.config.model_dump()
         for k, v in context.kwargs:
-            options[k] = v  # None value is allowed to override and disable the value from config.
+            options[k] = (
+                v  # None value is allowed to override and disable the value from config.
+            )
         opts = {k: v for k, v in options.items() if v is not None}
         try:
             return value.format(**opts)

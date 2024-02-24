@@ -140,8 +140,12 @@ class WriteCodeReview(Action):
         k = self.context.config.code_review_k_times or 1
 
         for i in range(k):
-            format_example = FORMAT_EXAMPLE.format(filename=self.i_context.code_doc.filename)
-            task_content = self.i_context.task_doc.content if self.i_context.task_doc else ""
+            format_example = FORMAT_EXAMPLE.format(
+                filename=self.i_context.code_doc.filename
+            )
+            task_content = (
+                self.i_context.task_doc.content if self.i_context.task_doc else ""
+            )
             code_context = await WriteCode.get_codes(
                 self.i_context.task_doc,
                 exclude=self.i_context.filename,
@@ -158,12 +162,18 @@ class WriteCodeReview(Action):
                     ]
                 )
             else:
-                requirement_doc = await self.repo.docs.get(filename=REQUIREMENT_FILENAME)
-                code_plan_and_change_doc = await self.repo.get(filename=CODE_PLAN_AND_CHANGE_FILENAME)
+                requirement_doc = await self.repo.docs.get(
+                    filename=REQUIREMENT_FILENAME
+                )
+                code_plan_and_change_doc = await self.repo.get(
+                    filename=CODE_PLAN_AND_CHANGE_FILENAME
+                )
                 context = "\n".join(
                     [
                         "## User New Requirements\n" + str(requirement_doc) + "\n",
-                        "## Code Plan And Change\n" + str(code_plan_and_change_doc) + "\n",
+                        "## Code Plan And Change\n"
+                        + str(code_plan_and_change_doc)
+                        + "\n",
                         "## System Design\n" + str(self.i_context.design_doc) + "\n",
                         "## Task\n" + task_content + "\n",
                         "## Code Files\n" + code_context + "\n",
@@ -179,7 +189,11 @@ class WriteCodeReview(Action):
                 format_example=format_example,
             )
             len1 = len(iterative_code) if iterative_code else 0
-            len2 = len(self.i_context.code_doc.content) if self.i_context.code_doc.content else 0
+            len2 = (
+                len(self.i_context.code_doc.content)
+                if self.i_context.code_doc.content
+                else 0
+            )
             logger.info(
                 f"Code review and rewrite {self.i_context.code_doc.filename}: {i + 1}/{k} | len(iterative_code)={len1}, "
                 f"len(self.i_context.code_doc.content)={len2}"

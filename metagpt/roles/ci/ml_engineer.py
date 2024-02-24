@@ -18,14 +18,18 @@ class MLEngineer(CodeInterpreter):
             return await super()._write_code()
 
         # In a trial and errors settings, check whether this is our first attempt to tackle the task. If there is no code execution before, then it is.
-        is_first_trial = any_to_str(ExecuteNbCode) not in [msg.cause_by for msg in self.working_memory.get()]
+        is_first_trial = any_to_str(ExecuteNbCode) not in [
+            msg.cause_by for msg in self.working_memory.get()
+        ]
 
         if is_first_trial:
             # For the first trial, write task code from scratch
             column_info = await self._update_data_columns()
 
             logger.info("Write code with tools")
-            tool_context, code = await WriteCodeWithToolsML(selected_tools=self.tools).run(
+            tool_context, code = await WriteCodeWithToolsML(
+                selected_tools=self.tools
+            ).run(
                 context=[],  # context assembled inside the Action
                 plan=self.planner.plan,
                 column_info=column_info,

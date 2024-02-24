@@ -32,12 +32,19 @@ from metagpt.schema import Message
         ),
     ],
 )
-async def test_prompt(agent_description, language, talk_context, knowledge, history_summary, context):
+async def test_prompt(
+    agent_description, language, talk_context, knowledge, history_summary, context
+):
     # Prerequisites
     context.kwargs.agent_description = agent_description
     context.kwargs.language = language
 
-    action = TalkAction(i_context=talk_context, knowledge=knowledge, history_summary=history_summary, context=context)
+    action = TalkAction(
+        i_context=talk_context,
+        knowledge=knowledge,
+        history_summary=history_summary,
+        context=context,
+    )
     assert "{" not in action.prompt
     assert "{" not in action.prompt_gpt4
 

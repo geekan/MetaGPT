@@ -89,7 +89,9 @@ class RunCode(Action):
             return "", str(e)
         return namespace.get("result", ""), ""
 
-    async def run_script(self, working_directory, additional_python_paths=[], command=[]) -> Tuple[str, str]:
+    async def run_script(
+        self, working_directory, additional_python_paths=[], command=[]
+    ) -> Tuple[str, str]:
         working_directory = str(working_directory)
         additional_python_paths = [str(path) for path in additional_python_paths]
 
@@ -104,7 +106,11 @@ class RunCode(Action):
 
         # Start the subprocess
         process = subprocess.Popen(
-            command, cwd=working_directory, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env
+            command,
+            cwd=working_directory,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            env=env,
         )
         logger.info(" ".join(command))
 
@@ -137,7 +143,9 @@ class RunCode(Action):
             test_code=self.i_context.test_code,
             test_file_name=self.i_context.test_filename,
             command=" ".join(self.i_context.command),
-            outs=outs[:500],  # outs might be long but they are not important, truncate them to avoid token overflow
+            outs=outs[
+                :500
+            ],  # outs might be long but they are not important, truncate them to avoid token overflow
             errs=errs[:10000],  # truncate errors to avoid token overflow
         )
 
@@ -159,13 +167,17 @@ class RunCode(Action):
             return
         install_command = ["python", "-m", "pip", "install", "-r", "requirements.txt"]
         logger.info(" ".join(install_command))
-        RunCode._install_via_subprocess(install_command, check=True, cwd=working_directory, env=env)
+        RunCode._install_via_subprocess(
+            install_command, check=True, cwd=working_directory, env=env
+        )
 
     @staticmethod
     def _install_pytest(working_directory, env):
         install_pytest_command = ["python", "-m", "pip", "install", "pytest"]
         logger.info(" ".join(install_pytest_command))
-        RunCode._install_via_subprocess(install_pytest_command, check=True, cwd=working_directory, env=env)
+        RunCode._install_via_subprocess(
+            install_pytest_command, check=True, cwd=working_directory, env=env
+        )
 
     @staticmethod
     def _install_dependencies(working_directory, env):

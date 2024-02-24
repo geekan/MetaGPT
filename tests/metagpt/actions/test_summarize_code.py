@@ -183,9 +183,13 @@ async def test_summarize_code(context):
     git_dir.mkdir(parents=True, exist_ok=True)
 
     context.src_workspace = context.git_repo.workdir / "src"
-    await context.repo.docs.system_design.save(filename="1.json", content=DESIGN_CONTENT)
+    await context.repo.docs.system_design.save(
+        filename="1.json", content=DESIGN_CONTENT
+    )
     await context.repo.docs.task.save(filename="1.json", content=TASK_CONTENT)
-    await context.repo.with_src_path(context.src_workspace).srcs.save(filename="food.py", content=FOOD_PY)
+    await context.repo.with_src_path(context.src_workspace).srcs.save(
+        filename="food.py", content=FOOD_PY
+    )
     assert context.repo.srcs.workdir == context.src_workspace
     await context.repo.srcs.save(filename="game.py", content=GAME_PY)
     await context.repo.srcs.save(filename="main.py", content=MAIN_PY)

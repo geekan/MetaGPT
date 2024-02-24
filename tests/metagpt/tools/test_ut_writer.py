@@ -59,13 +59,17 @@ class TestUTWriter:
                 model="gpt-3.5-turbo-1106",
                 object="chat.completion",
                 system_fingerprint="fp_04f9a1eebf",
-                usage=CompletionUsage(completion_tokens=35, prompt_tokens=1982, total_tokens=2017),
+                usage=CompletionUsage(
+                    completion_tokens=35, prompt_tokens=1982, total_tokens=2017
+                ),
             )
 
         mocker.patch.object(AsyncCompletions, "create", mock_create)
 
         # Prerequisites
-        swagger_file = Path(__file__).parent / "../../data/ut_writer/yft_swaggerApi.json"
+        swagger_file = (
+            Path(__file__).parent / "../../data/ut_writer/yft_swaggerApi.json"
+        )
         assert swagger_file.exists()
         assert config.get_openai_llm()
 

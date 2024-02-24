@@ -81,7 +81,9 @@ async def test_run_with_timeout():
 @pytest.mark.asyncio
 async def test_run_code_text():
     executor = ExecuteNbCode()
-    message, success = await executor.run(code='print("This is a code!")', language="python")
+    message, success = await executor.run(
+        code='print("This is a code!")', language="python"
+    )
     assert success
     assert message == "This is a code!\n"
     message, success = await executor.run(code="# This is a code!", language="markdown")

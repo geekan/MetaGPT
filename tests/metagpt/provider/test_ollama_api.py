@@ -17,7 +17,9 @@ resp_content = "I'm ollama"
 default_resp = {"message": {"role": "assistant", "content": resp_content}}
 
 
-async def mock_ollama_arequest(self, stream: bool = False, **kwargs) -> Tuple[Any, Any, bool]:
+async def mock_ollama_arequest(
+    self, stream: bool = False, **kwargs
+) -> Tuple[Any, Any, bool]:
     if stream:
 
         class Iterator(object):
@@ -39,7 +41,10 @@ async def mock_ollama_arequest(self, stream: bool = False, **kwargs) -> Tuple[An
 
 @pytest.mark.asyncio
 async def test_gemini_acompletion(mocker):
-    mocker.patch("metagpt.provider.general_api_requestor.GeneralAPIRequestor.arequest", mock_ollama_arequest)
+    mocker.patch(
+        "metagpt.provider.general_api_requestor.GeneralAPIRequestor.arequest",
+        mock_ollama_arequest,
+    )
 
     ollama_gpt = OllamaLLM(mock_llm_config)
 

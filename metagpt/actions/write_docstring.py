@@ -21,6 +21,7 @@ Example:
 This script uses the 'fire' library to create a command-line interface. It generates docstrings for the given Python code using
 the specified docstring style and adds them to the code.
 """
+
 from __future__ import annotations
 
 import ast
@@ -179,15 +180,21 @@ class WriteDocstring(Action):
         Returns:
             The Python code with docstrings added.
         """
-        system_text = system_text.format(style=style, example=_python_docstring_style[style])
+        system_text = system_text.format(
+            style=style, example=_python_docstring_style[style]
+        )
         simplified_code = _simplify_python_code(code)
-        documented_code = await self._aask(f"```python\n{simplified_code}\n```", [system_text])
+        documented_code = await self._aask(
+            f"```python\n{simplified_code}\n```", [system_text]
+        )
         documented_code = OutputParser.parse_python_code(documented_code)
         return merge_docstring(code, documented_code)
 
     @staticmethod
     async def write_docstring(
-        filename: str | Path, overwrite: bool = False, style: Literal["google", "numpy", "sphinx"] = "google"
+        filename: str | Path,
+        overwrite: bool = False,
+        style: Literal["google", "numpy", "sphinx"] = "google",
     ) -> str:
         data = await aread(str(filename))
         code = await WriteDocstring().run(data, style=style)

@@ -59,7 +59,9 @@ def load_sklearn_data(data_name):
 
 
 def test_polynomial_expansion(mock_dataset):
-    pe = PolynomialExpansion(cols=["num1", "num2", "label"], degree=2, label_col="label")
+    pe = PolynomialExpansion(
+        cols=["num1", "num2", "label"], degree=2, label_col="label"
+    )
     transformed = pe.fit_transform(mock_dataset)
 
     assert len(transformed.columns) == len(mock_dataset.columns) + 3

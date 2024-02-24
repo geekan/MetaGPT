@@ -40,7 +40,10 @@ async def test_run(mocker, context):
                         "role": "user",
                         "id": "1",
                     },
-                    {"content": "The one who eaten a poison apple.", "role": "assistant"},
+                    {
+                        "content": "The one who eaten a poison apple.",
+                        "role": "assistant",
+                    },
                 ],
                 "knowledge": [{"content": "tulin is a scientist."}],
                 "last_talk": "Do you have a poison apple?",
@@ -57,7 +60,10 @@ async def test_run(mocker, context):
                         "role": "user",
                         "id": "1",
                     },
-                    {"content": "Yes, of course. What do you want me to draw", "role": "assistant"},
+                    {
+                        "content": "Yes, of course. What do you want me to draw",
+                        "role": "assistant",
+                    },
                 ],
                 "knowledge": [{"content": "tulin is a scientist."}],
                 "last_talk": "Draw me an apple.",
@@ -68,13 +74,49 @@ async def test_run(mocker, context):
         },
     ]
     agent_skills = [
-        {"id": 1, "name": "text_to_speech", "type": "builtin", "config": {}, "enabled": True},
-        {"id": 2, "name": "text_to_image", "type": "builtin", "config": {}, "enabled": True},
+        {
+            "id": 1,
+            "name": "text_to_speech",
+            "type": "builtin",
+            "config": {},
+            "enabled": True,
+        },
+        {
+            "id": 2,
+            "name": "text_to_image",
+            "type": "builtin",
+            "config": {},
+            "enabled": True,
+        },
         {"id": 3, "name": "ai_call", "type": "builtin", "config": {}, "enabled": True},
-        {"id": 3, "name": "data_analysis", "type": "builtin", "config": {}, "enabled": True},
-        {"id": 5, "name": "crawler", "type": "builtin", "config": {"engine": "ddg"}, "enabled": True},
-        {"id": 6, "name": "knowledge", "type": "builtin", "config": {}, "enabled": True},
-        {"id": 6, "name": "web_search", "type": "builtin", "config": {}, "enabled": True},
+        {
+            "id": 3,
+            "name": "data_analysis",
+            "type": "builtin",
+            "config": {},
+            "enabled": True,
+        },
+        {
+            "id": 5,
+            "name": "crawler",
+            "type": "builtin",
+            "config": {"engine": "ddg"},
+            "enabled": True,
+        },
+        {
+            "id": 6,
+            "name": "knowledge",
+            "type": "builtin",
+            "config": {},
+            "enabled": True,
+        },
+        {
+            "id": 6,
+            "name": "web_search",
+            "type": "builtin",
+            "config": {},
+            "enabled": True,
+        },
     ]
 
     for i in inputs:
@@ -106,7 +148,10 @@ async def test_run(mocker, context):
                     "role": "user",
                     "id": "1",
                 },
-                {"content": "Yes, of course. What do you want me to draw", "role": "assistant"},
+                {
+                    "content": "Yes, of course. What do you want me to draw",
+                    "role": "assistant",
+                },
             ],
             "knowledge": [{"content": "tulin is a scientist."}],
             "last_talk": "Draw me an apple.",

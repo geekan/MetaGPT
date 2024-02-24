@@ -30,7 +30,9 @@ async def test_draw(mocker):
         data: list
 
     mock_data = _MockData(data=[mock_url])
-    mocker.patch.object(openai.resources.images.AsyncImages, "generate", return_value=mock_data)
+    mocker.patch.object(
+        openai.resources.images.AsyncImages, "generate", return_value=mock_data
+    )
     mock_post = mocker.patch("aiohttp.ClientSession.get")
     mock_response = mocker.AsyncMock()
     mock_response.status = 200
@@ -42,7 +44,9 @@ async def test_draw(mocker):
     llm_config = config.get_openai_llm()
     assert llm_config
 
-    binary_data = await oas3_openai_text_to_image("Panda emoji", llm=LLM(llm_config=llm_config))
+    binary_data = await oas3_openai_text_to_image(
+        "Panda emoji", llm=LLM(llm_config=llm_config)
+    )
     assert binary_data
 
 

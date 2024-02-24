@@ -31,16 +31,23 @@ def mock_refined_design_json():
 @pytest.mark.asyncio
 async def test_write_design_an(mocker):
     root = ActionNode.from_children(
-        "RefinedDesignAPI", [ActionNode(key="", expected_type=str, instruction="", example="")]
+        "RefinedDesignAPI",
+        [ActionNode(key="", expected_type=str, instruction="", example="")],
     )
     root.instruct_content = BaseModel()
     root.instruct_content.model_dump = mock_refined_design_json
-    mocker.patch("metagpt.actions.design_api_an.REFINED_DESIGN_NODE.fill", return_value=root)
+    mocker.patch(
+        "metagpt.actions.design_api_an.REFINED_DESIGN_NODE.fill", return_value=root
+    )
 
-    prompt = NEW_REQ_TEMPLATE.format(old_design=DESIGN_SAMPLE, context=dict_to_markdown(REFINED_PRD_JSON))
+    prompt = NEW_REQ_TEMPLATE.format(
+        old_design=DESIGN_SAMPLE, context=dict_to_markdown(REFINED_PRD_JSON)
+    )
     node = await REFINED_DESIGN_NODE.fill(prompt, llm)
 
     assert "Refined Implementation Approach" in node.instruct_content.model_dump()
     assert "Refined File list" in node.instruct_content.model_dump()
-    assert "Refined Data structures and interfaces" in node.instruct_content.model_dump()
+    assert (
+        "Refined Data structures and interfaces" in node.instruct_content.model_dump()
+    )
     assert "Refined Program call flow" in node.instruct_content.model_dump()

@@ -38,7 +38,11 @@ async def test_researcher(mocker, search_engine_mocker, context):
             if isinstance(i, CollectLinks):
                 i.search_engine = SearchEngine(engine=SearchEngineType.DUCK_DUCK_GO)
         await role.run(topic)
-        assert (researcher.RESEARCH_PATH / f"{topic}.md").read_text().startswith("# Research Report")
+        assert (
+            (researcher.RESEARCH_PATH / f"{topic}.md")
+            .read_text()
+            .startswith("# Research Report")
+        )
 
 
 def test_write_report(mocker, context):
@@ -54,7 +58,11 @@ def test_write_report(mocker, context):
             researcher.RESEARCH_PATH = Path(dirname)
             content = "# Research Report"
             researcher.Researcher(context=context).write_report(topic, content)
-            assert (researcher.RESEARCH_PATH / f"{i+1}. metagpt.md").read_text().startswith("# Research Report")
+            assert (
+                (researcher.RESEARCH_PATH / f"{i+1}. metagpt.md")
+                .read_text()
+                .startswith("# Research Report")
+            )
 
 
 if __name__ == "__main__":

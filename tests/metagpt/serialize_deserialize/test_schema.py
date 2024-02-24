@@ -22,7 +22,9 @@ def test_message_serdeser_from_create_model():
     ic_obj = ActionNode.create_model_class("code", out_mapping)
     ic_inst = ic_obj(**out_data)
 
-    message = Message(content="code", instruct_content=ic_inst, role="engineer", cause_by=WriteCode)
+    message = Message(
+        content="code", instruct_content=ic_inst, role="engineer", cause_by=WriteCode
+    )
     ser_data = message.model_dump()
     assert ser_data["cause_by"] == "metagpt.actions.write_code.WriteCode"
     assert ser_data["instruct_content"]["class"] == "code"
@@ -60,22 +62,29 @@ def test_message_without_postprocess():
 
 
 def test_message_serdeser_from_basecontext():
-    doc_msg = Message(content="test_document", instruct_content=Document(content="test doc"))
+    doc_msg = Message(
+        content="test_document", instruct_content=Document(content="test doc")
+    )
     ser_data = doc_msg.model_dump()
     assert ser_data["instruct_content"]["value"]["content"] == "test doc"
     assert ser_data["instruct_content"]["value"]["filename"] == ""
 
     docs_msg = Message(
-        content="test_documents", instruct_content=Documents(docs={"doc1": Document(content="test doc")})
+        content="test_documents",
+        instruct_content=Documents(docs={"doc1": Document(content="test doc")}),
     )
     ser_data = docs_msg.model_dump()
     assert ser_data["instruct_content"]["class"] == "Documents"
-    assert ser_data["instruct_content"]["value"]["docs"]["doc1"]["content"] == "test doc"
+    assert (
+        ser_data["instruct_content"]["value"]["docs"]["doc1"]["content"] == "test doc"
+    )
     assert ser_data["instruct_content"]["value"]["docs"]["doc1"]["filename"] == ""
 
     code_ctxt = CodingContext(
         filename="game.py",
-        design_doc=Document(root_path="docs/system_design", filename="xx.json", content="xxx"),
+        design_doc=Document(
+            root_path="docs/system_design", filename="xx.json", content="xxx"
+        ),
         task_doc=Document(root_path="docs/tasks", filename="xx.json", content="xxx"),
         code_doc=Document(root_path="xxx", filename="game.py", content="xxx"),
     )

@@ -28,7 +28,12 @@ def test_repair_case_sensitivity():
                 Campaign A: [0.3, 0.6]",
     "Requirement Analysis": "The 2048 game should be simple to play"
 }"""
-    req_keys = ["Original Requirements", "Search Information", "Competitive Quadrant Chart", "Requirement Analysis"]
+    req_keys = [
+        "Original Requirements",
+        "Search Information",
+        "Competitive Quadrant Chart",
+        "Requirement Analysis",
+    ]
     output = repair_llm_raw_output(output=raw_output, req_keys=req_keys)
     assert output == target_output
 
@@ -113,19 +118,25 @@ def test_repair_json_format():
     raw_output = "{ xxx }]"
     target_output = "{ xxx }"
 
-    output = repair_llm_raw_output(output=raw_output, req_keys=[None], repair_type=RepairType.JSON)
+    output = repair_llm_raw_output(
+        output=raw_output, req_keys=[None], repair_type=RepairType.JSON
+    )
     assert output == target_output
 
     raw_output = "[{ xxx }"
     target_output = "{ xxx }"
 
-    output = repair_llm_raw_output(output=raw_output, req_keys=[None], repair_type=RepairType.JSON)
+    output = repair_llm_raw_output(
+        output=raw_output, req_keys=[None], repair_type=RepairType.JSON
+    )
     assert output == target_output
 
     raw_output = "{ xxx ]"
     target_output = "{ xxx }"
 
-    output = repair_llm_raw_output(output=raw_output, req_keys=[None], repair_type=RepairType.JSON)
+    output = repair_llm_raw_output(
+        output=raw_output, req_keys=[None], repair_type=RepairType.JSON
+    )
     assert output == target_output
 
     raw_output = """
@@ -138,7 +149,9 @@ def test_repair_json_format():
     "Language": "en_us",
     "Programming Language": "Python"
 }"""
-    output = repair_llm_raw_output(output=raw_output, req_keys=[None], repair_type=RepairType.JSON)
+    output = repair_llm_raw_output(
+        output=raw_output, req_keys=[None], repair_type=RepairType.JSON
+    )
     assert output == target_output
 
     raw_output = """
@@ -151,7 +164,9 @@ def test_repair_json_format():
     "Language": "en_us",
     "Programming Language": "Python"
 }"""
-    output = repair_llm_raw_output(output=raw_output, req_keys=[None], repair_type=RepairType.JSON)
+    output = repair_llm_raw_output(
+        output=raw_output, req_keys=[None], repair_type=RepairType.JSON
+    )
     assert output == target_output
 
     raw_output = """
@@ -164,7 +179,9 @@ def test_repair_json_format():
         "Language": "#en_us#",
         "Programming Language": "//Python # Code // Language//"
     }"""
-    output = repair_llm_raw_output(output=raw_output, req_keys=[None], repair_type=RepairType.JSON)
+    output = repair_llm_raw_output(
+        output=raw_output, req_keys=[None], repair_type=RepairType.JSON
+    )
     assert output == target_output
 
 
@@ -320,9 +337,9 @@ def test_extract_content_from_output():
         "comprehensive overview of the project's requirements and dependencies."
     )
     output = extract_content_from_output(output)
-    assert output.startswith('{\n"Required Python third-party packages') and output.endswith(
-        'UNCLEAR": "How to start the game."\n]'
-    )
+    assert output.startswith(
+        '{\n"Required Python third-party packages'
+    ) and output.endswith('UNCLEAR": "How to start the game."\n]')
 
     output = (
         "Sure, I would be happy to help! Here is the information you provided, formatted as a JSON object "
@@ -353,7 +370,9 @@ def test_extract_content_from_output():
         "else I can do to assist you."
     )
     output = extract_content_from_output(output)
-    assert output.startswith('{\n"Original Requirements"') and output.endswith('"Anything UNCLEAR": ""\n}')
+    assert output.startswith('{\n"Original Requirements"') and output.endswith(
+        '"Anything UNCLEAR": ""\n}'
+    )
 
     output = """ Sure, I'd be happy to help! Here's the JSON output for the given context:\n\n[CONTENT]\n{
 "Implementation approach": "We will use the open-source framework PyGame to create a 2D game engine, which will

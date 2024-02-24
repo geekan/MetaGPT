@@ -26,7 +26,11 @@ async def main():
 
     for path in absolute_file_paths:
         role = InvoiceOCRAssistant()
-        await role.run(Message(content="Invoicing date", instruct_content=InvoicePath(file_path=path)))
+        await role.run(
+            Message(
+                content="Invoicing date", instruct_content=InvoicePath(file_path=path)
+            )
+        )
 
 
 if __name__ == "__main__":

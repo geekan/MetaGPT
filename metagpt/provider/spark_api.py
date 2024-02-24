@@ -26,12 +26,16 @@ from metagpt.provider.llm_provider_registry import register_provider
 class SparkLLM(BaseLLM):
     def __init__(self, config: LLMConfig):
         self.config = config
-        logger.warning("SparkLLM：当前方法无法支持异步运行。当你使用acompletion时，并不能并行访问。")
+        logger.warning(
+            "SparkLLM：当前方法无法支持异步运行。当你使用acompletion时，并不能并行访问。"
+        )
 
     def get_choice_text(self, rsp: dict) -> str:
         return rsp["payload"]["choices"]["text"][-1]["content"]
 
-    async def acompletion_text(self, messages: list[dict], stream=False, timeout: int = 3) -> str:
+    async def acompletion_text(
+        self, messages: list[dict], stream=False, timeout: int = 3
+    ) -> str:
         # 不支持
         # logger.warning("当前方法无法支持异步运行。当你使用acompletion时，并不能并行访问。")
         w = GetMessageFromWeb(messages, self.config)
@@ -74,14 +78,20 @@ class GetMessageFromWeb:
 
             # 进行hmac-sha256进行加密
             signature_sha = hmac.new(
-                self.api_secret.encode("utf-8"), signature_origin.encode("utf-8"), digestmod=hashlib.sha256
+                self.api_secret.encode("utf-8"),
+                signature_origin.encode("utf-8"),
+                digestmod=hashlib.sha256,
             ).digest()
 
-            signature_sha_base64 = base64.b64encode(signature_sha).decode(encoding="utf-8")
+            signature_sha_base64 = base64.b64encode(signature_sha).decode(
+                encoding="utf-8"
+            )
 
             authorization_origin = f'api_key="{self.api_key}", algorithm="hmac-sha256", headers="host date request-line", signature="{signature_sha_base64}"'
 
-            authorization = base64.b64encode(authorization_origin.encode("utf-8")).decode(encoding="utf-8")
+            authorization = base64.b64encode(
+                authorization_origin.encode("utf-8")
+            ).decode(encoding="utf-8")
 
             # 将请求的鉴权参数组合为字典
             v = {"authorization": authorization, "date": date, "host": self.host}
@@ -110,7 +120,9 @@ class GetMessageFromWeb:
         else:
             choices = data["payload"]["choices"]
             # seq = choices["seq"]  # 服务端是流式返回，seq为返回的数据序号
-            status = choices["status"]  # 服务端是流式返回，status用于判断信息是否传送完毕
+            status = choices[
+                "status"
+            ]  # 服务端是流式返回，status用于判断信息是否传送完毕
             content = choices["text"][0]["content"]  # 本次接收到的回答文本
             self.ret += content
             if status == 2:
@@ -157,12 +169,22 @@ class GetMessageFromWeb:
         return self._run(self.text)
 
     def _run(self, text_list):
-        ws_param = self.WsParam(self.spark_appid, self.spark_api_key, self.spark_api_secret, self.spark_url, text_list)
+        ws_param = self.WsParam(
+            self.spark_appid,
+            self.spark_api_key,
+            self.spark_api_secret,
+            self.spark_url,
+            text_list,
+        )
         ws_url = ws_param.create_url()
 
         websocket.enableTrace(False)  # 默认禁用 WebSocket 的跟踪功能
         ws = websocket.WebSocketApp(
-            ws_url, on_message=self.on_message, on_error=self.on_error, on_close=self.on_close, on_open=self.on_open
+            ws_url,
+            on_message=self.on_message,
+            on_error=self.on_error,
+            on_close=self.on_close,
+            on_open=self.on_open,
         )
         ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
         return self.ret

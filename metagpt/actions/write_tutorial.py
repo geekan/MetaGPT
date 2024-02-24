@@ -61,5 +61,7 @@ class WriteContent(Action):
         Returns:
             The written tutorial content.
         """
-        prompt = CONTENT_PROMPT.format(topic=topic, language=self.language, directory=self.directory)
+        prompt = CONTENT_PROMPT.format(
+            topic=topic, language=self.language, directory=self.directory
+        )
         return await self._aask(prompt=prompt)

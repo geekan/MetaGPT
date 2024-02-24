@@ -35,7 +35,9 @@ def test_docstring_to_schema():
             },
             "required": ["features"],
         },
-        "returns": [{"type": "pd.DataFrame", "description": "The transformed DataFrame."}],
+        "returns": [
+            {"type": "pd.DataFrame", "description": "The transformed DataFrame."}
+        ],
     }
     schema = docstring_to_schema(docstring)
     assert schema == expected
@@ -118,12 +120,20 @@ def test_convert_code_to_tool_schema_class():
                 "description": "Initialize self.",
                 "parameters": {
                     "properties": {
-                        "features": {"type": "list", "description": "Columns to be processed."},
+                        "features": {
+                            "type": "list",
+                            "description": "Columns to be processed.",
+                        },
                         "strategy": {
                             "type": "str",
                             "description": "The imputation strategy, notice 'mean' and 'median' can only be used for numeric features. Enum: ['mean', 'median', 'most_frequent', 'constant']. Defaults to 'mean'.",
                             "default": "'mean'",
-                            "enum": ["'mean'", "'median'", "'most_frequent'", "'constant'"],
+                            "enum": [
+                                "'mean'",
+                                "'median'",
+                                "'most_frequent'",
+                                "'constant'",
+                            ],
                         },
                         "fill_value": {
                             "type": "int",
@@ -138,7 +148,12 @@ def test_convert_code_to_tool_schema_class():
                 "type": "function",
                 "description": "Fit the FillMissingValue model.",
                 "parameters": {
-                    "properties": {"df": {"type": "pd.DataFrame", "description": "The input DataFrame."}},
+                    "properties": {
+                        "df": {
+                            "type": "pd.DataFrame",
+                            "description": "The input DataFrame.",
+                        }
+                    },
                     "required": ["df"],
                 },
             },
@@ -146,10 +161,20 @@ def test_convert_code_to_tool_schema_class():
                 "type": "function",
                 "description": "Transform the input DataFrame with the fitted model.",
                 "parameters": {
-                    "properties": {"df": {"type": "pd.DataFrame", "description": "The input DataFrame."}},
+                    "properties": {
+                        "df": {
+                            "type": "pd.DataFrame",
+                            "description": "The input DataFrame.",
+                        }
+                    },
                     "required": ["df"],
                 },
-                "returns": [{"type": "pd.DataFrame", "description": "The transformed DataFrame."}],
+                "returns": [
+                    {
+                        "type": "pd.DataFrame",
+                        "description": "The transformed DataFrame.",
+                    }
+                ],
             },
         },
     }
@@ -162,7 +187,12 @@ def test_convert_code_to_tool_schema_function():
         "type": "function",
         "description": "Analyzes a DataFrame and categorizes its columns based on data types.",
         "parameters": {
-            "properties": {"df": {"type": "pd.DataFrame", "description": "The DataFrame to be analyzed."}},
+            "properties": {
+                "df": {
+                    "type": "pd.DataFrame",
+                    "description": "The DataFrame to be analyzed.",
+                }
+            },
             "required": ["df"],
         },
     }

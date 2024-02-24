@@ -16,7 +16,9 @@ from metagpt.logs import logger
 from metagpt.utils.common import check_cmd_exists
 
 
-async def mermaid_to_file(engine, mermaid_code, output_file_without_suffix, width=2048, height=2048) -> int:
+async def mermaid_to_file(
+    engine, mermaid_code, output_file_without_suffix, width=2048, height=2048
+) -> int:
     """suffix: png/svg/pdf
 
     :param mermaid_code: mermaid code
@@ -62,9 +64,21 @@ async def mermaid_to_file(engine, mermaid_code, output_file_without_suffix, widt
                     str(height),
                 ]
             else:
-                commands = [config.mermaid.path, "-i", str(tmp), "-o", output_file, "-w", str(width), "-H", str(height)]
+                commands = [
+                    config.mermaid.path,
+                    "-i",
+                    str(tmp),
+                    "-o",
+                    output_file,
+                    "-w",
+                    str(width),
+                    "-H",
+                    str(height),
+                ]
             process = await asyncio.create_subprocess_shell(
-                " ".join(commands), stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+                " ".join(commands),
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
             )
 
             stdout, stderr = await process.communicate()
@@ -76,11 +90,15 @@ async def mermaid_to_file(engine, mermaid_code, output_file_without_suffix, widt
         if engine == "playwright":
             from metagpt.utils.mmdc_playwright import mermaid_to_file
 
-            return await mermaid_to_file(mermaid_code, output_file_without_suffix, width, height)
+            return await mermaid_to_file(
+                mermaid_code, output_file_without_suffix, width, height
+            )
         elif engine == "pyppeteer":
             from metagpt.utils.mmdc_pyppeteer import mermaid_to_file
 
-            return await mermaid_to_file(mermaid_code, output_file_without_suffix, width, height)
+            return await mermaid_to_file(
+                mermaid_code, output_file_without_suffix, width, height
+            )
         elif engine == "ink":
             from metagpt.utils.mmdc_ink import mermaid_to_file
 

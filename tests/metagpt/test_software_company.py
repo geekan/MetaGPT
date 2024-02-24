@@ -19,7 +19,9 @@ runner = CliRunner()
 async def test_empty_team(new_filename):
     # FIXME: we're now using "metagpt" cli, so the entrance should be replaced instead.
     company = Team()
-    history = await company.run(idea="Build a simple search system. I will upload my files later.")
+    history = await company.run(
+        idea="Build a simple search system. I will upload my files later."
+    )
     logger.info(history)
 
 

@@ -34,7 +34,9 @@ class BaseLLM(ABC):
     def __init__(self, config: LLMConfig):
         pass
 
-    def _user_msg(self, msg: str, images: Optional[Union[str, list[str]]] = None) -> dict[str, Union[str, dict]]:
+    def _user_msg(
+        self, msg: str, images: Optional[Union[str, list[str]]] = None
+    ) -> dict[str, Union[str, dict]]:
         if images:
             # as gpt-4v, chat with image
             return self._user_msg_with_imgs(msg, images)
@@ -50,7 +52,9 @@ class BaseLLM(ABC):
         content = [{"type": "text", "text": msg}]
         for image in images:
             # image url or image base64
-            url = image if image.startswith("http") else f"data:image/jpeg;base64,{image}"
+            url = (
+                image if image.startswith("http") else f"data:image/jpeg;base64,{image}"
+            )
             # it can with multiple-image inputs
             content.append({"type": "image_url", "image_url": url})
         return {"role": "user", "content": content}
@@ -102,7 +106,9 @@ class BaseLLM(ABC):
             context.append(self._assistant_msg(rsp_text))
         return self._extract_assistant_rsp(context)
 
-    async def aask_code(self, messages: Union[str, Message, list[dict]], timeout=3) -> dict:
+    async def aask_code(
+        self, messages: Union[str, Message, list[dict]], timeout=3
+    ) -> dict:
         """FIXME: No code segment filtering has been done here, and all results are actually displayed"""
         raise NotImplementedError
 
@@ -118,7 +124,9 @@ class BaseLLM(ABC):
         """
 
     @abstractmethod
-    async def acompletion_text(self, messages: list[dict], stream=False, timeout=3) -> str:
+    async def acompletion_text(
+        self, messages: list[dict], stream=False, timeout=3
+    ) -> str:
         """Asynchronous version of completion. Return str. Support stream-print"""
 
     def get_choice_text(self, rsp: dict) -> str:

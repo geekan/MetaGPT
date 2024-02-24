@@ -56,7 +56,13 @@ default_negative_prompt = "(easynegative:0.8),black, dark,Low resolution"
 
 @register_tool(
     tool_type=ToolType.STABLE_DIFFUSION.type_name,
-    include_functions=["__init__", "simple_run_t2i", "run_t2i", "construct_payload", "save"],
+    include_functions=[
+        "__init__",
+        "simple_run_t2i",
+        "run_t2i",
+        "construct_payload",
+        "save",
+    ],
 )
 class SDEngine:
     """Generate image using stable diffusion model.
@@ -144,7 +150,9 @@ class SDEngine:
         """
         session = ClientSession()
         for payload_idx, payload in enumerate(payloads):
-            results = await self.run(url=self.sd_t2i_url, payload=payload, session=session)
+            results = await self.run(
+                url=self.sd_t2i_url, payload=payload, session=session
+            )
             self.save(results, save_name=f"output_{payload_idx}")
         await session.close()
 

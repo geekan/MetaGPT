@@ -22,8 +22,14 @@ from metagpt.utils.graph_repository import GraphKeyword
 
 class RebuildSequenceView(Action):
     async def run(self, with_messages=None, format=config.prompt_schema):
-        graph_repo_pathname = self.context.git_repo.workdir / GRAPH_REPO_FILE_REPO / self.context.git_repo.workdir.name
-        graph_db = await DiGraphRepository.load_from(str(graph_repo_pathname.with_suffix(".json")))
+        graph_repo_pathname = (
+            self.context.git_repo.workdir
+            / GRAPH_REPO_FILE_REPO
+            / self.context.git_repo.workdir.name
+        )
+        graph_db = await DiGraphRepository.load_from(
+            str(graph_repo_pathname.with_suffix(".json"))
+        )
         entries = await RebuildSequenceView._search_main_entry(graph_db)
         for entry in entries:
             await self._rebuild_sequence_view(entry, graph_db)
@@ -41,15 +47,22 @@ class RebuildSequenceView(Action):
 
     async def _rebuild_sequence_view(self, entry, graph_db):
         filename = entry.subject.split(":", 1)[0]
-        src_filename = RebuildSequenceView._get_full_filename(root=self.i_context, pathname=filename)
+        src_filename = RebuildSequenceView._get_full_filename(
+            root=self.i_context, pathname=filename
+        )
         if not src_filename:
             return
         content = await aread(filename=src_filename, encoding="utf-8")
         content = f"```python\n{content}\n```\n\n---\nTranslate the code above into Mermaid Sequence Diagram."
         data = await self.llm.aask(
-            msg=content, system_msgs=["You are a python code to Mermaid Sequence Diagram translator in function detail"]
+            msg=content,
+            system_msgs=[
+                "You are a python code to Mermaid Sequence Diagram translator in function detail"
+            ],
         )
-        await graph_db.insert(subject=filename, predicate=GraphKeyword.HAS_SEQUENCE_VIEW, object_=data)
+        await graph_db.insert(
+            subject=filename, predicate=GraphKeyword.HAS_SEQUENCE_VIEW, object_=data
+        )
         logger.info(data)
 
     @staticmethod

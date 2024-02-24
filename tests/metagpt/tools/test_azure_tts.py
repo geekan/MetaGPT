@@ -28,10 +28,16 @@ async def test_azure_tts(mocker):
     mocker.patch.object(Path, "exists", return_value=True)
 
     # Prerequisites
-    assert config.azure_tts_subscription_key and config.azure_tts_subscription_key != "YOUR_API_KEY"
+    assert (
+        config.azure_tts_subscription_key
+        and config.azure_tts_subscription_key != "YOUR_API_KEY"
+    )
     assert config.azure_tts_region
 
-    azure_tts = AzureTTS(subscription_key=config.azure_tts_subscription_key, region=config.azure_tts_region)
+    azure_tts = AzureTTS(
+        subscription_key=config.azure_tts_subscription_key,
+        region=config.azure_tts_region,
+    )
     text = """
         女儿看见父亲走了进来，问道：
             <mstts:express-as role="YoungAdultFemale" style="calm">

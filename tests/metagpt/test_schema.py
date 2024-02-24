@@ -93,17 +93,31 @@ def test_message_serdeser():
     out_data = {"field3": "field3 value3", "field4": ["field4 value1", "field4 value2"]}
     ic_obj = ActionNode.create_model_class("code", out_mapping)
 
-    message = Message(content="code", instruct_content=ic_obj(**out_data), role="engineer", cause_by=WriteCode)
+    message = Message(
+        content="code",
+        instruct_content=ic_obj(**out_data),
+        role="engineer",
+        cause_by=WriteCode,
+    )
     message_dict = message.model_dump()
     assert message_dict["cause_by"] == "metagpt.actions.write_code.WriteCode"
     assert message_dict["instruct_content"] == {
         "class": "code",
-        "mapping": {"field3": "(<class 'str'>, Ellipsis)", "field4": "(list[str], Ellipsis)"},
-        "value": {"field3": "field3 value3", "field4": ["field4 value1", "field4 value2"]},
+        "mapping": {
+            "field3": "(<class 'str'>, Ellipsis)",
+            "field4": "(list[str], Ellipsis)",
+        },
+        "value": {
+            "field3": "field3 value3",
+            "field4": ["field4 value1", "field4 value2"],
+        },
     }
     new_message = Message.model_validate(message_dict)
     assert new_message.content == message.content
-    assert new_message.instruct_content.model_dump() == message.instruct_content.model_dump()
+    assert (
+        new_message.instruct_content.model_dump()
+        == message.instruct_content.model_dump()
+    )
     assert new_message.instruct_content == message.instruct_content  # TODO
     assert new_message.cause_by == message.cause_by
     assert new_message.instruct_content.field3 == out_data["field3"]
@@ -146,7 +160,8 @@ async def test_message_queue():
         (
             [f"{SYSTEM_DESIGN_FILE_REPO}/a.txt", f"{TASK_FILE_REPO}/b.txt"],
             CodeSummarizeContext(
-                design_filename=f"{SYSTEM_DESIGN_FILE_REPO}/a.txt", task_filename=f"{TASK_FILE_REPO}/b.txt"
+                design_filename=f"{SYSTEM_DESIGN_FILE_REPO}/a.txt",
+                task_filename=f"{TASK_FILE_REPO}/b.txt",
             ),
         )
     ],
@@ -159,9 +174,13 @@ def test_CodeSummarizeContext(file_list, want):
 
 
 def test_class_view():
-    attr_a = ClassAttribute(name="a", value_type="int", default_value="0", visibility="+", abstraction=True)
+    attr_a = ClassAttribute(
+        name="a", value_type="int", default_value="0", visibility="+", abstraction=True
+    )
     assert attr_a.get_mermaid(align=1) == "\t+int a=0*"
-    attr_b = ClassAttribute(name="b", value_type="str", default_value="0", visibility="#", static=True)
+    attr_b = ClassAttribute(
+        name="b", value_type="str", default_value="0", visibility="#", static=True
+    )
     assert attr_b.get_mermaid(align=0) == '#str b="0"$'
     class_view = ClassView(name="A")
     class_view.attributes = [attr_a, attr_b]
@@ -172,7 +191,10 @@ def test_class_view():
         name="_test",
         visibility="#",
         static=True,
-        args=[ClassAttribute(name="a", value_type="str"), ClassAttribute(name="b", value_type="int")],
+        args=[
+            ClassAttribute(name="a", value_type="str"),
+            ClassAttribute(name="b", value_type="int"),
+        ],
         return_type="str",
     )
     assert method_b.get_mermaid(align=0) == "#_test(str a,int b):str$"
@@ -202,7 +224,12 @@ class TestPlan:
         tasks = [
             Task(task_id="1", dependent_task_ids=["2", "3"], instruction="Third"),
             Task(task_id="2", instruction="First"),
-            Task(task_id="3", dependent_task_ids=["2"], instruction="Second", is_finished=True),
+            Task(
+                task_id="3",
+                dependent_task_ids=["2"],
+                instruction="Second",
+                is_finished=True,
+            ),
         ]  # 2 -> 3 -> 1
         plan.add_tasks(tasks)
 
@@ -270,7 +297,13 @@ class TestPlan:
 
     def test_reset_task_existing(self):
         plan = Plan(goal="")
-        task = Task(task_id="1", instruction="Do something", code="print('Hello')", result="Hello", finished=True)
+        task = Task(
+            task_id="1",
+            instruction="Do something",
+            code="print('Hello')",
+            result="Hello",
+            finished=True,
+        )
         plan.add_tasks([task])
         plan.reset_task("1")
         reset_task = plan.task_map["1"]
@@ -280,7 +313,13 @@ class TestPlan:
 
     def test_reset_task_non_existing(self):
         plan = Plan(goal="")
-        task = Task(task_id="1", instruction="Do something", code="print('Hello')", result="Hello", finished=True)
+        task = Task(
+            task_id="1",
+            instruction="Do something",
+            code="print('Hello')",
+            result="Hello",
+            finished=True,
+        )
         plan.add_tasks([task])
         plan.reset_task("2")  # Task with ID 2 does not exist
         assert "1" in plan.task_map
@@ -290,7 +329,12 @@ class TestPlan:
         plan = Plan(goal="")
         tasks = [
             Task(task_id="1", instruction="First Task", finished=True),
-            Task(task_id="2", instruction="Second Task", dependent_task_ids=["1"], finished=True),
+            Task(
+                task_id="2",
+                instruction="Second Task",
+                dependent_task_ids=["1"],
+                finished=True,
+            ),
         ]
         plan.add_tasks(tasks)
         new_task = Task(task_id="1", instruction="Updated First Task")

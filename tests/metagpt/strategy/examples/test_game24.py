@@ -32,7 +32,11 @@ class Game24Parser(BaseParser):
 
 
 class Game24Evaluator(BaseEvaluator):
-    value_map: Dict[str, float] = {"impossible": 0.001, "likely": 1, "sure": 20}  # TODO: ad hoc
+    value_map: Dict[str, float] = {
+        "impossible": 0.001,
+        "likely": 1,
+        "sure": 20,
+    }  # TODO: ad hoc
     status_map: Dict = {val: key for key, val in value_map.items()}
 
     def __call__(self, evaluation: str, **kwargs) -> float:
@@ -59,7 +63,9 @@ def test_game24():
     parser = Game24Parser()
     evaluator = Game24Evaluator()
 
-    config = ThoughtSolverConfig(n_generate_sample=5, parser=parser, evaluator=evaluator)
+    config = ThoughtSolverConfig(
+        n_generate_sample=5, parser=parser, evaluator=evaluator
+    )
 
     tot = TreeofThought(strategy=Strategy.BFS, config=config)
     asyncio.run(tot.solve(init_prompt=initial_prompt))

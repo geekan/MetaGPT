@@ -125,7 +125,9 @@ class KFoldTargetMeanEncoder(MLProcess):
     Add a new feature to the DataFrame by k-fold mean encoding of a categorical column using the label column.
     """
 
-    def __init__(self, col: str, label: str, n_splits: int = 5, random_state: int = 2021):
+    def __init__(
+        self, col: str, label: str, n_splits: int = 5, random_state: int = 2021
+    ):
         """
         Initialize self.
 
@@ -149,7 +151,9 @@ class KFoldTargetMeanEncoder(MLProcess):
         col_name = f"{self.col}_kf_target_mean"
         for trn_idx, val_idx in kf.split(tmp, tmp[self.label]):
             _trn, _val = tmp.iloc[trn_idx], tmp.iloc[val_idx]
-            tmp.loc[tmp.index[val_idx], col_name] = _val[self.col].map(_trn.groupby(self.col)[self.label].mean())
+            tmp.loc[tmp.index[val_idx], col_name] = _val[self.col].map(
+                _trn.groupby(self.col)[self.label].mean()
+            )
         tmp[col_name].fillna(global_mean, inplace=True)
         self.encoder_dict = tmp.groupby(self.col)[col_name].mean().to_dict()
 
@@ -191,7 +195,9 @@ class CatCross(MLProcess):
             tuple: The new column name and the crossed feature map.
         """
         new_col = f"{comb[0]}_{comb[1]}"
-        new_col_combs = list(itertools.product(df[comb[0]].unique(), df[comb[1]].unique()))
+        new_col_combs = list(
+            itertools.product(df[comb[0]].unique(), df[comb[1]].unique())
+        )
         ll = list(range(len(new_col_combs)))
         comb_map = dict(zip(new_col_combs, ll))
         return new_col, comb_map
@@ -201,7 +207,9 @@ class CatCross(MLProcess):
             if df[col].nunique() > self.max_cat_num:
                 self.cols.remove(col)
         self.combs = list(itertools.combinations(self.cols, 2))
-        res = Parallel(n_jobs=4, require="sharedmem")(delayed(self._cross_two)(comb, df) for comb in self.combs)
+        res = Parallel(n_jobs=4, require="sharedmem")(
+            delayed(self._cross_two)(comb, df) for comb in self.combs
+        )
         self.combs_map = dict(res)
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -237,9 +245,12 @@ class GroupStat(MLProcess):
         self.group_df = None
 
     def fit(self, df: pd.DataFrame):
-        group_df = df.groupby(self.group_col)[self.agg_col].agg(self.agg_funcs).reset_index()
+        group_df = (
+            df.groupby(self.group_col)[self.agg_col].agg(self.agg_funcs).reset_index()
+        )
         group_df.columns = [self.group_col] + [
-            f"{self.agg_col}_{agg_func}_by_{self.group_col}" for agg_func in self.agg_funcs
+            f"{self.agg_col}_{agg_func}_by_{self.group_col}"
+            for agg_func in self.agg_funcs
         ]
         self.group_df = group_df
 
@@ -335,7 +346,10 @@ class GeneralSelection(MLProcess):
             if df[col].nunique() == 1:
                 feats.remove(col)
 
-            if df.loc[df[col] == np.inf].shape[0] != 0 or df.loc[df[col] == np.inf].shape[0] != 0:
+            if (
+                df.loc[df[col] == np.inf].shape[0] != 0
+                or df.loc[df[col] == np.inf].shape[0] != 0
+            ):
                 feats.remove(col)
 
             if is_object_dtype(df[col]) and df[col].nunique() == df.shape[0]:
@@ -391,7 +405,12 @@ class TreeBasedSelection(MLProcess):
 
         dtrain = lgb.Dataset(df[cols], df[self.label_col])
         model = lgb.train(params, dtrain, num_boost_round=100)
-        df_imp = pd.DataFrame({"feature_name": dtrain.feature_name, "importance": model.feature_importance("gain")})
+        df_imp = pd.DataFrame(
+            {
+                "feature_name": dtrain.feature_name,
+                "importance": model.feature_importance("gain"),
+            }
+        )
 
         df_imp.sort_values("importance", ascending=False, inplace=True)
         df_imp = df_imp[df_imp["importance"] > 0]

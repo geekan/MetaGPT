@@ -39,7 +39,9 @@ class OpenLLM(OpenAILLM):
         if self.config.calc_usage and usage:
             try:
                 # use OpenLLMCostManager not CONFIG.cost_manager
-                self._cost_manager.update_cost(usage.prompt_tokens, usage.completion_tokens, self.model)
+                self._cost_manager.update_cost(
+                    usage.prompt_tokens, usage.completion_tokens, self.model
+                )
             except Exception as e:
                 logger.error(f"updating costs failed!, exp: {e}")
 

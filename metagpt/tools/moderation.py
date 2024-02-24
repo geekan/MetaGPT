@@ -18,7 +18,11 @@ class Moderation:
         resp = []
         for item in results:
             categories = item.categories.dict()
-            true_categories = [category for category, item_flagged in categories.items() if item_flagged]
+            true_categories = [
+                category
+                for category, item_flagged in categories.items()
+                if item_flagged
+            ]
             resp.append({"flagged": item.flagged, "true_categories": true_categories})
         return resp
 

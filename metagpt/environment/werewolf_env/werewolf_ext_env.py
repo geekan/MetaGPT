@@ -39,8 +39,16 @@ STEP_INSTRUCTIONS = {
         "send_to": "Guard",
         "restricted_to": "Moderator,Guard",
     },
-    3: {"content": "Guard, close your eyes", "send_to": "Moderator", "restricted_to": ""},
-    4: {"content": "Werewolves, please open your eyes!", "send_to": "Moderator", "restricted_to": ""},
+    3: {
+        "content": "Guard, close your eyes",
+        "send_to": "Moderator",
+        "restricted_to": "",
+    },
+    4: {
+        "content": "Werewolves, please open your eyes!",
+        "send_to": "Moderator",
+        "restricted_to": "",
+    },
     5: {
         "content": """Werewolves, I secretly tell you that {werewolf_players} are
                    all of the 2 werewolves! Keep in mind you are teammates. The rest players are not werewolves.
@@ -49,8 +57,16 @@ STEP_INSTRUCTIONS = {
         "send_to": "Werewolf",
         "restricted_to": "Moderator,Werewolf",
     },
-    6: {"content": "Werewolves, close your eyes", "send_to": "Moderator", "restricted_to": ""},
-    7: {"content": "Witch, please open your eyes!", "send_to": "Moderator", "restricted_to": ""},
+    6: {
+        "content": "Werewolves, close your eyes",
+        "send_to": "Moderator",
+        "restricted_to": "",
+    },
+    7: {
+        "content": "Witch, please open your eyes!",
+        "send_to": "Moderator",
+        "restricted_to": "",
+    },
     8: {
         "content": """Witch, tonight {player_hunted} has been killed by the werewolves.
                    You have a bottle of antidote, would you like to save him/her? If so, say "Save", else, say "Pass".""",
@@ -64,22 +80,38 @@ STEP_INSTRUCTIONS = {
         "send_to": "Witch",
         "restricted_to": "Moderator,Witch",
     },  #
-    10: {"content": "Witch, close your eyes", "send_to": "Moderator", "restricted_to": ""},
-    11: {"content": "Seer, please open your eyes!", "send_to": "Moderator", "restricted_to": ""},
+    10: {
+        "content": "Witch, close your eyes",
+        "send_to": "Moderator",
+        "restricted_to": "",
+    },
+    11: {
+        "content": "Seer, please open your eyes!",
+        "send_to": "Moderator",
+        "restricted_to": "",
+    },
     12: {
         "content": """Seer, you can check one player's identity. Who are you going to verify its identity tonight?
                     Choose only one from the following living options:{living_players}.""",
         "send_to": "Seer",
         "restricted_to": "Moderator,Seer",
     },
-    13: {"content": "Seer, close your eyes", "send_to": "Moderator", "restricted_to": ""},
+    13: {
+        "content": "Seer, close your eyes",
+        "send_to": "Moderator",
+        "restricted_to": "",
+    },
     # The 1-st daytime
     14: {
         "content": """It's daytime. Everyone woke up except those who had been killed.""",
         "send_to": "Moderator",
         "restricted_to": "",
     },
-    15: {"content": "{player_current_dead} was killed last night!", "send_to": "Moderator", "restricted_to": ""},
+    15: {
+        "content": "{player_current_dead} was killed last night!",
+        "send_to": "Moderator",
+        "restricted_to": "",
+    },
     16: {
         "content": """Living players: {living_players}, now freely talk about the current situation based on your observation and
                     reflection with a few sentences. Decide whether to reveal your identity based on your reflection.""",
@@ -93,7 +125,11 @@ STEP_INSTRUCTIONS = {
         "send_to": "",
         "restricted_to": "",
     },
-    18: {"content": """{player_current_dead} was eliminated.""", "send_to": "Moderator", "restricted_to": ""},
+    18: {
+        "content": """{player_current_dead} was eliminated.""",
+        "send_to": "Moderator",
+        "restricted_to": "",
+    },
 }
 
 
@@ -110,7 +146,9 @@ class WerewolfExtEnv(ExtEnv):
     per_round_steps: int = Field(default=len(STEP_INSTRUCTIONS))
 
     # game global states
-    game_setup: str = Field(default="", description="game setup including role and its num")
+    game_setup: str = Field(
+        default="", description="game setup including role and its num"
+    )
     special_role_players: list[str] = Field(default=[])
     winner: Optional[str] = Field(default=None)
     win_reason: Optional[str] = Field(default=None)
@@ -118,9 +156,12 @@ class WerewolfExtEnv(ExtEnv):
     witch_antidote_left: int = Field(default=1)
 
     # game current round states, a round is from closing your eyes to the next time you close your eyes
-    round_hunts: dict[str, str] = Field(default=dict(), description="nighttime wolf hunt result")
+    round_hunts: dict[str, str] = Field(
+        default=dict(), description="nighttime wolf hunt result"
+    )
     round_votes: dict[str, str] = Field(
-        default=dict(), description="daytime all players vote result, key=voteer, value=voted one"
+        default=dict(),
+        description="daytime all players vote result, key=voteer, value=voted one",
     )
     player_hunted: Optional[str] = Field(default=None)
     player_protected: Optional[str] = Field(default=None)
@@ -159,7 +200,9 @@ class WerewolfExtEnv(ExtEnv):
             self.players_state[play.name] = (play.profile, RoleState.ALIVE)
 
         self.special_role_players = [
-            p for p in self.living_players if p not in self.werewolf_players + self.villager_players
+            p
+            for p in self.living_players
+            if p not in self.werewolf_players + self.villager_players
         ]
 
     def init_game_setup(
@@ -203,16 +246,22 @@ class WerewolfExtEnv(ExtEnv):
         ]
 
         if add_human:
-            logger.info(f"You are assigned {players[assigned_role_idx].name}({players[assigned_role_idx].profile})")
+            logger.info(
+                f"You are assigned {players[assigned_role_idx].name}({players[assigned_role_idx].profile})"
+            )
 
-        game_setup = ["Game setup:"] + [f"{player.name}: {player.profile}," for player in players]
+        game_setup = ["Game setup:"] + [
+            f"{player.name}: {player.profile}," for player in players
+        ]
         self.game_setup = "\n".join(game_setup)
 
         self._init_players_state(players)  # init players state
 
         return self.game_setup, players
 
-    def _update_players_state(self, player_names: list[str], state: RoleState = RoleState.KILLED):
+    def _update_players_state(
+        self, player_names: list[str], state: RoleState = RoleState.KILLED
+    ):
         for player_name in player_names:
             if player_name in self.players_state:
                 roletype_state = self.players_state[player_name]
@@ -221,7 +270,9 @@ class WerewolfExtEnv(ExtEnv):
     def _check_valid_role(self, player: "Role", role_type: str) -> bool:
         return True if role_type in str(player) else False
 
-    def _check_player_continue(self, player_name: str, particular_step: int = -1) -> bool:
+    def _check_player_continue(
+        self, player_name: str, particular_step: int = -1
+    ) -> bool:
         step_idx = self.step_idx % self.per_round_steps
         if particular_step > 0 and step_idx != particular_step:  # step no
             # particular_step = 18, not daytime vote time, ignore
@@ -252,13 +303,17 @@ class WerewolfExtEnv(ExtEnv):
         """player vote result at daytime
         player_name: if it's None, regard as abstaining from voting
         """
-        if not self._check_player_continue(voteer.name, particular_step=18):  # 18=step no
+        if not self._check_player_continue(
+            voteer.name, particular_step=18
+        ):  # 18=step no
             return
 
         self.round_votes[voteer.name] = player_name
         # check if all living players finish voting, then get the dead one
         if list(self.round_votes.keys()) == self.living_players:
-            voted_all = list(self.round_votes.values())  # TODO in case of tie vote, check who was voted first
+            voted_all = list(
+                self.round_votes.values()
+            )  # TODO in case of tie vote, check who was voted first
             voted_all = [item for item in voted_all if item]
             self.player_current_dead = Counter(voted_all).most_common()[0][0]
             self._update_players_state([self.player_current_dead])
@@ -303,13 +358,18 @@ class WerewolfExtEnv(ExtEnv):
         if step_idx not in [15, 18] or self.step_idx in self.eval_step_idx:
             return
         else:
-            self.eval_step_idx.append(self.step_idx)  # record evaluation, avoid repetitive evaluation at the same step
+            self.eval_step_idx.append(
+                self.step_idx
+            )  # record evaluation, avoid repetitive evaluation at the same step
 
         if step_idx == 15:  # step no
             # night ends: after all special roles acted, process the whole night
             self.player_current_dead = []  # reset
 
-            if self.player_hunted != self.player_protected and not self.is_hunted_player_saved:
+            if (
+                self.player_hunted != self.player_protected
+                and not self.is_hunted_player_saved
+            ):
                 self.player_current_dead.append(self.player_hunted)
             if self.player_poisoned:
                 self.player_current_dead.append(self.player_poisoned)
@@ -323,13 +383,21 @@ class WerewolfExtEnv(ExtEnv):
 
         # game's termination condition
         living_werewolf = [p for p in self.werewolf_players if p in self.living_players]
-        living_villagers = [p for p in self.villager_players if p in self.living_players]
-        living_special_roles = [p for p in self.special_role_players if p in self.living_players]
+        living_villagers = [
+            p for p in self.villager_players if p in self.living_players
+        ]
+        living_special_roles = [
+            p for p in self.special_role_players if p in self.living_players
+        ]
         if not living_werewolf:
             self.winner = "good guys"
             self.win_reason = "werewolves all dead"
         elif not living_villagers or not living_special_roles:
             self.winner = "werewolf"
-            self.win_reason = "villagers all dead" if not living_villagers else "special roles all dead"
+            self.win_reason = (
+                "villagers all dead"
+                if not living_villagers
+                else "special roles all dead"
+            )
         if self.winner is not None:
             self._record_all_experiences()  # TODO

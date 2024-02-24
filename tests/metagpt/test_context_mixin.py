@@ -113,21 +113,55 @@ async def test_config_priority():
     gpt4 = Config.default()
     gpt4.llm.model = "gpt-4-0613"
 
-    a1 = Action(config=gpt4t, name="Say", instruction="Say your opinion with emotion and don't repeat it")
-    a2 = Action(name="Say", instruction="Say your opinion with emotion and don't repeat it")
-    a3 = Action(name="Vote", instruction="Vote for the candidate, and say why you vote for him/her")
+    a1 = Action(
+        config=gpt4t,
+        name="Say",
+        instruction="Say your opinion with emotion and don't repeat it",
+    )
+    a2 = Action(
+        name="Say", instruction="Say your opinion with emotion and don't repeat it"
+    )
+    a3 = Action(
+        name="Vote",
+        instruction="Vote for the candidate, and say why you vote for him/her",
+    )
 
     # it will not work for a1 because the config is already set
-    A = Role(name="A", profile="Democratic candidate", goal="Win the election", actions=[a1], watch=[a2], config=gpt4)
+    A = Role(
+        name="A",
+        profile="Democratic candidate",
+        goal="Win the election",
+        actions=[a1],
+        watch=[a2],
+        config=gpt4,
+    )
     # it will work for a2 because the config is not set
-    B = Role(name="B", profile="Republican candidate", goal="Win the election", actions=[a2], watch=[a1], config=gpt4)
+    B = Role(
+        name="B",
+        profile="Republican candidate",
+        goal="Win the election",
+        actions=[a2],
+        watch=[a1],
+        config=gpt4,
+    )
     # ditto
-    C = Role(name="C", profile="Voter", goal="Vote for the candidate", actions=[a3], watch=[a1, a2], config=gpt35)
+    C = Role(
+        name="C",
+        profile="Voter",
+        goal="Vote for the candidate",
+        actions=[a3],
+        watch=[a1, a2],
+        config=gpt35,
+    )
 
     env = Environment(desc="US election live broadcast")
     Team(investment=10.0, env=env, roles=[A, B, C])
 
-    assert a1.llm.model == "gpt-4-1106-preview" if Path(home_dir / "gpt-4-1106-preview.yaml").exists() else "gpt-4-0613"
+    assert (
+        a1.llm.model == "gpt-4-1106-preview"
+        if Path(home_dir / "gpt-4-1106-preview.yaml").exists()
+        else "gpt-4-0613"
+    )
     assert a2.llm.model == "gpt-4-0613"
     assert a3.llm.model == "gpt-3.5-turbo-1106"
 

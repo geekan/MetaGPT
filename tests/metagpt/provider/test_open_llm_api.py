@@ -52,7 +52,9 @@ prompt_msg = "who are you"
 messages = [{"role": "user", "content": prompt_msg}]
 
 
-async def mock_openai_acompletions_create(self, stream: bool = False, **kwargs) -> ChatCompletionChunk:
+async def mock_openai_acompletions_create(
+    self, stream: bool = False, **kwargs
+) -> ChatCompletionChunk:
     if stream:
 
         class Iterator(object):
@@ -66,14 +68,24 @@ async def mock_openai_acompletions_create(self, stream: bool = False, **kwargs) 
 
 @pytest.mark.asyncio
 async def test_openllm_acompletion(mocker):
-    mocker.patch("openai.resources.chat.completions.AsyncCompletions.create", mock_openai_acompletions_create)
+    mocker.patch(
+        "openai.resources.chat.completions.AsyncCompletions.create",
+        mock_openai_acompletions_create,
+    )
 
     openllm_gpt = OpenLLM(mock_llm_config)
     openllm_gpt.model = "llama-v2-13b-chat"
 
-    openllm_gpt._update_costs(usage=CompletionUsage(prompt_tokens=100, completion_tokens=100, total_tokens=200))
+    openllm_gpt._update_costs(
+        usage=CompletionUsage(
+            prompt_tokens=100, completion_tokens=100, total_tokens=200
+        )
+    )
     assert openllm_gpt.get_costs() == Costs(
-        total_prompt_tokens=100, total_completion_tokens=100, total_cost=0, total_budget=0
+        total_prompt_tokens=100,
+        total_completion_tokens=100,
+        total_cost=0,
+        total_budget=0,
     )
 
     resp = await openllm_gpt.acompletion(messages)

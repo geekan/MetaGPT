@@ -56,7 +56,11 @@ class Assistant(Role):
         if not last_talk:
             return False
         if not self.skills:
-            skill_path = Path(self.context.kwargs.SKILL_PATH) if self.context.kwargs.SKILL_PATH else None
+            skill_path = (
+                Path(self.context.kwargs.SKILL_PATH)
+                if self.context.kwargs.SKILL_PATH
+                else None
+            )
             self.skills = await SkillsDeclaration.load(skill_yaml_file_name=skill_path)
 
         prompt = ""
@@ -78,7 +82,11 @@ class Assistant(Role):
         elif isinstance(result, Message):
             msg = result
         else:
-            msg = Message(content=result.content, instruct_content=result.instruct_content, cause_by=type(self.rc.todo))
+            msg = Message(
+                content=result.content,
+                instruct_content=result.instruct_content,
+                cause_by=type(self.rc.todo),
+            )
         self.memory.add_answer(msg)
         return msg
 
@@ -98,7 +106,12 @@ class Assistant(Role):
         history = self.memory.history_text
         text = kwargs.get("last_talk") or text
         self.set_todo(
-            TalkAction(i_context=text, knowledge=self.memory.get_knowledge(), history_summary=history, llm=self.llm)
+            TalkAction(
+                i_context=text,
+                knowledge=self.memory.get_knowledge(),
+                history_summary=history,
+                llm=self.llm,
+            )
         )
         return True
 
@@ -112,19 +125,35 @@ class Assistant(Role):
         await action.run(**kwargs)
         if action.args is None:
             return await self.talk_handler(text=last_talk, **kwargs)
-        self.set_todo(SkillAction(skill=skill, args=action.args, llm=self.llm, name=skill.name, desc=skill.description))
+        self.set_todo(
+            SkillAction(
+                skill=skill,
+                args=action.args,
+                llm=self.llm,
+                name=skill.name,
+                desc=skill.description,
+            )
+        )
         return True
 
     async def refine_memory(self) -> str:
         last_talk = self.memory.pop_last_talk()
-        if last_talk is None:  # No user feedback, unsure if past conversation is finished.
+        if (
+            last_talk is None
+        ):  # No user feedback, unsure if past conversation is finished.
             return None
         if not self.memory.is_history_available:
             return last_talk
-        history_summary = await self.memory.summarize(max_words=800, keep_language=True, llm=self.llm)
-        if last_talk and await self.memory.is_related(text1=last_talk, text2=history_summary, llm=self.llm):
+        history_summary = await self.memory.summarize(
+            max_words=800, keep_language=True, llm=self.llm
+        )
+        if last_talk and await self.memory.is_related(
+            text1=last_talk, text2=history_summary, llm=self.llm
+        ):
             # Merge relevant content.
-            merged = await self.memory.rewrite(sentence=last_talk, context=history_summary, llm=self.llm)
+            merged = await self.memory.rewrite(
+                sentence=last_talk, context=history_summary, llm=self.llm
+            )
             return f"{merged} {last_talk}"
 
         return last_talk

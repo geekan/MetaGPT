@@ -3,6 +3,7 @@ Filename: MetaGPT/examples/agent_creator.py
 Created Date: Tuesday, September 12th 2023, 3:28:37 pm
 Author: garylin2099
 """
+
 import re
 
 from metagpt.actions import Action
@@ -69,7 +70,9 @@ class AgentCreator(Role):
         msg = self.rc.memory.get()[-1]
 
         instruction = msg.content
-        code_text = await CreateAgent().run(example=self.agent_template, instruction=instruction)
+        code_text = await CreateAgent().run(
+            example=self.agent_template, instruction=instruction
+        )
         msg = Message(content=code_text, role=self.profile, cause_by=todo)
 
         return msg

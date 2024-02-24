@@ -35,7 +35,11 @@ class GoogleAPIWrapper(BaseModel):
     def validate_google(cls, values: dict) -> dict:
         if "google_api_key" in values:
             values.setdefault("api_key", values["google_api_key"])
-            warnings.warn("`google_api_key` is deprecated, use `api_key` instead", DeprecationWarning, stacklevel=2)
+            warnings.warn(
+                "`google_api_key` is deprecated, use `api_key` instead",
+                DeprecationWarning,
+                stacklevel=2,
+            )
 
         if "api_key" not in values:
             raise ValueError(
@@ -45,7 +49,11 @@ class GoogleAPIWrapper(BaseModel):
 
         if "google_cse_id" in values:
             values.setdefault("cse_id", values["google_cse_id"])
-            warnings.warn("`google_cse_id` is deprecated, use `cse_id` instead", DeprecationWarning, stacklevel=2)
+            warnings.warn(
+                "`google_cse_id` is deprecated, use `cse_id` instead",
+                DeprecationWarning,
+                stacklevel=2,
+            )
 
         if "cse_id" not in values:
             raise ValueError(
@@ -94,14 +102,20 @@ class GoogleAPIWrapper(BaseModel):
         """
         loop = self.loop or asyncio.get_event_loop()
         future = loop.run_in_executor(
-            self.executor, self.google_api_client.list(q=query, num=max_results, cx=self.cse_id).execute
+            self.executor,
+            self.google_api_client.list(
+                q=query, num=max_results, cx=self.cse_id
+            ).execute,
         )
         result = await future
         # Extract the search result items from the response
         search_results = result.get("items", [])
 
         focus = focus or ["snippet", "link", "title"]
-        details = [{i: j for i, j in item_dict.items() if i in focus} for item_dict in search_results]
+        details = [
+            {i: j for i, j in item_dict.items() if i in focus}
+            for item_dict in search_results
+        ]
         # Return the list of search result URLs
         if as_string:
             return safe_google_results(details)

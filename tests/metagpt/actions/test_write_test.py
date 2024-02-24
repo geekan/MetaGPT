@@ -25,7 +25,9 @@ async def test_write_test(context):
         def generate(self, max_y: int, max_x: int):
             self.position = (random.randint(1, max_y - 1), random.randint(1, max_x - 1))
     """
-    testing_context = TestingContext(filename="food.py", code_doc=Document(filename="food.py", content=code))
+    testing_context = TestingContext(
+        filename="food.py", code_doc=Document(filename="food.py", content=code)
+    )
     write_test = WriteTest(i_context=testing_context, context=context)
 
     context = await write_test.run()

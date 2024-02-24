@@ -24,7 +24,8 @@ REVIEW = ActionNode(
 REVIEW_RESULT = ActionNode(
     key="ReviewResult",
     expected_type=Literal["LGTM", "LBTM"],
-    instruction="LGTM/LBTM. If the code is fully implemented, " "give a LGTM, otherwise provide a LBTM.",
+    instruction="LGTM/LBTM. If the code is fully implemented, "
+    "give a LGTM, otherwise provide a LBTM.",
     example="LBTM",
 )
 
@@ -554,8 +555,12 @@ LBTM
 """
 
 
-WRITE_CODE_NODE = ActionNode.from_children("WRITE_REVIEW_NODE", [REVIEW, REVIEW_RESULT, NEXT_STEPS])
-WRITE_MOVE_NODE = ActionNode.from_children("WRITE_MOVE_NODE", [WRITE_DRAFT, WRITE_FUNCTION])
+WRITE_CODE_NODE = ActionNode.from_children(
+    "WRITE_REVIEW_NODE", [REVIEW, REVIEW_RESULT, NEXT_STEPS]
+)
+WRITE_MOVE_NODE = ActionNode.from_children(
+    "WRITE_MOVE_NODE", [WRITE_DRAFT, WRITE_FUNCTION]
+)
 
 
 CR_FOR_MOVE_FUNCTION_BY_3 = """
@@ -577,7 +582,9 @@ class WriteCodeAN(Action):
     """Write a code review for the context."""
 
     async def run(self, context):
-        self.llm.system_prompt = "You are an outstanding engineer and can implement any code"
+        self.llm.system_prompt = (
+            "You are an outstanding engineer and can implement any code"
+        )
         return await WRITE_MOVE_NODE.fill(context=context, llm=self.llm, schema="json")
 
 

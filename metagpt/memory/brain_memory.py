@@ -122,14 +122,20 @@ class BrainMemory(BaseModel):
         self.last_talk = None
         return v
 
-    async def summarize(self, llm, max_words=200, keep_language: bool = False, limit: int = -1, **kwargs):
+    async def summarize(
+        self, llm, max_words=200, keep_language: bool = False, limit: int = -1, **kwargs
+    ):
         if isinstance(llm, MetaGPTLLM):
             return await self._metagpt_summarize(max_words=max_words)
 
         self.llm = llm
-        return await self._openai_summarize(llm=llm, max_words=max_words, keep_language=keep_language, limit=limit)
+        return await self._openai_summarize(
+            llm=llm, max_words=max_words, keep_language=keep_language, limit=limit
+        )
 
-    async def _openai_summarize(self, llm, max_words=200, keep_language: bool = False, limit: int = -1):
+    async def _openai_summarize(
+        self, llm, max_words=200, keep_language: bool = False, limit: int = -1
+    ):
         texts = [self.historical_summary]
         for m in self.history:
             texts.append(m.content)
@@ -138,9 +144,13 @@ class BrainMemory(BaseModel):
         text_length = len(text)
         if limit > 0 and text_length < limit:
             return text
-        summary = await self._summarize(text=text, max_words=max_words, keep_language=keep_language, limit=limit)
+        summary = await self._summarize(
+            text=text, max_words=max_words, keep_language=keep_language, limit=limit
+        )
         if summary:
-            await self.set_history_summary(history_summary=summary, redis_key=config.redis_key)
+            await self.set_history_summary(
+                history_summary=summary, redis_key=config.redis_key
+            )
             return summary
         raise ValueError(f"text too long:{text_length}")
 
@@ -171,7 +181,9 @@ class BrainMemory(BaseModel):
 
     @staticmethod
     def to_metagpt_history_format(history) -> str:
-        mmsg = [SimpleMessage(role=m.role, content=m.content).model_dump() for m in history]
+        mmsg = [
+            SimpleMessage(role=m.role, content=m.content).model_dump() for m in history
+        ]
         return json.dumps(mmsg, ensure_ascii=False)
 
     async def get_title(self, llm, max_words=5, **kwargs) -> str:
@@ -209,12 +221,16 @@ class BrainMemory(BaseModel):
         result = True if "TRUE" in rsp else False
         p2 = text2.replace("\n", "")
         p1 = text1.replace("\n", "")
-        logger.info(f"IS_RELATED:\nParagraph 1: {p2}\nParagraph 2: {p1}\nRESULT: {result}\n")
+        logger.info(
+            f"IS_RELATED:\nParagraph 1: {p2}\nParagraph 2: {p1}\nRESULT: {result}\n"
+        )
         return result
 
     async def rewrite(self, sentence: str, context: str, llm):
         if isinstance(llm, MetaGPTLLM):
-            return await self._metagpt_rewrite(sentence=sentence, context=context, llm=llm)
+            return await self._metagpt_rewrite(
+                sentence=sentence, context=context, llm=llm
+            )
         return await self._openai_rewrite(sentence=sentence, context=context, llm=llm)
 
     @staticmethod
@@ -259,7 +275,9 @@ class BrainMemory(BaseModel):
 
         return "\n".join(texts)
 
-    async def _summarize(self, text: str, max_words=200, keep_language: bool = False, limit: int = -1) -> str:
+    async def _summarize(
+        self, text: str, max_words=200, keep_language: bool = False, limit: int = -1
+    ) -> str:
         max_token_count = DEFAULT_MAX_TOKENS
         max_count = 100
         text_length = len(text)
@@ -268,15 +286,21 @@ class BrainMemory(BaseModel):
         summary = ""
         while max_count > 0:
             if text_length < max_token_count:
-                summary = await self._get_summary(text=text, max_words=max_words, keep_language=keep_language)
+                summary = await self._get_summary(
+                    text=text, max_words=max_words, keep_language=keep_language
+                )
                 break
 
             padding_size = 20 if max_token_count > 20 else 0
-            text_windows = self.split_texts(text, window_size=max_token_count - padding_size)
+            text_windows = self.split_texts(
+                text, window_size=max_token_count - padding_size
+            )
             part_max_words = min(int(max_words / len(text_windows)) + 1, 100)
             summaries = []
             for ws in text_windows:
-                response = await self._get_summary(text=ws, max_words=part_max_words, keep_language=keep_language)
+                response = await self._get_summary(
+                    text=ws, max_words=part_max_words, keep_language=keep_language
+                )
                 summaries.append(response)
             if len(summaries) == 1:
                 summary = summaries[0]

@@ -40,8 +40,15 @@ async def test_solver():
     print("## graph.nodes")
     print(graph.nodes)
     for k, v in graph.nodes.items():
-        print(f"{v.key} | prevs: {[i.key for i in v.prevs]} | nexts: {[i.key for i in v.nexts]}")
+        print(
+            f"{v.key} | prevs: {[i.key for i in v.prevs]} | nexts: {[i.key for i in v.nexts]}"
+        )
 
     assert len(graph.nodes) == 4
     assert len(graph.execution_order) == 4
-    assert graph.execution_order == [ISSUE_TYPE.key, PRODUCT_GOALS.key, COMPETITIVE_ANALYSIS.key, REQUIREMENT_POOL.key]
+    assert graph.execution_order == [
+        ISSUE_TYPE.key,
+        PRODUCT_GOALS.key,
+        COMPETITIVE_ANALYSIS.key,
+        REQUIREMENT_POOL.key,
+    ]

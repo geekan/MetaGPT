@@ -23,9 +23,15 @@ def test_action_type():
 
 
 def test_simple_action():
-    action = Action(name="AlexSay", instruction="Express your opinion with emotion and don't repeat it")
+    action = Action(
+        name="AlexSay",
+        instruction="Express your opinion with emotion and don't repeat it",
+    )
     assert action.name == "AlexSay"
-    assert action.node.instruction == "Express your opinion with emotion and don't repeat it"
+    assert (
+        action.node.instruction
+        == "Express your opinion with emotion and don't repeat it"
+    )
 
 
 def test_empty_action():

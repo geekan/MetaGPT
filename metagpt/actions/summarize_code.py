@@ -98,7 +98,9 @@ class SummarizeCode(Action):
 
     async def run(self):
         design_pathname = Path(self.i_context.design_filename)
-        design_doc = await self.repo.docs.system_design.get(filename=design_pathname.name)
+        design_doc = await self.repo.docs.system_design.get(
+            filename=design_pathname.name
+        )
         task_pathname = Path(self.i_context.task_filename)
         task_doc = await self.repo.docs.task.get(filename=task_pathname.name)
         src_file_repo = self.repo.with_src_path(self.context.src_workspace).srcs

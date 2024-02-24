@@ -25,7 +25,9 @@ from metagpt.tools.tool_type import ToolType
 class ToolRegistry(BaseModel):
     tools: dict = {}
     tool_types: dict = {}
-    tools_by_types: dict = defaultdict(dict)  # two-layer k-v, {tool_type: {tool_name: {...}, ...}, ...}
+    tools_by_types: dict = defaultdict(
+        dict
+    )  # two-layer k-v, {tool_type: {tool_name: {...}, ...}, ...}
 
     @field_validator("tool_types", mode="before")
     @classmethod
@@ -127,7 +129,9 @@ def register_tool(tool_type: str = "other", schema_path: str = "", **kwargs):
 
 
 def make_schema(tool_source_object, include, path):
-    os.makedirs(os.path.dirname(path), exist_ok=True)  # Create the necessary directories
+    os.makedirs(
+        os.path.dirname(path), exist_ok=True
+    )  # Create the necessary directories
     try:
         schema = convert_code_to_tool_schema(tool_source_object, include=include)
         with open(path, "w", encoding="utf-8") as f:
@@ -150,6 +154,8 @@ def validate_tool_names(tools: list[str], return_tool_object=False) -> list[str]
                 f"Specified tool {tool_name} not found and was skipped. Check if you have registered it properly"
             )
         else:
-            valid_tool = TOOL_REGISTRY.get_tool(tool_name) if return_tool_object else tool_name
+            valid_tool = (
+                TOOL_REGISTRY.get_tool(tool_name) if return_tool_object else tool_name
+            )
             valid_tools.append(valid_tool)
     return valid_tools

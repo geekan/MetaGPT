@@ -30,7 +30,11 @@ def test_werewolf_ext_env():
         "Player3": ("Witch", RoleState.ALIVE),
         "Player4": ("Guard", RoleState.ALIVE),
     }
-    ext_env = WerewolfExtEnv(players_state=players_state, step_idx=4, special_role_players=["Player3", "Player4"])
+    ext_env = WerewolfExtEnv(
+        players_state=players_state,
+        step_idx=4,
+        special_role_players=["Player3", "Player4"],
+    )
 
     assert len(ext_env.living_players) == 5
     assert len(ext_env.special_role_players) == 2
@@ -61,4 +65,6 @@ def test_werewolf_ext_env():
     assert len(ext_env.living_players) == 4
 
     player_names = ["Player0", "Player2"]
-    assert ext_env.get_players_state(player_names) == dict(zip(player_names, [RoleState.ALIVE, RoleState.KILLED]))
+    assert ext_env.get_players_state(player_names) == dict(
+        zip(player_names, [RoleState.ALIVE, RoleState.KILLED])
+    )

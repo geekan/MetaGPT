@@ -51,9 +51,14 @@ class WritePlan(Action):
         Returns:
             str: tasks with task type assigned in a json string
         """
-        task_info = "\n".join([f"Task {task['task_id']}: {task['instruction']}" for task in tasks])
+        task_info = "\n".join(
+            [f"Task {task['task_id']}: {task['instruction']}" for task in tasks]
+        )
         task_type_desc = "\n".join(
-            [f"- **{tool_type.name}**: {tool_type.desc}" for tool_type in TOOL_REGISTRY.get_tool_types().values()]
+            [
+                f"- **{tool_type.name}**: {tool_type.desc}"
+                for tool_type in TOOL_REGISTRY.get_tool_types().values()
+            ]
         )  # task type are binded with tool type now, should be improved in the future
         prompt = ASSIGN_TASK_TYPE_PROMPT.format(
             task_info=task_info, task_type_desc=task_type_desc
@@ -66,9 +71,13 @@ class WritePlan(Action):
             task["task_type"] = task_type
         return json.dumps(tasks)
 
-    async def run(self, context: list[Message], max_tasks: int = 5, use_tools: bool = False) -> str:
+    async def run(
+        self, context: list[Message], max_tasks: int = 5, use_tools: bool = False
+    ) -> str:
         prompt = (
-            self.PROMPT_TEMPLATE.replace("__context__", "\n".join([str(ct) for ct in context]))
+            self.PROMPT_TEMPLATE.replace(
+                "__context__", "\n".join([str(ct) for ct in context])
+            )
             # .replace("__current_plan__", current_plan)
             .replace("__max_tasks__", str(max_tasks))
         )

@@ -13,7 +13,9 @@ from metagpt.actions.action_node import ActionNode
 from metagpt.actions.add_requirement import UserRequirement
 from metagpt.roles.role import Role, RoleReactMode
 
-serdeser_path = Path(__file__).absolute().parent.joinpath("..", "..", "data", "serdeser_storage")
+serdeser_path = (
+    Path(__file__).absolute().parent.joinpath("..", "..", "data", "serdeser_storage")
+)
 
 
 class MockMessage(BaseModel):
@@ -31,10 +33,14 @@ class ActionPass(Action):
     name: str = "ActionPass"
 
     async def run(self, messages: list["Message"]) -> ActionOutput:
-        await asyncio.sleep(5)  # sleep to make other roles can watch the executed Message
+        await asyncio.sleep(
+            5
+        )  # sleep to make other roles can watch the executed Message
         output_mapping = {"result": (str, ...)}
         pass_class = ActionNode.create_model_class("pass", output_mapping)
-        pass_output = ActionOutput("ActionPass run passed", pass_class(**{"result": "pass result"}))
+        pass_output = ActionOutput(
+            "ActionPass run passed", pass_class(**{"result": "pass result"})
+        )
 
         return pass_output
 

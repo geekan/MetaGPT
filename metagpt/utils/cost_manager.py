@@ -46,7 +46,8 @@ class CostManager(BaseModel):
             return
 
         cost = (
-            prompt_tokens * TOKEN_COSTS[model]["prompt"] + completion_tokens * TOKEN_COSTS[model]["completion"]
+            prompt_tokens * TOKEN_COSTS[model]["prompt"]
+            + completion_tokens * TOKEN_COSTS[model]["completion"]
         ) / 1000
         self.total_cost += cost
         logger.info(
@@ -83,7 +84,12 @@ class CostManager(BaseModel):
 
     def get_costs(self) -> Costs:
         """Get all costs"""
-        return Costs(self.total_prompt_tokens, self.total_completion_tokens, self.total_cost, self.total_budget)
+        return Costs(
+            self.total_prompt_tokens,
+            self.total_completion_tokens,
+            self.total_cost,
+            self.total_budget,
+        )
 
 
 class TokenCostManager(CostManager):
@@ -100,4 +106,6 @@ class TokenCostManager(CostManager):
         """
         self.total_prompt_tokens += prompt_tokens
         self.total_completion_tokens += completion_tokens
-        logger.info(f"prompt_tokens: {prompt_tokens}, completion_tokens: {completion_tokens}")
+        logger.info(
+            f"prompt_tokens: {prompt_tokens}, completion_tokens: {completion_tokens}"
+        )

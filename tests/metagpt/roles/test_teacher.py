@@ -55,7 +55,12 @@ async def test_init():
             "expect_goal": "Do sleep, CN",
             "constraints": "Do in {key1}, {language}",
             "expect_constraints": "Do in HaHa, CN",
-            "kwargs": {"language": "CN", "key1": "HaHa", "something_big": "sleep", "teaching_language": "EN"},
+            "kwargs": {
+                "language": "CN",
+                "key1": "HaHa",
+                "something_big": "sleep",
+                "teaching_language": "EN",
+            },
             "desc": "aaa{language}",
             "expect_desc": "aaaCN",
             "language": "CN",
@@ -96,7 +101,11 @@ async def test_new_file_name():
 
     inputs = [
         {"lesson_title": "# @344\n12", "ext": ".md", "expect": "_344_12.md"},
-        {"lesson_title": "1#@$%!*&\\/:*?\"<>|\n\t '1", "ext": ".cc", "expect": "1_1.cc"},
+        {
+            "lesson_title": "1#@$%!*&\\/:*?\"<>|\n\t '1",
+            "ext": ".cc",
+            "expect": "1_1.cc",
+        },
     ]
     for i in inputs:
         seed = Inputs(**i)

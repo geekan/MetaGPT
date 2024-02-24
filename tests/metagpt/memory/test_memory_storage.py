@@ -55,7 +55,10 @@ def test_actionout_message():
     role_id = "UTUser2(Architect)"
     content = "The user has requested the creation of a command-line interface (CLI) snake game"
     message = Message(
-        content=content, instruct_content=ic_obj(**out_data), role="user", cause_by=WritePRD
+        content=content,
+        instruct_content=ic_obj(**out_data),
+        role="user",
+        cause_by=WritePRD,
     )  # WritePRD as test action
 
     shutil.rmtree(Path(DATA_PATH / f"role_mem/{role_id}/"), ignore_errors=True)
@@ -68,12 +71,22 @@ def test_actionout_message():
     assert memory_storage.is_initialized is True
 
     sim_conent = "The request is command-line interface (CLI) snake game"
-    sim_message = Message(content=sim_conent, instruct_content=ic_obj(**out_data), role="user", cause_by=WritePRD)
+    sim_message = Message(
+        content=sim_conent,
+        instruct_content=ic_obj(**out_data),
+        role="user",
+        cause_by=WritePRD,
+    )
     new_messages = memory_storage.search_dissimilar(sim_message)
     assert len(new_messages) == 0  # similar, return []
 
     new_conent = "Incorporate basic features of a snake game such as scoring and increasing difficulty"
-    new_message = Message(content=new_conent, instruct_content=ic_obj(**out_data), role="user", cause_by=WritePRD)
+    new_message = Message(
+        content=new_conent,
+        instruct_content=ic_obj(**out_data),
+        role="user",
+        cause_by=WritePRD,
+    )
     new_messages = memory_storage.search_dissimilar(new_message)
     assert new_messages[0].content == message.content
 

@@ -123,7 +123,9 @@ async def test_debug_error(context):
         output_filename="output.log",
     )
 
-    await context.repo.with_src_path(context.src_workspace).srcs.save(filename=ctx.code_filename, content=CODE_CONTENT)
+    await context.repo.with_src_path(context.src_workspace).srcs.save(
+        filename=ctx.code_filename, content=CODE_CONTENT
+    )
     await context.repo.tests.save(filename=ctx.test_filename, content=TEST_CONTENT)
     output_data = RunCodeResult(
         stdout=";",
@@ -138,7 +140,9 @@ async def test_debug_error(context):
         "----------------------------------------------------------------------\n"
         "Ran 5 tests in 0.007s\n\nFAILED (failures=1)\n;\n",
     )
-    await context.repo.test_outputs.save(filename=ctx.output_filename, content=output_data.model_dump_json())
+    await context.repo.test_outputs.save(
+        filename=ctx.output_filename, content=output_data.model_dump_json()
+    )
     debug_error = DebugError(i_context=ctx, context=context)
 
     rsp = await debug_error.run()

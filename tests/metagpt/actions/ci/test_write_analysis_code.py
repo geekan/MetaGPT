@@ -18,7 +18,13 @@ async def test_write_code_by_list_plan():
     write_code = WriteCodeWithoutTools()
     execute_code = ExecuteNbCode()
     messages = []
-    plan = ["随机生成一个pandas DataFrame时间序列", "绘制这个时间序列的直方图", "回顾已完成的任务", "求均值", "总结"]
+    plan = [
+        "随机生成一个pandas DataFrame时间序列",
+        "绘制这个时间序列的直方图",
+        "回顾已完成的任务",
+        "求均值",
+        "总结",
+    ]
     for task in plan:
         print(f"\n任务: {task}\n\n")
         messages.append(Message(task, role="assistant"))
@@ -187,7 +193,9 @@ async def test_write_code_reuse_code_simple():
     code = await WriteCodeWithoutTools().run(context=context)
     code = code["code"]
     print(code)
-    assert "pandas" not in code and "read_csv" not in code  # should reuse import and read statement from previous one
+    assert (
+        "pandas" not in code and "read_csv" not in code
+    )  # should reuse import and read statement from previous one
 
 
 @pytest.mark.skip
@@ -239,11 +247,15 @@ async def test_write_code_reuse_code_long():
         Message(content=structural_context, role="user"),
     ]
     trials_num = 5
-    trials = [WriteCodeWithoutTools().run(context=context, temperature=0.0) for _ in range(trials_num)]
+    trials = [
+        WriteCodeWithoutTools().run(context=context, temperature=0.0)
+        for _ in range(trials_num)
+    ]
     trial_results = await asyncio.gather(*trials)
     print(*trial_results, sep="\n\n***\n\n")
     success = [
-        "load_iris" not in result["code"] and "iris_data" in result["code"] for result in trial_results
+        "load_iris" not in result["code"] and "iris_data" in result["code"]
+        for result in trial_results
     ]  # should reuse iris_data from previous tasks
     success_rate = sum(success) / trials_num
     logger.info(f"success rate: {success_rate :.2f}")
@@ -313,11 +325,15 @@ async def test_write_code_reuse_code_long_for_wine():
         Message(content=structural_context, role="user"),
     ]
     trials_num = 5
-    trials = [WriteCodeWithoutTools().run(context=context, temperature=0.0) for _ in range(trials_num)]
+    trials = [
+        WriteCodeWithoutTools().run(context=context, temperature=0.0)
+        for _ in range(trials_num)
+    ]
     trial_results = await asyncio.gather(*trials)
     print(*trial_results, sep="\n\n***\n\n")
     success = [
-        "load_wine" not in result["code"] and "wine_data" in result["code"] for result in trial_results
+        "load_wine" not in result["code"] and "wine_data" in result["code"]
+        for result in trial_results
     ]  # should reuse iris_data from previous tasks
     success_rate = sum(success) / trials_num
     logger.info(f"success rate: {success_rate :.2f}")

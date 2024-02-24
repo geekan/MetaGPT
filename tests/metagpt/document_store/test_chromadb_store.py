@@ -16,7 +16,9 @@ def test_chroma_store():
 
     # 使用 write 方法添加多个文档
     document_store.write(
-        ["This is document1", "This is document2"], [{"source": "google-docs"}, {"source": "notion"}], ["doc1", "doc2"]
+        ["This is document1", "This is document2"],
+        [{"source": "google-docs"}, {"source": "notion"}],
+        ["doc1", "doc2"],
     )
 
     # 使用 add 方法添加一个文档

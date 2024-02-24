@@ -51,14 +51,18 @@ class SearchEngine(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
 
     engine: SearchEngineType = SearchEngineType.SERPER_GOOGLE
-    run_func: Optional[Callable[[str, int, bool], Coroutine[None, None, Union[str, list[str]]]]] = None
+    run_func: Optional[
+        Callable[[str, int, bool], Coroutine[None, None, Union[str, list[str]]]]
+    ] = None
     api_key: Optional[str] = None
     proxy: Optional[str] = None
 
     @model_validator(mode="after")
     def validate_extra(self):
         """Validates extra fields provided to the model and updates the run function accordingly."""
-        data = self.model_dump(exclude={"engine"}, exclude_none=True, exclude_defaults=True)
+        data = self.model_dump(
+            exclude={"engine"}, exclude_none=True, exclude_defaults=True
+        )
         if self.model_extra:
             data.update(self.model_extra)
         self._process_extra(**data)
@@ -66,7 +70,9 @@ class SearchEngine(BaseModel):
 
     def _process_extra(
         self,
-        run_func: Optional[Callable[[str, int, bool], Coroutine[None, None, Union[str, list[str]]]]] = None,
+        run_func: Optional[
+            Callable[[str, int, bool], Coroutine[None, None, Union[str, list[str]]]]
+        ] = None,
         **kwargs,
     ):
         """Processes extra configuration and updates the run function based on the search engine type.
@@ -107,14 +113,20 @@ class SearchEngine(BaseModel):
 
     @classmethod
     def from_search_func(
-        cls, search_func: Callable[[str, int, bool], Coroutine[None, None, Union[str, list[str]]]], **kwargs
+        cls,
+        search_func: Callable[
+            [str, int, bool], Coroutine[None, None, Union[str, list[str]]]
+        ],
+        **kwargs,
     ):
         """Creates a SearchEngine instance from a custom search function.
 
         Args:
             search_func: A callable that executes the search.
         """
-        return cls(engine=SearchEngineType.CUSTOM_ENGINE, run_func=search_func, **kwargs)
+        return cls(
+            engine=SearchEngineType.CUSTOM_ENGINE, run_func=search_func, **kwargs
+        )
 
     @overload
     def run(
@@ -122,8 +134,7 @@ class SearchEngine(BaseModel):
         query: str,
         max_results: int = 8,
         as_string: Literal[True] = True,
-    ) -> str:
-        ...
+    ) -> str: ...
 
     @overload
     def run(
@@ -131,8 +142,7 @@ class SearchEngine(BaseModel):
         query: str,
         max_results: int = 8,
         as_string: Literal[False] = False,
-    ) -> list[dict[str, str]]:
-        ...
+    ) -> list[dict[str, str]]: ...
 
     async def run(
         self,
@@ -153,7 +163,9 @@ class SearchEngine(BaseModel):
             The search results as a string or a list of dictionaries.
         """
         try:
-            return await self.run_func(query, max_results=max_results, as_string=as_string)
+            return await self.run_func(
+                query, max_results=max_results, as_string=as_string
+            )
         except Exception as e:
             # Handle errors in the API call
             logger.exception(f"fail to search {query} for {e}")

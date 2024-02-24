@@ -85,7 +85,9 @@ async def test_git1():
     all_files = repo1.get_files(relative_path=".", filter_ignored=True)
     assert "__pycache__/a.pyc" not in all_files
 
-    res = repo1.filter_gitignore(filenames=["snake_game/snake_game/__pycache__", "snake_game/snake_game/game.py"])
+    res = repo1.filter_gitignore(
+        filenames=["snake_game/snake_game/__pycache__", "snake_game/snake_game/game.py"]
+    )
     assert res == ["snake_game/snake_game/game.py"]
 
     repo1.delete_repository()
@@ -100,7 +102,9 @@ async def test_dependency_file():
     dependancy_file = await repo.get_dependency()
     assert not dependancy_file.exists
 
-    await dependancy_file.update(filename="a/b.txt", dependencies={"c/d.txt", "e/f.txt"})
+    await dependancy_file.update(
+        filename="a/b.txt", dependencies={"c/d.txt", "e/f.txt"}
+    )
     assert dependancy_file.exists
 
     repo.delete_repository()

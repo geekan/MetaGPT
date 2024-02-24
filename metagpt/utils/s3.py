@@ -47,9 +47,13 @@ class S3:
                 async with aiofiles.open(local_path, mode="rb") as reader:
                     body = await reader.read()
                     await client.put_object(Body=body, Bucket=bucket, Key=object_name)
-                    logger.info(f"Successfully uploaded the file to path {object_name} in bucket {bucket} of s3.")
+                    logger.info(
+                        f"Successfully uploaded the file to path {object_name} in bucket {bucket} of s3."
+                    )
         except Exception as e:
-            logger.error(f"Failed to upload the file to path {object_name} in bucket {bucket} of s3: {e}")
+            logger.error(
+                f"Failed to upload the file to path {object_name} in bucket {bucket} of s3: {e}"
+            )
             raise e
 
     async def get_object_url(
@@ -74,7 +78,9 @@ class S3:
                 file = await client.get_object(Bucket=bucket, Key=object_name)
                 return str(file["Body"].url)
         except Exception as e:
-            logger.error(f"Failed to get the url for a downloadable or preview file: {e}")
+            logger.error(
+                f"Failed to get the url for a downloadable or preview file: {e}"
+            )
             raise e
 
     async def get_object(
@@ -103,7 +109,11 @@ class S3:
             raise e
 
     async def download_file(
-        self, bucket: str, object_name: str, local_path: str, chunk_size: Optional[int] = 128 * 1024
+        self,
+        bucket: str,
+        object_name: str,
+        local_path: str,
+        chunk_size: Optional[int] = 128 * 1024,
     ) -> None:
         """Download an S3 object to a local file.
 
@@ -137,14 +147,20 @@ class S3:
         pathname = path / object_name
         try:
             async with aiofiles.open(str(pathname), mode="wb") as file:
-                data = base64.b64decode(data) if format == BASE64_FORMAT else data.encode(encoding="utf-8")
+                data = (
+                    base64.b64decode(data)
+                    if format == BASE64_FORMAT
+                    else data.encode(encoding="utf-8")
+                )
                 await file.write(data)
 
             bucket = self.config.bucket
             object_pathname = self.config.bucket or "system"
             object_pathname += f"/{object_name}"
             object_pathname = os.path.normpath(object_pathname)
-            await self.upload_file(bucket=bucket, local_path=str(pathname), object_name=object_pathname)
+            await self.upload_file(
+                bucket=bucket, local_path=str(pathname), object_name=object_pathname
+            )
             pathname.unlink(missing_ok=True)
 
             return await self.get_object_url(bucket=bucket, object_name=object_pathname)

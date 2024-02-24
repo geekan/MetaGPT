@@ -19,9 +19,16 @@ from metagpt.tools.search_engine import SearchEngine
 
 
 class MockSearchEnine:
-    async def run(self, query: str, max_results: int = 8, as_string: bool = True) -> str | list[dict[str, str]]:
+    async def run(
+        self, query: str, max_results: int = 8, as_string: bool = True
+    ) -> str | list[dict[str, str]]:
         rets = [
-            {"url": "https://metagpt.com/mock/{i}", "title": query, "snippet": query * i} for i in range(max_results)
+            {
+                "url": "https://metagpt.com/mock/{i}",
+                "title": query,
+                "snippet": query * i,
+            }
+            for i in range(max_results)
         ]
         return "\n".join(rets) if as_string else rets
 

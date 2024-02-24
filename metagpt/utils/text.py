@@ -23,9 +23,16 @@ def reduce_message_length(
     Raises:
         RuntimeError: If it fails to reduce the concatenated message length.
     """
-    max_token = TOKEN_MAX.get(model_name, 2048) - count_string_tokens(system_text, model_name) - reserved
+    max_token = (
+        TOKEN_MAX.get(model_name, 2048)
+        - count_string_tokens(system_text, model_name)
+        - reserved
+    )
     for msg in msgs:
-        if count_string_tokens(msg, model_name) < max_token or model_name not in TOKEN_MAX:
+        if (
+            count_string_tokens(msg, model_name) < max_token
+            or model_name not in TOKEN_MAX
+        ):
             return msg
 
     raise RuntimeError("fail to reduce message length")

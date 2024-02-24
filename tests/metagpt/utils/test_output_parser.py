@@ -29,15 +29,38 @@ def test_parse_code():
 
 def test_parse_python_code():
     expected_result = "print('Hello, world!')"
-    assert OutputParser.parse_python_code("```python\nprint('Hello, world!')```") == expected_result
-    assert OutputParser.parse_python_code("```python\nprint('Hello, world!')") == expected_result
+    assert (
+        OutputParser.parse_python_code("```python\nprint('Hello, world!')```")
+        == expected_result
+    )
+    assert (
+        OutputParser.parse_python_code("```python\nprint('Hello, world!')")
+        == expected_result
+    )
     assert OutputParser.parse_python_code("print('Hello, world!')") == expected_result
-    assert OutputParser.parse_python_code("print('Hello, world!')```") == expected_result
-    assert OutputParser.parse_python_code("print('Hello, world!')```") == expected_result
+    assert (
+        OutputParser.parse_python_code("print('Hello, world!')```") == expected_result
+    )
+    assert (
+        OutputParser.parse_python_code("print('Hello, world!')```") == expected_result
+    )
     expected_result = "print('```Hello, world!```')"
-    assert OutputParser.parse_python_code("```python\nprint('```Hello, world!```')```") == expected_result
-    assert OutputParser.parse_python_code("The code is: ```python\nprint('```Hello, world!```')```") == expected_result
-    assert OutputParser.parse_python_code("xxx.\n```python\nprint('```Hello, world!```')```\nxxx") == expected_result
+    assert (
+        OutputParser.parse_python_code("```python\nprint('```Hello, world!```')```")
+        == expected_result
+    )
+    assert (
+        OutputParser.parse_python_code(
+            "The code is: ```python\nprint('```Hello, world!```')```"
+        )
+        == expected_result
+    )
+    assert (
+        OutputParser.parse_python_code(
+            "xxx.\n```python\nprint('```Hello, world!```')```\nxxx"
+        )
+        == expected_result
+    )
 
     with pytest.raises(ValueError):
         OutputParser.parse_python_code("xxx =")
@@ -60,7 +83,10 @@ def test_parse_file_list():
 
 def test_parse_data():
     test_data = "##block1\n```python\nprint('Hello, world!')\n```\n##block2\nfiles=['file1', 'file2', 'file3']"
-    expected_result = {"block1": "print('Hello, world!')\n", "block2": ["file1", "file2", "file3"]}
+    expected_result = {
+        "block1": "print('Hello, world!')\n",
+        "block2": ["file1", "file2", "file3"],
+    }
     assert OutputParser.parse_data(test_data) == expected_result
 
 
@@ -82,7 +108,11 @@ def test_parse_data():
         (
             """{"title": "a", "directory": {"sub_dir1": ["title1, title2"]}, "sub_dir2": [1, 2]}""",
             dict,
-            {"title": "a", "directory": {"sub_dir1": ["title1, title2"]}, "sub_dir2": [1, 2]},
+            {
+                "title": "a",
+                "directory": {"sub_dir1": ["title1, title2"]},
+                "sub_dir2": [1, 2],
+            },
             None,
         ),
         (
@@ -106,7 +136,10 @@ def test_parse_data():
     ],
 )
 def test_extract_struct(
-    text: str, data_type: Union[type(list), type(dict)], parsed_data: Union[list, dict], expected_exception
+    text: str,
+    data_type: Union[type(list), type(dict)],
+    parsed_data: Union[list, dict],
+    expected_exception,
 ):
     def case():
         resp = OutputParser.extract_struct(text, data_type)
@@ -199,10 +232,15 @@ The product should be a web-based version of the game "Fly Bird" that is engagin
 
 There are no unclear points.
 [/CONTENT]"""
-    t_text_raw = t_text_with_content_tag.replace("[CONTENT]", "").replace("[/CONTENT]", "")
+    t_text_raw = t_text_with_content_tag.replace("[CONTENT]", "").replace(
+        "[/CONTENT]", ""
+    )
     d = OutputParser.parse_data_with_mapping(t_text_with_content_tag, OUTPUT_MAPPING)
 
     import json
 
     print(json.dumps(d))
-    assert d["Original Requirements"] == t_text_raw.split("## Original Requirements:")[1].split("##")[0].strip()
+    assert (
+        d["Original Requirements"]
+        == t_text_raw.split("## Original Requirements:")[1].split("##")[0].strip()
+    )

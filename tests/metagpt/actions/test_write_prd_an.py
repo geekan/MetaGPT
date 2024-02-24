@@ -30,10 +30,15 @@ def mock_refined_prd_json():
 
 @pytest.mark.asyncio
 async def test_write_prd_an(mocker):
-    root = ActionNode.from_children("RefinedPRD", [ActionNode(key="", expected_type=str, instruction="", example="")])
+    root = ActionNode.from_children(
+        "RefinedPRD",
+        [ActionNode(key="", expected_type=str, instruction="", example="")],
+    )
     root.instruct_content = BaseModel()
     root.instruct_content.model_dump = mock_refined_prd_json
-    mocker.patch("metagpt.actions.write_prd_an.REFINED_PRD_NODE.fill", return_value=root)
+    mocker.patch(
+        "metagpt.actions.write_prd_an.REFINED_PRD_NODE.fill", return_value=root
+    )
 
     prompt = NEW_REQ_TEMPLATE.format(
         requirements=NEW_REQUIREMENT_SAMPLE,

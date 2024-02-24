@@ -42,7 +42,13 @@ class Searcher(Role):
     @model_validator(mode="after")
     def post_root(self):
         if self.search_engine:
-            self.set_actions([SearchAndSummarize(search_engine=self.search_engine, context=self.context)])
+            self.set_actions(
+                [
+                    SearchAndSummarize(
+                        search_engine=self.search_engine, context=self.context
+                    )
+                ]
+            )
         else:
             self.set_actions([SearchAndSummarize])
         return self

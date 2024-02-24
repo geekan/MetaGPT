@@ -28,7 +28,9 @@ class MincraftEnv(Environment, MincraftExtEnv):
     event: dict[str, Any] = Field(default_factory=dict)
     current_task: str = Field(default="Mine 1 wood log")
     task_execution_time: float = Field(default=float)
-    context: str = Field(default="You can mine one of oak, birch, spruce, jungle, acacia, dark oak, or mangrove logs.")
+    context: str = Field(
+        default="You can mine one of oak, birch, spruce, jungle, acacia, dark oak, or mangrove logs."
+    )
     code: str = Field(default="")
     program_code: str = Field(default="")  # write in skill/code/*.js
     program_name: str = Field(default="")
@@ -43,7 +45,9 @@ class MincraftEnv(Environment, MincraftExtEnv):
 
     skill_desp: str = Field(default="")
 
-    chest_memory: dict[str, Any] = Field(default_factory=dict)  # eg: {'(1344, 64, 1381)': 'Unknown'}
+    chest_memory: dict[str, Any] = Field(
+        default_factory=dict
+    )  # eg: {'(1344, 64, 1381)': 'Unknown'}
     chest_observation: str = Field(default="")  # eg: "Chests: None\n\n"
 
     runtime_status: bool = False  # equal to action execution status: success or failed
@@ -87,11 +91,17 @@ class MincraftEnv(Environment, MincraftExtEnv):
 
         if CONFIG.resume:
             logger.info(f"Loading Action Developer from {MC_CKPT_DIR}/action")
-            self.chest_memory = read_json_file(f"{MC_CKPT_DIR}/action/chest_memory.json")
+            self.chest_memory = read_json_file(
+                f"{MC_CKPT_DIR}/action/chest_memory.json"
+            )
 
             logger.info(f"Loading Curriculum Agent from {MC_CKPT_DIR}/curriculum")
-            self.completed_tasks = read_json_file(f"{MC_CKPT_DIR}/curriculum/completed_tasks.json")
-            self.failed_tasks = read_json_file(f"{MC_CKPT_DIR}/curriculum/failed_tasks.json")
+            self.completed_tasks = read_json_file(
+                f"{MC_CKPT_DIR}/curriculum/completed_tasks.json"
+            )
+            self.failed_tasks = read_json_file(
+                f"{MC_CKPT_DIR}/curriculum/failed_tasks.json"
+            )
 
             logger.info(f"Loading Skill Manager from {MC_CKPT_DIR}/skill\033[0m")
             self.skills = read_json_file(f"{MC_CKPT_DIR}/skill/skills.json")
@@ -102,8 +112,12 @@ class MincraftEnv(Environment, MincraftExtEnv):
             if self.vectordb._collection.count() == 0:
                 logger.info(self.vectordb._collection.count())
                 # Set vdvs for skills & qa_cache
-                skill_desps = [skill["description"] for program_name, skill in self.skills.items()]
-                program_names = [program_name for program_name, skill in self.skills.items()]
+                skill_desps = [
+                    skill["description"] for program_name, skill in self.skills.items()
+                ]
+                program_names = [
+                    program_name for program_name, skill in self.skills.items()
+                ]
                 metadatas = [{"name": program_name} for program_name in program_names]
                 # add vectordb from file
                 self.vectordb.add_texts(
@@ -135,7 +149,9 @@ class MincraftEnv(Environment, MincraftExtEnv):
                 logger.info(
                     f"INIT_CHECK: There are {self.qa_cache_questions_vectordb._collection.count()} qa_cache in vectordb and {len(self.qa_cache)} questions in qa_cache.json."
                 )
-                assert self.qa_cache_questions_vectordb._collection.count() == len(self.qa_cache), (
+                assert self.qa_cache_questions_vectordb._collection.count() == len(
+                    self.qa_cache
+                ), (
                     f"Curriculum Agent's qa cache question vectordb is not synced with qa_cache.json.\n"
                     f"There are {self.qa_cache_questions_vectordb._collection.count()} questions in vectordb "
                     f"but {len(self.qa_cache)} questions in qa_cache.json.\n"
@@ -232,7 +248,9 @@ class MincraftEnv(Environment, MincraftExtEnv):
     def summarize_chatlog(self, events):
         def filter_item(message: str):
             craft_pattern = r"I cannot make \w+ because I need: (.*)"
-            craft_pattern2 = r"I cannot make \w+ because there is no crafting table nearby"
+            craft_pattern2 = (
+                r"I cannot make \w+ because there is no crafting table nearby"
+            )
             mine_pattern = r"I need at least a (.*) to mine \w+!"
             if re.match(craft_pattern, message):
                 self.event_summary = re.match(craft_pattern, message).groups()[0]
@@ -250,7 +268,9 @@ class MincraftEnv(Environment, MincraftExtEnv):
                 item = filter_item(event["onChat"])
                 if item:
                     chatlog.add(item)
-        self.event_summary = "I also need " + ", ".join(chatlog) + "." if chatlog else ""
+        self.event_summary = (
+            "I also need " + ", ".join(chatlog) + "." if chatlog else ""
+        )
 
     def reset_block_info(self):
         # revert all the placing event in the last step
@@ -312,8 +332,12 @@ class MincraftEnv(Environment, MincraftExtEnv):
         self.failed_tasks = updated_failed_tasks
 
         # dump to json
-        write_json_file(f"{MC_CKPT_DIR}/curriculum/completed_tasks.json", self.completed_tasks)
-        write_json_file(f"{MC_CKPT_DIR}/curriculum/failed_tasks.json", self.failed_tasks)
+        write_json_file(
+            f"{MC_CKPT_DIR}/curriculum/completed_tasks.json", self.completed_tasks
+        )
+        write_json_file(
+            f"{MC_CKPT_DIR}/curriculum/failed_tasks.json", self.failed_tasks
+        )
 
     async def on_event_retrieve(self, *args):
         """
@@ -335,7 +359,10 @@ class MincraftEnv(Environment, MincraftExtEnv):
             # difficulty = "easy" if len(self.completed_tasks) > 15 else "peaceful"
             difficulty = "peaceful"
 
-            events = self.step("bot.chat(`/time set ${getNextTime()}`);\n" + f"bot.chat('/difficulty {difficulty}');")
+            events = self.step(
+                "bot.chat(`/time set ${getNextTime()}`);\n"
+                + f"bot.chat('/difficulty {difficulty}');"
+            )
             self.update_event(events)
             return events
         except Exception as e:

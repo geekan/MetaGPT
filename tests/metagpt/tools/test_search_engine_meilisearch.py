@@ -22,7 +22,9 @@ def search_engine_server():
     # https://www.meilisearch.com/docs/learn/getting_started/installation
     # brew update && brew install meilisearch
 
-    meilisearch_process = subprocess.Popen(["meilisearch", "--master-key", f"{MASTER_KEY}"], stdout=subprocess.PIPE)
+    meilisearch_process = subprocess.Popen(
+        ["meilisearch", "--master-key", f"{MASTER_KEY}"], stdout=subprocess.PIPE
+    )
     time.sleep(3)
     yield
     meilisearch_process.terminate()

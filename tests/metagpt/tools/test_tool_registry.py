@@ -45,7 +45,9 @@ def test_fn():
 
 # Test Tool Registration Class
 def test_register_tool_class(tool_registry):
-    tool_registry.register_tool("TestClassTool", "/path/to/tool", tool_source_object=TestClassTool)
+    tool_registry.register_tool(
+        "TestClassTool", "/path/to/tool", tool_source_object=TestClassTool
+    )
     assert "TestClassTool" in tool_registry.tools
 
 
@@ -57,14 +59,18 @@ def test_register_tool_fn(tool_registry):
 
 # Test Tool Existence Checks
 def test_has_tool(tool_registry):
-    tool_registry.register_tool("TestClassTool", "/path/to/tool", tool_source_object=TestClassTool)
+    tool_registry.register_tool(
+        "TestClassTool", "/path/to/tool", tool_source_object=TestClassTool
+    )
     assert tool_registry.has_tool("TestClassTool")
     assert not tool_registry.has_tool("NonexistentTool")
 
 
 # Test Tool Retrieval
 def test_get_tool(tool_registry):
-    tool_registry.register_tool("TestClassTool", "/path/to/tool", tool_source_object=TestClassTool)
+    tool_registry.register_tool(
+        "TestClassTool", "/path/to/tool", tool_source_object=TestClassTool
+    )
     tool = tool_registry.get_tool("TestClassTool")
     assert tool is not None
     assert tool.name == "TestClassTool"
@@ -89,7 +95,9 @@ def test_get_tools_by_type(tool_registry):
     tool_name = "TestTool"
     tool_path = "/path/to/tool"
 
-    tool_registry.register_tool(tool_name, tool_path, tool_type=tool_type_name, tool_source_object=TestClassTool)
+    tool_registry.register_tool(
+        tool_name, tool_path, tool_type=tool_type_name, tool_source_object=TestClassTool
+    )
 
     tools_by_type = tool_registry.get_tools_by_type(tool_type_name)
     assert tools_by_type is not None

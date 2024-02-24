@@ -15,7 +15,9 @@ class HumanInteraction(object):
     stop_list = ("q", "quit", "exit")
 
     def multilines_input(self, prompt: str = "Enter: ") -> str:
-        logger.warning("Enter your content, use Ctrl-D or Ctrl-Z ( windows ) to save it.")
+        logger.warning(
+            "Enter your content, use Ctrl-D or Ctrl-Z ( windows ) to save it."
+        )
         logger.info(f"{prompt}\n")
         lines = []
         while True:
@@ -37,9 +39,13 @@ class HumanInteraction(object):
         except Exception:
             return False, None
 
-        actionnode_class = import_class("ActionNode", "metagpt.actions.action_node")  # avoid circular import
+        actionnode_class = import_class(
+            "ActionNode", "metagpt.actions.action_node"
+        )  # avoid circular import
         tmp_key = "tmp"
-        tmp_cls = actionnode_class.create_model_class(class_name=tmp_key.upper(), mapping={tmp_key: (req_type, ...)})
+        tmp_cls = actionnode_class.create_model_class(
+            class_name=tmp_key.upper(), mapping={tmp_key: (req_type, ...)}
+        )
         try:
             _ = tmp_cls(**{tmp_key: data})
         except Exception:
@@ -50,11 +56,15 @@ class HumanInteraction(object):
         # check the input with req_type until it's ok
         while True:
             input_content = self.multilines_input(prompt)
-            check_ret, structure_content = self.check_input_type(input_content, req_type)
+            check_ret, structure_content = self.check_input_type(
+                input_content, req_type
+            )
             if check_ret:
                 break
             else:
-                logger.error(f"Input content can't meet required_type: {req_type}, please Re-Enter.")
+                logger.error(
+                    f"Input content can't meet required_type: {req_type}, please Re-Enter."
+                )
         return structure_content
 
     def input_num_until_valid(self, num_max: int) -> int:
@@ -71,12 +81,17 @@ class HumanInteraction(object):
                 pass
 
     def interact_with_instruct_content(
-        self, instruct_content: BaseModel, mapping: dict = dict(), interact_type: str = "review"
+        self,
+        instruct_content: BaseModel,
+        mapping: dict = dict(),
+        interact_type: str = "review",
     ) -> dict[str, Any]:
         assert interact_type in ["review", "revise"]
         assert instruct_content
         instruct_content_dict = instruct_content.model_dump()
-        num_fields_map = dict(zip(range(0, len(instruct_content_dict)), instruct_content_dict.keys()))
+        num_fields_map = dict(
+            zip(range(0, len(instruct_content_dict)), instruct_content_dict.keys())
+        )
         logger.info(
             f"\n{interact_type.upper()} interaction\n"
             f"Interaction data: {num_fields_map}\n"
@@ -92,14 +107,18 @@ class HumanInteraction(object):
                 break
 
             field = num_fields_map.get(input_num)
-            logger.info(f"You choose to interact with field: {field}, and do a `{interact_type}` operation.")
+            logger.info(
+                f"You choose to interact with field: {field}, and do a `{interact_type}` operation."
+            )
 
             if interact_type == "review":
                 prompt = "Enter your review comment: "
                 req_type = str
             else:
                 prompt = "Enter your revise content: "
-                req_type = mapping.get(field)[0]  # revise need input content match the required_type
+                req_type = mapping.get(field)[
+                    0
+                ]  # revise need input content match the required_type
 
             field_content = self.input_until_valid(prompt=prompt, req_type=req_type)
             interact_contents[field] = field_content

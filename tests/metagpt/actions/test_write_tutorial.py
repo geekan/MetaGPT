@@ -13,7 +13,9 @@ from metagpt.actions.write_tutorial import WriteContent, WriteDirectory
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize(("language", "topic"), [("English", "Write a tutorial about Python")])
+@pytest.mark.parametrize(
+    ("language", "topic"), [("English", "Write a tutorial about Python")]
+)
 async def test_write_directory(language: str, topic: str, context):
     ret = await WriteDirectory(language=language, context=context).run(topic=topic)
     assert isinstance(ret, dict)
@@ -27,10 +29,18 @@ async def test_write_directory(language: str, topic: str, context):
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     ("language", "topic", "directory"),
-    [("English", "Write a tutorial about Python", {"Introduction": ["What is Python?", "Why learn Python?"]})],
+    [
+        (
+            "English",
+            "Write a tutorial about Python",
+            {"Introduction": ["What is Python?", "Why learn Python?"]},
+        )
+    ],
 )
 async def test_write_content(language: str, topic: str, directory: Dict, context):
-    ret = await WriteContent(language=language, directory=directory, context=context).run(topic=topic)
+    ret = await WriteContent(
+        language=language, directory=directory, context=context
+    ).run(topic=topic)
     assert isinstance(ret, str)
     assert list(directory.keys())[0] in ret
     for value in list(directory.values())[0]:

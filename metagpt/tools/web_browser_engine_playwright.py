@@ -50,7 +50,9 @@ class PlaywrightWrapper(BaseModel):
             _scrape = self._scrape
 
             if urls:
-                return await asyncio.gather(_scrape(browser, url), *(_scrape(browser, i) for i in urls))
+                return await asyncio.gather(
+                    _scrape(browser, url), *(_scrape(browser, i) for i in urls)
+                )
             return await _scrape(browser, url)
 
     async def _scrape(self, browser, url):
@@ -118,7 +120,10 @@ async def _install_browsers(*browsers, **kwargs) -> None:
             **kwargs,
         )
 
-        await asyncio.gather(_log_stream(process.stdout, logger.info), _log_stream(process.stderr, logger.warning))
+        await asyncio.gather(
+            _log_stream(process.stdout, logger.info),
+            _log_stream(process.stderr, logger.warning),
+        )
 
         if await process.wait() == 0:
             logger.info("Install browser for playwright successfully.")

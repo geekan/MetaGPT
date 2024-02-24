@@ -75,7 +75,9 @@ class SerializationMixin(BaseModel, extra="forbid"):
     def __serialize_with_class_type__(self, default_serializer) -> Any:
         # default serializer, then append the `__module_class_name` field and return
         ret = default_serializer(self)
-        ret["__module_class_name"] = f"{self.__class__.__module__}.{self.__class__.__qualname__}"
+        ret["__module_class_name"] = (
+            f"{self.__class__.__module__}.{self.__class__.__qualname__}"
+        )
         return ret
 
     @model_validator(mode="wrap")
@@ -108,7 +110,9 @@ class SerializationMixin(BaseModel, extra="forbid"):
 
         if class_type is None:
             # TODO could try dynamic import
-            raise TypeError("Trying to instantiate {class_full_name}, which has not yet been defined!")
+            raise TypeError(
+                "Trying to instantiate {class_full_name}, which has not yet been defined!"
+            )
 
         return class_type(**value)
 
@@ -188,7 +192,9 @@ class Documents(BaseModel):
 class Message(BaseModel):
     """list[<role>: <content>]"""
 
-    id: str = Field(default="", validate_default=True)  # According to Section 2.2.3.1.1 of RFC 135
+    id: str = Field(
+        default="", validate_default=True
+    )  # According to Section 2.2.3.1.1 of RFC 135
     content: str
     instruct_content: Optional[BaseModel] = Field(default=None, validate_default=True)
     role: str = "user"  # system / user / assistant
@@ -208,20 +214,30 @@ class Message(BaseModel):
             if "mapping" in ic:
                 # compatible with custom-defined ActionOutput
                 mapping = actionoutput_str_to_mapping(ic["mapping"])
-                actionnode_class = import_class("ActionNode", "metagpt.actions.action_node")  # avoid circular import
-                ic_obj = actionnode_class.create_model_class(class_name=ic["class"], mapping=mapping)
+                actionnode_class = import_class(
+                    "ActionNode", "metagpt.actions.action_node"
+                )  # avoid circular import
+                ic_obj = actionnode_class.create_model_class(
+                    class_name=ic["class"], mapping=mapping
+                )
             elif "module" in ic:
                 # subclasses of BaseModel
                 ic_obj = import_class(ic["class"], ic["module"])
             else:
-                raise KeyError("missing required key to init Message.instruct_content from dict")
+                raise KeyError(
+                    "missing required key to init Message.instruct_content from dict"
+                )
             ic = ic_obj(**ic["value"])
         return ic
 
     @field_validator("cause_by", mode="before")
     @classmethod
     def check_cause_by(cls, cause_by: Any) -> str:
-        return any_to_str(cause_by if cause_by else import_class("UserRequirement", "metagpt.actions.add_requirement"))
+        return any_to_str(
+            cause_by
+            if cause_by
+            else import_class("UserRequirement", "metagpt.actions.add_requirement")
+        )
 
     @field_validator("sent_from", mode="before")
     @classmethod
@@ -245,10 +261,18 @@ class Message(BaseModel):
                 mapping = actionoutout_schema_to_mapping(schema)
                 mapping = actionoutput_mapping_to_str(mapping)
 
-                ic_dict = {"class": schema["title"], "mapping": mapping, "value": ic.model_dump()}
+                ic_dict = {
+                    "class": schema["title"],
+                    "mapping": mapping,
+                    "value": ic.model_dump(),
+                }
             else:
                 # due to instruct_content can be assigned by subclasses of BaseModel
-                ic_dict = {"class": schema["title"], "module": ic.__module__, "value": ic.model_dump()}
+                ic_dict = {
+                    "class": schema["title"],
+                    "module": ic.__module__,
+                    "value": ic.model_dump(),
+                }
         return ic_dict
 
     def __init__(self, content: str = "", **data: Any):
@@ -417,7 +441,10 @@ class Plan(BaseModel):
             # Find the length of the common prefix between existing and new tasks
             prefix_length = 0
             for old_task, new_task in zip(self.tasks, new_tasks):
-                if old_task.task_id != new_task.task_id or old_task.instruction != new_task.instruction:
+                if (
+                    old_task.task_id != new_task.task_id
+                    or old_task.instruction != new_task.instruction
+                ):
                     break
                 prefix_length += 1
 
@@ -478,7 +505,9 @@ class Plan(BaseModel):
         Returns:
             None
         """
-        assert not self.has_task_id(new_task.task_id), "Task already in current plan, use replace_task instead"
+        assert not self.has_task_id(
+            new_task.task_id
+        ), "Task already in current plan, use replace_task instead"
 
         assert all(
             [self.has_task_id(dep_id) for dep_id in new_task.dependent_task_ids]
@@ -726,7 +755,12 @@ class ClassMethod(ClassMeta):
 
     def get_mermaid(self, align=1) -> str:
         content = "".join(["\t" for i in range(align)]) + self.visibility
-        content += self.name + "(" + ",".join([v.get_mermaid(align=0) for v in self.args]) + ")"
+        content += (
+            self.name
+            + "("
+            + ",".join([v.get_mermaid(align=0) for v in self.args])
+            + ")"
+        )
         if self.return_type:
             content += ":" + self.return_type
         if self.abstraction:

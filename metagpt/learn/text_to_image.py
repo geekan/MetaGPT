@@ -17,7 +17,9 @@ from metagpt.tools.openai_text_to_image import oas3_openai_text_to_image
 from metagpt.utils.s3 import S3
 
 
-async def text_to_image(text, size_type: str = "512x512", config: Config = metagpt.config2.config):
+async def text_to_image(
+    text, size_type: str = "512x512", config: Config = metagpt.config2.config
+):
     """Text to image
 
     :param text: The text used for image conversion.

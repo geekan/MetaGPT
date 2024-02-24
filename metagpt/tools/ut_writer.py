@@ -152,7 +152,9 @@ class UTGenerator:
         required = name in prop_object_required
         return self.__para_to_str(prop, required, name)
 
-    def build_object_properties(self, node, prop_object_required, level: int = 0) -> str:
+    def build_object_properties(
+        self, node, prop_object_required, level: int = 0
+    ) -> str:
         """Recursively output properties of object and array[object] types
 
         Args:
@@ -167,7 +169,9 @@ class UTGenerator:
             """If it's an object type, recursively output its properties"""
             if node.get("type") == "object":
                 sub_properties = node.get("properties", {})
-                return self.build_object_properties(sub_properties, prop_object_required, level=level + 1)
+                return self.build_object_properties(
+                    sub_properties, prop_object_required, level=level + 1
+                )
             return ""
 
         if node.get("in", "") in ["query", "header", "formData"]:
@@ -179,7 +183,9 @@ class UTGenerator:
             if not isinstance(prop, dict):
                 doc += f'{"	" * level}{self._para_to_str(node)}\n'
                 break
-            doc += f'{"	" * level}{self.para_to_str(name, prop, prop_object_required)}\n'
+            doc += (
+                f'{"	" * level}{self.para_to_str(name, prop, prop_object_required)}\n'
+            )
             doc += dive_into_object(prop)
             if prop["type"] == "array":
                 items = prop.get("items", {})

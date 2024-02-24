@@ -10,4 +10,11 @@ from metagpt.environment.stanford_town_env.stanford_town_env import StanfordTown
 from metagpt.environment.software_env.software_env import SoftwareEnv
 
 
-__all__ = ["AndroidEnv", "MincraftExtEnv", "WerewolfEnv", "StanfordTownEnv", "SoftwareEnv", "Environment"]
+__all__ = [
+    "AndroidEnv",
+    "MincraftExtEnv",
+    "WerewolfEnv",
+    "StanfordTownEnv",
+    "SoftwareEnv",
+    "Environment",
+]

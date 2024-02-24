@@ -50,7 +50,12 @@ class ZhiPuAILLM(BaseLLM):
         self.llm = ZhiPuModelAPI(api_key=self.api_key)
 
     def _const_kwargs(self, messages: list[dict], stream: bool = False) -> dict:
-        kwargs = {"model": self.model, "messages": messages, "stream": stream, "temperature": 0.3}
+        kwargs = {
+            "model": self.model,
+            "messages": messages,
+            "stream": stream,
+            "temperature": 0.3,
+        }
         return kwargs
 
     def _update_costs(self, usage: dict):
@@ -59,12 +64,16 @@ class ZhiPuAILLM(BaseLLM):
             try:
                 prompt_tokens = int(usage.get("prompt_tokens", 0))
                 completion_tokens = int(usage.get("completion_tokens", 0))
-                self.cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
+                self.cost_manager.update_cost(
+                    prompt_tokens, completion_tokens, self.model
+                )
             except Exception as e:
                 logger.error(f"zhipuai updats costs failed! exp: {e}")
 
     def completion(self, messages: list[dict], timeout=3) -> dict:
-        resp: Completion = self.llm.chat.completions.create(**self._const_kwargs(messages))
+        resp: Completion = self.llm.chat.completions.create(
+            **self._const_kwargs(messages)
+        )
         usage = resp.usage.model_dump()
         self._update_costs(usage)
         return resp.model_dump()
@@ -79,7 +88,9 @@ class ZhiPuAILLM(BaseLLM):
         return await self._achat_completion(messages, timeout=timeout)
 
     async def _achat_completion_stream(self, messages: list[dict], timeout=3) -> str:
-        response = await self.llm.acreate_stream(**self._const_kwargs(messages, stream=True))
+        response = await self.llm.acreate_stream(
+            **self._const_kwargs(messages, stream=True)
+        )
         collected_content = []
         usage = {}
         async for chunk in response.stream():
@@ -104,7 +115,9 @@ class ZhiPuAILLM(BaseLLM):
         retry=retry_if_exception_type(ConnectionError),
         retry_error_callback=log_and_reraise,
     )
-    async def acompletion_text(self, messages: list[dict], stream=False, timeout=3) -> str:
+    async def acompletion_text(
+        self, messages: list[dict], stream=False, timeout=3
+    ) -> str:
         """response in async with stream or non-stream mode"""
         if stream:
             return await self._achat_completion_stream(messages)
