@@ -1,1 +1,0 @@
-create a new contact in Contacts app named zr ,with a phone number +86 15231955333

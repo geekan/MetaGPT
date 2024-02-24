@@ -60,6 +60,9 @@ class SelfLearnAndReflect(Action):
     async def run(
             self, round_count: int, task_desc: str, last_act: str, task_dir: Path, docs_dir: Path, env: AndroidEnv
     ) -> AndroidActionOutput:
+        for path in [task_dir,docs_dir]:
+            if not path.exists():
+                path.mkdir(parents=True,exist_ok=True)
         resp = await self.run_self_learn(round_count, task_desc, last_act, task_dir, env)
         resp = await self.run_reflect(round_count, task_desc, last_act, task_dir, docs_dir, env)
         return resp
@@ -121,6 +124,8 @@ class SelfLearnAndReflect(Action):
         # Modify WindowsPath to Str
         OpLogItem(step=round_count, prompt=prompt, image=str(screenshot_before_labeled_path), response=node.content)
         op_param = screenshot_parse_extract(node.instruct_content.model_dump(), grid_on=False)
+        # TODO Modify Op_param. When op_param.action is FINISH, how to solve this ?
+        logger.info(op_param)
         if op_param.param_state == RunState.FINISH:
             return AndroidActionOutput(action_state=RunState.FINISH)
         if op_param.param_state == RunState.FAIL:
@@ -156,6 +161,7 @@ class SelfLearnAndReflect(Action):
 
         self.elem_list = elem_list
         self.act_name = op_param.act_name
+        print("探索阶段结束")
         return AndroidActionOutput()
 
     async def run_reflect(
@@ -233,5 +239,8 @@ class SelfLearnAndReflect(Action):
                 doc_content = DocContent()
                 setattr(doc_content, self.act_name, doc)
             doc_path.write_text(str(doc_content))
-
+        print("反思阶段结束")
         return AndroidActionOutput(data={"last_act": last_act})
+
+# TODO 如何处理 FINISH 状态，这一点应该需要与role 联动才能解决
+

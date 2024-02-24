@@ -1,1 +1,0 @@
-{'tap': 'Tapping this UI element opens the app drawer, displaying a list of all the apps installed on the device.', 'text': '', 'v_swipe': '', 'h_swipe': '', 'long_press': ''}

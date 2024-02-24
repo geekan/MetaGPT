@@ -27,22 +27,29 @@ class ManualRecord(Action):
     name: str = "ManualRecord"
 
     useless_list: list[str] = []  # store useless elements uid
-    record_path: str = ""
-    task_desc_path: str = ""
-    screenshot_before_path: str = ""
-    screenshot_after_path: str = ""
-    xml_path: str = ""
+    record_path: Path = ""
+    task_desc_path: Path = ""
+    screenshot_before_path: Path = ""
+    screenshot_after_path: Path = ""
+    xml_path: Path = ""
 
     async def run(self, demo_name: str, task_desc: str,task_dir: Path, env: AndroidEnv):
 
         self.record_path = Path(task_dir) / "record.txt"
-        record_file = open(self.record_path, "w")
         self.task_desc_path = Path(task_dir) / "task_desc.txt"
-        with open(self.task_desc_path, "w") as f:
-            f.write(task_desc)
         self.screenshot_before_path = Path(task_dir)/"raw_screenshots"
         self.screenshot_after_path = Path(task_dir)/"labeled_screenshots"
         self.xml_path =  Path(task_dir)/"xml"
+
+        for path in [self.screenshot_before_path,self.screenshot_after_path, self.xml_path]:
+            if not path.exists():
+                path.mkdir(parents=True, exist_ok=True)
+
+        with open(self.record_path, 'w') as file:
+            file.write('')
+        record_file = open(self.record_path, "w")
+        with open(self.task_desc_path, "w") as f:
+            f.write(task_desc)
         step = 0
         while True:
             step += 1
@@ -182,10 +189,4 @@ class ManualRecord(Action):
                 break
             time.sleep(3)
 
-# TODO
-# 1. 截圖信息显示 KO
-# 2. 不同功能测试 OK
-# 3. demo 生成路径错误， 这个地方的结合需要考虑
-    # 1. Documentation Generate
-    # 2. Role Test
 
