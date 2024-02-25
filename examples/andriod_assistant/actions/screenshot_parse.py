@@ -19,13 +19,14 @@ from examples.andriod_assistant.utils.schema import (
     OpLogItem,
     RunState,
     SwipeGridOp,
-    SwipeOp,
+    SwipeOp_3,
     TapGridOp,
     TapOp,
     TextOp,
 )
 from examples.andriod_assistant.utils.utils import (
     area_to_xy,
+    draw_grid,
     draw_bbox_multi,
     elem_bbox_to_xy,
     screenshot_parse_extract,
@@ -47,9 +48,9 @@ class ScreenshotParse(Action):
             return ""
 
         ui_doc = """
-You also have access to the following documentations that describes the functionalities of UI 
-elements you can interact on the screen. These docs are crucial for you to determine the target of your 
-next action. You should always prioritize these documented elements for interaction:"""
+        You also have access to the following documentations that describes the functionalities of UI 
+        elements you can interact on the screen. These docs are crucial for you to determine the target of your 
+        next action. You should always prioritize these documented elements for interaction:"""
         for i, elem in enumerate(elem_list):
             doc_path = docs_idr.joinpath(f"{elem.uid}.txt")
             if not doc_path.exists():
@@ -78,23 +79,32 @@ next action. You should always prioritize these documented elements for interact
         return ui_doc
 
     async def run(
-        self,
-        round_count: int,
-        task_desc: str,
-        last_act: str,
-        task_dir: Path,
-        docs_dir: Path,
-        grid_on: bool,
-        env: AndroidEnv,
+            self,
+            round_count: int,
+            task_desc: str,
+            last_act: str,
+            task_dir: Path,
+            docs_dir: Path,
+            grid_on: bool,
+            env: AndroidEnv,
     ):
-        screenshot_path: Path = env.step(
+        for path in [task_dir, docs_dir]:
+            if not path.exists():
+                path.mkdir(parents=True, exist_ok=True)
+
+        screenshot_path: Path = env.observe(
             EnvAPIAbstract(
-                api_name="get_screenshot", kwargs={"ss_name": f"{round_count}_before", "local_save_dir": task_dir}
+                api_name="get_screenshot",
+                kwargs={"ss_name": f"{round_count}_before", "local_save_dir": task_dir}
             )
         )
-        xml_path: Path = env.step(
-            EnvAPIAbstract(api_name="get_xml", kwargs={"xml_name": f"{round_count}", "local_save_dir": task_dir})
+        xml_path: Path = env.observe(
+            EnvAPIAbstract(
+                api_name="get_xml",
+                kwargs={"xml_name": f"{round_count}", "local_save_dir": task_dir}
+            )
         )
+        width, height = env.device_shape
         if not screenshot_path.exists() or not xml_path.exists():
             return AndroidActionOutput(action_state=RunState.FAIL)
 
@@ -111,17 +121,22 @@ next action. You should always prioritize these documented elements for interact
                 bbox = e.bbox
                 center_ = (bbox[0][0] + bbox[1][0]) // 2, (bbox[0][1] + bbox[1][1]) // 2
                 dist = (abs(center[0] - center_[0]) ** 2 + abs(center[1] - center_[1]) ** 2) ** 0.5
-                if dist <= config.get_other("min_dist"):
+                # TODO Modify config to default 30. It should be modified back config after single action test
+                # if dist <= config.get_other("min_dist"):
+                if dist <= 30:
                     close = True
                     break
             if not close:
                 elem_list.append(elem)
 
-        screenshot_labeled_path = task_dir.joinpath(f"{task_dir}_{round_count}_labeled.png")
+        screenshot_labeled_path = task_dir.joinpath(f"{round_count}_labeled.png")
         draw_bbox_multi(screenshot_path, screenshot_labeled_path, elem_list)
         img_base64 = encode_image(screenshot_labeled_path)
 
         parse_template = screenshot_parse_with_grid_template if grid_on else screenshot_parse_template
+
+        if grid_on:
+            rows, cols = draw_grid(screenshot_path, task_dir / f"{round_count}_grid.png")
 
         ui_doc = self._makeup_ui_document(elem_list, docs_dir)
         context = parse_template.format(ui_document=ui_doc, task_description=task_desc, last_act=last_act)
@@ -131,7 +146,7 @@ next action. You should always prioritize these documented elements for interact
             return AndroidActionOutput(action_state=RunState.FAIL)
 
         prompt = node.compile(context=context, schema="json", mode="auto")
-        OpLogItem(step=round_count, prompt=prompt, image=screenshot_labeled_path, response=node.content)
+        OpLogItem(step=round_count, prompt=prompt, image=str(screenshot_labeled_path), response=node.content)
 
         op_param = screenshot_parse_extract(node.instruct_content.model_dump(), grid_on)
         if op_param.param_state == RunState.FINISH:
@@ -141,23 +156,24 @@ next action. You should always prioritize these documented elements for interact
 
         if isinstance(op_param, TapOp):
             x, y = elem_bbox_to_xy(elem_list[op_param.area - 1].bbox)
-            res = env.step(EnvAPIAbstract("system_tap", kwargs={"x": x, "y": y}))
+            res = env.step(EnvAPIAbstract(api_name="system_tap", kwargs={"x": x, "y": y}))
             if res == ADB_EXEC_FAIL:
                 return AndroidActionOutput(action_state=RunState.FAIL)
         elif isinstance(op_param, TextOp):
-            res = env.step(EnvAPIAbstract("user_input", kwargs={"input_txt": op_param.input_str}))
+            res = env.step(EnvAPIAbstract(api_name="user_input", kwargs={"input_txt": op_param.input_str}))
             if res == ADB_EXEC_FAIL:
                 return AndroidActionOutput(action_state=RunState.FAIL)
         elif isinstance(op_param, LongPressOp):
             x, y = elem_bbox_to_xy(elem_list[op_param.area - 1].bbox)
-            res = env.step(EnvAPIAbstract("user_longpress", kwargs={"x": x, "y": y}))
+            res = env.step(EnvAPIAbstract(api_name="user_longpress", kwargs={"x": x, "y": y}))
             if res == ADB_EXEC_FAIL:
                 return AndroidActionOutput(action_state=RunState.FAIL)
-        elif isinstance(op_param, SwipeOp):
+        elif isinstance(op_param, SwipeOp_3):
             x, y = elem_bbox_to_xy(elem_list[op_param.area - 1].bbox)
             res = env.step(
                 EnvAPIAbstract(
-                    "user_swipe", kwargs={"x": x, "y": y, "orient": op_param.swipe_orient, "dist": op_param.dist}
+                    api_name="user_swipe",
+                    kwargs={"x": x, "y": y, "orient": op_param.swipe_orient, "dist": op_param.dist}
                 )
             )
             if res == ADB_EXEC_FAIL:
@@ -167,18 +183,19 @@ next action. You should always prioritize these documented elements for interact
         elif isinstance(op_param, TapGridOp) or isinstance(op_param, LongPressGridOp):
             x, y = area_to_xy(op_param.area, op_param.subarea, env.width, env.height, env.rows, env.cols)
             if isinstance(op_param, TapGridOp):
-                res = env.step(EnvAPIAbstract("system_tap", kwargs={"x": x, "y": y}))
+                res = env.step(EnvAPIAbstract(api_name="system_tap", kwargs={"x": x, "y": y}))
                 if res == ADB_EXEC_FAIL:
                     return AndroidActionOutput(action_state=RunState.FAIL)
             else:
                 # LongPressGridOp
-                res = env.step(EnvAPIAbstract("user_longpress", kwargs={"x": x, "y": y}))
+                res = env.step(EnvAPIAbstract(api_name="user_longpress", kwargs={"x": x, "y": y}))
                 if res == ADB_EXEC_FAIL:
                     return AndroidActionOutput(action_state=RunState.FAIL)
         elif isinstance(op_param, SwipeGridOp):
-            start_x, start_y = area_to_xy(op_param.start_area, op_param.start_subarea)
-            end_x, end_y = area_to_xy(op_param.end_area, op_param.end_subarea)
-            res = env.step(EnvAPIAbstract("user_swipe_to", kwargs={"start": (start_x, start_y), "end": (end_x, end_y)}))
+            start_x, start_y = area_to_xy(op_param.start_area, op_param.start_subarea, width, height, rows, cols)
+            end_x, end_y = area_to_xy(op_param.end_area, op_param.end_subarea, width, height, rows, cols)
+            res = env.step(
+                EnvAPIAbstract(api_name="user_swipe_to", kwargs={"start": (start_x, start_y), "end": (end_x, end_y)}))
             if res == ADB_EXEC_FAIL:
                 return AndroidActionOutput(action_state=RunState.FAIL)
 

@@ -163,7 +163,7 @@ def area_to_xy(area: int, subarea: str, width: int, height: int, rows: int, cols
     return x, y
 
 
-def elem_bbox_to_xy(bbox: tuple[tuple[int, int]]) -> tuple[int, int]:
+def elem_bbox_to_xy(bbox: tuple[tuple[int, int], tuple[int, int]]) -> tuple[int, int]:
     tl, br = bbox
     x, y = (tl[0] + br[0]) // 2, (tl[1] + br[1]) // 2
     return x, y
