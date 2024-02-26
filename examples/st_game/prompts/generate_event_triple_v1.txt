@@ -1,0 +1,30 @@
+generate_event_triple_v1.txt
+
+Variables: 
+!<INPUT 0>! -- Persona's full name. 
+!<INPUT 1>! -- Current action description
+!<INPUT 2>! -- Persona's full name. 
+
+<commentblockmarker>###</commentblockmarker>
+Task: Turn the input into (subject, predicate, object). 
+
+Input: Sam Johnson is eating breakfast. 
+Output: (Dolores Murphy, eat, breakfast) 
+--- 
+Input: Joon Park is brewing coffee.
+Output: (Joon Park, brew, coffee)
+---
+Input: Jane Cook is sleeping. 
+Output: (Jane Cook, is, sleep)
+---
+Input: Michael Bernstein is writing email on a computer. 
+Output: (Michael Bernstein, write, email)
+---
+Input: Percy Liang is teaching students in a classroom. 
+Output: (Percy Liang, teach, students)
+---
+Input: Merrie Morris is running on a treadmill. 
+Output: (Merrie Morris, run, treadmill)
+---
+Input: !<INPUT 0>! is !<INPUT 1>!. 
+Output: (!<INPUT 2>!,
