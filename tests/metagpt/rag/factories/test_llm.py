@@ -1,5 +1,4 @@
 import pytest
-from llama_index.llms.anthropic import Anthropic
 from llama_index.llms.azure_openai import AzureOpenAI
 from llama_index.llms.gemini import Gemini
 from llama_index.llms.ollama import Ollama
@@ -29,7 +28,6 @@ class TestRAGLLMFactory:
         [
             (LLMType.OPENAI, OpenAI),
             (LLMType.AZURE, AzureOpenAI),
-            (LLMType.ANTHROPIC, Anthropic),
             (LLMType.GEMINI, Gemini),
             (LLMType.OLLAMA, Ollama),
         ],
