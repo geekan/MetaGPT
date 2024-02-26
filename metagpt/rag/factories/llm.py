@@ -3,7 +3,6 @@
 The LLM of LlamaIndex and the LLM of MG are not the same. 
 """
 from llama_index.core.llms import LLM
-from llama_index.llms.anthropic import Anthropic
 from llama_index.llms.azure_openai import AzureOpenAI
 from llama_index.llms.gemini import Gemini
 from llama_index.llms.ollama import Ollama
@@ -21,7 +20,6 @@ class RAGLLMFactory(GenericFactory):
         creators = {
             LLMType.OPENAI: self._create_openai,
             LLMType.AZURE: self._create_azure,
-            LLMType.ANTHROPIC: self._create_anthropic,
             LLMType.GEMINI: self._create_gemini,
             LLMType.OLLAMA: self._create_ollama,
         }
@@ -46,15 +44,6 @@ class RAGLLMFactory(GenericFactory):
             azure_endpoint=config.llm.base_url,
             api_key=config.llm.api_key,
             api_version=config.llm.api_version,
-            model=config.llm.model,
-            max_tokens=config.llm.max_token,
-            temperature=config.llm.temperature,
-        )
-
-    def _create_anthropic(self):
-        return Anthropic(
-            base_url=config.llm.base_url,
-            api_key=config.llm.api_key,
             model=config.llm.model,
             max_tokens=config.llm.max_token,
             temperature=config.llm.temperature,
