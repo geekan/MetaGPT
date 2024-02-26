@@ -4,10 +4,7 @@ from pydantic import Field
 
 from metagpt.actions.mi.ask_review import ReviewConst
 from metagpt.actions.mi.execute_nb_code import ExecuteNbCode
-from metagpt.actions.mi.write_analysis_code import (
-    WriteCodeWithoutTools,
-    WriteCodeWithTools,
-)
+from metagpt.actions.mi.write_analysis_code import WriteCodeWithTools
 from metagpt.logs import logger
 from metagpt.roles import Role
 from metagpt.schema import Message, Task, TaskResult
@@ -75,7 +72,7 @@ class Interpreter(Role):
         return code["code"], result, success
 
     async def _write_code(self):
-        todo = WriteCodeWithoutTools() if not self.use_tools else WriteCodeWithTools(selected_tools=self.tools)
+        todo = WriteCodeWithTools(use_tools=self.use_tools, selected_tools=self.tools)
         logger.info(f"ready to {todo.name}")
 
         context = self.planner.get_useful_memories()

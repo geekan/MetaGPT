@@ -1,29 +1,3 @@
-ASSIGN_TASK_TYPE_PROMPT = """
-Please assign a task type to each task in the list below from the given categories:
-{task_info}
-
-## All Task Type:
-{task_type_desc}
-"""
-
-ASSIGN_TASK_TYPE_CONFIG = {
-    "name": "assign_task_type",
-    "description": "Assign task type to each task by order.",
-    "parameters": {
-        "type": "object",
-        "properties": {
-            "task_type": {
-                "type": "array",
-                "description": "List of task type. The length should as long as task list",
-                "items": {
-                    "type": "string",
-                },
-            },
-        },
-        "required": ["task_type"],
-    },
-}
-
 TOOL_RECOMMENDATION_PROMPT = """
 ## User Requirement:
 {current_task}
@@ -56,21 +30,6 @@ SELECT_FUNCTION_TOOLS = {
             },
         },
         "required": ["recommend_tools"],
-    },
-}
-
-CODE_GENERATOR_WITH_TOOLS = {
-    "name": "add_subtask_code",
-    "description": "Add new code cell of current task to the end of an active Jupyter notebook.",
-    "parameters": {
-        "type": "object",
-        "properties": {
-            "code": {
-                "type": "string",
-                "description": "The code to be added to a new cell in jupyter.",
-            },
-        },
-        "required": ["code"],
     },
 }
 

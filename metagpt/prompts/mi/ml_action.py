@@ -7,13 +7,13 @@
 UPDATE_DATA_COLUMNS = """
 # Background
 Keep dataset column information updated before model train.
-## Done Tasks
+## Tasks Done
 ```python
 {history_code}
 ```end
 
 # Task
-Update and print the dataset's column information only if the train or test data has changed. Use the following code:
+Print the the latest column information after 'Tasks Done' code. Use the following code:
 ```python
 from metagpt.tools.libs.data_preprocess import get_column_info
 
@@ -23,26 +23,11 @@ print(column_info)
 ```end
 
 # Constraints:
-- Use the DataFrame variable from 'Done Tasks' in place of df.
-- Import `get_column_info` only if it's not already imported.
+- Use the DataFrame variable from 'Tasks Done' in place of df.
+- Your code is to be added to a new cell in jupyter.
 """
 
-PRINT_DATA_COLUMNS = {
-    "name": "print_column_info",
-    "description": "Print the latest column information after 'Done Tasks' code if first read or data changed.",
-    "parameters": {
-        "type": "object",
-        "properties": {
-            "code": {
-                "type": "string",
-                "description": "The code to be added to a new cell in jupyter.",
-            },
-        },
-        "required": ["code"],
-    },
-}
-
-ML_COMMON_PROMPT = """
+ML_PROMPT = """
 # Background
 As a data scientist, you need to help user to achieve their goal [{user_requirement}] step-by-step in an continuous Jupyter notebook.
 
@@ -61,6 +46,16 @@ Latest data info after previous tasks:
 # Task
 Write complete code for 'Current Task'. And avoid duplicating code from 'Done Tasks', such as repeated import of packages, reading data, etc.
 Specifically, {tool_type_usage_prompt}
+
+# Capabilities
+- You can utilize pre-defined tools in any code lines from 'Available Tools' in the form of Python Class.
+- You can freely combine the use of any other public packages, like sklearn, numpy, pandas, etc..
+
+# Available Tools:
+Each Class tool is described in JSON format. When you call a tool, import the tool from its path first.
+{tool_schemas}
+
+{examples}
 """
 
 USE_NO_TOOLS_EXAMPLE = """
@@ -86,14 +81,6 @@ model.fit(train, y_train)
 """
 
 USE_TOOLS_EXAMPLE = """
-# Capabilities
-- You can utilize pre-defined tools in any code lines from 'Available Tools' in the form of Python Class.
-- You can freely combine the use of any other public packages, like sklearn, numpy, pandas, etc..
-
-# Available Tools:
-Each Class tool is described in JSON format. When you call a tool, import the tool from its path first.
-{tool_schemas}
-
 # Output Example:
 when current task is "do data preprocess, like fill missing value, handle outliers, etc.", the code can be like:
 ```python
@@ -123,6 +110,3 @@ for col in num_cols:
 - Always prioritize using pre-defined tools for the same functionality.
 - Always copy the DataFrame before processing it and use the copy to process.
 """
-
-ML_GENERATE_CODE_PROMPT = ML_COMMON_PROMPT + USE_NO_TOOLS_EXAMPLE
-ML_TOOL_USAGE_PROMPT = ML_COMMON_PROMPT + USE_TOOLS_EXAMPLE

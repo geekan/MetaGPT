@@ -9,6 +9,7 @@
 
 import json
 import re
+from copy import deepcopy
 from typing import AsyncIterator, Optional, Union
 
 from openai import APIConnectionError, AsyncOpenAI, AsyncStream
@@ -145,14 +146,6 @@ class OpenAILLM(BaseLLM):
         rsp = await self._achat_completion(messages, timeout=timeout)
         return self.get_choice_text(rsp)
 
-    def _func_configs(self, messages: list[dict], timeout=3, **kwargs) -> dict:
-        """Note: Keep kwargs consistent with https://platform.openai.com/docs/api-reference/chat/create"""
-        if "tools" not in kwargs:
-            configs = {"tools": [{"type": "function", "function": GENERAL_FUNCTION_SCHEMA}]}
-            kwargs.update(configs)
-
-        return self._cons_kwargs(messages=messages, timeout=timeout, **kwargs)
-
     def _process_message(self, messages: Union[str, Message, list[dict], list[Message], list[str]]) -> list[dict]:
         """convert messages to list[dict]."""
         # 全部转成list
@@ -175,14 +168,16 @@ class OpenAILLM(BaseLLM):
                 )
         return processed_messages
 
-    async def _achat_completion_function(self, messages: list[dict], timeout=3, **chat_configs) -> ChatCompletion:
+    async def _achat_completion_function(
+        self, messages: list[dict], timeout: int = 3, **chat_configs
+    ) -> ChatCompletion:
         messages = self._process_message(messages)
-        kwargs = self._func_configs(messages=messages, timeout=timeout, **chat_configs)
+        kwargs = self._cons_kwargs(messages=messages, timeout=timeout, **chat_configs)
         rsp: ChatCompletion = await self.aclient.chat.completions.create(**kwargs)
         self._update_costs(rsp.usage)
         return rsp
 
-    async def aask_code(self, messages: list[dict], **kwargs) -> dict:
+    async def aask_code(self, messages: list[dict], timeout: int = 3, language: str = "", **kwargs) -> dict:
         """Use function of tools to ask a code.
         Note: Keep kwargs consistent with https://platform.openai.com/docs/api-reference/chat/create
 
@@ -192,12 +187,18 @@ class OpenAILLM(BaseLLM):
         >>> rsp = await llm.aask_code(msg)
         # -> {'language': 'python', 'code': "print('Hello, World!')"}
         """
+        if "tools" not in kwargs:
+            function_schema = deepcopy(GENERAL_FUNCTION_SCHEMA)
+            if language:
+                function_schema["parameters"]["properties"]["language"]["enum"] = [language]
+            configs = {"tools": [{"type": "function", "function": function_schema}]}
+            kwargs.update(configs)
         rsp = await self._achat_completion_function(messages, **kwargs)
         return self.get_choice_function_arguments(rsp)
 
     def _parse_arguments(self, arguments: str) -> dict:
         """parse arguments in openai function call"""
-        if "langugae" not in arguments and "code" not in arguments:
+        if "language" not in arguments and "code" not in arguments:
             logger.warning(f"Not found `code`, `language`, We assume it is pure code:\n {arguments}\n. ")
             return {"language": "python", "code": arguments}
 

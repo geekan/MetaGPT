@@ -5,14 +5,13 @@ from typing import Tuple
 from metagpt.actions import Action
 from metagpt.actions.mi.write_analysis_code import WriteCodeWithTools
 from metagpt.prompts.mi.ml_action import (
-    ML_GENERATE_CODE_PROMPT,
-    ML_TOOL_USAGE_PROMPT,
-    PRINT_DATA_COLUMNS,
+    ML_PROMPT,
     UPDATE_DATA_COLUMNS,
+    USE_NO_TOOLS_EXAMPLE,
+    USE_TOOLS_EXAMPLE,
 )
-from metagpt.prompts.mi.write_analysis_code import CODE_GENERATOR_WITH_TOOLS
 from metagpt.schema import Message, Plan
-from metagpt.utils.common import create_func_call_config, remove_comments
+from metagpt.utils.common import remove_comments
 
 
 class WriteCodeWithToolsML(WriteCodeWithTools):
@@ -32,26 +31,17 @@ class WriteCodeWithToolsML(WriteCodeWithTools):
         code_context = "\n\n".join(code_context)
 
         # prepare prompt depending on tool availability & LLM call
-        if tool_schemas:
-            prompt = ML_TOOL_USAGE_PROMPT.format(
-                user_requirement=plan.goal,
-                history_code=code_context,
-                current_task=plan.current_task.instruction,
-                column_info=column_info,
-                tool_type_usage_prompt=tool_type_usage_prompt,
-                tool_schemas=tool_schemas,
-            )
+        prompt = ML_PROMPT.format(
+            user_requirement=plan.goal,
+            history_code=code_context,
+            current_task=plan.current_task.instruction,
+            column_info=column_info,
+            tool_type_usage_prompt=tool_type_usage_prompt,
+            tool_schemas=tool_schemas,
+            examples=USE_TOOLS_EXAMPLE if tool_schemas else USE_NO_TOOLS_EXAMPLE,
+        )
 
-        else:
-            prompt = ML_GENERATE_CODE_PROMPT.format(
-                user_requirement=plan.goal,
-                history_code=code_context,
-                current_task=plan.current_task.instruction,
-                column_info=column_info,
-                tool_type_usage_prompt=tool_type_usage_prompt,
-            )
-        tool_config = create_func_call_config(CODE_GENERATOR_WITH_TOOLS)
-        rsp = await self.llm.aask_code(prompt, **tool_config)
+        rsp = await self.llm.aask_code(prompt, language="python")
 
         # Extra output to be used for potential debugging
         context = [Message(content=prompt, role="user")]
@@ -65,6 +55,5 @@ class UpdateDataColumns(Action):
         code_context = [remove_comments(task.code) for task in finished_tasks]
         code_context = "\n\n".join(code_context)
         prompt = UPDATE_DATA_COLUMNS.format(history_code=code_context)
-        tool_config = create_func_call_config(PRINT_DATA_COLUMNS)
-        rsp = await self.llm.aask_code(prompt, **tool_config)
+        rsp = await self.llm.aask_code(prompt, language="python")
         return rsp

@@ -32,7 +32,6 @@ class Planner(BaseModel):
         default_factory=Memory
     )  # memory for working on each task, discarded each time a task is done
     auto_run: bool = False
-    use_tools: bool = False
 
     def __init__(self, goal: str = "", plan: Plan = None, **kwargs):
         plan = plan or Plan(goal=goal)
@@ -53,7 +52,7 @@ class Planner(BaseModel):
         plan_confirmed = False
         while not plan_confirmed:
             context = self.get_useful_memories()
-            rsp = await WritePlan().run(context, max_tasks=max_tasks, use_tools=self.use_tools)
+            rsp = await WritePlan().run(context, max_tasks=max_tasks)
             self.working_memory.add(Message(content=rsp, role="assistant", cause_by=WritePlan))
 
             # precheck plan before asking reviews

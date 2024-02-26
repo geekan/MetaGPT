@@ -11,7 +11,6 @@ from typing import Tuple
 from metagpt.actions import Action
 from metagpt.logs import logger
 from metagpt.prompts.mi.write_analysis_code import (
-    CODE_GENERATOR_WITH_TOOLS,
     SELECT_FUNCTION_TOOLS,
     TOOL_RECOMMENDATION_PROMPT,
     TOOL_USAGE_PROMPT,
@@ -22,42 +21,18 @@ from metagpt.tools.tool_registry import validate_tool_names
 from metagpt.utils.common import create_func_call_config
 
 
-class BaseWriteAnalysisCode(Action):
-    DEFAULT_SYSTEM_MSG: str = """You are Code Interpreter, a world-class programmer that can complete any goal by executing code. Strictly follow the plan and generate code step by step. Each step of the code will be executed on the user's machine, and the user will provide the code execution results to you.**Notice: The code for the next step depends on the code for the previous step. Must reuse variables in the lastest other code directly, dont creat it again, it is very import for you. Use !pip install in a standalone block to install missing packages.Usually the libraries you need are already installed.Dont check if packages already imported.**"""  # prompt reference: https://github.com/KillianLucas/open-interpreter/blob/v0.1.4/interpreter/system_message.txt
-    # REUSE_CODE_INSTRUCTION = """ATTENTION: DONT include codes from previous tasks in your current code block, include new codes only, DONT repeat codes!"""
+class WriteCodeWithTools(Action):
+    """Write code with help of local available tools. Choose tools first, then generate code to use the tools"""
 
-    def insert_system_message(self, context: list[Message], system_msg: str = None):
+    use_tools: bool = True
+    # selected tools to choose from, listed by their names. An empty list means selection from all tools.
+    selected_tools: list[str] = []
+    DEFAULT_SYSTEM_MSG: str = """You are Code Interpreter, a world-class programmer that can complete any goal by executing code. Strictly follow the plan and generate code step by step. Each step of the code will be executed on the user's machine, and the user will provide the code execution results to you.**Notice: The code for the next step depends on the code for the previous step. Must reuse variables in the lastest other code directly, dont creat it again, it is very import for you. Use !pip install in a standalone block to install missing packages.Usually the libraries you need are already installed.Dont check if packages already imported.**"""  # prompt reference: https://github.com/KillianLucas/open-interpreter/blob/v0.1.4/interpreter/system_message.txt
+
+    def _insert_system_message(self, context: list[Message], system_msg: str = None):
         system_msg = system_msg or self.DEFAULT_SYSTEM_MSG
         context.insert(0, SystemMessage(content=system_msg)) if context[0].role != "system" else None
         return context
-
-    async def run(self, context: list[Message], plan: Plan = None) -> dict:
-        """Run of a code writing action, used in data analysis or modeling
-
-        Args:
-            context (list[Message]): Action output history, source action denoted by Message.cause_by
-            plan (Plan, optional): Overall plan. Defaults to None.
-
-        Returns:
-            dict: code result in the format of {"code": "print('hello world')", "language": "python"}
-        """
-        raise NotImplementedError
-
-
-class WriteCodeWithoutTools(BaseWriteAnalysisCode):
-    """Ask LLM to generate codes purely by itself without local user-defined tools"""
-
-    async def run(self, context: list[Message], plan: Plan = None, system_msg: str = None, **kwargs) -> dict:
-        messages = self.insert_system_message(context, system_msg)
-        rsp = await self.llm.aask_code(messages, **kwargs)
-        return rsp
-
-
-class WriteCodeWithTools(BaseWriteAnalysisCode):
-    """Write code with help of local available tools. Choose tools first, then generate code to use the tools"""
-
-    # selected tools to choose from, listed by their names. An empty list means selection from all tools.
-    selected_tools: list[str] = []
 
     def _get_tools_by_type(self, tool_type: str) -> dict:
         """
@@ -138,18 +113,19 @@ class WriteCodeWithTools(BaseWriteAnalysisCode):
         plan: Plan,
         **kwargs,
     ) -> str:
-        # prepare tool schemas and tool-type-specific instruction
-        tool_schemas, tool_type_usage_prompt = await self._prepare_tools(plan=plan)
+        if self.use_tools:
+            # prepare tool schemas and tool-type-specific instruction
+            tool_schemas, tool_type_usage_prompt = await self._prepare_tools(plan=plan)
 
-        # form a complete tool usage instruction and include it as a message in context
-        tools_instruction = TOOL_USAGE_PROMPT.format(
-            tool_schemas=tool_schemas, tool_type_usage_prompt=tool_type_usage_prompt
-        )
-        context.append(Message(content=tools_instruction, role="user"))
+            # form a complete tool usage instruction and include it as a message in context
+            tools_instruction = TOOL_USAGE_PROMPT.format(
+                tool_schemas=tool_schemas, tool_type_usage_prompt=tool_type_usage_prompt
+            )
+            context.append(Message(content=tools_instruction, role="user"))
 
         # prepare prompt & LLM call
-        prompt = self.insert_system_message(context)
-        tool_config = create_func_call_config(CODE_GENERATOR_WITH_TOOLS)
-        rsp = await self.llm.aask_code(prompt, **tool_config)
+        prompt = self._insert_system_message(context)
+
+        rsp = await self.llm.aask_code(prompt, language="python")
 
         return rsp

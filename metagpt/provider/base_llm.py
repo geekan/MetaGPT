@@ -102,8 +102,9 @@ class BaseLLM(ABC):
             context.append(self._assistant_msg(rsp_text))
         return self._extract_assistant_rsp(context)
 
-    async def aask_code(self, messages: Union[str, Message, list[dict]], timeout=3) -> dict:
-        """FIXME: No code segment filtering has been done here, and all results are actually displayed"""
+    async def aask_code(
+        self, messages: Union[str, Message, list[dict]], timeout=3, language: str = "", **kwargs
+    ) -> dict:
         raise NotImplementedError
 
     @abstractmethod
