@@ -12,6 +12,10 @@
 *.jpg binary
 *.gif binary
 *.ico binary
+*.jpeg binary
+*.mp3 binary
+*.zip binary
+
 
 # Preserve original line endings for specific document files
 *.doc text eol=crlf
