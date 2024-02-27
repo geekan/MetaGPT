@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+import json
+
 from metagpt.actions import Action
-from metagpt.logs import logger
 from metagpt.schema import Message
-from metagpt.utils.common import create_func_call_config
+from metagpt.utils.common import CodeParser
 
 DEBUG_REFLECTION_EXAMPLE = '''
 Example 1:
@@ -48,28 +49,15 @@ Here is an example for you.
 {runtime_result}
 
 Analysis the error step by step, provide me improve method and code. Remember to follow [context] requirement. Don't forget write code for steps behind the error step.
-[reflection on previous impl]:
-xxx
-"""
 
-CODE_REFLECTION = {
-    "name": "execute_reflection_code",
-    "description": "Execute reflection code.",
-    "parameters": {
-        "type": "object",
-        "properties": {
-            "reflection": {
-                "type": "string",
-                "description": "Reflection on previous impl.",
-            },
-            "improved_impl": {
-                "type": "string",
-                "description": "Refined code after reflection.",
-            },
-        },
-        "required": ["reflection", "improved_impl"],
-    },
-}
+Output a json following the format:
+```json
+{{
+    "reflection": str = "Reflection on previous implementation",
+    "improved_impl": str = "Refined code after reflection.",
+}}
+```
+"""
 
 
 class DebugCode(Action):
@@ -91,7 +79,6 @@ class DebugCode(Action):
             str: The improved implementation based on the debugging process.
         """
 
-        info = []
         reflection_prompt = REFLECTION_PROMPT.format(
             debug_example=DEBUG_REFLECTION_EXAMPLE,
             context=context,
@@ -99,11 +86,8 @@ class DebugCode(Action):
             runtime_result=runtime_result,
         )
         system_prompt = "You are an AI Python assistant. You will be given your previous implementation code of a task, runtime error results, and a hint to change the implementation appropriately. Write your full implementation "
-        info.append(Message(role="system", content=system_prompt))
-        info.append(Message(role="user", content=reflection_prompt))
 
-        tool_config = create_func_call_config(CODE_REFLECTION)
-        reflection = await self.llm.aask_code(messages=info, **tool_config)
-        logger.info(f"reflection is {reflection}")
+        rsp = await self._aask(reflection_prompt, system_msgs=[system_prompt])
+        reflection = json.loads(CodeParser.parse_code(block=None, text=rsp))
 
         return {"code": reflection["improved_impl"]}

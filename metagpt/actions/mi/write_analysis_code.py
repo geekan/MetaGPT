@@ -6,19 +6,19 @@
 """
 from __future__ import annotations
 
+import json
 from typing import Tuple
 
 from metagpt.actions import Action
 from metagpt.logs import logger
 from metagpt.prompts.mi.write_analysis_code import (
-    SELECT_FUNCTION_TOOLS,
     TOOL_RECOMMENDATION_PROMPT,
     TOOL_USAGE_PROMPT,
 )
 from metagpt.schema import Message, Plan, SystemMessage
 from metagpt.tools import TOOL_REGISTRY
 from metagpt.tools.tool_registry import validate_tool_names
-from metagpt.utils.common import create_func_call_config
+from metagpt.utils.common import CodeParser
 
 
 class WriteCodeWithTools(Action):
@@ -69,9 +69,9 @@ class WriteCodeWithTools(Action):
             current_task=task,
             available_tools=available_tools,
         )
-        tool_config = create_func_call_config(SELECT_FUNCTION_TOOLS)
-        rsp = await self.llm.aask_code(prompt, **tool_config)
-        recommend_tools = rsp["recommend_tools"]
+        rsp = await self._aask(prompt)
+        rsp = CodeParser.parse_code(block=None, text=rsp)
+        recommend_tools = json.loads(rsp)
         logger.info(f"Recommended tools: \n{recommend_tools}")
 
         # Parses and validates the  recommended tools, for LLM might hallucinate and recommend non-existing tools
@@ -126,6 +126,6 @@ class WriteCodeWithTools(Action):
         # prepare prompt & LLM call
         prompt = self._insert_system_message(context)
 
-        rsp = await self.llm.aask_code(prompt, language="python")
+        rsp = await self.llm.aask_code(prompt)
 
         return rsp

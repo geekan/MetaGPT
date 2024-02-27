@@ -41,7 +41,6 @@ class MLEngineer(Interpreter):
                 runtime_result=self.working_memory.get(),
                 context=self.debug_context,
             )
-            logger.info(f"new code \n{code}")
             cause_by = DebugCode
 
         self.latest_code = code["code"]

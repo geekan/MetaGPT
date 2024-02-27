@@ -20,22 +20,22 @@ from metagpt.utils.common import CodeParser
 class WritePlan(Action):
     PROMPT_TEMPLATE: str = """
     # Context:
-    __context__
+    {context}
     # Available Task Types:
-    __task_type_desc__
+    {task_type_desc}
     # Task:
-    Based on the context, write a plan or modify an existing plan of what you should do to achieve the goal. A plan consists of one to __max_tasks__ tasks.
+    Based on the context, write a plan or modify an existing plan of what you should do to achieve the goal. A plan consists of one to {max_tasks} tasks.
     If you are modifying an existing plan, carefully follow the instruction, don't make unnecessary changes. Give the whole plan unless instructed to modify only one task of the plan.
     If you encounter errors on the current task, revise and output the current single task only.
     Output a list of jsons following the format:
     ```json
     [
-        {
+        {{
             "task_id": str = "unique identifier for a task in plan, can be an ordinal",
             "dependent_task_ids": list[str] = "ids of tasks prerequisite to this task",
             "instruction": "what you should do in this task, one short phrase or sentence",
             "task_type": "type of this task, should be one of Available Task Types",
-        },
+        }},
         ...
     ]
     ```
@@ -45,10 +45,8 @@ class WritePlan(Action):
         task_type_desc = "\n".join(
             [f"- **{tool_type.name}**: {tool_type.desc}" for tool_type in TOOL_REGISTRY.get_tool_types().values()]
         )  # task type are binded with tool type now, should be improved in the future
-        prompt = (
-            self.PROMPT_TEMPLATE.replace("__context__", "\n".join([str(ct) for ct in context]))
-            # .replace("__current_plan__", current_plan)
-            .replace("__max_tasks__", str(max_tasks)).replace("__task_type_desc__", task_type_desc)
+        prompt = self.PROMPT_TEMPLATE.format(
+            context="\n".join([str(ct) for ct in context]), max_tasks=max_tasks, task_type_desc=task_type_desc
         )
         rsp = await self._aask(prompt)
         rsp = CodeParser.parse_code(block=None, text=rsp)

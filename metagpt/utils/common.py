@@ -361,16 +361,6 @@ def parse_recipient(text):
     return ""
 
 
-def create_func_call_config(func_schema: dict) -> dict:
-    """Create new function call config"""
-    tools = [{"type": "function", "function": func_schema}]
-    tool_choice = {"type": "function", "function": {"name": func_schema["name"]}}
-    return {
-        "tools": tools,
-        "tool_choice": tool_choice,
-    }
-
-
 def remove_comments(code_str: str) -> str:
     """Remove comments from code."""
     pattern = r"(\".*?\"|\'.*?\')|(\#.*?$)"

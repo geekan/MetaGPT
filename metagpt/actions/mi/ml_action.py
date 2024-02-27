@@ -41,7 +41,7 @@ class WriteCodeWithToolsML(WriteCodeWithTools):
             examples=USE_TOOLS_EXAMPLE if tool_schemas else USE_NO_TOOLS_EXAMPLE,
         )
 
-        rsp = await self.llm.aask_code(prompt, language="python")
+        rsp = await self.llm.aask_code(prompt)
 
         # Extra output to be used for potential debugging
         context = [Message(content=prompt, role="user")]
@@ -55,5 +55,5 @@ class UpdateDataColumns(Action):
         code_context = [remove_comments(task.code) for task in finished_tasks]
         code_context = "\n\n".join(code_context)
         prompt = UPDATE_DATA_COLUMNS.format(history_code=code_context)
-        rsp = await self.llm.aask_code(prompt, language="python")
+        rsp = await self.llm.aask_code(prompt)
         return rsp

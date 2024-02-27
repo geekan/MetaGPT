@@ -13,25 +13,12 @@ Recommend up to five tools from 'Available Tools' that can help solve the 'User 
 - If you believe that no tools are suitable, indicate with an empty list.
 - Only list the names of the tools, not the full schema of each tool.
 - Ensure selected tools are listed in 'Available Tools'.
+- Output a json list of tool names:
+```json
+["tool_name1", "tool_name2", ...]
+```
 """
 
-SELECT_FUNCTION_TOOLS = {
-    "name": "select_function_tools",
-    "description": "For current task, select suitable tools for it.",
-    "parameters": {
-        "type": "object",
-        "properties": {
-            "recommend_tools": {
-                "type": "array",
-                "description": "List of tool names. Empty list if no tool is suitable.",
-                "items": {
-                    "type": "string",
-                },
-            },
-        },
-        "required": ["recommend_tools"],
-    },
-}
 
 TOOL_USAGE_PROMPT = """
 # Instruction
