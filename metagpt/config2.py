@@ -130,8 +130,12 @@ class Config(CLIParams, YamlModel):
     def set_other(self, other: dict):
         self.other = other
 
-    def get_other(self, key: str):
-        return self.other.get(key)
+    def get_other(self, key: str, default_value: str = None):
+        if default_value is None:
+            return self.other.get(key)
+        else:
+            return self.other.get(key, default_value)
+
 
     def get_openai_llm(self) -> Optional[LLMConfig]:
         """Get OpenAI LLMConfig by name. If no OpenAI, raise Exception"""

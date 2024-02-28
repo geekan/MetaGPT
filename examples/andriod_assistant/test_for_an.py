@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# @Desc   : test on android emulator
+# @Desc   : test on android emulator action. After Modify Role Test, this script is discarded.
 import asyncio
 import time
 from pathlib import Path
@@ -50,14 +50,14 @@ if __name__ == "__main__":
             env=test_env_self_learn_android
         ),
         test_manual_record.run(
-            demo_name=DEMO_NAME,
+            # demo_name=DEMO_NAME,
             task_dir=TASK_PATH / "demos" / f"manual_record_{DEMO_NAME}",
             task_desc="Create a contact in Contacts App named zjy with a phone number +86 18831933368 ",
             env=test_env_manual_learn_android
         ),
         test_manual_parse.run(
             app_name="Contacts",
-            demo_name=DEMO_NAME,
+            # demo_name=DEMO_NAME,
             task_dir=TASK_PATH / "demos" / f"manual_record_{DEMO_NAME}",  # 修要修改
             docs_dir=PARSE_RECORD_DOC_PATH,  # 需要修改
             env=test_env_manual_learn_android

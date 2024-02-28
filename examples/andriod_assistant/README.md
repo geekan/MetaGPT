@@ -16,3 +16,6 @@ The Android assistant can learn from your daily operations or automatically lear
 ### By Text
 
 ### By Voice
+
+## Run It
+python run_assistant.py "Create a contact in Contacts App named zjy with a phone number +86 18831933368" --mode "manual" --app-name "Contacts"
