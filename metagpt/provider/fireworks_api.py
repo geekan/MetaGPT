@@ -19,7 +19,7 @@ from metagpt.configs.llm_config import LLMConfig, LLMType
 from metagpt.logs import log_llm_stream, logger
 from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.provider.openai_api import OpenAILLM, log_and_reraise
-from metagpt.utils.cost_manager import CostManager, Costs
+from metagpt.utils.cost_manager import CostManager
 
 MODEL_GRADE_TOKEN_COSTS = {
     "-1": {"prompt": 0.0, "completion": 0.0},  # abnormal condition
@@ -80,17 +80,6 @@ class FireworksLLM(OpenAILLM):
     def _make_client_kwargs(self) -> dict:
         kwargs = dict(api_key=self.config.api_key, base_url=self.config.base_url)
         return kwargs
-
-    def _update_costs(self, usage: CompletionUsage):
-        if self.config.calc_usage and usage:
-            try:
-                # use FireworksCostManager not context.cost_manager
-                self.cost_manager.update_cost(usage.prompt_tokens, usage.completion_tokens, self.model)
-            except Exception as e:
-                logger.error(f"updating costs failed!, exp: {e}")
-
-    def get_costs(self) -> Costs:
-        return self.cost_manager.get_costs()
 
     async def _achat_completion_stream(self, messages: list[dict], timeout=3) -> str:
         response: AsyncStream[ChatCompletionChunk] = await self.aclient.chat.completions.create(

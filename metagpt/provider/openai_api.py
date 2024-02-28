@@ -30,7 +30,7 @@ from metagpt.provider.constant import GENERAL_FUNCTION_SCHEMA
 from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.schema import Message
 from metagpt.utils.common import CodeParser, decode_image
-from metagpt.utils.cost_manager import CostManager, Costs
+from metagpt.utils.cost_manager import CostManager
 from metagpt.utils.exceptions import handle_exception
 from metagpt.utils.token_counter import (
     count_message_tokens,
@@ -56,16 +56,13 @@ class OpenAILLM(BaseLLM):
 
     def __init__(self, config: LLMConfig):
         self.config = config
-        self._init_model()
         self._init_client()
         self.auto_max_tokens = False
         self.cost_manager: Optional[CostManager] = None
 
-    def _init_model(self):
-        self.model = self.config.model  # Used in _calc_usage & _cons_kwargs
-
     def _init_client(self):
         """https://github.com/openai/openai-python#async-usage"""
+        self.model = self.config.model  # Used in _calc_usage & _cons_kwargs
         kwargs = self._make_client_kwargs()
         self.aclient = AsyncOpenAI(**kwargs)
 
@@ -271,16 +268,6 @@ class OpenAILLM(BaseLLM):
             logger.warning(f"usage calculation failed: {e}")
 
         return usage
-
-    @handle_exception
-    def _update_costs(self, usage: CompletionUsage):
-        if self.config.calc_usage and usage and self.cost_manager:
-            self.cost_manager.update_cost(usage.prompt_tokens, usage.completion_tokens, self.model)
-
-    def get_costs(self) -> Costs:
-        if not self.cost_manager:
-            return Costs(0, 0, 0, 0)
-        return self.cost_manager.get_costs()
 
     def _get_max_tokens(self, messages: list[dict]):
         if not self.auto_max_tokens:
