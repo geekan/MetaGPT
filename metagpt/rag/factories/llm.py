@@ -44,7 +44,7 @@ class RAGLLMFactory(GenericFactory):
             azure_endpoint=config.llm.base_url,
             api_key=config.llm.api_key,
             api_version=config.llm.api_version,
-            model=config.llm.model,
+            deployment_name=config.llm.model,
             max_tokens=config.llm.max_token,
             temperature=config.llm.temperature,
         )
