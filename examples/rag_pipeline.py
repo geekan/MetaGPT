@@ -15,7 +15,7 @@ DOC_PATH = EXAMPLE_DATA_PATH / "rag/writer.txt"
 QUESTION = "What are key qualities to be a good writer?"
 
 TRAVEL_DOC_PATH = EXAMPLE_DATA_PATH / "rag/travel.txt"
-TRAVEL_QUESTION = "What does Bojan like?"
+TRAVEL_QUESTION = "What does Bob like?"
 
 LLM_TIP = "If you not sure, just answer I don't know"
 
@@ -61,10 +61,10 @@ class RAGExample:
 
         [After add docs]
         Retrieve Result:
-        0. Bojan like..., 10.0
+        0. Bob like..., 10.0
 
         Query Result:
-        Bojan likes traveling.
+        Bob likes traveling.
         """
         self._print_title("RAG Add Docs")
 

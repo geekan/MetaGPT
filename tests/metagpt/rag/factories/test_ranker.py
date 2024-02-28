@@ -18,9 +18,7 @@ class TestRankerFactory:
     def test_get_rankers_with_no_configs(self, ranker_factory: RankerFactory, mock_llm, mocker):
         mocker.patch.object(ranker_factory, "_extract_llm", return_value=mock_llm)
         default_rankers = ranker_factory.get_rankers()
-        assert len(default_rankers) == 1
-        assert isinstance(default_rankers[0], LLMRerank)
-        ranker_factory._extract_llm.assert_called_once()
+        assert len(default_rankers) == 0
 
     def test_get_rankers_with_configs(self, ranker_factory: RankerFactory, mock_llm):
         mock_config = LLMRankerConfig(llm=mock_llm)

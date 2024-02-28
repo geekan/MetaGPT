@@ -26,11 +26,16 @@ from llama_index.core.schema import (
     TransformComponent,
 )
 
-from metagpt.rag.factories import get_rag_llm, get_rankers, get_retriever
+from metagpt.rag.factories import (
+    get_index,
+    get_rag_embedding,
+    get_rag_llm,
+    get_rankers,
+    get_retriever,
+)
 from metagpt.rag.interface import RAGObject
 from metagpt.rag.retrievers.base import ModifiableRAGRetriever
-from metagpt.rag.schema import BaseRankerConfig, BaseRetrieverConfig
-from metagpt.utils.embedding import get_embedding
+from metagpt.rag.schema import BaseIndexConfig, BaseRankerConfig, BaseRetrieverConfig
 
 
 class SimpleEngine(RetrieverQueryEngine):
@@ -83,8 +88,31 @@ class SimpleEngine(RetrieverQueryEngine):
         index = VectorStoreIndex.from_documents(
             documents=documents,
             transformations=transformations or [SentenceSplitter()],
-            embed_model=embed_model or get_embedding(),
+            embed_model=embed_model or get_rag_embedding(),
         )
+        return cls._from_index(index, llm=llm, retriever_configs=retriever_configs, ranker_configs=ranker_configs)
+
+    @classmethod
+    def from_index(
+        cls,
+        index_config: BaseIndexConfig,
+        embed_model: BaseEmbedding = None,
+        llm: LLM = None,
+        retriever_configs: list[BaseRetrieverConfig] = None,
+        ranker_configs: list[BaseRankerConfig] = None,
+    ):
+        """Load from previously maintained"""
+        index = get_index(index_config, embed_model=embed_model or get_rag_embedding())
+        return cls._from_index(index, llm=llm, retriever_configs=retriever_configs, ranker_configs=ranker_configs)
+
+    @classmethod
+    def _from_index(
+        cls,
+        index: BaseIndex,
+        llm: LLM = None,
+        retriever_configs: list[BaseRetrieverConfig] = None,
+        ranker_configs: list[BaseRankerConfig] = None,
+    ):
         llm = llm or get_rag_llm()
         retriever = get_retriever(configs=retriever_configs, index=index)
         rankers = get_rankers(configs=ranker_configs, llm=llm)

@@ -20,13 +20,9 @@ class RankerFactory(ConfigFactory):
     def get_rankers(self, configs: list[BaseRankerConfig] = None, **kwargs) -> list[BaseNodePostprocessor]:
         """Creates and returns a retriever instance based on the provided configurations."""
         if not configs:
-            return self._create_default(**kwargs)
+            return []
 
         return super().get_instances(configs, **kwargs)
-
-    def _create_default(self, **kwargs) -> list[LLMRerank]:
-        config = LLMRankerConfig(llm=self._extract_llm(**kwargs))
-        return [LLMRerank(**config.model_dump())]
 
     def _extract_llm(self, config: BaseRankerConfig = None, **kwargs) -> LLM:
         return self._val_from_config_or_kwargs("llm", config, **kwargs)
