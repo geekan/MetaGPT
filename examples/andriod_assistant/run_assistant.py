@@ -3,7 +3,7 @@
 # @Desc   : the entry of android assistant including learning and acting stage
 
 import asyncio
-
+from pathlib import Path
 import typer
 
 from examples.andriod_assistant.roles.android_assistant import AndroidAssistant
@@ -36,6 +36,10 @@ def startup(
         default="/sdcard",
         help="The path to store xml files for determining UI elements localtion. Make sure it exists.",
     ),
+    device_id : str = typer.Option(
+        default="emulator-5554",
+        help="The Android device_id"
+    ),
 ):
     config.set_other(
         {
@@ -46,17 +50,33 @@ def startup(
             "min_dist": min_dist,
             "android_screenshot_dir": android_screenshot_dir,
             "android_xml_dir": android_xml_dir,
+            "device_id":device_id
         }
     )
 
-    team = Team(env=AndroidEnv())
+    team = Team(env=AndroidEnv(
+        device_id=device_id,
+        xml_dir=Path(android_xml_dir),
+        screenshot_dir=Path(android_screenshot_dir),
+    ))
+
     team.hire([AndroidAssistant()])
     team.invest(investment)
     team.run_project(idea=task_desc)
-
     asyncio.run(team.run(n_round=n_round))
 
 
 if __name__ == "__main__":
     app()
 # Command python run_assistant.py "Create a contact in Contacts App named zjy with a phone number +86 18831933368"
+
+# python run_assistant.py "Create a contact in Contacts App named zjy with a phone number +86 18831933368" --mode "auto" --app-name "Contacts"examples\andriod_assistant>
+
+# TODO
+# 0. How to set Round ?
+# 1. Manual Record & Parse Record Success
+# 2. Self Learn Fail
+#   local variable 'action' referenced before assignment
+# 3. Act
+#   3.1 TODO Act with Manual Docs
+#   3.2 TDOO Act with Auto Docs

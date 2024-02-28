@@ -190,8 +190,8 @@ class ScreenshotParse(Action):
                 if res == ADB_EXEC_FAIL:
                     return AndroidActionOutput(action_state=RunState.FAIL)
         elif isinstance(op_param, SwipeGridOp):
-            start_x, start_y = area_to_xy(op_param.start_area, op_param.start_subarea, width, height, rows, cols)
-            end_x, end_y = area_to_xy(op_param.end_area, op_param.end_subarea, width, height, rows, cols)
+            start_x, start_y = area_to_xy(op_param.start_area, op_param.start_subarea, env.width, env.height, env.rows, env.cols)
+            end_x, end_y = area_to_xy(op_param.end_area, op_param.end_subarea, env.width, env.height, env.rows, env.cols)
             res = await env.step(
                 EnvAPIAbstract(api_name="user_swipe_to", kwargs={"start": (start_x, start_y), "end": (end_x, end_y)}))
             if res == ADB_EXEC_FAIL:

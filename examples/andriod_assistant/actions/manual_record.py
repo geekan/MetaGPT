@@ -127,7 +127,7 @@ class ManualRecord(Action):
                     user_input = input()
                 tl, br = elem_list[int(user_input) - 1].bbox
                 x, y = (tl[0] + br[0]) // 2, (tl[1] + br[1]) // 2
-                ret = env.step(EnvAPIAbstract(api_name="system_tap", kwargs={"x": x, "y": y}))
+                ret = await env.step(EnvAPIAbstract(api_name="system_tap", kwargs={"x": x, "y": y}))
                 if ret == ADB_EXEC_FAIL:
                     return AndroidActionOutput(action_state=RunState.FAIL)
                 record_file.write(f"tap({int(user_input)}):::{elem_list[int(user_input) - 1].uid}\n")
@@ -155,7 +155,7 @@ class ManualRecord(Action):
                     user_input = input()
                 tl, br = elem_list[int(user_input) - 1].bbox
                 x, y = (tl[0] + br[0]) // 2, (tl[1] + br[1]) // 2
-                ret = env.step(EnvAPIAbstract(api_name="user_longpress", kwargs={"x": x, "y": y}))
+                ret = await env.step(EnvAPIAbstract(api_name="user_longpress", kwargs={"x": x, "y": y}))
                 if ret == ADB_EXEC_FAIL:
                     return AndroidActionOutput(action_state=RunState.FAIL)
                 record_file.write(f"long_press({int(user_input)}):::{elem_list[int(user_input) - 1].uid}\n")
@@ -179,7 +179,7 @@ class ManualRecord(Action):
                     user_input = input()
                 tl, br = elem_list[int(user_input) - 1].bbox
                 x, y = (tl[0] + br[0]) // 2, (tl[1] + br[1]) // 2
-                ret = env.step(EnvAPIAbstract(api_name="user_swipe", kwargs={"x": x, "y": y, "orient": swipe_dir}))
+                ret = await env.step(EnvAPIAbstract(api_name="user_swipe", kwargs={"x": x, "y": y, "orient": swipe_dir}))
                 if ret == ADB_EXEC_FAIL:
                     return AndroidActionOutput(action_state=RunState.FAIL)
                 record_file.write(f"swipe({int(user_input)}:sep:{swipe_dir}):::{elem_list[int(user_input) - 1].uid}\n")
