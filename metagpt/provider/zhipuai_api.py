@@ -53,16 +53,6 @@ class ZhiPuAILLM(BaseLLM):
         kwargs = {"model": self.model, "messages": messages, "stream": stream, "temperature": 0.3}
         return kwargs
 
-    def _update_costs(self, usage: dict):
-        """update each request's token cost"""
-        if self.config.calc_usage:
-            try:
-                prompt_tokens = int(usage.get("prompt_tokens", 0))
-                completion_tokens = int(usage.get("completion_tokens", 0))
-                self.cost_manager.update_cost(prompt_tokens, completion_tokens, self.model)
-            except Exception as e:
-                logger.error(f"zhipuai updats costs failed! exp: {e}")
-
     def completion(self, messages: list[dict], timeout=3) -> dict:
         resp: Completion = self.llm.chat.completions.create(**self._const_kwargs(messages))
         usage = resp.usage.model_dump()

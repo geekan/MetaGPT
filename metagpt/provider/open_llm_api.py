@@ -8,7 +8,7 @@ from metagpt.configs.llm_config import LLMConfig, LLMType
 from metagpt.logs import logger
 from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.provider.openai_api import OpenAILLM
-from metagpt.utils.cost_manager import Costs, TokenCostManager
+from metagpt.utils.cost_manager import TokenCostManager
 from metagpt.utils.token_counter import count_message_tokens, count_string_tokens
 
 
@@ -34,14 +34,3 @@ class OpenLLM(OpenAILLM):
             logger.error(f"usage calculation failed!: {e}")
 
         return usage
-
-    def _update_costs(self, usage: CompletionUsage):
-        if self.config.calc_usage and usage:
-            try:
-                # use OpenLLMCostManager not CONFIG.cost_manager
-                self._cost_manager.update_cost(usage.prompt_tokens, usage.completion_tokens, self.model)
-            except Exception as e:
-                logger.error(f"updating costs failed!, exp: {e}")
-
-    def get_costs(self) -> Costs:
-        return self._cost_manager.get_costs()
