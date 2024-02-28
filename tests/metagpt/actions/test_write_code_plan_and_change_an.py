@@ -5,6 +5,10 @@
 @Author  : mannaandpoem
 @File    : test_write_code_plan_and_change_an.py
 """
+import json
+import uuid
+from pathlib import Path
+
 import pytest
 from openai._models import BaseModel
 
@@ -14,14 +18,19 @@ from metagpt.actions.write_code_plan_and_change_an import (
     REFINED_TEMPLATE,
     WriteCodePlanAndChange,
 )
+from metagpt.logs import logger
 from metagpt.schema import CodePlanAndChangeContext
+from metagpt.utils.common import CodeParser
 from tests.data.incremental_dev_project.mock import (
     CODE_PLAN_AND_CHANGE_SAMPLE,
     DESIGN_SAMPLE,
     NEW_REQUIREMENT_SAMPLE,
     REFINED_CODE_INPUT_SAMPLE,
     REFINED_CODE_SAMPLE,
-    TASKS_SAMPLE,
+    REFINED_DESIGN_JSON,
+    REFINED_PRD_JSON,
+    REFINED_TASK_JSON,
+    TASK_SAMPLE,
 )
 
 
@@ -30,25 +39,39 @@ def mock_code_plan_and_change():
 
 
 @pytest.mark.asyncio
-async def test_write_code_plan_and_change_an(mocker):
+async def test_write_code_plan_and_change_an(mocker, context):
+    # Prerequisites
+    git_dir = Path(__file__).parent / f"unittest/{uuid.uuid4().hex}"
+    git_dir.mkdir(parents=True, exist_ok=True)
+    context.config.inc = True
+
+    context.src_workspace = context.git_repo.workdir / "src"
+    await context.repo.docs.prd.save(filename="1.json", content=json.dumps(REFINED_PRD_JSON))
+    await context.repo.docs.system_design.save(filename="1.json", content=json.dumps(REFINED_DESIGN_JSON))
+    await context.repo.docs.task.save(filename="1.json", content=json.dumps(REFINED_TASK_JSON))
+
+    context.config.project_path = "old"
+    context.repo.old_workspace = context.repo.git_repo.workdir / "old"
+    await context.repo.with_src_path(context.repo.old_workspace).srcs.save(
+        filename="game.py", content=CodeParser.parse_code(block="", text=REFINED_CODE_INPUT_SAMPLE)
+    )
+
     root = ActionNode.from_children(
         "WriteCodePlanAndChange", [ActionNode(key="", expected_type=str, instruction="", example="")]
     )
     root.instruct_content = BaseModel()
     root.instruct_content.model_dump = mock_code_plan_and_change
-    mocker.patch("metagpt.actions.write_code_plan_and_change_an.WriteCodePlanAndChange.run", return_value=root)
-
-    requirement = "New requirement"
-    prd_filename = "prd.md"
-    design_filename = "design.md"
-    task_filename = "task.md"
-    code_plan_and_change_context = CodePlanAndChangeContext(
-        requirement=requirement,
-        prd_filename=prd_filename,
-        design_filename=design_filename,
-        task_filename=task_filename,
+    mocker.patch(
+        "metagpt.actions.write_code_plan_and_change_an.WRITE_CODE_PLAN_AND_CHANGE_NODE.fill", return_value=root
     )
-    node = await WriteCodePlanAndChange(i_context=code_plan_and_change_context).run()
+
+    code_plan_and_change_context = CodePlanAndChangeContext(
+        requirement="New requirement",
+        prd_filename="1.json",
+        design_filename="1.json",
+        task_filename="1.json",
+    )
+    node = await WriteCodePlanAndChange(i_context=code_plan_and_change_context, context=context).run()
 
     assert "Development Plan" in node.instruct_content.model_dump()
     assert "Incremental Change" in node.instruct_content.model_dump()
@@ -61,7 +84,7 @@ async def test_refine_code(mocker):
         user_requirement=NEW_REQUIREMENT_SAMPLE,
         code_plan_and_change=CODE_PLAN_AND_CHANGE_SAMPLE,
         design=DESIGN_SAMPLE,
-        task=TASKS_SAMPLE,
+        task=TASK_SAMPLE,
         code=REFINED_CODE_INPUT_SAMPLE,
         logs="",
         feedback="",
@@ -70,3 +93,29 @@ async def test_refine_code(mocker):
     )
     code = await WriteCode().write_code(prompt=prompt)
     assert "def" in code
+
+
+@pytest.mark.asyncio
+async def test_get_old_code(context):
+    git_dir = Path(__file__).parent / f"unittest/{uuid.uuid4().hex}"
+    git_dir.mkdir(parents=True, exist_ok=True)
+
+    context.config.project_path = "old"
+    context.repo.old_workspace = context.repo.git_repo.workdir / "old"
+    await context.repo.with_src_path(context.repo.old_workspace).srcs.save(
+        filename="game.py", content=REFINED_CODE_INPUT_SAMPLE
+    )
+
+    code_plan_and_change_context = CodePlanAndChangeContext(
+        requirement="New requirement",
+        prd_filename="1.json",
+        design_filename="1.json",
+        task_filename="1.json",
+    )
+    action = WriteCodePlanAndChange(context=context, i_context=code_plan_and_change_context)
+
+    old_codes = await action.get_old_codes()
+    logger.info(old_codes)
+
+    assert "def" in old_codes
+    assert "class" in old_codes

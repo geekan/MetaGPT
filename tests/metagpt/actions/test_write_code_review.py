@@ -32,5 +32,28 @@ def add(a, b):
     print(f"输出内容: {captured.out}")
 
 
+@pytest.mark.asyncio
+async def test_write_code_review_inc(capfd, context):
+    context.src_workspace = context.repo.workdir / "srcs"
+    context.config.inc = True
+    code = """
+    def add(a, b):
+        return a + 
+    """
+    code_plan_and_change = """
+    def add(a, b):
+-        return a + 
++        return a + b
+    """
+    coding_context = CodingContext(
+        filename="math.py",
+        design_doc=Document(content="编写一个从a加b的函数，返回a+b"),
+        code_doc=Document(content=code),
+        code_plan_and_change_doc=Document(content=code_plan_and_change),
+    )
+
+    await WriteCodeReview(i_context=coding_context, context=context).run()
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-s"])

@@ -210,13 +210,12 @@ class WriteCodePlanAndChange(Action):
         prd_doc = await self.repo.docs.prd.get(filename=self.i_context.prd_filename)
         design_doc = await self.repo.docs.system_design.get(filename=self.i_context.design_filename)
         task_doc = await self.repo.docs.task.get(filename=self.i_context.task_filename)
-        code_text = await self.get_old_codes()
         context = CODE_PLAN_AND_CHANGE_CONTEXT.format(
             requirement=self.i_context.requirement,
             prd=prd_doc.content,
             design=design_doc.content,
             task=task_doc.content,
-            code=code_text,
+            code=await self.get_old_codes(),
         )
         logger.info("Writing code plan and change..")
         return await WRITE_CODE_PLAN_AND_CHANGE_NODE.fill(context=context, llm=self.llm, schema="json")

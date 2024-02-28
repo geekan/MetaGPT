@@ -149,7 +149,7 @@ sequenceDiagram
 
 The requirement analysis suggests the need for a clean and intuitive interface. Since we are using a command-line interface, we need to ensure that the text-based UI is as user-friendly as possible. Further clarification on whether a graphical user interface (GUI) is expected in the future would be helpful for planning the extendability of the game."""
 
-TASKS_SAMPLE = """
+TASK_SAMPLE = """
 ## Required Python packages
 
 - random==2.2.1
@@ -345,7 +345,7 @@ REFINED_DESIGN_JSON = {
     "Anything UNCLEAR": "",
 }
 
-REFINED_TASKS_JSON = {
+REFINED_TASK_JSON = {
     "Required Python packages": ["random==2.2.1", "Tkinter==8.6"],
     "Required Other language third-party packages": ["No third-party dependencies required"],
     "Refined Logic Analysis": [
