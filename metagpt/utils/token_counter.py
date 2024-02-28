@@ -42,7 +42,7 @@ TOKEN_COSTS = {
 QianFan Token Price https://cloud.baidu.com/doc/WENXINWORKSHOP/s/hlrk4akp7#tokens%E5%90%8E%E4%BB%98%E8%B4%B9
 Due to QianFan has multi price strategies, we unify `Tokens post-payment` as a statistical method.
 """
-QianFan_MODEL_TOKEN_COSTS = {
+QIANFAN_MODEL_TOKEN_COSTS = {
     "ERNIE-Bot-4": {"prompt": 0.017, "completion": 0.017},
     "ERNIE-Bot-8k": {"prompt": 0.0034, "completion": 0.0067},
     "ERNIE-Bot": {"prompt": 0.0017, "completion": 0.0017},
@@ -66,35 +66,35 @@ QianFan_MODEL_TOKEN_COSTS = {
     "Yi-34B-Chat": {"prompt": 0.0, "completion": 0.0},
 }
 
-QianFan_EndPoint_TOKEN_COSTS = {
-    "completions_pro": QianFan_MODEL_TOKEN_COSTS["ERNIE-Bot-4"],
-    "ernie_bot_8k": QianFan_MODEL_TOKEN_COSTS["ERNIE-Bot-8k"],
-    "completions": QianFan_MODEL_TOKEN_COSTS["ERNIE-Bot"],
-    "eb-instant": QianFan_MODEL_TOKEN_COSTS["ERNIE-Bot-turbo"],
-    "ai_apaas": QianFan_MODEL_TOKEN_COSTS["EB-turbo-AppBuilder"],
-    "ernie_speed": QianFan_MODEL_TOKEN_COSTS["ERNIE-Speed"],
-    "bloomz_7b1": QianFan_MODEL_TOKEN_COSTS["BLOOMZ-7B"],
-    "llama_2_7b": QianFan_MODEL_TOKEN_COSTS["Llama-2-7B-Chat"],
-    "llama_2_13b": QianFan_MODEL_TOKEN_COSTS["Llama-2-13B-Chat"],
-    "llama_2_70b": QianFan_MODEL_TOKEN_COSTS["Llama-2-70B-Chat"],
-    "chatglm2_6b_32k": QianFan_MODEL_TOKEN_COSTS["ChatGLM2-6B-32K"],
-    "aquilachat_7b": QianFan_MODEL_TOKEN_COSTS["AquilaChat-7B"],
-    "mixtral_8x7b_instruct": QianFan_MODEL_TOKEN_COSTS["Mixtral-8x7B-Instruct"],
-    "sqlcoder_7b": QianFan_MODEL_TOKEN_COSTS["SQLCoder-7B"],
-    "codellama_7b_instruct": QianFan_MODEL_TOKEN_COSTS["CodeLlama-7B-Instruct"],
-    "xuanyuan_70b_chat": QianFan_MODEL_TOKEN_COSTS["XuanYuan-70B-Chat-4bit"],
-    "qianfan_bloomz_7b_compressed": QianFan_MODEL_TOKEN_COSTS["Qianfan-BLOOMZ-7B-compressed"],
-    "qianfan_chinese_llama_2_7b": QianFan_MODEL_TOKEN_COSTS["Qianfan-Chinese-Llama-2-7B"],
-    "qianfan_chinese_llama_2_13b": QianFan_MODEL_TOKEN_COSTS["Qianfan-Chinese-Llama-2-13B"],
-    "chatlaw": QianFan_MODEL_TOKEN_COSTS["ChatLaw"],
-    "yi_34b_chat": QianFan_MODEL_TOKEN_COSTS["Yi-34B-Chat"],
+QIANFAN_ENDPOINT_TOKEN_COSTS = {
+    "completions_pro": QIANFAN_MODEL_TOKEN_COSTS["ERNIE-Bot-4"],
+    "ernie_bot_8k": QIANFAN_MODEL_TOKEN_COSTS["ERNIE-Bot-8k"],
+    "completions": QIANFAN_MODEL_TOKEN_COSTS["ERNIE-Bot"],
+    "eb-instant": QIANFAN_MODEL_TOKEN_COSTS["ERNIE-Bot-turbo"],
+    "ai_apaas": QIANFAN_MODEL_TOKEN_COSTS["EB-turbo-AppBuilder"],
+    "ernie_speed": QIANFAN_MODEL_TOKEN_COSTS["ERNIE-Speed"],
+    "bloomz_7b1": QIANFAN_MODEL_TOKEN_COSTS["BLOOMZ-7B"],
+    "llama_2_7b": QIANFAN_MODEL_TOKEN_COSTS["Llama-2-7B-Chat"],
+    "llama_2_13b": QIANFAN_MODEL_TOKEN_COSTS["Llama-2-13B-Chat"],
+    "llama_2_70b": QIANFAN_MODEL_TOKEN_COSTS["Llama-2-70B-Chat"],
+    "chatglm2_6b_32k": QIANFAN_MODEL_TOKEN_COSTS["ChatGLM2-6B-32K"],
+    "aquilachat_7b": QIANFAN_MODEL_TOKEN_COSTS["AquilaChat-7B"],
+    "mixtral_8x7b_instruct": QIANFAN_MODEL_TOKEN_COSTS["Mixtral-8x7B-Instruct"],
+    "sqlcoder_7b": QIANFAN_MODEL_TOKEN_COSTS["SQLCoder-7B"],
+    "codellama_7b_instruct": QIANFAN_MODEL_TOKEN_COSTS["CodeLlama-7B-Instruct"],
+    "xuanyuan_70b_chat": QIANFAN_MODEL_TOKEN_COSTS["XuanYuan-70B-Chat-4bit"],
+    "qianfan_bloomz_7b_compressed": QIANFAN_MODEL_TOKEN_COSTS["Qianfan-BLOOMZ-7B-compressed"],
+    "qianfan_chinese_llama_2_7b": QIANFAN_MODEL_TOKEN_COSTS["Qianfan-Chinese-Llama-2-7B"],
+    "qianfan_chinese_llama_2_13b": QIANFAN_MODEL_TOKEN_COSTS["Qianfan-Chinese-Llama-2-13B"],
+    "chatlaw": QIANFAN_MODEL_TOKEN_COSTS["ChatLaw"],
+    "yi_34b_chat": QIANFAN_MODEL_TOKEN_COSTS["Yi-34B-Chat"],
 }
 
 """
 DashScope Token price https://help.aliyun.com/zh/dashscope/developer-reference/tongyi-thousand-questions-metering-and-billing
 Different model has different detail page. Attention, some model are free for a limited time.
 """
-DashScope_TOKEN_COSTS = {
+DASHSCOPE_TOKEN_COSTS = {
     "qwen-turbo": {"prompt": 0.0011, "completion": 0.0011},
     "qwen-plus": {"prompt": 0.0028, "completion": 0.0028},
     "qwen-max": {"prompt": 0.0, "completion": 0.0},

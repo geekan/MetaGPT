@@ -22,8 +22,8 @@ from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.provider.openai_api import log_and_reraise
 from metagpt.utils.cost_manager import CostManager
 from metagpt.utils.token_counter import (
-    QianFan_EndPoint_TOKEN_COSTS,
-    QianFan_MODEL_TOKEN_COSTS,
+    QIANFAN_ENDPOINT_TOKEN_COSTS,
+    QIANFAN_MODEL_TOKEN_COSTS,
 )
 
 
@@ -74,8 +74,8 @@ class QianFanLLM(BaseLLM):
         assert not (self.config.model and self.config.endpoint), "Only set `model` or `endpoint` in the config"
         assert self.config.model or self.config.endpoint, "Should set one of `model` or `endpoint` in the config"
 
-        self.token_costs = copy.deepcopy(QianFan_MODEL_TOKEN_COSTS)
-        self.token_costs.update(QianFan_EndPoint_TOKEN_COSTS)
+        self.token_costs = copy.deepcopy(QIANFAN_MODEL_TOKEN_COSTS)
+        self.token_costs.update(QIANFAN_ENDPOINT_TOKEN_COSTS)
 
         # self deployed model on the cloud not to calculate usage, it charges resource pool rental fee
         self.calc_usage = self.config.calc_usage and self.config.endpoint is None
@@ -103,8 +103,8 @@ class QianFanLLM(BaseLLM):
 
     def _update_costs(self, usage: dict):
         """update each request's token cost"""
-        model_or_endpoint = self.config.model if self.config.model else self.config.endpoint
-        local_calc_usage = True if model_or_endpoint in self.token_costs else False
+        model_or_endpoint = self.config.model or self.config.endpoint
+        local_calc_usage = model_or_endpoint in self.token_costs
         super()._update_costs(usage, model_or_endpoint, local_calc_usage)
 
     def get_choice_text(self, resp: JsonBody) -> str:

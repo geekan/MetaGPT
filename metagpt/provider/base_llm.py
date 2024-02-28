@@ -75,7 +75,7 @@ class BaseLLM(ABC):
             local_calc_usage (bool): some models don't calculate usage, it will overwrite LLMConfig.calc_usage
         """
         calc_usage = self.config.calc_usage and local_calc_usage
-        model = model if model else self.model
+        model = model or self.model
         usage = usage.model_dump() if isinstance(usage, BaseModel) else usage
         if calc_usage and self.cost_manager:
             try:
@@ -83,7 +83,7 @@ class BaseLLM(ABC):
                 completion_tokens = int(usage.get("completion_tokens", 0))
                 self.cost_manager.update_cost(prompt_tokens, completion_tokens, model)
             except Exception as e:
-                logger.error(f"{self.__class__.__name__} updats costs failed! exp: {e}")
+                logger.error(f"{self.__class__.__name__} updates costs failed! exp: {e}")
 
     def get_costs(self) -> Costs:
         if not self.cost_manager:

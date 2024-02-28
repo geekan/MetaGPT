@@ -14,9 +14,9 @@ from metagpt.logs import logger
 async def main():
     llm = LLM()
     # llm type check
-    id_ques = "what's your name"
-    logger.info(f"{id_ques}: ")
-    logger.info(await llm.aask(id_ques))
+    question = "what's your name"
+    logger.info(f"{question}: ")
+    logger.info(await llm.aask(question))
     logger.info("\n\n")
 
     logger.info(
