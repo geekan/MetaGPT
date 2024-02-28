@@ -1,1 +1,0 @@
-tap='The UI element opens the app drawer, displaying a list of all the apps available on the device.' text='' v_swipe='' h_swipe='' long_press=''
