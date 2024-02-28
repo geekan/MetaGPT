@@ -119,6 +119,7 @@ def repair_json_format(output: str) -> str:
         logger.info(f"repair_json_format: {'}]'}")
     elif output.startswith("{") and output.endswith("]"):
         output = output[:-1] + "}"
+
     # remove comments in output json string, after json value content, maybe start with #, maybe start with //
     arr = output.split("\n")
     new_arr = []
@@ -208,6 +209,17 @@ def repair_invalid_json(output: str, error: str) -> str:
         elif (rline[col_no] in ["'", '"']) and (line.startswith('"') or line.startswith("'")) and "," not in line:
             # problem, `"""` or `'''` without `,`
             new_line = f",{line}"
+        elif col_no - 1 >= 0 and rline[col_no - 1] in ['"', "'"]:
+            # backslash problem like \" in the output
+            char = rline[col_no - 1]
+            nearest_char_idx = rline[col_no:].find(char)
+            new_line = (
+                rline[: col_no - 1]
+                + "\\"
+                + rline[col_no - 1 : col_no + nearest_char_idx]
+                + "\\"
+                + rline[col_no + nearest_char_idx :]
+            )
         elif '",' not in line and "," not in line and '"' not in line:
             new_line = f'{line}",'
         elif not line.endswith(","):
