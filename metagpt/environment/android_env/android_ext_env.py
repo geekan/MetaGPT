@@ -9,10 +9,10 @@ from typing import Any, Optional
 from pydantic import Field
 
 from metagpt.const import ADB_EXEC_FAIL
-from metagpt.environment.base_env import Env, ExtEnv, mark_as_readable, mark_as_writeable
+from metagpt.environment.base_env import Environment, ExtEnv, mark_as_readable, mark_as_writeable
 
 
-class AndroidExtEnv(Env, ExtEnv):
+class AndroidExtEnv(Environment, ExtEnv):
     device_id: Optional[str] = Field(default=None)
     screenshot_dir: Optional[Path] = Field(default=None)
     xml_dir: Optional[Path] = Field(default=None)

@@ -50,12 +50,13 @@ def startup(
     )
 
     team = Team(env=AndroidEnv())
-    team.hire([AndroidAssistant])
+    team.hire([AndroidAssistant()])
     team.invest(investment)
-    company.run_project(idea=task_desc)
+    team.run_project(idea=task_desc)
 
     asyncio.run(team.run(n_round=n_round))
 
 
 if __name__ == "__main__":
     app()
+# Command python run_assistant.py "Create a contact in Contacts App named zjy with a phone number +86 18831933368"

@@ -38,9 +38,9 @@ class ParseRecord(Action):
     screenshot_before_path: Path = ""
     screenshot_after_path: Path = ""
 
-    async def run(self, app_name: str, demo_name: str, task_dir: Path, docs_dir: Path, env: AndroidEnv):
-        if not docs_dir.exists():
-            docs_dir.mkdir(parents=True, exist_ok=True)
+    # async def run(self, app_name: str, demo_name: str, task_dir: Path, docs_dir: Path, env: AndroidEnv):
+    async def run(self, app_name: str, task_dir: Path, docs_dir: Path, env: AndroidEnv):
+        docs_dir.mkdir(parents=True, exist_ok=True)
         doc_count = 0
         self.record_path = Path(task_dir) / "record.txt"
         self.task_desc_path = Path(task_dir) / "task_desc.txt"
@@ -51,8 +51,10 @@ class ParseRecord(Action):
             record_step_count = len(record_file.readlines()) - 1
             record_file.seek(0)
             for step in range(1, record_step_count + 1):
-                img_before_base64 = encode_image(self.screenshot_after_path.joinpath(f"{demo_name}_{step}_labeled.png"))
-                img_after_base64 = encode_image(self.screenshot_after_path.joinpath(f"{demo_name}_{step + 1}_labeled.png"))
+                # img_before_base64 = encode_image(self.screenshot_after_path.joinpath(f"{demo_name}_{step}_labeled.png"))
+                # img_after_base64 = encode_image(self.screenshot_after_path.joinpath(f"{demo_name}_{step + 1}_labeled.png"))
+                img_before_base64 = encode_image(self.screenshot_after_path.joinpath(f"{step}_labeled.png"))
+                img_after_base64 = encode_image(self.screenshot_after_path.joinpath(f"{step + 1}_labeled.png"))
                 rec = record_file.readline().strip()
                 action, resource_id = rec.split(":::")
                 action_type = action.split("(")[0]
@@ -110,8 +112,8 @@ class ParseRecord(Action):
                 )
                 if "error" in node.content:
                     return AndroidActionOutput(action_state=RunState.FAIL)
-
-                log_path = task_dir.joinpath(f"log_{app_name}_{demo_name}.txt")
+                # log_path = task_dir.joinpath(f"log_{app_name}_{demo_name}.txt")
+                log_path = task_dir.joinpath(f"log_{app_name}.txt")
                 prompt = node.compile(context=context, schema="json", mode="auto")
                 msg = node.content
                 doc_content[action_type] = msg

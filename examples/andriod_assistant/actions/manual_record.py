@@ -33,7 +33,8 @@ class ManualRecord(Action):
     screenshot_after_path: Path = ""
     xml_path: Path = ""
 
-    async def run(self, demo_name: str, task_desc: str,task_dir: Path, env: AndroidEnv):
+    # async def run(self, demo_name: str, task_desc: str,task_dir: Path, env: AndroidEnv):
+    async def run(self, task_desc: str, task_dir: Path, env: AndroidEnv):
 
         self.record_path = Path(task_dir) / "record.txt"
         self.task_desc_path = Path(task_dir) / "task_desc.txt"
@@ -53,16 +54,18 @@ class ManualRecord(Action):
         step = 0
         while True:
             step += 1
-            screenshot_path: Path = env.observe(
+            screenshot_path: Path = await env.observe(
                 EnvAPIAbstract(
                     api_name="get_screenshot",
-                    kwargs={"ss_name": f"{demo_name}_{step}", "local_save_dir": self.screenshot_before_path}
+                    # kwargs={"ss_name": f"{demo_name}_{step}", "local_save_dir": self.screenshot_before_path}
+                    kwargs={"ss_name": f"{step}", "local_save_dir": self.screenshot_before_path}
                 )
             )
-            xml_path: Path = env.observe(
+            xml_path: Path = await env.observe(
                 EnvAPIAbstract(
                     api_name="get_xml",
-                    kwargs={"xml_name": f"{demo_name}_{step}", "local_save_dir": self.xml_path}
+                    # kwargs={"xml_name": f"{demo_name}_{step}", "local_save_dir": self.xml_path}
+                    kwargs={"xml_name": f"{step}", "local_save_dir": self.xml_path}
                 )
             )
             if not screenshot_path.exists() or not xml_path.exists():
@@ -86,14 +89,13 @@ class ManualRecord(Action):
                     bbox = e.bbox
                     center_ = (bbox[0][0] + bbox[1][0]) // 2, (bbox[0][1] + bbox[1][1]) // 2
                     dist = (abs(center[0] - center_[0]) ** 2 + abs(center[1] - center_[1]) ** 2) ** 0.5
-                    # TODO Modify config to default 30. It should be modified back config after single action test
-                    # if dist <= config.get_other("min_dist"):
-                    if dist <= 30:
+                    if dist <= config.get_other("min_dist"):
                         close = True
                         break
                 if not close:
                     elem_list.append(elem)
-            screenshot_labeled_path = Path(self.screenshot_after_path).joinpath(f"{demo_name}_{step}_labeled.png")
+            screenshot_labeled_path = Path(self.screenshot_after_path).joinpath(f"{step}_labeled.png")
+            # screenshot_labeled_path = Path(self.screenshot_after_path).joinpath(f"{demo_name}_{step}_labeled.png")
             labeled_img = draw_bbox_multi(screenshot_path, screenshot_labeled_path, elem_list)
 
             cv2.imshow("image", labeled_img)
@@ -142,7 +144,7 @@ class ManualRecord(Action):
                 user_input = ""
                 while not user_input:
                     user_input = input()
-                env.step(EnvAPIAbstract(api_name="user_input", kwargs={"input_txt": user_input}))
+                await env.step(EnvAPIAbstract(api_name="user_input", kwargs={"input_txt": user_input}))
                 record_file.write(f'text({input_area}:sep:"{user_input}"):::{elem_list[int(input_area) - 1].uid}\n')
             elif user_input.lower() == ActionOp.LONG_PRESS.value:
                 logger.info(

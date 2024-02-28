@@ -26,6 +26,7 @@ from examples.andriod_assistant.utils.schema import (
     ReflectLogItem,
     RunState,
     SwipeOp,
+    SwipeOp_3,
     TapOp,
     TextOp,
 )
@@ -70,12 +71,12 @@ class SelfLearnAndReflect(Action):
     async def run_self_learn(
             self, round_count: int, task_desc: str, last_act: str, task_dir: Path, env: AndroidEnv
     ) -> AndroidActionOutput:
-        screenshot_path: Path = env.observe(
+        screenshot_path: Path = await env.observe(
             EnvAPIAbstract(
                 api_name="get_screenshot", kwargs={"ss_name": f"{round_count}_before", "local_save_dir": task_dir}
             )
         )
-        xml_path: Path = env.observe(
+        xml_path: Path = await env.observe(
             EnvAPIAbstract(api_name="get_xml", kwargs={"xml_name": f"{round_count}", "local_save_dir": task_dir})
         )
         if not screenshot_path.exists() or not xml_path.exists():
@@ -100,9 +101,7 @@ class SelfLearnAndReflect(Action):
                 bbox = e.bbox
                 center_ = (bbox[0][0] + bbox[1][0]) // 2, (bbox[0][1] + bbox[1][1]) // 2
                 dist = (abs(center[0] - center_[0]) ** 2 + abs(center[1] - center_[1]) ** 2) ** 0.5
-                # TODO Modify config to default 30. It should be modified back config after single action test
-                # if dist <= config.get_other("min_dist"):
-                if dist <= 30:
+                if dist <= config.get_other("min_dist"):
                     close = True
                     break
             if not close:
@@ -125,7 +124,6 @@ class SelfLearnAndReflect(Action):
         OpLogItem(step=round_count, prompt=prompt, image=str(screenshot_before_labeled_path), response=node.content)
         op_param = screenshot_parse_extract(node.instruct_content.model_dump(), grid_on=False)
         # TODO Modify Op_param. When op_param.action is FINISH, how to solve this ?
-        logger.info(op_param)
         if op_param.param_state == RunState.FINISH:
             return AndroidActionOutput(action_state=RunState.FINISH)
         if op_param.param_state == RunState.FAIL:
@@ -134,26 +132,26 @@ class SelfLearnAndReflect(Action):
         if isinstance(op_param, TapOp):
             self.ui_area = op_param.area
             x, y = elem_bbox_to_xy(elem_list[op_param.area - 1].bbox)
-            res = env.step(EnvAPIAbstract(api_name="system_tap", kwargs={"x": x, "y": y}))
+            res = await env.step(EnvAPIAbstract(api_name="system_tap", kwargs={"x": x, "y": y}))
             if res == ADB_EXEC_FAIL:
                 return AndroidActionOutput(action_state=RunState.FAIL)
         elif isinstance(op_param, TextOp):
-            res = env.step(EnvAPIAbstract(api_name="user_input", kwargs={"input_txt": op_param.input_str}))
+            res = await env.step(EnvAPIAbstract(api_name="user_input", kwargs={"input_txt": op_param.input_str}))
             if res == ADB_EXEC_FAIL:
                 return AndroidActionOutput(action_state=RunState.FAIL)
         elif isinstance(op_param, LongPressOp):
             self.ui_area = op_param.area
             x, y = elem_bbox_to_xy(elem_list[op_param.area - 1].bbox)
-            res = env.step(EnvAPIAbstract(api_name="user_longpress", kwargs={"x": x, "y": y}))
+            res = await env.step(EnvAPIAbstract(api_name="user_longpress", kwargs={"x": x, "y": y}))
             if res == ADB_EXEC_FAIL:
                 return AndroidActionOutput(action_state=RunState.FAIL)
-        elif isinstance(op_param, SwipeOp):
+        elif isinstance(op_param, SwipeOp_3):
             self.ui_area = op_param.area
             self.swipe_orient = op_param.swipe_orient
             x, y = elem_bbox_to_xy(elem_list[op_param.area - 1].bbox)
-            res = env.step(
+            res = await env.step(
                 EnvAPIAbstract(
-                    "user_swipe", kwargs={"x": x, "y": y, "orient": op_param.swipe_orient, "dist": op_param.dist}
+                    api_name="user_swipe", kwargs={"x": x, "y": y, "orient": op_param.swipe_orient, "dist": op_param.dist}
                 )
             )
             if res == ADB_EXEC_FAIL:
@@ -167,8 +165,7 @@ class SelfLearnAndReflect(Action):
     async def run_reflect(
             self, round_count: int, task_desc: str, last_act: str, task_dir: Path, docs_dir: Path, env: AndroidEnv
     ) -> AndroidActionOutput:
-        logger.info("run_reflect")
-        screenshot_path: Path = env.observe(
+        screenshot_path: Path = await env.observe(
             EnvAPIAbstract(
                 api_name="get_screenshot", kwargs={"ss_name": f"{round_count}_after", "local_save_dir": task_dir}
             )
@@ -180,7 +177,6 @@ class SelfLearnAndReflect(Action):
         draw_bbox_multi(screenshot_path, screenshot_after_labeled_path, elem_list=self.elem_list)
         img_base64 = encode_image(screenshot_after_labeled_path)
 
-        logger.info(f"act_name: {self.act_name}")
         if self.act_name == ActionOp.TAP.value:
             action = "tapping"
         elif self.act_name == ActionOp.LONG_PRESS.value:
@@ -225,7 +221,7 @@ class SelfLearnAndReflect(Action):
                 self.useless_list.append(resource_id)
                 last_act = "NONE"
                 if op_param.decision == Decision.BACK.value:
-                    res = env.step(EnvAPIAbstract(api_name="system_back"))
+                    res = await env.step(EnvAPIAbstract(api_name="system_back"))
                     if res == ADB_EXEC_FAIL:
                         return AndroidActionOutput(action_state=RunState.FAIL)
             doc = op_param.documentation

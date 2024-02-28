@@ -37,7 +37,8 @@ class AndroidAssistant(Role):
         self._watch([UserRequirement])
 
         app_name = config.get_other("app_name", "demo")
-        data_dir = Path(__file__).parent.joinpath("..", "output")
+        curr_path = Path(__file__).parent
+        data_dir = curr_path.joinpath("..", "output")
         cur_datetime = datetime.fromtimestamp(int(time.time())).strftime("%Y-%m-%d_%H-%M-%S")
 
         """Firstly, we decide the state with user config, further, we can do it automatically, like if it's new app,
@@ -67,39 +68,57 @@ class AndroidAssistant(Role):
         self._set_react_mode(RoleReactMode.BY_ORDER)
 
     def _check_dir(self):
-        self.task_dir.mkdir(exist_ok=True)
-        self.docs_dir.mkdir(exist_ok=True)
+        self.task_dir.mkdir(parents=True, exist_ok=True)
+        self.docs_dir.mkdir(parents=True, exist_ok=True)
 
     async def react(self) -> Message:
         self.round_count += 1
-        super().react()
+        result = await super().react()
+        print(f"react result {result}")
+        return result
 
     async def _act(self) -> Message:
+        # Question: How to achieve self_learn's loop action ?
         logger.info(f"{self._setting}: to do {self.rc.todo}({self.rc.todo.name})")
         todo = self.rc.todo
         send_to = ""
         if isinstance(todo, ManualRecord):
-            resp = await todo.run()
+            resp = await todo.run(
+                # demo_name="",
+                task_dir=self.task_dir,
+                task_desc=self.task_desc,
+                env=self.rc.env
+            )
         elif isinstance(todo, ParseRecord):
-            resp = await todo.run()
+            resp = await todo.run(
+                app_name=config.get_other("app_name", "demo"),
+                task_dir=self.task_dir,
+                docs_dir=self.docs_dir,
+                env=self.rc.env
+            )
         elif isinstance(todo, SelfLearnAndReflect):
-            resp = await todo.run(round_count=self.round_count,
-                                  task_desc=self.task_desc,
-                                  last_act=self.last_act,
-                                  task_dir=self.task_dir,
-                                  docs_dir=self.docs_dir,
-                                  env=self.rc.env)
+            resp = await todo.run(
+                round_count=self.round_count,
+                task_desc=self.task_desc,
+                last_act=self.last_act,
+                task_dir=self.task_dir,
+                docs_dir=self.docs_dir,
+                env=self.rc.env
+            )
             if resp.action_state == RunState.SUCCESS:
                 self.last_act = resp.data.get("last_act")
                 send_to = self.name
 
         elif isinstance(todo, ScreenshotParse):
-            resp = await todo.run(round_count=self.round_count,
-                                  task_desc=self.task_desc,
-                                  last_act=self.last_act,
-                                  task_dir=self.task_dir,
-                                  grid_on=self.grid_on,
-                                  env=self.rc.env)
+            resp = await todo.run(
+                round_count=self.round_count,
+                task_desc=self.task_desc,
+                last_act=self.last_act,
+                task_dir=self.task_dir,
+                docs_dir=self.docs_dir,
+                grid_on=self.grid_on,
+                env=self.rc.env
+            )
             if resp.action_state == RunState.SUCCESS:
                 self.grid_on = resp.data.get("grid_on")
                 send_to = self.name
