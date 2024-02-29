@@ -118,7 +118,7 @@ class OpenAILLM(BaseLLM):
             "max_tokens": self._get_max_tokens(messages),
             "n": 1,
             # "stop": None,  # default it's None and gpt4-v can't have this one
-            "temperature": 0.3,
+            "temperature": self.config.temperature,
             "model": self.model,
             "timeout": max(self.config.timeout, timeout),
         }
@@ -274,7 +274,7 @@ class OpenAILLM(BaseLLM):
             usage.prompt_tokens = count_message_tokens(messages, model)
             usage.completion_tokens = count_string_tokens(rsp, model)
         except Exception as e:
-            logger.error(f"usage calculation failed: {e}")
+            logger.warning(f"usage calculation failed: {e}")
 
         return usage
 
