@@ -25,7 +25,7 @@ def register_provider(keys):
     """register provider to registry"""
 
     def decorator(cls):
-        if isinstance(keys,list):
+        if isinstance(keys, list):
             for key in keys:
                 LLM_REGISTRY.register(key, cls)
         else:
