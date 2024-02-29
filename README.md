@@ -54,21 +54,28 @@
 <p align="center">Software Company Multi-Agent Schematic (Gradually Implementing)</p>
 
 ## Install
-
-### Pip installation
+<details><summary><strong>⏬ Step1: Install by Pip </strong><i>:: click to expand ::</i></summary>
+<div>
 
 > Ensure that Python 3.9+ is installed on your system. You can check this by using: `python --version`.  
 > You can use conda like this: `conda create -n metagpt python=3.9 && conda activate metagpt`
 
 ```bash
 pip install metagpt
-# https://docs.deepwisdom.ai/main/en/guide/get_started/configuration.html
-metagpt --init-config  # it will create ~/.metagpt/config2.yaml, just modify it to your needs
 ```
 
-### Configuration
+</div>
+</details>
 
-You can configure `~/.metagpt/config2.yaml` according to the [example](https://github.com/geekan/MetaGPT/blob/main/config/config2.example.yaml) and [doc](https://docs.deepwisdom.ai/main/en/guide/get_started/configuration.html):
+<details><summary><strong>⏬ Step2: Configure </strong><i>:: click to expand ::</i></summary>
+<div>
+
+Generate a common metagpt config file `~/.metagpt/config2.yaml`
+```bash
+metagpt --init-config  
+```
+
+Then you can configure `~/.metagpt/config2.yaml` according to the [example](https://github.com/geekan/MetaGPT/blob/main/config/config2.example.yaml) and [doc](https://docs.deepwisdom.ai/main/en/guide/get_started/configuration.html):
 
 ```yaml
 llm:
@@ -78,9 +85,13 @@ llm:
   api_key: "YOUR_API_KEY"
 ```
 
-### Usage
+</div>
+</details>
 
-After installation, you can use it as CLI
+<details><summary><strong>⏬ Step3: Use MetaGPT </strong><i>:: click to expand ::</i></summary>
+<div>
+
+After installation and configuration, you can use metagpt as CLI
 
 ```bash
 metagpt "Create a 2048 game"  # this will create a repo in ./workspace
@@ -94,10 +105,13 @@ repo: ProjectRepo = generate_repo("Create a 2048 game")  # or ProjectRepo("<path
 print(repo)  # it will print the repo structure with files
 ```
 
-detail installation please refer to [cli_install](https://docs.deepwisdom.ai/main/en/guide/get_started/installation.html#install-stable-version)
- or [docker_install](https://docs.deepwisdom.ai/main/en/guide/get_started/installation.html#install-with-docker)
+</div>
+</details>
 
-### QuickStart & Demo Video
+
+For more detailed installation documents, please visit: [cli_install](https://docs.deepwisdom.ai/main/en/guide/get_started/installation.html#install-stable-version) or [docker_install](https://docs.deepwisdom.ai/main/en/guide/get_started/installation.html#install-with-docker)
+
+## QuickStart & Demo Video
 - Try it on [MetaGPT Huggingface Space](https://huggingface.co/spaces/deepwisdom/MetaGPT)
 - [Matthew Berman: How To Install MetaGPT - Build A Startup With One Prompt!!](https://youtu.be/uT75J_KG_aY)
 - [Official Demo Video](https://github.com/geekan/MetaGPT/assets/2707039/5e8c1062-8c35-440f-bb20-2b0320f8d27d)

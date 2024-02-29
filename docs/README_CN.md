@@ -33,49 +33,64 @@
 <p align="center">软件公司多角色示意图（正在逐步实现）</p>
 
 ## 安装
-### Pip安装
+<details><summary><strong>⏬ 步骤1：使用Pip安装 MetaGPT </strong><i>::点击展开::</i></summary>
+<div>
 
-> 确保您的系统已安装 Python 3.9 或更高版本。您可以使用以下命令来检查：`python --version`。  
-> 您可以这样使用 conda：`conda create -n metagpt python=3.9 && conda activate metagpt`
+> 确保您的系统上已安装Python 3.9+。您可以通过使用：`python --version`来检查这一点。  
+> 您可以像这样使用conda：`conda create -n metagpt python=3.9 && conda activate metagpt`
 
 ```bash
 pip install metagpt
-metagpt --init-config  # 创建 ~/.metagpt/config2.yaml，根据您的需求修改它
-metagpt "创建一个 2048 游戏"  # 这将在 ./workspace 创建一个仓库
 ```
 
-或者您可以将其作为库使用
+</div>
+</details>
+
+<details><summary><strong>⏬ 步骤2：配置 MetaGPT </strong><i>::点击展开::</i></summary>
+<div>
+
+生成一个通用的metagpt配置文件`~/.metagpt/config2.yaml`
+```bash
+metagpt --init-config  
+```
+
+然后，您可以根据[配置示例](https://github.com/geekan/MetaGPT/blob/main/config/config2.example.yaml)和[配置文档](https://docs.deepwisdom.ai/main/en/guide/get_started/configuration.html)配置 `~/.metagpt/config2.yaml`：
+
+```yaml
+llm:
+  api_type: "openai"  # 或 azure / ollama / open_llm 等。查看LLMType获取更多选项
+  model: "gpt-4-turbo-preview"  # 或 gpt-3.5-turbo-1106 / gpt-4-1106-preview
+  base_url: "https://api.openai.com/v1"  # 或 forward url /其他 llm url
+  api_key: "YOUR_API_KEY"
+```
+
+</div>
+</details>
+
+<details><summary><strong>⏬ 步骤3：使用 MetaGPT </strong><i>::点击展开::</i></summary>
+<div>
+
+安装和配置完成后，您可以作为CLI使用metagpt
+
+```bash
+metagpt "Create a 2048 game"  # 这将在 ./workspace 中创建一个仓库
+```
+
+或者，您可以将其作为库使用
 
 ```python
 from metagpt.software_company import generate_repo, ProjectRepo
-repo: ProjectRepo = generate_repo("创建一个 2048 游戏")  # 或 ProjectRepo("<路径>")
-print(repo)  # 它将打印出仓库结构及其文件
+repo: ProjectRepo = generate_repo("Create a 2048 game")  # 或 ProjectRepo("<path>")
+print(repo)  # 打印带有文件的仓库结构
 ```
 
-详细的安装请参考 [cli_install](https://docs.deepwisdom.ai/guide/get_started/installation.html#install-stable-version)
+</div>
+</details>
 
-### Docker安装
-> 注意：在Windows中，你需要将 "/opt/metagpt" 替换为Docker具有创建权限的目录，比如"D:\Users\x\metagpt"
 
-```bash
-# 步骤1: 下载metagpt官方镜像并准备好config2.yaml
-docker pull metagpt/metagpt:latest
-mkdir -p /opt/metagpt/{config,workspace}
-docker run --rm metagpt/metagpt:latest cat /app/metagpt/config/config2.yaml > /opt/metagpt/config/config2.yaml
-vim /opt/metagpt/config/config2.yaml # 修改配置文件
+更详细的安装文档，请访问：[cli_install](https://docs.deepwisdom.ai/main/en/guide/get_started/installation.html#install-stable-version) 或 [docker_install](https://docs.deepwisdom.ai/main/en/guide/get_started/installation.html#install-with-docker)
 
-# 步骤2: 使用容器运行metagpt演示
-docker run --rm \
-    --privileged \
-    -v /opt/metagpt/config/config2.yaml:/app/metagpt/config/config2.yaml \
-    -v /opt/metagpt/workspace:/app/metagpt/workspace \
-    metagpt/metagpt:latest \
-    metagpt "Write a cli snake game"
-```
-
-详细的安装请参考 [docker_install](https://docs.deepwisdom.ai/main/zh/guide/get_started/installation.html#%E4%BD%BF%E7%94%A8docker%E5%AE%89%E8%A3%85)
-
-### 快速开始的演示视频
+## 快速开始的演示视频
 - 在 [MetaGPT Huggingface Space](https://huggingface.co/spaces/deepwisdom/MetaGPT) 上进行体验
 - [Matthew Berman: How To Install MetaGPT - Build A Startup With One Prompt!!](https://youtu.be/uT75J_KG_aY)
 - [官方演示视频](https://github.com/geekan/MetaGPT/assets/2707039/5e8c1062-8c35-440f-bb20-2b0320f8d27d)
