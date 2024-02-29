@@ -116,7 +116,7 @@ class OpenAILLM(BaseLLM):
         kwargs = {
             "messages": messages,
             "max_tokens": self._get_max_tokens(messages),
-            "n": 1,
+            # "n": 1,  # Some services do not provide this parameter, such as mistral
             # "stop": None,  # default it's None and gpt4-v can't have this one
             "temperature": self.config.temperature,
             "model": self.model,
