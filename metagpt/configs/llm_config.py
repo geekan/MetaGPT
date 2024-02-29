@@ -18,6 +18,8 @@ class LLMType(Enum):
     ANTHROPIC = "anthropic"
     SPARK = "spark"
     ZHIPUAI = "zhipuai"
+    FIREWORKS = "fireworks"
+    OPEN_LLM = "open_llm"
     GEMINI = "gemini"
     METAGPT = "metagpt"
     AZURE = "azure"
@@ -25,6 +27,7 @@ class LLMType(Enum):
     QIANFAN = "qianfan"  # Baidu BCE
     DASHSCOPE = "dashscope"  # Aliyun LingJi DashScope
     MOONSHOT = "moonshot"
+    MISTRAL = 'mistral'
 
     def __missing__(self, key):
         return self.OPENAI
