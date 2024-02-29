@@ -22,9 +22,9 @@ from metagpt.actions.write_code_review import WriteCodeReview
 from metagpt.actions.write_prd import WritePRD
 from metagpt.actions.write_prd_review import WritePRDReview
 from metagpt.actions.write_test import WriteTest
-from metagpt.actions.ci.execute_nb_code import ExecuteNbCode
-from metagpt.actions.ci.write_analysis_code import WriteCodeWithoutTools, WriteCodeWithTools
-from metagpt.actions.ci.write_plan import WritePlan
+from metagpt.actions.mi.execute_nb_code import ExecuteNbCode
+from metagpt.actions.mi.write_analysis_code import WriteCodeWithoutTools, WriteCodeWithTools
+from metagpt.actions.mi.write_plan import WritePlan
 
 
 class ActionType(Enum):

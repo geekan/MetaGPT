@@ -4,12 +4,12 @@
 # @Desc    :
 import asyncio
 
-from metagpt.roles.ci.code_interpreter import CodeInterpreter
+from metagpt.roles.mi.interpreter import Interpreter
 
 
 async def main(requirement: str = ""):
-    code_interpreter = CodeInterpreter(use_tools=True, goal=requirement)
-    await code_interpreter.run(requirement)
+    mi = Interpreter(use_tools=True, goal=requirement)
+    await mi.run(requirement)
 
 
 if __name__ == "__main__":

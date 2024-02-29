@@ -33,17 +33,28 @@ class Chapter(BaseModel):
     content: str = Field(default="...", description="The content of the chapter. No more than 1000 words.")
 
 
+class Chapters(BaseModel):
+    chapters: List[Chapter] = Field(
+        default=[
+            {"name": "Chapter 1", "content": "..."},
+            {"name": "Chapter 2", "content": "..."},
+            {"name": "Chapter 3", "content": "..."},
+        ],
+        description="The chapters of the novel.",
+    )
+
+
 async def generate_novel():
     instruction = (
-        "Write a novel named 'Harry Potter in The Lord of the Rings'. "
+        "Write a novel named 'Reborn in Skyrim'. "
         "Fill the empty nodes with your own ideas. Be creative! Use your own words!"
         "I will tip you $100,000 if you write a good novel."
     )
     novel_node = await ActionNode.from_pydantic(Novel).fill(context=instruction, llm=LLM())
-    chap_node = await ActionNode.from_pydantic(Chapter).fill(
+    chap_node = await ActionNode.from_pydantic(Chapters).fill(
         context=f"### instruction\n{instruction}\n### novel\n{novel_node.content}", llm=LLM()
     )
-    print(chap_node.content)
+    print(chap_node.instruct_content)
 
 
 asyncio.run(generate_novel())

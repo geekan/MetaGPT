@@ -4,8 +4,8 @@ import json
 
 from pydantic import BaseModel, Field
 
-from metagpt.actions.ci.ask_review import AskReview, ReviewConst
-from metagpt.actions.ci.write_plan import (
+from metagpt.actions.mi.ask_review import AskReview, ReviewConst
+from metagpt.actions.mi.write_plan import (
     WritePlan,
     precheck_update_plan_from_rsp,
     update_plan_from_rsp,
@@ -122,7 +122,7 @@ class Planner(BaseModel):
         )  # "confirm, ... (more content, such as changing downstream tasks)"
         if confirmed_and_more:
             self.working_memory.add(Message(content=review, role="user", cause_by=AskReview))
-            await self.update_plan(review)
+            await self.update_plan()
 
     def get_useful_memories(self, task_exclude_field=None) -> list[Message]:
         """find useful memories only to reduce context length and improve performance"""
