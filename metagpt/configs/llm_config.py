@@ -18,8 +18,6 @@ class LLMType(Enum):
     ANTHROPIC = "anthropic"
     SPARK = "spark"
     ZHIPUAI = "zhipuai"
-    FIREWORKS = "fireworks"
-    OPEN_LLM = "open_llm"
     GEMINI = "gemini"
     METAGPT = "metagpt"
     AZURE = "azure"
