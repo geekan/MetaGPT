@@ -26,13 +26,11 @@ from tests.metagpt.provider.req_resp_const import (
     resp_cont_tmpl,
 )
 
-prompt_msg = "who are you"
-messages = [{"role": "user", "content": prompt_msg}]
-name = 'AI'
+name = "AI assistant"
 resp_cont = resp_cont_tmpl.format(name=name)
 default_resp = get_openai_chat_completion(name)
 
-default_resp_chunk = get_openai_chat_completion_chunk(name)
+default_resp_chunk = get_openai_chat_completion_chunk(name, usage_as_dict=True)
 
 usage = CompletionUsage(completion_tokens=110, prompt_tokens=92, total_tokens=202)
 
@@ -166,6 +164,3 @@ async def test_openai_acompletion(mocker):
     assert resp.usage == usage
 
     await llm_general_chat_funcs_test(llm, prompt, messages, resp_cont)
-
-
-
