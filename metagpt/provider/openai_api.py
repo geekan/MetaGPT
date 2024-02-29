@@ -28,8 +28,7 @@ from metagpt.logs import log_llm_stream, logger
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.constant import CODE_ONLY_FUNCTION_SCHEMA, GENERAL_FUNCTION_SCHEMA
 from metagpt.provider.llm_provider_registry import register_provider
-from metagpt.schema import Message
-from metagpt.utils.common import CodeParser, decode_image
+from metagpt.utils.common import CodeParser, decode_image, process_message
 from metagpt.utils.cost_manager import CostManager, Costs
 from metagpt.utils.exceptions import handle_exception
 from metagpt.utils.token_counter import (
@@ -145,32 +144,10 @@ class OpenAILLM(BaseLLM):
         rsp = await self._achat_completion(messages, timeout=timeout)
         return self.get_choice_text(rsp)
 
-    def _process_message(self, messages: Union[str, Message, list[dict], list[Message], list[str]]) -> list[dict]:
-        """convert messages to list[dict]."""
-        # 全部转成list
-        if not isinstance(messages, list):
-            messages = [messages]
-
-        # 转成list[dict]
-        processed_messages = []
-        for msg in messages:
-            if isinstance(msg, str):
-                processed_messages.append({"role": "user", "content": msg})
-            elif isinstance(msg, dict):
-                assert set(msg.keys()) == set(["role", "content"])
-                processed_messages.append(msg)
-            elif isinstance(msg, Message):
-                processed_messages.append(msg.to_dict())
-            else:
-                raise ValueError(
-                    f"Only support message type are: str, Message, dict, but got {type(messages).__name__}!"
-                )
-        return processed_messages
-
     async def _achat_completion_function(
         self, messages: list[dict], timeout: int = 3, **chat_configs
     ) -> ChatCompletion:
-        messages = self._process_message(messages)
+        messages = process_message(messages)
         kwargs = self._cons_kwargs(messages=messages, timeout=timeout, **chat_configs)
         rsp: ChatCompletion = await self.aclient.chat.completions.create(**kwargs)
         self._update_costs(rsp.usage)

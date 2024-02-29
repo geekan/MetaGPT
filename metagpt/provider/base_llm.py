@@ -69,7 +69,7 @@ class BaseLLM(ABC):
 
     async def aask(
         self,
-        msg: str,
+        msg: Union[str, list[dict[str, str]]],
         system_msgs: Optional[list[str]] = None,
         format_msgs: Optional[list[dict[str, str]]] = None,
         images: Optional[Union[str, list[str]]] = None,
@@ -84,7 +84,10 @@ class BaseLLM(ABC):
             message = []
         if format_msgs:
             message.extend(format_msgs)
-        message.append(self._user_msg(msg, images=images))
+        if isinstance(msg, str):
+            message.append(self._user_msg(msg, images=images))
+        else:
+            message.extend(msg)
         logger.debug(message)
         rsp = await self.acompletion_text(message, stream=stream, timeout=timeout)
         return rsp
@@ -103,7 +106,7 @@ class BaseLLM(ABC):
         return self._extract_assistant_rsp(context)
 
     async def aask_code(
-        self, messages: Union[str, Message, list[dict]], timeout=3, language: str = "", **kwargs
+        self, messages: Union[str, Message, list[dict]], timeout=3, include_language: bool = False, **kwargs
     ) -> dict:
         raise NotImplementedError
 

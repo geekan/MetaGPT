@@ -19,7 +19,8 @@ class ToolType(Enum):
     )
     DATA_PREPROCESS = ToolTypeDef(
         name="data_preprocess",
-        desc="Only for changing value inplace.",
+        desc="For preprocessing dataset in a data analysis or machine learning task ONLY,"
+        "general data operation doesn't fall into this type",
         usage_prompt=DATA_PREPROCESS_PROMPT,
     )
     EMAIL_LOGIN = ToolTypeDef(

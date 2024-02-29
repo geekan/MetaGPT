@@ -4,10 +4,12 @@ from pydantic import Field
 
 from metagpt.actions.mi.ask_review import ReviewConst
 from metagpt.actions.mi.execute_nb_code import ExecuteNbCode
-from metagpt.actions.mi.write_analysis_code import WriteCodeWithTools
+from metagpt.actions.mi.write_analysis_code import CheckData, WriteCodeWithTools
 from metagpt.logs import logger
+from metagpt.prompts.mi.write_analysis_code import DATA_INFO
 from metagpt.roles import Role
 from metagpt.schema import Message, Task, TaskResult
+from metagpt.tools.tool_type import ToolType
 
 
 class Interpreter(Role):
@@ -15,6 +17,7 @@ class Interpreter(Role):
     profile: str = "Interpreter"
     auto_run: bool = True
     use_tools: bool = False
+    use_reflection: bool = False
     execute_code: ExecuteNbCode = Field(default_factory=ExecuteNbCode, exclude=True)
     tools: list[str] = []
 
@@ -48,14 +51,16 @@ class Interpreter(Role):
         counter = 0
         success = False
 
+        await self._check_data()
+
         while not success and counter < max_retry:
             ### write code ###
-            code, cause_by = await self._write_code()
+            code, cause_by = await self._write_code(counter)
 
-            self.working_memory.add(Message(content=code["code"], role="assistant", cause_by=cause_by))
+            self.working_memory.add(Message(content=code, role="assistant", cause_by=cause_by))
 
             ### execute code ###
-            result, success = await self.execute_code.run(**code)
+            result, success = await self.execute_code.run(code)
             print(result)
 
             self.working_memory.add(Message(content=result, role="user", cause_by=ExecuteNbCode))
@@ -69,14 +74,33 @@ class Interpreter(Role):
                 if ReviewConst.CHANGE_WORDS[0] in review:
                     counter = 0  # redo the task again with help of human suggestions
 
-        return code["code"], result, success
+        return code, result, success
 
-    async def _write_code(self):
+    async def _write_code(self, counter):
         todo = WriteCodeWithTools(use_tools=self.use_tools, selected_tools=self.tools)
         logger.info(f"ready to {todo.name}")
-
-        context = self.planner.get_useful_memories()
-        # print(*context, sep="\n***\n")
-        code = await todo.run(context=context, plan=self.planner.plan, temperature=0.0)
+        use_reflection = counter > 0 and self.use_reflection
+        code = await todo.run(
+            plan=self.planner.plan, working_memory=self.working_memory.get(), use_reflection=use_reflection
+        )
 
         return code, todo
+
+    async def _check_data(self):
+        current_task = self.planner.plan.current_task
+        if current_task.task_type not in [
+            ToolType.DATA_PREPROCESS.type_name,
+            ToolType.FEATURE_ENGINEERING.type_name,
+            ToolType.MODEL_TRAIN.type_name,
+        ]:
+            return
+        logger.info("Check updated data")
+        code = await CheckData().run(self.planner.plan)
+        if not code:
+            return
+        success = False
+        result, success = await self.execute_code.run(code)
+        if success:
+            print(result)
+            data_info = DATA_INFO.format(info=result)
+            self.working_memory.add(Message(content=data_info, role="user", cause_by=CheckData))

@@ -26,22 +26,6 @@ GENERAL_FUNCTION_SCHEMA = {
 }
 
 
-CODE_ONLY_FUNCTION_SCHEMA = {
-    "name": "add_new_code",
-    "description": "Add new code cell of current task to the end of an active Jupyter notebook.",
-    "parameters": {
-        "type": "object",
-        "properties": {
-            "code": {
-                "type": "string",
-                "description": "The code to be added to a new cell in jupyter.",
-            },
-        },
-        "required": ["code"],
-    },
-}
-
-
 # tool_choice value for general_function_schema
 # https://platform.openai.com/docs/api-reference/chat/create#chat-create-tool_choice
 GENERAL_TOOL_CHOICE = {"type": "function", "function": {"name": "execute"}}

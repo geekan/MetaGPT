@@ -666,3 +666,26 @@ def decode_image(img_url_or_b64: str) -> Image:
         img_data = BytesIO(base64.b64decode(b64_data))
         img = Image.open(img_data)
     return img
+
+
+def process_message(messages: Union[str, Message, list[dict], list[Message], list[str]]) -> list[dict]:
+    """convert messages to list[dict]."""
+    from metagpt.schema import Message
+
+    # 全部转成list
+    if not isinstance(messages, list):
+        messages = [messages]
+
+    # 转成list[dict]
+    processed_messages = []
+    for msg in messages:
+        if isinstance(msg, str):
+            processed_messages.append({"role": "user", "content": msg})
+        elif isinstance(msg, dict):
+            assert set(msg.keys()) == set(["role", "content"])
+            processed_messages.append(msg)
+        elif isinstance(msg, Message):
+            processed_messages.append(msg.to_dict())
+        else:
+            raise ValueError(f"Only support message type are: str, Message, dict, but got {type(messages).__name__}!")
+    return processed_messages

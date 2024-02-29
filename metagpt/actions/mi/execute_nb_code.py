@@ -201,7 +201,7 @@ def truncate(result: str, keep_len: int = 2000, is_success: bool = True):
     if is_success:
         desc = f"Executed code successfully. Truncated to show only first {keep_len} characters\n"
     else:
-        desc = f"Executed code failed, please reflect the cause of bug and then debug. Truncated to show only last {keep_len} characters\n"
+        desc = f"Executed code failed, please reflect on the cause of bug and then debug. Truncated to show only last {keep_len} characters\n"
 
     if result.strip().startswith("<coroutine object"):
         result = "Executed code failed, you need use key word 'await' to run a async code."
