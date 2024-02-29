@@ -34,7 +34,7 @@ class AndroidAssistant(Role):
     def __init__(self, **data):
         super().__init__(**data)
 
-        self._watch([UserRequirement])
+        self._watch([UserRequirement, ScreenshotParse, SelfLearnAndReflect])
 
         app_name = config.get_other("app_name", "demo")
         curr_path = Path(__file__).parent
@@ -78,13 +78,12 @@ class AndroidAssistant(Role):
         return result
 
     async def _act(self) -> Message:
-        # Question: How to achieve self_learn's loop action ?
         logger.info(f"{self._setting}: to do {self.rc.todo}({self.rc.todo.name})")
         todo = self.rc.todo
+        # TODO 这里修改 Send to 会有作用吗?
         send_to = ""
         if isinstance(todo, ManualRecord):
             resp = await todo.run(
-                # demo_name="",
                 task_dir=self.task_dir,
                 task_desc=self.task_desc,
                 env=self.rc.env
@@ -108,7 +107,6 @@ class AndroidAssistant(Role):
             if resp.action_state == RunState.SUCCESS:
                 self.last_act = resp.data.get("last_act")
                 send_to = self.name
-
         elif isinstance(todo, ScreenshotParse):
             resp = await todo.run(
                 round_count=self.round_count,
@@ -123,6 +121,13 @@ class AndroidAssistant(Role):
                 self.grid_on = resp.data.get("grid_on")
                 send_to = self.name
 
-        msg = Message(f"RoundCount: {self.round_count}", send_to=send_to)
+        msg = Message(
+            content=f"RoundCount: {self.round_count}",
+            role=self.profile,
+            cause_by=type(todo),
+            send_from=self.name,
+            send_to=self.name
+        )
+        self.publish_message(msg)
         self.rc.memory.add(msg)
         return msg
