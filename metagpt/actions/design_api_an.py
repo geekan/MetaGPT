@@ -8,7 +8,6 @@
 from typing import List
 
 from metagpt.actions.action_node import ActionNode
-from metagpt.logs import logger
 from metagpt.utils.mermaid import MMC1, MMC2
 
 IMPLEMENTATION_APPROACH = ActionNode(
@@ -109,14 +108,3 @@ REFINED_NODES = [
 
 DESIGN_API_NODE = ActionNode.from_children("DesignAPI", NODES)
 REFINED_DESIGN_NODE = ActionNode.from_children("RefinedDesignAPI", REFINED_NODES)
-
-
-def main():
-    prompt = DESIGN_API_NODE.compile(context="")
-    logger.info(prompt)
-    prompt = REFINED_DESIGN_NODE.compile(context="")
-    logger.info(prompt)
-
-
-if __name__ == "__main__":
-    main()

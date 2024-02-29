@@ -23,11 +23,7 @@ from tenacity import retry, stop_after_attempt, wait_random_exponential
 from metagpt.actions.action import Action
 from metagpt.actions.project_management_an import REFINED_TASK_LIST, TASK_LIST
 from metagpt.actions.write_code_plan_and_change_an import REFINED_TEMPLATE
-from metagpt.const import (
-    BUGFIX_FILENAME,
-    CODE_PLAN_AND_CHANGE_FILENAME,
-    REQUIREMENT_FILENAME,
-)
+from metagpt.const import BUGFIX_FILENAME, REQUIREMENT_FILENAME
 from metagpt.logs import logger
 from metagpt.schema import CodingContext, Document, RunCodeResult
 from metagpt.utils.common import CodeParser
@@ -98,8 +94,6 @@ class WriteCode(Action):
         bug_feedback = await self.repo.docs.get(filename=BUGFIX_FILENAME)
         coding_context = CodingContext.loads(self.i_context.content)
         test_doc = await self.repo.test_outputs.get(filename="test_" + coding_context.filename + ".json")
-        code_plan_and_change_doc = await self.repo.docs.code_plan_and_change.get(filename=CODE_PLAN_AND_CHANGE_FILENAME)
-        code_plan_and_change = code_plan_and_change_doc.content if code_plan_and_change_doc else ""
         requirement_doc = await self.repo.docs.get(filename=REQUIREMENT_FILENAME)
         summary_doc = None
         if coding_context.design_doc and coding_context.design_doc.filename:
@@ -111,7 +105,7 @@ class WriteCode(Action):
 
         if bug_feedback:
             code_context = coding_context.code_doc.content
-        elif code_plan_and_change:
+        elif self.config.inc:
             code_context = await self.get_codes(
                 coding_context.task_doc, exclude=self.i_context.filename, project_repo=self.repo, use_inc=True
             )
@@ -122,10 +116,10 @@ class WriteCode(Action):
                 project_repo=self.repo.with_src_path(self.context.src_workspace),
             )
 
-        if code_plan_and_change:
+        if self.config.inc:
             prompt = REFINED_TEMPLATE.format(
                 user_requirement=requirement_doc.content if requirement_doc else "",
-                code_plan_and_change=code_plan_and_change,
+                code_plan_and_change=str(coding_context.code_plan_and_change_doc),
                 design=coding_context.design_doc.content if coding_context.design_doc else "",
                 task=coding_context.task_doc.content if coding_context.task_doc else "",
                 code=code_context,

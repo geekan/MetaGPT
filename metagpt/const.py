@@ -84,7 +84,6 @@ MESSAGE_ROUTE_TO_NONE = "<none>"
 REQUIREMENT_FILENAME = "requirement.txt"
 BUGFIX_FILENAME = "bugfix.txt"
 PACKAGE_REQUIREMENTS_FILENAME = "requirements.txt"
-CODE_PLAN_AND_CHANGE_FILENAME = "code_plan_and_change.json"
 
 DOCS_FILE_REPO = "docs"
 PRDS_FILE_REPO = "docs/prd"

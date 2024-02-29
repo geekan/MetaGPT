@@ -6,7 +6,8 @@
 @File    : test_write_code.py
 @Modifiled By: mashenquan, 2023-12-6. According to RFC 135
 """
-
+import json
+import uuid
 from pathlib import Path
 
 import pytest
@@ -14,7 +15,13 @@ import pytest
 from metagpt.actions.write_code import WriteCode
 from metagpt.logs import logger
 from metagpt.schema import CodingContext, Document
-from metagpt.utils.common import aread
+from metagpt.utils.common import CodeParser, aread
+from tests.data.incremental_dev_project.mock import (
+    CODE_PLAN_AND_CHANGE_SAMPLE,
+    REFINED_CODE_INPUT_SAMPLE,
+    REFINED_DESIGN_JSON,
+    REFINED_TASK_JSON,
+)
 from tests.metagpt.actions.mock_markdown import TASKS_2, WRITE_CODE_PROMPT_SAMPLE
 
 
@@ -79,6 +86,73 @@ async def test_write_code_deps(context):
     rsp = await action.run()
     assert rsp
     assert rsp.code_doc.content
+
+
+@pytest.mark.asyncio
+async def test_write_refined_code(context):
+    # Prerequisites
+    git_dir = Path(__file__).parent / f"unittest/{uuid.uuid4().hex}"
+    git_dir.mkdir(parents=True, exist_ok=True)
+    context.config.inc = True
+
+    context.src_workspace = context.git_repo.workdir / "src"
+    await context.repo.docs.system_design.save(filename="1.json", content=json.dumps(REFINED_DESIGN_JSON))
+    await context.repo.docs.task.save(filename="1.json", content=json.dumps(REFINED_TASK_JSON))
+    await context.repo.docs.code_plan_and_change.save(
+        filename="1.json", content=json.dumps(CODE_PLAN_AND_CHANGE_SAMPLE)
+    )
+
+    # old_workspace contains the legacy code
+    context.repo.old_workspace = context.repo.git_repo.workdir / "old"
+    await context.repo.with_src_path(context.repo.old_workspace).srcs.save(
+        filename="game.py", content=CodeParser.parse_code(block="", text=REFINED_CODE_INPUT_SAMPLE)
+    )
+
+    ccontext = CodingContext(
+        filename="game.py",
+        design_doc=await context.repo.docs.system_design.get(filename="1.json"),
+        task_doc=await context.repo.docs.task.get(filename="1.json"),
+        code_plan_and_change_doc=await context.repo.docs.code_plan_and_change.get(filename="1.json"),
+        code_doc=Document(filename="game.py", content="", root_path="src"),
+    )
+    coding_doc = Document(root_path="src", filename="game.py", content=ccontext.json())
+
+    action = WriteCode(i_context=coding_doc, context=context)
+    rsp = await action.run()
+    assert rsp
+    assert rsp.code_doc.content
+
+
+@pytest.mark.asyncio
+async def test_get_codes(context):
+    # Prerequisites
+    context.src_workspace = context.git_repo.workdir / "src"
+    context.repo.old_workspace = context.repo.git_repo.workdir / "old"
+    for filename in ["game.py", "ui.py"]:
+        await context.repo.with_src_path(context.src_workspace).srcs.save(
+            filename=filename, content=f"# {filename}\nnew code ..."
+        )
+        await context.repo.with_src_path(context.repo.old_workspace).srcs.save(
+            filename=filename, content=f"# {filename}\nlegacy code ..."
+        )
+
+    await context.repo.with_src_path(context.repo.old_workspace).srcs.save(
+        filename="gui.py", content="# gui.py\nlegacy code ..."
+    )
+    await context.repo.with_src_path(context.repo.old_workspace).srcs.save(
+        filename="main.py", content='# main.py\nif __name__ == "__main__":\n    main()'
+    )
+    task_doc = Document(filename="1.json", content=json.dumps(REFINED_TASK_JSON))
+
+    context.repo = context.repo.with_src_path(context.src_workspace)
+    # Ready to write gui.py
+    codes = await WriteCode.get_codes(task_doc=task_doc, exclude="gui.py", project_repo=context.repo)
+    codes_inc = await WriteCode.get_codes(task_doc=task_doc, exclude="gui.py", project_repo=context.repo, use_inc=True)
+
+    logger.info(codes)
+    logger.info(codes_inc)
+    assert codes
+    assert codes_inc
 
 
 if __name__ == "__main__":
