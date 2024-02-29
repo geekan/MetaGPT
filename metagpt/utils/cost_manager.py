@@ -6,12 +6,14 @@
 @Desc    : mashenquan, 2023/8/28. Separate the `CostManager` class to support user-level cost accounting.
 """
 
+import re
 from typing import NamedTuple
 
 from pydantic import BaseModel
 
 from metagpt.logs import logger
-from metagpt.utils.token_counter import TOKEN_COSTS
+from metagpt.utils.token_counter import FIREWORKS_GRADE_TOKEN_COSTS, TOKEN_COSTS
+
 
 
 class Costs(NamedTuple):
@@ -103,3 +105,44 @@ class TokenCostManager(CostManager):
         self.total_prompt_tokens += prompt_tokens
         self.total_completion_tokens += completion_tokens
         logger.info(f"prompt_tokens: {prompt_tokens}, completion_tokens: {completion_tokens}")
+
+
+class FireworksCostManager(CostManager):
+    def model_grade_token_costs(self, model: str) -> dict[str, float]:
+        def _get_model_size(model: str) -> float:
+            size = re.findall(".*-([0-9.]+)b", model)
+            size = float(size[0]) if len(size) > 0 else -1
+            return size
+
+        if "mixtral-8x7b" in model:
+            token_costs = FIREWORKS_GRADE_TOKEN_COSTS["mixtral-8x7b"]
+        else:
+            model_size = _get_model_size(model)
+            if 0 < model_size <= 16:
+                token_costs = FIREWORKS_GRADE_TOKEN_COSTS["16"]
+            elif 16 < model_size <= 80:
+                token_costs = FIREWORKS_GRADE_TOKEN_COSTS["80"]
+            else:
+                token_costs = FIREWORKS_GRADE_TOKEN_COSTS["-1"]
+        return token_costs
+
+    def update_cost(self, prompt_tokens: int, completion_tokens: int, model: str):
+        """
+        Refs to `https://app.fireworks.ai/pricing` **Developer pricing**
+        Update the total cost, prompt tokens, and completion tokens.
+
+        Args:
+        prompt_tokens (int): The number of tokens used in the prompt.
+        completion_tokens (int): The number of tokens used in the completion.
+        model (str): The model used for the API call.
+        """
+        self.total_prompt_tokens += prompt_tokens
+        self.total_completion_tokens += completion_tokens
+
+        token_costs = self.model_grade_token_costs(model)
+        cost = (prompt_tokens * token_costs["prompt"] + completion_tokens * token_costs["completion"]) / 1000000
+        self.total_cost += cost
+        logger.info(
+            f"Total running cost: ${self.total_cost:.4f}"
+            f"Current cost: ${cost:.4f}, prompt_tokens: {prompt_tokens}, completion_tokens: {completion_tokens}"
+        )
