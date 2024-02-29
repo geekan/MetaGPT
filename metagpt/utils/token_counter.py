@@ -38,6 +38,11 @@ TOKEN_COSTS = {
     "moonshot-v1-8k": {"prompt": 0.012, "completion": 0.012},  # prompt + completion tokens=0.012￥/k-tokens
     "moonshot-v1-32k": {"prompt": 0.024, "completion": 0.024},
     "moonshot-v1-128k": {"prompt": 0.06, "completion": 0.06},
+    "open-mistral-7b": {"prompt": 0.00025, "completion": 0.00025},
+    "open-mixtral-8x7b": {"prompt": 0.0007, "completion": 0.0007},
+    "mistral-small-latest": {"prompt": 0.002, "completion": 0.006},
+    "mistral-medium-latest": {"prompt": 0.0027, "completion": 0.0081},
+    "mistral-large-latest": {"prompt": 0.008, "completion": 0.024},
 }
 
 
@@ -157,6 +162,11 @@ TOKEN_MAX = {
     "moonshot-v1-8k": 8192,
     "moonshot-v1-32k": 32768,
     "moonshot-v1-128k": 128000,
+    "open-mistral-7b": 8192,
+    "open-mixtral-8x7b": 32768,
+    "mistral-small-latest": 32768,
+    "mistral-medium-latest": 32768,
+    "mistral-large-latest": 32768,
 }
 
 
