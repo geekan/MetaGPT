@@ -6,22 +6,24 @@ import pytest
 
 from metagpt.provider.zhipuai_api import ZhiPuAILLM
 from tests.metagpt.provider.mock_llm_config import mock_llm_config_zhipu
+from tests.metagpt.provider.req_resp_const import (
+    get_part_chat_completion,
+    llm_general_chat_funcs_test,
+    messages,
+    prompt,
+    resp_cont_tmpl,
+)
 
-prompt_msg = "who are you"
-messages = [{"role": "user", "content": prompt_msg}]
-
-resp_content = "I'm chatglm-turbo"
-default_resp = {
-    "choices": [{"finish_reason": "stop", "index": 0, "message": {"content": resp_content, "role": "assistant"}}],
-    "usage": {"completion_tokens": 22, "prompt_tokens": 19, "total_tokens": 41},
-}
+name = "ChatGLM-4"
+resp_cont = resp_cont_tmpl.format(name=name)
+default_resp = get_part_chat_completion(name)
 
 
 async def mock_zhipuai_acreate_stream(self, **kwargs):
     class MockResponse(object):
         async def _aread(self):
             class Iterator(object):
-                events = [{"choices": [{"index": 0, "delta": {"content": resp_content, "role": "assistant"}}]}]
+                events = [{"choices": [{"index": 0, "delta": {"content": resp_cont, "role": "assistant"}}]}]
 
                 async def __aiter__(self):
                     for event in self.events:
@@ -46,22 +48,12 @@ async def test_zhipuai_acompletion(mocker):
     mocker.patch("metagpt.provider.zhipuai.zhipu_model_api.ZhiPuModelAPI.acreate", mock_zhipuai_acreate)
     mocker.patch("metagpt.provider.zhipuai.zhipu_model_api.ZhiPuModelAPI.acreate_stream", mock_zhipuai_acreate_stream)
 
-    zhipu_gpt = ZhiPuAILLM(mock_llm_config_zhipu)
+    zhipu_llm = ZhiPuAILLM(mock_llm_config_zhipu)
 
-    resp = await zhipu_gpt.acompletion(messages)
-    assert resp["choices"][0]["message"]["content"] == resp_content
+    resp = await zhipu_llm.acompletion(messages)
+    assert resp["choices"][0]["message"]["content"] == resp_cont
 
-    resp = await zhipu_gpt.aask(prompt_msg, stream=False)
-    assert resp == resp_content
-
-    resp = await zhipu_gpt.acompletion_text(messages, stream=False)
-    assert resp == resp_content
-
-    resp = await zhipu_gpt.acompletion_text(messages, stream=True)
-    assert resp == resp_content
-
-    resp = await zhipu_gpt.aask(prompt_msg)
-    assert resp == resp_content
+    await llm_general_chat_funcs_test(zhipu_llm, prompt, messages, resp_cont)
 
 
 def test_zhipuai_proxy():

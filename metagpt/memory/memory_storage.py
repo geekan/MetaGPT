@@ -7,7 +7,6 @@
 from pathlib import Path
 from typing import Optional
 
-from langchain.embeddings import OpenAIEmbeddings
 from langchain.vectorstores.faiss import FAISS
 from langchain_core.embeddings import Embeddings
 
@@ -15,6 +14,7 @@ from metagpt.const import DATA_PATH, MEM_TTL
 from metagpt.document_store.faiss_store import FaissStore
 from metagpt.logs import logger
 from metagpt.schema import Message
+from metagpt.utils.embedding import get_embedding
 from metagpt.utils.serialize import deserialize_message, serialize_message
 
 
@@ -30,7 +30,7 @@ class MemoryStorage(FaissStore):
         self.threshold: float = 0.1  # experience value. TODO The threshold to filter similar memories
         self._initialized: bool = False
 
-        self.embedding = embedding or OpenAIEmbeddings()
+        self.embedding = embedding or get_embedding()
         self.store: FAISS = None  # Faiss engine
 
     @property

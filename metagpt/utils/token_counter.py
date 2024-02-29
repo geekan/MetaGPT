@@ -38,6 +38,88 @@ TOKEN_COSTS = {
 }
 
 
+"""
+QianFan Token Price https://cloud.baidu.com/doc/WENXINWORKSHOP/s/hlrk4akp7#tokens%E5%90%8E%E4%BB%98%E8%B4%B9
+Due to QianFan has multi price strategies, we unify `Tokens post-payment` as a statistical method.
+"""
+QIANFAN_MODEL_TOKEN_COSTS = {
+    "ERNIE-Bot-4": {"prompt": 0.017, "completion": 0.017},
+    "ERNIE-Bot-8k": {"prompt": 0.0034, "completion": 0.0067},
+    "ERNIE-Bot": {"prompt": 0.0017, "completion": 0.0017},
+    "ERNIE-Bot-turbo": {"prompt": 0.0011, "completion": 0.0011},
+    "EB-turbo-AppBuilder": {"prompt": 0.0011, "completion": 0.0011},
+    "ERNIE-Speed": {"prompt": 0.00056, "completion": 0.0011},
+    "BLOOMZ-7B": {"prompt": 0.00056, "completion": 0.00056},
+    "Llama-2-7B-Chat": {"prompt": 0.00056, "completion": 0.00056},
+    "Llama-2-13B-Chat": {"prompt": 0.00084, "completion": 0.00084},
+    "Llama-2-70B-Chat": {"prompt": 0.0049, "completion": 0.0049},
+    "ChatGLM2-6B-32K": {"prompt": 0.00056, "completion": 0.00056},
+    "AquilaChat-7B": {"prompt": 0.00056, "completion": 0.00056},
+    "Mixtral-8x7B-Instruct": {"prompt": 0.0049, "completion": 0.0049},
+    "SQLCoder-7B": {"prompt": 0.00056, "completion": 0.00056},
+    "CodeLlama-7B-Instruct": {"prompt": 0.00056, "completion": 0.00056},
+    "XuanYuan-70B-Chat-4bit": {"prompt": 0.0049, "completion": 0.0049},
+    "Qianfan-BLOOMZ-7B-compressed": {"prompt": 0.00056, "completion": 0.00056},
+    "Qianfan-Chinese-Llama-2-7B": {"prompt": 0.00056, "completion": 0.00056},
+    "Qianfan-Chinese-Llama-2-13B": {"prompt": 0.00084, "completion": 0.00084},
+    "ChatLaw": {"prompt": 0.0011, "completion": 0.0011},
+    "Yi-34B-Chat": {"prompt": 0.0, "completion": 0.0},
+}
+
+QIANFAN_ENDPOINT_TOKEN_COSTS = {
+    "completions_pro": QIANFAN_MODEL_TOKEN_COSTS["ERNIE-Bot-4"],
+    "ernie_bot_8k": QIANFAN_MODEL_TOKEN_COSTS["ERNIE-Bot-8k"],
+    "completions": QIANFAN_MODEL_TOKEN_COSTS["ERNIE-Bot"],
+    "eb-instant": QIANFAN_MODEL_TOKEN_COSTS["ERNIE-Bot-turbo"],
+    "ai_apaas": QIANFAN_MODEL_TOKEN_COSTS["EB-turbo-AppBuilder"],
+    "ernie_speed": QIANFAN_MODEL_TOKEN_COSTS["ERNIE-Speed"],
+    "bloomz_7b1": QIANFAN_MODEL_TOKEN_COSTS["BLOOMZ-7B"],
+    "llama_2_7b": QIANFAN_MODEL_TOKEN_COSTS["Llama-2-7B-Chat"],
+    "llama_2_13b": QIANFAN_MODEL_TOKEN_COSTS["Llama-2-13B-Chat"],
+    "llama_2_70b": QIANFAN_MODEL_TOKEN_COSTS["Llama-2-70B-Chat"],
+    "chatglm2_6b_32k": QIANFAN_MODEL_TOKEN_COSTS["ChatGLM2-6B-32K"],
+    "aquilachat_7b": QIANFAN_MODEL_TOKEN_COSTS["AquilaChat-7B"],
+    "mixtral_8x7b_instruct": QIANFAN_MODEL_TOKEN_COSTS["Mixtral-8x7B-Instruct"],
+    "sqlcoder_7b": QIANFAN_MODEL_TOKEN_COSTS["SQLCoder-7B"],
+    "codellama_7b_instruct": QIANFAN_MODEL_TOKEN_COSTS["CodeLlama-7B-Instruct"],
+    "xuanyuan_70b_chat": QIANFAN_MODEL_TOKEN_COSTS["XuanYuan-70B-Chat-4bit"],
+    "qianfan_bloomz_7b_compressed": QIANFAN_MODEL_TOKEN_COSTS["Qianfan-BLOOMZ-7B-compressed"],
+    "qianfan_chinese_llama_2_7b": QIANFAN_MODEL_TOKEN_COSTS["Qianfan-Chinese-Llama-2-7B"],
+    "qianfan_chinese_llama_2_13b": QIANFAN_MODEL_TOKEN_COSTS["Qianfan-Chinese-Llama-2-13B"],
+    "chatlaw": QIANFAN_MODEL_TOKEN_COSTS["ChatLaw"],
+    "yi_34b_chat": QIANFAN_MODEL_TOKEN_COSTS["Yi-34B-Chat"],
+}
+
+"""
+DashScope Token price https://help.aliyun.com/zh/dashscope/developer-reference/tongyi-thousand-questions-metering-and-billing
+Different model has different detail page. Attention, some model are free for a limited time.
+"""
+DASHSCOPE_TOKEN_COSTS = {
+    "qwen-turbo": {"prompt": 0.0011, "completion": 0.0011},
+    "qwen-plus": {"prompt": 0.0028, "completion": 0.0028},
+    "qwen-max": {"prompt": 0.0, "completion": 0.0},
+    "qwen-max-1201": {"prompt": 0.0, "completion": 0.0},
+    "qwen-max-longcontext": {"prompt": 0.0, "completion": 0.0},
+    "llama2-7b-chat-v2": {"prompt": 0.0, "completion": 0.0},
+    "llama2-13b-chat-v2": {"prompt": 0.0, "completion": 0.0},
+    "qwen-72b-chat": {"prompt": 0.0, "completion": 0.0},
+    "qwen-14b-chat": {"prompt": 0.0011, "completion": 0.0011},
+    "qwen-7b-chat": {"prompt": 0.00084, "completion": 0.00084},
+    "qwen-1.8b-chat": {"prompt": 0.0, "completion": 0.0},
+    "baichuan2-13b-chat-v1": {"prompt": 0.0011, "completion": 0.0011},
+    "baichuan2-7b-chat-v1": {"prompt": 0.00084, "completion": 0.00084},
+    "baichuan-7b-v1": {"prompt": 0.0, "completion": 0.0},
+    "chatglm-6b-v2": {"prompt": 0.0011, "completion": 0.0011},
+    "chatglm3-6b": {"prompt": 0.0, "completion": 0.0},
+    "ziya-llama-13b-v1": {"prompt": 0.0, "completion": 0.0},  # no price page, judge it as free
+    "dolly-12b-v2": {"prompt": 0.0, "completion": 0.0},
+    "belle-llama-13b-2m-v1": {"prompt": 0.0, "completion": 0.0},
+    "moss-moon-003-sft-v1": {"prompt": 0.0, "completion": 0.0},
+    "chatyuan-large-v2": {"prompt": 0.0, "completion": 0.0},
+    "billa-7b-sft-v1": {"prompt": 0.0, "completion": 0.0},
+}
+
+
 TOKEN_MAX = {
     "gpt-3.5-turbo": 4096,
     "gpt-3.5-turbo-0301": 4096,
