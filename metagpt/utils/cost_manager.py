@@ -15,7 +15,6 @@ from metagpt.logs import logger
 from metagpt.utils.token_counter import FIREWORKS_GRADE_TOKEN_COSTS, TOKEN_COSTS
 
 
-
 class Costs(NamedTuple):
     total_prompt_tokens: int
     total_completion_tokens: int
