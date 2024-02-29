@@ -20,9 +20,7 @@ from metagpt.provider.qianfan_api import QianFanLLM
 from metagpt.provider.dashscope_api import DashScopeLLM
 
 __all__ = [
-    "FireworksLLM",
     "GeminiLLM",
-    "OpenLLM",
     "OpenAILLM",
     "ZhiPuAILLM",
     "AzureOpenAILLM",
