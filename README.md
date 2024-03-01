@@ -97,6 +97,45 @@ print(repo)  # it will print the repo structure with files
 detail installation please refer to [cli_install](https://docs.deepwisdom.ai/main/en/guide/get_started/installation.html#install-stable-version)
  or [docker_install](https://docs.deepwisdom.ai/main/en/guide/get_started/installation.html#install-with-docker)
 
+### Docker installation
+<details><summary><strong>⏬ Step 1: Download metagpt image and prepare config2.yaml </strong><i>:: click to expand ::</i></summary>
+<div>
+
+```bash
+docker pull metagpt/metagpt:latest
+mkdir -p /opt/metagpt/{config,workspace}
+docker run --rm metagpt/metagpt:latest cat /app/metagpt/config/config2.yaml > /opt/metagpt/config/config2.yaml
+vim /opt/metagpt/config/config2.yaml # Change the config
+```
+
+</div>
+</details>
+
+<details><summary><strong>⏬ Step 2: Run metagpt container </strong><i>:: click to expand ::</i></summary>
+<div>
+
+```bash
+docker run --name metagpt -d \
+    --privileged \
+    -v /opt/metagpt/config/config2.yaml:/app/metagpt/config/config2.yaml \
+    -v /opt/metagpt/workspace:/app/metagpt/workspace \
+    metagpt/metagpt:latest
+```
+
+</div>
+</details>
+
+<details><summary><strong>⏬ Step 3: Use metagpt </strong><i>:: click to expand ::</i></summary>
+<div>
+
+```bash
+docker exec -it metagpt /bin/bash
+$ metagpt "Create a 2048 game"  # this will create a repo in ./workspace
+```
+
+</div>
+</details>
+
 ### QuickStart & Demo Video
 - Try it on [MetaGPT Huggingface Space](https://huggingface.co/spaces/deepwisdom/MetaGPT)
 - [Matthew Berman: How To Install MetaGPT - Build A Startup With One Prompt!!](https://youtu.be/uT75J_KG_aY)
