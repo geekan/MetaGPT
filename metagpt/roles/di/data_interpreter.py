@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from pydantic import Field
 
-from metagpt.actions.mi.ask_review import ReviewConst
-from metagpt.actions.mi.execute_nb_code import ExecuteNbCode
-from metagpt.actions.mi.write_analysis_code import (
+from metagpt.actions.di.ask_review import ReviewConst
+from metagpt.actions.di.execute_nb_code import ExecuteNbCode
+from metagpt.actions.di.write_analysis_code import (
     WriteCodeWithoutTools,
     WriteCodeWithTools,
 )
@@ -13,9 +13,9 @@ from metagpt.roles import Role
 from metagpt.schema import Message, Task, TaskResult
 
 
-class Interpreter(Role):
-    name: str = "Ivy"
-    profile: str = "Interpreter"
+class DataInterpreter(Role):
+    name: str = "David"
+    profile: str = "DataInterpreter"
     auto_run: bool = True
     use_tools: bool = False
     execute_code: ExecuteNbCode = Field(default_factory=ExecuteNbCode, exclude=True)

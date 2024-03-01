@@ -57,7 +57,7 @@ extras_require["dev"] = (["pylint~=3.0.3", "black~=23.3.0", "isort~=5.12.0", "pr
 
 setup(
     name="metagpt",
-    version="0.7.2",
+    version="0.7.4",
     description="The Multi-Agent Framework",
     long_description=long_description,
     long_description_content_type="text/markdown",

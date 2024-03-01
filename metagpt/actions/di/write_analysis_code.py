@@ -10,7 +10,7 @@ from typing import Tuple
 
 from metagpt.actions import Action
 from metagpt.logs import logger
-from metagpt.prompts.mi.write_analysis_code import (
+from metagpt.prompts.di.write_analysis_code import (
     CODE_GENERATOR_WITH_TOOLS,
     SELECT_FUNCTION_TOOLS,
     TOOL_RECOMMENDATION_PROMPT,
