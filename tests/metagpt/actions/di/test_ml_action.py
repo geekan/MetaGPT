@@ -1,6 +1,6 @@
 import pytest
 
-from metagpt.actions.mi.ml_action import WriteCodeWithToolsML
+from metagpt.actions.di.ml_action import WriteCodeWithToolsML
 from metagpt.schema import Plan, Task
 
 
