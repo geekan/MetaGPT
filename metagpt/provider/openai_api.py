@@ -50,7 +50,7 @@ See FAQ 5.8
     raise retry_state.outcome.exception()
 
 
-@register_provider([LLMType.OPENAI, LLMType.FIREWORKS, LLMType.OPEN_LLM, LLMType.MOONSHOT])
+@register_provider([LLMType.OPENAI, LLMType.FIREWORKS, LLMType.OPEN_LLM, LLMType.MOONSHOT, LLMType.MISTRAL])
 class OpenAILLM(BaseLLM):
     """Check https://platform.openai.com/examples for examples"""
 

@@ -27,7 +27,7 @@ class LLMType(Enum):
     QIANFAN = "qianfan"  # Baidu BCE
     DASHSCOPE = "dashscope"  # Aliyun LingJi DashScope
     MOONSHOT = "moonshot"
-    MISTRAL = 'mistral'
+    MISTRAL = "mistral"
 
     def __missing__(self, key):
         return self.OPENAI
