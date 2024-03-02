@@ -6,8 +6,6 @@
 @File    : test_summarize_code.py
 @Modifiled By: mashenquan, 2023-12-6. Unit test for summarize_code.py
 """
-import uuid
-from pathlib import Path
 
 import pytest
 
@@ -178,10 +176,7 @@ class Snake:
 
 @pytest.mark.skip
 @pytest.mark.asyncio
-async def test_summarize_code(context):
-    git_dir = Path(__file__).parent / f"unittest/{uuid.uuid4().hex}"
-    git_dir.mkdir(parents=True, exist_ok=True)
-
+async def test_summarize_code(context, git_dir):
     context.src_workspace = context.git_repo.workdir / "src"
     await context.repo.docs.system_design.save(filename="1.json", content=DESIGN_CONTENT)
     await context.repo.docs.task.save(filename="1.json", content=TASK_CONTENT)

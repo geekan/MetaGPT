@@ -6,8 +6,6 @@
 @File    : test_write_code_plan_and_change_an.py
 """
 import json
-import uuid
-from pathlib import Path
 
 import pytest
 from openai._models import BaseModel
@@ -32,6 +30,7 @@ from tests.data.incremental_dev_project.mock import (
     REFINED_TASK_JSON,
     TASK_SAMPLE,
 )
+from tests.metagpt.actions.test_write_code import setup_inc_workdir
 
 
 def mock_code_plan_and_change():
@@ -39,19 +38,12 @@ def mock_code_plan_and_change():
 
 
 @pytest.mark.asyncio
-async def test_write_code_plan_and_change_an(mocker, context):
-    # Prerequisites
-    git_dir = Path(__file__).parent / f"unittest/{uuid.uuid4().hex}"
-    git_dir.mkdir(parents=True, exist_ok=True)
-    context.config.inc = True
+async def test_write_code_plan_and_change_an(mocker, context, git_dir):
+    context = setup_inc_workdir(context, inc=True)
+    await context.repo.docs.prd.save(filename="2.json", content=json.dumps(REFINED_PRD_JSON))
+    await context.repo.docs.system_design.save(filename="2.json", content=json.dumps(REFINED_DESIGN_JSON))
+    await context.repo.docs.task.save(filename="2.json", content=json.dumps(REFINED_TASK_JSON))
 
-    context.src_workspace = context.git_repo.workdir / "src"
-    await context.repo.docs.prd.save(filename="1.json", content=json.dumps(REFINED_PRD_JSON))
-    await context.repo.docs.system_design.save(filename="1.json", content=json.dumps(REFINED_DESIGN_JSON))
-    await context.repo.docs.task.save(filename="1.json", content=json.dumps(REFINED_TASK_JSON))
-
-    context.config.project_path = "old"
-    context.repo.old_workspace = context.repo.git_repo.workdir / "old"
     await context.repo.with_src_path(context.repo.old_workspace).srcs.save(
         filename="game.py", content=CodeParser.parse_code(block="", text=REFINED_CODE_INPUT_SAMPLE)
     )
@@ -67,9 +59,9 @@ async def test_write_code_plan_and_change_an(mocker, context):
 
     code_plan_and_change_context = CodePlanAndChangeContext(
         requirement="New requirement",
-        prd_filename="1.json",
-        design_filename="1.json",
-        task_filename="1.json",
+        prd_filename="2.json",
+        design_filename="2.json",
+        task_filename="2.json",
     )
     node = await WriteCodePlanAndChange(i_context=code_plan_and_change_context, context=context).run()
 
@@ -96,12 +88,8 @@ async def test_refine_code(mocker):
 
 
 @pytest.mark.asyncio
-async def test_get_old_code(context):
-    git_dir = Path(__file__).parent / f"unittest/{uuid.uuid4().hex}"
-    git_dir.mkdir(parents=True, exist_ok=True)
-
-    context.config.project_path = "old"
-    context.repo.old_workspace = context.repo.git_repo.workdir / "old"
+async def test_get_old_code(context, git_dir):
+    context = setup_inc_workdir(context, inc=True)
     await context.repo.with_src_path(context.repo.old_workspace).srcs.save(
         filename="game.py", content=REFINED_CODE_INPUT_SAMPLE
     )

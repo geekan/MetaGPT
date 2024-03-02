@@ -7,7 +7,6 @@
 @Modifiled By: mashenquan, 2023-12-6. According to RFC 135
 """
 import json
-import uuid
 from pathlib import Path
 
 import pytest
@@ -23,6 +22,17 @@ from tests.data.incremental_dev_project.mock import (
     REFINED_TASK_JSON,
 )
 from tests.metagpt.actions.mock_markdown import TASKS_2, WRITE_CODE_PROMPT_SAMPLE
+
+
+def setup_inc_workdir(context, inc: bool = False):
+    """setup incremental workdir for testing"""
+    context.src_workspace = context.git_repo.workdir / "src"
+    if inc:
+        context.config.inc = inc
+        context.repo.old_workspace = context.repo.git_repo.workdir / "old"
+        context.config.project_path = "old"
+
+    return context
 
 
 @pytest.mark.asyncio
@@ -89,13 +99,9 @@ async def test_write_code_deps(context):
 
 
 @pytest.mark.asyncio
-async def test_write_refined_code(context):
+async def test_write_refined_code(context, git_dir):
     # Prerequisites
-    git_dir = Path(__file__).parent / f"unittest/{uuid.uuid4().hex}"
-    git_dir.mkdir(parents=True, exist_ok=True)
-    context.config.inc = True
-
-    context.src_workspace = context.git_repo.workdir / "src"
+    context = setup_inc_workdir(context, inc=True)
     await context.repo.docs.system_design.save(filename="1.json", content=json.dumps(REFINED_DESIGN_JSON))
     await context.repo.docs.task.save(filename="1.json", content=json.dumps(REFINED_TASK_JSON))
     await context.repo.docs.code_plan_and_change.save(
@@ -103,7 +109,6 @@ async def test_write_refined_code(context):
     )
 
     # old_workspace contains the legacy code
-    context.repo.old_workspace = context.repo.git_repo.workdir / "old"
     await context.repo.with_src_path(context.repo.old_workspace).srcs.save(
         filename="game.py", content=CodeParser.parse_code(block="", text=REFINED_CODE_INPUT_SAMPLE)
     )
@@ -126,8 +131,7 @@ async def test_write_refined_code(context):
 @pytest.mark.asyncio
 async def test_get_codes(context):
     # Prerequisites
-    context.src_workspace = context.git_repo.workdir / "src"
-    context.repo.old_workspace = context.repo.git_repo.workdir / "old"
+    context = setup_inc_workdir(context, inc=True)
     for filename in ["game.py", "ui.py"]:
         await context.repo.with_src_path(context.src_workspace).srcs.save(
             filename=filename, content=f"# {filename}\nnew code ..."
