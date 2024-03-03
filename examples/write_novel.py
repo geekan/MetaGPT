@@ -14,20 +14,6 @@ from metagpt.actions.action_node import ActionNode
 from metagpt.llm import LLM
 
 
-class Novel(BaseModel):
-    name: str = Field(default="The Lord of the Rings", description="The name of the novel.")
-    user_group: str = Field(default="...", description="The user group of the novel.")
-    outlines: List[str] = Field(
-        default=["Chapter 1: ...", "Chapter 2: ...", "Chapter 3: ..."],
-        description="The outlines of the novel. No more than 10 chapters.",
-    )
-    background: str = Field(default="...", description="The background of the novel.")
-    character_names: List[str] = Field(default=["Frodo", "Gandalf", "Sauron"], description="The characters.")
-    conflict: str = Field(default="...", description="The conflict of the characters.")
-    plot: str = Field(default="...", description="The plot of the novel.")
-    ending: str = Field(default="...", description="The ending of the novel.")
-
-
 class Chapter(BaseModel):
     name: str = Field(default="Chapter 1", description="The name of the chapter.")
     content: str = Field(default="...", description="The content of the chapter. No more than 1000 words.")
@@ -42,6 +28,20 @@ class Chapters(BaseModel):
         ],
         description="The chapters of the novel.",
     )
+
+
+class Novel(BaseModel):
+    name: str = Field(default="The Lord of the Rings", description="The name of the novel.")
+    user_group: str = Field(default="...", description="The user group of the novel.")
+    outlines: List[str] = Field(
+        default=["Chapter 1: ...", "Chapter 2: ...", "Chapter 3: ..."],
+        description="The outlines of the novel. No more than 10 chapters.",
+    )
+    background: str = Field(default="...", description="The background of the novel.")
+    character_names: List[str] = Field(default=["Frodo", "Gandalf", "Sauron"], description="The characters.")
+    conflict: str = Field(default="...", description="The conflict of the characters.")
+    plot: str = Field(default="...", description="The plot of the novel.")
+    ending: str = Field(default="...", description="The ending of the novel.")
 
 
 async def generate_novel():
