@@ -4,7 +4,6 @@
 
 from typing import Any, Optional
 
-
 from examples.st_game.roles.st_role import STRole
 from examples.st_game.utils.const import MAZE_ASSET_PATH
 from metagpt.context import Context
