@@ -120,16 +120,40 @@ class Planner(BaseModel):
         if auto mode, then the code run has to succeed for the task to be considered completed.
         """
         auto_run = auto_run or self.auto_run
+        context = self.get_useful_memories()
         if not auto_run:
-            context = self.get_useful_memories()
             review, confirmed = await AskReview().run(
                 context=context[-review_context_len:], plan=self.plan, trigger=trigger
             )
-            if not confirmed:
-                self.working_memory.add(Message(content=review, role="user", cause_by=AskReview))
-            return review, confirmed
-        confirmed = task_result.is_success if task_result else True
-        return "", confirmed
+        else:
+            confirmed = task_result.is_success if task_result else True
+            review_type = "llm" if task_result else "confirm_all"
+
+            if confirmed and task_result and task_result.code:
+                review_msg = (
+                    "The code was executed successfully. Please review the code and execution results to evaluate"
+                    f"execution results are: {task_result.result}"
+                    "whether the task was completed."
+                )
+            elif not confirmed and task_result and task_result.code:
+                review_msg = (
+                    "The code execution failed. Please reflect on the reason for the failure based on the above content"
+                    f"execution results are: {task_result.result}"
+                    "and try another method to generate new code."
+                )
+            else:
+                review_msg = "Pleas review above content."
+
+            review, confirmed = await AskReview().run(
+                context=context[-review_context_len:] + [Message(review_msg)],
+                plan=self.plan,
+                trigger=trigger,
+                review_type=review_type,
+            )
+
+        if not confirmed:
+            self.working_memory.add(Message(content=review, role="user", cause_by=AskReview))
+        return review, confirmed
 
     async def confirm_task(self, task: Task, task_result: TaskResult, review: str):
         task.update_task_result(task_result=task_result)
