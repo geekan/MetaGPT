@@ -4,10 +4,12 @@
 import asyncio
 import time
 from pathlib import Path
+
 from actions.manual_record import ManualRecord
 from actions.parse_record import ParseRecord
-from actions.self_learn_and_reflect import SelfLearnAndReflect
 from actions.screenshot_parse import ScreenshotParse
+from actions.self_learn_and_reflect import SelfLearnAndReflect
+
 from metagpt.environment.android_env.android_env import AndroidEnv
 
 TASK_PATH = Path("apps/Contacts")
@@ -47,20 +49,20 @@ if __name__ == "__main__":
             last_act="",
             task_dir=TASK_PATH / "demos" / f"self_learning_{DEMO_NAME}",
             docs_dir=SELF_EXPLORE_DOC_PATH,
-            env=test_env_self_learn_android
+            env=test_env_self_learn_android,
         ),
         test_manual_record.run(
             # demo_name=DEMO_NAME,
             task_dir=TASK_PATH / "demos" / f"manual_record_{DEMO_NAME}",
             task_desc="Create a contact in Contacts App named zjy with a phone number +86 18831933368 ",
-            env=test_env_manual_learn_android
+            env=test_env_manual_learn_android,
         ),
         test_manual_parse.run(
             app_name="Contacts",
             # demo_name=DEMO_NAME,
             task_dir=TASK_PATH / "demos" / f"manual_record_{DEMO_NAME}",  # 修要修改
             docs_dir=PARSE_RECORD_DOC_PATH,  # 需要修改
-            env=test_env_manual_learn_android
+            env=test_env_manual_learn_android,
         ),
         test_screenshot_parse.run(
             round_count=20,
@@ -69,8 +71,8 @@ if __name__ == "__main__":
             task_dir=TASK_PATH / f"act_{DEMO_NAME}",
             docs_dir=PARSE_RECORD_DOC_PATH,
             env=test_env_screenshot_parse_android,
-            grid_on=False
-        )
+            grid_on=False,
+        ),
     ]
 
     loop.run_until_complete(asyncio.gather(*test_action_list))

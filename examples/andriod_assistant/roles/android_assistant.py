@@ -11,7 +11,7 @@ from examples.andriod_assistant.actions.manual_record import ManualRecord
 from examples.andriod_assistant.actions.parse_record import ParseRecord
 from examples.andriod_assistant.actions.screenshot_parse import ScreenshotParse
 from examples.andriod_assistant.actions.self_learn_and_reflect import SelfLearnAndReflect
-from examples.andriod_assistant.utils.schema import RunState
+from examples.andriod_assistant.utils.schema import RunState, AndroidActionOutput
 from metagpt.actions.add_requirement import UserRequirement
 from metagpt.config2 import config
 from metagpt.logs import logger
@@ -34,7 +34,7 @@ class AndroidAssistant(Role):
     def __init__(self, **data):
         super().__init__(**data)
 
-        self._watch([UserRequirement, ScreenshotParse, SelfLearnAndReflect])
+        self._watch([UserRequirement, AndroidActionOutput])
 
         app_name = config.get_other("app_name", "demo")
         curr_path = Path(__file__).parent
