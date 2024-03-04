@@ -39,6 +39,8 @@ class BasicMemory(Message):
     keywords: list[str] = Field(default=[])  # keywords
     filling: list = Field(default=[])  # 装的与之相关联的memory_id的列表
 
+    __hash__ = object.__hash__  # support hash in AgentMemory
+
     @model_validator(mode="before")
     @classmethod
     def check_values(cls, values):
@@ -46,6 +48,8 @@ class BasicMemory(Message):
             values["last_accessed"] = values["created"]
         if "content" in values:
             values["description"] = values["content"]
+        if "filling" in values:
+            values["filling"] = values["filling"] or []
         return values
 
     @field_serializer("created", "expiration")
