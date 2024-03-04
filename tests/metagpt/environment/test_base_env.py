@@ -4,8 +4,8 @@
 
 import pytest
 
-from metagpt.environment.base_env import Env, mark_as_writeable, mark_as_readable
 from metagpt.environment.api.env_api import EnvAPIAbstract
+from metagpt.environment.base_env import Env, mark_as_readable, mark_as_writeable
 
 
 class ForTestEnv(Env):

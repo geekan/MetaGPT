@@ -3,7 +3,8 @@
 # @Desc   :
 
 from enum import Enum
-from pydantic import Field, BaseModel, field_validator
+
+from pydantic import BaseModel, Field, field_validator
 
 
 class ActionOp(Enum):
@@ -37,6 +38,7 @@ class Decision(Enum):
 
 class AndroidElement(BaseModel):
     """UI Element"""
+
     uid: str = Field(default="")
     bbox: tuple[tuple[int, int], tuple[int, int]] = Field(default={})
     attrib: str = Field(default="")
@@ -44,6 +46,7 @@ class AndroidElement(BaseModel):
 
 class OpLogItem(BaseModel):
     """log content for self-learn or task act"""
+
     step: int = Field(default=0)
     prompt: str = Field(default="")
     image: str = Field(default="")
@@ -52,6 +55,7 @@ class OpLogItem(BaseModel):
 
 class ReflectLogItem(BaseModel):
     """log content for self-learn-reflect"""
+
     step: int = Field(default=0)
     prompt: str = Field(default="")
     image_before: str = Field(default="")
@@ -61,6 +65,7 @@ class ReflectLogItem(BaseModel):
 
 class RecordLogItem(BaseModel):
     """log content for record parse, same as ReflectLogItem"""
+
     step: int = Field(default=0)
     prompt: str = Field(default="")
     image_before: str = Field(default="")
@@ -79,6 +84,7 @@ class DocContent(BaseModel):
 # start =================== define different Action Op and its params =============
 class RunState(Enum):
     """run state"""
+
     SUCCESS = "success"
     FINISH = "finish"
     FAIL = "fail"
@@ -101,6 +107,7 @@ class TextOp(BaseOpParam):
 class LongPressOp(BaseOpParam):
     area: int = Field(default=-1)
 
+
 # Modify This SwipeOp to SwipeOp_3, Need better name
 class SwipeOp_3(BaseOpParam):
     area: int = Field(default=-1)
@@ -113,7 +120,6 @@ class GridOp(BaseModel):
 
 
 class BaseGridOpParam(BaseOpParam):
-
     @field_validator("act_name", mode="before")
     @classmethod
     def check_act_name(cls, act_name: str) -> str:

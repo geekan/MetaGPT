@@ -140,14 +140,14 @@ class ActionNode:
     instruct_content: BaseModel
 
     def __init__(
-            self,
-            key: str,
-            expected_type: Type,
-            instruction: str,
-            example: Any,
-            content: str = "",
-            children: dict[str, "ActionNode"] = None,
-            schema: str = "",
+        self,
+        key: str,
+        expected_type: Type,
+        instruction: str,
+        example: Any,
+        content: str = "",
+        children: dict[str, "ActionNode"] = None,
+        schema: str = "",
     ):
         self.key = key
         self.expected_type = expected_type
@@ -349,14 +349,14 @@ class ActionNode:
         after=general_after_log(logger),
     )
     async def _aask_v1(
-            self,
-            prompt: str,
-            output_class_name: str,
-            output_data_mapping: dict,
-            images: Optional[Union[str, list[str]]] = None,
-            system_msgs: Optional[list[str]] = None,
-            schema="markdown",  # compatible to original format
-            timeout=3,
+        self,
+        prompt: str,
+        output_class_name: str,
+        output_data_mapping: dict,
+        images: Optional[Union[str, list[str]]] = None,
+        system_msgs: Optional[list[str]] = None,
+        schema="markdown",  # compatible to original format
+        timeout=3,
     ) -> (str, BaseModel):
         """Use ActionOutput to wrap the output of aask"""
         content = await self.llm.aask(prompt, system_msgs, images=images, timeout=timeout)
@@ -406,15 +406,15 @@ class ActionNode:
         return self
 
     async def fill(
-            self,
-            context,
-            llm,
-            schema="json",
-            mode="auto",
-            strgy="simple",
-            images: Optional[Union[str, list[str]]] = None,
-            timeout=3,
-            exclude=[],
+        self,
+        context,
+        llm,
+        schema="json",
+        mode="auto",
+        strgy="simple",
+        images: Optional[Union[str, list[str]]] = None,
+        timeout=3,
+        exclude=[],
     ):
         logger.info("进入fill")
         """Fill the node(s) with mode.
@@ -560,7 +560,7 @@ class ActionNode:
         return nodes_output
 
     async def auto_revise(
-            self, revise_mode: ReviseMode = ReviseMode.AUTO, template: str = REVISE_TEMPLATE
+        self, revise_mode: ReviseMode = ReviseMode.AUTO, template: str = REVISE_TEMPLATE
     ) -> dict[str, str]:
         """revise the value of incorrect keys"""
         # generate review comments

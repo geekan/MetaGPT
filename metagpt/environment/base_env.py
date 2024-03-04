@@ -5,7 +5,9 @@
 import asyncio
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Dict, Iterable, Optional, Set, Union
+
 from pydantic import BaseModel, ConfigDict, Field, SerializeAsAny, model_validator
+
 from metagpt.context import Context
 from metagpt.environment.api.env_api import (
     EnvAPIAbstract,
@@ -43,11 +45,13 @@ def mark_as_writeable(func):
     env_write_api_registry[func.__name__] = get_function_schema(func)
     return func
 
+
 class ExtEnv(BaseModel):
     """External Env to intergate actual game environment"""
 
     write_api_registry: WriteAPIRegistry = Field(default_factory=WriteAPIRegistry, exclude=True)
     read_api_registry: ReadAPIRegistry = Field(default_factory=ReadAPIRegistry, exclude=True)
+
 
 class ExtEnv(BaseModel):
     """External Env to intergate actual game environment"""
@@ -96,6 +100,7 @@ class ExtEnv(BaseModel):
                 res = write_api(self, *env_action.args, **env_action.kwargs)
 
         return res
+
 
 class Environment(ExtEnv):
     """环境，承载一批角色，角色可以向环境发布消息，可以被其他角色观察到
@@ -212,9 +217,3 @@ class Environment(ExtEnv):
 
 
 Environment.model_rebuild()
-
-
-
-
-
-
