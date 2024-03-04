@@ -59,17 +59,17 @@ class SelfLearnAndReflect(Action):
     ui_area: int = -1
 
     async def run(
-            self, round_count: int, task_desc: str, last_act: str, task_dir: Path, docs_dir: Path, env: AndroidEnv
+        self, round_count: int, task_desc: str, last_act: str, task_dir: Path, docs_dir: Path, env: AndroidEnv
     ) -> AndroidActionOutput:
-        for path in [task_dir,docs_dir]:
+        for path in [task_dir, docs_dir]:
             if not path.exists():
-                path.mkdir(parents=True,exist_ok=True)
+                path.mkdir(parents=True, exist_ok=True)
         resp = await self.run_self_learn(round_count, task_desc, last_act, task_dir, env)
         resp = await self.run_reflect(round_count, task_desc, last_act, task_dir, docs_dir, env)
         return resp
 
     async def run_self_learn(
-            self, round_count: int, task_desc: str, last_act: str, task_dir: Path, env: AndroidEnv
+        self, round_count: int, task_desc: str, last_act: str, task_dir: Path, env: AndroidEnv
     ) -> AndroidActionOutput:
         screenshot_path: Path = await env.observe(
             EnvAPIAbstract(
@@ -151,7 +151,8 @@ class SelfLearnAndReflect(Action):
             x, y = elem_bbox_to_xy(elem_list[op_param.area - 1].bbox)
             res = await env.step(
                 EnvAPIAbstract(
-                    api_name="user_swipe", kwargs={"x": x, "y": y, "orient": op_param.swipe_orient, "dist": op_param.dist}
+                    api_name="user_swipe",
+                    kwargs={"x": x, "y": y, "orient": op_param.swipe_orient, "dist": op_param.dist},
                 )
             )
             if res == ADB_EXEC_FAIL:
@@ -159,11 +160,10 @@ class SelfLearnAndReflect(Action):
 
         self.elem_list = elem_list
         self.act_name = op_param.act_name
-        print("探索阶段结束")
         return AndroidActionOutput()
 
     async def run_reflect(
-            self, round_count: int, task_desc: str, last_act: str, task_dir: Path, docs_dir: Path, env: AndroidEnv
+        self, round_count: int, task_desc: str, last_act: str, task_dir: Path, docs_dir: Path, env: AndroidEnv
     ) -> AndroidActionOutput:
         screenshot_path: Path = await env.observe(
             EnvAPIAbstract(
@@ -176,7 +176,6 @@ class SelfLearnAndReflect(Action):
         screenshot_after_labeled_path = task_dir.joinpath(f"{round_count}_after_labeled.png")
         draw_bbox_multi(screenshot_path, screenshot_after_labeled_path, elem_list=self.elem_list)
         img_base64 = encode_image(screenshot_after_labeled_path)
-
         if self.act_name == ActionOp.TAP.value:
             action = "tapping"
         elif self.act_name == ActionOp.LONG_PRESS.value:
@@ -187,6 +186,11 @@ class SelfLearnAndReflect(Action):
                 action = "v_swipe"
             elif self.swipe_orient == SwipeOp.LEFT.value or self.swipe_orient == SwipeOp.RIGHT.value:
                 action = "h_swipe"
+        else:
+            # TODO Test for assignment, This error is eupiped with the next.
+            logger.info(f"Warning: current action name:{self.act_name}")
+            logger.info("Warning: act_name parse wrong!")
+            action = None
         context = reflect_template.format(
             action=action, ui_element=str(self.ui_area), task_desc=task_desc, last_act=last_act
         )
@@ -211,7 +215,8 @@ class SelfLearnAndReflect(Action):
             return AndroidActionOutput(action_state=RunState.FINISH)
         if op_param.param_state == RunState.FAIL:
             return AndroidActionOutput(action_state=RunState.FAIL)
-
+        # TODO 这里经常出现错误
+        logger.info(f"Error 高发地区, 长度为{len(self.elem_list)}，ui_erea为{self.ui_area}")
         resource_id = self.elem_list[int(self.ui_area) - 1].uid
         if op_param.decision == Decision.INEFFECTIVE.value:
             self.useless_list.append(resource_id)
@@ -235,8 +240,7 @@ class SelfLearnAndReflect(Action):
                 doc_content = DocContent()
                 setattr(doc_content, self.act_name, doc)
             doc_path.write_text(str(doc_content))
-        print("反思阶段结束")
         return AndroidActionOutput(data={"last_act": last_act})
 
-# TODO 如何处理 FINISH 状态，这一点应该需要与role 联动才能解决
 
+# TODO 如何处理 FINISH 状态，这一点应该需要与role 联动才能解决

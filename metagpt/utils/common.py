@@ -26,10 +26,16 @@ import sys
 import traceback
 from io import BytesIO
 import typing
+<<<<<<< HEAD
 import base64
 from pathlib import Path
 from typing import Any, Callable, List, Literal, Tuple, Union
 from urllib.parse import quote, unquote
+=======
+from io import BytesIO
+from pathlib import Path
+from typing import Any, Callable, List, Tuple, Union
+>>>>>>> 138bb6e6 (FIx Format and Some bugs in android_assistant.py)
 
 import aiofiles
 import chardet
@@ -221,7 +227,7 @@ class OutputParser:
 
         if start_index != -1 and end_index != -1:
             # Extract the structure part
-            structure_text = text[start_index: end_index + 1]
+            structure_text = text[start_index : end_index + 1]
 
             try:
                 # Attempt to convert the text to a Python data type using ast.literal_eval
@@ -365,6 +371,19 @@ def parse_recipient(text):
     return ""
 
 
+<<<<<<< HEAD
+=======
+def create_func_call_config(func_schema: dict) -> dict:
+    """Create new function call config"""
+    tools = [{"type": "function", "function": func_schema}]
+    tool_choice = {"type": "function", "function": {"name": func_schema["name"]}}
+    return {
+        "tools": tools,
+        "tool_choice": tool_choice,
+    }
+
+
+>>>>>>> 138bb6e6 (FIx Format and Some bugs in android_assistant.py)
 def remove_comments(code_str: str) -> str:
     """Remove comments from code."""
     pattern = r"(\".*?\"|\'.*?\')|(\#.*?$)"
@@ -581,6 +600,7 @@ def write_json_file(json_file: str, data: list, encoding: str = None, indent: in
 
     with open(json_file, "w", encoding=encoding) as fout:
         json.dump(data, fout, ensure_ascii=False, indent=indent, default=to_jsonable_python)
+<<<<<<< HEAD
 
 
 def read_csv_to_list(curr_file: str, header=False, strip_trail=True):
@@ -604,6 +624,8 @@ def read_csv_to_list(curr_file: str, header=False, strip_trail=True):
         return analysis_list
     else:
         return analysis_list[0], analysis_list[1:]
+=======
+>>>>>>> 138bb6e6 (FIx Format and Some bugs in android_assistant.py)
 
 
 def read_csv_to_list(curr_file: str, header=False, strip_trail=True):
@@ -799,7 +821,11 @@ def is_coroutine_func(func: Callable) -> bool:
 
 
 def load_mc_skills_code(skill_names: list[str] = None, skills_dir: Path = None) -> list[str]:
+<<<<<<< HEAD
     """load minecraft skill from js files"""
+=======
+    """load mincraft skill from js files"""
+>>>>>>> 138bb6e6 (FIx Format and Some bugs in android_assistant.py)
     if not skills_dir:
         skills_dir = Path(__file__).parent.absolute()
     if skill_names is None:
@@ -834,6 +860,7 @@ def decode_image(img_url_or_b64: str) -> Image:
         img_data = BytesIO(base64.b64decode(b64_data))
         img = Image.open(img_data)
     return img
+<<<<<<< HEAD
 
 
 def log_and_reraise(retry_state: RetryCallState):
@@ -863,3 +890,5 @@ def get_markdown_codeblock_type(filename: str) -> str:
         "application/sql": "sql",
     }
     return mappings.get(mime_type, "text")
+=======
+>>>>>>> 138bb6e6 (FIx Format and Some bugs in android_assistant.py)

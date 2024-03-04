@@ -9,7 +9,12 @@ from typing import Any, Optional
 from pydantic import Field
 
 from metagpt.const import ADB_EXEC_FAIL
-from metagpt.environment.base_env import Environment, ExtEnv, mark_as_readable, mark_as_writeable
+from metagpt.environment.base_env import (
+    Environment,
+    ExtEnv,
+    mark_as_readable,
+    mark_as_writeable,
+)
 
 
 class AndroidExtEnv(Environment, ExtEnv):
@@ -42,7 +47,7 @@ class AndroidExtEnv(Environment, ExtEnv):
         return f"adb -s {self.device_id} "
 
     def execute_adb_with_cmd(self, adb_cmd: str) -> str:
-        adb_cmd = adb_cmd.replace('\\', '/')
+        adb_cmd = adb_cmd.replace("\\", "/")
         res = subprocess.run(adb_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         exec_res = ADB_EXEC_FAIL
         if not res.returncode:

@@ -2,19 +2,32 @@
 # -*- coding: utf-8 -*-
 # @Desc   :
 
+import re
+from pathlib import Path
 from typing import Union
 from xml.etree.ElementTree import Element, iterparse
+
 import cv2
-from pathlib import Path
 import pyshine as ps
-import re
 
-from metagpt.config2 import config
+from examples.andriod_assistant.utils.schema import (
+    ActionOp,
+    AndroidElement,
+    BaseGridOpParam,
+    BaseOpParam,
+    Decision,
+    GridOp,
+    LongPressGridOp,
+    LongPressOp,
+    ReflectOp,
+    RunState,
+    SwipeGridOp,
+    SwipeOp_3,
+    TapGridOp,
+    TapOp,
+    TextOp,
+)
 from metagpt.logs import logger
-
-from examples.andriod_assistant.utils.schema import AndroidElement
-from examples.andriod_assistant.utils.schema import BaseOpParam, BaseGridOpParam, GridOp, ActionOp, TapOp, TapGridOp, \
-    LongPressOp, LongPressGridOp, SwipeOp_3, SwipeGridOp, TextOp, RunState, ReflectOp, Decision
 
 
 def get_id_from_element(elem: Element) -> str:
@@ -67,8 +80,13 @@ def traverse_xml_tree(xml_path: Path, elem_list: list[AndroidElement], attrib: s
             path.pop()
 
 
-def draw_bbox_multi(img_path: Path, output_path: Path, elem_list: list[AndroidElement], record_mode: bool = False,
-                    dark_mode: bool = False):
+def draw_bbox_multi(
+    img_path: Path,
+    output_path: Path,
+    elem_list: list[AndroidElement],
+    record_mode: bool = False,
+    dark_mode: bool = False,
+):
     imgcv = cv2.imread(str(img_path))
     count = 1
     for elem in elem_list:
@@ -85,17 +103,35 @@ def draw_bbox_multi(img_path: Path, output_path: Path, elem_list: list[AndroidEl
                     color = (0, 0, 250)
                 else:
                     color = (0, 250, 0)
-                imgcv = ps.putBText(imgcv, label, text_offset_x=(left + right) // 2 + 10,
-                                    text_offset_y=(top + bottom) // 2 + 10,
-                                    vspace=10, hspace=10, font_scale=1, thickness=2, background_RGB=color,
-                                    text_RGB=(255, 250, 250), alpha=0.5)
+                imgcv = ps.putBText(
+                    imgcv,
+                    label,
+                    text_offset_x=(left + right) // 2 + 10,
+                    text_offset_y=(top + bottom) // 2 + 10,
+                    vspace=10,
+                    hspace=10,
+                    font_scale=1,
+                    thickness=2,
+                    background_RGB=color,
+                    text_RGB=(255, 250, 250),
+                    alpha=0.5,
+                )
             else:
                 text_color = (10, 10, 10) if dark_mode else (255, 250, 250)
                 bg_color = (255, 250, 250) if dark_mode else (10, 10, 10)
-                imgcv = ps.putBText(imgcv, label, text_offset_x=(left + right) // 2 + 10,
-                                    text_offset_y=(top + bottom) // 2 + 10,
-                                    vspace=10, hspace=10, font_scale=1, thickness=2, background_RGB=bg_color,
-                                    text_RGB=text_color, alpha=0.5)
+                imgcv = ps.putBText(
+                    imgcv,
+                    label,
+                    text_offset_x=(left + right) // 2 + 10,
+                    text_offset_y=(top + bottom) // 2 + 10,
+                    vspace=10,
+                    hspace=10,
+                    font_scale=1,
+                    thickness=2,
+                    background_RGB=bg_color,
+                    text_RGB=text_color,
+                    alpha=0.5,
+                )
         except Exception as e:
             logger.error(f"ERROR: An exception occurs while labeling the image\n{e}")
         count += 1
@@ -110,7 +146,7 @@ def draw_grid(img_path: Path, output_path: Path) -> tuple[int, int]:
                 return i
         return -1
 
-    image = cv2.imread(img_path)
+    image = cv2.imread(str(img_path))
     height, width, _ = image.shape
     color = (255, 116, 113)
     unit_height = get_unit_len(height)
@@ -130,16 +166,31 @@ def draw_grid(img_path: Path, output_path: Path) -> tuple[int, int]:
             right = int((j + 1) * unit_width)
             bottom = int((i + 1) * unit_height)
             cv2.rectangle(image, (left, top), (right, bottom), color, thick // 2)
-            cv2.putText(image, str(label), (left + int(unit_width * 0.05) + 3, top + int(unit_height * 0.3) + 3), 0,
-                        int(0.01 * unit_width), (0, 0, 0), thick)
-            cv2.putText(image, str(label), (left + int(unit_width * 0.05), top + int(unit_height * 0.3)), 0,
-                        int(0.01 * unit_width), color, thick)
-    cv2.imwrite(output_path, image)
+            cv2.putText(
+                image,
+                str(label),
+                (left + int(unit_width * 0.05) + 3, top + int(unit_height * 0.3) + 3),
+                0,
+                int(0.01 * unit_width),
+                (0, 0, 0),
+                thick,
+            )
+            cv2.putText(
+                image,
+                str(label),
+                (left + int(unit_width * 0.05), top + int(unit_height * 0.3)),
+                0,
+                int(0.01 * unit_width),
+                color,
+                thick,
+            )
+    cv2.imwrite(str(output_path), image)
     return rows, cols
 
 
 def area_to_xy(area: int, subarea: str, width: int, height: int, rows: int, cols: int) -> tuple[int, int]:
     area -= 1
+    logger.info(f"{cols}")
     row, col = area // cols, area % cols
     x_0, y_0 = col * (width // cols), row * (height // rows)
     if subarea == "top-left":
@@ -174,9 +225,11 @@ def reflect_parse_extarct(parsed_json: dict) -> ReflectOp:
     if decision not in Decision.values():
         op = ReflectOp(param_state=RunState.FAIL)
     else:
-        op = ReflectOp(decision=parsed_json.get("Decision"),
-                       thought=parsed_json.get("Thought"),
-                       documentation=parsed_json.get("Documentation"))
+        op = ReflectOp(
+            decision=parsed_json.get("Decision"),
+            thought=parsed_json.get("Thought"),
+            documentation=parsed_json.get("Documentation"),
+        )
     return op
 
 
@@ -237,11 +290,9 @@ def screenshot_parse_extract_with_grid(act_name: str, act: str, last_act: str) -
     elif act_name == ActionOp.SWIPE.value:
         params = re.findall(r"swipe\((.*?)\)", act)[0].split(",")
         params = op_params_clean(params)
-        op = SwipeGridOp(act_name=act_name,
-                         start_area=params[0],
-                         start_subarea=params[1],
-                         end_area=params[2],
-                         end_subarea=params[3])
+        op = SwipeGridOp(
+            act_name=act_name, start_area=params[0], start_subarea=params[1], end_area=params[2], end_subarea=params[3]
+        )
     elif act_name == ActionOp.GRID.value:
         op = GridOp(act_name=act_name)
     else:

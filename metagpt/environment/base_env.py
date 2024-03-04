@@ -49,6 +49,7 @@ def mark_as_writeable(func):
     env_write_api_registry[func.__name__] = get_function_schema(func)
     return func
 
+
 class ExtEnv(BaseModel):
     """External Env to integrate actual game environment"""
 

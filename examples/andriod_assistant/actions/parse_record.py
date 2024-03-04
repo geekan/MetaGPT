@@ -6,7 +6,6 @@
 import ast
 import json
 import re
-import time
 from pathlib import Path
 
 from examples.andriod_assistant.actions.parse_record_an import RECORD_PARSE_NODE
@@ -44,8 +43,8 @@ class ParseRecord(Action):
         doc_count = 0
         self.record_path = Path(task_dir) / "record.txt"
         self.task_desc_path = Path(task_dir) / "task_desc.txt"
-        self.screenshot_before_path = Path(task_dir)/"raw_screenshots"
-        self.screenshot_after_path = Path(task_dir)/"labeled_screenshots"
+        self.screenshot_before_path = Path(task_dir) / "raw_screenshots"
+        self.screenshot_after_path = Path(task_dir) / "labeled_screenshots"
 
         with open(self.record_path, "r") as record_file:
             record_step_count = len(record_file.readlines()) - 1
@@ -136,6 +135,7 @@ class ParseRecord(Action):
                 # time.sleep(config.get_other("request_interval"))
 
             logger.info(f"Documentation generation phase completed. {doc_count} docs generated.")
+
 
 # TODO
 # 1. LOG中记录方式有问题，需要把IMG的部分拿出去丢掉

@@ -9,9 +9,8 @@ import cv2
 from examples.andriod_assistant.utils.schema import (
     ActionOp,
     AndroidActionOutput,
-    AndroidElement,
     RunState,
-    SwipeOp
+    SwipeOp,
 )
 from examples.andriod_assistant.utils.utils import draw_bbox_multi, traverse_xml_tree
 from metagpt.actions.action import Action
@@ -24,6 +23,7 @@ from metagpt.logs import logger
 
 class ManualRecord(Action):
     """do a human operation on the screen with human input"""
+
     name: str = "ManualRecord"
 
     useless_list: list[str] = []  # store useless elements uid
@@ -35,19 +35,18 @@ class ManualRecord(Action):
 
     # async def run(self, demo_name: str, task_desc: str,task_dir: Path, env: AndroidEnv):
     async def run(self, task_desc: str, task_dir: Path, env: AndroidEnv):
-
         self.record_path = Path(task_dir) / "record.txt"
         self.task_desc_path = Path(task_dir) / "task_desc.txt"
-        self.screenshot_before_path = Path(task_dir)/"raw_screenshots"
-        self.screenshot_after_path = Path(task_dir)/"labeled_screenshots"
-        self.xml_path =  Path(task_dir)/"xml"
+        self.screenshot_before_path = Path(task_dir) / "raw_screenshots"
+        self.screenshot_after_path = Path(task_dir) / "labeled_screenshots"
+        self.xml_path = Path(task_dir) / "xml"
 
-        for path in [self.screenshot_before_path,self.screenshot_after_path, self.xml_path]:
+        for path in [self.screenshot_before_path, self.screenshot_after_path, self.xml_path]:
             if not path.exists():
                 path.mkdir(parents=True, exist_ok=True)
 
-        with open(self.record_path, 'w') as file:
-            file.write('')
+        with open(self.record_path, "w") as file:
+            file.write("")
         record_file = open(self.record_path, "w")
         with open(self.task_desc_path, "w") as f:
             f.write(task_desc)
@@ -58,14 +57,14 @@ class ManualRecord(Action):
                 EnvAPIAbstract(
                     api_name="get_screenshot",
                     # kwargs={"ss_name": f"{demo_name}_{step}", "local_save_dir": self.screenshot_before_path}
-                    kwargs={"ss_name": f"{step}", "local_save_dir": self.screenshot_before_path}
+                    kwargs={"ss_name": f"{step}", "local_save_dir": self.screenshot_before_path},
                 )
             )
             xml_path: Path = await env.observe(
                 EnvAPIAbstract(
                     api_name="get_xml",
                     # kwargs={"xml_name": f"{demo_name}_{step}", "local_save_dir": self.xml_path}
-                    kwargs={"xml_name": f"{step}", "local_save_dir": self.xml_path}
+                    kwargs={"xml_name": f"{step}", "local_save_dir": self.xml_path},
                 )
             )
             if not screenshot_path.exists() or not xml_path.exists():
@@ -110,11 +109,11 @@ class ManualRecord(Action):
             )
 
             while (
-                    user_input.lower() != ActionOp.TAP.value
-                    and user_input.lower() != ActionOp.TEXT.value
-                    and user_input.lower() != ActionOp.LONG_PRESS.value
-                    and user_input.lower() != ActionOp.SWIPE.value
-                    and user_input.lower() != ActionOp.STOP.value
+                user_input.lower() != ActionOp.TAP.value
+                and user_input.lower() != ActionOp.TEXT.value
+                and user_input.lower() != ActionOp.LONG_PRESS.value
+                and user_input.lower() != ActionOp.SWIPE.value
+                and user_input.lower() != ActionOp.STOP.value
             ):
                 user_input = input()
 
@@ -167,10 +166,10 @@ class ManualRecord(Action):
                 )
                 user_input = ""
                 while (
-                        user_input != SwipeOp.UP.value
-                        and user_input != SwipeOp.DOWN.value
-                        and user_input != SwipeOp.LEFT.value
-                        and user_input != SwipeOp.RIGHT.value
+                    user_input != SwipeOp.UP.value
+                    and user_input != SwipeOp.DOWN.value
+                    and user_input != SwipeOp.LEFT.value
+                    and user_input != SwipeOp.RIGHT.value
                 ):
                     user_input = input()
                 swipe_dir = user_input
@@ -179,7 +178,9 @@ class ManualRecord(Action):
                     user_input = input()
                 tl, br = elem_list[int(user_input) - 1].bbox
                 x, y = (tl[0] + br[0]) // 2, (tl[1] + br[1]) // 2
-                ret = await env.step(EnvAPIAbstract(api_name="user_swipe", kwargs={"x": x, "y": y, "orient": swipe_dir}))
+                ret = await env.step(
+                    EnvAPIAbstract(api_name="user_swipe", kwargs={"x": x, "y": y, "orient": swipe_dir})
+                )
                 if ret == ADB_EXEC_FAIL:
                     return AndroidActionOutput(action_state=RunState.FAIL)
                 record_file.write(f"swipe({int(user_input)}:sep:{swipe_dir}):::{elem_list[int(user_input) - 1].uid}\n")
@@ -190,5 +191,3 @@ class ManualRecord(Action):
             else:
                 break
             time.sleep(3)
-
-

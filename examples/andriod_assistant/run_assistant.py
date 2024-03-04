@@ -44,6 +44,7 @@ def startup(
             "stage": stage,
             "mode": mode,
             "app_name": app_name,
+            "task_desc": task_desc,
             "refine_doc": refine_doc,
             "min_dist": min_dist,
             "android_screenshot_dir": android_screenshot_dir,
@@ -68,15 +69,3 @@ def startup(
 
 if __name__ == "__main__":
     app()
-# Command python run_assistant.py "Create a contact in Contacts App named zjy with a phone number +86 18831933368"
-
-# python run_assistant.py "Create a contact in Contacts App named zjy with a phone number +86 18831933368" --mode "auto" --app-name "Contacts"examples\andriod_assistant>
-
-# TODO
-# 0. How to set Round ?
-# 1. Manual Record & Parse Record Success
-# 2. Self Learn Fail
-#   local variable 'action' referenced before assignment
-# 3. Act
-#   3.1 TODO Act with Manual Docs
-#   3.2 TDOO Act with Auto Docs

@@ -26,8 +26,8 @@ from examples.andriod_assistant.utils.schema import (
 )
 from examples.andriod_assistant.utils.utils import (
     area_to_xy,
-    draw_grid,
     draw_bbox_multi,
+    draw_grid,
     elem_bbox_to_xy,
     screenshot_parse_extract,
     traverse_xml_tree,
@@ -79,14 +79,14 @@ class ScreenshotParse(Action):
         return ui_doc
 
     async def run(
-            self,
-            round_count: int,
-            task_desc: str,
-            last_act: str,
-            task_dir: Path,
-            docs_dir: Path,
-            grid_on: bool,
-            env: AndroidEnv,
+        self,
+        round_count: int,
+        task_desc: str,
+        last_act: str,
+        task_dir: Path,
+        docs_dir: Path,
+        grid_on: bool,
+        env: AndroidEnv,
     ):
         for path in [task_dir, docs_dir]:
             if not path.exists():
@@ -94,15 +94,11 @@ class ScreenshotParse(Action):
 
         screenshot_path: Path = await env.observe(
             EnvAPIAbstract(
-                api_name="get_screenshot",
-                kwargs={"ss_name": f"{round_count}_before", "local_save_dir": task_dir}
+                api_name="get_screenshot", kwargs={"ss_name": f"{round_count}_before", "local_save_dir": task_dir}
             )
         )
         xml_path: Path = await env.observe(
-            EnvAPIAbstract(
-                api_name="get_xml",
-                kwargs={"xml_name": f"{round_count}", "local_save_dir": task_dir}
-            )
+            EnvAPIAbstract(api_name="get_xml", kwargs={"xml_name": f"{round_count}", "local_save_dir": task_dir})
         )
         width, height = env.device_shape
         if not screenshot_path.exists() or not xml_path.exists():
@@ -134,7 +130,7 @@ class ScreenshotParse(Action):
         parse_template = screenshot_parse_with_grid_template if grid_on else screenshot_parse_template
 
         if grid_on:
-            rows, cols = draw_grid(screenshot_path, task_dir / f"{round_count}_grid.png")
+            env.rows, env.cols = draw_grid(screenshot_path, task_dir / f"{round_count}_grid.png")
 
         ui_doc = self._makeup_ui_document(elem_list, docs_dir)
         context = parse_template.format(ui_document=ui_doc, task_description=task_desc, last_act=last_act)
@@ -171,7 +167,7 @@ class ScreenshotParse(Action):
             res = await env.step(
                 EnvAPIAbstract(
                     api_name="user_swipe",
-                    kwargs={"x": x, "y": y, "orient": op_param.swipe_orient, "dist": op_param.dist}
+                    kwargs={"x": x, "y": y, "orient": op_param.swipe_orient, "dist": op_param.dist},
                 )
             )
             if res == ADB_EXEC_FAIL:
@@ -190,10 +186,15 @@ class ScreenshotParse(Action):
                 if res == ADB_EXEC_FAIL:
                     return AndroidActionOutput(action_state=RunState.FAIL)
         elif isinstance(op_param, SwipeGridOp):
-            start_x, start_y = area_to_xy(op_param.start_area, op_param.start_subarea, env.width, env.height, env.rows, env.cols)
-            end_x, end_y = area_to_xy(op_param.end_area, op_param.end_subarea, env.width, env.height, env.rows, env.cols)
+            start_x, start_y = area_to_xy(
+                op_param.start_area, op_param.start_subarea, env.width, env.height, env.rows, env.cols
+            )
+            end_x, end_y = area_to_xy(
+                op_param.end_area, op_param.end_subarea, env.width, env.height, env.rows, env.cols
+            )
             res = await env.step(
-                EnvAPIAbstract(api_name="user_swipe_to", kwargs={"start": (start_x, start_y), "end": (end_x, end_y)}))
+                EnvAPIAbstract(api_name="user_swipe_to", kwargs={"start": (start_x, start_y), "end": (end_x, end_y)})
+            )
             if res == ADB_EXEC_FAIL:
                 return AndroidActionOutput(action_state=RunState.FAIL)
 
