@@ -17,6 +17,8 @@ TEMP_STORAGE_PATH = Path("{path/to/ga/temp_storage}")
 
 This can be used to achieve docking of simulation data without changing the GA code. Otherwise, the GA code must be modified to adapt to the MG output path.  
 
+If you don't want to start from 0, copy other simulation directories under `generative_agents/environment/frontend_server/storage/` to `examples/st_game/storage`, and select a directory named `fork_sim_code`.  
+
 ### Backend service startup
 The execution entry is `python3 run_st_game.py "Host a open lunch party at 13:00 pm" "base_the_ville_isabella_maria_klaus" "test_sim" 10`  
 or   
