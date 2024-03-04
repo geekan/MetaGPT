@@ -3,11 +3,12 @@
 # @Desc   : unittest of roles conversation
 
 from typing import Tuple
+
 import pytest
 
 from examples.st_game.plan.converse import agent_conversation
 from examples.st_game.roles.st_role import STRole
-from examples.st_game.utils.const import STORAGE_PATH, MAZE_ASSET_PATH
+from examples.st_game.utils.const import MAZE_ASSET_PATH, STORAGE_PATH
 from examples.st_game.utils.mg_ga_transform import get_reverie_meta
 from examples.st_game.utils.utils import copy_folder
 from metagpt.environment.stanford_town_env.stanford_town_env import StanfordTownEnv
