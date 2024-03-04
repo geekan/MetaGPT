@@ -2,9 +2,8 @@
 # -*- coding: utf-8 -*-
 # @Desc   : StanfordTown to works like SoftwareCompany
 
-from typing import Any
+from typing import Any, Optional
 
-from pydantic import Field
 
 from examples.st_game.roles.st_role import STRole
 from examples.st_game.utils.const import MAZE_ASSET_PATH
@@ -15,10 +14,10 @@ from metagpt.team import Team
 
 
 class StanfordTown(Team):
-    env: StanfordTownEnv = Field(default=None)
+    env: Optional[StanfordTownEnv] = None
 
     def __init__(self, context: Context = None, **data: Any):
-        super(StanfordTown, self).__init__(**data)
+        super(Team, self).__init__(**data)
         ctx = context or Context()
         if not self.env:
             self.env = StanfordTownEnv(context=ctx, maze_asset_path=MAZE_ASSET_PATH)

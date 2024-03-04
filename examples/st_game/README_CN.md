@@ -17,7 +17,9 @@ TEMP_STORAGE_PATH = Path("{path/to/ga/temp_storage}")
 这样可用实现不改变GA代码情况下，实现仿真数据的对接。不然得修改GA的代码来适配MG的输出路径。    
 
 ### 后端服务启动
-执行入口为：`python3 run_st_game.py "Host a open lunch party at 13:00 pm" "base_the_ville_isabella_maria_klaus" "test_sim" 10`   
+执行入口为：`python3 run_st_game.py "Host a open lunch party at 13:00 pm" "base_the_ville_isabella_maria_klaus" "test_sim" 10`  
+或者  
+`python3 run_st_game.py "Host a open lunch party at 13:00 pm" "base_the_ville_isabella_maria_klaus" "test_sim" 10 --temp_storage_path path/to/ga/temp_storage`
 
 `idea`为用户给第一个Agent的用户心声，并通过这个心声进行传播，看最后多智能体是否达到举办、参加活动的目标。  
 
