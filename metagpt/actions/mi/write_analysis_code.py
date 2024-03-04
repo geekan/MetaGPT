@@ -19,7 +19,7 @@ from metagpt.prompts.mi.write_analysis_code import (
     STRUCTUAL_PROMPT,
     TOOL_RECOMMENDATION_PROMPT,
 )
-from metagpt.schema import Message, Plan, SystemMessage
+from metagpt.schema import Message, Plan
 from metagpt.tools import TOOL_REGISTRY
 from metagpt.tools.tool_registry import validate_tool_names
 from metagpt.tools.tool_type import ToolType
@@ -32,11 +32,6 @@ class WriteCodeWithTools(Action):
     use_tools: bool = True
     # selected tools to choose from, listed by their names. An empty list means selection from all tools.
     selected_tools: list[str] = []
-
-    def _insert_system_message(self, context: list[Message], system_msg: str = None):
-        system_msg = system_msg or self.DEFAULT_SYSTEM_MSG
-        context.insert(0, SystemMessage(content=system_msg)) if context[0].role != "system" else None
-        return context
 
     def _get_tools_by_type(self, tool_type: str) -> dict:
         """
@@ -85,15 +80,18 @@ class WriteCodeWithTools(Action):
 
         return tool_schemas
 
-    async def _prepare_tools(self, plan: Plan) -> Tuple[dict, str]:
+    async def _prepare_tools(self, plan: Plan) -> Tuple[dict, str, str]:
         """Prepare tool schemas and usage instructions according to current task
 
         Args:
             plan (Plan): The overall plan containing task information.
 
         Returns:
-            Tuple[dict, str]: A tool schemas ({tool_name: tool_schema_dict}) and a usage prompt for the type of tools selected
+            Tuple[dict, str, str]: A tool schemas ({tool_name: tool_schema_dict}), a usage prompt for the type of tools selected, and examples of using the tools
         """
+        if not self.use_tools:
+            return {}, "", ""
+
         # find tool type from task type through exact match, can extend to retrieval in the future
         tool_type = plan.current_task.task_type
 

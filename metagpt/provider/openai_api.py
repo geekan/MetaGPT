@@ -26,7 +26,7 @@ from tenacity import (
 from metagpt.configs.llm_config import LLMConfig, LLMType
 from metagpt.logs import log_llm_stream, logger
 from metagpt.provider.base_llm import BaseLLM
-from metagpt.provider.constant import CODE_ONLY_FUNCTION_SCHEMA, GENERAL_FUNCTION_SCHEMA
+from metagpt.provider.constant import GENERAL_FUNCTION_SCHEMA
 from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.utils.common import CodeParser, decode_image, process_message
 from metagpt.utils.cost_manager import CostManager, Costs
@@ -153,7 +153,7 @@ class OpenAILLM(BaseLLM):
         self._update_costs(rsp.usage)
         return rsp
 
-    async def aask_code(self, messages: list[dict], timeout: int = 3, include_language: bool = False, **kwargs) -> dict:
+    async def aask_code(self, messages: list[dict], timeout: int = 3, **kwargs) -> dict:
         """Use function of tools to ask a code.
         Note: Keep kwargs consistent with https://platform.openai.com/docs/api-reference/chat/create
 
@@ -161,13 +161,10 @@ class OpenAILLM(BaseLLM):
         >>> llm = OpenAILLM()
         >>> msg = [{'role': 'user', 'content': "Write a python hello world code."}]
         >>> rsp = await llm.aask_code(msg)
-        # -> {'code': "print('Hello, World!')"}
-        >>> rsp = await llm.aask_code(msg, include_language=True)
         # -> {'language': 'python', 'code': "print('Hello, World!')"}
         """
         if "tools" not in kwargs:
-            function_schema = GENERAL_FUNCTION_SCHEMA if include_language else CODE_ONLY_FUNCTION_SCHEMA
-            configs = {"tools": [{"type": "function", "function": function_schema}]}
+            configs = {"tools": [{"type": "function", "function": GENERAL_FUNCTION_SCHEMA}]}
             kwargs.update(configs)
         rsp = await self._achat_completion_function(messages, **kwargs)
         return self.get_choice_function_arguments(rsp)

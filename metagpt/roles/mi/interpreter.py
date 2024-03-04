@@ -96,7 +96,7 @@ class Interpreter(Role):
             return
         logger.info("Check updated data")
         code = await CheckData().run(self.planner.plan)
-        if not code:
+        if not code.strip():
             return
         success = False
         result, success = await self.execute_code.run(code)

@@ -56,13 +56,11 @@ assert add(1, 2) == 4 # output: -1
 The implementation failed the test cases where the input integers are 1 and 2. The issue arises because the code does not add the two integers together, but instead subtracts the second integer from the first. To fix this issue, we should change the operator from `-` to `+` in the return statement. This will ensure that the function returns the correct output for the given input.
 
 [improved impl]:
-```python
 def add(a: int, b: int) -> int:
    """
    Given integers a and b, return the total value of a and b.
    """
    return a + b
-```
 '''
 
 REFLECTION_PROMPT = """
@@ -107,7 +105,7 @@ column_info = get_column_info(df)
 print("column_info")
 print(column_info)
 ```end
-Otherwise, you may write any codes you see fit. Return an empty string if you think there is no important data to check.
+Otherwise, print out any key variables you see fit. Return an empty string if you think there is no important data to check.
 
 # Constraints:
 - Your code is to be added to a new cell in jupyter.
