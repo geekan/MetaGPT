@@ -9,8 +9,8 @@ from examples.st_game.actions.run_reflect_action import (
     AgentFocusPt,
     AgentInsightAndGuidance,
 )
-from examples.st_game.utils.const import MAZE_ASSET_PATH
 from examples.st_game.roles.st_role import STRole
+from examples.st_game.utils.const import MAZE_ASSET_PATH
 from metagpt.environment.stanford_town_env.stanford_town_env import StanfordTownEnv
 
 

@@ -58,7 +58,7 @@ class STAction(Action):
 
     async def _aask(self, prompt: str) -> str:
         return await self.llm.aask(prompt)
-    
+
     async def _run_gpt35_max_tokens(self, prompt: str, max_tokens: int = 50, retry: int = 3):
         for idx in range(retry):
             try:
