@@ -1,7 +1,11 @@
 ## Stanford Town Game
 
 ### Pre-Description
-The path configured in `examples/st_game/utils/const.py` is the storage path of the current project. In order to facilitate GA(generative_agents)'s frontend docking data (to avoid changing its code), you can change the path under `const.py` like beflow  
+The path configured in `examples/st_game/utils/const.py` is the storage path of the current project. In order to facilitate GA( [generative_agents](https://github.com/joonspk-research/generative_agents) )'s frontend docking data (to avoid changing its code), you can set the value `temp_storage_path` to `temp_storage` of `generative_agents` when start `run_st_game.py`. like 
+
+`python3 run_st_game.py --temp_storage_path path/to/ga/temp_storage xxx`  
+
+Or change the path under `const.py` like beflow  
 
 ```
 STORAGE_PATH = ROOT_PATH.joinpath("storage")
@@ -19,7 +23,9 @@ The execution entry is `python3 run_st_game.py "Host a open lunch party at 13:00
 `idea` is the user's voice to the first Agent, and it is disseminated through this voice to see whether the final multi-agents achieve the goal of hosting or participating in the event.  
 
 ### Frontend service startup
-Enter `generative_agents/environment/frontend_server` and use `python manage.py runserver` to start the front-end service.  
+Enter project folder `generative_agents`  
+
+Enter `environment/frontend_server` and use `python3 manage.py runserver` to start the front-end service.  
 Visit `http://localhost:8000/simulator_home` to enter the current simulation interface.  
 
 ## Appreciation

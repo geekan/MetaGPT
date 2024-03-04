@@ -13,8 +13,9 @@ from metagpt.environment.stanford_town_env.stanford_town_env import StanfordTown
 @pytest.mark.asyncio
 async def test_observe():
     role = STRole(
-        sim_code="base_the_ville_isabella_maria_klaus", start_time="February 13, 2023",
-        curr_time="February 13, 2023, 00:00:00"
+        sim_code="base_the_ville_isabella_maria_klaus",
+        start_time="February 13, 2023",
+        curr_time="February 13, 2023, 00:00:00",
     )
     role.set_env(StanfordTownEnv(maze_asset_path=MAZE_ASSET_PATH))
     await role.init_curr_tile()
