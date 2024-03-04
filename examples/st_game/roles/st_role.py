@@ -40,6 +40,7 @@ from metagpt.environment.api.env_api import EnvAPIAbstract
 from metagpt.logs import logger
 from metagpt.roles.role import Role, RoleContext
 from metagpt.schema import Message
+from metagpt.utils.common import any_to_str
 
 if TYPE_CHECKING:
     from metagpt.environment.stanford_town_env.stanford_town_env import (  # noqa: F401
@@ -171,13 +172,19 @@ class STRole(Role):
 
         logger.info(f"Role: {self.name} saved role's memory into {str(self.role_storage_path)}")
 
-    async def _observe(self) -> int:
+    async def _observe(self, ignore_memory=False) -> int:
         if not self.rc.env:
             return 0
+        news = []
+        if not news:
+            news = self.rc.msg_buffer.pop_all()
+        old_messages = [] if ignore_memory else self.rc.memory.get()
+        # Filter out messages of interest.
+        self.rc.news = [
+            n for n in news if (n.cause_by in self.rc.watch or self.name in n.send_to) and n not in old_messages
+        ]
 
-        observed = self.rc.env.memory.get_by_actions(self.rc.watch)
-        self.rc.news = self.rc.memory.remember(observed)
-        if len(self.rc.news) == 1 and self.rc.news[0].cause_by == UserRequirement:
+        if len(self.rc.news) == 1 and self.rc.news[0].cause_by == any_to_str(UserRequirement):
             logger.warning(f"Role: {self.name} add inner voice: {self.rc.news[0].content}")
             await self.add_inner_voice(self.rc.news[0].content)
 
@@ -318,7 +325,7 @@ class STRole(Role):
 
                 # Get event poignancy.
                 event_poignancy = await generate_poig_score(self, "event", desc_embedding_in)
-                logger.info(f"Role {self.name} event_poignancy: {event_poignancy}")
+                logger.debug(f"Role {self.name} event_poignancy: {event_poignancy}")
 
                 # If we observe the persona's self chat, we include that in the memory
                 # of the persona here.
@@ -579,7 +586,7 @@ class STRole(Role):
 
     async def _react(self) -> Message:
         # update role env
-        ret = self.update_role_env()
+        ret = await self.update_role_env()
         if not ret:
             # TODO add message
             logger.info(f"Role: {self.name} update_role_env return False")
