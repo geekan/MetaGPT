@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 # @Desc   : data transform of mg <-> ga under storage
 
+from pathlib import Path
+from typing import Optional
 
 from examples.st_game.utils.const import STORAGE_PATH, TEMP_STORAGE_PATH
 from metagpt.logs import logger
@@ -53,9 +55,11 @@ def get_role_environment(sim_code: str, role_name: str, step: int = 0) -> dict:
     return role_env
 
 
-def write_curr_sim_code(curr_sim_code: dict):
-    write_json_file(TEMP_STORAGE_PATH.joinpath("curr_sim_code.json"), curr_sim_code)
+def write_curr_sim_code(curr_sim_code: dict, temp_storage_path: Optional[Path] = None):
+    temp_storage_path = Path(temp_storage_path) or TEMP_STORAGE_PATH
+    write_json_file(temp_storage_path.joinpath("curr_sim_code.json"), curr_sim_code)
 
 
-def write_curr_step(curr_step: dict):
-    write_json_file(TEMP_STORAGE_PATH.joinpath("curr_step.json"), curr_step)
+def write_curr_step(curr_step: dict, temp_storage_path: Optional[Path] = None):
+    temp_storage_path = Path(temp_storage_path) or TEMP_STORAGE_PATH
+    write_json_file(temp_storage_path.joinpath("curr_step.json"), curr_step)

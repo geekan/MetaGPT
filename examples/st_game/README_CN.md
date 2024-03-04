@@ -1,7 +1,11 @@
 ## Stanford Town Game
 
 ### 前置
-`examples/st_game/utils/const.py`配置的路径为当前项目的存储路径，为了方便GA（generative_agents）的前端对接数据（避免改动它那块的代码），可将`const.py`下的
+`examples/st_game/utils/const.py`配置的路径为当前项目的存储路径，为了方便GA（ [generative_agents](https://github.com/joonspk-research/generative_agents) ）的前端对接数据（避免改动它那块的代码），可在启动`run_st_game.py`加上`temp_storage_path`指向`generative_agents`对应的`temp_storage`路径。比如
+
+`python3 run_st_game.py --temp_storage_path path/to/ga/temp_storage xxx`   
+
+或将`const.py`下的
 
 ```
 STORAGE_PATH = ROOT_PATH.joinpath("storage")
@@ -18,7 +22,9 @@ TEMP_STORAGE_PATH = Path("{path/to/ga/temp_storage}")
 `idea`为用户给第一个Agent的用户心声，并通过这个心声进行传播，看最后多智能体是否达到举办、参加活动的目标。  
 
 ### 前端服务启动
-进入`generative_agents/environment/frontend_server`，使用`python manage.py runserver`启动前端服务。  
+进入`generative_agents`项目目录
+
+进入`environment/frontend_server`，使用`python3 manage.py runserver`启动前端服务。  
 访问`http://localhost:8000/simulator_home` 进入当前的仿真界面。  
 
 ## Appreciation

@@ -608,7 +608,9 @@ async def _determine_action(role: "STRole"):
             # We decompose if the next action is longer than an hour, and fits the
             # criteria described in determine_decomp.
             if determine_decomp(act_desp, act_dura):
-                role.scratch.f_daily_schedule[curr_index : curr_index + 1] = await TaskDecomp().run(role, act_desp, act_dura)
+                role.scratch.f_daily_schedule[curr_index : curr_index + 1] = await TaskDecomp().run(
+                    role, act_desp, act_dura
+                )
         if curr_index_60 + 1 < len(role.scratch.f_daily_schedule):
             act_desp, act_dura = role.scratch.f_daily_schedule[curr_index_60 + 1]
             if act_dura >= 60:

@@ -219,7 +219,7 @@ class AgentMemory(Memory):
             poignancy=poignancy,
             keywords=keywords,
             filling=filling,
-            cause_by=cause_by
+            cause_by=cause_by,
         )
 
         keywords = [i.lower() for i in keywords]
@@ -267,7 +267,7 @@ class AgentMemory(Memory):
             embedding_key=embedding_pair[0],
             poignancy=poignancy,
             keywords=keywords,
-            filling=filling
+            filling=filling,
         )
 
         keywords = [i.lower() for i in keywords]
@@ -317,7 +317,7 @@ class AgentMemory(Memory):
             embedding_key=embedding_pair[0],
             poignancy=poignancy,
             keywords=keywords,
-            filling=filling
+            filling=filling,
         )
 
         keywords = [i.lower() for i in keywords]

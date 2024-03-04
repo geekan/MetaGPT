@@ -3,6 +3,7 @@
 # @Desc   : entry of Stanford Town(ST/st) game
 
 import asyncio
+from typing import Optional
 
 import fire
 
@@ -18,7 +19,9 @@ from examples.st_game.utils.utils import copy_folder
 from metagpt.logs import logger
 
 
-async def startup(idea: str, fork_sim_code: str, sim_code: str, investment: float = 30.0, n_round: int = 500):
+async def startup(
+    idea: str, fork_sim_code: str, sim_code: str, temp_storage_path: str, investment: float = 30.0, n_round: int = 500
+):
     town = StanfordTown()
     logger.info("StanfordTown init environment")
 
@@ -45,8 +48,8 @@ async def startup(idea: str, fork_sim_code: str, sim_code: str, investment: floa
         roles.append(role)
 
     # init temp_storage
-    write_curr_sim_code({"sim_code": sim_code})
-    write_curr_step({"step": reverie_meta.get("step", 0)})
+    write_curr_sim_code({"sim_code": sim_code}, temp_storage_path)
+    write_curr_step({"step": reverie_meta.get("step", 0)}, temp_storage_path)
 
     await town.hire(roles)
 
@@ -56,18 +59,33 @@ async def startup(idea: str, fork_sim_code: str, sim_code: str, investment: floa
     await town.run(n_round)
 
 
-def main(idea: str, fork_sim_code: str, sim_code: str, investment: float = 30.0, n_round: int = 500):
+def main(
+    idea: str,
+    fork_sim_code: str,
+    sim_code: str,
+    temp_storage_path: Optional[str] = None,
+    investment: float = 30.0,
+    n_round: int = 500,
+):
     """
     Args:
         idea: idea works as an `inner voice` to the first agent.
         fork_sim_code: old simulation name to start with
         sim_code: new simulation name to save simulation result
+        temp_storage_path: generative_agents storage path inside `environment/frontend_server` to
         investment: the investment of running agents
         n_round: rounds to run agents
     """
 
     asyncio.run(
-        startup(idea=idea, fork_sim_code=fork_sim_code, sim_code=sim_code, investment=investment, n_round=n_round)
+        startup(
+            idea=idea,
+            fork_sim_code=fork_sim_code,
+            sim_code=sim_code,
+            temp_storage_path=temp_storage_path,
+            investment=investment,
+            n_round=n_round,
+        )
     )
 
 

@@ -6,13 +6,12 @@ from typing import Any
 
 from pydantic import Field
 
+from examples.st_game.roles.st_role import STRole
+from examples.st_game.utils.const import MAZE_ASSET_PATH
 from metagpt.context import Context
 from metagpt.environment.stanford_town_env.stanford_town_env import StanfordTownEnv
 from metagpt.logs import logger
 from metagpt.team import Team
-
-from examples.st_game.roles.st_role import STRole
-from examples.st_game.utils.const import MAZE_ASSET_PATH
 
 
 class StanfordTown(Team):
