@@ -6,12 +6,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional, Union
 
-from pydantic import (
-    BaseModel,
-    Field,
-    field_serializer,
-    field_validator,
-)
+from pydantic import BaseModel, Field, field_serializer, field_validator
 
 from metagpt.utils.common import read_json_file, write_json_file
 
