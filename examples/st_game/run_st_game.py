@@ -24,6 +24,7 @@ async def startup(
 ):
     town = StanfordTown()
     logger.info("StanfordTown init environment")
+    print(f"{fork_sim_code}\t{sim_code}{temp_storage_path}\t{investment}\t{n_round}")
 
     # copy `storage/{fork_sim_code}` to `storage/{sim_code}`
     copy_folder(str(STORAGE_PATH.joinpath(fork_sim_code)), str(STORAGE_PATH.joinpath(sim_code)))
