@@ -4,7 +4,7 @@
 
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
 
 from pydantic import (
     BaseModel,
@@ -25,7 +25,7 @@ class Scratch(BaseModel):
 
     # 类别2:世界信息
     curr_time: Optional[datetime] = Field(default=None)
-    curr_tile: Optional[str] = Field(default=None)
+    curr_tile: Optional[list[int]] = Field(default=None)
     daily_plan_req: Optional[str] = Field(default=None)
 
     # 类别3:人物角色的核心身份
@@ -59,8 +59,8 @@ class Scratch(BaseModel):
 
     # 类别6:个人计划
     daily_req: list[str] = Field(default=[])
-    f_daily_schedule: list[list[str]] = Field(default=[])
-    f_daily_schedule_hourly_org: list[list[str]] = Field(default=[])
+    f_daily_schedule: list[list[Union[int, str]]] = Field(default=[])
+    f_daily_schedule_hourly_org: list[list[Union[int, str]]] = Field(default=[])
 
     # 类别7:当前动作
     act_address: Optional[str] = Field(default=None)
@@ -90,7 +90,7 @@ class Scratch(BaseModel):
             values["act_obj_event"] = (values["name"], None, None)
         return values
 
-    @field_validator("curr_time", "act_start_time", "chatting_end_time")
+    @field_validator("curr_time", "act_start_time", "chatting_end_time", mode="before")
     @classmethod
     def check_time_filed(cls, time_filed):
         val = datetime.strptime(time_filed, "%B %d, %Y, %H:%M:%S") if time_filed else None
