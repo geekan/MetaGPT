@@ -153,7 +153,7 @@ class STRole(Role):
         self.rc.spatial_memory.set_mem_path(f_saved=sp_mem_saved)
 
         scratch_f_saved = self.role_storage_path.joinpath("bootstrap_memory/scratch.json")
-        self.rc.scratch = Scratch.set_scratch_path(f_saved=scratch_f_saved)
+        self.rc.scratch = Scratch.init_scratch_from_path(f_saved=scratch_f_saved)
 
         logger.info(f"Role: {self.name} loaded role's memory from {str(self.role_storage_path)}")
 

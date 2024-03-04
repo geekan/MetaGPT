@@ -11,7 +11,6 @@ from pydantic import (
     Field,
     field_serializer,
     field_validator,
-    model_validator,
 )
 
 from metagpt.utils.common import read_json_file, write_json_file
@@ -68,11 +67,11 @@ class Scratch(BaseModel):
     act_duration: Optional[int] = Field(default=None)
     act_description: Optional[str] = Field(default=None)
     act_pronunciatio: Optional[str] = Field(default=None)
-    act_event: tuple[str, Optional[str], Optional[str]] = (None, None, None)
+    act_event: list[Optional[str]] = [None, None, None]
 
     act_obj_description: Optional[str] = Field(default=None)
     act_obj_pronunciatio: Optional[str] = Field(default=None)
-    act_obj_event: tuple[Optional[str], Optional[str], Optional[str]] = (None, None, None)
+    act_obj_event: list[Optional[str]] = [None, None, None]
 
     chatting_with: Optional[str] = Field(default=None)
     chat: Optional[str] = Field(default=None)
@@ -80,15 +79,7 @@ class Scratch(BaseModel):
     chatting_end_time: Optional[datetime] = Field(default=None)
 
     act_path_set: bool = False
-    planned_path: list[str] = Field(default=[])
-
-    @model_validator(mode="after")
-    @classmethod
-    def check_values(cls, values):
-        if "name" in values:
-            values["act_event"] = (values["name"], None, None)
-            values["act_obj_event"] = (values["name"], None, None)
-        return values
+    planned_path: list[list[int]] = Field(default=[])
 
     @field_validator("curr_time", "act_start_time", "chatting_end_time", mode="before")
     @classmethod
@@ -103,7 +94,7 @@ class Scratch(BaseModel):
         return time_filed
 
     @classmethod
-    def set_scratch_path(cls, f_saved: Path):
+    def init_scratch_from_path(cls, f_saved: Path):
         scratch_load = read_json_file(f_saved)
         scratch = Scratch(**scratch_load)
         return scratch
@@ -253,21 +244,21 @@ class Scratch(BaseModel):
 
     def get_curr_event(self):
         if not self.act_address:
-            return (self.name, None, None)
+            return self.name, None, None
         else:
             return self.act_event
 
     def get_curr_event_and_desc(self):
         if not self.act_address:
-            return (self.name, None, None, None)
+            return self.name, None, None, None
         else:
-            return (self.act_event[0], self.act_event[1], self.act_event[2], self.act_description)
+            return self.act_event[0], self.act_event[1], self.act_event[2], self.act_description
 
     def get_curr_obj_event_and_desc(self):
         if not self.act_address:
-            return ("", None, None, None)
+            return "", None, None, None
         else:
-            return (self.act_address, self.act_obj_event[1], self.act_obj_event[2], self.act_obj_description)
+            return self.act_address, self.act_obj_event[1], self.act_obj_event[2], self.act_obj_description
 
     def add_new_action(
         self,

@@ -24,7 +24,6 @@ async def startup(
 ):
     town = StanfordTown()
     logger.info("StanfordTown init environment")
-    print(f"{fork_sim_code}\t{sim_code}{temp_storage_path}\t{investment}\t{n_round}")
 
     # copy `storage/{fork_sim_code}` to `storage/{sim_code}`
     copy_folder(str(STORAGE_PATH.joinpath(fork_sim_code)), str(STORAGE_PATH.joinpath(sim_code)))
@@ -71,9 +70,9 @@ def main(
     """
     Args:
         idea: idea works as an `inner voice` to the first agent.
-        fork_sim_code: old simulation name to start with
+        fork_sim_code: old simulation name to start with, choose one inside `generative_agents/environment/frontend_server/storage/`
         sim_code: new simulation name to save simulation result
-        temp_storage_path: generative_agents storage path inside `environment/frontend_server` to
+        temp_storage_path: generative_agents temp_storage path inside `environment/frontend_server` to interact.
         investment: the investment of running agents
         n_round: rounds to run agents
     """
