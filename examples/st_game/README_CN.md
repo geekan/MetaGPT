@@ -14,7 +14,9 @@ TEMP_STORAGE_PATH = ROOT_PATH.joinpath("temp_storage")
 STORAGE_PATH = Path("{path/to/ga/storage}")
 TEMP_STORAGE_PATH = Path("{path/to/ga/temp_storage}")
 ```
-这样可用实现不改变GA代码情况下，实现仿真数据的对接。不然得修改GA的代码来适配MG的输出路径。    
+这样可用实现不改变GA代码情况下，实现仿真数据的对接。不然得修改GA的代码来适配MG的输出路径。  
+
+如果你不想从0开始启动，拷贝`generative_agents/environment/frontend_server/storage/`下的其他仿真目录到`examples/st_game/storage`，并选择一个目录名作为`fork_sim_code`。  
 
 ### 后端服务启动
 执行入口为：`python3 run_st_game.py "Host a open lunch party at 13:00 pm" "base_the_ville_isabella_maria_klaus" "test_sim" 10`  
