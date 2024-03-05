@@ -208,6 +208,7 @@ class BrainMemory(BaseModel):
                 "You are a tool capable of determining whether two paragraphs are semantically related."
                 'Return "TRUE" if "Paragraph 1" is semantically relevant to "Paragraph 2", otherwise return "FALSE".'
             ],
+            stream=False,
         )
         result = True if "TRUE" in rsp else False
         p2 = text2.replace("\n", "")
@@ -234,6 +235,7 @@ class BrainMemory(BaseModel):
                 "Do not supplement the context with information that is not present, especially regarding the subject and object.",
                 "Return the augmented sentence.",
             ],
+            stream=False,
         )
         logger.info(f"REWRITE:\nCommand: {prompt}\nRESULT: {rsp}\n")
         return rsp

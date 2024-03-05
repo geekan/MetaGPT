@@ -166,6 +166,7 @@ class RebuildSequenceView(Action):
                 "Translate the given markdown text to a Mermaid Sequence Diagram.",
                 "Return the merged Mermaid sequence diagram in a markdown code block format.",
             ],
+            stream=False,
         )
         sequence_view = rsp.removeprefix("```mermaid").removesuffix("```")
         rows = await self.graph_db.select(subject=entry.subject, predicate=GraphKeyword.HAS_SEQUENCE_VIEW)
@@ -317,6 +318,7 @@ class RebuildSequenceView(Action):
                 "external system execute this use case.\n"
                 '- a "relationship" key lists all the descriptions of relationship among these use cases.\n',
             ],
+            stream=False,
         )
 
         code_blocks = parse_json_code_block(rsp)
@@ -373,6 +375,7 @@ class RebuildSequenceView(Action):
                 "Translate the markdown text to a Mermaid Sequence Diagram.",
                 "Return a markdown mermaid code block.",
             ],
+            stream=False,
         )
 
         sequence_view = rsp.removeprefix("```mermaid").removesuffix("```")
@@ -598,6 +601,7 @@ class RebuildSequenceView(Action):
                 "Participants with the same name are considered identical.",
                 "Return the merged Mermaid sequence diagram in a markdown code block format.",
             ],
+            stream=False,
         )
 
         sequence_view = rsp.removeprefix("```mermaid").removesuffix("```")

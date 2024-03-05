@@ -92,7 +92,7 @@ class TalkAction(Action):
 
     async def run(self, with_message=None, **kwargs) -> Message:
         msg, format_msgs, system_msgs = self.aask_args
-        rsp = await self.llm.aask(msg=msg, format_msgs=format_msgs, system_msgs=system_msgs)
+        rsp = await self.llm.aask(msg=msg, format_msgs=format_msgs, system_msgs=system_msgs, stream=False)
         self.rsp = Message(content=rsp, role="assistant", cause_by=self)
         return self.rsp
 
