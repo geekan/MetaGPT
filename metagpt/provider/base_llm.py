@@ -14,11 +14,12 @@ from typing import Dict, Optional, Union
 
 from openai import AsyncOpenAI
 from openai.types import CompletionUsage
+from pydantic import BaseModel
 
 from metagpt.configs.llm_config import LLMConfig
 from metagpt.logs import logger
 from metagpt.schema import Message
-from metagpt.utils.cost_manager import CostManager
+from metagpt.utils.cost_manager import CostManager, Costs
 from metagpt.utils.exceptions import handle_exception
 
 
@@ -71,6 +72,28 @@ class BaseLLM(ABC):
 
     def _default_system_msg(self):
         return self._system_msg(self.system_prompt)
+
+    def _update_costs(self, usage: Union[dict, BaseModel], model: str = None, local_calc_usage: bool = True):
+        """update each request's token cost
+        Args:
+            model (str): model name or in some scenarios called endpoint
+            local_calc_usage (bool): some models don't calculate usage, it will overwrite LLMConfig.calc_usage
+        """
+        calc_usage = self.config.calc_usage and local_calc_usage
+        model = model or self.model
+        usage = usage.model_dump() if isinstance(usage, BaseModel) else usage
+        if calc_usage and self.cost_manager:
+            try:
+                prompt_tokens = int(usage.get("prompt_tokens", 0))
+                completion_tokens = int(usage.get("completion_tokens", 0))
+                self.cost_manager.update_cost(prompt_tokens, completion_tokens, model)
+            except Exception as e:
+                logger.error(f"{self.__class__.__name__} updates costs failed! exp: {e}")
+
+    def get_costs(self) -> Costs:
+        if not self.cost_manager:
+            return Costs(0, 0, 0, 0)
+        return self.cost_manager.get_costs()
 
     async def aask(
         self,
@@ -172,7 +195,7 @@ class BaseLLM(ABC):
         :return dict: return the first function arguments of choice, for example,
             {'language': 'python', 'code': "print('Hello, World!')"}
         """
-        return json.loads(self.get_choice_function(rsp)["arguments"])
+        return json.loads(self.get_choice_function(rsp)["arguments"], strict=False)
 
     @handle_exception
     def _update_costs(self, usage: CompletionUsage | Dict):

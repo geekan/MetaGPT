@@ -21,11 +21,15 @@ class LLMProviderRegistry:
         return self.providers[enum]
 
 
-def register_provider(key):
+def register_provider(keys):
     """register provider to registry"""
 
     def decorator(cls):
-        LLM_REGISTRY.register(key, cls)
+        if isinstance(keys, list):
+            for key in keys:
+                LLM_REGISTRY.register(key, cls)
+        else:
+            LLM_REGISTRY.register(keys, cls)
         return cls
 
     return decorator

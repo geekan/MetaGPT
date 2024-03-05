@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import inspect
 import os
-import re
 from collections import defaultdict
 
 import yaml
@@ -109,7 +108,8 @@ def register_tool(tool_type: str = "other", schema_path: str = "", **kwargs):
         # Get the file path where the function / class is defined and the source code
         file_path = inspect.getfile(cls)
         if "metagpt" in file_path:
-            file_path = re.search("metagpt.+", file_path).group(0)
+            # split to handle ../metagpt/metagpt/tools/... where only metapgt/tools/... is needed
+            file_path = "metagpt" + file_path.split("metagpt")[-1]
         source_code = inspect.getsource(cls)
 
         TOOL_REGISTRY.register_tool(

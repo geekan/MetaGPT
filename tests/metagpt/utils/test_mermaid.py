@@ -14,7 +14,7 @@ from metagpt.utils.mermaid import MMC1, mermaid_to_file
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("engine", ["nodejs", "ink"])  # TODO: playwright and pyppeteer
-async def test_mermaid(engine, context):
+async def test_mermaid(engine, context, mermaid_mocker):
     # nodejs prerequisites: npm install -g @mermaid-js/mermaid-cli
     # ink prerequisites: connected to internet
     # playwright prerequisites: playwright install --with-deps chromium

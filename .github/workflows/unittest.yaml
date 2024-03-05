@@ -31,7 +31,7 @@ jobs:
     - name: Test with pytest
       run: |
         export ALLOW_OPENAI_API_CALL=0
-        mkdir -p ~/.metagpt && cp tests/config2.yaml ~/.metagpt/config2.yaml && cp tests/spark.yaml ~/.metagpt/spark.yaml
+        mkdir -p ~/.metagpt && cp tests/config2.yaml ~/.metagpt/config2.yaml
         pytest tests/ --doctest-modules --cov=./metagpt/ --cov-report=xml:cov.xml --cov-report=html:htmlcov --durations=20 | tee unittest.txt
     - name: Show coverage report
       run: |

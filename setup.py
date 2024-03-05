@@ -24,7 +24,6 @@ requirements = (here / "requirements.txt").read_text(encoding="utf-8").splitline
 
 
 extras_require = {
-    "playwright": ["playwright>=1.26", "beautifulsoup4"],
     "selenium": ["selenium>4", "webdriver_manager", "beautifulsoup4"],
     "search-google": ["google-api-python-client==2.94.0"],
     "search-ddg": ["duckduckgo-search~=4.1.1"],
@@ -58,7 +57,7 @@ extras_require["dev"] = (["pylint~=3.0.3", "black~=23.3.0", "isort~=5.12.0", "pr
 
 setup(
     name="metagpt",
-    version="0.7.0",
+    version="0.7.2",
     description="The Multi-Agent Framework",
     long_description=long_description,
     long_description_content_type="text/markdown",

@@ -6,7 +6,7 @@
 import nbformat
 import pytest
 
-from metagpt.actions.ci.execute_nb_code import ExecuteNbCode
+from metagpt.actions.mi.execute_nb_code import ExecuteNbCode
 from metagpt.utils.common import read_json_file
 from metagpt.utils.save_code import DATA_PATH, save_code_file
 
