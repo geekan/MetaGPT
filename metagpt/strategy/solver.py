@@ -49,8 +49,8 @@ class TOTSolver(BaseSolver):
         raise NotImplementedError
 
 
-class InterpreterSolver(BaseSolver):
-    """InterpreterSolver: Write&Run code in the graph"""
+class DataInterpreterSolver(BaseSolver):
+    """DataInterpreterSolver: Write&Run code in the graph"""
 
     async def solve(self):
         raise NotImplementedError

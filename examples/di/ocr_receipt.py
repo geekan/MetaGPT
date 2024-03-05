@@ -1,4 +1,4 @@
-from metagpt.roles.mi.interpreter import Interpreter
+from metagpt.roles.di.data_interpreter import DataInterpreter
 
 
 async def main():
@@ -8,9 +8,9 @@ async def main():
     requirement = f"""This is a {language} receipt image.
     Your goal is to perform OCR on images using PaddleOCR, then extract the total amount from ocr text results, and finally save as table. Image path: {image_path}. 
     NOTE: The environments for Paddle and PaddleOCR are all ready and has been fully installed."""
-    mi = Interpreter()
+    di = DataInterpreter()
 
-    await mi.run(requirement)
+    await di.run(requirement)
 
 
 if __name__ == "__main__":

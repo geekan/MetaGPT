@@ -2,8 +2,8 @@ import asyncio
 
 import pytest
 
-from metagpt.actions.mi.execute_nb_code import ExecuteNbCode
-from metagpt.actions.mi.write_analysis_code import (
+from metagpt.actions.di.execute_nb_code import ExecuteNbCode
+from metagpt.actions.di.write_analysis_code import (
     WriteCodeWithoutTools,
     WriteCodeWithTools,
 )
