@@ -114,7 +114,7 @@ class MathExpert(Role):
         counter = 0
         success = False
 
-        result = []
+        result = ""
         code = {"code": ""}
         while not success and counter < max_retry:
             context = self.planner.get_last_useful_memories(num=3)
@@ -122,9 +122,9 @@ class MathExpert(Role):
             if counter > 0:
                 logger.warning('We got a bug code, now start to debug...')
                 code = await DebugCode().run(
-                    context=result,
+                    context=None,
                     code=code,
-                    runtime_result=self.working_memory.get(),
+                    runtime_result=result,
                 )
                 logger.info(f"new code \n{code}")
                 cause_by = DebugCode
