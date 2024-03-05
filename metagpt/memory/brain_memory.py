@@ -186,7 +186,7 @@ class BrainMemory(BaseModel):
         summaries = [summary, command]
         msg = "\n".join(summaries)
         logger.debug(f"title ask:{msg}")
-        response = await llm.aask(msg=msg, system_msgs=[])
+        response = await llm.aask(msg=msg, system_msgs=[], stream=False)
         logger.debug(f"title rsp: {response}")
         return response
 
@@ -308,7 +308,7 @@ class BrainMemory(BaseModel):
         ]
         if keep_language:
             system_msgs.append("The generated summary should be in the same language as the original text.")
-        response = await self.llm.aask(msg=text, system_msgs=system_msgs)
+        response = await self.llm.aask(msg=text, system_msgs=system_msgs, stream=False)
         logger.debug(f"{text}\nsummary rsp: {response}")
         return response
 
