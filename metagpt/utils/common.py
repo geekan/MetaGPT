@@ -23,10 +23,9 @@ import platform
 import re
 import sys
 import traceback
-import typing
 from io import BytesIO
 from pathlib import Path
-from typing import Any, Callable, List, Tuple, Union
+from typing import Any, Callable, List, Literal, Tuple, Union
 from urllib.parse import quote, unquote
 
 import aiofiles
@@ -434,62 +433,39 @@ def is_send_to(message: "Message", addresses: set):
 def any_to_name(val):
     """
     Convert a value to its name by extracting the last part of the dotted path.
-
-    :param val: The value to convert.
-
-    :return: The name of the value.
     """
     return any_to_str(val).split(".")[-1]
 
 
-def concat_namespace(*args) -> str:
+def concat_namespace(*args, delimiter: str = ":") -> str:
     """Concatenate fields to create a unique namespace prefix.
 
-    Args:
-        *args: Variable number of arguments representing the fields to be concatenated.
-
-    Returns:
-        str: A string containing the concatenated fields separated by colons.
-
     Example:
-        >>> concat_namespace('prefix', 'field1', 'field2')
+        >>> concat_namespace('prefix', 'field1', 'field2', delimiter=":")
         'prefix:field1:field2'
     """
-    return ":".join(str(value) for value in args)
+    return delimiter.join(str(value) for value in args)
 
 
-def split_namespace(ns_class_name: str, maxsplit=1) -> List[str]:
+def split_namespace(ns_class_name: str, delimiter: str = ":", maxsplit: int = 1) -> List[str]:
     """Split a namespace-prefixed name into its namespace-prefix and name parts.
-
-    Args:
-        ns_class_name (str): The namespace-prefixed name to be split.
-        maxsplit (int, optional): The maximum number of splits to perform. Defaults to 1.
-
-    Returns:
-        List[str]: A list containing the namespace-prefix part and the name part.
 
     Example:
         >>> split_namespace('prefix:classname')
         ['prefix', 'classname']
 
-        >>> split_namespace('prefix:module:class', maxsplit=2)
+        >>> split_namespace('prefix:module:class', delimiter=":", maxsplit=2)
         ['prefix', 'module', 'class']
     """
-    return ns_class_name.split(":", maxsplit=maxsplit)
+    return ns_class_name.split(delimiter, maxsplit=maxsplit)
 
 
-def auto_namespace(name: str) -> str:
+def auto_namespace(name: str, delimiter: str = ":") -> str:
     """Automatically handle namespace-prefixed names.
 
     If the input name is empty, returns a default namespace prefix and name.
     If the input name is not namespace-prefixed, adds a default namespace prefix.
     Otherwise, returns the input name unchanged.
-
-    Args:
-        name (str): The input name to be processed.
-
-    Returns:
-        str: The processed name.
 
     Example:
         >>> auto_namespace('classname')
@@ -505,23 +481,15 @@ def auto_namespace(name: str) -> str:
         '?:custom'
     """
     if not name:
-        return "?:?"
-    v = split_namespace(name)
+        return f"?{delimiter}?"
+    v = split_namespace(name, delimiter=delimiter)
     if len(v) < 2:
-        return f"?:{name}"
+        return f"?{delimiter}{name}"
     return name
 
 
-def add_affix(text, affix="brace"):
+def add_affix(text: str, affix: Literal["brace", "url", "none"] = "brace"):
     """Add affix to encapsulate data.
-
-    Args:
-        text (str): The input text to be encapsulated.
-        affix (str, optional): The type of affix to use. Defaults to "brace".
-            Supported affix types: "brace" for curly braces, "url" for URL encoding within curly braces.
-
-    Returns:
-        str: The text encapsulated with the specified affix.
 
     Example:
         >>> add_affix("data", affix="brace")
@@ -530,7 +498,7 @@ def add_affix(text, affix="brace"):
         >>> add_affix("example.com", affix="url")
         '%7Bexample.com%7D'
 
-        >>> add_affix("text", affix="unknown")
+        >>> add_affix("text", affix="none")
         'text'
     """
     mappings = {
@@ -541,7 +509,7 @@ def add_affix(text, affix="brace"):
     return encoder(text)
 
 
-def remove_affix(text, affix="brace"):
+def remove_affix(text, affix: Literal["brace", "url", "none"] = "brace"):
     """Remove affix to extract encapsulated data.
 
     Args:
@@ -559,7 +527,7 @@ def remove_affix(text, affix="brace"):
         >>> remove_affix('%7Bexample.com%7D', affix="url")
         'example.com'
 
-        >>> remove_affix('text', affix="unknown")
+        >>> remove_affix('text', affix="none")
         'text'
     """
     mappings = {"brace": lambda x: x[1:-1], "url": lambda x: unquote(x)[1:-1]}
@@ -567,7 +535,7 @@ def remove_affix(text, affix="brace"):
     return decoder(text)
 
 
-def general_after_log(i: "loguru.Logger", sec_format: str = "%0.3f") -> typing.Callable[["RetryCallState"], None]:
+def general_after_log(i: "loguru.Logger", sec_format: str = "%0.3f") -> Callable[["RetryCallState"], None]:
     """
     Generates a logging function to be used after a call is retried.
 
@@ -760,15 +728,6 @@ def parse_json_code_block(markdown_text: str) -> List[str]:
 
 
 def remove_white_spaces(v: str) -> str:
-    """
-    Removes white spaces from the provided string, excluding spaces within quotes.
-
-    Args:
-        v (str): The input string containing white spaces.
-
-    Returns:
-        str: The input string with white spaces removed, excluding spaces within quotes.
-    """
     return re.sub(r"(?<!['\"])\s|(?<=['\"])\s", "", v)
 
 

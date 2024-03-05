@@ -73,11 +73,6 @@ class VisualGraphRepo(ABC):
     graph_db: GraphRepository
 
     def __init__(self, graph_db):
-        """Initializes a VisualGraphRepo instance with a specified graph database.
-
-        Args:
-            graph_db (GraphRepository): The graph repository used by the VisualGraphRepo.
-        """
         self.graph_db = graph_db
 
 
@@ -89,14 +84,7 @@ class VisualDiGraphRepo(VisualGraphRepo):
 
     @classmethod
     async def load_from(cls, filename: str | Path):
-        """Load a VisualDiGraphRepo instance from a file.
-
-        Args:
-            filename (Union[str, Path]): The path to the file containing the graph data.
-
-        Returns:
-            VisualDiGraphRepo: An instance of VisualDiGraphRepo loaded from the specified file.
-        """
+        """Load a VisualDiGraphRepo instance from a file."""
         graph_db = await DiGraphRepository.load_from(str(filename))
         return cls(graph_db=graph_db)
 
@@ -112,14 +100,7 @@ class VisualDiGraphRepo(VisualGraphRepo):
         return mermaid_txt
 
     async def _get_class_view(self, ns_class_name: str) -> _VisualClassView:
-        """Returns the Markdown Mermaid class diagram code block object for the specified class.
-
-        Args:
-            ns_class_name (str): The namespace-prefixed class name.
-
-        Returns:
-            _VisualClassView: An instance of _VisualClassView representing the class diagram.
-        """
+        """Returns the Markdown Mermaid class diagram code block object for the specified class."""
         rows = await self.graph_db.select(subject=ns_class_name)
         class_view = _VisualClassView(package=ns_class_name)
         for r in rows:
@@ -143,12 +124,7 @@ class VisualDiGraphRepo(VisualGraphRepo):
         return class_view
 
     async def get_mermaid_sequence_views(self) -> List[(str, str)]:
-        """Returns all Markdown sequence diagrams with their corresponding graph repository keys.
-
-        Returns:
-            List[Tuple[str, str]]: A list of tuples containing Markdown sequence diagrams and their graph repository
-                keys.
-        """
+        """Returns all Markdown sequence diagrams with their corresponding graph repository keys."""
         sequence_views = []
         rows = await self.graph_db.select(predicate=GraphKeyword.HAS_SEQUENCE_VIEW)
         for r in rows:
@@ -156,14 +132,18 @@ class VisualDiGraphRepo(VisualGraphRepo):
         return sequence_views
 
     @staticmethod
-    def _refine_name(name) -> str:
+    def _refine_name(name: str) -> str:
         """Removes impurity content from the given name.
 
-        Args:
-            name: The name to be refined.
+        Example:
+            >>> _refine_name("int")
+            ""
 
-        Returns:
-            str: The refined name.
+            >>> _refine_name('"Class1"')
+            'Class1'
+
+            >>> _refine_name("pkg.Class1")
+            "Class1"
         """
         name = re.sub(r'^[\'"\\\(\)]+|[\'"\\\(\)]+$', "", name)
         if name in ["int", "float", "bool", "str", "list", "tuple", "set", "dict", "None"]:
@@ -174,12 +154,7 @@ class VisualDiGraphRepo(VisualGraphRepo):
         return name
 
     async def get_mermaid_sequence_view_versions(self) -> List[(str, str)]:
-        """Returns all versioned Markdown sequence diagrams with their corresponding graph repository keys.
-
-        Returns:
-            List[Tuple[str, str]]: A list of tuples containing versioned Markdown sequence diagrams and their graph
-                repository keys.
-        """
+        """Returns all versioned Markdown sequence diagrams with their corresponding graph repository keys."""
         sequence_views = []
         rows = await self.graph_db.select(predicate=GraphKeyword.HAS_SEQUENCE_VIEW_VER)
         for r in rows:

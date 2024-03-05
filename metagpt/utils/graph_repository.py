@@ -67,10 +67,6 @@ class SPO(BaseModel):
     Example:
         spo_record = SPO(subject="Node1", predicate="connects_to", object_="Node2")
         # Represents a triple: Node1 connects_to Node2
-
-    Note:
-        This class is a Pydantic BaseModel, allowing easy validation and serialization of graph records.
-
     """
 
     subject: str
@@ -84,28 +80,6 @@ class GraphRepository(ABC):
     This class defines the interface for a graph repository, providing methods for inserting, selecting,
     deleting, and saving graph data. Concrete implementations of this class must provide functionality
     for these operations.
-
-    Attributes:
-        _repo_name (str): The name of the graph repository.
-        _kwargs (dict): Additional keyword arguments for customization.
-
-    Methods:
-        insert: Insert a new triple into the graph repository.
-        select: Retrieve triples from the graph repository based on specified criteria.
-        delete: Delete triples from the graph repository based on specified criteria.
-        save: Save any changes made to the graph repository.
-        name: Get the name of the graph repository.
-
-    Example:
-        class MyGraphRepository(GraphRepository):
-            # Concrete implementation of the GraphRepository interface goes here...
-
-        my_repo = MyGraphRepository(name="MyRepo")
-        my_repo.insert(subject="Node1", predicate="connects_to", object_="Node2")
-
-    Note:
-        This class is meant to be subclassed to create specific implementations of graph repositories.
-
     """
 
     def __init__(self, name: str, **kwargs):
@@ -121,19 +95,9 @@ class GraphRepository(ABC):
             predicate (str): The predicate describing the relationship.
             object_ (str): The object of the triple.
 
-        Returns:
-            None
-
-        Raises:
-            SomeException: Describe any exceptions that might be raised during the insertion process.
-
         Example:
             await my_repository.insert(subject="Node1", predicate="connects_to", object_="Node2")
             # Inserts a triple: Node1 connects_to Node2 into the graph repository.
-
-        Note:
-            Implementations of this method should handle the insertion of triples into the underlying graph storage.
-
         """
         pass
 
@@ -149,16 +113,9 @@ class GraphRepository(ABC):
         Returns:
             List[SPO]: A list of SPO objects representing the selected triples.
 
-        Raises:
-            SomeException: Describe any exceptions that might be raised during the selection process.
-
         Example:
             selected_triples = await my_repository.select(subject="Node1", predicate="connects_to")
             # Retrieves triples where Node1 is the subject and the predicate is 'connects_to'.
-
-        Note:
-            Implementations of this method should handle the selection of triples from the underlying graph storage.
-
         """
         pass
 
@@ -174,16 +131,9 @@ class GraphRepository(ABC):
         Returns:
             int: The number of triples deleted from the repository.
 
-        Raises:
-            SomeException: Describe any exceptions that might be raised during the deletion process.
-
         Example:
             deleted_count = await my_repository.delete(subject="Node1", predicate="connects_to")
             # Deletes triples where Node1 is the subject and the predicate is 'connects_to'.
-
-        Note:
-            Implementations of this method should handle the deletion of triples from the underlying graph storage.
-
         """
         pass
 
@@ -191,44 +141,15 @@ class GraphRepository(ABC):
     async def save(self):
         """Save any changes made to the graph repository.
 
-        This method is responsible for persisting any changes made to the graph repository, such as inserts, updates, or
-        deletions. Implementations should ensure that the changes are properly committed and reflected in the underlying
-        graph storage.
-
-        Args:
-            None
-
-        Returns:
-            None
-
-        Raises:
-            SomeException: Describe any exceptions that might be raised during the saving process.
-
         Example:
             await my_repository.save()
             # Persists any changes made to the graph repository.
-
-        Note:
-            Implementations of this method should handle the persistence of changes in the underlying graph storage.
-
         """
         pass
 
     @property
     def name(self) -> str:
-        """Get the name of the graph repository.
-
-        Returns:
-            str: The name of the graph repository.
-
-        Example:
-            repository_name = my_repository.name
-            # Retrieves the name of the graph repository.
-
-        Note:
-            The name serves as a unique identifier for the graph repository.
-
-        """
+        """Get the name of the graph repository."""
         return self._repo_name
 
     @staticmethod
@@ -253,16 +174,9 @@ class GraphRepository(ABC):
             graph_db (GraphRepository): The graph repository object to be updated.
             file_info (RepoFileInfo): The RepoFileInfo object containing information to be inserted.
 
-        Returns:
-            None
-
         Example:
             await update_graph_db_with_file_info(my_graph_repo, my_file_info)
             # Updates 'my_graph_repo' with information from 'my_file_info'.
-
-        Note:
-            The function is designed to handle the insertion of specific triple patterns into the graph repository.
-
         """
         await graph_db.insert(subject=file_info.file, predicate=GraphKeyword.IS, object_=GraphKeyword.SOURCE_CODE)
         file_types = {".py": "python", ".js": "javascript"}
@@ -347,16 +261,10 @@ class GraphRepository(ABC):
             graph_db (GraphRepository): The graph repository object to be updated.
             class_views (List[DotClassInfo]): List of DotClassInfo objects containing class information to be inserted.
 
-        Returns:
-            None
 
         Example:
             await update_graph_db_with_class_views(my_graph_repo, [class_info1, class_info2])
             # Updates 'my_graph_repo' with class information from the provided list of DotClassInfo objects.
-
-        Note:
-            The function is designed to handle the insertion of specific triple patterns into the graph repository.
-
         """
         for c in class_views:
             filename, _ = c.package.split(":", 1)
@@ -435,15 +343,9 @@ class GraphRepository(ABC):
             relationship_views (List[DotClassRelationship]): List of DotClassRelationship objects containing
             class relationship information to be inserted.
 
-        Returns:
-            None
-
         Example:
             await update_graph_db_with_class_relationship_views(my_graph_repo, [relationship1, relationship2])
             # Updates 'my_graph_repo' with class relationship information from the provided list of DotClassRelationship objects.
-
-        Note:
-            The function is designed to handle the insertion of specific triple patterns into the graph repository.
 
         """
         for r in relationship_views:
@@ -468,17 +370,6 @@ class GraphRepository(ABC):
 
         Args:
             graph_db (GraphRepository): The graph repository object to be updated.
-
-        Returns:
-            None
-
-        Example:
-            await append_namespace_to_relationship_spo_objects(my_graph_repo)
-            # Appends namespace-prefixed information to relationship SPO objects in 'my_graph_repo'.
-
-        Note:
-            The function is designed to modify existing relationship SPO objects in the graph repository.
-
         """
         classes = await graph_db.select(predicate=GraphKeyword.IS, object_=GraphKeyword.CLASS)
         mapping = defaultdict(list)

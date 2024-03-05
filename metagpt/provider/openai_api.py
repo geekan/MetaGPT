@@ -31,7 +31,7 @@ from metagpt.provider.constant import GENERAL_FUNCTION_SCHEMA
 from metagpt.provider.llm_provider_registry import register_provider
 from metagpt.schema import Message
 from metagpt.utils.common import CodeParser, decode_image
-from metagpt.utils.cost_manager import CostManager, TokenCostManager
+from metagpt.utils.cost_manager import CostManager
 from metagpt.utils.exceptions import handle_exception
 from metagpt.utils.token_counter import (
     count_message_tokens,
@@ -271,7 +271,6 @@ class OpenAILLM(BaseLLM):
         if not self.config.calc_usage:
             return usage
 
-        self.model if not isinstance(self.cost_manager, TokenCostManager) else "open-llm-model"
         try:
             usage.prompt_tokens = count_message_tokens(messages, self.pricing_plan)
             usage.completion_tokens = count_string_tokens(rsp, self.pricing_plan)

@@ -148,7 +148,7 @@ class RebuildClassView(Action):
         logger.debug(content)
         return content
 
-    async def _create_mermaid_relationship(self, ns_class_name: str) -> Tuple[str, Set]:
+    async def _create_mermaid_relationship(self, ns_class_name: str) -> Tuple[Optional[str], Optional[Set]]:
         """Generates a Mermaid class relationship diagram for a specific class using data from the `graph_db` graph repository.
 
         Args:
@@ -194,6 +194,13 @@ class RebuildClassView(Action):
 
         Returns:
             Tuple[str, str]: A tuple containing the representation of the difference ("+", "-", "=") and the path detail of the differing part.
+
+        Example:
+            >>> _diff_path(path_root=Path("/Users/x/github/MetaGPT"), package_root=Path("/Users/x/github/MetaGPT/metagpt"))
+            "-", "metagpt"
+
+            >>> _diff_path(path_root=Path("/Users/x/github/MetaGPT/metagpt"), package_root=Path("/Users/x/github/MetaGPT/metagpt"))
+            "=", "."
         """
         if len(str(path_root)) > len(str(package_root)):
             return "+", str(path_root.relative_to(package_root))
@@ -212,6 +219,13 @@ class RebuildClassView(Action):
 
         Returns:
             str: The aligned path.
+
+        Example:
+            >>> _align_root(path="metagpt/software_company.py", direction="+", diff_path="MetaGPT")
+            "MetaGPT/metagpt/software_company.py"
+
+            >>> _align_root(path="metagpt/software_company.py", direction="-", diff_path="metagpt")
+            "software_company.py"
         """
         if direction == "=":
             return path
