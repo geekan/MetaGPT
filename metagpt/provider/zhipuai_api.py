@@ -38,6 +38,7 @@ class ZhiPuAILLM(BaseLLM):
         assert self.config.api_key
         self.api_key = self.config.api_key
         self.model = self.config.model  # so far, it support glm-3-turbo、glm-4
+        self.pricing_plan = self.config.pricing_plan or self.model
         self.llm = ZhiPuModelAPI(api_key=self.api_key)
 
     def _const_kwargs(self, messages: list[dict], stream: bool = False) -> dict:

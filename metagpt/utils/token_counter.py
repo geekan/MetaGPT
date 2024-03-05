@@ -140,7 +140,6 @@ FIREWORKS_GRADE_TOKEN_COSTS = {
     "mixtral-8x7b": {"prompt": 0.4, "completion": 1.6},
 }
 
-
 TOKEN_MAX = {
     "gpt-3.5-turbo": 4096,
     "gpt-3.5-turbo-0301": 4096,

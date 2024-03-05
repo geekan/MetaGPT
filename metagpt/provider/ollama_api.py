@@ -26,11 +26,12 @@ class OllamaLLM(BaseLLM):
         self.suffix_url = "/chat"
         self.http_method = "post"
         self.use_system_prompt = False
-        self._cost_manager = TokenCostManager()
+        self.cost_manager = TokenCostManager()
 
     def __init_ollama(self, config: LLMConfig):
         assert config.base_url, "ollama base url is required!"
         self.model = config.model
+        self.pricing_plan = self.model
 
     def _const_kwargs(self, messages: list[dict], stream: bool = False) -> dict:
         kwargs = {"model": self.model, "messages": messages, "options": {"temperature": 0.3}, "stream": stream}

@@ -30,6 +30,17 @@ async def test_run(mocker, context):
         language: str
         agent_description: str
         cause_by: str
+        agent_skills: list
+
+    agent_skills = [
+        {"id": 1, "name": "text_to_speech", "type": "builtin", "config": {}, "enabled": True},
+        {"id": 2, "name": "text_to_image", "type": "builtin", "config": {}, "enabled": True},
+        {"id": 3, "name": "ai_call", "type": "builtin", "config": {}, "enabled": True},
+        {"id": 3, "name": "data_analysis", "type": "builtin", "config": {}, "enabled": True},
+        {"id": 5, "name": "crawler", "type": "builtin", "config": {"engine": "ddg"}, "enabled": True},
+        {"id": 6, "name": "knowledge", "type": "builtin", "config": {}, "enabled": True},
+        {"id": 6, "name": "web_search", "type": "builtin", "config": {}, "enabled": True},
+    ]
 
     inputs = [
         {
@@ -48,6 +59,7 @@ async def test_run(mocker, context):
             "language": "English",
             "agent_description": "chatterbox",
             "cause_by": any_to_str(TalkAction),
+            "agent_skills": [],
         },
         {
             "memory": {
@@ -65,16 +77,8 @@ async def test_run(mocker, context):
             "language": "English",
             "agent_description": "painter",
             "cause_by": any_to_str(SkillAction),
+            "agent_skills": agent_skills,
         },
-    ]
-    agent_skills = [
-        {"id": 1, "name": "text_to_speech", "type": "builtin", "config": {}, "enabled": True},
-        {"id": 2, "name": "text_to_image", "type": "builtin", "config": {}, "enabled": True},
-        {"id": 3, "name": "ai_call", "type": "builtin", "config": {}, "enabled": True},
-        {"id": 3, "name": "data_analysis", "type": "builtin", "config": {}, "enabled": True},
-        {"id": 5, "name": "crawler", "type": "builtin", "config": {"engine": "ddg"}, "enabled": True},
-        {"id": 6, "name": "knowledge", "type": "builtin", "config": {}, "enabled": True},
-        {"id": 6, "name": "web_search", "type": "builtin", "config": {}, "enabled": True},
     ]
 
     for i in inputs:
@@ -82,7 +86,7 @@ async def test_run(mocker, context):
         role = Assistant(language="Chinese", context=context)
         role.context.kwargs.language = seed.language
         role.context.kwargs.agent_description = seed.agent_description
-        role.context.kwargs.agent_skills = agent_skills
+        role.context.kwargs.agent_skills = seed.agent_skills
 
         role.memory = seed.memory  # Restore historical conversation content.
         while True:
