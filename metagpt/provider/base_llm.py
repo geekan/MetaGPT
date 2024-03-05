@@ -12,10 +12,18 @@ from typing import Optional, Union
 
 from openai import AsyncOpenAI
 from pydantic import BaseModel
+from tenacity import (
+    after_log,
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_random_exponential,
+)
 
 from metagpt.configs.llm_config import LLMConfig
 from metagpt.logs import logger
 from metagpt.schema import Message
+from metagpt.utils.common import log_and_reraise
 from metagpt.utils.cost_manager import CostManager, Costs
 
 
@@ -130,6 +138,10 @@ class BaseLLM(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    async def _achat_completion(self, messages: list[dict], timeout=3):
+        """_achat_completion implemented by inherited class"""
+
+    @abstractmethod
     async def acompletion(self, messages: list[dict], timeout=3):
         """Asynchronous version of completion
         All GPTAPIs are required to provide the standard OpenAI completion interface
@@ -141,8 +153,22 @@ class BaseLLM(ABC):
         """
 
     @abstractmethod
-    async def acompletion_text(self, messages: list[dict], stream=False, timeout=3) -> str:
+    async def _achat_completion_stream(self, messages: list[dict], timeout: int = 3) -> str:
+        """_achat_completion_stream implemented by inherited class"""
+
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_random_exponential(min=1, max=60),
+        after=after_log(logger, logger.level("WARNING").name),
+        retry=retry_if_exception_type(ConnectionError),
+        retry_error_callback=log_and_reraise,
+    )
+    async def acompletion_text(self, messages: list[dict], stream: bool = False, timeout: int = 3) -> str:
         """Asynchronous version of completion. Return str. Support stream-print"""
+        if stream:
+            return await self._achat_completion_stream(messages, timeout=timeout)
+        resp = await self._achat_completion(messages, timeout=timeout)
+        return self.get_choice_text(resp)
 
     def get_choice_text(self, rsp: dict) -> str:
         """Required to provide the first text of choice"""

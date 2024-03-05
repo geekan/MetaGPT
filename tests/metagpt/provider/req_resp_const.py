@@ -3,6 +3,14 @@
 # @Desc   : default request & response data for provider unittest
 
 
+from anthropic.types import (
+    ContentBlock,
+    ContentBlockDeltaEvent,
+    Message,
+    MessageStartEvent,
+    TextDelta,
+)
+from anthropic.types import Usage as AnthropicUsage
 from dashscope.api_entities.dashscope_response import (
     DashScopeAPIResponse,
     GenerationOutput,
@@ -128,6 +136,38 @@ def get_dashscope_response(name: str) -> GenerationResponse:
             usage=GenerationUsage(**{"input_tokens": 12, "output_tokens": 98, "total_tokens": 110}),
         )
     )
+
+
+# For Anthropic
+def get_anthropic_response(name: str, stream: bool = False) -> Message:
+    if stream:
+        return [
+            MessageStartEvent(
+                message=Message(
+                    id="xxx",
+                    model=name,
+                    role="assistant",
+                    type="message",
+                    content=[ContentBlock(text="", type="text")],
+                    usage=AnthropicUsage(input_tokens=10, output_tokens=10),
+                ),
+                type="message_start",
+            ),
+            ContentBlockDeltaEvent(
+                index=0,
+                delta=TextDelta(text=resp_cont_tmpl.format(name=name), type="text_delta"),
+                type="content_block_delta",
+            ),
+        ]
+    else:
+        return Message(
+            id="xxx",
+            model=name,
+            role="assistant",
+            type="message",
+            content=[ContentBlock(text=resp_cont_tmpl.format(name=name), type="text")],
+            usage=AnthropicUsage(input_tokens=10, output_tokens=10),
+        )
 
 
 # For llm general chat functions call

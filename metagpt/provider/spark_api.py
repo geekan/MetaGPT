@@ -31,11 +31,17 @@ class SparkLLM(BaseLLM):
     def get_choice_text(self, rsp: dict) -> str:
         return rsp["payload"]["choices"]["text"][-1]["content"]
 
+    async def _achat_completion_stream(self, messages: list[dict], timeout: int = 3) -> str:
+        pass
+
     async def acompletion_text(self, messages: list[dict], stream=False, timeout: int = 3) -> str:
         # 不支持
         # logger.warning("当前方法无法支持异步运行。当你使用acompletion时，并不能并行访问。")
         w = GetMessageFromWeb(messages, self.config)
         return w.run()
+
+    async def _achat_completion(self, messages: list[dict], timeout=3):
+        pass
 
     async def acompletion(self, messages: list[dict], timeout=3):
         # 不支持异步

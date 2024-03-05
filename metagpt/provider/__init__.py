@@ -16,6 +16,7 @@ from metagpt.provider.human_provider import HumanProvider
 from metagpt.provider.spark_api import SparkLLM
 from metagpt.provider.qianfan_api import QianFanLLM
 from metagpt.provider.dashscope_api import DashScopeLLM
+from metagpt.provider.anthropic_api import AnthropicLLM
 
 __all__ = [
     "GeminiLLM",
@@ -28,4 +29,5 @@ __all__ = [
     "SparkLLM",
     "QianFanLLM",
     "DashScopeLLM",
+    "AnthropicLLM",
 ]

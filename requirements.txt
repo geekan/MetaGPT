@@ -12,6 +12,7 @@ typer==0.9.0
 # google_api_python_client==2.93.0  # Used by search_engine.py
 lancedb==0.4.0
 langchain==0.1.8
+sqlalchemy==2.0.0  # along with langchain
 loguru==0.6.0
 meilisearch==0.21.0
 numpy>=1.24.3,<1.25.0
@@ -33,7 +34,7 @@ tqdm==4.65.0
 #unstructured[local-inference]
 # selenium>4
 # webdriver_manager<3.9
-anthropic==0.8.1
+anthropic==0.18.1
 typing-inspect==0.8.0
 libcst==1.0.1
 qdrant-client==1.7.0
