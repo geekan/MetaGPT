@@ -5,21 +5,12 @@
 from enum import Enum
 from typing import Optional
 
-from requests import ConnectionError
-from tenacity import (
-    after_log,
-    retry,
-    retry_if_exception_type,
-    stop_after_attempt,
-    wait_random_exponential,
-)
 from zhipuai.types.chat.chat_completion import Completion
 
 from metagpt.configs.llm_config import LLMConfig, LLMType
-from metagpt.logs import log_llm_stream, logger
+from metagpt.logs import log_llm_stream
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.llm_provider_registry import register_provider
-from metagpt.provider.openai_api import log_and_reraise
 from metagpt.provider.zhipuai.zhipu_model_api import ZhiPuModelAPI
 from metagpt.utils.cost_manager import CostManager
 
@@ -86,17 +77,3 @@ class ZhiPuAILLM(BaseLLM):
         self._update_costs(usage)
         full_content = "".join(collected_content)
         return full_content
-
-    @retry(
-        stop=stop_after_attempt(3),
-        wait=wait_random_exponential(min=1, max=60),
-        after=after_log(logger, logger.level("WARNING").name),
-        retry=retry_if_exception_type(ConnectionError),
-        retry_error_callback=log_and_reraise,
-    )
-    async def acompletion_text(self, messages: list[dict], stream=False, timeout=3) -> str:
-        """response in async with stream or non-stream mode"""
-        if stream:
-            return await self._achat_completion_stream(messages)
-        resp = await self._achat_completion(messages)
-        return self.get_choice_text(resp)

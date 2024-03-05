@@ -676,3 +676,14 @@ def decode_image(img_url_or_b64: str) -> Image:
         img_data = BytesIO(base64.b64decode(b64_data))
         img = Image.open(img_data)
     return img
+
+
+def log_and_reraise(retry_state: RetryCallState):
+    logger.error(f"Retry attempts exhausted. Last exception: {retry_state.outcome.exception()}")
+    logger.warning(
+        """
+Recommend going to https://deepwisdom.feishu.cn/wiki/MsGnwQBjiif9c3koSJNcYaoSnu4#part-XdatdVlhEojeAfxaaEZcMV3ZniQ
+See FAQ 5.8
+"""
+    )
+    raise retry_state.outcome.exception()

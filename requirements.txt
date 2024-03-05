@@ -33,7 +33,7 @@ tqdm==4.65.0
 #unstructured[local-inference]
 # selenium>4
 # webdriver_manager<3.9
-anthropic==0.8.1
+anthropic==0.18.1
 typing-inspect==0.8.0
 libcst==1.0.1
 qdrant-client==1.7.0

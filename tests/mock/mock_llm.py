@@ -3,7 +3,7 @@ from typing import Optional, Union
 
 from metagpt.config2 import config
 from metagpt.configs.llm_config import LLMType
-from metagpt.logs import log_llm_stream, logger
+from metagpt.logs import logger
 from metagpt.provider.azure_openai_api import AzureOpenAILLM
 from metagpt.provider.openai_api import OpenAILLM
 from metagpt.schema import Message
@@ -24,17 +24,8 @@ class MockLLM(OriginalLLM):
     async def acompletion_text(self, messages: list[dict], stream=False, timeout=3) -> str:
         """Overwrite original acompletion_text to cancel retry"""
         if stream:
-            resp = self._achat_completion_stream(messages, timeout=timeout)
-
-            collected_messages = []
-            async for i in resp:
-                log_llm_stream(i)
-                collected_messages.append(i)
-
-            full_reply_content = "".join(collected_messages)
-            usage = self._calc_usage(messages, full_reply_content)
-            self._update_costs(usage)
-            return full_reply_content
+            resp = await self._achat_completion_stream(messages, timeout=timeout)
+            return resp
 
         rsp = await self._achat_completion(messages, timeout=timeout)
         return self.get_choice_text(rsp)
