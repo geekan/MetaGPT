@@ -133,6 +133,7 @@ class ProjectRepo(FileRepository):
         code_files = self.with_src_path(path=git_workdir / git_workdir.name).srcs.all_files
         if not code_files:
             return False
+        return bool(code_files)
 
     def with_src_path(self, path: str | Path) -> ProjectRepo:
         try:
