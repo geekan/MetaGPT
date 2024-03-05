@@ -9,8 +9,10 @@
 import pytest
 
 from metagpt.actions.design_api import WriteDesign
+from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.schema import Message
+from tests.data.incremental_dev_project.mock import DESIGN_SAMPLE, REFINED_PRD_JSON
 
 
 @pytest.mark.asyncio
@@ -25,3 +27,16 @@ async def test_design_api(context):
         logger.info(result)
 
         assert result
+
+
+@pytest.mark.asyncio
+async def test_refined_design_api(context):
+    await context.repo.docs.prd.save(filename="1.txt", content=str(REFINED_PRD_JSON))
+    await context.repo.docs.system_design.save(filename="1.txt", content=DESIGN_SAMPLE)
+
+    design_api = WriteDesign(context=context, llm=LLM())
+
+    result = await design_api.run(Message(content="", instruct_content=None))
+    logger.info(result)
+
+    assert result

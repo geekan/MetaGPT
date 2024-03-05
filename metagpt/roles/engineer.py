@@ -204,7 +204,6 @@ class Engineer(Role):
 
     async def _act_code_plan_and_change(self):
         """Write code plan and change that guides subsequent WriteCode and WriteCodeReview"""
-        logger.info("Writing code plan and change..")
         node = await self.rc.todo.run()
         code_plan_and_change = node.instruct_content.model_dump_json()
         dependencies = {

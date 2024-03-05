@@ -37,7 +37,7 @@ DESIGN = {
 }
 
 
-TASKS = {
+TASK = {
     "Required Python packages": ["pygame==2.0.1"],
     "Required Other language third-party packages": ["No third-party dependencies required"],
     "Logic Analysis": [

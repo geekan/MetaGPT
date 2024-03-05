@@ -16,6 +16,7 @@ from metagpt.utils.yaml_model import YamlModel
 class LLMType(Enum):
     OPENAI = "openai"
     ANTHROPIC = "anthropic"
+    CLAUDE = "claude"  # alias name of anthropic
     SPARK = "spark"
     ZHIPUAI = "zhipuai"
     FIREWORKS = "fireworks"

@@ -27,8 +27,14 @@ class MockBaseLLM(BaseLLM):
     def completion(self, messages: list[dict], timeout=3):
         return get_part_chat_completion(name)
 
+    async def _achat_completion(self, messages: list[dict], timeout=3):
+        pass
+
     async def acompletion(self, messages: list[dict], timeout=3):
         return get_part_chat_completion(name)
+
+    async def _achat_completion_stream(self, messages: list[dict], timeout: int = 3) -> str:
+        pass
 
     async def acompletion_text(self, messages: list[dict], stream=False, timeout=3) -> str:
         return default_resp_cont

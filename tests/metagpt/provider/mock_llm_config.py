@@ -56,3 +56,7 @@ mock_llm_config_spark = LLMConfig(
 mock_llm_config_qianfan = LLMConfig(api_type="qianfan", access_key="xxx", secret_key="xxx", model="ERNIE-Bot-turbo")
 
 mock_llm_config_dashscope = LLMConfig(api_type="dashscope", api_key="xxx", model="qwen-max")
+
+mock_llm_config_anthropic = LLMConfig(
+    api_type="anthropic", api_key="xxx", base_url="https://api.anthropic.com", model="claude-3-opus-20240229"
+)

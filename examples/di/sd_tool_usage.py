@@ -4,12 +4,12 @@
 # @Desc    :
 import asyncio
 
-from metagpt.roles.mi.interpreter import Interpreter
+from metagpt.roles.di.data_interpreter import DataInterpreter
 
 
 async def main(requirement: str = ""):
-    mi = Interpreter(use_tools=True, goal=requirement)
-    await mi.run(requirement)
+    di = DataInterpreter(use_tools=True, goal=requirement)
+    await di.run(requirement)
 
 
 if __name__ == "__main__":

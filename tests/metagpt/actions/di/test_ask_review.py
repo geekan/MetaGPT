@@ -1,6 +1,6 @@
 import pytest
 
-from metagpt.actions.mi.ask_review import AskReview
+from metagpt.actions.di.ask_review import AskReview
 
 
 @pytest.mark.asyncio

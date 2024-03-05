@@ -1,4 +1,4 @@
-from metagpt.roles.mi.interpreter import Interpreter
+from metagpt.roles.di.data_interpreter import DataInterpreter
 
 
 async def main():
@@ -10,9 +10,9 @@ async def main():
     coordinates and confidence levels, then recognize the total amount from ocr text content, and finally save as table. 
     Image path: {image_path}.
     NOTE: The environments for Paddle and PaddleOCR are all ready and has been fully installed."""
-    mi = Interpreter()
+    di = DataInterpreter()
 
-    await mi.run(requirement)
+    await di.run(requirement)
 
 
 if __name__ == "__main__":
