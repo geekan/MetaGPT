@@ -5,15 +5,15 @@
 @File    :   crawl_webpage.py
 """
 
-from metagpt.roles.mi.interpreter import Interpreter
+from metagpt.roles.di.data_interpreter import DataInterpreter
 
 
 async def main():
     prompt = """Get data from `paperlist` table in https://papercopilot.com/statistics/iclr-statistics/iclr-2024-statistics/,
     and save it to a csv file. paper title must include `multiagent` or `large language model`. *notice: print key variables*"""
-    mi = Interpreter(use_tools=True)
+    di = DataInterpreter(use_tools=True)
 
-    await mi.run(prompt)
+    await di.run(prompt)
 
 
 if __name__ == "__main__":
