@@ -100,7 +100,7 @@ class SimpleEngine(RetrieverQueryEngine):
         llm: LLM = None,
         retriever_configs: list[BaseRetrieverConfig] = None,
         ranker_configs: list[BaseRankerConfig] = None,
-    ):
+    ) -> "SimpleEngine":
         """Load from previously maintained"""
         index = get_index(index_config, embed_model=embed_model or get_rag_embedding())
         return cls._from_index(index, llm=llm, retriever_configs=retriever_configs, ranker_configs=ranker_configs)
@@ -112,7 +112,7 @@ class SimpleEngine(RetrieverQueryEngine):
         llm: LLM = None,
         retriever_configs: list[BaseRetrieverConfig] = None,
         ranker_configs: list[BaseRankerConfig] = None,
-    ):
+    ) -> "SimpleEngine":
         llm = llm or get_rag_llm()
         retriever = get_retriever(configs=retriever_configs, index=index)
         rankers = get_rankers(configs=ranker_configs, llm=llm)
