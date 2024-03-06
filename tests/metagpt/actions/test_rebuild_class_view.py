@@ -14,7 +14,6 @@ from metagpt.actions.rebuild_class_view import RebuildClassView
 from metagpt.llm import LLM
 
 
-@pytest.mark.skip
 @pytest.mark.asyncio
 async def test_rebuild(context):
     action = RebuildClassView(
