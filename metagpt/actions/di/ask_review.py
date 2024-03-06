@@ -14,15 +14,25 @@ class ReviewConst:
     CONTINUE_WORDS = ["confirm", "continue", "c", "yes", "y"]
     CHANGE_WORDS = ["change"]
     EXIT_WORDS = ["exit"]
+    GOAL_FINISHED_WORDS = ["finished", "done"]
+    REDO_WORDS = ["redo"]
     TASK_REVIEW_INSTRUCTION = (
         f"If you want to change, add, delete a task or merge tasks in the plan, type '{CHANGE_WORDS[0]} task task_id or current task, ... (things to change)' "
         f"If you confirm the output from the current task and wish to continue, type: {CONTINUE_WORDS[0]}"
+        f"If the code does not match the *instruction* in `## Current Task`, type: {REDO_WORDS[0]}, ..., (reason for doing it again)"
+        f"If the `## User Requirement` has already been accomplished, type: {GOAL_FINISHED_WORDS[0]}."
     )
     CODE_REVIEW_INSTRUCTION = (
         f"If you want the codes to be rewritten, type '{CHANGE_WORDS[0]} ... (your change advice)' "
         f"If you want to leave it as is, type: {CONTINUE_WORDS[0]} or {CONTINUE_WORDS[1]}"
     )
     EXIT_INSTRUCTION = f"If you want to terminate the process, type: {EXIT_WORDS[0]}"
+    SYS_MSG = (
+        "You are very good at reflecting and reviewing any code, task, and plan, {instruction}"
+        "your reflecting and reviewing result must start with '```\n' and end with '\n```', like ```\nconfirm\n```"
+        "**Notice: The starting word in your suggestions must be one of the following:"
+        f"{CHANGE_WORDS[0]}, {CONTINUE_WORDS[0]}, {GOAL_FINISHED_WORDS[0]}, {REDO_WORDS[0]} **"
+    ).replace("type", "return")
 
 
 class AskReview(Action):
@@ -58,22 +68,11 @@ class AskReview(Action):
         if review_type == "human":
             rsp = input(prompt)
         elif review_type == "llm":
-            sys_msg = [
-                f"You are very good at reviewing *code*, {review_instruction}",
-                "you will get the *current task* and *code execution results*.",
-                "Please give sound suggestions to improve the effectiveness of the current task.",
-                "Dont return code, just suggestionsjust like the follwing with three backquote ```:",
-                f"```\n{ReviewConst.CHANGE_WORDS[0]} ... (your change advice).\n```",
-                "```\nconfirm\n```",
-                "```\nredo, (reason for re-executing the task)\n```",
-                "```\nexit\n```",
-                "**Notice: The starting word in your suggestions must be one of the following: ",
-                f"{ReviewConst.CHANGE_WORDS[0]}, confirm, redo**",
-            ]
-            review_msg = "\n".join([str(c) for c in context])
-            _rsp = await self.llm.aask(msg=review_msg, system_msgs=sys_msg)
-            rsp = CodeParser.parse_code(None, _rsp)
-            rsp = rsp[:-1] if rsp.endswith("\n") else rsp
+            llm_rsp = await self.llm.aask(
+                msg="\n".join([str(c) for c in context]),
+                system_msgs=[ReviewConst.SYS_MSG.format(instruction=review_instruction)],
+            )
+            rsp = CodeParser.parse_code(None, llm_rsp).strip()
         else:
             rsp = "confirm"
 
