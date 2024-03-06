@@ -3,10 +3,12 @@ import asyncio
 
 from pydantic import BaseModel
 
-from metagpt.const import EXAMPLE_DATA_PATH
+from metagpt.const import DATA_PATH, EXAMPLE_DATA_PATH
 from metagpt.rag.engines import SimpleEngine
 from metagpt.rag.schema import (
     BM25RetrieverConfig,
+    ChromaIndexConfig,
+    ChromaRetrieverConfig,
     FAISSRetrieverConfig,
     LLMRankerConfig,
 )
@@ -118,6 +120,30 @@ class RAGExample:
         player: Player = nodes[0].metadata["obj"]
         print(player)
 
+    async def rag_chromadb(self):
+        """This example show how to use chromadb. how to save and load index. will print something like:
+
+        Query Result:
+        Bob likes traveling.
+        """
+        self._print_title("RAG ChromaDB")
+
+        # save index
+        output_dir = DATA_PATH / "rag"
+        SimpleEngine.from_docs(
+            input_files=[TRAVEL_DOC_PATH],
+            retriever_configs=[ChromaRetrieverConfig(persist_path=output_dir)],
+        )
+
+        # load index
+        engine = SimpleEngine.from_index(
+            index_config=ChromaIndexConfig(persist_path=output_dir),
+        )
+
+        # query
+        answer = engine.query(TRAVEL_QUESTION)
+        self._print_result(answer, state="Query")
+
     @staticmethod
     def _print_title(title):
         print(f"{'#'*50} {title} {'#'*50}")
@@ -147,6 +173,7 @@ async def main():
     await e.rag_pipeline()
     await e.rag_add_docs()
     await e.rag_add_objs()
+    await e.rag_chromadb()
 
 
 if __name__ == "__main__":

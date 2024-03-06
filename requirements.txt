@@ -10,7 +10,7 @@ typer==0.9.0
 # godot==0.1.1
 # google_api_python_client==2.93.0  # Used by search_engine.py
 lancedb==0.4.0
-llama-index-core==0.10.12
+llama-index-core==0.10.15
 llama-index-embeddings-azure-openai==0.1.6
 llama-index-embeddings-huggingface==0.1.3
 llama-index-embeddings-openai==0.1.5
@@ -64,7 +64,7 @@ zhipuai==1.0.7
 socksio~=1.0.0
 gitignore-parser==0.1.9
 # connexion[uvicorn]~=3.0.5 # Used by metagpt/tools/openapi_v3_hello.py
-websockets~=12.0
+websockets~=11.0
 networkx~=3.2.1
 google-generativeai==0.3.2
 # playwright==1.40.0  # playwright extras require
