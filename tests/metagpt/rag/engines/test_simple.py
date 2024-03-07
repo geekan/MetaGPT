@@ -1,6 +1,6 @@
 import pytest
 from llama_index.core import VectorStoreIndex
-from llama_index.core.schema import NodeWithScore, TextNode
+from llama_index.core.schema import TextNode
 
 from metagpt.rag.engines import SimpleEngine
 from metagpt.rag.retrievers.base import ModifiableRAGRetriever
@@ -97,8 +97,8 @@ class TestSimpleEngine:
         mock_super_aretrieve = mocker.patch(
             "metagpt.rag.engines.simple.RetrieverQueryEngine.aretrieve", new_callable=mocker.AsyncMock
         )
-        nodes = [NodeWithScore(node=TextNode())]
-        mock_super_aretrieve.return_value = nodes
+
+        mock_super_aretrieve.return_value = [TextNode(text="node_with_score", metadata={"is_obj": False})]
 
         # Setup
         engine = SimpleEngine(retriever=mocker.MagicMock())
@@ -110,7 +110,8 @@ class TestSimpleEngine:
         # Assertions
         mock_query_bundle.assert_called_once_with(test_query)
         mock_super_aretrieve.assert_called_once_with("query_bundle")
-        assert result == nodes
+
+        assert result[0].text == "node_with_score"
 
     def test_add_docs(self, mocker):
         # Mock
@@ -158,4 +159,4 @@ class TestSimpleEngine:
         assert mock_retriever.add_nodes.call_count == 1
         for node in mock_retriever.add_nodes.call_args[0][0]:
             assert isinstance(node, TextNode)
-            assert "obj_dict" in node.metadata
+            assert "is_obj" in node.metadata
