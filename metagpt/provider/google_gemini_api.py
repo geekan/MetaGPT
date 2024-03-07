@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # @Desc   : Google Gemini LLM from https://ai.google.dev/tutorials/python_quickstart
-
+import os
 from typing import Optional, Union
 
 import google.generativeai as genai
@@ -58,6 +58,10 @@ class GeminiLLM(BaseLLM):
         self.llm = GeminiGenerativeModel(model_name=self.model)
 
     def __init_gemini(self, config: LLMConfig):
+        if config.proxy:
+            logger.info(f"Use proxy: {config.proxy}")
+            os.environ["HTTP_PROXY"] = config.proxy
+            os.environ["HTTP_PROXYS"] = config.proxy
         genai.configure(api_key=config.api_key)
 
     def _user_msg(self, msg: str, images: Optional[Union[str, list[str]]] = None) -> dict[str, str]:
