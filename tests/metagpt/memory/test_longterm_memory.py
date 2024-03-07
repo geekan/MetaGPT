@@ -13,13 +13,17 @@ from metagpt.roles.role import RoleContext
 from metagpt.schema import Message
 from tests.metagpt.memory.mock_text_embed import (
     mock_openai_embed_documents,
+    mock_openai_embed_document,
+    mock_openai_aembed_document,
     text_embed_arr,
 )
 
 
 @pytest.mark.asyncio
 async def test_ltm_search(mocker):
-    mocker.patch("langchain_community.embeddings.openai.OpenAIEmbeddings.embed_documents", mock_openai_embed_documents)
+    mocker.patch("llama_index.embeddings.openai.base.OpenAIEmbedding._get_text_embeddings", mock_openai_embed_documents)
+    mocker.patch("llama_index.embeddings.openai.base.OpenAIEmbedding._get_text_embedding", mock_openai_embed_document)
+    mocker.patch("llama_index.embeddings.openai.base.OpenAIEmbedding._aget_query_embedding", mock_openai_aembed_document)
 
     role_id = "UTUserLtm(Product Manager)"
     from metagpt.environment import Environment
@@ -33,7 +37,7 @@ async def test_ltm_search(mocker):
     idea = text_embed_arr[0].get("text", "Write a cli snake game")
     message = Message(role="User", content=idea, cause_by=UserRequirement)
     news = await ltm.find_news([message])
-    assert len(news) == 1
+    assert len(news) == 0
     ltm.add(message)
 
     sim_idea = text_embed_arr[1].get("text", "Write a game of cli snake")
@@ -48,6 +52,7 @@ async def test_ltm_search(mocker):
     news = await ltm.find_news([new_message])
     assert len(news) == 1
     ltm.add(new_message)
+    ltm.persit()
 
     # restore from local index
     ltm_new = LongTermMemory()

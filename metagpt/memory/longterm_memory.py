@@ -32,7 +32,7 @@ class LongTermMemory(Memory):
         self.memory_storage.recover_memory(role_id)
         self.rc = rc
         if not self.memory_storage.is_initialized:
-            logger.warning(f"It may the first time to run Agent {role_id}, the long-term memory is empty")
+            logger.warning(f"It may the first time to run Role {role_id}, the long-term memory is empty")
         else:
             logger.warning(f"Role {role_id} has existing memory storage and has recovered them.")
         self.msg_from_recover = True
@@ -65,6 +65,9 @@ class LongTermMemory(Memory):
             if len(mem_searched) > 0:
                 ltm_news.append(mem)
         return ltm_news[-k:]
+
+    def persit(self):
+        self.memory_storage.persit()
 
     def delete(self, message: Message):
         super().delete(message)

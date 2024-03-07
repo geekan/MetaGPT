@@ -104,6 +104,7 @@ class ObjectNode(TextNode):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.excluded_llm_metadata_keys = list(ObjectNodeMetadata.model_fields.keys())
+        self.excluded_embed_metadata_keys = self.excluded_llm_metadata_keys
 
     @staticmethod
     def get_obj_metadata(obj: RAGObject) -> dict:

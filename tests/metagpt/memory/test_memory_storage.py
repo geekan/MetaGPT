@@ -17,13 +17,17 @@ from metagpt.memory.memory_storage import MemoryStorage
 from metagpt.schema import Message
 from tests.metagpt.memory.mock_text_embed import (
     mock_openai_embed_documents,
+    mock_openai_embed_document,
+    mock_openai_aembed_document,
     text_embed_arr,
 )
 
 
 @pytest.mark.asyncio
 async def test_idea_message(mocker):
-    mocker.patch("langchain_community.embeddings.openai.OpenAIEmbeddings.embed_documents", mock_openai_embed_documents)
+    mocker.patch("llama_index.embeddings.openai.base.OpenAIEmbedding._get_text_embeddings", mock_openai_embed_documents)
+    mocker.patch("llama_index.embeddings.openai.base.OpenAIEmbedding._get_text_embedding", mock_openai_embed_document)
+    mocker.patch("llama_index.embeddings.openai.base.OpenAIEmbedding._aget_query_embedding", mock_openai_aembed_document)
 
     idea = text_embed_arr[0].get("text", "Write a cli snake game")
     role_id = "UTUser1(Product Manager)"
@@ -53,7 +57,9 @@ async def test_idea_message(mocker):
 
 @pytest.mark.asyncio
 async def test_actionout_message(mocker):
-    mocker.patch("langchain_community.embeddings.openai.OpenAIEmbeddings.embed_documents", mock_openai_embed_documents)
+    mocker.patch("llama_index.embeddings.openai.base.OpenAIEmbedding._get_text_embeddings", mock_openai_embed_documents)
+    mocker.patch("llama_index.embeddings.openai.base.OpenAIEmbedding._get_text_embedding", mock_openai_embed_document)
+    mocker.patch("llama_index.embeddings.openai.base.OpenAIEmbedding._aget_query_embedding", mock_openai_aembed_document)
 
     out_mapping = {"field1": (str, ...), "field2": (List[str], ...)}
     out_data = {"field1": "field1 value", "field2": ["field2 value1", "field2 value2"]}

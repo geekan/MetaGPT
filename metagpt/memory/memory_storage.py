@@ -43,7 +43,7 @@ class MemoryStorage(object):
 
         if self.role_mem_path.joinpath("default__vector_store.json").exists():
             self.faiss_engine = SimpleEngine.from_index(
-                index_config=[FAISSIndexConfig(persist_path=self.cache_dir)],
+                index_config=FAISSIndexConfig(persist_path=self.cache_dir),
                 retriever_configs=[FAISSRetrieverConfig()],
                 embed_model=self.embedding,
             )
@@ -73,3 +73,7 @@ class MemoryStorage(object):
     def clean(self):
         shutil.rmtree(self.cache_dir, ignore_errors=True)
         self._initialized = False
+
+    def persit(self):
+        if self.faiss_engine:
+            self.faiss_engine.index.storage_context.persist(self.cache_dir)
