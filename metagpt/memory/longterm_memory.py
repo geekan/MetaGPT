@@ -61,8 +61,8 @@ class LongTermMemory(Memory):
         ltm_news: list[Message] = []
         for mem in stm_news:
             # filter out messages similar to those seen previously in ltm, only keep fresh news
-            mem_searched = await self.memory_storage.search_dissimilar(mem)
-            if len(mem_searched) > 0:
+            mem_searched = await self.memory_storage.search_similar(mem)
+            if len(mem_searched) == 0:
                 ltm_news.append(mem)
         return ltm_news[-k:]
 

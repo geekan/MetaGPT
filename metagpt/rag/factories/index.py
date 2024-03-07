@@ -29,10 +29,8 @@ class RAGIndexFactory(ConfigFactory):
         embed_model = self.extract_embed_model(config, **kwargs)
 
         vector_store = FaissVectorStore.from_persist_dir(str(config.persist_path))
-        storage_context = StorageContext.from_defaults(
-            vector_store=vector_store, persist_dir=config.persist_path, embed_mode=embed_model
-        )
-        index = load_index_from_storage(storage_context=storage_context)
+        storage_context = StorageContext.from_defaults(vector_store=vector_store, persist_dir=config.persist_path)
+        index = load_index_from_storage(storage_context=storage_context, embed_model=embed_model)
         return index
 
     def _create_chroma(self, config: ChromaIndexConfig, **kwargs) -> VectorStoreIndex:
