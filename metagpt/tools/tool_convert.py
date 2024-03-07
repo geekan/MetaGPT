@@ -3,7 +3,7 @@ import inspect
 from metagpt.utils.parse_docstring import GoogleDocstringParser, remove_spaces
 
 
-def convert_code_to_tool_schema(obj, include: list[str] = []):
+def convert_code_to_tool_schema(obj, include: list[str] = None):
     docstring = inspect.getdoc(obj)
     assert docstring, "no docstring found for the objects, skip registering"
 

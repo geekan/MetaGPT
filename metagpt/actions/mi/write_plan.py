@@ -13,7 +13,7 @@ from typing import Tuple
 from metagpt.actions import Action
 from metagpt.logs import logger
 from metagpt.schema import Message, Plan, Task
-from metagpt.tools import TOOL_REGISTRY
+from metagpt.strategy.task_type import TaskType
 from metagpt.utils.common import CodeParser
 
 
@@ -43,7 +43,7 @@ class WritePlan(Action):
 
     async def run(self, context: list[Message], max_tasks: int = 5, use_tools: bool = False) -> str:
         task_type_desc = "\n".join(
-            [f"- **{tool_type.name}**: {tool_type.desc}" for tool_type in TOOL_REGISTRY.get_tool_types().values()]
+            [f"- **{tt.type_name}**: {tt.value.desc}" for tt in TaskType]
         )  # task type are binded with tool type now, should be improved in the future
         prompt = self.PROMPT_TEMPLATE.format(
             context="\n".join([str(ct) for ct in context]), max_tasks=max_tasks, task_type_desc=task_type_desc

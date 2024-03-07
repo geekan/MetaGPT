@@ -10,7 +10,6 @@ from pathlib import Path
 
 from metagpt.const import DEFAULT_WORKSPACE_ROOT
 from metagpt.tools.tool_registry import register_tool
-from metagpt.tools.tool_type import ToolType
 from metagpt.utils.common import encode_image
 
 ANALYZE_LAYOUT_PROMPT = """You are now a UI/UX designer, please generate layout information for this image:
@@ -28,9 +27,7 @@ As the design pays tribute to large companies, sometimes it is normal for some c
 Now, please generate the corresponding webpage code including HTML, CSS and JavaScript:"""
 
 
-@register_tool(
-    tool_type=ToolType.IMAGE2WEBPAGE.type_name, include_functions=["__init__", "generate_webpages", "save_webpages"]
-)
+@register_tool(include_functions=["__init__", "generate_webpages", "save_webpages"])
 class GPTvGenerator:
     """Class for generating webpages at once.
 

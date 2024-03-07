@@ -1,33 +1,19 @@
+INTERPRETER_SYSTEM_MSG = """As a data scientist, you need to help user to achieve their goal step by step in a continuous Jupyter notebook. Since it is a notebook environment, don't use asyncio.run. Instead, use await if you need to call an async function."""
+
 STRUCTUAL_PROMPT = """
-# Background
-As a data scientist, you need to help user to achieve their goal [{user_requirement}] step-by-step in an continuous Jupyter notebook. Since it is a notebook environment, don't use asyncio.run. Instead, use await if you need to call an async function.
+# User Requirement
+{user_requirement}
 
-# Finished Tasks
-## code
-```python
-{code_written}
-```
+# Plan Status
+{plan_status}
 
-## execution result
-{task_results}
+# Tool Info
+{tool_info}
 
-# Current Task
-{current_task}
-
-# Instruction
-Write complete code for 'Current Task'. And avoid duplicating code from 'Finished Tasks', such as repeated import of packages, reading data, etc.
-Specifically, {tool_type_usage_prompt}
-
-# Capabilities
-- You can utilize pre-defined tools in any code lines from 'Available Tools' in the form of Python class or function.
-- You can freely combine the use of any other public packages, like sklearn, numpy, pandas, etc..
-
-# Available Tools:
-Each tool is described in JSON format. When you call a tool, import the tool from its path first.
-{tool_schemas}
-
-# Examples
-{examples}
+# Constraints
+- Take on Current Task if it is in Plan Status, otherwise, tackle User Requirement directly.
+- Ensure the output new code is executable in the same Jupyter notebook as the previous executed code.
+- Always prioritize using pre-defined tools for the same functionality.
 
 # Output
 Output code in the following format:
@@ -35,6 +21,8 @@ Output code in the following format:
 your code
 ```
 """
+
+REFLECTION_SYSTEM_MSG = """You are an AI Python assistant. You will be given your previous implementation code of a task, runtime error results, and a hint to change the implementation appropriately. Write your full implementation."""
 
 DEBUG_REFLECTION_EXAMPLE = '''
 [previous impl]:
@@ -121,25 +109,4 @@ DATA_INFO = """
 # Latest Data Info
 Latest data info after previous tasks:
 {info}
-"""
-
-TOOL_RECOMMENDATION_PROMPT = """
-## User Requirement:
-{current_task}
-
-## Task
-Recommend up to five tools from 'Available Tools' that can help solve the 'User Requirement'. 
-
-## Available Tools:
-{available_tools}
-
-## Tool Selection and Instructions:
-- Select tools most relevant to completing the 'User Requirement'.
-- If you believe that no tools are suitable, indicate with an empty list.
-- Only list the names of the tools, not the full schema of each tool.
-- Ensure selected tools are listed in 'Available Tools'.
-- Output a json list of tool names:
-```json
-["tool_name1", "tool_name2", ...]
-```
 """

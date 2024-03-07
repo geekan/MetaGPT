@@ -13,6 +13,8 @@ from metagpt.actions.mi.write_plan import (
 from metagpt.logs import logger
 from metagpt.memory import Memory
 from metagpt.schema import Message, Plan, Task, TaskResult
+from metagpt.strategy.task_type import TaskType
+from metagpt.utils.common import remove_comments
 
 STRUCTURAL_CONTEXT = """
 ## User Requirement
@@ -23,6 +25,24 @@ STRUCTURAL_CONTEXT = """
 {tasks}
 ## Current Task
 {current_task}
+"""
+
+PLAN_STATUS = """
+## Finished Tasks
+### code
+```python
+{code_written}
+```
+
+### execution result
+{task_results}
+
+## Current Task
+{current_task}
+
+## Task Guidance
+Write complete code for 'Current Task'. And avoid duplicating code from 'Finished Tasks', such as repeated import of packages, reading data, etc.
+Specifically, {guidance}
 """
 
 
@@ -136,3 +156,23 @@ class Planner(BaseModel):
         context_msg = [Message(content=context, role="user")]
 
         return context_msg + self.working_memory.get()
+
+    def get_plan_status(self) -> str:
+        # prepare components of a plan status
+        finished_tasks = self.plan.get_finished_tasks()
+        code_written = [remove_comments(task.code) for task in finished_tasks]
+        code_written = "\n\n".join(code_written)
+        task_results = [task.result for task in finished_tasks]
+        task_results = "\n\n".join(task_results)
+        task_type_name = self.current_task.task_type.upper()
+        guidance = TaskType[task_type_name].value.guidance if hasattr(TaskType, task_type_name) else ""
+
+        # combine components in a prompt
+        prompt = PLAN_STATUS.format(
+            code_written=code_written,
+            task_results=task_results,
+            current_task=self.current_task.instruction,
+            guidance=guidance,
+        )
+
+        return prompt
