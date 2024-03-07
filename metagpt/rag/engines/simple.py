@@ -124,7 +124,6 @@ class SimpleEngine(RetrieverQueryEngine):
             retriever_configs: Configuration for retrievers. If more than one config, will use SimpleHybridRetriever.
             ranker_configs: Configuration for rankers.
         """
-        # check
         if not retriever_configs or any(isinstance(config, BM25RetrieverConfig) for config in retriever_configs):
             raise ValueError("Must provide retriever_configs, and BM25RetrieverConfig is not supported.")
 
