@@ -28,7 +28,7 @@ def mock_openai_embed_documents(self, texts: list[str], chunk_size: Optional[int
 async def test_search_json(mocker):
     mocker.patch("langchain_community.embeddings.openai.OpenAIEmbeddings.embed_documents", mock_openai_embed_documents)
 
-    store = FaissStore(EXAMPLE_PATH / "data/example.json")
+    store = FaissStore(EXAMPLE_PATH / "data/search_kb/example.json")
     role = Sales(profile="Sales", store=store)
     query = "Which facial cleanser is good for oily skin?"
     result = await role.run(query)
@@ -39,7 +39,7 @@ async def test_search_json(mocker):
 async def test_search_xlsx(mocker):
     mocker.patch("langchain_community.embeddings.openai.OpenAIEmbeddings.embed_documents", mock_openai_embed_documents)
 
-    store = FaissStore(EXAMPLE_PATH / "data/example.xlsx")
+    store = FaissStore(EXAMPLE_PATH / "data/search_kb/example.xlsx")
     role = Sales(profile="Sales", store=store)
     query = "Which facial cleanser is good for oily skin?"
     result = await role.run(query)
@@ -50,7 +50,7 @@ async def test_search_xlsx(mocker):
 async def test_write(mocker):
     mocker.patch("langchain_community.embeddings.openai.OpenAIEmbeddings.embed_documents", mock_openai_embed_documents)
 
-    store = FaissStore(EXAMPLE_PATH / "data/example.xlsx", meta_col="Answer", content_col="Question")
+    store = FaissStore(EXAMPLE_PATH / "data/search_kb/example.xlsx", meta_col="Answer", content_col="Question")
     _faiss_store = store.write()
     assert _faiss_store.storage_context.docstore
     assert _faiss_store.storage_context.vector_store.client
