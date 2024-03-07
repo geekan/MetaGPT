@@ -19,6 +19,7 @@ from llama_index.core.response_synthesizers import (
 from llama_index.core.retrievers import BaseRetriever
 from llama_index.core.schema import (
     BaseNode,
+    Document,
     NodeWithScore,
     QueryBundle,
     QueryType,
@@ -97,6 +98,8 @@ class SimpleEngine(RetrieverQueryEngine):
             raise ValueError("Must provide either `input_dir` or `input_files`.")
 
         documents = SimpleDirectoryReader(input_dir=input_dir, input_files=input_files).load_data()
+        cls._fix_document_metadata(documents)
+
         index = VectorStoreIndex.from_documents(
             documents=documents,
             transformations=transformations or [SentenceSplitter()],
@@ -166,6 +169,7 @@ class SimpleEngine(RetrieverQueryEngine):
         self._ensure_retriever_modifiable()
 
         documents = SimpleDirectoryReader(input_files=input_files).load_data()
+        self._fix_document_metadata(documents)
         nodes = run_transformations(documents, transformations=self.index._transformations)
         self._save_nodes(nodes)
 
@@ -213,3 +217,14 @@ class SimpleEngine(RetrieverQueryEngine):
             if node.metadata.get("is_obj", False):
                 obj_cls = import_class(node.metadata["obj_cls_name"], node.metadata["obj_mod_name"])
                 node.metadata["obj"] = obj_cls(**node.metadata["obj_dict"])
+
+    @staticmethod
+    def _fix_document_metadata(documents: list[Document]):
+        """LlamaIndex bug, maybe deleted in the near future.
+
+        Metadata in doc has `file_path`, but excluded_embed_metadata_keys is missing.
+        """
+        for doc in documents:
+            keys_set = set(doc.excluded_embed_metadata_keys)
+            keys_set.add("file_path")
+            doc.excluded_embed_metadata_keys = list(keys_set)
