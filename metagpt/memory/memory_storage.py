@@ -7,16 +7,16 @@ import shutil
 from pathlib import Path
 
 from llama_index.core.embeddings import BaseEmbedding
-from llama_index.core.schema import QueryBundle, TextNode
 
 from metagpt.const import DATA_PATH, MEM_TTL
-from metagpt.document_store.faiss_store import FaissStore
 from metagpt.logs import logger
+from metagpt.rag.engines.simple import SimpleEngine
+from metagpt.rag.schema import FAISSIndexConfig, FAISSRetrieverConfig
 from metagpt.schema import Message
 from metagpt.utils.embedding import get_embedding
 
 
-class MemoryStorage(FaissStore):
+class MemoryStorage(object):
     """
     The memory storage with Faiss as ANN search engine
     """
@@ -29,6 +29,8 @@ class MemoryStorage(FaissStore):
         self._initialized: bool = False
         self.embedding = embedding or get_embedding()
 
+        self.faiss_engine = None
+
     @property
     def is_initialized(self) -> bool:
         return self._initialized
@@ -39,56 +41,35 @@ class MemoryStorage(FaissStore):
         self.role_mem_path.mkdir(parents=True, exist_ok=True)
         self.cache_dir = self.role_mem_path
 
-        self.store = self._load()
-        messages = []
-        if not self.store:
-            # TODO init `self.store` under here with raw faiss api instead under `add`
-            pass
+        if self.role_mem_path.joinpath("default__vector_store.json").exists():
+            self.faiss_engine = SimpleEngine.from_index(
+                index_config=[FAISSIndexConfig(persist_path=self.cache_dir)],
+                retriever_configs=[FAISSRetrieverConfig()],
+                embed_model=self.embedding,
+            )
         else:
-            for _id, document in self.store.docstore._dict.items():
-                messages.append(Message(**document.metadata.get("obj_dict")))
-            self._initialized = True
-
-        return messages
+            self.faiss_engine = SimpleEngine.from_objs(
+                objs=[], retriever_configs=[FAISSRetrieverConfig()], embed_model=self.embedding
+            )
+        self._initialized = True
 
     def add(self, message: Message) -> bool:
         """add message into memory storage"""
-        docs = [message.content]
-        metadatas = [{"obj_dict": message.model_dump()}]
-        if not self.store:
-            # init Faiss
-            self.store = self._write(docs, metadatas)
-            self._initialized = True
-        else:
-            text_node = TextNode(text=message.content, metadata=metadatas[0])
-            self.store.insert_nodes([text_node])
-        self.persist()
-        logger.info(f"Agent {self.role_id}'s memory_storage add a message")
+        self.faiss_engine.add_objs([message])
+        logger.info(f"Role {self.role_id}'s memory_storage add a message")
 
-    def search_dissimilar(self, message: Message, k=4) -> list[Message]:
+    async def search_dissimilar(self, message: Message, k=4) -> list[Message]:
         """search for dissimilar messages"""
-        if not self.store:
-            return []
-
-        retriever = self.store.as_retriever(similarity_top_k=k)
-        resp = retriever.retrieve(
-            QueryBundle(query_str=message.content, embedding=self.embedding.get_text_embedding(message.content))
-        )
         # filter the result which score is smaller than the threshold
         filtered_resp = []
+        resp = await self.faiss_engine.aretrieve(message.content)
         for item in resp:
-            # the smaller score means more similar relation
-
+            print(" item.score ", item.score, item)
             if item.score < self.threshold:
                 continue
-            # convert search result into Memory
-            metadata = item.node.metadata
-            new_mem = Message(**metadata.get("obj_dict", {}))
-            filtered_resp.append(new_mem)
+            filtered_resp.append(item.metadata.get("obj"))
         return filtered_resp
 
     def clean(self):
         shutil.rmtree(self.cache_dir, ignore_errors=True)
-
-        self.store = None
         self._initialized = False

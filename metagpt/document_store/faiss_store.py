@@ -33,7 +33,7 @@ class FaissStore(LocalStore):
         super().__init__(raw_data, cache_dir)
 
     def _load(self) -> Optional["VectorStoreIndex"]:
-        index_file, store_file = self._get_index_and_store_fname(index_ext=".faiss")  # FAISS using .faiss
+        index_file, store_file = self._get_index_and_store_fname()
 
         if not (index_file.exists() and store_file.exists()):
             logger.info("Missing at least one of index_file/store_file, load failed and return None")
@@ -46,12 +46,8 @@ class FaissStore(LocalStore):
 
     def _write(self, docs: list[str], metadatas: list[dict[str, Any]]) -> VectorStoreIndex:
         assert len(docs) == len(metadatas)
-        texts_embeds = self.embedding.get_text_embedding_batch(docs)
         documents = [Document(text=doc, metadata=metadatas[idx]) for idx, doc in enumerate(docs)]
 
-        [TextNode(embedding=embed, metadata=metadatas[idx]) for idx, embed in enumerate(texts_embeds)]
-        # doc_store = SimpleDocumentStore()
-        # doc_store.add_documents(nodes)
         vector_store = FaissVectorStore(faiss_index=faiss.IndexFlatL2(1536))
         storage_context = StorageContext.from_defaults(vector_store=vector_store)
         index = VectorStoreIndex.from_documents(
@@ -90,7 +86,7 @@ class FaissStore(LocalStore):
     def add(self, texts: list[str], *args, **kwargs) -> list[str]:
         """FIXME: Currently, the store is not updated after adding."""
         texts_embeds = self.embedding.get_text_embedding_batch(texts)
-        nodes = [TextNode(embedding=embed) for embed in texts_embeds]
+        nodes = [TextNode(text=texts[idx], embedding=embed) for idx, embed in enumerate(texts_embeds)]
         self.store.insert_nodes(nodes)
 
         return []
