@@ -176,6 +176,6 @@ class SimpleEngine(RetrieverQueryEngine):
     def _try_reconstruct_obj(nodes: list[NodeWithScore]):
         """If node is object, then dynamically reconstruct object, and save object to node.metadata["obj"]."""
         for node in nodes:
-            if node.metadata.get("is_obj"):
+            if node.metadata.get("is_obj", False):
                 obj_cls = import_class(node.metadata["obj_cls_name"], node.metadata["obj_mod_name"])
                 node.metadata["obj"] = obj_cls(**node.metadata["obj_dict"])

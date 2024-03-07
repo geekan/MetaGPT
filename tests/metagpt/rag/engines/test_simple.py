@@ -97,7 +97,7 @@ class TestSimpleEngine:
         mock_super_aretrieve = mocker.patch(
             "metagpt.rag.engines.simple.RetrieverQueryEngine.aretrieve", new_callable=mocker.AsyncMock
         )
-        mock_super_aretrieve.return_value = ["node_with_score"]
+        mock_super_aretrieve.return_value = [TextNode(text="node_with_score", metadata={"is_obj": False})]
 
         # Setup
         engine = SimpleEngine(retriever=mocker.MagicMock())
@@ -109,7 +109,7 @@ class TestSimpleEngine:
         # Assertions
         mock_query_bundle.assert_called_once_with(test_query)
         mock_super_aretrieve.assert_called_once_with("query_bundle")
-        assert result == ["node_with_score"]
+        assert result[0].text == "node_with_score"
 
     def test_add_docs(self, mocker):
         # Mock
@@ -157,4 +157,4 @@ class TestSimpleEngine:
         assert mock_retriever.add_nodes.call_count == 1
         for node in mock_retriever.add_nodes.call_args[0][0]:
             assert isinstance(node, TextNode)
-            assert "obj" in node.metadata
+            assert "is_obj" in node.metadata
