@@ -4,9 +4,9 @@
 """
 import asyncio
 
+from metagpt.config2 import Config
 from metagpt.roles import Searcher
 from metagpt.tools.search_engine import SearchEngine, SearchEngineType
-from metagpt.config2 import Config
 
 
 async def main():

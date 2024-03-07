@@ -5,12 +5,12 @@ Author: garylin2099
 @Modified By: mashenquan, 2023-11-1. In accordance with Chapter 2.1.3 of RFC 116, modify the data type of the `send_to`
         value of the `Message` object; modify the argument type of `get_by_actions`.
 """
+
 import asyncio
 import platform
 from typing import Any
 
 import fire
-
 from metagpt.actions import Action, UserRequirement
 from metagpt.logs import logger
 from metagpt.roles import Role
@@ -34,7 +34,9 @@ class SpeakAloud(Action):
     name: str = "SpeakAloud"
 
     async def run(self, context: str, name: str, opponent_name: str):
-        prompt = self.PROMPT_TEMPLATE.format(context=context, name=name, opponent_name=opponent_name)
+        prompt = self.PROMPT_TEMPLATE.format(
+            context=context, name=name, opponent_name=opponent_name
+        )
         # logger.info(prompt)
 
         rsp = await self._aask(prompt)
@@ -66,7 +68,9 @@ class Debator(Role):
         context = "\n".join(f"{msg.sent_from}: {msg.content}" for msg in memories)
         # print(context)
 
-        rsp = await todo.run(context=context, name=self.name, opponent_name=self.opponent_name)
+        rsp = await todo.run(
+            context=context, name=self.name, opponent_name=self.opponent_name
+        )
 
         msg = Message(
             content=rsp,
@@ -87,7 +91,9 @@ async def debate(idea: str, investment: float = 3.0, n_round: int = 5):
     team = Team()
     team.hire([Biden, Trump])
     team.invest(investment)
-    team.run_project(idea, send_to="Biden")  # send debate topic to Biden and let him speak first
+    team.run_project(
+        idea, send_to="Biden"
+    )  # send debate topic to Biden and let him speak first
     await team.run(n_round=n_round)
 
 
@@ -105,4 +111,6 @@ def main(idea: str, investment: float = 3.0, n_round: int = 10):
 
 
 if __name__ == "__main__":
-    fire.Fire(main) # run as python debate.py --idea="TOPIC" --investment=3.0 --n_round=5
+    fire.Fire(
+        main
+    )  # run as python debate.py --idea="TOPIC" --investment=3.0 --n_round=5
