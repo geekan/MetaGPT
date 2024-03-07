@@ -28,6 +28,7 @@ share/python-wheels/
 *.egg
 MANIFEST
 metagpt/tools/schemas/
+examples/data/search_kb/*.json
 
 # PyInstaller
 #  Usually these files are written by a python scripts from a template
