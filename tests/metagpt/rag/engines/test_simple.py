@@ -1,6 +1,6 @@
 import pytest
 from llama_index.core import VectorStoreIndex
-from llama_index.core.schema import TextNode
+from llama_index.core.schema import Document, TextNode
 
 from metagpt.rag.engines import SimpleEngine
 from metagpt.rag.retrievers.base import ModifiableRAGRetriever
@@ -37,7 +37,10 @@ class TestSimpleEngine:
         mock_get_response_synthesizer,
     ):
         # Mock
-        mock_simple_directory_reader.return_value.load_data.return_value = ["document1", "document2"]
+        mock_simple_directory_reader.return_value.load_data.return_value = [
+            Document(text="document1"),
+            Document(text="document2"),
+        ]
         mock_get_retriever.return_value = mocker.MagicMock()
         mock_get_rankers.return_value = [mocker.MagicMock()]
         mock_get_response_synthesizer.return_value = mocker.MagicMock()
@@ -116,7 +119,10 @@ class TestSimpleEngine:
     def test_add_docs(self, mocker):
         # Mock
         mock_simple_directory_reader = mocker.patch("metagpt.rag.engines.simple.SimpleDirectoryReader")
-        mock_simple_directory_reader.return_value.load_data.return_value = ["document1", "document2"]
+        mock_simple_directory_reader.return_value.load_data.return_value = [
+            Document(text="document1"),
+            Document(text="document2"),
+        ]
 
         mock_retriever = mocker.MagicMock(spec=ModifiableRAGRetriever)
 
