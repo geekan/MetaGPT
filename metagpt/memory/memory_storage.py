@@ -58,16 +58,14 @@ class MemoryStorage(object):
         self.faiss_engine.add_objs([message])
         logger.info(f"Role {self.role_id}'s memory_storage add a message")
 
-    async def search_dissimilar(self, message: Message, k=4) -> list[Message]:
-        """search for dissimilar messages"""
+    async def search_similar(self, message: Message, k=4) -> list[Message]:
+        """search for similar messages"""
         # filter the result which score is smaller than the threshold
         filtered_resp = []
         resp = await self.faiss_engine.aretrieve(message.content)
         for item in resp:
-            print(" item.score ", item.score, item)
             if item.score < self.threshold:
-                continue
-            filtered_resp.append(item.metadata.get("obj"))
+                filtered_resp.append(item.metadata.get("obj"))
         return filtered_resp
 
     def clean(self):
@@ -76,4 +74,4 @@ class MemoryStorage(object):
 
     def persit(self):
         if self.faiss_engine:
-            self.faiss_engine.index.storage_context.persist(self.cache_dir)
+            self.faiss_engine.retriever._index.storage_context.persist(self.cache_dir)
