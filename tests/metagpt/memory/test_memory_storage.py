@@ -61,13 +61,9 @@ async def test_idea_message(mocker):
 async def test_actionout_message(mocker):
     mocker.patch("llama_index.embeddings.openai.base.OpenAIEmbedding._get_text_embeddings", mock_openai_embed_documents)
     mocker.patch("llama_index.embeddings.openai.base.OpenAIEmbedding._get_text_embedding", mock_openai_embed_document)
-<<<<<<< HEAD
-    mocker.patch("llama_index.embeddings.openai.base.OpenAIEmbedding._aget_query_embedding", mock_openai_aembed_document)
-=======
     mocker.patch(
         "llama_index.embeddings.openai.base.OpenAIEmbedding._aget_query_embedding", mock_openai_aembed_document
     )
->>>>>>> c2a280d7 (fix)
 
     out_mapping = {"field1": (str, ...), "field2": (List[str], ...)}
     out_data = {"field1": "field1 value", "field2": ["field2 value1", "field2 value2"]}

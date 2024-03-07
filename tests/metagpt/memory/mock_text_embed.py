@@ -27,7 +27,6 @@ text_embed_arr = [
 text_idx_dict = {item["text"]: idx for idx, item in enumerate(text_embed_arr)}
 
 
-
 def mock_openai_embed_documents(self, texts: list[str], show_progress: bool = False) -> list[list[float]]:
     idx = text_idx_dict.get(texts[0])
     embed = text_embed_arr[idx].get("embed")

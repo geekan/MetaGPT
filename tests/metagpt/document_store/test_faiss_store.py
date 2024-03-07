@@ -6,11 +6,6 @@
 @File    : test_faiss_store.py
 """
 
-<<<<<<< HEAD
-from typing import Optional
-=======
->>>>>>> f14fee9b (memory_storage use rag_pipeline)
-
 import numpy as np
 import pytest
 
