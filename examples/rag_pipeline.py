@@ -19,15 +19,15 @@ QUESTION = "What are key qualities to be a good writer?"
 TRAVEL_DOC_PATH = EXAMPLE_DATA_PATH / "rag/travel.txt"
 TRAVEL_QUESTION = "What does Bob like?"
 
-LLM_TIP = "If you not sure, just answer I don't know"
+LLM_TIP = "If you not sure, just answer I don't know."
 
 
 class Player(BaseModel):
-    """To demonstrate rag add objs"""
+    """To demonstrate rag add objs."""
 
     name: str = ""
-    goal: str = "Win The 100-meter Sprint"
-    tool: str = "Red Bull Energy Drink"
+    goal: str = "Win The 100-meter Sprint."
+    tool: str = "Red Bull Energy Drink."
 
     def rag_key(self) -> str:
         """For search"""
@@ -108,7 +108,7 @@ class RAGExample:
         self._print_title("RAG Add Objs")
 
         player = Player(name="Mike")
-        question = f"{player.rag_key()}{LLM_TIP}"
+        question = f"{player.rag_key()}"
 
         print("[Before add objs]")
         await self._retrieve_and_print(question)

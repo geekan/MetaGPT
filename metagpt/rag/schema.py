@@ -5,7 +5,10 @@ from typing import Any, Union
 
 from llama_index.core.embeddings import BaseEmbedding
 from llama_index.core.indices.base import BaseIndex
+from llama_index.core.schema import TextNode
 from pydantic import BaseModel, ConfigDict, Field
+
+from metagpt.rag.interface import RAGObject
 
 
 class BaseRetrieverConfig(BaseModel):
@@ -84,3 +87,27 @@ class ChromaIndexConfig(VectorIndexConfig):
     """Config for chroma-based index."""
 
     collection_name: str = Field(default="metagpt", description="The name of the collection.")
+
+
+class ObjectNodeMetadata(BaseModel):
+    """Metadata of ObjectNode."""
+
+    is_obj: bool = Field(default=True)
+    obj_dict: dict = Field(..., description="Inplement rag.interface.RAGObject.model_dump(), e.g. obj.model_dump()")
+    obj_cls_name: str = Field(..., description="The class name of object, e.g. obj.__class__.__name__")
+    obj_mod_name: str = Field(..., description="The module name of class, e.g. obj.__class__.__module__")
+
+
+class ObjectNode(TextNode):
+    """RAG add object."""
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.excluded_llm_metadata_keys = list(ObjectNodeMetadata.model_fields.keys())
+
+    @staticmethod
+    def get_obj_metadata(obj: RAGObject) -> dict:
+        metadata = ObjectNodeMetadata(
+            obj_dict=obj.model_dump(), obj_cls_name=obj.__class__.__name__, obj_mod_name=obj.__class__.__module__
+        )
+        return metadata.model_dump()

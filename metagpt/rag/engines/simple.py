@@ -22,7 +22,6 @@ from llama_index.core.schema import (
     NodeWithScore,
     QueryBundle,
     QueryType,
-    TextNode,
     TransformComponent,
 )
 
@@ -35,7 +34,12 @@ from metagpt.rag.factories import (
 )
 from metagpt.rag.interface import RAGObject
 from metagpt.rag.retrievers.base import ModifiableRAGRetriever
-from metagpt.rag.schema import BaseIndexConfig, BaseRankerConfig, BaseRetrieverConfig
+from metagpt.rag.schema import (
+    BaseIndexConfig,
+    BaseRankerConfig,
+    BaseRetrieverConfig,
+    ObjectNode,
+)
 from metagpt.utils.common import import_class
 
 
@@ -149,17 +153,8 @@ class SimpleEngine(RetrieverQueryEngine):
         """Adds objects to the retriever, storing each object's original form in metadata for future reference."""
         self._ensure_retriever_modifiable()
 
-        nodes = [TextNode(text=obj.rag_key(), metadata=self._get_obj_metadata(obj)) for obj in objs]
+        nodes = [ObjectNode(text=obj.rag_key(), metadata=ObjectNode.get_obj_metadata(obj)) for obj in objs]
         self._save_nodes(nodes)
-
-    def _get_obj_metadata(self, obj: RAGObject) -> dict:
-        metadata = {
-            "is_obj": True,
-            "obj_dict": obj.model_dump(),
-            "obj_cls_name": obj.__class__.__name__,
-            "obj_mod_name": obj.__class__.__module__,
-        }
-        return metadata
 
     def _ensure_retriever_modifiable(self):
         if not isinstance(self.retriever, ModifiableRAGRetriever):
