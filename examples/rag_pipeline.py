@@ -121,6 +121,16 @@ class RAGExample:
         player: Player = nodes[0].metadata["obj"]
         print(player.name)
 
+    async def rag_ini_objs(self):
+        """This example show how to from objs, will print something like:
+
+        Same as rag_add_objs
+        """
+        pre_engine = self.engine
+        self.engine = SimpleEngine.from_objs(retriever_configs=[FAISSRetrieverConfig()])
+        await self.rag_add_objs()
+        self.engine = pre_engine
+
     async def rag_chromadb(self):
         """This example show how to use chromadb. how to save and load index. will print something like:
 
@@ -174,6 +184,7 @@ async def main():
     await e.rag_pipeline()
     await e.rag_add_docs()
     await e.rag_add_objs()
+    await e.rag_ini_objs()
     await e.rag_chromadb()
 
 
