@@ -8,6 +8,8 @@ import shutil
 from pathlib import Path
 from typing import List
 
+import pytest
+
 from metagpt.actions import UserRequirement, WritePRD
 from metagpt.actions.action_node import ActionNode
 from metagpt.const import DATA_PATH
@@ -19,7 +21,8 @@ from tests.metagpt.memory.mock_text_embed import (
 )
 
 
-def test_idea_message(mocker):
+@pytest.mark.asyncio
+async def test_idea_message(mocker):
     mocker.patch("langchain_community.embeddings.openai.OpenAIEmbeddings.embed_documents", mock_openai_embed_documents)
 
     idea = text_embed_arr[0].get("text", "Write a cli snake game")
@@ -29,27 +32,27 @@ def test_idea_message(mocker):
     shutil.rmtree(Path(DATA_PATH / f"role_mem/{role_id}/"), ignore_errors=True)
 
     memory_storage: MemoryStorage = MemoryStorage()
-    messages = memory_storage.recover_memory(role_id)
-    assert len(messages) == 0
+    memory_storage.recover_memory(role_id)
 
     memory_storage.add(message)
     assert memory_storage.is_initialized is True
 
     sim_idea = text_embed_arr[1].get("text", "Write a game of cli snake")
     sim_message = Message(role="User", content=sim_idea, cause_by=UserRequirement)
-    new_messages = memory_storage.search_dissimilar(sim_message)
+    new_messages = await memory_storage.search_dissimilar(sim_message)
     assert len(new_messages) == 0  # similar, return []
 
     new_idea = text_embed_arr[2].get("text", "Write a 2048 web game")
     new_message = Message(role="User", content=new_idea, cause_by=UserRequirement)
-    new_messages = memory_storage.search_dissimilar(new_message)
+    new_messages = await memory_storage.search_dissimilar(new_message)
     assert new_messages[0].content == message.content
 
     memory_storage.clean()
     assert memory_storage.is_initialized is False
 
 
-def test_actionout_message(mocker):
+@pytest.mark.asyncio
+async def test_actionout_message(mocker):
     mocker.patch("langchain_community.embeddings.openai.OpenAIEmbeddings.embed_documents", mock_openai_embed_documents)
 
     out_mapping = {"field1": (str, ...), "field2": (List[str], ...)}
@@ -67,22 +70,21 @@ def test_actionout_message(mocker):
     shutil.rmtree(Path(DATA_PATH / f"role_mem/{role_id}/"), ignore_errors=True)
 
     memory_storage: MemoryStorage = MemoryStorage()
-    messages = memory_storage.recover_memory(role_id)
-    assert len(messages) == 0
+    memory_storage.recover_memory(role_id)
 
     memory_storage.add(message)
     assert memory_storage.is_initialized is True
 
     sim_conent = text_embed_arr[5].get("text", "The request is command-line interface (CLI) snake game")
     sim_message = Message(content=sim_conent, instruct_content=ic_obj(**out_data), role="user", cause_by=WritePRD)
-    new_messages = memory_storage.search_dissimilar(sim_message)
+    new_messages = await memory_storage.search_dissimilar(sim_message)
     assert len(new_messages) == 0  # similar, return []
 
     new_conent = text_embed_arr[6].get(
         "text", "Incorporate basic features of a snake game such as scoring and increasing difficulty"
     )
     new_message = Message(content=new_conent, instruct_content=ic_obj(**out_data), role="user", cause_by=WritePRD)
-    new_messages = memory_storage.search_dissimilar(new_message)
+    new_messages = await memory_storage.search_dissimilar(new_message)
     assert new_messages[0].content == message.content
 
     memory_storage.clean()
