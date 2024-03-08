@@ -14,9 +14,6 @@ llama-index-core==0.10.15
 llama-index-embeddings-azure-openai==0.1.6
 llama-index-embeddings-openai==0.1.5
 llama-index-llms-azure-openai==0.1.4
-llama-index-llms-gemini==0.1.4
-llama-index-llms-ollama==0.1.2
-llama-index-llms-openai==0.1.5
 llama-index-readers-file==0.1.4
 llama-index-retrievers-bm25==0.1.3
 llama-index-vector-stores-faiss==0.1.1

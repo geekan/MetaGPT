@@ -1,7 +1,4 @@
-"""RAG LLM Factory.
-
-The LLM of LlamaIndex and the LLM of MG are not the same. 
-"""
+"""RAG Embedding Factory."""
 from llama_index.core.embeddings import BaseEmbedding
 from llama_index.embeddings.azure_openai import AzureOpenAIEmbedding
 from llama_index.embeddings.openai import OpenAIEmbedding
@@ -12,7 +9,7 @@ from metagpt.rag.factories.base import GenericFactory
 
 
 class RAGEmbeddingFactory(GenericFactory):
-    """Create LlamaIndex LLM with MG config."""
+    """Create LlamaIndex Embedding with MetaGPT's config."""
 
     def __init__(self):
         creators = {
