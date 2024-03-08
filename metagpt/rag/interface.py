@@ -1,4 +1,5 @@
 """RAG Interfaces."""
+
 from typing import Any, Protocol
 
 

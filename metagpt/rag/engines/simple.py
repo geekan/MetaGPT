@@ -1,6 +1,5 @@
 """Simple Engine."""
 
-
 from typing import Optional
 
 from llama_index.core import SimpleDirectoryReader, VectorStoreIndex

@@ -1,4 +1,5 @@
 """BM25 retriever."""
+
 from llama_index.core.schema import BaseNode
 from llama_index.retrievers.bm25 import BM25Retriever
 from rank_bm25 import BM25Okapi

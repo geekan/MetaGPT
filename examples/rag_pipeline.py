@@ -1,4 +1,5 @@
 """RAG pipeline"""
+
 import asyncio
 
 from pydantic import BaseModel

@@ -1,4 +1,5 @@
 """RAG LLM."""
+
 from typing import Any
 
 from llama_index.core.llms import (

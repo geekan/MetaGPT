@@ -1,6 +1,5 @@
 """Base retriever."""
 
-
 from abc import abstractmethod
 
 from llama_index.core.retrievers import BaseRetriever

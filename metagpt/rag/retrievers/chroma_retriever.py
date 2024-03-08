@@ -1,10 +1,11 @@
 """Chroma retriever."""
+
 from llama_index.core.retrievers import VectorIndexRetriever
 from llama_index.core.schema import BaseNode
 
 
 class ChromaRetriever(VectorIndexRetriever):
-    """FAISS retriever."""
+    """Chroma retriever."""
 
     def add_nodes(self, nodes: list[BaseNode], **kwargs):
         """Support add nodes"""

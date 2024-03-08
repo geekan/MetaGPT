@@ -1,4 +1,5 @@
 """Base Factory."""
+
 from typing import Any, Callable
 
 

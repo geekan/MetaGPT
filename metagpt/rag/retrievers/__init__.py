@@ -1,4 +1,4 @@
-"""Retrievers init"""
+"""Retrievers init."""
 
 from metagpt.rag.retrievers.hybrid_retriever import SimpleHybridRetriever
 

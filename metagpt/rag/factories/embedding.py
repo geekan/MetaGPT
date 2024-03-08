@@ -1,4 +1,5 @@
 """RAG Embedding Factory."""
+
 from llama_index.core.embeddings import BaseEmbedding
 from llama_index.embeddings.azure_openai import AzureOpenAIEmbedding
 from llama_index.embeddings.openai import OpenAIEmbedding
