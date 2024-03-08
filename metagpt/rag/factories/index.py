@@ -36,8 +36,8 @@ class RAGIndexFactory(ConfigFactory):
     def _create_chroma(self, config: ChromaIndexConfig, **kwargs) -> VectorStoreIndex:
         embed_model = self.extract_embed_model(config, **kwargs)
 
-        db2 = chromadb.PersistentClient(str(config.persist_path))
-        chroma_collection = db2.get_or_create_collection(config.collection_name)
+        db = chromadb.PersistentClient(str(config.persist_path))
+        chroma_collection = db.get_or_create_collection(config.collection_name)
         vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
         index = VectorStoreIndex.from_vector_store(
             vector_store,

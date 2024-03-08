@@ -1,11 +1,9 @@
-"""
-class tools, including method inspection, class attributes, inheritance relationships, etc.
-"""
+"""class tools, including method inspection, class attributes, inheritance relationships, etc."""
 
 
 def check_methods(C, *methods):
-    """
-    Check if the class has methods. borrow from _collections_abc.
+    """Check if the class has methods. borrow from _collections_abc.
+
     Useful when implementing implicit interfaces, such as defining an abstract class, isinstance can be used for determination without inheritance.
     """
     mro = C.__mro__

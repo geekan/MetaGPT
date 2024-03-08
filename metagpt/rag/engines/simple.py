@@ -170,6 +170,7 @@ class SimpleEngine(RetrieverQueryEngine):
 
         documents = SimpleDirectoryReader(input_files=input_files).load_data()
         self._fix_document_metadata(documents)
+
         nodes = run_transformations(documents, transformations=self.index._transformations)
         self._save_nodes(nodes)
 
@@ -220,11 +221,6 @@ class SimpleEngine(RetrieverQueryEngine):
 
     @staticmethod
     def _fix_document_metadata(documents: list[Document]):
-        """LlamaIndex bug, maybe deleted in the near future.
-
-        Metadata in doc has `file_path`, but excluded_embed_metadata_keys is missing.
-        """
+        """LlamaIndex keep metadata['file_path'], which is unnecessary, maybe deleted in the near future."""
         for doc in documents:
-            keys_set = set(doc.excluded_embed_metadata_keys)
-            keys_set.add("file_path")
-            doc.excluded_embed_metadata_keys = list(keys_set)
+            doc.excluded_embed_metadata_keys.append("file_path")

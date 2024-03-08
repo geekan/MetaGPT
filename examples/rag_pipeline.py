@@ -92,7 +92,7 @@ class RAGExample:
         self.engine.add_docs([travel_filepath])
         await self.rag_pipeline(question=travel_question, print_title=False)
 
-    async def rag_add_objs(self):
+    async def rag_add_objs(self, print_title=True):
         """This example show how to add objs, before add docs engine retrieve nothing, after add objs engine give the correct answer, will print something like:
         [Before add objs]
         Retrieve Result:
@@ -104,8 +104,8 @@ class RAGExample:
         [Object Detail]
         {'name': 'Mike', 'goal': 'Win The 100-meter Sprint', 'tool': 'Red Bull Energy Drink'}
         """
-
-        self._print_title("RAG Add Objs")
+        if print_title:
+            self._print_title("RAG Add Objs")
 
         player = Player(name="Mike")
         question = f"{player.rag_key()}"
@@ -118,17 +118,22 @@ class RAGExample:
         nodes = await self._retrieve_and_print(question)
 
         print("[Object Detail]")
-        player: Player = nodes[0].metadata["obj"]
-        print(player.name)
+        try:
+            player: Player = nodes[0].metadata["obj"]
+            print(player.name)
+        except Exception as e:
+            print(f"ERROR: nodes is empty, llm don't answer correctly, exception: {e}")
 
     async def rag_ini_objs(self):
         """This example show how to from objs, will print something like:
 
         Same as rag_add_objs
         """
+        self._print_title("RAG Ini Objs")
+
         pre_engine = self.engine
         self.engine = SimpleEngine.from_objs(retriever_configs=[FAISSRetrieverConfig()])
-        await self.rag_add_objs()
+        await self.rag_add_objs(print_title=False)
         self.engine = pre_engine
 
     async def rag_chromadb(self):
