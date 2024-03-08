@@ -76,7 +76,7 @@ class RebuildClassView(Action):
         path = self.context.git_repo.workdir / DATA_API_DESIGN_FILE_REPO
         path.mkdir(parents=True, exist_ok=True)
         pathname = path / self.context.git_repo.workdir.name
-        filename = str(pathname.with_suffix(".mmd"))
+        filename = str(pathname.with_suffix(".class_diagram.mmd"))
         async with aiofiles.open(filename, mode="w", encoding="utf-8") as writer:
             content = "classDiagram\n"
             logger.debug(content)
