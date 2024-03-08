@@ -33,6 +33,10 @@ class ReviewConst:
         "**Notice: The starting word in your suggestions must be one of the following:"
         f"{CHANGE_WORDS[0]}, {CONTINUE_WORDS[0]}, {GOAL_FINISHED_WORDS[0]}, {REDO_WORDS[0]} **"
     ).replace("type", "return")
+    ASK_HUMAN_FOR_HELP = (
+        "The task code execution failed, we need your help, please provide new solution ideas,"
+        f"or type {EXIT_WORDS[0]} to terminate the code"
+    )
 
 
 class AskReview(Action):
@@ -41,7 +45,7 @@ class AskReview(Action):
         context: list[Message] = [],
         plan: Plan = None,
         trigger: str = ReviewConst.TASK_REVIEW_TRIGGER,
-        review_type: Literal["human", "llm", "confirm_all"] = "human",
+        review_type: Literal["human", "llm", "disabled"] = "llm",
     ) -> Tuple[str, bool]:
         if plan:
             logger.info("Current overall plan:")
@@ -77,6 +81,10 @@ class AskReview(Action):
             rsp = "confirm"
 
         if rsp.lower() in ReviewConst.EXIT_WORDS:
+            exit()
+
+        if rsp.lower() in ReviewConst.GOAL_FINISHED_WORDS:
+            plan.finished_all_tasks()
             exit()
 
         # Confirmation can be one of "confirm", "continue", "c", "yes", "y" exactly, or sentences containing "confirm".

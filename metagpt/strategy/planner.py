@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -51,7 +52,8 @@ class Planner(BaseModel):
     working_memory: Memory = Field(
         default_factory=Memory
     )  # memory for working on each task, discarded each time a task is done
-    auto_run: bool = False
+    review_type: Literal["human", "llm", "disabled"] = ("llm",)
+    use_tools: bool = False
 
     def __init__(self, goal: str = "", plan: Plan = None, **kwargs):
         plan = plan or Plan(goal=goal)
@@ -84,7 +86,9 @@ class Planner(BaseModel):
                 max_retries -= 1
                 continue
 
-            _, plan_confirmed = await self.ask_review(trigger=ReviewConst.TASK_REVIEW_TRIGGER)
+            _, plan_confirmed = await self.ask_review(
+                review_type=self.review_type, trigger=ReviewConst.TASK_REVIEW_TRIGGER
+            )
 
         update_plan_from_rsp(rsp=rsp, current_plan=self.plan)
 
@@ -92,7 +96,7 @@ class Planner(BaseModel):
 
     async def process_task_result(self, task_result: TaskResult):
         # ask for acceptance, users can other refuse and change tasks in the plan
-        review, task_result_confirmed = await self.ask_review(task_result)
+        review, task_result_confirmed = await self.ask_review(task_result, review_type=self.review_type)
 
         if task_result_confirmed:
             # tick off this task and record progress
@@ -110,7 +114,7 @@ class Planner(BaseModel):
     async def ask_review(
         self,
         task_result: TaskResult = None,
-        auto_run: bool = None,
+        review_type: Literal["human", "llm", "disabled"] = "llm",
         trigger: str = ReviewConst.TASK_REVIEW_TRIGGER,
         review_context_len: int = 5,
     ):
@@ -119,37 +123,26 @@ class Planner(BaseModel):
         If human confirms the task result, then we deem the task completed, regardless of whether the code run succeeds;
         if auto mode, then the code run has to succeed for the task to be considered completed.
         """
-        auto_run = auto_run or self.auto_run
-        context = self.get_useful_memories()
-        if not auto_run:
-            review, confirmed = await AskReview().run(
-                context=context[-review_context_len:], plan=self.plan, trigger=trigger
+        context = self.get_useful_memories()[-review_context_len:]
+        if task_result:
+            code_review_msg = (
+                f"Code execution results are: {task_result.result}, code execution is_success: {task_result.is_success}"
+                "If the code was executed successfully. Please review the code and execution results to evaluate"
+                "whether the task was completed."
+                "If the code execution failed. Please reflect on the reason for the failure based on the above content"
+                "and try another method to generate new code."
             )
-        else:
-            confirmed = task_result.is_success if task_result else True
-            review_type = "llm" if task_result else "confirm_all"
+            context += [Message(code_review_msg)]
+            trigger = ReviewConst.CODE_REVIEW_TRIGGER
 
-            if confirmed and task_result and task_result.code:
-                review_msg = (
-                    "The code was executed successfully. Please review the code and execution results to evaluate"
-                    f"execution results are: {task_result.result}"
-                    "whether the task was completed."
-                )
-            elif not confirmed and task_result and task_result.code:
-                review_msg = (
-                    "The code execution failed. Please reflect on the reason for the failure based on the above content"
-                    f"execution results are: {task_result.result}"
-                    "and try another method to generate new code."
-                )
-            else:
-                review_msg = "Pleas review above content."
-
-            review, confirmed = await AskReview().run(
-                context=context[-review_context_len:] + [Message(review_msg)],
-                plan=self.plan,
-                trigger=trigger,
-                review_type=review_type,
-            )
+        review, confirmed = await AskReview().run(
+            context=context,
+            plan=self.plan,
+            trigger=trigger,
+            review_type=review_type
+            if task_result
+            else "disabled",  # llm模式下, 不对plan进行review, 只有在plan review时task_result为None.
+        )
 
         if not confirmed:
             self.working_memory.add(Message(content=review, role="user", cause_by=AskReview))

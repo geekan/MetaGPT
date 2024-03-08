@@ -523,6 +523,15 @@ class Plan(BaseModel):
         """
         return [task for task in self.tasks if task.is_finished]
 
+    def finished_all_tasks(self):
+        """Finish all tasks, set Task.is_finished=True, set current task to last task"""
+        tasks: list[Task] = []
+        for task in self.tasks:
+            task.is_finished = True
+            tasks.append(task)
+        self.tasks = tasks
+        self.current_task_id = tasks[-1].task_id
+
 
 class MessageQueue(BaseModel):
     """Message queue which supports asynchronous updates."""
