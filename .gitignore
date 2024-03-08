@@ -175,7 +175,6 @@ output
 tmp.png
 .dependencies.json
 tests/metagpt/utils/file_repo_git
-tests/data/rsp_cache.json
 tests/data/rsp_cache_new.json
 *.tmp
 *.png

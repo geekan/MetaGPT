@@ -3,9 +3,8 @@
 from abc import abstractmethod
 from typing import Optional
 
-from llama_index import QueryBundle
 from llama_index.core.postprocessor.types import BaseNodePostprocessor
-from llama_index.core.schema import NodeWithScore
+from llama_index.core.schema import NodeWithScore, QueryBundle
 
 
 class RAGRanker(BaseNodePostprocessor):
