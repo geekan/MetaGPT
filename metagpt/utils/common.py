@@ -29,6 +29,7 @@ from pathlib import Path
 from typing import Any, Callable, List, Tuple, Union
 
 import aiofiles
+import chardet
 import loguru
 import requests
 from PIL import Image
@@ -587,14 +588,21 @@ def role_raise_decorator(func):
 
 
 @handle_exception
-async def aread(filename: str | Path, encoding=None) -> str:
+async def aread(filename: str | Path, encoding="utf-8") -> str:
     """Read file asynchronously."""
-    async with aiofiles.open(str(filename), mode="r", encoding=encoding) as reader:
-        content = await reader.read()
+    try:
+        async with aiofiles.open(str(filename), mode="r", encoding=encoding) as reader:
+            content = await reader.read()
+    except UnicodeDecodeError:
+        async with aiofiles.open(str(filename), mode="rb") as reader:
+            raw = await reader.read()
+            result = chardet.detect(raw)
+            detected_encoding = result["encoding"]
+            content = raw.decode(detected_encoding)
     return content
 
 
-async def awrite(filename: str | Path, data: str, encoding=None):
+async def awrite(filename: str | Path, data: str, encoding="utf-8"):
     """Write file asynchronously."""
     pathname = Path(filename)
     pathname.parent.mkdir(parents=True, exist_ok=True)
