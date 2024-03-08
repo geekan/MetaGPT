@@ -43,6 +43,6 @@ class RAGLLM(CustomLLM):
         ...
 
 
-def get_rag_llm(model_infer: BaseLLM = None):
+def get_rag_llm(model_infer: BaseLLM = None) -> RAGLLM:
     """Get llm that can be used by LlamaIndex."""
     return RAGLLM(model_infer=model_infer or LLM())
