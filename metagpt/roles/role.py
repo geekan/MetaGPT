@@ -503,6 +503,9 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
 
         self.rc.memory.add(rsp)  # add to persistent memory
 
+        if hasattr(self, "execute_code") and hasattr(self.execute_code, "terminate"):
+            await self.execute_code.terminate()
+
         return rsp
 
     async def _act_on_task(self, current_task: Task) -> TaskResult:
