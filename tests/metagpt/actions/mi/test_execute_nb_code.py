@@ -104,6 +104,15 @@ async def test_terminate():
 
     time.sleep(2)
     assert executor.nb_client.km is None
+    for _ in range(200):
+        executor = ExecuteNbCode()
+        await executor.run(code='print("This is a code!")', language="python")
+        is_kernel_alive = await executor.nb_client.km.is_alive()
+        assert is_kernel_alive
+        await executor.terminate()
+        assert executor.nb_client.km is None
+        assert executor.nb_client.kc is None
+    await executor.terminate()
 
 
 @pytest.mark.asyncio
