@@ -156,11 +156,16 @@ class Interpreter(Role):
         return code, todo
 
     async def _check_data(self):
-        if not self.use_plan or self.planner.plan.current_task.task_type not in [
-            TaskType.DATA_PREPROCESS.type_name,
-            TaskType.FEATURE_ENGINEERING.type_name,
-            TaskType.MODEL_TRAIN.type_name,
-        ]:
+        if (
+            not self.use_plan
+            or not self.planner.plan.get_finished_tasks()
+            or self.planner.plan.current_task.task_type
+            not in [
+                TaskType.DATA_PREPROCESS.type_name,
+                TaskType.FEATURE_ENGINEERING.type_name,
+                TaskType.MODEL_TRAIN.type_name,
+            ]
+        ):
             return
         logger.info("Check updated data")
         code = await CheckData().run(self.planner.plan)

@@ -174,9 +174,10 @@ class BM25ToolRecommender(ToolRecommender):
         doc_scores = self.bm25.get_scores(query_tokens)
         top_indexes = np.argsort(doc_scores)[::-1][:topk]
         recalled_tools = [list(self.tools.values())[index] for index in top_indexes]
-        print([doc_scores[index] for index in top_indexes])
-        print([recalled_tools[i].name for i in range(len(recalled_tools))])
-        print([recalled_tools[i].schemas["description"] for i in range(len(recalled_tools))])
+
+        logger.info(
+            f"Recalled tools: \n{[tool.name for tool in recalled_tools]}; Scores: {[doc_scores[index] for index in top_indexes]}"
+        )
 
         return recalled_tools
 

@@ -134,7 +134,7 @@ def validate_tool_names(tools: Union[list[str], str]) -> str:
         # one can define either tool names or tool type names, take union to get the whole set
         if TOOL_REGISTRY.has_tool(key):
             valid_tools.update({key: TOOL_REGISTRY.get_tool(key)})
-        elif TOOL_REGISTRY.tool_tool_tag(key):
+        elif TOOL_REGISTRY.has_tool_tag(key):
             valid_tools.update(TOOL_REGISTRY.get_tools_by_tag(key))
         else:
             logger.warning(f"invalid tool name or tool type name: {key}, skipped")

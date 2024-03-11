@@ -23,9 +23,15 @@ def mock_plan(mocker):
     return plan
 
 
+@pytest.fixture
+def mock_bm25_tr(mocker):
+    tr = BM25ToolRecommender(tools=["FillMissingValue", "PolynomialExpansion", "web scraping"])
+    return tr
+
+
 def test_tr_init():
-    tr = ToolRecommender(tools=["FillMissingValue", "PolynomialExpansion", "web_scraping", "non-existing tool"])
-    # web_scraping is a tool type, it has one tool scrape_web_playwright
+    tr = ToolRecommender(tools=["FillMissingValue", "PolynomialExpansion", "web scraping", "non-existing tool"])
+    # web_scraping is a tool tag, it has one tool scrape_web_playwright
     assert list(tr.tools.keys()) == [
         "FillMissingValue",
         "PolynomialExpansion",
@@ -39,28 +45,34 @@ def test_tr_init_default_tools_value():
 
 
 def test_tr_init_tools_all():
-    tr = ToolRecommender(tools="<all>")
+    tr = ToolRecommender(tools=["<all>"])
     assert list(tr.tools.keys()) == list(TOOL_REGISTRY.get_all_tools().keys())
 
 
 @pytest.mark.asyncio
-async def test_tr_recall_with_plan(mock_plan):
-    tr = ToolRecommender(
-        tools=[
-            "FillMissingValue",
-            "PolynomialExpansion",
-            "web_scraping",
-        ]
-    )
-    result = await tr.recall_tools(plan=mock_plan)
-    assert len(result) == 1
+async def test_bm25_tr_recall_with_plan(mock_plan, mock_bm25_tr):
+    result = await mock_bm25_tr.recall_tools(plan=mock_plan)
+    assert len(result) == 3
     assert result[0].name == "PolynomialExpansion"
 
 
 @pytest.mark.asyncio
-async def test_bm25_tr_recall(mock_plan):
-    tr = BM25ToolRecommender(tools=["FillMissingValue", "PolynomialExpansion", "web_scraping"])
-    result = await tr.recall_tools(plan=mock_plan)
-    # print(result)
+async def test_bm25_tr_recall_no_plan(mock_plan, mock_bm25_tr):
+    result = await mock_bm25_tr.recall_tools(
+        context="conduct feature engineering, add new features on the dataset", plan=None
+    )
     assert len(result) == 3
     assert result[0].name == "PolynomialExpansion"
+
+
+@pytest.mark.asyncio
+async def test_bm25_recommend_tools(mock_bm25_tr):
+    result = await mock_bm25_tr.recommend_tools(context="conduct feature engineering, add new features on the dataset")
+    assert len(result) == 2  # web scraping tool should be filtered out at rank stage
+    assert result[0].name == "PolynomialExpansion"
+
+
+@pytest.mark.asyncio
+async def test_get_recommended_tool_info(mock_plan, mock_bm25_tr):
+    result = await mock_bm25_tr.get_recommended_tool_info(plan=mock_plan)
+    assert isinstance(result, str)
