@@ -9,7 +9,6 @@ from __future__ import annotations
 import asyncio
 import base64
 import re
-import traceback
 from typing import Literal, Tuple
 
 import nbformat
@@ -92,17 +91,17 @@ class ExecuteNbCode(Action):
         else:
             cell["outputs"].append(new_output(output_type="stream", name="stdout", text=str(output)))
 
-    def parse_outputs(self, outputs: list[str]) -> str:
+    def parse_outputs(self, outputs: list[str], keep_len: int = 2000) -> Tuple[bool, str]:
         """Parses the outputs received from notebook execution."""
         assert isinstance(outputs, list)
-        parsed_output = ""
-
+        parsed_output, is_success = [], True
         for i, output in enumerate(outputs):
+            is_success = "traceback" not in output.keys()
             if output["output_type"] == "stream" and not any(
                 tag in output["text"]
                 for tag in ["| INFO     | metagpt", "| ERROR    | metagpt", "| WARNING  | metagpt", "DEBUG"]
             ):
-                parsed_output += output["text"]
+                ioutput, is_success = truncate(remove_escape_and_color_codes(output["text"]), keep_len, is_success)
             elif output["output_type"] == "display_data":
                 if "image/png" in output["data"]:
                     self.show_bytes_figure(output["data"]["image/png"], self.interaction)
@@ -110,9 +109,15 @@ class ExecuteNbCode(Action):
                     logger.info(
                         f"{i}th output['data'] from nbclient outputs dont have image/png, continue next output ..."
                     )
+                ioutput, is_success = "", True
             elif output["output_type"] == "execute_result":
-                parsed_output += output["data"]["text/plain"]
-        return parsed_output
+                no_escape_color_output = remove_escape_and_color_codes(output["data"]["text/plain"])
+                ioutput, is_success = truncate(no_escape_color_output, keep_len, is_success)
+            elif output["output_type"] == "error":
+                no_escape_color_output = remove_escape_and_color_codes("\n".join(output["traceback"]))
+                ioutput, is_success = truncate(no_escape_color_output, keep_len, is_success)
+            parsed_output.append(ioutput)
+        return is_success, ",".join(parsed_output)
 
     def show_bytes_figure(self, image_base64: str, interaction_type: Literal["ipython", None]):
         image_bytes = base64.b64decode(image_base64)
@@ -157,7 +162,7 @@ class ExecuteNbCode(Action):
             await self.reset()
             return False, "DeadKernelError"
         except Exception:
-            return False, f"{traceback.format_exc()}"
+            return False, ""
 
     async def run(self, code: str, language: Literal["python", "markdown"] = "python") -> Tuple[str, bool]:
         """
@@ -175,13 +180,9 @@ class ExecuteNbCode(Action):
             # run code
             cell_index = len(self.nb.cells) - 1
             success, error_message = await self.run_cell(self.nb.cells[-1], cell_index)
-
-            if not success:
-                return truncate(remove_escape_and_color_codes(error_message), is_success=success)
-
-            # code success
-            outputs = self.parse_outputs(self.nb.cells[-1].outputs)
-            outputs, success = truncate(remove_escape_and_color_codes(outputs), is_success=success)
+            success, outputs = self.parse_outputs(self.nb.cells[-1].outputs)
+            if error_message:
+                outputs = error_message + outputs
 
             if "!pip" in code:
                 success = False

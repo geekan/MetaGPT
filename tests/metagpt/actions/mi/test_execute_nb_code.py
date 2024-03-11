@@ -100,6 +100,7 @@ async def test_terminate():
     is_kernel_alive = await executor.nb_client.km.is_alive()
     assert is_kernel_alive
     await executor.terminate()
+
     import time
 
     time.sleep(2)
@@ -123,3 +124,19 @@ async def test_reset():
     assert is_kernel_alive
     await executor.reset()
     assert executor.nb_client.km is None
+
+
+@pytest.mark.asyncio
+async def test_parse_outputs():
+    executor = ExecuteNbCode()
+    code = """
+    import pandas as pd
+    df = pd.DataFrame({'ID': [1,2,3], 'NAME': ['a', 'b', 'c']})
+    print(df.columns)
+    print(df['DUMMPY_ID'])
+    """
+    output, is_success = await executor.run(code)
+    assert not is_success
+    assert "Index(['ID', 'NAME'], dtype='object')" in output
+    assert "Executed code failed," in output
+    assert "KeyError: 'DUMMPY_ID'" in output
