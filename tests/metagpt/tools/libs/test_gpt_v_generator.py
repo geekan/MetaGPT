@@ -63,6 +63,9 @@ async def test_save_webpages_with_styles_and_scripts(mock_webpage_filename_with_
     webpages_dir = generator.save_webpages(webpages=webpages, save_folder_name="test_1")
     logs.logger.info(webpages_dir)
     assert webpages_dir.exists()
+    assert (webpages_dir / "index.html").exists()
+    assert (webpages_dir / "styles.css").exists()
+    assert (webpages_dir / "scripts.js").exists()
 
 
 @pytest.mark.asyncio
@@ -72,6 +75,9 @@ async def test_save_webpages_with_style_and_script(mock_webpage_filename_with_st
     webpages_dir = generator.save_webpages(webpages=webpages, save_folder_name="test_2")
     logs.logger.info(webpages_dir)
     assert webpages_dir.exists()
+    assert (webpages_dir / "index.html").exists()
+    assert (webpages_dir / "style.css").exists()
+    assert (webpages_dir / "script.js").exists()
 
 
 @pytest.mark.asyncio
