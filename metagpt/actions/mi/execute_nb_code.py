@@ -96,7 +96,6 @@ class ExecuteNbCode(Action):
         assert isinstance(outputs, list)
         parsed_output, is_success = [], True
         for i, output in enumerate(outputs):
-            is_success = "traceback" not in output.keys()
             if output["output_type"] == "stream" and not any(
                 tag in output["text"]
                 for tag in ["| INFO     | metagpt", "| ERROR    | metagpt", "| WARNING  | metagpt", "DEBUG"]
