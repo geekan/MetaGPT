@@ -9,7 +9,6 @@ from __future__ import annotations
 import asyncio
 import base64
 import re
-import traceback
 from typing import Literal, Tuple
 
 import nbformat
@@ -92,17 +91,17 @@ class ExecuteNbCode(Action):
         else:
             cell["outputs"].append(new_output(output_type="stream", name="stdout", text=str(output)))
 
-    def parse_outputs(self, outputs: list[str]) -> str:
+    def parse_outputs(self, outputs: list[str], keep_len: int = 2000) -> Tuple[bool, str]:
         """Parses the outputs received from notebook execution."""
         assert isinstance(outputs, list)
-        parsed_output = ""
-
+        parsed_output, is_success = [], True
         for i, output in enumerate(outputs):
+            output_text = ""
             if output["output_type"] == "stream" and not any(
                 tag in output["text"]
                 for tag in ["| INFO     | metagpt", "| ERROR    | metagpt", "| WARNING  | metagpt", "DEBUG"]
             ):
-                parsed_output += output["text"]
+                output_text = output["text"]
             elif output["output_type"] == "display_data":
                 if "image/png" in output["data"]:
                     self.show_bytes_figure(output["data"]["image/png"], self.interaction)
@@ -111,8 +110,22 @@ class ExecuteNbCode(Action):
                         f"{i}th output['data'] from nbclient outputs dont have image/png, continue next output ..."
                     )
             elif output["output_type"] == "execute_result":
-                parsed_output += output["data"]["text/plain"]
-        return parsed_output
+                output_text = output["data"]["text/plain"]
+            elif output["output_type"] == "error":
+                output_text, is_success = "\n".join(output["traceback"]), False
+
+            # handle coroutines that are not executed asynchronously
+            if output_text.strip().startswith("<coroutine object"):
+                output_text = "Executed code failed, you need use key word 'await' to run a async code."
+                is_success = False
+
+            output_text = remove_escape_and_color_codes(output_text)
+            # The useful information of the exception is at the end,
+            # the useful information of normal output is at the begining.
+            output_text = output_text[:keep_len] if is_success else output_text[-keep_len:]
+
+            parsed_output.append(output_text)
+        return is_success, ",".join(parsed_output)
 
     def show_bytes_figure(self, image_base64: str, interaction_type: Literal["ipython", None]):
         image_bytes = base64.b64decode(image_base64)
@@ -146,7 +159,7 @@ class ExecuteNbCode(Action):
         """
         try:
             await self.nb_client.async_execute_cell(cell, cell_index)
-            return True, ""
+            return self.parse_outputs(self.nb.cells[-1].outputs)
         except CellTimeoutError:
             assert self.nb_client.km is not None
             await self.nb_client.km.interrupt_kernel()
@@ -157,7 +170,7 @@ class ExecuteNbCode(Action):
             await self.reset()
             return False, "DeadKernelError"
         except Exception:
-            return False, f"{traceback.format_exc()}"
+            return self.parse_outputs(self.nb.cells[-1].outputs)
 
     async def run(self, code: str, language: Literal["python", "markdown"] = "python") -> Tuple[str, bool]:
         """
@@ -174,14 +187,7 @@ class ExecuteNbCode(Action):
 
             # run code
             cell_index = len(self.nb.cells) - 1
-            success, error_message = await self.run_cell(self.nb.cells[-1], cell_index)
-
-            if not success:
-                return truncate(remove_escape_and_color_codes(error_message), is_success=success)
-
-            # code success
-            outputs = self.parse_outputs(self.nb.cells[-1].outputs)
-            outputs, success = truncate(remove_escape_and_color_codes(outputs), is_success=success)
+            success, outputs = await self.run_cell(self.nb.cells[-1], cell_index)
 
             if "!pip" in code:
                 success = False
@@ -195,24 +201,6 @@ class ExecuteNbCode(Action):
             return code, True
         else:
             raise ValueError(f"Only support for language: python, markdown, but got {language}, ")
-
-
-def truncate(result: str, keep_len: int = 2000, is_success: bool = True):
-    """对于超出keep_len个字符的result: 执行失败的代码, 展示result后keep_len个字符; 执行成功的代码, 展示result前keep_len个字符。"""
-    if is_success:
-        desc = f"Executed code successfully. Truncated to show only first {keep_len} characters\n"
-    else:
-        desc = f"Executed code failed, please reflect the cause of bug and then debug. Truncated to show only last {keep_len} characters\n"
-
-    if result.strip().startswith("<coroutine object"):
-        result = "Executed code failed, you need use key word 'await' to run a async code."
-        return result, False
-
-    if len(result) > keep_len:
-        result = result[-keep_len:] if not is_success else result[:keep_len]
-        return desc + result, is_success
-
-    return result, is_success
 
 
 def remove_escape_and_color_codes(input_str: str):
