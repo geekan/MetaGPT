@@ -1,6 +1,6 @@
 """RAG Interfaces."""
 
-from typing import Any, Protocol
+from typing import Protocol
 
 
 class RAGObject(Protocol):
@@ -9,8 +9,8 @@ class RAGObject(Protocol):
     def rag_key(self) -> str:
         """For rag search."""
 
-    def model_dump(self) -> dict[str, Any]:
+    def model_dump_json(self) -> str:
         """For rag persist.
 
-        Pydantic Model don't need to implement this, as there is a built-in function named model_dump.
+        Pydantic Model don't need to implement this, as there is a built-in function named model_dump_json.
         """

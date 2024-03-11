@@ -1,5 +1,6 @@
 """Simple Engine."""
 
+import json
 from typing import Optional
 
 from llama_index.core import SimpleDirectoryReader, VectorStoreIndex
@@ -33,7 +34,8 @@ from metagpt.rag.factories import (
 )
 from metagpt.rag.interface import RAGObject
 from metagpt.rag.llm import get_rag_llm
-from metagpt.rag.retrievers.base import ModifiableRAGRetriever
+from metagpt.rag.retrievers.base import ModifiableRAGRetriever, PersistableRAGRetriever
+from metagpt.rag.retrievers.hybrid_retriever import SimpleHybridRetriever
 from metagpt.rag.schema import (
     BaseIndexConfig,
     BaseRankerConfig,
@@ -180,6 +182,12 @@ class SimpleEngine(RetrieverQueryEngine):
         nodes = [ObjectNode(text=obj.rag_key(), metadata=ObjectNode.get_obj_metadata(obj)) for obj in objs]
         self._save_nodes(nodes)
 
+    def persist(self, persist_dir: str, **kwargs):
+        """Persist."""
+        self._ensure_retriever_persistable()
+
+        self._persist(persist_dir, **kwargs)
+
     @classmethod
     def _from_index(
         cls,
@@ -200,15 +208,31 @@ class SimpleEngine(RetrieverQueryEngine):
         )
 
     def _ensure_retriever_modifiable(self):
-        if not isinstance(self.retriever, ModifiableRAGRetriever):
-            raise TypeError(f"the retriever is not modifiable: {type(self.retriever)}")
+        self._ensure_retriever_of_type(ModifiableRAGRetriever)
+
+    def _ensure_retriever_persistable(self):
+        self._ensure_retriever_of_type(PersistableRAGRetriever)
+
+    def _ensure_retriever_of_type(self, required_type: BaseRetriever):
+        """Ensure that self.retriever is required_type, or at least one of its components, if it's a SimpleHybridRetriever.
+
+        Args:
+            required_type: The class that the retriever is expected to be an instance of.
+        """
+        if isinstance(self.retriever, SimpleHybridRetriever):
+            if not any(isinstance(r, required_type) for r in self.retriever.retrievers):
+                raise TypeError(
+                    f"Must have at least one retriever of type {required_type.__name__} in SimpleHybridRetriever"
+                )
+
+        if not isinstance(self.retriever, required_type):
+            raise TypeError(f"The retriever is not of type {required_type.__name__}: {type(self.retriever)}")
 
     def _save_nodes(self, nodes: list[BaseNode]):
-        # for search in memory
         self.retriever.add_nodes(nodes)
 
-        # for persist
-        self.index.insert_nodes(nodes)
+    def _persist(self, persist_dir: str, **kwargs):
+        self.retriever.persist(persist_dir, **kwargs)
 
     @staticmethod
     def _try_reconstruct_obj(nodes: list[NodeWithScore]):
@@ -216,7 +240,8 @@ class SimpleEngine(RetrieverQueryEngine):
         for node in nodes:
             if node.metadata.get("is_obj", False):
                 obj_cls = import_class(node.metadata["obj_cls_name"], node.metadata["obj_mod_name"])
-                node.metadata["obj"] = obj_cls(**node.metadata["obj_dict"])
+                obj_dict = json.loads(node.metadata["obj_json"])
+                node.metadata["obj"] = obj_cls(**obj_dict)
 
     @staticmethod
     def _fix_document_metadata(documents: list[Document]):

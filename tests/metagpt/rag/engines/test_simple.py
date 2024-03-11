@@ -150,8 +150,8 @@ class TestSimpleEngine:
             def rag_key(self):
                 return ""
 
-            def model_dump(self):
-                return {}
+            def model_dump_json(self):
+                return ""
 
         objs = [CustomTextNode(text=f"text_{i}", metadata={"obj": f"obj_{i}"}) for i in range(2)]
         engine = SimpleEngine(retriever=mock_retriever, index=mocker.MagicMock())

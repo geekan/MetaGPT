@@ -93,8 +93,10 @@ class ObjectNodeMetadata(BaseModel):
     """Metadata of ObjectNode."""
 
     is_obj: bool = Field(default=True)
-    obj: Any = Field(default=None, description="When retrieve, will reconstruct obj from obj_dict")
-    obj_dict: dict = Field(..., description="Inplement rag.interface.RAGObject.model_dump(), e.g. obj.model_dump()")
+    obj: Any = Field(default=None, description="When retrieve, will reconstruct obj from obj_json")
+    obj_json: str = Field(
+        ..., description="Inplement rag.interface.RAGObject.model_dump_json(), e.g. obj.model_dump_json()"
+    )
     obj_cls_name: str = Field(..., description="The class name of object, e.g. obj.__class__.__name__")
     obj_mod_name: str = Field(..., description="The module name of class, e.g. obj.__class__.__module__")
 
@@ -110,6 +112,7 @@ class ObjectNode(TextNode):
     @staticmethod
     def get_obj_metadata(obj: RAGObject) -> dict:
         metadata = ObjectNodeMetadata(
-            obj_dict=obj.model_dump(), obj_cls_name=obj.__class__.__name__, obj_mod_name=obj.__class__.__module__
+            obj_json=obj.model_dump_json(), obj_cls_name=obj.__class__.__name__, obj_mod_name=obj.__class__.__module__
         )
+
         return metadata.model_dump()

@@ -31,3 +31,17 @@ class ModifiableRAGRetriever(RAGRetriever):
     @abstractmethod
     def add_nodes(self, nodes: list[BaseNode], **kwargs) -> None:
         """To support add docs, must inplement this func"""
+
+
+class PersistableRAGRetriever(RAGRetriever):
+    """Support persistent."""
+
+    @classmethod
+    def __subclasshook__(cls, C):
+        if cls is PersistableRAGRetriever:
+            return check_methods(C, "persist")
+        return NotImplemented
+
+    @abstractmethod
+    def persist(self, persist_dir: str, **kwargs) -> None:
+        """To support persist, must inplement this func"""

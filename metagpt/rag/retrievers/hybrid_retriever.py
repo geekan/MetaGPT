@@ -37,7 +37,12 @@ class SimpleHybridRetriever(RAGRetriever):
                 node_ids.add(n.node.node_id)
         return result
 
-    def add_nodes(self, nodes: list[BaseNode]):
-        """Support add nodes"""
+    def add_nodes(self, nodes: list[BaseNode]) -> None:
+        """Support add nodes."""
         for r in self.retrievers:
             r.add_nodes(nodes)
+
+    def persist(self, persist_dir: str, **kwargs) -> None:
+        """Support persist."""
+        for r in self.retrievers:
+            r.persist(persist_dir, **kwargs)
