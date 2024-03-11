@@ -68,7 +68,7 @@ async def test_run_code_text():
     executor = ExecuteNbCode()
     message, success = await executor.run(code='print("This is a code!")', language="python")
     assert success
-    assert message == "This is a code!\n"
+    assert "This is a code!" in message
     message, success = await executor.run(code="# This is a code!", language="markdown")
     assert success
     assert message == "# This is a code!"
@@ -118,10 +118,11 @@ async def test_parse_outputs():
     import pandas as pd
     df = pd.DataFrame({'ID': [1,2,3], 'NAME': ['a', 'b', 'c']})
     print(df.columns)
+    print(f"columns num:{len(df.columns)}")
     print(df['DUMMPY_ID'])
     """
     output, is_success = await executor.run(code)
     assert not is_success
     assert "Index(['ID', 'NAME'], dtype='object')" in output
-    assert "Executed code failed," in output
     assert "KeyError: 'DUMMPY_ID'" in output
+    assert "columns num:2" in output
