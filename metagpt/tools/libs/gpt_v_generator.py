@@ -9,9 +9,9 @@ import re
 from pathlib import Path
 
 from metagpt.const import DEFAULT_WORKSPACE_ROOT
-from metagpt.tools.tool_registry import register_tool
-from metagpt.utils.common import encode_image, CodeParser
 from metagpt.logs import logger
+from metagpt.tools.tool_registry import register_tool
+from metagpt.utils.common import CodeParser, encode_image
 
 ANALYZE_LAYOUT_PROMPT = """You are now a UI/UX designer, please generate layout information for this image:
 
