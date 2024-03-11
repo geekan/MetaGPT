@@ -722,14 +722,19 @@ class RepoParser(BaseModel):
         path = Path(path)
         if not path.exists():
             return
+        init_file = path / "__init__.py"
+        if not init_file.exists():
+            raise ValueError("Failed to import module __init__ with error:No module named __init__.")
         command = f"pyreverse {str(path)} -o dot"
-        result = subprocess.run(command, shell=True, check=True, cwd=str(path))
+        output_dir = path / "__dot__"
+        output_dir.mkdir(parents=True, exist_ok=True)
+        result = subprocess.run(command, shell=True, check=True, cwd=str(output_dir))
         if result.returncode != 0:
             raise ValueError(f"{result}")
-        class_view_pathname = path / "classes.dot"
+        class_view_pathname = output_dir / "classes.dot"
         class_views = await self._parse_classes(class_view_pathname)
         relationship_views = await self._parse_class_relationships(class_view_pathname)
-        packages_pathname = path / "packages.dot"
+        packages_pathname = output_dir / "packages.dot"
         class_views, relationship_views, package_root = RepoParser._repair_namespaces(
             class_views=class_views, relationship_views=relationship_views, path=path
         )
@@ -975,6 +980,8 @@ class RepoParser(BaseModel):
                 file_ns = file_ns[0:ix]
                 continue
             break
+        if file_ns == "":
+            return ""
         internal_ns = package[ix + 1 :]
         ns = mappings[file_ns] + ":" + internal_ns.replace(".", ":")
         return ns

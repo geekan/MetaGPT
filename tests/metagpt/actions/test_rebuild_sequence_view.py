@@ -47,6 +47,8 @@ async def test_rebuild(context, mocker):
         context=context,
     )
     await action.run()
+    rows = await action.graph_db.select()
+    assert rows
     assert context.repo.docs.graph_repo.changed_files
 
 
