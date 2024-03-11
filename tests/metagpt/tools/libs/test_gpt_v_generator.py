@@ -60,7 +60,7 @@ async def test_generate_webpages(mock_webpage_filename_with_styles_and_scripts, 
 async def test_save_webpages_with_styles_and_scripts(mock_webpage_filename_with_styles_and_scripts, image_path):
     generator = GPTvGenerator()
     webpages = await generator.generate_webpages(image_path)
-    webpages_dir = generator.save_webpages(image_path=image_path, webpages=webpages)
+    webpages_dir = generator.save_webpages(webpages=webpages, save_folder_name="test_1")
     logs.logger.info(webpages_dir)
     assert webpages_dir.exists()
 
@@ -69,7 +69,7 @@ async def test_save_webpages_with_styles_and_scripts(mock_webpage_filename_with_
 async def test_save_webpages_with_style_and_script(mock_webpage_filename_with_style_and_script, image_path):
     generator = GPTvGenerator()
     webpages = await generator.generate_webpages(image_path)
-    webpages_dir = generator.save_webpages(image_path=image_path, webpages=webpages)
+    webpages_dir = generator.save_webpages(webpages=webpages, save_folder_name="test_2")
     logs.logger.info(webpages_dir)
     assert webpages_dir.exists()
 
