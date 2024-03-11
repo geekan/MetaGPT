@@ -16,7 +16,7 @@ STRUCTUAL_PROMPT = """
 - Always prioritize using pre-defined tools for the same functionality.
 
 # Output
-Output code in the following format:
+While some concise thoughts are helpful, code is absolutely required. Always output one and only one code block in your response. Output code in the following format:
 ```python
 your code
 ```

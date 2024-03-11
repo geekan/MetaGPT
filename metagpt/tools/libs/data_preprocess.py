@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from typing import Literal
 
 import numpy as np
 import pandas as pd
@@ -90,14 +91,16 @@ class FillMissingValue(DataPreprocessTool):
     Completing missing values with simple strategies.
     """
 
-    def __init__(self, features: list, strategy: str = "mean", fill_value=None):
+    def __init__(
+        self, features: list, strategy: Literal["mean", "median", "most_frequent", "constant"] = "mean", fill_value=None
+    ):
         """
         Initialize self.
 
         Args:
             features (list): Columns to be processed.
-            strategy (str, optional): The imputation strategy, notice 'mean' and 'median' can only
-                                      be used for numeric features. Enum: ['mean', 'median', 'most_frequent', 'constant']. Defaults to 'mean'.
+            strategy (Literal["mean", "median", "most_frequent", "constant"], optional): The imputation strategy, notice 'mean' and 'median' can only
+                                      be used for numeric features. Defaults to 'mean'.
             fill_value (int, optional): Fill_value is used to replace all occurrences of missing_values.
                                         Defaults to None.
         """
