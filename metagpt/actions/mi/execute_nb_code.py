@@ -58,7 +58,8 @@ class ExecuteNbCode(Action):
 
     async def terminate(self):
         """kill NotebookClient"""
-        await self.nb_client._async_cleanup_kernel()
+        if self.nb_client.km is not None:
+            await self.nb_client._async_cleanup_kernel()
 
     async def reset(self):
         """reset NotebookClient"""

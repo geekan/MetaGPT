@@ -42,6 +42,10 @@ class Interpreter(Role):
     def working_memory(self):
         return self.rc.working_memory
 
+    async def _plan_and_act(self) -> Message:
+        await super()._plan_and_act()
+        await self.execute_code.terminate()
+
     async def _act_on_task(self, current_task: Task) -> TaskResult:
         code, result, is_success = await self._write_and_exec_code()
         task_result = TaskResult(code=code, result=result, is_success=is_success)
