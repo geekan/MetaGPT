@@ -5,7 +5,6 @@
 @Author  : mannaandpoem
 @File    : gpt_v_generator.py
 """
-import os
 import re
 from pathlib import Path
 
@@ -87,7 +86,7 @@ class GPTvGenerator:
         # Create a folder called webpages in the workspace directory to store HTML, CSS, and JavaScript files
         webpages_path = DEFAULT_WORKSPACE_ROOT / "webpages" / save_folder_name
         logger.info(f"code will be saved at {webpages_path}")
-        os.makedirs(webpages_path, exist_ok=True)
+        webpages_path.mkdir(parents=True, exist_ok=True)
 
         index_path = webpages_path / "index.html"
         index_path.write_text(CodeParser.parse_code(block=None, text=webpages, lang="html"))
