@@ -120,8 +120,8 @@ class ExecuteNbCode(Action):
                 is_success = False
 
             output_text = remove_escape_and_color_codes(output_text)
-            # The valid information of the exception is at the end,
-            # the valid information of Normal output is at the begining.
+            # The useful information of the exception is at the end,
+            # the useful information of normal output is at the begining.
             output_text = output_text[:keep_len] if is_success else output_text[-keep_len:]
 
             parsed_output.append(output_text)
