@@ -101,7 +101,7 @@ class ExecuteNbCode(Action):
                 tag in output["text"]
                 for tag in ["| INFO     | metagpt", "| ERROR    | metagpt", "| WARNING  | metagpt", "DEBUG"]
             ):
-                ioutput, is_success = truncate(remove_escape_and_color_codes(output["text"]), keep_len, is_success)
+                ioutput, is_success = remove_escape_and_color_codes(output["text"]), True
             elif output["output_type"] == "display_data":
                 if "image/png" in output["data"]:
                     self.show_bytes_figure(output["data"]["image/png"], self.interaction)
@@ -112,10 +112,24 @@ class ExecuteNbCode(Action):
                 ioutput, is_success = "", True
             elif output["output_type"] == "execute_result":
                 no_escape_color_output = remove_escape_and_color_codes(output["data"]["text/plain"])
-                ioutput, is_success = truncate(no_escape_color_output, keep_len, is_success)
+                ioutput, is_success = no_escape_color_output, True
             elif output["output_type"] == "error":
                 no_escape_color_output = remove_escape_and_color_codes("\n".join(output["traceback"]))
-                ioutput, is_success = truncate(no_escape_color_output, keep_len, is_success)
+                ioutput, is_success = no_escape_color_output, False
+
+            # handle coroutines that are not executed asynchronously
+            if ioutput.strip().startswith("<coroutine object"):
+                ioutput = "Executed code failed, you need use key word 'await' to run a async code."
+                is_success = False
+
+            # add prefix to ioutput and truncate.
+            if len(ioutput) > keep_len and is_success:
+                prefix = f"Executed code successfully. Truncated to show only first {keep_len} characters\n"
+                ioutput = prefix + ioutput[:keep_len]
+            elif len(ioutput) > keep_len and not is_success:
+                prefix = f"Executed code failed, please reflect the cause of bug and then debug. Truncated to show only last {keep_len} characters\n"
+                ioutput = prefix + ioutput[-keep_len:]
+
             parsed_output.append(ioutput)
         return is_success, ",".join(parsed_output)
 
@@ -196,24 +210,6 @@ class ExecuteNbCode(Action):
             return code, True
         else:
             raise ValueError(f"Only support for language: python, markdown, but got {language}, ")
-
-
-def truncate(result: str, keep_len: int = 2000, is_success: bool = True):
-    """对于超出keep_len个字符的result: 执行失败的代码, 展示result后keep_len个字符; 执行成功的代码, 展示result前keep_len个字符。"""
-    if is_success:
-        desc = f"Executed code successfully. Truncated to show only first {keep_len} characters\n"
-    else:
-        desc = f"Executed code failed, please reflect the cause of bug and then debug. Truncated to show only last {keep_len} characters\n"
-
-    if result.strip().startswith("<coroutine object"):
-        result = "Executed code failed, you need use key word 'await' to run a async code."
-        return result, False
-
-    if len(result) > keep_len:
-        result = result[-keep_len:] if not is_success else result[:keep_len]
-        return desc + result, is_success
-
-    return result, is_success
 
 
 def remove_escape_and_color_codes(input_str: str):

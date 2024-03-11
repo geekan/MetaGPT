@@ -1,6 +1,6 @@
 import pytest
 
-from metagpt.actions.mi.execute_nb_code import ExecuteNbCode, truncate
+from metagpt.actions.mi.execute_nb_code import ExecuteNbCode
 
 
 @pytest.mark.asyncio
@@ -52,21 +52,6 @@ async def test_plotting_code():
     executor = ExecuteNbCode()
     output, is_success = await executor.run(PLOT_CODE)
     assert is_success
-
-
-def test_truncate():
-    # 代码执行成功
-    output, is_success = truncate("hello world", 5, True)
-    assert "Truncated to show only first 5 characters\nhello" in output
-    assert is_success
-    # 代码执行失败
-    output, is_success = truncate("hello world", 5, False)
-    assert "Truncated to show only last 5 characters\nworld" in output
-    assert not is_success
-    # 异步
-    output, is_success = truncate("<coroutine object", 5, True)
-    assert not is_success
-    assert "await" in output
 
 
 @pytest.mark.asyncio
