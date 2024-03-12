@@ -21,9 +21,7 @@ from metagpt.schema import Message, Plan
 from metagpt.utils.common import CodeParser, process_message, remove_comments
 
 
-class WriteCodeWithTools(Action):
-    """Write code with help of local available tools. Choose tools first, then generate code to use the tools"""
-
+class WriteAnalysisCode(Action):
     async def _debug_with_reflection(self, context: list[Message], working_memory: list[Message]):
         reflection_prompt = REFLECTION_PROMPT.format(
             debug_example=DEBUG_REFLECTION_EXAMPLE,
@@ -67,7 +65,7 @@ class WriteCodeWithTools(Action):
 
 
 class CheckData(Action):
-    async def run(self, plan: Plan = None) -> dict:
+    async def run(self, plan: Plan) -> dict:
         finished_tasks = plan.get_finished_tasks()
         code_written = [remove_comments(task.code) for task in finished_tasks]
         code_written = "\n\n".join(code_written)
