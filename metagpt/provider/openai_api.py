@@ -87,7 +87,9 @@ class OpenAILLM(BaseLLM):
         collected_messages = []
         async for chunk in response:
             chunk_message = chunk.choices[0].delta.content or "" if chunk.choices else ""  # extract the message
-            finish_reason = chunk.choices[0].finish_reason if hasattr(chunk.choices[0], "finish_reason") else None
+            finish_reason = (
+                chunk.choices[0].finish_reason if chunk.choices and hasattr(chunk.choices[0], "finish_reason") else None
+            )
             log_llm_stream(chunk_message)
             collected_messages.append(chunk_message)
             if finish_reason:
