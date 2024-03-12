@@ -4,7 +4,7 @@ from typing import List
 import pytest
 from gitignore_parser import parse_gitignore
 
-from metagpt.utils.tree import Tree
+from metagpt.utils.tree import _print_tree, tree
 
 
 @pytest.mark.parametrize(
@@ -16,8 +16,8 @@ from metagpt.utils.tree import Tree
 )
 def test_tree(root: str, rules: str):
     gitignore_rules = parse_gitignore(full_path=rules) if rules else None
-    tree = Tree(root=root).print(git_ignore_rules=gitignore_rules)
-    assert tree
+    v = tree(root=root, git_ignore_rules=gitignore_rules)
+    assert v
 
 
 @pytest.mark.parametrize(
@@ -46,7 +46,7 @@ def test_tree(root: str, rules: str):
     ],
 )
 def test__print_tree(tree: dict, want: List[str]):
-    v = Tree._print_tree(tree)
+    v = _print_tree(tree)
     assert v == want
 
 
