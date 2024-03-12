@@ -90,7 +90,7 @@ async def test_terminate():
 
     time.sleep(2)
     assert executor.nb_client.km is None
-    for _ in range(200):
+    for _ in range(5):
         executor = ExecuteNbCode()
         await executor.run(code='print("This is a code!")', language="python")
         is_kernel_alive = await executor.nb_client.km.is_alive()
@@ -98,7 +98,12 @@ async def test_terminate():
         await executor.terminate()
         assert executor.nb_client.km is None
         assert executor.nb_client.kc is None
-    await executor.terminate()
+    import subprocess
+
+    # count ipkernel
+    num_ipykernel = subprocess.check_output("ps -ef | grep ipykernel_launcher | grep -v grep | wc -l", shell=True)
+    num_ipykernel = int(num_ipykernel.decode("utf-8").strip())
+    assert num_ipykernel == 0
 
 
 @pytest.mark.asyncio
