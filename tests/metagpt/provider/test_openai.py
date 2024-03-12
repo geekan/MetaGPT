@@ -1,10 +1,11 @@
 import pytest
 from openai.types.chat import (
     ChatCompletion,
+    ChatCompletionChunk,
     ChatCompletionMessage,
     ChatCompletionMessageToolCall,
 )
-from openai.types.chat.chat_completion import Choice
+from openai.types.chat.chat_completion import Choice, CompletionUsage
 from openai.types.chat.chat_completion_message_tool_call import Function
 from PIL import Image
 
@@ -16,6 +17,22 @@ from tests.metagpt.provider.mock_llm_config import (
     mock_llm_config,
     mock_llm_config_proxy,
 )
+from tests.metagpt.provider.req_resp_const import (
+    get_openai_chat_completion,
+    get_openai_chat_completion_chunk,
+    llm_general_chat_funcs_test,
+    messages,
+    prompt,
+    resp_cont_tmpl,
+)
+
+name = "AI assistant"
+resp_cont = resp_cont_tmpl.format(name=name)
+default_resp = get_openai_chat_completion(name)
+
+default_resp_chunk = get_openai_chat_completion_chunk(name, usage_as_dict=True)
+
+usage = CompletionUsage(completion_tokens=110, prompt_tokens=92, total_tokens=202)
 
 
 @pytest.mark.asyncio
@@ -121,3 +138,29 @@ async def test_gen_image():
 
     images: list[Image] = await llm.gen_image(model=model, prompt=prompt, resp_format="b64_json")
     assert images[0].size == (1024, 1024)
+
+
+async def mock_openai_acompletions_create(self, stream: bool = False, **kwargs) -> ChatCompletionChunk:
+    if stream:
+
+        class Iterator(object):
+            async def __aiter__(self):
+                yield default_resp_chunk
+
+        return Iterator()
+    else:
+        return default_resp
+
+
+@pytest.mark.asyncio
+async def test_openai_acompletion(mocker):
+    mocker.patch("openai.resources.chat.completions.AsyncCompletions.create", mock_openai_acompletions_create)
+
+    llm = OpenAILLM(mock_llm_config)
+
+    resp = await llm.acompletion(messages)
+    assert resp.choices[0].finish_reason == "stop"
+    assert resp.choices[0].message.content == resp_cont
+    assert resp.usage == usage
+
+    await llm_general_chat_funcs_test(llm, prompt, messages, resp_cont)

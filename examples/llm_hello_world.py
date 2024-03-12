@@ -13,7 +13,18 @@ from metagpt.logs import logger
 
 async def main():
     llm = LLM()
-    logger.info(await llm.aask("hello world"))
+    # llm type check
+    question = "what's your name"
+    logger.info(f"{question}: ")
+    logger.info(await llm.aask(question))
+    logger.info("\n\n")
+
+    logger.info(
+        await llm.aask(
+            "who are you", system_msgs=["act as a robot, just answer 'I'am robot' if the question is 'who are you'"]
+        )
+    )
+
     logger.info(await llm.aask_batch(["hi", "write python hello world."]))
 
     hello_msg = [{"role": "user", "content": "count from 1 to 10. split by newline."}]

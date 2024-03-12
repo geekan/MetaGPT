@@ -13,7 +13,7 @@ from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from metagpt.actions import WriteCode
 from metagpt.actions.action import Action
-from metagpt.const import CODE_PLAN_AND_CHANGE_FILENAME, REQUIREMENT_FILENAME
+from metagpt.const import REQUIREMENT_FILENAME
 from metagpt.logs import logger
 from metagpt.schema import CodingContext
 from metagpt.utils.common import CodeParser
@@ -149,29 +149,21 @@ class WriteCodeReview(Action):
                 use_inc=self.config.inc,
             )
 
-            if not self.config.inc:
-                context = "\n".join(
-                    [
-                        "## System Design\n" + str(self.i_context.design_doc) + "\n",
-                        "## Task\n" + task_content + "\n",
-                        "## Code Files\n" + code_context + "\n",
-                    ]
-                )
-            else:
+            ctx_list = [
+                "## System Design\n" + str(self.i_context.design_doc) + "\n",
+                "## Task\n" + task_content + "\n",
+                "## Code Files\n" + code_context + "\n",
+            ]
+            if self.config.inc:
                 requirement_doc = await self.repo.docs.get(filename=REQUIREMENT_FILENAME)
-                code_plan_and_change_doc = await self.repo.get(filename=CODE_PLAN_AND_CHANGE_FILENAME)
-                context = "\n".join(
-                    [
-                        "## User New Requirements\n" + str(requirement_doc) + "\n",
-                        "## Code Plan And Change\n" + str(code_plan_and_change_doc) + "\n",
-                        "## System Design\n" + str(self.i_context.design_doc) + "\n",
-                        "## Task\n" + task_content + "\n",
-                        "## Code Files\n" + code_context + "\n",
-                    ]
-                )
+                insert_ctx_list = [
+                    "## User New Requirements\n" + str(requirement_doc) + "\n",
+                    "## Code Plan And Change\n" + str(self.i_context.code_plan_and_change_doc) + "\n",
+                ]
+                ctx_list = insert_ctx_list + ctx_list
 
             context_prompt = PROMPT_TEMPLATE.format(
-                context=context,
+                context="\n".join(ctx_list),
                 code=iterative_code,
                 filename=self.i_context.code_doc.filename,
             )

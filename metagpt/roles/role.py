@@ -281,7 +281,7 @@ class Role(SerializationMixin, ContextMixin, BaseModel):
                 i = action
             self._init_action(i)
             self.actions.append(i)
-            self.states.append(f"{len(self.actions)}. {action}")
+            self.states.append(f"{len(self.actions) - 1}. {action}")
 
     def _set_react_mode(self, react_mode: str, max_react_loop: int = 1, auto_run: bool = True):
         """Set strategy of the Role reacting to observed Message. Variation lies in how
