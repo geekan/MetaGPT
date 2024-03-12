@@ -9,7 +9,7 @@ from metagpt.actions.di.ask_review import ReviewConst
 from metagpt.actions.di.execute_nb_code import ExecuteNbCode
 from metagpt.actions.di.write_analysis_code import CheckData, WriteCodeWithTools
 from metagpt.logs import logger
-from metagpt.prompts.mi.write_analysis_code import DATA_INFO
+from metagpt.prompts.di.write_analysis_code import DATA_INFO
 from metagpt.roles import Role
 from metagpt.schema import Message, Task, TaskResult
 from metagpt.strategy.task_type import TaskType

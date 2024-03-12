@@ -57,8 +57,7 @@ class RecommendTool(Action):
 class ToolRecommender(BaseModel):
     """
     The default ToolRecommender:
-    1. Recall: If plan exists, use exact match between task type and tool type to recall tools;
-               If plan doesn't exist (e.g. we use ReAct), return all user-specified tools;
+    1. Recall: To be implemented in subclasses. Recall tools based on the given context and plan.
     2. Rank: Use LLM to select final candidates from recalled set.
     """
 

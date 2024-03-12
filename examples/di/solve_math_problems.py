@@ -4,7 +4,7 @@ from metagpt.roles.di.data_interpreter import DataInterpreter
 
 
 async def main(requirement: str = ""):
-    di = DataInterpreter(use_tools=False)
+    di = DataInterpreter()
     await di.run(requirement)
 
 
