@@ -6,14 +6,13 @@
 @File    : test_summarize_code.py
 @Modifiled By: mashenquan, 2023-12-6. Unit test for summarize_code.py
 """
-import uuid
-from pathlib import Path
 
 import pytest
 
 from metagpt.actions.summarize_code import SummarizeCode
 from metagpt.logs import logger
 from metagpt.schema import CodeSummarizeContext
+from tests.mock.mock_llm import MockLLM
 
 DESIGN_CONTENT = """
 {"Implementation approach": "To develop this snake game, we will use the Python language and choose the Pygame library. Pygame is an open-source Python module collection specifically designed for writing video games. It provides functionalities such as displaying images and playing sounds, making it suitable for creating intuitive and responsive user interfaces. We will ensure efficient game logic to prevent any delays during gameplay. The scoring system will be simple, with the snake gaining points for each food it eats. We will use Pygame's event handling system to implement pause and resume functionality, as well as high-score tracking. The difficulty will increase by speeding up the snake's movement. In the initial version, we will focus on single-player mode and consider adding multiplayer mode and customizable skins in future updates. Based on the new requirement, we will also add a moving obstacle that appears randomly. If the snake eats this obstacle, the game will end. If the snake does not eat the obstacle, it will disappear after 5 seconds. For this, we need to add mechanisms for obstacle generation, movement, and disappearance in the game logic.", "Project_name": "snake_game", "File list": ["main.py", "game.py", "snake.py", "food.py", "obstacle.py", "scoreboard.py", "constants.py", "assets/styles.css", "assets/index.html"], "Data structures and interfaces": "```mermaid\n    classDiagram\n        class Game{\n            +int score\n            +int speed\n            +bool game_over\n            +bool paused\n            +Snake snake\n            +Food food\n            +Obstacle obstacle\n            +Scoreboard scoreboard\n            +start_game() void\n            +pause_game() void\n            +resume_game() void\n            +end_game() void\n            +increase_difficulty() void\n            +update() void\n            +render() void\n            Game()\n        }\n        class Snake{\n            +list body_parts\n            +str direction\n            +bool grow\n            +move() void\n            +grow() void\n            +check_collision() bool\n            Snake()\n        }\n        class Food{\n            +tuple position\n            +spawn() void\n            Food()\n        }\n        class Obstacle{\n            +tuple position\n            +int lifetime\n            +bool active\n            +spawn() void\n            +move() void\n            +check_collision() bool\n            +disappear() void\n            Obstacle()\n        }\n        class Scoreboard{\n            +int high_score\n            +update_score(int) void\n            +reset_score() void\n            +load_high_score() void\n            +save_high_score() void\n            Scoreboard()\n        }\n        class Constants{\n        }\n        Game \"1\" -- \"1\" Snake: has\n        Game \"1\" -- \"1\" Food: has\n        Game \"1\" -- \"1\" Obstacle: has\n        Game \"1\" -- \"1\" Scoreboard: has\n    ```", "Program call flow": "```sequenceDiagram\n    participant M as Main\n    participant G as Game\n    participant S as Snake\n    participant F as Food\n    participant O as Obstacle\n    participant SB as Scoreboard\n    M->>G: start_game()\n    loop game loop\n        G->>S: move()\n        G->>S: check_collision()\n        G->>F: spawn()\n        G->>O: spawn()\n        G->>O: move()\n        G->>O: check_collision()\n        G->>O: disappear()\n        G->>SB: update_score(score)\n        G->>G: update()\n        G->>G: render()\n        alt if paused\n            M->>G: pause_game()\n            M->>G: resume_game()\n        end\n        alt if game_over\n            G->>M: end_game()\n        end\n    end\n```", "Anything UNCLEAR": "There is no need for further clarification as the requirements are already clear."}
@@ -175,13 +174,87 @@ class Snake:
 
 """
 
+mock_rsp = """
+```mermaid
+classDiagram
+    class Game{
+        +int score
+        +int level
+        +Snake snake
+        +Food food
+        +start_game() void
+        +initialize_game() void
+        +game_loop() void
+        +update() void
+        +draw() void
+        +handle_events() void
+        +check_collision() void
+        +increase_score() void
+        +increase_level() void
+        +game_over() void
+        Game()
+    }
+    class Snake{
+        +list body
+        +tuple direction
+        +move() void
+        +change_direction(direction: str) void
+        +grow() void
+        +get_head() tuple
+        +get_body() list
+        Snake()
+    }
+    class Food{
+        +tuple position
+        +generate() void
+        +get_position() tuple
+        Food()
+    }
+    Game "1" -- "1" Snake: has
+    Game "1" -- "1" Food: has
+```
 
-@pytest.mark.skip
+```sequenceDiagram
+participant M as Main
+participant G as Game
+participant S as Snake
+participant F as Food
+M->>G: start_game()
+G->>G: initialize_game()
+G->>G: game_loop()
+G->>S: move()
+G->>S: change_direction()
+G->>S: grow()
+G->>F: generate()
+S->>S: move()
+S->>S: change_direction()
+S->>S: grow()
+F->>F: generate()
+```
+
+## Summary
+The code consists of the main game logic, including the Game, Snake, and Food classes. The game loop is responsible for updating and drawing the game elements, handling events, checking collisions, and managing the game state. The Snake class handles the movement, growth, and direction changes of the snake, while the Food class is responsible for generating and tracking the position of food items.
+
+## TODOs
+- Modify 'game.py' to add the implementation of obstacle handling and interaction with the game loop.
+- Implement 'obstacle.py' to include the methods for spawning, moving, and disappearing of obstacles, as well as collision detection with the snake.
+- Update 'main.py' to initialize the obstacle and incorporate it into the game loop.
+- Update the mermaid call flow diagram to include the interaction with the obstacle.
+
+```python
+{
+  "files_to_modify": {
+    "game.py": "Add obstacle handling and interaction with the game loop",
+    "obstacle.py": "Implement obstacle class with necessary methods",
+    "main.py": "Initialize the obstacle and incorporate it into the game loop"
+  }
+}
+```
+"""
+
+
 @pytest.mark.asyncio
-async def test_summarize_code(context):
-    git_dir = Path(__file__).parent / f"unittest/{uuid.uuid4().hex}"
-    git_dir.mkdir(parents=True, exist_ok=True)
-
+async def test_summarize_code(context, mocker):
     context.src_workspace = context.git_repo.workdir / "src"
     await context.repo.docs.system_design.save(filename="1.json", content=DESIGN_CONTENT)
     await context.repo.docs.task.save(filename="1.json", content=TASK_CONTENT)
@@ -190,6 +263,7 @@ async def test_summarize_code(context):
     await context.repo.srcs.save(filename="game.py", content=GAME_PY)
     await context.repo.srcs.save(filename="main.py", content=MAIN_PY)
     await context.repo.srcs.save(filename="snake.py", content=SNAKE_PY)
+    mocker.patch.object(MockLLM, "_mock_rsp", return_value=mock_rsp)
 
     all_files = context.repo.srcs.all_files
     summarization_context = CodeSummarizeContext(

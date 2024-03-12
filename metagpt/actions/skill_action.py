@@ -50,6 +50,7 @@ class ArgumentsParingAction(Action):
         rsp = await self.llm.aask(
             msg=prompt,
             system_msgs=["You are a function parser.", "You can convert spoken words into function parameters."],
+            stream=False,
         )
         logger.debug(f"SKILL:{prompt}\n, RESULT:{rsp}")
         self.args = ArgumentsParingAction.parse_arguments(skill_name=self.skill.name, txt=rsp)

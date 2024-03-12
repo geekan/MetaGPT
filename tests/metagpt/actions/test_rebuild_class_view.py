@@ -14,7 +14,6 @@ from metagpt.actions.rebuild_class_view import RebuildClassView
 from metagpt.llm import LLM
 
 
-@pytest.mark.skip
 @pytest.mark.asyncio
 async def test_rebuild(context):
     action = RebuildClassView(
@@ -24,6 +23,8 @@ async def test_rebuild(context):
         context=context,
     )
     await action.run()
+    rows = await action.graph_db.select()
+    assert rows
     assert context.repo.docs.graph_repo.changed_files
 
 
@@ -46,6 +47,12 @@ def test_align_path(path, direction, diff, want):
         ("/Users/x/github/MetaGPT/metagpt", "/Users/x/github/MetaGPT/metagpt", "=", "."),
         ("/Users/x/github/MetaGPT", "/Users/x/github/MetaGPT/metagpt", "-", "metagpt"),
         ("/Users/x/github/MetaGPT/metagpt", "/Users/x/github/MetaGPT", "+", "metagpt"),
+        (
+            "/Users/x/github/MetaGPT-env/lib/python3.9/site-packages/moviepy",
+            "/Users/x/github/MetaGPT-env/lib/python3.9/site-packages/",
+            "+",
+            "moviepy",
+        ),
     ],
 )
 def test_diff_path(path_root, package_root, want_direction, want_diff):

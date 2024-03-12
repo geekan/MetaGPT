@@ -178,7 +178,7 @@ class TestGetProjectRoot:
         ],
     )
     def test_split_namespace(self, val, want):
-        res = split_namespace(val)
+        res = split_namespace(val, maxsplit=-1)
         assert res == want
 
     def test_read_json_file(self):

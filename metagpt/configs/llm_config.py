@@ -16,6 +16,7 @@ from metagpt.utils.yaml_model import YamlModel
 class LLMType(Enum):
     OPENAI = "openai"
     ANTHROPIC = "anthropic"
+    CLAUDE = "claude"  # alias name of anthropic
     SPARK = "spark"
     ZHIPUAI = "zhipuai"
     FIREWORKS = "fireworks"
@@ -24,6 +25,10 @@ class LLMType(Enum):
     METAGPT = "metagpt"
     AZURE = "azure"
     OLLAMA = "ollama"
+    QIANFAN = "qianfan"  # Baidu BCE
+    DASHSCOPE = "dashscope"  # Aliyun LingJi DashScope
+    MOONSHOT = "moonshot"
+    MISTRAL = "mistral"
 
     def __missing__(self, key):
         return self.OPENAI
@@ -36,12 +41,18 @@ class LLMConfig(YamlModel):
     Optional Fields in pydantic: https://docs.pydantic.dev/latest/migration/#required-optional-and-nullable-fields
     """
 
-    api_key: str
+    api_key: str = "sk-"
     api_type: LLMType = LLMType.OPENAI
     base_url: str = "https://api.openai.com/v1"
     api_version: Optional[str] = None
 
     model: Optional[str] = None  # also stands for DEPLOYMENT_NAME
+    pricing_plan: Optional[str] = None  # Cost Settlement Plan Parameters.
+
+    # For Cloud Service Provider like Baidu/ Alibaba
+    access_key: Optional[str] = None
+    secret_key: Optional[str] = None
+    endpoint: Optional[str] = None  # for self-deployed model on the cloud
 
     # For Spark(Xunfei), maybe remove later
     app_id: Optional[str] = None
