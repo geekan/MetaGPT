@@ -134,3 +134,4 @@ def merge_dict(dicts: Iterable[Dict]) -> Dict:
     return result
 
 
+config = Config.default()
