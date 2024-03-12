@@ -7,7 +7,7 @@ from pydantic import Field, model_validator
 
 from metagpt.actions.di.ask_review import ReviewConst
 from metagpt.actions.di.execute_nb_code import ExecuteNbCode
-from metagpt.actions.di.write_analysis_code import CheckData, WriteCodeWithTools
+from metagpt.actions.di.write_analysis_code import CheckData, WriteAnalysisCode
 from metagpt.logs import logger
 from metagpt.prompts.di.write_analysis_code import DATA_INFO
 from metagpt.roles import Role
@@ -52,7 +52,7 @@ class DataInterpreter(Role):
         )  # create a flag for convenience, overwrite any passed-in value
         if self.tools:
             self.tool_recommender = BM25ToolRecommender(tools=self.tools)
-        self.set_actions([WriteCodeWithTools])
+        self.set_actions([WriteAnalysisCode])
         return self
 
     @property
@@ -82,11 +82,12 @@ class DataInterpreter(Role):
     async def _act(self) -> Message:
         """Useful in 'react' mode. Return a Message conforming to Role._act interface."""
         code, _, _ = await self._write_and_exec_code()
-        return Message(content=code, role="assistant", cause_by=WriteCodeWithTools)
+        return Message(content=code, role="assistant", cause_by=WriteAnalysisCode)
 
     async def _plan_and_act(self) -> Message:
-        await super()._plan_and_act()
+        rsp = await super()._plan_and_act()
         await self.execute_code.terminate()
+        return rsp
 
     async def _act_on_task(self, current_task: Task) -> TaskResult:
         """Useful in 'plan_and_act' mode. Wrap the output in a TaskResult for review and confirmation."""
@@ -143,7 +144,7 @@ class DataInterpreter(Role):
         plan_status="",
         tool_info="",
     ):
-        todo = WriteCodeWithTools()
+        todo = WriteAnalysisCode()
         logger.info(f"ready to {todo.name}")
         use_reflection = counter > 0 and self.use_reflection
 

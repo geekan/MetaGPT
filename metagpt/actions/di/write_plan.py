@@ -41,7 +41,7 @@ class WritePlan(Action):
     ```
     """
 
-    async def run(self, context: list[Message], max_tasks: int = 5, use_tools: bool = False) -> str:
+    async def run(self, context: list[Message], max_tasks: int = 5) -> str:
         task_type_desc = "\n".join([f"- **{tt.type_name}**: {tt.value.desc}" for tt in TaskType])
         prompt = self.PROMPT_TEMPLATE.format(
             context="\n".join([str(ct) for ct in context]), max_tasks=max_tasks, task_type_desc=task_type_desc
@@ -51,14 +51,10 @@ class WritePlan(Action):
         return rsp
 
 
-def rsp_to_tasks(rsp: str) -> list[Task]:
+def update_plan_from_rsp(rsp: str, current_plan: Plan):
     rsp = json.loads(rsp)
     tasks = [Task(**task_config) for task_config in rsp]
-    return tasks
 
-
-def update_plan_from_rsp(rsp: str, current_plan: Plan):
-    tasks = rsp_to_tasks(rsp)
     if len(tasks) == 1 or tasks[0].dependent_task_ids:
         if tasks[0].dependent_task_ids and len(tasks) > 1:
             # tasks[0].dependent_task_ids means the generated tasks are not a complete plan

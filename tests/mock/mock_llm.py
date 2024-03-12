@@ -32,14 +32,13 @@ class MockLLM(OriginalLLM):
 
     async def original_aask(
         self,
-        msg: str,
+        msg: Union[str, list[dict[str, str]]],
         system_msgs: Optional[list[str]] = None,
         format_msgs: Optional[list[dict[str, str]]] = None,
         images: Optional[Union[str, list[str]]] = None,
         timeout=3,
         stream=True,
-    ):
-        """A copy of metagpt.provider.base_llm.BaseLLM.aask, we can't use super().aask because it will be mocked"""
+    ) -> str:
         if system_msgs:
             message = self._system_msgs(system_msgs)
         else:
@@ -48,7 +47,11 @@ class MockLLM(OriginalLLM):
             message = []
         if format_msgs:
             message.extend(format_msgs)
-        message.append(self._user_msg(msg, images=images))
+        if isinstance(msg, str):
+            message.append(self._user_msg(msg, images=images))
+        else:
+            message.extend(msg)
+        logger.debug(message)
         rsp = await self.acompletion_text(message, stream=stream, timeout=timeout)
         return rsp
 
@@ -72,14 +75,19 @@ class MockLLM(OriginalLLM):
 
     async def aask(
         self,
-        msg: str,
+        msg: Union[str, list[dict[str, str]]],
         system_msgs: Optional[list[str]] = None,
         format_msgs: Optional[list[dict[str, str]]] = None,
         images: Optional[Union[str, list[str]]] = None,
         timeout=3,
         stream=True,
     ) -> str:
-        msg_key = msg  # used to identify it a message has been called before
+        # used to identify it a message has been called before
+        if isinstance(msg, list):
+            msg_key = "#MSG_SEP#".join([m["content"] for m in msg])
+        else:
+            msg_key = msg
+
         if system_msgs:
             joined_system_msg = "#MSG_SEP#".join(system_msgs) + "#SYSTEM_MSG_END#"
             msg_key = joined_system_msg + msg_key
