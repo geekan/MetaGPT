@@ -84,6 +84,10 @@ class Interpreter(Role):
         code, _, _ = await self._write_and_exec_code()
         return Message(content=code, role="assistant", cause_by=WriteCodeWithTools)
 
+    async def _plan_and_act(self) -> Message:
+        await super()._plan_and_act()
+        await self.execute_code.terminate()
+
     async def _act_on_task(self, current_task: Task) -> TaskResult:
         """Useful in 'plan_and_act' mode. Wrap the output in a TaskResult for review and confirmation."""
         code, result, is_success = await self._write_and_exec_code()
