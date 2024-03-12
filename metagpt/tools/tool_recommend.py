@@ -57,13 +57,12 @@ class RecommendTool(Action):
 class ToolRecommender(BaseModel):
     """
     The default ToolRecommender:
-    1. Recall: If plan exists, use exact match between task type and tool type to recall tools;
-               If plan doesn't exist (e.g. we use ReAct), return all user-specified tools;
+    1. Recall: To be implemented in subclasses. Recall tools based on the given context and plan.
     2. Rank: Use LLM to select final candidates from recalled set.
     """
 
     tools: dict[str, Tool] = {}
-    force: bool = False
+    force: bool = False  # whether to forcedly recommend the specified tools
 
     @field_validator("tools", mode="before")
     @classmethod
@@ -144,6 +143,26 @@ class ToolRecommender(BaseModel):
         valid_tools = validate_tool_names(ranked_tools)
 
         return list(valid_tools.values())[:topk]
+
+
+class TypeMatchToolRecommender(ToolRecommender):
+    """
+    A legacy ToolRecommender using task type matching at the recall stage:
+    1. Recall: Find tools based on exact match between task type and tool tag;
+    2. Rank: LLM rank, the same as the default ToolRecommender.
+    """
+
+    async def recall_tools(self, context: str = "", plan: Plan = None, topk: int = 20) -> list[Tool]:
+        if not plan:
+            return list(self.tools.values())[:topk]
+
+        # find tools based on exact match between task type and tool tag
+        task_type = plan.current_task.task_type
+        candidate_tools = TOOL_REGISTRY.get_tools_by_tag(task_type)
+        candidate_tool_names = set(self.tools.keys()) & candidate_tools.keys()
+        recalled_tools = [candidate_tools[tool_name] for tool_name in candidate_tool_names]
+
+        return recalled_tools[:topk]
 
 
 class BM25ToolRecommender(ToolRecommender):

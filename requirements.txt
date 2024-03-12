@@ -71,3 +71,5 @@ Pillow
 imap_tools==1.5.0  # Used by metagpt/tools/libs/email_login.py
 qianfan==0.3.2
 dashscope==1.14.1
+rank-bm25==0.2.2  # for tool recommendation
+jieba==0.42.1  # for tool recommendation

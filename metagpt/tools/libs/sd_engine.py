@@ -14,7 +14,6 @@ import requests
 from aiohttp import ClientSession
 from PIL import Image, PngImagePlugin
 
-#
 from metagpt.const import SD_OUTPUT_FILE_REPO, SOURCE_ROOT
 from metagpt.logs import logger
 from metagpt.tools.tool_registry import register_tool

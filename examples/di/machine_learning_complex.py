@@ -1,10 +1,10 @@
 import asyncio
 
-from metagpt.roles.di.ml_engineer import MLEngineer
+from metagpt.roles.di.data_interpreter import DataInterpreter
 
 
 async def main(requirement: str):
-    role = MLEngineer(auto_run=True, use_tools=True)
+    role = DataInterpreter(use_reflection=True, tools=["<all>"])
     await role.run(requirement)
 
 
