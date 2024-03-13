@@ -25,7 +25,7 @@ class AzureOpenAILLM(OpenAILLM):
         # https://learn.microsoft.com/zh-cn/azure/ai-services/openai/how-to/migration?tabs=python-new%2Cdalle-fix
         self.aclient = AsyncAzureOpenAI(**kwargs)
         self.model = self.config.model  # Used in _calc_usage & _cons_kwargs
-        self.pricing_plan = self.config.pricing_plan
+        self.pricing_plan = self.config.pricing_plan or self.model
 
     def _make_client_kwargs(self) -> dict:
         kwargs = dict(
