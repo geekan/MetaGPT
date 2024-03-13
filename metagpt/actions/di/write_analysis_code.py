@@ -50,16 +50,14 @@ class WriteAnalysisCode(Action):
         )
 
         working_memory = working_memory or []
-        context = [Message(content=structual_prompt, role="user")] + working_memory
-        context = process_message(context)
+        context = process_message([Message(content=structual_prompt, role="user")] + working_memory)
 
         # LLM call
-        if not use_reflection:
+        if use_reflection:
+            code = await self._debug_with_reflection(context=context, working_memory=working_memory)
+        else:
             rsp = await self.llm.aask(context, system_msgs=[INTERPRETER_SYSTEM_MSG], **kwargs)
             code = CodeParser.parse_code(block=None, text=rsp)
-
-        else:
-            code = await self._debug_with_reflection(context=context, working_memory=working_memory)
 
         return code
 

@@ -22,6 +22,7 @@ async def test_interpreter(mocker, auto_run):
     assert len(finished_tasks[0].code) > 0  # check one task to see if code is recorded
 
 
+@pytest.mark.asyncio
 async def test_interpreter_react_mode(mocker):
     mocker.patch("metagpt.actions.di.execute_nb_code.ExecuteNbCode.run", return_value=("a successful run", True))
     mocker.patch("builtins.input", return_value="confirm")

@@ -45,7 +45,6 @@ class DummyClass:
         pass
 
 
-# def dummy_fn(df: pd.DataFrame, s: str, k: int = 5, type: Literal["a", "b", "c"] = "a") -> dict:
 def dummy_fn(
     df: pd.DataFrame,
     s: str,
