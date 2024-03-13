@@ -57,8 +57,23 @@ class ExecuteNbCode(Action):
 
     async def terminate(self):
         """kill NotebookClient"""
-        if self.nb_client.km is not None:
-            await self.nb_client._async_cleanup_kernel()
+        if self.nb_client.km is not None and await self.nb_client.km.is_alive():
+            await self.nb_client.km.shutdown_kernel(now=True)
+            await self.nb_client.km.cleanup_resources()
+
+            # Stops all the running channels for this kernel
+            # The stdin_channel is the channel for handling standard input to the kernel.
+            if self.nb_client.kc.stdin_channel.is_alive():
+                self.nb_client.kc.stdin_channel.stop()
+            # The hb_channel is the channel for heartbeat communication between the kernel and client.
+            if self.nb_client.kc.hb_channel.is_alive():
+                self.nb_client.kc.hb_channel.stop()
+            # The control_channel is the channel for controlling the kernel.
+            if self.nb_client.kc.control_channel.is_alive():
+                self.nb_client.kc.control_channel.stop()
+
+            self.nb_client.kc = None
+            self.nb_client.km = None
 
     async def reset(self):
         """reset NotebookClient"""
