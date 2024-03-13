@@ -23,7 +23,7 @@ IMAP_SERVERS = {
 }
 
 
-@register_tool()
+@register_tool(tags=["email login"])
 def email_login_imap(email_address, email_password):
     """
     Use imap_tools package to log in to your email (the email that supports IMAP protocol) to verify and return the account object.

@@ -5,7 +5,7 @@ from metagpt.schema import Message
 
 
 @pytest.mark.asyncio
-async def test_write_code():
+async def test_write_code_with_plan():
     write_code = WriteAnalysisCode()
 
     user_requirement = "Run data analysis on sklearn Iris dataset, include a plot"
@@ -17,8 +17,28 @@ async def test_write_code():
 
 
 @pytest.mark.asyncio
+async def test_write_code_with_tools():
+    write_code = WriteAnalysisCode()
+
+    user_requirement = "Preprocess sklearn Wine recognition dataset and train a model to predict wine class (20% as validation), and show validation accuracy."
+    tool_info = """
+    ## Capabilities
+    - You can utilize pre-defined tools in any code lines from 'Available Tools' in the form of Python class or function.
+    - You can freely combine the use of any other public packages, like sklearn, numpy, pandas, etc..
+
+    ## Available Tools:
+    Each tool is described in JSON format. When you call a tool, import the tool from its path first.
+    {'FillMissingValue': {'type': 'class', 'description': 'Completing missing values with simple strategies.', 'methods': {'__init__': {'type': 'function', 'description': 'Initialize self. ', 'signature': '(self, features: \'list\', strategy: "Literal[\'mean\', \'median\', \'most_frequent\', \'constant\']" = \'mean\', fill_value=None)', 'parameters': 'Args: features (list): Columns to be processed. strategy (Literal["mean", "median", "most_frequent", "constant"], optional): The imputation strategy, notice \'mean\' and \'median\' can only be used for numeric features. Defaults to \'mean\'. fill_value (int, optional): Fill_value is used to replace all occurrences of missing_values. Defaults to None.'}, 'fit': {'type': 'function', 'description': 'Fit a model to be used in subsequent transform. ', 'signature': "(self, df: 'pd.DataFrame')", 'parameters': 'Args: df (pd.DataFrame): The input DataFrame.'}, 'fit_transform': {'type': 'function', 'description': 'Fit and transform the input DataFrame. ', 'signature': "(self, df: 'pd.DataFrame') -> 'pd.DataFrame'", 'parameters': 'Args: df (pd.DataFrame): The input DataFrame. Returns: pd.DataFrame: The transformed DataFrame.'}, 'transform': {'type': 'function', 'description': 'Transform the input DataFrame with the fitted model. ', 'signature': "(self, df: 'pd.DataFrame') -> 'pd.DataFrame'", 'parameters': 'Args: df (pd.DataFrame): The input DataFrame. Returns: pd.DataFrame: The transformed DataFrame.'}}, 'tool_path': 'metagpt/tools/libs/data_preprocess.py'}
+    """
+
+    code = await write_code.run(user_requirement=user_requirement, tool_info=tool_info)
+    assert len(code) > 0
+    assert "metagpt.tools.libs" in code
+
+
+@pytest.mark.asyncio
 async def test_debug_with_reflection():
-    user_requirement = "Run data analysis on sklearn Iris dataset, include a plot"
+    user_requirement = "read a dataset test.csv and print its head"
 
     plan_status = """
     ## Finished Tasks

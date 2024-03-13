@@ -28,7 +28,7 @@ As the design pays tribute to large companies, sometimes it is normal for some c
 Now, please generate the corresponding webpage code including HTML, CSS and JavaScript:"""
 
 
-@register_tool(include_functions=["__init__", "generate_webpages", "save_webpages"])
+@register_tool(tags=["image2webpage"], include_functions=["__init__", "generate_webpages", "save_webpages"])
 class GPTvGenerator:
     """Class for generating webpage code from a given webpage screenshot.
 
