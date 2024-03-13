@@ -39,7 +39,7 @@ class DataInterpreter(Role):
     use_plan: bool = True
     use_reflection: bool = False
     execute_code: ExecuteNbCode = Field(default_factory=ExecuteNbCode, exclude=True)
-    tools: Union[str, list[str]] = []
+    tools: Union[str, list[str]] = []  # Use special symbol ["<all>"] to indicate use of all registered tools
     tool_recommender: ToolRecommender = None
     react_mode: Literal["plan_and_act", "react"] = "plan_and_act"
     max_react_loop: int = 10  # used for react mode
@@ -53,6 +53,7 @@ class DataInterpreter(Role):
         if self.tools:
             self.tool_recommender = BM25ToolRecommender(tools=self.tools)
         self.set_actions([WriteAnalysisCode])
+        self._set_state(0)
         return self
 
     @property
@@ -140,13 +141,13 @@ class DataInterpreter(Role):
 
     async def _write_code(
         self,
-        counter,
-        plan_status="",
-        tool_info="",
+        counter: int,
+        plan_status: str = "",
+        tool_info: str = "",
     ):
-        todo = WriteAnalysisCode()
+        todo = self.rc.todo  # todo is WriteAnalysisCode
         logger.info(f"ready to {todo.name}")
-        use_reflection = counter > 0 and self.use_reflection
+        use_reflection = counter > 0 and self.use_reflection  # only use reflection after the first trial
 
         user_requirement = self.get_memories()[0].content
 
@@ -176,7 +177,6 @@ class DataInterpreter(Role):
         code = await CheckData().run(self.planner.plan)
         if not code.strip():
             return
-        success = False
         result, success = await self.execute_code.run(code)
         if success:
             print(result)

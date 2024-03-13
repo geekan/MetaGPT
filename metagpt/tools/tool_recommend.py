@@ -8,7 +8,7 @@ import numpy as np
 from pydantic import BaseModel, field_validator
 from rank_bm25 import BM25Okapi
 
-from metagpt.actions import Action
+from metagpt.llm import LLM
 from metagpt.logs import logger
 from metagpt.schema import Plan
 from metagpt.tools import TOOL_REGISTRY
@@ -49,11 +49,6 @@ Recommend up to {topk} tools from 'Available Tools' that can help solve the 'Use
 """
 
 
-class RecommendTool(Action):
-    async def run(self, prompt):
-        return await self._aask(prompt)
-
-
 class ToolRecommender(BaseModel):
     """
     The default ToolRecommender:
@@ -67,6 +62,7 @@ class ToolRecommender(BaseModel):
     @field_validator("tools", mode="before")
     @classmethod
     def validate_tools(cls, v: list[str]) -> dict[str, Tool]:
+        # One can use special symbol ["<all>"] to indicate use of all registered tools
         if v == ["<all>"]:
             return TOOL_REGISTRY.get_all_tools()
         else:
@@ -136,7 +132,7 @@ class ToolRecommender(BaseModel):
             available_tools=available_tools,
             topk=topk,
         )
-        rsp = await RecommendTool().run(prompt)
+        rsp = await LLM().aask(prompt)
         rsp = CodeParser.parse_code(block=None, text=rsp)
         ranked_tools = json.loads(rsp)
 
@@ -160,9 +156,11 @@ class TypeMatchToolRecommender(ToolRecommender):
         task_type = plan.current_task.task_type
         candidate_tools = TOOL_REGISTRY.get_tools_by_tag(task_type)
         candidate_tool_names = set(self.tools.keys()) & candidate_tools.keys()
-        recalled_tools = [candidate_tools[tool_name] for tool_name in candidate_tool_names]
+        recalled_tools = [candidate_tools[tool_name] for tool_name in candidate_tool_names][:topk]
 
-        return recalled_tools[:topk]
+        logger.info(f"Recalled tools: \n{[tool.name for tool in recalled_tools]}")
+
+        return recalled_tools
 
 
 class BM25ToolRecommender(ToolRecommender):
