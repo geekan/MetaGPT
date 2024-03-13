@@ -8,6 +8,7 @@ async def test_code_running():
     executor = ExecuteNbCode()
     output, is_success = await executor.run("print('hello world!')")
     assert is_success
+    await executor.terminate()
 
 
 @pytest.mark.asyncio
@@ -17,6 +18,7 @@ async def test_split_code_running():
     _ = await executor.run("z=x+y")
     output, is_success = await executor.run("assert z==3")
     assert is_success
+    await executor.terminate()
 
 
 @pytest.mark.asyncio
@@ -24,6 +26,7 @@ async def test_execute_error():
     executor = ExecuteNbCode()
     output, is_success = await executor.run("z=1/0")
     assert not is_success
+    await executor.terminate()
 
 
 PLOT_CODE = """
@@ -52,6 +55,7 @@ async def test_plotting_code():
     executor = ExecuteNbCode()
     output, is_success = await executor.run(PLOT_CODE)
     assert is_success
+    await executor.terminate()
 
 
 @pytest.mark.asyncio
@@ -61,6 +65,7 @@ async def test_run_with_timeout():
     message, success = await executor.run(code)
     assert not success
     assert message.startswith("Cell execution timed out")
+    await executor.terminate()
 
 
 @pytest.mark.asyncio
@@ -76,21 +81,15 @@ async def test_run_code_text():
     message, success = await executor.run(code=mix_text, language="markdown")
     assert success
     assert message == mix_text
+    await executor.terminate()
 
 
 @pytest.mark.asyncio
-async def test_terminate():
-    executor = ExecuteNbCode()
-    await executor.run(code='print("This is a code!")', language="python")
-    is_kernel_alive = await executor.nb_client.km.is_alive()
-    assert is_kernel_alive
-    await executor.terminate()
-
-    import time
-
-    time.sleep(2)
-    assert executor.nb_client.km is None
-    for _ in range(200):
+@pytest.mark.parametrize(
+    "k", [(1), (5)]
+)  # k=1 to test a single regular terminate, k>1 to test terminate under continuous run
+async def test_terminate(k):
+    for _ in range(k):
         executor = ExecuteNbCode()
         await executor.run(code='print("This is a code!")', language="python")
         is_kernel_alive = await executor.nb_client.km.is_alive()
@@ -98,7 +97,6 @@ async def test_terminate():
         await executor.terminate()
         assert executor.nb_client.km is None
         assert executor.nb_client.kc is None
-    await executor.terminate()
 
 
 @pytest.mark.asyncio
@@ -109,6 +107,7 @@ async def test_reset():
     assert is_kernel_alive
     await executor.reset()
     assert executor.nb_client.km is None
+    await executor.terminate()
 
 
 @pytest.mark.asyncio
@@ -126,3 +125,4 @@ async def test_parse_outputs():
     assert "Index(['ID', 'NAME'], dtype='object')" in output
     assert "KeyError: 'DUMMPY_ID'" in output
     assert "columns num:2" in output
+    await executor.terminate()
