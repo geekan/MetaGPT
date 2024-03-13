@@ -5,8 +5,10 @@ from metagpt.config2 import config
 from metagpt.configs.llm_config import LLMType
 from metagpt.logs import logger
 from metagpt.provider.azure_openai_api import AzureOpenAILLM
+from metagpt.provider.constant import GENERAL_FUNCTION_SCHEMA
 from metagpt.provider.openai_api import OpenAILLM
 from metagpt.schema import Message
+from metagpt.utils.common import process_message
 
 OriginalLLM = OpenAILLM if config.llm.api_type == LLMType.OPENAI else AzureOpenAILLM
 
@@ -70,6 +72,9 @@ class MockLLM(OriginalLLM):
         A copy of metagpt.provider.openai_api.OpenAILLM.aask_code, we can't use super().aask because it will be mocked.
         Since openai_api.OpenAILLM.aask_code is different from base_llm.BaseLLM.aask_code, we use the former.
         """
+        if "tools" not in kwargs:
+            configs = {"tools": [{"type": "function", "function": GENERAL_FUNCTION_SCHEMA}]}
+            kwargs.update(configs)
         rsp = await self._achat_completion_function(messages, **kwargs)
         return self.get_choice_function_arguments(rsp)
 
@@ -100,8 +105,7 @@ class MockLLM(OriginalLLM):
         return rsp
 
     async def aask_code(self, messages: Union[str, Message, list[dict]], **kwargs) -> dict:
-        messages = self._process_message(messages)
-        msg_key = json.dumps(messages, ensure_ascii=False)
+        msg_key = json.dumps(process_message(messages), ensure_ascii=False)
         rsp = await self._mock_rsp(msg_key, self.original_aask_code, messages, **kwargs)
         return rsp
 
