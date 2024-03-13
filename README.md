@@ -179,7 +179,7 @@ We will respond to all questions within 2-3 business days.
 
 ## Citation
 
-For now, cite the [arXiv paper](https://arxiv.org/abs/2308.00352):
+If you use MetaGPT or Data Interpreter in a research paper, please cite our work as follows:
 
 ```bibtex
 @misc{hong2023metagpt,
@@ -190,4 +190,14 @@ For now, cite the [arXiv paper](https://arxiv.org/abs/2308.00352):
       archivePrefix={arXiv},
       primaryClass={cs.AI}
 }
+@misc{hong2024data,
+      title={Data Interpreter: An LLM Agent For Data Science}, 
+      author={Sirui Hong and Yizhang Lin and Bang Liu and Bangbang Liu and Binhao Wu and Danyang Li and Jiaqi Chen and Jiayi Zhang and Jinlin Wang and Li Zhang and Lingyao Zhang and Min Yang and Mingchen Zhuge and Taicheng Guo and Tuo Zhou and Wei Tao and Wenyi Wang and Xiangru Tang and Xiangtao Lu and Xiawu Zheng and Xinbing Liang and Yaying Fei and Yuheng Cheng and Zongze Xu and Chenglin Wu},
+      year={2024},
+      eprint={2402.18679},
+      archivePrefix={arXiv},
+      primaryClass={cs.AI}
+}
+
 ```
+
