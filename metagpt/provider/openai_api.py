@@ -29,8 +29,12 @@ from metagpt.logs import log_llm_stream, logger
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.constant import GENERAL_FUNCTION_SCHEMA
 from metagpt.provider.llm_provider_registry import register_provider
-from metagpt.schema import Message
-from metagpt.utils.common import CodeParser, decode_image, log_and_reraise
+from metagpt.utils.common import (
+    CodeParser,
+    decode_image,
+    log_and_reraise,
+    process_message,
+)
 from metagpt.utils.cost_manager import CostManager
 from metagpt.utils.exceptions import handle_exception
 from metagpt.utils.token_counter import (
@@ -83,7 +87,9 @@ class OpenAILLM(BaseLLM):
         collected_messages = []
         async for chunk in response:
             chunk_message = chunk.choices[0].delta.content or "" if chunk.choices else ""  # extract the message
-            finish_reason = chunk.choices[0].finish_reason if hasattr(chunk.choices[0], "finish_reason") else None
+            finish_reason = (
+                chunk.choices[0].finish_reason if chunk.choices and hasattr(chunk.choices[0], "finish_reason") else None
+            )
             log_llm_stream(chunk_message)
             collected_messages.append(chunk_message)
             if finish_reason:
@@ -141,44 +147,16 @@ class OpenAILLM(BaseLLM):
         rsp = await self._achat_completion(messages, timeout=timeout)
         return self.get_choice_text(rsp)
 
-    def _func_configs(self, messages: list[dict], timeout=3, **kwargs) -> dict:
-        """Note: Keep kwargs consistent with https://platform.openai.com/docs/api-reference/chat/create"""
-        if "tools" not in kwargs:
-            configs = {"tools": [{"type": "function", "function": GENERAL_FUNCTION_SCHEMA}]}
-            kwargs.update(configs)
-
-        return self._cons_kwargs(messages=messages, timeout=timeout, **kwargs)
-
-    def _process_message(self, messages: Union[str, Message, list[dict], list[Message], list[str]]) -> list[dict]:
-        """convert messages to list[dict]."""
-        # 全部转成list
-        if not isinstance(messages, list):
-            messages = [messages]
-
-        # 转成list[dict]
-        processed_messages = []
-        for msg in messages:
-            if isinstance(msg, str):
-                processed_messages.append({"role": "user", "content": msg})
-            elif isinstance(msg, dict):
-                assert set(msg.keys()) == set(["role", "content"])
-                processed_messages.append(msg)
-            elif isinstance(msg, Message):
-                processed_messages.append(msg.to_dict())
-            else:
-                raise ValueError(
-                    f"Only support message type are: str, Message, dict, but got {type(messages).__name__}!"
-                )
-        return processed_messages
-
-    async def _achat_completion_function(self, messages: list[dict], timeout=3, **chat_configs) -> ChatCompletion:
-        messages = self._process_message(messages)
-        kwargs = self._func_configs(messages=messages, timeout=timeout, **chat_configs)
+    async def _achat_completion_function(
+        self, messages: list[dict], timeout: int = 3, **chat_configs
+    ) -> ChatCompletion:
+        messages = process_message(messages)
+        kwargs = self._cons_kwargs(messages=messages, timeout=timeout, **chat_configs)
         rsp: ChatCompletion = await self.aclient.chat.completions.create(**kwargs)
         self._update_costs(rsp.usage)
         return rsp
 
-    async def aask_code(self, messages: list[dict], **kwargs) -> dict:
+    async def aask_code(self, messages: list[dict], timeout: int = 3, **kwargs) -> dict:
         """Use function of tools to ask a code.
         Note: Keep kwargs consistent with https://platform.openai.com/docs/api-reference/chat/create
 
@@ -188,12 +166,15 @@ class OpenAILLM(BaseLLM):
         >>> rsp = await llm.aask_code(msg)
         # -> {'language': 'python', 'code': "print('Hello, World!')"}
         """
+        if "tools" not in kwargs:
+            configs = {"tools": [{"type": "function", "function": GENERAL_FUNCTION_SCHEMA}]}
+            kwargs.update(configs)
         rsp = await self._achat_completion_function(messages, **kwargs)
         return self.get_choice_function_arguments(rsp)
 
     def _parse_arguments(self, arguments: str) -> dict:
         """parse arguments in openai function call"""
-        if "langugae" not in arguments and "code" not in arguments:
+        if "language" not in arguments and "code" not in arguments:
             logger.warning(f"Not found `code`, `language`, We assume it is pure code:\n {arguments}\n. ")
             return {"language": "python", "code": arguments}
 
