@@ -12,7 +12,7 @@ def convert_code_to_tool_schema(obj, include: list[str] = None):
     if inspect.isclass(obj):
         schema = {"type": "class", "description": remove_spaces(docstring), "methods": {}}
         for name, method in inspect.getmembers(obj, inspect.isfunction):
-            if name.startswith("_"):  # skip private methodss
+            if name.startswith("_") and name != "__init__":  # skip private methodss
                 continue
             if include and name not in include:
                 continue
