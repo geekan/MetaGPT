@@ -61,16 +61,16 @@ class ExecuteNbCode(Action):
             await self.nb_client.km.shutdown_kernel(now=True)
             await self.nb_client.km.cleanup_resources()
 
+            channels = [
+                self.nb_client.kc.stdin_channel,  # The channel for handling standard input to the kernel.
+                self.nb_client.kc.hb_channel,  # The channel for heartbeat communication between the kernel and client.
+                self.nb_client.kc.control_channel,  # The channel for controlling the kernel.
+            ]
+
             # Stops all the running channels for this kernel
-            # The stdin_channel is the channel for handling standard input to the kernel.
-            if self.nb_client.kc.stdin_channel.is_alive():
-                self.nb_client.kc.stdin_channel.stop()
-            # The hb_channel is the channel for heartbeat communication between the kernel and client.
-            if self.nb_client.kc.hb_channel.is_alive():
-                self.nb_client.kc.hb_channel.stop()
-            # The control_channel is the channel for controlling the kernel.
-            if self.nb_client.kc.control_channel.is_alive():
-                self.nb_client.kc.control_channel.stop()
+            for channel in channels:
+                if channel.is_alive():
+                    channel.stop()
 
             self.nb_client.kc = None
             self.nb_client.km = None
