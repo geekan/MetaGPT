@@ -34,7 +34,7 @@ from typing import Callable, Dict, List
 from gitignore_parser import parse_gitignore
 
 
-def tree(root: str | Path, gitignore: str | Path = None, run_command: bool = True) -> str:
+def tree(root: str | Path, gitignore: str | Path = None, run_command: bool = False) -> str:
     """
     Recursively traverses the directory structure and prints it out in a tree-like format.
 
