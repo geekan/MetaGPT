@@ -27,17 +27,22 @@
 """
 from __future__ import annotations
 
+import subprocess
 from pathlib import Path
 from typing import Callable, Dict, List
 
+from gitignore_parser import parse_gitignore
 
-def tree(root: str | Path, git_ignore_rules: Callable = None) -> str:
+
+def tree(root: str | Path, gitignore: str | Path = None, run_command: bool = True) -> str:
     """
     Recursively traverses the directory structure and prints it out in a tree-like format.
 
     Args:
         root (str or Path): The root directory from which to start traversing.
-        git_ignore_rules (Callable): Optional. A function to filter files to ignore.
+        gitignore (str or Path): The filename of gitignore file.
+        run_command (bool): Whether to execute `tree` command. Execute the `tree` command and return the result if True,
+            otherwise execute python code instead.
 
     Returns:
         str: A string representation of the directory tree.
@@ -55,8 +60,7 @@ def tree(root: str | Path, git_ignore_rules: Callable = None) -> str:
             |   +-- singleton.cpython-39.pyc
             +-- parse_docstring.py
 
-            >>> from gitignore_parser import parse_gitignore
-            >>> tree(".", git_ignore_rules=parse_gitignore(full_path="../../.gitignore"))
+            >>> tree(".", gitignore="../../.gitignore")
             utils
             +-- serialize.py
             +-- project_repo.py
@@ -64,8 +68,21 @@ def tree(root: str | Path, git_ignore_rules: Callable = None) -> str:
             +-- mmdc_playwright.py
             +-- parse_docstring.py
 
+            >>> tree(".", gitignore="../../.gitignore", run_command=True)
+            utils
+            ├── serialize.py
+            ├── project_repo.py
+            ├── tree.py
+            ├── mmdc_playwright.py
+            └── parse_docstring.py
+
+
     """
     root = Path(root).resolve()
+    if run_command:
+        return _execute_tree(root, gitignore)
+
+    git_ignore_rules = parse_gitignore(gitignore) if gitignore else None
     dir_ = {root.name: _list_children(root=root, git_ignore_rules=git_ignore_rules)}
     v = _print_tree(dir_)
     return "\n".join(v)
@@ -110,3 +127,14 @@ def _add_line(rows: List[str]) -> List[str]:
             return rows
         rows[i] = "|" + v[1:]
     return rows
+
+
+def _execute_tree(root: Path, gitignore: str | Path) -> str:
+    args = ["--gitignore", str(gitignore)] if gitignore else []
+    try:
+        result = subprocess.run(["tree"] + args + [str(root)], capture_output=True, text=True, check=True)
+        if result.returncode != 0:
+            raise ValueError(f"tree exits with code {result.returncode}")
+        return result.stdout
+    except subprocess.CalledProcessError as e:
+        raise e

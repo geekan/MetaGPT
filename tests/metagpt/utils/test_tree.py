@@ -2,7 +2,6 @@ from pathlib import Path
 from typing import List
 
 import pytest
-from gitignore_parser import parse_gitignore
 
 from metagpt.utils.tree import _print_tree, tree
 
@@ -15,8 +14,19 @@ from metagpt.utils.tree import _print_tree, tree
     ],
 )
 def test_tree(root: str, rules: str):
-    gitignore_rules = parse_gitignore(full_path=rules) if rules else None
-    v = tree(root=root, git_ignore_rules=gitignore_rules)
+    v = tree(root=root, gitignore=rules)
+    assert v
+
+
+@pytest.mark.parametrize(
+    ("root", "rules"),
+    [
+        (str(Path(__file__).parent / "../.."), None),
+        (str(Path(__file__).parent / "../.."), str(Path(__file__).parent / "../../../.gitignore")),
+    ],
+)
+def test_tree_command(root: str, rules: str):
+    v = tree(root=root, gitignore=rules, run_command=True)
     assert v
 
 
