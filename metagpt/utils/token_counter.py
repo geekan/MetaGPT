@@ -48,6 +48,8 @@ TOKEN_COSTS = {
     "claude-2.1": {"prompt": 0.008, "completion": 0.024},
     "claude-3-sonnet-20240229": {"prompt": 0.003, "completion": 0.015},
     "claude-3-opus-20240229": {"prompt": 0.015, "completion": 0.075},
+    "yi-34b-chat-0205": {"prompt": 0.0003, "completion": 0.0003},
+    "yi-34b-chat-200k": {"prompt": 0.0017, "completion": 0.0017},
 }
 
 
@@ -176,6 +178,8 @@ TOKEN_MAX = {
     "claude-2.1": 200000,
     "claude-3-sonnet-20240229": 200000,
     "claude-3-opus-20240229": 200000,
+    "yi-34b-chat-0205": 4000,
+    "yi-34b-chat-200k": 200000,
 }
 
 
