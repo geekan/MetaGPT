@@ -1,8 +1,9 @@
 """RAG Interfaces."""
 
-from typing import Protocol
+from typing import Protocol, runtime_checkable
 
 
+@runtime_checkable
 class RAGObject(Protocol):
     """Support rag add object."""
 
@@ -16,6 +17,7 @@ class RAGObject(Protocol):
         """
 
 
+@runtime_checkable
 class NoEmbedding(Protocol):
     """Some retriever does not require embeddings, e.g. BM25"""
 
