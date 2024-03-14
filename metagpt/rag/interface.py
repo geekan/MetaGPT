@@ -14,3 +14,9 @@ class RAGObject(Protocol):
 
         Pydantic Model don't need to implement this, as there is a built-in function named model_dump_json.
         """
+
+
+class NoEmbedding(Protocol):
+    """Some retriever does not require embeddings, e.g. BM25"""
+
+    _no_embedding: bool

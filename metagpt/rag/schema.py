@@ -6,7 +6,7 @@ from typing import Any, Union
 from llama_index.core.embeddings import BaseEmbedding
 from llama_index.core.indices.base import BaseIndex
 from llama_index.core.schema import TextNode
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, PrivateAttr
 
 from metagpt.rag.interface import RAGObject
 
@@ -35,6 +35,8 @@ class FAISSRetrieverConfig(IndexRetrieverConfig):
 
 class BM25RetrieverConfig(IndexRetrieverConfig):
     """Config for BM25-based retrievers."""
+
+    _no_embedding: bool = PrivateAttr(default=True)
 
 
 class ChromaRetrieverConfig(IndexRetrieverConfig):
@@ -91,6 +93,8 @@ class ChromaIndexConfig(VectorIndexConfig):
 
 class BM25IndexConfig(BaseIndexConfig):
     """Config for bm25-based index."""
+
+    _no_embedding: bool = PrivateAttr(default=True)
 
 
 class ObjectNodeMetadata(BaseModel):
