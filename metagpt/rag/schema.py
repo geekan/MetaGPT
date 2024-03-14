@@ -89,6 +89,10 @@ class ChromaIndexConfig(VectorIndexConfig):
     collection_name: str = Field(default="metagpt", description="The name of the collection.")
 
 
+class BM25IndexConfig(BaseIndexConfig):
+    """Config for bm25-based index."""
+
+
 class ObjectNodeMetadata(BaseModel):
     """Metadata of ObjectNode."""
 

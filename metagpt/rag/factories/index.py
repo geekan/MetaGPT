@@ -7,7 +7,12 @@ from llama_index.core.indices.base import BaseIndex
 from llama_index.vector_stores.faiss import FaissVectorStore
 
 from metagpt.rag.factories.base import ConfigFactory
-from metagpt.rag.schema import BaseIndexConfig, ChromaIndexConfig, FAISSIndexConfig
+from metagpt.rag.schema import (
+    BaseIndexConfig,
+    BM25IndexConfig,
+    ChromaIndexConfig,
+    FAISSIndexConfig,
+)
 from metagpt.rag.vector_stores.chroma import ChromaVectorStore
 
 
@@ -16,6 +21,7 @@ class RAGIndexFactory(ConfigFactory):
         creators = {
             FAISSIndexConfig: self._create_faiss,
             ChromaIndexConfig: self._create_chroma,
+            BM25IndexConfig: self._create_bm25,
         }
         super().__init__(creators)
 
@@ -44,6 +50,13 @@ class RAGIndexFactory(ConfigFactory):
             vector_store,
             embed_model=embed_model,
         )
+        return index
+
+    def _create_bm25(self, config: BM25IndexConfig, **kwargs) -> VectorStoreIndex:
+        embed_model = self._extract_embed_model(config, **kwargs)
+
+        storage_context = StorageContext.from_defaults(persist_dir=config.persist_path)
+        index = load_index_from_storage(storage_context=storage_context, embed_model=embed_model)
         return index
 
 

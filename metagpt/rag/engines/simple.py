@@ -1,7 +1,8 @@
 """Simple Engine."""
 
 import json
-from typing import Optional
+import os
+from typing import Optional, Union
 
 from llama_index.core import SimpleDirectoryReader, VectorStoreIndex
 from llama_index.core.callbacks.base import CallbackManager
@@ -128,8 +129,8 @@ class SimpleEngine(RetrieverQueryEngine):
             retriever_configs: Configuration for retrievers. If more than one config, will use SimpleHybridRetriever.
             ranker_configs: Configuration for rankers.
         """
-        if not retriever_configs or any(isinstance(config, BM25RetrieverConfig) for config in retriever_configs):
-            raise ValueError("Must provide retriever_configs, and BM25RetrieverConfig is not supported.")
+        if not objs and any(isinstance(config, BM25RetrieverConfig) for config in retriever_configs):
+            raise ValueError("In BM25RetrieverConfig, Objs must not be empty.")
 
         objs = objs or []
         nodes = [ObjectNode(text=obj.rag_key(), metadata=ObjectNode.get_obj_metadata(obj)) for obj in objs]
@@ -182,11 +183,11 @@ class SimpleEngine(RetrieverQueryEngine):
         nodes = [ObjectNode(text=obj.rag_key(), metadata=ObjectNode.get_obj_metadata(obj)) for obj in objs]
         self._save_nodes(nodes)
 
-    def persist(self, persist_dir: str, **kwargs):
+    def persist(self, persist_dir: Union[str, os.PathLike], **kwargs):
         """Persist."""
         self._ensure_retriever_persistable()
 
-        self._persist(persist_dir, **kwargs)
+        self._persist(str(persist_dir), **kwargs)
 
     @classmethod
     def _from_index(

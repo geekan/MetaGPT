@@ -61,10 +61,10 @@ class RAGExample:
             self._print_title("RAG Pipeline")
 
         nodes = await self.engine.aretrieve(question)
-        self._print_result(nodes, state="Retrieve")
+        self._print_retrieve_result(nodes)
 
         answer = await self.engine.aquery(question)
-        self._print_result(answer, state="Query")
+        self._print_query_result(answer)
 
     async def rag_add_docs(self):
         """This example show how to add docs, before add docs llm anwser I don't know, after add docs llm give the correct answer, will print something like:
@@ -160,28 +160,32 @@ class RAGExample:
 
         # query
         answer = engine.query(TRAVEL_QUESTION)
-        self._print_result(answer, state="Query")
+        self._print_query_result(answer)
 
     @staticmethod
     def _print_title(title):
         logger.info(f"{'#'*30} {title} {'#'*30}")
 
     @staticmethod
-    def _print_result(result, state="Retrieve"):
-        """print retrieve or query result"""
-        logger.info(f"{state} Result:")
+    def _print_retrieve_result(result):
+        """Print retrieve result."""
+        logger.info("Retrieve Result:")
 
-        if state == "Retrieve":
-            for i, node in enumerate(result):
-                logger.info(f"{i}. {node.text[:10]}..., {node.score}")
-            logger.info("")
-            return
+        for i, node in enumerate(result):
+            logger.info(f"{i}. {node.text[:10]}..., {node.score}")
+
+        logger.info("")
+
+    @staticmethod
+    def _print_query_result(result):
+        """Print query result."""
+        logger.info("Query Result:")
 
         logger.info(f"{result}\n")
 
     async def _retrieve_and_print(self, question):
         nodes = await self.engine.aretrieve(question)
-        self._print_result(nodes, state="Retrieve")
+        self._print_retrieve_result(nodes)
         return nodes
 
 

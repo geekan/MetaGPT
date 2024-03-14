@@ -1,4 +1,5 @@
 import pytest
+from llama_index.core import VectorStoreIndex
 from llama_index.core.schema import Node
 
 from metagpt.rag.retrievers.bm25_retriever import DynamicBM25Retriever
@@ -14,13 +15,16 @@ class TestDynamicBM25Retriever:
         self.doc2.get_content.return_value = "Document content 2"
         self.mock_nodes = [self.doc1, self.doc2]
 
+        # 模拟index
+        index = mocker.MagicMock(spec=VectorStoreIndex)
+
         # 模拟nodes和tokenizer参数
         mock_nodes = []
         mock_tokenizer = mocker.MagicMock()
         self.mock_bm25okapi = mocker.patch("rank_bm25.BM25Okapi.__init__", return_value=None)
 
         # 初始化DynamicBM25Retriever对象，并提供必需的参数
-        self.retriever = DynamicBM25Retriever(nodes=mock_nodes, tokenizer=mock_tokenizer)
+        self.retriever = DynamicBM25Retriever(nodes=mock_nodes, tokenizer=mock_tokenizer, index=index)
 
     def test_add_docs_updates_nodes_and_corpus(self):
         # Execute

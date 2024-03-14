@@ -1,5 +1,7 @@
 """RAG Retriever Factory."""
 
+import copy
+
 import chromadb
 import faiss
 from llama_index.core import StorageContext, VectorStoreIndex
@@ -69,8 +71,9 @@ class RetrieverFactory(ConfigFactory):
         return FAISSRetriever(**config.model_dump())
 
     def _create_bm25_retriever(self, config: BM25RetrieverConfig, **kwargs) -> DynamicBM25Retriever:
-        config.index = self._extract_index(config, **kwargs)
-        return DynamicBM25Retriever.from_defaults(**config.model_dump())
+        config.index = copy.deepcopy(self._extract_index(config, **kwargs))
+        nodes = list(config.index.docstore.docs.values())
+        return DynamicBM25Retriever(nodes=nodes, **config.model_dump())
 
     def _create_chroma_retriever(self, config: ChromaRetrieverConfig, **kwargs) -> ChromaRetriever:
         db = chromadb.PersistentClient(path=str(config.persist_path))
