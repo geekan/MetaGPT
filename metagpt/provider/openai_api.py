@@ -44,7 +44,7 @@ from metagpt.utils.token_counter import (
 )
 
 
-@register_provider([LLMType.OPENAI, LLMType.FIREWORKS, LLMType.OPEN_LLM, LLMType.MOONSHOT, LLMType.MISTRAL])
+@register_provider([LLMType.OPENAI, LLMType.FIREWORKS, LLMType.OPEN_LLM, LLMType.MOONSHOT, LLMType.MISTRAL, LLMType.YI])
 class OpenAILLM(BaseLLM):
     """Check https://platform.openai.com/examples for examples"""
 

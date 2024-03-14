@@ -10,10 +10,9 @@ from __future__ import annotations
 
 import json
 from abc import ABC, abstractmethod
-from typing import Dict, Optional, Union
+from typing import Optional, Union
 
 from openai import AsyncOpenAI
-from openai.types import CompletionUsage
 from pydantic import BaseModel
 from tenacity import (
     after_log,
@@ -28,7 +27,6 @@ from metagpt.logs import logger
 from metagpt.schema import Message
 from metagpt.utils.common import log_and_reraise
 from metagpt.utils.cost_manager import CostManager, Costs
-from metagpt.utils.exceptions import handle_exception
 
 
 class BaseLLM(ABC):
@@ -88,6 +86,7 @@ class BaseLLM(ABC):
             local_calc_usage (bool): some models don't calculate usage, it will overwrite LLMConfig.calc_usage
         """
         calc_usage = self.config.calc_usage and local_calc_usage
+        model = model or self.pricing_plan
         model = model or self.model
         usage = usage.model_dump() if isinstance(usage, BaseModel) else usage
         if calc_usage and self.cost_manager:
@@ -224,20 +223,6 @@ class BaseLLM(ABC):
             {'language': 'python', 'code': "print('Hello, World!')"}
         """
         return json.loads(self.get_choice_function(rsp)["arguments"], strict=False)
-
-    @handle_exception
-    def _update_costs(self, usage: CompletionUsage | Dict):
-        """
-        Updates the costs based on the provided usage information.
-        """
-        if self.config.calc_usage and usage and self.cost_manager:
-            if isinstance(usage, Dict):
-                prompt_tokens = int(usage.get("prompt_tokens", 0))
-                completion_tokens = int(usage.get("completion_tokens", 0))
-            else:
-                prompt_tokens = usage.prompt_tokens
-                completion_tokens = usage.completion_tokens
-            self.cost_manager.update_cost(prompt_tokens, completion_tokens, self.pricing_plan)
 
     def messages_to_prompt(self, messages: list[dict]):
         """[{"role": "user", "content": msg}] to user: <msg> etc."""
