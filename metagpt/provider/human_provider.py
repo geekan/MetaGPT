@@ -35,9 +35,15 @@ class HumanProvider(BaseLLM):
     ) -> str:
         return self.ask(msg, timeout=timeout)
 
+    async def _achat_completion(self, messages: list[dict], timeout=3):
+        pass
+
     async def acompletion(self, messages: list[dict], timeout=3):
         """dummy implementation of abstract method in base"""
         return []
+
+    async def _achat_completion_stream(self, messages: list[dict], timeout: int = 3) -> str:
+        pass
 
     async def acompletion_text(self, messages: list[dict], stream=False, timeout=3) -> str:
         """dummy implementation of abstract method in base"""

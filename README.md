@@ -26,7 +26,9 @@
 </p>
 
 ## News
-🚀 Feb. 08, 2024: [v0.7.0](https://github.com/geekan/MetaGPT/releases/tag/v0.7.0) released, supporting assigning different LLMs to different Roles. We also introduced [Interpreter](https://github.com/geekan/MetaGPT/blob/main/examples/mi/README.md), a powerful agent capable of solving a wide range of real-world problems.
+🚀 Mar. 14, 2024: Our Data Interpreter paper is on [arxiv](https://arxiv.org/abs/2402.18679). Check the [example](https://docs.deepwisdom.ai/main/en/DataInterpreter/) and [code](https://github.com/geekan/MetaGPT/tree/main/examples/di)!
+
+🚀 Feb. 08, 2024: [v0.7.0](https://github.com/geekan/MetaGPT/releases/tag/v0.7.0) released, supporting assigning different LLMs to different Roles. We also introduced [Data Interpreter](https://github.com/geekan/MetaGPT/blob/main/examples/di/README.md), a powerful agent capable of solving a wide range of real-world problems.
 
 🚀 Jan. 16, 2024: Our paper [MetaGPT: Meta Programming for A Multi-Agent Collaborative Framework
 ](https://arxiv.org/abs/2308.00352) accepted for oral presentation **(top 1.2%)** at ICLR 2024, **ranking #1** in the LLM-based Agent category.
@@ -177,7 +179,7 @@ We will respond to all questions within 2-3 business days.
 
 ## Citation
 
-For now, cite the [arXiv paper](https://arxiv.org/abs/2308.00352):
+If you use MetaGPT or Data Interpreter in a research paper, please cite our work as follows:
 
 ```bibtex
 @misc{hong2023metagpt,
@@ -188,4 +190,14 @@ For now, cite the [arXiv paper](https://arxiv.org/abs/2308.00352):
       archivePrefix={arXiv},
       primaryClass={cs.AI}
 }
+@misc{hong2024data,
+      title={Data Interpreter: An LLM Agent For Data Science}, 
+      author={Sirui Hong and Yizhang Lin and Bang Liu and Bangbang Liu and Binhao Wu and Danyang Li and Jiaqi Chen and Jiayi Zhang and Jinlin Wang and Li Zhang and Lingyao Zhang and Min Yang and Mingchen Zhuge and Taicheng Guo and Tuo Zhou and Wei Tao and Wenyi Wang and Xiangru Tang and Xiangtao Lu and Xiawu Zheng and Xinbing Liang and Yaying Fei and Yuheng Cheng and Zongze Xu and Chenglin Wu},
+      year={2024},
+      eprint={2402.18679},
+      archivePrefix={arXiv},
+      primaryClass={cs.AI}
+}
+
 ```
+

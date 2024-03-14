@@ -104,6 +104,7 @@ CODE_SUMMARIES_PDF_FILE_REPO = "resources/code_summary"
 RESOURCES_FILE_REPO = "resources"
 SD_OUTPUT_FILE_REPO = "resources/sd_output"
 GRAPH_REPO_FILE_REPO = "docs/graph_repo"
+VISUAL_GRAPH_REPO_FILE_REPO = "resources/graph_db"
 CLASS_VIEW_FILE_REPO = "docs/class_view"
 
 YAPI_URL = "http://yapi.deepwisdomai.com/"

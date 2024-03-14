@@ -1,7 +1,6 @@
 from imap_tools import MailBox
 
 from metagpt.tools.tool_registry import register_tool
-from metagpt.tools.tool_type import ToolType
 
 # Define a dictionary mapping email domains to their IMAP server addresses
 IMAP_SERVERS = {
@@ -24,7 +23,7 @@ IMAP_SERVERS = {
 }
 
 
-@register_tool(tool_type=ToolType.EMAIL_LOGIN.type_name)
+@register_tool(tags=["email login"])
 def email_login_imap(email_address, email_password):
     """
     Use imap_tools package to log in to your email (the email that supports IMAP protocol) to verify and return the account object.

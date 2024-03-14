@@ -16,6 +16,7 @@ from metagpt.utils.yaml_model import YamlModel
 class LLMType(Enum):
     OPENAI = "openai"
     ANTHROPIC = "anthropic"
+    CLAUDE = "claude"  # alias name of anthropic
     SPARK = "spark"
     ZHIPUAI = "zhipuai"
     FIREWORKS = "fireworks"
@@ -46,6 +47,7 @@ class LLMConfig(YamlModel):
     api_version: Optional[str] = None
 
     model: Optional[str] = None  # also stands for DEPLOYMENT_NAME
+    pricing_plan: Optional[str] = None  # Cost Settlement Plan Parameters.
 
     # For Cloud Service Provider like Baidu/ Alibaba
     access_key: Optional[str] = None

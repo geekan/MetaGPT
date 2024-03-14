@@ -43,6 +43,11 @@ TOKEN_COSTS = {
     "mistral-small-latest": {"prompt": 0.002, "completion": 0.006},
     "mistral-medium-latest": {"prompt": 0.0027, "completion": 0.0081},
     "mistral-large-latest": {"prompt": 0.008, "completion": 0.024},
+    "claude-instant-1.2": {"prompt": 0.0008, "completion": 0.0024},
+    "claude-2.0": {"prompt": 0.008, "completion": 0.024},
+    "claude-2.1": {"prompt": 0.008, "completion": 0.024},
+    "claude-3-sonnet-20240229": {"prompt": 0.003, "completion": 0.015},
+    "claude-3-opus-20240229": {"prompt": 0.015, "completion": 0.075},
 }
 
 
@@ -135,7 +140,6 @@ FIREWORKS_GRADE_TOKEN_COSTS = {
     "mixtral-8x7b": {"prompt": 0.4, "completion": 1.6},
 }
 
-
 TOKEN_MAX = {
     "gpt-3.5-turbo": 4096,
     "gpt-3.5-turbo-0301": 4096,
@@ -167,6 +171,11 @@ TOKEN_MAX = {
     "mistral-small-latest": 32768,
     "mistral-medium-latest": 32768,
     "mistral-large-latest": 32768,
+    "claude-instant-1.2": 100000,
+    "claude-2.0": 100000,
+    "claude-2.1": 200000,
+    "claude-3-sonnet-20240229": 200000,
+    "claude-3-opus-20240229": 200000,
 }
 
 

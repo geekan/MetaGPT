@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from typing import Literal
 
 import numpy as np
 import pandas as pd
@@ -16,9 +17,8 @@ from sklearn.preprocessing import (
 )
 
 from metagpt.tools.tool_registry import register_tool
-from metagpt.tools.tool_type import ToolType
 
-TOOL_TYPE = ToolType.DATA_PREPROCESS.type_name
+TAGS = ["data preprocessing", "machine learning"]
 
 
 class MLProcess:
@@ -85,20 +85,22 @@ class DataPreprocessTool(MLProcess):
         return new_df
 
 
-@register_tool(tool_type=TOOL_TYPE)
+@register_tool(tags=TAGS)
 class FillMissingValue(DataPreprocessTool):
     """
     Completing missing values with simple strategies.
     """
 
-    def __init__(self, features: list, strategy: str = "mean", fill_value=None):
+    def __init__(
+        self, features: list, strategy: Literal["mean", "median", "most_frequent", "constant"] = "mean", fill_value=None
+    ):
         """
         Initialize self.
 
         Args:
             features (list): Columns to be processed.
-            strategy (str, optional): The imputation strategy, notice 'mean' and 'median' can only
-                                      be used for numeric features. Enum: ['mean', 'median', 'most_frequent', 'constant']. Defaults to 'mean'.
+            strategy (Literal["mean", "median", "most_frequent", "constant"], optional): The imputation strategy, notice 'mean' and 'median' can only
+                                      be used for numeric features. Defaults to 'mean'.
             fill_value (int, optional): Fill_value is used to replace all occurrences of missing_values.
                                         Defaults to None.
         """
@@ -106,7 +108,7 @@ class FillMissingValue(DataPreprocessTool):
         self.model = SimpleImputer(strategy=strategy, fill_value=fill_value)
 
 
-@register_tool(tool_type=TOOL_TYPE)
+@register_tool(tags=TAGS)
 class MinMaxScale(DataPreprocessTool):
     """
     Transform features by scaling each feature to a range, which is (0, 1).
@@ -117,7 +119,7 @@ class MinMaxScale(DataPreprocessTool):
         self.model = MinMaxScaler()
 
 
-@register_tool(tool_type=TOOL_TYPE)
+@register_tool(tags=TAGS)
 class StandardScale(DataPreprocessTool):
     """
     Standardize features by removing the mean and scaling to unit variance.
@@ -128,7 +130,7 @@ class StandardScale(DataPreprocessTool):
         self.model = StandardScaler()
 
 
-@register_tool(tool_type=TOOL_TYPE)
+@register_tool(tags=TAGS)
 class MaxAbsScale(DataPreprocessTool):
     """
     Scale each feature by its maximum absolute value.
@@ -139,7 +141,7 @@ class MaxAbsScale(DataPreprocessTool):
         self.model = MaxAbsScaler()
 
 
-@register_tool(tool_type=TOOL_TYPE)
+@register_tool(tags=TAGS)
 class RobustScale(DataPreprocessTool):
     """
     Apply the RobustScaler to scale features using statistics that are robust to outliers.
@@ -150,7 +152,7 @@ class RobustScale(DataPreprocessTool):
         self.model = RobustScaler()
 
 
-@register_tool(tool_type=TOOL_TYPE)
+@register_tool(tags=TAGS)
 class OrdinalEncode(DataPreprocessTool):
     """
     Encode categorical features as ordinal integers.
@@ -161,7 +163,7 @@ class OrdinalEncode(DataPreprocessTool):
         self.model = OrdinalEncoder()
 
 
-@register_tool(tool_type=TOOL_TYPE)
+@register_tool(tags=TAGS)
 class OneHotEncode(DataPreprocessTool):
     """
     Apply one-hot encoding to specified categorical columns, the original columns will be dropped.
@@ -180,7 +182,7 @@ class OneHotEncode(DataPreprocessTool):
         return new_df
 
 
-@register_tool(tool_type=TOOL_TYPE)
+@register_tool(tags=TAGS)
 class LabelEncode(DataPreprocessTool):
     """
     Apply label encoding to specified categorical columns in-place.

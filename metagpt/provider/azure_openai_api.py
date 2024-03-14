@@ -6,8 +6,6 @@
 @Modified By: mashenquan, 2023/11/21. Fix bug: ReadTimeout.
 @Modified By: mashenquan, 2023/12/1. Fix bug: Unclosed connection caused by openai 0.x.
 """
-
-
 from openai import AsyncAzureOpenAI
 from openai._base_client import AsyncHttpxClientWrapper
 
@@ -27,6 +25,7 @@ class AzureOpenAILLM(OpenAILLM):
         # https://learn.microsoft.com/zh-cn/azure/ai-services/openai/how-to/migration?tabs=python-new%2Cdalle-fix
         self.aclient = AsyncAzureOpenAI(**kwargs)
         self.model = self.config.model  # Used in _calc_usage & _cons_kwargs
+        self.pricing_plan = self.config.pricing_plan or self.model
 
     def _make_client_kwargs(self) -> dict:
         kwargs = dict(

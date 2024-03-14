@@ -12,6 +12,7 @@ import logging
 import os
 import re
 import uuid
+from pathlib import Path
 from typing import Callable
 
 import aiohttp.web
@@ -270,3 +271,11 @@ def mermaid_mocker(aiohttp_mocker, mermaid_rsp_cache):
     aiohttp_mocker.rsp_cache = mermaid_rsp_cache
     aiohttp_mocker.check_funcs = check_funcs
     yield check_funcs
+
+
+@pytest.fixture
+def git_dir():
+    """Fixture to get the unittest directory."""
+    git_dir = Path(__file__).parent / f"unittest/{uuid.uuid4().hex}"
+    git_dir.mkdir(parents=True, exist_ok=True)
+    return git_dir

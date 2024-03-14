@@ -11,15 +11,16 @@ from pathlib import Path
 from typing import Optional, Union
 
 import pandas as pd
-from langchain.document_loaders import (
+from langchain.text_splitter import CharacterTextSplitter
+from langchain_community.document_loaders import (
     TextLoader,
     UnstructuredPDFLoader,
     UnstructuredWordDocumentLoader,
 )
-from langchain.text_splitter import CharacterTextSplitter
 from pydantic import BaseModel, ConfigDict, Field
 from tqdm import tqdm
 
+from metagpt.logs import logger
 from metagpt.repo_parser import RepoParser
 
 
@@ -130,9 +131,12 @@ class IndexableDocument(Document):
         if isinstance(data, pd.DataFrame):
             validate_cols(content_col, data)
             return cls(data=data, content=str(data), content_col=content_col, meta_col=meta_col)
-        else:
+        try:
             content = data_path.read_text()
-            return cls(data=data, content=content, content_col=content_col, meta_col=meta_col)
+        except Exception as e:
+            logger.debug(f"Load {str(data_path)} error: {e}")
+            content = ""
+        return cls(data=data, content=content, content_col=content_col, meta_col=meta_col)
 
     def _get_docs_and_metadatas_by_df(self) -> (list, list):
         df = self.data

@@ -23,10 +23,10 @@ import platform
 import re
 import sys
 import traceback
-import typing
 from io import BytesIO
 from pathlib import Path
-from typing import Any, Callable, List, Tuple, Union
+from typing import Any, Callable, List, Literal, Tuple, Union
+from urllib.parse import quote, unquote
 
 import aiofiles
 import loguru
@@ -361,16 +361,6 @@ def parse_recipient(text):
     return ""
 
 
-def create_func_call_config(func_schema: dict) -> dict:
-    """Create new function call config"""
-    tools = [{"type": "function", "function": func_schema}]
-    tool_choice = {"type": "function", "function": {"name": func_schema["name"]}}
-    return {
-        "tools": tools,
-        "tool_choice": tool_choice,
-    }
-
-
 def remove_comments(code_str: str) -> str:
     """Remove comments from code."""
     pattern = r"(\".*?\"|\'.*?\')|(\#.*?$)"
@@ -433,23 +423,109 @@ def is_send_to(message: "Message", addresses: set):
 def any_to_name(val):
     """
     Convert a value to its name by extracting the last part of the dotted path.
-
-    :param val: The value to convert.
-
-    :return: The name of the value.
     """
     return any_to_str(val).split(".")[-1]
 
 
-def concat_namespace(*args) -> str:
-    return ":".join(str(value) for value in args)
+def concat_namespace(*args, delimiter: str = ":") -> str:
+    """Concatenate fields to create a unique namespace prefix.
+
+    Example:
+        >>> concat_namespace('prefix', 'field1', 'field2', delimiter=":")
+        'prefix:field1:field2'
+    """
+    return delimiter.join(str(value) for value in args)
 
 
-def split_namespace(ns_class_name: str) -> List[str]:
-    return ns_class_name.split(":")
+def split_namespace(ns_class_name: str, delimiter: str = ":", maxsplit: int = 1) -> List[str]:
+    """Split a namespace-prefixed name into its namespace-prefix and name parts.
+
+    Example:
+        >>> split_namespace('prefix:classname')
+        ['prefix', 'classname']
+
+        >>> split_namespace('prefix:module:class', delimiter=":", maxsplit=2)
+        ['prefix', 'module', 'class']
+    """
+    return ns_class_name.split(delimiter, maxsplit=maxsplit)
 
 
-def general_after_log(i: "loguru.Logger", sec_format: str = "%0.3f") -> typing.Callable[["RetryCallState"], None]:
+def auto_namespace(name: str, delimiter: str = ":") -> str:
+    """Automatically handle namespace-prefixed names.
+
+    If the input name is empty, returns a default namespace prefix and name.
+    If the input name is not namespace-prefixed, adds a default namespace prefix.
+    Otherwise, returns the input name unchanged.
+
+    Example:
+        >>> auto_namespace('classname')
+        '?:classname'
+
+        >>> auto_namespace('prefix:classname')
+        'prefix:classname'
+
+        >>> auto_namespace('')
+        '?:?'
+
+        >>> auto_namespace('?:custom')
+        '?:custom'
+    """
+    if not name:
+        return f"?{delimiter}?"
+    v = split_namespace(name, delimiter=delimiter)
+    if len(v) < 2:
+        return f"?{delimiter}{name}"
+    return name
+
+
+def add_affix(text: str, affix: Literal["brace", "url", "none"] = "brace"):
+    """Add affix to encapsulate data.
+
+    Example:
+        >>> add_affix("data", affix="brace")
+        '{data}'
+
+        >>> add_affix("example.com", affix="url")
+        '%7Bexample.com%7D'
+
+        >>> add_affix("text", affix="none")
+        'text'
+    """
+    mappings = {
+        "brace": lambda x: "{" + x + "}",
+        "url": lambda x: quote("{" + x + "}"),
+    }
+    encoder = mappings.get(affix, lambda x: x)
+    return encoder(text)
+
+
+def remove_affix(text, affix: Literal["brace", "url", "none"] = "brace"):
+    """Remove affix to extract encapsulated data.
+
+    Args:
+        text (str): The input text with affix to be removed.
+        affix (str, optional): The type of affix used. Defaults to "brace".
+            Supported affix types: "brace" for removing curly braces, "url" for URL decoding within curly braces.
+
+    Returns:
+        str: The text with affix removed.
+
+    Example:
+        >>> remove_affix('{data}', affix="brace")
+        'data'
+
+        >>> remove_affix('%7Bexample.com%7D', affix="url")
+        'example.com'
+
+        >>> remove_affix('text', affix="none")
+        'text'
+    """
+    mappings = {"brace": lambda x: x[1:-1], "url": lambda x: unquote(x)[1:-1]}
+    decoder = mappings.get(affix, lambda x: x)
+    return decoder(text)
+
+
+def general_after_log(i: "loguru.Logger", sec_format: str = "%0.3f") -> Callable[["RetryCallState"], None]:
     """
     Generates a logging function to be used after a call is retried.
 
@@ -636,6 +712,54 @@ def list_files(root: str | Path) -> List[Path]:
     return files
 
 
+def parse_json_code_block(markdown_text: str) -> List[str]:
+    json_blocks = re.findall(r"```json(.*?)```", markdown_text, re.DOTALL)
+    return [v.strip() for v in json_blocks]
+
+
+def remove_white_spaces(v: str) -> str:
+    return re.sub(r"(?<!['\"])\s|(?<=['\"])\s", "", v)
+
+
+async def aread_bin(filename: str | Path) -> bytes:
+    """Read binary file asynchronously.
+
+    Args:
+        filename (Union[str, Path]): The name or path of the file to be read.
+
+    Returns:
+        bytes: The content of the file as bytes.
+
+    Example:
+        >>> content = await aread_bin('example.txt')
+        b'This is the content of the file.'
+
+        >>> content = await aread_bin(Path('example.txt'))
+        b'This is the content of the file.'
+    """
+    async with aiofiles.open(str(filename), mode="rb") as reader:
+        content = await reader.read()
+    return content
+
+
+async def awrite_bin(filename: str | Path, data: bytes):
+    """Write binary file asynchronously.
+
+    Args:
+        filename (Union[str, Path]): The name or path of the file to be written.
+        data (bytes): The binary data to be written to the file.
+
+    Example:
+        >>> await awrite_bin('output.bin', b'This is binary data.')
+
+        >>> await awrite_bin(Path('output.bin'), b'Another set of binary data.')
+    """
+    pathname = Path(filename)
+    pathname.parent.mkdir(parents=True, exist_ok=True)
+    async with aiofiles.open(str(pathname), mode="wb") as writer:
+        await writer.write(data)
+
+
 def is_coroutine_func(func: Callable) -> bool:
     return inspect.iscoroutinefunction(func)
 
@@ -676,3 +800,37 @@ def decode_image(img_url_or_b64: str) -> Image:
         img_data = BytesIO(base64.b64decode(b64_data))
         img = Image.open(img_data)
     return img
+
+
+def process_message(messages: Union[str, Message, list[dict], list[Message], list[str]]) -> list[dict]:
+    """convert messages to list[dict]."""
+    from metagpt.schema import Message
+
+    # 全部转成list
+    if not isinstance(messages, list):
+        messages = [messages]
+
+    # 转成list[dict]
+    processed_messages = []
+    for msg in messages:
+        if isinstance(msg, str):
+            processed_messages.append({"role": "user", "content": msg})
+        elif isinstance(msg, dict):
+            assert set(msg.keys()) == set(["role", "content"])
+            processed_messages.append(msg)
+        elif isinstance(msg, Message):
+            processed_messages.append(msg.to_dict())
+        else:
+            raise ValueError(f"Only support message type are: str, Message, dict, but got {type(messages).__name__}!")
+    return processed_messages
+
+
+def log_and_reraise(retry_state: RetryCallState):
+    logger.error(f"Retry attempts exhausted. Last exception: {retry_state.outcome.exception()}")
+    logger.warning(
+        """
+Recommend going to https://deepwisdom.feishu.cn/wiki/MsGnwQBjiif9c3koSJNcYaoSnu4#part-XdatdVlhEojeAfxaaEZcMV3ZniQ
+See FAQ 5.8
+"""
+    )
+    raise retry_state.outcome.exception()

@@ -4,8 +4,8 @@ import json
 
 from pydantic import BaseModel, Field
 
-from metagpt.actions.mi.ask_review import AskReview, ReviewConst
-from metagpt.actions.mi.write_plan import (
+from metagpt.actions.di.ask_review import AskReview, ReviewConst
+from metagpt.actions.di.write_plan import (
     WritePlan,
     precheck_update_plan_from_rsp,
     update_plan_from_rsp,
@@ -13,6 +13,8 @@ from metagpt.actions.mi.write_plan import (
 from metagpt.logs import logger
 from metagpt.memory import Memory
 from metagpt.schema import Message, Plan, Task, TaskResult
+from metagpt.strategy.task_type import TaskType
+from metagpt.utils.common import remove_comments
 
 STRUCTURAL_CONTEXT = """
 ## User Requirement
@@ -25,6 +27,24 @@ STRUCTURAL_CONTEXT = """
 {current_task}
 """
 
+PLAN_STATUS = """
+## Finished Tasks
+### code
+```python
+{code_written}
+```
+
+### execution result
+{task_results}
+
+## Current Task
+{current_task}
+
+## Task Guidance
+Write complete code for 'Current Task'. And avoid duplicating code from 'Finished Tasks', such as repeated import of packages, reading data, etc.
+Specifically, {guidance}
+"""
+
 
 class Planner(BaseModel):
     plan: Plan
@@ -32,7 +52,6 @@ class Planner(BaseModel):
         default_factory=Memory
     )  # memory for working on each task, discarded each time a task is done
     auto_run: bool = False
-    use_tools: bool = False
 
     def __init__(self, goal: str = "", plan: Plan = None, **kwargs):
         plan = plan or Plan(goal=goal)
@@ -53,7 +72,7 @@ class Planner(BaseModel):
         plan_confirmed = False
         while not plan_confirmed:
             context = self.get_useful_memories()
-            rsp = await WritePlan().run(context, max_tasks=max_tasks, use_tools=self.use_tools)
+            rsp = await WritePlan().run(context, max_tasks=max_tasks)
             self.working_memory.add(Message(content=rsp, role="assistant", cause_by=WritePlan))
 
             # precheck plan before asking reviews
@@ -137,3 +156,23 @@ class Planner(BaseModel):
         context_msg = [Message(content=context, role="user")]
 
         return context_msg + self.working_memory.get()
+
+    def get_plan_status(self) -> str:
+        # prepare components of a plan status
+        finished_tasks = self.plan.get_finished_tasks()
+        code_written = [remove_comments(task.code) for task in finished_tasks]
+        code_written = "\n\n".join(code_written)
+        task_results = [task.result for task in finished_tasks]
+        task_results = "\n\n".join(task_results)
+        task_type_name = self.current_task.task_type.upper()
+        guidance = TaskType[task_type_name].value.guidance if hasattr(TaskType, task_type_name) else ""
+
+        # combine components in a prompt
+        prompt = PLAN_STATUS.format(
+            code_written=code_written,
+            task_results=task_results,
+            current_task=self.current_task.instruction,
+            guidance=guidance,
+        )
+
+        return prompt

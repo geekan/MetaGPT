@@ -3,8 +3,16 @@ llm:
   base_url: "YOUR_BASE_URL"
   api_key: "YOUR_API_KEY"
   model: "gpt-4-turbo-preview"  # or gpt-3.5-turbo-1106 / gpt-4-1106-preview
-  repair_llm_output: true  # when the output is not a valid json, try to repair it
   proxy: "YOUR_PROXY"  # for LLM API requests
+  pricing_plan: "" # Optional. If invalid, it will be automatically filled in with the value of the `model`.
+  # Azure-exclusive pricing plan mappings：
+  # - gpt-3.5-turbo 4k: "gpt-3.5-turbo-1106"
+  # - gpt-4-turbo: "gpt-4-turbo-preview"
+  # - gpt-4-turbo-vision: "gpt-4-vision-preview"
+  # - gpt-4 8k: "gpt-4"
+  # See for more: https://azure.microsoft.com/en-us/pricing/details/cognitive-services/openai-service/
+
+repair_llm_output: true  # when the output is not a valid json, try to repair it
 
 proxy: "YOUR_PROXY"  # for tools like requests, playwright, selenium, etc.
 
