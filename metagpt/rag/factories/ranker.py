@@ -4,11 +4,11 @@ from llama_index.core.llms import LLM
 from llama_index.core.postprocessor import LLMRerank
 from llama_index.core.postprocessor.types import BaseNodePostprocessor
 
-from metagpt.rag.factories.base import ConfigFactory
+from metagpt.rag.factories.base import RAGConfigRegistry
 from metagpt.rag.schema import BaseRankerConfig, LLMRankerConfig
 
 
-class RankerFactory(ConfigFactory):
+class RankerFactory(RAGConfigRegistry):
     """Modify creators for dynamically instance implementation."""
 
     def __init__(self):

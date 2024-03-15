@@ -8,7 +8,7 @@ from llama_index.core import StorageContext, VectorStoreIndex
 from llama_index.core.vector_stores.types import BasePydanticVectorStore
 from llama_index.vector_stores.faiss import FaissVectorStore
 
-from metagpt.rag.factories.base import ConfigFactory
+from metagpt.rag.factories.base import RAGConfigRegistry
 from metagpt.rag.retrievers.base import RAGRetriever
 from metagpt.rag.retrievers.bm25_retriever import DynamicBM25Retriever
 from metagpt.rag.retrievers.chroma_retriever import ChromaRetriever
@@ -24,7 +24,7 @@ from metagpt.rag.schema import (
 from metagpt.rag.vector_stores.chroma import ChromaVectorStore
 
 
-class RetrieverFactory(ConfigFactory):
+class RetrieverFactory(RAGConfigRegistry):
     """Modify creators for dynamically instance implementation."""
 
     def __init__(self):

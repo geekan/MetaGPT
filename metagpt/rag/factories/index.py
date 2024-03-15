@@ -6,7 +6,7 @@ from llama_index.core.embeddings import BaseEmbedding
 from llama_index.core.indices.base import BaseIndex
 from llama_index.vector_stores.faiss import FaissVectorStore
 
-from metagpt.rag.factories.base import ConfigFactory
+from metagpt.rag.factories.base import RAGConfigRegistry
 from metagpt.rag.schema import (
     BaseIndexConfig,
     BM25IndexConfig,
@@ -16,7 +16,7 @@ from metagpt.rag.schema import (
 from metagpt.rag.vector_stores.chroma import ChromaVectorStore
 
 
-class RAGIndexFactory(ConfigFactory):
+class RAGIndexFactory(RAGConfigRegistry):
     def __init__(self):
         creators = {
             FAISSIndexConfig: self._create_faiss,

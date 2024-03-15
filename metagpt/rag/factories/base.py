@@ -29,7 +29,7 @@ class GenericFactory:
         raise ValueError(f"Creator not registered for key: {key}")
 
 
-class ConfigFactory(GenericFactory):
+class RAGConfigRegistry(GenericFactory):
     """Designed to get objects based on object type."""
 
     def get_instance(self, key: Any, **kwargs) -> Any:
