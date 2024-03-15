@@ -122,14 +122,15 @@ class RAGExample:
 
         logger.info("[After add objs]")
         self.engine.add_objs([player])
-        nodes = await self._retrieve_and_print(question)
 
-        logger.info("[Object Detail]")
         try:
+            nodes = await self._retrieve_and_print(question)
+
+            logger.info("[Object Detail]")
             player: Player = nodes[0].metadata["obj"]
             logger.info(player.name)
         except Exception as e:
-            logger.info(f"ERROR: nodes is empty, llm don't answer correctly, exception: {e}")
+            logger.error(f"nodes is empty, llm don't answer correctly, exception: {e}")
 
     async def rag_ini_objs(self):
         """This example show how to from objs, will print something like:
