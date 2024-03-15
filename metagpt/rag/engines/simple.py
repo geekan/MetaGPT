@@ -151,7 +151,7 @@ class SimpleEngine(RetrieverQueryEngine):
         retriever_configs: list[BaseRetrieverConfig] = None,
         ranker_configs: list[BaseRankerConfig] = None,
     ) -> "SimpleEngine":
-        """Load from previously maintained"""
+        """Load from previously maintained index by self.persist(), index_config contains persis_path."""
         index = get_index(index_config, embed_model=cls._resolve_embed_model(embed_model, [index_config]))
         return cls._from_index(index, llm=llm, retriever_configs=retriever_configs, ranker_configs=ranker_configs)
 
