@@ -23,6 +23,7 @@ import platform
 import re
 import sys
 import traceback
+import asyncio
 from io import BytesIO
 from pathlib import Path
 from typing import Any, Callable, List, Literal, Tuple, Union
@@ -625,6 +626,8 @@ def serialize_decorator(func):
             return result
         except KeyboardInterrupt:
             logger.error(f"KeyboardInterrupt occurs, start to serialize the project, exp:\n{format_trackback_info()}")
+        except asyncio.CancelledError:
+            logger.error(f"KeyboardInterrupt occured inside async call, start to serialize the project, exp:\n{format_trackback_info()}")
         except Exception:
             logger.error(f"Exception occurs, start to serialize the project, exp:\n{format_trackback_info()}")
         self.serialize()  # Team.serialize
