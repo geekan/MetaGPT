@@ -1,6 +1,6 @@
 import pytest
 
-from metagpt.rag.factories.base import GenericFactory, RAGConfigRegistry
+from metagpt.rag.factories.base import ConfigBasedFactory, GenericFactory
 
 
 class TestGenericFactory:
@@ -55,7 +55,7 @@ class DummyConfig:
         self.name = name
 
 
-class TestRAGConfigRegistry:
+class TestConfigBasedFactory:
     @pytest.fixture
     def config_creators(self):
         return {
@@ -64,7 +64,7 @@ class TestRAGConfigRegistry:
 
     @pytest.fixture
     def config_factory(self, config_creators):
-        return RAGConfigRegistry(creators=config_creators)
+        return ConfigBasedFactory(creators=config_creators)
 
     def test_get_instance_success(self, config_factory):
         # Test successful retrieval of an instance
@@ -85,18 +85,18 @@ class TestRAGConfigRegistry:
     def test_val_from_config_or_kwargs_priority(self):
         # Test that the value from the config object has priority over kwargs
         config = DummyConfig(name="ConfigName")
-        result = RAGConfigRegistry._val_from_config_or_kwargs("name", config, name="KwargsName")
+        result = ConfigBasedFactory._val_from_config_or_kwargs("name", config, name="KwargsName")
         assert result == "ConfigName"
 
     def test_val_from_config_or_kwargs_fallback_to_kwargs(self):
         # Test fallback to kwargs when config object does not have the value
         config = DummyConfig(name=None)
-        result = RAGConfigRegistry._val_from_config_or_kwargs("name", config, name="KwargsName")
+        result = ConfigBasedFactory._val_from_config_or_kwargs("name", config, name="KwargsName")
         assert result == "KwargsName"
 
     def test_val_from_config_or_kwargs_key_error(self):
         # Test KeyError when the key is not found in both config object and kwargs
         config = DummyConfig(name=None)
         with pytest.raises(KeyError) as exc_info:
-            RAGConfigRegistry._val_from_config_or_kwargs("missing_key", config)
+            ConfigBasedFactory._val_from_config_or_kwargs("missing_key", config)
         assert "The key 'missing_key' is required but not provided" in str(exc_info.value)

@@ -68,8 +68,8 @@ class RAGExample:
 
     async def rag_add_docs(self):
         """This example show how to add docs.
-        before add docs llm anwser I don't know
-        after add docs llm give the correct answer, will print something like:
+        Before add docs llm anwser I don't know.
+        After add docs llm give the correct answer, will print something like:
 
         [Before add docs]
         Retrieve Result:
@@ -98,8 +98,8 @@ class RAGExample:
 
     async def rag_add_objs(self, print_title=True):
         """This example show how to add objs.
-        before add docs engine retrieve nothing.
-        after add objs engine give the correct answer, will print something like:
+        Before add docs engine retrieve nothing.
+        After add objs engine give the correct answer, will print something like:
 
         [Before add objs]
         Retrieve Result:
