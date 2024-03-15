@@ -3,7 +3,7 @@
 Refs to https://github.com/run-llama/llama_index/blob/v0.10.12/llama-index-integrations/vector_stores/llama-index-vector-stores-chroma/llama_index/vector_stores/chroma/base.py.
 The repo requires onnxruntime = "^1.17.0", which is too new for many OS systems, such as CentOS7.
 """
-import logging
+
 import math
 from typing import Any, Dict, Generator, List, Optional, cast
 
@@ -24,7 +24,7 @@ from llama_index.core.vector_stores.utils import (
     node_to_metadata_dict,
 )
 
-logger = logging.getLogger(__name__)
+from metagpt.logs import logger
 
 
 def _transform_chroma_filter_condition(condition: str) -> str:
