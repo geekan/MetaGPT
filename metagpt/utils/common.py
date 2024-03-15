@@ -624,10 +624,8 @@ def serialize_decorator(func):
         try:
             result = await func(self, *args, **kwargs)
             return result
-        except KeyboardInterrupt:
+        except (asyncio.CancelledError, KeyboardInterrupt):
             logger.error(f"KeyboardInterrupt occurs, start to serialize the project, exp:\n{format_trackback_info()}")
-        except asyncio.CancelledError:
-            logger.error(f"KeyboardInterrupt occured inside async call, start to serialize the project, exp:\n{format_trackback_info()}")
         except Exception:
             logger.error(f"Exception occurs, start to serialize the project, exp:\n{format_trackback_info()}")
         self.serialize()  # Team.serialize
