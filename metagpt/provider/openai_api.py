@@ -142,7 +142,7 @@ class OpenAILLM(BaseLLM):
     async def acompletion_text(self, messages: list[dict], stream=False, timeout=3) -> str:
         """when streaming, print each token in place."""
         if stream:
-            await self._achat_completion_stream(messages, timeout=timeout)
+            return await self._achat_completion_stream(messages, timeout=timeout)
 
         rsp = await self._achat_completion(messages, timeout=timeout)
         return self.get_choice_text(rsp)
