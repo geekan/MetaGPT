@@ -100,6 +100,20 @@ class Config(CLIParams, YamlModel):
         final = merge_dict(dicts)
         return Config(**final)
 
+    @classmethod
+    def from_llm_config(cls, llm_config: dict):
+        """user config llm
+        example:
+        llm_config = {"api_type": "xxx", "api_key": "xxx", "model": "xxx"}
+        gpt4 = Config.from_llm_config(llm_config)
+        A = Role(name="A", profile="Democratic candidate", goal="Win the election", actions=[a1], watch=[a2], config=gpt4)
+        """
+        llm_config = LLMConfig.model_validate(llm_config)
+        dicts = [dict(os.environ)]
+        dicts += [{"llm": llm_config}]
+        final = merge_dict(dicts)
+        return Config(**final)
+
     def update_via_cli(self, project_path, project_name, inc, reqa_file, max_auto_summarize_code):
         """update config via cli"""
 
