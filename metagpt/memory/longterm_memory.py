@@ -66,8 +66,8 @@ class LongTermMemory(Memory):
                 ltm_news.append(mem)
         return ltm_news[-k:]
 
-    def persit(self):
-        self.memory_storage.persit()
+    def persist(self):
+        self.memory_storage.persist()
 
     def delete(self, message: Message):
         super().delete(message)

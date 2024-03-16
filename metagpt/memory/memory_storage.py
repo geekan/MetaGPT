@@ -72,6 +72,6 @@ class MemoryStorage(object):
         shutil.rmtree(self.cache_dir, ignore_errors=True)
         self._initialized = False
 
-    def persit(self):
+    def persist(self):
         if self.faiss_engine:
             self.faiss_engine.retriever._index.storage_context.persist(self.cache_dir)
