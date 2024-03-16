@@ -11,6 +11,7 @@ from metagpt.utils.common import CodeParser
 class ReviewConst:
     TASK_REVIEW_TRIGGER = "task"
     CODE_REVIEW_TRIGGER = "code"
+    PLAN_REVIEW_TRIGGER = "plan"
     CONTINUE_WORDS = ["confirm", "continue", "c", "yes", "y"]
     CHANGE_WORDS = ["change"]
     EXIT_WORDS = ["exit"]
@@ -28,7 +29,7 @@ class ReviewConst:
     )
     EXIT_INSTRUCTION = f"If you want to terminate the process, type: {EXIT_WORDS[0]}"
     SYS_MSG = (
-        "You are very good at reflecting and reviewing any code, task, and plan, {instruction}"
+        "You are very good at reviewing any code, task, and plan, {instruction}"
         "your reflecting and reviewing result must start with '```\n' and end with '\n```', like ```\nconfirm\n```"
         "**Notice: The starting word in your suggestions must be one of the following:"
         f"{CHANGE_WORDS[0]}, {CONTINUE_WORDS[0]}, {GOAL_FINISHED_WORDS[0]}, {REDO_WORDS[0]} **"
@@ -37,6 +38,18 @@ class ReviewConst:
         "The task code execution failed, we need your help, please provide new solution ideas,"
         f"or type {EXIT_WORDS[0]} to terminate the code"
     )
+    PLAN_REVIEW_INSTRUCTION = (
+        "You first determine the requirement type and analyze the necessary information and tasks to complete it."
+        "Analyze what are the common unknown information that need to be explored, and whether there are tasks to explore it."
+        "Then, review the reasonableness of the tasks orders and relations in the plan."
+        f"If you confirm the plan, respond: ```\nconfirm\n```,"
+        f"If you want make new plan, respond: ```\n{CHANGE_WORDS[0]}, (your review result)\n```,"
+    )
+    INSTRUCTIONS = {
+        TASK_REVIEW_TRIGGER: TASK_REVIEW_INSTRUCTION,
+        CODE_REVIEW_TRIGGER: CODE_REVIEW_INSTRUCTION,
+        PLAN_REVIEW_TRIGGER: PLAN_REVIEW_INSTRUCTION,
+    }
 
 
 class AskReview(Action):
@@ -57,11 +70,8 @@ class AskReview(Action):
 
         logger.info("Most recent context:")
         latest_action = context[-1].cause_by if context and context[-1].cause_by else ""
-        review_instruction = (
-            ReviewConst.TASK_REVIEW_INSTRUCTION
-            if trigger == ReviewConst.TASK_REVIEW_TRIGGER
-            else ReviewConst.CODE_REVIEW_INSTRUCTION
-        )
+        review_instruction = ReviewConst.INSTRUCTIONS[trigger]
+
         prompt = (
             f"This is a <{trigger}> review. Please review output from {latest_action}\n"
             f"{review_instruction}\n"
@@ -89,7 +99,10 @@ class AskReview(Action):
 
         # Confirmation can be one of "confirm", "continue", "c", "yes", "y" exactly, or sentences containing "confirm".
         # One could say "confirm this task, but change the next task to ..."
-        confirmed = rsp.lower() in ReviewConst.CONTINUE_WORDS or ReviewConst.CONTINUE_WORDS[0] in rsp.lower()
+        if review_type == "human":
+            confirmed = rsp.lower() in ReviewConst.CONTINUE_WORDS or ReviewConst.CONTINUE_WORDS[0] in rsp.lower()
+        else:
+            confirmed = rsp.lower().startswith("confirm")
 
         logger.info(f"Ask Review Result: `{rsp}` for above phase.")
         return rsp, confirmed
