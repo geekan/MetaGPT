@@ -46,7 +46,7 @@ class RAGExample:
             ranker_configs=[LLMRankerConfig()],
         )
 
-    async def rag_pipeline(self, question=QUESTION, print_title=True):
+    async def run_pipeline(self, question=QUESTION, print_title=True):
         """This example run rag pipeline, use faiss&bm25 retriever and llm ranker, will print something like:
 
         Retrieve Result:
@@ -58,7 +58,7 @@ class RAGExample:
         Passion, adaptability, open-mindedness, creativity, discipline, and empathy are key qualities to be a good writer.
         """
         if print_title:
-            self._print_title("RAG Pipeline")
+            self._print_title("Run Pipeline")
 
         nodes = await self.engine.aretrieve(question)
         self._print_retrieve_result(nodes)
@@ -66,8 +66,9 @@ class RAGExample:
         answer = await self.engine.aquery(question)
         self._print_query_result(answer)
 
-    async def rag_add_docs(self):
+    async def add_docs(self):
         """This example show how to add docs.
+
         Before add docs llm anwser I don't know.
         After add docs llm give the correct answer, will print something like:
 
@@ -84,22 +85,23 @@ class RAGExample:
         Query Result:
         Bob likes traveling.
         """
-        self._print_title("RAG Add Docs")
+        self._print_title("Add Docs")
 
         travel_question = f"{TRAVEL_QUESTION}{LLM_TIP}"
         travel_filepath = TRAVEL_DOC_PATH
 
         logger.info("[Before add docs]")
-        await self.rag_pipeline(question=travel_question, print_title=False)
+        await self.run_pipeline(question=travel_question, print_title=False)
 
         logger.info("[After add docs]")
         self.engine.add_docs([travel_filepath])
-        await self.rag_pipeline(question=travel_question, print_title=False)
+        await self.run_pipeline(question=travel_question, print_title=False)
 
-    async def rag_add_objs(self, print_title=True):
-        """This example show how to add objs.
-        Before add docs engine retrieve nothing.
-        After add objs engine give the correct answer, will print something like:
+    async def add_objects(self, print_title=True):
+        """This example show how to add objects.
+
+        Before add docs, engine retrieve nothing.
+        After add objects, engine give the correct answer, will print something like:
 
         [Before add objs]
         Retrieve Result:
@@ -112,7 +114,7 @@ class RAGExample:
         {'name': 'Mike', 'goal': 'Win The 100-meter Sprint', 'tool': 'Red Bull Energy Drink'}
         """
         if print_title:
-            self._print_title("RAG Add Objs")
+            self._print_title("Add Objects")
 
         player = Player(name="Mike")
         question = f"{player.rag_key()}"
@@ -132,25 +134,25 @@ class RAGExample:
         except Exception as e:
             logger.error(f"nodes is empty, llm don't answer correctly, exception: {e}")
 
-    async def rag_ini_objs(self):
+    async def init_objects(self):
         """This example show how to from objs, will print something like:
 
-        Same as rag_add_objs
+        Same as add_objects.
         """
-        self._print_title("RAG Ini Objs")
+        self._print_title("Init Objects")
 
         pre_engine = self.engine
         self.engine = SimpleEngine.from_objs(retriever_configs=[FAISSRetrieverConfig()])
-        await self.rag_add_objs(print_title=False)
+        await self.add_objects(print_title=False)
         self.engine = pre_engine
 
-    async def rag_chromadb(self):
+    async def init_and_query_chromadb(self):
         """This example show how to use chromadb. how to save and load index. will print something like:
 
         Query Result:
         Bob likes traveling.
         """
-        self._print_title("RAG ChromaDB")
+        self._print_title("Init And Query ChromaDB")
 
         # save index
         output_dir = DATA_PATH / "rag"
@@ -198,11 +200,11 @@ class RAGExample:
 async def main():
     """RAG pipeline"""
     e = RAGExample()
-    await e.rag_pipeline()
-    await e.rag_add_docs()
-    await e.rag_add_objs()
-    await e.rag_ini_objs()
-    await e.rag_chromadb()
+    await e.run_pipeline()
+    await e.add_docs()
+    await e.add_objects()
+    await e.init_objects()
+    await e.init_and_query_chromadb()
 
 
 if __name__ == "__main__":
