@@ -74,4 +74,4 @@ async def test_llm_review_plan(unreasonable_plan):
     )
     print(rsp)
     assert not confirmed
-    assert rsp.startswith(("redo", "change"))
+    assert rsp.startswith("change")
