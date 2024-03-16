@@ -45,7 +45,7 @@ class AskReview(Action):
         context: list[Message] = [],
         plan: Plan = None,
         trigger: str = ReviewConst.TASK_REVIEW_TRIGGER,
-        review_type: Literal["human", "llm", "disabled"] = "llm",
+        review_type: Literal["human", "llm", "disabled"] = "disabled",
     ) -> Tuple[str, bool]:
         if plan:
             logger.info("Current overall plan:")

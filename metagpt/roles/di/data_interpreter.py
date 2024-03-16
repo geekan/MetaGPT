@@ -35,7 +35,7 @@ Output a json following the format:
 class DataInterpreter(Role):
     name: str = "David"
     profile: str = "DataInterpreter"
-    auto_run: bool = True
+    review_type: Literal["human", "llm", "disabled"] = "disabled"
     use_plan: bool = True
     use_reflection: bool = False
     execute_code: ExecuteNbCode = Field(default_factory=ExecuteNbCode, exclude=True)
@@ -45,8 +45,10 @@ class DataInterpreter(Role):
     max_react_loop: int = 10  # used for react mode
 
     @model_validator(mode="after")
-    def set_plan_and_tool(self) -> "Interpreter":
-        self._set_react_mode(react_mode=self.react_mode, max_react_loop=self.max_react_loop, auto_run=self.auto_run)
+    def set_plan_and_tool(self) -> "DataInterpreter":
+        self._set_react_mode(
+            react_mode=self.react_mode, max_react_loop=self.max_react_loop, review_type=self.review_type
+        )
         self.use_plan = (
             self.react_mode == "plan_and_act"
         )  # create a flag for convenience, overwrite any passed-in value
