@@ -31,11 +31,11 @@ from llama_index.core.schema import (
 from metagpt.rag.factories import (
     get_index,
     get_rag_embedding,
+    get_rag_llm,
     get_rankers,
     get_retriever,
 )
 from metagpt.rag.interface import NoEmbedding, RAGObject
-from metagpt.rag.llm import get_rag_llm
 from metagpt.rag.retrievers.base import ModifiableRAGRetriever, PersistableRAGRetriever
 from metagpt.rag.retrievers.hybrid_retriever import SimpleHybridRetriever
 from metagpt.rag.schema import (
