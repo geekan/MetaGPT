@@ -637,7 +637,7 @@ def role_raise_decorator(func):
     async def wrapper(self, *args, **kwargs):
         try:
             return await func(self, *args, **kwargs)
-        except KeyboardInterrupt as kbi:
+        except (asyncio.CancelledError, KeyboardInterrupt) as kbi:
             logger.error(f"KeyboardInterrupt: {kbi} occurs, start to serialize the project")
             if self.latest_observed_msg:
                 self.rc.memory.delete(self.latest_observed_msg)
