@@ -101,10 +101,8 @@ class ObjectNodeMetadata(BaseModel):
     """Metadata of ObjectNode."""
 
     is_obj: bool = Field(default=True)
-    obj: Any = Field(default=None, description="When retrieve, will reconstruct obj from obj_json")
-    obj_json: str = Field(
-        ..., description="Inplement rag.interface.RAGObject.model_dump_json(), e.g. obj.model_dump_json()"
-    )
+    obj: Any = Field(default=None, description="When rag retrieve, will reconstruct obj from obj_json")
+    obj_json: str = Field(..., description="The json of object, e.g. obj.model_dump_json()")
     obj_cls_name: str = Field(..., description="The class name of object, e.g. obj.__class__.__name__")
     obj_mod_name: str = Field(..., description="The module name of class, e.g. obj.__class__.__module__")
 
