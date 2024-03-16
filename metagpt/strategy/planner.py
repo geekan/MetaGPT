@@ -52,7 +52,7 @@ class Planner(BaseModel):
     working_memory: Memory = Field(
         default_factory=Memory
     )  # memory for working on each task, discarded each time a task is done
-    review_type: Literal["human", "llm", "disabled"] = ("llm",)
+    review_type: Literal["human", "llm", "disabled"] = "disabled"
     use_tools: bool = False
 
     def __init__(self, goal: str = "", plan: Plan = None, **kwargs):
@@ -114,7 +114,7 @@ class Planner(BaseModel):
     async def ask_review(
         self,
         task_result: TaskResult = None,
-        review_type: Literal["human", "llm", "disabled"] = "llm",
+        review_type: Literal["human", "llm", "disabled"] = "disabled",
         trigger: str = ReviewConst.TASK_REVIEW_TRIGGER,
         review_context_len: int = 5,
     ):
@@ -139,9 +139,8 @@ class Planner(BaseModel):
             context=context,
             plan=self.plan,
             trigger=trigger,
-            review_type=review_type
-            if task_result
-            else "disabled",  # llm模式下, 不对plan进行review, 只有在plan review时task_result为None.
+            # 暂时不对plan进行review.
+            review_type=review_type if task_result else "disabled",  # 当task_result为None，说明是在review plan.
         )
 
         if not confirmed:
