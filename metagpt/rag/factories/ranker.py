@@ -24,12 +24,12 @@ class RankerFactory(ConfigBasedFactory):
 
         return super().get_instances(configs, **kwargs)
 
-    def _extract_llm(self, config: BaseRankerConfig = None, **kwargs) -> LLM:
-        return self._val_from_config_or_kwargs("llm", config, **kwargs)
-
     def _create_llm_ranker(self, config: LLMRankerConfig, **kwargs) -> LLMRerank:
         config.llm = self._extract_llm(config, **kwargs)
         return LLMRerank(**config.model_dump())
+
+    def _extract_llm(self, config: BaseRankerConfig = None, **kwargs) -> LLM:
+        return self._val_from_config_or_kwargs("llm", config, **kwargs)
 
 
 get_rankers = RankerFactory().get_rankers

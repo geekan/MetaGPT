@@ -50,21 +50,6 @@ class RetrieverFactory(ConfigBasedFactory):
     def _create_default(self, **kwargs) -> RAGRetriever:
         return self._extract_index(**kwargs).as_retriever()
 
-    def _extract_index(self, config: BaseRetrieverConfig = None, **kwargs) -> VectorStoreIndex:
-        return self._val_from_config_or_kwargs("index", config, **kwargs)
-
-    def _build_index_from_vector_store(
-        self, config: IndexRetrieverConfig, vector_store: BasePydanticVectorStore, **kwargs
-    ) -> VectorStoreIndex:
-        storage_context = StorageContext.from_defaults(vector_store=vector_store)
-        old_index = self._extract_index(config, **kwargs)
-        new_index = VectorStoreIndex(
-            nodes=list(old_index.docstore.docs.values()),
-            storage_context=storage_context,
-            embed_model=old_index._embed_model,
-        )
-        return new_index
-
     def _create_faiss_retriever(self, config: FAISSRetrieverConfig, **kwargs) -> FAISSRetriever:
         vector_store = FaissVectorStore(faiss_index=faiss.IndexFlatL2(config.dimensions))
         config.index = self._build_index_from_vector_store(config, vector_store, **kwargs)
@@ -81,6 +66,21 @@ class RetrieverFactory(ConfigBasedFactory):
         vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
         config.index = self._build_index_from_vector_store(config, vector_store, **kwargs)
         return ChromaRetriever(**config.model_dump())
+
+    def _extract_index(self, config: BaseRetrieverConfig = None, **kwargs) -> VectorStoreIndex:
+        return self._val_from_config_or_kwargs("index", config, **kwargs)
+
+    def _build_index_from_vector_store(
+        self, config: IndexRetrieverConfig, vector_store: BasePydanticVectorStore, **kwargs
+    ) -> VectorStoreIndex:
+        storage_context = StorageContext.from_defaults(vector_store=vector_store)
+        old_index = self._extract_index(config, **kwargs)
+        new_index = VectorStoreIndex(
+            nodes=list(old_index.docstore.docs.values()),
+            storage_context=storage_context,
+            embed_model=old_index._embed_model,
+        )
+        return new_index
 
 
 get_retriever = RetrieverFactory().get_retriever

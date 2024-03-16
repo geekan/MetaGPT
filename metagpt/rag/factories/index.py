@@ -29,9 +29,6 @@ class RAGIndexFactory(ConfigBasedFactory):
         """Key is PersistType."""
         return super().get_instance(config, **kwargs)
 
-    def _extract_embed_model(self, config, **kwargs) -> BaseEmbedding:
-        return self._val_from_config_or_kwargs("embed_model", config, **kwargs)
-
     def _create_faiss(self, config: FAISSIndexConfig, **kwargs) -> VectorStoreIndex:
         embed_model = self._extract_embed_model(config, **kwargs)
 
@@ -58,6 +55,9 @@ class RAGIndexFactory(ConfigBasedFactory):
         storage_context = StorageContext.from_defaults(persist_dir=config.persist_path)
         index = load_index_from_storage(storage_context=storage_context, embed_model=embed_model)
         return index
+
+    def _extract_embed_model(self, config, **kwargs) -> BaseEmbedding:
+        return self._val_from_config_or_kwargs("embed_model", config, **kwargs)
 
 
 get_index = RAGIndexFactory().get_index
