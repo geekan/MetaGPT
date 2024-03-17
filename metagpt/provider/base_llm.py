@@ -231,3 +231,23 @@ class BaseLLM(ABC):
     def messages_to_dict(self, messages):
         """objects to [{"role": "user", "content": msg}] etc."""
         return [i.to_dict() for i in messages]
+
+    def process_message(self, messages: Union[str, Message, list[dict], list[Message], list[str]]) -> list[dict]:
+        """convert messages to list[dict]."""
+        # 全部转成list
+        if not isinstance(messages, list):
+            messages = [messages]
+
+        # 转成list[dict]
+        processed_messages = []
+        for msg in messages:
+            if isinstance(msg, str):
+                processed_messages.append({"role": "user", "content": msg})
+            elif isinstance(msg, dict):
+                assert set(msg.keys()) == set(["role", "content"])
+                processed_messages.append(msg)
+            elif isinstance(msg, Message):
+                processed_messages.append(msg.to_dict())
+            else:
+                raise ValueError(f"Only support message type are: str, Message, dict, but got {type(messages).__name__}!")
+        return processed_messages

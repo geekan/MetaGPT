@@ -33,7 +33,6 @@ from metagpt.utils.common import (
     CodeParser,
     decode_image,
     log_and_reraise,
-    process_message,
 )
 from metagpt.utils.cost_manager import CostManager
 from metagpt.utils.exceptions import handle_exception
@@ -150,7 +149,7 @@ class OpenAILLM(BaseLLM):
     async def _achat_completion_function(
         self, messages: list[dict], timeout: int = 3, **chat_configs
     ) -> ChatCompletion:
-        messages = process_message(messages)
+        messages = self.process_message(messages)
         kwargs = self._cons_kwargs(messages=messages, timeout=timeout, **chat_configs)
         rsp: ChatCompletion = await self.aclient.chat.completions.create(**kwargs)
         self._update_costs(rsp.usage)

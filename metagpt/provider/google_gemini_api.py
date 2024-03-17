@@ -18,6 +18,7 @@ from metagpt.configs.llm_config import LLMConfig, LLMType
 from metagpt.logs import log_llm_stream
 from metagpt.provider.base_llm import BaseLLM
 from metagpt.provider.llm_provider_registry import register_provider
+from metagpt.schema import Message
 
 
 class GeminiGenerativeModel(GenerativeModel):
@@ -112,3 +113,14 @@ class GeminiLLM(BaseLLM):
         usage = await self.aget_usage(messages, full_content)
         self._update_costs(usage)
         return full_content
+
+    def process_message(self, messages: Union[str, Message, list[dict], list[Message], list[str]]) -> list[dict]:
+        """convert messages to list[dict]."""
+        processed_messages = super().process_message(messages)
+
+        # Modify the processed messages as needed for Gemini
+        for msg in processed_messages:
+            if 'content' in msg:
+                msg['parts'] = msg.pop('content')
+
+        return processed_messages

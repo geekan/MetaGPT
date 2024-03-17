@@ -18,7 +18,8 @@ from metagpt.prompts.di.write_analysis_code import (
     STRUCTUAL_PROMPT,
 )
 from metagpt.schema import Message, Plan
-from metagpt.utils.common import CodeParser, process_message, remove_comments
+from metagpt.utils.common import CodeParser, remove_comments
+from metagpt.provider.base_llm import BaseLLM
 
 
 class WriteAnalysisCode(Action):
@@ -50,7 +51,7 @@ class WriteAnalysisCode(Action):
         )
 
         working_memory = working_memory or []
-        context = process_message([Message(content=structual_prompt, role="user")] + working_memory)
+        context = self.llm.process_message([Message(content=structual_prompt, role="user")] + working_memory)
 
         # LLM call
         if use_reflection:
